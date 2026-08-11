@@ -891,9 +891,11 @@ so a stale entry sends an already-shared legacy URL to a 404. Run
 
 ```bash
 node scripts/replications/migrate-article-media.mjs \
-  --inventory=<path to article-embedded-media-inventory.json>
+  --inventory=<path to article-embedded-media-inventory.json> \
+  --uploads-dir=<directory the decisions file's upload paths are relative to>
 node scripts/replications/migrate-article-media.mjs \
-  --inventory=<path> --write --confirm-write=migrate-article-embedded-media \
+  --inventory=<path> --uploads-dir=<path> \
+  --write --confirm-write=migrate-article-embedded-media \
   --confirm-media-migration --expected-deployment=glad-minnow-656 \
   --target-url=https://glad-minnow-656.convex.cloud --limit=5
 ```
@@ -922,6 +924,17 @@ skipped, and `type`, `format` and dimensions come from the asset's actual bytes
 rather than the inventory's `media_kind`, which reads `image/video` for every
 animated asset and cannot be trusted for either field. `--limit` inserts a batch
 at a time.
+
+Some assets have no Convex object to point at: they were recovered from the live
+web after their original host died, and `--uploads-dir` is where those files sit.
+`ownerRulings.uploads` in the decisions file pins each one by `sha-256` and
+states the content type its own container signature must produce, so a file that
+has drifted fails closed rather than becoming the published asset; the upload
+itself happens inside the write phase, after the slug and duplicate checks, so a
+re-run pushes nothing. Every inserted row is then read back through
+`replications.getBySlug` — the query the permalink uses — and its role, credit,
+type, format, resolved URL and served content type are all required to match the
+plan. A row that fails stops the run rather than the batch finishing around it.
 
 `transcode-videos.mjs` produces web-delivery H.264 renditions from local video
 masters. It is local-only — it performs no Convex write and contacts no

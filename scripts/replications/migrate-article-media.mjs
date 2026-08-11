@@ -39,21 +39,33 @@
  * A near-duplicate found by eye is data. A byte duplicate is checked live on
  * every run, so a row inserted between two runs is still caught.
  *
+ * ## Assets with no storage object yet
+ *
+ * The first pass could only file assets Convex already held. Round two brought
+ * four that had to be recovered from the live web first — dead gfycat ids and a
+ * page hero whose host started returning 404 — so this script now uploads bytes
+ * as well as referencing them. `ownerRulings.uploads` in the decisions file
+ * names each recovered file, pins it by sha-256, and states the content type its
+ * own container signature must produce; a file that has drifted fails closed
+ * rather than quietly becoming the published asset. Uploads happen inside the
+ * write phase, after the slug and duplicate checks, so a re-run pushes nothing.
+ *
  * ## Re-runnable, not one-shot
  *
- * Two dead assets may yet be recovered (see `recoverableLater` in the decisions
- * file). Every run re-reads production, skips any slug already present, and
- * re-derives type, format and dimensions from the asset's actual bytes rather
- * than from the inventory's `media_kind` label — which says "image/video" for
- * every animated asset and cannot be trusted for either field.
+ * Every run re-reads production, skips any slug already present, and re-derives
+ * type, format and dimensions from the asset's actual bytes rather than from the
+ * inventory's `media_kind` label — which says "image/video" for every animated
+ * asset and cannot be trusted for either field.
  *
  * Dry run (default, needs no credential):
  *   node scripts/replications/migrate-article-media.mjs \
- *     --inventory=/path/to/article-embedded-media-inventory.json
+ *     --inventory=/path/to/article-embedded-media-inventory.json \
+ *     --uploads-dir=/path/to/recovered-media
  *
  * Apply:
  *   node scripts/replications/migrate-article-media.mjs \
  *     --inventory=/path/to/article-embedded-media-inventory.json \
+ *     --uploads-dir=/path/to/recovered-media \
  *     --write --confirm-write=migrate-article-embedded-media \
  *     --confirm-media-migration \
  *     --expected-deployment=glad-minnow-656 \
@@ -61,10 +73,14 @@
  *     --limit=5
  */
 import fs from "node:fs";
+import crypto from "node:crypto";
 import path from "node:path";
+import { execFileSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
+import { Agent } from "undici";
 import { ConvexHttpClient } from "convex/browser";
 import { api } from "../../convex/_generated/api.js";
+import { sniffImageContentType } from "./repoint-renditions.mjs";
 import {
   assertProductionWriteAllowed,
   createProductionWriteCommand,
@@ -107,6 +123,31 @@ export function mediaTypeFromContentType(contentType) {
     return null;
   }
   return MEDIA_TYPES[contentType.split(";")[0].trim().toLowerCase()] ?? null;
+}
+
+/**
+ * What a local file's first bytes say it is, which outranks its extension.
+ *
+ * Convex serves back whatever `Content-Type` the upload declared, so this is the
+ * difference between an asset that renders and one the browser downloads. The
+ * image signatures are `repoint-renditions.mjs`'s, unchanged; the two container
+ * formats below are what the recovered animations arrive as and it has none.
+ */
+export function sniffMediaContentType(head) {
+  const image = sniffImageContentType(head);
+  if (image) {
+    return image;
+  }
+  if (!head || head.length < 12) {
+    return null;
+  }
+  if (head.subarray(4, 8).toString("latin1") === "ftyp") {
+    return "video/mp4";
+  }
+  if (head.subarray(0, 4).equals(Buffer.from([0x1a, 0x45, 0xdf, 0xa3]))) {
+    return "video/webm";
+  }
+  return null;
 }
 
 /**
@@ -198,8 +239,13 @@ export function parseAttribution(attribution) {
  * Which entries this run is even willing to consider.
  *
  * `strong` plus a filable role, widened by the owner's explicit rulings and
- * narrowed by the groups the owner has held back. Everything else is reported
- * under the reason it was left alone.
+ * narrowed by the groups the owner has held back, dropped, or resolved in
+ * favour of one variant. Everything else is reported under the reason it was
+ * left alone.
+ *
+ * Every exclusion is tested before the promotion, because round two promotes
+ * both halves of a variant pair: the losing half carries a ruling of its own and
+ * must still be excluded by it.
  */
 export function selectCandidates(assets, decisions) {
   const rulings = decisions.ownerRulings ?? {};
@@ -208,6 +254,18 @@ export function selectCandidates(assets, decisions) {
   for (const group of rulings.heldGroups ?? []) {
     for (const id of group.ids ?? []) {
       heldById.set(id, group);
+    }
+  }
+  const variantById = new Map();
+  for (const group of rulings.variantGroups ?? []) {
+    for (const id of group.ids ?? []) {
+      variantById.set(id, group);
+    }
+  }
+  const droppedById = new Map();
+  for (const group of rulings.droppedAssets ?? []) {
+    for (const id of group.ids ?? []) {
+      droppedById.set(id, group);
     }
   }
   const deadIds = new Set(rulings.deadAssetsLeftDead?.ids ?? []);
@@ -219,6 +277,24 @@ export function selectCandidates(assets, decisions) {
     const held = heldById.get(asset.id);
     if (held) {
       excluded.push({ asset, reason: `held-group:${held.name}`, detail: held.reason });
+      continue;
+    }
+
+    // Two Convex objects of one work, which the batch collapse cannot settle
+    // because the bytes genuinely differ. The owner picks the copy to publish.
+    const variant = variantById.get(asset.id);
+    if (variant && variant.chosen !== asset.id) {
+      excluded.push({
+        asset,
+        reason: `variant-not-chosen:${variant.name}`,
+        detail: `${variant.chosen} is the chosen copy of this work. ${variant.reason}`,
+      });
+      continue;
+    }
+
+    const dropped = droppedById.get(asset.id);
+    if (dropped) {
+      excluded.push({ asset, reason: `owner-dropped:${dropped.name}`, detail: dropped.reason });
       continue;
     }
 
@@ -266,7 +342,10 @@ export function selectCandidates(assets, decisions) {
  *
  * `facts` is what production said about the asset — its resolved storage id,
  * content type, byte length, digest and pixel dimensions — never what the
- * inventory claimed. Returns `{ row }` or `{ blocked }`.
+ * inventory claimed. For a recovered asset there is no production object yet, so
+ * the facts come from the local file's own bytes instead and `storage_id` is
+ * left null for the write phase to fill in from the upload it performs.
+ * Returns `{ row }` or `{ blocked }`.
  */
 export function planRow({ asset, promotion, facts, decisions }) {
   const rulings = decisions.ownerRulings ?? {};
@@ -275,12 +354,17 @@ export function planRow({ asset, promotion, facts, decisions }) {
     (entry.ids ?? []).includes(asset.id),
   );
 
-  if (!facts || !facts.storageId) {
+  if (!facts || (!facts.storageId && !facts.upload)) {
     return { blocked: { reason: "no-storage", detail: "No usable Convex storage object." } };
   }
   if (!facts.reachable) {
     return {
-      blocked: { reason: "unreachable", detail: `Production returned ${facts.status} for the asset.` },
+      blocked: {
+        reason: "unreachable",
+        detail: facts.upload
+          ? `The recovered file could not be read: ${facts.error ?? "unknown error"}.`
+          : `Production returned ${facts.status} for the asset.`,
+      },
     };
   }
 
@@ -307,6 +391,13 @@ export function planRow({ asset, promotion, facts, decisions }) {
   if (!promotion?.artist && correction) {
     attribution.rightsholder = isNamedCreator(artist, marker) ? artist : undefined;
   }
+  // Where the bytes were found. A recovered asset's attribution prose says only
+  // that the original host is gone, so without this the one link that still
+  // resolves — the archive or wiki copy the file actually came from — would be
+  // the one fact the migration threw away.
+  if (promotion?.source_url) {
+    attribution.source_url = promotion.source_url;
+  }
   const permissionNotes = [
     promotion?.permission_notes,
     correction ? `Credit corrected: the embed stored "${correction.storedArtist}" as the artist. ${correction.reason}` : null,
@@ -315,19 +406,36 @@ export function planRow({ asset, promotion, facts, decisions }) {
     .filter(Boolean)
     .join(" ");
 
+  // A ruling may restate the role — the out-of-body stock composite is filed
+  // `unclear` by the curation pass and figure by the owner — but it may not
+  // invent one the table has no shelf for.
+  const role = promotion?.role ?? asset.role;
+  if (!MIGRATABLE_ROLES.has(role)) {
+    return {
+      blocked: { reason: `role:${role}`, detail: "Neither a replication nor a figure, so there is nothing to file it as." },
+    };
+  }
+
   const row = {
-    slug: asset.slug,
+    // Several rulings collapse two or three embeds into one row, and the
+    // curation slugs carry the embed's position — `-description`, `-summary`,
+    // `-mislabelled` — which describes where the audit found it rather than what
+    // the work is. Where a ruling supplies a slug it is the public URL.
+    slug: promotion?.slug ?? asset.slug,
     title: String(asset.title ?? "").trim(),
     artist,
-    role: asset.role,
+    role,
     type: media.type,
     format: media.format,
-    storage_id: facts.storageId,
+    storage_id: facts.storageId ?? null,
     credit_line: buildCreditLine(asset.title, artist, marker),
   };
 
   if (asset.effect_slug) {
     row.effect_slug = asset.effect_slug;
+  }
+  if (media.type === "video" && Number.isFinite(facts.duration) && facts.duration > 0) {
+    row.duration = facts.duration;
   }
   if (Number.isFinite(facts.width) && facts.width > 0) {
     row.width = facts.width;
@@ -384,14 +492,24 @@ export function planMigration({
 
   const existingSlugs = new Set(existingRows.map((row) => row.slug));
 
+  // The slug a ruling gives an asset, which is the one that reaches production.
+  const slugOverrides = new Map(
+    (decisions.ownerRulings?.promoted ?? [])
+      .filter((entry) => entry.slug)
+      .map((entry) => [entry.id, entry.slug]),
+  );
+  const slugOf = (asset) => slugOverrides.get(asset.id) ?? asset.slug;
+
   // Rows this migration itself created on an earlier batch. They are the batch,
   // only already persisted, so they get the batch's rule rather than the rule
   // for the 247 rows that predate it: one object under two effects is two
   // intended gallery rows, and only a same-effect match is a duplicate. Without
   // this, running in batches quietly drops the second of every such pair — the
   // vasoconstriction/vasodilation diagram and the Wheeler circuit both split
-  // across batch boundaries.
-  const migrationSlugs = new Set(assets.map((asset) => asset.slug));
+  // across batch boundaries. Overridden slugs belong in this set for the same
+  // reason: a row of ours whose slug the curation file does not spell would
+  // otherwise read as one of the 247 and take the stricter rule.
+  const migrationSlugs = new Set(assets.flatMap((asset) => [asset.slug, slugOf(asset)]));
 
   const rowsByStorageId = new Map();
   const rowsByDigest = new Map();
@@ -438,10 +556,11 @@ export function planMigration({
 
   for (const { asset, promotion } of considered) {
     const assetFacts = facts.get(asset.id) ?? null;
-    const push = (reason, detail) => skipped.push({ id: asset.id, slug: asset.slug, reason, detail });
+    const targetSlug = slugOf(asset);
+    const push = (reason, detail) => skipped.push({ id: asset.id, slug: targetSlug, reason, detail });
 
-    if (existingSlugs.has(asset.slug)) {
-      push("already-migrated", `Slug ${asset.slug} is already a row in production.`);
+    if (existingSlugs.has(targetSlug)) {
+      push("already-migrated", `Slug ${targetSlug} is already a row in production.`);
       continue;
     }
 
@@ -456,13 +575,18 @@ export function planMigration({
       continue;
     }
 
-    if (assetFacts?.storageId) {
+    // A recovered asset has no storage id to compare, but it does have bytes,
+    // and those bytes may already be in the table under some other row — so the
+    // digest check has to stand on its own rather than behind the storage one.
+    if (assetFacts?.storageId || assetFacts?.digest) {
       const effectSlug = asset.effect_slug ?? null;
-      const byStorage = duplicateAgainst(
-        rowsByStorageId.get(assetFacts.storageId) ?? [],
-        effectSlug,
-        allowedAgainst,
-      );
+      const byStorage = assetFacts.storageId
+        ? duplicateAgainst(
+            rowsByStorageId.get(assetFacts.storageId) ?? [],
+            effectSlug,
+            allowedAgainst,
+          )
+        : null;
       const byDigest = assetFacts.digest
         ? duplicateAgainst(rowsByDigest.get(assetFacts.digest) ?? [], effectSlug, allowedAgainst)
         : null;
@@ -506,9 +630,16 @@ export function planMigration({
       );
       continue;
     }
-    seenInBatch.set(batchKey, { id: asset.id, slug: asset.slug });
+    seenInBatch.set(batchKey, { id: asset.id, slug: targetSlug });
 
-    insert.push({ id: asset.id, row, promotion: promotion?.reason ?? null });
+    insert.push({
+      id: asset.id,
+      row,
+      promotion: promotion?.reason ?? null,
+      // Present only for a recovered asset: the bytes the write phase must push
+      // before this row has a `storage_id` to point at.
+      upload: assetFacts.upload ?? null,
+    });
   }
 
   return { insert, skipped };
@@ -527,8 +658,109 @@ export function groupSkips(skipped) {
   return [...groups.entries()].sort((left, right) => right[1].length - left[1].length);
 }
 
-async function readAssetFacts({ assets, inventoryById, storageIds, readUrl, client }) {
+/**
+ * Width, height and duration straight out of the container, when ffprobe is here.
+ *
+ * The recovered files include a 14-frame GIF and an H.264 clip, and `sharp` can
+ * read one of those. ffprobe reads both, so it is tried first and its absence
+ * costs nothing: the decisions file records the same numbers, pinned to these
+ * exact bytes by the sha-256 beside them.
+ */
+function probeLocalMedia(filePath) {
+  try {
+    const probe = JSON.parse(
+      execFileSync(
+        "ffprobe",
+        ["-v", "error", "-show_entries", "stream=width,height", "-show_entries", "format=duration", "-of", "json", filePath],
+        // An undecodable file is answered by the decisions file's own numbers,
+        // so ffprobe's complaint about it is noise rather than news.
+        { maxBuffer: 1 << 26, stdio: ["ignore", "pipe", "ignore"] },
+      ).toString(),
+    );
+    const stream = (probe.streams ?? []).find((entry) => entry.width && entry.height);
+    return {
+      width: stream?.width,
+      height: stream?.height,
+      duration: Number(probe.format?.duration) || undefined,
+    };
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * What a recovered file is, taken from the file rather than from anything about it.
+ *
+ * Three claims in the decisions file are checked rather than trusted, because
+ * each one is a way the wrong bytes could reach production wearing the right
+ * name: the digest (these are the reviewed bytes), the content type (the
+ * container agrees with what will be declared on upload), and the dimensions
+ * (the file is the one that was measured). Any disagreement throws — a recovered
+ * asset that has drifted is not a smaller problem than a missing one.
+ */
+export function readUploadFacts(upload, uploadsDir) {
+  if (!uploadsDir) {
+    throw new Error(
+      `Asset ${upload.path} has to be uploaded, so pass --uploads-dir=<directory the decisions file's upload paths are relative to>.`,
+    );
+  }
+  const absolutePath = path.resolve(uploadsDir, upload.path);
+  if (!fs.existsSync(absolutePath)) {
+    return { upload: null, storageId: null, reachable: false, status: 0, error: `not found at ${absolutePath}` };
+  }
+
+  const bytes = fs.readFileSync(absolutePath);
+  const digest = crypto.createHash("sha256").update(bytes).digest("base64");
+  if (upload.sha256 && digest !== upload.sha256) {
+    throw new Error(
+      `${upload.path} is not the reviewed file: sha-256 ${digest} where the decisions file records ${upload.sha256}.`,
+    );
+  }
+
+  const contentType = sniffMediaContentType(bytes.subarray(0, 12));
+  if (!contentType) {
+    throw new Error(`${upload.path} has no recognised container signature, so nothing can declare its content type.`);
+  }
+  if (upload.contentType && contentType !== upload.contentType) {
+    throw new Error(
+      `${upload.path} is a ${contentType} where the decisions file records ${upload.contentType}. Uploading it under the recorded type would make the browser download it instead of showing it.`,
+    );
+  }
+
+  const probed = probeLocalMedia(absolutePath) ?? {};
+  for (const field of ["width", "height"]) {
+    if (probed[field] && upload[field] && probed[field] !== upload[field]) {
+      throw new Error(
+        `${upload.path} is ${probed.width}x${probed.height} where the decisions file records ${upload.width}x${upload.height}.`,
+      );
+    }
+  }
+
+  return {
+    upload: { ...upload, absolutePath, contentType },
+    storageId: null,
+    reachable: true,
+    status: 200,
+    contentType,
+    // Convex reports a stored object's digest as base64 sha-256, so computing it
+    // the same way here is what lets a recovered file be compared against the
+    // bytes production already holds.
+    digest,
+    size: bytes.byteLength,
+    width: probed.width ?? upload.width,
+    height: probed.height ?? upload.height,
+    duration: probed.duration ?? upload.duration,
+  };
+}
+
+async function readAssetFacts({ assets, inventoryById, storageIds, readUrl, client, decisions, uploadsDir }) {
   const facts = new Map();
+  const uploads = decisions?.ownerRulings?.uploads ?? {};
+  const uploadKeyById = new Map(
+    (decisions?.ownerRulings?.promoted ?? [])
+      .filter((entry) => entry.upload)
+      .map((entry) => [entry.id, entry.upload]),
+  );
   const uuids = [
     ...new Set(
       assets
@@ -562,6 +794,19 @@ async function readAssetFacts({ assets, inventoryById, storageIds, readUrl, clie
   }
 
   for (const asset of assets) {
+    // A recovered asset's bytes are on disk and nowhere else yet, so its facts
+    // come from the file. Checked before the inventory, which for these assets
+    // still records the dead host the recovery pass replaced.
+    const uploadKey = uploadKeyById.get(asset.id);
+    if (uploadKey) {
+      const upload = uploads[uploadKey];
+      if (!upload) {
+        throw new Error(`${asset.id} names upload "${uploadKey}", which the decisions file does not define.`);
+      }
+      facts.set(asset.id, readUploadFacts(upload, uploadsDir));
+      continue;
+    }
+
     const uuid = inventoryById.get(asset.id)?.convex_storage_id;
     if (!uuid) {
       facts.set(asset.id, { storageId: null, reachable: false, status: 0 });
@@ -631,6 +876,135 @@ async function readExistingDigests(existingRows, readUrl, client) {
   return digests;
 }
 
+const UPLOAD_ATTEMPTS = 8;
+const UPLOAD_BACKOFF_CAP_MS = 30_000;
+
+/**
+ * Upload one recovered file into production storage, retrying the transport.
+ *
+ * Lifted wholesale from `repoint-renditions.mjs`, including the part that is not
+ * obvious: a fresh, non-pooled HTTP/1.1 dispatcher per attempt, disposed
+ * afterwards. The failure this defends against poisons the connection rather
+ * than the request — a TLS-level error is followed by `ERR_HTTP2_INVALID_SESSION`
+ * on every retry that re-enters the session that has just broken, so a retry
+ * without a new dispatcher fails as reliably as no retry at all. A non-2xx
+ * response is the server refusing the upload and fails immediately; only the
+ * transport is retried, and each attempt takes a fresh single-use upload URL.
+ */
+async function uploadFile(client, apiKey, filePath, contentType) {
+  const body = fs.readFileSync(filePath);
+  let lastError;
+
+  for (let attempt = 1; attempt <= UPLOAD_ATTEMPTS; attempt += 1) {
+    const dispatcher = new Agent({ connections: 1, pipelining: 0, allowH2: false });
+    try {
+      const uploadUrl = await client.mutation(api.replications.generateUploadUrl, { apiKey });
+      const response = await fetch(uploadUrl, {
+        method: "POST",
+        headers: { "Content-Type": contentType },
+        body,
+        dispatcher,
+      });
+      if (!response.ok) {
+        throw new Error(`Upload failed: ${response.status} ${await response.text()}`);
+      }
+      const { storageId } = await response.json();
+      if (!storageId) {
+        throw new Error("Upload returned no storageId.");
+      }
+      return storageId;
+    } catch (error) {
+      lastError = error;
+      if (error.message?.startsWith("Upload failed:") || attempt === UPLOAD_ATTEMPTS) {
+        throw error;
+      }
+      let root = error.cause;
+      while (root?.cause) {
+        root = root.cause;
+      }
+      const delayMs = Math.min(1000 * 2 ** (attempt - 1), UPLOAD_BACKOFF_CAP_MS);
+      console.warn(
+        `    upload attempt ${attempt}/${UPLOAD_ATTEMPTS} failed (${root?.code ?? error.message}); retrying in ${delayMs / 1000}s`,
+      );
+      await new Promise((resolve) => setTimeout(resolve, delayMs));
+    } finally {
+      await dispatcher.close().catch(() => {});
+    }
+  }
+
+  throw lastError;
+}
+
+/**
+ * Whether the public surfaces will publish this row, per `isPublishableReplication`.
+ *
+ * The Convex queries deliberately return every stored row — the rights and
+ * provenance tooling needs figures to stay visible — so the gate lives app-side
+ * in `src/types/replications.ts`. Restated here as the one thing a written row
+ * must be checked against, and cross-checked against the real implementation in
+ * this script's test rather than left as a comment claiming they agree.
+ */
+export function expectsPublication(row) {
+  return row.role === "replication" && (row.type === "image" || row.type === "video");
+}
+
+/**
+ * Read one written row back the way the site does, and insist it is what was planned.
+ *
+ * `getBySlug` is the query the permalink uses, so this asks production the same
+ * question a visitor's page load asks. Every clause is a way a row can look
+ * inserted and still be wrong: a resolved URL that 404s (an upload that landed
+ * somewhere else), a served content type that disagrees with the row's `format`
+ * (the browser downloads the file instead of drawing it), a role that did not
+ * survive the mutation (a figure entering the gallery, or a replication withheld
+ * from it).
+ */
+export async function verifyInsertedRow({ client, row, fetchImpl = fetch }) {
+  const reasons = [];
+  const live = await client.query(api.replications.getBySlug, { slug: row.slug });
+
+  if (!live) {
+    return { ok: false, reasons: [`getBySlug returned nothing for ${row.slug}`] };
+  }
+  for (const field of ["role", "artist", "type", "format", "storage_id", "title"]) {
+    if (live[field] !== row[field]) {
+      reasons.push(`${field} is ${JSON.stringify(live[field])}, planned ${JSON.stringify(row[field])}`);
+    }
+  }
+  if (expectsPublication(live) !== expectsPublication(row)) {
+    reasons.push(
+      `the publication gate reads the stored row as ${expectsPublication(live)} where the plan says ${expectsPublication(row)}`,
+    );
+  }
+  if (typeof live.url !== "string" || !live.url) {
+    return { ok: false, reasons: [...reasons, "resolved url is null — the row has no media and no page"] };
+  }
+
+  let status = 0;
+  let servedContentType = null;
+  try {
+    const response = await fetchImpl(live.url, { method: "GET" });
+    status = response.status;
+    servedContentType = response.headers.get("content-type");
+    if (!response.ok) {
+      reasons.push(`the resolved url served HTTP ${status}`);
+    }
+  } catch (error) {
+    reasons.push(`the resolved url could not be fetched: ${String(error)}`);
+  }
+
+  const served = mediaTypeFromContentType(servedContentType);
+  if (!served) {
+    reasons.push(`the resolved url served ${servedContentType ?? "no content type"}, which maps to no media type`);
+  } else if (served.type !== row.type || served.format !== row.format) {
+    reasons.push(
+      `the resolved url serves ${served.type}/${served.format} where the row says ${row.type}/${row.format}`,
+    );
+  }
+
+  return { ok: reasons.length === 0, reasons, status, servedContentType };
+}
+
 function printPlan(plan, { assetsById }) {
   console.log("\n" + "#".repeat(78));
   console.log("# ARTICLE-EMBEDDED MEDIA -> replications");
@@ -647,7 +1021,18 @@ function printPlan(plan, { assetsById }) {
     console.log(`      title      ${JSON.stringify(row.title)}`);
     console.log(`      artist     ${JSON.stringify(row.artist)}`);
     console.log(`      effect     ${row.effect_slug ?? "(none — omitted)"}`);
-    console.log(`      storage    ${row.storage_id}`);
+    if (entry.upload) {
+      console.log(
+        `      UPLOAD     ${entry.upload.path}  ->  ${entry.upload.contentType}  ` +
+          `${entry.upload.bytes ?? "?"} bytes  sha-256 ${entry.upload.sha256}`,
+      );
+      console.log(`      storage    (assigned by the upload this run performs)`);
+    } else {
+      console.log(`      storage    ${row.storage_id}`);
+    }
+    if (row.duration) {
+      console.log(`      duration   ${row.duration}s`);
+    }
     console.log(`      credit     ${JSON.stringify(row.credit_line)}`);
     for (const field of ["source_url", "rightsholder", "rights_status", "permission_notes"]) {
       if (row[field]) {
@@ -685,6 +1070,7 @@ async function main() {
       "Pass --inventory=<path to article-embedded-media-inventory.json>; it carries each asset's storage id and host.",
     );
   }
+  const uploadsDir = getFlagValue(argv, "--uploads-dir");
 
   const readUrl = command.targetUrl || process.env.CONVEX_PUBLIC_READ_URL;
   if (!readUrl) {
@@ -721,6 +1107,8 @@ async function main() {
       storageIds: decisions.storageIds ?? {},
       readUrl,
       client,
+      decisions,
+      uploadsDir: uploadsDir ? path.resolve(uploadsDir) : null,
     }),
     readExistingDigests(existingRows, readUrl, client),
   ]);
@@ -737,7 +1125,26 @@ async function main() {
   printPlan(plan, { assetsById });
 
   if (command.dryRun) {
-    console.log("Dry run — no Convex writes performed.");
+    const uploads = plan.insert.filter((entry) => entry.upload);
+    if (uploads.length) {
+      console.log(`${uploads.length} row(s) would upload bytes before inserting:`);
+      for (const entry of uploads) {
+        console.log(
+          `  ${entry.id}  ${entry.upload.absolutePath}\n` +
+            `      ${entry.upload.bytes} bytes as ${entry.upload.contentType}, ` +
+            `sha-256 verified against the decisions file`,
+        );
+      }
+      console.log("");
+    }
+    console.log("Per-row verification that would run after each insert:");
+    console.log("  1. re-read the row through api.replications.getBySlug");
+    console.log("  2. require role, artist, type and format to match the plan");
+    console.log("  3. require the resolved url to be non-null and to serve HTTP 200");
+    console.log("  4. require the served content type to be the format that was written");
+    console.log("  5. require the publication gate to read the row as the plan says");
+    console.log("  A failing row stops the run before the next one is written.\n");
+    console.log("Dry run — nothing uploaded, no Convex writes performed.");
     return;
   }
 
@@ -758,11 +1165,38 @@ async function main() {
   const batch = plan.insert.slice(0, limit);
   console.log(`\nInserting ${batch.length} of ${plan.insert.length} planned row(s).`);
   for (const entry of batch) {
+    if (entry.upload) {
+      console.log(`  uploading ${entry.upload.path} (${entry.upload.bytes} bytes, ${entry.upload.contentType})…`);
+      entry.row.storage_id = await uploadFile(
+        writeClient,
+        apiKey,
+        entry.upload.absolutePath,
+        entry.upload.contentType,
+      );
+      console.log(`    stored as ${entry.row.storage_id}`);
+    }
+    if (!entry.row.storage_id) {
+      throw new Error(`${entry.row.slug} has no storage id to point at. Nothing further written.`);
+    }
+
     const result = await writeClient.mutation(api.replications.insertMediaAsset, {
       apiKey,
       ...entry.row,
     });
     console.log(`  inserted ${result.slug}  role=${result.role}  id=${result.id}`);
+
+    const verdict = await verifyInsertedRow({ client, row: entry.row });
+    if (!verdict.ok) {
+      console.error(`  ${entry.row.slug}: VERIFICATION FAILED`);
+      for (const reason of verdict.reasons) {
+        console.error(`    ${reason}`);
+      }
+      throw new Error("Stopping before the next row. Everything written so far is listed above.");
+    }
+    console.log(
+      `    verified  ${verdict.status} ${verdict.servedContentType}  ` +
+        `role=${entry.row.role}  publishable=${expectsPublication(entry.row)}`,
+    );
   }
 
   const remaining = plan.insert.length - batch.length;
