@@ -52,6 +52,7 @@
  *     --target-url=https://glad-minnow-656.convex.cloud
  */
 import fs from "node:fs";
+import { Agent } from "undici";
 import path from "node:path";
 import { ConvexHttpClient } from "convex/browser";
 import { api } from "../../convex/_generated/api.js";
@@ -213,17 +214,64 @@ function readRenditions(manifestPath, renditionsDir) {
   return bySlug;
 }
 
+const UPLOAD_ATTEMPTS = 8;
+const UPLOAD_BACKOFF_CAP_MS = 30_000;
+
+/**
+ * Upload one file, retrying the transport.
+ *
+ * Pushing five gigabytes over sixty-five requests means the occasional
+ * connection-level failure is expected rather than exceptional — a run died on
+ * the very first batch with a TLS `bad record mac`, and the identical upload
+ * succeeded four times in a row moments later. Without a retry, one blip
+ * halfway through abandons the migration in a half-applied state.
+ *
+ * Only the transport is retried. A non-2xx response is the server refusing the
+ * upload and means something is actually wrong, so it fails immediately rather
+ * than hammering the deployment. Each attempt takes a fresh upload URL, since
+ * a Convex upload URL is single-use.
+ */
 async function uploadFile(client, apiKey, filePath, contentType) {
-  const uploadUrl = await client.mutation(api.replications.generateUploadUrl, { apiKey });
-  const response = await fetch(uploadUrl, {
-    method: "POST",
-    headers: { "Content-Type": contentType },
-    body: fs.readFileSync(filePath),
-  });
-  if (!response.ok) throw new Error(`Upload failed: ${response.status} ${await response.text()}`);
-  const { storageId } = await response.json();
-  if (!storageId) throw new Error("Upload returned no storageId.");
-  return storageId;
+  const body = fs.readFileSync(filePath);
+  let lastError;
+
+  for (let attempt = 1; attempt <= UPLOAD_ATTEMPTS; attempt += 1) {
+    // A fresh dispatcher per attempt, torn down afterwards. The failure this
+    // guards against poisons the connection rather than the request: a TLS
+    // `bad record mac` was followed by ERR_HTTP2_INVALID_SESSION on every
+    // retry, because each one reused the session that had just broken. Pinning
+    // to a single non-pooled HTTP/1.1 connection means a retry genuinely starts
+    // over instead of re-entering a dead socket.
+    const dispatcher = new Agent({ connections: 1, pipelining: 0, allowH2: false });
+    try {
+      const uploadUrl = await client.mutation(api.replications.generateUploadUrl, { apiKey });
+      const response = await fetch(uploadUrl, {
+        method: "POST",
+        headers: { "Content-Type": contentType },
+        body,
+        dispatcher,
+      });
+      if (!response.ok) throw new Error(`Upload failed: ${response.status} ${await response.text()}`);
+      const { storageId } = await response.json();
+      if (!storageId) throw new Error("Upload returned no storageId.");
+      return storageId;
+    } catch (error) {
+      lastError = error;
+      if (error.message?.startsWith("Upload failed:") || attempt === UPLOAD_ATTEMPTS) throw error;
+
+      let root = error.cause;
+      while (root?.cause) root = root.cause;
+      const delayMs = Math.min(1000 * 2 ** (attempt - 1), UPLOAD_BACKOFF_CAP_MS);
+      console.warn(
+        `    upload attempt ${attempt}/${UPLOAD_ATTEMPTS} failed (${root?.code ?? error.message}); retrying in ${delayMs / 1000}s`,
+      );
+      await new Promise((resolve) => setTimeout(resolve, delayMs));
+    } finally {
+      await dispatcher.close().catch(() => {});
+    }
+  }
+
+  throw lastError;
 }
 
 async function main() {
