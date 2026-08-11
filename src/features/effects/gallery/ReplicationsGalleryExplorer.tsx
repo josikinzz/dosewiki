@@ -64,7 +64,12 @@ export function ReplicationsGalleryExplorer({
 
   const effectName = useMemo(() => {
     const map = new Map(effects.map((effect) => [effect.slug, effect.name]));
-    return (slug: string) => map.get(slug) ?? slug.replace(/-/g, ' ');
+    // Total in its argument: `effect_slug` is optional on a stored row, and the
+    // humanising fallback used to read `.replace` straight off it. The model
+    // functions no longer pass a missing slug, but a lookup that throws on one
+    // is a trap for the next caller rather than a guard against a bad row.
+    return (slug: string | undefined) =>
+      slug ? map.get(slug) ?? slug.replace(/-/g, ' ') : '';
   }, [effects]);
 
   const effectHref = useCallback(

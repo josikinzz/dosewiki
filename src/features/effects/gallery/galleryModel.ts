@@ -91,7 +91,11 @@ export function matchesQuery(
   const haystack = [
     replication.title,
     replication.artist,
-    effectName(replication.effect_slug),
+    // `effect_slug` is optional. Handing `undefined` to the lookup crashed the
+    // gallery on the reader's first keystroke, and there is no effect name to
+    // search for on a row that has no effect — it stays searchable by title and
+    // artist. Every stored row today carries an effect, so nothing changes.
+    replication.effect_slug ? effectName(replication.effect_slug) : undefined,
     replication.effect_slug,
   ]
     .filter(Boolean)
@@ -191,6 +195,17 @@ export function groupByEffect(
 
   for (const replication of replications) {
     const slug = replication.effect_slug;
+
+    // "By effect" groups rows by their owning effect, and a row can have none.
+    // Such a row gets no bucket rather than one keyed `undefined`, whose header
+    // would read the slug back as a name and link to `/effects/undefined`; it
+    // stays visible under "By artist", which is a grouping it does belong to.
+    // Reading `.replace` off the missing slug used to throw here, taking the
+    // whole toggle down. All 247 stored rows carry an effect, so nothing moves.
+    if (!slug) {
+      continue;
+    }
+
     let group = buckets.get(slug);
     if (!group) {
       group = {
@@ -268,7 +283,12 @@ export function countGallery(replications: GalleryReplication[]): GalleryCounts 
   let videos = 0;
   for (const replication of replications) {
     artists.add(artistIdentity(replication.artist).key);
-    effects.add(replication.effect_slug);
+    // The header prints this as "N effects". A row with no owning effect would
+    // otherwise add `undefined` to the set and claim one effect more than the
+    // gallery can actually show.
+    if (replication.effect_slug) {
+      effects.add(replication.effect_slug);
+    }
     if (replication.type === 'video') videos += 1;
     else images += 1;
   }

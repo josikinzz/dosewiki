@@ -86,7 +86,9 @@ describe("getReplicationsByContributor", () => {
   });
 
   it("asks Convex for the contributor's own works by normalized match name", async () => {
-    mocks.queryConvex.mockResolvedValueOnce([{ slug: "drifting", artist: "Josie Kins", url: "https://x/1" }]);
+    mocks.queryConvex.mockResolvedValueOnce([
+      { slug: "drifting", artist: "Josie Kins", type: "video", url: "https://x/1" },
+    ]);
 
     const { getReplicationsByContributor } = await import("./publicData.replications");
     const replications = await getReplicationsByContributor(
@@ -97,7 +99,27 @@ describe("getReplicationsByContributor", () => {
     expect(mocks.queryConvex).toHaveBeenCalledWith("replications:getByArtistNames", {
       artistNames: ["josie kins", "josie"],
     });
-    expect(replications).toEqual([{ slug: "drifting", artist: "Josie Kins", url: "https://x/1" }]);
+    expect(replications).toEqual([
+      { slug: "drifting", artist: "Josie Kins", type: "video", url: "https://x/1" },
+    ]);
+  });
+
+  it("leaves a figure out of a contributor's works rail", async () => {
+    // The rail is headed "Replications" and prints its own count beside that
+    // heading, and the permalink walks the same set — so a diagram credited to
+    // this person would be presented as one of their works three times over.
+    mocks.queryConvex.mockResolvedValueOnce([
+      { slug: "drifting", artist: "Josie Kins", type: "video", url: "https://x/1" },
+      { slug: "ecg-trace", artist: "Josie Kins", type: "image", role: "figure", url: "https://x/2" },
+      { slug: "a-recording", artist: "Josie Kins", type: "audio", url: "https://x/3.mp3" },
+    ]);
+
+    const { getReplicationsByContributor } = await import("./publicData.replications");
+    const works = await getReplicationsByContributor(
+      contributor({ key: "JOSIE", displayName: "Josie Kins" }),
+    );
+
+    expect(works.map((work) => work.slug)).toEqual(["drifting"]);
   });
 
   it("returns an empty list for a contributor with no works", async () => {

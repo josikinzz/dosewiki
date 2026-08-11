@@ -48,7 +48,11 @@ import {
 import { buildProfileHistory, type NormalizedUserProfile } from "../../src/data/userProfiles";
 import { toReportCardModel, type ReportCardModel } from "../../src/types/tripReport";
 import { SITE_FLAVOR_CONFIG } from "../../src/config/siteFlavor";
-import type { GalleryReplication, ReplicationWithUrl } from "../../src/types/replications";
+import {
+  isPublishableReplication,
+  type GalleryReplication,
+  type ReplicationWithUrl,
+} from "../../src/types/replications";
 import { hasKnownCreator } from "../../src/features/effects/components/replicationCredit";
 import {
   orderContributorReplications,
@@ -495,9 +499,20 @@ export const loadReplicationRoute = cache(async (slug: string): Promise<Replicat
 
   const replication = await getPublicReplicationBySlug(slug);
 
-  // A row with no resolvable asset has no page — the route plan omits it, and a
-  // direct hit should 404 rather than render a permalink to a broken image.
-  if (!replication || !replication.url) {
+  // Three ways a stored row has no page here, all answered where the route plan
+  // already omits it so a direct hit 404s rather than rendering:
+  //
+  //  - no resolvable asset: the permalink would be a broken image.
+  //  - a figure: this page asserts what the row *is*, in prose ("a replication
+  //    of the subjective effect X"), in its `<title>`, and in JSON-LD naming it
+  //    an ImageObject that replicates that effect. Those are claims published to
+  //    crawlers and aggregators, and none of them is true of a diagram.
+  //  - a media kind nothing here can draw: the page would hand an audio file to
+  //    `<AppImage>` under a pill reading "Image".
+  //
+  // `isPublishableReplication` is the same predicate the list reads use, so the
+  // permalink and the gallery can never disagree about what is published.
+  if (!replication || !replication.url || !isPublishableReplication(replication)) {
     return { kind: "not-found" };
   }
 

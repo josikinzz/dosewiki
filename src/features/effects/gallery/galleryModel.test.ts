@@ -136,6 +136,20 @@ describe('groupByEffect', () => {
     );
     expect(groups[0]).toMatchObject({ key: 'geometry', label: 'Geometry', href: '/effects/geometry', count: 2 });
   });
+
+  it('leaves out a row with no owning effect instead of crashing on it', () => {
+    // `effect_slug` is optional. Reading `.replace` off the missing slug threw
+    // here, taking the whole "By effect" toggle down for every reader.
+    const groups = groupByEffect(
+      [rep({ effect_slug: 'geometry' }), rep({ effect_slug: undefined })],
+      effectName,
+      effectHref,
+    );
+
+    expect(groups).toHaveLength(1);
+    expect(groups[0]).toMatchObject({ key: 'geometry', count: 1 });
+    expect(groups.map((group) => group.href)).not.toContain('/effects/undefined');
+  });
 });
 
 describe('sortWithinGroup', () => {
@@ -159,6 +173,17 @@ describe('matchesQuery', () => {
     expect(matchesQuery(item, 'drifting', effectName)).toBe(false);
     expect(matchesQuery(item, '', effectName)).toBe(true);
   });
+
+  it('searches a row with no owning effect by its title and artist', () => {
+    // The lookup used to be handed `undefined` and throw, so the gallery died on
+    // the reader's first keystroke rather than on page load.
+    const item = rep({ title: 'Lattice', artist: 'Unity', effect_slug: undefined });
+
+    expect(() => matchesQuery(item, 'lattice', effectName)).not.toThrow();
+    expect(matchesQuery(item, 'lattice', effectName)).toBe(true);
+    expect(matchesQuery(item, 'unity', effectName)).toBe(true);
+    expect(matchesQuery(item, 'geometry', effectName)).toBe(false);
+  });
 });
 
 describe('selectSpotlight', () => {
@@ -181,5 +206,16 @@ describe('countGallery', () => {
         rep({ artist: 'B', effect_slug: 'geometry', type: 'image' }),
       ]),
     ).toEqual({ total: 3, artists: 2, effects: 2, images: 2, videos: 1 });
+  });
+
+  it('does not count a missing effect as an effect', () => {
+    // The header prints this as "N effects", and `undefined` in the set claimed
+    // one more effect than the gallery has anything to show for.
+    expect(
+      countGallery([
+        rep({ artist: 'A', effect_slug: 'geometry', type: 'image' }),
+        rep({ artist: 'A', effect_slug: undefined, type: 'image' }),
+      ]),
+    ).toEqual({ total: 2, artists: 1, effects: 1, images: 2, videos: 0 });
   });
 });

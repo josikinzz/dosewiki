@@ -41,7 +41,12 @@ export async function GET(request: Request) {
     const all = (await getPublicReplications())
       .filter((item) => !effect || item.effect_slug === effect)
       .filter((item) => !type || item.type === type)
-      .sort((a, b) => a.effect_slug.localeCompare(b.effect_slug) || (a.order_index ?? Number.MAX_SAFE_INTEGER) - (b.order_index ?? Number.MAX_SAFE_INTEGER) || a.slug.localeCompare(b.slug));
+      // `effect_slug` is optional: a stored asset can have no owning effect at
+      // all. Calling `.localeCompare` on it threw inside this `try`, so a single
+      // effect-less row turned the whole endpoint into a 503 — every consumer
+      // loses every replication because of one row. Unattached rows sort ahead
+      // of the rest; the 247 existing rows all carry an effect and are unmoved.
+      .sort((a, b) => (a.effect_slug ?? "").localeCompare(b.effect_slug ?? "") || (a.order_index ?? Number.MAX_SAFE_INTEGER) - (b.order_index ?? Number.MAX_SAFE_INTEGER) || a.slug.localeCompare(b.slug));
 
     if (offset > all.length) {
       return NextResponse.json(publicApiError("invalid_cursor", "cursor is outside the available result set."), {

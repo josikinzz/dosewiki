@@ -123,6 +123,29 @@ effect article projection through `lib/convex/publicData.effects.ts`, then apply
 their fixed Effect Index tag/name selections in the server route loader before
 rendering long-summary VCode.
 
+### Replication publication gate
+
+The `replications` table stores more than the site publishes as replications: an
+optional `role` distinguishes an artist's rendition of a subjective effect from
+an explanatory `figure` (a diagram, a chart) stored for the same rights
+tracking, and `type` can be `audio`, which no surface presents yet.
+
+`isPublishableReplication` in `src/types/replications.ts` is the single
+definition of what may be published, and it is applied at the app-side read
+boundary — `getPublicReplications` and `getPublicReplicationsByEffect` in
+`lib/convex/publicData.effects.ts`, `getReplicationsByContributor` in
+`lib/convex/publicData.replications.ts`, and the single-row check in
+`loadReplicationRoute`. Those four cover every public replication surface:
+gallery, effect article sections, contributor profiles, the homepage panel,
+`/replications/[slug]` (with its JSON-LD and `generateStaticParams`), the
+sitemap, `/api/v1/replications*`, and the About page's credit counts.
+
+The Convex queries themselves stay unfiltered on purpose, so the rights and
+provenance tooling under `scripts/replications/` still sees every stored asset,
+and a future figure surface can read the same rows through its own helper.
+`effect_slug` is likewise optional; consumers must tolerate its absence rather
+than assume an owning effect.
+
 ### Public read-only API flow
 
 The versioned `/api/v1` Route Handlers read through the same server-side public Convex adapters as public pages. The API exposes explicit public projections rather than raw Convex documents, applies opaque cursor pagination to collection responses, permits cross-origin read requests, and uses CDN cache headers plus the `publicContentApiRead` rate-limit policy. During the binding-sites migration, v1 alone derives the legacy `receptor_profile`/`receptor` response shape from canonical `binding_sites`/`target` data; no duplicate legacy fields are stored. The construction-host middleware allows only the `/api/v1` prefix while the rest of the public application remains gated.

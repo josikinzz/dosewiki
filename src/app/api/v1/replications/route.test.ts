@@ -27,6 +27,27 @@ describe("public replications API", () => {
     expect(JSON.stringify(body)).not.toContain("private@example.com");
   });
 
+  it("serves the whole corpus when one row has no owning effect", async () => {
+    // `effect_slug` is optional, and sorting on it threw inside the handler's
+    // `try` — so a single effect-less row answered every request to this
+    // endpoint with a 503, losing all 247 replications for every consumer.
+    mocks.getPublicReplications.mockResolvedValue([
+      replication,
+      { ...replication, slug: "page-hero", effect_slug: undefined },
+    ]);
+
+    const { GET } = await import("./route");
+    const response = await GET(new Request("https://dose.wiki/api/v1/replications"));
+    const body = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(body.data.map((item: { slug: string }) => item.slug)).toEqual(["page-hero", "drifting"]);
+    // The projector drops the absent field rather than publishing a null, which
+    // is why `effect_slug` is no longer a required property of the schema in
+    // `openapi.json`.
+    expect(body.data[0]).not.toHaveProperty("effect_slug");
+  });
+
   it("rejects invalid filters before reading data", async () => {
     const { GET } = await import("./route");
     const response = await GET(new Request("https://dose.wiki/api/v1/replications?type=audio"));

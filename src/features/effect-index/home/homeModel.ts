@@ -324,7 +324,13 @@ export function resolveFeaturedReplications(
   const resolved = slugs.flatMap((slug) => {
     const replication = bySlug.get(slug);
 
-    if (!replication?.url) {
+    // A row with no owning effect is skipped for the same reason a broken one
+    // is: the panel's entire caption is "A replication of <effect>" wrapped
+    // around a link to that effect's page, so without an effect there is nothing
+    // to introduce and the link would point at `/effects/undefined`. Reading the
+    // name off the missing slug threw here. Every curated slug resolves to a row
+    // with an effect today, so the carousel is unchanged.
+    if (!replication?.url || !replication.effect_slug) {
       return [];
     }
 

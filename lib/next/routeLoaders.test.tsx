@@ -686,6 +686,50 @@ describe("route loaders", () => {
     ]);
   });
 
+  it("gives a figure no permalink, so nothing calls a diagram a replication", async () => {
+    // This page states what the row is three times over — in the breadcrumb and
+    // "Replicates" prose, in the `<title>`/description, and in JSON-LD naming it
+    // an ImageObject described as "A replication of the subjective effect X".
+    // The last two are claims published to crawlers, so a figure has to 404
+    // rather than render, and 404ing here is also what keeps it out of the
+    // sitemap's companion `generateStaticParams` list.
+    publicData.getPublicReplicationBySlug.mockResolvedValueOnce(
+      buildReplication({ slug: "vertebral-column-diagram", role: "figure" }),
+    );
+
+    await expect(loadReplicationRoute("vertebral-column-diagram")).resolves.toEqual({
+      kind: "not-found",
+    });
+  });
+
+  it("gives an audio row no permalink rather than describing it as an image", async () => {
+    // The detail page branches `type === "video"` with an image fallback, so an
+    // audio row would render `<AppImage src="….mp3">` beneath a pill reading
+    // "Image" and offer an "Open full size" link to the audio file.
+    publicData.getPublicReplicationBySlug.mockResolvedValueOnce(
+      buildReplication({ slug: "a-recording", type: "audio", format: "mp3" }),
+    );
+
+    await expect(loadReplicationRoute("a-recording")).resolves.toEqual({ kind: "not-found" });
+  });
+
+  it("still renders an ordinary stored row, which carries no role at all", async () => {
+    const stored = buildReplication({ slug: "tree-bark", artist: "Unknown" });
+    expect(stored.role).toBeUndefined();
+
+    publicData.getPublicReplicationBySlug.mockResolvedValueOnce(stored);
+    publicData.getPublicEffectBySlug.mockResolvedValueOnce({
+      slug: "tracers",
+      name: "Tracers",
+      summary: "",
+      tags: ["visual"],
+    } as SubjectiveEffectDetailRecord);
+
+    const result = await loadReplicationRoute("tree-bark");
+
+    expect(result.kind).toBe("ok");
+  });
+
   it("falls back to the effect's works for an unattributed replication", async () => {
     publicData.getPublicReplicationBySlug.mockResolvedValueOnce(
       buildReplication({ slug: "shared", artist: "Unknown" }),

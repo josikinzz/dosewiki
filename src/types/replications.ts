@@ -40,6 +40,54 @@ export function isReplicationRow(row: { role?: MediaRole }): boolean {
 }
 
 /**
+ * The media kinds a replication surface can actually draw today.
+ *
+ * `audio` is storable but nothing renders it: every tile, rail, carousel and the
+ * permalink branch on `type === 'video'` with an *image* fallback, so an audio
+ * row would be handed to `<AppImage src="….mp3">` beneath a pill reading
+ * "Image". Until one of those surfaces grows a real audio branch, an audio row
+ * is a row we cannot draw — the same category as a row whose storage id
+ * resolves to no URL, which every surface already drops.
+ *
+ * Widen this set together with those branches, never ahead of them.
+ */
+const PRESENTABLE_REPLICATION_TYPES: ReadonlySet<ReplicationType> = new Set<ReplicationType>([
+  'image',
+  'video',
+]);
+
+/**
+ * Whether the public replication surfaces may publish a stored row.
+ *
+ * Two independent reasons to withhold one, answered in a single place so a new
+ * surface cannot pick up half the rule:
+ *
+ *  - it is a figure rather than a replication. A diagram is credited and
+ *    rights-tracked in the same table, but every surface that would show it
+ *    asserts something untrue about it: the permalink emits JSON-LD reading
+ *    "A replication of the subjective effect X", the gallery counts it as a work
+ *    by its credited artist, and the sitemap offers that page to crawlers.
+ *  - it is a media kind nothing can draw yet (see above).
+ *
+ * This is a *publication* gate and not a data gate. `convex/replications.ts`
+ * keeps returning every stored row, so the rights and provenance tooling under
+ * `scripts/replications/` still audits figures — which is exactly where an asset
+ * whose rights travel with it most needs to stay visible — and a future
+ * article-figure gallery reads the same rows through a helper of its own.
+ *
+ * Set membership rather than an `!== 'audio'` comparison, so a kind added to the
+ * union later is withheld until a surface can draw it. `strictNullChecks` is off
+ * in both tsconfigs, so a row is not proof of its own shape; an absent or
+ * unrecognised `type` is not in the set and is withheld too.
+ */
+export function isPublishableReplication(row: {
+  role?: MediaRole;
+  type: ReplicationType;
+}): boolean {
+  return isReplicationRow(row) && PRESENTABLE_REPLICATION_TYPES.has(row.type);
+}
+
+/**
  * Replication rights status. Replication media is separate from dose.wiki's
  * CC0 article dataset unless an individual item says otherwise.
  */

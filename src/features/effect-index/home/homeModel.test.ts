@@ -302,6 +302,18 @@ describe("resolveFeaturedReplications", () => {
     ).toEqual([]);
   });
 
+  it("skips an item with no owning effect instead of crashing on it", () => {
+    // The panel's caption is "A replication of <effect>" wrapped around a link
+    // to that effect, so there is nothing to render — and humanising the missing
+    // slug threw before it got that far.
+    const unattached = replication({ slug: "page-hero", effect_slug: undefined });
+
+    expect(() =>
+      resolveFeaturedReplications(["page-hero"], [unattached], effectNames, 0),
+    ).not.toThrow();
+    expect(resolveFeaturedReplications(["page-hero"], [unattached], effectNames, 0)).toEqual([]);
+  });
+
   it("falls back to a humanised effect slug when the effect is not in the read", () => {
     const [resolved] = resolveFeaturedReplications(
       ["orphan"],

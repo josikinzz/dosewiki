@@ -6,7 +6,7 @@ import { contributorMatchNames } from "../contributorProfileIdentity";
 import { PUBLIC_CONVEX_CACHE_REVALIDATE_SECONDS, PUBLIC_CONVEX_CACHE_TAGS } from "./publicData.cache";
 import { getPublicDataReadAdapter } from "./publicData.reads";
 import type { NormalizedUserProfile } from "../../src/data/userProfiles";
-import type { ReplicationWithUrl } from "../../src/types/replications";
+import { isPublishableReplication, type ReplicationWithUrl } from "../../src/types/replications";
 
 /**
  * Every replication credited to one contributor.
@@ -18,6 +18,12 @@ import type { ReplicationWithUrl } from "../../src/types/replications";
  * `contributorMatchNames` is the app's single definition of "this name is that
  * contributor" and is shared with the trip-report join, so a profile's works and
  * their reports can never disagree about which credits belong to them.
+ *
+ * A figure credited to the same person is not one of their works: the rail is
+ * headed "Replications" and a diagram under it would also inflate the count
+ * beside that heading and add a step to the permalink's artist walk. See the
+ * note on `getPublicReplications` in `publicData.effects` for why the gate sits
+ * on this side of Convex.
  */
 export const getReplicationsByContributor = cache(unstable_cache(async (
   profile: NormalizedUserProfile,
@@ -27,7 +33,9 @@ export const getReplicationsByContributor = cache(unstable_cache(async (
     return [];
   }
 
-  return await getPublicDataReadAdapter().getPublicReplicationsByArtistNames(artistNames);
+  return (await getPublicDataReadAdapter().getPublicReplicationsByArtistNames(artistNames)).filter(
+    isPublishableReplication,
+  );
 }, ["convex-public-replications-by-contributor"], {
   revalidate: PUBLIC_CONVEX_CACHE_REVALIDATE_SECONDS,
   tags: [

@@ -69,7 +69,17 @@ export async function GET(request: Request) {
         ReagentTesting: { type: "object", properties: { source: { type: "string", enum: ["authored", "protestkit_snapshot", "none"] }, substance: { type: ["object", "null"] }, results: { type: "array", items: { type: "object", properties: { reagent: { type: "string" }, label: { type: "string" }, description: { type: "string" }, hint: { type: "string" }, isReacting: { type: "boolean" }, colors: { type: "array", items: { type: "object" } } }, required: ["reagent", "description"] } } }, required: ["source", "results"] },
         MoleculeResource: { type: "object", properties: { chemical_identifiers: { type: "object" }, schemes: { type: "object", properties: { dosewiki: ref("Link"), "effect-index": ref("Link") }, required: ["dosewiki", "effect-index"] } }, required: ["chemical_identifiers", "schemes"] },
         Link: { type: "object", properties: { url: { type: "string" } }, required: ["url"] },
-        Replication: { type: "object", properties: { slug: { type: "string" }, title: { type: "string" }, artist: { type: "string" }, artist_url: { type: "string", format: "uri" }, type: { type: "string", enum: ["image", "video"] }, effect_slug: { type: "string" }, url: { type: "string", format: "uri" }, thumbnail_url: { type: "string", format: "uri" }, width: { type: "number" }, height: { type: "number" }, format: { type: "string" }, file_size: { type: "number" }, duration: { type: "number" }, order_index: { type: "integer" }, rights: { type: "object", properties: { status: { type: "string" }, license_name: { type: "string" }, license_url: { type: "string" }, credit_line: { type: "string" }, source_url: { type: "string" }, rightsholder: { type: "string" } }, required: ["status"] } }, required: ["slug", "title", "artist", "type", "effect_slug", "url", "format", "rights"] },
+        // `effect_slug` is no longer required: the column is optional, so a
+        // stored asset with no owning effect projects an object without the
+        // field, and a schema that demanded it would describe a response the
+        // endpoint can no longer promise. Dropping a required field only relaxes
+        // the contract, and every published row today still carries one.
+        //
+        // `type` stays `image | video` on purpose. The store can hold `audio`,
+        // but nothing on this site presents audio yet, so the reads behind this
+        // endpoint withhold those rows entirely (see `isPublishableReplication`)
+        // and the enum stays true of everything the API can return.
+        Replication: { type: "object", properties: { slug: { type: "string" }, title: { type: "string" }, artist: { type: "string" }, artist_url: { type: "string", format: "uri" }, type: { type: "string", enum: ["image", "video"] }, effect_slug: { type: "string" }, url: { type: "string", format: "uri" }, thumbnail_url: { type: "string", format: "uri" }, width: { type: "number" }, height: { type: "number" }, format: { type: "string" }, file_size: { type: "number" }, duration: { type: "number" }, order_index: { type: "integer" }, rights: { type: "object", properties: { status: { type: "string" }, license_name: { type: "string" }, license_url: { type: "string" }, credit_line: { type: "string" }, source_url: { type: "string" }, rightsholder: { type: "string" } }, required: ["status"] } }, required: ["slug", "title", "artist", "type", "url", "format", "rights"] },
         Error: { type: "object", properties: { error: { type: "object", properties: { code: { type: "string" }, message: { type: "string" } }, required: ["code", "message"] }, meta: ref("Meta") }, required: ["error", "meta"] },
       },
       responses: {

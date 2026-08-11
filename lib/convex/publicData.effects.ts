@@ -5,7 +5,7 @@ import { cache } from "react";
 import { contributorMatchNames, profileMatchesName } from "../contributorProfileIdentity";
 import type { NormalizedUserProfile } from "../../src/data/userProfiles";
 import type { ContributorEffectCredit } from "../../src/types/effectCredits";
-import type { GalleryReplication, ReplicationWithUrl } from "../../src/types/replications";
+import { isPublishableReplication, type GalleryReplication, type ReplicationWithUrl } from "../../src/types/replications";
 import { PUBLIC_CONVEX_CACHE_REVALIDATE_SECONDS, PUBLIC_CONVEX_CACHE_TAGS } from "./publicData.cache";
 import { getPublicDataReadAdapter } from "./publicData.reads";
 import {
@@ -99,15 +99,52 @@ export const getEffectArticlesByContributor = cache(unstable_cache(async (
   ],
 }));
 
+/**
+ * WHERE THE FIGURE / UNRENDERABLE-MEDIA GATE LIVES, AND WHY IT IS HERE
+ * --------------------------------------------------------------------
+ * `isPublishableReplication` is applied to these two list reads and to
+ * `getReplicationsByContributor` in `publicData.replications`. Between them
+ * those three are the whole of the public replication call graph:
+ *
+ *   getPublicReplications        → the /effects gallery explorer (and its
+ *                                  spotlight, rails, tiles and "N works ·
+ *                                  N artists · N effects" counts), the Effect
+ *                                  Index homepage panel, the public route plan
+ *                                  (so `generateStaticParams` *and* the
+ *                                  sitemap), `/api/v1/replications` and
+ *                                  `/api/v1/replications/[slug]`, and the About
+ *                                  page's contributor reference counts.
+ *   getPublicReplicationsByEffect → the effect article's Replications section,
+ *                                  `/api/v1/effects/[slug]/replications`, and
+ *                                  the permalink's effect walk.
+ *   getReplicationsByContributor → the contributor profile's works rail and the
+ *                                  permalink's artist walk.
+ *
+ * Filtering inside `convex/replications.ts` instead would be one edit rather
+ * than three, and it was rejected for two reasons. It would hide figures from
+ * the maintenance scripts that read those same Convex queries directly
+ * (`scripts/replications/audit-provenance.mjs`, `archive-replication-masters`,
+ * `repoint-renditions`) — a rights-tracked asset invisible to the rights audit
+ * is the wrong failure — and it would only take effect on a Convex deploy,
+ * leaving the site publishing figures until that deploy happened, whereas this
+ * ships with the build that introduces it.
+ *
+ * `getPublicReplicationBySlug` below is deliberately *not* filtered: it is a
+ * plain single-row read, and its only caller — `loadReplicationRoute` — already
+ * owns the "does this row have a page?" decision for `url` and now answers it
+ * for `role` and `type` in the same place.
+ */
 export const getPublicReplicationsByEffect = cache(unstable_cache(async (effectSlug: string): Promise<ReplicationWithUrl[]> => {
-  return await getPublicDataReadAdapter().getPublicReplicationsByEffect(effectSlug);
+  return (await getPublicDataReadAdapter().getPublicReplicationsByEffect(effectSlug)).filter(
+    isPublishableReplication,
+  );
 }, ["convex-public-replications-by-effect"], {
   revalidate: PUBLIC_CONVEX_CACHE_REVALIDATE_SECONDS,
   tags: [PUBLIC_CONVEX_CACHE_TAGS.all, PUBLIC_CONVEX_CACHE_TAGS.replications],
 }));
 
 export const getPublicReplications = cache(unstable_cache(async (): Promise<GalleryReplication[]> => {
-  return await getPublicDataReadAdapter().getPublicReplications();
+  return (await getPublicDataReadAdapter().getPublicReplications()).filter(isPublishableReplication);
 }, ["convex-public-replications"], {
   revalidate: PUBLIC_CONVEX_CACHE_REVALIDATE_SECONDS,
   tags: [PUBLIC_CONVEX_CACHE_TAGS.all, PUBLIC_CONVEX_CACHE_TAGS.replications],
