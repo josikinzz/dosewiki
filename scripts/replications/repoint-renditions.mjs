@@ -581,6 +581,19 @@ async function main() {
         ...(thumbnailStorageId ? { thumbnail_storage_id: thumbnailStorageId } : {}),
       });
 
+      // The row now points at different bytes, so the size it advertises is
+      // stale the instant the line above lands. The detail page prints
+      // `file_size` verbatim, and the first pass of this migration left every
+      // video row claiming its master's size — a 4.79 GB label on a 299 MB
+      // download. Write it in the same step that invalidates it, guarded by the
+      // id just written so it can never describe a different object.
+      await writeClient.mutation(api.replications.updateDeliveredFileSize, {
+        apiKey,
+        id: action.rowId,
+        expectedStorageId: storageId,
+        file_size: action.sourceBytes,
+      });
+
       rollback.push(buildRollbackEntry(action, { storageId, thumbnailStorageId }));
       writeRollback();
 
