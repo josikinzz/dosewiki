@@ -893,7 +893,7 @@ deployment — so it uses `--write --confirm-transcode` rather than the deployme
 ceremony. Masters must be preserved to `--masters-dir` before any file is
 encoded; that is a precondition, not a flag. Its manifest is the intended input
 for the later upload-and-repoint operation described in
-[docs/replication-video-delivery.md](../docs/replication-video-delivery.md).
+[docs/replication-media-delivery.md](../docs/replication-media-delivery.md).
 
 ```bash
 # Plan only (default): probe every master, decide transcode/remux/copy per file,
@@ -911,40 +911,66 @@ node scripts/replications/transcode-videos.mjs \
   --write --confirm-transcode
 ```
 
-#### Video master rescue and repoint
+#### Master rescue and repoint
 
-99% of the replication corpus by bytes (44.19 GB of 44.62 GB) is served from
-deployments this project does not control — `warmhearted-mosquito-204`,
-`adept-goldfish-624`, and 65 thumbnails from the *development* deployment
-`enchanted-echidna-791`. There is no admin credential for any of them and an HTTP
-GET is the only way to obtain the bytes. Full plan in
-[docs/replication-video-delivery.md](../docs/replication-video-delivery.md).
+The replication corpus used to be served overwhelmingly from deployments this
+project does not control — `warmhearted-mosquito-204`, `adept-goldfish-624`, and
+the *development* deployment `enchanted-echidna-791`. There is no admin
+credential for any of them and an HTTP GET is the only way to obtain the bytes.
+**Both halves have now been rescued** (video 2026-08-10, images 2026-08-11) and
+all 247 rows resolve from `glad-minnow-656`. Full history and the invariants that
+make a re-run safe are in
+[docs/replication-media-delivery.md](../docs/replication-media-delivery.md).
 
-`archive-video-masters.mjs` is local-only (`--write --confirm-archive`). Per row
-it fetches the master, transcodes it, copies the master to the archive volume,
-and releases scratch, so peak local disk stays near the largest single file. It
-aborts before fetching anything if two archive names would collide on a
-case-insensitive volume, and stops in a resumable way if the volume fills.
+`archive-replication-masters.mjs` is local-only (`--write --confirm-archive`).
+Per row it fetches the master, transcodes it *for video only*, copies the master
+to the archive volume, and releases scratch, so peak local disk stays near the
+largest single file. It aborts before fetching anything if two archive names
+would collide on a case-insensitive volume, and stops in a resumable way if the
+volume fills.
 
 ```bash
-node scripts/replications/archive-video-masters.mjs \
+node scripts/replications/archive-replication-masters.mjs \
   --archive-dir="/Volumes/DeepSeek/dosewiki-replication-masters" \
   --scratch-dir=/tmp/replication-scratch \
   --output-dir=/vol/replication-web
 ```
 
-`repoint-renditions.mjs` uploads renditions to production storage and repoints
+`repoint-renditions.mjs` uploads the copy production should serve and repoints
 the rows. It writes `storage_id`, not `url`: `resolveReplicationUrls` tries
-storage first, so writing `url` alone is a silent no-op on the 60 rows that hold
-a live storage id. Every row is re-resolved through the public query after its
+storage first, so writing `url` alone is a silent no-op on any row that holds a
+live storage id. Every row is re-resolved through the public query after its
 write and must show a non-null, changed, production-hosted URL, because an
-unresolvable row loses its page entirely rather than showing a broken video.
+unresolvable row loses its page entirely rather than showing a broken asset.
 
 ```bash
 node scripts/replications/repoint-renditions.mjs \
   --manifest=/vol/replication-web/archive-manifest.json \
   --renditions-dir=/vol/replication-web \
   --batch-size=5 \
+  --write --confirm-write=repoint-replication-renditions --confirm-repoint \
+  --expected-deployment=glad-minnow-656 \
+  --target-url=https://glad-minnow-656.convex.cloud
+```
+
+`--media-type=image` runs the same rescue over the image half. Images are
+archived and re-uploaded **byte for byte** — no re-encode, resize, or metadata
+strip, because the whole image corpus is 235 MB and several rows are third-party
+artworks. There is therefore no rendition, no `--output-dir`, and no
+`--renditions-dir`; the archived master is what production serves, and ffmpeg is
+never invoked.
+
+```bash
+node scripts/replications/archive-replication-masters.mjs \
+  --media-type=image \
+  --archive-dir="/Volumes/DeepSeek/dosewiki-replication-masters" \
+  --scratch-dir=/tmp/replication-image-scratch \
+  --write --confirm-archive
+
+node scripts/replications/repoint-renditions.mjs \
+  --media-type=image \
+  --manifest="/Volumes/DeepSeek/dosewiki-replication-masters/image-archive-manifest.json" \
+  --batch-size=10 \
   --write --confirm-write=repoint-replication-renditions --confirm-repoint \
   --expected-deployment=glad-minnow-656 \
   --target-url=https://glad-minnow-656.convex.cloud

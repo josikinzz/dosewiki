@@ -8,8 +8,9 @@ import {
   hasRoomFor,
   planArchiveBudget,
   summarizeRisk,
-} from "./archive-video-masters.mjs";
+} from "./archive-replication-masters.mjs";
 import { classifyHostRisk, isProductionUrl, RISK } from "./lib/media-hosts.mjs";
+import { assertMediaType, DEFAULT_MEDIA_TYPE, MEDIA_TYPES } from "./lib/media-types.mjs";
 
 const PROD = "https://glad-minnow-656.convex.cloud/api/storage/x";
 const ORPHAN = "https://warmhearted-mosquito-204.convex.cloud/api/storage/x";
@@ -84,6 +85,79 @@ describe("describeRowAssets", () => {
     const [video] = describeRowAssets(row("clip", { url: ORPHAN, format: "webm", thumbnail_url: undefined }));
 
     expect(video.relativePath).toBe("video/clip.webm");
+  });
+});
+
+describe("media types", () => {
+  it("defaults to video, so an invocation written before images still means video", () => {
+    expect(DEFAULT_MEDIA_TYPE).toBe("video");
+    expect(describeRowAssets(row("clip"))).toEqual(describeRowAssets(row("clip"), "video"));
+  });
+
+  it("refuses a media type the corpus does not have", () => {
+    expect(() => assertMediaType("audio")).toThrow(/--media-type must be one of/);
+    expect(MEDIA_TYPES).toEqual(["video", "image"]);
+  });
+});
+
+describe("describeRowAssets for images", () => {
+  const imageRow = (slug, extra = {}) => ({
+    _id: `id-${slug}`,
+    slug,
+    type: "image",
+    format: "jpg",
+    url: ORPHAN,
+    thumbnail_url: ORPHAN,
+    file_size: 1234,
+    ...extra,
+  });
+
+  // Convex storage URLs carry no extension, so the row's own `format` is the
+  // only thing that names what the bytes are.
+  it("names the archive file from the row format when the url has no extension", () => {
+    const [image] = describeRowAssets(imageRow("beksinski-tower", { format: "webp" }), "image");
+
+    expect(image.kind).toBe("image");
+    expect(image.relativePath).toBe("image/beksinski-tower.webp");
+    expect(image.format).toBe("webp");
+    expect(image.bytes).toBe(1234);
+  });
+
+  // 104 of the 105 endangered image rows hold the same URL string twice. Taking
+  // that literally would archive and upload identical bytes under two names.
+  it("does not archive a thumbnail that is the same object as the image", () => {
+    const assets = describeRowAssets(imageRow("same"), "image");
+
+    expect(assets).toHaveLength(1);
+    expect(assets[0].kind).toBe("image");
+  });
+
+  it("does archive a thumbnail that genuinely points somewhere else", () => {
+    const assets = describeRowAssets(imageRow("split", { thumbnail_url: ORPHAN2 }), "image");
+
+    expect(assets.map((asset) => asset.relativePath)).toEqual([
+      "image/split.jpg",
+      "image/split-thumbnail.jpg",
+    ]);
+  });
+
+  it("tolerates a row with no thumbnail at all", () => {
+    expect(describeRowAssets(imageRow("bare", { thumbnail_url: undefined }), "image")).toHaveLength(1);
+  });
+
+  // An image slug and a video slug can coincide; separate prefixes are what stop
+  // the second archive write from destroying the first master.
+  it("keeps images out of the video and poster directories", () => {
+    const image = describeRowAssets(imageRow("tracers"), "image")[0];
+    const video = describeRowAssets(row("tracers"), "video")[0];
+
+    expect(detectArchiveCollisions([image, video])).toEqual([]);
+  });
+
+  it("records the endangered host, so the plan can report what is at risk", () => {
+    const [image] = describeRowAssets(imageRow("at-risk"), "image");
+
+    expect(image).toMatchObject({ risk: RISK.ORPHAN, atRisk: true });
   });
 });
 

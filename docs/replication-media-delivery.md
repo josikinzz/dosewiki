@@ -1,22 +1,37 @@
-# Replication Video Delivery — Transcode, Archive, and Repoint
+# Replication Media Delivery — Transcode, Archive, and Repoint
 
-Last verified: 2026-08-10
+Last verified: 2026-08-11
 
-The replication video corpus is 125 rows and 44.62 GB of raw, never-transcoded
-masters. Playback is slow, and **99% of those bytes do not live on production**.
-This document is the plan for both problems, the decisions that shape it, and the
-two ways a naive version of it fails silently.
+The replication corpus is 247 rows: 125 videos totalling 44.62 GB of raw,
+never-transcoded masters, and 122 images totalling 235 MB. Video playback was
+slow, and **almost none of those bytes lived on production**. This document is
+the plan for both problems, the decisions that shape it, and the two ways a naive
+version of it fails silently.
 
 Three scripts implement it:
 
 | Step | Script | Writes |
 | --- | --- | --- |
-| 1. Rescue + encode | `scripts/replications/archive-video-masters.mjs` | local files only |
+| 1. Rescue (+ encode, video only) | `scripts/replications/archive-replication-masters.mjs` | local files only |
 | 2. Encode engine | `scripts/replications/transcode-videos.mjs` | local files only |
 | 3. Upload + repoint | `scripts/replications/repoint-renditions.mjs` | **production Convex** |
 
-Steps 1 and 2 have been built and proven locally. Step 3 has been built and
-tested but **deliberately never run**.
+## Status
+
+**Done. The rescue is complete for both halves of the corpus.**
+
+| Half | Rescued | Rows repointed | Result |
+| --- | --- | ---: | --- |
+| Video | 2026-08-10 | 125 | all media and posters on `glad-minnow-656` |
+| Image | 2026-08-11 | 106 | all media and thumbnails on `glad-minnow-656` |
+
+Measured against production on 2026-08-11 after the image run: **0 of 247 rows
+resolve to an orphan or development host, and 0 resolve to null.** The stored
+`url` strings still name the old hosts on 172 rows; that is deliberate and is the
+rollback path (section 5).
+
+The remainder of this document is kept as the record of *why* it is shaped the
+way it is. Everything below still applies to a re-run.
 
 ## Corrections to earlier readings of this corpus
 
@@ -149,10 +164,9 @@ Note also that a CDN *in front of Convex storage* does not work:
 `ctx.storage.getUrl` returns a signed, expiring URL, so the cache key is unstable
 and the cached target expires. Moving to a CDN means moving the bytes.
 
-## 3. Where the media actually lives
+## 3. Where the media actually lived
 
-Measured against production (`glad-minnow-656`) on 2026-08-10, over the 125 video
-rows:
+### Video — measured 2026-08-10, over the 125 video rows
 
 | Asset | Host | Count |
 | --- | --- | ---: |
@@ -184,13 +198,67 @@ the only way to obtain any of those bytes. If any of the three is reset or
 deleted, those files are gone — not degraded, gone, with nothing able to
 re-derive them.
 
+### Images — measured 2026-08-11, over the 122 image rows
+
+The video rescue left this half untouched, and it was in the same danger.
+
+| Asset | Host | Count |
+| --- | --- | ---: |
+| image | `warmhearted-mosquito-204` (orphan) | 79 |
+| image | `adept-goldfish-624` (orphan) | 26 |
+| image | `glad-minnow-656` (production) | 17 |
+
+166 MB of the 235 MB corpus sat on the two orphan deployments. All 105 endangered
+rows were reachable by HTTP GET, their recorded `file_size` matched
+`Content-Length` exactly in every case, and their recorded `format` matched the
+served `Content-Type` in every case.
+
+**A row is not the unit of risk, and this half proves it.** Counting only the
+media URL says 105 rows are endangered. Counting *assets* says 106:
+`shadow-people-figure-in-a-doorway` already resolved its image from production
+while its `thumbnail_url` still resolved from `warmhearted-mosquito-204`. A skip
+rule that asked only about the media declared that row rescued and left the
+orphan reference in place, where the gallery and `lib/public-api/v1.ts` would go
+on handing it out. `planRepoint` therefore skips a row only when **every** asset
+it references is already on production.
+
+### Two things about image rows that shape the operation
+
+- **`thumbnail_url` is normally the same stored object as `url`.** 104 of the 105
+  endangered rows held two identical URL strings. Uploading that twice would
+  double the bytes on production and leave two ids free to drift apart, so both
+  fields are pointed at one upload instead. `GalleryMediaTile` reads `url` for
+  images and `thumbnail_url` only for videos, but `replicationDetailModel`,
+  `replicationCredit`, and the public API all read `thumbnail_url`, so leaving it
+  on an orphan host would not have been cosmetic.
+- **A row's `format` can be wrong.** `shadow-people-figure-in-a-doorway` carries
+  `format: "jpg"` on a thumbnail whose stored object is a WebP. Convex serves
+  back whatever `Content-Type` an upload declares, so trusting the row would have
+  published a WebP as `image/jpeg` — which makes browsers download the file
+  instead of rendering it. The upload type is resolved from the file's own
+  container signature first, the source response header second, the name third.
+
 ## 4. Step 1 — archive the masters and encode renditions
 
-`scripts/replications/archive-video-masters.mjs`. Local only; no Convex write.
+`scripts/replications/archive-replication-masters.mjs`. Local only; no Convex
+write. `--media-type` selects the half of the corpus; video is the default.
 
 Per row, strictly one row at a time: **fetch master to scratch → transcode →
 copy master to the archive volume → release scratch.** Peak local scratch stays
 near the largest single file (~4.8 GB) rather than the 44.6 GB corpus.
+
+### Why images skip the transcode
+
+Videos were re-encoded because the masters were undecodable in some browsers,
+multi-gigabyte, and non-faststart — a rendition fixed a measurable delivery
+problem. Images have none of those problems: 235 MB in total, and several rows
+are third-party artworks where a re-encode, a resize, or a metadata strip is an
+attribution problem as much as a quality one. **Image masters are archived and
+re-uploaded byte for byte, and the archived master is what production serves.**
+ffmpeg is never invoked on an image run, and `--output-dir` is not required.
+
+Images archive under their own `image/` prefix so an image slug can never collide
+with a video master or poster sharing the same name.
 
 ### Destination
 
@@ -256,14 +324,15 @@ unknown is total corpus duration, which the dry run computes exactly from
 `ffprobe`. The script reports a band rather than a single figure and replaces
 estimates with measured bytes as files land.
 
-## 5. Step 2 — upload renditions to production and repoint
+## 5. Step 2 — upload to production and repoint
 
 `scripts/replications/repoint-renditions.mjs`. **This is a production Convex
-write.** Built, unit-tested, and deliberately not run.
+write.** Run against video on 2026-08-10 and against images on 2026-08-11.
 
-This step is the real prize: it fixes size, fixes faststart, **and retires both
-orphan deployments plus the dev-hosted thumbnails in one pass.** After it, every
-byte the site serves comes from a deployment this project controls.
+This step is the real prize: for video it fixes size, fixes faststart, **and
+retires both orphan deployments plus the dev-hosted thumbnails in one pass**; for
+images it is the rescue alone. After it, every byte the site serves comes from a
+deployment this project controls.
 
 ### Trap 1 — writing `url` is a silent no-op on 60 rows
 
@@ -296,6 +365,9 @@ website uses — immediately after its write:
 4. **Resolved host must be `glad-minnow-656.convex.cloud`** — not an orphan, not
    dev.
 5. **Thumbnail must not regress from present to null.**
+6. **Resolved thumbnail host must be production**, on every row where this run
+   set a thumbnail id. Without it a run that fixed the media and quietly left the
+   thumbnail on an orphan host reports success while the rescue is half-done.
 
 All failing clauses are reported together, not just the first. Any failure stops
 the run before the next row.
@@ -319,8 +391,15 @@ a large run.
   storage id, after which the row falls back to `url` exactly as before. Clearing
   `url` during the migration would turn a reversible change into a one-way door.
   A later cleanup pass can null it once the new storage has been trusted.
-- Rows without a usable rendition are skipped, never partially written —
+- Rows without a usable upload source are skipped, never partially written —
   repointing a row at nothing is exactly how a page gets deleted.
+- Uploads retry the **transport** only, eight times with backoff capped at 30 s,
+  each attempt on a fresh non-pooled HTTP/1.1 `undici` agent that is disposed
+  afterwards. The failure this defends against poisons the connection rather than
+  the request: a TLS `bad record mac` was followed by `ERR_HTTP2_INVALID_SESSION`
+  on every retry that reused the broken session. The image run hit one `EPIPE`
+  and recovered on the next attempt. A non-2xx response is *not* retried — that
+  is the server refusing, and hammering it would be wrong.
 
 ### Ceremony
 
@@ -338,18 +417,28 @@ Dry run is the default and prints the exact per-row verification it would apply.
 
 ## 6. Sequence
 
-1. Attach `/Volumes/DeepSeek`. Dry-run `archive-video-masters.mjs`; review the
-   host breakdown, the collision check, and the volume budget.
+1. Attach `/Volumes/DeepSeek`. Dry-run `archive-replication-masters.mjs` (add
+   `--media-type=image` for the image half); review the host breakdown, the
+   collision check, and the volume budget.
 2. Run it with `--write --confirm-archive`. This is the time-critical step: it is
-   what removes the risk of permanently losing 44.19 GB to a deployment reset.
+   what removes the risk of permanently losing the bytes to a deployment reset.
 3. Review the archive manifest and the corpus projection.
-4. Dry-run `repoint-renditions.mjs` and read the plan.
-5. Repoint in batches of 5 with the full ceremony, verifying each batch on the
-   live site before continuing.
-6. `revalidateTag("convex-public:replications")`.
-7. Leave the orphan deployments untouched for a defined period. They are the
+4. `npm run convex:doctor -- --url=https://glad-minnow-656.convex.cloud`. The
+   `CONVEX_ADMIN_KEY` in `.env.local` is dev-scoped and **will be rejected by
+   production**; take the deployment's own value with
+   `CONVEX_DEPLOY_KEY=<CONVEX_DEPLOY_KEY_PROD> bunx convex env get CONVEX_ADMIN_KEY`
+   and pass it as `CONVEX_ADMIN_TOKEN_REPLICATION_MAINTENANCE` for the run only.
+   Never mint a new key and never write one into a tracked file.
+5. Dry-run `repoint-renditions.mjs` and read the plan.
+6. Repoint in batches with the full ceremony, verifying each batch on the live
+   site before continuing.
+7. `revalidateTag("convex-public:replications")` — otherwise the 900 s
+   `unstable_cache` and 3600 s ISR keep serving the old resolved URLs. There is
+   no standalone endpoint for this; it fires from the authenticated editor write
+   routes, or you wait the caches out.
+8. Leave the orphan deployments untouched for a defined period. They are the
    rollback.
-8. Fix the three wrong precedence comments in `convex/replications.ts`.
+9. Fix the three wrong precedence comments in `convex/replications.ts`.
 
 ## 7. Schema fields that do not exist yet
 
@@ -361,11 +450,15 @@ manifests emitted by both scripts carry all of that information.
 
 ## Open decisions for the owner
 
-1. **Quality settings.** `--max-dimension 1920`, `--crf 21`, `--preset medium`.
-   Worth one visual A/B on the two or three most detailed videos before
-   committing ~44.6 GB of encoder time.
-2. **Whether to add `expectedStorageId` to `updateStorageIds`** before the
-   repoint run, making the compare-and-swap atomic rather than script-level.
-3. **How long to leave the orphan deployments alive** after the repoint. They are
-   the only rollback for 65 rows.
-4. **Whether to null the legacy `url` values** in a later cleanup pass, and when.
+1. **Whether to add `expectedStorageId` to `updateStorageIds`**, making the
+   compare-and-swap atomic rather than script-level. Still script-level today.
+2. **How long to leave the orphan deployments alive.** They are the only rollback
+   for the 172 rows whose stored `url` still names them.
+3. **Whether to null the legacy `url` values** in a later cleanup pass, and when.
+4. **`shadow-people-figure-in-a-doorway` has the wrong thumbnail.** Its
+   `thumbnail_storage_id` now points at a production copy of
+   `b877b211-…` — which is the *`shadow-people-figures-by-a-wall` picture*, not
+   its own. The rescue preserved existing behaviour exactly and moved it to a
+   host we control; it did not invent a correction, because which thumbnail that
+   row should have is a content decision. Likely fixes: clear it so the resolver
+   falls through to the row's own image, or point it at the row's own object.

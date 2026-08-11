@@ -1,11 +1,13 @@
 #!/usr/bin/env node
 /**
  * Rescue replication media off deployments nobody controls, and produce a web
- * rendition on the way past.
+ * rendition on the way past when the medium needs one.
  *
  * 99% of the replication corpus by bytes does not live on production. 59 video
- * masters resolve from `warmhearted-mosquito-204`, 6 from `adept-goldfish-624`,
+ * masters resolved from `warmhearted-mosquito-204`, 6 from `adept-goldfish-624`,
  * and 65 thumbnails from the *development* deployment `enchanted-echidna-791`.
+ * The image half of the corpus is in the same state: 79 of 122 image rows on
+ * `warmhearted-mosquito-204` and 26 on `adept-goldfish-624`, 166 MB in total.
  * None of those are backed by anything this project owns, no admin credential
  * for them exists here, and an HTTP GET is the only way to obtain the bytes. If
  * one of those deployments is reset or deleted, those files are gone — not
@@ -14,18 +16,33 @@
  * So this script does three things per row, strictly one row at a time:
  *
  *   1. fetch the master to local scratch,
- *   2. transcode it to a web rendition (see transcode-videos.mjs),
+ *   2. transcode it to a web rendition (see transcode-videos.mjs) — video only,
  *   3. copy the master to the archive volume and release the scratch copy.
  *
  * Peak local scratch therefore stays near the largest single file (~4.8 GB)
  * rather than the 44.6 GB corpus.
  *
+ * `--media-type` selects which half of the corpus is being rescued and is the
+ * only thing that differs between the two runs. Video is the default, so every
+ * invocation written before images existed still means exactly what it meant.
+ *
+ * WHY IMAGES ARE NOT TRANSCODED
+ * -----------------------------
+ * Videos were re-encoded because the masters were undecodable-in-the-browser,
+ * multi-gigabyte, and non-faststart — the rendition fixed a real delivery
+ * problem. Images have none of those problems: the whole image corpus is 166 MB,
+ * and several rows are third-party artworks where a re-encode, a resize, or a
+ * metadata strip would be both a quality regression and an attribution problem.
+ * Image masters are therefore archived and re-uploaded byte for byte, and the
+ * archived master *is* what production serves. Step 2 above is skipped entirely
+ * for them, ffmpeg is never invoked, and `--output-dir` is not required.
+ *
  * Order is plain slug order. There is no prioritisation scheme because nothing
- * forces one: the archive volume (`/Volumes/DeepSeek`, 639 GB free against 44.6
- * GB of masters) has ample room for the whole corpus. The free-space check and
- * the resumable design below are kept because they are correct regardless — a
- * volume can be shared, filled by something else, or swapped — not because this
- * particular volume is tight.
+ * forces one: the archive volume (`/Volumes/DeepSeek`, 561 GB free against 44.6
+ * GB of video masters and 166 MB of images) has ample room for the whole corpus.
+ * The free-space check and the resumable design below are kept because they are
+ * correct regardless — a volume can be shared, filled by something else, or
+ * swapped — not because this particular volume is tight.
  *
  * exFAT properties this script handles deliberately:
  *
@@ -42,16 +59,23 @@
  * files only.
  *
  * Dry run (default — plans, checks space and collisions, downloads nothing):
- *   node scripts/replications/archive-video-masters.mjs \
+ *   node scripts/replications/archive-replication-masters.mjs \
  *     --archive-dir="/Volumes/DeepSeek/dosewiki-replication-masters" \
  *     --scratch-dir=/tmp/replication-scratch \
  *     --output-dir=/vol/replication-web
  *
  * Apply:
- *   node scripts/replications/archive-video-masters.mjs \
+ *   node scripts/replications/archive-replication-masters.mjs \
  *     --archive-dir="/Volumes/DeepSeek/dosewiki-replication-masters" \
  *     --scratch-dir=/tmp/replication-scratch \
  *     --output-dir=/vol/replication-web \
+ *     --write --confirm-archive
+ *
+ * Images (no renditions, so no --output-dir):
+ *   node scripts/replications/archive-replication-masters.mjs \
+ *     --media-type=image \
+ *     --archive-dir="/Volumes/DeepSeek/dosewiki-replication-masters" \
+ *     --scratch-dir=/tmp/replication-image-scratch \
  *     --write --confirm-archive
  */
 import fs from "node:fs";
@@ -65,6 +89,7 @@ import {
 } from "../lib/production-write-command.mjs";
 import { getFlagValue, hasFlag } from "../lib/data-ops-run-context.mjs";
 import { classifyHostRisk } from "./lib/media-hosts.mjs";
+import { assertMediaType, DEFAULT_MEDIA_TYPE } from "./lib/media-types.mjs";
 import {
   DEFAULT_OPTIONS,
   assertToolsAvailable,
@@ -90,59 +115,118 @@ function extensionFor(url, fallback) {
   return fallback;
 }
 
+function assetFrom(row, { kind, url, relativePath, bytes }) {
+  const { host, risk, atRisk } = classifyHostRisk(url);
+  return {
+    rowId: row._id,
+    slug: row.slug,
+    kind,
+    url,
+    host,
+    risk,
+    atRisk,
+    bytes,
+    format: row.format ?? null,
+    relativePath,
+  };
+}
+
 /**
- * Split a replication row into the individual assets that have to be rescued.
+ * Split a video row into the individual assets that have to be rescued.
  *
  * A row is not the unit of work: its video and its poster can live on different
- * deployments in different amounts of danger, and 65 rows are in exactly that
- * state today — video on an orphan host, thumbnail on dev.
+ * deployments in different amounts of danger, and 65 rows were in exactly that
+ * state — video on an orphan host, thumbnail on dev.
  */
-export function describeRowAssets(row) {
+function describeVideoRowAssets(row) {
   const assets = [];
 
   if (row.url) {
-    const { host, risk, atRisk } = classifyHostRisk(row.url);
-    assets.push({
-      rowId: row._id,
-      slug: row.slug,
-      kind: "video",
-      url: row.url,
-      host,
-      risk,
-      atRisk,
-      bytes: Number.isFinite(row.file_size) ? row.file_size : null,
-      relativePath: path.join("video", `${row.slug}${extensionFor(row.url, `.${row.format || "mp4"}`)}`),
-    });
+    assets.push(
+      assetFrom(row, {
+        kind: "video",
+        url: row.url,
+        bytes: Number.isFinite(row.file_size) ? row.file_size : null,
+        relativePath: path.join("video", `${row.slug}${extensionFor(row.url, `.${row.format || "mp4"}`)}`),
+      }),
+    );
   }
 
   if (row.thumbnail_url) {
-    const { host, risk, atRisk } = classifyHostRisk(row.thumbnail_url);
-    assets.push({
-      rowId: row._id,
-      slug: row.slug,
-      kind: "thumbnail",
-      url: row.thumbnail_url,
-      host,
-      risk,
-      atRisk,
-      bytes: null,
-      relativePath: path.join("poster", `${row.slug}-poster${extensionFor(row.thumbnail_url, ".jpg")}`),
-    });
+    assets.push(
+      assetFrom(row, {
+        kind: "thumbnail",
+        url: row.thumbnail_url,
+        bytes: null,
+        relativePath: path.join("poster", `${row.slug}-poster${extensionFor(row.thumbnail_url, ".jpg")}`),
+      }),
+    );
   }
 
   return assets;
 }
 
 /**
+ * Split an image row into the assets that have to be rescued.
+ *
+ * Unlike a video, an image row's `thumbnail_url` is normally the *same stored
+ * object* as its `url` — 104 of the 105 endangered image rows hold two identical
+ * URL strings, and the remaining one has no thumbnail at all. Archiving that
+ * second reference would write a byte-identical duplicate under a second name
+ * and then upload it twice. So a thumbnail becomes its own asset only when it
+ * genuinely points somewhere else; the shared case is handled at repoint time by
+ * pointing both fields at the one uploaded object.
+ *
+ * Images live under their own `image/` prefix so they can never collide with a
+ * video master or poster that happens to share a slug.
+ */
+function describeImageRowAssets(row) {
+  const assets = [];
+
+  if (row.url) {
+    assets.push(
+      assetFrom(row, {
+        kind: "image",
+        url: row.url,
+        bytes: Number.isFinite(row.file_size) ? row.file_size : null,
+        relativePath: path.join("image", `${row.slug}${extensionFor(row.url, `.${row.format || "jpg"}`)}`),
+      }),
+    );
+  }
+
+  if (row.thumbnail_url && row.thumbnail_url !== row.url) {
+    assets.push(
+      assetFrom(row, {
+        kind: "thumbnail",
+        url: row.thumbnail_url,
+        bytes: null,
+        relativePath: path.join(
+          "image",
+          `${row.slug}-thumbnail${extensionFor(row.thumbnail_url, `.${row.format || "jpg"}`)}`,
+        ),
+      }),
+    );
+  }
+
+  return assets;
+}
+
+export function describeRowAssets(row, mediaType = DEFAULT_MEDIA_TYPE) {
+  return assertMediaType(mediaType) === "image"
+    ? describeImageRowAssets(row)
+    : describeVideoRowAssets(row);
+}
+
+/**
  * Deterministic archive order: by slug, then by asset kind.
  *
- * Sorting by slug keeps a row's video and poster adjacent, which is what makes
- * the one-row-at-a-time cycle readable in the log and makes an interrupted run
- * resume at an obvious place. There is no cleverness here on purpose.
+ * Sorting by slug keeps a row's media and its thumbnail adjacent, which is what
+ * makes the one-row-at-a-time cycle readable in the log and makes an interrupted
+ * run resume at an obvious place. There is no cleverness here on purpose.
  */
-export function buildArchivePlan(rows) {
+export function buildArchivePlan(rows, mediaType = DEFAULT_MEDIA_TYPE) {
   return rows
-    .flatMap((row) => describeRowAssets(row))
+    .flatMap((row) => describeRowAssets(row, mediaType))
     .sort((a, b) => a.slug.localeCompare(b.slug) || a.kind.localeCompare(b.kind));
 }
 
@@ -325,6 +409,8 @@ async function main() {
   printProductionWriteCommand(command);
   console.log("Convex writes: none — this operation reads public queries and writes local files.\n");
 
+  const mediaType = assertMediaType(getFlagValue(argv, "--media-type") ?? DEFAULT_MEDIA_TYPE);
+  const producesRenditions = mediaType === "video";
   const archiveDir = getFlagValue(argv, "--archive-dir");
   const scratchDir = getFlagValue(argv, "--scratch-dir");
   const outputDir = getFlagValue(argv, "--output-dir");
@@ -333,7 +419,12 @@ async function main() {
 
   if (!archiveDir) throw new Error("Pass --archive-dir=<master archive volume path>.");
   if (!scratchDir) throw new Error("Pass --scratch-dir=<local working directory>.");
-  if (!outputDir) throw new Error("Pass --output-dir=<directory for web renditions>.");
+  // Images are archived byte for byte and never re-encoded, so there is nothing
+  // for an output directory to hold. Demanding one would invite a caller to
+  // believe a rendition step ran when none did.
+  if (producesRenditions && !outputDir) {
+    throw new Error("Pass --output-dir=<directory for web renditions>.");
+  }
 
   const readUrl = process.env.CONVEX_PUBLIC_READ_URL || process.env.VITE_CONVEX_URL;
   if (!readUrl) {
@@ -345,7 +436,10 @@ async function main() {
   // Checked before the archive directory is created and before the first read.
   // A run missing its confirmation must fail having touched nothing at all.
   if (!command.dryRun) assertArchiveAllowed(command, argv);
-  assertToolsAvailable();
+  // ffmpeg/ffprobe are a precondition of encoding, not of rescuing. An image run
+  // must not refuse to save 166 MB from a deployment nobody controls because a
+  // transcoder it will never call is absent.
+  if (producesRenditions) assertToolsAvailable();
 
   const archiveRoot = path.resolve(archiveDir);
   if (!fs.existsSync(archiveRoot) && !command.dryRun) {
@@ -359,17 +453,22 @@ async function main() {
 
   const client = new ConvexHttpClient(readUrl);
   const rows = (await client.query(api.replications.getPublicReplications, {})).filter(
-    (row) => row.type === "video",
+    (row) => row.type === mediaType,
   );
 
-  const assets = buildArchivePlan(rows).slice(0, Number.isFinite(limit) ? limit : undefined);
+  const assets = buildArchivePlan(rows, mediaType).slice(0, Number.isFinite(limit) ? limit : undefined);
   const risk = summarizeRisk(assets);
   const budget = planArchiveBudget(assets, { availableBytes, reserveBytes });
 
+  console.log(`Media type  : ${mediaType} (${rows.length} row(s))`);
   console.log(`Read source : ${readUrl}`);
   console.log(`Archive     : ${archiveRoot}`);
   console.log(`Scratch     : ${path.resolve(scratchDir)}`);
-  console.log(`Renditions  : ${path.resolve(outputDir)}\n`);
+  console.log(
+    producesRenditions
+      ? `Renditions  : ${path.resolve(outputDir)}\n`
+      : "Renditions  : none — image masters are archived and re-served byte for byte\n",
+  );
 
   console.log("--- Where the media lives ----------------------------------------");
   for (const [host, count] of Object.entries(risk.byHost).sort((a, b) => b[1] - a[1])) {
@@ -419,6 +518,11 @@ async function main() {
       host: asset.host,
       risk: asset.risk,
       sourceUrl: asset.url,
+      // Recorded so the upload step can restate the file's own type instead of
+      // guessing one. `contentType` comes from the source response and is the
+      // authority; `format` is the row's own extension and survives a resumed
+      // run, where no fetch happens and there is no response to read.
+      format: asset.format,
       archivePath,
     };
 
@@ -456,11 +560,14 @@ async function main() {
       continue;
     }
     entry.sourceBytes = downloaded.bytes;
-    console.log(`  fetched ${formatBytes(downloaded.bytes)}`);
+    entry.contentType = downloaded.contentType;
+    console.log(`  fetched ${formatBytes(downloaded.bytes)}${downloaded.contentType ? ` (${downloaded.contentType})` : ""}`);
 
     // Transcode before archiving, so a volume-full stop still leaves a usable
-    // web rendition behind for this row.
-    if (asset.kind === "video") {
+    // web rendition behind for this row. `producesRenditions` is what guarantees
+    // `outputDir` is set here; the kind check is what guarantees the file is
+    // something ffmpeg can read.
+    if (producesRenditions && asset.kind === "video") {
       try {
         const probe = probeVideo(scratchPath);
         const renditionPath = path.join(path.resolve(outputDir), `${asset.slug}.mp4`);
@@ -551,8 +658,12 @@ async function main() {
       reason: entry.reason ?? entry.status,
     }));
 
-  const manifestPath =
-    getFlagValue(argv, "--manifest") ?? path.join(path.resolve(outputDir), "archive-manifest.json");
+  // Video manifests sit beside the renditions they describe. An image run has no
+  // renditions, so its manifest sits beside the masters it describes.
+  const defaultManifestPath = producesRenditions
+    ? path.join(path.resolve(outputDir), "archive-manifest.json")
+    : path.join(archiveRoot, `${mediaType}-archive-manifest.json`);
+  const manifestPath = getFlagValue(argv, "--manifest") ?? defaultManifestPath;
   fs.mkdirSync(path.dirname(manifestPath), { recursive: true });
   fs.writeFileSync(
     manifestPath,
@@ -561,6 +672,7 @@ async function main() {
         operation: OPERATION,
         generatedAt: new Date().toISOString(),
         mode: command.dryRun ? "dry-run" : "write",
+        mediaType,
         readSource: readUrl,
         archiveDir: archiveRoot,
         risk,

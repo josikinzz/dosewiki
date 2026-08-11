@@ -18,7 +18,7 @@
  * down. It performs NO Convex write and never contacts a deployment: it reads a
  * directory of masters and writes a directory of renditions plus a manifest.
  * Uploading the renditions and repointing `storage_id` is a separate, later
- * operation that consumes this manifest — see docs/replication-video-delivery.md.
+ * operation that consumes this manifest — see docs/replication-media-delivery.md.
  *
  * Masters are treated as irreplaceable. The script refuses to encode a file
  * whose master is not verifiably preserved at the configured archive location,
