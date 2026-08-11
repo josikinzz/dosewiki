@@ -11,7 +11,10 @@ import {
 } from "@server/public-api/v1";
 
 export const runtime = "nodejs";
-const SLUG_RE = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
+// Underscores are legal here even though they are not the house slug style: a
+// chunk of the replication corpus was imported straight from filenames, and
+// rejecting those slugs 400s rows that genuinely exist.
+const SLUG_RE = /^[a-z0-9]+(?:[-_][a-z0-9]+)*$/;
 
 export function OPTIONS() {
   return new NextResponse(null, { status: 204, headers: getPublicApiCorsHeaders() });

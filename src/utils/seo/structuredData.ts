@@ -110,7 +110,49 @@ interface ItemListSchema {
   }>;
 }
 
-type JsonLdSchema = ArticleSchema | ItemListSchema;
+/**
+ * Schema.org ImageObject / VideoObject for a single replication permalink.
+ *
+ * `license` + `acquireLicensePage` + `creditText` + `creator` are the quartet
+ * search engines read to mark an image as licensable — which is the reason the
+ * permalink exists, so they are emitted only when a real licence is recorded
+ * rather than defaulted to something permissive.
+ */
+interface MediaObjectSchema {
+  "@context": "https://schema.org";
+  "@type": "ImageObject" | "VideoObject";
+  "@id": string;
+  url: string;
+  name: string;
+  description?: string;
+  contentUrl: string;
+  thumbnailUrl?: string;
+  width?: number;
+  height?: number;
+  encodingFormat?: string;
+  duration?: string;
+  uploadDate?: string;
+  creditText?: string;
+  copyrightNotice?: string;
+  license?: string;
+  acquireLicensePage?: string;
+  creator?: {
+    "@type": "Person";
+    name: string;
+    url?: string;
+  };
+  mainEntityOfPage: {
+    "@type": "WebPage";
+    "@id": string;
+  };
+  isPartOf?: {
+    "@type": "WebSite";
+    name: string;
+    url: string;
+  };
+}
+
+type JsonLdSchema = ArticleSchema | ItemListSchema | MediaObjectSchema;
 
 /**
  * Article prose reaches this file with inline `[cite:reference-id]` tokens
@@ -420,6 +462,78 @@ export function buildItemListSchema(input: {
       name: item.name,
       url: item.url,
     })),
+  };
+}
+
+export interface ReplicationSchemaInput {
+  slug: string;
+  title: string;
+  type: "image" | "video";
+  contentUrl: string;
+  thumbnailUrl?: string;
+  width?: number;
+  height?: number;
+  format?: string;
+  durationSeconds?: number;
+  createdAt?: string;
+  artist?: string;
+  artistUrl?: string;
+  creditLine?: string;
+  rightsholder?: string;
+  licenseName?: string;
+  licenseUrl?: string;
+  effectName?: string | null;
+}
+
+export function buildReplicationSchema(
+  input: ReplicationSchemaInput,
+  url: string,
+  config: SiteFlavorConfig = SITE_FLAVOR_CONFIG,
+): MediaObjectSchema {
+  const siteUrl = getSchemaSiteUrl(url, config);
+  const creator = cleanText(input.artist);
+  const hasNamedCreator = Boolean(creator && creator.toLowerCase() !== "unknown");
+
+  return {
+    "@context": "https://schema.org",
+    "@type": input.type === "video" ? "VideoObject" : "ImageObject",
+    "@id": `${url}#media`,
+    url,
+    name: input.title,
+    description: cleanText(
+      input.effectName
+        ? `A replication of the subjective effect ${input.effectName}.`
+        : undefined,
+    ),
+    contentUrl: input.contentUrl,
+    thumbnailUrl: input.thumbnailUrl,
+    width: input.width,
+    height: input.height,
+    encodingFormat: input.format ? input.format.toLowerCase() : undefined,
+    // ISO 8601 duration; schema.org expects the period form, not raw seconds.
+    duration: input.durationSeconds
+      ? `PT${Math.round(input.durationSeconds)}S`
+      : undefined,
+    uploadDate: input.createdAt,
+    creditText: cleanText(input.creditLine),
+    copyrightNotice: cleanText(input.rightsholder ?? (hasNamedCreator ? creator : undefined)),
+    // Absent when no explicit licence is recorded — omitting the field says
+    // "terms unstated", whereas guessing one would assert a permission we do
+    // not have.
+    license: input.licenseUrl ?? undefined,
+    acquireLicensePage: input.licenseUrl ? url : undefined,
+    creator: hasNamedCreator
+      ? { "@type": "Person", name: creator as string, url: input.artistUrl }
+      : undefined,
+    mainEntityOfPage: {
+      "@type": "WebPage",
+      "@id": url,
+    },
+    isPartOf: {
+      "@type": "WebSite",
+      name: config.name,
+      url: siteUrl,
+    },
   };
 }
 

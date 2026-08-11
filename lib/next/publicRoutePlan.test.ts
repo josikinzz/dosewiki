@@ -53,6 +53,12 @@ const createFixturePlan = () =>
     ],
     categories: [{ key: "classic-psychedelics" }, { key: "classic-psychedelics" }],
     effects: [{ slug: "visual-drifting" }],
+    replications: [
+      { slug: "tree-bark-chelsea-morgan", url: "https://example.test/tree-bark.jpg" },
+      { slug: "tree-bark-chelsea-morgan", url: "https://example.test/tree-bark.jpg" },
+      { slug: "no-asset-yet", url: null },
+      { slug: "audio", url: "https://example.test/shadow.jpg" },
+    ],
     articles: [
       { slug: "lucid-dreaming", publication_status: "published" },
       { slug: "dxm", publication_status: "unlisted" },
@@ -159,6 +165,20 @@ describe("public route plan", () => {
     ]);
     expect(getPublicRouteParams(plan, "reports")).toEqual([{ slug: "first-trip" }]);
     expect(plan.families.reports.map((entry) => entry.path)).toEqual(["/reports/first-trip"]);
+  });
+
+  it("routes replications with a resolved asset, dropping duplicates and reserved slugs", () => {
+    const plan = createFixturePlan();
+
+    // "no-asset-yet" would be a permalink to a broken image; "audio" would shadow
+    // the static /replications/audio page.
+    expect(getPublicRouteParams(plan, "replications")).toEqual([
+      { slug: "tree-bark-chelsea-morgan" },
+    ]);
+    expect(plan.families.replications.map((entry) => entry.path)).toEqual([
+      "/replications/tree-bark-chelsea-morgan",
+    ]);
+    expect(getPublicRouteSitemapPaths(plan)).toContain("/replications/tree-bark-chelsea-morgan");
   });
 
   it("owns effect category routes and contributor key encoding", () => {
@@ -316,6 +336,7 @@ describe("mechanism route projection parity", () => {
       substances: [],
       categories: [],
       effects: [],
+      replications: [],
       articles: [],
       reports: [],
       contributorKeys: [],
@@ -410,6 +431,7 @@ describe("mechanism route projection parity", () => {
       substances: [],
       categories: [],
       effects: [],
+      replications: [],
       articles: [],
       reports: [],
       contributorKeys: [],
@@ -445,6 +467,7 @@ describe("public sitemap adapter", () => {
         substances: [{ path: "/lsd", params: { slug: "lsd" } }],
         categories: [],
         effects: [],
+        replications: [],
         articles: [],
         effectCategories: [],
         psychoactiveSummaries: [],

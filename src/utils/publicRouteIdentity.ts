@@ -7,6 +7,7 @@ export type PublicRouteIdentity =
   | { family: "replications"; params?: Record<string, never> }
   | { family: "replicationTutorials"; params?: Record<string, never> }
   | { family: "replicationAudio"; params?: Record<string, never> }
+  | { family: "replication"; params: { slug: string } }
   | { family: "substance"; params: { slug: string } }
   | { family: "effects"; params?: Record<string, never> }
   | { family: "effect"; params: { effectSlug: string } }
@@ -70,6 +71,11 @@ export function getPublicRoutePath(route: PublicRouteIdentity): string {
       return "/replications/tutorials";
     case "replicationAudio":
       return "/replications/audio";
+    // Sits under the same segment as the static `tutorials` / `audio` pages. Next
+    // resolves static segments before dynamic ones, and the route plan refuses to
+    // emit a replication whose slug would shadow them — see RESERVED_REPLICATION_SLUGS.
+    case "replication":
+      return `/replications/${encodePublicRouteSegment(route.params.slug)}`;
     case "substance":
       return `/${encodePublicRouteSegment(route.params.slug)}`;
     case "effects":

@@ -1,7 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useState } from 'react';
-import dynamic from 'next/dynamic';
+import { useCallback, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { Icon } from '@/components/common/Icon';
 import { proseLinkClassName } from '@/components/common/ProseLink';
@@ -37,15 +36,8 @@ interface ReplicationsGalleryExplorerProps {
   effectHrefPrefix?: string;
 }
 
-// Defer the YARL modal viewer (and its CSS) to a lazy client chunk so it loads
-// only when a tile is first opened. The masonry/rails grid renders eagerly.
-const ReplicationLightbox = dynamic(
-  () => import('../components/ReplicationLightbox').then((mod) => mod.ReplicationLightbox),
-  { ssr: false },
-);
-
 const MASONRY_CLASS = 'columns-2 gap-3 sm:columns-3 lg:columns-4 [column-fill:_balance]';
-const MASONRY_TILE_CLASS = 'mb-3 w-full break-inside-avoid';
+const MASONRY_TILE_CLASS = 'mb-5 w-full break-inside-avoid';
 
 export function ReplicationsGalleryExplorer({
   replications,
@@ -57,16 +49,6 @@ export function ReplicationsGalleryExplorer({
   const [typeFilter, setTypeFilter] = useState<GalleryTypeFilter>('all');
   const [artistSort, setArtistSort] = useState<GalleryArtistSort>('count');
   const [focusedKey, setFocusedKey] = useState<string | null>(null);
-  const [lightbox, setLightbox] = useState<{ items: GalleryReplication[]; index: number } | null>(null);
-  // Latch: once the lightbox has ever been opened, keep it mounted so YARL's
-  // own open/close transitions keep working after the user closes it.
-  const [hasOpened, setHasOpened] = useState(false);
-
-  useEffect(() => {
-    if (lightbox) {
-      setHasOpened(true);
-    }
-  }, [lightbox]);
 
   const displayable = useMemo(() => replications.filter(isDisplayable), [replications]);
 
@@ -107,16 +89,14 @@ export function ReplicationsGalleryExplorer({
     if (next.trim().length > 0) setFocusedKey(null);
   };
 
-  const openLightbox = (items: GalleryReplication[], index: number) => setLightbox({ items, index });
-
   const renderMasonry = (items: GalleryReplication[]) => (
     <div className={MASONRY_CLASS}>
-      {items.map((replication, index) => (
+      {items.map((replication) => (
         <GalleryMediaTile
           key={replication._id}
           replication={replication}
-          onOpen={() => openLightbox(items, index)}
           className={MASONRY_TILE_CLASS}
+          frameClassName="w-full"
         />
       ))}
     </div>
@@ -219,12 +199,12 @@ export function ReplicationsGalleryExplorer({
                 </h2>
               </div>
               <div className="flex snap-x snap-mandatory justify-center gap-3 overflow-x-auto pb-2 [scrollbar-width:thin]">
-                {spotlight.map((replication, index) => (
+                {spotlight.map((replication) => (
                   <GalleryMediaTile
                     key={replication._id}
                     replication={replication}
-                    onOpen={() => openLightbox(spotlight, index)}
-                    className="h-56 shrink-0 snap-start sm:h-72"
+                    className="shrink-0 snap-start"
+                    frameClassName="h-56 sm:h-72"
                   />
                 ))}
               </div>
@@ -278,7 +258,6 @@ export function ReplicationsGalleryExplorer({
                 <MediaRail
                   key={group.key}
                   group={group}
-                  onOpenItem={(index) => openLightbox(group.items, index)}
                   onViewAll={() => setFocusedKey(group.key)}
                 />
               ))}
@@ -297,14 +276,6 @@ export function ReplicationsGalleryExplorer({
         </>
       )}
 
-      {hasOpened ? (
-        <ReplicationLightbox
-          replications={lightbox?.items ?? []}
-          index={lightbox?.index ?? -1}
-          onIndexChange={(index) => setLightbox((current) => (current ? { ...current, index } : current))}
-          onClose={() => setLightbox(null)}
-        />
-      ) : null}
     </section>
   );
 }

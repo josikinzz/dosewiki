@@ -23,13 +23,11 @@ function CountChips({ group }: { group: GalleryGroup }) {
 
 interface MediaRailProps {
   group: GalleryGroup;
-  /** Open the lightbox at `index` within this group's ordered items. */
-  onOpenItem: (index: number) => void;
   /** Switch to the focused, full-masonry view for this group. */
   onViewAll: () => void;
 }
 
-export function MediaRail({ group, onOpenItem, onViewAll }: MediaRailProps) {
+export function MediaRail({ group, onViewAll }: MediaRailProps) {
   const preview = group.items.slice(0, RAIL_PREVIEW_LIMIT);
   const hasMore = group.count > preview.length;
 
@@ -84,12 +82,12 @@ export function MediaRail({ group, onOpenItem, onViewAll }: MediaRailProps) {
           '[scrollbar-width:thin] [-webkit-overflow-scrolling:touch]',
         )}
       >
-        {preview.map((replication, index) => (
+        {preview.map((replication) => (
           <GalleryMediaTile
             key={replication._id}
             replication={replication}
-            onOpen={() => onOpenItem(index)}
-            className="h-44 shrink-0 snap-start sm:h-52"
+            className="shrink-0 snap-start"
+            frameClassName="h-44 sm:h-52"
           />
         ))}
         {hasMore ? (
@@ -97,7 +95,7 @@ export function MediaRail({ group, onOpenItem, onViewAll }: MediaRailProps) {
             type="button"
             onClick={onViewAll}
             style={{ aspectRatio: '4 / 5' }}
-            className="theme-text-muted flex h-44 shrink-0 snap-start flex-col items-center justify-center gap-2 rounded-xl border border-dashed border-[color:var(--theme-border-strong)] bg-[var(--theme-surface-soft)] px-4 text-sm font-medium transition-colors hover:text-[var(--theme-accent-strong)] hover:border-[color:var(--theme-card-border-strong)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--theme-accent-strong)] sm:h-52"
+            className="theme-text-muted flex h-44 shrink-0 snap-start self-start flex-col items-center justify-center gap-2 rounded-xl border border-dashed border-[color:var(--theme-border-strong)] bg-[var(--theme-surface-soft)] px-4 text-sm font-medium transition-colors hover:text-[var(--theme-accent-strong)] hover:border-[color:var(--theme-card-border-strong)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--theme-accent-strong)] sm:h-52"
           >
             <Icon icon="lucide:arrow-right" className="h-5 w-5" />
             View all {group.count}

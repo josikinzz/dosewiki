@@ -226,7 +226,7 @@ describe("Effect Index homepage", () => {
     expect(screen.getByText("25mg Oral")).toBeInTheDocument();
   });
 
-  it("gives the replication carousel an operable prev/next and a click-to-open stage", () => {
+  it("gives the replication carousel an operable prev/next and a stage linking to the work", () => {
     render(<EffectIndexHomePage {...FULL_DATA} />);
 
     const carousel = screen.getByRole("group", { name: "Featured replications" });
@@ -234,8 +234,10 @@ describe("Effect Index homepage", () => {
     // The label carries the title alone: the creator is rendered as a visible
     // byline just below (asserted separately), so repeating it here duplicated
     // the credit for screen readers.
-    expect(within(carousel).getByRole("button", { name: /^Open Geometry Frog$/ }))
-      .toBeInTheDocument();
+    expect(within(carousel).getByRole("link", { name: /^View Geometry Frog$/ })).toHaveAttribute(
+      "href",
+      `/replications/${REPLICATION.slug}`,
+    );
     expect(within(carousel).getByRole("link", { name: "Geometry" })).toHaveAttribute(
       "href",
       "/effects/geometry",
@@ -279,7 +281,7 @@ describe("Effect Index homepage", () => {
 
     // Keyboard operability: arrows work from any control inside the carousel.
     await userEvent.type(
-      within(carousel).getByRole("button", { name: /^Open Snek$/ }),
+      within(carousel).getByRole("link", { name: /^View Snek$/ }),
       "{ArrowRight}",
     );
     expect(within(carousel).getByRole("link", { name: "Geometry" })).toBeInTheDocument();

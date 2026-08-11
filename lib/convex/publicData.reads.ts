@@ -121,6 +121,10 @@ export const publicDataReadCatalog = {
     functionName: "replications:getPublicReplications",
     args: () => ({}),
   },
+  publicReplicationBySlug: {
+    functionName: "replications:getBySlug",
+    args: (slug: string) => ({ slug }),
+  },
   publicTripReportRecords: { functionName: "tripReports:getAll", args: () => ({}) },
   publicTripReportBySlug: { functionName: "tripReports:getBySlug", args: (slug: string) => ({ slug }) },
   publicTripReportsByAuthor: {
@@ -160,6 +164,7 @@ export type PublicDataReadAdapter = {
   getPublicEffectIndexPostBySlug(slug: string): Promise<PublicEffectIndexPost | null>;
   getPublicReplicationsByEffect(effectSlug: string): Promise<ReplicationWithUrl[]>;
   getPublicReplications(): Promise<GalleryReplication[]>;
+  getPublicReplicationBySlug(slug: string): Promise<ReplicationWithUrl | null>;
   getPublicTripReportRecords(): Promise<TripReportRecord[]>;
   getPublicTripReportBySlug(slug: string): Promise<TripReportDetailRecord | null>;
   getPublicTripReportsByAuthor(authorName: string): Promise<TripReportRecord[]>;
@@ -674,6 +679,13 @@ export function createConvexPublicDataReadAdapter(query: QueryTransport = queryC
         throw error;
       }
     },
+    // Single-row read for the replication permalink. Deliberately not served off
+    // getPublicReplications() — that pulls the whole table for one item.
+    getPublicReplicationBySlug: (slug) =>
+      query<ReplicationWithUrl | null, { slug: string }>(
+        publicDataReadCatalog.publicReplicationBySlug.functionName,
+        publicDataReadCatalog.publicReplicationBySlug.args(slug),
+      ),
     getPublicTripReportRecords: () =>
       query<TripReportRecord[]>(publicDataReadCatalog.publicTripReportRecords.functionName, {}),
     getPublicTripReportBySlug: (slug) =>

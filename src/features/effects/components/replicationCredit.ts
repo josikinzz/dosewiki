@@ -48,3 +48,32 @@ export function getRightsSummary(replication: ReplicationWithUrl) {
 
   return RIGHTS_STATUS_LABELS[replication.rights_status ?? 'creator-retained'];
 }
+
+function hostOf(url?: string | null) {
+  if (!url) return null;
+  try {
+    return new URL(url).host.toLowerCase();
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * A `source_url` only earns a "Source" link when it points somewhere other than
+ * the file we are already showing. Much of the corpus was backfilled with the
+ * asset's own CDN location, which makes "Source" a link back to the same image —
+ * a dead affordance that looks broken next to a real credit block.
+ */
+export function getExternalSourceUrl(replication: ReplicationWithUrl): string | null {
+  const source = replication.source_url?.trim();
+  if (!source) return null;
+
+  const sourceHost = hostOf(source);
+  if (!sourceHost) return null;
+
+  if (source === replication.url) return null;
+  if (sourceHost === hostOf(replication.url)) return null;
+  if (sourceHost === hostOf(replication.thumbnail_url)) return null;
+
+  return source;
+}

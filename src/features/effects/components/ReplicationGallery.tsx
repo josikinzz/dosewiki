@@ -1,38 +1,23 @@
 'use client';
 
-import { memo, useEffect, useMemo, useState } from 'react';
-import dynamic from 'next/dynamic';
-import { MediaTile } from '@/components/layout/PublicFeedbackPrimitives';
+import { memo, useMemo } from 'react';
 import type { ReplicationWithUrl } from '@/types/replications';
-import { getCreatorByline } from './replicationCredit';
-
-// Defer the YARL modal viewer (and its CSS) to a lazy client chunk so it loads
-// only when a thumbnail is first clicked. The grid above renders eagerly.
-const ReplicationLightbox = dynamic(
-  () => import('./ReplicationLightbox').then((mod) => mod.ReplicationLightbox),
-  { ssr: false },
-);
+import { GalleryMediaTile } from '../gallery/GalleryMediaTile';
 
 interface ReplicationGalleryProps {
   galleryOrder?: string[];
   replications: ReplicationWithUrl[];
 }
 
+/**
+ * The per-effect article gallery. Each tile links to the replication's own page,
+ * where the full credit and licence live — the same tile and the same destination
+ * as the cross-effect gallery, so a work reads identically wherever it is met.
+ */
 export const ReplicationGallery = memo(function ReplicationGallery({
   galleryOrder,
   replications,
 }: ReplicationGalleryProps) {
-  const [activeIndex, setActiveIndex] = useState<number>(-1);
-  // Latch: once the lightbox has ever been opened, keep it mounted so YARL's
-  // own open/close transitions keep working after the user closes it.
-  const [hasOpened, setHasOpened] = useState(false);
-
-  useEffect(() => {
-    if (activeIndex >= 0) {
-      setHasOpened(true);
-    }
-  }, [activeIndex]);
-
   const sortedReplications = useMemo(() => {
     if (!replications) {
       return [];
@@ -54,14 +39,6 @@ export const ReplicationGallery = memo(function ReplicationGallery({
     return null;
   }
 
-  const openReplication = (index: number) => {
-    setActiveIndex(index);
-  };
-
-  const closeLightbox = () => {
-    setActiveIndex(-1);
-  };
-
   return (
     <div className="w-full space-y-4">
       <div className="theme-public-card-subtle rounded-xl border px-4 py-3">
@@ -73,34 +50,16 @@ export const ReplicationGallery = memo(function ReplicationGallery({
         </p>
       </div>
 
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 md:grid-cols-4">
-        {sortedReplications.map((replication, index) => {
-          const thumbnailUrl = replication.type === 'video' ? replication.thumbnail_url : replication.url;
-
-          return (
-            <MediaTile
-              key={replication._id}
-              mediaType={replication.type}
-              title={replication.title}
-              creator={getCreatorByline(replication)}
-              thumbnailUrl={thumbnailUrl}
-              width={replication.width}
-              height={replication.height}
-              onClick={() => openReplication(index)}
-              ariaLabel={`Open replication: ${replication.title}`}
-            />
-          );
-        })}
+      <div className="grid grid-cols-2 gap-x-3 gap-y-5 sm:grid-cols-3 sm:gap-x-4 md:grid-cols-4">
+        {sortedReplications.map((replication) => (
+          <GalleryMediaTile
+            key={replication._id}
+            replication={replication}
+            frameAspect="square"
+            frameClassName="aspect-square w-full"
+          />
+        ))}
       </div>
-
-      {hasOpened ? (
-        <ReplicationLightbox
-          replications={sortedReplications}
-          index={activeIndex}
-          onIndexChange={setActiveIndex}
-          onClose={closeLightbox}
-        />
-      ) : null}
     </div>
   );
 });

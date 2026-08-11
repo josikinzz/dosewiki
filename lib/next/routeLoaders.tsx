@@ -12,7 +12,9 @@ import {
   getPublicEffectIndexPosts,
   getPublicEffectBySlug,
   getPublicEffects,
+  getPublicReplicationBySlug,
   getPublicReplications,
+  getPublicReplicationsByEffect,
   getPublicReportBySlug,
   getPublicReports,
   getPublicSubstanceBySlug,
@@ -43,7 +45,13 @@ import {
 import { buildProfileHistory, type NormalizedUserProfile } from "../../src/data/userProfiles";
 import { toReportCardModel, type ReportCardModel } from "../../src/types/tripReport";
 import { SITE_FLAVOR_CONFIG } from "../../src/config/siteFlavor";
-import type { GalleryReplication } from "../../src/types/replications";
+import type { GalleryReplication, ReplicationWithUrl } from "../../src/types/replications";
+import { hasKnownCreator } from "../../src/features/effects/components/replicationCredit";
+import {
+  orderEffectReplications,
+  selectReplicationNeighbors,
+  type ReplicationNeighbors,
+} from "../../src/features/effects/gallery/replicationDetailModel";
 import type { ChangeLogEntry } from "../../src/data/changelog/changeLog";
 import {
   getPsychoactiveSummaryDefinition,
@@ -75,6 +83,7 @@ import {
   getCategoryRouteAliasParams,
   getEffectCategoryRouteAlias,
   getEffectCategoryRouteAliasParams,
+  getReplicationRouteAlias,
   getSubstanceRouteAlias,
 } from "./publicRouteAliases";
 import { getPublicRoutePath, type PublicRouteIdentity } from "./publicSite";
@@ -403,6 +412,76 @@ export const loadEffectsIndexRoute = cache(async (): Promise<EffectsIndexRouteRe
     },
     metadata: toRouteMetadata(viewModel.metadata),
     canonicalRoute: { family: "effects" },
+  };
+});
+
+export interface ReplicationPageProps {
+  replication: ReplicationWithUrl;
+  /** Display name of the owning effect, absent when the row has no real effect. */
+  effectName: string | null;
+  effectSlug: string | null;
+  neighbors: ReplicationNeighbors;
+}
+
+export type ReplicationRouteResult =
+  | OkRouteResult<ReplicationPageProps>
+  | RedirectRouteResult
+  | NotFoundRouteResult;
+
+/** Rows carry `effect_slug: "unknown"` when nothing real is attached. */
+const hasRealEffect = (effectSlug?: string | null) =>
+  Boolean(effectSlug && effectSlug !== "unknown");
+
+export const loadReplicationRoute = cache(async (slug: string): Promise<ReplicationRouteResult> => {
+  // Slug normalisation rewrote a chunk of filename-derived URLs. Anything already
+  // shared under the old slug has to keep resolving, so redirect before reading.
+  const aliasTarget = getReplicationRouteAlias(slug);
+  if (aliasTarget) {
+    const canonicalRoute = { family: "replication" as const, params: { slug: aliasTarget } };
+    return {
+      kind: "redirect",
+      target: getPublicRoutePath(canonicalRoute),
+      metadata: toRouteMetadata({ title: "Replication", description: "Replication permalink." }),
+      canonicalRoute,
+    };
+  }
+
+  const replication = await getPublicReplicationBySlug(slug);
+
+  // A row with no resolvable asset has no page — the route plan omits it, and a
+  // direct hit should 404 rather than render a permalink to a broken image.
+  if (!replication || !replication.url) {
+    return { kind: "not-found" };
+  }
+
+  const effectSlug = hasRealEffect(replication.effect_slug) ? replication.effect_slug : null;
+
+  const [effect, siblings] = await Promise.all([
+    effectSlug ? getPublicEffectBySlug(effectSlug) : Promise.resolve(null),
+    effectSlug ? getPublicReplicationsByEffect(effectSlug) : Promise.resolve([]),
+  ]);
+
+  const ordered = orderEffectReplications(siblings, effect?.gallery_order);
+  const neighbors = selectReplicationNeighbors(ordered, slug);
+
+  const creator = hasKnownCreator(replication.artist) ? replication.artist : null;
+  const subject = effect?.name ?? null;
+
+  return {
+    kind: "ok",
+    pageProps: {
+      replication,
+      effectName: subject,
+      effectSlug,
+      neighbors,
+    },
+    metadata: toRouteMetadata({
+      title: creator ? `${replication.title} by ${creator}` : replication.title,
+      description: subject
+        ? `${replication.title}${creator ? ` by ${creator}` : ""} — a replication of the subjective effect ${subject}.`
+        : `${replication.title}${creator ? ` by ${creator}` : ""} — a subjective effect replication.`,
+    }),
+    canonicalRoute: { family: "replication", params: { slug } },
   };
 });
 

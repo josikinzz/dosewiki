@@ -45,6 +45,12 @@ export const publicHref = {
   substances: () => "/substances",
   mantras: () => getPublicRoutePath({ family: "mantras" }),
   replications: () => getPublicRoutePath({ family: "replications" }),
+  replication: (slug: string) => {
+    const segment = nonEmptyPathSegment(slug);
+    return segment
+      ? getPublicRoutePath({ family: "replication", params: { slug: segment } })
+      : getPublicRoutePath({ family: "replications" });
+  },
   substance: (slug: string) => {
     const segment = nonEmptyPathSegment(slug);
     return segment ? getPublicRoutePath({ family: "substance", params: { slug: segment } }) : "/substances";
@@ -131,6 +137,8 @@ export function getPublicHref(intent: PublicHrefIntent): string {
       return publicHref.substances();
     case "mantras":
       return publicHref.mantras();
+    case "replication":
+      return publicHref.replication(intent.slug);
     case "substance":
       return publicHref.substance(intent.slug);
     case "effects":
@@ -167,6 +175,7 @@ export type PublicHrefIntent =
   | { type: "home" }
   | { type: "substances" }
   | { type: "mantras" }
+  | { type: "replication"; slug: string }
   | { type: "substance"; slug: string }
   | { type: "effects" }
   | { type: "effect"; slug: string }

@@ -13,6 +13,7 @@ import {
   getPublicEffectIndexArticles,
   getPublicEffects,
   getPublicMechanismRouteInput,
+  getPublicReplications,
   getPublicReports,
   getPublicSubstanceLookup,
 } from "../convex/publicData";
@@ -31,10 +32,18 @@ export const STATIC_PUBLIC_PATHS = [
   getPublicRoutePath({ family: "about" }),
 ] as const;
 
+/**
+ * Slugs that would shadow the static pages living under `/replications`. A row
+ * carrying one of these is kept out of the route plan (and the sitemap) rather
+ * than silently losing to the static segment at request time.
+ */
+export const RESERVED_REPLICATION_SLUGS = new Set(["audio", "tutorials"]);
+
 export type PublicRouteFamily =
   | "substances"
   | "categories"
   | "effects"
+  | "replications"
   | "effectCategories"
   | "psychoactiveSummaries"
   | "articles"
@@ -57,6 +66,7 @@ export interface PublicRoutePlan {
     substances: PublicRouteEntry<{ slug: string }>[];
     categories: PublicRouteEntry<{ categoryKey: string }>[];
     effects: PublicRouteEntry<{ effectSlug: string }>[];
+    replications: PublicRouteEntry<{ slug: string }>[];
     effectCategories: PublicRouteEntry<{ categorySlug: string }>[];
     psychoactiveSummaries: PublicRouteEntry<{ summaryPath: string[] }>[];
     articles: PublicRouteEntry<{ slug: string }>[];
@@ -71,6 +81,7 @@ interface PublicRoutePlanInput {
   substances: readonly { slug: string; priority?: "high" | "normal" | "low" }[];
   categories: readonly { key: string }[];
   effects: readonly { slug: string }[];
+  replications: readonly { slug: string; url?: string | null }[];
   articles: readonly { slug: string; publication_status: string }[];
   reports: readonly { slug: string }[];
   contributorKeys: readonly string[];
@@ -188,6 +199,17 @@ export function buildPublicRoutePlan(input: PublicRoutePlanInput): PublicRoutePl
       effects: entriesFromSlugs(input.effects.map(({ slug }) => slug), "effectSlug", (effectSlug) =>
         getPublicRoutePath({ family: "effect", params: { effectSlug } }),
       ),
+      // Only rows with a resolved asset get a page — an unrenderable replication
+      // would be a permalink to a broken image. Reserved slugs are dropped so they
+      // never shadow /replications/audio or /replications/tutorials.
+      replications: entriesFromSlugs(
+        input.replications
+          .filter(({ url }) => Boolean(url))
+          .map(({ slug }) => slug)
+          .filter((slug) => !RESERVED_REPLICATION_SLUGS.has(slug)),
+        "slug",
+        (slug) => getPublicRoutePath({ family: "replication", params: { slug } }),
+      ),
       effectCategories: entriesFromSlugs(
         Object.keys(CATEGORY_SLUG_TO_TAGS),
         "categorySlug",
@@ -248,6 +270,7 @@ const getCachedPublicRoutePlan = unstable_cache(async () => {
     substances,
     categoryLayout,
     effects,
+    replications,
     articles,
     reports,
     contributorKeys,
@@ -256,6 +279,7 @@ const getCachedPublicRoutePlan = unstable_cache(async () => {
     getPublicSubstanceLookup(),
     getPublicCategoryLayout(),
     getPublicEffects(),
+    getPublicReplications(),
     getPublicEffectIndexArticles(),
     getPublicReports(),
     getPublicContributorKeys(),
@@ -266,6 +290,7 @@ const getCachedPublicRoutePlan = unstable_cache(async () => {
     substances,
     categories: categoryLayout?.categories ?? [],
     effects,
+    replications,
     articles,
     reports,
     contributorKeys,
@@ -278,6 +303,7 @@ const getCachedPublicRoutePlan = unstable_cache(async () => {
     PUBLIC_CONVEX_CACHE_TAGS.substances,
     PUBLIC_CONVEX_CACHE_TAGS.layouts,
     PUBLIC_CONVEX_CACHE_TAGS.effects,
+    PUBLIC_CONVEX_CACHE_TAGS.replications,
     PUBLIC_CONVEX_CACHE_TAGS.articles,
     PUBLIC_CONVEX_CACHE_TAGS.reports,
     PUBLIC_CONVEX_CACHE_TAGS.contributors,

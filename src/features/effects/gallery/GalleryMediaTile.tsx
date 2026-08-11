@@ -1,10 +1,12 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
+import Link from 'next/link';
 import { AppImage } from '@/components/common/AppImage';
 import { Icon } from '@/components/common/Icon';
 import { MediaPlaceholder } from '@/components/layout/PublicFeedbackPrimitives';
 import { cn } from '@/lib/utils';
+import { publicHref } from '@/utils/publicHref';
 import type { GalleryReplication } from '@/types/replications';
 import { getCreatorByline } from '../components/replicationCredit';
 
@@ -32,12 +34,33 @@ function useHoverPreviewAllowed(): boolean {
 
 interface GalleryMediaTileProps {
   replication: GalleryReplication;
-  onOpen: () => void;
-  /** Sizing/context classes from the parent layout (masonry vs rail). */
+  /** Layout classes for the whole tile (flow, snap, break-inside). */
   className?: string;
+  /** Sizing classes for the media frame itself (height in rails, width in masonry). */
+  frameClassName?: string;
+  /**
+   * `natural` keeps the work's own proportions (masonry, rails). `square`
+   * hands the ratio to `frameClassName` so a uniform grid stays uniform.
+   */
+  frameAspect?: 'natural' | 'square';
 }
 
-export function GalleryMediaTile({ replication, onOpen, className }: GalleryMediaTileProps) {
+/**
+ * A gallery tile: framed media with its title and credit *underneath*.
+ *
+ * Nothing is drawn over the artwork. The previous hover-gradient caption made
+ * attribution unreachable on touch and put white text over unpredictable image
+ * content; a real caption row is legible on every device and in both themes.
+ *
+ * The tile is an anchor, not a button, so each work can be linked, opened in a
+ * new tab, and crawled.
+ */
+export function GalleryMediaTile({
+  replication,
+  className,
+  frameClassName,
+  frameAspect = 'natural',
+}: GalleryMediaTileProps) {
   const hoverPreviewAllowed = useHoverPreviewAllowed();
   const [hovered, setHovered] = useState(false);
   const videoRef = useRef<HTMLVideoElement | null>(null);
@@ -60,75 +83,72 @@ export function GalleryMediaTile({ replication, onOpen, className }: GalleryMedi
   }, [showPreview]);
 
   return (
-    <button
-      type="button"
-      onClick={onOpen}
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
-      onFocus={() => setHovered(true)}
-      onBlur={() => setHovered(false)}
-      aria-label={`Open ${isVideo ? 'video' : 'image'}: ${replication.title}`}
-      style={{ aspectRatio: ratio }}
-      className={cn(
-        'group relative block overflow-hidden rounded-xl border text-left',
-        'border-[color:var(--theme-border-subtle)] bg-[var(--theme-surface-strong)]',
-        'transition duration-300 hover:border-[color:var(--theme-card-border-strong)]',
-        'hover:-translate-y-0.5 hover:shadow-[var(--theme-elevation-tile-hover)]',
-        'focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--theme-accent-strong)]',
-        'motion-reduce:transition-none motion-reduce:hover:translate-y-0',
-        className,
-      )}
-    >
-      {thumbnailUrl ? (
-        <AppImage
-          src={thumbnailUrl}
-          alt={replication.title}
-          width={replication.width ?? 800}
-          height={replication.height ?? 800}
-          className={cn(
-            'absolute inset-0 h-full w-full object-cover transition duration-500',
-            'group-hover:scale-[1.03]',
-            showPreview ? 'opacity-0' : 'opacity-100',
-          )}
-        />
-      ) : (
-        <MediaPlaceholder
-          icon={isVideo ? 'lucide:play' : 'lucide:image'}
-          title={replication.title}
-        />
-      )}
+    <figure className={cn('min-w-0', className)}>
+      <Link
+        href={publicHref.replication(replication.slug)}
+        onMouseEnter={() => setHovered(true)}
+        onMouseLeave={() => setHovered(false)}
+        onFocus={() => setHovered(true)}
+        onBlur={() => setHovered(false)}
+        style={frameAspect === 'natural' ? { aspectRatio: ratio } : undefined}
+        className={cn(
+          // Scoped to the frame, not the whole figure, so hovering the caption
+          // text below does not zoom the artwork.
+          'group/frame relative block overflow-hidden rounded-xl border',
+          'border-[color:var(--theme-border-subtle)] bg-[var(--theme-surface-strong)]',
+          'transition duration-300 hover:border-[color:var(--theme-card-border-strong)]',
+          'hover:-translate-y-0.5 hover:shadow-[var(--theme-elevation-tile-hover)]',
+          'focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--theme-accent-strong)]',
+          'motion-reduce:transition-none motion-reduce:hover:translate-y-0',
+          frameClassName,
+        )}
+      >
+        {thumbnailUrl ? (
+          <AppImage
+            src={thumbnailUrl}
+            alt={replication.title}
+            width={replication.width ?? 800}
+            height={replication.height ?? 800}
+            className={cn(
+              'absolute inset-0 h-full w-full object-cover transition duration-500',
+              'group-hover/frame:scale-[1.03] motion-reduce:transition-none motion-reduce:group-hover/frame:scale-100',
+              showPreview ? 'opacity-0' : 'opacity-100',
+            )}
+          />
+        ) : (
+          <MediaPlaceholder
+            icon={isVideo ? 'lucide:play' : 'lucide:image'}
+            title={replication.title}
+          />
+        )}
 
-      {showPreview ? (
-        <video
-          ref={videoRef}
-          src={replication.url}
-          poster={replication.thumbnail_url}
-          muted
-          loop
-          playsInline
-          preload="none"
-          className="absolute inset-0 h-full w-full object-cover"
-        />
-      ) : null}
+        {showPreview ? (
+          <video
+            ref={videoRef}
+            src={replication.url}
+            poster={replication.thumbnail_url}
+            muted
+            loop
+            playsInline
+            preload="none"
+            className="absolute inset-0 h-full w-full object-cover"
+          />
+        ) : null}
+      </Link>
 
-      {isVideo ? (
-        <span
-          className={cn(
-            'absolute right-2 top-2 flex h-7 w-7 items-center justify-center rounded-full',
-            'bg-[var(--theme-overlay-strong,rgba(8,4,16,0.62))] text-white backdrop-blur-sm',
-            'transition-opacity duration-300',
-            showPreview ? 'opacity-0' : 'opacity-90',
-          )}
-          aria-hidden
-        >
-          <Icon icon="lucide:play" className="h-3.5 w-3.5 translate-x-px fill-current" />
-        </span>
-      ) : null}
-
-      <div className="pointer-events-none absolute inset-x-0 bottom-0 translate-y-1.5 bg-gradient-to-t from-black/85 via-black/35 to-transparent px-3 pb-2 pt-6 opacity-0 transition duration-300 group-hover:translate-y-0 group-hover:opacity-100 motion-reduce:translate-y-0">
-        <p className="truncate text-sm font-medium text-white">{replication.title}</p>
-        <p className="truncate text-xs text-white/70">{byline}</p>
-      </div>
-    </button>
+      <figcaption className="mt-2 min-w-0 px-0.5">
+        <p className="theme-text-secondary truncate text-sm font-medium">
+          {isVideo ? (
+            <Icon
+              icon="lucide:play"
+              className="theme-text-faint mr-1.5 inline-block h-3 w-3 align-[-0.1em] fill-current"
+              aria-label="Video"
+            />
+          ) : null}
+          {replication.title}
+        </p>
+        <p className="theme-text-faint truncate text-xs">{byline}</p>
+      </figcaption>
+    </figure>
   );
 }

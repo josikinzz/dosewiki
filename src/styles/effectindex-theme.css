@@ -17,9 +17,9 @@
    Every selector is scoped to html[data-site="effectindex"], so the sheet
    is inert on a dose.wiki build: the attribute is never emitted there.
 
-   The one legitimate !important is the backdrop-filter kill, because
-   src/styles/lightbox.css is injected lazily into <head> after this sheet
-   and so wins on source order at equal specificity.
+   The one legitimate !important is the backdrop-filter kill. It is kept
+   defensively: any lazily-injected third-party sheet lands in <head> after
+   this one and would otherwise win on source order at equal specificity.
    ===================================================================== */
 
 /* ---------------------------------------------------------------------

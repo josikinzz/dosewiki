@@ -137,8 +137,8 @@ describe("effect index skin", () => {
   });
 
   it("disables backdrop filters with the one warranted !important", () => {
-    // lightbox.css ships in a lazily imported chunk and lands in <head> after
-    // this sheet, so source order cannot be relied on there.
+    // Kept defensively: a lazily imported chunk's CSS lands in <head> after
+    // this sheet, so source order cannot be relied on against one.
     expect(skin).toMatch(/backdrop-filter:\s*none\s*!important/);
     expect(skin).toMatch(/-webkit-backdrop-filter:\s*none\s*!important/);
   });

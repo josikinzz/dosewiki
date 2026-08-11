@@ -1,12 +1,12 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import dynamic from "next/dynamic";
 import Link from "next/link";
 
 import { AppImage } from "@/components/common/AppImage";
 import { Icon } from "@/components/common/Icon";
 import { getCreatorByline } from "@/features/effects/components/replicationCredit";
+import { publicHref } from "@/utils/publicHref";
 import { getPublicRoutePath } from "@/utils/publicRouteIdentity";
 import { HomePanel } from "./HomePanel";
 import type { HomeFeaturedReplication } from "./homeModel";
@@ -14,24 +14,19 @@ import type { HomeFeaturedReplication } from "./homeModel";
 /**
  * The Featured Replications panel, ported from `components/home/FeaturedReplications.vue`.
  *
- * One item at a time with prev/next chevrons and click-to-open, as the original had it. The
- * theater viewer is the site's existing `ReplicationLightbox` rather than a second modal —
- * it already carries the credit/rights toolbar every replication is required to show, and it
- * is lazily imported so neither it nor its vendor CSS loads until a reader opens it.
+ * One item at a time with prev/next chevrons, as the original had it. Clicking the stage now
+ * opens the replication's own page, which carries the credit and licence that the old theater
+ * viewer used to show in a toolbar — and unlike the modal, it can be linked to.
+ *
+ * The caption band over the stage is retained deliberately: this is a faithful port of the
+ * legacy Effect Index carousel, captioned on a fixed dark stage in that flavor's on-dark
+ * palette. It is not the gallery-tile hover overlay that was removed elsewhere.
  *
  * Nearly every curated item is a video (the legacy `gfycat` type), so the resting state
  * autoplays a muted loop the way the original's embed did. That is suppressed under
  * `prefers-reduced-motion`, where the first frame stands in and the reader opens the theater
  * to play it.
  */
-
-const ReplicationLightbox = dynamic(
-  () =>
-    import("@/features/effects/components/ReplicationLightbox").then(
-      (mod) => mod.ReplicationLightbox,
-    ),
-  { ssr: false },
-);
 
 /**
  * The stage and everything on it read against arbitrary dark media, so their colours cannot
@@ -78,9 +73,6 @@ interface FeaturedReplicationsPanelProps {
 
 export function FeaturedReplicationsPanel({ items, stub }: FeaturedReplicationsPanelProps) {
   const [index, setIndex] = useState(0);
-  const [lightboxIndex, setLightboxIndex] = useState(-1);
-  // Latch: keep the lightbox mounted once opened so its own close transition still runs.
-  const [hasOpenedLightbox, setHasOpenedLightbox] = useState(false);
   const reducedMotion = useReducedMotion();
 
   const count = items.length;
@@ -95,11 +87,6 @@ export function FeaturedReplicationsPanel({ items, stub }: FeaturedReplicationsP
     },
     [count],
   );
-
-  const openLightbox = useCallback((at: number) => {
-    setHasOpenedLightbox(true);
-    setLightboxIndex(at);
-  }, []);
 
   /**
    * Left/right arrows step the carousel. Bound to each control rather than to the stage
@@ -145,11 +132,10 @@ export function FeaturedReplicationsPanel({ items, stub }: FeaturedReplicationsP
         aria-label="Featured replications"
         className={`relative h-[250px] w-full overflow-hidden border border-dose-border ${STAGE_BACKGROUND}`}
       >
-        <button
-          type="button"
-          onClick={() => openLightbox(safeIndex)}
+        <Link
+          href={publicHref.replication(replication.slug)}
           onKeyDown={handleArrowKeys}
-          aria-label={`Open ${replication.title}`}
+          aria-label={`View ${replication.title}`}
           className={`absolute inset-0 flex h-full w-full items-center justify-center focus-visible:-outline-offset-2 ${ON_DARK_FOCUS_RING}`}
         >
           {isVideo ? (
@@ -173,7 +159,7 @@ export function FeaturedReplicationsPanel({ items, stub }: FeaturedReplicationsP
               className="h-full w-full object-contain"
             />
           )}
-        </button>
+        </Link>
 
         {count > 1 ? (
           <>
@@ -220,14 +206,6 @@ export function FeaturedReplicationsPanel({ items, stub }: FeaturedReplicationsP
         </div>
       </div>
 
-      {hasOpenedLightbox ? (
-        <ReplicationLightbox
-          replications={items.map((entry) => entry.replication)}
-          index={lightboxIndex}
-          onIndexChange={setLightboxIndex}
-          onClose={() => setLightboxIndex(-1)}
-        />
-      ) : null}
     </HomePanel>
   );
 }

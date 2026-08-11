@@ -13,6 +13,7 @@ const getStaticParamsFor = (family: PublicRouteFamily) =>
 export const getStaticSubstanceParams = getStaticParamsFor("substances");
 export const getStaticCategoryParams = getStaticParamsFor("categories");
 export const getStaticEffectParams = getStaticParamsFor("effects");
+export const getStaticReplicationParams = getStaticParamsFor("replications");
 export const getStaticEffectCategoryParams = getStaticParamsFor("effectCategories");
 export const getStaticPsychoactiveSummaryParams = getStaticParamsFor("psychoactiveSummaries");
 export const getStaticArticleParams = getStaticParamsFor("articles");

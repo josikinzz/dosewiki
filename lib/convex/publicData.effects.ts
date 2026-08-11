@@ -56,3 +56,10 @@ export const getPublicReplications = cache(unstable_cache(async (): Promise<Gall
   revalidate: PUBLIC_CONVEX_CACHE_REVALIDATE_SECONDS,
   tags: [PUBLIC_CONVEX_CACHE_TAGS.all, PUBLIC_CONVEX_CACHE_TAGS.replications],
 }));
+
+export const getPublicReplicationBySlug = cache(unstable_cache(async (slug: string): Promise<ReplicationWithUrl | null> => {
+  return await getPublicDataReadAdapter().getPublicReplicationBySlug(slug);
+}, ["convex-public-replication-by-slug"], {
+  revalidate: PUBLIC_CONVEX_CACHE_REVALIDATE_SECONDS,
+  tags: [PUBLIC_CONVEX_CACHE_TAGS.all, PUBLIC_CONVEX_CACHE_TAGS.replications],
+}));

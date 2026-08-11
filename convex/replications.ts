@@ -408,6 +408,78 @@ export const updateGalleryOrder = mutation({
 });
 
 /**
+ * Rename a replication's slug.
+ *
+ * The slug is the replication's public URL and is also how an effect's
+ * `gallery_order` references it, so both move together in one transaction — a
+ * rename that left `gallery_order` pointing at the old value would silently drop
+ * the item out of its curated position.
+ *
+ * Refuses to overwrite an existing slug; the caller is expected to have already
+ * resolved collisions when planning the rename.
+ *
+ * @param apiKey - Required API key for authentication
+ */
+export const renameSlug = mutation({
+  args: {
+    apiKey: v.optional(v.string()),
+    from: v.string(),
+    to: v.string(),
+  },
+  handler: async (ctx, args) => {
+    await requireAuth(ctx, args.apiKey, "replicationMaintenance");
+
+    if (args.from === args.to) {
+      return { success: true, renamed: false, galleryOrdersPatched: 0 };
+    }
+
+    if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(args.to)) {
+      throw new Error(`Target slug is not kebab-case: ${args.to}`);
+    }
+
+    const replication = await ctx.db
+      .query("replications")
+      .withIndex("by_slug", (q) => q.eq("slug", args.from))
+      .first();
+
+    if (!replication) {
+      throw new Error(`Replication not found: ${args.from}`);
+    }
+
+    const collision = await ctx.db
+      .query("replications")
+      .withIndex("by_slug", (q) => q.eq("slug", args.to))
+      .first();
+
+    if (collision) {
+      throw new Error(`Target slug already in use: ${args.to}`);
+    }
+
+    await ctx.db.patch(replication._id, { slug: args.to });
+
+    // Only the owning effect can reference this slug in gallery_order, but scan
+    // defensively: a mis-assigned row would otherwise keep a stale reference.
+    const effects = await ctx.db.query("subjectiveEffects").collect();
+    let galleryOrdersPatched = 0;
+
+    for (const effect of effects) {
+      if (!effect.gallery_order?.includes(args.from)) {
+        continue;
+      }
+
+      await ctx.db.patch(effect._id, {
+        gallery_order: effect.gallery_order.map((slug) =>
+          slug === args.from ? args.to : slug,
+        ),
+      });
+      galleryOrdersPatched += 1;
+    }
+
+    return { success: true, renamed: true, galleryOrdersPatched };
+  },
+});
+
+/**
  * Delete a replication by slug.
  *
  * @param apiKey - Required API key for authentication
