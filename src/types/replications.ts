@@ -3,9 +3,41 @@
  */
 
 /**
- * Replication type - either video or image.
+ * Media kind of a stored row. `audio` joined `video`/`image` when audio assets
+ * needed somewhere to live; widening the union is additive and leaves every
+ * existing `'video' | 'image'` comparison meaning what it already meant.
  */
-export type ReplicationType = 'video' | 'image';
+export type ReplicationType = 'video' | 'image' | 'audio';
+
+/**
+ * What a stored row *is*, as opposed to what it depicts.
+ *
+ * `'replication'` — an artist's rendition of a subjective effect. The gallery,
+ * the artist credits, and the /effects surfaces all mean this.
+ *
+ * `'figure'` — an explanatory asset stored, credited, and rights-tracked exactly
+ * the same way but which is nobody's rendition of an experience: ECG/EEG traces,
+ * Bristol stool charts, vertebral-column diagrams, molecule figures. It belongs
+ * in the media store so its rights travel with it; it is not a replication.
+ */
+export type MediaRole = 'replication' | 'figure';
+
+/**
+ * Read a row's role, applying the stored default.
+ *
+ * The column is optional so the rows that predate it stay correct without a
+ * backfill: every one of them is a replication, and an absent `role` says so.
+ * Use this rather than comparing `row.role` directly, so that default is stated
+ * once instead of once per consumer.
+ */
+export function mediaRole(row: { role?: MediaRole }): MediaRole {
+  return row.role ?? 'replication';
+}
+
+/** Whether a stored row should be counted and shown as a replication. */
+export function isReplicationRow(row: { role?: MediaRole }): boolean {
+  return mediaRole(row) === 'replication';
+}
 
 /**
  * Replication rights status. Replication media is separate from dose.wiki's
@@ -39,9 +71,15 @@ export interface ReplicationRecord extends ReplicationRightsMetadata {
   title: string;
   artist: string;
   artist_url?: string;
+  /** Absent means `'replication'`. Read it through {@link mediaRole}. */
+  role?: MediaRole;
   type: ReplicationType;
   storage_id: string;
-  effect_slug: string;
+  /**
+   * Owning effect, when there is one. Absent for assets with no effect at all:
+   * figures embedded in effect-index articles, page heroes, a molecule diagram.
+   */
+  effect_slug?: string;
   thumbnail_storage_id?: string;
   width?: number;
   height?: number;

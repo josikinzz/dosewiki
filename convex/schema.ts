@@ -358,15 +358,62 @@ const subjectiveEffect = v.object({
   contributors: v.optional(v.array(v.string())),
 });
 
-// Replication - video or image representation of an effect
+/**
+ * What a stored media row *is*, as opposed to what it depicts.
+ *
+ * `replication` — an artist's attempt to reproduce a subjective effect. This is
+ * what the public gallery, the artist credits, and the /effects surfaces mean by
+ * "replication", and it is the only thing the table could express before.
+ *
+ * `figure` — an explanatory asset that is stored, credited, and rights-tracked in
+ * exactly the same way but is not somebody's rendition of an experience: ECG and
+ * EEG traces, Bristol stool charts, vertebral-column diagrams, molecule figures,
+ * a brain connectome. These belong in the media store so their rights and credit
+ * travel with them, but they must never be counted or shown as replications.
+ *
+ * ABSENCE MEANS `replication`. The column is optional precisely so the 247 rows
+ * that predate it stay correct with no backfill: every one of them is a
+ * replication, and reading `row.role ?? "replication"` gives that answer for free.
+ * A required column would have made all 247 rows invalid the moment the schema
+ * deployed. Read this column through `mediaRole()` in `src/types/replications.ts`
+ * rather than comparing it directly, so the default lives in one place.
+ *
+ * Deliberately NOT indexed. An index over an optional field files the 247
+ * undefined rows under `undefined`, so `.eq("role", "replication")` would return
+ * zero of them — an index here would be a trap, not an optimization, until the
+ * column is backfilled and required.
+ */
+const replicationRole = v.union(v.literal("replication"), v.literal("figure"));
+
+/**
+ * Storable media kinds. `audio` was added alongside `role`: 12 audio assets had
+ * nowhere to live, 5 of them already carrying full rights metadata in the
+ * separate `subjectiveEffects.audio_replications` column. Widening a union is
+ * additive — no existing "image"/"video" row changes meaning.
+ */
+const replicationMediaType = v.union(
+  v.literal("video"),
+  v.literal("image"),
+  v.literal("audio"),
+);
+
+// Stored media for effect articles: replications, and explanatory figures.
 const replication = v.object({
   slug: v.string(),                    // URL-friendly identifier (e.g., "breathing-by-artist-name")
   title: v.string(),                   // Display title
   artist: v.string(),                  // Artist/creator name
   artist_url: v.optional(v.string()),  // Artist portfolio/social link
-  type: v.union(v.literal("video"), v.literal("image")),  // "video" or "image"
+  role: v.optional(replicationRole),   // Absent === "replication"; see above
+  type: replicationMediaType,          // "video" | "image" | "audio"
   storage_id: v.string(),              // Convex file storage ID (or placeholder for external URLs)
-  effect_slug: v.string(),             // Parent effect (normalized folder name)
+  /**
+   * Owning effect, when there is one. Optional because some stored assets
+   * genuinely have no effect: figures embedded in `effectIndexArticles`
+   * (dmt, dxm, lucid-dreaming, meditation), page heroes, and a molecule diagram
+   * that depicts no subjective effect at all. Every existing row sets it, so
+   * relaxing `v.string()` to `v.optional(v.string())` changes nothing for them.
+   */
+  effect_slug: v.optional(v.string()),
   thumbnail_storage_id: v.optional(v.string()), // Video thumbnail storage ID
   url: v.optional(v.string()),         // Direct URL (external Convex storage or CDN)
   thumbnail_url: v.optional(v.string()), // Direct thumbnail URL (for videos)

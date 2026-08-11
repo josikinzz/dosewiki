@@ -19,6 +19,20 @@ const replicationRightsStatus = v.union(
   v.literal("public-domain"),
 );
 
+/**
+ * What a stored row *is*. Absent means `replication` — see the long note beside
+ * the column in `convex/schema.ts`. Kept as a literal union rather than a boolean
+ * so a third kind can be added without re-reading every call site.
+ */
+const replicationRole = v.union(v.literal("replication"), v.literal("figure"));
+
+/** Storable media kinds. `audio` is new; "image"/"video" are unchanged. */
+const replicationMediaType = v.union(
+  v.literal("video"),
+  v.literal("image"),
+  v.literal("audio"),
+);
+
 const replicationRightsFields = {
   rights_status: v.optional(replicationRightsStatus),
   license_name: v.optional(v.string()),
@@ -58,6 +72,9 @@ const replicationCreditUpdates = v.object({
   source_url: v.optional(v.string()),
   rightsholder: v.optional(v.string()),
 });
+
+/** The slug shape every public replication URL and `gallery_order` entry uses. */
+const KEBAB_CASE = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 
 function isPlaceholderStorageId(storageId?: string | null) {
   return !storageId || storageId.startsWith("placeholder-");
@@ -335,8 +352,16 @@ export const getPublicReplications = query({
 
     // Only the effects actually referenced by replications need a gallery_order
     // lookup; resolve each by index instead of scanning the effects table.
+    //
+    // `effect_slug` is optional (figures and page heroes have no owning effect),
+    // so unattached rows are skipped here rather than looked up: there is no
+    // effect to read a `gallery_order` from, and they simply come back with an
+    // undefined `order_index`, exactly as an attached row in an unordered effect
+    // already does. No existing row is affected — all 247 set `effect_slug`.
     const orderByEffect = new Map<string, Map<string, number>>();
-    const referencedSlugs = [...new Set(replications.map((rep) => rep.effect_slug))];
+    const referencedSlugs = [
+      ...new Set(replications.map((rep) => rep.effect_slug).filter((slug): slug is string => Boolean(slug))),
+    ];
     for (const slug of referencedSlugs) {
       const effect = await ctx.db
         .query("subjectiveEffects")
@@ -350,7 +375,9 @@ export const getPublicReplications = query({
     return Promise.all(
       replications.map(async (rep) => {
         const { url, thumbnail_url } = await resolveReplicationUrls(ctx, rep);
-        const order_index = orderByEffect.get(rep.effect_slug)?.get(rep.slug);
+        const order_index = rep.effect_slug
+          ? orderByEffect.get(rep.effect_slug)?.get(rep.slug)
+          : undefined;
         return { ...rep, url, thumbnail_url, order_index };
       }),
     );
@@ -414,6 +441,129 @@ export const insertReplication = mutation({
       created_at: new Date().toISOString(),
     });
     return replicationId;
+  },
+});
+
+/**
+ * Insert one reviewed media asset — a replication or an explanatory figure.
+ *
+ * WHY THIS EXISTS ALONGSIDE `insertReplication`
+ * ---------------------------------------------
+ * `insertReplication` is the legacy import path: it cannot express a figure, it
+ * cannot express audio, it requires an effect, and it inserts whatever it is
+ * handed without checking anything but the API key. Leaving it exactly as it is
+ * means no existing script can accidentally start producing figures. This is the
+ * path for the 98 article-embedded assets the audit found outside the table, and
+ * it fails closed instead of writing a row somebody has to hunt down later.
+ *
+ * `role` is REQUIRED here even though the column is optional. Absence of the
+ * column means "replication" for the 247 rows that predate it; a new row must
+ * say which it is rather than inherit that default by omission, so a figure can
+ * never enter the gallery because a caller forgot a field.
+ *
+ * Refuses, rather than coerces, on:
+ *  - a slug that is not kebab-case, or that is already taken (the slug is the
+ *    public URL and the `gallery_order` key; a duplicate silently shadows a row)
+ *  - a placeholder/blank `storage_id` with no `url` to fall back on — the row
+ *    would resolve to no media at all
+ *  - a `format` that is blank, dotted, or not lowercase
+ *  - an `effect_slug` that does not resolve to a real effect; a dangling
+ *    reference reads as an effect-less asset and is invisible to the gallery
+ *  - `duration` on an image, or any non-positive dimension/size/duration
+ */
+export const insertMediaAsset = mutation({
+  args: {
+    apiKey: v.optional(v.string()),
+    slug: v.string(),
+    title: v.string(),
+    artist: v.string(),
+    artist_url: v.optional(v.string()),
+    role: replicationRole,
+    type: replicationMediaType,
+    storage_id: v.string(),
+    /** Omit for assets with no owning effect (article figures, page heroes). */
+    effect_slug: v.optional(v.string()),
+    thumbnail_storage_id: v.optional(v.string()),
+    url: v.optional(v.string()),
+    thumbnail_url: v.optional(v.string()),
+    width: v.optional(v.number()),
+    height: v.optional(v.number()),
+    format: v.string(),
+    file_size: v.optional(v.number()),
+    duration: v.optional(v.number()),
+    ...replicationRightsFields,
+  },
+  handler: async (ctx, args) => {
+    await requireAuth(ctx, args.apiKey, "replicationMaintenance");
+
+    const { apiKey: _apiKey, ...row } = args;
+
+    if (!KEBAB_CASE.test(row.slug)) {
+      throw new Error(`Media asset slug is not kebab-case: ${row.slug}`);
+    }
+    if (row.title.trim().length === 0 || row.artist.trim().length === 0) {
+      throw new Error(`Media asset ${row.slug} needs a non-blank title and artist.`);
+    }
+
+    const collision = await ctx.db
+      .query("replications")
+      .withIndex("by_slug", (q) => q.eq("slug", row.slug))
+      .first();
+    if (collision) {
+      throw new Error(`Media asset slug already in use: ${row.slug} (${collision._id}).`);
+    }
+
+    // A placeholder storage id is only meaningful when a direct `url` carries the
+    // media instead; without one the row resolves to nothing on every surface.
+    if (isPlaceholderStorageId(row.storage_id) && !row.url) {
+      throw new Error(
+        `Media asset ${row.slug} has no real storage_id and no url to fall back on.`,
+      );
+    }
+
+    if (row.format !== row.format.trim().toLowerCase() || row.format.length === 0) {
+      throw new Error(`Media asset ${row.slug} format must be lowercase and non-blank.`);
+    }
+    if (row.format.startsWith(".")) {
+      throw new Error(`Media asset ${row.slug} format must omit the leading dot: ${row.format}`);
+    }
+
+    if (row.effect_slug !== undefined) {
+      if (!KEBAB_CASE.test(row.effect_slug)) {
+        throw new Error(`Media asset effect_slug is not kebab-case: ${row.effect_slug}`);
+      }
+      const effect = await ctx.db
+        .query("subjectiveEffects")
+        .withIndex("by_slug", (q) => q.eq("slug", row.effect_slug as string))
+        .first();
+      if (!effect) {
+        throw new Error(
+          `Media asset ${row.slug} points at an effect that does not exist: ${row.effect_slug}. ` +
+            `Omit effect_slug for assets with no owning effect.`,
+        );
+      }
+    }
+
+    for (const [key, value] of [
+      ["width", row.width],
+      ["height", row.height],
+      ["file_size", row.file_size],
+      ["duration", row.duration],
+    ] as const) {
+      if (value !== undefined && (!Number.isFinite(value) || value <= 0)) {
+        throw new Error(`Media asset ${row.slug} has a non-positive ${key}: ${value}`);
+      }
+    }
+    if (row.type === "image" && row.duration !== undefined) {
+      throw new Error(`Media asset ${row.slug} is an image and cannot have a duration.`);
+    }
+
+    const id = await ctx.db.insert("replications", {
+      ...row,
+      created_at: new Date().toISOString(),
+    });
+
+    return { inserted: true, id, slug: row.slug, role: row.role };
   },
 });
 
@@ -550,7 +700,7 @@ export const renameSlug = mutation({
       return { success: true, renamed: false, galleryOrdersPatched: 0 };
     }
 
-    if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(args.to)) {
+    if (!KEBAB_CASE.test(args.to)) {
       throw new Error(`Target slug is not kebab-case: ${args.to}`);
     }
 

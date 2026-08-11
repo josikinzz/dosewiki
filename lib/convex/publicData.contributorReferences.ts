@@ -35,7 +35,16 @@ export const getPublicContributorReferenceCounts = cache(
 
     const input: ContributorReferenceInput = {
       effects,
-      replications,
+      // A replication credits its artist on the effect page it belongs to, so a
+      // stored asset with no owning effect (an article figure, a page hero) has
+      // no page here to credit anyone on and is dropped rather than counted
+      // against an empty effect slug. Every row that predates the optional
+      // `effect_slug` sets it, so this drops nothing that used to be counted.
+      replications: replications.flatMap((replication) =>
+        replication.effect_slug
+          ? [{ effect_slug: replication.effect_slug, artist: replication.artist }]
+          : [],
+      ),
       reports: reports.map((report) => ({
         slug: report.slug,
         author: report.author,

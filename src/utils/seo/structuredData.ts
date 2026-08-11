@@ -120,7 +120,7 @@ interface ItemListSchema {
  */
 interface MediaObjectSchema {
   "@context": "https://schema.org";
-  "@type": "ImageObject" | "VideoObject";
+  "@type": "ImageObject" | "VideoObject" | "AudioObject";
   "@id": string;
   url: string;
   name: string;
@@ -468,7 +468,7 @@ export function buildItemListSchema(input: {
 export interface ReplicationSchemaInput {
   slug: string;
   title: string;
-  type: "image" | "video";
+  type: "image" | "video" | "audio";
   contentUrl: string;
   thumbnailUrl?: string;
   width?: number;
@@ -496,7 +496,12 @@ export function buildReplicationSchema(
 
   return {
     "@context": "https://schema.org",
-    "@type": input.type === "video" ? "VideoObject" : "ImageObject",
+    "@type":
+      input.type === "video"
+        ? "VideoObject"
+        : input.type === "audio"
+          ? "AudioObject"
+          : "ImageObject",
     "@id": `${url}#media`,
     url,
     name: input.title,
