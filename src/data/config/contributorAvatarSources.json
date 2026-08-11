@@ -1,0 +1,2669 @@
+{
+  "note": "Provenance for every avatar cut from a contributor's own work by scripts/contributors/generate-avatars-from-replications.ts. Each avatar is a centre square of the named replication, delivered at 256x256 WebP (or at the source's short side when that is smaller — nothing is upscaled). The artwork remains the artist's; this file is the record of which work each avatar came from.",
+  "selectionRule": [
+    "1. a curated work beats an uncurated one (src/data/config/effectIndexFeaturedReplications.json)",
+    "2. a still image beats a video (a still is a frame its author chose)",
+    "3. the larger square wins, measured as min(width, height) of the source",
+    "4. slug ascending, so the ordering is total"
+  ],
+  "generatedAt": "2026-08-11T23:29:46.348Z",
+  "avatars": [
+    {
+      "profileKey": "ADAMSCOTTMILLER",
+      "displayName": "Adam Scott Miller",
+      "avatarUrl": "/profile-avatars/adamscottmiller/avatar.webp",
+      "source": {
+        "replicationSlug": "parabolic-vehicle-of-conception-adam-scott-miller",
+        "title": "Parabolic Vehicle of Conception",
+        "artist": "Adam Scott Miller",
+        "type": "image",
+        "curated": false,
+        "sourceWidth": 600,
+        "sourceHeight": 789,
+        "creditLine": "Parabolic Vehicle of Conception by Adam Scott Miller",
+        "rightsStatus": null,
+        "rightsholder": null,
+        "sourceUrl": null
+      },
+      "selection": {
+        "worksConsidered": 1,
+        "tierSize": 1,
+        "rankedCandidates": [
+          {
+            "slug": "parabolic-vehicle-of-conception-adam-scott-miller",
+            "curated": false,
+            "squareSide": 600
+          }
+        ]
+      },
+      "output": {
+        "width": 256,
+        "height": 256,
+        "format": "webp",
+        "crop": "centre-square",
+        "bytes": 23550,
+        "meanLuminance": 145.5
+      }
+    },
+    {
+      "profileKey": "ADRIANGRAJDEANU",
+      "displayName": "Adrian Grajdeanu",
+      "avatarUrl": "/profile-avatars/adriangrajdeanu/avatar.webp",
+      "source": {
+        "replicationSlug": "the-hook-and-the-doll-adrian-grajdeanu",
+        "title": "Untitled",
+        "artist": "Adrian Grajdeanu",
+        "type": "image",
+        "curated": false,
+        "sourceWidth": 855,
+        "sourceHeight": 1197,
+        "creditLine": "Untitled by Adrian Grajdeanu",
+        "rightsStatus": null,
+        "rightsholder": "Adrian Grajdeanu",
+        "sourceUrl": "https://pub-879bfd45a9774f1c80a8b77aca1f0aee.r2.dev/0EvBcsq.jpg"
+      },
+      "selection": {
+        "worksConsidered": 1,
+        "tierSize": 1,
+        "rankedCandidates": [
+          {
+            "slug": "the-hook-and-the-doll-adrian-grajdeanu",
+            "curated": false,
+            "squareSide": 855
+          }
+        ]
+      },
+      "output": {
+        "width": 256,
+        "height": 256,
+        "format": "webp",
+        "crop": "centre-square",
+        "bytes": 4476,
+        "meanLuminance": 64.8
+      }
+    },
+    {
+      "profileKey": "AKANYAN",
+      "displayName": "Akanyan",
+      "avatarUrl": "/profile-avatars/akanyan/avatar.webp",
+      "source": {
+        "replicationSlug": "wondering-if-you-should-smoke-a-bowl-akanyan",
+        "title": "Wondering if you should smoke a bowl",
+        "artist": "Akanyan",
+        "type": "video",
+        "curated": false,
+        "sourceWidth": 1066,
+        "sourceHeight": 720,
+        "frameSeconds": 1,
+        "frameMeanLuminance": 118.2,
+        "frameAttempts": [
+          {
+            "seconds": 1,
+            "meanLuminance": 118.2
+          }
+        ],
+        "creditLine": "Wondering if you should smoke a bowl by Akanyan",
+        "rightsStatus": "creator-retained",
+        "rightsholder": "Akanyan",
+        "sourceUrl": "https://streamable.com/e/48pebv"
+      },
+      "selection": {
+        "worksConsidered": 1,
+        "tierSize": 1,
+        "rankedCandidates": [
+          {
+            "slug": "wondering-if-you-should-smoke-a-bowl-akanyan",
+            "curated": false,
+            "squareSide": 720
+          }
+        ]
+      },
+      "output": {
+        "width": 256,
+        "height": 256,
+        "format": "webp",
+        "crop": "centre-square",
+        "bytes": 23868,
+        "meanLuminance": 109.5
+      }
+    },
+    {
+      "profileKey": "ALEXGREY",
+      "displayName": "Alex Grey",
+      "avatarUrl": "/profile-avatars/alexgrey/avatar.webp",
+      "source": {
+        "replicationSlug": "god-head-alex-grey",
+        "title": "god head",
+        "artist": "Alex Grey",
+        "type": "video",
+        "curated": false,
+        "sourceWidth": 1920,
+        "sourceHeight": 1080,
+        "frameSeconds": 1,
+        "frameMeanLuminance": 167.9,
+        "frameAttempts": [
+          {
+            "seconds": 1,
+            "meanLuminance": 167.9
+          }
+        ],
+        "creditLine": "god head by Alex Grey",
+        "rightsStatus": null,
+        "rightsholder": null,
+        "sourceUrl": null
+      },
+      "selection": {
+        "worksConsidered": 1,
+        "tierSize": 1,
+        "rankedCandidates": [
+          {
+            "slug": "god-head-alex-grey",
+            "curated": false,
+            "squareSide": 1080
+          }
+        ]
+      },
+      "output": {
+        "width": 256,
+        "height": 256,
+        "format": "webp",
+        "crop": "centre-square",
+        "bytes": 31072,
+        "meanLuminance": 164.3
+      }
+    },
+    {
+      "profileKey": "ALEXRIES",
+      "displayName": "Alex Ries",
+      "avatarUrl": "/profile-avatars/alexries/avatar.webp",
+      "source": {
+        "replicationSlug": "the-red-lit-demon-alex-ries",
+        "title": "C Demon",
+        "artist": "Alex Ries",
+        "type": "image",
+        "curated": false,
+        "sourceWidth": 1024,
+        "sourceHeight": 683,
+        "creditLine": "C Demon by Alex Ries",
+        "rightsStatus": null,
+        "rightsholder": "Alex Ries",
+        "sourceUrl": "https://pub-879bfd45a9774f1c80a8b77aca1f0aee.r2.dev/ESADhIOWoAAyFYZ.jpg"
+      },
+      "selection": {
+        "worksConsidered": 1,
+        "tierSize": 1,
+        "rankedCandidates": [
+          {
+            "slug": "the-red-lit-demon-alex-ries",
+            "curated": false,
+            "squareSide": 683
+          }
+        ]
+      },
+      "output": {
+        "width": 256,
+        "height": 256,
+        "format": "webp",
+        "crop": "centre-square",
+        "bytes": 5438,
+        "meanLuminance": 84.9
+      }
+    },
+    {
+      "profileKey": "BEARFROMVOID",
+      "displayName": "bearfromvoid",
+      "avatarUrl": "/profile-avatars/bearfromvoid/avatar.webp",
+      "source": {
+        "replicationSlug": "dmtunnel-bearfromvoid",
+        "title": "dmtunnel",
+        "artist": "bearfromvoid",
+        "type": "video",
+        "curated": false,
+        "sourceWidth": 1920,
+        "sourceHeight": 1080,
+        "frameSeconds": 3.5,
+        "frameMeanLuminance": 21.6,
+        "frameAttempts": [
+          {
+            "seconds": 1,
+            "meanLuminance": 12.6
+          },
+          {
+            "seconds": 2,
+            "meanLuminance": 14.4
+          },
+          {
+            "seconds": 3.5,
+            "meanLuminance": 21.6
+          },
+          {
+            "seconds": 5,
+            "meanLuminance": 12.5
+          },
+          {
+            "seconds": 8,
+            "meanLuminance": 10.5
+          }
+        ],
+        "creditLine": null,
+        "rightsStatus": null,
+        "rightsholder": null,
+        "sourceUrl": null
+      },
+      "selection": {
+        "worksConsidered": 3,
+        "tierSize": 3,
+        "rankedCandidates": [
+          {
+            "slug": "dmtunnel-bearfromvoid",
+            "curated": false,
+            "squareSide": 1080
+          },
+          {
+            "slug": "torustower-bearfromvoid",
+            "curated": false,
+            "squareSide": 1080
+          },
+          {
+            "slug": "dmtity-bearfromvoid",
+            "curated": false,
+            "squareSide": 720
+          }
+        ]
+      },
+      "output": {
+        "width": 256,
+        "height": 256,
+        "format": "webp",
+        "crop": "centre-square",
+        "bytes": 26602,
+        "meanLuminance": 28.2
+      }
+    },
+    {
+      "profileKey": "BENRIDGWAY",
+      "displayName": "Ben Ridgway",
+      "avatarUrl": "/profile-avatars/benridgway/avatar.webp",
+      "source": {
+        "replicationSlug": "the-answers-lie-within-ben-ridgway",
+        "title": "The Answers Lie Within",
+        "artist": "Ben Ridgway",
+        "type": "image",
+        "curated": false,
+        "sourceWidth": 750,
+        "sourceHeight": 937,
+        "creditLine": "The Answers Lie Within by Ben Ridgway",
+        "rightsStatus": "creator-retained",
+        "rightsholder": "Ben Ridgway",
+        "sourceUrl": "https://pub-879bfd45a9774f1c80a8b77aca1f0aee.r2.dev/og5vhxh3owb41.jpg"
+      },
+      "selection": {
+        "worksConsidered": 5,
+        "tierSize": 1,
+        "rankedCandidates": [
+          {
+            "slug": "the-answers-lie-within-ben-ridgway",
+            "curated": false,
+            "squareSide": 750
+          }
+        ]
+      },
+      "output": {
+        "width": 256,
+        "height": 256,
+        "format": "webp",
+        "crop": "centre-square",
+        "bytes": 36390,
+        "meanLuminance": 196.5
+      }
+    },
+    {
+      "profileKey": "BEVDOOLITTLE",
+      "displayName": "Bev Doolittle",
+      "avatarUrl": "/profile-avatars/bevdoolittle/avatar.webp",
+      "source": {
+        "replicationSlug": "the-forest-has-eyes-bev-doolittle",
+        "title": "The Forest Has Eyes",
+        "artist": "Bev Doolittle",
+        "type": "image",
+        "curated": false,
+        "sourceWidth": 5600,
+        "sourceHeight": 2840,
+        "creditLine": "The Forest Has Eyes by Bev Doolittle",
+        "rightsStatus": null,
+        "rightsholder": "Bev Doolittle",
+        "sourceUrl": "https://pub-879bfd45a9774f1c80a8b77aca1f0aee.r2.dev/The_Forest_Has_Eyes_photos_v2_faces_x4.jpg"
+      },
+      "selection": {
+        "worksConsidered": 1,
+        "tierSize": 1,
+        "rankedCandidates": [
+          {
+            "slug": "the-forest-has-eyes-bev-doolittle",
+            "curated": false,
+            "squareSide": 2840
+          }
+        ]
+      },
+      "output": {
+        "width": 256,
+        "height": 256,
+        "format": "webp",
+        "crop": "centre-square",
+        "bytes": 26066,
+        "meanLuminance": 114.9
+      }
+    },
+    {
+      "profileKey": "BILLWADMAN",
+      "displayName": "Bill Wadman",
+      "avatarUrl": "/profile-avatars/billwadman/avatar.webp",
+      "source": {
+        "replicationSlug": "motion-bill-wadman",
+        "title": "Motion",
+        "artist": "Bill Wadman",
+        "type": "image",
+        "curated": false,
+        "sourceWidth": 580,
+        "sourceHeight": 725,
+        "creditLine": "Motion by Bill Wadman",
+        "rightsStatus": null,
+        "rightsholder": "Bill Wadman",
+        "sourceUrl": "https://pub-879bfd45a9774f1c80a8b77aca1f0aee.r2.dev/Motion_by_Bill_Wadman.webp"
+      },
+      "selection": {
+        "worksConsidered": 1,
+        "tierSize": 1,
+        "rankedCandidates": [
+          {
+            "slug": "motion-bill-wadman",
+            "curated": false,
+            "squareSide": 580
+          }
+        ]
+      },
+      "output": {
+        "width": 256,
+        "height": 256,
+        "format": "webp",
+        "crop": "centre-square",
+        "bytes": 3760,
+        "meanLuminance": 66.9
+      }
+    },
+    {
+      "profileKey": "BORJAPINTADO",
+      "displayName": "Borja Pintado",
+      "avatarUrl": "/profile-avatars/borjapintado/avatar.webp",
+      "source": {
+        "replicationSlug": "king-in-yellow-borja-pintado",
+        "title": "King in yellow",
+        "artist": "Borja Pintado",
+        "type": "image",
+        "curated": false,
+        "sourceWidth": 600,
+        "sourceHeight": 777,
+        "creditLine": "King in yellow by Borja Pintado",
+        "rightsStatus": null,
+        "rightsholder": "Borja Pintado",
+        "sourceUrl": "https://pub-879bfd45a9774f1c80a8b77aca1f0aee.r2.dev/King_in_yellow_by_Borja_Pintado.webp"
+      },
+      "selection": {
+        "worksConsidered": 1,
+        "tierSize": 1,
+        "rankedCandidates": [
+          {
+            "slug": "king-in-yellow-borja-pintado",
+            "curated": false,
+            "squareSide": 600
+          }
+        ]
+      },
+      "output": {
+        "width": 256,
+        "height": 256,
+        "format": "webp",
+        "crop": "centre-square",
+        "bytes": 6460,
+        "meanLuminance": 77.5
+      }
+    },
+    {
+      "profileKey": "CHAOSINCEPTION",
+      "displayName": "Chaos Inception",
+      "avatarUrl": "/profile-avatars/chaosinception/avatar.webp",
+      "source": {
+        "replicationSlug": "abrogation-chaos-inception",
+        "title": "Abrogation",
+        "artist": "Chaos Inception",
+        "type": "image",
+        "curated": false,
+        "sourceWidth": 960,
+        "sourceHeight": 951,
+        "creditLine": "Abrogation by Chaos Inception",
+        "rightsStatus": null,
+        "rightsholder": "Chaos Inception",
+        "sourceUrl": "https://pub-879bfd45a9774f1c80a8b77aca1f0aee.r2.dev/Abrogation_by_Chaos_inception.webp"
+      },
+      "selection": {
+        "worksConsidered": 1,
+        "tierSize": 1,
+        "rankedCandidates": [
+          {
+            "slug": "abrogation-chaos-inception",
+            "curated": false,
+            "squareSide": 951
+          }
+        ]
+      },
+      "output": {
+        "width": 256,
+        "height": 256,
+        "format": "webp",
+        "crop": "centre-square",
+        "bytes": 17526,
+        "meanLuminance": 79.4
+      }
+    },
+    {
+      "profileKey": "CHELSEAMORGAN",
+      "displayName": "Chelsea Morgan",
+      "avatarUrl": "/profile-avatars/chelseamorgan/avatar.webp",
+      "source": {
+        "replicationSlug": "double-vision-chelsea-morgan",
+        "title": "Double Vision",
+        "artist": "Chelsea Morgan",
+        "type": "image",
+        "curated": false,
+        "sourceWidth": 5120,
+        "sourceHeight": 2908,
+        "creditLine": "Double Vision by Chelsea Morgan. Modified from the original (upscaled).",
+        "rightsStatus": "explicit-license",
+        "rightsholder": "Chelsea Morgan",
+        "sourceUrl": "https://pub-879bfd45a9774f1c80a8b77aca1f0aee.r2.dev/Double_vision%20by%20chelsea%20morgan_upscayl_4x_realesrgan-x4plus.png"
+      },
+      "selection": {
+        "worksConsidered": 21,
+        "tierSize": 21,
+        "rankedCandidates": [
+          {
+            "slug": "double-vision-chelsea-morgan",
+            "curated": false,
+            "squareSide": 2908
+          },
+          {
+            "slug": "llama-chelsea-morgan",
+            "curated": false,
+            "squareSide": 2712
+          },
+          {
+            "slug": "colorful-welsh-woods-chelsea-morgan",
+            "curated": false,
+            "squareSide": 2248
+          },
+          {
+            "slug": "tree-bark-chelsea-morgan",
+            "curated": false,
+            "squareSide": 2248
+          },
+          {
+            "slug": "green-towel-weave-chelsea-morgan",
+            "curated": false,
+            "squareSide": 2176
+          },
+          {
+            "slug": "ice-chelsea-morgan",
+            "curated": false,
+            "squareSide": 2176
+          },
+          {
+            "slug": "moss-on-tree-bark-chelsea-morgan",
+            "curated": false,
+            "squareSide": 2176
+          },
+          {
+            "slug": "sliced-walk-past-the-railings-chelsea-morgan",
+            "curated": false,
+            "squareSide": 2132
+          },
+          {
+            "slug": "cubism-field-chelsea-morgan",
+            "curated": false,
+            "squareSide": 1899
+          },
+          {
+            "slug": "stones-chelsea-morgan",
+            "curated": false,
+            "squareSide": 1488
+          },
+          {
+            "slug": "after-images-chelsea-morgan",
+            "curated": false,
+            "squareSide": 1151
+          },
+          {
+            "slug": "asphalt-chelsea-morgan",
+            "curated": false,
+            "squareSide": 1124
+          },
+          {
+            "slug": "bathroom-rug-chelsea-morgan",
+            "curated": false,
+            "squareSide": 1124
+          },
+          {
+            "slug": "grass-chelsea-morgan",
+            "curated": false,
+            "squareSide": 1124
+          },
+          {
+            "slug": "fallen-leaves-chelsea-morgan",
+            "curated": false,
+            "squareSide": 899
+          },
+          {
+            "slug": "gravel-chelsea-morgan",
+            "curated": false,
+            "squareSide": 899
+          },
+          {
+            "slug": "dissociative-scenery-slicing-chelsea-morgan",
+            "curated": false,
+            "squareSide": 768
+          },
+          {
+            "slug": "finn-jumping-on-rocks-chelsea-morgan",
+            "curated": false,
+            "squareSide": 741
+          },
+          {
+            "slug": "cubism-woods-chelsea-morgan",
+            "curated": false,
+            "squareSide": 687
+          },
+          {
+            "slug": "tracers-behind-a-moving-hand",
+            "curated": false,
+            "squareSide": 605
+          },
+          {
+            "slug": "hand-trails-in-a-bedroom-chelsea-morgan",
+            "curated": false,
+            "squareSide": 562
+          }
+        ]
+      },
+      "output": {
+        "width": 256,
+        "height": 256,
+        "format": "webp",
+        "crop": "centre-square",
+        "bytes": 7268,
+        "meanLuminance": 93.4
+      }
+    },
+    {
+      "profileKey": "COLDWASABI",
+      "displayName": "Cold Wasabi",
+      "avatarUrl": "/profile-avatars/coldwasabi/avatar.webp",
+      "source": {
+        "replicationSlug": "joint-acuity-enhancement-comparison-cold-wasabi",
+        "title": "joint acuity enhancement comparison",
+        "artist": "Cold Wasabi",
+        "type": "image",
+        "curated": false,
+        "sourceWidth": 3072,
+        "sourceHeight": 2048,
+        "creditLine": "joint acuity enhancement comparison by Cold Wasabi",
+        "rightsStatus": null,
+        "rightsholder": null,
+        "sourceUrl": null
+      },
+      "selection": {
+        "worksConsidered": 7,
+        "tierSize": 6,
+        "rankedCandidates": [
+          {
+            "slug": "joint-acuity-enhancement-comparison-cold-wasabi",
+            "curated": false,
+            "squareSide": 2048
+          },
+          {
+            "slug": "kaleidoscope-gravel-cold-wasabi",
+            "curated": false,
+            "squareSide": 2048
+          },
+          {
+            "slug": "this-moss-is-unreal-cold-wasabi",
+            "curated": false,
+            "squareSide": 1536
+          },
+          {
+            "slug": "acuitree-cold-wasabi",
+            "curated": false,
+            "squareSide": 1510
+          },
+          {
+            "slug": "liquified-trees-cold-wasabi",
+            "curated": false,
+            "squareSide": 1374
+          },
+          {
+            "slug": "subtle-geometry-in-the-sky-cold-wasabi",
+            "curated": false,
+            "squareSide": 1374
+          }
+        ]
+      },
+      "output": {
+        "width": 256,
+        "height": 256,
+        "format": "webp",
+        "crop": "centre-square",
+        "bytes": 11316,
+        "meanLuminance": 122
+      }
+    },
+    {
+      "profileKey": "CRYPTOGEOMETRY",
+      "displayName": "crypto geometry",
+      "avatarUrl": "/profile-avatars/cryptogeometry/avatar.webp",
+      "source": {
+        "replicationSlug": "balance-crypto-geometry",
+        "title": "balance",
+        "artist": "crypto geometry",
+        "type": "video",
+        "curated": false,
+        "sourceWidth": 1920,
+        "sourceHeight": 1080,
+        "frameSeconds": 1,
+        "frameMeanLuminance": 51.8,
+        "frameAttempts": [
+          {
+            "seconds": 1,
+            "meanLuminance": 51.8
+          }
+        ],
+        "creditLine": null,
+        "rightsStatus": null,
+        "rightsholder": null,
+        "sourceUrl": null
+      },
+      "selection": {
+        "worksConsidered": 1,
+        "tierSize": 1,
+        "rankedCandidates": [
+          {
+            "slug": "balance-crypto-geometry",
+            "curated": false,
+            "squareSide": 1080
+          }
+        ]
+      },
+      "output": {
+        "width": 256,
+        "height": 256,
+        "format": "webp",
+        "crop": "centre-square",
+        "bytes": 23426,
+        "meanLuminance": 52.6
+      }
+    },
+    {
+      "profileKey": "CUCKINGTONIV",
+      "displayName": "Cuckington IV",
+      "avatarUrl": "/profile-avatars/cuckingtoniv/avatar.webp",
+      "source": {
+        "replicationSlug": "the-folded-tile-world-cuckington-iv",
+        "title": "That Salvia Feeling",
+        "artist": "Cuckington IV",
+        "type": "image",
+        "curated": false,
+        "sourceWidth": 3346,
+        "sourceHeight": 2306,
+        "creditLine": "That Salvia Feeling by Cuckington IV",
+        "rightsStatus": null,
+        "rightsholder": "Cuckington IV",
+        "sourceUrl": "https://pub-879bfd45a9774f1c80a8b77aca1f0aee.r2.dev/that%20salvia%20feeling%20cuckington%20iv.jpeg"
+      },
+      "selection": {
+        "worksConsidered": 2,
+        "tierSize": 2,
+        "rankedCandidates": [
+          {
+            "slug": "the-folded-tile-world-cuckington-iv",
+            "curated": false,
+            "squareSide": 2306
+          },
+          {
+            "slug": "salvia-room-cuckington-iv",
+            "curated": false,
+            "squareSide": 713
+          }
+        ]
+      },
+      "output": {
+        "width": 256,
+        "height": 256,
+        "format": "webp",
+        "crop": "centre-square",
+        "bytes": 21700,
+        "meanLuminance": 117.7
+      }
+    },
+    {
+      "profileKey": "DAVIDHOCKNEY",
+      "displayName": "David Hockney",
+      "avatarUrl": "/profile-avatars/davidhockney/avatar.webp",
+      "source": {
+        "replicationSlug": "photo-montage-david-hockney",
+        "title": "Photo Montage",
+        "artist": "David Hockney",
+        "type": "image",
+        "curated": false,
+        "sourceWidth": 1089,
+        "sourceHeight": 627,
+        "creditLine": "Photo Montage by David Hockney",
+        "rightsStatus": null,
+        "rightsholder": "David Hockney",
+        "sourceUrl": "https://pub-879bfd45a9774f1c80a8b77aca1f0aee.r2.dev/Photo_montage_by_David_Hockney.jpg"
+      },
+      "selection": {
+        "worksConsidered": 2,
+        "tierSize": 2,
+        "rankedCandidates": [
+          {
+            "slug": "photo-montage-david-hockney",
+            "curated": false,
+            "squareSide": 627
+          },
+          {
+            "slug": "hockneys-mother-david-hockney",
+            "curated": false,
+            "squareSide": 337
+          }
+        ]
+      },
+      "output": {
+        "width": 256,
+        "height": 256,
+        "format": "webp",
+        "crop": "centre-square",
+        "bytes": 25624,
+        "meanLuminance": 126.8
+      }
+    },
+    {
+      "profileKey": "DENNISFARMER",
+      "displayName": "Dennis Farmer",
+      "avatarUrl": "/profile-avatars/dennisfarmer/avatar.webp",
+      "source": {
+        "replicationSlug": "face-in-a-cloud-dennis-farmer",
+        "title": "Face in a cloud",
+        "artist": "Dennis Farmer",
+        "type": "image",
+        "curated": false,
+        "sourceWidth": 650,
+        "sourceHeight": 646,
+        "creditLine": "Face in a cloud by Dennis Farmer",
+        "rightsStatus": null,
+        "rightsholder": "Dennis Farmer",
+        "sourceUrl": "https://pub-879bfd45a9774f1c80a8b77aca1f0aee.r2.dev/firefox_wJOHQMluwI.png"
+      },
+      "selection": {
+        "worksConsidered": 1,
+        "tierSize": 1,
+        "rankedCandidates": [
+          {
+            "slug": "face-in-a-cloud-dennis-farmer",
+            "curated": false,
+            "squareSide": 646
+          }
+        ]
+      },
+      "output": {
+        "width": 256,
+        "height": 256,
+        "format": "webp",
+        "crop": "centre-square",
+        "bytes": 1956,
+        "meanLuminance": 135.3
+      }
+    },
+    {
+      "profileKey": "EDDIECALZ",
+      "displayName": "Eddie Calz",
+      "avatarUrl": "/profile-avatars/eddiecalz/avatar.webp",
+      "source": {
+        "replicationSlug": "in-the-tree-eddie-calz",
+        "title": "In the Tree",
+        "artist": "Eddie Calz",
+        "type": "image",
+        "curated": false,
+        "sourceWidth": 802,
+        "sourceHeight": 997,
+        "creditLine": "In the Tree by Eddie Calz",
+        "rightsStatus": null,
+        "rightsholder": "Eddie Calz",
+        "sourceUrl": "https://psychonautwiki.org/w/images/8/81/In_the_tree_by_Eddie_calz.jpg"
+      },
+      "selection": {
+        "worksConsidered": 1,
+        "tierSize": 1,
+        "rankedCandidates": [
+          {
+            "slug": "in-the-tree-eddie-calz",
+            "curated": false,
+            "squareSide": 802
+          }
+        ]
+      },
+      "output": {
+        "width": 256,
+        "height": 256,
+        "format": "webp",
+        "crop": "centre-square",
+        "bytes": 37622,
+        "meanLuminance": 85.1
+      }
+    },
+    {
+      "profileKey": "EMAYDANI",
+      "displayName": "Emaydani",
+      "avatarUrl": "/profile-avatars/emaydani/avatar.webp",
+      "source": {
+        "replicationSlug": "paradise-lost-clean-emaydani",
+        "title": "Paradise lost clean",
+        "artist": "Emaydani",
+        "type": "image",
+        "curated": false,
+        "sourceWidth": 1024,
+        "sourceHeight": 768,
+        "creditLine": "Paradise lost clean by Emaydani",
+        "rightsStatus": null,
+        "rightsholder": "Emaydani",
+        "sourceUrl": "https://pub-879bfd45a9774f1c80a8b77aca1f0aee.r2.dev/Paradise_lost_clean_by_emaydani.webp"
+      },
+      "selection": {
+        "worksConsidered": 1,
+        "tierSize": 1,
+        "rankedCandidates": [
+          {
+            "slug": "paradise-lost-clean-emaydani",
+            "curated": false,
+            "squareSide": 768
+          }
+        ]
+      },
+      "output": {
+        "width": 256,
+        "height": 256,
+        "format": "webp",
+        "crop": "centre-square",
+        "bytes": 10184,
+        "meanLuminance": 103.2
+      }
+    },
+    {
+      "profileKey": "GLOOBYSWORLD",
+      "displayName": "Glooby's World",
+      "avatarUrl": "/profile-avatars/gloobysworld/avatar.webp",
+      "source": {
+        "replicationSlug": "neural-network-footage-gloobys-world",
+        "title": "Neural network footage",
+        "artist": "Glooby's World",
+        "type": "video",
+        "curated": false,
+        "sourceWidth": 720,
+        "sourceHeight": 720,
+        "frameSeconds": 1,
+        "frameMeanLuminance": 80.1,
+        "frameAttempts": [
+          {
+            "seconds": 1,
+            "meanLuminance": 80.1
+          }
+        ],
+        "creditLine": "Neural network footage by Glooby's World",
+        "rightsStatus": "creator-retained",
+        "rightsholder": "Glooby's World",
+        "sourceUrl": "https://streamable.com/e/glb2ss"
+      },
+      "selection": {
+        "worksConsidered": 1,
+        "tierSize": 1,
+        "rankedCandidates": [
+          {
+            "slug": "neural-network-footage-gloobys-world",
+            "curated": false,
+            "squareSide": 720
+          }
+        ]
+      },
+      "output": {
+        "width": 256,
+        "height": 256,
+        "format": "webp",
+        "crop": "centre-square",
+        "bytes": 18044,
+        "meanLuminance": 80.1
+      }
+    },
+    {
+      "profileKey": "HRGIGER",
+      "displayName": "H. R. Giger",
+      "avatarUrl": "/profile-avatars/hrgiger/avatar.webp",
+      "source": {
+        "replicationSlug": "the-spell-iv-h-r-giger",
+        "title": "The Spell IV",
+        "artist": "H. R. Giger",
+        "type": "image",
+        "curated": false,
+        "sourceWidth": 1600,
+        "sourceHeight": 939,
+        "creditLine": "The Spell IV by H. R. Giger",
+        "rightsStatus": null,
+        "rightsholder": "H. R. Giger",
+        "sourceUrl": "https://pub-879bfd45a9774f1c80a8b77aca1f0aee.r2.dev/Giger-The_Spell_IV.jpg"
+      },
+      "selection": {
+        "worksConsidered": 4,
+        "tierSize": 4,
+        "rankedCandidates": [
+          {
+            "slug": "the-spell-iv-h-r-giger",
+            "curated": false,
+            "squareSide": 939
+          },
+          {
+            "slug": "obannons-alien-d2-h-r-giger",
+            "curated": false,
+            "squareSide": 848
+          },
+          {
+            "slug": "national-park-h-r-giger",
+            "curated": false,
+            "squareSide": 800
+          },
+          {
+            "slug": "landschaft-h-r-giger",
+            "curated": false,
+            "squareSide": 768
+          }
+        ]
+      },
+      "output": {
+        "width": 256,
+        "height": 256,
+        "format": "webp",
+        "crop": "centre-square",
+        "bytes": 22694,
+        "meanLuminance": 101.3
+      }
+    },
+    {
+      "profileKey": "HYPERACTIVEFILLY",
+      "displayName": "Hyperactive Filly",
+      "avatarUrl": "/profile-avatars/hyperactivefilly/avatar.webp",
+      "source": {
+        "replicationSlug": "strawberry-fields-hyperactive-filly",
+        "title": "Strawberry fields",
+        "artist": "Hyperactive Filly",
+        "type": "video",
+        "curated": true,
+        "sourceWidth": 1280,
+        "sourceHeight": 720,
+        "frameSeconds": 1,
+        "frameMeanLuminance": 132.3,
+        "frameAttempts": [
+          {
+            "seconds": 1,
+            "meanLuminance": 132.3
+          }
+        ],
+        "creditLine": "Strawberry fields by Hyperactive Filly",
+        "rightsStatus": "creator-retained",
+        "rightsholder": "HyperactiveFilly",
+        "sourceUrl": "https://streamable.com/e/c9smha"
+      },
+      "selection": {
+        "worksConsidered": 2,
+        "tierSize": 1,
+        "rankedCandidates": [
+          {
+            "slug": "strawberry-fields-hyperactive-filly",
+            "curated": true,
+            "squareSide": 720
+          }
+        ]
+      },
+      "output": {
+        "width": 256,
+        "height": 256,
+        "format": "webp",
+        "crop": "centre-square",
+        "bytes": 10286,
+        "meanLuminance": 144.7
+      }
+    },
+    {
+      "profileKey": "INCEDIGRIS",
+      "displayName": "Incedigris",
+      "avatarUrl": "/profile-avatars/incedigris/avatar.webp",
+      "source": {
+        "replicationSlug": "carnivalian-grid-incedigris",
+        "title": "Carnivalian Grid",
+        "artist": "Incedigris",
+        "type": "image",
+        "curated": false,
+        "sourceWidth": 1080,
+        "sourceHeight": 1080,
+        "creditLine": "Carnivalian Grid by Incedigris",
+        "rightsStatus": null,
+        "rightsholder": "Incedigris",
+        "sourceUrl": "https://pub-879bfd45a9774f1c80a8b77aca1f0aee.r2.dev/carnivalian%20grid%20by%20incedgris.jpg"
+      },
+      "selection": {
+        "worksConsidered": 1,
+        "tierSize": 1,
+        "rankedCandidates": [
+          {
+            "slug": "carnivalian-grid-incedigris",
+            "curated": false,
+            "squareSide": 1080
+          }
+        ]
+      },
+      "output": {
+        "width": 256,
+        "height": 256,
+        "format": "webp",
+        "crop": "centre-square",
+        "bytes": 40962,
+        "meanLuminance": 97.9
+      }
+    },
+    {
+      "profileKey": "JONAYALCAT",
+      "displayName": "Jon Ayal Cat",
+      "avatarUrl": "/profile-avatars/jonayalcat/avatar.webp",
+      "source": {
+        "replicationSlug": "depersonalization-john-ayal-cat",
+        "title": "Depersonalization",
+        "artist": "Jon Ayal Cat",
+        "type": "image",
+        "curated": false,
+        "sourceWidth": 3415,
+        "sourceHeight": 2339,
+        "creditLine": "Depersonalization by Jon Ayal Cat",
+        "rightsStatus": null,
+        "rightsholder": "Jon Ayal Cat",
+        "sourceUrl": "https://pub-879bfd45a9774f1c80a8b77aca1f0aee.r2.dev/depersonalization%20by%20john%20ayal%20cat.jpeg"
+      },
+      "selection": {
+        "worksConsidered": 1,
+        "tierSize": 1,
+        "rankedCandidates": [
+          {
+            "slug": "depersonalization-john-ayal-cat",
+            "curated": false,
+            "squareSide": 2339
+          }
+        ]
+      },
+      "output": {
+        "width": 256,
+        "height": 256,
+        "format": "webp",
+        "crop": "centre-square",
+        "bytes": 11024,
+        "meanLuminance": 119.5
+      }
+    },
+    {
+      "profileKey": "JUMPROPER",
+      "displayName": "Jumproper",
+      "avatarUrl": "/profile-avatars/jumproper/avatar.webp",
+      "source": {
+        "replicationSlug": "forest-of-flowing-fractals-jumproper",
+        "title": "Forest of Flowing Fractals",
+        "artist": "Jumproper",
+        "type": "video",
+        "curated": true,
+        "sourceWidth": 1280,
+        "sourceHeight": 720,
+        "frameSeconds": 1,
+        "frameMeanLuminance": 70.5,
+        "frameAttempts": [
+          {
+            "seconds": 1,
+            "meanLuminance": 70.5
+          }
+        ],
+        "creditLine": "Forest of Flowing Fractals by Jumproper",
+        "rightsStatus": "creator-retained",
+        "rightsholder": "Jumproper",
+        "sourceUrl": "https://streamable.com/e/yekuo9"
+      },
+      "selection": {
+        "worksConsidered": 2,
+        "tierSize": 2,
+        "rankedCandidates": [
+          {
+            "slug": "forest-of-flowing-fractals-jumproper",
+            "curated": true,
+            "squareSide": 720
+          },
+          {
+            "slug": "lsd-on-a-cloudy-day-jumproper",
+            "curated": true,
+            "squareSide": 720
+          }
+        ]
+      },
+      "output": {
+        "width": 256,
+        "height": 256,
+        "format": "webp",
+        "crop": "centre-square",
+        "bytes": 22894,
+        "meanLuminance": 79.1
+      }
+    },
+    {
+      "profileKey": "KVISUALS",
+      "displayName": "k visuals",
+      "avatarUrl": "/profile-avatars/kvisuals/avatar.webp",
+      "source": {
+        "replicationSlug": "fungal-intelligence-k-visuals",
+        "title": "fungal intelligence",
+        "artist": "k visuals",
+        "type": "video",
+        "curated": false,
+        "sourceWidth": 1440,
+        "sourceHeight": 1796,
+        "frameSeconds": 1,
+        "frameMeanLuminance": 60.5,
+        "frameAttempts": [
+          {
+            "seconds": 1,
+            "meanLuminance": 60.5
+          }
+        ],
+        "creditLine": null,
+        "rightsStatus": null,
+        "rightsholder": null,
+        "sourceUrl": null
+      },
+      "selection": {
+        "worksConsidered": 2,
+        "tierSize": 2,
+        "rankedCandidates": [
+          {
+            "slug": "fungal-intelligence-k-visuals",
+            "curated": false,
+            "squareSide": 1440
+          },
+          {
+            "slug": "keana-k-visuals",
+            "curated": false,
+            "squareSide": 1080
+          }
+        ]
+      },
+      "output": {
+        "width": 256,
+        "height": 256,
+        "format": "webp",
+        "crop": "centre-square",
+        "bytes": 19778,
+        "meanLuminance": 63.5
+      }
+    },
+    {
+      "profileKey": "LOKA",
+      "displayName": "Loka",
+      "avatarUrl": "/profile-avatars/loka/avatar.webp",
+      "source": {
+        "replicationSlug": "forest-of-life-loka",
+        "title": "Forest of Life",
+        "artist": "Loka",
+        "type": "video",
+        "curated": true,
+        "sourceWidth": 1080,
+        "sourceHeight": 720,
+        "frameSeconds": 1,
+        "frameMeanLuminance": 84.9,
+        "frameAttempts": [
+          {
+            "seconds": 1,
+            "meanLuminance": 84.9
+          }
+        ],
+        "creditLine": "Forest of Life by Loka",
+        "rightsStatus": "creator-retained",
+        "rightsholder": "Wheressuede",
+        "sourceUrl": "https://streamable.com/e/0wiewa"
+      },
+      "selection": {
+        "worksConsidered": 15,
+        "tierSize": 3,
+        "rankedCandidates": [
+          {
+            "slug": "forest-of-life-loka",
+            "curated": true,
+            "squareSide": 720
+          },
+          {
+            "slug": "symmetry-stream-loka",
+            "curated": true,
+            "squareSide": 720
+          },
+          {
+            "slug": "faces-in-the-grass-loka",
+            "curated": true,
+            "squareSide": 360
+          }
+        ]
+      },
+      "output": {
+        "width": 256,
+        "height": 256,
+        "format": "webp",
+        "crop": "centre-square",
+        "bytes": 18020,
+        "meanLuminance": 83
+      }
+    },
+    {
+      "profileKey": "LUKEBROWN",
+      "displayName": "Luke Brown",
+      "avatarUrl": "/profile-avatars/lukebrown/avatar.webp",
+      "source": {
+        "replicationSlug": "alpha-centauri-luke-brown",
+        "title": "Alpha Centauri",
+        "artist": "Luke Brown",
+        "type": "image",
+        "curated": false,
+        "sourceWidth": 2152,
+        "sourceHeight": 2439,
+        "creditLine": "Alpha Centauri by Luke Brown",
+        "rightsStatus": "creator-retained",
+        "rightsholder": "Luke Brown",
+        "sourceUrl": "https://pub-879bfd45a9774f1c80a8b77aca1f0aee.r2.dev/Alpha_Centauri_by_Luke_Brown.jpg"
+      },
+      "selection": {
+        "worksConsidered": 5,
+        "tierSize": 5,
+        "rankedCandidates": [
+          {
+            "slug": "alpha-centauri-luke-brown",
+            "curated": false,
+            "squareSide": 2152
+          },
+          {
+            "slug": "baphomet-luke-brown",
+            "curated": false,
+            "squareSide": 800
+          },
+          {
+            "slug": "apotheosis-luke-brown",
+            "curated": false,
+            "squareSide": 630
+          },
+          {
+            "slug": "jerrestrial-detail-luke-brown",
+            "curated": false,
+            "squareSide": 616
+          },
+          {
+            "slug": "namaste-trifoliata-mystica-luke-brown",
+            "curated": false,
+            "squareSide": 562
+          }
+        ]
+      },
+      "output": {
+        "width": 256,
+        "height": 256,
+        "format": "webp",
+        "crop": "centre-square",
+        "bytes": 28610,
+        "meanLuminance": 112.2
+      }
+    },
+    {
+      "profileKey": "MORACZ",
+      "displayName": "MOracz",
+      "avatarUrl": "/profile-avatars/moracz/avatar.webp",
+      "source": {
+        "replicationSlug": "hatheg-kla-moracz",
+        "title": "Hatheg-Kla",
+        "artist": "MOracz",
+        "type": "image",
+        "curated": false,
+        "sourceWidth": 894,
+        "sourceHeight": 894,
+        "creditLine": "Hatheg-Kla by MOracz",
+        "rightsStatus": null,
+        "rightsholder": "MOracz",
+        "sourceUrl": "https://pub-879bfd45a9774f1c80a8b77aca1f0aee.r2.dev/Hatheg-Kla_by_MOracz.jpg"
+      },
+      "selection": {
+        "worksConsidered": 1,
+        "tierSize": 1,
+        "rankedCandidates": [
+          {
+            "slug": "hatheg-kla-moracz",
+            "curated": false,
+            "squareSide": 894
+          }
+        ]
+      },
+      "output": {
+        "width": 256,
+        "height": 256,
+        "format": "webp",
+        "crop": "centre-square",
+        "bytes": 17612,
+        "meanLuminance": 62.5
+      }
+    },
+    {
+      "profileKey": "NATALIE",
+      "displayName": "Natalie",
+      "avatarUrl": "/profile-avatars/natalie/avatar.webp",
+      "source": {
+        "replicationSlug": "rgb-fringed-living-room-natalie",
+        "title": "Chromatic Aberration",
+        "artist": "Natalie",
+        "type": "image",
+        "curated": false,
+        "sourceWidth": 1966,
+        "sourceHeight": 1463,
+        "creditLine": "Chromatic Aberration by Natalie",
+        "rightsStatus": null,
+        "rightsholder": "Natalie",
+        "sourceUrl": "https://pub-879bfd45a9774f1c80a8b77aca1f0aee.r2.dev/ChromaticAberrationSmooth.png"
+      },
+      "selection": {
+        "worksConsidered": 1,
+        "tierSize": 1,
+        "rankedCandidates": [
+          {
+            "slug": "rgb-fringed-living-room-natalie",
+            "curated": false,
+            "squareSide": 1463
+          }
+        ]
+      },
+      "output": {
+        "width": 256,
+        "height": 256,
+        "format": "webp",
+        "crop": "centre-square",
+        "bytes": 10790,
+        "meanLuminance": 86.5
+      }
+    },
+    {
+      "profileKey": "NEILUSHER",
+      "displayName": "Neil Usher",
+      "avatarUrl": "/profile-avatars/neilusher/avatar.webp",
+      "source": {
+        "replicationSlug": "face-in-a-cloud-neil-usher",
+        "title": "Face In a Cloud",
+        "artist": "Neil Usher",
+        "type": "image",
+        "curated": false,
+        "sourceWidth": 710,
+        "sourceHeight": 473,
+        "creditLine": "Face In a Cloud by Neil Usher",
+        "rightsStatus": null,
+        "rightsholder": "Neil Usher",
+        "sourceUrl": "https://pub-879bfd45a9774f1c80a8b77aca1f0aee.r2.dev/Faceincloud.webp"
+      },
+      "selection": {
+        "worksConsidered": 1,
+        "tierSize": 1,
+        "rankedCandidates": [
+          {
+            "slug": "face-in-a-cloud-neil-usher",
+            "curated": false,
+            "squareSide": 473
+          }
+        ]
+      },
+      "output": {
+        "width": 256,
+        "height": 256,
+        "format": "webp",
+        "crop": "centre-square",
+        "bytes": 2948,
+        "meanLuminance": 156.2
+      }
+    },
+    {
+      "profileKey": "OHWHATEVER",
+      "displayName": "ohwhatever",
+      "avatarUrl": "/profile-avatars/ohwhatever/avatar.webp",
+      "source": {
+        "replicationSlug": "hihi-dose-at-a-campsite-ohwhatever",
+        "title": "hihi dose at a campsite",
+        "artist": "ohwhatever",
+        "type": "image",
+        "curated": false,
+        "sourceWidth": 1080,
+        "sourceHeight": 810,
+        "creditLine": null,
+        "rightsStatus": null,
+        "rightsholder": null,
+        "sourceUrl": null
+      },
+      "selection": {
+        "worksConsidered": 1,
+        "tierSize": 1,
+        "rankedCandidates": [
+          {
+            "slug": "hihi-dose-at-a-campsite-ohwhatever",
+            "curated": false,
+            "squareSide": 810
+          }
+        ]
+      },
+      "output": {
+        "width": 256,
+        "height": 256,
+        "format": "webp",
+        "crop": "centre-square",
+        "bytes": 18850,
+        "meanLuminance": 128
+      }
+    },
+    {
+      "profileKey": "OLEGSHUPLIAK",
+      "displayName": "Oleg Shupliak",
+      "avatarUrl": "/profile-avatars/olegshupliak/avatar.webp",
+      "source": {
+        "replicationSlug": "optical-illusion-oleg-shupliak",
+        "title": "Optical illusion",
+        "artist": "Oleg Shupliak",
+        "type": "image",
+        "curated": false,
+        "sourceWidth": 450,
+        "sourceHeight": 470,
+        "creditLine": "Optical illusion by Oleg Shupliak",
+        "rightsStatus": null,
+        "rightsholder": "Oleg Shupliak",
+        "sourceUrl": "https://pub-879bfd45a9774f1c80a8b77aca1f0aee.r2.dev/Shuplyak_faces_10.webp"
+      },
+      "selection": {
+        "worksConsidered": 1,
+        "tierSize": 1,
+        "rankedCandidates": [
+          {
+            "slug": "optical-illusion-oleg-shupliak",
+            "curated": false,
+            "squareSide": 450
+          }
+        ]
+      },
+      "output": {
+        "width": 256,
+        "height": 256,
+        "format": "webp",
+        "crop": "centre-square",
+        "bytes": 11116,
+        "meanLuminance": 109.4
+      }
+    },
+    {
+      "profileKey": "ORACLEEMISSARY",
+      "displayName": "Oracle Emissary",
+      "avatarUrl": "/profile-avatars/oracleemissary/avatar.webp",
+      "source": {
+        "replicationSlug": "smeared-walk-through-the-woods-oracle-emissary",
+        "title": "Tracers",
+        "artist": "Oracle Emissary",
+        "type": "video",
+        "curated": false,
+        "sourceWidth": 1920,
+        "sourceHeight": 1080,
+        "frameSeconds": 0,
+        "frameMeanLuminance": 147.3,
+        "frameAttempts": [
+          {
+            "seconds": 0,
+            "meanLuminance": 147.3
+          }
+        ],
+        "creditLine": "Tracers by Oracle Emissary",
+        "rightsStatus": null,
+        "rightsholder": "Oracle Emissary",
+        "sourceUrl": "eshe9g"
+      },
+      "selection": {
+        "worksConsidered": 1,
+        "tierSize": 1,
+        "rankedCandidates": [
+          {
+            "slug": "smeared-walk-through-the-woods-oracle-emissary",
+            "curated": false,
+            "squareSide": 1080
+          }
+        ]
+      },
+      "output": {
+        "width": 256,
+        "height": 256,
+        "format": "webp",
+        "crop": "centre-square",
+        "bytes": 4496,
+        "meanLuminance": 154.6
+      }
+    },
+    {
+      "profileKey": "PHOSFORM",
+      "displayName": "Phosform",
+      "avatarUrl": "/profile-avatars/phosform/avatar.webp",
+      "source": {
+        "replicationSlug": "breathing-bricks-phosform",
+        "title": "breathing bricks",
+        "artist": "Phosform",
+        "type": "video",
+        "curated": false,
+        "sourceWidth": 1920,
+        "sourceHeight": 1080,
+        "frameSeconds": 1,
+        "frameMeanLuminance": 173.6,
+        "frameAttempts": [
+          {
+            "seconds": 1,
+            "meanLuminance": 173.6
+          }
+        ],
+        "creditLine": "breathing bricks by Phosform",
+        "rightsStatus": null,
+        "rightsholder": null,
+        "sourceUrl": null
+      },
+      "selection": {
+        "worksConsidered": 13,
+        "tierSize": 13,
+        "rankedCandidates": [
+          {
+            "slug": "breathing-bricks-phosform",
+            "curated": false,
+            "squareSide": 1080
+          },
+          {
+            "slug": "cloud-entity-phosform",
+            "curated": false,
+            "squareSide": 1080
+          },
+          {
+            "slug": "cushions-phosform",
+            "curated": false,
+            "squareSide": 1080
+          },
+          {
+            "slug": "daisy-day-phosform",
+            "curated": false,
+            "squareSide": 1080
+          },
+          {
+            "slug": "field-trip-phosform",
+            "curated": false,
+            "squareSide": 1080
+          },
+          {
+            "slug": "glasgow-phosform",
+            "curated": false,
+            "squareSide": 1080
+          },
+          {
+            "slug": "grass-critter-phosform",
+            "curated": false,
+            "squareSide": 1080
+          },
+          {
+            "slug": "lamp-phosform",
+            "curated": false,
+            "squareSide": 1080
+          },
+          {
+            "slug": "lsd-bonefire-phosform",
+            "curated": false,
+            "squareSide": 1080
+          },
+          {
+            "slug": "moo-phosform",
+            "curated": false,
+            "squareSide": 1080
+          },
+          {
+            "slug": "mushroom-walk-phosform",
+            "curated": false,
+            "squareSide": 1080
+          },
+          {
+            "slug": "petunias-phosform",
+            "curated": false,
+            "squareSide": 1080
+          },
+          {
+            "slug": "windermere-lake-phosform",
+            "curated": false,
+            "squareSide": 1080
+          }
+        ]
+      },
+      "output": {
+        "width": 256,
+        "height": 256,
+        "format": "webp",
+        "crop": "centre-square",
+        "bytes": 24820,
+        "meanLuminance": 195.3
+      }
+    },
+    {
+      "profileKey": "ROSENDAHL",
+      "displayName": "Rosendahl",
+      "avatarUrl": "/profile-avatars/rosendahl/avatar.webp",
+      "source": {
+        "replicationSlug": "tumbling-dice-rosendahl",
+        "title": "Tumbling dice",
+        "artist": "Rosendahl",
+        "type": "image",
+        "curated": false,
+        "sourceWidth": 468,
+        "sourceHeight": 334,
+        "creditLine": "Tumbling dice by Rosendahl",
+        "rightsStatus": null,
+        "rightsholder": "Rosendahl",
+        "sourceUrl": "https://pub-879bfd45a9774f1c80a8b77aca1f0aee.r2.dev/Tumbling_Dice_by_Rosendahl.jpg"
+      },
+      "selection": {
+        "worksConsidered": 1,
+        "tierSize": 1,
+        "rankedCandidates": [
+          {
+            "slug": "tumbling-dice-rosendahl",
+            "curated": false,
+            "squareSide": 334
+          }
+        ]
+      },
+      "output": {
+        "width": 256,
+        "height": 256,
+        "format": "webp",
+        "crop": "centre-square",
+        "bytes": 6562,
+        "meanLuminance": 72.5
+      }
+    },
+    {
+      "profileKey": "SALVIADROID",
+      "displayName": "SalviaDroid",
+      "avatarUrl": "/profile-avatars/salviadroid/avatar.webp",
+      "source": {
+        "replicationSlug": "crystal-entity-salviadroid",
+        "title": "Crystal entity",
+        "artist": "SalviaDroid",
+        "type": "image",
+        "curated": false,
+        "sourceWidth": 2844,
+        "sourceHeight": 3200,
+        "creditLine": "Crystal entity by SalviaDroid",
+        "rightsStatus": "creator-retained",
+        "rightsholder": "SalviaDroid",
+        "sourceUrl": "https://pub-879bfd45a9774f1c80a8b77aca1f0aee.r2.dev/Crystal%20Entity_digital_art_x4.jpg"
+      },
+      "selection": {
+        "worksConsidered": 7,
+        "tierSize": 7,
+        "rankedCandidates": [
+          {
+            "slug": "crystal-entity-salviadroid",
+            "curated": false,
+            "squareSide": 2844
+          },
+          {
+            "slug": "untitled-salviadroid-2",
+            "curated": false,
+            "squareSide": 2740
+          },
+          {
+            "slug": "untitled-salviadroid",
+            "curated": false,
+            "squareSide": 2523
+          },
+          {
+            "slug": "seers-portal-salviadroid",
+            "curated": false,
+            "squareSide": 2000
+          },
+          {
+            "slug": "the-clockwork-suburb-salviadroid",
+            "curated": false,
+            "squareSide": 1024
+          },
+          {
+            "slug": "the-crowned-face-of-faces-salviadroid",
+            "curated": false,
+            "squareSide": 1024
+          },
+          {
+            "slug": "the-neon-temple-salviadroid",
+            "curated": false,
+            "squareSide": 1024
+          }
+        ]
+      },
+      "output": {
+        "width": 256,
+        "height": 256,
+        "format": "webp",
+        "crop": "centre-square",
+        "bytes": 32794,
+        "meanLuminance": 121.8
+      }
+    },
+    {
+      "profileKey": "SAMPERKINS",
+      "displayName": "Sam Perkins",
+      "avatarUrl": "/profile-avatars/samperkins/avatar.webp",
+      "source": {
+        "replicationSlug": "switch-sam-perkins",
+        "title": "Switch",
+        "artist": "Sam Perkins",
+        "type": "image",
+        "curated": false,
+        "sourceWidth": 605,
+        "sourceHeight": 721,
+        "creditLine": "Switch by Sam Perkins",
+        "rightsStatus": null,
+        "rightsholder": "Sam Perkins",
+        "sourceUrl": "https://pub-879bfd45a9774f1c80a8b77aca1f0aee.r2.dev/switch%20by%20sam%20perkins.png"
+      },
+      "selection": {
+        "worksConsidered": 1,
+        "tierSize": 1,
+        "rankedCandidates": [
+          {
+            "slug": "switch-sam-perkins",
+            "curated": false,
+            "squareSide": 605
+          }
+        ]
+      },
+      "output": {
+        "width": 256,
+        "height": 256,
+        "format": "webp",
+        "crop": "centre-square",
+        "bytes": 35840,
+        "meanLuminance": 135
+      }
+    },
+    {
+      "profileKey": "SIMONHAIDUK",
+      "displayName": "Simon Haiduk",
+      "avatarUrl": "/profile-avatars/simonhaiduk/avatar.webp",
+      "source": {
+        "replicationSlug": "spirit-bear-simon-haiduk",
+        "title": "Spirit Bear",
+        "artist": "Simon Haiduk",
+        "type": "video",
+        "curated": false,
+        "sourceWidth": 640,
+        "sourceHeight": 640,
+        "frameSeconds": 1,
+        "frameMeanLuminance": 96.2,
+        "frameAttempts": [
+          {
+            "seconds": 1,
+            "meanLuminance": 96.2
+          }
+        ],
+        "creditLine": "Spirit Bear by Simon Haiduk",
+        "rightsStatus": "creator-retained",
+        "rightsholder": "Simon Haiduk",
+        "sourceUrl": "https://streamable.com/e/ntfkre"
+      },
+      "selection": {
+        "worksConsidered": 1,
+        "tierSize": 1,
+        "rankedCandidates": [
+          {
+            "slug": "spirit-bear-simon-haiduk",
+            "curated": false,
+            "squareSide": 640
+          }
+        ]
+      },
+      "output": {
+        "width": 256,
+        "height": 256,
+        "format": "webp",
+        "crop": "centre-square",
+        "bytes": 12714,
+        "meanLuminance": 96.2
+      }
+    },
+    {
+      "profileKey": "STARGAZER",
+      "displayName": "Star Gazer",
+      "avatarUrl": "/profile-avatars/stargazer/avatar.webp",
+      "source": {
+        "replicationSlug": "a-merging-to-the-boundless-star-gazer",
+        "title": "A merging to the boundless",
+        "artist": "Star Gazer",
+        "type": "image",
+        "curated": false,
+        "sourceWidth": 700,
+        "sourceHeight": 700,
+        "creditLine": "A merging to the boundless by Star Gazer",
+        "rightsStatus": null,
+        "rightsholder": "Star Gazer",
+        "sourceUrl": "https://pub-879bfd45a9774f1c80a8b77aca1f0aee.r2.dev/A_merging_to_the_boundless_by_Star_Gazer.jpg"
+      },
+      "selection": {
+        "worksConsidered": 1,
+        "tierSize": 1,
+        "rankedCandidates": [
+          {
+            "slug": "a-merging-to-the-boundless-star-gazer",
+            "curated": false,
+            "squareSide": 700
+          }
+        ]
+      },
+      "output": {
+        "width": 256,
+        "height": 256,
+        "format": "webp",
+        "crop": "centre-square",
+        "bytes": 15540,
+        "meanLuminance": 48.6
+      }
+    },
+    {
+      "profileKey": "STASCONSTANTINE",
+      "displayName": "StasConstantine",
+      "avatarUrl": "/profile-avatars/stasconstantine/avatar.webp",
+      "source": {
+        "replicationSlug": "deliriant-cevs-stas-constantine",
+        "title": "Deliriant CEV's",
+        "artist": "Stas Constantine",
+        "type": "image",
+        "curated": false,
+        "sourceWidth": 2048,
+        "sourceHeight": 2048,
+        "creditLine": "Deliriant CEV's by Stas Constantine",
+        "rightsStatus": null,
+        "rightsholder": null,
+        "sourceUrl": null
+      },
+      "selection": {
+        "worksConsidered": 4,
+        "tierSize": 3,
+        "rankedCandidates": [
+          {
+            "slug": "deliriant-cevs-stas-constantine",
+            "curated": false,
+            "squareSide": 2048
+          },
+          {
+            "slug": "700mg-of-dph-stas-constantine",
+            "curated": false,
+            "squareSide": 1536
+          },
+          {
+            "slug": "deliriant-entity-lady-of-eiriel-stasconstantine",
+            "curated": false,
+            "squareSide": 1080
+          }
+        ]
+      },
+      "output": {
+        "width": 256,
+        "height": 256,
+        "format": "webp",
+        "crop": "centre-square",
+        "bytes": 5804,
+        "meanLuminance": 31.9
+      }
+    },
+    {
+      "profileKey": "SUNTERRYART",
+      "displayName": "Sunterry Art",
+      "avatarUrl": "/profile-avatars/sunterryart/avatar.webp",
+      "source": {
+        "replicationSlug": "dimitri-redux-sunterry-art",
+        "title": "Dimitri Redux",
+        "artist": "Sunterry Art",
+        "type": "image",
+        "curated": false,
+        "sourceWidth": 4912,
+        "sourceHeight": 6965,
+        "creditLine": "Dimitri Redux by Sunterry Art",
+        "rightsStatus": "creator-retained",
+        "rightsholder": "Sunterry Art",
+        "sourceUrl": "https://pub-879bfd45a9774f1c80a8b77aca1f0aee.r2.dev/Dimitri_redux.jpg"
+      },
+      "selection": {
+        "worksConsidered": 5,
+        "tierSize": 3,
+        "rankedCandidates": [
+          {
+            "slug": "dimitri-redux-sunterry-art",
+            "curated": false,
+            "squareSide": 4912
+          },
+          {
+            "slug": "faberg-eggs-from-mars-sunterry-art",
+            "curated": false,
+            "squareSide": 4912
+          },
+          {
+            "slug": "morbid-mandala-sunterry-art",
+            "curated": false,
+            "squareSide": 2906
+          }
+        ]
+      },
+      "output": {
+        "width": 256,
+        "height": 256,
+        "format": "webp",
+        "crop": "centre-square",
+        "bytes": 18964,
+        "meanLuminance": 66.7
+      }
+    },
+    {
+      "profileKey": "SVERRIRORZ",
+      "displayName": "Sverrirorz",
+      "avatarUrl": "/profile-avatars/sverrirorz/avatar.webp",
+      "source": {
+        "replicationSlug": "hatman-deliriant-entity",
+        "title": "HatMan",
+        "artist": "Sverrirorz",
+        "type": "image",
+        "curated": false,
+        "sourceWidth": 819,
+        "sourceHeight": 1000,
+        "creditLine": "HatMan by Sverrirorz",
+        "rightsStatus": null,
+        "rightsholder": "Sverrirorz",
+        "sourceUrl": null
+      },
+      "selection": {
+        "worksConsidered": 1,
+        "tierSize": 1,
+        "rankedCandidates": [
+          {
+            "slug": "hatman-deliriant-entity",
+            "curated": false,
+            "squareSide": 819
+          }
+        ]
+      },
+      "output": {
+        "width": 256,
+        "height": 256,
+        "format": "webp",
+        "crop": "centre-square",
+        "bytes": 4212,
+        "meanLuminance": 91.9
+      }
+    },
+    {
+      "profileKey": "TAMEIMPALA",
+      "displayName": "Tame Impala",
+      "avatarUrl": "/profile-avatars/tameimpala/avatar.webp",
+      "source": {
+        "replicationSlug": "the-tunnel-of-trees-tame-impala",
+        "title": "Innerspeaker",
+        "artist": "Tame Impala",
+        "type": "image",
+        "curated": false,
+        "sourceWidth": 400,
+        "sourceHeight": 400,
+        "creditLine": "Innerspeaker by Tame Impala",
+        "rightsStatus": null,
+        "rightsholder": "Tame Impala",
+        "sourceUrl": "https://pub-879bfd45a9774f1c80a8b77aca1f0aee.r2.dev/Tunnelling.gif"
+      },
+      "selection": {
+        "worksConsidered": 1,
+        "tierSize": 1,
+        "rankedCandidates": [
+          {
+            "slug": "the-tunnel-of-trees-tame-impala",
+            "curated": false,
+            "squareSide": 400
+          }
+        ]
+      },
+      "output": {
+        "width": 256,
+        "height": 256,
+        "format": "webp",
+        "crop": "centre-square",
+        "bytes": 23864,
+        "meanLuminance": 125.9
+      }
+    },
+    {
+      "profileKey": "TASVISUALS",
+      "displayName": "TAS visuals",
+      "avatarUrl": "/profile-avatars/tasvisuals/avatar.webp",
+      "source": {
+        "replicationSlug": "ayahuasca-snakes-tas-visuals",
+        "title": "Ayahuasca snakes",
+        "artist": "TAS visuals",
+        "type": "video",
+        "curated": false,
+        "sourceWidth": 1280,
+        "sourceHeight": 720,
+        "frameSeconds": 1,
+        "frameMeanLuminance": 34.4,
+        "frameAttempts": [
+          {
+            "seconds": 1,
+            "meanLuminance": 34.4
+          }
+        ],
+        "creditLine": "Ayahuasca snakes by TAS visuals",
+        "rightsStatus": "creator-retained",
+        "rightsholder": "TAS visuals",
+        "sourceUrl": "https://streamable.com/e/81i6zh"
+      },
+      "selection": {
+        "worksConsidered": 1,
+        "tierSize": 1,
+        "rankedCandidates": [
+          {
+            "slug": "ayahuasca-snakes-tas-visuals",
+            "curated": false,
+            "squareSide": 720
+          }
+        ]
+      },
+      "output": {
+        "width": 256,
+        "height": 256,
+        "format": "webp",
+        "crop": "centre-square",
+        "bytes": 16672,
+        "meanLuminance": 31.8
+      }
+    },
+    {
+      "profileKey": "THATSWISSENGINEER",
+      "displayName": "thatswissengineer",
+      "avatarUrl": "/profile-avatars/thatswissengineer/avatar.webp",
+      "source": {
+        "replicationSlug": "walk-in-the-forest-thatswissengineer",
+        "title": "walk in the forest",
+        "artist": "thatswissengineer",
+        "type": "image",
+        "curated": false,
+        "sourceWidth": 1080,
+        "sourceHeight": 675,
+        "creditLine": null,
+        "rightsStatus": null,
+        "rightsholder": null,
+        "sourceUrl": null
+      },
+      "selection": {
+        "worksConsidered": 1,
+        "tierSize": 1,
+        "rankedCandidates": [
+          {
+            "slug": "walk-in-the-forest-thatswissengineer",
+            "curated": false,
+            "squareSide": 675
+          }
+        ]
+      },
+      "output": {
+        "width": 256,
+        "height": 256,
+        "format": "webp",
+        "crop": "centre-square",
+        "bytes": 27410,
+        "meanLuminance": 85.6
+      }
+    },
+    {
+      "profileKey": "UAREPONAF",
+      "displayName": "/u/areponaf",
+      "avatarUrl": "/profile-avatars/uareponaf/avatar.webp",
+      "source": {
+        "replicationSlug": "technicolour-fields-u-areponaf",
+        "title": "LSD field",
+        "artist": "/u/areponaf",
+        "type": "image",
+        "curated": false,
+        "sourceWidth": 2496,
+        "sourceHeight": 1349,
+        "creditLine": "LSD field by /u/areponaf",
+        "rightsStatus": null,
+        "rightsholder": "/u/areponaf",
+        "sourceUrl": "https://pub-879bfd45a9774f1c80a8b77aca1f0aee.r2.dev/10376-12927-25985.jpg"
+      },
+      "selection": {
+        "worksConsidered": 1,
+        "tierSize": 1,
+        "rankedCandidates": [
+          {
+            "slug": "technicolour-fields-u-areponaf",
+            "curated": false,
+            "squareSide": 1349
+          }
+        ]
+      },
+      "output": {
+        "width": 256,
+        "height": 256,
+        "format": "webp",
+        "crop": "centre-square",
+        "bytes": 19994,
+        "meanLuminance": 127.6
+      }
+    },
+    {
+      "profileKey": "UBIGOCTAGON",
+      "displayName": "/u/BIG_OCTAGON",
+      "avatarUrl": "/profile-avatars/ubigoctagon/avatar.webp",
+      "source": {
+        "replicationSlug": "complex-patterning-big-octagon",
+        "title": "Complex patterning",
+        "artist": "/u/BIG_OCTAGON",
+        "type": "image",
+        "curated": false,
+        "sourceWidth": 1200,
+        "sourceHeight": 800,
+        "creditLine": "Complex patterning by /u/BIG_OCTAGON",
+        "rightsStatus": null,
+        "rightsholder": "/u/BIG_OCTAGON",
+        "sourceUrl": "https://pub-879bfd45a9774f1c80a8b77aca1f0aee.r2.dev/complex%20patterning%20by%20big%20octagon.png"
+      },
+      "selection": {
+        "worksConsidered": 1,
+        "tierSize": 1,
+        "rankedCandidates": [
+          {
+            "slug": "complex-patterning-big-octagon",
+            "curated": false,
+            "squareSide": 800
+          }
+        ]
+      },
+      "output": {
+        "width": 256,
+        "height": 256,
+        "format": "webp",
+        "crop": "centre-square",
+        "bytes": 29514,
+        "meanLuminance": 105.6
+      }
+    },
+    {
+      "profileKey": "UBOHOA",
+      "displayName": "/u/bohoa",
+      "avatarUrl": "/profile-avatars/ubohoa/avatar.webp",
+      "source": {
+        "replicationSlug": "the-shifting-forest-steps-u-bohoa",
+        "title": "The path less traveled...",
+        "artist": "/u/bohoa",
+        "type": "image",
+        "curated": false,
+        "sourceWidth": 2148,
+        "sourceHeight": 1419,
+        "creditLine": "The path less traveled... by /u/bohoa",
+        "rightsStatus": null,
+        "rightsholder": "/u/bohoa",
+        "sourceUrl": "https://pub-879bfd45a9774f1c80a8b77aca1f0aee.r2.dev/image.png"
+      },
+      "selection": {
+        "worksConsidered": 1,
+        "tierSize": 1,
+        "rankedCandidates": [
+          {
+            "slug": "the-shifting-forest-steps-u-bohoa",
+            "curated": false,
+            "squareSide": 1419
+          }
+        ]
+      },
+      "output": {
+        "width": 256,
+        "height": 256,
+        "format": "webp",
+        "crop": "centre-square",
+        "bytes": 20632,
+        "meanLuminance": 73.9
+      }
+    },
+    {
+      "profileKey": "UCODEDINBLOOD",
+      "displayName": "/u/codedinblood",
+      "avatarUrl": "/profile-avatars/ucodedinblood/avatar.webp",
+      "source": {
+        "replicationSlug": "iridescent-sky-over-the-street-u-u-codedinblood",
+        "title": "Saturday stroll with Lucy",
+        "artist": "/u/codedinblood",
+        "type": "image",
+        "curated": false,
+        "sourceWidth": 1080,
+        "sourceHeight": 810,
+        "creditLine": "Saturday stroll with Lucy by /u/codedinblood",
+        "rightsStatus": null,
+        "rightsholder": "/u/codedinblood",
+        "sourceUrl": "https://pub-879bfd45a9774f1c80a8b77aca1f0aee.r2.dev/strollwithlucy.webp"
+      },
+      "selection": {
+        "worksConsidered": 2,
+        "tierSize": 2,
+        "rankedCandidates": [
+          {
+            "slug": "iridescent-sky-over-the-street-u-u-codedinblood",
+            "curated": false,
+            "squareSide": 810
+          },
+          {
+            "slug": "mountains-u-codedinblood",
+            "curated": false,
+            "squareSide": 683
+          }
+        ]
+      },
+      "output": {
+        "width": 256,
+        "height": 256,
+        "format": "webp",
+        "crop": "centre-square",
+        "bytes": 11180,
+        "meanLuminance": 81.9
+      }
+    },
+    {
+      "profileKey": "UFEAROUT",
+      "displayName": "/u/fearout",
+      "avatarUrl": "/profile-avatars/ufearout/avatar.webp",
+      "source": {
+        "replicationSlug": "microsymmetry-fearout",
+        "title": "MicroSymmetry",
+        "artist": "/u/fearout",
+        "type": "image",
+        "curated": false,
+        "sourceWidth": 2048,
+        "sourceHeight": 1536,
+        "creditLine": "MicroSymmetry by /u/fearout",
+        "rightsStatus": null,
+        "rightsholder": "/u/fearout",
+        "sourceUrl": "https://pub-879bfd45a9774f1c80a8b77aca1f0aee.r2.dev/microsymmetry%20by%20fearout.jpeg"
+      },
+      "selection": {
+        "worksConsidered": 1,
+        "tierSize": 1,
+        "rankedCandidates": [
+          {
+            "slug": "microsymmetry-fearout",
+            "curated": false,
+            "squareSide": 1536
+          }
+        ]
+      },
+      "output": {
+        "width": 256,
+        "height": 256,
+        "format": "webp",
+        "crop": "centre-square",
+        "bytes": 27736,
+        "meanLuminance": 118.6
+      }
+    },
+    {
+      "profileKey": "UHSD5",
+      "displayName": "/u/HSD_5",
+      "avatarUrl": "/profile-avatars/uhsd5/avatar.webp",
+      "source": {
+        "replicationSlug": "faces-in-the-bark-u-hsd-5",
+        "title": "Faces on a Tree",
+        "artist": "/u/HSD_5",
+        "type": "image",
+        "curated": false,
+        "sourceWidth": 930,
+        "sourceHeight": 1080,
+        "creditLine": "Faces on a Tree by /u/HSD_5",
+        "rightsStatus": null,
+        "rightsholder": "/u/HSD_5",
+        "sourceUrl": "https://pub-879bfd45a9774f1c80a8b77aca1f0aee.r2.dev/5w0bmf2b1g311.jpg"
+      },
+      "selection": {
+        "worksConsidered": 2,
+        "tierSize": 2,
+        "rankedCandidates": [
+          {
+            "slug": "faces-in-the-bark-u-hsd-5",
+            "curated": false,
+            "squareSide": 930
+          },
+          {
+            "slug": "crimson-autumn-boulder-u-hsd-5",
+            "curated": false,
+            "squareSide": 607
+          }
+        ]
+      },
+      "output": {
+        "width": 256,
+        "height": 256,
+        "format": "webp",
+        "crop": "centre-square",
+        "bytes": 18132,
+        "meanLuminance": 87.4
+      }
+    },
+    {
+      "profileKey": "ULILGICK",
+      "displayName": "/u/lilgick",
+      "avatarUrl": "/profile-avatars/ulilgick/avatar.webp",
+      "source": {
+        "replicationSlug": "dmt-entity-contact-ulilgick",
+        "title": "DMT Entity Contact",
+        "artist": "/u/lilgick",
+        "type": "video",
+        "curated": true,
+        "sourceWidth": 1920,
+        "sourceHeight": 1080,
+        "frameSeconds": 1,
+        "frameMeanLuminance": 49,
+        "frameAttempts": [
+          {
+            "seconds": 1,
+            "meanLuminance": 49
+          }
+        ],
+        "creditLine": "DMT Entity Contact by /u/lilgick",
+        "rightsStatus": "creator-retained",
+        "rightsholder": "/u/lilgick",
+        "sourceUrl": "https://streamable.com/e/fr7g4a"
+      },
+      "selection": {
+        "worksConsidered": 1,
+        "tierSize": 1,
+        "rankedCandidates": [
+          {
+            "slug": "dmt-entity-contact-ulilgick",
+            "curated": true,
+            "squareSide": 1080
+          }
+        ]
+      },
+      "output": {
+        "width": 256,
+        "height": 256,
+        "format": "webp",
+        "crop": "centre-square",
+        "bytes": 4456,
+        "meanLuminance": 63.7
+      }
+    },
+    {
+      "profileKey": "UMRMEDICMAN",
+      "displayName": "/u/mrmedicman",
+      "avatarUrl": "/profile-avatars/umrmedicman/avatar.webp",
+      "source": {
+        "replicationSlug": "lake-on-lsd-u-mrmedicman",
+        "title": "Lake on LSD",
+        "artist": "/u/mrmedicman",
+        "type": "image",
+        "curated": false,
+        "sourceWidth": 2874,
+        "sourceHeight": 1938,
+        "creditLine": "Lake on LSD by /u/mrmedicman",
+        "rightsStatus": null,
+        "rightsholder": "/u/mrmedicman",
+        "sourceUrl": "https://pub-879bfd45a9774f1c80a8b77aca1f0aee.r2.dev/Lake_on_LSD_by_Mrmedicman.webp"
+      },
+      "selection": {
+        "worksConsidered": 1,
+        "tierSize": 1,
+        "rankedCandidates": [
+          {
+            "slug": "lake-on-lsd-u-mrmedicman",
+            "curated": false,
+            "squareSide": 1938
+          }
+        ]
+      },
+      "output": {
+        "width": 256,
+        "height": 256,
+        "format": "webp",
+        "crop": "centre-square",
+        "bytes": 14894,
+        "meanLuminance": 121.5
+      }
+    },
+    {
+      "profileKey": "UON",
+      "displayName": "UON",
+      "avatarUrl": "/profile-avatars/uon/avatar.webp",
+      "source": {
+        "replicationSlug": "squarecurvetesselation-uon",
+        "title": "SquareCurveTesselation",
+        "artist": "UON",
+        "type": "video",
+        "curated": false,
+        "sourceWidth": 1280,
+        "sourceHeight": 720,
+        "frameSeconds": 1,
+        "frameMeanLuminance": 66.2,
+        "frameAttempts": [
+          {
+            "seconds": 1,
+            "meanLuminance": 66.2
+          }
+        ],
+        "creditLine": "SquareCurveTesselation by UON",
+        "rightsStatus": "creator-retained",
+        "rightsholder": "UON",
+        "sourceUrl": "https://streamable.com/e/f3bbec"
+      },
+      "selection": {
+        "worksConsidered": 1,
+        "tierSize": 1,
+        "rankedCandidates": [
+          {
+            "slug": "squarecurvetesselation-uon",
+            "curated": false,
+            "squareSide": 720
+          }
+        ]
+      },
+      "output": {
+        "width": 256,
+        "height": 256,
+        "format": "webp",
+        "crop": "centre-square",
+        "bytes": 27228,
+        "meanLuminance": 69.3
+      }
+    },
+    {
+      "profileKey": "USOULPROOF",
+      "displayName": "/u/soulproof",
+      "avatarUrl": "/profile-avatars/usoulproof/avatar.webp",
+      "source": {
+        "replicationSlug": "day-tripping-u-soulproof",
+        "title": "Day tripping",
+        "artist": "/u/soulproof",
+        "type": "image",
+        "curated": false,
+        "sourceWidth": 2047,
+        "sourceHeight": 1364,
+        "creditLine": "Day tripping by /u/soulproof",
+        "rightsStatus": null,
+        "rightsholder": "/u/soulproof",
+        "sourceUrl": "https://pub-879bfd45a9774f1c80a8b77aca1f0aee.r2.dev/Day_Tripping.webp"
+      },
+      "selection": {
+        "worksConsidered": 1,
+        "tierSize": 1,
+        "rankedCandidates": [
+          {
+            "slug": "day-tripping-u-soulproof",
+            "curated": false,
+            "squareSide": 1364
+          }
+        ]
+      },
+      "output": {
+        "width": 256,
+        "height": 256,
+        "format": "webp",
+        "crop": "centre-square",
+        "bytes": 19328,
+        "meanLuminance": 86.2
+      }
+    },
+    {
+      "profileKey": "USTRAWBERRYSWISHER97",
+      "displayName": "/u/Strawberry_Swisher97",
+      "avatarUrl": "/profile-avatars/ustrawberryswisher97/avatar.webp",
+      "source": {
+        "replicationSlug": "eyes-in-the-pinewoods",
+        "title": "5 Grams of Psilocybe Azurescens",
+        "artist": "/u/Strawberry_Swisher97",
+        "type": "image",
+        "curated": false,
+        "sourceWidth": 983,
+        "sourceHeight": 681,
+        "creditLine": "5 Grams of Psilocybe Azurescens by /u/Strawberry_Swisher97",
+        "rightsStatus": null,
+        "rightsholder": "/u/Strawberry_Swisher97",
+        "sourceUrl": "https://pub-879bfd45a9774f1c80a8b77aca1f0aee.r2.dev/5gramspsilocybeaurensis.webp"
+      },
+      "selection": {
+        "worksConsidered": 1,
+        "tierSize": 1,
+        "rankedCandidates": [
+          {
+            "slug": "eyes-in-the-pinewoods",
+            "curated": false,
+            "squareSide": 681
+          }
+        ]
+      },
+      "output": {
+        "width": 256,
+        "height": 256,
+        "format": "webp",
+        "crop": "centre-square",
+        "bytes": 24672,
+        "meanLuminance": 100.1
+      }
+    },
+    {
+      "profileKey": "ZDZISLAWBEKSINSKI",
+      "displayName": "Zdzisław Beksiński",
+      "avatarUrl": "/profile-avatars/zdzislawbeksinski/avatar.webp",
+      "source": {
+        "replicationSlug": "fires-on-the-pillars-zdzislaw-beksinski",
+        "title": "Untitled",
+        "artist": "Zdzisław Beksiński",
+        "type": "image",
+        "curated": false,
+        "sourceWidth": 1771,
+        "sourceHeight": 1433,
+        "creditLine": "Untitled by Zdzisław Beksiński",
+        "rightsStatus": null,
+        "rightsholder": "Zdzisław Beksiński",
+        "sourceUrl": "https://pub-879bfd45a9774f1c80a8b77aca1f0aee.r2.dev/V58HTkt.jpg"
+      },
+      "selection": {
+        "worksConsidered": 12,
+        "tierSize": 12,
+        "rankedCandidates": [
+          {
+            "slug": "fires-on-the-pillars-zdzislaw-beksinski",
+            "curated": false,
+            "squareSide": 1433
+          },
+          {
+            "slug": "the-bone-forest-zdzislaw-beksinski",
+            "curated": false,
+            "squareSide": 1200
+          },
+          {
+            "slug": "the-watching-citadel-zdzislaw-beksinski",
+            "curated": false,
+            "squareSide": 980
+          },
+          {
+            "slug": "the-crawler-in-the-burning-city-zdzislaw-beksinski",
+            "curated": false,
+            "squareSide": 876
+          },
+          {
+            "slug": "the-bound-skeletons-zdzislaw-beksinski",
+            "curated": false,
+            "squareSide": 835
+          },
+          {
+            "slug": "the-wraith-with-a-staff-zdzislaw-beksinski",
+            "curated": false,
+            "squareSide": 753
+          },
+          {
+            "slug": "the-yellow-doorway-zdzislaw-beksinski",
+            "curated": false,
+            "squareSide": 681
+          },
+          {
+            "slug": "the-yellow-beast-zdzislaw-beksinski",
+            "curated": false,
+            "squareSide": 619
+          },
+          {
+            "slug": "the-armoured-figure-and-the-child-zdzislaw-beksinski",
+            "curated": false,
+            "squareSide": 566
+          },
+          {
+            "slug": "the-crowd-of-skulls-zdzislaw-beksinski",
+            "curated": false,
+            "squareSide": 480
+          },
+          {
+            "slug": "the-red-spires-zdzislaw-beksinski",
+            "curated": false,
+            "squareSide": 446
+          },
+          {
+            "slug": "the-cathedral-zdzislaw-beksinski",
+            "curated": false,
+            "squareSide": 443
+          }
+        ]
+      },
+      "output": {
+        "width": 256,
+        "height": 256,
+        "format": "webp",
+        "crop": "centre-square",
+        "bytes": 4732,
+        "meanLuminance": 89.5
+      }
+    }
+  ]
+}

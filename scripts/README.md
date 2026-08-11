@@ -844,6 +844,34 @@ fails, in dry-run too, if one reaches a planned profile.
 Correcting a display name here does not correct `replications.artist`. Run
 `scripts/replications/plan-artist-name-corrections.mjs` for that half.
 
+#### Avatars cut from a contributor's own work
+
+```bash
+bun scripts/contributors/generate-avatars-from-replications.ts
+bun scripts/contributors/generate-avatars-from-replications.ts --preview-dir=/tmp/avatars
+TARGET_CONVEX_URL=https://glad-minnow-656.convex.cloud \
+  bun scripts/contributors/generate-avatars-from-replications.ts --write \
+  --confirm-write=generate-contributor-avatars \
+  --expected-deployment=glad-minnow-656
+```
+
+Gives a contributor who has a work in the gallery and no avatar one cut from
+their own work: a centre square of a chosen replication at 256x256 WebP in
+`public/profile-avatars/<key>/avatar.webp`, with `avatarUrl` pointed at it. A
+profile that already has an avatar is never touched, and the script refuses to
+overwrite a file that already exists.
+
+Selection is a total ordering — curated (`effectIndexFeaturedReplications.json`),
+then still over video, then the largest `min(width, height)`, then slug — so a
+re-run on unchanged data picks the same work. Video sources are sampled a second
+in and checked for black rather than taken at `t=0`. Requires `ffmpeg`/`ffprobe`.
+
+Provenance for every avatar, including the frame timestamp and the credit line of
+the work it came from, is written to
+[`src/data/config/contributorAvatarSources.json`](../src/data/config/contributorAvatarSources.json).
+`--preview-dir` renders the avatars somewhere disposable without touching the
+repository, the manifest or Convex.
+
 ### Replications
 
 ```bash

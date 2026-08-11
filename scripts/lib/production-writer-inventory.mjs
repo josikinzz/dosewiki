@@ -4,6 +4,7 @@ export const productionWriterClassifications = Object.freeze({
     "scripts/batch/apply-dosage-duration-rewrite-results.mjs",
     "scripts/convex/apply-2026-07-23-targeted-updates.mjs",
     "scripts/convex/copy-prodrug-subjective-effects.mjs",
+    "scripts/contributors/generate-avatars-from-replications.ts",
     "scripts/contributors/seed-credited-identities.mjs",
     "scripts/convex/merge-duplicate-article-content.mjs",
     "scripts/effects/repair-legacy-article-media.mjs",
