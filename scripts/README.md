@@ -887,6 +887,42 @@ alias whose target moves out from under it. The alias map resolves one hop only,
 so a stale entry sends an already-shared legacy URL to a 404. Run
 `normalize-slugs.mjs` for the rename itself, after the names have landed.
 
+#### Article-embedded media migration
+
+```bash
+node scripts/replications/migrate-article-media.mjs \
+  --inventory=<path to article-embedded-media-inventory.json>
+node scripts/replications/migrate-article-media.mjs \
+  --inventory=<path> --write --confirm-write=migrate-article-embedded-media \
+  --confirm-media-migration --expected-deployment=glad-minnow-656 \
+  --target-url=https://glad-minnow-656.convex.cloud --limit=5
+```
+
+Files the 98 media assets that were embedded in `subjectiveEffects` prose and
+`effectIndexArticles` — credited by nothing, rights-tracked by nothing — as rows
+through `replications.insertMediaAsset`. The review that decided what each one is
+lives in
+[`src/data/config/articleMediaCuration.json`](../src/data/config/articleMediaCuration.json);
+only its `strong` `replication` and `figure` entries migrate.
+
+The owner rulings that override that file, the near-duplicates verified against
+live production, and the canonical storage id behind each embed live in
+[`src/data/config/articleMediaMigrationDecisions.json`](../src/data/config/articleMediaMigrationDecisions.json).
+
+**A fifth of the assets are works the public gallery already carries.** The
+original audit recorded `already_in_replications_table: false` on every one of
+them and was wrong, so neither input file is trusted on the point: every
+candidate is checked against production by storage id, then by the `sha-256` its
+own response header carries, then against a list of re-encodes and re-crops
+verified by eye. The first two run live on every run, so a row inserted between
+two runs is still caught.
+
+Runs are re-runnable rather than one-shot. Slugs already in production are
+skipped, and `type`, `format` and dimensions come from the asset's actual bytes
+rather than the inventory's `media_kind`, which reads `image/video` for every
+animated asset and cannot be trusted for either field. `--limit` inserts a batch
+at a time.
+
 `transcode-videos.mjs` produces web-delivery H.264 renditions from local video
 masters. It is local-only — it performs no Convex write and contacts no
 deployment — so it uses `--write --confirm-transcode` rather than the deployment

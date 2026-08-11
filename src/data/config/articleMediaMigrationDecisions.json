@@ -1,0 +1,337 @@
+{
+  "$comment": "Decisions that govern scripts/replications/migrate-article-media.mjs. Three kinds of fact live here, none of them derivable from src/data/config/articleMediaCuration.json alone: the owner rulings that override the curation file, the near-duplicates verified against live production, and the canonical Convex storage id behind each article embed. Regenerate storageIds only by re-resolving against production; see the script header.",
+  "ownerRulings": {
+    "$comment": "Owner decisions relayed 2026-08-11. These override articleMediaCuration.json wherever they disagree.",
+    "unknownArtistMarker": "Unknown",
+    "unknownArtistAliases": [
+      "anonymous",
+      "anonymous 420chan user",
+      "unattributed",
+      "unknown",
+      ""
+    ],
+    "promoted": [
+      {
+        "id": "A018",
+        "reason": "Owner ruling 3: the 420chan deliriant living-room image is credited Unknown, and the 420chan provenance is preserved in permission_notes rather than dropped.",
+        "artist": "Unknown",
+        "permission_notes": "Originally posted by an anonymous 420chan user; 420chan is the only recorded provenance for this image. No source link or licence survives."
+      },
+      {
+        "id": "A023",
+        "reason": "Owner ruling 2: the Tracers photograph is credited Chelsea Morgan, not Oracle Emissary. The existing smeared-walk-through-the-woods-oracle-emissary row is left exactly as it is; this ruling creates a new row only.",
+        "artist": "Chelsea Morgan",
+        "$permission_notes_comment": "permission_notes renders publicly on the replication permalink (src/features/effects/pages/ReplicationDetailPage.tsx). Naming the competing credit there would print a second artist's name on a page credited to Chelsea Morgan, which is the confusion this ruling exists to end. The full detail — the sibling slug, the competing name, and the evidence — is recorded above in `reason`, which is never published.",
+        "permission_notes": "Credit assigned by the corpus owner. The same footage appears elsewhere in this table under a different credit; that row is deliberately left unchanged.",
+        "allowDuplicateOfSlug": "smeared-walk-through-the-woods-oracle-emissary"
+      }
+    ],
+    "heldGroups": [
+      {
+        "name": "audio",
+        "reason": "Owner ruling 6: replications.type accepts audio but no surface renders it, and isPublishableReplication withholds it deliberately. Five of the six effect-audio files serve HTTP 200 from public/audio/ and are a later job, not a loss; only A054 (/audio/deliriant audio.mp3) is genuinely absent and is being hunted separately.",
+        "ids": [
+          "A046",
+          "A047",
+          "A053",
+          "A054",
+          "A087",
+          "A088",
+          "A089",
+          "A128",
+          "A129",
+          "A130",
+          "A131",
+          "A132"
+        ]
+      }
+    ],
+    "deadAssetsLeftDead": {
+      "$comment": "Owner ruling 5: do not chase dead assets and do not substitute anything. A035/A037 and A028/A029 are known duplicate pairs; both pairs are dead gfycat ids. A021 Size distortions is genuinely Unknown but its asset is equally dead. S002 is recoverable only by pointing at A017 object, which would be a substitution.",
+      "ids": [
+        "A021",
+        "A028",
+        "A029",
+        "A035",
+        "A037",
+        "S002"
+      ]
+    },
+    "artistCorrections": [
+      {
+        "$comment": "The curation entry's own evidence disowns its artist_name: 'The stored artist Alice is the fictional character and must not become a contributor profile; the caption's Alice by Lewis Caroll names the author, not the illustrator. The real credit is Sir John Tenniel, public domain.' The replacement is taken verbatim from the same entry's attribution field, not invented.",
+        "ids": ["A020", "A022"],
+        "storedArtist": "Alice",
+        "artist": "John Tenniel",
+        "reason": "Alice is the character depicted, not the engraver. Filing her as the artist would mint a contributor profile for a fictional person."
+      }
+    ],
+    "recoverableLater": {
+      "$comment": "Owner hints, checked against the live web on 2026-08-11. None are actionable by this script, which only reuses Convex storage objects that already exist; recovering any of these means uploading new bytes first, through scripts/replications/upload-replications.mjs. The script is re-runnable, so a recovered asset can be migrated later without redoing anything: it skips slugs already present and re-derives everything else from live production.",
+      "notes": [
+        "A005/A006 White wolf drinking water — CONFIRMED RECOVERABLE. https://psychonautwiki.org/w/images/a/a0/White_Wolf_Drinking_Water_by_Anonymous.gif serves HTTP 200 as image/gif from PsychonautWiki's Drifting article. The filename credits 'Anonymous', which under the owner's ruling becomes Unknown.",
+        "A028/A029 Transforming statues — NOT on PsychonautWiki. The Transformations article embeds no media at all today, and the file namespace has nothing matching. Only the Wayback Machine against the dead gfycat ids 64m9gi and coolsecondhandeyas remains.",
+        "A004 UV mandala is a Symmetric Vision replication; that artist also went by StingrayZ. Not yet located."
+      ]
+    }
+  },
+  "verifiedDuplicates": [
+    {
+      "id": "A001",
+      "existingSlug": "double-vision-chelsea-morgan",
+      "method": "downsampled 24x24 greyscale comparison against every image row in production, then confirmed by eye",
+      "byteIdentical": false,
+      "correlation": 0.9974,
+      "rmse": 0.0186,
+      "note": "Same photograph, 4x-upscayl re-encode of the stored original."
+    },
+    {
+      "id": "A003",
+      "existingSlug": "after-images-chelsea-morgan",
+      "method": "downsampled 24x24 greyscale comparison against every image row in production, then confirmed by eye",
+      "byteIdentical": false,
+      "correlation": 0.9981,
+      "rmse": 0.0109,
+      "note": "Same photograph. The existing row files it under effect tracers while the embed sits on after-images; reconciling that is a separate job."
+    },
+    {
+      "id": "A008",
+      "existingSlug": "blurred-english-terraces-josie-kins",
+      "method": "sha256 of the stored bytes is identical",
+      "byteIdentical": true,
+      "correlation": 1,
+      "rmse": 0,
+      "note": "Same file. The existing row files it under blurred-vision while the embed sits on visual-acuity-suppression."
+    },
+    {
+      "id": "A009",
+      "existingSlug": "the-forest-has-eyes-bev-doolittle",
+      "method": "downsampled 24x24 greyscale comparison against every image row in production, then confirmed by eye",
+      "byteIdentical": false,
+      "correlation": 0.9921,
+      "rmse": 0.0232,
+      "note": "Same Doolittle painting, different encode."
+    },
+    {
+      "id": "A012",
+      "existingSlug": "cat-within-a-cat",
+      "method": "downsampled 24x24 greyscale comparison against every image row in production, then confirmed by eye",
+      "byteIdentical": false,
+      "correlation": 0.9998,
+      "rmse": 0.0043,
+      "note": "Same recursion GIF; the existing row titles it Cat and credits Unknown."
+    },
+    {
+      "id": "A013",
+      "existingSlug": "the-four-eyed-cat",
+      "method": "sha256 of the stored bytes is identical",
+      "byteIdentical": true,
+      "correlation": 1,
+      "rmse": 0,
+      "note": "Same GIF. The embed metadata was mislabelled White wolf drinking water; the existing row titles it Watch."
+    },
+    {
+      "id": "A014",
+      "existingSlug": "dissociative-scenery-slicing-chelsea-morgan",
+      "method": "downsampled 24x24 greyscale comparison against every image row in production, then confirmed by eye",
+      "byteIdentical": false,
+      "correlation": 0.9976,
+      "rmse": 0.0064,
+      "note": "Same photograph, WebP re-encode of the stored original."
+    },
+    {
+      "id": "A015",
+      "existingSlug": "grass-chelsea-morgan",
+      "method": "downsampled 24x24 greyscale comparison against every image row in production, then confirmed by eye",
+      "byteIdentical": false,
+      "correlation": 0.9952,
+      "rmse": 0.0068,
+      "note": "Same photograph, upscaled re-encode."
+    },
+    {
+      "id": "A024",
+      "existingSlug": "tumbling-dice-rosendahl",
+      "method": "sha256 of the stored bytes is identical",
+      "byteIdentical": true,
+      "correlation": 1,
+      "rmse": 0,
+      "note": "Same file, same title, artist and effect."
+    },
+    {
+      "id": "A025",
+      "existingSlug": "namaste-trifoliata-mystica-luke-brown",
+      "method": "downsampled 24x24 greyscale comparison against every image row in production, then confirmed by eye",
+      "byteIdentical": false,
+      "correlation": 0.9894,
+      "rmse": 0.023,
+      "note": "Same artwork as A026 in WebP; A026 is byte-identical to the existing row."
+    },
+    {
+      "id": "A026",
+      "existingSlug": "namaste-trifoliata-mystica-luke-brown",
+      "method": "sha256 of the stored bytes is identical",
+      "byteIdentical": true,
+      "correlation": 1,
+      "rmse": 0,
+      "note": "Same file. Its stored artist field holds the works title, not a person."
+    },
+    {
+      "id": "A030",
+      "existingSlug": "switch-sam-perkins",
+      "method": "downsampled 24x24 greyscale comparison against every image row in production, then confirmed by eye",
+      "byteIdentical": false,
+      "correlation": 0.9742,
+      "rmse": 0.0663,
+      "note": "Same Switch composition, a differently coloured render. Viewed side by side at 500px crop: same line art, different palette. Held as a duplicate of the same work rather than inserted as a second row."
+    },
+    {
+      "id": "A031",
+      "existingSlug": "geometry-over-hastings-cliffs-josie-kins",
+      "method": "downsampled 24x24 greyscale comparison against every image row in production, then confirmed by eye",
+      "byteIdentical": false,
+      "correlation": 0.9694,
+      "rmse": 0.0502,
+      "note": "Same cliff-and-fireweed photograph, differently cropped and with a different geometry overlay strength. Viewed side by side. The existing row files it under symmetrical-texture-repetition while the embed sits on geometry."
+    },
+    {
+      "id": "A032",
+      "existingSlug": "switch-sam-perkins",
+      "method": "sha256 of the stored bytes is identical",
+      "byteIdentical": true,
+      "correlation": 1,
+      "rmse": 0,
+      "note": "Same file, same object as A081."
+    },
+    {
+      "id": "A039",
+      "existingSlug": "five-figures-at-the-window",
+      "method": "downsampled 24x24 greyscale comparison against every image row in production, then confirmed by eye",
+      "byteIdentical": false,
+      "correlation": 0.9989,
+      "rmse": 0.0106,
+      "note": "Same photograph; the existing row titles it Shadow gang and credits Unknown."
+    },
+    {
+      "id": "A040",
+      "existingSlug": "five-figures-at-the-window",
+      "method": "downsampled 24x24 greyscale comparison against every image row in production, then confirmed by eye",
+      "byteIdentical": false,
+      "correlation": 0.9989,
+      "rmse": 0.0106,
+      "note": "Same Convex object as A039."
+    },
+    {
+      "id": "A042",
+      "existingSlug": "depersonalization-john-ayal-cat",
+      "method": "sha256 of the stored bytes is identical",
+      "byteIdentical": true,
+      "correlation": 1,
+      "rmse": 0,
+      "note": "Same file; credit recovered from the existing row as Jon Ayal Cat."
+    },
+    {
+      "id": "A043",
+      "existingSlug": "depersonalization-john-ayal-cat",
+      "method": "sha256 of the stored bytes is identical",
+      "byteIdentical": true,
+      "correlation": 1,
+      "rmse": 0,
+      "note": "Second Convex copy of the same 457138-byte file."
+    },
+    {
+      "id": "A045",
+      "existingSlug": "national-park-h-r-giger",
+      "method": "downsampled 24x24 greyscale comparison against every image row in production, then confirmed by eye",
+      "byteIdentical": false,
+      "correlation": 0.9804,
+      "rmse": 0.0796,
+      "note": "Same Giger panel, differently encoded. Viewed side by side."
+    },
+    {
+      "id": "A048",
+      "existingSlug": "the-neon-temple-salviadroid",
+      "method": "downsampled 24x24 greyscale comparison against every image row in production, then confirmed by eye",
+      "byteIdentical": false,
+      "correlation": 0.9866,
+      "rmse": 0.058,
+      "note": "Same signed SalviaDroid painting, differently cropped and colour-graded; the embed copy carries the artists watermark. Viewed side by side. The existing row titles it Death by astonishment already and files it under immersive-hallucinations."
+    },
+    {
+      "id": "A081",
+      "existingSlug": "switch-sam-perkins",
+      "method": "sha256 of the stored bytes is identical",
+      "byteIdentical": true,
+      "correlation": 1,
+      "rmse": 0,
+      "note": "Same Convex object as A032."
+    }
+  ],
+  "storageIds": {
+    "002d6b1f-4b76-4fe5-bf3f-8bd77ea368e7": "kg23vhjfv65kdjv4abk6x3qfpd8bf655",
+    "0068a207-41e5-4e40-8a5f-007d722ba61c": "kg2avwzvy8she9ttaq751gw2ad8be2nf",
+    "05935004-e12e-4c8c-95a7-d018a8ad370d": "kg2580rkg739haj9zz5qg9grr58be92j",
+    "0b639b1d-5335-49f2-9055-d4c9c9fd697a": "kg26xhzggm2s2caxh30a0fs1598bfss0",
+    "0d8ee6aa-36b8-4981-9d16-7fd3dfe8fee9": "kg2exh9eqhv6cxprk0qn9s55ms8bfe17",
+    "13241188-2403-46d0-98d9-e2dd8eed8de6": "kg22d44ez7t0qyzf8mqzsw1sbx8bfhfm",
+    "164fb38b-6d6a-46da-bfb0-66495bf65076": "kg23hcxw5xnf0205mr2qzs3b2h8bewd9",
+    "16e96c86-b209-458f-b9c0-92e4bbd19819": "kg274yxkavza5psmmq7c2tt47d8betkr",
+    "18164089-d143-4496-a1ab-cf8f22762ede": "kg2ds9r5wt3vt4wgvea5v7dxm18bfgj8",
+    "1844a7fc-cfda-4799-9bc5-9e7926ae37b5": "kg2f73fnymzxm79zp8ykx3f5pn8bfpnb",
+    "18a6c90e-16ac-4332-aabf-cf2e390da688": "kg284btajh4m956nghvm60tvm58betfj",
+    "1bc7b893-6b22-4ccd-af41-3c21e7769953": "kg25h5engeqcf0n36g0m1wtcex8bfc8t",
+    "1f7e89f3-ff9e-4a53-913a-c542ea3148b8": "kg2926y1h07zm0gzdhamsfxtfs8bfjq3",
+    "22b469ea-54b4-49bb-965e-abc1e97f938d": "kg21p78mh3yzr712ytpq8nz2298be544",
+    "2866d05e-3014-4109-80f3-7db6aff4728f": "kg25370jdtnjs1zbbhp4d332kh8bfxat",
+    "2c428364-7f19-4a17-9da2-c2d418f61b22": "kg29srr2sw2q7a5dfkj5fjmk3n8bfxec",
+    "30157788-52d9-493e-b13c-f02e5618e0cf": "kg2d727psps7dqefw3zd22b38x8bfyth",
+    "34e678d2-a265-4e3c-a159-a0b440adf2e7": "kg26kckpttqab5h2qkk1pdesqh8bf84x",
+    "3f08051f-1a2d-4356-955a-50a67825bb28": "kg2an6h70w0kam1qath01cy12h8benqn",
+    "3fd4c151-fcc5-4e81-93ca-e89ba8ae9982": "kg26skkws5967rac6enegjy27s8be66r",
+    "42c35d9f-80cd-400e-b9f7-734d113b7a3a": "kg27fs8vd2d482qv18m249z9598bfxx4",
+    "43ee4f17-42e0-471d-8174-3fbf1ed4f043": "kg2ex200z85qe0c51vggv10hyh8bf90e",
+    "44841196-1ba7-4313-bfd5-e0a7ffa1a53a": "kg291ddq4dk0ayv2czm1z70rp18bfr7w",
+    "4658b4ce-8626-447a-b38c-958291ff4935": "kg2e81chag8mv3rqsrj71zrgy18bfpq7",
+    "49d89258-d8f7-4c2b-b3b3-a067e738d1f9": "kg2emxrw4gdrxd5dg9z4kysmf98beh30",
+    "4f28f8c1-295b-4367-a274-8fb37eb3514c": "kg21xbcf0r6td0c212k5da8x7x8bfhjw",
+    "51760655-f783-4a81-99d3-ca4138abe44c": "kg24vbvesdjwd7ehxszzww5xmn8bfcn0",
+    "562ae9c8-da99-480f-bc2a-bc8a56921881": "kg2f9bf653j57dn1hpznstmfxx8bfx7w",
+    "59a013f9-bdec-4d28-9959-00a4cd608284": "kg24eb8bzyz8rdbdnjjembd2d18bf0qz",
+    "5a82a99e-01b1-435c-b556-73f878fcc28c": "kg279rtcm4k90kb3vwz48e4m6n8bfcsk",
+    "6276370d-9f67-4d73-b478-19efea219552": "kg29dfrn2sxkfk06jj9xpn8h618begzv",
+    "6e1a9f49-c41c-44bc-ab95-0ff7b1464ed2": "kg283vda9svr5thcyb201vx2sx8beche",
+    "73460122-283a-440b-acc1-94f1a57d6348": "kg25qy511e6tw5hcmzmeytpnbx8beftk",
+    "73e1c6d8-fdec-4cfc-9b97-edd80aa8296c": "kg29znd053yajrjvrsstm9bbns8besn0",
+    "79556e42-931e-490e-8946-9f5b799800a8": "kg24tt5sxrzngf6zfy2g6t6vy18bfvwb",
+    "86d667af-bccb-419d-a1c9-82b9262cb953": "kg2b6n6v1277drp0bb4stgk86d8bfn6z",
+    "87611e1f-4a09-4540-a767-9ab16b148c7c": "kg20c3qc1ja0j964xnxmx3h40s8bf9q9",
+    "8bdc61c5-17f9-43f7-9358-b8e7b051293a": "kg23b6ab05zw8r5234jye9ff1d8bejmy",
+    "8ecc53fb-123d-4cc6-8143-95a5e66c7e62": "kg2bj9cdd60jhevavj0txje1298bfw67",
+    "8fc47e7a-02e5-443e-9dfe-10aac0669505": "kg2b32dxpe62wv9m3hxam41ss98bfzvv",
+    "9995d0b5-7fb0-4114-a795-23689ad39d96": "kg2cztmh2fxbg1cafe5g5a4v5n8bffdp",
+    "a1cbf6f4-c9d9-4fb4-8b40-17e53a7d4b47": "kg2466v0apcv6e5fkc4mkb512s8bef8c",
+    "a2972b1b-ec20-46a5-9991-ffc005199e29": "kg2cg07kd43syh2tfm2kfa1k058bf90s",
+    "a4f35b82-28c8-4bf3-8812-43b5df3bccee": "kg2dycfs7xebqadw5yzk69h7998be8yx",
+    "a74ca5ba-b1cb-4945-b809-00be28b5c7ce": "kg2c5j6n2w2khtd1dnpz1ja38n8bfzve",
+    "a9593187-e6f1-4fad-b532-d1d8543198cc": "kg276sqtgh3adggrgpmhhgbtf98bffv5",
+    "aa032e55-726c-4bf7-8d9d-ba7e8efc5d4a": "kg2eytdfs1cex4mgfjhx58hgn58bejn8",
+    "ae18ca76-027e-4461-b502-1bc03cdbfcf1": "kg28ybd0j47tc6xpj4c1ajbxch8be0p8",
+    "ae842c71-f2a3-4f88-aec7-924c831be532": "kg24crph3etm8b8smzpvs49j898bfkr7",
+    "b164ab91-9ce8-424f-9184-696899c2ef7e": "kg22y5ybcawckaxzcsamygxdg58bf03v",
+    "b5bdd49f-4633-4c95-93b0-31a7c81a4be1": "kg2137baey2jfam2cvtew1t88s8bftth",
+    "c7097175-290d-43b9-ba0f-69ed4a2a19f1": "kg2154n36ba27vyzxvsm1psse58bf2v6",
+    "ce52aec0-5601-4241-8c29-033a9aa969ee": "kg2css5pwcf3q0ck2sepz5d7es8bfw8c",
+    "d1c8707e-b490-41d6-9ed9-7ed602f16d8a": "kg271ddxv19atn0c1zce57rds98bfzyg",
+    "d6995b29-1a18-468a-95bd-e66f2e58f79d": "kg29tka91tf205nsrxrpkbdcs18bedzd",
+    "d79acf97-3f1a-417e-b6a8-45bf51f46009": "kg26rc4k24wz553nh3d0etatbn8bf97d",
+    "db6115a3-b8c5-4e39-8236-323f503aa583": "kg2ffs2x4bjhw9wfk0gzr7enss8bebx0",
+    "dca937c5-2933-4187-a03d-d084777d86d6": "kg2dggnj992pfvzh2s03dtdnvx8bemms",
+    "de418a29-ac7d-41d2-97ce-631c9966b8ba": "kg2b19he1b7r0r64rdvy4jhamx8bfqyz",
+    "e50a1bca-0883-4ec3-980d-c0a19ce9011e": "kg23v2b12drxesysmptg2gksq58bee2s",
+    "e7e2d756-edd7-476d-ba37-fd3b6b80ced8": "kg28evmt0qnz60n9ma7bv8c7x58bfgqr",
+    "e81eb8b8-b098-48fe-9464-a54f2a54dc45": "kg2b3a7zenp0g1k2jfk0wtxfhs8bezs7",
+    "f6265434-758f-43af-bc40-653a2dd1e14c": "kg23sgtt3xq8d2sredfgg69hwn8bfqz0",
+    "fc09f5d0-c0a8-4886-bcab-3b3a802c05b5": "kg2b48qrt985g6fe4qa7hn6bmn8bfaee",
+    "fc7a81be-b8a2-4532-8d30-b80a67bd743e": "kg2fmweh82x02de5fxcg0ppzvh8bfhbv",
+    "fe397071-8fcc-4827-ab6e-00b03d6c340c": "kg20s3693mr1z4a934aegzr7y98bfpzz"
+  }
+}

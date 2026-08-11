@@ -16,6 +16,7 @@ export const productionWriterClassifications = Object.freeze({
     "scripts/replications/fix-replication-effect-slugs.mjs",
     "scripts/replications/import-audio-replications.mjs",
     "scripts/replications/merge-unknown-twins.mjs",
+    "scripts/replications/migrate-article-media.mjs",
     "scripts/replications/plan-artist-name-corrections.mjs",
     "scripts/replications/regenerate-missing-thumbnails.mjs",
     "scripts/replications/repoint-renditions.mjs",
