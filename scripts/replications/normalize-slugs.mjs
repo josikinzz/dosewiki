@@ -60,10 +60,24 @@ const NOISE_PATTERNS = [
 
 const MAX_SLUG_LENGTH = 72;
 
+/**
+ * Latin letters that NFD cannot decompose, so they survive the accent strip and
+ * would otherwise be replaced by a hyphen — turning "Zdzisław Beksiński" into
+ * "zdzis-aw-beksi-ski".
+ */
+const TRANSLITERATIONS = {
+  ł: "l", đ: "d", ø: "o", æ: "ae", œ: "oe", ß: "ss", þ: "th", ð: "d", ı: "i",
+};
+
 function toSegments(value) {
   return String(value ?? "")
     .toLowerCase()
     .replace(/['’]/g, "")
+    // Decompose accents (ń -> n + combining mark) and drop the marks, then map
+    // the letters that have no decomposition.
+    .normalize("NFD")
+    .replace(/[̀-ͯ]/g, "")
+    .replace(/[łđøæœßþðı]/g, (ch) => TRANSLITERATIONS[ch] ?? ch)
     .replace(/[\s_]+/g, "-")
     .replace(/[^a-z0-9-]/g, "-")
     .split("-")

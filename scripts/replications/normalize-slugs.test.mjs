@@ -59,6 +59,15 @@ describe("buildSlugCandidate", () => {
     ).toBe("hgcjhgcjg");
   });
 
+  it("transliterates accented names instead of hyphenating them apart", () => {
+    expect(
+      buildSlugCandidate({ slug: "1wjjblc-unknown", title: "Untitled", artist: "Zdzisław Beksiński" }),
+    ).toBe("untitled-zdzislaw-beksinski");
+    expect(
+      buildSlugCandidate({ slug: "x", title: "Blue Café", artist: "Renée Ångström" }),
+    ).toBe("blue-cafe-renee-angstrom");
+  });
+
   it("caps runaway titles on a word boundary", () => {
     const slug = buildSlugCandidate({
       slug: "long_one",
