@@ -739,6 +739,53 @@ export const updateUrl = mutation({
 });
 
 /**
+ * Record what the row's media actually weighs now.
+ *
+ * `file_size` describes the bytes a reader downloads, and the detail page prints
+ * it verbatim. Repointing a row at a transcoded rendition changes those bytes
+ * and nothing was updating the number, so every video row kept its master's
+ * size: the corpus claimed 44.62 GB while serving roughly 5.8 GB, and the page
+ * offered a 4.8 GB file that arrives in 299 MB. Wrong by a factor of sixteen and
+ * wrong in the direction that makes a reader not click.
+ *
+ * Guarded by the storage id the caller measured against. Size is only meaningful
+ * as a property of a specific stored object, so if the row has been repointed
+ * since it was measured, the number in hand describes something else and the
+ * write is refused rather than applied to the wrong object.
+ */
+export const updateDeliveredFileSize = mutation({
+  args: {
+    apiKey: v.optional(v.string()),
+    id: v.id("replications"),
+    expectedStorageId: v.string(),
+    file_size: v.number(),
+  },
+  handler: async (ctx, args) => {
+    await requireAuth(ctx, args.apiKey, "replicationMaintenance");
+
+    if (!Number.isFinite(args.file_size) || args.file_size <= 0) {
+      throw new Error("file_size must be a positive number of bytes.");
+    }
+
+    const replication = await ctx.db.get(args.id);
+    if (!replication) {
+      throw new Error(`Replication ${args.id} not found.`);
+    }
+    if (replication.storage_id !== args.expectedStorageId) {
+      throw new Error(
+        `Replication ${replication.slug} has been repointed since it was measured ` +
+          `(expected storage ${args.expectedStorageId}, found ${replication.storage_id}).`,
+      );
+    }
+
+    const previous = replication.file_size ?? null;
+    await ctx.db.patch(args.id, { file_size: args.file_size });
+
+    return { success: true, slug: replication.slug, previous, current: args.file_size };
+  },
+});
+
+/**
  * Update storage IDs for a replication by its _id.
  * Used by migration scripts to point to locally uploaded media.
  *
