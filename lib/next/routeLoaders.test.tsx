@@ -11,6 +11,7 @@ import {
   loadEffectsIndexRoute,
   loadMechanismQualifierRoute,
   loadPsychoactiveSummaryRoute,
+  loadReplicationRoute,
   loadReportRoute,
   loadReportsIndexRoute,
   loadSubstanceRoute,
@@ -21,6 +22,7 @@ import {
 } from "./routeLoaders";
 import { effectsIndexEmptyState, reportsIndexEmptyState } from "./publicRouteOutcomes";
 import type { NormalizedUserProfile } from "../../src/data/userProfiles";
+import type { ReplicationWithUrl } from "../../src/types/replications";
 import type { SubjectiveEffectDetailRecord } from "../convex/publicData";
 import type { PublicSubstanceRecord } from "../convex/publicData.shared";
 
@@ -39,17 +41,21 @@ const publicData = vi.hoisted(() => ({
   getPublicCategoryLayout: vi.fn(),
   getPublicContributorByKey: vi.fn(),
   getPublicContributorDirectory: vi.fn(() => Promise.resolve([])),
+  getPublicContributorProfiles: vi.fn(() => Promise.resolve([])),
   getPublicDataOverview: vi.fn(),
   getPublicEffectArticles: vi.fn(),
   getPublicEffectIndexArticleBySlug: vi.fn(),
   getPublicEffectBySlug: vi.fn(),
   getPublicEffects: vi.fn(),
+  getPublicReplicationBySlug: vi.fn(),
   getPublicReplications: vi.fn(() => Promise.resolve([])),
+  getPublicReplicationsByEffect: vi.fn(() => Promise.resolve([])),
   getPublicReportBySlug: vi.fn(),
   getPublicReports: vi.fn(),
   getPublicSubstanceBySlug: vi.fn(),
   getPublicSubstanceLookup: vi.fn(),
   getPublicSubstances: vi.fn(),
+  getReplicationsByContributor: vi.fn(() => Promise.resolve([])),
   getReportsByContributor: vi.fn(),
 }));
 
@@ -93,6 +99,23 @@ function buildContributorProfile(overrides: Partial<NormalizedUserProfile> = {})
     bio: "",
     links: [],
     hasCustomBio: false,
+    ...overrides,
+  };
+}
+
+function buildReplication(overrides: Partial<ReplicationWithUrl> = {}): ReplicationWithUrl {
+  return {
+    _id: `id-${overrides.slug ?? "base"}`,
+    _creationTime: 0,
+    slug: "base",
+    title: "Base",
+    artist: "Ada",
+    type: "image",
+    storage_id: "storage-base",
+    effect_slug: "tracers",
+    format: "webp",
+    created_at: "2024-01-01T00:00:00.000Z",
+    url: "https://cdn.test/base.webp",
     ...overrides,
   };
 }
@@ -487,6 +510,7 @@ describe("route loaders", () => {
   it("returns contributor ok results for the canonical key", async () => {
     publicData.getPublicContributorByKey.mockResolvedValueOnce(buildContributorProfile());
     publicData.getReportsByContributor.mockResolvedValueOnce([]);
+    publicData.getReplicationsByContributor.mockResolvedValueOnce([]);
 
     const result = await loadContributorRoute("ada");
 
@@ -504,6 +528,42 @@ describe("route loaders", () => {
     expect(result.pageProps.bioContent).toBeNull();
     expect(result.pageProps.reportHrefPrefix).toBe("/reports/");
     expect(result.pageProps.tripReports).toEqual([]);
+    expect(result.pageProps.replications).toEqual([]);
+  });
+
+  it("orders a contributor's replications newest first", async () => {
+    publicData.getPublicContributorByKey.mockResolvedValueOnce(buildContributorProfile());
+    publicData.getReportsByContributor.mockResolvedValueOnce([]);
+    publicData.getReplicationsByContributor.mockResolvedValueOnce([
+      buildReplication({ slug: "old", created_at: "2023-01-01T00:00:00.000Z" }),
+      buildReplication({ slug: "new", created_at: "2025-01-01T00:00:00.000Z" }),
+    ]);
+
+    const result = await loadContributorRoute("ada");
+
+    if (result.kind !== "ok") {
+      throw new Error("expected ok result");
+    }
+    expect(result.pageProps.replications.map((work) => work.slug)).toEqual(["new", "old"]);
+  });
+
+  it("still renders a profile when the replication join is unavailable", async () => {
+    // A Convex deployment that predates `replications:getByArtistNames` reports
+    // the same opaque Server Error it uses for everything else, so the profile
+    // has to degrade to "no works" rather than fail a prerendered route.
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+    publicData.getPublicContributorByKey.mockResolvedValueOnce(buildContributorProfile());
+    publicData.getReportsByContributor.mockResolvedValueOnce([]);
+    publicData.getReplicationsByContributor.mockRejectedValueOnce(new Error("Server Error"));
+
+    const result = await loadContributorRoute("ada");
+
+    if (result.kind !== "ok") {
+      throw new Error("expected ok result");
+    }
+    expect(result.pageProps.replications).toEqual([]);
+    expect(warn).toHaveBeenCalled();
+    warn.mockRestore();
   });
 
   it("returns contributor redirect results for alias keys without loading reports", async () => {
@@ -517,6 +577,7 @@ describe("route loaders", () => {
       canonicalRoute: { family: "contributor", params: { profileKey: "ADA" } },
     });
     expect(publicData.getReportsByContributor).not.toHaveBeenCalled();
+    expect(publicData.getReplicationsByContributor).not.toHaveBeenCalled();
   });
 
   it("returns contributor not-found results with the normalized key", async () => {
@@ -526,6 +587,134 @@ describe("route loaders", () => {
       kind: "not-found",
       normalizedKey: "MISSING KEY",
     });
+  });
+
+  it("surrounds an attributed replication with its artist's other works", async () => {
+    publicData.getPublicReplicationBySlug.mockResolvedValueOnce(
+      buildReplication({ slug: "shared", artist: "Ada" }),
+    );
+    publicData.getPublicEffectBySlug.mockResolvedValueOnce({
+      slug: "tracers",
+      name: "Tracers",
+      summary: "",
+      tags: ["visual", "distortion"],
+    } as SubjectiveEffectDetailRecord);
+    publicData.getPublicReplicationsByEffect.mockResolvedValueOnce([
+      buildReplication({ slug: "shared" }),
+      buildReplication({ slug: "by-someone-else", artist: "Someone Else" }),
+    ]);
+    publicData.getPublicContributorProfiles.mockResolvedValueOnce([
+      buildContributorProfile({ key: "ADA", displayName: "Ada" }),
+    ]);
+    publicData.getReplicationsByContributor.mockResolvedValueOnce([
+      buildReplication({ slug: "shared", created_at: "2025-02-01T00:00:00.000Z" }),
+      buildReplication({ slug: "other-tracer", created_at: "2025-01-01T00:00:00.000Z" }),
+    ]);
+
+    const result = await loadReplicationRoute("shared");
+
+    if (result.kind !== "ok") {
+      throw new Error("expected ok result");
+    }
+    expect(result.pageProps.neighbors.scope).toBe("artist");
+    expect(result.pageProps.neighbors.scopeLabel).toBe("Ada");
+    expect(result.pageProps.neighbors.next?.slug).toBe("other-tracer");
+    expect(result.pageProps.artistProfileHref).toBe("/contributors/ada");
+    expect(result.pageProps.effectCategories.map((category) => category.slug)).toEqual([
+      "visual-effects",
+      "visual-distortions",
+    ]);
+  });
+
+  it("falls back to the effect's works for an unattributed replication", async () => {
+    publicData.getPublicReplicationBySlug.mockResolvedValueOnce(
+      buildReplication({ slug: "shared", artist: "Unknown" }),
+    );
+    publicData.getPublicEffectBySlug.mockResolvedValueOnce({
+      slug: "tracers",
+      name: "Tracers",
+      summary: "",
+      tags: ["visual"],
+    } as SubjectiveEffectDetailRecord);
+    publicData.getPublicReplicationsByEffect.mockResolvedValueOnce([
+      buildReplication({ slug: "shared", created_at: "2025-02-01T00:00:00.000Z" }),
+      buildReplication({ slug: "sibling", created_at: "2025-01-01T00:00:00.000Z" }),
+    ]);
+
+    const result = await loadReplicationRoute("shared");
+
+    if (result.kind !== "ok") {
+      throw new Error("expected ok result");
+    }
+    expect(result.pageProps.neighbors.scope).toBe("effect");
+    expect(result.pageProps.neighbors.scopeLabel).toBe("Tracers");
+    expect(result.pageProps.neighbors.next?.slug).toBe("sibling");
+    expect(result.pageProps.artistProfileHref).toBeNull();
+    // An unattributed marker can never resolve to a profile, so the lookup is
+    // skipped rather than run and discarded.
+    expect(publicData.getPublicContributorProfiles).not.toHaveBeenCalled();
+    expect(publicData.getReplicationsByContributor).not.toHaveBeenCalled();
+  });
+
+  it("keeps the effect walk when the artist's works cannot be read", async () => {
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+    publicData.getPublicReplicationBySlug.mockResolvedValueOnce(
+      buildReplication({ slug: "shared", artist: "Ada" }),
+    );
+    publicData.getPublicEffectBySlug.mockResolvedValueOnce({
+      slug: "tracers",
+      name: "Tracers",
+      summary: "",
+      tags: ["visual"],
+    } as SubjectiveEffectDetailRecord);
+    publicData.getPublicReplicationsByEffect.mockResolvedValueOnce([
+      buildReplication({ slug: "shared" }),
+      buildReplication({ slug: "sibling" }),
+    ]);
+    publicData.getPublicContributorProfiles.mockResolvedValueOnce([
+      buildContributorProfile({ key: "ADA", displayName: "Ada" }),
+    ]);
+    publicData.getReplicationsByContributor.mockRejectedValueOnce(new Error("Server Error"));
+
+    const result = await loadReplicationRoute("shared");
+
+    if (result.kind !== "ok") {
+      throw new Error("expected ok result");
+    }
+    expect(result.pageProps.neighbors.scope).toBe("effect");
+    // The byline still resolves: the profile exists, only its works did not load.
+    expect(result.pageProps.artistProfileHref).toBe("/contributors/ada");
+    expect(warn).toHaveBeenCalled();
+    warn.mockRestore();
+  });
+
+  it("gives a named credit with no profile the effect walk and no profile link", async () => {
+    publicData.getPublicReplicationBySlug.mockResolvedValueOnce(
+      buildReplication({ slug: "shared", artist: "Unclaimed Artist" }),
+    );
+    publicData.getPublicEffectBySlug.mockResolvedValueOnce({
+      slug: "tracers",
+      name: "Tracers",
+      summary: "",
+      tags: ["visual"],
+    } as SubjectiveEffectDetailRecord);
+    publicData.getPublicReplicationsByEffect.mockResolvedValueOnce([
+      buildReplication({ slug: "shared" }),
+      buildReplication({ slug: "sibling" }),
+    ]);
+    publicData.getPublicContributorProfiles.mockResolvedValueOnce([
+      buildContributorProfile({ key: "ADA", displayName: "Ada" }),
+    ]);
+
+    const result = await loadReplicationRoute("shared");
+
+    if (result.kind !== "ok") {
+      throw new Error("expected ok result");
+    }
+    expect(result.pageProps.artistProfileHref).toBeNull();
+    expect(result.pageProps.neighbors.scope).toBe("effect");
+    // Without a profile there is no name set to join on, so no works are read.
+    expect(publicData.getReplicationsByContributor).not.toHaveBeenCalled();
   });
 });
 

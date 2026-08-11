@@ -6,9 +6,11 @@ import {
   PublicSectionHeading,
 } from "@/components/layout/PublicPagePrimitives";
 import { StateCard } from "@/components/common/StateCard";
+import { ContributorWorksCarousel } from "@/features/effects/gallery/ContributorWorksCarousel";
 import { icons } from "@/utils/iconNames";
 import type { NormalizedUserProfile } from "@/data/userProfiles";
 import type { ChangeLogEntry } from "@/data/changelog/changeLog";
+import type { GalleryReplication } from "@/types/replications";
 import type { ReportCardModel } from "@/types/tripReport";
 import {
   UserContributionsSection,
@@ -19,6 +21,8 @@ interface UserProfilePageProps {
   profile: NormalizedUserProfile;
   history: ChangeLogEntry[];
   tripReports?: ReportCardModel[];
+  /** Replications credited to this contributor, already ordered. */
+  replications?: readonly GalleryReplication[];
   reportHrefPrefix?: string;
   bioContent?: ReactNode;
 }
@@ -27,13 +31,15 @@ export function UserProfilePage({
   profile,
   history,
   tripReports = [],
+  replications = [],
   reportHrefPrefix,
   bioContent,
 }: UserProfilePageProps) {
   const hasLinks = profile.links.length > 0;
   const hasBio = profile.hasCustomBio;
   const hasTripReports = tripReports.length > 0;
-  const hasProfileSections = hasBio || hasTripReports || history.length > 0;
+  const hasReplications = replications.length > 0;
+  const hasProfileSections = hasBio || hasReplications || hasTripReports || history.length > 0;
   const profileHandle = `@${profile.key.toLowerCase()}`;
   // Legacy Effect Index contributor title. It shares the muted handle line
   // rather than getting its own badge, so an absent role leaves the header
@@ -99,6 +105,16 @@ export function UserProfilePage({
                 {bioContent}
               </div>
             </section>
+          ) : null}
+
+          {/* An artist's works come before their writing: for a replication
+              artist the pictures are the profile, and the carousel is the only
+              place they are gathered as one body of work. */}
+          {hasReplications ? (
+            <ContributorWorksCarousel
+              works={replications}
+              contributorName={profile.displayName}
+            />
           ) : null}
 
           {hasTripReports ? (

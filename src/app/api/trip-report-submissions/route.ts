@@ -109,6 +109,11 @@ function parseSubmissionBody(body: PublicSubmissionBody, request: Request): Trip
 function parseSubject(record: Record<string, unknown>): TripReportSubmissionSubjectInput {
   return {
     name: asString(record.name),
+    // The three restricted fields are read only so the normalizer can report
+    // that they were thrown away. This route is unauthenticated, so a submitted
+    // contributor key is an unproven claim on someone else's profile, and a
+    // submitted avatar or PDF URL would put a submitter-controlled remote image
+    // and outbound link on a published page. None of them reach storage.
     profile_key: asString(record.profile_key),
     avatar_url: asString(record.avatar_url),
     trip_date: asString(record.trip_date),

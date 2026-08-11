@@ -222,7 +222,42 @@ export function findContributorProfileByKeyOrAlias<T extends { key: string; alia
   return profiles.find((profile) => profile.aliases.includes(normalizedAlias)) ?? null;
 }
 
-export function findContributorProfileByAuthorName<T extends { displayName: string; aliases: readonly string[] }>(
+/** The minimum a record needs to be matched against a free-text credit line. */
+export type ContributorMatchableProfile = {
+  displayName: string;
+  aliases: readonly string[];
+};
+
+/**
+ * Every name that identifies one contributor: their display name plus their
+ * aliases, normalized for comparison.
+ *
+ * This is the only definition of "this name is that contributor" in the app, and
+ * every direction of the relation — credit line to profile, profile to its
+ * credits — goes through it, so the two can never disagree about the same pair.
+ *
+ * Matching is exact on a normalized whole name. It used to also accept the first
+ * word of a display name, which quietly made "Josie" a match for "Josie Kins"
+ * and would just as quietly make one contributor's given name claim another's
+ * credits as the roster grows. Aliases are the mechanism for that: a spelling
+ * that should resolve to a contributor is recorded on their profile.
+ */
+export function contributorMatchNames(profile: ContributorMatchableProfile): string[] {
+  return Array.from(
+    new Set(
+      [profile.displayName, ...profile.aliases]
+        .map((name) => normalizeProfileAlias(name))
+        .filter(Boolean),
+    ),
+  );
+}
+
+export function profileMatchesName(profile: ContributorMatchableProfile, name: string): boolean {
+  const normalized = normalizeProfileAlias(name);
+  return normalized.length > 0 && contributorMatchNames(profile).includes(normalized);
+}
+
+export function findContributorProfileByAuthorName<T extends ContributorMatchableProfile>(
   profiles: readonly T[],
   authorName: string,
 ): T | null {
@@ -231,20 +266,5 @@ export function findContributorProfileByAuthorName<T extends { displayName: stri
     return null;
   }
 
-  for (const profile of profiles) {
-    if (profile.displayName.toLowerCase() === normalized) {
-      return profile;
-    }
-
-    if (profile.aliases.includes(normalized)) {
-      return profile;
-    }
-
-    const firstWord = profile.displayName.split(/\s+/)[0]?.toLowerCase();
-    if (firstWord && firstWord === normalized) {
-      return profile;
-    }
-  }
-
-  return null;
+  return profiles.find((profile) => profileMatchesName(profile, normalized)) ?? null;
 }

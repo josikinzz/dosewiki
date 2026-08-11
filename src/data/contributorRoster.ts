@@ -8,7 +8,8 @@
  *   (`siteConfig.founderProfileKeys`). Nothing in this module changes that: the dose.wiki
  *   branch returns those profiles untouched, in the editor's order.
  * - **Effect Index** lists *every* contributor profile, with Josie Kins pinned first as the
- *   site's founder and everybody else ordered by how many pages credit them.
+ *   site's founder and everybody else ordered by how many pages credit them. `isRosterMember`
+ *   is where "every" is decided, and it is the only place.
  *
  * Everything here is pure and takes the flavor as an argument, so both branches are testable
  * in one run without rebuilding the module graph.
@@ -69,6 +70,37 @@ export const EFFECT_INDEX_FOUNDER_ROLE_FALLBACK = "Founder";
  * display-time exclusion on one flavor only.
  */
 export const EFFECT_INDEX_EXCLUDED_CONTRIBUTOR_KEYS: readonly string[] = ["LYREA"];
+
+/**
+ * Whether one profile belongs on the contributor roster. **This is the whole membership
+ * policy** — there is no second rule anywhere else, and changing this function changes the
+ * published page.
+ *
+ * Today the answer is everybody. The credited-identity import
+ * (`scripts/contributors/seed-credited-identities.mjs`) gives every name in the corpus an
+ * ordinary profile "like anyone else", and that decision has a visible consequence: the
+ * Effect Index roster goes from twelve names to eighty-three, most of them credited on a
+ * single page. That is a real editorial choice, so it is written down as a function rather
+ * than implied by the absence of a filter.
+ *
+ * To narrow it, edit only this body. For example:
+ *
+ * ```ts
+ * // Only people the archive credits more than once.
+ * return entry.referenceCount > 1;
+ *
+ * // Only the profiles that existed before the import.
+ * return PRE_IMPORT_CONTRIBUTOR_KEYS.includes(entry.profile.key);
+ * ```
+ *
+ * The pinned founder is chosen before this runs, so no narrowing can accidentally empty the
+ * founder slot.
+ */
+export function isRosterMember(entry: ContributorRosterEntry): boolean {
+  // A profile with no key has no page to link to, so it is the one thing a roster of
+  // "everybody" still cannot show.
+  return entry.profile.key.length > 0;
+}
 
 /** dose.wiki's heading, unchanged: that tab really does list a curated founder subset. */
 export const CURATED_FOUNDERS_SECTION_TITLE = "Founders & Contributors";
@@ -344,6 +376,11 @@ export function buildContributorRoster({
 
     if (normalizedFounderKey && profile.key === normalizedFounderKey && !founder) {
       founder = entry;
+      continue;
+    }
+
+    // The single membership policy. See `isRosterMember`.
+    if (!isRosterMember(entry)) {
       continue;
     }
 

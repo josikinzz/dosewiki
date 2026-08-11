@@ -5,32 +5,36 @@ import { cache } from "react";
 import { PUBLIC_CONVEX_CACHE_REVALIDATE_SECONDS, PUBLIC_CONVEX_CACHE_TAGS } from "./publicData.cache";
 import { getPublicContributorProfiles } from "./publicData.contributors";
 import {
-  getContributorReportAuthorNames,
   projectPublicReportDetail,
   projectPublicReportDetails,
   projectPublicReportPreviews,
 } from "./publicData.reportProfileProjection";
+import { profileMatchesName } from "../contributorProfileIdentity";
 import { getPublicDataReadAdapter } from "./publicData.reads";
 import type { PublicReportPreview, TripReportDetailRecord, TripReportRecord } from "./publicData.shared";
 import type { NormalizedUserProfile } from "../../src/data/userProfiles";
-
-function normalizeContributorMatch(value: string | null | undefined): string {
-  return typeof value === "string" ? value.trim().toLowerCase() : "";
-}
 
 function reportBelongsToContributor(report: TripReportRecord, profile: NormalizedUserProfile): boolean {
   const profileKey = profile.key.trim().toUpperCase();
   const reportProfileKey =
     typeof report.subject.profile_key === "string" ? report.subject.profile_key.trim().toUpperCase() : "";
 
+  // A stored profile key is an explicit claim of authorship and outranks the
+  // free-text byline, which may still carry an old spelling.
   if (reportProfileKey && reportProfileKey === profileKey) {
     return true;
   }
 
-  const authorNames = new Set(
-    getContributorReportAuthorNames(profile).map(normalizeContributorMatch).filter(Boolean),
-  );
-  return authorNames.has(normalizeContributorMatch(report.subject.name));
+  // A reviewed report arrived through the public submission form, where the
+  // byline is a string an anonymous person typed. Only the key an editor
+  // assigned at promotion can list it on a contributor's page; matching the
+  // name alone would put an impersonator's report in their own report list,
+  // which is the same claim `publicData.reportProfileProjection` refuses.
+  if (report.attribution_review) {
+    return false;
+  }
+
+  return profileMatchesName(profile, report.subject.name);
 }
 
 export const getPublicReports = cache(unstable_cache(async (): Promise<PublicReportPreview[]> => {

@@ -52,6 +52,34 @@ export const resolveReportContributorProfile = (
   authorName: string,
 ) => findProfileByAuthorNameInList(profiles, authorName);
 
+/**
+ * Resolve the contributor a report is attributed to.
+ *
+ * Byline matching is only trustworthy where the byline itself is: the imported
+ * corpus was written by editors, so a report with no `attribution_review` marker
+ * resolves by name exactly as it always has. A marker means the report came in
+ * through the public submission form, where the byline is a string an anonymous
+ * person typed — so it grants nothing, and attribution is only the key an editor
+ * assigned at promotion (`convex/tripReportSubmissions.ts`). Without this split,
+ * stripping the submitted `profile_key` would not have helped: typing a real
+ * contributor's name would have re-acquired their identity at read time.
+ */
+const resolveAttributedProfile = (
+  report: Pick<TripReportRecord, "subject"> & { attribution_review?: unknown },
+  profiles: readonly NormalizedUserProfile[],
+): NormalizedUserProfile | null => {
+  if (!report.attribution_review) {
+    return resolveReportContributorProfile(profiles, report.subject.name);
+  }
+
+  const assignedKey = normalizeProfileKey(report.subject.profile_key);
+  if (!assignedKey) {
+    return null;
+  }
+
+  return profiles.find((profile) => normalizeProfileKey(profile.key) === assignedKey) ?? null;
+};
+
 const resolveAuthorAvatarUrl = (
   reportAvatarUrl: string | null | undefined,
   matchedProfile: NormalizedUserProfile | null,
@@ -111,7 +139,7 @@ export const projectPublicReportPreview = (
   profiles: readonly NormalizedUserProfile[],
   options: { fallbackAuthorProfileKey?: string } = {},
 ): PublicReportPreview => {
-  const matchedProfile = resolveReportContributorProfile(profiles, report.subject.name);
+  const matchedProfile = resolveAttributedProfile(report, profiles);
 
   return toPublicReportPreview(report, {
     introduction: trimReportExcerpt(getReportNarrativeText(report)),
@@ -133,7 +161,7 @@ export const projectPublicReportDetail = <T extends TripReportRecord | TripRepor
   report: T,
   profiles: readonly NormalizedUserProfile[],
 ): T => {
-  const matchedProfile = resolveReportContributorProfile(profiles, report.subject.name);
+  const matchedProfile = resolveAttributedProfile(report, profiles);
 
   if (!matchedProfile) {
     return report;
@@ -157,9 +185,3 @@ export const projectPublicReportDetails = <T extends TripReportRecord | TripRepo
   const projected = reports.map((report) => projectPublicReportDetail(report, profiles));
   return options.sort === false ? projected : sortTripReportDetails(projected);
 };
-
-export const getContributorReportAuthorNames = (profile: NormalizedUserProfile): string[] => [
-  profile.displayName,
-  profile.key,
-  ...profile.aliases,
-];

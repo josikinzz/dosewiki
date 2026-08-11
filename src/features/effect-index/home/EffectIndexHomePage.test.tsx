@@ -248,6 +248,18 @@ describe("Effect Index homepage", () => {
     expect(within(carousel).queryByRole("button", { name: "Next replication" })).toBeNull();
   });
 
+  it("lets a click on a video stage reach the link underneath it", () => {
+    const { container } = render(<EffectIndexHomePage {...FULL_DATA} />);
+
+    // The stage video fills its anchor and paints above it, and a browser does
+    // not forward a media element's click to an ancestor link the way it does
+    // for an image. Without this guard the whole carousel stops navigating —
+    // which is exactly how it shipped once.
+    const video = container.querySelector("video");
+    expect(video).not.toBeNull();
+    expect(video).toHaveClass("pointer-events-none");
+  });
+
   it("steps between replications with the chevrons and with the arrow keys", async () => {
     render(
       <EffectIndexHomePage

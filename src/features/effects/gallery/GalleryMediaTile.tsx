@@ -131,7 +131,10 @@ export function GalleryMediaTile({
             loop
             playsInline
             preload="none"
-            className="absolute inset-0 h-full w-full object-cover"
+            // The preview covers the whole anchor and paints last, so without this
+            // it swallows every click on a video tile. Browsers do not forward a
+            // media element's click to an ancestor link the way they do for images.
+            className="pointer-events-none absolute inset-0 h-full w-full object-cover"
           />
         ) : null}
       </Link>

@@ -24,10 +24,12 @@ import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
 import { publicHref } from "@/utils/publicHref";
 
+// No contributor profile key, avatar URL, or PDF URL: the public form is
+// unauthenticated, so a key would be an unverified claim and the two URLs would
+// let a submitter place a remote image and an outbound link on a published
+// page. An editor assigns attribution when the submission is published.
 type SubjectDraft = {
   name: string;
-  profile_key: string;
-  avatar_url: string;
   trip_date: string;
   age: string;
   gender: string;
@@ -35,7 +37,6 @@ type SubjectDraft = {
   weight: string;
   medications: string;
   setting: string;
-  pdf_url: string;
 };
 
 type SubstanceDraft = {
@@ -121,8 +122,6 @@ function createInitialDraft(): ReportDraft {
     title: "",
     subject: {
       name: "",
-      profile_key: "",
-      avatar_url: "",
       trip_date: "",
       age: "",
       gender: "",
@@ -130,7 +129,6 @@ function createInitialDraft(): ReportDraft {
       weight: "",
       medications: "",
       setting: "",
-      pdf_url: "",
     },
     substances: [{ id: "substance-1", name: "", dose: "", roa: "" }],
     introduction: "",
@@ -506,37 +504,6 @@ const CoreDetailsSection = memo(function CoreDetailsSection({
           />
         </Field>
 
-        <Field id="profile-key" label="Profile key">
-          <Input
-            id="profile-key"
-            value={subject.profile_key}
-            autoComplete="off"
-            placeholder="username"
-            onChange={(event) => onSubjectFieldChange("profile_key", event.target.value)}
-          />
-        </Field>
-
-        <Field id="avatar-url" label="Avatar URL">
-          <Input
-            id="avatar-url"
-            type="url"
-            value={subject.avatar_url}
-            autoComplete="url"
-            placeholder="https://..."
-            onChange={(event) => onSubjectFieldChange("avatar_url", event.target.value)}
-          />
-        </Field>
-
-        <Field id="pdf-url" label="PDF URL" className="md:col-span-2">
-          <Input
-            id="pdf-url"
-            type="url"
-            value={subject.pdf_url}
-            autoComplete="url"
-            placeholder="https://..."
-            onChange={(event) => onSubjectFieldChange("pdf_url", event.target.value)}
-          />
-        </Field>
       </div>
     </FormSection>
   );

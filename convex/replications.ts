@@ -1,6 +1,8 @@
 import { v } from "convex/values";
 import { mutation, query, internalMutation } from "./_generated/server";
 import { requireAuth } from "./lib/auth";
+import { normalizeProfileAlias } from "../lib/contributorProfileIdentity";
+import { hasKnownCreator } from "../src/features/effects/components/replicationCredit";
 
 /**
  * Replication functions for video and image replications of effects.
@@ -205,6 +207,115 @@ export const getByArtist = query({
           thumbnail_url,
         };
       })
+    );
+  },
+});
+
+/**
+ * Credits that stand in for a person without naming one. A collective byline and
+ * a generator's name are attribution of a work, but there is nobody behind them
+ * to own a contributor profile, so they must never join to one.
+ *
+ * The blank/"unknown" end of that idea is not restated here: it already exists as
+ * `hasKnownCreator`, which the gallery uses to decide the same question about the
+ * same column, and `creditNamesAPerson` composes the two rather than keeping a
+ * rival copy. This set is deliberately not folded into `hasKnownCreator` itself —
+ * "by midjourney" is still a true and useful public byline, and widening that
+ * helper would relabel these works "Creator unknown" everywhere they render.
+ */
+const NON_PERSON_CREDITS = new Set(["various artists", "midjourney"]);
+
+/** Whether an `artist` string names someone who could hold a contributor profile. */
+function creditNamesAPerson(artist: string | null | undefined): boolean {
+  return hasKnownCreator(artist) && !NON_PERSON_CREDITS.has(normalizeProfileAlias(artist));
+}
+
+/**
+ * The names one contributor can be credited under, normalized for comparison.
+ *
+ * Unattributed markers are dropped here as well as skipped on the row, so a
+ * profile that somehow carried the alias "unknown" collects nothing rather than
+ * every unattributed work in the table.
+ */
+function contributorArtistMatchSet(artistNames: readonly string[]): Set<string> {
+  return new Set(
+    artistNames.map((name) => normalizeProfileAlias(name)).filter((name) => creditNamesAPerson(name)),
+  );
+}
+
+function replicationMatchesArtistNames(
+  row: { artist: string },
+  matchNames: ReadonlySet<string>,
+): boolean {
+  return creditNamesAPerson(row.artist) && matchNames.has(normalizeProfileAlias(row.artist));
+}
+
+/**
+ * Match stored replications against the names that identify one contributor.
+ *
+ * Both sides are put through `normalizeProfileAlias` — the same function that
+ * produced the stored aliases in the first place — so the two can never drift
+ * into near-identical normalizations that disagree on some edge case.
+ *
+ * Exported for unit tests; the query below is its only production caller.
+ */
+export function selectReplicationsByArtistNames<Row extends { artist: string }>(
+  rows: readonly Row[],
+  artistNames: readonly string[],
+): Row[] {
+  const matchNames = contributorArtistMatchSet(artistNames);
+  return matchNames.size === 0
+    ? []
+    : rows.filter((row) => replicationMatchesArtistNames(row, matchNames));
+}
+
+/**
+ * Get every replication credited to one contributor, given the names that
+ * identify them (their display name plus their aliases).
+ *
+ * WHY THIS SCANS INSTEAD OF USING THE `by_artist` INDEX
+ * -----------------------------------------------------
+ * `by_artist` indexes the raw `artist` column, so an index lookup is exact and
+ * case-sensitive. Contributor aliases are stored lowercase, and a read-only audit
+ * of production found only 15 of the 63 distinct `artist` strings already
+ * lowercase — 20 of 247 rows, 8%. For the other 92% a lowercase alias can never
+ * equal the stored string, so the index cannot serve this join at all. Matching
+ * has to happen after normalizing both sides, which an equality index over the
+ * raw column cannot express.
+ *
+ * The alternative is a stored normalized `artist` column with its own index. At
+ * 247 small rows that buys nothing measurable: the scan reads the table once per
+ * miss of the caller's 15-minute `unstable_cache`, and only the matched rows — a
+ * handful — pay the per-row storage URL resolution. The column, by
+ * contrast, costs a schema change, a migration, a second production write, and a
+ * write-path invariant keeping it in sync with `artist` forever.
+ *
+ * Revisit that trade when the table passes a few thousand rows, or when this
+ * query moves off the cached public path onto a per-request or interactive
+ * surface that pays the scan on every render. Until one of those is true, the
+ * index is strictly more machinery for the same answer.
+ */
+export const getByArtistNames = query({
+  args: { artistNames: v.array(v.string()) },
+  handler: async (ctx, args) => {
+    // Nothing can match, so do not pay for the scan at all.
+    const matchNames = contributorArtistMatchSet(args.artistNames);
+    if (matchNames.size === 0) {
+      return [];
+    }
+
+    const rows = await ctx.db.query("replications").collect();
+    const matched = rows.filter((row) => replicationMatchesArtistNames(row, matchNames));
+
+    return Promise.all(
+      matched.map(async (rep) => {
+        const { url, thumbnail_url } = await resolveReplicationUrls(ctx, rep);
+        return {
+          ...rep,
+          url,
+          thumbnail_url,
+        };
+      }),
     );
   },
 });

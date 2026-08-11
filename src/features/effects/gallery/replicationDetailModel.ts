@@ -6,10 +6,10 @@ import { sortWithinGroup } from './galleryModel';
  * (`/replications/[slug]`). Kept framework-free so the walk order is unit-tested
  * rather than inferred from the rendered page.
  *
- * Prev/next deliberately walks the item's own effect in curated `gallery_order`
- * rather than whatever the visitor was browsing: the page is server-rendered and
- * shareable, so the sequence has to be identical for someone arriving cold from a
- * pasted link and someone who clicked through from the gallery.
+ * Prev/next deliberately walks a set derived from the item itself rather than
+ * whatever the visitor was browsing: the page is server-rendered and shareable,
+ * so the sequence has to be identical for someone arriving cold from a pasted
+ * link and someone who clicked through from the gallery.
  */
 
 /** The slice of a sibling the prev/next control actually renders. */
@@ -57,6 +57,17 @@ export function orderEffectReplications(
   return [...curated, ...sortWithinGroup(rest)];
 }
 
+/**
+ * Order one contributor's works. Their body of work spans effects, so no single
+ * effect's curated `gallery_order` governs it and the shared newest-first sort
+ * is the whole order.
+ */
+export function orderContributorReplications(
+  replications: readonly ReplicationWithUrl[],
+): ReplicationWithUrl[] {
+  return orderEffectReplications(replications);
+}
+
 function toNeighbor(replication: ReplicationWithUrl): ReplicationNeighbor {
   return {
     slug: replication.slug,
@@ -90,4 +101,72 @@ export function selectReplicationNeighbors(
     position: index + 1,
     total: ordered.length,
   };
+}
+
+/** Which body of work the prev/next control is walking. */
+export type ReplicationNeighborScope = 'artist' | 'effect';
+
+export interface ReplicationNeighborSet extends ReplicationNeighbors {
+  scope: ReplicationNeighborScope;
+  /**
+   * The name of the set being walked — the artist under `artist`, the effect
+   * under `effect`, `null` when the fallback set has no named subject either.
+   * The nav renders its accessible name from this, so it has to describe the
+   * set the reader actually moves through and not the one they might assume.
+   */
+  scopeLabel: string | null;
+}
+
+export interface ReplicationNeighborSetInput {
+  slug: string;
+  /**
+   * The credited artist's other works, already resolved to a contributor
+   * profile. A credit that resolves to no profile arrives here as an empty set,
+   * because a profile is the only thing that turns a credit line into a body of
+   * work — see `contributorMatchNames`.
+   */
+  artistWorks: readonly ReplicationWithUrl[];
+  /** Display name of that artist, absent when the work is unattributed. */
+  artistName: string | null;
+  effectWorks: readonly ReplicationWithUrl[];
+  effectName: string | null;
+  /** The effect's curated order, which governs the effect set only. */
+  galleryOrder?: readonly string[];
+}
+
+/**
+ * Pick the set the permalink's prev/next walks.
+ *
+ * An attributed work sits inside its maker's body of work first: someone who
+ * arrives at one piece by an artist is far more likely to want the next piece by
+ * that artist than the next recreation of the same effect by someone else. An
+ * unattributed work has no such body — the "Unknown"/"various artists" markers
+ * name no person — so it keeps the effect walk, which is the only grouping it
+ * genuinely belongs to.
+ *
+ * The artist set also has to actually contain this work and have somewhere to
+ * go; a lone piece would otherwise replace a usable effect walk with a dead one.
+ */
+export function selectReplicationNeighborSet({
+  slug,
+  artistWorks,
+  artistName,
+  effectWorks,
+  effectName,
+  galleryOrder,
+}: ReplicationNeighborSetInput): ReplicationNeighborSet {
+  if (artistName) {
+    const byArtist = selectReplicationNeighbors(orderContributorReplications(artistWorks), slug);
+
+    if (byArtist.position > 0 && byArtist.total > 1) {
+      return { ...byArtist, scope: 'artist', scopeLabel: artistName };
+    }
+  }
+
+  const byEffect = selectReplicationNeighbors(
+    orderEffectReplications(effectWorks, galleryOrder),
+    slug,
+  );
+
+  return { ...byEffect, scope: 'effect', scopeLabel: effectName };
 }

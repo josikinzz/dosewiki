@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { EmptyStateSurface } from "@/components/ui/surface";
 import {
   Select,
@@ -37,6 +38,14 @@ type LoadState =
 type ActionFeedback = { tone: "success" | "danger"; message: string };
 
 type QueueFilter = TripReportSubmissionStatus | "all";
+
+// What the editor decided about who this report is by. Convex refuses the
+// promotion until one of the two is set whenever the byline matches a real
+// contributor profile.
+type PromotionAttribution = {
+  profileKey: string;
+  confirmAuthorNameClaim: boolean;
+};
 
 const QUEUE_STATUSES: QueueFilter[] = [
   "all",
@@ -120,7 +129,7 @@ export function TripReportSubmissionReviewTab() {
     }
   }
 
-  async function runPromotion(publish: boolean) {
+  async function runPromotion(publish: boolean, attribution: PromotionAttribution) {
     if (!selected) {
       return;
     }
@@ -130,7 +139,13 @@ export function TripReportSubmissionReviewTab() {
       const response = await fetch(`/api/trip-report-submissions/${selected.id}/promote`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ publish }),
+        // Only sent when the editor actually made the call, so an untouched
+        // panel publishes the report with no profile link.
+        body: JSON.stringify({
+          publish,
+          ...(attribution.profileKey.trim() ? { profile_key: attribution.profileKey.trim() } : {}),
+          ...(attribution.confirmAuthorNameClaim ? { confirm_author_name_claim: true } : {}),
+        }),
       });
       const payload = await response.json().catch(() => ({}));
       if (!response.ok) {
@@ -236,6 +251,9 @@ export function TripReportSubmissionReviewTab() {
         >
           {selected ? (
             <SubmissionDetail
+              // Keyed so the attribution field never carries over to another
+              // submission when the selection changes.
+              key={selected.id}
               submission={selected}
               promotionPayload={promotionPayload}
               actionFeedback={actionFeedback}
@@ -344,10 +362,15 @@ function SubmissionDetail({
   actionFeedback: ActionFeedback | null;
   onDismissFeedback: () => void;
   promotionPayload: ConvexTripReportImportPayload | null;
-  onPromotion: (publish: boolean) => void;
+  onPromotion: (publish: boolean, attribution: PromotionAttribution) => void;
   onStatusChange: (status: TripReportSubmissionStatus, notes: string) => void;
   submission: TripReportSubmissionRow;
 }) {
+  // Attribution is decided here rather than carried by the submission: the
+  // public form cannot prove a contributor identity, an editor can.
+  const [profileKey, setProfileKey] = useState("");
+  const [confirmAuthorNameClaim, setConfirmAuthorNameClaim] = useState(false);
+  const attribution: PromotionAttribution = { profileKey, confirmAuthorNameClaim };
   const canPromote = submission.status === "accepted";
   const validTargets = STATUS_TRANSITIONS[submission.status] ?? [];
   const subject = submission.report.subject;
@@ -468,21 +491,47 @@ function SubmissionDetail({
                 </Button>
               </EditorActionGroup>
               <EditorActionGroup label="Promotion" align="end" separatorBefore>
-                <Button type="button" variant="outline" onClick={() => onPromotion(false)} disabled={!canPromote}>
+                <Input
+                  aria-label="Attribute to contributor profile key"
+                  className="w-44"
+                  value={profileKey}
+                  placeholder="Profile key (optional)"
+                  disabled={!canPromote}
+                  onChange={(event) => setProfileKey(event.target.value)}
+                />
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => onPromotion(false, attribution)}
+                  disabled={!canPromote}
+                >
                   Preview publish
                 </Button>
                 <Button
                   type="button"
                   variant={canPromote ? "accent" : "outline"}
-                  onClick={() => onPromotion(true)}
+                  onClick={() => onPromotion(true, attribution)}
                   disabled={!canPromote}
                 >
                   Publish
                 </Button>
               </EditorActionGroup>
             </EditorToolbar>
+            <label className="theme-text-faint mt-3 flex cursor-pointer items-center gap-2 text-xs [@media(pointer:coarse)]:min-h-11">
+              <input
+                type="checkbox"
+                checked={confirmAuthorNameClaim}
+                disabled={!canPromote}
+                onChange={(event) => setConfirmAuthorNameClaim(event.target.checked)}
+                className="accent-dose-accent-strong"
+              />
+              Publish without attribution even though the byline matches a contributor
+            </label>
             <p className="theme-text-faint mt-3 text-xs">
-              Promotion is available after the submission is accepted; preview builds the Convex payload before publishing.
+              Promotion is available after the submission is accepted; preview builds the Convex payload before
+              publishing. Attribution is optional and must name an existing contributor profile — submissions never
+              carry one themselves. If the submitted byline matches a real contributor, publishing is refused until you
+              either assign that profile key or tick the box above.
             </p>
           </EditorPanel>
         )}

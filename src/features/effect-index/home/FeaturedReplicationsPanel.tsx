@@ -148,7 +148,10 @@ export function FeaturedReplicationsPanel({ items, stub }: FeaturedReplicationsP
               playsInline
               autoPlay={!reducedMotion}
               preload="metadata"
-              className="h-full w-full object-contain"
+              // Fills the link and paints above it, so without this every click on
+              // a video stage lands on the media element and never reaches the
+              // anchor. The caption band below uses the same guard.
+              className="pointer-events-none h-full w-full object-contain"
             />
           ) : (
             <AppImage

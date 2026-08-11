@@ -125,6 +125,10 @@ export const publicDataReadCatalog = {
     functionName: "replications:getBySlug",
     args: (slug: string) => ({ slug }),
   },
+  publicReplicationsByArtistNames: {
+    functionName: "replications:getByArtistNames",
+    args: (artistNames: string[]) => ({ artistNames }),
+  },
   publicTripReportRecords: { functionName: "tripReports:getAll", args: () => ({}) },
   publicTripReportBySlug: { functionName: "tripReports:getBySlug", args: (slug: string) => ({ slug }) },
   publicTripReportsByAuthor: {
@@ -165,6 +169,7 @@ export type PublicDataReadAdapter = {
   getPublicReplicationsByEffect(effectSlug: string): Promise<ReplicationWithUrl[]>;
   getPublicReplications(): Promise<GalleryReplication[]>;
   getPublicReplicationBySlug(slug: string): Promise<ReplicationWithUrl | null>;
+  getPublicReplicationsByArtistNames(artistNames: string[]): Promise<ReplicationWithUrl[]>;
   getPublicTripReportRecords(): Promise<TripReportRecord[]>;
   getPublicTripReportBySlug(slug: string): Promise<TripReportDetailRecord | null>;
   getPublicTripReportsByAuthor(authorName: string): Promise<TripReportRecord[]>;
@@ -686,6 +691,26 @@ export function createConvexPublicDataReadAdapter(query: QueryTransport = queryC
         publicDataReadCatalog.publicReplicationBySlug.functionName,
         publicDataReadCatalog.publicReplicationBySlug.args(slug),
       ),
+    // Contributor-scoped replication read. Additive like getPublicReplications,
+    // so a deployment that predates the query degrades to "no works" instead of
+    // failing the contributor page — but says so, because an empty portfolio and
+    // a missing function look identical on the rendered page.
+    getPublicReplicationsByArtistNames: async (artistNames) => {
+      try {
+        return await query<ReplicationWithUrl[], { artistNames: string[] }>(
+          publicDataReadCatalog.publicReplicationsByArtistNames.functionName,
+          publicDataReadCatalog.publicReplicationsByArtistNames.args(artistNames),
+        );
+      } catch (error) {
+        if (isExplicitMissingPublicFunctionError(error)) {
+          console.warn(
+            "[publicData] replications:getByArtistNames is not deployed; contributor replication credits degraded to empty.",
+          );
+          return [];
+        }
+        throw error;
+      }
+    },
     getPublicTripReportRecords: () =>
       query<TripReportRecord[]>(publicDataReadCatalog.publicTripReportRecords.functionName, {}),
     getPublicTripReportBySlug: (slug) =>

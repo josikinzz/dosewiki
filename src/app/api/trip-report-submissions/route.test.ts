@@ -1,6 +1,10 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { createTripReportSubmission } from "@/features/reports/submissions/tripReportSubmissions";
+import {
+  createTripReportSubmission,
+  validateTripReportSubmission,
+  type TripReportSubmissionInput,
+} from "@/features/reports/submissions/tripReportSubmissions";
 
 vi.mock("server-only", () => ({}));
 
@@ -92,6 +96,62 @@ describe("trip report submissions public route", () => {
       id: "submission-1",
       status: "received",
       warnings: [],
+    });
+  });
+
+  it("keeps submitted identity and link fields out of the stored row and says so", async () => {
+    // Mirrors ConvexTripReportSubmissionStore.create so the assertion covers the
+    // real normalization rather than a fixture.
+    mocks.storeCreate.mockImplementation(async (input: TripReportSubmissionInput) => {
+      const validation = validateTripReportSubmission(input);
+      if (validation.ok === false) {
+        throw new Error(validation.errors.join(" "));
+      }
+
+      return {
+        row: createTripReportSubmission(input, {
+          id: "submission-1",
+          now: new Date("2026-06-11T12:00:00.000Z"),
+        }),
+        warnings: validation.warnings,
+      };
+    });
+
+    const { POST } = await import("./route");
+    const response = await POST(
+      new Request("https://dose.wiki/api/trip-report-submissions", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          ...validBody,
+          report: {
+            ...validBody.report,
+            subject: {
+              name: "Not The Founder",
+              profile_key: "FOUNDER",
+              avatar_url: "https://attacker.example/face.png",
+              pdf_url: "https://attacker.example/tracker.pdf",
+            },
+          },
+        }),
+      }),
+    );
+
+    const { row } = await mocks.storeCreate.mock.results[0].value;
+    for (const field of ["profile_key", "avatar_url", "pdf_url"]) {
+      expect(row.report.subject).not.toHaveProperty(field);
+    }
+    expect(JSON.stringify(row)).not.toContain("attacker.example");
+    expect(response.status).toBe(202);
+    await expect(response.json()).resolves.toEqual({
+      ok: true,
+      id: "submission-1",
+      status: "received",
+      warnings: [
+        "Contributor profile key was ignored; an editor assigns report attribution when publishing.",
+        "Avatar URL was ignored; a published report shows the avatar of the contributor profile it is attributed to.",
+        "PDF URL was ignored; outbound links on a published report are added by an editor, not by the submitter.",
+      ],
     });
   });
 });

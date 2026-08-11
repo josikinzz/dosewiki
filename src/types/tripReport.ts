@@ -39,6 +39,18 @@ export function resolveTripReportLicense(license?: string | null): TripReportLic
   return license === "public-domain" ? "public-domain" : DEFAULT_TRIP_REPORT_LICENSE;
 }
 
+/**
+ * Record that a human editor decided who a report is by, stamped only by the
+ * submission promotion path (`convex/tripReportSubmissions.ts`). Its absence
+ * marks the legacy imported corpus, whose bylines were written by editors and
+ * therefore still resolve to a contributor by name on the public read path.
+ */
+export interface TripReportAttributionReview {
+  reviewed_by: string;
+  reviewed_at: string;
+  decision: "assigned" | "declined";
+}
+
 export interface TripReport {
   _id?: string;
   slug: string;
@@ -53,6 +65,7 @@ export interface TripReport {
   conclusion?: string;
   tags: string[];
   license?: string;
+  attribution_review?: TripReportAttributionReview;
 }
 
 export type StoredTripReport = TripReport;
@@ -71,6 +84,9 @@ export type TripReportPreviewRecord = Pick<
   | "peak"
   | "offset"
   | "conclusion"
+  // Carried into previews because it decides whether the byline may resolve to
+  // a contributor at all; see `lib/convex/publicData.reportProfileProjection`.
+  | "attribution_review"
 >;
 
 export interface PublicReportPreview {

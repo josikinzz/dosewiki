@@ -4,9 +4,9 @@ import { AppImage } from "@/components/common/AppImage";
 import { DefinitionList, DefinitionRow } from "@/components/common/DefinitionList";
 import { Icon } from "@/components/common/Icon";
 import { proseLinkClassName } from "@/components/common/ProseLink";
-import { PublicOverline, PublicPill } from "@/components/common/PublicTokens";
+import { PublicNameChip, PublicOverline, PublicPill } from "@/components/common/PublicTokens";
 import { PublicContentShell } from "@/components/layout/PublicPagePrimitives";
-import { ContentCard, NestedContentCard } from "@/components/ui/surface";
+import { ContentCard, NestedContentCard, focusRingClassName } from "@/components/ui/surface";
 import { publicHref } from "@/utils/publicHref";
 import type { ReplicationWithUrl } from "@/types/replications";
 import {
@@ -14,18 +14,42 @@ import {
   getRightsSummary,
   hasKnownCreator,
 } from "../components/replicationCredit";
-import type { ReplicationNeighbors } from "../gallery/replicationDetailModel";
+import type { ReplicationNeighborSet } from "../gallery/replicationDetailModel";
 import { ReplicationNeighborKeys } from "./ReplicationNeighborKeys";
 import { buildAttributionLine } from "./replicationAttribution";
+import type { EffectCategoryLink } from "./replicationSubject";
 
 export interface ReplicationDetailPageProps {
   replication: ReplicationWithUrl;
   effectName: string | null;
   effectSlug: string | null;
-  neighbors: ReplicationNeighbors;
+  /** Profile page of the credited artist, absent when no profile claims them. */
+  artistProfileHref: string | null;
+  /** Category pages the replicated effect belongs to, broad to specific. */
+  effectCategories: EffectCategoryLink[];
+  neighbors: ReplicationNeighborSet;
 }
 
 const FALLBACK_RATIO = 4 / 3;
+
+/** The nav takes its accessible name from the label it already renders. */
+const NEIGHBOR_NAV_LABEL_ID = "replication-neighbors-label";
+
+/**
+ * Names the set prev/next moves through. "More by Chelsea Morgan" and "More
+ * replications of Tracers" are different claims about where the reader is, so
+ * this is built from the set that was actually chosen rather than from whichever
+ * subject happens to be on the page.
+ */
+function describeNeighborSet(neighbors: ReplicationNeighborSet): string {
+  if (!neighbors.scopeLabel) {
+    return "More replications";
+  }
+
+  return neighbors.scope === "artist"
+    ? `More by ${neighbors.scopeLabel}`
+    : `More replications of ${neighbors.scopeLabel}`;
+}
 
 function formatFileSize(bytes?: number) {
   if (!bytes || bytes <= 0) return null;
@@ -49,12 +73,15 @@ export function ReplicationDetailPage({
   replication,
   effectName,
   effectSlug,
+  artistProfileHref,
+  effectCategories,
   neighbors,
 }: ReplicationDetailPageProps) {
   const isVideo = replication.type === "video";
   const creator = hasKnownCreator(replication.artist) ? replication.artist.trim() : null;
   const sourceUrl = getExternalSourceUrl(replication);
   const attribution = buildAttributionLine(replication);
+  const neighborSetLabel = describeNeighborSet(neighbors);
 
   const width = replication.width ?? 1600;
   const height = replication.height ?? Math.round(width / FALLBACK_RATIO);
@@ -95,7 +122,18 @@ export function ReplicationDetailPage({
           {creator ? (
             <>
               by{" "}
-              {replication.artist_url ? (
+              {artistProfileHref ? (
+                // The credit resolves to a contributor, so the byline goes to
+                // their profile: that is where their other work, their bio, and
+                // now their own website live. Their external site is one link on
+                // that page rather than the destination of every credit.
+                <Link href={artistProfileHref} className={proseLinkClassName}>
+                  {creator}
+                </Link>
+              ) : replication.artist_url ? (
+                // No profile claims this credit. The row's own external link is
+                // then the only destination that exists, so it stays — the
+                // alternative is a byline that links nowhere.
                 <a
                   href={replication.artist_url}
                   target="_blank"
@@ -166,6 +204,48 @@ export function ReplicationDetailPage({
         </figcaption>
       </figure>
 
+      {/* What the reader is looking at, directly under the work.
+          This used to be a "Replicates" row inside Credit & licence, which
+          answers a different question: that card is about provenance and reuse
+          terms, while the effect is the work's subject and the categories are
+          wayfinding into the taxonomy. Someone who has just looked at the image
+          asks "what is this an effect of, and what else is like it" before they
+          ask who holds the rights, so it belongs against the image rather than
+          buried in a rights table — and it is not repeated in both places. */}
+      {effectName && effectSlug ? (
+        <section className="mt-6" aria-labelledby="replication-subject">
+          <PublicOverline as="h2" id="replication-subject">
+            Replicates
+          </PublicOverline>
+
+          <p className="mt-2">
+            <Link
+              href={publicHref.effect(effectSlug)}
+              className="theme-accent-heading font-display text-xl font-semibold tracking-tight transition-colors hover:text-[var(--theme-accent-strong)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--theme-accent-strong)]"
+            >
+              {effectName}
+            </Link>
+          </p>
+
+          {effectCategories.length > 0 ? (
+            <ul aria-label={`${effectName} categories`} className="mt-3 flex flex-wrap gap-2">
+              {effectCategories.map((category) => (
+                <li key={category.slug}>
+                  <PublicNameChip
+                    as={Link}
+                    href={publicHref.effectCategory(category.slug)}
+                    icon={category.icon}
+                    interactive
+                  >
+                    {category.name}
+                  </PublicNameChip>
+                </li>
+              ))}
+            </ul>
+          ) : null}
+        </section>
+      ) : null}
+
       {/* Below the image: provenance and the terms you may reuse it under. */}
       <ContentCard className="mt-8">
         <h2 className="theme-accent-heading font-display text-lg font-semibold tracking-tight">
@@ -212,19 +292,6 @@ export function ReplicationDetailPage({
             ) : null}
           </DefinitionRow>
 
-          {effectName && effectSlug ? (
-            <DefinitionRow
-              semantic
-              term="Replicates"
-              termClassName="theme-text-faint text-xs uppercase tracking-[0.18em]"
-              bodyClassName="text-sm leading-6"
-            >
-              <Link href={publicHref.effect(effectSlug)} className={proseLinkClassName}>
-                {effectName}
-              </Link>
-            </DefinitionRow>
-          ) : null}
-
           {sourceUrl ? (
             <DefinitionRow
               semantic
@@ -262,9 +329,19 @@ export function ReplicationDetailPage({
 
       {neighbors.total > 1 ? (
         <nav
-          aria-label={effectName ? `More replications of ${effectName}` : "More replications"}
+          // Labelled by the line it already renders rather than by a duplicate
+          // aria-label, so the name a screen reader announces and the name a
+          // sighted reader sees are the same string by construction.
+          aria-labelledby={NEIGHBOR_NAV_LABEL_ID}
           className="mt-8 border-t border-[color:var(--theme-border-subtle)] pt-4"
         >
+          <p
+            id={NEIGHBOR_NAV_LABEL_ID}
+            className="theme-text-ghost mb-3 text-center text-[0.6875rem] uppercase tracking-[0.18em]"
+          >
+            {neighborSetLabel}
+          </p>
+
           <div className="flex items-stretch justify-between gap-3">
             <NeighborLink neighbor={neighbors.previous} direction="previous" />
             <p className="theme-text-ghost self-center whitespace-nowrap text-xs tabular-nums">
@@ -282,7 +359,7 @@ function NeighborLink({
   neighbor,
   direction,
 }: {
-  neighbor: ReplicationNeighbors["previous"];
+  neighbor: ReplicationNeighborSet["previous"];
   direction: "previous" | "next";
 }) {
   const isNext = direction === "next";
@@ -299,7 +376,7 @@ function NeighborLink({
       className={[
         "group theme-text-muted flex min-w-0 flex-1 items-center gap-3 rounded-xl px-2 py-2 text-sm transition-colors",
         "hover:text-[var(--theme-accent-strong)] hover:bg-[var(--theme-frosted-control-hover-bg)]",
-        "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--theme-accent-strong)]",
+        focusRingClassName,
         isNext ? "flex-row-reverse text-right" : undefined,
       ]
         .filter(Boolean)

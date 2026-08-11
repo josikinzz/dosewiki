@@ -136,6 +136,42 @@ describe("ConvexTripReportSubmissionStore", () => {
     expect(JSON.stringify(recorder.calls)).not.toContain("203.0.113.10");
   });
 
+  it("never sends submitter-claimed identity or link fields to Convex", async () => {
+    const recorder = createClientRecorder();
+    const store = new ConvexTripReportSubmissionStore({
+      client: recorder.client,
+      apiKey: "test-key",
+      idFactory: () => "submission-1",
+    });
+
+    const result = await store.create({
+      ...validSubmission,
+      report: {
+        ...validSubmission.report,
+        subject: {
+          name: "Not The Founder",
+          profile_key: "FOUNDER",
+          avatar_url: "https://attacker.example/face.png",
+          pdf_url: "https://attacker.example/tracker.pdf",
+        },
+      },
+    });
+
+    const [createCall] = recorder.calls;
+    const submission = createCall.args.submission as { report: { subject: Record<string, unknown> } };
+
+    for (const field of ["profile_key", "avatar_url", "pdf_url"]) {
+      expect(submission.report.subject).not.toHaveProperty(field);
+    }
+    expect(JSON.stringify(recorder.calls)).not.toContain("FOUNDER");
+    expect(JSON.stringify(recorder.calls)).not.toContain("attacker.example");
+    expect(result.warnings).toEqual([
+      "Contributor profile key was ignored; an editor assigns report attribution when publishing.",
+      "Avatar URL was ignored; a published report shows the avatar of the contributor profile it is attributed to.",
+      "PDF URL was ignored; outbound links on a published report are added by an editor, not by the submitter.",
+    ]);
+  });
+
   it("uses private Convex functions for editor queue reads and explicit promotion", async () => {
     const recorder = createClientRecorder();
     const store = new ConvexTripReportSubmissionStore({
@@ -144,7 +180,9 @@ describe("ConvexTripReportSubmissionStore", () => {
     });
 
     await expect(store.list({ status: "submitted", limit: 25 })).resolves.toHaveLength(1);
-    await expect(store.previewPromotion("submission-1")).resolves.toMatchObject({
+    await expect(
+      store.previewPromotion("submission-1", { reviewer: "editor@example.com" }),
+    ).resolves.toMatchObject({
       payload: {
         slug: "careful-low-dose-museum-walk",
         featured: false,
@@ -154,6 +192,8 @@ describe("ConvexTripReportSubmissionStore", () => {
       store.promote("submission-1", {
         reviewer: "editor@example.com",
         notes: "Published from accepted submission.",
+        profileKey: "ADA",
+        confirmAuthorNameClaim: true,
       }),
     ).resolves.toMatchObject({
       submission: { status: "exported" },
@@ -162,7 +202,11 @@ describe("ConvexTripReportSubmissionStore", () => {
 
     expect(recorder.calls.map((call) => [call.kind, call.name, call.args])).toEqual([
       ["query", "tripReportSubmissions:list", { apiKey: "test-key", status: "submitted", limit: 25 }],
-      ["query", "tripReportSubmissions:previewPromotion", { apiKey: "test-key", id: "submission-1" }],
+      [
+        "query",
+        "tripReportSubmissions:previewPromotion",
+        { apiKey: "test-key", id: "submission-1", reviewer: "editor@example.com" },
+      ],
       [
         "mutation",
         "tripReportSubmissions:promote",
@@ -171,6 +215,8 @@ describe("ConvexTripReportSubmissionStore", () => {
           id: "submission-1",
           reviewer: "editor@example.com",
           notes: "Published from accepted submission.",
+          profileKey: "ADA",
+          confirmAuthorNameClaim: true,
         },
       ],
     ]);

@@ -4,6 +4,7 @@ import { cache, type ReactNode } from "react";
 import {
   getPublicContributorByKey,
   getPublicContributorDirectory,
+  getPublicContributorProfiles,
   getPublicDataOverview,
   getPublishedEffectIndexArticles,
   getPublicEffectArticles,
@@ -19,6 +20,7 @@ import {
   getPublicReports,
   getPublicSubstanceBySlug,
   getPublicSubstances,
+  getReplicationsByContributor,
   getReportsByContributor,
   type PublicEffectArticle,
   type PublicEffectIndexArticle,
@@ -48,10 +50,15 @@ import { SITE_FLAVOR_CONFIG } from "../../src/config/siteFlavor";
 import type { GalleryReplication, ReplicationWithUrl } from "../../src/types/replications";
 import { hasKnownCreator } from "../../src/features/effects/components/replicationCredit";
 import {
-  orderEffectReplications,
-  selectReplicationNeighbors,
-  type ReplicationNeighbors,
+  orderContributorReplications,
+  selectReplicationNeighborSet,
+  type ReplicationNeighborSet,
 } from "../../src/features/effects/gallery/replicationDetailModel";
+import {
+  resolveEffectCategories,
+  type EffectCategoryLink,
+} from "../../src/features/effects/pages/replicationSubject";
+import { findContributorProfileByAuthorName } from "../contributorProfileIdentity";
 import type { ChangeLogEntry } from "../../src/data/changelog/changeLog";
 import {
   getPsychoactiveSummaryDefinition,
@@ -420,7 +427,10 @@ export interface ReplicationPageProps {
   /** Display name of the owning effect, absent when the row has no real effect. */
   effectName: string | null;
   effectSlug: string | null;
-  neighbors: ReplicationNeighbors;
+  /** Profile page of the credited artist, absent when no profile claims them. */
+  artistProfileHref: string | null;
+  effectCategories: EffectCategoryLink[];
+  neighbors: ReplicationNeighborSet;
 }
 
 export type ReplicationRouteResult =
@@ -431,6 +441,32 @@ export type ReplicationRouteResult =
 /** Rows carry `effect_slug: "unknown"` when nothing real is attached. */
 const hasRealEffect = (effectSlug?: string | null) =>
   Boolean(effectSlug && effectSlug !== "unknown");
+
+/**
+ * A contributor's works, tolerant of a deployment that predates the join.
+ *
+ * `replications:getByArtistNames` is additive, and a Convex deployment without
+ * it answers with the same opaque `Server Error` it uses for every other
+ * failure — the read adapter's explicit missing-function check only sees through
+ * that in development. Both callers have a correct answer for "no works": the
+ * profile renders no works section, and the permalink keeps the effect walk. An
+ * unavailable portfolio must not take down a prerendered route, so this degrades
+ * rather than throws — loudly, because an empty portfolio and a missing function
+ * look identical on the rendered page.
+ */
+async function readContributorReplications(
+  profile: NormalizedUserProfile,
+): Promise<ReplicationWithUrl[]> {
+  try {
+    return await getReplicationsByContributor(profile);
+  } catch (error) {
+    console.warn(
+      `[routeLoaders] replication credits unavailable for ${profile.key}; rendering without them.`,
+      error,
+    );
+    return [];
+  }
+}
 
 export const loadReplicationRoute = cache(async (slug: string): Promise<ReplicationRouteResult> => {
   // Slug normalisation rewrote a chunk of filename-derived URLs. Anything already
@@ -455,17 +491,34 @@ export const loadReplicationRoute = cache(async (slug: string): Promise<Replicat
   }
 
   const effectSlug = hasRealEffect(replication.effect_slug) ? replication.effect_slug : null;
+  const creator = hasKnownCreator(replication.artist) ? replication.artist.trim() : null;
 
-  const [effect, siblings] = await Promise.all([
+  const [effect, siblings, contributorProfiles] = await Promise.all([
     effectSlug ? getPublicEffectBySlug(effectSlug) : Promise.resolve(null),
     effectSlug ? getPublicReplicationsByEffect(effectSlug) : Promise.resolve([]),
+    // Only a credit that names a person can resolve to a profile; the
+    // unattributed markers never match one, so an unattributed row skips the
+    // read rather than paying for a lookup that cannot succeed.
+    creator ? getPublicContributorProfiles() : Promise.resolve([]),
   ]);
 
-  const ordered = orderEffectReplications(siblings, effect?.gallery_order);
-  const neighbors = selectReplicationNeighbors(ordered, slug);
+  const artistProfile = creator
+    ? findContributorProfileByAuthorName(contributorProfiles, creator)
+    : null;
+  // A profile is what turns a credit line into a body of work — it carries the
+  // aliases the join matches on. A named credit nobody has claimed therefore has
+  // no "other works" set to offer, and keeps the effect walk below.
+  const artistWorks = artistProfile ? await readContributorReplications(artistProfile) : [];
 
-  const creator = hasKnownCreator(replication.artist) ? replication.artist : null;
   const subject = effect?.name ?? null;
+  const neighbors = selectReplicationNeighborSet({
+    slug,
+    artistWorks,
+    artistName: artistProfile?.displayName ?? null,
+    effectWorks: siblings,
+    effectName: subject,
+    galleryOrder: effect?.gallery_order,
+  });
 
   return {
     kind: "ok",
@@ -473,6 +526,10 @@ export const loadReplicationRoute = cache(async (slug: string): Promise<Replicat
       replication,
       effectName: subject,
       effectSlug,
+      artistProfileHref: artistProfile
+        ? getPublicRoutePath({ family: "contributor", params: { profileKey: artistProfile.key } })
+        : null,
+      effectCategories: effect ? resolveEffectCategories(effect.tags) : [],
       neighbors,
     },
     metadata: toRouteMetadata({
@@ -545,6 +602,8 @@ export interface ContributorRoutePageProps {
   bioContent: ReactNode;
   reportHrefPrefix: string;
   tripReports: ReportCardModel[];
+  /** Replications credited to this contributor, newest first. */
+  replications: ReplicationWithUrl[];
 }
 
 export type ContributorRouteResult =
@@ -586,7 +645,13 @@ export const loadContributorRoute = cache(
       };
     }
 
-    const reports = await getReportsByContributor(profile);
+    // Both joins run off the same profile and the same name set, so a
+    // contributor's reports and their works can never disagree about which
+    // credits are theirs.
+    const [reports, replications] = await Promise.all([
+      getReportsByContributor(profile),
+      readContributorReplications(profile),
+    ]);
 
     return {
       kind: "ok",
@@ -596,6 +661,7 @@ export const loadContributorRoute = cache(
         bioContent: profile.hasCustomBio ? <ProfileBioMarkdown content={profile.bio} /> : null,
         reportHrefPrefix: REPORT_HREF_PREFIX,
         tripReports: reports.map(toReportCardModel),
+        replications: orderContributorReplications(replications),
       },
       metadata,
       canonicalRoute,

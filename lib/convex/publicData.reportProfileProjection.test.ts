@@ -90,12 +90,14 @@ describe("public report profile projection", () => {
     expect(collapseContributorProfiles(profiles).map((entry) => entry.key)).toEqual(["VISCID"]);
   });
 
-  it("matches report authors by exact display name, alias, and first-name fallback", () => {
+  it("matches report authors by exact display name and by alias only", () => {
     const profiles = [profile({ displayName: "Alice Example", aliases: ["legacy alice"] })];
 
     expect(resolveReportContributorProfile(profiles, "Alice Example")?.key).toBe("AUTHOR");
     expect(resolveReportContributorProfile(profiles, "legacy alice")?.key).toBe("AUTHOR");
-    expect(resolveReportContributorProfile(profiles, "Alice")?.key).toBe("AUTHOR");
+    // A bare given name is another contributor's to claim, so it stays unresolved
+    // until this profile records it as an alias.
+    expect(resolveReportContributorProfile(profiles, "Alice")).toBeNull();
   });
 
   it("projects previews with profile avatars and author profile keys", () => {
@@ -160,6 +162,69 @@ describe("public report profile projection", () => {
       name: "legacy alice",
       profile_key: "AUTHOR",
       avatar_url: "https://example.com/profile.png",
+    });
+  });
+
+  it("keeps attributing legacy reports by author name when no editor review is recorded", () => {
+    // The imported corpus carries no `profile_key` and no `attribution_review`;
+    // name matching is the only thing attributing every published report today.
+    const profiles = [profile({ key: "NERVEWING", displayName: "nervewing", avatarUrl: "https://example.com/n.png" })];
+    const legacy = detailReport({ subject: { name: "nervewing" } });
+
+    expect(projectPublicReportDetail(legacy, profiles).subject).toMatchObject({
+      profile_key: "NERVEWING",
+      avatar_url: "https://example.com/n.png",
+    });
+    expect(projectPublicReportPreview(report({ subject: { name: "nervewing" } }), profiles)).toMatchObject({
+      authorProfileKey: "NERVEWING",
+      authorAvatarUrl: "https://example.com/n.png",
+    });
+  });
+
+  it("refuses to attribute a reviewed report on its byline alone", () => {
+    // A promoted submission carries the review marker. Its byline is a string an
+    // anonymous submitter typed, so matching a real contributor's name grants
+    // nothing: no profile key, no avatar, no link to their page.
+    const profiles = [profile({ key: "NERVEWING", displayName: "nervewing", avatarUrl: "https://example.com/n.png" })];
+    const impersonating = {
+      subject: { name: "nervewing" },
+      attribution_review: {
+        reviewed_by: "editor@example.com",
+        reviewed_at: "2026-06-11T12:00:00.000Z",
+        decision: "declined" as const,
+      },
+    };
+
+    expect(projectPublicReportDetail(detailReport(impersonating), profiles).subject).toEqual({
+      name: "nervewing",
+    });
+    expect(projectPublicReportPreview(report(impersonating), profiles)).toMatchObject({
+      authorProfileKey: undefined,
+      authorAvatarUrl: null,
+    });
+  });
+
+  it("honours the profile key an editor assigned to a reviewed report", () => {
+    const profiles = [
+      profile({ key: "NERVEWING", displayName: "nervewing", avatarUrl: "https://example.com/n.png" }),
+      profile({ key: "ADA", displayName: "Ada Lovelace", avatarUrl: "https://example.com/a.png" }),
+    ];
+    const reviewed = {
+      subject: { name: "Ada Lovelace", profile_key: "ADA" },
+      attribution_review: {
+        reviewed_by: "editor@example.com",
+        reviewed_at: "2026-06-11T12:00:00.000Z",
+        decision: "assigned" as const,
+      },
+    };
+
+    expect(projectPublicReportDetail(detailReport(reviewed), profiles).subject).toMatchObject({
+      profile_key: "ADA",
+      avatar_url: "https://example.com/a.png",
+    });
+    expect(projectPublicReportPreview(report(reviewed), profiles)).toMatchObject({
+      authorProfileKey: "ADA",
+      authorAvatarUrl: "https://example.com/a.png",
     });
   });
 

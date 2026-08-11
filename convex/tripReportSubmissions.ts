@@ -2,6 +2,12 @@ import { v } from "convex/values";
 import { mutation, query, type QueryCtx } from "./_generated/server";
 import { requireAuth, requireEditorWrite } from "./lib/auth";
 import {
+  findProfileByAuthorName,
+  normalizeAssignedProfileKey,
+  stripSubmitterSubjectFields,
+  withEditorAssignedProfileKey,
+} from "./lib/tripReportAttribution";
+import {
   timelineEntryValidator,
   tripReportImportInputValidator,
   tripReportSubjectValidator,
@@ -19,6 +25,9 @@ const statusValidator = v.union(
 
 const submissionReportValidator = v.object({
   title: v.string(),
+  // Still accepts the submitter-restricted subject fields so rows stored before
+  // intake started stripping them keep reading back; `create` and `promote`
+  // drop them regardless.
   subject: tripReportSubjectValidator,
   substances: v.array(tripReportSubstanceValidator),
   introduction: v.optional(v.string()),
@@ -93,15 +102,22 @@ export const create = mutation({
   returns: submissionRowValidator,
   handler: async (ctx, args) => {
     await requireAuth(ctx, args.apiKey, "editorArticleWrite");
-    validateCreatedSubmission(args.submission);
 
-    const existing = await findSubmissionByPublicId(ctx, args.submission.id);
+    // The intake route relays an unauthenticated submitter, so the payload
+    // cannot be trusted with contributor attribution or reader-facing links
+    // even though the route itself authenticates as the server. Strip the
+    // claims at the boundary that owns the stored row rather than relying on
+    // the caller to have done it.
+    const submission = withoutSubmitterAttribution(args.submission);
+    validateCreatedSubmission(submission);
+
+    const existing = await findSubmissionByPublicId(ctx, submission.id);
     if (existing) {
       throw new Error("Trip report submission already exists.");
     }
 
-    await ctx.db.insert("tripReportSubmissions", args.submission);
-    return args.submission;
+    await ctx.db.insert("tripReportSubmissions", submission);
+    return submission;
   },
 });
 
@@ -190,6 +206,11 @@ export const previewPromotion = query({
   args: {
     apiKey: v.string(),
     id: v.string(),
+    profileKey: v.optional(v.string()),
+    // Preview runs the same attribution guard as promote, so an editor meets a
+    // name collision before publishing rather than at the publish click.
+    reviewer: v.optional(v.string()),
+    confirmAuthorNameClaim: v.optional(v.boolean()),
   },
   returns: promotionPreviewValidator,
   handler: async (ctx, args) => {
@@ -200,7 +221,11 @@ export const previewPromotion = query({
 
     const doc = await requireSubmission(ctx, args.id);
     assertPromotable(doc);
-    const payload = await buildPromotionPayload(ctx, doc);
+    const payload = await buildPromotionPayload(ctx, doc, {
+      reviewer: args.reviewer ?? "",
+      requestedProfileKey: args.profileKey,
+      confirmAuthorNameClaim: args.confirmAuthorNameClaim === true,
+    });
 
     return {
       row: toSubmissionRow(doc),
@@ -215,6 +240,12 @@ export const promote = mutation({
     id: v.string(),
     reviewer: v.string(),
     notes: v.optional(v.string()),
+    // Contributor attribution is an editor decision made here, never something
+    // the submission carries in from the public form.
+    profileKey: v.optional(v.string()),
+    // Acknowledges that the submitted byline matches a real contributor and
+    // that the editor is publishing it without granting that identity.
+    confirmAuthorNameClaim: v.optional(v.boolean()),
   },
   returns: promotionResultValidator,
   handler: async (ctx, args) => {
@@ -226,7 +257,11 @@ export const promote = mutation({
     const doc = await requireSubmission(ctx, args.id);
     assertPromotable(doc);
 
-    const payload = await buildPromotionPayload(ctx, doc);
+    const payload = await buildPromotionPayload(ctx, doc, {
+      reviewer: args.reviewer,
+      requestedProfileKey: args.profileKey,
+      confirmAuthorNameClaim: args.confirmAuthorNameClaim === true,
+    });
     const reportId = await ctx.db.insert("tripReports", payload);
     const timestamp = new Date().toISOString();
     const patch = {
@@ -293,17 +328,113 @@ function assertPromotable(row: SubmissionRow) {
   }
 }
 
-async function buildPromotionPayload(ctx: ConvexReadCtx, row: SubmissionRow) {
+type PromotionAttributionOptions = {
+  reviewer: string;
+  requestedProfileKey?: string;
+  confirmAuthorNameClaim: boolean;
+};
+
+async function buildPromotionPayload(
+  ctx: ConvexReadCtx,
+  row: SubmissionRow,
+  options: PromotionAttributionOptions,
+) {
   const slug = await resolveAvailableSlug(ctx, slugify(row.title));
+  const assignedProfileKey = await resolveEditorAssignedProfileKey(ctx, options.requestedProfileKey);
+  await assertAuthorNameClaimAdjudicated(ctx, row.report.subject.name, assignedProfileKey, options);
 
   return {
     ...row.report,
+    // Publishes only the attribution the promoting editor asked for. Any key,
+    // avatar, or outbound link left on the stored row by the pre-hardening
+    // intake path is discarded.
+    subject: withEditorAssignedProfileKey(row.report.subject, assignedProfileKey),
     slug,
     featured: false,
     // Reports submitted through the public form are dedicated to the public
     // domain (CC0) by the submitter (see the submission consent copy).
     license: "public-domain",
+    // Stamped on every promoted report, including the ones an editor declined
+    // to attribute: the read path uses the marker's presence to know this
+    // byline was written by an anonymous submitter and must not resolve to a
+    // contributor on its own.
+    attribution_review: {
+      reviewed_by: options.reviewer,
+      reviewed_at: new Date().toISOString(),
+      decision: assignedProfileKey ? ("assigned" as const) : ("declined" as const),
+    },
   };
+}
+
+/**
+ * A submitted byline is an unverified string, and the public read path resolves
+ * bylines to contributor profiles by exact name. Promoting "nervewing" as-is
+ * would therefore hand that contributor's page, avatar, and report list to
+ * whoever typed the name. The editor is looking straight at the submission at
+ * this moment, so this is where the claim gets adjudicated: grant it by
+ * assigning that profile's key, or acknowledge it and publish unattributed.
+ */
+async function assertAuthorNameClaimAdjudicated(
+  ctx: ConvexReadCtx,
+  authorName: string,
+  assignedProfileKey: string,
+  options: PromotionAttributionOptions,
+) {
+  // contributorProfiles is a small dimension table with no name index, and the
+  // public profile reads already collect it wholesale.
+  const profiles = await ctx.db.query("contributorProfiles").collect();
+  const matched = findProfileByAuthorName(profiles, authorName);
+
+  if (!matched) {
+    return;
+  }
+
+  const matchedKey = normalizeAssignedProfileKey(matched.key);
+  if (assignedProfileKey && assignedProfileKey === matchedKey) {
+    return;
+  }
+
+  if (options.confirmAuthorNameClaim) {
+    return;
+  }
+
+  throw new Error(
+    `Author name "${authorName}" matches contributor profile "${matchedKey}". ` +
+      "Assign that profile key to attribute the report, or confirm publishing it without attribution.",
+  );
+}
+
+function withoutSubmitterAttribution(row: SubmissionRow): SubmissionRow {
+  return {
+    ...row,
+    report: {
+      ...row.report,
+      subject: stripSubmitterSubjectFields(row.report.subject),
+    },
+  };
+}
+
+/**
+ * Resolve the contributor key an editor assigned during promotion. Unknown keys
+ * are rejected rather than published, so a typo cannot mint a report that links
+ * to a contributor page nobody owns.
+ */
+async function resolveEditorAssignedProfileKey(ctx: ConvexReadCtx, requestedKey: string | undefined) {
+  const profileKey = normalizeAssignedProfileKey(requestedKey);
+  if (!profileKey) {
+    return "";
+  }
+
+  const profile = await ctx.db
+    .query("contributorProfiles")
+    .withIndex("by_key", (q) => q.eq("key", profileKey))
+    .first();
+
+  if (!profile) {
+    throw new Error(`Contributor profile "${profileKey}" not found.`);
+  }
+
+  return profileKey;
 }
 
 async function resolveAvailableSlug(ctx: ConvexReadCtx, baseSlug: string) {

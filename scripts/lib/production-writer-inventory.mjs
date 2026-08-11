@@ -4,6 +4,7 @@ export const productionWriterClassifications = Object.freeze({
     "scripts/batch/apply-dosage-duration-rewrite-results.mjs",
     "scripts/convex/apply-2026-07-23-targeted-updates.mjs",
     "scripts/convex/copy-prodrug-subjective-effects.mjs",
+    "scripts/contributors/seed-credited-identities.mjs",
     "scripts/convex/merge-duplicate-article-content.mjs",
     "scripts/effects/repair-legacy-article-media.mjs",
     "scripts/effects/upgrade-article-media.mjs",
@@ -15,7 +16,9 @@ export const productionWriterClassifications = Object.freeze({
     "scripts/replications/fix-replication-effect-slugs.mjs",
     "scripts/replications/import-audio-replications.mjs",
     "scripts/replications/merge-unknown-twins.mjs",
+    "scripts/replications/plan-artist-name-corrections.mjs",
     "scripts/replications/regenerate-missing-thumbnails.mjs",
+    "scripts/replications/repoint-renditions.mjs",
     "scripts/replications/upload-replications.mjs",
     "scripts/seed/seed-category-layout.mjs",
     "scripts/seed/seed-index-layouts.mjs",
@@ -121,6 +124,7 @@ export const productionWriterClassifications = Object.freeze({
     "scripts/prepopulate/prepopulate-source-citations.mjs",
     "scripts/prepopulate/prepopulate-tolerance.mjs",
     "scripts/replications/create-gallery-order.mjs",
+    "scripts/replications/repoint-renditions.mjs",
   ]),
   detectorExemption: Object.freeze([
     {

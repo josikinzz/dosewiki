@@ -39,15 +39,27 @@ export type TripReportSubmissionPromotionResult = {
   payload: ConvexTripReportImportPayload;
 };
 
+// Contributor attribution for a published report is chosen by the promoting
+// editor, so it travels with the promotion call rather than the submission.
+export type TripReportSubmissionPromotionOptions = {
+  profileKey?: string;
+  // Acknowledges a byline that matches an existing contributor. Convex refuses
+  // the promotion without either this or a matching profile key.
+  confirmAuthorNameClaim?: boolean;
+};
+
 export interface TripReportSubmissionStore {
   create(input: TripReportSubmissionInput): Promise<TripReportSubmissionCreateResult>;
   list(filters?: TripReportSubmissionListFilters): Promise<TripReportSubmissionRow[]>;
   get(id: string): Promise<TripReportSubmissionRow | null>;
   transition(id: string, options: TransitionTripReportSubmissionOptions): Promise<TripReportSubmissionRow>;
-  previewPromotion(id: string): Promise<TripReportSubmissionPromotionPreviewResult>;
+  previewPromotion(
+    id: string,
+    options?: TripReportSubmissionPromotionOptions & { reviewer?: string },
+  ): Promise<TripReportSubmissionPromotionPreviewResult>;
   promote(
     id: string,
-    options: { reviewer: string; notes?: string },
+    options: { reviewer: string; notes?: string } & TripReportSubmissionPromotionOptions,
   ): Promise<TripReportSubmissionPromotionResult>;
 }
 
@@ -97,13 +109,26 @@ const transitionSubmissionRef = makeFunctionReference<
 
 const previewPromotionRef = makeFunctionReference<
   "query",
-  { apiKey: string; id: string },
+  {
+    apiKey: string;
+    id: string;
+    profileKey?: string;
+    reviewer?: string;
+    confirmAuthorNameClaim?: boolean;
+  },
   TripReportSubmissionPromotionPreviewResult
 >("tripReportSubmissions:previewPromotion");
 
 const promoteSubmissionRef = makeFunctionReference<
   "mutation",
-  { apiKey: string; id: string; reviewer: string; notes?: string },
+  {
+    apiKey: string;
+    id: string;
+    reviewer: string;
+    notes?: string;
+    profileKey?: string;
+    confirmAuthorNameClaim?: boolean;
+  },
   TripReportSubmissionPromotionResult
 >("tripReportSubmissions:promote");
 
@@ -171,11 +196,17 @@ export class ConvexTripReportSubmissionStore implements TripReportSubmissionStor
     }
   }
 
-  async previewPromotion(id: string): Promise<TripReportSubmissionPromotionPreviewResult> {
+  async previewPromotion(
+    id: string,
+    options: TripReportSubmissionPromotionOptions & { reviewer?: string } = {},
+  ): Promise<TripReportSubmissionPromotionPreviewResult> {
     try {
       return await this.options.client.query(previewPromotionRef, {
         apiKey: this.options.apiKey,
         id,
+        ...(options.profileKey ? { profileKey: options.profileKey } : {}),
+        ...(options.reviewer ? { reviewer: options.reviewer } : {}),
+        ...(options.confirmAuthorNameClaim ? { confirmAuthorNameClaim: true } : {}),
       }) as TripReportSubmissionPromotionPreviewResult;
     } catch (error) {
       throw mapKnownSubmissionError(error, id);
@@ -184,7 +215,7 @@ export class ConvexTripReportSubmissionStore implements TripReportSubmissionStor
 
   async promote(
     id: string,
-    options: { reviewer: string; notes?: string },
+    options: { reviewer: string; notes?: string } & TripReportSubmissionPromotionOptions,
   ): Promise<TripReportSubmissionPromotionResult> {
     try {
       return await this.options.client.mutation(promoteSubmissionRef, {
@@ -192,6 +223,8 @@ export class ConvexTripReportSubmissionStore implements TripReportSubmissionStor
         id,
         reviewer: options.reviewer,
         ...(options.notes !== undefined ? { notes: options.notes } : {}),
+        ...(options.profileKey ? { profileKey: options.profileKey } : {}),
+        ...(options.confirmAuthorNameClaim ? { confirmAuthorNameClaim: true } : {}),
       }) as TripReportSubmissionPromotionResult;
     } catch (error) {
       throw mapKnownSubmissionError(error, id);

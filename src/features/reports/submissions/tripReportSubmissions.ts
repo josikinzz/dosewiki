@@ -20,6 +20,12 @@ export type TimelineEntryInput = {
 
 export type TripReportSubmissionSubjectInput = {
   name: string;
+  // The three fields below are accepted from clients that still post them and
+  // never stored. Each one publishes something the reader takes as vouched for
+  // by the site — a contributor page link, the face beside a byline, an
+  // outbound link captioned as this report's tracker PDF — and an anonymous
+  // submitter can prove none of it. Normalization drops them and reports each
+  // drop through `warnings`.
   profile_key?: string;
   avatar_url?: string;
   trip_date?: string;
@@ -50,7 +56,16 @@ export type TripReportSubmissionReportInput = {
   tags: string[];
 };
 
-export type NormalizedTripReportSubmissionReport = TripReportSubmissionReportInput;
+export type SubmitterRestrictedSubjectField = "profile_key" | "avatar_url" | "pdf_url";
+
+export type NormalizedTripReportSubmissionSubject = Omit<
+  TripReportSubmissionSubjectInput,
+  SubmitterRestrictedSubjectField
+>;
+
+export type NormalizedTripReportSubmissionReport = Omit<TripReportSubmissionReportInput, "subject"> & {
+  subject: NormalizedTripReportSubmissionSubject;
+};
 
 export type TripReportSubmissionInput = {
   report: TripReportSubmissionReportInput;
@@ -88,9 +103,17 @@ export type TripReportSubmissionRow = {
   updated_at: string;
 };
 
-export type ConvexTripReportImportPayload = NormalizedTripReportSubmissionReport & {
+export type ConvexTripReportImportPayload = Omit<NormalizedTripReportSubmissionReport, "subject"> & {
+  // Attribution appears only on the promotion payload, where a trusted editor
+  // assigned it; it never survives the submission itself.
+  subject: NormalizedTripReportSubmissionSubject & { profile_key?: string };
   slug: string;
   featured: boolean;
+  attribution_review?: {
+    reviewed_by: string;
+    reviewed_at: string;
+    decision: "assigned" | "declined";
+  };
 };
 
 export type CreateTripReportSubmissionOptions = {
@@ -108,6 +131,18 @@ export type TransitionTripReportSubmissionOptions = {
   notes?: string;
   now?: Date;
 };
+
+// Returned to the submitter instead of failing the request: the claims are
+// worth nothing, but the report behind them usually is, so the submission still
+// lands and the submitter is told what was dropped.
+export const IGNORED_PROFILE_KEY_WARNING =
+  "Contributor profile key was ignored; an editor assigns report attribution when publishing.";
+
+export const IGNORED_AVATAR_URL_WARNING =
+  "Avatar URL was ignored; a published report shows the avatar of the contributor profile it is attributed to.";
+
+export const IGNORED_PDF_URL_WARNING =
+  "PDF URL was ignored; outbound links on a published report are added by an editor, not by the submitter.";
 
 const VALID_TRANSITIONS: Record<TripReportSubmissionStatus, TripReportSubmissionStatus[]> = {
   submitted: ["reviewing", "accepted", "rejected", "spam"],
@@ -129,6 +164,18 @@ export function validateTripReportSubmission(
   const errors: string[] = [];
   const warnings: string[] = [];
   const report = normalized.report;
+
+  if (trim(input.report.subject.profile_key)) {
+    warnings.push(IGNORED_PROFILE_KEY_WARNING);
+  }
+
+  if (trim(input.report.subject.avatar_url)) {
+    warnings.push(IGNORED_AVATAR_URL_WARNING);
+  }
+
+  if (trim(input.report.subject.pdf_url)) {
+    warnings.push(IGNORED_PDF_URL_WARNING);
+  }
 
   if (!report.title) {
     errors.push("Title is required.");
@@ -261,8 +308,11 @@ function normalizeReport(report: TripReportSubmissionReportInput): NormalizedTri
     title: trim(report.title),
     subject: {
       name: trim(report.subject.name) || "Anonymous",
-      profile_key: emptyToUndefined(trim(report.subject.profile_key)),
-      avatar_url: emptyToUndefined(trim(report.subject.avatar_url)),
+      // `profile_key`, `avatar_url`, and `pdf_url` are deliberately absent: an
+      // anonymous submitter has no identity to attach and no standing to put a
+      // remote image or outbound link on a published dose.wiki page, so the
+      // claims are dropped before they can be stored or promoted. Convex
+      // `tripReportSubmissions.create` strips them again.
       trip_date: emptyToUndefined(trim(report.subject.trip_date)),
       age: emptyToUndefined(trim(report.subject.age)),
       gender: emptyToUndefined(trim(report.subject.gender)),
@@ -270,7 +320,6 @@ function normalizeReport(report: TripReportSubmissionReportInput): NormalizedTri
       weight: emptyToUndefined(trim(report.subject.weight)),
       medications: emptyToUndefined(trim(report.subject.medications)),
       setting: emptyToUndefined(trim(report.subject.setting)),
-      pdf_url: emptyToUndefined(trim(report.subject.pdf_url)),
     },
     substances: report.substances
       .map((substance) => ({

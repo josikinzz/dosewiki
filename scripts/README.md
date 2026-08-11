@@ -13,6 +13,7 @@ partial-success diagnostics instead of reconstructing ID/slug matching locally.
 ```
 scripts/
 ├── batch/           # Batch AI generation and quote extraction
+├── contributors/    # Contributor profile identity seeding and merges
 ├── replications/    # Effect replication media management
 ├── migrate/         # Data migrations (Convex, schema changes)
 ├── prepopulate/     # Populate articles from parsed sources
@@ -98,6 +99,16 @@ npm run lint:scripts
 Vitest-backed script module tests under `scripts/**`, excluding
 `scripts/deprecated/**`. `lint:scripts` covers active script libraries and
 workflow adapters without adding those files to the default app lint command.
+
+To run a single script test file, pass the workflow config explicitly. The root
+`vitest.config` excludes `scripts` entirely, so a bare
+`npx vitest run scripts/<path>.test.mjs` reports **"No test files found"** rather
+than failing usefully:
+
+```bash
+npx vitest run --config scripts/test/vitest.workflow.config.ts \
+  scripts/replications/transcode-videos.test.mjs
+```
 
 ### Bounded substance corpus reads
 
@@ -805,6 +816,34 @@ must reuse an independently created and verified snapshot, pass its non-empty
 local path as `--existing-backup=<path>` to the confirmed command. Dry-runs never
 need this flag.
 
+### Contributors
+
+```bash
+node scripts/contributors/seed-credited-identities.mjs
+node scripts/contributors/seed-credited-identities.mjs \
+  --write --confirm-write=seed-credited-contributor-profiles \
+  --expected-deployment=glad-minnow-656
+```
+
+Gives every credited name in the corpus a profile row. The dry run leads with
+the public consequence — the About page's contributor roster grows from twelve
+names to eighty-three, third parties included — because that page is what an
+approval actually approves.
+
+Display names and links are **not** taken straight from `replications.artist`
+and `replications.artist_url`. Five stored spellings are corruptions of a real
+artist's real name, and a long tail of stored URLs are dead, or answer 200 while
+belonging to somebody else. Those decisions live in
+[`src/data/config/contributorIdentityCorrections.json`](../src/data/config/contributorIdentityCorrections.json),
+one claim per entry with its evidence and a `strong` / `weak` / `needs-owner`
+marker. Only `strong` is applied; everything else is printed for the owner and
+written by nothing. The file also carries a blocklist of URLs that must never be
+published — traps that answer 200 and belong to a different person — and the run
+fails, in dry-run too, if one reaches a planned profile.
+
+Correcting a display name here does not correct `replications.artist`. Run
+`scripts/replications/plan-artist-name-corrections.mjs` for that half.
+
 ### Replications
 
 ```bash
@@ -824,6 +863,93 @@ node scripts/replications/create-gallery-order.mjs \
 ```
 
 Replication media scan, reconciliation, gallery-order planning, and Convex write adapters live in `scripts/replications/lib/workspace.mjs`. Keep script CLIs thin and move shared media rules there before adding new one-off replication operations.
+
+#### Artist name corrections
+
+```bash
+node scripts/replications/plan-artist-name-corrections.mjs
+node scripts/replications/plan-artist-name-corrections.mjs \
+  --write --confirm-write=correct-replication-artist-names \
+  --expected-deployment=glad-minnow-656
+```
+
+Applies the `strong` entries of
+[`src/data/config/contributorIdentityCorrections.json`](../src/data/config/contributorIdentityCorrections.json)
+that carry `correctsReplicationArtistField` to `replications.artist`, and carries
+the name into `credit_line` and `rightsholder` with it. Writes go through
+`replications.applyProvenanceCorrection`, so a row that has moved since the plan
+was built fails closed instead of being overwritten from stale data.
+
+It never renames a slug. Slugs were derived from title plus artist, so several
+change under a name correction — those are reported in full, together with the
+`replicationSlugAliases.json` entries the renames would need and any existing
+alias whose target moves out from under it. The alias map resolves one hop only,
+so a stale entry sends an already-shared legacy URL to a 404. Run
+`normalize-slugs.mjs` for the rename itself, after the names have landed.
+
+`transcode-videos.mjs` produces web-delivery H.264 renditions from local video
+masters. It is local-only — it performs no Convex write and contacts no
+deployment — so it uses `--write --confirm-transcode` rather than the deployment
+ceremony. Masters must be preserved to `--masters-dir` before any file is
+encoded; that is a precondition, not a flag. Its manifest is the intended input
+for the later upload-and-repoint operation described in
+[docs/replication-video-delivery.md](../docs/replication-video-delivery.md).
+
+```bash
+# Plan only (default): probe every master, decide transcode/remux/copy per file,
+# write the manifest and the corpus projection, encode nothing.
+node scripts/replications/transcode-videos.mjs \
+  --source-dir=/vol/replication-masters \
+  --masters-dir=/vol/replication-masters \
+  --output-dir=/vol/replication-web
+
+# Execute. Idempotent and resumable; re-running skips completed renditions.
+node scripts/replications/transcode-videos.mjs \
+  --source-dir=/vol/replication-masters \
+  --masters-dir=/vol/replication-masters \
+  --output-dir=/vol/replication-web \
+  --write --confirm-transcode
+```
+
+#### Video master rescue and repoint
+
+99% of the replication corpus by bytes (44.19 GB of 44.62 GB) is served from
+deployments this project does not control — `warmhearted-mosquito-204`,
+`adept-goldfish-624`, and 65 thumbnails from the *development* deployment
+`enchanted-echidna-791`. There is no admin credential for any of them and an HTTP
+GET is the only way to obtain the bytes. Full plan in
+[docs/replication-video-delivery.md](../docs/replication-video-delivery.md).
+
+`archive-video-masters.mjs` is local-only (`--write --confirm-archive`). Per row
+it fetches the master, transcodes it, copies the master to the archive volume,
+and releases scratch, so peak local disk stays near the largest single file. It
+aborts before fetching anything if two archive names would collide on a
+case-insensitive volume, and stops in a resumable way if the volume fills.
+
+```bash
+node scripts/replications/archive-video-masters.mjs \
+  --archive-dir="/Volumes/DeepSeek/dosewiki-replication-masters" \
+  --scratch-dir=/tmp/replication-scratch \
+  --output-dir=/vol/replication-web
+```
+
+`repoint-renditions.mjs` uploads renditions to production storage and repoints
+the rows. It writes `storage_id`, not `url`: `resolveReplicationUrls` tries
+storage first, so writing `url` alone is a silent no-op on the 60 rows that hold
+a live storage id. Every row is re-resolved through the public query after its
+write and must show a non-null, changed, production-hosted URL, because an
+unresolvable row loses its page entirely rather than showing a broken video.
+
+```bash
+node scripts/replications/repoint-renditions.mjs \
+  --manifest=/vol/replication-web/archive-manifest.json \
+  --renditions-dir=/vol/replication-web \
+  --batch-size=5 \
+  --write --confirm-write=repoint-replication-renditions --confirm-repoint \
+  --expected-deployment=glad-minnow-656 \
+  --target-url=https://glad-minnow-656.convex.cloud
+```
+
 Replication media rights metadata is creator-retained by default. Run
 `enrich-rights-metadata.mjs` after scanning to fill creator, source, and credit
 fields from the local Effect Index dump when available, then run

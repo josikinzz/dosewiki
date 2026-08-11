@@ -41,6 +41,7 @@ export const surfaceStory: StoryDef = {
     "DangerCallout",
     "surfaceVariants",
     "interactiveSurfaceVariants",
+    "focusRingClassName",
   ],
   examples: [
     {

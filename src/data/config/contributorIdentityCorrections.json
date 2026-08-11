@@ -1,0 +1,722 @@
+{
+  "schemaVersion": 1,
+  "generated": "2026-08-11",
+  "purpose": "Reviewed corrections to the display names and links that scripts/contributors/seed-credited-identities.mjs would otherwise derive straight from the stored replications.artist and replications.artist_url columns. The seed reads this file; it holds no identity decisions of its own.",
+  "policy": {
+    "autoApply": "Only entries whose strength is \"strong\" are applied. \"weak\" and \"needs-owner\" entries are carried here so the decision is on the record, printed by every run, and written by nothing.",
+    "strength": {
+      "strong": "Established from the artist's own published property (their site, their channel, their account), or from a platform's own redirect, and cross-checked against something the corpus itself stores (a work title, a source filename, a stored URL).",
+      "weak": "Plausible but resting on a handle-stem match, a single third-party citation, or an account whose relationship to the artist is inferred rather than declared.",
+      "needs-owner": "The evidence is genuinely two-sided or genuinely absent and a human has to pick. Never applied, always printed."
+    },
+    "verification": {
+      "live-200": "Fetched with curl -L and a desktop UA on the stated date; the status is after redirects.",
+      "wayback-only": "Reddit blocks this network entirely, so no reddit.com URL here was live-verified. Existence rests on a Wayback capture. Applied where the attribution itself is first-party, but never presented as checked.",
+      "bot-blocked": "Host refuses automated clients (403). True state unknown. Never applied."
+    },
+    "blocked": "Every URL in blockedUrls and every host in blockedHosts is asserted absent from the planned links. The seed throws rather than publishing one."
+  },
+  "sources": [
+    "scratchpad/links-notable.json — name and link research for the recognisable third parties and the stored-URL holders",
+    "scratchpad/links-josiekins.json — harvest of Josie Kins' YouTube credit blocks, the QRI replication contest, and the archived Effect Index gallery API",
+    "scratchpad/links-authors.json — trip-report author handles; found nothing publishable for any of the 15",
+    "Independent re-check of every URL below on 2026-08-11 from this machine"
+  ],
+
+  "nameCorrections": [
+    {
+      "stored": "Ben Ridgeway",
+      "correct": "Ben Ridgway",
+      "strength": "strong",
+      "evidence": "Four sources, two of them his own, and none spells it with the 'e'. His own Vimeo channel vimeo.com/benridgway displays 'Ben Ridgway' and is the parent of four of the five stored works (vimeo.com/41806282, /171672516, /102671169, /59846706). His own Instagram @benridgwayart reads 'Ben Ridgway', 101K followers. San Francisco State University's School of Cinema faculty page spells it Ridgway. The Threyda shop's artist bio spells it Ridgway three times. The stored artist_url itself — threyda.com/products/the-answers-lie-within-by-ben-ridgway — spells it Ridgway while the artist field beside it says Ridgeway.",
+      "evidenceUrls": [
+        "https://vimeo.com/benridgway",
+        "https://www.instagram.com/benridgwayart/",
+        "https://cinema.sfsu.edu/archive/people/faculty/ben-ridgway.html",
+        "https://www.threyda.com/pages/artist-bio-ben-ridgway"
+      ],
+      "correctsReplicationArtistField": true
+    },
+    {
+      "stored": "Simon Haid",
+      "correct": "Simon Haiduk",
+      "strength": "strong",
+      "evidence": "The single stored work is titled 'Spirit Bear'. His own shop sells exactly that piece at simonhaiduk.com/products/spirit-bear-canvas-prints. His own about page uses the full string 'Simon Haiduk' 11 times and never 'Haid'. The stored artist_url was already https://simonhaiduk.com/ — the domain and the display name disagreed because the display name was a truncation.",
+      "evidenceUrls": [
+        "https://simonhaiduk.com/pages/about",
+        "https://simonhaiduk.com/products/spirit-bear-canvas-prints"
+      ],
+      "correctsReplicationArtistField": true
+    },
+    {
+      "stored": "Insedigris",
+      "correct": "Incedigris",
+      "strength": "strong",
+      "evidence": "Ince-, not Inse-. Their own site incedigris.com carries the page title 'GALLERY — INCEDIGRIS' and uses the string 21 times; their own Instagram @incedigris has og:title 'INCEDIGRIS', 24K followers. www.insedigris.com does not resolve, which rules the stored spelling out as a domain. Note separately that this row's source_url filename says 'incedgris' (missing the second i) and the slug was derived from it — that is a second, different corruption of the same name, and it is also wrong.",
+      "evidenceUrls": [
+        "https://www.incedigris.com/",
+        "https://www.instagram.com/incedigris/"
+      ],
+      "correctsReplicationArtistField": true
+    },
+    {
+      "stored": "MOracs",
+      "correct": "MOracz",
+      "strength": "strong",
+      "evidence": "Ends in z. The stored artist_url http://waruzimu.deviantart.com/art/Hatheg-Kla-220753288 301s to https://www.deviantart.com/moracz/art/Hatheg-Kla-220753288 — DeviantArt's own redirect maps the legacy subdomain to the handle 'moracz'. The live profile displays 'MOracz'. And this repo's own stored source_url filename is Hatheg-Kla_by_MOracz.jpg. Only the artist field says MOracs.",
+      "evidenceUrls": [
+        "https://www.deviantart.com/moracz",
+        "http://waruzimu.deviantart.com/art/Hatheg-Kla-220753288"
+      ],
+      "correctsReplicationArtistField": true
+    },
+    {
+      "stored": "Sam perkins",
+      "correct": "Sam Perkins",
+      "strength": "strong",
+      "evidence": "Capitalisation only. The stored artist_url is his own Flickr photo page, whose account states the owner name as 'Sam Perkins' (username 'TheCubb'). The stored photo is titled 'Switch.', matching the stored work title 'Switch'. The lowercase 'perkins' exists only in this archive's own fields.",
+      "evidenceUrls": ["https://www.flickr.com/photos/thecubb/"],
+      "correctsReplicationArtistField": true
+    }
+  ],
+
+  "linkCorrections": [
+    {
+      "artist": "Alex Grey",
+      "strength": "strong",
+      "storedUrls": [],
+      "add": [
+        {
+          "url": "https://www.alexgrey.com/",
+          "verification": "live-200 2026-08-11",
+          "evidence": "His own site, and the site Wikipedia names as official. Credited by Josie's 'DMT Entities' description. The stored work is 'Net of Being', a well-known Grey painting; no disambiguation risk."
+        },
+        {
+          "url": "https://en.wikipedia.org/wiki/Alex_Grey",
+          "verification": "live-200 2026-08-11",
+          "evidence": "Only one Alex Grey in this space."
+        }
+      ],
+      "remove": [],
+      "notes": "cosm.org is live and legitimate but is the institution he co-founded, not his artist page. Left off."
+    },
+    {
+      "artist": "Phosform",
+      "strength": "strong",
+      "storedUrls": [],
+      "add": [
+        {
+          "url": "https://www.youtube.com/@Wooodfield",
+          "verification": "live-200 2026-08-11",
+          "evidence": "Four threads converge. QRI's replication contest lists three Phosform entries, each supplying 'Website: youtube.com/channel/UCTNWT3XTgFGwASoUpuV6_1A' — that channel ID resolves today to @Wooodfield. Josie's '6 Levels of DMT' credits 'Phosform - youtube.com/@Phosform', a handle that now 404s, i.e. renamed. Josie's 'Psychedelic Visuals Replication Compilation' credits a WOOODFIELD block with this exact channel. The artist's own 2023 Reddit post announces 'I'm moving to a different username, u/Phosform'. Corpus cross-check: the QRI entry 'I Love Lamp' is this corpus's lamp-phosform, and the channel's uploads carry the UK place names behind glasgow-phosform and windermere-lake-phosform."
+        },
+        {
+          "url": "https://www.instagram.com/wooodfield/",
+          "verification": "live-200 2026-08-11",
+          "evidence": "Listed by the artist on their own YouTube About panel, and independently in Josie's WOOODFIELD credit block."
+        }
+      ],
+      "remove": [],
+      "notes": "The channel now displays 'Wooodfield', not 'Phosform'. The link is right; the profile label stays Phosform."
+    },
+    {
+      "artist": "Adrian Grajdeanu",
+      "strength": "strong",
+      "storedUrls": ["http://www.emptykingdom.com/featured/adrian-grajdeanu/"],
+      "add": [
+        {
+          "url": "https://www.grajdeanu.com/",
+          "verification": "live-200 2026-08-11",
+          "evidence": "His own portfolio; /my-story reads 'ABOUT ADRIAN GRĂJDEANU', a Bucharest graphic artist and character designer. Rare surname, and the domain is the surname. The dead stored link was EmptyKingdom's feature on him. Independent interviews describe the same person as drawing dark horror figures, consistent with the stored work being filed under 'unspeakable-horrors'."
+        }
+      ],
+      "remove": [
+        {
+          "url": "http://www.emptykingdom.com/featured/adrian-grajdeanu/",
+          "reason": "dead — https connect timeout, http returns 500 (re-checked 2026-08-11). Also http-only, so link sanitisation would drop it regardless."
+        }
+      ]
+    },
+    {
+      "artist": "Luke Brown",
+      "strength": "strong",
+      "storedUrls": ["http://artcollider.net/luke-brown/"],
+      "add": [
+        {
+          "url": "https://www.lukebrownart.com/",
+          "verification": "live-200 2026-08-11",
+          "evidence": "Confirmed by work title, not by name. Two of the five stored works, 'Alpha Centauri' and 'Apotheosis', both appear as painting titles on lukebrownart.com/paintings. The site is branded 'Spectraleyes' and footer-signed '© 2025 Luke Brown Art'. The dead stored URL was on artcollider.net, a psychedelic art site, placing the stored artist in the same scene."
+        }
+      ],
+      "remove": [
+        {
+          "url": "http://artcollider.net/luke-brown/",
+          "reason": "404 (re-checked 2026-08-11; artcollider.net itself is alive, only the artist page is gone)."
+        }
+      ],
+      "notes": "No Wikipedia link. en.wikipedia.org/wiki/Luke_Brown is a 1930s professional wrestler; the painter has no article. One of the five stored rows already carries an empty artist_url."
+    },
+    {
+      "artist": "Oleg Shupliak",
+      "strength": "strong",
+      "storedUrls": ["https://www.opticalspy.com/oleg-shuplyak-gallery.html"],
+      "add": [
+        {
+          "url": "https://shupliak.art/",
+          "verification": "live-200 2026-08-11",
+          "evidence": "His own site; the domain is the romanisation he chose, and its English header reads 'Oleg Shupliak'. English Wikipedia titles him the same way. 'Shuplyak' is a widespread alternate transliteration of Шупляк used by aggregators — including this archive's own source filename Shuplyak_faces_10.webp — not a second person."
+        },
+        {
+          "url": "https://en.wikipedia.org/wiki/Oleg_Shupliak",
+          "verification": "live-200 2026-08-11",
+          "evidence": "Oleg Illich Shupliak, b. 1967, Honored Artist of Ukraine, known for the 'Dvovzory' hidden-image illusions — which is exactly the increased-pareidolia effect the stored work illustrates."
+        }
+      ],
+      "remove": [
+        {
+          "url": "https://www.opticalspy.com/oleg-shuplyak-gallery.html",
+          "reason": "dead — connection failure on re-check 2026-08-11. It was a third-party gallery in any case, superseded by the artist's own site."
+        }
+      ]
+    },
+    {
+      "artist": "Insedigris",
+      "displayNameAfterCorrection": "Incedigris",
+      "strength": "strong",
+      "storedUrls": ["https://www.incedigris.com/entitiesgallery/gsbuc4i60lroaqy3g6zxzuanaqiiii"],
+      "add": [
+        {
+          "url": "https://www.incedigris.com/",
+          "verification": "live-200 2026-08-11",
+          "evidence": "Their own site. The gallery has been restructured to /gallery, which is why the stored deep link 404s."
+        },
+        {
+          "url": "https://www.instagram.com/incedigris/",
+          "verification": "live-200 2026-08-11",
+          "evidence": "Their own Instagram, og:title 'INCEDIGRIS', 24K followers."
+        }
+      ],
+      "remove": [
+        {
+          "url": "https://www.incedigris.com/entitiesgallery/gsbuc4i60lroaqy3g6zxzuanaqiiii",
+          "reason": "404 (re-checked 2026-08-11) — per-artwork deep link into a gallery that has since been restructured."
+        }
+      ]
+    },
+    {
+      "artist": "MOracs",
+      "displayNameAfterCorrection": "MOracz",
+      "strength": "strong",
+      "storedUrls": ["http://waruzimu.deviantart.com/art/Hatheg-Kla-220753288"],
+      "add": [
+        {
+          "url": "https://www.deviantart.com/moracz",
+          "verification": "live-200 2026-08-11",
+          "evidence": "Their own DeviantArt profile, and the redirect target of the stored legacy URL. No personal domain exists; this is the best available canonical home."
+        }
+      ],
+      "remove": [
+        {
+          "url": "http://waruzimu.deviantart.com/art/Hatheg-Kla-220753288",
+          "reason": "resolves, but only via redirect, and it is a single-artwork URL on a retired host. Superseded by the profile."
+        }
+      ]
+    },
+    {
+      "artist": "Rosendahl",
+      "strength": "strong",
+      "storedUrls": ["http://www.flickr.com/photos/rosendahl/2111805581/"],
+      "add": [
+        {
+          "url": "https://www.flickr.com/photos/rosendahl/",
+          "verification": "live-200 2026-08-11",
+          "evidence": "The stored photo lives under this account, so the account is certainly the right one. Display name renders as the stylised 'r o s e n d a h l'; the stored photo is titled 'Tumbling Dice', matching the stored work title exactly."
+        }
+      ],
+      "remove": [
+        {
+          "url": "http://www.flickr.com/photos/rosendahl/2111805581/",
+          "reason": "alive, but a single-photo URL. Replaced by the profile, per the rule that a contributor link should be a person's home rather than one of their works."
+        }
+      ],
+      "notes": "Caveat worth the owner's eye: one fetch of the profile page rendered 'This user has no public photos' while the individual photo page is demonstrably public. Probably a logged-out photostream quirk, but if the profile really shows an empty stream to visitors then the per-photo URL was the more useful link. No real-world identity is exposed on Flickr and none was sought."
+    },
+    {
+      "artist": "Sam perkins",
+      "displayNameAfterCorrection": "Sam Perkins",
+      "strength": "strong",
+      "storedUrls": ["https://www.flickr.com/photos/thecubb/5132746341/"],
+      "add": [
+        {
+          "url": "https://www.flickr.com/photos/thecubb/",
+          "verification": "live-200 2026-08-11",
+          "evidence": "His own Flickr account, owner name 'Sam Perkins'. The stored photo 'Switch.' (Illustration, 2010) is on it and matches the stored work title."
+        }
+      ],
+      "remove": [
+        {
+          "url": "https://www.flickr.com/photos/thecubb/5132746341/",
+          "reason": "alive, but a single-photo URL. Replaced by the profile."
+        }
+      ]
+    },
+    {
+      "artist": "Ben Ridgeway",
+      "displayNameAfterCorrection": "Ben Ridgway",
+      "strength": "strong",
+      "storedUrls": [
+        "https://www.threyda.com/products/the-answers-lie-within-by-ben-ridgway",
+        "https://vimeo.com/41806282",
+        "https://vimeo.com/171672516",
+        "https://vimeo.com/102671169",
+        "https://vimeo.com/59846706"
+      ],
+      "add": [
+        {
+          "url": "https://vimeo.com/benridgway",
+          "verification": "live-200 2026-08-11",
+          "evidence": "His own Vimeo channel, and the parent account of four of the five stored per-work URLs."
+        },
+        {
+          "url": "https://www.instagram.com/benridgwayart/",
+          "verification": "live-200 2026-08-11",
+          "evidence": "His own Instagram, og:title 'Ben Ridgway (@benridgwayart)', 101K followers, public."
+        }
+      ],
+      "remove": [
+        {
+          "url": "https://www.threyda.com/products/the-answers-lie-within-by-ben-ridgway",
+          "reason": "404 (re-checked 2026-08-11) — the shop product was delisted."
+        },
+        {
+          "url": "https://vimeo.com/41806282",
+          "reason": "alive, but a per-work URL on his own channel. Superseded by the channel itself."
+        },
+        {
+          "url": "https://vimeo.com/171672516",
+          "reason": "alive, but a per-work URL on his own channel. Superseded by the channel itself."
+        },
+        {
+          "url": "https://vimeo.com/102671169",
+          "reason": "alive, but a per-work URL on his own channel. Superseded by the channel itself."
+        },
+        {
+          "url": "https://vimeo.com/59846706",
+          "reason": "alive, but a per-work URL on his own channel. Superseded by the channel itself."
+        }
+      ],
+      "notes": "He has no live personal domain. benridgway.com is a lapsed-domain parking page and is blocked below."
+    },
+    {
+      "artist": "crypto geometry",
+      "strength": "strong",
+      "storedUrls": [],
+      "add": [
+        {
+          "url": "https://www.youtube.com/@gydravlik",
+          "verification": "live-200 2026-08-11",
+          "evidence": "Josie credits 'cryptogeometry - https://gydravlik.eth.co' in two videos and 'Cryptogeometry' among background animators in a third. That ENS domain is dead, but the 'Ultimate Psychedelic Geometry Simulation' description tags @gydravlik in the same credit line as the other replicators (@SymmetricVision @LokaVision @Wooodfield @BenRidgwayArt @pluralist_ @TASVisuals @gydravlik). Channel title renders 'Gydravlik'."
+        }
+      ],
+      "remove": []
+    },
+    {
+      "artist": "Oracle Emissary",
+      "strength": "strong",
+      "storedUrls": [],
+      "add": [
+        {
+          "url": "https://www.youtube.com/@oracleemmisary2783",
+          "verification": "live-200 2026-08-11",
+          "evidence": "Josie's 'Psychedelic Visuals Replication Compilation' credit block names this channel under ORACLE EMMISARY, and the 'Ultimate DMT Breakthrough' description lists it among the sample contributors. Channel title renders 'Oracle Emmisary'."
+        },
+        {
+          "url": "https://www.reddit.com/user/oracle-emissary/",
+          "verification": "wayback-only",
+          "evidence": "Two independent publishers give this exact URL. Effect Index's own archived gallery API records artist 'OracleEmissary' with this artist_url for the replication 'Cubist Living Room'. Josie's 'The Visual Effects of Psychedelics' artist list and her compilation credit block give the same address. A 2021 Wayback capture renders as 'Oracle Emissary (u/oracle-emissary) - Reddit'.",
+          "verificationNote": "Reddit is blocked from the researching network end to end. Existence rests on the 2021 archive capture; liveness today is unknown."
+        }
+      ],
+      "remove": [],
+      "notes": "A TikTok @oracleemissary is named by Josie but was never verified. Not recorded as a link."
+    },
+    {
+      "artist": "StasConstantine",
+      "strength": "strong",
+      "storedUrls": [],
+      "add": [
+        {
+          "url": "https://www.youtube.com/@StasConstantineArchives",
+          "verification": "live-200 2026-08-11",
+          "evidence": "Josie's 'Deliriant Replication Compilation (v2.0)' description reads 'REPLICATIONS BY: @feetman100 / @StasConstantineArchives / @asrielkekker'. This corpus's two StasConstantine works are exactly deliriant replications (cubist-park-stasconstantine, deliriant-entity-lady-of-eiriel-stasconstantine). Channel title renders 'Stas Constantine Archives'."
+        }
+      ],
+      "remove": [],
+      "notes": "The word 'Archives' leaves open that this is a re-upload channel rather than the artist's own. Josie credited it as the replication source, so it is at minimum the canonical home for the work. The alternative channel is listed under ownerDecisions."
+    },
+    {
+      "artist": "ohwhatever",
+      "strength": "strong",
+      "storedUrls": [],
+      "add": [
+        {
+          "url": "https://www.reddit.com/user/ohwatever",
+          "verification": "wayback-only",
+          "evidence": "Effect Index's own archived gallery API recorded artist '/u/ohwatever' with this artist_url for the replication 'High dose at a campsite' — the same work as this corpus's hihi-dose-at-a-campsite-ohwhatever (the stored title is a mangled 'high dose'). That is the site binding the artist to the URL itself. A 2022 Wayback capture renders as 'ohwatever (u/ohwatever) - Reddit' with visible comment history.",
+          "verificationNote": "Reddit is blocked from the researching network. Note the spelling: Effect Index writes 'ohwatever' with one h, this corpus writes 'ohwhatever' with two. The URL must use the one-h form."
+        }
+      ],
+      "remove": []
+    },
+    {
+      "artist": "SalviaDroid",
+      "strength": "strong",
+      "storedUrls": [
+        "http://www.zensages.com/",
+        "http://www.zensages.com",
+        "https://www.instagram.com/salviadroid/?hl=en"
+      ],
+      "add": [],
+      "remove": [
+        {
+          "url": "http://www.zensages.com/",
+          "reason": "NXDOMAIN on http and https, apex included (re-checked 2026-08-11). It was the artist's own Weebly gallery through 2021, then a squatted gambling page in 2023, now gone. Must not be resurrected from archive."
+        },
+        {
+          "url": "http://www.zensages.com",
+          "reason": "same host, same NXDOMAIN."
+        },
+        {
+          "url": "https://www.instagram.com/salviadroid/?hl=en",
+          "reason": "resolves, but the account is private with 2 posts and 0 following, and nothing ties it to the artist — their own site listed a different Instagram handle entirely. Publishing it risks linking a stranger who happens to hold the obvious handle."
+        }
+      ],
+      "notes": "Seven works, and this correction leaves the profile with no links at all. That is the honest state: every URL the archive holds for this artist is dead or unattributable, and the live candidate is an inference (see ownerDecisions)."
+    },
+    {
+      "artist": "Neil Usher",
+      "strength": "strong",
+      "storedUrls": ["http://www.wired.co.uk/news/archive/2012-10/14/pareidolic-robot"],
+      "add": [],
+      "remove": [
+        {
+          "url": "http://www.wired.co.uk/news/archive/2012-10/14/pareidolic-robot",
+          "reason": "404 (re-checked 2026-08-11) — wired.co.uk now folds into wired.com and the old path is gone."
+        }
+      ],
+      "notes": "The article survives at a new address but it is press coverage, not an artist home, and he appears to have no personal site. Left to the owner; see ownerDecisions."
+    },
+    {
+      "artist": "Jumproper",
+      "strength": "strong",
+      "storedUrls": ["https://gfycat.com/@jumproper/gifs"],
+      "add": [],
+      "remove": [
+        {
+          "url": "https://gfycat.com/@jumproper/gifs",
+          "reason": "gfycat shut down in 2023 and the host no longer resolves (re-checked 2026-08-11). Dead by definition, not by path."
+        }
+      ],
+      "notes": "No replacement found. Leaves the profile with no links."
+    },
+    {
+      "artist": "UON",
+      "strength": "strong",
+      "storedUrls": ["https://gfycat.com/@UONVISUALS"],
+      "add": [],
+      "remove": [
+        {
+          "url": "https://gfycat.com/@UONVISUALS",
+          "reason": "gfycat shut down in 2023 and the host no longer resolves (re-checked 2026-08-11)."
+        }
+      ],
+      "notes": "No replacement found. Leaves the profile with no links."
+    },
+    {
+      "artist": "TAS visuals",
+      "strength": "strong",
+      "storedUrls": ["https://www.ttaass.com/"],
+      "add": [
+        {
+          "url": "https://tasvisuals.com",
+          "verification": "live-200 2026-08-11",
+          "evidence": "Page title reads 'TAS Visuals'. Credited by Josie's 'Ultimate DMT Breakthrough Replication Compilation' description as this artist's site, and @TASVisuals appears in her replicator credit lines."
+        }
+      ],
+      "remove": [
+        {
+          "url": "https://www.ttaass.com/",
+          "reason": "dead — connection failure on re-check 2026-08-11. The research left this one unchecked; it is dead."
+        }
+      ]
+    },
+    {
+      "artist": "Sunterry Art",
+      "strength": "strong",
+      "storedUrls": ["https://www.instagram.com/sunterry__art/"],
+      "add": [
+        {
+          "url": "https://sunterryart.com",
+          "verification": "live-200 2026-08-11, redirects to https://www.sunterryart.com/",
+          "evidence": "Page title reads 'Home | Sunterry art'. Credited by Josie's 'Ultimate DMT Breakthrough Replication Compilation' description. The stored Instagram is the archived Effect Index gallery's own artist_url for the same name."
+        }
+      ],
+      "remove": [],
+      "notes": "The stored Instagram stays; this adds their own domain alongside it."
+    },
+    {
+      "artist": "bearfromvoid",
+      "strength": "strong",
+      "storedUrls": ["https://www.instagram.com/bearfromvoid/"],
+      "add": [
+        {
+          "url": "https://www.youtube.com/@bearfromvoid",
+          "verification": "live-200 2026-08-11",
+          "evidence": "Credited in Josie's 'The 4 Levels of Psychedelic Geometry' description under the same handle the corpus stores. The bearfromvoid.com domain she also links is dead."
+        }
+      ],
+      "remove": [],
+      "notes": "The stored Instagram is the archived Effect Index gallery's own artist_url and stays."
+    }
+  ],
+
+  "blockedUrls": [
+    {
+      "url": "https://benridgway.com/",
+      "reason": "TRAP. Returns 200, but the body is a one-line redirect stub to /lander, a GoDaddy parking page. Confirmed by fetching the body on 2026-08-11. The domain has lapsed and several secondary sources still cite it as his site."
+    },
+    {
+      "url": "https://neilusher.com/",
+      "reason": "TRAP. Returns 200 and is a Coldwell Banker real-estate agent in Ottawa. A different Neil Usher."
+    },
+    {
+      "url": "https://en.wikipedia.org/wiki/Luke_Brown",
+      "reason": "TRAP. A 1930s professional wrestler. The painter has no Wikipedia article."
+    },
+    {
+      "url": "https://salviadroid.com",
+      "reason": "TRAP. Returns 200, but the body is an ad-block-detection / monetised redirect stub, not a portfolio. Confirmed by fetching the body on 2026-08-11. One research pass recommended this URL as a strong finding; it was wrong."
+    },
+    {
+      "url": "https://www.salviadroid.com/",
+      "reason": "Same host as above, same stub."
+    },
+    {
+      "url": "https://www.instagram.com/salviadroid/",
+      "reason": "Private, 2 posts, 0 following, and the artist's own site pointed at a different handle. Likely a squatted handle."
+    },
+    {
+      "url": "https://www.instagram.com/titan.droid/",
+      "reason": "The handle the artist's own archived site listed, but it now returns 200 with no og:title or og:description at all — the signature of a removed or restricted profile. Recorded only because it is the artist's own historical self-declaration."
+    },
+    {
+      "url": "https://www.redbubble.com/people/salviadroid/explore",
+      "reason": "403 to automated clients; Redbubble blocks bots, so its true state is unverified."
+    },
+    {
+      "url": "https://www.artstation.com/simonhaiduk",
+      "reason": "403 to automated clients; state unverified. His own domain is sufficient."
+    },
+    {
+      "url": "https://keana-visuals.com",
+      "reason": "dead (connection failure, re-checked 2026-08-11). Was a Wix site through 2021."
+    },
+    {
+      "url": "https://gydravlik.eth.co",
+      "reason": "dead (connection failure, re-checked 2026-08-11). The ENS-hosted URL Josie published for cryptogeometry."
+    },
+    {
+      "url": "https://bearfromvoid.com",
+      "reason": "dead (connection failure, re-checked 2026-08-11)."
+    },
+    {
+      "url": "https://hypnagogist.art/",
+      "reason": "404 (re-checked 2026-08-11). Still linked from josiekins.xyz's home page; worth fixing on Josie's side."
+    },
+    {
+      "url": "https://www.youtube.com/@Phosform",
+      "reason": "404 — the handle in Josie's 6-Levels-of-DMT credits was renamed to @Wooodfield."
+    },
+    {
+      "url": "https://www.youtube.com/@pluralist.visuals",
+      "reason": "404 — currently linked from josiekins.xyz's home page."
+    },
+    {
+      "url": "https://symmetricvision.xyz",
+      "reason": "dead. The unhyphenated spelling Josie writes in one description; the live site is symmetric-vision.xyz."
+    },
+    {
+      "url": "http://www.emptykingdom.com/featured/adrian-grajdeanu/",
+      "reason": "dead (https times out, http 500) and http-only."
+    },
+    {
+      "url": "http://www.zensages.com/",
+      "reason": "NXDOMAIN on both schemes."
+    },
+    {
+      "url": "https://www.threyda.com/products/the-answers-lie-within-by-ben-ridgway",
+      "reason": "404 — product delisted."
+    },
+    {
+      "url": "https://www.incedigris.com/entitiesgallery/gsbuc4i60lroaqy3g6zxzuanaqiiii",
+      "reason": "404 — gallery restructured."
+    },
+    {
+      "url": "http://www.wired.co.uk/news/archive/2012-10/14/pareidolic-robot",
+      "reason": "404 — wired.co.uk folded into wired.com and the path moved."
+    },
+    {
+      "url": "http://artcollider.net/luke-brown/",
+      "reason": "404 — the artist page is gone; the site itself is alive."
+    },
+    {
+      "url": "https://www.opticalspy.com/oleg-shuplyak-gallery.html",
+      "reason": "dead (connection failure, re-checked 2026-08-11)."
+    },
+    {
+      "url": "https://www.ttaass.com/",
+      "reason": "dead (connection failure, re-checked 2026-08-11)."
+    }
+  ],
+
+  "blockedHosts": [
+    {
+      "host": "gfycat.com",
+      "reason": "gfycat shut down in 2023 and the host no longer resolves. Every gfycat artist_url in the corpus is dead by definition — Jumproper, UON, and the Symmetric Vision rows."
+    },
+    {
+      "host": "www.zensages.com",
+      "reason": "NXDOMAIN, apex included."
+    },
+    {
+      "host": "zensages.com",
+      "reason": "NXDOMAIN."
+    },
+    {
+      "host": "www.emptykingdom.com",
+      "reason": "https connect timeout, http 500, and http-only."
+    }
+  ],
+
+  "ownerDecisions": [
+    {
+      "subject": "k visuals",
+      "worksInCorpus": 2,
+      "corpusTitles": ["keana", "fungal intelligence"],
+      "strength": "needs-owner",
+      "question": "Is 'k visuals' the artist Josie credits as 'KE Visuals', and is 'Keana Visuals' the same person again?",
+      "candidates": [
+        { "url": "https://linktr.ee/Ke_Visuals", "verification": "live-200", "note": "Josie credits 'KE Visuals - linktr.ee/Ke_Visuals' as a replicator in two videos. The linktree fans out to youtube.com/@KeVisuals, instagram.com/ke___visuals, twitter.com/KeVisuals1, ko-fi.com/kevisuals/shop — a genuinely matching psychedelic VJ artist." },
+        { "url": "https://www.youtube.com/@KeVisuals", "verification": "live-200", "note": "The linktree's own YouTube destination." }
+      ],
+      "whyNotApplied": "Nothing anywhere writes 'k visuals'. Josie's credits contain two similar names — 'KE Visuals' (linktr.ee/Ke_Visuals) and 'Keana Visuals' (keana-visuals.com, now dead) — probably the same person, and this corpus's own work is titled 'keana'. The mapping is circular: the work title is the only thing suggesting which of the two names is meant, and it is also the thing that would be explained by either. Only the owner's own memory can settle it."
+    },
+    {
+      "subject": "thatswissengineer",
+      "worksInCorpus": 1,
+      "corpusTitle": "walk in the forest",
+      "strength": "needs-owner",
+      "question": "Does the owner know where this replicator published?",
+      "candidates": [],
+      "whyNotApplied": "No link exists to find. Searched: Josie's full credit blocks across eight videos, the archived Effect Index gallery API (209 records), this repo's provenance audit and reconciliation reports, every real route on josiekins.xyz, and Wayback CDX for reddit.com/user/thatswissengineer and /theswissengineer — zero captures everywhere. A bare web search for the handle returns only Wikipedia biographies of actual Swiss engineers, and the only remaining search paths ran toward identifying a real person from the 'Swiss engineer' descriptor. Those were correctly abandoned."
+    },
+    {
+      "subject": "Neil Usher",
+      "worksInCorpus": 1,
+      "corpusTitle": "Face In a Cloud",
+      "strength": "needs-owner",
+      "question": "Coverage, a defunct employer page, or no link at all?",
+      "candidates": [
+        { "url": "https://www.wired.com/story/pareidolic-robot/", "verification": "live-200 2026-08-11", "note": "The same article the stored dead URL pointed at, relocated. Its own meta description names Neil Usher as the product designer behind the cloud-face robot, which is exactly the credit the stored work carries. But it is press coverage, not an artist home." },
+        { "url": "https://berglondon.com/studio/neil-usher/", "verification": "live-200", "note": "His employer's staff page. Names him as a BERG designer. Does not mention the robot, and BERG closed in 2014." },
+        { "url": null, "note": "Leave him with no link." }
+      ],
+      "whyNotApplied": "He appears to have no personal site; it was searched for specifically. Two traps in the blocked list guard this one: neilusher.com is an Ottawa estate agent, and workessence.medium.com belongs to a Neil Usher who writes about workplace strategy. Both are different people."
+    },
+    {
+      "subject": "Loka",
+      "worksInCorpus": 15,
+      "strength": "needs-owner",
+      "question": "Repair the scheme-less stored URL, and is Loka the same person as LokaVision?",
+      "candidates": [
+        { "url": "https://reddit.com/u/wheressuede", "verification": "wayback-only", "note": "The stored artist_url is 'reddit.com/u/wheressuede' with no scheme, so link sanitisation drops it. Adding https:// is a repair, not a parse, and the seed deliberately refuses to guess a scheme. Effect Index's own gallery published the same pair, and Josie's credit blocks name 'Wheressuede' — so Loka = wheressuede is well attested. Only the scheme needs a human." },
+        { "url": "https://www.youtube.com/@LokaVision", "verification": "live-200", "note": "NOT recommended without confirmation. josiekins.xyz's collaborators block and several of Josie's credit blocks name 'LokaVision' at this channel, and one research pass listed it as a strong finding for artist 'loka'. But the link from Loka to LokaVision is a handle-stem match only — and Josie's own credit lists name 'Wheressuede' and 'LokaVision' as separate entries, which argues they are two different people. Applying this would put fifteen works on the wrong channel." }
+      ],
+      "whyNotApplied": "The scheme repair needs an explicit yes; the LokaVision identification is an inference the evidence actually argues against."
+    },
+    {
+      "subject": "SalviaDroid",
+      "worksInCorpus": 7,
+      "strength": "needs-owner",
+      "question": "Is Instagram @zozo_jester this artist?",
+      "candidates": [
+        { "url": "https://www.instagram.com/zozo_jester/", "verification": "live-200", "note": "og:title 'ZoZo aka SalviaDroid (@zozo_jester)'; 1,839 followers, 116 posts, public. Its bio link is redbubble.com/people/SalviaDroid/explore — the same Redbubble handle the artist's own archived site (zensages.com, 2019 and 2021 captures) listed among its three outbound handles." }
+      ],
+      "whyNotApplied": "It is a two-sided match — the artist's own site named the Redbubble handle, and this account's bio links that handle back — and it is still an inference. Two things hold it back. The artist's own site named a different Instagram (@titan.droid), not this one, so the artist's own self-declaration points elsewhere. And the account presents as a different name ('ZoZo'), so publishing it under the SalviaDroid profile asserts the two are one person on evidence nobody has confirmed. Seven works ride on it. With the dead links removed the profile has none, which is recoverable; a wrong link is not."
+    },
+    {
+      "subject": "StasConstantine",
+      "worksInCorpus": 2,
+      "strength": "needs-owner",
+      "question": "Should the older channel be listed alongside the Archives channel?",
+      "candidates": [
+        { "url": "https://www.youtube.com/user/stasconstantine11", "verification": "live-200", "note": "Josie's 'The Visual Effects of Psychedelics' artist list says verbatim 'StasConstantine: https://www.youtube.com/user/stasconstantine11'. The attribution is unambiguous — stronger, in fact, than the Archives channel's. But the channel now displays the title 'tytytytt' and reads as abandoned or renamed, which makes it a poor thing to put on a public profile." }
+      ],
+      "whyNotApplied": "Strong attribution, weak presentation. The Archives channel is applied instead; this one is a judgement call about what a reader should be sent to."
+    },
+    {
+      "subject": "Cocoanatta",
+      "reportsInCorpus": 1,
+      "strength": "weak",
+      "question": "Is a Wikipedia contributions log an acceptable contributor link?",
+      "candidates": [
+        { "url": "https://en.wikipedia.org/wiki/Special:Contributions/Cocoanatta", "verification": "live-200", "note": "Self-published by the handle-holder: their PsychonautWiki user page links their own Wikipedia contributions log under the same handle." }
+      ],
+      "whyNotApplied": "The destination is an edit log, not a personal presence, and it never references Effect Index. The closest thing to a hit across all fifteen trip-report handles, and it still does not clear the bar."
+    },
+    {
+      "subject": "DemFractalsYo",
+      "reportsInCorpus": 2,
+      "strength": "needs-owner",
+      "question": "Nothing to decide unless the owner wants it revisited.",
+      "candidates": [],
+      "whyNotApplied": "Their PsychonautWiki user page publishes a contact email built from the handle, and no URL. An email is not a profile link, and republishing a decade-old contact address on a new public profile goes beyond what the author consented to. The address was deliberately not recorded."
+    },
+    {
+      "subject": "Hypnagogist (existing profile)",
+      "strength": "needs-owner",
+      "question": "Should the existing HYPNAGOGIST profile get links?",
+      "candidates": [
+        { "url": "https://www.instagram.com/hypnagogist/", "verification": "live-200", "note": "Already the artist_url on their corpus rows, and in the archived Effect Index gallery." }
+      ],
+      "whyNotApplied": "HYPNAGOGIST already exists as a profile with an empty links array, so the seed resolves the name and writes nothing for it — by design, since a stored profile is the authority on its own fields. Their rows also store https://hypnagogist.art, which now 404s. Adding links to already-existing profiles is outside this import's scope."
+    }
+  ],
+
+  "checkedAndFoundWrong": [
+    {
+      "claim": "links-notable.json: 'the corpus holds TWO rows for the same image, one credited Oleg Shupliak and one credited Oleg Shuplyak — they should not become two profiles.'",
+      "finding": "False against production. There is exactly one row (optical-illusion-oleg-shupliak, artist 'Oleg Shupliak'). 'Shuplyak' appears only inside that row's source_url filename, Shuplyak_faces_10.webp, and in the stored third-party gallery URL. No merge is needed and none is proposed."
+    },
+    {
+      "claim": "links-notable.json: 'one of the seven SalviaDroid rows stores the casing Salviadroid.'",
+      "finding": "Half right, and in the wrong column. All seven rows store artist 'SalviaDroid'. The lowercase 'Salviadroid' is the rightsholder on one row (the-clockwork-suburb-salviadroid). It affects no display name and no profile; it is a rightsholder casing inconsistency, listed for the owner but not corrected here."
+    },
+    {
+      "claim": "links-josiekins.json bonus harvest: 'salviadroid.com, http 200, confidence strong' as a link for SalviaDroid.",
+      "finding": "Wrong, and dangerous. Fetching the body on 2026-08-11 returns an ad-block-detection / monetised redirect stub titled 'Redirecting...', not a portfolio. The other research pass caught this and listed it as a trap. It is blocked."
+    },
+    {
+      "claim": "links-notable.json: the stored Shupliak URL opticalspy.com was 'not individually probed — superseded'.",
+      "finding": "Probed on 2026-08-11: connection failure. It is dead, not merely superseded."
+    },
+    {
+      "claim": "links-josiekins.json: 'the gallery's older ttaass.com URL was not re-checked' for TAS visuals.",
+      "finding": "Re-checked on 2026-08-11: connection failure. The stored URL is dead, which upgrades tasvisuals.com from a nice-to-have to a replacement."
+    },
+    {
+      "claim": "links-josiekins.json: the archived Effect Index gallery API holds '209 replication records' whose artist_url has never been mined into profile links, mirrored in this repo's provenance audit.",
+      "finding": "The mirror in notes-and-plans/reports/replication-provenance/audit-latest.json holds 257 records carrying 187 evidence rows, 137 of which have an artist_url, resolving to 52 distinct artist->URL pairs. Every one of those pairs is already present on the matching live replication row — the provenance-correction pass absorbed them. The harvest yields no new link. Two artists in it (John Speaker, Beau Deeley) have no live row at all any more."
+    }
+  ]
+}

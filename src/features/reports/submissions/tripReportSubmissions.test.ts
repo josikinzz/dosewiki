@@ -106,6 +106,43 @@ describe("trip report submission intake", () => {
     });
   });
 
+  it("refuses to store the identity and link fields a public submitter claimed", () => {
+    const claimed: TripReportSubmissionInput = {
+      ...validSubmission,
+      report: {
+        ...validSubmission.report,
+        subject: {
+          ...validSubmission.report.subject,
+          profile_key: "FOUNDER",
+          avatar_url: "https://attacker.example/face.png",
+          pdf_url: "https://attacker.example/tracker.pdf",
+        },
+      },
+    };
+
+    const validation = validateTripReportSubmission(claimed);
+    expect(validation).toMatchObject({
+      ok: true,
+      warnings: [
+        "Contributor profile key was ignored; an editor assigns report attribution when publishing.",
+        "Avatar URL was ignored; a published report shows the avatar of the contributor profile it is attributed to.",
+        "PDF URL was ignored; outbound links on a published report are added by an editor, not by the submitter.",
+      ],
+    });
+
+    const row = createTripReportSubmission(claimed, {
+      id: "submission-claim",
+      now: new Date("2026-06-11T12:00:00.000Z"),
+    });
+    const payload = buildConvexTripReportImportPayload({ ...row, status: "accepted" });
+
+    for (const field of ["profile_key", "avatar_url", "pdf_url"]) {
+      expect(row.report.subject).not.toHaveProperty(field);
+      expect(payload.subject).not.toHaveProperty(field);
+    }
+    expect(JSON.stringify(payload)).not.toContain("attacker.example");
+  });
+
   it("keeps honeypot submissions private as spam while returning a stored row", () => {
     const row = createTripReportSubmission(
       { ...validSubmission, honeypot: "buy now" },

@@ -68,6 +68,8 @@ export {
   getPublicEffectIndexPosts,
 } from "./publicData.blog";
 
+export { getReplicationsByContributor } from "./publicData.replications";
+
 export {
   getFeaturedReports,
   getPublicReportBySlug,

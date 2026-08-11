@@ -4,7 +4,13 @@ import { cva, type VariantProps } from "class-variance-authority";
 
 import { cn } from "@/lib/utils";
 
-const focusRing =
+/**
+ * The keyboard focus indicator every interactive surface shares. Exported
+ * because feature code kept re-typing it character for character, and a
+ * focus ring that drifts between surfaces is a focus ring people stop
+ * trusting.
+ */
+export const focusRingClassName =
   "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--theme-accent-strong)]";
 
 const surfaceVariants = cva("relative border", {
@@ -58,7 +64,7 @@ const surfaceVariants = cva("relative border", {
 const interactiveSurfaceVariants = cva(
   cn(
     "transition-[transform,border-color,background-color,box-shadow,color] duration-[260ms] ease-[cubic-bezier(0.25,1,0.5,1)] motion-reduce:transition-none motion-reduce:hover:translate-y-0",
-    focusRing,
+    focusRingClassName,
   ),
   {
     variants: {

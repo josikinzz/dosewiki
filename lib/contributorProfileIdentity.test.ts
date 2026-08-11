@@ -1,9 +1,12 @@
 import { describe, expect, it } from "vitest";
 import {
+  contributorMatchNames,
   deriveProfileKeyFromEmail,
+  findContributorProfileByAuthorName,
   findContributorProfileByKeyOrAlias,
   materializeContributorProfile,
   normalizeProfileAliases,
+  profileMatchesName,
   resolveOwnedProfileKey,
   sanitizeContributorRole,
 } from "./contributorProfileIdentity";
@@ -45,6 +48,55 @@ describe("contributor profile identity", () => {
     expect(findContributorProfileByKeyOrAlias(profiles, "editor")?.key).toBe("EDITOR");
     expect(findContributorProfileByKeyOrAlias(profiles, "OLD-EDITOR")?.key).toBe("EDITOR");
     expect(findContributorProfileByKeyOrAlias(profiles, "missing")).toBeNull();
+  });
+});
+
+describe("contributor name matching", () => {
+  const josie = { key: "JOSIE", displayName: "Josie Kins", aliases: ["josie", "josikinz"] };
+  const kaytwo = { key: "KAYTWO", displayName: "Kaytwo", aliases: ["kaylee"] };
+  const profiles = [josie, kaytwo];
+
+  it("collects the display name and aliases as one deduplicated name set", () => {
+    expect(contributorMatchNames({ displayName: "Viscid", aliases: ["viscid", "mark gillis", ""] })).toEqual([
+      "viscid",
+      "mark gillis",
+    ]);
+  });
+
+  it("matches an exact display name regardless of case or padding", () => {
+    expect(findContributorProfileByAuthorName(profiles, "  josie KINS ")?.key).toBe("JOSIE");
+    expect(findContributorProfileByAuthorName(profiles, "Kaytwo")?.key).toBe("KAYTWO");
+  });
+
+  it("matches an explicit alias", () => {
+    expect(findContributorProfileByAuthorName(profiles, "Kaylee")?.key).toBe("KAYTWO");
+    expect(findContributorProfileByAuthorName(profiles, "josikinz")?.key).toBe("JOSIE");
+  });
+
+  // "Alex" must not be swallowed by "Alex Grey": one contributor's given name is
+  // not a claim on another contributor's credits.
+  it("does not match the first word of a longer display name", () => {
+    const directory = [{ key: "ALEXGREY", displayName: "Alex Grey", aliases: [] }];
+
+    expect(findContributorProfileByAuthorName(directory, "Alex")).toBeNull();
+    expect(profileMatchesName(directory[0], "Alex")).toBe(false);
+    expect(profileMatchesName(directory[0], "Grey")).toBe(false);
+  });
+
+  it("matches nothing on a blank or unknown name", () => {
+    expect(findContributorProfileByAuthorName(profiles, "   ")).toBeNull();
+    expect(findContributorProfileByAuthorName(profiles, "Nicole")).toBeNull();
+    expect(profileMatchesName(josie, "")).toBe(false);
+  });
+
+  it("agrees with the profile-first predicate on every pair", () => {
+    for (const name of ["Josie Kins", "josie", "Kaylee", "Alex", "Nicole", ""]) {
+      const matched = findContributorProfileByAuthorName(profiles, name);
+
+      for (const profile of profiles) {
+        expect(profileMatchesName(profile, name)).toBe(matched?.key === profile.key);
+      }
+    }
   });
 });
 

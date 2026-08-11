@@ -11,6 +11,7 @@ import {
   countContributorReferences,
   formatContributorReferenceCount,
   formatContributorRosterSubtitle,
+  isRosterMember,
   selectAboutContributors,
   type ContributorRosterEntry,
 } from "./contributorRoster";
@@ -435,5 +436,99 @@ describe("contributor credit lines", () => {
         { roleFallback: "Founder" },
       ),
     ).toBe("Site Founder");
+  });
+});
+
+/**
+ * The credited-identity import gives every name in the corpus an ordinary profile, so the
+ * Effect Index roster grows with it. That is the intended behaviour, not a leak — but it is a
+ * large, public, one-way-looking change, so these tests pin down that the growth is exactly
+ * "one row in, one name on the page", that it is decided in one place, and that narrowing it
+ * later is a one-line edit rather than a rewrite.
+ */
+describe("roster membership policy", () => {
+  const LIVE_PROFILE_KEYS = [
+    "GABRIEL", "GRAHAM", "HYPNAGOGIST", "JOSIE", "KAYTWO", "LYREA", "MAETHOR",
+    "NATALIE", "NERVEWING", "RHO", "STINGRAYZ", "UTHERAPTOR", "VISCID",
+  ] as const;
+
+  const LIVE_PROFILES = LIVE_PROFILE_KEYS.map((key) =>
+    profile(key, key.charAt(0) + key.slice(1).toLowerCase()),
+  );
+
+  /** Six of the seventy-one rows the import writes, including the third parties. */
+  const IMPORTED_PROFILES = [
+    profile("COLDWASABI", "Cold Wasabi", { role: "Replication Artist" }),
+    profile("PHOSFORM", "Phosform", { role: "Replication Artist" }),
+    profile("ZDZISLAWBEKSINSKI", "Zdzisław Beksiński"),
+    profile("HRGIGER", "H. R. Giger"),
+    profile("ALEXGREY", "Alex Grey"),
+    profile("CHELSEAMORGAN", "Chelsea Morgan", { role: "Replication Artist" }),
+  ];
+
+  const referenceCounts = new Map<string, number>([
+    ...LIVE_PROFILES.map((entry, index) => [entry.key, 100 + index] as const),
+    ...IMPORTED_PROFILES.map((entry) => [entry.key, 1] as const),
+  ]);
+
+  function rosterKeys(profiles: readonly NormalizedUserProfile[]): string[] {
+    const roster = buildContributorRoster({
+      profiles,
+      referenceCounts,
+      founderKey: EFFECT_INDEX_FOUNDER_KEY,
+      excludedKeys: EFFECT_INDEX_EXCLUDED_CONTRIBUTOR_KEYS,
+    });
+
+    return [
+      ...(roster.founder ? [roster.founder.profile.key] : []),
+      ...roster.contributors.map((entry) => entry.profile.key),
+    ];
+  }
+
+  it("adds every imported profile to the roster, on the same terms as anyone else", () => {
+    const before = rosterKeys(LIVE_PROFILES);
+    const after = rosterKeys([...LIVE_PROFILES, ...IMPORTED_PROFILES]);
+
+    expect(before).toHaveLength(LIVE_PROFILES.length - EFFECT_INDEX_EXCLUDED_CONTRIBUTOR_KEYS.length);
+    expect(after).toHaveLength(before.length + IMPORTED_PROFILES.length);
+    // Third parties included: the owner asked for no special casing, so there is none.
+    expect(after).toContain("ZDZISLAWBEKSINSKI");
+    expect(after).toContain("ALEXGREY");
+  });
+
+  it("ranks the newcomers by the same count rule, so they land where their credits put them", () => {
+    const after = rosterKeys([...LIVE_PROFILES, ...IMPORTED_PROFILES]);
+
+    // One page each puts all six at the bottom, alphabetically among themselves.
+    expect(after.slice(-IMPORTED_PROFILES.length)).toEqual([
+      "ALEXGREY", "CHELSEAMORGAN", "COLDWASABI", "HRGIGER", "PHOSFORM", "ZDZISLAWBEKSINSKI",
+    ]);
+  });
+
+  it("keeps the excluded-key gate a per-publication exception, not a growth mechanism", () => {
+    expect(EFFECT_INDEX_EXCLUDED_CONTRIBUTOR_KEYS).toEqual(["LYREA"]);
+    expect(rosterKeys([...LIVE_PROFILES, ...IMPORTED_PROFILES])).not.toContain("LYREA");
+  });
+
+  it("decides membership in one place, and narrowing it there is the whole veto", () => {
+    const everyone = [...LIVE_PROFILES, ...IMPORTED_PROFILES];
+    expect(everyone.every((entry) => isRosterMember({ profile: entry, referenceCount: 1 }))).toBe(true);
+
+    // The veto the owner may want: keep only profiles the archive credits more than once.
+    // Reproduced here rather than configured, to show it is a one-line body change.
+    const narrowed = everyone.filter(
+      (entry) => (referenceCounts.get(entry.key) ?? 0) > 1 || entry.key === EFFECT_INDEX_FOUNDER_KEY,
+    );
+    expect(rosterKeys(narrowed)).toEqual(rosterKeys(LIVE_PROFILES));
+  });
+
+  it("never drops the pinned founder, whatever the policy says", () => {
+    const roster = buildContributorRoster({
+      profiles: [profile("JOSIE", "Josie Kins")],
+      referenceCounts: new Map(),
+      founderKey: EFFECT_INDEX_FOUNDER_KEY,
+    });
+
+    expect(roster.founder?.profile.key).toBe("JOSIE");
   });
 });
