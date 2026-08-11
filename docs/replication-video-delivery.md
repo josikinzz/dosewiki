@@ -112,18 +112,26 @@ here as final for now, along with what it does and does not buy.
 
 ### What it does not fix, and nobody should later read this doc as if it did
 
-- **`cache-control: private` still applies.** Convex storage marks responses
-  private, so no shared cache and no CDN edge holds these files. **Every viewer
-  pulls the full rendition from origin, every time.** A returning visitor
-  re-downloads. Ten simultaneous viewers are ten origin fetches.
+- **No shared cache.** Convex storage returns
+  `cache-control: private, max-age=2592000` (measured on production
+  2026-08-11). `private` bars every *shared* cache — CDN edges, proxies,
+  anything between the origin and one particular browser — so **each new
+  viewer pulls the full rendition from origin**. Ten simultaneous first-time
+  viewers are ten origin fetches.
+- **Per-browser caching does work**, and it is worth being precise about this
+  rather than repeating the pessimistic version: the 30-day `max-age` means a
+  returning viewer replays from their own disk cache and does not re-download.
+  The cost falls on first views, not repeat ones.
 - **Single origin, single region.** Geographic latency is unchanged.
-- **Bandwidth cost scales linearly with views**, with no cache to amortise it.
+- **Bandwidth cost scales with *distinct* viewers**, with no shared cache to
+  amortise it across them.
 
 The honest summary: the transcode removes roughly 90% of the bytes and
 essentially all of the start-up stall, which is the bulk of the felt problem.
-The remaining inefficiency is that those bytes are re-sent for every view. That
-is acceptable at current traffic and becomes the thing to revisit if traffic
-grows or if Convex ever exposes a public cache-control.
+The remaining inefficiency is that the first view by each visitor is served
+from origin at full size. That is acceptable at current traffic and becomes the
+thing to revisit if traffic grows or if Convex ever exposes a public
+cache-control.
 
 ### Reference, if that decision is ever revisited
 
