@@ -31,6 +31,9 @@ export const runtime = "nodejs";
  * so it drains in far fewer round trips at the same page size.
  */
 const PAGE_LIMIT = 100;
+// Whole articles average ~30 KB; 40 per response stays well under Vercel's
+// ~4.5 MB serverless response cap even for reference-heavy pages.
+const FULL_ARTICLE_PAGE_LIMIT = 40;
 const MAX_PAGES = 200;
 
 type EditorPage = {
@@ -76,15 +79,32 @@ export const GET = protectedRouteOperation({
     }
 
     const wantsFullArticles = params.get("scope") === "full";
-    const pageQuery = wantsFullArticles
-      ? api.substanceIndex.getEditorPage
-      : api.substanceIndex.getEditorLibraryPage;
+
+    if (wantsFullArticles) {
+      // One Convex page per HTTP response: the whole corpus in one body blows
+      // straight past Vercel's serverless response-size cap, so the client
+      // walks `cursor` until `isDone` instead.
+      const cursorParam = params.get("cursor");
+      const result: EditorPage = (await convexWrite.client.query(api.substanceIndex.getEditorPage, {
+        apiKey,
+        actorEmail,
+        paginationOpts: { numItems: FULL_ARTICLE_PAGE_LIMIT, cursor: cursorParam || null },
+      })) as EditorPage;
+
+      return NextResponse.json({
+        ok: true,
+        scope: "full",
+        articles: result.page,
+        cursor: result.isDone ? null : result.continueCursor,
+        isDone: result.isDone,
+      });
+    }
 
     const articles: unknown[] = [];
     let cursor: string | null = null;
 
     for (let page = 0; page < MAX_PAGES; page += 1) {
-      const result: EditorPage = (await convexWrite.client.query(pageQuery, {
+      const result: EditorPage = (await convexWrite.client.query(api.substanceIndex.getEditorLibraryPage, {
         apiKey,
         actorEmail,
         paginationOpts: { numItems: PAGE_LIMIT, cursor },
@@ -98,7 +118,7 @@ export const GET = protectedRouteOperation({
 
     return NextResponse.json({
       ok: true,
-      scope: wantsFullArticles ? "full" : "list",
+      scope: "list",
       articles,
     });
   },

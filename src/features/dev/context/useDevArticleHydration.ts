@@ -21,7 +21,7 @@ import { resolveEditorArticleSlug } from "./devModeUtils";
 const EDITOR_LIBRARY_ENDPOINT = "/api/dev/editor-library";
 
 type ArticlePayload = { article?: SubstanceArticle };
-type CorpusPayload = { articles?: SubstanceArticle[] };
+type CorpusPayload = { articles?: SubstanceArticle[]; cursor?: string | null; isDone?: boolean };
 
 export type DevArticleHydration = {
   /** Slugs whose whole article has landed in the working set. */
@@ -115,17 +115,44 @@ export function useDevArticleHydration({
     setFullCorpusRequested(true);
     setIsHydratingFullCorpus(true);
 
-    void fetch(`${EDITOR_LIBRARY_ENDPOINT}?scope=full`)
-      .then((response) => (response.ok ? (response.json() as Promise<CorpusPayload>) : null))
-      .then((payload) => {
-        if (payload?.articles?.length) {
+    // The corpus arrives one page per response — a single ~15 MB body would
+    // exceed Vercel's serverless response cap — so walk the cursor to the end,
+    // committing each page as it lands.
+    const drain = async () => {
+      let cursor: string | null = null;
+      let received = 0;
+
+      for (;;) {
+        const query = cursor ? `?scope=full&cursor=${encodeURIComponent(cursor)}` : "?scope=full";
+        const response = await fetch(`${EDITOR_LIBRARY_ENDPOINT}${query}`);
+        if (!response.ok) {
+          throw new Error(`Full-corpus drain failed with status ${response.status}.`);
+        }
+
+        const payload = (await response.json()) as CorpusPayload;
+        if (payload.articles?.length) {
+          received += payload.articles.length;
           commit(payload.articles);
-        } else {
+        }
+
+        if (payload.isDone !== false && !payload.cursor) {
+          break;
+        }
+        cursor = payload.cursor ?? null;
+      }
+
+      return received;
+    };
+
+    void drain()
+      .then((received) => {
+        if (received === 0) {
           fullCorpusInFlightRef.current = false;
           setFullCorpusRequested(false);
         }
       })
-      .catch(() => {
+      .catch((error: unknown) => {
+        console.error("Unable to drain the full editor corpus.", error);
         fullCorpusInFlightRef.current = false;
         setFullCorpusRequested(false);
       })
