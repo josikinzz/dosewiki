@@ -37,6 +37,27 @@ export const profileInputValidator = v.object({
   avatarStorageId: v.optional(v.string()),
 });
 
+/**
+ * Editor-side profile patch. Every field is optional and an omitted field is
+ * left exactly as stored — this is the deliberate opposite of `bulkImport`,
+ * which patches every field it names and therefore clears anything the caller
+ * did not carry forward. `null` is the only way to clear a clearable field.
+ *
+ * Ordering is not here on purpose: `setContributorOrdering` owns it, because
+ * ordering writes have to be pruned against the replication and trip report
+ * tables and this patch performs no table lookups.
+ */
+export const editorProfilePatchValidator = v.object({
+  displayName: v.optional(v.string()),
+  bio: v.optional(v.string()),
+  role: contributorRoleValidator,
+  links: v.optional(v.array(linkValidator)),
+  aliases: v.optional(v.array(v.string())),
+  avatarUrl: v.optional(v.union(v.string(), v.null())),
+  avatarStorageId: v.optional(v.union(v.string(), v.null())),
+  membershipEmail: v.optional(v.union(v.string(), v.null())),
+});
+
 export const bulkImportProfileValidator = v.object({
   key: v.string(),
   displayName: v.string(),
@@ -69,6 +90,8 @@ export type StoredProfile = {
   role?: string;
   links: ProfileLink[];
   membershipEmail?: string;
+  replicationOrder?: string[];
+  reportOrder?: string[];
   createdAt: string;
   updatedAt: string;
   updatedBy?: string;
@@ -83,6 +106,11 @@ export type PublicProfile = {
   links: ProfileLink[];
   hasCustomBio: boolean;
   role?: string;
+  // Partial curation, read-side only for now: the listed slugs are the ones the
+  // contributor pinned to the front, in order. Consumers place them first and
+  // fall back to their existing default sort for everything unlisted.
+  replicationOrder: string[];
+  reportOrder: string[];
 };
 
 type StoredProfileDraftInput = {
@@ -277,6 +305,157 @@ export function buildStoredProfile(
   };
 }
 
+/** Upper bound on a curated ordering, so one write cannot pin an unbounded list. */
+export const MAX_ORDER_SLUGS = 500;
+
+/**
+ * Trim, drop blanks, and de-duplicate an ordering while preserving the caller's
+ * order. Slugs are compared exactly rather than case-folded: the tables store
+ * lowercase URL slugs, and lowercasing here would silently rewrite — and then
+ * prune — anything that did not follow that convention.
+ */
+export function normalizeOrderSlugs(values: readonly string[] | null | undefined): string[] {
+  const seen = new Set<string>();
+  const ordered: string[] = [];
+
+  for (const value of values ?? []) {
+    const slug = typeof value === "string" ? value.trim() : "";
+    if (!slug || seen.has(slug)) {
+      continue;
+    }
+    seen.add(slug);
+    ordered.push(slug);
+    if (ordered.length >= MAX_ORDER_SLUGS) {
+      break;
+    }
+  }
+
+  return ordered;
+}
+
+/**
+ * Split a requested ordering into the slugs that still resolve to a row and the
+ * stale ones. Curation is partial: the surviving slugs render first in this
+ * order and every unlisted item follows in its existing default sort, so a
+ * pruned slug costs nothing but its own position.
+ */
+export function pruneOrderSlugs(
+  requested: readonly string[] | null | undefined,
+  knownSlugs: Iterable<string>,
+): { order: string[]; pruned: string[] } {
+  const known = new Set(knownSlugs);
+  const order: string[] = [];
+  const pruned: string[] = [];
+
+  for (const slug of normalizeOrderSlugs(requested)) {
+    if (known.has(slug)) {
+      order.push(slug);
+    } else {
+      pruned.push(slug);
+    }
+  }
+
+  return { order, pruned };
+}
+
+export type EditorProfilePatchInput = {
+  displayName?: string;
+  bio?: string;
+  role?: string | null;
+  links?: ProfileLink[];
+  aliases?: string[];
+  avatarUrl?: string | null;
+  avatarStorageId?: string | null;
+  membershipEmail?: string | null;
+};
+
+/**
+ * Build the `ctx.db.patch` payload for an editor profile edit.
+ *
+ * A key is present in the returned object only when the caller asked for that
+ * field to change, because Convex reads a present-but-`undefined` value as
+ * "delete this field". That is exactly how a clear is expressed here, and it is
+ * why an omitted field must not appear at all.
+ */
+export function buildEditorProfilePatch(
+  input: EditorProfilePatchInput,
+  existing: StoredProfile,
+  actorEmail: string,
+  now = new Date().toISOString(),
+): Record<string, unknown> {
+  const patch: Record<string, unknown> = {
+    updatedAt: now,
+    updatedBy: normalizeEmail(actorEmail),
+  };
+
+  // A blank display name would leave the profile with no renderable name, so it
+  // falls back to what is stored rather than being accepted as a clear.
+  const nextDisplayName =
+    input.displayName === undefined
+      ? existing.displayName
+      : sanitizeDisplayName(input.displayName) ||
+        existing.displayName ||
+        toDisplayName(existing.key);
+
+  if (input.displayName !== undefined) {
+    patch.displayName = nextDisplayName;
+  }
+
+  if (input.bio !== undefined) {
+    patch.bio = sanitizeBio(input.bio);
+  }
+
+  if (input.role !== undefined) {
+    patch.role = input.role === null ? undefined : sanitizeRole(input.role) || undefined;
+  }
+
+  if (input.links !== undefined) {
+    patch.links = sanitizeLinks(input.links);
+  }
+
+  // Whatever the profile answers to has to keep resolving. An explicit alias
+  // list replaces the stored one so an editor can drop a wrong alias, but the
+  // key and the current display name are always folded back in; a rename alone
+  // still has to add the new name without disturbing the existing aliases.
+  if (input.aliases !== undefined) {
+    patch.aliases = sanitizeAliases([
+      ...input.aliases,
+      existing.key.toLowerCase(),
+      nextDisplayName,
+    ]);
+  } else if (input.displayName !== undefined) {
+    patch.aliases = sanitizeAliases([
+      ...(existing.aliases ?? []),
+      existing.key.toLowerCase(),
+      nextDisplayName,
+    ]);
+  }
+
+  const requestedStorageId =
+    typeof input.avatarStorageId === "string" ? input.avatarStorageId.trim() : input.avatarStorageId;
+
+  if (typeof requestedStorageId === "string" && requestedStorageId) {
+    patch.avatarStorageId = requestedStorageId;
+    patch.avatarUrl = undefined;
+  } else if (input.avatarUrl === null) {
+    patch.avatarStorageId = undefined;
+    patch.avatarUrl = undefined;
+  } else if (input.avatarUrl !== undefined) {
+    patch.avatarStorageId = undefined;
+    patch.avatarUrl = sanitizeAvatarUrl(input.avatarUrl) ?? undefined;
+  } else if (requestedStorageId === null || requestedStorageId === "") {
+    patch.avatarStorageId = undefined;
+    patch.avatarUrl = undefined;
+  }
+
+  if (input.membershipEmail !== undefined) {
+    const email = input.membershipEmail === null ? "" : normalizeEmail(input.membershipEmail);
+    patch.membershipEmail = email || undefined;
+  }
+
+  return patch;
+}
+
 export async function materializeProfile(
   ctx: StorageCtx,
   profile: StoredProfile,
@@ -306,6 +485,11 @@ export async function materializeProfile(
       hasCustomBio: false,
     }),
     avatarUrl: resolvedAvatarUrl ?? null,
+    // Read-side passthrough only. Consumers still own the merge: listed slugs
+    // first in this order, everything else after in the default sort, and any
+    // slug that no longer matches an item is simply not found and ignored.
+    replicationOrder: normalizeOrderSlugs(profile.replicationOrder),
+    reportOrder: normalizeOrderSlugs(profile.reportOrder),
   };
 }
 

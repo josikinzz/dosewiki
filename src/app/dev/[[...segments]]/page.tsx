@@ -61,6 +61,10 @@ function resolveDevRoute(segments: string[] | undefined): { tab: DevTab; slug?: 
     return { tab: "about", slug };
   }
 
+  if (candidateTab === "copy-studio" || candidateTab === "copy") {
+    return { tab: "copy-studio", slug };
+  }
+
   if (candidateTab === "citation-review" || candidateTab === "citations") {
     return { tab: "citation-review", slug };
   }

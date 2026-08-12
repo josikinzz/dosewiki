@@ -1,0 +1,231 @@
+[
+  {
+    "key": "home-hero-tagline",
+    "kind": "plain",
+    "label": "Hero tagline",
+    "group": "Home",
+    "body": "An open encyclopedic database for the study of psychopharmacology"
+  },
+  {
+    "key": "home-construction-title",
+    "kind": "plain",
+    "label": "Under-construction banner title",
+    "group": "Home",
+    "body": "Under construction"
+  },
+  {
+    "key": "home-construction-subtitle",
+    "kind": "plain",
+    "label": "Under-construction banner subtitle",
+    "group": "Home",
+    "body": "coming soon, summer 2026 ;3"
+  },
+  {
+    "key": "home-construction-body",
+    "kind": "markdown",
+    "label": "Under-construction page body",
+    "group": "Home",
+    "body": "The public site is under construction while the harm-reduction library is being reviewed."
+  },
+  {
+    "key": "home-construction-body-effect-index",
+    "flavor": "effect-index",
+    "kind": "markdown",
+    "label": "Under-construction page body",
+    "group": "Home",
+    "body": "The public site is under construction while the subjective effect archive is being reviewed."
+  },
+  {
+    "key": "home-loading-lines",
+    "kind": "list",
+    "label": "Loading screen lines",
+    "group": "Home",
+    "items": [
+      "Indexing dosage, effects, and safety references…",
+      "Preparing the public library"
+    ]
+  },
+  {
+    "key": "home-loading-lines-effect-index",
+    "flavor": "effect-index",
+    "kind": "list",
+    "label": "Loading screen lines",
+    "group": "Home",
+    "items": [
+      "Indexing subjective effects, replications, and reports…",
+      "Preparing the public library"
+    ]
+  },
+  {
+    "key": "footer-tagline",
+    "kind": "plain",
+    "label": "Footer tagline",
+    "group": "Footer",
+    "body": "Community harm-reduction information. Not medical advice."
+  },
+  {
+    "key": "footer-tagline-effect-index",
+    "flavor": "effect-index",
+    "kind": "plain",
+    "label": "Footer tagline",
+    "group": "Footer",
+    "body": "Formalised documentation of subjective effects. Not medical advice."
+  },
+  {
+    "key": "footer-supporter-prefix",
+    "kind": "plain",
+    "label": "Supporter credit prefix",
+    "group": "Footer",
+    "body": "Supported by"
+  },
+  {
+    "key": "about-reuse-notice",
+    "kind": "markdown",
+    "label": "Reuse notice",
+    "group": "About",
+    "body": "Everything dose.wiki creates — its articles and the full dataset — is dedicated to the public domain under [CC0](/docs/license): reuse it freely, no attribution required. The site's code is MIT; trip reports, interaction ratings, and reagent tests keep their own terms. Subjective Effect Index and Trip Report Index exports aren't downloadable yet — they land with the 1.0 release."
+  },
+  {
+    "key": "about-reuse-notice-effect-index",
+    "flavor": "effect-index",
+    "kind": "markdown",
+    "label": "Reuse notice",
+    "group": "About",
+    "body": "Effect Index's indexing and written material is available for non-commercial reuse under [CC BY-NC-SA 4.0](/copyright-disclaimer), with attribution. Replications, multimedia and non-SEI artwork belong to their original creators; the copyright disclaimer covers commercial enquiries and how to request that artwork be removed or reattributed."
+  },
+  {
+    "key": "about-doc-link-blurbs",
+    "kind": "list",
+    "label": "Documentation card blurbs",
+    "group": "About",
+    "items": [
+      "The full content pipeline — sources, synthesis, human review, and citations.",
+      "A tour of the codebase: architecture, the data layer, and the systems behind the site.",
+      "What you can do with our content, dataset, code, and the parts we don't own."
+    ]
+  },
+  {
+    "key": "about-mission-effect-index",
+    "flavor": "effect-index",
+    "kind": "markdown",
+    "label": "Mission statement",
+    "group": "About",
+    "body": "Effect Index serves as the platform for the [Subjective Effect Index (SEI)](/effects), a resource containing formalised documentation of the vast number of distinct subjective states that may occur under the influence of hallucinogens. We strive to comprehensively document and describe the wide variety of potential hallucinogenic experiences. The SEI is presented in an easily readable format that contains not only descriptions, but also image, video, and audio [replications](/replications) of these effects.\n\nWe believe that in pioneering formalised subjective effect documentation, we may demystify the psychedelic experience. This has the potential to allow hallucinogen usage to become more culturally acceptable, better understood, and create a platform on top of which these substances may be more easily studied.\n\nEffect Index was initially founded as a side project on 30 June, 2017 by [Josie Kins](/contributors/josie), the founder of [PsychonautWiki](https://psychonautwiki.org) and [DisregardEverythingISay](https://disregardeverythingisay.com/). It serves as a platform for content that has been in constant development for the previous six years on these sites. However, the aforementioned content is now hosted on its own dedicated platform with the hope of further spreading the documentation and creating a universal terminology set that gives people the vernacular to fully describe experiences that were previously considered ineffable.\n\nIf you find this project interesting, we encourage you to join our active communities within both our [subreddit](https://reddit.com/r/replications) and our [Discord](/discord)."
+  },
+  {
+    "key": "effect-index-home-intro-lead",
+    "flavor": "effect-index",
+    "kind": "markdown",
+    "label": "Homepage intro, lead paragraph",
+    "group": "Effect Index",
+    "body": "**Effect Index,** is a resource dedicated to establishing the field of formalised subjective effect documentation. It is the home of the [Subjective Effect Index](/effects) (SEI), which contains {{effectCount}} effect descriptions that exist to serve as a comprehensive map of all potential experiences that can occur under the influence of any class of psychoactive compound, particularly hallucinogens."
+  },
+  {
+    "key": "effect-index-home-intro-method",
+    "flavor": "effect-index",
+    "kind": "markdown",
+    "label": "Homepage intro, method paragraph",
+    "group": "Effect Index",
+    "body": "The effects identified here are accompanied by detailed descriptions of how it feels to experience them. These are written in an objective and [consistent writing style](/documentation-style-guide) based upon phenomenological observation and avoids the use of metaphor or analogy. The descriptions also strive to use language that is as simple and understandable as possible. This has been done with the hope that they will serve as a universal terminology that allows people to describe and discuss that which was previously considered ineffable."
+  },
+  {
+    "key": "effect-index-home-intro-organisation",
+    "flavor": "effect-index",
+    "kind": "markdown",
+    "label": "Homepage intro, organisation paragraph",
+    "group": "Effect Index",
+    "body": "These effects are organised into categories based on the sense affected and their behaviour. Many of these are further broken down into levels, subcomponents, and variations in style, which can occur across different substances. Detailed [replications](/replications) are included whenever possible to supplement the text descriptions in the form of images, audio clips, and animations."
+  },
+  {
+    "key": "effect-index-home-panel-blurbs",
+    "flavor": "effect-index",
+    "kind": "list",
+    "label": "Homepage panel blurbs",
+    "group": "Effect Index",
+    "items": [
+      "Hallucinogenic substance classes, broken down and described",
+      "A selection of subjective effects that best represent the SEI",
+      "Analyses that go beyond individual subjective effects",
+      "Recommended firsthand accounts of hallucinogenic experiences",
+      "Artistic representations of specific subjective effects"
+    ]
+  },
+  {
+    "key": "substances-index-intro",
+    "kind": "markdown",
+    "label": "Substance Index intro",
+    "group": "Index pages",
+    "body": "Browse **{{substanceCount}} substance articles** focused on education and harm reduction, organized across **{{categoryCount}} psychoactive classes**. Open any page below to explore detailed information including: *dosage & duration, subjective effects, reagent testing, pharmacology, interactions, harm potential, history & culture, legality, and further reading.*"
+  },
+  {
+    "key": "reports-index-intro",
+    "kind": "markdown",
+    "label": "Trip Reports index intro",
+    "group": "Index pages",
+    "body": "First-person accounts of substance experiences, consistently formatted and cross-referenced with the [Subjective Effect Index](/effects)."
+  },
+  {
+    "key": "effects-index-credit",
+    "kind": "plain",
+    "label": "Subjective Effect Index credit line",
+    "group": "Index pages",
+    "body": "created by Josie Kins, 2011"
+  },
+  {
+    "key": "submit-report-intro",
+    "kind": "markdown",
+    "label": "Submission page intro",
+    "group": "Submissions",
+    "body": "Share a structured account for editor review. Submissions stay in a private queue and only become public after manual approval."
+  },
+  {
+    "key": "submit-report-privacy-note",
+    "kind": "plain",
+    "label": "Submission privacy note",
+    "group": "Submissions",
+    "body": "Do not include identifying details you would not want reviewed by editors."
+  },
+  {
+    "key": "submit-report-consent-publish",
+    "kind": "markdown",
+    "label": "CC0 publication consent",
+    "group": "Submissions",
+    "body": "I consent to this report being reviewed and, if published, dedicated to the public domain (CC0) — free for anyone to use, with no attribution required. This dedication cannot be revoked once the report is public: anyone who has already copied it may keep using it. If I later ask dose.wiki to remove the report, that removal applies to dose.wiki only, not to copies made elsewhere."
+  },
+  {
+    "key": "submit-report-consent-age",
+    "kind": "plain",
+    "label": "Age confirmation consent",
+    "group": "Submissions",
+    "body": "I confirm I am at least 18 years old and can submit this report."
+  },
+  {
+    "key": "not-found-title",
+    "kind": "plain",
+    "label": "404 title",
+    "group": "Status pages",
+    "body": "Page not found"
+  },
+  {
+    "key": "not-found-body",
+    "kind": "plain",
+    "label": "404 body",
+    "group": "Status pages",
+    "body": "That page doesn’t exist or may have moved."
+  },
+  {
+    "key": "root-meta-description",
+    "kind": "plain",
+    "label": "Root SEO description",
+    "group": "Status pages",
+    "body": "dose.wiki is a harm reduction database providing dosage, duration, effects, and safety information for psychoactive substances."
+  },
+  {
+    "key": "root-meta-description-effect-index",
+    "flavor": "effect-index",
+    "kind": "plain",
+    "label": "Root SEO description",
+    "group": "Status pages",
+    "body": "A resource dedicated to establishing the field of formalised subjective effect documentation."
+  }
+]

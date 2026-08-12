@@ -28,9 +28,11 @@ vi.mock("../context/DevModeContext", () => ({
   useDevMode: () => ({
     articles: mockDevArticles,
     replaceArticles: replaceArticlesMock,
+    articleHydration: createHydratedArticleHydration(),
   }),
 }));
 
+import { createHydratedArticleHydration } from "@/test/fixtures/devArticleHydration";
 import {
   createTagEditorState,
   getFilteredTags,

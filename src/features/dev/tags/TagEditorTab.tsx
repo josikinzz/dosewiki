@@ -32,7 +32,18 @@ export function TagEditorTab({
   onCopyDatasetMarkdown,
   onDownloadDatasetMarkdown,
 }: TagEditorTabProps) {
-  const { articles, replaceArticles } = useDevMode();
+  const { articles, replaceArticles, articleHydration } = useDevMode();
+
+  // The one tool that genuinely needs every whole article: `buildTagRegistry`
+  // reads binding-site affinities the library list does not carry, and a
+  // mutation rewrites tag fields on matched articles and writes the whole
+  // corpus back through `replaceArticles`. Running that over un-hydrated rows
+  // would turn an edited row into a diff against its own empty body and save
+  // that emptiness to Convex, so the tool stays inert until the drain lands.
+  const { isFullCorpusHydrated, isHydratingFullCorpus, requestFullCorpus } = articleHydration;
+  useEffect(() => {
+    requestFullCorpus();
+  }, [requestFullCorpus]);
 
   const [state, dispatch] = useReducer(tagEditorReducer, articles, createTagEditorState);
   const handledEffectIds = useRef(new Set<number>());
@@ -116,6 +127,19 @@ export function TagEditorTab({
   const handleDownloadDatasetMarkdown = useCallback(() => {
     dispatch({ type: "downloadDiffRequested", hasDatasetChanges });
   }, [hasDatasetChanges]);
+
+  if (!isFullCorpusHydrated) {
+    return (
+      <div className="mt-10">
+        <EmptyStateSurface>
+          {isHydratingFullCorpus || articles.length > 0
+            ? "Loading the full article corpus. The tag editor rewrites tags across every article, so it waits for all of them."
+            : "The article corpus is not available yet."}
+        </EmptyStateSurface>
+      </div>
+    );
+  }
+
   return (
     <div className="mt-10 space-y-8">
       {/* Header Section */}

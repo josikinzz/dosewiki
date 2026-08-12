@@ -25,6 +25,10 @@ const AboutEditorTab = dynamic(
   () => import("../tools/about/AboutEditorTab").then((m) => m.AboutEditorTab),
   { ssr: false, loading },
 );
+const CopyStudioTab = dynamic(
+  () => import("../tools/copy-studio/CopyStudioTab").then((m) => m.CopyStudioTab),
+  { ssr: false, loading },
+);
 const CitationReviewTab = dynamic(
   () => import("../tools/citation-review/CitationReviewTab").then((m) => m.CitationReviewTab),
   { ssr: false, loading },
@@ -107,6 +111,8 @@ export function DevModePageView({ controller }: DevModePageViewProps) {
           />
         ) : controller.activeTab === "about" ? (
           <AboutEditorTab {...controller.aboutTabProps} />
+        ) : controller.activeTab === "copy-studio" ? (
+          <CopyStudioTab />
         ) : controller.activeTab === "citation-review" ? (
           <CitationReviewTab initialSlug={controller.citationReviewInitialSlug} />
         ) : controller.activeTab === "trip-report-submissions" ? (

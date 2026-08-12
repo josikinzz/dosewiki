@@ -30,6 +30,7 @@ const TOOL_TAB_ITEMS: ToolTabItem[] = [
   { id: "molecule-editor", label: "Molecules" },
   { id: "replications", label: "Replications" },
   { id: "about", label: "About" },
+  { id: "copy-studio", label: "Copy" },
   { id: "index-layout", label: "Index layout" },
 ];
 

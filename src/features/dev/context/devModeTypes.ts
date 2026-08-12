@@ -1,6 +1,7 @@
 import type { SubstanceArticle } from "@/schema";
 import type { ManualIndexConfig } from "@/data/builders/manualIndexLoader";
 import type { DevTab } from "@/types/navigation";
+import type { DevArticleHydration } from "./useDevArticleHydration";
 import type { EditorDocumentRefreshConflict } from "./editorDocumentSession";
 
 export type ArticleRecord = SubstanceArticle;
@@ -43,6 +44,16 @@ export type DevModeContextValue = {
   getOriginalArticles: () => ArticleRecord[];
   replaceArticles: (nextArticles: ArticleRecord[]) => void;
   applyArticlesTransform: (transform: (previous: ArticleRecord[]) => ArticleRecord[]) => void;
+  /**
+   * On-demand whole-article loading.
+   *
+   * `articles` is built from the slim library list, so a row carries identity,
+   * taxonomy, and review state but an empty body. Any surface that renders or
+   * edits article content must ask for that content first and wait for it —
+   * `requestArticle` for the one it has selected, `requestFullCorpus` for the
+   * tools that sweep every body.
+   */
+  articleHydration: DevArticleHydration;
   replacePsychoactiveIndexManual: (nextConfig: ManualPsychoactiveIndexConfig) => void;
   resetPsychoactiveIndexManual: () => void;
   getOriginalPsychoactiveIndexManual: () => ManualPsychoactiveIndexConfig;

@@ -1,5 +1,5 @@
 import type { ArticleRecord } from "./devModeTypes";
-import { deepClone } from "./devModeUtils";
+import { deepClone, resolveEditorArticleSlug } from "./devModeUtils";
 import { useEditorDocument } from "./editorDocumentSession";
 
 export function useDevArticlesState(articlesSource: ArticleRecord[]) {
@@ -43,6 +43,53 @@ export function useDevArticlesState(articlesSource: ArticleRecord[]) {
     document.applyDraftTransform(transform);
   };
 
+  /**
+   * Fill slim library rows in with the whole articles they stand for.
+   *
+   * The library list arrives without article bodies, so every row starts as a
+   * placeholder that draft and baseline share by reference. Hydration replaces
+   * both halves of a row at once, which is why it cannot mark anything dirty and
+   * cannot be mistaken for an upstream refresh.
+   *
+   * A row whose draft has already diverged from its baseline is left alone in
+   * the draft: the user's edit outranks the fetch that raced it. Its baseline is
+   * still filled in, so the save diff compares an edited whole article against
+   * the whole article it was edited from.
+   */
+  const hydrateArticles = (articlesBySlug: ReadonlyMap<string, ArticleRecord>) => {
+    if (articlesBySlug.size === 0) {
+      return;
+    }
+
+    document.applyHydration(({ draft, original }) => {
+      let nextDraft: ArticleRecord[] | null = null;
+      let nextOriginal: ArticleRecord[] | null = null;
+
+      original.forEach((baseline, index) => {
+        const hydrated = baseline
+          ? articlesBySlug.get(resolveEditorArticleSlug(baseline))
+          : undefined;
+        if (!hydrated || hydrated === baseline) {
+          return;
+        }
+
+        nextOriginal ??= [...original];
+        nextOriginal[index] = hydrated;
+
+        if (draft[index] === baseline) {
+          nextDraft ??= [...draft];
+          nextDraft[index] = hydrated;
+        }
+      });
+
+      if (nextOriginal === null) {
+        return null;
+      }
+
+      return { draft: nextDraft ?? draft, original: nextOriginal };
+    });
+  };
+
   return {
     applyArticlesTransform,
     articles: document.draft,
@@ -60,6 +107,7 @@ export function useDevArticlesState(articlesSource: ArticleRecord[]) {
     // an article to something mutating go through `getOriginalArticle`, which
     // copies that one article.
     getOriginalArticles: document.getOriginal,
+    hydrateArticles,
     markChangesSaved: document.markSaved,
     replaceArticles: document.replaceDraft,
     resetArticleAt,

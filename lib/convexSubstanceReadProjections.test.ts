@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   projectEditorArticle,
+  projectEditorLibraryEntry,
   projectEditorLookup,
   projectLibraryInput,
   projectLookup,
@@ -282,5 +283,94 @@ describe("substance read projections", () => {
     expect(publicArticle.expert_reviewed).toBe(true);
     expect(publicArticle).not.toHaveProperty("editorial_review");
     expect(JSON.stringify(publicArticle)).not.toContain("Editor-only notes");
+  });
+
+  describe("projectEditorLibraryEntry", () => {
+    it("carries the identity, taxonomy, and review state the library list reads", () => {
+      const entry = projectEditorLibraryEntry(article);
+
+      expect(entry.slug).toBe(projectEditorArticle(article).slug);
+      expect(entry.title).toBe(article.title);
+      expect(entry.priority).toBe("normal");
+      expect(entry.index_categories).toEqual(article.index_categories);
+      expect(entry.identification).toEqual(article.identification);
+      expect(entry.classification).toEqual(article.classification);
+      // Editor-only state is exactly why this projection stays editor-gated.
+      expect(entry.editorial_review).toEqual({
+        status: "needed",
+        notes: "Editor-only notes",
+      });
+    });
+
+    it("drops every field only a whole article renders", () => {
+      const entry = projectEditorLibraryEntry(article) as Record<string, unknown>;
+
+      for (const field of [
+        "summary",
+        "dosage",
+        "duration",
+        "interactions",
+        "tolerance",
+        "reagent_testing",
+        "harm_potential",
+        "history_culture",
+        "legality",
+        "comparisons",
+        "references",
+        "source_citations",
+        "citations",
+      ]) {
+        expect(entry).not.toHaveProperty(field);
+      }
+    });
+
+    it("keeps binding-site mechanism tags but no pharmacology prose", () => {
+      const entry = projectEditorLibraryEntry({
+        ...article,
+        pharmacology: {
+          ...article.pharmacology,
+          pharmacodynamics: "x".repeat(400),
+          binding_sites: [
+            { target: "5-HT2A", tag: "serotonergic-psychedelic", affinity: "1.1 nM", efficacy: "partial agonist" },
+          ],
+        },
+      });
+
+      expect(entry.pharmacology).toEqual({
+        binding_sites: [{ target: "5-HT2A", tag: "serotonergic-psychedelic" }],
+      });
+    });
+
+    it("keeps effect names and drops their descriptions", () => {
+      const entry = projectEditorLibraryEntry({
+        ...article,
+        subjective_effects: {
+          ...article.subjective_effects,
+          cognitive: {
+            General: {
+              note: "A note nobody reads across the corpus.",
+              effects: [{ name: "Time distortion", description: "x".repeat(400) }],
+            },
+          },
+        },
+      });
+
+      expect(entry.subjective_effects.cognitive).toEqual({
+        General: {
+          note: "",
+          effects: [{ name: "Time distortion", description: "" }],
+        },
+      });
+    });
+
+    it("is smaller than the whole editor article", () => {
+      const listBytes = JSON.stringify(projectEditorLibraryEntry(article)).length;
+      const articleBytes = JSON.stringify(projectEditorArticle(article)).length;
+
+      // The fixture is a deliberately small article; against the live corpus,
+      // where references alone are ~57% of the bytes, the same projection takes
+      // the whole-corpus drain from ~16.7 MB to under 0.8 MB.
+      expect(listBytes).toBeLessThan(articleBytes);
+    });
   });
 });

@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { getEditorPage } from "../convex/substanceIndex";
+import { getEditorBySlug, getEditorLibraryPage, getEditorPage } from "../convex/substanceIndex";
 
 type Role = "admin" | "editor" | "viewer";
 
@@ -107,5 +107,55 @@ describe("substanceIndex.getEditorPage authorization", () => {
     ).resolves.toMatchObject({ page: [], isDone: true });
 
     expect(paginate).toHaveBeenCalledTimes(1);
+  });
+});
+
+const libraryPageHandler = (getEditorLibraryPage as unknown as {
+  _handler: (ctx: never, args: unknown) => Promise<unknown>;
+})._handler;
+
+const bySlugHandler = (getEditorBySlug as unknown as {
+  _handler: (ctx: never, args: unknown) => Promise<unknown>;
+})._handler;
+
+describe("substanceIndex.getEditorLibraryPage authorization", () => {
+  afterEach(() => {
+    delete process.env.CONVEX_ADMIN_KEY;
+    paginate.mockClear();
+  });
+
+  it("is guarded exactly like the whole-article drain", async () => {
+    // The slim list still carries `editorial_review` — review status, notes,
+    // and flags — so trimming the projection must not have relaxed the gate.
+    await expect(
+      libraryPageHandler(createCtx({ identity: null }), { paginationOpts }),
+    ).rejects.toThrow("Authentication required");
+
+    expect(paginate).not.toHaveBeenCalled();
+  });
+
+  it("serves the list projection to a delegated editor actor", async () => {
+    process.env.CONVEX_ADMIN_KEY = "secret";
+
+    await expect(
+      libraryPageHandler(
+        createCtx({ identity: null, memberships: { "editor@example.com": "editor" } }),
+        { paginationOpts, apiKey: "secret", actorEmail: "editor@example.com" },
+      ),
+    ).resolves.toMatchObject({ page: [], isDone: true });
+
+    expect(paginate).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe("substanceIndex.getEditorBySlug authorization", () => {
+  afterEach(() => {
+    delete process.env.CONVEX_ADMIN_KEY;
+  });
+
+  it("rejects an unauthenticated caller before reading the article", async () => {
+    await expect(
+      bySlugHandler(createCtx({ identity: null }), { slug: "lsd" }),
+    ).rejects.toThrow("Authentication required");
   });
 });

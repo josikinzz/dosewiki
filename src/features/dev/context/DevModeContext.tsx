@@ -6,6 +6,7 @@ import type { ManualIndexConfig } from "@/data/builders/manualIndexLoader";
 import type { DevModeContextValue } from "./devModeTypes";
 import { EMPTY_INDEX_CONFIG } from "./devModeUtils";
 import { useDevAboutState } from "./useDevAboutState";
+import { useDevArticleHydration } from "./useDevArticleHydration";
 import { useDevArticlesState } from "./useDevArticlesState";
 import { useDevIndexConfigsState } from "./useDevIndexConfigsState";
 import { useDevNavigationState } from "./useDevNavigationState";
@@ -73,7 +74,15 @@ export function DevModeProvider({
     psychoactiveSource,
   });
   const aboutState = useDevAboutState(aboutConfig);
-  const { resetArticlesToOriginal, ...articleContextValue } = articlesState;
+  const articleHydration = useDevArticleHydration({
+    articleCount: articlesState.articles.length,
+    hydrateArticles: articlesState.hydrateArticles,
+  });
+  const {
+    resetArticlesToOriginal,
+    hydrateArticles: _hydrateArticles,
+    ...articleContextValue
+  } = articlesState;
   const { markIndexManualsSaved, ...indexContextValue } = indexConfigsState;
   const { markAboutContentSaved, resetAboutContent, ...aboutContextValue } = aboutState;
 
@@ -95,6 +104,7 @@ export function DevModeProvider({
   const value = useMemo<DevModeContextValue>(() => ({
     ...navigationState,
     ...articleContextValue,
+    articleHydration,
     ...indexContextValue,
     ...aboutContextValue,
     markChangesSaved,
@@ -102,6 +112,7 @@ export function DevModeProvider({
   }), [
     aboutContextValue,
     articleContextValue,
+    articleHydration,
     indexContextValue,
     markChangesSaved,
     navigationState,

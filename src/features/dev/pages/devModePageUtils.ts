@@ -12,6 +12,7 @@ export type DevModeTab =
   | "profile"
   | "index-layout"
   | "about"
+  | "copy-studio"
   | "citation-review"
   | "trip-report-submissions"
   | "article-feedback"
@@ -79,6 +80,7 @@ export function resolvePrimaryTab(tab: DevModeTab): DevModePrimaryTab {
     tab === "tag-editor" ||
     tab === "index-layout" ||
     tab === "about" ||
+    tab === "copy-studio" ||
     tab === "citation-review" ||
     tab === "trip-report-submissions" ||
     tab === "article-feedback" ||

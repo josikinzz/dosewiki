@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useRef } from "react";
+import { useCallback, useEffect, useMemo, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { StateCard } from "@/components/common/StateCard";
 import { Icon } from "@/components/common/Icon";
@@ -35,7 +35,7 @@ function resolveArticleSlug(article: {
 }
 
 export function CitationReviewTab({ initialSlug }: CitationReviewTabProps) {
-  const { articles } = useDevMode();
+  const { articles, articleHydration } = useDevMode();
   const { allSubstanceRecords } = useLibrary();
   const {
     queue,
@@ -80,7 +80,18 @@ export function CitationReviewTab({ initialSlug }: CitationReviewTabProps) {
     return lookup;
   }, [allSubstanceRecords, articles]);
 
-  const selectedArticle = selectedSlug ? articleBySlug.get(selectedSlug) ?? null : null;
+  // Library rows carry no article body, so the checklist and the diagnostics
+  // panel below have to wait for the whole article rather than read an empty
+  // one and report every section as missing.
+  const { isArticleHydrated, requestArticle } = articleHydration;
+  useEffect(() => {
+    requestArticle(selectedSlug);
+  }, [requestArticle, selectedSlug]);
+
+  const selectedArticle =
+    selectedSlug && isArticleHydrated(selectedSlug)
+      ? articleBySlug.get(selectedSlug) ?? null
+      : null;
   const checklist = useMemo(
     () => buildCitationReviewChecklist(selectedArticle, rows),
     [rows, selectedArticle],

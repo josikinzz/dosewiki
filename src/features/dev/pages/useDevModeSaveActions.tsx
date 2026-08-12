@@ -37,6 +37,8 @@ type VerifyDevCredentials = (
 
 type UseDevModeSaveActionsArgs = {
   articles: SubstanceArticle[];
+  /** True once every row in `articles` holds a whole article, not a slim list row. */
+  articlesAreComplete: boolean;
   psychoactiveIndexManual: unknown;
   chemicalIndexManual: unknown;
   mechanismIndexManual: unknown;
@@ -153,6 +155,7 @@ const toChangeNotice = (notice: { type: string; message: string; actionHref?: st
 
 export function useDevModeSaveActions({
   articles,
+  articlesAreComplete,
   psychoactiveIndexManual,
   chemicalIndexManual,
   mechanismIndexManual,
@@ -239,6 +242,7 @@ export function useDevModeSaveActions({
     () =>
       buildDevSaveDraft({
         articles,
+        articlesAreComplete,
         originalArticles: getOriginalArticles(),
         layouts: [
           {
@@ -281,6 +285,7 @@ export function useDevModeSaveActions({
       aboutSubtitle,
       aboutSubtitleChangelog,
       articles,
+      articlesAreComplete,
       chemicalIndexManual,
       chemicalManualChangelog,
       convexEnabled,

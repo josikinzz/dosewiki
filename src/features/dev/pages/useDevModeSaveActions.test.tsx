@@ -79,6 +79,7 @@ const authSessionMarker = "__AUTHJS_SESSION__";
 function createArgs(): Parameters<typeof useDevModeSaveActions>[0] {
   return {
     articles: changedArticles,
+    articlesAreComplete: true,
     psychoactiveIndexManual: null,
     chemicalIndexManual: null,
     mechanismIndexManual: null,

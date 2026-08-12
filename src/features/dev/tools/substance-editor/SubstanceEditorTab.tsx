@@ -1,4 +1,4 @@
-import { memo, useCallback } from "react";
+import { memo, useCallback, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { EditorNotice, EditorStatusPill } from "@/features/dev/components";
 import type { SubstanceArticle } from "@/schema";
@@ -13,7 +13,7 @@ export const SubstanceEditorTab = memo(function SubstanceEditorTab({
   renderCommitPanel,
   commitPanel,
 }: SubstanceEditorTabProps) {
-  const { articles, applyArticlesTransform } = useDevMode();
+  const { articles, applyArticlesTransform, articleHydration } = useDevMode();
   const articleData = useSubstanceEditorArticleData(articles as SubstanceArticle[]);
   const { selectedSubstanceSlug, setSelectedSubstanceSlug } = articleData;
 
@@ -24,10 +24,23 @@ export const SubstanceEditorTab = memo(function SubstanceEditorTab({
     [applyArticlesTransform],
   );
 
+  // The library list carries no article bodies, so the form must not be built
+  // from the selected row until the whole article has landed — a form seeded
+  // from an empty body would write that emptiness back on the next apply.
+  const { isArticleHydrated, requestArticle } = articleHydration;
+  const isSelectedArticleReady = isArticleHydrated(selectedSubstanceSlug);
+
+  useEffect(() => {
+    requestArticle(selectedSubstanceSlug);
+  }, [requestArticle, selectedSubstanceSlug]);
+
   const draft = useSubstanceEditorDraftController({
     articles: articles as SubstanceArticle[],
     applyArticlesTransform: applyDraftArticlesTransform,
-    selectedSubstanceSlug,
+    // Withholding the slug until the article has landed is what keeps the draft
+    // from ever existing in an empty-bodied form: no YAML seed, no form, and no
+    // "Apply to draft" button to write that emptiness into the working set.
+    selectedSubstanceSlug: isSelectedArticleReady ? selectedSubstanceSlug : null,
     substances: articleData.substances,
     commitPanel,
   });
@@ -68,6 +81,16 @@ export const SubstanceEditorTab = memo(function SubstanceEditorTab({
         totalSubstances={articleData.totalSubstances}
       />
 
+      {selectedSubstanceSlug && !isSelectedArticleReady ? (
+        <EditorNotice
+          notice={{
+            tone: "info",
+            title: "Loading article",
+            message: "Fetching the full article from Convex.",
+            live: true,
+          }}
+        />
+      ) : (
       <SubstanceEditorOutputSection
         streamedOutput={draft.streamedOutput}
         outputViewMode={draft.outputViewMode}
@@ -85,6 +108,7 @@ export const SubstanceEditorTab = memo(function SubstanceEditorTab({
         copyState={draft.copyState}
         formRef={draft.formRef}
       />
+      )}
 
       {renderCommitPanel ? (
         <div className="space-y-3">

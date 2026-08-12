@@ -1,38 +1,171 @@
 import { v } from "convex/values";
 import { query, mutation } from "./_generated/server";
-import { requireAuth } from "./lib/auth";
+import type { Doc } from "./_generated/dataModel";
+import { requireAuth, requireEditorWrite } from "./lib/auth";
 
 /**
- * Get all EffectIndex articles.
+ * `getAll`, `getBySlug` and `getByTag` are unauthenticated public reads, so the
+ * draft filter lives here rather than in a caller: a row whose `status` is
+ * "draft" never leaves the database through a public function. Legacy rows have
+ * no `status` at all and are treated as published, which is the pre-existing
+ * behaviour.
+ */
+function isPublicallyReadable(article: Doc<"effectIndexArticles">): boolean {
+  return article.status !== "draft";
+}
+
+const SLUG_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
+
+/**
+ * Get all EffectIndex articles. Drafts are excluded.
  */
 export const getAll = query({
   args: {},
   handler: async (ctx) => {
-    return await ctx.db.query("effectIndexArticles").collect();
+    const all = await ctx.db.query("effectIndexArticles").collect();
+    return all.filter(isPublicallyReadable);
   },
 });
 
 /**
- * Get a single EffectIndex article by slug.
+ * Get a single EffectIndex article by slug. A draft reads as missing.
  */
 export const getBySlug = query({
   args: { slug: v.string() },
   handler: async (ctx, args) => {
-    return await ctx.db
+    const article = await ctx.db
       .query("effectIndexArticles")
       .withIndex("by_slug", (q) => q.eq("slug", args.slug))
       .first();
+
+    return article && isPublicallyReadable(article) ? article : null;
   },
 });
 
 /**
- * Get EffectIndex articles by tag.
+ * Get EffectIndex articles by tag. Drafts are excluded.
  */
 export const getByTag = query({
   args: { tag: v.string() },
   handler: async (ctx, args) => {
     const all = await ctx.db.query("effectIndexArticles").collect();
-    return all.filter((article) => article.tags.includes(args.tag));
+    return all.filter(
+      (article) => isPublicallyReadable(article) && article.tags.includes(args.tag),
+    );
+  },
+});
+
+/**
+ * Slim editor listing for the Writing tab. Editor-gated because it is the one
+ * read that sees drafts; it carries no bodies, so the tab can list the whole
+ * corpus without paying for `body_raw`/`body_ast`.
+ */
+export const listForEditor = query({
+  args: {
+    apiKey: v.optional(v.string()),
+    actorEmail: v.optional(v.string()),
+  },
+  handler: async (ctx, args) => {
+    await requireEditorWrite(ctx, {
+      apiKey: args.apiKey,
+      actorEmail: args.actorEmail,
+      adminIntent: "editorArticleWrite",
+    });
+
+    const all = await ctx.db.query("effectIndexArticles").collect();
+
+    return all.map((article) => ({
+      slug: article.slug,
+      title: article.title,
+      kind: article.kind ?? "article",
+      status: article.status ?? "published",
+      publicationDate: article.publicationDate,
+      creationTime: article._creationTime,
+      teaser: article.teaser,
+    }));
+  },
+});
+
+/**
+ * Editor-gated slug-keyed upsert for the Writing/Blog system.
+ *
+ * Update is a patch: any field the caller omits keeps its stored value, so a
+ * partial save from one editor pane cannot clear what another pane owns.
+ */
+export const upsertArticle = mutation({
+  args: {
+    apiKey: v.optional(v.string()),
+    actorEmail: v.optional(v.string()),
+    slug: v.string(),
+    title: v.optional(v.string()),
+    tags: v.optional(v.array(v.string())),
+    kind: v.optional(v.union(v.literal("article"), v.literal("blog"))),
+    status: v.optional(v.union(v.literal("draft"), v.literal("published"))),
+    bodyFormat: v.optional(v.union(v.literal("vcode"), v.literal("markdown"))),
+    body_raw: v.optional(v.string()),
+    body_ast: v.optional(v.any()),
+    teaser: v.optional(v.string()),
+    coverImageUrl: v.optional(v.string()),
+    authorProfileKeys: v.optional(v.array(v.string())),
+    authors: v.optional(v.array(v.string())),
+    featured: v.optional(v.boolean()),
+    shortDescription: v.optional(v.string()),
+    publicationDate: v.optional(v.string()),
+    citations: v.optional(
+      v.array(v.object({ url: v.string(), text: v.string() })),
+    ),
+  },
+  handler: async (ctx, args) => {
+    await requireEditorWrite(ctx, {
+      apiKey: args.apiKey,
+      actorEmail: args.actorEmail,
+      adminIntent: "editorArticleWrite",
+    });
+
+    const { apiKey: _apiKey, actorEmail: _actorEmail, slug, ...rest } = args;
+
+    if (!SLUG_PATTERN.test(slug)) {
+      throw new Error(
+        `Invalid slug "${slug}": use lowercase letters, digits and single hyphens`,
+      );
+    }
+
+    const existing = await ctx.db
+      .query("effectIndexArticles")
+      .withIndex("by_slug", (q) => q.eq("slug", slug))
+      .first();
+
+    // Only fields the caller actually sent are written, so an update never
+    // clears an omitted field.
+    const patch = Object.fromEntries(
+      Object.entries(rest).filter(([, value]) => value !== undefined),
+    ) as Partial<Doc<"effectIndexArticles">>;
+
+    const status = patch.status ?? existing?.status ?? "published";
+    const body = patch.body_raw ?? existing?.body_raw ?? "";
+
+    if (status === "published" && body.trim() === "") {
+      throw new Error("Cannot publish an article with an empty body");
+    }
+
+    if (existing) {
+      await ctx.db.patch(existing._id, patch);
+      return { slug, created: false, id: existing._id };
+    }
+
+    if (patch.title === undefined) {
+      throw new Error("A new article requires a title");
+    }
+
+    const id = await ctx.db.insert("effectIndexArticles", {
+      slug,
+      title: patch.title,
+      tags: patch.tags ?? [],
+      body_raw: body,
+      ...patch,
+    });
+
+    return { slug, created: true, id };
   },
 });
 

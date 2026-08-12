@@ -27,6 +27,7 @@ export function useDevModePageController({
 }: DevModePageProps): DevModePageControllerState {
   const {
     articles,
+    articleHydration,
     psychoactiveIndexManual,
     chemicalIndexManual,
     mechanismIndexManual,
@@ -144,6 +145,7 @@ export function useDevModePageController({
     aboutSubtitle,
     aboutFounderKeys,
     getOriginalArticles,
+    articlesAreComplete: articleHydration.isFullCorpusHydrated,
     markChangesSaved,
     hasAuthenticatedSession: routeAccess.hasAuthenticatedSession,
     hasStoredCredentials: routeAccess.hasNextEditorSession,

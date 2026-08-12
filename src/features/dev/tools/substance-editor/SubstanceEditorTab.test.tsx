@@ -35,9 +35,11 @@ vi.mock("../../context/DevModeContext", () => ({
   useDevMode: () => ({
     articles,
     applyArticlesTransform: applyArticlesTransformMock,
+    articleHydration: createHydratedArticleHydration(),
   }),
 }));
 
+import { createHydratedArticleHydration } from "@/test/fixtures/devArticleHydration";
 import { SubstanceEditorTab } from "./SubstanceEditorTab";
 
 async function selectLsdAndDirtyTheForm() {

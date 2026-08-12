@@ -537,9 +537,20 @@ export const ReviewExperience = memo(function ReviewExperience({
   const {
     articles,
     applyArticlesTransform,
+    articleHydration,
     sourceArticles,
     articlesRefreshConflict,
   } = useDevMode();
+
+  // The review workbench walks the whole public corpus linearly, rendering each
+  // article's body and editing fields inline against the live baseline, and its
+  // queue counts every article's references and citations. That is a genuine
+  // whole-corpus read, so this surface asks for the full drain rather than
+  // hydrating one article at a time.
+  const { isFullCorpusHydrated, requestFullCorpus } = articleHydration;
+  useEffect(() => {
+    requestFullCorpus();
+  }, [requestFullCorpus]);
   const { layout } = useLightweightData();
   const typedArticles = articles as SubstanceArticle[];
 
@@ -1482,6 +1493,10 @@ export const ReviewExperience = memo(function ReviewExperience({
     toggleReviewed,
     undoLastTick,
   ]);
+
+  if (!isFullCorpusHydrated) {
+    return <main className="theme-page-shell min-h-screen" aria-busy="true" />;
+  }
 
   if (queue.length === 0) {
     return (

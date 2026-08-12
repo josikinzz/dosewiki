@@ -4,15 +4,19 @@ import type { MutationCtx, QueryCtx } from "./_generated/server";
 import { requireAuthenticatedWrite, requireEditorWrite } from "./lib/auth";
 import {
   buildImportedStoredProfile,
+  buildEditorProfilePatch,
   buildRenamedProfilePatch,
   buildStoredProfile,
   bulkImportProfileValidator,
   canEditContributorProfile,
   deriveProfileKeyFromEmail,
+  editorProfilePatchValidator,
   materializeProfile,
   normalizeEmail,
+  normalizeOrderSlugs,
   normalizeProfileKey,
   profileInputValidator,
+  pruneOrderSlugs,
   resolveOwnedProfileKey,
   sanitizeAliases,
   type StoredProfile,
@@ -578,6 +582,165 @@ export const retargetTripReportsToContributor = mutation({
       reportsUpdated,
       revalidate: {
         contributorKeys: [targetKey, args.authorName],
+        reportSlugs: [] as string[],
+      },
+    };
+  },
+});
+
+/**
+ * Resolve which of the requested slugs actually exist in a slug-indexed table.
+ *
+ * Looks each slug up through `by_slug` rather than collecting the table: an
+ * ordering is a short curated list, and `tripReports` is far too large to read
+ * whole just to answer an existence question.
+ */
+async function existingSlugsIn(
+  ctx: MutationCtx,
+  table: "replications" | "tripReports",
+  requested: readonly string[],
+): Promise<Set<string>> {
+  const found = new Set<string>();
+
+  for (const slug of requested) {
+    const row = await ctx.db
+      .query(table)
+      .withIndex("by_slug", (query) => query.eq("slug", slug))
+      .first();
+
+    if (row) {
+      found.add(slug);
+    }
+  }
+
+  return found;
+}
+
+/**
+ * Editor edit of any contributor profile, addressed by key.
+ *
+ * Distinct from `saveProfile`, which is the self-serve path: that one resolves
+ * the target from the caller's own email and refuses anything else. This one is
+ * editor-gated and takes the key directly, for curating profiles whose owner
+ * never signs in.
+ *
+ * Patch-only. An omitted field keeps whatever is stored, and `null` is the only
+ * way to clear a clearable one. Deliberately NOT routed through `bulkImport`,
+ * which writes every field it names and so erases anything the caller omits.
+ */
+export const saveProfileAsEditor = mutation({
+  args: {
+    apiKey: v.optional(v.string()),
+    actorEmail: v.optional(v.string()),
+    key: v.string(),
+    patch: editorProfilePatchValidator,
+  },
+  handler: async (ctx, args) => {
+    const actor = await requireEditorWrite(ctx, {
+      apiKey: args.apiKey,
+      actorEmail: args.actorEmail,
+      adminIntent: "profileMediaWrite",
+    });
+
+    const key = normalizeProfileKey(args.key);
+    if (!key) {
+      throw new Error("Profile key is required.");
+    }
+
+    const existing = await getStoredByKey(ctx, key);
+    if (!existing) {
+      throw new Error(`Profile "${key}" not found.`);
+    }
+
+    const patch = buildEditorProfilePatch(args.patch, existing as StoredProfile, actor.email);
+    await ctx.db.patch(existing._id, patch);
+
+    const updated = await getStoredByKey(ctx, key);
+
+    return {
+      updated: true,
+      profile: updated ? await materializeProfile(ctx, updated as StoredProfile) : null,
+      revalidate: {
+        contributorKeys: contributorProfileRevalidationKeys(key, updated?.aliases),
+        reportSlugs: [] as string[],
+      },
+    };
+  },
+});
+
+/**
+ * Set a contributor's curated replication and/or report ordering.
+ *
+ * Partial curation: the stored slugs render first, in exactly this order, and
+ * everything unlisted follows in the surface's existing default sort. Slugs
+ * that do not resolve to a row are pruned here rather than stored, so a deleted
+ * replication cannot survive as a phantom position, and they are returned so a
+ * caller can say what it dropped.
+ *
+ * An omitted ordering is left alone; passing an empty array is how curation is
+ * removed and the default sort restored.
+ */
+export const setContributorOrdering = mutation({
+  args: {
+    apiKey: v.optional(v.string()),
+    actorEmail: v.optional(v.string()),
+    key: v.string(),
+    replicationOrder: v.optional(v.array(v.string())),
+    reportOrder: v.optional(v.array(v.string())),
+  },
+  handler: async (ctx, args) => {
+    const actor = await requireEditorWrite(ctx, {
+      apiKey: args.apiKey,
+      actorEmail: args.actorEmail,
+      adminIntent: "profileMediaWrite",
+    });
+
+    const key = normalizeProfileKey(args.key);
+    if (!key) {
+      throw new Error("Profile key is required.");
+    }
+
+    const existing = await getStoredByKey(ctx, key);
+    if (!existing) {
+      throw new Error(`Profile "${key}" not found.`);
+    }
+
+    const patch: Record<string, unknown> = {
+      updatedAt: new Date().toISOString(),
+      updatedBy: actor.email,
+    };
+
+    let prunedReplicationSlugs: string[] = [];
+    let prunedReportSlugs: string[] = [];
+
+    if (args.replicationOrder !== undefined) {
+      const requested = normalizeOrderSlugs(args.replicationOrder);
+      const known = await existingSlugsIn(ctx, "replications", requested);
+      const result = pruneOrderSlugs(requested, known);
+      patch.replicationOrder = result.order;
+      prunedReplicationSlugs = result.pruned;
+    }
+
+    if (args.reportOrder !== undefined) {
+      const requested = normalizeOrderSlugs(args.reportOrder);
+      const known = await existingSlugsIn(ctx, "tripReports", requested);
+      const result = pruneOrderSlugs(requested, known);
+      patch.reportOrder = result.order;
+      prunedReportSlugs = result.pruned;
+    }
+
+    await ctx.db.patch(existing._id, patch);
+
+    const updated = (await getStoredByKey(ctx, key)) as StoredProfile | null;
+
+    return {
+      key,
+      replicationOrder: normalizeOrderSlugs(updated?.replicationOrder),
+      reportOrder: normalizeOrderSlugs(updated?.reportOrder),
+      prunedReplicationSlugs,
+      prunedReportSlugs,
+      revalidate: {
+        contributorKeys: contributorProfileRevalidationKeys(key, updated?.aliases),
         reportSlugs: [] as string[],
       },
     };

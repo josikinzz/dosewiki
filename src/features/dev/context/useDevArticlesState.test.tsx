@@ -78,4 +78,72 @@ describe("useDevArticlesState", () => {
 
     expect((result.current.articles[0] as { title: string }).title).toBe("LSD");
   });
+
+  describe("hydrateArticles", () => {
+    const slim = (): ArticleRecord[] =>
+      [
+        { slug: "lsd", title: "LSD", summary: "" },
+        { slug: "mdma", title: "MDMA", summary: "" },
+      ] as unknown as ArticleRecord[];
+
+    const whole = (slug: string, summary: string) =>
+      ({ slug, title: slug.toUpperCase(), summary }) as unknown as ArticleRecord;
+
+    it("fills a row in without making the working set dirty", () => {
+      const { result } = renderHook(() => useDevArticlesState(slim()));
+
+      act(() => {
+        result.current.hydrateArticles(new Map([["lsd", whole("lsd", "A whole article.")]]));
+      });
+
+      expect(result.current.articles[0].summary).toBe("A whole article.");
+      // Draft and baseline moved together, so nothing looks changed and the
+      // save diff still ships nothing.
+      expect(result.current.getOriginalArticles()[0].summary).toBe("A whole article.");
+      expect(result.current.articles[0]).toBe(result.current.getOriginalArticles()[0]);
+      expect(result.current.articlesRefreshConflict).toBeNull();
+    });
+
+    it("leaves untouched rows alone", () => {
+      const source = slim();
+      const { result } = renderHook(() => useDevArticlesState(source));
+
+      act(() => {
+        result.current.hydrateArticles(new Map([["lsd", whole("lsd", "A whole article.")]]));
+      });
+
+      expect(result.current.articles[1]).toBe(source[1]);
+    });
+
+    it("does not overwrite a draft the user has already edited", () => {
+      const { result } = renderHook(() => useDevArticlesState(slim()));
+
+      act(() => {
+        result.current.updateArticleAt(0, {
+          ...result.current.articles[0],
+          title: "LSD (local)",
+        });
+      });
+
+      act(() => {
+        result.current.hydrateArticles(new Map([["lsd", whole("lsd", "A whole article.")]]));
+      });
+
+      // The edit outranks the fetch that raced it, but the baseline is still
+      // filled in so the save diff compares whole article against whole article.
+      expect(result.current.articles[0].title).toBe("LSD (local)");
+      expect(result.current.getOriginalArticles()[0].summary).toBe("A whole article.");
+    });
+
+    it("ignores an empty batch", () => {
+      const { result } = renderHook(() => useDevArticlesState(slim()));
+      const before = result.current.articles;
+
+      act(() => {
+        result.current.hydrateArticles(new Map());
+      });
+
+      expect(result.current.articles).toBe(before);
+    });
+  });
 });

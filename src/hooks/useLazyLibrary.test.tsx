@@ -76,6 +76,26 @@ describe("useLazyLibrary", () => {
     });
   });
 
+  it("expands the slim list rows into structurally whole articles", async () => {
+    mockLibraryResponse([
+      { id: 1, title: "LSD", slug: "lsd", priority: "normal", index_categories: [] },
+    ]);
+
+    renderHook(() => useLazyLibrary(true));
+
+    await waitFor(() => {
+      expect(buildLibraryMock).toHaveBeenCalled();
+    });
+
+    // The list projection carries no article body, but everything downstream is
+    // typed on a whole article, so the missing sections arrive as empty ones
+    // rather than as absent keys.
+    const [built] = buildLibraryMock.mock.calls[0] as [Record<string, unknown>[]];
+    expect(built[0]).toMatchObject({ title: "LSD", slug: "lsd", summary: "" });
+    expect(built[0]).toHaveProperty("dosage");
+    expect(built[0]).toHaveProperty("references", []);
+  });
+
   it("reports loading until the drained library arrives", async () => {
     let resolveFetch: ((value: unknown) => void) | null = null;
     const fetchMock = vi.fn(

@@ -294,6 +294,14 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 }
 
 function normalizePublicEffectIndexArticle(record: unknown): PublicEffectIndexArticle | null {
+  // Second line of defence behind the Convex-side draft filter in
+  // `effectIndexArticles.getAll`/`getBySlug`: every public list and detail read
+  // funnels through this normalizer, so a draft cannot reach a route loader
+  // even if it were served by a stale deployment of those queries.
+  if (isRecord(record) && record.status === "draft") {
+    return null;
+  }
+
   if (
     !isRecord(record) ||
     typeof record.slug !== "string" ||

@@ -280,6 +280,17 @@ const effectIndexArticle = v.object({
     url: v.string(),
     text: v.string(),
   }))),
+
+  // --- Generic Writing/Blog system (additive; every field optional so the
+  // legacy Effect Index imports keep validating exactly as they are).
+  // Absent `kind` means "article", absent `status` means "published", and
+  // absent `bodyFormat` means the legacy VCode markup in `body_raw`.
+  kind: v.optional(v.union(v.literal("article"), v.literal("blog"))),
+  status: v.optional(v.union(v.literal("draft"), v.literal("published"))),
+  bodyFormat: v.optional(v.union(v.literal("vcode"), v.literal("markdown"))),
+  authorProfileKeys: v.optional(v.array(v.string())),
+  coverImageUrl: v.optional(v.string()),
+  teaser: v.optional(v.string()),
 });
 
 const replicationRightsStatus = v.union(
@@ -503,6 +514,15 @@ const contributorProfile = v.object({
     }),
   ),
   membershipEmail: v.optional(v.string()),
+  // Partial curation of the contributor's replication grid. Listed replication
+  // slugs render first, in exactly this order; everything else the contributor
+  // owns follows in the existing default sort. Slugs that no longer resolve to
+  // a `replications` row are pruned on write and ignored on read, so a deleted
+  // replication cannot leave a hole in the ordering.
+  replicationOrder: v.optional(v.array(v.string())),
+  // Same partial-curation contract for the contributor's trip reports, against
+  // `tripReports` slugs.
+  reportOrder: v.optional(v.array(v.string())),
   createdAt: v.string(),
   updatedAt: v.string(),
   updatedBy: v.optional(v.string()),
@@ -585,7 +605,12 @@ export default defineSchema({
 
   // EffectIndex articles - intensity scales, substance analyses, methodology
   effectIndexArticles: defineTable(effectIndexArticle)
-    .index("by_slug", ["slug"]),
+    .index("by_slug", ["slug"])
+    // Writing tab listings: one kind, one status, newest publication date first.
+    // Legacy rows carry neither `kind` nor `status`, so they sort under the
+    // undefined prefix rather than under "article"/"published".
+    .index("by_kind_status_date", ["kind", "status", "publicationDate"])
+    .index("by_featured", ["featured"]),
 
   // Raw Effect Index people, profiles, and posts. Never render from this table.
   effectIndexArchive: defineTable(effectIndexArchiveRecord)
@@ -637,6 +662,31 @@ export default defineSchema({
     updatedAt: v.string(),
     updatedBy: v.optional(v.string()),
   }).index("by_key", ["key"]),
+
+  // Editable site copy. One document per copy block: the prose that public
+  // pages used to hardcode, lifted into Convex so the /dev Copy Studio can edit
+  // it without a deploy. `key` is the stable lookup id used by the server read
+  // helper; `flavor` scopes a block to one site skin (e.g. "effect-index") and
+  // is absent for blocks shared by every flavor.
+  //
+  // `kind` picks which payload field is authoritative:
+  //   "markdown" | "plain" → `body`
+  //   "list"               → `items`
+  // `label` and `group` are editor-facing only; they drive the Copy Studio rail
+  // and never reach a reader.
+  copyBlocks: defineTable({
+    key: v.string(),
+    flavor: v.optional(v.string()),
+    kind: v.union(v.literal("markdown"), v.literal("plain"), v.literal("list")),
+    body: v.optional(v.string()),
+    items: v.optional(v.array(v.string())),
+    label: v.string(),
+    group: v.string(),
+    updatedAt: v.string(),
+    updatedBy: v.optional(v.string()),
+  })
+    .index("by_key", ["key"])
+    .index("by_group", ["group"]),
 
   // Canonical molecule depictions for public substance/class pages and the /dev
   // Molecules editor. One document per slug. `svg` is the live brand-palette

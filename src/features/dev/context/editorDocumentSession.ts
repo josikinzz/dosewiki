@@ -20,6 +20,24 @@ export type EditorDocumentSession<T> = {
   refreshConflict: EditorDocumentRefreshConflict<T> | null;
   sourceVersion: number;
   applyDraftTransform: (transform: (previous: T) => T) => void;
+  /**
+   * Rewrite draft and baseline together, in one commit.
+   *
+   * This is for content the session was *always* going to hold and simply had
+   * not been handed yet — the editor library arrives as a slim list and fills
+   * whole articles in on demand. Such a fill is not an edit and not an upstream
+   * refresh: writing it through `applyDraftTransform` would make the working set
+   * look dirty, and pushing it up through `source` would raise a refresh
+   * conflict against unrelated unsaved edits. Applying it to both halves leaves
+   * `isDirty` exactly where it was.
+   *
+   * `state.source` is deliberately left alone: it is the comparison baseline for
+   * the upstream prop, and the prop still holds the un-hydrated document.
+   * Returning `null` (or the same pair back) commits nothing.
+   */
+  applyHydration: (
+    transform: (previous: { draft: T; original: T }) => { draft: T; original: T } | null,
+  ) => void;
   getOriginal: () => T;
   markSaved: (nextOriginal?: T) => void;
   replaceDraft: (nextDraft: T) => void;
@@ -162,6 +180,23 @@ export function useEditorDocument<T>(source: T): EditorDocumentSession<T> {
     });
   }, []);
 
+  const applyHydration = useCallback(
+    (transform: (previous: { draft: T; original: T }) => { draft: T; original: T } | null) => {
+      setState((previous) => {
+        const next = transform({ draft: previous.draft, original: previous.original });
+        if (
+          next === null
+          || (next.draft === previous.draft && next.original === previous.original)
+        ) {
+          return previous;
+        }
+
+        return { ...previous, draft: next.draft, original: next.original };
+      });
+    },
+    [],
+  );
+
   const reset = useCallback(() => {
     setState((previous) => {
       if (previous.draft === previous.original && previous.refreshConflict === null) {
@@ -196,6 +231,7 @@ export function useEditorDocument<T>(source: T): EditorDocumentSession<T> {
     refreshConflict: state.refreshConflict,
     sourceVersion: state.sourceVersion,
     applyDraftTransform,
+    applyHydration,
     getOriginal,
     markSaved,
     replaceDraft,

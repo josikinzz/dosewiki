@@ -40,6 +40,17 @@ const {
   },
   devModeState: {
     articles: [{ slug: "lsd" }],
+    // The shell's surfaces are all exercised post-drain, so the corpus reports
+    // itself whole. Inlined rather than imported: this object is built inside a
+    // hoisted mock factory, which runs before module imports resolve.
+    articleHydration: {
+      hydratedSlugs: new Set<string>(),
+      isFullCorpusHydrated: true,
+      isHydratingFullCorpus: false,
+      isArticleHydrated: () => true,
+      requestArticle: vi.fn(),
+      requestFullCorpus: vi.fn(),
+    },
     psychoactiveIndexManual: {},
     chemicalIndexManual: {},
     mechanismIndexManual: {},

@@ -58,6 +58,45 @@ describe("public Effect Index article data adapters", () => {
     ]);
   });
 
+  it("drops draft rows from both the list and the detail read", async () => {
+    const records = [
+      {
+        slug: "published-post",
+        title: "Published",
+        publication_status: "published",
+        tags: ["blog"],
+        body_raw: "[p]Live.[/p]",
+      },
+      {
+        slug: "draft-post",
+        title: "Draft",
+        publication_status: "published",
+        status: "draft",
+        tags: ["blog"],
+        body_raw: "[p]Unfinished.[/p]",
+      },
+    ];
+    const query = async <Result, Args extends Record<string, unknown>>(
+      name: string,
+      args: Args,
+    ): Promise<Result> =>
+      (name === "effectIndexArticles:getBySlug"
+        ? (records.find((record) => record.slug === args.slug) ?? null)
+        : records) as Result;
+
+    const adapter = createConvexPublicDataReadAdapter(query);
+
+    await expect(adapter.getPublicEffectIndexArticles()).resolves.toEqual([
+      expect.objectContaining({ slug: "published-post" }),
+    ]);
+    await expect(adapter.getPublishedEffectIndexArticles()).resolves.toEqual([
+      expect.objectContaining({ slug: "published-post" }),
+    ]);
+    await expect(
+      adapter.getPublicEffectIndexArticleBySlug("draft-post"),
+    ).resolves.toBeNull();
+  });
+
   it("normalizes article VCode from raw text when the stored AST is invalid", async () => {
     const query = async <Result>(): Promise<Result> =>
       ({

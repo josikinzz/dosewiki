@@ -4,6 +4,7 @@ export type DevTab =
   | "profile"
   | "index-layout"
   | "about"
+  | "copy-studio"
   | "citation-review"
   | "trip-report-submissions"
   | "article-feedback"

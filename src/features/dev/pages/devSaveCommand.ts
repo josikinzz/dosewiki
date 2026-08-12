@@ -35,6 +35,13 @@ export type ManualLayoutDocument = {
 export type DevSaveDraft = {
   articles: SubstanceArticle[];
   originalArticles: SubstanceArticle[];
+  /**
+   * Whether every row in `articles` holds a whole article rather than a slim
+   * library-list row. The Convex save only ships rows that differ from their
+   * own baseline, so an un-hydrated row can never reach it; the GitHub archive
+   * writes the corpus wholesale and therefore has to refuse.
+   */
+  articlesAreComplete: boolean;
   layouts: ManualLayoutDocument[];
   about: {
     markdown: string;
@@ -57,6 +64,7 @@ export type DevSaveDraft = {
 export type DevSaveDraftInput = {
   articles: SubstanceArticle[];
   originalArticles: SubstanceArticle[];
+  articlesAreComplete: boolean;
   layouts: ManualLayoutDocument[];
   aboutMarkdown: string;
   aboutSubtitle: string;
@@ -126,6 +134,7 @@ export function buildDevSaveDraft(input: DevSaveDraftInput): DevSaveDraft {
   return {
     articles: input.articles,
     originalArticles: input.originalArticles,
+    articlesAreComplete: input.articlesAreComplete,
     layouts: input.layouts,
     about: {
       markdown: input.aboutMarkdown,
@@ -271,7 +280,18 @@ export function createGitHubSaveAdapter({
     destination: "github",
     noChangesMessage: "No changes detected to archive.",
     verifiedMessage: (key) => `Credentials verified for ${key}. Archiving to GitHub...`,
-    validateAvailability: () => ({ ok: true }),
+    // The GitHub archive rewrites the whole articles file from `draft.articles`,
+    // so it must never run against the slim library list — that would archive
+    // 577 empty articles. Convex saves are diff-scoped and unaffected, which is
+    // also why the guard only applies when articles are actually being written.
+    validateAvailability: (draft) =>
+      draft.convexEnabled || draft.articlesAreComplete
+        ? { ok: true }
+        : {
+            ok: false,
+            message:
+              "The full article corpus has not loaded yet, so archiving to GitHub would overwrite it with an empty dataset. Open the Tag editor or the review workbench to load it, then try again.",
+          },
     execute: async (draft, credentials) => {
       const payload = buildGitHubSavePayload(draft, credentials, now());
       const result = await saveArticles(payload);

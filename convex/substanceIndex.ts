@@ -38,6 +38,7 @@ import {
 } from "./lib/substanceIngestion";
 import {
   projectEditorArticle,
+  projectEditorLibraryEntry,
   projectEditorLookup,
   projectLibraryInput,
   projectLookup,
@@ -197,8 +198,89 @@ export const getEditorAll = query({
 });
 
 /**
- * Paginated editor projection. The `/api/dev/editor-library` route drains every
- * page server-side to hydrate the `/dev` and `/review` editor library without
+ * Paginated editor *library list* projection — the default drain behind
+ * `/api/dev/editor-library`.
+ *
+ * This is `getEditorPage` minus every field only a whole article renders, which
+ * takes the drain from ~16.7 MB to well under 1 MB. See
+ * `projectEditorLibraryEntry` for the field list and the reasoning. Selecting an
+ * article hydrates it through `getEditorBySlug`; the tools that genuinely sweep
+ * whole articles (the tag editor, the review workbench) ask for the full drain
+ * explicitly.
+ *
+ * SECURITY: `editorial_review` is editor-only state, so this is guarded exactly
+ * like `getEditorPage`.
+ */
+export const getEditorLibraryPage = query({
+  args: {
+    paginationOpts: paginationOptsValidator,
+    apiKey: v.optional(v.string()),
+    actorEmail: v.optional(v.string()),
+  },
+  handler: async (ctx, args) => {
+    await requireEditorWrite(ctx, {
+      apiKey: args.apiKey,
+      actorEmail: args.actorEmail,
+      adminIntent: "editorArticleWrite",
+    });
+
+    const result = await ctx.db.query("substanceIndex").paginate({
+      ...args.paginationOpts,
+      numItems: clampPublicCorpusPageSize(args.paginationOpts.numItems),
+    });
+    return { ...result, page: result.page.map(projectEditorLibraryEntry) };
+  },
+});
+
+/**
+ * One whole editor article by slug — the hydration read behind the library
+ * list. `getBySlug` returns the raw row and is unauthenticated; this one runs
+ * the editor projection (defaulted `editorial_review`, normalized pharmacology)
+ * and is therefore guarded like every other editor-only read.
+ */
+export const getEditorBySlug = query({
+  args: {
+    slug: v.string(),
+    // Rows whose slug is derived from the title rather than stored cannot be
+    // found on `by_slug`; the library list carries the article id for exactly
+    // that fallback, and `by_article_id` keeps it a single indexed read.
+    id: v.optional(v.number()),
+    apiKey: v.optional(v.string()),
+    actorEmail: v.optional(v.string()),
+  },
+  handler: async (ctx, args) => {
+    await requireEditorWrite(ctx, {
+      apiKey: args.apiKey,
+      actorEmail: args.actorEmail,
+      adminIntent: "editorArticleWrite",
+    });
+
+    const matches = await ctx.db
+      .query("substanceIndex")
+      .withIndex("by_slug", (q) => q.eq("slug", args.slug))
+      .take(2);
+
+    if (matches.length === 1) {
+      return projectEditorArticle(matches[0]);
+    }
+
+    if (args.id === undefined) {
+      return null;
+    }
+
+    const byId = await ctx.db
+      .query("substanceIndex")
+      .withIndex("by_article_id", (q) => q.eq("id", args.id))
+      .first();
+
+    return byId ? projectEditorArticle(byId) : null;
+  },
+});
+
+/**
+ * Paginated whole-article editor projection. The `/api/dev/editor-library`
+ * route drains every page server-side to hydrate the `/dev` and `/review`
+ * editor library without
  * hitting the per-execution read and time limits that a whole-table `collect()`
  * now exceeds.
  *
