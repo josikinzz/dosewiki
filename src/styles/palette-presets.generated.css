@@ -225,7 +225,7 @@ html[data-palette="graphite"][data-theme="light"] .theme-chrome-dark {
   --theme-page-mid: oklch(13.2% 0.009 250);
   --theme-chrome-rail-base: oklch(15.5% 0.008 250);
   --theme-field-surface: oklch(20.3% 0.01 250);
-  --theme-field-on-chrome-surface: oklch(13.2% 0.009 250);
+  --theme-field-on-chrome-surface: oklch(24% 0.009 250);
   --theme-field-on-panel-surface: oklch(16% 0.014 250);
   --theme-field-on-panel-surface-alt: oklch(14% 0.012 250);
   --theme-article-neutral-panel-base: oklch(22.9% 0.014 250);
@@ -1040,7 +1040,7 @@ html[data-palette="journal"][data-theme="light"] .theme-chrome-dark {
   --theme-page-mid: #262626;
   --theme-chrome-rail-base: oklch(24% 0.004 175);
   --theme-field-surface: oklch(28% 0.005 175);
-  --theme-field-on-chrome-surface: oklch(24% 0.004 175);
+  --theme-field-on-chrome-surface: oklch(29.5% 0.005 175);
   --theme-field-on-panel-surface: oklch(27% 0.005 175);
   --theme-field-on-panel-surface-alt: oklch(25% 0.005 175);
   --theme-article-neutral-panel-base: oklch(29% 0.005 175);

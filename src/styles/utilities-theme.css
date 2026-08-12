@@ -1419,10 +1419,15 @@
     border-color: var(--theme-field-on-chrome-border);
     background-color: var(--theme-field-on-chrome-surface);
     color: var(--theme-text-primary);
+    /* Hairline ring plus a top highlight: the field is a control lifted off the
+       chrome rail, so it carries no inner shadow. It used to end with
+       `inset 0 1px 2px var(--theme-shadow-soft)`, which darkened the top edge
+       against the very highlight above it — a recessed cue on a raised control,
+       and a hangover from when --theme-field-on-chrome-surface sat below the
+       rail. */
     box-shadow:
       0 0 0 1px color-mix(in srgb, var(--theme-field-on-chrome-border) 68%, transparent),
-      inset 0 1px 0 color-mix(in srgb, var(--theme-text-primary) 8%, transparent),
-      inset 0 1px 2px var(--theme-shadow-soft);
+      inset 0 1px 0 color-mix(in srgb, var(--theme-text-primary) 8%, transparent);
   }
 
   .theme-global-search-input::placeholder {
@@ -2321,11 +2326,6 @@
     backdrop-filter: none;
   }
 
-  html[data-theme="light"] .theme-header-surface {
-    border-color: var(--theme-chrome-border);
-    background: var(--theme-chrome-rail-bg);
-  }
-
   .theme-header-nav-link {
     color: var(--theme-text-muted);
     transition: background-color 180ms ease, color 180ms ease, box-shadow 180ms ease, border-color 180ms ease;
@@ -2335,12 +2335,6 @@
     .theme-header-nav-link:hover {
       background-color: var(--theme-field-on-chrome-surface);
       color: var(--theme-text-primary);
-    }
-  }
-
-  @media (hover: hover) {
-    html[data-theme="light"] .theme-header-nav-link:hover {
-      background-color: color-mix(in oklch, var(--theme-chrome-surface-strong) 62%, var(--theme-body-bg));
     }
   }
 
@@ -2358,11 +2352,6 @@
       inset 0 1px 0 color-mix(in srgb, var(--theme-text-primary) 8%, transparent);
   }
 
-  html[data-theme="light"] .theme-header-nav-link[data-active="true"] {
-    border-color: var(--theme-header-nav-active-border);
-    background-color: var(--theme-header-nav-active-bg);
-    box-shadow: 0 16px 30px -22px oklch(42% 0.14 326 / 0.34);
-  }
 
   .theme-header-nav-icon {
     color: var(--theme-text-faint);
@@ -4534,12 +4523,30 @@
     color: color-mix(in srgb, rgb(255 255 255) 68%, var(--theme-body-bg)) !important;
   }
 
-  /* Dark chrome rails: header, mobile nav, and footer share the dark plum
-     inset tone (same as TOC chips and dosage/duration rows) so the page
-     reads as content framed between two darker rails, rather than chrome
-     made of the same material as the panels scrolling beneath it. */
-  html:not([data-theme="light"]) .theme-header-surface,
-  html:not([data-theme="light"]) .theme-overlay-surface.theme-mobile-nav-panel,
+  /* Dark chrome rails. The header and its panels are dark chrome in BOTH
+     themes — that is the dark-banner-over-light-page look, and it is why these
+     two are no longer gated on the theme. The footer still flips, so the page
+     reads as content framed between a permanent dark rail above and a
+     theme-following rail below.
+
+     Effect Index is excluded: it paints its own charcoal chrome, and its sheet
+     wants a floating drop shadow rather than the rail's hairline. This rule is
+     layered `!important`, which outranks unlayered `!important`, so without the
+     exclusion it would silently beat effectindex-theme.css:1040.
+
+     `box-shadow` is stated here so the panels keep the header shadow in light
+     mode; the shared `.theme-overlay-surface` rules in theme-light-mode.css
+     would otherwise hand them the frosted-panel shadow. The value matches what
+     the base classes already resolve in dark mode, so dark is unchanged. */
+  html:not([data-site="effectindex"]) .theme-header-surface,
+  html:not([data-site="effectindex"]) .theme-overlay-surface.theme-mobile-nav-panel {
+    border-color: var(--theme-frosted-panel-border) !important;
+    background: var(--theme-chrome-rail-bg) !important;
+    box-shadow: var(--theme-header-shadow) !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+  }
+
   html:not([data-theme="light"]) .theme-footer-surface {
     border-color: var(--theme-frosted-panel-border) !important;
     background: var(--theme-chrome-rail-bg) !important;
@@ -4547,7 +4554,7 @@
     -webkit-backdrop-filter: none !important;
   }
 
-  html:not([data-theme="light"]) .theme-header-surface .theme-home-mock-search {
+  .theme-header-surface .theme-home-mock-search {
     color: var(--theme-text-secondary);
     border-color: transparent;
     background: var(--theme-frosted-control-on-panel-bg);
@@ -4555,22 +4562,7 @@
     --tw-ring-color: var(--theme-frosted-control-on-panel-border);
   }
 
-  html[data-theme="light"] .theme-header-surface .theme-home-mock-search {
-    color: color-mix(in srgb, var(--theme-text-primary) 72%, var(--theme-body-bg));
-    border-color: transparent;
-    background: var(--theme-frosted-control-on-panel-bg);
-    box-shadow: var(--theme-frosted-control-on-panel-shadow);
-    --tw-ring-color: var(--theme-frosted-control-on-panel-border);
-  }
-
   .theme-header-surface .theme-home-mock-search input[type="search"] {
-    border-color: transparent;
-    background: transparent;
-    box-shadow: none;
-    color: inherit;
-  }
-
-  html[data-theme="light"] .theme-header-surface .theme-home-mock-search input[type="search"] {
     border-color: transparent;
     background: transparent;
     box-shadow: none;

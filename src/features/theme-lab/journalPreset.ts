@@ -121,7 +121,10 @@ export const journal: PalettePreset = {
       "--theme-page-mid": "#262626",
       "--theme-chrome-rail-base": "oklch(24% 0.004 175)",
       "--theme-field-surface": "oklch(28% 0.005 175)",
-      "--theme-field-on-chrome-surface": "oklch(24% 0.004 175)",
+      // Was pinned flat to the rail (ratio 1.000 — the field vanished into the
+      // bar). Lifted to the Effect Index relationship this preset is modelled
+      // on: #2e2e2e rail / #3a3a3a field, which in this palette is L29.5%.
+      "--theme-field-on-chrome-surface": "oklch(29.5% 0.005 175)",
       "--theme-field-on-panel-surface": "oklch(27% 0.005 175)",
       "--theme-field-on-panel-surface-alt": "oklch(25% 0.005 175)",
       "--theme-article-neutral-panel-base": "oklch(29% 0.005 175)",

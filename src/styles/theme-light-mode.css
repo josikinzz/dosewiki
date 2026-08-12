@@ -535,25 +535,6 @@ html[data-theme="light"] .theme-control-pill-expander {
   color: var(--theme-accent-muted) !important;
 }
 
-html[data-theme="light"] .theme-header-surface input[type="search"] {
-  border-color: var(--theme-field-border);
-  background-color: var(--theme-field-surface);
-  box-shadow:
-    inset 0 1px 0 oklch(99% 0.004 326 / 0.82),
-    0 12px 28px -24px oklch(36% 0.12 316 / 0.32);
-}
-
-html[data-theme="light"] .theme-header-surface .theme-home-mock-search input[type="search"] {
-  border-color: transparent;
-  background-color: transparent;
-  box-shadow: none;
-}
-
-html[data-theme="light"] .theme-header-surface input[type="search"]::placeholder {
-  color: var(--theme-text-muted);
-  opacity: 1;
-}
-
 html[data-theme="light"] :is(.theme-control-pill:focus-visible, .theme-control-pill[data-active="true"], .theme-control-pill-quiet:focus-visible, .theme-control-pill-quiet[data-active="true"]) {
   border-color: color-mix(in srgb, var(--theme-accent) 24%, var(--theme-border-strong)) !important;
   background-color: color-mix(in srgb, var(--theme-surface-strong) 92%, var(--theme-accent) 6%) !important;
@@ -684,114 +665,6 @@ html[data-theme="light"] .prose-fuchsia :where(a) {
   color: hsl(var(--primary));
 }
 
-@media (hover: hover) {
-  html[data-theme="light"] .theme-header-nav-link:hover {
-    border-color: color-mix(in oklch, var(--theme-accent) 22%, var(--theme-chrome-border)) !important;
-    background: var(--theme-frosted-control-on-panel-hover-bg) !important;
-    box-shadow: var(--theme-frosted-control-on-panel-hover-shadow) !important;
-    color: var(--theme-text-primary) !important;
-    --tw-ring-color: var(--theme-frosted-control-on-panel-hover-border) !important;
-  }
-}
-
-html[data-theme="light"] .theme-header-nav-link {
-  color: var(--theme-text-primary) !important;
-}
-
-html[data-theme="light"] .theme-header-nav-icon {
-  color: var(--theme-accent-strong) !important;
-  opacity: 0.92 !important;
-}
-
-html[data-theme="light"] .theme-header-surface {
-  border-color: var(--theme-chrome-border) !important;
-  background: var(--theme-chrome-rail-bg) !important;
-  backdrop-filter: none !important;
-  -webkit-backdrop-filter: none !important;
-}
-
-html[data-theme="light"] .theme-header-nav-link[data-active="true"] {
-  border-color: var(--theme-field-on-chrome-border) !important;
-  background: var(--theme-field-on-chrome-surface) !important;
-  color: var(--theme-text-primary) !important;
-  box-shadow: var(--theme-frosted-control-on-panel-shadow) !important;
-  --tw-ring-color: var(--theme-field-on-chrome-border) !important;
-}
-
-html[data-theme="light"] .theme-mobile-menu-toggle {
-  border-color: transparent !important;
-  background: var(--theme-frosted-control-on-panel-bg) !important;
-  color: var(--theme-accent-strong) !important;
-  box-shadow: var(--theme-frosted-control-on-panel-shadow) !important;
-  --tw-ring-color: var(--theme-frosted-control-on-panel-border) !important;
-}
-
-html[data-theme="light"] .theme-mobile-menu-toggle:focus-visible {
-  background: var(--theme-frosted-control-on-panel-hover-bg) !important;
-  box-shadow: var(--theme-frosted-control-on-panel-hover-shadow) !important;
-  --tw-ring-color: var(--theme-frosted-control-on-panel-hover-border) !important;
-}
-@media (hover: hover) {
-  html[data-theme="light"] .theme-mobile-menu-toggle:hover {
-    background: var(--theme-frosted-control-on-panel-hover-bg) !important;
-    box-shadow: var(--theme-frosted-control-on-panel-hover-shadow) !important;
-    --tw-ring-color: var(--theme-frosted-control-on-panel-hover-border) !important;
-  }
-}
-
-html[data-theme="light"] .theme-mobile-nav-panel {
-  border-color: var(--theme-frosted-panel-border) !important;
-  background:
-    radial-gradient(circle at 20% 0%, oklch(99% 0.018 333), transparent 42%), linear-gradient(135deg, oklch(98.5% 0.012 334), oklch(93.5% 0.03 319)) !important;
-  color: var(--theme-text-primary) !important;
-  backdrop-filter: none !important;
-  -webkit-backdrop-filter: none !important;
-  box-shadow:
-    0 0 0 1px var(--theme-frosted-panel-border),
-    0 22px 44px -30px oklch(40% 0.13 316 / 0.28),
-    inset 0 1px 0 oklch(100% 0 0 / 0.74) !important;
-  --tw-ring-color: var(--theme-frosted-panel-border) !important;
-}
-
-html[data-theme="light"] .theme-mobile-nav-panel .theme-gradient-divider {
-  background: linear-gradient(
-    90deg,
-    transparent,
-    var(--theme-frosted-panel-border),
-    transparent
-  ) !important;
-}
-
-html[data-theme="light"] .theme-mobile-nav-link {
-  border-color: transparent !important;
-  background: transparent !important;
-  color: var(--theme-text-primary) !important;
-  box-shadow: none !important;
-}
-
-html[data-theme="light"] .theme-mobile-nav-link:focus-visible,
-html[data-theme="light"] .theme-mobile-nav-link[data-active="true"] {
-  border-color: transparent !important;
-  background: var(--theme-frosted-control-on-panel-bg) !important;
-  color: var(--theme-accent-strong) !important;
-  box-shadow: var(--theme-frosted-control-on-panel-shadow) !important;
-  --tw-ring-color: var(--theme-frosted-control-on-panel-border) !important;
-}
-@media (hover: hover) {
-  html[data-theme="light"] .theme-mobile-nav-link:hover {
-    border-color: transparent !important;
-    background: var(--theme-frosted-control-on-panel-bg) !important;
-    color: var(--theme-accent-strong) !important;
-    box-shadow: var(--theme-frosted-control-on-panel-shadow) !important;
-    --tw-ring-color: var(--theme-frosted-control-on-panel-border) !important;
-  }
-}
-
-html[data-theme="light"] .theme-mobile-nav-link .theme-header-nav-icon {
-  color: var(--theme-accent-strong) !important;
-  opacity: 0.88 !important;
-}
-
 html[data-theme="light"] :is(
   .theme-public-card,
   .theme-public-card-subtle,
@@ -814,37 +687,6 @@ html[data-theme="light"] :is(
 html[data-theme="light"] .theme-toc-strip-bar {
   background: var(--theme-frosted-panel-bg) !important;
   border-bottom-color: var(--theme-frosted-panel-border) !important;
-}
-
-html[data-theme="light"] .theme-overlay-surface.theme-mobile-nav-panel {
-  background: var(--theme-menu-surface) !important;
-  backdrop-filter: none !important;
-  -webkit-backdrop-filter: none !important;
-}
-
-/* --- Dark chrome island --------------------------------------------------
-   `.theme-chrome-dark` (the header) wears the dark token block even here, so
-   every light rule above resolves dark values on its own and needs no answer.
-   These two are the exceptions: they paint literal light colours that no token
-   can redirect. Both sit after the rules they correct and out-specify them. */
-
-/* :742 gives the nav panels a white gradient and a white inset lift; :819 then
-   takes the background back to a token. Only the shadow survives to here. */
-html[data-theme="light"] .theme-chrome-dark .theme-mobile-nav-panel,
-html[data-theme="light"] .theme-chrome-dark .theme-overlay-surface.theme-mobile-nav-panel {
-  background: var(--theme-chrome-rail-bg) !important;
-  box-shadow: var(--theme-header-shadow) !important;
-}
-
-/* :538 replaces the search field's shadow with a white inset lift, which on a
-   dark bar reads as a hole punched through it. Restores the token-driven stack
-   from `.theme-global-search-input` (utilities-theme.css:1422). Left below the
-   mock-search rule at :546, which flattens its field on purpose. */
-html[data-theme="light"] .theme-chrome-dark input[type="search"] {
-  box-shadow:
-    0 0 0 1px color-mix(in srgb, var(--theme-field-on-chrome-border) 68%, transparent),
-    inset 0 1px 0 color-mix(in srgb, var(--theme-text-primary) 8%, transparent),
-    inset 0 1px 2px var(--theme-shadow-soft);
 }
 
 @media (hover: hover) {

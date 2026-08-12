@@ -302,7 +302,17 @@ html[data-theme="light"]:where(:not([data-site="effectindex"])) .theme-chrome-da
   --theme-field-surface: oklch(20.3% 0.05 var(--h-plum));
   --theme-field-surface-alt: color-mix(in srgb, oklch(16% 0.026 var(--h-plum)) 72%, var(--theme-body-bg));
   --theme-field-border: rgb(var(--c-white) / 0.12);
-  --theme-field-on-chrome-surface: oklch(13.2% 0.045 var(--h-plum));
+  /* Raised, not recessed. Controls sitting on the chrome rail (the header
+     search field and the nav hover pill) must read as lifted off it — the rail
+     is L15.5%, so this sits ~9 points above at a 1.19 luminance ratio, matching
+     what Effect Index gets from #2e2e2e bar / #3a3a3a field. It was L13.2%, i.e.
+     *below* the rail at a ratio of 1.026, which is invisible: equal OKLCH
+     lightness steps stop reading as equal down at the near-black end, where a
+     small luminance delta is swamped by screen flare. Kept under
+     --theme-header-nav-active-bg (L25.9%) so hover still steps up into active.
+     Header-only token: the search field, nav hover, and the light-mode active
+     pill are its only consumers. */
+  --theme-field-on-chrome-surface: oklch(24.5% 0.045 var(--h-plum));
   --theme-field-on-chrome-border: rgb(var(--c-white) / 0.1);
   --theme-field-on-panel-surface: oklch(16% 0.078 var(--h-plum));
   --theme-field-on-panel-surface-alt: oklch(14% 0.067 var(--h-plum));
