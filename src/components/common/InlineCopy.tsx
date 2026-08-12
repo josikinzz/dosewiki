@@ -18,6 +18,11 @@ import { proseLinkClassName } from "@/components/common/ProseLink";
  *
  * The result is a fragment, so the caller keeps ownership of the block element
  * and its classes — which is what makes these migrations markup-preserving.
+ *
+ * The two rendered elements are restyleable for the same reason. A surface that
+ * shipped its own link or emphasis treatment — the Effect Index homepage draws
+ * links in `homePanelLinkClassName`, not the prose-link dotted underline — must
+ * not change appearance just because its prose became editable.
  */
 
 const TOKEN_PATTERN = /\[([^\]]+)\]\(([^)\s]+)\)|\*\*(.+?)\*\*/g;
@@ -26,7 +31,15 @@ function isExternal(href: string): boolean {
   return /^(https?:\/\/|mailto:|#)/.test(href);
 }
 
-export function renderInlineCopy(text: string): ReactNode {
+export type InlineCopyOptions = {
+  /** Overrides the prose-link styling on `[label](/href)`. */
+  linkClassName?: string;
+  /** Class applied to the `<strong>` rendered for `**phrase**`. */
+  strongClassName?: string;
+};
+
+export function renderInlineCopy(text: string, options: InlineCopyOptions = {}): ReactNode {
+  const linkClassName = options.linkClassName ?? proseLinkClassName;
   if (!text) {
     return null;
   }
@@ -50,20 +63,24 @@ export function renderInlineCopy(text: string): ReactNode {
           <a
             key={`l${match.index}`}
             href={href}
-            className={proseLinkClassName}
+            className={linkClassName}
             target={href.startsWith("#") ? undefined : "_blank"}
             rel={href.startsWith("#") ? undefined : "noreferrer"}
           >
             {linkLabel}
           </a>
         ) : (
-          <Link key={`l${match.index}`} href={href} className={proseLinkClassName}>
+          <Link key={`l${match.index}`} href={href} className={linkClassName}>
             {linkLabel}
           </Link>
         ),
       );
     } else if (strong) {
-      nodes.push(<strong key={`s${match.index}`}>{strong}</strong>);
+      nodes.push(
+        <strong key={`s${match.index}`} className={options.strongClassName}>
+          {strong}
+        </strong>,
+      );
     }
 
     cursor = match.index + match[0].length;

@@ -66,12 +66,20 @@ function useReducedMotion(): boolean {
   return reduced;
 }
 
+const DEFAULT_DESCRIPTION = "Artistic representations of specific subjective effects";
+
 interface FeaturedReplicationsPanelProps {
   items: readonly HomeFeaturedReplication[];
   stub: React.ReactNode;
+  /** Editable panel blurb; defaults to the line this panel shipped with. */
+  description?: string;
 }
 
-export function FeaturedReplicationsPanel({ items, stub }: FeaturedReplicationsPanelProps) {
+export function FeaturedReplicationsPanel({
+  items,
+  stub,
+  description = DEFAULT_DESCRIPTION,
+}: FeaturedReplicationsPanelProps) {
   const [index, setIndex] = useState(0);
   const reducedMotion = useReducedMotion();
 
@@ -121,7 +129,7 @@ export function FeaturedReplicationsPanel({ items, stub }: FeaturedReplicationsP
   return (
     <HomePanel
       title="Featured Replications"
-      description="Artistic representations of specific subjective effects"
+      description={description}
       icon="lucide:images"
       stub={stub}
       contentClassName="p-3"

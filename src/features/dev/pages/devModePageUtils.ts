@@ -11,7 +11,8 @@ export type DevModeTab =
   | "tag-editor"
   | "profile"
   | "index-layout"
-  | "about"
+  | "writing"
+  | "blog"
   | "copy-studio"
   | "contributors"
   | "citation-review"
@@ -39,15 +40,15 @@ export const LIBRARY_DEPENDENT_TABS: ReadonlySet<DevModeTab> = new Set<DevModeTa
 /**
  * Tabs that make the shell drain the editor corpus at all.
  *
- * This is the blocking set plus `about`, whose placeholder counts are derived
- * from the library but which renders straight away with them filled in late.
- * Every other tab — profile, trip reports, article feedback, the molecule
- * editor, the replication studio — reads none of it and must issue zero
- * corpus requests.
+ * This is the blocking set plus `writing`, which hosts the About editor whose
+ * placeholder counts are derived from the library but which renders straight
+ * away with them filled in late. Every other tab — profile, trip reports,
+ * article feedback, the molecule editor, the replication studio, the blog —
+ * reads none of it and must issue zero corpus requests.
  */
 export const LIBRARY_FETCHING_TABS: ReadonlySet<DevModeTab> = new Set<DevModeTab>([
   ...LIBRARY_DEPENDENT_TABS,
-  "about",
+  "writing",
 ]);
 
 export function tabNeedsLibrary(tab: DevModeTab): boolean {
@@ -64,18 +65,20 @@ export function tabNeedsChangelogFeed(tab: DevModeTab): boolean {
 
 /**
  * Tabs that read the contributor profile directory: the profile editor, the
- * Contributors curation tab, the About founder picker, and the changelog
- * attribution used by the change log and by the save flows that commit from the
- * corpus tools.
+ * Contributors curation tab, the Writing tab (the About founder picker plus the
+ * byline picker), the Blog tab's byline picker, and the changelog attribution
+ * used by the change log and by the save flows that commit from the corpus
+ * tools.
  *
- * The Contributors tab is here and deliberately not in `LIBRARY_FETCHING_TABS`:
- * it curates people, their replications and their reports, and reads not one
+ * The Contributors and Blog tabs are here and deliberately not in
+ * `LIBRARY_FETCHING_TABS`: they curate people and posts, and read not one
  * substance article.
  */
 export function tabNeedsContributorProfiles(tab: DevModeTab): boolean {
   return (
     tab === "profile" ||
-    tab === "about" ||
+    tab === "writing" ||
+    tab === "blog" ||
     tab === "contributors" ||
     LIBRARY_DEPENDENT_TABS.has(tab)
   );
@@ -90,7 +93,8 @@ export function resolvePrimaryTab(tab: DevModeTab): DevModePrimaryTab {
   if (
     tab === "tag-editor" ||
     tab === "index-layout" ||
-    tab === "about" ||
+    tab === "writing" ||
+    tab === "blog" ||
     tab === "copy-studio" ||
     tab === "contributors" ||
     tab === "citation-review" ||

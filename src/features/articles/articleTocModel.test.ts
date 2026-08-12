@@ -1,6 +1,9 @@
 import { describe, expect, it } from "vitest";
 
-import { getEffectIndexArticleTocItems } from "./articleTocModel";
+import {
+  getEffectIndexArticleTocItems,
+  getMarkdownArticleTocItems,
+} from "./articleTocModel";
 
 describe("getEffectIndexArticleTocItems", () => {
   it("lists the body's own section headings and skips their subheadings", () => {
@@ -106,5 +109,52 @@ describe("getEffectIndexArticleTocItems", () => {
   it("returns nothing for an unstructured or missing body", () => {
     expect(getEffectIndexArticleTocItems("Just one long unstructured essay.")).toEqual([]);
     expect(getEffectIndexArticleTocItems(undefined)).toEqual([]);
+  });
+});
+
+describe("getMarkdownArticleTocItems", () => {
+  it("outlines a markdown body at its shallowest repeated heading level", () => {
+    const items = getMarkdownArticleTocItems(
+      ["# Title", "", "## Onset", "", "### Detail", "", "## Duration"].join("\n"),
+    );
+
+    expect(items.map((item) => [item.id, item.label])).toEqual([
+      ["onset", "Onset"],
+      ["duration", "Duration"],
+    ]);
+  });
+
+  it("strips inline markdown so an anchor matches the rendered heading text", () => {
+    const items = getMarkdownArticleTocItems(
+      ["## The **Big** Idea", "", "## A [linked](/x) heading"].join("\n"),
+    );
+
+    expect(items.map((item) => [item.id, item.label])).toEqual([
+      ["the-big-idea", "The Big Idea"],
+      ["a-linked-heading", "A linked heading"],
+    ]);
+  });
+
+  it("suffixes a repeated title exactly as the VCode path does", () => {
+    const markdown = getMarkdownArticleTocItems(["## Notes", "", "## Notes"].join("\n"));
+    const vcode = getEffectIndexArticleTocItems([
+      { name: "h2", properties: {}, children: ["Notes"] },
+      { name: "h2", properties: {}, children: ["Notes"] },
+    ]);
+
+    expect(markdown.map((item) => item.id)).toEqual(["notes", "notes-2"]);
+    expect(markdown.map((item) => item.id)).toEqual(vcode.map((item) => item.id));
+  });
+
+  it("ignores hashes inside fenced code", () => {
+    const items = getMarkdownArticleTocItems(
+      ["## Real", "", "```", "# not a heading", "```", "", "## Also real"].join("\n"),
+    );
+
+    expect(items.map((item) => item.id)).toEqual(["real", "also-real"]);
+  });
+
+  it("returns nothing for a body with no outline", () => {
+    expect(getMarkdownArticleTocItems("Just prose.\n\n## One heading")).toEqual([]);
   });
 });

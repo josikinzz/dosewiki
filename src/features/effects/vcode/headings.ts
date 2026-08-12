@@ -115,6 +115,71 @@ function collectMarkdownHeadings(text: string, visit: (level: number, text: stri
 }
 
 /**
+ * Inline Markdown emphasis stripped from a heading line, so the text the TOC
+ * slugs matches the text the renderer puts in the DOM. `## The **Big** Idea`
+ * renders as "The Big Idea", and an id derived from the raw line would carry
+ * the asterisks into the anchor and break the link.
+ */
+export function flattenMarkdownHeadingText(line: string): string {
+  return line
+    .replace(/!\[([^\]]*)\]\([^)]*\)/g, "$1")
+    .replace(/\[([^\]]*)\]\([^)]*\)/g, "$1")
+    .replace(/`([^`]*)`/g, "$1")
+    .replace(/\*\*|__|\*|_|~~/g, "")
+    .trim();
+}
+
+const MARKDOWN_FENCE_PATTERN = /^(?:```|~~~)/;
+
+/**
+ * Every ATX heading in a plain-Markdown body, in document order, with the same
+ * ids `PublicMarkdownBody` emits when it is asked for heading ids.
+ *
+ * This is the Markdown twin of {@link extractVCodeHeadings}, and deliberately
+ * shares its id assigner: a markdown article and a VCode article of the same
+ * title produce the same anchor, and a repeated title takes the same `-2`
+ * suffix on both paths. Fenced code is skipped, because `# comment` inside a
+ * code block renders as code, not as a heading.
+ */
+export function extractMarkdownHeadings(markdown: string | undefined): VCodeHeading[] {
+  if (!markdown) {
+    return [];
+  }
+
+  const assignId = createVCodeHeadingIdAssigner();
+  const headings: VCodeHeading[] = [];
+  let inFence = false;
+
+  for (const rawLine of markdown.split("\n")) {
+    const line = rawLine.trim();
+
+    if (MARKDOWN_FENCE_PATTERN.test(line)) {
+      inFence = !inFence;
+      continue;
+    }
+
+    if (inFence) {
+      continue;
+    }
+
+    const match = MARKDOWN_HEADING_PATTERN.exec(line);
+
+    if (!match) {
+      continue;
+    }
+
+    const text = flattenMarkdownHeadingText(match[2]);
+    const id = assignId(text);
+
+    if (id) {
+      headings.push({ id, level: match[1].length, text });
+    }
+  }
+
+  return headings;
+}
+
+/**
  * Every heading a VCode body renders, in document order, with the anchor id
  * `VCodeRenderer` emits for it. Raw string bodies are parsed first, so an
  * article that only carries `body_raw` still yields its headings.

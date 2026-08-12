@@ -4,10 +4,14 @@ import { PublicTocStrip } from "@/components/common/PublicTocStrip";
 import { PublicPill } from "@/components/common/PublicTokens";
 import { StickyTocLayout } from "@/components/common/StickyTocLayout";
 import { PageHeader } from "@/components/layout/PageHeader";
+import { PublicMarkdownBody } from "@/components/pages/PublicMarkdownBody";
 import { EffectCitationsSection } from "@/features/effects/components/EffectCitationsSection";
 import { VCodeRenderer } from "@/features/effects/vcode/VCodeRenderer";
 import type { VCodeContent } from "@/features/effects/vcode/types";
-import { getEffectIndexArticleTocItems } from "../articleTocModel";
+import {
+  getEffectIndexArticleTocItems,
+  getMarkdownArticleTocItems,
+} from "../articleTocModel";
 import type { ArticleBylineAuthor } from "../domain/articleByline";
 import { formatArchiveDate } from "@/utils/archiveDate";
 import { icons } from "@/utils/iconNames";
@@ -19,6 +23,11 @@ interface EffectIndexArticle {
   publicationDate?: string;
   body_raw: string;
   body_ast?: VCodeContent;
+  /**
+   * Absent on every legacy Effect Index row, and absence means the VCode markup
+   * this page has always rendered. Only `"markdown"` takes the other branch.
+   */
+  bodyFormat?: "vcode" | "markdown";
   citations?: Array<{
     url: string;
     text: string;
@@ -45,8 +54,16 @@ export function EffectIndexArticlePage({
   const publishedLabel = formatArchiveDate(article.publicationDate);
   const publishedDateTime = article.publicationDate?.slice(0, 10);
 
+  // Two body languages share this page. Legacy rows carry VCode — in `body_ast`
+  // when the read model parsed it, otherwise as markup in `body_raw` — and rows
+  // written in the Writing tab carry plain Markdown. The contents rail is built
+  // by whichever extractor matches, and both emit the ids their renderer emits,
+  // so the rail links land on the same anchors either way.
+  const isMarkdown = article.bodyFormat === "markdown";
   const body = article.body_ast ?? article.body_raw;
-  const tocItems = getEffectIndexArticleTocItems(body);
+  const tocItems = isMarkdown
+    ? getMarkdownArticleTocItems(article.body_raw)
+    : getEffectIndexArticleTocItems(body);
   const tocNode =
     tocItems.length > 0 ? <PublicTableOfContents items={tocItems} variant="bare" /> : null;
 
@@ -110,7 +127,11 @@ export function EffectIndexArticlePage({
         </div>
 
         <article className="theme-text-secondary prose prose-invert prose-fuchsia prose-a:font-normal max-w-none overflow-hidden text-[1.0625rem] leading-7">
-          <VCodeRenderer content={body} citations={article.citations} headingIds />
+          {isMarkdown ? (
+            <PublicMarkdownBody content={article.body_raw} headingIds />
+          ) : (
+            <VCodeRenderer content={body} citations={article.citations} headingIds />
+          )}
         </article>
 
         <EffectCitationsSection citations={article.citations} />

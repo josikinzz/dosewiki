@@ -60,7 +60,8 @@ describe("site flavor config", () => {
     expect(config.primaryNavIds).toEqual(["substances", "effects", "reports"]);
     expect(config.secondaryNavIds).toEqual(["about"]);
     expect(config.quickLinkIds).toEqual(["substances", "effects", "reports", "about"]);
-    expect(config.flavorGatedRoutes).toEqual([]);
+    // dose.wiki owns `/blog` — its own blog, not the Effect Index archive.
+    expect(config.flavorGatedRoutes).toEqual(["blog"]);
     expect(config.organization).toEqual({
       publisherName: "dose.wiki",
       contributorsName: "dose.wiki Contributors",
@@ -257,7 +258,8 @@ describe("site flavor config", () => {
     // than a hardcoded dose.wiki answer (keeps the suite green under an EI build).
     expect(isEffectIndex()).toBe(resolveSiteFlavor() === "effectindex");
 
-    expect(isFlavorRouteEnabled("blog", SITE_FLAVOR_CONFIGS.dosewiki)).toBe(false);
+    // Both publications serve /blog, from their own corpora.
+    expect(isFlavorRouteEnabled("blog", SITE_FLAVOR_CONFIGS.dosewiki)).toBe(true);
     expect(isFlavorRouteEnabled("blog", SITE_FLAVOR_CONFIGS.effectindex)).toBe(true);
     expect(isFlavorRouteEnabled("donate", SITE_FLAVOR_CONFIGS.effectindex)).toBe(true);
     expect(isFlavorRouteEnabled("donate")).toBe(resolveSiteFlavor() === "effectindex");

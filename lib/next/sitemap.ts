@@ -6,7 +6,10 @@ import {
   getPublicRouteSitemapPaths,
 } from "./publicRoutePlan";
 import { buildPublicSitemapEntry, PUBLIC_SITE, type PublicSiteIdentity } from "./publicSite";
-import { getPublicEffectIndexPosts } from "@server/convex/publicData";
+import {
+  getPublicEffectIndexPosts,
+  getPublishedEffectIndexArticles,
+} from "@server/convex/publicData";
 import {
   isEffectIndex,
   isFlavorRouteEnabled,
@@ -116,15 +119,30 @@ export function buildFlavorGatedSitemapPaths(
 }
 
 /**
- * Read only what the active flavor's gated routes actually need. On dose.wiki no gated
- * route is enabled, so this issues no Convex reads at all.
+ * Read only what the active flavor's gated routes actually need.
+ *
+ * Both flavors serve `/blog`, but from different corpora, so the read branches
+ * the same way the route does: Effect Index sitemaps the frozen archive, and
+ * dose.wiki sitemaps its own `kind: "blog"` rows. Neither build ever reads —
+ * let alone advertises — the other's posts.
  */
 async function loadFlavorGatedSitemapInput(
   config: SiteFlavorConfig,
 ): Promise<FlavorGatedSitemapInput> {
-  const posts = isFlavorRouteEnabled("blog", config) ? await getPublicEffectIndexPosts() : [];
+  if (!isFlavorRouteEnabled("blog", config)) {
+    return { blogPostSlugs: [] };
+  }
 
-  return { blogPostSlugs: posts.map((post) => post.slug) };
+  if (isEffectIndex(config)) {
+    const posts = await getPublicEffectIndexPosts();
+    return { blogPostSlugs: posts.map((post) => post.slug) };
+  }
+
+  const rows = await getPublishedEffectIndexArticles();
+
+  return {
+    blogPostSlugs: rows.filter((row) => row.kind === "blog").map((row) => row.slug),
+  };
 }
 
 export async function buildSitemapEntries(

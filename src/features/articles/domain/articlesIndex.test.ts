@@ -87,3 +87,35 @@ describe("groupArticlesForIndex", () => {
     expect(group.articles[0].dateLabel).toBe("May 2021");
   });
 });
+
+describe("the Recent group", () => {
+  it("collects markdown-bodied writing above the archive's subject groups", () => {
+    const groups = groupArticlesForIndex([
+      {
+        slug: "brand-new",
+        title: "Brand new",
+        tags: ["dreams"],
+        bodyFormat: "markdown",
+        body_raw: "# Hello\n\nWritten today.",
+      },
+      {
+        slug: "lucid-dreaming",
+        title: "Lucid dreaming",
+        tags: ["dreams"],
+        body_raw: "[h2]Onset[/h2] Archive material.",
+      },
+    ]);
+
+    expect(groups.map((group) => group.id)).toEqual(["recent", "consciousness"]);
+    expect(groups[0].articles.map((article) => article.slug)).toEqual(["brand-new"]);
+    expect(groups[1].articles.map((article) => article.slug)).toEqual(["lucid-dreaming"]);
+  });
+
+  it("is hidden entirely when nothing new has been written", () => {
+    const groups = groupArticlesForIndex([
+      { slug: "lucid-dreaming", title: "Lucid dreaming", tags: ["dreams"] },
+    ]);
+
+    expect(groups.map((group) => group.id)).not.toContain("recent");
+  });
+});

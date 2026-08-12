@@ -69,7 +69,10 @@ export {
   getPublicEffectIndexPosts,
 } from "./publicData.blog";
 
-export { getReplicationsByContributor } from "./publicData.replications";
+export {
+  getPublicFeaturedReplicationSlugs,
+  getReplicationsByContributor,
+} from "./publicData.replications";
 
 export {
   getFeaturedReports,

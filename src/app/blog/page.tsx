@@ -3,11 +3,15 @@ import {
   buildSiteUrl,
   getPublicRoutePath,
 } from "@server/next/publicSite";
-import { loadBlogIndexRoute } from "@server/next/routeLoaders";
-import { requireEffectIndexFlavor } from "@/config/siteFlavor";
+import {
+  loadBlogIndexRoute,
+  loadWritingBlogIndexRoute,
+} from "@server/next/routeLoaders";
+import { isEffectIndex } from "@/config/siteFlavor";
 import { getCopy } from "@server/next/copyBlocks";
 import { resolveEmptyStateCopy } from "@server/next/emptyStateCopy";
 import { BlogIndexPage } from "@/features/blog/pages/BlogIndexPage";
+import { WritingBlogIndexPage } from "@/features/blog/pages/WritingBlogIndexPage";
 import {
   buildItemListSchema,
   serializeJsonLd,
@@ -16,10 +20,22 @@ import {
 // Same incremental revalidation interval as the articles pages.
 export const revalidate = 3600;
 
+/**
+ * `/blog` serves two entirely different publications, chosen by build flavor.
+ *
+ * - **Effect Index** — the frozen blog archive, read from `effectIndexArchive`
+ *   through `loadBlogIndexRoute`. It is finished; nothing new is ever added to
+ *   it, and it renders exactly as it did before dose.wiki had a blog at all.
+ * - **dose.wiki** — the live blog, read from the `kind: "blog"` rows of
+ *   `effectIndexArticles` through `loadWritingBlogIndexRoute`.
+ *
+ * The two never mix. The flavor picks the loader, and each loader reads its own
+ * table and its own rows, so neither corpus can appear on the other's pages.
+ */
 export async function generateMetadata() {
-  requireEffectIndexFlavor();
-
-  const result = await loadBlogIndexRoute();
+  const result = isEffectIndex()
+    ? await loadBlogIndexRoute()
+    : await loadWritingBlogIndexRoute();
 
   return buildPublicPageMetadata({
     ...result.metadata,
@@ -28,10 +44,10 @@ export async function generateMetadata() {
 }
 
 export default async function BlogPage() {
-  // Flavor gate first: on the dose.wiki build this route does not exist, and the guard
-  // must run before any Convex read is issued.
-  requireEffectIndexFlavor();
+  return isEffectIndex() ? <EffectIndexArchiveBlog /> : <DoseWikiBlog />;
+}
 
+async function EffectIndexArchiveBlog() {
   const [result, copy] = await Promise.all([loadBlogIndexRoute(), getCopy()]);
   const canonicalUrl = buildSiteUrl(getPublicRoutePath(result.canonicalRoute));
   const itemListJsonLd = serializeJsonLd(
@@ -55,6 +71,37 @@ export default async function BlogPage() {
         dangerouslySetInnerHTML={{ __html: itemListJsonLd }}
       />
       <BlogIndexPage
+        {...result.pageProps}
+        emptyState={resolveEmptyStateCopy(copy, "blog", result.pageProps.emptyState)}
+      />
+    </>
+  );
+}
+
+async function DoseWikiBlog() {
+  const [result, copy] = await Promise.all([loadWritingBlogIndexRoute(), getCopy()]);
+  const canonicalUrl = buildSiteUrl(getPublicRoutePath(result.canonicalRoute));
+  const itemListJsonLd = serializeJsonLd(
+    buildItemListSchema({
+      url: canonicalUrl,
+      name: "dose.wiki Blog",
+      description: "News, notes, and long-form writing from the dose.wiki editors.",
+      items: result.pageProps.posts.map((post) => ({
+        name: post.title,
+        url: buildSiteUrl(
+          getPublicRoutePath({ family: "blogPost", params: { slug: post.slug } }),
+        ),
+      })),
+    }),
+  );
+
+  return (
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: itemListJsonLd }}
+      />
+      <WritingBlogIndexPage
         {...result.pageProps}
         emptyState={resolveEmptyStateCopy(copy, "blog", result.pageProps.emptyState)}
       />

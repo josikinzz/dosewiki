@@ -40,6 +40,11 @@ export type DevModePageControllerState = {
   >["renderCommitPanel"];
   citationReviewInitialSlug?: string;
   moleculeEditorInitialSlug?: string;
+  /**
+   * The Writing/Blog deep link: `/dev/writing/<slug>`, `/dev/blog/<slug>`, or
+   * the literal `about` that `/dev/about` now resolves to.
+   */
+  writingInitialSlug?: string;
   profileTabProps: ReturnType<typeof useDevSupportTabsController>["profileTabProps"];
   aboutTabProps: ReturnType<typeof useDevSupportTabsController>["aboutTabProps"];
   tagEditorTabProps: ReturnType<typeof useDevSupportTabsController>["tagEditorTabProps"];

@@ -653,12 +653,24 @@ export default defineSchema({
     })),
   }),
 
-  // Site configuration - About page content and other global settings
+  // Site configuration - About page content and other global settings.
+  // One document per well-known `key`; every payload field is optional because
+  // a document only carries the fields its own key means.
+  //
+  //   "about"                            → aboutMarkdown / aboutSubtitle / founderProfileKeys
+  //   "effect-index-featured-replications" → featuredReplicationSlugs
+  //
+  // The featured list lives here rather than as a `featured` column on
+  // `replications` because it is an *ordered* editorial selection, not a
+  // property of a row: the Effect Index carousel shows these slugs in this
+  // order, and a per-row boolean cannot express the order. It also keeps the
+  // homepage's read to one small document instead of a whole-table scan.
   siteConfig: defineTable({
-    key: v.string(),           // "about" for About page content
+    key: v.string(),
     aboutMarkdown: v.optional(v.string()),
     aboutSubtitle: v.optional(v.string()),
     founderProfileKeys: v.optional(v.array(v.string())),
+    featuredReplicationSlugs: v.optional(v.array(v.string())),
     updatedAt: v.string(),
     updatedBy: v.optional(v.string()),
   }).index("by_key", ["key"]),

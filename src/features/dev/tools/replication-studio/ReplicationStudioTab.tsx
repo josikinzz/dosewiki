@@ -22,7 +22,15 @@ import {
   EditorPanelBody,
   TagToken,
   type ActionNoticeTone,
+  type EditorActionStatusState,
 } from "@/features/dev/components";
+// The reorder interaction is the contributors tool's, imported rather than
+// copied: pinned head above a divider, default order below it, drag or the
+// Curate/Un-curate buttons to cross the line. "Curated" here means featured.
+import {
+  OrderingPanel,
+  type OrderablePanelItem,
+} from "@/features/dev/tools/contributors/OrderingPanel";
 import { cn } from "@/lib/utils";
 
 import { IncomingTray, type IncomingFile } from "./IncomingTray";
@@ -59,6 +67,7 @@ type CorpusPayload = { rows: StudioRow[]; effects: StudioEffectOption[] };
  */
 let cachedCorpus: CorpusPayload | null = null;
 const EDITORIAL_API = "/api/dev/replications/editorial";
+const FEATURED_API = "/api/dev/replications/featured";
 const UPLOAD_URL_API = "/api/dev/replications/upload-url";
 
 type LoadState =
@@ -95,6 +104,19 @@ export function ReplicationStudioTab() {
   const [busy, setBusy] = useState(false);
   const [feedback, setFeedback] = useState<Feedback | null>(null);
 
+  // The Effect Index homepage carousel. Kept beside the corpus rather than in
+  // its own tool because it is a selection *of* these rows, and choosing what to
+  // feature means searching and filtering the library — which the rail beside it
+  // already does.
+  const [featuredOpen, setFeaturedOpen] = useState(false);
+  const [featuredOrder, setFeaturedOrder] = useState<string[]>([]);
+  const [savedFeatured, setSavedFeatured] = useState<string[]>([]);
+  const [featuredCurated, setFeaturedCurated] = useState(true);
+  const [featuredLoaded, setFeaturedLoaded] = useState(false);
+  const [featuredSaveState, setFeaturedSaveState] = useState<EditorActionStatusState | "idle">(
+    "idle",
+  );
+
   const searchRef = useRef<HTMLInputElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const dragDepth = useRef(0);
@@ -124,6 +146,74 @@ export function ReplicationStudioTab() {
   useEffect(() => {
     void loadCorpus();
   }, [loadCorpus]);
+
+  /**
+   * The stored selection, or — on a deployment nobody has curated yet — the
+   * checked-in list the homepage is still running on. Starting from what is
+   * actually on the page means the first save records the status quo instead of
+   * replacing it with an empty carousel.
+   */
+  const loadFeatured = useCallback(async () => {
+    try {
+      const response = await fetch(FEATURED_API);
+      if (!response.ok) {
+        setFeedback({
+          tone: "danger",
+          message: await readError(response, "Failed to load the featured selection."),
+        });
+        return;
+      }
+      const payload = (await response.json()) as { slugs: string[]; curated: boolean };
+      setFeaturedOrder(payload.slugs);
+      setSavedFeatured(payload.slugs);
+      setFeaturedCurated(payload.curated);
+      setFeaturedLoaded(true);
+    } catch {
+      setFeedback({ tone: "danger", message: "Failed to reach the featured endpoint." });
+    }
+  }, []);
+
+  // Fetched on first open, not on mount: the carousel is a side errand in this
+  // tool and must not add a request to every visit that never touches it.
+  useEffect(() => {
+    if (featuredOpen && !featuredLoaded) {
+      void loadFeatured();
+    }
+  }, [featuredLoaded, featuredOpen, loadFeatured]);
+
+  const saveFeatured = useCallback(async () => {
+    setFeaturedSaveState("saving");
+    try {
+      const response = await fetch(FEATURED_API, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ slugs: featuredOrder }),
+      });
+      if (!response.ok) {
+        setFeaturedSaveState("error");
+        setFeedback({
+          tone: "danger",
+          message: await readError(response, "Saving the featured selection failed."),
+        });
+        return;
+      }
+      const payload = (await response.json()) as { slugs: string[]; pruned: string[] };
+      setFeaturedOrder(payload.slugs);
+      setSavedFeatured(payload.slugs);
+      setFeaturedCurated(true);
+      setFeaturedSaveState("saved");
+      setFeedback({
+        tone: "success",
+        message:
+          payload.pruned.length > 0
+            ? `Featured ${payload.slugs.length} replications. Dropped ${payload.pruned.length} slug(s) that no longer resolve: ${payload.pruned.join(", ")}.`
+            : `Featured ${payload.slugs.length} replications on the Effect Index homepage.`,
+      });
+    } catch {
+      setFeaturedSaveState("error");
+      setFeedback({ tone: "danger", message: "Saving failed: the featured endpoint is unreachable." });
+    }
+  }, [featuredOrder]);
 
   // Object URLs outlive React state unless they are revoked by hand.
   useEffect(() => {
@@ -471,6 +561,43 @@ export function ReplicationStudioTab() {
 
   /* ------------------------------------------------------------------ view */
 
+  /**
+   * What the Featured panel lists: everything already featured, in stored
+   * order, then whatever the rail and search currently show. Featured rows are
+   * added from the whole corpus rather than the filtered view on purpose — a
+   * filtered-out pick would otherwise read as "curated but missing" and saving
+   * would drop it.
+   *
+   * Listed by slug and de-duplicated by it, because the featured selection is a
+   * list of slugs: the corpus does carry a few rows that share one (twins from
+   * the legacy import), and two panel rows offering to feature "the same" entry
+   * could only disagree about which one the carousel would show.
+   */
+  const featuredItems = useMemo<OrderablePanelItem[]>(() => {
+    const bySlug = new Map(rows.map((row) => [row.slug, row]));
+    const chosen = featuredOrder
+      .map((slug) => bySlug.get(slug))
+      .filter((row): row is StudioRow => Boolean(row));
+
+    const listed = new Set<string>();
+
+    return [...chosen, ...visibleRows]
+      .filter((row) => {
+        if (listed.has(row.slug)) {
+          return false;
+        }
+        listed.add(row.slug);
+        return true;
+      })
+      .map((row) => ({
+        slug: row.slug,
+        title: row.title,
+        meta: [row.artist, row.effect_name ?? row.effect_slug ?? "no effect", row.type]
+          .filter(Boolean)
+          .join(" · "),
+      }));
+  }, [featuredOrder, rows, visibleRows]);
+
   const chips = useMemo(() => {
     const entries: { kind: StudioFacetKind; key: string; label: string }[] = [];
     for (const key of facets.type) entries.push({ kind: "type", key, label: `Type: ${key}` });
@@ -519,6 +646,16 @@ export function ReplicationStudioTab() {
           {new Set(rows.map((row) => row.effect_slug).filter(Boolean)).size} effects
         </p>
         <div className="flex-1" />
+        <Button
+          type="button"
+          variant={featuredOpen ? "accent" : "ghost"}
+          size="sm"
+          aria-expanded={featuredOpen}
+          onClick={() => setFeaturedOpen((open) => !open)}
+        >
+          <Icon icon="lucide:star" size={15} />
+          Featured
+        </Button>
         <Button type="button" variant="ghost" size="sm" disabled={busy} onClick={() => void loadCorpus()}>
           <Icon icon="lucide:refresh-cw" size={15} />
           Reload
@@ -544,6 +681,41 @@ export function ReplicationStudioTab() {
         <ActionNotice tone={feedback.tone} onDismiss={() => setFeedback(null)}>
           {feedback.message}
         </ActionNotice>
+      ) : null}
+
+      {featuredOpen ? (
+        <EditorPanel>
+          <EditorPanelBody>
+            {featuredLoaded ? (
+              <OrderingPanel
+                icon="lucide:star"
+                title="Featured on the Effect Index homepage"
+                description={
+                  (featuredCurated
+                    ? "The carousel plays these replications in this order. "
+                    : "Nothing is stored yet, so these are the checked-in defaults the homepage is running on right now; saving records them. ") +
+                  "Everything below the divider is not featured, and follows the studio's current search and filters."
+                }
+                items={featuredItems}
+                order={featuredOrder}
+                savedOrder={savedFeatured}
+                emptyLabel="No replications match the current filters."
+                saveState={featuredSaveState}
+                onOrderChange={(next) => {
+                  setFeaturedOrder(next);
+                  setFeaturedSaveState("idle");
+                }}
+                onSave={() => void saveFeatured()}
+                onReset={() => {
+                  setFeaturedOrder(savedFeatured);
+                  setFeaturedSaveState("idle");
+                }}
+              />
+            ) : (
+              <p className="theme-text-muted text-sm">Loading the featured selection…</p>
+            )}
+          </EditorPanelBody>
+        </EditorPanel>
       ) : null}
 
       <div className="grid gap-4 lg:grid-cols-[16rem_minmax(0,1fr)] xl:grid-cols-[16rem_minmax(0,1fr)_22rem]">

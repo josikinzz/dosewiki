@@ -1,8 +1,14 @@
 import { notFound } from "next/navigation";
 import { buildPublicPageMetadata } from "@server/next/publicSite";
-import { loadBlogIndexRoute, loadBlogPostRoute } from "@server/next/routeLoaders";
-import { isFlavorRouteEnabled, requireEffectIndexFlavor } from "@/config/siteFlavor";
+import {
+  loadBlogIndexRoute,
+  loadBlogPostRoute,
+  loadWritingBlogIndexRoute,
+  loadWritingBlogPostRoute,
+} from "@server/next/routeLoaders";
+import { isEffectIndex, SITE_FLAVOR_CONFIG } from "@/config/siteFlavor";
 import { BlogPostPage } from "@/features/blog/pages/BlogPostPage";
+import { WritingBlogPostPage } from "@/features/blog/pages/WritingBlogPostPage";
 
 // Same incremental revalidation interval as the articles pages.
 export const revalidate = 3600;
@@ -12,17 +18,22 @@ export const revalidate = 3600;
 // slug a real 404. The cost is that a build whose archive read degrades bakes no post
 // routes at all, so that degradation is logged loudly — see
 // `reportDegradedEffectIndexArchiveRead` in `lib/convex/publicData.reads.ts`.
+//
+// It holds for both publications served here: the Effect Index build prerenders the frozen
+// archive's slugs, the dose.wiki build prerenders its own `kind: "blog"` rows, and on either
+// build a slug belonging to the other publication is simply not in the list — so it 404s
+// hard rather than rendering the wrong corpus.
 export const dynamicParams = false;
 
 export async function generateStaticParams() {
-  // Prerendering is gated too: without this the dose.wiki build would still enumerate
-  // and prerender Effect Index blog slugs for a route it does not serve.
-  if (!isFlavorRouteEnabled("blog")) {
-    return [];
+  // Each flavor enumerates only its own posts. This is the prerender half of the
+  // separation the loaders enforce at read time.
+  if (isEffectIndex()) {
+    const result = await loadBlogIndexRoute();
+    return result.pageProps.posts.map((post) => ({ slug: post.slug }));
   }
 
-  const result = await loadBlogIndexRoute();
-
+  const result = await loadWritingBlogIndexRoute();
   return result.pageProps.posts.map((post) => ({ slug: post.slug }));
 }
 
@@ -33,15 +44,15 @@ type BlogPostPageProps = {
 };
 
 export async function generateMetadata({ params }: BlogPostPageProps) {
-  requireEffectIndexFlavor();
-
   const { slug } = await params;
-  const result = await loadBlogPostRoute(slug);
+  const result = isEffectIndex()
+    ? await loadBlogPostRoute(slug)
+    : await loadWritingBlogPostRoute(slug);
 
   if (result.kind === "not-found") {
     return buildPublicPageMetadata({
       title: "Blog",
-      description: "Announcements and site updates from the Effect Index archive.",
+      description: `Posts from ${SITE_FLAVOR_CONFIG.name}.`,
       route: { family: "blogPost", params: { slug } },
     });
   }
@@ -53,14 +64,23 @@ export async function generateMetadata({ params }: BlogPostPageProps) {
 }
 
 export default async function BlogPostRoute({ params }: BlogPostPageProps) {
-  requireEffectIndexFlavor();
-
   const { slug } = await params;
-  const result = await loadBlogPostRoute(slug);
+
+  if (isEffectIndex()) {
+    const result = await loadBlogPostRoute(slug);
+
+    if (result.kind === "not-found") {
+      notFound();
+    }
+
+    return <BlogPostPage {...result.pageProps} />;
+  }
+
+  const result = await loadWritingBlogPostRoute(slug);
 
   if (result.kind === "not-found") {
     notFound();
   }
 
-  return <BlogPostPage {...result.pageProps} />;
+  return <WritingBlogPostPage {...result.pageProps} />;
 }

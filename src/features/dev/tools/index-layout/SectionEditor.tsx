@@ -282,6 +282,10 @@ export const SectionEditor = memo(
                 onChange={(event) => handleNotesChange(event.target.value)}
                 placeholder="Optional editor notes"
               />
+              <p className="theme-text-faint text-xs">
+                Editor-facing only — never rendered on /substances. Public index prose is a
+                copy block; edit it in Copy Studio.
+              </p>
             </div>
           </div>
         )}

@@ -13,19 +13,27 @@ const effectindex = SITE_FLAVOR_CONFIGS.effectindex;
 const dosewiki = SITE_FLAVOR_CONFIGS.dosewiki;
 
 describe("blog flavor gating", () => {
-  it("passes the guard through on Effect Index and raises not-found on dose.wiki", () => {
+  it("is owned by both publications, each serving its own corpus", () => {
+    // dose.wiki serves the blog written in the /dev Blog tab (`kind: "blog"` rows of
+    // `effectIndexArticles`); Effect Index serves the frozen `effectIndexArchive`. The
+    // route id being enabled on both is what keeps the middleware from 404ing either.
     expect(isFlavorRouteEnabled("blog", effectindex)).toBe(true);
-    expect(isFlavorRouteEnabled("blog", dosewiki)).toBe(false);
+    expect(isFlavorRouteEnabled("blog", dosewiki)).toBe(true);
 
-    // The blog pages call this as their first statement, so dose.wiki 404s the route.
+    // The guard itself is unchanged; the blog pages no longer call it, because the
+    // route now exists on both flavors and branches on `isEffectIndex` instead.
     expect(() => requireEffectIndexFlavor(effectindex)).not.toThrow();
     expect(() => requireEffectIndexFlavor(dosewiki)).toThrow();
   });
 
-  it("gates every /blog path at the request boundary on dose.wiki only", () => {
-    // The in-page guard renders the not-found body but cannot set a 404 status on a
-    // statically prerendered route, so dose.wiki served /blog as a soft 404 (HTTP 200).
+  it("no longer gates /blog at the request boundary on either flavor", () => {
     for (const pathname of ["/blog", "/blog/", "/blog/site-updates", "/blog/a/b"]) {
+      expect(isFlavorGatedRequestPath(pathname, dosewiki)).toBe(false);
+      expect(isFlavorGatedRequestPath(pathname, effectindex)).toBe(false);
+    }
+
+    // The still-gated Effect Index routes prove the boundary itself is intact.
+    for (const pathname of ["/donate", "/contact", "/discord"]) {
       expect(isFlavorGatedRequestPath(pathname, dosewiki)).toBe(true);
       expect(isFlavorGatedRequestPath(pathname, effectindex)).toBe(false);
     }
@@ -67,10 +75,16 @@ describe("sitemap flavor branch", () => {
     ]);
   });
 
-  it("appends nothing on the dose.wiki flavor", () => {
-    expect(buildFlavorGatedSitemapPaths(input, dosewiki)).toEqual([]);
-    // Even with posts available, the flavor that 404s the route must not advertise it.
-    expect(buildFlavorGatedSitemapPaths({ blogPostSlugs: [] }, dosewiki)).toEqual([]);
+  it("appends dose.wiki's own posts on the dose.wiki flavor", () => {
+    // Same builder, but the slugs it is handed come from the dose.wiki corpus — see
+    // `loadFlavorGatedSitemapInput`, which reads the archive only on Effect Index.
+    expect(blogPaths(input, dosewiki)).toEqual([
+      "/blog",
+      "/blog/site-updates",
+      "/blog/welcome-to-the-effect-index",
+    ]);
+    // And nothing but the blog: the Effect Index support pages stay gated off.
+    expect(buildFlavorGatedSitemapPaths({ blogPostSlugs: [] }, dosewiki)).toEqual(["/blog"]);
   });
 
   it("still lists the blog index on Effect Index when the archive read returns nothing", () => {

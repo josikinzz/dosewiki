@@ -45,6 +45,11 @@ import {
   toBlogPostViewModel,
   type BlogPostViewModel,
 } from "../../src/features/blog/domain/blogPostModel";
+import {
+  toWritingBlogPost,
+  writingBlogPostSummary,
+  type WritingBlogPost,
+} from "../../src/features/blog/domain/writingBlogModel";
 import { buildProfileHistory, type NormalizedUserProfile } from "../../src/data/userProfiles";
 import { toReportCardModel, type ReportCardModel } from "../../src/types/tripReport";
 import { SITE_FLAVOR_CONFIG } from "../../src/config/siteFlavor";
@@ -351,10 +356,25 @@ async function resolveArticleBylineAuthors(
   return authors;
 }
 
+/**
+ * `effectIndexArticles` holds both families. A row is an article unless it says
+ * otherwise, which is what keeps every legacy import — none of which carries
+ * `kind` — on the article routes exactly as before.
+ */
+function isArticleKind(article: Pick<PublicEffectIndexArticle, "kind">): boolean {
+  return article.kind !== "blog";
+}
+
+function isBlogKind(article: Pick<PublicEffectIndexArticle, "kind">): boolean {
+  return article.kind === "blog";
+}
+
 export const loadArticleRoute = cache(async (slug: string): Promise<ArticleRouteResult> => {
   const article = await getPublicEffectIndexArticleBySlug(slug);
 
-  if (!article) {
+  // A blog post is not reachable at `/articles/<slug>` even though it shares
+  // the table: the two families never render on each other's routes.
+  if (!article || !isArticleKind(article)) {
     return { kind: "not-found" };
   }
 
@@ -380,7 +400,7 @@ export type ArticlesIndexRouteResult = OkRouteResult<{
 
 export const loadArticlesIndexRoute = cache(
   async (): Promise<ArticlesIndexRouteResult> => {
-    const articles = await getPublishedEffectIndexArticles();
+    const articles = (await getPublishedEffectIndexArticles()).filter(isArticleKind);
 
     return {
       kind: "ok",
@@ -449,6 +469,71 @@ export const loadBlogPostRoute = cache(async (slug: string): Promise<BlogPostRou
     canonicalRoute: { family: "blogPost", params: { slug: viewModel.slug } },
   };
 });
+
+export type WritingBlogIndexRouteResult = OkRouteResult<{
+  posts: WritingBlogPost[];
+  emptyState?: PublicRouteEmptyState;
+}>;
+
+/**
+ * The dose.wiki blog: `kind: "blog"` rows of `effectIndexArticles`, written in
+ * the /dev Blog tab.
+ *
+ * This is a different blog from `loadBlogIndexRoute`, which serves the frozen
+ * Effect Index archive out of `effectIndexArchive`. The separation is by data as
+ * well as by flavor — these loaders read only rows that say `kind: "blog"`, and
+ * no such row exists in the archive table, so neither corpus can leak into the
+ * other's pages even if both routes were somehow reachable on one build.
+ */
+export const loadWritingBlogIndexRoute = cache(
+  async (): Promise<WritingBlogIndexRouteResult> => {
+    const rows = (await getPublishedEffectIndexArticles()).filter(isBlogKind);
+    const posts = await Promise.all(
+      rows.map(async (row) => toWritingBlogPost(row, await resolveArticleBylineAuthors(row))),
+    );
+
+    return {
+      kind: "ok",
+      pageProps: {
+        posts,
+        emptyState: posts.length === 0 ? blogIndexEmptyState : undefined,
+      },
+      metadata: {
+        title: "Blog",
+        description: `News, notes and long-form writing from ${SITE_FLAVOR_CONFIG.name}.`,
+      },
+      canonicalRoute: { family: "blog" },
+    };
+  },
+);
+
+export type WritingBlogPostRouteResult =
+  | OkRouteResult<{ post: WritingBlogPost }>
+  | NotFoundRouteResult;
+
+export const loadWritingBlogPostRoute = cache(
+  async (slug: string): Promise<WritingBlogPostRouteResult> => {
+    const row = await getPublicEffectIndexArticleBySlug(slug);
+
+    if (!row || !isBlogKind(row)) {
+      return { kind: "not-found" };
+    }
+
+    const post = toWritingBlogPost(row, await resolveArticleBylineAuthors(row));
+
+    return {
+      kind: "ok",
+      pageProps: { post },
+      metadata: {
+        title: post.title,
+        description:
+          writingBlogPostSummary(post, 160) ||
+          `${post.title} — a post from ${SITE_FLAVOR_CONFIG.name}.`,
+      },
+      canonicalRoute: { family: "blogPost", params: { slug: post.slug } },
+    };
+  },
+);
 
 export type EffectsIndexRouteResult = OkRouteResult<
   EffectsIndexViewModel["pageProps"] & {

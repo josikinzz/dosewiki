@@ -87,6 +87,31 @@ export const listForEditor = query({
 });
 
 /**
+ * The whole row for one slug, drafts included — the read the Writing tab opens
+ * an entry with. Editor-gated for the same reason `listForEditor` is: it is the
+ * only way to see a draft body, and `getBySlug` must keep hiding one.
+ */
+export const getForEditor = query({
+  args: {
+    apiKey: v.optional(v.string()),
+    actorEmail: v.optional(v.string()),
+    slug: v.string(),
+  },
+  handler: async (ctx, args) => {
+    await requireEditorWrite(ctx, {
+      apiKey: args.apiKey,
+      actorEmail: args.actorEmail,
+      adminIntent: "editorArticleWrite",
+    });
+
+    return await ctx.db
+      .query("effectIndexArticles")
+      .withIndex("by_slug", (q) => q.eq("slug", args.slug))
+      .first();
+  },
+});
+
+/**
  * Editor-gated slug-keyed upsert for the Writing/Blog system.
  *
  * Update is a patch: any field the caller omits keeps its stored value, so a
@@ -101,6 +126,14 @@ export const upsertArticle = mutation({
     tags: v.optional(v.array(v.string())),
     kind: v.optional(v.union(v.literal("article"), v.literal("blog"))),
     status: v.optional(v.union(v.literal("draft"), v.literal("published"))),
+    /**
+     * The legacy publication flag. It is redundant with `status`, but the
+     * public normalizer (`normalizePublicEffectIndexArticle`) drops any row
+     * whose `publication_status` is not a string, so a row saved without it
+     * would be invisible on every public surface. The editor save path sends
+     * it alongside `status`.
+     */
+    publication_status: v.optional(v.string()),
     bodyFormat: v.optional(v.union(v.literal("vcode"), v.literal("markdown"))),
     body_raw: v.optional(v.string()),
     body_ast: v.optional(v.any()),

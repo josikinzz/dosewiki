@@ -157,6 +157,16 @@ export type PublicEffectIndexArticle = {
     url: string;
     text: string;
   }>;
+  /**
+   * Writing/Blog system fields. All optional: a legacy Effect Index import
+   * carries none of them, and absence means exactly what it meant before —
+   * `kind` absent is an article, `bodyFormat` absent is the VCode markup in
+   * `body_raw`.
+   */
+  kind?: "article" | "blog";
+  bodyFormat?: "vcode" | "markdown";
+  teaser?: string;
+  coverImageUrl?: string;
 };
 
 export const priorityScore: Record<PublicSubstancePreview["priority"], number> = {

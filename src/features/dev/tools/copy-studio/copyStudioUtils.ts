@@ -124,6 +124,29 @@ export function groupCopyStudioBlocks(
   return groups;
 }
 
+/**
+ * Publication label for a flavored block.
+ *
+ * A flavor row is just a key — `footer-tagline-effect-index` sits in the same
+ * "Footer" group as dose.wiki's `footer-tagline`, which is what makes the pair
+ * comparable — so the studio has to say out loud which publication a row is
+ * rendered on. Only the flavored rows carry a label; an unflavored row is the
+ * default publication's and needs no badge.
+ *
+ * The keys match `copyBlocks.json`'s `flavor` field, which is the key suffix
+ * (`effect-index`), not the `SiteFlavor` id (`effectindex`).
+ */
+const COPY_FLAVOR_LABELS: Record<string, string> = {
+  "effect-index": "Effect Index",
+};
+
+export function copyBlockFlavorLabel(flavor?: string): string | null {
+  if (!flavor) {
+    return null;
+  }
+  return COPY_FLAVOR_LABELS[flavor] ?? flavor;
+}
+
 export function draftFromBlock(block: CopyStudioBlock): CopyStudioDraft {
   return { body: block.current.body, items: [...block.current.items] };
 }

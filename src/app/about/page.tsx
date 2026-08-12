@@ -7,6 +7,7 @@ import {
 } from "@server/convex/publicData";
 import { getPublicContributorReferenceCounts } from "@server/convex/publicData.contributorReferences";
 import { buildPublicPageMetadata } from "@server/next/publicSite";
+import { flavoredCopyText, getCopy } from "@server/next/copyBlocks";
 import { applyPlaceholders } from "@/data/content/about";
 import { selectAboutContributors } from "@/data/contributorRoster";
 import moleculeSvgMappings from "@/data/mappings/moleculeSvgMappings.json";
@@ -25,6 +26,16 @@ export const revalidate = 3600;
  */
 const OWNS_ABOUT_PROSE = SITE_FLAVOR_CONFIG.about.missionMarkdown !== null;
 
+/**
+ * Copy-block slot for the mission statement of a flavor that owns its About prose.
+ *
+ * Resolved per flavor (`about-mission-effect-index`), and only consulted on a flavor that
+ * already overrides the CMS document. dose.wiki's About stays exactly where it was — on the
+ * Convex `siteConfig` document that its editor edits — because a flavor with no
+ * `missionMarkdown` never reaches this branch at all.
+ */
+const ABOUT_MISSION_COPY_KEY = "about-mission";
+
 function resolveAboutSubtitle(cmsSubtitle: string): string {
   return OWNS_ABOUT_PROSE ? "" : cmsSubtitle;
 }
@@ -42,6 +53,7 @@ export async function generateMetadata() {
 }
 
 export default async function AboutPage() {
+  const copy = await getCopy();
   const showOpenData = SITE_FLAVOR_CONFIG.about.showOpenData;
   // Effect Index lists every contributor, ranked by how many pages credit them; dose.wiki keeps
   // its editor-curated founder subset. Only the ranking is gated: the profile table is already
@@ -91,10 +103,15 @@ export default async function AboutPage() {
     mechanismOfActionClassCount: mechanismClassCount.toLocaleString(),
   };
 
-  const aboutMarkdown = applyPlaceholders(
-    SITE_FLAVOR_CONFIG.about.missionMarkdown ?? about.markdown,
-    placeholderValues,
-  );
+  const missionSource = OWNS_ABOUT_PROSE
+    ? flavoredCopyText(
+        copy,
+        ABOUT_MISSION_COPY_KEY,
+        SITE_FLAVOR_CONFIG.about.missionMarkdown ?? about.markdown,
+      )
+    : about.markdown;
+
+  const aboutMarkdown = applyPlaceholders(missionSource, placeholderValues);
 
   const contributors = selectAboutContributors({
     isEffectIndex: showContributorRoster,

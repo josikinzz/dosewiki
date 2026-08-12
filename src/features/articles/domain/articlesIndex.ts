@@ -16,6 +16,13 @@ export interface ArticleIndexEntry {
   shortDescription?: string;
   publicationDate?: string;
   body_raw?: string;
+  /**
+   * Writing-system fields. A row written in the Writing tab carries
+   * `bodyFormat: "markdown"`; every legacy Effect Index import carries neither
+   * of these, which is what keeps the archive grouped exactly as it was.
+   */
+  kind?: "article" | "blog";
+  bodyFormat?: "vcode" | "markdown";
 }
 
 export type ArticleRowDensity = "full" | "compact";
@@ -67,6 +74,22 @@ const GROUP_DEFINITIONS: readonly ArticleGroupDefinition[] = [
     tags: ["dreams", "meditation", "psychonautics"],
   },
 ];
+
+/**
+ * New writing, as opposed to the frozen archive. The archive is finished, so a
+ * piece written today would otherwise be filed by subject alongside material
+ * from 2019 and be invisible; this group puts it at the top of the index until
+ * the archive framing stops being the page's organising idea.
+ *
+ * Membership is by body language, not by date: a Markdown body can only have
+ * been written in the Writing tab, because every imported row is VCode.
+ */
+const RECENT_GROUP: Omit<ArticleGroupDefinition, "tags"> = {
+  id: "recent",
+  label: "Recent",
+  icon: "lucide:sparkles",
+  blurb: "Newly published writing, straight from the editor.",
+};
 
 const FALLBACK_GROUP: Omit<ArticleGroupDefinition, "tags"> = {
   id: "reference",
@@ -187,15 +210,16 @@ export function groupArticlesForIndex(
   const grouped = new Map<string, ArticleIndexRow[]>();
 
   for (const entry of entries) {
-    const definition = matchGroupDefinition(entry.tags);
-    const groupId = definition?.id ?? FALLBACK_GROUP.id;
+    const isRecent = entry.bodyFormat === "markdown";
+    const definition = isRecent ? undefined : matchGroupDefinition(entry.tags);
+    const groupId = isRecent ? RECENT_GROUP.id : definition?.id ?? FALLBACK_GROUP.id;
     const rows = grouped.get(groupId) ?? [];
 
     rows.push(toIndexRow(entry, definition?.tags ?? []));
     grouped.set(groupId, rows);
   }
 
-  return [...GROUP_DEFINITIONS, FALLBACK_GROUP].flatMap(
+  return [RECENT_GROUP, ...GROUP_DEFINITIONS, FALLBACK_GROUP].flatMap(
     ({ id, label, icon, blurb }) => {
       const articles = grouped.get(id);
 

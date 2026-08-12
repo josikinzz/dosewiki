@@ -57,8 +57,19 @@ function resolveDevRoute(segments: string[] | undefined): { tab: DevTab; slug?: 
     return { tab: "index-layout", slug };
   }
 
+  // The standalone About tool folded into the Writing tab, where it is the
+  // pinned first entry in the rail. `/dev/about` therefore resolves — rather
+  // than 404s or lands on the article list — straight onto that entry.
   if (candidateTab === "about") {
-    return { tab: "about", slug };
+    return { tab: "writing", slug: "about" };
+  }
+
+  if (candidateTab === "writing") {
+    return { tab: "writing", slug };
+  }
+
+  if (candidateTab === "blog") {
+    return { tab: "blog", slug };
   }
 
   if (candidateTab === "copy-studio" || candidateTab === "copy") {

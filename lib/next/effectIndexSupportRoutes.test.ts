@@ -101,7 +101,11 @@ describe("Effect Index supporting pages in the sitemap", () => {
   });
 
   it("appends none of them on the dose.wiki flavor", () => {
-    expect(buildFlavorGatedSitemapPaths(input, dosewiki)).toEqual([]);
+    // /blog is the one gated route dose.wiki also owns, so the support pages are
+    // everything the dose.wiki branch does *not* append.
+    expect(
+      buildFlavorGatedSitemapPaths(input, dosewiki).filter((path) => !path.startsWith("/blog")),
+    ).toEqual([]);
   });
 
   it("keeps them out of the shared static-path list that both builds sitemap", () => {

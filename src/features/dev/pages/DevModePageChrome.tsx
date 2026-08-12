@@ -21,7 +21,7 @@ type ToolTabItem = { id: DevModeTab; label: string; badge?: number };
  * name the tools, and the violet selected treatment carries the "you are here".
  */
 const TOOL_TAB_ITEMS: ToolTabItem[] = [
-  { id: "articles", label: "Articles" },
+  { id: "articles", label: "Substances" },
   { id: "review", label: "Review" },
   { id: "citation-review", label: "Citations" },
   { id: "trip-report-submissions", label: "Trip reports" },
@@ -29,7 +29,8 @@ const TOOL_TAB_ITEMS: ToolTabItem[] = [
   { id: "tag-editor", label: "Tags" },
   { id: "molecule-editor", label: "Molecules" },
   { id: "replications", label: "Replications" },
-  { id: "about", label: "About" },
+  { id: "writing", label: "Writing" },
+  { id: "blog", label: "Blog" },
   { id: "copy-studio", label: "Copy" },
   { id: "contributors", label: "Contributors" },
   { id: "index-layout", label: "Index layout" },

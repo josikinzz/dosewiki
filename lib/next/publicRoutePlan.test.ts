@@ -103,6 +103,33 @@ const createFixturePlan = () =>
   });
 
 describe("public route plan", () => {
+  it("keeps blog rows off the article routes", () => {
+    // `effectIndexArticles` holds both families. A blog post is served from
+    // /blog/<slug>, so prerendering it at /articles/<slug> would publish the same
+    // post at two URLs — and, with `dynamicParams = false` on both, bake the wrong
+    // one. A row with no `kind` is an article, which is every legacy import.
+    const plan = buildPublicRoutePlan({
+      substances: [],
+      categories: [],
+      effects: [],
+      replications: [],
+      articles: [
+        { slug: "legacy-import", publication_status: "published" },
+        { slug: "new-article", publication_status: "published", kind: "article" },
+        { slug: "a-blog-post", publication_status: "published", kind: "blog" },
+      ],
+      reports: [],
+      contributorKeys: [],
+      mechanismRouteInput: [],
+    });
+
+    expect(getPublicRouteParams(plan, "articles")).toEqual([
+      { slug: "legacy-import" },
+      { slug: "new-article" },
+    ]);
+    expect(plan.families.articles.some((entry) => entry.path.includes("a-blog-post"))).toBe(false);
+  });
+
   it("data-caches the JSON-safe derived plan", () => {
     expect(routeCacheMocks.unstableCache).toHaveBeenCalledWith(
       expect.any(Function),
@@ -507,6 +534,13 @@ describe("public sitemap adapter", () => {
         url: "https://dosewiki-admin.vercel.app/reports/first-trip",
         changeFrequency: "weekly",
         priority: 0.6,
+      },
+      // dose.wiki owns /blog now too, so the flavor-gated branch appends its index
+      // even when the build has no posts yet.
+      {
+        url: "https://dosewiki-admin.vercel.app/blog",
+        changeFrequency: "weekly",
+        priority: 0.8,
       },
     ]);
   });

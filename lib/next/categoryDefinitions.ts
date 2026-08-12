@@ -20,6 +20,16 @@ import type { CopyResolver } from "./copyBlocks";
  * (`super:hallucinogens`, `super:depressants`) are not categories in the JSON,
  * so they are only ever contributed by the copy layer; `DosagesPage` keeps its
  * own inline copies as the last-resort fallback.
+ *
+ * SINGLE SOURCE: `substances-category-<key>` is the only rendered home for a
+ * category's public prose. The `indexLayouts` rows carry their own `notes` (and
+ * `link`) fields, and the Index Layout dev tool still edits them, but nothing
+ * public reads them: the substance index renders from the `categoryLayout`
+ * mirror, whose validator holds only `key`/`label`/`iconKey`/`drugs`/`sections`/
+ * `columns`, and the public `IndexLayoutRecord` projection drops `notes` too.
+ * Those fields are editor annotations — the tool's fields say so — so category
+ * prose must be edited in Copy Studio, and no renderer may start reading
+ * `indexLayouts.notes` without first retiring this key.
  */
 type ManualCategory = {
   key: string;

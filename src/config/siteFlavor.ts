@@ -380,7 +380,13 @@ const DOSEWIKI_CONFIG: SiteFlavorConfig = {
   navMenus: {},
   showThemeToggle: true,
   lockedTheme: null,
-  flavorGatedRoutes: [],
+  // dose.wiki owns `/blog` too now — its own blog, written in the /dev Blog tab
+  // and stored as `kind: "blog"` rows of `effectIndexArticles`. It is a
+  // different publication from the frozen Effect Index archive that the same
+  // path serves on the other flavor; both builds serve `/blog`, neither serves
+  // the other's posts. Listing the route here is what stops the middleware
+  // (`isFlavorGatedRequestPath`) from 404ing it before it renders.
+  flavorGatedRoutes: ["blog"],
   rootMetadata: {
     title: "dose.wiki - Substance Information Database",
     description:

@@ -235,34 +235,37 @@ export const getByArtist = query({
 });
 
 /**
- * Credits that stand in for a person without naming one. A collective byline and
- * a generator's name are attribution of a work, but there is nobody behind them
- * to own a contributor profile, so they must never join to one.
+ * Whether an `artist` string is a credit a contributor profile can claim.
  *
- * The blank/"unknown" end of that idea is not restated here: it already exists as
- * `hasKnownCreator`, which the gallery uses to decide the same question about the
- * same column, and `creditNamesAPerson` composes the two rather than keeping a
- * rival copy. This set is deliberately not folded into `hasKnownCreator` itself —
- * "by midjourney" is still a true and useful public byline, and widening that
- * helper would relabel these works "Creator unknown" everywhere they render.
+ * The bar is only that the row says *something* — `hasKnownCreator`, the same
+ * helper the gallery uses to decide the same question about the same column, so
+ * there is no rival copy of the rule. A blank credit and the "unknown" marker
+ * name nobody, so no profile can honestly claim them and none ever joins.
+ *
+ * This deliberately no longer excludes the collective/generator markers
+ * ("various artists", "midjourney") and their kin. Those credits *do* name
+ * something specific and repeatable, and the site now gives them their own
+ * marker contributor profiles so their gallery sections are curatable like
+ * anyone else's — which only works if the credit can join to the profile that
+ * carries the same name. Matching stays exact on a whole normalized name, so a
+ * marker joins the profile that literally names it and nothing else; a person's
+ * profile can still only collect a marker's works if an editor deliberately
+ * types that marker into their aliases.
  */
-const NON_PERSON_CREDITS = new Set(["various artists", "midjourney"]);
-
-/** Whether an `artist` string names someone who could hold a contributor profile. */
-function creditNamesAPerson(artist: string | null | undefined): boolean {
-  return hasKnownCreator(artist) && !NON_PERSON_CREDITS.has(normalizeProfileAlias(artist));
+function creditCanJoinAProfile(artist: string | null | undefined): boolean {
+  return hasKnownCreator(artist);
 }
 
 /**
  * The names one contributor can be credited under, normalized for comparison.
  *
- * Unattributed markers are dropped here as well as skipped on the row, so a
+ * The unattributed marker is dropped here as well as skipped on the row, so a
  * profile that somehow carried the alias "unknown" collects nothing rather than
  * every unattributed work in the table.
  */
 function contributorArtistMatchSet(artistNames: readonly string[]): Set<string> {
   return new Set(
-    artistNames.map((name) => normalizeProfileAlias(name)).filter((name) => creditNamesAPerson(name)),
+    artistNames.map((name) => normalizeProfileAlias(name)).filter((name) => creditCanJoinAProfile(name)),
   );
 }
 
@@ -270,7 +273,7 @@ function replicationMatchesArtistNames(
   row: { artist: string },
   matchNames: ReadonlySet<string>,
 ): boolean {
-  return creditNamesAPerson(row.artist) && matchNames.has(normalizeProfileAlias(row.artist));
+  return creditCanJoinAProfile(row.artist) && matchNames.has(normalizeProfileAlias(row.artist));
 }
 
 /**

@@ -82,7 +82,11 @@ interface PublicRoutePlanInput {
   categories: readonly { key: string }[];
   effects: readonly { slug: string }[];
   replications: readonly { slug: string; url?: string | null }[];
-  articles: readonly { slug: string; publication_status: string }[];
+  articles: readonly {
+    slug: string;
+    publication_status: string;
+    kind?: "article" | "blog";
+  }[];
   reports: readonly { slug: string }[];
   contributorKeys: readonly string[];
   mechanismRouteInput: Awaited<
@@ -142,6 +146,12 @@ function articleEntriesFromRecords(
 
   for (const article of articles) {
     if (!article.slug) continue;
+    // Blog posts share the `effectIndexArticles` table with articles but not
+    // the `/articles/<slug>` route family; they are served from `/blog/<slug>`
+    // and must never be prerendered here. Drafts are already gone upstream —
+    // the Convex query and `normalizePublicEffectIndexArticle` both drop them —
+    // so nothing with `status: "draft"` can reach this input at all.
+    if (article.kind === "blog") continue;
 
     const includeInSitemap =
       article.publication_status === "published" ? undefined : false;

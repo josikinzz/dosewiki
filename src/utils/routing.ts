@@ -204,7 +204,13 @@ export function parsePath(
         } else if (candidate === "index-layout" || candidate === "index") {
           tab = "index-layout";
         } else if (candidate === "about") {
-          tab = "about";
+          // Folded into the Writing tab's pinned About entry; the old deep link
+          // keeps resolving.
+          return { type: "dev", tab: "writing", slug: "about" };
+        } else if (candidate === "writing") {
+          tab = "writing";
+        } else if (candidate === "blog") {
+          tab = "blog";
         } else if (candidate === "copy-studio" || candidate === "copy") {
           tab = "copy-studio";
         } else if (candidate === "contributors" || candidate === "contributor") {

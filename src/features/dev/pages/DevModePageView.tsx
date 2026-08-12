@@ -21,8 +21,12 @@ import { LIBRARY_DEPENDENT_TABS } from "./devModePageUtils";
  */
 const loading = () => <DevToolLoadingPanel />;
 
-const AboutEditorTab = dynamic(
-  () => import("../tools/about/AboutEditorTab").then((m) => m.AboutEditorTab),
+const WritingTab = dynamic(
+  () => import("../tools/writing/WritingTab").then((m) => m.WritingTab),
+  { ssr: false, loading },
+);
+const BlogTab = dynamic(
+  () => import("../tools/writing/BlogTab").then((m) => m.BlogTab),
   { ssr: false, loading },
 );
 const CopyStudioTab = dynamic(
@@ -113,8 +117,19 @@ export function DevModePageView({ controller }: DevModePageViewProps) {
               "Save index layout changes to Convex. Requires login to save.",
             )}
           />
-        ) : controller.activeTab === "about" ? (
-          <AboutEditorTab {...controller.aboutTabProps} />
+        ) : controller.activeTab === "writing" ? (
+          <WritingTab
+            aboutTabProps={controller.aboutTabProps}
+            contributorProfiles={controller.contributorDirectory.profiles}
+            profilesLoading={controller.contributorDirectory.isLoading}
+            initialSlug={controller.writingInitialSlug}
+          />
+        ) : controller.activeTab === "blog" ? (
+          <BlogTab
+            contributorProfiles={controller.contributorDirectory.profiles}
+            profilesLoading={controller.contributorDirectory.isLoading}
+            initialSlug={controller.writingInitialSlug}
+          />
         ) : controller.activeTab === "copy-studio" ? (
           <CopyStudioTab />
         ) : controller.activeTab === "contributors" ? (

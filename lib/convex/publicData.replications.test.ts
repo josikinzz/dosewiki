@@ -55,16 +55,30 @@ describe("replication contributor matching", () => {
     ).toEqual(["Josie Kins", "josie kins", "Unity"]);
   });
 
-  it("never joins unattributed markers, even to a profile aliased with one", () => {
-    const impostor = contributor({
-      key: "IMPOSTOR",
-      displayName: "Unknown",
-      aliases: ["various artists", "midjourney"],
-    });
-
-    expect(selectReplicationsByArtistNames(rows, contributorMatchNames(impostor))).toEqual([]);
+  it("never joins the unattributed marker, which names nobody a profile could be", () => {
     expect(selectReplicationsByArtistNames(rows, ["Unknown"])).toEqual([]);
     expect(selectReplicationsByArtistNames(rows, ["  UNKNOWN  "])).toEqual([]);
+    expect(
+      selectReplicationsByArtistNames(
+        rows,
+        contributorMatchNames(contributor({ key: "IMPOSTOR", displayName: "Unknown" })),
+      ),
+    ).toEqual([]);
+  });
+
+  it("joins a collective or generator credit to the marker profile that names it", () => {
+    // "various artists" and "midjourney" are real, repeatable bylines, and the
+    // site gives them marker profiles so their gallery sections are curatable.
+    // The join is what makes that ordering reachable from the Contributors tab.
+    const markers = contributor({
+      key: "VARIOUS-ARTISTS",
+      displayName: "Various Artists",
+      aliases: ["midjourney"],
+    });
+
+    expect(
+      selectReplicationsByArtistNames(rows, contributorMatchNames(markers)).map((item) => item.artist),
+    ).toEqual(["various artists", "midjourney"]);
   });
 
   it("keeps a marker in the name list from dragging in unrelated works", () => {

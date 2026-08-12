@@ -11,6 +11,12 @@ import {
   SEI_INTRO_COPY_FALLBACK,
 } from "@/features/effects/components/SEIIntroSection";
 import { renderInlineCopy } from "@/components/common/InlineCopy";
+import { HomeIntro } from "@/features/effect-index/home/HomeIntro";
+import {
+  EFFECT_INDEX_HOME_INTRO_FALLBACK,
+  EFFECT_INDEX_HOME_PANEL_BLURB_FALLBACKS,
+} from "@/features/effect-index/home/homeIntroCopy";
+import { SITE_FLAVOR_CONFIGS } from "@/config/siteFlavor";
 
 /**
  * The copy migration's central promise: until a block is seeded and edited, a
@@ -72,6 +78,25 @@ describe("copy block defaults", () => {
     }
   });
 
+  it("match the Effect Index homepage fallbacks they replaced", () => {
+    expect(bodyOf("effect-index-home-intro-lead")).toBe(EFFECT_INDEX_HOME_INTRO_FALLBACK.lead);
+    expect(bodyOf("effect-index-home-intro-method")).toBe(
+      EFFECT_INDEX_HOME_INTRO_FALLBACK.method,
+    );
+    expect(bodyOf("effect-index-home-intro-organisation")).toBe(
+      EFFECT_INDEX_HOME_INTRO_FALLBACK.organisation,
+    );
+    expect(getCopyBlockDefault("effect-index-home-panel-blurbs")?.items).toEqual([
+      ...EFFECT_INDEX_HOME_PANEL_BLURB_FALLBACKS,
+    ]);
+  });
+
+  it("match the Effect Index About mission the flavor config still holds", () => {
+    expect(bodyOf("about-mission-effect-index")).toBe(
+      SITE_FLAVOR_CONFIGS.effectindex.about.missionMarkdown,
+    );
+  });
+
   it("match the SEI intro fallbacks they replaced", () => {
     expect(bodyOf("effects-index-intro-lead")).toBe(SEI_INTRO_COPY_FALLBACK.lead);
     expect(bodyOf("effects-index-intro-method")).toBe(SEI_INTRO_COPY_FALLBACK.method);
@@ -107,6 +132,19 @@ describe("migrated surfaces render the pre-migration text", () => {
     expect(document.body.textContent).toContain(
       "The Subjective Effect Index is a comprehensive catalogue of 397 subjective effects that may occur under the influence of psychoactive substances.",
     );
+  });
+
+  it("Effect Index homepage intro renders its links and count, not raw markdown", () => {
+    render(<HomeIntro effectCount={233} />);
+
+    expect(
+      screen.getByRole("link", { name: "Subjective Effect Index" }).getAttribute("href"),
+    ).toBe("/effects");
+    expect(document.body.textContent).not.toContain("**");
+    expect(document.body.textContent).toContain(
+      "Effect Index, is a resource dedicated to establishing the field of formalised subjective effect documentation.",
+    );
+    expect(document.body.textContent).toContain("which contains 233 effect descriptions");
   });
 
   it("reports index intro renders its inline link rather than raw markdown", () => {

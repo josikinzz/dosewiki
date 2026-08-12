@@ -139,9 +139,15 @@ function toExternalArtistUrl(value: string | undefined): string | undefined {
  * threaded down. Resolution goes through `resolveContributorHref`, which is the
  * shared alias-aware matcher — the gallery adds no name matching of its own.
  *
- * An artist the directory does not claim (the `Unknown` / `various artists` /
- * `midjourney` markers, and any real name without a profile row) simply gets no
- * `href`, and the heading falls back to its external link or to plain text.
+ * A credit the directory does not claim simply gets no `href`, and the heading
+ * falls back to its external link or to plain text.
+ *
+ * The marker credits are claimable like any other name. "Various artists",
+ * "Midjourney" and "Anonymous" each hold a marker contributor profile, so their
+ * sections link to a real page and carry a curatable `replicationOrder`. The
+ * unattributed bucket is the one exception below: the rows in it are credited
+ * "Unknown" or nothing at all, so there is no name for a profile to claim and
+ * no honest page to link a heading reading "Unattributed" to.
  */
 export function groupByArtist(
   replications: GalleryReplication[],
@@ -181,6 +187,11 @@ export function groupByArtist(
     // newest/title sort carries everything they did not pin. "By effect" keeps
     // the effect's own `gallery_order` (see `sortWithinGroup`) — that is the
     // effect editor's ordering, not the artist's, and the two never mix.
+    //
+    // The unattributed bucket is skipped rather than looked up: it is keyed by a
+    // sentinel and labelled "Unattributed", which is not a credit line anybody
+    // is stored under, so a lookup could only ever match a profile that had
+    // claimed the word itself. Marker credits are *not* skipped — see above.
     const items = applyCuratedOrder(
       sortWithinGroup(group.items),
       group.key === UNATTRIBUTED_KEY

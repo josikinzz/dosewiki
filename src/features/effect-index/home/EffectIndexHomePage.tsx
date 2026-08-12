@@ -11,6 +11,10 @@ import { resolveRouteChromeIcon } from "@/utils/routeChromeIcons";
 import { FeaturedReplicationsPanel } from "./FeaturedReplicationsPanel";
 import { HomeIntro } from "./HomeIntro";
 import {
+  effectIndexHomePanelBlurb,
+  type EffectIndexHomeCopy,
+} from "./homeIntroCopy";
+import {
   HomePanel,
   HomePanelGroupLabel,
   homePanelLinkClassName,
@@ -75,13 +79,26 @@ function ArticlesSectionStub() {
   );
 }
 
+interface EffectIndexHomePageProps extends EffectIndexHomeData {
+  /**
+   * Editable homepage prose, resolved on the server. Omitted — as in the tests
+   * and in an un-seeded deployment — every string falls back to the wording the
+   * page shipped with.
+   */
+  copy?: EffectIndexHomeCopy;
+}
+
 export function EffectIndexHomePage({
   effectCount,
   effectGroups,
   featuredArticle,
   featuredReports,
   featuredReplications,
-}: EffectIndexHomeData) {
+  copy,
+}: EffectIndexHomePageProps) {
+  const blurb = (slot: Parameters<typeof effectIndexHomePanelBlurb>[0]) =>
+    effectIndexHomePanelBlurb(slot, copy?.panelBlurbs);
+
   return (
     <main
       id="main-content"
@@ -94,7 +111,7 @@ export function EffectIndexHomePage({
           assistive technology and for search without putting a title back on the design. */}
       <h1 className="sr-only">Effect Index</h1>
 
-      <HomeIntro effectCount={effectCount} />
+      <HomeIntro effectCount={effectCount} copy={copy?.intro} />
 
       {/* The original collapsed its two columns at 800px; this keeps that breakpoint
           rather than rounding it to the nearest Tailwind stop. */}
@@ -132,7 +149,7 @@ export function EffectIndexHomePage({
 
           <HomePanel
             title="Substance Summaries"
-            description="Hallucinogenic substance classes, broken down and described"
+            description={blurb("substanceSummaries")}
             icon={icons.flaskRound}
             stub={<ArticlesSectionStub />}
           >
@@ -156,7 +173,7 @@ export function EffectIndexHomePage({
           {effectGroups.length > 0 ? (
             <HomePanel
               title="Featured Effects"
-              description="A selection of subjective effects that best represent the SEI"
+              description={blurb("featuredEffects")}
               icon={icons.eye}
               contentClassName=""
               stub={
@@ -202,7 +219,7 @@ export function EffectIndexHomePage({
           {featuredArticle ? (
             <HomePanel
               title="Featured Article"
-              description="Analyses that go beyond individual subjective effects"
+              description={blurb("featuredArticle")}
               icon={icons.fileText}
               contentClassName=""
               stub={<ArticlesSectionStub />}
@@ -244,6 +261,7 @@ export function EffectIndexHomePage({
         <div className="flex flex-col gap-4">
           <FeaturedReplicationsPanel
             items={featuredReplications}
+            description={blurb("featuredReplications")}
             stub={
               <>
                 For more, see the{" "}
@@ -257,7 +275,7 @@ export function EffectIndexHomePage({
           {featuredReports.length > 0 ? (
             <HomePanel
               title="Featured Reports"
-              description="Recommended firsthand accounts of hallucinogenic experiences"
+              description={blurb("featuredReports")}
               icon={resolveRouteChromeIcon("reports")}
               contentClassName=""
               stub={

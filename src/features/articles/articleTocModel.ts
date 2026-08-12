@@ -1,5 +1,9 @@
 import type { PublicTableOfContentsItem } from "@/components/common/PublicTableOfContents";
-import { extractVCodeHeadings, type VCodeHeading } from "@/features/effects/vcode/headings";
+import {
+  extractMarkdownHeadings,
+  extractVCodeHeadings,
+  type VCodeHeading,
+} from "@/features/effects/vcode/headings";
 import type { VCodeContent } from "@/features/effects/vcode/types";
 import { icons } from "@/utils/iconNames";
 
@@ -29,7 +33,23 @@ function findOutlineLevel(headings: VCodeHeading[]): number | undefined {
 export function getEffectIndexArticleTocItems(
   body: VCodeContent | undefined,
 ): PublicTableOfContentsItem[] {
-  const headings = extractVCodeHeadings(body);
+  return toTocItems(extractVCodeHeadings(body));
+}
+
+/**
+ * The same contents rail for a Markdown-bodied article, on the same rules: the
+ * shallowest heading level with at least two entries, the ids the renderer
+ * emits, and nothing at all for a body with no outline. Anchor parity with the
+ * VCode path comes from `extractMarkdownHeadings` sharing that path's id
+ * assigner — see `headings.ts`.
+ */
+export function getMarkdownArticleTocItems(
+  markdown: string | undefined,
+): PublicTableOfContentsItem[] {
+  return toTocItems(extractMarkdownHeadings(markdown));
+}
+
+function toTocItems(headings: VCodeHeading[]): PublicTableOfContentsItem[] {
   const outlineLevel = findOutlineLevel(headings);
 
   if (outlineLevel === undefined) {

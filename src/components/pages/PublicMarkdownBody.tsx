@@ -1,7 +1,30 @@
-import type { ReactNode } from "react";
+import { isValidElement, type ReactNode } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkBreaks from "remark-breaks";
 import remarkGfm from "remark-gfm";
+
+import { createVCodeHeadingIdAssigner } from "@/features/effects/vcode/headings";
+
+/** Plain text of a rendered heading, so a heading wrapping a link still slugs. */
+function flattenHeadingChildren(children: ReactNode): string {
+  if (children == null || typeof children === "boolean") {
+    return "";
+  }
+
+  if (typeof children === "string" || typeof children === "number") {
+    return String(children);
+  }
+
+  if (Array.isArray(children)) {
+    return children.map(flattenHeadingChildren).join("");
+  }
+
+  if (isValidElement(children)) {
+    return flattenHeadingChildren((children.props as { children?: ReactNode }).children);
+  }
+
+  return "";
+}
 
 /**
  * The shared component map for reader-facing Markdown prose (About mission copy, the
@@ -55,17 +78,56 @@ export const publicMarkdownComponents = {
   ),
 };
 
-/** Render a Markdown string with the shared public prose styling. */
+/**
+ * The same map with anchor ids on h1–h3, assigned in document order by the
+ * shared VCode assigner. That sharing is the point: a Markdown article's
+ * contents rail is built by `extractMarkdownHeadings`, which runs the same
+ * assigner over the same headings in the same order, so the two agree on every
+ * anchor — including the `-2` suffix a repeated title takes.
+ *
+ * A fresh assigner per render keeps the numbering stable; the map is therefore
+ * built per call rather than hoisted to module scope.
+ */
+function createHeadingIdComponents() {
+  const assignHeadingId = createVCodeHeadingIdAssigner();
+  const idFor = (children: ReactNode) => assignHeadingId(flattenHeadingChildren(children));
+
+  return {
+    ...publicMarkdownComponents,
+    h1: ({ node: _node, children, ...props }: { node?: unknown; children?: ReactNode }) => (
+      <h1 id={idFor(children)} className="theme-accent-heading mt-8 mb-4 text-2xl font-bold" {...props}>{children}</h1>
+    ),
+    h2: ({ node: _node, children, ...props }: { node?: unknown; children?: ReactNode }) => (
+      <h2 id={idFor(children)} className="theme-accent-heading mt-8 mb-4 text-xl font-bold" {...props}>{children}</h2>
+    ),
+    h3: ({ node: _node, children, ...props }: { node?: unknown; children?: ReactNode }) => (
+      <h3 id={idFor(children)} className="theme-accent-heading mt-6 mb-3 text-lg font-bold" {...props}>{children}</h3>
+    ),
+  };
+}
+
+/**
+ * Render a Markdown string with the shared public prose styling.
+ *
+ * `headingIds` mirrors `VCodeRenderer`'s prop of the same name: off by default,
+ * because most callers (About copy, the archived blog) render prose with no
+ * contents rail pointing into it, and an unnecessary DOM id can collide with a
+ * surrounding section's.
+ */
 export function PublicMarkdownBody({
   content,
   className = "max-w-none",
+  headingIds = false,
 }: {
   content: string;
   className?: string;
+  headingIds?: boolean;
 }) {
+  const components = headingIds ? createHeadingIdComponents() : publicMarkdownComponents;
+
   return (
     <div className={className}>
-      <ReactMarkdown remarkPlugins={[remarkGfm, remarkBreaks]} components={publicMarkdownComponents}>
+      <ReactMarkdown remarkPlugins={[remarkGfm, remarkBreaks]} components={components}>
         {content}
       </ReactMarkdown>
     </div>

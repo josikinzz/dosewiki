@@ -3,9 +3,15 @@ import { env } from "node:process";
 import { loadEffectIndexHomeData } from "@server/next/effectIndexHome";
 import { SITE_FLAVOR_CONFIG, isEffectIndex } from "@/config/siteFlavor";
 import { EffectIndexHomePage } from "@/features/effect-index/home/EffectIndexHomePage";
+import {
+  EFFECT_INDEX_HOME_INTRO_FALLBACK,
+  EFFECT_INDEX_HOME_INTRO_COPY_KEYS,
+  EFFECT_INDEX_HOME_PANEL_BLURBS_KEY,
+  type EffectIndexHomeCopy,
+} from "@/features/effect-index/home/homeIntroCopy";
 import { HomeExperience } from "./_components/HomeExperience";
 import { buildHomeQuickLinks } from "./_components/homeQuickLinks";
-import { flavoredCopyText, getCopy } from "@server/next/copyBlocks";
+import { flavoredCopyText, getCopy, type CopyResolver } from "@server/next/copyBlocks";
 
 // The homepage deliberately does not route through buildPublicPageMetadata: its Open
 // Graph card is inherited from the root layout's flavored metadata block. Only the title
@@ -33,6 +39,38 @@ export async function generateMetadata(): Promise<Metadata> {
 const quickLinks = buildHomeQuickLinks();
 
 /**
+ * The Effect Index homepage's editable prose.
+ *
+ * These keys are Effect Index's own — the slots exist on no other flavor — so they are read
+ * directly rather than through `flavoredCopyKey`, and each falls back to the string the
+ * component shipped with when neither Convex nor the checked-in defaults hold a row.
+ */
+function resolveEffectIndexHomeCopy(copy: CopyResolver): EffectIndexHomeCopy {
+  const paragraph = (
+    key: (typeof EFFECT_INDEX_HOME_INTRO_COPY_KEYS)[keyof typeof EFFECT_INDEX_HOME_INTRO_COPY_KEYS],
+    fallback: string,
+  ) => copy.get(key)?.body?.trim() || fallback;
+
+  return {
+    intro: {
+      lead: paragraph(
+        EFFECT_INDEX_HOME_INTRO_COPY_KEYS.lead,
+        EFFECT_INDEX_HOME_INTRO_FALLBACK.lead,
+      ),
+      method: paragraph(
+        EFFECT_INDEX_HOME_INTRO_COPY_KEYS.method,
+        EFFECT_INDEX_HOME_INTRO_FALLBACK.method,
+      ),
+      organisation: paragraph(
+        EFFECT_INDEX_HOME_INTRO_COPY_KEYS.organisation,
+        EFFECT_INDEX_HOME_INTRO_FALLBACK.organisation,
+      ),
+    },
+    panelBlurbs: copy.items(EFFECT_INDEX_HOME_PANEL_BLURBS_KEY),
+  };
+}
+
+/**
  * The two publications do not share a homepage.
  *
  * dose.wiki's is the centred wordmark over the app-tile grid (`HomeExperience`). Effect
@@ -46,11 +84,16 @@ const quickLinks = buildHomeQuickLinks();
 export default async function HomePage() {
   const isConstructionMode = env.NEXT_PUBLIC_HOME_CONSTRUCTION_MODE === "true";
 
-  if (isEffectIndex() && !isConstructionMode) {
-    return <EffectIndexHomePage {...(await loadEffectIndexHomeData())} />;
-  }
-
   const copy = await getCopy();
+
+  if (isEffectIndex() && !isConstructionMode) {
+    return (
+      <EffectIndexHomePage
+        {...(await loadEffectIndexHomeData())}
+        copy={resolveEffectIndexHomeCopy(copy)}
+      />
+    );
+  }
 
   return (
     <HomeExperience

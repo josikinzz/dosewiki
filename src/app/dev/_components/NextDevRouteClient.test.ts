@@ -31,7 +31,7 @@ describe("resolveDevRouteState", () => {
 
   it("normalizes unknown dev tabs back to the articles route", () => {
     expect(
-      resolveDevRouteState("/dev/unknown-tab/ketamine", { tab: "about" }),
+      resolveDevRouteState("/dev/unknown-tab/ketamine", { tab: "writing" }),
     ).toEqual({
       tab: "articles",
       slug: "ketamine",

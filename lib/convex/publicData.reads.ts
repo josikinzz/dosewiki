@@ -145,6 +145,10 @@ export const publicDataReadCatalog = {
   },
   publicContributorProfiles: { functionName: "contributorProfiles:getAll", args: () => ({}) },
   publicAboutConfig: { functionName: "siteConfig:getAbout", args: () => ({}) },
+  publicFeaturedReplications: {
+    functionName: "siteConfig:getFeaturedReplications",
+    args: () => ({}),
+  },
   publicIndexLayoutByType: { functionName: "indexLayouts:getByType", args: (type: IndexLayoutType) => ({ type }) },
 } as const;
 
@@ -177,6 +181,7 @@ export type PublicDataReadAdapter = {
   getPublicTripReportsBySubstanceNames(substanceNames: string[]): Promise<TripReportDetailRecord[]>;
   getPublicContributorProfiles(): Promise<NormalizedUserProfile[]>;
   getPublicAboutConfig(): Promise<AboutConfigRecord | null>;
+  getPublicFeaturedReplicationSlugs(): Promise<string[] | null>;
   getPublicIndexLayoutByType(type: IndexLayoutType): Promise<IndexLayoutRecord | null>;
 };
 
@@ -314,7 +319,17 @@ function normalizePublicEffectIndexArticle(record: unknown): PublicEffectIndexAr
     return null;
   }
 
-  const bodyAst = normalizeVCodeContent(record.body_ast, record.body_raw);
+  // A markdown-bodied row has no VCode at all, and parsing its `body_raw` as
+  // VCode would hand the renderer a bogus AST it would then prefer over the
+  // Markdown source. Only the VCode path derives an AST.
+  const bodyFormat =
+    record.bodyFormat === "markdown" || record.bodyFormat === "vcode"
+      ? record.bodyFormat
+      : undefined;
+  const bodyAst =
+    bodyFormat === "markdown"
+      ? undefined
+      : normalizeVCodeContent(record.body_ast, record.body_raw);
   const article: PublicEffectIndexArticle = {
     slug: record.slug,
     title: record.title,
@@ -327,6 +342,10 @@ function normalizePublicEffectIndexArticle(record: unknown): PublicEffectIndexAr
   if (typeof record.shortDescription === "string") article.shortDescription = record.shortDescription;
   if (typeof record.publicationDate === "string") article.publicationDate = record.publicationDate;
   if (bodyAst) article.body_ast = bodyAst;
+  if (bodyFormat) article.bodyFormat = bodyFormat;
+  if (record.kind === "article" || record.kind === "blog") article.kind = record.kind;
+  if (typeof record.teaser === "string") article.teaser = record.teaser;
+  if (typeof record.coverImageUrl === "string") article.coverImageUrl = record.coverImageUrl;
   if (Array.isArray(record.authors) && record.authors.every((author) => typeof author === "string")) {
     article.authors = record.authors;
   }
@@ -750,6 +769,25 @@ export function createConvexPublicDataReadAdapter(query: QueryTransport = queryC
     getPublicContributorProfiles: () =>
       query<NormalizedUserProfile[]>(publicDataReadCatalog.publicContributorProfiles.functionName, {}),
     getPublicAboutConfig: () => query<AboutConfigRecord | null>(publicDataReadCatalog.publicAboutConfig.functionName, {}),
+    // The portal-editable featured carousel. `null` means "nobody has curated
+    // this deployment", which is also what a deployment that predates the
+    // function reports — both leave the homepage on its checked-in list, so an
+    // undeployed function degrades to the previous behaviour instead of an
+    // empty carousel.
+    getPublicFeaturedReplicationSlugs: async () => {
+      try {
+        const config = await query<{ slugs: string[] } | null>(
+          publicDataReadCatalog.publicFeaturedReplications.functionName,
+          {},
+        );
+        return config?.slugs ?? null;
+      } catch (error) {
+        if (isExplicitMissingPublicFunctionError(error)) {
+          return null;
+        }
+        throw error;
+      }
+    },
     getPublicIndexLayoutByType: (type) =>
       query<IndexLayoutRecord | null, { type: IndexLayoutType }>(
         publicDataReadCatalog.publicIndexLayoutByType.functionName,

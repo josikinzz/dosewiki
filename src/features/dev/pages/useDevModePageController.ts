@@ -288,6 +288,7 @@ export function useDevModePageController({
     renderCommitPanel,
     citationReviewInitialSlug: initialArticleSlug,
     moleculeEditorInitialSlug: initialArticleSlug,
+    writingInitialSlug: initialArticleSlug,
     profileTabProps,
     aboutTabProps,
     tagEditorTabProps,
