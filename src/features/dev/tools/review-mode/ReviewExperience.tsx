@@ -547,7 +547,8 @@ export const ReviewExperience = memo(function ReviewExperience({
   // queue counts every article's references and citations. That is a genuine
   // whole-corpus read, so this surface asks for the full drain rather than
   // hydrating one article at a time.
-  const { isFullCorpusHydrated, requestFullCorpus } = articleHydration;
+  const { isFullCorpusHydrated, requestFullCorpus, fullCorpusFailed, hydratedSlugs } =
+    articleHydration;
   useEffect(() => {
     requestFullCorpus();
   }, [requestFullCorpus]);
@@ -1495,7 +1496,32 @@ export const ReviewExperience = memo(function ReviewExperience({
   ]);
 
   if (!isFullCorpusHydrated) {
-    return <main className="theme-page-shell min-h-screen" aria-busy="true" />;
+    // A blank shell here reads as a dead page over the ~15-page drain, and a
+    // failed drain used to strand it blank forever — say what is happening and
+    // leave a way back.
+    return (
+      <main className="theme-page-shell min-h-screen p-8" aria-busy={!fullCorpusFailed}>
+        <div className="mx-auto max-w-xl pt-16 text-center">
+          {fullCorpusFailed ? (
+            <div className="space-y-4">
+              <EditorNotice
+                notice={{
+                  tone: "danger",
+                  message: "Loading the review corpus failed.",
+                }}
+              />
+              <Button type="button" variant="outline" size="sm" onClick={requestFullCorpus}>
+                Try again
+              </Button>
+            </div>
+          ) : (
+            <p className="theme-text-muted text-sm">
+              Loading articles for review… {hydratedSlugs.size} of {typedArticles.length}
+            </p>
+          )}
+        </div>
+      </main>
+    );
   }
 
   if (queue.length === 0) {

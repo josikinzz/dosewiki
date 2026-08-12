@@ -30,6 +30,8 @@ export type DevArticleHydration = {
   isFullCorpusHydrated: boolean;
   /** True while a full-corpus drain is in flight. */
   isHydratingFullCorpus: boolean;
+  /** True after a full drain attempt failed; requestFullCorpus retries. */
+  fullCorpusFailed: boolean;
   isArticleHydrated: (slug: string | null | undefined) => boolean;
   requestArticle: (slug: string | null | undefined) => void;
   requestFullCorpus: () => void;
@@ -45,6 +47,7 @@ export function useDevArticleHydration({
   const [hydratedSlugs, setHydratedSlugs] = useState<ReadonlySet<string>>(() => new Set());
   const [isHydratingFullCorpus, setIsHydratingFullCorpus] = useState(false);
   const [fullCorpusRequested, setFullCorpusRequested] = useState(false);
+  const [fullCorpusFailed, setFullCorpusFailed] = useState(false);
 
   // Requests already issued, so a re-render cannot re-fetch what is in flight.
   const requestedRef = useRef<Set<string>>(new Set());
@@ -60,6 +63,7 @@ export function useDevArticleHydration({
     setHydratedSlugs(new Set());
     setFullCorpusRequested(false);
     setIsHydratingFullCorpus(false);
+    setFullCorpusFailed(false);
   }, [articleCount]);
 
   const commit = useCallback((articles: SubstanceArticle[]) => {
@@ -114,6 +118,7 @@ export function useDevArticleHydration({
     fullCorpusInFlightRef.current = true;
     setFullCorpusRequested(true);
     setIsHydratingFullCorpus(true);
+    setFullCorpusFailed(false);
 
     // The corpus arrives one page per response — a single ~15 MB body would
     // exceed Vercel's serverless response cap — so walk the cursor to the end,
@@ -155,6 +160,7 @@ export function useDevArticleHydration({
         console.error("Unable to drain the full editor corpus.", error);
         fullCorpusInFlightRef.current = false;
         setFullCorpusRequested(false);
+        setFullCorpusFailed(true);
       })
       .finally(() => {
         setIsHydratingFullCorpus(false);
@@ -178,12 +184,14 @@ export function useDevArticleHydration({
       isFullCorpusHydrated:
         articleCount > 0 && fullCorpusRequested && hydratedSlugs.size >= articleCount,
       isHydratingFullCorpus,
+      fullCorpusFailed,
       isArticleHydrated,
       requestArticle,
       requestFullCorpus,
     }),
     [
       articleCount,
+      fullCorpusFailed,
       fullCorpusRequested,
       hydratedSlugs,
       isArticleHydrated,

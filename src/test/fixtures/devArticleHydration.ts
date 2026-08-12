@@ -16,6 +16,7 @@ export function createHydratedArticleHydration(
     hydratedSlugs: new Set<string>(),
     isFullCorpusHydrated: true,
     isHydratingFullCorpus: false,
+    fullCorpusFailed: false,
     isArticleHydrated: () => true,
     requestArticle: vi.fn(),
     requestFullCorpus: vi.fn(),
