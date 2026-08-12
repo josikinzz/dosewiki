@@ -782,10 +782,16 @@ export function createConvexPublicDataReadAdapter(query: QueryTransport = queryC
         );
         return config?.slugs ?? null;
       } catch (error) {
-        if (isExplicitMissingPublicFunctionError(error)) {
-          return null;
+        // The homepage must never fail to render over the featured list:
+        // mid-deploy the function can be transiently absent or erroring, and
+        // null falls back to the checked-in JSON either way.
+        if (!isExplicitMissingPublicFunctionError(error)) {
+          console.warn(
+            "[replications] featured-slugs read failed; using the checked-in fallback.",
+            error,
+          );
         }
-        throw error;
+        return null;
       }
     },
     getPublicIndexLayoutByType: (type) =>
