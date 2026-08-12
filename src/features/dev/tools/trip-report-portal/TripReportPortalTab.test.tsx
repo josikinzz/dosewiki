@@ -32,13 +32,24 @@ const submission = {
 
 const acceptedSubmission = { ...submission, status: "accepted" };
 
+/** The index projection the corpus endpoint returns: no report body in it. */
 const publishedReport = {
   id: "report-1",
   slug: "alpine-clarity",
+  title: "Alpine clarity",
+  subject: { name: "nervewing", trip_date: "2024-02-02" },
+  substances: [{ name: "Psilocybin", dose: "3 g" }],
+  tags: ["outdoors"],
   featured: false,
   license: "author-retained",
   profileKey: null,
   createdAt: Date.parse("2024-02-02T00:00:00Z"),
+};
+
+/** The body the record endpoint hands back once that row is opened. */
+const publishedReportRecord = {
+  id: "report-1",
+  slug: "alpine-clarity",
   fields: {
     title: "Alpine clarity",
     subject: { name: "nervewing", trip_date: "2024-02-02" },
@@ -66,8 +77,15 @@ const promotionPayload = {
 function stubCorpus(submissions: unknown[], reports: unknown[] = [publishedReport]) {
   vi.stubGlobal(
     "fetch",
-    vi.fn(async (input: RequestInfo | URL) => {
+    vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
       const url = String(input);
+      // The record endpoint serves both the GET body read and the POST writes.
+      if (url.includes("/api/dev/trip-reports/record")) {
+        return init?.method === "POST"
+          ? Response.json({ ok: true, slug: "alpine-clarity" })
+          : Response.json({ ok: true, report: publishedReportRecord });
+      }
+
       if (url.includes("/api/dev/trip-reports")) {
         return Response.json({ ok: true, reports, contributors: [{ key: "NERVEWING", displayName: "nervewing" }] });
       }
@@ -189,8 +207,10 @@ describe("TripReportPortalTab", () => {
     await user.click(screen.getByRole("button", { name: "Save report" }));
 
     await waitFor(() => {
-      const call = vi.mocked(fetch).mock.calls.find(([url]) =>
-        String(url).includes("/api/dev/trip-reports/record"),
+      const call = vi.mocked(fetch).mock.calls.find(
+        ([url, init]) =>
+          String(url).includes("/api/dev/trip-reports/record") &&
+          (init as RequestInit | undefined)?.method === "POST",
       );
       expect(call).toBeDefined();
 

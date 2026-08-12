@@ -33,15 +33,10 @@ function published(
     slug: overrides.id,
     featured: false,
     createdAt: Date.parse("2024-01-01T00:00:00Z"),
-    fields: {
-      title: overrides.title,
-      subject: { name: overrides.author, trip_date: overrides.tripDate },
-      substances: overrides.substances ?? [{ name: "LSD" }],
-      onset: [],
-      peak: [],
-      offset: [],
-      tags: overrides.tags ?? [],
-    },
+    title: overrides.title,
+    subject: { name: overrides.author, trip_date: overrides.tripDate },
+    substances: overrides.substances ?? [{ name: "LSD" }],
+    tags: overrides.tags ?? [],
   });
 }
 
@@ -85,10 +80,11 @@ describe("portal row identity", () => {
 
     expect(report.origin).toBe("published");
     expect(queued.origin).toBe("submission");
-    // Only the status and the editable payload differ.
+    // Only the status differs; neither index row carries a report body, which
+    // is fetched per row when the editor opens one.
     expect(report.statusKind).toBe("published");
     expect(queued.statusKind).toBe("needs");
-    expect(report.fields).not.toBeNull();
+    expect(report.fields).toBeNull();
     expect(queued.fields).toBeNull();
   });
 

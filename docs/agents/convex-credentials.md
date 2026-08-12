@@ -18,11 +18,17 @@ credential will be sent, and will that deployment accept it.
 
 ## Function drift: does the deployment even have the function?
 
-A credential problem is not the only invisible failure. **The app build never
-deploys Convex functions.** `vercel.json` runs `bun install` / `bun run build`,
-and `build` is plain `next build`; functions move only on an explicit
-`convex deploy`. A merged, built, deployed release can therefore call a mutation
-that exists in the checkout and on dev but was never published to production.
+A credential problem is not the only invisible failure. **The app build used to
+never deploy Convex functions.** `vercel.json` now runs `bun install` /
+`bun run build:vercel`, and that wrapper
+(`scripts/deploy/vercel-build.mjs`) publishes functions with
+`convex deploy --cmd 'bun run build'` when `CONVEX_DEPLOY_KEY` is set for the
+build, and otherwise only verifies and builds. So drift is still possible
+wherever that key is absent — the read-only Effect Index project, and
+`dosewiki-admin` until the key is added to its Production environment. See
+[deployment.md](deployment.md) for the full behaviour table. A merged, built,
+deployed release can therefore still call a mutation that exists in the checkout
+and on dev but was never published to production.
 
 This is not theoretical. `substanceIndex:setArticleField` was added on
 2026-07-30 and never deployed to `glad-minnow-656`; the review portal's inline

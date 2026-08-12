@@ -6,23 +6,21 @@
  * a save/reload cycle.
  */
 
-import { useEffect, useMemo } from "react";
-import { usePaginatedQuery } from "convex/react";
-import { api } from "../../convex/_generated/api";
+import { useEffect, useMemo, useState } from "react";
 import { buildLibrary } from "../data/builders/libraryBuilder";
 import type { LibraryData } from "../data/SubstanceIndexProvider";
 import type { SubstanceArticle } from "../schema";
 import { useIndexLayouts } from "./useIndexLayouts";
 
 /**
- * Page size for draining the editor projection. Pages are fetched strictly
- * serially, so the round-trip count — not the byte count — dominates how long
- * the `/dev` library takes to hydrate. The server clamps to a higher ceiling
- * than this; the value stays conservative because the editor projection still
- * ships whole articles, and a page has to stay well inside Convex's
- * per-execution read limit.
+ * Server-side drain endpoint. `substanceIndex.getEditorPage` carries
+ * editor-only state and therefore requires an editor actor on the Convex side;
+ * the browser holds no admin intent token, so the page walk happens behind the
+ * editor-session-guarded Next route instead of over the browser Convex socket.
  */
-const EDITOR_LIBRARY_PAGE_SIZE = 100;
+const EDITOR_LIBRARY_ENDPOINT = "/api/dev/editor-library";
+
+type EditorLibraryPayload = { articles?: SubstanceArticle[] };
 
 /**
  * Hook to lazy-load the full library when enabled.
@@ -31,22 +29,32 @@ const EDITOR_LIBRARY_PAGE_SIZE = 100;
  * @returns Library data, loading state, and whether library is ready
  */
 export function useLazyLibrary(enabled: boolean) {
-  const {
-    results: convexArticles,
-    status,
-    loadMore,
-  } = usePaginatedQuery(api.substanceIndex.getEditorPage, enabled ? {} : "skip", {
-    initialNumItems: EDITOR_LIBRARY_PAGE_SIZE,
-  });
+  const [convexArticles, setConvexArticles] = useState<SubstanceArticle[] | null>(null);
 
-  // Drain the table: keep requesting pages until Convex reports exhaustion.
   useEffect(() => {
-    if (status === "CanLoadMore") {
-      loadMore(EDITOR_LIBRARY_PAGE_SIZE);
+    if (!enabled) {
+      setConvexArticles(null);
+      return;
     }
-  }, [status, loadMore]);
 
-  const isComplete = enabled && status === "Exhausted";
+    let cancelled = false;
+
+    void fetch(EDITOR_LIBRARY_ENDPOINT)
+      .then((response) => (response.ok ? (response.json() as Promise<EditorLibraryPayload>) : null))
+      .then((payload) => {
+        if (cancelled) return;
+        setConvexArticles(payload?.articles ?? []);
+      })
+      .catch(() => {
+        if (!cancelled) setConvexArticles([]);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [enabled]);
+
+  const isComplete = enabled && convexArticles !== null;
 
   // Load index layouts from Convex
   const { configs: indexConfigs, isLoading: isLoadingConfigs } = useIndexLayouts(enabled);
@@ -58,7 +66,7 @@ export function useLazyLibrary(enabled: boolean) {
     }
 
     // Still draining pages from Convex
-    if (!isComplete) {
+    if (!isComplete || convexArticles === null) {
       return null;
     }
 
@@ -83,6 +91,6 @@ export function useLazyLibrary(enabled: boolean) {
     // isReady: library has been built successfully
     isReady: library !== null,
     // isEmpty: query completed but returned no data
-    isEmpty: isComplete && convexArticles.length === 0,
+    isEmpty: isComplete && (convexArticles?.length ?? 0) === 0,
   };
 }

@@ -4,7 +4,11 @@ import { useLibrary } from "@/data/SubstanceIndexProvider";
 import { buildFallbackProfile, getProfileByKeyFromList } from "@/data/userProfiles";
 import { useContributorProfiles } from "@/hooks/useContributorProfiles";
 import { useDevMode } from "../context/DevModeContext";
-import type { DevModeTab } from "./devModePageUtils";
+import {
+  tabNeedsChangelogFeed,
+  tabNeedsContributorProfiles,
+  type DevModeTab,
+} from "./devModePageUtils";
 import type { DevModePageControllerState, DevModePageProps } from "./devModePageTypes";
 import { useDevChangelogFeed } from "./useDevChangelogFeed";
 import { useDevChromeEnvironment } from "./useDevChromeEnvironment";
@@ -54,7 +58,12 @@ export function useDevModePageController({
   } = useLibrary();
 
   const [profileData, setProfileData] = useState(() => buildFallbackProfile("Contributor"));
-  const { profiles: availableProfiles } = useContributorProfiles();
+  // The contributor directory and the changelog feed are per-tab, not per-shell:
+  // the trip-report, article-feedback, molecule and replication tools read
+  // neither, and used to pay for both on every load.
+  const { profiles: availableProfiles, isLoading: profilesLoading } = useContributorProfiles(
+    tabNeedsContributorProfiles(activeTab),
+  );
   const changelogState = useDevModeChangelogState({
     articles,
     psychoactiveIndexManual,
@@ -99,7 +108,10 @@ export function useDevModePageController({
     getProfileHistory,
     convexEnabled,
     appendChangeLogEntryToState,
-  } = useDevChangelogFeed({ profileKey: routeAccess.sessionProfileKey });
+  } = useDevChangelogFeed({
+    profileKey: routeAccess.sessionProfileKey,
+    active: tabNeedsChangelogFeed(activeTab),
+  });
   const chromeEnvironment = useDevChromeEnvironment({
     activeTab,
     close,
@@ -218,6 +230,7 @@ export function useDevModePageController({
     profileData,
     profileHistory,
     availableProfiles,
+    profilesLoading,
     verifyDevCredentials,
     setProfileData,
     setPasswordKey,

@@ -23,10 +23,23 @@ export function DevModeProvider({
 }) {
   const { articles: articlesSource } = useLibrary();
 
-  const psychoactiveLayout = useQuery(api.indexLayouts.getByType, { type: "psychoactive" });
-  const chemicalLayout = useQuery(api.indexLayouts.getByType, { type: "chemical" });
-  const mechanismLayout = useQuery(api.indexLayouts.getByType, { type: "mechanism" });
+  // One subscription for all three layouts. The three `getByType` reads this
+  // replaced were three separate round trips for rows that `getAll` already
+  // returns together, and `useIndexLayouts` (behind the library drain) issues
+  // the identical `getAll` — Convex dedupes the two into a single subscription.
+  const indexLayouts = useQuery(api.indexLayouts.getAll, {});
   const aboutConfig = useQuery(api.siteConfig.getAbout, {});
+
+  type IndexLayoutRow = NonNullable<typeof indexLayouts>[number];
+
+  const layoutsByType = useMemo(
+    () => new Map<string, IndexLayoutRow>((indexLayouts ?? []).map((layout) => [layout.type, layout])),
+    [indexLayouts],
+  );
+
+  const psychoactiveLayout = layoutsByType.get("psychoactive");
+  const chemicalLayout = layoutsByType.get("chemical");
+  const mechanismLayout = layoutsByType.get("mechanism");
 
   const psychoactiveSource = useMemo<ManualIndexConfig>(() => {
     if (!psychoactiveLayout) {

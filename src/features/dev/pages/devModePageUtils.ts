@@ -22,6 +22,53 @@ export type DevModeTab =
 
 export type DevModePrimaryTab = "tools" | "change-log" | "profile";
 
+/**
+ * Tools that read the substance corpus. Only these wait on the library drain;
+ * everything else fetches its own data and renders straight away.
+ */
+export const LIBRARY_DEPENDENT_TABS: ReadonlySet<DevModeTab> = new Set<DevModeTab>([
+  "articles",
+  "citation-review",
+  "index-layout",
+  "tag-editor",
+  "change-log",
+]);
+
+/**
+ * Tabs that make the shell drain the editor corpus at all.
+ *
+ * This is the blocking set plus `about`, whose placeholder counts are derived
+ * from the library but which renders straight away with them filled in late.
+ * Every other tab — profile, trip reports, article feedback, the molecule
+ * editor, the replication studio — reads none of it and must issue zero
+ * corpus requests.
+ */
+export const LIBRARY_FETCHING_TABS: ReadonlySet<DevModeTab> = new Set<DevModeTab>([
+  ...LIBRARY_DEPENDENT_TABS,
+  "about",
+]);
+
+export function tabNeedsLibrary(tab: DevModeTab): boolean {
+  return LIBRARY_FETCHING_TABS.has(tab);
+}
+
+/**
+ * Tabs that read the shared changelog feed (`changelog.getRecent`): the change
+ * log itself, and the profile tab's contribution history.
+ */
+export function tabNeedsChangelogFeed(tab: DevModeTab): boolean {
+  return tab === "change-log" || tab === "profile";
+}
+
+/**
+ * Tabs that read the contributor profile directory: the profile editor, the
+ * About founder picker, and the changelog attribution used by the change log
+ * and by the save flows that commit from the corpus tools.
+ */
+export function tabNeedsContributorProfiles(tab: DevModeTab): boolean {
+  return tab === "profile" || tab === "about" || LIBRARY_DEPENDENT_TABS.has(tab);
+}
+
 export type MarkdownChange = {
   markdown: string;
   hasChanges: boolean;

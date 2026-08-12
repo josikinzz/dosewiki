@@ -1,7 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 
-import { deepClone } from "./devModeUtils";
-
 export type EditorDocumentRefreshConflict<T> = {
   previousOriginal: T;
   incomingSource: T;
@@ -11,7 +9,7 @@ type EditorDocumentState<T> = {
   draft: T;
   original: T;
   refreshConflict: EditorDocumentRefreshConflict<T> | null;
-  sourceSignature: string;
+  source: T;
   sourceVersion: number;
 };
 
@@ -28,81 +26,153 @@ export type EditorDocumentSession<T> = {
   reset: () => void;
 };
 
-function getDocumentSignature(value: unknown): string {
-  return JSON.stringify(value);
+function definedKeyCount(value: Record<string, unknown>, keys: string[]): number {
+  let count = 0;
+  for (const key of keys) {
+    if (value[key] !== undefined) {
+      count += 1;
+    }
+  }
+  return count;
 }
 
+/**
+ * Structural comparison used everywhere the session used to compare two
+ * `JSON.stringify` snapshots. The reference short-circuit is what makes this
+ * affordable on the whole-corpus documents: once a draft shares its untouched
+ * entries with the baseline, comparing them costs one pointer check each
+ * instead of serializing megabytes of article text.
+ *
+ * Keys whose value is `undefined` are ignored, matching the old JSON snapshot
+ * semantics (`{...previous, note: undefined}` stringified the same as an object
+ * without the key at all, so it must keep counting as unchanged).
+ */
+export function isSameDocument(a: unknown, b: unknown): boolean {
+  if (Object.is(a, b)) {
+    return true;
+  }
+
+  if (typeof a !== "object" || typeof b !== "object" || a === null || b === null) {
+    return false;
+  }
+
+  const aIsArray = Array.isArray(a);
+  if (aIsArray !== Array.isArray(b)) {
+    return false;
+  }
+
+  if (aIsArray) {
+    const left = a as unknown[];
+    const right = b as unknown[];
+    if (left.length !== right.length) {
+      return false;
+    }
+    for (let index = 0; index < left.length; index += 1) {
+      if (!isSameDocument(left[index], right[index])) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  const left = a as Record<string, unknown>;
+  const right = b as Record<string, unknown>;
+  const leftKeys = Object.keys(left);
+  const rightKeys = Object.keys(right);
+
+  if (definedKeyCount(left, leftKeys) !== definedKeyCount(right, rightKeys)) {
+    return false;
+  }
+
+  for (const key of leftKeys) {
+    if (!isSameDocument(left[key], right[key])) {
+      return false;
+    }
+  }
+
+  return true;
+}
+
+/**
+ * Editing session over an upstream document.
+ *
+ * The session never copies the document it is handed. `draft`, `original`, and
+ * the upstream source share structure until a transform replaces a branch of
+ * it, so an edit costs only the objects that edit actually rebuilt. Everything
+ * the session hands back — `draft`, `original`, `getOriginal()`, the conflict
+ * halves — is therefore shared, immutable state: callers must replace nodes
+ * rather than mutate them, and must copy anything they intend to hand to a
+ * mutating consumer.
+ */
 export function useEditorDocument<T>(source: T): EditorDocumentSession<T> {
-  const sourceSignature = useMemo(() => getDocumentSignature(source), [source]);
-  const [state, setState] = useState<EditorDocumentState<T>>(() => {
-    const snapshot = deepClone(source);
-    return {
-      draft: snapshot,
-      original: deepClone(snapshot),
-      refreshConflict: null,
-      sourceSignature,
-      sourceVersion: 1,
-    };
-  });
+  const [state, setState] = useState<EditorDocumentState<T>>(() => ({
+    draft: source,
+    original: source,
+    refreshConflict: null,
+    source,
+    sourceVersion: 1,
+  }));
 
   useEffect(() => {
     setState((previous) => {
-      if (previous.sourceSignature === sourceSignature) {
+      if (isSameDocument(previous.source, source)) {
         return previous;
       }
 
-      const incomingSource = deepClone(source);
-      const wasDirty =
-        getDocumentSignature(previous.draft) !== getDocumentSignature(previous.original);
+      const wasDirty = !isSameDocument(previous.draft, previous.original);
 
       if (!wasDirty) {
         return {
-          draft: deepClone(incomingSource),
-          original: deepClone(incomingSource),
+          draft: source,
+          original: source,
           refreshConflict: null,
-          sourceSignature,
+          source,
           sourceVersion: previous.sourceVersion + 1,
         };
       }
 
       return {
         draft: previous.draft,
-        original: deepClone(incomingSource),
+        original: source,
         refreshConflict: {
-          previousOriginal: deepClone(previous.original),
-          incomingSource: deepClone(incomingSource),
+          previousOriginal: previous.original,
+          incomingSource: source,
         },
-        sourceSignature,
+        source,
         sourceVersion: previous.sourceVersion + 1,
       };
     });
-  }, [source, sourceSignature]);
+  }, [source]);
 
   const isDirty = useMemo(
-    () => getDocumentSignature(state.draft) !== getDocumentSignature(state.original),
+    () => !isSameDocument(state.draft, state.original),
     [state.draft, state.original],
   );
 
   const replaceDraft = useCallback((nextDraft: T) => {
-    setState((previous) => ({
-      ...previous,
-      draft: deepClone(nextDraft),
-    }));
+    setState((previous) =>
+      previous.draft === nextDraft ? previous : { ...previous, draft: nextDraft },
+    );
   }, []);
 
   const applyDraftTransform = useCallback((transform: (previous: T) => T) => {
-    setState((previous) => ({
-      ...previous,
-      draft: deepClone(transform(deepClone(previous.draft))),
-    }));
+    setState((previous) => {
+      const nextDraft = transform(previous.draft);
+      return nextDraft === previous.draft ? previous : { ...previous, draft: nextDraft };
+    });
   }, []);
 
   const reset = useCallback(() => {
-    setState((previous) => ({
-      ...previous,
-      draft: deepClone(previous.original),
-      refreshConflict: null,
-    }));
+    setState((previous) => {
+      if (previous.draft === previous.original && previous.refreshConflict === null) {
+        return previous;
+      }
+      return {
+        ...previous,
+        draft: previous.original,
+        refreshConflict: null,
+      };
+    });
   }, []);
 
   const markSaved = useCallback((nextOriginal?: T) => {
@@ -110,14 +180,14 @@ export function useEditorDocument<T>(source: T): EditorDocumentSession<T> {
       const savedOriginal = nextOriginal === undefined ? previous.draft : nextOriginal;
       return {
         ...previous,
-        draft: deepClone(savedOriginal),
-        original: deepClone(savedOriginal),
+        draft: savedOriginal,
+        original: savedOriginal,
         refreshConflict: null,
       };
     });
   }, []);
 
-  const getOriginal = useCallback(() => deepClone(state.original), [state.original]);
+  const getOriginal = useCallback(() => state.original, [state.original]);
 
   return {
     draft: state.draft,

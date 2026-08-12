@@ -137,12 +137,19 @@ describe("NextDevPage shell selection", () => {
 
     const element = await NextDevPage({ params: Promise.resolve({ segments: [] }) });
 
+    // The lookup is handed down unresolved, so the shell is built and returned
+    // without ever waiting on the failing Convex read.
     expect(element.type).toBe(NextDevRouteClient);
     expect(element.props).toEqual(
       expect.objectContaining({
         initialProfileKey: "EDITOR",
       }),
     );
+
+    // The rejection is absorbed into a `null` key before it reaches the client,
+    // so the hook adopting it never sees a rejected promise, and the diagnostic
+    // is still logged server-side.
+    await expect(element.props.ownedProfileKey).resolves.toBeNull();
     expect(consoleError).toHaveBeenCalledWith(
       "Unable to resolve the owned contributor profile; rendering the /dev shell without it.",
       expect.any(Error),

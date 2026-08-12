@@ -10,8 +10,13 @@ import {
 } from "@/data/userProfiles";
 import { isConvexEnabled } from "@/lib/convex";
 
-export function useContributorProfiles() {
-  const enabled = isConvexEnabled();
+/**
+ * @param active - Callers that only need the directory on some surfaces pass
+ * false to skip the subscription entirely; the shape of the result is
+ * unchanged (an empty directory that is not loading).
+ */
+export function useContributorProfiles(active = true) {
+  const enabled = active && isConvexEnabled();
   const queryResult = useQuery(
     enabled ? api.contributorProfiles.getAll : (undefined as never),
     enabled ? {} : (undefined as never),

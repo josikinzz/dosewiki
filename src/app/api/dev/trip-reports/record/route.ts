@@ -6,8 +6,13 @@
  * thread Next's dynamic route params; `api/dev/replications/editorial` reaches
  * for the same shape for the same reason.
  *
+ *   GET  ?id=…  → { report: { id, slug, fields } }
  *   POST { mode: "save",   id, expected, updates, profile_key?, confirm_author_name_claim? }
  *   POST { mode: "delete", id }
+ *
+ * The GET is the read half of the portal's split payload: `/api/dev/trip-reports`
+ * returns an index projection with no report bodies in it, and this returns the
+ * one body the editor pane actually opened.
  */
 import { NextResponse } from "next/server";
 import { revalidatePath } from "next/cache";
@@ -105,6 +110,42 @@ function parseRecordBody(body: RecordBody): ParsedRecord {
 
   return parsed;
 }
+
+export const GET = protectedRouteOperation({
+  auth: "editor",
+  rateLimit: "diagnosticRead",
+  capabilities: [{ type: "convexWrite" }],
+  unexpectedErrorLabel: "Failed to load a trip report via Next route:",
+  unexpectedErrorMessage: "Unable to load that trip report right now.",
+  mapError: (error) => {
+    const message = error instanceof Error ? error.message : "";
+
+    if (message.includes("no longer exists")) {
+      return NextResponse.json({ error: message }, { status: 404 });
+    }
+
+    return null;
+  },
+  operation: async ({ actorEmail, convexWrite, request }) => {
+    if (!convexWrite) {
+      throw new Error("Convex write capability is required.");
+    }
+
+    const id = new URL(request.url).searchParams.get("id");
+    if (!id || id.trim().length === 0 || id.length > 200) {
+      return NextResponse.json({ error: "id is required." }, { status: 400 });
+    }
+
+    const apiKey = convexWrite.getAdminIntentToken?.("editorArticleWrite") ?? convexWrite.adminKey;
+    const report = await convexWrite.client.query(api.tripReports.getPortalRecord, {
+      apiKey,
+      actorEmail,
+      id: id.trim() as Id<"tripReports">,
+    });
+
+    return NextResponse.json({ ok: true, report });
+  },
+});
 
 export const POST = protectedRouteOperation<RecordBody, ParsedRecord>({
   auth: "editor",

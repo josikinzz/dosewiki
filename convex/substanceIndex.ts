@@ -197,13 +197,29 @@ export const getEditorAll = query({
 });
 
 /**
- * Paginated editor projection. `useLazyLibrary` drains every page to hydrate
- * the `/dev` and `/review` editor library without hitting the per-execution
- * read and time limits that a whole-table `collect()` now exceeds.
+ * Paginated editor projection. The `/api/dev/editor-library` route drains every
+ * page server-side to hydrate the `/dev` and `/review` editor library without
+ * hitting the per-execution read and time limits that a whole-table `collect()`
+ * now exceeds.
+ *
+ * SECURITY: this projection carries editor-only state — `editorial_review`
+ * notes and review flags among it — so it is guarded exactly like the other
+ * editor-only reads (`citationEvidence.getBySlug`, `articleSources.getSubstanceList`).
+ * The browser must never call it directly; it holds no admin intent token.
  */
 export const getEditorPage = query({
-  args: { paginationOpts: paginationOptsValidator },
+  args: {
+    paginationOpts: paginationOptsValidator,
+    apiKey: v.optional(v.string()),
+    actorEmail: v.optional(v.string()),
+  },
   handler: async (ctx, args) => {
+    await requireEditorWrite(ctx, {
+      apiKey: args.apiKey,
+      actorEmail: args.actorEmail,
+      adminIntent: "editorArticleWrite",
+    });
+
     const result = await ctx.db.query("substanceIndex").paginate({
       ...args.paginationOpts,
       numItems: clampPublicCorpusPageSize(args.paginationOpts.numItems),

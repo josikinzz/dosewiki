@@ -49,6 +49,15 @@ export type PortalFacets = Record<PortalFacetKind, string[]>;
 
 export const EMPTY_PORTAL_FACETS: PortalFacets = { substance: [], author: [], tag: [] };
 
+/**
+ * The byline facts an index row carries.
+ *
+ * A published row's index projection and a queued submission both stop here: the
+ * rest of a subject (age, setting, medications…) belongs to the editor form,
+ * which reads it from the report body fetched on selection.
+ */
+export type PortalSubjectSummary = { name: string; trip_date?: string };
+
 export type PortalRow = {
   /** Convex document id for a published report, public submission id otherwise. */
   id: string;
@@ -58,14 +67,17 @@ export type PortalRow = {
   publicSlug: string | null;
   title: string;
   featured: boolean;
-  subject: TripReportEditableFields["subject"];
+  subject: PortalSubjectSummary;
   substances: TripReportEditableSubstance[];
   tags: string[];
   status: TripReportSubmissionStatus | "published";
   statusKind: PortalStatusKind;
   /** Trip date when known, else the date the row entered the system. */
   sortDate: string;
-  /** Editable slice, present only for published rows. */
+  /**
+   * Editable slice. Null on a submission, and null on a published row until the
+   * body has been fetched for the open editor — the index never carries it.
+   */
   fields: TripReportEditableFields | null;
   profileKey: string | null;
   license: string | null;
@@ -95,15 +107,23 @@ function statusKindOf(status: PortalRow["status"]): PortalStatusKind {
   return status === "accepted" ? "accepted" : "rejected";
 }
 
+/**
+ * The index projection `getPortalRows` returns: everything the list, the search,
+ * the facets and the stats read, and nothing else. The report body is fetched
+ * separately when a row is opened.
+ */
 export type PublishedReportPayload = {
   id: string;
   slug: string;
+  title: string;
+  subject: PortalSubjectSummary;
+  substances: TripReportEditableSubstance[];
+  tags: string[];
   featured: boolean;
   license?: string | null;
   profileKey?: string | null;
   attributionReview?: unknown;
   createdAt: number;
-  fields: TripReportEditableFields;
 };
 
 export function toPortalRowFromReport(report: PublishedReportPayload): PortalRow {
@@ -112,15 +132,15 @@ export function toPortalRowFromReport(report: PublishedReportPayload): PortalRow
     origin: "published",
     slug: report.slug,
     publicSlug: report.slug,
-    title: report.fields.title,
+    title: report.title,
     featured: report.featured,
-    subject: report.fields.subject,
-    substances: report.fields.substances,
-    tags: report.fields.tags,
+    subject: report.subject,
+    substances: report.substances,
+    tags: report.tags,
     status: "published",
     statusKind: "published",
-    sortDate: report.fields.subject.trip_date ?? isoDate(report.createdAt),
-    fields: report.fields,
+    sortDate: report.subject.trip_date ?? isoDate(report.createdAt),
+    fields: null,
     profileKey: report.profileKey ?? null,
     license: report.license ?? null,
     attributionReviewed: Boolean(report.attributionReview),

@@ -205,13 +205,21 @@ const editableTripReportFieldsValidator = v.object({
 });
 
 /**
- * Rows for the Trip Report Portal (`/dev` → Trip reports).
+ * Index rows for the Trip Report Portal (`/dev` → Trip reports).
  *
- * Returns the whole published corpus with the editable slice already
- * normalized, so the client's `expected` snapshot on save is derived from the
- * same normalizer the mutation compares against. Editor-gated because the
- * portal shows unpublished-adjacent metadata (attribution decisions, license)
- * that no public projection returns.
+ * A projection, not the corpus: the portal's list, search, facets, grouping and
+ * stats only ever read a report's identity, byline, substances, tags and date,
+ * while the bulk of a stored row is prose — introduction, three timelines,
+ * conclusion — which nothing on the index renders. Shipping that prose for every
+ * report made the tab's first payload grow with the corpus for no visible gain,
+ * so the body now arrives per report from `getPortalRecord` when a row is
+ * opened.
+ *
+ * The projected values still come off the shared normalizer, so a title or a
+ * substance name reads identically in the list and in the editor.
+ *
+ * Editor-gated because the portal shows unpublished-adjacent metadata
+ * (attribution decisions, license) that no public projection returns.
  */
 export const getPortalRows = query({
   args: { apiKey: v.optional(v.string()), actorEmail: v.optional(v.string()) },
@@ -224,16 +232,57 @@ export const getPortalRows = query({
 
     const reports = await ctx.db.query("tripReports").collect();
 
-    return reports.map((report) => ({
+    return reports.map((report) => {
+      const fields = editableSnapshotOf(report);
+
+      return {
+        id: report._id,
+        slug: report.slug,
+        title: fields.title,
+        subject: { name: fields.subject.name, trip_date: fields.subject.trip_date },
+        substances: fields.substances,
+        tags: fields.tags,
+        featured: report.featured ?? false,
+        license: report.license,
+        profileKey: report.subject.profile_key,
+        attributionReview: report.attribution_review,
+        createdAt: report._creationTime,
+      };
+    });
+  },
+});
+
+/**
+ * The full editable slice of one report, for the portal's editor pane.
+ *
+ * The other half of the index projection above. It is deliberately the same
+ * `editableSnapshotOf` the mutation compares against, so the `expected` snapshot
+ * the editor opens with is byte-identical to what a concurrent-save check will
+ * derive from storage.
+ */
+export const getPortalRecord = query({
+  args: {
+    apiKey: v.optional(v.string()),
+    actorEmail: v.optional(v.string()),
+    id: v.id("tripReports"),
+  },
+  handler: async (ctx, args) => {
+    await requireEditorWrite(ctx, {
+      apiKey: args.apiKey,
+      actorEmail: args.actorEmail,
+      adminIntent: "editorArticleWrite",
+    });
+
+    const report = await ctx.db.get(args.id);
+    if (!report) {
+      throw new Error(`Trip report ${args.id} no longer exists.`);
+    }
+
+    return {
       id: report._id,
       slug: report.slug,
-      featured: report.featured ?? false,
-      license: report.license,
-      profileKey: report.subject.profile_key,
-      attributionReview: report.attribution_review,
-      createdAt: report._creationTime,
       fields: editableSnapshotOf(report),
-    }));
+    };
   },
 });
 

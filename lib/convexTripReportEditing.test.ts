@@ -163,8 +163,8 @@ describe("Convex trip report update boundary", () => {
   it("gates the per-record write and the delete on editor role", () => {
     const editorGuards = source.match(/await requireEditorWrite\(ctx, \{/g) ?? [];
 
-    // getPortalRows, update, deleteById.
-    expect(editorGuards.length).toBe(3);
+    // getPortalRows, getPortalRecord, update, deleteById.
+    expect(editorGuards.length).toBe(4);
   });
 
   it("refuses a save whose snapshot no longer matches storage", () => {

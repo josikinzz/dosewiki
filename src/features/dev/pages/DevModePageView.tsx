@@ -8,7 +8,7 @@ import {
   DevToolLoadingPanel,
 } from "./DevModePageChrome";
 import type { DevModePageControllerState } from "./devModePageTypes";
-import type { DevModeTab } from "./devModePageUtils";
+import { LIBRARY_DEPENDENT_TABS } from "./devModePageUtils";
 
 /**
  * Every tool is its own lazily-loaded chunk. The shell used to pull all ten
@@ -62,18 +62,6 @@ const TagEditorTab = dynamic(
   () => import("../tags").then((m) => m.TagEditorTab),
   { ssr: false, loading },
 );
-
-/**
- * Tools that read the substance corpus. Only these wait on the library drain;
- * everything else fetches its own data and renders straight away.
- */
-const LIBRARY_DEPENDENT_TABS: ReadonlySet<DevModeTab> = new Set<DevModeTab>([
-  "articles",
-  "citation-review",
-  "index-layout",
-  "tag-editor",
-  "change-log",
-]);
 
 type DevModePageViewProps = {
   controller: DevModePageControllerState;

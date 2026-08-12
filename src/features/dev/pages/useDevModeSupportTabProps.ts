@@ -1,7 +1,6 @@
 import type { ChangeLogEntry } from "@/data/changelog/changeLog";
 import type { NormalizedUserProfile } from "@/data/userProfiles";
 import type { AboutCopyNotice } from "@/features/dev/tools/about/aboutEditorUtils";
-import { useContributorProfiles } from "@/hooks/useContributorProfiles";
 import {
   useCallback,
   useEffect,
@@ -23,6 +22,7 @@ type UseDevSupportTabsControllerArgs = {
   profileData: NormalizedUserProfile;
   profileHistory: ChangeLogEntry[];
   availableProfiles: NormalizedUserProfile[];
+  profilesLoading: boolean;
   verifyDevCredentials: VerifyCredentials;
   setProfileData: Dispatch<SetStateAction<NormalizedUserProfile>>;
   setPasswordKey: Dispatch<SetStateAction<string | null>>;
@@ -52,6 +52,7 @@ export function useDevSupportTabsController({
   profileData,
   profileHistory,
   availableProfiles,
+  profilesLoading,
   verifyDevCredentials,
   setProfileData,
   setPasswordKey,
@@ -76,10 +77,6 @@ export function useDevSupportTabsController({
   subtitleHasChanges,
   placeholderValues,
 }: UseDevSupportTabsControllerArgs) {
-  // Convex dedupes the underlying subscription with the page controller's
-  // call, so this only surfaces the loading flag for the founders list.
-  const { isLoading: profilesLoading } = useContributorProfiles();
-
   const handleProfileUpdated = useCallback(
     (nextProfile: NormalizedUserProfile, canonicalKey: string) => {
       setProfileData(nextProfile);

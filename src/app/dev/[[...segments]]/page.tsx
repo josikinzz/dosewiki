@@ -23,7 +23,9 @@ import { NextDevProfileRouteClient } from "../_components/NextDevProfileRouteCli
 import { NextDevRouteClient } from "../_components/NextDevRouteClient";
 import type { DevTab } from "@/types/navigation";
 
-export const dynamic = "force-dynamic";
+// No `force-dynamic`: the route already opts out of caching by reading the
+// session cookie, and the flag additionally blocked the static shell from
+// being emitted at build time.
 export const metadata = buildNoIndexPageMetadata({
   title: "Dev",
   description: "Protected editor surface for the Next.js migration shell.",
@@ -141,19 +143,29 @@ export default async function NextDevPage({ params }: DevPageProps) {
     );
 
   const userEmail = email?.trim() ?? "";
-  let ownedProfile: Awaited<ReturnType<typeof getOwnedContributorProfile>> = null;
-  if (userEmail) {
-    try {
-      ownedProfile = await getOwnedContributorProfile(userEmail);
-    } catch (error) {
-      console.error("Unable to resolve the owned contributor profile; rendering the /dev shell without it.", error);
-    }
-  }
-  const initialProfileKey = ownedProfile?.key ?? (userEmail ? deriveProfileKeyFromEmail(userEmail) : undefined);
+  // Deliberately not awaited: `getOwnedContributorProfile` is an uncached,
+  // privileged Convex read, and awaiting it here put a full round trip in front
+  // of the first byte of the shell. The browser gets the key derived from the
+  // session email straight away — the same fallback that read uses — and adopts
+  // the canonical key when the promise lands.
+  const ownedProfileKey = userEmail
+    ? getOwnedContributorProfile(userEmail)
+        .then((profile) => profile?.key ?? null)
+        .catch((error: unknown) => {
+          console.error("Unable to resolve the owned contributor profile; rendering the /dev shell without it.", error);
+          return null;
+        })
+    : undefined;
+  const initialProfileKey = userEmail ? deriveProfileKeyFromEmail(userEmail) : undefined;
   const allowedRole = decision.type === "allow" ? decision.role : null;
 
   if (route.tab === "profile" && !canAccessDev(allowedRole)) {
-    return withSplitBanner(<NextDevProfileRouteClient initialProfileKey={initialProfileKey} />);
+    return withSplitBanner(
+      <NextDevProfileRouteClient
+        initialProfileKey={initialProfileKey ?? ""}
+        ownedProfileKey={ownedProfileKey}
+      />,
+    );
   }
 
   const convexUrl = getEditorBrowserReadTarget().selectedUrl;
@@ -164,6 +176,7 @@ export default async function NextDevPage({ params }: DevPageProps) {
       initialTab={route.tab}
       initialSlug={route.slug}
       initialProfileKey={initialProfileKey}
+      ownedProfileKey={ownedProfileKey}
     />,
   );
 }

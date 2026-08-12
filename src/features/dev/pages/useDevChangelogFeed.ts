@@ -47,7 +47,19 @@ function mergeStaticAndConvexChangelogEntries(
   ]);
 }
 
-export function useDevChangelogFeed({ profileKey }: { profileKey: string }) {
+/**
+ * @param active - Only the surfaces that display the feed (the change log and
+ * the profile tab's contribution history) subscribe to it. `convexEnabled` is
+ * reported independently of this, because the save path uses it to decide where
+ * a commit goes.
+ */
+export function useDevChangelogFeed({
+  profileKey,
+  active = true,
+}: {
+  profileKey: string;
+  active?: boolean;
+}) {
   const [changeLogEntries, setChangeLogEntries] = useState<ChangeLogEntry[]>(() =>
     sortChangeLogEntries(initialChangeLogEntries),
   );
@@ -55,7 +67,7 @@ export function useDevChangelogFeed({ profileKey }: { profileKey: string }) {
 
   const convexChangelogEntries = useConvexQuery(
     api.changelog.getRecent,
-    convexEnabled ? { limit: CHANGELOG_FEED_LIMIT } : "skip",
+    convexEnabled && active ? { limit: CHANGELOG_FEED_LIMIT } : "skip",
   );
 
   useEffect(() => {

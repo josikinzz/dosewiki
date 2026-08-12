@@ -1,22 +1,9 @@
-import { renderHook } from "@testing-library/react";
+import { renderHook, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-const { buildLibraryMock, useIndexLayoutsMock, usePaginatedQueryMock } = vi.hoisted(() => ({
+const { buildLibraryMock, useIndexLayoutsMock } = vi.hoisted(() => ({
   buildLibraryMock: vi.fn(),
   useIndexLayoutsMock: vi.fn(),
-  usePaginatedQueryMock: vi.fn(),
-}));
-
-vi.mock("convex/react", () => ({
-  usePaginatedQuery: usePaginatedQueryMock,
-}));
-
-vi.mock("../../convex/_generated/api", () => ({
-  api: {
-    substanceIndex: {
-      getEditorPage: "substanceIndex.getEditorPage",
-    },
-  },
 }));
 
 vi.mock("../data/builders/libraryBuilder", () => ({
@@ -29,9 +16,19 @@ vi.mock("./useIndexLayouts", () => ({
 
 import { useLazyLibrary } from "./useLazyLibrary";
 
+function mockLibraryResponse(articles: unknown[]) {
+  const fetchMock = vi.fn(async () => ({
+    ok: true,
+    json: async () => ({ ok: true, articles }),
+  }));
+  vi.stubGlobal("fetch", fetchMock);
+  return fetchMock;
+}
+
 describe("useLazyLibrary", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.unstubAllGlobals();
     useIndexLayoutsMock.mockReturnValue({
       configs: {
         chemical: { categories: [] },
@@ -43,7 +40,7 @@ describe("useLazyLibrary", () => {
     buildLibraryMock.mockReturnValue({ articles: [] });
   });
 
-  it("loads the editor article projection so internal review notes survive editor reloads", () => {
+  it("loads the editor article projection so internal review notes survive editor reloads", async () => {
     const articles = [
       {
         id: 282,
@@ -57,45 +54,40 @@ describe("useLazyLibrary", () => {
         },
       },
     ];
-    usePaginatedQueryMock.mockReturnValue({
-      results: articles,
-      status: "Exhausted",
-      loadMore: vi.fn(),
-    });
+    const fetchMock = mockLibraryResponse(articles);
 
     renderHook(() => useLazyLibrary(true));
 
-    expect(usePaginatedQueryMock).toHaveBeenCalledWith(
-      "substanceIndex.getEditorPage",
-      {},
-      { initialNumItems: 100 },
-    );
-    expect(buildLibraryMock).toHaveBeenCalledWith(
-      expect.arrayContaining([
-        expect.objectContaining({
-          editorial_review: expect.objectContaining({
-            notes: "Needs final manual pass.",
+    // The editor projection is drained behind the editor-session-guarded Next
+    // route: the browser has no admin intent token for the guarded query.
+    expect(fetchMock).toHaveBeenCalledWith("/api/dev/editor-library");
+
+    await waitFor(() => {
+      expect(buildLibraryMock).toHaveBeenCalledWith(
+        expect.arrayContaining([
+          expect.objectContaining({
+            editorial_review: expect.objectContaining({
+              notes: "Needs final manual pass.",
+            }),
           }),
-        }),
-      ]),
-      expect.anything(),
-    );
+        ]),
+        expect.anything(),
+      );
+    });
   });
 
-  it("keeps draining bounded editor pages before building the library", () => {
-    const loadMore = vi.fn();
-    usePaginatedQueryMock.mockReturnValue({
-      results: Array.from({ length: 32 }, (_, index) => ({
-        id: index + 1,
-        slug: `article-${index + 1}`,
-      })),
-      status: "CanLoadMore",
-      loadMore,
-    });
+  it("reports loading until the drained library arrives", async () => {
+    let resolveFetch: ((value: unknown) => void) | null = null;
+    const fetchMock = vi.fn(
+      () =>
+        new Promise((resolve) => {
+          resolveFetch = resolve;
+        }),
+    );
+    vi.stubGlobal("fetch", fetchMock);
 
     const { result } = renderHook(() => useLazyLibrary(true));
 
-    expect(loadMore).toHaveBeenCalledWith(100);
     expect(buildLibraryMock).not.toHaveBeenCalled();
     expect(result.current).toMatchObject({
       library: null,
@@ -103,5 +95,28 @@ describe("useLazyLibrary", () => {
       isReady: false,
       isEmpty: false,
     });
+
+    resolveFetch?.({
+      ok: true,
+      json: async () => ({
+        ok: true,
+        articles: Array.from({ length: 32 }, (_, index) => ({
+          id: index + 1,
+          slug: `article-${index + 1}`,
+        })),
+      }),
+    });
+
+    await waitFor(() => {
+      expect(buildLibraryMock).toHaveBeenCalled();
+    });
+  });
+
+  it("makes no request at all while disabled", () => {
+    const fetchMock = mockLibraryResponse([]);
+
+    renderHook(() => useLazyLibrary(false));
+
+    expect(fetchMock).not.toHaveBeenCalled();
   });
 });

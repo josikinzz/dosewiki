@@ -55,6 +55,10 @@ export function useDevArticlesState(articlesSource: ArticleRecord[]) {
     // baseline read out of `articles` has to be able to say so.
     articlesRefreshConflict: document.refreshConflict,
     getOriginalArticle,
+    // Shared, read-only: the baseline corpus is handed out by reference so a
+    // changelog or save diff costs nothing to take. Callers that need to hand
+    // an article to something mutating go through `getOriginalArticle`, which
+    // copies that one article.
     getOriginalArticles: document.getOriginal,
     markChangesSaved: document.markSaved,
     replaceArticles: document.replaceDraft,

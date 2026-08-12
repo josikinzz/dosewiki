@@ -1,6 +1,14 @@
 @import "tailwindcss";
 @config "../tailwind.config.mjs";
 
+/* Tailwind v4 auto-detects sources across the project, which includes the ~67 MB
+   of data JSON under src/data. Article prose there is full of `[cite:id]` markers,
+   which Tailwind reads as arbitrary-property utilities and emits as nonsense rules
+   (`.\[cite\:21-cfr-1308-14\]{cite:21-cfr-1308-14}`) — 2,216 of them, ~223 KB, a
+   quarter of the shipped stylesheet. No class names are authored in these data
+   files, so nothing real is scanned out of them. */
+@source not "./data";
+
 @import "./styles/base.css" layer(base);
 @import "./styles/theme-overrides.css";
 @import "./styles/site-colors.css";

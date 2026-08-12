@@ -18,7 +18,7 @@ vi.mock("@/data/SubstanceIndexProvider", () => ({
 vi.mock("../../../../convex/_generated/api", () => ({
   api: {
     indexLayouts: {
-      getByType: "indexLayouts.getByType",
+      getAll: "indexLayouts.getAll",
     },
     siteConfig: {
       getAbout: "siteConfig.getAbout",
@@ -86,7 +86,11 @@ describe("DevModeContext", () => {
         identification: { common_name: "LSD" },
       },
     ];
-    const indexLayout = { version: 1, categories: [] };
+    const indexLayouts = [
+      { type: "psychoactive", version: 1, categories: [] },
+      { type: "chemical", version: 1, categories: [] },
+      { type: "mechanism", version: 1, categories: [] },
+    ];
     const aboutData = {
       aboutMarkdown: "About",
       aboutSubtitle: "Subtitle",
@@ -97,9 +101,9 @@ describe("DevModeContext", () => {
       articles,
     });
 
-    useQueryMock.mockImplementation((_query, args: { type?: string }) => {
-      if (args?.type) {
-        return indexLayout;
+    useQueryMock.mockImplementation((query: string) => {
+      if (query === "indexLayouts.getAll") {
+        return indexLayouts;
       }
 
       return aboutData;
@@ -125,7 +129,11 @@ describe("DevModeContext", () => {
         identification: { common_name: "LSD" },
       },
     ];
-    const indexLayout = { version: 1, categories: [] };
+    const indexLayouts = [
+      { type: "psychoactive", version: 1, categories: [] },
+      { type: "chemical", version: 1, categories: [] },
+      { type: "mechanism", version: 1, categories: [] },
+    ];
     const aboutData = {
       aboutMarkdown: "About",
       aboutSubtitle: "Subtitle",
@@ -136,9 +144,9 @@ describe("DevModeContext", () => {
       articles,
     });
 
-    useQueryMock.mockImplementation((_query, args: { type?: string }) => {
-      if (args?.type) {
-        return indexLayout;
+    useQueryMock.mockImplementation((query: string) => {
+      if (query === "indexLayouts.getAll") {
+        return indexLayouts;
       }
 
       return aboutData;

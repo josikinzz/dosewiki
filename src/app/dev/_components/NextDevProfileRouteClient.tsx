@@ -13,19 +13,26 @@ import { ProfileEditorTab } from "@/features/dev/profile";
 import { DevModePageChrome } from "@/features/dev/pages/DevModePageChrome";
 import { useDevModeSessionCredentials } from "@/features/dev/pages/useDevModeSessionCredentials";
 import type { DevModePrimaryTab, DevModeTab } from "@/features/dev/pages/devModePageUtils";
+import { useOwnedProfileKey } from "./useOwnedProfileKey";
 
 type NextDevProfileRouteClientProps = {
   initialProfileKey: string;
+  /** See `useOwnedProfileKey`: resolved off the critical path. */
+  ownedProfileKey?: Promise<string | null>;
 };
 
 const mainClassName = "w-full px-4 py-6 text-white md:px-6 lg:px-8";
 const contentWrapperClass = "mx-auto mt-6 w-full max-w-6xl";
 
-export function NextDevProfileRouteClient({ initialProfileKey }: NextDevProfileRouteClientProps) {
+export function NextDevProfileRouteClient({
+  initialProfileKey,
+  ownedProfileKey,
+}: NextDevProfileRouteClientProps) {
   const session = useSession();
   const hasAuthenticatedSession = session.status === "authenticated";
   const { profiles, isLoading } = useContributorProfiles();
-  const [profileKey, setProfileKey] = useState(initialProfileKey);
+  const resolvedInitialProfileKey = useOwnedProfileKey(initialProfileKey, ownedProfileKey) ?? initialProfileKey;
+  const [profileKey, setProfileKey] = useState(resolvedInitialProfileKey);
   const [savedProfile, setSavedProfile] = useState<NormalizedUserProfile | null>(null);
   const { verifyDevCredentials } = useDevModeSessionCredentials({
     hasAuthenticatedSession,
@@ -33,9 +40,9 @@ export function NextDevProfileRouteClient({ initialProfileKey }: NextDevProfileR
   });
 
   useEffect(() => {
-    setProfileKey(initialProfileKey);
+    setProfileKey(resolvedInitialProfileKey);
     setSavedProfile(null);
-  }, [initialProfileKey]);
+  }, [resolvedInitialProfileKey]);
 
   const profile = useMemo(() => {
     if (savedProfile) {

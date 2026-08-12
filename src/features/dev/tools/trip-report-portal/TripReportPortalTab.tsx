@@ -55,6 +55,20 @@ type CorpusPayload = {
 
 type LoadState = { status: "loading" } | { status: "ready" } | { status: "error"; message: string };
 
+/**
+ * The body of the one report the editor pane has open.
+ *
+ * The corpus fetch returns an index projection with no prose in it, so opening a
+ * row is a second request. Keyed by id so a slow response for a row the editor
+ * has already navigated away from is discarded rather than painted.
+ */
+type ReportDetail = { id: string; fields: TripReportEditableFields };
+
+type DetailState =
+  | { status: "idle" }
+  | { status: "loading" }
+  | { status: "error"; message: string };
+
 type Feedback = { tone: "success" | "danger"; message: string };
 
 /**
@@ -78,12 +92,58 @@ export function TripReportPortalTab() {
   const [sort, setSort] = useState<PortalSort>("newest");
 
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [detail, setDetail] = useState<ReportDetail | null>(null);
+  const [detailState, setDetailState] = useState<DetailState>({ status: "idle" });
   const [draft, setDraft] = useState<TripReportEditableFields | null>(null);
   const [busy, setBusy] = useState(false);
   const [feedback, setFeedback] = useState<Feedback | null>(null);
   const [promotionPayload, setPromotionPayload] = useState<ConvexTripReportImportPayload | null>(null);
 
   const searchInputRef = useRef<HTMLInputElement | null>(null);
+  const openReportRef = useRef<string | null>(null);
+
+  /**
+   * Fetch one published report's body, and seed the draft from it. Late
+   * responses are dropped: only the row still open may write state.
+   */
+  const loadReportBody = useCallback(async (id: string) => {
+    openReportRef.current = id;
+    setDetailState({ status: "loading" });
+
+    try {
+      const response = await fetch(`${RECORD_API}?id=${encodeURIComponent(id)}`);
+      if (openReportRef.current !== id) {
+        return;
+      }
+
+      if (!response.ok) {
+        setDetailState({
+          status: "error",
+          message: await readError(response, "Failed to load that report."),
+        });
+        return;
+      }
+
+      const payload = await response.json();
+      const fields = payload?.report?.fields as TripReportEditableFields | undefined;
+      if (openReportRef.current !== id) {
+        return;
+      }
+
+      if (!fields) {
+        setDetailState({ status: "error", message: "That report came back empty." });
+        return;
+      }
+
+      setDetail({ id, fields });
+      setDraft(structuredClone(fields));
+      setDetailState({ status: "idle" });
+    } catch {
+      if (openReportRef.current === id) {
+        setDetailState({ status: "error", message: "Network error while loading the report." });
+      }
+    }
+  }, []);
 
   const loadCorpus = useCallback(async (preferredId?: string) => {
     // A cached corpus is already on screen, so a refresh must not blank it out.
@@ -117,11 +177,17 @@ export function TripReportPortalTab() {
 
       if (preferredId) {
         setSelectedId(preferredId);
+
+        // A published body is open on that row, and the corpus it was read
+        // beside just moved. Refetching keeps the concurrency snapshot honest.
+        if (openReportRef.current === preferredId) {
+          void loadReportBody(preferredId);
+        }
       }
     } catch {
       setLoad({ status: "error", message: "Failed to reach the trip report endpoints." });
     }
-  }, []);
+  }, [loadReportBody]);
 
   useEffect(() => {
     void loadCorpus();
@@ -142,10 +208,16 @@ export function TripReportPortalTab() {
 
   const groups = useMemo(() => groupPortalRows(visible, groupBy, sort), [visible, groupBy, sort]);
 
-  const selected = useMemo(
-    () => rows.find((row) => row.id === selectedId) ?? null,
-    [rows, selectedId],
-  );
+  const selected = useMemo(() => {
+    const row = rows.find((entry) => entry.id === selectedId) ?? null;
+    if (!row || row.origin !== "published") {
+      return row;
+    }
+
+    // The index row carries no body; the editor pane only opens once the
+    // separately fetched one has arrived for this exact row.
+    return detail && detail.id === row.id ? { ...row, fields: detail.fields } : row;
+  }, [detail, rows, selectedId]);
 
   const selectedSubmission = useMemo(
     () =>
@@ -158,15 +230,30 @@ export function TripReportPortalTab() {
   const stats = useMemo(() => portalStats(rows), [rows]);
   const editorOpen = selected !== null;
 
-  const selectRow = useCallback((row: PortalRow) => {
-    setSelectedId(row.id);
-    setFeedback(null);
-    setPromotionPayload(null);
-    setDraft(row.fields ? structuredClone(row.fields) : null);
-  }, []);
+  const selectRow = useCallback(
+    (row: PortalRow) => {
+      setSelectedId(row.id);
+      setFeedback(null);
+      setPromotionPayload(null);
+      setDetail(null);
+      setDraft(null);
+
+      if (row.origin === "published") {
+        void loadReportBody(row.id);
+        return;
+      }
+
+      openReportRef.current = null;
+      setDetailState({ status: "idle" });
+    },
+    [loadReportBody],
+  );
 
   const closeEditor = useCallback(() => {
+    openReportRef.current = null;
     setSelectedId(null);
+    setDetail(null);
+    setDetailState({ status: "idle" });
     setDraft(null);
     setFeedback(null);
     setPromotionPayload(null);
@@ -447,6 +534,32 @@ export function TripReportPortalTab() {
               onSelect={selectRow}
             />
           </main>
+
+          {selected?.origin === "published" && !selected.fields ? (
+            detailState.status === "error" ? (
+              <EditorNotice
+                notice={{
+                  tone: "danger",
+                  title: "Unable to open that report",
+                  message: detailState.message,
+                  actions: (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => void loadReportBody(selected.id)}
+                    >
+                      Try again
+                    </Button>
+                  ),
+                }}
+              />
+            ) : (
+              <EditorPanel variant="empty" className="p-8 text-center text-sm">
+                Loading “{selected.title}”…
+              </EditorPanel>
+            )
+          ) : null}
 
           {selected && draft && selected.fields ? (
             <PortalReportEditor
