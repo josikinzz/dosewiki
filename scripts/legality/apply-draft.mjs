@@ -76,7 +76,24 @@ export function buildApplyPlan({ article, draft }) {
   const corrected = [];
   const enriched = [];
   const repaired = [];
+  const removed = [];
   const states = [];
+  const removalCountries = new Set();
+
+  for (const removal of draft.countryRemovals ?? []) {
+    if (removalCountries.has(removal.country)) {
+      throw new Error(`Duplicate country removal: ${removal.country}.`);
+    }
+    removalCountries.add(removal.country);
+    if (
+      removal.country in draft.entries
+      || removal.country in draft.corrections
+      || removal.country in (draft.enrichments ?? {})
+      || removal.country in (draft.notesRepairs ?? {})
+    ) {
+      throw new Error(`Cannot remove ${removal.country}: the draft also mutates that country.`);
+    }
+  }
 
   for (const [country, entry] of Object.entries(draft.entries)) {
     if (countries[country] !== undefined) {
@@ -134,6 +151,20 @@ export function buildApplyPlan({ article, draft }) {
     repaired.push(country);
   }
 
+  for (const removal of draft.countryRemovals ?? []) {
+    const liveEntry = liveCountries[removal.country];
+    if (!isRecord(liveEntry)) {
+      throw new Error(`Cannot remove ${removal.country}: the live article has no country entry.`);
+    }
+    const notesMatch = stripCitationMarkers(liveEntry.notes)
+      === stripCitationMarkers(removal.oldEntry.notes);
+    if (liveEntry.status !== removal.oldEntry.status || !notesMatch) {
+      throw new Error(`Stale removal for ${removal.country}: live status and notes no longer match countryRemovals.oldEntry.`);
+    }
+    delete countries[removal.country];
+    removed.push(removal);
+  }
+
   const flagged = [];
   for (const { country, reason } of draft.refuted ?? []) {
     const liveEntry = countries[country];
@@ -171,6 +202,7 @@ export function buildApplyPlan({ article, draft }) {
     corrected,
     enriched,
     repaired,
+    removed,
     flagged,
     states,
     internationalReplaced,
@@ -196,6 +228,9 @@ export function printPlan(plan, draft) {
   for (const country of plan.repaired) {
     console.log(`REPAIR ${country} (notes)`);
   }
+  for (const { country, reason } of plan.removed) {
+    console.log(`REMOVE ${country} (${reason})`);
+  }
   for (const { country, reason } of plan.flagged) {
     console.log(`FLAG ${country} citation needed (refuted: ${reason})`);
   }
@@ -211,7 +246,7 @@ export function printPlan(plan, draft) {
   if (plan.usStatesNoteApplied) {
     console.log(`US STATES NOTE: ${draft.usStatesNote}`);
   }
-  console.log(`TOTALS: ${plan.added.length} add, ${plan.corrected.length} correct, ${plan.enriched.length} enrich, ${plan.repaired.length} repair, ${plan.flagged.length} flag, ${plan.states.length} state, ${plan.internationalReplaced ? "international replaced" : "international unchanged"}, ${plan.usStatesReplaced ? "US states replaced" : "US states unchanged"}, ${plan.usStatesNoteApplied ? "US states note applied" : "US states note unchanged"}`);
+  console.log(`TOTALS: ${plan.added.length} add, ${plan.corrected.length} correct, ${plan.enriched.length} enrich, ${plan.repaired.length} repair, ${plan.removed.length} remove, ${plan.flagged.length} flag, ${plan.states.length} state, ${plan.internationalReplaced ? "international replaced" : "international unchanged"}, ${plan.usStatesReplaced ? "US states replaced" : "US states unchanged"}, ${plan.usStatesNoteApplied ? "US states note applied" : "US states note unchanged"}`);
 }
 
 export async function main(argv = process.argv.slice(2)) {
@@ -279,6 +314,7 @@ export async function main(argv = process.argv.slice(2)) {
       ...plan.corrected.map((correction) => ({ country: correction.country, action: "correct", field: "legality.countries" })),
       ...plan.enriched.map((country) => ({ country, action: "enrich", field: "legality.countries" })),
       ...plan.repaired.map((country) => ({ country, action: "repair", field: "legality.countries.*.notes" })),
+      ...plan.removed.map(({ country }) => ({ country, action: "remove", field: "legality.countries" })),
       ...plan.flagged.map(({ country }) => ({ country, action: "flag-citation-needed", field: "legality.countries" })),
       ...(plan.internationalReplaced ? [{ action: "replace", field: "legality.international" }] : []),
       ...(plan.usStatesReplaced ? [{ action: "replace", field: "legality.usStates" }] : []),
@@ -315,6 +351,7 @@ export async function main(argv = process.argv.slice(2)) {
     corrected: plan.corrected.map(({ country }) => country),
     enriched: plan.enriched,
     repaired: plan.repaired,
+    removed: plan.removed.map(({ country }) => country),
     flaggedCitationNeeded: plan.flagged.map(({ country }) => country),
     internationalReplaced: plan.internationalReplaced,
     states: plan.states.map(({ state }) => state),
@@ -328,7 +365,7 @@ export async function main(argv = process.argv.slice(2)) {
     result: writeResult,
     appliedPath: resolve(runDir, appliedFile),
   });
-  console.log(`Applied ${slug}: ${plan.added.length} add, ${plan.corrected.length} correct, ${plan.enriched.length} enrich, ${plan.repaired.length} repair, ${plan.flagged.length} flag, ${plan.states.length} state, ${plan.internationalReplaced ? "international replaced" : "international unchanged"}, ${plan.usStatesReplaced ? "US states replaced" : "US states unchanged"}.`);
+  console.log(`Applied ${slug}: ${plan.added.length} add, ${plan.corrected.length} correct, ${plan.enriched.length} enrich, ${plan.repaired.length} repair, ${plan.removed.length} remove, ${plan.flagged.length} flag, ${plan.states.length} state, ${plan.internationalReplaced ? "international replaced" : "international unchanged"}, ${plan.usStatesReplaced ? "US states replaced" : "US states unchanged"}.`);
   const backupSummary = reusedBackup ? "reused verified snapshot" : `${documentCount} documents`;
   console.log(`Backup: ${backupPath} (${backupSummary}); audit: ${auditLogPath}`);
 }

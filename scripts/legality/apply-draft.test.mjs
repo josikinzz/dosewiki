@@ -119,6 +119,55 @@ describe("legality draft apply plan", () => {
     expect(plan.legality.countries.Canada).toMatchObject({ designation: "Schedule I" });
   });
 
+  it("removes a stale country key only when its live value matches", () => {
+    const removal = {
+      country: "United States (Florida)",
+      reason: "Florida is represented in the authoritative US-state subsection.",
+      oldEntry: {
+        status: "Schedule I",
+        notes: "State control.",
+      },
+    };
+    const articleWithLegacyState = {
+      legality: {
+        international: [],
+        countries: {
+          "United States (Florida)": {
+            status: "Schedule I",
+            notes: "State[cite:florida-law] control.",
+          },
+        },
+      },
+    };
+    const removalDraft = {
+      ...draft,
+      entries: {},
+      enrichments: {},
+      corrections: {},
+      countryRemovals: [removal],
+    };
+
+    const plan = buildApplyPlan({ article: articleWithLegacyState, draft: removalDraft });
+
+    expect(plan.legality.countries["United States (Florida)"]).toBeUndefined();
+    expect(plan.removed).toEqual([removal]);
+    expect(() => buildApplyPlan({
+      article: {
+        ...articleWithLegacyState,
+        legality: {
+          ...articleWithLegacyState.legality,
+          countries: {
+            "United States (Florida)": {
+              status: "Schedule I",
+              notes: "Changed live notes.",
+            },
+          },
+        },
+      },
+      draft: removalDraft,
+    })).toThrow("Stale removal for United States (Florida)");
+  });
+
   it("includes designation in dry-run rows", () => {
     const log = vi.spyOn(console, "log").mockImplementation(() => {});
     const plan = buildApplyPlan({ article, draft });

@@ -90,6 +90,14 @@ const legalityDraftSchema = z.object({
     country: nonEmptyString,
     reason: nonEmptyString,
   }).strict()),
+  countryRemovals: z.array(z.object({
+    country: nonEmptyString,
+    reason: nonEmptyString,
+    oldEntry: z.object({
+      status: nonEmptyString,
+      notes: z.string(),
+    }).strict(),
+  }).strict()).optional(),
   notesRepairs: z.record(z.string(), z.object({
     expectedNotes: nonEmptyString,
     newNotes: nonEmptyString,
@@ -101,6 +109,33 @@ const legalityDraftSchema = z.object({
       path: ["internationalSources"],
       message: "must be non-empty when international contains entries",
     });
+  }
+
+  const seenRemovals = new Set<string>();
+  for (const [index, removal] of (draft.countryRemovals ?? []).entries()) {
+    if (seenRemovals.has(removal.country)) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["countryRemovals", index, "country"],
+        message: "country may be removed only once",
+      });
+    }
+    seenRemovals.add(removal.country);
+
+    for (const [section, countries] of [
+      ["entries", draft.entries],
+      ["corrections", draft.corrections],
+      ["enrichments", draft.enrichments ?? {}],
+      ["notesRepairs", draft.notesRepairs ?? {}],
+    ] as const) {
+      if (removal.country in countries) {
+        ctx.addIssue({
+          code: "custom",
+          path: ["countryRemovals", index, "country"],
+          message: `country cannot also appear in ${section}`,
+        });
+      }
+    }
   }
 });
 

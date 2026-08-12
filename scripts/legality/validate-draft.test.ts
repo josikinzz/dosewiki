@@ -159,6 +159,20 @@ describe("legality draft validation", () => {
     expect(validateLegalityDraft(draft)).toEqual([]);
   });
 
+  it("accepts a guarded legacy country removal and rejects overlapping mutations", () => {
+    const draft = validDraft();
+    draft.countryRemovals = [{
+      country: "United States (Florida)",
+      reason: "Florida is represented in the authoritative US-state subsection.",
+      oldEntry: { status: "Schedule I", notes: "State control." },
+    }];
+
+    expect(validateLegalityDraft(draft)).toEqual([]);
+
+    draft.entries["United States (Florida)"] = draft.entries["United States"];
+    expect(validateLegalityDraft(draft).join("\n")).toContain("cannot also appear in entries");
+  });
+
   it("rejects an enrichment with an unknown canonical status", () => {
     const draft = validDraft();
     draft.enrichments.Canada.canonicalStatus = "legal_everywhere";

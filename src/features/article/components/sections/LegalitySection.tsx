@@ -9,6 +9,7 @@ import {
 } from "@/components/common/ArticleSection";
 import { AppImage } from "@/components/common/AppImage";
 import { Icon } from "@/components/common/Icon";
+import { cn } from "@/lib/utils";
 import { stripCitationTokens } from "@/lib/citations/referenceModel";
 import usStateFlagMappings from "@/data/mappings/usStateFlagMappings.json";
 import { CANONICAL_LEGAL_STATUSES } from "@/schema/substance/shared";
@@ -31,7 +32,7 @@ const COLOR_CLASSES: Record<
 > = {
   red: { className: "theme-semantic-danger-badge", tone: "red" },
   yellow: { className: "theme-semantic-caution-badge", tone: "yellow" },
-  blue: { className: "theme-badge-surface", tone: "blue" },
+  blue: { className: "", tone: "blue" },
   green: { className: "theme-evidence-surface", tone: "green" },
   gray: { className: "theme-article-subsection-card-nested theme-text-muted", tone: "gray" },
 };
@@ -235,6 +236,106 @@ function EditableLegalityNotes({
   );
 }
 
+type BadgeSize = "sm" | "xs";
+
+/**
+ * Pills never wrap mid-label: `truncate` pins them to a single line so the flex
+ * row pushes a badge that does not fit onto the next line, and only a badge
+ * wider than the whole row degrades to an ellipsis.
+ */
+const BADGE_BASE = "theme-status-badge max-w-full truncate rounded-full font-medium";
+
+const BADGE_SIZE_CLASSES: Record<BadgeSize, { status: string; designation: string }> = {
+  sm: {
+    status: "px-2 py-0.5 text-[10px]",
+    designation: "px-1.5 py-0.5 font-mono text-[9px]",
+  },
+  xs: {
+    status: "px-1.5 py-px text-[9px]",
+    designation: "px-1 py-px font-mono text-[8px]",
+  },
+};
+
+/**
+ * Everything the card and the state row derive from one entry's status fields,
+ * resolved once so both surfaces badge an entry identically.
+ */
+function resolveLegalityBadges(info: LegalityEntry) {
+  const canonicalStatus = info.canonicalStatus
+    ? CANONICAL_STATUS_DISPLAY[info.canonicalStatus]
+    : undefined;
+  const displayStatus = info.status ? stripCitationTokens(info.status) : "";
+  const statusColor = canonicalStatus
+    ? COLOR_CLASSES[canonicalStatus.color]
+    : displayStatus
+      ? getStatusColor(displayStatus)
+      : COLOR_CLASSES.gray;
+  const instrument = info.instrument?.trim();
+  const designation = canonicalStatus
+    ? resolveDesignation(info.designation, instrument)
+    : undefined;
+
+  return {
+    canonicalStatus,
+    statusColor,
+    hasStatusBadge: Boolean(canonicalStatus || info.status?.trim()),
+    statusLabel: canonicalStatus ? canonicalStatus.label : displayStatus,
+    designation,
+    showDesignation: Boolean(
+      designation
+        && canonicalStatus
+        && designation.toLowerCase() !== canonicalStatus.label.toLowerCase(),
+    ),
+    instrument,
+    showInstrumentCitation: Boolean(canonicalStatus && instrument && designation !== instrument),
+  };
+}
+
+function LegalityBadges({
+  article,
+  info,
+  size,
+}: {
+  article: SubstanceArticle;
+  info: LegalityEntry;
+  size: BadgeSize;
+}) {
+  const { canonicalStatus, hasStatusBadge, statusColor, statusLabel, designation, showDesignation } =
+    resolveLegalityBadges(info);
+  const sizeClasses = BADGE_SIZE_CLASSES[size];
+
+  return (
+    <>
+      {hasStatusBadge && (
+        <span
+          className={cn(BADGE_BASE, sizeClasses.status, statusColor.className)}
+          data-badge-tone={statusColor.tone}
+          title={statusLabel || undefined}
+        >
+          {canonicalStatus ? canonicalStatus.label : <CitedText text={info.status} article={article} />}
+        </span>
+      )}
+      {showDesignation && (
+        <span
+          className={cn(BADGE_BASE, sizeClasses.designation)}
+          data-badge-tone="gray"
+          title={designation}
+        >
+          {designation}
+        </span>
+      )}
+      {info.citationNeeded && (
+        <span
+          className={cn(BADGE_BASE, sizeClasses.status, COLOR_CLASSES.yellow.className)}
+          data-badge-tone={COLOR_CLASSES.yellow.tone}
+        >
+          Citation needed
+        </span>
+      )}
+    </>
+  );
+}
+
 interface LegalityEntryCardProps {
   article: SubstanceArticle;
   name: string;
@@ -253,26 +354,9 @@ function LegalityEntryCard({
   footer,
   notesPath,
 }: LegalityEntryCardProps) {
-  const canonicalStatus = info.canonicalStatus
-    ? CANONICAL_STATUS_DISPLAY[info.canonicalStatus]
-    : undefined;
-  const showStatusAsBadge = Boolean(canonicalStatus || info.status?.trim());
+  const { instrument, showInstrumentCitation } = resolveLegalityBadges(info);
   const displayText = info.notes || "";
   const isLongText = displayText.length > 480;
-  const displayStatus = info.status ? stripCitationTokens(info.status) : "";
-  const statusColor = canonicalStatus
-    ? COLOR_CLASSES[canonicalStatus.color]
-    : displayStatus
-      ? getStatusColor(displayStatus)
-      : COLOR_CLASSES.gray;
-  const instrument = info.instrument?.trim();
-  const designation = canonicalStatus
-    ? resolveDesignation(info.designation, instrument)
-    : undefined;
-  const showDesignation = designation && canonicalStatus
-    ? designation.toLowerCase() !== canonicalStatus.label.toLowerCase()
-    : false;
-  const showInstrumentCitation = Boolean(canonicalStatus && instrument && designation !== instrument);
 
   return (
     <ArticleSubsectionCard
@@ -289,36 +373,9 @@ function LegalityEntryCard({
           className="theme-country-flag absolute right-3 top-3 h-6 w-6"
         />
       )}
-      <div className={`flex ${canonicalStatus ? "flex-wrap " : ""}items-center gap-2 ${flagSrc ? "pr-8" : ""}`}>
-        <span className={canonicalStatus ? "min-w-0 break-words font-medium theme-text-primary" : "font-medium theme-text-primary"}>
-          {name}
-        </span>
-        {showStatusAsBadge && (canonicalStatus || info.status) && (
-          <span
-            className={canonicalStatus
-              ? `theme-status-badge inline-flex max-w-full break-words rounded-full px-2 py-0.5 text-[10px] font-medium ${statusColor.className}`
-              : `theme-status-badge rounded-full px-2 py-0.5 text-[10px] font-medium ${statusColor.className}`}
-            data-badge-tone={statusColor.tone}
-          >
-            {canonicalStatus ? canonicalStatus.label : <CitedText text={info.status} article={article} />}
-          </span>
-        )}
-        {showDesignation && (
-          <span
-            className="theme-status-badge inline-flex max-w-full break-words rounded-full px-1.5 py-0.5 font-mono text-[9px] font-medium"
-            data-badge-tone="gray"
-          >
-            {designation}
-          </span>
-        )}
-        {info.citationNeeded && (
-          <span
-            className={`theme-status-badge inline-flex max-w-full break-words rounded-full px-2 py-0.5 text-[10px] font-medium ${COLOR_CLASSES.yellow.className}`}
-            data-badge-tone={COLOR_CLASSES.yellow.tone}
-          >
-            Citation needed
-          </span>
-        )}
+      <div className={`flex min-w-0 flex-wrap items-center gap-2 ${flagSrc ? "pr-8" : ""}`}>
+        <span className="min-w-0 break-words font-medium theme-text-primary">{name}</span>
+        <LegalityBadges article={article} info={info} size="sm" />
       </div>
       {showInstrumentCitation && instrument && (
         <div
@@ -372,60 +429,6 @@ function LegalityEntryCard({
   );
 }
 
-function LegalityRowBadges({
-  article,
-  info,
-}: {
-  article: SubstanceArticle;
-  info: LegalityEntry;
-}) {
-  const canonicalStatus = info.canonicalStatus
-    ? CANONICAL_STATUS_DISPLAY[info.canonicalStatus]
-    : undefined;
-  const displayStatus = info.status ? stripCitationTokens(info.status) : "";
-  const statusColor = canonicalStatus
-    ? COLOR_CLASSES[canonicalStatus.color]
-    : displayStatus
-      ? getStatusColor(displayStatus)
-      : COLOR_CLASSES.gray;
-  const instrument = info.instrument?.trim();
-  const designation = canonicalStatus
-    ? resolveDesignation(info.designation, instrument)
-    : undefined;
-  const showDesignation = designation && canonicalStatus
-    ? designation.toLowerCase() !== canonicalStatus.label.toLowerCase()
-    : false;
-
-  return (
-    <>
-      {(canonicalStatus || info.status?.trim()) && (
-        <span
-          className={`theme-status-badge inline-flex max-w-full break-words rounded-full px-1.5 py-px text-[9px] font-medium ${statusColor.className}`}
-          data-badge-tone={statusColor.tone}
-        >
-          {canonicalStatus ? canonicalStatus.label : <CitedText text={info.status} article={article} />}
-        </span>
-      )}
-      {showDesignation && (
-        <span
-          className="theme-status-badge inline-flex max-w-full break-words rounded-full px-1 py-px font-mono text-[8px] font-medium"
-          data-badge-tone="gray"
-        >
-          {designation}
-        </span>
-      )}
-      {info.citationNeeded && (
-        <span
-          className={`theme-status-badge inline-flex max-w-full break-words rounded-full px-1.5 py-px text-[9px] font-medium ${COLOR_CLASSES.yellow.className}`}
-          data-badge-tone={COLOR_CLASSES.yellow.tone}
-        >
-          Citation needed
-        </span>
-      )}
-    </>
-  );
-}
-
 function LegalityStateRow({
   article,
   name,
@@ -449,13 +452,7 @@ function LegalityStateRow({
 }) {
   const detailsId = useId();
   const [isExpanded, setIsExpanded] = useState(false);
-  const instrument = info.instrument?.trim();
-  const designation = info.canonicalStatus
-    ? resolveDesignation(info.designation, instrument)
-    : undefined;
-  const showInstrumentCitation = Boolean(
-    info.canonicalStatus && instrument && designation !== instrument,
-  );
+  const { instrument, showInstrumentCitation } = resolveLegalityBadges(info);
   const displayText = info.notes || "";
   const notesPath = pathParts ? buildFieldPath(...pathParts, "notes") : undefined;
   // Only `usStates.*.cities.*` is allow-listed, so a city never nests further.
@@ -474,9 +471,7 @@ function LegalityStateRow({
           />
         )}
         <span className="min-w-0 break-words text-xs font-medium theme-text-primary">{name}</span>
-        <div className="flex min-w-0 flex-wrap items-center gap-1.5">
-          <LegalityRowBadges article={article} info={info} />
-        </div>
+        <LegalityBadges article={article} info={info} size="xs" />
         <button
           type="button"
           onClick={() => setIsExpanded((expanded) => !expanded)}
