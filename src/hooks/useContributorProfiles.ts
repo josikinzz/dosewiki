@@ -17,10 +17,9 @@ import { isConvexEnabled } from "@/lib/convex";
  */
 export function useContributorProfiles(active = true) {
   const enabled = active && isConvexEnabled();
-  const queryResult = useQuery(
-    enabled ? api.contributorProfiles.getAll : (undefined as never),
-    enabled ? {} : (undefined as never),
-  );
+  // "skip" on the args is the only supported way to disable a Convex query —
+  // an undefined function reference crashes getFunctionName at render time.
+  const queryResult = useQuery(api.contributorProfiles.getAll, enabled ? {} : "skip");
 
   const profiles = useMemo<NormalizedUserProfile[]>(
     () => (Array.isArray(queryResult) ? queryResult : []),
