@@ -43,6 +43,9 @@ export const getPublicContributorDirectory = cache(async (): Promise<Contributor
     key: profile.key,
     displayName: profile.displayName,
     aliases: profile.aliases,
+    // Threaded so the by-artist gallery can honour the contributor's curation
+    // without reading profiles of its own; see `applyCuratedOrder`.
+    replicationOrder: profile.replicationOrder,
   }));
 });
 

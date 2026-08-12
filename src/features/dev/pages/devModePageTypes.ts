@@ -1,4 +1,5 @@
 import type { ChangeLogEntry } from "@/data/changelog/changeLog";
+import type { NormalizedUserProfile } from "@/data/userProfiles";
 import type { useDevModeChangeLog } from "./useDevModeChangeLog";
 import type { DevModePrimaryTab, DevModeTab } from "./devModePageUtils";
 import type { useDevSupportTabsController } from "./useDevModeSupportTabProps";
@@ -43,6 +44,15 @@ export type DevModePageControllerState = {
   aboutTabProps: ReturnType<typeof useDevSupportTabsController>["aboutTabProps"];
   tagEditorTabProps: ReturnType<typeof useDevSupportTabsController>["tagEditorTabProps"];
   profileHistory: ChangeLogEntry[];
+  /**
+   * The contributor directory, for the Contributors tab's list rail. Fetched by
+   * the shell (see `tabNeedsContributorProfiles`) rather than by the tab, so the
+   * tab and the save flows share one subscription.
+   */
+  contributorDirectory: {
+    profiles: NormalizedUserProfile[];
+    isLoading: boolean;
+  };
   onPrimaryTabChange: (tab: DevModePrimaryTab) => void;
   onTabChange: (tab: DevModeTab) => void;
   onSignIn: () => void;

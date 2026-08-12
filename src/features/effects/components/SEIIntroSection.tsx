@@ -1,10 +1,39 @@
-import { useState, memo } from "react";
+import { Fragment, useState, memo } from "react";
 import { ExpandButton } from "@/components/common/ExpandButton";
+import { applyPlaceholders } from "@/data/content/about";
+import {
+  SEI_INTRO_COPY_FALLBACK,
+  type SEIIntroCopy,
+} from "./seiIntroCopy";
+
+export { SEI_INTRO_COPY_FALLBACK, type SEIIntroCopy };
+
+/**
+ * Renders the one accent-emphasised phrase a lead paragraph may carry.
+ *
+ * The lead is stored as plain prose with `**…**` around the phrase that has
+ * always rendered in the accent treatment, so an editor can move or reword it
+ * without the component hardcoding which words are emphasised. Only this one
+ * inline form is understood — it is not general Markdown.
+ */
+function renderAccentEmphasis(text: string) {
+  return text.split(/\*\*(.+?)\*\*/g).map((part, index) =>
+    index % 2 === 1 ? (
+      <span key={index} className="theme-accent-emphasis font-semibold">
+        {part}
+      </span>
+    ) : (
+      <Fragment key={index}>{part}</Fragment>
+    ),
+  );
+}
 
 interface SEIIntroSectionProps {
   effectCount: number;
   /** Optional tab-specific intro blob text */
   tabBlob?: string;
+  /** Editable prose; falls back to the strings this section shipped with. */
+  copy?: SEIIntroCopy;
 }
 
 // Shared visual contract with the Substance Index intro (CategoryIntro) so the
@@ -32,6 +61,7 @@ const introParagraphClass =
 export const SEIIntroSection = memo(function SEIIntroSection({
   effectCount,
   tabBlob,
+  copy = SEI_INTRO_COPY_FALLBACK,
 }: SEIIntroSectionProps) {
   const [expanded, setExpanded] = useState(false);
 
@@ -63,12 +93,7 @@ export const SEIIntroSection = memo(function SEIIntroSection({
 
       {/* Main intro paragraph */}
       <p className={`mt-4 ${introParagraphClass}`}>
-        The{" "}
-        <span className="theme-accent-emphasis font-semibold">
-          Subjective Effect Index
-        </span>{" "}
-        is a comprehensive catalogue of {effectCount} subjective effects that may
-        occur under the influence of psychoactive substances.
+        {renderAccentEmphasis(applyPlaceholders(copy.lead, { effectCount }))}
         {!expanded && (
           <span className="ml-2 inline-flex align-middle">
             <ExpandButton
@@ -84,18 +109,10 @@ export const SEIIntroSection = memo(function SEIIntroSection({
       {/* Expandable content */}
       {expanded && (
         <div className="mt-4 space-y-4">
-          <p className={introParagraphClass}>
-            The effects are accompanied by detailed descriptions written in a
-            consistent style that avoids flowery metaphors, using simple and
-            accessible language to serve as a universal terminology for
-            communicating experiences that are difficult to convey.
-          </p>
+          <p className={introParagraphClass}>{copy.method}</p>
 
           <p className={introParagraphClass}>
-            Effects are organised into categories based on the senses they affect
-            and their behavior, with many broken down into leveling systems,
-            subcomponents, and style variations. Image, video, and audio
-            replications supplement text-based descriptions.
+            {copy.organisation}
             <span className="ml-2 inline-flex align-middle">
               <ExpandButton
                 isExpanded={true}

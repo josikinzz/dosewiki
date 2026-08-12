@@ -6,6 +6,7 @@ import {
   STATUS_PAGE_PATHS,
 } from "@server/next/statusRedirectPolicy";
 import { Button } from "@/components/ui/button";
+import { getCopy } from "@server/next/copyBlocks";
 import { SignOutButton } from "../_components/SignOutButton";
 import { StatusFact, StatusPageShell } from "../_components/StatusPageShell";
 
@@ -24,6 +25,7 @@ type UnauthorizedPageProps = {
 
 export default async function UnauthorizedPage({ searchParams }: UnauthorizedPageProps) {
   const resolvedSearchParams = searchParams ? await searchParams : undefined;
+  const copy = await getCopy();
   const from = getUnauthorizedFrom(resolvedSearchParams?.from);
   const publicSiteLink = getStatusRecoveryLink("substances");
   const inlineCodeClassName =
@@ -31,9 +33,9 @@ export default async function UnauthorizedPage({ searchParams }: UnauthorizedPag
 
   return (
     <StatusPageShell
-      badge="Access denied"
+      badge={copy.text("unauthorized-badge") || "Access denied"}
       badgeVariant="destructive"
-      title="You do not have editor access"
+      title={copy.text("unauthorized-title") || "You do not have editor access"}
       description={
         <>
           Your account signed in successfully, but it does not currently have the required role for{" "}

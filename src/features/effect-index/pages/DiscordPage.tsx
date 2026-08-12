@@ -5,6 +5,7 @@ import {
   PublicSectionHeading,
 } from "@/components/layout/PublicPagePrimitives";
 import { PublicMarkdownBody } from "@/components/pages/PublicMarkdownBody";
+import { applyPlaceholders } from "@/data/content/about";
 import { ContentCard } from "@/components/ui/surface";
 import { icons } from "@/utils/iconNames";
 import { EFFECT_INDEX_DISCORD_INVITE_URL } from "@server/next/effectIndexLegacyRedirects";
@@ -43,7 +44,10 @@ const RULES = [
   "This community is relatively Safe For Work (SFW), please do not post overtly sexual or edgy content. This includes hornyposting and excessive shitposting.",
 ];
 
-export function DiscordPage() {
+export function DiscordPage({
+  intro,
+  rules,
+}: { intro?: string; rules?: string[] } = {}) {
   return (
     <PublicContentShell width="standard" focusTarget>
       <PageHeader title="Discord Chat" icon={icons.discord} prominentMobileIcon />
@@ -61,7 +65,13 @@ export function DiscordPage() {
         </div>
 
         <div className="min-w-0 flex-1">
-          <PublicMarkdownBody content={INTRO_MARKDOWN} />
+          <PublicMarkdownBody content={
+            intro
+              ? applyPlaceholders(intro, {
+                  discordInvite: EFFECT_INDEX_DISCORD_INVITE_URL,
+                })
+              : INTRO_MARKDOWN
+          } />
         </div>
       </div>
 
@@ -70,7 +80,7 @@ export function DiscordPage() {
 
         <ContentCard variant="public" padding="lg" radius="xl">
           <ol className="theme-text-secondary list-decimal space-y-3 pl-6 text-[1.0625rem] leading-7 marker:text-dose-accent-muted">
-            {RULES.map((rule) => (
+            {(rules?.length ? rules : RULES).map((rule) => (
               <li key={rule} className="pl-1">
                 {rule}
               </li>

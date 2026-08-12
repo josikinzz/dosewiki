@@ -5,6 +5,8 @@ import {
 } from "@server/next/publicSite";
 import { loadBlogIndexRoute } from "@server/next/routeLoaders";
 import { requireEffectIndexFlavor } from "@/config/siteFlavor";
+import { getCopy } from "@server/next/copyBlocks";
+import { resolveEmptyStateCopy } from "@server/next/emptyStateCopy";
 import { BlogIndexPage } from "@/features/blog/pages/BlogIndexPage";
 import {
   buildItemListSchema,
@@ -30,7 +32,7 @@ export default async function BlogPage() {
   // must run before any Convex read is issued.
   requireEffectIndexFlavor();
 
-  const result = await loadBlogIndexRoute();
+  const [result, copy] = await Promise.all([loadBlogIndexRoute(), getCopy()]);
   const canonicalUrl = buildSiteUrl(getPublicRoutePath(result.canonicalRoute));
   const itemListJsonLd = serializeJsonLd(
     buildItemListSchema({
@@ -52,7 +54,10 @@ export default async function BlogPage() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: itemListJsonLd }}
       />
-      <BlogIndexPage {...result.pageProps} />
+      <BlogIndexPage
+        {...result.pageProps}
+        emptyState={resolveEmptyStateCopy(copy, "blog", result.pageProps.emptyState)}
+      />
     </>
   );
 }

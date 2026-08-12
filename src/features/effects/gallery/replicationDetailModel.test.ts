@@ -108,6 +108,20 @@ describe('orderContributorReplications', () => {
 
     expect(orderContributorReplications(works).map((work) => work.slug)).toEqual(['new', 'old']);
   });
+
+  it("leads with the contributor's own curation, newest-first for the rest", () => {
+    const works = [
+      make({ slug: 'old', created_at: '2023-01-01T00:00:00.000Z' }),
+      make({ slug: 'mid', created_at: '2024-01-01T00:00:00.000Z' }),
+      make({ slug: 'new', created_at: '2025-01-01T00:00:00.000Z' }),
+    ];
+
+    expect(orderContributorReplications(works, ['old', 'gone']).map((work) => work.slug)).toEqual([
+      'old',
+      'new',
+      'mid',
+    ]);
+  });
 });
 
 describe('orderContributorWorksFeaturedFirst', () => {
@@ -193,6 +207,24 @@ describe('selectReplicationNeighborSet', () => {
     // The counter has to count the set it is actually walking.
     expect(result.position).toBe(2);
     expect(result.total).toBe(3);
+  });
+
+  it("walks the artist's curated order, so prev/next matches the profile rail", () => {
+    // The rail applies the same list to the same set, so a walk entered at a
+    // pinned work moves through the pinned works in the order the rail shows.
+    const result = selectReplicationNeighborSet({
+      slug: 'shared',
+      artistWorks,
+      artistName: 'Chelsea Morgan',
+      artistOrder: ['artist-b', 'shared', 'artist-a'],
+      effectWorks,
+      effectName: 'Tracers',
+    });
+
+    expect(result.scope).toBe('artist');
+    expect(result.previous?.slug).toBe('artist-b');
+    expect(result.next?.slug).toBe('artist-a');
+    expect(result.position).toBe(2);
   });
 
   it('falls back to the effect walk when the work is unattributed', () => {

@@ -258,6 +258,11 @@ export function useDevModePageController({
     placeholderValues: aboutPlaceholderValues,
   });
 
+  const contributorDirectory = useMemo(
+    () => ({ profiles: availableProfiles, isLoading: profilesLoading }),
+    [availableProfiles, profilesLoading],
+  );
+
   const handleSignIn = useCallback(() => {
     const callbackUrl = typeof window !== "undefined" ? window.location.pathname : "/dev";
     window.location.href = `/sign-in?callbackUrl=${encodeURIComponent(callbackUrl)}`;
@@ -287,6 +292,7 @@ export function useDevModePageController({
     aboutTabProps,
     tagEditorTabProps,
     profileHistory,
+    contributorDirectory,
     onPrimaryTabChange: routeAccess.onPrimaryTabChange,
     onTabChange: routeAccess.onTabChange,
     onSignIn: handleSignIn,

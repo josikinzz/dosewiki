@@ -7,6 +7,7 @@ import { PublicPill } from "@/components/common/PublicTokens";
 import { NestedContentCard } from "@/components/ui/surface";
 import { PublicSectionHeading } from "@/components/layout/PublicPagePrimitives";
 import { ReportCard } from "@/features/reports/components/ReportCard";
+import { applyCuratedOrder } from "@server/curatedOrder";
 import type { ChangeLogEntry } from "@/data/changelog/changeLog";
 import type { ReportCardModel } from "@/types/tripReport";
 import { icons } from "@/utils/iconNames";
@@ -15,6 +16,12 @@ import { publicHref } from "@/utils/publicHref";
 interface UserTripReportsSectionProps {
   profileKey: string;
   tripReports: ReportCardModel[];
+  /**
+   * The contributor's curated report ordering. Applied here rather than only on
+   * the server because this section owns the featured/alphabetical default sort
+   * below — a curation applied upstream would be sorted straight back out.
+   */
+  reportOrder?: readonly string[];
   reportHrefPrefix?: string;
 }
 
@@ -34,16 +41,21 @@ const dateFormat = new Intl.DateTimeFormat(undefined, {
 export function UserTripReportsSection({
   profileKey,
   tripReports,
+  reportOrder,
   reportHrefPrefix,
 }: UserTripReportsSectionProps) {
   const [isReportsExpanded, setIsReportsExpanded] = useState(false);
   const reportsSectionId = `${profileKey}-reports`;
 
-  const sortedTripReports = tripReports.slice().sort((a, b) => {
-    if (a.featured && !b.featured) return -1;
-    if (!a.featured && b.featured) return 1;
-    return a.title.localeCompare(b.title);
-  });
+  const sortedTripReports = applyCuratedOrder(
+    tripReports.slice().sort((a, b) => {
+      if (a.featured && !b.featured) return -1;
+      if (!a.featured && b.featured) return 1;
+      return a.title.localeCompare(b.title);
+    }),
+    reportOrder,
+    (report) => report.slug,
+  );
 
   const hasReports = sortedTripReports.length > 0;
 

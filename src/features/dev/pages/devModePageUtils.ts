@@ -13,6 +13,7 @@ export type DevModeTab =
   | "index-layout"
   | "about"
   | "copy-studio"
+  | "contributors"
   | "citation-review"
   | "trip-report-submissions"
   | "article-feedback"
@@ -63,11 +64,21 @@ export function tabNeedsChangelogFeed(tab: DevModeTab): boolean {
 
 /**
  * Tabs that read the contributor profile directory: the profile editor, the
- * About founder picker, and the changelog attribution used by the change log
- * and by the save flows that commit from the corpus tools.
+ * Contributors curation tab, the About founder picker, and the changelog
+ * attribution used by the change log and by the save flows that commit from the
+ * corpus tools.
+ *
+ * The Contributors tab is here and deliberately not in `LIBRARY_FETCHING_TABS`:
+ * it curates people, their replications and their reports, and reads not one
+ * substance article.
  */
 export function tabNeedsContributorProfiles(tab: DevModeTab): boolean {
-  return tab === "profile" || tab === "about" || LIBRARY_DEPENDENT_TABS.has(tab);
+  return (
+    tab === "profile" ||
+    tab === "about" ||
+    tab === "contributors" ||
+    LIBRARY_DEPENDENT_TABS.has(tab)
+  );
 }
 
 export type MarkdownChange = {
@@ -81,6 +92,7 @@ export function resolvePrimaryTab(tab: DevModeTab): DevModePrimaryTab {
     tab === "index-layout" ||
     tab === "about" ||
     tab === "copy-studio" ||
+    tab === "contributors" ||
     tab === "citation-review" ||
     tab === "trip-report-submissions" ||
     tab === "article-feedback" ||

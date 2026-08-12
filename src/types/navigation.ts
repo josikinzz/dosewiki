@@ -5,6 +5,7 @@ export type DevTab =
   | "index-layout"
   | "about"
   | "copy-studio"
+  | "contributors"
   | "citation-review"
   | "trip-report-submissions"
   | "article-feedback"

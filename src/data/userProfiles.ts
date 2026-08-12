@@ -46,6 +46,16 @@ export type NormalizedUserProfile = {
   links: UserProfileLink[];
   hasCustomBio: boolean;
   role?: string;
+  /**
+   * Contributor-curated ordering, passed through from Convex
+   * (`contributorProfiles.replicationOrder` / `reportOrder`). Optional because
+   * only the public profile read carries it — a profile materialized locally
+   * (fallbacks, the identity mapping, normalizeProfileRecord) has no curation,
+   * and absent means "use the surface's default sort". Consumers apply it with
+   * `applyCuratedOrder`.
+   */
+  replicationOrder?: string[];
+  reportOrder?: string[];
 };
 
 export { deriveProfileKeyFromEmail, normalizeProfileKey };

@@ -31,6 +31,7 @@ const TOOL_TAB_ITEMS: ToolTabItem[] = [
   { id: "replications", label: "Replications" },
   { id: "about", label: "About" },
   { id: "copy-studio", label: "Copy" },
+  { id: "contributors", label: "Contributors" },
   { id: "index-layout", label: "Index layout" },
 ];
 

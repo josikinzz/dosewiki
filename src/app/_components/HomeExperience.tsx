@@ -28,6 +28,16 @@ interface HomeExperienceProps {
    * `html[data-theme="…"]` overrides lose to the site-scoped skin.
    */
   showPaletteLabTrigger?: boolean;
+  /**
+   * Editable hero and banner copy, resolved on the server. Each falls back to
+   * the flavor config value this page shipped with, so an un-seeded deployment
+   * — and either flavor — renders exactly what it always did.
+   */
+  copy?: {
+    tagline?: string;
+    constructionTitle?: string;
+    constructionSubtitle?: string;
+  };
 }
 
 export function HomeExperience({
@@ -35,6 +45,7 @@ export function HomeExperience({
   isConstructionMode = false,
   showThemeToggle = SITE_FLAVOR_CONFIG.showThemeToggle,
   showPaletteLabTrigger = !isEffectIndex(),
+  copy,
 }: HomeExperienceProps) {
   const router = useRouter();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -362,16 +373,18 @@ export function HomeExperience({
           </div>
 
           <p className="theme-home-intro theme-text-secondary mt-4 max-w-2xl text-balance text-base leading-snug transition-[opacity,transform,max-height,margin] duration-300 sm:text-lg md:text-xl">
-            {SITE_FLAVOR_CONFIG.description}
+            {copy?.tagline || SITE_FLAVOR_CONFIG.description}
           </p>
 
           {isConstructionMode && (
             <div className="theme-home-construction-banner mt-6 inline-flex items-center gap-3 rounded-3xl border px-5 py-3 font-display">
               <Icon icon="lucide:construction" size={24} className="theme-home-construction-icon" />
               <span className="flex flex-col items-center leading-none">
-                <span className="text-sm font-semibold uppercase tracking-[0.22em] sm:text-base">Under construction</span>
+                <span className="text-sm font-semibold uppercase tracking-[0.22em] sm:text-base">
+                  {copy?.constructionTitle || "Under construction"}
+                </span>
                 <span className="mt-1 text-sm font-semibold italic normal-case tracking-wide sm:text-base">
-                  coming soon, summer 2026 ;3
+                  {copy?.constructionSubtitle || "coming soon, summer 2026 ;3"}
                 </span>
               </span>
               <Icon icon="lucide:triangle-alert" size={24} className="theme-home-construction-icon theme-home-construction-icon-delay" />

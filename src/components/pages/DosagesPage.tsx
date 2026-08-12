@@ -21,6 +21,7 @@ import type { CategoryLayout } from "../../hooks/useCategoryLayout";
 // helper itself has no runtime dependencies.
 import { isDirectUrlOnlySubstance } from "@/schema/substance/substanceVisibilityPolicy";
 import { useTabHashSync, writeTabHash } from "@/hooks/useTabHashSync";
+import { applyPlaceholders } from "@/data/content/about";
 import { slugify } from "@/utils/slug";
 import { scrollIntoViewRespectingMotion } from "@/utils/navigation";
 import { cn } from "@/lib/utils";
@@ -39,6 +40,12 @@ interface DosagesPageProps {
    * their own content inline in `SUPER_CATEGORY_TABS`.
    */
   definitions?: Record<string, CategoryTabContent>;
+  /**
+   * Editable Markdown for the "All" tab intro, carrying `{{substanceCount}}` and
+   * `{{categoryCount}}` placeholders. Server-supplied; when absent the component
+   * falls back to the string this page shipped before the copy CMS existed.
+   */
+  introTemplate?: string;
 }
 
 /**
@@ -227,7 +234,12 @@ function splitGroupBySections(group: DosageCategoryGroup): DosageCategoryGroup[]
   });
 }
 
-export function DosagesPage({ layout, substances, definitions }: DosagesPageProps) {
+export function DosagesPage({
+  layout,
+  substances,
+  definitions,
+  introTemplate,
+}: DosagesPageProps) {
   const [activeTab, setActiveTab] = useState("all");
   const panelsStartRef = useRef<HTMLDivElement | null>(null);
 
@@ -359,12 +371,22 @@ export function DosagesPage({ layout, substances, definitions }: DosagesPageProp
   const isFiltered = activeTab !== "all";
   const isSingleCategoryView = isFiltered && groupsByKey.has(activeTab);
 
+  // The two counts are computed here, from the props, rather than server-side:
+  // `substanceCount` applies the direct-URL-only filter and `psychoactiveClassCount`
+  // counts the non-empty groups, neither of which matches the overview totals. So
+  // the editable copy carries `{{substanceCount}}`/`{{categoryCount}}` placeholders
+  // and the live numbers are interpolated at render time.
   const substanceIndexIntro = useMemo<CategoryTabContent>(
     () => ({
-      definition: `Browse **${formatLabel(substanceCount, "substance article", "substance articles")}** focused on education and harm reduction, organized across **${formatLabel(psychoactiveClassCount, "psychoactive class", "psychoactive classes")}**. Open any page below to explore detailed information including: *dosage & duration, subjective effects, reagent testing, pharmacology, interactions, harm potential, history & culture, legality, and further reading.*`,
+      definition: introTemplate
+        ? applyPlaceholders(introTemplate, {
+            substanceCount,
+            categoryCount: psychoactiveClassCount,
+          })
+        : `Browse **${formatLabel(substanceCount, "substance article", "substance articles")}** focused on education and harm reduction, organized across **${formatLabel(psychoactiveClassCount, "psychoactive class", "psychoactive classes")}**. Open any page below to explore detailed information including: *dosage & duration, subjective effects, reagent testing, pharmacology, interactions, harm potential, history & culture, legality, and further reading.*`,
       warning: "",
     }),
-    [psychoactiveClassCount, substanceCount],
+    [introTemplate, psychoactiveClassCount, substanceCount],
   );
 
   // Intro content for the active tab: the "All" tab carries the substance-index
@@ -372,8 +394,11 @@ export function DosagesPage({ layout, substances, definitions }: DosagesPageProp
   // the server-provided definitions map.
   const activeContent = useMemo<CategoryTabContent | undefined>(() => {
     if (activeTab === "all") return substanceIndexIntro;
+    // The umbrella tabs are not categories in the manual index, so the server
+    // contributes their prose under their tab id when the copy layer knows it.
+    // The inline `tab.content` stays as the fallback.
     const superTab = SUPER_CATEGORY_TABS.find((tab) => tab.id === activeTab);
-    if (superTab) return superTab.content;
+    if (superTab) return definitions?.[superTab.id] ?? superTab.content;
     return definitions?.[activeTab];
   }, [activeTab, definitions, substanceIndexIntro]);
 

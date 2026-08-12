@@ -69,6 +69,8 @@ export function getParentCategoryConfig(
 interface BuildEffectCategoryGroupsInput {
   categorySlug: string;
   effects: EffectCategoryGroupEffect[];
+  /** Editable subcategory descriptions by slug; the definition is the fallback. */
+  descriptions?: Record<string, string>;
 }
 
 /**
@@ -83,6 +85,7 @@ interface BuildEffectCategoryGroupsInput {
 export function buildEffectCategoryGroups({
   categorySlug,
   effects,
+  descriptions,
 }: BuildEffectCategoryGroupsInput): EffectCategoryGroup[] {
   const parent = getParentCategoryConfig(categorySlug);
 
@@ -121,7 +124,7 @@ export function buildEffectCategoryGroups({
         title: subcategory.title,
         icon: definition?.icon ?? parent.icon,
         categorySlug: subcategorySlug,
-        description: definition?.description,
+        description: (subcategorySlug && descriptions?.[subcategorySlug]) || definition?.description,
         effects: matched,
       };
     })

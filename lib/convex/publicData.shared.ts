@@ -143,7 +143,16 @@ export type PublicEffectIndexArticle = {
   publicationDate?: string;
   body_raw: string;
   body_ast?: VCodeContent;
+  /**
+   * The legacy Mongo dump's raw 24-character author ObjectIds. Kept as-is
+   * because they are what the imported rows carry; they are never displayed.
+   */
   authors?: string[];
+  /**
+   * Contributor profile keys, backfilled from `authors`. This is the field a
+   * byline renders from — an article without it simply shows no byline.
+   */
+  authorProfileKeys?: string[];
   citations?: Array<{
     url: string;
     text: string;

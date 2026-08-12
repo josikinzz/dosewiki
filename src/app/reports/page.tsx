@@ -3,21 +3,32 @@ import { loadReportsIndexRoute } from "@server/next/routeLoaders";
 import { buildItemListSchema, serializeJsonLd } from "@/utils/seo/structuredData";
 import { TripReportsPage } from "@/features/reports/pages/TripReportsPage";
 import { SITE_FLAVOR_CONFIG } from "@/config/siteFlavor";
+import { getCopy } from "@server/next/copyBlocks";
+import { resolveEmptyStateCopy } from "@server/next/emptyStateCopy";
+import { applyPlaceholders } from "@/data/content/about";
 
 export const revalidate = 3600;
 const ITEM_LIST_LIMIT = 100;
 
 export async function generateMetadata() {
-  const result = await loadReportsIndexRoute();
+  const [result, copy] = await Promise.all([loadReportsIndexRoute(), getCopy()]);
+
+  const template =
+    copy.text("seo-reports-index-description") ||
+    "Browse {{reportCount}} trip reports in {{siteName}}.";
 
   return buildPublicPageMetadata({
     ...result.metadata,
+    description: applyPlaceholders(template, {
+      reportCount: result.pageProps.reports.length,
+      siteName: SITE_FLAVOR_CONFIG.name,
+    }),
     route: result.canonicalRoute,
   });
 }
 
 export default async function ReportsPage() {
-  const result = await loadReportsIndexRoute();
+  const [result, copy] = await Promise.all([loadReportsIndexRoute(), getCopy()]);
   const canonicalUrl = buildSiteUrl(getPublicRoutePath(result.canonicalRoute));
   const itemListJsonLd = serializeJsonLd(
     buildItemListSchema({
@@ -37,7 +48,11 @@ export default async function ReportsPage() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: itemListJsonLd }}
       />
-      <TripReportsPage {...result.pageProps} />
+      <TripReportsPage
+        {...result.pageProps}
+        emptyState={resolveEmptyStateCopy(copy, "reports", result.pageProps.emptyState)}
+        intro={copy.text("reports-index-intro")}
+      />
     </>
   );
 }

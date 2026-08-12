@@ -34,14 +34,14 @@ function MailtoValue({ address }: { address: string }): ReactNode {
   );
 }
 
-export function ContactPage() {
+export function ContactPage({ intro }: { intro?: string } = {}) {
   return (
     <PublicContentShell width="standard" focusTarget>
       {/* Envelope, matching the old site's `envelope.svg` — and distinct from the Discord
           page's own glyph, which this used to duplicate. */}
       <PageHeader title="Contact Us" icon={icons.mail} prominentMobileIcon />
 
-      <PublicMarkdownBody content={INTRO_MARKDOWN} />
+      <PublicMarkdownBody content={intro || INTRO_MARKDOWN} />
 
       <section className="mt-10 space-y-6">
         <PublicSectionHeading icon={icons.userRound} title="Site founder" />

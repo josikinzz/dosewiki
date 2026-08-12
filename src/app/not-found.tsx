@@ -3,7 +3,11 @@ import Link from "next/link";
 import { buildPageMetadata } from "@server/next/metadata";
 import { getStatusRecoveryLink } from "@server/next/statusRedirectPolicy";
 import { Button } from "@/components/ui/button";
+import { getCopy } from "@server/next/copyBlocks";
 
+// `not-found.tsx` takes a static `metadata` export — Next does not run
+// `generateMetadata` for it — so the 404's SEO description stays in code while
+// its on-page prose is editable below.
 export const metadata: Metadata = buildPageMetadata({
   title: "Page not found",
   description: "The page you requested does not exist or may have moved.",
@@ -11,7 +15,8 @@ export const metadata: Metadata = buildPageMetadata({
   noIndex: true,
 });
 
-export default function NotFound() {
+export default async function NotFound() {
+  const copy = await getCopy();
   const substancesLink = getStatusRecoveryLink("substances");
   const effectsLink = getStatusRecoveryLink("effects");
   const reportsLink = getStatusRecoveryLink("reports");
@@ -33,11 +38,11 @@ export default function NotFound() {
         </p>
 
         <h1 className="font-display mt-4 text-4xl font-bold tracking-tight sm:text-5xl">
-          Page not found
+          {copy.text("not-found-title") || "Page not found"}
         </h1>
 
         <p className="theme-text-secondary mt-4 max-w-md text-base leading-7">
-          That page doesn&rsquo;t exist or may have moved.
+          {copy.text("not-found-body") || "That page doesn\u2019t exist or may have moved."}
         </p>
 
         <div className="mt-8 flex flex-wrap items-center gap-x-6 gap-y-3">

@@ -36,6 +36,8 @@ interface EffectCategoryPageProps {
   effects: EffectSummary[];
   effectHrefPrefix?: string;
   backHref?: string;
+  /** Editable category descriptions by slug, resolved from the copy blocks. */
+  descriptions?: Record<string, string>;
 }
 
 const FLAT_SECTION_ID = "effects";
@@ -69,12 +71,17 @@ export function EffectCategoryPage({
   effects,
   effectHrefPrefix,
   backHref,
+  descriptions,
 }: EffectCategoryPageProps) {
   const definition = getEffectCategoryDefinition(categorySlug);
   const title = definition?.name ?? titleFromSlug(categorySlug);
   const icon: IconName = definition?.icon ?? "lucide:tag";
+  // Editable copy wins; the checked-in definition is the fallback, and the copy
+  // defaults hold that same prose, so an un-seeded read is a no-op.
   const paragraphs = toParagraphs(
-    definition?.description ?? `Effects tagged with "${categorySlug}".`,
+    descriptions?.[categorySlug] ??
+      definition?.description ??
+      `Effects tagged with "${categorySlug}".`,
   );
 
   const filteredEffects = effects
@@ -84,6 +91,7 @@ export function EffectCategoryPage({
   const groups = buildEffectCategoryGroups({
     categorySlug,
     effects: filteredEffects,
+    descriptions,
   });
 
   const tocItems: PublicTableOfContentsItem[] = groups.map((group) => ({

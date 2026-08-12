@@ -1,4 +1,9 @@
-import { resolveContributorHref, type ContributorDirectory } from '@server/contributorDirectory';
+import {
+  resolveContributorHref,
+  resolveContributorReplicationOrder,
+  type ContributorDirectory,
+} from '@server/contributorDirectory';
+import { applyCuratedOrder } from '@server/curatedOrder';
 import type { GalleryReplication } from '@/types/replications';
 import { hasKnownCreator } from '../components/replicationCredit';
 
@@ -171,7 +176,18 @@ export function groupByArtist(
   }
 
   const groups = Array.from(buckets.values()).map((group) => {
-    const items = sortWithinGroup(group.items);
+    // A contributor curates their own body of work, so the curation applies to
+    // the artist grouping only: it leads their section and the shared
+    // newest/title sort carries everything they did not pin. "By effect" keeps
+    // the effect's own `gallery_order` (see `sortWithinGroup`) — that is the
+    // effect editor's ordering, not the artist's, and the two never mix.
+    const items = applyCuratedOrder(
+      sortWithinGroup(group.items),
+      group.key === UNATTRIBUTED_KEY
+        ? undefined
+        : resolveContributorReplicationOrder(group.label, contributorDirectory),
+      (replication) => replication.slug,
+    );
     const { imageCount, videoCount } = tally(items);
     return { ...group, items, count: items.length, imageCount, videoCount };
   });

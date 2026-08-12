@@ -17,6 +17,7 @@ import type { GalleryReplication } from "@/types/replications";
 import { EffectCategoryCard } from "../components/EffectCategoryCard";
 import { ParentCategoryCard } from "../components/ParentCategoryCard";
 import { SEIIntroSection } from "../components/SEIIntroSection";
+import type { SEIIntroCopy } from "../components/seiIntroCopy";
 // Lazy-loaded: the gallery explorer only renders on the (non-default) "gallery"
 // tab, so its chunk shouldn't ship on the default "all" view of /effects.
 const ReplicationsGalleryExplorer = dynamic(
@@ -48,6 +49,10 @@ interface EffectsIndexExplorerProps {
   replications?: GalleryReplication[];
   /** Passed through to the gallery so artist headings link to profile pages. */
   contributorDirectory?: ContributorDirectory;
+  /** Editable intro prose, resolved on the server. */
+  introCopy?: SEIIntroCopy;
+  /** Editable per-tab intro blobs, keyed by tab id; falls back to TABS config. */
+  tabBlobs?: Partial<Record<TabId, string>>;
 }
 
 type EffectWithLowerTags = EffectSummary & {
@@ -75,6 +80,8 @@ export function EffectsIndexExplorer({
   emptyState,
   replications = [],
   contributorDirectory,
+  introCopy,
+  tabBlobs,
 }: EffectsIndexExplorerProps) {
   const [activeTab, setActiveTab] = useState<TabId>(DEFAULT_TAB);
   const isGallery = activeTab === "gallery";
@@ -400,7 +407,12 @@ export function EffectsIndexExplorer({
         {!isGallery && (
           <SEIIntroSection
             effectCount={effects.length}
-            tabBlob={activeTab !== "all" ? activeTabConfig?.blob : undefined}
+            copy={introCopy}
+            tabBlob={
+              activeTab !== "all"
+                ? (tabBlobs?.[activeTab] ?? activeTabConfig?.blob)
+                : undefined
+            }
           />
         )}
       </div>
@@ -493,7 +505,10 @@ export function EffectsIndexExplorer({
           badge={emptyState?.badge ?? "No effects"}
           badgeVariant="secondary"
           title={emptyState?.title ?? "No effects found"}
-          description={emptyState?.description ?? "No subjective effects have been imported yet. Run the migration flow to populate this index."}
+          description={
+              emptyState?.description ??
+              "No subjective effects are published yet. They will appear here once the index is available."
+            }
           icon={emptyState?.icon ?? "lucide:search-x"}
           tone="neutral"
         />

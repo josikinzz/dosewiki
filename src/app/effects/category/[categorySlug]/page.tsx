@@ -9,6 +9,11 @@ import {
 import { getEffectCategoryDefinition } from "@/data/effectCategoryDefinitions";
 import { EffectCategoryPage as EffectCategoryDetailPage } from "@/features/effects/pages/EffectCategoryPage";
 import { serializeJsonLd } from "@/utils/seo/structuredData";
+import { getCopy } from "@server/next/copyBlocks";
+import {
+  effectCategoryCopyKey,
+  getEffectCategoryDescriptions,
+} from "@server/next/effectCategoryCopy";
 
 export const revalidate = 3600;
 export const dynamicParams = false;
@@ -35,7 +40,10 @@ export async function generateMetadata({ params }: EffectCategoryPageProps) {
 
 export default async function EffectCategoryPage({ params }: EffectCategoryPageProps) {
   const { categorySlug } = await params;
-  const result = await loadEffectCategoryRoute(categorySlug);
+  const [result, copy] = await Promise.all([
+    loadEffectCategoryRoute(categorySlug),
+    getCopy(),
+  ]);
 
   if (result.kind === "redirect") {
     redirect(result.target);
@@ -50,7 +58,10 @@ export default async function EffectCategoryPage({ params }: EffectCategoryPageP
     buildEffectCategoryItemListSchema({
       categoryName: categoryDefinition?.name ?? result.metadata.title,
       categorySlug,
-      description: categoryDefinition?.description ?? result.metadata.description,
+      description:
+        copy.text(effectCategoryCopyKey(categorySlug)) ||
+        categoryDefinition?.description ||
+        result.metadata.description,
       effects: result.detail,
       route: result.canonicalRoute,
     }),
@@ -67,6 +78,7 @@ export default async function EffectCategoryPage({ params }: EffectCategoryPageP
         effects={result.detail}
         effectHrefPrefix="/effects/"
         backHref="/effects"
+        descriptions={getEffectCategoryDescriptions(copy)}
       />
     </>
   );

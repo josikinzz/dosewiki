@@ -205,6 +205,10 @@ export function parsePath(
           tab = "index-layout";
         } else if (candidate === "about") {
           tab = "about";
+        } else if (candidate === "copy-studio" || candidate === "copy") {
+          tab = "copy-studio";
+        } else if (candidate === "contributors" || candidate === "contributor") {
+          tab = "contributors";
         } else if (candidate === "citation-review" || candidate === "citations") {
           tab = "citation-review";
         } else if (candidate === "trip-report-submissions" || candidate === "trip-reports") {

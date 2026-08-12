@@ -1,5 +1,6 @@
 import { buildPublicPageMetadata } from "@server/next/publicSite";
 import { requireEffectIndexFlavor } from "@/config/siteFlavor";
+import { getCopy } from "@server/next/copyBlocks";
 import { CopyrightDisclaimerPage } from "@/features/effect-index/pages/CopyrightDisclaimerPage";
 
 const METADATA = {
@@ -11,13 +12,22 @@ const METADATA = {
 
 export async function generateMetadata() {
   requireEffectIndexFlavor();
+  const copy = await getCopy();
 
-  return buildPublicPageMetadata(METADATA);
+  return buildPublicPageMetadata({
+    ...METADATA,
+    description: copy.text("seo-copyright-disclaimer-description") || METADATA.description,
+  });
 }
 
-export default function CopyrightDisclaimerRoute() {
+export default async function CopyrightDisclaimerRoute() {
   // Flavor gate first: on the dose.wiki build this route does not exist.
   requireEffectIndexFlavor();
+  const copy = await getCopy();
 
-  return <CopyrightDisclaimerPage />;
+  return (
+    <CopyrightDisclaimerPage
+      disclaimer={copy.text("copyright-disclaimer-body-effect-index")}
+    />
+  );
 }

@@ -8,6 +8,7 @@ import {
   PUBLIC_CONVEX_CACHE_TAGS,
 } from "../convex/publicData.cache";
 import { queryConvex } from "../convex/serverClient";
+import { SITE_FLAVOR_CONFIG, type SiteFlavor } from "../../src/config/siteFlavor";
 import {
   COPY_BLOCK_DEFAULTS,
   getCopyBlockDefault,
@@ -187,3 +188,47 @@ export function createCopyResolver(rows: readonly CopyBlockRecord[]): CopyResolv
 export const getCopy = cache(async (): Promise<CopyResolver> => {
   return createCopyResolver(await getCopyBlocks());
 });
+
+/**
+ * The key suffix a flavor's own rows carry.
+ *
+ * The defaults already encode this convention: the bare key holds dose.wiki's
+ * wording (`footer-tagline`) and Effect Index's sits beside it under a suffixed
+ * key (`footer-tagline-effect-index`). dose.wiki is the default flavor, so it
+ * takes no suffix.
+ */
+const FLAVOR_KEY_SUFFIX: Record<SiteFlavor, string | null> = {
+  dosewiki: null,
+  effectindex: "effect-index",
+};
+
+/** The key the active flavor should read for a shared copy slot. */
+export function flavoredCopyKey(
+  key: string,
+  flavor: SiteFlavor = SITE_FLAVOR_CONFIG.flavor,
+): string {
+  const suffix = FLAVOR_KEY_SUFFIX[flavor];
+  return suffix ? `${key}-${suffix}` : key;
+}
+
+/**
+ * Flavor-aware body read.
+ *
+ * Deliberately does NOT fall back from `key-effect-index` to the bare `key`:
+ * the bare key holds dose.wiki's wording, and serving that on Effect Index
+ * would misstate what the site is. A flavor with no row and no default of its
+ * own keeps the caller's hardcoded string until its row is authored.
+ */
+export function flavoredCopyText(copy: CopyResolver, key: string, fallback: string): string {
+  return copy.get(flavoredCopyKey(key))?.body ?? fallback;
+}
+
+/** Flavor-aware `list` read, with the same no-cross-flavor-fallback rule. */
+export function flavoredCopyItems(
+  copy: CopyResolver,
+  key: string,
+  fallback: readonly string[],
+): string[] {
+  const resolved = copy.get(flavoredCopyKey(key));
+  return resolved?.items ?? [...fallback];
+}

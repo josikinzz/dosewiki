@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { PublicTableOfContents } from "@/components/common/PublicTableOfContents";
 import { PublicTocStrip } from "@/components/common/PublicTocStrip";
 import { PublicPill } from "@/components/common/PublicTokens";
@@ -7,6 +8,7 @@ import { EffectCitationsSection } from "@/features/effects/components/EffectCita
 import { VCodeRenderer } from "@/features/effects/vcode/VCodeRenderer";
 import type { VCodeContent } from "@/features/effects/vcode/types";
 import { getEffectIndexArticleTocItems } from "../articleTocModel";
+import type { ArticleBylineAuthor } from "../domain/articleByline";
 import { formatArchiveDate } from "@/utils/archiveDate";
 import { icons } from "@/utils/iconNames";
 
@@ -25,10 +27,17 @@ interface EffectIndexArticle {
 
 interface EffectIndexArticlePageProps {
   article: EffectIndexArticle;
+  /**
+   * Resolved from the article's `authorProfileKeys` by the route loader. Empty
+   * for an article whose keys are missing or claim no profile, and then no
+   * byline renders at all — the same as before the backfill.
+   */
+  bylineAuthors?: ArticleBylineAuthor[];
 }
 
 export function EffectIndexArticlePage({
   article,
+  bylineAuthors = [],
 }: EffectIndexArticlePageProps) {
   // A date is not a tag: it gets a `<time>` of its own, set in figures rather
   // than in the tracked-out caps a tag wears, so the row reads as "published
@@ -65,8 +74,24 @@ export function EffectIndexArticlePage({
             icon={icons.bookOpenText}
           />
 
-          {publishedLabel || article.tags.length > 0 ? (
+          {publishedLabel || bylineAuthors.length > 0 || article.tags.length > 0 ? (
             <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
+              {bylineAuthors.length > 0 ? (
+                <p className="theme-text-muted type-detail-copy">
+                  by{" "}
+                  {bylineAuthors.map((author, index) => (
+                    <span key={author.key}>
+                      {index > 0 ? (index === bylineAuthors.length - 1 ? " and " : ", ") : null}
+                      <Link
+                        href={author.href}
+                        className="theme-text-secondary underline-offset-2 hover:underline"
+                      >
+                        {author.name}
+                      </Link>
+                    </span>
+                  ))}
+                </p>
+              ) : null}
               {publishedLabel ? (
                 <time
                   dateTime={publishedDateTime}

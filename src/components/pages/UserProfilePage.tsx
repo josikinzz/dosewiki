@@ -141,6 +141,7 @@ export function UserProfilePage({
             <UserTripReportsSection
               profileKey={profile.key}
               tripReports={tripReports}
+              reportOrder={profile.reportOrder}
               reportHrefPrefix={reportHrefPrefix}
             />
           ) : null}

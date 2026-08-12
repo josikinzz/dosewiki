@@ -330,6 +330,12 @@ function normalizePublicEffectIndexArticle(record: unknown): PublicEffectIndexAr
   if (Array.isArray(record.authors) && record.authors.every((author) => typeof author === "string")) {
     article.authors = record.authors;
   }
+  if (
+    Array.isArray(record.authorProfileKeys) &&
+    record.authorProfileKeys.every((key) => typeof key === "string")
+  ) {
+    article.authorProfileKeys = record.authorProfileKeys;
+  }
   if (Array.isArray(record.citations)) {
     article.citations = record.citations.flatMap((citation) =>
       isRecord(citation) && typeof citation.url === "string" && typeof citation.text === "string"

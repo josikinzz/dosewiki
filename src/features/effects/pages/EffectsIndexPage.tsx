@@ -6,6 +6,8 @@ import type { PublicRouteEmptyState } from "@server/next/publicRouteOutcomes";
 import type { GalleryReplication } from "@/types/replications";
 import { icons } from "@/utils/iconNames";
 import { EffectsIndexExplorer } from "./EffectsIndexExplorer";
+import type { SEIIntroCopy } from "../components/seiIntroCopy";
+import type { TabId } from "./effectsIndexConfig";
 
 interface EffectSummary {
   slug: string;
@@ -20,6 +22,10 @@ interface EffectsIndexPageProps {
   replications?: GalleryReplication[];
   /** Read here on the server so the client gallery never fetches it itself. */
   contributorDirectory?: ContributorDirectory;
+  /** Editable intro prose, resolved from the copy blocks on the server. */
+  introCopy?: SEIIntroCopy;
+  /** Editable per-tab intro blobs, resolved on the server. */
+  tabBlobs?: Partial<Record<TabId, string>>;
 }
 
 /**
@@ -35,6 +41,8 @@ export function EffectsIndexPage({
   emptyState,
   replications,
   contributorDirectory,
+  introCopy,
+  tabBlobs,
 }: EffectsIndexPageProps) {
   return (
     <main id="main-content" tabIndex={-1} className="mx-auto w-full px-4 pb-20 pt-12 2xl:px-8">
@@ -75,6 +83,8 @@ export function EffectsIndexPage({
         emptyState={emptyState}
         replications={replications}
         contributorDirectory={contributorDirectory}
+        introCopy={introCopy}
+        tabBlobs={tabBlobs}
       />
     </main>
   );

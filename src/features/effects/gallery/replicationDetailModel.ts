@@ -1,4 +1,5 @@
 import type { ReplicationWithUrl } from '@/types/replications';
+import { applyCuratedOrder } from '@server/curatedOrder';
 import { sortWithinGroup } from './galleryModel';
 
 /**
@@ -59,13 +60,18 @@ export function orderEffectReplications(
 
 /**
  * Order one contributor's works. Their body of work spans effects, so no single
- * effect's curated `gallery_order` governs it and the shared newest-first sort
- * is the whole order.
+ * effect's curated `gallery_order` governs it — the contributor's own
+ * `replicationOrder` leads, and the shared newest-first sort carries the rest.
  */
 export function orderContributorReplications(
   replications: readonly ReplicationWithUrl[],
+  contributorOrder?: readonly string[],
 ): ReplicationWithUrl[] {
-  return orderEffectReplications(replications);
+  return applyCuratedOrder(
+    orderEffectReplications(replications),
+    contributorOrder,
+    (replication) => replication.slug,
+  );
 }
 
 /**
@@ -168,6 +174,13 @@ export interface ReplicationNeighborSetInput {
   artistWorks: readonly ReplicationWithUrl[];
   /** Display name of that artist, absent when the work is unattributed. */
   artistName: string | null;
+  /**
+   * The artist's own curated ordering (`contributorProfiles.replicationOrder`),
+   * which governs the artist set only. The profile rail applies exactly this
+   * list to exactly this set, so a walk that starts at a pinned work moves
+   * through the pinned works in the order the rail shows them.
+   */
+  artistOrder?: readonly string[];
   effectWorks: readonly ReplicationWithUrl[];
   effectName: string | null;
   /** The effect's curated order, which governs the effect set only. */
@@ -191,12 +204,16 @@ export function selectReplicationNeighborSet({
   slug,
   artistWorks,
   artistName,
+  artistOrder,
   effectWorks,
   effectName,
   galleryOrder,
 }: ReplicationNeighborSetInput): ReplicationNeighborSet {
   if (artistName) {
-    const byArtist = selectReplicationNeighbors(orderContributorReplications(artistWorks), slug);
+    const byArtist = selectReplicationNeighbors(
+      orderContributorReplications(artistWorks, artistOrder),
+      slug,
+    );
 
     if (byArtist.position > 0 && byArtist.total > 1) {
       return { ...byArtist, scope: 'artist', scopeLabel: artistName };

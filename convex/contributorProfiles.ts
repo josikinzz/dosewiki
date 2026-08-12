@@ -136,6 +136,68 @@ export const getForBulkImport = query({
   },
 });
 
+/**
+ * Editor read of one profile, including the fields the public projection
+ * deliberately drops.
+ *
+ * `getAll` returns `PublicProfile`, which carries no `membershipEmail` and no
+ * `avatarStorageId` — correct for a public page, but those are exactly the two
+ * fields the editor form has to round-trip: an omitted `membershipEmail` in a
+ * patch means "leave it", so the form cannot tell "unset" from "unknown"
+ * without reading the stored value first.
+ *
+ * Deliberately not `getForBulkImport`: that one is keyed by an array and
+ * returns raw rows for the migration path, unmaterialized on purpose. This
+ * resolves the stored avatar to a URL so the editor previews what the public
+ * page shows.
+ */
+export const getEditorProfile = query({
+  args: {
+    apiKey: v.optional(v.string()),
+    actorEmail: v.optional(v.string()),
+    key: v.string(),
+  },
+  handler: async (ctx, args) => {
+    await requireEditorWrite(ctx, {
+      apiKey: args.apiKey,
+      actorEmail: args.actorEmail,
+      adminIntent: "profileMediaWrite",
+    });
+
+    const key = normalizeProfileKey(args.key);
+    if (!key) {
+      return null;
+    }
+
+    const existing = await getStoredByKey(ctx, key);
+    if (!existing) {
+      return null;
+    }
+
+    const stored = existing as StoredProfile;
+    const storedAvatarUrl = stored.avatarStorageId
+      ? await ctx.storage.getUrl(stored.avatarStorageId)
+      : null;
+
+    return {
+      key: normalizeProfileKey(stored.key),
+      displayName: stored.displayName,
+      aliases: stored.aliases ?? [],
+      bio: stored.bio ?? "",
+      role: stored.role ?? null,
+      links: stored.links ?? [],
+      membershipEmail: stored.membershipEmail ?? null,
+      avatarUrl: stored.avatarUrl ?? null,
+      avatarStorageId: stored.avatarStorageId ?? null,
+      storedAvatarUrl,
+      replicationOrder: normalizeOrderSlugs(stored.replicationOrder),
+      reportOrder: normalizeOrderSlugs(stored.reportOrder),
+      updatedAt: stored.updatedAt ?? null,
+      updatedBy: stored.updatedBy ?? null,
+    };
+  },
+});
+
 export const getOwnedProfile = query({
   args: {
     apiKey: v.optional(v.string()),

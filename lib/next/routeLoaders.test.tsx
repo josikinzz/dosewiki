@@ -104,6 +104,20 @@ function buildContributorProfile(overrides: Partial<NormalizedUserProfile> = {})
   };
 }
 
+function buildTripReport(overrides: { slug: string; featured?: boolean }) {
+  return {
+    slug: overrides.slug,
+    title: `Report ${overrides.slug}`,
+    featured: overrides.featured ?? false,
+    subject: { name: "Ada" },
+    substances: [],
+    onset: [],
+    peak: [],
+    offset: [],
+    tags: [],
+  };
+}
+
 function buildReplication(overrides: Partial<ReplicationWithUrl> = {}): ReplicationWithUrl {
   return {
     _id: `id-${overrides.slug ?? "base"}`,
@@ -343,6 +357,33 @@ describe("route loaders", () => {
     expect(publicData.getPublicEffectArticles).not.toHaveBeenCalled();
   });
 
+  it("resolves article bylines from authorProfileKeys and drops keys no profile claims", async () => {
+    publicData.getPublicContributorProfiles.mockResolvedValueOnce([
+      { key: "JOSIE", displayName: "Josie Kins", aliases: ["josikinz"] },
+    ] as unknown as NormalizedUserProfile[]);
+    publicData.getPublicEffectIndexArticleBySlug.mockResolvedValueOnce({
+      slug: "dmt",
+      title: "DMT",
+      publication_status: "published",
+      tags: [],
+      body_raw: "[p]DMT.[/p]",
+      // The legacy ObjectId stays unrendered; the backfilled key is what prints.
+      authors: ["60542430198361300fea3610"],
+      authorProfileKeys: ["josie", "NOBODY"],
+    });
+
+    const result = await loadArticleRoute("dmt");
+
+    expect(result.kind).toBe("ok");
+    if (result.kind !== "ok") {
+      throw new Error("expected ok result");
+    }
+
+    expect(result.pageProps.bylineAuthors).toEqual([
+      { key: "JOSIE", name: "Josie Kins", href: "/contributors/josie" },
+    ]);
+  });
+
   it("returns article detail and published-only index results", async () => {
     publicData.getPublicEffectIndexArticleBySlug.mockResolvedValueOnce({
       slug: "dxm",
@@ -370,6 +411,7 @@ describe("route loaders", () => {
           slug: "dxm",
           publication_status: "unlisted",
         },
+        bylineAuthors: [],
       },
     });
 
@@ -585,6 +627,50 @@ describe("route loaders", () => {
     // Only 36 works are curated corpus-wide, so this is the common case and it
     // must stay a pure no-op.
     expect(result.pageProps.replications.map((work) => work.slug)).toEqual(["new", "old"]);
+  });
+
+  it("puts the contributor's own curation ahead of the editorial list", async () => {
+    publicData.getPublicContributorByKey.mockResolvedValueOnce(
+      buildContributorProfile({ replicationOrder: ["old", "gone"] }),
+    );
+    publicData.getReportsByContributor.mockResolvedValueOnce([]);
+    publicData.getReplicationsByContributor.mockResolvedValueOnce([
+      buildReplication({ slug: "new", created_at: "2025-01-01T00:00:00.000Z" }),
+      buildReplication({ slug: "old", created_at: "2023-01-01T00:00:00.000Z" }),
+      // Editorial curation still floats its pick above the default sort, but
+      // below anything the contributor pinned themselves.
+      buildReplication({ slug: "forest-of-life-loka", created_at: "2019-01-01T00:00:00.000Z" }),
+    ]);
+
+    const result = await loadContributorRoute("ada");
+
+    if (result.kind !== "ok") {
+      throw new Error("expected ok result");
+    }
+    // "gone" matches no work and is simply ignored.
+    expect(result.pageProps.replications.map((work) => work.slug)).toEqual([
+      "old",
+      "forest-of-life-loka",
+      "new",
+    ]);
+  });
+
+  it("leads the reports list with the contributor's curated reports", async () => {
+    publicData.getPublicContributorByKey.mockResolvedValueOnce(
+      buildContributorProfile({ reportOrder: ["second", "missing"] }),
+    );
+    publicData.getReportsByContributor.mockResolvedValueOnce([
+      buildTripReport({ slug: "first" }),
+      buildTripReport({ slug: "second" }),
+    ]);
+    publicData.getReplicationsByContributor.mockResolvedValueOnce([]);
+
+    const result = await loadContributorRoute("ada");
+
+    if (result.kind !== "ok") {
+      throw new Error("expected ok result");
+    }
+    expect(result.pageProps.tripReports.map((report) => report.slug)).toEqual(["second", "first"]);
   });
 
   it("hands the profile the effect articles crediting the contributor", async () => {

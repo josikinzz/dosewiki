@@ -5,16 +5,22 @@ import { SITE_FLAVOR_CONFIG, isEffectIndex } from "@/config/siteFlavor";
 import { EffectIndexHomePage } from "@/features/effect-index/home/EffectIndexHomePage";
 import { HomeExperience } from "./_components/HomeExperience";
 import { buildHomeQuickLinks } from "./_components/homeQuickLinks";
+import { flavoredCopyText, getCopy } from "@server/next/copyBlocks";
 
 // The homepage deliberately does not route through buildPublicPageMetadata: its Open
 // Graph card is inherited from the root layout's flavored metadata block. Only the title
 // and description are overridden here, and both come from the site flavor config.
-export function generateMetadata(): Metadata {
+export async function generateMetadata(): Promise<Metadata> {
   const isConstructionMode = env.NEXT_PUBLIC_HOME_CONSTRUCTION_MODE === "true";
+  const copy = await getCopy();
 
   return {
     title: SITE_FLAVOR_CONFIG.homeTitle,
-    description: SITE_FLAVOR_CONFIG.description,
+    description: flavoredCopyText(
+      copy,
+      "home-hero-tagline",
+      SITE_FLAVOR_CONFIG.description,
+    ),
     robots: isConstructionMode
       ? {
           index: false,
@@ -44,5 +50,21 @@ export default async function HomePage() {
     return <EffectIndexHomePage {...(await loadEffectIndexHomeData())} />;
   }
 
-  return <HomeExperience quickLinks={quickLinks} isConstructionMode={isConstructionMode} />;
+  const copy = await getCopy();
+
+  return (
+    <HomeExperience
+      quickLinks={quickLinks}
+      isConstructionMode={isConstructionMode}
+      copy={{
+        tagline: flavoredCopyText(
+          copy,
+          "home-hero-tagline",
+          SITE_FLAVOR_CONFIG.description,
+        ),
+        constructionTitle: copy.text("home-construction-title"),
+        constructionSubtitle: copy.text("home-construction-subtitle"),
+      }}
+    />
+  );
 }

@@ -227,5 +227,592 @@
     "label": "Root SEO description",
     "group": "Status pages",
     "body": "A resource dedicated to establishing the field of formalised subjective effect documentation."
+  },
+  {
+    "key": "substances-category-psychedelic",
+    "kind": "markdown",
+    "label": "Psychedelic definition",
+    "group": "Substance categories",
+    "body": "**Psychedelics** (also known as serotonergic hallucinogens) are a subclass of hallucinogen that change perception, emotion, and thought. The user usually stays aware that a drug causes the experience. Researchers think that psychedelics act mainly on a serotonin receptor called 5-HT2A, which loosens the normal filtering of incoming information in the brain. Common effects are stronger color, flowing geometric patterns, deeper emotion, and a sense of insight. The term dates from 1956. It comes from the Greek *psyche* (\"mind\") and *delos* (\"to reveal\"), and means \"mind-manifesting.\""
+  },
+  {
+    "key": "substances-category-dissociative",
+    "kind": "markdown",
+    "label": "Dissociative definition",
+    "group": "Substance categories",
+    "body": "**Dissociatives** are a subclass of hallucinogen that produce a feeling of detachment from the body, the sense of self, and the surroundings. Researchers think that dissociatives mainly block NMDA receptors, which are part of the glutamate system. This system binds sensory information and the self into one coherent experience. The block interrupts this system and creates the sense of disconnection. At low doses, the effect is a floaty, dreamlike state. At high doses, the effect is a full out-of-body experience."
+  },
+  {
+    "key": "substances-category-entactogen",
+    "kind": "markdown",
+    "label": "Entactogen definition",
+    "group": "Substance categories",
+    "body": "**Entactogens** (also known as empathogens) are a class of psychoactive substances that produce emotional openness, empathy, warmth, and closeness to other people. Entactogens mainly cause a large release of serotonin, with some dopamine and noradrenaline. This mix makes the experience mildly euphoric and social, not strongly hallucinatory. The name comes from the Greek *en* (\"within\"), the Latin *tactus* (\"touch\"), and *-gen* (\"to produce\"). Together these parts mean \"to touch within.\""
+  },
+  {
+    "key": "substances-category-stimulant",
+    "kind": "markdown",
+    "label": "Stimulant definition",
+    "group": "Substance categories",
+    "body": "**Stimulants** (also known as \"uppers\") are a class of psychoactive substances that speed up the central nervous system. They increase energy, alertness, wakefulness, and focus. They also reduce appetite and fatigue. Stimulants mainly raise the levels of dopamine and noradrenaline, the drive and alertness chemicals of the brain. These raised levels are also the reason that a crash often follows the effects. The name comes from the Latin *stimulare*, which means \"to goad on.\""
+  },
+  {
+    "key": "substances-category-nootropic",
+    "kind": "markdown",
+    "label": "Nootropic definition",
+    "group": "Substance categories",
+    "body": "**Nootropics** (also known as cognitive enhancers or \"smart drugs\") are a class of psychoactive substances that support mental performance, such as memory, focus, learning, and motivation. They usually have few side effects. Nootropics do not share one mechanism. Different nootropics work in different ways: some change neurotransmitter levels, some increase blood flow to the brain, and some protect brain cells. Their effects are therefore small and gradual, and they do not produce an obvious high. The term dates from 1972 and comes from the Greek *noos* (\"mind\") and *tropein* (\"to turn\"), which mean \"mind-turning.\""
+  },
+  {
+    "key": "substances-category-antidepressant",
+    "kind": "markdown",
+    "label": "Antidepressant definition",
+    "group": "Substance categories",
+    "body": "**Antidepressants** are a class of psychoactive medications that treat depression and related conditions. Most antidepressants slow the reabsorption of serotonin or noradrenaline in the brain, which keeps more of it active over time. For this reason, they have no immediate effect and take weeks to work. An antidepressant is not the opposite of a \"depressant\" drug. The two words use \"depress\" in different senses: one refers to the mood disorder, and the other refers to a slower nervous system."
+  },
+  {
+    "key": "substances-category-antipsychotic",
+    "kind": "markdown",
+    "label": "Antipsychotic definition",
+    "group": "Substance categories",
+    "body": "**Antipsychotics** (also known as neuroleptics) are a class of psychoactive medications that manage psychosis. Psychosis includes hallucinations, delusions, and disordered thought. Antipsychotics mainly block dopamine receptors. This block reduces dopamine signaling, which researchers think runs too high during a psychotic state."
+  },
+  {
+    "key": "substances-category-opioid",
+    "kind": "markdown",
+    "label": "Opioid definition",
+    "group": "Substance categories",
+    "body": "**Opioids** are a class of psychoactive substances that relieve pain and produce euphoria, relaxation, and contentment. They also cause sedation. At high doses, opioids slow breathing to a dangerous degree. Opioids imitate endorphins, the natural painkilling chemicals of the body, and act on the same opioid receptors. The name comes from *opium*, the extract of the poppy, and *-oid* (\"resembling\"). The term \"opiate\" covers only natural poppy derivatives, but \"opioid\" covers any substance that acts on these receptors."
+  },
+  {
+    "key": "substances-category-deliriant",
+    "kind": "markdown",
+    "label": "Deliriant definition",
+    "group": "Substance categories",
+    "body": "**Deliriants** are a subclass of hallucinogen that produce delirium: a state of confusion, an inability to tell hallucinations from reality, and frequent amnesia afterward. Deliriants block acetylcholine, a neurotransmitter that the brain needs for memory, attention, and a stable view of the real world. Psychedelics and dissociatives usually cause hallucinations that the user knows are unreal. Deliriants instead produce \"true\" hallucinations, which the user cannot tell apart from reality. This difference makes deliriants the most disorienting of the three subclasses. The name comes from the Latin *delirare*, which means \"to go off the track.\""
+  },
+  {
+    "key": "substances-category-gabaergic",
+    "kind": "markdown",
+    "label": "Sedative-hypnotics definition",
+    "group": "Substance categories",
+    "body": "**Sedative-hypnotics** are psychoactive substances that usually cause sedation, drowsiness, or sleep. This class holds several families of depressant drugs with different mechanisms: benzodiazepines, barbiturates, alcohol, GABA analogs, and some substances that act on voltage-gated calcium channels. Opioids have their own category."
+  },
+  {
+    "key": "substances-category-cannabinoid",
+    "kind": "markdown",
+    "label": "Cannabinoid definition",
+    "group": "Substance categories",
+    "body": "**Cannabinoids** are a class of psychoactive substances that change mood, appetite, memory, perception, and pain through the endocannabinoid system of the body. They act on the CB1 receptors that the natural cannabis-like signal chemicals of the body normally use. Common effects are relaxation, a changed sense of time, and more appetite. The name comes from the *Cannabis* plant, where researchers first identified these compounds."
+  },
+  {
+    "key": "substances-category-super-hallucinogens",
+    "kind": "markdown",
+    "label": "Hallucinogens (umbrella tab) definition",
+    "group": "Substance categories",
+    "body": "**Hallucinogens** are a class of psychoactive substances that produce strong changes in perception, mood, and thought. The experience often feels like a different state of consciousness, not a stronger or weaker version of normal awareness. There are three subclasses of hallucinogens: psychedelics, dissociatives, and deliriants. Each subclass acts on a different brain system and produces a different type of experience. The name comes from the Latin *hallucinari*, which means \"to wander in the mind.\""
+  },
+  {
+    "key": "substances-category-super-depressants",
+    "kind": "markdown",
+    "label": "Depressants (umbrella tab) definition",
+    "group": "Substance categories",
+    "body": "**Depressants** (also known as \"downers\") are a class of psychoactive substances that slow the central nervous system. They produce relaxation, calm, less anxiety, drowsiness, and lower inhibition. Most depressants strengthen GABA, the main inhibitory or \"braking\" system of the brain. A stronger GABA system reduces activity across the nervous system. The word \"depressant\" means lower nervous-system activity. It does not mean sadness."
+  },
+  {
+    "key": "seo-substances-index-description",
+    "kind": "plain",
+    "label": "Substance Index meta description",
+    "group": "SEO",
+    "body": "Browse {{substanceCount}} substance records in {{siteName}}."
+  },
+  {
+    "key": "effects-index-intro-lead",
+    "kind": "plain",
+    "label": "SEI intro, lead paragraph",
+    "group": "Subjective Effect Index",
+    "body": "The **Subjective Effect Index** is a comprehensive catalogue of {{effectCount}} subjective effects that may occur under the influence of psychoactive substances."
+  },
+  {
+    "key": "effects-index-intro-method",
+    "kind": "plain",
+    "label": "SEI intro, writing-style paragraph",
+    "group": "Subjective Effect Index",
+    "body": "The effects are accompanied by detailed descriptions written in a consistent style that avoids flowery metaphors, using simple and accessible language to serve as a universal terminology for communicating experiences that are difficult to convey."
+  },
+  {
+    "key": "effects-index-intro-organisation",
+    "kind": "plain",
+    "label": "SEI intro, organisation paragraph",
+    "group": "Subjective Effect Index",
+    "body": "Effects are organised into categories based on the senses they affect and their behavior, with many broken down into leveling systems, subcomponents, and style variations. Image, video, and audio replications supplement text-based descriptions."
+  },
+  {
+    "key": "effects-index-tab-sensory",
+    "kind": "plain",
+    "label": "Sensory tab intro",
+    "group": "Subjective Effect Index",
+    "body": "Sensory effects are subjective effects that directly alter a person's senses. These can include any combination of sight, sound, touch, taste, and smell."
+  },
+  {
+    "key": "effects-index-tab-cognitive",
+    "kind": "plain",
+    "label": "Cognitive tab intro",
+    "group": "Subjective Effect Index",
+    "body": "Cognitive effects are subjective effects that directly alter or introduce new content to an element of a person's cognition."
+  },
+  {
+    "key": "effects-index-tab-physical",
+    "kind": "plain",
+    "label": "Physical tab intro",
+    "group": "Subjective Effect Index",
+    "body": "Physical effects are subjective effects that directly affect part of a person's physical body."
+  },
+  {
+    "key": "effects-category-visual-effects",
+    "kind": "markdown",
+    "label": "Visual Effects description",
+    "group": "Effect categories",
+    "body": "Visual effects are defined as any subjective effect that directly alters a person's sense of sight."
+  },
+  {
+    "key": "effects-category-visual-amplifications",
+    "kind": "markdown",
+    "label": "Visual Amplifications description",
+    "group": "Effect categories",
+    "body": "Visual amplifications are defined as any subjective effect that increases, enhances, accelerates, or intensifies a facet of a person's sense of sight."
+  },
+  {
+    "key": "effects-category-visual-suppressions",
+    "kind": "markdown",
+    "label": "Visual Suppressions description",
+    "group": "Effect categories",
+    "body": "Visual suppressions are defined as any subjective effect that decreases a person's ability to perceive the external environment through their sense of sight."
+  },
+  {
+    "key": "effects-category-visual-distortions",
+    "kind": "markdown",
+    "label": "Visual Distortions description",
+    "group": "Effect categories",
+    "body": "Visual distortions are defined as any subjective effect that alters the perception or appearance of pre-existing visual data without adding any entirely new content."
+  },
+  {
+    "key": "effects-category-geometric-patterns",
+    "kind": "markdown",
+    "label": "Geometric Patterns description",
+    "group": "Effect categories",
+    "body": "Geometric patterns are defined as any subjective effect that introduces complex arrays of shapes, colours, symbols, patterns, geometry, form constants, and fractals to one's field of vision."
+  },
+  {
+    "key": "effects-category-hallucinatory-states",
+    "kind": "markdown",
+    "label": "Hallucinatory Effects description",
+    "group": "Effect categories",
+    "body": "Hallucinatory states are defined as any subjective effect that changes the perception or appearance of pre-existing sensory data by adding entirely new content in a manner similar to that of dreams."
+  },
+  {
+    "key": "effects-category-auditory-effects",
+    "kind": "markdown",
+    "label": "Auditory Effects description",
+    "group": "Effect categories",
+    "body": "Effects that directly alter a person's sense of hearing."
+  },
+  {
+    "key": "effects-category-smell-and-taste-effects",
+    "kind": "markdown",
+    "label": "Smell & Taste Effects description",
+    "group": "Effect categories",
+    "body": "Smell and taste effects are defined as any subjective effect that directly alters either a person's sense of smell or taste."
+  },
+  {
+    "key": "effects-category-tactile-effects",
+    "kind": "markdown",
+    "label": "Tactile Effects description",
+    "group": "Effect categories",
+    "body": "Tactile effects are defined as any subjective effect that directly alters a person's sense of touch."
+  },
+  {
+    "key": "effects-category-multisensory-effects",
+    "kind": "markdown",
+    "label": "Multisensory Effects description",
+    "group": "Effect categories",
+    "body": "Multisensory effects are defined as any subjective effect that directly alters two or more senses at a time."
+  },
+  {
+    "key": "effects-category-disconnective-effects",
+    "kind": "markdown",
+    "label": "Disconnective Effects description",
+    "group": "Effect categories",
+    "body": "Disconnective effects are defined as any subjective effect that feels as if it disconnects one from the external environment, their senses, and/or their consciousness."
+  },
+  {
+    "key": "effects-category-cognitive-effects",
+    "kind": "markdown",
+    "label": "Cognitive Effects description",
+    "group": "Effect categories",
+    "body": "Cognitive effects are subjective effects that directly alter or introduce new content to an element of a person's cognition."
+  },
+  {
+    "key": "effects-category-cognitive-amplifications",
+    "kind": "markdown",
+    "label": "Cognitive Amplifications description",
+    "group": "Effect categories",
+    "body": "Cognitive amplifications are defined as any subjective effect that increases, enhances, accelerates, or intensifies a facet of a person's cognition."
+  },
+  {
+    "key": "effects-category-cognitive-suppressions",
+    "kind": "markdown",
+    "label": "Cognitive Suppressions description",
+    "group": "Effect categories",
+    "body": "Cognitive suppressions are defined as any subjective effect that decreases the intensity of a facet of a person's cognition."
+  },
+  {
+    "key": "effects-category-novel-cognitive-states",
+    "kind": "markdown",
+    "label": "Novel Cognitive States description",
+    "group": "Effect categories",
+    "body": "Novel cognitive states are defined as any cognitive effect that does not merely amplify or suppress familiar states of mind; rather, it induces an experience that is qualitatively different from that of ordinary consciousness."
+  },
+  {
+    "key": "effects-category-psychological-states",
+    "kind": "markdown",
+    "label": "Psychological States description",
+    "group": "Effect categories",
+    "body": "Psychological states are defined as any cognitive effect that is either established within the psychological literature or arises as a result of the complex interplay between more simplistic components such as cognitive enhancements and suppressions."
+  },
+  {
+    "key": "effects-category-transpersonal-states",
+    "kind": "markdown",
+    "label": "Transpersonal States description",
+    "group": "Effect categories",
+    "body": "Transpersonal states are defined as any subjective effect that feels as if it alters a person's cognition in a manner that relates to their place in the universe, the inner workings of reality or consciousness, and/or the context of their existence. The highest manifestations of these effects fall under what are commonly known as 'peak', 'transcendent' or 'transformative' experiences."
+  },
+  {
+    "key": "effects-category-transpersonal-effects",
+    "kind": "markdown",
+    "label": "Transpersonal Effects description",
+    "group": "Effect categories",
+    "body": "Transpersonal effects are defined as any subjective effect that feels as if it alters a person's cognition in a manner that relates to their place in the universe, the inner workings of reality or consciousness, and/or the context of their existence. The highest manifestations of these effects fall under what are commonly known as \"peak\", \"transcendent\" or \"transformative\" experiences.\n\nThese effects are typically associated with high dose psychedelic or dissociative experiences. They can occur regardless of the person's spiritual or religious beliefs and often have a distinct and lasting impact on the user's perspective of the world around them. During the experience of a substance-induced transpersonal state, the information conveyed is often felt to be a real and objective truth. However, the person will often come to disagree with these supposed \"epiphanies\" once the effects of the substance have worn off.\n\nIt should be noted that these mind-states are the least reproducible of all effects within the Subjective Effect Index. Simply taking more of a given substance does not necessarily increase the chances of having these states occur. Instead, they seem to rely more on contextual factors, such as the person's set and setting.\n\nThis page lists the various transpersonal effects that can occur under the influence of certain psychoactive compounds."
+  },
+  {
+    "key": "effects-category-physical-effects",
+    "kind": "markdown",
+    "label": "Physical Effects description",
+    "group": "Effect categories",
+    "body": "Physical effects are subjective effects that directly alter a person's perception of their physical body or its physiological functions."
+  },
+  {
+    "key": "effects-category-physical-amplifications",
+    "kind": "markdown",
+    "label": "Physical Amplifications description",
+    "group": "Effect categories",
+    "body": "Physical amplifications are defined as any subjective effect that increases, enhances, accelerates, or intensifies a facet of a person's physical body."
+  },
+  {
+    "key": "effects-category-physical-suppressions",
+    "kind": "markdown",
+    "label": "Physical Suppressions description",
+    "group": "Effect categories",
+    "body": "Physical suppressions are defined as any subjective effect that decreases or reduces a facet of a person's physical body."
+  },
+  {
+    "key": "effects-category-physical-alterations",
+    "kind": "markdown",
+    "label": "Physical Alterations description",
+    "group": "Effect categories",
+    "body": "Physical alterations are defined as any subjective effect that changes a facet of a person's physical body in a manner which is not uncomfortable and does not involve a clearly definable enhancement or suppression."
+  },
+  {
+    "key": "effects-category-uncomfortable-physical-effects",
+    "kind": "markdown",
+    "label": "Uncomfortable Physical Effects description",
+    "group": "Effect categories",
+    "body": "Uncomfortable physical effects are defined as any substance-induced alteration of a person's physical state that is unpleasant, undesirable, painful, or otherwise a source of distress."
+  },
+  {
+    "key": "effects-category-cardiovascular-effects",
+    "kind": "markdown",
+    "label": "Cardiovascular Effects description",
+    "group": "Effect categories",
+    "body": "Cardiovascular effects are defined as any uncomfortable physical effect that relates to the heart and blood vessels."
+  },
+  {
+    "key": "effects-category-neurological-effects",
+    "kind": "markdown",
+    "label": "Neurological Effects description",
+    "group": "Effect categories",
+    "body": "Neurological effects are defined as any uncomfortable physical effect that relates to the brain and its blood vessels."
+  },
+  {
+    "key": "effects-category-uncomfortable-bodily-effects",
+    "kind": "markdown",
+    "label": "Uncomfortable Bodily Effects description",
+    "group": "Effect categories",
+    "body": "Uncomfortable bodily effects are defined as any uncomfortable physical effect that relates to the overall body and cannot be categorized as cardiovascular or cerebrovascular."
+  },
+  {
+    "key": "seo-effects-index-description",
+    "kind": "plain",
+    "label": "Effects Index meta description",
+    "group": "SEO",
+    "body": "Browse {{effectCount}} subjective effect entries in {{siteName}}."
+  },
+  {
+    "key": "home-hero-tagline-effect-index",
+    "flavor": "effect-index",
+    "kind": "plain",
+    "label": "Hero tagline",
+    "group": "Home",
+    "body": "A resource dedicated to establishing the field of formalised subjective effect documentation."
+  },
+  {
+    "key": "replications-intro",
+    "kind": "plain",
+    "label": "Replications intro",
+    "group": "Replications",
+    "body": "Replications are image, video, and audio recreations of the sensory experiences produced by various subjective effects that a user may encounter under the influence of hallucinogens. Replications may be created intentionally or unintentionally, as long as they accurately convey the effect being shown. They serve the purpose of documenting certain experiences in a level of detail that descriptive language is incapable of describing."
+  },
+  {
+    "key": "replications-card-gallery-title",
+    "kind": "plain",
+    "label": "Gallery card title",
+    "group": "Replications",
+    "body": "Gallery"
+  },
+  {
+    "key": "replications-card-gallery-description",
+    "kind": "plain",
+    "label": "Gallery card blurb",
+    "group": "Replications",
+    "body": "Browse image and video replications alongside the effects they recreate."
+  },
+  {
+    "key": "replications-card-audio-title",
+    "kind": "plain",
+    "label": "Audio card title",
+    "group": "Replications",
+    "body": "Audio"
+  },
+  {
+    "key": "replications-card-audio-description",
+    "kind": "plain",
+    "label": "Audio card blurb",
+    "group": "Replications",
+    "body": "Audio recreations of what a subjective effect sounds like."
+  },
+  {
+    "key": "replications-card-tutorials-title",
+    "kind": "plain",
+    "label": "Tutorials card title",
+    "group": "Replications",
+    "body": "Tutorials"
+  },
+  {
+    "key": "replications-card-tutorials-description",
+    "kind": "plain",
+    "label": "Tutorials card blurb",
+    "group": "Replications",
+    "body": "Guides and resources for replicating specific subjective effects."
+  },
+  {
+    "key": "replications-card-subreddit-title",
+    "kind": "plain",
+    "label": "Subreddit card title",
+    "group": "Replications",
+    "body": "r/replications"
+  },
+  {
+    "key": "replications-card-subreddit-description",
+    "kind": "plain",
+    "label": "Subreddit card blurb",
+    "group": "Replications",
+    "body": "The community where replications are shared, critiqued and requested."
+  },
+  {
+    "key": "seo-replications-description",
+    "kind": "plain",
+    "label": "Replications meta description",
+    "group": "SEO",
+    "body": "Image, video, and audio recreations of the sensory experiences produced by subjective effects."
+  },
+  {
+    "key": "seo-reports-index-description",
+    "kind": "plain",
+    "label": "Reports index meta description",
+    "group": "SEO",
+    "body": "Browse {{reportCount}} trip reports in {{siteName}}."
+  },
+  {
+    "key": "contact-intro-effect-index",
+    "flavor": "effect-index",
+    "kind": "markdown",
+    "label": "Contact intro",
+    "group": "Support pages",
+    "body": "To collectively contact the staff members of this site, please email us at [contact@dose.wiki.](mailto:contact@dose.wiki) However, if you would like to contact the site founder directly, please refer to the contact information below:"
+  },
+  {
+    "key": "donate-intro-effect-index",
+    "flavor": "effect-index",
+    "kind": "markdown",
+    "label": "Donate intro",
+    "group": "Support pages",
+    "body": "If you would be interested in contributing to the Effect Index project we have a number of donation options available. The funds will be used for hosting costs and enable us to devote more of our time to Subjective Effect Documentation.\n\nAny contribution is greatly appreciated!"
+  },
+  {
+    "key": "discord-intro-effect-index",
+    "flavor": "effect-index",
+    "kind": "markdown",
+    "label": "Discord intro",
+    "group": "Support pages",
+    "body": "The official Effect Index community is hosted on Discord and may be joined [here.]({{discordInvite}})\n\nThis a semi-private community and is not primarily for general conversation; instead, it aims to be a place of discussion and co-operation for progressing the field of formalised subjective effect documentation. For this reason, we tend to only invite people who genuinely want to contribute to the project. This can include anyone from proofreaders, trip reporters, web developers, programmers, replicators, artists, and more.\n\nIf you have an interest in contributing to and taking part in our community's various projects, please contact us within the public waiting room channel and tell us why you are interested in this project. Thanks!"
+  },
+  {
+    "key": "discord-rules-effect-index",
+    "flavor": "effect-index",
+    "kind": "list",
+    "label": "Discord rules",
+    "group": "Support pages",
+    "items": [
+      "You must be at least 18+ years old.",
+      "Please be polite and reasonable.",
+      "You may not discuss any drug sources. Not even in DMs.",
+      "Keep specific topics within their relevant channels.",
+      "This community is inclusive and does not accept any kind of racism, homophobia, sexism, transphobia, ableism, general hatefulness, etc, etc.",
+      "This community is relatively Safe For Work (SFW), please do not post overtly sexual or edgy content. This includes hornyposting and excessive shitposting."
+    ]
+  },
+  {
+    "key": "copyright-disclaimer-body-effect-index",
+    "flavor": "effect-index",
+    "kind": "markdown",
+    "label": "Copyright disclaimer",
+    "group": "Support pages",
+    "body": "EffectIndex.com and its materials, including all indexing-related and written content, are available under the [Creative Commons Attribution-ShareAlike License](https://creativecommons.org/licenses/by-nc-sa/4.0/) for non-commercial use. Additional terms may apply; contact [contact@dose.wiki](mailto:contact@dose.wiki) for more information and commercial inquiries.\n\nAll replications, multimedia, and non-SEI artwork belong to their original creators and are protected by international copyright laws. Artwork used without the creator's permission is reproduced at diminished quality and assumed to constitute \"fair use\" for educational and non-profit purposes. If you would like your artwork removed or reattributed, please contact [contact@dose.wiki](mailto:contact@dose.wiki)"
+  },
+  {
+    "key": "empty-effects-badge",
+    "kind": "plain",
+    "label": "Effects index empty badge",
+    "group": "Empty states",
+    "body": "No effects"
+  },
+  {
+    "key": "empty-effects-title",
+    "kind": "plain",
+    "label": "Effects index empty title",
+    "group": "Empty states",
+    "body": "No effects found"
+  },
+  {
+    "key": "empty-effects-description",
+    "kind": "plain",
+    "label": "Effects index empty body",
+    "group": "Empty states",
+    "body": "No subjective effects are published yet. They will appear here once the index is available."
+  },
+  {
+    "key": "empty-reports-badge",
+    "kind": "plain",
+    "label": "Reports index empty badge",
+    "group": "Empty states",
+    "body": "No reports yet"
+  },
+  {
+    "key": "empty-reports-title",
+    "kind": "plain",
+    "label": "Reports index empty title",
+    "group": "Empty states",
+    "body": "No trip reports found"
+  },
+  {
+    "key": "empty-reports-description",
+    "kind": "plain",
+    "label": "Reports index empty body",
+    "group": "Empty states",
+    "body": "There aren't any public reports in this deployment yet. Once reports are available, they'll appear here grouped by substance, title, or author."
+  },
+  {
+    "key": "empty-articles-badge",
+    "kind": "plain",
+    "label": "Articles index empty badge",
+    "group": "Empty states",
+    "body": "No articles yet"
+  },
+  {
+    "key": "empty-articles-title",
+    "kind": "plain",
+    "label": "Articles index empty title",
+    "group": "Empty states",
+    "body": "No published articles found"
+  },
+  {
+    "key": "empty-articles-description",
+    "kind": "plain",
+    "label": "Articles index empty body",
+    "group": "Empty states",
+    "body": "There aren't any published Effect Index articles in this deployment yet. Unlisted articles remain available only at their direct URLs."
+  },
+  {
+    "key": "empty-blog-badge",
+    "kind": "plain",
+    "label": "Blog index empty badge",
+    "group": "Empty states",
+    "body": "No posts yet"
+  },
+  {
+    "key": "empty-blog-title",
+    "kind": "plain",
+    "label": "Blog index empty title",
+    "group": "Empty states",
+    "body": "No archived posts found"
+  },
+  {
+    "key": "empty-blog-description",
+    "kind": "plain",
+    "label": "Blog index empty body",
+    "group": "Empty states",
+    "body": "The Effect Index blog archive is not available in this deployment yet. The articles index carries the site's long-form writing in the meantime."
+  },
+  {
+    "key": "unauthorized-badge",
+    "kind": "plain",
+    "label": "Unauthorized badge",
+    "group": "Status pages",
+    "body": "Access denied"
+  },
+  {
+    "key": "unauthorized-title",
+    "kind": "plain",
+    "label": "Unauthorized title",
+    "group": "Status pages",
+    "body": "You do not have editor access"
+  },
+  {
+    "key": "seo-contact-description",
+    "kind": "plain",
+    "label": "Contact meta description",
+    "group": "SEO",
+    "body": "How to reach the Effect Index staff by email, and the site founder's own Discord, Reddit and email contact details."
+  },
+  {
+    "key": "seo-donate-description",
+    "kind": "plain",
+    "label": "Donate meta description",
+    "group": "SEO",
+    "body": "Support the Effect Index project through Patreon, the merchandise store, PayPal or Ethereum, covering hosting costs and subjective effect documentation."
+  },
+  {
+    "key": "seo-discord-description",
+    "kind": "plain",
+    "label": "Discord meta description",
+    "group": "SEO",
+    "body": "The official Effect Index Discord community: what it is for, how to join it, and the rules its members are expected to follow."
+  },
+  {
+    "key": "seo-copyright-disclaimer-description",
+    "kind": "plain",
+    "label": "Copyright disclaimer meta description",
+    "group": "SEO",
+    "body": "The licence covering Effect Index material, and how to request that artwork be removed or reattributed to its original creator."
   }
 ]

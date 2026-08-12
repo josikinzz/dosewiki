@@ -3,21 +3,33 @@ import { loadEffectsIndexRoute } from "@server/next/routeLoaders";
 import { buildItemListSchema, serializeJsonLd } from "@/utils/seo/structuredData";
 import { EffectsIndexPage } from "@/features/effects/pages/EffectsIndexPage";
 import { SITE_FLAVOR_CONFIG } from "@/config/siteFlavor";
+import { getCopy } from "@server/next/copyBlocks";
+import { resolveEmptyStateCopy } from "@server/next/emptyStateCopy";
+import { SEI_INTRO_COPY_FALLBACK } from "@/features/effects/components/seiIntroCopy";
+import { applyPlaceholders } from "@/data/content/about";
 
 export const revalidate = 3600;
 const ITEM_LIST_LIMIT = 100;
 
 export async function generateMetadata() {
-  const result = await loadEffectsIndexRoute();
+  const [result, copy] = await Promise.all([loadEffectsIndexRoute(), getCopy()]);
+
+  const template =
+    copy.text("seo-effects-index-description") ||
+    "Browse {{effectCount}} subjective effect entries in {{siteName}}.";
 
   return buildPublicPageMetadata({
     ...result.metadata,
+    description: applyPlaceholders(template, {
+      effectCount: result.pageProps.effects.length,
+      siteName: SITE_FLAVOR_CONFIG.name,
+    }),
     route: result.canonicalRoute,
   });
 }
 
 export default async function EffectsPage() {
-  const result = await loadEffectsIndexRoute();
+  const [result, copy] = await Promise.all([loadEffectsIndexRoute(), getCopy()]);
   const canonicalUrl = buildSiteUrl(getPublicRoutePath(result.canonicalRoute));
   const itemListJsonLd = serializeJsonLd(
     buildItemListSchema({
@@ -37,7 +49,22 @@ export default async function EffectsPage() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: itemListJsonLd }}
       />
-      <EffectsIndexPage {...result.pageProps} />
+      <EffectsIndexPage
+        {...result.pageProps}
+        emptyState={resolveEmptyStateCopy(copy, "effects", result.pageProps.emptyState)}
+        introCopy={{
+          lead: copy.text("effects-index-intro-lead") || SEI_INTRO_COPY_FALLBACK.lead,
+          method: copy.text("effects-index-intro-method") || SEI_INTRO_COPY_FALLBACK.method,
+          organisation:
+            copy.text("effects-index-intro-organisation") ||
+            SEI_INTRO_COPY_FALLBACK.organisation,
+        }}
+        tabBlobs={{
+          sensory: copy.text("effects-index-tab-sensory") || undefined,
+          cognitive: copy.text("effects-index-tab-cognitive") || undefined,
+          physical: copy.text("effects-index-tab-physical") || undefined,
+        }}
+      />
     </>
   );
 }

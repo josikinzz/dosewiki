@@ -62,11 +62,17 @@ import {
 } from "../../src/features/effects/gallery/replicationDetailModel";
 import { EFFECT_INDEX_FEATURED_REPLICATION_SLUGS } from "./effectIndexHome";
 import type { ContributorEffectCredit } from "../../src/types/effectCredits";
+import type { ArticleBylineAuthor } from "../../src/features/articles/domain/articleByline";
 import {
   resolveEffectCategories,
   type EffectCategoryLink,
 } from "../../src/features/effects/pages/replicationSubject";
-import { findContributorProfileByAuthorName } from "../contributorProfileIdentity";
+import {
+  findContributorProfileByAuthorName,
+  findContributorProfileByKeyOrAlias,
+  normalizeProfileKey,
+} from "../contributorProfileIdentity";
+import { applyCuratedOrder } from "../curatedOrder";
 import type { ContributorDirectory } from "../contributorDirectory";
 import type { ChangeLogEntry } from "../../src/data/changelog/changeLog";
 import {
@@ -301,8 +307,49 @@ export const loadPsychoactiveSummaryRoute = cache(
 );
 
 export type ArticleRouteResult =
-  | OkRouteResult<{ article: PublicEffectIndexArticle }>
+  | OkRouteResult<{
+      article: PublicEffectIndexArticle;
+      bylineAuthors: ArticleBylineAuthor[];
+    }>
   | NotFoundRouteResult;
+
+/**
+ * Bylines render from `authorProfileKeys`, never from `authors`: the legacy
+ * import left `authors` as raw Mongo ObjectIds, and "by 60542430198361300fea3610"
+ * is worse than no byline at all. A key that no contributor profile claims is
+ * dropped for the same reason, so an unbackfilled article shows no byline
+ * exactly as it does today.
+ */
+async function resolveArticleBylineAuthors(
+  article: PublicEffectIndexArticle,
+): Promise<ArticleBylineAuthor[]> {
+  const keys = article.authorProfileKeys ?? [];
+
+  if (keys.length === 0) {
+    return [];
+  }
+
+  const profiles = await getPublicContributorProfiles();
+  const seen = new Set<string>();
+  const authors: ArticleBylineAuthor[] = [];
+
+  for (const rawKey of keys) {
+    const profile = findContributorProfileByKeyOrAlias(profiles, normalizeProfileKey(rawKey));
+
+    if (!profile || seen.has(profile.key)) {
+      continue;
+    }
+
+    seen.add(profile.key);
+    authors.push({
+      key: profile.key,
+      name: profile.displayName,
+      href: getPublicRoutePath({ family: "contributor", params: { profileKey: profile.key } }),
+    });
+  }
+
+  return authors;
+}
 
 export const loadArticleRoute = cache(async (slug: string): Promise<ArticleRouteResult> => {
   const article = await getPublicEffectIndexArticleBySlug(slug);
@@ -311,9 +358,11 @@ export const loadArticleRoute = cache(async (slug: string): Promise<ArticleRoute
     return { kind: "not-found" };
   }
 
+  const bylineAuthors = await resolveArticleBylineAuthors(article);
+
   return {
     kind: "ok",
-    pageProps: { article },
+    pageProps: { article, bylineAuthors },
     metadata: {
       title: article.title,
       description:
@@ -539,6 +588,9 @@ export const loadReplicationRoute = cache(async (slug: string): Promise<Replicat
   // beside the one they clicked, the two surfaces would disagree about what
   // comes after what — which is the kind of thing that reads as a bug rather
   // than as a different ordering policy.
+  // The artist's own curation is handed to the walk rather than applied here,
+  // because the walk re-sorts the set it is given; passing it through
+  // `artistOrder` is what keeps the pinned run identical on both surfaces.
   const artistWorks = artistProfile
     ? orderContributorWorksFeaturedFirst(
         await readContributorReplications(artistProfile),
@@ -551,6 +603,7 @@ export const loadReplicationRoute = cache(async (slug: string): Promise<Replicat
     slug,
     artistWorks,
     artistName: artistProfile?.displayName ?? null,
+    artistOrder: artistProfile?.replicationOrder,
     effectWorks: siblings,
     effectName: subject,
     galleryOrder: effect?.gallery_order,
@@ -699,14 +752,26 @@ export const loadContributorRoute = cache(
         history: buildProfileHistory(profile.key, 5, profile.aliases),
         bioContent: profile.hasCustomBio ? <ProfileBioMarkdown content={profile.bio} /> : null,
         reportHrefPrefix: REPORT_HREF_PREFIX,
-        tripReports: reports.map(toReportCardModel),
-        // Curated works lead the rail. The curation is Effect Index editorial
-        // and lives in one checked-in list, but the replication corpus *is* the
-        // Effect Index archive on either flavor, so there is nothing
-        // flavor-specific about which pieces it names.
-        replications: orderContributorWorksFeaturedFirst(
-          orderContributorReplications(replications),
-          EFFECT_INDEX_FEATURED_REPLICATION_SLUGS,
+        // The contributor's own curation outranks the editorial list: it is
+        // this person's page and they pinned these reports, so `reportOrder`
+        // leads and everything unlisted keeps the default report order.
+        tripReports: applyCuratedOrder(
+          reports.map(toReportCardModel),
+          profile.reportOrder,
+          (report) => report.slug,
+        ),
+        // Curated works lead the rail. The contributor's own `replicationOrder`
+        // comes first; beneath it, Effect Index editorial curation (a checked-in
+        // list — the replication corpus *is* the Effect Index archive on either
+        // flavor, so there is nothing flavor-specific about which pieces it
+        // names) still floats its picks ahead of the default newest-first sort.
+        replications: applyCuratedOrder(
+          orderContributorWorksFeaturedFirst(
+            orderContributorReplications(replications),
+            EFFECT_INDEX_FEATURED_REPLICATION_SLUGS,
+          ),
+          profile.replicationOrder,
+          (replication) => replication.slug,
         ),
         effectArticles,
       },

@@ -10,6 +10,8 @@ import {
   serializeJsonLd,
 } from "@/utils/seo/structuredData";
 import { SITE_FLAVOR_CONFIG } from "@/config/siteFlavor";
+import { getCopy } from "@server/next/copyBlocks";
+import { resolveEmptyStateCopy } from "@server/next/emptyStateCopy";
 
 export const revalidate = 3600;
 
@@ -23,7 +25,7 @@ export async function generateMetadata() {
 }
 
 export default async function ArticlesPage() {
-  const result = await loadArticlesIndexRoute();
+  const [result, copy] = await Promise.all([loadArticlesIndexRoute(), getCopy()]);
   const canonicalUrl = buildSiteUrl(getPublicRoutePath(result.canonicalRoute));
   const itemListJsonLd = serializeJsonLd(
     buildItemListSchema({
@@ -49,7 +51,10 @@ export default async function ArticlesPage() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: itemListJsonLd }}
       />
-      <ArticlesIndexPage {...result.pageProps} />
+      <ArticlesIndexPage
+        {...result.pageProps}
+        emptyState={resolveEmptyStateCopy(copy, "articles", result.pageProps.emptyState)}
+      />
     </>
   );
 }

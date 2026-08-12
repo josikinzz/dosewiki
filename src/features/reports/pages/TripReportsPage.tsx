@@ -1,7 +1,7 @@
 import Link from "next/link";
 
 import { Icon } from "@/components/common/Icon";
-import { proseLinkClassName } from "@/components/common/ProseLink";
+import { renderInlineCopy } from "@/components/common/InlineCopy";
 import { Button } from "@/components/ui/button";
 import { PageHeader } from "@/components/layout/PageHeader";
 import type { ReportCardModel } from "@/types/tripReport";
@@ -10,21 +10,18 @@ import { publicHref } from "@/utils/publicHref";
 import type { PublicRouteEmptyState } from "@server/next/publicRouteOutcomes";
 import { TripReportsExplorer } from "./TripReportsExplorer";
 
-const reportsDescription = (
-  <>
-    First-person accounts of substance experiences, consistently formatted and
-    cross-referenced with the{" "}
-    <Link href={publicHref.effects()} className={proseLinkClassName}>
-      Subjective Effect Index
-    </Link>
-    .
-  </>
-);
+/**
+ * Shipped before the copy CMS existed, and still the fallback: the Convex row
+ * and the checked-in copy default both hold this exact sentence.
+ */
+const REPORTS_INTRO_FALLBACK = `First-person accounts of substance experiences, consistently formatted and cross-referenced with the [Subjective Effect Index](${publicHref.effects()}).`;
 
 interface TripReportsPageProps {
   reports: ReportCardModel[];
   reportHrefPrefix?: string;
   emptyState?: PublicRouteEmptyState;
+  /** Editable index intro; `[label](/href)` links are rendered inline. */
+  intro?: string;
 }
 
 /**
@@ -34,7 +31,9 @@ export function TripReportsPage({
   reports,
   reportHrefPrefix,
   emptyState,
+  intro,
 }: TripReportsPageProps) {
+  const reportsDescription = renderInlineCopy(intro || REPORTS_INTRO_FALLBACK);
   return (
     <main id="main-content" tabIndex={-1} className="mx-auto w-full max-w-4xl px-4 pb-20 pt-10 focus:outline-none">
       <PageHeader

@@ -28,9 +28,14 @@
  * Deliberately excluded:
  *
  * - `effectIndexArticles.authors[]` — the legacy Mongo dump left these as raw 24-character
- *   ObjectIds (every published article carries the same one) and nothing maps them back to a
- *   person. Counting them would credit nobody and rank everybody wrong; the home page's
- *   `formatAuthorLine` already refuses to print them for the same reason.
+ *   ObjectIds. There is exactly one across the whole corpus, `60542430198361300fea3610`, and
+ *   it does resolve: the dump's own `people` collection (`kind: "person"`, imported into
+ *   `effectIndexArchive`) maps it to Josie Kins. What the ObjectIds cannot do is carry that
+ *   identity at read time — the field is opaque strings, so it is `authorProfileKeys` (the
+ *   backfilled profile keys, `JOSIE` for every legacy row) that bylines and any future
+ *   counting read from. The raw ids stay excluded here and unprinted by the home page's
+ *   `formatAuthorLine`. They are also a single author on every article, so counting them
+ *   would move nobody's rank but Josie's, who is pinned first regardless.
  * - The archived Effect Index blog — `effectIndexArchive` is not deployed on the public read
  *   target, so its posts are not a live attribution source at all.
  * - The dev changelog (`submittedBy`) — those are editor edit records for substance articles,

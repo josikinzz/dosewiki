@@ -26,7 +26,7 @@ const INTRO_MARKDOWN = `If you would be interested in contributing to the Effect
 
 Any contribution is greatly appreciated!`;
 
-export function DonatePage() {
+export function DonatePage({ intro }: { intro?: string } = {}) {
   return (
     <PublicContentShell width="standard" focusTarget>
       <PageHeader title="Donate" icon={icons.heart} prominentMobileIcon />
@@ -42,7 +42,7 @@ export function DonatePage() {
         />
 
         <div className="min-w-0 flex-1">
-          <PublicMarkdownBody content={INTRO_MARKDOWN} />
+          <PublicMarkdownBody content={intro || INTRO_MARKDOWN} />
         </div>
       </div>
 

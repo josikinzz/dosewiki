@@ -116,6 +116,45 @@ describe('groupByArtist', () => {
     expect(group.href).toBeUndefined();
   });
 
+  it("leads an artist's section with the works they curated", () => {
+    const first = rep({ artist: 'Kaytwo', slug: 'first', order_index: 1 });
+    const second = rep({ artist: 'Kaytwo', slug: 'second', order_index: 2 });
+    const third = rep({ artist: 'Kaytwo', slug: 'third', order_index: 3 });
+
+    const [group] = groupByArtist([first, second, third], 'count', [
+      { key: 'KAYTWO', displayName: 'Kaytwo', aliases: ['kaylee'], replicationOrder: ['third', 'first'] },
+    ]);
+
+    // Curated slugs in their curated order, then the default sort for the rest.
+    expect(group.items.map((item) => item.slug)).toEqual(['third', 'first', 'second']);
+  });
+
+  it('ignores curated slugs the artist no longer has, and leaves an uncurated artist alone', () => {
+    const curated = groupByArtist(
+      [rep({ artist: 'Kaytwo', slug: 'a', order_index: 1 }), rep({ artist: 'Kaytwo', slug: 'b', order_index: 2 })],
+      'count',
+      [{ key: 'KAYTWO', displayName: 'Kaytwo', aliases: [], replicationOrder: ['gone', 'b'] }],
+    );
+    expect(curated[0].items.map((item) => item.slug)).toEqual(['b', 'a']);
+
+    const uncurated = groupByArtist(
+      [rep({ artist: 'Kaytwo', slug: 'a', order_index: 1 }), rep({ artist: 'Kaytwo', slug: 'b', order_index: 2 })],
+      'count',
+      [{ key: 'KAYTWO', displayName: 'Kaytwo', aliases: [] }],
+    );
+    expect(uncurated[0].items.map((item) => item.slug)).toEqual(['a', 'b']);
+  });
+
+  it('never lets a curation reorder the unattributed bucket', () => {
+    const [group] = groupByArtist(
+      [rep({ artist: 'Unknown', slug: 'x', order_index: 1 }), rep({ artist: '', slug: 'y', order_index: 2 })],
+      'count',
+      [{ key: 'IMPOSTOR', displayName: UNATTRIBUTED_LABEL, aliases: ['unknown'], replicationOrder: ['y'] }],
+    );
+
+    expect(group.items.map((item) => item.slug)).toEqual(['x', 'y']);
+  });
+
   it('drops an artist_url that is not an absolute http(s) url', () => {
     // Production carries `"Josie"`, `"kaylee"` and `reddit.com/u/wheressuede` in
     // this field. As an href those resolve against the current page, so the

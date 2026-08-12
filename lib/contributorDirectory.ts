@@ -5,6 +5,12 @@ export type ContributorDirectoryEntry = {
   key: string;
   displayName: string;
   aliases: string[];
+  /**
+   * The contributor's curated work ordering, carried on the directory because
+   * the gallery groups by credit line and never reads profiles itself. Absent
+   * on a profile that has curated nothing, which means "default sort".
+   */
+  replicationOrder?: string[];
 };
 
 export type ContributorDirectory = readonly ContributorDirectoryEntry[];
@@ -16,4 +22,20 @@ export function resolveContributorHref(name: string, directory: ContributorDirec
   }
 
   return publicHref.contributor(profile.key.toLowerCase());
+}
+
+/**
+ * The curated work ordering for a credit line, or `undefined` when the credit
+ * resolves to no profile or that profile has curated nothing.
+ *
+ * Resolution goes through the same alias-aware matcher as `resolveContributorHref`
+ * so an artist heading and the ordering under it can never disagree about which
+ * profile the credit belongs to.
+ */
+export function resolveContributorReplicationOrder(
+  name: string,
+  directory: ContributorDirectory,
+): string[] | undefined {
+  const profile = findContributorProfileByAuthorName(directory, name);
+  return profile?.replicationOrder?.length ? profile.replicationOrder : undefined;
 }
