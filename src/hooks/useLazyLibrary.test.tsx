@@ -68,7 +68,7 @@ describe("useLazyLibrary", () => {
     expect(usePaginatedQueryMock).toHaveBeenCalledWith(
       "substanceIndex.getEditorPage",
       {},
-      { initialNumItems: 32 },
+      { initialNumItems: 100 },
     );
     expect(buildLibraryMock).toHaveBeenCalledWith(
       expect.arrayContaining([
@@ -95,7 +95,7 @@ describe("useLazyLibrary", () => {
 
     const { result } = renderHook(() => useLazyLibrary(true));
 
-    expect(loadMore).toHaveBeenCalledWith(32);
+    expect(loadMore).toHaveBeenCalledWith(100);
     expect(buildLibraryMock).not.toHaveBeenCalled();
     expect(result.current).toMatchObject({
       library: null,

@@ -15,10 +15,14 @@ import type { SubstanceArticle } from "../schema";
 import { useIndexLayouts } from "./useIndexLayouts";
 
 /**
- * Page size for draining the editor projection. The server enforces this same
- * bound, while the hook keeps loading pages until the full library is present.
+ * Page size for draining the editor projection. Pages are fetched strictly
+ * serially, so the round-trip count — not the byte count — dominates how long
+ * the `/dev` library takes to hydrate. The server clamps to a higher ceiling
+ * than this; the value stays conservative because the editor projection still
+ * ships whole articles, and a page has to stay well inside Convex's
+ * per-execution read limit.
  */
-const EDITOR_LIBRARY_PAGE_SIZE = 32;
+const EDITOR_LIBRARY_PAGE_SIZE = 100;
 
 /**
  * Hook to lazy-load the full library when enabled.

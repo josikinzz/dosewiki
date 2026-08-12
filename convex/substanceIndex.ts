@@ -282,6 +282,13 @@ export const getPublicMechanismRouteInput = query({
 });
 
 const PUBLIC_CORPUS_PAGE_SIZE = 32;
+/**
+ * Ceiling for explicitly requested page sizes. Callers that ask for nothing
+ * still get the conservative default above; the trimmed list projections are
+ * small enough that a draining client can ask for far larger pages and cut the
+ * number of serial round trips by an order of magnitude.
+ */
+const PUBLIC_CORPUS_MAX_PAGE_SIZE = 200;
 const publicCorpusPageArgs = {
   cursor: v.optional(v.string()),
   limit: v.optional(v.number()),
@@ -289,7 +296,7 @@ const publicCorpusPageArgs = {
 
 function clampPublicCorpusPageSize(requested: number | undefined): number {
   const normalized = Math.floor(requested ?? PUBLIC_CORPUS_PAGE_SIZE);
-  return Math.min(Math.max(normalized, 1), PUBLIC_CORPUS_PAGE_SIZE);
+  return Math.min(Math.max(normalized, 1), PUBLIC_CORPUS_MAX_PAGE_SIZE);
 }
 
 /**

@@ -37,9 +37,13 @@ function exportedQueryBlock(name: string): string {
 
 describe("public substance corpus pagination", () => {
   it("uses bounded paginate reads rather than collect for every additive page endpoint", () => {
+    // Callers that ask for nothing still get the conservative default; only an
+    // explicit request may climb to the ceiling, and it is still bounded.
     expect(source).toContain("const PUBLIC_CORPUS_PAGE_SIZE = 32;");
+    expect(source).toContain("const PUBLIC_CORPUS_MAX_PAGE_SIZE = 200;");
+    expect(source).toContain("Math.floor(requested ?? PUBLIC_CORPUS_PAGE_SIZE)");
     expect(source).toContain(
-      "Math.min(Math.max(normalized, 1), PUBLIC_CORPUS_PAGE_SIZE)",
+      "Math.min(Math.max(normalized, 1), PUBLIC_CORPUS_MAX_PAGE_SIZE)",
     );
 
     for (const name of publicPageFunctions) {
