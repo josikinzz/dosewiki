@@ -122,7 +122,7 @@ export function ArticleFeedbackReviewTab() {
   }
 
   return (
-    <div className="mx-auto flex w-full max-w-6xl flex-col gap-8">
+    <div className="flex w-full flex-col gap-8">
       <EditorSection
         icon="lucide:message-square-plus"
         title="Article Feedback"

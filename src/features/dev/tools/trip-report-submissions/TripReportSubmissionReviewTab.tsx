@@ -170,7 +170,7 @@ export function TripReportSubmissionReviewTab() {
   }
 
   return (
-    <div className="mx-auto flex w-full max-w-6xl flex-col gap-8">
+    <div className="flex w-full flex-col gap-8">
       <EditorSection
         icon="lucide:inbox"
         title="Trip Report Submissions"

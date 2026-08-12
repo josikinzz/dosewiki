@@ -111,7 +111,7 @@ function SignedInControls({
 export function DevModePageLoadingState({ mainClassName }: { mainClassName: string }) {
   return (
     <main id="main-content" tabIndex={-1} className={`${mainClassName} focus:outline-none`}>
-      <div className="mx-auto w-full max-w-6xl">
+      <div className="w-full">
         <DevModePageHeading />
         <div className="mx-auto mt-10 max-w-xl">
           <StateCard
@@ -148,7 +148,7 @@ export function DevModePageChrome({
   );
 
   return (
-    <div className="mx-auto w-full max-w-6xl">
+    <div className="w-full">
       <DevModePageHeading>
         {sessionStatus === "loading" ? (
           <span className="theme-text-muted flex items-center gap-2 text-xs">

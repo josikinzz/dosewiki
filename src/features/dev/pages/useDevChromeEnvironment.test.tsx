@@ -142,7 +142,7 @@ describe("useDevChromeEnvironment", () => {
     expect(close).toHaveBeenCalledTimes(1);
   });
 
-  it("returns wide layout classes for index layout and regular classes otherwise", () => {
+  it("returns full-width layout classes for every tab", () => {
     const props = {
       close: vi.fn(),
       hasPendingChanges: false,
@@ -153,12 +153,12 @@ describe("useDevChromeEnvironment", () => {
       { initialProps: { activeTab: "articles" as DevModeTab } },
     );
 
-    expect(result.current.mainClassName).toContain("max-w-6xl");
-    expect(result.current.contentWrapperClass).toContain("max-w-6xl");
+    expect(result.current.mainClassName).not.toContain("max-w-");
+    expect(result.current.contentWrapperClass).toBe("mt-10 w-full");
 
     rerender({ activeTab: "index-layout" });
 
-    expect(result.current.mainClassName).not.toContain("max-w-6xl");
+    expect(result.current.mainClassName).not.toContain("max-w-");
     expect(result.current.contentWrapperClass).toBe("mt-10 w-full");
   });
 

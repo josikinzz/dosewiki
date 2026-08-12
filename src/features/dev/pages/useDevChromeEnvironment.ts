@@ -103,17 +103,19 @@ export function useDevChromeEnvironment({
     onTabNoticeClear(activeTab);
   }, [activeTab, onTabNoticeClear]);
 
-  const layoutClasses = useMemo(() => {
-    const isIndexLayoutTab = activeTab === "index-layout";
-    return {
-      mainClassName: isIndexLayoutTab
-        ? "w-full px-4 py-12 text-white md:px-6 lg:px-8"
-        : "mx-auto w-full max-w-6xl px-4 py-12 text-white md:px-6 lg:px-8",
-      contentWrapperClass: isIndexLayoutTab
-        ? "mt-10 w-full"
-        : "mx-auto w-full max-w-6xl",
-    };
-  }, [activeTab]);
+  /**
+   * Dev tools span the full viewport the same way the Subjective Effect Index
+   * and Substance Index do: a `main` with horizontal padding and no max-width
+   * cap. Every tool gets the whole width; the tabs that still want a reading
+   * column set that for themselves.
+   */
+  const layoutClasses = useMemo(
+    () => ({
+      mainClassName: "w-full px-4 py-12 text-white md:px-6 lg:px-8",
+      contentWrapperClass: "mt-10 w-full",
+    }),
+    [],
+  );
 
   return {
     enableStickyPanels,
