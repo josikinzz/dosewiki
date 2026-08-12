@@ -18,8 +18,8 @@ type NextDevProfileRouteClientProps = {
   initialProfileKey: string;
 };
 
-const mainClassName = "w-full px-4 py-12 text-white md:px-6 lg:px-8";
-const contentWrapperClass = "mx-auto w-full max-w-6xl";
+const mainClassName = "w-full px-4 py-6 text-white md:px-6 lg:px-8";
+const contentWrapperClass = "mx-auto mt-6 w-full max-w-6xl";
 
 export function NextDevProfileRouteClient({ initialProfileKey }: NextDevProfileRouteClientProps) {
   const session = useSession();

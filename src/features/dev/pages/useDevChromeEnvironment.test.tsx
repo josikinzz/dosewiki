@@ -154,12 +154,12 @@ describe("useDevChromeEnvironment", () => {
     );
 
     expect(result.current.mainClassName).not.toContain("max-w-");
-    expect(result.current.contentWrapperClass).toBe("mt-10 w-full");
+    expect(result.current.contentWrapperClass).toBe("mt-6 w-full");
 
     rerender({ activeTab: "index-layout" });
 
     expect(result.current.mainClassName).not.toContain("max-w-");
-    expect(result.current.contentWrapperClass).toBe("mt-10 w-full");
+    expect(result.current.contentWrapperClass).toBe("mt-6 w-full");
   });
 
   it("clears tab notices when the active tab changes", () => {

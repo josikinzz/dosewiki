@@ -1,35 +1,30 @@
-import type { ReactNode } from "react";
+"use client";
 
 import { signOut } from "next-auth/react";
 
-import { AppImage } from "@/components/common/AppImage";
 import { Icon } from "@/components/common/Icon";
 import { StateCard } from "@/components/common/StateCard";
-import {
-  PublicSegmentedTabs,
-  type PublicSegmentedTabItem,
-} from "@/components/layout/PublicSegmentedTabs";
 import { Button } from "@/components/ui/button";
-import { EditorStatusPill } from "@/features/dev/components";
 import type { DevModePrimaryTab, DevModeTab } from "./devModePageUtils";
 
-const PRIMARY_TAB_ITEMS: PublicSegmentedTabItem<DevModePrimaryTab>[] = [
-  { id: "tools", label: "Tools", icon: "lucide:wrench", prominence: "major" },
-  { id: "change-log", label: "Change log", icon: "lucide:scroll-text", prominence: "major" },
-  { id: "profile", label: "Profile", icon: "lucide:user-round", prominence: "major" },
-];
+type ToolTabItem = { id: DevModeTab; label: string };
 
-const TOOL_TAB_ITEMS: PublicSegmentedTabItem<DevModeTab>[] = [
-  { id: "articles", label: "Substance Articles", icon: "lucide:sparkles" },
-  { id: "review", label: "Review", icon: "lucide:badge-check" },
-  { id: "citation-review", label: "Citation Review", icon: "lucide:list-checks" },
-  { id: "trip-report-submissions", label: "Trip Reports", icon: "lucide:file-signature" },
-  { id: "article-feedback", label: "Feedback", icon: "lucide:message-square-plus" },
-  { id: "tag-editor", label: "Tags", icon: "lucide:tags" },
-  { id: "molecule-editor", label: "Molecules", icon: "lucide:hexagon" },
-  { id: "replications", label: "Replications", icon: "lucide:images" },
-  { id: "about", label: "About", icon: "lucide:file-text" },
-  { id: "index-layout", label: "Index layout", icon: "lucide:layout-dashboard" },
+/**
+ * Text-only tool tabs. Icons were removed deliberately: at eleven destinations
+ * in one rail an icon per tab is noise, not wayfinding — the labels already
+ * name the tools, and the violet selected treatment carries the "you are here".
+ */
+const TOOL_TAB_ITEMS: ToolTabItem[] = [
+  { id: "articles", label: "Articles" },
+  { id: "review", label: "Review" },
+  { id: "citation-review", label: "Citations" },
+  { id: "trip-report-submissions", label: "Trip reports" },
+  { id: "article-feedback", label: "Feedback" },
+  { id: "tag-editor", label: "Tags" },
+  { id: "molecule-editor", label: "Molecules" },
+  { id: "replications", label: "Replications" },
+  { id: "about", label: "About" },
+  { id: "index-layout", label: "Index layout" },
 ];
 
 type SessionStatus = "loading" | "authenticated" | "unauthenticated";
@@ -48,63 +43,28 @@ type DevModePageChromeProps = {
   onSignIn: () => void;
 };
 
+const RAIL_CLASS =
+  "theme-dev-rail flex h-10 w-full items-center gap-1 rounded-lg border px-1.5";
+
+const RAIL_TAB_CLASS =
+  "theme-dev-rail-tab shrink-0 snap-start whitespace-nowrap rounded-md px-2.5 py-1 text-[0.8125rem] font-medium transition-[background-color,color,box-shadow] duration-200 motion-reduce:transition-none disabled:pointer-events-none disabled:opacity-45 data-[state=active]:font-semibold";
+
 /**
- * Compact left-aligned workbench header: small title on the left, auth
- * controls trailing on the right (wrapping below on narrow viewports).
+ * The dev surface's own page title. The visible headings belong to the tools
+ * themselves ("Replication Studio", "Tag Editor"), so the shell keeps only an
+ * assistive-technology h1 instead of spending a full row on a wrench and the
+ * words "Dev Tools".
  */
-function DevModePageHeading({ children }: { children?: ReactNode }) {
-  return (
-    <header className="flex flex-wrap items-center gap-x-4 gap-y-3">
-      <h1 className="font-display theme-accent-emphasis flex items-center gap-2.5 text-xl font-bold tracking-tight sm:text-2xl">
-        <Icon icon="lucide:wrench" size={22} className="text-current" />
-        <span>Dev Tools</span>
-      </h1>
-      {children ? (
-        <div className="flex min-w-0 flex-wrap items-center gap-2 sm:ml-auto">{children}</div>
-      ) : null}
-    </header>
-  );
+function DevSurfaceTitle() {
+  return <h1 className="sr-only">Dev Tools</h1>;
 }
 
-function SignedInControls({
-  tone,
-  detail,
-  userImage,
-  userLabel,
-}: {
-  tone: "success" | "info";
-  detail: string;
-  userImage?: string | null;
-  userLabel: string;
-}) {
+function RailDivider() {
   return (
-    <>
-      <EditorStatusPill
-        tone={tone}
-        icon={tone === "success" ? "lucide:badge-check" : "lucide:user-round"}
-        title={detail}
-      >
-        {userImage ? (
-          <AppImage
-            src={userImage}
-            alt=""
-            width={20}
-            height={20}
-            className="h-5 w-5 rounded-full"
-          />
-        ) : null}
-        <span>Signed in as {userLabel}</span>
-      </EditorStatusPill>
-      <Button
-        variant="outline"
-        size="xs"
-        className="rounded-full"
-        onClick={() => void signOut({ callbackUrl: "/sign-in" })}
-      >
-        <Icon icon="lucide:log-out" size={16} />
-        Sign out
-      </Button>
-    </>
+    <span
+      aria-hidden
+      className="theme-dev-rail-divider mx-1 h-4 w-px shrink-0"
+    />
   );
 }
 
@@ -112,7 +72,7 @@ export function DevModePageLoadingState({ mainClassName }: { mainClassName: stri
   return (
     <main id="main-content" tabIndex={-1} className={`${mainClassName} focus:outline-none`}>
       <div className="w-full">
-        <DevModePageHeading />
+        <DevSurfaceTitle />
         <div className="mx-auto mt-10 max-w-xl">
           <StateCard
             icon="lucide:wrench"
@@ -128,6 +88,12 @@ export function DevModePageLoadingState({ mainClassName }: { mainClassName: stri
   );
 }
 
+/**
+ * One slim toolbar row, desktop-app style: a wrench mark, the tool tabs, then a
+ * trailing cluster with the secondary destinations (Change log, Profile) and
+ * the session controls. The tab strip scrolls horizontally rather than wrapping
+ * so the rail is always exactly one row tall.
+ */
 export function DevModePageChrome({
   activePrimaryTab,
   activeTab,
@@ -135,73 +101,115 @@ export function DevModePageChrome({
   hasNextEditorSession,
   sessionStatus,
   userEmail,
-  userImage,
   userName,
   onPrimaryTabChange,
   onTabChange,
   onSignIn,
 }: DevModePageChromeProps) {
   const userLabel = userName ?? userEmail ?? "Editor";
-
-  const primaryTabItems = PRIMARY_TAB_ITEMS.map((item) =>
-    item.id === "profile" ? { ...item, disabled: !hasStoredCredentials } : item,
-  );
+  const isToolsSection = activePrimaryTab === "tools";
+  const sessionDetail = hasNextEditorSession
+    ? "Authenticated via Auth.js. You have permission to edit articles."
+    : "Authenticated via Auth.js. You can edit your own contributor profile from the Profile tab.";
 
   return (
     <div className="w-full">
-      <DevModePageHeading>
-        {sessionStatus === "loading" ? (
-          <span className="theme-text-muted flex items-center gap-2 text-xs">
-            <Icon icon="lucide:loader-2" size={16} className="theme-accent-emphasis animate-spin" />
-            Loading authentication...
-          </span>
-        ) : hasNextEditorSession ? (
-          <SignedInControls
-            tone="success"
-            detail="Authenticated via Auth.js. You have permission to edit articles."
-            userImage={userImage}
-            userLabel={userLabel}
-          />
-        ) : hasStoredCredentials ? (
-          <SignedInControls
-            tone="info"
-            detail="Authenticated via Auth.js. You can edit your own contributor profile from the Profile tab."
-            userImage={userImage}
-            userLabel={userLabel}
-          />
-        ) : (
-          <>
-            <span className="theme-text-muted text-xs">
-              Sign in before saving changes or using protected actions.
+      <DevSurfaceTitle />
+
+      <div className={RAIL_CLASS}>
+        <span
+          aria-hidden
+          className="theme-accent-emphasis flex h-7 w-7 shrink-0 items-center justify-center"
+          title="Dev Tools"
+        >
+          <Icon icon="lucide:wrench" size={16} className="text-current" />
+        </span>
+
+        <nav
+          aria-label="Dev mode tools"
+          className="flex min-w-0 flex-1 snap-x snap-mandatory items-center gap-0.5 overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+        >
+          {TOOL_TAB_ITEMS.map((item) => {
+            const isActive = isToolsSection && activeTab === item.id;
+            return (
+              <button
+                key={item.id}
+                type="button"
+                aria-current={isActive ? "page" : undefined}
+                data-state={isActive ? "active" : "inactive"}
+                onClick={() => onTabChange(item.id)}
+                className={RAIL_TAB_CLASS}
+              >
+                {item.label}
+              </button>
+            );
+          })}
+        </nav>
+
+        <RailDivider />
+
+        <nav aria-label="Dev mode sections" className="flex shrink-0 items-center gap-0.5">
+          <button
+            type="button"
+            aria-current={activePrimaryTab === "change-log" ? "page" : undefined}
+            data-state={activePrimaryTab === "change-log" ? "active" : "inactive"}
+            onClick={() => onPrimaryTabChange("change-log")}
+            className={RAIL_TAB_CLASS}
+          >
+            Change log
+          </button>
+          <button
+            type="button"
+            disabled={!hasStoredCredentials}
+            aria-current={activePrimaryTab === "profile" ? "page" : undefined}
+            data-state={activePrimaryTab === "profile" ? "active" : "inactive"}
+            onClick={() => onPrimaryTabChange("profile")}
+            className={RAIL_TAB_CLASS}
+          >
+            Profile
+          </button>
+        </nav>
+
+        <RailDivider />
+
+        <div className="flex shrink-0 items-center gap-1">
+          {sessionStatus === "loading" ? (
+            <span className="theme-text-muted flex items-center gap-1.5 text-xs">
+              <Icon icon="lucide:loader-2" size={14} className="theme-accent-emphasis animate-spin" />
+              <span className="sr-only">Loading authentication</span>
             </span>
-            <Button variant="default" size="xs" className="rounded-full px-4" onClick={onSignIn}>
-              <Icon icon="lucide:log-in" size={16} />
+          ) : hasNextEditorSession || hasStoredCredentials ? (
+            <>
+              <span
+                title={sessionDetail}
+                className="theme-dev-rail-user max-w-[10rem] truncate text-[0.75rem] font-semibold tracking-wide uppercase"
+              >
+                <span className="sr-only">Signed in as </span>
+                {userLabel}
+              </span>
+              <button
+                type="button"
+                title="Sign out"
+                aria-label="Sign out"
+                onClick={() => void signOut({ callbackUrl: "/sign-in" })}
+                className="theme-dev-rail-button flex h-7 w-7 shrink-0 items-center justify-center rounded-md transition-colors duration-200 motion-reduce:transition-none"
+              >
+                <Icon icon="lucide:log-out" size={15} />
+              </button>
+            </>
+          ) : (
+            <Button
+              variant="accent"
+              size="xs"
+              className="h-7 rounded-md px-3"
+              onClick={onSignIn}
+              title="Sign in before saving changes or using protected actions."
+            >
+              <Icon icon="lucide:log-in" size={14} />
               Sign in
             </Button>
-          </>
-        )}
-      </DevModePageHeading>
-
-      <div className="mt-5 flex w-full flex-col items-start gap-3">
-        <PublicSegmentedTabs
-          ariaLabel="Dev mode primary sections"
-          value={activePrimaryTab}
-          onValueChange={onPrimaryTabChange}
-          items={primaryTabItems}
-          className="justify-start"
-          listClassName="justify-start"
-        />
-
-        {activePrimaryTab === "tools" ? (
-          <PublicSegmentedTabs
-            ariaLabel="Dev mode tools"
-            value={activeTab}
-            onValueChange={onTabChange}
-            items={TOOL_TAB_ITEMS}
-            className="justify-start"
-            listClassName="justify-start"
-          />
-        ) : null}
+          )}
+        </div>
       </div>
     </div>
   );

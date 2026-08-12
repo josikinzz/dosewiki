@@ -3698,6 +3698,49 @@
     }
   }
 
+  /*
+   * Dev workbench rail. One slim chrome row on the dark chrome-rail tone, the
+   * same surface the header and footer use, so the tools read as an app frame
+   * rather than a stack of page-level pills.
+   */
+  .theme-dev-rail {
+    background: var(--theme-frosted-control-on-panel-bg);
+    border-color: var(--theme-frosted-control-on-panel-border);
+  }
+
+  .theme-dev-rail-divider {
+    background: var(--theme-frosted-control-on-panel-border);
+  }
+
+  .theme-dev-rail-tab,
+  .theme-dev-rail-button {
+    color: var(--theme-text-muted);
+  }
+
+  .theme-dev-rail-tab:focus-visible,
+  .theme-dev-rail-button:focus-visible {
+    outline: 2px solid var(--theme-accent-strong);
+    outline-offset: 2px;
+  }
+
+  @media (hover: hover) {
+    .theme-dev-rail-tab:not([data-state="active"]):hover,
+    .theme-dev-rail-button:hover {
+      background: var(--theme-frosted-control-on-panel-hover-bg);
+      color: var(--theme-text-primary);
+    }
+  }
+
+  .theme-dev-rail-tab[data-state="active"] {
+    background: var(--theme-article-route-active-bg);
+    color: var(--theme-article-route-active-text);
+    box-shadow: 0 0 0 1px var(--theme-article-route-active-border);
+  }
+
+  .theme-dev-rail-user {
+    color: var(--theme-text-secondary);
+  }
+
   .theme-index-mobile-tab {
     color: color-mix(in srgb, var(--theme-text-muted) 82%, var(--theme-body-bg));
   }

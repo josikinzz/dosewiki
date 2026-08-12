@@ -111,8 +111,8 @@ export function useDevChromeEnvironment({
    */
   const layoutClasses = useMemo(
     () => ({
-      mainClassName: "w-full px-4 py-12 text-white md:px-6 lg:px-8",
-      contentWrapperClass: "mt-10 w-full",
+      mainClassName: "w-full px-4 py-6 text-white md:px-6 lg:px-8",
+      contentWrapperClass: "mt-6 w-full",
     }),
     [],
   );
