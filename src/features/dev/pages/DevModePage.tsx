@@ -6,12 +6,14 @@ export function DevModePage({
   activeTab,
   initialArticleSlug,
   initialProfileKey,
+  isLibraryLoading,
   onTabChange,
 }: DevModePageProps) {
   const controller = useDevModePageController({
     activeTab,
     initialArticleSlug,
     initialProfileKey,
+    isLibraryLoading,
     onTabChange,
   });
   return <DevModePageView controller={controller} />;

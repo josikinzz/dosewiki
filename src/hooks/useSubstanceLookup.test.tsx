@@ -61,15 +61,29 @@ describe("useSubstanceLookup", () => {
   });
 
   it("keeps active editor clients off the legacy whole-table lookup", () => {
-    for (const file of [
+    const editorClients = [
       "src/app/dev/_components/NextDevRouteClient.tsx",
       "src/app/review/_components/ReviewRouteClient.tsx",
       "src/features/dev/tools/molecule-editor/MoleculeEditorTab.tsx",
-    ]) {
+    ];
+    for (const file of editorClients) {
       const source = readFileSync(`${process.cwd()}/${file}`, "utf8");
       expect(source).not.toContain("api.substanceIndex.getLookup");
+    }
+
+    // The `/dev` shell dropped its lookup drain entirely: the editor projection
+    // it already loads carries the same slug/name/priority. Clients that still
+    // need a standalone lookup must go through the draining hook.
+    for (const file of editorClients.slice(1)) {
+      const source = readFileSync(`${process.cwd()}/${file}`, "utf8");
       expect(source).toContain("useSubstanceLookup");
     }
+
+    const devShell = readFileSync(
+      `${process.cwd()}/src/app/dev/_components/NextDevRouteClient.tsx`,
+      "utf8",
+    );
+    expect(devShell).not.toContain("useSubstanceLookup");
   });
 
   it("skips the query and reports no loading work when disabled", () => {

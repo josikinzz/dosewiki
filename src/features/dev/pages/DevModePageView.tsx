@@ -1,25 +1,89 @@
-import { AboutEditorTab } from "../tools/about/AboutEditorTab";
-import { CitationReviewTab } from "../tools/citation-review/CitationReviewTab";
-import { IndexLayoutTab } from "../tools/index-layout/IndexLayoutTab";
-import { MoleculeEditorTab } from "../tools/molecule-editor/MoleculeEditorTab";
-import { ReplicationStudioTab } from "../tools/replication-studio/ReplicationStudioTab";
-import { SubstanceEditorTab } from "../tools/substance-editor/SubstanceEditorTab";
-import { ArticleFeedbackReviewTab } from "../tools/article-feedback/ArticleFeedbackReviewTab";
-import { TripReportSubmissionReviewTab } from "../tools/trip-report-submissions/TripReportSubmissionReviewTab";
-import { ProfileEditorTab } from "../profile";
-import { TagEditorTab } from "../tags";
+"use client";
+
+import dynamic from "next/dynamic";
+
 import { DevModeChangeLogTab } from "./DevModeChangeLogTab";
-import { DevModePageChrome, DevModePageLoadingState } from "./DevModePageChrome";
+import {
+  DevModePageChrome,
+  DevToolLoadingPanel,
+} from "./DevModePageChrome";
 import type { DevModePageControllerState } from "./devModePageTypes";
+import type { DevModeTab } from "./devModePageUtils";
+
+/**
+ * Every tool is its own lazily-loaded chunk. The shell used to pull all ten
+ * bundles into the first paint even though exactly one of them is ever on
+ * screen; splitting them keeps the tab rail cheap and lets a tool's code arrive
+ * alongside its data instead of ahead of every other tool's.
+ *
+ * `ssr: false` throughout: these surfaces are editor-only, already behind the
+ * client-side Convex provider, and never render on the server.
+ */
+const loading = () => <DevToolLoadingPanel />;
+
+const AboutEditorTab = dynamic(
+  () => import("../tools/about/AboutEditorTab").then((m) => m.AboutEditorTab),
+  { ssr: false, loading },
+);
+const CitationReviewTab = dynamic(
+  () => import("../tools/citation-review/CitationReviewTab").then((m) => m.CitationReviewTab),
+  { ssr: false, loading },
+);
+const IndexLayoutTab = dynamic(
+  () => import("../tools/index-layout/IndexLayoutTab").then((m) => m.IndexLayoutTab),
+  { ssr: false, loading },
+);
+const MoleculeEditorTab = dynamic(
+  () => import("../tools/molecule-editor/MoleculeEditorTab").then((m) => m.MoleculeEditorTab),
+  { ssr: false, loading },
+);
+const ReplicationStudioTab = dynamic(
+  () => import("../tools/replication-studio/ReplicationStudioTab").then((m) => m.ReplicationStudioTab),
+  { ssr: false, loading },
+);
+const SubstanceEditorTab = dynamic(
+  () => import("../tools/substance-editor/SubstanceEditorTab").then((m) => m.SubstanceEditorTab),
+  { ssr: false, loading },
+);
+const ArticleFeedbackReviewTab = dynamic(
+  () => import("../tools/article-feedback/ArticleFeedbackReviewTab").then((m) => m.ArticleFeedbackReviewTab),
+  { ssr: false, loading },
+);
+const TripReportSubmissionReviewTab = dynamic(
+  () =>
+    import("../tools/trip-report-submissions/TripReportSubmissionReviewTab").then(
+      (m) => m.TripReportSubmissionReviewTab,
+    ),
+  { ssr: false, loading },
+);
+const ProfileEditorTab = dynamic(
+  () => import("../profile").then((m) => m.ProfileEditorTab),
+  { ssr: false, loading },
+);
+const TagEditorTab = dynamic(
+  () => import("../tags").then((m) => m.TagEditorTab),
+  { ssr: false, loading },
+);
+
+/**
+ * Tools that read the substance corpus. Only these wait on the library drain;
+ * everything else fetches its own data and renders straight away.
+ */
+const LIBRARY_DEPENDENT_TABS: ReadonlySet<DevModeTab> = new Set<DevModeTab>([
+  "articles",
+  "citation-review",
+  "index-layout",
+  "tag-editor",
+  "change-log",
+]);
 
 type DevModePageViewProps = {
   controller: DevModePageControllerState;
 };
 
 export function DevModePageView({ controller }: DevModePageViewProps) {
-  if (controller.articlesLength === 0) {
-    return <DevModePageLoadingState mainClassName={controller.mainClassName} />;
-  }
+  const isWaitingOnLibrary =
+    controller.isLibraryLoading && LIBRARY_DEPENDENT_TABS.has(controller.activeTab);
 
   return (
     <main
@@ -42,7 +106,9 @@ export function DevModePageView({ controller }: DevModePageViewProps) {
       />
 
       <div className={controller.contentWrapperClass}>
-        {controller.activeTab === "change-log" ? (
+        {isWaitingOnLibrary ? (
+          <DevToolLoadingPanel label="Loading articles" />
+        ) : controller.activeTab === "change-log" ? (
           <DevModeChangeLogTab controller={controller.changeLog} />
         ) : controller.activeTab === "profile" ? (
           <ProfileEditorTab {...controller.profileTabProps} />

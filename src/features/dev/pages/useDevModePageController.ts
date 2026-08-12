@@ -18,6 +18,7 @@ export function useDevModePageController({
   activeTab,
   initialArticleSlug,
   initialProfileKey,
+  isLibraryLoading = false,
   onTabChange,
 }: DevModePageProps): DevModePageControllerState {
   const {
@@ -258,6 +259,9 @@ export function useDevModePageController({
     userImage: routeAccess.userImage,
     userName: routeAccess.userName,
     articlesLength: articles.length,
+    // Treat "still draining" and "drained to nothing" alike: both mean the
+    // corpus-backed tools have nothing real to show yet.
+    isLibraryLoading: isLibraryLoading || articles.length === 0,
     activeTab,
     changeLog,
     commitPanel,

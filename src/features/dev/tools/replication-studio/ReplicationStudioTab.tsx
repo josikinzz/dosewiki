@@ -48,6 +48,16 @@ import {
 } from "./replicationStudioModel";
 
 const CORPUS_API = "/api/dev/replications";
+
+type CorpusPayload = { rows: StudioRow[]; effects: StudioEffectOption[] };
+
+/**
+ * Last corpus this tab saw, kept outside React so leaving and re-entering the
+ * tab paints the previous rows immediately instead of replaying the full
+ * loading state. The refetch still runs on every mount — it just happens behind
+ * the already-rendered table.
+ */
+let cachedCorpus: CorpusPayload | null = null;
 const EDITORIAL_API = "/api/dev/replications/editorial";
 const UPLOAD_URL_API = "/api/dev/replications/upload-url";
 
@@ -68,9 +78,13 @@ async function readError(response: Response, fallback: string): Promise<string> 
 }
 
 export function ReplicationStudioTab() {
-  const [load, setLoad] = useState<LoadState>({ status: "loading" });
-  const [rows, setRows] = useState<StudioRow[]>([]);
-  const [effects, setEffects] = useState<StudioEffectOption[]>([]);
+  const [load, setLoad] = useState<LoadState>(
+    cachedCorpus ? { status: "ready" } : { status: "loading" },
+  );
+  const [rows, setRows] = useState<StudioRow[]>(() => cachedCorpus?.rows ?? []);
+  const [effects, setEffects] = useState<StudioEffectOption[]>(
+    () => cachedCorpus?.effects ?? [],
+  );
   const [query, setQuery] = useState("");
   const [group, setGroup] = useState<StudioGroupBy>("none");
   const [facets, setFacets] = useState<StudioFacets>(EMPTY_STUDIO_FACETS);
@@ -87,14 +101,18 @@ export function ReplicationStudioTab() {
   const objectUrls = useRef<Set<string>>(new Set());
 
   const loadCorpus = useCallback(async () => {
-    setLoad({ status: "loading" });
+    // A cached corpus is already on screen, so a refresh must not blank it out.
+    if (!cachedCorpus) {
+      setLoad({ status: "loading" });
+    }
     try {
       const response = await fetch(CORPUS_API);
       if (!response.ok) {
         setLoad({ status: "error", message: await readError(response, "Failed to load the corpus.") });
         return;
       }
-      const payload = (await response.json()) as { rows: StudioRow[]; effects: StudioEffectOption[] };
+      const payload = (await response.json()) as CorpusPayload;
+      cachedCorpus = payload;
       setRows(payload.rows);
       setEffects(payload.effects);
       setLoad({ status: "ready" });

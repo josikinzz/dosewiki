@@ -7,6 +7,8 @@ export type DevModePageProps = {
   activeTab: DevModeTab;
   initialArticleSlug?: string;
   initialProfileKey?: string;
+  /** True while the editor corpus is still draining behind the shell. */
+  isLibraryLoading?: boolean;
   onTabChange: (tab: DevModeTab) => void;
 };
 
@@ -26,6 +28,7 @@ export type DevModePageControllerState = {
   userImage?: string | null;
   userName?: string | null;
   articlesLength: number;
+  isLibraryLoading: boolean;
   activeTab: DevModeTab;
   changeLog: ReturnType<typeof useDevModeChangeLog>;
   commitPanel: ReturnType<

@@ -149,6 +149,7 @@ vi.mock("./useDevModeSupportTabProps", () => ({
 vi.mock("./DevModePageChrome", () => ({
   DevModePageChrome: () => <div>Chrome</div>,
   DevModePageLoadingState: () => <div>Loading</div>,
+  DevToolLoadingPanel: () => <div>Loading</div>,
 }));
 
 vi.mock("../tools/about/AboutEditorTab", () => ({

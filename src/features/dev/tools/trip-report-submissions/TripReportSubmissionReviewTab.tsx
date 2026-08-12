@@ -80,11 +80,27 @@ const STATUS_TRANSITIONS: Record<TripReportSubmissionStatus, TripReportSubmissio
 
 const REVIEW_SECTION_ID = "trip-report-review-section";
 
+const INITIAL_QUEUE_FILTER: QueueFilter = "all";
+
+/**
+ * Queues this tab has already fetched, kept outside React so returning to the
+ * tab (or flipping back to a filter) paints the previous queue immediately.
+ * Every mount still refetches; the cache only decides whether the user watches
+ * it happen.
+ */
+const cachedQueues = new Map<QueueFilter, TripReportSubmissionRow[]>();
+
 export function TripReportSubmissionReviewTab() {
-  const [submissions, setSubmissions] = useState<TripReportSubmissionRow[]>([]);
-  const [selectedId, setSelectedId] = useState<string | null>(null);
-  const [statusFilter, setStatusFilter] = useState<QueueFilter>("all");
-  const [loadState, setLoadState] = useState<LoadState>({ status: "loading" });
+  const [submissions, setSubmissions] = useState<TripReportSubmissionRow[]>(
+    () => cachedQueues.get(INITIAL_QUEUE_FILTER) ?? [],
+  );
+  const [selectedId, setSelectedId] = useState<string | null>(
+    () => cachedQueues.get(INITIAL_QUEUE_FILTER)?.[0]?.id ?? null,
+  );
+  const [statusFilter, setStatusFilter] = useState<QueueFilter>(INITIAL_QUEUE_FILTER);
+  const [loadState, setLoadState] = useState<LoadState>(
+    cachedQueues.has(INITIAL_QUEUE_FILTER) ? { status: "ready" } : { status: "loading" },
+  );
   const [actionFeedback, setActionFeedback] = useState<ActionFeedback | null>(null);
   const [promotionPayload, setPromotionPayload] = useState<ConvexTripReportImportPayload | null>(null);
 
@@ -279,7 +295,19 @@ async function loadQueue(
   setLoadState: (state: LoadState) => void,
   preferredId?: string,
 ) {
-  setLoadState({ status: "loading" });
+  const cached = cachedQueues.get(status);
+  if (cached) {
+    // Show the last known queue while the refresh is in flight.
+    setSubmissions(cached);
+    setSelectedId(
+      preferredId && cached.some((submission) => submission.id === preferredId)
+        ? preferredId
+        : cached[0]?.id ?? null,
+    );
+    setLoadState({ status: "ready" });
+  } else {
+    setLoadState({ status: "loading" });
+  }
   try {
     const suffix = status === "all" ? "" : `?status=${encodeURIComponent(status)}`;
     const response = await fetch(`/api/trip-report-submissions/queue${suffix}`);
@@ -294,6 +322,7 @@ async function loadQueue(
     }
 
     const nextSubmissions = Array.isArray(payload.submissions) ? payload.submissions : [];
+    cachedQueues.set(status, nextSubmissions);
     setSubmissions(nextSubmissions);
     setSelectedId(preferredId && nextSubmissions.some((submission) => submission.id === preferredId)
       ? preferredId

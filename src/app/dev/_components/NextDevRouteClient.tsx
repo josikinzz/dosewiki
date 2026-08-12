@@ -8,8 +8,8 @@ import { convex as sharedConvexClient, getConvexUrl } from "@/lib/convex";
 import { LoadingScreen } from "@/components/common/LoadingScreen";
 import { LightweightDataProvider, type SubstanceLookupEntry } from "@/data/LightweightDataProvider";
 import { SubstanceIndexProvider } from "@/data/SubstanceIndexProvider";
+import { getEmptyEditorLibrary } from "@/data/emptyLibrary";
 import { useLazyLibrary } from "@/hooks/useLazyLibrary";
-import { useSubstanceLookup } from "@/hooks/useSubstanceLookup";
 import { DevModeProvider } from "@/features/dev/context/DevModeContext";
 import { DevModePage } from "@/features/dev/pages/DevModePage";
 import type { CategoryLayout } from "@/hooks/useCategoryLayout";
@@ -57,20 +57,21 @@ function NextDevDataLoader({ routeState, initialProfileKey, onTabChange, navigat
   getCurrentPath: () => string;
 }) {
   const categoryLayout = useQuery(api.categoryLayout.get);
-  const { lookup: slugNameMap } = useSubstanceLookup();
   const { library, isLoading: isLoadingLibrary } = useLazyLibrary(true);
 
-  const substances = useMemo<SubstanceLookupEntry[]>(() => {
-    if (!slugNameMap) {
-      return [];
-    }
-
-    return slugNameMap.map((item) => ({
-      slug: item.slug,
-      name: item.name,
-      priority: item.priority,
-    }));
-  }, [slugNameMap]);
+  // The editor projection already carries slug/name/priority for every row, so
+  // the lookup drain that used to re-scan the same table for them is gone.
+  // `allSubstanceRecords` (not `substanceRecords`) keeps the hidden and
+  // direct-URL-only entries the lookup used to include.
+  const substances = useMemo<SubstanceLookupEntry[]>(
+    () =>
+      (library?.allSubstanceRecords ?? []).map((record) => ({
+        slug: record.slug,
+        name: record.name,
+        priority: record.priority,
+      })),
+    [library],
+  );
 
   const layout = useMemo<CategoryLayout | null>(() => {
     if (!categoryLayout) {
@@ -94,7 +95,10 @@ function NextDevDataLoader({ routeState, initialProfileKey, onTabChange, navigat
     };
   }, [categoryLayout]);
 
-  if (categoryLayout === undefined || slugNameMap === undefined || isLoadingLibrary || !library) {
+  // Only the category layout gates the shell now. The corpus drain keeps
+  // running behind the tab rail, and the tools that need it show their own
+  // loading state instead of blocking every other tool.
+  if (categoryLayout === undefined) {
     return <LoadingScreen />;
   }
 
@@ -109,12 +113,13 @@ function NextDevDataLoader({ routeState, initialProfileKey, onTabChange, navigat
 
   return (
     <LightweightDataProvider layout={layout} substances={substances}>
-      <SubstanceIndexProvider libraryData={library}>
+      <SubstanceIndexProvider libraryData={library ?? getEmptyEditorLibrary()}>
         <DevModeProvider navigate={navigate} getCurrentPath={getCurrentPath}>
           <DevModePage
             activeTab={routeState.tab}
             initialArticleSlug={routeState.slug}
             initialProfileKey={initialProfileKey}
+            isLibraryLoading={isLoadingLibrary || !library}
             onTabChange={onTabChange}
           />
         </DevModeProvider>

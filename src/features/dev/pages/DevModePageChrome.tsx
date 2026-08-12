@@ -89,6 +89,27 @@ export function DevModePageLoadingState({ mainClassName }: { mainClassName: stri
 }
 
 /**
+ * The same waiting card, rendered *inside* the shell rather than instead of it.
+ * The tab rail stays interactive so a tool that needs nothing from the corpus is
+ * one click away while the drain finishes; it doubles as the fallback for the
+ * lazily-loaded tool bundles.
+ */
+export function DevToolLoadingPanel({ label = "Loading tool" }: { label?: string }) {
+  return (
+    <div className="mx-auto mt-10 max-w-xl">
+      <StateCard
+        icon="lucide:wrench"
+        tone="accent"
+        loading
+        align="center"
+        title={label}
+        description="Pulling the latest data into the editor. This only takes a moment."
+      />
+    </div>
+  );
+}
+
+/**
  * One slim toolbar row, desktop-app style: a wrench mark, the tool tabs, then a
  * trailing cluster with the secondary destinations (Change log, Profile) and
  * the session controls. The tab strip scrolls horizontally rather than wrapping
