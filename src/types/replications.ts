@@ -128,6 +128,11 @@ export interface ReplicationRecord extends ReplicationRightsMetadata {
    * figures embedded in effect-index articles, page heroes, a molecule diagram.
    */
   effect_slug?: string;
+  /**
+   * Effects this asset also depicts, as effect slugs. Editorial metadata only:
+   * written from the `/dev` Replication Studio, read by nothing public yet.
+   */
+  effect_tags?: string[];
   thumbnail_storage_id?: string;
   width?: number;
   height?: number;

@@ -9,6 +9,7 @@ export type DevTab =
   | "article-feedback"
   | "articles"
   | "molecule-editor"
+  | "replications"
   | "review";
 
 export type AppView =

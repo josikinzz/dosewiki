@@ -17,6 +17,7 @@ export type DevModeTab =
   | "article-feedback"
   | "articles"
   | "molecule-editor"
+  | "replications"
   | "review";
 
 export type DevModePrimaryTab = "tools" | "change-log" | "profile";
@@ -36,6 +37,7 @@ export function resolvePrimaryTab(tab: DevModeTab): DevModePrimaryTab {
     tab === "article-feedback" ||
     tab === "articles" ||
     tab === "molecule-editor" ||
+    tab === "replications" ||
     tab === "review"
   ) {
     return "tools";

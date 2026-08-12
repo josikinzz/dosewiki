@@ -213,6 +213,8 @@ export function parsePath(
           tab = "article-feedback";
         } else if (candidate === "molecule-editor" || candidate === "molecules") {
           tab = "molecule-editor";
+        } else if (candidate === "replications" || candidate === "replication-studio") {
+          tab = "replications";
         } else if (candidate === "review") {
           tab = "review";
         } else if (candidate === "articles" || candidate === "generator" || candidate === "gen") {

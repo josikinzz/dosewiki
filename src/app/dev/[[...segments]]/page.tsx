@@ -75,6 +75,10 @@ function resolveDevRoute(segments: string[] | undefined): { tab: DevTab; slug?: 
     return { tab: "molecule-editor", slug };
   }
 
+  if (candidateTab === "replications" || candidateTab === "replication-studio") {
+    return { tab: "replications", slug };
+  }
+
   if (candidateTab === "review") {
     return { tab: "review", slug };
   }

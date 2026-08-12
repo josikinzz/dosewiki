@@ -423,6 +423,22 @@ const replication = v.object({
   file_size: v.optional(v.number()),   // In bytes
   duration: v.optional(v.number()),    // Video duration in seconds
   created_at: v.string(),              // ISO timestamp
+  /**
+   * Subjective effects this asset also depicts, as effect slugs.
+   *
+   * `effect_slug` answers "which effect owns this row" — one effect, the one
+   * whose gallery and permalink the row belongs to. This column answers the
+   * different question "what else is visible in it", which a single owning
+   * slug cannot express: one image can show geometry, drifting, and colour
+   * enhancement at once.
+   *
+   * Optional and additive: every existing row is correct with the column
+   * absent, and absence means "not tagged yet", never "depicts nothing". No
+   * public surface reads it yet — it is written and edited from the `/dev`
+   * Replication Studio so the corpus can be tagged before anything is built
+   * on top of the tags.
+   */
+  effect_tags: v.optional(v.array(v.string())),
   ...replicationRightsFields,
 });
 

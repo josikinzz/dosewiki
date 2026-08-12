@@ -1,5 +1,11 @@
 import { v } from "convex/values";
-import { mutation, query, internalMutation } from "./_generated/server";
+import {
+  mutation,
+  query,
+  internalMutation,
+  type MutationCtx,
+  type QueryCtx,
+} from "./_generated/server";
 import { requireAuth } from "./lib/auth";
 import { normalizeProfileAlias } from "../lib/contributorProfileIdentity";
 import { hasKnownCreator } from "../src/features/effects/components/replicationCredit";
@@ -491,6 +497,8 @@ export const insertMediaAsset = mutation({
     format: v.string(),
     file_size: v.optional(v.number()),
     duration: v.optional(v.number()),
+    /** Effects this asset also depicts; see the column note in `convex/schema.ts`. */
+    effect_tags: v.optional(v.array(v.string())),
     ...replicationRightsFields,
   },
   handler: async (ctx, args) => {
@@ -558,8 +566,11 @@ export const insertMediaAsset = mutation({
       throw new Error(`Media asset ${row.slug} is an image and cannot have a duration.`);
     }
 
+    const effectTags = row.effect_tags ? normalizeEffectTags(row.effect_tags) : undefined;
+
     const id = await ctx.db.insert("replications", {
       ...row,
+      effect_tags: effectTags && effectTags.length > 0 ? effectTags : undefined,
       created_at: new Date().toISOString(),
     });
 
@@ -1116,6 +1127,289 @@ export const updateRightsMetadata = mutation({
 
     await ctx.db.patch(replication._id, patch);
     return { success: true, updated: true };
+  },
+});
+
+/* ------------------------------------------------------------------------- *
+ * Replication Studio (`/dev` → Replications)
+ *
+ * The studio browses and edits the whole media table from one screen, so these
+ * three functions are shaped around that screen rather than around a script:
+ * one read that returns everything the grid draws, one guarded single-row edit,
+ * and one guarded bulk edit. All three take the `replicationMaintenance` intent
+ * like the maintenance mutations above them.
+ * ------------------------------------------------------------------------- */
+
+/**
+ * The columns the studio's editor owns. Rights beyond the credit line, storage
+ * pointers, dimensions, and the slug are deliberately absent: the slug is the
+ * public URL and the `gallery_order` key (rename it through `renameSlug`), and
+ * the rest belong to the import/maintenance scripts that measured them.
+ */
+const replicationEditorialSnapshot = v.object({
+  title: v.string(),
+  artist: v.string(),
+  /** Resolved, never absent — callers send `role ?? "replication"`. */
+  role: replicationRole,
+  effect_slug: v.union(v.string(), v.null()),
+  credit_line: v.union(v.string(), v.null()),
+  effect_tags: v.array(v.string()),
+});
+
+type ReplicationEditorialSnapshot = {
+  title: string;
+  artist: string;
+  role: "replication" | "figure";
+  effect_slug: string | null;
+  credit_line: string | null;
+  effect_tags: string[];
+};
+
+/** How many rows one bulk apply may touch, so a stray select-all cannot run away. */
+const BULK_EDIT_LIMIT = 250;
+/** How many effects one asset may be tagged with before the tag list stops being a description. */
+const MAX_EFFECT_TAGS = 24;
+
+function editorialSnapshotOf(row: {
+  title: string;
+  artist: string;
+  role?: "replication" | "figure";
+  effect_slug?: string;
+  credit_line?: string;
+  effect_tags?: string[];
+}): ReplicationEditorialSnapshot {
+  return {
+    title: row.title,
+    artist: row.artist,
+    role: row.role ?? "replication",
+    effect_slug: row.effect_slug ?? null,
+    credit_line: row.credit_line ?? null,
+    effect_tags: [...(row.effect_tags ?? [])].sort(),
+  };
+}
+
+function editorialSnapshotsAgree(
+  a: ReplicationEditorialSnapshot,
+  b: ReplicationEditorialSnapshot,
+): boolean {
+  return (
+    a.title === b.title
+    && a.artist === b.artist
+    && a.role === b.role
+    && a.effect_slug === b.effect_slug
+    && a.credit_line === b.credit_line
+    && a.effect_tags.length === b.effect_tags.length
+    && a.effect_tags.every((tag, index) => tag === b.effect_tags[index])
+  );
+}
+
+/**
+ * Effect tags are effect slugs, deduplicated and sorted so two rows tagged with
+ * the same effects compare equal — the compare-and-swap guard above depends on
+ * that, and so does anything that later groups by tag set.
+ */
+function normalizeEffectTags(tags: readonly string[]): string[] {
+  const normalized = [...new Set(tags.map((tag) => tag.trim().toLowerCase()).filter(Boolean))].sort();
+  for (const tag of normalized) {
+    if (!KEBAB_CASE.test(tag)) {
+      throw new Error(`Effect tag is not an effect slug: ${tag}`);
+    }
+  }
+  if (normalized.length > MAX_EFFECT_TAGS) {
+    throw new Error(`An asset may carry at most ${MAX_EFFECT_TAGS} effect tags (got ${normalized.length}).`);
+  }
+  return normalized;
+}
+
+async function assertEffectExists(ctx: QueryCtx | MutationCtx, slug: string, context: string) {
+  if (!KEBAB_CASE.test(slug)) {
+    throw new Error(`${context}: effect slug is not kebab-case: ${slug}`);
+  }
+  const effect = await ctx.db
+    .query("subjectiveEffects")
+    .withIndex("by_slug", (q) => q.eq("slug", slug))
+    .first();
+  if (!effect) {
+    throw new Error(`${context}: effect does not exist: ${slug}`);
+  }
+}
+
+/**
+ * Every stored media row, with storage URLs resolved and the owning effect's
+ * display name attached, for the `/dev` Replication Studio.
+ *
+ * Unlike `getPublicReplications` this keeps figures and effect-less rows: the
+ * studio's whole job is to find and fix the rows the public surfaces skip, so
+ * hiding them here would hide exactly the work. It is authenticated because it
+ * is an editorial read of the whole table, not a public projection.
+ */
+export const getStudioRows = query({
+  args: { apiKey: v.optional(v.string()) },
+  handler: async (ctx, args) => {
+    await requireAuth(ctx, args.apiKey, "replicationMaintenance");
+
+    const rows = await ctx.db.query("replications").collect();
+    const effects = await ctx.db.query("subjectiveEffects").collect();
+    const effectNames = new Map(effects.map((effect) => [effect.slug, effect.name ?? effect.slug]));
+
+    const resolved = await Promise.all(
+      rows.map(async (row) => {
+        const { url, thumbnail_url } = await resolveReplicationUrls(ctx, row);
+        return {
+          id: row._id,
+          slug: row.slug,
+          title: row.title,
+          artist: row.artist,
+          artist_url: row.artist_url ?? null,
+          role: row.role ?? ("replication" as const),
+          type: row.type,
+          effect_slug: row.effect_slug ?? null,
+          effect_name: row.effect_slug ? effectNames.get(row.effect_slug) ?? row.effect_slug : null,
+          effect_tags: row.effect_tags ?? [],
+          credit_line: row.credit_line ?? null,
+          rights_status: row.rights_status ?? null,
+          source_url: row.source_url ?? null,
+          rightsholder: row.rightsholder ?? null,
+          url,
+          thumbnail_url,
+          format: row.format,
+          duration: row.duration ?? null,
+          file_size: row.file_size ?? null,
+          created_at: row.created_at,
+        };
+      }),
+    );
+
+    return {
+      rows: resolved,
+      effects: effects
+        .map((effect) => ({ slug: effect.slug, name: effect.name ?? effect.slug }))
+        .sort((a, b) => a.name.localeCompare(b.name)),
+    };
+  },
+});
+
+/**
+ * Save the studio's single-row editor.
+ *
+ * Guarded by the caller's `expected` snapshot rather than by row identity alone:
+ * the studio holds a whole-table read in memory while the editor is open, so a
+ * stale drawer would otherwise re-assert every field it had loaded and quietly
+ * undo somebody else's edit. A drifted row is refused, not merged.
+ */
+export const updateEditorialFields = mutation({
+  args: {
+    apiKey: v.optional(v.string()),
+    id: v.id("replications"),
+    expected: replicationEditorialSnapshot,
+    updates: replicationEditorialSnapshot,
+  },
+  handler: async (ctx, args) => {
+    await requireAuth(ctx, args.apiKey, "replicationMaintenance");
+
+    const row = await ctx.db.get(args.id);
+    if (!row) {
+      throw new Error(`Replication ${args.id} no longer exists.`);
+    }
+
+    const current = editorialSnapshotOf(row);
+    const expected = { ...args.expected, effect_tags: [...args.expected.effect_tags].sort() };
+    if (!editorialSnapshotsAgree(current, expected)) {
+      throw new Error(
+        `Replication ${row.slug} changed since it was opened; reload the studio before saving.`,
+      );
+    }
+
+    const title = args.updates.title.trim();
+    const artist = args.updates.artist.trim();
+    if (!title || !artist) {
+      throw new Error(`Replication ${row.slug} needs a non-blank title and artist.`);
+    }
+    if (args.updates.effect_slug !== null) {
+      await assertEffectExists(ctx, args.updates.effect_slug, `Replication ${row.slug}`);
+    }
+    const effectTags = normalizeEffectTags(args.updates.effect_tags);
+    const creditLine = args.updates.credit_line?.trim() ?? "";
+
+    await ctx.db.patch(args.id, {
+      title,
+      artist,
+      role: args.updates.role,
+      effect_slug: args.updates.effect_slug ?? undefined,
+      credit_line: creditLine.length > 0 ? creditLine : undefined,
+      effect_tags: effectTags.length > 0 ? effectTags : undefined,
+    });
+
+    return { success: true, slug: row.slug };
+  },
+});
+
+/**
+ * Apply one shared change to several rows — the studio's bulk toolbar.
+ *
+ * Every field is optional and an omitted field means "leave it alone", so a
+ * bulk apply can never blank a column it was not asked about. Tags are added,
+ * never replaced: the selection's rows generally differ in what they already
+ * depict, and replacing would discard work the selection did not intend.
+ */
+export const bulkUpdateEditorialFields = mutation({
+  args: {
+    apiKey: v.optional(v.string()),
+    ids: v.array(v.id("replications")),
+    effect_slug: v.optional(v.string()),
+    artist: v.optional(v.string()),
+    role: v.optional(replicationRole),
+    addEffectTags: v.optional(v.array(v.string())),
+  },
+  handler: async (ctx, args) => {
+    await requireAuth(ctx, args.apiKey, "replicationMaintenance");
+
+    if (args.ids.length === 0) {
+      throw new Error("A bulk edit needs at least one row.");
+    }
+    if (args.ids.length > BULK_EDIT_LIMIT) {
+      throw new Error(`A bulk edit may touch at most ${BULK_EDIT_LIMIT} rows (got ${args.ids.length}).`);
+    }
+
+    const artist = args.artist?.trim();
+    if (args.artist !== undefined && !artist) {
+      throw new Error("A bulk artist change needs a non-blank artist.");
+    }
+    if (args.effect_slug !== undefined) {
+      await assertEffectExists(ctx, args.effect_slug, "Bulk edit");
+    }
+    const addTags = args.addEffectTags ? normalizeEffectTags(args.addEffectTags) : [];
+
+    if (
+      args.effect_slug === undefined
+      && artist === undefined
+      && args.role === undefined
+      && addTags.length === 0
+    ) {
+      throw new Error("A bulk edit needs at least one field to change.");
+    }
+
+    const updatedSlugs: string[] = [];
+    for (const id of args.ids) {
+      const row = await ctx.db.get(id);
+      if (!row) {
+        throw new Error(`Replication ${id} no longer exists; reload the studio before applying.`);
+      }
+
+      const nextTags = addTags.length > 0
+        ? normalizeEffectTags([...(row.effect_tags ?? []), ...addTags])
+        : row.effect_tags;
+
+      await ctx.db.patch(id, {
+        ...(args.effect_slug !== undefined ? { effect_slug: args.effect_slug } : {}),
+        ...(artist ? { artist } : {}),
+        ...(args.role !== undefined ? { role: args.role } : {}),
+        ...(addTags.length > 0 ? { effect_tags: nextTags } : {}),
+      });
+      updatedSlugs.push(row.slug);
+    }
+
+    return { success: true, updated: updatedSlugs.length, slugs: updatedSlugs };
   },
 });
 
