@@ -29,15 +29,19 @@ export function useOwnedProfileKey(
     }
 
     let cancelled = false;
-    ownedProfileKey
-      .then((key) => {
+    // Promise.resolve is load-bearing: across the RSC boundary this arrives as
+    // a React thenable whose .then() returns undefined, so chaining .catch()
+    // off it crashes the shell.
+    Promise.resolve(ownedProfileKey).then(
+      (key) => {
         if (!cancelled && key) {
           setResolvedKey(key);
         }
-      })
-      .catch((error: unknown) => {
+      },
+      (error: unknown) => {
         console.error("Unable to resolve the owned contributor profile key.", error);
-      });
+      },
+    );
 
     return () => {
       cancelled = true;
