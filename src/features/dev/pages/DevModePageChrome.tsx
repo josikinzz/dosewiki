@@ -6,8 +6,14 @@ import { Icon } from "@/components/common/Icon";
 import { StateCard } from "@/components/common/StateCard";
 import { Button } from "@/components/ui/button";
 import type { DevModePrimaryTab, DevModeTab } from "./devModePageUtils";
+import { useTripReportReviewBadge } from "./useTripReportReviewBadge";
 
-type ToolTabItem = { id: DevModeTab; label: string };
+/**
+ * `badge` is an optional count of work waiting inside a tool. It is rendered
+ * only when it resolves to a positive number, so a tab whose count has not
+ * arrived (or is zero) looks exactly as it did before.
+ */
+type ToolTabItem = { id: DevModeTab; label: string; badge?: number };
 
 /**
  * Text-only tool tabs. Icons were removed deliberately: at eleven destinations
@@ -129,6 +135,11 @@ export function DevModePageChrome({
 }: DevModePageChromeProps) {
   const userLabel = userName ?? userEmail ?? "Editor";
   const isToolsSection = activePrimaryTab === "tools";
+  // Only asked for once the editor is actually signed in for editing.
+  const tripReportReviewCount = useTripReportReviewBadge(hasNextEditorSession);
+  const toolTabs: ToolTabItem[] = TOOL_TAB_ITEMS.map((item) =>
+    item.id === "trip-report-submissions" ? { ...item, badge: tripReportReviewCount } : item,
+  );
   const sessionDetail = hasNextEditorSession
     ? "Authenticated via Auth.js. You have permission to edit articles."
     : "Authenticated via Auth.js. You can edit your own contributor profile from the Profile tab.";
@@ -150,7 +161,7 @@ export function DevModePageChrome({
           aria-label="Dev mode tools"
           className="flex min-w-0 flex-1 snap-x snap-mandatory items-center gap-0.5 overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
         >
-          {TOOL_TAB_ITEMS.map((item) => {
+          {toolTabs.map((item) => {
             const isActive = isToolsSection && activeTab === item.id;
             return (
               <button
@@ -159,9 +170,17 @@ export function DevModePageChrome({
                 aria-current={isActive ? "page" : undefined}
                 data-state={isActive ? "active" : "inactive"}
                 onClick={() => onTabChange(item.id)}
-                className={RAIL_TAB_CLASS}
+                className={`${RAIL_TAB_CLASS} inline-flex items-center gap-1.5`}
               >
                 {item.label}
+                {item.badge ? (
+                  <span
+                    title={`${item.badge} awaiting review`}
+                    className="theme-portal-count-badge inline-flex h-[17px] min-w-[17px] items-center justify-center rounded-full px-1.5 font-mono text-[10px] font-semibold leading-none"
+                  >
+                    {item.badge}
+                  </span>
+                ) : null}
               </button>
             );
           })}

@@ -49,11 +49,9 @@ const ArticleFeedbackReviewTab = dynamic(
   () => import("../tools/article-feedback/ArticleFeedbackReviewTab").then((m) => m.ArticleFeedbackReviewTab),
   { ssr: false, loading },
 );
-const TripReportSubmissionReviewTab = dynamic(
+const TripReportPortalTab = dynamic(
   () =>
-    import("../tools/trip-report-submissions/TripReportSubmissionReviewTab").then(
-      (m) => m.TripReportSubmissionReviewTab,
-    ),
+    import("../tools/trip-report-portal/TripReportPortalTab").then((m) => m.TripReportPortalTab),
   { ssr: false, loading },
 );
 const ProfileEditorTab = dynamic(
@@ -124,7 +122,7 @@ export function DevModePageView({ controller }: DevModePageViewProps) {
         ) : controller.activeTab === "citation-review" ? (
           <CitationReviewTab initialSlug={controller.citationReviewInitialSlug} />
         ) : controller.activeTab === "trip-report-submissions" ? (
-          <TripReportSubmissionReviewTab />
+          <TripReportPortalTab />
         ) : controller.activeTab === "article-feedback" ? (
           <ArticleFeedbackReviewTab />
         ) : controller.activeTab === "tag-editor" ? (

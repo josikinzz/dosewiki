@@ -2,8 +2,8 @@ import { v } from "convex/values";
 import { mutation, query, type QueryCtx } from "./_generated/server";
 import { requireAuth, requireEditorWrite } from "./lib/auth";
 import {
-  findProfileByAuthorName,
-  normalizeAssignedProfileKey,
+  assertAuthorNameClaimAdjudicated,
+  resolveEditorAssignedProfileKey,
   stripSubmitterSubjectFields,
   withEditorAssignedProfileKey,
 } from "./lib/tripReportAttribution";
@@ -341,7 +341,11 @@ async function buildPromotionPayload(
 ) {
   const slug = await resolveAvailableSlug(ctx, slugify(row.title));
   const assignedProfileKey = await resolveEditorAssignedProfileKey(ctx, options.requestedProfileKey);
-  await assertAuthorNameClaimAdjudicated(ctx, row.report.subject.name, assignedProfileKey, options);
+  await assertAuthorNameClaimAdjudicated(ctx, {
+    authorName: row.report.subject.name,
+    assignedProfileKey,
+    confirmAuthorNameClaim: options.confirmAuthorNameClaim,
+  });
 
   return {
     ...row.report,
@@ -366,44 +370,6 @@ async function buildPromotionPayload(
   };
 }
 
-/**
- * A submitted byline is an unverified string, and the public read path resolves
- * bylines to contributor profiles by exact name. Promoting "nervewing" as-is
- * would therefore hand that contributor's page, avatar, and report list to
- * whoever typed the name. The editor is looking straight at the submission at
- * this moment, so this is where the claim gets adjudicated: grant it by
- * assigning that profile's key, or acknowledge it and publish unattributed.
- */
-async function assertAuthorNameClaimAdjudicated(
-  ctx: ConvexReadCtx,
-  authorName: string,
-  assignedProfileKey: string,
-  options: PromotionAttributionOptions,
-) {
-  // contributorProfiles is a small dimension table with no name index, and the
-  // public profile reads already collect it wholesale.
-  const profiles = await ctx.db.query("contributorProfiles").collect();
-  const matched = findProfileByAuthorName(profiles, authorName);
-
-  if (!matched) {
-    return;
-  }
-
-  const matchedKey = normalizeAssignedProfileKey(matched.key);
-  if (assignedProfileKey && assignedProfileKey === matchedKey) {
-    return;
-  }
-
-  if (options.confirmAuthorNameClaim) {
-    return;
-  }
-
-  throw new Error(
-    `Author name "${authorName}" matches contributor profile "${matchedKey}". ` +
-      "Assign that profile key to attribute the report, or confirm publishing it without attribution.",
-  );
-}
-
 function withoutSubmitterAttribution(row: SubmissionRow): SubmissionRow {
   return {
     ...row,
@@ -412,29 +378,6 @@ function withoutSubmitterAttribution(row: SubmissionRow): SubmissionRow {
       subject: stripSubmitterSubjectFields(row.report.subject),
     },
   };
-}
-
-/**
- * Resolve the contributor key an editor assigned during promotion. Unknown keys
- * are rejected rather than published, so a typo cannot mint a report that links
- * to a contributor page nobody owns.
- */
-async function resolveEditorAssignedProfileKey(ctx: ConvexReadCtx, requestedKey: string | undefined) {
-  const profileKey = normalizeAssignedProfileKey(requestedKey);
-  if (!profileKey) {
-    return "";
-  }
-
-  const profile = await ctx.db
-    .query("contributorProfiles")
-    .withIndex("by_key", (q) => q.eq("key", profileKey))
-    .first();
-
-  if (!profile) {
-    throw new Error(`Contributor profile "${profileKey}" not found.`);
-  }
-
-  return profileKey;
 }
 
 async function resolveAvailableSlug(ctx: ConvexReadCtx, baseSlug: string) {

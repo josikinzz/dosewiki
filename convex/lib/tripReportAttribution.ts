@@ -1,3 +1,4 @@
+import type { QueryCtx } from "../_generated/server";
 import { normalizeProfileKey } from "./contributorProfiles";
 
 /**
@@ -116,6 +117,83 @@ export function findProfileByAuthorName<T extends AuthorNameMatchableProfile>(
   }
 
   return profiles.find((profile) => profileMatchesAuthorName(profile, normalized)) ?? null;
+}
+
+type AttributionReadCtx = { db: QueryCtx["db"] };
+
+/**
+ * A byline is an unverified string, and the public read path resolves bylines
+ * to contributor profiles by exact name. Publishing "nervewing" as-is would
+ * therefore hand that contributor's page, avatar, and report list to whoever
+ * typed the name. An editor is looking straight at the record at this moment,
+ * so this is where the claim gets adjudicated: grant it by assigning that
+ * profile's key, or acknowledge it and publish unattributed.
+ *
+ * Shared by both write paths that can set a byline — submission promotion and
+ * per-record editing in the Trip Report Portal. It lives here rather than
+ * beside either caller because two copies of this check would be two chances
+ * for one of them to drift open.
+ */
+export async function assertAuthorNameClaimAdjudicated(
+  ctx: AttributionReadCtx,
+  options: {
+    authorName: string;
+    assignedProfileKey: string;
+    confirmAuthorNameClaim?: boolean;
+  },
+): Promise<void> {
+  // contributorProfiles is a small dimension table with no name index, and the
+  // public profile reads already collect it wholesale.
+  const profiles = await ctx.db.query("contributorProfiles").collect();
+  const matched = findProfileByAuthorName(profiles, options.authorName);
+
+  if (!matched) {
+    return;
+  }
+
+  const matchedKey = normalizeAssignedProfileKey(matched.key);
+  if (options.assignedProfileKey && options.assignedProfileKey === matchedKey) {
+    return;
+  }
+
+  if (options.confirmAuthorNameClaim) {
+    return;
+  }
+
+  throw new Error(authorNameClaimMessage(options.authorName, matchedKey));
+}
+
+export function authorNameClaimMessage(authorName: string, matchedKey: string): string {
+  return (
+    `Author name "${authorName}" matches contributor profile "${matchedKey}". ` +
+    "Assign that profile key to attribute the report, or confirm publishing it without attribution."
+  );
+}
+
+/**
+ * Resolve the contributor key an editor assigned. Unknown keys are rejected
+ * rather than published, so a typo cannot mint a report that links to a
+ * contributor page nobody owns. An empty assignment means no attribution.
+ */
+export async function resolveEditorAssignedProfileKey(
+  ctx: AttributionReadCtx,
+  requestedKey: string | undefined,
+): Promise<string> {
+  const profileKey = normalizeAssignedProfileKey(requestedKey);
+  if (!profileKey) {
+    return "";
+  }
+
+  const profile = await ctx.db
+    .query("contributorProfiles")
+    .withIndex("by_key", (q) => q.eq("key", profileKey))
+    .first();
+
+  if (!profile) {
+    throw new Error(`Contributor profile "${profileKey}" not found.`);
+  }
+
+  return profileKey;
 }
 
 /** Mirror of `toContributorDisplayName` in `lib/contributorProfileIdentity`. */

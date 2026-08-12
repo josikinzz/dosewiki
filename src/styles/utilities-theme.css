@@ -3827,6 +3827,94 @@
     color: var(--theme-text-on-media);
   }
 
+  /*
+   * Trip Report Portal. The corpus index is a flat hairline list, not a card
+   * grid (style guide §9, "index lists"): homogeneous rows sit directly on the
+   * canvas, separated by a 1px rule, and selection is the violet route-active
+   * fill with a 1px inset outline rather than a border stripe.
+   */
+  .theme-portal-rule {
+    border-color: var(--theme-border-subtle);
+  }
+
+  .theme-portal-row {
+    color: var(--theme-text-secondary);
+  }
+
+  @media (hover: hover) {
+    .theme-portal-row:not([data-state="active"]):hover {
+      background: var(--theme-frosted-control-hover-bg);
+    }
+  }
+
+  .theme-portal-row[data-state="active"] {
+    background: var(--theme-article-route-active-bg);
+    box-shadow: inset 0 0 0 1px var(--theme-article-route-active-border);
+  }
+
+  .theme-portal-row[data-state="active"] .theme-portal-row-title {
+    color: var(--theme-article-route-active-text);
+  }
+
+  .theme-portal-row:focus-visible {
+    outline: 2px solid var(--theme-accent-strong);
+    outline-offset: -2px;
+  }
+
+  .theme-portal-bucket {
+    color: var(--theme-text-muted);
+  }
+
+  @media (hover: hover) {
+    .theme-portal-bucket:not([data-state="active"]):hover {
+      background: var(--theme-frosted-control-on-panel-hover-bg);
+      color: var(--theme-text-primary);
+    }
+  }
+
+  .theme-portal-bucket[data-state="active"] {
+    background: var(--theme-article-route-active-bg);
+    color: var(--theme-article-route-active-text);
+    box-shadow: 0 0 0 1px var(--theme-article-route-active-border);
+  }
+
+  /* The needs-review marker, and the same magenta pill on the dev tab. */
+  .theme-portal-needs-dot {
+    background: var(--theme-accent);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--theme-accent) 18%, transparent);
+  }
+
+  .theme-portal-count-badge {
+    background: var(--theme-accent);
+    color: var(--theme-surface-deep);
+  }
+
+  /*
+   * The two prose sections that bookend the timeline. They hang the same dots
+   * on the same spine as the coloured phases, but read as neutral because they
+   * are not a phase of the experience.
+   */
+  .theme-portal-prose-phase-dot {
+    background-color: var(--theme-text-ghost);
+  }
+
+  .theme-portal-prose-phase-text,
+  .theme-portal-group-heading {
+    color: var(--theme-section-heading);
+  }
+
+  .theme-portal-ghost-pill {
+    border-color: var(--theme-border-strong);
+    color: var(--theme-text-faint);
+  }
+
+  @media (hover: hover) {
+    .theme-portal-ghost-pill:hover {
+      border-color: var(--theme-frosted-control-hover-border);
+      color: var(--theme-accent-strong);
+    }
+  }
+
   .theme-index-mobile-tab {
     color: color-mix(in srgb, var(--theme-text-muted) 82%, var(--theme-body-bg));
   }
