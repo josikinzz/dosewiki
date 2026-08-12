@@ -30,18 +30,16 @@ function ReplicationCard({
       aria-selected={selected}
       data-id={row.id}
       onClick={(event) => onActivate(event, row.id)}
+      data-state={selected ? "active" : undefined}
       className={cn(
-        "group relative flex flex-col gap-2 rounded-xl border p-2 text-left transition",
-        "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--theme-accent-strong)]",
-        selected
-          ? "border-[color:var(--theme-article-route-active-border)] bg-[var(--theme-article-route-active-bg)] shadow-[var(--theme-elevation-control-active)]"
-          : "border-[color:var(--editor-panel-border)] bg-[var(--theme-surface-muted)] hover:border-[color:var(--theme-frosted-panel-hover-border)] hover:bg-[var(--theme-surface-soft)]",
+        "theme-replication-card group relative flex flex-col gap-2 rounded-xl border p-2 text-left transition",
+        selected ? undefined : "border-[color:var(--editor-panel-border)]",
       )}
     >
       <ReplicationThumb row={row} className="aspect-[4/3]" />
 
       {selected ? (
-        <span className="absolute right-3 top-3 inline-flex size-5 items-center justify-center rounded-full bg-[var(--theme-accent-strong)] text-[var(--theme-surface-deep)]">
+        <span className="absolute right-3 top-3 inline-flex size-5 items-center justify-center theme-replication-card-check rounded-full">
           <Icon icon="lucide:check" size={13} />
         </span>
       ) : null}

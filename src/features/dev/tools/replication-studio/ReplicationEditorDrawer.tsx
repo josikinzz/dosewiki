@@ -132,7 +132,7 @@ function SingleEditor({
       </EditorField>
 
       <EditorField label="Slug (read-only)" description="Rename slugs with the replication maintenance scripts — the slug is the public URL and the gallery-order key.">
-        <div className="flex items-center gap-2 rounded-xl border border-[color:var(--editor-panel-border)] bg-[var(--theme-field-surface)] px-3 py-2">
+        <div className="flex items-center gap-2 rounded-xl border border-[color:var(--editor-panel-border)] theme-replication-field px-3 py-2">
           <span className="theme-text-secondary min-w-0 flex-1 truncate font-mono text-xs">{row.slug}</span>
           <Badge variant="secondary">{row.format}</Badge>
         </div>
@@ -349,7 +349,7 @@ export function ReplicationEditorDrawer({
             <ul className="space-y-1.5">
               {KEYBOARD_HINTS.map(([key, description]) => (
                 <li key={key} className="flex items-center gap-2 text-sm">
-                  <kbd className="theme-text-secondary rounded-md border border-[color:var(--editor-panel-border)] bg-[var(--theme-surface-muted)] px-1.5 py-0.5 font-mono text-[11px]">
+                  <kbd className="theme-replication-muted-panel theme-text-secondary rounded-md border border-[color:var(--editor-panel-border)] px-1.5 py-0.5 font-mono text-[11px]">
                     {key}
                   </kbd>
                   <span className="theme-text-faint">{description}</span>

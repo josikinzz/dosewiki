@@ -60,16 +60,12 @@ function FacetSection({
           return (
             <li key={entry.key}>
               <label
-                className={cn(
-                  "flex cursor-pointer items-center gap-2 rounded-lg px-2 py-1 text-sm transition",
-                  checked
-                    ? "bg-[var(--theme-article-route-active-bg)] text-[var(--theme-article-route-active-text)]"
-                    : "theme-text-secondary hover:bg-[var(--theme-surface-muted)]",
-                )}
+                data-state={checked ? "active" : undefined}
+                className="theme-replication-facet-option flex cursor-pointer items-center gap-2 rounded-lg px-2 py-1 text-sm transition"
               >
                 <input
                   type="checkbox"
-                  className="accent-[var(--theme-accent-strong)]"
+                  className="theme-replication-checkbox"
                   checked={checked}
                   onChange={() => onToggleFacet(kind, entry.key)}
                 />

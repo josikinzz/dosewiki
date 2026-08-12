@@ -36,7 +36,7 @@ function waveformBars(seedSource: string): number[] {
 
 function Placeholder({ type }: { type: StudioMediaType }) {
   return (
-    <div className="theme-text-faint flex h-full w-full flex-col items-center justify-center gap-1 bg-[var(--theme-surface-deep)]">
+    <div className="theme-text-faint flex h-full w-full flex-col items-center justify-center theme-replication-media-well gap-1">
       <Icon icon={TYPE_ICON[type]} size={20} />
       <span className="text-[11px] uppercase tracking-[0.24em]">{type}</span>
     </div>
@@ -58,7 +58,7 @@ export function ReplicationThumb({
   return (
     <div
       className={cn(
-        "relative w-full overflow-hidden rounded-lg bg-[var(--theme-surface-deep)]",
+        "relative w-full overflow-hidden theme-replication-media-well rounded-lg",
         className,
       )}
     >
@@ -68,7 +68,7 @@ export function ReplicationThumb({
             <span
               key={index}
               aria-hidden="true"
-              className="w-[3px] rounded-full bg-[var(--theme-accent-muted)] opacity-70"
+              className="w-[3px] theme-replication-waveform-bar rounded-full opacity-70"
               style={{ height: `${height.toFixed(0)}%` }}
             />
           ))}
@@ -91,7 +91,7 @@ export function ReplicationThumb({
       )}
 
       {showGlyph && row.type !== "image" ? (
-        <span className="absolute bottom-1.5 right-1.5 inline-flex items-center gap-1 rounded-full bg-[var(--theme-shadow-strong)] px-2 py-0.5 text-[11px] text-[var(--theme-text-on-media)]">
+        <span className="absolute bottom-1.5 right-1.5 inline-flex items-center gap-1 theme-replication-media-badge rounded-full px-2 py-0.5 text-[11px]">
           <Icon icon={TYPE_ICON[row.type]} size={11} />
           {durationLabel ?? row.type}
         </span>

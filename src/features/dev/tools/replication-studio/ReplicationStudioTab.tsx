@@ -627,11 +627,11 @@ export function ReplicationStudioTab() {
       <div
         aria-hidden={!dragging}
         className={cn(
-          "pointer-events-none fixed inset-0 z-50 flex items-center justify-center bg-[var(--theme-shadow-strong)] transition-opacity",
+          "pointer-events-none fixed inset-0 z-50 flex items-center justify-center theme-replication-overlay-scrim transition-opacity",
           dragging ? "opacity-100" : "opacity-0",
         )}
       >
-        <div className="rounded-2xl border border-[color:var(--theme-frosted-panel-border)] bg-[var(--theme-panel-base)] px-8 py-6 text-center">
+        <div className="rounded-2xl theme-replication-overlay-card border px-8 py-6 text-center">
           <h3 className="theme-accent-emphasis font-display text-lg font-semibold">
             Drop images, videos, or MP3s
           </h3>

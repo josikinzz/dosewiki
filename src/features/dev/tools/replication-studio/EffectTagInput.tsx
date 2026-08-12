@@ -68,7 +68,7 @@ export function EffectTagInput({
     <div className="relative">
       <div
         className={cn(
-          "flex flex-wrap items-center gap-1.5 rounded-xl border border-[color:var(--editor-panel-border)] bg-[var(--theme-field-surface)] p-2",
+          "flex flex-wrap items-center gap-1.5 rounded-xl border border-[color:var(--editor-panel-border)] theme-replication-field p-2",
           disabled ? "opacity-60" : undefined,
         )}
       >
@@ -137,7 +137,7 @@ export function EffectTagInput({
         <ul
           id={`${id}-suggestions`}
           role="listbox"
-          className="absolute z-20 mt-1 max-h-64 w-full overflow-y-auto rounded-xl border border-[color:var(--editor-panel-border)] bg-[var(--theme-surface-strong)] p-1 shadow-[var(--theme-elevation-overlay)]"
+          className="absolute z-20 mt-1 max-h-64 w-full overflow-y-auto rounded-xl border border-[color:var(--editor-panel-border)] theme-replication-suggestions p-1"
         >
           {suggestions.map((option, index) => (
             <li key={option.slug} role="option" aria-selected={index === activeIndex}>

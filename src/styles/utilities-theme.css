@@ -3741,6 +3741,92 @@
     color: var(--theme-text-secondary);
   }
 
+  /*
+   * Replication studio. The dev-only media triage surface: quiet muted panels
+   * for rows and cards, a field tone for inputs, and deep media wells behind
+   * thumbnails so artwork and waveforms sit on their own ground.
+   */
+  .theme-replication-field {
+    background: var(--theme-field-surface);
+  }
+
+  .theme-replication-suggestions {
+    background: var(--theme-surface-strong);
+    box-shadow: var(--theme-elevation-overlay);
+  }
+
+  .theme-replication-muted-panel {
+    background: var(--theme-surface-muted);
+  }
+
+  .theme-replication-facet-option {
+    color: var(--theme-text-secondary);
+  }
+
+  @media (hover: hover) {
+    .theme-replication-facet-option:hover {
+      background: var(--theme-surface-muted);
+    }
+  }
+
+  .theme-replication-facet-option[data-state="active"] {
+    background: var(--theme-article-route-active-bg);
+    color: var(--theme-article-route-active-text);
+  }
+
+  .theme-replication-checkbox {
+    accent-color: var(--theme-accent-strong);
+  }
+
+  .theme-replication-card {
+    background: var(--theme-surface-muted);
+  }
+
+  .theme-replication-card:focus-visible {
+    outline: 2px solid var(--theme-accent-strong);
+    outline-offset: 2px;
+  }
+
+  @media (hover: hover) {
+    .theme-replication-card:not([data-state="active"]):hover {
+      background: var(--theme-surface-soft);
+      border-color: var(--theme-frosted-panel-hover-border);
+    }
+  }
+
+  .theme-replication-card[data-state="active"] {
+    background: var(--theme-article-route-active-bg);
+    border-color: var(--theme-article-route-active-border);
+    box-shadow: var(--theme-elevation-control-active);
+  }
+
+  .theme-replication-card-check {
+    background: var(--theme-accent-strong);
+    color: var(--theme-surface-deep);
+  }
+
+  .theme-replication-overlay-scrim {
+    background: var(--theme-shadow-strong);
+  }
+
+  .theme-replication-overlay-card {
+    background: var(--theme-panel-base);
+    border-color: var(--theme-frosted-panel-border);
+  }
+
+  .theme-replication-media-well {
+    background: var(--theme-surface-deep);
+  }
+
+  .theme-replication-waveform-bar {
+    background: var(--theme-accent-muted);
+  }
+
+  .theme-replication-media-badge {
+    background: var(--theme-shadow-strong);
+    color: var(--theme-text-on-media);
+  }
+
   .theme-index-mobile-tab {
     color: color-mix(in srgb, var(--theme-text-muted) 82%, var(--theme-body-bg));
   }

@@ -83,7 +83,7 @@ export function IncomingTray({
           return (
             <div
               key={item.id}
-              className="grid gap-3 rounded-xl border border-[color:var(--editor-panel-border)] bg-[var(--theme-surface-muted)] p-3 sm:grid-cols-[8rem_1fr_auto]"
+              className="grid gap-3 rounded-xl border border-[color:var(--editor-panel-border)] theme-replication-muted-panel p-3 sm:grid-cols-[8rem_1fr_auto]"
             >
               <ReplicationThumb
                 row={{
@@ -144,7 +144,7 @@ export function IncomingTray({
                 </EditorField>
 
                 {item.error ? (
-                  <p className="text-sm text-[color:var(--theme-danger-text)]">{item.error}</p>
+                  <p className="theme-danger-text text-sm">{item.error}</p>
                 ) : null}
               </div>
 
