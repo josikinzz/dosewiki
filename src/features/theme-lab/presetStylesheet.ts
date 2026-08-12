@@ -32,6 +32,14 @@ export const PALETTE_ATTRIBUTE = "data-palette";
 export const PRESET_STYLESHEET_PATH = "src/styles/palette-presets.generated.css";
 
 /**
+ * Class marking a subtree that keeps the dark palette while the page is in
+ * light mode — the dark header banner over a light page. Worn by the two
+ * `.app-header` elements; the base token block in `site-colors.css` carries the
+ * matching island selector.
+ */
+export const CHROME_DARK_CLASS = "theme-chrome-dark";
+
+/**
  * Selector for one preset's block in one theme.
  *
  * Two attributes on purpose: (0,2,1) puts the compiled block above the authored
@@ -43,17 +51,32 @@ export function presetBlockSelector(presetId: string, theme: string): string {
   return `html[${PALETTE_ATTRIBUTE}="${presetId}"][data-theme="${theme}"]`;
 }
 
-function block(selector: string, declarations: Record<string, string>): string {
+/**
+ * Every selector a preset's block is emitted under.
+ *
+ * A dark block is worn twice: by the root in dark mode, and by a
+ * {@link CHROME_DARK_CLASS} subtree while the root is light. That island
+ * selector is (0,3,1) — one step above this preset's own light block (0,2,1) —
+ * so a dark header inside a light page wears the preset's *dark* chrome rather
+ * than falling back to the unthemed default.
+ */
+function presetBlockSelectors(presetId: string, theme: string): string[] {
+  const own = presetBlockSelector(presetId, theme);
+  if (theme !== "dark") return [own];
+  return [own, `${presetBlockSelector(presetId, "light")} .${CHROME_DARK_CLASS}`];
+}
+
+function block(selectors: readonly string[], declarations: Record<string, string>): string {
   const entries = Object.entries(declarations);
   if (entries.length === 0) return "";
   const body = entries.map(([token, value]) => `  ${token}: ${value};`).join("\n");
-  return `${selector} {\n${body}\n}\n`;
+  return `${selectors.join(",\n")} {\n${body}\n}\n`;
 }
 
 function presetCss(preset: PalettePreset): string {
   const themes = Object.keys(preset.overrides).sort();
   const blocks = themes
-    .map((theme) => block(presetBlockSelector(preset.id, theme), preset.overrides[theme] ?? {}))
+    .map((theme) => block(presetBlockSelectors(preset.id, theme), preset.overrides[theme] ?? {}))
     .filter(Boolean);
   if (blocks.length === 0) return "";
   return `/* ${preset.name} — ${preset.tagline} */\n${blocks.join("\n")}`;

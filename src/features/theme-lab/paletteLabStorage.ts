@@ -1,6 +1,6 @@
 import type { ThemeName } from "@/theme";
 import { DEFAULT_PRESET_ID } from "./palettePresets";
-import { PALETTE_ATTRIBUTE } from "./presetStylesheet";
+import { CHROME_DARK_CLASS, PALETTE_ATTRIBUTE } from "./presetStylesheet";
 
 /**
  * Theme Lab persistence and DOM application — the two ends of the feature's
@@ -276,9 +276,17 @@ export function writeSerializedEnvelope(serialized: string): boolean {
  * doubled attribute rather than on `[data-palette]` also keeps the layer
  * applying when no preset is worn at all, and lets the baseline sampler strip
  * the palette attribute without silencing the layer it is staging.
+ *
+ * The dark layer carries a second selector: a {@link CHROME_DARK_CLASS} subtree
+ * wears the visitor's dark edits even while the root is light, so their tuning
+ * of the chrome follows the dark header onto a light page. It is (0,3,1),
+ * level with the generated preset island and again winning on source order.
+ * The sampler is unaffected — that selector can never match the root element.
  */
 export function userLayerSelector(theme: ThemeName): string {
-  return `html[data-theme="${theme}"][data-theme]`;
+  const own = `html[data-theme="${theme}"][data-theme]`;
+  if (theme !== "dark") return own;
+  return `${own},html[data-theme="light"][data-theme] .${CHROME_DARK_CLASS}`;
 }
 
 /** The lab's CSS shape: one attribute-scoped block per theme. Exported so the

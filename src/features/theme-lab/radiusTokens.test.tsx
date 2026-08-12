@@ -218,9 +218,14 @@ describe("radius edits through the lab's seam", { timeout: 15_000 }, () => {
 
     const css = overrideCss();
     // The doubled attribute is the lab's user-layer selector — the specificity
-    // that puts an edit level with the compiled preset blocks.
-    expect(css).toContain('html[data-theme="dark"][data-theme]{--radius-xl:0.25rem;}');
-    expect(css).not.toContain('html[data-theme="light"]');
+    // that puts an edit level with the compiled preset blocks. The dark block
+    // heads a two-selector list so the dark chrome island (the header on a
+    // light page) wears the visitor's dark edits too.
+    expect(css).toContain(
+      'html[data-theme="dark"][data-theme],html[data-theme="light"][data-theme] .theme-chrome-dark{--radius-xl:0.25rem;}',
+    );
+    // No *light* user layer: editing dark must not write light's own block.
+    expect(css).not.toContain('html[data-theme="light"][data-theme]{');
   });
 
   it("resets a radius token back to the theme's own value", async () => {

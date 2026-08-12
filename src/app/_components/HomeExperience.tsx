@@ -119,7 +119,7 @@ export function HomeExperience({
   return (
     <>
       {isConstructionMode && (
-      <header className="app-header theme-header-surface backdrop-blur-sm backdrop-safe">
+      <header className="app-header theme-chrome-dark theme-header-surface backdrop-blur-sm backdrop-safe">
         <div className="mx-auto flex max-w-7xl items-center gap-3 px-4 py-3 gap-fallback-row-4 lg:grid lg:grid-cols-[auto_minmax(0,1fr)_auto] lg:gap-4">
           {isConstructionMode ? (
             <button

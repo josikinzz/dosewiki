@@ -126,7 +126,7 @@ describe("palette lab bootstrap behavior", () => {
 
     expect(palette()).toBe("orchid");
     expect(injectedCss()).toBe(
-      'html[data-theme="dark"][data-theme]{--theme-accent:#0ff0ff;}',
+      'html[data-theme="dark"][data-theme],html[data-theme="light"][data-theme] .theme-chrome-dark{--theme-accent:#0ff0ff;}',
     );
   });
 
@@ -274,7 +274,7 @@ describe("palette lab bootstrap behavior", () => {
     runBootstrap();
 
     expect(injectedCss()).toBe(
-      'html[data-theme="dark"][data-theme]{--theme-accent:#0ff0ff;}',
+      'html[data-theme="dark"][data-theme],html[data-theme="light"][data-theme] .theme-chrome-dark{--theme-accent:#0ff0ff;}',
     );
   });
 

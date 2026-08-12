@@ -288,9 +288,12 @@ describe("font choices through the lab's seam", { timeout: 15_000 }, () => {
     expect(overrideCss()).toContain("--font-family-body:");
     expect(overrideCss()).toContain("Titillium Web");
     // The doubled attribute is the lab's user-layer selector — the specificity
-    // that puts an edit level with the compiled preset blocks.
+    // that puts an edit level with the compiled preset blocks. The dark block
+    // heads a two-selector list so the dark chrome island (the header on a
+    // light page) wears the visitor's dark edits too.
     expect(overrideCss()).toContain('html[data-theme="dark"][data-theme]');
-    expect(overrideCss()).not.toContain('html[data-theme="light"]');
+    // No *light* user layer: editing dark must not write light's own block.
+    expect(overrideCss()).not.toContain('html[data-theme="light"][data-theme]{');
     // …and only now does the face exist in the document.
     await waitFor(() => expect(registeredFontChoiceIds()).toEqual(["titillium"]));
 

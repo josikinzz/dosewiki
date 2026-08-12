@@ -58,7 +58,7 @@ export const THEME_BOOTSTRAP_CSP_HASH = THEME_BOOTSTRAP_CSP_HASHES[SITE_FLAVOR];
  * or retuned. The policy test recomputes it from the real builder.
  */
 export const PALETTE_LAB_BOOTSTRAP_CSP_HASHES: Readonly<Record<SiteFlavor, string | null>> = {
-  dosewiki: "'sha256-7R0xHgdm78MWGFh9p6RI2ejzxVa+siCg2hbd5j7er7Q='",
+  dosewiki: "'sha256-4QfaA4EkTgjPaZaqvai+W+ir/Tt/yi2gKv6gs7BnzdQ='",
   effectindex: null,
 };
 

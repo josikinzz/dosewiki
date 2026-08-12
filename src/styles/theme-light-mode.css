@@ -822,6 +822,31 @@ html[data-theme="light"] .theme-overlay-surface.theme-mobile-nav-panel {
   -webkit-backdrop-filter: none !important;
 }
 
+/* --- Dark chrome island --------------------------------------------------
+   `.theme-chrome-dark` (the header) wears the dark token block even here, so
+   every light rule above resolves dark values on its own and needs no answer.
+   These two are the exceptions: they paint literal light colours that no token
+   can redirect. Both sit after the rules they correct and out-specify them. */
+
+/* :742 gives the nav panels a white gradient and a white inset lift; :819 then
+   takes the background back to a token. Only the shadow survives to here. */
+html[data-theme="light"] .theme-chrome-dark .theme-mobile-nav-panel,
+html[data-theme="light"] .theme-chrome-dark .theme-overlay-surface.theme-mobile-nav-panel {
+  background: var(--theme-chrome-rail-bg) !important;
+  box-shadow: var(--theme-header-shadow) !important;
+}
+
+/* :538 replaces the search field's shadow with a white inset lift, which on a
+   dark bar reads as a hole punched through it. Restores the token-driven stack
+   from `.theme-global-search-input` (utilities-theme.css:1422). Left below the
+   mock-search rule at :546, which flattens its field on purpose. */
+html[data-theme="light"] .theme-chrome-dark input[type="search"] {
+  box-shadow:
+    0 0 0 1px color-mix(in srgb, var(--theme-field-on-chrome-border) 68%, transparent),
+    inset 0 1px 0 color-mix(in srgb, var(--theme-text-primary) 8%, transparent),
+    inset 0 1px 2px var(--theme-shadow-soft);
+}
+
 @media (hover: hover) {
   html[data-theme="light"] :is(
     .theme-public-card-interactive:hover,

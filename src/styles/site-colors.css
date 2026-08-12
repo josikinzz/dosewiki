@@ -150,7 +150,25 @@
   --h-brand: 326;
 }
 
-:root {
+/* The dark palette. Also worn, verbatim, by any subtree marked
+   `.theme-chrome-dark` while the page is in light mode — that is the whole of
+   the dark-header-over-light-page look (see `.app-header` in Header.tsx).
+
+   Appending the island to this block rather than duplicating it is deliberate:
+   the header can never drift from dark mode, and a token added here is
+   automatically covered. It works because custom properties resolve per
+   element — these declarations land on the header element itself, so they beat
+   the light values inherited from <html> without any specificity contest.
+   The light block below is a strict subset of this one (256 of 288 tokens), so
+   nothing light can leak past it.
+
+   Effect Index is excluded: it is locked to light and already dresses its own
+   header in charcoal from `html[data-site="effectindex"] .app-header`, which
+   pins 38 tokens. Handing it this block would flood the other 250 with
+   dose.wiki's plum dark. `:where()` carries no specificity, so the island stays
+   (0,2,1) and the preset/user layers keep out-ranking it as before. */
+:root,
+html[data-theme="light"]:where(:not([data-site="effectindex"])) .theme-chrome-dark {
   --c-brand: 240 171 252; /* #f0abfc */
 
   /* Dark mode page canvas. The visible page gradient still uses the

@@ -631,8 +631,12 @@ export function Header({
     };
   }, [isMenuOpen]);
 
+  // `theme-chrome-dark` pins the dark palette on this subtree, so the banner
+  // stays dark chrome over a light page in every theme — the Effect Index
+  // treatment, generalised. Nothing in the header portals out, so the one class
+  // covers the nav panels, the mobile sheet and the search field.
   return (
-    <header className="app-header theme-header-surface backdrop-blur-sm backdrop-safe">
+    <header className="app-header theme-chrome-dark theme-header-surface backdrop-blur-sm backdrop-safe">
       <div
         data-nosnippet
         className={

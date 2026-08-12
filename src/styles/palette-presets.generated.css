@@ -9,7 +9,8 @@
    specificity and win on source order. */
 
 /* Abyss — Bioluminescent cyan over deep ocean navy. */
-html[data-palette="abyss"][data-theme="dark"] {
+html[data-palette="abyss"][data-theme="dark"],
+html[data-palette="abyss"][data-theme="light"] .theme-chrome-dark {
   --h-brand: 215;
   --h-plum: 235;
   --h-text: 235;
@@ -108,7 +109,8 @@ html[data-palette="abyss"][data-theme="light"] {
 }
 
 /* Twilight — Periwinkle indigo over blue-violet dusk. */
-html[data-palette="twilight"][data-theme="dark"] {
+html[data-palette="twilight"][data-theme="dark"],
+html[data-palette="twilight"][data-theme="light"] .theme-chrome-dark {
   --h-brand: 277;
   --h-plum: 285;
   --h-text: 285;
@@ -185,7 +187,8 @@ html[data-palette="twilight"][data-theme="light"] {
 }
 
 /* Graphite — Achromatic moon-silver — safety colors carry all the chroma. */
-html[data-palette="graphite"][data-theme="dark"] {
+html[data-palette="graphite"][data-theme="dark"],
+html[data-palette="graphite"][data-theme="light"] .theme-chrome-dark {
   --h-brand: 250;
   --h-plum: 250;
   --h-text: 250;
@@ -284,7 +287,8 @@ html[data-palette="graphite"][data-theme="light"] {
 }
 
 /* Parchment — Mulberry ink on warm sepia paper; candlelit cocoa after dark. */
-html[data-palette="parchment"][data-theme="dark"] {
+html[data-palette="parchment"][data-theme="dark"],
+html[data-palette="parchment"][data-theme="light"] .theme-chrome-dark {
   --h-brand: 350;
   --h-plum: 40;
   --h-text: 20;
@@ -378,7 +382,8 @@ html[data-palette="parchment"][data-theme="light"] {
 }
 
 /* Canopy — Leaf green and moss under a forest canopy. */
-html[data-palette="canopy"][data-theme="dark"] {
+html[data-palette="canopy"][data-theme="dark"],
+html[data-palette="canopy"][data-theme="light"] .theme-chrome-dark {
   --h-brand: 150;
   --h-plum: 155;
   --h-text: 155;
@@ -459,7 +464,8 @@ html[data-palette="canopy"][data-theme="light"] {
 }
 
 /* Garnet — Scarlet on black cherry; claret on porcelain by day. */
-html[data-palette="garnet"][data-theme="dark"] {
+html[data-palette="garnet"][data-theme="dark"],
+html[data-palette="garnet"][data-theme="light"] .theme-chrome-dark {
   --h-brand: 25;
   --h-plum: 15;
   --h-text: 15;
@@ -540,7 +546,8 @@ html[data-palette="garnet"][data-theme="light"] {
 }
 
 /* Sunset — Coral horizon over dusk violet; golden-hour paper by day. */
-html[data-palette="sunset"][data-theme="dark"] {
+html[data-palette="sunset"][data-theme="dark"],
+html[data-palette="sunset"][data-theme="light"] .theme-chrome-dark {
   --h-brand: 45;
   --h-plum: 310;
   --h-text: 320;
@@ -631,7 +638,8 @@ html[data-palette="sunset"][data-theme="light"] {
 }
 
 /* 🦅🦅🦅 — Stars-and-stripes — red and white over midnight navy. */
-html[data-palette="liberty"][data-theme="dark"] {
+html[data-palette="liberty"][data-theme="dark"],
+html[data-palette="liberty"][data-theme="light"] .theme-chrome-dark {
   --h-brand: 20;
   --h-plum: 260;
   --h-text: 260;
@@ -731,7 +739,8 @@ html[data-palette="liberty"][data-theme="light"] {
 }
 
 /* Halloween — Pumpkin lanterns over a witching-hour purple night. */
-html[data-palette="halloween"][data-theme="dark"] {
+html[data-palette="halloween"][data-theme="dark"],
+html[data-palette="halloween"][data-theme="light"] .theme-chrome-dark {
   --h-brand: 55;
   --h-plum: 300;
   --h-text: 300;
@@ -839,7 +848,8 @@ html[data-palette="halloween"][data-theme="light"] {
 }
 
 /* Yuletide — Holly green, crimson, and snow. */
-html[data-palette="yuletide"][data-theme="dark"] {
+html[data-palette="yuletide"][data-theme="dark"],
+html[data-palette="yuletide"][data-theme="light"] .theme-chrome-dark {
   --h-brand: 150;
   --h-plum: 165;
   --h-text: 170;
@@ -964,7 +974,8 @@ html[data-palette="yuletide"][data-theme="light"] {
 }
 
 /* Journal — Paper, ink, and one deep teal — the formal register, flat and sharp. */
-html[data-palette="journal"][data-theme="dark"] {
+html[data-palette="journal"][data-theme="dark"],
+html[data-palette="journal"][data-theme="light"] .theme-chrome-dark {
   --h-brand: 175;
   --h-plum: 175;
   --h-text: 175;
