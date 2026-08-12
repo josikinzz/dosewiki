@@ -55,8 +55,16 @@ export function useDevArticleHydration({
   const hydrateRef = useRef(hydrateArticles);
   hydrateRef.current = hydrateArticles;
 
+  // Consumers that called requestFullCorpus still want the whole corpus after
+  // a reset — their mount effect will not run again, so the reset re-issues it.
+  const wantsFullCorpusRef = useRef(false);
+  const startFullCorpusDrainRef = useRef<() => void>(() => {});
+
   // A new library drain replaces the working set wholesale, so everything this
-  // hook believed about it stops being true.
+  // hook believed about it stops being true. The working set also *mounts*
+  // empty and then fills (0 → N), which lands here after the review surface
+  // has already requested its drain — without the re-issue below, that drain
+  // completes into a cleared request flag and the gate never opens.
   useEffect(() => {
     requestedRef.current = new Set();
     fullCorpusInFlightRef.current = false;
@@ -64,6 +72,9 @@ export function useDevArticleHydration({
     setFullCorpusRequested(false);
     setIsHydratingFullCorpus(false);
     setFullCorpusFailed(false);
+    if (wantsFullCorpusRef.current && articleCount > 0) {
+      startFullCorpusDrainRef.current();
+    }
   }, [articleCount]);
 
   const commit = useCallback((articles: SubstanceArticle[]) => {
@@ -111,6 +122,7 @@ export function useDevArticleHydration({
   );
 
   const requestFullCorpus = useCallback(() => {
+    wantsFullCorpusRef.current = true;
     if (fullCorpusInFlightRef.current) {
       return;
     }
@@ -166,6 +178,7 @@ export function useDevArticleHydration({
         setIsHydratingFullCorpus(false);
       });
   }, [commit]);
+  startFullCorpusDrainRef.current = requestFullCorpus;
 
   const isArticleHydrated = useCallback(
     (slug: string | null | undefined) => {
