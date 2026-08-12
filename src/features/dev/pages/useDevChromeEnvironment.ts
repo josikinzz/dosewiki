@@ -104,21 +104,25 @@ export function useDevChromeEnvironment({
   }, [activeTab, onTabNoticeClear]);
 
   /**
-   * Dev tools span the full viewport the same way the Subjective Effect Index
-   * and Substance Index do: a `main` with horizontal padding and no max-width
-   * cap. Every tool gets the whole width; the tabs that still want a reading
-   * column set that for themselves.
+   * The toolbar spans the viewport on every tab, but the tools below it do not.
+   * Only the three surfaces drawn for edge-to-edge space keep the whole width:
+   * the Index layout board, the Replication Studio (rail + grid + drawer), and
+   * the Trip Report Portal (rail + list + editor). The Review workbench is its
+   * own route (`/review`) and sets its own width. Every other tool is a form
+   * stack that reads badly when stretched, so it goes back to the 6xl column.
    */
-  const layoutClasses = useMemo(
-    () => ({
-      mainClassName: "w-full px-4 py-6 text-white md:px-6 lg:px-8",
-      contentWrapperClass: "mt-6 w-full",
-    }),
-    [],
-  );
+  const contentWrapperClass = useMemo(() => {
+    const isFullBleedTool =
+      activeTab === "index-layout" ||
+      activeTab === "replications" ||
+      activeTab === "trip-report-submissions";
+
+    return isFullBleedTool ? "mt-6 w-full" : "mx-auto mt-6 w-full max-w-6xl";
+  }, [activeTab]);
 
   return {
     enableStickyPanels,
-    ...layoutClasses,
+    mainClassName: "w-full px-4 py-6 text-white md:px-6 lg:px-8",
+    contentWrapperClass,
   };
 }

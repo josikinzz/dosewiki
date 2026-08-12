@@ -142,7 +142,7 @@ describe("useDevChromeEnvironment", () => {
     expect(close).toHaveBeenCalledTimes(1);
   });
 
-  it("returns full-width layout classes for every tab", () => {
+  it("keeps the toolbar full width but caps the content column outside the wide tools", () => {
     const props = {
       close: vi.fn(),
       hasPendingChanges: false,
@@ -154,12 +154,18 @@ describe("useDevChromeEnvironment", () => {
     );
 
     expect(result.current.mainClassName).not.toContain("max-w-");
-    expect(result.current.contentWrapperClass).toBe("mt-6 w-full");
+    expect(result.current.contentWrapperClass).toBe("mx-auto mt-6 w-full max-w-6xl");
 
-    rerender({ activeTab: "index-layout" });
+    for (const activeTab of ["index-layout", "replications", "trip-report-submissions"] as const) {
+      rerender({ activeTab });
 
-    expect(result.current.mainClassName).not.toContain("max-w-");
-    expect(result.current.contentWrapperClass).toBe("mt-6 w-full");
+      expect(result.current.mainClassName).not.toContain("max-w-");
+      expect(result.current.contentWrapperClass).toBe("mt-6 w-full");
+    }
+
+    rerender({ activeTab: "molecule-editor" });
+
+    expect(result.current.contentWrapperClass).toBe("mx-auto mt-6 w-full max-w-6xl");
   });
 
   it("clears tab notices when the active tab changes", () => {
