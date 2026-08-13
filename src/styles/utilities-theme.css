@@ -2398,7 +2398,10 @@
     box-shadow: var(--theme-frosted-panel-shadow);
   }
 
-  html[data-theme="light"] .theme-footer-surface {
+  /* The hairline is a light-mode-only separator: a page-coloured footer needs it,
+     a dark chrome island does not, and adding one would be a seam the dark theme
+     never shows. `.theme-chrome-dark` footers are excluded for that reason. */
+  html[data-theme="light"] .theme-footer-surface:not(.theme-chrome-dark) {
     border-top: 1px solid var(--theme-frosted-panel-border);
     background: var(--theme-frosted-panel-bg);
     box-shadow: var(--theme-frosted-panel-shadow);
@@ -4547,7 +4550,15 @@
     -webkit-backdrop-filter: none !important;
   }
 
-  html:not([data-theme="light"]) .theme-footer-surface {
+  /* Second selector is the light-mode dark-chrome island. It has to be spelled
+     out rather than left to the token block alone: the rail background is only
+     handed to the footer by this rule, and the light-mode rule above would
+     otherwise paint it with the frosted panel. Effect Index is excluded for the
+     same reason as the header pair above — layered `!important` outranks the
+     unlayered `!important` its own footer block relies on. */
+  html:not([data-theme="light"]) .theme-footer-surface,
+  html[data-theme="light"]:not([data-site="effectindex"])
+    .theme-chrome-dark.theme-footer-surface {
     border-color: var(--theme-frosted-panel-border) !important;
     background: var(--theme-chrome-rail-bg) !important;
     backdrop-filter: none !important;

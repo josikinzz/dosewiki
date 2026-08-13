@@ -631,8 +631,13 @@ html[data-theme="light"]:where(:not([data-site="effectindex"])) .theme-chrome-da
   --theme-table-row-alt: color-mix(in srgb, rgb(var(--c-white)) 4%, var(--theme-body-bg));
   --theme-flag-ring: rgb(var(--c-brand) / 0.25);
   --theme-flag-shadow: 0 2px 8px -2px rgb(var(--c-black) / 0.5);
+  /* Two shade layers plus the rim hairline. The spread stays negative so the
+     cast stops well short of the header's own width, and both layers are pure
+     black at partial alpha — never a palette hue, which would read as a glow
+     hanging off the bar rather than as the page passing under it. */
   --theme-header-shadow:
-    0 18px 42px -30px rgb(var(--c-black) / 0.9),
+    0 1px 2px rgb(var(--c-black) / 0.4),
+    0 10px 24px -12px rgb(var(--c-black) / 0.7),
     0 1px 0 rgb(var(--c-white) / 0.06);
   --theme-profile-markdown-quote-bg: color-mix(in srgb, rgb(var(--c-brand)) 8%, var(--theme-body-bg));
   --theme-profile-markdown-quote-border: rgb(var(--c-brand) / 0.18);
@@ -1039,8 +1044,12 @@ html[data-theme="light"] {
   --theme-table-row-alt: color-mix(in srgb, oklch(96% 0.012 var(--h-brand)) 72%, var(--theme-body-bg));
   --theme-flag-ring: oklch(58% 0.1 var(--h-brand) / 0.16);
   --theme-flag-shadow: 0 2px 8px -2px oklch(42% 0.1 var(--h-text) / 0.14);
+  /* Light-mode counterpart of the dark block's stack. Chroma is dropped to
+     0.02 so this stays a shadow: at 0.12 the cast picked up enough of the text
+     hue to read as a coloured wash under the bar on a pale page. */
   --theme-header-shadow:
-    0 18px 38px -28px oklch(36% 0.12 var(--h-text) / 0.32),
+    0 1px 2px oklch(36% 0.02 var(--h-text) / 0.12),
+    0 10px 22px -12px oklch(36% 0.02 var(--h-text) / 0.26),
     0 1px 0 oklch(46% 0.16 var(--h-brand) / 0.14);
   --theme-profile-markdown-quote-bg: color-mix(in srgb, rgb(var(--c-plum-pink)) 7%, var(--theme-body-bg));
   --theme-profile-markdown-quote-border: rgba(93, 56, 123, 0.16);

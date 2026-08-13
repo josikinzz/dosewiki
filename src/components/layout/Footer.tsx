@@ -24,8 +24,15 @@ export function Footer({
   showPaletteLabTrigger = !isEffectIndex(),
 }: FooterProps) {
   return (
-    <footer className="app-footer theme-footer-surface py-6">
-      <div className="mx-auto flex max-w-7xl flex-col gap-4 px-4" data-nosnippet>
+    // `theme-chrome-dark` pins the dark palette on this subtree exactly as it does
+    // on the header, so the footer bar stays the same colour in light mode instead
+    // of following the page. The island block in site-colors.css excludes Effect
+    // Index, which dresses its own footer from `html[data-site="effectindex"]`.
+    <footer className="app-footer theme-chrome-dark theme-footer-surface py-6">
+      {/* Full-bleed on purpose, unlike the header: no `mx-auto max-w-7xl` here, so the
+          disclaimer and the theme controls sit against the viewport edges rather than
+          the page column. The gutter is the only inset. */}
+      <div className="flex w-full flex-col gap-4 px-6" data-nosnippet>
         <div className="flex items-start justify-between gap-3 sm:items-center sm:gap-6">
           {/* No brand mark here. The header already carries the logo and wordmark on every
               page that renders this footer, so repeating them below the fold was pure echo;
