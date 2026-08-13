@@ -42,7 +42,10 @@ describe("GlobalSearch", () => {
 
     expect(screen.queryByRole("listbox")).not.toBeInTheDocument();
     expect(screen.queryByRole("option")).not.toBeInTheDocument();
-    expect(fetchSpy).not.toHaveBeenCalled();
+    // The mount-time manifest preload may fetch; typing itself must not.
+    const suggestionCalls = () =>
+      fetchSpy.mock.calls.filter(([input]) => String(input).includes("/api/search-suggestions"));
+    expect(suggestionCalls()).toEqual([]);
     expect(screen.getByRole("button", { name: /clear search/i })).toHaveClass("theme-control-pill-quiet");
 
     fireEvent.blur(input);
@@ -95,7 +98,10 @@ describe("GlobalSearch", () => {
     fireEvent.change(firstInput, { target: { value: "ketamine-cache-check" } });
 
     expect(screen.queryByRole("listbox")).not.toBeInTheDocument();
-    expect(fetchSpy).not.toHaveBeenCalled();
+    const suggestionCalls = () =>
+      fetchSpy.mock.calls.filter(([input]) => String(input).includes("/api/search-suggestions"));
+    // The mount-time manifest preload may fetch; typing itself must not.
+    expect(suggestionCalls()).toEqual([]);
 
     first.unmount();
 
@@ -111,7 +117,7 @@ describe("GlobalSearch", () => {
     fireEvent.change(secondInput, { target: { value: "ketamine-cache-check" } });
 
     expect(screen.queryByRole("listbox")).not.toBeInTheDocument();
-    expect(fetchSpy).not.toHaveBeenCalled();
+    expect(suggestionCalls()).toEqual([]);
   });
 
   it("submits a search query when Enter is pressed", () => {

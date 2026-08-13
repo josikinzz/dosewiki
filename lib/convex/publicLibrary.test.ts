@@ -164,7 +164,7 @@ describe("publicLibrary search index cache", () => {
     expect(mocks.buildSearchIndex).toHaveBeenCalledTimes(1);
   });
 
-  it("data-caches only the JSON-safe search manifest wrapper", async () => {
+  it("data-caches only the JSON-safe search manifest and suggestion wrappers", async () => {
     mocks.buildLibrary.mockReturnValue(createLibrary([]));
 
     const { getPublicSearchManifest, getPublicSearchIndex, getPublicLibrary } =
@@ -176,7 +176,10 @@ describe("publicLibrary search index cache", () => {
 
     expect(
       cacheMocks.unstableCache.mock.calls.map((call) => call[1]),
-    ).toEqual([["convex-public-search-manifest"]]);
+    ).toEqual([
+      ["convex-public-search-manifest"],
+      ["convex-public-search-suggestions"],
+    ]);
     expect(cacheMocks.unstableCache).toHaveBeenCalledWith(
       expect.any(Function),
       ["convex-public-search-manifest"],
@@ -188,6 +191,35 @@ describe("publicLibrary search index cache", () => {
         ]),
       }),
     );
+    expect(cacheMocks.unstableCache).toHaveBeenCalledWith(
+      expect.any(Function),
+      ["convex-public-search-suggestions"],
+      expect.objectContaining({
+        tags: expect.arrayContaining([
+          "convex-public",
+          "convex-public:substances",
+          "convex-public:effects",
+        ]),
+      }),
+    );
+  });
+
+  it("serves suggestions as normalized JSON-safe projections", async () => {
+    mocks.buildLibrary.mockReturnValue(
+      createLibrary([createRecord("LSD", "lsd", ["Acid"])]),
+    );
+
+    const { getPublicSearchSuggestions } = await import("./publicLibrary");
+
+    // Case and whitespace fold into one cache key without changing results.
+    const suggestions = await getPublicSearchSuggestions("  LSD ", 5);
+    expect(suggestions).toMatchObject([{ label: "LSD", type: "substance" }]);
+    // Index internals must not leak into the cached, client-facing payload.
+    expect(suggestions[0]).not.toHaveProperty("keywords");
+    expect(suggestions[0]).not.toHaveProperty("score");
+
+    await expect(getPublicSearchSuggestions("   ", 5)).resolves.toEqual([]);
+    expect(mocks.buildLibrary).toHaveBeenCalledTimes(1);
   });
 
   it("rebuilds the search index when refreshed source inputs change", async () => {

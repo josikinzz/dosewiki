@@ -15,7 +15,9 @@ import type {
 import {
   buildSearchIndex,
   createSearchIndexInput,
+  toSearchSuggestion,
   type SearchIndex,
+  type SearchSuggestion,
 } from "../../src/data/builders/search";
 import {
   createSearchManifest,
@@ -211,6 +213,45 @@ export const getPublicSearchMatches = cache(async (query: string, limit = 20) =>
 
   return (await getPublicSearchIndex()).query(query, { limit });
 });
+
+/**
+ * Per-query suggestion results in Next's tagged data cache.
+ *
+ * The raw substance corpus (~5 MB) is far past the 2 MB data-cache entry
+ * limit, so the index itself can only live in per-instance module caches — a
+ * cold instance still pays the full corpus fetch and keywordization. What CAN
+ * be shared across instances is the answer to a specific query: a handful of
+ * JSON-safe suggestion projections. Popular queries therefore skip the index
+ * entirely on cold instances. Matching folds case (`foldSearchText`), so
+ * lowercasing the key merges casings of the same query into one entry.
+ */
+const getCachedSearchSuggestions = unstable_cache(
+  async (query: string, limit: number): Promise<SearchSuggestion[]> => {
+    return (await getPublicSearchMatches(query, limit)).map(toSearchSuggestion);
+  },
+  ["convex-public-search-suggestions"],
+  {
+    revalidate: PUBLIC_CONVEX_CACHE_REVALIDATE_SECONDS,
+    tags: [
+      PUBLIC_CONVEX_CACHE_TAGS.all,
+      PUBLIC_CONVEX_CACHE_TAGS.substances,
+      PUBLIC_CONVEX_CACHE_TAGS.layouts,
+      PUBLIC_CONVEX_CACHE_TAGS.effects,
+      PUBLIC_CONVEX_CACHE_TAGS.reports,
+      PUBLIC_CONVEX_CACHE_TAGS.contributors,
+    ],
+  },
+);
+
+export const getPublicSearchSuggestions = cache(
+  async (query: string, limit = 20): Promise<SearchSuggestion[]> => {
+    const trimmed = query.trim().toLowerCase();
+    if (!trimmed) {
+      return [];
+    }
+    return getCachedSearchSuggestions(trimmed, limit);
+  },
+);
 
 export const getPublicCategoryDetail = cache(async (categoryKey: string) => {
   return (await getPublicLibrary()).getTaxonomyRouteDetail("category", categoryKey) as CategoryDetail | null;

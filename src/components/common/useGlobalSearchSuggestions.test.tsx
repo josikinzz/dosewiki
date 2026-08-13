@@ -131,7 +131,12 @@ describe("useGlobalSearchSuggestions", () => {
 
     const { result } = renderSuggestions("mdma");
 
-    await waitFor(() => expect(ids(result.current.suggestions)).toEqual(ids(SERVER_RESULTS)));
+    // The request is debounced even without local results, so allow for the
+    // refine delay before the server answer lands.
+    await waitFor(
+      () => expect(ids(result.current.suggestions)).toEqual(ids(SERVER_RESULTS)),
+      { timeout: 2000 },
+    );
   });
 
   it("returns nothing when search is not active", () => {

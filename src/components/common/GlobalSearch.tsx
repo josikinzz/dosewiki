@@ -10,6 +10,7 @@ import {
 } from "react";
 import { Search, X } from "lucide-react";
 import { useDebouncedValue } from "../../hooks/useDebouncedValue";
+import { preloadSearchManifestIndex } from "../../hooks/useSearchManifest";
 import type { AppView } from "../../types/navigation";
 import { Input } from "@/components/ui/input";
 import { SITE_FLAVOR_CONFIG } from "@/config/siteFlavor";
@@ -133,6 +134,13 @@ export function GlobalSearch({
         // Some search input implementations do not expose selection ranges.
       }
     });
+  }, []);
+
+  // Warm the client-side search manifest as soon as a search surface exists,
+  // so the first keystroke matches names and aliases locally instead of
+  // racing the manifest download.
+  useEffect(() => {
+    preloadSearchManifestIndex();
   }, []);
 
   useEffect(() => {

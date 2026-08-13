@@ -2,7 +2,9 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { NextResponse } from "next/server";
 
 vi.mock("@server/convex/publicLibrary", () => ({
-  getPublicSearchMatches: vi.fn(async () => [
+  // Projection away from index internals (keywords, meta, score) is covered by
+  // the publicLibrary tests; the route serves the cached projection verbatim.
+  getPublicSearchSuggestions: vi.fn(async () => [
     {
       id: "substance:mdma",
       type: "substance",
@@ -10,11 +12,6 @@ vi.mock("@server/convex/publicLibrary", () => ({
       secondary: "Entactogen",
       slug: "mdma",
       aliases: ["Molly"],
-      score: 0,
-      // Neither of these is rendered, and keywords are large enough to dominate
-      // the response, so the route must project them away.
-      keywords: ["mdma", "molly", "entactogen", "phenethylamine"],
-      meta: [{ label: "Chemical class", value: "Phenethylamine" }],
     },
   ]),
 }));
@@ -52,12 +49,12 @@ describe("search suggestions route", () => {
   });
 
   it("allows larger result sets for the full search page", async () => {
-    const { getPublicSearchMatches } = await import("@server/convex/publicLibrary");
+    const { getPublicSearchSuggestions } = await import("@server/convex/publicLibrary");
     const { GET } = await import("./route");
 
     await GET(new Request("https://dose.wiki/api/search-suggestions?q=dmt&limit=60"));
 
-    expect(getPublicSearchMatches).toHaveBeenCalledWith("dmt", 60);
+    expect(getPublicSearchSuggestions).toHaveBeenCalledWith("dmt", 60);
   });
 
   it("returns the limiter response before searching when limited", async () => {

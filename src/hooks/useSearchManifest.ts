@@ -60,6 +60,28 @@ export function loadSearchManifestIndex(): Promise<SearchManifestIndex | null> {
   return manifestIndexPromise;
 }
 
+/**
+ * Warm the manifest during browser idle time, well before the user engages
+ * search. The download (~85 KB gzipped) never competes with hydration or
+ * user-visible work, and repeat visits revalidate against the route's ETag in
+ * a 304. Safe to call from every search surface: the module-level promise
+ * makes it a no-op after the first call.
+ */
+export function preloadSearchManifestIndex() {
+  if (typeof window === "undefined" || manifestIndexPromise || loadedManifestIndex) {
+    return;
+  }
+
+  const schedule =
+    typeof window.requestIdleCallback === "function"
+      ? (callback: () => void) => window.requestIdleCallback(callback)
+      : (callback: () => void) => window.setTimeout(callback, 200);
+
+  schedule(() => {
+    void loadSearchManifestIndex();
+  });
+}
+
 /** Test seam: forget any loaded manifest and reset the attempt counter. */
 export function resetSearchManifestForTests() {
   manifestIndexPromise = null;

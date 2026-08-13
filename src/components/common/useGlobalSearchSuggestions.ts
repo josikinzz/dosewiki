@@ -7,9 +7,11 @@ const MAX_SUGGESTIONS = 8;
 /**
  * How long to wait before asking the server to refine local results.
  *
- * Local matching already answered the keystroke, so this delay is invisible; it
- * exists to collapse a burst of typing into one request. Without local results
- * to show there is nothing to wait for, so the request goes out immediately.
+ * The manifest is preloaded during idle time, so local matching answers the
+ * keystroke and this delay is invisible; it exists to collapse a burst of
+ * typing into one request. It applies even before the manifest has landed —
+ * firing per keystroke there would burn through the endpoint's rate limit
+ * (30/min/IP) during the brief window the manifest is still downloading.
  */
 const SERVER_REFINE_DELAY_MS = 400;
 
@@ -144,14 +146,6 @@ export function useGlobalSearchSuggestions({
       }
     };
 
-    const hasLocalResults = localResults !== null;
-    if (!hasLocalResults) {
-      void runRequest();
-      return () => {
-        disposed = true;
-      };
-    }
-
     const timer = setTimeout(() => {
       void runRequest();
     }, SERVER_REFINE_DELAY_MS);
@@ -160,10 +154,10 @@ export function useGlobalSearchSuggestions({
       disposed = true;
       clearTimeout(timer);
     };
-    // `localResults` is deliberately not a dependency: it only decides whether
-    // this request waits, and it is derived from the query and limit already
-    // listed. Re-running when the manifest finishes loading would fire a second
-    // request for a query the first one already covers.
+    // `localResults` is deliberately not a dependency: it is derived from the
+    // query and limit already listed, and re-running when the manifest
+    // finishes loading would fire a second request for a query the first one
+    // already covers.
   }, [cacheKey, isSearching, resolvedLimit, trimmed]);
 
   const clearSuggestions = useCallback(() => {
