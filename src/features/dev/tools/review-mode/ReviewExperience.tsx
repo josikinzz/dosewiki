@@ -46,7 +46,7 @@ import {
   getArticleValueByPath,
   setArticleValueByPath,
 } from "@/data/schema/fieldPath";
-import type { SubstanceArticle } from "@/schema";
+import type { Reference, SubstanceArticle } from "@/schema";
 import { cn } from "@/lib/utils";
 import { useDevMode } from "../../context/DevModeContext";
 import { ArticleDraftFormFieldsRHF } from "../../forms/ArticleDraftFormFieldsRHF";
@@ -58,11 +58,11 @@ import type {
   SubstanceInfo,
 } from "../substance-editor/types";
 import {
-  applyInlineFieldEdits,
   asInlineFieldValue,
   readStoredInlineValue,
   type InlineFieldEdit,
 } from "./inlineFieldEdits";
+import { applyReviewArticleOverlay } from "./reviewArticleOverlay";
 import { ReviewCitationPanel } from "./ReviewCitationPanel";
 import { ReviewClassCelebration } from "./ReviewClassCelebration";
 import {
@@ -629,6 +629,19 @@ export const ReviewExperience = memo(function ReviewExperience({
   const [fieldEdits, setFieldEdits] = useState<
     Record<string, Record<string, InlineFieldEdit>>
   >({});
+  // Reference appends bypass the shared working set for the same reason as
+  // field edits. Keep both direct-write results in the one article overlay so
+  // a newly pasted marker can resolve against its newly saved source.
+  const [savedReferences, setSavedReferences] = useState<
+    Record<string, Reference[]>
+  >({});
+  const rememberSavedReference = useCallback((slug: string, reference: Reference) => {
+    setSavedReferences((previous) => {
+      const savedForArticle = previous[slug] ?? [];
+      if (savedForArticle.some((saved) => saved.id === reference.id)) return previous;
+      return { ...previous, [slug]: [...savedForArticle, reference] };
+    });
+  }, []);
   const [currentSlug, setCurrentSlug] = useState<string | null>(
     initialSlug ?? null,
   );
@@ -856,16 +869,19 @@ export const ReviewExperience = memo(function ReviewExperience({
     );
   }, [current, typedArticles]);
 
-  // Inline field saves land in Convex through their own endpoint, so — exactly
-  // like the review tick — the dev shell's in-memory article set is left alone
-  // and the saved value is layered over the render instead. Mutating the
-  // working set would register a phantom pending change with the commit panel
-  // and deep-clone the whole corpus per keystroke-sized edit.
-  // See `applyInlineFieldEdits` for when an overlay entry stops applying.
+  // Direct review writes land in Convex without dirtying the shared editor
+  // working set. Rebuild their combined post-write article here so the public
+  // preview, citation diagnostics, and editor form all see the same state.
   const currentFieldEdits = current ? fieldEdits[current.slug] : undefined;
+  const currentSavedReferences = current ? savedReferences[current.slug] : undefined;
   const articleForView = useMemo(
-    () => (article ? applyInlineFieldEdits(article, currentFieldEdits) : article),
-    [article, currentFieldEdits],
+    () => article
+      ? applyReviewArticleOverlay(article, {
+          fieldEdits: currentFieldEdits,
+          savedReferences: currentSavedReferences,
+        })
+      : article,
+    [article, currentFieldEdits, currentSavedReferences],
   );
 
   // The public route resolves the Convex depiction server-side; this surface is
@@ -2197,6 +2213,9 @@ export const ReviewExperience = memo(function ReviewExperience({
             // that survives any future projection of the stored doc.
             slug={current.slug}
             onClose={() => setCitationPanelOpen(false)}
+            onReferenceSaved={(reference) =>
+              rememberSavedReference(current.slug, reference)
+            }
           />
         </div>
       ) : null}

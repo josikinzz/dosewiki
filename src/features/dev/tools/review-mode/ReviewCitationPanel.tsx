@@ -28,6 +28,8 @@ export interface ReviewCitationPanelProps {
   name: string;
   /** Collapse the panel. */
   onClose: () => void;
+  /** Reconcile the persisted source into the review article without a reload. */
+  onReferenceSaved: (reference: Reference) => void;
   /** Must match the toggle button's `aria-controls`. */
   id: string;
   /**
@@ -72,6 +74,7 @@ export function ReviewCitationPanel({
   article,
   name,
   onClose,
+  onReferenceSaved,
   id,
   slug,
   className,
@@ -79,7 +82,7 @@ export function ReviewCitationPanel({
   const headingId = `${id}-heading`;
   const articleSlug = slug ?? readArticleSlug(article);
 
-  const { numberedReferences, uncitedReferences, unknownIds, knownIds, knownReferences } = useMemo(() => {
+  const { numberedReferences, uncitedReferences, unknownIds, knownReferences } = useMemo(() => {
     const numbering = buildCitationNumbering(article.references ?? [], article);
     const numberedIds = new Set(
       numbering.numberedReferences.map((reference) => reference.id),
@@ -92,7 +95,6 @@ export function ReviewCitationPanel({
       numberedReferences: numbering.numberedReferences,
       uncitedReferences: uncited,
       unknownIds: numbering.unknownIds,
-      knownIds: new Set(numbering.referencesById.keys()),
       knownReferences: references,
     };
   }, [article]);
@@ -134,12 +136,6 @@ export function ReviewCitationPanel({
   const referenceText = (reference: Reference) =>
     formatWikipediaStyleReference(reference);
 
-  // Sources added from this panel. Component-local state is already per-article
-  // because the workbench mounts the panel with `key={slug}`, and the `article`
-  // prop will not carry the new reference until the working set refreshes — so
-  // the panel shows what it just wrote rather than appearing to have done
-  // nothing. Re-added ids are deduped here too; the write is idempotent.
-  const [addedReferences, setAddedReferences] = useState<Reference[]>([]);
   const [addOpen, setAddOpen] = useState(false);
   const [source, setSource] = useState("");
   const [draftTitle, setDraftTitle] = useState("");
@@ -168,10 +164,7 @@ export function ReviewCitationPanel({
       : null;
 
   const existingReference = detection
-    ? findEquivalentReference(
-        [...knownReferences, ...addedReferences],
-        draftReference ?? detection,
-      )
+    ? findEquivalentReference(knownReferences, draftReference ?? detection)
     : undefined;
   const alreadyPresent = Boolean(existingReference);
   const previewReference = existingReference ?? draftReference;
@@ -239,11 +232,10 @@ export function ReviewCitationPanel({
 
       const saved = payload?.reference;
       if (saved) {
-        setAddedReferences((previous) =>
-          previous.some((reference) => reference.id === saved.id)
-            ? previous
-            : [...previous, saved],
-        );
+        // The working set deliberately stays untouched after a direct Convex
+        // write. Its review overlay still needs the source immediately, or a
+        // marker pasted next will be diagnosed as dangling until reload.
+        onReferenceSaved(saved);
         setAddedNotice(
           payload?.created === false
             ? `This article already lists that source as ${saved.id}.`
@@ -262,16 +254,9 @@ export function ReviewCitationPanel({
     }
   };
 
-  // Anything written from this panel is uncited by definition — no marker names
-  // it yet — so it joins that group until the article reloads with it in place.
-  const pendingReferences = addedReferences.filter(
-    (reference) => !knownIds.has(reference.id),
-  );
-  const uncitedEntries = [...uncitedReferences, ...pendingReferences];
-
   const isEmpty =
     numberedReferences.length === 0 &&
-    uncitedEntries.length === 0 &&
+    uncitedReferences.length === 0 &&
     unknownIds.length === 0;
 
   return (
@@ -467,13 +452,13 @@ export function ReviewCitationPanel({
             </ul>
           ) : null}
 
-          {uncitedEntries.length > 0 ? (
+          {uncitedReferences.length > 0 ? (
             <div className="space-y-2">
               <p className="theme-text-faint text-[11px] uppercase tracking-wide">
                 Uncited — invisible on the public page until a marker cites them
               </p>
               <ul className="space-y-2">
-                {uncitedEntries.map((reference) => (
+                {uncitedReferences.map((reference) => (
                   <li
                     key={reference.id}
                     className="flex items-start gap-3 text-sm"

@@ -1,5 +1,6 @@
 import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import { useState } from "react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { createEmptyArticle } from "@/data/schema/defaults.generated";
@@ -33,16 +34,37 @@ function makeArticle(): SubstanceArticle {
   } as SubstanceArticle;
 }
 
-function renderPanel(onClose = vi.fn(), article = makeArticle()) {
-  render(
+function CitationPanelHarness({
+  article,
+  onClose,
+}: {
+  article: SubstanceArticle;
+  onClose: () => void;
+}) {
+  const [articleForView, setArticleForView] = useState(article);
+
+  return (
     <ReviewCitationPanel
-      article={article}
+      article={articleForView}
       name="Testium"
       id="review-citation-panel"
       slug="testium"
       onClose={onClose}
-    />,
+      onReferenceSaved={(reference) => {
+        setArticleForView((previous) => ({
+          ...previous,
+          references: [
+            ...(previous.references ?? []).filter((saved) => saved.id !== reference.id),
+            reference,
+          ],
+        }));
+      }}
+    />
   );
+}
+
+function renderPanel(onClose = vi.fn(), article = makeArticle()) {
+  render(<CitationPanelHarness article={article} onClose={onClose} />);
   return onClose;
 }
 
@@ -140,6 +162,7 @@ describe("ReviewCitationPanel", () => {
         id="review-citation-panel"
         slug="testium"
         onClose={vi.fn()}
+        onReferenceSaved={vi.fn()}
       />,
     );
     expect(
@@ -156,6 +179,7 @@ describe("ReviewCitationPanel", () => {
         name="Testium"
         id="review-citation-panel"
         onClose={vi.fn()}
+        onReferenceSaved={vi.fn()}
       />,
     );
     expect(screen.queryByRole("button", { name: "Add a source" })).toBeNull();
