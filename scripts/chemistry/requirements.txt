@@ -1,4 +1,4 @@
-# Python deps for the molecule SVG generation pipeline (scripts/chemistry/render_molecules.py).
+# Python deps for the class-structure SVG pipeline (scripts/chemistry/render_class_structures.py).
 # Set up a venv:  python3.13 -m venv .venv-molecules && .venv-molecules/bin/pip install -r scripts/chemistry/requirements.txt
-# Then:           npm run molecules:generate
+# Then:           npm run molecules:generate-classes
 rdkit>=2025.3

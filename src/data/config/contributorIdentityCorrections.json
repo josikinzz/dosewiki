@@ -20,10 +20,183 @@
     "scratchpad/links-notable.json — name and link research for the recognisable third parties and the stored-URL holders",
     "scratchpad/links-josiekins.json — harvest of Josie Kins' YouTube credit blocks, the QRI replication contest, and the archived Effect Index gallery API",
     "scratchpad/links-authors.json — trip-report author handles; found nothing publishable for any of the 15",
-    "Independent re-check of every URL below on 2026-08-11 from this machine"
+    "Independent re-check of every URL below on 2026-08-11 from this machine",
+    "Owner confirmation 2026-08-14: Loka = LokaVision, website https://lokavision.com/ (verified live the same day) — see the Loka linkCorrections entry and the resolved Loka ownerDecisions entry"
   ],
 
   "nameCorrections": [
+    {
+      "stored": "wheressuede",
+      "correct": "Loka",
+      "strength": "strong",
+      "evidence": "A rename: the artist credited as WheresSuede works as Loka now. The committed slug plan in replicationSlugAliases.json records it for every one of these rows (faces-in-the-grass-wheressuede -> faces-in-the-grass-loka, forest-of-life-wheressuede -> forest-of-life-loka, symmetry-stream-wheressuede -> symmetry-stream-loka), and 12 corpus rows already credit loka.",
+      "evidenceUrls": [],
+      "correctsReplicationArtistField": true
+    },
+    {
+      "stored": "loka",
+      "correct": "Loka",
+      "strength": "strong",
+      "evidence": "Casing normalization: 12 rows carry the name all-lowercase. Proper-noun casing to match the corrected WheresSuede rows so the identity groups and prints under one spelling.",
+      "evidenceUrls": [],
+      "correctsReplicationArtistField": true
+    },
+    {
+      "stored": "phosphorm",
+      "correct": "Phosform",
+      "strength": "strong",
+      "evidence": "Spelling + casing: the committed slug plan renames every phosphorm slug to phosform (cloud-entity, moo, mushroom-walk), and 10 corpus rows already credit the phosform spelling.",
+      "evidenceUrls": [],
+      "correctsReplicationArtistField": true
+    },
+    {
+      "stored": "phosform",
+      "correct": "Phosform",
+      "strength": "strong",
+      "evidence": "Casing normalization: 9 rows carry the corrected spelling all-lowercase; one row already prints Phosform.",
+      "evidenceUrls": [],
+      "correctsReplicationArtistField": true
+    },
+    {
+      "stored": "Josie",
+      "correct": "Josie Kins",
+      "strength": "strong",
+      "evidence": "The site owner's own works. The JOSIE contributor profile lists 'josie' and 'josie kins' as the same identity, the slug plan renames every -josie slug to -josie-kins (blurred-english-terraces, blurry-london, geometry-over-hastings-cliffs, paradise-valley, the-mirrored-reservoir, tree-bark), and 2 rows already credit Josie Kins.",
+      "evidenceUrls": [],
+      "correctsReplicationArtistField": true
+    },
+    {
+      "stored": "sunterry visuals",
+      "correct": "Sunterry Art",
+      "strength": "strong",
+      "evidence": "A rename recorded by the slug plan (jester-f-u-sunterry-visuals -> jester-f-u-sunterry-art); 5 corpus rows already credit Sunterry Art.",
+      "evidenceUrls": [],
+      "correctsReplicationArtistField": true
+    },
+    {
+      "stored": "sunterry art",
+      "correct": "Sunterry Art",
+      "strength": "strong",
+      "evidence": "Casing normalization to the spelling 5 rows already carry.",
+      "evidenceUrls": [],
+      "correctsReplicationArtistField": true
+    },
+    {
+      "stored": "Salviadroid",
+      "correct": "SalviaDroid",
+      "strength": "strong",
+      "evidence": "Casing normalization: 5 rows carry the artist's camel-case SalviaDroid; this folds the Salviadroid and salviadroid variants into it.",
+      "evidenceUrls": [],
+      "correctsReplicationArtistField": true
+    },
+    {
+      "stored": "salvia droid",
+      "correct": "SalviaDroid",
+      "strength": "strong",
+      "evidence": "Spacing variant of the same identity; the slug plan folds seers-portal-salvia-droid into seers-portal-salviadroid.",
+      "evidenceUrls": [],
+      "correctsReplicationArtistField": true
+    },
+    {
+      "stored": "coldwasabi",
+      "correct": "Cold Wasabi",
+      "strength": "strong",
+      "evidence": "The slug plan spells him out (acuitree-coldwasabi -> acuitree-cold-wasabi, joint-acuity-enhancement-comparison-coldwasabi -> -cold-wasabi, this-moss-is-unreal-coldwasabi -> -cold-wasabi) and 5 corpus rows already credit Cold Wasabi.",
+      "evidenceUrls": [],
+      "correctsReplicationArtistField": true
+    },
+    {
+      "stored": "cold wasabi",
+      "correct": "Cold Wasabi",
+      "strength": "strong",
+      "evidence": "Casing normalization to the spelling 5 rows already carry.",
+      "evidenceUrls": [],
+      "correctsReplicationArtistField": true
+    },
+    {
+      "stored": "hypnagogist",
+      "correct": "Hypnagogist",
+      "strength": "strong",
+      "evidence": "Casing normalization: 3 rows print Hypnagogist, 2 print it lowercase; the HYPNAGOGIST contributor profile is one identity.",
+      "evidenceUrls": [],
+      "correctsReplicationArtistField": true
+    },
+    {
+      "stored": "bear from void",
+      "correct": "bearfromvoid",
+      "strength": "strong",
+      "evidence": "Spacing variant of the single-token handle: the slug plan folds torustower-bear-from-void into torustower-bearfromvoid, and 2 corpus rows already credit bearfromvoid.",
+      "evidenceUrls": [],
+      "correctsReplicationArtistField": true
+    },
+    {
+      "stored": "Xanny",
+      "correct": "Hyperactive Filly",
+      "strength": "strong",
+      "evidence": "A rename recorded twice by the slug plan: sleep-paralysis-xanny and sleep_paralysis_shadow_peeps_by_xanny-unknown both map to sleep-paralysis-hyperactive-filly.",
+      "evidenceUrls": [],
+      "correctsReplicationArtistField": true
+    },
+    {
+      "stored": "HyperactiveFilly",
+      "correct": "Hyperactive Filly",
+      "strength": "strong",
+      "evidence": "Spacing normalization: the slug plan writes the name as two words (strawberry-fields-hyperactivefilly -> strawberry-fields-hyperactive-filly).",
+      "evidenceUrls": [],
+      "correctsReplicationArtistField": true
+    },
+    {
+      "stored": "codedinblood",
+      "correct": "/u/codedinblood",
+      "strength": "strong",
+      "evidence": "Reddit-credit normalization: the corpus's other row for the same person is already credited /u/codedinblood, and the slug plan folds mountains-codedinblood into mountains-u-codedinblood.",
+      "evidenceUrls": [],
+      "correctsReplicationArtistField": true
+    },
+    {
+      "stored": "alex grey",
+      "correct": "Alex Grey",
+      "strength": "strong",
+      "evidence": "Casing normalization of the well-known visionary painter's name; the corpus's other row already prints Alex Grey.",
+      "evidenceUrls": [],
+      "correctsReplicationArtistField": true
+    },
+    {
+      "stored": "Anomymous",
+      "correct": "Anonymous",
+      "strength": "strong",
+      "evidence": "Typo: the ANONYMOUS contributor profile itself lists 'anomymous' as an alias of 'anonymous'.",
+      "evidenceUrls": [],
+      "correctsReplicationArtistField": true
+    },
+    {
+      "stored": "unknown",
+      "correct": "Unknown",
+      "strength": "strong",
+      "evidence": "Casing normalization of the importer's unattributed sentinel: 15 rows print Unknown, one slipped through lowercase.",
+      "evidenceUrls": [],
+      "correctsReplicationArtistField": true
+    },
+    {
+      "stored": "symmetric vision",
+      "correct": "Symmetric Vision",
+      "strength": "strong",
+      "evidence": "Casing normalization of the artist's proper name: 25 rows were imported with the credit all-lowercase while 35 carry 'Symmetric Vision'. The gallery folds case when grouping, so the split is invisible until a group label or byline prints whichever casing happens to come first. His own site symmetric-vision.xyz titles the project 'Symmetric Vision'.",
+      "evidenceUrls": [
+        "https://symmetric-vision.xyz"
+      ],
+      "correctsReplicationArtistField": true
+    },
+    {
+      "stored": "StingrayZ",
+      "correct": "Symmetric Vision",
+      "strength": "strong",
+      "evidence": "A rename, not a spelling fix: the artist works under 'Symmetric Vision' now, with StingrayZ as the earlier reddit-era handle. The site owner stated the rename directly ('we renamed StingrayZ to Symmetric Vision, his modern name', 2026-08-14) and had already ruled it in articleMediaMigrationDecisions.json A004, which names UV Mandala 'a Symmetric Vision work ... under the artist's other handle StingrayZ'. His own live site is symmetric-vision.xyz (already recorded in this file's blockedUrls note for the dead unhyphenated spelling). The committed slug plan in replicationSlugAliases.json derives every one of his slugs from the Symmetric Vision name.",
+      "evidenceUrls": [
+        "https://symmetric-vision.xyz"
+      ],
+      "correctsReplicationArtistField": true
+    },
     {
       "stored": "Ben Ridgeway",
       "correct": "Ben Ridgway",
@@ -477,6 +650,25 @@
       ],
       "remove": [],
       "notes": "The stored Instagram is the archived Effect Index gallery's own artist_url and stays."
+    },
+    {
+      "artist": "Loka",
+      "strength": "strong",
+      "storedUrls": ["reddit.com/u/wheressuede"],
+      "add": [
+        {
+          "url": "https://lokavision.com/",
+          "verification": "live-200 2026-08-14",
+          "evidence": "Owner confirmation, 2026-08-14: Loka = LokaVision, and lokavision.com is her site (it is the LokaVision YouTube channel's own website). This is the explicit yes the ownerDecisions entry below was waiting on; it also settles the question that entry raised, since Josie's separate 'Wheressuede' and 'LokaVision' credit entries turn out to name the same person."
+        }
+      ],
+      "remove": [
+        {
+          "url": "reddit.com/u/wheressuede",
+          "reason": "schemeless, so link sanitisation drops it anyway; superseded by the owner-confirmed lokavision.com. The account's captures are wayback-only (checked 2026-08-11)."
+        }
+      ],
+      "notes": "Applied to production by scripts/contributors/repair-loka-attribution.mjs (DW-12), which also sets artist_url on her 15 replication rows to https://lokavision.com/ and normalizes the residual rightsholder 'Wheressuede'/'wheressuede' strings to 'Loka'."
     }
   ],
 
@@ -642,7 +834,8 @@
         { "url": "https://reddit.com/u/wheressuede", "verification": "wayback-only", "note": "The stored artist_url is 'reddit.com/u/wheressuede' with no scheme, so link sanitisation drops it. Adding https:// is a repair, not a parse, and the seed deliberately refuses to guess a scheme. Effect Index's own gallery published the same pair, and Josie's credit blocks name 'Wheressuede' — so Loka = wheressuede is well attested. Only the scheme needs a human." },
         { "url": "https://www.youtube.com/@LokaVision", "verification": "live-200", "note": "NOT recommended without confirmation. josiekins.xyz's collaborators block and several of Josie's credit blocks name 'LokaVision' at this channel, and one research pass listed it as a strong finding for artist 'loka'. But the link from Loka to LokaVision is a handle-stem match only — and Josie's own credit lists name 'Wheressuede' and 'LokaVision' as separate entries, which argues they are two different people. Applying this would put fifteen works on the wrong channel." }
       ],
-      "whyNotApplied": "The scheme repair needs an explicit yes; the LokaVision identification is an inference the evidence actually argues against."
+      "whyNotApplied": "The scheme repair needed an explicit yes; the LokaVision identification was an inference the evidence at the time argued against.",
+      "resolution": "RESOLVED 2026-08-14 by owner confirmation: Loka = LokaVision, and her website is https://lokavision.com/ (verified live 2026-08-14). The handle-stem worry above turned out wrong — 'Wheressuede' and 'LokaVision' are the same person. Recorded as the strong linkCorrections entry for 'Loka' and applied by scripts/contributors/repair-loka-attribution.mjs (DW-12): profile links, artist_url on all 15 replication rows, and rightsholder 'Wheressuede'/'wheressuede' -> 'Loka'."
     },
     {
       "subject": "SalviaDroid",

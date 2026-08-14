@@ -7,6 +7,8 @@ export type PublicRouteIdentity =
   | { family: "replications"; params?: Record<string, never> }
   | { family: "replicationTutorials"; params?: Record<string, never> }
   | { family: "replicationAudio"; params?: Record<string, never> }
+  | { family: "replicationArtist"; params: { key: string } }
+  | { family: "replicationEffect"; params: { slug: string } }
   | { family: "replication"; params: { slug: string } }
   | { family: "substance"; params: { slug: string } }
   | { family: "effects"; params?: Record<string, never> }
@@ -71,6 +73,14 @@ export function getPublicRoutePath(route: PublicRouteIdentity): string {
       return "/replications/tutorials";
     case "replicationAudio":
       return "/replications/audio";
+    // Focused gallery views (one artist's or one effect's works). Two-segment
+    // paths, so they can never collide with the single-segment permalinks —
+    // but "artist" and "effect" are still reserved permalink slugs so the
+    // bare segment can't be claimed either. See RESERVED_REPLICATION_SLUGS.
+    case "replicationArtist":
+      return `/replications/artist/${encodePublicRouteSegment(route.params.key)}`;
+    case "replicationEffect":
+      return `/replications/effect/${encodePublicRouteSegment(route.params.slug)}`;
     // Sits under the same segment as the static `tutorials` / `audio` pages. Next
     // resolves static segments before dynamic ones, and the route plan refuses to
     // emit a replication whose slug would shadow them — see RESERVED_REPLICATION_SLUGS.

@@ -1,9 +1,11 @@
 # Molecule depiction data and static SVG generation
 
-The canonical runtime molecule set lives in Convex `moleculeOverrides`: one MOL block and one
-brand-coloured SVG per substance. Both `/dev` → Molecules and public substance pages use that
-same row. The tracked `public/molecules/*.svg` set remains a legacy fallback and downloadable art
-pack; it is not the source of truth for live article depictions.
+The canonical molecule set lives in Convex `moleculeOverrides`: one MOL block and one
+brand-coloured SVG per substance. It is the **only** source of substance depictions —
+`/dev` → Molecules, public substance pages, the chemical-class comparison rows, and the
+download pack all read that same row set. The retired static substance SVGs are gone; the
+only static molecule art left is the chemical-class Markush skeletons
+(`public/molecules/classes/`, Effect Index colourway in `public/molecules-ei/classes/`).
 
 The baseline Convex set is generated from each live `substanceIndex.identification.smiles` with
 the editor's exact OpenChemLib path (`smilesToMolblock.ts`: `fromSmiles` +
@@ -12,7 +14,11 @@ engine that draws the editing canvas). `npm run molecules:rerender-convex` regen
 stored SVG from its stored MOL block on that renderer (dry-run by default; live writes require
 `--write --confirm-molecule-rerender` plus the data-ops production-write flags).
 
-## Legacy static renderer
+## Drawing engine (RDKit, class skeletons only)
+
+`render_molecules.py` no longer renders substances; it survives as the style/orientation
+engine that `render_class_structures.py` imports to draw the class skeletons. The style
+contract it implements (and that `renderMoleculeSvg.ts` mirrors for Convex rows):
 
 | Requirement | Mechanism (RDKit) |
 | --- | --- |
@@ -28,15 +34,18 @@ stored SVG from its stored MOL block on that renderer (dry-run by default; live 
 
 ## SMILES sources (priority order)
 
+Used by `molecules:smiles-coverage` and the Convex seeder:
+
 1. `identification.smiles` inline in `src/data/SubstanceIndex.json` (incl. multi-component
    `{components:{...}}` preparations — the principal/first component is drawn).
 2. `src/data/mappings/generatedSmiles.json` — gap-fill SMILES found via PubChem/Wikipedia for
    substances missing inline data. For plants/preparations/brands, `represents` names the active
    molecule drawn (e.g. Salvia → Salvinorin A, Datura → Scopolamine, Marinol → dronabinol/THC).
+   Rebuild it from reviewed gap-fill batches with `npm run molecules:merge-smiles`.
 3. `titleIupacSmiles.json` / `iupacSmilesMap.json` (legacy maps).
 
-Coverage: **572 / 577** substances. The 5 without art have no single representable molecule
-(Cake = fictional; K-2c-B / K-2c-I / K-IVP = undocumented; Sentia = proprietary blend).
+573 substances have a Convex depiction row. The few without one (Cake, K-2c-B, K-IVP,
+Sentia) have no single representable molecule and render without a depiction.
 
 ## Seed the canonical Convex set
 
@@ -59,37 +68,44 @@ use the existing `editorArticleWrite` admin intent and the guarded
 it cannot replace a row created after the initial read. Seeded rows carry `source: "seeded"` and
 `updatedBy: "seed-convex-molecules"`; the first editor save changes `source` to `"editor"`.
 
-## Regenerate the legacy static fallback and download pack
+## Build the download pack (from Convex)
+
+The public download pack is built straight from the canonical Convex depiction set — no
+Python env and no static SVGs (chemical-class skeletons excepted):
 
 ```bash
-npm run molecules:setup-venv     # one-time: create .venv-molecules with RDKit
-npm run molecules:merge-smiles   # rebuild generatedSmiles.json from gap-fill batch outputs (optional)
-npm run molecules:generate       # coverage -> render SVGs -> recolour -> rewrite mapping -> manifest
-npm run molecules:generate-ei    # recolour only: brand/standard art -> public/molecules-ei/
-npm run molecules:check-ei       # fail if public/molecules-ei/ is out of date (no writes)
-npm run molecules:pack           # zip public/molecules -> public/dosewiki-molecules.zip
+npm run molecules:pack           # Convex -> public/dosewiki-molecules.{json,zip}
+npm run molecules:pack -- --check  # exit 1 if the committed manifest drifted (no writes)
 ```
 
-`molecules:generate` writes:
-- `public/molecules/<slug>.svg` (one per substance with SMILES, brand colours)
-- `src/data/molecules/molecules-standard/<slug>.svg` (same set in standard textbook colours —
-  RDKit default palette; git-ignored, only shipped inside the download ZIP)
-- `public/molecules-ei/<slug>.svg` + `public/molecules-ei/classes/<key>.svg` (the Effect Index
-  colourway — CPK hues desaturated into the Effect Index theme; tracked, served only by the
-  `NEXT_PUBLIC_SITE_FLAVOR=effectindex` build)
-- `src/data/mappings/moleculeSvgMappings.json` (article → SVG)
-- `public/dosewiki-molecules.json` (download manifest)
+`scripts/data/buildMoleculePack.ts` reads every `moleculeOverrides` row over the public
+queries, ships the stored brand SVG verbatim under `molecules/` (class rows under
+`molecules/classes/`, plus any static `public/molecules/classes/*.svg` without a Convex
+override), re-renders each substance MOL block in the standard textbook palette
+(`OCL_COLOR_TO_STANDARD`) under `molecules-standard/`, and writes the
+`dosewiki-molecules.json` manifest into both the ZIP and `public/`. Any render failure
+fails the run — a partial pack is never shipped. The Convex URL comes from
+`--convex-url=` / `SOURCE_CONVEX_URL` / `CONVEX_PUBLIC_READ_URL` /
+`VITE_CONVEX_URL` / `NEXT_PUBLIC_CONVEX_URL`, defaulting to production; the npm script
+disables bun's implicit `.env.local` loading so a no-env run always packs production.
+Staged files get a fixed mtime, so the ZIP is byte-identical until the depiction set
+changes. The nightly `.github/workflows/molecule-pack-nightly.yml` rebuilds and commits
+the pack when it changed.
 
-`molecules:pack` zips both dose.wiki colourways plus the `dosewiki-molecules.json` manifest
-into `public/dosewiki-molecules.zip` (`molecules/` = brand, `molecules-standard/` = standard).
-The Effect Index colourway is a site-theme asset rather than a published artwork colourway,
-so it is deliberately not packed.
+## Regenerate the static class structures
+
+```bash
+npm run molecules:setup-venv        # one-time: create .venv-molecules with RDKit
+npm run molecules:generate-classes  # chemicalIndexManual.json -> public/molecules/classes/<key>.svg
+npm run molecules:generate-ei       # recolour classes -> public/molecules-ei/classes/
+npm run molecules:check-ei          # fail if public/molecules-ei/classes/ is out of date (no writes)
+```
 
 The Effect Index recolour is a pure string substitution over the SVG bytes, defined once in
 `src/data/mappings/moleculePalette.ts` and shared with the serve-time recolour applied to
 Convex `moleculeOverrides` rows by `src/app/api/molecules/**`. It needs no Python env.
 
-Override the interpreter with `MOLECULE_PYTHON=/path/to/python npm run molecules:generate`.
+Override the interpreter with `MOLECULE_PYTHON=/path/to/python npm run molecules:generate-classes`.
 
 ## Editing a published depiction
 
@@ -107,15 +123,7 @@ rings) for stereochemically complex molecules. Fix one by hand in the **`/dev` �
   `/api/dev/molecule-override`, then revalidates the article path. Versioned image URLs use
   `updatedAt` and immutable caching, so a refreshed article requests the new asset URL. There can
   still be a short platform revalidation propagation delay after Save.
-- Convex rows do **not** land in `src/data/molecules/overrides/`. That directory affects only the
-  legacy Python fallback pipeline.
-
-`render_molecules.py` honors a tracked override on every run: if `overrides/<slug>.mol` exists it is
-drawn **verbatim** (`useMolBlockWedging`, no re-layout) instead of the scaffold auto-layout. The
-Python auto-layout starting points are emitted to `src/data/molecules/base/<slug>.mol` (generated,
-git-ignored) for fallback-pipeline inspection. The live editor's Revert to auto uses OpenChemLib
-directly from Convex SMILES. Flags: `--overrides <dir>`, `--base-outdir <dir>` (the orchestrator
-passes both).
+- Convex rows are the whole story: there is no static substance pipeline behind them.
 
 ## Hand-fixing a class structure
 
@@ -128,10 +136,14 @@ the class skeleton from `chemicalIndexManual.json`. The orchestrator and
 
 ## Files
 
-- `render_molecules.py` — the renderer (palette, scaffolds, drawing options).
+- `render_molecules.py` — the drawing engine (palette, scaffolds, drawing options); imported
+  by the class renderer, no longer run for substances.
+- `render_class_structures.py` — render the chemical-class Markush skeletons.
 - `validate_smiles.py` — stdin JSON array of SMILES → JSON array of booleans (parseable?).
+- `seed-convex-molecules.ts` / `rerender-convex-molecules.ts` — seed and re-render the
+  canonical Convex set.
 - `../data/resolveSmilesCoverage.mjs` — resolve a SMILES per substance.
 - `../data/mergeGeneratedSmiles.mjs` — merge gap-fill batches → `generatedSmiles.json`.
-- `../data/generateMoleculeSvgs.mjs` — orchestrator.
-- `../data/buildMoleculeMappings.mjs` — rewrite the article→SVG mapping.
-- `../data/buildMoleculeDownloadPack.mjs` — build the download manifest.
+- `../data/generateEffectIndexMoleculeColorway.ts` — recolour the class skeletons into the
+  Effect Index colourway.
+- `../data/buildMoleculePack.ts` — build the download manifest + ZIP from Convex.

@@ -192,6 +192,9 @@ export const getEditorProfile = query({
       storedAvatarUrl,
       replicationOrder: normalizeOrderSlugs(stored.replicationOrder),
       reportOrder: normalizeOrderSlugs(stored.reportOrder),
+      exclude_from_gallery: stored.exclude_from_gallery === true,
+      archival: stored.archival === true,
+      staffNote: stored.staffNote ?? null,
       updatedAt: stored.updatedAt ?? null,
       updatedBy: stored.updatedBy ?? null,
     };

@@ -26,6 +26,7 @@ const TOOL_TAB_ITEMS: ToolTabItem[] = [
   { id: "citation-review", label: "Citations" },
   { id: "trip-report-submissions", label: "Trip reports" },
   { id: "article-feedback", label: "Feedback" },
+  { id: "site-feedback", label: "Site feedback" },
   { id: "tag-editor", label: "Tags" },
   { id: "molecule-editor", label: "Molecules" },
   { id: "replications", label: "Replications" },

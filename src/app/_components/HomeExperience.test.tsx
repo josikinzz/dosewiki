@@ -51,7 +51,7 @@ describe("dose.wiki homepage", () => {
     ).toBeInTheDocument();
   });
 
-  it("keeps all four quick-link tiles, in the flavor's declared order", () => {
+  it("keeps all five quick-link tiles, in the flavor's declared order", () => {
     render(<HomeExperience quickLinks={quickLinks} showThemeToggle={false} showPaletteLabTrigger={false} />);
 
     const tiles = screen.getByRole("navigation", { name: "App sections" });
@@ -61,14 +61,26 @@ describe("dose.wiki homepage", () => {
       "/substances",
       "/effects",
       "/reports",
+      "/replications",
       "/about",
     ]);
     expect(links.map((link) => link.textContent)).toEqual([
       "Substances",
       "Effects",
       "Reports",
+      "Replications",
       "About",
     ]);
+  });
+
+  it("splits the five tiles into a balanced 3 + 2 row structure", () => {
+    render(<HomeExperience quickLinks={quickLinks} showThemeToggle={false} showPaletteLabTrigger={false} />);
+
+    const tiles = screen.getByRole("navigation", { name: "App sections" });
+    const rows = Array.from(tiles.children);
+
+    // Each direct child is one centred row; at lg it flattens via `display: contents`.
+    expect(rows.map((row) => row.querySelectorAll("a").length)).toEqual([3, 2]);
   });
 
   it("does not render any Effect Index homepage panel", () => {

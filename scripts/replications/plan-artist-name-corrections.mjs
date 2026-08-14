@@ -129,8 +129,11 @@ export function planRowCorrection(row, correction, { existingSlugs = new Set() }
       const after = field === "artist" ? updates.artist : (updates[field] ?? null);
       return before !== after;
     }),
+    // A slug that is the candidate plus a `-N` counter is already the
+    // collision-resolved form normalize-slugs' resolveTarget produces for a
+    // duplicate title — it is settled, not a pending rename that collides.
     slugConsequence:
-      candidateSlug === row.slug
+      candidateSlug === row.slug || new RegExp(`^${candidateSlug}-\\d+$`).test(row.slug)
         ? { changes: false, slug: row.slug }
         : {
             changes: true,

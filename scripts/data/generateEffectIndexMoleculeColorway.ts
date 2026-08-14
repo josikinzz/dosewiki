@@ -1,22 +1,13 @@
 #!/usr/bin/env bun
 /**
- * Bake the Effect Index molecule colourway into `public/molecules-ei/`.
+ * Bake the Effect Index class-structure colourway into `public/molecules-ei/classes/`.
  *
  * Structure diagrams render through `<img>`, so CSS cannot recolour individual atoms — the
- * palette has to be in the bytes. dose.wiki keeps `public/molecules/` (fuchsia brand palette,
- * baked by `scripts/chemistry/render_molecules.py`); this script derives the Effect Index
- * colourway from it without needing RDKit or a Python env.
- *
- * Source preference per substance:
- *   1. `src/data/molecules/molecules-standard/<slug>.svg` — the same geometry rendered with
- *      `--palette standard`. Preferred because RDKit's standard palette keeps fluorine
- *      (`#33cccc`) and phosphorus (`#ff7f00`) apart, while the brand palette collapses both
- *      into one amber. Git-ignored, so it may be absent in a fresh clone.
- *   2. `public/molecules/<slug>.svg` — the tracked brand render. Always present. Phosphorus
- *      is indistinguishable from fluorine here and is reported as a warning.
- *
- * Chemical-class Markush skeletons (`public/molecules/classes/`) have no standard counterpart
- * and are always derived from the brand render.
+ * palette has to be in the bytes. Substance depictions are Convex `moleculeOverrides` rows
+ * (recoloured at serve time by `src/app/api/molecules/**`), but the chemical-class Markush
+ * skeletons are still static files: dose.wiki tracks the brand renders in
+ * `public/molecules/classes/` and this script derives the Effect Index colourway from them
+ * without needing RDKit or a Python env.
  *
  * Usage: bun scripts/data/generateEffectIndexMoleculeColorway.ts [--check]
  *   --check  verify the committed colourway is up to date without writing anything
@@ -34,11 +25,8 @@ import {
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
 
-const BRAND_DIR = path.join(ROOT, "public/molecules");
-const BRAND_CLASSES_DIR = path.join(BRAND_DIR, "classes");
-const STANDARD_DIR = path.join(ROOT, "src/data/molecules/molecules-standard");
-const OUT_DIR = path.join(ROOT, "public", EFFECT_INDEX_MOLECULE_DIRNAME);
-const OUT_CLASSES_DIR = path.join(OUT_DIR, "classes");
+const BRAND_CLASSES_DIR = path.join(ROOT, "public/molecules/classes");
+const OUT_CLASSES_DIR = path.join(ROOT, "public", EFFECT_INDEX_MOLECULE_DIRNAME, "classes");
 
 const checkOnly = process.argv.includes("--check");
 
@@ -74,8 +62,6 @@ type Stats = {
   written: number;
   unchanged: number;
   stale: string[];
-  fromStandard: number;
-  fromBrand: number;
   residual: string[];
 };
 
@@ -83,8 +69,6 @@ const stats: Stats = {
   written: 0,
   unchanged: 0,
   stale: [],
-  fromStandard: 0,
-  fromBrand: 0,
   residual: [],
 };
 
@@ -107,11 +91,12 @@ async function emit(outFile: string, svg: string, label: string): Promise<void> 
 }
 
 async function main(): Promise<void> {
-  const brandNames = await listSvgs(BRAND_DIR);
   const classNames = await listSvgs(BRAND_CLASSES_DIR);
 
-  if (brandNames.length === 0) {
-    console.error(`No SVGs found in ${path.relative(ROOT, BRAND_DIR)} — nothing to recolour.`);
+  if (classNames.length === 0) {
+    console.error(
+      `No SVGs found in ${path.relative(ROOT, BRAND_CLASSES_DIR)} — nothing to recolour.`,
+    );
     process.exit(1);
   }
 
@@ -119,21 +104,8 @@ async function main(): Promise<void> {
     await mkdir(OUT_CLASSES_DIR, { recursive: true });
   }
 
-  for (const name of brandNames) {
-    const slug = name.replace(/\.svg$/i, "");
-    const standard = await readIfPresent(path.join(STANDARD_DIR, `${slug}.svg`));
-    const source = standard ?? (await readFile(path.join(BRAND_DIR, name), "utf8"));
-    if (standard) {
-      stats.fromStandard += 1;
-    } else {
-      stats.fromBrand += 1;
-    }
-    await emit(path.join(OUT_DIR, name), recolorMoleculeSvgToEffectIndex(source), name);
-  }
-
   for (const name of classNames) {
     const source = await readFile(path.join(BRAND_CLASSES_DIR, name), "utf8");
-    stats.fromBrand += 1;
     await emit(
       path.join(OUT_CLASSES_DIR, name),
       recolorMoleculeSvgToEffectIndex(source),
@@ -141,41 +113,24 @@ async function main(): Promise<void> {
     );
   }
 
-  // Drop outputs whose brand source no longer exists, so a renamed slug cannot leave a
+  // Drop outputs whose brand source no longer exists, so a renamed class cannot leave a
   // stale Effect Index file behind.
-  const expected = new Set(brandNames);
-  const expectedClasses = new Set(classNames);
-  const orphans = [
-    ...(await listSvgs(OUT_DIR)).filter((name) => !expected.has(name)).map((name) => [OUT_DIR, name] as const),
-    ...(await listSvgs(OUT_CLASSES_DIR))
-      .filter((name) => !expectedClasses.has(name))
-      .map((name) => [OUT_CLASSES_DIR, name] as const),
-  ];
-  for (const [dir, name] of orphans) {
-    const label = `${path.relative(OUT_DIR, path.join(dir, name))} (orphan)`;
+  const expected = new Set(classNames);
+  const orphans = (await listSvgs(OUT_CLASSES_DIR)).filter((name) => !expected.has(name));
+  for (const name of orphans) {
+    const label = `classes/${name} (orphan)`;
     stats.stale.push(label);
     if (!checkOnly) {
-      await rm(path.join(dir, name));
+      await rm(path.join(OUT_CLASSES_DIR, name));
     }
   }
 
-  const outRel = path.relative(ROOT, OUT_DIR);
+  const outRel = path.relative(ROOT, OUT_CLASSES_DIR);
   console.log(
-    `${checkOnly ? "Checked" : "Wrote"} ${brandNames.length} substance + ${classNames.length} class structures in ${outRel}/`,
-  );
-  console.log(
-    `  sources: ${stats.fromStandard} standard-palette, ${stats.fromBrand} brand-palette`,
+    `${checkOnly ? "Checked" : "Wrote"} ${classNames.length} class structures in ${outRel}/`,
   );
   if (!checkOnly) {
     console.log(`  ${stats.written} written, ${stats.unchanged} already current`);
-  }
-
-  if (stats.fromBrand > classNames.length) {
-    console.warn(
-      `  warning: ${stats.fromBrand - classNames.length} substance(s) fell back to the brand palette ` +
-        `(run \`npm run molecules:generate\` to rebuild ${path.relative(ROOT, STANDARD_DIR)}); ` +
-        `phosphorus renders as fluorine in those files.`,
-    );
   }
 
   if (stats.residual.length > 0) {

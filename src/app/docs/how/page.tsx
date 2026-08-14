@@ -46,6 +46,7 @@ const TOC = [
   { id: "s6", label: "6. Verbatim excerpt extraction", icon: "lucide:scissors" },
   { id: "s7", label: "7. AI synthesis & the prompts", icon: "lucide:sparkles" },
   { id: "s8", label: "8. Citations", icon: "lucide:quote" },
+  { id: "s8b", label: "8b. Legality deep research", icon: "lucide:gavel" },
   { id: "s9", label: "9. Human review", icon: "lucide:user-check" },
   { id: "s10", label: "10. The open dataset", icon: "lucide:download" },
   { id: "s11", label: "11. Originality & licensing", icon: "lucide:scale" },
@@ -213,6 +214,42 @@ const PIPELINE_DIAGRAM = `graph TD
   classDef human fill:#391a40,stroke:#e879f9,color:#f6e2fa
   classDef pub fill:#15263e,stroke:#7dd3fc,color:#ddeefb`;
 
+// The legality deep-research workflow (section 08b). Same five-tone classDef
+// palette as PIPELINE_DIAGRAM above — the two diagrams share one legend key.
+const LEGALITY_DIAGRAM = `graph TD
+  PACKET[("Export packet<br/>substance names, current legality<br/>entries, core-country list")]:::data
+  CITEPASS["Cite pass<br/>re-source every existing<br/>country entry"]:::ext
+  DISC["Discovery pass<br/>research every uncovered<br/>core country"]:::ext
+  GAPHUNT["Gap hunts<br/>one agent per gap,<br/>native-language + official portals"]:::ext
+  CORRHUNT["Correction hunts<br/>deepen each correction<br/>to current primary law"]:::ext
+  REFUTE["Adversarial refutation<br/>independent blank-context refuter per claim;<br/>refuted → gap or ≤2 recovery cycles"]:::auto
+  STATES["US state and territory pass<br/>only divergences from federal treatment;<br/>each divergence re-refuted"]:::ext
+  MERGE["Merge · validate · copy-edit<br/>one legality draft, fixed status vocabulary,<br/>encyclopedia-register rewrite"]:::auto
+  WRITE["Human-confirmed write<br/>dry-run diff → explicit confirmation<br/>→ both deployments"]:::human
+  CITED["Citation stage<br/>per-entry references with<br/>verbatim supporting quotes"]:::auto
+  PAGE["Published legality section<br/>entries carry cite markers;<br/>unverified legacy claims flagged, never deleted"]:::pub
+
+  PACKET --> CITEPASS
+  PACKET --> DISC
+  CITEPASS -->|"corrections"| CORRHUNT
+  CITEPASS -->|"gaps"| GAPHUNT
+  DISC -->|"gaps"| GAPHUNT
+  DISC -->|"new entries"| REFUTE
+  GAPHUNT --> REFUTE
+  CORRHUNT --> REFUTE
+  REFUTE -->|"settled US entry"| STATES
+  STATES --> MERGE
+  REFUTE -->|"surviving entries"| MERGE
+  MERGE --> WRITE
+  WRITE --> CITED
+  CITED --> PAGE
+
+  classDef ext fill:#3a1f33,stroke:#f9a8d4,color:#f7e3ef
+  classDef auto fill:#3a2a18,stroke:#fdba74,color:#f7ead9
+  classDef data fill:#143026,stroke:#6ee7b7,color:#def3ea
+  classDef human fill:#391a40,stroke:#e879f9,color:#f6e2fa
+  classDef pub fill:#15263e,stroke:#7dd3fc,color:#ddeefb`;
+
 const SECTION_NUM_CLASS =
   "theme-text-faint mr-2 text-sm font-semibold tabular-nums";
 const SECTION_HEADING_CLASS = "theme-accent-heading text-2xl font-semibold";
@@ -267,11 +304,12 @@ const STAGE_TONE: Record<
   StageTone,
   { label: string; accentVar: string }
 > = {
-  // Swatch colors intentionally mirror the Mermaid PIPELINE_DIAGRAM classDef
-  // strokes (ext/auto/data/human/pub) below. This legend is the key for that
-  // diagram, and the diagram's stroke colors are fixed (Mermaid theming is
-  // off-limits), so each tone must stay in lockstep with its stroke — five
-  // distinct colors — rather than collapse onto shared theme tokens.
+  // Swatch colors intentionally mirror the Mermaid diagram classDef strokes
+  // (ext/auto/data/human/pub) below — this legend is the key for those
+  // diagrams. Charts carry the dark-theme strokes verbatim; in light mode the
+  // Mermaid component remaps each to a darker same-hue variant (LIGHT_PALETTE
+  // in docs/_components/Mermaid.tsx), so the five hues must stay in lockstep
+  // across both maps rather than collapse onto shared theme tokens.
   source: { label: "Source", accentVar: "#f9a8d4" },
   automated: { label: "Automated", accentVar: "#fdba74" },
   stored: { label: "Stored", accentVar: "#6ee7b7" },
@@ -1172,6 +1210,148 @@ Citations render as numbered superscript markers in the text, linked to the refe
                 list at the bottom of each article. Behind each marker sits a stored evidence record:
                 the claim, the reference, and the verbatim quote that supports it. That record is how
                 citation quality is checked over time.
+              </p>
+            </div>
+          </ContentCard>
+        </section>
+
+        <section id="s8b" className="scroll-mt-24">
+          <h2 className={SECTION_HEADING_CLASS}>
+            <span className={SECTION_NUM_CLASS}>08b</span>{" "}Legality: targeted deep research
+          </h2>
+
+          <p className={`${PROSE_CLASS} mt-4`}>
+            Legality is the hardest section to keep correct. Drug law changes often, differs by
+            country, and most online summaries cite other summaries. So the legality section gets its
+            own deep-research workflow, separate from the main pipeline in section 02. The workflow
+            reads primary legal sources only: statutes, official schedules, and government
+            legislation portals.
+          </p>
+
+          <p className={`${PROSE_CLASS} mt-4`}>
+            One orchestrator agent runs the workflow for one substance at a time. It first exports a
+            packet: the substance's names, its current legality entries, and a core list of
+            countries. It then launches many small research agents in parallel. Each research agent
+            starts with a blank context, one narrow question, and a strict output contract. Two
+            passes run first: a <strong>cite pass</strong> that re-sources every existing entry, and
+            a <strong>discovery pass</strong> that researches every uncovered core country. Each
+            country comes back as a sourced entry, a proposed correction, or a recorded gap.
+          </p>
+
+          <p className={`${PROSE_CLASS} mt-4`}>
+            Gaps and corrections then get dedicated hunter agents. A gap hunter searches in the
+            country's own language and in its official legislation portals. A correction hunter
+            deepens each proposed correction to the current primary law. Every surviving claim then
+            faces an <strong>adversarial test</strong>. An independent refuter agent, again
+            blank-context, tries to disprove the claim against the sources. A refuted claim becomes
+            a recorded gap, or it enters a recovery cycle, capped at two cycles per jurisdiction.
+          </p>
+
+          <p className={`${PROSE_CLASS} mt-4`}>
+            For the United States, a separate pass researches state and territory law. It records
+            only jurisdictions that diverge from federal treatment, and each divergence claim faces
+            the same adversarial test. The surviving entries then merge into one draft. A validation
+            gate rejects any status outside a fixed vocabulary. A copy-editor agent rewrites any
+            note that drifts from encyclopedia register.
+          </p>
+
+          <p className={`${PROSE_CLASS} mt-4`}>
+            No agent writes to the database. A human reads a dry-run diff of every change and
+            confirms the write. The confirmed write then runs against both database deployments,
+            each behind its own guard. Last, the citation workflow from section 08 attaches
+            per-claim references, so every entry carries a visible source.
+          </p>
+
+          <div className="mt-6 flex flex-col gap-2">
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-stretch">
+              <PipelineStep num={1} name="Export packet" tone="stored">
+                The substance's names, its current legality entries, and the core country list
+              </PipelineStep>
+              <div className={PIPELINE_ARROW_CLASS}>→</div>
+              <PipelineStep num={2} name="Cite & discovery" tone="source">
+                Parallel passes re-source every existing entry and research every uncovered core country
+              </PipelineStep>
+              <div className={PIPELINE_ARROW_CLASS}>→</div>
+              <PipelineStep num={3} name="Gap & correction hunts" tone="source">
+                One dedicated agent per gap or correction, searching native-language and official legislation portals
+              </PipelineStep>
+              <div className={PIPELINE_ARROW_CLASS}>→</div>
+              <PipelineStep num={4} name="Refute" tone="automated">
+                A blank-context refuter tries to disprove each claim, with at most two recovery cycles
+              </PipelineStep>
+            </div>
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-stretch">
+              <PipelineStep num={5} name="US state pass" tone="source">
+                Records only divergences from federal treatment. Each divergence faces refutation again
+              </PipelineStep>
+              <div className={PIPELINE_ARROW_CLASS}>→</div>
+              <PipelineStep num={6} name="Merge & validate" tone="automated">
+                One draft, a fixed status vocabulary, and an encyclopedia-register rewrite of flagged notes
+              </PipelineStep>
+              <div className={PIPELINE_ARROW_CLASS}>→</div>
+              <PipelineStep num={7} name="Confirmed write" tone="review">
+                A human reads the dry-run diff, then the write runs on both deployments
+              </PipelineStep>
+              <div className={PIPELINE_ARROW_CLASS}>→</div>
+              <PipelineStep num={8} name="Cite" tone="published">
+                The section 08 citation workflow attaches per-claim references and verbatim quotes
+              </PipelineStep>
+            </div>
+          </div>
+
+          <div className={LEGEND_CLASS}>
+            <div className={LEGEND_ITEM_CLASS}>
+              <StageSwatch tone="source" /> External research
+            </div>
+            <div className={LEGEND_ITEM_CLASS}>
+              <StageSwatch tone="automated" /> Automated pipeline
+            </div>
+            <div className={LEGEND_ITEM_CLASS}>
+              <StageSwatch tone="stored" /> Data store
+            </div>
+            <div className={LEGEND_ITEM_CLASS}>
+              <StageSwatch tone="review" /> Human decision
+            </div>
+            <div className={LEGEND_ITEM_CLASS}>
+              <StageSwatch tone="published" /> Published output
+            </div>
+          </div>
+
+          <div className="mt-6">
+            <Mermaid
+              chart={LEGALITY_DIAGRAM}
+              title="Legality deep research: export packet through parallel research passes, adversarial refutation, US state pass, merge and validation, human-confirmed write, and citations"
+            />
+          </div>
+
+          <ContentCard padding="none" className={`mt-6 ${DIVIDED_LIST_CLASS}`}>
+            <div className={DIVIDED_ITEM_CLASS}>
+              <div className={CARD_LABEL_CLASS}>Invariants</div>
+              <ul className={`${LIST_CLASS} list-disc pl-5`}>
+                <li>
+                  <strong>No entry enters the draft without a primary source</strong> (no source ⇒
+                  recorded gap, never published).
+                </li>
+                <li>
+                  <strong>Research and refutation are always separate blank-context agents.</strong>
+                </li>
+                <li>
+                  <strong>A human confirms every write.</strong>
+                </li>
+                <li>
+                  <strong>
+                    Unverifiable legacy claims are flagged <em>citationNeeded</em>
+                  </strong>
+                  , never silently edited or deleted.
+                </li>
+              </ul>
+            </div>
+            <div className={DIVIDED_ITEM_CLASS}>
+              <div className={CARD_LABEL_CLASS}>Where this goes next</div>
+              <p className={PROSE_CLASS}>
+                This pattern will scale. The same targeted deep-research loop — blank-context
+                research, adversarial refutation, human-confirmed writes — will extend to other
+                article subsections over time.
               </p>
             </div>
           </ContentCard>

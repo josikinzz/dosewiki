@@ -3,9 +3,8 @@
 /**
  * Generate an automatic-layout MOL block from a SMILES string, in the browser.
  *
- * On the deployed admin host there are no committed base `.mol` files (that
- * directory is gitignored and built locally by `molecules:generate`), so the
- * editor derives the starting structure the same way the Python pipeline does —
+ * There are no committed base `.mol` files (the static substance pipeline is
+ * retired), so the editor derives the starting structure itself —
  * `Molecule.fromSmiles(s).inventCoordinates()` — via the OpenChemLib bundle that
  * is already dynamically imported for the canvas editor.
  */

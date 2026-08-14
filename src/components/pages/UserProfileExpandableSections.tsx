@@ -30,10 +30,16 @@ interface UserContributionsSectionProps {
   history: ChangeLogEntry[];
 }
 
-const dateFormat = new Intl.DateTimeFormat(undefined, {
+/** How many changelog rows the section shows before the count expander. */
+const COLLAPSED_CONTRIBUTION_ROWS = 4;
+
+const dayFormat = new Intl.DateTimeFormat(undefined, {
   month: "short",
   day: "numeric",
   year: "numeric",
+});
+
+const timeFormat = new Intl.DateTimeFormat(undefined, {
   hour: "numeric",
   minute: "2-digit",
 });
@@ -101,80 +107,129 @@ export function UserTripReportsSection({
   );
 }
 
-function ContributionEntryCard({ entry }: { entry: ChangeLogEntry }) {
+function ContributionDiff({ entry, id }: { entry: ChangeLogEntry; id: string }) {
   return (
-    <NestedContentCard radius="xl" padding="none" className="overflow-hidden">
-      <div className="flex flex-col gap-3 p-4 md:flex-row md:items-center md:justify-between">
-        <div className="flex min-w-0 flex-col gap-1">
-          <div className="theme-text-faint flex items-center gap-2 text-xs">
-            <Icon icon="lucide:calendar" size={12} />
-            <span>{dateFormat.format(new Date(entry.createdAt))}</span>
-          </div>
-          <div className="theme-text-primary min-w-0 text-sm">
-            {entry.commit?.url ? (
-              <a
-                href={entry.commit.url}
-                target="_blank"
-                rel="noopener noreferrer"
-                aria-label={`${entry.commit.message} (opens commit on GitHub in a new tab)`}
-                className="group/commit inline-flex items-start gap-1.5 font-medium transition hover:underline hover:underline-offset-2"
+    <div id={id} className="theme-code-surface overflow-x-auto border-t border-[var(--theme-border-subtle)] p-4">
+      <pre
+        className="font-mono text-xs leading-relaxed"
+        aria-label="Diff of changed lines"
+      >
+        <code>
+          {entry.markdown.split("\n").map((line, index) => {
+            const isAdded = line.startsWith("+");
+            const isRemoved = line.startsWith("-");
+            const isHunk = line.startsWith("@@");
+            const lineClass = isHunk
+              ? "text-[color:var(--theme-semantic-info-badge-text)]"
+              : isAdded
+                ? "bg-[color:var(--editor-code-line-add-bg)] text-[color:var(--editor-code-line-add-text)]"
+                : isRemoved
+                  ? "bg-[color:var(--editor-code-line-remove-bg)] text-[color:var(--editor-code-line-remove-text)]"
+                  : "theme-text-muted";
+
+            return (
+              <div
+                key={`${entry.id}-line-${index}`}
+                className={`${lineClass} ${isAdded || isRemoved ? "-mx-2 rounded px-2" : ""}`}
               >
-                <span className="line-clamp-2">{entry.commit.message}</span>
-                <Icon
-                  icon="lucide:external-link"
-                  size={14}
-                  className="theme-text-faint mt-0.5 shrink-0 transition-opacity group-hover/commit:opacity-80"
-                />
-              </a>
-            ) : (
-              <span className="line-clamp-2 font-medium">
-                {entry.commit.message}
-              </span>
-            )}
-          </div>
-        </div>
-        <PublicPill tone="neutral" size="sm" className="shrink-0">
-          {entry.articles.length} article
-          {entry.articles.length === 1 ? "" : "s"}
-        </PublicPill>
-      </div>
-
-      {entry.markdown.trim().length > 0 && (
-        <div className="theme-code-surface overflow-x-auto p-4">
-          <pre
-            className="font-mono text-xs leading-relaxed"
-            aria-label="Diff of changed lines"
-          >
-            <code>
-              {entry.markdown.split("\n").map((line, index) => {
-                const isAdded = line.startsWith("+");
-                const isRemoved = line.startsWith("-");
-                const isHunk = line.startsWith("@@");
-                const lineClass = isHunk
-                  ? "text-[color:var(--theme-semantic-info-badge-text)]"
-                  : isAdded
-                    ? "bg-[color:var(--editor-code-line-add-bg)] text-[color:var(--editor-code-line-add-text)]"
-                    : isRemoved
-                      ? "bg-[color:var(--editor-code-line-remove-bg)] text-[color:var(--editor-code-line-remove-text)]"
-                      : "theme-text-muted";
-
-                return (
-                  <div
-                    key={`${entry.id}-line-${index}`}
-                    className={`${lineClass} ${isAdded || isRemoved ? "-mx-2 rounded px-2" : ""}`}
-                  >
-                    {isAdded ? <span className="sr-only">Added: </span> : null}
-                    {isRemoved ? <span className="sr-only">Removed: </span> : null}
-                    {line.trim().length > 0 ? line : "\u00A0"}
-                  </div>
-                );
-              })}
-            </code>
-          </pre>
-        </div>
-      )}
-    </NestedContentCard>
+                {isAdded ? <span className="sr-only">Added: </span> : null}
+                {isRemoved ? <span className="sr-only">Removed: </span> : null}
+                {line.trim().length > 0 ? line : "\u00A0"}
+              </div>
+            );
+          })}
+        </code>
+      </pre>
+    </div>
   );
+}
+
+const CONTRIBUTION_ARTICLE_PILL_CAP = 3;
+
+/**
+ * One compact changelog row: timestamp (or commit sha) · save message ·
+ * article pills · a faint per-row expander that reveals the diff. Resting
+ * state never shows diff text.
+ */
+function ContributionRow({ entry }: { entry: ChangeLogEntry }) {
+  const [isDiffExpanded, setIsDiffExpanded] = useState(false);
+  const hasDiff = entry.markdown.trim().length > 0;
+  const diffId = `contribution-diff-${entry.id}`;
+  const stamp = entry.commit?.sha
+    ? entry.commit.sha.slice(0, 7)
+    : timeFormat.format(new Date(entry.createdAt));
+  const articles = entry.articles.slice(0, CONTRIBUTION_ARTICLE_PILL_CAP);
+  const overflowCount = entry.articles.length - articles.length;
+
+  return (
+    <div>
+      <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5 px-4 py-2.5">
+        <code className="theme-text-faint shrink-0 font-mono text-[11px]">{stamp}</code>
+        <div className="theme-text-primary min-w-0 flex-1 basis-48 text-sm">
+          {entry.commit?.url ? (
+            <a
+              href={entry.commit.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label={`${entry.commit.message} (opens commit on GitHub in a new tab)`}
+              className="group/commit inline-flex items-start gap-1.5 transition hover:underline hover:underline-offset-2"
+            >
+              <span className="line-clamp-2">{entry.commit.message}</span>
+              <Icon
+                icon="lucide:external-link"
+                size={13}
+                className="theme-text-faint mt-0.5 shrink-0 transition-opacity group-hover/commit:opacity-80"
+              />
+            </a>
+          ) : (
+            <span className="line-clamp-2">{entry.commit.message}</span>
+          )}
+        </div>
+        <div className="flex shrink-0 items-center gap-1.5">
+          {articles.map((article) => (
+            <PublicPill key={article.slug} tone="neutral" size="sm">
+              {article.title}
+            </PublicPill>
+          ))}
+          {overflowCount > 0 && (
+            <PublicPill tone="neutral" size="sm">
+              +{overflowCount}
+            </PublicPill>
+          )}
+          {hasDiff && (
+            <ExpandButton
+              isExpanded={isDiffExpanded}
+              onToggle={() => setIsDiffExpanded(!isDiffExpanded)}
+              variant="faint"
+              ariaControls={diffId}
+              ariaLabel={isDiffExpanded ? "Hide change diff" : "Show change diff"}
+            />
+          )}
+        </div>
+      </div>
+      {hasDiff && isDiffExpanded && <ContributionDiff entry={entry} id={diffId} />}
+    </div>
+  );
+}
+
+type ContributionDayGroup = {
+  label: string;
+  entries: ChangeLogEntry[];
+};
+
+/** Groups already-sorted entries into contiguous same-day runs. */
+function groupContributionsByDay(entries: readonly ChangeLogEntry[]): ContributionDayGroup[] {
+  const groups: ContributionDayGroup[] = [];
+  for (const entry of entries) {
+    const label = dayFormat.format(new Date(entry.createdAt));
+    const current = groups[groups.length - 1];
+    if (current && current.label === label) {
+      current.entries.push(entry);
+    } else {
+      groups.push({ label, entries: [entry] });
+    }
+  }
+  return groups;
 }
 
 export function UserContributionsSection({
@@ -187,6 +242,11 @@ export function UserContributionsSection({
   if (history.length === 0) {
     return null;
   }
+
+  const visibleEntries = isContributionsExpanded
+    ? history
+    : history.slice(0, COLLAPSED_CONTRIBUTION_ROWS);
+  const dayGroups = groupContributionsByDay(visibleEntries);
 
   return (
     <section className="space-y-5">
@@ -202,19 +262,28 @@ export function UserContributionsSection({
       />
 
       <div id={contributionsSectionId} className="space-y-4">
-        {history
-          .slice(0, isContributionsExpanded ? undefined : 3)
-          .map((entry) => (
-            <ContributionEntryCard key={entry.id} entry={entry} />
-          ))}
-        {history.length > 3 && (
+        {dayGroups.map((group) => (
+          <div key={group.label} className="space-y-2">
+            <div className="theme-text-faint text-[10.5px] font-semibold uppercase tracking-[0.12em]">
+              {group.label}
+            </div>
+            <NestedContentCard radius="xl" padding="none" className="overflow-hidden">
+              <div className="divide-y divide-[var(--theme-border-subtle)]">
+                {group.entries.map((entry) => (
+                  <ContributionRow key={entry.id} entry={entry} />
+                ))}
+              </div>
+            </NestedContentCard>
+          </div>
+        ))}
+        {history.length > COLLAPSED_CONTRIBUTION_ROWS && (
           <ExpandButton
             isExpanded={isContributionsExpanded}
             onToggle={() =>
               setIsContributionsExpanded(!isContributionsExpanded)
             }
             variant="count"
-            count={history.length - 3}
+            count={history.length - COLLAPSED_CONTRIBUTION_ROWS}
             ariaControls={contributionsSectionId}
             ariaLabel={
               isContributionsExpanded

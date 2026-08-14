@@ -42,7 +42,6 @@ import {
   buildToleranceEntries,
 } from "./contentBuilderInteractions";
 import { buildArticleChemistryPresentation } from "./articleChemistryPresentation";
-import { resolveMoleculeAssetsForArticle } from "../mappings/moleculeAssets";
 export { slugifyDrugName } from "./contentBuilderShared";
 
 export interface SubstanceRecord {
@@ -356,12 +355,6 @@ export function buildSubstanceRecord(article: SubstanceArticleProjectionInput): 
   // Flatten subjective effects
   const { names: subjectiveEffects, slugs: subjectiveEffectSlugs } =
     flattenSubjectiveEffects(article.subjective_effects);
-  const moleculeAssetResolution = resolveMoleculeAssetsForArticle({
-    id,
-    title: article.title,
-    identification,
-  });
-  const moleculeAssets = moleculeAssetResolution.assets;
 
   const content: SubstanceContent = {
     name: baseName,
@@ -372,8 +365,6 @@ export function buildSubstanceRecord(article: SubstanceArticleProjectionInput): 
     aliases: displayAliases,
     nameVariants,
     moleculePlaceholder: buildPlaceholder(baseName),
-    moleculeAsset: moleculeAssets[0],
-    moleculeAssets,
     heroBadges: buildHeroBadges(categories, normalizedCategories),
     categoryKeys: normalizedCategories,
     dosageUnitsNote: note,

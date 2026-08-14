@@ -1,7 +1,6 @@
 import { type ReactNode } from "react";
 import { StickyTocLayout } from "@/components/common/StickyTocLayout";
 import { buildArticleChemistryPresentation } from "@/data/builders/articleChemistryPresentation";
-import { resolveMoleculeAssetsForArticle } from "@/data/mappings/moleculeAssets";
 import type { SubstanceArticle } from "@/schema";
 import type { MoleculeAsset, SubstanceContent } from "@/types/content";
 import type { TripReport } from "@/types/tripReport";
@@ -21,6 +20,7 @@ import { ContributorsSection, type ContributorAvatarMap } from "./sections/Contr
 import { resolveContributorHref, type ContributorDirectory } from "@server/contributorDirectory";
 import { FeedbackSection } from "./sections/FeedbackSection";
 import { TripReportsSection } from "./sections/TripReportsSection";
+import { ReviewStatusBanner } from "./sections/ReviewStatusBanner";
 import { TableOfContentsSection } from "./sections/TableOfContentsSection";
 
 export interface ArticleLayoutProps {
@@ -28,12 +28,14 @@ export interface ArticleLayoutProps {
   content?: SubstanceContent;
   /**
    * Convex-versioned depiction URL for hosts that resolve it themselves (the
-   * review workbench); takes precedence over `content` and the static catalog.
+   * review workbench); public routes bake it into `content.moleculeAssets`.
    */
   moleculeOverrideUrl?: string | null;
   fromSubstanceSlug?: string;
   relatedTripReports?: TripReport[];
   tripReportsSection?: ReactNode;
+  /** Streamed Replication Showcase, rendered inside the Subjective Effects visual group. */
+  replicationShowcaseSection?: ReactNode;
   contributorAvatars?: ContributorAvatarMap;
   contributorDirectory?: ContributorDirectory;
   externalReagentData?: NormalizedReagentData | null;
@@ -73,6 +75,7 @@ export function ArticleLayout({
   fromSubstanceSlug,
   relatedTripReports,
   tripReportsSection,
+  replicationShowcaseSection,
   contributorAvatars,
   contributorDirectory,
   externalReagentData,
@@ -91,27 +94,19 @@ export function ArticleLayout({
     : null;
 
   const chemistryPresentation = content?.chemistryPresentation ?? buildArticleChemistryPresentation(article);
-  const resolvedMoleculeAssets = content?.moleculeAssets ?? resolveMoleculeAssetsForArticle({
-    id: article.id,
-    title: article.title,
-    identification: article.identification,
-  }).assets;
-  // Mirrors applyMoleculeOverrideUrl in lib/next/publicRouteViewModels.tsx: the
-  // Convex depiction replaces the primary asset, synthesized when the static
-  // catalog has no entry for this article.
-  let moleculeAssets = resolvedMoleculeAssets;
-  if (moleculeOverrideUrl) {
-    const primary: MoleculeAsset = resolvedMoleculeAssets[0]
-      ? { ...resolvedMoleculeAssets[0], url: moleculeOverrideUrl }
-      : {
-          filename: `${article.id}.svg`,
-          url: moleculeOverrideUrl,
-          matchedField: "convex-molecule",
-          matchedValue: String(article.id),
-          resolution: "convex-canonical",
-        };
-    moleculeAssets = [primary, ...resolvedMoleculeAssets.slice(1)];
-  }
+  // Convex `moleculeOverrides` is the only depiction source: either this host
+  // resolved the override URL itself, or the public route already baked it into
+  // `content.moleculeAssets` (applyMoleculeOverrideUrl in publicRouteViewModels).
+  // No override means no hero molecule image.
+  const moleculeAssets: MoleculeAsset[] = moleculeOverrideUrl
+    ? [{
+        filename: `${article.id}.svg`,
+        url: moleculeOverrideUrl,
+        matchedField: "convex-molecule",
+        matchedValue: String(article.id),
+        resolution: "convex-canonical",
+      }]
+    : content?.moleculeAssets ?? [];
 
   return (
     <StickyTocLayout
@@ -137,6 +132,15 @@ export function ArticleLayout({
         externalReagentData={externalReagentData}
       />
 
+      {/* Compact status chip on articles awaiting editorial review; renders
+          nothing once the review ticks complete (path revalidation removes it
+          without a redeploy). */}
+      <ReviewStatusBanner
+        article={article}
+        avatarSrc={contributorAvatars?.lyrea}
+        profileHref={creditHrefs.lyrea}
+      />
+
       <HeroSection
         article={article}
         chemistryPresentation={chemistryPresentation}
@@ -152,6 +156,7 @@ export function ArticleLayout({
             <SubjectiveEffectsSection
               article={article}
               attributionHref={subjectiveEffectsAttributionHref}
+              replicationShowcaseSection={replicationShowcaseSection}
             />
             <DeferredSection>
               <ReagentSection

@@ -61,6 +61,10 @@ const ArticleFeedbackReviewTab = dynamic(
   () => import("../tools/article-feedback/ArticleFeedbackReviewTab").then((m) => m.ArticleFeedbackReviewTab),
   { ssr: false, loading },
 );
+const SiteFeedbackReviewTab = dynamic(
+  () => import("../tools/site-feedback/SiteFeedbackReviewTab").then((m) => m.SiteFeedbackReviewTab),
+  { ssr: false, loading },
+);
 const TripReportPortalTab = dynamic(
   () =>
     import("../tools/trip-report-portal/TripReportPortalTab").then((m) => m.TripReportPortalTab),
@@ -143,12 +147,14 @@ export function DevModePageView({ controller }: DevModePageViewProps) {
           <TripReportPortalTab />
         ) : controller.activeTab === "article-feedback" ? (
           <ArticleFeedbackReviewTab />
+        ) : controller.activeTab === "site-feedback" ? (
+          <SiteFeedbackReviewTab />
         ) : controller.activeTab === "tag-editor" ? (
           <TagEditorTab {...controller.tagEditorTabProps} />
         ) : controller.activeTab === "molecule-editor" ? (
           <MoleculeEditorTab initialSlug={controller.moleculeEditorInitialSlug} />
         ) : controller.activeTab === "replications" ? (
-          <ReplicationStudioTab />
+          <ReplicationStudioTab initialSubstanceSlug={controller.replicationsInitialSlug} />
         ) : controller.activeTab === "articles" ? (
           <SubstanceEditorTab
             renderCommitPanel={controller.renderCommitPanel}

@@ -1,6 +1,6 @@
 #!/usr/bin/env bun
 
-import { mkdirSync, writeFileSync } from "node:fs";
+import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import * as OCL from "openchemlib";
 import { ConvexHttpClient } from "convex/browser";
@@ -20,6 +20,41 @@ import { buildMoleculeSeedPlan } from "./moleculeSeedPlan";
 
 const DEFAULT_REPORT = "tmp/molecule-seed/report.json";
 const UPDATED_BY = "seed-convex-molecules";
+const GAP_FILL_COVERAGE_REPORT = "notes-and-plans/reports/smiles-coverage.json";
+
+/**
+ * slug → SMILES for articles without inline `identification.smiles`, from the
+ * tracked SMILES-coverage resolution (the same source the retired static
+ * pipeline drew from; plants/preparations resolve to their active molecule).
+ * Multi-component preparations use the principal (first) component, matching
+ * the retired renderer.
+ */
+function loadGapFillSmiles(repoRoot: string): Map<string, string> {
+  const gapFill = new Map<string, string>();
+  let entries: Array<{ slug?: unknown; smiles?: unknown }>;
+  try {
+    entries = JSON.parse(readFileSync(resolve(repoRoot, GAP_FILL_COVERAGE_REPORT), "utf8"));
+  } catch {
+    return gapFill;
+  }
+  for (const entry of entries) {
+    if (typeof entry?.slug !== "string") continue;
+    let smiles = "";
+    if (typeof entry.smiles === "string") {
+      smiles = entry.smiles;
+    } else if (entry.smiles && typeof entry.smiles === "object" && "components" in entry.smiles) {
+      const components: unknown = entry.smiles.components;
+      if (components && typeof components === "object") {
+        smiles =
+          Object.values(components).find(
+            (value): value is string => typeof value === "string" && value.trim() !== "",
+          ) ?? "";
+      }
+    }
+    if (smiles.trim()) gapFill.set(entry.slug, smiles.trim());
+  }
+  return gapFill;
+}
 
 function optionValue(argv: string[], name: string): string | null {
   const equals = argv.find((arg) => arg.startsWith(`${name}=`));
@@ -91,12 +126,14 @@ async function main() {
     articles,
     existingRows.map((row) => row.slug),
     limit,
+    loadGapFillSmiles(runContext.repoRoot),
   );
 
   const rendered: Array<{
     slug: string;
     title: string;
     smiles: string;
+    smilesSource: string;
     molblock: string;
     svg: string;
   }> = [];

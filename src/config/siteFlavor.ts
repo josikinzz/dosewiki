@@ -178,6 +178,14 @@ export type SiteAboutDocLink = {
   readonly description: string;
 };
 
+/** The About page's Contact & Feedback section: inbox + feedback form entry. */
+export type SiteAboutContact = {
+  /** Published inbox, rendered as visible text with a mailto link. */
+  readonly email: string;
+  /** Route of the general feedback form the section links to. */
+  readonly feedbackHref: string;
+};
+
 /**
  * About page content that names the publication or states its terms.
  *
@@ -208,6 +216,12 @@ export type SiteAboutConfig = {
   /** Heading for the final About tab's panel and its cards. */
   readonly docsTitle: string;
   readonly docLinks: readonly SiteAboutDocLink[];
+  /**
+   * Contact & Feedback section: the published inbox plus the entry to the general
+   * feedback form, or `null` to omit the section. Effect Index routes contact through
+   * its own /contact docs card and publishes no dose.wiki address.
+   */
+  readonly contact: SiteAboutContact | null;
 };
 
 export type SiteFlavorConfig = {
@@ -229,6 +243,10 @@ export type SiteFlavorConfig = {
   readonly logoPath: string;
   /** Open Graph / Twitter card image served from `public/`. */
   readonly socialCard: SiteSocialCard;
+  /** Browser-tab favicon served from `public/`, rendered as the root `<link rel="icon">`. */
+  readonly faviconPath: string;
+  /** iOS home-screen icon served from `public/`, rendered as `<link rel="apple-touch-icon">`. */
+  readonly appleTouchIconPath: string;
   /** Homepage title. */
   readonly homeTitle: string;
   /** About page title, used for both the metadata title and the page heading. */
@@ -305,6 +323,8 @@ const DOSEWIKI_CONFIG: SiteFlavorConfig = {
   description: "An open encyclopedic database for the study of psychopharmacology",
   logoPath: "/icon-512.png",
   socialCard: { path: "/icon-512.png", width: 512, height: 512 },
+  faviconPath: "/favicon.svg",
+  appleTouchIconPath: "/apple-touch-icon.png",
   homeTitle: "dose.wiki",
   aboutTitle: "About dose.wiki",
   about: {
@@ -343,6 +363,10 @@ const DOSEWIKI_CONFIG: SiteFlavorConfig = {
         description: "What you can do with our content, dataset, code, and the parts we don't own.",
       },
     ],
+    contact: {
+      email: "contact@dose.wiki",
+      feedbackHref: "/about/feedback",
+    },
   },
   articleFallbackDescription: "Browse Effect Index articles in dose.wiki.",
   footer: {
@@ -373,9 +397,9 @@ const DOSEWIKI_CONFIG: SiteFlavorConfig = {
     description: "dose.wiki is preparing its public harm-reduction library.",
     body: "The public site is under construction while the harm-reduction library is being reviewed.",
   },
-  primaryNavIds: ["substances", "effects", "reports"],
+  primaryNavIds: ["substances", "effects", "reports", "replications"],
   secondaryNavIds: ["about"],
-  quickLinkIds: ["substances", "effects", "reports", "about"],
+  quickLinkIds: ["substances", "effects", "reports", "replications", "about"],
   // dose.wiki's header is flat: every top-level item is a plain link to its section.
   navMenus: {},
   showThemeToggle: true,
@@ -455,6 +479,10 @@ const EFFECT_INDEX_CONFIG: SiteFlavorConfig = {
   description: EFFECT_INDEX_DESCRIPTION,
   logoPath: "/effectindex/icon.png",
   socialCard: { path: "/effectindex/social-card.png", width: 600, height: 315 },
+  // A 32px derivative of the eye icon, pre-scaled so the tab icon stays crisp; the
+  // full 512px PNG remains the home-screen icon, where the extra detail matters.
+  faviconPath: "/effectindex/favicon.png",
+  appleTouchIconPath: "/effectindex/icon.png",
   homeTitle: "Effect Index",
   aboutTitle: "About Effect Index",
   about: {
@@ -504,6 +532,8 @@ const EFFECT_INDEX_CONFIG: SiteFlavorConfig = {
           "Patreon, merchandise, PayPal and Ethereum — what the funds pay for, and how to give.",
       },
     ],
+    // Effect Index's contact instructions live on its own /contact page, carded above.
+    contact: null,
   },
   articleFallbackDescription: "Browse the Effect Index article archive.",
   footer: {

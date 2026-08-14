@@ -95,6 +95,38 @@ describe("buildSearchManifestIndex", () => {
     }
   });
 
+  it("matches compact queries from load-time derivation, not manifest payload", () => {
+    const { index, manifest } = buildBoth(
+      createInput({
+        substances: [
+          substance("AL-LAD", "al-lad"),
+          substance("1cP-AL-LAD", "1cp-al-lad"),
+          substance("2C-B", "2c-b"),
+          substance("ETH-LAD", "eth-lad"),
+          substance("Hydromorphone", "hydromorphone", { aliases: ["Palladone"] }),
+        ],
+      }),
+    );
+
+    // The serialized payload stays free of the derived compact forms.
+    const payload = createSearchManifest(index);
+    expect(JSON.stringify(payload)).not.toContain("1cpallad");
+
+    expect(manifest.query("allad").map((match) => match.label)).toEqual([
+      "AL-LAD",
+      "Hydromorphone",
+    ]);
+    expect(manifest.query("1cpallad")[0]?.label).toBe("1cP-AL-LAD");
+    expect(manifest.query("2cb")[0]?.label).toBe("2C-B");
+    expect(manifest.query("ethlad")[0]?.label).toBe("ETH-LAD");
+
+    for (const query of ["allad", "1cpallad", "2cb", "ethlad"]) {
+      const serverIds = index.query(query, { limit: 10 }).map((match) => match.id);
+      const localIds = manifest.query(query, { limit: 10 }).map((match) => match.id);
+      expect(localIds, `query: ${query}`).toEqual(serverIds);
+    }
+  });
+
   it("matches across accents in either direction", () => {
     const { manifest } = buildBoth(
       createInput({ substances: [substance("Peyoté", "peyote", { aliases: ["Híkuri"] })] }),

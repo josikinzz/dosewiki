@@ -10,6 +10,7 @@ import {
   SubstanceTripReportsSection,
   SubstanceTripReportsSectionFallback,
 } from "../../src/app/_components/public-routes/SubstanceTripReportsSection";
+import { SubstanceReplicationShowcaseSection } from "../../src/app/_components/public-routes/SubstanceReplicationShowcaseSection";
 import { buildSubstanceRecord } from "../../src/data/builders/contentBuilder";
 import { SITE_FLAVOR_CONFIG } from "../../src/config/siteFlavor";
 import type { ContributorDirectory } from "../contributorDirectory";
@@ -122,6 +123,7 @@ export interface SubstanceArticleViewModel {
     content?: SubstanceContent;
     fromSubstanceSlug: string;
     tripReportsSection: ReactNode;
+    replicationShowcaseSection: ReactNode;
     contributorAvatars?: ContributorAvatarMap;
     contributorDirectory: ContributorDirectory;
     externalReagentData?: NormalizedReagentData | null;
@@ -173,9 +175,8 @@ export function buildEffectsIndexViewModel(input: {
 }
 
 /**
- * Point the primary molecule image at the canonical Convex depiction. A
- * synthetic primary is created when no legacy static mapping exists, so Convex
- * ownership does not depend on the fallback asset catalog.
+ * Attach the canonical Convex depiction as the article's only molecule asset.
+ * No override row means no depiction: the content builder emits none.
  */
 function applyMoleculeOverrideUrl(
   content: SubstanceContent | undefined,
@@ -185,20 +186,17 @@ function applyMoleculeOverrideUrl(
   if (!content || !overrideUrl) {
     return content;
   }
-  const assets = content.moleculeAssets;
-  const primary: MoleculeAsset = assets?.[0]
-    ? { ...assets[0], url: overrideUrl }
-    : {
-        filename: `${slug}.svg`,
-        url: overrideUrl,
-        matchedField: "convex-molecule",
-        matchedValue: slug,
-        resolution: "convex-canonical",
-      };
+  const primary: MoleculeAsset = {
+    filename: `${slug}.svg`,
+    url: overrideUrl,
+    matchedField: "convex-molecule",
+    matchedValue: slug,
+    resolution: "convex-canonical",
+  };
   return {
     ...content,
     moleculeAsset: primary,
-    moleculeAssets: [primary, ...(assets?.slice(1) ?? [])],
+    moleculeAssets: [primary],
   };
 }
 
@@ -206,6 +204,7 @@ export function buildSubstanceArticleViewModel(input: {
   slug: string;
   substance: PublicSubstanceRecord;
   tripReportsSection?: ReactNode;
+  replicationShowcaseSection?: ReactNode;
   contributorAvatars?: ContributorAvatarMap;
   contributorDirectory?: ContributorDirectory;
   moleculeOverrideUrl?: string | null;
@@ -232,6 +231,13 @@ export function buildSubstanceArticleViewModel(input: {
         (
           <Suspense fallback={<SubstanceTripReportsSectionFallback />}>
             <SubstanceTripReportsSection article={publicArticle} slug={input.slug} />
+          </Suspense>
+        ),
+      replicationShowcaseSection:
+        input.replicationShowcaseSection ??
+        (
+          <Suspense fallback={null}>
+            <SubstanceReplicationShowcaseSection article={publicArticle} slug={input.slug} />
           </Suspense>
         ),
       contributorAvatars: input.contributorAvatars,

@@ -40,7 +40,7 @@
  *   target, so its posts are not a live attribution source at all.
  * - The dev changelog (`submittedBy`) — those are editor edit records for substance articles,
  *   not pages a reader can open. The contributor profile page already surfaces them as
- *   history via `buildProfileHistory`.
+ *   history via `getPublicProfileHistory`.
  *
  * Name resolution goes through the existing alias-aware matchers so `mark gillis` resolves to
  * `VISCID`, `josikinz` and `Josie` to `JOSIE`, and `Kaylee` to `KAYTWO`. This module adds no

@@ -52,6 +52,23 @@ export const OCL_COLOR_TO_BRAND: Record<string, string> = {
   "rgb(148,0,148)": "#e879f9", //    I  fuchsia-400
 };
 
+/**
+ * The same OCL CPK keys mapped to the RDKit standard textbook palette (black
+ * skeleton, blue N, red O — the `--palette standard` block in
+ * moleculePalette.ts). Used by the download-pack builder's standard colourway.
+ */
+export const OCL_COLOR_TO_STANDARD: Record<string, string> = {
+  "rgb(0,0,0)": "#000000", //        C / bonds / custom labels
+  "rgb(48,80,248)": "#0000ff", //    N
+  "rgb(255,13,13)": "#ff0000", //    O
+  "rgb(144,224,80)": "#33cccc", //   F
+  "rgb(255,128,0)": "#ff7f00", //    P
+  "rgb(205,205,38)": "#cccc00", //   S
+  "rgb(31,240,31)": "#00cc00", //    Cl
+  "rgb(166,41,41)": "#7f4c19", //    Br
+  "rgb(148,0,148)": "#a01eef", //    I
+};
+
 export const BOND_LENGTH = 28;
 export const FLOOR_MULT = 2.0;
 /** viewBox floor so 2–3 atom molecules don't over-zoom (render_molecules.py floor). */
@@ -136,14 +153,18 @@ export function stripEventLayer(svg: string): string {
 const RGB_RE = /rgb\(\d+,\d+,\d+\)/g;
 
 /**
- * Map OCL's CPK colors to the brand palette. Colors outside the map (exotic
- * elements) fall back to the carbon color, mirroring the old renderer's
- * default palette entry. Class-mode R-group labels — matched by their exact
- * injected text — are recolored to the R-label violet regardless of the
- * element they sit on.
+ * Map OCL's CPK colors to a display palette (brand by default). Colors outside
+ * the map (exotic elements) fall back to the map's carbon/bond entry
+ * (`rgb(0,0,0)`), mirroring the old renderer's default palette entry.
+ * Class-mode R-group labels — matched by their exact injected text — are
+ * recolored to the R-label violet regardless of the element they sit on.
  */
-export function applyBrandColors(svg: string, rGroupLabels?: string[]): string {
-  let out = svg.replace(RGB_RE, (color) => OCL_COLOR_TO_BRAND[color] ?? CARBON_COLOR);
+export function applyBrandColors(
+  svg: string,
+  rGroupLabels?: string[],
+  colorMap: Record<string, string> = OCL_COLOR_TO_BRAND,
+): string {
+  let out = svg.replace(RGB_RE, (color) => colorMap[color] ?? colorMap["rgb(0,0,0)"]);
   if (rGroupLabels && rGroupLabels.length > 0) {
     const labels = new Set(rGroupLabels);
     out = out.replace(
@@ -404,8 +425,8 @@ export function svgIdFor(
 }
 
 /**
- * Render a brand-styled skeletal SVG from an explicit MOL block. Returns null
- * when the MOL block can't be parsed into a non-empty molecule.
+ * Render a skeletal SVG from an explicit MOL block, brand-styled by default.
+ * Returns null when the MOL block can't be parsed into a non-empty molecule.
  */
 export function renderMoleculeSvg(
   ocl: OclModuleLike,
@@ -414,6 +435,8 @@ export function renderMoleculeSvg(
   atomLabels?: Record<number, string>,
   /** Bond indices to draw with the bold (thicker) line weight. */
   boldBonds?: readonly number[],
+  /** OCL `rgb(...)` -> display hex; defaults to the brand palette. */
+  colorMap: Record<string, string> = OCL_COLOR_TO_BRAND,
 ): string | null {
   let mol: OclMoleculeLike;
   try {
@@ -446,6 +469,6 @@ export function renderMoleculeSvg(
   out = stripEventLayer(out);
   out = thinWedgeOutlines(out);
   out = rebaseStrokeWidths(out);
-  out = applyBrandColors(out, labels);
+  out = applyBrandColors(out, labels, colorMap);
   return floorViewBox(out);
 }

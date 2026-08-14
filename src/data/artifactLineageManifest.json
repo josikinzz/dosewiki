@@ -266,8 +266,7 @@
       "producer": "scripts/data/mergeGeneratedSmiles.mjs",
       "consumers": [
         "scripts/data/resolveSmilesCoverage.mjs",
-        "scripts/data/generateMoleculeSvgs.mjs",
-        "scripts/data/buildMoleculeMappings.mjs"
+        "scripts/data/buildMoleculePack.ts"
       ],
       "inputs": [
         "notes-and-plans/reports/smiles-gap-fills/batch-*-output.json",

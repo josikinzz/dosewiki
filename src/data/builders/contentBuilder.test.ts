@@ -1,19 +1,7 @@
 import { describe, it, expect } from 'vitest';
-import { setMoleculeSvgMappings } from '@/test/adapters';
-import { MOLECULE_ASSET_PUBLIC_PATH } from '@/data/mappings/moleculeAssets';
 import { buildSubstanceRecord } from './contentBuilder';
 import { minimalArticle, fullArticleWithDosage, hiddenArticle } from '@/test/fixtures/articles';
 import { createEmptyArticle } from '@/data/schema/defaults.generated';
-
-setMoleculeSvgMappings([
-  {
-    filename: 'LSD.svg',
-    articleId: 42,
-    articleTitle: 'LSD',
-    matchedField: 'title',
-    matchedValue: 'LSD',
-  },
-]);
 
 describe('buildSubstanceRecord', () => {
   describe('basic transformation', () => {
@@ -128,17 +116,11 @@ describe('buildSubstanceRecord', () => {
       );
     });
 
-    it('populates resolved molecule assets from article identity', () => {
+    it('emits no molecule assets — depictions come only from Convex overrides', () => {
       const result = buildSubstanceRecord(fullArticleWithDosage);
 
-      expect(result?.content.moleculeAsset).toEqual({
-        filename: 'LSD.svg',
-        // Flavored: dose.wiki serves `/molecules/`, Effect Index its own colourway.
-        url: `${MOLECULE_ASSET_PUBLIC_PATH}LSD.svg`,
-        matchedField: 'title',
-        matchedValue: 'LSD',
-      });
-      expect(result?.content.moleculeAssets).toEqual([result?.content.moleculeAsset]);
+      expect(result?.content.moleculeAsset).toBeUndefined();
+      expect(result?.content.moleculeAssets).toBeUndefined();
     });
 
     it('extracts aliases from alternative_names', () => {

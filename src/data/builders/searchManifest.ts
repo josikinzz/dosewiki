@@ -16,6 +16,7 @@
 import type { IconName } from "@/components/common/Icon";
 import type { SearchIndex, SearchSuggestion } from "./search";
 import {
+  buildCompactMatchFields,
   foldSearchText,
   runSearch,
   KEYWORD_SEPARATOR,
@@ -103,7 +104,10 @@ export function createSearchManifest(index: SearchIndex): SearchManifest {
       if (entry.icon) manifestEntry.icon = entry.icon;
       if (typeof entry.count === "number") manifestEntry.count = entry.count;
 
-      const aliases = omitEmpty(entry.aliases);
+      // Profile aliases never ship: the index no longer carries them, and this
+      // guard keeps internal reviewer handles out of the cached client payload
+      // even if an alias-bearing profile entry ever reappears upstream.
+      const aliases = entry.type === "profile" ? undefined : omitEmpty(entry.aliases);
       if (aliases) manifestEntry.aliases = aliases;
 
       const substanceKeys = omitEmpty(entry.reportSubstanceKeys);
@@ -145,6 +149,7 @@ export function buildSearchManifestIndex(manifest: SearchManifest): SearchManife
       aliases: entry.aliases,
       labelFolded,
       aliasFolded,
+      ...buildCompactMatchFields(entry.label, entry.aliases),
       reportSubstanceKeys: entry.substanceKeys,
       reportSubstanceAliasFolded,
       identityBlob: [

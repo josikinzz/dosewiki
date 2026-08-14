@@ -3,7 +3,6 @@ import "server-only";
 import { cache } from "react";
 
 import chemicalIndexManual from "../../src/data/indexes/chemicalIndexManual.json";
-import moleculeSvgMappings from "../../src/data/mappings/moleculeSvgMappings.json";
 import { MOLECULE_COLORWAY_BASE_PATH } from "../../src/data/mappings/moleculePalette";
 import { buildChemicalClassTree } from "../../src/data/builders/chemicalClassTree";
 import { getCategoryIcon } from "../../src/data/config/categoryIcons";
@@ -54,21 +53,6 @@ interface ChemicalClassComputation {
 const MANUAL_CLASSES = chemicalIndexManual.classes as ManualChemicalClass[];
 const MANUAL_CLASS_BY_KEY = new Map(MANUAL_CLASSES.map((cls) => [cls.key, cls]));
 const CHEMICAL_CLASS_TREE = buildChemicalClassTree(MANUAL_CLASSES);
-
-/** Slugs that have a rendered molecule SVG (`<colourway>/<slug>.svg`). */
-const AVAILABLE_MOLECULE_SLUGS = new Set(
-  (moleculeSvgMappings.mappings as { filename: string }[]).map((m) =>
-    m.filename.replace(/\.svg$/i, ""),
-  ),
-);
-
-const toMolecule = (slug: string, name: string, updatedAt?: string) => ({
-  slug,
-  name,
-  url: updatedAt
-    ? moleculeOverrideImageUrl(slug, updatedAt)
-    : `${MOLECULE_COLORWAY_BASE_PATH}${slug}.svg`,
-});
 
 /**
  * Psychoactive labels that are umbrellas (they co-occur with the more specific
@@ -185,16 +169,19 @@ function buildPanels(records: SubstanceRecord[]): DosageCategoryGroup[] {
 }
 
 function buildMolecules(records: SubstanceRecord[], moleculeOverrides: Map<string, string>) {
-  // Every class member that has a rendered SVG; the structure panels join
-  // these to substance rows by slug, so no sampling or ordering matters here.
-  return records
-    .filter(
-      (record) =>
-        moleculeOverrides.has(record.slug) || AVAILABLE_MOLECULE_SLUGS.has(record.slug),
-    )
-    .map((record) =>
-      toMolecule(record.slug, record.name, moleculeOverrides.get(record.slug)),
-    );
+  // Every class member with a published Convex depiction; the structure panels
+  // join these to substance rows by slug, so no sampling or ordering matters here.
+  const molecules: Array<{ slug: string; name: string; url: string }> = [];
+  for (const record of records) {
+    const updatedAt = moleculeOverrides.get(record.slug);
+    if (!updatedAt) continue;
+    molecules.push({
+      slug: record.slug,
+      name: record.name,
+      url: moleculeOverrideImageUrl(record.slug, updatedAt),
+    });
+  }
+  return molecules;
 }
 
 function buildEntry(

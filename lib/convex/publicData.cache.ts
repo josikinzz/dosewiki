@@ -10,6 +10,7 @@ export const PUBLIC_CONVEX_CACHE_TAGS = {
   replications: "convex-public:replications",
   reports: "convex-public:reports",
   contributors: "convex-public:contributors",
+  changelog: "convex-public:changelog",
   about: "convex-public:about",
   layouts: "convex-public:layouts",
   copy: "convex-public:copy",

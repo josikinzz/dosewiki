@@ -844,6 +844,31 @@ fails, in dry-run too, if one reaches a planned profile.
 Correcting a display name here does not correct `replications.artist`. Run
 `scripts/replications/plan-artist-name-corrections.mjs` for that half.
 
+#### Loka attribution repair (DW-12)
+
+```bash
+# Dry run against whichever deployment CONVEX_PUBLIC_READ_URL points at
+node scripts/contributors/repair-loka-attribution.mjs
+
+# Dry run against production (read-only)
+TARGET_CONVEX_URL=https://glad-minnow-656.convex.cloud \
+  node scripts/contributors/repair-loka-attribution.mjs
+
+# Apply to production
+TARGET_CONVEX_URL=https://glad-minnow-656.convex.cloud \
+  node scripts/contributors/repair-loka-attribution.mjs --write \
+  --confirm-write=repair-loka-attribution \
+  --expected-deployment=glad-minnow-656
+```
+
+One-artist repair, idempotent, backed by the owner's 2026-08-14 confirmation
+that Loka = LokaVision (recorded in the corrections file above): puts
+`https://lokavision.com/` on the LOKA profile's links and on every replication
+credited to her, and normalizes residual `rightsholder: "Wheressuede"` strings
+to "Loka". Rows write through `applyProvenanceCorrection`, so each patch is
+preconditioned on the full current credit snapshot; the profile write merges
+against the raw stored row and refuses a link list it did not plan.
+
 #### Avatars cut from a contributor's own work
 
 ```bash
@@ -914,6 +939,26 @@ change under a name correction — those are reported in full, together with the
 alias whose target moves out from under it. The alias map resolves one hop only,
 so a stale entry sends an already-shared legacy URL to a 404. Run
 `normalize-slugs.mjs` for the rename itself, after the names have landed.
+
+#### Applying the committed slug-alias plan
+
+```bash
+node scripts/replications/apply-slug-aliases.mjs
+node scripts/replications/apply-slug-aliases.mjs \
+  --write --target-url=https://glad-minnow-656.convex.cloud \
+  --confirm-write=apply-replication-slug-aliases \
+  --expected-deployment=glad-minnow-656
+```
+
+`normalize-slugs.mjs` writes `replicationSlugAliases.json` even on a dry run, so
+the alias map can get ahead of the data: an entry whose rename never landed
+turns a live permalink into a hard 404 (middleware 308s the old slug to a target
+that does not exist). This script closes that gap. It renames every row whose
+slug is still an alias *source* to the alias's final target (multi-hop chains
+resolve to their end), through `replications.renameSlug`, so effect
+`gallery_order` arrays move with the slug. Rows sharing a duplicated slug are
+skipped and reported — merge the twins first. Idempotent: a settled alias is a
+no-op.
 
 #### Article-embedded media migration
 
@@ -1246,6 +1291,29 @@ npm run convex:sync-production -- \
   --confirm-write=sync-convex-data-to-production \
   --expected-deployment=glad-minnow-656
 ```
+
+### Molecule Override Replication
+
+```bash
+export SOURCE_CONVEX_URL="https://glad-minnow-656.convex.cloud"
+export TARGET_CONVEX_URL="https://<mirror-deployment>.convex.cloud"
+npm run molecules:copy-overrides                 # dry run: prints the copy plan
+npm run molecules:copy-overrides -- \
+  --write \
+  --confirm-molecule-copy \
+  --confirm-write=copy-molecule-overrides-between-deployments \
+  --expected-deployment=<mirror-deployment>
+```
+
+`copy-molecule-overrides.mjs` mirrors the canonical `moleculeOverrides` table
+between deployments (prod → dev mirror) through
+`moleculeOverrides.replicate`, preserving each row's `source`, `updatedAt`,
+and `updatedBy` verbatim. The dry-run default uses only public queries and
+plans creates (slug missing on target) and updates (`updatedAt` differs, or
+`svg` differs when timestamps match). Writes require the `editorArticleWrite`
+intent token plus the standard explicit confirmations. Target rows absent on
+the source are reported; add `--delete-extra` to remove them. A run report is
+written to `tmp/molecule-copy/report.json`.
 
 ### Analysis
 

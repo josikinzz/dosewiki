@@ -37,6 +37,9 @@ const profile: EditorContributorProfile = {
   storedAvatarUrl: null,
   replicationOrder: [],
   reportOrder: [],
+  exclude_from_gallery: false,
+  archival: false,
+  staffNote: null,
   updatedAt: null,
   updatedBy: null,
 };
@@ -232,6 +235,10 @@ describe("the profile form", () => {
         { label: "Site", url: "https://example.com" },
         { label: "", url: "https://dropped.example" },
       ],
+      exclude_from_gallery: false,
+      archival: false,
+      staffNoteMarkdown: "   ",
+      staffNoteAttribution: "Someone",
     });
 
     expect(patch).toEqual({
@@ -242,6 +249,51 @@ describe("the profile form", () => {
       avatarUrl: null,
       aliases: ["gremblin"],
       links: [{ label: "Site", url: "https://example.com" }],
+      exclude_from_gallery: false,
+      archival: false,
+      // A blank note clears the field even when an attribution was left behind.
+      staffNote: null,
+    });
+  });
+
+  it("round-trips the gallery exclusion flag and notices it toggling", () => {
+    const excluded: EditorContributorProfile = { ...profile, exclude_from_gallery: true };
+    expect(toContributorForm(excluded).exclude_from_gallery).toBe(true);
+    expect(isContributorFormDirty(excluded, toContributorForm(excluded), false)).toBe(false);
+
+    const toggled = { ...toContributorForm(profile), exclude_from_gallery: true };
+    expect(isContributorFormDirty(profile, toggled, false)).toBe(true);
+    expect(buildContributorPatch(toggled).exclude_from_gallery).toBe(true);
+  });
+
+  it("round-trips the archival flag and notices it toggling", () => {
+    const archived: EditorContributorProfile = { ...profile, archival: true };
+    expect(toContributorForm(archived).archival).toBe(true);
+    expect(isContributorFormDirty(archived, toContributorForm(archived), false)).toBe(false);
+
+    const toggled = { ...toContributorForm(profile), archival: true };
+    expect(isContributorFormDirty(profile, toggled, false)).toBe(true);
+    expect(buildContributorPatch(toggled).archival).toBe(true);
+  });
+
+  it("round-trips the staff note and only sends an attribution beside a kept note", () => {
+    const noted: EditorContributorProfile = {
+      ...profile,
+      staffNote: { markdown: "A **signed** note.", attribution: "Josie Kins · founder" },
+    };
+    const form = toContributorForm(noted);
+    expect(form.staffNoteMarkdown).toBe("A **signed** note.");
+    expect(form.staffNoteAttribution).toBe("Josie Kins · founder");
+    expect(isContributorFormDirty(noted, form, false)).toBe(false);
+
+    expect(buildContributorPatch(form).staffNote).toEqual({
+      markdown: "A **signed** note.",
+      attribution: "Josie Kins · founder",
+    });
+
+    const unattributed = { ...form, staffNoteAttribution: "   " };
+    expect(buildContributorPatch(unattributed).staffNote).toEqual({
+      markdown: "A **signed** note.",
     });
   });
 

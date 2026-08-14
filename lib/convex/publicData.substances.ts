@@ -5,6 +5,7 @@ import { cache } from "react";
 import { PUBLIC_CONVEX_CACHE_REVALIDATE_SECONDS, PUBLIC_CONVEX_CACHE_TAGS } from "./publicData.cache";
 import { getPublicDataReadAdapter, type PublicFullSubstanceDocument } from "./publicData.reads";
 import type { PublicSubstanceArticleRecord } from "./publicData.substanceContract";
+import type { ContributorReviewedArticle } from "../../src/types/reviewedArticles";
 import {
   type PublicCategoryLayout,
   type PublicMechanismRouteInput,
@@ -73,6 +74,26 @@ export const getPublicSubstances = cache(unstable_cache(async (): Promise<Public
 export const getFeaturedSubstances = cache(async (limit = 8) => {
   return (await getPublicSubstances()).slice(0, limit);
 });
+
+/**
+ * Every substance article one contributor expert-reviewed, alphabetically.
+ * Keyed by profile key only: the reviewer-email matching (membershipEmail plus
+ * legacy alias handles) happens inside the Convex deployment, so no reviewer
+ * email ever reaches this process, let alone the client payload.
+ */
+export const getReviewedArticlesByContributor = cache(unstable_cache(async (
+  profileKey: string,
+): Promise<ContributorReviewedArticle[]> => {
+  const reviewed = await getPublicDataReadAdapter().getPublicReviewedArticlesByContributor(profileKey);
+  return [...reviewed].sort((left, right) => left.title.localeCompare(right.title));
+}, ["convex-public-reviewed-articles-by-contributor"], {
+  revalidate: PUBLIC_CONVEX_CACHE_REVALIDATE_SECONDS,
+  tags: [
+    PUBLIC_CONVEX_CACHE_TAGS.all,
+    PUBLIC_CONVEX_CACHE_TAGS.substances,
+    PUBLIC_CONVEX_CACHE_TAGS.contributors,
+  ],
+}));
 
 export const getPublicSubstanceBySlug = cache(unstable_cache(async (slug: string): Promise<PublicSubstanceRecord | null> => {
   return await getPublicDataReadAdapter().getPublicSubstanceBySlug(slug);

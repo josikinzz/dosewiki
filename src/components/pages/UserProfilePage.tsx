@@ -5,6 +5,8 @@ import {
   PublicContentShell,
   PublicSectionHeading,
 } from "@/components/layout/PublicPagePrimitives";
+import { PublicAttributionSection } from "@/components/layout/PublicContentPrimitives";
+import { PublicPill } from "@/components/common/PublicTokens";
 import { StateCard } from "@/components/common/StateCard";
 import { ContributorWorksCarousel } from "@/features/effects/gallery/ContributorWorksCarousel";
 import { icons } from "@/utils/iconNames";
@@ -13,12 +15,26 @@ import type { ChangeLogEntry } from "@/data/changelog/changeLog";
 import type { ContributorEffectCredit } from "@/types/effectCredits";
 import type { GalleryReplication } from "@/types/replications";
 import type { ReportCardModel } from "@/types/tripReport";
+import type { ContributorReviewedArticle } from "@/types/reviewedArticles";
 import { UserProfileEffectCreditsSection } from "./UserProfileEffectCreditsSection";
+import { UserProfileReviewedArticlesSection } from "./UserProfileReviewedArticlesSection";
 import {
   UserContributionsSection,
   UserTripReportsSection,
 } from "./UserProfileExpandableSections";
 
+
+/** Signed staff commentary ("Editor's note") rendered under the bio. */
+export interface UserProfileEditorNote {
+  /** The note's markdown, already rendered. */
+  content: ReactNode;
+  /** Signature line beside the avatar, e.g. "Josie Kins · founder". */
+  attribution: string;
+  /** The signer's (Josie's) avatar; null falls back to no image. */
+  avatarUrl: string | null;
+  /** The signer's public profile, when one exists. */
+  avatarHref: string | null;
+}
 interface UserProfilePageProps {
   profile: NormalizedUserProfile;
   history: ChangeLogEntry[];
@@ -27,8 +43,12 @@ interface UserProfilePageProps {
   replications?: readonly GalleryReplication[];
   /** Effect articles crediting this contributor, already ordered. */
   effectArticles?: readonly ContributorEffectCredit[];
+  /** Substance articles this contributor expert-reviewed, already ordered. */
+  reviewedArticles?: readonly ContributorReviewedArticle[];
   reportHrefPrefix?: string;
   bioContent?: ReactNode;
+  /** Staff "Editor's note" under the bio. Absent renders nothing. */
+  editorNote?: UserProfileEditorNote | null;
 }
 
 export function UserProfilePage({
@@ -37,16 +57,25 @@ export function UserProfilePage({
   tripReports = [],
   replications = [],
   effectArticles = [],
+  reviewedArticles = [],
   reportHrefPrefix,
   bioContent,
+  editorNote = null,
 }: UserProfilePageProps) {
   const hasLinks = profile.links.length > 0;
   const hasBio = profile.hasCustomBio;
   const hasTripReports = tripReports.length > 0;
   const hasReplications = replications.length > 0;
   const hasEffectArticles = effectArticles.length > 0;
+  const hasReviewedArticles = reviewedArticles.length > 0;
   const hasProfileSections =
-    hasBio || hasReplications || hasEffectArticles || hasTripReports || history.length > 0;
+    hasBio ||
+    editorNote !== null ||
+    hasReplications ||
+    hasEffectArticles ||
+    hasReviewedArticles ||
+    hasTripReports ||
+    history.length > 0;
   const profileHandle = `@${profile.key.toLowerCase()}`;
   // Legacy Effect Index contributor title. It shares the muted handle line
   // rather than getting its own badge, so an absent role leaves the header
@@ -82,6 +111,26 @@ export function UserProfilePage({
             </p>
           </div>
 
+          {profile.archival === true ? (
+            <PublicPill
+              tone="accent"
+              icon="lucide:archive"
+              data-testid="archival-notice"
+              className="max-w-full flex-wrap justify-center gap-x-1.5 rounded-2xl px-4 py-2 text-left"
+            >
+              {/* A sentence, not a chip label. The pill's chip typography
+                  (uppercase, wide tracking, tiny size) is declared after the
+                  utility layer, so it is undone per-span — children only
+                  inherit it, and their own declarations always win. */}
+              <span className="text-[0.8125rem] font-semibold normal-case tracking-normal">
+                Archival profile
+              </span>
+              <span className="theme-text-secondary text-[0.8125rem] font-normal normal-case tracking-normal">
+                — maintained by staff, not created by this person.
+              </span>
+            </PublicPill>
+          ) : null}
+
           {hasLinks && (
             <nav
               aria-label={`${profile.displayName} profile links`}
@@ -114,6 +163,41 @@ export function UserProfilePage({
             </section>
           ) : null}
 
+          {/* Signed staff commentary. The speech bubble reuses the profile
+              quote chrome (the "a person said this" surface), with a tail
+              notching the bottom border toward the signature chip — the same
+              construction as the subjective-effect personal-commentary
+              bubble, minus the collapse (a staff note is short by design). */}
+          {editorNote ? (
+            <section className="space-y-5" data-testid="editor-note">
+              <PublicSectionHeading icon="lucide:message-circle" title="Editor's note" />
+
+              <div className="max-w-[72ch] px-1 sm:px-4">
+                <div className="theme-profile-markdown-quote relative rounded-2xl px-5 py-4 italic sm:px-6">
+                  {editorNote.content}
+                  {/* Tail: a rotated square sharing the bubble fill and border.
+                      Its opaque top half covers the bubble's bottom border so
+                      bubble and tail read as one shape. */}
+                  <span
+                    aria-hidden
+                    className="absolute -bottom-[7px] right-24 h-3.5 w-3.5 rotate-45 rounded-br-[2px] border-b border-r border-[var(--theme-profile-markdown-quote-border)] bg-[color:var(--theme-profile-markdown-quote-bg)]"
+                  />
+                </div>
+
+                <PublicAttributionSection
+                  className="mt-4 pr-4"
+                  avatarSrc={editorNote.avatarUrl}
+                  avatarAlt={editorNote.attribution}
+                  avatarHref={editorNote.avatarHref ?? undefined}
+                >
+                  <span className="theme-accent-heading font-semibold">
+                    {editorNote.attribution}
+                  </span>
+                </PublicAttributionSection>
+              </div>
+            </section>
+          ) : null}
+
           {/* An artist's works come before their writing: for a replication
               artist the pictures are the profile, and the carousel is the only
               place they are gathered as one body of work. */}
@@ -133,6 +217,17 @@ export function UserProfilePage({
           {hasEffectArticles ? (
             <UserProfileEffectCreditsSection
               credits={effectArticles}
+              contributorName={profile.displayName}
+            />
+          ) : null}
+
+          {/* Reviewed articles follow the credits for the same reason the
+              credits follow the works: they are curation of the archive rather
+              than the contributor's own accounts, and the second tag run keeps
+              the dense, scannable middle of the page together. */}
+          {hasReviewedArticles ? (
+            <UserProfileReviewedArticlesSection
+              reviewedArticles={reviewedArticles}
               contributorName={profile.displayName}
             />
           ) : null}

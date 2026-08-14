@@ -9,24 +9,25 @@
  * every recolour in this project is a literal hex substitution.
  *
  * Two publications, two colourways:
- *   * dose.wiki ships the fuchsia brand palette baked in at generation time by
- *     `scripts/chemistry/render_molecules.py`. It is served from `public/molecules/`.
+ *   * dose.wiki ships the fuchsia brand palette. Substance depictions are Convex
+ *     `moleculeOverrides` rows (brand-coloured at save time); the chemical-class Markush
+ *     skeletons are still static files under `public/molecules/classes/`, baked by
+ *     `scripts/chemistry/render_class_structures.py`.
  *   * Effect Index needs CPK's *hues* desaturated into its own near-white theme
  *     (page `#f6f5f1`, ink `#333333`, accent teal `#3d9991`). Raw CPK would put pure
  *     `#000000` and `#ff0000` on that page as its only saturated primaries.
  *
  * This module is the single source of truth for that second colourway. It is a pure string
  * transform (no DOM) so the same function can be used by
- *   * `scripts/data/generateEffectIndexMoleculeColorway.ts` — bakes `public/molecules-ei/`
+ *   * `scripts/data/generateEffectIndexMoleculeColorway.ts` — bakes `public/molecules-ei/classes/`
  *   * `src/app/api/molecules/[slug]/route.ts` and `.../classes/[key]/route.ts` — recolour
  *     hand-authored Convex `moleculeOverrides` rows at serve time. The Convex deployment is
  *     shared by both publications, so the colourway can never live in the stored data.
  */
 import { SITE_FLAVOR_CONFIG, isEffectIndex, type SiteFlavorConfig } from "../../config/siteFlavor";
-import manifest from "./moleculeAssetManifest.json";
 
-/** Where the dose.wiki (brand) colourway is served from. Owned by the asset manifest. */
-export const DOSEWIKI_MOLECULE_BASE_PATH = manifest.publicPath;
+/** Where the dose.wiki (brand) static class-structure colourway is served from. */
+export const DOSEWIKI_MOLECULE_BASE_PATH = "/molecules/";
 
 /** Directory name of the Effect Index colourway under `public/`. */
 export const EFFECT_INDEX_MOLECULE_DIRNAME = "molecules-ei";
@@ -64,10 +65,12 @@ export type EffectIndexMoleculeColorKey = keyof typeof EFFECT_INDEX_MOLECULE_PAL
  * Three source palettes are covered, because a molecule SVG reaching this transform may
  * have come from any of them:
  *
- *   1. **Brand** — what `public/molecules/` ships today and what the `/dev` molecule editor
- *      saves into Convex. Decoded from `scripts/chemistry/render_molecules.py`.
- *   2. **RDKit standard** — `src/data/molecules/molecules-standard/`, the textbook colourway
- *      rendered by the same pipeline with `--palette standard`.
+ *   1. **Brand** — what the `/dev` molecule editor saves into Convex and what
+ *      `public/molecules/classes/` ships. Decoded from the retired
+ *      `scripts/chemistry/render_molecules.py` substance renderer, whose style engine
+ *      still draws the class skeletons.
+ *   2. **RDKit standard** — the textbook colourway the same pipeline rendered with
+ *      `--palette standard` (now only reachable via hand-pasted overrides).
  *   3. **Legacy dataset** — the pre-RDKit artwork literals enumerated by
  *      `scripts/util/recolorMolecules.mjs`. Nothing shipping today uses them; they are kept
  *      so a hand-edited override pasted from the old art still recolours. Each is mapped by
@@ -76,8 +79,7 @@ export type EffectIndexMoleculeColorKey = keyof typeof EFFECT_INDEX_MOLECULE_PAL
  *
  * Known lossy edge: the brand palette collapses fluorine and phosphorus into one amber
  * (`#fbbf24`), so a brand-sourced SVG cannot distinguish them. Fluorine wins (63 substances
- * carry F, 3 carry P). The static colourway avoids the ambiguity entirely by generating from
- * the standard palette, which keeps `#33cccc` (F) and `#ff7f00` (P) apart.
+ * carry F, 3 carry P).
  */
 const SOURCE_HEX_TO_COLOR_KEY: Readonly<Record<string, EffectIndexMoleculeColorKey>> = {
   // ---- Brand palette (render_molecules.py PALETTE) ----

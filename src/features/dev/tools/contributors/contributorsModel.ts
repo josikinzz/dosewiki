@@ -51,6 +51,9 @@ export type EditorContributorProfile = {
   storedAvatarUrl: string | null;
   replicationOrder: string[];
   reportOrder: string[];
+  exclude_from_gallery: boolean;
+  archival: boolean;
+  staffNote: { markdown: string; attribution?: string | null } | null;
   updatedAt: string | null;
   updatedBy: string | null;
 };
@@ -239,6 +242,10 @@ export type ContributorFormState = {
   avatarUrl: string;
   aliases: string[];
   links: Array<{ label: string; url: string }>;
+  exclude_from_gallery: boolean;
+  archival: boolean;
+  staffNoteMarkdown: string;
+  staffNoteAttribution: string;
 };
 
 export function toContributorForm(profile: EditorContributorProfile): ContributorFormState {
@@ -250,6 +257,13 @@ export function toContributorForm(profile: EditorContributorProfile): Contributo
     avatarUrl: profile.avatarUrl ?? "",
     aliases: [...profile.aliases],
     links: profile.links.map((link) => ({ ...link })),
+    // `=== true` rather than a passthrough: a deployment whose getEditorProfile
+    // predates the flag hydrates this from JSON as undefined, which must read
+    // as "included" and keep the checkbox controlled.
+    exclude_from_gallery: profile.exclude_from_gallery === true,
+    archival: profile.archival === true,
+    staffNoteMarkdown: profile.staffNote?.markdown ?? "",
+    staffNoteAttribution: profile.staffNote?.attribution ?? "",
   };
 }
 
@@ -284,6 +298,18 @@ export function buildContributorPatch(form: ContributorFormState) {
     links: form.links
       .map((link) => ({ label: link.label.trim(), url: link.url.trim() }))
       .filter((link) => link.label && link.url),
+    exclude_from_gallery: form.exclude_from_gallery,
+    archival: form.archival,
+    // A blanked note clears the stored field (`null` is the patch spelling of
+    // "delete"); the attribution only travels alongside a kept note.
+    staffNote: form.staffNoteMarkdown.trim()
+      ? {
+          markdown: form.staffNoteMarkdown,
+          ...(form.staffNoteAttribution.trim()
+            ? { attribution: form.staffNoteAttribution.trim() }
+            : {}),
+        }
+      : null,
   };
 }
 

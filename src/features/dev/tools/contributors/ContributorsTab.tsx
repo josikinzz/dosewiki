@@ -8,9 +8,11 @@ import { StateCard } from "@/components/common/StateCard";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import type { NormalizedUserProfile } from "@/data/userProfiles";
 import {
   EditorActionStatus,
+  EditorCheckbox,
   EditorField,
   EditorListItem,
   EditorNotice,
@@ -622,6 +624,82 @@ export function ContributorsTab({ profiles, isDirectoryLoading }: ContributorsTa
                       <Icon icon="lucide:plus" size={15} />
                       Add alias
                     </Button>
+                  </div>
+                </EditorSection>
+
+                <EditorSection
+                  headingLevel="h3"
+                  icon="lucide:eye-off"
+                  title="Visibility & provenance"
+                  description="Where this artist's works surface, and how the profile itself is labelled."
+                >
+                  <EditorCheckbox
+                    id="contributor-exclude-from-gallery"
+                    label="Exclude from the Replications gallery"
+                    description="Hides all of this artist's works on /replications. Effect and substance articles still show them."
+                    checked={form.exclude_from_gallery}
+                    onChange={(event) =>
+                      updateForm({ exclude_from_gallery: event.target.checked })
+                    }
+                  />
+                  <EditorCheckbox
+                    id="contributor-archival"
+                    label="Archival profile"
+                    description={
+                      'Shows the public "maintained by staff, not created by this person" notice under the profile handle.'
+                    }
+                    checked={form.archival}
+                    onChange={(event) => updateForm({ archival: event.target.checked })}
+                  />
+                </EditorSection>
+
+                <EditorSection
+                  headingLevel="h3"
+                  icon="lucide:message-circle"
+                  title="Editor's note"
+                  description="Signed staff commentary rendered as a speech bubble under the public bio. Leave the note empty to remove the section."
+                >
+                  <EditorField
+                    id="contributor-staff-note"
+                    label="Note (markdown)"
+                    counter={`${form.staffNoteMarkdown.length}/${MAX_BIO_LENGTH}`}
+                    error={
+                      form.staffNoteMarkdown.length > MAX_BIO_LENGTH
+                        ? `The note must be ${MAX_BIO_LENGTH} characters or fewer.`
+                        : undefined
+                    }
+                    errorLive
+                  >
+                    {(fieldProps) => (
+                      <Textarea
+                        {...fieldProps}
+                        className="min-h-[120px] resize-y"
+                        value={form.staffNoteMarkdown}
+                        onChange={(event) =>
+                          updateForm({ staffNoteMarkdown: event.target.value })
+                        }
+                        placeholder="Why this person's work matters, in the site's voice."
+                        variant={
+                          form.staffNoteMarkdown.length > MAX_BIO_LENGTH ? "error" : "default"
+                        }
+                      />
+                    )}
+                  </EditorField>
+                  <div className="space-y-2">
+                    <Label htmlFor="contributor-staff-note-attribution">Attribution</Label>
+                    <Input
+                      id="contributor-staff-note-attribution"
+                      value={form.staffNoteAttribution}
+                      onChange={(event) =>
+                        updateForm({ staffNoteAttribution: event.target.value })
+                      }
+                      placeholder="Josie Kins · founder"
+                      className="max-w-xs"
+                    />
+                    <p className="theme-text-faint text-xs">
+                      Shown beneath the bubble next to Josie&apos;s avatar. Empty falls back to
+                      Josie&apos;s public name and role.
+                    </p>
                   </div>
                 </EditorSection>
 

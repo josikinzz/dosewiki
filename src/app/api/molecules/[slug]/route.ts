@@ -3,7 +3,7 @@
  *
  * The substance page points here when that slug has a `moleculeOverrides` row,
  * with a `?v=<updatedAt>` cache-buster. Missing rows and index-query failures
- * retain the static fallback resolved in `loadSubstanceRoute`.
+ * mean the article renders without a depiction.
  *
  * The Convex deployment is shared by both publications, so the stored SVG is always in the
  * dose.wiki brand palette and the Effect Index colourway is applied here, at serve time —

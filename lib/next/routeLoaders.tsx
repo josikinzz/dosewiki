@@ -3,6 +3,7 @@ import "server-only";
 import { cache, type ReactNode } from "react";
 import {
   getPublicContributorByKey,
+  getPublicProfileHistory,
   getPublicContributorDirectory,
   getPublicContributorProfiles,
   getPublicDataOverview,
@@ -14,7 +15,6 @@ import {
   getPublicEffectBySlug,
   getPublicEffects,
   getPublicReplicationBySlug,
-  getPublicReplications,
   getPublicReplicationsByEffect,
   getPublicReportBySlug,
   getPublicReports,
@@ -23,6 +23,7 @@ import {
   getEffectArticlesByContributor,
   getReplicationsByContributor,
   getReportsByContributor,
+  getReviewedArticlesByContributor,
   type PublicEffectArticle,
   type PublicEffectIndexArticle,
   type PublicEffectPreview,
@@ -40,6 +41,7 @@ import {
   getEffectCategoryDefinition,
 } from "../../src/data/effectCategoryDefinitions";
 import { ProfileBioMarkdown } from "../../src/components/pages/ProfileBioMarkdown";
+import type { UserProfileEditorNote } from "../../src/components/pages/UserProfilePage";
 import {
   buildBlogPostExcerpt,
   toBlogPostViewModel,
@@ -50,12 +52,11 @@ import {
   writingBlogPostSummary,
   type WritingBlogPost,
 } from "../../src/features/blog/domain/writingBlogModel";
-import { buildProfileHistory, type NormalizedUserProfile } from "../../src/data/userProfiles";
+import { type NormalizedUserProfile } from "../../src/data/userProfiles";
 import { toReportCardModel, type ReportCardModel } from "../../src/types/tripReport";
 import { SITE_FLAVOR_CONFIG } from "../../src/config/siteFlavor";
 import {
   isPublishableReplication,
-  type GalleryReplication,
   type ReplicationWithUrl,
 } from "../../src/types/replications";
 import { hasKnownCreator } from "../../src/features/effects/components/replicationCredit";
@@ -67,6 +68,7 @@ import {
 } from "../../src/features/effects/gallery/replicationDetailModel";
 import { EFFECT_INDEX_FEATURED_REPLICATION_SLUGS } from "./effectIndexHome";
 import type { ContributorEffectCredit } from "../../src/types/effectCredits";
+import type { ContributorReviewedArticle } from "../../src/types/reviewedArticles";
 import type { ArticleBylineAuthor } from "../../src/features/articles/domain/articleByline";
 import {
   resolveEffectCategories,
@@ -78,7 +80,6 @@ import {
   normalizeProfileKey,
 } from "../contributorProfileIdentity";
 import { applyCuratedOrder } from "../curatedOrder";
-import type { ContributorDirectory } from "../contributorDirectory";
 import type { ChangeLogEntry } from "../../src/data/changelog/changeLog";
 import {
   getPsychoactiveSummaryDefinition,
@@ -538,20 +539,13 @@ export const loadWritingBlogPostRoute = cache(
 export type EffectsIndexRouteResult = OkRouteResult<
   EffectsIndexViewModel["pageProps"] & {
     emptyState?: PublicRouteEmptyState;
-    replications: GalleryReplication[];
-    contributorDirectory: ContributorDirectory;
   }
 >;
 
 export const loadEffectsIndexRoute = cache(async (): Promise<EffectsIndexRouteResult> => {
-  // The gallery's artist headings resolve to profile pages, and that resolution
-  // needs the directory. Reading it here keeps the client gallery — which is
-  // lazy-loaded and only mounts on the gallery tab — from fetching anything.
-  const [overview, effects, replications, contributorDirectory] = await Promise.all([
+  const [overview, effects] = await Promise.all([
     getPublicDataOverview(),
     getPublicEffects(),
-    getPublicReplications(),
-    getPublicContributorDirectory(),
   ]);
   const viewModel = buildEffectsIndexViewModel({
     effectCount: overview.effectCount,
@@ -563,8 +557,6 @@ export const loadEffectsIndexRoute = cache(async (): Promise<EffectsIndexRouteRe
     pageProps: {
       ...viewModel.pageProps,
       emptyState: effects.length === 0 ? effectsIndexEmptyState : undefined,
-      replications,
-      contributorDirectory,
     },
     metadata: toRouteMetadata(viewModel.metadata),
     canonicalRoute: { family: "effects" },
@@ -780,6 +772,10 @@ export interface ContributorRoutePageProps {
   replications: ReplicationWithUrl[];
   /** Effect articles crediting this contributor, alphabetically. */
   effectArticles: ContributorEffectCredit[];
+  /** Substance articles this contributor expert-reviewed, alphabetically. */
+  reviewedArticles: ContributorReviewedArticle[];
+  /** Staff "Editor's note" under the bio; null renders nothing. */
+  editorNote: UserProfileEditorNote | null;
 }
 
 export type ContributorRouteResult =
@@ -821,20 +817,30 @@ export const loadContributorRoute = cache(
       };
     }
 
-    // All three joins run off the same profile and the same name set, so a
+    // The staff note is signed by the site rather than the profile owner, so
+    // the chip under the bubble carries Josie's avatar and, when the note has
+    // no explicit attribution, her public name and role.
+    const staffNote = profile.staffNote?.markdown.trim() ? profile.staffNote : null;
+
+    // All four joins run off the same profile and the same name set, so a
     // contributor's reports, works and article credits can never disagree about
-    // which credits are theirs.
-    const [reports, replications, effectArticles] = await Promise.all([
-      getReportsByContributor(profile),
-      readContributorReplications(profile),
-      getEffectArticlesByContributor(profile),
-    ]);
+    // which credits are theirs. The reviewed-articles read is key-only: the
+    // reviewer-email matching stays inside Convex.
+    const [reports, replications, effectArticles, reviewedArticles, history, staffNoteSigner] =
+      await Promise.all([
+        getReportsByContributor(profile),
+        readContributorReplications(profile),
+        getEffectArticlesByContributor(profile),
+        getReviewedArticlesByContributor(profile.key),
+        getPublicProfileHistory(profile),
+        staffNote ? getPublicContributorByKey("JOSIE") : Promise.resolve(null),
+      ]);
 
     return {
       kind: "ok",
       pageProps: {
         profile,
-        history: buildProfileHistory(profile.key, 5, profile.aliases),
+        history,
         bioContent: profile.hasCustomBio ? <ProfileBioMarkdown content={profile.bio} /> : null,
         reportHrefPrefix: REPORT_HREF_PREFIX,
         // The contributor's own curation outranks the editorial list: it is
@@ -859,6 +865,26 @@ export const loadContributorRoute = cache(
           (replication) => replication.slug,
         ),
         effectArticles,
+        reviewedArticles,
+        editorNote: staffNote
+          ? {
+              content: <ProfileBioMarkdown content={staffNote.markdown} />,
+              attribution:
+                staffNote.attribution?.trim() ||
+                (staffNoteSigner
+                  ? [staffNoteSigner.displayName, staffNoteSigner.role?.trim()]
+                      .filter(Boolean)
+                      .join(" · ")
+                  : "Josie Kins"),
+              avatarUrl: staffNoteSigner?.avatarUrl ?? null,
+              avatarHref: staffNoteSigner
+                ? getPublicRoutePath({
+                    family: "contributor",
+                    params: { profileKey: staffNoteSigner.key },
+                  })
+                : null,
+            }
+          : null,
       },
       metadata,
       canonicalRoute,

@@ -641,8 +641,8 @@ export function Header({
         data-nosnippet
         className={
           forceMobileNav
-            ? "mx-auto flex max-w-7xl items-center gap-3 px-4 py-3 gap-fallback-row-4"
-            : "mx-auto flex max-w-7xl items-center gap-3 px-4 py-3 gap-fallback-row-4 lg:grid lg:grid-cols-[auto_minmax(0,1fr)_auto] lg:gap-4"
+            ? "flex w-full items-center gap-3 px-4 py-3 min-[1600px]:px-6 gap-fallback-row-4"
+            : "flex w-full items-center gap-3 px-4 py-3 min-[1600px]:px-6 gap-fallback-row-4 lg:grid lg:grid-cols-[auto_minmax(0,1fr)_auto] lg:gap-4"
         }
       >
         <Button
@@ -669,7 +669,7 @@ export function Header({
           className={
             forceMobileNav
               ? "flex min-h-[44px] min-w-0 flex-1 items-center"
-              : "flex min-h-[44px] min-w-0 flex-1 items-center lg:w-full lg:max-w-2xl lg:justify-self-center"
+              : "flex min-h-[44px] min-w-0 flex-1 items-center lg:w-full lg:max-w-none"
           }
         >
           <GlobalSearch

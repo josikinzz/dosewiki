@@ -1,5 +1,4 @@
 import { describe, expect, it } from "vitest";
-import { resetAssetAdapters } from "@/test/adapters";
 import { projectLibraryInput } from "../../../convex/lib/substanceReadProjections";
 import {
   parsePublicSubstanceLibraryInputRecords,
@@ -11,8 +10,6 @@ import { buildLibrary } from "./libraryBuilder";
 import { parseManualConfig } from "./manualIndexLoader";
 import { fullArticleWithDosage, minimalArticle } from "@/test/fixtures/articles";
 import { createSearchIndexInput } from "./search";
-
-resetAssetAdapters();
 
 const emptyConfig = parseManualConfig({
   version: 1,

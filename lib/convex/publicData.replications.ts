@@ -2,11 +2,20 @@ import "server-only";
 
 import { unstable_cache } from "next/cache";
 import { cache } from "react";
-import { contributorMatchNames } from "../contributorProfileIdentity";
+import { contributorMatchNames, findContributorProfileByAuthorName } from "../contributorProfileIdentity";
 import { PUBLIC_CONVEX_CACHE_REVALIDATE_SECONDS, PUBLIC_CONVEX_CACHE_TAGS } from "./publicData.cache";
 import { getPublicDataReadAdapter } from "./publicData.reads";
 import type { NormalizedUserProfile } from "../../src/data/userProfiles";
-import { isPublishableReplication, type ReplicationWithUrl } from "../../src/types/replications";
+import { isPublishableReplication, type GalleryReplication, type ReplicationWithUrl } from "../../src/types/replications";
+import { getPublicReplications } from "./publicData.effects";
+import { getPublicContributorProfiles } from "./publicData.contributors";
+import type {
+  PublicSubstanceGallery,
+  SubstanceGalleryItem,
+  SubstanceGalleryMatchProvenance,
+} from "../../src/data/substanceReplicationGallery";
+
+export type { PublicSubstanceGallery, SubstanceGalleryItem, SubstanceGalleryMatchProvenance };
 
 /**
  * Every replication credited to one contributor.
@@ -46,6 +55,41 @@ export const getReplicationsByContributor = cache(unstable_cache(async (
 }));
 
 /**
+ * The substance article's Replication Showcase: the substance's visual-effect
+ * names matched against the corpus, ordered and filtered by its
+ * `substanceGalleries` curation row. Matching, merge, and provenance rules
+ * live in `src/data/substanceReplicationGallery`; Convex applies them so the
+ * curated order and the write-path prune can never disagree.
+ *
+ * Zero matches are an empty gallery, never an error — an unmatched substance
+ * renders today's page unchanged.
+ *
+ * The publishability gate is re-applied here like the other public replication
+ * list reads (see the long note in `publicData.effects`): the Convex matcher
+ * already refuses figures and audio, but this layer's filter ships with the
+ * build that defines publishability rather than waiting on a Convex deploy.
+ *
+ * Tagged `replications` (curation saves revalidate it) and `substances`
+ * (editing an article's visual effects changes what matches).
+ */
+export const getPublicReplicationsForSubstance = cache(unstable_cache(async (
+  substanceSlug: string,
+): Promise<PublicSubstanceGallery> => {
+  const gallery = await getPublicDataReadAdapter().getPublicReplicationsForSubstance(substanceSlug);
+  return {
+    ...gallery,
+    items: gallery.items.filter((item) => isPublishableReplication(item.replication)),
+  };
+}, ["convex-public-replications-for-substance"], {
+  revalidate: PUBLIC_CONVEX_CACHE_REVALIDATE_SECONDS,
+  tags: [
+    PUBLIC_CONVEX_CACHE_TAGS.all,
+    PUBLIC_CONVEX_CACHE_TAGS.replications,
+    PUBLIC_CONVEX_CACHE_TAGS.substances,
+  ],
+}));
+
+/**
  * The Effect Index homepage's curated featured replications, as stored slugs.
  *
  * `null` is not an empty carousel: it means this deployment carries no curated
@@ -63,3 +107,55 @@ export const getPublicFeaturedReplicationSlugs = cache(unstable_cache(async (): 
   revalidate: PUBLIC_CONVEX_CACHE_REVALIDATE_SECONDS,
   tags: [PUBLIC_CONVEX_CACHE_TAGS.all, PUBLIC_CONVEX_CACHE_TAGS.replications],
 }));
+
+/**
+ * Drop every work whose credit line resolves to a contributor who opted out of
+ * the /replications gallery (`contributorProfiles.exclude_from_gallery`).
+ *
+ * Resolution goes through `findContributorProfileByAuthorName` — the app's one
+ * definition of "this name is that contributor" — against the *full* profile
+ * list, so an alias shared with a non-excluded profile resolves exactly as it
+ * does everywhere else. A credit that resolves to no profile is untouched.
+ */
+export function dropGalleryExcludedArtistWorks<T extends { artist: string }>(
+  items: readonly T[],
+  profiles: readonly NormalizedUserProfile[],
+): T[] {
+  if (!profiles.some((profile) => profile.exclude_from_gallery === true)) {
+    return [...items];
+  }
+
+  // One resolution per distinct credit line, not per work.
+  const hiddenByArtist = new Map<string, boolean>();
+
+  return items.filter((item) => {
+    let hidden = hiddenByArtist.get(item.artist);
+    if (hidden === undefined) {
+      hidden = findContributorProfileByAuthorName(profiles, item.artist)?.exclude_from_gallery === true;
+      hiddenByArtist.set(item.artist, hidden);
+    }
+    return !hidden;
+  });
+}
+
+/**
+ * The /replications gallery corpus: `getPublicReplications` minus the works of
+ * artists excluded via their contributor profile. This feeds ONLY the gallery
+ * surface — the main explorer, its artist/effect focus views, and the focus
+ * families in the sitemap. Effect-article replication sections, substance
+ * showcases, contributor profile pages, permalinks, and the public API all stay
+ * on the unfiltered reads; the exclusion is a gallery-presentation choice, not
+ * an unpublication.
+ *
+ * Composed from two tagged caches rather than being an `unstable_cache` of its
+ * own: the filter is cheap, and this way revalidating either `replications`
+ * (corpus changes) or `contributors` (an exclusion toggles) refreshes it.
+ */
+export const getPublicGalleryReplications = cache(async (): Promise<GalleryReplication[]> => {
+  const [replications, profiles] = await Promise.all([
+    getPublicReplications(),
+    getPublicContributorProfiles(),
+  ]);
+
+  return dropGalleryExcludedArtistWorks(replications, profiles);
+});

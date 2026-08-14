@@ -1,5 +1,13 @@
 import { render, screen } from "@testing-library/react";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
+
+// The explorer inside registers the retired-#gallery redirect on mount; the
+// router must be identity-stable like Next's real useRouter.
+const { router } = vi.hoisted(() => ({ router: { replace: () => {} } }));
+
+vi.mock("next/navigation", () => ({
+  useRouter: () => router,
+}));
 import { EffectsIndexPage } from "./EffectsIndexPage";
 
 describe("EffectsIndexPage", () => {

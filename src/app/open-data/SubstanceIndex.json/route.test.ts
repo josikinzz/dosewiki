@@ -2,7 +2,15 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { readOpenDataPayload } from "../openDataTestUtils";
 
 const documents = [
-  { _id: "cx2", _creationTime: 2, id: 7, title: "Zeta", slug: "zeta" },
+  {
+    _id: "cx2",
+    _creationTime: 2,
+    id: 7,
+    title: "Zeta",
+    slug: "zeta",
+    editorial_review: { reviewed_by: "witchy@local.dose.wiki", status: "reviewed" },
+    section_gaps: { dosage: "missing" },
+  },
   { _id: "cx1", _creationTime: 1, id: 3, title: "Alpha", slug: "alpha" },
   { _id: "cx3", _creationTime: 3, id: null, title: "Legacy", slug: "legacy" },
 ];
@@ -61,6 +69,18 @@ describe("open-data SubstanceIndex route", () => {
       expect(item).not.toHaveProperty("_id");
       expect(item).not.toHaveProperty("_creationTime");
     }
+  });
+
+  it("strips internal editorial metadata from every item", async () => {
+    const { GET } = await import("./route");
+
+    const payload = await readOpenDataPayload(await GET());
+
+    for (const item of payload.items) {
+      expect(item).not.toHaveProperty("editorial_review");
+      expect(item).not.toHaveProperty("section_gaps");
+    }
+    expect(JSON.stringify(payload)).not.toMatch(/editorial_review|section_gaps|reviewed_by|witchy/);
   });
 
   it("revalidates daily", async () => {

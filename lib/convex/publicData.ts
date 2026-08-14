@@ -35,6 +35,11 @@ export {
 } from "./publicData.contributors";
 
 export {
+  getPublicProfileHistory,
+  PUBLIC_PROFILE_HISTORY_LIMIT,
+} from "./publicData.changelog";
+
+export {
   getFeaturedSubstances,
   getPublicAboutPreviewSubstances,
   getPublicCategoryLayout,
@@ -44,6 +49,7 @@ export {
   getPublicSubstanceLookup,
   getPublicSubstances,
   getRawSubstances,
+  getReviewedArticlesByContributor,
   getUncachedCoverageSubstances,
 } from "./publicData.substances";
 
@@ -71,8 +77,14 @@ export {
 } from "./publicData.blog";
 
 export {
+  dropGalleryExcludedArtistWorks,
   getPublicFeaturedReplicationSlugs,
+  getPublicGalleryReplications,
+  getPublicReplicationsForSubstance,
   getReplicationsByContributor,
+  type PublicSubstanceGallery,
+  type SubstanceGalleryItem,
+  type SubstanceGalleryMatchProvenance,
 } from "./publicData.replications";
 
 export {

@@ -2,6 +2,8 @@ import "server-only";
 
 import type { NormalizedUserProfile } from "../../src/data/userProfiles";
 import type { GalleryReplication, ReplicationWithUrl } from "../../src/types/replications";
+import type { ContributorReviewedArticle } from "../../src/types/reviewedArticles";
+import type { PublicSubstanceGallery } from "../../src/data/substanceReplicationGallery";
 import {
   priorityScore,
   trimExcerpt,
@@ -90,6 +92,14 @@ export const publicDataReadCatalog = {
     args: publicSubstancePageArgs,
   },
   publicSubstanceBySlug: { functionName: "substanceIndex:getPublicBySlug", args: (slug: string) => ({ slug }) },
+  publicReviewedArticlesByContributor: {
+    functionName: "substanceIndex:getPublicReviewedArticlesPage",
+    args: (profileKey: string, cursor?: string) => ({
+      profileKey,
+      ...(cursor ? { cursor } : {}),
+      limit: PUBLIC_SUBSTANCE_PAGE_SIZE,
+    }),
+  },
   publicSubstanceFullDocuments: {
     functionName: "substanceIndex:getFullDocumentPage",
     args: (cursor: string | null) => ({
@@ -135,6 +145,10 @@ export const publicDataReadCatalog = {
     functionName: "replications:getByArtistNames",
     args: (artistNames: string[]) => ({ artistNames }),
   },
+  publicReplicationsForSubstance: {
+    functionName: "substanceGalleries:getPublicReplicationsForSubstance",
+    args: (substanceSlug: string) => ({ substance_slug: substanceSlug }),
+  },
   publicTripReportRecords: { functionName: "tripReports:getAll", args: () => ({}) },
   publicTripReportBySlug: { functionName: "tripReports:getBySlug", args: (slug: string) => ({ slug }) },
   publicTripReportsByAuthor: {
@@ -175,6 +189,7 @@ export type PublicDataReadAdapter = {
   getPublicSubstanceLookup(): Promise<PublicSubstanceLookupEntry[]>;
   getPublicSubstancePreviews(): Promise<PublicSubstancePreview[]>;
   getPublicSubstanceBySlug(slug: string): Promise<PublicSubstanceRecord | null>;
+  getPublicReviewedArticlesByContributor(profileKey: string): Promise<ContributorReviewedArticle[]>;
   getPublicFullSubstanceDocuments(): Promise<PublicFullSubstanceDocument[]>;
   getPublicEffects(): Promise<PublicEffectPreview[]>;
   getPublicEffectBySlug(slug: string): Promise<SubjectiveEffectDetailRecord | null>;
@@ -189,6 +204,7 @@ export type PublicDataReadAdapter = {
   getPublicReplications(): Promise<GalleryReplication[]>;
   getPublicReplicationBySlug(slug: string): Promise<ReplicationWithUrl | null>;
   getPublicReplicationsByArtistNames(artistNames: string[]): Promise<ReplicationWithUrl[]>;
+  getPublicReplicationsForSubstance(substanceSlug: string): Promise<PublicSubstanceGallery>;
   getPublicTripReportRecords(): Promise<TripReportRecord[]>;
   getPublicTripReportBySlug(slug: string): Promise<TripReportDetailRecord | null>;
   getPublicTripReportsByAuthor(authorName: string): Promise<TripReportRecord[]>;
@@ -693,6 +709,29 @@ export function createConvexPublicDataReadAdapter(query: QueryTransport = queryC
         query,
         publicDataReadCatalog.publicSubstanceFullDocuments,
       ),
+    // Contributor-scoped reviewed-articles aggregate. Additive like the
+    // contributor replication read below: a deployment that predates the query
+    // degrades to "no reviewed articles" (the profile renders no section) —
+    // but says so, because an unreviewed contributor and a missing function
+    // look identical on the rendered page.
+    getPublicReviewedArticlesByContributor: async (profileKey) => {
+      try {
+        return await drainPublicCorpusPages<ContributorReviewedArticle>(query, {
+          functionName:
+            publicDataReadCatalog.publicReviewedArticlesByContributor.functionName,
+          args: (cursor) =>
+            publicDataReadCatalog.publicReviewedArticlesByContributor.args(profileKey, cursor),
+        });
+      } catch (error) {
+        if (isExplicitMissingPublicFunctionError(error)) {
+          console.warn(
+            "[publicData] substanceIndex:getPublicReviewedArticlesPage is not deployed; contributor reviewed articles degraded to empty.",
+          );
+          return [];
+        }
+        throw error;
+      }
+    },
     getPublicEffects: async () =>
       projectPublicEffectPreviews(
         await query<SubjectiveEffectRecord[]>(
@@ -818,6 +857,25 @@ export function createConvexPublicDataReadAdapter(query: QueryTransport = queryC
             "[publicData] replications:getByArtistNames is not deployed; contributor replication credits degraded to empty.",
           );
           return [];
+        }
+        throw error;
+      }
+    },
+    // Substance-derived Replication Showcase read. Additive like the two reads
+    // above it, so a deployment that predates `substanceGalleries` degrades to
+    // an empty showcase — which renders as no section at all — but says so.
+    getPublicReplicationsForSubstance: async (substanceSlug) => {
+      try {
+        return await query<PublicSubstanceGallery, { substance_slug: string }>(
+          publicDataReadCatalog.publicReplicationsForSubstance.functionName,
+          publicDataReadCatalog.publicReplicationsForSubstance.args(substanceSlug),
+        );
+      } catch (error) {
+        if (isExplicitMissingPublicFunctionError(error)) {
+          console.warn(
+            "[publicData] substanceGalleries:getPublicReplicationsForSubstance is not deployed; substance showcases degraded to empty.",
+          );
+          return { items: [], unmatchedEffectNames: [] };
         }
         throw error;
       }

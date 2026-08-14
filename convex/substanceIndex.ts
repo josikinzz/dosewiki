@@ -45,8 +45,13 @@ import {
   projectMechanismRouteInput,
   projectPublicArticle,
   projectPublicPreview,
+  projectReviewedArticleForEmails,
   projectSearchInput,
 } from "./lib/substanceReadProjections";
+import {
+  contributorReviewerEmails,
+  normalizeProfileKey,
+} from "./lib/contributorProfiles";
 
 const RETIRED_CORPUS_OPERATION_MESSAGE =
   "Whole-corpus substance operations are retired. Use the bounded pagination endpoints and guarded per-article/CAS write workflows.";
@@ -526,6 +531,53 @@ export const getPublicBySlug = query({
       .withIndex("by_slug", (q) => q.eq("slug", args.slug))
       .take(2);
     return matches.length === 1 ? projectPublicArticle(matches[0]) : null;
+  },
+});
+
+/**
+ * Public reviewed-articles aggregate for one contributor profile: every
+ * article whose completed `editorial_review` was stamped by an email this
+ * profile owns (its `membershipEmail`, or the legacy `<handle>@local.dose.wiki`
+ * credential email of its key or an alias — so retired handles like
+ * witchy@local.dose.wiki resolve to the profile that absorbed the alias).
+ *
+ * Editor-independent and public-safe by construction: the reviewer email set
+ * is resolved and matched inside this deployment, and each item carries only
+ * the article's title, slug, and review timestamp. `editorial_review` itself
+ * never leaves — this is the same boundary `projectPublicArticle` keeps.
+ */
+export const getPublicReviewedArticlesPage = query({
+  args: { profileKey: v.string(), ...publicCorpusPageArgs },
+  handler: async (ctx, args) => {
+    const key = normalizeProfileKey(args.profileKey);
+    const profile = key
+      ? await ctx.db
+          .query("contributorProfiles")
+          .withIndex("by_key", (q) => q.eq("key", key))
+          .first()
+      : null;
+    const reviewerEmails = profile ? contributorReviewerEmails(profile) : null;
+    // No profile or no claimable email means no matches on any page; report
+    // the drain done immediately instead of walking the corpus for nothing.
+    if (!reviewerEmails || reviewerEmails.size === 0) {
+      return { items: [], cursor: "", isDone: true };
+    }
+    const result = await ctx.db.query("substanceIndex").paginate({
+      cursor: args.cursor ?? null,
+      numItems: clampPublicCorpusPageSize(args.limit),
+    });
+    const items = [];
+    for (const article of result.page) {
+      const reviewed = projectReviewedArticleForEmails(article, reviewerEmails);
+      if (reviewed) {
+        items.push(reviewed);
+      }
+    }
+    return {
+      items,
+      cursor: result.continueCursor,
+      isDone: result.isDone,
+    };
   },
 });
 

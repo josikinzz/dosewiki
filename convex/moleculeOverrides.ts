@@ -172,6 +172,71 @@ export const save = mutation({
 });
 
 /**
+ * Mirror tool for copying the canonical depiction set between deployments
+ * (e.g. prod → dev). Unlike `save`, the passed provenance (`source`,
+ * `updatedAt`, `updatedBy`) is preserved verbatim so the target stays a
+ * faithful replica. Not used by the editor.
+ */
+export const replicate = mutation({
+  args: {
+    apiKey: v.optional(v.string()),
+    actorEmail: v.optional(v.string()),
+    slug: v.string(),
+    svg: v.string(),
+    molblock: v.string(),
+    smiles: v.optional(v.string()),
+    boldBonds: v.optional(v.array(v.number())),
+    source: v.optional(
+      v.union(v.literal("seeded"), v.literal("editor"), v.literal("template")),
+    ),
+    updatedAt: v.string(),
+    updatedBy: v.optional(v.string()),
+  },
+  handler: async (ctx, args) => {
+    await requireEditorWrite(ctx, {
+      apiKey: args.apiKey,
+      actorEmail: args.actorEmail,
+      adminIntent: "editorArticleWrite",
+    });
+
+    assertValidSlug(args.slug);
+    if (!args.svg.includes("<svg") || args.svg.length > MAX_SVG_BYTES) {
+      throw new Error("Invalid molecule svg.");
+    }
+    if (!args.molblock || args.molblock.length > MAX_MOLBLOCK_BYTES) {
+      throw new Error("Invalid molecule molblock.");
+    }
+    if (args.boldBonds && args.boldBonds.some((bond) => !Number.isInteger(bond) || bond < 0)) {
+      throw new Error("Invalid molecule boldBonds.");
+    }
+
+    const doc = {
+      slug: args.slug,
+      svg: args.svg,
+      molblock: args.molblock,
+      smiles: args.smiles,
+      boldBonds: args.boldBonds && args.boldBonds.length > 0 ? args.boldBonds : undefined,
+      source: args.source,
+      updatedAt: args.updatedAt,
+      updatedBy: args.updatedBy,
+    };
+
+    const existing = await ctx.db
+      .query("moleculeOverrides")
+      .withIndex("by_slug", (q) => q.eq("slug", args.slug))
+      .first();
+
+    if (existing) {
+      await ctx.db.patch(existing._id, doc);
+      return { updated: true, id: existing._id };
+    }
+
+    const id = await ctx.db.insert("moleculeOverrides", doc);
+    return { updated: false, id };
+  },
+});
+
+/**
  * Apply one already-previewed template depiction. Editor-authored rows are
  * protected inside the transaction so a hand edit that races the preview is
  * reported as a skip instead of being overwritten.

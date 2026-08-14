@@ -16,8 +16,9 @@ function triggerDownload(href: string, filename: string) {
   document.body.removeChild(link);
 }
 
-// No default count: the value must come from the molecule mapping manifest so
-// it tracks the real pipeline output instead of drifting as molecules are added.
+// No default count: the value must come from the Convex `moleculeOverrides`
+// index so it tracks the real published set instead of drifting as molecules
+// are added.
 export function MoleculeDownloadPack({ moleculeCount }: { moleculeCount: number }) {
   const handleZip = useCallback(() => {
     triggerDownload("/dosewiki-molecules.zip", "dosewiki-molecules.zip");
@@ -47,7 +48,7 @@ export function MoleculeDownloadPack({ moleculeCount }: { moleculeCount: number 
         {PREVIEW_SLUGS.map((slug) => (
           <li key={slug} className="flex items-center justify-center">
             <img
-              src={`/molecules/${slug}.svg`}
+              src={`/api/molecules/${slug}`}
               alt=""
               loading="lazy"
               className="theme-molecule-image h-10 w-10 object-contain"

@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it } from "vitest";
 import { createEmptyArticle } from "@/data/schema/defaults.generated";
 import { fullArticleWithDosage, hiddenArticle, minimalArticle } from "@/test/fixtures/articles";
 import type { SubstanceArticle } from "@/schema";
@@ -8,10 +8,6 @@ import { createPublicLibraryFacade } from "./publicLibraryFacade";
 import { projectTaxonomy } from "./taxonomyProjection";
 import { buildInteractionIndex } from "./libraryBuilderInteractions";
 import { parseManualConfig } from "./manualIndexLoader";
-
-vi.mock("@/data/mappings/moleculeSvgMappings.json", () => ({
-  default: { mappings: [] },
-}));
 
 const manualConfig = parseManualConfig({
   version: 1,

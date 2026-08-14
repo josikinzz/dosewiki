@@ -5,6 +5,7 @@ import {
   buildImportedStoredProfile,
   buildStoredProfile,
   canEditContributorProfile,
+  contributorReviewerEmails,
   materializeProfile,
   resolveOwnedProfileKey,
   type StoredProfile,
@@ -86,6 +87,46 @@ describe("Convex contributor profile identity", () => {
   it("keeps target key resolution inside the Convex identity module", () => {
     expect(resolveOwnedProfileKey("", "local.user@example.com")).toBe("LOCALUSER");
     expect(resolveOwnedProfileKey(" public-key ", "local.user@example.com")).toBe("PUBLIC-KEY");
+  });
+});
+
+describe("contributorReviewerEmails", () => {
+  it("claims the membership email and the legacy credential emails of key and aliases", () => {
+    const emails = contributorReviewerEmails({
+      key: "LYREA",
+      aliases: ["witchy", "lyrea"],
+      membershipEmail: "Lyrea@Example.com",
+    });
+
+    // The legacy `witchy@local.dose.wiki` review stamps resolve to LYREA
+    // through the alias, without any hardcoded person-specific mapping.
+    expect([...emails].sort()).toEqual([
+      "lyrea@example.com",
+      "lyrea@local.dose.wiki",
+      "witchy@local.dose.wiki",
+    ]);
+  });
+
+  it("never turns a display-name alias into a credential email", () => {
+    const emails = contributorReviewerEmails({
+      key: "JOSIE",
+      aliases: ["josie kins"],
+      membershipEmail: undefined,
+    });
+
+    expect(emails).toEqual(new Set(["josie@local.dose.wiki"]));
+  });
+
+  it("stays within the internal legacy domain for alias-derived emails", () => {
+    const emails = contributorReviewerEmails({
+      key: "ADA",
+      aliases: ["someoneelse"],
+      membershipEmail: undefined,
+    });
+
+    for (const email of emails) {
+      expect(email.endsWith("@local.dose.wiki")).toBe(true);
+    }
   });
 });
 

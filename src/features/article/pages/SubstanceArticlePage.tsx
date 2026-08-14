@@ -20,6 +20,7 @@ interface SubstanceArticlePageProps {
   fromSubstanceSlug?: string;
   relatedTripReports?: TripReport[];
   tripReportsSection?: ReactNode;
+  replicationShowcaseSection?: ReactNode;
   contributorAvatars?: ContributorAvatarMap;
   contributorDirectory?: ContributorDirectory;
   externalReagentData?: NormalizedReagentData | null;
@@ -31,6 +32,7 @@ export function SubstanceArticlePage({
   fromSubstanceSlug,
   relatedTripReports,
   tripReportsSection,
+  replicationShowcaseSection,
   contributorAvatars,
   contributorDirectory,
   externalReagentData,
@@ -43,6 +45,7 @@ export function SubstanceArticlePage({
         fromSubstanceSlug={fromSubstanceSlug}
         relatedTripReports={relatedTripReports}
         tripReportsSection={tripReportsSection}
+        replicationShowcaseSection={replicationShowcaseSection}
         contributorAvatars={contributorAvatars}
         contributorDirectory={contributorDirectory}
         externalReagentData={externalReagentData}

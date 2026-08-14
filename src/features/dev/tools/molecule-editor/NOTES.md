@@ -4,7 +4,8 @@
 
 A `/dev` → **Molecules** tool for maintaining the canonical Convex molecule depiction set.
 Each substance row stores a re-editable MOL block plus its pre-rendered brand SVG; the editor and
-public article use the same row. Static `public/molecules/*.svg` files are fallback/legacy assets.
+public article use the same row. There are no static substance SVGs — an article without a
+`moleculeOverrides` row shows no depiction.
 
 **One drawing engine, end to end.** The repository-owned OpenChemLib fork draws the editing
 canvas, the live preview, and the published article SVG from the same MOL block interpretation.

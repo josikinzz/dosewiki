@@ -2,7 +2,9 @@ import { describe, expect, it } from 'vitest';
 import type { GalleryReplication } from '@/types/replications';
 import {
   artistIdentity,
+  artistUrlKey,
   countGallery,
+  galleryGroupUrlKey,
   groupByArtist,
   groupByEffect,
   matchesQuery,
@@ -10,6 +12,7 @@ import {
   sortWithinGroup,
   UNATTRIBUTED_KEY,
   UNATTRIBUTED_LABEL,
+  UNKNOWN_ARTIST_URL_KEY,
 } from './galleryModel';
 
 let seq = 0;
@@ -256,5 +259,60 @@ describe('countGallery', () => {
         rep({ artist: 'A', effect_slug: undefined, type: 'image' }),
       ]),
     ).toEqual({ total: 2, artists: 1, effects: 1, images: 2, videos: 0 });
+  });
+});
+
+describe('artistUrlKey', () => {
+  it('slugifies a credit line deterministically, folding case and diacritics', () => {
+    expect(artistUrlKey('Chelsea Morgan')).toBe('chelsea-morgan');
+    expect(artistUrlKey('  chelsea   MORGAN ')).toBe('chelsea-morgan');
+    expect(artistUrlKey('Éliás Tóth')).toBe('elias-toth');
+  });
+
+  it('maps the unattributed bucket to the stable `unknown` segment', () => {
+    expect(artistUrlKey('')).toBe(UNKNOWN_ARTIST_URL_KEY);
+    expect(artistUrlKey('unknown')).toBe(UNKNOWN_ARTIST_URL_KEY);
+    expect(artistUrlKey(undefined)).toBe(UNKNOWN_ARTIST_URL_KEY);
+  });
+
+  it('gives a label with no slug a stable hashed unknown-<key> address', () => {
+    const key = artistUrlKey('★彡');
+    expect(key).toMatch(/^unknown-[a-z0-9]+$/);
+    // Deterministic: the same credit line addresses the same page forever.
+    expect(artistUrlKey('★彡')).toBe(key);
+    // And distinct degenerate labels do not collapse onto one URL.
+    expect(artistUrlKey('彡★')).not.toBe(key);
+  });
+
+  it('refuses to let a named artist capture the unattributed URL', () => {
+    // "UnKnown!" is a real credit line (hasKnownCreator passes), but its slug
+    // would be exactly `unknown` — the unattributed bucket's segment.
+    const key = artistUrlKey('UnKnown!');
+    expect(key).not.toBe(UNKNOWN_ARTIST_URL_KEY);
+    expect(key).toMatch(/^unknown-[a-z0-9]+$/);
+  });
+});
+
+describe('galleryGroupUrlKey', () => {
+  it('addresses artist groups by slug and effect groups by their slug key', () => {
+    const [artistGroup] = groupByArtist([rep({ artist: 'Chelsea Morgan' })]);
+    expect(galleryGroupUrlKey('artist', artistGroup)).toBe('chelsea-morgan');
+
+    const [effectGroup] = groupByEffect(
+      [rep({ effect_slug: 'geometry' })],
+      effectName,
+      effectHref,
+    );
+    expect(galleryGroupUrlKey('effect', effectGroup)).toBe('geometry');
+  });
+
+  it('agrees with artistUrlKey for every group the grouping produces', () => {
+    const groups = groupByArtist([
+      rep({ artist: 'Josie Kins' }),
+      rep({ artist: 'unknown' }),
+      rep({ artist: '' }),
+    ]);
+    const keys = groups.map((group) => galleryGroupUrlKey('artist', group));
+    expect(keys).toEqual(['josie-kins', UNKNOWN_ARTIST_URL_KEY]);
   });
 });

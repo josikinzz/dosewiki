@@ -221,6 +221,8 @@ export function parsePath(
           tab = "trip-report-submissions";
         } else if (candidate === "article-feedback" || candidate === "feedback") {
           tab = "article-feedback";
+        } else if (candidate === "site-feedback") {
+          tab = "site-feedback";
         } else if (candidate === "molecule-editor" || candidate === "molecules") {
           tab = "molecule-editor";
         } else if (candidate === "replications" || candidate === "replication-studio") {

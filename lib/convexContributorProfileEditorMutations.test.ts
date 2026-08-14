@@ -2,7 +2,9 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { saveProfileAsEditor, setContributorOrdering } from "../convex/contributorProfiles";
 import {
   buildEditorProfilePatch,
+  editorProfilePatchValidator,
   normalizeOrderSlugs,
+  profileInputValidator,
   pruneOrderSlugs,
   type StoredProfile,
 } from "../convex/lib/contributorProfiles";
@@ -180,6 +182,48 @@ describe("contributorProfiles.saveProfileAsEditor authorization", () => {
     expect(after?.replicationOrder).toEqual(["geometry"]);
   });
 
+  it("round-trips the gallery exclusion through a save and a save back", async () => {
+    process.env.CONVEX_ADMIN_KEY = "secret";
+    const harness = createCtx({ memberships: editorMemberships });
+
+    await saveHandler(harness.ctx, {
+      ...editorArgs,
+      key: "JOSIE",
+      patch: { exclude_from_gallery: true },
+    });
+    expect(harness.read()?.exclude_from_gallery).toBe(true);
+
+    await saveHandler(harness.ctx, {
+      ...editorArgs,
+      key: "JOSIE",
+      patch: { exclude_from_gallery: false },
+    });
+    // Cleared, not stored-false: absent is the "included" default.
+    expect(harness.read()?.exclude_from_gallery).toBeUndefined();
+  });
+
+  it("round-trips the archival flag and staff note through a save and a save back", async () => {
+    process.env.CONVEX_ADMIN_KEY = "secret";
+    const harness = createCtx({ memberships: editorMemberships });
+
+    await saveHandler(harness.ctx, {
+      ...editorArgs,
+      key: "JOSIE",
+      patch: { archival: true, staffNote: { markdown: "A note.", attribution: "Josie" } },
+    });
+    expect(harness.read()?.archival).toBe(true);
+    expect(harness.read()?.staffNote).toEqual({ markdown: "A note.", attribution: "Josie" });
+
+    await saveHandler(harness.ctx, {
+      ...editorArgs,
+      key: "JOSIE",
+      patch: { archival: false, staffNote: null },
+    });
+    // Cleared, not stored-false: absent is the "normal profile" default.
+    expect(harness.read()?.archival).toBeUndefined();
+    expect(harness.read()?.staffNote).toBeUndefined();
+  });
+
   it("refuses a key that has no profile row", async () => {
     process.env.CONVEX_ADMIN_KEY = "secret";
     const harness = createCtx({ memberships: editorMemberships, profile: null });
@@ -325,5 +369,101 @@ describe("buildEditorProfilePatch", () => {
 
     const cleared = buildEditorProfilePatch({ avatarUrl: null }, baseProfile, "e@example.com");
     expect(cleared).toMatchObject({ avatarStorageId: undefined, avatarUrl: undefined });
+  });
+
+  it("stores the gallery exclusion as true-or-absent, never as a stored false", () => {
+    const excluded = buildEditorProfilePatch(
+      { exclude_from_gallery: true },
+      baseProfile,
+      "e@example.com",
+    );
+    expect(excluded.exclude_from_gallery).toBe(true);
+
+    // Toggling back to included deletes the field: present-but-undefined is
+    // Convex's spelling of a delete, and absent is the "included" default.
+    const included = buildEditorProfilePatch(
+      { exclude_from_gallery: false },
+      { ...baseProfile, exclude_from_gallery: true },
+      "e@example.com",
+    );
+    expect(Object.keys(included)).toContain("exclude_from_gallery");
+    expect(included.exclude_from_gallery).toBeUndefined();
+
+    expect(
+      Object.keys(buildEditorProfilePatch({ bio: "hi" }, baseProfile, "e@example.com")),
+    ).not.toContain("exclude_from_gallery");
+  });
+
+  it("stores the archival flag as true-or-absent, never as a stored false", () => {
+    const archived = buildEditorProfilePatch({ archival: true }, baseProfile, "e@example.com");
+    expect(archived.archival).toBe(true);
+
+    const restored = buildEditorProfilePatch(
+      { archival: false },
+      { ...baseProfile, archival: true },
+      "e@example.com",
+    );
+    expect(Object.keys(restored)).toContain("archival");
+    expect(restored.archival).toBeUndefined();
+
+    expect(
+      Object.keys(buildEditorProfilePatch({ bio: "hi" }, baseProfile, "e@example.com")),
+    ).not.toContain("archival");
+  });
+
+  it("stores a staff note sanitized and clears it on null or an emptied note", () => {
+    const noted = buildEditorProfilePatch(
+      { staffNote: { markdown: "A **note**.\r\n", attribution: "  Josie Kins ·  founder  " } },
+      baseProfile,
+      "e@example.com",
+    );
+    expect(noted.staffNote).toEqual({
+      markdown: "A **note**.\n",
+      attribution: "Josie Kins · founder",
+    });
+
+    // A blank attribution is omitted entirely rather than stored as "".
+    const unattributed = buildEditorProfilePatch(
+      { staffNote: { markdown: "Kept.", attribution: "   " } },
+      baseProfile,
+      "e@example.com",
+    );
+    expect(unattributed.staffNote).toEqual({ markdown: "Kept." });
+
+    // Cleared notes are present-but-undefined: Convex's spelling of a delete.
+    for (const cleared of [
+      buildEditorProfilePatch(
+        { staffNote: null },
+        { ...baseProfile, staffNote: { markdown: "Old." } },
+        "e@example.com",
+      ),
+      buildEditorProfilePatch(
+        { staffNote: { markdown: "   " } },
+        { ...baseProfile, staffNote: { markdown: "Old." } },
+        "e@example.com",
+      ),
+    ]) {
+      expect(Object.keys(cleared)).toContain("staffNote");
+      expect(cleared.staffNote).toBeUndefined();
+    }
+
+    expect(
+      Object.keys(buildEditorProfilePatch({ bio: "hi" }, baseProfile, "e@example.com")),
+    ).not.toContain("staffNote");
+  });
+
+  it("keeps the staff-only fields off the self-serve validator surface", () => {
+    // `saveProfile` (the self-serve path) validates against a strict object,
+    // so a field the validator does not name is rejected at the Convex
+    // boundary. The editor patch naming them is what makes them admin-only.
+    const selfServeFields = Object.keys(profileInputValidator.fields);
+    expect(selfServeFields).not.toContain("archival");
+    expect(selfServeFields).not.toContain("staffNote");
+    expect(selfServeFields).not.toContain("exclude_from_gallery");
+
+    const editorFields = Object.keys(editorProfilePatchValidator.fields);
+    expect(editorFields).toEqual(
+      expect.arrayContaining(["archival", "staffNote", "exclude_from_gallery"]),
+    );
   });
 });

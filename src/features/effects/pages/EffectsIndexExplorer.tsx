@@ -1,6 +1,6 @@
 "use client";
 
-import dynamic from "next/dynamic";
+import { useRouter } from "next/navigation";
 import {
   useCallback,
   useEffect,
@@ -11,22 +11,11 @@ import { IndexPanelGrid, INDEX_PANEL_STACK_CLASS_NAME } from "@/components/commo
 import { StateCard } from "@/components/common/StateCard";
 import { PublicSegmentedTabs } from "@/components/layout/PublicSegmentedTabs";
 import { useResponsiveColumnCount } from "@/hooks/useResponsiveColumnCount";
-import type { ContributorDirectory } from "@server/contributorDirectory";
 import type { PublicRouteEmptyState } from "@server/next/publicRouteOutcomes";
-import type { GalleryReplication } from "@/types/replications";
 import { EffectCategoryCard } from "../components/EffectCategoryCard";
 import { ParentCategoryCard } from "../components/ParentCategoryCard";
 import { SEIIntroSection } from "../components/SEIIntroSection";
 import type { SEIIntroCopy } from "../components/seiIntroCopy";
-// Lazy-loaded: the gallery explorer only renders on the (non-default) "gallery"
-// tab, so its chunk shouldn't ship on the default "all" view of /effects.
-const ReplicationsGalleryExplorer = dynamic(
-  () =>
-    import("../gallery/ReplicationsGalleryExplorer").then((m) => ({
-      default: m.ReplicationsGalleryExplorer,
-    })),
-  { ssr: false },
-);
 import {
   FLAT_CATEGORIES,
   PARENT_CATEGORIES,
@@ -46,9 +35,6 @@ interface EffectsIndexExplorerProps {
   effects: EffectSummary[];
   effectHrefPrefix?: string;
   emptyState?: PublicRouteEmptyState;
-  replications?: GalleryReplication[];
-  /** Passed through to the gallery so artist headings link to profile pages. */
-  contributorDirectory?: ContributorDirectory;
   /** Editable intro prose, resolved on the server. */
   introCopy?: SEIIntroCopy;
   /** Editable per-tab intro blobs, keyed by tab id; falls back to TABS config. */
@@ -78,17 +64,14 @@ export function EffectsIndexExplorer({
   effects,
   effectHrefPrefix,
   emptyState,
-  replications = [],
-  contributorDirectory,
   introCopy,
   tabBlobs,
 }: EffectsIndexExplorerProps) {
+  const router = useRouter();
   const [activeTab, setActiveTab] = useState<TabId>(DEFAULT_TAB);
-  const isGallery = activeTab === "gallery";
 
-  // The fragment is this page's tab address: /effects#gallery is how the replications
-  // landing page links the gallery, and the Effect Index header's Effects dropdown links
-  // #sensory / #cognitive / #physical the same way.
+  // The fragment is this page's tab address: the Effect Index header's Effects
+  // dropdown links #sensory / #cognitive / #physical this way.
   //
   // Listening matters as much as the initial read. A fragment link followed while this page
   // is already mounted does not remount it, and Next resolves hash-only navigations inside
@@ -102,6 +85,15 @@ export function EffectsIndexExplorer({
   // first client render still agree.
   useEffect(() => {
     const syncTabFromHash = () => {
+      // The gallery is no longer a tab here — it moved to its own top-level
+      // /replications section — but its old fragment address is in circulation
+      // (the former replications landing page linked it), so it must keep
+      // resolving. Redirect rather than blank the view.
+      if (window.location.hash.replace(/^#/, "").trim().toLowerCase() === "gallery") {
+        router.replace("/replications");
+        return;
+      }
+
       const tabFromHash = parseTabIdFromHash(window.location.hash);
 
       if (tabFromHash) {
@@ -125,7 +117,7 @@ export function EffectsIndexExplorer({
       window.removeEventListener("hashchange", syncTabFromHash);
       window.removeEventListener("popstate", syncTabFromHash);
     };
-  }, []);
+  }, [router]);
 
   const columnCount = useResponsiveColumnCount();
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
@@ -404,27 +396,16 @@ export function EffectsIndexExplorer({
           />
         </div>
 
-        {!isGallery && (
-          <SEIIntroSection
-            effectCount={effects.length}
-            copy={introCopy}
-            tabBlob={
-              activeTab !== "all"
-                ? (tabBlobs?.[activeTab] ?? activeTabConfig?.blob)
-                : undefined
-            }
-          />
-        )}
-      </div>
-
-      {isGallery && (
-        <ReplicationsGalleryExplorer
-          replications={replications}
-          effects={effects}
-          effectHrefPrefix={effectHrefPrefix}
-          contributorDirectory={contributorDirectory}
+        <SEIIntroSection
+          effectCount={effects.length}
+          copy={introCopy}
+          tabBlob={
+            activeTab !== "all"
+              ? (tabBlobs?.[activeTab] ?? activeTabConfig?.blob)
+              : undefined
+          }
         />
-      )}
+      </div>
 
       {activeTab === "all" && (() => {
         const nonEmptyColumns = Array.from({ length: columnCount })
@@ -464,7 +445,7 @@ export function EffectsIndexExplorer({
         );
       })()}
 
-      {activeTab !== "all" && !isGallery && (() => {
+      {activeTab !== "all" && (() => {
         const nonEmptyColumns = Array.from({ length: columnCount })
           .map((_, index) => ({ index, categories: flatCategoriesByColumn.get(index) ?? [] }))
           .filter((column) => column.categories.length > 0);
@@ -500,7 +481,7 @@ export function EffectsIndexExplorer({
         );
       })()}
 
-      {filteredEffects.length === 0 && !isGallery && (
+      {filteredEffects.length === 0 && (
         <StateCard
           badge={emptyState?.badge ?? "No effects"}
           badgeVariant="secondary"

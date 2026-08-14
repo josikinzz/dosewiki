@@ -10,6 +10,7 @@ export { InteractionsSection } from "./InteractionsSection";
 export { LegalitySection } from "./LegalitySection";
 export { PharmacologySection } from "./PharmacologySection";
 export { ReagentSection } from "./ReagentSection";
+export { ReviewStatusBanner } from "./ReviewStatusBanner";
 export { SubjectiveEffectsSection } from "./SubjectiveEffectsSection";
 export { TableOfContentsSection } from "./TableOfContentsSection";
 export { ToleranceSection } from "./ToleranceSection";

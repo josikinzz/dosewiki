@@ -40,7 +40,7 @@ const out = {
     'Generated SMILES overrides keyed by substance slug. Produced by subagent gap-fill ' +
     '(PubChem/Wikipedia) for substances missing inline identification.smiles. Every entry ' +
     'RDKit-validated. `represents` names the active molecule when the substance is a plant, ' +
-    'preparation, or brand name. Regenerate molecule art with scripts/data/generateMoleculeSvgs.mjs.',
+    'preparation, or brand name. Depictions render from Convex moleculeOverrides (seed with npm run molecules:seed-convex).',
   entries: Object.fromEntries(Object.entries(merged).sort(([a], [b]) => a.localeCompare(b))),
 };
 await writeFile(

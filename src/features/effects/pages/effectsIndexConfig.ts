@@ -1,7 +1,7 @@
 import type { IconName } from "@/components/common/Icon";
 import { icons } from "@/utils/iconNames";
 
-export type TabId = "all" | "sensory" | "cognitive" | "physical" | "gallery";
+export type TabId = "all" | "sensory" | "cognitive" | "physical";
 
 export interface TabConfig {
   id: TabId;
@@ -59,12 +59,6 @@ export const TABS: TabConfig[] = [
     icon: "lucide:activity",
     filterTags: ["physical", "uncomfortable"],
     blob: "Physical effects are subjective effects that directly affect part of a person's physical body.",
-  },
-  {
-    id: "gallery",
-    label: "Gallery",
-    icon: "lucide:images",
-    filterTags: [],
   },
 ];
 
@@ -188,9 +182,9 @@ export const FLAT_CATEGORIES: FlatCategoryConfig[] = [
 ];
 
 /**
- * The gallery is a tab on /effects rather than a route of its own, so `#gallery` is the
- * only address that can link straight to it (the replications landing page does exactly
- * that). Returns `null` for an absent or unrecognised fragment so the caller keeps its
+ * The index's tabs are addressed by URL fragment — the Effect Index header's
+ * Effects dropdown links #sensory / #cognitive / #physical this way. Returns
+ * `null` for an absent or unrecognised fragment so the caller keeps its
  * default tab.
  */
 export function parseTabIdFromHash(hash: string | null | undefined): TabId | null {

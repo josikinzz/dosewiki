@@ -1,6 +1,6 @@
 "use client";
 
-import { memo, useState } from "react";
+import { memo, useState, type ReactNode } from "react";
 import { ArticleContributorAttribution } from "@/components/layout/PublicFeedbackPrimitives";
 import { Icon } from "@/components/common/Icon";
 import type { SubstanceArticle } from "@/schema";
@@ -30,6 +30,11 @@ interface SubjectiveEffectsSectionProps {
   onSelectEffect?: (effect: string) => void;
   /** Profile href for the attribution author, resolved server-side; null when unmapped. */
   attributionHref?: string | null;
+  /**
+   * Streamed Replication Showcase (a server-rendered slot), drawn as the last
+   * child of the Visual group. Absent — the usual case — nothing changes.
+   */
+  replicationShowcaseSection?: ReactNode;
 }
 
 const effectFamilyGroupClassName =
@@ -62,6 +67,7 @@ export const SubjectiveEffectsSection = memo(function SubjectiveEffectsSection({
   article,
   onSelectEffect,
   attributionHref,
+  replicationShowcaseSection,
 }: SubjectiveEffectsSectionProps) {
   const { subjective_effects, comparisons } = article;
 
@@ -340,6 +346,9 @@ export const SubjectiveEffectsSection = memo(function SubjectiveEffectsSection({
                 onToggleEffect={toggleEffect}
                 onSelectEffect={onSelectEffect}
               />
+              {key === "visual" && replicationShowcaseSection
+                ? replicationShowcaseSection
+                : null}
             </ArticleSectionGroup>
           );
         })}

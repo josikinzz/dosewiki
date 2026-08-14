@@ -108,4 +108,49 @@ describe("UserProfilePage", () => {
       "https://chelsea.example/",
     );
   });
+
+  it("shows the archival notice under the handle only for an archival profile", () => {
+    const { rerender } = render(
+      <UserProfilePage profile={{ ...profile, archival: true }} history={[]} />,
+    );
+
+    const notice = screen.getByTestId("archival-notice");
+    expect(notice).toHaveTextContent("Archival profile");
+    expect(notice).toHaveTextContent("maintained by staff, not created by this person.");
+
+    rerender(<UserProfilePage profile={profile} history={[]} />);
+    expect(screen.queryByTestId("archival-notice")).toBeNull();
+  });
+
+  it("renders the editor's note as a signed section under the bio, and nothing without one", () => {
+    render(
+      <UserProfilePage
+        profile={profile}
+        history={[]}
+        editorNote={{
+          content: <p>A staff note.</p>,
+          attribution: "Josie Kins · founder",
+          avatarUrl: "https://cdn.test/josie.webp",
+          avatarHref: "/contributors/josie",
+        }}
+      />,
+    );
+
+    expect(screen.getByRole("heading", { name: "Editor's note" })).toBeInTheDocument();
+    expect(screen.getByText("A staff note.")).toBeInTheDocument();
+    expect(screen.getByText("Josie Kins · founder")).toBeInTheDocument();
+    expect(screen.getByAltText("Josie Kins · founder")).toHaveAttribute(
+      "src",
+      "https://cdn.test/josie.webp",
+    );
+    // A note alone counts as a public section: the empty-state card must not
+    // sit beside it.
+    expect(screen.queryByText("No public contributions yet")).toBeNull();
+  });
+
+  it("renders no editor's note section at all when the profile has none", () => {
+    render(<UserProfilePage profile={profile} history={[]} replications={[work]} />);
+    expect(screen.queryByRole("heading", { name: "Editor's note" })).toBeNull();
+    expect(screen.queryByTestId("editor-note")).toBeNull();
+  });
 });

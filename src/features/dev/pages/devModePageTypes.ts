@@ -40,6 +40,7 @@ export type DevModePageControllerState = {
   >["renderCommitPanel"];
   citationReviewInitialSlug?: string;
   moleculeEditorInitialSlug?: string;
+  replicationsInitialSlug?: string;
   /**
    * The Writing/Blog deep link: `/dev/writing/<slug>`, `/dev/blog/<slug>`, or
    * the literal `about` that `/dev/about` now resolves to.

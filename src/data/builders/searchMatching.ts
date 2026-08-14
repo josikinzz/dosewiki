@@ -24,6 +24,9 @@ export const SEARCH_TYPE_ORDER: Record<SearchEntryType, number> = {
  *   (alias `ethanol`) or 4-AcO-DET (alias `Ethacetin`).
  * - Word-boundary hits beat mid-word hits, so `lad` surfaces ETH-LAD and AL-LAD
  *   before substances that merely contain the letters.
+ * - Exact and prefix comparisons also run on compact forms with punctuation
+ *   stripped, so `allad` is an exact hit on AL-LAD (compact `allad`) instead
+ *   of only a substring hit on Palladone.
  * - Keyword hits (classes, mechanisms, prose) are always last; they exist to
  *   make the long tail reachable, not to compete with name matches.
  */
@@ -70,6 +73,39 @@ export const foldSearchText = (value: string | undefined | null): string => {
 /** Folded, punctuation-flattened identity key used to link reports to substances. */
 export const normalizeSearchKey = (value: string | undefined): string =>
   foldSearchText(value).replace(/[^a-z0-9]+/g, " ").trim();
+
+/**
+ * Compact identity form: folded with everything but letters and digits
+ * removed, so `allad` and `AL-LAD` compare equal. Only ever compared against
+ * other compact forms; word-boundary logic stays on the folded/spaced form.
+ */
+export const compactSearchText = (value: string | undefined | null): string =>
+  foldSearchText(value).replace(/[^a-z0-9]+/g, "");
+
+/** The compact fields an index or manifest loader precomputes per entry. */
+export interface CompactMatchFields {
+  labelCompact: string;
+  aliasCompact?: readonly string[];
+  identityCompactBlob: string;
+}
+
+/**
+ * Derive the compact fields for one entry. Shared by the server index builder
+ * and the client manifest loader so the compact forms never live in a
+ * serialized payload — they are recomputed wherever entries materialize.
+ */
+export const buildCompactMatchFields = (
+  label: string,
+  aliases: readonly string[] | undefined,
+): CompactMatchFields => {
+  const labelCompact = compactSearchText(label);
+  const aliasCompact = aliases?.map((alias) => compactSearchText(alias));
+  return {
+    labelCompact,
+    aliasCompact,
+    identityCompactBlob: [labelCompact, ...(aliasCompact ?? [])].join(KEYWORD_SEPARATOR),
+  };
+};
 
 const isWordCharacter = (code: number): boolean =>
   (code >= 97 && code <= 122) || (code >= 48 && code <= 57);
@@ -120,10 +156,14 @@ export interface MatchableEntry {
   aliases?: readonly string[];
   labelFolded: string;
   aliasFolded?: readonly string[];
+  labelCompact: string;
+  aliasCompact?: readonly string[];
   reportSubstanceKeys?: readonly string[];
   reportSubstanceAliasFolded?: readonly string[];
   /** `labelFolded`, aliases and report substance aliases joined by {@link KEYWORD_SEPARATOR}. */
   identityBlob: string;
+  /** `labelCompact` and `aliasCompact` joined by {@link KEYWORD_SEPARATOR}. */
+  identityCompactBlob: string;
   /**
    * Every keyword joined by {@link KEYWORD_SEPARATOR}, with a leading separator.
    * Empty for manifest entries, which carry no keywords — the keyword tiers then
@@ -143,27 +183,49 @@ export interface ScoredMatch {
   matchLength: number;
 }
 
-export const computeScore = (entry: MatchableEntry, query: string): ScoredMatch | null => {
+export const computeScore = (
+  entry: MatchableEntry,
+  query: string,
+  compactQuery: string = compactSearchText(query),
+): ScoredMatch | null => {
   if (!query) {
     return null;
   }
 
-  // Two native substring scans reject the ~95% of entries that cannot match at
+  // The compact tiers only run for a query that still carries letters or
+  // digits once punctuation is gone; an all-punctuation query would otherwise
+  // compact to "" and prefix-match everything.
+  const compact = compactQuery.length > 0;
+
+  // Native substring scans reject the ~95% of entries that cannot match at
   // all, before any per-alias or per-keyword work happens.
-  if (!entry.identityBlob.includes(query) && !entry.keywordBlob.includes(query)) {
+  if (
+    !entry.identityBlob.includes(query) &&
+    !(compact && entry.identityCompactBlob.includes(compactQuery)) &&
+    !entry.keywordBlob.includes(query)
+  ) {
     return null;
   }
 
   const labelLength = entry.labelFolded.length;
-  const { aliasFolded, reportSubstanceAliasFolded } = entry;
+  const { aliasFolded, aliasCompact, reportSubstanceAliasFolded } = entry;
 
-  if (entry.labelFolded === query) {
+  if (entry.labelFolded === query || (compact && entry.labelCompact === compactQuery)) {
     return { score: SCORE.labelExact, matchLength: labelLength };
   }
 
   const aliasExact = shortestMatchLength(aliasFolded, (alias) => alias === query);
   if (aliasExact !== null) {
     return { score: SCORE.aliasExact, matchLength: aliasExact };
+  }
+  if (compact) {
+    const aliasCompactExact = shortestMatchLength(
+      aliasCompact,
+      (alias) => alias === compactQuery,
+    );
+    if (aliasCompactExact !== null) {
+      return { score: SCORE.aliasExact, matchLength: aliasCompactExact };
+    }
   }
 
   const reportAliasExact = shortestMatchLength(
@@ -174,7 +236,10 @@ export const computeScore = (entry: MatchableEntry, query: string): ScoredMatch 
     return { score: SCORE.reportSubstanceAliasExact, matchLength: reportAliasExact };
   }
 
-  if (entry.labelFolded.startsWith(query)) {
+  if (
+    entry.labelFolded.startsWith(query) ||
+    (compact && entry.labelCompact.startsWith(compactQuery))
+  ) {
     return { score: SCORE.labelPrefix, matchLength: labelLength };
   }
   if (hasWordPrefix(entry.labelFolded, query)) {
@@ -184,6 +249,14 @@ export const computeScore = (entry: MatchableEntry, query: string): ScoredMatch 
   const aliasPrefix = shortestMatchLength(aliasFolded, (alias) => alias.startsWith(query));
   if (aliasPrefix !== null) {
     return { score: SCORE.aliasPrefix, matchLength: aliasPrefix };
+  }
+  if (compact) {
+    const aliasCompactPrefix = shortestMatchLength(aliasCompact, (alias) =>
+      alias.startsWith(compactQuery),
+    );
+    if (aliasCompactPrefix !== null) {
+      return { score: SCORE.aliasPrefix, matchLength: aliasCompactPrefix };
+    }
   }
 
   const aliasWordPrefix = shortestMatchLength(aliasFolded, (alias) => hasWordPrefix(alias, query));
@@ -292,10 +365,11 @@ export function runSearch<TEntry extends MatchableEntry>(
   if (!normalized) {
     return [];
   }
+  const compactQuery = compactSearchText(normalized);
 
   const matches: RankedMatch<TEntry>[] = [];
   for (const entry of entries) {
-    const scored = computeScore(entry, normalized);
+    const scored = computeScore(entry, normalized, compactQuery);
     if (scored !== null) {
       matches.push({ entry, score: scored.score, matchLength: scored.matchLength });
     }

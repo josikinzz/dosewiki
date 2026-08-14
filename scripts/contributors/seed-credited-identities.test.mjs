@@ -342,17 +342,22 @@ describe("contributorIdentityCorrections.json", () => {
     }
   });
 
-  it("holds the five name corrections, all strong, all applying to the rows too", () => {
-    expect(
-      CORRECTIONS.nameCorrections.map((entry) => [entry.stored, entry.correct, entry.strength]),
-    ).toEqual([
-      ["Ben Ridgeway", "Ben Ridgway", "strong"],
-      ["Simon Haid", "Simon Haiduk", "strong"],
-      ["Insedigris", "Incedigris", "strong"],
-      ["MOracs", "MOracz", "strong"],
-      ["Sam perkins", "Sam Perkins", "strong"],
-    ]);
+  it("holds the name corrections, all strong, all applying to the rows too", () => {
+    // The catalogue grew from the original five research-pass corrections to 26
+    // once the casing/rename normalizations landed; the original five must
+    // survive, and every entry keeps the strong + rows-too contract.
+    const pairs = CORRECTIONS.nameCorrections.map((entry) => [entry.stored, entry.correct]);
+    expect(pairs).toEqual(
+      expect.arrayContaining([
+        ["Ben Ridgeway", "Ben Ridgway"],
+        ["Simon Haid", "Simon Haiduk"],
+        ["Insedigris", "Incedigris"],
+        ["MOracs", "MOracz"],
+        ["Sam perkins", "Sam Perkins"],
+      ]),
+    );
     for (const entry of CORRECTIONS.nameCorrections) {
+      expect(entry.strength, entry.stored).toBe("strong");
       // The name lives on replications.artist as well as on the profile, and a
       // profile fixed alone is a profile that disagrees with every gallery tile.
       expect(entry.correctsReplicationArtistField, entry.stored).toBe(true);
@@ -384,14 +389,18 @@ describe("contributorIdentityCorrections.json", () => {
     for (const entry of [...index.inertNames, ...index.inertLinks]) {
       expect(entry.strength).not.toBe("strong");
     }
-    // The four the owner has to settle are named and none of them is applied.
+    // The subjects the owner had to settle are all named. Three remain
+    // unapplied; Loka's was settled on 2026-08-14 (Loka = LokaVision,
+    // https://lokavision.com/) and is now the one ownerDecisions subject that
+    // IS applied, via the strong Loka linkCorrections entry.
     const subjects = CORRECTIONS.ownerDecisions.map((decision) => decision.subject);
     expect(subjects).toEqual(
       expect.arrayContaining(["k visuals", "thatswissengineer", "Neil Usher", "Loka"]),
     );
     expect(applied.has("k visuals")).toBe(false);
     expect(applied.has("thatswissengineer")).toBe(false);
-    expect(applied.has("loka")).toBe(false);
+    expect(applied.has("loka")).toBe(true);
+    expect(index.links.get("loka")?.add?.[0]?.url).toBe("https://lokavision.com/");
   });
 
   it("treats scheme and a trailing slash as noise when matching a URL", () => {
@@ -499,12 +508,27 @@ describe("buildSeedPlan applying the corrections", () => {
 
   it("reports each correction with its evidence and its consequence for the rows", () => {
     const applied = plan.nameCorrectionsApplied.map((entry) => [entry.storedAs, entry.correctedTo]);
+    // Casing-normalization entries match this corpus's already-correct rows
+    // case-insensitively and report as no-op applications; the two real
+    // respellings are the ones that must change the rows.
     expect(applied).toEqual([
+      ["Ben Ridgeway", "Ben Ridgway"],
+      ["SalviaDroid", "SalviaDroid"],
+      ["Alex Grey", "Alex Grey"],
+      ["MOracs", "MOracz"],
+    ]);
+    const respellings = plan.nameCorrectionsApplied.filter(
+      (entry) => entry.storedAs !== entry.correctedTo,
+    );
+    expect(respellings.map((entry) => [entry.storedAs, entry.correctedTo])).toEqual([
       ["Ben Ridgeway", "Ben Ridgway"],
       ["MOracs", "MOracz"],
     ]);
-    expect(plan.nameCorrectionsApplied[0].correctsReplicationArtistField).toBe(true);
-    expect(plan.nameCorrectionsApplied[0].evidence).toMatch(/vimeo\.com\/benridgway/);
+    const benRidgway = plan.nameCorrectionsApplied.find(
+      (entry) => entry.correctedTo === "Ben Ridgway",
+    );
+    expect(benRidgway.correctsReplicationArtistField).toBe(true);
+    expect(benRidgway.evidence).toMatch(/vimeo\.com\/benridgway/);
   });
 
   it("replaces the per-work URL with the artist's own home", () => {

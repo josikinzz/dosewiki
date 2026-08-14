@@ -324,7 +324,6 @@ describe("search index", () => {
         {
           key: "ADA",
           displayName: "Ada Lovelace",
-          aliases: ["analytical engine"],
           bio: "Contributor focused on DMT reports.",
           hasCustomBio: true,
         },
@@ -350,10 +349,24 @@ describe("search index", () => {
       secondary: "DMT (30mg, vaporized) · age 29 · 150lb · 5'8\" · 2026-04-20",
       description: "A short report about dimethyltryptamine. The first effects arrived quickly.",
     });
-    expect(built.query("analytical")[0]).toMatchObject({
-      type: "profile",
-      slug: "ADA",
+  });
+
+  it("never matches contributor profiles on internal aliases", () => {
+    const input = createSearchIndexInput(createLibrary([]), {
+      profiles: [
+        {
+          key: "LYREA",
+          displayName: "Lyrea",
+          bio: "Reviewer.",
+          hasCustomBio: true,
+        },
+      ],
     });
+
+    const built = buildSearchIndex(input);
+    expect(built.query("lyrea")[0]).toMatchObject({ type: "profile", slug: "LYREA" });
+    expect(built.query("witchy")).toEqual([]);
+    expect(built.entries.some((entry) => entry.type === "profile" && entry.aliases)).toBe(false);
   });
 
   it("keeps report metadata separate from report narrative descriptions", () => {
@@ -641,6 +654,28 @@ describe("search index", () => {
       // "lad" sits mid-word here, so it ranks below both hyphenated names.
       "Gladamine",
     ]);
+  });
+
+  it("matches punctuation-insensitively so compact queries hit name tiers", () => {
+    const library = createLibrary([
+      createRecord("AL-LAD", "al-lad"),
+      createRecord("1cP-AL-LAD", "1cp-al-lad"),
+      createRecord("2C-B", "2c-b"),
+      createRecord("ETH-LAD", "eth-lad"),
+      createRecord("Hydromorphone", "hydromorphone", { aliases: ["Palladone"] }),
+    ], { categories: [] });
+    const index = buildSearchIndexFromLibrary(library);
+
+    // Compact-exact name hit ranks as exact, above Palladone's substring hit.
+    expect(index.query("allad").map((match) => match.label)).toEqual([
+      "AL-LAD",
+      "Hydromorphone",
+    ]);
+    expect(index.query("1cpallad")[0]?.label).toBe("1cP-AL-LAD");
+    expect(index.query("2cb")[0]?.label).toBe("2C-B");
+    expect(index.query("ethlad")[0]?.label).toBe("ETH-LAD");
+    // Punctuation in the query folds away against the compact name too.
+    expect(index.query("al lad")[0]?.label).toBe("AL-LAD");
   });
 
   it("prefers the name the query covers most when scores tie", () => {

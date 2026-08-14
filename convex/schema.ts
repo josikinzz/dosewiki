@@ -256,6 +256,43 @@ const articleFeedback = v.object({
   updated_at: v.string(),
 });
 
+const siteFeedbackCategory = v.union(
+  v.literal("article-request"),
+  v.literal("technical"),
+  v.literal("ui-design"),
+  v.literal("performance"),
+  v.literal("accessibility"),
+  v.literal("misc"),
+);
+
+const siteFeedbackUrgency = v.union(
+  v.literal("critical"),
+  v.literal("high"),
+  v.literal("normal"),
+  v.literal("low"),
+);
+
+// Site-wide general feedback intake (/about/feedback). Shares the
+// articleFeedback status machine; status values reuse articleFeedbackStatus.
+const siteFeedback = v.object({
+  id: v.string(),
+  status: articleFeedbackStatus,
+  schema_version: v.number(),
+  category: siteFeedbackCategory,
+  urgency: v.optional(siteFeedbackUrgency),
+  details: v.string(),
+  page: v.optional(v.string()),
+  email: v.optional(v.string()),
+  ip_hash: v.optional(v.string()),
+  user_agent: v.optional(v.string()),
+  honeypot_triggered: v.boolean(),
+  review_notes: v.optional(v.string()),
+  reviewed_by: v.optional(v.string()),
+  reviewed_at: v.optional(v.string()),
+  created_at: v.string(),
+  updated_at: v.string(),
+});
+
 // EffectIndex articles - intensity scales, substance analyses, methodology docs
 const effectIndexArticle = v.object({
   slug: v.string(),           // URL-safe identifier (e.g., "dissociative-intensity-scale")
@@ -453,6 +490,21 @@ const replication = v.object({
   ...replicationRightsFields,
 });
 
+// Per-substance curation of the article's Replication Showcase. The showcase
+// itself is *derived* — the substance's visual-effect names are matched against
+// `replications` at read time — so this row stores only the editor's deltas:
+// a pinned head (`curated_slugs`, in display order) and a suppression list
+// (`removed_slugs`). Both hold `replications.slug` values, are pruned on write
+// to slugs that still match the substance, and may never overlap. A substance
+// with no row shows the derived set in default order.
+const substanceGallery = v.object({
+  substance_slug: v.string(),
+  curated_slugs: v.array(v.string()),
+  removed_slugs: v.array(v.string()),
+  updated_at: v.string(),               // ISO timestamp
+  updated_by: v.optional(v.string()),
+});
+
 const membership = v.object({
   email: v.string(),
   name: v.optional(v.string()),
@@ -523,6 +575,25 @@ const contributorProfile = v.object({
   // Same partial-curation contract for the contributor's trip reports, against
   // `tripReports` slugs.
   reportOrder: v.optional(v.array(v.string())),
+  // The contributor's opt-out from the public /replications gallery. Absent
+  // means included; `false` is never stored (the write clears the field
+  // instead). This gates only the gallery corpus read — effect-article
+  // sections, substance showcases, profile pages, and permalinks still show
+  // the works.
+  exclude_from_gallery: v.optional(v.boolean()),
+  // Staff-maintained memorial/showcase marker. Absent means a normal profile;
+  // `false` is never stored (the write clears the field instead). Renders the
+  // "Archival profile" notice on the public page. Admin-only write path
+  // (`saveProfileAsEditor`); the self-serve save cannot touch it.
+  archival: v.optional(v.boolean()),
+  // Signed staff commentary ("Editor's note") rendered under the public bio.
+  // Absent renders nothing. Admin-only write path, like `archival`.
+  staffNote: v.optional(
+    v.object({
+      markdown: v.string(),
+      attribution: v.optional(v.string()),
+    }),
+  ),
   createdAt: v.string(),
   updatedAt: v.string(),
   updatedBy: v.optional(v.string()),
@@ -553,7 +624,8 @@ export default defineSchema({
   // Changelog table - tracks all article changes
   changelog: defineTable(changelogEntry)
     .index("by_entry_id", ["entryId"])
-    .index("by_created_at", ["createdAt"]),
+    .index("by_created_at", ["createdAt"])
+    .index("by_submitted_by", ["submittedBy"]),
 
   // Article source files - scraped content per substance (read-only after migration)
   articleSources: defineTable(articleSource)
@@ -598,6 +670,12 @@ export default defineSchema({
     .index("by_public_id", ["id"])
     .index("by_substance", ["substance_slug", "created_at"]),
 
+  // Private site-wide general feedback intake. Editor-only; never rendered publicly.
+  siteFeedback: defineTable(siteFeedback)
+    .index("by_status_created", ["status", "created_at"])
+    .index("by_created_at", ["created_at"])
+    .index("by_public_id", ["id"]),
+
   // Subjective effect articles - imported from EffectIndex
   subjectiveEffects: defineTable(subjectiveEffect)
     .index("by_slug", ["slug"])
@@ -621,6 +699,10 @@ export default defineSchema({
     .index("by_effect", ["effect_slug"])
     .index("by_slug", ["slug"])
     .index("by_artist", ["artist"]),
+
+  // Per-substance Replication Showcase curation; see the validator's note.
+  substanceGalleries: defineTable(substanceGallery)
+    .index("by_substance", ["substance_slug"]),
 
   memberships: defineTable(membership)
     .index("by_email", ["email"])

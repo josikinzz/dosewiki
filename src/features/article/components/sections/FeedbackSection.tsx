@@ -1,7 +1,9 @@
 "use client";
 
 import { useId, useState, type FormEvent, type ReactNode } from "react";
+import Link from "next/link";
 
+import { proseLinkClassName } from "@/components/common/ProseLink";
 import { ArticleSection } from "@/components/common/ArticleSection";
 import { Icon } from "@/components/common/Icon";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -282,6 +284,14 @@ export function FeedbackSection({ article }: FeedbackSectionProps) {
           </div>
         </form>
       )}
+
+      <p className="theme-text-faint text-sm">
+        Wish to give generalised feedback? You can do so{" "}
+        <Link href="/about/feedback" className={proseLinkClassName}>
+          here
+        </Link>
+        .
+      </p>
     </ArticleSection>
   );
 }

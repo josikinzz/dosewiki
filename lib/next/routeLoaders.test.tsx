@@ -43,6 +43,7 @@ const publicData = vi.hoisted(() => ({
   getPublicContributorByKey: vi.fn(),
   getPublicContributorDirectory: vi.fn(() => Promise.resolve([])),
   getPublicContributorProfiles: vi.fn(() => Promise.resolve([])),
+  getPublicProfileHistory: vi.fn(() => Promise.resolve([])),
   getPublicDataOverview: vi.fn(),
   getPublicEffectArticles: vi.fn(),
   getPublicEffectIndexArticleBySlug: vi.fn(),
@@ -57,6 +58,7 @@ const publicData = vi.hoisted(() => ({
   getPublicSubstanceLookup: vi.fn(),
   getPublicSubstances: vi.fn(),
   getReplicationsByContributor: vi.fn(() => Promise.resolve([])),
+  getReviewedArticlesByContributor: vi.fn(() => Promise.resolve([])),
   getReportsByContributor: vi.fn(),
 }));
 
@@ -692,6 +694,27 @@ describe("route loaders", () => {
     expect(result.pageProps.effectArticles).toEqual([{ slug: "geometry", name: "Geometry" }]);
   });
 
+  it("hands the profile its reviewed articles by profile key only", async () => {
+    publicData.getPublicContributorByKey.mockResolvedValueOnce(buildContributorProfile());
+    publicData.getReportsByContributor.mockResolvedValueOnce([]);
+    publicData.getReplicationsByContributor.mockResolvedValueOnce([]);
+    publicData.getReviewedArticlesByContributor.mockResolvedValueOnce([
+      { slug: "2c-b", title: "2C-B", reviewed_at: "2026-08-01T00:00:00.000Z" },
+    ]);
+
+    const result = await loadContributorRoute("ada");
+
+    if (result.kind !== "ok") {
+      throw new Error("expected ok result");
+    }
+    // Key-only on purpose: the reviewer-email matching happens inside Convex,
+    // so the loader never handles an email it could leak into page props.
+    expect(publicData.getReviewedArticlesByContributor).toHaveBeenCalledWith("ADA");
+    expect(result.pageProps.reviewedArticles).toEqual([
+      { slug: "2c-b", title: "2C-B", reviewed_at: "2026-08-01T00:00:00.000Z" },
+    ]);
+  });
+
   it("still renders a profile when the replication join is unavailable", async () => {
     // A Convex deployment that predates `replications:getByArtistNames` reports
     // the same opaque Server Error it uses for everything else, so the profile
@@ -724,6 +747,7 @@ describe("route loaders", () => {
     expect(publicData.getReportsByContributor).not.toHaveBeenCalled();
     expect(publicData.getReplicationsByContributor).not.toHaveBeenCalled();
     expect(publicData.getEffectArticlesByContributor).not.toHaveBeenCalled();
+    expect(publicData.getReviewedArticlesByContributor).not.toHaveBeenCalled();
   });
 
   it("returns contributor not-found results with the normalized key", async () => {

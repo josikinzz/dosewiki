@@ -52,14 +52,22 @@ describe("site flavor config", () => {
       description: "An open encyclopedic database for the study of psychopharmacology",
       logoPath: "/icon-512.png",
       socialCard: { path: "/icon-512.png", width: 512, height: 512 },
+      faviconPath: "/favicon.svg",
+      appleTouchIconPath: "/apple-touch-icon.png",
       homeTitle: "dose.wiki",
       aboutTitle: "About dose.wiki",
       showThemeToggle: true,
       lockedTheme: null,
     });
-    expect(config.primaryNavIds).toEqual(["substances", "effects", "reports"]);
+    expect(config.primaryNavIds).toEqual(["substances", "effects", "reports", "replications"]);
     expect(config.secondaryNavIds).toEqual(["about"]);
-    expect(config.quickLinkIds).toEqual(["substances", "effects", "reports", "about"]);
+    expect(config.quickLinkIds).toEqual([
+      "substances",
+      "effects",
+      "reports",
+      "replications",
+      "about",
+    ]);
     // dose.wiki owns `/blog` — its own blog, not the Effect Index archive.
     expect(config.flavorGatedRoutes).toEqual(["blog"]);
     expect(config.organization).toEqual({
@@ -80,6 +88,8 @@ describe("site flavor config", () => {
       description:
         "A resource dedicated to establishing the field of formalised subjective effect documentation.",
       logoPath: "/effectindex/icon.png",
+      faviconPath: "/effectindex/favicon.png",
+      appleTouchIconPath: "/effectindex/icon.png",
       homeTitle: "Effect Index",
       aboutTitle: "About Effect Index",
       showThemeToggle: false,

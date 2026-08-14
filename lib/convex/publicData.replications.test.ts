@@ -182,3 +182,167 @@ describe("getReplicationsByContributor", () => {
     ).rejects.toThrow("Server Error");
   });
 });
+
+describe("getPublicReplicationsForSubstance", () => {
+  beforeEach(() => {
+    vi.resetModules();
+    mocks.queryConvex.mockReset();
+  });
+
+  const item = (slug: string, overrides: Record<string, unknown> = {}) => ({
+    replication: { slug, artist: "Josie Kins", type: "image", url: `https://x/${slug}`, ...overrides },
+    provenance: { matchedVia: "effect_slug", effectSlug: "drifting" },
+  });
+
+  it("asks Convex for the substance's showcase and returns it ordered as served", async () => {
+    mocks.queryConvex.mockResolvedValueOnce({
+      items: [item("curated-head"), item("default-tail")],
+      unmatchedEffectNames: ["Environmental orbism"],
+    });
+
+    const { getPublicReplicationsForSubstance } = await import("./publicData.replications");
+    const gallery = await getPublicReplicationsForSubstance("lsd");
+
+    expect(mocks.queryConvex).toHaveBeenCalledTimes(1);
+    expect(mocks.queryConvex).toHaveBeenCalledWith(
+      "substanceGalleries:getPublicReplicationsForSubstance",
+      { substance_slug: "lsd" },
+    );
+    expect(gallery.items.map((entry) => entry.replication.slug)).toEqual([
+      "curated-head",
+      "default-tail",
+    ]);
+    expect(gallery.unmatchedEffectNames).toEqual(["Environmental orbism"]);
+  });
+
+  it("re-applies the publishability gate at this layer like every list read", async () => {
+    mocks.queryConvex.mockResolvedValueOnce({
+      items: [item("a-work"), item("a-figure", { role: "figure" }), item("a-track", { type: "audio" })],
+      unmatchedEffectNames: [],
+    });
+
+    const { getPublicReplicationsForSubstance } = await import("./publicData.replications");
+    const gallery = await getPublicReplicationsForSubstance("lsd");
+
+    expect(gallery.items.map((entry) => entry.replication.slug)).toEqual(["a-work"]);
+  });
+
+  it("returns an empty gallery for a zero-match substance, not an error", async () => {
+    mocks.queryConvex.mockResolvedValueOnce({ items: [], unmatchedEffectNames: [] });
+
+    const { getPublicReplicationsForSubstance } = await import("./publicData.replications");
+
+    await expect(getPublicReplicationsForSubstance("aspirin")).resolves.toEqual({
+      items: [],
+      unmatchedEffectNames: [],
+    });
+  });
+
+  it("degrades to an empty showcase when the additive Convex query is not deployed", async () => {
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+    mocks.queryConvex.mockRejectedValueOnce(
+      new Error(
+        "[CONVEX Q(substanceGalleries:getPublicReplicationsForSubstance)] Could not find public function",
+      ),
+    );
+
+    const { getPublicReplicationsForSubstance } = await import("./publicData.replications");
+
+    await expect(getPublicReplicationsForSubstance("lsd")).resolves.toEqual({
+      items: [],
+      unmatchedEffectNames: [],
+    });
+    expect(warn).toHaveBeenCalled();
+    warn.mockRestore();
+  });
+
+  it("surfaces any other Convex failure instead of pretending the showcase is empty", async () => {
+    mocks.queryConvex.mockRejectedValueOnce(
+      new Error("[CONVEX Q(substanceGalleries:getPublicReplicationsForSubstance)] Server Error"),
+    );
+
+    const { getPublicReplicationsForSubstance } = await import("./publicData.replications");
+
+    await expect(getPublicReplicationsForSubstance("lsd")).rejects.toThrow("Server Error");
+  });
+});
+
+describe("getPublicGalleryReplications", () => {
+  beforeEach(() => {
+    vi.resetModules();
+    mocks.queryConvex.mockReset();
+  });
+
+  const work = (slug: string, artist: string) => ({
+    slug,
+    artist,
+    type: "image",
+    url: `https://x/${slug}`,
+  });
+
+  const corpus = [
+    work("drifting", "Josie Kins"),
+    work("tracers", "josie"),
+    work("breathing", "Kaytwo"),
+    work("orbism", "A Stranger"),
+  ];
+
+  const stubConvex = (profiles: NormalizedUserProfile[]) => {
+    mocks.queryConvex.mockImplementation(async (functionName: string) => {
+      if (functionName === "replications:getPublicReplications") {
+        return corpus;
+      }
+      if (functionName === "contributorProfiles:getAll") {
+        return profiles;
+      }
+      throw new Error(`Unexpected Convex read: ${functionName}`);
+    });
+  };
+
+  it("drops an excluded artist's works across display name and alias credits", async () => {
+    stubConvex([
+      {
+        ...contributor({ key: "JOSIE", displayName: "Josie Kins", aliases: ["josie"] }),
+        exclude_from_gallery: true,
+      },
+      contributor({ key: "KAYTWO", displayName: "Kaytwo" }),
+    ]);
+
+    const { getPublicGalleryReplications } = await import("./publicData.replications");
+    const gallery = await getPublicGalleryReplications();
+
+    // Both of Josie's credit lines vanish; Kaytwo (not excluded) and the
+    // profile-less "A Stranger" are untouched.
+    expect(gallery.map((item) => item.slug)).toEqual(["breathing", "orbism"]);
+  });
+
+  it("passes the corpus through untouched when nobody is excluded", async () => {
+    stubConvex([contributor({ key: "JOSIE", displayName: "Josie Kins", aliases: ["josie"] })]);
+
+    const { getPublicGalleryReplications } = await import("./publicData.replications");
+
+    await expect(getPublicGalleryReplications()).resolves.toEqual(corpus);
+  });
+
+  it("leaves every other replication read unfiltered by the exclusion", async () => {
+    stubConvex([
+      {
+        ...contributor({ key: "JOSIE", displayName: "Josie Kins", aliases: ["josie"] }),
+        exclude_from_gallery: true,
+      },
+    ]);
+
+    const { getPublicReplications } = await import("./publicData.effects");
+    // The shared corpus read feeds the public API and the permalink walk; the
+    // exclusion is a gallery-presentation choice, not an unpublication.
+    await expect(getPublicReplications()).resolves.toEqual(corpus);
+
+    mocks.queryConvex.mockReset();
+    mocks.queryConvex.mockResolvedValueOnce([work("drifting", "Josie Kins")]);
+    const { getPublicReplicationsByEffect } = await import("./publicData.effects");
+    // Effect-article replication sections still show an excluded artist's work.
+    await expect(getPublicReplicationsByEffect("drifting")).resolves.toEqual([
+      work("drifting", "Josie Kins"),
+    ]);
+  });
+});

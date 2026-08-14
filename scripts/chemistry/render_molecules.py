@@ -1,7 +1,12 @@
 #!/usr/bin/env python
 """
-Render consistent, brand-coloured SVG skeletal structures for every substance
-from SMILES, using RDKit.
+Brand-coloured RDKit skeletal-structure drawing engine.
+
+The per-substance static pipeline that used this file's CLI is retired: substance
+depictions are Convex `moleculeOverrides` rows now. The module survives because
+`render_class_structures.py` imports its style/orientation engine (PALETTE,
+SCAFFOLD_DEFS, align, _draw_mol_svg) to draw the chemical-class Markush skeletons
+in `public/molecules/classes/`.
 
 Why this produces a *consistent* set (the project goal):
   * One engine, one config for every molecule -> identical fonts + stroke weights.

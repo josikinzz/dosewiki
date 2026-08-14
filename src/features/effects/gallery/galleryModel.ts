@@ -56,6 +56,94 @@ export function artistIdentity(artist?: string | null): { key: string; label: st
   return { key: label.toLowerCase(), label };
 }
 
+/**
+ * URL segment for the unattributed bucket on /replications/artist/<key>.
+ * Distinct from `UNATTRIBUTED_KEY`, which is an in-memory sentinel that never
+ * belongs in an address bar.
+ */
+export const UNKNOWN_ARTIST_URL_KEY = 'unknown';
+
+/**
+ * ASCII slug of an artist label: diacritics folded, anything outside
+ * [a-z0-9] collapsed to single hyphens. May be empty for degenerate labels
+ * (emoji, CJK-only), which callers must handle — see `artistUrlKey`.
+ */
+function slugifyArtistLabel(label: string): string {
+  return label
+    .normalize('NFKD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '');
+}
+
+/** djb2, base36 — a short stable suffix for labels that do not slugify. */
+function stableKeyHash(value: string): string {
+  let hash = 5381;
+  for (let index = 0; index < value.length; index += 1) {
+    hash = ((hash << 5) + hash + value.charCodeAt(index)) >>> 0;
+  }
+  return hash.toString(36);
+}
+
+function artistUrlKeyFromIdentity(key: string, label: string): string {
+  if (key === UNATTRIBUTED_KEY) {
+    return UNKNOWN_ARTIST_URL_KEY;
+  }
+  const slug = slugifyArtistLabel(label);
+  // An empty slug has nothing to say; a named artist whose slug collides with
+  // the unattributed bucket's segment ("UnKnown!") must not capture its URL.
+  // Both take a stable hashed key derived from the canonical grouping key, so
+  // the address survives re-renders, rebuilds, and reorderings of the corpus.
+  if (!slug || slug === UNKNOWN_ARTIST_URL_KEY) {
+    return `${UNKNOWN_ARTIST_URL_KEY}-${stableKeyHash(key)}`;
+  }
+  return slug;
+}
+
+/**
+ * Deterministic URL key for a credit line, addressable as
+ * `/replications/artist/<key>`. Derived from `artistIdentity`, so every row
+ * that groups together maps to the same key.
+ */
+export function artistUrlKey(artist?: string | null): string {
+  const { key, label } = artistIdentity(artist);
+  return artistUrlKeyFromIdentity(key, label);
+}
+
+/**
+ * URL key for a rendered gallery group: the effect slug in effect mode, the
+ * slugified artist key in artist mode. The inverse lookup lives in
+ * `resolveGalleryFocus` (src/features/replications/galleryFocus.ts).
+ */
+export function galleryGroupUrlKey(
+  mode: GalleryMode,
+  group: Pick<GalleryGroup, 'key' | 'label'>,
+): string {
+  if (mode === 'effect') {
+    return group.key;
+  }
+  return artistUrlKeyFromIdentity(group.key, group.label);
+}
+
+/** Name lookup for effect slugs, humanising a slug with no matching effect. */
+export function effectNameLookup(
+  effects: readonly { slug: string; name: string }[],
+): (slug: string | undefined) => string {
+  const map = new Map(effects.map((effect) => [effect.slug, effect.name]));
+  // Total in its argument: `effect_slug` is optional on a stored row, and the
+  // humanising fallback used to read `.replace` straight off it. The model
+  // functions no longer pass a missing slug, but a lookup that throws on one
+  // is a trap for the next caller rather than a guard against a bad row.
+  return (slug: string | undefined) => (slug ? map.get(slug) ?? slug.replace(/-/g, ' ') : '');
+}
+
+/** Effect article href builder, tolerant of a trailing slash on the prefix. */
+export function effectHrefBuilder(prefix = '/effects'): (slug: string) => string {
+  const base = (prefix || '/effects').replace(/\/$/, '');
+  return (slug: string) => `${base}/${slug}`;
+}
+
 /** Sort within a group: curated gallery_order first, then newest, then title. */
 export function sortWithinGroup(items: GalleryReplication[]): GalleryReplication[] {
   return [...items].sort((a, b) => {

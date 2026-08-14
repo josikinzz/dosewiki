@@ -12,6 +12,7 @@
  */
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
 
 import { Icon } from "@/components/common/Icon";
 import { Badge } from "@/components/ui/badge";
@@ -37,6 +38,7 @@ import { IncomingTray, type IncomingFile } from "./IncomingTray";
 import { ReplicationEditorDrawer, type BulkEdit, type SingleEditDraft } from "./ReplicationEditorDrawer";
 import { ReplicationFacetRail } from "./ReplicationFacetRail";
 import { ReplicationGrid } from "./ReplicationGrid";
+import { SubstanceGalleryPanel } from "./SubstanceGalleryPanel";
 import {
   EMPTY_STUDIO_FACETS,
   NO_EFFECT_KEY,
@@ -86,7 +88,10 @@ async function readError(response: Response, fallback: string): Promise<string> 
   }
 }
 
-export function ReplicationStudioTab() {
+export function ReplicationStudioTab({
+  initialSubstanceSlug,
+}: { initialSubstanceSlug?: string } = {}) {
+  const router = useRouter();
   const [load, setLoad] = useState<LoadState>(
     cachedCorpus ? { status: "ready" } : { status: "loading" },
   );
@@ -104,11 +109,15 @@ export function ReplicationStudioTab() {
   const [busy, setBusy] = useState(false);
   const [feedback, setFeedback] = useState<Feedback | null>(null);
 
-  // The Effect Index homepage carousel. Kept beside the corpus rather than in
-  // its own tool because it is a selection *of* these rows, and choosing what to
-  // feature means searching and filtering the library — which the rail beside it
-  // already does.
-  const [featuredOpen, setFeaturedOpen] = useState(false);
+  // The two curation side-panels. "Featured" is the Effect Index homepage
+  // carousel; "Substances" is the per-article Replication Showcase portal,
+  // deep-linked at /dev/replications/<substance-slug>. Kept beside the corpus
+  // rather than in their own tools because both are selections *of* these
+  // rows, and choosing means searching and filtering the library — which the
+  // rail beside them already does.
+  const [activePanel, setActivePanel] = useState<"featured" | "substances" | null>(
+    initialSubstanceSlug ? "substances" : null,
+  );
   const [featuredOrder, setFeaturedOrder] = useState<string[]>([]);
   const [savedFeatured, setSavedFeatured] = useState<string[]>([]);
   const [featuredCurated, setFeaturedCurated] = useState(true);
@@ -116,6 +125,14 @@ export function ReplicationStudioTab() {
   const [featuredSaveState, setFeaturedSaveState] = useState<EditorActionStatusState | "idle">(
     "idle",
   );
+
+  // A deep link (or a picker navigation, which lands here as a prop change)
+  // always opens the Substances panel on its slug.
+  useEffect(() => {
+    if (initialSubstanceSlug) {
+      setActivePanel("substances");
+    }
+  }, [initialSubstanceSlug]);
 
   const searchRef = useRef<HTMLInputElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -176,10 +193,10 @@ export function ReplicationStudioTab() {
   // Fetched on first open, not on mount: the carousel is a side errand in this
   // tool and must not add a request to every visit that never touches it.
   useEffect(() => {
-    if (featuredOpen && !featuredLoaded) {
+    if (activePanel === "featured" && !featuredLoaded) {
       void loadFeatured();
     }
-  }, [featuredLoaded, featuredOpen, loadFeatured]);
+  }, [activePanel, featuredLoaded, loadFeatured]);
 
   const saveFeatured = useCallback(async () => {
     setFeaturedSaveState("saving");
@@ -648,13 +665,35 @@ export function ReplicationStudioTab() {
         <div className="flex-1" />
         <Button
           type="button"
-          variant={featuredOpen ? "accent" : "ghost"}
+          variant={activePanel === "featured" ? "accent" : "ghost"}
           size="sm"
-          aria-expanded={featuredOpen}
-          onClick={() => setFeaturedOpen((open) => !open)}
+          aria-expanded={activePanel === "featured"}
+          onClick={() => setActivePanel((panel) => (panel === "featured" ? null : "featured"))}
         >
           <Icon icon="lucide:star" size={15} />
           Featured
+        </Button>
+        <Button
+          type="button"
+          variant={activePanel === "substances" ? "accent" : "ghost"}
+          size="sm"
+          aria-expanded={activePanel === "substances"}
+          onClick={() =>
+            setActivePanel((panel) => {
+              // Closing the portal returns the address to the bare tab so a
+              // reload does not silently reopen a stale substance.
+              if (panel === "substances") {
+                if (initialSubstanceSlug) {
+                  router.push("/dev/replications");
+                }
+                return null;
+              }
+              return "substances";
+            })
+          }
+        >
+          <Icon icon="lucide:images" size={15} />
+          Substances
         </Button>
         <Button type="button" variant="ghost" size="sm" disabled={busy} onClick={() => void loadCorpus()}>
           <Icon icon="lucide:refresh-cw" size={15} />
@@ -683,7 +722,7 @@ export function ReplicationStudioTab() {
         </ActionNotice>
       ) : null}
 
-      {featuredOpen ? (
+      {activePanel === "featured" ? (
         <EditorPanel>
           <EditorPanelBody>
             {featuredLoaded ? (
@@ -714,6 +753,19 @@ export function ReplicationStudioTab() {
             ) : (
               <p className="theme-text-muted text-sm">Loading the featured selection…</p>
             )}
+          </EditorPanelBody>
+        </EditorPanel>
+      ) : null}
+
+      {activePanel === "substances" ? (
+        <EditorPanel>
+          <EditorPanelBody>
+            <SubstanceGalleryPanel
+              substanceSlug={initialSubstanceSlug ?? null}
+              onNavigateToSubstance={(slug) => router.push(`/dev/replications/${slug}`)}
+              visibleRows={visibleRows}
+              railNarrowed={activeFacetCount(facets) > 0 || query.trim() !== ""}
+            />
           </EditorPanelBody>
         </EditorPanel>
       ) : null}

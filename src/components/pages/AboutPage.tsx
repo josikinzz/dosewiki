@@ -15,8 +15,10 @@ import { PublicTocStrip } from "@/components/common/PublicTocStrip";
 import { StickyTocLayout } from "@/components/common/StickyTocLayout";
 import {
   ContributorCard,
+  IconPillLink,
   PublicSectionHeading,
 } from "@/components/layout/PublicPagePrimitives";
+import { Button } from "@/components/ui/button";
 import type { NormalizedUserProfile } from "../../data/userProfiles";
 import {
   CONTRIBUTOR_ROSTER_ORDER_NOTE,
@@ -153,6 +155,15 @@ export const AboutPage = memo(function AboutPage({
       ? [{ id: "data", label: "Downloads", icon: "lucide:download" } satisfies PublicTableOfContentsItem]
       : []),
     { id: "contributors", label: contributorsSectionTitle, icon: "lucide:users" },
+    ...(ABOUT_CONFIG.contact
+      ? [
+          {
+            id: "contact",
+            label: "Contact & Feedback",
+            icon: "lucide:mail",
+          } satisfies PublicTableOfContentsItem,
+        ]
+      : []),
   ];
 
   return (
@@ -293,6 +304,35 @@ export const AboutPage = memo(function AboutPage({
             <SiteSupporter align="center" markHeightRem={2.25} />
           </div>
         </section>
+
+        {/* Contact & Feedback: the published inbox plus the general feedback form.
+            Flavored via `about.contact` — Effect Index publishes no dose.wiki address
+            and already cards its own /contact page in the docs grid. */}
+        {ABOUT_CONFIG.contact ? (
+          <section id="contact" className="space-y-6">
+            <PublicSectionHeading icon="lucide:mail" title="Contact & Feedback" />
+
+            <p className="theme-text-secondary max-w-[65ch] text-sm leading-6">
+              Questions about {SITE_FLAVOR_CONFIG.name}, collaboration, legal or media
+              inquiries, or takedown requests — email us directly. For everything else, the
+              feedback form reaches the same editors.
+            </p>
+
+            <div className="flex flex-wrap items-center gap-3">
+              <IconPillLink
+                icon="lucide:mail"
+                label={ABOUT_CONFIG.contact.email}
+                href={`mailto:${ABOUT_CONFIG.contact.email}`}
+              />
+              <Button asChild variant="glass" size="pill">
+                <Link href={ABOUT_CONFIG.contact.feedbackHref}>
+                  <Icon icon="lucide:message-circle" size={16} />
+                  Open the feedback form
+                </Link>
+              </Button>
+            </div>
+          </section>
+        ) : null}
       </StickyTocLayout>
     </main>
   );

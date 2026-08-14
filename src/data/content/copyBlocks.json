@@ -570,70 +570,14 @@
     "kind": "plain",
     "label": "Replications intro",
     "group": "Replications",
-    "body": "Replications are image, video, and audio recreations of the sensory experiences produced by various subjective effects that a user may encounter under the influence of hallucinogens. Replications may be created intentionally or unintentionally, as long as they accurately convey the effect being shown. They serve the purpose of documenting certain experiences in a level of detail that descriptive language is incapable of describing."
-  },
-  {
-    "key": "replications-card-gallery-title",
-    "kind": "plain",
-    "label": "Gallery card title",
-    "group": "Replications",
-    "body": "Gallery"
-  },
-  {
-    "key": "replications-card-gallery-description",
-    "kind": "plain",
-    "label": "Gallery card blurb",
-    "group": "Replications",
-    "body": "Browse image and video replications alongside the effects they recreate."
-  },
-  {
-    "key": "replications-card-audio-title",
-    "kind": "plain",
-    "label": "Audio card title",
-    "group": "Replications",
-    "body": "Audio"
-  },
-  {
-    "key": "replications-card-audio-description",
-    "kind": "plain",
-    "label": "Audio card blurb",
-    "group": "Replications",
-    "body": "Audio recreations of what a subjective effect sounds like."
-  },
-  {
-    "key": "replications-card-tutorials-title",
-    "kind": "plain",
-    "label": "Tutorials card title",
-    "group": "Replications",
-    "body": "Tutorials"
-  },
-  {
-    "key": "replications-card-tutorials-description",
-    "kind": "plain",
-    "label": "Tutorials card blurb",
-    "group": "Replications",
-    "body": "Guides and resources for replicating specific subjective effects."
-  },
-  {
-    "key": "replications-card-subreddit-title",
-    "kind": "plain",
-    "label": "Subreddit card title",
-    "group": "Replications",
-    "body": "r/replications"
-  },
-  {
-    "key": "replications-card-subreddit-description",
-    "kind": "plain",
-    "label": "Subreddit card blurb",
-    "group": "Replications",
-    "body": "The community where replications are shared, critiqued and requested."
+    "body": "Replications are image, video, and audio recreations of the sensory experiences produced by various subjective effects that a user may encounter under the influence of hallucinogens. They serve the purpose of documenting certain experiences in a level of detail that descriptive language is incapable of describing."
   },
   {
     "key": "seo-replications-description",
     "kind": "plain",
     "label": "Replications meta description",
     "group": "SEO",
-    "body": "Image, video, and audio recreations of the sensory experiences produced by subjective effects."
+    "body": "Browse the replication gallery: image and video recreations of the sensory experiences produced by subjective effects, grouped by artist and effect."
   },
   {
     "key": "seo-reports-index-description",

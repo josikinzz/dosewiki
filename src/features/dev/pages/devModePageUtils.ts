@@ -18,6 +18,7 @@ export type DevModeTab =
   | "citation-review"
   | "trip-report-submissions"
   | "article-feedback"
+  | "site-feedback"
   | "articles"
   | "molecule-editor"
   | "replications"
@@ -100,6 +101,7 @@ export function resolvePrimaryTab(tab: DevModeTab): DevModePrimaryTab {
     tab === "citation-review" ||
     tab === "trip-report-submissions" ||
     tab === "article-feedback" ||
+    tab === "site-feedback" ||
     tab === "articles" ||
     tab === "molecule-editor" ||
     tab === "replications" ||

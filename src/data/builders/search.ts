@@ -3,6 +3,7 @@ import { icons } from "@/utils/iconNames";
 import type { LibraryData } from "../SubstanceIndexProvider";
 import type { SubstanceRecord } from "./contentBuilder";
 import {
+  buildCompactMatchFields,
   foldSearchText,
   normalizeSearchKey,
   runSearch,
@@ -156,10 +157,14 @@ export interface SearchIndexReportInput {
   authorProfileKey?: string;
 }
 
+/**
+ * Contributor profiles are matched on public identity only. Aliases are
+ * intentionally absent: they can carry internal reviewer handles that must
+ * never surface through public search (manifest or server suggestions).
+ */
 export interface SearchIndexProfileInput {
   key: string;
   displayName: string;
-  aliases: string[];
   bio: string;
   hasCustomBio: boolean;
 }
@@ -391,6 +396,9 @@ const toPublicEntry = (entry: IndexedEntry): SearchEntry => {
   const {
     labelFolded: _labelFolded,
     aliasFolded: _aliasFolded,
+    labelCompact: _labelCompact,
+    aliasCompact: _aliasCompact,
+    identityCompactBlob: _identityCompactBlob,
     reportSubstanceKeys: _reportSubstanceKeys,
     reportSubstanceAliasFolded: _reportSubstanceAliasFolded,
     identityBlob: _identityBlob,
@@ -514,7 +522,6 @@ export function createSearchIndexInput(
     profiles: extras.profiles?.map((profile) => ({
       key: profile.key,
       displayName: profile.displayName,
-      aliases: [...profile.aliases],
       bio: profile.bio,
       hasCustomBio: profile.hasCustomBio,
     })) ?? [],
@@ -717,7 +724,6 @@ export function buildSearchIndex(input: SearchIndexInput): SearchIndex {
       keywordize(profile.displayName),
       keywordize(profile.key),
       keywordize(profile.bio),
-      ...profile.aliases.map((alias) => keywordize(alias)),
     ];
 
     return {
@@ -727,7 +733,6 @@ export function buildSearchIndex(input: SearchIndexInput): SearchIndex {
       secondary: profile.hasCustomBio && profile.bio.trim().length > 0
         ? profile.bio
         : `@${profile.key.toLowerCase()}`,
-      aliases: Object.freeze([...profile.aliases]),
       slug: profile.key,
       icon: "lucide:user",
       keywords: mergeKeywords(...keywordSources),
@@ -746,6 +751,7 @@ export function buildSearchIndex(input: SearchIndexInput): SearchIndex {
         reportSubstanceKeys: entry.reportSubstanceKeys,
         reportSubstanceAliasFolded: entry.reportSubstanceAliasFolded,
         labelFolded,
+        ...buildCompactMatchFields(entry.label, entry.aliases),
         identityBlob: [
           labelFolded,
           ...(aliasFolded ?? []),

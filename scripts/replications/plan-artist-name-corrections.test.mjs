@@ -51,6 +51,27 @@ const BEN_CORRECTION = { stored: "Ben Ridgeway", correct: "Ben Ridgway" };
 describe("loadArtistNameCorrections", () => {
   it("takes only the strong corrections that say they apply to the rows", () => {
     expect(CORRECTIONS.map((entry) => entry.stored)).toEqual([
+      "wheressuede",
+      "loka",
+      "phosphorm",
+      "phosform",
+      "Josie",
+      "sunterry visuals",
+      "sunterry art",
+      "Salviadroid",
+      "salvia droid",
+      "coldwasabi",
+      "cold wasabi",
+      "hypnagogist",
+      "bear from void",
+      "Xanny",
+      "HyperactiveFilly",
+      "codedinblood",
+      "alex grey",
+      "Anomymous",
+      "unknown",
+      "symmetric vision",
+      "StingrayZ",
       "Ben Ridgeway",
       "Simon Haid",
       "Insedigris",
@@ -140,6 +161,19 @@ describe("planRowCorrection", () => {
     });
   });
 
+  it("treats a counter-disambiguated slug as settled rather than a colliding rename", () => {
+    // untitled-salviadroid-2 is what normalize-slugs' resolveTarget mints when
+    // the candidate untitled-salviadroid is taken; the correction must not
+    // report it as a pending rename that collides with its own sibling.
+    const settled = planRowCorrection(
+      { ...BEN, slug: "untitled-salviadroid-2", title: "Untitled", artist: "Salviadroid" },
+      { stored: "Salviadroid", correct: "SalviaDroid" },
+      { existingSlugs: new Set(["untitled-salviadroid", "untitled-salviadroid-2"]) },
+    );
+
+    expect(settled.slugConsequence).toEqual({ changes: false, slug: "untitled-salviadroid-2" });
+  });
+
   it("flags a corrected slug that is already taken", () => {
     const plan = planRowCorrection(MORACZ, { stored: "MOracs", correct: "MOracz" }, {
       existingSlugs: new Set(["hatheg-kla-moracz"]),
@@ -161,7 +195,31 @@ describe("planArtistNameCorrections", () => {
     // Simon Haid and Insedigris are real corrections with no row in this
     // fixture; a correction that silently matches nothing is a typo waiting to
     // be discovered after the write.
-    expect(plan.unmatched.map((entry) => entry.stored)).toEqual(["Simon Haid", "Insedigris"]);
+    expect(plan.unmatched.map((entry) => entry.stored)).toEqual([
+      "wheressuede",
+      "loka",
+      "phosphorm",
+      "phosform",
+      "Josie",
+      "sunterry visuals",
+      "sunterry art",
+      "Salviadroid",
+      "salvia droid",
+      "coldwasabi",
+      "cold wasabi",
+      "hypnagogist",
+      "bear from void",
+      "Xanny",
+      "HyperactiveFilly",
+      "codedinblood",
+      "alex grey",
+      "Anomymous",
+      "unknown",
+      "symmetric vision",
+      "StingrayZ",
+      "Simon Haid",
+      "Insedigris",
+    ]);
   });
 });
 

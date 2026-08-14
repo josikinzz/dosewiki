@@ -3,6 +3,8 @@ import { describe, expect, it } from "vitest";
 import * as OCL from "openchemlib";
 import {
   CARBON_COLOR,
+  OCL_COLOR_TO_BRAND,
+  OCL_COLOR_TO_STANDARD,
   R_LABEL_COLOR,
   renderMoleculeSvg,
 } from "@/features/dev/tools/molecule-editor/renderMoleculeSvg";
@@ -53,6 +55,23 @@ describe("renderMoleculeSvg (OpenChemLib)", () => {
     expect(svg!).not.toContain('class="event"');
     expect(svg!).not.toContain("pointer-events");
     expect(svg!).toContain("stroke-linecap:round");
+  });
+
+  it("renders the standard textbook colourway when given the standard map", () => {
+    const svg = renderMoleculeSvg(
+      OCL,
+      molblockFromSmiles(LSD_SMILES),
+      undefined,
+      undefined,
+      OCL_COLOR_TO_STANDARD,
+    );
+    expect(svg).not.toBeNull();
+    // black skeleton, blue nitrogen labels — LSD has both
+    expect(svg!).toContain("#000000");
+    expect(svg!).toContain("#0000ff");
+    for (const brand of Object.values(OCL_COLOR_TO_BRAND)) {
+      expect(svg!).not.toContain(brand);
+    }
   });
 
   it("draws no phantom stereo hydrogen (Fig. 1 regression)", () => {

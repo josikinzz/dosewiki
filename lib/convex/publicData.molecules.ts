@@ -9,8 +9,8 @@ export type MoleculeOverrideIndex = Map<string, string>;
 
 /**
  * The canonical Convex depiction index, cached per render. It resolves to an
- * empty map if Convex is unavailable, so lookup failure keeps legacy static
- * assets instead of breaking public pages.
+ * empty map if Convex is unavailable; substances then render without a
+ * depiction (chemical-class Markush skeletons keep their static files).
  */
 export const getMoleculeOverrideIndex = cache(async (): Promise<MoleculeOverrideIndex> => {
   try {
@@ -21,7 +21,7 @@ export const getMoleculeOverrideIndex = cache(async (): Promise<MoleculeOverride
   }
 });
 
-/** One slug's published version; null preserves the static fallback on misses/errors. */
+/** One slug's published version; null means the article has no depiction. */
 export const getMoleculeUpdatedAt = cache(async (slug: string): Promise<string | null> => {
   try {
     const row = await getServerConvexReadClient().query(

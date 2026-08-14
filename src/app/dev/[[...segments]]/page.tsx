@@ -92,6 +92,10 @@ function resolveDevRoute(segments: string[] | undefined): { tab: DevTab; slug?: 
     return { tab: "article-feedback", slug };
   }
 
+  if (candidateTab === "site-feedback") {
+    return { tab: "site-feedback", slug };
+  }
+
   if (candidateTab === "molecule-editor" || candidateTab === "molecules") {
     return { tab: "molecule-editor", slug };
   }

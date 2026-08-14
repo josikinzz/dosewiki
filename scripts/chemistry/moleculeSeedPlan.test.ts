@@ -17,10 +17,13 @@ describe("buildMoleculeSeedPlan", () => {
       1,
     );
 
-    expect(plan.candidates).toEqual([{ slug: "alpha", title: "Alpha", smiles: "CC" }]);
+    expect(plan.candidates).toEqual([
+      { slug: "alpha", title: "Alpha", smiles: "CC", smilesSource: "identification.smiles" },
+    ]);
     expect(plan.summary).toEqual({
       totalArticles: 6,
       withSmiles: 4,
+      gapFilled: 0,
       missingSmiles: 2,
       alreadyStored: 1,
       invalidSlug: 1,
@@ -36,5 +39,28 @@ describe("buildMoleculeSeedPlan", () => {
 
     expect(plan.candidates).toEqual([]);
     expect(plan.summary.alreadyStored).toBe(1);
+  });
+
+  it("falls back to gap-fill SMILES only when the article has none inline", () => {
+    const plan = buildMoleculeSeedPlan(
+      [
+        { slug: "tobacco", title: "Tobacco", identification: {} },
+        { slug: "inline", title: "Inline", identification: { smiles: "CC" } },
+        { slug: "unmapped", title: "Unmapped", identification: {} },
+      ],
+      [],
+      Number.POSITIVE_INFINITY,
+      new Map([
+        ["tobacco", "CN1CCC[C@H]1C2=CN=CC=C2"],
+        ["inline", "SHOULD-NOT-WIN"],
+      ]),
+    );
+
+    expect(plan.candidates).toEqual([
+      { slug: "inline", title: "Inline", smiles: "CC", smilesSource: "identification.smiles" },
+      { slug: "tobacco", title: "Tobacco", smiles: "CN1CCC[C@H]1C2=CN=CC=C2", smilesSource: "gap-fill" },
+    ]);
+    expect(plan.summary.gapFilled).toBe(1);
+    expect(plan.summary.missingSmiles).toBe(1);
   });
 });

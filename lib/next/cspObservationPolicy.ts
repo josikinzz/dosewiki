@@ -27,6 +27,12 @@ const REFERENCE_METADATA_API_SOURCES = [
   "https://eutils.ncbi.nlm.nih.gov",
 ];
 
+// Cloudflare Turnstile (site-feedback captcha): its loader script plus the
+// challenge iframe it renders. Allowlisted statically — public script-src and
+// the shared frame-src — so the header stays deterministic and cacheable
+// whether or not the deployment sets a site key.
+const TURNSTILE_SOURCE = "https://challenges.cloudflare.com";
+
 // Middleware defaults to the Edge runtime, so keep these precomputed rather
 // than importing node:crypto. The policy test recomputes both from the exact
 // script builders and fails if either deterministic script changes.
@@ -134,6 +140,8 @@ export function getBrowserSecurityHeaders({
       // RDKit.js compiles the same-origin molecule editor WASM module in-browser.
       "'wasm-unsafe-eval'",
       ...(allowsPublicAnalytics ? [analyticsSource] : []),
+      // The /about/feedback Turnstile widget loads its script on public routes only.
+      TURNSTILE_SOURCE,
     ];
   }
   const connectSources = [
@@ -153,7 +161,7 @@ export function getBrowserSecurityHeaders({
     "font-src 'self' data:",
     "form-action 'self'",
     "frame-ancestors 'none'",
-    "frame-src 'none'",
+    `frame-src ${TURNSTILE_SOURCE}`,
     // Public article media is editor-curated but may live on many HTTPS origins.
     "img-src 'self' blob: data: https:",
     "manifest-src 'self'",

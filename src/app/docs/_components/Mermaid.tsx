@@ -10,7 +10,8 @@ import { useEffect, useRef, useState } from "react";
  * Theming mirrors the original self-contained explainer docs: the `base` theme
  * with hand-tuned light/dark `themeVariables`, plus a post-render pass that
  * forces every label to one high-contrast colour (mermaid's own class/attribute
- * colouring is inconsistent across node fills).
+ * colouring is inconsistent across node fills), plus a light-mode remap of the
+ * shared classDef palette (see LIGHT_PALETTE below).
  *
  * Promotion note: this is currently docs-local. If a second surface needs
  * diagrams, promote it to the shared kit (src/components/ui) and register a
@@ -74,6 +75,35 @@ function themeConfig(isDark: boolean) {
   };
 }
 
+// Every docs diagram hard-codes one shared five-tone dark palette in its
+// classDef lines (Mermaid class styling ignores themeVariables, so the charts
+// carry raw hexes). Those fills are unreadable on the light theme, so in light
+// mode each dark hex is remapped to a hand-tuned same-hue light counterpart
+// before render. The chart strings in the pages stay verbatim; only the text
+// handed to mermaid.render changes. Strokes double as the legend swatch hues
+// (see STAGE_TONE in docs/how) — light strokes keep the hue, darkened for
+// contrast on the light surface.
+const LIGHT_PALETTE: Record<string, string> = {
+  // node fills (dark → light tint)
+  "#3a1f33": "#fce7f3",
+  "#3a2a18": "#ffedd5",
+  "#143026": "#e0f2ea",
+  "#391a40": "#f7e6fa",
+  "#15263e": "#e1eefa",
+  // node strokes (pastel → darkened same hue)
+  "#f9a8d4": "#be185d",
+  "#fdba74": "#c2410c",
+  "#6ee7b7": "#047857",
+  "#e879f9": "#a21caf",
+  "#7dd3fc": "#0c6aa6",
+  // classDef label colours (light → the shared light-theme text colour)
+  "#f7e3ef": "#2b2140",
+  "#f7ead9": "#2b2140",
+  "#def3ea": "#2b2140",
+  "#f6e2fa": "#2b2140",
+  "#ddeefb": "#2b2140",
+};
+
 function isDarkTheme(): boolean {
   return document.documentElement.dataset.theme !== "light";
 }
@@ -120,9 +150,14 @@ export function Mermaid({ chart, title }: { chart: string; title?: string }) {
 
         const isDark = isDarkTheme();
         const id = `docs-mermaid-${(renderSeq += 1)}`;
+        const source = isDark
+          ? chart.trim()
+          : chart
+              .trim()
+              .replace(/#[0-9a-fA-F]{6}\b/g, (hex) => LIGHT_PALETTE[hex.toLowerCase()] ?? hex);
         const svg = await queueRender(async () => {
           mermaid.initialize(themeConfig(isDark));
-          const out = await mermaid.render(id, chart.trim());
+          const out = await mermaid.render(id, source);
           return out.svg;
         });
         if (cancelled || !canvasRef.current) {

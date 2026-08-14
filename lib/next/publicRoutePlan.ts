@@ -4,6 +4,7 @@ import { unstable_cache } from "next/cache";
 import { cache } from "react";
 import { CATEGORY_SLUG_TO_TAGS } from "../../src/data/effectCategoryDefinitions";
 import { deriveMechanismRouteData } from "../../src/data/builders/mechanismRouteDerivation";
+import { artistUrlKey } from "../../src/features/effects/gallery/galleryModel";
 import { PSYCHOACTIVE_SUMMARY_DEFINITIONS } from "../../src/features/psychoactive-summaries/summaryDefinitions";
 import {
   PUBLIC_CONVEX_CACHE_REVALIDATE_SECONDS,
@@ -13,6 +14,7 @@ import {
   getPublicEffectIndexArticles,
   getPublicEffects,
   getPublicMechanismRouteInput,
+  getPublicGalleryReplications,
   getPublicReplications,
   getPublicReports,
   getPublicSubstanceLookup,
@@ -35,15 +37,19 @@ export const STATIC_PUBLIC_PATHS = [
 /**
  * Slugs that would shadow the static pages living under `/replications`. A row
  * carrying one of these is kept out of the route plan (and the sitemap) rather
- * than silently losing to the static segment at request time.
+ * than silently losing to the static segment at request time. "artist" and
+ * "effect" host the focused gallery views (/replications/artist/<key>,
+ * /replications/effect/<slug>).
  */
-export const RESERVED_REPLICATION_SLUGS = new Set(["audio", "tutorials"]);
+export const RESERVED_REPLICATION_SLUGS = new Set(["audio", "tutorials", "artist", "effect"]);
 
 export type PublicRouteFamily =
   | "substances"
   | "categories"
   | "effects"
   | "replications"
+  | "replicationArtists"
+  | "replicationEffects"
   | "effectCategories"
   | "psychoactiveSummaries"
   | "articles"
@@ -67,6 +73,8 @@ export interface PublicRoutePlan {
     categories: PublicRouteEntry<{ categoryKey: string }>[];
     effects: PublicRouteEntry<{ effectSlug: string }>[];
     replications: PublicRouteEntry<{ slug: string }>[];
+    replicationArtists: PublicRouteEntry<{ key: string }>[];
+    replicationEffects: PublicRouteEntry<{ slug: string }>[];
     effectCategories: PublicRouteEntry<{ categorySlug: string }>[];
     psychoactiveSummaries: PublicRouteEntry<{ summaryPath: string[] }>[];
     articles: PublicRouteEntry<{ slug: string }>[];
@@ -82,6 +90,17 @@ interface PublicRoutePlanInput {
   categories: readonly { key: string }[];
   effects: readonly { slug: string }[];
   replications: readonly { slug: string; url?: string | null }[];
+  /**
+   * The exclusion-filtered gallery feed (getPublicGalleryReplications), from
+   * which the focused-view URL space derives. Kept separate from
+   * `replications` — permalinks stay unfiltered — so an artist who opted out
+   * of the gallery never lands in the sitemap as a focus URL that 404s.
+   */
+  galleryReplications: readonly {
+    url?: string | null;
+    artist?: string | null;
+    effect_slug?: string;
+  }[];
   articles: readonly {
     slug: string;
     publication_status: string;
@@ -220,6 +239,24 @@ export function buildPublicRoutePlan(input: PublicRoutePlanInput): PublicRoutePl
         "slug",
         (slug) => getPublicRoutePath({ family: "replication", params: { slug } }),
       ),
+      // Focused gallery views. Their URL space derives from the works the
+      // gallery actually shows (the exclusion-filtered feed with a resolved
+      // asset): the artist key exists iff the by-artist grouping renders that
+      // group, the effect slug iff at least one visible work carries it.
+      replicationArtists: (() => {
+        const displayable = input.galleryReplications.filter(({ url }) => Boolean(url));
+        return unique(displayable.map(({ artist }) => artistUrlKey(artist))).map((key) => ({
+          path: getPublicRoutePath({ family: "replicationArtist", params: { key } }),
+          params: { key },
+        }));
+      })(),
+      replicationEffects: entriesFromSlugs(
+        input.galleryReplications
+          .filter(({ url }) => Boolean(url))
+          .map(({ effect_slug }) => effect_slug ?? ""),
+        "slug",
+        (slug) => getPublicRoutePath({ family: "replicationEffect", params: { slug } }),
+      ),
       effectCategories: entriesFromSlugs(
         Object.keys(CATEGORY_SLUG_TO_TAGS),
         "categorySlug",
@@ -281,6 +318,7 @@ const getCachedPublicRoutePlan = unstable_cache(async () => {
     categoryLayout,
     effects,
     replications,
+    galleryReplications,
     articles,
     reports,
     contributorKeys,
@@ -290,6 +328,7 @@ const getCachedPublicRoutePlan = unstable_cache(async () => {
     getPublicCategoryLayout(),
     getPublicEffects(),
     getPublicReplications(),
+    getPublicGalleryReplications(),
     getPublicEffectIndexArticles(),
     getPublicReports(),
     getPublicContributorKeys(),
@@ -301,6 +340,7 @@ const getCachedPublicRoutePlan = unstable_cache(async () => {
     categories: categoryLayout?.categories ?? [],
     effects,
     replications,
+    galleryReplications,
     articles,
     reports,
     contributorKeys,

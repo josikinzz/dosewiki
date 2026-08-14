@@ -19,9 +19,17 @@ export type ContributorRevalidationScope = "profile" | "ordering" | "attribution
 export function revalidateContributorSurfaces({
   contributorKeys,
   scope,
+  galleryVisibilityChanged = false,
 }: {
   contributorKeys: readonly string[];
   scope: ContributorRevalidationScope;
+  /**
+   * A profile save that touched `exclude_from_gallery`. The /replications
+   * gallery corpus is composed from the replications AND contributors caches,
+   * so the replications tag goes too — without dragging the reports tag along
+   * the way a full "ordering" scope would.
+   */
+  galleryVisibilityChanged?: boolean;
 }): void {
   for (const key of contributorKeys) {
     const normalized = key.trim();
@@ -38,6 +46,8 @@ export function revalidateContributorSurfaces({
   if (scope === "ordering" || scope === "attribution") {
     revalidateTag(PUBLIC_CONVEX_CACHE_TAGS.replications, { expire: 0 });
     revalidateTag(PUBLIC_CONVEX_CACHE_TAGS.reports, { expire: 0 });
+  } else if (galleryVisibilityChanged) {
+    revalidateTag(PUBLIC_CONVEX_CACHE_TAGS.replications, { expire: 0 });
   }
 
   if (scope === "profile" || scope === "attribution") {

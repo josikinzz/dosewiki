@@ -10,7 +10,7 @@ import { buildPublicPageMetadata } from "@server/next/publicSite";
 import { flavoredCopyText, getCopy } from "@server/next/copyBlocks";
 import { applyPlaceholders } from "@/data/content/about";
 import { selectAboutContributors } from "@/data/contributorRoster";
-import moleculeSvgMappings from "@/data/mappings/moleculeSvgMappings.json";
+import { getMoleculeOverrideIndex } from "@server/convex/publicData.molecules";
 import { AboutMissionMarkdown } from "@/components/pages/AboutMissionMarkdown";
 import { AboutPage as AboutContentPage } from "@/components/pages/AboutPage";
 import { buildAboutPreviewSnapshots } from "@/components/pages/aboutArchiveSnapshot";
@@ -69,6 +69,7 @@ export default async function AboutPage() {
     mechanismLayout,
     contributorProfiles,
     referenceCounts,
+    moleculeOverrideIndex,
   ] = await Promise.all([
     getPublicAboutData(),
     getPublicDataOverview(),
@@ -81,6 +82,7 @@ export default async function AboutPage() {
     showContributorRoster
       ? getPublicContributorReferenceCounts()
       : new Map<string, number>(),
+    getMoleculeOverrideIndex(),
   ]);
 
   // Ship only the rendered JSON the preview actually needs: the smallest articles
@@ -91,6 +93,12 @@ export default async function AboutPage() {
 
   const chemicalClassCount = chemicalLayout?.categories.length ?? 0;
   const mechanismClassCount = mechanismLayout?.categories.length ?? 0;
+  // Substance depictions live in Convex `moleculeOverrides`; `class:` rows are
+  // chemical-class Markush skeletons, not downloadable substance structures.
+  let moleculeCount = 0;
+  for (const slug of moleculeOverrideIndex.keys()) {
+    if (!slug.startsWith("class:")) moleculeCount += 1;
+  }
 
   const placeholderValues = {
     compoundCount: overview.substanceCount.toLocaleString(),
@@ -129,7 +137,7 @@ export default async function AboutPage() {
       previewSnapshots={previewSnapshots}
       missionContent={<AboutMissionMarkdown content={aboutMarkdown} />}
       subtitle={resolveAboutSubtitle(about.subtitle)}
-      moleculeCount={moleculeSvgMappings.mappings.length}
+      moleculeCount={moleculeCount}
     />
   );
 }

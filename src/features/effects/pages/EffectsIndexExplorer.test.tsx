@@ -1,16 +1,27 @@
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+
+// Stable identity, like Next's real useRouter — the explorer's hash-sync
+// effect depends on it.
+const { router, routerReplace } = vi.hoisted(() => {
+  const routerReplace = vi.fn();
+  return { router: { replace: routerReplace }, routerReplace };
+});
 
 vi.mock("@/components/common/Icon", () => ({
   Icon: ({ icon }: { icon: string }) => <span aria-hidden="true" data-icon={icon} />,
 }));
 
-vi.mock("../gallery/ReplicationsGalleryExplorer", () => ({
-  ReplicationsGalleryExplorer: () => <div data-testid="gallery-explorer" />,
+vi.mock("next/navigation", () => ({
+  useRouter: () => router,
 }));
 
 import { EffectsIndexExplorer } from "./EffectsIndexExplorer";
+
+beforeEach(() => {
+  routerReplace.mockClear();
+});
 
 const visualAmplificationEffects = [
   {
@@ -165,9 +176,9 @@ describe("EffectsIndexExplorer", () => {
     ].join("\n"));
   });
 
-  it("opens the gallery tab when the URL carries the #gallery fragment", async () => {
-    // The gallery has no route of its own; /effects#gallery is the address the
-    // replications landing page links to.
+  it("redirects the retired #gallery fragment to /replications", async () => {
+    // The gallery used to be a tab here, addressed as /effects#gallery, and that
+    // address is in circulation. It now lives at /replications.
     window.location.hash = "#gallery";
 
     try {
@@ -178,8 +189,13 @@ describe("EffectsIndexExplorer", () => {
         />,
       );
 
-      expect(await screen.findByTestId("gallery-explorer")).toBeInTheDocument();
-      expect(screen.getByRole("tab", { name: "Gallery" })).toHaveAttribute("aria-selected", "true");
+      await waitFor(() => expect(routerReplace).toHaveBeenCalledWith("/replications"));
+
+      // The redirect leaves the rendered view alone rather than blanking it.
+      expect(screen.getByRole("tab", { name: "All Effects" })).toHaveAttribute(
+        "aria-selected",
+        "true",
+      );
     } finally {
       window.location.hash = "";
     }
@@ -200,7 +216,6 @@ describe("EffectsIndexExplorer", () => {
         "aria-selected",
         "true",
       );
-      expect(screen.queryByTestId("gallery-explorer")).not.toBeInTheDocument();
     } finally {
       window.location.hash = "";
     }
@@ -244,8 +259,10 @@ describe("EffectsIndexExplorer", () => {
       await navigateToFragment("#physical");
       await waitFor(() => expect(selectedTab()).toBe("Physical"));
 
+      // The retired gallery fragment redirects instead of switching tabs.
       await navigateToFragment("#gallery");
-      expect(await screen.findByTestId("gallery-explorer")).toBeInTheDocument();
+      await waitFor(() => expect(routerReplace).toHaveBeenCalledWith("/replications"));
+      expect(selectedTab()).toBe("Physical");
     });
 
     it("returns to the default tab when the reader goes back to a fragmentless entry", async () => {
@@ -314,7 +331,7 @@ describe("EffectsIndexExplorer", () => {
       );
 
       unmount();
-      await navigateToFragment("#gallery");
+      await navigateToFragment("#sensory");
 
       expect(screen.queryByRole("tab")).not.toBeInTheDocument();
     });

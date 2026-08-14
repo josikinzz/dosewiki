@@ -59,7 +59,9 @@ describe("browser security response policy", () => {
 
     const scriptPolicy = directiveValue(csp, "script-src");
 
-    expect(scriptPolicy).toBe("script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval'");
+    expect(scriptPolicy).toBe(
+      "script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval' https://challenges.cloudflare.com",
+    );
     expect(csp).not.toContain("analytics.dose.wiki");
     expect(scriptPolicy).not.toContain("'nonce-");
     expect(scriptPolicy).not.toContain("'sha256-");
@@ -243,12 +245,45 @@ describe("browser security response policy", () => {
     expect(csp).toContain("form-action 'self'");
     expect(csp).toContain("frame-ancestors 'none'");
     expect(csp).toContain("object-src 'none'");
-    expect(csp).toContain("frame-src 'none'");
+    expect(csp).toContain("frame-src https://challenges.cloudflare.com");
     expect(headerValue(headers, "X-Frame-Options")).toBe("DENY");
     expect(headerValue(headers, "X-Content-Type-Options")).toBe("nosniff");
     expect(headerValue(headers, "Referrer-Policy")).toBe("strict-origin-when-cross-origin");
     expect(headerValue(headers, "Permissions-Policy")).toBe(
       "accelerometer=(), camera=(), display-capture=(), geolocation=(), gyroscope=(), magnetometer=(), microphone=(), payment=(), usb=()",
+    );
+  });
+
+  it("allows the Turnstile script on public routes only, with its challenge frame", () => {
+    const publicCsp = headerValue(
+      getBrowserSecurityHeaders({
+        host: "dose.wiki",
+        pathname: "/about/feedback",
+        convexUrl: CONVEX_URL,
+        isDevelopment: false,
+      }),
+      CSP_ENFORCEMENT_HEADER,
+    );
+    const devCsp = headerValue(
+      getBrowserSecurityHeaders({
+        host: "dose.wiki",
+        pathname: "/dev",
+        nonce: NONCE,
+        convexUrl: CONVEX_URL,
+        isDevelopment: false,
+      }),
+      CSP_ENFORCEMENT_HEADER,
+    );
+
+    expect(directiveValue(publicCsp, "script-src")).toContain(
+      "https://challenges.cloudflare.com",
+    );
+    expect(directiveValue(publicCsp, "frame-src")).toBe(
+      "frame-src https://challenges.cloudflare.com",
+    );
+    // The dev shell never renders the widget, so its script policy stays narrow.
+    expect(directiveValue(devCsp, "script-src")).not.toContain(
+      "https://challenges.cloudflare.com",
     );
   });
 

@@ -61,8 +61,8 @@ export const metadata: Metadata = {
     images: [buildSiteAssetUrl(PUBLIC_SITE.socialCard.path)],
   },
   icons: {
-    icon: "/favicon.svg",
-    apple: "/apple-touch-icon.png",
+    icon: SITE_FLAVOR_CONFIG.faviconPath,
+    apple: SITE_FLAVOR_CONFIG.appleTouchIconPath,
   },
   manifest: "/manifest.webmanifest",
 };

@@ -103,8 +103,9 @@ export const getEffectArticlesByContributor = cache(unstable_cache(async (
  * WHERE THE FIGURE / UNRENDERABLE-MEDIA GATE LIVES, AND WHY IT IS HERE
  * --------------------------------------------------------------------
  * `isPublishableReplication` is applied to these two list reads and to
- * `getReplicationsByContributor` in `publicData.replications`. Between them
- * those three are the whole of the public replication call graph:
+ * `getReplicationsByContributor` and `getPublicReplicationsForSubstance` in
+ * `publicData.replications`. Between them those four are the whole of the
+ * public replication call graph:
  *
  *   getPublicReplications        → the /effects gallery explorer (and its
  *                                  spotlight, rails, tiles and "N works ·
@@ -119,6 +120,11 @@ export const getEffectArticlesByContributor = cache(unstable_cache(async (
  *                                  the permalink's effect walk.
  *   getReplicationsByContributor → the contributor profile's works rail and the
  *                                  permalink's artist walk.
+ *   getPublicReplicationsForSubstance → the substance article's Replication
+ *                                  Showcase and the Replication Studio's
+ *                                  substance curation portal (whose matcher
+ *                                  applies the same gate inside Convex; the
+ *                                  filter here is the belt to that suspender).
  *
  * Filtering inside `convex/replications.ts` instead would be one edit rather
  * than three, and it was rejected for two reasons. It would hide figures from

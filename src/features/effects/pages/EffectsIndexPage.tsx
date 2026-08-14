@@ -1,9 +1,7 @@
 import Link from "next/link";
 import { AppImage } from "@/components/common/AppImage";
 import { PageHeader } from "@/components/layout/PageHeader";
-import type { ContributorDirectory } from "@server/contributorDirectory";
 import type { PublicRouteEmptyState } from "@server/next/publicRouteOutcomes";
-import type { GalleryReplication } from "@/types/replications";
 import { icons } from "@/utils/iconNames";
 import { EffectsIndexExplorer } from "./EffectsIndexExplorer";
 import type { SEIIntroCopy } from "../components/seiIntroCopy";
@@ -19,9 +17,6 @@ interface EffectsIndexPageProps {
   effects: EffectSummary[];
   effectHrefPrefix?: string;
   emptyState?: PublicRouteEmptyState;
-  replications?: GalleryReplication[];
-  /** Read here on the server so the client gallery never fetches it itself. */
-  contributorDirectory?: ContributorDirectory;
   /** Editable intro prose, resolved from the copy blocks on the server. */
   introCopy?: SEIIntroCopy;
   /** Editable per-tab intro blobs, resolved on the server. */
@@ -39,8 +34,6 @@ export function EffectsIndexPage({
   effects,
   effectHrefPrefix,
   emptyState,
-  replications,
-  contributorDirectory,
   introCopy,
   tabBlobs,
 }: EffectsIndexPageProps) {
@@ -81,8 +74,6 @@ export function EffectsIndexPage({
         effects={effects}
         effectHrefPrefix={effectHrefPrefix}
         emptyState={emptyState}
-        replications={replications}
-        contributorDirectory={contributorDirectory}
         introCopy={introCopy}
         tabBlobs={tabBlobs}
       />

@@ -53,7 +53,7 @@ const getSuggestionIcon = (match: SearchSuggestion): IconName => {
 const getAliasPreview = (match: SearchSuggestion) =>
   match.type === "report"
     ? match.secondary ?? ""
-    : (match.type === "substance" || match.type === "profile") && match.aliases && match.aliases.length > 0
+    : match.type === "substance" && match.aliases && match.aliases.length > 0
       ? match.aliases.slice(0, 4).join(" · ")
       : "";
 

@@ -10,6 +10,7 @@ export type DevTab =
   | "citation-review"
   | "trip-report-submissions"
   | "article-feedback"
+  | "site-feedback"
   | "articles"
   | "molecule-editor"
   | "replications"

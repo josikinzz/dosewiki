@@ -65,7 +65,7 @@ Key local artifacts:
 - `src/data/parsed-sources.json`
 - `src/data/config/generatorPrompt.md`
 - `src/data/config/sectionPrompts/*.md`
-- `public/molecules/*.svg` (legacy molecule fallback and download-pack source)
+- `public/molecules/classes/*.svg` (static chemical-class Markush skeletons; substance depictions live in Convex `moleculeOverrides`)
 
 `src/data/config/userProfiles.json` is now a migration seed/backfill artifact for contributor profiles, not the live runtime source.
 

@@ -10,7 +10,7 @@ import { SiteSupporter } from "@/components/common/SiteSupporter";
 import { SiteWordmark } from "@/components/common/SiteWordmark";
 import { SITE_FLAVOR_CONFIG, isEffectIndex } from "@/config/siteFlavor";
 import type { AppView } from "@/types/navigation";
-import type { HomeQuickLink } from "./homeQuickLinks";
+import { partitionQuickLinkRows, type HomeQuickLink } from "./homeQuickLinks";
 import { viewToPath } from "@/utils/routing";
 import { PaletteLabTrigger } from "@/features/theme-lab";
 import { ThemeToggle } from "./ThemeToggle";
@@ -131,7 +131,7 @@ export function HomeExperience({
     <>
       {isConstructionMode && (
       <header className="app-header theme-chrome-dark theme-header-surface backdrop-blur-sm backdrop-safe">
-        <div className="mx-auto flex max-w-7xl items-center gap-3 px-4 py-3 gap-fallback-row-4 lg:grid lg:grid-cols-[auto_minmax(0,1fr)_auto] lg:gap-4">
+        <div className="flex w-full items-center gap-3 px-4 py-3 min-[1600px]:px-6 gap-fallback-row-4 lg:grid lg:grid-cols-[auto_minmax(0,1fr)_auto] lg:gap-4">
           {isConstructionMode ? (
             <button
               type="button"
@@ -171,7 +171,7 @@ export function HomeExperience({
             </Link>
           )}
 
-          <div className="flex min-h-[44px] min-w-0 flex-1 items-center lg:w-full lg:max-w-2xl lg:justify-self-center">
+          <div className="flex min-h-[44px] min-w-0 flex-1 items-center lg:w-full lg:max-w-none">
             {isConstructionMode ? (
               <form
                 className="w-full"
@@ -391,41 +391,55 @@ export function HomeExperience({
             </div>
           )}
 
+          {/* Balanced tile rows: below lg the flavor's quick links split into centred
+              rows of at most three (5 → 3+2, 4 → 2+2) instead of free flex-wrap, so a
+              wrapped grid never strands a lone tile. At lg — the first breakpoint whose
+              content box (1024px − 2×32px padding = 960px) fits five 7rem tiles plus
+              four 2.5rem gaps (720px) — each row becomes `display: contents` and the
+              tiles flatten into one centred row. Tiles keep their ≥80px touch targets
+              at every width. */}
           <nav
             aria-label={isConstructionMode ? "Mock app sections" : "App sections"}
-            className="theme-home-nav mt-9 grid grid-cols-2 gap-x-8 gap-y-6 transition-[bottom,gap,margin,opacity,transform] duration-300 sm:flex sm:flex-wrap sm:justify-center sm:gap-10"
+            className="theme-home-nav mt-9 flex flex-col items-center gap-6 transition-[bottom,gap,margin,opacity,transform] duration-300 lg:flex-row lg:justify-center lg:gap-10"
           >
-            {quickLinks.map((item) => (
-              isConstructionMode ? (
-                <button
-                  key={item.href}
-                  type="button"
-                  onClick={() => showComingSoon(item.label)}
-                  data-clicked={clickedItem === item.label}
-                  className="theme-home-nav-link theme-home-mock-button group flex w-24 flex-col items-center gap-2.5 transition-[color,width,gap,transform] duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-4 sm:w-28"
-                >
-                  <span className="theme-home-nav-icon theme-public-card-hover-quiet relative flex h-20 w-20 items-center justify-center rounded-2xl border transition-[height,width,border-color,background-color,box-shadow,transform] duration-300 sm:h-[5.75rem] sm:w-[5.75rem]">
-                    <Icon icon={item.icon} size={44} className="theme-home-nav-svg transition-[height,width,transform] duration-300" />
-                    {renderSoonBadge("-right-2 -top-2 group-data-[clicked=true]:opacity-100")}
-                  </span>
-                  <span className="theme-home-nav-label font-display text-lg font-semibold leading-none tracking-normal transition-[opacity,max-width] duration-200">
-                    {item.label}
-                  </span>
-                </button>
-              ) : (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  className="theme-home-nav-link group flex w-24 flex-col items-center gap-2.5 transition-[color,width,gap,transform] duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-4 sm:w-28"
-                >
-                  <span className="theme-home-nav-icon theme-public-card-hover-quiet relative flex h-20 w-20 items-center justify-center rounded-2xl border transition-[height,width,border-color,background-color,box-shadow,transform] duration-300 sm:h-[5.75rem] sm:w-[5.75rem]">
-                    <Icon icon={item.icon} size={44} className="theme-home-nav-svg transition-[height,width,transform] duration-300" />
-                  </span>
-                  <span className="theme-home-nav-label font-display text-lg font-semibold leading-none tracking-normal transition-[opacity,max-width] duration-200">
-                    {item.label}
-                  </span>
-                </Link>
-              )
+            {partitionQuickLinkRows(quickLinks).map((row) => (
+              <div
+                key={row[0].href}
+                className="flex justify-center gap-6 sm:gap-10 lg:contents"
+              >
+                {row.map((item) =>
+                  isConstructionMode ? (
+                    <button
+                      key={item.href}
+                      type="button"
+                      onClick={() => showComingSoon(item.label)}
+                      data-clicked={clickedItem === item.label}
+                      className="theme-home-nav-link theme-home-mock-button group flex w-24 flex-col items-center gap-2.5 transition-[color,width,gap,transform] duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-4 sm:w-28"
+                    >
+                      <span className="theme-home-nav-icon theme-public-card-hover-quiet relative flex h-20 w-20 items-center justify-center rounded-2xl border transition-[height,width,border-color,background-color,box-shadow,transform] duration-300 sm:h-[5.75rem] sm:w-[5.75rem]">
+                        <Icon icon={item.icon} size={44} className="theme-home-nav-svg transition-[height,width,transform] duration-300" />
+                        {renderSoonBadge("-right-2 -top-2 group-data-[clicked=true]:opacity-100")}
+                      </span>
+                      <span className="theme-home-nav-label font-display text-lg font-semibold leading-none tracking-normal transition-[opacity,max-width] duration-200">
+                        {item.label}
+                      </span>
+                    </button>
+                  ) : (
+                    <Link
+                      key={item.href}
+                      href={item.href}
+                      className="theme-home-nav-link group flex w-24 flex-col items-center gap-2.5 transition-[color,width,gap,transform] duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-4 sm:w-28"
+                    >
+                      <span className="theme-home-nav-icon theme-public-card-hover-quiet relative flex h-20 w-20 items-center justify-center rounded-2xl border transition-[height,width,border-color,background-color,box-shadow,transform] duration-300 sm:h-[5.75rem] sm:w-[5.75rem]">
+                        <Icon icon={item.icon} size={44} className="theme-home-nav-svg transition-[height,width,transform] duration-300" />
+                      </span>
+                      <span className="theme-home-nav-label font-display text-lg font-semibold leading-none tracking-normal transition-[opacity,max-width] duration-200">
+                        {item.label}
+                      </span>
+                    </Link>
+                  ),
+                )}
+              </div>
             ))}
           </nav>
         </section>

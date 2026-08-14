@@ -11,6 +11,7 @@ import {
   normalizePharmacologySection,
 } from "../../lib/article/normalization.mjs";
 import type { MechanismRouteSubstanceInput } from "../../src/data/builders/mechanismRouteDerivation";
+import type { ContributorReviewedArticle } from "../../src/types/reviewedArticles";
 
 export type PublicSubstancePriority = Exclude<
   StoredSubstancePriority,
@@ -436,6 +437,38 @@ export const isCompletedEditorialReview = (value: unknown): boolean =>
   typeof value === "object" &&
   value !== null &&
   (value as { status?: unknown }).status === "completed";
+
+/**
+ * Public-safe reviewed-articles aggregate entry. The reviewer email set is
+ * matched here and then discarded: the projection carries only the article's
+ * identity and the completion timestamp, so `editorial_review` (reviewer
+ * email, private notes, flags) stays as internal as everywhere else in this
+ * module. Returns null for articles the given reviewer set did not review.
+ */
+export function projectReviewedArticleForEmails(
+  article: SubstanceArticleRecord,
+  reviewerEmails: ReadonlySet<string>,
+): ContributorReviewedArticle | null {
+  const review = article.editorial_review;
+  if (!isCompletedEditorialReview(review)) {
+    return null;
+  }
+  const { reviewed_by: reviewedBy, reviewed_at: reviewedAt } = review as {
+    reviewed_by?: unknown;
+    reviewed_at?: unknown;
+  };
+  if (
+    typeof reviewedBy !== "string" ||
+    !reviewerEmails.has(reviewedBy.trim().toLowerCase())
+  ) {
+    return null;
+  }
+  return {
+    title: article.title,
+    slug: resolveSubstanceSlug(article),
+    reviewed_at: typeof reviewedAt === "string" ? reviewedAt : null,
+  };
+}
 
 function projectPublicReference(
   reference: SubstanceArticle["references"][number],

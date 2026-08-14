@@ -30,11 +30,15 @@ function CountChips({ group }: { group: GalleryGroup }) {
 
 interface MediaRailProps {
   group: GalleryGroup;
-  /** Switch to the focused, full-masonry view for this group. */
-  onViewAll: () => void;
+  /**
+   * Focused, full-masonry view for this group — a real URL
+   * (/replications/artist/<key> or /replications/effect/<slug>), so "View all"
+   * is crawlable and cmd-clickable instead of dead client state.
+   */
+  viewAllHref: string;
 }
 
-export function MediaRail({ group, onViewAll }: MediaRailProps) {
+export function MediaRail({ group, viewAllHref }: MediaRailProps) {
   const preview = group.items.slice(0, RAIL_PREVIEW_LIMIT);
   const hasMore = group.count > preview.length;
 
@@ -97,14 +101,13 @@ export function MediaRail({ group, onViewAll }: MediaRailProps) {
           <CountChips group={group} />
         </div>
         {hasMore ? (
-          <button
-            type="button"
-            onClick={onViewAll}
-            className="theme-text-muted group/all inline-flex items-center gap-1 rounded-full px-2 py-1 text-sm font-medium transition-colors hover:text-[var(--theme-accent-strong)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--theme-accent-strong)]"
+          <Link
+            href={viewAllHref}
+            className="theme-text-muted group/all inline-flex min-h-11 items-center gap-1 rounded-full px-2 py-1 text-sm font-medium transition-colors hover:text-[var(--theme-accent-strong)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--theme-accent-strong)]"
           >
             View all {group.count}
-            <Icon icon="lucide:arrow-right" className="h-4 w-4 transition group-hover/all:translate-x-0.5" />
-          </button>
+            <Icon icon="lucide:arrow-right" className="h-4 w-4 transition group-hover/all:translate-x-0.5 motion-reduce:transition-none" />
+          </Link>
         ) : null}
       </div>
 
@@ -123,15 +126,14 @@ export function MediaRail({ group, onViewAll }: MediaRailProps) {
           />
         ))}
         {hasMore ? (
-          <button
-            type="button"
-            onClick={onViewAll}
+          <Link
+            href={viewAllHref}
             style={{ aspectRatio: '4 / 5' }}
-            className="theme-text-muted flex h-44 shrink-0 snap-start self-start flex-col items-center justify-center gap-2 rounded-xl border border-dashed border-[color:var(--theme-border-strong)] bg-[var(--theme-surface-soft)] px-4 text-sm font-medium transition-colors hover:text-[var(--theme-accent-strong)] hover:border-[color:var(--theme-card-border-strong)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--theme-accent-strong)] sm:h-52"
+            className="theme-text-muted flex h-44 shrink-0 snap-start self-start flex-col items-center justify-center gap-2 rounded-xl border border-dashed border-[color:var(--theme-border-strong)] bg-[var(--theme-surface-soft)] px-4 text-sm font-medium transition-colors hover:text-[var(--theme-accent-strong)] hover:border-[color:var(--theme-card-border-strong)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--theme-accent-strong)] sm:h-52 motion-reduce:transition-none"
           >
             <Icon icon="lucide:arrow-right" className="h-5 w-5" />
             View all {group.count}
-          </button>
+          </Link>
         ) : null}
       </div>
     </section>

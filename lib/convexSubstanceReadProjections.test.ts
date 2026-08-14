@@ -9,6 +9,7 @@ import {
   projectPublicArticle,
   projectPublicPreview,
   projectSearchInput,
+  projectReviewedArticleForEmails,
 } from "../convex/lib/substanceReadProjections";
 import { substanceArticleSchema, type SubstanceArticle } from "../src/schema";
 import { fullArticleWithDosage } from "../src/test/fixtures/articles";
@@ -371,6 +372,75 @@ describe("substance read projections", () => {
       // where references alone are ~57% of the bytes, the same projection takes
       // the whole-corpus drain from ~16.7 MB to under 0.8 MB.
       expect(listBytes).toBeLessThan(articleBytes);
+    });
+  });
+
+  describe("projectReviewedArticleForEmails", () => {
+    const reviewed = {
+      ...article,
+      editorial_review: {
+        status: "completed" as const,
+        notes: "Editor-only notes",
+        reviewed_by: "witchy@local.dose.wiki",
+        reviewed_at: "2026-08-01T00:00:00.000Z",
+      },
+    };
+    const reviewerEmails = new Set(["witchy@local.dose.wiki"]);
+
+    it("returns only the article identity and timestamp — never the reviewer email", () => {
+      const projection = projectReviewedArticleForEmails(reviewed, reviewerEmails);
+
+      expect(projection).toEqual({
+        title: "LSD",
+        slug: "lsd",
+        reviewed_at: "2026-08-01T00:00:00.000Z",
+      });
+      // The privacy contract, stated as bytes: nothing resembling the stamp's
+      // email or the editor notes survives into the projection.
+      const serialized = JSON.stringify(projection);
+      expect(serialized).not.toContain("witchy");
+      expect(serialized).not.toContain("@");
+      expect(serialized).not.toContain("notes");
+    });
+
+    it("matches the stored stamp case- and whitespace-insensitively", () => {
+      const projection = projectReviewedArticleForEmails(
+        {
+          ...reviewed,
+          editorial_review: {
+            ...reviewed.editorial_review,
+            reviewed_by: " Witchy@Local.dose.wiki ",
+          },
+        },
+        reviewerEmails,
+      );
+
+      expect(projection?.slug).toBe("lsd");
+    });
+
+    it("returns null for another reviewer's stamp", () => {
+      expect(
+        projectReviewedArticleForEmails(reviewed, new Set(["josie@local.dose.wiki"])),
+      ).toBeNull();
+    });
+
+    it("returns null when the review is not completed", () => {
+      expect(
+        projectReviewedArticleForEmails(
+          { ...reviewed, editorial_review: { ...reviewed.editorial_review, status: "in_progress" as const } },
+          reviewerEmails,
+        ),
+      ).toBeNull();
+    });
+
+    it("returns null when the article carries no review or no stamp", () => {
+      expect(projectReviewedArticleForEmails(article, reviewerEmails)).toBeNull();
+      expect(
+        projectReviewedArticleForEmails(
+          { ...article, editorial_review: undefined },
+          reviewerEmails,
+        ),
+      ).toBeNull();
     });
   });
 });

@@ -8,6 +8,8 @@ const PUBLIC_CONSTRUCTION_ALLOWED_PATHS = new Set([
   "/apple-touch-icon.png",
   "/dosewiki-logo.png",
   "/docs/license",
+  "/effectindex/favicon.png",
+  "/effectindex/icon.png",
   "/embed-logo.webp",
   "/favicon.svg",
   "/icon-192.png",

@@ -99,7 +99,8 @@ function definedReplicationRightsPatch(updates: ReplicationRightsPatch) {
   return patch;
 }
 
-async function resolveReplicationUrls(
+/** Shared with `convex/substanceGalleries.ts`, which publishes the same rows. */
+export async function resolveReplicationUrls(
   ctx: { storage: { getUrl: (storageId: string) => Promise<string> } },
   rep: {
     storage_id: string;

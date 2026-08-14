@@ -5179,69 +5179,6 @@
   },
   {
    "rule": "direct-theme-variable",
-   "filePath": "src/features/effects/gallery/ReplicationsGalleryExplorer.tsx",
-   "match": "var(--theme-border-subtle)",
-   "line": 110,
-   "column": 84
-  },
-  {
-   "rule": "direct-theme-variable",
-   "filePath": "src/features/effects/gallery/ReplicationsGalleryExplorer.tsx",
-   "match": "var(--theme-page-end)",
-   "line": 110,
-   "column": 116
-  },
-  {
-   "rule": "direct-theme-variable",
-   "filePath": "src/features/effects/gallery/ReplicationsGalleryExplorer.tsx",
-   "match": "var(--theme-elevation-top-highlight)",
-   "line": 110,
-   "column": 157
-  },
-  {
-   "rule": "direct-theme-variable",
-   "filePath": "src/features/effects/gallery/ReplicationsGalleryExplorer.tsx",
-   "match": "var(--theme-frosted-control-border)",
-   "line": 138,
-   "column": 129
-  },
-  {
-   "rule": "direct-theme-variable",
-   "filePath": "src/features/effects/gallery/ReplicationsGalleryExplorer.tsx",
-   "match": "var(--theme-frosted-control-bg)",
-   "line": 138,
-   "column": 170
-  },
-  {
-   "rule": "direct-theme-variable",
-   "filePath": "src/features/effects/gallery/ReplicationsGalleryExplorer.tsx",
-   "match": "var(--theme-frosted-control-shadow)",
-   "line": 138,
-   "column": 215
-  },
-  {
-   "rule": "direct-theme-variable",
-   "filePath": "src/features/effects/gallery/ReplicationsGalleryExplorer.tsx",
-   "match": "var(--theme-accent-strong)",
-   "line": 196,
-   "column": 71
-  },
-  {
-   "rule": "direct-theme-variable",
-   "filePath": "src/features/effects/gallery/ReplicationsGalleryExplorer.tsx",
-   "match": "var(--theme-accent-strong)",
-   "line": 222,
-   "column": 149
-  },
-  {
-   "rule": "direct-theme-variable",
-   "filePath": "src/features/effects/gallery/ReplicationsGalleryExplorer.tsx",
-   "match": "var(--theme-accent-strong)",
-   "line": 222,
-   "column": 277
-  },
-  {
-   "rule": "direct-theme-variable",
    "filePath": "src/features/effects/pages/ReplicationDetailPage.tsx",
    "match": "var(--theme-border-subtle)",
    "line": 157,
@@ -6709,6 +6646,90 @@
    "match": "var(--theme-*)",
    "line": 8,
    "column": 17
+  },
+  {
+   "rule": "direct-theme-variable",
+   "filePath": "src/features/replications/ReplicationsGalleryExplorer.tsx",
+   "match": "var(--theme-border-subtle)",
+   "line": 225,
+   "column": 84
+  },
+  {
+   "rule": "direct-theme-variable",
+   "filePath": "src/features/replications/ReplicationsGalleryExplorer.tsx",
+   "match": "var(--theme-page-end)",
+   "line": 225,
+   "column": 116
+  },
+  {
+   "rule": "direct-theme-variable",
+   "filePath": "src/features/replications/ReplicationsGalleryExplorer.tsx",
+   "match": "var(--theme-elevation-top-highlight)",
+   "line": 225,
+   "column": 157
+  },
+  {
+   "rule": "direct-theme-variable",
+   "filePath": "src/features/replications/ReplicationsGalleryExplorer.tsx",
+   "match": "var(--theme-frosted-control-border)",
+   "line": 253,
+   "column": 129
+  },
+  {
+   "rule": "direct-theme-variable",
+   "filePath": "src/features/replications/ReplicationsGalleryExplorer.tsx",
+   "match": "var(--theme-frosted-control-bg)",
+   "line": 253,
+   "column": 170
+  },
+  {
+   "rule": "direct-theme-variable",
+   "filePath": "src/features/replications/ReplicationsGalleryExplorer.tsx",
+   "match": "var(--theme-frosted-control-shadow)",
+   "line": 253,
+   "column": 215
+  },
+  {
+   "rule": "direct-theme-variable",
+   "filePath": "src/features/replications/ReplicationsGalleryExplorer.tsx",
+   "match": "var(--theme-accent-strong)",
+   "line": 312,
+   "column": 71
+  },
+  {
+   "rule": "direct-theme-variable",
+   "filePath": "src/features/replications/ReplicationsGalleryExplorer.tsx",
+   "match": "var(--theme-accent-strong)",
+   "line": 337,
+   "column": 158
+  },
+  {
+   "rule": "direct-theme-variable",
+   "filePath": "src/features/replications/ReplicationsGalleryExplorer.tsx",
+   "match": "var(--theme-accent-strong)",
+   "line": 337,
+   "column": 286
+  },
+  {
+   "rule": "direct-theme-variable",
+   "filePath": "src/features/replications/ReplicationsGalleryExplorer.tsx",
+   "match": "var(--theme-accent-strong)",
+   "line": 349,
+   "column": 152
+  },
+  {
+   "rule": "direct-theme-variable",
+   "filePath": "src/features/replications/ReplicationsGalleryExplorer.tsx",
+   "match": "var(--theme-accent-strong)",
+   "line": 363,
+   "column": 143
+  },
+  {
+   "rule": "direct-theme-variable",
+   "filePath": "src/features/replications/components/ReplicationsTabNav.tsx",
+   "match": "var(--theme-elevation-none)",
+   "line": 73,
+   "column": 73
   }
  ]
 }

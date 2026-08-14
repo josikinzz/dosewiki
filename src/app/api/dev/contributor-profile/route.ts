@@ -50,6 +50,9 @@ type ProfilePatchBody = {
   aliases?: unknown;
   membershipEmail?: unknown;
   avatarUrl?: unknown;
+  exclude_from_gallery?: unknown;
+  archival?: unknown;
+  staffNote?: unknown;
   avatarUpload?: {
     filename?: unknown;
     mimeType?: unknown;
@@ -69,6 +72,9 @@ type ParsedProfilePatch = {
     aliases?: string[];
     membershipEmail?: string | null;
     avatarUrl?: string | null;
+    exclude_from_gallery?: boolean;
+    archival?: boolean;
+    staffNote?: { markdown: string; attribution?: string } | null;
   };
   avatarUpload: NormalizedAvatarUpload | null;
 };
@@ -145,6 +151,52 @@ function parseAliases(raw: unknown): string[] {
   });
 }
 
+/**
+ * `null` (or a note emptied down to nothing) clears the stored staff note;
+ * anything else must be a `{ markdown, attribution? }` object. The Convex
+ * patch builder does the canonical sanitization; the length caps here just
+ * bound the payload the same way the bio field is bounded.
+ */
+function parseStaffNote(
+  raw: unknown,
+): { markdown: string; attribution?: string } | null {
+  if (raw === null) {
+    return null;
+  }
+  if (!raw || typeof raw !== "object" || Array.isArray(raw)) {
+    throw new JsonBodyError(400, "The editor's note must be an object or null.");
+  }
+
+  const { markdown, attribution } = raw as { markdown?: unknown; attribution?: unknown };
+  if (typeof markdown !== "string") {
+    throw new JsonBodyError(400, "The editor's note markdown must be a string.");
+  }
+  if (markdown.length > MAX_BIO_LENGTH) {
+    throw new JsonBodyError(
+      400,
+      `The editor's note must be ${MAX_BIO_LENGTH} characters or fewer.`,
+    );
+  }
+  if (attribution !== undefined && attribution !== null && typeof attribution !== "string") {
+    throw new JsonBodyError(400, "The editor's note attribution must be a string.");
+  }
+  const trimmedAttribution = typeof attribution === "string" ? attribution.trim() : "";
+  if (trimmedAttribution.length > MAX_SHORT_TEXT) {
+    throw new JsonBodyError(
+      400,
+      `The editor's note attribution must be ${MAX_SHORT_TEXT} characters or fewer.`,
+    );
+  }
+
+  if (!markdown.trim()) {
+    return null;
+  }
+
+  return trimmedAttribution
+    ? { markdown, attribution: trimmedAttribution }
+    : { markdown };
+}
+
 export function parseProfilePatchBody(raw: ProfilePatchBody): ParsedProfilePatch {
   const key = requireProfileKey(raw.key);
   const patch: ParsedProfilePatch["patch"] = {};
@@ -193,6 +245,24 @@ export function parseProfilePatchBody(raw: ProfilePatchBody): ParsedProfilePatch
 
   if (raw.aliases !== undefined) {
     patch.aliases = parseAliases(raw.aliases);
+  }
+
+  if (raw.exclude_from_gallery !== undefined) {
+    if (typeof raw.exclude_from_gallery !== "boolean") {
+      throw new JsonBodyError(400, "The gallery exclusion flag must be a boolean.");
+    }
+    patch.exclude_from_gallery = raw.exclude_from_gallery;
+  }
+
+  if (raw.archival !== undefined) {
+    if (typeof raw.archival !== "boolean") {
+      throw new JsonBodyError(400, "The archival flag must be a boolean.");
+    }
+    patch.archival = raw.archival;
+  }
+
+  if (raw.staffNote !== undefined) {
+    patch.staffNote = parseStaffNote(raw.staffNote);
   }
 
   return {
@@ -320,6 +390,9 @@ export const POST = protectedRouteOperation<ProfilePatchBody, ParsedProfilePatch
     revalidateContributorSurfaces({
       contributorKeys: result.revalidate?.contributorKeys ?? [body.key],
       scope: "profile",
+      // The /replications gallery corpus filters on this flag, so flipping it
+      // must land there on the next request, not at the end of the cache window.
+      galleryVisibilityChanged: body.patch.exclude_from_gallery !== undefined,
     });
 
     return NextResponse.json({ ok: true, profile: result.profile });

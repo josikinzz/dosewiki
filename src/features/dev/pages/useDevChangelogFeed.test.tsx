@@ -29,19 +29,11 @@ vi.mock("@/lib/convex", () => ({
   isConvexEnabled: () => convexState.enabled,
 }));
 
-vi.mock("@/data/changelog/changeLog", () => {
-  type Entry = {
-    id: string;
-    createdAt: string;
-    commit: { sha: string; url: string; message: string };
-    articles: Array<{ id: number; title: string; slug: string }>;
-    markdown: string;
-    submittedBy: string | null;
-  };
-  const sortChangeLogEntries = (entries: Entry[]) =>
-    [...entries].sort((a, b) => b.createdAt.localeCompare(a.createdAt) || b.id.localeCompare(a.id));
+vi.mock("@/data/changelog/changeLog", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@/data/changelog/changeLog")>();
 
   return {
+    ...actual,
     initialChangeLogEntries: [
       {
         id: "static-1",
@@ -59,10 +51,15 @@ vi.mock("@/data/changelog/changeLog", () => {
         markdown: "static duplicate",
         submittedBy: "DEF",
       },
-    ] satisfies Entry[],
-    sortChangeLogEntries,
-    appendChangeLogEntry: (entries: Entry[], next: Entry) =>
-      sortChangeLogEntries([...entries, next]),
+      {
+        id: "static-witchy",
+        createdAt: "2026-01-02T00:00:00.000Z",
+        commit: { sha: "c", url: "", message: "Legacy stamped save" },
+        articles: [{ id: 3, title: "2C-B", slug: "2c-b" }],
+        markdown: "legacy stamp",
+        submittedBy: "WITCHY",
+      },
+    ],
   };
 });
 
@@ -79,6 +76,7 @@ describe("useDevChangelogFeed", () => {
 
     expect(result.current.changeLogEntries.map((entry) => entry.id)).toEqual([
       "static-duplicate",
+      "static-witchy",
       "static-1",
     ]);
   });
@@ -110,6 +108,7 @@ describe("useDevChangelogFeed", () => {
       expect(result.current.changeLogEntries.map((entry) => entry.id)).toEqual([
         "convex-new",
         "static-duplicate",
+        "static-witchy",
         "static-1",
       ]);
     });
@@ -134,6 +133,19 @@ describe("useDevChangelogFeed", () => {
     expect(result.current.profileHistory.map((entry) => entry.id)).toEqual([
       "convex-abc",
       "static-1",
+    ]);
+  });
+
+  it("resolves legacy WITCHY stamps to the LYREA profile history", () => {
+    convexState.enabled = false;
+    convexState.entries = undefined;
+
+    const { result } = renderHook(() => useDevChangelogFeed({ profileKey: "LYREA" }));
+
+    expect(result.current.profileHistory.map((entry) => entry.id)).toEqual(["static-witchy"]);
+    // The legacy login key sees the merged history too.
+    expect(result.current.getProfileHistory("WITCHY").map((entry) => entry.id)).toEqual([
+      "static-witchy",
     ]);
   });
 

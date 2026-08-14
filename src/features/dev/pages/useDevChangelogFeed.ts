@@ -4,6 +4,8 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { api } from "../../../../convex/_generated/api";
 import {
   appendChangeLogEntry,
+  buildSubmitterKeySet,
+  entryMatchesSubmitter,
   initialChangeLogEntries,
   sortChangeLogEntries,
   type ChangeLogEntry,
@@ -102,8 +104,11 @@ export function useDevChangelogFeed({
         return [] as ChangeLogEntry[];
       }
 
+      // Alias-aware: legacy stamps (e.g. WITCHY) attribute to the profile
+      // they belong to (LYREA), and vice versa for a legacy login key.
+      const submitterKeys = buildSubmitterKeySet(nextProfileKey);
       return changeLogEntries
-        .filter((entry) => (entry.submittedBy ?? "").toUpperCase() === nextProfileKey)
+        .filter((entry) => entryMatchesSubmitter(entry, submitterKeys))
         .slice(0, 6);
     },
     [changeLogEntries],

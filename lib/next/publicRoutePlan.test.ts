@@ -59,6 +59,22 @@ const createFixturePlan = () =>
       { slug: "no-asset-yet", url: null },
       { slug: "audio", url: "https://example.test/shadow.jpg" },
     ],
+    galleryReplications: [
+      {
+        url: "https://example.test/tree-bark.jpg",
+        artist: "Chelsea Morgan",
+        effect_slug: "tree-bark-texture",
+      },
+      // Same artist under a differently-cased credit line: one key, not two.
+      {
+        url: "https://example.test/wave.mp4",
+        artist: "chelsea morgan",
+        effect_slug: "visual-drifting",
+      },
+      // No resolved asset → the gallery never shows it → no focus URL.
+      { url: null, artist: "Ghost", effect_slug: "ghost-effect" },
+      { url: "https://example.test/anon.jpg", artist: "", effect_slug: "visual-drifting" },
+    ],
     articles: [
       { slug: "lucid-dreaming", publication_status: "published" },
       { slug: "dxm", publication_status: "unlisted" },
@@ -113,6 +129,7 @@ describe("public route plan", () => {
       categories: [],
       effects: [],
       replications: [],
+      galleryReplications: [],
       articles: [
         { slug: "legacy-import", publication_status: "published" },
         { slug: "new-article", publication_status: "published", kind: "article" },
@@ -206,6 +223,35 @@ describe("public route plan", () => {
       "/replications/tree-bark-chelsea-morgan",
     ]);
     expect(getPublicRouteSitemapPaths(plan)).toContain("/replications/tree-bark-chelsea-morgan");
+  });
+
+  it("derives focus routes from the gallery feed, keyed by artist slug and effect slug", () => {
+    const plan = createFixturePlan();
+
+    // The visible corpus has one credited artist (two casings of one credit
+    // line) plus an unattributed row; "Ghost" carries no resolved asset, so
+    // neither its artist key nor its effect slug becomes a URL.
+    expect(getPublicRouteParams(plan, "replicationArtists")).toEqual([
+      { key: "chelsea-morgan" },
+      { key: "unknown" },
+    ]);
+    expect(plan.families.replicationArtists.map((entry) => entry.path)).toEqual([
+      "/replications/artist/chelsea-morgan",
+      "/replications/artist/unknown",
+    ]);
+    expect(getPublicRouteParams(plan, "replicationEffects")).toEqual([
+      { slug: "tree-bark-texture" },
+      { slug: "visual-drifting" },
+    ]);
+    expect(getPublicRouteSitemapPaths(plan)).toEqual(
+      expect.arrayContaining([
+        "/replications/artist/chelsea-morgan",
+        "/replications/artist/unknown",
+        "/replications/effect/tree-bark-texture",
+        "/replications/effect/visual-drifting",
+      ]),
+    );
+    expect(getPublicRouteSitemapPaths(plan)).not.toContain("/replications/effect/ghost-effect");
   });
 
   it("owns effect category routes and contributor key encoding", () => {
@@ -364,6 +410,7 @@ describe("mechanism route projection parity", () => {
       categories: [],
       effects: [],
       replications: [],
+      galleryReplications: [],
       articles: [],
       reports: [],
       contributorKeys: [],
@@ -459,6 +506,7 @@ describe("mechanism route projection parity", () => {
       categories: [],
       effects: [],
       replications: [],
+      galleryReplications: [],
       articles: [],
       reports: [],
       contributorKeys: [],
@@ -495,6 +543,8 @@ describe("public sitemap adapter", () => {
         categories: [],
         effects: [],
         replications: [],
+        replicationArtists: [],
+        replicationEffects: [],
         articles: [],
         effectCategories: [],
         psychoactiveSummaries: [],

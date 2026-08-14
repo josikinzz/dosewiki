@@ -51,6 +51,7 @@ describe("route chrome model", () => {
       ["substances", "/substances", false],
       ["effects", "/effects", true],
       ["reports", "/reports", false],
+      ["replications", "/replications", false],
     ]);
     expect(model.secondaryNavItems.map((item) => [item.id, item.href, item.mobileLabel])).toEqual([
       ["about", "/about", "About"],
@@ -67,6 +68,7 @@ describe("route chrome model", () => {
       ["substances", "streamline-ultimate:science-molecule-strucutre-bold"],
       ["effects", "material-symbols:person-play-outline-rounded"],
       ["reports", "hugeicons:content-writing"],
+      ["replications", "hugeicons:camera-ai"],
       ["about", "lucide:info"],
     ]);
   });
@@ -109,7 +111,7 @@ describe("route chrome model", () => {
       ]),
     ).toEqual([
       ["effects", "material-symbols:person-play-outline-rounded"],
-      ["replications", "lucide:images"],
+      ["replications", "hugeicons:camera-ai"],
       ["reports", "hugeicons:content-writing"],
       ["about", "lucide:info"],
     ]);

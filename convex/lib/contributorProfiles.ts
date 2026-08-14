@@ -56,6 +56,17 @@ export const editorProfilePatchValidator = v.object({
   avatarUrl: v.optional(v.union(v.string(), v.null())),
   avatarStorageId: v.optional(v.union(v.string(), v.null())),
   membershipEmail: v.optional(v.union(v.string(), v.null())),
+  exclude_from_gallery: v.optional(v.boolean()),
+  archival: v.optional(v.boolean()),
+  staffNote: v.optional(
+    v.union(
+      v.object({
+        markdown: v.string(),
+        attribution: v.optional(v.string()),
+      }),
+      v.null(),
+    ),
+  ),
 });
 
 export const bulkImportProfileValidator = v.object({
@@ -80,6 +91,12 @@ export type ProfileLink = {
   url: string;
 };
 
+/** Signed staff commentary shown as the public "Editor's note" section. */
+export type StaffNote = {
+  markdown: string;
+  attribution?: string;
+};
+
 export type StoredProfile = {
   key: string;
   displayName: string;
@@ -92,6 +109,9 @@ export type StoredProfile = {
   membershipEmail?: string;
   replicationOrder?: string[];
   reportOrder?: string[];
+  exclude_from_gallery?: boolean;
+  archival?: boolean;
+  staffNote?: StaffNote;
   createdAt: string;
   updatedAt: string;
   updatedBy?: string;
@@ -111,6 +131,14 @@ export type PublicProfile = {
   // fall back to their existing default sort for everything unlisted.
   replicationOrder: string[];
   reportOrder: string[];
+  // Present (and `true`) only when the contributor opted out of the public
+  // /replications gallery. Absent means included.
+  exclude_from_gallery?: boolean;
+  // Present (and `true`) only for a staff-maintained archival profile. Absent
+  // means a normal profile.
+  archival?: boolean;
+  // Signed staff commentary. Absent means the section renders nothing.
+  staffNote?: StaffNote;
 };
 
 type StoredProfileDraftInput = {
@@ -167,6 +195,41 @@ export {
 
 export function normalizeEmail(value: string): string {
   return normalizeContributorEmail(value);
+}
+
+const LEGACY_CREDENTIAL_EMAIL_DOMAIN = "@local.dose.wiki";
+
+/**
+ * Every email whose editorial-review stamps belong to one contributor profile.
+ *
+ * `setEditorialReview` stamps the reviewing actor's email, and legacy
+ * credential logins derive that email from the login key
+ * (`<key>@local.dose.wiki`). A profile therefore claims its `membershipEmail`
+ * plus the legacy credential email of its key and of every alias — so stamps
+ * made under a retired login handle (witchy@local.dose.wiki) follow the
+ * profile that absorbed the alias (LYREA). Alias-derived emails are confined
+ * to the internal legacy domain, so an alias can never claim an external
+ * address. Callers must keep the returned set server-side.
+ */
+export function contributorReviewerEmails(
+  profile: Pick<StoredProfile, "key" | "aliases" | "membershipEmail">,
+): Set<string> {
+  const emails = new Set<string>();
+  if (profile.membershipEmail) {
+    const email = normalizeEmail(profile.membershipEmail);
+    if (email) {
+      emails.add(email);
+    }
+  }
+  for (const handle of [profile.key, ...(profile.aliases ?? [])]) {
+    const normalized = handle.trim().toLowerCase();
+    // A legacy credential key is a bare handle; anything with whitespace (a
+    // display-name alias like "josie kins") never was a login key.
+    if (normalized && !/\s/.test(normalized)) {
+      emails.add(`${normalized}${LEGACY_CREDENTIAL_EMAIL_DOMAIN}`);
+    }
+  }
+  return emails;
 }
 
 export function toDisplayName(key: string, fallback = "Contributor"): string {
@@ -367,6 +430,9 @@ export type EditorProfilePatchInput = {
   avatarUrl?: string | null;
   avatarStorageId?: string | null;
   membershipEmail?: string | null;
+  exclude_from_gallery?: boolean;
+  archival?: boolean;
+  staffNote?: StaffNote | null;
 };
 
 /**
@@ -453,6 +519,33 @@ export function buildEditorProfilePatch(
     patch.membershipEmail = email || undefined;
   }
 
+  // Stored as `true` or not at all: absent is the "included" default, so a
+  // toggle back to included deletes the field (present-but-`undefined`)
+  // rather than storing a `false` that reads would then have to treat as
+  // absent anyway.
+  if (input.exclude_from_gallery !== undefined) {
+    patch.exclude_from_gallery = input.exclude_from_gallery === true ? true : undefined;
+  }
+
+  // Same true-or-delete contract as the gallery flag: absent is the "normal
+  // profile" default, so unchecking deletes the field.
+  if (input.archival !== undefined) {
+    patch.archival = input.archival === true ? true : undefined;
+  }
+
+  // `null` (or a note emptied down to nothing) clears the field; a kept note is
+  // stored sanitized, with the attribution omitted entirely when blank.
+  if (input.staffNote !== undefined) {
+    const markdown = input.staffNote === null ? "" : sanitizeBio(input.staffNote.markdown);
+    if (!markdown.trim()) {
+      patch.staffNote = undefined;
+    } else {
+      const attribution =
+        input.staffNote === null ? "" : sanitizeRole(input.staffNote.attribution);
+      patch.staffNote = attribution ? { markdown, attribution } : { markdown };
+    }
+  }
+
   return patch;
 }
 
@@ -490,6 +583,13 @@ export async function materializeProfile(
     // slug that no longer matches an item is simply not found and ignored.
     replicationOrder: normalizeOrderSlugs(profile.replicationOrder),
     reportOrder: normalizeOrderSlugs(profile.reportOrder),
+    // Passthrough of the gallery opt-out; spread so an included profile's
+    // public projection carries no key at all rather than an explicit false.
+    ...(profile.exclude_from_gallery === true ? { exclude_from_gallery: true } : {}),
+    ...(profile.archival === true ? { archival: true } : {}),
+    // Passthrough of the staff commentary; spread so an absent note stays a
+    // missing key rather than an explicit null.
+    ...(profile.staffNote?.markdown ? { staffNote: profile.staffNote } : {}),
   };
 }
 

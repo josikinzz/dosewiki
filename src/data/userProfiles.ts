@@ -1,9 +1,4 @@
 import {
-  initialChangeLogEntries,
-  sortChangeLogEntries,
-  type ChangeLogEntry,
-} from "./changelog/changeLog";
-import {
   buildFallbackContributorProfile,
   deriveProfileKeyFromEmail,
   findContributorProfileByAuthorName,
@@ -56,6 +51,30 @@ export type NormalizedUserProfile = {
    */
   replicationOrder?: string[];
   reportOrder?: string[];
+  /**
+   * The contributor's opt-out from the public /replications gallery, passed
+   * through from Convex (`contributorProfiles.exclude_from_gallery`). Absent
+   * means included. It gates ONLY the gallery corpus
+   * (`getPublicGalleryReplications`) — effect-article replication sections,
+   * substance showcases, the contributor's own profile page, and permalinks
+   * still show the works.
+   */
+  exclude_from_gallery?: boolean;
+  /**
+   * Staff-maintained archival marker, passed through from Convex
+   * (`contributorProfiles.archival`). Absent means a normal profile; `true`
+   * renders the "Archival profile" notice under the public profile handle.
+   */
+  archival?: boolean;
+  /**
+   * Signed staff commentary, passed through from Convex
+   * (`contributorProfiles.staffNote`). Absent renders nothing; present it is
+   * the public "Editor's note" speech-bubble section under the bio.
+   */
+  staffNote?: {
+    markdown: string;
+    attribution?: string;
+  };
 };
 
 export { deriveProfileKeyFromEmail, normalizeProfileKey };
@@ -168,28 +187,6 @@ export function getProfileMapFromList(
   profiles: readonly NormalizedUserProfile[],
 ): Map<string, NormalizedUserProfile> {
   return new Map(profiles.map((profile) => [profile.key, profile]));
-}
-
-export function buildProfileHistory(key: string, limit = 10, aliases: string[] = []): ChangeLogEntry[] {
-  const normalizedKey = normalizeProfileKey(key);
-  if (!normalizedKey) {
-    return [];
-  }
-
-  const acceptedKeys = new Set([
-    normalizedKey,
-    ...aliases.map((alias) => normalizeProfileKey(alias)).filter(Boolean),
-  ]);
-
-  const filtered = initialChangeLogEntries.filter(
-    (entry) => acceptedKeys.has((entry.submittedBy ?? "").toUpperCase()),
-  );
-
-  if (filtered.length === 0) {
-    return [];
-  }
-
-  return sortChangeLogEntries(filtered).slice(0, limit);
 }
 
 export function findProfileByAuthorNameInList(
