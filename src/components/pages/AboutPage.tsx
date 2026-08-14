@@ -5,6 +5,7 @@ import { DoseWikiLogo } from "../common/DoseWikiLogo";
 import { SITE_FLAVOR_CONFIG } from "@/config/siteFlavor";
 import { Icon } from "../common/Icon";
 import { SiteLicenceNotice } from "../common/SiteLicenceNotice";
+import { SiteSupporter } from "../common/SiteSupporter";
 import { InteractiveContentCard } from "@/components/ui/surface";
 import {
   PublicTableOfContents,
@@ -147,11 +148,11 @@ export const AboutPage = memo(function AboutPage({
   // written against the tabbed page still land on the right section.
   const tocItems: PublicTableOfContentsItem[] = [
     { id: "mission", label: "Mission", icon: "lucide:compass" },
+    { id: "docs", label: ABOUT_CONFIG.docsTitle, icon: "lucide:book-open" },
     ...(ABOUT_CONFIG.showOpenData
-      ? [{ id: "data", label: "Open Data & Tools", icon: "lucide:database" } satisfies PublicTableOfContentsItem]
+      ? [{ id: "data", label: "Downloads", icon: "lucide:download" } satisfies PublicTableOfContentsItem]
       : []),
     { id: "contributors", label: contributorsSectionTitle, icon: "lucide:users" },
-    { id: "docs", label: ABOUT_CONFIG.docsTitle, icon: "lucide:book-open" },
   ];
 
   return (
@@ -206,13 +207,46 @@ export const AboutPage = memo(function AboutPage({
           <div className="px-0 py-2">{missionContent}</div>
         </section>
 
+        <section id="docs" className="space-y-6">
+          <PublicSectionHeading icon="lucide:book-open" title={ABOUT_CONFIG.docsTitle} />
+
+          {/* Without the Open Data section this is the only place the reuse terms
+              appear, and it is where they belong: alongside the licence card. */}
+          {ABOUT_CONFIG.showOpenData ? null : (
+            <SiteLicenceNotice
+              className="theme-text-faint text-sm leading-6"
+              notice={ABOUT_CONFIG.reuseNotice}
+            />
+          )}
+
+          <ul className={cn("grid gap-4", DOC_GRID_COLUMNS)}>
+            {ABOUT_CONFIG.docLinks.map((doc) => (
+              <li key={doc.href}>
+                <InteractiveContentCard
+                  asChild
+                  padding="md"
+                  className="group flex h-full flex-col gap-2"
+                >
+                  <Link href={doc.href} scroll={false}>
+                    <span className="theme-accent-heading flex items-center gap-2 font-medium">
+                      <Icon icon={doc.icon} size={18} />
+                      {doc.title}
+                    </span>
+                    <span className="theme-text-faint text-sm leading-6">{doc.description}</span>
+                  </Link>
+                </InteractiveContentCard>
+              </li>
+            ))}
+          </ul>
+        </section>
+
         {/* The section's exports are dose.wiki's own — the molecule pack, the
             dataset downloads and the dose.wiki repository — so a flavor that
             does not ship them drops the section rather than advertising
             another publication's downloads under its own licence. */}
         {ABOUT_CONFIG.showOpenData ? (
           <section id="data" className="space-y-6">
-            <PublicSectionHeading icon="lucide:database" title="Open Data & Tools" />
+            <PublicSectionHeading icon="lucide:download" title="Downloads" />
 
             <AboutArchivePreview
               previewSnapshots={previewSnapshots}
@@ -252,39 +286,12 @@ export const AboutPage = memo(function AboutPage({
               </p>
             </div>
           )}
-        </section>
 
-        <section id="docs" className="space-y-6">
-          <PublicSectionHeading icon="lucide:book-open" title={ABOUT_CONFIG.docsTitle} />
-
-          {/* Without the Open Data section this is the only place the reuse terms
-              appear, and it is where they belong: alongside the licence card. */}
-          {ABOUT_CONFIG.showOpenData ? null : (
-            <SiteLicenceNotice
-              className="theme-text-faint text-sm leading-6"
-              notice={ABOUT_CONFIG.reuseNotice}
-            />
-          )}
-
-          <ul className={cn("grid gap-4", DOC_GRID_COLUMNS)}>
-            {ABOUT_CONFIG.docLinks.map((doc) => (
-              <li key={doc.href}>
-                <InteractiveContentCard
-                  asChild
-                  padding="md"
-                  className="group flex h-full flex-col gap-2"
-                >
-                  <Link href={doc.href} scroll={false}>
-                    <span className="theme-accent-heading flex items-center gap-2 font-medium">
-                      <Icon icon={doc.icon} size={18} />
-                      {doc.title}
-                    </span>
-                    <span className="theme-text-faint text-sm leading-6">{doc.description}</span>
-                  </Link>
-                </InteractiveContentCard>
-              </li>
-            ))}
-          </ul>
+          {/* Infrastructure credit, mirroring the homepage/footer lockup. Renders
+              nothing on a flavor that declares no supporter. */}
+          <div className="flex justify-center pt-2">
+            <SiteSupporter align="center" markHeightRem={2.25} />
+          </div>
         </section>
       </StickyTocLayout>
     </main>

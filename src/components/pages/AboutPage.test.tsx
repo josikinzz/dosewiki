@@ -24,9 +24,9 @@ const describeOpenData = showOpenData ? describe : describe.skip;
 /** Section anchor ids, in page order, as this flavor renders them. */
 const expectedSectionIds = [
   "mission",
+  "docs",
   ...(showOpenData ? ["data"] : []),
   "contributors",
-  "docs",
 ];
 
 const founderProfiles: NormalizedUserProfile[] = [
@@ -82,7 +82,7 @@ describe("AboutPage sections", () => {
     renderAboutPage();
 
     expect(screen.getByText("Mission test copy for harm reduction.")).toBeInTheDocument();
-    expect(Boolean(screen.queryByRole("heading", { name: /open data & tools/i }))).toBe(
+    expect(Boolean(screen.queryByRole("heading", { name: "Downloads" }))).toBe(
       showOpenData,
     );
     expect(
@@ -234,7 +234,12 @@ describe("AboutPage contributor roster", () => {
       );
     }
 
-    expect(within(panel).getAllByRole("link")).toHaveLength(allProfiles.length - 1);
+    // Contributor profile links only; the section also carries the flavor's
+    // supporter credit, which is not a roster entry.
+    const profileLinks = within(panel)
+      .getAllByRole("link")
+      .filter((link) => link.getAttribute("href")?.startsWith("/contributors/"));
+    expect(profileLinks).toHaveLength(allProfiles.length - 1);
   });
 
   it("excludes Lyrea, who did not contribute to this publication", () => {
@@ -311,12 +316,19 @@ describe("AboutPage contributor roster", () => {
 
     const panel = sectionById("contributors");
 
-    // The curated order, not the reference ranking, and Lyrea is present.
+    // The curated order, not the reference ranking, and Lyrea is present. The
+    // trailing link is the flavor's supporter credit (absent where the flavor
+    // declares none), not a roster entry.
+    const supporterHref = SITE_FLAVOR_CONFIG.footer.supporter?.href;
     expect(
       within(panel)
         .getAllByRole("link")
         .map((link) => link.getAttribute("href")),
-    ).toEqual(["/contributors/lyrea", "/contributors/josie"]);
+    ).toEqual([
+      "/contributors/lyrea",
+      "/contributors/josie",
+      ...(supporterHref ? [supporterHref] : []),
+    ]);
     // The exact grid the curated list has always used — no roster layout leaks in.
     expect(within(panel).getByRole("list").className).toBe("grid gap-4 sm:grid-cols-2");
     expect(within(panel).queryByText(/ordered by the number of pages/i)).not.toBeInTheDocument();
@@ -330,7 +342,7 @@ describeOpenData("AboutPage public export contract", () => {
     renderAboutPage();
 
     expect(
-      screen.getByRole("heading", { name: /open data & tools/i }),
+      screen.getByRole("heading", { name: "Downloads" }),
     ).toBeInTheDocument();
     expect(screen.getByText("SubstanceIndex.json")).toBeInTheDocument();
     expect(screen.getByText("EffectIndex.json")).toBeInTheDocument();
