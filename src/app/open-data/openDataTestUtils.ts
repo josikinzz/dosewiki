@@ -6,9 +6,14 @@ import { gunzipSync } from "node:zlib";
  * (see openDataResponse in shared.ts) and transparent decompression only
  * happens on a real HTTP fetch.
  */
-export async function readOpenDataPayload(
-  response: Response,
-): Promise<Record<string, unknown> & { items: Array<Record<string, unknown>> }> {
+export async function readOpenDataPayload(response: Response): Promise<{
+  dataset: string;
+  generatedAt: string;
+  count: number;
+  license: string;
+  source: string;
+  items: Array<Record<string, unknown>>;
+}> {
   const body = Buffer.from(await response.arrayBuffer());
   return JSON.parse(gunzipSync(body).toString("utf8"));
 }
