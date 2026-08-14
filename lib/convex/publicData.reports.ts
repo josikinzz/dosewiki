@@ -53,6 +53,23 @@ export const getFeaturedReports = cache(async (limit = 8) => {
   return (await getPublicReports()).slice(0, limit);
 });
 
+/**
+ * Every published trip report as a full detail record, contributor-projected
+ * like the permalink read, for the public open-data download. Only rows from
+ * the published `tripReports` table are read — submissions never appear here.
+ */
+export const getPublicReportDetails = cache(unstable_cache(async (): Promise<TripReportRecord[]> => {
+  const [reports, profiles] = await Promise.all([
+    getPublicDataReadAdapter().getPublicTripReportRecords(),
+    getPublicContributorProfiles(),
+  ]);
+
+  return projectPublicReportDetails(reports, profiles);
+}, ["convex-public-report-details"], {
+  revalidate: PUBLIC_CONVEX_CACHE_REVALIDATE_SECONDS,
+  tags: [PUBLIC_CONVEX_CACHE_TAGS.all, PUBLIC_CONVEX_CACHE_TAGS.reports, PUBLIC_CONVEX_CACHE_TAGS.contributors],
+}));
+
 export const getPublicReportBySlug = cache(unstable_cache(async (slug: string): Promise<TripReportDetailRecord | null> => {
   const [report, profiles] = await Promise.all([
     getPublicDataReadAdapter().getPublicTripReportBySlug(slug),

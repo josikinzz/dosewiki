@@ -241,4 +241,5 @@ export const COPY_PREVIEW_PLACEHOLDER_VALUES: Record<string, string> = {
   substanceCount: "312",
   categoryCount: "9",
   reportCount: "180",
+  replicationCount: "95",
 };

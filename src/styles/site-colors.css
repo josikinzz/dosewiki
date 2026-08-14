@@ -186,7 +186,7 @@ html[data-theme="light"]:where(:not([data-site="effectindex"])) .theme-chrome-da
   --theme-page-edge-vignette: transparent;
 
   /* Dark mode text hierarchy */
-  --theme-text-primary: #c6c5c5;
+  --theme-text-primary: #ffffff;
   --theme-text-secondary: #dcdcdc;
   --theme-text-muted: color-mix(in srgb, rgb(var(--c-white)) 72%, var(--theme-body-bg));
   --theme-text-faint: color-mix(in srgb, rgb(var(--c-white)) 56%, var(--theme-body-bg));
@@ -673,7 +673,7 @@ html[data-theme="light"]:where(:not([data-site="effectindex"])) .theme-chrome-da
   --theme-plateau-tier-fourth: oklch(58% 0.12 54);
   --theme-plateau-tier-fifth: oklch(56% 0.15 16);
   --theme-plateau-tier-fade: var(--theme-dose-tier-fade);
-  --theme-section-heading: oklch(from rgb(var(--c-accent)) calc(l - 0.146) calc(c * 0.4) h);
+  --theme-section-heading: rgb(var(--c-accent));
   --theme-avatar-gradient-from: color-mix(in srgb, rgb(var(--c-brand)) 20%, var(--theme-surface-muted));
   --theme-avatar-gradient-to: color-mix(in srgb, rgb(var(--c-violet)) 25%, var(--theme-surface-muted));
   --theme-index-card-bullet: rgba(255, 255, 255, 0.39);

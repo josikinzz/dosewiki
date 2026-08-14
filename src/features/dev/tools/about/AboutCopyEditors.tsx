@@ -15,6 +15,8 @@ import type { AboutCopyNotice } from "./aboutEditorUtils";
 export const PLACEHOLDER_TOKENS: Array<{ key: string; label: string }> = [
   { key: "compoundCount", label: "published substances" },
   { key: "effectCount", label: "tracked subjective effects" },
+  { key: "reportCount", label: "published trip reports" },
+  { key: "replicationCount", label: "replication gallery entries" },
   { key: "psychoactiveClassCount", label: "psychoactive classes" },
   { key: "categoryCount", label: "alias of psychoactive classes" },
   { key: "chemicalClassCount", label: "chemical classes" },

@@ -7,8 +7,13 @@ import { Icon } from "../common/Icon";
 import { SiteLicenceNotice } from "../common/SiteLicenceNotice";
 import { InteractiveContentCard } from "@/components/ui/surface";
 import {
+  PublicTableOfContents,
+  type PublicTableOfContentsItem,
+} from "@/components/common/PublicTableOfContents";
+import { PublicTocStrip } from "@/components/common/PublicTocStrip";
+import { StickyTocLayout } from "@/components/common/StickyTocLayout";
+import {
   ContributorCard,
-  PublicContentShell,
   PublicSectionHeading,
 } from "@/components/layout/PublicPagePrimitives";
 import type { NormalizedUserProfile } from "../../data/userProfiles";
@@ -24,7 +29,6 @@ import type { AboutPreviewSnapshot } from "./aboutArchiveSnapshot";
 import { cn } from "@/lib/utils";
 import { publicHref } from "@/utils/publicHref";
 import { AboutArchivePreview } from "./AboutArchivePreview";
-import { AboutPageTabs } from "./AboutPageTabs";
 import { MoleculeDownloadPack } from "./MoleculeDownloadPack";
 
 const DEFAULT_TAGLINE = SITE_FLAVOR_CONFIG.description;
@@ -138,146 +142,150 @@ export const AboutPage = memo(function AboutPage({
     contributorRoster !== null &&
     (contributorRoster.founder !== null || contributorRoster.contributors.length > 0);
 
-  return (
-    <PublicContentShell focusTarget className="pb-24">
-      <div className="space-y-12">
-        {/* Hero Section */}
-        <div className="mb-10">
-          <div className="relative flex flex-col gap-6 py-6 sm:py-8">
-            {/* Decorative background glow */}
-            <div
-              className="pointer-events-none absolute -left-12 -top-12 h-64 w-64 rounded-full bg-[color:color-mix(in_srgb,var(--theme-accent)_12%,transparent)] blur-[80px]"
-              aria-hidden="true"
-            />
+  // One anchor per rendered section, in page order. The ids are the old tab
+  // hash ids (`#data` is linked from the About markdown itself), so deep links
+  // written against the tabbed page still land on the right section.
+  const tocItems: PublicTableOfContentsItem[] = [
+    { id: "mission", label: "Mission", icon: "lucide:compass" },
+    ...(ABOUT_CONFIG.showOpenData
+      ? [{ id: "data", label: "Open Data & Tools", icon: "lucide:database" } satisfies PublicTableOfContentsItem]
+      : []),
+    { id: "contributors", label: contributorsSectionTitle, icon: "lucide:users" },
+    { id: "docs", label: ABOUT_CONFIG.docsTitle, icon: "lucide:book-open" },
+  ];
 
-            <div className="relative flex flex-col gap-6">
-              {/* Title with icon */}
-              <div className="flex flex-col items-center gap-4 text-center sm:flex-row sm:flex-wrap sm:justify-start sm:gap-6 sm:text-left">
-                <DoseWikiLogo
-                  width={96}
-                  height={96}
-                  className="h-44 w-44 sm:h-24 sm:w-24"
-                  draggable={false}
-                />
-                <div>
-                  <h1 className="theme-accent-heading font-display break-words text-[2.5rem] font-bold leading-tight tracking-tight sm:text-[3.2rem]">
-                    {SITE_FLAVOR_CONFIG.aboutTitle}
-                  </h1>
-                  <p className="theme-text-faint mt-2 text-lg font-medium">
-                    {subtitle?.trim() || DEFAULT_TAGLINE}
-                  </p>
-                </div>
+  return (
+    <main
+      id="main-content"
+      tabIndex={-1}
+      className="theme-page-shell min-h-screen pb-24 focus:outline-none"
+    >
+      <StickyTocLayout
+        toc={<PublicTableOfContents items={tocItems} variant="bare" />}
+        maxWidthClass="max-w-4xl"
+        className="theme-toc-strip-scope"
+        contentClassName="gap-12"
+      >
+        {/* Mobile/tablet TOC: sticky chip strip above the hero, pinned under
+            the site header from the very first scroll; replaced by the sticky
+            gutter TOC at >=1200px. */}
+        <PublicTocStrip items={tocItems} />
+
+        {/* Hero Section */}
+        <div className="relative flex flex-col gap-6 py-6 sm:py-8">
+          {/* Decorative background glow */}
+          <div
+            className="pointer-events-none absolute -left-12 -top-12 h-64 w-64 rounded-full bg-[color:color-mix(in_srgb,var(--theme-accent)_12%,transparent)] blur-[80px]"
+            aria-hidden="true"
+          />
+
+          <div className="relative flex flex-col gap-6">
+            {/* Title with icon */}
+            <div className="flex flex-col items-center gap-4 text-center sm:flex-row sm:flex-wrap sm:justify-start sm:gap-6 sm:text-left">
+              <DoseWikiLogo
+                width={96}
+                height={96}
+                className="h-44 w-44 sm:h-24 sm:w-24"
+                draggable={false}
+              />
+              <div>
+                <h1 className="theme-accent-heading font-display break-words text-[2.5rem] font-bold leading-tight tracking-tight sm:text-[3.2rem]">
+                  {SITE_FLAVOR_CONFIG.aboutTitle}
+                </h1>
+                <p className="theme-text-faint mt-2 text-lg font-medium">
+                  {subtitle?.trim() || DEFAULT_TAGLINE}
+                </p>
               </div>
             </div>
           </div>
         </div>
 
-        <AboutPageTabs
-          mission={
-            <section className="space-y-6">
-              <PublicSectionHeading
-                icon="lucide:compass"
-                title="Project Mission"
-              />
+        <section id="mission" className="space-y-6">
+          <PublicSectionHeading icon="lucide:compass" title="Project Mission" />
 
-              <div className="px-0 py-2">{missionContent}</div>
-            </section>
-          }
-          // The panel's exports are dose.wiki's own — the molecule pack, SubstanceIndex.json
-          // and the dose.wiki repository — so a flavor that does not ship them drops the tab
-          // rather than advertising another publication's downloads under its own licence.
-          data={
-            ABOUT_CONFIG.showOpenData ? (
-              <section className="space-y-6">
-                <PublicSectionHeading
-                  icon="lucide:database"
-                  title="Open Data & Tools"
-                />
+          <div className="px-0 py-2">{missionContent}</div>
+        </section>
 
-                <AboutArchivePreview previewSnapshots={previewSnapshots} />
+        {/* The section's exports are dose.wiki's own — the molecule pack, the
+            dataset downloads and the dose.wiki repository — so a flavor that
+            does not ship them drops the section rather than advertising
+            another publication's downloads under its own licence. */}
+        {ABOUT_CONFIG.showOpenData ? (
+          <section id="data" className="space-y-6">
+            <PublicSectionHeading icon="lucide:database" title="Open Data & Tools" />
 
-                <MoleculeDownloadPack moleculeCount={moleculeCount} />
+            <AboutArchivePreview previewSnapshots={previewSnapshots} />
 
-                {/* Reuse terms follow the publication: dose.wiki's CC0/MIT dedication is
-                    not Effect Index's licence, so this sentence is flavored rather than
-                    written inline. */}
-                <SiteLicenceNotice
-                  className="theme-text-faint text-sm leading-6"
-                  notice={ABOUT_CONFIG.reuseNotice}
-                />
-              </section>
-            ) : undefined
-          }
-          contributorsLabel={contributorsSectionTitle}
-          contributors={
-            <section className="space-y-6">
-              <PublicSectionHeading
-                icon="lucide:users"
-                title={contributorsSectionTitle}
-              />
+            <MoleculeDownloadPack moleculeCount={moleculeCount} />
 
-              {hasRosterEntries && contributorRoster ? (
-                <ContributorRosterPanel roster={contributorRoster} />
-              ) : founders.length > 0 ? (
-                <ul className="grid gap-4 sm:grid-cols-2">
-                  {founders.map((profile) => (
-                    <li key={profile.key}>
-                      <ContributorCard
-                        contributor={profile}
-                        href={publicHref.contributor(profile.key)}
-                      />
-                    </li>
-                  ))}
-                </ul>
-              ) : (
-                <div className="p-8 text-center">
-                  <p className="theme-text-faint text-sm">
-                    Contributor profiles are on their way — check back soon.
-                  </p>
-                </div>
-              )}
-            </section>
-          }
-          docsLabel={ABOUT_CONFIG.docsTitle}
-          docs={
-            <section className="space-y-6">
-              <PublicSectionHeading
-                icon="lucide:book-open"
-                title={ABOUT_CONFIG.docsTitle}
-              />
+            {/* Reuse terms follow the publication: dose.wiki's CC0/MIT dedication is
+                not Effect Index's licence, so this sentence is flavored rather than
+                written inline. */}
+            <SiteLicenceNotice
+              className="theme-text-faint text-sm leading-6"
+              notice={ABOUT_CONFIG.reuseNotice}
+            />
+          </section>
+        ) : null}
 
-              {/* Without the Open Data tab this is the only place the reuse terms appear,
-                  and it is where they belong: alongside the licence card. */}
-              {ABOUT_CONFIG.showOpenData ? null : (
-                <SiteLicenceNotice
-                  className="theme-text-faint text-sm leading-6"
-                  notice={ABOUT_CONFIG.reuseNotice}
-                />
-              )}
+        <section id="contributors" className="space-y-6">
+          <PublicSectionHeading icon="lucide:users" title={contributorsSectionTitle} />
 
-              <ul className={cn("grid gap-4", DOC_GRID_COLUMNS)}>
-                {ABOUT_CONFIG.docLinks.map((doc) => (
-                  <li key={doc.href}>
-                    <InteractiveContentCard
-                      asChild
-                      padding="md"
-                      className="group flex h-full flex-col gap-2"
-                    >
-                      <Link href={doc.href} scroll={false}>
-                        <span className="theme-accent-heading flex items-center gap-2 font-medium">
-                          <Icon icon={doc.icon} size={18} />
-                          {doc.title}
-                        </span>
-                        <span className="theme-text-faint text-sm leading-6">{doc.description}</span>
-                      </Link>
-                    </InteractiveContentCard>
-                  </li>
-                ))}
-              </ul>
-            </section>
-          }
-        />
-      </div>
-    </PublicContentShell>
+          {hasRosterEntries && contributorRoster ? (
+            <ContributorRosterPanel roster={contributorRoster} />
+          ) : founders.length > 0 ? (
+            <ul className="grid gap-4 sm:grid-cols-2">
+              {founders.map((profile) => (
+                <li key={profile.key}>
+                  <ContributorCard
+                    contributor={profile}
+                    href={publicHref.contributor(profile.key)}
+                  />
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <div className="p-8 text-center">
+              <p className="theme-text-faint text-sm">
+                Contributor profiles are on their way — check back soon.
+              </p>
+            </div>
+          )}
+        </section>
+
+        <section id="docs" className="space-y-6">
+          <PublicSectionHeading icon="lucide:book-open" title={ABOUT_CONFIG.docsTitle} />
+
+          {/* Without the Open Data section this is the only place the reuse terms
+              appear, and it is where they belong: alongside the licence card. */}
+          {ABOUT_CONFIG.showOpenData ? null : (
+            <SiteLicenceNotice
+              className="theme-text-faint text-sm leading-6"
+              notice={ABOUT_CONFIG.reuseNotice}
+            />
+          )}
+
+          <ul className={cn("grid gap-4", DOC_GRID_COLUMNS)}>
+            {ABOUT_CONFIG.docLinks.map((doc) => (
+              <li key={doc.href}>
+                <InteractiveContentCard
+                  asChild
+                  padding="md"
+                  className="group flex h-full flex-col gap-2"
+                >
+                  <Link href={doc.href} scroll={false}>
+                    <span className="theme-accent-heading flex items-center gap-2 font-medium">
+                      <Icon icon={doc.icon} size={18} />
+                      {doc.title}
+                    </span>
+                    <span className="theme-text-faint text-sm leading-6">{doc.description}</span>
+                  </Link>
+                </InteractiveContentCard>
+              </li>
+            ))}
+          </ul>
+        </section>
+      </StickyTocLayout>
+    </main>
   );
 });

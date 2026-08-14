@@ -132,7 +132,7 @@ const orchid: PalettePreset = {
   name: "Orchid",
   tagline: "The shipped look — neon fuchsia over black plum glass.",
   swatch: {
-    dark: ["#110617", "#1f0527", "#c6c5c5", "#d946ef", "#f0abfc"],
+    dark: ["#110617", "#1f0527", "#ffffff", "#d946ef", "#f0abfc"],
     light: ["#fdfcfd", "#f6e6f4", "#3c2144", "#a827b8", "#c026d3"],
   },
   overrides: { dark: {}, light: {} },

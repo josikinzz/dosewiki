@@ -219,6 +219,11 @@ export function useDevModePageController({
       mechanismClassCount: formatCount(mechanismIndexGroups.length),
       mechanismOfActionClassCount: formatCount(mechanismIndexGroups.length),
       effectCount: formatCount(effectSummaries.length),
+      // The dev shell loads no published-report or replication corpus (the
+      // Trip Report Portal and gallery fetch their own, tab-locally), so
+      // these preview counts stay at zero.
+      reportCount: formatCount(0),
+      replicationCount: formatCount(0),
     };
   }, [
     chemicalClassIndexGroups.length,

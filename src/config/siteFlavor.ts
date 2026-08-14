@@ -315,7 +315,7 @@ const DOSEWIKI_CONFIG: SiteFlavorConfig = {
       linkHref: "/docs/license",
       linkIsExternal: false,
       trailing:
-        ": reuse it freely, no attribution required. The site's code is MIT; trip reports, interaction ratings, and reagent tests keep their own terms. Subjective Effect Index and Trip Report Index exports aren't downloadable yet — they land with the 1.0 release.",
+        ": reuse it freely, no attribution required. The site's code is MIT; trip reports, interaction ratings, and reagent tests keep their own terms.",
     },
     // dose.wiki's About prose is editor-managed in Convex.
     missionMarkdown: null,

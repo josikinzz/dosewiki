@@ -7,6 +7,24 @@ import { Button } from "@/components/ui/button";
 import { IconPillLink } from "@/components/layout/PublicPagePrimitives";
 import { ABOUT_PREVIEW_LINE_LIMIT, type AboutPreviewSnapshot } from "./aboutArchiveSnapshot";
 
+const DATASET_DOWNLOADS = [
+  {
+    filename: "SubstanceIndex.json",
+    href: "/open-data/SubstanceIndex.json",
+    caption: "The complete Substance Index",
+  },
+  {
+    filename: "EffectIndex.json",
+    href: "/open-data/EffectIndex.json",
+    caption: "The complete Subjective Effect Index",
+  },
+  {
+    filename: "TripReports.json",
+    href: "/open-data/TripReports.json",
+    caption: "All published trip reports",
+  },
+] as const;
+
 function JsonSyntaxHighlight({ json, truncated }: { json: string; truncated: boolean }) {
   const highlightedLines = useMemo(() => {
     const escaped = json
@@ -94,10 +112,10 @@ export function AboutArchivePreview({ previewSnapshots }: { previewSnapshots: Ab
   const [previewIndex, setPreviewIndex] = useState(() => (previewSnapshots.length > 0 ? 0 : -1));
   const [hasCopied, setHasCopied] = useState(false);
 
-  const handleDownload = useCallback(() => {
+  const handleDownload = useCallback((href: string, filename: string) => {
     const link = document.createElement("a");
-    link.href = "/SubstanceIndex.json";
-    link.download = "SubstanceIndex.json";
+    link.href = href;
+    link.download = filename;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -159,16 +177,22 @@ export function AboutArchivePreview({ previewSnapshots }: { previewSnapshots: Ab
       <section className="space-y-6 py-2">
         <div className="space-y-4">
           <div className="flex flex-col gap-3 pt-2">
-            <Button
-              onClick={handleDownload}
-              className="theme-control-pill theme-text-primary h-12 w-full justify-start gap-3 rounded-full"
-            >
-              <IconBadge icon="lucide:download" className="theme-public-card-icon theme-accent-emphasis" />
-              <div className="flex flex-col items-start text-xs">
-                <span className="font-semibold text-sm text-dose-accent-strong">SubstanceIndex.json</span>
-                <span className="theme-text-faint">Static JSON snapshot</span>
-              </div>
-            </Button>
+            {DATASET_DOWNLOADS.map((dataset) => (
+              <Button
+                key={dataset.filename}
+                onClick={() => handleDownload(dataset.href, dataset.filename)}
+                className="theme-control-pill theme-text-primary h-12 w-full justify-start gap-3 rounded-full"
+              >
+                <IconBadge icon="lucide:download" className="theme-public-card-icon theme-accent-emphasis" />
+                <div className="flex flex-col items-start text-xs">
+                  <span className="font-semibold text-sm text-dose-accent-strong">{dataset.filename}</span>
+                  <span className="theme-text-faint">{dataset.caption}</span>
+                </div>
+              </Button>
+            ))}
+            <p className="theme-text-faint px-1 text-xs leading-5">
+              JSON, CC0 — refreshed nightly from the live database.
+            </p>
             <IconPillLink
               href="https://github.com/josikinzz/dosewiki"
               icon="lucide:github"

@@ -38,6 +38,7 @@ export {
   getFeaturedSubstances,
   getPublicAboutPreviewSubstances,
   getPublicCategoryLayout,
+  getPublicFullSubstanceDocuments,
   getPublicMechanismRouteInput,
   getPublicSubstanceBySlug,
   getPublicSubstanceLookup,
@@ -77,6 +78,7 @@ export {
 export {
   getFeaturedReports,
   getPublicReportBySlug,
+  getPublicReportDetails,
   getPublicReports,
   getPublicReportsBySubstanceNames,
   getReportsByAuthor,

@@ -3,7 +3,7 @@ import "server-only";
 import { unstable_cache } from "next/cache";
 import { cache } from "react";
 import { PUBLIC_CONVEX_CACHE_REVALIDATE_SECONDS, PUBLIC_CONVEX_CACHE_TAGS } from "./publicData.cache";
-import { getPublicDataReadAdapter } from "./publicData.reads";
+import { getPublicDataReadAdapter, type PublicFullSubstanceDocument } from "./publicData.reads";
 import type { PublicSubstanceArticleRecord } from "./publicData.substanceContract";
 import {
   type PublicCategoryLayout,
@@ -37,6 +37,17 @@ export async function getUncachedCoverageSubstances(): Promise<
 > {
   return getPublicDataReadAdapter().getPublicCoverageSubstances();
 }
+
+/**
+ * The complete substance corpus in the committed `SubstanceIndex.json` record
+ * shape, for the public open-data download. Request-deduped only: the full
+ * corpus is far past `unstable_cache`'s entry size limit, so daily caching
+ * lives on the serving route's ISR revalidate instead.
+ */
+export const getPublicFullSubstanceDocuments = cache(
+  async (): Promise<PublicFullSubstanceDocument[]> =>
+    getPublicDataReadAdapter().getPublicFullSubstanceDocuments(),
+);
 
 export const getPublicCategoryLayout = cache(unstable_cache(async (): Promise<PublicCategoryLayout | null> => {
   return await getPublicDataReadAdapter().getPublicCategoryLayout();

@@ -97,6 +97,8 @@ export default async function AboutPage() {
     compoundCount: overview.substanceCount.toLocaleString(),
     categoryCount: overview.psychoactiveCategoryCount.toLocaleString(),
     effectCount: overview.effectCount.toLocaleString(),
+    reportCount: overview.reportCount.toLocaleString(),
+    replicationCount: overview.replicationCount.toLocaleString(),
     psychoactiveClassCount: overview.psychoactiveCategoryCount.toLocaleString(),
     chemicalClassCount: chemicalClassCount.toLocaleString(),
     mechanismClassCount: mechanismClassCount.toLocaleString(),

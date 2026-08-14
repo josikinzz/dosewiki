@@ -1,5 +1,4 @@
-import { render, screen, waitFor, within } from "@testing-library/react";
-import userEvent from "@testing-library/user-event";
+import { render, screen, within } from "@testing-library/react";
 import { beforeEach, describe, expect, it } from "vitest";
 import { SITE_FLAVOR_CONFIG, isEffectIndex } from "@/config/siteFlavor";
 import {
@@ -15,11 +14,20 @@ import { AboutPage } from "./AboutPage";
 const docsLabel = SITE_FLAVOR_CONFIG.about.docsTitle;
 
 /**
- * The Open Data tab ships dose.wiki's own exports, so it does not exist on every flavor.
- * Its assertions run only where the tab is owned; the other flavor asserts its absence.
+ * The Open Data section ships dose.wiki's own exports, so it does not exist on every
+ * flavor. Its assertions run only where the section is owned; the other flavor asserts
+ * its absence.
  */
 const showOpenData = SITE_FLAVOR_CONFIG.about.showOpenData;
 const describeOpenData = showOpenData ? describe : describe.skip;
+
+/** Section anchor ids, in page order, as this flavor renders them. */
+const expectedSectionIds = [
+  "mission",
+  ...(showOpenData ? ["data"] : []),
+  "contributors",
+  "docs",
+];
 
 const founderProfiles: NormalizedUserProfile[] = [
   {
@@ -56,115 +64,102 @@ function renderAboutPage(
   );
 }
 
+/** The named page section, for scoping queries the way the old tab panels did. */
+function sectionById(id: string): HTMLElement {
+  const section = document.getElementById(id);
+  if (!(section instanceof HTMLElement)) {
+    throw new Error(`Expected a #${id} section`);
+  }
+  return section;
+}
+
 beforeEach(() => {
   window.history.pushState(null, "", "/about");
 });
 
-describe("AboutPage tabs", () => {
-  it("shows Mission content by default", () => {
+describe("AboutPage sections", () => {
+  it("renders every section on one page, without tabs", () => {
     renderAboutPage();
 
-    expect(screen.getByRole("tab", { name: /mission/i })).toHaveAttribute(
-      "aria-selected",
-      "true",
+    expect(screen.getByText("Mission test copy for harm reduction.")).toBeInTheDocument();
+    expect(Boolean(screen.queryByRole("heading", { name: /open data & tools/i }))).toBe(
+      showOpenData,
     );
-    expect(Boolean(screen.queryByRole("tab", { name: /open data/i }))).toBe(showOpenData);
-    expect(screen.getByRole("tab", { name: /contributors/i })).toBeInTheDocument();
-    expect(screen.getByRole("tab", { name: docsLabel })).toBeInTheDocument();
-    expect(
-      screen.getByText("Mission test copy for harm reduction."),
-    ).toBeInTheDocument();
-    expect(
-      screen.queryByRole("heading", { name: /open data/i }),
-    ).not.toBeInTheDocument();
-    expect(
-      screen.queryByRole("heading", { name: /founders & contributors/i }),
-    ).not.toBeInTheDocument();
-    expect(screen.queryByRole("heading", { name: docsLabel })).not.toBeInTheDocument();
-  });
-
-  it("reveals founder cards when Contributors is selected", async () => {
-    const user = userEvent.setup();
-    renderAboutPage();
-
-    await user.click(screen.getByRole("tab", { name: /contributors/i }));
-
     expect(
       screen.getByRole("heading", { name: /founders & contributors/i }),
     ).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: docsLabel })).toBeInTheDocument();
+    expect(screen.queryByRole("tab")).not.toBeInTheDocument();
+  });
+
+  it("renders the shared table of contents with one anchor per rendered section", () => {
+    renderAboutPage();
+
+    // Both shared TOC surfaces render: the gutter rail and the mobile chip strip.
+    // Each lists exactly the rendered sections, so every id resolves to a section
+    // element and appears in both surfaces.
+    for (const id of expectedSectionIds) {
+      expect(sectionById(id).tagName).toBe("SECTION");
+      expect(document.querySelectorAll(`a[href="#${id}"]`)).toHaveLength(2);
+    }
+
+    // A flavor without the Open Data section must not advertise its anchor either.
+    if (!showOpenData) {
+      expect(document.querySelector('a[href="#data"]')).toBeNull();
+      expect(document.getElementById("data")).toBeNull();
+    }
+  });
+
+  it("shows founder cards in the contributors section", () => {
+    renderAboutPage();
+
+    const panel = sectionById("contributors");
     expect(
-      screen.getByRole("link", { name: /josie founder/i }),
+      within(panel).getByRole("link", { name: /josie founder/i }),
     ).toHaveAttribute("href", "/contributors/josie");
     expect(
-      screen.getByRole("link", { name: /alex contributor/i }),
+      within(panel).getByRole("link", { name: /alex contributor/i }),
     ).toHaveAttribute("href", "/contributors/alex");
   });
 
-  it("uses hash anchors without making the selected panel the native scroll target", async () => {
-    window.history.pushState(null, "", "/about#contributors");
-
+  it("shows this flavor's documentation links", () => {
     renderAboutPage();
 
-    await waitFor(() => {
-      expect(screen.getByRole("tab", { name: /contributors/i })).toHaveAttribute(
-        "aria-selected",
-        "true",
-      );
-    });
-
-    const panel = screen.getByRole("tabpanel", {
-      name: /founders & contributors/i,
-    });
-    const hashAnchor = document.getElementById("contributors");
-
-    expect(panel).toHaveAttribute("id", "about-panel-contributors");
-    expect(hashAnchor).not.toBeNull();
-    expect(hashAnchor).not.toBe(panel);
-    expect(hashAnchor?.closest('[aria-hidden="true"]')).not.toBeNull();
-  });
-
-  it("reveals this flavor's documentation links when the last tab is selected", async () => {
-    const user = userEvent.setup();
-    renderAboutPage();
-
-    await user.click(screen.getByRole("tab", { name: docsLabel }));
-
-    expect(screen.getByRole("heading", { name: docsLabel })).toBeInTheDocument();
+    const panel = sectionById("docs");
 
     // The cards are flavored: dose.wiki advertises its `/docs/*` pages, Effect Index its
     // own copyright disclaimer and supporting pages. Asserting the fixed dose.wiki set
     // here would ship a false licensing claim on the other build without failing.
     for (const doc of SITE_FLAVOR_CONFIG.about.docLinks) {
-      expect(screen.getByRole("link", { name: new RegExp(doc.title, "i") })).toHaveAttribute(
-        "href",
-        doc.href,
-      );
+      expect(
+        within(panel).getByRole("link", { name: new RegExp(doc.title, "i") }),
+      ).toHaveAttribute("href", doc.href);
     }
   });
 
-  it("states this flavor's reuse terms, not the other flavor's", async () => {
-    const user = userEvent.setup();
+  it("states this flavor's reuse terms, not the other flavor's", () => {
     renderAboutPage();
 
-    // The notice sits under Open Data where that tab exists, and with the licence card
-    // where it does not.
-    await user.click(
-      screen.getByRole("tab", { name: showOpenData ? /open data/i : docsLabel }),
-    );
+    // The notice sits in the Open Data section where that section exists, and with the
+    // licence card where it does not.
+    const panel = sectionById(showOpenData ? "data" : "docs");
 
     // dose.wiki dedicates its material to the public domain (CC0); Effect Index licenses
     // it under CC BY-NC-SA. Shipping either claim on the other build would be false.
     const { linkHref, linkLabel } = SITE_FLAVOR_CONFIG.about.reuseNotice;
     expect(linkLabel).toBe(isEffectIndex() ? "CC BY-NC-SA 4.0" : "CC0");
-    expect(screen.getByRole("link", { name: linkLabel })).toHaveAttribute("href", linkHref);
+    expect(within(panel).getByRole("link", { name: linkLabel })).toHaveAttribute(
+      "href",
+      linkHref,
+    );
   });
 });
 
 /**
- * Effect Index's contributor tab lists the whole roster instead of a curated founder subset.
- * The panel is prop-driven rather than flavor-driven, so both publications' renderings are
- * exercised in one run: supplying a roster is the Effect Index shape, omitting it is
- * dose.wiki's.
+ * Effect Index's contributor section lists the whole roster instead of a curated founder
+ * subset. The section is prop-driven rather than flavor-driven, so both publications'
+ * renderings are exercised in one run: supplying a roster is the Effect Index shape,
+ * omitting it is dose.wiki's.
  */
 describe("AboutPage contributor roster", () => {
   function contributorProfile(
@@ -216,10 +211,9 @@ describe("AboutPage contributor roster", () => {
     referenceCounts,
   });
 
-  async function openRosterTab(
+  function renderRosterSection(
     overrides: Partial<React.ComponentProps<typeof AboutPage>> = {},
   ) {
-    const user = userEvent.setup();
     renderAboutPage({
       founderProfiles: effectIndexSelection.founderProfiles,
       contributorRoster: effectIndexSelection.roster,
@@ -227,13 +221,11 @@ describe("AboutPage contributor roster", () => {
       ...overrides,
     });
 
-    await user.click(screen.getByRole("tab", { name: /contributors/i }));
-
-    return screen.getByRole("tabpanel", { name: CONTRIBUTOR_ROSTER_SECTION_TITLE });
+    return sectionById("contributors");
   }
 
-  it("lists every contributor, not a curated subset", async () => {
-    const panel = await openRosterTab();
+  it("lists every contributor, not a curated subset", () => {
+    const panel = renderRosterSection();
 
     for (const displayName of ["Josie Kins", "Kaytwo", "Nervewing", "StingrayZ", "Rho"]) {
       expect(within(panel).getByRole("link", { name: new RegExp(displayName, "i") })).toHaveAttribute(
@@ -245,15 +237,15 @@ describe("AboutPage contributor roster", () => {
     expect(within(panel).getAllByRole("link")).toHaveLength(allProfiles.length - 1);
   });
 
-  it("excludes Lyrea, who did not contribute to this publication", async () => {
-    const panel = await openRosterTab();
+  it("excludes Lyrea, who did not contribute to this publication", () => {
+    const panel = renderRosterSection();
 
     expect(within(panel).queryByRole("link", { name: /lyrea/i })).not.toBeInTheDocument();
     expect(within(panel).queryByText(/witchy/i)).not.toBeInTheDocument();
   });
 
-  it("puts the founder in her own labelled region ahead of the ranked grid", async () => {
-    const panel = await openRosterTab();
+  it("puts the founder in her own labelled region ahead of the ranked grid", () => {
+    const panel = renderRosterSection();
 
     // Structural, not a sort result: the founder card sits outside the contributor grid.
     const grid = within(panel).getByRole("list");
@@ -265,8 +257,8 @@ describe("AboutPage contributor roster", () => {
     expect(founderLink).toHaveTextContent("Founder · 3 pages");
   });
 
-  it("orders the remaining contributors by page references, descending, zeroes last", async () => {
-    const panel = await openRosterTab();
+  it("orders the remaining contributors by page references, descending, zeroes last", () => {
+    const panel = renderRosterSection();
 
     const ranked = within(within(panel).getByRole("list"))
       .getAllByRole("link")
@@ -280,8 +272,8 @@ describe("AboutPage contributor roster", () => {
     ]);
   });
 
-  it("renders a contributor with no avatar, bio, role or references cleanly", async () => {
-    const panel = await openRosterTab();
+  it("renders a contributor with no avatar, bio, role or references cleanly", () => {
+    const panel = renderRosterSection();
 
     const bare = within(panel).getByRole("link", { name: /rho/i });
 
@@ -291,19 +283,19 @@ describe("AboutPage contributor roster", () => {
     expect(bare.querySelector("img")).toBeNull();
   });
 
-  it("names the section and its tab panel for the whole roster", async () => {
-    const panel = await openRosterTab();
+  it("names the section heading for the whole roster", () => {
+    const panel = renderRosterSection();
 
     expect(
       within(panel).getByRole("heading", { name: CONTRIBUTOR_ROSTER_SECTION_TITLE }),
     ).toBeInTheDocument();
     expect(
-      screen.queryByRole("tabpanel", { name: CURATED_FOUNDERS_SECTION_TITLE }),
+      screen.queryByRole("heading", { name: CURATED_FOUNDERS_SECTION_TITLE }),
     ).not.toBeInTheDocument();
   });
 
-  it("falls back to the empty state when the roster has nobody in it", async () => {
-    const panel = await openRosterTab({
+  it("falls back to the empty state when the roster has nobody in it", () => {
+    const panel = renderRosterSection({
       founderProfiles: [],
       contributorRoster: buildContributorRoster({
         profiles: [],
@@ -314,13 +306,10 @@ describe("AboutPage contributor roster", () => {
     expect(within(panel).getByText(/Contributor profiles are on their way/i)).toBeInTheDocument();
   });
 
-  it("keeps dose.wiki's curated founder list, order and markup when no roster is supplied", async () => {
-    const user = userEvent.setup();
+  it("keeps dose.wiki's curated founder list, order and markup when no roster is supplied", () => {
     renderAboutPage({ founderProfiles: [lyrea, josie] });
 
-    await user.click(screen.getByRole("tab", { name: /contributors/i }));
-
-    const panel = screen.getByRole("tabpanel", { name: CURATED_FOUNDERS_SECTION_TITLE });
+    const panel = sectionById("contributors");
 
     // The curated order, not the reference ranking, and Lyrea is present.
     expect(
@@ -337,16 +326,15 @@ describe("AboutPage contributor roster", () => {
 });
 
 describeOpenData("AboutPage public export contract", () => {
-  it("reveals open data and download tooling when Open Data is selected", async () => {
-    const user = userEvent.setup();
+  it("shows open data and download tooling in the flow of the page", () => {
     renderAboutPage();
 
-    await user.click(screen.getByRole("tab", { name: /open data/i }));
-
     expect(
-      screen.getByRole("heading", { name: /open data/i }),
+      screen.getByRole("heading", { name: /open data & tools/i }),
     ).toBeInTheDocument();
     expect(screen.getByText("SubstanceIndex.json")).toBeInTheDocument();
+    expect(screen.getByText("EffectIndex.json")).toBeInTheDocument();
+    expect(screen.getByText("TripReports.json")).toBeInTheDocument();
     expect(
       screen.getByRole("link", { name: /github repository/i }),
     ).toHaveAttribute("href", "https://github.com/josikinzz/dosewiki");
@@ -356,34 +344,28 @@ describeOpenData("AboutPage public export contract", () => {
     expect(screen.getByText("molecules.json")).toBeInTheDocument();
   });
 
-  it("keeps archival snapshot actions without the removed explanatory heading", async () => {
-    const user = userEvent.setup();
+  it("keeps archival snapshot actions without the removed explanatory heading", () => {
     renderAboutPage();
-
-    await user.click(screen.getByRole("tab", { name: /open data/i }));
 
     expect(screen.queryByText("Download archival snapshot")).not.toBeInTheDocument();
     expect(screen.queryByText(/Convex is the live runtime source/i)).not.toBeInTheDocument();
-    expect(screen.getByText("Static JSON snapshot")).toBeInTheDocument();
+    expect(
+      screen.getByText(/refreshed nightly from the live database/i),
+    ).toBeInTheDocument();
+    expect(screen.queryByText("Static JSON snapshot")).not.toBeInTheDocument();
     expect(screen.getByText("GitHub Repository")).toBeInTheDocument();
     expect(screen.queryByText("Full database export")).not.toBeInTheDocument();
   });
 });
 
 describe("AboutPage cross-publication content", () => {
-  it("never ships another publication's exports or repository", async () => {
-    const user = userEvent.setup();
+  it("never ships another publication's exports or repository", () => {
     renderAboutPage();
 
     const seen = new Set<string>();
-
-    for (const tab of screen.getAllByRole("tab")) {
-      await user.click(tab);
-
-      if (screen.queryByText("SubstanceIndex.json")) seen.add("substance-index");
-      if (screen.queryByRole("link", { name: /github repository/i })) seen.add("repository");
-      if (screen.queryByRole("heading", { name: /molecule art pack/i })) seen.add("molecules");
-    }
+    if (screen.queryByText("SubstanceIndex.json")) seen.add("substance-index");
+    if (screen.queryByRole("link", { name: /github repository/i })) seen.add("repository");
+    if (screen.queryByRole("heading", { name: /molecule art pack/i })) seen.add("molecules");
 
     // dose.wiki owns the molecule pack, SubstanceIndex.json and the dosewiki repository.
     // Rendering them on a flavor that does not own them puts one publication's assets
@@ -393,13 +375,10 @@ describe("AboutPage cross-publication content", () => {
     );
   });
 
-  it("fills every grid row of the last tab's cards", async () => {
-    const user = userEvent.setup();
+  it("fills every grid row of the documentation cards", () => {
     renderAboutPage();
 
-    await user.click(screen.getByRole("tab", { name: docsLabel }));
-
-    const grid = screen.getByRole("tabpanel", { name: docsLabel }).querySelector("ul");
+    const grid = sectionById("docs").querySelector("ul");
     const columns = [...(grid?.className.matchAll(/grid-cols-(\d+)/g) ?? [])].map((match) =>
       Number(match[1]),
     );

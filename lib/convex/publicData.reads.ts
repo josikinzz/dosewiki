@@ -90,6 +90,12 @@ export const publicDataReadCatalog = {
     args: publicSubstancePageArgs,
   },
   publicSubstanceBySlug: { functionName: "substanceIndex:getPublicBySlug", args: (slug: string) => ({ slug }) },
+  publicSubstanceFullDocuments: {
+    functionName: "substanceIndex:getFullDocumentPage",
+    args: (cursor: string | null) => ({
+      paginationOpts: { cursor, numItems: PUBLIC_SUBSTANCE_PAGE_SIZE },
+    }),
+  },
   publicEffectRecords: { functionName: "subjectiveEffects:getPublicPreviews", args: () => ({}) },
   publicEffectBySlug: { functionName: "subjectiveEffects:getPublicBySlug", args: (slug: string) => ({ slug }) },
   publicEffectArticles: { functionName: "subjectiveEffects:getPublicArticles", args: () => ({}) },
@@ -152,6 +158,14 @@ export const publicDataReadCatalog = {
   publicIndexLayoutByType: { functionName: "indexLayouts:getByType", args: (type: IndexLayoutType) => ({ type }) },
 } as const;
 
+/**
+ * A full substance article document as stored in Convex, minus nothing: the
+ * open-data export publishes the same record shape as the committed
+ * `SubstanceIndex.json`, so no projection narrows it here. Convex internals
+ * (`_id`, `_creationTime`) are stripped at the serving edge.
+ */
+export type PublicFullSubstanceDocument = Record<string, unknown>;
+
 export type PublicDataReadAdapter = {
   getRawSubstances(): Promise<PublicSubstanceLibraryRecord[]>;
   getPublicCoverageSubstances(): Promise<PublicSubstanceArticleRecord[]>;
@@ -161,6 +175,7 @@ export type PublicDataReadAdapter = {
   getPublicSubstanceLookup(): Promise<PublicSubstanceLookupEntry[]>;
   getPublicSubstancePreviews(): Promise<PublicSubstancePreview[]>;
   getPublicSubstanceBySlug(slug: string): Promise<PublicSubstanceRecord | null>;
+  getPublicFullSubstanceDocuments(): Promise<PublicFullSubstanceDocument[]>;
   getPublicEffects(): Promise<PublicEffectPreview[]>;
   getPublicEffectBySlug(slug: string): Promise<SubjectiveEffectDetailRecord | null>;
   getPublicEffectArticles(): Promise<PublicEffectArticle[]>;
@@ -541,6 +556,64 @@ async function drainPublicCorpusPages<Item>(
   return items;
 }
 
+type ConvexPaginationPage<Item> = {
+  page: Item[];
+  isDone: boolean;
+  continueCursor: string | null;
+};
+
+/**
+ * Drain a standard Convex `paginationOpts` query (page/isDone/continueCursor),
+ * unlike the bespoke corpus pages above (items/cursor/isDone). Shares their
+ * fail-closed guards against malformed pages, stalled cursors, and runaway
+ * reads.
+ */
+async function drainConvexPaginationPages<Item>(
+  query: QueryTransport,
+  source: {
+    functionName: string;
+    args: (cursor: string | null) => { paginationOpts: { cursor: string | null; numItems: number } };
+  },
+): Promise<Item[]> {
+  const items: Item[] = [];
+  const seenCursors = new Set<string>();
+  let cursor: string | null = null;
+
+  for (let pageNumber = 1; pageNumber <= PUBLIC_CORPUS_MAX_PAGES; pageNumber += 1) {
+    const result = await query<ConvexPaginationPage<Item>, { paginationOpts: { cursor: string | null; numItems: number } }>(
+      source.functionName,
+      source.args(cursor),
+    );
+    if (!Array.isArray(result.page) || typeof result.isDone !== "boolean") {
+      throw new Error(`Convex pagination for "${source.functionName}" returned an invalid payload.`);
+    }
+    items.push(...result.page);
+    if (items.length > PUBLIC_CORPUS_MAX_ROWS) {
+      throw new Error(
+        `Convex pagination for "${source.functionName}" exceeded maxRows (${PUBLIC_CORPUS_MAX_ROWS}).`,
+      );
+    }
+    if (result.isDone) {
+      return items;
+    }
+    const nextCursor = result.continueCursor;
+    if (
+      typeof nextCursor !== "string" ||
+      nextCursor.length === 0 ||
+      nextCursor === cursor ||
+      seenCursors.has(nextCursor)
+    ) {
+      throw new Error(`Convex pagination for "${source.functionName}" did not advance.`);
+    }
+    seenCursors.add(nextCursor);
+    cursor = nextCursor;
+  }
+
+  throw new Error(
+    `Convex pagination for "${source.functionName}" exceeded maxPages (${PUBLIC_CORPUS_MAX_PAGES}).`,
+  );
+}
+
 async function queryPaginatedPublicProjectionRead<RawItem, PublicResult>(
   query: QueryTransport,
   source: PublicCorpusPageSource,
@@ -615,6 +688,11 @@ export function createConvexPublicDataReadAdapter(query: QueryTransport = queryC
       );
       return substance ? parsePublicSubstanceRecordWithoutProvenance(substance) : null;
     },
+    getPublicFullSubstanceDocuments: () =>
+      drainConvexPaginationPages<PublicFullSubstanceDocument>(
+        query,
+        publicDataReadCatalog.publicSubstanceFullDocuments,
+      ),
     getPublicEffects: async () =>
       projectPublicEffectPreviews(
         await query<SubjectiveEffectRecord[]>(

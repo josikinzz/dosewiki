@@ -4,7 +4,7 @@ import { unstable_cache } from "next/cache";
 import { cache } from "react";
 import { PUBLIC_CONVEX_CACHE_REVALIDATE_SECONDS, PUBLIC_CONVEX_CACHE_TAGS } from "./publicData.cache";
 import { getPublicAboutData } from "./publicData.about";
-import { getPublicEffects } from "./publicData.effects";
+import { getPublicEffects, getPublicReplications } from "./publicData.effects";
 import { getPublicReports } from "./publicData.reports";
 import { getPublicSubstances } from "./publicData.substances";
 import { getPublicDataReadAdapter } from "./publicData.reads";
@@ -18,10 +18,11 @@ export const getIndexLayoutByType = cache(unstable_cache(async (type: IndexLayou
 }));
 
 export const getPublicDataOverview = cache(async () => {
-  const [substances, effects, reports, about, psychoactiveLayout] = await Promise.all([
+  const [substances, effects, reports, replications, about, psychoactiveLayout] = await Promise.all([
     getPublicSubstances(),
     getPublicEffects(),
     getPublicReports(),
+    getPublicReplications(),
     getPublicAboutData(),
     getIndexLayoutByType("psychoactive"),
   ]);
@@ -30,6 +31,7 @@ export const getPublicDataOverview = cache(async () => {
     substanceCount: substances.length,
     effectCount: effects.length,
     reportCount: reports.length,
+    replicationCount: replications.length,
     aboutConfigured: about.markdown.length > 0 || about.subtitle.length > 0,
     psychoactiveCategoryCount: psychoactiveLayout?.categories.length ?? 0,
   };
