@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { readOpenDataPayload } from "../openDataTestUtils";
 
 const documents = [
   { _id: "cx2", _creationTime: 2, id: 7, title: "Zeta", slug: "zeta" },
@@ -28,8 +29,9 @@ describe("open-data SubstanceIndex route", () => {
     expect(response.headers.get("Cache-Control")).toBe(
       "public, s-maxage=86400, stale-while-revalidate=86400",
     );
+    expect(response.headers.get("Content-Encoding")).toBe("gzip");
 
-    const payload = await response.json();
+    const payload = await readOpenDataPayload(response);
     expect(payload.dataset).toBe("SubstanceIndex");
     expect(payload.license).toBe("CC0-1.0");
     expect(payload.source).toBe("https://dose.wiki");
@@ -41,7 +43,7 @@ describe("open-data SubstanceIndex route", () => {
   it("sorts by article id with null ids last, mirroring the committed export", async () => {
     const { GET } = await import("./route");
 
-    const payload = await (await GET()).json();
+    const payload = await readOpenDataPayload(await GET());
 
     expect(payload.items.map((item: { title: string }) => item.title)).toEqual([
       "Alpha",
@@ -53,7 +55,7 @@ describe("open-data SubstanceIndex route", () => {
   it("strips Convex internal fields from every item", async () => {
     const { GET } = await import("./route");
 
-    const payload = await (await GET()).json();
+    const payload = await readOpenDataPayload(await GET());
 
     for (const item of payload.items) {
       expect(item).not.toHaveProperty("_id");

@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { readOpenDataPayload } from "../openDataTestUtils";
 
 const reports = [
   {
@@ -50,8 +51,9 @@ describe("open-data TripReports route", () => {
     expect(response.headers.get("Cache-Control")).toBe(
       "public, s-maxage=86400, stale-while-revalidate=86400",
     );
+    expect(response.headers.get("Content-Encoding")).toBe("gzip");
 
-    const payload = await response.json();
+    const payload = await readOpenDataPayload(response);
     expect(payload.dataset).toBe("TripReports");
     expect(payload.license).toBe("CC0-1.0");
     expect(payload.source).toBe("https://dose.wiki");
@@ -63,7 +65,7 @@ describe("open-data TripReports route", () => {
   it("sorts by slug and strips Convex and moderation internals", async () => {
     const { GET } = await import("./route");
 
-    const payload = await (await GET()).json();
+    const payload = await readOpenDataPayload(await GET());
 
     expect(payload.items.map((item: { slug: string }) => item.slug)).toEqual([
       "first-light",
