@@ -214,9 +214,10 @@ export const AboutPage = memo(function AboutPage({
           <section id="data" className="space-y-6">
             <PublicSectionHeading icon="lucide:database" title="Open Data & Tools" />
 
-            <AboutArchivePreview previewSnapshots={previewSnapshots} />
-
-            <MoleculeDownloadPack moleculeCount={moleculeCount} />
+            <AboutArchivePreview
+              previewSnapshots={previewSnapshots}
+              aside={<MoleculeDownloadPack moleculeCount={moleculeCount} />}
+            />
 
             {/* Reuse terms follow the publication: dose.wiki's CC0/MIT dedication is
                 not Effect Index's licence, so this sentence is flavored rather than

@@ -30,7 +30,7 @@
     "molecules:seed-convex": "bun scripts/chemistry/seed-convex-molecules.ts",
     "molecules:rerender-convex": "bun scripts/chemistry/rerender-convex-molecules.ts",
     "convex:set-chemical-class": "node scripts/convex/set-chemical-class.mjs",
-    "molecules:pack": "cd public && rm -f dosewiki-molecules.zip && zip -q -r -X dosewiki-molecules.zip molecules -i '*.svg' && cd ../src/data/molecules && zip -q -r -X ../../../public/dosewiki-molecules.zip molecules-standard -i '*.svg' && echo 'Built public/dosewiki-molecules.zip (brand + standard colourways)'",
+    "molecules:pack": "cd public && rm -f dosewiki-molecules.zip && zip -q -r -X dosewiki-molecules.zip molecules -i '*.svg' && zip -q -X dosewiki-molecules.zip dosewiki-molecules.json && cd ../src/data/molecules && zip -q -r -X ../../../public/dosewiki-molecules.zip molecules-standard -i '*.svg' && echo 'Built public/dosewiki-molecules.zip (brand + standard colourways + manifest)'",
     "generate:favicons": "node scripts/data/generate-further-reading-favicons.mjs",
     "generate:mantra-spiral": "bun scripts/data/generate-mantra-spiral.ts",
     "merge:articles": "bun scripts/data/merge-articles-json.mjs",

@@ -13,7 +13,7 @@ import { selectAboutContributors } from "@/data/contributorRoster";
 import moleculeSvgMappings from "@/data/mappings/moleculeSvgMappings.json";
 import { AboutMissionMarkdown } from "@/components/pages/AboutMissionMarkdown";
 import { AboutPage as AboutContentPage } from "@/components/pages/AboutPage";
-import { buildAboutPreviewSnapshot } from "@/components/pages/aboutArchiveSnapshot";
+import { buildAboutPreviewSnapshots } from "@/components/pages/aboutArchiveSnapshot";
 import type { SubstanceArticle } from "@/schema";
 import { SITE_FLAVOR_CONFIG, isEffectIndex } from "@/config/siteFlavor";
 
@@ -83,12 +83,11 @@ export default async function AboutPage() {
       : new Map<string, number>(),
   ]);
 
-  // Ship only the truncated JSON the preview actually renders, not 12 full articles
-  // (~373 KB) serialized into the client payload. See aboutArchiveSnapshot.ts.
-  const previewSnapshots = substances
-    .map(({ slug: _slug, ...article }) =>
-      buildAboutPreviewSnapshot(article as SubstanceArticle),
-    );
+  // Ship only the rendered JSON the preview actually needs: the smallest articles
+  // complete (within a byte budget), the rest truncated. See aboutArchiveSnapshot.ts.
+  const previewSnapshots = buildAboutPreviewSnapshots(
+    substances.map(({ slug: _slug, ...article }) => article as SubstanceArticle),
+  );
 
   const chemicalClassCount = chemicalLayout?.categories.length ?? 0;
   const mechanismClassCount = mechanismLayout?.categories.length ?? 0;

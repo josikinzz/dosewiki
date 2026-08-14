@@ -80,9 +80,10 @@ npm run molecules:pack           # zip public/molecules -> public/dosewiki-molec
 - `src/data/mappings/moleculeSvgMappings.json` (article → SVG)
 - `public/dosewiki-molecules.json` (download manifest)
 
-`molecules:pack` zips both dose.wiki colourways into `public/dosewiki-molecules.zip`
-(`molecules/` = brand, `molecules-standard/` = standard). The Effect Index colourway is a
-site-theme asset rather than a published artwork colourway, so it is deliberately not packed.
+`molecules:pack` zips both dose.wiki colourways plus the `dosewiki-molecules.json` manifest
+into `public/dosewiki-molecules.zip` (`molecules/` = brand, `molecules-standard/` = standard).
+The Effect Index colourway is a site-theme asset rather than a published artwork colourway,
+so it is deliberately not packed.
 
 The Effect Index recolour is a pure string substitution over the SVG bytes, defined once in
 `src/data/mappings/moleculePalette.ts` and shared with the serve-time recolour applied to

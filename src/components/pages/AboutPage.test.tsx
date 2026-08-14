@@ -336,12 +336,13 @@ describeOpenData("AboutPage public export contract", () => {
     expect(screen.getByText("EffectIndex.json")).toBeInTheDocument();
     expect(screen.getByText("TripReports.json")).toBeInTheDocument();
     expect(
-      screen.getByRole("link", { name: /github repository/i }),
-    ).toHaveAttribute("href", "https://github.com/josikinzz/dosewiki");
-    expect(
       screen.getByRole("heading", { name: /molecule art pack/i }),
     ).toBeInTheDocument();
-    expect(screen.getByText("molecules.json")).toBeInTheDocument();
+    expect(screen.getByText("Molecule pack (.zip)")).toBeInTheDocument();
+    // The manifest ships inside the zip; no separate download or repository link.
+    expect(
+      screen.queryByRole("link", { name: /github repository/i }),
+    ).not.toBeInTheDocument();
   });
 
   it("keeps archival snapshot actions without the removed explanatory heading", () => {
@@ -353,7 +354,7 @@ describeOpenData("AboutPage public export contract", () => {
       screen.getByText(/refreshed nightly from the live database/i),
     ).toBeInTheDocument();
     expect(screen.queryByText("Static JSON snapshot")).not.toBeInTheDocument();
-    expect(screen.getByText("GitHub Repository")).toBeInTheDocument();
+    expect(screen.queryByText("GitHub Repository")).not.toBeInTheDocument();
     expect(screen.queryByText("Full database export")).not.toBeInTheDocument();
   });
 });
@@ -364,14 +365,13 @@ describe("AboutPage cross-publication content", () => {
 
     const seen = new Set<string>();
     if (screen.queryByText("SubstanceIndex.json")) seen.add("substance-index");
-    if (screen.queryByRole("link", { name: /github repository/i })) seen.add("repository");
     if (screen.queryByRole("heading", { name: /molecule art pack/i })) seen.add("molecules");
 
-    // dose.wiki owns the molecule pack, SubstanceIndex.json and the dosewiki repository.
-    // Rendering them on a flavor that does not own them puts one publication's assets
-    // under the other's licence statement.
+    // dose.wiki owns the molecule pack and SubstanceIndex.json. Rendering them on a
+    // flavor that does not own them puts one publication's assets under the other's
+    // licence statement.
     expect([...seen].sort()).toEqual(
-      isEffectIndex() ? [] : ["molecules", "repository", "substance-index"],
+      isEffectIndex() ? [] : ["molecules", "substance-index"],
     );
   });
 

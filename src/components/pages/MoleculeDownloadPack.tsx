@@ -22,30 +22,26 @@ export function MoleculeDownloadPack({ moleculeCount }: { moleculeCount: number 
   const handleZip = useCallback(() => {
     triggerDownload("/dosewiki-molecules.zip", "dosewiki-molecules.zip");
   }, []);
-  const handleJson = useCallback(() => {
-    triggerDownload("/dosewiki-molecules.json", "dosewiki-molecules.json");
-  }, []);
 
   return (
-    <div className="theme-card-surface flex min-w-0 flex-col gap-5 rounded-2xl border p-5 sm:p-6">
-      <div className="flex items-start gap-4">
-        <IconBadge icon="lucide:hexagon" className="theme-public-card-icon theme-accent-emphasis" />
+    <div className="theme-card-surface flex min-w-0 flex-col gap-3 rounded-2xl border p-4">
+      <div className="flex items-start gap-3">
+        <IconBadge icon="lucide:hexagon" size="sm" className="theme-public-card-icon theme-accent-emphasis" />
         <div className="min-w-0">
-          <h3 className="theme-accent-heading font-display text-lg font-semibold leading-tight">
+          <h3 className="theme-accent-heading font-display text-base font-semibold leading-tight">
             Molecule art pack
           </h3>
-          <p className="theme-text-faint mt-1 text-sm leading-relaxed">
-            All {moleculeCount.toLocaleString()} substance structures as consistent SVGs —
-            uniform line weight, class-standard orientation, transparent background — in two
-            colourways: dose.wiki brand colours and standard textbook element colours.
-            Generated from SMILES with RDKit.
+          <p className="theme-text-faint mt-1 text-xs leading-5">
+            All {moleculeCount.toLocaleString()} substance structures as consistent SVGs in
+            two colourways — dose.wiki brand and standard textbook element colours — plus a
+            SMILES + metadata manifest. Generated from SMILES with RDKit.
           </p>
         </div>
       </div>
 
       {/* Preview strip */}
       <ul
-        className="theme-control-pill grid grid-cols-6 gap-2 rounded-xl p-3"
+        className="theme-control-pill grid grid-cols-6 gap-1.5 rounded-xl p-2"
         aria-hidden="true"
       >
         {PREVIEW_SLUGS.map((slug) => (
@@ -54,37 +50,23 @@ export function MoleculeDownloadPack({ moleculeCount }: { moleculeCount: number 
               src={`/molecules/${slug}.svg`}
               alt=""
               loading="lazy"
-              className="theme-molecule-image h-12 w-12 object-contain sm:h-14 sm:w-14"
+              className="theme-molecule-image h-10 w-10 object-contain"
               draggable={false}
             />
           </li>
         ))}
       </ul>
 
-      <div className="flex flex-col gap-3 sm:flex-row">
-        <Button
-          onClick={handleZip}
-          className="theme-control-pill theme-text-primary h-12 flex-1 justify-start gap-3 rounded-full"
-        >
-          <IconBadge icon="lucide:download" className="theme-public-card-icon theme-accent-emphasis" />
-          <div className="flex flex-col items-start text-xs">
-            <span className="text-sm font-semibold text-dose-accent-strong">SVG pack (.zip)</span>
-            <span className="theme-text-faint">
-              {moleculeCount.toLocaleString()} molecules × 2 colourways
-            </span>
-          </div>
-        </Button>
-        <Button
-          onClick={handleJson}
-          className="theme-control-pill theme-text-primary h-12 flex-1 justify-start gap-3 rounded-full"
-        >
-          <IconBadge icon="lucide:braces" className="theme-public-card-icon theme-accent-emphasis" />
-          <div className="flex flex-col items-start text-xs">
-            <span className="text-sm font-semibold text-dose-accent-strong">molecules.json</span>
-            <span className="theme-text-faint">SMILES + metadata manifest</span>
-          </div>
-        </Button>
-      </div>
+      <Button
+        onClick={handleZip}
+        className="theme-control-pill theme-text-primary h-10 w-full justify-start gap-2.5 rounded-full px-3"
+      >
+        <IconBadge icon="lucide:download" size="sm" className="theme-public-card-icon theme-accent-emphasis" />
+        <span className="min-w-0 truncate text-sm">
+          <span className="font-semibold text-dose-accent-strong">Molecule pack (.zip)</span>
+          <span className="theme-text-faint text-xs"> — SVGs + manifest</span>
+        </span>
+      </Button>
     </div>
   );
 }
