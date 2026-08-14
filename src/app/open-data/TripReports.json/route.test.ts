@@ -38,7 +38,7 @@ describe("open-data TripReports route", () => {
     vi.resetModules();
   });
 
-  it("serves all published trip reports as a CC0 attachment", async () => {
+  it("serves all published trip reports with author-retained licence terms", async () => {
     const { GET } = await import("./route");
 
     const response = await GET();
@@ -55,7 +55,12 @@ describe("open-data TripReports route", () => {
 
     const payload = await readOpenDataPayload(response);
     expect(payload.dataset).toBe("TripReports");
-    expect(payload.license).toBe("CC0-1.0");
+    // Legacy trip report rights remain with their authors; a blanket CC0
+    // claim on this dataset would misstate the licence page's reuse matrix.
+    expect(payload.license).toBe(
+      "Mixed — rights to legacy trip reports remain with their authors unless marked otherwise",
+    );
+    expect(payload.licenseUrl).toBe("https://dose.wiki/docs/license");
     expect(payload.source).toBe("https://dose.wiki");
     expect(payload.count).toBe(2);
     expect(payload.count).toBe(payload.items.length);

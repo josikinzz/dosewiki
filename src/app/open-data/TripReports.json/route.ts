@@ -1,5 +1,5 @@
 import { getPublicReportDetails } from "@server/convex/publicData";
-import { openDataResponse } from "../shared";
+import { OPEN_DATA_TRIP_REPORT_LICENSE, openDataResponse } from "../shared";
 
 /**
  * Open-data download: all published trip reports as full detail records.
@@ -13,6 +13,7 @@ export const revalidate = 86400;
 export async function GET() {
   return openDataResponse({
     dataset: "TripReports",
+    license: OPEN_DATA_TRIP_REPORT_LICENSE,
     items: await getPublicReportDetails(),
     sortBy: "slug",
     stripFields: ["attribution_review"],

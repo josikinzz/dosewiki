@@ -1,8 +1,8 @@
 "use client";
 
+import Link from "next/link";
 import { useCallback, useMemo, useState, type ReactNode } from "react";
 import { Icon } from "../common/Icon";
-import { IconBadge } from "../common/IconBadge";
 import { Button } from "@/components/ui/button";
 import { ABOUT_PREVIEW_LINE_LIMIT, type AboutPreviewSnapshot } from "./aboutArchiveSnapshot";
 
@@ -190,12 +190,12 @@ export function AboutArchivePreview({
             <Button
               key={dataset.filename}
               onClick={() => handleDownload(dataset.href, dataset.filename)}
-              className="theme-control-pill theme-text-primary h-10 w-full justify-start gap-2.5 rounded-full px-3"
+              className="theme-control-pill theme-text-primary h-10 w-full justify-start gap-2.5 rounded-full px-4"
             >
-              <IconBadge
+              <Icon
                 icon="lucide:download"
-                size="sm"
-                className="theme-public-card-icon theme-accent-emphasis"
+                size={16}
+                className="theme-accent-emphasis shrink-0"
               />
               <span className="min-w-0 truncate text-sm">
                 <span className="font-semibold text-dose-accent-strong">{dataset.filename}</span>
@@ -204,7 +204,12 @@ export function AboutArchivePreview({
             </Button>
           ))}
           <p className="theme-text-faint px-1 text-xs leading-5">
-            JSON, CC0 — refreshed nightly from the live database.
+            JSON, refreshed nightly from the live database. Reuse terms vary by dataset —
+            see{" "}
+            <Link href="/docs/license" className="theme-link-muted transition-colors">
+              License &amp; reuse
+            </Link>
+            .
           </p>
         </div>
         {aside}

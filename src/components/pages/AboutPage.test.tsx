@@ -353,6 +353,12 @@ describeOpenData("AboutPage public export contract", () => {
     expect(
       screen.getByText(/refreshed nightly from the live database/i),
     ).toBeInTheDocument();
+    // The downloads point at the reuse matrix instead of claiming blanket CC0:
+    // trip report rights remain with their authors, so "JSON, CC0" was false.
+    expect(screen.queryByText(/JSON, CC0/)).not.toBeInTheDocument();
+    expect(
+      within(sectionById("data")).getByRole("link", { name: "License & reuse" }),
+    ).toHaveAttribute("href", "/docs/license");
     expect(screen.queryByText("Static JSON snapshot")).not.toBeInTheDocument();
     expect(screen.queryByText("GitHub Repository")).not.toBeInTheDocument();
     expect(screen.queryByText("Full database export")).not.toBeInTheDocument();

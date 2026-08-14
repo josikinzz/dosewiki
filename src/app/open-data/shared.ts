@@ -10,7 +10,18 @@ import { NextResponse } from "next/server";
  */
 export const OPEN_DATA_CACHE_CONTROL = "public, s-maxage=86400, stale-while-revalidate=86400";
 
-export const OPEN_DATA_LICENSE = "CC0-1.0";
+export const OPEN_DATA_CC0 = "CC0-1.0";
+
+/**
+ * dose.wiki-authored trip report prose is CC0, but legacy report rights remain
+ * with their authors unless marked otherwise — the reuse matrix at
+ * {@link OPEN_DATA_LICENSE_URL} is authoritative. A blanket CC0 claim on this
+ * dataset would be false.
+ */
+export const OPEN_DATA_TRIP_REPORT_LICENSE =
+  "Mixed — rights to legacy trip reports remain with their authors unless marked otherwise";
+
+export const OPEN_DATA_LICENSE_URL = "https://dose.wiki/docs/license";
 
 export const OPEN_DATA_SOURCE = "https://dose.wiki";
 
@@ -30,6 +41,8 @@ type OpenDataRecord = Record<string, unknown>;
 export function openDataResponse(options: {
   /** Envelope name and attachment filename stem, e.g. "SubstanceIndex". */
   dataset: string;
+  /** SPDX id or descriptive terms; {@link OPEN_DATA_LICENSE_URL} has the full matrix. */
+  license: string;
   items: readonly unknown[];
   /** "id" mirrors the committed SubstanceIndex.json export; "slug" elsewhere. */
   sortBy: "id" | "slug";
@@ -70,7 +83,8 @@ export function openDataResponse(options: {
       dataset: options.dataset,
       generatedAt: new Date().toISOString(),
       count: items.length,
-      license: OPEN_DATA_LICENSE,
+      license: options.license,
+      licenseUrl: OPEN_DATA_LICENSE_URL,
       source: OPEN_DATA_SOURCE,
       items,
     }),

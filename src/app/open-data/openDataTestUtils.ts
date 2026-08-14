@@ -11,6 +11,7 @@ export async function readOpenDataPayload(response: Response): Promise<{
   generatedAt: string;
   count: number;
   license: string;
+  licenseUrl: string;
   source: string;
   items: Array<Record<string, unknown>>;
 }> {

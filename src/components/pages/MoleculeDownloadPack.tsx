@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback } from "react";
-import { IconBadge } from "../common/IconBadge";
+import { Icon } from "../common/Icon";
 import { Button } from "@/components/ui/button";
 
 /** A few representative structures shown as a preview strip. */
@@ -26,7 +26,7 @@ export function MoleculeDownloadPack({ moleculeCount }: { moleculeCount: number 
   return (
     <div className="theme-card-surface flex min-w-0 flex-col gap-3 rounded-2xl border p-4">
       <div className="flex items-start gap-3">
-        <IconBadge icon="lucide:hexagon" size="sm" className="theme-public-card-icon theme-accent-emphasis" />
+        <Icon icon="lucide:hexagon" size={18} className="theme-accent-emphasis mt-0.5 shrink-0" />
         <div className="min-w-0">
           <h3 className="theme-accent-heading font-display text-base font-semibold leading-tight">
             Molecule art pack
@@ -59,9 +59,9 @@ export function MoleculeDownloadPack({ moleculeCount }: { moleculeCount: number 
 
       <Button
         onClick={handleZip}
-        className="theme-control-pill theme-text-primary h-10 w-full justify-start gap-2.5 rounded-full px-3"
+        className="theme-control-pill theme-text-primary h-10 w-full justify-start gap-2.5 rounded-full px-4"
       >
-        <IconBadge icon="lucide:download" size="sm" className="theme-public-card-icon theme-accent-emphasis" />
+        <Icon icon="lucide:download" size={16} className="theme-accent-emphasis shrink-0" />
         <span className="min-w-0 truncate text-sm">
           <span className="font-semibold text-dose-accent-strong">Molecule pack (.zip)</span>
           <span className="theme-text-faint text-xs"> — SVGs + manifest</span>

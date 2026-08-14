@@ -1,5 +1,5 @@
 import { getPublicFullSubstanceDocuments } from "@server/convex/publicData";
-import { openDataResponse } from "../shared";
+import { OPEN_DATA_CC0, openDataResponse } from "../shared";
 
 /**
  * Open-data download: every substance article as a full document, the same
@@ -11,6 +11,7 @@ export const revalidate = 86400;
 export async function GET() {
   return openDataResponse({
     dataset: "SubstanceIndex",
+    license: OPEN_DATA_CC0,
     items: await getPublicFullSubstanceDocuments(),
     sortBy: "id",
   });
