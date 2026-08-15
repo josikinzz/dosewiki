@@ -6,6 +6,7 @@ vi.mock("server-only", () => ({}));
 vi.mock("../../../../../convex/_generated/api", () => ({
   api: {
     substanceIndex: { appendArticleReference: "substanceIndex.appendArticleReference" },
+    changelog: { addEntry: "changelog.addEntry" },
   },
 }));
 
@@ -157,6 +158,50 @@ describe("article reference route", () => {
     expect(await response.json()).toMatchObject({ created: false });
     // Nothing changed, so nothing is invalidated.
     expect(revalidateTag).not.toHaveBeenCalled();
+  });
+
+  it("stamps an added source onto the editor's contribution history", async () => {
+    mocks.mutation.mockImplementation(async (name: string, args: { reference?: unknown }) => {
+      if (name === "substanceIndex.appendArticleReference") {
+        return { slug: "2c-b", created: true, reference: args.reference, id: 42, title: "2C-B" };
+      }
+      return { created: true, id: "entry-id" };
+    });
+    const { POST } = await import("./route");
+
+    const response = await POST(doiRequest());
+
+    expect(response.status).toBe(200);
+    const entry = mocks.mutation.mock.calls.find(
+      ([name]) => name === "changelog.addEntry",
+    )?.[1] as {
+      message: string;
+      markdown: string;
+      submittedBy: string;
+      articles: Array<{ id: number; title: string; slug: string }>;
+    };
+
+    expect(entry.submittedBy).toBe("EDITOR");
+    expect(entry.articles).toEqual([{ id: 42, title: "2C-B", slug: "2c-b" }]);
+    expect(entry.message).toContain("source");
+    expect(entry.markdown).toContain("+ An example study");
+  });
+
+  it("records nothing when an idempotent re-add changes no article", async () => {
+    mocks.mutation.mockResolvedValue({
+      slug: "2c-b",
+      created: false,
+      reference: { id: "doi-10-1000-example", title: "The stored title" },
+      id: 42,
+      title: "2C-B",
+    });
+    const { POST } = await import("./route");
+
+    await POST(doiRequest());
+
+    expect(
+      mocks.mutation.mock.calls.some(([name]) => name === "changelog.addEntry"),
+    ).toBe(false);
   });
 
   it("forwards a deliberate Convex refusal verbatim", async () => {

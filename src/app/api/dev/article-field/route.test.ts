@@ -6,7 +6,10 @@ import { EDITABLE_FIELD_CONFLICT_REASON } from "../../../../../convex/lib/articl
 vi.mock("server-only", () => ({}));
 
 vi.mock("../../../../../convex/_generated/api", () => ({
-  api: { substanceIndex: { setArticleField: "substanceIndex.setArticleField" } },
+  api: {
+    substanceIndex: { setArticleField: "substanceIndex.setArticleField" },
+    changelog: { addEntry: "changelog.addEntry" },
+  },
 }));
 
 vi.mock("next/cache", async (importOriginal) => ({
@@ -125,5 +128,86 @@ describe("article field route failure reporting", () => {
 
     expect(response.status).toBe(400);
     expect(mocks.mutation).not.toHaveBeenCalled();
+  });
+});
+
+describe("article field route contribution history", () => {
+  beforeEach(() => {
+    vi.resetModules();
+    vi.clearAllMocks();
+    vi.spyOn(console, "warn").mockImplementation(() => {});
+    vi.spyOn(console, "error").mockImplementation(() => {});
+    mocks.getServerConvexWriteCapability.mockReturnValue({
+      ok: true,
+      capability: { client: { mutation: mocks.mutation }, adminKey: "admin-key" },
+    });
+    mocks.mutation.mockImplementation(async (name: string) => {
+      if (name === "substanceIndex.setArticleField") {
+        return {
+          slug: "2c-b",
+          path: "dosage.routes[0].notes",
+          value: "Corrected note.",
+          id: 42,
+          title: "2C-B",
+        };
+      }
+      if (name === "changelog.addEntry") return { created: true, id: "entry-id" };
+      throw new Error(`Unexpected mutation ${name}`);
+    });
+  });
+
+  it("stamps the inline edit onto the editor's contribution history", async () => {
+    const { POST } = await import("./route");
+
+    const response = await POST(editRequest());
+
+    expect(response.status).toBe(200);
+    const entry = mocks.mutation.mock.calls.find(
+      ([name]) => name === "changelog.addEntry",
+    )?.[1] as {
+      message: string;
+      markdown: string;
+      submittedBy: string;
+      articles: Array<{ id: number; title: string; slug: string }>;
+    };
+
+    expect(entry.submittedBy).toBe("EDITOR");
+    expect(entry.articles).toEqual([{ id: 42, title: "2C-B", slug: "2c-b" }]);
+    expect(entry.message).toContain("dosage.routes[0].notes");
+    expect(entry.markdown).toContain("- Old note.");
+    expect(entry.markdown).toContain("+ Corrected note.");
+  });
+
+  it("invalidates the cached contribution feed the new row belongs to", async () => {
+    const { POST } = await import("./route");
+    const { revalidateTag } = await import("next/cache");
+
+    await POST(editRequest());
+
+    expect(revalidateTag).toHaveBeenCalledWith("convex-public:changelog", { expire: 0 });
+  });
+
+  it("keeps a saved edit successful when the history row cannot be written", async () => {
+    mocks.mutation.mockImplementation(async (name: string) => {
+      if (name === "substanceIndex.setArticleField") {
+        return {
+          slug: "2c-b",
+          path: "dosage.routes[0].notes",
+          value: "Corrected note.",
+          id: 42,
+          title: "2C-B",
+        };
+      }
+      throw new Error("changelog is down");
+    });
+    const { POST } = await import("./route");
+
+    const response = await POST(editRequest());
+
+    // The field write already landed in Convex; reporting a failure here would
+    // invite the reviewer to make the same edit twice.
+    expect(response.status).toBe(200);
+    expect(await response.json()).toMatchObject({ ok: true, slug: "2c-b" });
+    expect(console.warn).toHaveBeenCalled();
   });
 });

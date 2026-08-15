@@ -140,6 +140,37 @@ describe("useSubstanceEditorDraftController hydration", () => {
 
     await waitFor(() => expect(result.current.formArticleOverride).toBe(nextArticle));
   });
+
+  it("keeps unapplied form edits when the working-set article changes underneath", async () => {
+    const { result, rerender } = renderHook(
+      ({ articleList }: { articleList: SubstanceArticle[] }) =>
+        useSubstanceEditorDraftController({
+          articles: articleList,
+          applyArticlesTransform: vi.fn(),
+          selectedSubstanceSlug: "lsd",
+          substances,
+        }),
+      { initialProps: { articleList: [article] } },
+    );
+    await waitFor(() => expect(result.current.formArticleOverride).not.toBeNull());
+
+    const typed = { ...article, title: "LSD (typed, not applied)" } as SubstanceArticle;
+    act(() => {
+      result.current.handleFormMutate();
+      result.current.setFormArticleOverride(typed);
+    });
+
+    // A review tick overlays a fresh review record onto the same article, so
+    // the working set hands the controller a new object. The unapplied edits
+    // must survive it.
+    const reviewed = {
+      ...article,
+      editorial_review: { ...article.editorial_review, status: "completed" as const },
+    } as SubstanceArticle;
+    rerender({ articleList: [reviewed] });
+
+    expect(result.current.formArticleOverride).toBe(typed);
+  });
 });
 
 describe("useSubstanceEditorDraftController clipboard", () => {

@@ -69,6 +69,13 @@ export function deriveReviewFlagSummary(
 export interface ReviewStatusOverride {
   status: ReviewStatus;
   baseStatus: ReviewStatus;
+  /**
+   * The `editorial_review` record Convex returned for the tick. The queue only
+   * needs `status`, but the rendered article, the citation panel, and the
+   * editor form all read the whole object, and the working set will not carry
+   * it until the next corpus drain — so the write is kept here and overlaid.
+   */
+  review?: SubstanceArticle["editorial_review"];
 }
 
 export type ReviewStatusOverrides = Record<string, ReviewStatusOverride>;
@@ -103,6 +110,23 @@ function resolveEntryStatus(
 ): ReviewStatus {
   if (!override) return articleStatus;
   return articleStatus === override.baseStatus ? override.status : articleStatus;
+}
+
+/**
+ * The article's review record as Convex now holds it: the ticked one while the
+ * override is still live, otherwise the article's own.
+ *
+ * Same shadowing rule as `resolveEntryStatus` — once the working set reports a
+ * status other than the one the tick was made against, it has caught up (or an
+ * editor moved it elsewhere) and the local record steps aside.
+ */
+export function resolveOverriddenEditorialReview(
+  article: SubstanceArticle,
+  override: ReviewStatusOverride | undefined,
+): SubstanceArticle["editorial_review"] | null {
+  if (!override?.review) return null;
+  if (resolveStatus(article.editorial_review?.status) !== override.baseStatus) return null;
+  return override.review;
 }
 
 /**

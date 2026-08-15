@@ -83,6 +83,7 @@ import {
   queueIndexOf,
   REVIEW_FLAGS_UI,
   REVIEW_QUEUE_ORDER_OPTIONS,
+  resolveOverriddenEditorialReview,
   sortReviewQueue,
   type ReviewQueueOrder,
   type ReviewStatusOverrides,
@@ -874,14 +875,16 @@ export const ReviewExperience = memo(function ReviewExperience({
   // preview, citation diagnostics, and editor form all see the same state.
   const currentFieldEdits = current ? fieldEdits[current.slug] : undefined;
   const currentSavedReferences = current ? savedReferences[current.slug] : undefined;
+  const currentOverride = current ? overrides[current.slug] : undefined;
   const articleForView = useMemo(
     () => article
       ? applyReviewArticleOverlay(article, {
           fieldEdits: currentFieldEdits,
           savedReferences: currentSavedReferences,
+          editorialReview: resolveOverriddenEditorialReview(article, currentOverride),
         })
       : article,
-    [article, currentFieldEdits, currentSavedReferences],
+    [article, currentFieldEdits, currentOverride, currentSavedReferences],
   );
 
   // The public route resolves the Convex depiction server-side; this surface is
@@ -1278,9 +1281,10 @@ export const ReviewExperience = memo(function ReviewExperience({
               "Unable to update the review status. Are you signed in as an editor?",
           );
         }
+        const persistedReview = payload?.editorial_review;
         setOverrides((previous) => ({
           ...previous,
-          [slug]: { status, baseStatus },
+          [slug]: { status, baseStatus, ...(persistedReview ? { review: persistedReview } : {}) },
         }));
 
         // Keep the editor form's "Internal Review Tracking" fields agreeing

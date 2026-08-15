@@ -22,6 +22,10 @@ import { ARTICLE_REFERENCE_MAX_AUTHORS } from "../../../../../convex/lib/article
 import { PUBLIC_CONVEX_CACHE_TAGS } from "@server/convex/publicData";
 import { parseReferenceYear } from "@/features/dev/forms/referenceFormShared";
 import {
+  buildDirectEditDiff,
+  recordDirectEditChangelog,
+} from "../directEditChangelog";
+import {
   buildQuickAddReference,
   detectQuickAddReference,
 } from "@/lib/citations/referenceIntake";
@@ -129,7 +133,7 @@ export const POST = protectedRouteOperation<AddReferenceBody, ParsedAddReference
   capabilities: [{ type: "convexWrite" }],
   unexpectedErrorLabel: "Failed to add an article reference via Next route:",
   unexpectedErrorMessage: "Unable to add that source right now.",
-  operation: async ({ actorEmail, body, convexWrite }) => {
+  operation: async ({ actorEmail, auth, body, convexWrite }) => {
     if (!convexWrite) {
       throw new Error("Convex write capability is required.");
     }
@@ -150,7 +154,22 @@ export const POST = protectedRouteOperation<AddReferenceBody, ParsedAddReference
     // An uncited source is invisible to readers, so nothing public changes until
     // a marker cites it — but the cached projections are what the editor and the
     // review queue read back, and they must not keep serving the older list.
+    // An idempotent re-add changed nothing, so it is neither invalidated nor
+    // recorded as a contribution.
     if (result.created) {
+      await recordDirectEditChangelog({
+        convexWrite,
+        actorEmail,
+        session: auth.session,
+        article: { id: result.id ?? 0, title: result.title, slug: result.slug },
+        message: `Added a source — ${body.reference.title}`,
+        markdown: buildDirectEditDiff(
+          result.title,
+          "references",
+          null,
+          body.reference.title,
+        ),
+      });
       revalidatePath(`/${body.slug}`);
       revalidateTag(PUBLIC_CONVEX_CACHE_TAGS.substances, { expire: 0 });
     }

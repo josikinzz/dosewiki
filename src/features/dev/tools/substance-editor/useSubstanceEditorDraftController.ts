@@ -73,15 +73,20 @@ export function useSubstanceEditorDraftController({
     [articles, selectedSubstanceSlug, substances],
   );
 
+  // A dirty form outranks a refreshed article. The working set now changes
+  // under the review workbench for reasons that are not article content at all
+  // — an inline field write, a reference append, a review tick — and each of
+  // those used to reseed the form from the store, silently discarding whatever
+  // the editor had typed and not yet applied.
   useEffect(() => {
-    if (!existingArticle) {
+    if (!existingArticle || formDirty) {
       return;
     }
 
     setStreamedOutput(buildArticleYamlDraft(existingArticle));
     setFormArticleOverride(existingArticle);
     setOutputViewMode("form");
-  }, [existingArticle]);
+  }, [existingArticle, formDirty]);
 
   const handleOutputViewModeChange = useCallback(
     (mode: OutputViewMode) => {

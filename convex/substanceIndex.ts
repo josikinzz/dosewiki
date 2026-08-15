@@ -1007,6 +1007,10 @@ export const setArticleField = mutation({
       value: result.value,
       topLevelKey: result.topLevelKey,
       topLevelValue: result.topLevelValue,
+      // Identity for the caller's contribution-history entry, which needs the
+      // article this write landed on and has no cheaper way to learn it.
+      id: article.id,
+      title: article.title,
     };
   },
 });
@@ -1082,6 +1086,10 @@ export const appendArticleReference = mutation({
       slug: args.slug,
       created: result.created,
       reference: result.reference,
+      // Identity for the caller's contribution-history entry, as in
+      // `setArticleField`.
+      id: article.id,
+      title: article.title,
     };
   },
 });

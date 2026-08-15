@@ -8,6 +8,11 @@ import {
 type ReviewArticleOverlay = {
   fieldEdits?: InlineFieldEdits;
   savedReferences?: readonly Reference[];
+  /**
+   * The `editorial_review` record the review tick wrote, when the working set
+   * still predates it. Null once the working set has caught up.
+   */
+  editorialReview?: SubstanceArticle["editorial_review"] | null;
 };
 
 /**
@@ -20,7 +25,7 @@ type ReviewArticleOverlay = {
  */
 export function applyReviewArticleOverlay(
   article: SubstanceArticle,
-  { fieldEdits, savedReferences = [] }: ReviewArticleOverlay,
+  { fieldEdits, savedReferences = [], editorialReview = null }: ReviewArticleOverlay,
 ): SubstanceArticle {
   const knownIds = new Set((article.references ?? []).map((reference) => reference.id));
   const missingReferences = savedReferences.filter((reference) => {
@@ -34,6 +39,9 @@ export function applyReviewArticleOverlay(
         references: [...(article.references ?? []), ...missingReferences],
       }
     : article;
+  const articleWithReview = editorialReview
+    ? { ...articleWithReferences, editorial_review: editorialReview }
+    : articleWithReferences;
 
-  return applyInlineFieldEdits(articleWithReferences, fieldEdits);
+  return applyInlineFieldEdits(articleWithReview, fieldEdits);
 }
