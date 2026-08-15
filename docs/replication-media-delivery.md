@@ -439,6 +439,7 @@ Dry run is the default and prints the exact per-row verification it would apply.
 8. Leave the orphan deployments untouched for a defined period. They are the
    rollback.
 9. Fix the three wrong precedence comments in `convex/replications.ts`.
+   **Done 2026-08-15** alongside the preview-rendition work (section 8).
 
 ## 7. Schema fields that do not exist yet
 
@@ -447,6 +448,39 @@ Dry run is the default and prints the exact per-row verification it would apply.
 list, or master reference. A migration wanting to record "this row is a
 transcoded rendition, its master is archived at X" needs new fields; the
 manifests emitted by both scripts carry all of that information.
+
+## 8. Preview renditions for gallery in-view autoplay
+
+Added 2026-08-15 for the /replications gallery redesign: video tiles autoplay a
+muted low-res preview while in view instead of pulling the full rendition on
+hover.
+
+- **Field**: `preview_storage_id` (optional string) on `replications`, beside
+  `thumbnail_storage_id`. Video replication rows only. Purely additive — a row
+  without one keeps hover-to-play of the full `url`.
+- **Resolver**: `resolveReplicationUrls` resolves it to `preview_url` via
+  `ctx.storage.getUrl`, same try/catch as the other two ids, but with **no
+  string-field fallback**: a preview either resolves from storage or is absent.
+  Threaded through `getBySlug`, `getReplicationsByEffect`, `getByArtist`,
+  `getByArtistNames`, and `getPublicReplications`; typed as
+  `preview_url?: string` on `ReplicationWithUrl` and projected by
+  `projectPublicApiReplication` in the public API.
+- **Write path**: `api.replications.updatePreviewStorageIds` — batch of
+  `{ id, previewStorageId, expectedStorageId }` with a compare-and-swap on the
+  row's current `storage_id` (the `applySourceRecovery` pattern), rejecting
+  placeholder or malformed storage ids. It never touches `storage_id`, `url`,
+  or the thumbnail fields.
+- **Script**: `scripts/replications/generate-preview-renditions.mjs`. Dry-run
+  by default; writes require the standard ceremony
+  (`--write --confirm-write=generate-preview-renditions
+  --expected-deployment=glad-minnow-656 --target-url=…`). Per row it downloads
+  the production rendition to scratch, encodes the preview, uploads it, CAS-writes
+  `preview_storage_id`, flushes a ledger entry to disk, then re-queries
+  `getPublicReplications` and hard-stops unless `preview_url` is non-null on
+  `glad-minnow-656.convex.cloud` **and** `url`/`thumbnail_url` are unchanged.
+- **Encode spec** (the gallery tile is written against exactly this): first 10s
+  max · long edge 480px, never upscaled · H.264 High, yuv420p · CRF 30, preset
+  veryfast · fps capped at 30 · no audio (`-an`) · `-movflags +faststart`.
 
 ## Open decisions for the owner
 

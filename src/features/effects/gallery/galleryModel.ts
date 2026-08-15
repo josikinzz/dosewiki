@@ -9,8 +9,8 @@ import { hasKnownCreator } from '../components/replicationCredit';
 
 /**
  * Data model for the cross-effect replications gallery: normalization,
- * grouping by artist / effect, intra-group ordering, search, and the curated
- * spotlight selection. Kept framework-free so it stays unit-testable.
+ * grouping by artist / effect, intra-group ordering, search, and the
+ * rail-versus-pool layout split. Kept framework-free so it stays unit-testable.
  */
 
 export type GalleryMode = 'artist' | 'effect';
@@ -19,13 +19,6 @@ export type GalleryArtistSort = 'count' | 'alpha';
 
 export const UNATTRIBUTED_KEY = '__unattributed__';
 export const UNATTRIBUTED_LABEL = 'Unattributed';
-
-/**
- * Curated spotlight. List replication slugs here to feature them at the top of
- * the gallery (in curated order). When empty, the gallery falls back to an
- * automatic selection — see selectSpotlight.
- */
-export const FEATURED_REPLICATION_SLUGS: string[] = [];
 
 export interface GalleryGroup {
   /** Stable grouping key (artist key or effect slug). */
@@ -350,37 +343,24 @@ export function groupByEffect(
 }
 
 /**
- * Curated spotlight, with a graceful fallback before anything is curated:
- * prefer videos and large, attributed pieces so the hero never looks empty.
+ * Hybrid browse layout: a group earns its own horizontal rail only when it
+ * carries at least `minRailSize` works; thinner groups pool into one dense
+ * masonry tail so a two-work artist costs two tiles, not a whole row. Order
+ * is preserved on both sides, so the pool inherits the corpus ordering
+ * (count desc, then label — unattributed last in artist mode).
  */
-export function selectSpotlight(
-  replications: GalleryReplication[],
-  limit = 6,
-): GalleryReplication[] {
-  const bySlug = new Map(replications.map((replication) => [replication.slug, replication]));
+export const MIN_RAIL_SIZE = 3;
 
-  const curated = FEATURED_REPLICATION_SLUGS.map((slug) => bySlug.get(slug)).filter(
-    (replication): replication is GalleryReplication => Boolean(replication),
-  );
-  if (curated.length >= limit) return curated.slice(0, limit);
-
-  const chosen = new Set(curated.map((replication) => replication.slug));
-  const area = (replication: GalleryReplication) =>
-    (replication.width ?? 0) * (replication.height ?? 0);
-
-  const fallback = replications
-    .filter((replication) => !chosen.has(replication.slug) && Boolean(replication.thumbnail_url || replication.url))
-    .sort((a, b) => {
-      const aAttr = hasKnownCreator(a.artist) ? 1 : 0;
-      const bAttr = hasKnownCreator(b.artist) ? 1 : 0;
-      if (aAttr !== bAttr) return bAttr - aAttr;
-      const aVid = a.type === 'video' ? 1 : 0;
-      const bVid = b.type === 'video' ? 1 : 0;
-      if (aVid !== bVid) return bVid - aVid;
-      return area(b) - area(a);
-    });
-
-  return [...curated, ...fallback].slice(0, limit);
+export function splitRailsAndPool(
+  groups: GalleryGroup[],
+  minRailSize: number = MIN_RAIL_SIZE,
+): { rails: GalleryGroup[]; pool: GalleryGroup[] } {
+  const rails: GalleryGroup[] = [];
+  const pool: GalleryGroup[] = [];
+  for (const group of groups) {
+    (group.count >= minRailSize ? rails : pool).push(group);
+  }
+  return { rails, pool };
 }
 
 export interface GalleryCounts {

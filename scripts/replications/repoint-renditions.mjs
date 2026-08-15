@@ -414,7 +414,7 @@ const UPLOAD_BACKOFF_CAP_MS = 30_000;
  * than hammering the deployment. Each attempt takes a fresh upload URL, since
  * a Convex upload URL is single-use.
  */
-async function uploadFile(client, apiKey, filePath, contentType) {
+export async function uploadFile(client, apiKey, filePath, contentType) {
   const body = fs.readFileSync(filePath);
   let lastError;
 

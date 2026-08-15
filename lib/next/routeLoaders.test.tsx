@@ -159,7 +159,7 @@ describe("route loaders", () => {
       throw new Error("expected ok result");
     }
     expect(result.metadata).toEqual({
-      title: "LSD dosage, effects, and safety",
+      title: "LSD - dose.wiki",
       description: "A lysergamide.",
     });
     expect(result.canonicalRoute).toEqual({ family: "substance", params: { slug: "lsd" } });

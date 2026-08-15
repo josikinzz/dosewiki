@@ -1,7 +1,9 @@
 'use client';
 
+import { useCallback, useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { Icon } from '@/components/common/Icon';
+import { Button } from '@/components/ui/button';
 import { focusRingClassName } from '@/components/ui/surface';
 import { cn } from '@/lib/utils';
 import { GalleryMediaTile } from './GalleryMediaTile';
@@ -10,20 +12,27 @@ import type { GalleryGroup } from './galleryModel';
 /** Items shown inline in a rail before "View all" takes over. */
 const RAIL_PREVIEW_LIMIT = 14;
 
+/** How much of the visible rail one arrow press advances. */
+const ARROW_SCROLL_RATIO = 0.8;
+
 const HEADING_LINK_CLASS =
   'theme-text-primary font-display text-lg font-semibold tracking-tight transition-colors hover:text-[var(--theme-accent-strong)]';
 
 const EXTERNAL_ICON_CLASS =
   'theme-text-faint h-4 w-4 transition group-hover/heading:text-[var(--theme-accent-strong)]';
 
+/**
+ * The rail header already prints the total ("View all N"), so repeating
+ * "N works" beside it was the same number twice in one row. The chip now only
+ * earns its place when it says something the total cannot: the image/video
+ * breakdown of a mixed group.
+ */
 function CountChips({ group }: { group: GalleryGroup }) {
-  const parts: string[] = [];
-  if (group.imageCount > 0) parts.push(`${group.imageCount} image${group.imageCount === 1 ? '' : 's'}`);
-  if (group.videoCount > 0) parts.push(`${group.videoCount} video${group.videoCount === 1 ? '' : 's'}`);
+  if (group.imageCount === 0 || group.videoCount === 0) return null;
   return (
     <span className="theme-text-faint text-xs tabular-nums">
-      {group.count} work{group.count === 1 ? '' : 's'}
-      {parts.length ? <span className="theme-text-ghost"> · {parts.join(' · ')}</span> : null}
+      {group.imageCount} image{group.imageCount === 1 ? '' : 's'} ·{' '}
+      {group.videoCount} video{group.videoCount === 1 ? '' : 's'}
     </span>
   );
 }
@@ -41,6 +50,48 @@ interface MediaRailProps {
 export function MediaRail({ group, viewAllHref }: MediaRailProps) {
   const preview = group.items.slice(0, RAIL_PREVIEW_LIMIT);
   const hasMore = group.count > preview.length;
+
+  /**
+   * Desktop arrow affordances. Wheel-less mice cannot comfortably drag a
+   * horizontal scroller, so hover-capable pointers get prev/next buttons that
+   * page the rail; they hide entirely at either end (and both, when the rail
+   * does not overflow). Touch keeps native swiping and never sees them —
+   * the buttons are display:none outside `@media (hover: hover)`.
+   */
+  const scrollerRef = useRef<HTMLDivElement>(null);
+  const [canScroll, setCanScroll] = useState({ left: false, right: false });
+
+  const updateScrollability = useCallback(() => {
+    const el = scrollerRef.current;
+    if (!el) return;
+    const max = el.scrollWidth - el.clientWidth;
+    const next = { left: el.scrollLeft > 1, right: el.scrollLeft < max - 1 };
+    setCanScroll((prev) =>
+      prev.left === next.left && prev.right === next.right ? prev : next,
+    );
+  }, []);
+
+  useEffect(() => {
+    updateScrollability();
+    window.addEventListener('resize', updateScrollability);
+    return () => window.removeEventListener('resize', updateScrollability);
+  }, [updateScrollability]);
+
+  const scrollByPage = (direction: 1 | -1) => {
+    const el = scrollerRef.current;
+    if (!el) return;
+    const reduceMotion =
+      window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false;
+    el.scrollBy({
+      left: direction * el.clientWidth * ARROW_SCROLL_RATIO,
+      behavior: reduceMotion ? 'auto' : 'smooth',
+    });
+  };
+
+  // `disabled:opacity-0` (not a bare `opacity-0`) so it outranks the base
+  // Button's `disabled:opacity-50`; disabled already kills pointer events.
+  const arrowClass =
+    'absolute top-1/2 z-10 hidden h-9 w-9 -translate-y-1/2 rounded-full shadow-[var(--theme-frosted-control-shadow)] disabled:opacity-0 [@media(hover:hover)]:inline-flex';
 
   /**
    * What the group's name does.
@@ -111,30 +162,59 @@ export function MediaRail({ group, viewAllHref }: MediaRailProps) {
         ) : null}
       </div>
 
-      <div
-        className={cn(
-          'flex snap-x snap-mandatory gap-3 overflow-x-auto pb-2',
-          '[scrollbar-width:thin] [-webkit-overflow-scrolling:touch]',
-        )}
-      >
-        {preview.map((replication) => (
-          <GalleryMediaTile
-            key={replication._id}
-            replication={replication}
-            className="shrink-0 snap-start"
-            frameClassName="h-44 sm:h-52"
-          />
-        ))}
-        {hasMore ? (
-          <Link
-            href={viewAllHref}
-            style={{ aspectRatio: '4 / 5' }}
-            className="theme-text-muted flex h-44 shrink-0 snap-start self-start flex-col items-center justify-center gap-2 rounded-xl border border-dashed border-[color:var(--theme-border-strong)] bg-[var(--theme-surface-soft)] px-4 text-sm font-medium transition-colors hover:text-[var(--theme-accent-strong)] hover:border-[color:var(--theme-card-border-strong)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--theme-accent-strong)] sm:h-52 motion-reduce:transition-none"
-          >
-            <Icon icon="lucide:arrow-right" className="h-5 w-5" />
-            View all {group.count}
-          </Link>
-        ) : null}
+      <div className="relative">
+        <div
+          ref={scrollerRef}
+          onScroll={updateScrollability}
+          className={cn(
+            // px/scroll-px keep resting tiles off the clipping edge, aligned
+            // with the header's own px-1 inset.
+            'flex snap-x snap-mandatory gap-3 overflow-x-auto px-1 pb-2 scroll-px-1',
+            '[scrollbar-width:thin] [-webkit-overflow-scrolling:touch]',
+          )}
+        >
+          {preview.map((replication) => (
+            <GalleryMediaTile
+              key={replication._id}
+              replication={replication}
+              className="shrink-0 snap-start"
+              frameClassName="h-44 sm:h-52"
+            />
+          ))}
+          {hasMore ? (
+            <Link
+              href={viewAllHref}
+              style={{ aspectRatio: '4 / 5' }}
+              className="theme-text-muted flex h-44 shrink-0 snap-start self-start flex-col items-center justify-center gap-2 rounded-xl border border-dashed border-[color:var(--theme-border-strong)] bg-[var(--theme-surface-soft)] px-4 text-sm font-medium transition-colors hover:text-[var(--theme-accent-strong)] hover:border-[color:var(--theme-card-border-strong)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--theme-accent-strong)] sm:h-52 motion-reduce:transition-none"
+            >
+              <Icon icon="lucide:arrow-right" className="h-5 w-5" />
+              View all {group.count}
+            </Link>
+          ) : null}
+        </div>
+
+        <Button
+          type="button"
+          variant="glass"
+          size="icon"
+          onClick={() => scrollByPage(-1)}
+          disabled={!canScroll.left}
+          aria-label={`Scroll ${group.label} back`}
+          className={cn(arrowClass, 'left-1')}
+        >
+          <Icon icon="lucide:chevron-left" className="h-4 w-4" aria-hidden />
+        </Button>
+        <Button
+          type="button"
+          variant="glass"
+          size="icon"
+          onClick={() => scrollByPage(1)}
+          disabled={!canScroll.right}
+          aria-label={`Scroll ${group.label} forward`}
+          className={cn(arrowClass, 'right-1')}
+        >
+          <Icon icon="lucide:chevron-right" className="h-4 w-4" aria-hidden />
+        </Button>
       </div>
     </section>
   );

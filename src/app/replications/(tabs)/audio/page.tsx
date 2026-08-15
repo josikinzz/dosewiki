@@ -66,7 +66,7 @@ export default async function ReplicationAudioPage() {
             ))}
           </div>
 
-          <p className="theme-text-ghost mt-8 text-xs leading-5">
+          <p className="theme-text-muted mt-8 text-xs leading-5">
             Audio replications are credited to their creator when known. Rights remain with the
             original creator or rightsholder unless an individual clip states another license. See
             the{" "}

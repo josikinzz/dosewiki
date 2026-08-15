@@ -84,7 +84,11 @@ function useInViewport(
       return;
     }
     const observer = new IntersectionObserver(
-      ([entry]) => {
+      (entries) => {
+        // Fast swipes batch several transitions into one callback; only the
+        // newest entry reflects reality. Acting on the first would strand a
+        // stale verdict (e.g. `active` stuck on after the pane left).
+        const entry = entries[entries.length - 1];
         if (entry.isIntersecting) {
           setInView(true);
         } else if (!sticky) {
@@ -140,14 +144,26 @@ interface DeckPaneProps {
 function DeckPane({ work, sectionNearby, muted, reducedMotion, effectName }: DeckPaneProps) {
   const paneRef = useRef<HTMLDivElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
-  const nearby = useInViewport(paneRef, { rootMargin: PANE_MOUNT_MARGIN }, true);
+  /**
+   * The media window is a *sliding* window, not a sticky one. Browsers cap
+   * concurrent media pipelines (Chrome and iOS both stall the overflow player
+   * silently: `paused` stays false while the clock freezes), so a <video>
+   * element may only exist while its pane is within ~1.2 viewports of the
+   * reader. Panes that leave the window drop back to their poster; the
+   * once-visited flag keeps that poster (or an image work) mounted so
+   * re-entry crossfades from a frame instead of a spinner.
+   */
+  const nearby = useInViewport(paneRef, { rootMargin: PANE_MOUNT_MARGIN });
   const active = useInViewport(paneRef, { threshold: ACTIVE_THRESHOLD });
+  const everNearbyRef = useRef(false);
+  if (nearby) everNearbyRef.current = true;
   /** Reader's explicit pause/play verdict; cleared when the pane leaves. */
   const [pausedByUser, setPausedByUser] = useState<boolean | null>(null);
   const [buffering, setBuffering] = useState(false);
 
   const isVideo = work.type === 'video';
-  const mountMedia = sectionNearby && nearby;
+  const mountVideo = isVideo && sectionNearby && nearby;
+  const showStill = everNearbyRef.current && (!isVideo || (!mountVideo && Boolean(work.thumbnail_url)));
   const shouldPlay =
     isVideo && active && (pausedByUser === null ? !reducedMotion : !pausedByUser);
 
@@ -155,16 +171,61 @@ function DeckPane({ work, sectionNearby, muted, reducedMotion, effectName }: Dec
     if (!active) setPausedByUser(null);
   }, [active]);
 
+  /**
+   * Play/pause + pipeline policy. Only the active pane may hold a media
+   * pipeline: inactive videos are `preload="none"` (their poster covers
+   * them), and a pane that *stops* being active surrenders its pipeline with
+   * `load()` — browsers cap concurrent players, and a handful of leftover
+   * pipelines is exactly what froze playback (clock stopped at
+   * `paused === false`) before the sliding mount window bounded them.
+   */
+  const hadPipelineRef = useRef(false);
   useEffect(() => {
     const video = videoRef.current;
-    if (!video) return;
+    if (!video) {
+      hadPipelineRef.current = false;
+      return;
+    }
     video.muted = muted;
     if (shouldPlay) {
+      hadPipelineRef.current = true;
       void video.play().catch(() => {});
-    } else {
-      video.pause();
+      return;
     }
-  }, [shouldPlay, muted, mountMedia]);
+    video.pause();
+    if (!active && hadPipelineRef.current) {
+      // Back to preload="none": drops the decoder + network pipeline and
+      // resets to the poster. Loops restart from 0 on return by design.
+      hadPipelineRef.current = false;
+      video.load();
+    }
+  }, [shouldPlay, active, muted, mountVideo]);
+
+  /**
+   * Stall watchdog for the active video. A suspended pipeline can leave the
+   * element claiming to play while its clock is frozen; if no progress and no
+   * fresh data arrive across two consecutive checks, rebuild the pipeline and
+   * resume. Recovers the "video is unresponsive" state without user input.
+   */
+  useEffect(() => {
+    if (!shouldPlay) return;
+    let lastTime = -1;
+    const interval = window.setInterval(() => {
+      const video = videoRef.current;
+      if (!video || video.paused) return;
+      if (video.currentTime > lastTime + 0.1) {
+        lastTime = video.currentTime;
+        return;
+      }
+      if (video.readyState >= 3) {
+        // Data is buffered but the clock is frozen: the player is wedged.
+        video.load();
+        void video.play().catch(() => {});
+        lastTime = -1;
+      }
+    }, 1500);
+    return () => window.clearInterval(interval);
+  }, [shouldPlay]);
 
   const togglePlayback = () => {
     if (!isVideo) return;
@@ -172,7 +233,7 @@ function DeckPane({ work, sectionNearby, muted, reducedMotion, effectName }: Dec
   };
 
   const byline = getCreatorByline(work);
-  const showPausedBadge = isVideo && mountMedia && !shouldPlay;
+  const showPausedBadge = isVideo && mountVideo && !shouldPlay;
 
   return (
     <div
@@ -181,30 +242,28 @@ function DeckPane({ work, sectionNearby, muted, reducedMotion, effectName }: Dec
       aria-label={`${work.title}, ${byline}`}
     >
       {/* Media layer */}
-      {mountMedia ? (
-        isVideo ? (
-          <video
-            ref={videoRef}
-            src={work.url}
-            poster={work.thumbnail_url}
-            loop
-            muted
-            playsInline
-            preload={active ? 'auto' : 'metadata'}
-            onWaiting={() => setBuffering(true)}
-            onPlaying={() => setBuffering(false)}
-            onCanPlay={() => setBuffering(false)}
-            className="absolute inset-0 h-full w-full object-contain"
-          />
-        ) : (
-          <AppImage
-            src={work.url}
-            alt={work.title}
-            width={work.width ?? 1200}
-            height={work.height ?? 1200}
-            className="absolute inset-0 h-full w-full object-contain"
-          />
-        )
+      {mountVideo ? (
+        <video
+          ref={videoRef}
+          src={work.url}
+          poster={work.thumbnail_url}
+          loop
+          muted
+          playsInline
+          preload={active ? 'auto' : 'none'}
+          onWaiting={() => setBuffering(true)}
+          onPlaying={() => setBuffering(false)}
+          onCanPlay={() => setBuffering(false)}
+          className="absolute inset-0 h-full w-full object-contain"
+        />
+      ) : showStill ? (
+        <AppImage
+          src={isVideo ? work.thumbnail_url! : work.url}
+          alt={work.title}
+          width={work.width ?? 1200}
+          height={work.height ?? 1200}
+          className="absolute inset-0 h-full w-full object-contain"
+        />
       ) : (
         <div className="absolute inset-0 grid place-items-center">
           <Icon icon="svg-spinners:ring-resize" className="size-8 text-white/40" aria-hidden />

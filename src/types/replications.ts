@@ -134,6 +134,11 @@ export interface ReplicationRecord extends ReplicationRightsMetadata {
    */
   effect_tags?: string[];
   thumbnail_storage_id?: string;
+  /**
+   * Low-res muted preview rendition for gallery in-view autoplay (video rows
+   * only). Written by scripts/replications/generate-preview-renditions.mjs.
+   */
+  preview_storage_id?: string;
   width?: number;
   height?: number;
   format: string;
@@ -148,6 +153,12 @@ export interface ReplicationRecord extends ReplicationRightsMetadata {
 export interface ReplicationWithUrl extends ReplicationRecord {
   url: string;
   thumbnail_url?: string;
+  /**
+   * Resolved URL of the low-res muted preview rendition, when the row has one
+   * (`preview_storage_id`; video rows only). The gallery autoplays this in
+   * view; absence means hover-to-play of the full `url` instead.
+   */
+  preview_url?: string;
 }
 
 /**

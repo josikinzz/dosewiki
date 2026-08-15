@@ -99,18 +99,31 @@ function definedReplicationRightsPatch(updates: ReplicationRightsPatch) {
   return patch;
 }
 
-/** Shared with `convex/substanceGalleries.ts`, which publishes the same rows. */
+/**
+ * Shared with `convex/substanceGalleries.ts`, which publishes the same rows.
+ *
+ * `preview_url` is the low-res muted preview rendition used for gallery in-view
+ * autoplay. Unlike `url` it has no string-field fallback: a preview either
+ * resolves from `preview_storage_id` or is absent, and absence simply means the
+ * gallery falls back to hover-to-play of the full rendition. Callers that never
+ * read previews pass `{ preview: false }` — every `storage.getUrl` is a metered
+ * system operation, and the multi-row queries live close to the per-request
+ * system-op budget (see `memoizedStorageUrls`).
+ */
 export async function resolveReplicationUrls(
   ctx: { storage: { getUrl: (storageId: string) => Promise<string> } },
   rep: {
     storage_id: string;
     thumbnail_storage_id?: string;
+    preview_storage_id?: string;
     url?: string;
     thumbnail_url?: string;
-  }
+  },
+  opts?: { preview?: boolean }
 ) {
   let url = null;
   let thumbnail_url = null;
+  let preview_url = null;
 
   if (!isPlaceholderStorageId(rep.storage_id)) {
     try {
@@ -125,10 +138,18 @@ export async function resolveReplicationUrls(
   }
 
   if (!isPlaceholderStorageId(rep.thumbnail_storage_id)) {
-    try {
-      thumbnail_url = await ctx.storage.getUrl(rep.thumbnail_storage_id);
-    } catch {
-      // Storage ID might be invalid or missing
+    // 104 of the corpus's image rows point `thumbnail_storage_id` at the same
+    // object as `storage_id` (see docs/replication-media-delivery.md §3); a
+    // second `getUrl` for the same id would spend a system op to learn the
+    // same signed URL.
+    if (rep.thumbnail_storage_id === rep.storage_id && url) {
+      thumbnail_url = url;
+    } else {
+      try {
+        thumbnail_url = await ctx.storage.getUrl(rep.thumbnail_storage_id);
+      } catch {
+        // Storage ID might be invalid or missing
+      }
     }
   }
 
@@ -136,7 +157,46 @@ export async function resolveReplicationUrls(
     thumbnail_url = rep.thumbnail_url;
   }
 
-  return { url, thumbnail_url };
+  if (opts?.preview !== false && !isPlaceholderStorageId(rep.preview_storage_id)) {
+    try {
+      preview_url = await ctx.storage.getUrl(rep.preview_storage_id!);
+    } catch {
+      // Storage ID might be invalid or missing
+    }
+  }
+
+  return { url, thumbnail_url, preview_url };
+}
+
+/**
+ * A `ctx.storage` wrapper that resolves each distinct storage id at most once
+ * per query invocation.
+ *
+ * `storage.getUrl` is a metered *system operation*: a query that performs too
+ * many of them is killed server-side ("Your request timed out performing too
+ * many system operations"), and the multi-row replication queries resolve up
+ * to three ids for each of ~284 rows. Ids repeat — image rows usually share
+ * one object between `storage_id` and `thumbnail_storage_id`, and duplicate
+ * slugs share objects across rows — so memoizing by id keeps the hot queries
+ * inside the budget. Failed lookups memoize as `null` on purpose: retrying an
+ * invalid id within one invocation would spend ops to fail identically.
+ */
+export function memoizedStorageUrls(ctx: {
+  storage: { getUrl: (storageId: string) => Promise<string | null> };
+}): { storage: { getUrl: (storageId: string) => Promise<string | null> } } {
+  const cache = new Map<string, Promise<string | null>>();
+  return {
+    storage: {
+      getUrl: (storageId: string) => {
+        let hit = cache.get(storageId);
+        if (!hit) {
+          hit = ctx.storage.getUrl(storageId).catch(() => null);
+          cache.set(storageId, hit);
+        }
+        return hit;
+      },
+    },
+  };
 }
 
 /**
@@ -153,8 +213,8 @@ export const getAll = query({
  * Get a single replication by slug.
  *
  * URL resolution priority:
- * 1. Direct `url` field (external Convex storage or CDN URLs)
- * 2. Convex storage lookup via `storage_id`
+ * 1. Convex storage lookup via `storage_id`
+ * 2. Direct `url` field fallback (external Convex storage or CDN URLs)
  */
 export const getBySlug = query({
   args: { slug: v.string() },
@@ -168,12 +228,13 @@ export const getBySlug = query({
       return null;
     }
 
-    const { url, thumbnail_url } = await resolveReplicationUrls(ctx, replication);
+    const { url, thumbnail_url, preview_url } = await resolveReplicationUrls(ctx, replication);
 
     return {
       ...replication,
       url,
       thumbnail_url,
+      preview_url,
     };
   },
 });
@@ -183,8 +244,8 @@ export const getBySlug = query({
  * Returns replications with storage URLs attached.
  *
  * URL resolution priority:
- * 1. Direct `url` field (external Convex storage or CDN URLs)
- * 2. Convex storage lookup via `storage_id`
+ * 1. Convex storage lookup via `storage_id`
+ * 2. Direct `url` field fallback (external Convex storage or CDN URLs)
  */
 export const getReplicationsByEffect = query({
   args: { effect_slug: v.string() },
@@ -194,13 +255,15 @@ export const getReplicationsByEffect = query({
       .withIndex("by_effect", (q) => q.eq("effect_slug", args.effect_slug))
       .collect();
 
+    const urls = memoizedStorageUrls(ctx);
     return Promise.all(
       replications.map(async (rep) => {
-        const { url, thumbnail_url } = await resolveReplicationUrls(ctx, rep);
+        const { url, thumbnail_url, preview_url } = await resolveReplicationUrls(urls, rep);
         return {
           ...rep,
           url,
           thumbnail_url,
+          preview_url,
         };
       })
     );
@@ -211,8 +274,8 @@ export const getReplicationsByEffect = query({
  * Get all replications by a specific artist.
  *
  * URL resolution priority:
- * 1. Direct `url` field (external Convex storage or CDN URLs)
- * 2. Convex storage lookup via `storage_id`
+ * 1. Convex storage lookup via `storage_id`
+ * 2. Direct `url` field fallback (external Convex storage or CDN URLs)
  */
 export const getByArtist = query({
   args: { artist: v.string() },
@@ -222,13 +285,15 @@ export const getByArtist = query({
       .withIndex("by_artist", (q) => q.eq("artist", args.artist))
       .collect();
 
+    const urls = memoizedStorageUrls(ctx);
     return Promise.all(
       replications.map(async (rep) => {
-        const { url, thumbnail_url } = await resolveReplicationUrls(ctx, rep);
+        const { url, thumbnail_url, preview_url } = await resolveReplicationUrls(urls, rep);
         return {
           ...rep,
           url,
           thumbnail_url,
+          preview_url,
         };
       })
     );
@@ -334,13 +399,15 @@ export const getByArtistNames = query({
     const rows = await ctx.db.query("replications").collect();
     const matched = rows.filter((row) => replicationMatchesArtistNames(row, matchNames));
 
+    const urls = memoizedStorageUrls(ctx);
     return Promise.all(
       matched.map(async (rep) => {
-        const { url, thumbnail_url } = await resolveReplicationUrls(ctx, rep);
+        const { url, thumbnail_url, preview_url } = await resolveReplicationUrls(urls, rep);
         return {
           ...rep,
           url,
           thumbnail_url,
+          preview_url,
         };
       }),
     );
@@ -382,13 +449,14 @@ export const getPublicReplications = query({
       }
     }
 
+    const urls = memoizedStorageUrls(ctx);
     return Promise.all(
       replications.map(async (rep) => {
-        const { url, thumbnail_url } = await resolveReplicationUrls(ctx, rep);
+        const { url, thumbnail_url, preview_url } = await resolveReplicationUrls(urls, rep);
         const order_index = rep.effect_slug
           ? orderByEffect.get(rep.effect_slug)?.get(rep.slug)
           : undefined;
-        return { ...rep, url, thumbnail_url, order_index };
+        return { ...rep, url, thumbnail_url, preview_url, order_index };
       }),
     );
   },
@@ -977,6 +1045,90 @@ export const updateStorageIds = mutation({
   },
 });
 
+/**
+ * A plausible Convex storage id: the lowercase alphanumeric document-id shape
+ * every id this deployment has ever minted matches. Deliberately loose about
+ * length beyond "long enough to not be a typo" — the real guard is the
+ * compare-and-swap below plus the caller's post-write verification.
+ */
+const CONVEX_STORAGE_ID_SHAPE = /^[a-z0-9]{16,64}$/;
+
+/**
+ * Attach preview renditions to video rows, failing closed if any row changed
+ * since the plan was made.
+ *
+ * Compare-and-swap on the row's current `storage_id` (the pattern
+ * `applySourceRecovery` uses): a preview is derived from one exact rendition,
+ * so if the rendition moved after the plan was reviewed, the preview being
+ * written describes bytes the row no longer serves and the write must not land.
+ * All updates are validated before the first patch, so a bad entry rejects the
+ * whole call rather than leaving it half-applied.
+ *
+ * @param apiKey - Required API key for authentication
+ */
+export const updatePreviewStorageIds = mutation({
+  args: {
+    apiKey: v.optional(v.string()),
+    updates: v.array(
+      v.object({
+        id: v.id("replications"),
+        previewStorageId: v.string(),
+        expectedStorageId: v.string(),
+      }),
+    ),
+  },
+  handler: async (ctx, args) => {
+    await requireAuth(ctx, args.apiKey, "replicationMaintenance");
+
+    const validated: { id: (typeof args.updates)[number]["id"]; previewStorageId: string }[] = [];
+    for (const update of args.updates) {
+      if (
+        isPlaceholderStorageId(update.previewStorageId)
+        || !CONVEX_STORAGE_ID_SHAPE.test(update.previewStorageId)
+      ) {
+        throw new Error(`Preview storage id is malformed or a placeholder: ${update.previewStorageId}`);
+      }
+      const replication = await ctx.db.get(update.id);
+      if (!replication) throw new Error("Preview rendition target row no longer exists.");
+      if (replication.storage_id !== update.expectedStorageId) {
+        throw new Error(
+          `Preview rendition precondition failed: ${replication.slug} storage_id changed since the plan.`,
+        );
+      }
+      validated.push({ id: update.id, previewStorageId: update.previewStorageId });
+    }
+
+    for (const entry of validated) {
+      await ctx.db.patch(entry.id, { preview_storage_id: entry.previewStorageId });
+    }
+    return { success: true, updated: validated.length };
+  },
+});
+
+/**
+ * One row with its URLs resolved, fetched by id — the cheap read maintenance
+ * scripts use for per-row compare-and-swap checks and post-write verification.
+ *
+ * The multi-row public queries resolve the whole 284-row corpus (hundreds of
+ * metered `storage.getUrl` system operations); a script that re-ran one of
+ * them before and after every row of a backfill was enough to push the
+ * deployment into "timed out performing too many system operations" across
+ * unrelated queries. This resolves at most three ids.
+ */
+export const getResolvedById = query({
+  args: {
+    apiKey: v.optional(v.string()),
+    id: v.id("replications"),
+  },
+  handler: async (ctx, args) => {
+    await requireAuth(ctx, args.apiKey, "replicationMaintenance");
+    const replication = await ctx.db.get(args.id);
+    if (!replication) return null;
+    const { url, thumbnail_url, preview_url } = await resolveReplicationUrls(ctx, replication);
+    return { ...replication, url, thumbnail_url, preview_url };
+  },
+});
+
 /** Replace a reviewed source asset while failing closed if the audit is stale. */
 export const applySourceRecovery = mutation({
   args: {
@@ -1256,9 +1408,10 @@ export const getStudioRows = query({
     const effects = await ctx.db.query("subjectiveEffects").collect();
     const effectNames = new Map(effects.map((effect) => [effect.slug, effect.name ?? effect.slug]));
 
+    const urls = memoizedStorageUrls(ctx);
     const resolved = await Promise.all(
       rows.map(async (row) => {
-        const { url, thumbnail_url } = await resolveReplicationUrls(ctx, row);
+        const { url, thumbnail_url } = await resolveReplicationUrls(urls, row, { preview: false });
         return {
           id: row._id,
           slug: row.slug,

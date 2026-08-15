@@ -8,7 +8,7 @@ import {
   groupByArtist,
   groupByEffect,
   matchesQuery,
-  selectSpotlight,
+  splitRailsAndPool,
   sortWithinGroup,
   UNATTRIBUTED_KEY,
   UNATTRIBUTED_LABEL,
@@ -228,14 +228,35 @@ describe('matchesQuery', () => {
   });
 });
 
-describe('selectSpotlight', () => {
-  it('falls back to attributed videos first when nothing is curated', () => {
-    const image = rep({ artist: 'Josie Kins', type: 'image' });
-    const video = rep({ artist: 'Josie Kins', type: 'video', thumbnail_url: 'https://cdn.test/v.jpg' });
-    const orphan = rep({ artist: '', type: 'image' });
-    const chosen = selectSpotlight([image, orphan, video], 2);
-    expect(chosen[0].slug).toBe(video.slug);
-    expect(chosen).toHaveLength(2);
+describe('splitRailsAndPool', () => {
+  const groupsOf = (...counts: number[]) =>
+    counts.map((count, index) => ({
+      key: `group-${index}`,
+      label: `Group ${index}`,
+      count,
+      imageCount: count,
+      videoCount: 0,
+      items: Array.from({ length: count }, () => rep()),
+    }));
+
+  it('rails groups with at least three works and pools the rest, preserving order', () => {
+    const groups = groupsOf(5, 3, 2, 1);
+    const { rails, pool } = splitRailsAndPool(groups);
+    expect(rails.map((group) => group.count)).toEqual([5, 3]);
+    expect(pool.map((group) => group.count)).toEqual([2, 1]);
+  });
+
+  it('handles the all-rails and all-pool extremes', () => {
+    expect(splitRailsAndPool(groupsOf(4, 3)).pool).toEqual([]);
+    expect(splitRailsAndPool(groupsOf(2, 1)).rails).toEqual([]);
+    expect(splitRailsAndPool([])).toEqual({ rails: [], pool: [] });
+  });
+
+  it('honours a custom minimum rail size', () => {
+    const groups = groupsOf(5, 3, 2);
+    const { rails, pool } = splitRailsAndPool(groups, 5);
+    expect(rails.map((group) => group.count)).toEqual([5]);
+    expect(pool.map((group) => group.count)).toEqual([3, 2]);
   });
 });
 

@@ -463,6 +463,13 @@ const replication = v.object({
    */
   effect_slug: v.optional(v.string()),
   thumbnail_storage_id: v.optional(v.string()), // Video thumbnail storage ID
+  /**
+   * Low-res muted preview rendition for gallery in-view autoplay (video rows
+   * only). Optional and additive: rows without one keep their current
+   * hover-to-play behaviour. Written by
+   * scripts/replications/generate-preview-renditions.mjs.
+   */
+  preview_storage_id: v.optional(v.string()),
   url: v.optional(v.string()),         // Direct URL (external Convex storage or CDN)
   thumbnail_url: v.optional(v.string()), // Direct thumbnail URL (for videos)
   width: v.optional(v.number()),       // For responsive display

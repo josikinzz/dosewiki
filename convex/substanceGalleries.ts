@@ -1,7 +1,7 @@
 import { v } from "convex/values";
 import { mutation, query, type QueryCtx } from "./_generated/server";
 import { requireAuth, requireEditorWrite } from "./lib/auth";
-import { resolveReplicationUrls } from "./replications";
+import { memoizedStorageUrls, resolveReplicationUrls } from "./replications";
 import {
   matchSubstanceGalleryReplications,
   mergeCuratedGallery,
@@ -81,9 +81,10 @@ export const getPublicReplicationsForSubstance = query({
 
     const merged = mergeCuratedGallery(matches, gallery, (match) => match.row.slug);
 
+    const urls = memoizedStorageUrls(ctx);
     const items = await Promise.all(
       merged.map(async ({ row, provenance }) => {
-        const { url, thumbnail_url } = await resolveReplicationUrls(ctx, row);
+        const { url, thumbnail_url } = await resolveReplicationUrls(urls, row, { preview: false });
         return { replication: { ...row, url, thumbnail_url }, provenance };
       }),
     );
@@ -181,9 +182,10 @@ export const getCurationDetail = query({
     const effects = await ctx.db.query("subjectiveEffects").collect();
     const effectNames = new Map(effects.map((effect) => [effect.slug, effect.name ?? effect.slug]));
 
+    const resolvedUrls = memoizedStorageUrls(ctx);
     const resolved = await Promise.all(
       matches.map(async ({ row, provenance }) => {
-        const { url, thumbnail_url } = await resolveReplicationUrls(ctx, row);
+        const { url, thumbnail_url } = await resolveReplicationUrls(resolvedUrls, row, { preview: false });
         return {
           replication: {
             id: row._id,

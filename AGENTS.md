@@ -15,6 +15,7 @@ General Rules:
 - Please always use the UI kit for anything UI related, i want consolidated reusable components with a standard look.
 - Keep in mind that EffectIndex.com is a sister site that is automatically built out of dose.wiki but with a reskin and different organization
 - The site will not launch to dose.wiki URL until the 31st of August, for now it remains only at: https://dosewiki-admin.vercel.app/
+- Convex: the dev deployment is retired. All environments, including the local dev server, target the production deployment (`prod:glad-minnow-656`) for reads and writes. Never point env vars back at `enchanted-echidna-791`, and treat every Convex write as a production write.
 
 Read:
 

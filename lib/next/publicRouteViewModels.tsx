@@ -69,7 +69,7 @@ function buildSubstanceMetadataDescription(substance: PublicSubstanceRecord): st
 function buildSubstanceMetadataTitle(substance: PublicSubstanceRecord): string {
   const name = substance.identification?.common_name?.trim() || substance.title.trim() || "Substance";
 
-  return `${name} dosage, effects, and safety`;
+  return `${name} - ${SITE_FLAVOR_CONFIG.name}`;
 }
 
 function buildEffectMetadataDescription(effect: SubjectiveEffectDetailRecord): string {

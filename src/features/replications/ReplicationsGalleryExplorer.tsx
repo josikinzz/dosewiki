@@ -25,8 +25,8 @@ import {
   isDisplayable,
   matchesQuery,
   matchesType,
-  selectSpotlight,
   sortWithinGroup,
+  splitRailsAndPool,
   type GalleryArtistSort,
   type GalleryMode,
   type GalleryTypeFilter,
@@ -68,7 +68,7 @@ export interface ReplicationsGalleryExplorerProps {
 }
 
 const MASONRY_CLASS = 'columns-2 gap-3 sm:columns-3 lg:columns-4 [column-fill:_balance]';
-const MASONRY_TILE_CLASS = 'mb-5 w-full break-inside-avoid';
+const MASONRY_TILE_CLASS = 'mb-3 w-full break-inside-avoid';
 
 /** Control-bar toggles keep their compact height but honor 44px on touch. */
 const COARSE_TARGET_CLASS = '[@media(pointer:coarse)]:min-h-11';
@@ -195,7 +195,13 @@ export function ReplicationsGalleryExplorer({
     return groupByEffect(filtered, effectName, effectHref);
   }, [mode, filtered, artistSort, effectName, effectHref, contributorDirectory]);
 
-  const spotlight = useMemo(() => selectSpotlight(displayable), [displayable]);
+  /**
+   * Hybrid browse layout: groups with enough works keep their own rail; the
+   * thin tail pools into one dense masonry below the rails so a one-work
+   * artist costs one tile, not a whole row.
+   */
+  const { rails, pool } = useMemo(() => splitRailsAndPool(groups), [groups]);
+  const pooledItems = useMemo(() => pool.flatMap((group) => group.items), [pool]);
 
   /**
    * Focus is resolved against the *unfiltered* corpus — the route validated it
@@ -284,6 +290,13 @@ export function ReplicationsGalleryExplorer({
   const browseAllUrl = buildGalleryBrowseUrl({ view: mode, type: typeFilter, sort: artistSort });
 
   /**
+   * The artist-sort toggle only applies to the artist browse view, but it
+   * stays mounted (inert + invisible) elsewhere so the control bar keeps one
+   * width across mode switches instead of jittering.
+   */
+  const sortActive = mode === 'artist' && !searching && !focus;
+
+  /**
    * On phones the deck *replaces* the gallery card: it renders as its own
    * full-bleed, viewport-height section in the page flow (breaking out of the
    * layout's `px-4` gutter), so the reader swipes down past the intro and
@@ -306,23 +319,8 @@ export function ReplicationsGalleryExplorer({
   return (
     <section
       aria-label="Replications gallery"
-      className="mx-auto mt-6 w-full max-w-7xl rounded-[2rem] border border-[color:var(--theme-border-subtle)] bg-[var(--theme-page-end)] px-4 py-6 shadow-[var(--theme-elevation-top-highlight)] sm:px-6 sm:py-8"
+      className="mx-auto mt-4 w-full max-w-7xl rounded-[2rem] border border-[color:var(--theme-border-subtle)] bg-[var(--theme-page-end)] px-4 py-4 shadow-[var(--theme-elevation-top-highlight)] sm:px-6 sm:py-6"
     >
-      {/* Heading + live counts */}
-      <header className="mx-auto max-w-3xl px-1 text-center">
-        <p className="theme-text-faint text-[0.6875rem] font-semibold uppercase tracking-[0.28em]">
-          Replications Gallery
-        </p>
-        <p className="theme-text-secondary mt-2 text-sm leading-6">
-          Image and video replications of subjective effects, by the artists who make them.
-        </p>
-        {hasMedia ? (
-          <p className="theme-text-faint mt-2 text-xs tabular-nums">
-            {counts.total} works · {counts.artists} artists · {counts.effects} effects
-          </p>
-        ) : null}
-      </header>
-
       {!hasMedia ? (
         <SearchEmptyState
           className="mt-6"
@@ -334,7 +332,7 @@ export function ReplicationsGalleryExplorer({
         <>
           {/* Re-entry into the swipe deck, phones only (the deck's own media
               query); hidden where the grid is the primary surface. */}
-          <div className="mt-4 md:hidden">
+          <div className="md:hidden">
             <Button
               type="button"
               onClick={openDeck}
@@ -346,9 +344,9 @@ export function ReplicationsGalleryExplorer({
             </Button>
           </div>
 
-          {/* Sticky control bar */}
-          <div className="sticky top-2 z-20 mt-6">
-            <div className="mx-auto flex max-w-3xl flex-wrap items-center justify-center gap-2 rounded-2xl border border-[color:var(--theme-frosted-control-border)] bg-[var(--theme-frosted-control-bg)] p-2 shadow-[var(--theme-frosted-control-shadow)] backdrop-blur-md sm:gap-3">
+          {/* Sticky control bar — the card's header row, full width. */}
+          <div className="sticky top-2 z-20 mt-4 md:mt-0">
+            <div className="flex w-full flex-wrap items-center gap-2 rounded-2xl border border-[color:var(--theme-frosted-control-border)] bg-[var(--theme-frosted-control-bg)] p-2 shadow-[var(--theme-frosted-control-shadow)] backdrop-blur-md sm:gap-3">
               <ToggleGroup
                 type="single"
                 variant="pill"
@@ -388,46 +386,34 @@ export function ReplicationsGalleryExplorer({
                 <ToggleGroupItem value="video" className={COARSE_TARGET_CLASS}>Videos</ToggleGroupItem>
               </ToggleGroup>
 
-              {mode === 'artist' && !searching && !focus ? (
-                <ToggleGroup
-                  type="single"
-                  variant="pill"
-                  value={artistSort}
-                  onValueChange={(value) => value && setArtistSort(value as GalleryArtistSort)}
-                  aria-label="Sort artists"
-                >
-                  <ToggleGroupItem value="count" className={COARSE_TARGET_CLASS}>Most works</ToggleGroupItem>
-                  <ToggleGroupItem value="alpha" className={COARSE_TARGET_CLASS}>A–Z</ToggleGroupItem>
-                </ToggleGroup>
-              ) : null}
+              <ToggleGroup
+                type="single"
+                variant="pill"
+                value={artistSort}
+                onValueChange={(value) => value && setArtistSort(value as GalleryArtistSort)}
+                aria-label="Sort artists"
+                aria-hidden={!sortActive || undefined}
+                inert={!sortActive}
+                className={cn(!sortActive && 'invisible')}
+              >
+                <ToggleGroupItem value="count" className={COARSE_TARGET_CLASS}>Most works</ToggleGroupItem>
+                <ToggleGroupItem value="alpha" className={COARSE_TARGET_CLASS}>A–Z</ToggleGroupItem>
+              </ToggleGroup>
+
+              <span className="theme-text-faint ml-auto hidden whitespace-nowrap px-1 text-xs tabular-nums md:inline">
+                {counts.total} works · {counts.artists} artists · {counts.effects} effects
+              </span>
             </div>
           </div>
 
-          {/* Spotlight — only on the unfiltered browse view */}
-          {!searching && !focus && spotlight.length > 0 ? (
-            <div className="mt-8 space-y-3">
-              <div className="flex items-center justify-center gap-2 px-1">
-                <Icon icon="lucide:sparkles" className="h-4 w-4 text-[var(--theme-accent-strong)]" />
-                <h2 className="theme-text-muted text-xs font-semibold uppercase tracking-[0.22em]">
-                  Spotlight
-                </h2>
-              </div>
-              <div className="flex snap-x snap-mandatory justify-center gap-3 overflow-x-auto pb-2 [scrollbar-width:thin]">
-                {spotlight.map((replication) => (
-                  <GalleryMediaTile
-                    key={replication._id}
-                    replication={replication}
-                    className="shrink-0 snap-start"
-                    frameClassName="h-56 sm:h-72"
-                  />
-                ))}
-              </div>
-            </div>
-          ) : null}
+          {/* Compact counts, small screens only — wider screens read them in the bar. */}
+          <p className="theme-text-faint mt-3 px-1 text-xs tabular-nums md:hidden">
+            {counts.total} works · {counts.artists} artists · {counts.effects} effects
+          </p>
 
           {/* Focused single-group view (own URL: /replications/artist|effect/<key>) */}
           {focus && focusedGroup ? (
-            <div className="mt-8 space-y-4">
+            <div className="mt-6 space-y-4">
               <div className="flex flex-wrap items-baseline justify-between gap-3 px-1">
                 <div className="min-w-0">
                   <Link
@@ -478,14 +464,14 @@ export function ReplicationsGalleryExplorer({
                   className="mt-8"
                   icon="lucide:search-x"
                   title={`No ${typeFilter === 'video' ? 'videos' : 'images'} here`}
-                  description={`${focusedGroup.label} has no ${typeFilter === 'video' ? 'video' : 'image'} works. Switch the media filter to see everything.`}
+                  description={`${focusedGroup.label} has no ${typeFilter === 'video' ? 'videos' : 'images'}. Switch the media filter to see everything.`}
                 />
               )}
             </div>
           ) : searching ? (
             /* Search results — flat masonry */
             filtered.length > 0 ? (
-              <div className="mt-8 space-y-4">
+              <div className="mt-6 space-y-4">
                 <p className="theme-text-faint px-1 text-xs tabular-nums">
                   {filtered.length} result{filtered.length === 1 ? '' : 's'} for “{query.trim()}”
                 </p>
@@ -500,9 +486,11 @@ export function ReplicationsGalleryExplorer({
               />
             )
           ) : (
-            /* Browse — rails per group; "See all" is a crawlable focus URL */
-            <div className="mt-8 space-y-10">
-              {groups.map((group) => (
+            /* Browse — rails for groups with enough works ("View all" is a
+               crawlable focus URL); everything thinner pools into one dense
+               masonry, where each tile's byline carries the attribution. */
+            <div className="mt-4 space-y-10">
+              {rails.map((group) => (
                 <MediaRail
                   key={group.key}
                   group={group}
@@ -512,11 +500,30 @@ export function ReplicationsGalleryExplorer({
                   )}
                 />
               ))}
+              {pooledItems.length > 0 ? (
+                <section
+                  aria-label={mode === 'artist' ? 'More artists' : 'More effects'}
+                  className="space-y-3"
+                >
+                  {rails.length > 0 ? (
+                    <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1 px-1">
+                      <h2 className="theme-text-primary font-display text-lg font-semibold tracking-tight">
+                        {mode === 'artist' ? 'More artists' : 'More effects'}
+                      </h2>
+                      <span className="theme-text-faint text-xs tabular-nums">
+                        {pool.length} {mode === 'artist' ? 'artists' : 'effects'} ·{' '}
+                        {pooledItems.length} work{pooledItems.length === 1 ? '' : 's'}
+                      </span>
+                    </div>
+                  ) : null}
+                  {renderMasonry(pooledItems)}
+                </section>
+              ) : null}
             </div>
           )}
 
           {/* Rights footnote */}
-          <p className="theme-text-ghost mx-auto mt-10 max-w-3xl px-1 text-center text-xs leading-5">
+          <p className="theme-text-muted mx-auto mt-10 max-w-3xl px-1 text-center text-xs leading-5">
             Replication media is credited to its creator when known. Rights remain with the original
             creator or rightsholder unless an individual item states another license. See the{" "}
             <Link href="/docs/license#replication-media-terms" className={proseLinkClassName}>

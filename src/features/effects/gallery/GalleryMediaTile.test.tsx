@@ -47,6 +47,26 @@ function stubPlayback() {
   vi.spyOn(HTMLMediaElement.prototype, 'play').mockResolvedValue(undefined);
 }
 
+/**
+ * jsdom ships no IntersectionObserver; report every observed element as
+ * immediately, fully in view so the autoplay path can engage.
+ */
+function stubEverythingInView() {
+  vi.stubGlobal(
+    'IntersectionObserver',
+    class {
+      constructor(private callback: IntersectionObserverCallback) {}
+      observe(target: Element) {
+        this.callback(
+          [{ isIntersecting: true, target } as IntersectionObserverEntry],
+          this as unknown as IntersectionObserver,
+        );
+      }
+      disconnect() {}
+    },
+  );
+}
+
 afterEach(() => {
   vi.unstubAllGlobals();
   vi.restoreAllMocks();
@@ -95,5 +115,49 @@ describe('GalleryMediaTile', () => {
 
     // A touch device must never autoload video on tap.
     expect(container.querySelector('video')).toBeNull();
+  });
+
+  it('autoplays the preview rendition, not the full source, once in view', () => {
+    stubDesktopPointer();
+    stubPlayback();
+    stubEverythingInView();
+    const preview = { ...VIDEO, preview_url: 'https://example.test/geometry-frog-preview.mp4' };
+
+    const { container } = render(<GalleryMediaTile replication={preview} />);
+
+    const video = container.querySelector('video');
+    expect(video).not.toBeNull();
+    expect(video).toHaveAttribute('src', preview.preview_url);
+    expect(video).toHaveAttribute('preload', 'metadata');
+    expect(video).toHaveClass('pointer-events-none');
+  });
+
+  it('never autoplays for reduced-motion readers but still labels the tile a video', () => {
+    // Reduced motion: every media query except none matches... report only
+    // the reduced-motion query as matching.
+    vi.stubGlobal(
+      'matchMedia',
+      (query: string): MediaQueryList =>
+        ({
+          matches: query.includes('prefers-reduced-motion'),
+          media: query,
+          addEventListener: () => {},
+          removeEventListener: () => {},
+        }) as unknown as MediaQueryList,
+    );
+    stubEverythingInView();
+    const preview = { ...VIDEO, preview_url: 'https://example.test/geometry-frog-preview.mp4' };
+
+    const { container } = render(<GalleryMediaTile replication={preview} />);
+
+    expect(container.querySelector('video')).toBeNull();
+    // The chip is their signal that the still is actually a video.
+    expect(screen.getByText('Video')).toBeInTheDocument();
+  });
+
+  it('shows a duration chip in m:ss on video tiles', () => {
+    render(<GalleryMediaTile replication={{ ...VIDEO, duration: 83.4 }} />);
+
+    expect(screen.getByText('1:23')).toBeInTheDocument();
   });
 });

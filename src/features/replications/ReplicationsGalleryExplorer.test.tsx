@@ -56,6 +56,7 @@ const contributorDirectory = [
 const corpus = [
   rep({ artist: 'Chelsea Morgan', type: 'image' }),
   rep({ artist: 'Chelsea Morgan', type: 'video', effect_slug: 'drifting' }),
+  rep({ artist: 'Chelsea Morgan', type: 'image' }),
   rep({ artist: 'Aria', type: 'image' }),
 ];
 
@@ -87,6 +88,8 @@ describe('URL → rendered state', () => {
     expect(screen.getByRole('radio', { name: 'By artist' })).toHaveAttribute('data-state', 'on');
     expect(screen.getByRole('radio', { name: 'All' })).toHaveAttribute('data-state', 'on');
     expect(screen.getByRole('radio', { name: 'Most works' })).toHaveAttribute('data-state', 'on');
+    // The spotlight row is gone: density-first, media starts immediately.
+    expect(screen.queryByText('Spotlight')).toBeNull();
   });
 
   it('reproduces a pasted ?view=effect&type=video&sort=alpha state exactly', () => {
@@ -94,8 +97,11 @@ describe('URL → rendered state', () => {
 
     expect(screen.getByRole('radio', { name: 'By effect' })).toHaveAttribute('data-state', 'on');
     expect(screen.getByRole('radio', { name: 'Videos' })).toHaveAttribute('data-state', 'on');
-    // Effect grouping shows the effect's name as the rail heading.
-    expect(screen.getByText('Drifting')).toBeInTheDocument();
+    // One video total: too thin for a rail, so it pools straight into the
+    // masonry — and with no rails above it, the "More effects" heading is
+    // dropped rather than describing everything as "more".
+    expect(screen.getByText('Work 2')).toBeInTheDocument();
+    expect(screen.queryByRole('heading', { name: 'More effects' })).toBeNull();
   });
 
   it('renders ?q= as live search results with the query in the box', () => {
@@ -103,6 +109,41 @@ describe('URL → rendered state', () => {
 
     expect(screen.getByRole('textbox', { name: 'Search replications' })).toHaveValue('drifting');
     expect(screen.getByText(/1 result for/)).toBeInTheDocument();
+  });
+});
+
+describe('hybrid browse layout', () => {
+  it('gives artists with three or more works a rail and pools the rest', () => {
+    renderExplorer('');
+
+    // Chelsea (3 works) earns a rail whose heading links to her profile.
+    expect(screen.getByRole('link', { name: 'Chelsea Morgan' })).toHaveAttribute(
+      'href',
+      '/contributors/chelseamorgan',
+    );
+    // Aria (1 work) gets no rail of her own…
+    expect(screen.queryByText('Aria')).toBeNull();
+    // …her work pools into the "More artists" masonry instead.
+    expect(screen.getByRole('heading', { name: 'More artists' })).toBeInTheDocument();
+    expect(screen.getByText('Work 4')).toBeInTheDocument();
+  });
+
+  it('rails effects with enough works and pools thin effects behind them', () => {
+    renderExplorer('view=effect');
+
+    // Geometry (3 works) keeps a rail; Drifting (1 work) pools below it.
+    expect(screen.getByRole('link', { name: 'Geometry' })).toHaveAttribute(
+      'href',
+      '/effects/geometry',
+    );
+    expect(screen.getByRole('heading', { name: 'More effects' })).toBeInTheDocument();
+    expect(screen.getByText('Work 2')).toBeInTheDocument();
+  });
+
+  it('keeps the artist-sort control mounted but hidden in effect mode, so the bar cannot jitter', () => {
+    renderExplorer('view=effect');
+
+    expect(screen.getByText('Most works').closest('[aria-hidden="true"]')).not.toBeNull();
   });
 });
 

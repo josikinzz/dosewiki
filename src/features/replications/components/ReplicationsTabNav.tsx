@@ -45,7 +45,7 @@ export function ReplicationsTabNav({ className }: { className?: string }) {
       aria-label="Replications sections"
       className={cn("-mx-4 overflow-x-auto px-4 [scrollbar-width:thin] md:mx-0 md:px-0", className)}
     >
-      <div className="theme-route-tabs-list theme-text-muted mx-auto flex w-max min-w-full items-center justify-center gap-1.5">
+      <div className="theme-route-tabs-list theme-text-muted flex w-max min-w-full items-center justify-start gap-1.5 md:min-w-0">
         {SECTION_TABS.map((tab) => {
           // The focused gallery views (/replications/artist/<key>,
           // /replications/effect/<slug>) are states *of* the Gallery tab, so it

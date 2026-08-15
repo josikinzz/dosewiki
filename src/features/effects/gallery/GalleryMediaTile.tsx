@@ -9,27 +9,13 @@ import { cn } from '@/lib/utils';
 import { publicHref } from '@/utils/publicHref';
 import type { GalleryReplication } from '@/types/replications';
 import { getCreatorByline } from '../components/replicationCredit';
+import { useInView, useMotionAllowed, usePlaybackSlot } from './inViewPlayback';
 
-/**
- * True when the device has a real hover-capable, fine pointer (desktop mouse).
- * Gates hover-to-play so touch devices never autoload video on tap.
- */
-function useHoverPreviewAllowed(): boolean {
-  const [allowed, setAllowed] = useState(false);
-  useEffect(() => {
-    if (typeof window === 'undefined' || !window.matchMedia) return;
-    const pointer = window.matchMedia('(hover: hover) and (pointer: fine)');
-    const motion = window.matchMedia('(prefers-reduced-motion: reduce)');
-    const update = () => setAllowed(pointer.matches && !motion.matches);
-    update();
-    pointer.addEventListener('change', update);
-    motion.addEventListener('change', update);
-    return () => {
-      pointer.removeEventListener('change', update);
-      motion.removeEventListener('change', update);
-    };
-  }, []);
-  return allowed;
+/** `duration` in seconds as `m:ss`, or null when unusable. */
+function formatVideoDuration(seconds: number | undefined): string | null {
+  if (seconds === undefined || !Number.isFinite(seconds) || seconds <= 0) return null;
+  const total = Math.round(seconds);
+  return `${Math.floor(total / 60)}:${String(total % 60).padStart(2, '0')}`;
 }
 
 interface GalleryMediaTileProps {
@@ -61,8 +47,10 @@ export function GalleryMediaTile({
   frameClassName,
   frameAspect = 'natural',
 }: GalleryMediaTileProps) {
-  const hoverPreviewAllowed = useHoverPreviewAllowed();
+  const { autoplay: autoplayAllowed, hoverPreview: hoverPreviewAllowed } = useMotionAllowed();
   const [hovered, setHovered] = useState(false);
+  const [playing, setPlaying] = useState(false);
+  const frameRef = useRef<HTMLAnchorElement | null>(null);
   const videoRef = useRef<HTMLVideoElement | null>(null);
 
   const isVideo = replication.type === 'video';
@@ -73,18 +61,37 @@ export function GalleryMediaTile({
       ? `${replication.width} / ${replication.height}`
       : '4 / 3';
 
-  const showPreview = isVideo && hoverPreviewAllowed && hovered && Boolean(replication.url);
+  // Two mutually exclusive playback paths. Rows with a preview rendition
+  // autoplay it while at least half in view (muted, low-res, capped at five
+  // concurrent players); rows without one keep the legacy hover-to-play of
+  // the full source. The autoplay path always wins when a preview exists so
+  // hover and in-view playback never fight over the same <video>.
+  const previewUrl = isVideo ? replication.preview_url : undefined;
+  const autoplayEligible = Boolean(previewUrl) && autoplayAllowed;
+  const inView = useInView(frameRef, 0.5, autoplayEligible);
+  // Hover refreshes the claim, so the tile under the pointer wins a slot back
+  // even after being revoked by five fresher tiles.
+  const slotGranted = usePlaybackSlot(autoplayEligible && inView, hovered);
+  const showAutoplay = autoplayEligible && inView && slotGranted;
+
+  const showHoverPreview =
+    isVideo && !previewUrl && hoverPreviewAllowed && hovered && Boolean(replication.url);
+  const showPreview = showAutoplay || showHoverPreview;
 
   useEffect(() => {
     if (showPreview && videoRef.current) {
       videoRef.current.currentTime = 0;
       void videoRef.current.play().catch(() => {});
     }
+    if (!showPreview) setPlaying(false);
   }, [showPreview]);
+
+  const durationLabel = isVideo ? formatVideoDuration(replication.duration) : null;
 
   return (
     <figure className={cn('min-w-0', className)}>
       <Link
+        ref={frameRef}
         href={publicHref.replication(replication.slug)}
         onMouseEnter={() => setHovered(true)}
         onMouseLeave={() => setHovered(false)}
@@ -125,29 +132,44 @@ export function GalleryMediaTile({
         {showPreview ? (
           <video
             ref={videoRef}
-            src={replication.url}
+            src={showAutoplay ? previewUrl : replication.url}
             poster={replication.thumbnail_url}
             muted
             loop
             playsInline
-            preload="none"
+            preload={showAutoplay ? 'metadata' : 'none'}
+            onPlaying={() => setPlaying(true)}
+            onPause={() => setPlaying(false)}
             // The preview covers the whole anchor and paints last, so without this
             // it swallows every click on a video tile. Browsers do not forward a
             // media element's click to an ancestor link the way they do for images.
             className="pointer-events-none absolute inset-0 h-full w-full object-cover"
           />
         ) : null}
+
+        {isVideo ? (
+          // Always-visible "this is a video" marker: play glyph plus duration
+          // when known. Same on-media optics as the swipe deck's control chips.
+          // Fades out while a preview is actually rendering frames, so it never
+          // sits over moving footage.
+          <span
+            className={cn(
+              'pointer-events-none absolute bottom-2 right-2 z-10 flex items-center gap-1 rounded-full',
+              'bg-black/55 px-2 py-1 backdrop-blur-sm',
+              'text-[11px] font-medium leading-none tabular-nums text-[color:var(--theme-text-on-media)]',
+              'transition-opacity duration-300 motion-reduce:transition-none',
+              playing ? 'opacity-0' : 'opacity-100',
+            )}
+          >
+            <Icon icon="lucide:play" className="h-3 w-3 fill-current" aria-hidden />
+            {durationLabel ? <span>{durationLabel}</span> : null}
+            <span className="sr-only">Video</span>
+          </span>
+        ) : null}
       </Link>
 
       <figcaption className="mt-2 min-w-0 px-0.5">
         <p className="theme-text-secondary truncate text-sm font-medium">
-          {isVideo ? (
-            <Icon
-              icon="lucide:play"
-              className="theme-text-faint mr-1.5 inline-block h-3 w-3 align-[-0.1em] fill-current"
-              aria-label="Video"
-            />
-          ) : null}
           {replication.title}
         </p>
         <p className="theme-text-faint truncate text-xs">{byline}</p>

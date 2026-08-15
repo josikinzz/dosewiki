@@ -10,6 +10,8 @@ interface PageHeaderProps {
   prominentMobileIcon?: boolean;
   showSpotlight?: boolean;
   descriptionClassName?: string;
+  /** Extra classes merged onto the `h1`, e.g. a page that wants a smaller title. */
+  titleClassName?: string;
   /**
    * Horizontal alignment of the whole header.
    *
@@ -30,6 +32,7 @@ export const PageHeader = memo(function PageHeader({
   prominentMobileIcon = false,
   showSpotlight = true,
   descriptionClassName,
+  titleClassName,
   align = "center",
 }: PageHeaderProps) {
   const isLeft = align === "left";
@@ -39,12 +42,13 @@ export const PageHeader = memo(function PageHeader({
       ? "h-[2.24em] w-[2.24em] sm:h-[1.12em] sm:w-[1.12em]"
       : undefined,
   );
-  const titleClassName = cn(
+  const titleClasses = cn(
     "type-page-title theme-accent-heading flex max-w-[22ch] items-center gap-x-4 break-words text-balance text-4xl sm:text-5xl md:text-6xl",
     isLeft ? "justify-start" : "mx-auto justify-center",
     prominentMobileIcon
       ? "flex-col gap-y-3 sm:flex-row sm:flex-wrap sm:gap-y-2"
       : "flex-wrap gap-y-2",
+    titleClassName,
   );
 
   return (
@@ -68,7 +72,7 @@ export const PageHeader = memo(function PageHeader({
         </div>
       ) : null}
 
-      <h1 className={titleClassName}>
+      <h1 className={titleClasses}>
         {icon ? <IconComponent icon={icon} size="1.12em" className={iconClassName} /> : null}
         <span className="min-w-0">{title}</span>
       </h1>

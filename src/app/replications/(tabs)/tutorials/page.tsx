@@ -102,7 +102,7 @@ export default function ReplicationTutorialsPage() {
           .
         </p>
 
-        <p className="theme-text-ghost mt-6 text-xs leading-5">
+        <p className="theme-text-muted mt-6 text-xs leading-5">
           Tutorials are linked to their authors and hosted elsewhere; {SITE_FLAVOR_CONFIG.name} does
           not host or license them. For replication media hosted here, see the{" "}
           <Link href="/docs/license#replication-media-terms" className={proseLinkClassName}>
