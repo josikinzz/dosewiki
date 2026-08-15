@@ -1,6 +1,5 @@
 import {
   getCreatorByline,
-  getRightsSummary,
   hasKnownCreator,
 } from "@/features/effects/components/replicationCredit";
 import {
@@ -34,8 +33,6 @@ export type ShowcaseWork = {
   artistHref: string | null;
   /** True when `artistHref` leaves the site (the `artist_url` fallback). */
   artistHrefExternal: boolean;
-  /** One-line rights posture, from the shared media-rights vocabulary. */
-  rightsLine: string;
   effectSlug: string;
   effectName: string;
 };
@@ -96,7 +93,6 @@ export function buildShowcaseWorks(
       artistName,
       artistHref,
       artistHrefExternal: artistHref !== null && profileHref === null,
-      rightsLine: getRightsSummary(replication),
       effectSlug: provenance.effectSlug,
       effectName:
         effectNameBySlug.get(provenance.effectSlug) ??

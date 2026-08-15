@@ -109,6 +109,7 @@ describe("public route view models", () => {
       slug: "lsd",
       substance,
       tripReportsSection,
+      hasRelatedTripReports: true,
     });
 
     expect(viewModel.metadata).toEqual({
@@ -140,6 +141,7 @@ describe("public route view models", () => {
       slug: "dmt",
       substance,
       tripReportsSection: <section />,
+      hasRelatedTripReports: false,
     });
 
     expect(viewModel.metadata).toEqual({
@@ -166,6 +168,7 @@ describe("public route view models", () => {
       slug: "fixtureamine",
       substance,
       tripReportsSection: <section />,
+      hasRelatedTripReports: false,
       moleculeOverrideUrl: "/api/molecules/fixtureamine?v=seeded",
     });
 

@@ -29,7 +29,7 @@ export const publicTableOfContentsStory: StoryDef = {
   source: "src/components/common/PublicTableOfContents.tsx",
   importLine:
     'import { PublicTableOfContents, type PublicTableOfContentsItem } from "@/components/common/PublicTableOfContents";',
-  exports: ["PublicTableOfContents", "useActiveSection", "SCROLLSPY_TOP_OFFSET"],
+  exports: ["PublicTableOfContents", "useActiveSection"],
   examples: [
     {
       label: "Panel (default)",

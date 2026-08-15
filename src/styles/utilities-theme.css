@@ -894,28 +894,33 @@
 
     .theme-home-nav {
       margin-top: clamp(1.45rem, 4.4svh, 2rem);
-      row-gap: clamp(0.75rem, 2.4svh, 1.1rem);
-      column-gap: clamp(1.55rem, 8vw, 2.75rem);
+      row-gap: clamp(0.85rem, 2.6svh, 1.25rem);
+    }
+
+    /* Each row spaces its own tiles: a short last row is a tight centred pair,
+       never spread to echo the wider row above it. */
+    .theme-home-nav-row {
+      column-gap: clamp(0.75rem, 3.5vw, 1.25rem);
     }
 
     .theme-home-nav-link {
-      width: 5.75rem;
+      width: min(6rem, 26vw);
       gap: 0.55rem;
     }
 
     .theme-home-nav-icon {
-      width: clamp(4rem, 15svh, 4.75rem);
-      height: clamp(4rem, 15svh, 4.75rem);
-      border-radius: 1rem;
+      width: min(clamp(4.5rem, 16svh, 5.5rem), 25vw);
+      height: min(clamp(4.5rem, 16svh, 5.5rem), 25vw);
+      border-radius: 1.25rem;
     }
 
     .theme-home-nav-svg {
-      width: 2.35rem;
-      height: 2.35rem;
+      width: 2.6rem;
+      height: 2.6rem;
     }
 
     .theme-home-nav-label {
-      font-size: clamp(1.05rem, 4.2vw, 1.25rem);
+      font-size: clamp(1rem, 4vw, 1.15rem);
     }
 
     .theme-home-shell[data-search-mode="true"] {
@@ -1012,8 +1017,8 @@
       }
 
       .theme-home-nav-icon {
-        width: 3.75rem;
-        height: 3.75rem;
+        width: 4.25rem;
+        height: 4.25rem;
       }
 
       .theme-home-shell[data-search-mode="true"] {
@@ -4443,9 +4448,9 @@
     --theme-reagent-swatch-label-border-bottom: rgba(0, 0, 0, 0.3);
     --theme-reagent-swatch-spectrum-border-top: rgba(255, 255, 255, 0.2);
     --theme-reagent-swatch-spectrum-border-bottom: rgba(0, 0, 0, 0.25);
-    --theme-reagent-swatch-label-shadow:
-      inset -1px 0 0 rgba(255, 255, 255, 0.1),
-      2px 0 4px rgba(0, 0, 0, 0.3);
+    --theme-reagent-swatch-spectrum-seam-shadow:
+      inset 1px 0 0 rgba(255, 255, 255, 0.1),
+      inset 2px 0 4px rgba(0, 0, 0, 0.3);
     box-shadow:
       inset 0 1px 0 rgba(255, 255, 255, 0.25),
       inset 0 -1px 0 rgba(0, 0, 0, 0.3),
@@ -4471,14 +4476,19 @@
     --theme-reagent-swatch-label-border-bottom: color-mix(in srgb, var(--theme-shadow-soft) 24%, transparent);
     --theme-reagent-swatch-spectrum-border-top: color-mix(in srgb, var(--theme-frosted-control-on-panel-border) 78%, transparent);
     --theme-reagent-swatch-spectrum-border-bottom: color-mix(in srgb, var(--theme-shadow-soft) 18%, transparent);
-    --theme-reagent-swatch-label-shadow:
-      inset -1px 0 0 color-mix(in srgb, var(--theme-frosted-control-on-panel-border) 85%, transparent),
-      2px 0 4px color-mix(in srgb, var(--theme-shadow-soft) 22%, transparent);
+    --theme-reagent-swatch-spectrum-seam-shadow:
+      inset 1px 0 0 color-mix(in srgb, var(--theme-frosted-control-on-panel-border) 85%, transparent),
+      inset 2px 0 4px color-mix(in srgb, var(--theme-shadow-soft) 22%, transparent);
     box-shadow: var(--theme-frosted-control-on-panel-shadow);
   }
 
-  .theme-reagent-swatch .reagent-label-panel {
-    box-shadow: var(--theme-reagent-swatch-label-shadow);
+  /* Seam between the darkened label surface and the bright spectrum bar. The
+     bar always sits to the right of the reagent name (sharing its row in
+     narrow containers, spanning the full row height at 36rem+), so the label's
+     former right-edge highlight + drop shadow now live as insets on the bar's
+     left edge — one orientation covers both layouts. */
+  .theme-reagent-swatch .reagent-spectrum-panel {
+    box-shadow: var(--theme-reagent-swatch-spectrum-seam-shadow);
   }
 
   .theme-reagent-swatch-label-layer {

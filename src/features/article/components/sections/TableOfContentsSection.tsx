@@ -25,6 +25,11 @@ interface TableOfContentsSectionProps {
   className?: string;
   substanceSlug?: string;
   externalReagentData?: NormalizedReagentData | null;
+  /**
+   * Whether any related trip reports exist for this substance. Reports live in
+   * Convex rather than on the article, so the host resolves this upstream.
+   */
+  hasTripReports?: boolean;
 }
 
 function hasStaticReagentData(article: SubstanceArticle): boolean {
@@ -40,6 +45,7 @@ export const TableOfContentsSection = memo(function TableOfContentsSection({
   className,
   substanceSlug,
   externalReagentData,
+  hasTripReports,
 }: TableOfContentsSectionProps) {
   const hasStaticReagentEntries = hasStaticReagentData(article);
   const hasServerResolvedData = externalReagentData !== undefined;
@@ -58,6 +64,7 @@ export const TableOfContentsSection = memo(function TableOfContentsSection({
     (item.public.isPresent?.(article, {
       hasExternalReagentData: hasCachedReagentData,
       isLoadingExternalReagentData: isLoadingReagentData,
+      hasTripReports,
     }) ?? false),
   ).map(
     (item) => ({

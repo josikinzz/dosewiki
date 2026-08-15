@@ -858,7 +858,7 @@ html[data-site="effectindex"] .theme-reagent-swatch {
   --theme-reagent-swatch-label-border-bottom: var(--ei-border);
   --theme-reagent-swatch-spectrum-border-top: var(--ei-border);
   --theme-reagent-swatch-spectrum-border-bottom: var(--ei-border);
-  --theme-reagent-swatch-label-shadow: inset -1px 0 0 var(--ei-border);
+  --theme-reagent-swatch-spectrum-seam-shadow: inset 1px 0 0 var(--ei-border);
   box-shadow: 0 0 0 1px var(--ei-border);
 }
 

@@ -22,7 +22,6 @@ const work = (overrides: Partial<ShowcaseWork> = {}): ShowcaseWork => ({
   artistName: "Chelsea Morgan",
   artistHref: "/contributors/chelsea",
   artistHrefExternal: false,
-  rightsLine: "Rights remain with the creator or rightsholder.",
   effectSlug: "drifting",
   effectName: "Drifting",
   ...overrides,
@@ -52,14 +51,11 @@ describe("ReplicationShowcase", () => {
 
     expect(screen.queryByRole("tablist")).not.toBeInTheDocument();
     expect(screen.queryByRole("tab")).not.toBeInTheDocument();
-    // The stage, caption, and rights footer still stand on their own.
+    // The stage and caption still stand on their own.
     expect(screen.getByRole("tabpanel")).toBeInTheDocument();
     expect(
       screen.getByRole("link", { name: /Drifting \(wood grain\)/ }),
     ).toHaveAttribute("href", "/replications/drifting-wood-grain");
-    expect(
-      screen.getByText("Rights remain with the creator or rightsholder."),
-    ).toBeInTheDocument();
   });
 
   it("moves focus with arrows without activating, and activates on Enter", () => {
@@ -100,6 +96,24 @@ describe("ReplicationShowcase", () => {
     fireEvent.keyDown(tabs[1], { key: "Home" });
     expect(tabs[0]).toHaveFocus();
     expect(tabs[0]).toHaveAttribute("aria-selected", "true");
+  });
+
+  it("swipes horizontally to change the active work, ignoring vertical drags", () => {
+    render(<ReplicationShowcase works={[work(), secondWork]} />);
+    const stage = screen.getByRole("tabpanel");
+
+    fireEvent.touchStart(stage, { touches: [{ clientX: 200, clientY: 100 }] });
+    fireEvent.touchEnd(stage, { changedTouches: [{ clientX: 80, clientY: 105 }] });
+    expect(screen.getAllByRole("tab")[1]).toHaveAttribute("aria-selected", "true");
+
+    fireEvent.touchStart(stage, { touches: [{ clientX: 80, clientY: 100 }] });
+    fireEvent.touchEnd(stage, { changedTouches: [{ clientX: 220, clientY: 100 }] });
+    expect(screen.getAllByRole("tab")[0]).toHaveAttribute("aria-selected", "true");
+
+    // A mostly-vertical drag is a page scroll, not a swipe.
+    fireEvent.touchStart(stage, { touches: [{ clientX: 200, clientY: 100 }] });
+    fireEvent.touchEnd(stage, { changedTouches: [{ clientX: 140, clientY: 300 }] });
+    expect(screen.getAllByRole("tab")[0]).toHaveAttribute("aria-selected", "true");
   });
 
   it("closes the rail with a +N gallery link when the corpus outgrows the cap", () => {
@@ -255,9 +269,6 @@ describe("buildShowcaseWorks", () => {
       "colour enhancement",
     ]);
     expect(works[0].byline).toBe("by Chelsea Morgan");
-    expect(works[0].rightsLine).toBe(
-      "Rights remain with the creator or rightsholder.",
-    );
   });
 
   it("drops rows the stage cannot draw", () => {

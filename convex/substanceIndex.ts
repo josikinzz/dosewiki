@@ -802,6 +802,7 @@ const agentReviewFlagValidator = v.object({
     v.literal("tolerance"),
     v.literal("harm-potential"),
     v.literal("history-culture"),
+    v.literal("trip-reports"),
     v.literal("legality"),
     v.literal("sources"),
     v.literal("citations"),

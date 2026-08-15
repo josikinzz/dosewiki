@@ -55,6 +55,6 @@ export const publicTocStripStory: StoryDef = {
   ],
   notes: [
     "Sticky offset comes from --public-toc-strip-top, defaulting to the site header height; the review workbench overrides it with its command-bar height.",
-    "The bar glides continuously: each scroll frame interpolates between chip centers by reading progress through the current section, never the page's own scroll. It stands down while a finger is on the strip.",
+    "When scrollspy flips to a new section, the bar centers that chip with one native smooth scroll (instant under prefers-reduced-motion) — no per-frame scroll work. It stands down while a finger is on the strip.",
   ],
 };

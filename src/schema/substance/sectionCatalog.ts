@@ -23,6 +23,7 @@ export const SUBSTANCE_SECTION_IDS = [
   "tolerance",
   "harm-potential",
   "history-culture",
+  "trip-reports",
   "legality",
   "sources",
   "citations",
@@ -41,6 +42,7 @@ export type SubstancePublicRendererAdapter =
   | "ToleranceSection"
   | "HarmPotentialSection"
   | "HistoryCultureSection"
+  | "TripReportsSection"
   | "LegalitySection"
   | "CitationsSection";
 
@@ -64,6 +66,11 @@ export type SubstanceEditorFormAdapter =
 export interface SubstanceSectionPresenceContext {
   hasExternalReagentData?: boolean;
   isLoadingExternalReagentData?: boolean;
+  /**
+   * Trip reports live in Convex, not on the article, so the host resolves
+   * whether any related reports exist and hands the answer down here.
+   */
+  hasTripReports?: boolean;
 }
 
 export interface SubstanceSectionManifestEntry {
@@ -583,6 +590,21 @@ export const ARTICLE_SECTION_CATALOG = [
       seedPath: "src/data/config/sectionPrompts/historyCulture.md",
       sourceMaterial: "extracted",
       editorVisible: true,
+    },
+  },
+  {
+    id: "trip-reports",
+    label: "Trip Reports",
+    icon: "hugeicons:content-writing",
+    articleFields: [],
+    editor: { visible: false },
+    public: {
+      visible: true,
+      toc: true,
+      renderer: "TripReportsSection",
+      // Related reports are fetched from Convex rather than stored on the
+      // article, so presence comes entirely from the host-provided context.
+      isPresent: (_article, context) => context?.hasTripReports ?? false,
     },
   },
   {

@@ -53,6 +53,7 @@ const publicData = vi.hoisted(() => ({
   getPublicReplications: vi.fn(() => Promise.resolve([])),
   getPublicReplicationsByEffect: vi.fn(() => Promise.resolve([])),
   getPublicReportBySlug: vi.fn(),
+  getPublicReportsBySubstanceNames: vi.fn(() => Promise.resolve([])),
   getPublicReports: vi.fn(),
   getPublicSubstanceBySlug: vi.fn(),
   getPublicSubstanceLookup: vi.fn(),
@@ -172,6 +173,7 @@ describe("route loaders", () => {
       "lsd",
     );
     expect(result.pageProps.externalReagentData).toBeNull();
+    expect(result.pageProps.hasRelatedTripReports).toBe(false);
   });
 
   it("returns substance not-found results", async () => {

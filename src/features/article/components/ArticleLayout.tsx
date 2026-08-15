@@ -20,6 +20,7 @@ import { ContributorsSection, type ContributorAvatarMap } from "./sections/Contr
 import { resolveContributorHref, type ContributorDirectory } from "@server/contributorDirectory";
 import { FeedbackSection } from "./sections/FeedbackSection";
 import { TripReportsSection } from "./sections/TripReportsSection";
+import { reportMatchesSubstance } from "@/features/reports/domain/tripReportIndex";
 import { ReviewStatusBanner } from "./sections/ReviewStatusBanner";
 import { TableOfContentsSection } from "./sections/TableOfContentsSection";
 
@@ -34,6 +35,12 @@ export interface ArticleLayoutProps {
   fromSubstanceSlug?: string;
   relatedTripReports?: TripReport[];
   tripReportsSection?: ReactNode;
+  /**
+   * Whether any related trip reports exist, resolved server-side when the
+   * section itself streams in as `tripReportsSection`. Falls back to checking
+   * `relatedTripReports` for hosts that pass reports directly.
+   */
+  hasRelatedTripReports?: boolean;
   /** Streamed Replication Showcase, rendered inside the Subjective Effects visual group. */
   replicationShowcaseSection?: ReactNode;
   contributorAvatars?: ContributorAvatarMap;
@@ -75,6 +82,7 @@ export function ArticleLayout({
   fromSubstanceSlug,
   relatedTripReports,
   tripReportsSection,
+  hasRelatedTripReports,
   replicationShowcaseSection,
   contributorAvatars,
   contributorDirectory,
@@ -92,6 +100,13 @@ export function ArticleLayout({
   const subjectiveEffectsAttributionHref = subjectiveEffectsAttributionAuthor
     ? resolveContributorHref(subjectiveEffectsAttributionAuthor, directory)
     : null;
+
+  // Drives the Trip Reports entry in the table of contents. When the section
+  // streams in as a node, the host resolves this flag itself; otherwise it
+  // mirrors TripReportsSection's own render condition (matched reports only).
+  const tocHasTripReports =
+    hasRelatedTripReports ??
+    (relatedTripReports?.some((report) => reportMatchesSubstance(report, article)) ?? false);
 
   const chemistryPresentation = content?.chemistryPresentation ?? buildArticleChemistryPresentation(article);
   // Convex `moleculeOverrides` is the only depiction source: either this host
@@ -115,6 +130,7 @@ export function ArticleLayout({
           article={article}
           variant="bare"
           substanceSlug={fromSubstanceSlug}
+          hasTripReports={tocHasTripReports}
           externalReagentData={externalReagentData}
         />
       )}
@@ -129,6 +145,7 @@ export function ArticleLayout({
         article={article}
         variant="strip"
         substanceSlug={fromSubstanceSlug}
+        hasTripReports={tocHasTripReports}
         externalReagentData={externalReagentData}
       />
 

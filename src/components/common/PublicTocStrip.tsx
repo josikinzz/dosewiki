@@ -9,13 +9,13 @@ import {
 } from "react";
 import { Icon } from "@/components/common/Icon";
 import {
-  SCROLLSPY_TOP_OFFSET,
   useActiveSection,
   type PublicTableOfContentsItem,
 } from "@/components/common/PublicTableOfContents";
 import { cn } from "@/lib/utils";
 import {
   isPlainLeftClick,
+  prefersReducedMotion,
   scrollIntoViewRespectingMotion,
 } from "@/utils/navigation";
 
@@ -113,92 +113,35 @@ export const PublicTocStrip = memo(function PublicTocStrip({
   }, [syncEdgeFades]);
 
   /**
-   * Continuous glide: the strip's horizontal position mirrors reading
-   * progress. Each page-scroll frame interpolates between the current and
-   * next chips' centers by how far the reader is through the current section
-   * (measured against the same line the scrollspy highlight uses), so the
-   * strip advances at the article's pace instead of snapping at each section
-   * flip. Direct per-frame scrollLeft writes on the strip itself — never the
-   * page — and, because the glide only mirrors scrolling the reader is
-   * already doing, it is not an autonomous animation to gate on
-   * prefers-reduced-motion. Stands down while a finger is on the strip.
+   * Chip centering: when the scrollspy flips to a new section, glide that
+   * chip to the center of the strip with a single native smooth scroll and do
+   * nothing between flips. (A previous version mirrored reading progress with
+   * per-frame scrollLeft writes, which forced a layout read/write cycle and a
+   * backdrop-blur repaint on every page-scroll frame — visibly janky on
+   * mobile.) The browser composites the smooth scroll off the main thread, so
+   * scrolling the page costs the strip nothing. Stands down while a finger is
+   * on the strip; reduced motion gets an instant jump instead of a glide.
    */
   useEffect(() => {
     const scroller = scrollerRef.current;
-    if (!scroller || items.length === 0) {
+    if (!scroller || activeId === null) {
       return;
     }
-
-    let frame = 0;
-
-    const compute = () => {
-      frame = 0;
-      // Hidden at >=1200px, or the reader is mid-swipe — leave it alone.
-      if (draggingRef.current || scroller.offsetParent === null) {
-        return;
-      }
-      const sections: Array<{ chip: HTMLElement; top: number }> = [];
-      for (const chip of scroller.querySelectorAll<HTMLElement>("[data-toc-id]")) {
-        const element = document.getElementById(chip.dataset.tocId ?? "");
-        if (element) {
-          sections.push({
-            chip,
-            top: element.getBoundingClientRect().top - SCROLLSPY_TOP_OFFSET,
-          });
-        }
-      }
-      if (sections.length === 0) {
-        return;
-      }
-
-      // Last section whose heading has crossed the scrollspy line.
-      let index = -1;
-      for (const section of sections) {
-        if (section.top > 0) {
-          break;
-        }
-        index += 1;
-      }
-
-      const center = (chip: HTMLElement) => chip.offsetLeft + chip.offsetWidth / 2;
-      const current = sections[Math.max(index, 0)];
-      const next = sections[index + 1];
-      // Progress through the current section, 0 at its heading, 1 at the
-      // next. Before the first section both terms resolve to the first chip.
-      const t =
-        index < 0 || !next
-          ? 0
-          : Math.min(Math.max(-current.top / (next.top - current.top), 0), 1);
-      const anchor = next
-        ? center(current.chip) + (center(next.chip) - center(current.chip)) * t
-        : center(current.chip);
-
-      const maxScroll = scroller.scrollWidth - scroller.clientWidth;
-      const target = Math.min(Math.max(anchor - scroller.clientWidth / 2, 0), maxScroll);
-      if (Math.abs(scroller.scrollLeft - target) >= 1) {
-        scroller.scrollLeft = target;
-      }
-    };
-
-    const schedule = () => {
-      if (frame === 0) {
-        frame = window.requestAnimationFrame(compute);
-      }
-    };
-
-    compute();
-    window.addEventListener("scroll", schedule, { passive: true });
-    window.addEventListener("resize", schedule);
-
-    return () => {
-      if (frame !== 0) {
-        window.cancelAnimationFrame(frame);
-      }
-      window.removeEventListener("scroll", schedule);
-      window.removeEventListener("resize", schedule);
-    };
-    // items is a fresh array each render; the id list is what matters.
-  }, [items.map((item) => item.id).join("|")]);
+    // Hidden at >=1200px, or the reader is mid-swipe — leave it alone.
+    if (draggingRef.current || scroller.offsetParent === null) {
+      return;
+    }
+    const chip = scroller.querySelector<HTMLElement>(
+      `[data-toc-id="${CSS.escape(activeId)}"]`,
+    );
+    if (!chip) {
+      return;
+    }
+    scroller.scrollTo({
+      left: chip.offsetLeft + chip.offsetWidth / 2 - scroller.clientWidth / 2,
+      behavior: prefersReducedMotion() ? "auto" : "smooth",
+    });
+  }, [activeId]);
 
   const handleClick = useCallback((id: string, event: MouseEvent<HTMLAnchorElement>) => {
     if (!isPlainLeftClick(event)) {

@@ -57,27 +57,28 @@ export const ReviewStatusBanner = memo(function ReviewStatusBanner({
     <div
       role="status"
       className={cn(
-        "theme-article-stub-banner flex flex-wrap items-center gap-x-2 gap-y-1.5 self-start rounded-full border px-4 py-2",
+        "theme-article-stub-banner flex items-center gap-3 self-start rounded-xl border py-2 pl-2.5 pr-4",
         className,
       )}
     >
-      <Icon icon={REVIEW_ICON} size={16} aria-hidden className="theme-icon-muted shrink-0" />
-      <span className="theme-text-secondary text-sm">
-        Not yet reviewed — this article is pending editorial review by
-      </span>
-      <span className="inline-flex items-center gap-1.5">
-        <ContributorAvatar imageUrl={avatarSrc} name="Lyrea" size="xs" />
-        <span className="theme-text-secondary text-sm">
-          {profileHref ? (
-            <Link href={profileHref} className={reviewerLinkClassName}>
-              Lyrea
-            </Link>
-          ) : (
-            <span className="theme-text-secondary font-semibold">Lyrea</span>
-          )}
-          .
-        </span>
-      </span>
+      <ContributorAvatar imageUrl={avatarSrc} name="Lyrea" size="xs" className="shrink-0" />
+      <p className="theme-text-secondary text-sm leading-snug">
+        <Icon
+          icon={REVIEW_ICON}
+          size={16}
+          aria-hidden
+          className="theme-icon-muted mr-1.5 inline-block align-[-0.1875em]"
+        />
+        Not yet reviewed — this article is pending editorial review by{" "}
+        {profileHref ? (
+          <Link href={profileHref} className={reviewerLinkClassName}>
+            Lyrea
+          </Link>
+        ) : (
+          <span className="font-semibold">Lyrea</span>
+        )}
+        .
+      </p>
     </div>
   );
 });

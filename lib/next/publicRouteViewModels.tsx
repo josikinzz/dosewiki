@@ -123,6 +123,7 @@ export interface SubstanceArticleViewModel {
     content?: SubstanceContent;
     fromSubstanceSlug: string;
     tripReportsSection: ReactNode;
+    hasRelatedTripReports: boolean;
     replicationShowcaseSection: ReactNode;
     contributorAvatars?: ContributorAvatarMap;
     contributorDirectory: ContributorDirectory;
@@ -209,6 +210,7 @@ export function buildSubstanceArticleViewModel(input: {
   contributorDirectory?: ContributorDirectory;
   moleculeOverrideUrl?: string | null;
   externalReagentData?: NormalizedReagentData | null;
+  hasRelatedTripReports: boolean;
 }): SubstanceArticleViewModel {
   const { slug: _resolvedSlug, ...article } = input.substance;
   const publicArticle = article as SubstanceArticle;
@@ -226,6 +228,7 @@ export function buildSubstanceArticleViewModel(input: {
         input.slug,
       ),
       fromSubstanceSlug: input.slug,
+      hasRelatedTripReports: input.hasRelatedTripReports,
       tripReportsSection:
         input.tripReportsSection ??
         (

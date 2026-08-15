@@ -1,9 +1,10 @@
 'use client';
 
-import { useEffect, useMemo, useRef } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Icon } from '@/components/common/Icon';
+import { Button } from '@/components/ui/button';
 import { proseLinkClassName } from '@/components/common/ProseLink';
 import { SearchEmptyState } from '@/components/common/SearchEmptyState';
 import { Input } from '@/components/ui/input';
@@ -30,6 +31,7 @@ import {
   type GalleryMode,
   type GalleryTypeFilter,
 } from '@/features/effects/gallery/galleryModel';
+import { ReplicationsSwipeDeck } from './components/ReplicationsSwipeDeck';
 import { resolveGalleryFocus } from './galleryFocus';
 import {
   buildGalleryBrowseUrl,
@@ -73,6 +75,15 @@ const COARSE_TARGET_CLASS = '[@media(pointer:coarse)]:min-h-11';
 
 /** Debounce for search keystrokes → URL writes (history stays clean). */
 const QUERY_WRITE_DELAY_MS = 250;
+
+/**
+ * Session flag remembering that the reader closed the immersive swipe deck;
+ * while set, landing on the gallery shows the grid instead of re-opening it.
+ */
+const DECK_DISMISSED_KEY = 'replications-deck-dismissed';
+
+/** Phone-shaped touch viewport: where the swipe deck is the default view. */
+const DECK_MEDIA_QUERY = '(max-width: 767px) and (pointer: coarse)';
 
 export function ReplicationsGalleryExplorer({
   replications,
@@ -203,6 +214,59 @@ export function ReplicationsGalleryExplorer({
     [focusedGroup, typeFilter],
   );
 
+  /**
+   * The immersive swipe deck (phones): always organized by artist over the
+   * whole displayable corpus, regardless of the grid's current filters — the
+   * deck is a viewing surface, the grid is the querying surface.
+   */
+  const deckGroups = useMemo(
+    () => groupByArtist(displayable, 'count', contributorDirectory),
+    [displayable, contributorDirectory],
+  );
+  const deckInitialIndex = useMemo(() => {
+    if (focus?.kind !== 'artist') return 0;
+    const index = deckGroups.findIndex((group) => galleryGroupUrlKey('artist', group) === focus.key);
+    return index < 0 ? 0 : index;
+  }, [focus, deckGroups]);
+
+  const [deckOpen, setDeckOpen] = useState(false);
+
+  /**
+   * On phone-shaped touch viewports the deck *is* the default gallery: open it
+   * on arrival unless the reader closed it earlier this session. Decided once
+   * on mount — SSR HTML stays the crawlable grid, and later filter changes in
+   * the grid must not resurrect the deck.
+   */
+  useEffect(() => {
+    if (!window.matchMedia?.(DECK_MEDIA_QUERY).matches) return;
+    let dismissed = false;
+    try {
+      dismissed = window.sessionStorage.getItem(DECK_DISMISSED_KEY) === '1';
+    } catch {
+      // Storage unavailable (privacy mode): treat as not dismissed.
+    }
+    if (!dismissed && mode === 'artist' && !searching) setDeckOpen(true);
+    // Mount-only arrival decision, deliberately not reactive to mode/search.
+  }, []);
+
+  const closeDeck = () => {
+    setDeckOpen(false);
+    try {
+      window.sessionStorage.setItem(DECK_DISMISSED_KEY, '1');
+    } catch {
+      // Best-effort memory; the deck simply reopens next visit.
+    }
+  };
+
+  const openDeck = () => {
+    try {
+      window.sessionStorage.removeItem(DECK_DISMISSED_KEY);
+    } catch {
+      // Ignore: opening still works for this render.
+    }
+    setDeckOpen(true);
+  };
+
   const renderMasonry = (items: GalleryReplication[]) => (
     <div className={MASONRY_CLASS}>
       {items.map((replication) => (
@@ -218,6 +282,26 @@ export function ReplicationsGalleryExplorer({
 
   const hasMedia = counts.total > 0;
   const browseAllUrl = buildGalleryBrowseUrl({ view: mode, type: typeFilter, sort: artistSort });
+
+  /**
+   * On phones the deck *replaces* the gallery card: it renders as its own
+   * full-bleed, viewport-height section in the page flow (breaking out of the
+   * layout's `px-4` gutter), so the reader swipes down past the intro and
+   * tabs straight into it. `deckOpen` is only ever set on phone viewports,
+   * so desktop always takes the card branch below.
+   */
+  if (deckOpen && deckGroups.length > 0) {
+    return (
+      <section aria-label="Replications gallery" className="-mx-4 mt-4">
+        <ReplicationsSwipeDeck
+          groups={deckGroups}
+          effectName={effectName}
+          initialGroupIndex={deckInitialIndex}
+          onShowGrid={closeDeck}
+        />
+      </section>
+    );
+  }
 
   return (
     <section
@@ -248,6 +332,20 @@ export function ReplicationsGalleryExplorer({
         />
       ) : (
         <>
+          {/* Re-entry into the swipe deck, phones only (the deck's own media
+              query); hidden where the grid is the primary surface. */}
+          <div className="mt-4 md:hidden">
+            <Button
+              type="button"
+              onClick={openDeck}
+              className="w-full min-h-11 gap-2"
+              aria-label="Open the swipe gallery"
+            >
+              <Icon icon="lucide:gallery-vertical" className="h-4 w-4" aria-hidden />
+              Swipe view
+            </Button>
+          </div>
+
           {/* Sticky control bar */}
           <div className="sticky top-2 z-20 mt-6">
             <div className="mx-auto flex max-w-3xl flex-wrap items-center justify-center gap-2 rounded-2xl border border-[color:var(--theme-frosted-control-border)] bg-[var(--theme-frosted-control-bg)] p-2 shadow-[var(--theme-frosted-control-shadow)] backdrop-blur-md sm:gap-3">

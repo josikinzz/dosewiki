@@ -18,6 +18,7 @@ import {
   getPublicReplicationsByEffect,
   getPublicReportBySlug,
   getPublicReports,
+  getPublicReportsBySubstanceNames,
   getPublicSubstanceBySlug,
   getPublicSubstances,
   getEffectArticlesByContributor,
@@ -54,6 +55,10 @@ import {
 } from "../../src/features/blog/domain/writingBlogModel";
 import { type NormalizedUserProfile } from "../../src/data/userProfiles";
 import { toReportCardModel, type ReportCardModel } from "../../src/types/tripReport";
+import {
+  getSubstanceSearchNames,
+  reportMatchesSubstance,
+} from "../../src/features/reports/domain/tripReportIndex";
 import { SITE_FLAVOR_CONFIG } from "../../src/config/siteFlavor";
 import {
   isPublishableReplication,
@@ -186,14 +191,23 @@ export const loadSubstanceRoute = cache(async (slug: string): Promise<SubstanceR
   // closing Contributors section mirrors whatever each profile page shows. Also
   // look up any hand-authored molecule override for this slug so its diagram can
   // be swapped for the live Convex render.
-  const [josieProfile, lyreaProfile, moleculeUpdatedAt, contributorDirectory, externalReagentData] =
-    await Promise.all([
-      getPublicContributorByKey("JOSIE"),
-      getPublicContributorByKey("LYREA"),
-      getMoleculeUpdatedAt(slug),
-      getPublicContributorDirectory(),
-      getCachedReagentDataForArticle(substance, slug),
-    ]);
+  const [
+    josieProfile,
+    lyreaProfile,
+    moleculeUpdatedAt,
+    contributorDirectory,
+    externalReagentData,
+    relatedTripReports,
+  ] = await Promise.all([
+    getPublicContributorByKey("JOSIE"),
+    getPublicContributorByKey("LYREA"),
+    getMoleculeUpdatedAt(slug),
+    getPublicContributorDirectory(),
+    getCachedReagentDataForArticle(substance, slug),
+    // Cached alongside the streamed Trip Reports section's own call; resolved
+    // here too so the table of contents knows whether the section will render.
+    getPublicReportsBySubstanceNames(getSubstanceSearchNames(substance)),
+  ]);
 
   const moleculeOverrideUrl = moleculeUpdatedAt
     ? moleculeOverrideImageUrl(slug, moleculeUpdatedAt)
@@ -209,6 +223,9 @@ export const loadSubstanceRoute = cache(async (slug: string): Promise<SubstanceR
     contributorDirectory,
     moleculeOverrideUrl,
     externalReagentData,
+    hasRelatedTripReports: relatedTripReports.some((report) =>
+      reportMatchesSubstance(report, substance),
+    ),
   });
 
   return {

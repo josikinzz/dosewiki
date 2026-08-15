@@ -142,6 +142,31 @@ describe("TableOfContentsSection", () => {
     expect(screen.getByRole("link", { name: "Reagent Testing" })).toBeInTheDocument();
   });
 
+  it("shows trip reports only when the host reports related reports exist", () => {
+    const article = {
+      ...createEmptyArticle(),
+      id: 16,
+      title: "Trip Report Presence",
+      identification: {
+        ...createEmptyArticle().identification,
+        common_name: "Trip Report Presence",
+      },
+    };
+
+    const { rerender } = render(
+      <TableOfContentsSection article={article} hasTripReports />,
+    );
+
+    expect(screen.getByRole("link", { name: "Trip Reports" })).toHaveAttribute(
+      "href",
+      "#trip-reports",
+    );
+
+    rerender(<TableOfContentsSection article={article} />);
+
+    expect(screen.queryByRole("link", { name: "Trip Reports" })).not.toBeInTheDocument();
+  });
+
   it("renders reagent testing with the default TOC styling", () => {
     mockedUseReagentData.mockReturnValue({
       data: {

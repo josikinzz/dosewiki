@@ -392,12 +392,13 @@ export function HomeExperience({
           )}
 
           {/* Balanced tile rows: below lg the flavor's quick links split into centred
-              rows of at most three (5 → 3+2, 4 → 2+2) instead of free flex-wrap, so a
-              wrapped grid never strands a lone tile. At lg — the first breakpoint whose
-              content box (1024px − 2×32px padding = 960px) fits five 7rem tiles plus
-              four 2.5rem gaps (720px) — each row becomes `display: contents` and the
-              tiles flatten into one centred row. Tiles keep their ≥80px touch targets
-              at every width. */}
+              rows of at most three (5 → 3+2, 4 → 2+2). Each row is its own flex line
+              with a tight content-based gap, so a short last row reads as a centred
+              pair — the top row's spread never dictates its spacing. At lg — the first
+              breakpoint whose content box (1024px − 2×32px padding = 960px) fits five
+              7rem tiles plus four 2.5rem gaps (720px) — each row becomes
+              `display: contents` and the tiles flatten into one centred row. Tiles
+              keep their ≥80px touch targets at every width. */}
           <nav
             aria-label={isConstructionMode ? "Mock app sections" : "App sections"}
             className="theme-home-nav mt-9 flex flex-col items-center gap-6 transition-[bottom,gap,margin,opacity,transform] duration-300 lg:flex-row lg:justify-center lg:gap-10"
@@ -405,40 +406,40 @@ export function HomeExperience({
             {partitionQuickLinkRows(quickLinks).map((row) => (
               <div
                 key={row[0].href}
-                className="flex justify-center gap-6 sm:gap-10 lg:contents"
+                className="theme-home-nav-row flex justify-center gap-5 sm:gap-8 lg:contents"
               >
                 {row.map((item) =>
                   isConstructionMode ? (
-                    <button
-                      key={item.href}
-                      type="button"
-                      onClick={() => showComingSoon(item.label)}
-                      data-clicked={clickedItem === item.label}
-                      className="theme-home-nav-link theme-home-mock-button group flex w-24 flex-col items-center gap-2.5 transition-[color,width,gap,transform] duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-4 sm:w-28"
-                    >
-                      <span className="theme-home-nav-icon theme-public-card-hover-quiet relative flex h-20 w-20 items-center justify-center rounded-2xl border transition-[height,width,border-color,background-color,box-shadow,transform] duration-300 sm:h-[5.75rem] sm:w-[5.75rem]">
-                        <Icon icon={item.icon} size={44} className="theme-home-nav-svg transition-[height,width,transform] duration-300" />
-                        {renderSoonBadge("-right-2 -top-2 group-data-[clicked=true]:opacity-100")}
-                      </span>
-                      <span className="theme-home-nav-label font-display text-lg font-semibold leading-none tracking-normal transition-[opacity,max-width] duration-200">
-                        {item.label}
-                      </span>
-                    </button>
-                  ) : (
-                    <Link
-                      key={item.href}
-                      href={item.href}
-                      className="theme-home-nav-link group flex w-24 flex-col items-center gap-2.5 transition-[color,width,gap,transform] duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-4 sm:w-28"
-                    >
-                      <span className="theme-home-nav-icon theme-public-card-hover-quiet relative flex h-20 w-20 items-center justify-center rounded-2xl border transition-[height,width,border-color,background-color,box-shadow,transform] duration-300 sm:h-[5.75rem] sm:w-[5.75rem]">
-                        <Icon icon={item.icon} size={44} className="theme-home-nav-svg transition-[height,width,transform] duration-300" />
-                      </span>
-                      <span className="theme-home-nav-label font-display text-lg font-semibold leading-none tracking-normal transition-[opacity,max-width] duration-200">
-                        {item.label}
-                      </span>
-                    </Link>
-                  ),
-                )}
+                <button
+                  key={item.href}
+                  type="button"
+                  onClick={() => showComingSoon(item.label)}
+                  data-clicked={clickedItem === item.label}
+                  className="theme-home-nav-link theme-home-mock-button group flex w-24 flex-col items-center gap-2.5 transition-[color,width,gap,transform] duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-4 sm:w-28"
+                >
+                  <span className="theme-home-nav-icon theme-public-card-hover-quiet relative flex h-20 w-20 items-center justify-center rounded-2xl border transition-[height,width,border-color,background-color,box-shadow,transform] duration-300 sm:h-[5.75rem] sm:w-[5.75rem]">
+                    <Icon icon={item.icon} size={44} className="theme-home-nav-svg transition-[height,width,transform] duration-300" />
+                    {renderSoonBadge("-right-2 -top-2 group-data-[clicked=true]:opacity-100")}
+                  </span>
+                  <span className="theme-home-nav-label font-display text-lg font-semibold leading-none tracking-normal transition-[opacity,max-width] duration-200">
+                    {item.label}
+                  </span>
+                  </button>
+                ) : (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className="theme-home-nav-link group flex w-24 flex-col items-center gap-2.5 transition-[color,width,gap,transform] duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-4 sm:w-28"
+                >
+                  <span className="theme-home-nav-icon theme-public-card-hover-quiet relative flex h-20 w-20 items-center justify-center rounded-2xl border transition-[height,width,border-color,background-color,box-shadow,transform] duration-300 sm:h-[5.75rem] sm:w-[5.75rem]">
+                    <Icon icon={item.icon} size={44} className="theme-home-nav-svg transition-[height,width,transform] duration-300" />
+                  </span>
+                  <span className="theme-home-nav-label font-display text-lg font-semibold leading-none tracking-normal transition-[opacity,max-width] duration-200">
+                    {item.label}
+                  </span>
+                  </Link>
+                ),
+              )}
               </div>
             ))}
           </nav>

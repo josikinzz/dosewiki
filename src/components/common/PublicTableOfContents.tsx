@@ -9,11 +9,8 @@ import { isPlainLeftClick, scrollIntoViewRespectingMotion } from "@/utils/naviga
  * Distance from the top of the viewport at which a section counts as "current".
  * Roughly clears the sticky site header so the active item flips as a heading
  * settles just beneath the chrome rather than at the very top edge.
- *
- * Exported for `PublicTocStrip`, whose continuous glide interpolates progress
- * against the same line — highlight flips and glide must agree on "current".
  */
-export const SCROLLSPY_TOP_OFFSET = 140;
+const SCROLLSPY_TOP_OFFSET = 140;
 
 /**
  * Scrollspy: tracks which section heading is currently beneath the site header

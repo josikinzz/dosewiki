@@ -19,7 +19,7 @@ const SEVERITIES = new Set(["major", "minor", "note"]);
 const SECTION_IDS = new Set([
   "overview", "classification", "summary", "dosage-duration",
   "subjective-effects", "reagent-testing", "pharmacology", "interactions",
-  "tolerance", "harm-potential", "history-culture", "legality", "sources",
+  "tolerance", "harm-potential", "history-culture", "trip-reports", "legality", "sources",
   "citations", "editorial-review",
 ]);
 

@@ -158,6 +158,28 @@ export function ReplicationShowcase({ works, totalCount }: ReplicationShowcasePr
     });
   };
 
+  /**
+   * Horizontal swipe on the stage: left → next work, right → previous.
+   * Recognised only when the gesture is decisively horizontal (1.5× the
+   * vertical travel) and long enough (48px) that vertical page scrolling and
+   * plain taps on the overlaid controls never mis-trigger it.
+   */
+  const swipeStart = useRef<{ x: number; y: number } | null>(null);
+  const handleTouchStart = (event: React.TouchEvent) => {
+    const touch = event.touches[0];
+    swipeStart.current = { x: touch.clientX, y: touch.clientY };
+  };
+  const handleTouchEnd = (event: React.TouchEvent) => {
+    const start = swipeStart.current;
+    swipeStart.current = null;
+    if (!start || count < 2) return;
+    const touch = event.changedTouches[0];
+    const dx = touch.clientX - start.x;
+    const dy = touch.clientY - start.y;
+    if (Math.abs(dx) < 48 || Math.abs(dx) < Math.abs(dy) * 1.5) return;
+    activate(dx < 0 ? (clampedIndex + 1) % count : (clampedIndex - 1 + count) % count);
+  };
+
   /** Manual-activation tablist: arrows/Home/End move focus, Enter/Space activates. */
   const handleTabKeyDown = (
     event: React.KeyboardEvent<HTMLButtonElement>,
@@ -180,8 +202,13 @@ export function ReplicationShowcase({ works, totalCount }: ReplicationShowcasePr
     }
   };
 
+  /**
+   * Pause and mute/unmute for the active video, overlaid on the stage's
+   * bottom-right corner in every context — on phones the info and thumb rows
+   * leave the media, but transport controls belong on the thing they control.
+   */
   const videoControls = activeIsVideo && activePlaying ? (
-    <div className="pointer-events-auto flex flex-none items-center gap-1.5">
+    <div className="absolute bottom-2 right-2 z-10 flex items-center gap-1.5">
       <button
         type="button"
         aria-label={muted ? `Unmute ${active.title}` : `Mute ${active.title}`}
@@ -206,38 +233,103 @@ export function ReplicationShowcase({ works, totalCount }: ReplicationShowcasePr
 
   return (
     <section aria-label="Replications" className="space-y-2">
-      <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
-        <span className="theme-text-secondary inline-flex items-center gap-1.5 text-sm font-semibold">
-          <Icon
-            icon={resolveRouteChromeIcon("replications")}
-            size={16}
-            className="self-center"
-            aria-hidden
-          />
-          Replications
-        </span>
-        <span className="theme-text-faint text-xs tabular-nums">
-          {total} {total === 1 ? "work" : "works"}
-        </span>
-        <Link
-          href="/replications"
-          aria-label={`See all ${total} replications in the gallery`}
-          className={cn(
-            "theme-text-faint hover:text-dose-accent-strong text-xs transition-colors",
-            focusRingClassName,
-          )}
-        >
-          See all →
-        </Link>
-      </div>
+      {/* No count or "See all" here: the rail's +N tile already says how much
+          more exists and is the gallery link. */}
+      <span className="theme-text-secondary inline-flex items-center gap-1.5 text-sm font-semibold">
+        <Icon
+          icon={resolveRouteChromeIcon("replications")}
+          size={16}
+          className="self-center"
+          aria-hidden
+        />
+        Replications
+      </span>
 
+      {/* One dark media card. On phones the on-media chrome leaves the
+          artwork entirely: the info row sits above the media and the thumb
+          band below it, as compact card rows. From `sm` up both float over
+          the stage as scrim overlays (absolute positioning ignores the DOM
+          order, which is kept caption-first for readers). */}
+      <div className="border-dose-border relative overflow-hidden rounded-2xl border bg-[oklch(0.14_0.024_318)]">
+        {/* Title, artist, demonstrated effect, rights — compact, spread
+            across the card's width, never resizing the media. */}
+        <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-0.5 px-2.5 py-1.5 sm:gap-y-1 sm:px-3 sm:pb-7 sm:pt-2 sm:pointer-events-none sm:absolute sm:inset-x-0 sm:top-0 sm:z-10 sm:bg-gradient-to-b sm:from-black/75 sm:via-black/35 sm:to-transparent">
+          <div className="flex min-w-0 flex-wrap items-baseline gap-x-2">
+            <Link
+              href={publicHref.replication(active.slug)}
+              className={cn(
+                "theme-media-tile-title pointer-events-auto inline-flex min-w-0 items-center gap-1 text-[13px] font-semibold leading-tight sm:text-sm",
+                "transition-opacity hover:opacity-80",
+                focusRingClassName,
+              )}
+            >
+              <span className="truncate">{active.title}</span>
+              <Icon
+                icon="lucide:arrow-up-right"
+                size={12}
+                className="theme-media-tile-creator shrink-0"
+                aria-hidden
+              />
+            </Link>
+            {active.artistName ? (
+              <span className="theme-media-tile-creator min-w-0 truncate text-[11px] sm:text-xs">
+                by{" "}
+                {active.artistHref ? (
+                  active.artistHrefExternal ? (
+                    <a
+                      href={active.artistHref}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className={cn(
+                        "pointer-events-auto underline decoration-current/40 underline-offset-2",
+                        "transition-opacity hover:opacity-80",
+                        focusRingClassName,
+                      )}
+                    >
+                      {active.artistName}
+                    </a>
+                  ) : (
+                    <Link
+                      href={active.artistHref}
+                      className={cn(
+                        "pointer-events-auto underline decoration-current/40 underline-offset-2",
+                        "transition-opacity hover:opacity-80",
+                        focusRingClassName,
+                      )}
+                    >
+                      {active.artistName}
+                    </Link>
+                  )
+                ) : (
+                  active.artistName
+                )}
+              </span>
+            ) : (
+              <span className="theme-media-tile-creator text-[11px] sm:text-xs">{active.byline}</span>
+            )}
+          </div>
+          <div className="flex flex-none items-center gap-2">
+            <PublicNameChip
+              as={Link}
+              href={publicHref.effect(active.effectSlug)}
+              interactive
+              icon={icons.subjectiveEffectIndex}
+              aria-label={`Demonstrates: ${active.effectName}`}
+              className="pointer-events-auto max-sm:px-2 max-sm:py-0.5 max-sm:text-[11px] sm:px-2.5 sm:py-1"
+            >
+              {active.effectName}
+            </PublicNameChip>
+          </div>
+        </div>
       <div
         ref={stageRef}
         role="tabpanel"
         id={stageId}
         aria-labelledby={count > 1 ? `${tabId}-${clampedIndex}` : undefined}
         aria-label={count > 1 ? undefined : active.title}
-        className="border-dose-border relative aspect-video max-h-[380px] w-full overflow-hidden rounded-2xl border bg-[oklch(0.14_0.024_318)]"
+        onTouchStart={handleTouchStart}
+        onTouchEnd={handleTouchEnd}
+        className="relative aspect-video max-h-[380px] w-full touch-pan-y"
       >
         {works.map((work, index) => {
           const isActive = index === clampedIndex;
@@ -315,84 +407,6 @@ export function ReplicationShowcase({ works, totalCount }: ReplicationShowcasePr
           );
         })}
 
-        {/* Top scrim: title, artist, demonstrated effect, rights — compact,
-            spread across the stage's width, never resizing the media below. */}
-        <div className="pointer-events-none absolute inset-x-0 top-0 flex flex-wrap items-center justify-between gap-x-3 gap-y-1 bg-gradient-to-b from-black/75 via-black/35 to-transparent px-3 pb-7 pt-2">
-          <div className="flex min-w-0 flex-wrap items-baseline gap-x-2">
-            <Link
-              href={publicHref.replication(active.slug)}
-              className={cn(
-                "theme-media-tile-title pointer-events-auto inline-flex min-w-0 items-center gap-1 text-sm font-semibold",
-                "transition-opacity hover:opacity-80",
-                focusRingClassName,
-              )}
-            >
-              <span className="truncate">{active.title}</span>
-              <Icon
-                icon="lucide:arrow-up-right"
-                size={12}
-                className="theme-media-tile-creator shrink-0"
-                aria-hidden
-              />
-            </Link>
-            {active.artistName ? (
-              <span className="theme-media-tile-creator min-w-0 truncate text-xs">
-                by{" "}
-                {active.artistHref ? (
-                  active.artistHrefExternal ? (
-                    <a
-                      href={active.artistHref}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className={cn(
-                        "pointer-events-auto underline decoration-current/40 underline-offset-2",
-                        "transition-opacity hover:opacity-80",
-                        focusRingClassName,
-                      )}
-                    >
-                      {active.artistName}
-                    </a>
-                  ) : (
-                    <Link
-                      href={active.artistHref}
-                      className={cn(
-                        "pointer-events-auto underline decoration-current/40 underline-offset-2",
-                        "transition-opacity hover:opacity-80",
-                        focusRingClassName,
-                      )}
-                    >
-                      {active.artistName}
-                    </Link>
-                  )
-                ) : (
-                  active.artistName
-                )}
-              </span>
-            ) : (
-              <span className="theme-media-tile-creator text-xs">{active.byline}</span>
-            )}
-          </div>
-          <div className="flex flex-none items-center gap-2">
-            <PublicNameChip
-              as={Link}
-              href={publicHref.effect(active.effectSlug)}
-              interactive
-              icon={icons.subjectiveEffectIndex}
-              aria-label={`Demonstrates: ${active.effectName}`}
-              className="pointer-events-auto px-2.5 py-1"
-            >
-              {active.effectName}
-            </PublicNameChip>
-            <span
-              className="theme-media-tile-creator inline-flex items-center"
-              title={active.rightsLine}
-            >
-              <Icon icon="lucide:copyright" size={13} aria-hidden />
-              <span className="sr-only">{active.rightsLine}</span>
-            </span>
-          </div>
-        </div>
-
         {count > 1 ? (
           <>
             <button
@@ -401,7 +415,7 @@ export function ReplicationShowcase({ works, totalCount }: ReplicationShowcasePr
               onClick={() => activate((clampedIndex - 1 + count) % count)}
               className={cn(
                 mediaControlClassName,
-                "absolute left-2 top-1/2 size-8 -translate-y-1/2",
+                "absolute left-2 top-1/2 size-8 -translate-y-1/2 max-sm:hidden",
               )}
             >
               <Icon icon={icons.chevronLeft} size={18} aria-hidden />
@@ -412,20 +426,28 @@ export function ReplicationShowcase({ works, totalCount }: ReplicationShowcasePr
               onClick={() => activate((clampedIndex + 1) % count)}
               className={cn(
                 mediaControlClassName,
-                "absolute right-2 top-1/2 size-8 -translate-y-1/2",
+                "absolute right-2 top-1/2 size-8 -translate-y-1/2 max-sm:hidden",
               )}
             >
               <Icon icon={icons.chevronRight} size={18} aria-hidden />
             </button>
           </>
         ) : null}
+        {videoControls}
+      </div>
 
-        {/* Bottom scrim: the thumbnail rail and, for a playing video, the
-            pause and mute controls sharing the same band on the right. */}
-        {count > 1 || videoControls ? (
-          <div className="pointer-events-none absolute inset-x-0 bottom-0 flex items-end gap-2 bg-gradient-to-t from-black/75 via-black/35 to-transparent px-2 pb-2 pt-8">
-            {count > 1 ? (
-              <div className="pointer-events-auto flex min-w-0 flex-1 snap-x snap-mandatory items-center gap-1.5 overflow-x-auto px-0.5 py-0.5">
+        {/* The thumbnail rail: below the media on phones, a bottom scrim
+            overlay from `sm` up. */}
+        {count > 1 ? (
+          <div className="flex items-end gap-2 px-2 pb-2 pt-1 sm:pointer-events-none sm:absolute sm:inset-x-0 sm:bottom-0 sm:bg-gradient-to-t sm:from-black/75 sm:via-black/35 sm:to-transparent sm:pt-8">
+            <div
+              className={cn(
+                "pointer-events-auto flex min-w-0 flex-1 snap-x snap-mandatory items-center gap-1.5 overflow-x-auto px-0.5 py-0.5",
+                // Keep scrolled thumbs from sliding under the overlaid video
+                // controls where the band and the stage corner coincide.
+                videoControls ? "sm:pr-20" : undefined,
+              )}
+            >
                 <div role="tablist" aria-label="Replications" className="flex gap-1.5">
                   {works.map((work, index) => {
                     const selected = index === clampedIndex;
@@ -494,10 +516,6 @@ export function ReplicationShowcase({ works, totalCount }: ReplicationShowcasePr
                   </Link>
                 ) : null}
               </div>
-            ) : (
-              <div className="min-w-0 flex-1" />
-            )}
-            {videoControls}
           </div>
         ) : null}
       </div>
