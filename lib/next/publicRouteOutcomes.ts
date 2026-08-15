@@ -39,7 +39,7 @@ export const reportsIndexEmptyState: PublicRouteEmptyState = {
   badge: "No reports yet",
   title: "No trip reports found",
   description:
-    "There aren't any public reports in this deployment yet. Once reports are available, they'll appear here grouped by substance, title, or author.",
+    "There aren't any public reports yet. Once reports are available, they'll appear here grouped by substance, title, or author.",
   icon: "lucide:file-search",
 };
 
@@ -47,7 +47,7 @@ export const articlesIndexEmptyState: PublicRouteEmptyState = {
   badge: "No articles yet",
   title: "No published articles found",
   description:
-    "There aren't any published Effect Index articles in this deployment yet. Unlisted articles remain available only at their direct URLs.",
+    "There aren't any published Effect Index articles yet. Unlisted articles remain available only at their direct URLs.",
   icon: "lucide:file-search",
 };
 
@@ -55,7 +55,7 @@ export const blogIndexEmptyState: PublicRouteEmptyState = {
   badge: "No posts yet",
   title: "No archived posts found",
   description:
-    "The Effect Index blog archive is not available in this deployment yet. The articles index carries the site's long-form writing in the meantime.",
+    "The Effect Index blog archive is not available yet. The articles index carries the site's long-form writing in the meantime.",
   icon: "lucide:file-search",
 };
 

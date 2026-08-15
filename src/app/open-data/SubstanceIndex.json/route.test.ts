@@ -24,7 +24,7 @@ describe("open-data SubstanceIndex route", () => {
     vi.resetModules();
   });
 
-  it("serves the full substance corpus as a CC0 attachment", async () => {
+  it("serves the full substance corpus as a mixed-license attachment", async () => {
     const { GET } = await import("./route");
 
     const response = await GET();
@@ -41,7 +41,9 @@ describe("open-data SubstanceIndex route", () => {
 
     const payload = await readOpenDataPayload(response);
     expect(payload.dataset).toBe("SubstanceIndex");
-    expect(payload.license).toBe("CC0-1.0");
+    expect(payload.license).toBe(
+      "Mixed — CC0 except the interactions field, which keeps TripSit's non-commercial attribution terms",
+    );
     expect(payload.source).toBe("https://dose.wiki");
     expect(payload.count).toBe(3);
     expect(payload.count).toBe(payload.items.length);

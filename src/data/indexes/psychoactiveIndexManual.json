@@ -2,7 +2,7 @@
   "version": 1,
   "categories": [
     {
-      "definition": "**Psychedelics** (also known as serotonergic hallucinogens) are a subclass of hallucinogen that change perception, emotion, and thought. The user usually stays aware that a drug causes the experience. Researchers think that psychedelics act mainly on a serotonin receptor called 5-HT2A, which loosens the normal filtering of incoming information in the brain. Common effects are stronger color, flowing geometric patterns, deeper emotion, and a sense of insight. The term dates from 1956. It comes from the Greek *psyche* (\"mind\") and *delos* (\"to reveal\"), and means \"mind-manifesting.\"",
+      "definition": "**Psychedelics** (also known as serotonergic hallucinogens) are a subclass of hallucinogen that change perception, emotion, and thought. The user usually stays aware that a drug is causing the experience. Psychedelics act mainly on a serotonin receptor called 5-HT2A, which loosens the normal filtering of incoming information in the brain. Common effects are stronger color, flowing geometric patterns, deeper emotion, and a sense of insight. The term dates from 1956. It comes from the Greek *psyche* (\"mind\") and *delos* (\"to reveal\"), and means \"mind-manifesting.\"",
       "warning": "",
       "columns": {
         "1": 0,
@@ -136,7 +136,7 @@
       ]
     },
     {
-      "definition": "**Dissociatives** are a subclass of hallucinogen that produce a feeling of detachment from the body, the sense of self, and the surroundings. Researchers think that dissociatives mainly block NMDA receptors, which are part of the glutamate system. This system binds sensory information and the self into one coherent experience. The block interrupts this system and creates the sense of disconnection. At low doses, the effect is a floaty, dreamlike state. At high doses, the effect is a full out-of-body experience.",
+      "definition": "**Dissociatives** are a subclass of hallucinogen that produce a feeling of detachment from the body, the sense of self, and the surroundings. Dissociatives mainly block NMDA receptors, which are part of the glutamate system. This system binds sensory information and the sense of self into one coherent experience. The block interrupts this system and creates the sense of disconnection. At low doses, the effect is a floaty, dreamlike state. At high doses, the effect is a full out-of-body experience.",
       "warning": "",
       "columns": {
         "1": 0,
@@ -374,7 +374,7 @@
       ]
     },
     {
-      "definition": "**Nootropics** (also known as cognitive enhancers or \"smart drugs\") are a class of psychoactive substances that support mental performance, such as memory, focus, learning, and motivation. They usually have few side effects. Nootropics do not share one mechanism. Different nootropics work in different ways: some change neurotransmitter levels, some increase blood flow to the brain, and some protect brain cells. Their effects are therefore small and gradual, and they do not produce an obvious high. The term dates from 1972 and comes from the Greek *noos* (\"mind\") and *tropein* (\"to turn\"), which mean \"mind-turning.\"",
+      "definition": "**Nootropics** (also known as cognitive enhancers or \"smart drugs\") are a class of psychoactive substances that support mental performance, such as memory, focus, learning, and motivation. They usually have few side effects. Nootropics do not share one mechanism: some change neurotransmitter levels, some increase blood flow to the brain, and some protect brain cells. Their effects are therefore small and gradual, and they do not produce an obvious high. The term dates from 1972 and comes from the Greek *noos* (\"mind\") and *tropein* (\"to turn\"), which mean \"mind-turning.\"",
       "warning": "",
       "columns": {
         "1": 0,
@@ -444,7 +444,7 @@
       ]
     },
     {
-      "definition": "**Antipsychotics** (also known as neuroleptics) are a class of psychoactive medications that manage psychosis. Psychosis includes hallucinations, delusions, and disordered thought. Antipsychotics mainly block dopamine receptors. This block reduces dopamine signaling, which researchers think runs too high during a psychotic state.",
+      "definition": "**Antipsychotics** (also known as neuroleptics) are a class of psychoactive medications that manage psychosis. Psychosis includes hallucinations, delusions, and disordered thought. Antipsychotics mainly block dopamine receptors. This block reduces dopamine signaling, which is too high during a psychotic state.",
       "warning": "",
       "columns": {
         "1": 0,
@@ -526,7 +526,7 @@
       ]
     },
     {
-      "definition": "**Deliriants** are a subclass of hallucinogen that produce delirium: a state of confusion, an inability to tell hallucinations from reality, and frequent amnesia afterward. Deliriants block acetylcholine, a neurotransmitter that the brain needs for memory, attention, and a stable view of the real world. Psychedelics and dissociatives usually cause hallucinations that the user knows are unreal. Deliriants instead produce \"true\" hallucinations, which the user cannot tell apart from reality. This difference makes deliriants the most disorienting of the three subclasses. The name comes from the Latin *delirare*, which means \"to go off the track.\"",
+      "definition": "**Deliriants** are a subclass of hallucinogen that produce delirium: a state of confusion, an inability to tell hallucinations from reality, and frequent amnesia afterward. Deliriants block acetylcholine, a neurotransmitter that the brain needs for memory, attention, and a stable view of the real world. Psychedelics and dissociatives usually cause hallucinations that the user knows are unreal. Deliriants instead produce \"true\" hallucinations, which the user cannot tell apart from reality. The name comes from the Latin *delirare*, which means \"to go off the track.\"",
       "warning": "",
       "columns": {
         "1": 0,
@@ -681,7 +681,7 @@
       ]
     },
     {
-      "definition": "**Cannabinoids** are a class of psychoactive substances that change mood, appetite, memory, perception, and pain through the endocannabinoid system of the body. They act on the CB1 receptors that the natural cannabis-like signal chemicals of the body normally use. Common effects are relaxation, a changed sense of time, and more appetite. The name comes from the *Cannabis* plant, where researchers first identified these compounds.",
+      "definition": "**Cannabinoids** are a class of psychoactive substances that change mood, appetite, memory, perception, and pain through the endocannabinoid system of the body. They act on the CB1 receptors that the body's own cannabis-like signal chemicals normally use. Common effects are relaxation, a changed sense of time, and more appetite. The name comes from the *Cannabis* plant, where these compounds were first identified.",
       "warning": "",
       "columns": {
         "1": 0,

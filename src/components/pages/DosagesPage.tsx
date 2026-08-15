@@ -83,7 +83,7 @@ const SUPER_CATEGORY_TABS: Array<{
     memberKeys: ["gabaergic", "opioid"],
     content: {
       definition:
-        '**Depressants** (also known as "downers") are a class of psychoactive substances that slow the central nervous system. They produce relaxation, calm, less anxiety, drowsiness, and lower inhibition. Most depressants strengthen GABA, the main inhibitory or "braking" system of the brain. A stronger GABA system reduces activity across the nervous system. The word "depressant" means lower nervous-system activity. It does not mean sadness.',
+        '**Depressants** (also known as "downers") are a class of psychoactive substances that slow the central nervous system. They produce relaxation, calm, less anxiety, drowsiness, and lower inhibition. Most depressants strengthen GABA, the main inhibitory or "braking" system of the brain. The word "depressant" means lower nervous-system activity. It does not mean sadness.',
       warning: "",
     },
   },
@@ -383,7 +383,7 @@ export function DosagesPage({
             substanceCount,
             categoryCount: psychoactiveClassCount,
           })
-        : `Browse **${formatLabel(substanceCount, "substance article", "substance articles")}** focused on education and harm reduction, organized across **${formatLabel(psychoactiveClassCount, "psychoactive class", "psychoactive classes")}**. Open any page below to explore detailed information including: *dosage & duration, subjective effects, reagent testing, pharmacology, interactions, harm potential, history & culture, legality, and further reading.*`,
+        : `Browse **${formatLabel(substanceCount, "substance article", "substance articles")}** focused on education and harm reduction, organized across **${formatLabel(psychoactiveClassCount, "psychoactive class", "psychoactive classes")}**. Open any page below to explore detailed information including *dosage & duration, subjective effects, reagent testing, pharmacology, interactions, harm potential, history & culture, legality, and further reading.*`,
       warning: "",
     }),
     [introTemplate, psychoactiveClassCount, substanceCount],

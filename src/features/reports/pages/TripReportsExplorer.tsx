@@ -138,7 +138,7 @@ export function TripReportsExplorer({
             badge={emptyState?.badge ?? "No reports yet"}
             badgeVariant="secondary"
             title={emptyState?.title ?? "No trip reports found"}
-            description={emptyState?.description ?? "There aren’t any public reports in this deployment yet. Once reports are available, they’ll appear here grouped by substance, title, or author."}
+            description={emptyState?.description ?? "There aren’t any public reports yet. Once reports are available, they’ll appear here grouped by substance, title, or author."}
             icon={emptyState?.icon ?? "lucide:file-search"}
             tone="neutral"
           />

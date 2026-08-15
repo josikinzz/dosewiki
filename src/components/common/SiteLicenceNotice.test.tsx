@@ -24,12 +24,12 @@ vi.mock("next/link", () => ({
 const { dosewiki, effectindex } = SITE_FLAVOR_CONFIGS;
 
 describe("SiteLicenceNotice", () => {
-  it("keeps dose.wiki's CC0 sentence and in-app license link", () => {
+  it("names dose.wiki's mixed terms and links the in-app license page", () => {
     render(<SiteLicenceNotice config={dosewiki} />);
 
-    const paragraph = screen.getByText(/Most content is public domain/);
+    const paragraph = screen.getByText(/Mixed licenses, mostly open/);
     expect(paragraph.textContent).toBe(
-      "Most content is public domain (CC0); see License & reuse for the details.",
+      "Mixed licenses, mostly open: MIT code, CC0 writing, third-party material on its own terms. See License & reuse.",
     );
 
     const link = screen.getByRole("link", { name: "License & reuse" });

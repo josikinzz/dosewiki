@@ -1,30 +1,30 @@
 {
-  "generatedAt": "2026-07-02T15:11:54.039Z",
+  "generatedAt": "2026-08-15T19:02:02.615Z",
   "description": "Archive.org capture links behind the /docs/license subjective-effects provenance section. Includes every substance whose subjective-effects text dose.wiki restored from a PsychonautWiki capture credited to Josie Kins, plus any captures excluded for falling outside the rights boundary.",
   "cutoffDate": "2016-08-31",
-  "inBoundaryTotal": 97,
+  "inBoundaryTotal": 102,
   "summary": {
     "segments": [
       {
         "key": "2015-or-earlier",
         "label": "2015 or earlier",
         "detail": "Earliest recovered sections",
-        "count": 69,
-        "percent": "71.1%"
+        "count": 72,
+        "percent": "70.6%"
       },
       {
         "key": "jan-jul-2016",
         "label": "Jan-Jul 2016",
         "detail": "Still before August",
         "count": 2,
-        "percent": "2.1%"
+        "percent": "2.0%"
       },
       {
         "key": "august-2016",
         "label": "August 2016",
         "detail": "Latest included captures",
-        "count": 26,
-        "percent": "26.8%"
+        "count": 28,
+        "percent": "27.5%"
       }
     ]
   },
@@ -41,6 +41,13 @@
       "title": "Scopolamine",
       "captureUrl": "https://web.archive.org/web/20150423101342/http://psychonautwiki.org/wiki/Scopolamine",
       "captureDate": "2015-04-23",
+      "bucket": "2015-or-earlier"
+    },
+    {
+      "slug": "4-pro-dmt",
+      "title": "4-PrO-DMT",
+      "captureUrl": "https://web.archive.org/web/20150424040116/http://psychonautwiki.org/wiki/4-HO-DMT",
+      "captureDate": "2015-04-24",
       "bucket": "2015-or-earlier"
     },
     {
@@ -163,6 +170,13 @@
       "bucket": "2015-or-earlier"
     },
     {
+      "slug": "adrafinil",
+      "title": "Adrafinil",
+      "captureUrl": "https://web.archive.org/web/20150921132420/https://psychonautwiki.org/wiki/Modafinil",
+      "captureDate": "2015-09-21",
+      "bucket": "2015-or-earlier"
+    },
+    {
       "slug": "alcohol",
       "title": "Alcohol",
       "captureUrl": "https://web.archive.org/web/20150921124532/https://psychonautwiki.org/wiki/Alcohol",
@@ -215,6 +229,13 @@
       "slug": "clonazolam",
       "title": "Clonazolam",
       "captureUrl": "https://web.archive.org/web/20150921124532/https://psychonautwiki.org/wiki/Clonazolam",
+      "captureDate": "2015-09-21",
+      "bucket": "2015-or-earlier"
+    },
+    {
+      "slug": "cloniprazepam",
+      "title": "Cloniprazepam",
+      "captureUrl": "https://web.archive.org/web/20150921124532/https://psychonautwiki.org/wiki/Clonazepam",
       "captureDate": "2015-09-21",
       "bucket": "2015-or-earlier"
     },
@@ -534,6 +555,13 @@
       "bucket": "august-2016"
     },
     {
+      "slug": "4-aco-det",
+      "title": "4-AcO-DET",
+      "captureUrl": "https://web.archive.org/web/20160803224714/https://psychonautwiki.org/wiki/4-HO-DET",
+      "captureDate": "2016-08-03",
+      "bucket": "august-2016"
+    },
+    {
       "slug": "4-ho-det",
       "title": "4-HO-DET",
       "captureUrl": "https://web.archive.org/web/20160803224714/https://psychonautwiki.org/wiki/4-HO-DET",
@@ -576,6 +604,13 @@
       "bucket": "august-2016"
     },
     {
+      "slug": "1p-eth-lad",
+      "title": "1P-ETH-LAD",
+      "captureUrl": "https://web.archive.org/web/20160804042757/https://psychonautwiki.org/wiki/ETH-LAD",
+      "captureDate": "2016-08-04",
+      "bucket": "august-2016"
+    },
+    {
       "slug": "3-mmc",
       "title": "3-MMC",
       "captureUrl": "https://web.archive.org/web/20160804042911/https://psychonautwiki.org/wiki/3-MMC",
@@ -585,6 +620,13 @@
     {
       "slug": "4-aco-dipt",
       "title": "4-AcO-DiPT",
+      "captureUrl": "https://web.archive.org/web/20160804042638/https://psychonautwiki.org/wiki/4-AcO-DiPT",
+      "captureDate": "2016-08-04",
+      "bucket": "august-2016"
+    },
+    {
+      "slug": "4-ho-dipt",
+      "title": "4-HO-DiPT",
       "captureUrl": "https://web.archive.org/web/20160804042638/https://psychonautwiki.org/wiki/4-AcO-DiPT",
       "captureDate": "2016-08-04",
       "bucket": "august-2016"
@@ -691,13 +733,6 @@
       "slug": "ald-52",
       "title": "ALD-52",
       "captureUrl": "https://web.archive.org/web/20160805204337/https://psychonautwiki.org/wiki/ALD-52",
-      "captureDate": "2016-08-05",
-      "bucket": "august-2016"
-    },
-    {
-      "slug": "dipt",
-      "title": "DiPT",
-      "captureUrl": "https://web.archive.org/web/20160805080348/https://psychonautwiki.org/wiki/DiPT",
       "captureDate": "2016-08-05",
       "bucket": "august-2016"
     },

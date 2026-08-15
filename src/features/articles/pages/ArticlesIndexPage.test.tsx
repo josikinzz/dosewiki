@@ -5,7 +5,7 @@ import { ArticlesIndexPage } from "./ArticlesIndexPage";
 const emptyState = {
   badge: "No articles yet",
   title: "No published articles found",
-  description: "There aren't any published Effect Index articles in this deployment yet.",
+  description: "There aren't any published Effect Index articles yet.",
   icon: "lucide:file-search",
 } as const;
 

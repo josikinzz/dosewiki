@@ -15,7 +15,7 @@ describe("open-data EffectIndex route", () => {
     vi.resetModules();
   });
 
-  it("serves the complete effect index as a CC0 attachment", async () => {
+  it("serves the complete effect index as a mixed-license attachment", async () => {
     const { GET } = await import("./route");
 
     const response = await GET();
@@ -32,7 +32,9 @@ describe("open-data EffectIndex route", () => {
 
     const payload = await readOpenDataPayload(response);
     expect(payload.dataset).toBe("EffectIndex");
-    expect(payload.license).toBe("CC0-1.0");
+    expect(payload.license).toBe(
+      "Mixed — CC0 except the replication media it references, whose rights remain with the credited creator or rightsholder",
+    );
     expect(payload.source).toBe("https://dose.wiki");
     expect(payload.count).toBe(2);
     expect(payload.count).toBe(payload.items.length);

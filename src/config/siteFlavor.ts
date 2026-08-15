@@ -330,12 +330,12 @@ const DOSEWIKI_CONFIG: SiteFlavorConfig = {
   about: {
     reuseNotice: {
       leadIn:
-        "Everything dose.wiki creates — its articles and the full dataset — is dedicated to the public domain under",
+        "Everything dose.wiki writes, including its articles and the schema and normalization behind the dataset, is dedicated to the public domain under",
       linkLabel: "CC0",
       linkHref: "/docs/license",
       linkIsExternal: false,
       trailing:
-        ": reuse it freely, no attribution required. The site's code is MIT; trip reports, interaction ratings, and reagent tests keep their own terms.",
+        ". Reuse it freely, no attribution required. The site's code is MIT. Trip reports, the TripSit interaction data embedded in the dataset download, and reagent tests keep their own terms.",
     },
     // dose.wiki's About prose is editor-managed in Convex.
     missionMarkdown: null,
@@ -372,11 +372,12 @@ const DOSEWIKI_CONFIG: SiteFlavorConfig = {
   footer: {
     tagline: "Community harm-reduction information. Not medical advice.",
     licence: {
-      leadIn: "Most content is public domain (CC0); see",
+      leadIn:
+        "Mixed licenses, mostly open: MIT code, CC0 writing, third-party material on its own terms. See",
       linkLabel: "License & reuse",
       linkHref: "/docs/license",
       linkIsExternal: false,
-      trailing: "for the details.",
+      trailing: ".",
     },
     // Mindstate Design Labs pays dose.wiki's infrastructure bills and shares a founder
     // with it, but does not own or direct the publication — hence "Supported by".

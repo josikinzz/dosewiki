@@ -188,7 +188,7 @@ const SubmissionHero = memo(function SubmissionHero() {
             className="mt-0.5 shrink-0 text-[color:var(--theme-warning-text-strong)]"
             size={16}
           />
-          Do not include identifying details you would not want reviewed by editors.
+          Include only identifying details you are comfortable with editors reviewing.
         </p>
       </div>
     </header>
@@ -840,8 +840,8 @@ const ContactConsentSection = memo(function ContactConsentSection({
             onChange={(checked) => onConsentFieldChange("publish_consent", checked)}
           >
             I consent to this report being reviewed and, if published, dedicated to the public
-            domain (CC0) — free for anyone to use, with no attribution required. This dedication
-            cannot be revoked once the report is public: anyone who has already copied it may keep
+            domain (CC0), free for anyone to use, with no attribution required. This dedication
+            cannot be revoked once the report is public. Anyone who has already copied it may keep
             using it. If I later ask dose.wiki to remove the report, that removal applies to
             dose.wiki only, not to copies made elsewhere.
           </ConsentCheckbox>

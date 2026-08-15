@@ -2,10 +2,10 @@
  * The footer's reuse-rights sentence.
  *
  * This is a statement about what a reader may legally do with the material, so it has to
- * follow the publication: dose.wiki dedicates its own content to the public domain (CC0)
- * and links to its in-app license page, Effect Index licenses its material under
- * CC BY-NC-SA 4.0 and links to the Creative Commons deed. Shipping either wording under
- * the other brand would be a false claim about reuse rights.
+ * follow the publication: dose.wiki's terms are mixed — MIT code, CC0 writing, and the
+ * third-party carve-outs — and it links to its in-app license page, while Effect Index
+ * licenses its material under CC BY-NC-SA 4.0 and links to the Creative Commons deed.
+ * Shipping either wording under the other brand would be a false claim about reuse rights.
  */
 import Link from "next/link";
 

@@ -10,7 +10,24 @@ import { NextResponse } from "next/server";
  */
 export const OPEN_DATA_CACHE_CONTROL = "public, s-maxage=86400, stale-while-revalidate=86400";
 
-export const OPEN_DATA_CC0 = "CC0-1.0";
+/**
+ * dose.wiki's substance prose, the schema, and the normalization work are CC0,
+ * but every article document also carries an `interactions` object populated
+ * from TripSit combination guidance, which keeps TripSit's non-commercial
+ * attribution terms — the reuse matrix at {@link OPEN_DATA_LICENSE_URL} is
+ * authoritative. A blanket CC0 claim on this dataset would be false.
+ */
+export const OPEN_DATA_SUBSTANCE_INDEX_LICENSE =
+  "Mixed — CC0 except the interactions field, which keeps TripSit's non-commercial attribution terms";
+
+/**
+ * Effect prose and the index structure are CC0, but the records reference
+ * replication media — `audio_replications` entries plus the `gallery_order` and
+ * `social_media_image` image references — credited to third-party creators who
+ * retain their rights, so this dataset cannot be dedicated wholesale either.
+ */
+export const OPEN_DATA_EFFECT_INDEX_LICENSE =
+  "Mixed — CC0 except the replication media it references, whose rights remain with the credited creator or rightsholder";
 
 /**
  * dose.wiki-authored trip report prose is CC0, but legacy report rights remain

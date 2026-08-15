@@ -83,7 +83,7 @@
     "kind": "markdown",
     "label": "Reuse notice",
     "group": "About",
-    "body": "Everything dose.wiki creates — its articles and the full dataset — is dedicated to the public domain under [CC0](/docs/license): reuse it freely, no attribution required. The site's code is MIT; trip reports, interaction ratings, and reagent tests keep their own terms. Subjective Effect Index and Trip Report Index exports aren't downloadable yet — they land with the 1.0 release."
+    "body": "Everything dose.wiki writes, including its articles and the schema and normalization behind the dataset, is dedicated to the public domain under [CC0](/docs/license). Reuse it freely, no attribution required. The site's code is MIT. Trip reports, the TripSit interaction data embedded in the dataset download, and reagent tests keep their own terms. The Substance Index, Subjective Effect Index, and Trip Report Index all download from the Open Data section."
   },
   {
     "key": "about-reuse-notice-effect-index",
@@ -99,7 +99,7 @@
     "label": "Documentation card blurbs",
     "group": "About",
     "items": [
-      "The full content pipeline — sources, synthesis, human review, and citations.",
+      "The full content pipeline: sources, synthesis, human review, and citations.",
       "A tour of the codebase: architecture, the data layer, and the systems behind the site.",
       "What you can do with our content, dataset, code, and the parts we don't own."
     ]
@@ -155,7 +155,7 @@
     "kind": "markdown",
     "label": "Substance Index intro",
     "group": "Index pages",
-    "body": "Browse **{{substanceCount}} substance articles** focused on education and harm reduction, organized across **{{categoryCount}} psychoactive classes**. Open any page below to explore detailed information including: *dosage & duration, subjective effects, reagent testing, pharmacology, interactions, harm potential, history & culture, legality, and further reading.*"
+    "body": "Browse **{{substanceCount}} substance articles** focused on education and harm reduction, organized across **{{categoryCount}} psychoactive classes**. Open any page below to explore detailed information including *dosage & duration, subjective effects, reagent testing, pharmacology, interactions, harm potential, history & culture, legality, and further reading.*"
   },
   {
     "key": "reports-index-intro",
@@ -183,14 +183,14 @@
     "kind": "plain",
     "label": "Submission privacy note",
     "group": "Submissions",
-    "body": "Do not include identifying details you would not want reviewed by editors."
+    "body": "Include only identifying details you are comfortable with editors reviewing."
   },
   {
     "key": "submit-report-consent-publish",
     "kind": "markdown",
     "label": "CC0 publication consent",
     "group": "Submissions",
-    "body": "I consent to this report being reviewed and, if published, dedicated to the public domain (CC0) — free for anyone to use, with no attribution required. This dedication cannot be revoked once the report is public: anyone who has already copied it may keep using it. If I later ask dose.wiki to remove the report, that removal applies to dose.wiki only, not to copies made elsewhere."
+    "body": "I consent to this report being reviewed and, if published, dedicated to the public domain (CC0), free for anyone to use, with no attribution required. This dedication cannot be revoked once the report is public. Anyone who has already copied it may keep using it. If I later ask dose.wiki to remove the report, that removal applies to dose.wiki only, not to copies made elsewhere."
   },
   {
     "key": "submit-report-consent-age",
@@ -233,14 +233,14 @@
     "kind": "markdown",
     "label": "Psychedelic definition",
     "group": "Substance categories",
-    "body": "**Psychedelics** (also known as serotonergic hallucinogens) are a subclass of hallucinogen that change perception, emotion, and thought. The user usually stays aware that a drug causes the experience. Researchers think that psychedelics act mainly on a serotonin receptor called 5-HT2A, which loosens the normal filtering of incoming information in the brain. Common effects are stronger color, flowing geometric patterns, deeper emotion, and a sense of insight. The term dates from 1956. It comes from the Greek *psyche* (\"mind\") and *delos* (\"to reveal\"), and means \"mind-manifesting.\""
+    "body": "**Psychedelics** (also known as serotonergic hallucinogens) are a subclass of hallucinogen that change perception, emotion, and thought. The user usually stays aware that a drug is causing the experience. Psychedelics act mainly on a serotonin receptor called 5-HT2A, which loosens the normal filtering of incoming information in the brain. Common effects are stronger color, flowing geometric patterns, deeper emotion, and a sense of insight. The term dates from 1956. It comes from the Greek *psyche* (\"mind\") and *delos* (\"to reveal\"), and means \"mind-manifesting.\""
   },
   {
     "key": "substances-category-dissociative",
     "kind": "markdown",
     "label": "Dissociative definition",
     "group": "Substance categories",
-    "body": "**Dissociatives** are a subclass of hallucinogen that produce a feeling of detachment from the body, the sense of self, and the surroundings. Researchers think that dissociatives mainly block NMDA receptors, which are part of the glutamate system. This system binds sensory information and the self into one coherent experience. The block interrupts this system and creates the sense of disconnection. At low doses, the effect is a floaty, dreamlike state. At high doses, the effect is a full out-of-body experience."
+    "body": "**Dissociatives** are a subclass of hallucinogen that produce a feeling of detachment from the body, the sense of self, and the surroundings. Dissociatives mainly block NMDA receptors, which are part of the glutamate system. This system binds sensory information and the sense of self into one coherent experience. The block interrupts this system and creates the sense of disconnection. At low doses, the effect is a floaty, dreamlike state. At high doses, the effect is a full out-of-body experience."
   },
   {
     "key": "substances-category-entactogen",
@@ -261,7 +261,7 @@
     "kind": "markdown",
     "label": "Nootropic definition",
     "group": "Substance categories",
-    "body": "**Nootropics** (also known as cognitive enhancers or \"smart drugs\") are a class of psychoactive substances that support mental performance, such as memory, focus, learning, and motivation. They usually have few side effects. Nootropics do not share one mechanism. Different nootropics work in different ways: some change neurotransmitter levels, some increase blood flow to the brain, and some protect brain cells. Their effects are therefore small and gradual, and they do not produce an obvious high. The term dates from 1972 and comes from the Greek *noos* (\"mind\") and *tropein* (\"to turn\"), which mean \"mind-turning.\""
+    "body": "**Nootropics** (also known as cognitive enhancers or \"smart drugs\") are a class of psychoactive substances that support mental performance, such as memory, focus, learning, and motivation. They usually have few side effects. Nootropics do not share one mechanism: some change neurotransmitter levels, some increase blood flow to the brain, and some protect brain cells. Their effects are therefore small and gradual, and they do not produce an obvious high. The term dates from 1972 and comes from the Greek *noos* (\"mind\") and *tropein* (\"to turn\"), which mean \"mind-turning.\""
   },
   {
     "key": "substances-category-antidepressant",
@@ -275,7 +275,7 @@
     "kind": "markdown",
     "label": "Antipsychotic definition",
     "group": "Substance categories",
-    "body": "**Antipsychotics** (also known as neuroleptics) are a class of psychoactive medications that manage psychosis. Psychosis includes hallucinations, delusions, and disordered thought. Antipsychotics mainly block dopamine receptors. This block reduces dopamine signaling, which researchers think runs too high during a psychotic state."
+    "body": "**Antipsychotics** (also known as neuroleptics) are a class of psychoactive medications that manage psychosis. Psychosis includes hallucinations, delusions, and disordered thought. Antipsychotics mainly block dopamine receptors. This block reduces dopamine signaling, which is too high during a psychotic state."
   },
   {
     "key": "substances-category-opioid",
@@ -289,7 +289,7 @@
     "kind": "markdown",
     "label": "Deliriant definition",
     "group": "Substance categories",
-    "body": "**Deliriants** are a subclass of hallucinogen that produce delirium: a state of confusion, an inability to tell hallucinations from reality, and frequent amnesia afterward. Deliriants block acetylcholine, a neurotransmitter that the brain needs for memory, attention, and a stable view of the real world. Psychedelics and dissociatives usually cause hallucinations that the user knows are unreal. Deliriants instead produce \"true\" hallucinations, which the user cannot tell apart from reality. This difference makes deliriants the most disorienting of the three subclasses. The name comes from the Latin *delirare*, which means \"to go off the track.\""
+    "body": "**Deliriants** are a subclass of hallucinogen that produce delirium: a state of confusion, an inability to tell hallucinations from reality, and frequent amnesia afterward. Deliriants block acetylcholine, a neurotransmitter that the brain needs for memory, attention, and a stable view of the real world. Psychedelics and dissociatives usually cause hallucinations that the user knows are unreal. Deliriants instead produce \"true\" hallucinations, which the user cannot tell apart from reality. The name comes from the Latin *delirare*, which means \"to go off the track.\""
   },
   {
     "key": "substances-category-gabaergic",
@@ -303,7 +303,7 @@
     "kind": "markdown",
     "label": "Cannabinoid definition",
     "group": "Substance categories",
-    "body": "**Cannabinoids** are a class of psychoactive substances that change mood, appetite, memory, perception, and pain through the endocannabinoid system of the body. They act on the CB1 receptors that the natural cannabis-like signal chemicals of the body normally use. Common effects are relaxation, a changed sense of time, and more appetite. The name comes from the *Cannabis* plant, where researchers first identified these compounds."
+    "body": "**Cannabinoids** are a class of psychoactive substances that change mood, appetite, memory, perception, and pain through the endocannabinoid system of the body. They act on the CB1 receptors that the body's own cannabis-like signal chemicals normally use. Common effects are relaxation, a changed sense of time, and more appetite. The name comes from the *Cannabis* plant, where these compounds were first identified."
   },
   {
     "key": "substances-category-super-hallucinogens",
@@ -317,7 +317,7 @@
     "kind": "markdown",
     "label": "Depressants (umbrella tab) definition",
     "group": "Substance categories",
-    "body": "**Depressants** (also known as \"downers\") are a class of psychoactive substances that slow the central nervous system. They produce relaxation, calm, less anxiety, drowsiness, and lower inhibition. Most depressants strengthen GABA, the main inhibitory or \"braking\" system of the brain. A stronger GABA system reduces activity across the nervous system. The word \"depressant\" means lower nervous-system activity. It does not mean sadness."
+    "body": "**Depressants** (also known as \"downers\") are a class of psychoactive substances that slow the central nervous system. They produce relaxation, calm, less anxiety, drowsiness, and lower inhibition. Most depressants strengthen GABA, the main inhibitory or \"braking\" system of the brain. The word \"depressant\" means lower nervous-system activity. It does not mean sadness."
   },
   {
     "key": "seo-substances-index-description",
@@ -673,7 +673,7 @@
     "kind": "plain",
     "label": "Reports index empty body",
     "group": "Empty states",
-    "body": "There aren't any public reports in this deployment yet. Once reports are available, they'll appear here grouped by substance, title, or author."
+    "body": "There aren't any public reports yet. Once reports are available, they'll appear here grouped by substance, title, or author."
   },
   {
     "key": "empty-articles-badge",
@@ -694,7 +694,7 @@
     "kind": "plain",
     "label": "Articles index empty body",
     "group": "Empty states",
-    "body": "There aren't any published Effect Index articles in this deployment yet. Unlisted articles remain available only at their direct URLs."
+    "body": "There aren't any published Effect Index articles yet. Unlisted articles remain available only at their direct URLs."
   },
   {
     "key": "empty-blog-badge",
@@ -715,7 +715,7 @@
     "kind": "plain",
     "label": "Blog index empty body",
     "group": "Empty states",
-    "body": "The Effect Index blog archive is not available in this deployment yet. The articles index carries the site's long-form writing in the meantime."
+    "body": "The Effect Index blog archive is not available yet. The articles index carries the site's long-form writing in the meantime."
   },
   {
     "key": "unauthorized-badge",

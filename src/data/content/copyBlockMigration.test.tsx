@@ -111,7 +111,7 @@ describe("migrated surfaces render the pre-migration text", () => {
     // The pre-migration string, built by the page's own `formatLabel` helper.
     const substanceCount = 412;
     const categoryCount = 11;
-    const before = `Browse **${substanceCount} substance articles** focused on education and harm reduction, organized across **${categoryCount} psychoactive classes**. Open any page below to explore detailed information including: *dosage & duration, subjective effects, reagent testing, pharmacology, interactions, harm potential, history & culture, legality, and further reading.*`;
+    const before = `Browse **${substanceCount} substance articles** focused on education and harm reduction, organized across **${categoryCount} psychoactive classes**. Open any page below to explore detailed information including *dosage & duration, subjective effects, reagent testing, pharmacology, interactions, harm potential, history & culture, legality, and further reading.*`;
 
     expect(
       applyPlaceholders(bodyOf("substances-index-intro"), {

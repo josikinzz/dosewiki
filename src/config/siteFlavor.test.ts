@@ -203,11 +203,12 @@ describe("site flavor config", () => {
     expect(dosewiki.footer).toEqual({
       tagline: "Community harm-reduction information. Not medical advice.",
       licence: {
-        leadIn: "Most content is public domain (CC0); see",
+        leadIn:
+          "Mixed licenses, mostly open: MIT code, CC0 writing, third-party material on its own terms. See",
         linkLabel: "License & reuse",
         linkHref: "/docs/license",
         linkIsExternal: false,
-        trailing: "for the details.",
+        trailing: ".",
       },
       // "Supported by" is the weakest accurate word: Mindstate Design Labs funds the
       // infrastructure and holds no ownership or editorial stake. Asserted verbatim

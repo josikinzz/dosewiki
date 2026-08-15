@@ -188,7 +188,7 @@ const PIPELINE_DIAGRAM = `graph TD
   PARSE["Deterministic parsers<br/>dosage, duration, interactions,<br/>chemistry, legal tables"]:::auto
   EXTRACT["Verbatim excerpt extraction<br/>8 topics; a model selects source blocks,<br/>a script copies them out unchanged"]:::auto
   QUOTES[("Excerpt documents<br/>one per AI-written section")]:::data
-  SYNTH["Section synthesis<br/>Claude Opus 4.5 + one prompt<br/>per section, excerpts only"]:::auto
+  SYNTH["Section synthesis<br/>Claude Opus + one prompt<br/>per section, excerpts only"]:::auto
   REVIEW["Human expert review<br/>read, fact-check, edit —<br/>the final gate before publication"]:::human
   DB[("Article database<br/>(drafts)")]:::data
   CITE["Citation pass<br/>per-claim references with<br/>verbatim supporting quotes"]:::auto
@@ -369,9 +369,6 @@ export default function DocsHowPage() {
         <PublicTocStrip items={[...TOC]} />
 
         <header className="flex flex-col gap-4">
-          <p className="theme-text-faint text-xs font-semibold uppercase tracking-[0.18em]">
-            Last updated August 5, 2026
-          </p>
           <h1 className="theme-accent-heading font-display text-3xl font-bold tracking-tight sm:text-4xl">
             How dose.wiki articles are made
           </h1>
@@ -401,7 +398,8 @@ export default function DocsHowPage() {
             <div className={DIVIDED_ITEM_CLASS}>
               <div className={CARD_LABEL_CLASS}>Subjective effects</div>
               <p className={PROSE_CLASS}>
-                Built on the subjective effects documentation work of{" "}
+                Effect listings link into the Subjective Effect Index, the
+                taxonomy{" "}
                 <strong>
                   <a
                     href="https://en.wikipedia.org/wiki/Josie_Kins"
@@ -411,9 +409,11 @@ export default function DocsHowPage() {
                   >
                     Josie Kins
                   </a>
-                </strong>
-                . Her effect taxonomy is the basis of our Subjective Effect Index, which every effect
-                listing links into.
+                </strong>{" "}
+                created on Disregard Everything I Say in 2011. The article
+                sections are a mixture: her earlier versions where they exist,
+                otherwise synthesized from other sources with her own projects
+                excluded.
               </p>
             </div>
             <div className={DIVIDED_ITEM_CLASS}>
@@ -444,13 +444,14 @@ export default function DocsHowPage() {
 
           <p className={`${PROSE_CLASS} mt-4`}>
             <strong>Every article passes the final gate.</strong> Human expert review is the last stage
-            of the pipeline and the only route to publication. Section 09 describes it in detail.
+            of the pipeline and the only route to publication (section 09).
           </p>
 
           <p className={`${PROSE_CLASS} mt-4`}>
-            <strong>Every claim is source-bound.</strong> Models see only verbatim excerpts of the
-            source material. Their prompts forbid any claim those excerpts do not carry (sections 06
-            and 07).
+            <strong>Every claim is source-bound.</strong> The models that write article prose see only
+            verbatim excerpts of the source material, and their prompts forbid any claim those excerpts
+            do not carry (sections 06 and 07). The citation and legality workflows bind claims to
+            referenced sources of their own (sections 08 and 08b).
           </p>
         </section>
 
@@ -700,7 +701,7 @@ export default function DocsHowPage() {
                     <Badge variant="default">AI-synthesized</Badge>
                   </td>
                   <td className="p-3">
-                    50–80 word overview written by Claude Opus 4.5 from the intro-text excerpts, under
+                    50–80 word overview written by Claude Opus from the intro-text excerpts, under
                     the summary prompt (readable in section 07).
                   </td>
                 </tr>
@@ -740,7 +741,7 @@ export default function DocsHowPage() {
                   </td>
                   <td className="p-3">
                     Dose ranges per route parsed directly from TripSit, PsychonautWiki, and Erowid
-                    tables, under the smallest-dose rule (section 05).
+                    tables, under the lowest-upper-bound rule (section 05).
                   </td>
                 </tr>
                 <tr className={TR_CLASS}>
@@ -755,11 +756,13 @@ export default function DocsHowPage() {
                 <tr className={TR_CLASS}>
                   <td className="p-3">Subjective effects</td>
                   <td className="p-3">
-                    <Badge variant="success">Josie Kins' work</Badge>
+                    <Badge variant="default">Mixed</Badge>
                   </td>
                   <td className="p-3">
-                    Built on Josie Kins' effect taxonomy (section 01). Every effect links into the
-                    Subjective Effect Index.
+                    Restored Josie Kins versions where they exist, otherwise
+                    synthesized from other sources with her own projects excluded
+                    (section 01). Every effect links into the Subjective Effect
+                    Index.
                   </td>
                 </tr>
                 <tr className={TR_CLASS}>
@@ -886,10 +889,14 @@ export default function DocsHowPage() {
                 <strong>TripSit factsheets</strong> and <strong>PsychonautWiki</strong> carry the most
                 structured data: dose tiers (threshold / light / common / strong / heavy) per route of
                 administration and onset / peak / offset durations. The parsers read these tables
-                directly and transcribe the numbers as published. If two sources give different doses
-                for the same route, the <strong>smallest-dose rule</strong> applies. The parser treats
-                the smallest as authoritative. This is a deliberate safety bias: underdosing is the
-                safer error.
+                directly and transcribe the numbers as published. Selecting one source's numbers when
+                sources disagree is not the parser's job — it happens later, when the parsed tables are
+                merged into the article. That merge applies the <strong>lowest-upper-bound rule</strong>:
+                among weight-unit sources it keeps the entry with the lowest comparable upper bound
+                (heavy minimum when present, otherwise strong maximum, then strong minimum, then common
+                maximum), tie-broken toward the source that fills more dose tiers; when no source gives
+                weight units, a fixed source-priority order decides. This is a deliberate safety bias:
+                underdosing is the safer error.
               </p>
             </div>
             <div className={DIVIDED_ITEM_CLASS}>
@@ -1078,8 +1085,10 @@ export default function DocsHowPage() {
             <strong>
               summary, pharmacology, tolerance, harm potential, history &amp; culture, and legality
             </strong>
-. Claude Opus 4.5 writes each one from exactly two inputs: the excerpt document for that
-            topic, and a <strong>section-specific prompt</strong>.
+. Claude Opus writes each one from exactly two inputs: the excerpt document for that
+            topic, and a <strong>section-specific prompt</strong>. The model is set per section in{" "}
+            <code>scripts/batch/&lt;section&gt;/cli.mjs</code> (overridable via{" "}
+            <code>OPENROUTER_MODEL</code>).
           </p>
           <p className={`${PROSE_CLASS} mt-4`}>
             The two remaining excerpt topics, dosage &amp; duration and subjective effects, serve a
@@ -1089,8 +1098,7 @@ export default function DocsHowPage() {
           </p>
           <p className={`${PROSE_CLASS} mt-4`}>
             The prompts share one skeleton: a style definition, a hard evidence rule, a fixed output
-            format, worked examples, and a checklist. All of them carry the two constraints that define
-            the whole system:
+            format, worked examples, and a checklist. All of them carry the same two constraints:
           </p>
 
           <ContentCard padding="none" className={`mt-6 ${DIVIDED_LIST_CLASS}`}>
@@ -1363,8 +1371,8 @@ Citations render as numbered superscript markers in the text, linked to the refe
           </h2>
 
           <p className={PULL_CLASS}>
-            A <strong>human expert reviewer manually reviews every single article</strong> before the
-            public is ever allowed to see it. Not a sample. Not the flagged ones. Every article, as a
+            A <strong>human expert reviewer manually reviews every single article</strong> before it
+            reaches the public. Not a sample. Not the flagged ones. Every article, as a
             matter of principle.
           </p>
 
@@ -1427,9 +1435,9 @@ The audit trail is permanent. dose.wiki stores every edit to every article with 
           </p>
 
           <p className={PULL_CLASS}>
-            dose.wiki is a modern, open-source harm-reduction reference for psychoactive substances and
-            subjective effects. It makes substance knowledge readable, verifiable, and reusable instead
-            of leaving it scattered across separate sites and closed data systems.
+            dose.wiki is an open-source harm-reduction reference for psychoactive substances and
+            subjective effects. One downloadable, consistently structured corpus keeps that knowledge
+            verifiable and reusable instead of scattered across separate sites and closed data systems.
           </p>
 
           <p className={`${PROSE_CLASS} mt-5`}>
@@ -1437,7 +1445,7 @@ The dataset is not a byproduct of the website. It is part of the point. Research
             developers, educators, and community projects can download the corpus, examine its
             structure, fork it, and build on it. Nobody has to rebuild a harm-reduction encyclopedia
             from scratch to get better tools around the same knowledge. Section 11 covers the licensing
-            terms that make this possible.
+            terms.
           </p>
         </section>
 
@@ -1447,9 +1455,9 @@ The dataset is not a byproduct of the website. It is part of the point. Research
           </h2>
 
           <p className={`${PROSE_CLASS} mt-4`}>
-This pipeline begins with published sources, so the licensing boundary matters. The
-            sources inform the work. The public dataset is new dose.wiki expression and structure, and
-            it carries independent review.
+This pipeline begins with published sources, so the licensing boundary matters: the
+            sources inform the work, while the public dataset is new dose.wiki expression and structure
+            and carries independent review.
           </p>
 
           <ContentCard padding="none" className={`mt-6 ${DIVIDED_LIST_CLASS}`}>

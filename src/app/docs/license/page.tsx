@@ -13,7 +13,7 @@ export function generateMetadata() {
   return buildPublicPageMetadata({
     title: "Licensing and reuse",
     description:
-      "Reuse terms for dose.wiki content, dataset, molecule assets, replication media, source code, trip reports, interaction data, and reagent-test data.",
+      "Reuse terms for dose.wiki content, dataset, molecule SVG pack, replication media, source code, trip reports, interaction ratings, and reagent-test data.",
     pathname: "/docs/license",
   });
 }
@@ -22,8 +22,8 @@ const TOC_ITEMS = [
   { id: "s1", label: "1. Quick answer", icon: "lucide:check-circle-2" },
   { id: "s2", label: "2. Reuse matrix", icon: "lucide:table-2" },
   { id: "s3", label: "3. CC0 scope", icon: "lucide:file-text" },
-  { id: "s4", label: "4. Exceptions", icon: "lucide:triangle-alert" },
-  { id: "s5", label: "5. Subjective effects", icon: "lucide:brain" },
+  { id: "s4", label: "4. Important exceptions", icon: "lucide:triangle-alert" },
+  { id: "s5", label: "5. Subjective effects provenance", icon: "lucide:brain" },
   { id: "s6", label: "6. Source code", icon: "lucide:code-2" },
   { id: "s7", label: "7. Attribution examples", icon: "lucide:quote" },
   { id: "s8", label: "8. Full terms", icon: "lucide:book-open" },
@@ -120,7 +120,7 @@ export default function DocsLicensePage() {
 
         <header className="flex max-w-[72ch] flex-col gap-4 border-b border-dose-divider pb-8">
           <p className="theme-text-faint text-xs font-semibold uppercase tracking-[0.18em]">
-            Last updated August 5, 2026
+            Last updated August 15, 2026
           </p>
           <h1 className="theme-accent-heading font-display text-3xl font-bold tracking-tight sm:text-4xl">
             Licensing and reuse
@@ -150,9 +150,9 @@ export default function DocsLicensePage() {
 
           <Alert variant="success" role="note" className="mt-5">
             <AlertDescription>
-              <strong>The short version:</strong> dose.wiki&apos;s own article
-              text, structured dataset, schema, and generated molecule assets
-              are CC0 unless a page or data field says otherwise.
+              dose.wiki&apos;s own article text, structured dataset, schema, and
+              generated molecule assets are CC0 unless a page or data field says
+              otherwise.
             </AlertDescription>
           </Alert>
 
@@ -168,7 +168,7 @@ export default function DocsLicensePage() {
                   </li>
                   <li>
                     The downloadable <code>SubstanceIndex.json</code> snapshot
-                    and schema.
+                    and schema, apart from its <code>interactions</code> field.
                   </li>
                   <li>
                     Molecule SVGs generated from SMILES, plus their manifest.
@@ -277,24 +277,28 @@ export default function DocsLicensePage() {
                       Structured dataset <code>SubstanceIndex.json</code>
                     </td>
                     <td className="p-3">
-                      <StatusBadge tone="green" className={MATRIX_BADGE_CLASS}>
-                        CC0&nbsp;1.0
+                      <StatusBadge tone="orange" className={MATRIX_BADGE_CLASS}>
+                        Mixed
                       </StatusBadge>
                     </td>
                     <td className="p-3">
-                      <StatusBadge tone="green" className={MATRIX_BADGE_CLASS}>
-                        Not required
+                      <StatusBadge tone="orange" className={MATRIX_BADGE_CLASS}>
+                        Interactions only
                       </StatusBadge>
                     </td>
                     <td className="p-3">
-                      <StatusBadge tone="green" className={MATRIX_BADGE_CLASS}>
-                        Allowed
+                      <StatusBadge tone="orange" className={MATRIX_BADGE_CLASS}>
+                        Except interactions
                       </StatusBadge>
                     </td>
                     <td className="p-3">
-                      CC0 covers the downloadable dataset snapshot and the
-                      dose.wiki schema and normalization work. It does not grant
-                      rights to external sources cited by articles.
+                      CC0 covers the downloadable snapshot, the dose.wiki schema,
+                      and the normalization work. Every article document also
+                      carries an <code>interactions</code> object built from
+                      TripSit combination guidance, which keeps TripSit&apos;s
+                      terms (section 4). Strip or separately license that field
+                      before commercial reuse. CC0 grants no rights to external
+                      sources cited by articles.
                     </td>
                   </tr>
                   <tr className="align-top">
@@ -342,9 +346,11 @@ export default function DocsLicensePage() {
                     </td>
                     <td className="p-3">
                       Images, videos, and audio that recreate subjective effects
-                      remain owned by their original creators or rightsholders
-                      unless an item-specific license says otherwise. dose.wiki
-                      displays and credits them; it does not relicense them.
+                      remain owned by their original creators or rightsholders.
+                      No open license covers them and none is CC0; reuse is the
+                      artist&apos;s call unless an individual item states its own
+                      license. dose.wiki displays and credits them; it does not
+                      relicense them.
                     </td>
                   </tr>
                   <tr className="align-top">
@@ -484,17 +490,21 @@ export default function DocsLicensePage() {
           <p className={`${PROSE_CLASS} mt-4`}>
             The CC0 release covers dose.wiki&apos;s own copyrightable
             contributions. The rest of this page calls these the{" "}
-            <strong>covered material</strong>. The covered material is:
+            <strong>covered material</strong>.
           </p>
-          <ul className={`${LIST_CLASS} mt-4 max-w-[68ch] list-disc pl-5`}>
-            <li>Original article prose.</li>
-            <li>The dataset compilation and the schema design.</li>
-            <li>Normalization work.</li>
-            <li>Generated molecule assets.</li>
-            <li>
-              Report-form submissions whose contributors accepted CC0 terms.
-            </li>
-          </ul>
+
+          <ContentCard className="mt-6" padding="md">
+            <div className={CARD_LABEL_CLASS}>Covered material</div>
+            <ul className={`${LIST_CLASS} list-disc pl-5`}>
+              <li>Original article prose.</li>
+              <li>The dataset compilation and the schema design.</li>
+              <li>Normalization work.</li>
+              <li>Generated molecule assets.</li>
+              <li>
+                Report-form submissions whose contributors accepted CC0 terms.
+              </li>
+            </ul>
+          </ContentCard>
 
           <ContentCard className="mt-6" padding="md">
             <div className={CARD_LABEL_CLASS}>You can</div>
@@ -545,8 +555,8 @@ export default function DocsLicensePage() {
           </h2>
 
           <p className={`${PROSE_CLASS} mt-4`}>
-            Five <strong>carve-outs</strong> sit outside the covered material.
-            This section is the authoritative statement of their terms.
+            Five <strong>carve-outs</strong> do not inherit the blanket CC0
+            release. This section is the authoritative statement of their terms.
           </p>
 
           <Surface
@@ -591,15 +601,18 @@ export default function DocsLicensePage() {
             </div>
 
             <div className={ROW_ITEM_CLASS}>
-              <div className={CARD_LABEL_CLASS}>Replication media</div>
+              <div className={CARD_LABEL_CLASS}>Subjective-effect replication media</div>
               <div>
                 <p className={CARD_TITLE_CLASS}>
                   Rights stay with the creator or rightsholder.
                 </p>
                 <p className={PANEL_PROSE_CLASS}>
-                  dose.wiki credits subjective-effect replication images,
-                  videos, and audio to their creators when known. Reuse is
-                  item-specific. The full terms, provenance notes, and the
+                  No subjective-effect replication image, video, or audio file is
+                  open-licensed, and none of it is CC0. Reuse is entirely the
+                  creator&apos;s or rightsholder&apos;s call, item by item.
+                  dose.wiki credits them when known, and many items have no
+                  recorded rightsholder at all — treat those as unknown rather
+                  than free. The full terms, provenance notes, and the
                   credit-correction route are in{" "}
                   <a
                     className={proseLinkClassName}
@@ -613,7 +626,7 @@ export default function DocsLicensePage() {
             </div>
 
             <div className={ROW_ITEM_CLASS}>
-              <div className={CARD_LABEL_CLASS}>Interactions from TripSit</div>
+              <div className={CARD_LABEL_CLASS}>Interaction ratings</div>
               <div>
                 <p className={PANEL_PROSE_CLASS}>
                   The combination ratings shown on dose.wiki come from{" "}
@@ -643,9 +656,7 @@ export default function DocsLicensePage() {
             </div>
 
             <div className={ROW_ITEM_CLASS}>
-              <div className={CARD_LABEL_CLASS}>
-                Reagent data from ProtestKit
-              </div>
+              <div className={CARD_LABEL_CLASS}>Reagent-test data</div>
               <div>
                 <p className={PANEL_PROSE_CLASS}>
                   Reagent color reactions are fetched from{" "}
@@ -668,10 +679,16 @@ export default function DocsLicensePage() {
 
           <Alert variant="warning" role="note" className="mt-5">
             <AlertDescription>
-              If you scrape full pages instead of using the downloadable
-              dataset, check your capture for interaction tables, reagent
-              data, replication media, and legacy reports. Those parts do not
-              inherit the dataset&apos;s CC0 terms.
+              The downloadable datasets are not uniformly CC0:{" "}
+              <code>SubstanceIndex.json</code> carries the TripSit{" "}
+              <code>interactions</code> field, and <code>EffectIndex.json</code>{" "}
+              carries the replication media it references — the{" "}
+              <code>audio_replications</code> entries plus the{" "}
+              <code>gallery_order</code> and <code>social_media_image</code>{" "}
+              image references — credited to their creators. If you scrape full
+              pages instead, also check your capture for reagent data,
+              replication media, and legacy reports.
+              None of those inherit CC0 terms.
             </AlertDescription>
           </Alert>
         </section>
@@ -685,9 +702,9 @@ export default function DocsLicensePage() {
           <p className={`${PROSE_CLASS} mt-4`}>
             Subjective-effects material has a longer and more distributed
             publication history than the rest of the dataset, and it reaches
-            dose.wiki by two separate paths. This section covers text and index
-            material. Replication media stays creator-retained, as section 4
-            states.
+            dose.wiki by several separate paths. This section covers text and
+            index material. Replication media stays creator-retained, as
+            section 4 states.
           </p>
 
           <p className={`${PROSE_CLASS} mt-4`}>
@@ -700,23 +717,35 @@ export default function DocsLicensePage() {
             >
               Josie Kins
             </a>
-            {"."} Josie Kins continued to develop it independently after
-            PsychonautWiki, including through Effect Index. dose.wiki includes
-            this index material in its CC0 release to the extent it reflects
-            Josie Kins / dose.wiki authorship.
+            {"."} She created it on her blog Disregard Everything I Say in 2011,
+            before PsychonautWiki existed, and continued to develop it
+            independently afterwards, including through Effect Index. dose.wiki
+            includes this index material in its CC0 release to the extent it
+            reflects Josie Kins / dose.wiki authorship.
           </p>
 
           <p className={`${PROSE_CLASS} mt-4`}>
             dose.wiki handles substance-article &quot;Subjective effects&quot;
-            sections separately. When dose.wiki restores these sections from
-            earlier PsychonautWiki versions, it works only from Internet
-            Archive captures dated on or before August&nbsp;31, 2016. It
-            includes only material that dose.wiki has a good-faith basis to
-            treat as Josie Kins&apos; own authorship. dose.wiki excludes
+            sections separately, and they are currently a mixture of two paths.
+            Where an earlier Josie Kins version exists, dose.wiki restores it,
+            working only from Internet Archive captures dated on or before
+            August&nbsp;31, 2016, and including only material it has a
+            good-faith basis to treat as her own authorship. It excludes
             contributions made after that boundary, and edits by others that it
             does not have the right to dedicate. The date is a rights boundary,
             not a measure of how current the information is. dose.wiki reviews
             and updates substance content independently of the boundary.
+          </p>
+
+          <p className={`${PROSE_CLASS} mt-4`}>
+            Where no such section exists, dose.wiki synthesizes one from source
+            material gathered across the internet, the same way it writes the
+            other article sections. Those runs exclude every project Josie Kins
+            was involved in — Disregard Everything I Say, PsychonautWiki, and
+            Effect Index — to avoid a conflict of interest. Synthesized sections
+            are dose.wiki&apos;s own authorship and fall under the covered
+            material. dose.wiki intends to replace these sections entirely with
+            Mindstate Design Labs data.
           </p>
 
           <p className={`${PROSE_CLASS} mt-4`}>
@@ -736,7 +765,7 @@ export default function DocsLicensePage() {
                 All {SUBJECTIVE_EFFECT_ATTRIBUTION_TOTAL} of{" "}
                 {SUBJECTIVE_EFFECT_ATTRIBUTION_TOTAL} are August 2016 or earlier{" "}
                 <span className="theme-text-faint font-normal">
-                  &mdash; 100% inside the boundary.
+                  &mdash; inside the boundary.
                 </span>
               </p>
 
@@ -816,7 +845,7 @@ export default function DocsLicensePage() {
               <div>
                 <p className={CARD_TITLE_CLASS}>Disregard Everything I Say</p>
                 <p className="theme-text-muted text-sm leading-6">
-                  Early effect documentation.
+                  Where the Subjective Effect Index began.
                 </p>
               </div>
             </div>
@@ -910,7 +939,7 @@ export default function DocsLicensePage() {
 
           <p className={`${PROSE_CLASS} mt-4`}>
             If you choose to credit dose.wiki, or need to keep third-party data
-            and media labels clear, these examples are safe starting points.
+            and media labels clear, these examples are ready to copy.
           </p>
 
           <div className="mt-5 grid gap-x-4 gap-y-5 md:grid-cols-2">
@@ -929,7 +958,7 @@ released under CC0 1.0.`}
               </div>
               <pre className={PRE_CLASS}>
                 {`Includes CC0 material from dose.wiki.
-Interaction data from TripSit (combo.tripsit.me).
+Interaction ratings from TripSit (combo.tripsit.me).
 See TripSit's terms before commercial reuse.`}
               </pre>
             </div>
@@ -1026,10 +1055,15 @@ SOFTWARE.`}</pre>
             <p className={PROSE_CLASS}>
               Subjective-effect replication images, videos, and audio remain
               owned by the original creator or rightsholder unless an
-              individual file states a different license. dose.wiki&apos;s
-              default policy is to credit the creator when known, preserve
-              source links when available, and treat reuse rights as
-              item-specific.
+              individual file states a different license. None of this library
+              is open-licensed and no part of it is included in the CC0
+              dedication. dose.wiki&apos;s default policy is to credit the
+              creator when known, preserve source links when available, and
+              treat reuse rights as the rightsholder&apos;s to grant. The
+              public replications API reports a rights status per item —
+              explicit license, creator-retained, or unknown — so check the
+              item itself rather than assuming any dataset&apos;s terms carry
+              over.
             </p>
             <p className={`${PROSE_CLASS} mt-3`}>
               Much of this library was originally published on{" "}
