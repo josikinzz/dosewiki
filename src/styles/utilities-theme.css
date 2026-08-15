@@ -4483,10 +4483,9 @@
   }
 
   /* Seam between the darkened label surface and the bright spectrum bar. The
-     bar always sits to the right of the reagent name (sharing its row in
-     narrow containers, spanning the full row height at 36rem+), so the label's
-     former right-edge highlight + drop shadow now live as insets on the bar's
-     left edge — one orientation covers both layouts. */
+     bar sits to the right of the reagent name and spans the full row height,
+     so the label's former right-edge highlight + drop shadow live as insets on
+     the bar's left edge. */
   .theme-reagent-swatch .reagent-spectrum-panel {
     box-shadow: var(--theme-reagent-swatch-spectrum-seam-shadow);
   }
@@ -4519,14 +4518,7 @@
     color: color-mix(in srgb, rgb(255 255 255) 72%, var(--theme-body-bg)) !important;
   }
 
-  .reagent-label-description,
-  .reagent-label-description-strong {
-    color: var(--theme-text-secondary) !important;
-  }
-
-  .reagent-label-panel :is(.reagent-label-description, .reagent-label-description-strong) {
-    color: color-mix(in srgb, rgb(255 255 255) 82%, var(--theme-body-bg)) !important;
-  }
+  /* Only the in-bar "No reaction" label remains as description text. */
 
   .reagent-label-description-muted {
     color: var(--theme-text-muted) !important;

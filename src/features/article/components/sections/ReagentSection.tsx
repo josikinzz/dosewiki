@@ -57,11 +57,11 @@ function getReagentShortCode(name: string): string {
 }
 
 /**
- * Single reagent result row - gradient bar design matching ReagentTestingSection.
- * A two-column grid: the reagent name and the spectrum bar share the first row,
- * with the result description spanning the full width beneath — compact in
- * narrow containers. From 36rem container width the bar spans both rows so the
- * classic side-by-side label/spectrum layout returns.
+ * Single reagent result row: reagent name on a darkened label surface, colour
+ * spectrum bar filling the rest of the row. The raw colour sequence is not
+ * rendered visually — it stays in the DOM as screen-reader text so the
+ * spectrum is not the only carrier of the result. The name column hugs the
+ * name + abbreviation, so the bar takes every remaining pixel.
  */
 function ReagentRow({
   reagent,
@@ -81,36 +81,31 @@ function ReagentRow({
 
   return (
     <article
-      className="theme-reagent-swatch reagent-label-panel relative grid grid-cols-[auto_minmax(0,1fr)] overflow-hidden rounded-xl transition hover:ring-1 hover:ring-dose-accent-muted @xl:h-12 @xl:grid-rows-[1fr_1fr]"
+      className="theme-reagent-swatch reagent-label-panel relative grid h-11 grid-cols-[max-content_minmax(0,1fr)] overflow-hidden rounded-xl transition hover:ring-1 hover:ring-dose-accent-muted @xl:h-12"
       style={{
         background: darkenedGradient,
       }}
     >
       {/* Glassmorphic overlay for the darkened label surface */}
       <div className="theme-reagent-swatch-label-layer pointer-events-none absolute inset-0" />
-      <span className="reagent-label-title relative z-10 self-center px-4 pt-0.5 pb-0.5 text-xs font-semibold leading-tight drop-shadow-[0_2px_4px_rgba(0,0,0,1)] @xl:self-end @xl:py-0 @xl:text-sm">
+      <span className="reagent-label-title relative z-10 flex items-center gap-1.5 whitespace-nowrap px-4 text-xs font-semibold leading-tight drop-shadow-[0_2px_4px_rgba(0,0,0,1)] @xl:text-sm">
         {capitalizeReagent(reagent)}
-        <span className="reagent-label-code ml-1 font-normal @xl:ml-1.5">
-          ({shortCode})
-        </span>
+        <span className="reagent-label-code font-normal">({shortCode})</span>
       </span>
-      {/* Spectrum bar - bright gradient; shares the name row, full height at @xl */}
+      {/* Spectrum bar - bright gradient, full row height */}
       <div
-        className="reagent-spectrum-panel relative z-10 min-h-6 @xl:row-span-2 @xl:min-h-0"
+        className="reagent-spectrum-panel relative z-10 flex items-center justify-center"
         style={{ background: gradient }}
       >
         {/* Glassmorphic overlay for depth on spectrum */}
         <div className="theme-reagent-swatch-spectrum-layer pointer-events-none absolute inset-0" />
+        {isNoReaction ? (
+          <span className="reagent-label-description-muted relative z-10 text-[0.6875rem] font-medium uppercase tracking-[0.08em] drop-shadow-[0_2px_4px_rgba(0,0,0,1)]">
+            No reaction
+          </span>
+        ) : null}
       </div>
-      <span
-        className={`reagent-label-description relative z-10 col-span-2 px-4 pb-1 text-[0.6875rem] leading-tight drop-shadow-[0_2px_4px_rgba(0,0,0,1)] @xl:col-span-1 @xl:self-start @xl:pb-0 ${
-          isNoReaction
-            ? "reagent-label-description-muted"
-            : "reagent-label-description-strong"
-        }`}
-      >
-        {description}
-      </span>
+      <span className="sr-only">{description}</span>
     </article>
   );
 }
