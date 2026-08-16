@@ -384,7 +384,7 @@ export function HomeExperience({
                   {copy?.constructionTitle || "Under construction"}
                 </span>
                 <span className="mt-1 text-sm font-semibold italic normal-case tracking-wide sm:text-base">
-                  {copy?.constructionSubtitle || "coming soon, summer 2026 ;3"}
+                  {copy?.constructionSubtitle || "coming soon, August 31st 2026 ;3"}
                 </span>
               </span>
               <Icon icon="lucide:triangle-alert" size={24} className="theme-home-construction-icon theme-home-construction-icon-delay" />
