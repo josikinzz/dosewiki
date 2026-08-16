@@ -37,10 +37,12 @@ import {
 } from "@server/convex/publicLibrary";
 import { getMoleculeUpdatedAt, moleculeOverrideImageUrl } from "@server/convex/publicData.molecules";
 import { getCachedReagentDataForArticle } from "@server/reagentData";
+import { getWarningBannerPresets } from "./warningBanners";
 import {
   effectMatchesCategorySlug,
   getEffectCategoryDefinition,
 } from "../../src/data/effectCategoryDefinitions";
+import { resolveEnabledBanners } from "../../src/data/substanceWarningBanners";
 import { ProfileBioMarkdown } from "../../src/components/pages/ProfileBioMarkdown";
 import type { UserProfileEditorNote } from "../../src/components/pages/UserProfilePage";
 import {
@@ -198,6 +200,7 @@ export const loadSubstanceRoute = cache(async (slug: string): Promise<SubstanceR
     contributorDirectory,
     externalReagentData,
     relatedTripReports,
+    warningBannerPresets,
   ] = await Promise.all([
     getPublicContributorByKey("JOSIE"),
     getPublicContributorByKey("LYREA"),
@@ -207,11 +210,27 @@ export const loadSubstanceRoute = cache(async (slug: string): Promise<SubstanceR
     // Cached alongside the streamed Trip Reports section's own call; resolved
     // here too so the table of contents knows whether the section will render.
     getPublicReportsBySubstanceNames(getSubstanceSearchNames(substance)),
+    // Every preset, enabled or not; the slug filter happens below. Returns []
+    // on any failure, so a Convex outage drops banners rather than the article.
+    getWarningBannerPresets(),
   ]);
 
   const moleculeOverrideUrl = moleculeUpdatedAt
     ? moleculeOverrideImageUrl(slug, moleculeUpdatedAt)
     : null;
+
+  // The one place a banner becomes visible on this article, and it is given a
+  // slug rather than the substance's classification — there is deliberately no
+  // route from `substance.classification` to a rendered warning. Class matchers
+  // are a suggestion inside /dev/banners and nothing more.
+  //
+  // `src/app/[slug]/page.tsx` is `revalidate = 3600, dynamicParams = false`, so
+  // flipping `enabledSlugs` only reaches readers after ISR unless the write
+  // route revalidates explicitly. That is why `/api/dev/warning-banner`
+  // revalidates slugs *removed* from `enabledSlugs` as well as added ones:
+  // otherwise switching a banner off would leave the warning cached on the
+  // article it was just taken off for up to an hour.
+  const warningBanners = resolveEnabledBanners(warningBannerPresets, slug);
 
   const viewModel = buildSubstanceArticleViewModel({
     slug,
@@ -226,6 +245,7 @@ export const loadSubstanceRoute = cache(async (slug: string): Promise<SubstanceR
     hasRelatedTripReports: relatedTripReports.some((report) =>
       reportMatchesSubstance(report, substance),
     ),
+    warningBanners,
   });
 
   return {

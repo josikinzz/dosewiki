@@ -105,16 +105,19 @@ export function useDevChromeEnvironment({
 
   /**
    * The toolbar spans the viewport on every tab, but the tools below it do not.
-   * Only the three surfaces drawn for edge-to-edge space keep the whole width:
-   * the Index layout board, the Replication Studio (rail + grid + drawer), and
-   * the Trip Report Portal (rail + list + editor). The Review workbench is its
-   * own route (`/review`) and sets its own width. Every other tool is a form
+   * Only the surfaces drawn for edge-to-edge space keep the whole width: the
+   * Index layout board, the Replication Studio (rail + grid + drawer), the Trip
+   * Report Portal (rail + list + editor), and the Banner Studio, whose Presets
+   * table carries six columns beside a two-column drawer and whose Coverage view
+   * is a 300px substance rail plus a fluid detail column. The Review workbench is
+   * its own route (`/review`) and sets its own width. Every other tool is a form
    * stack that reads badly when stretched, so it goes back to the 6xl column.
    */
   const contentWrapperClass = useMemo(() => {
     const isFullBleedTool =
       activeTab === "index-layout" ||
       activeTab === "replications" ||
+      activeTab === "banners" ||
       activeTab === "trip-report-submissions";
 
     return isFullBleedTool ? "mt-6 w-full" : "mx-auto mt-6 w-full max-w-6xl";

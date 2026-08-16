@@ -10,6 +10,7 @@ import type { SubstanceArticle } from "@/schema";
 import type { SubstanceContent } from "@/types/content";
 import type { TripReport } from "@/types/tripReport";
 import type { NormalizedReagentData } from "@/lib/reagentTesting";
+import type { WarningBannerPreset } from "@/data/substanceWarningBanners";
 import { ArticleLayout } from "../components/ArticleLayout";
 import type { ContributorAvatarMap } from "../components/sections/ContributorsSection";
 import type { ContributorDirectory } from "@server/contributorDirectory";
@@ -25,6 +26,8 @@ interface SubstanceArticlePageProps {
   contributorAvatars?: ContributorAvatarMap;
   contributorDirectory?: ContributorDirectory;
   externalReagentData?: NormalizedReagentData | null;
+  /** Resolved for this slug by `resolveEnabledBanners`; absent means none. */
+  warningBanners?: WarningBannerPreset[];
 }
 
 export function SubstanceArticlePage({
@@ -38,6 +41,7 @@ export function SubstanceArticlePage({
   contributorAvatars,
   contributorDirectory,
   externalReagentData,
+  warningBanners,
 }: SubstanceArticlePageProps) {
   return (
     <main id="main-content" tabIndex={-1} className="theme-page-shell min-h-screen focus:outline-none">
@@ -52,6 +56,7 @@ export function SubstanceArticlePage({
         contributorAvatars={contributorAvatars}
         contributorDirectory={contributorDirectory}
         externalReagentData={externalReagentData}
+        warningBanners={warningBanners}
       />
     </main>
   );

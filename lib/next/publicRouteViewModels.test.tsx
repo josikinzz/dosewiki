@@ -110,6 +110,7 @@ describe("public route view models", () => {
       substance,
       tripReportsSection,
       hasRelatedTripReports: true,
+      warningBanners: [],
     });
 
     expect(viewModel.metadata).toEqual({
@@ -142,6 +143,7 @@ describe("public route view models", () => {
       substance,
       tripReportsSection: <section />,
       hasRelatedTripReports: false,
+      warningBanners: [],
     });
 
     expect(viewModel.metadata).toEqual({
@@ -169,6 +171,7 @@ describe("public route view models", () => {
       substance,
       tripReportsSection: <section />,
       hasRelatedTripReports: false,
+      warningBanners: [],
       moleculeOverrideUrl: "/api/molecules/fixtureamine?v=seeded",
     });
 

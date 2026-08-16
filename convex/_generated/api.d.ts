@@ -52,6 +52,7 @@ import type * as substanceIndex from "../substanceIndex.js";
 import type * as tripReportContract from "../tripReportContract.js";
 import type * as tripReportSubmissions from "../tripReportSubmissions.js";
 import type * as tripReports from "../tripReports.js";
+import type * as warningBanners from "../warningBanners.js";
 
 import type {
   ApiFromModules,
@@ -104,6 +105,7 @@ declare const fullApi: ApiFromModules<{
   tripReportContract: typeof tripReportContract;
   tripReportSubmissions: typeof tripReportSubmissions;
   tripReports: typeof tripReports;
+  warningBanners: typeof warningBanners;
 }>;
 
 /**

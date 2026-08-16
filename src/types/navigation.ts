@@ -14,6 +14,7 @@ export type DevTab =
   | "articles"
   | "molecule-editor"
   | "replications"
+  | "banners"
   | "review";
 
 export type AppView =

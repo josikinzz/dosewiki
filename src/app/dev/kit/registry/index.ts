@@ -12,6 +12,7 @@ import { inputStory } from "../stories/input.story";
 import { labelStory } from "../stories/label.story";
 import { motionCardStory } from "../stories/motion-card.story";
 import { popoverStory } from "../stories/popover.story";
+import { safetyBannerStory } from "../stories/safety-banner.story";
 import { selectStory } from "../stories/select.story";
 import { surfaceStory } from "../stories/surface.story";
 import { tabsStory } from "../stories/tabs.story";
@@ -83,6 +84,7 @@ export const stories: StoryDef[] = [
   labelStory,
   motionCardStory,
   popoverStory,
+  safetyBannerStory,
   selectStory,
   surfaceStory,
   tabsStory,

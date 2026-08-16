@@ -10,6 +10,7 @@ export * from "./input";
 export * from "./label";
 export * from "./motion-card";
 export * from "./popover";
+export * from "./safety-banner";
 export * from "./select";
 export * from "./surface";
 export * from "./tabs";

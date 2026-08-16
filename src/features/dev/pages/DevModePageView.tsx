@@ -53,6 +53,10 @@ const ReplicationStudioTab = dynamic(
   () => import("../tools/replication-studio/ReplicationStudioTab").then((m) => m.ReplicationStudioTab),
   { ssr: false, loading },
 );
+const WarningBannersTab = dynamic(
+  () => import("../tools/warning-banners/WarningBannersTab").then((m) => m.WarningBannersTab),
+  { ssr: false, loading },
+);
 const SubstanceEditorTab = dynamic(
   () => import("../tools/substance-editor/SubstanceEditorTab").then((m) => m.SubstanceEditorTab),
   { ssr: false, loading },
@@ -155,6 +159,8 @@ export function DevModePageView({ controller }: DevModePageViewProps) {
           <MoleculeEditorTab initialSlug={controller.moleculeEditorInitialSlug} />
         ) : controller.activeTab === "replications" ? (
           <ReplicationStudioTab initialSubstanceSlug={controller.replicationsInitialSlug} />
+        ) : controller.activeTab === "banners" ? (
+          <WarningBannersTab initialSubstanceSlug={controller.bannersInitialSlug} />
         ) : controller.activeTab === "articles" ? (
           <SubstanceEditorTab
             renderCommitPanel={controller.renderCommitPanel}

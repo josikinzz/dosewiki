@@ -5,6 +5,7 @@ import type { SubstanceArticle } from "@/schema";
 import type { MoleculeAsset, SubstanceContent } from "@/types/content";
 import type { TripReport } from "@/types/tripReport";
 import type { NormalizedReagentData } from "@/lib/reagentTesting";
+import type { WarningBannerPreset } from "@/data/substanceWarningBanners";
 import { HeroSection } from "./sections/HeroSection";
 import { DosageDurationSection } from "./sections/DosageDurationSection";
 import { SubjectiveEffectsSection } from "./sections/SubjectiveEffectsSection";
@@ -22,6 +23,7 @@ import { FeedbackSection } from "./sections/FeedbackSection";
 import { TripReportsSection } from "./sections/TripReportsSection";
 import { reportMatchesSubstance } from "@/features/reports/domain/tripReportIndex";
 import { ReviewStatusBanner } from "./sections/ReviewStatusBanner";
+import { SubstanceWarningBanners } from "./sections/SubstanceWarningBanners";
 import { TableOfContentsSection } from "./sections/TableOfContentsSection";
 
 export interface ArticleLayoutProps {
@@ -46,6 +48,13 @@ export interface ArticleLayoutProps {
   contributorAvatars?: ContributorAvatarMap;
   contributorDirectory?: ContributorDirectory;
   externalReagentData?: NormalizedReagentData | null;
+  /**
+   * Banners already resolved for this slug by `resolveEnabledBanners`
+   * (`src/data/substanceWarningBanners.ts`). Defaults to none so the review
+   * workbench and Generator previews, which mount this layout without a route
+   * loader, stay unbannered rather than guessing from classification.
+   */
+  warningBanners?: WarningBannerPreset[];
 }
 
 interface DeferredSectionProps {
@@ -87,6 +96,7 @@ export function ArticleLayout({
   contributorAvatars,
   contributorDirectory,
   externalReagentData,
+  warningBanners = [],
 }: ArticleLayoutProps) {
   // Credit hrefs resolve here rather than in the credit components: those are
   // client components, and handing them the directory would serialize every
@@ -157,6 +167,13 @@ export function ArticleLayout({
         avatarSrc={contributorAvatars?.lyrea}
         profileHref={creditHrefs.lyrea}
       />
+
+      {/* Opt-in drug-class safety banners: above the hero because a reader who
+          bounces at the fold must still have seen the warning, and outside
+          HeroSection so the hero keeps rendering byte-identically on the
+          overwhelming majority of articles that have none. Renders nothing when
+          the list is empty; spacing comes from StickyTocLayout's `gap-8`. */}
+      <SubstanceWarningBanners banners={warningBanners} />
 
       <HeroSection
         article={article}

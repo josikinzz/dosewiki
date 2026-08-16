@@ -88,11 +88,23 @@ const staticParams = vi.hoisted(() => ({
   getStaticMechanismQualifierParams: vi.fn(),
 }));
 
+/**
+ * `getWarningBannerPresets` wraps `unstable_cache`, which throws
+ * "Invariant: incrementalCache missing" outside a Next request context. Mocked
+ * like every other data dependency here; the resolver it feeds
+ * (`resolveEnabledBanners`) is covered directly in
+ * `src/data/substanceWarningBanners.test.ts`.
+ */
+const warningBanners = vi.hoisted(() => ({
+  getWarningBannerPresets: vi.fn(() => Promise.resolve([])),
+}));
+
 vi.mock("@server/convex/publicData", () => publicData);
 vi.mock("@server/convex/publicLibrary", () => publicLibrary);
 vi.mock("@server/convex/publicData.molecules", () => publicMolecules);
 vi.mock("@server/reagentData", () => reagentData);
 vi.mock("./staticParams", () => staticParams);
+vi.mock("./warningBanners", () => warningBanners);
 
 function buildContributorProfile(overrides: Partial<NormalizedUserProfile> = {}): NormalizedUserProfile {
   return {

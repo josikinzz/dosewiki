@@ -104,6 +104,14 @@ function resolveDevRoute(segments: string[] | undefined): { tab: DevTab; slug?: 
     return { tab: "replications", slug };
   }
 
+  // `/dev/warnings` is the wording an editor reaching for this from an article
+  // is likely to type; the tool itself is named Banners per the design brief's
+  // glossary (§8), so the alias resolves rather than falling through to the
+  // substance list.
+  if (candidateTab === "banners" || candidateTab === "warnings") {
+    return { tab: "banners", slug };
+  }
+
   if (candidateTab === "review") {
     return { tab: "review", slug };
   }

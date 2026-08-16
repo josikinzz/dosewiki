@@ -615,6 +615,45 @@ const effectIndexArchiveRecord = v.object({
   importedAt: v.number(),
 });
 
+// Drug-class safety banner presets. One document per preset; the shared pure
+// rules live in `src/data/substanceWarningBanners.ts` and are imported by both
+// `convex/warningBanners.ts` and the /dev Banner Studio.
+//
+// `enabled` and `enabledSlugs` are the ONLY render inputs: a preset shows on an
+// article iff `enabled === true` and `enabledSlugs` contains that slug. Nothing
+// is derived from a substance's classification — `candidateMatchers` is a
+// Studio-only suggestion input used to *find* articles an editor should look
+// at, never consulted by `resolveEnabledBanners`. Free-text class strings are
+// too noisy to assign safety copy (cocaine's `"Alkaloid (tropane)"` matches a
+// deliriant rule; DXM's `"Morphinan (substituted)"` matches an opioid rule),
+// so the opt-in is explicit and per-slug.
+//
+// Every string a reader sees is stored here, including `links[].label`: the
+// chip wording is editor-authored rather than derived from `sectionId` so an
+// editor can reword "Interactions" to "Check before mixing" without a deploy.
+// `WARNING_BANNER_SECTION_LABELS` is only the fallback for an empty label.
+const warningBannerPreset = v.object({
+  key: v.string(),
+  label: v.string(),
+  tone: v.union(v.literal("danger"), v.literal("unsafe"), v.literal("caution")),
+  icon: v.string(),
+  severityLabel: v.string(),
+  headline: v.string(),
+  points: v.array(v.string()),
+  links: v.array(
+    v.object({
+      label: v.string(),
+      sectionId: v.string(),
+    }),
+  ),
+  priority: v.number(),
+  enabled: v.boolean(),
+  enabledSlugs: v.array(v.string()),
+  candidateMatchers: v.array(v.string()),
+  updatedAt: v.string(),
+  updatedBy: v.optional(v.string()),
+});
+
 export default defineSchema({
   // Main substance index table - each document is a complete SubstanceArticle
   substanceIndex: defineTable(substanceArticle)
@@ -788,6 +827,10 @@ export default defineSchema({
   })
     .index("by_key", ["key"])
     .index("by_group", ["group"]),
+
+  // Drug-class safety banner presets; see the validator's note. Opt-in only:
+  // `enabled` plus an explicit `enabledSlugs` entry is the whole render rule.
+  warningBannerPresets: defineTable(warningBannerPreset).index("by_key", ["key"]),
 
   // Canonical molecule depictions for public substance/class pages and the /dev
   // Molecules editor. One document per slug. `svg` is the live brand-palette

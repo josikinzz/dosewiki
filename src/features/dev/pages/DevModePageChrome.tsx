@@ -29,6 +29,7 @@ const TOOL_TAB_ITEMS: ToolTabItem[] = [
   { id: "site-feedback", label: "Site feedback" },
   { id: "tag-editor", label: "Tags" },
   { id: "molecule-editor", label: "Molecules" },
+  { id: "banners", label: "Banners" },
   { id: "replications", label: "Replications" },
   { id: "writing", label: "Writing" },
   { id: "blog", label: "Blog" },

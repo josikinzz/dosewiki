@@ -227,6 +227,8 @@ export function parsePath(
           tab = "molecule-editor";
         } else if (candidate === "replications" || candidate === "replication-studio") {
           tab = "replications";
+        } else if (candidate === "banners" || candidate === "warnings") {
+          tab = "banners";
         } else if (candidate === "review") {
           tab = "review";
         } else if (candidate === "articles" || candidate === "generator" || candidate === "gen") {

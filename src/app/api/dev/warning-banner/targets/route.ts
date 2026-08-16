@@ -1,0 +1,64 @@
+/**
+ * Batched editor read for the Banner Studio's candidate finder and Coverage
+ * view (`/dev` → Banners).
+ *
+ *   GET /api/dev/warning-banner/targets → { ok, items }
+ *
+ * One response feeds both views: every substance slug with its title and its
+ * classification strings, which the Studio matches against a preset's
+ * `candidateMatchers` to *suggest* enablements. The suggestion never enables
+ * anything — `resolveEnabledBanners` in `src/data/substanceWarningBanners.ts`
+ * reads `enabledSlugs` and nothing else — so this endpoint stays a Studio input.
+ *
+ * The Convex side pages the article table (`listSubstanceTargetsPage`) to stay
+ * under its read limits; this route drains the cursor so the browser makes
+ * exactly one request. No `revalidatePath` here: this reads, and the public
+ * pages do not consume it.
+ */
+import { NextResponse } from "next/server";
+import { api } from "../../../../../../convex/_generated/api";
+import { protectedRouteOperation } from "@/lib/http/protectedRouteOperation";
+import type { WarningBannerTarget } from "@/features/dev/tools/warning-banners/warningBannerTargets";
+
+export const runtime = "nodejs";
+
+const PAGE_LIMIT = 200;
+/** Hard stop against a cursor that never reports done. */
+const MAX_PAGES = 100;
+
+export const GET = protectedRouteOperation({
+  auth: "editor",
+  rateLimit: "diagnosticRead",
+  // Read-only, but the Convex query is admin-gated like every corpus walk, and
+  // the browser holds no token — the capability is what supplies one here.
+  capabilities: [{ type: "convexWrite" }],
+  unexpectedErrorLabel: "Failed to load the warning banner substance targets via Next route:",
+  unexpectedErrorMessage: "Unable to load the substance list right now.",
+  operation: async ({ convexWrite }) => {
+    if (!convexWrite) {
+      throw new Error("Convex write capability is required.");
+    }
+
+    const apiKey =
+      convexWrite.getAdminIntentToken?.("editorArticleWrite") ?? convexWrite.adminKey;
+
+    const items: WarningBannerTarget[] = [];
+    let cursor: string | undefined;
+    for (let pages = 0; pages < MAX_PAGES; pages += 1) {
+      const page = (await convexWrite.client.query(api.warningBanners.listSubstanceTargetsPage, {
+        apiKey,
+        cursor,
+        limit: PAGE_LIMIT,
+      })) as { items: WarningBannerTarget[]; cursor: string; isDone: boolean };
+      items.push(...page.items);
+      if (page.isDone) {
+        break;
+      }
+      cursor = page.cursor;
+    }
+
+    items.sort((a, b) => a.title.localeCompare(b.title));
+
+    return NextResponse.json({ ok: true, items });
+  },
+});

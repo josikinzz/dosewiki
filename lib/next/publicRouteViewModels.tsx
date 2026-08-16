@@ -25,6 +25,7 @@ import { toTripReportPreviewModel } from "../../src/features/reports/domain/trip
 import type { SubstanceArticle } from "../../src/schema";
 import type { MoleculeAsset, SubstanceContent } from "../../src/types/content";
 import type { NormalizedReagentData } from "../../src/types/reagent";
+import type { WarningBannerPreset } from "../../src/data/substanceWarningBanners";
 import type { ReportCardModel } from "../../src/types/tripReport";
 import type {
   PublicEffectPreview,
@@ -128,6 +129,7 @@ export interface SubstanceArticleViewModel {
     contributorAvatars?: ContributorAvatarMap;
     contributorDirectory: ContributorDirectory;
     externalReagentData?: NormalizedReagentData | null;
+    warningBanners: WarningBannerPreset[];
   };
 }
 
@@ -211,6 +213,12 @@ export function buildSubstanceArticleViewModel(input: {
   moleculeOverrideUrl?: string | null;
   externalReagentData?: NormalizedReagentData | null;
   hasRelatedTripReports: boolean;
+  /**
+   * Already narrowed to this slug by `resolveEnabledBanners`. Required, not
+   * defaulted: a caller that forgets it should fail to compile rather than
+   * silently publish an article missing a safety banner an editor switched on.
+   */
+  warningBanners: WarningBannerPreset[];
 }): SubstanceArticleViewModel {
   const { slug: _resolvedSlug, ...article } = input.substance;
   const publicArticle = article as SubstanceArticle;
@@ -246,6 +254,7 @@ export function buildSubstanceArticleViewModel(input: {
       contributorAvatars: input.contributorAvatars,
       contributorDirectory: input.contributorDirectory ?? [],
       externalReagentData: input.externalReagentData,
+      warningBanners: input.warningBanners,
     },
   };
 }

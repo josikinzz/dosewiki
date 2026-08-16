@@ -251,7 +251,10 @@
       "warning-border": "var(--theme-warning-border)",
       "warning-border-strong": "var(--theme-warning-border-strong)",
       "warning-strong": "var(--theme-warning-text-strong)",
-      "danger": "var(--theme-danger-text)"
+      "danger": "var(--theme-danger-text)",
+      "danger-badge": "var(--theme-semantic-danger-badge-text)",
+      "unsafe-badge": "var(--theme-semantic-unsafe-badge-text)",
+      "caution-badge": "var(--theme-semantic-caution-badge-text)"
     }
   }
 }

@@ -14,4 +14,5 @@ export const PUBLIC_CONVEX_CACHE_TAGS = {
   about: "convex-public:about",
   layouts: "convex-public:layouts",
   copy: "convex-public:copy",
+  banners: "convex-public:banners",
 } as const;

@@ -294,6 +294,7 @@ export function useDevModePageController({
     citationReviewInitialSlug: initialArticleSlug,
     moleculeEditorInitialSlug: initialArticleSlug,
     replicationsInitialSlug: initialArticleSlug,
+    bannersInitialSlug: initialArticleSlug,
     writingInitialSlug: initialArticleSlug,
     profileTabProps,
     aboutTabProps,
