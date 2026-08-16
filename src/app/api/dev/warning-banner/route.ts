@@ -2,9 +2,8 @@
  * Editor write endpoint for one drug-class safety banner preset (the /dev
  * Banner Studio).
  *
- *   POST   /api/dev/warning-banner   { key, label, tone, icon, severityLabel,
- *                                      headline, points, links, priority,
- *                                      enabled, enabledSlugs, candidateMatchers }
+ *   POST   /api/dev/warning-banner   { key, tone, icon, severityLabel,
+ *                                      headline, points, enabled, enabledSlugs }
  *   DELETE /api/dev/warning-banner   { key }
  *
  * The browser holds no admin intent token, so the write is delegated here: the
@@ -23,16 +22,12 @@ import { PUBLIC_CONVEX_CACHE_TAGS } from "@server/convex/publicData";
 import { JsonBodyError } from "@/lib/http/readJsonBody";
 import { protectedRouteOperation } from "@/lib/http/protectedRouteOperation";
 import {
-  isWarningBannerLinkSection,
   isWarningBannerTone,
   normalizeEnabledSlugs,
-  normalizeLinks,
-  normalizeMatchers,
   WARNING_BANNER_ICON_PATTERN,
   WARNING_BANNER_KEY_PATTERN,
   WARNING_BANNER_LIMITS,
   WARNING_BANNER_TONES,
-  type WarningBannerLink,
   type WarningBannerTone,
 } from "@/data/substanceWarningBanners";
 
@@ -40,32 +35,24 @@ export const runtime = "nodejs";
 
 type WarningBannerBody = {
   key?: unknown;
-  label?: unknown;
   tone?: unknown;
   icon?: unknown;
   severityLabel?: unknown;
   headline?: unknown;
   points?: unknown;
-  links?: unknown;
-  priority?: unknown;
   enabled?: unknown;
   enabledSlugs?: unknown;
-  candidateMatchers?: unknown;
 };
 
 type ParsedWarningBanner = {
   key: string;
-  label: string;
   tone: WarningBannerTone;
   icon: string;
   severityLabel: string;
   headline: string;
   points: string[];
-  links: WarningBannerLink[];
-  priority: number;
   enabled: boolean;
   enabledSlugs: string[];
-  candidateMatchers: string[];
 };
 
 function requireKey(raw: unknown): string {
@@ -151,7 +138,7 @@ function requireStringList(
 function parseWarningBannerBody(raw: WarningBannerBody): ParsedWarningBanner {
   const key = requireKey(raw.key);
 
-  const { tone, enabled, priority } = raw;
+  const { tone, enabled } = raw;
   if (!isWarningBannerTone(tone)) {
     throw new JsonBodyError(
       400,
@@ -174,42 +161,6 @@ function parseWarningBannerBody(raw: WarningBannerBody): ParsedWarningBanner {
     );
   }
 
-  if (typeof priority !== "number" || !Number.isFinite(priority)) {
-    throw new JsonBodyError(
-      400,
-      "The priority must be a finite number. It breaks ties between two banners of the same tone on one article.",
-    );
-  }
-
-  if (raw.links !== undefined && !Array.isArray(raw.links)) {
-    throw new JsonBodyError(400, "The links must be an array.");
-  }
-  const rawLinks: unknown[] = Array.isArray(raw.links) ? raw.links : [];
-  if (rawLinks.length > WARNING_BANNER_LIMITS.maxLinks) {
-    throw new JsonBodyError(
-      400,
-      `The banner carries ${rawLinks.length} links; the limit is ${WARNING_BANNER_LIMITS.maxLinks}. Drop the least useful chips.`,
-    );
-  }
-  const links: WarningBannerLink[] = rawLinks.map((entry) => {
-    if (!entry || typeof entry !== "object" || Array.isArray(entry)) {
-      throw new JsonBodyError(400, "Each link must be an object with a label and a sectionId.");
-    }
-    const { label, sectionId } = entry as { label?: unknown; sectionId?: unknown };
-    if (!isWarningBannerLinkSection(sectionId)) {
-      throw new JsonBodyError(
-        400,
-        `A link points at "${String(sectionId)}", which is not a section anchor this site renders. A chip that scrolls nowhere is worse than no chip — pick a known section.`,
-      );
-    }
-    return {
-      sectionId,
-      // Chip text is editor-authored free text; `normalizeLinks` supplies the
-      // suggested wording only when the editor left it blank on purpose.
-      label: requireLinkLabel(label, sectionId),
-    };
-  });
-
   const enabledSlugs = requireStringList(
     raw.enabledSlugs,
     "The enabled slug list",
@@ -219,7 +170,6 @@ function parseWarningBannerBody(raw: WarningBannerBody): ParsedWarningBanner {
 
   return {
     key,
-    label: requireText(raw.label, "The preset label", WARNING_BANNER_LIMITS.labelMaxLength),
     tone,
     icon,
     severityLabel: requireText(
@@ -234,40 +184,9 @@ function parseWarningBannerBody(raw: WarningBannerBody): ParsedWarningBanner {
       WARNING_BANNER_LIMITS.maxPoints,
       WARNING_BANNER_LIMITS.pointMaxLength,
     ),
-    links: normalizeLinks(links),
-    priority,
     enabled,
     enabledSlugs: normalizeEnabledSlugs(enabledSlugs),
-    candidateMatchers: normalizeMatchers(
-      requireStringList(
-        raw.candidateMatchers,
-        "The matcher list",
-        WARNING_BANNER_LIMITS.maxMatchers,
-        WARNING_BANNER_LIMITS.matcherMaxLength,
-      ),
-    ),
   };
-}
-
-/**
- * A blank chip label is allowed through as `""` so `normalizeLinks` can supply
- * the suggested wording; only a non-string or an over-long one is a rejection.
- */
-function requireLinkLabel(raw: unknown, sectionId: string): string {
-  if (raw === undefined || raw === null) {
-    return "";
-  }
-  if (typeof raw !== "string") {
-    throw new JsonBodyError(400, `The label on the ${sectionId} link must be text.`);
-  }
-  const value = raw.replace(/\s+/g, " ").trim();
-  if (value.length > WARNING_BANNER_LIMITS.linkLabelMaxLength) {
-    throw new JsonBodyError(
-      400,
-      `The label on the ${sectionId} link is ${value.length} characters; the limit is ${WARNING_BANNER_LIMITS.linkLabelMaxLength}. Chips sit on one line beside each other, so long labels wrap the banner.`,
-    );
-  }
-  return value;
 }
 
 export const POST = protectedRouteOperation<WarningBannerBody, ParsedWarningBanner>({
@@ -292,17 +211,13 @@ export const POST = protectedRouteOperation<WarningBannerBody, ParsedWarningBann
       apiKey,
       actorEmail,
       key: body.key,
-      label: body.label,
       tone: body.tone,
       icon: body.icon,
       severityLabel: body.severityLabel,
       headline: body.headline,
       points: body.points,
-      links: body.links,
-      priority: body.priority,
       enabled: body.enabled,
       enabledSlugs: body.enabledSlugs,
-      candidateMatchers: body.candidateMatchers,
       updatedBy: actorEmail,
     });
 

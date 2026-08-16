@@ -9,11 +9,8 @@ import {
 } from "../convex/publicData.cache";
 import { queryConvex } from "../convex/serverClient";
 import {
-  isWarningBannerLinkSection,
   isWarningBannerTone,
   normalizeEnabledSlugs,
-  normalizeLinks,
-  type WarningBannerLink,
   type WarningBannerPreset,
 } from "../../src/data/substanceWarningBanners";
 
@@ -65,11 +62,10 @@ function parseWarningBannerPreset(raw: unknown): WarningBannerPreset | null {
     return null;
   }
 
-  const { key, label, icon, severityLabel, headline, tone } = raw;
+  const { key, icon, severityLabel, headline, tone } = raw;
   if (
     typeof key !== "string" ||
     key.length === 0 ||
-    typeof label !== "string" ||
     typeof icon !== "string" ||
     icon.length === 0 ||
     typeof severityLabel !== "string" ||
@@ -81,28 +77,13 @@ function parseWarningBannerPreset(raw: unknown): WarningBannerPreset | null {
     return null;
   }
 
-  const rawLinks: unknown[] = Array.isArray(raw.links) ? raw.links : [];
-  const links: WarningBannerLink[] = rawLinks.flatMap((entry) => {
-    if (!isRecord(entry) || typeof entry.label !== "string") {
-      return [];
-    }
-    // `normalizeLinks` also drops unknown targets, but narrowing here keeps the
-    // array typed without a cast through `WarningBannerLink`.
-    return isWarningBannerLinkSection(entry.sectionId)
-      ? [{ label: entry.label, sectionId: entry.sectionId }]
-      : [];
-  });
-
   return {
     key,
-    label,
     tone,
     icon,
     severityLabel,
     headline,
     points: readStringArray(raw.points),
-    links: normalizeLinks(links),
-    priority: typeof raw.priority === "number" && Number.isFinite(raw.priority) ? raw.priority : 0,
     enabled: raw.enabled === true,
     // `matchingPresets` compares against a trimmed, lower-cased slug, so a row
     // written by anything other than `src/app/api/dev/warning-banner/route.ts`
@@ -110,7 +91,6 @@ function parseWarningBannerPreset(raw: unknown): WarningBannerPreset | null {
     // normalizer the write path uses runs here; it only trims, lower-cases, and
     // dedupes, so it can never add a slug the editor did not name.
     enabledSlugs: normalizeEnabledSlugs(readStringArray(raw.enabledSlugs)),
-    candidateMatchers: readStringArray(raw.candidateMatchers),
   };
 }
 

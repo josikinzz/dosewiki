@@ -3,15 +3,12 @@ import { mutation, query, type QueryCtx } from "./_generated/server";
 import { requireAuth, requireEditorWrite } from "./lib/auth";
 import {
   classSourceFromSubstanceDocument,
-  isWarningBannerLinkSection,
   normalizeEnabledSlugs,
-  normalizeLinks,
-  normalizeMatchers,
+  substanceClassValues,
   MAX_ENABLED_SLUGS,
   WARNING_BANNER_ICON_PATTERN,
   WARNING_BANNER_KEY_PATTERN,
   WARNING_BANNER_LIMITS,
-  type WarningBannerLink,
 } from "../src/data/substanceWarningBanners";
 
 /**
@@ -41,30 +38,18 @@ const warningBannerToneValidator = v.union(
   v.literal("caution"),
 );
 
-// `sectionId` is stored as a plain string and checked against
-// `isWarningBannerLinkSection` on write: a preset saved before a section was
-// renamed must still load and be editable, not fail the read validator.
-const warningBannerLinkValidator = v.object({
-  label: v.string(),
-  sectionId: v.string(),
-});
-
 /** Mirrors the `warningBannerPresets` row shape in `convex/schema.ts`. */
 const warningBannerPresetDocValidator = v.object({
   _id: v.id("warningBannerPresets"),
   _creationTime: v.number(),
   key: v.string(),
-  label: v.string(),
   tone: warningBannerToneValidator,
   icon: v.string(),
   severityLabel: v.string(),
   headline: v.string(),
   points: v.array(v.string()),
-  links: v.array(warningBannerLinkValidator),
-  priority: v.number(),
   enabled: v.boolean(),
   enabledSlugs: v.array(v.string()),
-  candidateMatchers: v.array(v.string()),
   updatedAt: v.string(),
   updatedBy: v.optional(v.string()),
 });
@@ -84,18 +69,6 @@ async function uniqueSubstanceBySlug(ctx: QueryCtx, slug: string) {
     .withIndex("by_slug", (q) => q.eq("slug", slug))
     .take(2);
   return matches.length === 1 ? matches[0] : null;
-}
-
-/**
- * `classification` and `index_categories` are `v.any()` in `convex/schema.ts`,
- * so a legacy import can leave nulls or objects among the class strings. The
- * Studio's matcher preview prints these verbatim, so anything unprintable is
- * dropped here rather than shipped to the browser as a blank suggestion row.
- */
-function classStrings(values: readonly unknown[] | null | undefined): string[] {
-  return (values ?? []).filter(
-    (value): value is string => typeof value === "string" && value.trim().length > 0,
-  );
 }
 
 /**
@@ -119,15 +92,15 @@ const TARGET_MAX_PAGE_SIZE = 200;
 
 /**
  * One page of the Studio's substance picker: every substance with the class
- * strings a candidate matcher is tested against. Editorial read — it walks the
- * whole article table — so it takes the same maintenance intent as
+ * strings its search box can match on. Editorial read — it walks the whole
+ * article table — so it takes the same maintenance intent as
  * `substanceGalleries.listCurationCandidatesPage`. The caller (the batched Next
  * route) drains the cursor and answers the picker in one response.
  *
- * The class arrays are suggestion fuel only. `matcherHits` in
- * `src/data/substanceWarningBanners.ts` turns them into a reviewable "this
- * matcher hit this class" line in the Studio; no read path turns them into a
- * rendered banner.
+ * The class arrays are search fuel only, never stored on a preset:
+ * `searchWarningBannerTargets` in `src/data/substanceWarningBanners.ts` turns a
+ * typed word into a list an editor ticks, and ticking is the only thing that
+ * enables a banner.
  */
 export const listSubstanceTargetsPage = query({
   args: {
@@ -147,13 +120,7 @@ export const listSubstanceTargetsPage = query({
       numItems,
     });
 
-    const items: {
-      slug: string;
-      title: string;
-      psychoactiveClasses: string[];
-      chemicalClasses: string[];
-      indexCategories: string[];
-    }[] = [];
+    const items: { slug: string; title: string; classes: string[] }[] = [];
 
     for (const substance of page.page) {
       const slug = substance.slug?.trim();
@@ -164,14 +131,10 @@ export const listSubstanceTargetsPage = query({
         continue;
       }
 
-      const source = classSourceFromSubstanceDocument(substance);
-
       items.push({
         slug,
         title: substance.title,
-        psychoactiveClasses: classStrings(source.psychoactiveClasses),
-        chemicalClasses: classStrings(source.chemicalClasses),
-        indexCategories: classStrings(source.indexCategories),
+        classes: substanceClassValues(classSourceFromSubstanceDocument(substance)),
       });
     }
 
@@ -196,17 +159,13 @@ export const upsertPreset = mutation({
     apiKey: v.optional(v.string()),
     actorEmail: v.optional(v.string()),
     key: v.string(),
-    label: v.string(),
     tone: warningBannerToneValidator,
     icon: v.string(),
     severityLabel: v.string(),
     headline: v.string(),
     points: v.array(v.string()),
-    links: v.array(warningBannerLinkValidator),
-    priority: v.number(),
     enabled: v.boolean(),
     enabledSlugs: v.array(v.string()),
-    candidateMatchers: v.array(v.string()),
     updatedBy: v.optional(v.string()),
   },
   returns: v.object({
@@ -226,14 +185,6 @@ export const upsertPreset = mutation({
       reject(
         `A banner preset key must be lower-case kebab-case starting with a letter or digit; got "${args.key}".`,
       );
-    }
-
-    const label = args.label.replace(/\s+/g, " ").trim();
-    if (!label) {
-      reject("A banner preset needs a label (the Studio-facing name).");
-    }
-    if (label.length > WARNING_BANNER_LIMITS.labelMaxLength) {
-      reject(`A banner label must be ${WARNING_BANNER_LIMITS.labelMaxLength} characters or fewer.`);
     }
 
     const icon = args.icon.trim();
@@ -273,12 +224,6 @@ export const upsertPreset = mutation({
       );
     }
 
-    // `Number.isInteger` already rejects NaN and both infinities, so this is the
-    // whole finite-integer check the sort in `compareWarningBanners` relies on.
-    if (!Number.isInteger(args.priority)) {
-      reject(`A banner priority must be a whole number; got ${args.priority}.`);
-    }
-
     const points = args.points
       .map((point) => point.replace(/\s+/g, " ").trim())
       .filter((point) => point.length > 0);
@@ -290,42 +235,6 @@ export const upsertPreset = mutation({
         `Each banner point must be ${WARNING_BANNER_LIMITS.pointMaxLength} characters or fewer.`,
       );
     }
-
-    if (args.links.length > WARNING_BANNER_LIMITS.maxLinks) {
-      reject(`A banner may carry at most ${WARNING_BANNER_LIMITS.maxLinks} link chips.`);
-    }
-    const submittedLinks: WarningBannerLink[] = [];
-    for (const link of args.links) {
-      // Narrowed through a local so the guard survives the length check below.
-      const sectionId = link.sectionId;
-      if (!isWarningBannerLinkSection(sectionId)) {
-        reject(
-          `Banner link target "${sectionId}" is not an article section a banner may point at.`,
-        );
-      }
-      const linkLabel = link.label.replace(/\s+/g, " ").trim();
-      if (linkLabel.length > WARNING_BANNER_LIMITS.linkLabelMaxLength) {
-        reject(
-          `Banner link label "${linkLabel}" must be ${WARNING_BANNER_LIMITS.linkLabelMaxLength} characters or fewer.`,
-        );
-      }
-      submittedLinks.push({ label: linkLabel, sectionId });
-    }
-    const links = normalizeLinks(submittedLinks);
-
-    if (args.candidateMatchers.length > WARNING_BANNER_LIMITS.maxMatchers) {
-      reject(`A banner may hold at most ${WARNING_BANNER_LIMITS.maxMatchers} candidate matchers.`);
-    }
-    if (
-      args.candidateMatchers.some(
-        (matcher) => matcher.trim().length > WARNING_BANNER_LIMITS.matcherMaxLength,
-      )
-    ) {
-      reject(
-        `Each candidate matcher must be ${WARNING_BANNER_LIMITS.matcherMaxLength} characters or fewer.`,
-      );
-    }
-    const candidateMatchers = normalizeMatchers(args.candidateMatchers);
 
     // Checked before the per-slug lookups: a payload that can never be stored
     // should not cost the corpus a few hundred index reads first.
@@ -358,17 +267,13 @@ export const upsertPreset = mutation({
 
     const document = {
       key,
-      label,
       tone: args.tone,
       icon,
       severityLabel,
       headline,
       points,
-      links,
-      priority: args.priority,
       enabled: args.enabled,
       enabledSlugs,
-      candidateMatchers,
       updatedAt: new Date().toISOString(),
       updatedBy: args.updatedBy ?? actor.email,
     };

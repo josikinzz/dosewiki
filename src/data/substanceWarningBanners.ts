@@ -9,12 +9,11 @@
  * amount of future editing can quietly turn class matching back into an
  * assignment rule.
  *
- * `candidateMatchers` and `matcherHits` are the Studio's suggestion machinery.
- * They exist because free-form class strings are useful for *finding* articles
- * an editor should look at, and useless for deciding what a reader sees:
- * cocaine carries `chemical_class: "Alkaloid (tropane)"` and would match a
- * deliriant rule; DXM is a `"Morphinan (substituted)"` and would match an
- * opioid rule. Both are wrong, and neither is fixable by a better matcher.
+ * Class strings survive only inside `searchWarningBannerTargets`, which is how
+ * the Studio *finds* substances for an editor to tick. They are useful for
+ * search and useless for assignment: cocaine carries
+ * `chemical_class: "Alkaloid (tropane)"` and would match a deliriant rule; DXM
+ * is a `"Morphinan (substituted)"` and would match an opioid rule.
  *
  * Keep this module free of server-only imports: the Studio imports it in the
  * browser and `convex/warningBanners.ts` imports it on the server.
@@ -25,71 +24,34 @@ export const WARNING_BANNER_TONES = ["danger", "unsafe", "caution"] as const;
 export type WarningBannerTone = (typeof WARNING_BANNER_TONES)[number];
 
 /**
- * Anchor targets a banner link may point at. The *target* is constrained but the
- * link's *label* is free text (see `WarningBannerLink`): a banner must never be a
- * dead end, so the anchor has to resolve to a section the article actually
- * renders, while the wording stays the editor's to choose.
- */
-export const WARNING_BANNER_LINK_SECTIONS = [
-  "dosage",
-  "duration",
-  "interactions",
-  "harm-potential",
-  "pharmacology",
-  "tolerance",
-] as const;
-
-export type WarningBannerLinkSection = (typeof WARNING_BANNER_LINK_SECTIONS)[number];
-
-/** Suggested wording only. The editor overwrites `label` freely. */
-export const WARNING_BANNER_SECTION_LABELS: Record<WarningBannerLinkSection, string> = {
-  dosage: "Dosage",
-  duration: "Duration",
-  interactions: "Interactions",
-  "harm-potential": "Harm potential",
-  pharmacology: "Pharmacology",
-  tolerance: "Tolerance",
-};
-
-export type WarningBannerLink = {
-  /** Exact chip text. Editor-authored; never derived from `sectionId`. */
-  label: string;
-  sectionId: WarningBannerLinkSection;
-};
-
-/**
- * Every string and glyph a reader sees is a stored field on this object. Nothing
- * visible is derived, defaulted at render time, or looked up from a table in
- * code — an editor who wants different words or a different glyph edits the
- * preset, and does not need a deploy.
+ * Every string and glyph a reader sees is a stored field. Nothing visible is
+ * derived or looked up from a table in code, so rewording a banner is an edit,
+ * not a deploy.
+ *
+ * Deliberately small. A studio-facing `label`, a `priority` tiebreak, a
+ * `links` array, and stored `candidateMatchers` were all removed: three names
+ * for one banner and a sort key nobody could reason about were the bulk of the
+ * tool's clutter, and search does not need its inputs persisted.
  */
 export type WarningBannerPreset = {
+  /** Stored identity, kebab-case. Also the studio-facing name. */
   key: string;
-  /** Studio-facing name. Never rendered publicly. */
-  label: string;
   tone: WarningBannerTone;
-  /** Any Iconify id (`lucide:wind`, `mdi:skull`) or a `custom:` key. Editable. */
+  /** Any Iconify id (`lucide:skull`) or a `custom:` key. Editable. */
   icon: string;
-  /** Short gutter label, e.g. "Fatal combination". Editable, rendered uppercase. */
+  /** The chip word, e.g. "Danger". Editable, rendered uppercase. */
   severityLabel: string;
   headline: string;
+  /**
+   * One entry renders as a paragraph; several render as a list. Bullets are a
+   * consequence of writing more than one thing, never a requirement.
+   */
   points: string[];
-  links: WarningBannerLink[];
-  priority: number;
   /** Master switch. False means this preset renders nowhere. */
   enabled: boolean;
   /** Explicit opt-in. Empty means this preset renders nowhere. */
   enabledSlugs: string[];
-  /** Studio-only suggestion input. Never consulted when rendering. */
-  candidateMatchers: string[];
 };
-
-export function isWarningBannerLinkSection(value: unknown): value is WarningBannerLinkSection {
-  return (
-    typeof value === "string" &&
-    (WARNING_BANNER_LINK_SECTIONS as readonly string[]).includes(value)
-  );
-}
 
 /**
  * Two is a layout budget, not a safety opinion. Three stacked danger banners
@@ -112,19 +74,15 @@ export const WARNING_BANNER_KEY_PATTERN = /^[a-z0-9][a-z0-9-]*$/;
  * silently: `Icon` renders nothing at all, which on a safety banner would be an
  * invisible regression.
  */
-export const WARNING_BANNER_ICON_PATTERN = /^(?:custom:[a-z0-9-]+|[a-z0-9]+(?:-[a-z0-9]+)*:[a-z0-9]+(?:-[a-z0-9]+)*)$/;
+export const WARNING_BANNER_ICON_PATTERN =
+  /^(?:custom:[a-z0-9-]+|[a-z0-9]+(?:-[a-z0-9]+)*:[a-z0-9]+(?:-[a-z0-9]+)*)$/;
 
 export const WARNING_BANNER_LIMITS = {
-  labelMaxLength: 120,
   iconMaxLength: 64,
   severityLabelMaxLength: 40,
   headlineMaxLength: 120,
   pointMaxLength: 400,
   maxPoints: 8,
-  matcherMaxLength: 64,
-  maxMatchers: 24,
-  linkLabelMaxLength: 40,
-  maxLinks: 4,
   slugMaxLength: 120,
   maxEnabledSlugs: MAX_ENABLED_SLUGS,
 } as const;
@@ -154,28 +112,31 @@ type ClassSource = {
 };
 
 /**
- * Every string a matcher may be tested against, both paren-stripped and raw,
- * so a matcher can target either `alkaloid` or `alkaloid (tropane)`.
+ * Every class string on a substance, deduplicated, in original casing — the
+ * Studio prints the one that matched, so the reader-facing spelling is what
+ * has to survive.
  *
  * Defensive by design: Convex stores `classification` as `v.any()`, so the
  * Studio receives whatever is in the document rather than a parsed shape.
  */
-export function substanceClassTokens(source: ClassSource): string[] {
-  const raw = [
+export function substanceClassValues(source: ClassSource): string[] {
+  const values = [
     ...(source.psychoactiveClasses ?? []),
     ...(source.chemicalClasses ?? []),
     ...(source.indexCategories ?? []),
   ].filter((value): value is string => typeof value === "string" && value.trim().length > 0);
 
-  const tokens = new Set<string>();
-  for (const value of raw) {
-    tokens.add(value.trim().toLowerCase());
-    const normalized = normalizeClassToken(value);
-    if (normalized) {
-      tokens.add(normalized);
+  const seen = new Set<string>();
+  const unique: string[] = [];
+  for (const value of values) {
+    const trimmed = value.trim();
+    const fingerprint = trimmed.toLowerCase();
+    if (!seen.has(fingerprint)) {
+      seen.add(fingerprint);
+      unique.push(trimmed);
     }
   }
-  return [...tokens];
+  return unique;
 }
 
 /** Reads `classification` / `index_categories` off a raw Convex substance row. */
@@ -187,44 +148,81 @@ export function classSourceFromSubstanceDocument(document: {
     typeof document.classification === "object" && document.classification !== null
       ? (document.classification as Record<string, unknown>)
       : {};
-  const asArray = (value: unknown): unknown[] => (Array.isArray(value) ? value : []);
 
   return {
-    psychoactiveClasses: asArray(classification.psychoactive_class),
-    chemicalClasses: asArray(classification.chemical_class),
-    indexCategories: asArray(document.index_categories),
+    psychoactiveClasses: Array.isArray(classification.psychoactive_class)
+      ? classification.psychoactive_class
+      : [],
+    chemicalClasses: Array.isArray(classification.chemical_class)
+      ? classification.chemical_class
+      : [],
+    indexCategories: Array.isArray(document.index_categories) ? document.index_categories : [],
   };
 }
 
+export type WarningBannerTarget = {
+  slug: string;
+  title: string;
+  classes: string[];
+};
+
+export type WarningBannerTargetMatch = WarningBannerTarget & {
+  /** `name` ranks above `class`: an editor typing "diazepam" wants diazepam. */
+  kind: "name" | "class";
+  /** The substance title or the class string that matched, in its own casing. */
+  reason: string;
+};
+
 /**
- * Which of a preset's matchers hit these tokens. Returns the matchers rather
- * than a boolean because the Studio prints the provenance — "matcher
- * `gabaergic` hit `GABAergic`" — and an unexplained suggestion is not
- * reviewable.
+ * One search box for both jobs. Typing `diazepam` finds that substance by name;
+ * typing `opioid` finds every substance whose classification says so. This is
+ * what replaced a stored `candidateMatchers` array plus an add-matcher control
+ * plus a separate suggestion list plus three commit buttons — an editor wanting
+ * one drug and an editor wanting a class were never doing different things.
  */
-export function matcherHits(
-  preset: Pick<WarningBannerPreset, "candidateMatchers">,
-  tokens: readonly string[],
-): string[] {
-  return preset.candidateMatchers.filter((matcher) => {
-    const needle = matcher.trim().toLowerCase();
-    if (!needle) {
-      return false;
+export function searchWarningBannerTargets(
+  query: string,
+  targets: readonly WarningBannerTarget[],
+  limit = 60,
+): WarningBannerTargetMatch[] {
+  const needle = normalizeClassToken(query);
+  if (needle.length < 2) {
+    return [];
+  }
+
+  const byName: WarningBannerTargetMatch[] = [];
+  const byClass: WarningBannerTargetMatch[] = [];
+
+  for (const target of targets) {
+    if (target.slug.includes(needle) || normalizeClassToken(target.title).includes(needle)) {
+      byName.push({ ...target, kind: "name", reason: target.title });
+      continue;
     }
-    return tokens.some((token) => token.includes(needle));
-  });
+    const hit = target.classes.find(
+      (value) =>
+        normalizeClassToken(value).includes(needle) || value.toLowerCase().includes(needle),
+    );
+    if (hit) {
+      byClass.push({ ...target, kind: "class", reason: hit });
+    }
+  }
+
+  byName.sort((a, b) => a.title.localeCompare(b.title));
+  byClass.sort((a, b) => a.title.localeCompare(b.title));
+  return [...byName, ...byClass].slice(0, limit);
 }
 
-/** Danger before unsafe before caution, then by explicit priority, then by key. */
+/**
+ * Danger before unsafe before caution, then alphabetical by key.
+ *
+ * There is deliberately no editor-facing priority field: with a two-banner cap
+ * and a handful of presets, a numeric tiebreak was a control nobody could
+ * reason about. Two same-tone banners on one substance are resolved by an
+ * editor turning one off, which is a decision they can see.
+ */
 export function compareWarningBanners(a: WarningBannerPreset, b: WarningBannerPreset): number {
   const toneDelta = WARNING_BANNER_TONES.indexOf(a.tone) - WARNING_BANNER_TONES.indexOf(b.tone);
-  if (toneDelta !== 0) {
-    return toneDelta;
-  }
-  if (a.priority !== b.priority) {
-    return a.priority - b.priority;
-  }
-  return a.key.localeCompare(b.key);
+  return toneDelta !== 0 ? toneDelta : a.key.localeCompare(b.key);
 }
 
 /**
@@ -275,8 +273,7 @@ export function warningBannerPresetState(
 
 /**
  * Server-side normalization shared by the Convex mutation and the Next route so
- * the two cannot disagree about what a valid preset is. Throws through the
- * caller's `reject` so each side keeps its own error shape.
+ * the two cannot disagree about what a valid preset is.
  */
 export function normalizeEnabledSlugs(slugs: readonly string[]): string[] {
   const seen = new Set<string>();
@@ -289,43 +286,11 @@ export function normalizeEnabledSlugs(slugs: readonly string[]): string[] {
   return [...seen].sort();
 }
 
-export function normalizeMatchers(matchers: readonly string[]): string[] {
-  const seen = new Set<string>();
-  for (const matcher of matchers) {
-    const value = matcher.replace(/\s+/g, " ").trim().toLowerCase();
-    if (value) {
-      seen.add(value);
-    }
-  }
-  return [...seen];
-}
-
-/**
- * Keeps one link per anchor and drops unknown targets, so a banner cannot ship a
- * chip that scrolls nowhere. An empty `label` falls back to the suggested wording
- * rather than rendering a blank chip — the editor's silence means "use the
- * default", not "render nothing".
- */
-export function normalizeLinks(links: readonly WarningBannerLink[]): WarningBannerLink[] {
-  const bySection = new Map<WarningBannerLinkSection, WarningBannerLink>();
-  for (const link of links) {
-    if (!isWarningBannerLinkSection(link.sectionId)) {
-      continue;
-    }
-    const label = link.label.replace(/\s+/g, " ").trim();
-    bySection.set(link.sectionId, {
-      sectionId: link.sectionId,
-      label: label || WARNING_BANNER_SECTION_LABELS[link.sectionId],
-    });
-  }
-  return [...bySection.values()];
-}
-
 /**
  * One-click glyphs offered beside the icon field. A shortcut, not a whitelist:
  * the field accepts any id `WARNING_BANNER_ICON_PATTERN` allows. Chosen because
- * each one reads as its risk at 22px in the banner gutter, which most icons do
- * not — an ambiguous silhouette costs more here than variety gains.
+ * each one reads as its risk at banner size, which most icons do not — an
+ * ambiguous silhouette costs more here than variety gains.
  */
 export const WARNING_BANNER_ICON_SUGGESTIONS: readonly { icon: string; hint: string }[] = [
   { icon: "lucide:wind", hint: "Respiratory depression" },

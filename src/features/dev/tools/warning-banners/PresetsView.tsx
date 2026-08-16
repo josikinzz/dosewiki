@@ -8,6 +8,14 @@
  * this tool exists to answer, and the prose is the least urgent thing on it. One
  * row at a time expands into a drawer; editing two presets at once is not a real
  * workflow and would double the unsaved-state surface.
+ *
+ * The drawer is one column, three sections — preview, words, where it shows.
+ * The two-column version put a second, narrower preview in a sidebar where the
+ * banner never got its real width, and split the assignment controls into a
+ * matcher input, a suggestion list and three commit buttons that were all the
+ * same act. `searchWarningBannerTargets` collapsed that into one field: an
+ * editor after one drug and an editor after a whole class were never doing
+ * different things.
  */
 
 import { Fragment, useEffect, useMemo, useState } from "react";
@@ -15,27 +23,18 @@ import { Fragment, useEffect, useMemo, useState } from "react";
 import { Icon } from "@/components/common/Icon";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import {
-  SafetyBanner,
-  SafetyBannerLinks,
-  SafetyBannerPoints,
-  SafetyBannerTitle,
-} from "@/components/ui/safety-banner";
+import { SafetyBanner, SafetyBannerPoints, SafetyBannerTitle } from "@/components/ui/safety-banner";
 import { Surface } from "@/components/ui/surface";
 import { Textarea } from "@/components/ui/textarea";
 import {
-  matcherHits,
-  normalizeMatchers,
-  substanceClassTokens,
+  searchWarningBannerTargets,
   warningBannerPresetState,
   WARNING_BANNER_KEY_PATTERN,
   WARNING_BANNER_LIMITS,
-  WARNING_BANNER_LINK_SECTIONS,
-  WARNING_BANNER_SECTION_LABELS,
   WARNING_BANNER_TONES,
-  type WarningBannerLinkSection,
   type WarningBannerPreset,
   type WarningBannerPresetState,
+  type WarningBannerTarget,
   type WarningBannerTone,
 } from "@/data/substanceWarningBanners";
 import {
@@ -53,12 +52,13 @@ import {
 } from "@/features/dev/components";
 import { cn } from "@/lib/utils";
 import { BannerIconField } from "./BannerIconField";
-import type { WarningBannerTarget } from "./warningBannerTargets";
 
 /**
  * System A — enablement state. Grey for `off` because off is the correct
  * default and colouring it red would train an editor that the safe state looks
  * broken; green appears here and nowhere else in the tool (design brief §5).
+ * Severity colour never reaches a table row, which is why the `Tone` column is
+ * plain text: a rose chip must only ever mean "this is about a severe risk".
  */
 const STATE_PILL_TONE: Record<WarningBannerPresetState, EditorStatusPillTone> = {
   live: "success",
@@ -72,23 +72,14 @@ const STATE_LABEL: Record<WarningBannerPresetState, string> = {
   off: "off",
 };
 
-/**
- * System B — banner severity. Confined to the tone chip and the preview: a rose
- * chip must always mean "this banner is about a severe risk" and never
- * "something is wrong with this row" (design brief §5).
- */
-const TONE_BADGE_CLASS: Record<WarningBannerTone, string> = {
-  danger: "theme-interaction-severity-badge-danger",
-  unsafe: "theme-interaction-severity-badge-unsafe",
-  caution: "theme-interaction-severity-badge-caution",
+/** Why the preview is dimmed. `live` needs no line — the banner is the answer. */
+const DIMMED_REASON: Record<Exclude<WarningBannerPresetState, "live">, string> = {
+  dormant: "Enabled, but no substances selected — dimmed because this renders nowhere.",
+  off: "Switched off — dimmed because this renders nowhere.",
 };
 
 const HEADER_CELL_CLASS =
   "theme-text-faint px-3 py-2 text-[11px] font-semibold uppercase tracking-[0.16em]";
-
-const COUNT_CELL_CLASS = "theme-text-secondary px-3 py-2.5 text-sm tabular-nums";
-
-type Candidate = { slug: string; title: string; hits: string[] };
 
 export type PresetsViewProps = {
   presets: WarningBannerPreset[];
@@ -134,46 +125,27 @@ export function PresetsView({
   onRequestDelete,
   onInspectCoverage,
 }: PresetsViewProps) {
-  /**
-   * Class tokens are derived once for the whole corpus rather than per preset:
-   * every preset's candidate count re-reads the same 577 rows, and the token
-   * work is the expensive half.
-   */
-  const targetTokens = useMemo(
-    () =>
-      targets.map((target) => ({
-        slug: target.slug,
-        title: target.title,
-        tokens: substanceClassTokens({
-          psychoactiveClasses: target.psychoactiveClasses,
-          chemicalClasses: target.chemicalClasses,
-          indexCategories: target.indexCategories,
-        }),
-      })),
-    [targets],
-  );
-
-  const candidateCountByKey = useMemo(() => {
-    const counts: Record<string, number> = {};
-    for (const preset of presets) {
-      let total = 0;
-      for (const target of targetTokens) {
-        if (matcherHits(preset, target.tokens).length > 0) {
-          total += 1;
-        }
-      }
-      counts[preset.key] = total;
-    }
-    return counts;
-  }, [presets, targetTokens]);
+  const drawerProps = {
+    isDirty,
+    saveState,
+    iconValid,
+    targets,
+    onIconValidityChange,
+    onDraftChange,
+    onSave,
+    onDiscard,
+    onCommitEnabledSlugs,
+    onRequestDelete,
+    onInspectCoverage,
+  };
 
   return (
     <div className="space-y-5">
       <EditorToolbar variant="split">
         <p className="theme-text-faint text-sm">
           {presets.length === 0
-            ? "No presets yet. A preset holds the words a reader sees; enabling it is a separate, later decision."
-            : "Status and Enabled on are the columns this view exists for. Open a row to edit its words."}
+            ? "A preset holds the words a reader sees. Enabling it is a separate, later decision."
+            : "Open a row to edit its words and choose where it shows."}
         </p>
         <Button type="button" variant="accent" size="sm" onClick={onCreate}>
           <Icon icon="lucide:plus" size={15} />
@@ -181,27 +153,11 @@ export function PresetsView({
         </Button>
       </EditorToolbar>
 
-      {isNew && draft ? (
-        <PresetDrawer
-          draft={draft}
-          isNew
-          isDirty={isDirty}
-          saveState={saveState}
-          iconValid={iconValid}
-          targetTokens={targetTokens}
-          onIconValidityChange={onIconValidityChange}
-          onDraftChange={onDraftChange}
-          onSave={onSave}
-          onDiscard={onDiscard}
-          onCommitEnabledSlugs={onCommitEnabledSlugs}
-          onRequestDelete={onRequestDelete}
-          onInspectCoverage={onInspectCoverage}
-        />
-      ) : null}
+      {isNew && draft ? <PresetDrawer {...drawerProps} draft={draft} isNew /> : null}
 
       {presets.length > 0 ? (
         <div className="overflow-x-auto rounded-xl border border-dose-border">
-          <table className="w-full min-w-[54rem] border-collapse text-left">
+          <table className="w-full min-w-[44rem] border-collapse text-left">
             <thead>
               <tr className="border-b border-dose-border">
                 <th scope="col" className={HEADER_CELL_CLASS}>
@@ -215,12 +171,6 @@ export function PresetsView({
                 </th>
                 <th scope="col" className={HEADER_CELL_CLASS}>
                   Enabled on
-                </th>
-                <th scope="col" className={HEADER_CELL_CLASS}>
-                  Candidates
-                </th>
-                <th scope="col" className={HEADER_CELL_CLASS}>
-                  Links
                 </th>
               </tr>
             </thead>
@@ -243,58 +193,42 @@ export function PresetsView({
                             size={14}
                             className="theme-text-faint shrink-0"
                           />
+                          {/* `key` is the name now. One banner used to carry
+                              three of them — key, label, headline — and nobody
+                              could say which the table was showing. */}
                           <span className="min-w-0">
                             <span
                               className={cn(
-                                "block truncate text-sm font-medium",
+                                "block truncate font-mono text-sm font-medium",
                                 open ? "theme-accent-heading" : "theme-text-primary",
                               )}
                             >
-                              {preset.label || "Untitled preset"}
-                            </span>
-                            <span className="theme-text-faint block truncate font-mono text-xs">
                               {preset.key}
+                            </span>
+                            <span className="theme-text-faint block truncate text-xs">
+                              {preset.headline || "No headline yet"}
                             </span>
                           </span>
                         </button>
                       </td>
-                      <td className="px-3 py-2.5">
-                        <span
-                          className={cn(
-                            "inline-flex rounded-md px-1.5 py-0.5 text-[11px] font-semibold uppercase tracking-[0.16em]",
-                            TONE_BADGE_CLASS[preset.tone],
-                          )}
-                        >
-                          {preset.tone}
-                        </span>
+                      <td className="theme-text-secondary px-3 py-2.5 text-[11px] font-semibold uppercase tracking-[0.16em]">
+                        {preset.tone}
                       </td>
                       <td className="px-3 py-2.5">
                         <EditorStatusPill tone={STATE_PILL_TONE[state]}>
-                          {STATE_LABEL[state]}
+                          {state === "live"
+                            ? `live · ${preset.enabledSlugs.length}`
+                            : STATE_LABEL[state]}
                         </EditorStatusPill>
                       </td>
-                      <td className={COUNT_CELL_CLASS}>{preset.enabledSlugs.length}</td>
-                      <td className={COUNT_CELL_CLASS}>{candidateCountByKey[preset.key] ?? 0}</td>
-                      <td className={COUNT_CELL_CLASS}>{preset.links.length}</td>
+                      <td className="theme-text-secondary px-3 py-2.5 text-sm tabular-nums">
+                        {preset.enabledSlugs.length}
+                      </td>
                     </tr>
                     {open && draft ? (
                       <tr className="border-b border-dose-border last:border-0">
-                        <td colSpan={6} className="p-3">
-                          <PresetDrawer
-                            draft={draft}
-                            isNew={false}
-                            isDirty={isDirty}
-                            saveState={saveState}
-                            iconValid={iconValid}
-                            targetTokens={targetTokens}
-                            onIconValidityChange={onIconValidityChange}
-                            onDraftChange={onDraftChange}
-                            onSave={onSave}
-                            onDiscard={onDiscard}
-                            onCommitEnabledSlugs={onCommitEnabledSlugs}
-                            onRequestDelete={onRequestDelete}
-                            onInspectCoverage={onInspectCoverage}
-                          />
+                        <td colSpan={4} className="p-3">
+                          <PresetDrawer {...drawerProps} draft={draft} isNew={false} />
                         </td>
                       </tr>
                     ) : null}
@@ -309,15 +243,13 @@ export function PresetsView({
   );
 }
 
-type TargetTokens = { slug: string; title: string; tokens: string[] };
-
 type PresetDrawerProps = {
   draft: WarningBannerPreset;
   isNew: boolean;
   isDirty: boolean;
   saveState: EditorActionStatusState | "idle";
   iconValid: boolean;
-  targetTokens: TargetTokens[];
+  targets: WarningBannerTarget[];
   onIconValidityChange: (valid: boolean) => void;
   onDraftChange: (draft: WarningBannerPreset) => void;
   onSave: () => void;
@@ -337,7 +269,7 @@ function PresetDrawer({
   isDirty,
   saveState,
   iconValid,
-  targetTokens,
+  targets,
   onIconValidityChange,
   onDraftChange,
   onSave,
@@ -346,30 +278,20 @@ function PresetDrawer({
   onRequestDelete,
   onInspectCoverage,
 }: PresetDrawerProps) {
-  const [matcherInput, setMatcherInput] = useState("");
+  const [query, setQuery] = useState("");
   const [staged, setStaged] = useState<Set<string>>(new Set());
 
   // Staging is per preset: carrying ticks from one drawer into the next would
   // be a way to enable a class of substances on a preset nobody was looking at.
   useEffect(() => {
     setStaged(new Set());
-    setMatcherInput("");
+    setQuery("");
   }, [draft.key]);
 
   const enabled = useMemo(() => new Set(draft.enabledSlugs), [draft.enabledSlugs]);
+  const results = useMemo(() => searchWarningBannerTargets(query, targets), [query, targets]);
 
-  const candidates = useMemo(() => {
-    const rows: Candidate[] = [];
-    for (const target of targetTokens) {
-      const hits = matcherHits(draft, target.tokens);
-      if (hits.length > 0) {
-        rows.push({ slug: target.slug, title: target.title, hits });
-      }
-    }
-    return rows;
-  }, [draft, targetTokens]);
-
-  const unapplied = candidates.filter((candidate) => !enabled.has(candidate.slug));
+  const pending = results.filter((result) => !enabled.has(result.slug));
   const stagedSlugs = [...staged].filter((slug) => !enabled.has(slug));
   const state = warningBannerPresetState(draft);
   const points = draft.points.map((point) => point.trim()).filter(Boolean);
@@ -390,19 +312,36 @@ function PresetDrawer({
     onCommitEnabledSlugs(draft, nextSlugs, summary);
   };
 
-  // 2-column at ~1180px, stacked below: the copy editor needs its 76ch and the
-  // preview needs the banner's real width, and 1180 is where both fit (design
-  // brief §6).
   return (
-    <div className="grid gap-6 min-[1180px]:grid-cols-[minmax(0,1fr)_minmax(0,26rem)]">
-      <div className="space-y-4">
+    <div className="space-y-7">
+      {/* The one preview, full width, above the fields that feed it. The
+          primitive owns the 44px glyph, the dark severity chip, and the
+          one-point-paragraph / many-points-list branch. */}
+      <EditorSection
+        headingLevel="h3"
+        icon="lucide:eye"
+        title="Preview"
+        description={state === "live" ? undefined : DIMMED_REASON[state]}
+      >
+        <SafetyBanner
+          variant={draft.tone}
+          icon={draft.icon}
+          severityLabel={draft.severityLabel}
+          dimmed={state !== "live"}
+        >
+          <SafetyBannerTitle>{draft.headline || "Untitled headline"}</SafetyBannerTitle>
+          <SafetyBannerPoints points={points} />
+        </SafetyBanner>
+      </EditorSection>
+
+      <EditorSection headingLevel="h3" icon="lucide:type" title="Words">
         {isNew ? (
           <EditorField
             label="Key"
-            description="Lower-case, hyphens only. This is the stored identity and cannot be changed later."
+            description="Lower-case, hyphens only. The stored identity and the name in the table; it cannot be changed later."
             error={
               draft.key.trim() && !keyValid
-                ? "Keys look like opioid-respiratory — lower-case letters, digits and hyphens, starting with a letter or digit."
+                ? "Keys look like opioid-respiratory — lower-case letters, digits and hyphens."
                 : null
             }
           >
@@ -421,47 +360,8 @@ function PresetDrawer({
           </EditorField>
         ) : null}
 
-        <EditorFieldRow layout="twoColumn">
-          <EditorField
-            label="Studio name"
-            description="Never rendered publicly — this is how the preset reads in the table above."
-            counter={`${draft.label.length}/${WARNING_BANNER_LIMITS.labelMaxLength}`}
-          >
-            {(controlProps) => (
-              <Input
-                {...controlProps}
-                value={draft.label}
-                inputSize="sm"
-                maxLength={WARNING_BANNER_LIMITS.labelMaxLength}
-                placeholder="Opioid respiratory depression"
-                onChange={(event) => onDraftChange({ ...draft, label: event.target.value })}
-              />
-            )}
-          </EditorField>
-
-          <EditorField
-            label="Severity label"
-            description="The gutter word. Rendered uppercase, so type it in sentence case."
-            counter={`${draft.severityLabel.length}/${WARNING_BANNER_LIMITS.severityLabelMaxLength}`}
-          >
-            {(controlProps) => (
-              <Input
-                {...controlProps}
-                value={draft.severityLabel}
-                inputSize="sm"
-                maxLength={WARNING_BANNER_LIMITS.severityLabelMaxLength}
-                placeholder="Fatal combination"
-                onChange={(event) =>
-                  onDraftChange({ ...draft, severityLabel: event.target.value })
-                }
-              />
-            )}
-          </EditorField>
-        </EditorFieldRow>
-
         <EditorField
           label="Headline"
-          description="The loudest sentence on the article."
           counter={`${draft.headline.length}/${WARNING_BANNER_LIMITS.headlineMaxLength}`}
           error={
             draft.headline.length > WARNING_BANNER_LIMITS.headlineMaxLength
@@ -482,22 +382,24 @@ function PresetDrawer({
         </EditorField>
 
         <EditorField
-          label="Mechanism points"
-          description="One mechanism per line. Adjectives are not warnings."
-          counter={`${points.length}/${WARNING_BANNER_LIMITS.maxPoints} points`}
+          label="Mechanism"
+          description="One per line. A single line renders as a paragraph; several render as a list. Adjectives are not warnings."
+          counter={`${points.length}/${WARNING_BANNER_LIMITS.maxPoints}`}
           error={
             points.length > WARNING_BANNER_LIMITS.maxPoints
-              ? `That is ${points.length} points; the limit is ${WARNING_BANNER_LIMITS.maxPoints}.`
+              ? `That is ${points.length} lines; the limit is ${WARNING_BANNER_LIMITS.maxPoints}.`
               : null
           }
         >
           {(controlProps) => (
             <Textarea
               {...controlProps}
-              rows={6}
+              rows={5}
               value={draft.points.join("\n")}
               className="max-w-[76ch]"
-              placeholder={"Both depress the brainstem respiratory drive\nOnset of the combined effect outlasts the euphoria"}
+              placeholder={
+                "Both depress the brainstem respiratory drive\nThe combined effect outlasts the euphoria"
+              }
               onChange={(event) =>
                 onDraftChange({ ...draft, points: event.target.value.split("\n") })
               }
@@ -506,7 +408,25 @@ function PresetDrawer({
         </EditorField>
 
         <EditorFieldRow layout="twoColumn">
-          <EditorField label="Tone" description="Drives colour, never wording.">
+          <EditorField
+            label="Severity label"
+            counter={`${draft.severityLabel.length}/${WARNING_BANNER_LIMITS.severityLabelMaxLength}`}
+          >
+            {(controlProps) => (
+              <Input
+                {...controlProps}
+                value={draft.severityLabel}
+                inputSize="sm"
+                maxLength={WARNING_BANNER_LIMITS.severityLabelMaxLength}
+                placeholder="Danger"
+                onChange={(event) =>
+                  onDraftChange({ ...draft, severityLabel: event.target.value })
+                }
+              />
+            )}
+          </EditorField>
+
+          <EditorField label="Tone">
             {(controlProps) => (
               <EditorSelect
                 {...controlProps}
@@ -519,114 +439,13 @@ function PresetDrawer({
               />
             )}
           </EditorField>
-
-          <EditorField
-            label="Priority"
-            description="Higher sorts first within a tone, and decides which banner the 2-banner cap keeps."
-          >
-            {(controlProps) => (
-              <Input
-                {...controlProps}
-                type="number"
-                inputSize="sm"
-                className="tabular-nums"
-                value={String(draft.priority)}
-                onChange={(event) =>
-                  onDraftChange({ ...draft, priority: Number(event.target.value) || 0 })
-                }
-              />
-            )}
-          </EditorField>
         </EditorFieldRow>
 
         <BannerIconField
           value={draft.icon}
-          tone={draft.tone}
-          severityLabel={draft.severityLabel}
           onChange={(icon) => onDraftChange({ ...draft, icon })}
           onValidityChange={onIconValidityChange}
         />
-
-        <EditorField
-          label="Link chips"
-          description="The label is yours to write; the target stays constrained to sections an article actually renders, so a chip can never scroll nowhere."
-          counter={`${draft.links.length}/${WARNING_BANNER_LIMITS.maxLinks}`}
-        >
-          <div className="space-y-2">
-            {draft.links.map((link, index) => (
-              <div key={index} className="flex flex-wrap items-center gap-2">
-                <Input
-                  value={link.label}
-                  inputSize="sm"
-                  maxLength={WARNING_BANNER_LIMITS.linkLabelMaxLength}
-                  aria-label={`Chip label for the ${link.sectionId} section`}
-                  placeholder={WARNING_BANNER_SECTION_LABELS[link.sectionId]}
-                  className="min-w-[12rem] flex-1"
-                  onChange={(event) => {
-                    const links = [...draft.links];
-                    links[index] = { ...link, label: event.target.value };
-                    onDraftChange({ ...draft, links });
-                  }}
-                />
-                <EditorSelect
-                  selectSize="sm"
-                  value={link.sectionId}
-                  aria-label={`Scroll target for “${link.label || WARNING_BANNER_SECTION_LABELS[link.sectionId]}”`}
-                  className="w-auto"
-                  options={WARNING_BANNER_LINK_SECTIONS.map((section) => ({
-                    value: section,
-                    label: `#${section}`,
-                  }))}
-                  onChange={(event) => {
-                    const links = [...draft.links];
-                    links[index] = {
-                      ...link,
-                      sectionId: event.target.value as WarningBannerLinkSection,
-                    };
-                    onDraftChange({ ...draft, links });
-                  }}
-                />
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  aria-label={`Remove link ${index + 1}`}
-                  onClick={() =>
-                    onDraftChange({
-                      ...draft,
-                      links: draft.links.filter((_, position) => position !== index),
-                    })
-                  }
-                >
-                  <Icon icon="lucide:trash-2" size={15} />
-                </Button>
-              </div>
-            ))}
-            {draft.links.length < WARNING_BANNER_LIMITS.maxLinks ? (
-              <Button
-                type="button"
-                variant="secondary"
-                size="sm"
-                onClick={() => {
-                  const taken = draft.links.map((link) => link.sectionId);
-                  const section =
-                    WARNING_BANNER_LINK_SECTIONS.find((entry) => !taken.includes(entry)) ??
-                    WARNING_BANNER_LINK_SECTIONS[0];
-                  onDraftChange({
-                    ...draft,
-                    links: [
-                      ...draft.links,
-                      { label: WARNING_BANNER_SECTION_LABELS[section], sectionId: section },
-                    ],
-                  });
-                }}
-              >
-                <Icon icon="lucide:plus" size={15} />
-                Add link
-              </Button>
-            ) : null}
-          </div>
-        </EditorField>
 
         <EditorToolbar variant="split">
           <div className="flex flex-wrap items-center gap-2">
@@ -674,235 +493,172 @@ function PresetDrawer({
 
         {!iconValid ? (
           <p className="theme-text-faint text-xs">
-            Saving is blocked until the icon resolves — an unknown id renders no glyph at all, and
-            nothing on the page would say so.
+            Saving is blocked until the icon resolves — an unknown id renders no glyph, silently.
           </p>
         ) : null}
-      </div>
+      </EditorSection>
 
-      <div className="space-y-5">
-        <EditorSection
-          headingLevel="h3"
-          icon="lucide:eye"
-          title="Preview"
-          description={
-            state === "live"
-              ? "This is what a reader sees on every substance below."
-              : "Dimmed because no reader can reach it — this is what it would look like."
-          }
+      <EditorSection headingLevel="h3" icon="lucide:power" title="Where it shows">
+        <EditorCheckbox
+          checked={draft.enabled}
+          label="Enabled"
+          description="Off means this preset renders nowhere, whatever is on its list."
+          onChange={(event) => onDraftChange({ ...draft, enabled: event.target.checked })}
+        />
+
+        {/* One box for both jobs. Typing a drug name finds that drug; typing a
+            class finds everything carrying it, and the helper ranks names
+            first, so a specific substance is one search and one click. */}
+        <EditorField label="Find substances">
+          {(controlProps) => (
+            <Input
+              {...controlProps}
+              value={query}
+              inputSize="sm"
+              type="search"
+              placeholder="diazepam, or opioid"
+              onChange={(event) => setQuery(event.target.value)}
+            />
+          )}
+        </EditorField>
+
+        <p className="theme-text-faint text-xs">
+          {"Class strings are free-form: cocaine is an "}
+          <span className="font-mono">Alkaloid (tropane)</span>
+          {" and DXM is a "}
+          <span className="font-mono">Morphinan (substituted)</span>
+          {". Read before enabling."}
+        </p>
+
+        {/* A bordered scroll well, not a card inside a card, capped so the page
+            keeps one scroll context (design brief §6). */}
+        <Surface
+          variant="subtle"
+          padding="none"
+          radius="lg"
+          className="max-h-[40vh] overflow-y-auto"
         >
-          <SafetyBanner
-            variant={draft.tone}
-            icon={draft.icon}
-            severityLabel={draft.severityLabel}
-            dimmed={state !== "live"}
-          >
-            <SafetyBannerTitle>{draft.headline || "Untitled headline"}</SafetyBannerTitle>
-            <SafetyBannerPoints points={points} />
-            <SafetyBannerLinks links={draft.links} />
-          </SafetyBanner>
-        </EditorSection>
-
-        <EditorSection headingLevel="h3" icon="lucide:power" title="Enablement">
-          <EditorCheckbox
-            checked={draft.enabled}
-            label="Enabled"
-            description="Off means this preset renders nowhere, whatever is on its list below."
-            onChange={(event) => onDraftChange({ ...draft, enabled: event.target.checked })}
-          />
-
-          <div className="space-y-2">
-            <p className="theme-text-faint text-[11px] font-semibold uppercase tracking-[0.16em]">
-              {`Enabled on ${draft.enabledSlugs.length} substance${draft.enabledSlugs.length === 1 ? "" : "s"}`}
+          {results.length === 0 ? (
+            <p className="theme-text-faint p-3 text-sm">
+              {query.trim().length < 2
+                ? "Type a substance name or a class."
+                : `Nothing matches “${query.trim()}”.`}
             </p>
-            {draft.enabledSlugs.length === 0 ? (
-              <p className="theme-text-secondary text-sm">
-                {draft.enabled
-                  ? "Enabled, but no substances selected — this renders nowhere."
-                  : "No substances selected."}
-              </p>
-            ) : (
-              <div className="flex flex-wrap gap-1.5">
-                {draft.enabledSlugs.map((slug) => (
-                  <TagToken
-                    key={slug}
-                    variant="compact"
-                    label={<span className="font-mono">{slug}</span>}
-                    removeLabel={`Disable on ${slug}`}
-                    onRemove={() =>
-                      commit(
-                        draft.enabledSlugs.filter((entry) => entry !== slug),
-                        `Disabled “${draft.label || draft.key}” on ${slug}.`,
-                      )
-                    }
-                  />
-                ))}
-              </div>
-            )}
-            {overSlugBudget ? (
-              <p className="text-dose-warning text-xs">
-                {`${draft.enabledSlugs.length} substances is over the ${WARNING_BANNER_LIMITS.maxEnabledSlugs} limit. Remove some before saving.`}
-              </p>
-            ) : null}
-          </div>
-        </EditorSection>
+          ) : (
+            <ul className="divide-y divide-dose-divider">
+              {results.map((result) => {
+                const isEnabled = enabled.has(result.slug);
+                return (
+                  <li key={result.slug} className="flex items-start gap-2.5 px-3 py-2">
+                    <EditorCheckbox
+                      className="mt-0.5"
+                      checked={isEnabled || staged.has(result.slug)}
+                      disabled={isEnabled}
+                      aria-label={`Stage ${result.slug}`}
+                      onChange={(event) =>
+                        setStaged((current) => {
+                          const next = new Set(current);
+                          if (event.target.checked) {
+                            next.add(result.slug);
+                          } else {
+                            next.delete(result.slug);
+                          }
+                          return next;
+                        })
+                      }
+                    />
+                    <span className="min-w-0 flex-1">
+                      <span className="theme-text-primary block truncate text-sm">
+                        {result.title}
+                      </span>
+                      <span className="theme-text-faint block truncate font-mono text-[11px]">
+                        {/* A name match is self-evident from the title above; a
+                            class match has to print the string that hit or the
+                            editor cannot judge it. */}
+                        {result.kind === "class"
+                          ? `${result.slug} · ${result.reason}`
+                          : result.slug}
+                      </span>
+                    </span>
+                    {isEnabled ? (
+                      <EditorStatusPill tone="success">enabled</EditorStatusPill>
+                    ) : null}
+                  </li>
+                );
+              })}
+            </ul>
+          )}
+        </Surface>
 
-        <EditorSection
-          headingLevel="h3"
-          icon="lucide:search"
-          title="Candidate finder"
-          description="Suggestions from class strings. These never affect the public site until you enable them."
-        >
-          <p className="theme-text-faint text-xs">
-            {"Class strings are free-form: cocaine is an "}
-            <span className="font-mono">Alkaloid (tropane)</span>
-            {" and DXM is a "}
-            <span className="font-mono">Morphinan (substituted)</span>
-            {". Read before enabling."}
+        <EditorToolbar>
+          <Button
+            type="button"
+            variant="accent"
+            size="sm"
+            disabled={stagedSlugs.length === 0 || !canWrite}
+            onClick={() =>
+              commit(
+                [...draft.enabledSlugs, ...stagedSlugs],
+                `Enabled ${draft.key} on ${stagedSlugs.length} substance${stagedSlugs.length === 1 ? "" : "s"}.`,
+              )
+            }
+          >
+            {`Enable on ${stagedSlugs.length} substance${stagedSlugs.length === 1 ? "" : "s"}`}
+          </Button>
+          {/* The class-wide escape hatch, and the one-click path for a single
+              named drug: a search that returns exactly one row names it on the
+              button, so enabling diazepam never needs a tick first (§7). */}
+          <Button
+            type="button"
+            variant="secondary"
+            size="sm"
+            disabled={pending.length === 0 || !canWrite}
+            onClick={() =>
+              commit(
+                [...draft.enabledSlugs, ...pending.map((result) => result.slug)],
+                `Enabled ${draft.key} on ${pending.length} substance${pending.length === 1 ? "" : "s"}.`,
+              )
+            }
+          >
+            {pending.length === 1
+              ? `Enable on ${pending[0].title}`
+              : `Enable on all ${pending.length} results`}
+          </Button>
+        </EditorToolbar>
+
+        <div className="space-y-2">
+          <p className="theme-text-faint text-[11px] font-semibold uppercase tracking-[0.16em]">
+            {`Enabled on ${draft.enabledSlugs.length} substance${draft.enabledSlugs.length === 1 ? "" : "s"}`}
           </p>
-
-          <div className="space-y-2">
+          {draft.enabledSlugs.length === 0 ? (
+            <p className="theme-text-secondary text-sm">
+              {draft.enabled
+                ? "Enabled, but no substances selected — this renders nowhere."
+                : "No substances selected."}
+            </p>
+          ) : (
             <div className="flex flex-wrap gap-1.5">
-              {draft.candidateMatchers.map((matcher) => (
+              {draft.enabledSlugs.map((slug) => (
                 <TagToken
-                  key={matcher}
+                  key={slug}
                   variant="compact"
-                  label={<span className="font-mono">{matcher}</span>}
-                  removeLabel={`Remove matcher ${matcher}`}
+                  label={<span className="font-mono">{slug}</span>}
+                  removeLabel={`Disable on ${slug}`}
                   onRemove={() =>
-                    onDraftChange({
-                      ...draft,
-                      candidateMatchers: draft.candidateMatchers.filter(
-                        (entry) => entry !== matcher,
-                      ),
-                    })
+                    commit(
+                      draft.enabledSlugs.filter((entry) => entry !== slug),
+                      `Disabled ${draft.key} on ${slug}.`,
+                    )
                   }
                 />
               ))}
             </div>
-            <form
-              className="flex items-center gap-2"
-              onSubmit={(event) => {
-                event.preventDefault();
-                const next = normalizeMatchers([...draft.candidateMatchers, matcherInput]);
-                if (next.length > WARNING_BANNER_LIMITS.maxMatchers) {
-                  return;
-                }
-                setMatcherInput("");
-                onDraftChange({ ...draft, candidateMatchers: next });
-              }}
-            >
-              <Input
-                value={matcherInput}
-                inputSize="sm"
-                maxLength={WARNING_BANNER_LIMITS.matcherMaxLength}
-                aria-label="Add a class matcher"
-                placeholder="opioid"
-                className="font-mono"
-                onChange={(event) => setMatcherInput(event.target.value)}
-              />
-              <Button type="submit" variant="secondary" size="sm" disabled={!matcherInput.trim()}>
-                Add matcher
-              </Button>
-            </form>
-          </div>
-
-          {/* A bordered scroll well, not a card inside a card, capped so the page
-              keeps one scroll context (design brief §6). */}
-          <Surface
-            variant="subtle"
-            padding="none"
-            radius="lg"
-            className="max-h-[40vh] overflow-y-auto"
-          >
-            {candidates.length === 0 ? (
-              <p className="theme-text-faint p-3 text-sm">
-                {draft.candidateMatchers.length === 0
-                  ? "Add a matcher to see which substances it suggests."
-                  : "No substance's class strings match these matchers."}
-              </p>
-            ) : (
-              <ul className="divide-y divide-dose-divider">
-                {candidates.map((candidate) => {
-                  const isEnabled = enabled.has(candidate.slug);
-                  return (
-                    <li key={candidate.slug} className="flex items-start gap-2.5 px-3 py-2">
-                      <EditorCheckbox
-                        checked={isEnabled || staged.has(candidate.slug)}
-                        disabled={isEnabled}
-                        aria-label={`Stage ${candidate.slug}`}
-                        onChange={(event) =>
-                          setStaged((current) => {
-                            const next = new Set(current);
-                            if (event.target.checked) {
-                              next.add(candidate.slug);
-                            } else {
-                              next.delete(candidate.slug);
-                            }
-                            return next;
-                          })
-                        }
-                      />
-                      <span className="min-w-0 flex-1">
-                        <span className="theme-text-primary block truncate font-mono text-xs">
-                          {candidate.slug}
-                        </span>
-                        <span className="theme-text-faint block truncate font-mono text-[11px]">
-                          {candidate.hits.map((hit) => `matcher ${hit}`).join(" · ")}
-                        </span>
-                      </span>
-                      {isEnabled ? (
-                        <EditorStatusPill tone="success">enabled</EditorStatusPill>
-                      ) : null}
-                    </li>
-                  );
-                })}
-              </ul>
-            )}
-          </Surface>
-
-          <EditorToolbar>
-            <Button
-              type="button"
-              variant="accent"
-              size="sm"
-              disabled={stagedSlugs.length === 0 || !canWrite}
-              onClick={() =>
-                commit(
-                  [...draft.enabledSlugs, ...stagedSlugs],
-                  `Enabled “${draft.label || draft.key}” on ${stagedSlugs.length} substance${stagedSlugs.length === 1 ? "" : "s"}.`,
-                )
-              }
-            >
-              {`Enable on ${stagedSlugs.length} substance${stagedSlugs.length === 1 ? "" : "s"}`}
-            </Button>
-            <Button
-              type="button"
-              variant="secondary"
-              size="sm"
-              disabled={unapplied.length === 0 || !canWrite}
-              onClick={() =>
-                commit(
-                  [...draft.enabledSlugs, ...unapplied.map((candidate) => candidate.slug)],
-                  `Enabled “${draft.label || draft.key}” on all ${unapplied.length} candidates.`,
-                )
-              }
-            >
-              {`Enable all ${unapplied.length} candidates`}
-            </Button>
-            <Button
-              type="button"
-              variant="ghost"
-              size="sm"
-              disabled={draft.enabledSlugs.length === 0 || !canWrite}
-              onClick={() =>
-                commit([], `Disabled “${draft.label || draft.key}” everywhere.`)
-              }
-            >
-              Disable all
-            </Button>
-          </EditorToolbar>
-
+          )}
+          {overSlugBudget ? (
+            <p className="text-dose-warning text-xs">
+              {`${draft.enabledSlugs.length} substances is over the ${WARNING_BANNER_LIMITS.maxEnabledSlugs} limit. Remove some before saving.`}
+            </p>
+          ) : null}
           {draft.enabledSlugs.length > 0 ? (
             <Button
               type="button"
@@ -913,8 +669,8 @@ function PresetDrawer({
               {`See what a reader sees on ${draft.enabledSlugs[0]}`}
             </Button>
           ) : null}
-        </EditorSection>
-      </div>
+        </div>
+      </EditorSection>
     </div>
   );
 }

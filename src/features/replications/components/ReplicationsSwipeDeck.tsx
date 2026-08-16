@@ -455,6 +455,8 @@ export function ReplicationsSwipeDeck({
   const rootRef = useRef<HTMLDivElement>(null);
   const scrollerRef = useRef<HTMLDivElement>(null);
   const [muted, setMuted] = useState(true);
+  const [scrollUnlocked, setScrollUnlocked] = useState(false);
+  const unlockScrollRef = useRef(false);
   const reducedMotion = usePrefersReducedMotion();
   const headerHeight = useSiteHeaderHeight();
   const startIndex = Math.max(0, Math.min(initialGroupIndex, groups.length - 1));
@@ -494,6 +496,37 @@ export function ReplicationsSwipeDeck({
     rootRef.current?.scrollIntoView({ block: 'start' });
     // Initial position only — deliberately not reactive to later scrolling.
   }, []);
+
+  /**
+   * One-shot vertical-scroll unlock. The deck fills most of the phone screen
+   * on arrival, so the reader's first "swipe into the gallery" would otherwise
+   * land on this scroller and — because it is `snap-mandatory` — skip the
+   * first artist. Until the deck is framed under the header the scroller stays
+   * inert (`overflow: hidden`), routing that first swipe to the document, whose
+   * proximity snap frames the deck. Once framed, unlock for the deck's whole
+   * life so scrolling back up out of it (chaining into the intro) is never
+   * gated.
+   */
+  useEffect(() => {
+    const root = rootRef.current;
+    if (!root) return;
+    const unlock = () => {
+      if (unlockScrollRef.current) return;
+      if (Math.abs(root.getBoundingClientRect().top - headerHeight) < 8) {
+        unlockScrollRef.current = true;
+        setScrollUnlocked(true);
+      }
+    };
+    // Covers an already-framed arrival (a deep link that framed the deck
+    // synchronously) without waiting for a scroll event.
+    unlock();
+    window.addEventListener('scroll', unlock, { passive: true });
+    window.addEventListener('resize', unlock, { passive: true });
+    return () => {
+      window.removeEventListener('scroll', unlock);
+      window.removeEventListener('resize', unlock);
+    };
+  }, [headerHeight]);
 
   /**
    * Frame-alignment assist. The document only frames the deck when *page*
@@ -562,7 +595,8 @@ export function ReplicationsSwipeDeck({
         aria-label={`Replications swipe gallery, ${totalWorks} works by ${groups.length} artists. Swipe up or down to change artist, left or right to browse an artist's works.`}
         onKeyDown={handleKeyDown}
         className={cn(
-          'h-full snap-y snap-mandatory overflow-y-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden',
+          'h-full snap-y snap-mandatory [scrollbar-width:none] [&::-webkit-scrollbar]:hidden',
+          scrollUnlocked ? 'overflow-y-auto' : 'overflow-y-hidden',
           focusRingClassName,
         )}
       >

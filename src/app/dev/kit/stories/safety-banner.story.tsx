@@ -1,6 +1,5 @@
 import {
   SafetyBanner,
-  SafetyBannerLinks,
   SafetyBannerPoints,
   SafetyBannerTitle,
 } from "@/components/ui/safety-banner";
@@ -13,21 +12,20 @@ export const safetyBannerStory: StoryDef = {
   tier: "primitive",
   status: "stable",
   summary:
-    "The drug-class safety banner that sits above a substance article's H1: a tonal card with an icon/severity gutter, a claim, mechanism bullets, and anchor chips into the sections that expand it.",
+    "The safety banner that sits above a substance article's H1: a tonal card holding a 44px glyph, a dark severity chip, a claim, and the mechanism text that backs it.",
   source: "src/components/ui/safety-banner.tsx",
   importLine:
-    'import { SafetyBanner, SafetyBannerTitle, SafetyBannerPoints, SafetyBannerLinks } from "@/components/ui/safety-banner";',
+    'import { SafetyBanner, SafetyBannerTitle, SafetyBannerPoints } from "@/components/ui/safety-banner";',
   exports: [
     "SafetyBanner",
     "SafetyBannerTitle",
     "SafetyBannerPoints",
-    "SafetyBannerLinks",
     "safetyBannerVariants",
   ],
   examples: [
     {
       label: "Danger",
-      note: "The depressant-respiratory preset. Rose surface, role=\"alert\".",
+      note: 'The depressant-respiratory preset. Rose surface, role="alert".',
       background: "plain",
       render: () => (
         <SafetyBanner variant="danger" icon="lucide:wind" severityLabel="Danger">
@@ -39,18 +37,12 @@ export const safetyBannerStory: StoryDef = {
               "Naloxone reverses opioids only. It does nothing for benzodiazepines, barbiturates, GHB, or alcohol.",
             ]}
           />
-          <SafetyBannerLinks
-            links={[
-              { label: "Combinations", sectionId: "interactions" },
-              { label: "Harm potential", sectionId: "harm-potential" },
-            ]}
-          />
         </SafetyBanner>
       ),
     },
     {
       label: "Unsafe",
-      note: "The dissociative-psychosis preset. Orange surface, role=\"status\".",
+      note: 'The dissociative-psychosis preset. Orange surface, role="status".',
       background: "plain",
       render: () => (
         <SafetyBanner variant="unsafe" icon="lucide:octagon-alert" severityLabel="Unsafe">
@@ -61,7 +53,6 @@ export const safetyBannerStory: StoryDef = {
               "Compulsive redosing drives stimulant-like mania and psychosis lasting days after the dissociation ends.",
             ]}
           />
-          <SafetyBannerLinks links={[{ label: "Dosage", sectionId: "dosage" }]} />
         </SafetyBanner>
       ),
     },
@@ -78,30 +69,33 @@ export const safetyBannerStory: StoryDef = {
               "Taper under medical supervision. Never stop daily use cold turkey.",
             ]}
           />
-          <SafetyBannerLinks links={[{ label: "Tolerance", sectionId: "tolerance" }]} />
         </SafetyBanner>
       ),
     },
     {
-      label: "Editor-written link labels",
-      note: 'The chips read "Dangerous combinations" and "What the toxidrome does" over the interactions and harm-potential anchors. Labels are stored fields rendered verbatim, never derived from the section id.',
+      label: "One point vs several",
+      note: "The same component, two lengths. A single point renders as a plain paragraph with no marker; two or more render as a bulleted list. Bullets are what happens when there is more than one thing to say — an editor never opts into them.",
       background: "plain",
       render: () => (
-        <SafetyBanner variant="danger" icon="lucide:eye" severityLabel="Danger">
-          <SafetyBannerTitle>A deliriant, not a psychedelic</SafetyBannerTitle>
-          <SafetyBannerPoints
-            points={[
-              "Produces true hallucinations that are indistinguishable from reality — people hold conversations with people who are not there.",
-              "Insight and recall are absent. You cannot talk yourself down.",
-            ]}
-          />
-          <SafetyBannerLinks
-            links={[
-              { label: "Dangerous combinations", sectionId: "interactions" },
-              { label: "What the toxidrome does", sectionId: "harm-potential" },
-            ]}
-          />
-        </SafetyBanner>
+        <div className="flex flex-col gap-4">
+          <SafetyBanner variant="danger" icon="lucide:skull" severityLabel="Danger">
+            <SafetyBannerTitle>Tolerance falls faster than you think</SafetyBannerTitle>
+            <SafetyBannerPoints
+              points={[
+                "After 3–7 days without opioids, a previously routine dose can be fatal. Most overdoses follow a break.",
+              ]}
+            />
+          </SafetyBanner>
+          <SafetyBanner variant="danger" icon="lucide:skull" severityLabel="Danger">
+            <SafetyBannerTitle>Tolerance falls faster than you think</SafetyBannerTitle>
+            <SafetyBannerPoints
+              points={[
+                "After 3–7 days without opioids, a previously routine dose can be fatal. Most overdoses follow a break.",
+                "Carry naloxone. Do not dose alone behind a locked door.",
+              ]}
+            />
+          </SafetyBanner>
+        </div>
       ),
     },
     {
@@ -109,15 +103,14 @@ export const safetyBannerStory: StoryDef = {
       note: "Studio-only. How a preset that is enabled on no substance previews, so a preview is never mistaken for what readers see.",
       background: "plain",
       render: () => (
-        <SafetyBanner dimmed variant="danger" icon="lucide:skull" severityLabel="Danger">
-          <SafetyBannerTitle>Tolerance falls faster than you think</SafetyBannerTitle>
+        <SafetyBanner dimmed variant="danger" icon="lucide:eye" severityLabel="Danger">
+          <SafetyBannerTitle>A deliriant, not a psychedelic</SafetyBannerTitle>
           <SafetyBannerPoints
             points={[
-              "After 3–7 days without opioids, a previously routine dose can be fatal. Most overdoses follow a break.",
-              "Carry naloxone. Do not dose alone behind a locked door.",
+              "Produces true hallucinations indistinguishable from reality — people hold conversations with people who are not there.",
+              "Insight and recall are absent. You cannot talk yourself down.",
             ]}
           />
-          <SafetyBannerLinks links={[{ label: "Tolerance", sectionId: "tolerance" }]} />
         </SafetyBanner>
       ),
     },
@@ -128,19 +121,19 @@ export const safetyBannerStory: StoryDef = {
       type: '"danger" | "unsafe" | "caution"',
       default: '"danger"',
       description:
-        "Severity tone. Drives the theme-interaction-* card surface and the root ink colour that the gutter glyph, severity label, bullet dots, and link chips inherit. Tonal only — it says how bad the risk is, never which feature is rendering.",
+        "Severity tone. Drives the theme-interaction-* card surface, the severity chip's paired badge class, and the root ink colour that the glyph and bullet dots inherit. Tonal only — it says how bad the risk is, never which feature is rendering.",
     },
     {
       name: "icon",
       type: "IconName",
       description:
-        'Iconify id for the gutter glyph, e.g. "lucide:wind" or a repo "custom:" glyph. Editor-authored free text on the preset, so any collection resolves.',
+        'Iconify id for the 44px glyph, e.g. "lucide:wind" or a repo "custom:" glyph. Editor-authored free text on the preset, so any collection resolves. Omit it and the card collapses to a single column rather than leaving an empty gutter.',
     },
     {
       name: "severityLabel",
       type: "string",
       description:
-        'The word under the glyph, e.g. "Danger". A stored field, not derived from the tone — an editor may write "Fatal risk" over a danger-tone banner.',
+        'The word in the dark chip, e.g. "Danger". A stored field, not derived from the tone — an editor may write "Fatal risk" over a danger-tone banner.',
     },
     {
       name: "dimmed",
@@ -154,29 +147,22 @@ export const safetyBannerStory: StoryDef = {
       type: "string",
       default: '"alert" for danger, otherwise "status"',
       description:
-        'ARIA live-region role, defaulted by tone exactly as Alert does: danger announces assertively, unsafe and caution announce politely.',
+        "ARIA live-region role, defaulted by tone exactly as Alert does: danger announces assertively, unsafe and caution announce politely.",
     },
     {
       name: "children",
       type: "ReactNode",
-      description:
-        "Body column content. Compose SafetyBannerTitle, SafetyBannerPoints, and SafetyBannerLinks.",
+      description: "Body column content. Compose SafetyBannerTitle and SafetyBannerPoints.",
     },
     {
       name: "points (SafetyBannerPoints)",
       type: "string[]",
       description:
-        "Mechanism bullets, one <li> each with a tone-coloured dot. Renders null when empty. Capped at 76ch measure.",
-    },
-    {
-      name: "links (SafetyBannerLinks)",
-      type: "WarningBannerLink[]",
-      description:
-        "Anchor chips to #${sectionId} rendering label verbatim. Renders null when empty.",
+        "The mechanism text. One entry renders a markerless <p>; two or more render a <ul> with tone-coloured dots. Renders null when empty. Capped at 76ch measure.",
     },
   ],
   whenToUse: [
-    "Editor-enabled drug-class warnings at the very top of a substance article, above the H1.",
+    "Editor-enabled warnings at the very top of a substance article, above the H1.",
     "The Banner Studio preview of a preset an editor is authoring (pair with `dimmed` when the preset renders nowhere).",
   ],
   whenNotToUse: [
@@ -187,7 +173,9 @@ export const safetyBannerStory: StoryDef = {
   notes: [
     "The component never decides whether it appears. Enablement is editorial: a preset renders on a substance only when `enabled` is true and the slug is in `enabledSlugs`, resolved by `resolveEnabledBanners` in src/data/substanceWarningBanners.ts and managed at /dev/banners. Nothing derives a banner from a substance's classification.",
     "SafetyBannerTitle is a <p>, not a heading — the banner sits above the article <h1> and must not enter the document outline or a screen reader's heading list.",
-    "Link chip text is a stored field rendered verbatim. WARNING_BANNER_SECTION_LABELS is the authoring-time suggestion applied by normalizeLinks, never a render-time lookup.",
-    "The two-column gutter collapses to a stacked row below 560px, with the hairline moving from the right edge to the bottom.",
+    "Bullets are a consequence, not a requirement. SafetyBannerPoints renders a single point as a paragraph, so an editor with one thing to say never ships a list of one.",
+    "There is no divider between the glyph and the body. The tone surface already groups them; the hairline the first cut drew only chopped the card in half.",
+    "The severity chip reuses theme-interaction-severity-badge-*, the same class the interactions table uses. Nested inside the root's theme-interaction-<tone> it drops to the deeper field surface in both themes, which is what makes it read as a chip rather than as loose small caps.",
+    "The two columns stack below 560px. The glyph stays 44px.",
   ],
 };

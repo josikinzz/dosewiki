@@ -4,17 +4,17 @@
  * Banner Studio — `/dev` → Banners, deep-linked at `/dev/banners/<slug>`.
  *
  * Two jobs with very different frequencies live in one tab (design brief §3):
- * `Presets` authors the five-or-so banners that will ever exist, `Coverage`
+ * `Presets` authors the handful of banners that will ever exist, `Coverage`
  * audits what a reader actually sees on one substance. This module owns
  * everything the two views must not disagree about — the preset list, the loaded
  * corpus, the draft, every write, and the rollout readout.
  *
  * Two disciplines are load-bearing. Banners are opt-in: nothing here maps a
- * classification onto a rendered banner, and the candidate finder's class
- * matchers only ever produce slugs for an editor to enable by hand. And saving
- * is never optimistic — the route's echoed `enabledSlugs` is adopted verbatim
- * because the server drops slugs that no longer resolve, and a pruned slug that
- * silently stayed on screen would be a lie about what the public site shows.
+ * classification onto a rendered banner, and `searchWarningBannerTargets` only
+ * ever produces slugs for an editor to enable by hand. And saving is never
+ * optimistic — the route's echoed `enabledSlugs` is adopted verbatim because the
+ * server drops slugs that no longer resolve, and a pruned slug that silently
+ * stayed on screen would be a lie about what the public site shows.
  */
 
 import { useCallback, useEffect, useMemo, useState } from "react";
@@ -33,13 +33,10 @@ import {
 } from "@/components/ui/dialog";
 import {
   compareWarningBanners,
-  isWarningBannerLinkSection,
   isWarningBannerTone,
   normalizeEnabledSlugs,
-  normalizeLinks,
-  normalizeMatchers,
-  type WarningBannerLink,
   type WarningBannerPreset,
+  type WarningBannerTarget,
 } from "@/data/substanceWarningBanners";
 import {
   EditorNavTabs,
@@ -56,30 +53,25 @@ import { WarningBannersBoundary } from "./WarningBannersBoundary";
 import {
   cachedWarningBannerTargets,
   fetchWarningBannerTargets,
-  type WarningBannerTarget,
 } from "./warningBannerTargets";
 
 const WARNING_BANNER_API = "/api/dev/warning-banner";
 
 /**
- * The stored row as it arrives from `warningBannerPresets`. `tone` and
- * `links[].sectionId` are `v.string()` on the wire, so they are narrowed below
- * rather than trusted — the union lives in `src/data/substanceWarningBanners.ts`
- * and the validator cannot express it.
+ * The stored row as it arrives from `warningBannerPresets`. `tone` is narrowed
+ * below rather than trusted: the read validator keeps it a string union on the
+ * wire, but a row written before a tone was renamed must still load and be
+ * editable rather than fail the query.
  */
 type WarningBannerPresetDoc = {
   key: string;
-  label: string;
   tone: string;
   icon: string;
   severityLabel: string;
   headline: string;
   points: string[];
-  links: { label: string; sectionId: string }[];
-  priority: number;
   enabled: boolean;
   enabledSlugs: string[];
-  candidateMatchers: string[];
 };
 
 type StudioView = "presets" | "coverage";
@@ -97,19 +89,15 @@ type PresetEditor = {
 
 const BLANK_PRESET: WarningBannerPreset = {
   key: "",
-  label: "",
   tone: "danger",
   icon: "",
   severityLabel: "",
   headline: "",
   points: [""],
-  links: [],
-  priority: 0,
   // Both opt-in gates start shut, so a half-written preset cannot reach a
   // reader between its first Save and the editor finishing the copy.
   enabled: false,
   enabledSlugs: [],
-  candidateMatchers: [],
 };
 
 export type WarningBannersTabProps = {
@@ -136,30 +124,16 @@ function WarningBannersStudio({ initialSubstanceSlug }: WarningBannersTabProps) 
     | undefined;
 
   const presets = useMemo(() => {
-    const mapped = (rows ?? []).map((row): WarningBannerPreset => {
-      const links = row.links.flatMap((link): WarningBannerLink[] =>
-        isWarningBannerLinkSection(link.sectionId)
-          ? [{ label: link.label, sectionId: link.sectionId }]
-          : [],
-      );
-      return {
-        key: row.key,
-        label: row.label,
-        // A row whose tone predates the union would otherwise render an
-        // unstyled banner; `caution` is the quietest surface to fall back to,
-        // and the tone selector shows the editor what it landed on.
-        tone: isWarningBannerTone(row.tone) ? row.tone : "caution",
-        icon: row.icon,
-        severityLabel: row.severityLabel,
-        headline: row.headline,
-        points: row.points,
-        links: normalizeLinks(links),
-        priority: row.priority,
-        enabled: row.enabled,
-        enabledSlugs: row.enabledSlugs,
-        candidateMatchers: row.candidateMatchers,
-      };
-    });
+    const mapped = (rows ?? []).map((row): WarningBannerPreset => ({
+      key: row.key,
+      tone: isWarningBannerTone(row.tone) ? row.tone : "caution",
+      icon: row.icon,
+      severityLabel: row.severityLabel,
+      headline: row.headline,
+      points: row.points,
+      enabled: row.enabled,
+      enabledSlugs: row.enabledSlugs,
+    }));
     return mapped.sort(compareWarningBanners);
   }, [rows]);
 
@@ -246,17 +220,13 @@ function WarningBannersStudio({ initialSubstanceSlug }: WarningBannersTabProps) 
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             key: preset.key.trim(),
-            label: preset.label.trim(),
             tone: preset.tone,
             icon: preset.icon.trim(),
             severityLabel: preset.severityLabel.trim(),
             headline: preset.headline.trim(),
             points: preset.points.map((point) => point.trim()).filter(Boolean),
-            links: normalizeLinks(preset.links),
-            priority: preset.priority,
             enabled: preset.enabled,
             enabledSlugs: submitted,
-            candidateMatchers: normalizeMatchers(preset.candidateMatchers),
           }),
         });
 
@@ -302,8 +272,8 @@ function WarningBannersStudio({ initialSubstanceSlug }: WarningBannersTabProps) 
 
   /**
    * Every enablement change, from Coverage's single `Disable on <slug>` to the
-   * candidate finder's `Enable all N candidates`, funnels through here so all
-   * of them write straight through and all of them offer Undo. Reversible and
+   * search block's `Enable on all N results`, funnels through here so all of them
+   * write straight through and all of them offer Undo. Reversible and
    * high-frequency actions get no confirm dialog — one there would be clicked
    * through blindly (design brief §7); only deleting authored prose confirms.
    *
@@ -340,7 +310,7 @@ function WarningBannersStudio({ initialSubstanceSlug }: WarningBannersTabProps) 
             void commitEnabledSlugs(
               adopted,
               previous,
-              `Restored the previous list for “${preset.label || preset.key}”.`,
+              `Restored the previous list for ${preset.key}.`,
             );
           }}
         >
@@ -395,7 +365,7 @@ function WarningBannersStudio({ initialSubstanceSlug }: WarningBannersTabProps) 
       setEditor(null);
       setNotice({
         tone: "info",
-        message: `Deleted “${preset.label || preset.key}”. Nothing renders it now.`,
+        message: `Deleted ${preset.key}. Nothing renders it now.`,
       });
     } catch (error) {
       setSaveState("error");
@@ -434,7 +404,7 @@ function WarningBannersStudio({ initialSubstanceSlug }: WarningBannersTabProps) 
       <EditorSection
         icon="lucide:triangle-alert"
         title="Banner Studio"
-        description="Drug-class safety banners. A preset renders on a substance only when it is enabled and that substance is on its list — never because of how the article is classified."
+        description="Safety banners for a drug class. A preset renders on a substance only when it is enabled and that substance is on its list — never because of how the article is classified."
         actions={
           <EditorStatusPill tone="neutral">
             {`${presets.length} preset${presets.length === 1 ? "" : "s"}`}
@@ -471,7 +441,7 @@ function WarningBannersStudio({ initialSubstanceSlug }: WarningBannersTabProps) 
               message: (
                 <>
                   {targetsError}
-                  {" Candidate suggestions and the Coverage rail stay empty until it loads."}
+                  {" Substance search and the Coverage rail stay empty until it loads."}
                 </>
               ),
               actions: (
@@ -570,7 +540,7 @@ function WarningBannersStudio({ initialSubstanceSlug }: WarningBannersTabProps) 
             <DialogTitle>Delete preset</DialogTitle>
             <DialogDescription>
               {pendingDelete
-                ? `“${pendingDelete.label || pendingDelete.key}” is enabled on ${pendingDelete.enabledSlugs.length} substance${pendingDelete.enabledSlugs.length === 1 ? "" : "s"}. Deleting destroys its headline and mechanism points, and it stops rendering everywhere.`
+                ? `${pendingDelete.key} is enabled on ${pendingDelete.enabledSlugs.length} substance${pendingDelete.enabledSlugs.length === 1 ? "" : "s"}. Deleting destroys its headline and mechanism text, and it stops rendering everywhere.`
                 : null}
             </DialogDescription>
           </DialogHeader>

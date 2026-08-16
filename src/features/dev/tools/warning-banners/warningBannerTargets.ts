@@ -1,21 +1,14 @@
 /**
- * The Banner Studio's view of the substance corpus: one row per article,
- * carrying only the class strings the candidate finder tests matchers against.
+ * The Banner Studio's one read of the substance corpus.
  *
- * The shape lives here rather than beside the route because the route
- * (`src/app/api/dev/warning-banner/targets/route.ts`) is only the transport,
- * and both the Presets candidate finder and the Coverage rail code against this
- * type. Nothing in it can cause a banner to render — `resolveEnabledBanners`
- * takes a slug and never a classification, so these class strings exist purely
- * to suggest slugs an editor may then enable by hand.
+ * `WarningBannerTarget` itself lives in `src/data/substanceWarningBanners.ts`
+ * beside `searchWarningBannerTargets`, which is the only thing that reads its
+ * `classes`: the shape is shared with `convex/warningBanners.listSubstanceTargetsPage`
+ * and the route that drains it, so it cannot live in a view module. What is
+ * local here is the transport and its cache.
  */
-export type WarningBannerTarget = {
-  slug: string;
-  title: string;
-  psychoactiveClasses: string[];
-  chemicalClasses: string[];
-  indexCategories: string[];
-};
+
+import type { WarningBannerTarget } from "@/data/substanceWarningBanners";
 
 const TARGETS_API = "/api/dev/warning-banner/targets";
 

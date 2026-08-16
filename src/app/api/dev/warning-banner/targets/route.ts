@@ -1,14 +1,15 @@
 /**
- * Batched editor read for the Banner Studio's candidate finder and Coverage
+ * Batched editor read for the Banner Studio's substance search and Coverage
  * view (`/dev` → Banners).
  *
  *   GET /api/dev/warning-banner/targets → { ok, items }
  *
  * One response feeds both views: every substance slug with its title and its
- * classification strings, which the Studio matches against a preset's
- * `candidateMatchers` to *suggest* enablements. The suggestion never enables
- * anything — `resolveEnabledBanners` in `src/data/substanceWarningBanners.ts`
- * reads `enabledSlugs` and nothing else — so this endpoint stays a Studio input.
+ * classification strings, which `searchWarningBannerTargets` matches so one
+ * input finds a single drug by name and a whole class by class string. Finding
+ * is not enabling — `resolveEnabledBanners` in
+ * `src/data/substanceWarningBanners.ts` reads `enabledSlugs` and nothing else —
+ * so this endpoint stays a Studio input.
  *
  * The Convex side pages the article table (`listSubstanceTargetsPage`) to stay
  * under its read limits; this route drains the cursor so the browser makes
@@ -18,7 +19,7 @@
 import { NextResponse } from "next/server";
 import { api } from "../../../../../../convex/_generated/api";
 import { protectedRouteOperation } from "@/lib/http/protectedRouteOperation";
-import type { WarningBannerTarget } from "@/features/dev/tools/warning-banners/warningBannerTargets";
+import type { WarningBannerTarget } from "@/data/substanceWarningBanners";
 
 export const runtime = "nodejs";
 

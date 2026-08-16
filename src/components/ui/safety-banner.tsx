@@ -2,13 +2,10 @@ import * as React from "react";
 import { cva, type VariantProps } from "class-variance-authority";
 
 import { Icon, type IconName } from "@/components/common/Icon";
-import type { WarningBannerLink } from "@/data/substanceWarningBanners";
 import { cn } from "@/lib/utils";
 
-import { focusRingClassName } from "./surface";
-
 /**
- * The drug-class safety banner that sits above a substance article's <h1>.
+ * The safety banner that sits above a substance article's <h1>.
  *
  * Deliberately dumb: it renders the strings it is handed and decides nothing.
  * Whether a banner appears at all is an editorial act recorded in
@@ -16,20 +13,24 @@ import { focusRingClassName } from "./surface";
  * in `src/data/substanceWarningBanners.ts`. There is no path from a substance's
  * classification to this component, by construction.
  *
+ * Two cells and no rule between them. The vertical hairline the first cut drew
+ * between the glyph and the body was rejected outright: the tone surface
+ * already groups the two, so the divider only chopped the card in half.
+ *
  * Tone drives two things and no more: the card surface (the shared
  * `.theme-interaction-{danger,unsafe,caution}` classes in
  * `src/styles/utilities-theme.css`) and the root `color`, which is the tone's
- * badge ink. Everything tonal downstream — the gutter glyph, the severity
- * label, the bullet dots, the link chips — inherits that `currentColor`, which
- * is why `SafetyBannerPoints` and `SafetyBannerLinks` need no tone prop. Prose
- * opts back out explicitly (`text-dose-text`, `text-dose-text-secondary`).
+ * badge ink. Everything tonal downstream — the glyph, the bullet dots —
+ * inherits that `currentColor`, which is why `SafetyBannerPoints` needs no tone
+ * prop. Prose opts back out explicitly (`text-dose-text`,
+ * `text-dose-text-secondary`).
  *
  * No "use client": `src/app/dev/kit/registry/render.test.tsx` pushes every kit
  * example through `renderToStaticMarkup`, and the article mount is a server
  * component.
  */
 const safetyBannerVariants = cva(
-  "grid w-full grid-cols-[78px_minmax(0,1fr)] overflow-hidden rounded-2xl max-[560px]:grid-cols-1",
+  "grid w-full gap-x-4 gap-y-3 overflow-hidden rounded-2xl p-4 max-[560px]:grid-cols-1",
   {
     variants: {
       // Tonal names only. Feature-named variants are blocked by
@@ -47,6 +48,23 @@ const safetyBannerVariants = cva(
   },
 );
 
+type SafetyBannerTone = NonNullable<VariantProps<typeof safetyBannerVariants>["variant"]>;
+
+/**
+ * The severity chip. `theme-interaction-severity-badge-*` is the same class the
+ * interactions table uses, and it is already paired to the tone cards in both
+ * themes: nested inside `.theme-interaction-<tone>` it swaps its fill to
+ * `--theme-field-on-panel-surface` (utilities-theme.css:4255, mirrored in
+ * theme-light-mode.css:1231), i.e. one step deeper than the card it sits on,
+ * with the tone's ink on top. That recess is what makes the label read as a
+ * chip rather than as loose small caps — and it costs no new token.
+ */
+const TONE_CHIP_CLASS: Record<SafetyBannerTone, string> = {
+  danger: "theme-interaction-severity-badge-danger",
+  unsafe: "theme-interaction-severity-badge-unsafe",
+  caution: "theme-interaction-severity-badge-caution",
+};
+
 export type SafetyBannerProps = React.HTMLAttributes<HTMLDivElement> &
   VariantProps<typeof safetyBannerVariants> & {
     icon?: IconName;
@@ -62,6 +80,8 @@ export type SafetyBannerProps = React.HTMLAttributes<HTMLDivElement> &
 
 const SafetyBanner = React.forwardRef<HTMLDivElement, SafetyBannerProps>(
   ({ className, variant, role, icon, severityLabel, dimmed, children, ...props }, ref) => {
+    const tone: SafetyBannerTone = variant ?? "danger";
+
     // Same rule as `Alert`: explicit role wins, otherwise tone decides. `danger`
     // asserts via role="alert" (implies aria-live="assertive"); the softer tones
     // announce politely via role="status" (implies aria-live="polite"), so
@@ -75,23 +95,32 @@ const SafetyBanner = React.forwardRef<HTMLDivElement, SafetyBannerProps>(
         // Reflected like `ArticleInfoCard`'s `data-tone` and `StatusBadge`'s
         // `data-badge-tone`: gives consumer CSS and smoke tests a stable hook
         // that does not depend on the utility classes.
-        data-safety-banner={variant ?? "danger"}
+        data-safety-banner={tone}
         className={cn(
           safetyBannerVariants({ variant }),
+          // The glyph column is `auto`, so an icon-less banner would otherwise
+          // shrink-wrap its prose into a phantom gutter. `icon` is editor-typed
+          // free text and can legitimately be blank mid-edit.
+          icon ? "grid-cols-[auto_minmax(0,1fr)]" : "grid-cols-1",
           dimmed && "opacity-60 saturate-50",
           className,
         )}
         {...props}
       >
-        <div className="flex flex-col items-center justify-center gap-1.5 border-r border-dose-divider px-2 py-4 text-center max-[560px]:flex-row max-[560px]:justify-start max-[560px]:gap-2 max-[560px]:border-r-0 max-[560px]:border-b max-[560px]:px-4 max-[560px]:py-2.5 max-[560px]:text-left">
-          {icon ? <Icon icon={icon} size={22} /> : null}
+        {icon ? <Icon icon={icon} className="shrink-0 self-start" size={44} /> : null}
+        <div className="flex min-w-0 flex-col items-start gap-2">
           {severityLabel ? (
-            <span className="text-[9px] font-semibold uppercase leading-none tracking-[0.16em]">
+            <span
+              className={cn(
+                "inline-flex items-center rounded-full px-2.5 py-1 text-[10px] font-semibold uppercase leading-none tracking-[0.14em]",
+                TONE_CHIP_CLASS[tone],
+              )}
+            >
               {severityLabel}
             </span>
           ) : null}
+          {children}
         </div>
-        <div className="flex flex-col gap-2.5 px-4 py-4">{children}</div>
       </div>
     );
   },
@@ -124,15 +153,27 @@ export type SafetyBannerPointsProps = {
   className?: string;
 };
 
+const POINT_TEXT_CLASS = "text-[13px] leading-relaxed text-dose-text-secondary";
+
 /**
- * Mechanism bullets. `list-none` with a dot glyph rather than a `border-left`
- * accent stripe, which the brief bans outright (§9). The dot is `bg-current`,
- * so it picks up the root's tone ink while the sentence overrides to prose
- * colour; 76ch is the brief's measure for the only real prose in the banner.
+ * The mechanism text.
+ *
+ * A single point is a paragraph with no marker. Bullets are a consequence of
+ * having written more than one thing, never a requirement — a one-item list is
+ * a bullet pointing at nothing, and editors asked for it to stop.
+ *
+ * The multi-point marker is a `bg-current` dot on a `list-none` list, never a
+ * `border-left` accent stripe, which the brief bans outright (§9). The dot
+ * inherits the root's tone ink while the sentence overrides to prose colour;
+ * 76ch is the brief's measure for the only real prose in the banner.
  */
 function SafetyBannerPoints({ points, className }: SafetyBannerPointsProps) {
   if (points.length === 0) {
     return null;
+  }
+
+  if (points.length === 1) {
+    return <p className={cn("max-w-[76ch]", POINT_TEXT_CLASS, className)}>{points[0]}</p>;
   }
 
   return (
@@ -140,49 +181,11 @@ function SafetyBannerPoints({ points, className }: SafetyBannerPointsProps) {
       {points.map((point) => (
         <li key={point} className="grid grid-cols-[auto_minmax(0,1fr)] gap-2.5">
           <span aria-hidden="true" className="mt-[0.45rem] h-1.5 w-1.5 rounded-full bg-current" />
-          <span className="text-[13px] leading-relaxed text-dose-text-secondary">{point}</span>
+          <span className={POINT_TEXT_CLASS}>{point}</span>
         </li>
       ))}
     </ul>
   );
 }
 
-export type SafetyBannerLinksProps = {
-  links: WarningBannerLink[];
-  className?: string;
-};
-
-/**
- * Anchor chips into the article sections that expand the claim — a banner is a
- * hoist of below-fold content, never a dead end.
- *
- * `link.label` is rendered verbatim and is never derived from `sectionId`. The
- * label is a stored, editor-authored field precisely so an editor can write
- * "Dangerous combinations" over an anchor named `interactions` (brief §7b);
- * `WARNING_BANNER_SECTION_LABELS` is the authoring-time suggestion applied by
- * `normalizeLinks`, not a render-time lookup.
- */
-function SafetyBannerLinks({ links, className }: SafetyBannerLinksProps) {
-  if (links.length === 0) {
-    return null;
-  }
-
-  return (
-    <div className={cn("flex flex-wrap gap-2", className)}>
-      {links.map((link) => (
-        <a
-          key={link.sectionId}
-          href={`#${link.sectionId}`}
-          className={cn(
-            "inline-flex items-center rounded-full border border-dose-divider px-2.5 py-1 text-[11px] font-semibold uppercase leading-none tracking-[0.08em] transition-colors hover:bg-dose-surface-muted",
-            focusRingClassName,
-          )}
-        >
-          {link.label}
-        </a>
-      ))}
-    </div>
-  );
-}
-
-export { SafetyBanner, SafetyBannerTitle, SafetyBannerPoints, SafetyBannerLinks, safetyBannerVariants };
+export { SafetyBanner, SafetyBannerTitle, SafetyBannerPoints, safetyBannerVariants };

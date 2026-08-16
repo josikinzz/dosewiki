@@ -11,28 +11,8 @@ import {
   WARNING_BANNER_ICON_PATTERN,
   WARNING_BANNER_ICON_SUGGESTIONS,
   WARNING_BANNER_LIMITS,
-  type WarningBannerTone,
 } from "@/data/substanceWarningBanners";
 import { EditorField } from "@/features/dev/components";
-import { cn } from "@/lib/utils";
-
-/**
- * Severity surfaces, keyed by tone. The gutter preview has to sit on the real
- * card background because an icon that reads at 16px on the panel can turn to
- * mush at 22px on a rose gradient, which is the whole reason this field shows a
- * preview at all (design brief §7b).
- */
-const TONE_SURFACE_CLASS: Record<WarningBannerTone, string> = {
-  danger: "theme-interaction-danger",
-  unsafe: "theme-interaction-unsafe",
-  caution: "theme-interaction-caution",
-};
-
-const TONE_BADGE_CLASS: Record<WarningBannerTone, string> = {
-  danger: "theme-interaction-severity-badge-danger",
-  unsafe: "theme-interaction-severity-badge-unsafe",
-  caution: "theme-interaction-severity-badge-caution",
-};
 
 /**
  * `malformed` fails the shared pattern; `unknown` passes it but resolves to no
@@ -49,9 +29,6 @@ const RESOLVE_DEBOUNCE_MS = 350;
 
 export type BannerIconFieldProps = {
   value: string;
-  tone: WarningBannerTone;
-  /** Shown beside the glyph in the preview, exactly as the banner renders it. */
-  severityLabel: string;
   onChange: (icon: string) => void;
   /**
    * Raised whenever resolution settles. The parent hard-gates Save on it: this
@@ -62,13 +39,12 @@ export type BannerIconFieldProps = {
   onValidityChange: (valid: boolean) => void;
 };
 
-export function BannerIconField({
-  value,
-  tone,
-  severityLabel,
-  onChange,
-  onValidityChange,
-}: BannerIconFieldProps) {
+/**
+ * The icon field. No preview of its own: the full-width `SafetyBanner` at the
+ * top of the drawer already renders this glyph at its real 44px on its real
+ * tone surface, and a second smaller copy beside the input was noise.
+ */
+export function BannerIconField({ value, onChange, onValidityChange }: BannerIconFieldProps) {
   const [resolution, setResolution] = useState<IconResolution>("checking");
   const trimmed = value.trim();
 
@@ -134,13 +110,13 @@ export function BannerIconField({
         {". Check the spelling or browse icones.js.org."}
       </>
     ) : resolution === "empty" ? (
-      "Every banner renders a glyph in its gutter, so this field cannot be blank."
+      "The gutter glyph cannot be blank."
     ) : null;
 
   return (
     <EditorField
       label="Icon"
-      description="Any Iconify id, resolved against the API before it can be saved."
+      description="Any Iconify id, resolved for real before it can be saved."
       counter={
         resolution === "checking"
           ? "checking…"
@@ -152,7 +128,7 @@ export function BannerIconField({
       tone={error ? "danger" : "default"}
     >
       {(controlProps) => (
-        <div className="space-y-3">
+        <div className="space-y-2">
           <Input
             {...controlProps}
             value={value}
@@ -167,54 +143,24 @@ export function BannerIconField({
             onChange={(event) => onChange(event.target.value)}
           />
 
-          <div className={cn("flex items-center gap-3 rounded-xl px-3 py-2.5", TONE_SURFACE_CLASS[tone])}>
-            <span className="flex size-9 shrink-0 items-center justify-center">
-              {resolution === "valid" ? (
-                <Icon icon={trimmed} size={22} className="theme-interaction-icon" />
-              ) : (
-                <Icon
-                  icon="lucide:image-off"
-                  size={22}
-                  className="theme-interaction-icon opacity-45"
-                />
-              )}
-            </span>
-            <div className="min-w-0 space-y-0.5">
-              <span
-                className={cn(
-                  "inline-flex rounded-md px-1.5 py-0.5 text-[11px] font-semibold uppercase tracking-[0.16em]",
-                  TONE_BADGE_CLASS[tone],
-                )}
+          {/* Glyph-only shortcuts. The hint rides on `title`/`aria-label`
+              rather than a visible caption: ten labelled chips read as a
+              whitelist and crowded out the field they sit under. */}
+          <div className="flex flex-wrap gap-1.5">
+            {WARNING_BANNER_ICON_SUGGESTIONS.map((suggestion) => (
+              <Button
+                key={suggestion.icon}
+                type="button"
+                variant={trimmed === suggestion.icon ? "pillActive" : "ghostPill"}
+                size="quiet"
+                title={`${suggestion.hint} — ${suggestion.icon}`}
+                aria-label={`Use ${suggestion.icon} (${suggestion.hint})`}
+                aria-pressed={trimmed === suggestion.icon}
+                onClick={() => onChange(suggestion.icon)}
               >
-                {severityLabel.trim() || "Severity label"}
-              </span>
-              <p className="theme-text-faint text-xs">
-                {`22px, in the gutter, on the ${tone} surface a reader sees.`}
-              </p>
-            </div>
-          </div>
-
-          <div>
-            <p className="theme-text-faint text-[11px] font-semibold uppercase tracking-[0.16em]">
-              Shortcuts — any Iconify id works
-            </p>
-            <div className="mt-1.5 flex flex-wrap gap-1.5">
-              {WARNING_BANNER_ICON_SUGGESTIONS.map((suggestion) => (
-                <Button
-                  key={suggestion.icon}
-                  type="button"
-                  variant={trimmed === suggestion.icon ? "pillActive" : "ghostPill"}
-                  size="quiet"
-                  title={`${suggestion.hint} — ${suggestion.icon}`}
-                  aria-label={`Use ${suggestion.icon} (${suggestion.hint})`}
-                  aria-pressed={trimmed === suggestion.icon}
-                  onClick={() => onChange(suggestion.icon)}
-                >
-                  <Icon icon={suggestion.icon} size={16} />
-                  <span className="theme-text-faint text-[11px]">{suggestion.hint}</span>
-                </Button>
-              ))}
-            </div>
+                <Icon icon={suggestion.icon} size={18} />
+              </Button>
+            ))}
           </div>
         </div>
       )}

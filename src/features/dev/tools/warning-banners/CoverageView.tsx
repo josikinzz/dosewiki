@@ -4,11 +4,11 @@
  * Coverage — the audit surface (design brief §3, view 2).
  *
  * Pick a substance and see exactly what a reader sees: the real `SafetyBanner`
- * components rather than a summary of them, each followed by the monospace
- * provenance line that says why it is there. `resolveEnabledBanners` takes the
- * slug and nothing else, so this view cannot show a banner that an editor did
- * not explicitly enable — which is the point of auditing here rather than
- * reading the class matchers back.
+ * components rather than a summary of them, above the article's own class
+ * strings in monospace so the evidence an editor decides on is on screen beside
+ * the decision. `resolveEnabledBanners` takes the slug and nothing else, so this
+ * view cannot show a banner an editor did not explicitly enable — which is why
+ * auditing happens here rather than by reading a classification back.
  */
 
 import { useMemo, useState } from "react";
@@ -18,21 +18,19 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
   SafetyBanner,
-  SafetyBannerLinks,
   SafetyBannerPoints,
   SafetyBannerTitle,
 } from "@/components/ui/safety-banner";
 import { Surface } from "@/components/ui/surface";
 import {
-  matcherHits,
-  normalizeClassToken,
   resolveEnabledBanners,
   resolveSuppressedBanners,
-  substanceClassTokens,
+  searchWarningBannerTargets,
   warningBannerPresetState,
   MAX_BANNERS_PER_ARTICLE,
   type WarningBannerPreset,
   type WarningBannerPresetState,
+  type WarningBannerTarget,
 } from "@/data/substanceWarningBanners";
 import {
   EditorListItem,
@@ -43,7 +41,6 @@ import {
   type EditorActionStatusState,
   type EditorStatusPillTone,
 } from "@/features/dev/components";
-import type { WarningBannerTarget } from "./warningBannerTargets";
 
 /** Enablement state only — severity colour never reaches a status position. */
 const STATE_PILL_TONE: Record<WarningBannerPresetState, EditorStatusPillTone> = {
@@ -83,53 +80,24 @@ export function CoverageView({
 }: CoverageViewProps) {
   const [filter, setFilter] = useState("");
 
-  const needle = filter.trim().toLowerCase();
-  const filtered = useMemo(
+  // The same helper the Presets search uses, so typing `opioid` in the rail
+  // lists exactly the substances that enabling `opioid` would have offered —
+  // two search semantics in one tool is one too many.
+  // Annotated: the helper returns the `Match` subtype, and an unannotated
+  // union of two array types is not mappable.
+  const filtered = useMemo<WarningBannerTarget[]>(
     () =>
-      needle
-        ? targets.filter(
-            (target) =>
-              target.slug.includes(needle) || target.title.toLowerCase().includes(needle),
-          )
+      filter.trim().length >= 2
+        ? searchWarningBannerTargets(filter, targets, targets.length)
         : targets,
-    [needle, targets],
+    [filter, targets],
   );
 
   const target = targets.find((entry) => entry.slug === activeSlug) ?? null;
   const rendered = activeSlug ? resolveEnabledBanners(presets, activeSlug) : [];
   const suppressed = activeSlug ? resolveSuppressedBanners(presets, activeSlug) : [];
-
-  /**
-   * Raw class strings, not the normalized tokens: the provenance line quotes
-   * what is actually stored on the article so an editor can go and read it.
-   */
-  const rawClasses = target
-    ? [...target.psychoactiveClasses, ...target.chemicalClasses, ...target.indexCategories]
-    : [];
-  const tokens = target
-    ? substanceClassTokens({
-        psychoactiveClasses: target.psychoactiveClasses,
-        chemicalClasses: target.chemicalClasses,
-        indexCategories: target.indexCategories,
-      })
-    : [];
-
-  const provenanceFor = (preset: WarningBannerPreset): string[] =>
-    matcherHits(preset, tokens).map((matcher) => {
-      const hit = matcher.trim().toLowerCase();
-      const source = rawClasses.find(
-        (value) =>
-          value.toLowerCase().includes(hit) || normalizeClassToken(value).includes(hit),
-      );
-      return source ? `matcher ${matcher} hit ${source}` : `matcher ${matcher}`;
-    });
-
-  /** Suggested here but not enabled here — the `not applied` block. */
   const notApplied = activeSlug
-    ? presets.filter(
-        (preset) =>
-          !preset.enabledSlugs.includes(activeSlug) && matcherHits(preset, tokens).length > 0,
-      )
+    ? presets.filter((preset) => !preset.enabledSlugs.includes(activeSlug))
     : [];
 
   return (
@@ -139,8 +107,8 @@ export function CoverageView({
           value={filter}
           inputSize="sm"
           type="search"
-          aria-label="Filter substances"
-          placeholder={`Filter ${targets.length} substances`}
+          aria-label="Find a substance"
+          placeholder={`Search ${targets.length} substances`}
           onChange={(event) => setFilter(event.target.value)}
         />
 
@@ -167,7 +135,7 @@ export function CoverageView({
           className="hidden max-h-[40vh] space-y-1 overflow-y-auto p-1.5 min-[900px]:block"
         >
           {filtered.length === 0 ? (
-            <p className="theme-text-faint p-2 text-sm">No substance matches that filter.</p>
+            <p className="theme-text-faint p-2 text-sm">No substance matches that search.</p>
           ) : (
             filtered.map((entry) => {
               const count = presets.filter(
@@ -221,66 +189,71 @@ export function CoverageView({
                     message: (
                       <>
                         <span className="font-mono">{activeSlug}</span>
-                        {" is not in the loaded substance list, so no class strings are available for it. Any banner below still renders, because enablement is by slug."}
+                        {" is not in the loaded substance list. Any banner below still renders, because enablement is by slug."}
                       </>
                     ),
                   }}
                 />
               ) : null}
 
+              {/* The class strings, verbatim and monospace. They decide nothing —
+                  enablement is by slug — but they are what an editor reads before
+                  deciding, so they belong on this page rather than in the article. */}
+              {target ? (
+                <p className="theme-text-faint font-mono text-xs">
+                  {target.classes.length > 0
+                    ? target.classes.join(" · ")
+                    : "no classification strings on this article"}
+                </p>
+              ) : null}
+
               {rendered.length === 0 ? (
                 <p className="theme-text-faint text-sm">
-                  Nothing is enabled on this slug. The suggestions below are not applied.
+                  Nothing is enabled on this slug.
                 </p>
               ) : (
                 <div className="space-y-4">
-                  {rendered.map((preset) => {
-                    const lines = provenanceFor(preset);
-                    return (
-                      <div key={preset.key} className="space-y-2">
-                        <SafetyBanner
-                          variant={preset.tone}
-                          icon={preset.icon}
-                          severityLabel={preset.severityLabel}
-                        >
-                          <SafetyBannerTitle>{preset.headline}</SafetyBannerTitle>
-                          <SafetyBannerPoints points={preset.points} />
-                          <SafetyBannerLinks links={preset.links} />
-                        </SafetyBanner>
+                  {rendered.map((preset) => (
+                    <div key={preset.key} className="space-y-2">
+                      <SafetyBanner
+                        variant={preset.tone}
+                        icon={preset.icon}
+                        severityLabel={preset.severityLabel}
+                      >
+                        <SafetyBannerTitle>{preset.headline}</SafetyBannerTitle>
+                        <SafetyBannerPoints points={preset.points} />
+                      </SafetyBanner>
 
-                        <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
-                          <span className="theme-text-faint font-mono text-xs">
-                            {lines.length > 0
-                              ? lines.join(" · ")
-                              : "enabled by hand — no matcher suggests this substance"}
-                          </span>
-                          <Button
-                            type="button"
-                            variant="ghostDestructive"
-                            size="sm"
-                            disabled={saveState === "saving"}
-                            onClick={() =>
-                              onCommitEnabledSlugs(
-                                preset,
-                                preset.enabledSlugs.filter((slug) => slug !== activeSlug),
-                                `Disabled “${preset.label || preset.key}” on ${activeSlug}.`,
-                              )
-                            }
-                          >
-                            {`Disable on ${activeSlug}`}
-                          </Button>
-                          <Button
-                            type="button"
-                            variant="textLink"
-                            size="auto"
-                            onClick={() => onEditPreset(preset)}
-                          >
-                            Edit words
-                          </Button>
-                        </div>
+                      <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+                        <span className="theme-text-faint font-mono text-xs">
+                          {`${preset.key} · enabled on ${preset.enabledSlugs.length} substances`}
+                        </span>
+                        <Button
+                          type="button"
+                          variant="ghostDestructive"
+                          size="sm"
+                          disabled={saveState === "saving"}
+                          onClick={() =>
+                            onCommitEnabledSlugs(
+                              preset,
+                              preset.enabledSlugs.filter((slug) => slug !== activeSlug),
+                              `Disabled ${preset.key} on ${activeSlug}.`,
+                            )
+                          }
+                        >
+                          {`Disable on ${activeSlug}`}
+                        </Button>
+                        <Button
+                          type="button"
+                          variant="textLink"
+                          size="auto"
+                          onClick={() => onEditPreset(preset)}
+                        >
+                          Edit words
+                        </Button>
                       </div>
-                    );
-                  })}
+                    </div>
+                  ))}
                 </div>
               )}
 
@@ -295,7 +268,7 @@ export function CoverageView({
                         <span className="font-mono">{preset.key}</span>
                         {" is enabled on "}
                         <span className="font-mono">{activeSlug}</span>
-                        {" but will not render. Raise its priority or disable one of the banners above."}
+                        {" but will not render. Disable one of the banners above, or disable this one."}
                       </>
                     ),
                   }}
@@ -307,11 +280,11 @@ export function CoverageView({
               headingLevel="h3"
               icon="lucide:list-plus"
               title="not applied"
-              description="Class strings suggest these. Nothing about them reaches the public site until you enable them here."
+              description="Nothing here reaches the public site until you enable it."
             >
               {notApplied.length === 0 ? (
                 <p className="theme-text-faint text-sm">
-                  No preset's matchers suggest this substance.
+                  Every preset is already enabled on this substance.
                 </p>
               ) : (
                 <ul className="space-y-2">
@@ -321,11 +294,11 @@ export function CoverageView({
                       className="flex flex-wrap items-center gap-x-3 gap-y-1.5 rounded-xl border border-dose-border px-3 py-2.5"
                     >
                       <span className="min-w-0 flex-1">
-                        <span className="theme-text-primary block truncate text-sm font-medium">
-                          {preset.label || preset.key}
+                        <span className="theme-text-primary block truncate font-mono text-sm">
+                          {preset.key}
                         </span>
-                        <span className="theme-text-faint block truncate font-mono text-xs">
-                          {provenanceFor(preset).join(" · ")}
+                        <span className="theme-text-faint block truncate text-xs">
+                          {preset.headline || "No headline yet"}
                         </span>
                       </span>
                       <EditorStatusPill tone={STATE_PILL_TONE[warningBannerPresetState(preset)]}>
@@ -340,7 +313,7 @@ export function CoverageView({
                           onCommitEnabledSlugs(
                             preset,
                             [...preset.enabledSlugs, activeSlug],
-                            `Enabled “${preset.label || preset.key}” on ${activeSlug}.`,
+                            `Enabled ${preset.key} on ${activeSlug}.`,
                           )
                         }
                       >
@@ -371,8 +344,8 @@ export function CoverageView({
                     key={preset.key}
                     className="flex flex-wrap items-center gap-x-3 gap-y-1 rounded-xl border border-dose-border px-3 py-2"
                   >
-                    <span className="theme-text-primary min-w-0 flex-1 truncate text-sm">
-                      {preset.label || preset.key}
+                    <span className="theme-text-primary min-w-0 flex-1 truncate font-mono text-sm">
+                      {preset.key}
                     </span>
                     <span className="theme-text-secondary text-sm tabular-nums">
                       {`${preset.enabledSlugs.length} enabled`}
@@ -384,7 +357,7 @@ export function CoverageView({
                       type="button"
                       variant="ghost"
                       size="sm"
-                      aria-label={`Open ${preset.label || preset.key} in Presets`}
+                      aria-label={`Open ${preset.key} in Presets`}
                       onClick={() => onEditPreset(preset)}
                     >
                       <Icon icon="lucide:pencil" size={15} />

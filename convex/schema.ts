@@ -621,35 +621,31 @@ const effectIndexArchiveRecord = v.object({
 //
 // `enabled` and `enabledSlugs` are the ONLY render inputs: a preset shows on an
 // article iff `enabled === true` and `enabledSlugs` contains that slug. Nothing
-// is derived from a substance's classification — `candidateMatchers` is a
-// Studio-only suggestion input used to *find* articles an editor should look
-// at, never consulted by `resolveEnabledBanners`. Free-text class strings are
+// is derived from a substance's classification — free-text class strings are
 // too noisy to assign safety copy (cocaine's `"Alkaloid (tropane)"` matches a
 // deliriant rule; DXM's `"Morphinan (substituted)"` matches an opioid rule),
 // so the opt-in is explicit and per-slug.
 //
-// Every string a reader sees is stored here, including `links[].label`: the
-// chip wording is editor-authored rather than derived from `sectionId` so an
-// editor can reword "Interactions" to "Check before mixing" without a deploy.
-// `WARNING_BANNER_SECTION_LABELS` is only the fallback for an empty label.
+// Four columns were dropped and must not come back. `label` was a third name
+// for a banner beside `key` and `headline`, and three names for one thing was
+// the single largest source of confusion in the Studio; `key` is now both the
+// identity and the editor-facing name. `priority` was a numeric tiebreak nobody
+// could reason about under a two-banner cap, so ordering is tone then key.
+// `links` is a removed feature. `candidateMatchers` was a search input
+// persisted as state: `searchWarningBannerTargets` matches substance names and
+// class strings live, so the stored copy only went stale.
+//
+// Every string a reader sees is stored here, so rewording a banner is an edit
+// rather than a deploy.
 const warningBannerPreset = v.object({
   key: v.string(),
-  label: v.string(),
   tone: v.union(v.literal("danger"), v.literal("unsafe"), v.literal("caution")),
   icon: v.string(),
   severityLabel: v.string(),
   headline: v.string(),
   points: v.array(v.string()),
-  links: v.array(
-    v.object({
-      label: v.string(),
-      sectionId: v.string(),
-    }),
-  ),
-  priority: v.number(),
   enabled: v.boolean(),
   enabledSlugs: v.array(v.string()),
-  candidateMatchers: v.array(v.string()),
   updatedAt: v.string(),
   updatedBy: v.optional(v.string()),
 });

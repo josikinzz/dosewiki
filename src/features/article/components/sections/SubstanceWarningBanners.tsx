@@ -19,7 +19,6 @@
 // are also what the rest of `src` does — 339 of them against 11 barrel imports.
 import {
   SafetyBanner,
-  SafetyBannerLinks,
   SafetyBannerPoints,
   SafetyBannerTitle,
 } from "@/components/ui/safety-banner";
@@ -48,16 +47,12 @@ export function SubstanceWarningBanners({ banners, className }: SubstanceWarning
           severityLabel={preset.severityLabel}
         >
           <SafetyBannerTitle>{preset.headline}</SafetyBannerTitle>
+          {/* Every visible string here is a stored, editor-authored field. The
+              mechanism text is `points` and nothing else: one entry renders as a
+              paragraph, several as a list, so bullets are a consequence of
+              writing more than one thing rather than a shape the primitive
+              imposes. */}
           <SafetyBannerPoints points={preset.points} />
-          {/* Every visible string here is a stored, editor-authored field —
-              including each chip's text, which is `link.label` and never a
-              lookup keyed on `sectionId`. Deriving chip wording in code was the
-              first contract and was rejected: it made the one part of the banner
-              an editor most needs to reword the one part they could not.
-              Presets carry links at all because a warning that only says "this
-              is dangerous" is a dead end; the chips hand the reader the section
-              that explains it. */}
-          <SafetyBannerLinks links={preset.links} />
         </SafetyBanner>
       ))}
     </div>

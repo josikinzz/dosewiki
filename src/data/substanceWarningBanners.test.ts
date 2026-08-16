@@ -2,14 +2,14 @@ import { describe, expect, it } from "vitest";
 
 import {
   MAX_BANNERS_PER_ARTICLE,
-  normalizeLinks,
+  compareWarningBanners,
   resolveEnabledBanners,
   resolveSuppressedBanners,
-  substanceClassTokens,
-  matcherHits,
+  searchWarningBannerTargets,
+  substanceClassValues,
   warningBannerPresetState,
-  type WarningBannerLink,
   type WarningBannerPreset,
+  type WarningBannerTarget,
 } from "./substanceWarningBanners";
 
 /**
@@ -23,17 +23,13 @@ import {
 function preset(overrides: Partial<WarningBannerPreset> = {}): WarningBannerPreset {
   return {
     key: "depressant-respiratory",
-    label: "Depressant respiratory risk",
     tone: "danger",
     icon: "lucide:wind",
     severityLabel: "Fatal combination",
     headline: "Mixing depressants stops breathing",
     points: ["CNS depression is additive."],
-    links: [{ label: "Dangerous combinations", sectionId: "interactions" }],
-    priority: 10,
     enabled: false,
     enabledSlugs: [],
-    candidateMatchers: ["gabaergic"],
     ...overrides,
   };
 }
@@ -64,12 +60,12 @@ describe("resolveEnabledBanners", () => {
     expect(resolveEnabledBanners(presets, "  mdma  ")).toHaveLength(1);
   });
 
-  it("orders danger before unsafe before caution, then by priority", () => {
+  it("orders danger before unsafe before caution, then alphabetically by key", () => {
     const presets = [
       preset({ key: "c", tone: "caution", enabled: true, enabledSlugs: ["x"] }),
-      preset({ key: "d-late", tone: "danger", priority: 90, enabled: true, enabledSlugs: ["x"] }),
+      preset({ key: "d-late", tone: "danger", enabled: true, enabledSlugs: ["x"] }),
       preset({ key: "u", tone: "unsafe", enabled: true, enabledSlugs: ["x"] }),
-      preset({ key: "d-early", tone: "danger", priority: 10, enabled: true, enabledSlugs: ["x"] }),
+      preset({ key: "d-early", tone: "danger", enabled: true, enabledSlugs: ["x"] }),
     ];
 
     // The cap trims the tail, so assert against the full ordering first.
@@ -82,7 +78,7 @@ describe("resolveEnabledBanners", () => {
 
   it("caps what renders and reports the remainder separately", () => {
     const presets = ["a", "b", "c", "d"].map((key) =>
-      preset({ key, enabled: true, enabledSlugs: ["x"], priority: key.charCodeAt(0) }),
+      preset({ key, enabled: true, enabledSlugs: ["x"] }),
     );
 
     expect(resolveEnabledBanners(presets, "x")).toHaveLength(MAX_BANNERS_PER_ARTICLE);
@@ -95,25 +91,53 @@ describe("resolveEnabledBanners", () => {
     expect(resolveEnabledBanners(presets, "   ")).toEqual([]);
   });
 
-  it("ignores classification entirely — a matcher that hits does not enable", () => {
-    const presets = [
-      preset({
-        enabled: true,
-        enabledSlugs: [],
-        candidateMatchers: ["gabaergic", "depressant", "benzodiazepine"],
-      }),
+  it("ignores classification entirely — a substance the search finds is still unbannered", () => {
+    const presets = [preset({ enabled: true, enabledSlugs: [] })];
+    const targets: WarningBannerTarget[] = [
+      {
+        slug: "diazepam",
+        title: "Diazepam",
+        classes: substanceClassValues({
+          psychoactiveClasses: ["Depressant", "GABAergic"],
+          chemicalClasses: ["Benzodiazepine"],
+          indexCategories: ["Common"],
+        }),
+      },
     ];
 
-    // The same substance a matcher would obviously propose.
-    const tokens = substanceClassTokens({
-      psychoactiveClasses: ["Depressant", "GABAergic"],
-      chemicalClasses: ["Benzodiazepine"],
-      indexCategories: ["Common"],
-    });
-    expect(matcherHits(presets[0], tokens)).toHaveLength(3);
+    // The Studio search finds exactly the substance an editor is looking for…
+    expect(searchWarningBannerTargets("benzodiazepine", targets).map((hit) => hit.slug)).toEqual([
+      "diazepam",
+    ]);
 
-    // …and it still renders nothing, because suggestion is not assignment.
+    // …and it still renders nothing, because finding is not enabling. Class
+    // strings never reach `resolveEnabledBanners`, which takes a slug only.
     expect(resolveEnabledBanners(presets, "diazepam")).toEqual([]);
+  });
+});
+
+describe("compareWarningBanners", () => {
+  it("sorts by tone first, so a danger preset outranks a caution one whatever its key", () => {
+    const sorted = [
+      preset({ key: "a-caution", tone: "caution" }),
+      preset({ key: "z-danger", tone: "danger" }),
+      preset({ key: "m-unsafe", tone: "unsafe" }),
+    ]
+      .sort(compareWarningBanners)
+      .map((entry) => entry.key);
+
+    expect(sorted).toEqual(["z-danger", "m-unsafe", "a-caution"]);
+  });
+
+  it("breaks a same-tone tie on key, the only tiebreak an editor can see", () => {
+    const sorted = [
+      preset({ key: "opioid-tolerance", tone: "danger" }),
+      preset({ key: "gabaergic-withdrawal", tone: "danger" }),
+    ]
+      .sort(compareWarningBanners)
+      .map((entry) => entry.key);
+
+    expect(sorted).toEqual(["gabaergic-withdrawal", "opioid-tolerance"]);
   });
 });
 
@@ -125,43 +149,74 @@ describe("warningBannerPresetState", () => {
   });
 });
 
-describe("substanceClassTokens", () => {
-  it("exposes both the raw and paren-stripped form so either can be targeted", () => {
-    const tokens = substanceClassTokens({
-      chemicalClasses: ["Phenethylamine (N-benzylated)"],
-    });
-    expect(tokens).toContain("phenethylamine (n-benzylated)");
-    expect(tokens).toContain("phenethylamine");
+describe("substanceClassValues", () => {
+  it("keeps the reader-facing casing, because the Studio prints the class that matched", () => {
+    expect(
+      substanceClassValues({
+        psychoactiveClasses: ["Depressant"],
+        chemicalClasses: ["Phenethylamine (N-benzylated)"],
+      }),
+    ).toEqual(["Depressant", "Phenethylamine (N-benzylated)"]);
+  });
+
+  it("deduplicates case-insensitively so one class cannot appear twice in the finder", () => {
+    expect(
+      substanceClassValues({
+        psychoactiveClasses: ["Depressant"],
+        chemicalClasses: ["depressant"],
+        indexCategories: ["DEPRESSANT"],
+      }),
+    ).toEqual(["Depressant"]);
   });
 
   it("survives the v.any() payloads Convex actually stores", () => {
     expect(
-      substanceClassTokens({
+      substanceClassValues({
         psychoactiveClasses: [null, 42, "  Opioid  ", ""],
         chemicalClasses: undefined,
         indexCategories: null,
       }),
-    ).toEqual(["opioid"]);
+    ).toEqual(["Opioid"]);
   });
 });
 
-describe("normalizeLinks", () => {
-  it("keeps one link per anchor and drops targets no article renders", () => {
-    // The Convex column is `v.string()`, so a hand-edited or older document can
-    // name a section the article never renders. Cast because the bad value is
-    // the point of the test and no runtime check can produce it in TypeScript.
-    const stored = [
-      { label: "First", sectionId: "interactions" },
-      { label: "Second", sectionId: "interactions" },
-      { label: "Nowhere", sectionId: "made-up" },
-    ] as unknown as WarningBannerLink[];
+/**
+ * One search box does both jobs an editor has: find a named drug, or find a
+ * whole class of them. It is the reason per-substance enabling is no harder than
+ * per-class enabling — and, being search, it stores nothing.
+ */
+describe("searchWarningBannerTargets", () => {
+  const targets: WarningBannerTarget[] = [
+    { slug: "phenethylamine", title: "Phenethylamine", classes: ["Stimulant"] },
+    { slug: "25i-nbome", title: "25I-NBOMe", classes: ["Phenethylamine (N-benzylated)"] },
+    { slug: "diazepam", title: "Diazepam", classes: ["GABAergic", "Benzodiazepine"] },
+  ];
 
-    expect(normalizeLinks(stored)).toEqual([{ label: "Second", sectionId: "interactions" }]);
+  it("ranks a name match above a class match, because typing a drug name means that drug", () => {
+    const hits = searchWarningBannerTargets("phenethylamine", targets);
+
+    expect(hits.map((hit) => [hit.slug, hit.kind])).toEqual([
+      ["phenethylamine", "name"],
+      ["25i-nbome", "class"],
+    ]);
   });
 
-  it("falls back to the suggested wording rather than rendering a blank chip", () => {
-    expect(normalizeLinks([{ label: "   ", sectionId: "harm-potential" }])).toEqual([
-      { label: "Harm potential", sectionId: "harm-potential" },
-    ]);
+  it("returns nothing below two characters rather than proposing the whole corpus", () => {
+    expect(searchWarningBannerTargets("p", targets)).toEqual([]);
+    expect(searchWarningBannerTargets(" ", targets)).toEqual([]);
+  });
+
+  it("matches a class through its parenthetical qualifier", () => {
+    const hits = searchWarningBannerTargets("Phenethylamine", [targets[1]]);
+
+    expect(hits).toHaveLength(1);
+    expect(hits[0].kind).toBe("class");
+  });
+
+  it("reports the matched string in its own casing, so the evidence line is quotable", () => {
+    const [hit] = searchWarningBannerTargets("gabaergic", targets);
+
+    expect(hit.reason).toBe("GABAergic");
+    expect(searchWarningBannerTargets("diaze", targets)[0].reason).toBe("Diazepam");
   });
 });
