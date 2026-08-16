@@ -63,6 +63,11 @@ export type GalleryDetail = {
   matches: GalleryMatch[];
   curation: GalleryCurationRow | null;
   unmatchedEffectNames: string[];
+  /**
+   * The article's visual effects, for tagging an untagged corpus row into the
+   * match set: the only `effect_slug` values that can make a row match here.
+   */
+  effectOptions: { slug: string; name: string }[];
 };
 
 /** The editable state: the two lists `substanceGalleries:upsert` stores. */
@@ -149,60 +154,160 @@ export function moveCuratedSlug(
 }
 
 /**
- * Apply a drag within (or out of) the curated head: dropping onto another
- * curated slug takes its position; dropping anywhere else un-curates, which is
- * what lets the divider's drop zone work without a special case.
+ * Insert a slug at an exact position in the curated head. Out-of-range indices
+ * clamp instead of throwing so a drop past the last row means "last", and an
+ * already-curated slug moves rather than duplicating. Lifts the slug off the
+ * excluded shelf for the same reason `curateSlug` does.
  */
-export function applyCuratedDrag(
+export function curateSlugAt(
   state: GalleryCurationState,
-  activeSlug: string,
-  overSlug: string,
+  slug: string,
+  index: number,
 ): GalleryCurationState {
-  const from = state.curated.indexOf(activeSlug);
-  if (from === -1 || activeSlug === overSlug) {
+  const from = state.curated.indexOf(slug);
+  // A move re-inserts into a head one shorter than it is now; an insert appends.
+  const limit = from === -1 ? state.curated.length : state.curated.length - 1;
+  const target = Math.min(Math.max(Math.trunc(index), 0), limit);
+  if (from === target && !state.removed.includes(slug)) {
     return state;
   }
-  const to = state.curated.indexOf(overSlug);
-  if (to === -1) {
-    return uncurateSlug(state, activeSlug);
+  const curated = [...state.curated];
+  if (from !== -1) {
+    curated.splice(from, 1);
+  }
+  curated.splice(target, 0, slug);
+  return { curated, removed: state.removed.filter((entry) => entry !== slug) };
+}
+
+/**
+ * Jump a curated slug to the top or bottom of the head — the keyboard and
+ * overflow-menu equivalent of dragging it the whole way.
+ */
+export function moveCuratedSlugToEdge(
+  state: GalleryCurationState,
+  slug: string,
+  edge: "top" | "bottom",
+): GalleryCurationState {
+  const index = state.curated.indexOf(slug);
+  if (index === -1) {
+    return state;
+  }
+  const target = edge === "top" ? 0 : state.curated.length - 1;
+  if (index === target) {
+    return state;
   }
   const curated = [...state.curated];
-  curated.splice(from, 1);
-  curated.splice(to, 0, activeSlug);
+  curated.splice(index, 1);
+  curated.splice(target, 0, slug);
   return { ...state, curated };
 }
 
-export type GallerySplit = {
-  /** Matches pinned to the head, in the curated order. */
-  curated: GalleryMatch[];
-  /** Unpinned, unsuppressed matches in the default corpus order. */
-  auto: GalleryMatch[];
-  /** Suppressed matches, in shelf order. */
+/**
+ * Apply a board drag. Dropping onto a curated row takes that row's index —
+ * which is what lets an auto or library row be dragged *into* the head, not
+ * only reordered inside it. Any other drop id un-curates, so the auto band's
+ * drop zone needs no special case.
+ */
+export function applyBoardDrag(
+  state: GalleryCurationState,
+  activeSlug: string,
+  overId: string,
+): GalleryCurationState {
+  if (activeSlug === overId) {
+    return state;
+  }
+  const to = state.curated.indexOf(overId);
+  if (to === -1) {
+    return uncurateSlug(state, activeSlug);
+  }
+  return curateSlugAt(state, activeSlug, to);
+}
+
+/** Which band a board row sits in: the pinned head or the default tail. */
+export type GalleryBand = "curated" | "auto";
+
+export type GalleryBoardRow = {
+  match: GalleryMatch;
+  /** 1-based position in the effective public order. */
+  position: number;
+  /** True when position <= cap: the article's stage renders this row. */
+  onStage: boolean;
+  band: GalleryBand;
+};
+
+export type GalleryBoard = {
+  /** Curated head then auto tail, numbered continuously from 1. */
+  rows: GalleryBoardRow[];
   excluded: GalleryMatch[];
+  /** min(rows.length, cap) — how many of the cap public slots are filled. */
+  filledSlots: number;
+  /** max(0, cap - rows.length) — rendered as ghost frames. */
+  emptySlots: number;
+  /** Count of rows in the curated band. */
+  curatedCount: number;
+  cap: number;
 };
 
 /**
- * Partition the server's default-ordered match list into the three
- * temperatures. Curated or removed slugs that match nothing simply do not
- * appear — the same read-time tolerance as the public merge; the save prunes
- * them permanently and the echo makes the pruning visible.
+ * Order the matches exactly as the public stage will: curated head in stored
+ * order, then everything else in corpus order, excluded slugs dropped. Curated
+ * or removed slugs that match nothing simply vanish — the same read-time
+ * tolerance as the public merge, so numbering never leaves a hole; the save
+ * prunes them permanently and the echo makes the pruning visible.
  */
-export function splitGallery(
+function orderGallery(
   matches: readonly GalleryMatch[],
   state: GalleryCurationState,
-): GallerySplit {
+): { curated: GalleryMatch[]; auto: GalleryMatch[]; excluded: GalleryMatch[] } {
   const bySlug = new Map(matches.map((match) => [match.replication.slug, match]));
+  const removed = new Set(state.removed);
   const curated = state.curated
-    .map((slug) => bySlug.get(slug))
-    .filter((match): match is GalleryMatch => match !== undefined);
-  const excluded = state.removed
-    .map((slug) => bySlug.get(slug))
+    .map((slug) => (removed.has(slug) ? undefined : bySlug.get(slug)))
     .filter((match): match is GalleryMatch => match !== undefined);
 
-  const pinnedOrRemoved = new Set([...state.curated, ...state.removed]);
-  const auto = matches.filter((match) => !pinnedOrRemoved.has(match.replication.slug));
+  const pinned = new Set(curated.map((match) => match.replication.slug));
+  const auto: GalleryMatch[] = [];
+  const excluded: GalleryMatch[] = [];
+  for (const match of matches) {
+    const slug = match.replication.slug;
+    if (removed.has(slug)) {
+      excluded.push(match);
+    } else if (!pinned.has(slug)) {
+      auto.push(match);
+    }
+  }
 
   return { curated, auto, excluded };
+}
+
+/**
+ * The board the portal draws: one continuously numbered list across both
+ * bands, plus the slot arithmetic that makes the article's hard cap visible —
+ * the whole point of the surface is knowing which rows fall off the stage.
+ */
+export function buildGalleryBoard(
+  matches: readonly GalleryMatch[],
+  state: GalleryCurationState,
+  cap: number,
+): GalleryBoard {
+  const { curated, auto, excluded } = orderGallery(matches, state);
+  const rows: GalleryBoardRow[] = [];
+  for (const match of curated) {
+    const position = rows.length + 1;
+    rows.push({ match, position, onStage: position <= cap, band: "curated" });
+  }
+  for (const match of auto) {
+    const position = rows.length + 1;
+    rows.push({ match, position, onStage: position <= cap, band: "auto" });
+  }
+  return {
+    rows,
+    excluded,
+    filledSlots: Math.min(rows.length, cap),
+    emptySlots: Math.max(0, cap - rows.length),
+    curatedCount: curated.length,
+    cap,
+  };
 }
 
 /** The effective public order: curated head, then the auto tail. */
@@ -210,9 +315,88 @@ export function effectiveGalleryOrder(
   matches: readonly GalleryMatch[],
   state: GalleryCurationState,
 ): GalleryMatch[] {
-  const split = splitGallery(matches, state);
-  return [...split.curated, ...split.auto];
+  const { curated, auto } = orderGallery(matches, state);
+  return [...curated, ...auto];
 }
+
+/**
+ * Undo stack for the working curation. Curation is a long sequence of tiny
+ * reorders, so an accidental drag must be reversible without a refetch that
+ * would discard every other unsaved edit.
+ */
+export type CurationHistory = {
+  past: readonly GalleryCurationState[];
+  present: GalleryCurationState;
+  future: readonly GalleryCurationState[];
+};
+
+/** Deep enough for a whole curation session, shallow enough to stay cheap. */
+export const HISTORY_LIMIT = 50;
+
+export function historyOf(state: GalleryCurationState): CurationHistory {
+  return { past: [], present: state, future: [] };
+}
+
+/**
+ * Record a new present. Mutators return the same reference on a no-op, so
+ * reference equality is exactly the right test for "nothing happened" — an
+ * edge-of-list drag must not push an undo step that appears to do nothing.
+ */
+export function pushHistory(
+  history: CurationHistory,
+  next: GalleryCurationState,
+): CurationHistory {
+  if (next === history.present) {
+    return history;
+  }
+  const past = [...history.past, history.present];
+  return {
+    past: past.length > HISTORY_LIMIT ? past.slice(past.length - HISTORY_LIMIT) : past,
+    present: next,
+    future: [],
+  };
+}
+
+export function undoHistory(history: CurationHistory): CurationHistory {
+  if (history.past.length === 0) {
+    return history;
+  }
+  return {
+    past: history.past.slice(0, -1),
+    present: history.past[history.past.length - 1],
+    future: [history.present, ...history.future],
+  };
+}
+
+export function redoHistory(history: CurationHistory): CurationHistory {
+  if (history.future.length === 0) {
+    return history;
+  }
+  return {
+    past: [...history.past, history.present],
+    present: history.future[0],
+    future: history.future.slice(1),
+  };
+}
+
+export function canUndo(history: CurationHistory): boolean {
+  return history.past.length > 0;
+}
+
+export function canRedo(history: CurationHistory): boolean {
+  return history.future.length > 0;
+}
+
+/**
+ * The server's row when a save is rejected as stale. Carried back to the panel
+ * so a conflict can show what the other editor did rather than just failing.
+ */
+export type GalleryConflict = {
+  curated_slugs: string[];
+  removed_slugs: string[];
+  updated_at: string;
+  updated_by: string | null;
+};
 
 export type GalleryProvenanceSummary = {
   matched: number;

@@ -3,17 +3,27 @@
  * (`/dev` → Replications → Substances → panel).
  *
  *   GET  /api/dev/replications/substances/<slug>
- *     → { substance, matches, curation, unmatchedEffectNames }
- *   POST /api/dev/replications/substances/<slug>  { curatedSlugs, removedSlugs }
- *     → the pruned echo from `substanceGalleries:upsert`
+ *     → { ok, substance, matches, curation, effectOptions, unmatchedEffectNames }
+ *   POST /api/dev/replications/substances/<slug>
+ *          { curatedSlugs, removedSlugs, expectedUpdatedAt? }
+ *     → 200 the pruned echo from `substanceGalleries:upsert` plus the new
+ *           `updated_at` / `updated_by`
+ *     → 409 { error, conflict } when the save is stale — nothing was written
  *
  * The write mirrors the featured-carousel route: editor session checked here,
  * Convex called with the server's token plus the actor's email for the audit
  * trail, full arrays every time, zero optimism — the panel adopts the pruned
- * echo verbatim. Saving revalidates the public replications tag with
- * `expire: 0` and the substance article route, so the article's showcase
- * reflects the new order immediately instead of at the end of the public-data
- * cache window.
+ * echo verbatim.
+ *
+ * `expectedUpdatedAt` is the panel's version check: the `updated_at` it loaded,
+ * or `null` when it loaded no curation row at all. Omitting it saves
+ * unconditionally. When it disagrees with the stored row Convex writes nothing
+ * and reports the current server state, which this route relays as a 409 —
+ * and, having written nothing, does not revalidate.
+ *
+ * A successful save revalidates the public replications tag with `expire: 0`
+ * and the substance article route, so the article's showcase reflects the new
+ * order immediately instead of at the end of the public-data cache window.
  */
 import { NextResponse } from "next/server";
 import { revalidatePath, revalidateTag } from "next/cache";
@@ -42,7 +52,18 @@ function substanceSlugOf(request: Request): string {
   return slug;
 }
 
-type CurationBody = { curatedSlugs?: unknown; removedSlugs?: unknown };
+type CurationBody = {
+  curatedSlugs?: unknown;
+  removedSlugs?: unknown;
+  expectedUpdatedAt?: unknown;
+};
+
+type ParsedCurationBody = {
+  curatedSlugs: string[];
+  removedSlugs: string[];
+  /** Absent ⇒ save unconditionally; `null` ⇒ the editor loaded no curation row. */
+  expectedUpdatedAt: string | null | undefined;
+};
 
 /**
  * What a stored replication slug can actually look like. New uploads mint
@@ -75,7 +96,29 @@ function parseSlugList(value: unknown, field: string): string[] {
   return slugs;
 }
 
-function parseCurationBody(raw: CurationBody): { curatedSlugs: string[]; removedSlugs: string[] } {
+/**
+ * The expected stored version, as the panel saw it: an ISO `updated_at`, `null`
+ * for "no curation row existed", or absent to skip the check. An empty string
+ * is refused rather than relayed — it can never equal a stored timestamp, so it
+ * would 409 forever instead of saving.
+ */
+function parseExpectedUpdatedAt(value: unknown): string | null | undefined {
+  if (value === undefined) {
+    return undefined;
+  }
+  if (value === null) {
+    return null;
+  }
+  if (typeof value !== "string" || value.length === 0) {
+    throw new JsonBodyError(
+      400,
+      "expectedUpdatedAt must be the stored updated_at string, null, or omitted.",
+    );
+  }
+  return value;
+}
+
+function parseCurationBody(raw: CurationBody): ParsedCurationBody {
   const curatedSlugs = parseSlugList(raw?.curatedSlugs, "curatedSlugs");
   const removedSlugs = parseSlugList(raw?.removedSlugs, "removedSlugs");
 
@@ -88,7 +131,11 @@ function parseCurationBody(raw: CurationBody): { curatedSlugs: string[]; removed
     );
   }
 
-  return { curatedSlugs, removedSlugs };
+  return {
+    curatedSlugs,
+    removedSlugs,
+    expectedUpdatedAt: parseExpectedUpdatedAt(raw?.expectedUpdatedAt),
+  };
 }
 
 export const GET = protectedRouteOperation({
@@ -117,11 +164,19 @@ export const GET = protectedRouteOperation({
       );
     }
 
-    return NextResponse.json({ ok: true, ...detail });
+    /*
+     * `effectOptions` is newer than the deployment may be. Between a checkout
+     * and its Convex deploy the query still answers without the field, and the
+     * panel's tag-and-curate chooser would read `undefined.length`. An empty
+     * list degrades that one control to "no effect to tag with" instead of
+     * taking the whole gallery down, matching how the public read tolerates an
+     * undeployed function.
+     */
+    return NextResponse.json({ ok: true, effectOptions: [], ...detail });
   },
 });
 
-export const POST = protectedRouteOperation<CurationBody, { curatedSlugs: string[]; removedSlugs: string[] }>({
+export const POST = protectedRouteOperation<CurationBody, ParsedCurationBody>({
   auth: "editor",
   rateLimit: "editorSmallWrite",
   body: { maxBytes: MAX_PAYLOAD_BYTES, parse: parseCurationBody },
@@ -143,7 +198,20 @@ export const POST = protectedRouteOperation<CurationBody, { curatedSlugs: string
       curated_slugs: body.curatedSlugs,
       removed_slugs: body.removedSlugs,
       updatedBy: actorEmail,
+      expectedUpdatedAt: body.expectedUpdatedAt,
     });
+
+    if (result.status === "conflict") {
+      // Nothing was written, so nothing is stale downstream: no revalidation.
+      return NextResponse.json(
+        {
+          error:
+            "This substance's curation changed since you loaded it. Review the newer version before saving.",
+          conflict: result.server,
+        },
+        { status: 409 },
+      );
+    }
 
     revalidateTag(PUBLIC_CONVEX_CACHE_TAGS.replications, { expire: 0 });
     revalidatePath(`/${slug}`);
@@ -154,6 +222,8 @@ export const POST = protectedRouteOperation<CurationBody, { curatedSlugs: string
       removed_slugs: result.removed_slugs,
       pruned_curated: result.pruned_curated,
       pruned_removed: result.pruned_removed,
+      updated_at: result.updated_at,
+      updated_by: result.updated_by,
     });
   },
 });

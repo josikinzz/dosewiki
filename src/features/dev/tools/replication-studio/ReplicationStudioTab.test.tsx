@@ -2,8 +2,35 @@ import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
+const { pushMock } = vi.hoisted(() => ({ pushMock: vi.fn() }));
+
 vi.mock("next/navigation", () => ({
-  useRouter: () => ({ push: vi.fn(), replace: vi.fn() }),
+  useRouter: () => ({ push: pushMock, replace: vi.fn() }),
+}));
+
+// The portal board is the panel's own test's business. Here it stands in for
+// itself, so what is under test is the host: where the board sits in the grid,
+// and what the tab does with the three callbacks it hands down.
+vi.mock("./SubstanceGalleryPanel", () => ({
+  SubstanceGalleryPanel: (props: {
+    substanceSlug: string | null;
+    onInspectRow: (slug: string) => void;
+    onOpenLibrary: () => void;
+    onDirtyChange: (dirty: boolean) => void;
+  }) => (
+    <div data-testid="gallery-panel">
+      <span>portal:{props.substanceSlug}</span>
+      <button type="button" onClick={() => props.onInspectRow("kaleidoscopic-highway-hypnagogist")}>
+        inspect row
+      </button>
+      <button type="button" onClick={props.onOpenLibrary}>
+        open library
+      </button>
+      <button type="button" onClick={() => props.onDirtyChange(true)}>
+        make dirty
+      </button>
+    </div>
+  ),
 }));
 
 import { ReplicationStudioTab } from "./ReplicationStudioTab";
@@ -84,6 +111,7 @@ function stubFetch() {
 describe("ReplicationStudioTab", () => {
   beforeEach(() => {
     vi.restoreAllMocks();
+    pushMock.mockClear();
   });
 
   it("loads the corpus and renders every row, figures included", async () => {
@@ -152,5 +180,103 @@ describe("ReplicationStudioTab", () => {
     const bulk = calls.find((call) => call.url === "/api/dev/replications/editorial");
     const body = JSON.parse(String(bulk?.init?.body)) as Record<string, unknown>;
     expect(body).toMatchObject({ mode: "bulk", ids: ["row-1", "row-2"], role: "figure" });
+  });
+
+  it("seats the showcase board in the grid's centre column, beside the rail", async () => {
+    stubFetch();
+    const { container } = render(<ReplicationStudioTab initialSubstanceSlug="lsd" />);
+
+    const board = await screen.findByTestId("gallery-panel");
+    const grid = container.querySelector("div.grid");
+
+    // The rail drives the board's add-from-corpus region, so both must be on
+    // screen at once — the whole point of moving the panel into the column.
+    expect(grid).toContainElement(screen.getByLabelText("Search replications"));
+    expect(grid).toContainElement(board);
+    expect(screen.getByText("portal:lsd")).toBeInTheDocument();
+
+    // The corpus library is mounted behind the board rather than replaced.
+    expect(screen.getByText("2 of 2 shown").closest("div.hidden")).not.toBeNull();
+  });
+
+  it("swaps the centre column to the library and back with the board still mounted", async () => {
+    stubFetch();
+    const user = userEvent.setup();
+    render(<ReplicationStudioTab initialSubstanceSlug="lsd" />);
+    await screen.findByTestId("gallery-panel");
+
+    await user.click(screen.getByRole("button", { name: "open library" }));
+
+    expect(screen.getByTestId("gallery-panel").closest("div.hidden")).not.toBeNull();
+    expect(screen.getByText("2 of 2 shown").closest("div.hidden")).toBeNull();
+
+    await user.click(screen.getByRole("button", { name: "Showcase" }));
+
+    expect(screen.getByTestId("gallery-panel").closest("div.hidden")).toBeNull();
+  });
+
+  it("opens the editor drawer on the row the board asks to inspect", async () => {
+    stubFetch();
+    const user = userEvent.setup();
+    render(<ReplicationStudioTab initialSubstanceSlug="lsd" />);
+    await screen.findByTestId("gallery-panel");
+
+    await user.click(screen.getByRole("button", { name: "inspect row" }));
+
+    expect(await screen.findByText("Editing 1 replication")).toBeInTheDocument();
+    expect(screen.getByLabelText("Title")).toHaveValue("Kaleidoscopic highway");
+  });
+
+  it("will not close a dirty portal until the discard dialog is answered", async () => {
+    stubFetch();
+    const user = userEvent.setup();
+    render(<ReplicationStudioTab initialSubstanceSlug="lsd" />);
+    await screen.findByTestId("gallery-panel");
+
+    await user.click(screen.getByRole("button", { name: "make dirty" }));
+    await user.click(screen.getByRole("button", { name: "Substances" }));
+
+    expect(await screen.findByText("Leave the showcase with unsaved changes?")).toBeInTheDocument();
+    expect(screen.getByTestId("gallery-panel")).toBeInTheDocument();
+    expect(pushMock).not.toHaveBeenCalled();
+
+    await user.click(screen.getByRole("button", { name: "Keep editing" }));
+    expect(screen.getByTestId("gallery-panel")).toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: "Substances" }));
+    await user.click(await screen.findByRole("button", { name: "Discard changes" }));
+
+    await waitFor(() => expect(screen.queryByTestId("gallery-panel")).not.toBeInTheDocument());
+    expect(pushMock).toHaveBeenCalledWith("/dev/replications");
+  });
+
+  it("folds the rail into a filter sheet below lg, and `/` opens it", async () => {
+    // No breakpoint matches: the tab reads itself as narrower than `lg`.
+    vi.stubGlobal("matchMedia", (query: string) => ({
+      matches: false,
+      media: query,
+      onchange: null,
+      addListener: vi.fn(),
+      removeListener: vi.fn(),
+      addEventListener: vi.fn(),
+      removeEventListener: vi.fn(),
+      dispatchEvent: vi.fn(),
+    }));
+    stubFetch();
+    const user = userEvent.setup();
+    render(<ReplicationStudioTab />);
+    await screen.findByText("Kaleidoscopic highway");
+
+    // One rail, one home: closed sheet means no second search box to confuse
+    // `/` or the ref it focuses.
+    expect(screen.queryByLabelText("Search replications")).not.toBeInTheDocument();
+
+    await user.keyboard("/");
+
+    const search = await screen.findByLabelText("Search replications");
+    expect(search).toHaveFocus();
+    // The whole organizer came with it — nothing amputated at this width.
+    expect(screen.getByText("Group by")).toBeInTheDocument();
+    expect(screen.getByLabelText(/John Tenniel/)).toBeInTheDocument();
   });
 });

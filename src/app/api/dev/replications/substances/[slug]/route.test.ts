@@ -53,6 +53,7 @@ const DETAIL = {
   substance: { slug: "lsd", title: "LSD" },
   matches: [],
   curation: null,
+  effectOptions: [{ slug: "tracers", name: "Tracers" }],
   unmatchedEffectNames: ["Drifting"],
 };
 
@@ -142,12 +143,15 @@ describe("substance gallery GET", () => {
 describe("substance gallery POST", () => {
   it("submits full arrays, revalidates, and returns the pruned echo verbatim", async () => {
     convexMocks.mutation.mockResolvedValue({
+      status: "ok",
       updated: true,
       substance_slug: "lsd",
       curated_slugs: ["tracers-hand"],
       removed_slugs: ["haze-room"],
       pruned_curated: ["ghost-row"],
       pruned_removed: [],
+      updated_at: "2026-02-02T02:02:02.000Z",
+      updated_by: "editor@example.com",
     });
     const { POST } = await import("./route");
 
@@ -155,6 +159,7 @@ describe("substance gallery POST", () => {
       saveRequest({
         curatedSlugs: ["tracers-hand", "ghost-row"],
         removedSlugs: ["haze-room"],
+        expectedUpdatedAt: "2026-01-01T00:00:00.000Z",
       }),
     );
 
@@ -165,6 +170,8 @@ describe("substance gallery POST", () => {
       removed_slugs: ["haze-room"],
       pruned_curated: ["ghost-row"],
       pruned_removed: [],
+      updated_at: "2026-02-02T02:02:02.000Z",
+      updated_by: "editor@example.com",
     });
     expect(convexMocks.mutation).toHaveBeenCalledWith("substanceGalleries.upsert", {
       apiKey: "admin-key",
@@ -173,6 +180,7 @@ describe("substance gallery POST", () => {
       curated_slugs: ["tracers-hand", "ghost-row"],
       removed_slugs: ["haze-room"],
       updatedBy: "editor@example.com",
+      expectedUpdatedAt: "2026-01-01T00:00:00.000Z",
     });
     expect(cacheMocks.revalidateTag).toHaveBeenCalledWith("public-replications", { expire: 0 });
     expect(cacheMocks.revalidatePath).toHaveBeenCalledWith("/lsd");
@@ -191,12 +199,15 @@ describe("substance gallery POST", () => {
 
   it("accepts the legacy underscore slugs the corpus actually holds", async () => {
     convexMocks.mutation.mockResolvedValue({
+      status: "ok",
       updated: false,
       substance_slug: "lsd",
       curated_slugs: ["grass_photos_v2_x2-unknown"],
       removed_slugs: [],
       pruned_curated: [],
       pruned_removed: [],
+      updated_at: "2026-02-02T02:02:02.000Z",
+      updated_by: "editor@example.com",
     });
     const { POST } = await import("./route");
 
@@ -226,5 +237,96 @@ describe("substance gallery POST", () => {
 
     expect(response.status).toBe(400);
     expect(convexMocks.mutation).not.toHaveBeenCalled();
+  });
+
+  it("omits expectedUpdatedAt when the body does not carry it", async () => {
+    convexMocks.mutation.mockResolvedValue({
+      status: "ok",
+      updated: false,
+      substance_slug: "lsd",
+      curated_slugs: [],
+      removed_slugs: [],
+      pruned_curated: [],
+      pruned_removed: [],
+      updated_at: "2026-02-02T02:02:02.000Z",
+      updated_by: "editor@example.com",
+    });
+    const { POST } = await import("./route");
+
+    const response = await POST(saveRequest({ curatedSlugs: [], removedSlugs: [] }));
+
+    expect(response.status).toBe(200);
+    expect(convexMocks.mutation.mock.calls[0][1]).toMatchObject({ expectedUpdatedAt: undefined });
+  });
+
+  it("relays a null expectedUpdatedAt so Convex asserts no curation row exists", async () => {
+    convexMocks.mutation.mockResolvedValue({
+      status: "ok",
+      updated: false,
+      substance_slug: "lsd",
+      curated_slugs: ["tracers-hand"],
+      removed_slugs: [],
+      pruned_curated: [],
+      pruned_removed: [],
+      updated_at: "2026-02-02T02:02:02.000Z",
+      updated_by: "editor@example.com",
+    });
+    const { POST } = await import("./route");
+
+    const response = await POST(
+      saveRequest({
+        curatedSlugs: ["tracers-hand"],
+        removedSlugs: [],
+        expectedUpdatedAt: null,
+      }),
+    );
+
+    expect(response.status).toBe(200);
+    expect(convexMocks.mutation.mock.calls[0][1]).toMatchObject({ expectedUpdatedAt: null });
+  });
+
+  it("rejects a non-string, non-null expectedUpdatedAt before reaching Convex", async () => {
+    const { POST } = await import("./route");
+
+    const response = await POST(
+      saveRequest({ curatedSlugs: [], removedSlugs: [], expectedUpdatedAt: 17 }),
+    );
+
+    expect(response.status).toBe(400);
+    expect(convexMocks.mutation).not.toHaveBeenCalled();
+  });
+
+  it("reports a stale save as a 409 with the server state and revalidates nothing", async () => {
+    convexMocks.mutation.mockResolvedValue({
+      status: "conflict",
+      server: {
+        curated_slugs: ["haze-room"],
+        removed_slugs: [],
+        updated_at: "2026-03-03T03:03:03.000Z",
+        updated_by: "other@example.com",
+      },
+    });
+    const { POST } = await import("./route");
+
+    const response = await POST(
+      saveRequest({
+        curatedSlugs: ["tracers-hand"],
+        removedSlugs: [],
+        expectedUpdatedAt: "2026-01-01T00:00:00.000Z",
+      }),
+    );
+
+    expect(response.status).toBe(409);
+    expect(await response.json()).toEqual({
+      error: expect.stringContaining("changed since you loaded it"),
+      conflict: {
+        curated_slugs: ["haze-room"],
+        removed_slugs: [],
+        updated_at: "2026-03-03T03:03:03.000Z",
+        updated_by: "other@example.com",
+      },
+    });
+    expect(cacheMocks.revalidateTag).not.toHaveBeenCalled();
+    expect(cacheMocks.revalidatePath).not.toHaveBeenCalled();
   });
 });

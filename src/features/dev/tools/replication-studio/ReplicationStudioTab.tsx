@@ -18,9 +18,19 @@ import { Icon } from "@/components/common/Icon";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import {
   ActionNotice,
   EditorPanel,
   EditorPanelBody,
+  EditorSegmentedControl,
   TagToken,
   type ActionNoticeTone,
   type EditorActionStatusState,
@@ -79,6 +89,36 @@ type LoadState =
 
 type Feedback = { tone: ActionNoticeTone; message: string };
 
+/** Which view the centre column shows while the Substances portal is open. */
+type CentreView = "showcase" | "library";
+
+/**
+ * Tailwind's `lg`, the width at which the studio is a real multi-column desk
+ * and the facet rail can hold a column of its own.
+ */
+const RAIL_COLUMN_MEDIA = "(min-width: 1024px)";
+
+/**
+ * True while the rail belongs in the grid; below `lg` it moves into a popover
+ * sheet so the centre column is not pushed a screenful below a wall of facets.
+ * Wide is the first answer on purpose — it matches the server render, and
+ * `matchMedia` corrects it before paint on anything narrower.
+ */
+function useRailColumn() {
+  const [wide, setWide] = useState(true);
+
+  useEffect(() => {
+    if (typeof window === "undefined" || typeof window.matchMedia !== "function") return;
+    const query = window.matchMedia(RAIL_COLUMN_MEDIA);
+    const update = () => setWide(query.matches);
+    update();
+    query.addEventListener("change", update);
+    return () => query.removeEventListener("change", update);
+  }, []);
+
+  return wide;
+}
+
 async function readError(response: Response, fallback: string): Promise<string> {
   try {
     const payload = (await response.json()) as { error?: string };
@@ -126,18 +166,98 @@ export function ReplicationStudioTab({
     "idle",
   );
 
+  // The portal is a *view of* the corpus, so it takes the centre column and
+  // leaves the rail and the drawer in place. The Library view underneath it
+  // stays mounted while it is hidden: `onOpenLibrary` is a round trip ("go tag
+  // that row, come back"), and unmounting the board would throw away the very
+  // draft the trip was made for.
+  const [centreView, setCentreView] = useState<CentreView>("showcase");
+  const [galleryDirty, setGalleryDirty] = useState(false);
+  /** Set while a dirty portal blocks a panel switch; holds where to go next. */
+  const [pendingLeave, setPendingLeave] = useState<{ next: "featured" | null } | null>(null);
+  const [filtersOpen, setFiltersOpen] = useState(false);
+  const railInColumn = useRailColumn();
+
   // A deep link (or a picker navigation, which lands here as a prop change)
-  // always opens the Substances panel on its slug.
+  // always opens the Substances panel on its slug, showing the board.
   useEffect(() => {
     if (initialSubstanceSlug) {
       setActivePanel("substances");
+      setCentreView("showcase");
     }
   }, [initialSubstanceSlug]);
+
+  // Opening the portal by hand lands on the board too.
+  useEffect(() => {
+    if (activePanel === "substances") {
+      setCentreView("showcase");
+    }
+  }, [activePanel]);
+
+  /**
+   * Leave the portal for `next`, abandoning whatever the board had unsaved.
+   * Every exit runs through here so the address, the dirty flag and the
+   * blocked-switch dialog can never disagree about what happened.
+   */
+  const leaveSubstances = useCallback(
+    (next: "featured" | null) => {
+      setPendingLeave(null);
+      setGalleryDirty(false);
+      setActivePanel(next);
+      // Closing the portal returns the address to the bare tab so a reload does
+      // not silently reopen a stale substance. Switching to Featured leaves it
+      // alone: that route is still the substance the portal will show on the
+      // way back.
+      if (next === null && initialSubstanceSlug) {
+        router.push("/dev/replications");
+      }
+    },
+    [initialSubstanceSlug, router],
+  );
+
+  const requestLeaveSubstances = useCallback(
+    (next: "featured" | null) => {
+      if (galleryDirty) {
+        setPendingLeave({ next });
+        return;
+      }
+      leaveSubstances(next);
+    },
+    [galleryDirty, leaveSubstances],
+  );
+
+  // Registered only while the board is dirty: an always-on handler would argue
+  // with every reload of a tab that has nothing to lose.
+  useEffect(() => {
+    if (!galleryDirty) return;
+    const warn = (event: BeforeUnloadEvent) => {
+      event.preventDefault();
+      event.returnValue = "";
+    };
+    window.addEventListener("beforeunload", warn);
+    return () => window.removeEventListener("beforeunload", warn);
+  }, [galleryDirty]);
 
   const searchRef = useRef<HTMLInputElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const dragDepth = useRef(0);
   const objectUrls = useRef<Set<string>>(new Set());
+  const drawerRef = useRef<HTMLDivElement>(null);
+
+  /**
+   * `/` from anywhere. When the rail lives in the popover sheet the input is
+   * not mounted, so opening the sheet *is* the focus — its content hands the
+   * caret to the search box on open.
+   */
+  const focusSearch = useCallback(() => {
+    const input = searchRef.current;
+    if (!input) {
+      setFiltersOpen(true);
+      return;
+    }
+    input.focus();
+    input.select();
+  }, []);
 
   const loadCorpus = useCallback(async () => {
     // A cached corpus is already on screen, so a refresh must not blank it out.
@@ -262,6 +382,30 @@ export function ReplicationStudioTab({
     setAnchor(null);
   }, []);
 
+  /**
+   * The showcase board's route out of "this row is not matched": it hands back
+   * a corpus slug and the drawer opens on it in single-edit mode, through the
+   * very selection the grid drives, so tagging it is one panel away.
+   */
+  const inspectRow = useCallback(
+    (slug: string) => {
+      const row = rows.find((entry) => entry.slug === slug);
+      if (!row) {
+        setFeedback({ tone: "danger", message: `No corpus row is named ${slug}.` });
+        return;
+      }
+      setSelection(new Set([row.id]));
+      setAnchor(row.id);
+      // Below xl the drawer sits under the fold; `nearest` is a no-op once it
+      // is already the third column beside the board.
+      drawerRef.current?.scrollIntoView?.({ block: "nearest" });
+    },
+    [rows],
+  );
+
+  /** The board's "go find it in the corpus" exit; the draft stays mounted. */
+  const openLibrary = useCallback(() => setCentreView("library"), []);
+
   const onCardActivate = useCallback(
     (event: React.MouseEvent, id: string) => {
       setSelection((current) => {
@@ -298,8 +442,7 @@ export function ReplicationStudioTab({
 
       if (event.key === "/" && !typing) {
         event.preventDefault();
-        searchRef.current?.focus();
-        searchRef.current?.select();
+        focusSearch();
         return;
       }
       if (event.key === "Escape") {
@@ -336,7 +479,7 @@ export function ReplicationStudioTab({
 
     document.addEventListener("keydown", onKeyDown);
     return () => document.removeEventListener("keydown", onKeyDown);
-  }, [anchor, clearSelection, selection.size, visibleIds]);
+  }, [anchor, clearSelection, focusSearch, selection.size, visibleIds]);
 
   /* ----------------------------------------------------------------- edits */
 
@@ -630,6 +773,16 @@ export function ReplicationStudioTab({
     return entries;
   }, [facets, effectNames]);
 
+  /**
+   * The portal board owns the centre column while it is showing; the corpus
+   * Library stays mounted behind it so a trip out to tag a row and back does
+   * not cost the grid its scroll, its selection, or the tray its uploads.
+   */
+  const showcaseVisible = activePanel === "substances" && centreView === "showcase";
+
+  /** Search plus facets, the number the filter sheet wears as its badge. */
+  const filterCount = activeFacetCount(facets) + (query.trim() ? 1 : 0);
+
   if (load.status === "loading") {
     return (
       <EditorPanel variant="empty" className="p-8 text-center text-sm">
@@ -668,7 +821,17 @@ export function ReplicationStudioTab({
           variant={activePanel === "featured" ? "accent" : "ghost"}
           size="sm"
           aria-expanded={activePanel === "featured"}
-          onClick={() => setActivePanel((panel) => (panel === "featured" ? null : "featured"))}
+          onClick={() => {
+            if (activePanel === "featured") {
+              setActivePanel(null);
+              return;
+            }
+            if (activePanel === "substances") {
+              requestLeaveSubstances("featured");
+              return;
+            }
+            setActivePanel("featured");
+          }}
         >
           <Icon icon="lucide:star" size={15} />
           Featured
@@ -678,19 +841,13 @@ export function ReplicationStudioTab({
           variant={activePanel === "substances" ? "accent" : "ghost"}
           size="sm"
           aria-expanded={activePanel === "substances"}
-          onClick={() =>
-            setActivePanel((panel) => {
-              // Closing the portal returns the address to the bare tab so a
-              // reload does not silently reopen a stale substance.
-              if (panel === "substances") {
-                if (initialSubstanceSlug) {
-                  router.push("/dev/replications");
-                }
-                return null;
-              }
-              return "substances";
-            })
-          }
+          onClick={() => {
+            if (activePanel === "substances") {
+              requestLeaveSubstances(null);
+              return;
+            }
+            setActivePanel("substances");
+          }}
         >
           <Icon icon="lucide:images" size={15} />
           Substances
@@ -757,114 +914,204 @@ export function ReplicationStudioTab({
         </EditorPanel>
       ) : null}
 
-      {activePanel === "substances" ? (
-        <EditorPanel>
-          <EditorPanelBody>
-            <SubstanceGalleryPanel
-              substanceSlug={initialSubstanceSlug ?? null}
-              onNavigateToSubstance={(slug) => router.push(`/dev/replications/${slug}`)}
-              visibleRows={visibleRows}
-              railNarrowed={activeFacetCount(facets) > 0 || query.trim() !== ""}
-            />
-          </EditorPanelBody>
-        </EditorPanel>
-      ) : null}
-
       <div className="grid gap-4 lg:grid-cols-[16rem_minmax(0,1fr)] xl:grid-cols-[16rem_minmax(0,1fr)_22rem]">
-        <ReplicationFacetRail
-          rows={rows}
-          effectNames={effectNames}
-          query={query}
-          onQueryChange={setQuery}
-          group={group}
-          onGroupChange={setGroup}
-          facets={facets}
-          onToggleFacet={(kind, key) => setFacets((current) => toggleFacetValue(current, kind, key))}
-          searchInputRef={searchRef}
-        />
+        {railInColumn ? (
+          <ReplicationFacetRail
+            rows={rows}
+            effectNames={effectNames}
+            query={query}
+            onQueryChange={setQuery}
+            group={group}
+            onGroupChange={setGroup}
+            facets={facets}
+            onToggleFacet={(kind, key) => setFacets((current) => toggleFacetValue(current, kind, key))}
+            searchInputRef={searchRef}
+          />
+        ) : (
+          // One rail, two homes. Below `lg` the facets would push the board a
+          // screenful down, so the whole organizer moves into a sheet — nothing
+          // is dropped, and only one copy is ever mounted, so `/` and the
+          // search ref always mean the input the user can see.
+          <Popover open={filtersOpen} onOpenChange={setFiltersOpen}>
+            <PopoverTrigger asChild>
+              <Button type="button" variant="glass" size="sm" className="w-full justify-between">
+                <span className="flex items-center gap-2">
+                  <Icon icon="lucide:sliders-horizontal" size={15} />
+                  Search &amp; filters
+                </span>
+                {filterCount > 0 ? <Badge variant="secondary">{filterCount}</Badge> : null}
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent
+              align="start"
+              className="w-[min(22rem,calc(100vw-2rem))] p-0"
+              onOpenAutoFocus={(event) => {
+                event.preventDefault();
+                searchRef.current?.focus();
+              }}
+            >
+              <ReplicationFacetRail
+                rows={rows}
+                effectNames={effectNames}
+                query={query}
+                onQueryChange={setQuery}
+                group={group}
+                onGroupChange={setGroup}
+                facets={facets}
+                onToggleFacet={(kind, key) => setFacets((current) => toggleFacetValue(current, kind, key))}
+                searchInputRef={searchRef}
+              />
+            </PopoverContent>
+          </Popover>
+        )}
 
         <main className="min-w-0 space-y-4">
-          <IncomingTray
-            items={incoming}
-            effects={effects}
-            artists={artists}
-            onPatch={patchIncoming}
-            onDiscard={discardIncoming}
-            onClear={clearIncoming}
-            onAdd={(item) => void addToLibrary(item)}
-          />
+          {activePanel === "substances" ? (
+            <>
+              <EditorSegmentedControl
+                label="Substances portal view"
+                options={[
+                  { value: "showcase", label: "Showcase", icon: "lucide:images" },
+                  { value: "library", label: "Library", icon: "lucide:library" },
+                ]}
+                value={centreView}
+                onChange={(value) => setCentreView(value as CentreView)}
+              />
+              <div className={cn(showcaseVisible ? "space-y-4" : "hidden")}>
+                <SubstanceGalleryPanel
+                  substanceSlug={initialSubstanceSlug ?? null}
+                  onNavigateToSubstance={(slug) => router.push(`/dev/replications/${slug}`)}
+                  visibleRows={visibleRows}
+                  railNarrowed={filterCount > 0}
+                  onInspectRow={inspectRow}
+                  onOpenLibrary={openLibrary}
+                  onDirtyChange={setGalleryDirty}
+                />
+              </div>
+            </>
+          ) : null}
 
-          {chips.length > 0 || query.trim() ? (
-            <div className="flex flex-wrap items-center gap-1.5">
-              {chips.map((chip) => (
-                <TagToken
-                  key={`${chip.kind}:${chip.key}`}
-                  variant="compact"
-                  label={chip.label}
-                  removeLabel={`Remove filter ${chip.label}`}
-                  onRemove={() => setFacets((current) => toggleFacetValue(current, chip.kind, chip.key))}
-                />
-              ))}
-              {query.trim() ? (
-                <TagToken
-                  variant="compact"
-                  label={`“${query.trim()}”`}
-                  removeLabel="Clear search"
-                  onRemove={() => setQuery("")}
-                />
-              ) : null}
-              {activeFacetCount(facets) > 1 ? (
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => {
-                    setFacets(EMPTY_STUDIO_FACETS);
-                    setQuery("");
-                  }}
-                >
-                  Clear all
+          <div className={cn("space-y-4", showcaseVisible && "hidden")}>
+            <IncomingTray
+              items={incoming}
+              effects={effects}
+              artists={artists}
+              onPatch={patchIncoming}
+              onDiscard={discardIncoming}
+              onClear={clearIncoming}
+              onAdd={(item) => void addToLibrary(item)}
+            />
+
+            {chips.length > 0 || query.trim() ? (
+              <div className="flex flex-wrap items-center gap-1.5">
+                {chips.map((chip) => (
+                  <TagToken
+                    key={`${chip.kind}:${chip.key}`}
+                    variant="compact"
+                    label={chip.label}
+                    removeLabel={`Remove filter ${chip.label}`}
+                    onRemove={() => setFacets((current) => toggleFacetValue(current, chip.kind, chip.key))}
+                  />
+                ))}
+                {query.trim() ? (
+                  <TagToken
+                    variant="compact"
+                    label={`“${query.trim()}”`}
+                    removeLabel="Clear search"
+                    onRemove={() => setQuery("")}
+                  />
+                ) : null}
+                {activeFacetCount(facets) > 1 ? (
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => {
+                      setFacets(EMPTY_STUDIO_FACETS);
+                      setQuery("");
+                    }}
+                  >
+                    Clear all
+                  </Button>
+                ) : null}
+              </div>
+            ) : null}
+
+            {selection.size > 0 ? (
+              <EditorPanel variant="toolbar" className="flex flex-wrap items-center gap-2 px-3 py-2">
+                <span className="theme-text-primary font-mono text-sm">{selection.size} selected</span>
+                <Badge variant="secondary">bulk</Badge>
+                <div className="flex-1" />
+                <Button type="button" variant="glass" size="sm" disabled={busy} onClick={markSelectionAsFigure}>
+                  Mark as figure
                 </Button>
-              ) : null}
+                <Button type="button" variant="ghost" size="sm" onClick={clearSelection}>
+                  Deselect
+                </Button>
+              </EditorPanel>
+            ) : null}
+
+            <div className="flex items-center justify-between">
+              <span className="theme-text-faint font-mono text-xs">
+                {visibleRows.length} of {rows.length} shown
+              </span>
+              <span className="theme-text-faint text-xs">
+                {group === "none" ? "Ungrouped" : `Grouped by ${group} · ${groups.length} groups`}
+              </span>
             </div>
-          ) : null}
 
-          {selection.size > 0 ? (
-            <EditorPanel variant="toolbar" className="flex flex-wrap items-center gap-2 px-3 py-2">
-              <span className="theme-text-primary font-mono text-sm">{selection.size} selected</span>
-              <Badge variant="secondary">bulk</Badge>
-              <div className="flex-1" />
-              <Button type="button" variant="glass" size="sm" disabled={busy} onClick={markSelectionAsFigure}>
-                Mark as figure
-              </Button>
-              <Button type="button" variant="ghost" size="sm" onClick={clearSelection}>
-                Deselect
-              </Button>
-            </EditorPanel>
-          ) : null}
-
-          <div className="flex items-center justify-between">
-            <span className="theme-text-faint font-mono text-xs">
-              {visibleRows.length} of {rows.length} shown
-            </span>
-            <span className="theme-text-faint text-xs">
-              {group === "none" ? "Ungrouped" : `Grouped by ${group} · ${groups.length} groups`}
-            </span>
+            <ReplicationGrid groups={groups} selection={selection} onCardActivate={onCardActivate} />
           </div>
-
-          <ReplicationGrid groups={groups} selection={selection} onCardActivate={onCardActivate} />
         </main>
 
-        <ReplicationEditorDrawer
-          selected={selectedRows}
-          effects={effects}
-          artists={artists}
-          busy={busy}
-          onSaveSingle={(row, draft) => void saveSingle(row, draft)}
-          onApplyBulk={(targets, edit) => void applyBulk(targets, edit)}
-          onDeselect={clearSelection}
-        />
+        <div ref={drawerRef} className="min-w-0">
+          <ReplicationEditorDrawer
+            selected={selectedRows}
+            effects={effects}
+            artists={artists}
+            busy={busy}
+            onSaveSingle={(row, draft) => void saveSingle(row, draft)}
+            onApplyBulk={(targets, edit) => void applyBulk(targets, edit)}
+            onDeselect={clearSelection}
+          />
+        </div>
       </div>
+
+      {/*
+        The portal's exit interview. A dirty board is real work — an unsaved
+        order, an un-curated row — so closing it or swapping to Featured asks
+        first, in the app's own dialog rather than the browser's.
+      */}
+      <Dialog
+        open={pendingLeave !== null}
+        onOpenChange={(open) => {
+          if (!open) setPendingLeave(null);
+        }}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Leave the showcase with unsaved changes?</DialogTitle>
+            <DialogDescription>
+              This board has curation that was never saved. Leaving now throws it away — the
+              article keeps whatever is already stored.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button type="button" variant="ghost" onClick={() => setPendingLeave(null)}>
+              Keep editing
+            </Button>
+            <Button
+              type="button"
+              variant="destructive"
+              onClick={() => {
+                if (pendingLeave) leaveSubstances(pendingLeave.next);
+              }}
+            >
+              Discard changes
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       <div
         aria-hidden={!dragging}

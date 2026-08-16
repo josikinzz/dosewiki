@@ -12,6 +12,12 @@ type ThumbSubject = {
   title: string;
   type: StudioMediaType;
   thumbnail_url: string | null;
+  /**
+   * The asset itself. Stills are their own thumbnail, so an image row with no
+   * generated derivative still draws a frame instead of a glyph; video and
+   * audio urls are never used as an <img> source.
+   */
+  url?: string | null;
   duration?: number | null;
 };
 
@@ -54,6 +60,7 @@ export function ReplicationThumb({
 }) {
   const [failed, setFailed] = useState(false);
   const durationLabel = formatDuration(row.duration ?? null);
+  const source = row.thumbnail_url ?? (row.type === "image" ? row.url ?? null : null);
 
   return (
     <div
@@ -73,13 +80,13 @@ export function ReplicationThumb({
             />
           ))}
         </div>
-      ) : row.thumbnail_url && !failed ? (
+      ) : source && !failed ? (
         // A raw <img> rather than AppImage: the studio needs the error event to
         // swap in a placeholder, and these Convex storage URLs have no known
         // intrinsic size to hand next/image.
         // eslint-disable-next-line jsx-a11y/no-noninteractive-element-interactions -- `error` is a load event, not an interaction; it is the only way to catch a dead storage URL.
         <img
-          src={row.thumbnail_url}
+          src={source}
           alt={row.title || row.slug}
           loading="lazy"
           decoding="async"

@@ -6,6 +6,7 @@ import {
   matchSubstanceGalleryReplications,
   mergeCuratedGallery,
   normalizeGalleryCuration,
+  resolveVisualEffectSlugs,
   visualEffectNamesOf,
 } from "../src/data/substanceReplicationGallery";
 
@@ -155,10 +156,11 @@ export const listCurationCandidatesPage = query({
 /**
  * Everything the curation portal's per-substance panel draws in one read:
  * publishable matches in default corpus order with per-item provenance and
- * resolved media URLs, the stored curation row (or null), and the unmatched
- * visual-effect names the teaching state lists. Unlike the public read this
- * never merges — the portal needs the raw default order and the curation
- * separately to draw the three temperatures.
+ * resolved media URLs, the stored curation row (or null), the substance's
+ * matchable visual effects (`effectOptions`, what the portal's tag-to-add
+ * control offers), and the unmatched visual-effect names the teaching state
+ * lists. Unlike the public read this never merges — the portal needs the raw
+ * default order and the curation separately to draw the three temperatures.
  *
  * Returns null for a slug naming no (or an ambiguous) substance.
  */
@@ -181,6 +183,20 @@ export const getCurationDetail = query({
 
     const effects = await ctx.db.query("subjectiveEffects").collect();
     const effectNames = new Map(effects.map((effect) => [effect.slug, effect.name ?? effect.slug]));
+
+    // What tagging a corpus row with could actually surface it here: the
+    // article's visual-effect names that resolve to a real effect page, keyed
+    // by that slug and labelled with the article's own wording. Names in
+    // `unlinkableNames` resolve to nothing and are therefore not offered.
+    const { slugByName } = resolveVisualEffectSlugs(visualNames);
+    const effectOptions: { slug: string; name: string }[] = [];
+    const offeredEffectSlugs = new Set<string>();
+    for (const name of visualNames) {
+      const slug = slugByName.get(name);
+      if (slug === undefined || offeredEffectSlugs.has(slug)) continue;
+      offeredEffectSlugs.add(slug);
+      effectOptions.push({ slug, name });
+    }
 
     const resolvedUrls = memoizedStorageUrls(ctx);
     const resolved = await Promise.all(
@@ -228,6 +244,7 @@ export const getCurationDetail = query({
             updated_by: gallery.updated_by,
           }
         : null,
+      effectOptions,
       unmatchedEffectNames,
     };
   },
@@ -242,6 +259,15 @@ export const getCurationDetail = query({
  * be told rather than left guessing. A curated∩removed overlap is rejected
  * outright: it is a client bug, not a preference. The caller adopts the
  * returned pruned echo as its new state.
+ *
+ * `expectedUpdatedAt` is the version check, in the spirit of
+ * `replications:updateEditorialFields`' `expected` snapshot: omit it to write
+ * unconditionally, pass `null` to assert this substance has never been
+ * curated, or pass the `updated_at` the editor loaded to assert nobody has
+ * saved since. A failed check writes nothing and returns
+ * `{ status: "conflict", server }` carrying the row as it stands right now, so
+ * the caller can show the editor both sides instead of clobbering a colleague.
+ * Every write returns `{ status: "ok", … }`.
  */
 export const upsert = mutation({
   args: {
@@ -251,6 +277,7 @@ export const upsert = mutation({
     curated_slugs: v.array(v.string()),
     removed_slugs: v.array(v.string()),
     updatedBy: v.optional(v.string()),
+    expectedUpdatedAt: v.optional(v.union(v.string(), v.null())),
   },
   handler: async (ctx, args) => {
     const actor = await requireEditorWrite(ctx, {
@@ -273,6 +300,29 @@ export const upsert = mutation({
       throw new Error(`No substance found for slug "${args.substance_slug}".`);
     }
 
+    const existing = await ctx.db
+      .query("substanceGalleries")
+      .withIndex("by_substance", (q) => q.eq("substance_slug", args.substance_slug))
+      .first();
+
+    // Checked before the corpus scan: a stale save is answered with the row as
+    // it stands, not with work done on a payload nobody is going to store.
+    const expected = args.expectedUpdatedAt;
+    if (
+      expected !== undefined &&
+      (expected === null ? existing !== null : existing?.updated_at !== expected)
+    ) {
+      return {
+        status: "conflict" as const,
+        server: {
+          curated_slugs: existing?.curated_slugs ?? [],
+          removed_slugs: existing?.removed_slugs ?? [],
+          updated_at: existing?.updated_at ?? "",
+          updated_by: existing?.updated_by ?? null,
+        },
+      };
+    }
+
     const rows = await ctx.db.query("replications").collect();
     const { matches } = matchSubstanceGalleryReplications(
       rows,
@@ -284,11 +334,6 @@ export const upsert = mutation({
       removedSlugs: args.removed_slugs,
       matchableSlugs: new Set(matches.map((match) => match.row.slug)),
     });
-
-    const existing = await ctx.db
-      .query("substanceGalleries")
-      .withIndex("by_substance", (q) => q.eq("substance_slug", args.substance_slug))
-      .first();
 
     const updated_at = new Date().toISOString();
     const updated_by = args.updatedBy ?? actor.email;
@@ -311,12 +356,15 @@ export const upsert = mutation({
     }
 
     return {
+      status: "ok" as const,
       updated: Boolean(existing),
       substance_slug: args.substance_slug,
       curated_slugs: normalized.curatedSlugs,
       removed_slugs: normalized.removedSlugs,
       pruned_curated: normalized.prunedCurated,
       pruned_removed: normalized.prunedRemoved,
+      updated_at,
+      updated_by,
     };
   },
 });

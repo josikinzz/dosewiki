@@ -4,35 +4,38 @@
  * Substance Galleries curation portal — `/dev` → Replications → Substances,
  * deep-linked at `/dev/replications/<substance-slug>`.
  *
- * The three-temperature surface from prototype P3: a curated head in exact
- * stored order, the untouched matches in default corpus order below a divider,
- * and a collapsed excluded shelf. Curate pins to the tail of the head, Exclude
- * suppresses, Restore returns to natural order, ↑↓ (and a drag) reorder the
- * head. The preview strip is the effective public order. Saving submits both
- * full arrays and adopts the server's pruned echo verbatim — zero optimism.
+ * This is the orchestrator; the contact-sheet board lives in `GalleryBoardList`,
+ * the substance combobox in `GalleryPicker`, corpus intake in
+ * `GalleryLibraryAdd`, and the fidelity preview in `GalleryStagePreview`. What
+ * stays here is the part that has to be single-sourced: the draft, its bounded
+ * undo stack, the version-checked save, and the dirty guard.
+ *
+ * Two disciplines are load-bearing and unchanged from the first version.
+ * Curation is never optimistic: the draft is local until Save, and the server's
+ * pruned echo is adopted verbatim because `normalizeGalleryCuration` is the
+ * authority on which slugs still match. And every slot decision is measured
+ * against `SHOWCASE_WORK_CAP` rather than a copy of the number — the article
+ * truncates after the cap, so the board has to say so out loud.
  */
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import {
-  DndContext,
-  type DragEndEvent,
-  KeyboardSensor,
-  PointerSensor,
-  closestCenter,
-  useDroppable,
-  useSensor,
-  useSensors,
-} from "@dnd-kit/core";
-import { SortableContext, useSortable, verticalListSortingStrategy } from "@dnd-kit/sortable";
-import { CSS } from "@dnd-kit/utilities";
+import type { DragEndEvent } from "@dnd-kit/core";
 
 import { Icon } from "@/components/common/Icon";
+import { SkeletonPulse } from "@/components/layout/PublicFeedbackPrimitives";
 import { Button } from "@/components/ui/button";
-import { Command, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { EmptyStateSurface, InteractiveContentCard } from "@/components/ui/surface";
 import {
   ActionNotice,
+  DiffSurface,
   EditorActionStatus,
   EditorSection,
   EditorStatusPill,
@@ -40,22 +43,35 @@ import {
   type ActionNoticeTone,
   type EditorActionStatusState,
 } from "@/features/dev/components";
-import { cn } from "@/lib/utils";
+import { SHOWCASE_WORK_CAP } from "@/features/replications/components/showcaseModel";
 
+import { GalleryBoardList, GalleryMatchIdentity } from "./GalleryBoardList";
+import { GalleryLibraryAdd } from "./GalleryLibraryAdd";
+import { GalleryPicker } from "./GalleryPicker";
+import { GalleryStagePreview } from "./GalleryStagePreview";
 import type { StudioRow } from "./replicationStudioModel";
 import {
-  applyCuratedDrag,
+  applyBoardDrag,
+  buildGalleryBoard,
+  canRedo,
+  canUndo,
   curateSlug,
   curationStateOf,
   curationStatesEqual,
   effectiveGalleryOrder,
   excludeSlug,
+  historyOf,
   moveCuratedSlug,
+  moveCuratedSlugToEdge,
+  pushHistory,
+  redoHistory,
   restoreSlug,
-  splitGallery,
   summarizeProvenance,
   uncurateSlug,
+  undoHistory,
+  type CurationHistory,
   type GalleryCandidate,
+  type GalleryConflict,
   type GalleryCurationState,
   type GalleryDetail,
   type GalleryMatch,
@@ -64,33 +80,12 @@ import {
 const SUBSTANCES_API = "/api/dev/replications/substances";
 
 /**
- * Drop target for the default-order section: `applyCuratedDrag` treats any
- * `over` id that is not a curated slug as "un-curate", so dropping onto the
- * divider's empty space works without a special case.
- */
-const AUTO_ZONE_ID = "substance-gallery-auto-zone";
-
-/** How many rail-filtered corpus rows the add-from-corpus region previews. */
-const ADD_PREVIEW_CAP = 12;
-
-/** Thumbnails the public-order preview strip shows before summarizing the rest. */
-const PREVIEW_STRIP_CAP = 24;
-
-/**
  * The picker list survives leaving and re-entering the sub-view, like the
  * studio's own corpus cache: the batched read walks the whole article table
- * and must not rerun on every visit.
+ * and must not rerun on every visit. A failed read clears it so the retry is
+ * a real retry.
  */
 let cachedCandidates: GalleryCandidate[] | null = null;
-
-/** Short token labels; the sentence-length copy stays in the public credit block. */
-const RIGHTS_TOKEN_LABELS: Record<string, string> = {
-  "creator-retained": "creator retained",
-  "explicit-license": "licensed",
-  "permission-granted": "permission granted",
-  "public-domain": "public domain",
-  unknown: "rights unknown",
-};
 
 type Feedback = { tone: ActionNoticeTone; message: string };
 
@@ -99,6 +94,14 @@ type DetailState =
   | { status: "loading" }
   | { status: "error"; message: string }
   | { status: "ready"; detail: GalleryDetail };
+
+/**
+ * A string discriminant, not `ok: boolean`: this project compiles with
+ * `strictNullChecks: false`, under which boolean-literal narrowing does not hold.
+ */
+type DetailResult =
+  | { status: "ready"; detail: GalleryDetail }
+  | { status: "error"; message: string };
 
 async function readError(response: Response, fallback: string): Promise<string> {
   try {
@@ -109,221 +112,60 @@ async function readError(response: Response, fallback: string): Promise<string> 
   }
 }
 
-/** The 56px media cell: thumbnail when resolved, media-kind glyph otherwise. */
-function MediaThumb({ match }: { match: GalleryMatch }) {
-  const { replication } = match;
-  const src = replication.thumbnail_url ?? (replication.type === "image" ? replication.url : null);
-  if (src) {
-    return (
-      <img
-        src={src}
-        alt=""
-        loading="lazy"
-        className="h-14 w-14 shrink-0 rounded-lg border border-[color:var(--editor-chip-border)] object-cover"
-      />
-    );
-  }
-  return (
-    <span
-      aria-hidden
-      className="flex h-14 w-14 shrink-0 items-center justify-center rounded-lg border border-[color:var(--editor-chip-border)] bg-[var(--editor-panel-bg-subtle)]"
-    >
-      <Icon icon={replication.type === "video" ? "lucide:film" : "lucide:image"} size={18} className="theme-text-faint" />
-    </span>
-  );
-}
-
 /**
- * The owning-effect chip with its match provenance behind a click/Enter
- * popover rather than a hover title, so the explanation is reachable from a
- * keyboard — the chip is the only place the slug-vs-tag distinction surfaces.
+ * A two-block listing of the server's arrays against the draft's, in the shape
+ * `DiffSurface` colours. A line keeps a neutral prefix when the slug sits at the
+ * same index in the other list, so the coloured lines are exactly the
+ * disagreements rather than the whole gallery.
  */
-function ProvenanceChip({ match }: { match: GalleryMatch }) {
-  const { provenance } = match;
-  const viaTags = provenance.matchedVia === "effect_tags";
+function conflictDiffText(conflict: GalleryConflict, mine: GalleryCurationState): string {
+  const lines: string[] = [];
+  const blocks = [
+    { label: "curated_slugs", theirs: conflict.curated_slugs, ours: mine.curated },
+    { label: "removed_slugs", theirs: conflict.removed_slugs, ours: mine.removed },
+  ];
+  for (const { label, theirs, ours } of blocks) {
+    lines.push(
+      `# ${label} — server, saved ${conflict.updated_at.slice(0, 19).replace("T", " ")} by ${
+        conflict.updated_by ?? "unknown"
+      }`,
+    );
+    if (theirs.length === 0) {
+      lines.push("  (empty)");
+    }
+    theirs.forEach((slug, index) => {
+      lines.push(`${ours[index] === slug ? " " : "-"}${String(index + 1).padStart(3)} ${slug}`);
+    });
+    lines.push(`# ${label} — your unsaved draft`);
+    if (ours.length === 0) {
+      lines.push("  (empty)");
+    }
+    ours.forEach((slug, index) => {
+      lines.push(`${theirs[index] === slug ? " " : "+"}${String(index + 1).padStart(3)} ${slug}`);
+    });
+  }
+  return lines.join("\n");
+}
+
+/** Row-shaped placeholders, so the board's rhythm is established before its data. */
+function BoardSkeleton() {
   return (
-    <Popover>
-      <PopoverTrigger asChild>
-        <Button
-          type="button"
-          variant="ghost"
-          size="auto"
-          aria-label={`${provenance.effectName}: matched via ${provenance.matchedVia}`}
-          className="inline-flex max-w-full items-center gap-1 rounded-md border border-[color:var(--editor-chip-border)] bg-[var(--editor-chip-bg)] px-1.5 py-0.5 text-xs font-medium text-[var(--editor-chip-text)]"
+    <div aria-hidden className="space-y-2">
+      {Array.from({ length: 6 }, (_, index) => (
+        <div
+          key={index}
+          className="flex items-center gap-3 rounded-lg border border-[color:var(--editor-chip-border)] p-2"
         >
-          <Icon icon={viaTags ? "lucide:tags" : "lucide:link"} size={11} className="shrink-0" />
-          <span className="min-w-0 truncate">{provenance.effectName}</span>
-        </Button>
-      </PopoverTrigger>
-      <PopoverContent className="w-64 p-3 text-xs" align="start">
-        <p className="theme-text-primary font-medium">Matched via {provenance.matchedVia}</p>
-        <p className="theme-text-muted mt-1">
-          {viaTags
-            ? `This row is tagged with ${provenance.effectSlug} (effect_tags); its owning effect is ${match.replication.effect_name ?? "none"}.`
-            : `This row's owning effect (effect_slug) is ${provenance.effectSlug}, one of this substance's visual effects.`}
-        </p>
-      </PopoverContent>
-    </Popover>
-  );
-}
-
-function RightsToken({ match }: { match: GalleryMatch }) {
-  const status = match.replication.rights_status ?? "creator-retained";
-  const unknown = status === "unknown";
-  return (
-    <EditorStatusPill
-      tone={unknown ? "warning" : "neutral"}
-      className="shrink-0"
-      title={unknown ? "Reuse terms are unknown; check before featuring this prominently." : undefined}
-    >
-      {RIGHTS_TOKEN_LABELS[status] ?? status}
-    </EditorStatusPill>
-  );
-}
-
-/** Title + artist + effect/provenance + rights: the identity block of every row. */
-function MatchRowBody({ match }: { match: GalleryMatch }) {
-  return (
-    <>
-      <MediaThumb match={match} />
-      <div className="min-w-0 flex-1 space-y-0.5">
-        <p className="theme-text-primary truncate text-sm font-medium">{match.replication.title}</p>
-        <p className="theme-text-faint truncate text-xs">
-          {match.replication.artist} · {match.replication.type}
-        </p>
-        <div className="flex flex-wrap items-center gap-1">
-          <ProvenanceChip match={match} />
-          <RightsToken match={match} />
-        </div>
-      </div>
-    </>
-  );
-}
-
-function SortableCuratedRow({
-  match,
-  index,
-  curatedCount,
-  onMove,
-  onUncurate,
-  onExclude,
-}: {
-  match: GalleryMatch;
-  index: number;
-  curatedCount: number;
-  onMove: (slug: string, direction: "up" | "down") => void;
-  onUncurate: (slug: string) => void;
-  onExclude: (slug: string) => void;
-}) {
-  const slug = match.replication.slug;
-  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
-    id: slug,
-  });
-
-  return (
-    <li ref={setNodeRef} style={{ transform: CSS.Transform.toString(transform), transition }} className="list-none">
-      <InteractiveContentCard
-        variant="public"
-        padding="sm"
-        radius="lg"
-        className={isDragging ? "opacity-60 ring-1 ring-dose-accent-strong" : undefined}
-      >
-        <div className="flex items-center gap-3">
-          <Button
-            variant="glass"
-            size="icon"
-            className="h-8 w-8 shrink-0 cursor-grab active:cursor-grabbing"
-            aria-label={`Drag ${match.replication.title}`}
-            {...attributes}
-            {...listeners}
-          >
-            <Icon icon="lucide:grip-vertical" size={14} />
-          </Button>
-          <MatchRowBody match={match} />
-          <div className="flex shrink-0 items-center gap-1">
-            <Button
-              variant="glass"
-              size="icon"
-              className="h-8 w-8"
-              disabled={index === 0}
-              aria-label={`Move ${match.replication.title} up`}
-              onClick={() => onMove(slug, "up")}
-            >
-              <Icon icon="lucide:arrow-up" size={14} />
-            </Button>
-            <Button
-              variant="glass"
-              size="icon"
-              className="h-8 w-8"
-              disabled={index === curatedCount - 1}
-              aria-label={`Move ${match.replication.title} down`}
-              onClick={() => onMove(slug, "down")}
-            >
-              <Icon icon="lucide:arrow-down" size={14} />
-            </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              aria-label={`Un-curate ${match.replication.title}`}
-              onClick={() => onUncurate(slug)}
-            >
-              <Icon icon="lucide:pin-off" size={14} />
-              Un-curate
-            </Button>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-8 w-8"
-              aria-label={`Exclude ${match.replication.title} from this gallery`}
-              onClick={() => onExclude(slug)}
-            >
-              <Icon icon="lucide:eye-off" size={14} />
-            </Button>
+          <SkeletonPulse width="w-5" height="h-5" tone="strong" className="rounded-md" />
+          <SkeletonPulse width="w-14" height="h-14" className="shrink-0 rounded-lg" />
+          <div className="min-w-0 flex-1 space-y-1.5">
+            <SkeletonPulse width="w-1/2" height="h-3.5" tone="strong" />
+            <SkeletonPulse width="w-1/3" height="h-3" />
+            <SkeletonPulse width="w-2/5" height="h-3" />
           </div>
         </div>
-      </InteractiveContentCard>
-    </li>
-  );
-}
-
-function AutoRow({
-  match,
-  onCurate,
-  onExclude,
-}: {
-  match: GalleryMatch;
-  onCurate: (slug: string) => void;
-  onExclude: (slug: string) => void;
-}) {
-  const slug = match.replication.slug;
-  return (
-    <li className="list-none">
-      <InteractiveContentCard variant="public" padding="sm" radius="lg">
-        <div className="flex items-center gap-3">
-          <MatchRowBody match={match} />
-          <div className="flex shrink-0 items-center gap-1">
-            <Button
-              variant="secondary"
-              size="sm"
-              aria-label={`Curate ${match.replication.title}`}
-              onClick={() => onCurate(slug)}
-            >
-              <Icon icon="lucide:pin" size={14} />
-              Curate
-            </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              aria-label={`Exclude ${match.replication.title} from this gallery`}
-              onClick={() => onExclude(slug)}
-            >
-              <Icon icon="lucide:eye-off" size={14} />
-              Exclude
-            </Button>
-          </div>
-        </div>
-      </InteractiveContentCard>
-    </li>
+      ))}
+    </div>
   );
 }
 
@@ -332,7 +174,7 @@ function ExcludedRow({ match, onRestore }: { match: GalleryMatch; onRestore: (sl
     <li className="list-none">
       <InteractiveContentCard variant="public" padding="sm" radius="lg" className="opacity-70">
         <div className="flex items-center gap-3">
-          <MatchRowBody match={match} />
+          <GalleryMatchIdentity match={match} />
           <Button
             variant="secondary"
             size="sm"
@@ -349,153 +191,21 @@ function ExcludedRow({ match, onRestore }: { match: GalleryMatch; onRestore: (sl
   );
 }
 
-function SectionDivider({ label, dropRef, isOver }: {
-  label: string;
-  dropRef?: (node: HTMLElement | null) => void;
-  isOver?: boolean;
-}) {
-  return (
-    <div
-      ref={dropRef}
-      className={cn(
-        "flex items-center gap-3 rounded-lg px-1 py-2 transition",
-        isOver ? "bg-[var(--editor-panel-bg-subtle)]" : undefined,
-      )}
-    >
-      <div className="theme-gradient-divider h-px flex-1" />
-      <span className="theme-text-faint text-[11px] uppercase tracking-[0.3em]">{label}</span>
-      <div className="theme-gradient-divider h-px flex-1" />
-    </div>
-  );
-}
-
-/**
- * Combobox in the ReviewSubstancePicker's mold: current substance as the
- * trigger, a searchable flat list behind it, per-substance match counts and a
- * curated dot on every row. Selection navigates — the tab owns the URL.
- */
-function SubstanceGalleryPicker({
-  candidates,
-  currentSlug,
-  onSelect,
-}: {
-  candidates: readonly GalleryCandidate[];
-  currentSlug: string | null;
-  onSelect: (slug: string) => void;
-}) {
-  const [open, setOpen] = useState(false);
-  const [query, setQuery] = useState("");
-
-  const current = candidates.find((candidate) => candidate.slug === currentSlug) ?? null;
-  const needle = query.trim().toLowerCase();
-  const visible = needle
-    ? candidates.filter(
-        (candidate) =>
-          candidate.title.toLowerCase().includes(needle) || candidate.slug.toLowerCase().includes(needle),
-      )
-    : candidates;
-
-  return (
-    <Popover
-      open={open}
-      onOpenChange={(next) => {
-        setOpen(next);
-        if (!next) {
-          setQuery("");
-        }
-      }}
-    >
-      <PopoverTrigger asChild>
-        <Button
-          variant="glass"
-          size="auto"
-          role="combobox"
-          aria-expanded={open}
-          aria-label={
-            current
-              ? `Current substance: ${current.title}. Open the substance list`
-              : "Open the substance list"
-          }
-          className="min-w-[10rem] max-w-[18rem] gap-2 px-2.5 py-1.5"
-        >
-          {current ? (
-            <span
-              aria-hidden
-              title={current.curated ? "Curation stored" : "Never curated"}
-              className={cn(
-                "h-2 w-2 shrink-0 rounded-full",
-                current.curated ? "bg-dose-accent-strong" : "bg-[var(--editor-chip-border)]",
-              )}
-            />
-          ) : null}
-          <span className="theme-text-primary font-display min-w-[6ch] flex-1 truncate text-left text-base font-semibold leading-none">
-            {current?.title ?? "Choose a substance"}
-          </span>
-          <Icon icon="lucide:chevrons-up-down" size={14} className="theme-text-faint shrink-0" />
-        </Button>
-      </PopoverTrigger>
-      <PopoverContent className="w-[calc(100vw-1rem)] p-0 sm:w-[24rem]" align="start" collisionPadding={8}>
-        <Command shouldFilter={false}>
-          <CommandInput value={query} onValueChange={setQuery} placeholder="Search by name or slug…" />
-          <CommandList className="max-h-[min(24rem,60vh)]">
-            {visible.length === 0 ? (
-              <div className="theme-text-muted py-6 text-center text-sm">No substances found</div>
-            ) : (
-              <div className="p-1">
-                {visible.map((candidate) => (
-                  <CommandItem
-                    key={candidate.slug}
-                    value={candidate.slug}
-                    onSelect={() => {
-                      onSelect(candidate.slug);
-                      setOpen(false);
-                    }}
-                    className={cn(candidate.slug === currentSlug && "theme-text-primary font-semibold")}
-                  >
-                    <span
-                      aria-hidden
-                      className={cn(
-                        "h-2 w-2 shrink-0 rounded-full",
-                        candidate.curated
-                          ? "bg-dose-accent-strong"
-                          : "bg-[var(--editor-chip-border)]",
-                      )}
-                    />
-                    <span className="truncate font-medium">{candidate.title}</span>
-                    <span className="theme-text-faint ml-1 hidden shrink-0 text-xs sm:inline">
-                      {candidate.slug}
-                    </span>
-                    <span
-                      className={cn(
-                        "ml-auto shrink-0 text-xs tabular-nums",
-                        candidate.match_count > 0 ? "theme-text-muted" : "theme-text-faint",
-                      )}
-                    >
-                      {candidate.match_count > 0
-                        ? `${candidate.match_count} match${candidate.match_count === 1 ? "" : "es"}`
-                        : "no matches"}
-                      {candidate.curated ? ` · ${candidate.curated_count} curated` : ""}
-                    </span>
-                  </CommandItem>
-                ))}
-              </div>
-            )}
-          </CommandList>
-        </Command>
-      </PopoverContent>
-    </Popover>
-  );
-}
-
 export type SubstanceGalleryPanelProps = {
   /** The `/dev/replications/<slug>` deep-link target currently open, if any. */
   substanceSlug: string | null;
   /** Navigate to another substance's portal address; the tab owns the router. */
   onNavigateToSubstance: (slug: string) => void;
-  /** The studio grid's rail-filtered rows, feeding the add-from-corpus region. */
+  /** The studio grid's rail-filtered rows, feeding corpus intake. */
   visibleRows: readonly StudioRow[];
   /** Whether the rail currently narrows the corpus (search or facets active). */
   railNarrowed: boolean;
+  /** Open a corpus row in the studio's editor drawer. */
+  onInspectRow: (slug: string) => void;
+  /** Ask the host to switch the centre column to the corpus Library view. */
+  onOpenLibrary: () => void;
+  /** Report unsaved state so the host can guard navigation. */
+  onDirtyChange: (dirty: boolean) => void;
 };
 
 export function SubstanceGalleryPanel({
@@ -503,19 +213,35 @@ export function SubstanceGalleryPanel({
   onNavigateToSubstance,
   visibleRows,
   railNarrowed,
+  onInspectRow,
+  onOpenLibrary,
+  onDirtyChange,
 }: SubstanceGalleryPanelProps) {
   const [candidates, setCandidates] = useState<GalleryCandidate[]>(() => cachedCandidates ?? []);
   const [candidatesLoaded, setCandidatesLoaded] = useState(cachedCandidates !== null);
+  const [candidatesToken, setCandidatesToken] = useState(0);
   const [detailState, setDetailState] = useState<DetailState>({ status: "idle" });
-  const [curation, setCuration] = useState<GalleryCurationState>({ curated: [], removed: [] });
+  const [detailToken, setDetailToken] = useState(0);
+  const [history, setHistory] = useState<CurationHistory>(() => historyOf({ curated: [], removed: [] }));
   const [savedCuration, setSavedCuration] = useState<GalleryCurationState>({ curated: [], removed: [] });
+  /** The `updated_at` this draft was branched from; `null` means "no row yet". */
+  const [expectedUpdatedAt, setExpectedUpdatedAt] = useState<string | null>(null);
+  const [savedBy, setSavedBy] = useState<string | null>(null);
+  const [conflict, setConflict] = useState<GalleryConflict | null>(null);
   const [saveState, setSaveState] = useState<EditorActionStatusState | "idle">("idle");
   const [feedback, setFeedback] = useState<Feedback | null>(null);
   const [excludedOpen, setExcludedOpen] = useState(false);
   const [unmatchedOpen, setUnmatchedOpen] = useState(false);
+  const [previewOpen, setPreviewOpen] = useState(true);
+  const [pendingSlug, setPendingSlug] = useState<string | null>(null);
+  const [focusSlug, setFocusSlug] = useState<string | null>(null);
   const [announcement, setAnnouncement] = useState("");
 
+  const curation = history.present;
   const isDirty = !curationStatesEqual(curation, savedCuration);
+
+  const historyRef = useRef(history);
+  historyRef.current = history;
   const dirtyRef = useRef(isDirty);
   dirtyRef.current = isDirty;
 
@@ -530,6 +256,7 @@ export function SubstanceGalleryPanel({
       try {
         const response = await fetch(SUBSTANCES_API);
         if (!response.ok) {
+          cachedCandidates = null;
           if (!cancelled) {
             setFeedback({
               tone: "danger",
@@ -545,6 +272,7 @@ export function SubstanceGalleryPanel({
           setCandidatesLoaded(true);
         }
       } catch {
+        cachedCandidates = null;
         if (!cancelled) {
           setFeedback({ tone: "danger", message: "Failed to reach the substance list endpoint." });
         }
@@ -553,6 +281,21 @@ export function SubstanceGalleryPanel({
     return () => {
       cancelled = true;
     };
+  }, [candidatesToken]);
+
+  const fetchDetail = useCallback(async (slug: string): Promise<DetailResult> => {
+    try {
+      const response = await fetch(`${SUBSTANCES_API}/${encodeURIComponent(slug)}`);
+      if (!response.ok) {
+        return {
+          status: "error",
+          message: await readError(response, "Failed to load that substance's gallery."),
+        };
+      }
+      return { status: "ready", detail: (await response.json()) as GalleryDetail };
+    } catch {
+      return { status: "error", message: "Failed to reach the gallery endpoint." };
+    }
   }, []);
 
   useEffect(() => {
@@ -564,54 +307,66 @@ export function SubstanceGalleryPanel({
     setDetailState({ status: "loading" });
     setSaveState("idle");
     setFeedback(null);
+    setConflict(null);
     setExcludedOpen(false);
     setUnmatchedOpen(false);
     (async () => {
-      try {
-        const response = await fetch(`${SUBSTANCES_API}/${encodeURIComponent(substanceSlug)}`);
-        if (!response.ok) {
-          if (!cancelled) {
-            setDetailState({
-              status: "error",
-              message: await readError(response, "Failed to load that substance's gallery."),
-            });
-          }
-          return;
-        }
-        const detail = (await response.json()) as GalleryDetail;
-        if (cancelled) {
-          return;
-        }
-        const stored = curationStateOf(detail.curation);
-        setDetailState({ status: "ready", detail });
-        setCuration(stored);
-        setSavedCuration(curationStateOf(detail.curation));
-      } catch {
-        if (!cancelled) {
-          setDetailState({ status: "error", message: "Failed to reach the gallery endpoint." });
-        }
+      const result = await fetchDetail(substanceSlug);
+      if (cancelled) {
+        return;
       }
+      if (result.status === "error") {
+        setDetailState({ status: "error", message: result.message });
+        return;
+      }
+      const { detail } = result;
+      setDetailState({ status: "ready", detail });
+      setHistory(historyOf(curationStateOf(detail.curation)));
+      setSavedCuration(curationStateOf(detail.curation));
+      setExpectedUpdatedAt(detail.curation?.updated_at ?? null);
+      setSavedBy(detail.curation?.updated_by ?? null);
     })();
     return () => {
       cancelled = true;
     };
-  }, [substanceSlug]);
+  }, [fetchDetail, substanceSlug, detailToken]);
 
-  /* -------------------------------------------------------------- actions */
+  useEffect(() => {
+    onDirtyChange(isDirty);
+  }, [isDirty, onDirtyChange]);
+
+  /* -------------------------------------------------------------- derived */
 
   const detail = detailState.status === "ready" ? detailState.detail : null;
   const matches = useMemo(() => detail?.matches ?? [], [detail]);
-  const split = useMemo(() => splitGallery(matches, curation), [matches, curation]);
+  const board = useMemo(
+    () => buildGalleryBoard(matches, curation, SHOWCASE_WORK_CAP),
+    [matches, curation],
+  );
   const effectiveOrder = useMemo(() => effectiveGalleryOrder(matches, curation), [matches, curation]);
   const provenance = useMemo(() => summarizeProvenance(matches), [matches]);
-  const matchSlugs = useMemo(() => new Set(matches.map((match) => match.replication.slug)), [matches]);
+  const matchedSlugs = useMemo(
+    () => new Set(matches.map((match) => match.replication.slug)),
+    [matches],
+  );
+  const unknownRightsOnStage = useMemo(
+    () =>
+      board.rows.filter((row) => row.onStage && row.match.replication.rights_status === "unknown").length,
+    [board.rows],
+  );
   const titleOf = useCallback(
     (slug: string) => matches.find((match) => match.replication.slug === slug)?.replication.title ?? slug,
     [matches],
   );
 
+  /* -------------------------------------------------------------- actions */
+
   const applyCuration = useCallback((next: GalleryCurationState, message: string) => {
-    setCuration(next);
+    const pushed = pushHistory(historyRef.current, next);
+    if (pushed === historyRef.current) {
+      return;
+    }
+    setHistory(pushed);
     setSaveState("idle");
     setAnnouncement(message);
   }, []);
@@ -619,13 +374,15 @@ export function SubstanceGalleryPanel({
   const handleCurate = useCallback(
     (slug: string) => {
       const next = curateSlug(curation, slug);
-      applyCuration(next, `${titleOf(slug)} curated to position ${next.curated.length}.`);
+      setFocusSlug(slug);
+      applyCuration(next, `${titleOf(slug)} pinned to position ${next.curated.length}.`);
     },
     [applyCuration, curation, titleOf],
   );
 
   const handleUncurate = useCallback(
     (slug: string) => {
+      setFocusSlug(slug);
       applyCuration(uncurateSlug(curation, slug), `${titleOf(slug)} returned to the default order.`);
     },
     [applyCuration, curation, titleOf],
@@ -634,16 +391,14 @@ export function SubstanceGalleryPanel({
   const handleExclude = useCallback(
     (slug: string) => {
       const next = excludeSlug(curation, slug);
-      applyCuration(
-        next,
-        `${titleOf(slug)} excluded — ${next.removed.length} on the excluded shelf.`,
-      );
+      applyCuration(next, `${titleOf(slug)} excluded — ${next.removed.length} on the excluded shelf.`);
     },
     [applyCuration, curation, titleOf],
   );
 
   const handleRestore = useCallback(
     (slug: string) => {
+      setFocusSlug(slug);
       applyCuration(restoreSlug(curation, slug), `${titleOf(slug)} restored to the default order.`);
     },
     [applyCuration, curation, titleOf],
@@ -652,9 +407,6 @@ export function SubstanceGalleryPanel({
   const handleMove = useCallback(
     (slug: string, direction: "up" | "down") => {
       const next = moveCuratedSlug(curation, slug, direction);
-      if (next === curation) {
-        return;
-      }
       applyCuration(
         next,
         `Moved ${titleOf(slug)} to position ${next.curated.indexOf(slug) + 1} of ${next.curated.length}.`,
@@ -663,11 +415,16 @@ export function SubstanceGalleryPanel({
     [applyCuration, curation, titleOf],
   );
 
-  const sensors = useSensors(
-    useSensor(PointerSensor, { activationConstraint: { distance: 6 } }),
-    useSensor(KeyboardSensor),
+  const handleMoveToEdge = useCallback(
+    (slug: string, edge: "top" | "bottom") => {
+      const next = moveCuratedSlugToEdge(curation, slug, edge);
+      applyCuration(
+        next,
+        `Moved ${titleOf(slug)} to position ${next.curated.indexOf(slug) + 1} of ${next.curated.length}.`,
+      );
+    },
+    [applyCuration, curation, titleOf],
   );
-  const { setNodeRef: setAutoZoneRef, isOver: isOverAutoZone } = useDroppable({ id: AUTO_ZONE_ID });
 
   const handleDragEnd = useCallback(
     ({ active, over }: DragEndEvent) => {
@@ -675,11 +432,9 @@ export function SubstanceGalleryPanel({
         return;
       }
       const activeSlug = String(active.id);
-      const next = applyCuratedDrag(curation, activeSlug, String(over.id));
-      if (next === curation) {
-        return;
-      }
+      const next = applyBoardDrag(curation, activeSlug, String(over.id));
       const position = next.curated.indexOf(activeSlug);
+      setFocusSlug(activeSlug);
       applyCuration(
         next,
         position === -1
@@ -690,15 +445,62 @@ export function SubstanceGalleryPanel({
     [applyCuration, curation, titleOf],
   );
 
+  const handleUndo = useCallback(() => {
+    const next = undoHistory(historyRef.current);
+    if (next === historyRef.current) {
+      return;
+    }
+    setHistory(next);
+    setSaveState("idle");
+    setAnnouncement("Undid the last curation change.");
+  }, []);
+
+  const handleRedo = useCallback(() => {
+    const next = redoHistory(historyRef.current);
+    if (next === historyRef.current) {
+      return;
+    }
+    setHistory(next);
+    setSaveState("idle");
+    setAnnouncement("Redid the last undone curation change.");
+  }, []);
+
+  /**
+   * Cmd/Ctrl+Z and Cmd/Ctrl+Shift+Z over the draft. Text fields keep their own
+   * native undo — stealing the shortcut inside the picker's search box or a
+   * drawer field would be worse than having no shortcut at all.
+   */
+  useEffect(() => {
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key.toLowerCase() !== "z" || !(event.metaKey || event.ctrlKey)) {
+        return;
+      }
+      const target = event.target as HTMLElement | null;
+      if (
+        target instanceof HTMLInputElement ||
+        target instanceof HTMLTextAreaElement ||
+        target?.isContentEditable
+      ) {
+        return;
+      }
+      event.preventDefault();
+      if (event.shiftKey) {
+        handleRedo();
+      } else {
+        handleUndo();
+      }
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [handleRedo, handleUndo]);
+
   const handleSelectSubstance = useCallback(
     (slug: string) => {
       if (slug === substanceSlug) {
         return;
       }
-      if (
-        dirtyRef.current &&
-        !window.confirm("This gallery has unsaved changes. Discard them and switch substances?")
-      ) {
+      if (dirtyRef.current) {
+        setPendingSlug(slug);
         return;
       }
       onNavigateToSubstance(slug);
@@ -706,152 +508,320 @@ export function SubstanceGalleryPanel({
     [onNavigateToSubstance, substanceSlug],
   );
 
-  const handleSave = useCallback(async () => {
-    if (!substanceSlug) {
-      return;
-    }
-    setSaveState("saving");
-    setFeedback(null);
-    try {
-      const response = await fetch(`${SUBSTANCES_API}/${encodeURIComponent(substanceSlug)}`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ curatedSlugs: curation.curated, removedSlugs: curation.removed }),
-      });
-      if (!response.ok) {
-        setSaveState("error");
-        setFeedback({
-          tone: "danger",
-          message: await readError(response, "Saving the gallery failed."),
-        });
+  /* ----------------------------------------------------------------- save */
+
+  /**
+   * One write path for Save and for the conflict's "Keep mine": the only
+   * difference is which `updated_at` the caller claims to have branched from.
+   */
+  const persist = useCallback(
+    async (state: GalleryCurationState, expected: string | null) => {
+      if (!substanceSlug) {
         return;
       }
-      const echo = (await response.json()) as {
-        curated_slugs: string[];
-        removed_slugs: string[];
-        pruned_curated: string[];
-        pruned_removed: string[];
-      };
-      const adopted: GalleryCurationState = { curated: echo.curated_slugs, removed: echo.removed_slugs };
-      setCuration(adopted);
-      setSavedCuration({ curated: [...echo.curated_slugs], removed: [...echo.removed_slugs] });
-      setSaveState("saved");
-      setCandidates((current) => {
-        const next = current.map((candidate) =>
-          candidate.slug === substanceSlug
-            ? {
-                ...candidate,
-                curated: true,
-                curated_count: echo.curated_slugs.length,
-                removed_count: echo.removed_slugs.length,
-              }
-            : candidate,
+      setSaveState("saving");
+      setFeedback(null);
+      try {
+        const response = await fetch(`${SUBSTANCES_API}/${encodeURIComponent(substanceSlug)}`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            curatedSlugs: state.curated,
+            removedSlugs: state.removed,
+            expectedUpdatedAt: expected,
+          }),
+        });
+        if (response.status === 409) {
+          const payload = (await response.json()) as { error?: string; conflict: GalleryConflict };
+          setConflict(payload.conflict);
+          setSaveState("error");
+          setAnnouncement("Save rejected: the server holds a newer version of this gallery.");
+          setFeedback({
+            tone: "danger",
+            message:
+              payload.error ??
+              "Someone else saved this gallery while you were editing. Resolve the two versions below.",
+          });
+          return;
+        }
+        if (!response.ok) {
+          setSaveState("error");
+          setFeedback({ tone: "danger", message: await readError(response, "Saving the gallery failed.") });
+          return;
+        }
+        const echo = (await response.json()) as {
+          curated_slugs: string[];
+          removed_slugs: string[];
+          pruned_curated: string[];
+          pruned_removed: string[];
+          updated_at: string;
+          updated_by: string | null;
+        };
+        const adopted: GalleryCurationState = {
+          curated: [...echo.curated_slugs],
+          removed: [...echo.removed_slugs],
+        };
+        setHistory(historyOf(adopted));
+        setSavedCuration({ curated: [...echo.curated_slugs], removed: [...echo.removed_slugs] });
+        setExpectedUpdatedAt(echo.updated_at);
+        setSavedBy(echo.updated_by);
+        setConflict(null);
+        setSaveState("saved");
+        setCandidates((current) => {
+          const next = current.map((candidate) =>
+            candidate.slug === substanceSlug
+              ? {
+                  ...candidate,
+                  curated: true,
+                  curated_count: echo.curated_slugs.length,
+                  removed_count: echo.removed_slugs.length,
+                }
+              : candidate,
+          );
+          cachedCandidates = next;
+          return next;
+        });
+        const pruned = [...echo.pruned_curated, ...echo.pruned_removed];
+        setAnnouncement(
+          `Saved the gallery: ${echo.curated_slugs.length} curated, ${echo.removed_slugs.length} excluded.`,
         );
-        cachedCandidates = next;
-        return next;
-      });
-      const pruned = [...echo.pruned_curated, ...echo.pruned_removed];
-      setAnnouncement(
-        `Saved the gallery: ${echo.curated_slugs.length} curated, ${echo.removed_slugs.length} excluded.`,
-      );
-      setFeedback({
-        tone: pruned.length > 0 ? "warning" : "success",
-        message:
-          pruned.length > 0
-            ? `Saved. The server dropped ${pruned.length} slug(s) that no longer match: ${pruned.join(", ")}.`
-            : `Saved ${echo.curated_slugs.length} curated and ${echo.removed_slugs.length} excluded replications.`,
-      });
-    } catch {
-      setSaveState("error");
-      setFeedback({ tone: "danger", message: "Saving failed: the gallery endpoint is unreachable." });
+        setFeedback({
+          tone: pruned.length > 0 ? "warning" : "success",
+          message:
+            pruned.length > 0
+              ? `Saved. The server dropped ${pruned.length} slug(s) that no longer match: ${pruned.join(", ")}.`
+              : `Saved ${echo.curated_slugs.length} curated and ${echo.removed_slugs.length} excluded replications.`,
+        });
+      } catch {
+        setSaveState("error");
+        setFeedback({ tone: "danger", message: "Saving failed: the gallery endpoint is unreachable." });
+      }
+    },
+    [substanceSlug],
+  );
+
+  const handleKeepMine = useCallback(() => {
+    if (!conflict) {
+      return;
     }
-  }, [curation, substanceSlug]);
+    void persist(historyRef.current.present, conflict.updated_at);
+  }, [conflict, persist]);
+
+  const handleTakeTheirs = useCallback(() => {
+    if (!conflict) {
+      return;
+    }
+    const theirs: GalleryCurationState = {
+      curated: [...conflict.curated_slugs],
+      removed: [...conflict.removed_slugs],
+    };
+    setHistory(historyOf(theirs));
+    setSavedCuration({ curated: [...conflict.curated_slugs], removed: [...conflict.removed_slugs] });
+    setExpectedUpdatedAt(conflict.updated_at);
+    setSavedBy(conflict.updated_by);
+    setConflict(null);
+    setSaveState("idle");
+    setAnnouncement("Adopted the server's version; your draft was discarded.");
+    setFeedback({ tone: "info", message: "Adopted the server's version. Your unsaved draft is gone." });
+  }, [conflict]);
 
   const handleDiscard = useCallback(() => {
-    setCuration({ curated: [...savedCuration.curated], removed: [...savedCuration.removed] });
+    setHistory(historyOf({ curated: [...savedCuration.curated], removed: [...savedCuration.removed] }));
     setSaveState("idle");
+    setConflict(null);
     setAnnouncement("Changes discarded.");
   }, [savedCuration]);
 
-  /* --------------------------------------------------------- add-from-corpus */
-
   /**
-   * The rail's current search and filters, narrowed to what this gallery can
-   * actually take: publishable image/video replications. Matched rows offer
-   * Curate; unmatched publishable rows stay visible with the tagging hint, so
-   * the region teaches the effect_tags backfill instead of silently hiding
-   * work that is one tag away.
+   * A corpus row was tagged with one of this substance's effects: re-derive the
+   * match list server-side, then pin the row. The draft survives the refetch —
+   * only `detailState` is replaced, never the curation the editor is holding.
    */
-  const addCandidates = useMemo(() => {
-    const curatedSet = new Set(curation.curated);
-    return visibleRows
-      .filter((row) => row.role === "replication" && (row.type === "image" || row.type === "video"))
-      .filter((row) => !curatedSet.has(row.slug))
-      .slice(0, ADD_PREVIEW_CAP);
-  }, [curation.curated, visibleRows]);
+  const handleTagged = useCallback(
+    async (replicationSlug: string) => {
+      if (!substanceSlug) {
+        return;
+      }
+      const result = await fetchDetail(substanceSlug);
+      if (result.status === "error") {
+        setFeedback({ tone: "danger", message: result.message });
+        return;
+      }
+      setDetailState({ status: "ready", detail: result.detail });
+      const match = result.detail.matches.find((entry) => entry.replication.slug === replicationSlug);
+      if (!match) {
+        setFeedback({
+          tone: "warning",
+          message: `Tagged, but ${replicationSlug} still does not match any of this substance's visual effects.`,
+        });
+        return;
+      }
+      const next = curateSlug(historyRef.current.present, replicationSlug);
+      setFocusSlug(replicationSlug);
+      applyCuration(
+        next,
+        `${match.replication.title} tagged and pinned to position ${next.curated.length}.`,
+      );
+    },
+    [applyCuration, fetchDetail, substanceSlug],
+  );
 
   /* ------------------------------------------------------------------ view */
 
-  const curatedSlugList = useMemo(
-    () => split.curated.map((match) => match.replication.slug),
-    [split.curated],
-  );
+  const undoable = canUndo(history);
+  const redoable = canRedo(history);
 
   return (
     <EditorSection
       headingLevel="h3"
       icon="lucide:images"
       title="Substance Replication Showcases"
-      description="Each substance article's Visual group ends with its matched replications. Curated rows play first in this exact order; everything else follows the corpus default; excluded rows never surface on that article."
-      actions={
-        detail ? (
-          <EditorStatusPill tone="neutral">
-            {`${split.curated.length} curated · ${matches.length} matched`}
-          </EditorStatusPill>
-        ) : undefined
-      }
+      description={`Each substance article's Visual group ends with its matched replications. The article renders the first ${SHOWCASE_WORK_CAP} of the effective order and nothing else; curated rows play first in this exact order, everything else follows the corpus default, and excluded rows never surface on that article.`}
     >
       <div aria-live="polite" className="sr-only">
         {announcement}
       </div>
 
       <div className="flex flex-wrap items-center gap-3">
-        {candidatesLoaded ? (
-          <SubstanceGalleryPicker
-            candidates={candidates}
-            currentSlug={substanceSlug}
-            onSelect={handleSelectSubstance}
-          />
-        ) : (
-          <p className="theme-text-muted text-sm">Loading the substance list…</p>
-        )}
+        <GalleryPicker
+          candidates={candidates}
+          currentSlug={substanceSlug}
+          onSelect={handleSelectSubstance}
+          loading={!candidatesLoaded}
+        />
         {detail ? (
-          <div className="min-w-0">
-            <p className="theme-text-muted font-mono text-xs">
-              {provenance.matched} matched from {provenance.effectCount} visual effect
-              {provenance.effectCount === 1 ? "" : "s"} · {provenance.viaEffectSlug} via effect_slug ·{" "}
-              {provenance.viaEffectTags} via effect_tags
-            </p>
-            {detail.unmatchedEffectNames.length > 0 ? (
-              <Button
-                type="button"
-                variant="textLink"
-                size="auto"
-                className="text-xs"
-                aria-expanded={unmatchedOpen}
-                onClick={() => setUnmatchedOpen((open) => !open)}
-              >
-                {detail.unmatchedEffectNames.length} visual effect
-                {detail.unmatchedEffectNames.length === 1 ? "" : "s"} with nothing to show
-              </Button>
-            ) : null}
-          </div>
+          <>
+            <EditorStatusPill tone={board.filledSlots >= board.cap ? "info" : "neutral"}>
+              {`${board.filledSlots} of ${board.cap} slots filled · ${matches.length} matched`}
+            </EditorStatusPill>
+            <div className="min-w-0">
+              <p className="theme-text-muted font-mono text-xs">
+                {provenance.matched} matched from {provenance.effectCount} visual effect
+                {provenance.effectCount === 1 ? "" : "s"} · {provenance.viaEffectSlug} via effect_slug ·{" "}
+                {provenance.viaEffectTags} via effect_tags
+              </p>
+              {detail.unmatchedEffectNames.length > 0 ? (
+                <Button
+                  type="button"
+                  variant="textLink"
+                  size="auto"
+                  className="text-xs"
+                  aria-expanded={unmatchedOpen}
+                  onClick={() => setUnmatchedOpen((open) => !open)}
+                >
+                  {detail.unmatchedEffectNames.length} visual effect
+                  {detail.unmatchedEffectNames.length === 1 ? "" : "s"} with nothing to show
+                </Button>
+              ) : null}
+            </div>
+          </>
         ) : null}
       </div>
+
+      {detail ? (
+        <EditorToolbar variant="split">
+          <div className="flex flex-wrap items-center gap-2">
+            <Button
+              type="button"
+              variant="accent"
+              size="sm"
+              disabled={!isDirty || saveState === "saving"}
+              onClick={() => void persist(curation, expectedUpdatedAt)}
+            >
+              <Icon icon="lucide:save" size={15} />
+              Save gallery
+            </Button>
+            <Button
+              type="button"
+              variant="glass"
+              size="icon"
+              className="h-8 w-8"
+              disabled={!undoable}
+              aria-label="Undo the last curation change"
+              title="Undo (Cmd/Ctrl+Z)"
+              onClick={handleUndo}
+            >
+              <Icon icon="lucide:undo-2" size={15} />
+            </Button>
+            <Button
+              type="button"
+              variant="glass"
+              size="icon"
+              className="h-8 w-8"
+              disabled={!redoable}
+              aria-label="Redo the last undone curation change"
+              title="Redo (Cmd/Ctrl+Shift+Z)"
+              onClick={handleRedo}
+            >
+              <Icon icon="lucide:redo-2" size={15} />
+            </Button>
+            <Button
+              type="button"
+              variant="secondary"
+              size="sm"
+              disabled={!isDirty || saveState === "saving"}
+              onClick={handleDiscard}
+            >
+              <Icon icon="lucide:rotate-ccw" size={15} />
+              Discard changes
+            </Button>
+            {expectedUpdatedAt ? (
+              <span className="theme-text-faint text-xs">
+                Last saved {expectedUpdatedAt.slice(0, 10)} by {savedBy ?? "unknown"}
+              </span>
+            ) : (
+              <span className="theme-text-faint text-xs">
+                Never curated — the article runs on the default order.
+              </span>
+            )}
+          </div>
+          {saveState === "idle" || saveState === "saved" ? (
+            <EditorStatusPill tone={isDirty ? "warning" : "neutral"}>
+              {isDirty ? "Unsaved changes" : "Gallery saved"}
+            </EditorStatusPill>
+          ) : (
+            <EditorActionStatus status={saveState} />
+          )}
+        </EditorToolbar>
+      ) : null}
 
       {feedback ? (
         <ActionNotice tone={feedback.tone} onDismiss={() => setFeedback(null)}>
           {feedback.message}
+        </ActionNotice>
+      ) : null}
+
+      {conflict ? (
+        <DiffSurface
+          title="This gallery changed on the server"
+          diffText={conflictDiffText(conflict, curation)}
+          maxHeight="18rem"
+          actions={
+            <div className="flex flex-wrap items-center gap-2">
+              <Button
+                type="button"
+                variant="accent"
+                size="sm"
+                disabled={saveState === "saving"}
+                onClick={handleKeepMine}
+              >
+                <Icon icon="lucide:upload" size={14} />
+                Keep mine
+              </Button>
+              <Button type="button" variant="secondary" size="sm" onClick={handleTakeTheirs}>
+                <Icon icon="lucide:download" size={14} />
+                Take theirs
+              </Button>
+            </div>
+          }
+        />
+      ) : null}
+
+      {detail && unknownRightsOnStage > 0 ? (
+        <ActionNotice tone="warning">
+          {unknownRightsOnStage} of the {board.filledSlots} rows the article will show
+          {unknownRightsOnStage === 1 ? " has" : " have"} unknown reuse terms. Advisory only — check the
+          rights before featuring them this prominently.
         </ActionNotice>
       ) : null}
 
@@ -862,8 +832,8 @@ export function SubstanceGalleryPanel({
           </p>
           <p className="theme-text-muted">{detail.unmatchedEffectNames.join(" · ")}</p>
           <p className="theme-text-faint text-xs">
-            Tag a corpus row with the effect in the studio (effect_tags) — or set it as the row's
-            owning effect — and it will surface here and on the article.
+            Tag a corpus row with the effect below — or set it as the row's owning effect — and it will
+            surface here and on the article.
           </p>
         </EmptyStateSurface>
       ) : null}
@@ -874,10 +844,23 @@ export function SubstanceGalleryPanel({
           curation; the count is how many corpus rows currently match.
         </EmptyStateSurface>
       ) : detailState.status === "loading" ? (
-        <p className="theme-text-muted text-sm">Loading the gallery…</p>
+        <BoardSkeleton />
       ) : detailState.status === "error" ? (
-        <EmptyStateSurface padding="sm" radius="lg" className="space-y-2 text-sm">
+        <EmptyStateSurface padding="sm" radius="lg" tone="danger" className="space-y-2 text-sm">
           <p className="theme-text-primary">{detailState.message}</p>
+          <Button
+            type="button"
+            variant="secondary"
+            size="sm"
+            onClick={() => {
+              cachedCandidates = null;
+              setCandidatesToken((token) => token + 1);
+              setDetailToken((token) => token + 1);
+            }}
+          >
+            <Icon icon="lucide:refresh-cw" size={14} />
+            Retry
+          </Button>
         </EmptyStateSurface>
       ) : detail && matches.length === 0 ? (
         <EmptyStateSurface padding="sm" radius="lg" className="space-y-1.5 text-sm">
@@ -890,8 +873,8 @@ export function SubstanceGalleryPanel({
                 Its visual effects: {detail.unmatchedEffectNames.join(" · ")}
               </p>
               <p className="theme-text-faint text-xs">
-                Tag a corpus row with one of these effects in the studio (effect_tags) — or set it as
-                the row's owning effect — and it will appear here and on the article.
+                Tag a corpus row with one of these effects — or set it as the row's owning effect — and it
+                will appear here and on the article.
               </p>
             </>
           ) : (
@@ -899,52 +882,26 @@ export function SubstanceGalleryPanel({
               The article lists no visual effects, so its showcase stays empty.
             </p>
           )}
+          <Button type="button" variant="secondary" size="sm" onClick={onOpenLibrary}>
+            <Icon icon="lucide:library" size={14} />
+            Open the corpus library
+          </Button>
         </EmptyStateSurface>
       ) : detail ? (
         <>
-          <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
-            <div className="space-y-2">
-              <SortableContext items={curatedSlugList} strategy={verticalListSortingStrategy}>
-                <ul className="space-y-2">
-                  {split.curated.map((match, index) => (
-                    <SortableCuratedRow
-                      key={match.replication.slug}
-                      match={match}
-                      index={index}
-                      curatedCount={split.curated.length}
-                      onMove={handleMove}
-                      onUncurate={handleUncurate}
-                      onExclude={handleExclude}
-                    />
-                  ))}
-                </ul>
-              </SortableContext>
+          <GalleryBoardList
+            board={board}
+            onMove={handleMove}
+            onMoveToEdge={handleMoveToEdge}
+            onCurate={handleCurate}
+            onUncurate={handleUncurate}
+            onExclude={handleExclude}
+            onDragEnd={handleDragEnd}
+            focusSlug={focusSlug}
+            onFocusHandled={() => setFocusSlug(null)}
+          />
 
-              {split.curated.length === 0 ? (
-                <p className="theme-text-faint text-xs">
-                  Nothing curated yet. Everything below plays in the default order.
-                </p>
-              ) : null}
-
-              <SectionDivider label="Default order" dropRef={setAutoZoneRef} isOver={isOverAutoZone} />
-
-              <ul className="space-y-2">
-                {split.auto.map((match) => (
-                  <AutoRow
-                    key={match.replication.slug}
-                    match={match}
-                    onCurate={handleCurate}
-                    onExclude={handleExclude}
-                  />
-                ))}
-              </ul>
-              {split.auto.length === 0 ? (
-                <p className="theme-text-faint text-xs">Every match is curated or excluded.</p>
-              ) : null}
-            </div>
-          </DndContext>
-
-          {split.excluded.length > 0 ? (
+          {board.excluded.length > 0 ? (
             <div className="space-y-2">
               <Button
                 type="button"
@@ -954,11 +911,11 @@ export function SubstanceGalleryPanel({
                 onClick={() => setExcludedOpen((open) => !open)}
               >
                 <Icon icon={excludedOpen ? "lucide:chevron-down" : "lucide:chevron-right"} size={14} />
-                Excluded from this gallery ({split.excluded.length})
+                Excluded from this gallery ({board.excluded.length})
               </Button>
               {excludedOpen ? (
                 <ul className="space-y-2">
-                  {split.excluded.map((match) => (
+                  {board.excluded.map((match) => (
                     <ExcludedRow key={match.replication.slug} match={match} onRestore={handleRestore} />
                   ))}
                 </ul>
@@ -966,151 +923,65 @@ export function SubstanceGalleryPanel({
             </div>
           ) : null}
 
-          <SectionDivider label="Add from the studio library" />
-          <p className="theme-text-faint text-xs">
-            {railNarrowed
-              ? "Following the studio's current search and filters."
-              : "Narrow the studio's search or filters on the left to find a row."}{" "}
-            Only publishable image and video replications can join a showcase; adding curates to the
-            tail of the head.
-          </p>
-          <ul className="space-y-2">
-            {addCandidates.map((row) => {
-              const matched = matchSlugs.has(row.slug);
-              const excluded = curation.removed.includes(row.slug);
-              return (
-                <li key={row.id} className="list-none">
-                  <InteractiveContentCard variant="public" padding="sm" radius="lg">
-                    <div className="flex items-center gap-3">
-                      {row.thumbnail_url ?? (row.type === "image" ? row.url : null) ? (
-                        <img
-                          src={(row.thumbnail_url ?? row.url)!}
-                          alt=""
-                          loading="lazy"
-                          className="h-14 w-14 shrink-0 rounded-lg border border-[color:var(--editor-chip-border)] object-cover"
-                        />
-                      ) : (
-                        <span
-                          aria-hidden
-                          className="flex h-14 w-14 shrink-0 items-center justify-center rounded-lg border border-[color:var(--editor-chip-border)] bg-[var(--editor-panel-bg-subtle)]"
-                        >
-                          <Icon
-                            icon={row.type === "video" ? "lucide:film" : "lucide:image"}
-                            size={18}
-                            className="theme-text-faint"
-                          />
-                        </span>
-                      )}
-                      <div className="min-w-0 flex-1">
-                        <p className="theme-text-primary truncate text-sm font-medium">{row.title}</p>
-                        <p className="theme-text-faint truncate text-xs">
-                          {row.artist} · {row.effect_name ?? "no effect"} · {row.type}
-                        </p>
-                      </div>
-                      {matched ? (
-                        <Button
-                          variant="secondary"
-                          size="sm"
-                          className="shrink-0"
-                          aria-label={`Curate ${row.title}`}
-                          onClick={() => handleCurate(row.slug)}
-                        >
-                          <Icon icon="lucide:pin" size={14} />
-                          {excluded ? "Restore & curate" : "Curate"}
-                        </Button>
-                      ) : (
-                        <span className="theme-text-faint shrink-0 text-xs">
-                          not matched — tag it with one of this substance's effects
-                        </span>
-                      )}
-                    </div>
-                  </InteractiveContentCard>
-                </li>
-              );
-            })}
-          </ul>
-          {addCandidates.length === 0 ? (
-            <p className="theme-text-faint text-xs">The current search and filters show nothing addable.</p>
-          ) : null}
-
-          <div className="space-y-1.5">
-            <p className="theme-text-faint text-[11px] uppercase tracking-[0.3em]">Public order preview</p>
-            <div className="flex flex-wrap items-center gap-1.5">
-              {effectiveOrder.slice(0, PREVIEW_STRIP_CAP).map((match, index) => (
-                <span
-                  key={match.replication.slug}
-                  title={`${index + 1}. ${match.replication.title}`}
-                  className={cn(
-                    "block h-9 w-9 overflow-hidden rounded-md border border-[color:var(--editor-chip-border)]",
-                    index === 0 && "ring-2 ring-dose-accent-strong ring-offset-1",
-                  )}
-                >
-                  {match.replication.thumbnail_url ??
-                  (match.replication.type === "image" ? match.replication.url : null) ? (
-                    <img
-                      src={(match.replication.thumbnail_url ?? match.replication.url)!}
-                      alt=""
-                      loading="lazy"
-                      className="h-full w-full object-cover"
-                    />
-                  ) : (
-                    <span className="flex h-full w-full items-center justify-center bg-[var(--editor-panel-bg-subtle)]">
-                      <Icon icon="lucide:film" size={12} className="theme-text-faint" />
-                    </span>
-                  )}
-                </span>
-              ))}
-              {effectiveOrder.length > PREVIEW_STRIP_CAP ? (
-                <span className="theme-text-faint text-xs">
-                  +{effectiveOrder.length - PREVIEW_STRIP_CAP} more in default order
-                </span>
-              ) : null}
-              {effectiveOrder.length === 0 ? (
-                <span className="theme-text-faint text-xs">Nothing will show on the article.</span>
-              ) : null}
-            </div>
+          <div className="space-y-2">
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              aria-expanded={previewOpen}
+              onClick={() => setPreviewOpen((open) => !open)}
+            >
+              <Icon icon={previewOpen ? "lucide:chevron-down" : "lucide:chevron-right"} size={14} />
+              Article preview — the real stage, in this order
+            </Button>
+            {previewOpen ? <GalleryStagePreview matches={effectiveOrder} /> : null}
           </div>
 
-          <EditorToolbar variant="split">
-            <div className="flex flex-wrap items-center gap-2">
-              <Button
-                type="button"
-                variant="accent"
-                size="sm"
-                disabled={!isDirty || saveState === "saving"}
-                onClick={() => void handleSave()}
-              >
-                <Icon icon="lucide:save" size={15} />
-                Save gallery
-              </Button>
-              <Button
-                type="button"
-                variant="secondary"
-                size="sm"
-                disabled={!isDirty || saveState === "saving"}
-                onClick={handleDiscard}
-              >
-                <Icon icon="lucide:rotate-ccw" size={15} />
-                Discard changes
-              </Button>
-              {detail.curation ? (
-                <span className="theme-text-faint text-xs">
-                  Last saved {detail.curation.updated_at.slice(0, 10)} by {detail.curation.updated_by}
-                </span>
-              ) : (
-                <span className="theme-text-faint text-xs">Never curated — the article runs on the default order.</span>
-              )}
-            </div>
-            {saveState === "idle" || saveState === "saved" ? (
-              <EditorStatusPill tone={isDirty ? "warning" : "neutral"}>
-                {isDirty ? "Unsaved changes" : "Gallery saved"}
-              </EditorStatusPill>
-            ) : (
-              <EditorActionStatus status={saveState} />
-            )}
-          </EditorToolbar>
+          <GalleryLibraryAdd
+            rows={visibleRows}
+            railNarrowed={railNarrowed}
+            matchedSlugs={matchedSlugs}
+            curatedSlugs={curation.curated}
+            removedSlugs={curation.removed}
+            effectOptions={detail.effectOptions}
+            onCurate={handleCurate}
+            onTagged={handleTagged}
+            onInspectRow={onInspectRow}
+            onOpenLibrary={onOpenLibrary}
+          />
         </>
       ) : null}
+
+      <Dialog open={pendingSlug !== null} onOpenChange={(open) => (open ? undefined : setPendingSlug(null))}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Discard unsaved curation?</DialogTitle>
+            <DialogDescription>
+              This gallery has changes that were never saved. Switching substances throws them away —
+              the article keeps whatever the server already holds.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button type="button" variant="secondary" size="sm" onClick={() => setPendingSlug(null)}>
+              Keep editing
+            </Button>
+            <Button
+              type="button"
+              variant="destructive"
+              size="sm"
+              onClick={() => {
+                const target = pendingSlug;
+                setPendingSlug(null);
+                if (target) {
+                  onNavigateToSubstance(target);
+                }
+              }}
+            >
+              Discard and switch
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </EditorSection>
   );
 }
