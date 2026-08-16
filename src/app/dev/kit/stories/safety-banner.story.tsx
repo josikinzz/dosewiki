@@ -176,6 +176,7 @@ export const safetyBannerStory: StoryDef = {
     "Bullets are a consequence, not a requirement. SafetyBannerPoints renders a single point as a paragraph, so an editor with one thing to say never ships a list of one.",
     "There is no divider between the glyph and the body. The tone surface already groups them; the hairline the first cut drew only chopped the card in half.",
     "The severity chip reuses theme-interaction-severity-badge-*, the same class the interactions table uses. Nested inside the root's theme-interaction-<tone> it drops to the deeper field surface in both themes, which is what makes it read as a chip rather than as loose small caps.",
-    "The two columns stack below 560px. The glyph stays 44px.",
+    "The two columns stack below 560px. The glyph column is `auto`, so a resize widens the column rather than overflowing a rail.",
+    "The glyph size is one site-wide editor setting, not a per-banner prop. It is stored on the `safety-banner-display` siteConfig document, edited once in the Banner Studio toolbar, and threaded to every banner on the site so no two warnings are drawn at different weights — which is why it is `iconSize` and not a cva variant. Every example below renders at the shipped default (44px).",
   ],
 };

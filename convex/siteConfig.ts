@@ -1,6 +1,7 @@
 import { v } from "convex/values";
 import { query, mutation } from "./_generated/server";
 import { requireEditorWrite } from "./lib/auth";
+import { clampSafetyBannerIconSize } from "../src/data/substanceWarningBanners";
 
 /**
  * Site configuration storage - About page content and other global settings.
@@ -181,5 +182,80 @@ export const saveFeaturedReplications = mutation({
     });
 
     return { updated: false, slugs: kept, pruned };
+  },
+});
+
+/**
+ * The site-wide safety-banner glyph size.
+ *
+ * One number for every banner on every article, deliberately. It is stored here
+ * rather than as a column on `warningBannerPresets` because a per-preset size
+ * would be per-banner by construction: two banners stacked on one article could
+ * then disagree about how large a warning glyph is, which reads as a defect. A
+ * `siteConfig` document is the existing shape for "one global setting an editor
+ * can change without a deploy".
+ */
+export const BANNER_DISPLAY_KEY = "safety-banner-display";
+
+/**
+ * Always answers a usable number. Unlike a preset list, where an absent
+ * document means "no banners" and null is the honest answer, an absent display
+ * document means "nobody has changed the shipped size" — so it resolves to
+ * `SAFETY_BANNER_ICON_SIZE_DEFAULT` and the renderer needs no fallback of its
+ * own. The stored value goes back through the clamp on read as well as on
+ * write, so a document written before a bound moved is corrected rather than
+ * escaping into an SVG dimension.
+ */
+export const getBannerDisplay = query({
+  args: {},
+  handler: async (ctx) => {
+    const config = await ctx.db
+      .query("siteConfig")
+      .withIndex("by_key", (q) => q.eq("key", BANNER_DISPLAY_KEY))
+      .first();
+
+    return { iconSize: clampSafetyBannerIconSize(config?.bannerIconSize) };
+  },
+});
+
+/**
+ * Set the site-wide glyph size. Echoes what was actually stored, which is the
+ * clamped value: the editor's control must snap to what readers will see rather
+ * than keep showing a number this deployment refused.
+ */
+export const saveBannerDisplay = mutation({
+  args: {
+    apiKey: v.optional(v.string()),
+    actorEmail: v.optional(v.string()),
+    iconSize: v.number(),
+  },
+  handler: async (ctx, args) => {
+    const actor = await requireEditorWrite(ctx, {
+      apiKey: args.apiKey,
+      actorEmail: args.actorEmail,
+      adminIntent: "editorArticleWrite",
+    });
+
+    const iconSize = clampSafetyBannerIconSize(args.iconSize);
+    const updatedAt = new Date().toISOString();
+    const updatedBy = args.actorEmail ?? actor.email;
+
+    const existing = await ctx.db
+      .query("siteConfig")
+      .withIndex("by_key", (q) => q.eq("key", BANNER_DISPLAY_KEY))
+      .first();
+
+    if (existing) {
+      await ctx.db.patch(existing._id, { bannerIconSize: iconSize, updatedAt, updatedBy });
+    } else {
+      await ctx.db.insert("siteConfig", {
+        key: BANNER_DISPLAY_KEY,
+        bannerIconSize: iconSize,
+        updatedAt,
+        updatedBy,
+      });
+    }
+
+    return { iconSize };
   },
 });

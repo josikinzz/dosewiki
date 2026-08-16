@@ -89,14 +89,18 @@ const staticParams = vi.hoisted(() => ({
 }));
 
 /**
- * `getWarningBannerPresets` wraps `unstable_cache`, which throws
+ * Both banner reads wrap `unstable_cache`, which throws
  * "Invariant: incrementalCache missing" outside a Next request context. Mocked
- * like every other data dependency here; the resolver it feeds
+ * like every other data dependency here; the resolver they feed
  * (`resolveEnabledBanners`) is covered directly in
  * `src/data/substanceWarningBanners.test.ts`.
+ *
+ * The size is the literal 44 rather than `SAFETY_BANNER_ICON_SIZE_DEFAULT`: this
+ * factory is hoisted above the import block, so it cannot reference an import.
  */
 const warningBanners = vi.hoisted(() => ({
   getWarningBannerPresets: vi.fn(() => Promise.resolve([])),
+  getSafetyBannerIconSize: vi.fn(() => Promise.resolve(44)),
 }));
 
 vi.mock("@server/convex/publicData", () => publicData);

@@ -87,6 +87,54 @@ export const WARNING_BANNER_LIMITS = {
   maxEnabledSlugs: MAX_ENABLED_SLUGS,
 } as const;
 
+/**
+ * ONE glyph size for every safety banner on the site.
+ *
+ * 44 is the shipped value — the literal that `SafetyBanner` rendered before the
+ * size became editable — so a deployment that has never stored a setting must
+ * resolve to exactly 44 and paint byte-identically to what shipped. That is why
+ * the default lives here rather than in the storage layer: the Convex document,
+ * the Next read, the write route and the Studio control all resolve an absent
+ * value the same way instead of each inventing a fallback.
+ *
+ * The size is deliberately global, not per preset and not a `cva` variant. Two
+ * banners stacked on one article with different glyph sizes read as a bug, and
+ * a per-banner field would make that the default outcome.
+ */
+export const SAFETY_BANNER_ICON_SIZE_DEFAULT = 44;
+
+/** Below this the glyph stops reading as a warning and starts reading as decoration. */
+export const SAFETY_BANNER_ICON_SIZE_MIN = 24;
+
+/** Above this the glyph column crowds the headline on a narrow phone. */
+export const SAFETY_BANNER_ICON_SIZE_MAX = 72;
+
+/**
+ * Coerce anything to a legal size: stored JSON from an older document, a
+ * half-typed number field, `undefined` from a deployment that never saved.
+ *
+ * Every layer calls THIS function rather than re-deriving the bounds, so a
+ * value that survives the mutation cannot be rejected by the renderer, and a
+ * stored value written before a bound moved is corrected on read instead of
+ * escaping through a layer that forgot to check. `Icon` forwards the number
+ * straight to the SVG `width`/`height`, so a NaN reaching it would blank the
+ * glyph outright — the loudest possible failure on a safety warning.
+ */
+export function clampSafetyBannerIconSize(value: unknown): number {
+  if (typeof value !== "number" || !Number.isFinite(value)) {
+    return SAFETY_BANNER_ICON_SIZE_DEFAULT;
+  }
+
+  const rounded = Math.round(value);
+  if (rounded < SAFETY_BANNER_ICON_SIZE_MIN) {
+    return SAFETY_BANNER_ICON_SIZE_MIN;
+  }
+  if (rounded > SAFETY_BANNER_ICON_SIZE_MAX) {
+    return SAFETY_BANNER_ICON_SIZE_MAX;
+  }
+  return rounded;
+}
+
 export function isWarningBannerTone(value: unknown): value is WarningBannerTone {
   return typeof value === "string" && (WARNING_BANNER_TONES as readonly string[]).includes(value);
 }

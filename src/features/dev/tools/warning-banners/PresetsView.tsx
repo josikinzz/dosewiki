@@ -27,6 +27,9 @@ import { SafetyBanner, SafetyBannerPoints, SafetyBannerTitle } from "@/component
 import { Surface } from "@/components/ui/surface";
 import { Textarea } from "@/components/ui/textarea";
 import {
+  SAFETY_BANNER_ICON_SIZE_DEFAULT,
+  SAFETY_BANNER_ICON_SIZE_MAX,
+  SAFETY_BANNER_ICON_SIZE_MIN,
   searchWarningBannerTargets,
   warningBannerPresetState,
   WARNING_BANNER_KEY_PATTERN,
@@ -81,9 +84,27 @@ const DIMMED_REASON: Record<Exclude<WarningBannerPresetState, "live">, string> =
 const HEADER_CELL_CLASS =
   "theme-text-faint px-3 py-2 text-[11px] font-semibold uppercase tracking-[0.16em]";
 
+/**
+ * The site-wide glyph size, wired as one object so the prop bundle reads as a
+ * single global setting rather than seven loose fields that could be mistaken
+ * for preset state. `text` is raw field input and `size` is the clamped value
+ * every preview renders at; they disagree only while a number is half typed.
+ */
+export type BannerIconSizeControl = {
+  size: number;
+  text: string;
+  dirty: boolean;
+  saveState: EditorActionStatusState | "idle";
+  onTextChange: (text: string) => void;
+  onSave: () => void;
+  onReset: () => void;
+};
+
 export type PresetsViewProps = {
   presets: WarningBannerPreset[];
   targets: WarningBannerTarget[];
+  /** Global, not per preset: the same size renders on every banner on the site. */
+  iconSizeControl: BannerIconSizeControl;
   /** Key of the expanded row, or `null` when no stored preset is open. */
   openKey: string | null;
   draft: WarningBannerPreset | null;
@@ -109,6 +130,7 @@ export type PresetsViewProps = {
 export function PresetsView({
   presets,
   targets,
+  iconSizeControl,
   openKey,
   draft,
   isNew,
@@ -129,6 +151,7 @@ export function PresetsView({
     isDirty,
     saveState,
     iconValid,
+    iconSize: iconSizeControl.size,
     targets,
     onIconValidityChange,
     onDraftChange,
@@ -139,18 +162,94 @@ export function PresetsView({
     onInspectCoverage,
   };
 
+  /**
+   * The field holds raw text so typing `50` is not clamped to `24` at the first
+   * digit, which means the number on screen and the size the previews render at
+   * can legitimately disagree for a keystroke. This line says which one the
+   * server will believe, because the clamp never rejects a save.
+   */
+  const typedSize = iconSizeControl.text.trim();
+  const parsedSize = Number.parseInt(typedSize, 10);
+  const sizeHint = !Number.isFinite(parsedSize)
+    ? `Blank reads as the default ${SAFETY_BANNER_ICON_SIZE_DEFAULT}px.`
+    : parsedSize < SAFETY_BANNER_ICON_SIZE_MIN || parsedSize > SAFETY_BANNER_ICON_SIZE_MAX
+      ? `Sizes run ${SAFETY_BANNER_ICON_SIZE_MIN}–${SAFETY_BANNER_ICON_SIZE_MAX}px; ${parsedSize} saves as ${iconSizeControl.size}px.`
+      : null;
+
   return (
     <div className="space-y-5">
       <EditorToolbar variant="split">
-        <p className="theme-text-faint text-sm">
-          {presets.length === 0
-            ? "A preset holds the words a reader sees. Enabling it is a separate, later decision."
-            : "Open a row to edit its words and choose where it shows."}
-        </p>
-        <Button type="button" variant="accent" size="sm" onClick={onCreate}>
-          <Icon icon="lucide:plus" size={15} />
-          New preset
-        </Button>
+        {/* The only global setting in a view where every other control edits one
+            preset, so it is labelled with its blast radius rather than its unit:
+            an editor adjusting the size of the banner in front of them is in
+            fact adjusting every banner on the site. It lives out here and never
+            in `PresetDrawer` for exactly that reason. */}
+        <EditorField
+          label="Icon size · applies to every banner"
+          description="One glyph size for every safety banner on the site. Saving updates every article that shows one."
+          counter={`${iconSizeControl.size}px`}
+          error={sizeHint}
+          className="min-w-[17rem] flex-1 space-y-1.5"
+        >
+          {(controlProps) => (
+            <div className="flex flex-wrap items-center gap-2">
+              <Input
+                {...controlProps}
+                type="number"
+                inputSize="sm"
+                variant={sizeHint ? "error" : "default"}
+                className="w-[5.5rem] tabular-nums"
+                min={SAFETY_BANNER_ICON_SIZE_MIN}
+                max={SAFETY_BANNER_ICON_SIZE_MAX}
+                step={1}
+                value={iconSizeControl.text}
+                onChange={(event) => iconSizeControl.onTextChange(event.target.value)}
+              />
+              {/* `Save size` and `Reset`, never `Save preset` and `Discard
+                  changes`: the two writes are independent and the words are the
+                  only thing keeping them apart on screen. */}
+              <Button
+                type="button"
+                variant="accent"
+                size="sm"
+                disabled={!iconSizeControl.dirty || iconSizeControl.saveState === "saving"}
+                onClick={iconSizeControl.onSave}
+              >
+                <Icon icon="lucide:save" size={15} />
+                Save size
+              </Button>
+              <Button
+                type="button"
+                variant="secondary"
+                size="sm"
+                disabled={!iconSizeControl.dirty || iconSizeControl.saveState === "saving"}
+                onClick={iconSizeControl.onReset}
+              >
+                <Icon icon="lucide:rotate-ccw" size={15} />
+                Reset
+              </Button>
+              {iconSizeControl.saveState === "idle" ? (
+                iconSizeControl.dirty ? (
+                  <EditorStatusPill tone="warning">Unsaved size</EditorStatusPill>
+                ) : null
+              ) : (
+                <EditorActionStatus status={iconSizeControl.saveState} />
+              )}
+            </div>
+          )}
+        </EditorField>
+
+        <div className="flex flex-wrap items-center gap-3">
+          <p className="theme-text-faint max-w-[26rem] text-sm">
+            {presets.length === 0
+              ? "A preset holds the words a reader sees. Enabling it is a separate, later decision."
+              : "Open a row to edit its words and choose where it shows."}
+          </p>
+          <Button type="button" variant="accent" size="sm" onClick={onCreate}>
+            <Icon icon="lucide:plus" size={15} />
+            New preset
+          </Button>
+        </div>
       </EditorToolbar>
 
       {isNew && draft ? <PresetDrawer {...drawerProps} draft={draft} isNew /> : null}
@@ -249,6 +348,8 @@ type PresetDrawerProps = {
   isDirty: boolean;
   saveState: EditorActionStatusState | "idle";
   iconValid: boolean;
+  /** Read-only here: the size is edited once, in the global toolbar above. */
+  iconSize: number;
   targets: WarningBannerTarget[];
   onIconValidityChange: (valid: boolean) => void;
   onDraftChange: (draft: WarningBannerPreset) => void;
@@ -269,6 +370,7 @@ function PresetDrawer({
   isDirty,
   saveState,
   iconValid,
+  iconSize,
   targets,
   onIconValidityChange,
   onDraftChange,
@@ -314,8 +416,9 @@ function PresetDrawer({
 
   return (
     <div className="space-y-7">
-      {/* The one preview, full width, above the fields that feed it. The
-          primitive owns the 44px glyph, the dark severity chip, and the
+      {/* The one preview, full width, above the fields that feed it. It renders
+          at the saved global glyph size so the preview and a live article cannot
+          disagree; the primitive owns the dark severity chip and the
           one-point-paragraph / many-points-list branch. */}
       <EditorSection
         headingLevel="h3"
@@ -327,6 +430,7 @@ function PresetDrawer({
           variant={draft.tone}
           icon={draft.icon}
           severityLabel={draft.severityLabel}
+          iconSize={iconSize}
           dimmed={state !== "live"}
         >
           <SafetyBannerTitle>{draft.headline || "Untitled headline"}</SafetyBannerTitle>

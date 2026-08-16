@@ -2,6 +2,10 @@ import { describe, expect, it } from "vitest";
 
 import {
   MAX_BANNERS_PER_ARTICLE,
+  SAFETY_BANNER_ICON_SIZE_DEFAULT,
+  SAFETY_BANNER_ICON_SIZE_MAX,
+  SAFETY_BANNER_ICON_SIZE_MIN,
+  clampSafetyBannerIconSize,
   compareWarningBanners,
   resolveEnabledBanners,
   resolveSuppressedBanners,
@@ -218,5 +222,42 @@ describe("searchWarningBannerTargets", () => {
 
     expect(hit.reason).toBe("GABAergic");
     expect(searchWarningBannerTargets("diaze", targets)[0].reason).toBe("Diazepam");
+  });
+});
+
+/**
+ * One size for every banner, resolved identically by the Convex mutation, the
+ * public read, the write route and the Studio control. The default is not an
+ * arbitrary pick: 44 is what `SafetyBanner` shipped with, so a deployment that
+ * has never stored a setting must render exactly as it did before the setting
+ * existed. And because the number lands in an SVG `width`/`height`, anything
+ * that is not a finite number has to become one here rather than downstream.
+ */
+describe("clampSafetyBannerIconSize", () => {
+  it("falls back to the shipped 44 for an unset or unusable value", () => {
+    expect(SAFETY_BANNER_ICON_SIZE_DEFAULT).toBe(44);
+    expect(clampSafetyBannerIconSize(undefined)).toBe(44);
+    expect(clampSafetyBannerIconSize(null)).toBe(44);
+    expect(clampSafetyBannerIconSize("48")).toBe(44);
+    expect(clampSafetyBannerIconSize(Number.NaN)).toBe(44);
+    expect(clampSafetyBannerIconSize(Number.POSITIVE_INFINITY)).toBe(44);
+    expect(clampSafetyBannerIconSize({ iconSize: 48 })).toBe(44);
+  });
+
+  it("passes an in-range size through untouched", () => {
+    expect(clampSafetyBannerIconSize(32)).toBe(32);
+    expect(clampSafetyBannerIconSize(SAFETY_BANNER_ICON_SIZE_MIN)).toBe(24);
+    expect(clampSafetyBannerIconSize(SAFETY_BANNER_ICON_SIZE_MAX)).toBe(72);
+  });
+
+  it("rounds a fractional size, because the glyph is measured in whole pixels", () => {
+    expect(clampSafetyBannerIconSize(43.4)).toBe(43);
+    expect(clampSafetyBannerIconSize(43.5)).toBe(44);
+  });
+
+  it("pulls an out-of-range size to the nearer bound instead of to the default", () => {
+    expect(clampSafetyBannerIconSize(8)).toBe(24);
+    expect(clampSafetyBannerIconSize(-40)).toBe(24);
+    expect(clampSafetyBannerIconSize(200)).toBe(72);
   });
 });

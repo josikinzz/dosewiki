@@ -58,6 +58,11 @@ const STATE_LABEL: Record<WarningBannerPresetState, string> = {
 export type CoverageViewProps = {
   presets: WarningBannerPreset[];
   targets: WarningBannerTarget[];
+  /**
+   * The saved global glyph size. Coverage answers "what does a reader see", so a
+   * preview at any other size would be answering a different question.
+   */
+  iconSize: number;
   activeSlug: string;
   onActiveSlugChange: (slug: string) => void;
   saveState: EditorActionStatusState | "idle";
@@ -72,6 +77,7 @@ export type CoverageViewProps = {
 export function CoverageView({
   presets,
   targets,
+  iconSize,
   activeSlug,
   onActiveSlugChange,
   saveState,
@@ -219,6 +225,7 @@ export function CoverageView({
                         variant={preset.tone}
                         icon={preset.icon}
                         severityLabel={preset.severityLabel}
+                        iconSize={iconSize}
                       >
                         <SafetyBannerTitle>{preset.headline}</SafetyBannerTitle>
                         <SafetyBannerPoints points={preset.points} />

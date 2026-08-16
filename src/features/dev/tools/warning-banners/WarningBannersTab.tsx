@@ -9,12 +9,16 @@
  * everything the two views must not disagree about — the preset list, the loaded
  * corpus, the draft, every write, and the rollout readout.
  *
- * Two disciplines are load-bearing. Banners are opt-in: nothing here maps a
+ * Three disciplines are load-bearing. Banners are opt-in: nothing here maps a
  * classification onto a rendered banner, and `searchWarningBannerTargets` only
- * ever produces slugs for an editor to enable by hand. And saving is never
+ * ever produces slugs for an editor to enable by hand. Saving is never
  * optimistic — the route's echoed `enabledSlugs` is adopted verbatim because the
  * server drops slugs that no longer resolve, and a pruned slug that silently
- * stayed on screen would be a lie about what the public site shows.
+ * stayed on screen would be a lie about what the public site shows. And the
+ * glyph size is site-wide, so it is held here on its own wire — its own query,
+ * its own draft, its own save state and its own notice — because a preset save
+ * and a size save can be in flight at once and must never be mistaken for each
+ * other.
  */
 
 import { useCallback, useEffect, useMemo, useState } from "react";
@@ -33,8 +37,10 @@ import {
 } from "@/components/ui/dialog";
 import {
   compareWarningBanners,
+  clampSafetyBannerIconSize,
   isWarningBannerTone,
   normalizeEnabledSlugs,
+  SAFETY_BANNER_ICON_SIZE_DEFAULT,
   type WarningBannerPreset,
   type WarningBannerTarget,
 } from "@/data/substanceWarningBanners";
@@ -56,6 +62,13 @@ import {
 } from "./warningBannerTargets";
 
 const WARNING_BANNER_API = "/api/dev/warning-banner";
+
+/**
+ * A separate endpoint, not a field on the preset write: the size is one document
+ * for the whole site, and posting it alongside a preset would make every preset
+ * save a chance to change every banner.
+ */
+const WARNING_BANNER_DISPLAY_API = "/api/dev/warning-banner/display";
 
 /**
  * The stored row as it arrives from `warningBannerPresets`. `tone` is narrowed
@@ -151,6 +164,25 @@ function WarningBannersStudio({ initialSubstanceSlug }: WarningBannersTabProps) 
   const [saveState, setSaveState] = useState<SaveState>("idle");
   const [notice, setNotice] = useState<EditorNoticeMessage | null>(null);
   const [pendingDelete, setPendingDelete] = useState<WarningBannerPreset | null>(null);
+
+  /**
+   * The site-wide glyph size. Its own query, draft, save state and notice, none
+   * of them shared with `submitPreset`: an editor who saves a preset must not see
+   * a pill claiming the size was stored, and vice versa.
+   */
+  const display = useQuery(api.siteConfig.getBannerDisplay);
+  const storedIconSize = display
+    ? clampSafetyBannerIconSize(display.iconSize)
+    : SAFETY_BANNER_ICON_SIZE_DEFAULT;
+  /**
+   * Raw text rather than a number, because clamping on every keystroke turns
+   * typing `50` into `24` at the first digit. `null` means "whatever is stored",
+   * so the field adopts a late-arriving query instead of pinning the fallback
+   * the previews rendered at while it loaded.
+   */
+  const [iconSizeDraft, setIconSizeDraft] = useState<string | null>(null);
+  const [iconSizeSaveState, setIconSizeSaveState] = useState<SaveState>("idle");
+  const [iconSizeNotice, setIconSizeNotice] = useState<EditorNoticeMessage | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -377,6 +409,48 @@ function WarningBannersStudio({ initialSubstanceSlug }: WarningBannersTabProps) 
     }
   }, [pendingDelete]);
 
+  // What the field shows, and what everything else renders at. They differ only
+  // while a number is half typed; the clamp is the one that reaches the server.
+  const iconSizeText = iconSizeDraft ?? String(storedIconSize);
+  const iconSize = clampSafetyBannerIconSize(Number.parseInt(iconSizeText, 10));
+  const iconSizeDirty = iconSizeDraft !== null && iconSize !== storedIconSize;
+
+  const handleSaveIconSize = useCallback(async () => {
+    setIconSizeSaveState("saving");
+    setIconSizeNotice(null);
+
+    try {
+      const response = await fetch(WARNING_BANNER_DISPLAY_API, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ iconSize }),
+      });
+      const payload = (await response.json()) as { error?: string; iconSize?: number };
+      if (!response.ok || typeof payload.iconSize !== "number") {
+        throw new Error(payload.error ?? "The icon size could not be saved.");
+      }
+
+      // Adopt the echoed number, not the typed one: it is what the clamp stored,
+      // and re-seeding the draft from it clears the dirty pill without waiting
+      // for the reactive query to come back round.
+      const stored = clampSafetyBannerIconSize(payload.iconSize);
+      setIconSizeDraft(String(stored));
+      setIconSizeSaveState("saved");
+      setIconSizeNotice({
+        tone: "info",
+        title: "Icon size saved for every banner",
+        message: `Every safety banner now renders its glyph at ${stored}px, on every article that shows one.`,
+      });
+    } catch (error) {
+      setIconSizeSaveState("error");
+      setIconSizeNotice({
+        tone: "danger",
+        title: "Couldn't save the icon size",
+        message: error instanceof Error ? error.message : "The icon size could not be saved.",
+      });
+    }
+  }, [iconSize]);
+
   if (rows === undefined) {
     return (
       <div className="mx-auto mt-10 max-w-xl">
@@ -460,6 +534,9 @@ function WarningBannersStudio({ initialSubstanceSlug }: WarningBannersTabProps) 
         ) : null}
 
         {notice ? <EditorNotice notice={notice} /> : null}
+        {/* A second, separate notice. Sharing one would let a preset save and a
+            size save overwrite each other's outcome on screen. */}
+        {iconSizeNotice ? <EditorNotice notice={iconSizeNotice} /> : null}
 
         <EditorNavTabs
           label="Banner Studio views"
@@ -488,6 +565,22 @@ function WarningBannersStudio({ initialSubstanceSlug }: WarningBannersTabProps) 
           <PresetsView
             presets={presets}
             targets={targets}
+            iconSizeControl={{
+              size: iconSize,
+              text: iconSizeText,
+              dirty: iconSizeDirty,
+              saveState: iconSizeSaveState,
+              onTextChange: (text) => {
+                setIconSizeSaveState("idle");
+                setIconSizeDraft(text);
+              },
+              onSave: () => void handleSaveIconSize(),
+              onReset: () => {
+                setIconSizeDraft(null);
+                setIconSizeSaveState("idle");
+                setIconSizeNotice(null);
+              },
+            }}
             openKey={openKey}
             draft={editor?.draft ?? null}
             isNew={editor !== null && editor.origin === null}
@@ -522,6 +615,7 @@ function WarningBannersStudio({ initialSubstanceSlug }: WarningBannersTabProps) 
           <CoverageView
             presets={presets}
             targets={targets}
+            iconSize={iconSize}
             activeSlug={coverageSlug}
             onActiveSlugChange={setCoverageSlug}
             saveState={saveState}

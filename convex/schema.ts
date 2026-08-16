@@ -781,8 +781,9 @@ export default defineSchema({
   // One document per well-known `key`; every payload field is optional because
   // a document only carries the fields its own key means.
   //
-  //   "about"                            → aboutMarkdown / aboutSubtitle / founderProfileKeys
+  //   "about"                              → aboutMarkdown / aboutSubtitle / founderProfileKeys
   //   "effect-index-featured-replications" → featuredReplicationSlugs
+  //   "safety-banner-display"              → bannerIconSize
   //
   // The featured list lives here rather than as a `featured` column on
   // `replications` because it is an *ordered* editorial selection, not a
@@ -795,6 +796,7 @@ export default defineSchema({
     aboutSubtitle: v.optional(v.string()),
     founderProfileKeys: v.optional(v.array(v.string())),
     featuredReplicationSlugs: v.optional(v.array(v.string())),
+    bannerIconSize: v.optional(v.number()),
     updatedAt: v.string(),
     updatedBy: v.optional(v.string()),
   }).index("by_key", ["key"]),

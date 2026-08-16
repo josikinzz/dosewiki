@@ -5,7 +5,10 @@ import type { SubstanceArticle } from "@/schema";
 import type { MoleculeAsset, SubstanceContent } from "@/types/content";
 import type { TripReport } from "@/types/tripReport";
 import type { NormalizedReagentData } from "@/lib/reagentTesting";
-import type { WarningBannerPreset } from "@/data/substanceWarningBanners";
+import {
+  SAFETY_BANNER_ICON_SIZE_DEFAULT,
+  type WarningBannerPreset,
+} from "@/data/substanceWarningBanners";
 import { HeroSection } from "./sections/HeroSection";
 import { DosageDurationSection } from "./sections/DosageDurationSection";
 import { SubjectiveEffectsSection } from "./sections/SubjectiveEffectsSection";
@@ -55,6 +58,14 @@ export interface ArticleLayoutProps {
    * loader, stay unbannered rather than guessing from classification.
    */
   warningBanners?: WarningBannerPreset[];
+  /**
+   * The site-wide safety-banner glyph size (`getSafetyBannerIconSize`, backed by
+   * the `safety-banner-display` siteConfig document). One editor setting shared
+   * by every banner, never a per-preset field. Defaults to the shipped constant
+   * so the review workbench and Generator previews — which pass no banners at
+   * all — are completely unaffected.
+   */
+  warningBannerIconSize?: number;
 }
 
 interface DeferredSectionProps {
@@ -97,6 +108,7 @@ export function ArticleLayout({
   contributorDirectory,
   externalReagentData,
   warningBanners = [],
+  warningBannerIconSize = SAFETY_BANNER_ICON_SIZE_DEFAULT,
 }: ArticleLayoutProps) {
   // Credit hrefs resolve here rather than in the credit components: those are
   // client components, and handing them the directory would serialize every
@@ -173,7 +185,7 @@ export function ArticleLayout({
           HeroSection so the hero keeps rendering byte-identically on the
           overwhelming majority of articles that have none. Renders nothing when
           the list is empty; spacing comes from StickyTocLayout's `gap-8`. */}
-      <SubstanceWarningBanners banners={warningBanners} />
+      <SubstanceWarningBanners banners={warningBanners} iconSize={warningBannerIconSize} />
 
       <HeroSection
         article={article}

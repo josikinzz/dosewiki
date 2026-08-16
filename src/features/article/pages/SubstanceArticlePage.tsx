@@ -28,6 +28,12 @@ interface SubstanceArticlePageProps {
   externalReagentData?: NormalizedReagentData | null;
   /** Resolved for this slug by `resolveEnabledBanners`; absent means none. */
   warningBanners?: WarningBannerPreset[];
+  /**
+   * The site-wide banner glyph size from `getSafetyBannerIconSize`; absent
+   * renders at the shipped default. One editor setting for the whole site, so it
+   * travels beside `warningBanners` rather than on any preset.
+   */
+  warningBannerIconSize?: number;
 }
 
 export function SubstanceArticlePage({
@@ -42,6 +48,7 @@ export function SubstanceArticlePage({
   contributorDirectory,
   externalReagentData,
   warningBanners,
+  warningBannerIconSize,
 }: SubstanceArticlePageProps) {
   return (
     <main id="main-content" tabIndex={-1} className="theme-page-shell min-h-screen focus:outline-none">
@@ -57,6 +64,7 @@ export function SubstanceArticlePage({
         contributorDirectory={contributorDirectory}
         externalReagentData={externalReagentData}
         warningBanners={warningBanners}
+        warningBannerIconSize={warningBannerIconSize}
       />
     </main>
   );

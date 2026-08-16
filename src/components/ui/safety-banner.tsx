@@ -2,6 +2,7 @@ import * as React from "react";
 import { cva, type VariantProps } from "class-variance-authority";
 
 import { Icon, type IconName } from "@/components/common/Icon";
+import { SAFETY_BANNER_ICON_SIZE_DEFAULT } from "@/data/substanceWarningBanners";
 import { cn } from "@/lib/utils";
 
 /**
@@ -70,6 +71,19 @@ export type SafetyBannerProps = React.HTMLAttributes<HTMLDivElement> &
     icon?: IconName;
     severityLabel?: string;
     /**
+     * The glyph's pixel size. One site-wide editor setting (stored on the
+     * `safety-banner-display` siteConfig document, edited in the Banner Studio
+     * toolbar) threaded down to every banner on the site — deliberately NOT a
+     * per-banner or per-preset choice, so every warning a reader meets is the
+     * same weight. Absent renders at `SAFETY_BANNER_ICON_SIZE_DEFAULT`.
+     *
+     * A prop rather than a cva variant on purpose: the value is a stored number
+     * with no fixed steps, `src/components/ui/ownership.test.ts` keeps this
+     * primitive's variants tone-only, and a `size` variant group would invite
+     * exactly the per-banner sizing this replaces.
+     */
+    iconSize?: number;
+    /**
      * Studio-only. The Banner Studio previews presets that are enabled nowhere,
      * and a full-strength preview of a banner no reader can see is a lie about
      * the state of the site (brief §5). Dimming makes "what it would look like"
@@ -79,7 +93,20 @@ export type SafetyBannerProps = React.HTMLAttributes<HTMLDivElement> &
   };
 
 const SafetyBanner = React.forwardRef<HTMLDivElement, SafetyBannerProps>(
-  ({ className, variant, role, icon, severityLabel, dimmed, children, ...props }, ref) => {
+  (
+    {
+      className,
+      variant,
+      role,
+      icon,
+      severityLabel,
+      iconSize,
+      dimmed,
+      children,
+      ...props
+    },
+    ref,
+  ) => {
     const tone: SafetyBannerTone = variant ?? "danger";
 
     // Same rule as `Alert`: explicit role wins, otherwise tone decides. `danger`
@@ -107,7 +134,13 @@ const SafetyBanner = React.forwardRef<HTMLDivElement, SafetyBannerProps>(
         )}
         {...props}
       >
-        {icon ? <Icon icon={icon} className="shrink-0 self-start" size={44} /> : null}
+        {icon ? (
+          <Icon
+            icon={icon}
+            className="shrink-0 self-start"
+            size={iconSize ?? SAFETY_BANNER_ICON_SIZE_DEFAULT}
+          />
+        ) : null}
         <div className="flex min-w-0 flex-col items-start gap-2">
           {severityLabel ? (
             <span

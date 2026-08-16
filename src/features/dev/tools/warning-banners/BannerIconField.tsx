@@ -40,9 +40,11 @@ export type BannerIconFieldProps = {
 };
 
 /**
- * The icon field. No preview of its own: the full-width `SafetyBanner` at the
- * top of the drawer already renders this glyph at its real 44px on its real
- * tone surface, and a second smaller copy beside the input was noise.
+ * The icon field. No preview of its own: the full-width `SafetyBanner` at the top
+ * of the drawer already renders this glyph at the saved global size on its real
+ * tone surface, and a second smaller copy beside the input was noise. The
+ * suggestion chips below are deliberately fixed-size — they are a shortcut list,
+ * not a claim about how the glyph will read on an article.
  */
 export function BannerIconField({ value, onChange, onValidityChange }: BannerIconFieldProps) {
   const [resolution, setResolution] = useState<IconResolution>("checking");

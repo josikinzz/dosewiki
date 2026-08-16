@@ -130,6 +130,13 @@ export interface SubstanceArticleViewModel {
     contributorDirectory: ContributorDirectory;
     externalReagentData?: NormalizedReagentData | null;
     warningBanners: WarningBannerPreset[];
+    /**
+     * The site-wide banner glyph size. Optional, unlike `warningBanners`: a
+     * caller that omits it renders at `SAFETY_BANNER_ICON_SIZE_DEFAULT`, which is
+     * the size the site shipped with, whereas omitting the banners themselves
+     * would silently drop a warning.
+     */
+    warningBannerIconSize?: number;
   };
 }
 
@@ -219,6 +226,8 @@ export function buildSubstanceArticleViewModel(input: {
    * silently publish an article missing a safety banner an editor switched on.
    */
   warningBanners: WarningBannerPreset[];
+  /** Site-wide glyph size from `getSafetyBannerIconSize`; omitted renders at the default. */
+  warningBannerIconSize?: number;
 }): SubstanceArticleViewModel {
   const { slug: _resolvedSlug, ...article } = input.substance;
   const publicArticle = article as SubstanceArticle;
@@ -255,6 +264,7 @@ export function buildSubstanceArticleViewModel(input: {
       contributorDirectory: input.contributorDirectory ?? [],
       externalReagentData: input.externalReagentData,
       warningBanners: input.warningBanners,
+      warningBannerIconSize: input.warningBannerIconSize,
     },
   };
 }

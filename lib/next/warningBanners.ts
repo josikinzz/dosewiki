@@ -9,8 +9,10 @@ import {
 } from "../convex/publicData.cache";
 import { queryConvex } from "../convex/serverClient";
 import {
+  clampSafetyBannerIconSize,
   isWarningBannerTone,
   normalizeEnabledSlugs,
+  SAFETY_BANNER_ICON_SIZE_DEFAULT,
   type WarningBannerPreset,
 } from "../../src/data/substanceWarningBanners";
 
@@ -124,6 +126,47 @@ export const getWarningBannerPresets = cache(
       }
     },
     ["convex-public-warning-banners"],
+    {
+      revalidate: PUBLIC_CONVEX_CACHE_REVALIDATE_SECONDS,
+      tags: [PUBLIC_CONVEX_CACHE_TAGS.all, PUBLIC_CONVEX_CACHE_TAGS.banners],
+    },
+  ),
+);
+
+/**
+ * The site-wide safety-banner glyph size — one editor setting on the
+ * `safety-banner-display` siteConfig document, shared by every banner on every
+ * article so no two warnings are drawn at different weights.
+ *
+ * The opposite failure choice to `getWarningBannerPresets` above, and
+ * deliberately so: a missing preset must render *nothing*, because inventing a
+ * warning is unsafe. A missing size must still render the banner — the warning
+ * itself is what matters, and `SAFETY_BANNER_ICON_SIZE_DEFAULT` is the size the
+ * site shipped with, so degrading to it is invisible rather than dangerous.
+ * Suppressing a banner over an unreadable display preference would be the worse
+ * outcome by a wide margin.
+ *
+ * Same `banners` tag as the presets: the Studio's display save route revalidates
+ * that one tag (plus every enabled slug) so a resize reaches readers at once
+ * instead of trickling in over the `/[slug]` hour.
+ */
+export const getSafetyBannerIconSize = cache(
+  unstable_cache(
+    async (): Promise<number> => {
+      try {
+        const config = await queryConvex<unknown>("siteConfig:getBannerDisplay", {});
+        // Clamped here too, not just on write: a row written by an older
+        // deployment (or by hand) is data this process did not validate.
+        return clampSafetyBannerIconSize(isRecord(config) ? config.iconSize : undefined);
+      } catch (error) {
+        const message = error instanceof Error ? error.message : String(error);
+        console.warn(
+          `[banners] siteConfig:getBannerDisplay failed; safety banner glyphs render at the default ${SAFETY_BANNER_ICON_SIZE_DEFAULT}px. Cause: ${message}`,
+        );
+        return SAFETY_BANNER_ICON_SIZE_DEFAULT;
+      }
+    },
+    ["convex-public-safety-banner-icon-size"],
     {
       revalidate: PUBLIC_CONVEX_CACHE_REVALIDATE_SECONDS,
       tags: [PUBLIC_CONVEX_CACHE_TAGS.all, PUBLIC_CONVEX_CACHE_TAGS.banners],

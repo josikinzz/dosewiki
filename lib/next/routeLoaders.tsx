@@ -37,7 +37,7 @@ import {
 } from "@server/convex/publicLibrary";
 import { getMoleculeUpdatedAt, moleculeOverrideImageUrl } from "@server/convex/publicData.molecules";
 import { getCachedReagentDataForArticle } from "@server/reagentData";
-import { getWarningBannerPresets } from "./warningBanners";
+import { getSafetyBannerIconSize, getWarningBannerPresets } from "./warningBanners";
 import {
   effectMatchesCategorySlug,
   getEffectCategoryDefinition,
@@ -201,6 +201,7 @@ export const loadSubstanceRoute = cache(async (slug: string): Promise<SubstanceR
     externalReagentData,
     relatedTripReports,
     warningBannerPresets,
+    warningBannerIconSize,
   ] = await Promise.all([
     getPublicContributorByKey("JOSIE"),
     getPublicContributorByKey("LYREA"),
@@ -213,6 +214,10 @@ export const loadSubstanceRoute = cache(async (slug: string): Promise<SubstanceR
     // Every preset, enabled or not; the slug filter happens below. Returns []
     // on any failure, so a Convex outage drops banners rather than the article.
     getWarningBannerPresets(),
+    // One site-wide number shared by every banner. Degrades to the shipped
+    // default rather than to nothing: a display preference must never be able to
+    // suppress a warning.
+    getSafetyBannerIconSize(),
   ]);
 
   const moleculeOverrideUrl = moleculeUpdatedAt
@@ -246,6 +251,7 @@ export const loadSubstanceRoute = cache(async (slug: string): Promise<SubstanceR
       reportMatchesSubstance(report, substance),
     ),
     warningBanners,
+    warningBannerIconSize,
   });
 
   return {

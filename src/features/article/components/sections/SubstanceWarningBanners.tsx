@@ -27,10 +27,22 @@ import type { WarningBannerPreset } from "@/data/substanceWarningBanners";
 
 export interface SubstanceWarningBannersProps {
   banners: WarningBannerPreset[];
+  /**
+   * The site-wide glyph size from the `safety-banner-display` siteConfig
+   * document, read by `getSafetyBannerIconSize` in `lib/next/warningBanners.ts`
+   * and threaded down the route loader. Every banner on the page gets the same
+   * number — it is one editor setting, not a per-preset field. Absent falls
+   * back to `SAFETY_BANNER_ICON_SIZE_DEFAULT` inside `SafetyBanner`.
+   */
+  iconSize?: number;
   className?: string;
 }
 
-export function SubstanceWarningBanners({ banners, className }: SubstanceWarningBannersProps) {
+export function SubstanceWarningBanners({
+  banners,
+  iconSize,
+  className,
+}: SubstanceWarningBannersProps) {
   // The overwhelmingly common case: no preset is enabled on this slug. Bail
   // before emitting anything at all — an empty wrapper would still be a flex
   // child of StickyTocLayout's `gap-8` content column and would open a visible
@@ -45,6 +57,7 @@ export function SubstanceWarningBanners({ banners, className }: SubstanceWarning
           variant={preset.tone}
           icon={preset.icon}
           severityLabel={preset.severityLabel}
+          iconSize={iconSize}
         >
           <SafetyBannerTitle>{preset.headline}</SafetyBannerTitle>
           {/* Every visible string here is a stored, editor-authored field. The
