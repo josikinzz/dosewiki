@@ -15,6 +15,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 
 import { EffectTagInput } from "./EffectTagInput";
+import { ReplicationAssociationsPanel } from "./ReplicationAssociationsPanel";
 import { ReplicationThumb } from "./ReplicationThumb";
 import {
   NO_EFFECT_KEY,
@@ -358,14 +359,21 @@ export function ReplicationEditorDrawer({
             </ul>
           </div>
         ) : selected.length === 1 ? (
-          <SingleEditor
-            key={selected[0].id}
-            row={selected[0]}
-            effects={effects}
-            artists={artists}
-            busy={busy}
-            onSave={onSaveSingle}
-          />
+          <div className="space-y-5">
+            <SingleEditor
+              key={selected[0].id}
+              row={selected[0]}
+              effects={effects}
+              artists={artists}
+              busy={busy}
+              onSave={onSaveSingle}
+            />
+            {/* Associations are derived per replication, so this belongs to
+                single-edit mode only — a bulk selection has no one answer. */}
+            <div className="border-t border-[color:var(--editor-panel-border)] pt-5">
+              <ReplicationAssociationsPanel row={selected[0]} />
+            </div>
+          </div>
         ) : (
           <BulkEditor
             rows={selected}

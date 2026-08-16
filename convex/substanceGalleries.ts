@@ -8,7 +8,11 @@ import {
   normalizeGalleryCuration,
   resolveVisualEffectSlugs,
   visualEffectNamesOf,
+  type SubstanceGalleryMatchableRow,
+  type SubstanceGalleryMatchProvenance,
 } from "../src/data/substanceReplicationGallery";
+import { isPublishableReplication } from "../src/types/replications";
+import type { ReplicationAssociation } from "../src/features/dev/tools/replication-studio/replicationAssociationModel";
 
 /**
  * Per-substance Replication Showcase: derived effect matching plus the stored
@@ -366,5 +370,249 @@ export const upsert = mutation({
       updated_at,
       updated_by,
     };
+  },
+});
+
+/**
+ * How this one replication earns a place on a substance with these visual
+ * effect names, or null when it earns none.
+ *
+ * A single-row corpus handed to the shared matcher, so the owning-slug-beats-tag
+ * precedence, the tag pick, and the publishable gate cannot drift from what the
+ * article and the per-substance portal derive.
+ */
+function associationProvenance(
+  replication: SubstanceGalleryMatchableRow,
+  visualEffectNames: readonly string[],
+): SubstanceGalleryMatchProvenance | null {
+  if (visualEffectNames.length === 0) return null;
+  const { matches } = matchSubstanceGalleryReplications([replication], visualEffectNames);
+  return matches.length > 0 ? matches[0].provenance : null;
+}
+
+/**
+ * The other side of the same derivation: which substance articles one
+ * replication currently appears on.
+ *
+ * Nothing links a replication to a substance — the association is derived on
+ * every read from the article's visual-effect names, so there is no join row to
+ * list. This walks the article table instead and tests this one replication
+ * against each article's derived effect slugs, reusing
+ * `matchSubstanceGalleryReplications` with a single-row corpus so the owning
+ * slug still beats a tag and the publishable gate still applies. Editorial read
+ * over the whole article table, so it takes `replicationMaintenance` and pages
+ * exactly like `listCurationCandidatesPage`; the caller drains the cursor.
+ *
+ * `excluded` and `curatedPosition` are the stored delta from that substance's
+ * `substanceGalleries` row — the saved baseline the editor's draft is diffed
+ * against, never anything derived from the request.
+ *
+ * A slug naming no replication, or naming a figure or audio row, appears on no
+ * article at all: that answers with an empty page rather than an error, the
+ * same way the public read treats "nothing to show" as normal.
+ */
+export const getReplicationAssociationsPage = query({
+  args: {
+    apiKey: v.optional(v.string()),
+    replicationSlug: v.string(),
+    cursor: v.optional(v.string()),
+    limit: v.optional(v.number()),
+  },
+  handler: async (ctx, args) => {
+    await requireAuth(ctx, args.apiKey, "replicationMaintenance");
+
+    const numItems = Math.min(
+      Math.max(Math.floor(args.limit ?? CURATION_CANDIDATE_PAGE_SIZE), 1),
+      CURATION_CANDIDATE_MAX_PAGE_SIZE,
+    );
+
+    const replication = await ctx.db
+      .query("replications")
+      .withIndex("by_slug", (q) => q.eq("slug", args.replicationSlug))
+      .first();
+    if (!replication || !isPublishableReplication(replication)) {
+      return { items: [], cursor: args.cursor ?? "", isDone: true };
+    }
+
+    const page = await ctx.db.query("substanceIndex").paginate({
+      cursor: args.cursor ?? null,
+      numItems,
+    });
+
+    const items: ReplicationAssociation[] = [];
+    for (const substance of page.page) {
+      const visualNames = visualEffectNamesOf(substance.subjective_effects);
+      const provenance = associationProvenance(replication, visualNames);
+      if (!provenance) continue;
+
+      // The article's own wording for the matched effect slug, paired the way
+      // `getCurationDetail`'s `effectOptions` pairs it: first name in document
+      // order that resolves to this slug.
+      const { slugByName } = resolveVisualEffectSlugs(visualNames);
+      let effectName = provenance.effectSlug;
+      for (const name of visualNames) {
+        if (slugByName.get(name) === provenance.effectSlug) {
+          effectName = name;
+          break;
+        }
+      }
+
+      const gallery = await ctx.db
+        .query("substanceGalleries")
+        .withIndex("by_substance", (q) => q.eq("substance_slug", substance.slug))
+        .first();
+      const curatedIndex = gallery ? gallery.curated_slugs.indexOf(args.replicationSlug) : -1;
+
+      items.push({
+        slug: substance.slug,
+        title: substance.title,
+        matchedVia: provenance.matchedVia,
+        effectSlug: provenance.effectSlug,
+        effectName,
+        excluded: gallery ? gallery.removed_slugs.includes(args.replicationSlug) : false,
+        curatedPosition: curatedIndex >= 0 ? curatedIndex + 1 : null,
+      });
+    }
+
+    return { items, cursor: page.continueCursor, isDone: page.isDone };
+  },
+});
+
+/**
+ * Reconcile which substances suppress one replication, from the replication's
+ * side.
+ *
+ * `excludedSubstanceSlugs` is the authoritative full set, unordered: every
+ * named substance ends up suppressing this replication and every other
+ * substance that currently suppresses it stops. Storage is unchanged — each
+ * decision lands in that one substance's `removed_slugs`, the same field the
+ * per-substance curation portal writes.
+ *
+ * Exclusion is deliberately per-substance rather than untagging the corpus row:
+ * an `effect_slug` or `effect_tags` edit would drop the replication off every
+ * article deriving that effect, and off future ones too. "Not on this article"
+ * is an editorial judgement about one pairing, so it is stored as one
+ * substance's delta.
+ *
+ * A substance this replication does not match is never written — there would be
+ * nothing to suppress, and `upsert` would prune the phantom slug on the next
+ * save anyway. Adding an exclusion also strips the slug from that substance's
+ * `curated_slugs`, because the two lists may never overlap
+ * (`normalizeGalleryCuration` rejects it); each pin so dropped comes back in
+ * `droppedCuratedPositions` with the 1-based position it held, so the editor is
+ * told rather than left to notice. Substances whose row would not change are
+ * not written and are absent from `updated`.
+ */
+export const setReplicationExclusions = mutation({
+  args: {
+    apiKey: v.optional(v.string()),
+    actorEmail: v.optional(v.string()),
+    replicationSlug: v.string(),
+    excludedSubstanceSlugs: v.array(v.string()),
+    updatedBy: v.optional(v.string()),
+  },
+  handler: async (ctx, args) => {
+    const actor = await requireEditorWrite(ctx, {
+      apiKey: args.apiKey,
+      actorEmail: args.actorEmail,
+      adminIntent: "editorArticleWrite",
+    });
+
+    if (args.excludedSubstanceSlugs.length > MAX_GALLERY_CURATION_SLUGS) {
+      throw new Error(
+        `A replication may be excluded from at most ${MAX_GALLERY_CURATION_SLUGS} substances per save.`,
+      );
+    }
+
+    const replication = await ctx.db
+      .query("replications")
+      .withIndex("by_slug", (q) => q.eq("slug", args.replicationSlug))
+      .first();
+    if (!replication) {
+      throw new Error(`No replication found for slug "${args.replicationSlug}".`);
+    }
+
+    const wanted = new Set(args.excludedSubstanceSlugs);
+
+    // Curated rows are the only place an existing exclusion can hide, and there
+    // is no index from a suppressed slug back to its substances, so the delta
+    // table is read whole. It holds one document per curated substance.
+    const galleries = await ctx.db.query("substanceGalleries").collect();
+    const galleryBySubstance = new Map(galleries.map((row) => [row.substance_slug, row]));
+
+    // Every substance whose stored state could differ from the submitted set:
+    // the named ones (which must still match to be written) and the ones
+    // already suppressing this replication (which must stop if unnamed). A
+    // matching substance that is neither named nor suppressed has nothing to
+    // change, so it is never read.
+    const candidates = [...args.excludedSubstanceSlugs];
+    const seen = new Set(candidates);
+    for (const row of galleries) {
+      if (seen.has(row.substance_slug)) continue;
+      if (!row.removed_slugs.includes(args.replicationSlug)) continue;
+      seen.add(row.substance_slug);
+      candidates.push(row.substance_slug);
+    }
+
+    const updated_at = new Date().toISOString();
+    const updated_by = args.updatedBy ?? actor.email;
+    const updated: string[] = [];
+    const droppedCuratedPositions: { substance_slug: string; position: number }[] = [];
+
+    for (const substanceSlug of candidates) {
+      const gallery = galleryBySubstance.get(substanceSlug) ?? null;
+      const isExcluded = gallery?.removed_slugs.includes(args.replicationSlug) ?? false;
+      const wantsExclusion = wanted.has(substanceSlug);
+      if (wantsExclusion === isExcluded) continue;
+
+      if (wantsExclusion) {
+        const substance = await uniqueSubstanceBySlug(ctx, substanceSlug);
+        if (!substance) continue;
+        const provenance = associationProvenance(
+          replication,
+          visualEffectNamesOf(substance.subjective_effects),
+        );
+        if (!provenance) continue;
+
+        const removed_slugs = [...(gallery?.removed_slugs ?? []), args.replicationSlug];
+        if (removed_slugs.length > MAX_GALLERY_CURATION_SLUGS) {
+          throw new Error(
+            `"${substanceSlug}" already suppresses ${MAX_GALLERY_CURATION_SLUGS} replications, the per-substance maximum.`,
+          );
+        }
+
+        const curated = gallery?.curated_slugs ?? [];
+        const curatedIndex = curated.indexOf(args.replicationSlug);
+        if (curatedIndex >= 0) {
+          droppedCuratedPositions.push({ substance_slug: substanceSlug, position: curatedIndex + 1 });
+        }
+        const curated_slugs =
+          curatedIndex >= 0 ? curated.filter((slug) => slug !== args.replicationSlug) : curated;
+
+        if (gallery) {
+          await ctx.db.patch(gallery._id, { curated_slugs, removed_slugs, updated_at, updated_by });
+        } else {
+          await ctx.db.insert("substanceGalleries", {
+            substance_slug: substanceSlug,
+            curated_slugs,
+            removed_slugs,
+            updated_at,
+            updated_by,
+          });
+        }
+      } else {
+        // Only a stored row can carry an exclusion, so `gallery` is non-null
+        // here; dropping one leaves the rest of the curation untouched.
+        await ctx.db.patch(gallery!._id, {
+          removed_slugs: gallery!.removed_slugs.filter((slug) => slug !== args.replicationSlug),
+          updated_at,
+          updated_by,
+        });
+      }
+
+      updated.push(substanceSlug);
+    }
+
+    return { updated, droppedCuratedPositions };
   },
 });
