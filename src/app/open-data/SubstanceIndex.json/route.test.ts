@@ -13,6 +13,8 @@ const documents = [
   },
   { _id: "cx1", _creationTime: 1, id: 3, title: "Alpha", slug: "alpha" },
   { _id: "cx3", _creationTime: 3, id: null, title: "Legacy", slug: "legacy" },
+  { _id: "cx4", _creationTime: 4, id: 2, title: "Draft", slug: "draft", priority: "low" },
+  { _id: "cx5", _creationTime: 5, id: 5, title: "Unlisted", slug: "unlisted", priority: "hide_for_now" },
 ];
 
 vi.mock("@server/convex/publicData", () => ({
@@ -89,5 +91,16 @@ describe("open-data SubstanceIndex route", () => {
     const route = await import("./route");
 
     expect(route.revalidate).toBe(86400);
+  });
+
+  it("excludes unfinished low-priority and hide_for_now substances", async () => {
+    const { GET } = await import("./route");
+
+    const payload = await readOpenDataPayload(await GET());
+
+    const titles = payload.items.map((item: { title: string }) => item.title);
+    expect(titles).toEqual(["Alpha", "Zeta", "Legacy"]);
+    expect(titles).not.toContain("Draft");
+    expect(titles).not.toContain("Unlisted");
   });
 });

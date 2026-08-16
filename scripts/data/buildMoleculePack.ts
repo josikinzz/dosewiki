@@ -118,14 +118,20 @@ async function main() {
 
   const generatedEntries = JSON.parse(readFileSync(GENERATED_SMILES_PATH, "utf8")).entries ?? {};
   const titleBySlug = new Map<string, string>();
+  // Substances still being written or deliberately unlisted (`priority` `low`
+  // or `hide_for_now`) must not ship their molecules in the public pack.
+  const excludedSubstanceSlugs = new Set<string>();
   const lookup = await drainConvexPageQuery({
     client,
     query: api.substanceIndex.getLookupPage,
   });
   for (const item of lookup) {
-    if (typeof item === "object" && item !== null && "slug" in item && "name" in item) {
-      const { slug, name } = item;
-      if (typeof slug === "string" && typeof name === "string") titleBySlug.set(slug, name);
+    if (typeof item !== "object" || item === null || !("slug" in item)) continue;
+    const { slug, name, priority } = item;
+    if (typeof slug !== "string") continue;
+    if (typeof name === "string") titleBySlug.set(slug, name);
+    if (priority === "low" || priority === "hide_for_now") {
+      excludedSubstanceSlugs.add(slug);
     }
   }
 
@@ -133,7 +139,12 @@ async function main() {
   const classRows: MoleculeRow[] = [];
   for (const row of rows) {
     if (!row) continue;
-    (row.slug.startsWith("class:") ? classRows : substanceRows).push(row);
+    if (row.slug.startsWith("class:")) {
+      // Class skeletons are generic Markush structures, not substance-specific.
+      classRows.push(row);
+    } else if (!excludedSubstanceSlugs.has(row.slug)) {
+      substanceRows.push(row);
+    }
   }
 
   const manifestMolecules: ManifestMolecule[] = substanceRows.map((row) => {

@@ -4,6 +4,7 @@ import {
   getPublicAboutData,
   getPublicContributorProfiles,
   getPublicDataOverview,
+  getPublicSubstanceLookup,
 } from "@server/convex/publicData";
 import { getPublicContributorReferenceCounts } from "@server/convex/publicData.contributorReferences";
 import { buildPublicPageMetadata } from "@server/next/publicSite";
@@ -70,6 +71,7 @@ export default async function AboutPage() {
     contributorProfiles,
     referenceCounts,
     moleculeOverrideIndex,
+    substanceLookup,
   ] = await Promise.all([
     getPublicAboutData(),
     getPublicDataOverview(),
@@ -83,6 +85,7 @@ export default async function AboutPage() {
       ? getPublicContributorReferenceCounts()
       : new Map<string, number>(),
     getMoleculeOverrideIndex(),
+    getPublicSubstanceLookup(),
   ]);
 
   // Ship only the rendered JSON the preview actually needs: the smallest articles
@@ -95,9 +98,18 @@ export default async function AboutPage() {
   const mechanismClassCount = mechanismLayout?.categories.length ?? 0;
   // Substance depictions live in Convex `moleculeOverrides`; `class:` rows are
   // chemical-class Markush skeletons, not downloadable substance structures.
+  // Low-priority / unlisted substances ship no molecule in the public pack, so
+  // they are excluded from the count shown beside the download.
+  const excludedSubstanceSlugs = new Set(
+    substanceLookup
+      .filter((entry) => entry.priority === "low")
+      .map((entry) => entry.slug),
+  );
   let moleculeCount = 0;
   for (const slug of moleculeOverrideIndex.keys()) {
-    if (!slug.startsWith("class:")) moleculeCount += 1;
+    if (!slug.startsWith("class:") && !excludedSubstanceSlugs.has(slug)) {
+      moleculeCount += 1;
+    }
   }
 
   const placeholderValues = {
