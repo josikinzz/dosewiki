@@ -648,6 +648,16 @@ const warningBannerPreset = v.object({
   enabledSlugs: v.array(v.string()),
   updatedAt: v.string(),
   updatedBy: v.optional(v.string()),
+
+  // MIGRATION SHIM — remove together with `warningBanners.dropRemovedColumns`
+  // once that mutation has run against every deployment. Convex validates the
+  // schema against existing documents on push, so narrowing a live table has to
+  // be widen → migrate → narrow. Rows written before the distill pass still
+  // carry these four; the mutation rewrites them away.
+  label: v.optional(v.string()),
+  priority: v.optional(v.number()),
+  links: v.optional(v.array(v.object({ label: v.string(), sectionId: v.string() }))),
+  candidateMatchers: v.optional(v.array(v.string())),
 });
 
 export default defineSchema({
