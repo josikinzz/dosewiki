@@ -214,8 +214,8 @@ function BoardRow({
             className="h-8 w-8 shrink-0 cursor-grab active:cursor-grabbing"
             aria-label={
               curated
-                ? `Drag ${title} to reorder it in the curated head`
-                : `Drag ${title} onto a curated row to pin it`
+                ? `Drag ${title} to reorder it`
+                : `Drag ${title} to reorder it — dropping it here pins the rows above it`
             }
             {...attributes}
             {...listeners}

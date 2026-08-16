@@ -432,17 +432,25 @@ export function SubstanceGalleryPanel({
         return;
       }
       const activeSlug = String(active.id);
-      const next = applyBoardDrag(curation, activeSlug, String(over.id));
+      const next = applyBoardDrag(curation, board, activeSlug, String(over.id));
+      if (next === curation) {
+        return;
+      }
       const position = next.curated.indexOf(activeSlug);
+      // A drop into the derived tail has to pin everything above it, so say how
+      // many rows that took rather than letting the head silently grow.
+      const pinned = next.curated.length - curation.curated.length;
       setFocusSlug(activeSlug);
       applyCuration(
         next,
         position === -1
           ? `${titleOf(activeSlug)} returned to the default order.`
-          : `Moved ${titleOf(activeSlug)} to position ${position + 1} of ${next.curated.length}.`,
+          : `Moved ${titleOf(activeSlug)} to position ${position + 1} of ${next.curated.length}.${
+              pinned > 0 ? ` Pinned ${pinned} row${pinned === 1 ? "" : "s"} above it to hold that position.` : ""
+            }`,
       );
     },
-    [applyCuration, curation, titleOf],
+    [applyCuration, board, curation, titleOf],
   );
 
   const handleUndo = useCallback(() => {

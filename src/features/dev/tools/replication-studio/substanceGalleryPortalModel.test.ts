@@ -135,9 +135,12 @@ describe("moveCuratedSlugToEdge", () => {
 });
 
 describe("applyBoardDrag", () => {
+  const drag = (state: GalleryCurationState, activeSlug: string, overId: string) =>
+    applyBoardDrag(state, buildGalleryBoard(MATCHES, state, CAP), activeSlug, overId);
+
   it("promotes an auto row into the head at the index it was dropped on", () => {
     const state: GalleryCurationState = { curated: ["a", "b"], removed: [] };
-    const next = applyBoardDrag(state, "d", "a");
+    const next = drag(state, "d", "a");
 
     expect(next.curated).toEqual(["d", "a", "b"]);
     expect(buildGalleryBoard(MATCHES, next, CAP).rows.map((row) => row.band)).toEqual([
@@ -151,15 +154,14 @@ describe("applyBoardDrag", () => {
   it("reorders inside the head when both slugs are curated", () => {
     const state: GalleryCurationState = { curated: ["a", "b", "c"], removed: [] };
 
-    expect(applyBoardDrag(state, "c", "a").curated).toEqual(["c", "a", "b"]);
+    expect(drag(state, "c", "a").curated).toEqual(["c", "a", "b"]);
   });
 
-  it("un-curates when the drop id is not a curated slug", () => {
+  it("un-curates when the drop id is not a row", () => {
     const state: GalleryCurationState = { curated: ["a", "b", "c"], removed: [] };
 
-    expect(applyBoardDrag(state, "b", "auto-zone").curated).toEqual(["a", "c"]);
-    expect(applyBoardDrag(state, "d", "auto-zone")).toBe(state);
-    expect(applyBoardDrag(state, "a", "a")).toBe(state);
+    expect(drag(state, "b", "auto-zone").curated).toEqual(["a", "c"]);
+    expect(drag(state, "a", "a")).toBe(state);
   });
 });
 

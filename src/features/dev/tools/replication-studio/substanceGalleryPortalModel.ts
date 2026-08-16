@@ -203,24 +203,46 @@ export function moveCuratedSlugToEdge(
 }
 
 /**
- * Apply a board drag. Dropping onto a curated row takes that row's index —
- * which is what lets an auto or library row be dragged *into* the head, not
- * only reordered inside it. Any other drop id un-curates, so the auto band's
- * drop zone needs no special case.
+ * Apply a board drag, in terms of the order the editor can actually see.
+ *
+ * The stored curation is a *prefix*: an ordered head, then whatever the matcher
+ * derives. So a position in the derived tail has no representation of its own —
+ * to put a row at absolute position N, every position before N must be pinned
+ * too. That is why a drop into the tail pins the rows above it: without that the
+ * drop is unexpressible, and the older implementation silently discarded it.
+ *
+ * Rows past the drop stay derived, so the head only grows as far as the editor
+ * actually reordered. Dropping on anything that is not a row (the un-curate
+ * zone) still returns the active row to the default order.
  */
 export function applyBoardDrag(
   state: GalleryCurationState,
+  board: GalleryBoard,
   activeSlug: string,
   overId: string,
 ): GalleryCurationState {
   if (activeSlug === overId) {
     return state;
   }
-  const to = state.curated.indexOf(overId);
-  if (to === -1) {
+  const order = board.rows.map((row) => row.match.replication.slug);
+  const from = order.indexOf(activeSlug);
+  const to = order.indexOf(overId);
+  if (from === -1 || to === -1) {
     return uncurateSlug(state, activeSlug);
   }
-  return curateSlugAt(state, activeSlug, to);
+  // dnd-kit's sortable semantic: the dragged row takes the slot it was dropped
+  // on, and everything between shuffles up or down to close the gap.
+  const moved = [...order];
+  moved.splice(from, 1);
+  moved.splice(to, 0, activeSlug);
+  /*
+   * Pin far enough to express the drop, and never drop a row that was already
+   * pinned: promoting from the tail pushes the existing head down by one, so
+   * the cut has to follow the last stored slug to wherever it now sits.
+   */
+  const lastStored = state.curated.reduce((deepest, slug) => Math.max(deepest, moved.indexOf(slug)), -1);
+  const prefix = Math.max(to + 1, lastStored + 1);
+  return { curated: moved.slice(0, prefix), removed: state.removed };
 }
 
 /** Which band a board row sits in: the pinned head or the default tail. */
