@@ -224,10 +224,14 @@ export function CoverageView({
                       <SafetyBanner
                         variant={preset.tone}
                         icon={preset.icon}
-                        severityLabel={preset.severityLabel}
                         iconSize={iconSize}
                       >
-                        <SafetyBannerTitle>{preset.headline}</SafetyBannerTitle>
+                        <SafetyBannerTitle
+                          severityLabel={preset.severityLabel}
+                          tone={preset.tone}
+                        >
+                          {preset.headline}
+                        </SafetyBannerTitle>
                         <SafetyBannerPoints points={preset.points} />
                       </SafetyBanner>
 

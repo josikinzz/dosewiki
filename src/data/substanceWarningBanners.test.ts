@@ -11,6 +11,7 @@ import {
   resolveSuppressedBanners,
   searchWarningBannerTargets,
   substanceClassValues,
+  toWarningBannerBlocks,
   warningBannerPresetState,
   type WarningBannerPreset,
   type WarningBannerTarget,
@@ -259,5 +260,49 @@ describe("clampSafetyBannerIconSize", () => {
     expect(clampSafetyBannerIconSize(8)).toBe(24);
     expect(clampSafetyBannerIconSize(-40)).toBe(24);
     expect(clampSafetyBannerIconSize(200)).toBe(72);
+  });
+});
+
+describe("toWarningBannerBlocks", () => {
+  it("leaves unmarked lines as separate paragraphs, however many there are", () => {
+    expect(toWarningBannerBlocks(["First sentence.", "Second sentence."])).toEqual([
+      { kind: "paragraph", text: "First sentence." },
+      { kind: "paragraph", text: "Second sentence." },
+    ]);
+  });
+
+  it("only makes a bullet when the line opens with a markdown marker", () => {
+    expect(toWarningBannerBlocks(["- Additive with other depressants"])).toEqual([
+      { kind: "list", items: ["Additive with other depressants"] },
+    ]);
+    expect(toWarningBannerBlocks(["* Naloxone does not reverse benzodiazepines"])).toEqual([
+      { kind: "list", items: ["Naloxone does not reverse benzodiazepines"] },
+    ]);
+  });
+
+  it("collapses consecutive markers into one list rather than a run of one-item lists", () => {
+    expect(toWarningBannerBlocks(["- one", "- two", "- three"])).toEqual([
+      { kind: "list", items: ["one", "two", "three"] },
+    ]);
+  });
+
+  it("keeps a lead paragraph ahead of a list, and resumes prose after it", () => {
+    expect(toWarningBannerBlocks(["Lead.", "- a", "- b", "Trailing."])).toEqual([
+      { kind: "paragraph", text: "Lead." },
+      { kind: "list", items: ["a", "b"] },
+      { kind: "paragraph", text: "Trailing." },
+    ]);
+  });
+
+  it("does not mistake a mid-sentence hyphen for a marker", () => {
+    // The shipped opioid preset opens a line exactly like this.
+    const line = "Seriously - this is by far the most common way people die in this space :(";
+    expect(toWarningBannerBlocks([line])).toEqual([{ kind: "paragraph", text: line }]);
+  });
+
+  it("drops blank lines and empty markers instead of rendering an empty block", () => {
+    expect(toWarningBannerBlocks(["", "   ", "-", "- ", "Real."])).toEqual([
+      { kind: "paragraph", text: "Real." },
+    ]);
   });
 });

@@ -56,15 +56,15 @@ export function SubstanceWarningBanners({
           key={preset.key}
           variant={preset.tone}
           icon={preset.icon}
-          severityLabel={preset.severityLabel}
           iconSize={iconSize}
         >
-          <SafetyBannerTitle>{preset.headline}</SafetyBannerTitle>
+          <SafetyBannerTitle severityLabel={preset.severityLabel} tone={preset.tone}>
+            {preset.headline}
+          </SafetyBannerTitle>
           {/* Every visible string here is a stored, editor-authored field. The
-              mechanism text is `points` and nothing else: one entry renders as a
-              paragraph, several as a list, so bullets are a consequence of
-              writing more than one thing rather than a shape the primitive
-              imposes. */}
+              mechanism text is `points` and nothing else: a line is a paragraph
+              unless the editor opened it with a markdown list marker, so bullets
+              are something they ask for rather than a shape imposed on them. */}
           <SafetyBannerPoints points={preset.points} />
         </SafetyBanner>
       ))}

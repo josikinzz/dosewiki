@@ -25,16 +25,18 @@ export const safetyBannerStory: StoryDef = {
   examples: [
     {
       label: "Danger",
-      note: 'The depressant-respiratory preset. Rose surface, role="alert".',
+      note: 'The depressant-respiratory preset. Rose surface, role="alert". Three markdown-marked lines, so a list.',
       background: "plain",
       render: () => (
-        <SafetyBanner variant="danger" icon="lucide:wind" severityLabel="Danger">
-          <SafetyBannerTitle>Mixing depressants stops breathing</SafetyBannerTitle>
+        <SafetyBanner variant="danger" icon="lucide:wind">
+          <SafetyBannerTitle severityLabel="Danger" tone="danger">
+            Mixing depressants stops breathing
+          </SafetyBannerTitle>
           <SafetyBannerPoints
             points={[
-              "CNS depression is additive: two moderate doses of different depressants can exceed a lethal dose of either.",
-              "Respiratory depression is silent. There is no struggle to wake up from.",
-              "Naloxone reverses opioids only. It does nothing for benzodiazepines, barbiturates, GHB, or alcohol.",
+              "- CNS depression is additive: two moderate doses of different depressants can exceed a lethal dose of either.",
+              "- Respiratory depression is silent. There is no struggle to wake up from.",
+              "- Naloxone reverses opioids only. It does nothing for benzodiazepines, barbiturates, GHB, or alcohol.",
             ]}
           />
         </SafetyBanner>
@@ -42,11 +44,13 @@ export const safetyBannerStory: StoryDef = {
     },
     {
       label: "Unsafe",
-      note: 'The dissociative-psychosis preset. Orange surface, role="status".',
+      note: 'The dissociative-psychosis preset. Orange surface, role="status". Unmarked lines, so paragraphs.',
       background: "plain",
       render: () => (
-        <SafetyBanner variant="unsafe" icon="lucide:octagon-alert" severityLabel="Unsafe">
-          <SafetyBannerTitle>Narrow margin, real psychosis risk</SafetyBannerTitle>
+        <SafetyBanner variant="unsafe" icon="lucide:octagon-alert">
+          <SafetyBannerTitle severityLabel="Unsafe" tone="unsafe">
+            Narrow margin, real psychosis risk
+          </SafetyBannerTitle>
           <SafetyBannerPoints
             points={[
               "3-MeO-PCP has an unusually narrow gap between a recreational dose and a toxic one. Weigh volumetrically; do not eyeball.",
@@ -61,8 +65,10 @@ export const safetyBannerStory: StoryDef = {
       note: "Amber surface. Copy is the gabaergic-withdrawal preset, re-toned here so the third surface is visible — the shipped preset stores danger.",
       background: "plain",
       render: () => (
-        <SafetyBanner variant="caution" icon="lucide:activity" severityLabel="Caution">
-          <SafetyBannerTitle>Stopping abruptly can cause seizures</SafetyBannerTitle>
+        <SafetyBanner variant="caution" icon="lucide:activity">
+          <SafetyBannerTitle severityLabel="Caution" tone="caution">
+            Stopping abruptly can cause seizures
+          </SafetyBannerTitle>
           <SafetyBannerPoints
             points={[
               "Physical dependence can form within 2–4 weeks of daily use.",
@@ -73,21 +79,15 @@ export const safetyBannerStory: StoryDef = {
       ),
     },
     {
-      label: "One point vs several",
-      note: "The same component, two lengths. A single point renders as a plain paragraph with no marker; two or more render as a bulleted list. Bullets are what happens when there is more than one thing to say — an editor never opts into them.",
+      label: "Bullets are opt-in",
+      note: "The same two sentences twice. Plain lines render as paragraphs; the same lines opened with a markdown `- ` render as a list. Nothing about the count changes the shape — only the marker does, so an editor who wants prose gets prose.",
       background: "plain",
       render: () => (
         <div className="flex flex-col gap-4">
-          <SafetyBanner variant="danger" icon="lucide:skull" severityLabel="Danger">
-            <SafetyBannerTitle>Tolerance falls faster than you think</SafetyBannerTitle>
-            <SafetyBannerPoints
-              points={[
-                "After 3–7 days without opioids, a previously routine dose can be fatal. Most overdoses follow a break.",
-              ]}
-            />
-          </SafetyBanner>
-          <SafetyBanner variant="danger" icon="lucide:skull" severityLabel="Danger">
-            <SafetyBannerTitle>Tolerance falls faster than you think</SafetyBannerTitle>
+          <SafetyBanner variant="danger" icon="lucide:skull">
+            <SafetyBannerTitle severityLabel="Danger" tone="danger">
+              Tolerance falls faster than you think
+            </SafetyBannerTitle>
             <SafetyBannerPoints
               points={[
                 "After 3–7 days without opioids, a previously routine dose can be fatal. Most overdoses follow a break.",
@@ -95,20 +95,34 @@ export const safetyBannerStory: StoryDef = {
               ]}
             />
           </SafetyBanner>
+          <SafetyBanner variant="danger" icon="lucide:skull">
+            <SafetyBannerTitle severityLabel="Danger" tone="danger">
+              Tolerance falls faster than you think
+            </SafetyBannerTitle>
+            <SafetyBannerPoints
+              points={[
+                "- After 3–7 days without opioids, a previously routine dose can be fatal. Most overdoses follow a break.",
+                "- Carry naloxone. Do not dose alone behind a locked door.",
+              ]}
+            />
+          </SafetyBanner>
         </div>
       ),
     },
     {
-      label: "Dimmed",
-      note: "Studio-only. How a preset that is enabled on no substance previews, so a preview is never mistaken for what readers see.",
+      label: "Mixed prose and list",
+      note: "A lead paragraph followed by marked lines. Consecutive markers collapse into one list rather than a run of one-item lists.",
       background: "plain",
       render: () => (
-        <SafetyBanner dimmed variant="danger" icon="lucide:eye" severityLabel="Danger">
-          <SafetyBannerTitle>A deliriant, not a psychedelic</SafetyBannerTitle>
+        <SafetyBanner variant="danger" icon="lucide:eye">
+          <SafetyBannerTitle severityLabel="Danger" tone="danger">
+            A deliriant, not a psychedelic
+          </SafetyBannerTitle>
           <SafetyBannerPoints
             points={[
               "Produces true hallucinations indistinguishable from reality — people hold conversations with people who are not there.",
-              "Insight and recall are absent. You cannot talk yourself down.",
+              "- Insight and recall are absent. You cannot talk yourself down.",
+              "- Anticholinergic toxidrome: hyperthermia, tachycardia, urinary retention.",
             ]}
           />
         </SafetyBanner>
@@ -130,17 +144,17 @@ export const safetyBannerStory: StoryDef = {
         'Iconify id for the 44px glyph, e.g. "lucide:wind" or a repo "custom:" glyph. Editor-authored free text on the preset, so any collection resolves. Omit it and the card collapses to a single column rather than leaving an empty gutter.',
     },
     {
-      name: "severityLabel",
+      name: "severityLabel (SafetyBannerTitle)",
       type: "string",
       description:
-        'The word in the dark chip, e.g. "Danger". A stored field, not derived from the tone — an editor may write "Fatal risk" over a danger-tone banner.',
+        'The word in the dark chip, e.g. "Danger". A stored field, not derived from the tone — an editor may write "Fatal risk" over a danger-tone banner. It lives on the title rather than the banner so the chip and the headline share one row structurally.',
     },
     {
-      name: "dimmed",
-      type: "boolean",
-      default: "false",
+      name: "tone (SafetyBannerTitle)",
+      type: '"danger" | "unsafe" | "caution"',
+      default: '"danger"',
       description:
-        "Reduces opacity and saturation. For the Banner Studio preview of a preset that renders nowhere; never used on a public article.",
+        "Picks the chip's paired badge class. Pass the same tone as the banner's variant; the chip is the one element that cannot inherit it through currentColor.",
     },
     {
       name: "role",
@@ -158,12 +172,12 @@ export const safetyBannerStory: StoryDef = {
       name: "points (SafetyBannerPoints)",
       type: "string[]",
       description:
-        "The mechanism text. One entry renders a markerless <p>; two or more render a <ul> with tone-coloured dots. Renders null when empty. Capped at 76ch measure.",
+        "The mechanism text, one entry per line of the editor's field. A line renders as a <p> unless it opens with a markdown marker (- or *), which is the only thing that makes a bullet; consecutive marked lines collapse into one <ul> with tone-coloured dots. Renders null when empty. Capped at 76ch measure.",
     },
   ],
   whenToUse: [
     "Editor-enabled warnings at the very top of a substance article, above the H1.",
-    "The Banner Studio preview of a preset an editor is authoring (pair with `dimmed` when the preset renders nowhere).",
+    "The Banner Studio preview of a preset an editor is authoring — at full strength, never faded: the state belongs in a status pill, not in the legibility of the thing being previewed.",
   ],
   whenNotToUse: [
     "Article status chips such as ArticleStubBanner or ReviewStatusBanner — those report the state of the page, not a drug risk.",

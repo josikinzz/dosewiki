@@ -75,10 +75,14 @@ const STATE_LABEL: Record<WarningBannerPresetState, string> = {
   off: "off",
 };
 
-/** Why the preview is dimmed. `live` needs no line — the banner is the answer. */
-const DIMMED_REASON: Record<Exclude<WarningBannerPresetState, "live">, string> = {
-  dormant: "Enabled, but no substances selected — dimmed because this renders nowhere.",
-  off: "Switched off — dimmed because this renders nowhere.",
+/**
+ * Says where a preset renders, in words. The preview itself is never faded —
+ * the state belongs in a sentence and a status pill, not in the legibility of
+ * the thing being previewed.
+ */
+const WHERE_IT_RENDERS: Record<Exclude<WarningBannerPresetState, "live">, string> = {
+  dormant: "Enabled, but no substances selected — this renders nowhere yet.",
+  off: "Switched off — this renders nowhere.",
 };
 
 const HEADER_CELL_CLASS =
@@ -418,22 +422,24 @@ function PresetDrawer({
     <div className="space-y-7">
       {/* The one preview, full width, above the fields that feed it. It renders
           at the saved global glyph size so the preview and a live article cannot
-          disagree; the primitive owns the dark severity chip and the
-          one-point-paragraph / many-points-list branch. */}
+          disagree; the primitive owns the dark severity chip and the markdown
+          list rule.
+
+          Never dimmed. An earlier pass faded a preset that was enabled nowhere,
+          reasoning that a full-strength preview of an invisible banner overstates
+          the state of the site. In practice it just made the thing an editor is
+          trying to look at harder to see. The status pill in the table and the
+          line under this heading already say where it renders. */}
       <EditorSection
         headingLevel="h3"
         icon="lucide:eye"
         title="Preview"
-        description={state === "live" ? undefined : DIMMED_REASON[state]}
+        description={state === "live" ? undefined : WHERE_IT_RENDERS[state]}
       >
-        <SafetyBanner
-          variant={draft.tone}
-          icon={draft.icon}
-          severityLabel={draft.severityLabel}
-          iconSize={iconSize}
-          dimmed={state !== "live"}
-        >
-          <SafetyBannerTitle>{draft.headline || "Untitled headline"}</SafetyBannerTitle>
+        <SafetyBanner variant={draft.tone} icon={draft.icon} iconSize={iconSize}>
+          <SafetyBannerTitle severityLabel={draft.severityLabel} tone={draft.tone}>
+            {draft.headline || "Untitled headline"}
+          </SafetyBannerTitle>
           <SafetyBannerPoints points={points} />
         </SafetyBanner>
       </EditorSection>
@@ -487,7 +493,7 @@ function PresetDrawer({
 
         <EditorField
           label="Mechanism"
-          description="One per line. A single line renders as a paragraph; several render as a list. Adjectives are not warnings."
+          description="One per line. Lines are paragraphs; start a line with - or * to make it a bullet. Adjectives are not warnings."
           counter={`${points.length}/${WARNING_BANNER_LIMITS.maxPoints}`}
           error={
             points.length > WARNING_BANNER_LIMITS.maxPoints

@@ -2,7 +2,10 @@ import * as React from "react";
 import { cva, type VariantProps } from "class-variance-authority";
 
 import { Icon, type IconName } from "@/components/common/Icon";
-import { SAFETY_BANNER_ICON_SIZE_DEFAULT } from "@/data/substanceWarningBanners";
+import {
+  SAFETY_BANNER_ICON_SIZE_DEFAULT,
+  toWarningBannerBlocks,
+} from "@/data/substanceWarningBanners";
 import { cn } from "@/lib/utils";
 
 /**
@@ -69,7 +72,6 @@ const TONE_CHIP_CLASS: Record<SafetyBannerTone, string> = {
 export type SafetyBannerProps = React.HTMLAttributes<HTMLDivElement> &
   VariantProps<typeof safetyBannerVariants> & {
     icon?: IconName;
-    severityLabel?: string;
     /**
      * The glyph's pixel size. One site-wide editor setting (stored on the
      * `safety-banner-display` siteConfig document, edited in the Banner Studio
@@ -83,30 +85,10 @@ export type SafetyBannerProps = React.HTMLAttributes<HTMLDivElement> &
      * exactly the per-banner sizing this replaces.
      */
     iconSize?: number;
-    /**
-     * Studio-only. The Banner Studio previews presets that are enabled nowhere,
-     * and a full-strength preview of a banner no reader can see is a lie about
-     * the state of the site (brief §5). Dimming makes "what it would look like"
-     * un-mistakable for "what readers see".
-     */
-    dimmed?: boolean;
   };
 
 const SafetyBanner = React.forwardRef<HTMLDivElement, SafetyBannerProps>(
-  (
-    {
-      className,
-      variant,
-      role,
-      icon,
-      severityLabel,
-      iconSize,
-      dimmed,
-      children,
-      ...props
-    },
-    ref,
-  ) => {
+  ({ className, variant, role, icon, iconSize, children, ...props }, ref) => {
     const tone: SafetyBannerTone = variant ?? "danger";
 
     // Same rule as `Alert`: explicit role wins, otherwise tone decides. `danger`
@@ -129,54 +111,67 @@ const SafetyBanner = React.forwardRef<HTMLDivElement, SafetyBannerProps>(
           // shrink-wrap its prose into a phantom gutter. `icon` is editor-typed
           // free text and can legitimately be blank mid-edit.
           icon ? "grid-cols-[auto_minmax(0,1fr)]" : "grid-cols-1",
-          dimmed && "opacity-60 saturate-50",
           className,
         )}
         {...props}
       >
         {icon ? (
+          // Centred down the glyph column rather than pinned to the first line:
+          // at 44px against two or three lines of prose a top-aligned glyph
+          // reads as having slipped upward.
           <Icon
             icon={icon}
-            className="shrink-0 self-start"
+            className="shrink-0 self-center"
             size={iconSize ?? SAFETY_BANNER_ICON_SIZE_DEFAULT}
           />
         ) : null}
-        <div className="flex min-w-0 flex-col items-start gap-2">
-          {severityLabel ? (
-            <span
-              className={cn(
-                "inline-flex items-center rounded-full px-2.5 py-1 text-[10px] font-semibold uppercase leading-none tracking-[0.14em]",
-                TONE_CHIP_CLASS[tone],
-              )}
-            >
-              {severityLabel}
-            </span>
-          ) : null}
-          {children}
-        </div>
+        <div className="flex min-w-0 flex-col items-start gap-2">{children}</div>
       </div>
     );
   },
 );
 SafetyBanner.displayName = "SafetyBanner";
 
-export type SafetyBannerTitleProps = React.HTMLAttributes<HTMLParagraphElement>;
+export type SafetyBannerTitleProps = React.HTMLAttributes<HTMLParagraphElement> & {
+  /** The chip word. Rendered inline, on the headline's own row. */
+  severityLabel?: string;
+  tone?: SafetyBannerTone;
+};
 
 /**
+ * The severity chip and the headline, on one row.
+ *
+ * The chip lives here rather than in `SafetyBanner` so that "same row as the
+ * headline" is structural instead of a layout coincidence — stacked in the
+ * banner's flex column they drifted onto separate lines, which is what editors
+ * were looking at when they asked for one line.
+ *
  * A <p>, not a heading. The banner renders above the article's <h1>, so a
  * heading here would put a safety claim ahead of the substance name in the
  * document outline and in every screen-reader heading list.
  */
 const SafetyBannerTitle = React.forwardRef<HTMLParagraphElement, SafetyBannerTitleProps>(
-  ({ className, ...props }, ref) => (
+  ({ className, severityLabel, tone = "danger", children, ...props }, ref) => (
     <p
       ref={ref}
       className={cn(
-        "font-display text-[15px] font-semibold leading-snug text-dose-text",
+        "flex flex-wrap items-center gap-x-2.5 gap-y-1.5 font-display text-[15px] font-semibold leading-snug text-dose-text",
         className,
       )}
       {...props}
-    />
+    >
+      {severityLabel ? (
+        <span
+          className={cn(
+            "inline-flex items-center rounded-full px-2.5 py-1 text-[10px] font-semibold uppercase leading-none tracking-[0.14em]",
+            TONE_CHIP_CLASS[tone],
+          )}
+        >
+          {severityLabel}
+        </span>
+      ) : null}
+      {children}
+    </p>
   ),
 );
 SafetyBannerTitle.displayName = "SafetyBannerTitle";
@@ -191,33 +186,44 @@ const POINT_TEXT_CLASS = "text-[13px] leading-relaxed text-dose-text-secondary";
 /**
  * The mechanism text.
  *
- * A single point is a paragraph with no marker. Bullets are a consequence of
- * having written more than one thing, never a requirement — a one-item list is
- * a bullet pointing at nothing, and editors asked for it to stop.
+ * Bullets are opt-in: a line is a paragraph unless the editor opened it with a
+ * markdown marker. Inferring a list from line count gave editors bullets they
+ * never asked for and no way to refuse, so `toWarningBannerBlocks` owns the rule
+ * and this component only renders what it returns.
  *
- * The multi-point marker is a `bg-current` dot on a `list-none` list, never a
+ * The list marker is a `bg-current` dot on a `list-none` list, never a
  * `border-left` accent stripe, which the brief bans outright (§9). The dot
  * inherits the root's tone ink while the sentence overrides to prose colour;
  * 76ch is the brief's measure for the only real prose in the banner.
  */
 function SafetyBannerPoints({ points, className }: SafetyBannerPointsProps) {
-  if (points.length === 0) {
+  const blocks = toWarningBannerBlocks(points);
+  if (blocks.length === 0) {
     return null;
   }
 
-  if (points.length === 1) {
-    return <p className={cn("max-w-[76ch]", POINT_TEXT_CLASS, className)}>{points[0]}</p>;
-  }
-
   return (
-    <ul className={cn("flex max-w-[76ch] list-none flex-col gap-1.5", className)}>
-      {points.map((point) => (
-        <li key={point} className="grid grid-cols-[auto_minmax(0,1fr)] gap-2.5">
-          <span aria-hidden="true" className="mt-[0.45rem] h-1.5 w-1.5 rounded-full bg-current" />
-          <span className={POINT_TEXT_CLASS}>{point}</span>
-        </li>
-      ))}
-    </ul>
+    <div className={cn("flex max-w-[76ch] flex-col gap-2", className)}>
+      {blocks.map((block, index) =>
+        block.kind === "paragraph" ? (
+          <p key={`p-${index}`} className={POINT_TEXT_CLASS}>
+            {block.text}
+          </p>
+        ) : (
+          <ul key={`l-${index}`} className="flex list-none flex-col gap-1.5">
+            {block.items.map((item) => (
+              <li key={item} className="grid grid-cols-[auto_minmax(0,1fr)] gap-2.5">
+                <span
+                  aria-hidden="true"
+                  className="mt-[0.45rem] h-1.5 w-1.5 rounded-full bg-current"
+                />
+                <span className={POINT_TEXT_CLASS}>{item}</span>
+              </li>
+            ))}
+          </ul>
+        ),
+      )}
+    </div>
   );
 }
 

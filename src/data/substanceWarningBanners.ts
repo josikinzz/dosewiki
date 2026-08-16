@@ -43,8 +43,9 @@ export type WarningBannerPreset = {
   severityLabel: string;
   headline: string;
   /**
-   * One entry renders as a paragraph; several render as a list. Bullets are a
-   * consequence of writing more than one thing, never a requirement.
+   * One entry per line of the mechanism field. Each line renders as its own
+   * paragraph unless it opens with a markdown list marker (`- ` or `* `), which
+   * is the only thing that produces a bullet. See `toWarningBannerBlocks`.
    */
   points: string[];
   /** Master switch. False means this preset renders nowhere. */
@@ -352,3 +353,61 @@ export const WARNING_BANNER_ICON_SUGGESTIONS: readonly { icon: string; hint: str
   { icon: "lucide:thermometer", hint: "Hyperthermia" },
   { icon: "lucide:heart-pulse", hint: "Cardiac risk" },
 ];
+
+/** A rendered block of mechanism text: prose, or an explicit markdown list. */
+export type WarningBannerBlock =
+  | { kind: "paragraph"; text: string }
+  | { kind: "list"; items: string[] };
+
+/** `- point` / `* point`, the only thing that makes a bullet. */
+const LIST_MARKER = /^\s*[-*]\s+/;
+
+/**
+ * A line that is nothing but a marker. Dropped rather than rendered: a bare `-`
+ * left mid-edit would otherwise print as a paragraph containing a hyphen, and
+ * `LIST_MARKER` will not match it either because it demands text after the
+ * marker.
+ */
+const MARKER_ONLY = /^[-*]\s*$/;
+
+/**
+ * Groups mechanism lines into paragraphs and explicit lists.
+ *
+ * Bullets are opt-in through markdown. The previous rule inferred them from
+ * line count — one line was a paragraph, several became a list — which meant an
+ * editor writing two plain sentences got bullets they never asked for and had no
+ * way to refuse. Now a line is prose unless it opens with `- ` or `* `.
+ *
+ * Consecutive marked lines collapse into one `<ul>` so a list reads as a list
+ * rather than as a run of one-item lists.
+ */
+export function toWarningBannerBlocks(points: readonly string[]): WarningBannerBlock[] {
+  const blocks: WarningBannerBlock[] = [];
+
+  for (const point of points) {
+    const text = point.trim();
+    if (!text || MARKER_ONLY.test(text)) {
+      continue;
+    }
+
+    if (!LIST_MARKER.test(text)) {
+      blocks.push({ kind: "paragraph", text });
+      continue;
+    }
+
+    const item = text.replace(LIST_MARKER, "").trim();
+    if (!item) {
+      continue;
+    }
+
+    // Indexed rather than `.at(-1)`: the app's `lib` target predates ES2022.
+    const previous = blocks[blocks.length - 1];
+    if (previous?.kind === "list") {
+      previous.items.push(item);
+    } else {
+      blocks.push({ kind: "list", items: [item] });
+    }
+  }
+
+  return blocks;
+}
