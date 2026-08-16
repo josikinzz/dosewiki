@@ -1,6 +1,6 @@
 'use client';
 
-import { useRef, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import { Icon } from '@/components/common/Icon';
 import { PublicPill } from '@/components/common/PublicTokens';
 import { PublicSectionHeading } from '@/components/layout/PublicPagePrimitives';
@@ -8,6 +8,7 @@ import { focusRingClassName } from '@/components/ui/surface';
 import { cn } from '@/lib/utils';
 import type { GalleryReplication } from '@/types/replications';
 import { GalleryMediaTile } from './GalleryMediaTile';
+import { isWithheldFromArtistViews } from './galleryModel';
 
 /**
  * A contributor's replications, as a rail you can step through.
@@ -27,7 +28,14 @@ interface ContributorWorksCarouselProps {
 export function ContributorWorksCarousel({ works, contributorName }: ContributorWorksCarouselProps) {
   const [index, setIndex] = useState(0);
   const trackRef = useRef<HTMLUListElement | null>(null);
-  const count = works.length;
+
+  // A profile is the most artist-oriented surface there is, so it withholds
+  // the same works the gallery's artist grouping does. The count pill and the
+  // stepper both read off this list, so the rail can never claim more works
+  // than it will scroll through. See `isWithheldFromArtistViews`: the works
+  // are still on their effect's page, not taken down.
+  const shown = useMemo(() => works.filter((work) => !isWithheldFromArtistViews(work)), [works]);
+  const count = shown.length;
 
   const step = (delta: number) => {
     const next = Math.min(Math.max(index + delta, 0), count - 1);
@@ -110,7 +118,7 @@ export function ContributorWorksCarousel({ works, contributorName }: Contributor
         aria-label={`Replications by ${contributorName}`}
         className="flex snap-x snap-mandatory list-none gap-3 overflow-x-auto pb-2 [-webkit-overflow-scrolling:touch] [scrollbar-width:thin]"
       >
-        {works.map((work) => (
+        {shown.map((work) => (
           <li key={work._id} className="shrink-0 snap-start">
             <GalleryMediaTile replication={work} frameClassName="h-44 sm:h-52" />
           </li>

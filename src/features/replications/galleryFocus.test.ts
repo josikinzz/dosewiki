@@ -76,4 +76,21 @@ describe('resolveGalleryFocus', () => {
     // gallery never shows the group and the URL space must not include it.
     expect(resolveGalleryFocus({ kind: 'artist', key: 'solo' }, corpus, context)).toBeNull();
   });
+
+  it('does not resolve an artist whose only works artist views withhold', () => {
+    // Withholding removes the group, so the key never enters the URL space:
+    // /replications/artist/giger resolves to null and the route 404s, rather
+    // than throwing or rendering an empty page. The same work still answers
+    // on the effect side, which is the whole point of the asymmetry.
+    const withCreature = [...corpus, rep({ artist: 'Giger', effect_slug: 'unspeakable-horrors' })];
+    const withEffect = {
+      ...context,
+      effects: [...context.effects, { slug: 'unspeakable-horrors', name: 'Unspeakable horrors' }],
+    };
+
+    expect(resolveGalleryFocus({ kind: 'artist', key: 'giger' }, withCreature, withEffect)).toBeNull();
+    expect(
+      resolveGalleryFocus({ kind: 'effect', key: 'unspeakable-horrors' }, withCreature, withEffect)?.group.count,
+    ).toBe(1);
+  });
 });

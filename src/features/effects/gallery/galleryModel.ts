@@ -40,6 +40,40 @@ export function isDisplayable(replication: GalleryReplication): boolean {
   return Boolean(replication.url);
 }
 
+/**
+ * Effects whose works are withheld from artist-oriented browsing.
+ *
+ * This is a browsing-presentation choice, not an unpublication — the same
+ * distinction `dropGalleryExcludedArtistWorks` draws for an opted-out
+ * contributor. A withheld work keeps its place under "By effect", on
+ * `/replications/effect/<slug>`, in the effect article's own section, on its
+ * permalink, and in the public API. Nothing here takes anything down.
+ *
+ * The asymmetry is the point. An artist's body of work is browsed casually:
+ * you open a rail, a swipe deck or a profile to see what someone makes, and
+ * you take whatever the next tile happens to be. An effect is sought
+ * deliberately: you arrive at "unspeakable horrors" having asked for it by
+ * name. Renderings of that effect belong to the reader who went looking, not
+ * to the reader idly paging past an artist.
+ *
+ * Membership is by owning `effect_slug` alone, never `effect_tags`: what one
+ * side withholds must be exactly what the other side still carries, and
+ * effect grouping buckets on `effect_slug`.
+ */
+export const ARTIST_VIEW_WITHHELD_EFFECT_SLUGS: ReadonlySet<string> = new Set(['unspeakable-horrors']);
+
+/**
+ * Whether this work is withheld from artist rails, decks, and profiles.
+ *
+ * Typed on the owning slug alone rather than on a whole `GalleryReplication`:
+ * the sitemap's route plan carries a narrower row than the gallery does, and
+ * the rule must be stated once, not restated per row shape.
+ */
+export function isWithheldFromArtistViews(replication: Pick<GalleryReplication, 'effect_slug'>): boolean {
+  const slug = replication.effect_slug;
+  return slug !== undefined && ARTIST_VIEW_WITHHELD_EFFECT_SLUGS.has(slug);
+}
+
 /** Canonical key + display name for an artist (folds case / whitespace). */
 export function artistIdentity(artist?: string | null): { key: string; label: string } {
   if (!hasKnownCreator(artist)) {
@@ -229,6 +263,13 @@ function toExternalArtistUrl(value: string | undefined): string | undefined {
  * unattributed bucket is the one exception below: the rows in it are credited
  * "Unknown" or nothing at all, so there is no name for a profile to claim and
  * no honest page to link a heading reading "Unattributed" to.
+ *
+ * Works of a withheld effect never reach this grouping — see
+ * `isWithheldFromArtistViews`. Filtering here rather than at each call site is
+ * what keeps the gallery's artist mode, its swipe deck and every
+ * `/replications/artist/<key>` page saying the same thing: an artist left
+ * holding nothing has no group, so they have no rail, no deck card, and no
+ * page (`resolveGalleryFocus` finds no group and the route 404s).
  */
 export function groupByArtist(
   replications: GalleryReplication[],
@@ -238,6 +279,9 @@ export function groupByArtist(
   const buckets = new Map<string, GalleryGroup>();
 
   for (const replication of replications) {
+    if (isWithheldFromArtistViews(replication)) {
+      continue;
+    }
     const { key, label } = artistIdentity(replication.artist);
     let group = buckets.get(key);
     if (!group) {

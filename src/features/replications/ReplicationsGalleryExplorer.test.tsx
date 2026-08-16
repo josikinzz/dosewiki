@@ -147,6 +147,39 @@ describe('hybrid browse layout', () => {
   });
 });
 
+describe('effects withheld from artist browsing', () => {
+  const withCreature = [
+    ...corpus,
+    rep({ artist: 'Giger', title: 'Withheld work', effect_slug: 'unspeakable-horrors' }),
+  ];
+
+  it('drops the work, its artist, and their share of the header counts', () => {
+    renderExplorer('', { replications: withCreature });
+
+    expect(screen.queryByText('Withheld work')).toBeNull();
+    expect(screen.queryByText('Giger')).toBeNull();
+    // Four works, not five: the header describes what artist browsing can
+    // actually show, or it is claiming a work the grid will never render.
+    expect(screen.getAllByText('4 works · 2 artists · 2 effects').length).toBeGreaterThan(0);
+  });
+
+  it('keeps the work and the whole corpus count under effect browsing', () => {
+    renderExplorer('view=effect', { replications: withCreature });
+
+    expect(screen.getByText('Withheld work')).toBeInTheDocument();
+    expect(screen.getAllByText('5 works · 3 artists · 3 effects').length).toBeGreaterThan(0);
+  });
+
+  it('searches the whole corpus in either mode, and counts it that way', () => {
+    // A search is a deliberate ask, not idle paging, and it returns the same
+    // rows whichever grouping is toggled — so the counts go corpus-wide too.
+    renderExplorer('q=withheld', { replications: withCreature });
+
+    expect(screen.getByText('Withheld work')).toBeInTheDocument();
+    expect(screen.getAllByText('5 works · 3 artists · 3 effects').length).toBeGreaterThan(0);
+  });
+});
+
 describe('state → URL', () => {
   it('pushes the mode toggle as navigation between browse URLs', async () => {
     const user = userEvent.setup();

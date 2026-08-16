@@ -4,7 +4,7 @@ import { unstable_cache } from "next/cache";
 import { cache } from "react";
 import { CATEGORY_SLUG_TO_TAGS } from "../../src/data/effectCategoryDefinitions";
 import { deriveMechanismRouteData } from "../../src/data/builders/mechanismRouteDerivation";
-import { artistUrlKey } from "../../src/features/effects/gallery/galleryModel";
+import { artistUrlKey, isWithheldFromArtistViews } from "../../src/features/effects/gallery/galleryModel";
 import { PSYCHOACTIVE_SUMMARY_DEFINITIONS } from "../../src/features/psychoactive-summaries/summaryDefinitions";
 import {
   PUBLIC_CONVEX_CACHE_REVALIDATE_SECONDS,
@@ -243,8 +243,13 @@ export function buildPublicRoutePlan(input: PublicRoutePlanInput): PublicRoutePl
       // gallery actually shows (the exclusion-filtered feed with a resolved
       // asset): the artist key exists iff the by-artist grouping renders that
       // group, the effect slug iff at least one visible work carries it.
+      // Artist grouping withholds some effects (`isWithheldFromArtistViews`),
+      // so an artist holding nothing else has no group, no page, and must not
+      // be advertised here — the effect family below still carries the work.
       replicationArtists: (() => {
-        const displayable = input.galleryReplications.filter(({ url }) => Boolean(url));
+        const displayable = input.galleryReplications.filter(
+          (row) => Boolean(row.url) && !isWithheldFromArtistViews(row),
+        );
         return unique(displayable.map(({ artist }) => artistUrlKey(artist))).map((key) => ({
           path: getPublicRoutePath({ family: "replicationArtist", params: { key } }),
           params: { key },

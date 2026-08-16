@@ -8,7 +8,7 @@ vi.mock('@/components/common/AppImage', () => ({
   AppImage: ({ src, alt }: { src: string; alt: string }) => <img src={src} alt={alt} />,
 }));
 
-const work = (slug: string): GalleryReplication => ({
+const work = (slug: string, effect_slug = 'tracers'): GalleryReplication => ({
   _id: `id-${slug}`,
   _creationTime: 0,
   slug,
@@ -16,7 +16,7 @@ const work = (slug: string): GalleryReplication => ({
   artist: 'Chelsea Morgan',
   type: 'image',
   storage_id: `storage-${slug}`,
-  effect_slug: 'tracers',
+  effect_slug,
   format: 'webp',
   created_at: '2024-01-01T00:00:00.000Z',
   url: `https://cdn.test/${slug}.webp`,
@@ -100,5 +100,31 @@ describe('ContributorWorksCarousel', () => {
     await user.keyboard('{ArrowRight}');
 
     expect(next).toBeDisabled();
+  });
+
+  it('withholds a work whose effect is kept out of artist views', () => {
+    render(
+      <ContributorWorksCarousel
+        works={[work('a'), work('b', 'unspeakable-horrors')]}
+        contributorName="Chelsea Morgan"
+      />,
+    );
+
+    // A profile is an artist surface, so the rail shows one work and says so;
+    // the withheld work is still on /replications/b and under its effect.
+    expect(screen.getAllByRole('listitem')).toHaveLength(1);
+    expect(screen.queryByRole('link', { name: /b/ })).toBeNull();
+    expect(screen.queryByRole('button', { name: /replication by/i })).toBeNull();
+  });
+
+  it('renders nothing for a contributor whose every work is withheld', () => {
+    const { container } = render(
+      <ContributorWorksCarousel
+        works={[work('a', 'unspeakable-horrors')]}
+        contributorName="Chelsea Morgan"
+      />,
+    );
+
+    expect(container).toBeEmptyDOMElement();
   });
 });

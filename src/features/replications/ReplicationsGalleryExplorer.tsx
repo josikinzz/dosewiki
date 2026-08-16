@@ -23,6 +23,7 @@ import {
   groupByArtist,
   groupByEffect,
   isDisplayable,
+  isWithheldFromArtistViews,
   matchesQuery,
   matchesType,
   sortWithinGroup,
@@ -180,10 +181,24 @@ export function ReplicationsGalleryExplorer({
   const effectName = useMemo(() => effectNameLookup(effects), [effects]);
   const effectHref = useMemo(() => effectHrefBuilder(effectHrefPrefix), [effectHrefPrefix]);
 
-  const counts = useMemo(() => countGallery(displayable), [displayable]);
-
   const query = focus ? '' : browse.query;
   const searching = query.trim().length > 0;
+
+  /**
+   * The header counts describe the corpus behind what is on screen. Artist
+   * browsing withholds the works of some effects (`isWithheldFromArtistViews`),
+   * so it counts its own narrower corpus: a header claiming more works than the
+   * grid can ever show is a bug. Search reaches across the whole displayable
+   * corpus in either mode, so while searching the counts do too.
+   */
+  const counted = useMemo(
+    () =>
+      mode === 'artist' && !searching
+        ? displayable.filter((item) => !isWithheldFromArtistViews(item))
+        : displayable,
+    [mode, searching, displayable],
+  );
+  const counts = useMemo(() => countGallery(counted), [counted]);
 
   const filtered = useMemo(
     () => displayable.filter((item) => matchesType(item, typeFilter) && matchesQuery(item, query, effectName)),
@@ -286,7 +301,9 @@ export function ReplicationsGalleryExplorer({
     </div>
   );
 
-  const hasMedia = counts.total > 0;
+  // The card exists whenever the gallery holds media at all — the mode toggle
+  // has to stay reachable even if one mode's own corpus is empty.
+  const hasMedia = displayable.length > 0;
   const browseAllUrl = buildGalleryBrowseUrl({ view: mode, type: typeFilter, sort: artistSort });
 
   /**
