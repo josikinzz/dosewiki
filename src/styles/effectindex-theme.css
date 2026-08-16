@@ -927,10 +927,14 @@ html[data-site="effectindex"] .app-header {
   --theme-chrome-border: var(--ei-chrome-dark);
   --theme-header-shadow: 0 1px 0 #171717;
 
-  /* Foreground ramp, inverted. Nav links resolve --theme-text-primary. */
+  /* Foreground ramp, inverted. Nav links, the search placeholder and the
+     search clear button all resolve --theme-text-muted (utilities-theme.css
+     :2334, :1515), so it carries the original's #ccc rest ink rather than the
+     faint step — the faint step stays on --theme-text-faint, which is what the
+     nav icons read. */
   --theme-text-primary: var(--ei-on-dark-muted);
   --theme-text-secondary: var(--ei-on-dark-muted);
-  --theme-text-muted: var(--ei-on-dark-faint);
+  --theme-text-muted: var(--ei-on-dark-muted);
   --theme-text-faint: var(--ei-on-dark-faint);
   --theme-text-ghost: #6f6f6f;
 
@@ -953,20 +957,31 @@ html[data-site="effectindex"] .app-header {
   --theme-field-on-chrome-surface: var(--ei-chrome-raised);
   --theme-field-on-chrome-border: var(--ei-chrome-border);
 
-  /* Hamburger + active nav pill. */
+  /* Hamburger + active nav pill. Both families are needed: the hamburger is a
+     .theme-icon-button, and the group rule at utilities-theme.css:3411 comes
+     after .theme-mobile-menu-toggle (:2946) in the same layer, so the PLAIN
+     frosted-control family is what actually paints it. Leaving it unbound left
+     a white paper button on the charcoal bar. Mirrors .app-footer below, which
+     pins the same family for its icon buttons. */
+  --theme-frosted-control-bg: var(--ei-chrome-raised);
+  --theme-frosted-control-border: var(--ei-chrome-border);
+  --theme-frosted-control-shadow: 0 0 0 1px var(--ei-chrome-border);
+  --theme-frosted-control-hover-bg: #454545;
+  --theme-frosted-control-hover-border: #5c5c5c;
+  --theme-frosted-control-hover-shadow: 0 0 0 1px #5c5c5c;
   --theme-frosted-control-on-panel-bg: var(--ei-chrome-raised);
   --theme-frosted-control-on-panel-border: var(--ei-chrome-border);
   --theme-frosted-control-on-panel-shadow: 0 0 0 1px var(--ei-chrome-border);
   --theme-frosted-control-on-panel-hover-bg: #454545;
   --theme-frosted-control-on-panel-hover-border: #5c5c5c;
   --theme-frosted-control-on-panel-hover-shadow: 0 0 0 1px #5c5c5c;
-  /* Transparent so the unlayered utilities-theme.css rules for the active nav
-     item paint nothing. NOTE these two tokens are not sufficient on their own:
-     theme-light-mode.css:716 overrides that rule with !important and resolves
-     the --theme-field-on-chrome-* family instead, which is shared with the
+  /* Transparent so the layered utilities-theme.css rules for the active nav
+     item paint no fill and no border. They are not sufficient on their own:
+     the same rule (utilities-theme.css:2350) also lays a 1px box-shadow ring
+     resolved from --theme-field-on-chrome-border, which is shared with the
      header search field and so cannot be rebound here. Flattening the pill on
-     EI therefore also needs the !important rule near the [data-active] colour
-     rule below; these tokens only stop the layered path from repainting it. */
+     EI therefore also needs the rule near the [data-active] colour rule below;
+     these tokens only stop the fill and border from being repainted. */
   --theme-header-nav-active-bg: transparent;
   --theme-header-nav-active-border: transparent;
 
