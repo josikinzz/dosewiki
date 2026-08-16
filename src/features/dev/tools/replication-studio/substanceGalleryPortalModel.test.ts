@@ -138,7 +138,7 @@ describe("applyBoardDrag", () => {
   const drag = (state: GalleryCurationState, activeSlug: string, overId: string) =>
     applyBoardDrag(state, buildGalleryBoard(MATCHES, state, CAP), activeSlug, overId);
 
-  it("promotes an auto row into the head at the index it was dropped on", () => {
+  it("promotes a candidate onto the curated index it was dropped on", () => {
     const state: GalleryCurationState = { curated: ["a", "b"], removed: [] };
     const next = drag(state, "d", "a");
 
@@ -151,64 +151,100 @@ describe("applyBoardDrag", () => {
     ]);
   });
 
-  it("reorders inside the head when both slugs are curated", () => {
+  it("pins nothing but the promoted row: the candidates it passed stay candidates", () => {
+    // The prefix rule is gone with the published tail — promoting the last
+    // candidate must not drag the ones above it onto the article.
+    const state: GalleryCurationState = { curated: ["a"], removed: [] };
+
+    expect(drag(state, "d", "a").curated).toEqual(["d", "a"]);
+  });
+
+  it("reorders inside the curated list when both slugs are curated", () => {
     const state: GalleryCurationState = { curated: ["a", "b", "c"], removed: [] };
 
     expect(drag(state, "c", "a").curated).toEqual(["c", "a", "b"]);
+    expect(drag(state, "a", "c").curated).toEqual(["b", "c", "a"]);
   });
 
-  it("un-curates when the drop id is not a row", () => {
+  it("un-curates when the drop id is not a curated row", () => {
     const state: GalleryCurationState = { curated: ["a", "b", "c"], removed: [] };
 
     expect(drag(state, "b", "auto-zone").curated).toEqual(["a", "c"]);
+    // A candidate row is not a position, so dropping on one publishes nothing.
+    expect(drag(state, "b", "d").curated).toEqual(["a", "c"]);
     expect(drag(state, "a", "a")).toBe(state);
+  });
+
+  it("ignores a curated slug that matches nothing when reading drop indices", () => {
+    const state: GalleryCurationState = { curated: ["ghost", "a", "b"], removed: [] };
+
+    expect(drag(state, "c", "b").curated).toEqual(["a", "c", "b"]);
   });
 });
 
 describe("buildGalleryBoard", () => {
-  it("numbers continuously across the curated head and the auto tail", () => {
+  it("numbers the curated rows and leaves candidates unnumbered", () => {
     const state: GalleryCurationState = { curated: ["c", "a"], removed: [] };
     const board = buildGalleryBoard(MATCHES, state, CAP);
 
-    expect(board.rows.map((row) => [row.match.replication.slug, row.position, row.band])).toEqual([
-      ["c", 1, "curated"],
-      ["a", 2, "curated"],
-      ["b", 3, "auto"],
-      ["d", 4, "auto"],
+    expect(
+      board.rows.map((row) => [row.match.replication.slug, row.position, row.band, row.onStage]),
+    ).toEqual([
+      ["c", 1, "curated", true],
+      ["a", 2, "curated", true],
+      ["b", null, "auto", false],
+      ["d", null, "auto", false],
     ]);
     expect(board.curatedCount).toBe(2);
+    expect(board.candidateCount).toBe(2);
     expect(board.cap).toBe(CAP);
     expect(effectiveGalleryOrder(MATCHES, state).map((entry) => entry.replication.slug)).toEqual([
       "c",
       "a",
-      "b",
-      "d",
     ]);
   });
 
-  it("puts onStage boundary exactly at the cap", () => {
-    for (const [total, expectedOnStage] of [
+  it("publishes nothing at all before anything is curated", () => {
+    const board = buildGalleryBoard(MATCHES, EMPTY, CAP);
+
+    expect(board.rows.every((row) => row.position === null && !row.onStage)).toBe(true);
+    expect(board.curatedCount).toBe(0);
+    expect(board.candidateCount).toBe(4);
+    expect(board.filledSlots).toBe(0);
+    expect(board.emptySlots).toBe(CAP);
+    expect(effectiveGalleryOrder(MATCHES, EMPTY)).toEqual([]);
+  });
+
+  it("puts the onStage boundary exactly at the cap of the curated list", () => {
+    for (const [curatedTotal, expectedOnStage] of [
       [11, 11],
       [12, 12],
       [13, 12],
     ] as const) {
-      const board = buildGalleryBoard(manyMatches(total), EMPTY, CAP);
+      const matches = manyMatches(curatedTotal + 2);
+      const state: GalleryCurationState = {
+        curated: Array.from({ length: curatedTotal }, (_, index) => `r${index + 1}`),
+        removed: [],
+      };
+      const board = buildGalleryBoard(matches, state, CAP);
 
-      expect(board.rows).toHaveLength(total);
+      expect(board.rows).toHaveLength(curatedTotal + 2);
       expect(board.rows.filter((row) => row.onStage)).toHaveLength(expectedOnStage);
       // The last on-stage row is exactly the cap-th, and nothing past it stays on.
       expect(board.rows[expectedOnStage - 1].onStage).toBe(true);
       expect(board.rows.slice(CAP).some((row) => row.onStage)).toBe(false);
       expect(board.filledSlots).toBe(expectedOnStage);
-      expect(board.emptySlots).toBe(Math.max(0, CAP - total));
+      expect(board.emptySlots).toBe(Math.max(0, CAP - curatedTotal));
     }
   });
 
-  it("reports the unfilled slots when the board is short of the cap", () => {
-    const board = buildGalleryBoard(MATCHES, EMPTY, CAP);
+  it("counts empty slots against the curated list, not the row count", () => {
+    // Four matched rows, one curated: eleven slots still stand empty.
+    const board = buildGalleryBoard(MATCHES, { curated: ["b"], removed: [] }, CAP);
 
-    expect(board.filledSlots).toBe(4);
-    expect(board.emptySlots).toBe(8);
+    expect(board.rows).toHaveLength(4);
+    expect(board.filledSlots).toBe(1);
+    expect(board.emptySlots).toBe(CAP - 1);
     expect(buildGalleryBoard([], EMPTY, CAP).emptySlots).toBe(CAP);
   });
 
@@ -218,24 +254,28 @@ describe("buildGalleryBoard", () => {
 
     expect(board.rows.map((row) => [row.match.replication.slug, row.position])).toEqual([
       ["b", 1],
-      ["a", 2],
-      ["c", 3],
-      ["d", 4],
+      ["a", null],
+      ["c", null],
+      ["d", null],
     ]);
     expect(board.curatedCount).toBe(1);
+    expect(board.candidateCount).toBe(3);
   });
 
-  it("never numbers an excluded match, and lists exclusions in corpus order", () => {
+  it("never publishes an excluded match, and lists exclusions in corpus order", () => {
     const state: GalleryCurationState = { curated: ["d", "a"], removed: ["d", "b"] };
     const board = buildGalleryBoard(MATCHES, state, CAP);
 
     expect(board.rows.map((row) => [row.match.replication.slug, row.position, row.band])).toEqual([
       ["a", 1, "curated"],
-      ["c", 2, "auto"],
+      ["c", null, "auto"],
     ]);
     expect(board.excluded.map((entry) => entry.replication.slug)).toEqual(["b", "d"]);
-    expect(board.filledSlots).toBe(2);
-    expect(board.emptySlots).toBe(10);
+    expect(board.filledSlots).toBe(1);
+    expect(board.emptySlots).toBe(CAP - 1);
+    expect(effectiveGalleryOrder(MATCHES, state).map((entry) => entry.replication.slug)).toEqual([
+      "a",
+    ]);
   });
 });
 

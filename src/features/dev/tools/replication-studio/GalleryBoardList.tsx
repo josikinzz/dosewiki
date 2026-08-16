@@ -1,20 +1,17 @@
 "use client";
 
 /**
- * The contact sheet: one continuous numbered board across the curated head and
- * the default tail, cut by a single unmissable fold at the article's slot cap.
+ * The curation board: the curated list that *is* the article, and beneath it a
+ * pool of matched works that are not on the article at all.
  *
- * The design premise is that the only question an editor actually has is "will
- * this appear on the article, and where" — so the absolute position number is
- * the loudest non-media element in every row, and the fold is a fact drawn
- * across the board rather than a boundary between the two bands. The cut floats:
- * it lands inside the curated head when the head is longer than the cap, and
- * down in the default tail when it is shorter. Below it, rows dim.
- *
- * Both bands sit in their own `SortableContext`, so promotion and demotion are
- * the same gesture in both directions; the divider between them is a droppable
- * whose only job is to un-curate, which `applyBoardDrag` already treats as the
- * default for any `over` id that is not a curated slug.
+ * The article publishes curated rows only, so the board draws exactly two
+ * things. Above the un-curate zone sits the published list — numbered from 1,
+ * cut by the fold if it overruns the article's slot cap, padded with ghost
+ * frames while it is short of it. Below sits the candidate pool: deliberately
+ * unnumbered and undraggable, because an unpublished work has no position, a
+ * number would be a lie, and an intra-pool drag would change nothing an editor
+ * could ever see. Promotion is the Curate button; demotion is the row's own
+ * button or a drag onto the un-curate zone.
  */
 
 import { Fragment, useEffect, useId, useRef, type ReactNode } from "react";
@@ -42,10 +39,12 @@ import { ReplicationThumb } from "./ReplicationThumb";
 import type { GalleryBoard, GalleryBoardRow, GalleryMatch } from "./substanceGalleryPortalModel";
 
 /**
- * Drop target for the default-order band: `applyBoardDrag` un-curates on any
- * `over` id that is not a curated slug, so the divider needs no special case.
+ * Drop target that takes a curated row off the article: `applyBoardDrag`
+ * un-curates on any `over` id that is not a curated slug, so the zone needs no
+ * special case — and neither does a candidate row, which is not a drop target
+ * at all.
  */
-export const AUTO_ZONE_ID = "substance-gallery-auto-zone";
+export const UNCURATE_ZONE_ID = "substance-gallery-uncurate-zone";
 
 /** Short token labels; the sentence-length copy stays in the public credit block. */
 const RIGHTS_TOKEN_LABELS: Record<string, string> = {
@@ -131,13 +130,15 @@ export function GalleryMatchIdentity({ match }: { match: GalleryMatch }) {
 }
 
 /**
- * The absolute position in the effective public order. It answers the editor's
- * only real question, so it outweighs every other non-media element in the row.
+ * The published position. Only a curated row has one, and it answers the
+ * editor's only real question, so it outweighs every other non-media element
+ * in the row.
  */
 function PositionNumber({ position, onStage }: { position: number; onStage: boolean }) {
   return (
     <span
       aria-hidden
+      data-testid="board-position"
       className={cn(
         "font-display w-8 shrink-0 text-right text-lg font-semibold leading-none tabular-nums",
         onStage ? "theme-text-primary" : "theme-text-faint",
@@ -148,49 +149,62 @@ function PositionNumber({ position, onStage }: { position: number; onStage: bool
   );
 }
 
+/** Exclusion is available from both bands, so it lives in one place. */
+function ExcludeButton({ title, slug, onExclude }: { title: string; slug: string; onExclude: (slug: string) => void }) {
+  return (
+    <Button
+      variant="ghost"
+      size="icon"
+      className="h-8 w-8"
+      aria-label={`Exclude ${title} from this gallery`}
+      onClick={() => onExclude(slug)}
+    >
+      <Icon icon="lucide:eye-off" size={14} />
+    </Button>
+  );
+}
+
+/** Moves focus to a row's primary action after it changes band, then reports back. */
+function useBandFocus(focused: boolean, onFocusHandled: () => void) {
+  const ref = useRef<HTMLButtonElement | null>(null);
+  useEffect(() => {
+    if (focused) {
+      ref.current?.focus();
+      onFocusHandled();
+    }
+  }, [focused, onFocusHandled]);
+  return ref;
+}
+
 /**
- * One row of the board. Curated and default rows differ only in their band
- * tint and their action set — both are sortable, which is what lets a default
- * row be dragged up into the head.
+ * A published row: numbered, draggable, and reorderable by keyboard. Dragging
+ * it onto another curated row takes that row's index; dragging it anywhere else
+ * takes it off the article.
  */
-function BoardRow({
+function CuratedRow({
   row,
   curatedCount,
-  provisional,
   focused,
   onMove,
   onMoveToEdge,
-  onCurate,
   onUncurate,
   onExclude,
   onFocusHandled,
 }: {
   row: GalleryBoardRow;
   curatedCount: number;
-  /** True in the nothing-pinned state: an on-stage default row is a ghost slot. */
-  provisional: boolean;
   focused: boolean;
   onMove: (slug: string, direction: "up" | "down") => void;
   onMoveToEdge: (slug: string, edge: "top" | "bottom") => void;
-  onCurate: (slug: string) => void;
   onUncurate: (slug: string) => void;
   onExclude: (slug: string) => void;
   onFocusHandled: () => void;
 }) {
-  const { match, position, onStage, band } = row;
+  const { match, position, onStage } = row;
   const { title, slug } = match.replication;
-  const curated = band === "curated";
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: slug });
-  const primaryActionRef = useRef<HTMLButtonElement | null>(null);
-
-  useEffect(() => {
-    if (focused) {
-      primaryActionRef.current?.focus();
-      onFocusHandled();
-    }
-  }, [focused, onFocusHandled]);
-
-  const curatedIndex = curated ? position - 1 : -1;
+  const primaryActionRef = useBandFocus(focused, onFocusHandled);
+  const index = (position ?? 1) - 1;
 
   return (
     <li ref={setNodeRef} style={{ transform: CSS.Transform.toString(transform), transition }} className="list-none">
@@ -200,23 +214,18 @@ function BoardRow({
         radius="lg"
         className={cn(
           MOTION,
-          curated && CURATED_WASH,
-          provisional && "border-dashed opacity-80",
+          CURATED_WASH,
           !onStage && "opacity-55",
           isDragging && "opacity-60 ring-1 ring-dose-accent-strong",
         )}
       >
         <div className="flex items-center gap-3">
-          <PositionNumber position={position} onStage={onStage} />
+          <PositionNumber position={position ?? 1} onStage={onStage} />
           <Button
             variant="glass"
             size="icon"
             className="h-8 w-8 shrink-0 cursor-grab active:cursor-grabbing"
-            aria-label={
-              curated
-                ? `Drag ${title} to reorder it`
-                : `Drag ${title} to reorder it — dropping it here pins the rows above it`
-            }
+            aria-label={`Drag ${title} to reorder it`}
             {...attributes}
             {...listeners}
           >
@@ -224,70 +233,47 @@ function BoardRow({
           </Button>
           <GalleryMatchIdentity match={match} />
           <div className="flex shrink-0 items-center gap-1">
-            {curated ? (
-              <>
-                <Button
-                  ref={primaryActionRef}
-                  variant="glass"
-                  size="icon"
-                  className="h-8 w-8"
-                  disabled={curatedIndex === 0}
-                  aria-label={`Move ${title} up`}
-                  onClick={() => onMove(slug, "up")}
-                >
-                  <Icon icon="lucide:arrow-up" size={14} />
-                </Button>
-                <Button
-                  variant="glass"
-                  size="icon"
-                  className="h-8 w-8"
-                  disabled={curatedIndex === curatedCount - 1}
-                  aria-label={`Move ${title} down`}
-                  onClick={() => onMove(slug, "down")}
-                >
-                  <Icon icon="lucide:arrow-down" size={14} />
-                </Button>
-                <Button
-                  variant="glass"
-                  size="icon"
-                  className="h-8 w-8"
-                  disabled={curatedIndex === 0}
-                  aria-label={`Move ${title} to position 1`}
-                  onClick={() => onMoveToEdge(slug, "top")}
-                >
-                  <Icon icon="lucide:chevrons-up" size={14} />
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  aria-label={`Un-curate ${title}`}
-                  onClick={() => onUncurate(slug)}
-                >
-                  <Icon icon="lucide:pin-off" size={14} />
-                  Un-curate
-                </Button>
-              </>
-            ) : (
-              <Button
-                ref={primaryActionRef}
-                variant="secondary"
-                size="sm"
-                aria-label={`Curate ${title}`}
-                onClick={() => onCurate(slug)}
-              >
-                <Icon icon="lucide:pin" size={14} />
-                Curate
-              </Button>
-            )}
             <Button
-              variant="ghost"
+              ref={primaryActionRef}
+              variant="glass"
               size="icon"
               className="h-8 w-8"
-              aria-label={`Exclude ${title} from this gallery`}
-              onClick={() => onExclude(slug)}
+              disabled={index === 0}
+              aria-label={`Move ${title} up`}
+              onClick={() => onMove(slug, "up")}
             >
-              <Icon icon="lucide:eye-off" size={14} />
+              <Icon icon="lucide:arrow-up" size={14} />
             </Button>
+            <Button
+              variant="glass"
+              size="icon"
+              className="h-8 w-8"
+              disabled={index === curatedCount - 1}
+              aria-label={`Move ${title} down`}
+              onClick={() => onMove(slug, "down")}
+            >
+              <Icon icon="lucide:arrow-down" size={14} />
+            </Button>
+            <Button
+              variant="glass"
+              size="icon"
+              className="h-8 w-8"
+              disabled={index === 0}
+              aria-label={`Move ${title} to position 1`}
+              onClick={() => onMoveToEdge(slug, "top")}
+            >
+              <Icon icon="lucide:chevrons-up" size={14} />
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              aria-label={`Un-curate ${title}`}
+              onClick={() => onUncurate(slug)}
+            >
+              <Icon icon="lucide:pin-off" size={14} />
+              Un-curate
+            </Button>
+            <ExcludeButton title={title} slug={slug} onExclude={onExclude} />
           </div>
         </div>
       </InteractiveContentCard>
@@ -296,9 +282,54 @@ function BoardRow({
 }
 
 /**
- * The cut line. One rule across the whole board, drawn after the last public
- * position wherever that lands. It carries no transition by design: the fold is
- * a fact about the article, not a flourish.
+ * A pool row: no number and no grip, because it is not on the article and the
+ * pool has no order to rearrange. Curate is the only way onto the stage.
+ */
+function CandidateRow({
+  row,
+  focused,
+  onCurate,
+  onExclude,
+  onFocusHandled,
+}: {
+  row: GalleryBoardRow;
+  focused: boolean;
+  onCurate: (slug: string) => void;
+  onExclude: (slug: string) => void;
+  onFocusHandled: () => void;
+}) {
+  const { match } = row;
+  const { title, slug } = match.replication;
+  const primaryActionRef = useBandFocus(focused, onFocusHandled);
+
+  return (
+    <li className="list-none">
+      <InteractiveContentCard variant="public" padding="sm" radius="lg" className={cn(MOTION, "opacity-80")}>
+        <div className="flex items-center gap-3">
+          <GalleryMatchIdentity match={match} />
+          <div className="flex shrink-0 items-center gap-1">
+            <Button
+              ref={primaryActionRef}
+              variant="secondary"
+              size="sm"
+              aria-label={`Curate ${title}`}
+              onClick={() => onCurate(slug)}
+            >
+              <Icon icon="lucide:pin" size={14} />
+              Curate
+            </Button>
+            <ExcludeButton title={title} slug={slug} onExclude={onExclude} />
+          </div>
+        </div>
+      </InteractiveContentCard>
+    </li>
+  );
+}
+
+/**
+ * The cut line, drawn inside the curated list once it is longer than the
+ * article's cap. It carries no transition by design: the fold is a fact about
+ * the article, not a flourish.
  */
 function Fold({ cap }: { cap: number }) {
   return (
@@ -313,7 +344,7 @@ function Fold({ cap }: { cap: number }) {
   );
 }
 
-/** An unfilled public slot, carrying the position it would occupy. */
+/** An unfilled article slot, carrying the position it would occupy. */
 function GhostSlot({ position }: { position: number }) {
   return (
     <li className="list-none">
@@ -373,47 +404,26 @@ export function GalleryBoardList({
 }: GalleryBoardListProps) {
   const headingBase = useId();
   const curatedHeadingId = `${headingBase}-curated`;
-  const autoHeadingId = `${headingBase}-auto`;
+  const candidateHeadingId = `${headingBase}-candidates`;
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 6 } }),
     useSensor(KeyboardSensor),
   );
-  const { setNodeRef: setAutoZoneRef, isOver: isOverAutoZone } = useDroppable({ id: AUTO_ZONE_ID });
+  const { setNodeRef: setUncurateZoneRef, isOver: isOverUncurateZone } = useDroppable({
+    id: UNCURATE_ZONE_ID,
+  });
 
   const curatedRows = board.rows.filter((row) => row.band === "curated");
-  const autoRows = board.rows.filter((row) => row.band === "auto");
-  const nothingPinned = board.curatedCount === 0;
+  const candidateRows = board.rows.filter((row) => row.band === "auto");
+  const nothingCurated = board.curatedCount === 0;
 
   /**
-   * The fold only exists once the board overflows the cap, and ghost slots only
-   * exist while it is short of the cap — the two are mutually exclusive, which
-   * is why the ghosts can sit after the last row unconditionally.
+   * The fold and the ghost slots are mutually exclusive: the curated list is
+   * either longer than the cap or shorter than it. Both are now facts about
+   * that list alone, since it is the only thing the article publishes.
    */
-  const foldAfterPosition = board.rows.length > board.cap ? board.cap : null;
-
-  /**
-   * One band's rows, with the fold spliced in directly after the last public
-   * position. Both bands go through this so the cut renders wherever it lands.
-   */
-  const renderBand = (rows: readonly GalleryBoardRow[]) =>
-    rows.map((row) => (
-      <Fragment key={row.match.replication.slug}>
-        <BoardRow
-          row={row}
-          curatedCount={board.curatedCount}
-          provisional={nothingPinned && row.band === "auto" && row.onStage}
-          focused={focusSlug === row.match.replication.slug}
-          onMove={onMove}
-          onMoveToEdge={onMoveToEdge}
-          onCurate={onCurate}
-          onUncurate={onUncurate}
-          onExclude={onExclude}
-          onFocusHandled={onFocusHandled}
-        />
-        {row.position === foldAfterPosition ? <Fold cap={board.cap} /> : null}
-      </Fragment>
-    ));
+  const foldAfterPosition = board.curatedCount > board.cap ? board.cap : null;
 
   return (
     <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={onDragEnd}>
@@ -424,34 +434,70 @@ export function GalleryBoardList({
             icon="lucide:pin"
             aside={
               <EditorStatusPill tone={board.filledSlots > 0 ? "info" : "neutral"}>
-                {`${board.filledSlots} of ${board.cap} slots filled`}
+                {`${board.filledSlots} of ${board.cap} article slots filled`}
               </EditorStatusPill>
             }
           >
-            Curated head ({board.curatedCount})
+            On the article ({board.curatedCount})
           </BandHeading>
           <SortableContext
             items={curatedRows.map((row) => row.match.replication.slug)}
             strategy={verticalListSortingStrategy}
           >
-            <ul className="space-y-2">{renderBand(curatedRows)}</ul>
+            <ul className="space-y-2">
+              {curatedRows.map((row) => (
+                <Fragment key={row.match.replication.slug}>
+                  <CuratedRow
+                    row={row}
+                    curatedCount={board.curatedCount}
+                    focused={focusSlug === row.match.replication.slug}
+                    onMove={onMove}
+                    onMoveToEdge={onMoveToEdge}
+                    onUncurate={onUncurate}
+                    onExclude={onExclude}
+                    onFocusHandled={onFocusHandled}
+                  />
+                  {row.position === foldAfterPosition ? <Fold cap={board.cap} /> : null}
+                </Fragment>
+              ))}
+            </ul>
           </SortableContext>
-          {nothingPinned ? (
+          {nothingCurated ? (
             <p className="theme-text-faint text-xs">
-              Default order — nothing pinned. The dashed rows below are what the article shows today;
-              pin one to take control of the order.
+              Nothing is curated, so this article shows no replication showcase at all. Curate a work
+              from the pool below to put it on the article.
+            </p>
+          ) : null}
+          {board.emptySlots > 0 ? (
+            <>
+              <ul className="space-y-2">
+                {Array.from({ length: board.emptySlots }, (_, index) => (
+                  <GhostSlot
+                    key={board.curatedCount + index + 1}
+                    position={board.curatedCount + index + 1}
+                  />
+                ))}
+              </ul>
+              <p className="theme-text-faint text-xs">
+                {board.emptySlots} of the article's {board.cap} slots are empty — {board.filledSlots}{" "}
+                filled.
+              </p>
+            </>
+          ) : board.curatedCount === board.cap ? (
+            <p className="theme-text-faint text-xs">
+              All {board.cap} article slots are filled exactly; nothing spills past the fold.
             </p>
           ) : null}
         </section>
 
         <div
-          ref={setAutoZoneRef}
+          ref={setUncurateZoneRef}
           role="group"
-          aria-label="Drop a curated row here to return it to the default order"
+          aria-label="Drop a curated row here to take it off the article"
           className={cn(
             "flex items-center gap-3 rounded-lg px-1 py-2",
             MOTION,
-            isOverAutoZone && "bg-[var(--editor-panel-bg-subtle)]",
+            isOverUncurateZone && "bg-[var(--editor-panel-bg-subtle)]",
           )}
         >
           <div className="theme-gradient-divider h-px flex-1" />
@@ -461,37 +507,31 @@ export function GalleryBoardList({
           <div className="theme-gradient-divider h-px flex-1" />
         </div>
 
-        <section aria-labelledby={autoHeadingId} className="space-y-2">
-          <BandHeading id={autoHeadingId} icon="lucide:list-ordered">
-            Default order ({autoRows.length})
+        <section aria-labelledby={candidateHeadingId} className="space-y-2">
+          <BandHeading id={candidateHeadingId} icon="lucide:inbox">
+            Candidate pool ({board.candidateCount})
           </BandHeading>
-          <SortableContext
-            items={autoRows.map((row) => row.match.replication.slug)}
-            strategy={verticalListSortingStrategy}
-          >
-            <ul className="space-y-2">{renderBand(autoRows)}</ul>
-          </SortableContext>
-          {autoRows.length === 0 ? (
-            <p className="theme-text-faint text-xs">Every match is curated or excluded.</p>
-          ) : null}
-        </section>
-
-        {board.emptySlots > 0 ? (
-          <div className="space-y-2">
-            <ul className="space-y-2">
-              {Array.from({ length: board.emptySlots }, (_, index) => (
-                <GhostSlot key={board.rows.length + index + 1} position={board.rows.length + index + 1} />
-              ))}
-            </ul>
+          {board.candidateCount > 0 ? (
             <p className="theme-text-faint text-xs">
-              {board.emptySlots} of the article's {board.cap} slots are empty — {board.filledSlots} filled.
+              None of these are on the article. They matched this substance's visual effects and stay
+              here, unordered, until you curate one.
             </p>
-          </div>
-        ) : board.rows.length === board.cap ? (
-          <p className="theme-text-faint text-xs">
-            All {board.cap} article slots are filled exactly; nothing spills past the fold.
-          </p>
-        ) : null}
+          ) : (
+            <p className="theme-text-faint text-xs">Every match is curated or excluded.</p>
+          )}
+          <ul className="space-y-2">
+            {candidateRows.map((row) => (
+              <CandidateRow
+                key={row.match.replication.slug}
+                row={row}
+                focused={focusSlug === row.match.replication.slug}
+                onCurate={onCurate}
+                onExclude={onExclude}
+                onFocusHandled={onFocusHandled}
+              />
+            ))}
+          </ul>
+        </section>
       </div>
     </DndContext>
   );

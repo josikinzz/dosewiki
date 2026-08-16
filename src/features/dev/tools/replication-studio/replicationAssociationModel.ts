@@ -81,19 +81,32 @@ export function setAllAssociations(
   return { excluded: next };
 }
 
+/**
+ * Counts behind the panel's header. Two of them are deliberately different
+ * numbers: under the publish gate a drug shows this replication only once it is
+ * curated on that drug's board, so *eligible* (`showing`) means the article MAY
+ * show it, while *published* means it does.
+ */
 export type AssociationSummary = {
+  /** Matched drug articles — every row in this editor. */
   total: number;
+  /**
+   * Rows this draft does NOT exclude: eligible, not published. An eligible drug
+   * is allowed to show this replication; it only does once curated there.
+   */
   showing: number;
   excluded: number;
+  /** Rows actually published: curated on that drug AND not excluded here. */
+  published: number;
   curatedAtRisk: ReplicationAssociation[];
 };
 
 /**
- * Counts behind "N drugs · M showing · K dropped", plus the rows that need an
- * inline warning: dropping a drug that pinned this replication is allowed, but
- * it also un-curates it, so it can never be silent. Rows excluded on the server
- * already are the saved state rather than a new loss, so only rows this draft
- * newly excludes count as at risk.
+ * Counts behind "N showing · M eligible · K excluded", plus the rows that need
+ * an inline warning: dropping a drug that pinned this replication is allowed,
+ * but it also un-curates it, so it can never be silent. Rows excluded on the
+ * server already are the saved state rather than a new loss, so only rows this
+ * draft newly excludes count as at risk.
  */
 export function summarizeAssociations(
   rows: readonly ReplicationAssociation[],
@@ -102,8 +115,12 @@ export function summarizeAssociations(
   const excludedSlugs = new Set(state.excluded);
   const curatedAtRisk: ReplicationAssociation[] = [];
   let excluded = 0;
+  let published = 0;
   for (const row of rows) {
     if (!excludedSlugs.has(row.slug)) {
+      if (row.curatedPosition !== null) {
+        published += 1;
+      }
       continue;
     }
     excluded += 1;
@@ -111,5 +128,11 @@ export function summarizeAssociations(
       curatedAtRisk.push(row);
     }
   }
-  return { total: rows.length, showing: rows.length - excluded, excluded, curatedAtRisk };
+  return {
+    total: rows.length,
+    showing: rows.length - excluded,
+    excluded,
+    published,
+    curatedAtRisk,
+  };
 }

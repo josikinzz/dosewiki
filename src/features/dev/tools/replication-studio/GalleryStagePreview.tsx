@@ -43,11 +43,11 @@ export function GalleryStagePreview({
       headingLevel="h3"
       icon="lucide:monitor-play"
       title="Article preview"
-      description="The live Replication Showcase, exactly as this substance's article will draw it: same stage, same cap, same overflow link."
+      description="The live Replication Showcase, exactly as this substance's article will draw it: same stage, same cap, same overflow link. It shows the curated works and nothing else, because that is all the article publishes."
       animate={false}
       actions={
         <>
-          <EditorStatusPill tone={works.length === 0 ? "warning" : "neutral"}>
+          <EditorStatusPill tone="neutral">
             {onStage.length} on stage
             {overflow > 0 ? ` · +${overflow} in the gallery` : ""}
           </EditorStatusPill>
@@ -75,9 +75,9 @@ export function GalleryStagePreview({
               radius="lg"
               className="theme-text-muted text-sm"
             >
-              Nothing will appear on the article. The showcase needs at least
-              one image or video: curate a matched replication, or restore one
-              from the excluded shelf.
+              Nothing is curated yet, so the article shows no showcase — this is
+              where every substance starts. Curate a matched work and the stage
+              appears here as soon as one image or video is on it.
             </EmptyStateSurface>
           ) : (
             <ReplicationShowcase works={onStage} totalCount={works.length} />

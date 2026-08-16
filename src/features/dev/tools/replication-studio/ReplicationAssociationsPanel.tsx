@@ -2,7 +2,7 @@
 
 /**
  * Replication → drug association editor — `/dev` → Replications → one selected
- * replication → "Appears on N drug articles".
+ * replication → "Showing on N of M drug articles".
  *
  * A replication is never linked to a substance directly: the showcase derives
  * the link from the substance's visual effects, either through this
@@ -12,6 +12,11 @@
  * unticking a row writes. This is the Substances portal's exclusion data seen
  * from the replication's side: unticking a drug touches that drug only, and
  * never strips a tag from the replication itself.
+ *
+ * A tick is eligibility, not publication. Under the publish gate a drug shows
+ * this replication only once it has been curated on that drug's board, so every
+ * row reads out its own state — showing (with its position), eligible but not
+ * curated, or excluded — and the header counts publications, not ticks.
  *
  * Unticking a drug that pinned this replication into its curated head is
  * allowed but never silent: the row warns inline and the save summary counts
@@ -103,6 +108,20 @@ const MATCH_LABEL: Record<ReplicationAssociation["matchedVia"], string> = {
   effect_tags: "via effect tag",
 };
 
+/**
+ * What one row means on the drug it names. A tick is only eligibility: the drug
+ * is allowed to show this replication, and shows it once curated there. So the
+ * draft's exclusion decides first, and curation decides whether the remainder
+ * is actually on the article.
+ */
+type RowState = "published" | "eligible" | "excluded";
+
+const ROW_STATE_TONE: Record<RowState, "success" | "neutral" | "danger"> = {
+  published: "success",
+  eligible: "neutral",
+  excluded: "danger",
+};
+
 function AssociationRow({
   row,
   checked,
@@ -116,6 +135,13 @@ function AssociationRow({
   disabled: boolean;
   onToggle: () => void;
 }) {
+  // Exclusion decides first; curation decides whether the remainder is on the article.
+  const state: RowState = !checked
+    ? "excluded"
+    : row.curatedPosition === null
+      ? "eligible"
+      : "published";
+
   return (
     <li className="list-none">
       <div
@@ -127,20 +153,34 @@ function AssociationRow({
           .filter(Boolean)
           .join(" ")}
       >
-        <EditorCheckbox
-          id={`replication-association-${row.slug}`}
-          checked={checked}
-          disabled={disabled}
-          onChange={onToggle}
-          label={row.title}
-          description={
-            <span className="inline-flex max-w-full flex-wrap items-center gap-1.5">
-              <span>{MATCH_LABEL[row.matchedVia]}</span>
-              <span aria-hidden="true">·</span>
-              <TagToken variant="compact" label={row.effectName} />
-            </span>
-          }
-        />
+        <div className="flex items-start justify-between gap-3">
+          <EditorCheckbox
+            id={`replication-association-${row.slug}`}
+            checked={checked}
+            disabled={disabled}
+            onChange={onToggle}
+            label={row.title}
+            containerClassName="min-w-0 flex-1"
+            description={
+              <span className="inline-flex max-w-full flex-wrap items-center gap-1.5">
+                <span>{MATCH_LABEL[row.matchedVia]}</span>
+                <span aria-hidden="true">·</span>
+                <TagToken variant="compact" label={row.effectName} />
+              </span>
+            }
+          />
+          <EditorStatusPill
+            tone={ROW_STATE_TONE[state]}
+            className="mt-0.5 shrink-0"
+            data-testid={`association-state-${row.slug}`}
+          >
+            {state === "published"
+              ? `Showing · position ${row.curatedPosition}`
+              : state === "eligible"
+                ? "Eligible · not curated"
+                : "Excluded"}
+          </EditorStatusPill>
+        </div>
         {atRisk ? (
           <p
             className="mt-1.5 flex items-start gap-1.5 pl-[1.625rem] text-xs leading-5 text-[color:var(--theme-warning-text)]"
@@ -149,6 +189,17 @@ function AssociationRow({
             <Icon icon="lucide:triangle-alert" size={13} className="mt-0.5 shrink-0" />
             <span>
               curated at position {row.curatedPosition} — unticking drops that position
+            </span>
+          </p>
+        ) : null}
+        {state === "eligible" ? (
+          <p
+            className="theme-text-faint mt-1.5 flex items-start gap-1.5 pl-[1.625rem] text-xs leading-5"
+            data-testid={`eligible-note-${row.slug}`}
+          >
+            <Icon icon="lucide:eye-off" size={13} className="mt-0.5 shrink-0" />
+            <span>
+              nothing shows on this drug yet — unticking only forbids a future curation
             </span>
           </p>
         ) : null}
@@ -309,18 +360,20 @@ export function ReplicationAssociationsPanel({ row }: { row: StudioRow }) {
     }
   }, [draft, rows, slug]);
 
-  const heading = `Appears on ${rows.length} drug ${plural(rows.length, "article", "articles")}`;
+  // The primary number is what a reader actually sees. `summary.showing` is only
+  // eligibility, so it rides in the pill beside the exclusions instead.
+  const heading = `Showing on ${summary.published} of ${rows.length} drug ${plural(rows.length, "article", "articles")}`;
 
   return (
     <EditorSection
       headingLevel="h3"
       icon="lucide:link"
       title={load.status === "ready" ? heading : "Drug articles"}
-      description="Derived from each drug's visual effects — this replication's owning effect, or one of its effect tags. Unticking a drug excludes it from that drug's showcase only; the replication's tags are untouched."
+      description="Derived from each drug's visual effects — this replication's owning effect, or one of its effect tags. A drug shows this work only once it has been curated on that drug's board, so a tick here means eligible, not published. Unticking a drug excludes it from that drug's showcase only; the replication's tags are untouched."
       actions={
         load.status === "ready" && rows.length > 0 ? (
           <EditorStatusPill tone={summary.excluded > 0 ? "info" : "neutral"}>
-            {`${summary.showing} showing · ${summary.excluded} excluded`}
+            {`${summary.showing} eligible · ${summary.excluded} excluded`}
           </EditorStatusPill>
         ) : null
       }

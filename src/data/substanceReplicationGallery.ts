@@ -1,16 +1,18 @@
 /**
- * Effect matching and curated-order merging for the per-substance Replication
+ * Effect matching and the publish gate for the per-substance Replication
  * Showcase (see CONTEXT.md → Replications Surface Language).
  *
- * A substance article never stores replication references. Its showcase is
- * *derived*: the visual effect names under
+ * A substance article never stores replication references. Its candidate pool
+ * is *derived*: the visual effect names under
  * `subjective_effects.sensory.visual.subcategories` resolve to effect slugs
  * exactly the way the article's effect chips do, and those slugs select
- * publishable corpus rows by owning `effect_slug` or by `effect_tags`. An
- * optional `substanceGalleries` row then curates the derived set: a pinned
- * head, and a suppression list. This module is the single home of both steps
- * so the Convex read, the Convex write-path prune, the article showcase, and
- * the DevTools curation portal cannot disagree about what matches.
+ * publishable corpus rows by owning `effect_slug` or by `effect_tags`. The
+ * derivation only proposes. What an article actually shows is the
+ * `substanceGalleries` row's curated list and nothing else
+ * (`mergeCuratedGallery`), with a suppression list that outranks it. This
+ * module is the single home of both steps so the Convex read, the Convex
+ * write-path prune, the article showcase, and the DevTools curation portal
+ * cannot disagree about what matches or about what publishes.
  *
  * Everything here is pure. Imports are relative rather than aliased because
  * the Convex bundler consumes this file too (as `convex/substanceGalleries.ts`
@@ -26,7 +28,6 @@ import {
   type ReplicationType,
   type ReplicationWithUrl,
 } from "../types/replications";
-import { applyCuratedOrder } from "../../lib/curatedOrder";
 
 /** The alias-lookup location of every chip in the article's visual group. */
 const VISUAL_EFFECT_LOCATION: EffectLocation = "sensory.visual";
@@ -56,13 +57,13 @@ export type SubstanceGalleryMatch<Row extends SubstanceGalleryMatchableRow> = {
 };
 
 export type SubstanceGalleryMatchResult<Row extends SubstanceGalleryMatchableRow> = {
-  /** Publishable matches, in the order the corpus rows arrived (the default tail order). */
+  /** Matchable candidates, in the order the corpus rows arrived. Publishing is a separate, curated decision. */
   matches: SubstanceGalleryMatch<Row>[];
   /**
-   * Visual-effect display names that put nothing in the showcase: names with
-   * no effect page to match through (unlinked or umbrella terms) and names
-   * whose effect has no publishable replication. The curation portal teaches
-   * from this list ("tag a replication with these to surface it here").
+   * Visual-effect display names that put nothing in the candidate pool: names
+   * with no effect page to match through (unlinked or umbrella terms) and
+   * names whose effect has no publishable replication. The curation portal
+   * teaches from this list ("tag a replication with these to surface it here").
    */
   unmatchedEffectNames: string[];
 };
@@ -199,10 +200,10 @@ export function resolveVisualEffectSlugs(names: readonly string[]): VisualEffect
  * substance's own name order) found among the tags.
  *
  * Matches lead with videos: an animated rendition is the closest thing the
- * corpus has to the experience itself, so the pre-curation default puts every
- * video before every image. Within each kind the incoming corpus order holds.
- * This is the showcase's default tail order — a stored curation's head order
- * (`mergeCuratedGallery`) still outranks it.
+ * corpus has to the experience itself, so the candidate pool an editor reads
+ * top-down puts every video before every image. Within each kind the incoming
+ * corpus order holds. This orders the *pool*, not the article — nothing here
+ * publishes anything; only `mergeCuratedGallery` does.
  */
 export function matchSubstanceGalleryReplications<Row extends SubstanceGalleryMatchableRow>(
   rows: readonly Row[],
@@ -248,24 +249,56 @@ export function matchSubstanceGalleryReplications<Row extends SubstanceGalleryMa
 }
 
 /**
- * Apply a stored curation to the matched set: the curated head in its stored
- * order, then everything uncurated in the incoming default order, minus the
- * suppressed slugs. Curated slugs that match nothing are ignored rather than
- * leaving holes (`applyCuratedOrder`), so a stale curation degrades gracefully
- * at read time; the write path prunes them permanently.
+ * The publish gate. A substance's showcase is exactly the works an editor
+ * curated, in stored `curated_slugs` order, and nothing else. No curation row
+ * — or a row whose curated list is empty — publishes nothing at all.
+ *
+ * This used to be "curated head, then every remaining match in default order",
+ * which meant an article nobody had ever reviewed still shipped whatever the
+ * effect matcher happened to pile up, and every newly uploaded replication
+ * auto-appeared on every substance sharing its effect. The matcher now only
+ * *proposes*: it fills the curation portal's candidate pool, and a work
+ * reaches an article only once an editor puts it there. That also keeps
+ * `removed_slugs` meaning "deliberately never show this here" rather than
+ * doubling as "not reviewed yet".
+ *
+ * A removed slug is dropped even if it is also curated: a deliberate
+ * suppression outranks a stray promotion, and the invariant must hold at read
+ * time rather than resting on the write path's overlap rejection. Curated
+ * slugs that match nothing are skipped rather than leaving holes, so a stale
+ * curation degrades gracefully; the write path prunes them permanently.
  */
 export function mergeCuratedGallery<Item>(
   matchedItems: readonly Item[],
   curation: SubstanceGalleryCuration | null | undefined,
   slugOf: (item: Item) => string,
 ): Item[] {
-  const ordered = applyCuratedOrder(matchedItems, curation?.curated_slugs, slugOf);
+  const curatedSlugs = curation?.curated_slugs;
+  if (!curatedSlugs?.length) {
+    return [];
+  }
+
+  const bySlug = new Map<string, Item>();
+  for (const item of matchedItems) {
+    const slug = slugOf(item);
+    if (!bySlug.has(slug)) bySlug.set(slug, item);
+  }
+
   const removed = new Set(curation?.removed_slugs ?? []);
-  return removed.size === 0 ? ordered : ordered.filter((item) => !removed.has(slugOf(item)));
+  const published: Item[] = [];
+  for (const slug of curatedSlugs) {
+    if (removed.has(slug)) continue;
+    const item = bySlug.get(slug);
+    if (item === undefined) continue;
+    // A duplicate mention places its item once, at its first position.
+    bySlug.delete(slug);
+    published.push(item);
+  }
+  return published;
 }
 
 export type NormalizedGalleryCuration = {
-  /** Curated head, trimmed, deduplicated, pruned to currently matching slugs. */
+  /** Curated list, trimmed, deduplicated, pruned to currently matching slugs. */
   curatedSlugs: string[];
   /** Suppression list, trimmed, deduplicated, pruned to currently matching slugs. */
   removedSlugs: string[];

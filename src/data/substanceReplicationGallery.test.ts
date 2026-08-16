@@ -177,7 +177,7 @@ describe("matchSubstanceGalleryReplications", () => {
     expect(slugsOf(matches)).toEqual(["motion-a", "motion-b", "still-a", "still-b"]);
   });
 
-  it("lets a stored curation head outrank the videos-first default", () => {
+  it("keeps a curated slug's stored order regardless of the videos-first default", () => {
     const mixed = [
       row({ slug: "still-a", effect_slug: "drifting" }),
       row({ slug: "motion-a", effect_slug: "drifting", type: "video" }),
@@ -185,7 +185,7 @@ describe("matchSubstanceGalleryReplications", () => {
     const { matches } = matchSubstanceGalleryReplications(mixed, ["Visual drifting"]);
     const merged = mergeCuratedGallery(
       matches,
-      { curated_slugs: ["still-a"] },
+      { curated_slugs: ["still-a", "motion-a"] },
       (match) => match.row.slug,
     );
     expect(slugsOf(merged)).toEqual(["still-a", "motion-a"]);
@@ -234,41 +234,56 @@ describe("mergeCuratedGallery", () => {
   ];
   const slugOf = (item: { slug: string }) => item.slug;
 
-  it("leads with the curated head in stored order, then the default tail", () => {
+  it("publishes only the curated slugs, in their stored order", () => {
     const merged = mergeCuratedGallery(
       items,
       { curated_slugs: ["c", "a"], removed_slugs: [] },
       slugOf,
     );
-    expect(merged.map(slugOf)).toEqual(["c", "a", "b", "d"]);
-  });
-
-  it("suppresses removed slugs wherever they sit", () => {
-    const merged = mergeCuratedGallery(
-      items,
-      { curated_slugs: ["c"], removed_slugs: ["b", "d"] },
-      slugOf,
-    );
     expect(merged.map(slugOf)).toEqual(["c", "a"]);
   });
 
-  it("ignores curated slugs that no longer match anything", () => {
-    const merged = mergeCuratedGallery(
-      items,
-      { curated_slugs: ["gone", "b"], removed_slugs: ["also-gone"] },
-      slugOf,
-    );
-    expect(merged.map(slugOf)).toEqual(["b", "a", "c", "d"]);
+  it("publishes nothing without a curation row", () => {
+    // The gate: an unreviewed substance shows no showcase at all, however many
+    // works its visual effects happen to match.
+    expect(mergeCuratedGallery(items, null, slugOf)).toEqual([]);
+    expect(mergeCuratedGallery(items, undefined, slugOf)).toEqual([]);
   });
 
-  it("returns the default order untouched without a curation row", () => {
-    expect(mergeCuratedGallery(items, null, slugOf).map(slugOf)).toEqual(["a", "b", "c", "d"]);
-    expect(mergeCuratedGallery(items, undefined, slugOf).map(slugOf)).toEqual([
-      "a",
-      "b",
-      "c",
-      "d",
-    ]);
+  it("publishes nothing for a curation row with an empty curated list", () => {
+    expect(mergeCuratedGallery(items, { curated_slugs: [], removed_slugs: ["b"] }, slugOf)).toEqual(
+      [],
+    );
+    expect(mergeCuratedGallery(items, {}, slugOf)).toEqual([]);
+  });
+
+  it("never publishes an excluded slug, even when it is also curated", () => {
+    // The invariant behind the deliriant exclusions: a deliberate suppression
+    // outranks a stray promotion at read time, not just at write time.
+    const merged = mergeCuratedGallery(
+      items,
+      { curated_slugs: ["a", "b", "c"], removed_slugs: ["b"] },
+      slugOf,
+    );
+    expect(merged.map(slugOf)).toEqual(["a", "c"]);
+  });
+
+  it("skips curated slugs that no longer match anything", () => {
+    const merged = mergeCuratedGallery(
+      items,
+      { curated_slugs: ["gone", "b", "phantom", "a"], removed_slugs: ["also-gone"] },
+      slugOf,
+    );
+    expect(merged.map(slugOf)).toEqual(["b", "a"]);
+  });
+
+  it("places a duplicated curated slug once, at its first mention", () => {
+    const merged = mergeCuratedGallery(
+      items,
+      { curated_slugs: ["c", "a", "c"], removed_slugs: [] },
+      slugOf,
+    );
+    expect(merged.map(slugOf)).toEqual(["c", "a"]);
   });
 });
 
@@ -317,7 +332,7 @@ describe("normalizeGalleryCuration", () => {
 });
 
 describe("matched → saved → read round trip", () => {
-  it("reproduces the upsert-then-read contract: curated head, default tail, suppressed absent", () => {
+  it("reproduces the upsert-then-read contract: curated slugs only, in stored order", () => {
     const corpus = [
       row({ slug: "one", effect_slug: "drifting" }),
       row({ slug: "two", effect_slug: "drifting" }),
@@ -335,13 +350,14 @@ describe("matched → saved → read round trip", () => {
     });
     expect(stored.prunedCurated).toEqual(["renamed-away"]);
 
-    // Read path: merge the stored echo back over a fresh match.
+    // Read path: apply the stored echo to a fresh match. "three" matched but
+    // was never curated, so the article does not show it.
     const reread = matchSubstanceGalleryReplications(corpus, names);
     const merged = mergeCuratedGallery(
       reread.matches,
       { curated_slugs: stored.curatedSlugs, removed_slugs: stored.removedSlugs },
       (match) => match.row.slug,
     );
-    expect(slugsOf(merged)).toEqual(["four", "one", "three"]);
+    expect(slugsOf(merged)).toEqual(["four", "one"]);
   });
 });

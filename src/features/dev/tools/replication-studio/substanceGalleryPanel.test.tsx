@@ -72,7 +72,7 @@ type PostHandler = (body: {
   expectedUpdatedAt?: string | null;
 }) => { status: number; payload: unknown };
 
-function stubFetch(onPost?: PostHandler) {
+function stubFetch(onPost?: PostHandler, detail: unknown = DETAIL) {
   const posts: { curatedSlugs: string[]; removedSlugs: string[]; expectedUpdatedAt?: string | null }[] = [];
   const fetchMock = vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
     const url = String(input);
@@ -96,7 +96,7 @@ function stubFetch(onPost?: PostHandler) {
         headers: { "Content-Type": "application/json" },
       });
     }
-    const payload = url.endsWith("/substances") ? { substances: SUBSTANCES } : DETAIL;
+    const payload = url.endsWith("/substances") ? { substances: SUBSTANCES } : detail;
     return new Response(JSON.stringify(payload), {
       status: 200,
       headers: { "Content-Type": "application/json" },
@@ -128,13 +128,32 @@ afterEach(() => {
 });
 
 describe("SubstanceGalleryPanel", () => {
-  it("states the cap and the filled-slot count against SHOWCASE_WORK_CAP", async () => {
+  it("counts article slots and uncurated candidates separately", async () => {
     stubFetch();
     renderPanel();
 
-    expect(await screen.findByText("3 of 12 slots filled · 3 matched")).toBeInTheDocument();
-    // The unknown-rights row is on stage at position 1, so the advisory fires.
+    // One curated of three matched: the other two are candidates, not published.
+    expect(await screen.findByText("1 of 12 article slots filled · 2 matched, not curated")).toBeInTheDocument();
+    // The unknown-rights row is curated at position 1, so the advisory fires.
     expect(await screen.findByText(/unknown reuse terms/i)).toBeInTheDocument();
+  });
+
+  it("states that an uncurated substance publishes nothing, and previews nothing", async () => {
+    stubFetch(undefined, { ...DETAIL, curation: null });
+    renderPanel();
+
+    await screen.findByText("Work 2");
+    expect(screen.getByText("0 of 12 article slots filled · 3 matched, not curated")).toBeInTheDocument();
+    expect(
+      screen.getByText(/never curated — this article has never shown a replication showcase/i),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText(/nothing is curated, so this article shows no replication showcase at all/i),
+    ).toBeInTheDocument();
+    // Curated-only publishing means the preview is honestly empty, not broken.
+    expect(screen.getByTestId("stage-preview")).toBeEmptyDOMElement();
+    // A matched but uncurated work never fires the rights advisory.
+    expect(screen.queryByText(/unknown reuse terms/i)).not.toBeInTheDocument();
   });
 
   it("reports dirtiness to the host and undoes a curation with the toolbar", async () => {
@@ -257,8 +276,8 @@ describe("SubstanceGalleryPanel", () => {
     await user.click(screen.getByRole("button", { name: /take theirs/i }));
     expect(screen.getByText("Gallery saved")).toBeInTheDocument();
     expect(screen.getByText(/Last saved 2026-08-03 by someone-else/i)).toBeInTheDocument();
-    // work-3 is now the only pinned row, at position 1.
-    const curatedBand = screen.getByRole("region", { name: /curated head/i });
+    // work-3 is now the only curated row, at position 1.
+    const curatedBand = screen.getByRole("region", { name: /on the article/i });
     expect(within(curatedBand).getByText("Work 3")).toBeInTheDocument();
   });
 
@@ -301,15 +320,16 @@ describe("SubstanceGalleryPanel", () => {
     expect(await screen.findByText("Work 2")).toBeInTheDocument();
   });
 
-  it("feeds the stage preview the effective public order", async () => {
+  it("feeds the stage preview the curated order and nothing else", async () => {
     const user = userEvent.setup();
     stubFetch();
     renderPanel();
 
     await screen.findByText("Work 2");
-    expect(screen.getByTestId("stage-preview")).toHaveTextContent("work-1,work-2,work-3");
+    // work-2 and work-3 match but are not curated, so the article never sees them.
+    expect(screen.getByTestId("stage-preview")).toHaveTextContent("work-1");
 
     await user.click(screen.getByRole("button", { name: "Curate Work 3" }));
-    expect(screen.getByTestId("stage-preview")).toHaveTextContent("work-1,work-3,work-2");
+    expect(screen.getByTestId("stage-preview")).toHaveTextContent("work-1,work-3");
   });
 });

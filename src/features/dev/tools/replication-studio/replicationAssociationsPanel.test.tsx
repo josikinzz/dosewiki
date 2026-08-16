@@ -105,8 +105,9 @@ describe("ReplicationAssociationsPanel", () => {
     // Loading is row-shaped, not bare text.
     expect(container.querySelectorAll(".theme-skeleton-pulse").length).toBeGreaterThan(0);
 
-    expect(await screen.findByText("Appears on 3 drug articles")).toBeInTheDocument();
-    expect(screen.getByText("3 showing · 0 excluded")).toBeInTheDocument();
+    // Only LSD is curated, so only LSD is actually on an article.
+    expect(await screen.findByText("Showing on 1 of 3 drug articles")).toBeInTheDocument();
+    expect(screen.getByText("3 eligible · 0 excluded")).toBeInTheDocument();
     expect(screen.getByText("Associations saved")).toBeInTheDocument();
 
     // Owning-effect matches are grouped apart from tag matches.
@@ -121,12 +122,53 @@ describe("ReplicationAssociationsPanel", () => {
     expect(tagged.getByText("Drifting")).toBeInTheDocument();
   });
 
+  it("labels every row showing, eligible-but-uncurated, or excluded", async () => {
+    const user = userEvent.setup();
+    stubFetch();
+    render(<ReplicationAssociationsPanel row={ROW} />);
+
+    await screen.findByText("Showing on 1 of 3 drug articles");
+
+    // Curated and not excluded: on the article, at its stored position.
+    expect(screen.getByTestId("association-state-lsd")).toHaveTextContent(
+      "Showing · position 2",
+    );
+    expect(screen.queryByTestId("eligible-note-lsd")).not.toBeInTheDocument();
+
+    // Ticked but never curated: allowed, yet nothing shows there.
+    expect(screen.getByTestId("association-state-dmt")).toHaveTextContent(
+      "Eligible · not curated",
+    );
+    expect(screen.getByTestId("eligible-note-dmt")).toHaveTextContent(
+      "nothing shows on this drug yet — unticking only forbids a future curation",
+    );
+
+    // Unticking swaps the eligible row to excluded, and drops the note with it.
+    await user.click(screen.getByRole("checkbox", { name: "DMT" }));
+    expect(screen.getByTestId("association-state-dmt")).toHaveTextContent("Excluded");
+    expect(screen.queryByTestId("eligible-note-dmt")).not.toBeInTheDocument();
+  });
+
+  it("never claims an uncurated replication appears anywhere", async () => {
+    stubFetch({
+      associations: ASSOCIATIONS.map((entry) => ({ ...entry, curatedPosition: null })),
+    });
+    render(<ReplicationAssociationsPanel row={ROW} />);
+
+    expect(await screen.findByText("Showing on 0 of 3 drug articles")).toBeInTheDocument();
+    expect(screen.queryByText(/^Appears on/)).not.toBeInTheDocument();
+
+    // Eligible everywhere, published nowhere — and every row says so.
+    expect(screen.getByText("3 eligible · 0 excluded")).toBeInTheDocument();
+    expect(screen.getAllByText("Eligible · not curated")).toHaveLength(3);
+  });
+
   it("warns inline and in the save summary when unticking a curated drug", async () => {
     const user = userEvent.setup();
     stubFetch();
     render(<ReplicationAssociationsPanel row={ROW} />);
 
-    await screen.findByText("Appears on 3 drug articles");
+    await screen.findByText("Showing on 1 of 3 drug articles");
     expect(screen.queryByTestId("curated-warning-lsd")).not.toBeInTheDocument();
 
     // DMT is not curated: unticking it must not raise a curated warning.
@@ -134,6 +176,9 @@ describe("ReplicationAssociationsPanel", () => {
     expect(screen.getByText("Unsaved changes")).toBeInTheDocument();
     expect(screen.queryByTestId("curated-warning-dmt")).not.toBeInTheDocument();
     expect(screen.queryByText(/Saving will drop/)).not.toBeInTheDocument();
+    expect(screen.getByTestId("association-state-dmt")).toHaveTextContent("Excluded");
+    // DMT published nothing, so the publication count is unmoved.
+    expect(screen.getByText("Showing on 1 of 3 drug articles")).toBeInTheDocument();
 
     // LSD pinned it at position 2, so the row and the save summary both say so.
     await user.click(screen.getByRole("checkbox", { name: "LSD" }));
@@ -143,7 +188,9 @@ describe("ReplicationAssociationsPanel", () => {
     expect(
       screen.getByText(/Saving will drop 1 curated position: LSD \(position 2\)\./),
     ).toBeInTheDocument();
-    expect(screen.getByText("1 showing · 2 excluded")).toBeInTheDocument();
+    expect(screen.getByText("1 eligible · 2 excluded")).toBeInTheDocument();
+    // Excluding the one curated drug takes the last publication with it.
+    expect(screen.getByText("Showing on 0 of 3 drug articles")).toBeInTheDocument();
   });
 
   it("posts the full excluded set and reports the dropped curated positions", async () => {
@@ -160,7 +207,7 @@ describe("ReplicationAssociationsPanel", () => {
     });
     render(<ReplicationAssociationsPanel row={ROW} />);
 
-    await screen.findByText("Appears on 3 drug articles");
+    await screen.findByText("Showing on 1 of 3 drug articles");
     await user.click(screen.getByRole("checkbox", { name: "LSD" }));
     await user.click(screen.getByRole("button", { name: "Save" }));
 
@@ -178,6 +225,8 @@ describe("ReplicationAssociationsPanel", () => {
     expect(screen.getByRole("button", { name: "Save" })).toBeDisabled();
     expect(screen.queryByTestId("curated-warning-lsd")).not.toBeInTheDocument();
     expect(screen.queryByText(/Saving will drop/)).not.toBeInTheDocument();
+    expect(screen.getByText("Showing on 0 of 3 drug articles")).toBeInTheDocument();
+    expect(screen.getByTestId("association-state-lsd")).toHaveTextContent("Excluded");
   });
 
   it("select none unticks every drug and posts them all", async () => {
@@ -185,9 +234,10 @@ describe("ReplicationAssociationsPanel", () => {
     const { posts } = stubFetch();
     render(<ReplicationAssociationsPanel row={ROW} />);
 
-    await screen.findByText("Appears on 3 drug articles");
+    await screen.findByText("Showing on 1 of 3 drug articles");
     await user.click(screen.getByRole("button", { name: "Select none" }));
-    expect(screen.getByText("0 showing · 3 excluded")).toBeInTheDocument();
+    expect(screen.getByText("0 eligible · 3 excluded")).toBeInTheDocument();
+    expect(screen.getByText("Showing on 0 of 3 drug articles")).toBeInTheDocument();
 
     await user.click(screen.getByRole("button", { name: "Save" }));
     await waitFor(() => expect(posts).toHaveLength(1));
@@ -239,7 +289,7 @@ describe("ReplicationAssociationsPanel", () => {
     expect(await screen.findByText("Convex is unreachable.")).toBeInTheDocument();
     await user.click(screen.getByRole("button", { name: /retry/i }));
 
-    expect(await screen.findByText("Appears on 3 drug articles")).toBeInTheDocument();
+    expect(await screen.findByText("Showing on 1 of 3 drug articles")).toBeInTheDocument();
     expect(fetchMock).toHaveBeenCalledTimes(2);
   });
 
@@ -250,7 +300,7 @@ describe("ReplicationAssociationsPanel", () => {
     });
     render(<ReplicationAssociationsPanel row={ROW} />);
 
-    await screen.findByText("Appears on 3 drug articles");
+    await screen.findByText("Showing on 1 of 3 drug articles");
     await user.click(screen.getByRole("checkbox", { name: "DMT" }));
     await user.click(screen.getByRole("button", { name: "Save" }));
 

@@ -141,22 +141,40 @@ describe("setAllAssociations", () => {
 });
 
 describe("summarizeAssociations", () => {
-  it("counts the saved baseline as showing minus excluded", () => {
+  it("counts the saved baseline as showing minus excluded, publishing only curated rows", () => {
     expect(summarizeAssociations(ROWS, associationStateOf(ROWS))).toEqual({
       total: 4,
       showing: 2,
       excluded: 2,
+      // LSD is eligible but uncurated; only DMT survives both gates.
+      published: 1,
       curatedAtRisk: [],
     });
   });
 
-  it("reports every drug showing when the draft excludes nothing", () => {
+  it("separates eligible from published: every drug eligible, only the curated ones showing", () => {
     expect(summarizeAssociations(ROWS, EMPTY)).toEqual({
       total: 4,
       showing: 4,
       excluded: 0,
+      published: 2,
       curatedAtRisk: [],
     });
+  });
+
+  it("publishes nothing when no row is curated, however many are eligible", () => {
+    const rows = [association("lsd"), association("dmt", { matchedVia: "effect_tags" })];
+    const summary = summarizeAssociations(rows, EMPTY);
+
+    expect(summary.showing).toBe(2);
+    expect(summary.published).toBe(0);
+  });
+
+  it("drops a publication as soon as its drug is excluded", () => {
+    const summary = summarizeAssociations(ROWS, toggleAssociation(EMPTY, "dmt"));
+
+    expect(summary.showing).toBe(3);
+    expect(summary.published).toBe(1);
   });
 
   it("counts zero for no rows at all", () => {
@@ -164,6 +182,7 @@ describe("summarizeAssociations", () => {
       total: 0,
       showing: 0,
       excluded: 0,
+      published: 0,
       curatedAtRisk: [],
     });
   });
@@ -214,7 +233,7 @@ describe("summarizeAssociations", () => {
     ];
     const summary = summarizeAssociations(rows, setAllAssociations(associationStateOf(rows), rows, true));
 
-    expect(summary).toMatchObject({ total: 4, showing: 0, excluded: 4 });
+    expect(summary).toMatchObject({ total: 4, showing: 0, excluded: 4, published: 0 });
     expect(summary.curatedAtRisk.map((row) => row.slug)).toEqual(["dmt", "mescaline"]);
   });
 });

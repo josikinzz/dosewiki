@@ -3,11 +3,13 @@
  * (`/dev` → Replications → Substances).
  *
  * The portal edits one substance's curation as two slug lists — the curated
- * head in its exact order and the excluded shelf — against the server-derived
- * match list. Every transition here mirrors the P3 prototype's verdict:
- * exclude is only meaningful for matches, curated∩removed is impossible by
- * construction, and a save submits both full arrays and adopts the server's
- * pruned echo verbatim.
+ * list, in its exact published order, and the excluded shelf — against the
+ * server-derived match list. Curation is a publish gate: a match that is
+ * neither curated nor excluded is a *candidate*, visible here and nowhere
+ * else. Every transition mirrors the P3 prototype's verdict: exclude is only
+ * meaningful for matches, curated∩removed is impossible by construction, and
+ * a save submits both full arrays and adopts the server's pruned echo
+ * verbatim.
  */
 
 import type { StudioMediaType } from "./replicationStudioModel";
@@ -93,8 +95,8 @@ export function curationStatesEqual(a: GalleryCurationState, b: GalleryCurationS
 }
 
 /**
- * Pin a match to the tail of the curated head. Also lifts it off the excluded
- * shelf: a slug can never sit in both lists.
+ * Publish a candidate: append it to the end of the curated list. Also lifts it
+ * off the excluded shelf, since a slug can never sit in both lists.
  */
 export function curateSlug(state: GalleryCurationState, slug: string): GalleryCurationState {
   if (state.curated.includes(slug)) {
@@ -106,7 +108,7 @@ export function curateSlug(state: GalleryCurationState, slug: string): GalleryCu
   };
 }
 
-/** Return a curated match to the default order. */
+/** Unpublish a curated match: it drops back into the candidate pool. */
 export function uncurateSlug(state: GalleryCurationState, slug: string): GalleryCurationState {
   if (!state.curated.includes(slug)) {
     return state;
@@ -116,7 +118,7 @@ export function uncurateSlug(state: GalleryCurationState, slug: string): Gallery
 
 /**
  * Suppress a match onto the excluded shelf. Also un-curates it: exclusion and
- * a pinned position cannot coexist.
+ * a published position cannot coexist.
  */
 export function excludeSlug(state: GalleryCurationState, slug: string): GalleryCurationState {
   if (state.removed.includes(slug)) {
@@ -128,7 +130,7 @@ export function excludeSlug(state: GalleryCurationState, slug: string): GalleryC
   };
 }
 
-/** Lift a match off the excluded shelf, back into the default order. */
+/** Lift a match off the excluded shelf, back into the candidate pool. */
 export function restoreSlug(state: GalleryCurationState, slug: string): GalleryCurationState {
   if (!state.removed.includes(slug)) {
     return state;
@@ -136,7 +138,7 @@ export function restoreSlug(state: GalleryCurationState, slug: string): GalleryC
   return { ...state, removed: state.removed.filter((entry) => entry !== slug) };
 }
 
-/** Move one curated slug a step up or down the head; no-op at the edges. */
+/** Move one curated slug a step up or down the published order; no-op at the edges. */
 export function moveCuratedSlug(
   state: GalleryCurationState,
   slug: string,
@@ -154,7 +156,7 @@ export function moveCuratedSlug(
 }
 
 /**
- * Insert a slug at an exact position in the curated head. Out-of-range indices
+ * Insert a slug at an exact position in the curated list. Out-of-range indices
  * clamp instead of throwing so a drop past the last row means "last", and an
  * already-curated slug moves rather than duplicating. Lifts the slug off the
  * excluded shelf for the same reason `curateSlug` does.
@@ -165,7 +167,7 @@ export function curateSlugAt(
   index: number,
 ): GalleryCurationState {
   const from = state.curated.indexOf(slug);
-  // A move re-inserts into a head one shorter than it is now; an insert appends.
+  // A move re-inserts into a list one shorter than it is now; an insert appends.
   const limit = from === -1 ? state.curated.length : state.curated.length - 1;
   const target = Math.min(Math.max(Math.trunc(index), 0), limit);
   if (from === target && !state.removed.includes(slug)) {
@@ -180,8 +182,8 @@ export function curateSlugAt(
 }
 
 /**
- * Jump a curated slug to the top or bottom of the head — the keyboard and
- * overflow-menu equivalent of dragging it the whole way.
+ * Jump a curated slug to the first or last published position — the keyboard
+ * and overflow-menu equivalent of dragging it the whole way.
  */
 export function moveCuratedSlugToEdge(
   state: GalleryCurationState,
@@ -205,15 +207,15 @@ export function moveCuratedSlugToEdge(
 /**
  * Apply a board drag, in terms of the order the editor can actually see.
  *
- * The stored curation is a *prefix*: an ordered head, then whatever the matcher
- * derives. So a position in the derived tail has no representation of its own —
- * to put a row at absolute position N, every position before N must be pinned
- * too. That is why a drop into the tail pins the rows above it: without that the
- * drop is unexpressible, and the older implementation silently discarded it.
+ * Only the curated list is published, so it is the only thing a drag can
+ * express. Dropping onto a curated row takes that row's index — promoting a
+ * candidate into the article, or reordering the article. Any other drop id
+ * (the un-curate zone, a candidate row, nothing) takes the active row off the
+ * article.
  *
- * Rows past the drop stay derived, so the head only grows as far as the editor
- * actually reordered. Dropping on anything that is not a row (the un-curate
- * zone) still returns the active row to the default order.
+ * The old prefix-pinning rule is gone with the published tail: there is no
+ * longer an absolute position below the curated list for a drop to mean, so
+ * nothing has to be pinned to express one.
  */
 export function applyBoardDrag(
   state: GalleryCurationState,
@@ -224,58 +226,63 @@ export function applyBoardDrag(
   if (activeSlug === overId) {
     return state;
   }
-  const order = board.rows.map((row) => row.match.replication.slug);
-  const from = order.indexOf(activeSlug);
-  const to = order.indexOf(overId);
-  if (from === -1 || to === -1) {
+  // Read the order off the board, not off `state.curated`: the board has
+  // already dropped slugs that match nothing, so indices mean what the editor
+  // sees and a phantom position cannot shift the drop.
+  const curated = board.rows
+    .filter((row) => row.band === "curated")
+    .map((row) => row.match.replication.slug);
+  const to = curated.indexOf(overId);
+  if (to === -1) {
     return uncurateSlug(state, activeSlug);
   }
   // dnd-kit's sortable semantic: the dragged row takes the slot it was dropped
   // on, and everything between shuffles up or down to close the gap.
-  const moved = [...order];
-  moved.splice(from, 1);
-  moved.splice(to, 0, activeSlug);
-  /*
-   * Pin far enough to express the drop, and never drop a row that was already
-   * pinned: promoting from the tail pushes the existing head down by one, so
-   * the cut has to follow the last stored slug to wherever it now sits.
-   */
-  const lastStored = state.curated.reduce((deepest, slug) => Math.max(deepest, moved.indexOf(slug)), -1);
-  const prefix = Math.max(to + 1, lastStored + 1);
-  return { curated: moved.slice(0, prefix), removed: state.removed };
+  const from = curated.indexOf(activeSlug);
+  if (from !== -1) {
+    curated.splice(from, 1);
+  }
+  curated.splice(Math.min(to, curated.length), 0, activeSlug);
+  return { curated, removed: state.removed.filter((slug) => slug !== activeSlug) };
 }
 
-/** Which band a board row sits in: the pinned head or the default tail. */
+/** Which band a board row sits in: on the article, or in the candidate pool. */
 export type GalleryBand = "curated" | "auto";
 
 export type GalleryBoardRow = {
   match: GalleryMatch;
-  /** 1-based position in the effective public order. */
-  position: number;
-  /** True when position <= cap: the article's stage renders this row. */
+  /**
+   * 1-based position on the article. Null for a candidate: it is not
+   * published, so it has no position to claim.
+   */
+  position: number | null;
+  /** True when the row is curated and its position is within the stage cap. */
   onStage: boolean;
   band: GalleryBand;
 };
 
 export type GalleryBoard = {
-  /** Curated head then auto tail, numbered continuously from 1. */
+  /** Curated rows first, numbered from 1; then the unordered candidate pool. */
   rows: GalleryBoardRow[];
   excluded: GalleryMatch[];
-  /** min(rows.length, cap) — how many of the cap public slots are filled. */
+  /** min(curatedCount, cap) — how many of the cap public slots are filled. */
   filledSlots: number;
-  /** max(0, cap - rows.length) — rendered as ghost frames. */
+  /** max(0, cap - curatedCount) — rendered as ghost frames. */
   emptySlots: number;
-  /** Count of rows in the curated band. */
+  /** Rows the article publishes (before the cap). */
   curatedCount: number;
+  /** Matched works that are neither curated nor excluded: the candidate pool. */
+  candidateCount: number;
   cap: number;
 };
 
 /**
- * Order the matches exactly as the public stage will: curated head in stored
- * order, then everything else in corpus order, excluded slugs dropped. Curated
- * or removed slugs that match nothing simply vanish — the same read-time
- * tolerance as the public merge, so numbering never leaves a hole; the save
- * prunes them permanently and the echo makes the pruning visible.
+ * Split the matches three ways: what the article publishes (the curated list
+ * in stored order, minus exclusions), the candidate pool the matcher proposes,
+ * and the excluded shelf. Curated or removed slugs that match nothing simply
+ * vanish — the same read-time tolerance as the public merge, so numbering
+ * never leaves a hole; the save prunes them permanently and the echo makes the
+ * pruning visible.
  */
 function orderGallery(
   matches: readonly GalleryMatch[],
@@ -303,9 +310,11 @@ function orderGallery(
 }
 
 /**
- * The board the portal draws: one continuously numbered list across both
- * bands, plus the slot arithmetic that makes the article's hard cap visible —
- * the whole point of the surface is knowing which rows fall off the stage.
+ * The board the portal draws: the curated rows the article publishes, numbered
+ * against the stage cap, followed by the candidate pool the matcher proposes.
+ * Candidates carry no number because they appear nowhere — the slot arithmetic
+ * counts the curated rows alone, which is what makes "3 of 12 curated" an
+ * honest progress signal instead of a promise the article does not keep.
  */
 export function buildGalleryBoard(
   matches: readonly GalleryMatch[],
@@ -313,32 +322,38 @@ export function buildGalleryBoard(
   cap: number,
 ): GalleryBoard {
   const { curated, auto, excluded } = orderGallery(matches, state);
-  const rows: GalleryBoardRow[] = [];
-  for (const match of curated) {
-    const position = rows.length + 1;
-    rows.push({ match, position, onStage: position <= cap, band: "curated" });
-  }
+  const rows: GalleryBoardRow[] = curated.map((match, index) => ({
+    match,
+    position: index + 1,
+    onStage: index + 1 <= cap,
+    band: "curated",
+  }));
   for (const match of auto) {
-    const position = rows.length + 1;
-    rows.push({ match, position, onStage: position <= cap, band: "auto" });
+    rows.push({ match, position: null, onStage: false, band: "auto" });
   }
   return {
     rows,
     excluded,
-    filledSlots: Math.min(rows.length, cap),
-    emptySlots: Math.max(0, cap - rows.length),
+    filledSlots: Math.min(curated.length, cap),
+    emptySlots: Math.max(0, cap - curated.length),
     curatedCount: curated.length,
+    candidateCount: auto.length,
     cap,
   };
 }
 
-/** The effective public order: curated head, then the auto tail. */
+/**
+ * What the article publishes: the curated works in stored order, exclusions
+ * dropped, and nothing else. This feeds the portal's article preview, so it
+ * must stay in lockstep with `mergeCuratedGallery` in
+ * `src/data/substanceReplicationGallery` — the public gate. Any divergence is
+ * a preview that lies about what a reader will see.
+ */
 export function effectiveGalleryOrder(
   matches: readonly GalleryMatch[],
   state: GalleryCurationState,
 ): GalleryMatch[] {
-  const { curated, auto } = orderGallery(matches, state);
-  return [...curated, ...auto];
+  return orderGallery(matches, state).curated;
 }
 
 /**

@@ -16,6 +16,10 @@
  * authority on which slugs still match. And every slot decision is measured
  * against `SHOWCASE_WORK_CAP` rather than a copy of the number — the article
  * truncates after the cap, so the board has to say so out loud.
+ *
+ * What did change is the gate. Matching is no longer publishing: an article
+ * renders curated works only, so every count and every sentence here has to
+ * separate "matched this substance" from "on the article".
  */
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -684,7 +688,7 @@ export function SubstanceGalleryPanel({
       headingLevel="h3"
       icon="lucide:images"
       title="Substance Replication Showcases"
-      description={`Each substance article's Visual group ends with its matched replications. The article renders the first ${SHOWCASE_WORK_CAP} of the effective order and nothing else; curated rows play first in this exact order, everything else follows the corpus default, and excluded rows never surface on that article.`}
+      description={`Each substance article's Visual group ends with its curated replications — and only those. A matched work stays in this portal until you curate it; nothing reaches the article on its own. The article draws the first ${SHOWCASE_WORK_CAP} curated works in this exact order, and excluded rows never surface there at all.`}
     >
       <div aria-live="polite" className="sr-only">
         {announcement}
@@ -699,8 +703,8 @@ export function SubstanceGalleryPanel({
         />
         {detail ? (
           <>
-            <EditorStatusPill tone={board.filledSlots >= board.cap ? "info" : "neutral"}>
-              {`${board.filledSlots} of ${board.cap} slots filled · ${matches.length} matched`}
+            <EditorStatusPill tone={board.filledSlots > 0 ? "info" : "neutral"}>
+              {`${board.filledSlots} of ${board.cap} article slots filled · ${board.candidateCount} matched, not curated`}
             </EditorStatusPill>
             <div className="min-w-0">
               <p className="theme-text-muted font-mono text-xs">
@@ -779,7 +783,7 @@ export function SubstanceGalleryPanel({
               </span>
             ) : (
               <span className="theme-text-faint text-xs">
-                Never curated — the article runs on the default order.
+                Never curated — this article has never shown a replication showcase.
               </span>
             )}
           </div>
@@ -827,7 +831,7 @@ export function SubstanceGalleryPanel({
 
       {detail && unknownRightsOnStage > 0 ? (
         <ActionNotice tone="warning">
-          {unknownRightsOnStage} of the {board.filledSlots} rows the article will show
+          {unknownRightsOnStage} of the {board.filledSlots} curated works the article will show
           {unknownRightsOnStage === 1 ? " has" : " have"} unknown reuse terms. Advisory only — check the
           rights before featuring them this prominently.
         </ActionNotice>
@@ -841,7 +845,7 @@ export function SubstanceGalleryPanel({
           <p className="theme-text-muted">{detail.unmatchedEffectNames.join(" · ")}</p>
           <p className="theme-text-faint text-xs">
             Tag a corpus row with the effect below — or set it as the row's owning effect — and it will
-            surface here and on the article.
+            join this substance's candidate pool, ready to curate onto the article.
           </p>
         </EmptyStateSurface>
       ) : null}
@@ -881,8 +885,8 @@ export function SubstanceGalleryPanel({
                 Its visual effects: {detail.unmatchedEffectNames.join(" · ")}
               </p>
               <p className="theme-text-faint text-xs">
-                Tag a corpus row with one of these effects — or set it as the row's owning effect — and it
-                will appear here and on the article.
+                Tag a corpus row with one of these effects — or set it as the row's owning effect — and
+                it will join this substance's candidate pool, ready to curate onto the article.
               </p>
             </>
           ) : (
@@ -940,7 +944,7 @@ export function SubstanceGalleryPanel({
               onClick={() => setPreviewOpen((open) => !open)}
             >
               <Icon icon={previewOpen ? "lucide:chevron-down" : "lucide:chevron-right"} size={14} />
-              Article preview — the real stage, in this order
+              Article preview — the real stage, showing only what is curated
             </Button>
             {previewOpen ? <GalleryStagePreview matches={effectiveOrder} /> : null}
           </div>

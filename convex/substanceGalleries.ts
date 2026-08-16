@@ -15,10 +15,13 @@ import { isPublishableReplication } from "../src/types/replications";
 import type { ReplicationAssociation } from "../src/features/dev/tools/replication-studio/replicationAssociationModel";
 
 /**
- * Per-substance Replication Showcase: derived effect matching plus the stored
- * `substanceGalleries` curation row.
+ * Per-substance Replication Showcase: derived effect matching behind a stored
+ * `substanceGalleries` curation row that acts as a publish gate.
  *
- * The matching, merging, and prune rules live in
+ * Matching only proposes candidates. An article shows the curated slugs and
+ * nothing else, so a substance nobody has curated shows no showcase at all —
+ * see `mergeCuratedGallery` for why the automatic pile had to stop shipping.
+ * The matching, gate, and prune rules live in
  * `src/data/substanceReplicationGallery` — pure and shared with the article
  * showcase and the DevTools curation portal — so this module only wires them
  * to the database. The public read is served through
@@ -54,14 +57,17 @@ export const getBySubstance = query({
 });
 
 /**
- * The ordered, publishable Replication Showcase for one substance: curated
- * head in stored order, surviving auto-matches in default corpus order,
- * suppressed slugs absent, with per-item match provenance and the substance's
- * unmatched visual-effect names for the portal's teaching state.
+ * The published Replication Showcase for one substance: the curated slugs in
+ * their stored order, suppressed slugs absent, with per-item match provenance
+ * and the substance's unmatched visual-effect names for the portal's teaching
+ * state.
  *
- * A slug naming no substance, a substance with no visual effects, and a
- * substance whose effects match nothing all return an empty gallery — never
- * an error, because "nothing to show" is this surface's normal case.
+ * Curation is a publish gate (`mergeCuratedGallery`), so a substance with no
+ * curation row, or one whose curated list is empty, returns no items however
+ * many works its effects match. A slug naming no substance, a substance with
+ * no visual effects, and a substance whose effects match nothing return the
+ * same empty gallery — never an error, because "nothing to show" is this
+ * surface's normal case.
  */
 export const getPublicReplicationsForSubstance = query({
   args: { substance_slug: v.string() },
@@ -159,12 +165,17 @@ export const listCurationCandidatesPage = query({
 
 /**
  * Everything the curation portal's per-substance panel draws in one read:
- * publishable matches in default corpus order with per-item provenance and
+ * every publishable match in default corpus order with per-item provenance and
  * resolved media URLs, the stored curation row (or null), the substance's
  * matchable visual effects (`effectOptions`, what the portal's tag-to-add
  * control offers), and the unmatched visual-effect names the teaching state
- * lists. Unlike the public read this never merges — the portal needs the raw
- * default order and the curation separately to draw the three temperatures.
+ * lists.
+ *
+ * Unlike the public read this never applies the publish gate: the portal is
+ * the one surface that must see the whole candidate pool, curated or not, and
+ * it needs the raw match order and the curation separately to draw the three
+ * temperatures. So `matches` here is a superset of what the article shows —
+ * often a large one, since an uncurated substance publishes nothing.
  *
  * Returns null for a slug naming no (or an ambiguous) substance.
  */
@@ -392,7 +403,7 @@ function associationProvenance(
 
 /**
  * The other side of the same derivation: which substance articles one
- * replication currently appears on.
+ * replication is eligible for, and which of those actually show it.
  *
  * Nothing links a replication to a substance — the association is derived on
  * every read from the article's visual-effect names, so there is no join row to
@@ -405,11 +416,13 @@ function associationProvenance(
  *
  * `excluded` and `curatedPosition` are the stored delta from that substance's
  * `substanceGalleries` row — the saved baseline the editor's draft is diffed
- * against, never anything derived from the request.
+ * against, never anything derived from the request. Since curation is a
+ * publish gate, `curatedPosition !== null` is the only field that means the
+ * work appears on that article; eligibility alone means it could.
  *
- * A slug naming no replication, or naming a figure or audio row, appears on no
- * article at all: that answers with an empty page rather than an error, the
- * same way the public read treats "nothing to show" as normal.
+ * A slug naming no replication, or naming a figure or audio row, is eligible
+ * for no article at all: that answers with an empty page rather than an error,
+ * the same way the public read treats "nothing to show" as normal.
  */
 export const getReplicationAssociationsPage = query({
   args: {
