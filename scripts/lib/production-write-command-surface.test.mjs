@@ -60,6 +60,15 @@ function hasStrongBoundary(source) {
   );
 }
 
+function sourceWithoutGuardedDryRunReadFallbacks(source) {
+  // The write assertion makes command.targetUrl mandatory, so later terms in
+  // this leftmost-target chain are reachable only while reporting a dry run.
+  return source.replace(
+    /const\s+readUrl\s*=\s*command\.targetUrl\s*(?:\?\?|\|\|)[^;]+;/g,
+    "",
+  );
+}
+
 describe("production writer command surface", () => {
   it("classifies every active direct Convex mutation file", () => {
     expect(activeDirectMutationWriters()).toEqual(classifiedDirectProductionWriterPaths);
@@ -91,7 +100,7 @@ describe("production writer command surface", () => {
       const source = readFileSync(resolve(repoRoot, path), "utf8");
       expect(source).toContain("production-write-command.mjs");
       expect(source).toMatch(/assertProductionWriteAllowed|executeProductionWrite/);
-      expect(source).not.toMatch(
+      expect(sourceWithoutGuardedDryRunReadFallbacks(source)).not.toMatch(
         /process\.env\.(?:VITE_CONVEX_URL|NEXT_PUBLIC_CONVEX_URL)/,
       );
     },

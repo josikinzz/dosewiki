@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 import { buildPublicPageMetadata } from "@server/next/publicSite";
-import { loadReportRoute, REPORT_FALLBACK_METADATA } from "@server/next/routeLoaders";
+import { loadReportRoute, REPORT_FALLBACK_METADATA } from "@server/next/routeLoaders.reports";
 import { getStaticReportParams } from "@server/next/staticParams";
 import { getReportBackTarget } from "@/features/reports/domain/tripReportIndex";
 import { TripReportDetailPage } from "@/features/reports/pages/TripReportDetailPage";

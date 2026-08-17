@@ -81,10 +81,13 @@ the InChI/canonical-SMILES stereo guards and class-template substructure alignme
   and revalidates the public substance page. Save marks the row `source: "editor"`. The public
   article and chemical-class comparison panels serve the stored SVG through a URL versioned by
   `updatedAt`; the image response is immutable because every save creates a new URL. A short CDN
-  revalidation propagation delay can remain. Convex rows do **not** update the legacy Python
-  fallback pipeline or download pack. `npm run molecules:rerender-convex` regenerates every
-  stored SVG from its stored MOL block (svg-only, provenance-preserving, race-guarded) — used
-  once for the RDKit→OpenChemLib engine switch and available for any future renderer change.
+  revalidation propagation delay can remain. A save does not rewrite the committed
+  download pack immediately: run `npm run molecules:pack` to update it locally, or
+  let `.github/workflows/molecule-pack-nightly.yml` rebuild and commit changed pack
+  files. The updated downloads become public when that commit is deployed.
+  `npm run molecules:rerender-convex` regenerates every stored SVG from its stored
+  MOL block (svg-only, provenance-preserving, race-guarded) — used once for the
+  RDKit→OpenChemLib engine switch and available for any future renderer change.
 
 ## Renderer verification notes
 

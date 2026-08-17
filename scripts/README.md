@@ -71,17 +71,15 @@ must opt into `allowLocalTarget` in code and still require both `--execute` and
 HTTP targets remain rejected, and production targets still require HTTPS plus
 the deployment fingerprint ceremony.
 
-This is the default for every active Convex writer, not only the examples below.
-The machine-readable inventory is `scripts/lib/production-writer-inventory.mjs`:
-it currently classifies 27 direct mutation files, 25 guarded indirect
-entrypoints, and 21 fail-closed archived writers. An AST-backed workflow test
-rescans active scripts for arbitrary-receiver or aliased `.mutation()` calls,
-Convex CLI runs, and statically resolvable POST/PUT/PATCH/DELETE requests; a new
-detected writer must be classified or carry a documented read-only exemption.
-Runtime-generated commands or methods that cannot be resolved statically still
-require manual inventory review. Commands
-with an older operation-specific flag, such as `--confirm-citation-write`, keep
-that flag and also require the common operation phrase and deployment fingerprint.
+This boundary applies to every active Convex writer. The machine-readable source
+of truth is `scripts/lib/production-writer-inventory.mjs`. Its AST-backed workflow
+test scans active scripts for arbitrary-receiver or aliased `.mutation()` calls,
+Convex CLI runs, and statically resolvable POST/PUT/PATCH/DELETE requests; every
+newly detected writer must be classified or carry a documented read-only
+exemption. Runtime-generated commands or methods that cannot be resolved
+statically still require manual inventory review. Commands with an older
+operation-specific flag, such as `--confirm-citation-write`, keep that flag and
+also require the common operation phrase and deployment fingerprint.
 
 Prompt, contributor-profile, quote, article, citation, and replication writers
 resolve their intent-specific `CONVEX_ADMIN_TOKEN_*` credential before falling
@@ -1158,10 +1156,11 @@ summary records before anything writes data.
 Data operation scripts in `scripts/convex/`, `scripts/migrate/`, and
 `scripts/prepopulate/` should resolve repo root, `.env.local`, Convex source and
 target URLs, dry-run mode, local artifact scope, and destructive confirmation
-through `scripts/lib/data-ops-run-context.mjs`. Production sync requires
-`--confirm-production-sync`, cross-deployment trip report copy requires
-`--confirm-cross-deployment-copy`, and replace-all SubstanceIndex import requires
-`--confirm-replace`.
+through `scripts/lib/data-ops-run-context.mjs`. Cross-deployment commands are
+exceptional recovery tools: production sync requires
+`--confirm-production-sync`, trip report copy requires
+`--confirm-cross-deployment-copy`, and replace-all SubstanceIndex recovery
+requires `--confirm-replace`.
 
 Production sync resolves credentials only for authenticated tables selected by
 `--tables`. `substanceIndex` and `siteConfig` prefer the editor article-write
@@ -1282,7 +1281,19 @@ The verifier checks local dependency resolution, rejects nested Git metadata, an
 npm run convex:export
 npm run convex:migrate-user-profiles -- --dry-run
 npm run convex:migrate-user-profiles -- --email-map=tmp/profile-email-map.json
-export SOURCE_CONVEX_URL="https://<source-deployment>.convex.cloud"
+```
+
+### Exceptional cross-deployment recovery
+
+Use cross-deployment commands only to execute an approved recovery plan into the
+canonical production deployment. Normal local, development, preview, and
+production work reads and writes `glad-minnow-656`; these commands are not a
+deployment-mirroring workflow.
+
+To recover selected Convex tables from an identified source:
+
+```bash
+export SOURCE_CONVEX_URL="https://<recovery-source-deployment>.convex.cloud"
 export TARGET_CONVEX_URL="https://glad-minnow-656.convex.cloud"
 npm run convex:sync-production -- \
   --tables=prompts,quotes \
@@ -1292,28 +1303,28 @@ npm run convex:sync-production -- \
   --expected-deployment=glad-minnow-656
 ```
 
-### Molecule Override Replication
+To recover molecule overrides from an identified source, review the dry-run plan
+before repeating the command with every write gate:
 
 ```bash
-export SOURCE_CONVEX_URL="https://glad-minnow-656.convex.cloud"
-export TARGET_CONVEX_URL="https://<mirror-deployment>.convex.cloud"
-npm run molecules:copy-overrides                 # dry run: prints the copy plan
+export SOURCE_CONVEX_URL="https://<recovery-source-deployment>.convex.cloud"
+export TARGET_CONVEX_URL="https://glad-minnow-656.convex.cloud"
+npm run molecules:copy-overrides
 npm run molecules:copy-overrides -- \
   --write \
   --confirm-molecule-copy \
   --confirm-write=copy-molecule-overrides-between-deployments \
-  --expected-deployment=<mirror-deployment>
+  --expected-deployment=glad-minnow-656
 ```
 
-`copy-molecule-overrides.mjs` mirrors the canonical `moleculeOverrides` table
-between deployments (prod → dev mirror) through
-`moleculeOverrides.replicate`, preserving each row's `source`, `updatedAt`,
-and `updatedBy` verbatim. The dry-run default uses only public queries and
-plans creates (slug missing on target) and updates (`updatedAt` differs, or
-`svg` differs when timestamps match). Writes require the `editorArticleWrite`
-intent token plus the standard explicit confirmations. Target rows absent on
-the source are reported; add `--delete-extra` to remove them. A run report is
-written to `tmp/molecule-copy/report.json`.
+`copy-molecule-overrides.mjs` preserves each recovered row's `source`,
+`updatedAt`, and `updatedBy`. Its dry run uses public queries and plans creates
+when a slug is missing on the target and updates when `updatedAt` differs, or
+when `svg` differs at the same timestamp. Writes require the
+`editorArticleWrite` intent token plus every confirmation above. Target rows
+absent from the source are reported. If an approved recovery plan calls for
+their removal, add `--delete-extra` to the same fully gated write command. The
+run report is written to `tmp/molecule-copy/report.json`.
 
 ### Analysis
 

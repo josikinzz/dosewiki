@@ -19,6 +19,8 @@ interface SubstanceArticlePageProps {
   article: SubstanceArticle;
   content?: SubstanceContent;
   fromSubstanceSlug?: string;
+  linkableSubstanceSlugs?: readonly string[];
+  linkableCategoryKeys?: readonly string[];
   relatedTripReports?: TripReport[];
   tripReportsSection?: ReactNode;
   hasRelatedTripReports?: boolean;
@@ -40,6 +42,8 @@ export function SubstanceArticlePage({
   article,
   content,
   fromSubstanceSlug,
+  linkableSubstanceSlugs,
+  linkableCategoryKeys,
   relatedTripReports,
   tripReportsSection,
   hasRelatedTripReports,
@@ -56,6 +60,8 @@ export function SubstanceArticlePage({
         article={article}
         content={content}
         fromSubstanceSlug={fromSubstanceSlug}
+        linkableSubstanceSlugs={linkableSubstanceSlugs}
+        linkableCategoryKeys={linkableCategoryKeys}
         relatedTripReports={relatedTripReports}
         tripReportsSection={tripReportsSection}
         hasRelatedTripReports={hasRelatedTripReports}
@@ -69,5 +75,3 @@ export function SubstanceArticlePage({
     </main>
   );
 }
-
-export default SubstanceArticlePage;

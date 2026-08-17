@@ -1,38 +1,39 @@
 # Citation Production Rollout
 
-Last updated: 2026-07-19
+Last updated: 2026-08-16
 
-This runbook promotes reviewed citation workbench drafts to the public site without using broad dataset syncs for the initial rollout.
+This runbook promotes reviewed citation drafts to production one slug at a time. The full app is available at `https://dosewiki-admin.vercel.app/`; the public hosts remain construction-gated through 2026-08-31 and require explicit user launch authorization.
 
 ## Method
 
 Use three gates:
 
-1. Archive the current production/public Convex dataset.
-2. Promote one reviewed workbench draft to production by slug.
-3. Verify the public article, then repeat in small batches for common drugs.
+1. Archive `glad-minnow-656`.
+2. Dry-run and write one reviewed draft by slug.
+3. Verify the admin root-slug route before selecting another slug.
 
-Do not use `convex:sync-production` for the first cited-article rollout. It is table-scoped, not slug-scoped, and is too broad for the first production test.
+Use the slug-scoped citation apply path. `convex:sync-production` is table-scoped and is not an acceptable substitute.
 
 ## Preconditions
 
-- The workbench run is complete and validated in `/Users/josie/.codex/dosewiki-citation-workbench`.
-- The workbench run passed validation after article-wide assembly. Section worker launches were verified against the citable section set, the six-section status table is resolved, and missing citable section outputs are acceptable as warnings when the original section is preserved exactly and no unsupported public markers are added.
-- The draft has been reviewed: `runs/<slug>/citation-draft.json` and `runs/<slug>/citation-report.md`.
-- The remap/proactive scan gate passed before article-wide packet build.
-- If accepted section work exists, `article-wide.json` was inspected after size/mtime stabilized and passed `npm run check:worker-output -- --run runs/<slug> --article-wide`; 156-byte stubs, empty `markedSections`/`references`/`evidence`, markers with zero references/evidence, evidence rows missing `status`, marker/evidence mismatches, or returned sections with fewer markers than the accepted article-wide input require repair or rerun before promotion.
+- The selected Pi or explicitly requested external Claude run is complete and validated in `/Users/josie/.codex/dosewiki-citation-workbench`.
+- `runs/<slug>/citation-draft.json` and `runs/<slug>/citation-report.md` have been reviewed.
+- The run's section checks, reconciliation gates, article-wide artifact check, assembly, `validate`, and `validate:patches` passed. Missing citable sections remain warnings only when the original section is preserved exactly and no unsupported public marker is added.
+- If accepted section work exists, article-wide output is non-empty and satisfies the artifact contract. A 156-byte stub, empty `markedSections`/`references`/`evidence`, markers with zero references/evidence, evidence without `status`, marker/evidence mismatches, or fewer returned markers than accepted input requires repair before promotion.
 - The production Convex deployment has the structured `references` article field and `citationEvidence.applyDraft` function.
 - The target environment is explicit. Set `TARGET_CONVEX_URL` for dry-runs and writes, and pass a matching `--expected-deployment`; browser/default Convex URL fallbacks are rejected.
 - The citation write token is available as `CONVEX_ADMIN_TOKEN_CITATION_EVIDENCE_WRITE`.
 - Stable command policy for archive/apply/formal citation operations is declared in `scripts/lib/citation-command-surface.mjs`.
 
-## Archive Production First
+- Run all repository commands below from the DoseWiki repository root.
 
-Before the first production citation write, archive the current public dataset:
+## Archive production first
+
+Before a new promotion campaign, archive `glad-minnow-656` from the repository root:
 
 ```bash
-export SOURCE_CONVEX_URL="$TARGET_CONVEX_URL"
-npm run citations:archive-production-dataset -- --label=pre-2c-b-citation-rollout
+SOURCE_CONVEX_URL=https://glad-minnow-656.convex.cloud \
+  npm run citations:archive-production-dataset -- --label=pre-citation-rollout
 ```
 
 This writes a dated folder under `archive/citation-rollout/` containing:
@@ -43,17 +44,15 @@ This writes a dated folder under `archive/citation-rollout/` containing:
 
 Keep this archive until the citation rollout is stable and a later production snapshot supersedes it.
 
-## Promote The Test Drug
+## Promote one reviewed slug
 
-Use `2c-b` as the first production canary for a new target environment. If
-`2c-b` has already been promoted and smoke-checked for the current target, use
-the same gates below for the next explicitly selected slug.
+`2c-b` is the completed historical production canary. Apply the same gates to the next explicitly selected `<drug-slug>`; do not rerun 2C-B merely because it was the original canary.
 
-Dry-run against production:
+Dry-run against production from the repository root:
 
 ```bash
-export TARGET_CONVEX_URL="https://glad-minnow-656.convex.cloud"
-npm run citations:apply-workbench -- --slug=2c-b --dry-run \
+TARGET_CONVEX_URL=https://glad-minnow-656.convex.cloud \
+  npm run citations:apply-workbench -- --slug=<drug-slug> --dry-run \
   --expected-deployment=glad-minnow-656
 ```
 
@@ -64,81 +63,42 @@ Also check for the known workbench failure modes before writing: quote fidelity 
 Write only after the dry-run is clean:
 
 ```bash
-npm run citations:apply-workbench -- --slug=2c-b --write --confirm-citation-write \
+TARGET_CONVEX_URL=https://glad-minnow-656.convex.cloud \
+  npm run citations:apply-workbench -- --slug=<drug-slug> \
+  --write --confirm-citation-write \
   --confirm-write=apply-citation-workbench-draft \
   --expected-deployment=glad-minnow-656
 ```
 
 `citations:apply-workbench` is always a shared data-ops operation: dry-run is the review gate, both modes require the same deployment-pinned target, and writes additionally require `--write`, `--confirm-citation-write`, and the shared confirmation phrase. Never apply multiple slugs in one mutation or infer a target from `VITE_CONVEX_URL`.
 
-## Verify Production
+## Verify production
 
 After the write:
 
-- Open the production `/substances/2c-b` page.
+- Open `https://dosewiki-admin.vercel.app/<drug-slug>`. Substance articles use the root-slug route, not `/substances/<drug-slug>`.
 - Confirm citation markers render only where supported evidence exists.
 - Confirm the source/reference section lists the new structured references.
-- Confirm the `needs_review` evidence row is visible only in review tooling, not as public article content.
-- Check the citation review view for blocking diagnostics before moving to the next drug.
+- Confirm `needs_review` evidence appears only in `https://dosewiki-admin.vercel.app/dev/citation-review/<drug-slug>`, not in public article content.
+- Resolve every blocking citation diagnostic before selecting another slug.
 
-If production output is wrong, stop the rollout. Use the archived `SubstanceIndex.json` as the recovery source of truth for the previous public dataset; do not patch local JSON directly as a live fix.
+Do not use `dose.wiki` or `www.dose.wiki` for rollout verification while the construction gate is active through 2026-08-31. Those hosts still require explicit user launch authorization after that date.
 
-## Roll Out Common Drugs
+If the output is wrong, stop the rollout. Use the archived `SubstanceIndex.json` as the recovery source of truth for the previous production dataset; do not patch local JSON as a live fix.
 
-After 2C-B is verified, run the homepage `common` drugs locally first. Promote the common-drug set for review, then stop before scaling to other homepage-visible drugs.
+Completion criterion: the write and post-write read target `glad-minnow-656`, the admin root-slug article renders the reviewed markers and references, review tooling has no blocking diagnostics, and the next slug remains untouched.
 
-1. Run or confirm fresh workbench output for the next common-drug slug.
-2. Validate workbench output. Confirm the section status table covers all six
-   citable sections; run worker-output checks for existing section files:
+## Roll out common drugs
 
-```bash
-cd /Users/josie/.codex/dosewiki-citation-workbench
-npm run check:worker-output -- --run runs/<drug-slug> --section summary
-npm run check:worker-output -- --run runs/<drug-slug> --section pharmacology
-npm run check:worker-output -- --run runs/<drug-slug> --section tolerance
-npm run check:worker-output -- --run runs/<drug-slug> --section harm_potential
-npm run check:worker-output -- --run runs/<drug-slug> --section history_culture
-npm run check:worker-output -- --run runs/<drug-slug> --section legality
-node /Users/josie/.codex/dosewiki-citation-workbench/scripts/remap-section-reference-ids.mjs --run runs/<drug-slug>
-# If remaps are reported, run:
-node /Users/josie/.codex/dosewiki-citation-workbench/scripts/remap-section-reference-ids.mjs --run runs/<drug-slug> --write
-# Then always run:
-node /Users/josie/.codex/dosewiki-citation-workbench/scripts/proactive-scan.mjs --run runs/<drug-slug>
-npm run validate -- --run runs/<drug-slug>
-npm run validate:patches -- --run runs/<drug-slug>
-```
+The historical 2C-B canary already meets the completion criterion. Repeat the same gates only for an explicitly selected homepage `common` slug:
 
-Skip `check:worker-output` commands for missing section files and confirm the
-missing section appears as a validation/report warning with the original section
-preserved.
+1. Complete and review the fresh run under [Citation Workbench Agent Notes](agents/citation-workbench.md).
+2. Dry-run the production apply from the repository root with `TARGET_CONVEX_URL=https://glad-minnow-656.convex.cloud` and `--expected-deployment=glad-minnow-656`.
+3. Review the full diff and report.
+4. Write one slug with the same production target and confirmation flags.
+5. Verify `https://dosewiki-admin.vercel.app/<drug-slug>` and its citation-review diagnostics before selecting another slug.
 
-3. Dry-run production apply:
-
-```bash
-cd "/Users/josie/Documents/Utilities/dose.wiki copy"
-TARGET_CONVEX_URL=https://glad-minnow-656.convex.cloud \
-  npm run citations:apply-workbench -- --slug=<drug-slug> --dry-run \
-  --expected-deployment=glad-minnow-656
-```
-
-4. Review the dry-run diff and report.
-5. Write one slug:
-
-```bash
-TARGET_CONVEX_URL=https://glad-minnow-656.convex.cloud \
-  npm run citations:apply-workbench -- --slug=<drug-slug> --write --confirm-citation-write \
-  --confirm-write=apply-citation-workbench-draft \
-  --expected-deployment=glad-minnow-656
-```
-
-6. Verify the public page before the next slug.
-
-Batch policy:
-
-- Perfect the 2C-B canary first, even if that means rerunning it multiple times.
-- Run common homepage drugs locally and archive outputs.
-- Promote common drugs in small reviewed batches, one write operation at a time.
-- Stop after the common-drug review stage before continuing to other homepage-visible drugs.
+Run common drugs locally and archive their outputs. Promote them in small reviewed batches, one write operation at a time. Stop after the common-drug review stage until the user explicitly selects another homepage-visible drug.
 
 ## Boundaries
 

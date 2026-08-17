@@ -1,100 +1,75 @@
-# Codebase Audit Report
-> Generated: 2026-04-23 14:06 MDT | Project: dose.wiki | Total source files: 815 | Total LOC: 83,567
+# Cleanup Audit
 
-> Scope note (2026-04-23): this audit summarizes the earlier cleanup wave that produced the root-level tracker.
-> The active oversized-file cleanup execution plan now lives in [archive/cleanup/CLEANUP-TASKS.md](archive/cleanup/CLEANUP-TASKS.md) and excludes markdown/non-code files from progress accounting.
-> Final note (2026-04-23): the code-only cleanup execution tracked in `archive/cleanup/CLEANUP-TASKS.md` is complete.
-> Structure note (2026-04-23): a final organization pass retired the tracked root `api/_utils` helper island; active server GitHub helpers now live under `lib/server/`.
+> Updated: 2026-08-16 | Project: dose.wiki | Metric source: `scripts/analyze/cleanup-metrics.ts`
 
-## Executive Summary
+## Final Result
 
-**Overall health**: B+ — the oversized-file cleanup is complete, active code is under the 500 LOC ceiling, and the remaining structure reads as feature-owned code plus clearly separated server/script infrastructure.
-
-**Current findings**: 0 active-logic files over 500 LOC, 0 generated/config files over 500 LOC, 7 tracked hotspot budgets all passing.
-
-**Watchlist**:
-1. Keep `src/features/dev/tools/index-layout/CategoryEditor.tsx`, `src/features/dev/tags/TagEditorTab.tsx`, and `src/features/dev/pages/useDevModePageController.ts` from regrowing into mixed controller/view surfaces.
-2. Keep script entrypoints thin as the batch/parser modules evolve; the source-specific parser and batch folders are now organized by domain and should stay that way.
-3. Avoid reintroducing tracked code under the legacy root `api/`; App Router handlers belong in `src/app/api/`, and reusable server helpers belong in `lib/server/`.
-
-## Verification Baseline
-
-- `npm run cleanup:metrics -- --json --check` ✅
-- `npm run test` ✅ — 57 files, 215 tests passed
-- `npm run typecheck` ✅
-- `npm run lint` ✅
-- `npm run lint:api` ✅
-
-## Repository Shape Summary
-
-| Area | Files | LOC | Files >300 LOC | Files >500 LOC |
-|------|-------|-----|----------------|----------------|
-| `src` | 511 | 50,522 | 22 | 0 |
-| `lib` | 44 | 4,164 | 1 | 0 |
-| `api` | 0 | 0 | 0 | 0 |
-| `convex` | 23 | 2,946 | 2 | 0 |
-| `scripts` | 236 | 25,594 | 9 | 0 |
-| `eslint-plugins` | 1 | 341 | 1 | 0 |
-
-`scripts/` remains the largest maintenance surface by volume, but its major entrypoints now use focused submodules. The root `api/` source bucket is empty by design after the App Router migration; keep it that way unless a new platform-specific reason appears.
-
-## File Categories
+The cleanup guardrail is clean. The current checked scan reports **2,121 source files** and **298,644 nonblank, non-comment LOC**. All **41 reviewed file budgets** and all **8 focused hotspot thresholds** pass. No budget was raised merely to clear a failure.
 
 | Category | Files | LOC | Files >300 LOC | Files >500 LOC |
-|----------|-------|-----|----------------|----------------|
-| Active logic | 798 | 81,907 | 34 | 0 |
-| Generated/config-heavy | 3 | 203 | 0 | 0 |
-| Deprecated | 14 | 1,457 | 1 | 0 |
+|---|---:|---:|---:|---:|
+| Active logic | 1,540 | 212,787 | 171 | 26 |
+| Tests | 534 | 77,158 | 46 | 7 |
+| Static registries | 6 | 4,415 | 5 | 5 |
+| Cohesive document components | 3 | 3,845 | 3 | 3 |
+| Generated/config-heavy | 3 | 213 | 0 | 0 |
+| Deprecated | 35 | 226 | 0 | 0 |
 
-The important distinction now exists in the metrics script itself, so generated/config-heavy files no longer distort cleanup review discussions.
+The category default remains 500 LOC. Classification makes intentional tests, registries, generated/config-heavy files, and cohesive public documents visible without exempting them. Every file above its category default has an explicit owner, reason, review date, and file-specific ceiling in `scripts/analyze/cleanup-metrics-policy.ts`.
 
-## Completed Cleanup Outcomes
+## Verified Cleanup
 
-| Area | Before | After |
-|------|--------|-------|
-| Parser utilities | `scripts/parsers/base.ts` was a 700+ LOC shared god object | Split into focused modules under `scripts/parsers/base/`; `base.ts` is now an 83 LOC facade |
-| Pharmacology batch pipeline | `batch-generate-pharmacology.mjs` combined CLI, runtime, YAML repair, and persistence | Thin 130 LOC entrypoint over focused `scripts/batch/pharmacology/*.mjs` modules |
-| Generated pharmacology application | `ChemistryFieldsRHF.tsx` owned route normalization and cross-section mutation inline | Logic extracted to `pharmacologyApplyGenerated.ts` with direct tests |
-| `/dev` page shell | `DevModePage.tsx` mixed orchestration and rendering | Split into `useDevModePageController.ts`, `DevModePageView.tsx`, and a thin `DevModePage.tsx` |
-| VCode rendering | `VCodeRenderer.tsx` used a large switch as the only extension seam | Tag registry moved to `src/features/effects/vcode/renderers.tsx` with direct render/fallback tests |
-| Cleanup process | Metrics were passive and easy to ignore | `cleanup-metrics` now has hotspot budgets and `--check` mode for regression detection |
-| Server helper structure | Tracked root `api/_utils` files remained after route-handler migration | Active GitHub helpers moved under `lib/server/github`, shared logging moved to `lib/server/logger.js`, stale lint script targeting was updated, and unused legacy helpers were removed |
+- Removed the unused `src/utils/sectionSources.ts` compatibility module, retired static prompt wrappers, empty compatibility exports, and stale instructions that directed agents toward retired static prompt loading.
+- Removed the unused `tokenx` and `@iconify-json/lucide` dependencies. Declared the directly imported `ignore` and `undici` script dependencies instead of relying on transitive installation.
+- Corrected README and archived-cleanup links that still targeted removed HTML or planning files.
+- Consolidated the duplicate subjective-effect record-field hooks behind one private typed implementation.
+- Extracted OpenChemLib-independent molecule transforms from `OclEditor.tsx`; the focused transform module owns its direct tests.
+- Split oversized editor controllers and views for warning banners, replication curation, molecules, trip reports, review settings, contributor profiles, and writing.
+- Split public route loaders and route tests by domain while preserving the existing route-loader exports used by App Router pages.
+- Split public Convex read catalog/projections, replication reads/writes/policy, contributor profile handlers, substance projection/handler families, and schema validator families.
+- Split contributor identity/avatar and replication media/transcode scripts into focused planner, policy, I/O, reporting, and fixture modules.
+- Split oversized workflow suites around shared fixtures rather than duplicating setup.
+- Refreshed the deterministic OpenChemLib artifact manifest after verifying that the committed runtime artifacts already matched the focused source change.
+- Classified all detected production writers at their existing guarded write boundaries and recorded lineage for four previously undocumented generated/reviewed artifacts.
+- Updated the stale cleanup metric implementation and audit. The executable scanner is 320 LOC; policy/data is isolated in `cleanup-metrics-policy.ts`.
+- Removed 14 redundant export forms after confirming all callers use the retained named exports; preserved the one alias pair with callers on both names.
+- Repaired the legality validator test/CLI contract and added it to the script test graph; script lint now completes without warnings.
 
-## Current Hotspots
-
-### 🔴 P1
-
-No active P1 file-structure blockers remain in the current scan.
-
-### 🟠 P2
-
-1. `src/features/dev/tools/index-layout/CategoryEditor.tsx` (414 LOC) is still the largest active `/dev` UI hotspot and remains the best candidate for a future controller/view extraction if it grows.
-2. `src/features/dev/tags/TagEditorTab.tsx` (374 LOC) and `src/features/dev/pages/useDevModePageController.ts` (372 LOC) are below the new guardrails but still large enough to watch.
-3. `src/features/dev/tools/substance-editor/SectionGenerator.tsx` remains orchestration-heavy even though its repeated prop wiring was removed elsewhere.
-
-### 🟡 P3
-
-1. `src/data/schema/fieldRegistry.generated.ts` and `src/data/schema/fieldOverrides.ts` remain large, but they are generated/config-heavy and should not be treated like active-logic regressions.
-2. `scripts/deprecated/` remains quarantined debt. It is visible in metrics now, but it is not part of the active hotspot budget.
-
-## Hotspot Guardrails
-
-The cleanup metrics script now tracks budgeted files that were touched in this pass. Current status:
+## Focused Hotspot Thresholds
 
 | File | Actual LOC | Budget | Status |
-|------|------------|--------|--------|
-| `scripts/parsers/base.ts` | 83 | 250 | ✅ |
-| `scripts/batch/batch-generate-pharmacology.mjs` | 130 | 250 | ✅ |
-| `src/features/dev/forms/pharmacologyApplyGenerated.ts` | 122 | 250 | ✅ |
-| `src/features/dev/pages/DevModePage.tsx` | 18 | 120 | ✅ |
-| `src/features/dev/pages/useDevModePageController.ts` | 372 | 450 | ✅ |
-| `src/features/effects/vcode/VCodeRenderer.tsx` | 68 | 150 | ✅ |
-| `src/features/effects/vcode/renderers.tsx` | 223 | 300 | ✅ |
+|---|---:|---:|---|
+| `scripts/parsers/base.ts` | 83 | 250 | pass |
+| `scripts/batch/batch-generate-pharmacology.mjs` | 150 | 250 | pass |
+| `src/features/dev/pages/DevModePage.tsx` | 19 | 120 | pass |
+| `src/features/dev/pages/useDevModePageController.ts` | 278 | 450 | pass |
+| `src/features/effects/vcode/VCodeRenderer.tsx` | 75 | 150 | pass |
+| `src/features/effects/vcode/renderers.tsx` | 431 | 450 | pass |
+| `src/features/dev/tools/molecule-editor/OclEditor.tsx` | 361 | 400 | pass |
+| `src/features/dev/tools/molecule-editor/moleculeTransforms.ts` | 161 | 250 | pass |
 
-Use `npm run cleanup:metrics -- --check` during review when touching any of these files.
+## Verification
 
-## Residual Risks
+- `bun install --frozen-lockfile`
+- `npm run verify:all`
+  - OpenChemLib fork verification: pass
+  - application tests: 419 files, 3,410 passed, 2 todo
+  - application lint, API lint, and TypeScript: pass
+  - production build: pass; 2,091 static pages generated
+  - workflow node tests: 63 passed
+  - workflow Vitest tests: 105 files, 991 passed
+  - script and Convex TypeScript checks: pass
+  - cleanup metrics and generated-data provenance: pass
+- Production-server smoke: `/`, `/docs/code`, `/docs/how`, `/api/v1`, `/substances`, `/effects`, `/replications`, `/dmt`, and `/contributors/josie` all returned HTTP 200.
+- `git diff --check`: pass.
 
-- The repo has no current active-logic files above 500 LOC, but several 300-450 LOC files are still worth watching during feature work.
-- `useDevModePageController.ts` is acceptable for this pass but is still carrying enough orchestration to warrant future decomposition if `/dev` grows further.
-- The ignored filesystem still contains generated build/test output directories and `.DS_Store` files; they are not tracked code, but they make raw `find` output noisy.
+## Remaining Advisory Candidates
+
+No verified guardrail failure remains. The following scanner output is intentionally not treated as deletion authority:
+
+- Knip reports 82 unused files, primarily standalone CLIs, historical run artifacts, deprecated scripts, vendor sources, and protected in-progress Effect Index files. Deleting them requires owner/archive decisions.
+- Knip reports 791 unused value exports and 369 unused type exports. Many are public interfaces, test seams, schema exports, or compatibility façades; bulk removal is unsafe without caller-by-caller ownership review.
+- Knip reports four unused dev dependencies inside the vendored OpenChemLib package and two unlisted media dependencies in an unreferenced replication migration script. Neither vendored dependency edits nor migration archival belongs in this cleanup.
+- The production build reports that the contributor page payload exceeds Next.js's 2 MB data-cache item limit. The build and routes succeed; reducing that payload is a performance/data-shaping task, not a dead-code cleanup.
+
+These candidates remain protected until a maintainer identifies an owning workflow or approves archival/removal.

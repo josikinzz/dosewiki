@@ -10,7 +10,7 @@ import {
 import { AppImage } from "@/components/common/AppImage";
 import { Icon } from "@/components/common/Icon";
 import { cn } from "@/lib/utils";
-import { stripCitationTokens } from "@/lib/citations/referenceModel";
+import { stripCitationTokens } from "@/lib/citations/citationTokens";
 import usStateFlagMappings from "@/data/mappings/usStateFlagMappings.json";
 import { CANONICAL_LEGAL_STATUSES } from "@/schema/substance/shared";
 import { getCountryCode } from "@/utils/data/countryCodes";

@@ -38,7 +38,6 @@
  *     --output-dir=/vol/replication-web \
  *     --write --confirm-transcode
  */
-import crypto from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
 import { spawnSync } from "node:child_process";
@@ -47,6 +46,58 @@ import {
   printProductionWriteCommand,
 } from "../lib/production-write-command.mjs";
 import { getFlagValue, hasFlag } from "../lib/data-ops-run-context.mjs";
+import {
+  analyzeAtomLayout,
+  hasFaststartLayout,
+  inspectMp4Atoms,
+  listTopLevelAtomTypes,
+  parseProbeJson,
+} from "./video-container-inspection.mjs";
+import {
+  BITS_PER_PIXEL,
+  DEFAULT_OPTIONS,
+  buildFfmpegArgs,
+  computeScaledDimensions,
+  estimateOutputBytes,
+  planVideoAction,
+  summarizeManifest,
+} from "./video-transcode-planning.mjs";
+import {
+  assertOutputSafety,
+  assertToolsAvailable,
+  assertTranscodeAllowed,
+  classifyPreservation,
+  isCompletedRendition,
+  resolveMasterPath,
+  sha256File,
+} from "./video-transcode-policy.mjs";
+import {
+  buildTranscodeManifest,
+  formatBytes,
+  formatCorpusProjection,
+} from "./video-transcode-reporting.mjs";
+
+export {
+  BITS_PER_PIXEL,
+  DEFAULT_OPTIONS,
+  analyzeAtomLayout,
+  assertOutputSafety,
+  assertToolsAvailable,
+  assertTranscodeAllowed,
+  buildFfmpegArgs,
+  classifyPreservation,
+  computeScaledDimensions,
+  estimateOutputBytes,
+  hasFaststartLayout,
+  inspectMp4Atoms,
+  isCompletedRendition,
+  listTopLevelAtomTypes,
+  parseProbeJson,
+  planVideoAction,
+  resolveMasterPath,
+  sha256File,
+  summarizeManifest,
+};
 
 const OPERATION = "transcode-replication-videos";
 
@@ -60,527 +111,10 @@ const SOURCE_EXTENSIONS = new Set([
   ".mpg", ".mpeg", ".wmv", ".flv", ".ogv", ".ts", ".3gp",
 ]);
 
-export const DEFAULT_OPTIONS = Object.freeze({
-  /**
-   * Long-edge cap. 1920 downscales 4K and 2.7K screen captures — where nearly
-   * all of the 44.6 GB lives — while leaving 1080p and below completely
-   * untouched. Dropping to 1280 would halve the bytes again but these videos
-   * are the subject matter, not decoration: a reader is looking *at* the
-   * texture to judge whether it matches an effect, so we keep 1080p detail.
-   */
-  maxDimension: 1920,
-  /**
-   * x264 default is 23. We sit one notch better because the corpus is drifting
-   * gradients, tracers and grain, exactly the content where blocking and
-   * banding read as part of the depicted effect rather than as compression.
-   */
-  crf: 21,
-  /**
-   * `medium` keeps 44.6 GB of source tractable. `veryslow` buys single-digit
-   * percent bitrate for a multiple of the wall clock, which is a bad trade at
-   * this corpus size; raise it per-file later if one hero video justifies it.
-   */
-  preset: "medium",
-  /** 128 kbps AAC-LC stereo decodes everywhere and is inaudible against 4 Mbps of video. */
-  audioBitrateKbps: 128,
-  /**
-   * A source already below this overall bitrate, already H.264/yuv420p and
-   * already inside the dimension cap has nothing to gain from a re-encode — it
-   * would only lose a generation of quality. Such files are copied verbatim.
-   */
-  maxBitrateKbps: 4500,
-});
-
-/**
- * Bits per pixel per frame used to project output size before anything is
- * encoded. Calibrated for x264 CRF 21 / preset medium on high-motion content;
- * the band is wide on purpose because CRF output is content-dependent and any
- * single number here would be false precision. Real runs replace the estimate
- * with measured bytes as soon as the first file lands.
- */
-export const BITS_PER_PIXEL = Object.freeze({ low: 0.04, mid: 0.07, high: 0.10 });
-
-// ---------------------------------------------------------------------------
-// MP4 atom inspection — objective faststart verification
-// ---------------------------------------------------------------------------
-
-/**
- * Walk the top-level box list of an ISO base media file.
- *
- * `readChunk(offset, length) => Buffer` is injected so the walk is testable
- * against a synthetic buffer without touching the filesystem, and so a 4.8 GB
- * file is inspected by seeking over box headers instead of being read.
- */
-export function analyzeAtomLayout(readChunk, fileSize, { limit = 64 } = {}) {
-  const atoms = [];
-  let offset = 0;
-  let truncated = false;
-
-  while (offset + 8 <= fileSize && atoms.length < limit) {
-    const header = readChunk(offset, 16);
-    if (!header || header.length < 8) break;
-
-    const type = header.toString("latin1", 4, 8);
-    // A non-printable type means we have lost sync with the box grid; stop
-    // rather than report garbage as an atom list.
-    if (!/^[\x20-\x7e]{4}$/.test(type)) break;
-
-    let size = header.readUInt32BE(0);
-    let headerSize = 8;
-
-    if (size === 1) {
-      if (header.length < 16) break;
-      size = Number(header.readBigUInt64BE(8));
-      headerSize = 16;
-    } else if (size === 0) {
-      // Box runs to end of file.
-      size = fileSize - offset;
-    }
-
-    atoms.push(type);
-    if (size < headerSize) break;
-
-    // A box that claims to end past EOF means the file is short. This is the
-    // only reliable truncation signal for a faststart file: with the moov at
-    // the head, ffprobe happily reports full dimensions and duration for a file
-    // whose payload was cut off, so a probe alone cannot tell them apart.
-    if (offset + size > fileSize) {
-      truncated = true;
-      break;
-    }
-    offset += size;
-  }
-
-  return { atoms, truncated, faststart: hasFaststartLayout(atoms) && !truncated };
-}
-
-/** Convenience wrapper: the top-level box types in file order. */
-export function listTopLevelAtomTypes(readChunk, fileSize, options) {
-  return analyzeAtomLayout(readChunk, fileSize, options).atoms;
-}
-
-/**
- * `moov` before `mdat` is precisely what `-movflags +faststart` produces and
- * precisely what lets a browser start decoding from the first bytes it receives.
- */
-export function hasFaststartLayout(atomTypes) {
-  const moov = atomTypes.indexOf("moov");
-  if (moov === -1) return false;
-  const mdat = atomTypes.indexOf("mdat");
-  if (mdat === -1) return true;
-  return moov < mdat;
-}
-
-export function inspectMp4Atoms(filePath) {
-  const stats = fs.statSync(filePath);
-  const fd = fs.openSync(filePath, "r");
-  try {
-    const readChunk = (offset, length) => {
-      const buffer = Buffer.alloc(length);
-      const read = fs.readSync(fd, buffer, 0, length, offset);
-      return buffer.subarray(0, read);
-    };
-    return analyzeAtomLayout(readChunk, stats.size);
-  } finally {
-    fs.closeSync(fd);
-  }
-}
-
-// ---------------------------------------------------------------------------
-// Probe normalisation
-// ---------------------------------------------------------------------------
-
-function parseRational(value) {
-  if (typeof value !== "string" || !value.includes("/")) {
-    const direct = Number(value);
-    return Number.isFinite(direct) && direct > 0 ? direct : null;
-  }
-  const [numerator, denominator] = value.split("/").map(Number);
-  if (!Number.isFinite(numerator) || !Number.isFinite(denominator) || denominator === 0) {
-    return null;
-  }
-  const rate = numerator / denominator;
-  return Number.isFinite(rate) && rate > 0 ? rate : null;
-}
-
-/** Normalise raw `ffprobe -print_format json` output into the shape the planner uses. */
-export function parseProbeJson(raw) {
-  const streams = Array.isArray(raw?.streams) ? raw.streams : [];
-  const format = raw?.format ?? {};
-  const videoStream = streams.find((stream) => stream.codec_type === "video");
-  const audioStream = streams.find((stream) => stream.codec_type === "audio");
-
-  const durationSeconds =
-    Number(format.duration) || Number(videoStream?.duration) || null;
-  const bitrateBps = Number(format.bit_rate) || null;
-
-  return {
-    formatNames: String(format.format_name ?? "")
-      .split(",")
-      .map((name) => name.trim())
-      .filter(Boolean),
-    sizeBytes: Number(format.size) || null,
-    durationSeconds: Number.isFinite(durationSeconds) ? durationSeconds : null,
-    bitrateBps: Number.isFinite(bitrateBps) ? bitrateBps : null,
-    video: videoStream
-      ? {
-          codec: videoStream.codec_name ?? null,
-          width: Number(videoStream.width) || null,
-          height: Number(videoStream.height) || null,
-          pixelFormat: videoStream.pix_fmt ?? null,
-          fps:
-            parseRational(videoStream.avg_frame_rate) ??
-            parseRational(videoStream.r_frame_rate),
-        }
-      : null,
-    audio: audioStream
-      ? { codec: audioStream.codec_name ?? null, channels: Number(audioStream.channels) || null }
-      : null,
-    hasAudio: Boolean(audioStream),
-  };
-}
-
-// ---------------------------------------------------------------------------
-// Planning
-// ---------------------------------------------------------------------------
-
-/**
- * Cap the long edge without ever upscaling, and land on even dimensions because
- * yuv420p subsamples chroma 2x2 and libx264 rejects an odd axis.
- *
- * Returns null when the source already fits, so the caller can omit the filter
- * chain entirely rather than pay for a no-op rescale.
- */
-export function computeScaledDimensions({ width, height, maxDimension }) {
-  if (!Number.isFinite(width) || !Number.isFinite(height) || width <= 0 || height <= 0) {
-    return null;
-  }
-  const longEdge = Math.max(width, height);
-  if (longEdge <= maxDimension) return null;
-
-  const scale = maxDimension / longEdge;
-  const even = (value) => Math.max(2, Math.round((value * scale) / 2) * 2);
-  return { width: even(width), height: even(height) };
-}
-
-/**
- * Decide what each master needs.
- *
- * - `transcode` — anything a browser cannot decode, anything above the
- *   dimension cap, anything above the delivery bitrate ceiling.
- * - `remux`     — already web-grade video, but in the wrong container or with a
- *   trailing `moov`. A stream copy fixes it losslessly and in seconds.
- * - `copy`      — already an MP4 web rendition with a leading `moov`. Re-encoding
- *   would only spend a generation of quality for nothing.
- * - `error`     — no decodable video stream; reported, never silently dropped.
- */
-export function planVideoAction(probe, options = DEFAULT_OPTIONS) {
-  const { maxDimension, maxBitrateKbps } = { ...DEFAULT_OPTIONS, ...options };
-  const reasons = [];
-
-  if (!probe?.video || !probe.video.width || !probe.video.height) {
-    return { action: "error", reasons: ["no decodable video stream"], scale: null };
-  }
-
-  const { codec, width, height, pixelFormat } = probe.video;
-  const scale = computeScaledDimensions({ width, height, maxDimension });
-
-  // yuvj420p is yuv420p with full-range flags; both are browser-decodable.
-  const browserPixelFormat = pixelFormat === "yuv420p" || pixelFormat === "yuvj420p";
-  const browserCodec = codec === "h264";
-  const isMp4 = probe.formatNames?.includes("mp4") ?? false;
-  const bitrateKbps = probe.bitrateBps ? probe.bitrateBps / 1000 : null;
-  const overBitrate = bitrateKbps !== null && bitrateKbps > maxBitrateKbps;
-
-  if (!browserCodec) reasons.push(`codec ${codec ?? "unknown"} is not h264`);
-  if (!browserPixelFormat) reasons.push(`pixel format ${pixelFormat ?? "unknown"} is not yuv420p`);
-  if (scale) reasons.push(`${width}x${height} exceeds the ${maxDimension}px cap`);
-  if (overBitrate) reasons.push(`${Math.round(bitrateKbps)} kbps exceeds the ${maxBitrateKbps} kbps ceiling`);
-
-  if (reasons.length > 0) {
-    return { action: "transcode", reasons, scale };
-  }
-
-  if (!isMp4) reasons.push(`container ${probe.formatNames?.join("/") || "unknown"} is not mp4`);
-  if (!probe.faststart) reasons.push("moov atom trails mdat (no faststart)");
-
-  if (reasons.length > 0) {
-    return { action: "remux", reasons, scale: null };
-  }
-
-  return { action: "copy", reasons: ["already a faststart web-sized h264 mp4"], scale: null };
-}
-
-/** Build the exact argv handed to ffmpeg. Pure, so the encode contract is testable. */
-export function buildFfmpegArgs({
-  action,
-  inputPath,
-  outputPath,
-  scale = null,
-  hasAudio = true,
-  crf = DEFAULT_OPTIONS.crf,
-  preset = DEFAULT_OPTIONS.preset,
-  audioBitrateKbps = DEFAULT_OPTIONS.audioBitrateKbps,
-}) {
-  const base = [
-    "-hide_banner",
-    "-loglevel", "error",
-    // Without -nostdin a backgrounded batch run can have ffmpeg swallow the
-    // parent's stdin and hang.
-    "-nostdin",
-    "-y",
-    "-i", inputPath,
-  ];
-
-  // `0:a:0?` makes the audio map optional, so a silent master does not abort the
-  // whole run on "stream not found".
-  const maps = ["-map", "0:v:0", ...(hasAudio ? ["-map", "0:a:0?"] : [])];
-
-  // Encodes land on `<name>.mp4.part` so an interrupted run cannot leave a
-  // truncated file that looks finished. ffmpeg infers the muxer from the
-  // extension, and `.part` matches nothing, so the container must be named
-  // explicitly or every write fails at muxer init.
-  const container = ["-f", "mp4"];
-
-  if (action === "remux") {
-    return [...base, ...maps, "-c", "copy", ...container, "-movflags", "+faststart", outputPath];
-  }
-
-  return [
-    ...base,
-    ...maps,
-    ...(scale ? ["-vf", `scale=${scale.width}:${scale.height}:flags=lanczos`] : []),
-    "-c:v", "libx264",
-    "-preset", preset,
-    "-crf", String(crf),
-    // High profile is universal on anything newer than about 2012. The level is
-    // deliberately left to x264, which stamps the minimum valid one; pinning 4.0
-    // would fail legitimately on 1080p60 sources.
-    "-profile:v", "high",
-    // Non-negotiable: browsers cannot decode 4:4:4 or 10-bit H.264, and screen
-    // recorders and NLE exports emit both.
-    "-pix_fmt", "yuv420p",
-    ...(hasAudio
-      ? ["-c:a", "aac", "-b:a", `${audioBitrateKbps}k`, "-ac", "2"]
-      : ["-an"]),
-    ...container,
-    // The whole point: rewrite the moov atom to the head of the file.
-    "-movflags", "+faststart",
-    outputPath,
-  ];
-}
-
-/** Project encoded size before encoding. Deliberately reported as a band, not a number. */
-export function estimateOutputBytes({
-  width,
-  height,
-  fps,
-  durationSeconds,
-  hasAudio,
-  bitsPerPixel = BITS_PER_PIXEL.mid,
-  audioBitrateKbps = DEFAULT_OPTIONS.audioBitrateKbps,
-}) {
-  if (![width, height, fps, durationSeconds].every((value) => Number.isFinite(value) && value > 0)) {
-    return null;
-  }
-  const videoBps = width * height * fps * bitsPerPixel;
-  const audioBps = hasAudio ? audioBitrateKbps * 1000 : 0;
-  return Math.round(((videoBps + audioBps) * durationSeconds) / 8);
-}
-
-/**
- * Roll entries into the corpus-level answer.
- *
- * `copy` and `remux` entries contribute their source bytes to the projection
- * because that is what will actually be delivered; only `transcode` entries get
- * an estimate, and any entry with a real measured output supersedes its estimate.
- */
-export function summarizeManifest(entries) {
-  const byAction = {};
-  const byStatus = {};
-  let sourceBytes = 0;
-  let outputBytes = 0;
-  let projectedLow = 0;
-  let projectedMid = 0;
-  let projectedHigh = 0;
-  let measuredCount = 0;
-
-  for (const entry of entries) {
-    byAction[entry.action] = (byAction[entry.action] ?? 0) + 1;
-    byStatus[entry.status ?? "planned"] = (byStatus[entry.status ?? "planned"] ?? 0) + 1;
-    sourceBytes += entry.sourceBytes ?? 0;
-
-    if (Number.isFinite(entry.outputBytes)) {
-      outputBytes += entry.outputBytes;
-      projectedLow += entry.outputBytes;
-      projectedMid += entry.outputBytes;
-      projectedHigh += entry.outputBytes;
-      measuredCount += 1;
-      continue;
-    }
-
-    if (entry.action === "copy" || entry.action === "remux") {
-      projectedLow += entry.sourceBytes ?? 0;
-      projectedMid += entry.sourceBytes ?? 0;
-      projectedHigh += entry.sourceBytes ?? 0;
-      continue;
-    }
-
-    if (entry.action === "transcode") {
-      // Fall back to the source size when the probe was too thin to estimate
-      // from — better an over-projection than a silently missing file.
-      projectedLow += entry.estimate?.low ?? entry.sourceBytes ?? 0;
-      projectedMid += entry.estimate?.mid ?? entry.sourceBytes ?? 0;
-      projectedHigh += entry.estimate?.high ?? entry.sourceBytes ?? 0;
-    }
-  }
-
-  const reduction = (projected) =>
-    sourceBytes > 0 ? Number((1 - projected / sourceBytes).toFixed(4)) : 0;
-
-  return {
-    count: entries.length,
-    byAction,
-    byStatus,
-    // Anything not delivered is the number that matters on a 125-file run; a
-    // handful of failures must never disappear into a healthy-looking total.
-    unfinished: entries.filter(
-      (entry) => entry.action === "blocked" || entry.action === "error" || entry.status === "failed",
-    ).length,
-    measuredCount,
-    sourceBytes,
-    outputBytes,
-    projectedBytes: { low: projectedLow, mid: projectedMid, high: projectedHigh },
-    reductionFraction: {
-      low: reduction(projectedHigh),
-      mid: reduction(projectedMid),
-      high: reduction(projectedLow),
-    },
-  };
-}
-
-// ---------------------------------------------------------------------------
-// Master preservation
-// ---------------------------------------------------------------------------
-
-/** Where a given source file's master must live inside the archive, mirroring subdirectories. */
-export function resolveMasterPath(sourcePath, sourceDir, mastersDir) {
-  return path.join(mastersDir, path.relative(sourceDir, sourcePath));
-}
-
-/**
- * The hard precondition. Encoding is irreversible for the delivered file, so no
- * file is touched until its master is accounted for.
- *
- * `conflict` is deliberately terminal: an archive entry that exists with a
- * different size is either a different cut or a truncated copy, and overwriting
- * it to "fix" the mismatch is exactly the destructive act this guard exists to
- * prevent.
- */
-export function classifyPreservation({
-  inPlace,
-  masterExists,
-  sourceBytes,
-  masterBytes,
-}) {
-  if (inPlace) {
-    return { state: "in-place", reason: "source directory is the master archive" };
-  }
-  if (!masterExists) {
-    return { state: "needs-copy", reason: "no archived master yet" };
-  }
-  if (sourceBytes === masterBytes) {
-    return { state: "preserved", reason: "archived master matches source size" };
-  }
-  return {
-    state: "conflict",
-    reason: `archived master is ${masterBytes} bytes but source is ${sourceBytes} bytes`,
-  };
-}
-
-/**
- * Refuse any layout where the run could write over its own inputs or into the
- * archive. Checked once, up front, before a single frame is decoded.
- */
-export function assertOutputSafety({ sourceDir, mastersDir, outputDir }) {
-  const within = (child, parent) => {
-    const relative = path.relative(parent, child);
-    return relative === "" || (!relative.startsWith("..") && !path.isAbsolute(relative));
-  };
-
-  if (within(outputDir, mastersDir)) {
-    throw new Error(
-      `Output directory ${outputDir} is inside the master archive ${mastersDir}. Renditions must never be written into the archive.`,
-    );
-  }
-  if (within(outputDir, sourceDir)) {
-    throw new Error(
-      `Output directory ${outputDir} is inside the source directory ${sourceDir}. Renditions must never be written beside their inputs.`,
-    );
-  }
-}
-
-export function sha256File(filePath) {
-  const hash = crypto.createHash("sha256");
-  const fd = fs.openSync(filePath, "r");
-  try {
-    const buffer = Buffer.alloc(1024 * 1024);
-    let bytesRead = fs.readSync(fd, buffer, 0, buffer.length, null);
-    while (bytesRead > 0) {
-      hash.update(buffer.subarray(0, bytesRead));
-      bytesRead = fs.readSync(fd, buffer, 0, buffer.length, null);
-    }
-  } finally {
-    fs.closeSync(fd);
-  }
-  return hash.digest("hex");
-}
-
-// ---------------------------------------------------------------------------
-// Tool discovery
-// ---------------------------------------------------------------------------
-
-export function assertToolsAvailable(runner = spawnSync) {
-  const missing = [];
-  for (const bin of ["ffmpeg", "ffprobe"]) {
-    const result = runner(bin, ["-version"], { encoding: "utf8" });
-    if (result.error || result.status !== 0) missing.push(bin);
-  }
-  if (missing.length > 0) {
-    throw new Error(
-      `Missing required tool(s): ${missing.join(", ")}. Install FFmpeg (macOS: \`brew install ffmpeg\`; Debian/Ubuntu: \`apt install ffmpeg\`) and re-run.`,
-    );
-  }
-}
-
-/** Local gate. This script performs no Convex write, so the deployment ceremony does not apply. */
-export function assertTranscodeAllowed(command, argv) {
-  if (!command?.writeRequested) {
-    throw new Error(`${OPERATION} requires --write to encode anything.`);
-  }
-  if (command.dryRun) {
-    throw new Error("--dry-run and --write cannot be combined.");
-  }
-  if (!hasFlag(argv, "--confirm-transcode")) {
-    throw new Error(`${OPERATION} requires --confirm-transcode alongside --write.`);
-  }
-}
-
 // ---------------------------------------------------------------------------
 // Runtime
 // ---------------------------------------------------------------------------
 
-function formatBytes(bytes) {
-  if (!Number.isFinite(bytes)) return "n/a";
-  const units = ["B", "KB", "MB", "GB", "TB"];
-  let value = bytes;
-  let unit = 0;
-  while (value >= 1024 && unit < units.length - 1) {
-    value /= 1024;
-    unit += 1;
-  }
-  return `${value.toFixed(value >= 100 || unit === 0 ? 0 : 1)} ${units[unit]}`;
-}
 
 function collectVideoFiles(dir) {
   const found = [];
@@ -620,31 +154,6 @@ export function probeVideo(filePath, runner = spawnSync) {
   return probe;
 }
 
-/**
- * Does a rendition at `outputPath` count as finished work to skip?
- *
- * Pure so the resumption rule is testable without encoding anything. It is
- * deliberately strict: `moov` at the head is what makes a truncated file look
- * healthy to a probe, so structural completeness and a duration that matches
- * the master are both required before a file is trusted.
- */
-export function isCompletedRendition(outputProbe, { expectedDurationSeconds = null, tolerance = 0.05 } = {}) {
-  if (!outputProbe?.video?.width) return { complete: false, reason: "no decodable video stream" };
-  if (outputProbe.truncated) return { complete: false, reason: "file is truncated (a box runs past EOF)" };
-  if (outputProbe.faststart !== true) return { complete: false, reason: "moov atom is not leading" };
-
-  if (Number.isFinite(expectedDurationSeconds) && Number.isFinite(outputProbe.durationSeconds)) {
-    const drift = Math.abs(outputProbe.durationSeconds - expectedDurationSeconds);
-    if (drift > Math.max(0.5, expectedDurationSeconds * tolerance)) {
-      return {
-        complete: false,
-        reason: `duration ${outputProbe.durationSeconds.toFixed(1)}s does not match the master's ${expectedDurationSeconds.toFixed(1)}s`,
-      };
-    }
-  }
-
-  return { complete: true, reason: "matches the master and has a leading moov" };
-}
 
 /**
  * Resumption is derived from the filesystem, never from a ledger that can go
@@ -952,49 +461,21 @@ async function main() {
   const summary = summarizeManifest(entries);
   const manifestPath = getFlagValue(argv, "--manifest") ?? path.join(resolvedOutput, "transcode-manifest.json");
   fs.mkdirSync(path.dirname(manifestPath), { recursive: true });
-  fs.writeFileSync(
-    manifestPath,
-    `${JSON.stringify(
-      {
-        operation: OPERATION,
-        generatedAt: new Date().toISOString(),
-        mode: command.dryRun ? "dry-run" : "write",
-        options,
-        sourceDir: resolvedSource,
-        mastersDir: resolvedMasters,
-        outputDir: resolvedOutput,
-        summary,
-        entries,
-      },
-      null,
-      2,
-    )}\n`,
-  );
+  const manifest = buildTranscodeManifest({
+    operation: OPERATION,
+    generatedAt: new Date().toISOString(),
+    mode: command.dryRun ? "dry-run" : "write",
+    options,
+    sourceDir: resolvedSource,
+    mastersDir: resolvedMasters,
+    outputDir: resolvedOutput,
+    summary,
+    entries,
+  });
+  fs.writeFileSync(manifestPath, `${JSON.stringify(manifest, null, 2)}\n`);
 
-  console.log(`\n--- Corpus projection -------------------------------------------`);
-  console.log(`Files              : ${summary.count}`);
-  for (const [action, count] of Object.entries(summary.byAction).sort()) {
-    console.log(`  ${action.padEnd(17)}: ${count}`);
-  }
-  if (summary.unfinished > 0) {
-    console.log(`Not delivered      : ${summary.unfinished} (blocked, unreadable, or failed)`);
-  }
-  console.log(`Master total       : ${formatBytes(summary.sourceBytes)}`);
-  console.log(`Measured renditions: ${summary.measuredCount} (${formatBytes(summary.outputBytes)})`);
-  console.log(
-    `Projected delivered: ${formatBytes(summary.projectedBytes.low)} – ${formatBytes(
-      summary.projectedBytes.high,
-    )} (central ${formatBytes(summary.projectedBytes.mid)})`,
-  );
-  console.log(
-    `Reduction          : ${(summary.reductionFraction.low * 100).toFixed(1)}% – ${(
-      summary.reductionFraction.high * 100
-    ).toFixed(1)}% (central ${(summary.reductionFraction.mid * 100).toFixed(1)}%)`,
-  );
-  if (summary.measuredCount < summary.count) {
-    console.log(
-      `Projection uses ${BITS_PER_PIXEL.low}–${BITS_PER_PIXEL.high} bits/pixel/frame for un-encoded files; measured files use their real size.`,
-    );
+  for (const line of formatCorpusProjection(summary)) {
+    console.log(line);
   }
   console.log(`\nManifest: ${manifestPath}`);
 

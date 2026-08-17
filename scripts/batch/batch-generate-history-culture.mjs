@@ -78,7 +78,6 @@ async function main(options) {
   } else if (options.newOnly) {
     const beforeCount = articles.length;
     articles = articles.filter((article) => {
-      const slug = getArticleSlug(article);
       const hasQuotes = sourceUrl ? false : false;
       return hasQuotes && !hasExistingHistoryCulture(article);
     });

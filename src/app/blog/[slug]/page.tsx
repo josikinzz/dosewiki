@@ -5,7 +5,7 @@ import {
   loadBlogPostRoute,
   loadWritingBlogIndexRoute,
   loadWritingBlogPostRoute,
-} from "@server/next/routeLoaders";
+} from "@server/next/routeLoaders.publications";
 import { isEffectIndex, SITE_FLAVOR_CONFIG } from "@/config/siteFlavor";
 import { BlogPostPage } from "@/features/blog/pages/BlogPostPage";
 import { WritingBlogPostPage } from "@/features/blog/pages/WritingBlogPostPage";

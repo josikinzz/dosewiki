@@ -68,5 +68,3 @@ export function StickyTocLayout({
     </div>
   );
 }
-
-export default StickyTocLayout;

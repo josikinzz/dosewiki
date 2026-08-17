@@ -55,29 +55,6 @@ const runContext = createDataOpsRunContext({
 // Slugify function matching parsed-sources keys
 import { slugify } from "../lib/slug.mjs";
 
-// Normalize route names for consistency
-function normalizeRoute(route) {
-  const normalized = route.charAt(0).toUpperCase() + route.slice(1).toLowerCase();
-  // Map common variations
-  const routeMap = {
-    "Oral": "Oral",
-    "Sublingual": "Sublingual",
-    "Insufflated": "Insufflated",
-    "Intranasal": "Insufflated",
-    "Nasal": "Insufflated",
-    "Smoked": "Smoked",
-    "Inhaled": "Inhaled",
-    "Intravenous": "Intravenous",
-    "Iv": "Intravenous",
-    "Intramuscular": "Intramuscular",
-    "Im": "Intramuscular",
-    "Rectal": "Rectal",
-    "Transdermal": "Transdermal",
-    "Buccal": "Buccal",
-  };
-  return routeMap[normalized] || normalized;
-}
-
 // Stats tracking
 const stats = {
   articlesProcessed: 0,

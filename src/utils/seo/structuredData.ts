@@ -9,7 +9,7 @@ import type { SubstanceArticle } from "../../schema";
 import type { Reference } from "../../schema/substance/shared";
 import type { SubjectiveEffectArticle } from "../../features/effects/articleSectionModel";
 import { SITE_FLAVOR_CONFIG, type SiteFlavorConfig } from "../../config/siteFlavor";
-import { stripCitationTokens } from "../../lib/citations/referenceModel";
+import { stripCitationTokens } from "../../lib/citations/citationTokens";
 
 /**
  * Schema.org Article type for substance profiles.

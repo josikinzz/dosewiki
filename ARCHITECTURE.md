@@ -1,6 +1,6 @@
 # dose.wiki Architecture
 
-Last verified: 2026-04-23
+Last verified: 2026-08-16
 
 ## Purpose
 
@@ -16,12 +16,12 @@ When the system architecture, runtime ownership model, or deployment model chang
 
 ## Executive Summary
 
-`dose.wiki` is a Next.js App Router application backed by Convex. Public substance articles, subjective effects, trip reports, contributor pages, and classification indexes use static generation and ISR where their route modules declare it. Their CSP permits the inline framework scripts required by cached App Router documents without introducing request-bound state in the root layout. The protected `/dev` surface remains request-rendered with a strict per-request nonce policy and combines Auth.js session handling, Convex-backed role checks, live Convex reads and writes, and selected GitHub-backed file persistence flows.
+This repository produces the dose.wiki and Effect Index Next.js App Router builds. Both read the same production Convex deployment, `prod:glad-minnow-656`; the build-time site flavor changes presentation and organization, not content ownership. Public routes use static generation and ISR where their modules declare it. Their CSP permits the inline framework scripts required by cached App Router documents without introducing request-bound state in the root layout. Protected `/dev` routes are request-rendered with a strict per-request nonce policy. The editor combines Auth.js identity, Convex-backed roles, live Convex reads and writes, and selected GitHub-backed persistence.
 
 The current architecture is a partial modernization rather than a fully greenfield system:
 
-- The active runtime is Next.js + Convex.
-- Convex is the source of truth for live runtime content.
+- The active runtime is Next.js + Convex, compiled into dose.wiki and Effect Index site flavors.
+- Production Convex (`prod:glad-minnow-656`) is the shared runtime source of truth for both builds and every environment.
 - A large amount of file-based tooling still exists for migration, batch generation, exports, and legacy workflows.
 - The public App Router shell is in good working order.
 - The editor and script layers still contain meaningful legacy complexity.
@@ -31,7 +31,7 @@ The current architecture is a partial modernization rather than a fully greenfie
 
 Primary goals:
 
-- Serve harm-reduction content through a crawlable, production-grade public web application.
+- Serve harm-reduction content through crawlable, production-grade public builds for dose.wiki and Effect Index.
 - Store and fetch live content from Convex.
 - Support editorial maintenance, generation workflows, and metadata curation through a protected admin/editor UI.
 - Preserve the ability to run migrations, imports, exports, and batch AI-assisted content workflows from local scripts.
@@ -42,50 +42,24 @@ Non-goals of the active runtime:
 - Treating `src/data/SubstanceIndex.json` as the canonical public rendering source.
 - Anonymous editing or password-only browser-side write flows.
 
-## Current Verified System State
+## Current System State
 
-As of 2026-03-30, the current live data and build surface verified from the repo and local environment are:
+Use source files instead of cached counts or command results:
 
-- 577 substances
-- 248 visible substances
-- 329 low-priority substances
-- 233 subjective effects
-- 163 trip reports
-- 12 psychoactive layout categories
-- 43 chemical-class layout categories
-- 20 mechanism layout categories
-- public static generation/ISR with build-time route-param enumeration; protected `/dev` HTML retains a unique CSP nonce per document response
+- `src/app/` is the route map.
+- `src/schema/substance.schema.ts` defines the canonical article shape.
+- `convex/schema.ts` and the modules under `convex/` define persisted tables and backend functions.
+- `src/config/siteFlavor.ts` defines the two build-time publication identities.
+- `package.json` and `bun.lock` define dependencies, versions, scripts, and the locked install.
+- `middleware.ts` and `src/lib/auth/roles.ts` define host gates and protected-route access.
 
-Local validation status at the time of this document:
-
-- `npm run test`: passes
-- `npm run lint`: passes
-- `npm run typecheck`: passes
-- `npm run build`: passes
+Public pages may use static generation or ISR; protected `/dev` HTML retains a unique CSP nonce per document response.
 
 ## Technology Stack
 
-Application stack:
+The core application uses Next.js App Router, React, TypeScript, Tailwind CSS, Auth.js, Convex, TanStack Query, Radix UI, Zod, and Vitest. `package.json` and `bun.lock` are the authoritative dependency and version inventory.
 
-- Next.js 16 App Router
-- React 19
-- TypeScript
-- Tailwind CSS
-- Auth.js (`next-auth`)
-- Convex
-- TanStack Query
-- Radix UI
-- Zod
-- Vitest + Testing Library
-
-Supporting infrastructure and integrations:
-
-- Vercel-style deployment model for the Next app
-- Upstash Redis for rate limiting when configured
-- GitHub token-backed file persistence for selected editor flows
-- Point-in-time ProtestKit reagent-test snapshots imported into an indexed Convex table
-- OpenRouter-backed batch generation through local scripts
-- Repository-owned OpenChemLib fork for the protected molecule depiction editor
+Representative supporting integrations include Vercel deployment, optional Upstash Redis rate limiting, GitHub-backed persistence for selected editor flows, imported ProtestKit reagent snapshots, OpenRouter-backed local generation, and the repository-owned OpenChemLib fork.
 
 ## High-Level System Context
 
@@ -122,7 +96,7 @@ The Convex schema is intentionally permissive. The stricter content shape lives 
 
 ## Repository Topology
 
-Top-level areas of responsibility:
+Representative top-level areas; [Project Layout](docs/architecture/project-layout.md) is the detailed ownership map:
 
 - `src/app/`: active Next.js route tree, layouts, metadata routes, route handlers
 - `src/features/`: feature-level UI and editor code
@@ -135,47 +109,28 @@ Top-level areas of responsibility:
 - `scripts/`: import, export, migration, and batch-generation tooling
 - `vendor/openchemlib/`: self-contained OpenChemLib source and committed browser distributables owned by DoseWiki
 
-Important non-runtime directories that may be present locally:
-
-- `.next/`
-- `dist/`
-- `dist-inline/`
-- `coverage/`
-- `archive/`
-- `notes-and-plans/`
-
-These should not be treated as part of the active runtime architecture.
+Generated build output, coverage, archives, and planning notes are operational artifacts rather than active runtime architecture. `.gitignore` and the Project Layout appendix are the current source pointers.
 
 ## Runtime Architecture
 
 ### Public runtime
 
-The public site is built with Next.js App Router under `src/app/`.
+Both public site flavors are built from the Next.js App Router tree under `src/app/`.
 
-Key public paths:
+The complete dose.wiki build is available at `https://dosewiki-admin.vercel.app/`. `dose.wiki` and `www.dose.wiki` remain construction-gated through 2026-08-31 and require explicit user authorization to launch.
 
-- `/substances`
-- `/[slug]`
-- `/effects`
-- `/effects/[effectSlug]`
-- `/effects/category/[categorySlug]`
-- `/articles`
-- `/articles/[slug]`
-- `/reports`
-- `/reports/[slug]`
-- `/category/[categoryKey]`
-- `/chemical/[slug]`
-- `/psychoactive/psychedelic/visual`
-- `/psychoactive/psychedelic/cognitive`
-- `/psychoactive/psychedelic/miscellaneous`
-- `/psychoactive/dissociative`
-- `/psychoactive/deliriant`
-- `/mechanism/[mechanismSlug]`
-- `/mechanism/[mechanismSlug]/[qualifierSlug]`
-- `/contributors/[profileKey]`
-- `/about`
+Representative public route families:
 
-Compatibility redirects:
+- substance index and articles: `/substances`, `/[slug]`
+- effects: `/effects`, `/effects/[effectSlug]`, `/effects/category/[categorySlug]`
+- editorial content: `/articles/[slug]`, `/blog/[slug]`, `/reports/[slug]`
+- replications: `/replications` and its artist/effect focus routes
+- taxonomy: `/category/[categoryKey]`, `/chemical-classes/[classKey]`, `/psychoactive/[...summaryPath]`, `/mechanism/[mechanismSlug]`
+- contributors: `/contributors/[profileKey]`
+
+The route tree in `src/app/` and the route planners under `lib/next/` are authoritative; this list is not exhaustive.
+
+Legacy compatibility-only routes redirect to canonical destinations:
 
 - `/effect/[effectSlug]` → `/effects/[effectSlug]`
 - `/data` → `/about`
@@ -193,7 +148,7 @@ Public route behavior:
 
 ### Shared chrome
 
-The root layout in `src/app/layout.tsx` provides:
+Representative root-layout responsibilities in `src/app/layout.tsx` include:
 
 - global metadata
 - theme bootstrap
@@ -205,26 +160,17 @@ The root layout in `src/app/layout.tsx` provides:
 
 ### Editor runtime
 
-The protected editor surface is mounted under `/dev`.
-
-Key components:
-
-- `auth.ts`
-- `middleware.ts`
-- `src/app/sign-in/page.tsx`
-- `src/app/dev/layout.tsx`
-- `src/app/dev/[[...segments]]/page.tsx`
-- `src/app/dev/_components/NextDevRouteClient.tsx`
-- `src/features/dev/`
+Protected routes are mounted under `/dev`. Their access and composition are defined by `middleware.ts`, `src/lib/auth/roles.ts`, `src/app/dev/`, and `src/features/dev/`.
 
 Protection model:
 
-- middleware redirects unauthenticated users away from `/dev`
+- middleware redirects unauthenticated users away from every `/dev` route, including `/dev/profile`
+- any authenticated session may use the profile-only `/dev/profile` route
 - Auth.js session state provides browser identity
 - Convex `memberships` is the role source of truth
-- only `admin` and `editor` roles may access the editor shell
+- only `admin` and `editor` roles may enter the full editor shell
 
-The editor runtime is more client-heavy than the public shell. It mounts:
+The full editor runtime is more client-heavy than the public shell. Representative providers include:
 
 - Query client
 - Auth session provider

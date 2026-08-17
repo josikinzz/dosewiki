@@ -1,5 +1,5 @@
 import { buildPublicPageMetadata, buildSiteUrl, getPublicRoutePath } from "@server/next/publicSite";
-import { loadReportsIndexRoute } from "@server/next/routeLoaders";
+import { loadReportsIndexRoute } from "@server/next/routeLoaders.reports";
 import { buildItemListSchema, serializeJsonLd } from "@/utils/seo/structuredData";
 import { TripReportsPage } from "@/features/reports/pages/TripReportsPage";
 import { SITE_FLAVOR_CONFIG } from "@/config/siteFlavor";

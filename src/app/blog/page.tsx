@@ -6,7 +6,7 @@ import {
 import {
   loadBlogIndexRoute,
   loadWritingBlogIndexRoute,
-} from "@server/next/routeLoaders";
+} from "@server/next/routeLoaders.publications";
 import { isEffectIndex } from "@/config/siteFlavor";
 import { getCopy } from "@server/next/copyBlocks";
 import { resolveEmptyStateCopy } from "@server/next/emptyStateCopy";

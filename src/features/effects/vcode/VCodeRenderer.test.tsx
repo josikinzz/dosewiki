@@ -80,6 +80,21 @@ describe("VCodeRenderer", () => {
     expect(container.textContent).not.toContain("[ref");
   });
 
+  it("repairs external links authored with a leading slash", () => {
+    render(
+      <VCodeRenderer
+        content={
+          '[p][ext-link to="/https://en.wikipedia.org/wiki/Turing_test"]Turing test[/ext-link][/p]'
+        }
+      />,
+    );
+
+    expect(screen.getByRole("link", { name: /Turing test/ })).toHaveAttribute(
+      "href",
+      "https://en.wikipedia.org/wiki/Turing_test",
+    );
+  });
+
   it("renders hash-dialect EffectIndex markup instead of literal directives", () => {
     const { container } = render(
       <VCodeRenderer

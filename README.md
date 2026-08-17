@@ -1,6 +1,6 @@
 # dose.wiki
 
-Next.js + Convex application for the dose.wiki harm-reduction knowledge base. The public site renders substance articles, subjective effects, trip reports, classifications, and editor-managed project content from Convex. The protected `/dev` surface provides editorial tools for maintaining that data.
+Next.js + Convex application for the dose.wiki harm-reduction knowledge base and its Effect Index publication. The two Vercel sites use one repository, branch, and production Convex dataset; build-time flavor selects publication identity and route availability. The protected `/dev` surface provides the editorial tools.
 
 ---
 
@@ -19,176 +19,76 @@ Next.js + Convex application for the dose.wiki harm-reduction knowledge base. Th
 
 ## Platform Overview
 
-- **Type**: Next.js 16 App Router application
-- **Frontend**: React 19 + TypeScript + Tailwind CSS
-- **Primary runtime data source**: Convex
-- **Auth**: Auth.js (`next-auth`) with Convex-backed membership roles
-- **Package manager**: Bun-lock repo with npm scripts
-- **Current live dataset**: 577 substances, 233 subjective effects, 163 trip reports
-- **HTML rendering**: public routes use static generation/ISR where declared; protected `/dev` routes remain request-rendered with a per-request CSP nonce
+- **Framework**: Next.js 16 App Router, React 19, TypeScript, and Tailwind CSS
+- **Runtime data**: production Convex deployment `glad-minnow-656`
+- **Authentication**: Auth.js (`next-auth`) with Convex-backed membership roles
+- **Package manager**: Bun 1.3.5 with `bun.lock`; package scripts remain available through `npm run`
+- **Public rendering**: static generation or ISR where declared
+- **Editorial rendering**: protected, request-rendered `/dev` routes with a per-request CSP nonce
+
+The default build is dose.wiki. `NEXT_PUBLIC_SITE_FLAVOR=effectindex` builds Effect Index. The flavor contract lives in `src/config/siteFlavor.ts`.
 
 ## Data Architecture
 
-**Convex is the source of truth for runtime data.** Public pages and the active Next.js editor shell read live records from Convex.
+Convex is the source of truth for public runtime data and the active editor. Representative table groups include:
 
-### Convex tables
+- articles and editorial content: `substanceIndex`, `subjectiveEffects`, `tripReports`, `effectIndexArticles`;
+- media and chemistry: `replications`, `moleculeOverrides`, `moleculeClassTemplates`;
+- publishing and provenance: `citationEvidence`, `generatedPublicationOperations`, `changelog`;
+- access and site configuration: `memberships`, `contributorProfiles`, `siteConfig`, `indexLayouts`.
 
-```text
-substanceIndex       → full substance articles
-articleSources       → scraped source content
-tripReports          → trip report entries
-subjectiveEffects    → subjective effect articles
-effectIndexArticles  → supplementary EffectIndex content
-replications         → effect gallery media
-memberships          → editor/admin/viewer roles
-indexLayouts         → psychoactive / chemical / mechanism layouts
-categoryLayout       → legacy public category layout document
-siteConfig           → about-page content and global settings
-prompts              → generator and section prompts
-quotes               → extracted source quotes
-citationEvidence     → citation evidence rows backing public reference markers
-generatedPublicationOperations → reviewed section publication idempotency/audit rows
-moleculeOverrides    → canonical editable MOL blocks and brand SVG depictions
-moleculeClassTemplates → editor-authored chemical-class orientation templates
-changelog            → article change history
-contributorProfiles  → public contributor profiles and profile ownership
-effectIndexArchive   → raw Effect Index people/profiles/posts retained for future EI use only
-```
+Use `convex/schema.ts` for the current table inventory and indexes. Use the matching module under `convex/` for each query and mutation contract.
 
-### Local data files
+Local JSON and Markdown remain useful for migration, backup, export, prompt, and generation workflows. They are not public runtime truth unless active code explicitly reads them. Before changing generated data, consult `src/data/artifactLineageManifest.json`.
 
-Local JSON and markdown files still exist for backup, migration, export/import, batch generation, and selected GitHub-backed editing flows. They are **not** the authoritative public runtime state.
+Article shape ownership is split deliberately:
 
-Key local artifacts:
+- canonical article schema: `src/schema/substance.schema.ts`;
+- shared adapter: `src/schema/substance/contract.ts`;
+- generated helpers: `src/data/schema/`;
+- stored Convex shape: `convex/schema.ts`.
 
-- `src/data/SubstanceIndex.json`
-- `src/data/parsed-sources.json`
-- `src/data/config/generatorPrompt.md`
-- `src/data/config/sectionPrompts/*.md`
-- `public/molecules/classes/*.svg` (static chemical-class Markush skeletons; substance depictions live in Convex `moleculeOverrides`)
-
-`src/data/config/userProfiles.json` is now a migration seed/backfill artifact for contributor profiles, not the live runtime source.
-
-### Schema ownership
-
-- Canonical article contract: `src/schema/substance.schema.ts`
-- Shared article contract adapter: `src/schema/substance/contract.ts`
-- Generated schema helpers: `src/data/schema/`
-- Convex schema: `convex/schema.ts`
-
-The Convex schema is intentionally permissive. Convex article ingestion uses the shared contract adapter before storage, so editor, script, and sync writes fail with typed Zod validation issues before invalid article shapes are persisted.
+Convex ingestion runs through the shared article adapter so invalid article shapes fail before storage.
 
 ## Project Layout
 
-```text
-src/
-├── app/                 # Next.js App Router shell, routes, metadata routes, API handlers
-├── features/
-│   ├── article/         # Substance article rendering
-│   ├── dev/             # Protected editor surface and tools
-│   ├── effects/         # Subjective effect pages and VCode renderer
-│   └── reports/         # Trip report pages
-├── components/
-│   ├── common/          # Shared primitives
-│   ├── layout/          # Header, footer, page chrome
-│   ├── pages/           # Page-level presentational components
-│   └── ui/              # Shared UI components
-├── data/                # Local artifacts, builders, config, generated schema helpers
-├── hooks/               # Client hooks for editor/search/config flows
-├── schema/              # Zod schemas
-├── lib/                 # Client-side shared helpers
-└── utils/               # Routing, SEO, tags, slugging, interaction helpers
+| Path | Responsibility |
+|------|----------------|
+| `src/app/` | App Router pages, metadata surfaces, and route handlers |
+| `src/features/` | Article, editor, effects, replication, and report features |
+| `src/components/` | Shared page chrome and UI primitives |
+| `lib/` | Server-side auth, Convex, HTTP, runtime, and Next.js adapters |
+| `convex/` | Runtime schema, queries, mutations, and actions |
+| `scripts/` | Operator workflows for analysis, generation, migration, deployment, and sync |
+| `src/data/` | Local inputs, exports, migration artifacts, and generated helpers |
 
-lib/
-├── auth/                # Auth/Convex membership sync
-├── convex/              # Server-side Convex reads and write health helpers
-├── http/                # Rate limiting and request helpers
-├── next/                # Metadata, sitemap, static param helpers
-├── runtime/             # Runtime env helpers
-└── server/github/       # GitHub-backed write helpers
-
-convex/
-├── schema.ts
-├── substanceIndex.ts
-├── subjectiveEffects.ts
-├── tripReports.ts
-├── memberships.ts
-├── prompts.ts
-├── quotes.ts
-├── replications.ts
-├── siteConfig.ts
-└── indexLayouts.ts
-
-scripts/
-├── analyze/             # Coverage and data audits
-├── batch/               # AI generation and quote extraction
-├── build/               # Build-time generators
-├── convex/              # Convex import/export/sync
-├── data/                # Data transforms
-├── migrate/             # Schema/data migrations
-├── parsers/             # Source parsers
-├── prepopulate/         # Prepopulation from parsed sources
-├── replications/        # Effect gallery media tooling
-└── seed/                # Initial config/layout seed scripts
-```
-
-### Repository notes
-
-This repository may contain legacy, local, or generated material that is not part of the active runtime path, including `.next/`, `dist/`, `dist-inline/`, `coverage/`, `archive/`, and `notes-and-plans/`. Use `npm run hygiene:check` to inspect approved local artifact noise and `npm run hygiene:clean` to remove it.
+See [project layout](docs/architecture/project-layout.md) for ownership details and local artifact policy. Use `npm run hygiene:check` to inspect removable ignored/generated artifacts; `npm run hygiene:clean` removes only artifacts approved by that policy.
 
 ## Public Routes
 
-Active public route groups live under `src/app/`:
+Public pages live under `src/app/`. Representative route groups are:
 
-- `/substances`
-- `/[slug]`
-- `/effects`
-- `/effects/[effectSlug]`
-- `/effects/category/[categorySlug]`
-- `/articles`
-- `/articles/[slug]`
-- `/reports`
-- `/reports/[slug]`
-- `/category/[categoryKey]`
-- `/chemical/[slug]`
-- `/psychoactive/psychedelic/visual`
-- `/psychoactive/psychedelic/cognitive`
-- `/psychoactive/psychedelic/miscellaneous`
-- `/psychoactive/dissociative`
-- `/psychoactive/deliriant`
-- `/mechanism/[mechanismSlug]`
-- `/mechanism/[mechanismSlug]/[qualifierSlug]`
-- `/contributors/[profileKey]`
-- `/search` and `/search/[query]`
-- `/docs/how` and `/docs/code` (visual explainers served from `public/docs/`)
-- `/about`
+- library and articles: `/substances`, `/[slug]`, `/articles`, and `/articles/[slug]`;
+- effects and reports: `/effects`, `/effects/[effectSlug]`, `/reports`, and `/reports/[slug]`;
+- media: `/replications` and `/replications/[slug]`;
+- discovery: `/category/[categoryKey]`, `/chemical-classes/[classKey]`, `/mechanism/[mechanismSlug]`, `/psychoactive/[...summaryPath]`, and `/search`;
+- project pages: `/about`, `/contributors/[profileKey]`, `/docs/how`, `/docs/code`, and `/docs/license`.
 
-The production hosts `dose.wiki` and `www.dose.wiki` are currently gated behind an under-construction homepage in `middleware.ts`: only `/` and required static assets are served there, and other paths redirect home. Other hosts (previews, local dev) serve the full site.
+Some pages are publication-specific. `src/config/siteFlavor.ts` defines the flavor contract, and `lib/next/flavorGatedRoutes.ts` enforces it. Treat `src/app/**/page.tsx` as the current route map; compatibility redirects and aliases live in `middleware.ts` and `lib/next/publicRouteAliases.ts`.
 
-Legacy redirect routes also exist for compatibility:
-
-- `/effect/[effectSlug]` → `/effects/[effectSlug]`
-- `/data` → `/about`
-- `/interactions` → `/substances`
-
-SEO and crawl surfaces:
-
-- `src/app/sitemap.ts`
-- `src/app/robots.ts`
-- `lib/next/metadata.ts`
+The public-host launch policy is under [Environment and deployment](#environment-and-deployment). While that gate is active, the full application remains at <https://dosewiki-admin.vercel.app/> and the versioned public API remains available on the gated hosts.
 
 ### Public read-only API
 
-The versioned public API exposes live, public-safe substance data from Convex:
+Use these as the stable entry points:
 
-- `GET /api/v1/meta`
-- `GET /api/v1/substances?limit=25&cursor=...`
-- `GET /api/v1/substances/:slug`
-- `GET /api/v1/openapi.json`
+- base URL: <https://dosewiki-admin.vercel.app/api/v1>;
+- OpenAPI 3.1: <https://dosewiki-admin.vercel.app/api/v1/openapi.json>;
+- integration handoff: [HANDOFF.md](HANDOFF.md).
 
-Collection responses use opaque cursor pagination with a default page size of 25 and a maximum of 100. API responses allow cross-origin `GET`, `HEAD`, and `OPTIONS` access, use CDN caching, and are rate-limited through the `publicContentApiRead` policy. The API reuses the public Convex projections, so editor-only review metadata is not exposed. On the construction-gated `dose.wiki` hosts, only `/api/v1` is opened; the rest of the application remains gated.
+The API currently covers public substance records, normalized reagent tests, molecule SVGs, and effect replications. Representative endpoints include `GET /substances`, `GET /substances/{slug}`, `GET /replications`, and `GET /molecules/{slug}.svg`. Use OpenAPI rather than this README for the complete path and response contract.
 
-Browser example:
+Collection cursors are opaque. Browser clients may use `GET`, `HEAD`, and `OPTIONS`; responses are cached and rate-limited.
 
 ```js
 const response = await fetch("https://dosewiki-admin.vercel.app/api/v1/substances/mdma");
@@ -196,215 +96,110 @@ if (!response.ok) throw new Error(`DoseWiki API error: ${response.status}`);
 const { data } = await response.json();
 ```
 
-DoseWiki content is provided for harm-reduction education and is not medical advice. Review the [license and reuse terms](/docs/license) and preserve source attribution when republishing content.
+DoseWiki content is for harm-reduction education and is not medical advice. Review the [license and reuse terms](https://dosewiki-admin.vercel.app/docs/license) and preserve source attribution.
 
 ## Editor Surface
 
-Protected editor entry points:
+Sign in at `/sign-in`; the protected editor is mounted at `/dev` with tab and item deep links.
 
-- `/sign-in`
-- `/dev`
-- `/dev/[tab]`
-- `/dev/[tab]/[slug]`
+The editor groups related work rather than exposing separate applications:
 
-Current editor tabs:
+- article work includes Substances, Review, Citations, Tags, and Index layout;
+- intake and moderation include Trip reports, Feedback, and Site feedback;
+- media tools include Molecules, Banners, and Replications;
+- publication tools include Writing, Blog, Copy, and Contributors;
+- Profile and Change log remain primary account and audit destinations.
 
-1. `articles`
-2. `change-log`
-3. `tag-editor`
-4. `profile`
-5. `index-layout`
-6. `about`
-7. `citation-review`
+The current tab registry is `TOOL_TAB_ITEMS` in `src/features/dev/pages/DevModePageChrome.tsx`. Tab rendering lives in `DevModePageView.tsx`, and deep-link normalization lives in `devModePageUtils.ts`; use those files instead of copying a tab inventory into documentation.
 
-### Auth and authorization
+### Authentication and writes
 
-- Auth config: `auth.ts`
-- Auth runtime policy: `lib/auth/runtimePolicy.ts`
-- Middleware gate for `/dev`: `middleware.ts`
-- Role source of truth: Convex `memberships`
-- Bootstrap admins: `AUTH_ADMIN_EMAILS`
-- Allowed editor roles: `admin`, `editor`
-- `/dev/profile` is available to any authenticated user for self-profile edits; the rest of `/dev` remains editor-only.
+- Auth.js configuration: `auth.ts`
+- Runtime auth policy: `lib/auth/runtimePolicy.ts`
+- Route gate: `middleware.ts`
+- Role source: Convex `memberships`
 
-The sign-in page supports an Auth.js credentials provider backed by server-side editor password env vars such as `ADMIN_PASSWORD`, `JOSIE`, or keys listed in `DEV_PASSWORD_KEYS`. Vercel preview/production credentials sign-in requires `AUTH_SECRET`. GitHub OAuth is optional. `lib/auth/runtimePolicy.ts` centralizes the Auth.js secret fallback, provider readiness, and deployment restrictions.
+Editors and admins can use the full surface. Any authenticated user can edit their own profile. Editor tool handlers live under `src/app/api/dev/`; shared save routes live under `src/app/api/`. The preferred article write path is `save-to-convex`, while contributor profiles use `save-user-profile`.
 
-### Protected API handlers
-
-- `src/app/api/save-to-convex/route.ts`
-- `src/app/api/dev/molecule-class-template/route.ts`
-- `src/app/api/save-substance-index/route.ts`
-- `src/app/api/save-user-profile/route.ts`
-- `src/app/api/editor-config-health/route.ts`
-- `src/app/api/reagent-proxy/route.ts`
-- `src/app/api/search-suggestions/route.ts`
-- `src/app/api/test-env/route.ts`
-
-The preferred editor write path for live content is `save-to-convex`. Contributor profile writes now persist to Convex through `save-user-profile`.
-API route rate limits are selected through named policies in `lib/http/rateLimitPolicy.ts`; Upstash remains the preferred storage adapter with in-memory fallback when Redis is unavailable.
+Named rate-limit policies live in `lib/http/rateLimitPolicy.ts`.
 
 ## Build, Run, and Deploy
 
-| Command | Description |
-|---------|-------------|
-| `npm install` | Install dependencies |
-| `npm run dev` | Start the Next.js dev server on `http://localhost:3000` |
-| `npm run next:dev` | Alias for `npm run dev` |
-| `npm run build` | Production build |
-| `npm run openchemlib:verify` | Verify the local OpenChemLib fork source/distributable manifest |
-| `npm run openchemlib:build` | Maintainer-only Java/GWT rebuild of the local OpenChemLib fork |
-| `npm run next:build` | Alias for `npm run build` |
-| `npm run start` | Start the built app |
+Install with the repository-pinned Bun version:
+
+```bash
+bun install --frozen-lockfile
+npm run dev
+```
+
+`package.json` pins Bun 1.3.5 and owns the full script catalog. Common commands:
+
+| Command | Purpose |
+|---------|---------|
+| `npm run dev` | Start local Next.js development |
+| `npm run build` | Build the application |
 | `npm run test` | Run Vitest |
-| `npm run lint` | Run ESLint |
-| `npm run typecheck` | Run TypeScript without emit |
-| `npm run cleanup:metrics` | Print current cleanup and size metrics for the active source tree |
-| `npm run hygiene:check` | List approved ignored/generated local artifacts currently present |
-| `npm run hygiene:clean` | Remove approved ignored/generated local artifacts |
-| `npm run generate:schema` | Regenerate schema helpers |
-| `npm run provenance:check` | Report generated-data provenance manifest, command, output, and docs coverage issues |
-| `npm run parse:sources` | Parse raw source files and print stats |
+| `npm run lint` | Lint the application |
+| `npm run typecheck` | Type-check without emit |
+| `npm run verify:app` | Verify app code |
+| `npm run verify:workflow` | Verify scripts and data workflows |
+| `npm run generate:schema` | Regenerate article-schema helpers |
+| `npm run provenance:check` | Check generated-data lineage |
 
-Cleanup review note:
-Run `npm run cleanup:metrics -- --check` before or during review work on known hotspots. The report now separates active logic from generated/config-heavy files and fails when tracked cleanup budgets regress.
+### Environment and deployment
 
-### Key environment variables
+Keep secrets in `.env.local`, the shell, or the hosting provider. Do not commit credential values.
 
-- `AUTH_SECRET`
-- `NEXTAUTH_SECRET` (deprecated compatibility alias)
-- `AUTH_GITHUB_ID`
-- `AUTH_GITHUB_SECRET`
-- `GITHUB_ID` / `GITHUB_SECRET` (deprecated compatibility aliases)
-- `AUTH_ADMIN_EMAILS`
-- `NEXTAUTH_URL`
-- `NEXT_PUBLIC_SITE_URL`
-- `NEXT_PUBLIC_SITE_FLAVOR`
-- `CONVEX_URL`
-- `VITE_CONVEX_URL`
-- `NEXT_PUBLIC_CONVEX_URL`
-- `CONVEX_PUBLIC_READ_URL`
-- `TARGET_CONVEX_URL`
-- `CONVEX_ADMIN_KEY`
-- `OPENROUTER_API_KEY`
-- `SCRY_API_KEY`
-- `UPSTASH_REDIS_REST_URL`
-- `UPSTASH_REDIS_REST_TOKEN`
-- `GITHUB_TOKEN`
-- `ENABLE_TEST_ENV`
+- `lib/runtime/envContract.ts` defines runtime environment diagnostics.
+- `lib/convex/runtimeTargets.ts` defines which variable supplies each read or write capability.
+- `docs/agents/convex-credentials.md` covers deployment-bound Convex credentials and write checks.
+- `docs/agents/deployment.md` is the source of truth for Vercel projects, domains, and release safety.
 
-### Deployment notes
+All configured Convex reads and writes—including local, development, preview, and production—target `prod:glad-minnow-656`. Active variables such as `NEXT_PUBLIC_CONVEX_URL`, `VITE_CONVEX_URL`, `CONVEX_PUBLIC_READ_URL`, `CONVEX_URL`, and explicit `TARGET_CONVEX_URL` must resolve to that deployment. `enchanted-echidna-791` is retired. Effect Index reads the same production data but carries no write credentials.
+Production writes use an intent-scoped admin token or the documented `CONVEX_ADMIN_KEY` compatibility fallback. Follow [Convex credentials](docs/agents/convex-credentials.md) rather than copying credential values or precedence rules into other files.
 
-- Vercel previews and production need `AUTH_SECRET`.
-- `NEXT_PUBLIC_SITE_URL` controls canonical, Open Graph, structured-data, and sitemap URLs. Keep it on `https://dosewiki-admin.vercel.app` while `dose.wiki` / `www.dose.wiki` are construction-gated; set it to `https://dose.wiki` only as part of the explicit public launch.
-- `NEXT_PUBLIC_SITE_FLAVOR` selects the publication this build is compiled against. It is read at build time (public pages are prerendered, so the identity is baked into the static output). Unset, empty, or unrecognised means dose.wiki; `effectindex` selects Effect Index. See `src/config/siteFlavor.ts`.
-- Vercel previews and production can use server-side editor password env vars such as `ADMIN_PASSWORD` or `JOSIE` for credentials sign-in; GitHub OAuth is optional.
-- The editor save-to-Convex flow needs `CONVEX_ADMIN_KEY` on the server.
-- Runtime env validation is centralized in `lib/runtime/envContract.ts` and currently runs in report-only mode for diagnostics.
-- Convex runtime targeting is capability-specific in `lib/convex/runtimeTargets.ts`: public server reads prefer `CONVEX_PUBLIC_READ_URL`, `/dev` browser reads prefer `NEXT_PUBLIC_CONVEX_URL`, and privileged writes plus auth membership sync prefer `CONVEX_URL`.
-- Compatibility mode preserves legacy write fallback to `VITE_CONVEX_URL`, then `NEXT_PUBLIC_CONVEX_URL`; editor config health reports that risky production fallback as diagnostics.
-- Auth compatibility mode preserves `NEXTAUTH_SECRET`, `GITHUB_ID`, and `GITHUB_SECRET` while new deployments should use `AUTH_SECRET`; `AUTH_GITHUB_ID` and `AUTH_GITHUB_SECRET` are only needed when enabling the optional GitHub OAuth provider.
-- The dev Convex deployment is retired: all environments, including local development, target the production deployment (`prod:glad-minnow-656`) for reads and writes. `CONVEX_PUBLIC_READ_URL` and the other Convex URL vars all point at production.
-- The legacy-path reagent route and protected API handlers run on the Node.js runtime. Reagent reads are served from the indexed Convex `reagentTests` snapshot; the route does not contact ProtestKit at runtime.
-- Remote analytics is attached after hydration only when the browser hostname is exactly `dose.wiki` or `www.dose.wiki`; admin, preview, and local hosts do not execute the analytics deployment.
-- HTML routes enforce a path- and host-aware CSP plus anti-framing, MIME, referrer, and permissions-policy headers. Public documents use a cache-compatible inline-script policy, while protected `/dev` documents use a per-request nonce plus hashes for the deterministic bootstrap scripts. Browser violations post to `/api/csp-report`, which records only the directive and redacted origins. API routes retain route-owned content policies, including the sandboxed molecule SVG response.
-- The browser policy and its explicitly justified source expressions are documented in [docs/agents/browser-security-policy.md](docs/agents/browser-security-policy.md).
+`NEXT_PUBLIC_SITE_FLAVOR` selects the publication at build time: unset uses dose.wiki; `effectindex` uses Effect Index. Keep `NEXT_PUBLIC_SITE_URL=https://dosewiki-admin.vercel.app` while the public dose.wiki hosts are gated.
+
+The public `dose.wiki` and `www.dose.wiki` hosts stay under construction through 2026-08-31. Passing that date does not launch them: the user must explicitly authorize launch before the gate or canonical URL changes.
+
+Vercel builds use `bun run build:vercel`. Read [deployment routing](docs/agents/deployment.md) before changing build keys, aliases, domains, or flavor settings.
 
 ## Development Workflow
 
-1. Read `AGENTS.md` and `CLAUDE.md` before changing shared architecture or workflows.
-2. Treat Convex as the runtime source of truth.
-3. Check the article schema before changing shared content shape.
-4. Prefer server-side Convex reads for public App Router routes.
-5. Reserve client-side Convex hooks for editor and interaction-heavy surfaces.
-6. Run `npm run test`, `npm run lint`, `npm run typecheck`, and `npm run build` before shipping meaningful changes.
-7. Run `npm run openchemlib:verify` for molecule-editor dependency changes; rebuild the local fork only through its documented maintainer workflow.
+1. Install with `bun install --frozen-lockfile`.
+2. Read `CONTEXT.md` and the ownership document for the feature you are changing.
+3. Treat Convex as runtime truth; use `src/schema/substance.schema.ts` before changing article shape.
+4. Keep public App Router reads server-side unless the interaction requires a client subscription.
+5. Run the narrow verification command that covers the change. Use `npm run verify:all` only when both app and workflow surfaces changed.
 
-### Data-fetching rules
-
-- Public server reads belong in `lib/convex/serverClient.ts`, `lib/convex/publicData.ts`, and `lib/convex/publicLibrary.ts`.
-- Metadata should go through `lib/next/metadata.ts`.
-- Static param planning belongs in `lib/next/staticParams.ts`.
-- Do not reintroduce `SubstanceIndex.json` as the public rendering source.
+Public server data helpers live in `lib/convex/`; metadata and static-route planning live in `lib/next/`. Local `SubstanceIndex.json` is not a public rendering source.
 
 ## Scripts
 
-See [scripts/README.md](scripts/README.md) for the script catalog and the stable workflow command surface.
-
-Common workflows:
-
-### Batch generation
-
-```bash
-export OPENROUTER_API_KEY="sk-or-..."
-export VITE_CONVEX_URL="https://..."
-
-npm run batch:legality -- --dry-run
-npm run batch:proposal -- --slug=2c-b --section=summary --source-url=https://source.convex.cloud --target-url=https://target.convex.cloud
-npm run batch:proposal -- --slug=2c-b --section=pharmacology --source-url=https://source.convex.cloud --target-url=https://target.convex.cloud
-npm run batch:publish-reviewed-section -- --proposal=notes-and-plans/exports/batch-proposals/2c-b/summary/<run>/proposal.json --target-url=https://target.convex.cloud --dry-run
-npm run batch:history-culture -- --substance=lsd
-npm run batch:harm-potential -- --all --concurrency=5
-npm run batch:dosage-duration:export
-npm run batch:dosage-duration:run
-npm run batch:dosage-duration:apply
-npm run citations:formal -- --slug=2c-b --dry-run
-npm run citations:archive-production-dataset -- --label=pre-2c-b-citation-rollout
-npm run citations:run-local-campaign -- --slug=2c-b --source-url=https://glad-minnow-656.convex.cloud --dry-run
-npm run citations:review-dossier -- --output=outputs/citation-draft-review.html
-npm run citations:plan-second-pass -- --audit=tmp/subsection-citation-audit.json
-TARGET_CONVEX_URL=https://glad-minnow-656.convex.cloud \
-  npm run citations:apply-workbench -- --slug=2c-b --dry-run --expected-deployment=glad-minnow-656
-```
-
-Local batch scripts use OpenRouter for controlled generation workflows; the `/dev` frontend does not expose source excerpts or article generation. `articleSources` reads require authenticated Convex identity or the scoped article-source migration token. `batch:proposal` supports review-only `summary` and `pharmacology` adapters: it writes read-only digest-linked local artifacts, rejects `--write`, and exposes only query capability. Pharmacology proposals may change only `pharmacology`, never `dosage`, `duration`, or unrelated fields. `batch:publish-reviewed-section` promotes exactly one explicitly approved immutable artifact using the scoped-token, deployment-bound, registered-editor, section-scoped CAS mutation; it verifies the artifact and live target before writing and rechecks the approved field afterwards. See [scripts/README.md](scripts/README.md#review-only-section-proposal-and-later-publication) for the production ceremony.
-
-Scry public-corpus SQL access is available through `npm run scry:query` with
-`SCRY_API_KEY` set in the shell or `.env.local`.
-
-Formal citation drafts default to dry-run and require `--write --confirm-citation-write`
-before updating Convex article references or citation evidence rows. Workbench promotion
-dry-runs and writes both require explicit `TARGET_CONVEX_URL` plus a matching
-`--expected-deployment`; browser/default Convex URL fallbacks are not accepted.
-
-The external citation queue lives in `/Users/josie/.codex/dosewiki-citation-workbench`.
-Reviewed workbench `citation-draft.json` output should be adapted through
-`npm run citations:apply-workbench`, not by hand-editing local article JSON.
-Workbench runs are review-ready only after the six-section status table is
-resolved, section worker launches were verified against the citable section set,
-existing section outputs pass worker-output checks, remap/proactive scan passed,
-missing sections preserve original text without public markers, final validation
-passes, and article-wide output is stable, non-empty, and has marker/evidence
-parity over accepted section work.
-Production rollout uses [docs/citation-production-rollout.md](docs/citation-production-rollout.md):
-archive the current public dataset, promote `2c-b` as the canary, verify the
-public page, then continue with small common-drug batches.
-
-### Source parsing
+[scripts/README.md](scripts/README.md) is the maintained workflow catalog; `package.json` is the executable command surface. Representative read-only or dry-run entry points are:
 
 ```bash
 npm run parse:sources
-npm run prepopulate:high-confidence -- --dry-run
-npm run prepopulate:dosage-duration -- --dry-run
+npm run batch:legality -- --dry-run
+npm run citations:formal -- --slug=2c-b --dry-run
+npm run convex:doctor
 ```
 
-### Migrations and sync
+Batch generation uses OpenRouter and requires `OPENROUTER_API_KEY`. Scry access uses `SCRY_API_KEY`. Keep both in `.env.local` or the shell.
 
-```bash
-npm run migrate:trip-reports
-npm run migrate:effects
-npm run prompts:migrate
-npm run convex:sync-production -- --confirm-production-sync
-```
+Convex-changing commands must use an explicit `TARGET_CONVEX_URL` for `glad-minnow-656`, a matching expected-deployment argument where supported, and the command's write confirmation. Read [Convex credentials](docs/agents/convex-credentials.md) before running them.
+
+For citation workbench promotion, use `npm run citations:apply-workbench` rather than editing article JSON. Follow [citation workbench guidance](docs/agents/citation-workbench.md) and [production rollout](docs/citation-production-rollout.md).
 
 ## Further Reading
 
 | Document | Description |
 |----------|-------------|
 | [AGENTS.md](AGENTS.md) | Current repo-specific agent guidance |
-| [CLAUDE.md](CLAUDE.md) | Operational notes and workflow constraints |
+| [CLAUDE.md](CLAUDE.md) | Claude-specific skill routing and model notes |
 | [ARCHITECTURE.md](ARCHITECTURE.md) | Architecture entrypoint and links to runtime appendices |
-| [public/docs/code.html](public/docs/code.html) | Visual codebase overview, served at `/docs/code` |
-| [public/docs/how.html](public/docs/how.html) | Visual walkthrough of how articles are made, served at `/docs/how` |
+| [`/docs/code`](/docs/code) | Visual codebase overview, served at `/docs/code` |
+| [`/docs/how`](/docs/how) | Visual walkthrough of how articles are made, served at `/docs/how` |
 | [CONTEXT.md](CONTEXT.md) | Domain language for the citation workflow |
 | [docs/architecture/project-layout.md](docs/architecture/project-layout.md) | Contributor-facing folder map and local artifact hygiene rules |
 | [docs/architecture/openchemlib-fork.md](docs/architecture/openchemlib-fork.md) | Local OpenChemLib ownership, provenance, rebuild, and update contract |

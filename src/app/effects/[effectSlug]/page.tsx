@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 import { buildPublicPageMetadata, buildSiteUrl, getPublicRoutePath } from "@server/next/publicSite";
-import { loadEffectRoute } from "@server/next/routeLoaders";
+import { loadEffectRoute } from "@server/next/routeLoaders.substances";
 import { getStaticEffectParams } from "@server/next/staticParams";
 import { EffectArticlePage } from "@/features/effects/pages/EffectArticlePage";
 import { buildSubjectiveEffectSchema, serializeJsonLd } from "@/utils/seo/structuredData";

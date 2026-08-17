@@ -57,6 +57,22 @@ describe("normalizeMechanisms", () => {
     ]);
   });
 
+  it("removes citation markers before deriving labels and route slugs", () => {
+    expect(
+      normalizeMechanisms([
+        "5-HT2A receptor agonist (partial)[cite:doi-10-1000-example]",
+      ]),
+    ).toEqual([
+      {
+        label: "5-HT2A receptor agonist (partial)",
+        base: "5-HT2A receptor agonist",
+        slug: "5-ht2a-receptor-agonist",
+        qualifier: "partial",
+        qualifierSlug: "partial",
+      },
+    ]);
+  });
+
   it("omits qualifier fields for unqualified labels", () => {
     expect(normalizeMechanisms(["Dopamine releaser"])).toEqual([
       {

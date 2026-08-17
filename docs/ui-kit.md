@@ -1,13 +1,15 @@
 # UI Kit
 
-The dose.wiki UI Kit is the single, standardized set of shared UI building blocks.
-**Before building any UI, reuse the kit. Do not hand-roll a button, badge, card,
-input, dialog, or surface that already exists.**
+The dose.wiki UI Kit is the catalog and how-to authority for shared UI building
+blocks. **Before building UI, browse the kit and reuse an existing component.
+Do not hand-roll a button, badge, card, input, dialog, or surface that already
+exists.**
 
-This is the front door. Two companion docs go deeper:
+Use these companion references for decisions outside the catalog:
 
-- [`docs/ui-system.md`](ui-system.md) — the ownership contract (who owns what, promotion criteria, Button variant policy).
-- [`notes-and-plans/guides/dosewiki-visual-style-guide.md`](../notes-and-plans/guides/dosewiki-visual-style-guide.md) — the visual language (color, type, spacing, motion).
+- [`docs/ui-system.md`](ui-system.md) — ownership boundaries, promotion criteria,
+  and dependency policy.
+- [`notes-and-plans/guides/dosewiki-visual-style-guide.md`](../notes-and-plans/guides/dosewiki-visual-style-guide.md) — brand and visual language.
 
 ## Browse it live: `/dev/kit`
 
@@ -16,8 +18,9 @@ copy-paste import line, and when-to-use / when-not-to-use guidance — in the re
 theme tokens, with a working light/dark toggle.
 
 - Route: **`/dev/kit`** (auth-gated under `/dev`, like the rest of the editor surface).
-- Run `npm run dev` and open `/dev/kit`. It is the rendered source of truth — when
-  the docs and the rendered component disagree, the component wins.
+- Run `npm run dev` and open `/dev/kit`. The catalog demonstrates the current
+  component behavior; when prose and a rendered component disagree, inspect the
+  component source and correct the catalog or guide.
 
 ## Where the kit lives
 
@@ -40,32 +43,37 @@ import { Button, Badge, Surface, ContentCard } from "@/components/ui";
 
 ## Rules
 
-1. **Reuse first.** Check `/dev/kit` and `docs/ui-system.md` before writing new UI.
-   If a primitive almost fits, extend it through props/variants — don't fork it.
-2. **Keep variants primitive.** Button/Badge variant names describe visual behaviour
-   (tone, emphasis, shape, icon affordance), never a feature or route. Feature-named
-   variants are blocked by `src/components/ui/ownership.test.ts`.
-3. **Promotion is intentional.** Feature-local components stay beside their feature
-   until they have multiple real consumers and a stable, data-shaped API
-   (see promotion criteria in `docs/ui-system.md`). Don't relocate article/effects/
-   reports/editor components into the shared kit just to "standardize" them.
+1. **Reuse first.** Check `/dev/kit` and this guide before writing new UI. If a
+   primitive almost fits, extend it through props or variants rather than forking
+   it. Consult `docs/ui-system.md` when deciding which layer owns the result.
+2. **Keep variants primitive.** Button and Badge variant names describe visual
+   behavior (tone, emphasis, shape, icon affordance), never a feature or route.
+   Feature-named variants are blocked by `src/components/ui/ownership.test.ts`.
+3. **Promote intentionally.** Keep feature-local components beside their feature
+   until they have multiple real consumers and a stable, data-shaped API. The
+   promotion criteria live in `docs/ui-system.md`.
 
-## Adding or changing a shared primitive (the drift gate)
+## Adding or changing a shared component
 
-The catalog cannot silently rot. `src/app/dev/kit/registry/completeness.test.ts`
-fails the build if a runtime export of the `ui/`, `common/`, or `layout/` barrels
-has no catalog story (type-only exports are naturally excluded). A second test,
-`registry/render.test.tsx`, server-renders every example so a provider-bound
-component cannot break the build's prerender of the route.
+Two Vitest checks keep the catalog aligned with the shared barrels:
 
-To add a primitive:
+- `src/app/dev/kit/registry/completeness.test.ts` checks that every runtime export
+  from `ui/`, `common/`, and `layout/` has one catalog story.
+- `src/app/dev/kit/registry/render.test.tsx` server-renders every example and
+  catches missing providers or other render failures.
 
-1. Add the component under `src/components/ui/` and export it from `src/components/ui/index.ts`.
-2. Write a story at `src/app/dev/kit/stories/<name>.story.tsx` (copy an existing one;
-   it's a `StoryDef` — see `src/app/dev/kit/registry/types.ts`). List every exported
-   symbol in the story's `exports` array and show each in an example.
-3. Register it in `src/app/dev/kit/registry/index.ts`.
-4. Run `npx vitest run src/app/dev/kit/registry/completeness.test.ts`.
+These are verification checks, not build-time checks. They run with the Vitest
+suite, including the `npm run test` step inside `npm run verify:app`.
+
+To add or change a shared component:
+
+1. Place it in the tier selected by `docs/ui-system.md` and export it from that
+   tier's barrel.
+2. Add or update a story in `src/app/dev/kit/stories/`. Use the `StoryDef`
+   contract in `src/app/dev/kit/registry/types.ts`, list every runtime symbol in
+   `exports`, and show each one in an example.
+3. Register the story in `src/app/dev/kit/registry/index.ts`.
+4. Run `npm run test -- src/app/dev/kit/registry/completeness.test.ts src/app/dev/kit/registry/render.test.tsx`.
 
 Catalog source layout:
 
@@ -77,18 +85,17 @@ src/app/dev/kit/
   registry/
     types.ts                    # StoryDef contract
     index.ts                    # the registered story list
-    completeness.test.ts        # drift gate (ui/ barrel)
-  stories/*.story.tsx           # one StoryDef per primitive
+    completeness.test.ts        # shared-barrel drift check
+    render.test.tsx             # story render check
+  stories/*.story.tsx           # catalog story modules
 ```
 
-## Scope status
+## Scope
 
-All three shared barrels are fully catalogued and gated by the completeness test:
+The completeness test compares the registered stories with the runtime exports
+of all three shared barrels: `ui/`, `common/`, and `layout/`. Read the barrels
+and the registry for the current inventory rather than maintaining a second list
+here.
 
-- **Primitives (`ui/`)** — every primitive.
-- **Common (`common/`)** — every recipe, including the article/citation primitives.
-- **Layout (`layout/`)** — page shells and public content/feedback/page primitives.
-
-Feature-local components (article/effects/reports/editor) are intentionally **not**
-relocated into the shared kit — they stay beside their feature per the ownership
-contract. Use `docs/ui-system.md` to decide where a component belongs.
+Feature-local article, effects, reports, and editor components stay beside their
+features unless they meet the promotion criteria in `docs/ui-system.md`.

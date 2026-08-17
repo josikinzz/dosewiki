@@ -197,16 +197,25 @@ article rendering.
 
 ### Editor read flow
 
-Editor pages use client-side Convex queries:
+Editor pages use client-side Convex queries against the sole deployment,
+`glad-minnow-656`:
 
 1. user signs in through Auth.js
-2. `/dev` resolves the user's owned contributor profile with the scoped `profileMediaWrite` token (falling back to the legacy admin key during migration)
-3. an unavailable profile lookup is logged but does not prevent `NextDevRouteClient` from loading
-4. client mounts a Convex React client using `NEXT_PUBLIC_CONVEX_URL` or `VITE_CONVEX_URL`
+2. `/dev` resolves the user's owned contributor profile with
+   `profileMediaWrite`; the resolver uses its scoped token when configured and
+   otherwise uses `CONVEX_ADMIN_KEY`
+3. an unavailable profile lookup is logged but does not prevent
+   `NextDevRouteClient` from loading
+4. client mounts a Convex React client from the configured browser URL, which
+   must resolve to `glad-minnow-656`
 5. editor reads category layout, slug map, and full article library from Convex
-6. article editing remains manual in the browser; scraped `articleSources`, extracted quote packs, and source-backed generation are not loaded by the article editor
-7. the editor config-health check actively verifies that the configured legacy admin credential is accepted by the selected Convex deployment
-8. editor state is managed through `DevModeContext` and feature-local form/tool state
+6. article editing remains manual in the browser; scraped `articleSources`,
+   extracted quote packs, and source-backed generation are not loaded by the
+   article editor
+7. the editor config-health check verifies that the configured
+   `CONVEX_ADMIN_KEY` is accepted by the selected deployment
+8. editor state is managed through `DevModeContext` and feature-local form/tool
+   state
 
 ### Editor save-to-Convex flow
 
@@ -216,13 +225,16 @@ The preferred live-content save path is:
 2. client calls `POST /api/save-to-convex`
 3. route enforces rate limit
 4. route requires an Auth.js editor session
-5. route checks for `CONVEX_ADMIN_KEY`
-6. route writes through generated Convex mutations
-7. route optionally writes changelog entry
-8. route revalidates affected public paths and immediately expires tagged public
+5. route requires a server write URL and `CONVEX_ADMIN_KEY`; the URL must resolve
+   to `glad-minnow-656`
+6. each mutation uses its intent-scoped token when configured and otherwise uses
+   `CONVEX_ADMIN_KEY` as the compatibility fallback
+7. route writes through generated Convex mutations
+8. route optionally writes changelog entry
+9. route revalidates affected public paths and immediately expires tagged public
    Convex-derived data
-9. route clears process-local library/search caches
-10. client receives verification/revalidation metadata
+10. route clears process-local library/search caches
+11. client receives verification/revalidation metadata
 
 This is the cleanest write path in the current system because it preserves Convex as the live store.
 
@@ -361,6 +373,12 @@ for database-backed SVGs. See
 inventory, rationale, and validation contract.
 
 ### Convex
+
+All local, development, Vercel Preview, and Production Convex reads and writes
+use `glad-minnow-656`. Runtime target resolution lives in
+`lib/convex/runtimeTargets.ts`; every configured read and write URL must resolve
+to that deployment. A second dev or preview deployment is not part of the
+runtime architecture.
 
 Used for:
 

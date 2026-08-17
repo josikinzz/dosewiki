@@ -9,8 +9,11 @@ const groups: DosageCategoryGroup[] = [
     key: "psychedelics",
     name: "Psychedelics",
     icon: "lucide:sparkles",
-    total: 1,
-    drugs: [{ name: "LSD", slug: "lsd" }],
+    total: 2,
+    drugs: [
+      { name: "LSD", slug: "lsd" },
+      { name: "DXM", slug: "dxm" },
+    ],
   },
 ];
 
@@ -38,5 +41,19 @@ describe("CategoryGrid", () => {
     expect(
       screen.getByRole("button", { name: "Collapse Psychedelics category" }),
     ).toHaveAttribute("aria-expanded", "true");
+  });
+
+  it("links only substances with canonical public article routes", () => {
+    render(
+      <CategoryGrid
+        groups={groups}
+        drugHrefPrefix="/"
+        linkableDrugSlugs={["lsd"]}
+        maxColumns={1}
+      />,
+    );
+
+    expect(screen.getByRole("link", { name: "LSD" })).toHaveAttribute("href", "/lsd");
+    expect(screen.getByText("DXM").closest("a")).toBeNull();
   });
 });

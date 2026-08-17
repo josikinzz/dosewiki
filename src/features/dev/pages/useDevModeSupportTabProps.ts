@@ -318,5 +318,3 @@ export function useDevSupportTabsController({
     tagEditorTabProps,
   };
 }
-
-export const useDevModeSupportTabProps = useDevSupportTabsController;

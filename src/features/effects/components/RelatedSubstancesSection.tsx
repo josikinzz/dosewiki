@@ -7,6 +7,7 @@ interface RelatedSubstancesSectionProps {
   total: number;
   drugHrefPrefix?: string;
   categoryHrefPrefix?: string;
+  linkableSubstanceSlugs: readonly string[];
   showHeading?: boolean;
 }
 
@@ -19,6 +20,7 @@ export function RelatedSubstancesSection({
   total,
   drugHrefPrefix,
   categoryHrefPrefix,
+  linkableSubstanceSlugs,
   showHeading = true,
 }: RelatedSubstancesSectionProps) {
   if (groups.length === 0) {
@@ -44,6 +46,7 @@ export function RelatedSubstancesSection({
         groups={groups}
         drugHrefPrefix={drugHrefPrefix}
         categoryHrefPrefix={categoryHrefPrefix}
+        linkableDrugSlugs={linkableSubstanceSlugs}
         hideEmptyGroups
         maxColumns={2}
       />

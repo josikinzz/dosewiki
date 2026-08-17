@@ -318,5 +318,3 @@ function FeedbackField({
     </div>
   );
 }
-
-export default SiteFeedbackForm;

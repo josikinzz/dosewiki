@@ -109,7 +109,7 @@ export function UserTripReportsSection({
 
 function ContributionDiff({ entry, id }: { entry: ChangeLogEntry; id: string }) {
   return (
-    <div id={id} className="theme-code-surface overflow-x-auto border-t border-[var(--theme-border-subtle)] p-4">
+    <div id={id} className="theme-code-surface overflow-x-auto border-t border-dose-border p-4">
       <pre
         className="font-mono text-xs leading-relaxed"
         aria-label="Diff of changed lines"
@@ -268,7 +268,7 @@ export function UserContributionsSection({
               {group.label}
             </div>
             <NestedContentCard radius="xl" padding="none" className="overflow-hidden">
-              <div className="divide-y divide-[var(--theme-border-subtle)]">
+              <div className="divide-y divide-dose-border">
                 {group.entries.map((entry) => (
                   <ContributionRow key={entry.id} entry={entry} />
                 ))}

@@ -146,8 +146,8 @@ function AssociationRow({
     <li className="list-none">
       <div
         className={[
-          "rounded-xl border border-transparent bg-[var(--theme-frosted-control-on-panel-bg)] px-3 py-2.5",
-          "shadow-[var(--theme-frosted-control-on-panel-shadow)] transition",
+          "theme-replication-association-row rounded-xl border border-transparent px-3 py-2.5",
+          "transition",
           checked ? undefined : "opacity-70",
         ]
           .filter(Boolean)
@@ -183,7 +183,7 @@ function AssociationRow({
         </div>
         {atRisk ? (
           <p
-            className="mt-1.5 flex items-start gap-1.5 pl-[1.625rem] text-xs leading-5 text-[color:var(--theme-warning-text)]"
+            className="theme-warning-text mt-1.5 flex items-start gap-1.5 pl-[1.625rem] text-xs leading-5"
             data-testid={`curated-warning-${row.slug}`}
           >
             <Icon icon="lucide:triangle-alert" size={13} className="mt-0.5 shrink-0" />

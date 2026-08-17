@@ -1,0 +1,271 @@
+import { type Infer, v } from "convex/values";
+
+export const replicationRightsStatus = v.union(
+  v.literal("creator-retained"),
+  v.literal("explicit-license"),
+  v.literal("unknown"),
+  v.literal("permission-granted"),
+  v.literal("public-domain"),
+);
+
+export const replicationRole = v.union(v.literal("replication"), v.literal("figure"));
+export const replicationMediaType = v.union(
+  v.literal("video"),
+  v.literal("image"),
+  v.literal("audio"),
+);
+
+export const replicationRightsFields = {
+  rights_status: v.optional(replicationRightsStatus),
+  license_name: v.optional(v.string()),
+  license_url: v.optional(v.string()),
+  credit_line: v.optional(v.string()),
+  source_url: v.optional(v.string()),
+  rightsholder: v.optional(v.string()),
+  permission_notes: v.optional(v.string()),
+  removal_contact: v.optional(v.string()),
+};
+
+export const replicationCreditSnapshot = v.object({
+  title: v.string(),
+  artist: v.string(),
+  artist_url: v.union(v.string(), v.null()),
+  credit_line: v.union(v.string(), v.null()),
+  source_url: v.union(v.string(), v.null()),
+  rightsholder: v.union(v.string(), v.null()),
+});
+
+export const replicationCreditUpdates = v.object({
+  title: v.string(),
+  artist: v.string(),
+  artist_url: v.optional(v.string()),
+  credit_line: v.string(),
+  source_url: v.optional(v.string()),
+  rightsholder: v.optional(v.string()),
+});
+
+export const replicationEditorialSnapshot = v.object({
+  title: v.string(),
+  artist: v.string(),
+  role: replicationRole,
+  effect_slug: v.union(v.string(), v.null()),
+  credit_line: v.union(v.string(), v.null()),
+  effect_tags: v.array(v.string()),
+});
+
+export const getBySlugArgs = v.object({ slug: v.string() });
+export const getReplicationsByEffectArgs = v.object({ effect_slug: v.string() });
+export const getByArtistArgs = v.object({ artist: v.string() });
+export const getByArtistNamesArgs = v.object({ artistNames: v.array(v.string()) });
+export const resolveStorageUrlsArgs = v.object({ storageIds: v.array(v.string()) });
+export const generateUploadUrlArgs = v.object({ apiKey: v.optional(v.string()) });
+
+export const insertReplicationArgs = v.object({
+  apiKey: v.optional(v.string()),
+  slug: v.string(),
+  title: v.string(),
+  artist: v.string(),
+  artist_url: v.optional(v.string()),
+  type: v.union(v.literal("video"), v.literal("image")),
+  storage_id: v.string(),
+  effect_slug: v.string(),
+  thumbnail_storage_id: v.optional(v.string()),
+  url: v.optional(v.string()),
+  thumbnail_url: v.optional(v.string()),
+  width: v.optional(v.number()),
+  height: v.optional(v.number()),
+  format: v.string(),
+  file_size: v.optional(v.number()),
+  duration: v.optional(v.number()),
+  ...replicationRightsFields,
+});
+
+export const insertMediaAssetArgs = v.object({
+  apiKey: v.optional(v.string()),
+  slug: v.string(),
+  title: v.string(),
+  artist: v.string(),
+  artist_url: v.optional(v.string()),
+  role: replicationRole,
+  type: replicationMediaType,
+  storage_id: v.string(),
+  effect_slug: v.optional(v.string()),
+  thumbnail_storage_id: v.optional(v.string()),
+  url: v.optional(v.string()),
+  thumbnail_url: v.optional(v.string()),
+  width: v.optional(v.number()),
+  height: v.optional(v.number()),
+  format: v.string(),
+  file_size: v.optional(v.number()),
+  duration: v.optional(v.number()),
+  effect_tags: v.optional(v.array(v.string())),
+  ...replicationRightsFields,
+});
+
+export const bulkImportArgs = v.object({
+  replications: v.array(
+    v.object({
+      slug: v.string(),
+      title: v.string(),
+      artist: v.string(),
+      artist_url: v.optional(v.string()),
+      type: v.union(v.literal("video"), v.literal("image")),
+      storage_id: v.string(),
+      effect_slug: v.string(),
+      thumbnail_storage_id: v.optional(v.string()),
+      url: v.optional(v.string()),
+      thumbnail_url: v.optional(v.string()),
+      width: v.optional(v.number()),
+      height: v.optional(v.number()),
+      format: v.string(),
+      file_size: v.optional(v.number()),
+      duration: v.optional(v.number()),
+      ...replicationRightsFields,
+    }),
+  ),
+});
+
+export const updateGalleryOrderArgs = v.object({
+  apiKey: v.optional(v.string()),
+  effect_slug: v.string(),
+  replication_slugs: v.array(v.string()),
+});
+
+export const renameSlugArgs = v.object({
+  apiKey: v.optional(v.string()),
+  from: v.string(),
+  to: v.string(),
+  id: v.optional(v.id("replications")),
+});
+
+export const deleteBySlugArgs = v.object({
+  apiKey: v.optional(v.string()),
+  slug: v.string(),
+});
+
+export const deleteAuditedRowArgs = v.object({
+  apiKey: v.optional(v.string()),
+  id: v.id("replications"),
+  expectedSlug: v.string(),
+  expectedTitle: v.string(),
+  expectedArtist: v.string(),
+  expectedStorageId: v.string(),
+  requireDuplicate: v.boolean(),
+});
+
+export const updateEffectSlugArgs = v.object({
+  apiKey: v.optional(v.string()),
+  slug: v.string(),
+  effect_slug: v.string(),
+});
+
+export const updateUrlArgs = v.object({
+  apiKey: v.optional(v.string()),
+  id: v.id("replications"),
+  url: v.string(),
+  thumbnail_url: v.optional(v.string()),
+});
+
+export const updateDeliveredFileSizeArgs = v.object({
+  apiKey: v.optional(v.string()),
+  id: v.id("replications"),
+  expectedStorageId: v.string(),
+  file_size: v.number(),
+});
+
+export const updateStorageIdsArgs = v.object({
+  apiKey: v.optional(v.string()),
+  id: v.id("replications"),
+  storage_id: v.string(),
+  thumbnail_storage_id: v.optional(v.string()),
+});
+
+export const updatePreviewStorageIdsArgs = v.object({
+  apiKey: v.optional(v.string()),
+  updates: v.array(
+    v.object({
+      id: v.id("replications"),
+      previewStorageId: v.string(),
+      expectedStorageId: v.string(),
+    }),
+  ),
+});
+
+export const getResolvedByIdArgs = v.object({
+  apiKey: v.optional(v.string()),
+  id: v.id("replications"),
+});
+
+export const applySourceRecoveryArgs = v.object({
+  apiKey: v.optional(v.string()),
+  id: v.id("replications"),
+  expectedStorageId: v.string(),
+  expectedSourceUrl: v.union(v.string(), v.null()),
+  storageId: v.string(),
+  sourceUrl: v.string(),
+});
+
+export const mergeUnknownTwinArgs = v.object({
+  apiKey: v.optional(v.string()),
+  keeperId: v.id("replications"),
+  duplicateId: v.id("replications"),
+  expectedSlug: v.string(),
+  expectedKeeperEffectSlug: v.string(),
+  expectedDuplicateStorageId: v.string(),
+  duplicateThumbnailStorageId: v.optional(v.string()),
+});
+
+export const applyProvenanceCorrectionArgs = v.object({
+  apiKey: v.optional(v.string()),
+  id: v.id("replications"),
+  expected: replicationCreditSnapshot,
+  updates: replicationCreditUpdates,
+});
+
+export const updateRightsMetadataArgs = v.object({
+  apiKey: v.optional(v.string()),
+  slug: v.string(),
+  updates: v.object(replicationRightsFields),
+});
+
+export const getStudioRowsArgs = v.object({ apiKey: v.optional(v.string()) });
+
+export const updateEditorialFieldsArgs = v.object({
+  apiKey: v.optional(v.string()),
+  id: v.id("replications"),
+  expected: replicationEditorialSnapshot,
+  updates: replicationEditorialSnapshot,
+});
+
+export const bulkUpdateEditorialFieldsArgs = v.object({
+  apiKey: v.optional(v.string()),
+  ids: v.array(v.id("replications")),
+  effect_slug: v.optional(v.string()),
+  artist: v.optional(v.string()),
+  role: v.optional(replicationRole),
+  addEffectTags: v.optional(v.array(v.string())),
+});
+
+export type InsertReplicationArgs = Infer<typeof insertReplicationArgs>;
+export type InsertMediaAssetArgs = Infer<typeof insertMediaAssetArgs>;
+export type BulkImportArgs = Infer<typeof bulkImportArgs>;
+export type UpdateGalleryOrderArgs = Infer<typeof updateGalleryOrderArgs>;
+export type RenameSlugArgs = Infer<typeof renameSlugArgs>;
+export type DeleteBySlugArgs = Infer<typeof deleteBySlugArgs>;
+export type DeleteAuditedRowArgs = Infer<typeof deleteAuditedRowArgs>;
+export type UpdateEffectSlugArgs = Infer<typeof updateEffectSlugArgs>;
+export type UpdateUrlArgs = Infer<typeof updateUrlArgs>;
+export type UpdateDeliveredFileSizeArgs = Infer<typeof updateDeliveredFileSizeArgs>;
+export type UpdateStorageIdsArgs = Infer<typeof updateStorageIdsArgs>;
+export type UpdatePreviewStorageIdsArgs = Infer<typeof updatePreviewStorageIdsArgs>;
+export type GetResolvedByIdArgs = Infer<typeof getResolvedByIdArgs>;
+export type ApplySourceRecoveryArgs = Infer<typeof applySourceRecoveryArgs>;
+export type MergeUnknownTwinArgs = Infer<typeof mergeUnknownTwinArgs>;
+export type ApplyProvenanceCorrectionArgs = Infer<typeof applyProvenanceCorrectionArgs>;
+export type UpdateRightsMetadataArgs = Infer<typeof updateRightsMetadataArgs>;
+export type GetStudioRowsArgs = Infer<typeof getStudioRowsArgs>;
+export type UpdateEditorialFieldsArgs = Infer<typeof updateEditorialFieldsArgs>;
+export type BulkUpdateEditorialFieldsArgs = Infer<typeof bulkUpdateEditorialFieldsArgs>;
+
+export type ReplicationEditorialSnapshot = Infer<typeof replicationEditorialSnapshot>;
+export type ReplicationRightsPatch = Infer<typeof updateRightsMetadataArgs>["updates"];

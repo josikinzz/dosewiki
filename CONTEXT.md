@@ -1,41 +1,41 @@
-# Citation Workflow Context
+# dose.wiki Domain Context
 
-This context names the domain concepts used by the dose.wiki citation workflow. It exists to keep citation scope, worker responsibility, and article-safety language precise.
+This glossary defines the canonical language for citation, legality research, article review, and replication surfaces. Execution steps live in the linked workflow documentation.
 
-The Legality Research Workflow section at the end names the concepts for the Codex-executed legality research workflow, the Article Review Language section names the concepts for the editorial article-review flag workflow, and the Replications Surface Language section names the public replication surfaces and their addressing rules.
+## Citation Workflow Language
 
-## Language
+For citation runbooks and artifact contracts, read [Citation Workbench](docs/agents/citation-workbench.md).
 
 **Citable Article Surface**:
-The subset of a substance article that the claim-level citation workflow may ask workers to cite. For the current workflow, it is exactly `summary`, `pharmacology`, `tolerance`, `harm_potential`, `history_culture`, and `legality`.
+The six article fields in claim-level citation scope: `summary`, `pharmacology`, `tolerance`, `harm_potential`, `history_culture`, and `legality`.
 _Avoid_: whole article, all sections, generated citation scope
 
 **Excluded Citation Surface**:
-The substance article fields intentionally left out of the claim-level citation workflow because they have separate provenance or later workflows. For the current workflow, it is `dosage`, `duration`, `subjective_effects`, `comparisons`, `reagent_testing`, `interactions`, `identification`, and `classification`.
+The article fields outside claim-level citation scope because they have separate provenance or workflows: `dosage`, `duration`, `subjective_effects`, `comparisons`, `reagent_testing`, `interactions`, `identification`, and `classification`.
 _Avoid_: uncitable content, ignored article content
 
 **Citable Article Packet**:
-The article-shaped input given to the article-wide citation worker, containing only the citable article surface and omitting excluded citation surface fields without extra explanation text.
+An article-shaped input containing only the Citable Article Surface, with excluded fields absent and no explanatory filler.
 _Avoid_: source brief, whole article, filtered summary
 
 **Section Citation Packet**:
-The input given to a section citation worker, containing the full top-level section it owns and no unrelated article sections. A legality worker sees all of `legality`, while a harm-potential worker sees all of `harm_potential`.
+The complete top-level section owned by one section citation worker, with no unrelated article sections.
 _Avoid_: subsection packet, read-only article context
 
 **Article-Wide Citation Pass**:
-The final citation worker pass over the citable article packet after section citation workers have inserted their citations. It may directly insert additional citation markers in citable fields, and it looks for missing opportunities, duplicate work, and article-level gaps instead of competing with section workers from a blank state.
+The final pass over the merged, accepted section work. It may add markers while checking cross-section gaps and duplicate work.
 _Avoid_: parallel broad worker, whole-article generation
 
 **Parallel Section Pass**:
-The first citation-worker stage where one worker per included top-level section runs independently because each owns a separate section citation packet. The article-wide citation pass runs only after these section outputs have been validated, repaired where possible, and merged.
+The first citation stage: one independent worker owns each included top-level section. Accepted section outputs are merged before the Article-Wide Citation Pass.
 _Avoid_: sequential section bottleneck, competing broad-first pass
 
 **Six-Section Status Gate**:
-The required pre-article-wide checkpoint for full citation runs. Claude launches section workers in batches of at most 3, verifies visible/active worker labels and output paths against every non-empty citable section, then records `summary`, `pharmacology`, `tolerance`, `harm_potential`, `history_culture`, and `legality` as `checked`, `missing_preserve_original`, or `failed_preserve_original`. Existing outputs must pass worker-output checks; missing outputs, including `legality`, are warnings only when the original section is preserved exactly and no public markers are added there.
+The required checkpoint before an Article-Wide Citation Pass. Every non-empty citable section is recorded as `checked`, `missing_preserve_original`, or `failed_preserve_original`; missing or failed sections preserve the original exactly and receive no public markers.
 _Avoid_: silent missing legality, unchecked section output, partial section batch without status
 
 **Article-Wide Output Guard**:
-The rule that an article-wide output is failed when accepted section work exists but `article-wide.json` is a 156-byte stub, has empty `markedSections`/`references`/`evidence`, has markers with zero references/evidence, has evidence rows missing `status`, or has marker/evidence mismatches. In the Pi-native workflow, a schema-validated worker handoff signals completion and `article_wide_check` decides acceptance; repair or rerun instead of treating a failed pass as a no-op.
+The acceptance rule that article-wide output must contain coherent marked sections, references, and evidence. Empty output, markers without matching references or evidence, evidence without `status`, and marker/evidence mismatches fail the pass and require repair or rerun.
 _Avoid_: empty no-op article-wide pass, partial broad-pass failure, mid-write stub acceptance
 
 **Supported Public Marker**:
@@ -43,23 +43,23 @@ A public `[cite:reference-id]` marker that resolves to a structured reference an
 _Avoid_: decorative citation, reference-only marker
 
 **Citation Evidence Trail**:
-The internal audit record behind public citation markers, including marker/reference identity, inspected-source quote, rationale, worker/pass origin, gaps, and validation outcomes. It supports review and repair but should not constrain marker placement through hard-coded claim mappings.
+The internal audit record behind public markers: marker and reference identity, inspected-source quote, rationale, pass origin, gaps, and validation outcomes. It supports review and repair but never drives marker placement through hard-coded claim mappings.
 _Avoid_: placement driver, public article prose
 
 **Citation Draft**:
-The run-local `citation-draft.json` artifact that collects marked article/section output, Wikipedia-style references, evidence trail, validation results, gaps, and report data. It should not imply a hard-coded article patch mapping layer.
+The run-local artifact containing marked article content, Wikipedia-style references, the Citation Evidence Trail, validation results, gaps, and report data.
 _Avoid_: patch-only draft, claim placement map
 
 **Citation Review Report**:
-The concise human-facing run summary, emphasizing citations added by section, new references, failed sections, gaps, paywall/inaccessible issues, supplemental references, and validation status. Detailed source and evidence data belongs in archive artifacts.
+The concise run summary of citations, new references, failed sections, gaps, inaccessible sources, supplemental references, and validation status. Detailed evidence stays in archived artifacts.
 _Avoid_: full evidence transcript, giant source dump
 
 **Brief Support Quote**:
-A short contiguous source excerpt kept in the citation evidence trail, following Wikipedia's minimal-use approach to quotations. It should include only enough source text to verify the supported claim, not large source passages.
+A short contiguous excerpt containing only enough source text to verify the supported claim.
 _Avoid_: full source copy, long excerpt, quote padding
 
 **Accessible Citation Source**:
-A source whose claim-supporting text can be inspected without paywall access. The workflow should avoid public citations to paywalled or inaccessible sources when an accessible Wikipedia-grade source can support the claim.
+A source whose claim-supporting text can be inspected without paywall access. Prefer it to paywalled or inaccessible support when an accessible Wikipedia-Grade Source supports the claim.
 _Avoid_: paywalled public citation, metadata-only support
 
 **Accessible Equivalent Source**:
@@ -67,11 +67,11 @@ An accessible Wikipedia-grade source that supports the same claim as a paywalled
 _Avoid_: paywall dead end, abstract-only substitute
 
 **Wikipedia-Style Reference**:
-A structured reference modeled after common Wikipedia citation-template fields such as cite journal, cite web, cite book, and cite report. The article text may still use internal `[cite:reference-id]` markers, but stored reference metadata and public rendering should follow Wikipedia-style conventions rather than APA.
+A structured reference modeled on Wikipedia citation-template fields such as cite journal, cite web, cite book, and cite report. Stored metadata and public rendering follow these conventions rather than APA, while article text uses stable internal markers.
 _Avoid_: APA reference, bibliography-only citation
 
 **Wikipedia-Style Reference Display**:
-The public rendering of structured references with richer source details similar to Wikipedia references, adapted to dose.wiki's visual design rather than copied visually.
+The public rendering of structured references with Wikipedia-like source detail adapted to dose.wiki's visual design.
 _Avoid_: APA-only list, bare link list
 
 **Reference Display Follow-Up**:
@@ -79,51 +79,51 @@ The later UI work that improves public reference rendering after the Wikipedia-s
 _Avoid_: blocking workflow redesign on UI polish
 
 **Canonical Reference Identity**:
-The final deduped identity for a source after merging worker outputs. Equivalent references should collapse by DOI, PMID, ISBN, URL, or normalized title, and citation markers should be remapped to the canonical reference ID.
+The deduplicated identity of a source after worker outputs merge. Equivalent references collapse by DOI, PMID, ISBN, URL, or normalized title, and their markers resolve to this ID.
 _Avoid_: duplicate reference IDs, worker-local source identity
 
 **Page-Specific Source Identity**:
-A worker-chosen source/reference ID that distinguishes same-site pages before canonical merging. DailyMed labels, for example, should include setid, label name, or another page-specific suffix rather than a generic `dailymed` ID.
+A pre-merge source ID that distinguishes pages on the same site. For example, a DailyMed label ID includes its setid, label name, or another page-specific suffix.
 _Avoid_: site-only ID, collapsed same-site pages
 
 **Discovery-Only Wiki Source**:
-A wiki page used to find candidate claims, references, or article structure, but not accepted as a final claim-level citation. Wikipedia, PsychonautWiki, and similar article pages belong in article links or see-also surfaces rather than public references.
+A wiki page used to find candidate claims, references, or structure but never as a final claim-level citation. It belongs in article-link or see-also surfaces, not public references.
 _Avoid_: wiki citation, secondary wiki reference
 
 **Wikipedia-Grade Source**:
-An underlying source suitable for a Wikipedia reference, such as a peer-reviewed paper, review article, book, government or regulatory document, reputable database, or other authoritative non-wiki source. It does not have to be primary literature when a review or official document is the more appropriate source.
+An authoritative non-wiki source suitable for a Wikipedia reference, such as a peer-reviewed paper, review, book, government document, regulatory document, or reputable database. Primary literature is not mandatory when a review or official source is better.
 _Avoid_: primary source as a blanket rule, wiki page as a reference
 
 **Wikipedia Reference Pool**:
-The set of underlying references extracted from the equivalent Wikipedia article for a substance. It is the default source pool for claim-level citation work, with extra research used only when that pool is missing, inaccessible, or insufficient for dose.wiki claims.
+The underlying references from a substance's equivalent Wikipedia article. It is the default claim-level source pool; research expands beyond it only when it is missing, inaccessible, or insufficient.
 _Avoid_: arbitrary web search pool, Wikipedia page citation
 
 **Supplemental Reference**:
-A Wikipedia-grade source found outside the equivalent Wikipedia article's reference pool. Workers may add one only for high-confidence citation gaps after first attempting to integrate relevant Wikipedia references.
+A Wikipedia-Grade Source outside the Wikipedia Reference Pool, added only for a high-confidence gap after relevant pool sources have been considered.
 _Avoid_: casual web find, low-confidence add-on source
 
 **DoseWiki-Only Claim**:
-A factual claim present in the dose.wiki citable article surface but absent from the equivalent Wikipedia article. It may receive a public marker when a strong Wikipedia-grade source supports it.
+A factual claim in the Citable Article Surface but absent from the equivalent Wikipedia article. It may receive a public marker only when a strong Wikipedia-Grade Source supports it.
 _Avoid_: unsupported local claim, forced Wikipedia match
 
 **Citation Gap**:
-An internal note that a claim lacked strong enough support for a public marker. Citation gaps do not change article text and must not create public citation-needed markers.
+An internal record that a claim lacked support strong enough for a public marker. It leaves article text unchanged and never creates a public citation-needed marker.
 _Avoid_: citation needed marker, weak public citation
 
 **Conservative Citation Coverage**:
-The workflow preference for fewer well-supported public markers over more weakly supported markers. Citation workers should not stretch sources merely to raise coverage counts.
+The preference for fewer well-supported public markers over greater coverage supported by stretched sources.
 _Avoid_: coverage maximization, source stretching
 
 **Wikipedia Citation Density**:
-The expected density of public markers should feel like a well-cited Wikipedia article: cite specific claims, clauses, sentences, or compact paragraphs where support is needed without repeating markers noisily.
+Public-marker density comparable to a well-cited Wikipedia article: support the smallest useful claim, sentence, or compact paragraph without noisy repetition.
 _Avoid_: one citation per section, citation spam
 
 **Citation Worker Instructions**:
-The succinct natural-language guidance that puts Claude into the Wikipedia-style citation mindset for citation runs. The canonical behavior should live where Claude reads it during `/cite`, especially the workbench `CLAUDE.md` and Claude-side worker/skill files, with main-repo docs pointing to that contract rather than duplicating it.
+The concise, canonical guidance loaded during citation runs. Keep the behavior in its workflow-owned skill and workbench files rather than scattered prompt copies.
 _Avoid_: scattered instruction copies, long ad hoc prompts
 
 **Citation Marker Placement**:
-The placement of `[cite:reference-id]` markers inside article text using normal Wikipedia reading conventions, like reference tags in raw MediaWiki/wikitext. Markers may appear mid-sentence, at sentence ends, inside short structured strings, be reused in multiple places, or be adjacent to other markers when multiple references genuinely support the text; they should not interrupt words.
+The position of `[cite:reference-id]` markers under normal Wikipedia reading conventions. Markers may be reused, adjacent when multiple sources support the text, or placed within structured strings, but never inside a word.
 _Avoid_: section-end citation, one-marker-per-reference-only, mid-word marker
 
 **Citation-Only Edit**:
@@ -131,289 +131,145 @@ A proposed article change where stripping citation markers restores the original
 _Avoid_: normalized rewrite, harmless prose cleanup
 
 **Section Repair Loop**:
-A natural-language worker retry for a section that failed citation-only validation. The repair worker compares the original and changed section, removes accidental non-citation edits, and reruns validation so one failed section does not discard an entire citation run.
+A retry that restores citation-only output after validation fails, so one invalid section does not discard the run.
 _Avoid_: whole-run failure, framework-heavy repair pipeline
 
 **Failed Citation Section Artifact**:
-A preserved section-worker output that failed validation or repair. It is not applied to the public article, but it stays in the run archive so a later agent can inspect and fix it.
+A preserved section output that failed validation or repair. It remains available for later review but is never applied to the public article.
 _Avoid_: discarded failed section, silently applied failed section
 
 **Accepted Citation Section**:
-A section-worker output that passed citation-only validation and can be merged into the article-shaped packet for the article-wide citation pass.
+A section output that passed citation-only validation and may enter the merged packet for the Article-Wide Citation Pass.
 _Avoid_: unvalidated section draft, failed section body
 
 **Local Citation Run Archive**:
-The local preserved output of a citation run, including validated drafts, failed section artifacts, source/evidence records, reports, and the pre-citation article snapshot. Normal runs should accumulate locally until a deliberate promotion batch.
+The preserved local record of a citation run: drafts, failed section artifacts, evidence, reports, and the pre-citation article snapshot. Runs remain local until a deliberate promotion batch.
 _Avoid_: one-off live write, disposable run output
 
 **Production Rollout Batch**:
-A deliberate group of locally archived citation results written to live Convex/site data during the citation production rollout. The existing rollout order is homepage `common` substances first, other homepage-visible substances second, and remaining SubstanceIndex entries third.
+A deliberate group of locally archived citation results promoted to production together, ordered as homepage `common` substances, other homepage-visible substances, then remaining SubstanceIndex entries.
 _Avoid_: per-drug automatic publish, immediate Convex write
 
 **Citation Rollout Stage Gate**:
-A deliberate pause between rollout stages for process review. The planned sequence is: use `2c-b` to perfect the workflow, run homepage common substances, publish/review the common substances, stop, then later scale to other homepage-visible substances.
+A deliberate rollout pause: calibrate on `2c-b`, publish and review the homepage `common` substances, then stop before expanding to other homepage-visible substances.
 _Avoid_: continuous production rollout, jumping tiers
 
 **Citation Canary**:
 The substance rerun repeatedly to prove and refine citation workflow changes before scaling. `2c-b` is the current citation canary.
 _Avoid_: one-and-done pilot
 
-## Example Dialogue
+## Legality Research Language
 
-Dev: Should the article-wide citation worker see interactions?
-
-Domain expert: No. Interactions are outside the citable article surface because that section has separate TripSit provenance.
-
-Dev: Should we tell the article-wide worker which fields were excluded?
-
-Domain expert: No. Give it an article-shaped packet with those fields absent so it focuses on the content that needs citations.
-
-Dev: Should the legality worker see just United States scheduling?
-
-Domain expert: No. Legality is in the citable article surface, so the legality worker should see the full `legality` field, including international notes and all countries.
-
-Dev: Should the legality worker also see harm potential for context?
-
-Domain expert: No. Section workers should only see their own full top-level section; the article-wide worker exists for broader context.
-
-Dev: Should the article-wide citation pass run alongside section workers?
-
-Domain expert: No. Run it after section workers so it sees their citation work and can focus on missing coverage.
-
-Dev: Can section citation workers run in parallel?
-
-Domain expert: Yes. Section workers run in parallel, then the article-wide pass reviews their merged work.
-
-Dev: Can article-wide run if one section worker has not produced output?
-
-Domain expert: Yes, but only after the six-section status gate is explicit. If `legality` or another citable section is missing, mark it `missing_preserve_original`, preserve the original section exactly, and add no public markers there. Invalid section output remains a failure.
-
-Dev: What if the article-wide worker writes an empty or partial output even though section workers succeeded?
-
-Domain expert: Treat 156-byte stubs, empty output, markers without references/evidence, missing evidence `status`, and marker/evidence mismatches as failed article-wide passes. Repair or rerun before assembly; do not call the run complete.
-
-Dev: Can a marker be public if the reference exists but no inspected source quote backs it?
-
-Domain expert: No. Public markers need matching evidence records with support quotes.
-
-Dev: Is evidence the main citation output?
-
-Domain expert: No. The article markers and Wikipedia-style references are the main output; evidence is the audit trail.
-
-Dev: Should citation output be modeled as article patches?
-
-Domain expert: No. Keep `citation-draft.json`, but model the output as marked article/section content plus validation and evidence.
-
-Dev: What should the final report show?
-
-Domain expert: A concise review dashboard, with detailed evidence and source artifacts kept separately.
-
-Dev: How much source text should an evidence row keep?
-
-Domain expert: Keep a brief support quote, using only enough contiguous source text to verify the claim.
-
-Dev: Can a paywalled source be used just because Wikipedia cites it?
-
-Domain expert: Avoid paywalled public citations; cite only accessible support, or record a gap.
-
-Dev: What should happen when a Wikipedia reference is paywalled?
-
-Domain expert: Look for an accessible equivalent source first, then leave the claim uncited if no good source is available.
-
-Dev: Should references be stored as APA entries?
-
-Domain expert: No. dose.wiki should use Wikipedia-style reference metadata while keeping internal cite markers stable.
-
-Dev: Should the public source list stay a bare numbered list?
-
-Domain expert: No. It should evolve toward richer Wikipedia-style reference display while matching dose.wiki's aesthetic.
-
-Dev: Should richer reference UI block the workflow rewrite?
-
-Domain expert: No. Stabilize the workflow and metadata first; improve the public display later.
-
-Dev: What if workers create duplicate IDs for the same source?
-
-Domain expert: Dedupe equivalent references and remap markers to the canonical reference identity.
-
-Dev: What if workers cite multiple DailyMed labels?
-
-Domain expert: Give each label a page-specific ID, such as one including setid or label name, so distinct labels do not collapse into one generic DailyMed reference.
-
-Dev: Does Wikipedia-style mean citing Wikipedia?
-
-Domain expert: No. It means using familiar reference metadata conventions; wiki pages are discovery-only for claim-level citation work.
-
-Dev: Do all claim-level references need to be primary literature?
-
-Domain expert: No. They need to be Wikipedia-grade underlying sources: the kinds of sources Wikipedia would cite, not Wikipedia itself.
-
-Dev: Where should citation research start?
-
-Domain expert: Start with the Wikipedia reference pool, then add outside sources only when needed.
-
-Dev: Can workers add sources outside the Wikipedia reference pool?
-
-Domain expert: Yes, but only for high-confidence gaps after prioritizing the Wikipedia reference pool.
-
-Dev: Can a claim absent from Wikipedia still get cited?
-
-Domain expert: Yes, if a strong Wikipedia-grade source supports it. The main focus remains integrating Wikipedia's underlying references.
-
-Dev: Should unsupported claims get public citation-needed tags?
-
-Domain expert: No. Leave the article text alone and optionally record an internal citation gap.
-
-Dev: Should workers maximize citation count?
-
-Domain expert: No. Prefer conservative citation coverage with strong source support.
-
-Dev: Can the same reference marker appear more than once?
-
-Domain expert: Yes. Reuse and adjacent multi-cites should follow normal Wikipedia citation conventions.
-
-Dev: How dense should citations feel?
-
-Domain expert: They should follow Wikipedia citation density and quality expectations.
-
-Dev: Where should the citation style guidance live?
-
-Domain expert: Put it where Claude reads it during the citation session, keep it succinct, and avoid sprawling duplicates.
-
-Dev: Can the citation workflow silently normalize whitespace?
-
-Domain expert: No. If a section changes anything besides citation markers, reject that section and send it through a repair loop.
-
-Dev: What happens if repair still fails?
-
-Domain expert: Preserve the failed section artifact for later review, but do not apply it to the article.
-
-Dev: Should the article-wide pass read failed section bodies?
-
-Domain expert: No. It should see accepted citation sections, with failed section names noted separately if needed.
-
-Dev: Should every validated drug write to production immediately?
-
-Domain expert: No. Store runs locally, archive old article versions, and write citation results during deliberate production rollout batches unless an explicit experiment says otherwise.
-
-Dev: What are the rollout stages?
-
-Domain expert: Perfect the process on 2C-B, run common substances, publish and review commons, then stop before scaling to homepage-visible substances.
-
-Dev: Is 2C-B finished as a citation pilot?
-
-Domain expert: No. 2C-B remains the canary and may be rerun multiple times under new workflow rules.
-
-## Legality Research Workflow
+For legality research and apply steps, read the repo-local [`legality-pi` skill](.agents/skills/legality-pi/SKILL.md).
 
 **Legality Research Run**:
-One substance's pass through the legality research workflow: a run packet exported from Convex, Codex research output, refuter verdicts, and a legality draft awaiting human review. Claude only orchestrates; all research and verification executes on Codex.
+One substance's exported run packet, research output, independent refuter verdicts, and Legality Draft awaiting review.
 _Avoid_: citation run, live legality edit
 
 **Cite Pass**:
-The Codex research branch that finds primary-source support for a substance's existing country legality entries, or proposes a legality correction when an entry is wrong or outdated. It never invents new country entries.
+The research branch that sources existing country entries or proposes a Legality Correction when one is wrong or outdated. It never invents country entries.
 _Avoid_: discovery work, entry rewrite pass
 
 **Discovery Pass**:
-The Codex research branch that accounts for every core-list country — a sourced entry or an explicit legality gap — and may add opportunistic country entries beyond the list. It never touches existing entries.
+The research branch that gives every Core Country List member either a sourced entry or a Legality Gap and may add Opportunistic Country Entries. It never changes existing entries.
 _Avoid_: correction work, unbounded country sweep
 
 **Core Country List**:
-The fixed list of countries every discovery pass must account for, so coverage is comparable across all substances and completion is checkable.
+The fixed countries that every Discovery Pass must account for, making coverage comparable and completion checkable.
 _Avoid_: whatever Codex finds, per-substance country choice
 
 **Opportunistic Country Entry**:
-A discovered country entry outside the core country list, allowed only with primary-source support.
+A country entry outside the Core Country List, allowed only with Primary Legal Source support.
 _Avoid_: filler entry, unsourced extra country
 
 **Canonical Legal Status**:
-One value from the small fixed status vocabulary that every country entry must carry, alongside the jurisdiction-specific legal instrument and free-text notes. Replaces free-string statuses as the comparable, badge-driving field.
+The fixed status value carried by every country entry alongside its Legal Instrument and free-text notes.
 _Avoid_: free-string status, ad hoc status phrasing
 
 **Legal Instrument**:
-The named statute, schedule, regulation, or convention that a country entry's status rests on (e.g. "Schedule I, Controlled Substances Act"). Every status claim names its instrument.
+The statute, schedule, regulation, or convention on which a country entry's status rests. Every status claim names its instrument.
 _Avoid_: vague legal reference, uncited status
 
 **Primary Legal Source**:
-The legal instrument's own text or a first-party government publication of it (statute text, official schedule, gazette, regulator page). Wikis, forums, aggregators, and news are discovery-only pointers to the instrument, never the cited support.
+The legal instrument's text or a first-party government publication of it. Wikis, forums, aggregators, and news are discovery pointers, never cited support.
 _Avoid_: secondary write-up as support, wiki legality table citation
 
 **Legality Correction**:
-A cite-pass proposal that replaces a wrong or outdated country entry, preserving the old text alongside the sourced replacement so the reviewer sees the before/after at apply time.
+A Cite Pass proposal that preserves a wrong or outdated entry beside its sourced replacement for reviewer comparison.
 _Avoid_: silent rewrite, flag-only discrepancy note
 
 **Legality Gap**:
-An explicit record that a country was researched and no primary legal source was found, including what was searched. A required output, so an absent entry is distinguishable from an unresearched one.
+A required record that a country was researched without finding a Primary Legal Source, including what was searched. It distinguishes a researched absence from an unresearched country.
 _Avoid_: silent omission, guessed status
 
 **Legality Refuter**:
-The independent Codex verification run (a stronger model than the researcher) prompted to refute each new entry and correction by opening its cited source and confirming it is primary and supports the exact status and instrument. Unrefuted work enters the draft; refuted work becomes a legality gap.
+An independent verification run, using a stronger model than the researcher, that tries to refute every new entry and correction against its cited source. Refuted work becomes a Legality Gap; only unrefuted work enters the draft.
 _Avoid_: rubber-stamp check, same-model self-review
 
 **Legality Draft**:
-The run-local merged artifact of verified entries, corrections, international convention status, evidence, and gaps for one substance, applied to Convex only through the gated legality apply flow (dry-run, then confirmed write).
+The run-local artifact containing verified entries, corrections, International Convention Status, evidence, and gaps for one substance. It reaches Convex only through a dry-run followed by a confirmed write.
 _Avoid_: direct Convex write, hand-edited local JSON fix
 
 **Per-Substance Autopilot**:
-The proven-process mode of the legality workflow: once the user has signed off on the pilot canaries, each substance's validated draft is applied to Convex immediately after its dry-run sanity check, one substance at a time, without a per-substance human pause. Until that sign-off, every apply stops at the dry-run for explicit confirmation.
+The post-pilot mode in which each validated draft is dry-run and then applied to production one substance at a time without another human pause. Before the user approves the pilot canaries, every apply stops after dry-run for explicit confirmation.
 _Avoid_: unvalidated auto-write, batch bulk apply, pre-pilot autopilot
 
 **International Convention Status**:
-A substance's scheduling under the 1961, 1971, and 1988 UN drug conventions, or an explicit "not internationally scheduled", with a primary source. Populates the legality section's international field.
+A substance's primary-sourced scheduling under the 1961, 1971, and 1988 UN drug conventions, or an explicit “not internationally scheduled” finding.
 _Avoid_: empty international section, uncited UN claim
 
-**Source-Rich Legality Rollout**:
-The rollout order for legality research runs: publicly listed substances in the DevTools substance article editor's **Most source material** order, using current `articleSources` token totals, its bibliography fallback, and alphabetical tie-break. Completed runs are skipped. The rollout publishes each substance through both Convex deployments and the live site before selecting the next, and stops when only low-priority or hidden substances remain.
-_Avoid_: common-first rollout, low-priority rollout, bulk publish
+**Common-First Legality Rollout**:
+The rollout of publicly listed substances in common-first order: substances marked `common` in each psychoactive category, then every remaining unprocessed substance. Completed runs are skipped. Each substance is published once to production Convex (`glad-minnow-656`) and verified on the full admin host (`https://dosewiki-admin.vercel.app/`) before the next begins.
+_Avoid_: source-material-priority rollout, rerunning completed substances, bulk publish
 
 ## Article Review Language
 
 **Review Flag**:
-An advisory, structured to-do note attached to one article (optionally one section) by the article-review workflow or a human editor. Flags inform editors and never gate approval: an article may be marked reviewed with open flags.
+An advisory to-do attached to an article or section by the review workflow or a human editor. It never gates approval; an article may be Reviewed with open flags.
 _Avoid_: blocker, approval gate, review failure
 
 **Flag Severity**:
-How much work a review flag's to-do represents: `major` (section absent or needs substantive rework), `minor` (targeted, bounded fix), or `note` (fine as-is, improvement idea). Severity never encodes approval or visibility outcomes.
+The size of a flag's to-do: `major` for absent or substantially deficient work, `minor` for a bounded fix, or `note` for an optional improvement. It never controls approval or visibility.
 _Avoid_: blocker, unapprovable, keep hidden
 
 **Consider-Hiding Flag**:
-An article-level review flag recommending a human decide whether to hide the article from public listing. The review workflow never changes visibility itself.
+An article-level recommendation that a human consider hiding the article from public listings. The review workflow never changes visibility.
 _Avoid_: hide severity, auto-hide
 
 **Flag Label**:
-The badge text that is a review flag's only name: one to three words, preferably one or two. Creators reuse a canonical label from the article-review skill's list whenever one fits and coin a new short label only when nothing fits; detail belongs in the flag note.
+The one-to-three-word badge that names a Review Flag. Reuse a canonical article-review label when one fits; put detail in the note.
 _Avoid_: flag code, category enum, long badge text
 
 **Review Run**:
-One dated execution of the article-review workflow over a chosen article set, producing per-article exported text, findings, and agent-sourced review flags. Each run wholesale replaces the agent-sourced flags on the articles it covers; human-created flags persist until a human deletes them, and run history lives in the dated run folder rather than Convex.
+One dated review of a chosen article set. It replaces agent-sourced flags for covered articles, preserves human-created flags until human deletion, and keeps history in the dated run folder rather than Convex.
 _Avoid_: resolved flag state, dismissed-flag audit trail, incremental agent flag edits
 
 **Reviewed**:
-The human sign-off on an article, recorded as editorial review status `completed` and shown publicly as `expert_reviewed`. Only a human editor acting in the review workbench can mark an article reviewed; the article-review workflow and its agents never write review status.
+Human sign-off recorded as editorial status `completed` and displayed publicly as `expert_reviewed`. Only a human editor in the review workbench may set it; review agents never do.
 _Avoid_: approved, agent-approved, auto-complete
 
 **Lyrea (Witchy)**:
-The site's expert reviewer, one person with two names: public editorial persona **Lyrea** (contributor profile key `LYREA`, route `/contributors/lyrea`) and informal handle **witchy** (recorded as a profile alias; used in chat and possibly as a changelog `submittedBy` stamp). Attribution matching for her must be alias-aware. The spelling "Lyria" that appears in some planning conversations is a mistranscription of Lyrea. A rename of this account is anticipated at some future point but has not been scheduled.
+One expert reviewer with public persona **Lyrea** (profile key `LYREA`, route `/contributors/lyrea`) and informal alias **witchy**. Attribution matching is alias-aware; “Lyria” is a mistranscription.
 _Avoid_: Lyria, treating Lyrea and Witchy as two people
 
 ## Replications Surface Language
 
 **Replications Section**:
-The top-level public `/replications` destination, linked from the homepage quick links and sticky header. It opens straight into the replication gallery with tabs for Tutorials and Audio and an external r/replications link; it is not a hub of destination cards.
+The public `/replications` destination. It opens directly into the Replication Gallery with Tutorials and Audio tabs plus an external r/replications link.
 _Avoid_: replications landing page, gallery tab, SEI gallery
 
 **Replication Gallery**:
-The default tab of the replications section: the browsable corpus grouped by artist or effect. Its focus views have canonical path routes (`/replications/artist/<key>`, `/replications/effect/<slug>`); transient filters (search, media type, sort) live in query params.
+The default `/replications` tab, grouping the browsable corpus by artist or effect. Focus uses canonical paths (`/replications/artist/<key>`, `/replications/effect/<slug>`); transient filters use query parameters.
 _Avoid_: effects gallery, `/effects#gallery`, unaddressable gallery view
 
 **Gallery Focus View**:
-A single-artist or single-effect projection of the replication gallery reached via "see all", addressed by its own path route. Artist focus views link to a contributor profile when the artist is a known contributor but never redirect to one.
+A single-artist or single-effect Replication Gallery projection with its own path. A known artist's view links to, but never redirects to, the contributor profile.
 _Avoid_: focused key state, client-only drill-down
 
 **Replication Showcase**:
-The curated slideshow-stage-and-thumbnail-rail carousel rendered inside a substance article's Subjective Effects visual group, generated by effect matching and curated per substance from the DevTools Replication Studio. A separate surface from the replication gallery with separate Convex-backed curation.
+The curated carousel inside a substance article's Subjective Effects visual group. Its per-substance Convex-backed curation is separate from the Replication Gallery.
 _Avoid_: substance gallery tab, article replication gallery
 
 **Balanced Quick-Link Rows**:
-The homepage app-icon wrapping rule: when the quick links wrap, rows differ in size by at most one, wider rows come first, and every row centers relative to the rows above (five icons wrap 3+2, four wrap 2+2).
+The homepage quick-link wrapping rule: row sizes differ by at most one, wider rows come first, and every row is centered (five icons wrap 3+2; four wrap 2+2).
 _Avoid_: left-aligned wrap, orphan icon row

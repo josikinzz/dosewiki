@@ -68,6 +68,75 @@ describe("cleanup metrics budgets", () => {
     ]);
   });
 
+  it("reports tests, static registries, and cohesive documents separately without relaxing 500 LOC", () => {
+    const files = [
+      {
+        file: "src/features/example/Example.test.tsx",
+        loc: 501,
+        generated: false,
+        configHeavy: false,
+        deprecated: false,
+      },
+      {
+        file: "src/data/config/sourceFavicons.ts",
+        loc: 550,
+        generated: false,
+        configHeavy: false,
+        deprecated: false,
+      },
+      {
+        file: "src/app/docs/how/page.tsx",
+        loc: 550,
+        generated: false,
+        configHeavy: false,
+        deprecated: false,
+      },
+    ];
+    const budgets = {
+      activeLogic: { maxLoc: 500, reason: "active" },
+      test: { maxLoc: 500, reason: "test" },
+      staticRegistry: { maxLoc: 500, reason: "registry" },
+      cohesiveDocument: { maxLoc: 500, reason: "document" },
+    };
+    const exceptions = [
+      {
+        file: "src/data/config/sourceFavicons.ts",
+        maxLoc: 600,
+        owner: "data-config-maintainers",
+        reason: "One source-owned registry.",
+        reviewDate: "2026-08-16",
+      },
+      {
+        file: "src/app/docs/how/page.tsx",
+        maxLoc: 600,
+        owner: "public-docs-maintainers",
+        reason: "One scroll narrative.",
+        reviewDate: "2026-08-16",
+      },
+    ];
+
+    expect(evaluateCleanupMetricBudgets(files, { budgets, exceptions })).toEqual([
+      expect.objectContaining({
+        file: "src/features/example/Example.test.tsx",
+        category: "test",
+        budgetLoc: 500,
+        status: "FAIL",
+      }),
+      expect.objectContaining({
+        file: "src/data/config/sourceFavicons.ts",
+        category: "staticRegistry",
+        budgetLoc: 600,
+        status: "PASS",
+      }),
+      expect.objectContaining({
+        file: "src/app/docs/how/page.tsx",
+        category: "cohesiveDocument",
+        budgetLoc: 600,
+        status: "PASS",
+      }),
+    ]);
+  });
+
   it("treats oversized exceptions without owner, reason, and review date as check failures", () => {
     const budgetReport = evaluateCleanupMetricBudgets(
       [

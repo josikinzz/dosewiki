@@ -15,6 +15,9 @@ import { describe, expect, it } from "vitest";
 const REPO_ROOT = path.resolve(__dirname, "..", "..");
 const SKIN_PATH = path.join(REPO_ROOT, "src", "styles", "effectindex-theme.css");
 const ENTRY_PATH = path.join(REPO_ROOT, "src", "styles.css");
+const CONFIG_PATH = path.join(REPO_ROOT, "next.config.ts");
+const DOSEWIKI_ENTRY_PATH = path.join(REPO_ROOT, "src", "app", "_styles", "dosewiki.ts");
+const EFFECT_INDEX_ENTRY_PATH = path.join(REPO_ROOT, "src", "app", "_styles", "effectindex.ts");
 
 const SITE_SCOPE = '[data-site="effectindex"]';
 
@@ -90,15 +93,32 @@ function splitSelectorList(selector: string): string[] {
 describe("effect index skin", () => {
   const skin = read(SKIN_PATH);
 
-  it("is the final import in the global style chain and is unlayered", () => {
-    const imports = [...read(ENTRY_PATH).matchAll(/@import\s+"([^"]+)"([^;]*);/g)];
-    const last = imports[imports.length - 1];
+  it("loads the Effect Index skin after the shared stylesheet", () => {
+    const imports = [
+      ...read(EFFECT_INDEX_ENTRY_PATH).matchAll(/import\s+"([^"]+)";/g),
+    ].map((match) => match[1]);
 
-    expect(last?.[1]).toBe("./styles/effectindex-theme.css");
-    // No `layer(...)` qualifier: unlayered rules beat every layered rule
-    // regardless of specificity, which is how the skin overrides Tailwind
-    // call-site utilities without !important.
-    expect(last?.[2].trim()).toBe("");
+    expect(imports).toEqual(["../../styles.css", "../../styles/effectindex-theme.css"]);
+  });
+
+  it("preserves the shared cascade and resolves styles by flavor", () => {
+    const commonEntry = read(ENTRY_PATH);
+    const dosewikiEntry = read(DOSEWIKI_ENTRY_PATH);
+    const effectIndexEntry = read(EFFECT_INDEX_ENTRY_PATH);
+    const config = read(CONFIG_PATH);
+    const utilitiesIndex = commonEntry.indexOf("./styles/utilities.css");
+    const componentsIndex = commonEntry.indexOf("./styles/components.css");
+
+    expect(utilitiesIndex).toBeGreaterThan(-1);
+    expect(componentsIndex).toBeGreaterThan(utilitiesIndex);
+    expect(dosewikiEntry).toContain('import "../../styles.css"');
+    expect(dosewikiEntry).toContain('import "../../styles/palette-presets.generated.css"');
+    expect(dosewikiEntry).not.toContain("effectindex-theme.css");
+    expect(effectIndexEntry).toContain('import "../../styles.css"');
+    expect(effectIndexEntry).toContain('import "../../styles/effectindex-theme.css"');
+    expect(effectIndexEntry).not.toContain("palette-presets.generated.css");
+    expect(config).toContain('dosewiki: "./src/app/_styles/dosewiki.ts"');
+    expect(config).toContain('effectindex: "./src/app/_styles/effectindex.ts"');
   });
 
   it("scopes every selector to the site attribute, so it is inert on dose.wiki", () => {

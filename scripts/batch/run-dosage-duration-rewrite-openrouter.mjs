@@ -176,13 +176,17 @@ function extractJsonObject(text) {
 
   try {
     return JSON.parse(trimmed);
-  } catch {}
+  } catch {
+    // The response may be wrapped in a code fence, so try that representation next.
+  }
 
   const fencedMatch = trimmed.match(/```(?:json)?\s*([\s\S]*?)```/i);
   if (fencedMatch) {
     try {
       return JSON.parse(fencedMatch[1].trim());
-    } catch {}
+    } catch {
+      // A fenced block may contain surrounding prose; the brace-bounded fallback handles it.
+    }
   }
 
   const firstBrace = trimmed.indexOf("{");

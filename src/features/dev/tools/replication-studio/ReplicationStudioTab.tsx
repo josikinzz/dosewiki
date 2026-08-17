@@ -1,19 +1,5 @@
 "use client";
 
-/**
- * Replication Studio — `/dev` → Replications.
- *
- * One screen for the whole media table: a facet rail that organizes it, a grid
- * that shows it, and a drawer that edits it. It deliberately does NOT talk to
- * Convex from the browser: every read and write goes through the editor-gated
- * `/api/dev/replications*` routes, the same transport the molecule editor uses,
- * so the privileged deployment URL and the `replicationMaintenance` token stay
- * on the server and the tool always sees the deployment it writes to.
- */
-
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { useRouter } from "next/navigation";
-
 import { Icon } from "@/components/common/Icon";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -32,756 +18,61 @@ import {
   EditorPanelBody,
   EditorSegmentedControl,
   TagToken,
-  type ActionNoticeTone,
-  type EditorActionStatusState,
 } from "@/features/dev/components";
-// The reorder interaction is the contributors tool's, imported rather than
-// copied: pinned head above a divider, default order below it, drag or the
-// Curate/Un-curate buttons to cross the line. "Curated" here means featured.
-import {
-  OrderingPanel,
-  type OrderablePanelItem,
-} from "@/features/dev/tools/contributors/OrderingPanel";
+import { OrderingPanel } from "@/features/dev/tools/contributors/OrderingPanel";
 import { cn } from "@/lib/utils";
 
-import { IncomingTray, type IncomingFile } from "./IncomingTray";
-import { ReplicationEditorDrawer, type BulkEdit, type SingleEditDraft } from "./ReplicationEditorDrawer";
+import { IncomingTray } from "./IncomingTray";
+import { ReplicationEditorDrawer } from "./ReplicationEditorDrawer";
 import { ReplicationFacetRail } from "./ReplicationFacetRail";
 import { ReplicationGrid } from "./ReplicationGrid";
 import { SubstanceGalleryPanel } from "./SubstanceGalleryPanel";
 import {
   EMPTY_STUDIO_FACETS,
-  NO_EFFECT_KEY,
   activeFacetCount,
-  buildReplicationSlug,
-  fileFormat,
-  filterStudioRows,
-  groupStudioRows,
-  inferMediaType,
-  titleFromFileName,
-  toggleFacetValue,
-  type StudioEffectOption,
-  type StudioFacetKind,
-  type StudioFacets,
-  type StudioGroupBy,
-  type StudioRow,
 } from "./replicationStudioModel";
-
-const CORPUS_API = "/api/dev/replications";
-
-type CorpusPayload = { rows: StudioRow[]; effects: StudioEffectOption[] };
-
-/**
- * Last corpus this tab saw, kept outside React so leaving and re-entering the
- * tab paints the previous rows immediately instead of replaying the full
- * loading state. The refetch still runs on every mount — it just happens behind
- * the already-rendered table.
- */
-let cachedCorpus: CorpusPayload | null = null;
-const EDITORIAL_API = "/api/dev/replications/editorial";
-const FEATURED_API = "/api/dev/replications/featured";
-const UPLOAD_URL_API = "/api/dev/replications/upload-url";
-
-type LoadState =
-  | { status: "loading" }
-  | { status: "ready" }
-  | { status: "error"; message: string };
-
-type Feedback = { tone: ActionNoticeTone; message: string };
-
-/** Which view the centre column shows while the Substances portal is open. */
-type CentreView = "showcase" | "library";
-
-/**
- * Tailwind's `lg`, the width at which the studio is a real multi-column desk
- * and the facet rail can hold a column of its own.
- */
-const RAIL_COLUMN_MEDIA = "(min-width: 1024px)";
-
-/**
- * True while the rail belongs in the grid; below `lg` it moves into a popover
- * sheet so the centre column is not pushed a screenful below a wall of facets.
- * Wide is the first answer on purpose — it matches the server render, and
- * `matchMedia` corrects it before paint on anything narrower.
- */
-function useRailColumn() {
-  const [wide, setWide] = useState(true);
-
-  useEffect(() => {
-    if (typeof window === "undefined" || typeof window.matchMedia !== "function") return;
-    const query = window.matchMedia(RAIL_COLUMN_MEDIA);
-    const update = () => setWide(query.matches);
-    update();
-    query.addEventListener("change", update);
-    return () => query.removeEventListener("change", update);
-  }, []);
-
-  return wide;
-}
-
-async function readError(response: Response, fallback: string): Promise<string> {
-  try {
-    const payload = (await response.json()) as { error?: string };
-    return payload.error ?? fallback;
-  } catch {
-    return fallback;
-  }
-}
+import {
+  useReplicationStudioController,
+  type ReplicationCentreView,
+} from "./useReplicationStudioController";
 
 export function ReplicationStudioTab({
   initialSubstanceSlug,
 }: { initialSubstanceSlug?: string } = {}) {
-  const router = useRouter();
-  const [load, setLoad] = useState<LoadState>(
-    cachedCorpus ? { status: "ready" } : { status: "loading" },
-  );
-  const [rows, setRows] = useState<StudioRow[]>(() => cachedCorpus?.rows ?? []);
-  const [effects, setEffects] = useState<StudioEffectOption[]>(
-    () => cachedCorpus?.effects ?? [],
-  );
-  const [query, setQuery] = useState("");
-  const [group, setGroup] = useState<StudioGroupBy>("none");
-  const [facets, setFacets] = useState<StudioFacets>(EMPTY_STUDIO_FACETS);
-  const [selection, setSelection] = useState<Set<string>>(() => new Set());
-  const [anchor, setAnchor] = useState<string | null>(null);
-  const [incoming, setIncoming] = useState<IncomingFile[]>([]);
-  const [dragging, setDragging] = useState(false);
-  const [busy, setBusy] = useState(false);
-  const [feedback, setFeedback] = useState<Feedback | null>(null);
-
-  // The two curation side-panels. "Featured" is the Effect Index homepage
-  // carousel; "Substances" is the per-article Replication Showcase portal,
-  // deep-linked at /dev/replications/<substance-slug>. Kept beside the corpus
-  // rather than in their own tools because both are selections *of* these
-  // rows, and choosing means searching and filtering the library — which the
-  // rail beside them already does.
-  const [activePanel, setActivePanel] = useState<"featured" | "substances" | null>(
-    initialSubstanceSlug ? "substances" : null,
-  );
-  const [featuredOrder, setFeaturedOrder] = useState<string[]>([]);
-  const [savedFeatured, setSavedFeatured] = useState<string[]>([]);
-  const [featuredCurated, setFeaturedCurated] = useState(true);
-  const [featuredLoaded, setFeaturedLoaded] = useState(false);
-  const [featuredSaveState, setFeaturedSaveState] = useState<EditorActionStatusState | "idle">(
-    "idle",
-  );
-
-  // The portal is a *view of* the corpus, so it takes the centre column and
-  // leaves the rail and the drawer in place. The Library view underneath it
-  // stays mounted while it is hidden: `onOpenLibrary` is a round trip ("go tag
-  // that row, come back"), and unmounting the board would throw away the very
-  // draft the trip was made for.
-  const [centreView, setCentreView] = useState<CentreView>("showcase");
-  const [galleryDirty, setGalleryDirty] = useState(false);
-  /** Set while a dirty portal blocks a panel switch; holds where to go next. */
-  const [pendingLeave, setPendingLeave] = useState<{ next: "featured" | null } | null>(null);
-  const [filtersOpen, setFiltersOpen] = useState(false);
-  const railInColumn = useRailColumn();
-
-  // A deep link (or a picker navigation, which lands here as a prop change)
-  // always opens the Substances panel on its slug, showing the board.
-  useEffect(() => {
-    if (initialSubstanceSlug) {
-      setActivePanel("substances");
-      setCentreView("showcase");
-    }
-  }, [initialSubstanceSlug]);
-
-  // Opening the portal by hand lands on the board too.
-  useEffect(() => {
-    if (activePanel === "substances") {
-      setCentreView("showcase");
-    }
-  }, [activePanel]);
-
-  /**
-   * Leave the portal for `next`, abandoning whatever the board had unsaved.
-   * Every exit runs through here so the address, the dirty flag and the
-   * blocked-switch dialog can never disagree about what happened.
-   */
-  const leaveSubstances = useCallback(
-    (next: "featured" | null) => {
-      setPendingLeave(null);
-      setGalleryDirty(false);
-      setActivePanel(next);
-      // Closing the portal returns the address to the bare tab so a reload does
-      // not silently reopen a stale substance. Switching to Featured leaves it
-      // alone: that route is still the substance the portal will show on the
-      // way back.
-      if (next === null && initialSubstanceSlug) {
-        router.push("/dev/replications");
-      }
-    },
-    [initialSubstanceSlug, router],
-  );
-
-  const requestLeaveSubstances = useCallback(
-    (next: "featured" | null) => {
-      if (galleryDirty) {
-        setPendingLeave({ next });
-        return;
-      }
-      leaveSubstances(next);
-    },
-    [galleryDirty, leaveSubstances],
-  );
-
-  // Registered only while the board is dirty: an always-on handler would argue
-  // with every reload of a tab that has nothing to lose.
-  useEffect(() => {
-    if (!galleryDirty) return;
-    const warn = (event: BeforeUnloadEvent) => {
-      event.preventDefault();
-      event.returnValue = "";
-    };
-    window.addEventListener("beforeunload", warn);
-    return () => window.removeEventListener("beforeunload", warn);
-  }, [galleryDirty]);
-
-  const searchRef = useRef<HTMLInputElement>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
-  const dragDepth = useRef(0);
-  const objectUrls = useRef<Set<string>>(new Set());
-  const drawerRef = useRef<HTMLDivElement>(null);
-
-  /**
-   * `/` from anywhere. When the rail lives in the popover sheet the input is
-   * not mounted, so opening the sheet *is* the focus — its content hands the
-   * caret to the search box on open.
-   */
-  const focusSearch = useCallback(() => {
-    const input = searchRef.current;
-    if (!input) {
-      setFiltersOpen(true);
-      return;
-    }
-    input.focus();
-    input.select();
-  }, []);
-
-  const loadCorpus = useCallback(async () => {
-    // A cached corpus is already on screen, so a refresh must not blank it out.
-    if (!cachedCorpus) {
-      setLoad({ status: "loading" });
-    }
-    try {
-      const response = await fetch(CORPUS_API);
-      if (!response.ok) {
-        setLoad({ status: "error", message: await readError(response, "Failed to load the corpus.") });
-        return;
-      }
-      const payload = (await response.json()) as CorpusPayload;
-      cachedCorpus = payload;
-      setRows(payload.rows);
-      setEffects(payload.effects);
-      setLoad({ status: "ready" });
-    } catch {
-      setLoad({ status: "error", message: "Failed to reach the corpus endpoint." });
-    }
-  }, []);
-
-  useEffect(() => {
-    void loadCorpus();
-  }, [loadCorpus]);
-
-  /**
-   * The stored selection, or — on a deployment nobody has curated yet — the
-   * checked-in list the homepage is still running on. Starting from what is
-   * actually on the page means the first save records the status quo instead of
-   * replacing it with an empty carousel.
-   */
-  const loadFeatured = useCallback(async () => {
-    try {
-      const response = await fetch(FEATURED_API);
-      if (!response.ok) {
-        setFeedback({
-          tone: "danger",
-          message: await readError(response, "Failed to load the featured selection."),
-        });
-        return;
-      }
-      const payload = (await response.json()) as { slugs: string[]; curated: boolean };
-      setFeaturedOrder(payload.slugs);
-      setSavedFeatured(payload.slugs);
-      setFeaturedCurated(payload.curated);
-      setFeaturedLoaded(true);
-    } catch {
-      setFeedback({ tone: "danger", message: "Failed to reach the featured endpoint." });
-    }
-  }, []);
-
-  // Fetched on first open, not on mount: the carousel is a side errand in this
-  // tool and must not add a request to every visit that never touches it.
-  useEffect(() => {
-    if (activePanel === "featured" && !featuredLoaded) {
-      void loadFeatured();
-    }
-  }, [activePanel, featuredLoaded, loadFeatured]);
-
-  const saveFeatured = useCallback(async () => {
-    setFeaturedSaveState("saving");
-    try {
-      const response = await fetch(FEATURED_API, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ slugs: featuredOrder }),
-      });
-      if (!response.ok) {
-        setFeaturedSaveState("error");
-        setFeedback({
-          tone: "danger",
-          message: await readError(response, "Saving the featured selection failed."),
-        });
-        return;
-      }
-      const payload = (await response.json()) as { slugs: string[]; pruned: string[] };
-      setFeaturedOrder(payload.slugs);
-      setSavedFeatured(payload.slugs);
-      setFeaturedCurated(true);
-      setFeaturedSaveState("saved");
-      setFeedback({
-        tone: "success",
-        message:
-          payload.pruned.length > 0
-            ? `Featured ${payload.slugs.length} replications. Dropped ${payload.pruned.length} slug(s) that no longer resolve: ${payload.pruned.join(", ")}.`
-            : `Featured ${payload.slugs.length} replications on the Effect Index homepage.`,
-      });
-    } catch {
-      setFeaturedSaveState("error");
-      setFeedback({ tone: "danger", message: "Saving failed: the featured endpoint is unreachable." });
-    }
-  }, [featuredOrder]);
-
-  // Object URLs outlive React state unless they are revoked by hand.
-  useEffect(() => {
-    const urls = objectUrls.current;
-    return () => {
-      for (const url of urls) URL.revokeObjectURL(url);
-      urls.clear();
-    };
-  }, []);
-
-  const effectNames = useMemo(
-    () => new Map(effects.map((effect) => [effect.slug, effect.name])),
-    [effects],
-  );
-  const artists = useMemo(
-    () => [...new Set(rows.map((row) => row.artist))].sort((a, b) => a.localeCompare(b)),
-    [rows],
-  );
-  const visibleRows = useMemo(
-    () => filterStudioRows(rows, { query, group, facets }),
-    [rows, query, group, facets],
-  );
-  const groups = useMemo(() => groupStudioRows(visibleRows, group), [visibleRows, group]);
-  const visibleIds = useMemo(() => groups.flatMap((entry) => entry.rows.map((row) => row.id)), [groups]);
-  const selectedRows = useMemo(() => rows.filter((row) => selection.has(row.id)), [rows, selection]);
-
-  const clearSelection = useCallback(() => {
-    setSelection(new Set());
-    setAnchor(null);
-  }, []);
-
-  /**
-   * The showcase board's route out of "this row is not matched": it hands back
-   * a corpus slug and the drawer opens on it in single-edit mode, through the
-   * very selection the grid drives, so tagging it is one panel away.
-   */
-  const inspectRow = useCallback(
-    (slug: string) => {
-      const row = rows.find((entry) => entry.slug === slug);
-      if (!row) {
-        setFeedback({ tone: "danger", message: `No corpus row is named ${slug}.` });
-        return;
-      }
-      setSelection(new Set([row.id]));
-      setAnchor(row.id);
-      // Below xl the drawer sits under the fold; `nearest` is a no-op once it
-      // is already the third column beside the board.
-      drawerRef.current?.scrollIntoView?.({ block: "nearest" });
-    },
-    [rows],
-  );
-
-  /** The board's "go find it in the corpus" exit; the draft stays mounted. */
-  const openLibrary = useCallback(() => setCentreView("library"), []);
-
-  const onCardActivate = useCallback(
-    (event: React.MouseEvent, id: string) => {
-      setSelection((current) => {
-        const next = new Set(current);
-        if (event.shiftKey && anchor && visibleIds.includes(anchor)) {
-          const from = visibleIds.indexOf(anchor);
-          const to = visibleIds.indexOf(id);
-          const [low, high] = from < to ? [from, to] : [to, from];
-          if (!(event.ctrlKey || event.metaKey)) next.clear();
-          for (let index = low; index <= high; index += 1) next.add(visibleIds[index]);
-          return next;
-        }
-        if (event.ctrlKey || event.metaKey) {
-          if (next.has(id)) next.delete(id);
-          else next.add(id);
-          return next;
-        }
-        const onlyThis = next.size === 1 && next.has(id);
-        next.clear();
-        if (!onlyThis) next.add(id);
-        return next;
-      });
-      if (!event.shiftKey) setAnchor(id);
-    },
-    [anchor, visibleIds],
-  );
-
-  /* -------------------------------------------------------------- keyboard */
-
-  useEffect(() => {
-    const onKeyDown = (event: KeyboardEvent) => {
-      const target = event.target as HTMLElement | null;
-      const typing = Boolean(target) && /^(INPUT|TEXTAREA|SELECT)$/.test(target?.tagName ?? "");
-
-      if (event.key === "/" && !typing) {
-        event.preventDefault();
-        focusSearch();
-        return;
-      }
-      if (event.key === "Escape") {
-        if (typing) {
-          (target as HTMLElement).blur();
-          return;
-        }
-        if (selection.size > 0) clearSelection();
-        return;
-      }
-      if (typing) return;
-
-      if (["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown"].includes(event.key)) {
-        if (visibleIds.length === 0) return;
-        event.preventDefault();
-        const perRow = 4;
-        const step = event.key === "ArrowRight"
-          ? 1
-          : event.key === "ArrowLeft"
-            ? -1
-            : event.key === "ArrowDown"
-              ? perRow
-              : -perRow;
-        const current = anchor && visibleIds.includes(anchor) ? visibleIds.indexOf(anchor) : -1;
-        const nextIndex = current === -1
-          ? 0
-          : Math.max(0, Math.min(visibleIds.length - 1, current + step));
-        const id = visibleIds[nextIndex];
-        setSelection((existing) => (event.shiftKey ? new Set([...existing, id]) : new Set([id])));
-        setAnchor(id);
-        document.querySelector(`[data-id="${id}"]`)?.scrollIntoView({ block: "nearest" });
-      }
-    };
-
-    document.addEventListener("keydown", onKeyDown);
-    return () => document.removeEventListener("keydown", onKeyDown);
-  }, [anchor, clearSelection, focusSearch, selection.size, visibleIds]);
-
-  /* ----------------------------------------------------------------- edits */
-
-  const saveSingle = useCallback(
-    async (row: StudioRow, draft: SingleEditDraft) => {
-      setBusy(true);
-      setFeedback(null);
-      try {
-        const response = await fetch(EDITORIAL_API, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            mode: "single",
-            id: row.id,
-            expected: {
-              title: row.title,
-              artist: row.artist,
-              role: row.role,
-              effect_slug: row.effect_slug,
-              credit_line: row.credit_line,
-              effect_tags: row.effect_tags,
-            },
-            updates: {
-              title: draft.title.trim(),
-              artist: draft.artist.trim(),
-              role: draft.role,
-              effect_slug: draft.effect_slug,
-              credit_line: draft.credit_line?.trim() ? draft.credit_line.trim() : null,
-              effect_tags: draft.effect_tags,
-            },
-          }),
-        });
-        if (!response.ok) {
-          setFeedback({ tone: "danger", message: await readError(response, "Save failed.") });
-          return;
-        }
-        setFeedback({ tone: "success", message: `Saved ${row.slug}.` });
-        await loadCorpus();
-      } catch {
-        setFeedback({ tone: "danger", message: "Save failed: the editor endpoint is unreachable." });
-      } finally {
-        setBusy(false);
-      }
-    },
-    [loadCorpus],
-  );
-
-  const applyBulk = useCallback(
-    async (targets: readonly StudioRow[], edit: BulkEdit) => {
-      setBusy(true);
-      setFeedback(null);
-      try {
-        const response = await fetch(EDITORIAL_API, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ mode: "bulk", ids: targets.map((row) => row.id), ...edit }),
-        });
-        if (!response.ok) {
-          setFeedback({ tone: "danger", message: await readError(response, "Bulk edit failed.") });
-          return;
-        }
-        const payload = (await response.json()) as { updated: number };
-        setFeedback({ tone: "success", message: `Updated ${payload.updated} rows.` });
-        await loadCorpus();
-      } catch {
-        setFeedback({ tone: "danger", message: "Bulk edit failed: the editor endpoint is unreachable." });
-      } finally {
-        setBusy(false);
-      }
-    },
-    [loadCorpus],
-  );
-
-  const markSelectionAsFigure = useCallback(() => {
-    void applyBulk(selectedRows, { role: "figure" });
-  }, [applyBulk, selectedRows]);
-
-  /* ---------------------------------------------------------------- upload */
-
-  const addFiles = useCallback((fileList: FileList | null) => {
-    const files = [...(fileList ?? [])];
-    if (files.length === 0) return;
-
-    setIncoming((current) => [
-      ...current,
-      ...files.map((file, index) => {
-        const type = inferMediaType(file);
-        const previewUrl = type === "audio" ? null : URL.createObjectURL(file);
-        if (previewUrl) objectUrls.current.add(previewUrl);
-        return {
-          id: `incoming-${Date.now()}-${index}`,
-          file,
-          name: file.name,
-          type,
-          previewUrl,
-          title: titleFromFileName(file.name),
-          artist: "",
-          effectSlug: "",
-          effectTags: [],
-          status: "draft" as const,
-        };
-      }),
-    ]);
-  }, []);
-
-  const discardIncoming = useCallback((id: string) => {
-    setIncoming((current) => {
-      const item = current.find((entry) => entry.id === id);
-      if (item?.previewUrl) {
-        URL.revokeObjectURL(item.previewUrl);
-        objectUrls.current.delete(item.previewUrl);
-      }
-      return current.filter((entry) => entry.id !== id);
-    });
-  }, []);
-
-  const clearIncoming = useCallback(() => {
-    setIncoming((current) => {
-      for (const item of current) {
-        if (item.previewUrl) {
-          URL.revokeObjectURL(item.previewUrl);
-          objectUrls.current.delete(item.previewUrl);
-        }
-      }
-      return [];
-    });
-  }, []);
-
-  const patchIncoming = useCallback((id: string, patch: Partial<IncomingFile>) => {
-    setIncoming((current) => current.map((item) => (item.id === id ? { ...item, ...patch } : item)));
-  }, []);
-
-  /**
-   * Upload, then insert. The bytes go straight from the browser to the storage
-   * URL Convex minted, and only the resulting storage id comes back through the
-   * row-creation route — the same shape as the import scripts.
-   */
-  const addToLibrary = useCallback(
-    async (item: IncomingFile) => {
-      patchIncoming(item.id, { status: "uploading", error: undefined });
-      try {
-        const urlResponse = await fetch(UPLOAD_URL_API, { method: "POST" });
-        if (!urlResponse.ok) {
-          patchIncoming(item.id, {
-            status: "error",
-            error: await readError(urlResponse, "Could not start the upload."),
-          });
-          return;
-        }
-        const { uploadUrl } = (await urlResponse.json()) as { uploadUrl: string };
-
-        const uploadResponse = await fetch(uploadUrl, {
-          method: "POST",
-          headers: { "Content-Type": item.file.type || "application/octet-stream" },
-          body: item.file,
-        });
-        if (!uploadResponse.ok) {
-          patchIncoming(item.id, { status: "error", error: "Convex storage rejected the file." });
-          return;
-        }
-        const { storageId } = (await uploadResponse.json()) as { storageId: string };
-
-        const slug = buildReplicationSlug(
-          item.title,
-          item.artist,
-          rows.map((row) => row.slug),
-        );
-
-        const createResponse = await fetch(CORPUS_API, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            slug,
-            title: item.title.trim(),
-            artist: item.artist.trim(),
-            role: "replication",
-            type: item.type,
-            storageId,
-            effectSlug: item.effectSlug,
-            effectTags: item.effectTags,
-            format: fileFormat(item.name),
-            fileSize: item.file.size,
-          }),
-        });
-        if (!createResponse.ok) {
-          patchIncoming(item.id, {
-            status: "error",
-            error: await readError(createResponse, "Could not create the row."),
-          });
-          return;
-        }
-
-        discardIncoming(item.id);
-        setFeedback({ tone: "success", message: `Added ${slug} to the library.` });
-        await loadCorpus();
-      } catch {
-        patchIncoming(item.id, { status: "error", error: "Upload failed: the endpoint is unreachable." });
-      }
-    },
-    [discardIncoming, loadCorpus, patchIncoming, rows],
-  );
-
-  /* ------------------------------------------------------------- drag veil */
-
-  useEffect(() => {
-    const carriesFiles = (event: DragEvent) => [...(event.dataTransfer?.types ?? [])].includes("Files");
-
-    const onDragEnter = (event: DragEvent) => {
-      if (!carriesFiles(event)) return;
-      dragDepth.current += 1;
-      setDragging(true);
-    };
-    const onDragOver = (event: DragEvent) => {
-      if (carriesFiles(event)) event.preventDefault();
-    };
-    const onDragLeave = () => {
-      dragDepth.current = Math.max(0, dragDepth.current - 1);
-      if (dragDepth.current === 0) setDragging(false);
-    };
-    const onDrop = (event: DragEvent) => {
-      if (!carriesFiles(event)) return;
-      event.preventDefault();
-      dragDepth.current = 0;
-      setDragging(false);
-      addFiles(event.dataTransfer?.files ?? null);
-    };
-
-    window.addEventListener("dragenter", onDragEnter);
-    window.addEventListener("dragover", onDragOver);
-    window.addEventListener("dragleave", onDragLeave);
-    window.addEventListener("drop", onDrop);
-    return () => {
-      window.removeEventListener("dragenter", onDragEnter);
-      window.removeEventListener("dragover", onDragOver);
-      window.removeEventListener("dragleave", onDragLeave);
-      window.removeEventListener("drop", onDrop);
-    };
-  }, [addFiles]);
-
-  /* ------------------------------------------------------------------ view */
-
-  /**
-   * What the Featured panel lists: everything already featured, in stored
-   * order, then whatever the rail and search currently show. Featured rows are
-   * added from the whole corpus rather than the filtered view on purpose — a
-   * filtered-out pick would otherwise read as "curated but missing" and saving
-   * would drop it.
-   *
-   * Listed by slug and de-duplicated by it, because the featured selection is a
-   * list of slugs: the corpus does carry a few rows that share one (twins from
-   * the legacy import), and two panel rows offering to feature "the same" entry
-   * could only disagree about which one the carousel would show.
-   */
-  const featuredItems = useMemo<OrderablePanelItem[]>(() => {
-    const bySlug = new Map(rows.map((row) => [row.slug, row]));
-    const chosen = featuredOrder
-      .map((slug) => bySlug.get(slug))
-      .filter((row): row is StudioRow => Boolean(row));
-
-    const listed = new Set<string>();
-
-    return [...chosen, ...visibleRows]
-      .filter((row) => {
-        if (listed.has(row.slug)) {
-          return false;
-        }
-        listed.add(row.slug);
-        return true;
-      })
-      .map((row) => ({
-        slug: row.slug,
-        title: row.title,
-        meta: [row.artist, row.effect_name ?? row.effect_slug ?? "no effect", row.type]
-          .filter(Boolean)
-          .join(" · "),
-      }));
-  }, [featuredOrder, rows, visibleRows]);
-
-  const chips = useMemo(() => {
-    const entries: { kind: StudioFacetKind; key: string; label: string }[] = [];
-    for (const key of facets.type) entries.push({ kind: "type", key, label: `Type: ${key}` });
-    for (const key of facets.role) entries.push({ kind: "role", key, label: `Role: ${key}` });
-    for (const key of facets.artist) entries.push({ kind: "artist", key, label: `Artist: ${key}` });
-    for (const key of facets.effect) {
-      entries.push({
-        kind: "effect",
-        key,
-        label: `Effect: ${key === NO_EFFECT_KEY ? "No effect" : effectNames.get(key) ?? key}`,
-      });
-    }
-    return entries;
-  }, [facets, effectNames]);
-
-  /**
-   * The portal board owns the centre column while it is showing; the corpus
-   * Library stays mounted behind it so a trip out to tag a row and back does
-   * not cost the grid its scroll, its selection, or the tray its uploads.
-   */
-  const showcaseVisible = activePanel === "substances" && centreView === "showcase";
-
-  /** Search plus facets, the number the filter sheet wears as its badge. */
-  const filterCount = activeFacetCount(facets) + (query.trim() ? 1 : 0);
+  const controller = useReplicationStudioController(initialSubstanceSlug);
+  const {
+    load,
+    rows,
+    effects,
+    query,
+    group,
+    facets,
+    selection,
+    busy,
+    feedback,
+    activePanel,
+    featuredOrder,
+    savedFeatured,
+    featuredCurated,
+    featuredLoaded,
+    featuredSaveState,
+    centreView,
+    pendingLeave,
+    filtersOpen,
+    railInColumn,
+    searchRef,
+    drawerRef,
+    effectNames,
+    artists,
+    visibleRows,
+    groups,
+    selectedRows,
+    featuredItems,
+    chips,
+    showcaseVisible,
+    filterCount,
+    incoming,
+  } = controller;
 
   if (load.status === "loading") {
     return (
@@ -796,7 +87,7 @@ export function ReplicationStudioTab({
       <EditorPanel variant="danger">
         <EditorPanelBody className="space-y-3">
           <p className="text-sm">{load.message}</p>
-          <Button type="button" onClick={() => void loadCorpus()}>
+          <Button type="button" onClick={() => void controller.loadCorpus()}>
             Try again
           </Button>
         </EditorPanelBody>
@@ -808,7 +99,9 @@ export function ReplicationStudioTab({
     <div className="space-y-4">
       <header className="flex flex-wrap items-center gap-3">
         <div className="flex items-baseline gap-2">
-          <h2 className="theme-accent-emphasis font-display text-xl font-semibold">Replication Studio</h2>
+          <h2 className="theme-accent-emphasis font-display text-xl font-semibold">
+            Replication Studio
+          </h2>
           <span className="theme-text-faint text-xs uppercase tracking-[0.24em]">dev tool</span>
         </div>
         <p className="theme-text-faint font-mono text-xs">
@@ -823,14 +116,14 @@ export function ReplicationStudioTab({
           aria-expanded={activePanel === "featured"}
           onClick={() => {
             if (activePanel === "featured") {
-              setActivePanel(null);
+              controller.setActivePanel(null);
               return;
             }
             if (activePanel === "substances") {
-              requestLeaveSubstances("featured");
+              controller.requestLeaveSubstances("featured");
               return;
             }
-            setActivePanel("featured");
+            controller.setActivePanel("featured");
           }}
         >
           <Icon icon="lucide:star" size={15} />
@@ -843,38 +136,49 @@ export function ReplicationStudioTab({
           aria-expanded={activePanel === "substances"}
           onClick={() => {
             if (activePanel === "substances") {
-              requestLeaveSubstances(null);
+              controller.requestLeaveSubstances(null);
               return;
             }
-            setActivePanel("substances");
+            controller.setActivePanel("substances");
           }}
         >
           <Icon icon="lucide:images" size={15} />
           Substances
         </Button>
-        <Button type="button" variant="ghost" size="sm" disabled={busy} onClick={() => void loadCorpus()}>
+        <Button
+          type="button"
+          variant="ghost"
+          size="sm"
+          disabled={busy}
+          onClick={() => void controller.loadCorpus()}
+        >
           <Icon icon="lucide:refresh-cw" size={15} />
           Reload
         </Button>
-        <Button type="button" variant="accent" size="sm" onClick={() => fileInputRef.current?.click()}>
+        <Button
+          type="button"
+          variant="accent"
+          size="sm"
+          onClick={() => incoming.fileInputRef.current?.click()}
+        >
           <Icon icon="lucide:upload" size={15} />
           Upload
         </Button>
         <input
-          ref={fileInputRef}
+          ref={incoming.fileInputRef}
           type="file"
           multiple
           accept="image/*,video/*,audio/mpeg,.mp3"
           className="sr-only"
           onChange={(event) => {
-            addFiles(event.target.files);
+            incoming.addFiles(event.target.files);
             event.target.value = "";
           }}
         />
       </header>
 
       {feedback ? (
-        <ActionNotice tone={feedback.tone} onDismiss={() => setFeedback(null)}>
+        <ActionNotice tone={feedback.tone} onDismiss={() => controller.setFeedback(null)}>
           {feedback.message}
         </ActionNotice>
       ) : null}
@@ -898,13 +202,13 @@ export function ReplicationStudioTab({
                 emptyLabel="No replications match the current filters."
                 saveState={featuredSaveState}
                 onOrderChange={(next) => {
-                  setFeaturedOrder(next);
-                  setFeaturedSaveState("idle");
+                  controller.setFeaturedOrder(next);
+                  controller.setFeaturedSaveState("idle");
                 }}
-                onSave={() => void saveFeatured()}
+                onSave={() => void controller.saveFeatured()}
                 onReset={() => {
-                  setFeaturedOrder(savedFeatured);
-                  setFeaturedSaveState("idle");
+                  controller.setFeaturedOrder(savedFeatured);
+                  controller.setFeaturedSaveState("idle");
                 }}
               />
             ) : (
@@ -920,19 +224,15 @@ export function ReplicationStudioTab({
             rows={rows}
             effectNames={effectNames}
             query={query}
-            onQueryChange={setQuery}
+            onQueryChange={controller.setQuery}
             group={group}
-            onGroupChange={setGroup}
+            onGroupChange={controller.setGroup}
             facets={facets}
-            onToggleFacet={(kind, key) => setFacets((current) => toggleFacetValue(current, kind, key))}
+            onToggleFacet={controller.toggleFacet}
             searchInputRef={searchRef}
           />
         ) : (
-          // One rail, two homes. Below `lg` the facets would push the board a
-          // screenful down, so the whole organizer moves into a sheet — nothing
-          // is dropped, and only one copy is ever mounted, so `/` and the
-          // search ref always mean the input the user can see.
-          <Popover open={filtersOpen} onOpenChange={setFiltersOpen}>
+          <Popover open={filtersOpen} onOpenChange={controller.setFiltersOpen}>
             <PopoverTrigger asChild>
               <Button type="button" variant="glass" size="sm" className="w-full justify-between">
                 <span className="flex items-center gap-2">
@@ -954,11 +254,11 @@ export function ReplicationStudioTab({
                 rows={rows}
                 effectNames={effectNames}
                 query={query}
-                onQueryChange={setQuery}
+                onQueryChange={controller.setQuery}
                 group={group}
-                onGroupChange={setGroup}
+                onGroupChange={controller.setGroup}
                 facets={facets}
-                onToggleFacet={(kind, key) => setFacets((current) => toggleFacetValue(current, kind, key))}
+                onToggleFacet={controller.toggleFacet}
                 searchInputRef={searchRef}
               />
             </PopoverContent>
@@ -975,17 +275,17 @@ export function ReplicationStudioTab({
                   { value: "library", label: "Library", icon: "lucide:library" },
                 ]}
                 value={centreView}
-                onChange={(value) => setCentreView(value as CentreView)}
+                onChange={(value) => controller.setCentreView(value as ReplicationCentreView)}
               />
               <div className={cn(showcaseVisible ? "space-y-4" : "hidden")}>
                 <SubstanceGalleryPanel
                   substanceSlug={initialSubstanceSlug ?? null}
-                  onNavigateToSubstance={(slug) => router.push(`/dev/replications/${slug}`)}
+                  onNavigateToSubstance={controller.navigateToSubstance}
                   visibleRows={visibleRows}
                   railNarrowed={filterCount > 0}
-                  onInspectRow={inspectRow}
-                  onOpenLibrary={openLibrary}
-                  onDirtyChange={setGalleryDirty}
+                  onInspectRow={controller.inspectRow}
+                  onOpenLibrary={controller.openLibrary}
+                  onDirtyChange={controller.setGalleryDirty}
                 />
               </div>
             </>
@@ -993,13 +293,13 @@ export function ReplicationStudioTab({
 
           <div className={cn("space-y-4", showcaseVisible && "hidden")}>
             <IncomingTray
-              items={incoming}
+              items={incoming.incoming}
               effects={effects}
               artists={artists}
-              onPatch={patchIncoming}
-              onDiscard={discardIncoming}
-              onClear={clearIncoming}
-              onAdd={(item) => void addToLibrary(item)}
+              onPatch={incoming.patchIncoming}
+              onDiscard={incoming.discardIncoming}
+              onClear={incoming.clearIncoming}
+              onAdd={(item) => void incoming.addToLibrary(item)}
             />
 
             {chips.length > 0 || query.trim() ? (
@@ -1010,7 +310,7 @@ export function ReplicationStudioTab({
                     variant="compact"
                     label={chip.label}
                     removeLabel={`Remove filter ${chip.label}`}
-                    onRemove={() => setFacets((current) => toggleFacetValue(current, chip.kind, chip.key))}
+                    onRemove={() => controller.toggleFacet(chip.kind, chip.key)}
                   />
                 ))}
                 {query.trim() ? (
@@ -1018,7 +318,7 @@ export function ReplicationStudioTab({
                     variant="compact"
                     label={`“${query.trim()}”`}
                     removeLabel="Clear search"
-                    onRemove={() => setQuery("")}
+                    onRemove={() => controller.setQuery("")}
                   />
                 ) : null}
                 {activeFacetCount(facets) > 1 ? (
@@ -1027,8 +327,8 @@ export function ReplicationStudioTab({
                     variant="ghost"
                     size="sm"
                     onClick={() => {
-                      setFacets(EMPTY_STUDIO_FACETS);
-                      setQuery("");
+                      controller.setFacets(EMPTY_STUDIO_FACETS);
+                      controller.setQuery("");
                     }}
                   >
                     Clear all
@@ -1042,10 +342,16 @@ export function ReplicationStudioTab({
                 <span className="theme-text-primary font-mono text-sm">{selection.size} selected</span>
                 <Badge variant="secondary">bulk</Badge>
                 <div className="flex-1" />
-                <Button type="button" variant="glass" size="sm" disabled={busy} onClick={markSelectionAsFigure}>
+                <Button
+                  type="button"
+                  variant="glass"
+                  size="sm"
+                  disabled={busy}
+                  onClick={controller.markSelectionAsFigure}
+                >
                   Mark as figure
                 </Button>
-                <Button type="button" variant="ghost" size="sm" onClick={clearSelection}>
+                <Button type="button" variant="ghost" size="sm" onClick={controller.clearSelection}>
                   Deselect
                 </Button>
               </EditorPanel>
@@ -1060,7 +366,11 @@ export function ReplicationStudioTab({
               </span>
             </div>
 
-            <ReplicationGrid groups={groups} selection={selection} onCardActivate={onCardActivate} />
+            <ReplicationGrid
+              groups={groups}
+              selection={selection}
+              onCardActivate={controller.onCardActivate}
+            />
           </div>
         </main>
 
@@ -1070,41 +380,36 @@ export function ReplicationStudioTab({
             effects={effects}
             artists={artists}
             busy={busy}
-            onSaveSingle={(row, draft) => void saveSingle(row, draft)}
-            onApplyBulk={(targets, edit) => void applyBulk(targets, edit)}
-            onDeselect={clearSelection}
+            onSaveSingle={(row, draft) => void controller.saveSingle(row, draft)}
+            onApplyBulk={(targets, edit) => void controller.applyBulk(targets, edit)}
+            onDeselect={controller.clearSelection}
           />
         </div>
       </div>
 
-      {/*
-        The portal's exit interview. A dirty board is real work — an unsaved
-        order, an un-curated row — so closing it or swapping to Featured asks
-        first, in the app's own dialog rather than the browser's.
-      */}
       <Dialog
         open={pendingLeave !== null}
         onOpenChange={(open) => {
-          if (!open) setPendingLeave(null);
+          if (!open) controller.setPendingLeave(null);
         }}
       >
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Leave the showcase with unsaved changes?</DialogTitle>
             <DialogDescription>
-              This board has curation that was never saved. Leaving now throws it away — the
-              article keeps whatever is already stored.
+              This board has curation that was never saved. Leaving now throws it away — the article
+              keeps whatever is already stored.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
-            <Button type="button" variant="ghost" onClick={() => setPendingLeave(null)}>
+            <Button type="button" variant="ghost" onClick={() => controller.setPendingLeave(null)}>
               Keep editing
             </Button>
             <Button
               type="button"
               variant="destructive"
               onClick={() => {
-                if (pendingLeave) leaveSubstances(pendingLeave.next);
+                if (pendingLeave) controller.leaveSubstances(pendingLeave.next);
               }}
             >
               Discard changes
@@ -1114,17 +419,19 @@ export function ReplicationStudioTab({
       </Dialog>
 
       <div
-        aria-hidden={!dragging}
+        aria-hidden={!incoming.dragging}
         className={cn(
           "pointer-events-none fixed inset-0 z-50 flex items-center justify-center theme-replication-overlay-scrim transition-opacity",
-          dragging ? "opacity-100" : "opacity-0",
+          incoming.dragging ? "opacity-100" : "opacity-0",
         )}
       >
         <div className="rounded-2xl theme-replication-overlay-card border px-8 py-6 text-center">
           <h3 className="theme-accent-emphasis font-display text-lg font-semibold">
             Drop images, videos, or MP3s
           </h3>
-          <p className="theme-text-muted text-sm">They land in the Incoming tray before anything is written.</p>
+          <p className="theme-text-muted text-sm">
+            They land in the Incoming tray before anything is written.
+          </p>
         </div>
       </div>
     </div>

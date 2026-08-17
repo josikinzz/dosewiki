@@ -1,4 +1,5 @@
 import { slugify } from "../../utils/slug";
+import { stripCitationTokens } from "../../lib/citations/citationTokens";
 
 /**
  * Mechanism normalization owns the substance-side rules for turning raw
@@ -22,7 +23,7 @@ export interface QualifiedMechanismLabel {
 }
 
 export interface NormalizedMechanism {
-  /** Original (trimmed) label, including any qualifier suffix. */
+  /** Citation-free, trimmed label, including any qualifier suffix. */
   label: string;
   /** Label with the trailing `(qualifier)` removed. */
   base: string;
@@ -76,7 +77,7 @@ export function normalizeMechanisms(mechanismTags: string[]): NormalizedMechanis
   const mechanisms: NormalizedMechanism[] = [];
 
   mechanismTags.forEach((entry) => {
-    const label = entry.trim();
+    const label = stripCitationTokens(entry);
     if (!label) {
       return;
     }

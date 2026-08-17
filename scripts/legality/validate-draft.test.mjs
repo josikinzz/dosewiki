@@ -5,9 +5,9 @@ import { spawnSync } from "node:child_process";
 
 import { afterEach, describe, expect, it } from "vitest";
 
-import { validateLegalityDraft, validateLegalityDraftWithWarnings } from "./validate-draft";
+import { validateLegalityDraft, validateLegalityDraftWithWarnings } from "./validate-draft.ts";
 
-function validDraft(): Record<string, any> {
+function validDraft() {
   return {
     slug: "example-substance",
     generatedAt: "2026-07-11T00:00:00.000Z",
@@ -45,7 +45,7 @@ function validDraft(): Record<string, any> {
   };
 }
 
-const temporaryDirectories: string[] = [];
+const temporaryDirectories = [];
 afterEach(() => {
   for (const directory of temporaryDirectories.splice(0)) {
     rmSync(directory, { recursive: true, force: true });

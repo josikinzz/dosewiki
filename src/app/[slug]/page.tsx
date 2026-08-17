@@ -1,6 +1,6 @@
 import { notFound, redirect } from "next/navigation";
 import { buildPublicPageMetadata } from "@server/next/publicSite";
-import { loadSubstanceRoute } from "@server/next/routeLoaders";
+import { loadSubstanceRoute } from "@server/next/routeLoaders.substances";
 import { getStaticSubstanceParams } from "@server/next/staticParams";
 import { SubstanceArticlePage } from "@/features/article/pages/SubstanceArticlePage";
 import { buildSiteUrl, getPublicRoutePath } from "@server/next/publicSite";

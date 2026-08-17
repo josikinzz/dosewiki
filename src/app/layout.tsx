@@ -15,7 +15,7 @@ import { siteFont } from "./fonts";
 import { RouteChrome, RouteFooter } from "./_components/RouteChrome";
 import { ApprovedPublicAnalytics } from "./_components/ApprovedPublicAnalytics";
 import { PaletteLab } from "@/features/theme-lab";
-import "../styles.css";
+import "@site-styles";
 
 // Both read the flavor's `lockedTheme`: the bootstrap applies it without consulting the
 // stored preference, and the layout renders the matching theme-colour meta value (plus a

@@ -1,20 +1,18 @@
 # Domain docs
 
-This is a single-context repository. Engineering skills should consume the repository's domain and architecture documentation as follows.
+This repository has one domain glossary at root.
 
-## Before exploring
+## Read by branch
 
-- Read root `CONTEXT.md` for established domain vocabulary. It is currently citation-focused, so use `README.md` and architecture documentation for general application context.
-- Read `ARCHITECTURE.md` before architecture, runtime, or data-ownership changes.
-- Read relevant ADRs in `docs/adr/`, especially when changing citation or publication invariants.
-- Use `docs/architecture/runtime-and-data.md` for authentication, write boundaries, Convex ownership, and runtime data flow.
+- Read `CONTEXT.md` before naming or changing citation workflow concepts, legality research, article-review state, or replication surfaces.
+- Read `ARCHITECTURE.md` before changing runtime ownership, route boundaries, data flow, or deployment architecture.
+- Read `docs/architecture/runtime-and-data.md` before changing authentication, write boundaries, Convex ownership, or runtime data flow.
+- Read the relevant record in `docs/adr/` before changing an invariant it owns.
 
 ## Vocabulary
 
-Use glossary terms from `CONTEXT.md` exactly where they apply. For this security program, preserve established terms including Citable Article Surface, Citation-Only Edit, Citation Evidence Trail, Citation Draft, Production Rollout Batch, and Citation Rollout Stage Gate.
-
-If the program introduces durable new concepts such as Published Revision or Independent Approval, add them through the domain-modeling workflow instead of allowing competing synonyms to spread.
+Use the canonical terms and `_Avoid_` boundaries in `CONTEXT.md`. When a durable project-specific concept lacks a term, add it through the domain-modeling workflow instead of spreading synonyms.
 
 ## Architectural decisions
 
-Surface any conflict with an existing ADR explicitly. In particular, server-side citation hardening must preserve ADR-0001's invariant that stripping citation markers restores the original article text exactly.
+Surface conflicts with an ADR before implementation. Citation changes must preserve [ADR-0001](../adr/0001-citation-only-marker-workflow.md): stripping citation markers restores the original article text exactly.

@@ -2,7 +2,6 @@ import { describe, expect, it } from "vitest";
 
 import {
   CITABLE_SECTIONS,
-  SUBSECTION_AUDIT_SCHEMA,
   SUBSECTION_TRACKER_SCHEMA,
   TRACKER_STATUSES,
   VIABILITY_FLOOR_CHARS,

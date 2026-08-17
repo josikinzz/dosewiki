@@ -37,7 +37,8 @@ This project now has one primary application path: `Next.js` App Router in `src/
 
 ## Data Work
 
-- Treat Convex as the source of truth.
+- Treat `glad-minnow-656` as the sole Convex source of truth. Point every active
+  read and write URL at it; do not mirror production into another deployment.
 - Reuse existing schema helpers before introducing new cross-boundary validators.
 - Keep Zod at real runtime boundaries rather than duplicating schemas unnecessarily.
 

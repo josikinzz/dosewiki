@@ -179,7 +179,14 @@ export function ReplicationsGalleryExplorer({
   const displayable = useMemo(() => replications.filter(isDisplayable), [replications]);
 
   const effectName = useMemo(() => effectNameLookup(effects), [effects]);
-  const effectHref = useMemo(() => effectHrefBuilder(effectHrefPrefix), [effectHrefPrefix]);
+  const linkableEffectSlugSet = useMemo(
+    () => new Set(effects.map(({ slug }) => slug)),
+    [effects],
+  );
+  const effectHref = useMemo(
+    () => effectHrefBuilder(effectHrefPrefix, linkableEffectSlugSet),
+    [effectHrefPrefix, linkableEffectSlugSet],
+  );
 
   const query = focus ? '' : browse.query;
   const searching = query.trim().length > 0;

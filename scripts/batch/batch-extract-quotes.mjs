@@ -9,7 +9,7 @@ import {
   requireTargetUrl,
 } from "../lib/data-ops-run-context.mjs";
 import { printBatchSummary } from "./lib/generator-runner.mjs";
-import { CONFIG, parseArgs, printHelp } from "./extract-quotes/cli.mjs";
+import { CONFIG, parseArgs } from "./extract-quotes/cli.mjs";
 import { CATEGORIES } from "./extract-quotes/categories.mjs";
 import {
   createConvexClient,
@@ -22,7 +22,6 @@ import {
   loadConvexArticleSourceSlugs,
   loadPrompt,
 } from "./extract-quotes/loader.mjs";
-import { outputExists } from "./extract-quotes/formatter.mjs";
 import { processAll } from "./extract-quotes/runner.mjs";
 
 const VALID_SOURCE_MODES = new Set(["local", "convex"]);

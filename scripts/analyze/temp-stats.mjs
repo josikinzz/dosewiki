@@ -6,7 +6,7 @@ const substances = data.substances;
 const dosageBySource = {};
 const durationBySource = {};
 
-for (const [slug, sub] of Object.entries(substances)) {
+for (const sub of Object.values(substances)) {
   if (sub.dosage) {
     for (const d of sub.dosage) {
       dosageBySource[d.source] = (dosageBySource[d.source] || 0) + 1;
@@ -28,7 +28,7 @@ Object.entries(durationBySource).sort((a,b)=>b[1]-a[1]).forEach(([k,v]) => conso
 
 let noDosage = 0;
 let noDuration = 0;
-for (const [slug, sub] of Object.entries(substances)) {
+for (const sub of Object.values(substances)) {
   if (!sub.dosage || sub.dosage.length === 0) noDosage++;
   if (!sub.duration || sub.duration.length === 0) noDuration++;
 }

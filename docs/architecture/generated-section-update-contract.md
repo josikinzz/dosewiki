@@ -1,19 +1,21 @@
 # Generated Section Update Contract
 
-Generated or imported substance section content should pass through
-`src/lib/article/generatedSectionUpdate.ts` before it mutates an article.
+**Status:** Implemented as a tested boundary; not adopted by production callers.
 
-The module accepts the current `SubstanceArticle`, a generated section key, a
+`buildGeneratedSectionUpdate` in `src/lib/article/generatedSectionUpdate.ts` has
+contract tests in `src/lib/article/generatedSectionUpdate.test.ts`, but no
+production or script caller imports it. Dev form, generated/imported, batch,
+and prepopulate workflows do not yet share this boundary.
+
+The function accepts the current `SubstanceArticle`, a generated section key, a
 source adapter (`generated_yaml`, `normalized`, or `parsed_source`), and an
-update mode (`preview`, `editor_apply`, `batch_apply`, or `prepopulate_apply`).
-It returns a patch, the next article, changed fields, skipped fields, touched
-sections, and diagnostics.
+update mode (`preview`, `editor_apply`, `batch_apply`, or
+`prepopulate_apply`). Its result includes the patch, next article,
+`changedFields`, `preservedFields`, `skippedFields`, touched sections, and
+diagnostics. `preservedFields` is currently always empty.
 
-The contract owns wrapper parsing, empty defaults, section validation, legacy
-harm-potential LD50 normalization, legality country preservation, and
-pharmacology route side effects into dosage and duration. Generated section
-updates skip `editorial_review`; that field remains editor-only metadata.
-
-Dev form handlers should apply the returned patch through React Hook Form.
-Batch and prepopulate workflows should adapt their source data into this
-contract before handing patches to their existing persistence paths.
+Adoption is complete only when every applicable dev, generated/imported, batch,
+and prepopulate mutation caller uses this boundary, the parallel mutation paths
+are removed, and `preservedFields` reports the values the boundary intentionally
+retains. Until then, this document describes a candidate shared contract rather
+than a live workflow guarantee.

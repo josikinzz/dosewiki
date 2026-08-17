@@ -28,8 +28,7 @@ type ContributorDangerZoneProps = {
   onProfileRemoved: () => void;
 };
 
-const DANGER_CARD_CLASS =
-  "border-[color:var(--theme-danger-border)] bg-[color:var(--theme-danger-bg)]";
+const DANGER_CARD_CLASS = "theme-danger-surface";
 
 /**
  * The operations that change who a name belongs to, kept visually and

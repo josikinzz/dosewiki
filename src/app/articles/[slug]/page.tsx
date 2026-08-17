@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 import { buildPublicPageMetadata } from "@server/next/publicSite";
-import { loadArticleRoute } from "@server/next/routeLoaders";
+import { loadArticleRoute } from "@server/next/routeLoaders.publications";
 import { getStaticArticleParams } from "@server/next/staticParams";
 import { EffectIndexArticlePage } from "@/features/articles/pages/EffectIndexArticlePage";
 import { SITE_FLAVOR_CONFIG } from "@/config/siteFlavor";

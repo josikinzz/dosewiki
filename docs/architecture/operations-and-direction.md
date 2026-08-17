@@ -1,6 +1,6 @@
 # Operations and Direction
 
-Last verified: 2026-03-30
+Last verified: 2026-08-16
 
 This appendix holds the operational guidance, quality gates, known debt, and recommended direction that support the root [ARCHITECTURE.md](../../ARCHITECTURE.md).
 
@@ -16,12 +16,10 @@ The app uses a mix of:
 - SSG routes with generated params
 - dynamic routes for sign-in/editor/API handlers
 
-As of the latest verified build:
+Use the current `next build` route summary when a point-in-time page count is needed. In the route configuration:
 
-- 1,898 static pages are generated
-- `/dev` remains dynamic
-- API handlers remain dynamic
-- `/reports/[slug]` is on-demand
+- `/dev` and API handlers remain dynamic
+- `/reports/[slug]` pre-renders known slugs through `generateStaticParams`; default dynamic-params behavior permits other slugs on demand
 
 ### Revalidation
 
@@ -46,7 +44,7 @@ Major categories:
 - `data/`: normalization and maintenance transforms
 - `parsers/`: raw source extraction
 
-Important architectural reality:
+Current script boundary:
 
 - many scripts still operate on `src/data/SubstanceIndex.json`
 - this is acceptable for migration/tooling use
@@ -84,18 +82,7 @@ The repo has historically carried a mix of legacy and current guidance. Root doc
 
 The architecture says Convex is the live source of truth, but many scripts and some editor save paths still use local file artifacts. This creates operational ambiguity.
 
-### 3. Oversized editor modules
-
-The editor surface is concentrated in a few very large files, especially:
-
-- `src/features/dev/pages/DevModePage.tsx`
-- `src/features/dev/tools/substance-editor/SubstanceEditorTab.tsx`
-- `src/features/dev/tools/substance-editor/SectionGenerator.tsx`
-- `src/data/builders/libraryBuilder.ts`
-
-This increases change risk and makes ownership boundaries weaker than they should be.
-
-### 4. Mixed persistence models
+### 3. Mixed persistence models
 
 The existence of both:
 
@@ -104,7 +91,7 @@ The existence of both:
 
 means contributors must know which workflow they are using and why.
 
-### 5. Public contributor model still reflects legacy auth naming
+### 4. Public contributor model still reflects legacy auth naming
 
 Contributor profile keys and some public routes still expose internal credential-era naming conventions. That should be treated as legacy debt.
 
@@ -131,7 +118,6 @@ These are not core framework flaws; they are process and repository hygiene risk
 ### Medium-term
 
 - reduce or isolate remaining GitHub-backed content-editing paths
-- split the large editor modules into better-bounded feature components
 - further separate operational artifacts from application code
 - normalize contributor/public identity away from credential-derived keys
 
@@ -162,9 +148,6 @@ Start here for common work:
 
 When architecture changes:
 
-1. update `ARCHITECTURE.md`
-2. update this appendix if the detailed operational guidance changed
-3. update `README.md`
-4. update `AGENTS.md`
-5. update `CLAUDE.md` if operational guidance changed
-6. update any affected script or contributor docs
+1. update the authoritative code or configuration owner
+2. update `ARCHITECTURE.md` or this appendix when its scoped summary changes
+3. update contributor docs only when their pointer, scope summary, or distinct audience contract changes

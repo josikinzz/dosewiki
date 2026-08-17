@@ -16,6 +16,7 @@ describe("public route aliases", () => {
     expect(getSubstanceRouteAlias("magic-mushrooms")).toBe("psilocybin-mushrooms");
     expect(getSubstanceRouteAlias("2cb")).toBe("2c-b");
     expect(getSubstanceRouteAlias("dxm")).toBe("dextromethorphan");
+    expect(getSubstanceRouteAlias("lean")).toBe("codeine");
     expect(getSubstanceRouteAlias("not-real")).toBeNull();
   });
 

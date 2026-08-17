@@ -38,7 +38,9 @@ export function buildUserMessage(article, quotes) {
   if (article.dosage?.routes?.length > 0) {
     minimalContext.dosage = {
       routes: article.dosage.routes.map((route) => {
-        const { bioavailability, bioavailability_notes, ...rest } = route;
+        const rest = { ...route };
+        delete rest.bioavailability;
+        delete rest.bioavailability_notes;
         return rest;
       }),
       plateau_dosing: article.dosage.plateau_dosing || null,
@@ -48,7 +50,9 @@ export function buildUserMessage(article, quotes) {
   if (article.duration?.routes?.length > 0) {
     minimalContext.duration = {
       routes: article.duration.routes.map((route) => {
-        const { half_life, half_life_notes, ...rest } = route;
+        const rest = { ...route };
+        delete rest.half_life;
+        delete rest.half_life_notes;
         return rest;
       }),
     };

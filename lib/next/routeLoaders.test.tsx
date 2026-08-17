@@ -1,160 +1,26 @@
 import { SITE_FLAVOR_CONFIG } from "@/config/siteFlavor";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { getRouteLoaderMocks } from "./routeLoaders.testHarness";
 import {
-  categoryRouteDescriptor,
-  loadArticleRoute,
-  loadArticlesIndexRoute,
-  loadCategoryRoute,
-  loadContributorRoute,
-  loadEffectCategoryRoute,
   loadEffectRoute,
   loadEffectsIndexRoute,
-  loadMechanismQualifierRoute,
   loadPsychoactiveSummaryRoute,
-  loadReplicationRoute,
+  loadSubstanceRoute,
+} from "./routeLoaders.substances";
+import { loadArticleRoute, loadArticlesIndexRoute } from "./routeLoaders.publications";
+import {
   loadReportRoute,
   loadReportsIndexRoute,
-  loadSubstanceRoute,
-  loadTaxonomyRoute,
-  loadTaxonomyStaticParams,
   REPORT_FALLBACK_METADATA,
-  type TaxonomyRouteDescriptor,
-} from "./routeLoaders";
+} from "./routeLoaders.reports";
 import { effectsIndexEmptyState, reportsIndexEmptyState } from "./publicRouteOutcomes";
 import type { NormalizedUserProfile } from "../../src/data/userProfiles";
-import type { ReplicationWithUrl } from "../../src/types/replications";
 import type { SubjectiveEffectDetailRecord } from "../convex/publicData";
 import type { PublicSubstanceRecord } from "../convex/publicData.shared";
 
-vi.mock("server-only", () => ({}));
-vi.mock("react", async () => {
-  const actual = await vi.importActual<typeof import("react")>("react");
+const { publicData, publicLibrary, publicMolecules, reagentData } = getRouteLoaderMocks();
 
-  return {
-    ...actual,
-    cache: <T extends (...args: never[]) => unknown>(fn: T) => fn,
-  };
-});
-
-const publicData = vi.hoisted(() => ({
-  getEffectArticlesByContributor: vi.fn(() => Promise.resolve([])),
-  getPublishedEffectIndexArticles: vi.fn(),
-  getPublicCategoryLayout: vi.fn(),
-  getPublicContributorByKey: vi.fn(),
-  getPublicContributorDirectory: vi.fn(() => Promise.resolve([])),
-  getPublicContributorProfiles: vi.fn(() => Promise.resolve([])),
-  getPublicProfileHistory: vi.fn(() => Promise.resolve([])),
-  getPublicDataOverview: vi.fn(),
-  getPublicEffectArticles: vi.fn(),
-  getPublicEffectIndexArticleBySlug: vi.fn(),
-  getPublicEffectBySlug: vi.fn(),
-  getPublicEffects: vi.fn(),
-  getPublicReplicationBySlug: vi.fn(),
-  getPublicReplications: vi.fn(() => Promise.resolve([])),
-  getPublicReplicationsByEffect: vi.fn(() => Promise.resolve([])),
-  getPublicReportBySlug: vi.fn(),
-  getPublicReportsBySubstanceNames: vi.fn(() => Promise.resolve([])),
-  getPublicReports: vi.fn(),
-  getPublicSubstanceBySlug: vi.fn(),
-  getPublicSubstanceLookup: vi.fn(),
-  getPublicSubstances: vi.fn(),
-  getReplicationsByContributor: vi.fn(() => Promise.resolve([])),
-  getReviewedArticlesByContributor: vi.fn(() => Promise.resolve([])),
-  getReportsByContributor: vi.fn(),
-}));
-
-const publicLibrary = vi.hoisted(() => ({
-  getPublicCategoryDetail: vi.fn(),
-  getPublicEffectDetail: vi.fn(),
-  getPublicMechanismDetail: vi.fn(),
-}));
-
-const reagentData = vi.hoisted(() => ({
-  getCachedReagentDataForArticle: vi.fn(() => Promise.resolve(null)),
-}));
-
-const publicMolecules = vi.hoisted(() => ({
-  getMoleculeUpdatedAt: vi.fn(),
-  moleculeOverrideImageUrl: vi.fn(
-    (slug: string, updatedAt: string) =>
-      `/api/molecules/${slug}?v=${encodeURIComponent(updatedAt)}`,
-  ),
-}));
-
-const staticParams = vi.hoisted(() => ({
-  getStaticCategoryParams: vi.fn(),
-  getStaticEffectCategoryParams: vi.fn(),
-  getStaticMechanismParams: vi.fn(),
-  getStaticMechanismQualifierParams: vi.fn(),
-}));
-
-/**
- * Both banner reads wrap `unstable_cache`, which throws
- * "Invariant: incrementalCache missing" outside a Next request context. Mocked
- * like every other data dependency here; the resolver they feed
- * (`resolveEnabledBanners`) is covered directly in
- * `src/data/substanceWarningBanners.test.ts`.
- *
- * The size is the literal 44 rather than `SAFETY_BANNER_ICON_SIZE_DEFAULT`: this
- * factory is hoisted above the import block, so it cannot reference an import.
- */
-const warningBanners = vi.hoisted(() => ({
-  getWarningBannerPresets: vi.fn(() => Promise.resolve([])),
-  getSafetyBannerIconSize: vi.fn(() => Promise.resolve(44)),
-}));
-
-vi.mock("@server/convex/publicData", () => publicData);
-vi.mock("@server/convex/publicLibrary", () => publicLibrary);
-vi.mock("@server/convex/publicData.molecules", () => publicMolecules);
-vi.mock("@server/reagentData", () => reagentData);
-vi.mock("./staticParams", () => staticParams);
-vi.mock("./warningBanners", () => warningBanners);
-
-function buildContributorProfile(overrides: Partial<NormalizedUserProfile> = {}): NormalizedUserProfile {
-  return {
-    key: "ADA",
-    displayName: "Ada",
-    aliases: [],
-    avatarUrl: null,
-    bio: "",
-    links: [],
-    hasCustomBio: false,
-    ...overrides,
-  };
-}
-
-function buildTripReport(overrides: { slug: string; featured?: boolean }) {
-  return {
-    slug: overrides.slug,
-    title: `Report ${overrides.slug}`,
-    featured: overrides.featured ?? false,
-    subject: { name: "Ada" },
-    substances: [],
-    onset: [],
-    peak: [],
-    offset: [],
-    tags: [],
-  };
-}
-
-function buildReplication(overrides: Partial<ReplicationWithUrl> = {}): ReplicationWithUrl {
-  return {
-    _id: `id-${overrides.slug ?? "base"}`,
-    _creationTime: 0,
-    slug: "base",
-    title: "Base",
-    artist: "Ada",
-    type: "image",
-    storage_id: "storage-base",
-    effect_slug: "tracers",
-    format: "webp",
-    created_at: "2024-01-01T00:00:00.000Z",
-    url: "https://cdn.test/base.webp",
-    ...overrides,
-  };
-}
-
-describe("route loaders", () => {
+describe("substance, effect, publication, and report route loaders", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     publicMolecules.getMoleculeUpdatedAt.mockResolvedValue(null);
@@ -167,6 +33,13 @@ describe("route loaders", () => {
       title: "LSD",
       summary: "A lysergamide [cite:paper-a][cite:paper-b].",
     } as PublicSubstanceRecord);
+    publicData.getPublicSubstances.mockResolvedValueOnce([
+      { slug: "lsd", title: "LSD" },
+      { slug: "mdma", title: "MDMA" },
+    ]);
+    publicData.getPublicCategoryLayout.mockResolvedValueOnce({
+      categories: [{ key: "psychedelic" }],
+    } as never);
 
     const result = await loadSubstanceRoute("lsd");
 
@@ -175,12 +48,14 @@ describe("route loaders", () => {
       throw new Error("expected ok result");
     }
     expect(result.metadata).toEqual({
-      title: "LSD - dose.wiki",
+      title: "LSD: Dosage, Effects & Safety | dose.wiki",
       description: "A lysergamide.",
     });
     expect(result.canonicalRoute).toEqual({ family: "substance", params: { slug: "lsd" } });
     expect(result.pageProps.fromSubstanceSlug).toBe("lsd");
     expect(result.pageProps.article.summary).toBe("A lysergamide [cite:paper-a][cite:paper-b].");
+    expect(result.pageProps.linkableSubstanceSlugs).toEqual(["lsd", "mdma"]);
+    expect(result.pageProps.linkableCategoryKeys).toEqual(["psychedelic"]);
     expect(result.pageProps.content?.moleculeAsset?.url).toBe(
       "/api/molecules/lsd?v=2026-07-11T12%3A00%3A00.000Z",
     );
@@ -226,6 +101,12 @@ describe("route loaders", () => {
     publicData.getPublicContributorDirectory.mockResolvedValueOnce([
       { key: "JOSIE", displayName: "Josie Kins", aliases: ["josie"] },
     ]);
+    publicData.getPublicSubstances.mockResolvedValueOnce([
+      { slug: "lsd", title: "LSD" } as never,
+    ]);
+    publicData.getPublicEffects.mockResolvedValueOnce([
+      { slug: "visual-drifting", name: "Visual drifting" } as never,
+    ]);
 
     const result = await loadEffectRoute("visual-drifting");
 
@@ -234,7 +115,7 @@ describe("route loaders", () => {
       throw new Error("expected ok result");
     }
     expect(result.metadata).toEqual({
-      title: "Visual drifting",
+      title: "Visual drifting: Subjective Effect | dose.wiki",
       description: "Objects appear to drift.",
     });
     expect(result.canonicalRoute).toEqual({
@@ -247,6 +128,8 @@ describe("route loaders", () => {
     expect(result.pageProps.contributorDirectory).toEqual([
       { key: "JOSIE", displayName: "Josie Kins", aliases: ["josie"] },
     ]);
+    expect(result.pageProps.linkableSubstanceSlugs).toEqual(["lsd"]);
+    expect(result.pageProps.linkableEffectSlugs).toEqual(["visual-drifting"]);
 
     publicData.getPublicEffectBySlug.mockResolvedValueOnce(null);
     publicLibrary.getPublicEffectDetail.mockResolvedValueOnce(null);
@@ -568,627 +451,5 @@ describe("route loaders", () => {
     publicData.getPublicSubstances.mockResolvedValueOnce([]);
 
     await expect(loadReportRoute("missing")).resolves.toEqual({ kind: "not-found" });
-  });
-
-  it("returns contributor ok results for the canonical key", async () => {
-    publicData.getPublicContributorByKey.mockResolvedValueOnce(buildContributorProfile());
-    publicData.getReportsByContributor.mockResolvedValueOnce([]);
-    publicData.getReplicationsByContributor.mockResolvedValueOnce([]);
-
-    const result = await loadContributorRoute("ada");
-
-    expect(result.kind).toBe("ok");
-    if (result.kind !== "ok") {
-      throw new Error("expected ok result");
-    }
-    expect(publicData.getPublicContributorByKey).toHaveBeenCalledWith("ADA");
-    expect(result.metadata).toEqual({
-      title: "Ada",
-      description: "Browse contributor profile ADA.",
-    });
-    expect(result.canonicalRoute).toEqual({ family: "contributor", params: { profileKey: "ADA" } });
-    expect(result.pageProps.profile.key).toBe("ADA");
-    expect(result.pageProps.bioContent).toBeNull();
-    expect(result.pageProps.reportHrefPrefix).toBe("/reports/");
-    expect(result.pageProps.tripReports).toEqual([]);
-    expect(result.pageProps.replications).toEqual([]);
-  });
-
-  it("orders a contributor's replications newest first", async () => {
-    publicData.getPublicContributorByKey.mockResolvedValueOnce(buildContributorProfile());
-    publicData.getReportsByContributor.mockResolvedValueOnce([]);
-    publicData.getReplicationsByContributor.mockResolvedValueOnce([
-      buildReplication({ slug: "old", created_at: "2023-01-01T00:00:00.000Z" }),
-      buildReplication({ slug: "new", created_at: "2025-01-01T00:00:00.000Z" }),
-    ]);
-
-    const result = await loadContributorRoute("ada");
-
-    if (result.kind !== "ok") {
-      throw new Error("expected ok result");
-    }
-    expect(result.pageProps.replications.map((work) => work.slug)).toEqual(["new", "old"]);
-  });
-
-  it("leads a contributor's rail with their curated works", async () => {
-    publicData.getPublicContributorByKey.mockResolvedValueOnce(buildContributorProfile());
-    publicData.getReportsByContributor.mockResolvedValueOnce([]);
-    publicData.getReplicationsByContributor.mockResolvedValueOnce([
-      buildReplication({ slug: "new", created_at: "2025-01-01T00:00:00.000Z" }),
-      // A real entry from the checked-in curation list, so this test fails if
-      // the list is ever repointed without the rail following.
-      buildReplication({ slug: "forest-of-life-loka", created_at: "2019-01-01T00:00:00.000Z" }),
-    ]);
-
-    const result = await loadContributorRoute("ada");
-
-    if (result.kind !== "ok") {
-      throw new Error("expected ok result");
-    }
-    expect(result.pageProps.replications.map((work) => work.slug)).toEqual([
-      "forest-of-life-loka",
-      "new",
-    ]);
-  });
-
-  it("leaves the rail untouched for a contributor with nothing curated", async () => {
-    publicData.getPublicContributorByKey.mockResolvedValueOnce(buildContributorProfile());
-    publicData.getReportsByContributor.mockResolvedValueOnce([]);
-    publicData.getReplicationsByContributor.mockResolvedValueOnce([
-      buildReplication({ slug: "old", created_at: "2023-01-01T00:00:00.000Z" }),
-      buildReplication({ slug: "new", created_at: "2025-01-01T00:00:00.000Z" }),
-    ]);
-
-    const result = await loadContributorRoute("ada");
-
-    if (result.kind !== "ok") {
-      throw new Error("expected ok result");
-    }
-    // Only 36 works are curated corpus-wide, so this is the common case and it
-    // must stay a pure no-op.
-    expect(result.pageProps.replications.map((work) => work.slug)).toEqual(["new", "old"]);
-  });
-
-  it("puts the contributor's own curation ahead of the editorial list", async () => {
-    publicData.getPublicContributorByKey.mockResolvedValueOnce(
-      buildContributorProfile({ replicationOrder: ["old", "gone"] }),
-    );
-    publicData.getReportsByContributor.mockResolvedValueOnce([]);
-    publicData.getReplicationsByContributor.mockResolvedValueOnce([
-      buildReplication({ slug: "new", created_at: "2025-01-01T00:00:00.000Z" }),
-      buildReplication({ slug: "old", created_at: "2023-01-01T00:00:00.000Z" }),
-      // Editorial curation still floats its pick above the default sort, but
-      // below anything the contributor pinned themselves.
-      buildReplication({ slug: "forest-of-life-loka", created_at: "2019-01-01T00:00:00.000Z" }),
-    ]);
-
-    const result = await loadContributorRoute("ada");
-
-    if (result.kind !== "ok") {
-      throw new Error("expected ok result");
-    }
-    // "gone" matches no work and is simply ignored.
-    expect(result.pageProps.replications.map((work) => work.slug)).toEqual([
-      "old",
-      "forest-of-life-loka",
-      "new",
-    ]);
-  });
-
-  it("leads the reports list with the contributor's curated reports", async () => {
-    publicData.getPublicContributorByKey.mockResolvedValueOnce(
-      buildContributorProfile({ reportOrder: ["second", "missing"] }),
-    );
-    publicData.getReportsByContributor.mockResolvedValueOnce([
-      buildTripReport({ slug: "first" }),
-      buildTripReport({ slug: "second" }),
-    ]);
-    publicData.getReplicationsByContributor.mockResolvedValueOnce([]);
-
-    const result = await loadContributorRoute("ada");
-
-    if (result.kind !== "ok") {
-      throw new Error("expected ok result");
-    }
-    expect(result.pageProps.tripReports.map((report) => report.slug)).toEqual(["second", "first"]);
-  });
-
-  it("hands the profile the effect articles crediting the contributor", async () => {
-    publicData.getPublicContributorByKey.mockResolvedValueOnce(buildContributorProfile());
-    publicData.getReportsByContributor.mockResolvedValueOnce([]);
-    publicData.getReplicationsByContributor.mockResolvedValueOnce([]);
-    publicData.getEffectArticlesByContributor.mockResolvedValueOnce([
-      { slug: "geometry", name: "Geometry" },
-    ]);
-
-    const result = await loadContributorRoute("ada");
-
-    if (result.kind !== "ok") {
-      throw new Error("expected ok result");
-    }
-    expect(publicData.getEffectArticlesByContributor).toHaveBeenCalledWith(
-      expect.objectContaining({ key: "ADA" }),
-    );
-    expect(result.pageProps.effectArticles).toEqual([{ slug: "geometry", name: "Geometry" }]);
-  });
-
-  it("hands the profile its reviewed articles by profile key only", async () => {
-    publicData.getPublicContributorByKey.mockResolvedValueOnce(buildContributorProfile());
-    publicData.getReportsByContributor.mockResolvedValueOnce([]);
-    publicData.getReplicationsByContributor.mockResolvedValueOnce([]);
-    publicData.getReviewedArticlesByContributor.mockResolvedValueOnce([
-      { slug: "2c-b", title: "2C-B", reviewed_at: "2026-08-01T00:00:00.000Z" },
-    ]);
-
-    const result = await loadContributorRoute("ada");
-
-    if (result.kind !== "ok") {
-      throw new Error("expected ok result");
-    }
-    // Key-only on purpose: the reviewer-email matching happens inside Convex,
-    // so the loader never handles an email it could leak into page props.
-    expect(publicData.getReviewedArticlesByContributor).toHaveBeenCalledWith("ADA");
-    expect(result.pageProps.reviewedArticles).toEqual([
-      { slug: "2c-b", title: "2C-B", reviewed_at: "2026-08-01T00:00:00.000Z" },
-    ]);
-  });
-
-  it("still renders a profile when the replication join is unavailable", async () => {
-    // A Convex deployment that predates `replications:getByArtistNames` reports
-    // the same opaque Server Error it uses for everything else, so the profile
-    // has to degrade to "no works" rather than fail a prerendered route.
-    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
-    publicData.getPublicContributorByKey.mockResolvedValueOnce(buildContributorProfile());
-    publicData.getReportsByContributor.mockResolvedValueOnce([]);
-    publicData.getReplicationsByContributor.mockRejectedValueOnce(new Error("Server Error"));
-
-    const result = await loadContributorRoute("ada");
-
-    if (result.kind !== "ok") {
-      throw new Error("expected ok result");
-    }
-    expect(result.pageProps.replications).toEqual([]);
-    expect(warn).toHaveBeenCalled();
-    warn.mockRestore();
-  });
-
-  it("returns contributor redirect results for alias keys without loading reports", async () => {
-    publicData.getPublicContributorByKey.mockResolvedValueOnce(
-      buildContributorProfile({ aliases: ["OLD-KEY"] }),
-    );
-
-    await expect(loadContributorRoute("old-key")).resolves.toMatchObject({
-      kind: "redirect",
-      target: "/contributors/ada",
-      canonicalRoute: { family: "contributor", params: { profileKey: "ADA" } },
-    });
-    expect(publicData.getReportsByContributor).not.toHaveBeenCalled();
-    expect(publicData.getReplicationsByContributor).not.toHaveBeenCalled();
-    expect(publicData.getEffectArticlesByContributor).not.toHaveBeenCalled();
-    expect(publicData.getReviewedArticlesByContributor).not.toHaveBeenCalled();
-  });
-
-  it("returns contributor not-found results with the normalized key", async () => {
-    publicData.getPublicContributorByKey.mockResolvedValueOnce(null);
-
-    await expect(loadContributorRoute("missing%20key")).resolves.toEqual({
-      kind: "not-found",
-      normalizedKey: "MISSING KEY",
-    });
-  });
-
-  it("surrounds an attributed replication with its artist's other works", async () => {
-    publicData.getPublicReplicationBySlug.mockResolvedValueOnce(
-      buildReplication({ slug: "shared", artist: "Ada" }),
-    );
-    publicData.getPublicEffectBySlug.mockResolvedValueOnce({
-      slug: "tracers",
-      name: "Tracers",
-      summary: "",
-      tags: ["visual", "distortion"],
-    } as SubjectiveEffectDetailRecord);
-    publicData.getPublicReplicationsByEffect.mockResolvedValueOnce([
-      buildReplication({ slug: "shared" }),
-      buildReplication({ slug: "by-someone-else", artist: "Someone Else" }),
-    ]);
-    publicData.getPublicContributorProfiles.mockResolvedValueOnce([
-      buildContributorProfile({ key: "ADA", displayName: "Ada" }),
-    ]);
-    publicData.getReplicationsByContributor.mockResolvedValueOnce([
-      buildReplication({ slug: "shared", created_at: "2025-02-01T00:00:00.000Z" }),
-      buildReplication({ slug: "other-tracer", created_at: "2025-01-01T00:00:00.000Z" }),
-    ]);
-
-    const result = await loadReplicationRoute("shared");
-
-    if (result.kind !== "ok") {
-      throw new Error("expected ok result");
-    }
-    expect(result.pageProps.neighbors.scope).toBe("artist");
-    expect(result.pageProps.neighbors.scopeLabel).toBe("Ada");
-    expect(result.pageProps.neighbors.next?.slug).toBe("other-tracer");
-    expect(result.pageProps.artistProfileHref).toBe("/contributors/ada");
-    expect(result.pageProps.effectCategories.map((category) => category.slug)).toEqual([
-      "visual-effects",
-      "visual-distortions",
-    ]);
-  });
-
-  it("gives a figure no permalink, so nothing calls a diagram a replication", async () => {
-    // This page states what the row is three times over — in the breadcrumb and
-    // "Replicates" prose, in the `<title>`/description, and in JSON-LD naming it
-    // an ImageObject described as "A replication of the subjective effect X".
-    // The last two are claims published to crawlers, so a figure has to 404
-    // rather than render, and 404ing here is also what keeps it out of the
-    // sitemap's companion `generateStaticParams` list.
-    publicData.getPublicReplicationBySlug.mockResolvedValueOnce(
-      buildReplication({ slug: "vertebral-column-diagram", role: "figure" }),
-    );
-
-    await expect(loadReplicationRoute("vertebral-column-diagram")).resolves.toEqual({
-      kind: "not-found",
-    });
-  });
-
-  it("gives an audio row no permalink rather than describing it as an image", async () => {
-    // The detail page branches `type === "video"` with an image fallback, so an
-    // audio row would render `<AppImage src="….mp3">` beneath a pill reading
-    // "Image" and offer an "Open full size" link to the audio file.
-    publicData.getPublicReplicationBySlug.mockResolvedValueOnce(
-      buildReplication({ slug: "a-recording", type: "audio", format: "mp3" }),
-    );
-
-    await expect(loadReplicationRoute("a-recording")).resolves.toEqual({ kind: "not-found" });
-  });
-
-  it("still renders an ordinary stored row, which carries no role at all", async () => {
-    const stored = buildReplication({ slug: "tree-bark", artist: "Unknown" });
-    expect(stored.role).toBeUndefined();
-
-    publicData.getPublicReplicationBySlug.mockResolvedValueOnce(stored);
-    publicData.getPublicEffectBySlug.mockResolvedValueOnce({
-      slug: "tracers",
-      name: "Tracers",
-      summary: "",
-      tags: ["visual"],
-    } as SubjectiveEffectDetailRecord);
-
-    const result = await loadReplicationRoute("tree-bark");
-
-    expect(result.kind).toBe("ok");
-  });
-
-  it("falls back to the effect's works for an unattributed replication", async () => {
-    publicData.getPublicReplicationBySlug.mockResolvedValueOnce(
-      buildReplication({ slug: "shared", artist: "Unknown" }),
-    );
-    publicData.getPublicEffectBySlug.mockResolvedValueOnce({
-      slug: "tracers",
-      name: "Tracers",
-      summary: "",
-      tags: ["visual"],
-    } as SubjectiveEffectDetailRecord);
-    publicData.getPublicReplicationsByEffect.mockResolvedValueOnce([
-      buildReplication({ slug: "shared", created_at: "2025-02-01T00:00:00.000Z" }),
-      buildReplication({ slug: "sibling", created_at: "2025-01-01T00:00:00.000Z" }),
-    ]);
-
-    const result = await loadReplicationRoute("shared");
-
-    if (result.kind !== "ok") {
-      throw new Error("expected ok result");
-    }
-    expect(result.pageProps.neighbors.scope).toBe("effect");
-    expect(result.pageProps.neighbors.scopeLabel).toBe("Tracers");
-    expect(result.pageProps.neighbors.next?.slug).toBe("sibling");
-    expect(result.pageProps.artistProfileHref).toBeNull();
-    // An unattributed marker can never resolve to a profile, so the lookup is
-    // skipped rather than run and discarded.
-    expect(publicData.getPublicContributorProfiles).not.toHaveBeenCalled();
-    expect(publicData.getReplicationsByContributor).not.toHaveBeenCalled();
-  });
-
-  it("keeps the effect walk when the artist's works cannot be read", async () => {
-    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
-    publicData.getPublicReplicationBySlug.mockResolvedValueOnce(
-      buildReplication({ slug: "shared", artist: "Ada" }),
-    );
-    publicData.getPublicEffectBySlug.mockResolvedValueOnce({
-      slug: "tracers",
-      name: "Tracers",
-      summary: "",
-      tags: ["visual"],
-    } as SubjectiveEffectDetailRecord);
-    publicData.getPublicReplicationsByEffect.mockResolvedValueOnce([
-      buildReplication({ slug: "shared" }),
-      buildReplication({ slug: "sibling" }),
-    ]);
-    publicData.getPublicContributorProfiles.mockResolvedValueOnce([
-      buildContributorProfile({ key: "ADA", displayName: "Ada" }),
-    ]);
-    publicData.getReplicationsByContributor.mockRejectedValueOnce(new Error("Server Error"));
-
-    const result = await loadReplicationRoute("shared");
-
-    if (result.kind !== "ok") {
-      throw new Error("expected ok result");
-    }
-    expect(result.pageProps.neighbors.scope).toBe("effect");
-    // The byline still resolves: the profile exists, only its works did not load.
-    expect(result.pageProps.artistProfileHref).toBe("/contributors/ada");
-    expect(warn).toHaveBeenCalled();
-    warn.mockRestore();
-  });
-
-  it("gives a named credit with no profile the effect walk and no profile link", async () => {
-    publicData.getPublicReplicationBySlug.mockResolvedValueOnce(
-      buildReplication({ slug: "shared", artist: "Unclaimed Artist" }),
-    );
-    publicData.getPublicEffectBySlug.mockResolvedValueOnce({
-      slug: "tracers",
-      name: "Tracers",
-      summary: "",
-      tags: ["visual"],
-    } as SubjectiveEffectDetailRecord);
-    publicData.getPublicReplicationsByEffect.mockResolvedValueOnce([
-      buildReplication({ slug: "shared" }),
-      buildReplication({ slug: "sibling" }),
-    ]);
-    publicData.getPublicContributorProfiles.mockResolvedValueOnce([
-      buildContributorProfile({ key: "ADA", displayName: "Ada" }),
-    ]);
-
-    const result = await loadReplicationRoute("shared");
-
-    if (result.kind !== "ok") {
-      throw new Error("expected ok result");
-    }
-    expect(result.pageProps.artistProfileHref).toBeNull();
-    expect(result.pageProps.neighbors.scope).toBe("effect");
-    // Without a profile there is no name set to join on, so no works are read.
-    expect(publicData.getReplicationsByContributor).not.toHaveBeenCalled();
-  });
-});
-
-describe("taxonomy route loaders", () => {
-  beforeEach(() => {
-    vi.clearAllMocks();
-  });
-
-  function createGenericDescriptor(
-    detail: { label: string; total: number } | null,
-  ): TaxonomyRouteDescriptor<"mechanism", { label: string; total: number } | null> {
-    return {
-      routeFamily: "mechanism",
-      getDetail: async () => detail,
-      getMetadata: ({ detail }) => ({
-        title: detail?.label ?? "Fallback",
-        description: detail
-          ? `Browse ${detail.total} records in ${detail.label} [cite:paper-a].`
-          : "Browse fallback routes.",
-      }),
-    };
-  }
-
-  it("returns ok results with stripped metadata and the requested canonical route", async () => {
-    const result = await loadTaxonomyRoute(createGenericDescriptor({ label: "Tryptamines", total: 12 }), {
-      mechanismSlug: "tryptamines",
-    });
-
-    expect(result).toEqual({
-      kind: "ok",
-      detail: { label: "Tryptamines", total: 12 },
-      metadata: {
-        title: "Tryptamines",
-        description: "Browse 12 records in Tryptamines.",
-      },
-      canonicalRoute: { family: "mechanism", params: { mechanismSlug: "tryptamines" } },
-    });
-  });
-
-  it("returns not-found results that keep the descriptor fallback metadata", async () => {
-    await expect(
-      loadTaxonomyRoute(createGenericDescriptor(null), { mechanismSlug: "unknown" }),
-    ).resolves.toEqual({
-      kind: "not-found",
-      metadata: { title: "Fallback", description: "Browse fallback routes." },
-      canonicalRoute: { family: "mechanism", params: { mechanismSlug: "unknown" } },
-    });
-  });
-
-  it("supports specialized missing rules through isMissing", async () => {
-    const descriptor: TaxonomyRouteDescriptor<"effectCategory", unknown[]> = {
-      routeFamily: "effectCategory",
-      getDetail: async () => [],
-      isMissing: (effects) => effects.length === 0,
-      getMetadata: ({ params, detail }) => ({
-        title: `Effect category · ${params.categorySlug}`,
-        description: `Browse ${detail.length} effects in the ${params.categorySlug} category.`,
-      }),
-    };
-
-    await expect(
-      loadTaxonomyRoute(descriptor, { categorySlug: "visual" }),
-    ).resolves.toMatchObject({
-      kind: "not-found",
-      metadata: { description: "Browse 0 effects in the visual category." },
-    });
-  });
-
-  it("redirects alias params to the canonical route path", async () => {
-    const descriptor: TaxonomyRouteDescriptor<"category", null> = {
-      routeFamily: "category",
-      getDetail: async () => null,
-      getAlias: ({ categoryKey }) =>
-        categoryKey === "psychedelics" ? { categoryKey: "psychedelic" } : null,
-      getMetadata: () => ({ title: "Category", description: "Browse substances by category." }),
-    };
-
-    await expect(loadTaxonomyRoute(descriptor, { categoryKey: "psychedelics" })).resolves.toEqual({
-      kind: "redirect",
-      target: "/category/psychedelic",
-      metadata: { title: "Category", description: "Browse substances by category." },
-      canonicalRoute: { family: "category", params: { categoryKey: "psychedelics" } },
-    });
-  });
-
-  it("returns category ok results with the effects payload", async () => {
-    publicLibrary.getPublicCategoryDetail.mockResolvedValueOnce({
-      definition: { name: "Psychedelics" },
-      total: 12,
-    });
-    publicData.getPublicEffectArticles.mockResolvedValueOnce([{ slug: "euphoria" }]);
-
-    const result = await loadCategoryRoute("psychedelic");
-
-    expect(result.kind).toBe("ok");
-    if (result.kind !== "ok") {
-      throw new Error("expected ok result");
-    }
-    expect(result.detail).toEqual({ definition: { name: "Psychedelics" }, total: 12 });
-    expect(result.effects).toEqual([{ slug: "euphoria" }]);
-    expect(result.metadata).toEqual({
-      title: "Psychedelics",
-      description: "Browse 12 substances grouped under Psychedelics.",
-    });
-    expect(result.canonicalRoute).toEqual({
-      family: "category",
-      params: { categoryKey: "psychedelic" },
-    });
-  });
-
-  it("redirects known category aliases without loading effects", async () => {
-    publicLibrary.getPublicCategoryDetail.mockResolvedValueOnce(null);
-
-    await expect(loadCategoryRoute("psychedelics")).resolves.toEqual({
-      kind: "redirect",
-      target: "/category/psychedelic",
-      metadata: { title: "Category", description: "Browse substances by category." },
-      canonicalRoute: { family: "category", params: { categoryKey: "psychedelics" } },
-    });
-    expect(publicData.getPublicEffectArticles).not.toHaveBeenCalled();
-  });
-
-  it("returns category not-found results with fallback metadata and no effects fetch", async () => {
-    publicLibrary.getPublicCategoryDetail.mockResolvedValueOnce(null);
-
-    await expect(loadCategoryRoute("missing")).resolves.toEqual({
-      kind: "not-found",
-      metadata: { title: "Category", description: "Browse substances by category." },
-      canonicalRoute: { family: "category", params: { categoryKey: "missing" } },
-    });
-    expect(publicData.getPublicEffectArticles).not.toHaveBeenCalled();
-  });
-
-  it("keeps canonical effect category routes valid when no effects are mapped yet", async () => {
-    publicData.getPublicEffects.mockResolvedValueOnce([]);
-
-    await expect(loadEffectCategoryRoute("visual-effects")).resolves.toEqual({
-      kind: "ok",
-      detail: [],
-      metadata: {
-        title: "Effect category · visual-effects",
-        description: "Browse 0 effects in the visual-effects category.",
-      },
-      canonicalRoute: { family: "effectCategory", params: { categorySlug: "visual-effects" } },
-    });
-  });
-
-  it("returns effect category not-found for unknown slugs without fetching effects", async () => {
-    await expect(loadEffectCategoryRoute("not-real")).resolves.toMatchObject({
-      kind: "not-found",
-      metadata: { description: "Browse 0 effects in the not-real category." },
-    });
-    expect(publicData.getPublicEffects).not.toHaveBeenCalled();
-  });
-
-  it("redirects effect category aliases to their canonical slug", async () => {
-    await expect(loadEffectCategoryRoute("visual")).resolves.toMatchObject({
-      kind: "redirect",
-      target: "/effects/category/visual-effects",
-      canonicalRoute: { family: "effectCategory", params: { categorySlug: "visual" } },
-    });
-    expect(publicData.getPublicEffects).not.toHaveBeenCalled();
-  });
-
-  it("filters effect category routes by the canonical tag groups", async () => {
-    publicData.getPublicEffects.mockResolvedValueOnce([
-      {
-        name: "Visual Alpha",
-        slug: "visual-alpha",
-        summary: "",
-        featured: false,
-        tags: ["visual", "amplification"],
-      },
-      {
-        name: "Visual Suppression",
-        slug: "visual-suppression",
-        summary: "",
-        featured: false,
-        tags: ["visual", "suppression"],
-      },
-    ]);
-
-    await expect(loadEffectCategoryRoute("visual-amplifications")).resolves.toMatchObject({
-      kind: "ok",
-      detail: [
-        expect.objectContaining({
-          name: "Visual Alpha",
-          slug: "visual-alpha",
-        }),
-      ],
-      metadata: {
-        title: "Effect category · visual-amplifications",
-        description: "Browse 1 effects in the visual-amplifications category.",
-      },
-    });
-  });
-
-  it("resolves mechanism qualifier routes from the two-param surface", async () => {
-    const mechanism = {
-      definition: { name: "Serotonin", total: 5 },
-      qualifiers: [{ key: "agonist", label: "Agonist", total: 3 }],
-    };
-    publicLibrary.getPublicMechanismDetail.mockResolvedValueOnce(mechanism);
-
-    await expect(loadMechanismQualifierRoute("serotonin", "agonist")).resolves.toEqual({
-      kind: "ok",
-      detail: { mechanism, qualifier: mechanism.qualifiers[0] },
-      metadata: {
-        title: "Serotonin · Agonist",
-        description: "Browse 3 substances in the Agonist qualifier.",
-      },
-      canonicalRoute: {
-        family: "mechanismQualifier",
-        params: { mechanismSlug: "serotonin", qualifierSlug: "agonist" },
-      },
-    });
-
-    publicLibrary.getPublicMechanismDetail.mockResolvedValueOnce(mechanism);
-
-    await expect(loadMechanismQualifierRoute("serotonin", "missing")).resolves.toEqual({
-      kind: "not-found",
-      metadata: {
-        title: "Mechanism qualifier",
-        description: "Browse mechanism qualifier routes.",
-      },
-      canonicalRoute: {
-        family: "mechanismQualifier",
-        params: { mechanismSlug: "serotonin", qualifierSlug: "missing" },
-      },
-    });
-  });
-
-  it("includes canonical and alias params in category static params", async () => {
-    staticParams.getStaticCategoryParams.mockResolvedValueOnce([{ categoryKey: "psychedelic" }]);
-
-    const params = await loadTaxonomyStaticParams(categoryRouteDescriptor);
-
-    expect(params[0]).toEqual({ categoryKey: "psychedelic" });
-    expect(params).toContainEqual({ categoryKey: "psychedelics" });
-  });
-
-  it("defaults static params to an empty list when the descriptor omits them", async () => {
-    await expect(loadTaxonomyStaticParams(createGenericDescriptor(null))).resolves.toEqual([]);
   });
 });

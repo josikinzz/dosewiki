@@ -63,22 +63,18 @@ const METADATA_FILE = path.join(
  * Call Convex mutation via HTTP
  */
 async function callConvexMutation(functionPath, args) {
-  try {
-    const response = await fetch(`${CONVEX_URL}/api/${functionPath}`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(args),
-    });
+  const response = await fetch(`${CONVEX_URL}/api/${functionPath}`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(args),
+  });
 
-    if (!response.ok) {
-      const error = await response.text();
-      throw new Error(`HTTP ${response.status}: ${error}`);
-    }
-
-    return await response.json();
-  } catch (error) {
-    throw error;
+  if (!response.ok) {
+    const error = await response.text();
+    throw new Error(`HTTP ${response.status}: ${error}`);
   }
+
+  return response.json();
 }
 
 /**
@@ -140,7 +136,7 @@ async function importReplications() {
   try {
     await fetch(`${CONVEX_URL}/_health`);
     console.log('✓ Convex dev server is running\n');
-  } catch (error) {
+  } catch {
     console.error('\n✗ Cannot connect to Convex dev server!');
     console.error('Make sure you have convex dev running in another terminal:');
     console.error('\n  npx convex dev\n');

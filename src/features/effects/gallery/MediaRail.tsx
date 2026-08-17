@@ -91,7 +91,7 @@ export function MediaRail({ group, viewAllHref }: MediaRailProps) {
   // `disabled:opacity-0` (not a bare `opacity-0`) so it outranks the base
   // Button's `disabled:opacity-50`; disabled already kills pointer events.
   const arrowClass =
-    'absolute top-1/2 z-10 hidden h-9 w-9 -translate-y-1/2 rounded-full shadow-[var(--theme-frosted-control-shadow)] disabled:opacity-0 [@media(hover:hover)]:inline-flex';
+    'theme-media-rail-arrow absolute top-1/2 z-10 hidden h-9 w-9 -translate-y-1/2 rounded-full disabled:opacity-0 [@media(hover:hover)]:inline-flex';
 
   /**
    * What the group's name does.

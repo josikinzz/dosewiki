@@ -8,21 +8,29 @@ accurate, evidence-based information to help people make informed decisions.
 ## Site Structure
 
 ### Main Pages
-- / - Home page with featured substances
-- /substances - Complete index of all substances
+- / - Construction gate on dose.wiki and www.dose.wiki until authorized launch;
+  the full application is at https://dosewiki-admin.vercel.app/
+- /substances - Index of publicly listed substances
 - /effects - Index of subjective effects
-- /interactions - Drug interaction checker
-- /about - About page and contributor information
+- /interactions - Redirects to /substances
+- /reports - Structured trip report index
+- /blog - Editorial articles
+- /about - About, contributors, downloads, and reuse information
+- /data - Redirects to /about
+- /api/v1 - Public API documentation
 
 ### Substance Articles
-Each substance has a dedicated page at /{substance-slug} (e.g., /lsd, /mdma, /ketamine).
-Substance slugs are lowercase, hyphenated versions of the substance name.
+Each publicly listed substance has a canonical page at /{substance-slug} (for
+example, /lsd, /mdma, and /ketamine). Slugs are lowercase and hyphenated. Known
+aliases redirect to the canonical substance slug.
 
 ### Classification Pages
 - /category/{key} - Psychoactive category pages (e.g., /category/psychedelic)
-- /chemical/{slug} - Chemical class pages (e.g., /chemical/tryptamine)
+- /chemical-classes/{slug} - Chemical class pages (e.g., /chemical-classes/tryptamine)
 - /psychoactive/{slug} - Psychoactive class pages
 - /mechanism/{slug} - Mechanism of action pages
+- /effect/{slug} redirects to /effects/{slug}
+- /chemical/{key} redirects to /chemical-classes/{key}
 
 ## Data Structure
 
@@ -72,11 +80,21 @@ Each substance article contains structured data in the following format:
 - Academic and institutional sources
 - Links to primary research
 
-## API Access
+## Machine Access
 
-dose.wiki is a client-side single-page application. Article data is embedded in the
-JavaScript bundle. There is no public REST API, but the structured data is available
-in the page source via JSON-LD schema.org markup.
+- /api/v1 - Human-readable API documentation
+- /api/v1/openapi.json - OpenAPI 3.1 specification
+- /api/v1/substances - Cursor-paginated JSON previews of publicly listed
+  substances; accepts `limit` (1-100) and the opaque `cursor` returned by the
+  previous page
+- /open-data/SubstanceIndex.json - Substance dataset download
+- /open-data/EffectIndex.json - Subjective-effect dataset download
+- /open-data/TripReports.json - Published trip-report dataset download
+- /sitemap.xml - Canonical public URL inventory
+- Substance and effect pages - Server-rendered content and schema.org JSON-LD
+
+There is no /open-data index page. The /data route redirects to the Downloads
+section on /about.
 
 ## Content Guidelines
 
@@ -87,9 +105,10 @@ in the page source via JSON-LD schema.org markup.
 
 ## Technical Notes
 
-- The site uses client-side routing (React SPA)
-- Substance pages have prerendered content for SEO
-- JSON-LD structured data is included for machine parsing
+- The site uses server-rendered Next.js routes
+- Substance and effect pages expose readable HTML without client-side JavaScript
+- Substance pages include Article JSON-LD with public citation URLs
+- Index pages include ItemList JSON-LD
 - Sitemap available at /sitemap.xml
 
 ## Contact

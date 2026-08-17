@@ -180,7 +180,7 @@ export function UserProfilePage({
                       bubble and tail read as one shape. */}
                   <span
                     aria-hidden
-                    className="absolute -bottom-[7px] right-24 h-3.5 w-3.5 rotate-45 rounded-br-[2px] border-b border-r border-[var(--theme-profile-markdown-quote-border)] bg-[color:var(--theme-profile-markdown-quote-bg)]"
+                    className="theme-profile-markdown-quote-tail absolute -bottom-[7px] right-24 h-3.5 w-3.5 rotate-45 rounded-br-[2px] border-b border-r"
                   />
                 </div>
 

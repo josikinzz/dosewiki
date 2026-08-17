@@ -3,7 +3,7 @@ import {
   buildSiteUrl,
   getPublicRoutePath,
 } from "@server/next/publicSite";
-import { loadArticlesIndexRoute } from "@server/next/routeLoaders";
+import { loadArticlesIndexRoute } from "@server/next/routeLoaders.publications";
 import { ArticlesIndexPage } from "@/features/articles/pages/ArticlesIndexPage";
 import {
   buildItemListSchema,

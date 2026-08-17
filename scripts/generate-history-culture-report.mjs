@@ -24,7 +24,11 @@ function loadEnv() {
       }
       if (!process.env[key]) process.env[key] = value;
     }
-  } catch (e) {}
+  } catch (error) {
+    if (error.code !== "ENOENT") {
+      console.warn(`Could not read .env.local: ${error.message}`);
+    }
+  }
 }
 
 async function main() {

@@ -52,7 +52,10 @@ export function resolveGalleryFocus(
       : groupByEffect(
           displayable,
           effectNameLookup(context.effects),
-          effectHrefBuilder(context.effectHrefPrefix),
+          effectHrefBuilder(
+            context.effectHrefPrefix,
+            new Set(context.effects.map(({ slug }) => slug)),
+          ),
         );
 
   const group = groups.find((candidate) => galleryGroupUrlKey(focus.kind, candidate) === focus.key);

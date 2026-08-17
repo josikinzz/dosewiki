@@ -67,7 +67,11 @@ function sanitizeFieldName(name) {
     result = result.replace(new RegExp(greek, 'g'), ascii);
   }
   // Replace any remaining non-ASCII with underscores
-  return result.replace(/[^\x00-\x7F]/g, '_');
+  let sanitizedName = '';
+  for (let index = 0; index < result.length; index += 1) {
+    sanitizedName += result.charCodeAt(index) <= 0x7F ? result[index] : '_';
+  }
+  return sanitizedName;
 }
 
 /**

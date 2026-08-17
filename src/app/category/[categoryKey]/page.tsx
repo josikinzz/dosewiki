@@ -5,7 +5,7 @@ import {
   categoryRouteDescriptor,
   loadCategoryRoute,
   loadTaxonomyStaticParams,
-} from "@server/next/routeLoaders";
+} from "@server/next/routeLoaders.taxonomy";
 import { CategoryPage as CategoryDetailPage } from "@/components/pages/CategoryPage";
 import { serializeJsonLd } from "@/utils/seo/structuredData";
 

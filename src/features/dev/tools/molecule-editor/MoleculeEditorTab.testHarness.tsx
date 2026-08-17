@@ -1,0 +1,154 @@
+import { cleanup } from "@testing-library/react";
+import { afterEach, beforeEach, vi } from "vitest";
+
+const mocks = vi.hoisted(() => ({
+  useQueryMock: vi.fn(),
+  usePaginatedQueryMock: vi.fn(),
+  useSubstanceLookupMock: vi.fn(),
+  useRdkitMock: vi.fn(),
+  useOclMock: vi.fn(),
+  renderMoleculeSvgMock: vi.fn(),
+  smilesToMolblockMock: vi.fn(),
+  compareInchiMock: vi.fn(),
+  compareCanonicalSmilesMock: vi.fn(),
+}));
+
+export const {
+  useQueryMock,
+  usePaginatedQueryMock,
+  useSubstanceLookupMock,
+  useRdkitMock,
+  useOclMock,
+  renderMoleculeSvgMock,
+  smilesToMolblockMock,
+  compareInchiMock,
+  compareCanonicalSmilesMock,
+} = mocks;
+
+Object.defineProperty(HTMLElement.prototype, "scrollIntoView", {
+  configurable: true,
+  value: vi.fn(),
+});
+
+vi.mock("convex/react", () => ({
+  useQuery: useQueryMock,
+  usePaginatedQuery: usePaginatedQueryMock,
+}));
+vi.mock("@/hooks/useSubstanceLookup", () => ({
+  useSubstanceLookup: useSubstanceLookupMock,
+}));
+vi.mock("./useRdkit", () => ({ useRdkit: useRdkitMock }));
+vi.mock("./useOcl", () => ({ useOcl: useOclMock }));
+vi.mock("./renderMoleculeSvg", () => ({ renderMoleculeSvg: renderMoleculeSvgMock }));
+vi.mock("./smilesToMolblock", () => ({ smilesToMolblock: smilesToMolblockMock }));
+vi.mock("./stereoGuard", () => ({
+  compareInchi: compareInchiMock,
+  compareCanonicalSmiles: compareCanonicalSmilesMock,
+}));
+vi.mock("./OclEditor", () => ({
+  OclEditor: ({
+    source,
+    fineRotation,
+    mirrorDirection,
+    snapRequest,
+    bondPickActive,
+    onChange,
+    onMirrorComplete,
+    onSnapComplete,
+    onSelectedBondCountChange,
+    onBondPickComplete,
+  }: {
+    source: string | null;
+    fineRotation?: boolean;
+    mirrorDirection?: string | null;
+    snapRequest?: string | null;
+    bondPickActive?: boolean;
+    onChange: (molblock: string) => void;
+    onMirrorComplete?: () => void;
+    onSnapComplete?: (outcome: {
+      kind: "bond-vertical" | "straighten";
+      status: "applied";
+      degrees: number;
+    }) => void;
+    onSelectedBondCountChange?: (count: number) => void;
+    onBondPickComplete?: (outcome: {
+      kind: "bond-vertical";
+      status: "applied" | "canceled";
+      degrees?: number;
+    }) => void;
+  }) => (
+    <div
+      data-testid="ocl-editor"
+      data-source={source ?? ""}
+      data-fine-rotation={String(fineRotation)}
+      data-mirror-direction={mirrorDirection ?? ""}
+      data-snap-request={snapRequest ?? ""}
+      data-bond-pick={String(!!bondPickActive)}
+    >
+      <button type="button" onClick={onMirrorComplete}>Complete mirror request</button>
+      <button type="button" onClick={() => onChange("rotated molblock")}>Emit rotation</button>
+      <button type="button" onClick={() => onSelectedBondCountChange?.(1)}>Select one bond</button>
+      <button type="button" onClick={() => onSelectedBondCountChange?.(2)}>Select two bonds</button>
+      <button
+        type="button"
+        onClick={() => onSnapComplete?.({ kind: "bond-vertical", status: "applied", degrees: 12.34 })}
+      >
+        Complete snap request
+      </button>
+      <button
+        type="button"
+        onClick={() =>
+          onBondPickComplete?.({ kind: "bond-vertical", status: "applied", degrees: 12.34 })
+        }
+      >
+        Pick a bond
+      </button>
+      <button
+        type="button"
+        onClick={() => onBondPickComplete?.({ kind: "bond-vertical", status: "canceled" })}
+      >
+        Cancel pick from canvas
+      </button>
+    </div>
+  ),
+}));
+
+export function installMoleculeEditorTestHarness() {
+  beforeEach(() => {
+    usePaginatedQueryMock.mockReturnValue({
+      results: [],
+      status: "Exhausted",
+      loadMore: vi.fn(),
+    });
+    useSubstanceLookupMock.mockReturnValue({
+      lookup: [],
+      isLoading: false,
+      status: "Exhausted",
+    });
+    useRdkitMock.mockReturnValue({ rdkit: null, error: null });
+    useOclMock.mockReturnValue({ ocl: null, error: null });
+    vi.stubGlobal(
+      "ResizeObserver",
+      class {
+        observe() {}
+        unobserve() {}
+        disconnect() {}
+      },
+    );
+  });
+
+  afterEach(() => {
+    cleanup();
+    vi.restoreAllMocks();
+    vi.unstubAllGlobals();
+    useQueryMock.mockReset();
+    usePaginatedQueryMock.mockReset();
+    useSubstanceLookupMock.mockReset();
+    useRdkitMock.mockReset();
+    useOclMock.mockReset();
+    renderMoleculeSvgMock.mockReset();
+    smilesToMolblockMock.mockReset();
+    compareInchiMock.mockReset();
+    compareCanonicalSmilesMock.mockReset();
+  });
+}

@@ -166,9 +166,13 @@ export function effectNameLookup(
 }
 
 /** Effect article href builder, tolerant of a trailing slash on the prefix. */
-export function effectHrefBuilder(prefix = '/effects'): (slug: string) => string {
+export function effectHrefBuilder(
+  prefix = '/effects',
+  linkableEffectSlugs?: ReadonlySet<string>,
+): (slug: string) => string | undefined {
   const base = (prefix || '/effects').replace(/\/$/, '');
-  return (slug: string) => `${base}/${slug}`;
+  return (slug: string) =>
+    !linkableEffectSlugs || linkableEffectSlugs.has(slug) ? `${base}/${slug}` : undefined;
 }
 
 /** Sort within a group: curated gallery_order first, then newest, then title. */
@@ -341,7 +345,7 @@ export function groupByArtist(
 export function groupByEffect(
   replications: GalleryReplication[],
   effectName: (slug: string) => string,
-  effectHref: (slug: string) => string,
+  effectHref: (slug: string) => string | undefined,
 ): GalleryGroup[] {
   const buckets = new Map<string, GalleryGroup>();
 

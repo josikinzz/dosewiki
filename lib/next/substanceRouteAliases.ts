@@ -1,4 +1,4 @@
-const explicitSubstanceAliases = {
+export const substanceRouteAliases = {
   acid: "lsd",
   "lysergic-acid-diethylamide": "lsd",
   "lsd-25": "lsd",
@@ -16,10 +16,11 @@ const explicitSubstanceAliases = {
   shrooms: "psilocybin-mushrooms",
   "2cb": "2c-b",
   dxm: "dextromethorphan",
+  lean: "codeine",
 } as const satisfies Record<string, string>;
 
 export function getSubstanceRouteAlias(slug: string): string | null {
   const normalized = slug.trim().toLowerCase();
 
-  return explicitSubstanceAliases[normalized as keyof typeof explicitSubstanceAliases] ?? null;
+  return substanceRouteAliases[normalized as keyof typeof substanceRouteAliases] ?? null;
 }

@@ -4,17 +4,20 @@ import { getPublicBrowserRuntimeConfig } from "./lib/runtime/envContract";
 // The legacy redirect table lives in its own module so application code (the Discord
 // page) can read the invite URL from it without importing this config.
 import { effectIndexLegacyRedirects } from "./lib/next/effectIndexLegacyRedirects";
+import { substanceRouteAliases } from "./lib/next/substanceRouteAliases";
 
 const publicBrowserConfig = getPublicBrowserRuntimeConfig();
 
 /**
- * Build-time font-module selection.
+ * Build-time flavor module selection.
  *
  * `next/font` is an SWC compile-time transform: every option value must be a written
  * literal, so the two publications' faces cannot be gated inside one module, and
  * importing both would ship the unused face's `@font-face` blocks and preload links (and,
  * for Titillium, a `next/font/google` fetch) into the flavor that does not render it.
- * Resolving `@site-font` to exactly one module is the only place that decision can live.
+ * Resolving each `@site-*` alias to exactly one module is the only place that decision can
+ * live. The stylesheet alias also keeps each publication's inert, flavor-scoped CSS out of
+ * the other publication's critical CSS payload.
  *
  * The flavor normalisation below mirrors `resolveSiteFlavor()` in
  * `src/config/siteFlavor.ts`, which is the source of truth everywhere else. This file
@@ -26,10 +29,17 @@ const SITE_FONT_MODULES = {
   effectindex: "./src/app/_fonts/effectindex.ts",
 } as const;
 
-const siteFontModule =
+const SITE_STYLE_MODULES = {
+  dosewiki: "./src/app/_styles/dosewiki.ts",
+  effectindex: "./src/app/_styles/effectindex.ts",
+} as const;
+
+const siteFlavor =
   process.env.NEXT_PUBLIC_SITE_FLAVOR?.trim().toLowerCase() === "effectindex"
-    ? SITE_FONT_MODULES.effectindex
-    : SITE_FONT_MODULES.dosewiki;
+    ? "effectindex"
+    : "dosewiki";
+const siteFontModule = SITE_FONT_MODULES[siteFlavor];
+const siteStyleModule = SITE_STYLE_MODULES[siteFlavor];
 
 const categoryRouteAliases = {
   psychedelics: "psychedelic",
@@ -101,6 +111,7 @@ const nextConfig: NextConfig = {
   turbopack: {
     resolveAlias: {
       "@site-font": siteFontModule,
+      "@site-styles": siteStyleModule,
     },
     rules: {
       "*.md": {
@@ -119,12 +130,18 @@ const nextConfig: NextConfig = {
     config.resolve.alias = {
       ...config.resolve.alias,
       "@site-font": path.resolve(process.cwd(), siteFontModule),
+      "@site-styles": path.resolve(process.cwd(), siteStyleModule),
     };
 
     return config;
   },
   async redirects() {
     return [
+      ...Object.entries(substanceRouteAliases).map(([source, destination]) => ({
+        source: `/${source}`,
+        destination: `/${destination}`,
+        permanent: true,
+      })),
       ...effectIndexLegacyRedirects.map(({ source, destination }) => ({
         source,
         destination,

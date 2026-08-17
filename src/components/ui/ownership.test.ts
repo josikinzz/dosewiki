@@ -207,13 +207,12 @@ describe("shared UI ownership boundaries", () => {
     expect(missingDocsEntries).toEqual([]);
   });
 
-  it("documents ownership for route-specific UI dependencies", () => {
+  it("documents ownership for shared UI dependencies", () => {
     const docsSource = readRepoFile("docs/ui-system.md");
     const dependencyTerms = [
       "@iconify/react",
       "lucide-react",
       "framer-motion",
-      "yet-another-react-lightbox",
       "react-simple-code-editor",
       "prismjs",
       "diff",

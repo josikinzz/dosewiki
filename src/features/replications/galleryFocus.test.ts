@@ -66,6 +66,18 @@ describe('resolveGalleryFocus', () => {
     expect(focus?.group.href).toBe('/effects/drifting');
   });
 
+  it('keeps a replication-only effect group but omits its nonexistent article link', () => {
+    const orphanCorpus = [...corpus, rep({ effect_slug: 'orphan-effect' })];
+    const focus = resolveGalleryFocus(
+      { kind: 'effect', key: 'orphan-effect' },
+      orphanCorpus,
+      context,
+    );
+
+    expect(focus?.label).toBe('orphan effect');
+    expect(focus?.group.href).toBeUndefined();
+  });
+
   it('returns null for a bogus key, in either kind', () => {
     expect(resolveGalleryFocus({ kind: 'artist', key: 'nobody-here' }, corpus, context)).toBeNull();
     expect(resolveGalleryFocus({ kind: 'effect', key: 'not-an-effect' }, corpus, context)).toBeNull();

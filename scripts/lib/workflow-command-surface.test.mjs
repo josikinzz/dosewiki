@@ -15,7 +15,7 @@ import {
   validateStableWorkflowDocCoverage,
   validateWorkflowEnvCoverage,
 } from './workflow-docs-consistency.mjs';
-import { citationWorkflowCommandNames } from './citation-command-surface.mjs';
+import { stableCitationWorkflowCommandNames } from './citation-command-surface.mjs';
 import { stableWorkflowCommands } from './workflow-command-surface.mjs';
 
 const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), '../..');
@@ -27,17 +27,19 @@ test('stable workflow command manifest entries are complete and backed by packag
   assert.deepEqual(validateStableWorkflowCommands(packageJson.scripts), []);
 });
 
-test('citation operation manifest covers the stable citation workflow surface', () => {
-  const stableCommandsByName = new Map(stableWorkflowCommands.map((command) => [command.name, command]));
-  const packageCitationCommandNames = Object.keys(packageJson.scripts)
-    .filter((name) => name.startsWith('citations:'))
-    .sort();
+test('stable citation allowlist matches workflow command metadata', () => {
+  const stableCitationCommands = stableWorkflowCommands.filter(({ name }) =>
+    name.startsWith('citations:'));
+  const stableCommandsByName = new Map(stableCitationCommands.map((command) => [command.name, command]));
 
-  assert.deepEqual([...citationWorkflowCommandNames].sort(), packageCitationCommandNames);
+  assert.deepEqual(
+    stableCitationCommands.map(({ name }) => name),
+    [...stableCitationWorkflowCommandNames],
+  );
   const citationCommandsWithoutDirectDataOpsContext = new Set([
     'citations:campaign',
   ]);
-  for (const commandName of citationWorkflowCommandNames) {
+  for (const commandName of stableCitationWorkflowCommandNames) {
     const command = stableCommandsByName.get(commandName);
     assert.ok(command, `${commandName} is missing from the stable workflow surface`);
     assert.equal(

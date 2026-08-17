@@ -80,5 +80,3 @@ export function EntryCard({
     </div>
   );
 }
-
-export default EntryCard;

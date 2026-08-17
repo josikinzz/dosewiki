@@ -59,7 +59,7 @@ const RIGHTS_TOKEN_LABELS: Record<string, string> = {
 const MOTION = "transition-[background-color,opacity,box-shadow] duration-[240ms] ease-[cubic-bezier(0.25,1,0.5,1)] motion-reduce:transition-none";
 
 /** The curated band's wash. A tint, never a side stripe — those are banned. */
-const CURATED_WASH = "bg-[color:color-mix(in_srgb,var(--theme-accent-soft)_9%,transparent)]";
+const CURATED_WASH = "theme-replication-curated-wash";
 
 /**
  * The owning-effect chip with its match provenance behind a click/Enter
@@ -334,7 +334,7 @@ function CandidateRow({
 function Fold({ cap }: { cap: number }) {
   return (
     <li className="list-none py-2">
-      <div className="flex items-center gap-3 border-y border-[color:var(--theme-accent-strong)] bg-[color:color-mix(in_srgb,var(--theme-accent-strong)_14%,transparent)] px-3 py-2">
+      <div className="theme-replication-fold flex items-center gap-3 border-y px-3 py-2">
         <Icon icon="lucide:scissors" size={14} className="theme-accent-emphasis shrink-0" />
         <p className="theme-accent-emphasis text-[11px] font-semibold uppercase tracking-[0.24em]">
           The article stops here — positions {cap + 1}+ reach /replications only

@@ -128,7 +128,7 @@ const modifiedArticles = articles.map(article => {
   let sourcesArray;
   try {
     sourcesArray = JSON.parse(sourcesMatch[1]);
-  } catch (e) {
+  } catch {
     stats.articlesSkipped++;
     if (verbose) {
       console.log(`  SKIP: ${article.title} (failed to parse sources)`);

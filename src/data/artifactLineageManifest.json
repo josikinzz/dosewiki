@@ -199,6 +199,90 @@
       "refreshCommand": "node scripts/convex/migrate-user-profiles-to-convex.mjs --dry-run"
     },
     {
+      "id": "article-media-curation",
+      "path": "src/data/config/articleMediaCuration.json",
+      "role": "reviewed-migration-input",
+      "producer": "article media curation reviewers",
+      "consumers": [
+        "scripts/replications/migrate-article-media.mjs",
+        "scripts/effects/upgrade-embed-resolutions.mjs"
+      ],
+      "inputs": [
+        "production subjectiveEffects and effectIndexArticles media inventory captured 2026-08-11",
+        "production replication rows and contributor profiles",
+        "per-asset attribution, role, effect, and pixel-match review"
+      ],
+      "freshnessRule": "Preserve as a dated review snapshot. Amend an entry only after its evidence is re-reviewed; do not infer current production state from this file.",
+      "sourceDeployment": "https://glad-minnow-656.convex.cloud (production snapshot, 2026-08-11)",
+      "targetDeployment": "TARGET_CONVEX_URL selected by scripts/replications/migrate-article-media.mjs",
+      "schemaVersion": "scripts/replications/article-media-planning.mjs",
+      "editPolicy": "reviewed-evidence-only",
+      "refreshCommand": "Manually review a fresh production inventory, then preview it with node scripts/replications/migrate-article-media.mjs --inventory=<path> --uploads-dir=<path>"
+    },
+    {
+      "id": "article-media-migration-decisions",
+      "path": "src/data/config/articleMediaMigrationDecisions.json",
+      "role": "reviewed-migration-decisions",
+      "producer": "site owner and article media migration maintainers",
+      "consumers": [
+        "scripts/replications/migrate-article-media.mjs"
+      ],
+      "inputs": [
+        "src/data/config/articleMediaCuration.json",
+        "explicit owner rulings relayed 2026-08-11",
+        "near-duplicate review and storage-id resolution against production",
+        "sha-256-pinned recovered media"
+      ],
+      "freshnessRule": "Update only for an explicit owner ruling or a reviewed production re-resolution. Preserve historical rulings and verified duplicate decisions.",
+      "sourceDeployment": "https://glad-minnow-656.convex.cloud plus explicit owner rulings",
+      "targetDeployment": "TARGET_CONVEX_URL selected by scripts/replications/migrate-article-media.mjs",
+      "schemaVersion": "scripts/replications/article-media-planning.mjs",
+      "editPolicy": "owner-rulings-and-verified-production-facts-only",
+      "refreshCommand": "Re-resolve production facts, then preview with node scripts/replications/migrate-article-media.mjs --inventory=<path> --uploads-dir=<path>"
+    },
+    {
+      "id": "contributor-avatar-sources",
+      "path": "src/data/config/contributorAvatarSources.json",
+      "role": "generated-provenance-manifest",
+      "producer": "scripts/contributors/generate-avatars-from-replications.ts",
+      "consumers": [
+        "avatar provenance review",
+        "scripts/contributors/generate-avatars-from-replications.test.ts"
+      ],
+      "inputs": [
+        "production contributorProfiles and publishable replication rows",
+        "src/data/config/effectIndexFeaturedReplications.json",
+        "production-resolved replication media bytes"
+      ],
+      "freshnessRule": "Point-in-time provenance emitted with the generated avatar files. Preserve it with those files; a new confirmed generation run must produce provenance for every new avatar.",
+      "sourceDeployment": "TARGET_CONVEX_URL or CONVEX_PUBLIC_READ_URL (production read required by the workflow)",
+      "targetDeployment": "TARGET_CONVEX_URL selected by the guarded avatar generation command",
+      "schemaVersion": "scripts/contributors/generate-avatar-files.ts",
+      "editPolicy": "do-not-edit-by-hand",
+      "refreshCommand": "No routine refresh; generated only by a confirmed bun scripts/contributors/generate-avatars-from-replications.ts --write run"
+    },
+    {
+      "id": "contributor-identity-corrections",
+      "path": "src/data/config/contributorIdentityCorrections.json",
+      "role": "reviewed-identity-decisions",
+      "producer": "contributor identity researchers and site owner",
+      "consumers": [
+        "scripts/contributors/seed-credited-identities-decisions.mjs",
+        "scripts/replications/plan-artist-name-corrections.mjs"
+      ],
+      "inputs": [
+        "production replications.artist and replications.artist_url values",
+        "existing contributor profile identities",
+        "cited first-party, archived, and owner-confirmed evidence"
+      ],
+      "freshnessRule": "Update a claim only when its cited identity evidence or an explicit owner decision changes. Only strong entries are eligible for downstream writes.",
+      "sourceDeployment": "production contributor and replication data plus cited public evidence",
+      "targetDeployment": "TARGET_CONVEX_URL selected by guarded contributor and replication correction commands",
+      "schemaVersion": "scripts/contributors/seed-credited-identities-decisions.mjs",
+      "editPolicy": "reviewed-evidence-and-owner-decisions-only",
+      "refreshCommand": "Review evidence manually, then preview its effect with node scripts/contributors/seed-credited-identities.mjs"
+    },
+    {
       "id": "schema-generated-helpers",
       "path": "src/data/schema/*.generated*.ts",
       "role": "derived-code",

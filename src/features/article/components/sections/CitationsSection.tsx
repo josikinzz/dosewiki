@@ -8,7 +8,7 @@ import {
   type CitationBacklink,
 } from "@/components/common/ReferenceList";
 import type { SubstanceArticle } from "@/schema";
-import { CITE_TOKEN_PATTERN } from "@/lib/citations/referenceModel";
+import { CITE_TOKEN_PATTERN } from "@/lib/citations/citationTokens";
 import {
   projectSubstanceCitations,
   type CitationProjectionGroup,

@@ -77,7 +77,7 @@ const CATEGORY_PATTERNS: Array<{ category: string; pattern: RegExp }> = [
   { category: "5-meo-xxt", pattern: /^5-meo-/i },
 
   // DOx amphetamines
-  { category: "dox", pattern: /^do[bcimpn]/i },
+  { category: "dox", pattern: /^do[bceimpn]/i },
 
   // NBOMe compounds (including -nboh, -nbf variants)
   // Fix: Expanded pattern to catch 25x-nboh and other related compounds

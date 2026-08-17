@@ -146,5 +146,3 @@ export function AnchorScrollRestore() {
 
   return null;
 }
-
-export default AnchorScrollRestore;

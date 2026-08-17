@@ -71,5 +71,3 @@ export function SubstanceWarningBanners({
     </div>
   );
 }
-
-export default SubstanceWarningBanners;

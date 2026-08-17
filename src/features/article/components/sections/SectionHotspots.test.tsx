@@ -625,6 +625,32 @@ describe("article section cleanup characterization", () => {
     ).toHaveAttribute("aria-controls", "interaction-maois-dangerous");
   });
 
+  it("links only interaction substances with canonical public articles", () => {
+    const article = {
+      ...createEmptyArticle(),
+      title: "Interaction Links",
+      interactions: {
+        dangerous: ["MDMA", "MAOIs (Potentially life-threatening interaction.)"],
+        unsafe: [],
+        caution: [],
+      },
+    };
+
+    render(
+      <InteractionsSection
+        article={article}
+        linkableSubstanceSlugs={["mdma"]}
+      />,
+    );
+
+    expect(screen.getByRole("link", { name: "MDMA" })).toHaveAttribute(
+      "href",
+      "/mdma",
+    );
+    expect(screen.queryByRole("link", { name: "MAOIs" })).not.toBeInTheDocument();
+    expect(screen.getByText("MAOIs")).toBeInTheDocument();
+  });
+
   it("flags an absent interaction table instead of hiding the section", () => {
     const article = { ...createEmptyArticle(), title: "No Combos" };
 

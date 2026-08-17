@@ -18,7 +18,7 @@ for (const a of priorityArticles) {
   }
 
   const emptyNotes = Object.entries(a.legality?.countries || {})
-    .filter(([k, v]) => !v.notes || v.notes.trim() === "")
+    .filter(([, v]) => !v.notes || v.notes.trim() === "")
     .map(([k]) => k);
 
   if (emptyNotes.length > 0) {

@@ -197,7 +197,7 @@
             "memantine"
           ],
           "key": "other-dissociatives",
-          "label": "Other dissociatives"
+          "label": "Adamantanes"
         }
       ]
     },
@@ -258,6 +258,7 @@
             "ethylone",
             "eutylone",
             "methcathinone",
+            "methylone",
             "nep"
           ],
           "key": "cathinone",
@@ -267,7 +268,6 @@
           "drugs": [
             "5-meo-dipt",
             "amt",
-            "methylone",
             "nm-2-ai"
           ],
           "key": "other-entactogens",
@@ -333,6 +333,7 @@
             "butylone",
             "ethylone",
             "eutylone",
+            "khat",
             "methcathinone",
             "methylone",
             "mdpv",
@@ -361,7 +362,6 @@
         },
         {
           "drugs": [
-            "khat",
             "methiopropamine",
             "nm-2-ai",
             "phenethylamine",

@@ -75,6 +75,46 @@ describe("Review Run rendering", () => {
     expect(first).not.toContain("_creationTime");
   });
 
+  it("renders a min-only threshold as approximate without changing ordinary min-only ranges", () => {
+    const route = fixture.dosage.routes[0];
+    const markdown = renderReviewMarkdown({
+      ...fixture,
+      dosage: {
+        ...fixture.dosage,
+        routes: [{
+          ...route,
+          dose_ranges: {
+            ...route.dose_ranges,
+            threshold: { min: 2, max: null, unit: "mg" },
+            light: { min: 5, max: null, unit: "mg" },
+          },
+        }],
+      },
+    });
+
+    expect(markdown).toContain("| Threshold | ~2 mg |");
+    expect(markdown).toContain("| Light | ≥ 5 mg |");
+  });
+
+  it("singularizes an exact one-unit duration", () => {
+    const route = fixture.duration.routes[0];
+    const markdown = renderReviewMarkdown({
+      ...fixture,
+      duration: {
+        ...fixture.duration,
+        routes: [{
+          ...route,
+          stages: {
+            ...route.stages,
+            onset: { min: 1, max: 1, unit: "hours" },
+          },
+        }],
+      },
+    });
+
+    expect(markdown).toContain("| Onset | 1 hour |");
+  });
+
   it("derives structural presence, route populations, subsections, citations, and interactions", () => {
     expect(derivePresenceSidecar(fixture)).toMatchObject({
       sections: { "dosage-duration": true, pharmacology: true, interactions: true, "harm-potential": false },

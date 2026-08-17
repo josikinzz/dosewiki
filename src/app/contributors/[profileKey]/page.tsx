@@ -1,6 +1,6 @@
 import { notFound, permanentRedirect } from "next/navigation";
 import { buildPublicPageMetadata } from "@server/next/publicSite";
-import { loadContributorRoute } from "@server/next/routeLoaders";
+import { loadContributorRoute } from "@server/next/routeLoaders.contributors";
 import { getStaticContributorParams } from "@server/next/staticParams";
 import { UserProfilePage } from "@/components/pages/UserProfilePage";
 

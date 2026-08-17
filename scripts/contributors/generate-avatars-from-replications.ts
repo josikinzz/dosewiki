@@ -93,24 +93,66 @@
  *     --confirm-write=generate-contributor-avatars \
  *     --expected-deployment=glad-minnow-656
  */
-import { execFile } from "node:child_process";
-import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { promisify } from "node:util";
 
-import sharp from "sharp";
 import { ConvexHttpClient } from "convex/browser";
 
 import { api } from "../../convex/_generated/api";
-import { buildImportedStoredProfile } from "../../convex/lib/contributorProfiles";
-import featuredReplications from "../../src/data/config/effectIndexFeaturedReplications.json";
 import {
   normalizeProfileKey,
-  profileMatchesName,
   sanitizeContributorAvatarUrl,
 } from "../../lib/contributorProfileIdentity";
 import { isPublishableReplication } from "../../src/types/replications";
+import {
+  hasStoredAvatar,
+  isFeaturedReplication,
+  preferredTier,
+  rankMeasuredCandidates,
+  worksForProfile,
+} from "./generate-avatar-candidates";
+import type {
+  Dimensions,
+  PlanEntry,
+  ProfileRow,
+  ReplicationRow,
+} from "./generate-avatar-candidates";
+import {
+  MANIFEST_PATH,
+  ROOT,
+  avatarFileExists,
+  avatarFilePathForKey,
+  avatarUrlForKey,
+  buildAvatarManifest,
+  buildAvatarManifestEntry,
+  previewAvatarFilePath,
+  writeAvatarFile,
+  writeAvatarManifest,
+} from "./generate-avatar-files";
+import type {
+  AvatarFrame,
+  AvatarManifestEntry,
+} from "./generate-avatar-files";
+import {
+  avatarOnlyImportRow,
+  importRowDiff,
+  projectedStoredProfile,
+} from "./generate-avatar-import-policy";
+import type {
+  ContributorImportRow,
+  StoredContributorProfile,
+} from "./generate-avatar-import-policy";
+import {
+  AVATAR_SIZE,
+  MIN_FRAME_LUMA,
+  centreSquare,
+  fetchBytes,
+  meanLuminance,
+  orientImage,
+  probeVideo,
+  renderAvatar,
+  selectVideoFrame,
+} from "./generate-avatar-media";
 import {
   assertProductionWriteAllowed,
   createProductionWriteCommand,
@@ -118,403 +160,23 @@ import {
   requireProductionWriteCredential,
 } from "../lib/production-write-command.mjs";
 
-const execFileAsync = promisify(execFile);
+export * from "./generate-avatar-candidates";
+export * from "./generate-avatar-files";
+export * from "./generate-avatar-import-policy";
+export * from "./generate-avatar-media";
 
-// sharp is a native addon and this script runs under Bun, whose allocator has
-// been seen to abort when several sharp pipelines are in flight at once. Decoding
-// is serialized through `withSharp` below; the network fetches around it still
-// run in parallel, which is where the wall-clock time actually goes.
-sharp.concurrency(1);
-
-let sharpQueue: Promise<unknown> = Promise.resolve();
-function withSharp<T>(work: () => Promise<T>): Promise<T> {
-  const next = sharpQueue.then(work, work);
-  sharpQueue = next.catch(() => undefined);
-  return next;
-}
 
 const OPERATION = "generate-contributor-avatars";
 const SCRIPT_PATH = fileURLToPath(import.meta.url);
-const ROOT = path.resolve(path.dirname(SCRIPT_PATH), "../..");
-const AVATAR_ROOT = path.join(ROOT, "public/profile-avatars");
-const MANIFEST_PATH = path.join(ROOT, "src/data/config/contributorAvatarSources.json");
 
-/** 2x the largest render: `ContributorAvatar size="lg"` is 128 CSS px. */
-export const AVATAR_SIZE = 256;
-const AVATAR_WEBP_QUALITY = 82;
 
-/**
- * Mean luminance, 0-255, below which a frame is treated as black. A fade-in
- * frame measures in the low single digits; the darkest frame this run actually
- * keeps is far above it. Deliberately generous: the cost of rejecting a usable
- * dark frame is trying the next one, and the cost of keeping a black one is a
- * contributor whose avatar is a black circle.
- */
-export const MIN_FRAME_LUMA = 24;
 
-/**
- * Where in a video to look, in seconds, in order. Starts a second in because
- * these open on fades from black.
- */
-export const FRAME_LADDER_SECONDS = Object.freeze([1, 2, 3.5, 5, 8]);
 
-const FEATURED_SLUGS: ReadonlySet<string> = new Set(featuredReplications.slugs);
 
-type ReplicationRow = {
-  slug: string;
-  title?: string;
-  artist: string;
-  artist_url?: string;
-  type: "image" | "video" | "audio";
-  role?: "replication" | "figure";
-  storage_id: string;
-  url?: string;
-  credit_line?: string;
-  rights_status?: string;
-  source_url?: string;
-  rightsholder?: string;
-};
 
-type ProfileRow = {
-  key: string;
-  displayName: string;
-  aliases: string[];
-  avatarUrl?: string | null;
-};
 
-type Dimensions = { width: number; height: number };
 
-/** Exactly the shape `bulkImportProfileValidator` accepts. */
-type ContributorImportRow = {
-  key: string;
-  displayName: string;
-  aliases: string[];
-  bio: string;
-  links: Array<{ label: string; url: string }>;
-  avatarUrl: string;
-  role?: string;
-  avatarStorageId?: string;
-  membershipEmail?: string;
-  createdAt?: string;
-  updatedAt?: string;
-  updatedBy?: string;
-};
 
-export type AvatarCandidate = {
-  slug: string;
-  type: "image" | "video";
-  featured: boolean;
-  /** `min(width, height)`: the largest square this source can yield. */
-  squareSide: number;
-};
-
-/* ----------------------------------------------------------------- selection */
-
-/**
- * The eligible works of one contributor: publishable replications whose credit
- * line resolves to them through the shared matcher.
- */
-export function worksForProfile(
-  profile: { displayName: string; aliases: readonly string[] },
-  replications: readonly ReplicationRow[],
-): ReplicationRow[] {
-  return replications
-    .filter((row) => isPublishableReplication(row))
-    .filter((row) => profileMatchesName(profile, row.artist));
-}
-
-/**
- * Narrow a contributor's works to the tier the avatar must come from, before any
- * pixel is fetched: curated works if there are any, then stills if the surviving
- * set has any. Steps 1 and 2 of the ordering, and the only steps that can be
- * decided from stored metadata alone.
- */
-export function preferredTier<Row extends { slug: string; type: string }>(works: readonly Row[]): Row[] {
-  const curated = works.filter((row) => FEATURED_SLUGS.has(row.slug));
-  const tier = curated.length > 0 ? curated : works;
-  const stills = tier.filter((row) => row.type === "image");
-  return stills.length > 0 ? stills : tier.filter((row) => row.type === "video");
-}
-
-/**
- * Steps 3 and 4, applied to a tier whose sources have been measured. Separated
- * from `preferredTier` because it is the half that costs a network round trip.
- */
-export function rankMeasuredCandidates(candidates: readonly AvatarCandidate[]): AvatarCandidate[] {
-  return [...candidates].sort(
-    (left, right) => right.squareSide - left.squareSide || left.slug.localeCompare(right.slug),
-  );
-}
-
-/* ------------------------------------------------------------------- imaging */
-
-/**
- * The centred square of a source, and the size it is delivered at.
- *
- * Never enlarges: a source whose short side is under {@link AVATAR_SIZE} is
- * delivered at its own size rather than stretched up to a size it does not have.
- */
-export function centreSquare({ width, height }: Dimensions, target = AVATAR_SIZE) {
-  const side = Math.min(width, height);
-  return {
-    left: Math.round((width - side) / 2),
-    top: Math.round((height - side) / 2),
-    side,
-    output: Math.min(side, target),
-  };
-}
-
-/** Mean luminance 0-255 of an encoded image, as the black-frame guard reads it. */
-export async function meanLuminance(bytes: Buffer): Promise<number> {
-  const { channels } = await withSharp(() => sharp(bytes).greyscale().stats());
-  return channels[0].mean;
-}
-
-/**
- * Auto-orient first, then measure. `sharp` reports pre-rotation dimensions, so a
- * portrait phone photo carrying EXIF orientation 6 would otherwise be cropped
- * against a landscape frame it does not actually have.
- */
-async function orientImage(bytes: Buffer): Promise<{ bytes: Buffer; dimensions: Dimensions }> {
-  return await withSharp(async () => {
-    const oriented = await sharp(bytes, { animated: false }).rotate().toBuffer();
-    const metadata = await sharp(oriented).metadata();
-    return { bytes: oriented, dimensions: { width: metadata.width, height: metadata.height } };
-  });
-}
-
-async function fetchBytes(url: string): Promise<Buffer> {
-  const response = await fetch(url);
-  if (!response.ok) {
-    throw new Error(`${url} returned HTTP ${response.status}`);
-  }
-  const bytes = Buffer.from(await response.arrayBuffer());
-  if (bytes.length === 0) {
-    throw new Error(`${url} returned an empty body`);
-  }
-  return bytes;
-}
-
-async function probeVideo(url: string): Promise<Dimensions & { duration: number }> {
-  const { stdout } = await execFileAsync(
-    "ffprobe",
-    [
-      "-v", "error",
-      "-select_streams", "v:0",
-      "-show_entries", "stream=width,height,duration",
-      "-show_entries", "format=duration",
-      "-of", "json",
-      url,
-    ],
-    { maxBuffer: 1024 * 1024 * 16 },
-  );
-  const parsed = JSON.parse(stdout);
-  const stream = parsed.streams?.[0];
-  if (!stream?.width || !stream?.height) {
-    throw new Error("ffprobe reported no video stream");
-  }
-  return {
-    width: stream.width,
-    height: stream.height,
-    duration: Number(stream.duration ?? parsed.format?.duration ?? 0) || 0,
-  };
-}
-
-/**
- * The timestamps to try for a video of a given length, in order.
- *
- * Anything at or past the end is dropped, and a clip shorter than the first rung
- * is sampled at its midpoint — which is still not `t=0`, the frame this ladder
- * exists to avoid.
- */
-export function frameLadder(duration: number): number[] {
-  const usable = FRAME_LADDER_SECONDS.filter((seconds) => duration <= 0 || seconds < duration);
-  return usable.length > 0 ? [...usable] : [Number((duration / 2).toFixed(3))];
-}
-
-/**
- * The frame taken when the ladder yields nothing at all.
- *
- * `t=0` is the frame the ladder exists to avoid, so it is not on it and never
- * competes with a real frame for brightness. It is reached only when every other
- * seek produced no image — which one row does:
- * `smeared-walk-through-the-woods-oracle-emissary` is a 0.04-second, single-frame
- * mp4 where any seek at all lands past the end of the file.
- */
-export const LAST_RESORT_FRAME_SECONDS = 0;
-
-async function extractFrame(url: string, seconds: number): Promise<Buffer> {
-  const { stdout } = await execFileAsync(
-    "ffmpeg",
-    [
-      "-nostdin",
-      "-v", "error",
-      "-ss", String(seconds),
-      "-i", url,
-      "-frames:v", "1",
-      "-f", "image2pipe",
-      "-vcodec", "png",
-      "-",
-    ],
-    { maxBuffer: 1024 * 1024 * 256, encoding: "buffer" },
-  );
-  const bytes = Buffer.from(stdout);
-  if (bytes.length === 0) {
-    throw new Error(`ffmpeg produced no frame at t=${seconds}s`);
-  }
-  return bytes;
-}
-
-/**
- * A still from a video, taken a second or so in and checked for black.
- *
- * Every attempt is reported, including the rejected ones, so a contributor whose
- * source is dark end to end is visible in the run rather than discovered later
- * as a black circle on their profile.
- */
-async function selectVideoFrame(url: string, duration: number) {
-  const attempts: Array<{ seconds: number; luma: number; bytes: Buffer }> = [];
-
-  const tryAt = async (seconds: number) => {
-    let bytes: Buffer;
-    try {
-      bytes = await extractFrame(url, seconds);
-    } catch {
-      return false;
-    }
-    const luma = await meanLuminance(bytes);
-    attempts.push({ seconds, luma, bytes });
-    return luma >= MIN_FRAME_LUMA;
-  };
-
-  for (const seconds of frameLadder(duration)) {
-    if (await tryAt(seconds)) {
-      return { chosen: attempts[attempts.length - 1], attempts, fellBackToBrightest: false };
-    }
-  }
-
-  if (attempts.length === 0 && (await tryAt(LAST_RESORT_FRAME_SECONDS))) {
-    return { chosen: attempts[attempts.length - 1], attempts, fellBackToBrightest: false };
-  }
-
-  if (attempts.length === 0) {
-    throw new Error("no frame could be extracted at any timestamp");
-  }
-
-  const brightest = [...attempts].sort((left, right) => right.luma - left.luma)[0];
-  return { chosen: brightest, attempts, fellBackToBrightest: true };
-}
-
-/** Centre-crop to a square and encode the delivered avatar. */
-export async function renderAvatar(bytes: Buffer, dimensions: Dimensions) {
-  const crop = centreSquare(dimensions);
-  const encoded = await withSharp(() =>
-    sharp(bytes)
-      .extract({ left: crop.left, top: crop.top, width: crop.side, height: crop.side })
-      .resize(crop.output, crop.output, { fit: "fill" })
-      .webp({ quality: AVATAR_WEBP_QUALITY })
-      .toBuffer(),
-  );
-
-  return { bytes: encoded, size: crop.output, crop };
-}
-
-/* ---------------------------------------------------------------------- plan */
-
-export function avatarUrlForKey(key: string): string {
-  return `/profile-avatars/${normalizeProfileKey(key).toLowerCase()}/avatar.webp`;
-}
-
-function avatarFilePathForKey(key: string): string {
-  return path.join(AVATAR_ROOT, normalizeProfileKey(key).toLowerCase(), "avatar.webp");
-}
-
-/**
- * The one field this script is allowed to change, merged onto the raw stored row.
- *
- * `bulkImport` patches every field it is handed, and silently defaults the ones
- * it is not: an omitted `createdAt` becomes now, an omitted `updatedBy` becomes
- * `system@dosewiki.internal`, an omitted `updatedAt` becomes now. Every field
- * including those three is therefore restated from the live row verbatim, so the
- * stored document differs in `avatarUrl` and in nothing else at all.
- */
-export function avatarOnlyImportRow(
-  stored: Record<string, any>,
-  avatarUrl: string,
-): ContributorImportRow {
-  const row: ContributorImportRow = {
-    key: stored.key,
-    displayName: stored.displayName,
-    aliases: stored.aliases ?? [],
-    // Required by the validator even when empty.
-    bio: stored.bio ?? "",
-    links: stored.links ?? [],
-    avatarUrl,
-  };
-
-  if (stored.role) row.role = stored.role;
-  if (stored.avatarStorageId) row.avatarStorageId = stored.avatarStorageId;
-  if (stored.membershipEmail) row.membershipEmail = stored.membershipEmail;
-  if (stored.createdAt) row.createdAt = stored.createdAt;
-  if (stored.updatedAt) row.updatedAt = stored.updatedAt;
-  if (stored.updatedBy) row.updatedBy = stored.updatedBy;
-
-  return row;
-}
-
-/**
- * What `bulkImport` would change about a stored row, field by field.
- *
- * The comparison is against `buildImportedStoredProfile` — the mutation's own
- * transform — rather than against the request, because the two are not the same
- * document. The mutation reshapes everything it is handed on the way in
- * (`sanitizeAliases` lowercases and dedupes, `sanitizeLinks` drops any non-HTTPS
- * link and keeps three, `sanitizeRole` collapses whitespace), so a row that
- * echoes a stored value back verbatim can still store something different. Only
- * a diff of stored-against-projected can say "`avatarUrl` moved and nothing
- * else" and be right.
- */
-export function projectedStoredProfile(row: ContributorImportRow) {
-  return buildImportedStoredProfile(row);
-}
-
-export function importRowDiff(stored: Record<string, any>, row: Record<string, any>): string[] {
-  const fields = [
-    "key",
-    "displayName",
-    "aliases",
-    "avatarStorageId",
-    "avatarUrl",
-    "bio",
-    "role",
-    "links",
-    "membershipEmail",
-    "createdAt",
-    "updatedAt",
-    "updatedBy",
-  ];
-
-  return fields.filter(
-    (field) => JSON.stringify(stored[field] ?? null) !== JSON.stringify(row[field] ?? null),
-  );
-}
-
-type PlanEntry = {
-  key: string;
-  displayName: string;
-  worksConsidered: number;
-  tierSize: number;
-  candidates: AvatarCandidate[];
-  winner: AvatarCandidate;
-  replication: ReplicationRow;
-  mediaUrl: string;
-  dimensions: Dimensions;
-  duration?: number;
-};
-
-function hasStoredAvatar(profile: ProfileRow): boolean {
-  return Boolean(sanitizeContributorAvatarUrl(profile.avatarUrl));
-}
 
 /* -------------------------------------------------------------------- report */
 
@@ -651,7 +313,7 @@ async function main() {
         return {
           slug: row.slug,
           type: row.type as "image" | "video",
-          featured: FEATURED_SLUGS.has(row.slug),
+          featured: isFeaturedReplication(row.slug),
           squareSide: Math.min(dimensions.width, dimensions.height),
         };
       }),
@@ -702,10 +364,7 @@ async function main() {
         : ""),
   );
 
-  const collisions = plan.filter((entry) => {
-    const filePath = avatarFilePathForKey(entry.key);
-    return fs.existsSync(filePath);
-  });
+  const collisions = plan.filter((entry) => avatarFileExists(entry.key));
   if (collisions.length > 0) {
     throw new Error(
       `Refusing to overwrite ${collisions.length} existing avatar file(s): ` +
@@ -726,7 +385,7 @@ async function main() {
     ? previewDir
       ? plan.map((entry) => ({
           entry,
-          filePath: path.join(previewDir, normalizeProfileKey(entry.key).toLowerCase(), "avatar.webp"),
+          filePath: previewAvatarFilePath(previewDir, entry.key),
         }))
       : []
     : plan.map((entry) => ({ entry, filePath: avatarFilePathForKey(entry.key) }));
@@ -741,12 +400,12 @@ async function main() {
   log();
   log(`Rendering ${renderTargets.length} avatar(s)...`);
 
-  const manifestEntries: any[] = [];
+  const manifestEntries: AvatarManifestEntry[] = [];
 
   for (const { entry, filePath } of renderTargets) {
     let source: Buffer;
     let dimensions = entry.dimensions;
-    const frame: Record<string, any> = {};
+    const frame: AvatarFrame = {};
 
     if (entry.winner.type === "video") {
       const { chosen, attempts, fellBackToBrightest } = await selectVideoFrame(
@@ -777,11 +436,10 @@ async function main() {
     const rendered = await renderAvatar(source, dimensions);
     const luminance = await meanLuminance(rendered.bytes);
 
-    fs.mkdirSync(path.dirname(filePath), { recursive: true });
     // `wx` on the repository path: an avatar that already exists was chosen by
     // somebody and is never replaced. A disposable preview directory is meant to
     // be re-rendered, so it is overwritten instead.
-    fs.writeFileSync(filePath, rendered.bytes, { flag: command.dryRun ? "w" : "wx" });
+    writeAvatarFile(filePath, rendered.bytes, command.dryRun);
 
     if (luminance < MIN_FRAME_LUMA) {
       console.warn(
@@ -796,42 +454,9 @@ async function main() {
         `${entry.winner.slug}${frame.frameSeconds !== undefined ? ` @ t=${frame.frameSeconds}s` : ""}`,
     );
 
-    manifestEntries.push({
-      profileKey: entry.key,
-      displayName: entry.displayName,
-      avatarUrl: avatarUrlForKey(entry.key),
-      source: {
-        replicationSlug: entry.replication.slug,
-        title: entry.replication.title ?? null,
-        artist: entry.replication.artist,
-        type: entry.winner.type,
-        curated: entry.winner.featured,
-        sourceWidth: dimensions.width,
-        sourceHeight: dimensions.height,
-        ...frame,
-        creditLine: entry.replication.credit_line ?? null,
-        rightsStatus: entry.replication.rights_status ?? null,
-        rightsholder: entry.replication.rightsholder ?? null,
-        sourceUrl: entry.replication.source_url ?? null,
-      },
-      selection: {
-        worksConsidered: entry.worksConsidered,
-        tierSize: entry.tierSize,
-        rankedCandidates: entry.candidates.map((candidate) => ({
-          slug: candidate.slug,
-          curated: candidate.featured,
-          squareSide: candidate.squareSide,
-        })),
-      },
-      output: {
-        width: rendered.size,
-        height: rendered.size,
-        format: "webp",
-        crop: "centre-square",
-        bytes: rendered.bytes.length,
-        meanLuminance: Number(luminance.toFixed(1)),
-      },
-    });
+    manifestEntries.push(
+      buildAvatarManifestEntry({ entry, dimensions, frame, rendered, luminance }),
+    );
   }
 
   if (command.dryRun) {
@@ -840,23 +465,8 @@ async function main() {
     return;
   }
 
-  const manifest = {
-    note:
-      "Provenance for every avatar cut from a contributor's own work by " +
-      "scripts/contributors/generate-avatars-from-replications.ts. Each avatar is a centre " +
-      "square of the named replication, delivered at 256x256 WebP (or at the source's short " +
-      "side when that is smaller — nothing is upscaled). The artwork remains the artist's; " +
-      "this file is the record of which work each avatar came from.",
-    selectionRule: [
-      "1. a curated work beats an uncurated one (src/data/config/effectIndexFeaturedReplications.json)",
-      "2. a still image beats a video (a still is a frame its author chose)",
-      "3. the larger square wins, measured as min(width, height) of the source",
-      "4. slug ascending, so the ordering is total",
-    ],
-    generatedAt: new Date().toISOString(),
-    avatars: manifestEntries.sort((left, right) => left.profileKey.localeCompare(right.profileKey)),
-  };
-  fs.writeFileSync(MANIFEST_PATH, `${JSON.stringify(manifest, null, 2)}\n`);
+  const manifest = buildAvatarManifest(manifestEntries);
+  writeAvatarManifest(manifest);
   log();
   log(`Wrote ${path.relative(ROOT, MANIFEST_PATH)} (${manifestEntries.length} entries).`);
 
@@ -870,7 +480,7 @@ async function main() {
   const rawProfiles = (await writeClient.query(api.contributorProfiles.getForBulkImport, {
     apiKey,
     keys: plan.map((entry) => entry.key),
-  })) as Array<Record<string, any>>;
+  })) as StoredContributorProfile[];
   const rawByKey = new Map(rawProfiles.map((profile) => [normalizeProfileKey(profile.key), profile]));
 
   const importRows: ContributorImportRow[] = [];

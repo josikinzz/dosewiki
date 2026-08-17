@@ -18,7 +18,7 @@ for (const a of toCheck) {
   const countries = Object.keys(a.legality?.countries || {});
   const intl = a.legality?.international?.length || 0;
   const emptyNotes = Object.entries(a.legality?.countries || {})
-    .filter(([k, v]) => !v.notes || v.notes.trim() === "")
+    .filter(([, v]) => !v.notes || v.notes.trim() === "")
     .map(([k]) => k);
 
   console.log(`\n=== ${a.title} ===`);

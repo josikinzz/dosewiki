@@ -21,7 +21,12 @@ export function sanitizeFieldName(name) {
   for (const [greek, ascii] of Object.entries(GREEK_TO_ASCII)) {
     result = result.replace(new RegExp(greek, "g"), ascii);
   }
-  return result.replace(/[^\x00-\x7F]/g, "_");
+  let asciiResult = "";
+  for (let index = 0; index < result.length; index++) {
+    const character = result[index];
+    asciiResult += character.charCodeAt(0) <= 0x7f ? character : "_";
+  }
+  return asciiResult;
 }
 
 export function sanitizeObjectKeys(value) {

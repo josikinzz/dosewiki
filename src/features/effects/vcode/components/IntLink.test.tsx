@@ -27,6 +27,16 @@ describe("IntLink", () => {
     ["/substances/", "/substances"],
     ["/substances", "/substances"],
     ["/substances/lsd", "/lsd"],
+    ["/dxm", "/dextromethorphan"],
+    ["/effects/acuity-enhancement", "/effects/visual-acuity-enhancement"],
+    ["/effects/category/effects", "/effects"],
+    ["/effects/category/visual-enhancements", "/effects/category/visual-amplifications"],
+    ["/effects/diffraction-spikes", "/effects/diffraction"],
+    ["/effects/memory-suppressionShort", "/effects/memory-suppression"],
+    ["/effects/stimulating", "/effects/stimulation"],
+    ["/effects/suggestibility-enhancement", "/effects/increased-suggestibility"],
+    ["/effects/sweating", "/effects/increased-perspiration"],
+    ["/profiles/Josie", "/contributors/josie"],
   ])("normalizes malformed rich-content href %s", (input, expectedHref) => {
     expect(renderLink(input)).toHaveAttribute("href", expectedHref);
   });
@@ -90,6 +100,23 @@ describe("IntLink", () => {
       "href",
       "https://example.com/effectsgeometry",
     );
+  });
+
+  it("repairs an external URL authored with a leading slash", () => {
+    expect(renderLink("/https://en.wikipedia.org/wiki/Turing_test")).toHaveAttribute(
+      "href",
+      "https://en.wikipedia.org/wiki/Turing_test",
+    );
+  });
+
+  it.each([
+    "/effects/pattern-recognition-enhancement",
+    "/effects/pattern-recognition-suppression",
+    "/effects/psychedelic-therapy",
+  ])("renders known missing internal targets as text instead of broken links", (to) => {
+    render(<IntLink to={to}>Missing target</IntLink>);
+
+    expect(screen.getByText("Missing target").closest("a")).toBeNull();
   });
 
   it("preserves the /substances redirect the flattening rewrite used to defeat", () => {

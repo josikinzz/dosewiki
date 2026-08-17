@@ -78,7 +78,10 @@ Seed missing Convex molecule depictions from substanceIndex SMILES.
 
 Usage:
   npm run molecules:seed-convex -- --dry-run --limit 5
-  npm run molecules:seed-convex -- --write --confirm-molecule-seed
+  TARGET_CONVEX_URL=https://glad-minnow-656.convex.cloud \\
+    npm run molecules:seed-convex -- --write --confirm-molecule-seed \\
+    --confirm-write=seed-canonical-molecule-depictions \\
+    --expected-deployment=glad-minnow-656
 
 Options:
   --dry-run                  Read Convex and write local samples/report only (default)

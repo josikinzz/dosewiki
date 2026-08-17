@@ -38,6 +38,10 @@ export interface ArticleLayoutProps {
    */
   moleculeOverrideUrl?: string | null;
   fromSubstanceSlug?: string;
+  /** Canonical public substance slugs used to suppress links to absent articles. */
+  linkableSubstanceSlugs?: readonly string[];
+  /** Canonical public category keys used to suppress links to absent category pages. */
+  linkableCategoryKeys?: readonly string[];
   relatedTripReports?: TripReport[];
   tripReportsSection?: ReactNode;
   /**
@@ -100,6 +104,8 @@ export function ArticleLayout({
   content,
   moleculeOverrideUrl,
   fromSubstanceSlug,
+  linkableSubstanceSlugs,
+  linkableCategoryKeys,
   relatedTripReports,
   tripReportsSection,
   hasRelatedTripReports,
@@ -192,6 +198,7 @@ export function ArticleLayout({
         chemistryPresentation={chemistryPresentation}
         moleculeAsset={moleculeAssets[0]}
         moleculeAssets={moleculeAssets}
+        linkableCategoryKeys={linkableCategoryKeys}
         showPreviewBadge={false}
       />
 
@@ -220,7 +227,10 @@ export function ArticleLayout({
               <PharmacologySection article={article} />
             </DeferredSection>
             <DeferredSection>
-              <InteractionsSection article={article} />
+              <InteractionsSection
+                article={article}
+                linkableSubstanceSlugs={linkableSubstanceSlugs}
+              />
             </DeferredSection>
             <DeferredSection>
               <ToleranceSection article={article} />
@@ -272,5 +282,3 @@ export function ArticleLayout({
     </StickyTocLayout>
   );
 }
-
-export default ArticleLayout;

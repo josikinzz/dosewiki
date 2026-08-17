@@ -1,12 +1,11 @@
 # Replication Media Delivery — Transcode, Archive, and Repoint
 
-Last verified: 2026-08-11
+Last verified: 2026-08-16
 
-The replication corpus is 247 rows: 125 videos totalling 44.62 GB of raw,
-never-transcoded masters, and 122 images totalling 235 MB. Video playback was
-slow, and **almost none of those bytes lived on production**. This document is
-the plan for both problems, the decisions that shape it, and the two ways a naive
-version of it fails silently.
+The replication corpus contains 247 rows: 125 raw, never-transcoded video
+masters totalling 44.62 GB and 122 images totalling 235 MB. Video playback was
+slow, and **almost none of those bytes lived on production**. This document
+records the completed rescue, the rerun procedure, and two silent failure modes.
 
 Three scripts implement it:
 
@@ -30,16 +29,16 @@ resolve to an orphan or development host, and 0 resolve to null.** The stored
 `url` strings still name the old hosts on 172 rows; that is deliberate and is the
 rollback path (section 5).
 
-The remainder of this document is kept as the record of *why* it is shaped the
-way it is. Everything below still applies to a re-run.
+The rest of this document records the decisions behind the completed operation
+and the requirements for a rerun.
 
 ## Corrections to earlier readings of this corpus
 
 - **`notes-and-plans/reports/replication-provenance/audit-latest.json` is stale
   and has now misled three separate readings.** It was generated against
-  `VITE_CONVEX_URL` — the *development* deployment — so its resolved URLs
-  describe dev, not production. Do not quote it for host or poster questions.
-  Re-measure against production.
+  `VITE_CONVEX_URL`, then pointed at development deployment
+  `enchanted-echidna-791` (now retired), so its resolved URLs do not describe
+  production. Re-measure against `glad-minnow-656`.
 - **Posters are fine.** All 125 videos resolve a `thumbnail_url` on production
   and every row carries a `thumbnail_storage_id`. An earlier claim that 60 rows
   had no poster came from the stale audit and was wrong. Posters are not a
@@ -47,64 +46,63 @@ way it is. Everything below still applies to a re-run.
 
 ## 1. How a video URL reaches the browser
 
-The important finding first: **no application code in this repository ever
-constructs, rewrites, prefixes, or proxies a replication media URL.** There is no
-media proxy route, no `next/image` loader, no rewrite, no CDN prefix. The URL
-that lands in the `src` attribute is produced entirely inside Convex and passed
-through untouched.
+Application code does not construct, rewrite, prefix, or proxy replication media
+URLs. There is no media proxy route, `next/image` loader, rewrite, or CDN prefix.
+Convex produces the URL used by the browser, and the application passes it
+through unchanged.
 
 | Step | Location |
 | --- | --- |
-| URL produced | `convex/replications.ts:77-114` `resolveReplicationUrls` |
-| Queries | `getBySlug` (`:133`), `getReplicationsByEffect` (`:163`), `getByArtist` (`:191`), `getPublicReplications` (`:331`) |
-| Transport | `lib/convex/serverClient.ts:56-73` `queryConvex` |
-| Adapter | `lib/convex/publicData.reads.ts:664-688` |
-| Cache | `lib/convex/publicData.effects.ts:46-65` — `unstable_cache`, revalidate 900 s, tags `convex-public` / `convex-public:replications` |
-| Route loader | `lib/next/routeLoaders.tsx:435-486` `loadReplicationRoute` |
-| Page | `src/app/replications/[slug]/page.tsx` (`revalidate = 3600`, `dynamicParams = false`) |
-| Element | `src/features/effects/pages/ReplicationDetailPage.tsx:125-133` |
+| URL produced | `convex/lib/replicationUrls.ts:6-52` `resolveReplicationUrls` |
+| Query entry points | `convex/replications.ts:20-43`; handlers in `convex/lib/replicationReads.ts:57-132` |
+| Transport | `lib/convex/serverClient.ts:57-75` `queryConvex` |
+| Adapter | `lib/convex/publicData.reads.ts:705-729` |
+| Cache | `lib/convex/publicData.effects.ts:143-164`; 900 s and tags are defined in `lib/convex/publicData.cache.ts:1-10` |
+| Route loader | `lib/next/routeLoaders.replications.ts:57-154` `loadReplicationRoute` |
+| Page | `src/app/replications/[slug]/page.tsx:9-99` (`revalidate = 3600`, `dynamicParams = false`) |
+| Element | `src/features/effects/pages/ReplicationDetailPage.tsx:155-181` |
 
-Two further `<video>` elements consume the same shape:
-`src/features/effects/gallery/GalleryMediaTile.tsx:126-138` and
-`src/features/effect-index/home/FeaturedReplicationsPanel.tsx:142-153`. Both are
-client components fed by a server read — no client `useQuery` touches
-replications anywhere.
+Two more `<video>` elements consume the same shape:
+`src/features/effects/gallery/GalleryMediaTile.tsx:132-148` and
+`src/features/effect-index/home/FeaturedReplicationsPanel.tsx:149-163`. Both are
+client components fed by a server read; no client `useQuery` reads replications.
 
-### The resolver, which is the whole integration surface
+### The resolver is the integration surface
 
-`convex/replications.ts:89-99`:
+`convex/lib/replicationUrls.ts:21-28`:
 
 ```ts
 if (!isPlaceholderStorageId(rep.storage_id)) {
-  try { url = await ctx.storage.getUrl(rep.storage_id); } catch {}
+  try {
+    url = await ctx.storage.getUrl(rep.storage_id);
+  } catch {
+    // Invalid or missing storage IDs fall through to the direct URL.
+  }
 }
-if (!url && rep.url) { url = rep.url; }
+if (!url && rep.url) url = rep.url;
 ```
 
-The doc comments at `:129-131`, `:159-161` and `:189-191` claim the opposite
-precedence ("1. Direct `url` field, 2. Convex storage lookup"). **The code is
-authoritative and those comments are wrong: `storage_id` wins, and the stored
-`url` string is only reached when the storage lookup yields nothing.** Section 5
-explains why that single fact decides the shape of the migration. Fixing the
-comments is part of the work.
+The resolver comment and implementation agree: `storage_id` wins, and the
+stored `url` string is used only when storage lookup yields nothing. Section 5
+explains why this precedence determines the migration.
 
-### Consequences worth knowing before changing anything
+### Consequences
 
-- **A null URL deletes the page.** `lib/next/routeLoaders.tsx:453` returns
-  `not-found` when `replication.url` is falsy, and
-  `lib/next/publicRoutePlan.ts:205-212` filters unresolvable rows out of
-  `generateStaticParams`. With `dynamicParams = false`, a row that fails to
-  resolve at build time has no page at all. **The blast radius of a botched
-  repoint is page removal, not a broken video.**
-- **Resolved URLs are cached twice** — 900 s `unstable_cache`, then ISR HTML at
-  3600 s. Cutover is not instant; `revalidateTag("convex-public:replications")`
-  (tag defined at `lib/convex/publicData.cache.ts:3-15`) forces it.
+- **A null URL deletes the page.** `lib/next/routeLoaders.replications.ts:71-88`
+  returns `not-found` when `replication.url` is falsy, and
+  `lib/next/publicRoutePlan.ts:231-241` omits rows without resolved URLs from
+  static parameters. With `dynamicParams = false`, a row that fails to resolve
+  at build time has no page. The blast radius of a bad repoint is page removal,
+  not a broken video.
+- **Resolved URLs are cached twice** — 900 s in
+  `lib/convex/publicData.effects.ts`, then ISR HTML at 3600 s.
+  `revalidateTag("convex-public:replications")`, whose tag is defined in
+  `lib/convex/publicData.cache.ts:3-10`, forces refresh.
 - **CSP already permits any HTTPS media host** —
-  `lib/next/cspObservationPolicy.ts:158-160`. No CSP work needed.
+  `lib/next/cspObservationPolicy.ts:165-168`. No CSP change is needed.
 - **`next/image` is not in the path.** `src/components/common/AppImage.tsx:20-22`
-  treats only local paths as optimizable, so remote posters already render
-  through a plain `<img>`. That is why the absent `images.remotePatterns` has
-  never broken anything.
+  treats only local paths as optimizable, so remote posters render through a
+  plain `<img>`. The absent `images.remotePatterns` has never broken them.
 
 ## 2. Decision: no CDN. Convex stays the origin.
 
@@ -125,7 +123,7 @@ here as final for now, along with what it does and does not buy.
 - **Decodability.** Every rendition is H.264 High / yuv420p, which no browser
   refuses. Masters in the corpus include pixel formats browsers cannot decode.
 
-### What it does not fix, and nobody should later read this doc as if it did
+### Delivery limits
 
 - **No shared cache.** Convex storage returns
   `cache-control: private, max-age=2592000` (measured on production
@@ -141,12 +139,10 @@ here as final for now, along with what it does and does not buy.
 - **Bandwidth cost scales with *distinct* viewers**, with no shared cache to
   amortise it across them.
 
-The honest summary: the transcode removes roughly 90% of the bytes and
-essentially all of the start-up stall, which is the bulk of the felt problem.
-The remaining inefficiency is that the first view by each visitor is served
-from origin at full size. That is acceptable at current traffic and becomes the
-thing to revisit if traffic grows or if Convex ever exposes a public
-cache-control.
+In summary, transcoding removes roughly 90% of the bytes and nearly all of the
+startup stall. Each visitor's first view still comes from the origin at full
+rendition size. That is acceptable at current traffic; revisit the origin when
+traffic grows or Convex exposes public cache control.
 
 ### Reference, if that decision is ever revisited
 
@@ -174,7 +170,7 @@ and the cached target expires. Moving to a CDN means moving the bytes.
 | video | `warmhearted-mosquito-204` (orphan) | 59 |
 | video | `adept-goldfish-624` (orphan) | 6 |
 | thumbnail | `glad-minnow-656` (production) | 60 |
-| thumbnail | `enchanted-echidna-791` (**development**) | 65 |
+| thumbnail | `enchanted-echidna-791` (**then-development; now retired**) | 65 |
 
 The 59 + 6 = 65 orphan-hosted videos line up exactly with the 65 rows whose
 `storage_id` starts with `placeholder-`. For those rows `resolveReplicationUrls`
@@ -191,12 +187,11 @@ production holds.
 `scripts/`, or any config. It is not a configured fallback. It is a hostname
 sitting in production data.
 
-**Why this is urgent independent of every other decision:** there is no admin
-credential here for either orphan deployment, and `enchanted-echidna-791` is a
-development deployment, which get reset as a matter of routine. An HTTP GET is
-the only way to obtain any of those bytes. If any of the three is reset or
-deleted, those files are gone — not degraded, gone, with nothing able to
-re-derive them.
+**Why this was urgent independent of every other decision:** there was no admin
+credential here for either orphan deployment, and `enchanted-echidna-791` was
+the development deployment at the time; it is now retired. Development
+deployments were reset as a matter of routine. HTTP GET was the only way to
+obtain those bytes. A reset or deletion would have made the files irrecoverable.
 
 ### Images — measured 2026-08-11, over the 122 image rows
 
@@ -285,14 +280,12 @@ copy, **593.4 GB headroom, shortfall 0.**
 ### exFAT properties handled deliberately
 
 - **Case-insensitive filenames.** exFAT preserves case but compares without it,
-  so two archive names differing only by case are one file and the second write
-  silently destroys the first master — precisely the failure this whole exercise
-  exists to prevent. `detectArchiveCollisions` folds every archive path and
-  **aborts the entire run before a single byte is fetched** if any two collide.
-  Exact duplicate slugs are caught by the same check, which matters because the
-  corpus is known to contain rows sharing a slug. Verified: the real corpus is
-  clean; an injected `Tracers-Chelsea-Morgan` / `tracers-chelsea-morgan` pair is
-  detected and fatal.
+  so names that differ only by case identify one file and the second write
+  destroys the first master. `detectArchiveCollisions` folds every archive path
+  and **aborts the run before fetching any bytes** when two paths collide. It
+  also catches exact duplicate slugs, which occur in the corpus. The production
+  corpus passed this check; an injected `Tracers-Chelsea-Morgan` /
+  `tracers-chelsea-morgan` pair is detected and fatal.
 - **No POSIX permissions, ownership, symlinks, or hard links** (`noowners`).
   Nothing relies on any of them; integrity is proven by sha256 digest, not by
   filesystem metadata.
@@ -329,10 +322,10 @@ estimates with measured bytes as files land.
 `scripts/replications/repoint-renditions.mjs`. **This is a production Convex
 write.** Run against video on 2026-08-10 and against images on 2026-08-11.
 
-This step is the real prize: for video it fixes size, fixes faststart, **and
-retires both orphan deployments plus the dev-hosted thumbnails in one pass**; for
-images it is the rescue alone. After it, every byte the site serves comes from a
-deployment this project controls.
+For the 2026-08-10 video run, this step fixed size and faststart while retiring
+both orphan sources and the thumbnails on now-retired development deployment
+`enchanted-echidna-791`. For the 2026-08-11 image run, it performed the rescue
+without transcoding. After both runs, every served byte came from production.
 
 ### Trap 1 — writing `url` is a silent no-op on 60 rows
 
@@ -343,10 +336,12 @@ live `storage_id`. Those rows keep resolving through storage and keep serving th
 old file. A migration that did this and reported success would leave 60 videos
 untranscoded with no error anywhere.
 
-The script therefore writes **`storage_id`**, the field that actually wins, via
-`api.replications.updateStorageIds`. The choice is expressed as a tested function
-(`fieldThatWins()`) rather than a hard-coded call, so if the resolver's
-precedence ever changes, a test fails and forces the migration to be re-thought.
+The script writes **`storage_id`**, the field that wins, through
+`api.replications.updateStorageIds` (`convex/replications.ts:106-109`, implemented
+by `convex/lib/replicationWrites.ts:292-305`). The tested
+`fieldThatWins()` function is at
+`scripts/replications/repoint-renditions.mjs:107-109`; a precedence change makes
+that test fail and forces the migration to be reconsidered.
 
 ### Trap 2 — the blast radius is page removal
 
@@ -372,12 +367,12 @@ website uses — immediately after its write:
 All failing clauses are reported together, not just the first. Any failure stops
 the run before the next row.
 
-Before each write the script also does a **compare-and-swap check**: it re-reads
-the row and aborts if `storage_id` has changed since the reviewed plan was made.
-This is script-level only — `updateStorageIds` has no `expectedStorageId`
-argument. Adding one (as `applySourceRecovery` already has, at
-`convex/replications.ts:660-684`) would make it atomic and is worth doing before
-a large run.
+Before each write, the script also does a **compare-and-swap check**: it re-reads
+the row and aborts if `storage_id` changed after the reviewed plan. This remains
+script-level because `updateStorageIds` has no `expectedStorageId` argument.
+`applySourceRecoveryHandler` shows the atomic server-side pattern at
+`convex/lib/replicationRecovery.ts:67-87`; adding the same precondition remains
+an open decision before another large run.
 
 ### Batching and rollback
 
@@ -415,7 +410,9 @@ Full production write boundary plus an operation-specific confirmation:
 
 Dry run is the default and prints the exact per-row verification it would apply.
 
-## 6. Sequence
+## 6. Rerun sequence
+
+Run repository commands from the DoseWiki repository root.
 
 1. Attach `/Volumes/DeepSeek`. Dry-run `archive-replication-masters.mjs` (add
    `--media-type=image` for the image half); review the host breakdown, the
@@ -423,31 +420,44 @@ Dry run is the default and prints the exact per-row verification it would apply.
 2. Run it with `--write --confirm-archive`. This is the time-critical step: it is
    what removes the risk of permanently losing the bytes to a deployment reset.
 3. Review the archive manifest and the corpus projection.
-4. `npm run convex:doctor -- --url=https://glad-minnow-656.convex.cloud`. The
-   `CONVEX_ADMIN_KEY` in `.env.local` is dev-scoped and **will be rejected by
-   production**; take the deployment's own value with
-   `CONVEX_DEPLOY_KEY=<CONVEX_DEPLOY_KEY_PROD> bunx convex env get CONVEX_ADMIN_KEY`
-   and pass it as `CONVEX_ADMIN_TOKEN_REPLICATION_MAINTENANCE` for the run only.
-   Never mint a new key and never write one into a tracked file.
-5. Dry-run `repoint-renditions.mjs` and read the plan.
-6. Repoint in batches with the full ceremony, verifying each batch on the live
-   site before continuing.
-7. `revalidateTag("convex-public:replications")` — otherwise the 900 s
-   `unstable_cache` and 3600 s ISR keep serving the old resolved URLs. There is
-   no standalone endpoint for this; it fires from the authenticated editor write
-   routes, or you wait the caches out.
-8. Leave the orphan deployments untouched for a defined period. They are the
-   rollback.
-9. Fix the three wrong precedence comments in `convex/replications.ts`.
-   **Done 2026-08-15** alongside the preview-rendition work (section 8).
+4. Load the production maintenance token into the operation-scoped variable,
+   then run the doctor against production:
 
-## 7. Schema fields that do not exist yet
+   ```bash
+   export TARGET_CONVEX_URL=https://glad-minnow-656.convex.cloud
+   export CONVEX_ADMIN_TOKEN_REPLICATION_MAINTENANCE="$(
+     CONVEX_DEPLOY_KEY="$CONVEX_DEPLOY_KEY_PROD" \
+       bunx convex env get CONVEX_ADMIN_KEY
+   )"
+   npm run convex:doctor -- --url="$TARGET_CONVEX_URL"
+   ```
 
-`convex/schema.ts:362-380` has `width`, `height`, `duration`, `file_size`, and a
-`format` extension string. It has **no** mime type, bitrate, codec, rendition
-list, or master reference. A migration wanting to record "this row is a
-transcoded rendition, its master is archived at X" needs new fields; the
-manifests emitted by both scripts carry all of that information.
+   Continue only when the doctor identifies `glad-minnow-656`, accepts the
+   replication-maintenance credential, and reports clean function drift. Use
+   this production token for the rerun only; do not mint a key or write it to a
+   tracked file.
+5. Dry-run `repoint-renditions.mjs` with
+   `--target-url=https://glad-minnow-656.convex.cloud` and read the plan.
+6. Repoint in batches with the full ceremony. Verify each batch at
+   `https://dosewiki-admin.vercel.app/replications/<slug>` before continuing.
+7. Call `revalidateTag("convex-public:replications")`; otherwise the 900 s
+   `unstable_cache` and 3600 s ISR retain old resolved URLs. The authenticated
+   editor write routes trigger it; without one, wait for both caches to expire.
+8. Keep the orphan deployments for the defined rollback period.
+9. Remove the operation-scoped token from the shell:
+
+   ```bash
+   unset CONVEX_ADMIN_TOKEN_REPLICATION_MAINTENANCE
+   ```
+
+## 7. Current schema limits
+
+`convex/lib/effectMediaSchemaValidators.ts:119-149` defines the replication
+document registered by `convex/schema.ts:263`. It has `width`, `height`,
+`duration`, `file_size`, and a `format` extension string, but no MIME type,
+bitrate, codec, rendition list, or master reference. A migration that records a
+transcoded rendition and its archived master needs new fields; both scripts'
+manifests already carry that information.
 
 ## 8. Preview renditions for gallery in-view autoplay
 
@@ -455,29 +465,29 @@ Added 2026-08-15 for the /replications gallery redesign: video tiles autoplay a
 muted low-res preview while in view instead of pulling the full rendition on
 hover.
 
-- **Field**: `preview_storage_id` (optional string) on `replications`, beside
-  `thumbnail_storage_id`. Video replication rows only. Purely additive — a row
-  without one keeps hover-to-play of the full `url`.
-- **Resolver**: `resolveReplicationUrls` resolves it to `preview_url` via
-  `ctx.storage.getUrl`, same try/catch as the other two ids, but with **no
-  string-field fallback**: a preview either resolves from storage or is absent.
-  Threaded through `getBySlug`, `getReplicationsByEffect`, `getByArtist`,
-  `getByArtistNames`, and `getPublicReplications`; typed as
-  `preview_url?: string` on `ReplicationWithUrl` and projected by
-  `projectPublicApiReplication` in the public API.
-- **Write path**: `api.replications.updatePreviewStorageIds` — batch of
-  `{ id, previewStorageId, expectedStorageId }` with a compare-and-swap on the
-  row's current `storage_id` (the `applySourceRecovery` pattern), rejecting
-  placeholder or malformed storage ids. It never touches `storage_id`, `url`,
-  or the thumbnail fields.
+- **Field**: `preview_storage_id` is optional beside `thumbnail_storage_id` at
+  `convex/lib/effectMediaSchemaValidators.ts:135-143`. It applies to video rows
+  only. A row without it keeps hover-to-play of the full `url`.
+- **Resolver**: `convex/lib/replicationUrls.ts:43-49` resolves it to
+  `preview_url` through `ctx.storage.getUrl`, with no string-field fallback.
+  `convex/lib/replicationReads.ts:40-50,57-132` threads it through the public
+  reads. `src/types/replications.ts:153-161` types `preview_url`, and
+  `lib/public-api/v1.ts:110-135` projects it into the public API.
+- **Write path**: `api.replications.updatePreviewStorageIds` is exposed at
+  `convex/replications.ts:112-115` and implemented by
+  `convex/lib/replicationRecovery.ts:19-54`. Its batch entries are
+  `{ id, previewStorageId, expectedStorageId }`; the handler compares the row's
+  current `storage_id`, rejects placeholder or malformed IDs, and leaves
+  `storage_id`, `url`, and thumbnail fields unchanged.
 - **Script**: `scripts/replications/generate-preview-renditions.mjs`. Dry-run
-  by default; writes require the standard ceremony
-  (`--write --confirm-write=generate-preview-renditions
-  --expected-deployment=glad-minnow-656 --target-url=…`). Per row it downloads
-  the production rendition to scratch, encodes the preview, uploads it, CAS-writes
-  `preview_storage_id`, flushes a ledger entry to disk, then re-queries
-  `getPublicReplications` and hard-stops unless `preview_url` is non-null on
-  `glad-minnow-656.convex.cloud` **and** `url`/`thumbnail_url` are unchanged.
+  is the default. Writes require
+  `--write --confirm-write=generate-preview-renditions
+  --expected-deployment=glad-minnow-656
+  --target-url=https://glad-minnow-656.convex.cloud`. Per row it downloads the
+  production rendition to scratch, encodes and uploads the preview, CAS-writes
+  `preview_storage_id`, flushes a ledger entry, then re-queries
+  `getPublicReplications`. It stops unless `preview_url` is non-null on
+  `glad-minnow-656.convex.cloud` and `url`/`thumbnail_url` are unchanged.
 - **Encode spec** (the gallery tile is written against exactly this): first 10s
   max · long edge 480px, never upscaled · H.264 High, yuv420p · CRF 30, preset
   veryfast · fps capped at 30 · no audio (`-an`) · `-movflags +faststart`.

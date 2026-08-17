@@ -1,23 +1,32 @@
 # AGENTS.md
-dose.wiki exists to serve as a modern, open-source, and comprehensive encyclopedic database for the study of psychopharmacology. It was created because the various overlapping subcultures of the online psychonaut, psychedelic, and drug nerd communities have been sorely lacking a resource of this kind for far too long—a website that is up to modern web standards and is fully open source, with easily accessible and reusable datasets.
 
-The datasets for the Substance Index, Subjective Effect Index, and Trip Report Index are all available for download on the Open Data tab, and the licensing for each facet of our database is available on our licensing and reuse page. So, if you want to use our database within any of your projects, or even integrate it into your own substance encyclopedia website, we strongly encourage you to do so!
+## Start Here
 
-Our hope for this platform is that it can serve not just as a convenient and helpful harm reduction resource for the average psychonaut, but also as a comprehensive database of consistently structured data that is easy for researchers and developers to build on and fork from—with all of it falling under an open source license.
+- Read [CONTEXT.md](CONTEXT.md) before non-trivial changes.
+- For UI work, reuse the [UI kit](docs/ui-kit.md), then follow [.impeccable.md](.impeccable.md) and the [visual style guide](notes-and-plans/guides/dosewiki-visual-style-guide.md). Use the [project visual](docs/assets/dose-wiki-project-guide-stacked-no-context.jpg) as the visual reference.
+- For environment or deployment work, use [README environment guidance](README.md#environment-and-deployment) and [deployment routing](docs/agents/deployment.md). Keep credentials out of committed files.
 
-It's 202X+ already and we are living in the future; we think it's about time that this knowledge stopped being gate kept behind stagnating platforms and disparate APIs. The information necessary to create an online psychoactive substance encyclopedia is now irreversibly commoditized, and there is no going back.
+## Hard Invariants
 
-~Josie Kins, the founder of /r/replications, disregardeverythingisay, psychonautwiki, effectindex, the subjective effect index, etc. 
+- dose.wiki and Effect Index use this repository, branch, and production Convex data through two Vercel projects. Publication identity and route availability differ by the build-time flavor in `src/config/siteFlavor.ts`; content and data writes can affect both sites.
+- Keep `dose.wiki` and `www.dose.wiki` construction-gated through 2026-08-31. Launch after that floor only when the user explicitly authorizes it. Until launch, the full app stays at `https://dosewiki-admin.vercel.app/`.
+- All configured Convex reads and writes—including local, development, preview, and production—target `prod:glad-minnow-656`. The Effect Index deployment remains credential-free and read-only. Never configure active work against retired `enchanted-echidna-791`.
+- Before a Convex write, run `npm run convex:doctor`, read [Convex credentials](docs/agents/convex-credentials.md), set `TARGET_CONVEX_URL` explicitly, and complete the command's confirmation gates.
 
----
+## Common Commands
 
-General Rules: 
-- Please always use the UI kit for anything UI related, i want consolidated reusable components with a standard look.
-- Keep in mind that EffectIndex.com is a sister site that is automatically built out of dose.wiki but with a reskin and different organization
-- The site will not launch to dose.wiki URL until the 31st of August, for now it remains only at: https://dosewiki-admin.vercel.app/
-- Convex: the dev deployment is retired. All environments, including the local dev server, target the production deployment (`prod:glad-minnow-656`) for reads and writes. Never point env vars back at `enchanted-echidna-791`, and treat every Convex write as a production write.
+- Install: `bun install --frozen-lockfile` (Bun 1.3.5 owns `bun.lock`).
+- Develop: `npm run dev`.
+- Inspect the current command surface in `package.json`; `npm run ...` package scripts remain supported.
 
-Read:
+## Editing Rules
 
-- [Project visual](docs/assets/dose-wiki-project-guide-stacked-no-context.jpg) (ALWAYS)
-- [UI direction](.impeccable.md) (DURING FRONT END DESIGN)
+- Treat Convex as runtime truth. Local JSON and Markdown are backups, migration inputs, exports, prompts, or generated artifacts unless active code says otherwise.
+- For generated data, check `src/data/artifactLineageManifest.json`, update the producer input, and rerun its recorded command. Do not hand-edit `convex/_generated/` or `src/data/schema/*.generated.ts`.
+- For the committed OpenChemLib distribution, follow [fork ownership and verification](docs/architecture/openchemlib-fork.md).
+
+## Verification
+
+- Match verification to scope: `npm run verify:app` for app changes, `npm run verify:workflow` for script/data workflow changes, or `npm run verify:all` when both change.
+- After article-schema changes, run `npm run generate:schema` and include the generated helper updates.
+- After generated-data or lineage changes, run `npm run provenance:check`.

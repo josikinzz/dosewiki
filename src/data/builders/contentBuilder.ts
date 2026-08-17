@@ -5,7 +5,7 @@
  */
 import type { IconName } from "@/components/common/Icon";
 import { resolveEffectNameAlias, type EffectLocation } from "@/data/effectNameAliases";
-import { stripCitationTokens } from "@/lib/citations/referenceModel";
+import { stripCitationTokens } from "@/lib/citations/citationTokens";
 import { slugify } from "@/utils/slug";
 
 import type {

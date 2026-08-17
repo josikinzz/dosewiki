@@ -44,6 +44,12 @@ const DURATION_STAGES = [
   "total_duration",
 ] as const;
 const CITATION_PATTERN = /\[cite:([^\]]+)\]/g;
+const SINGULAR_DURATION_UNITS: Readonly<Record<string, string>> = {
+  seconds: "second",
+  minutes: "minute",
+  hours: "hour",
+  days: "day",
+};
 
 function currentDate(): string {
   return new Date().toISOString().slice(0, 10);
@@ -116,10 +122,30 @@ function escapeTable(value: unknown): string {
   return String(value ?? "").replace(/\|/g, "\\|").replace(/\n/g, "<br>");
 }
 
-function range(value: any): string {
+type RangeValue = {
+  min?: number | null;
+  max?: number | null;
+  unit?: string | null;
+};
+
+function range(
+  value: RangeValue | null | undefined,
+  context: "ordinary" | "threshold" | "duration" = "ordinary",
+): string {
   if (!value || (value.min == null && value.max == null)) return "";
-  const bounds = value.min == null ? `≤ ${value.max}` : value.max == null ? `≥ ${value.min}` : value.min === value.max ? `${value.min}` : `${value.min}–${value.max}`;
-  return `${bounds}${value.unit ? ` ${value.unit}` : ""}`;
+  const bounds = value.min == null
+    ? `≤ ${value.max}`
+    : value.max == null
+      ? context === "threshold"
+        ? `~${value.min}`
+        : `≥ ${value.min}`
+      : value.min === value.max
+        ? `${value.min}`
+        : `${value.min}–${value.max}`;
+  const unit = context === "duration" && value.min === 1 && value.max === 1
+    ? SINGULAR_DURATION_UNITS[value.unit ?? ""] ?? value.unit
+    : value.unit;
+  return `${bounds}${unit ? ` ${unit}` : ""}`;
 }
 
 function renderValue(value: unknown, depth = 3): string[] {
@@ -148,7 +174,7 @@ function renderDosage(article: Article): string[] {
   for (const route of routes) {
     lines.push(`### ${route.route || "Unspecified route"}`, "", "| Tier | Range |", "| --- | --- |");
     for (const tier of DOSE_TIERS) {
-      const rendered = range(route.dose_ranges?.[tier]);
+      const rendered = range(route.dose_ranges?.[tier], tier === "threshold" ? "threshold" : "ordinary");
       if (rendered) lines.push(`| ${label(tier)} | ${escapeTable(rendered)} |`);
     }
     if (present(route.bioavailability)) lines.push("", `**Bioavailability:** ${route.bioavailability}`);
@@ -169,7 +195,7 @@ function renderDuration(article: Article): string[] {
   for (const route of routes) {
     lines.push(`### ${route.route || "Unspecified route"}`, "", "| Stage | Duration |", "| --- | --- |");
     for (const stage of DURATION_STAGES) {
-      const rendered = range(route.stages?.[stage]);
+      const rendered = range(route.stages?.[stage], "duration");
       if (rendered) lines.push(`| ${label(stage)} | ${escapeTable(rendered)} |`);
     }
     if (present(route.half_life)) lines.push("", `**Half-life:** ${route.half_life}`);

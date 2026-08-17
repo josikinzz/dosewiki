@@ -126,7 +126,7 @@ for (const article of articles) {
       byRoute.get(route).push(entry);
     }
 
-    for (const [route, entries] of byRoute) {
+    for (const entries of byRoute.values()) {
       const merged = mergeDoseTiers(entries);
       if (merged) {
         const TIER_LEVELS = ["threshold", "light", "common", "strong", "heavy"];

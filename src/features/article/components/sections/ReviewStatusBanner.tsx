@@ -82,5 +82,3 @@ export const ReviewStatusBanner = memo(function ReviewStatusBanner({
     </div>
   );
 });
-
-export default ReviewStatusBanner;

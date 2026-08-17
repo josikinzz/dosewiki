@@ -44,8 +44,10 @@ Used by `molecules:smiles-coverage` and the Convex seeder:
    Rebuild it from reviewed gap-fill batches with `npm run molecules:merge-smiles`.
 3. `titleIupacSmiles.json` / `iupacSmilesMap.json` (legacy maps).
 
-573 substances have a Convex depiction row. The few without one (Cake, K-2c-B, K-IVP,
-Sentia) have no single representable molecule and render without a depiction.
+For current depiction coverage, query `api.moleculeOverrides.listSlugs`. To
+compare that live row set with the live substance corpus, run
+`npm run molecules:seed-convex -- --dry-run` and inspect
+`tmp/molecule-seed/report.json`.
 
 ## Seed the canonical Convex set
 
@@ -56,10 +58,14 @@ and writes a JSON summary plus up to five `.mol`/`.svg` samples under `tmp/molec
 npm run molecules:seed-convex -- --dry-run --limit 5
 ```
 
-The deliberate live command is:
+The deliberate production command is:
 
 ```bash
-npm run molecules:seed-convex -- --write --confirm-molecule-seed
+npm run convex:doctor
+TARGET_CONVEX_URL=https://glad-minnow-656.convex.cloud \
+  npm run molecules:seed-convex -- --write --confirm-molecule-seed \
+  --confirm-write=seed-canonical-molecule-depictions \
+  --expected-deployment=glad-minnow-656
 ```
 
 Use `--limit N` for a bounded live batch and `--report PATH` to relocate the local report. Writes
@@ -88,9 +94,12 @@ fails the run — a partial pack is never shipped. The Convex URL comes from
 `--convex-url=` / `SOURCE_CONVEX_URL` / `CONVEX_PUBLIC_READ_URL` /
 `VITE_CONVEX_URL` / `NEXT_PUBLIC_CONVEX_URL`, defaulting to production; the npm script
 disables bun's implicit `.env.local` loading so a no-env run always packs production.
-Staged files get a fixed mtime, so the ZIP is byte-identical until the depiction set
-changes. The nightly `.github/workflows/molecule-pack-nightly.yml` rebuilds and commits
-the pack when it changed.
+Staged files get a fixed mtime, so the ZIP is byte-identical until the depiction
+set changes. Saving a Convex row does not rewrite the committed pack. Run
+`npm run molecules:pack` to update both public files locally; the nightly
+`.github/workflows/molecule-pack-nightly.yml` workflow runs the same command and
+commits changes. The updated downloads become public when that commit is
+deployed.
 
 ## Regenerate the static class structures
 

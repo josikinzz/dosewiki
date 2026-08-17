@@ -2,10 +2,12 @@ import type { SubstanceArticle } from "@/schema";
 
 import {
   buildCitationNumbering,
-  extractCitationTokens,
   renderCitationTokenText,
-  type CitationToken,
 } from "./referenceModel";
+import {
+  extractCitationTokens,
+  type CitationToken,
+} from "./citationTokens";
 
 export type CitationPreviewEntry = {
   path: string;

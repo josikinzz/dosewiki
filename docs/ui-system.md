@@ -1,8 +1,9 @@
 # UI System Ownership
 
-Last verified: 2026-06-03
-
-This is the ownership contract for shared UI extraction. Keep shared components small, data-shaped, and tokenized; route policy, feature data, and editor workflows stay with their owning feature.
+This is the ownership authority for shared UI extraction. Keep shared components
+small, data-shaped, and tokenized; route policy, feature data, and editor
+workflows stay with their owning feature. Use [`docs/ui-kit.md`](ui-kit.md) for
+the live catalog and component how-to.
 
 ## Shared UI Inventory
 
@@ -95,12 +96,13 @@ Icons: shared UI should import `Icon` from `src/components/common/Icon`. That ab
 
 Motion: shared primitives prefer CSS transitions, tokenized animations, and reduced-motion-safe classes. `framer-motion` is allowed only in components that need presence, gesture, or layout animation; `src/components/ui/motion-card.tsx` and article animation sections are current owners during migration.
 
-Lightbox/gallery: `yet-another-react-lightbox` is owned by media/gallery features such as `src/features/effects/components/ReplicationGallery.tsx`. Shared media tiles and placeholders must stay dependency-light and receive callbacks or projected media props.
-
 Editor code and diff: `react-simple-code-editor` and `prismjs` are protected dev dependencies owned by `src/features/dev/components/JsonEditor.tsx`. Human-readable diff generation via `diff` is owned by data/editor changelog utilities such as `src/utils/data/changelog.ts`. These dependencies should not move into public/common primitives.
 
 ## Guardrails
 
-`src/components/ui/ownership.test.ts` enforces the common import boundary, keeps dev editor widgets out of the common barrel, and keeps `Button` feature variants from returning. Use narrow, documented allowlists only for existing migration debt.
+`src/components/ui/ownership.test.ts` enforces the common import boundary, keeps
+dev editor widgets out of the common barrel, blocks feature-named `Button`
+variants, and checks that temporary recipe variants remain documented here. It
+runs in Vitest as a verification check, not as part of the build itself.
 
 Current common-boundary allowlist: `src/components/common/GlobalSearch.tsx` and `src/components/common/useGlobalSearchSuggestions.ts` may import the `SearchMatch` type from `src/data/builders/search` until a route-neutral search result type is extracted.

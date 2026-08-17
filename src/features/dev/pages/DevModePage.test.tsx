@@ -153,7 +153,6 @@ vi.mock("./useDevModeSaveActions", () => ({
 }));
 
 vi.mock("./useDevModeSupportTabProps", () => ({
-  useDevModeSupportTabProps: () => supportTabPropsState,
   useDevSupportTabsController: () => supportTabPropsState,
 }));
 

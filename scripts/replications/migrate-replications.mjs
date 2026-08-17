@@ -20,7 +20,6 @@
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import { createClient } from 'convex/server';
 import sharp from 'sharp';
 import ffmpeg from 'fluent-ffmpeg';
 import ffmpegStatic from '@ffmpeg-installer/ffmpeg';
@@ -136,7 +135,7 @@ async function getImageDimensions(filePath) {
  * Get video metadata using FFmpeg.
  */
 function getVideoMetadata(filePath) {
-  return new Promise((resolve, reject) => {
+  return new Promise(resolve => {
     ffmpeg.ffprobe(filePath, (err, metadata) => {
       if (err) {
         console.warn(`Warning: Could not get metadata for ${filePath}:`, err.message);
@@ -157,21 +156,6 @@ function getVideoMetadata(filePath) {
   });
 }
 
-/**
- * Extract first frame of video as thumbnail.
- */
-async function extractVideoThumbnail(videoPath, outputPath) {
-  return new Promise((resolve, reject) => {
-    ffmpeg(videoPath)
-      .screenshots({
-        timestamps: ['0'],
-        filename: path.basename(outputPath),
-        folder: path.dirname(outputPath),
-      })
-      .on('end', () => resolve(outputPath))
-      .on('error', reject);
-  });
-}
 
 /**
  * Load and process the replication index.
@@ -229,7 +213,6 @@ async function migrate() {
   const index = loadReplicationIndex();
   const eseiEffects = index.eseiEffects || {};
 
-  let totalReplications = 0;
   let successCount = 0;
   let errorCount = 0;
   const errors = [];
@@ -246,7 +229,6 @@ async function migrate() {
     }
 
     for (const rep of replications) {
-      totalReplications++;
       const filename = rep.filename || rep.videoId;
 
       if (!filename) {

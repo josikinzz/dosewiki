@@ -17,9 +17,6 @@
  *
  * The host must provide a ConvexProvider and an authenticated editor session.
  */
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { useQuery } from "convex/react";
-import { api } from "../../../../../convex/_generated/api";
 import { Icon } from "@/components/common/Icon";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui";
@@ -36,41 +33,15 @@ import {
   EditorNotice,
   EditorStatusPill,
 } from "@/features/dev/components";
-import type { InchiComparison } from "./stereoGuard";
-import { compareInchi } from "./stereoGuard";
-import { renderMoleculeSvg } from "./renderMoleculeSvg";
-import { smilesToMolblock } from "./smilesToMolblock";
 import { OclEditor } from "./OclEditor";
-import { useOcl } from "./useOcl";
-import { useRdkit } from "./useRdkit";
+import type { InchiComparison } from "./stereoGuard";
+import { useMoleculeQuickEditorLifecycle } from "./useMoleculeQuickEditorLifecycle";
 
 export type MoleculeQuickEditorProps = {
   /** Substance slug whose depiction is being edited. */
   slug: string;
   className?: string;
 };
-
-interface MoleculeOverride {
-  slug: string;
-  molblock: string;
-  svg: string;
-  smiles?: string;
-  boldBonds?: number[];
-  source?: "seeded" | "editor" | "template";
-  updatedAt: string;
-  updatedBy?: string;
-}
-
-/** The success / error outcome of the last Save. */
-interface SaveResult {
-  tone: "success" | "danger";
-  message: string;
-}
-
-const SAVE_API = "/api/dev/molecule-override";
-
-/** If the depiction data has not arrived after this long, stop promising "Loading…". */
-const LOAD_TIMEOUT_MS = 8000;
 
 /** Pull the article's SMILES from whichever shape the Convex doc carries. */
 export function extractSubstanceSmiles(article: unknown): string {
@@ -80,250 +51,37 @@ export function extractSubstanceSmiles(article: unknown): string {
 }
 
 export function MoleculeQuickEditor({ slug, className }: MoleculeQuickEditorProps) {
-  // OpenChemLib renders the preview + published SVG (same engine as the canvas);
-  // RDKit remains only for the InChI stereo guard.
-  const { ocl, error: oclError } = useOcl();
-  const { rdkit, error: rdkitError } = useRdkit();
-
-  // "saved" shows the published Convex row; "auto" is an unsaved SMILES preview.
-  const [variant, setVariant] = useState<"saved" | "auto">("saved");
-  const [source, setSource] = useState<string | null>(null);
-  const [edited, setEdited] = useState<string | null>(null);
-  // Bold-bond indices carried with the published row. This slim editor has no
-  // toggle tool, but it must keep a depiction's bold bonds through its saves.
-  const [boldBonds, setBoldBonds] = useState<number[]>([]);
-  const [computing, setComputing] = useState(false);
-  const [noStructure, setNoStructure] = useState(false);
-
-  const [previewSvg, setPreviewSvg] = useState<string | null>(null);
-  const [guard, setGuard] = useState<InchiComparison | null>(null);
-
-  const [saving, setSaving] = useState(false);
-  const [saveResult, setSaveResult] = useState<SaveResult | null>(null);
-  const [canvasError, setCanvasError] = useState<string | null>(null);
-  const [confirmRevert, setConfirmRevert] = useState(false);
-  const [loadTimedOut, setLoadTimedOut] = useState(false);
-
-  const [overrideDoc, setOverrideDoc] = useState<MoleculeOverride | null | undefined>(undefined);
-  const [overrideLoadError, setOverrideLoadError] = useState<string | null>(null);
-  // Bumped after a successful save so the published row is re-read from the route.
-  const [refreshToken, setRefreshToken] = useState(0);
-  const loadedSlugRef = useRef<string | null>(null);
-
-  const article = useQuery(api.substanceIndex.getBySlug, slug ? { slug } : "skip");
-  const smiles = useMemo(() => extractSubstanceSmiles(article), [article]);
-
-  // Reset per-slug editing state when the host rebinds the component.
-  useEffect(() => {
-    setVariant("saved");
-    setSaveResult(null);
-    setCanvasError(null);
-    setConfirmRevert(false);
-    setOverrideLoadError(null);
-  }, [slug]);
-
-  // Read the editable record through the protected editor route (same Convex target
-  // as the save), refetching quietly after a save without flashing the loading state.
-  useEffect(() => {
-    if (!slug) {
-      setOverrideDoc(undefined);
-      setOverrideLoadError(null);
-      return;
-    }
-    const slugChanged = loadedSlugRef.current !== slug;
-    loadedSlugRef.current = slug;
-    let cancelled = false;
-    if (slugChanged) setOverrideDoc(undefined);
-    setOverrideLoadError(null);
-    void fetch(`${SAVE_API}?slug=${encodeURIComponent(slug)}`)
-      .then(async (response) => {
-        const body = (await response.json().catch(() => ({}))) as {
-          error?: string;
-          override?: MoleculeOverride | null;
-        };
-        if (!response.ok) {
-          throw new Error(body.error ?? `Molecule load failed (${response.status})`);
-        }
-        if (!cancelled) setOverrideDoc(body.override ?? null);
-      })
-      .catch((error: unknown) => {
-        if (cancelled) return;
-        setOverrideDoc(null);
-        setOverrideLoadError(error instanceof Error ? error.message : String(error));
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, [slug, refreshToken]);
-
-  // --- resolve the canvas source (published row, or a local SMILES auto layout) ---
-  useEffect(() => {
-    if (!slug) {
-      setSource(null);
-      setEdited(null);
-      setNoStructure(false);
-      setComputing(false);
-      return;
-    }
-    if (overrideDoc === undefined) {
-      setComputing(true);
-      return; // published row still loading
-    }
-    if (variant === "saved" && overrideDoc) {
-      setSource(overrideDoc.molblock);
-      setEdited(overrideDoc.molblock);
-      setBoldBonds(overrideDoc.boldBonds ?? []);
-      setNoStructure(false);
-      setComputing(false);
-      return;
-    }
-    if (article === undefined) {
-      setComputing(true);
-      return; // article still loading
-    }
-    if (!smiles) {
-      setSource(null);
-      setEdited(null);
-      setNoStructure(true);
-      setComputing(false);
-      return;
-    }
-    let cancelled = false;
-    setComputing(true);
-    setBoldBonds([]);
-    void smilesToMolblock(smiles).then((molblock) => {
-      if (cancelled) return;
-      if (molblock) {
-        setSource(molblock);
-        setEdited(molblock);
-        setNoStructure(false);
-      } else {
-        setSource(null);
-        setEdited(null);
-        setNoStructure(true);
-      }
-      setComputing(false);
-    });
-    return () => {
-      cancelled = true;
-    };
-  }, [slug, variant, overrideDoc, article, smiles]);
-
-  // --- recompute preview + stereo guard on every edit (debounced) ---------------
-  useEffect(() => {
-    if (!ocl || !edited) {
-      setPreviewSvg(null);
-      setGuard(null);
-      return;
-    }
-    const id = setTimeout(() => {
-      setPreviewSvg(renderMoleculeSvg(ocl, edited, undefined, boldBonds));
-      setGuard(rdkit && smiles ? compareInchi(rdkit, smiles, edited) : null);
-    }, 120);
-    return () => clearTimeout(id);
-  }, [ocl, rdkit, edited, smiles, boldBonds]);
-
-  // If the depiction data never resolves, stop showing an indefinite "Loading…".
-  const dataPending =
-    overrideDoc === undefined ||
-    article === undefined ||
-    (!ocl && !oclError) ||
-    (!rdkit && !rdkitError);
-  useEffect(() => {
-    if (!dataPending) {
-      setLoadTimedOut(false);
-      return;
-    }
-    const id = setTimeout(() => setLoadTimedOut(true), LOAD_TIMEOUT_MS);
-    return () => clearTimeout(id);
-  }, [dataPending]);
-
-  // Auto-clear a success notice; errors stay until dismissed or superseded.
-  useEffect(() => {
-    if (saveResult?.tone !== "success") return;
-    const id = setTimeout(() => setSaveResult(null), 6000);
-    return () => clearTimeout(id);
-  }, [saveResult]);
-
+  const {
+    ocl,
+    oclError,
+    rdkit,
+    rdkitError,
+    source,
+    setEdited,
+    boldBonds,
+    setBoldBonds,
+    smiles,
+    computing,
+    noStructure,
+    previewSvg,
+    guard,
+    saving,
+    saveResult,
+    dismissSaveResult,
+    canvasError,
+    setCanvasError,
+    confirmRevert,
+    dismissRevert,
+    loadTimedOut,
+    overrideLoadError,
+    dirty,
+    canSave,
+    loadedFromOverride,
+    save,
+    applyRevert,
+    revertToAuto,
+  } = useMoleculeQuickEditorLifecycle({ slug, extractSmiles: extractSubstanceSmiles });
   const guardMismatch = guard != null && !guard.match;
-  // `edited` only diverges from `source` on a real user edit (OclEditor filters
-  // programmatic loads), so this is a reliable dirty flag.
-  const dirty = edited !== source;
-  const renderBlocked = !!oclError || !!rdkitError || !!canvasError;
-  const canSave = dirty && !!edited && !!previewSvg && !saving && !noStructure && !renderBlocked;
-  const loadedFromOverride = variant === "saved" && !!overrideDoc;
-
-  const save = useCallback(async () => {
-    if (!slug || !edited || !ocl) return;
-    setSaving(true);
-    setSaveResult(null);
-    // Render the published SVG from `edited` right now — the debounced preview can
-    // lag the newest edit, and the posted SVG is what the public article serves.
-    const svg = renderMoleculeSvg(ocl, edited, undefined, boldBonds);
-    if (!svg) {
-      setSaving(false);
-      setSaveResult({
-        tone: "danger",
-        message: "The edited structure couldn't be rendered, so nothing was saved.",
-      });
-      return;
-    }
-    setPreviewSvg(svg);
-    try {
-      const res = await fetch(SAVE_API, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          slug,
-          molblock: edited,
-          svg,
-          smiles,
-          ...(boldBonds.length > 0 ? { boldBonds } : {}),
-        }),
-      });
-      const body = (await res.json().catch(() => ({}))) as { error?: string };
-      if (!res.ok) throw new Error(body.error ?? `Save failed (${res.status})`);
-      setOverrideDoc({
-        slug,
-        molblock: edited,
-        svg,
-        ...(smiles ? { smiles } : {}),
-        ...(boldBonds.length > 0 ? { boldBonds } : {}),
-        source: "editor",
-        updatedAt: new Date().toISOString(),
-      });
-      setVariant("saved");
-      setSaveResult({
-        tone: "success",
-        message:
-          "Saved — this is now the live depiction. The substance page refreshes momentarily.",
-      });
-      // Re-read the published row so the editor's idea of "saved" comes from Convex.
-      setRefreshToken((token) => token + 1);
-    } catch (err) {
-      setSaveResult({
-        tone: "danger",
-        message: err instanceof Error ? err.message : String(err),
-      });
-    } finally {
-      setSaving(false);
-    }
-  }, [slug, edited, ocl, smiles, boldBonds]);
-
-  // Canvas-only: regenerates the SMILES auto layout. Nothing is published until Save.
-  const applyRevert = useCallback(() => {
-    setVariant("auto");
-    setSaveResult(null);
-    setConfirmRevert(false);
-  }, []);
-
-  const revertToAuto = useCallback(() => {
-    if (dirty) {
-      setConfirmRevert(true);
-      return;
-    }
-    applyRevert();
-  }, [dirty, applyRevert]);
 
   return (
     <div className={cn("space-y-4", className)}>
@@ -476,7 +234,7 @@ export function MoleculeQuickEditor({ slug, className }: MoleculeQuickEditorProp
                 message: saveResult.message,
                 live: true,
                 actions: (
-                  <Button variant="outline" size="sm" onClick={() => setSaveResult(null)}>
+                  <Button variant="outline" size="sm" onClick={dismissSaveResult}>
                     Dismiss
                   </Button>
                 ),
@@ -489,7 +247,7 @@ export function MoleculeQuickEditor({ slug, className }: MoleculeQuickEditorProp
       <Dialog
         open={confirmRevert}
         onOpenChange={(open) => {
-          if (!open) setConfirmRevert(false);
+          if (!open) dismissRevert();
         }}
       >
         <DialogContent className="max-w-md" showClose={false}>
@@ -500,7 +258,7 @@ export function MoleculeQuickEditor({ slug, className }: MoleculeQuickEditorProp
             </DialogDescription>
           </DialogHeader>
           <DialogFooter className="gap-2">
-            <Button variant="outline" onClick={() => setConfirmRevert(false)}>
+            <Button variant="outline" onClick={dismissRevert}>
               Cancel
             </Button>
             <Button variant="destructive" onClick={applyRevert}>

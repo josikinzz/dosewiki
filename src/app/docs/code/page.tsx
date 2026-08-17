@@ -236,7 +236,7 @@ export default function DocsCodePage() {
             <span className={SECTION_NUM_CLASS}>01</span>{" "}The big picture in numbers
           </h2>
 
-          {/* Flattened from a six-card hero-metric grid to one open figure row:
+          {/* Flattened from a five-card hero-metric grid to one open figure row:
               plain figure blocks separated by spacing and a leading hairline,
               no per-stat box. The lead stat reads first and largest by type
               scale and weight rather than a bordered accent tile. */}
@@ -244,7 +244,7 @@ export default function DocsCodePage() {
             role="presentation"
             className="theme-horizontal-divider mt-6"
           />
-          <dl className="mt-6 grid grid-cols-2 gap-x-8 gap-y-6 sm:grid-cols-3 lg:grid-cols-6">
+          <dl className="mt-6 grid grid-cols-2 gap-x-8 gap-y-6 sm:grid-cols-3 lg:grid-cols-5">
             <div className="min-w-0">
               <dt className={`${STAT_NUMBER_CLASS} text-4xl sm:text-5xl`}>~580</dt>
               <dd className="theme-text-muted mt-1.5 text-sm leading-6">
@@ -258,10 +258,6 @@ export default function DocsCodePage() {
             <div className="min-w-0">
               <dt className={`${STAT_NUMBER_CLASS} text-3xl`}>~160</dt>
               <dd className="theme-text-muted mt-1.5 text-sm leading-6">Trip reports</dd>
-            </div>
-            <div className="min-w-0">
-              <dt className={`${STAT_NUMBER_CLASS} text-2xl`}>~1.9k</dt>
-              <dd className="theme-text-muted mt-1.5 text-sm leading-6">Prerendered pages</dd>
             </div>
             <div className="min-w-0">
               <dt className={`${STAT_NUMBER_CLASS} text-2xl`}>~900</dt>
@@ -444,8 +440,8 @@ export default function DocsCodePage() {
               }
             >
               <p className={PROSE_CLASS}>
-                One API gateway to many models, chosen per job in each pipeline&apos;s{" "}
-                <code>cli.mjs</code>: <strong>Claude Opus 4.6</strong> (summary, pharmacology),{" "}
+                One API gateway to many models, selected by each workflow&apos;s config or entry
+                module: <strong>Claude Opus 4.6</strong> (summary, pharmacology),{" "}
                 <strong>Claude Opus 4.5</strong> (harm potential, history &amp; culture, legality,
                 tolerance), <strong>Claude Haiku 4.5</strong> (dosage &amp; duration),{" "}
                 <strong>Gemini 3 Flash</strong> (quote extraction), and{" "}
@@ -623,22 +619,22 @@ export default function DocsCodePage() {
                   <code>/substances</code> — browse all substances
                 </li>
                 <li>
-                  <code>/effects</code>, <code>/effect/[slug]</code> — subjective effects
+                  <code>/effects</code>, <code>/effects/[effectSlug]</code> — subjective effects
                 </li>
                 <li>
                   <code>/reports</code> — trip reports
                 </li>
                 <li>
-                  <code>/psychoactive · /chemical · /mechanism · /category</code> — classification
-                  indexes
+                  <code>/psychoactive · /chemical-classes · /mechanism · /category</code> —
+                  classification indexes
                 </li>
                 <li>
                   <code>/interactions</code>, <code>/search</code>, <code>/about</code>,{" "}
                   <code>/contributors</code>
                 </li>
                 <li>
-                  <code>/open-data</code> — the three dataset JSON downloads (section 07), reached
-                  from the <code>/data</code> Open Data &amp; Tools tab
+                  <code>/about#data</code> — the Downloads section with three dataset JSON exports;
+                  <code>/data</code> is a compatibility redirect to <code>/about</code>
                 </li>
                 <li>
                   <code>/replications</code>, <code>/articles</code>, <code>/chemical-classes</code>,{" "}
@@ -1122,11 +1118,11 @@ export default function DocsCodePage() {
           <div role="presentation" className="theme-horizontal-divider mt-6" />
           <p className={`${PROSE_CLASS} mt-6`}>
             <strong>There is a third consumer: anyone who wants the raw data.</strong> The{" "}
-            <code>/open-data</code> route serves three datasets as JSON downloads —{" "}
-            <code>SubstanceIndex.json</code>, <code>EffectIndex.json</code>, and{" "}
-            <code>TripReports.json</code> — each with a per-dataset license envelope, linked from the{" "}
-            <code>/data</code> Open Data &amp; Tools tab. Convex stays the live source for pages; the
-            routes serve daily snapshots read from it. The base data is CC0, but each dataset is
+            <code>/open-data/SubstanceIndex.json</code>, <code>/open-data/EffectIndex.json</code>,
+            and <code>/open-data/TripReports.json</code> routes serve daily Convex snapshots with
+            per-dataset license envelopes. They are linked from the <code>/about#data</code>{" "}
+            Downloads section; <code>/data</code> redirects to <code>/about</code>. Convex stays
+            the live source for pages. The base data is CC0, but each dataset is
             &quot;mixed&quot; — the substance index keeps TripSit&apos;s terms on its{" "}
             <code>interactions</code> field, the effect index references third-party replication
             media, and legacy trip reports keep their authors&apos; rights (see the{" "}

@@ -11,12 +11,24 @@ This repo is linked to Vercel. Treat this file as the repo-local deployment/acco
 
 ### Domain routing invariant
 
-- `dosewiki-admin` is the full app/admin deployment.
-- `dose.wiki` and `www.dose.wiki` must remain under-construction public hosts until the user explicitly asks to launch the public site.
-- Do not alias a full app deployment to `dose.wiki` or `www.dose.wiki` during `/push`.
-- If these domains are attached to this Vercel project, `middleware.ts` must keep the host gate that redirects non-homepage requests on `dose.wiki` / `www.dose.wiki` back to `/`.
-- The construction-host gate may pass `/api/csp-report` for report-only security telemetry; this exception must not expose application data or editor APIs.
-- Keep `NEXT_PUBLIC_SITE_URL` pointed at the crawlable full-app host (`https://dosewiki-admin.vercel.app` or the active admin preview URL) while the public hosts are gated. Switch it to `https://dose.wiki` only as part of an explicit public launch.
+- `dosewiki-admin` at `https://dosewiki-admin.vercel.app/` is the full app/admin
+  deployment.
+- Keep `dose.wiki` and `www.dose.wiki` construction-gated through
+  **2026-08-31**. The date is a floor, not an automatic launch: after it passes,
+  keep the gate until the user explicitly authorizes the public launch.
+- During `/push`, deploy the full app to `dosewiki-admin`; do not alias that
+  deployment to `dose.wiki` or `www.dose.wiki`.
+- If the public domains are attached to this Vercel project, `middleware.ts`
+  must keep the host gate that redirects non-homepage requests on `dose.wiki` /
+  `www.dose.wiki` back to `/`.
+- The construction-host gate deliberately passes the read-only `/api/v1` API
+  and its descendants. It may also pass `/api/csp-report` for report-only
+  security telemetry; that endpoint must not expose application data or editor
+  APIs. `lib/next/publicConstructionPolicy.ts` owns the complete allowlist.
+- Keep `NEXT_PUBLIC_SITE_URL` pointed at the crawlable full-app host
+  (`https://dosewiki-admin.vercel.app` or the active admin preview URL) while the
+  public hosts are gated. Switch it to `https://dose.wiki` only after the launch
+  floor has passed and the user has explicitly authorized launch.
 - `NEXT_PUBLIC_SITE_FLAVOR` picks the publication identity at build time: unset / unrecognised = dose.wiki, `effectindex` = Effect Index. The `dosewiki-admin` project must leave it unset. A typo silently falls back to dose.wiki, so the build logs a runtime-env warning when the variable is set to an unrecognised value.
 - Remote analytics must remain limited to the exact public host allowlist. Admin and Vercel preview HTML must not execute `analytics.dose.wiki`.
 - HTML responses must retain the path-split browser policy documented in [browser-security-policy.md](browser-security-policy.md): public documents use the static-compatible `script-src` (`'unsafe-inline'`, no nonce/hash) so ISR stays effective; `/dev` documents keep the strict nonce-plus-hash policy. Plain `'unsafe-eval'` remains forbidden everywhere.
@@ -34,16 +46,19 @@ day: `substanceIndex:setArticleField` was merged and built but never deployed to
 `glad-minnow-656`.
 
 `vercel.json` now runs `bun run build:vercel`, which is
-[`scripts/deploy/vercel-build.mjs`](../../scripts/deploy/vercel-build.mjs). The
-environment decides what that does:
+[`scripts/deploy/vercel-build.mjs`](../../scripts/deploy/vercel-build.mjs). One
+Convex invariant governs every build: local, development, Vercel Preview, and
+Production environments all use `glad-minnow-656`. A Vercel Preview is an app
+preview, not a Convex preview deployment.
 
-| `CONVEX_DEPLOY_KEY` | What the build does |
+| Build state | Required interpretation and action |
 | --- | --- |
-| set (production key, production build) | `convex:check-functions --checkout-only`, then a strict drift check against the target, then `convex deploy --cmd 'bun run build'` — functions publish first, then the app builds |
-| set (preview key, preview build) | call-site check, then `convex deploy --cmd 'bun run build'` against Convex's own preview deployment |
-| set (production key, **preview** build) | **downgraded to verify-only.** An unreleased branch must not publish to production. Prints an advisory read-only drift report and builds |
-| set (preview key, **production** build) | **refuses to build.** The key decides the target, so the release would publish functions to a throwaway preview while the app talks to production |
-| unset | call-site check, then `bun run build`. Nothing is published |
+| Production build with the production key for `glad-minnow-656` | Expected. Run the checkout and strict drift checks, then `convex deploy --cmd 'bun run build'`; publish functions before building the app. |
+| Preview or Development build with no deploy key | Expected. Check call sites, then build without publishing Convex functions. Keep every Convex URL on `glad-minnow-656`. |
+| Production build with no deploy key | Verification-only. The app builds, but live drift cannot be checked or repaired; configure the Production key as described below. |
+| Production key exposed to a Preview build | Configuration error. The wrapper defensively downgrades to verification-only; remove the key from the Preview environment. |
+| Any Convex preview deploy key or preview deployment | Unsupported conflict with the production-only invariant. The wrapper still contains defensive preview-key branches, but they do not define a supported topology. Remove the preview key and point the app at `glad-minnow-656`. |
+| Preview key exposed to a Production build | Configuration error; the wrapper refuses the build. Replace it with the production key for `glad-minnow-656`. |
 
 One side effect to know about: `convex deploy --cmd` sets the framework's public
 Convex URL variable (`NEXT_PUBLIC_CONVEX_URL`) for the build it runs, pointing at
@@ -67,21 +82,21 @@ checkout — and it prints `NOT VERIFIED` about the half it could not check
 (the deployment's live function list, which needs a key). A build that verified
 nothing does not report a pass.
 
-Local builds never deploy, even if a key is present in your shell: `convex
-deploy` publishes the working tree and only a Vercel checkout is guaranteed to
-be exactly one commit. Deploy from a workstation with `npm run convex:deploy`
-(below), which guards that.
+Local builds never deploy, even if a key is present in the shell: `convex
+deploy` publishes the working tree, and only a Vercel checkout is guaranteed to
+be exactly one commit. Deploy production functions from a workstation with
+`npm run convex:deploy -- --prod` (below), which guards the publish.
 
 Drift still runs in both directions, and neither announces itself:
 
 - **The app is ahead of the deployment.** A shipped UI calls a function the
   deployment never received. Production redacts every error to a bare
-  `Server Error`, so the failure is undiagnosable at runtime. This broke inline
-  click-to-edit for a day when `substanceIndex:setArticleField` was merged and
-  built but never deployed to `glad-minnow-656`. The build wrapper closes this
-  direction **only once `CONVEX_DEPLOY_KEY` exists on the `dosewiki-admin`
-  project** — see the runbook below. Until then every build takes the verify
-  path and says so.
+  `Server Error`, so the failure is undiagnosable at runtime. **Historical
+  incident (2026-07-30):** `substanceIndex:setArticleField` was merged and built
+  but never deployed to `glad-minnow-656`, which broke inline click-to-edit for
+  a day. The build wrapper closes this direction when `CONVEX_DEPLOY_KEY` exists
+  on the `dosewiki-admin` Production environment. Without that key, the build
+  takes the verify path and says so.
 - **The deployment is ahead of the working tree.** `convex deploy` publishes the
   **working tree**, not git HEAD, so any function live on the deployment but
   absent from the tree is **silently deleted** and the deploy still reports
@@ -154,52 +169,48 @@ runs the guards that a bare CLI call skips:
   disposable, set `CONVEX_DEPLOY_ALLOW_FUNCTION_DELETION=1` on that Vercel
   environment to let the build drop it, then remove the variable.
 
-### Required manual step: give only `dosewiki-admin` a deploy key
+### Required configuration: only `dosewiki-admin` gets a deploy key
 
-The build wrapper is inert until this is done, and it must be done from the
-Vercel dashboard — it cannot be committed. Ordered:
+Inspect the Vercel environment before changing it:
 
-1. Mint a **production** Convex deploy key for `glad-minnow-656`: Convex
-   dashboard → the production deployment → Settings → Deploy Keys → Generate
-   Production Deploy Key.
-2. Vercel → the **`dosewiki-admin`** project → Settings → Environment Variables
-   → add `CONVEX_DEPLOY_KEY` with that value, scoped to the **Production**
-   environment **only**. Leave Preview and Development unchecked: a production
-   key on a preview build is the one case the wrapper deliberately downgrades to
-   verify-only, and there is no reason to make it exercise that path.
-3. **Do not add `CONVEX_DEPLOY_KEY` to the Effect Index project, in any
+1. In the `dosewiki-admin` project, confirm `CONVEX_DEPLOY_KEY` is scoped to the
+   **Production** environment only. Preview and Development must remain
+   unchecked.
+2. If the variable is absent, mint a production deploy key for
+   `glad-minnow-656`: Convex dashboard → production deployment → Settings →
+   Deploy Keys → Generate Production Deploy Key. Add it to the Production scope
+   identified in step 1.
+3. If the existing variable uses any other deployment's key, replace it with the
+   production key for `glad-minnow-656`.
+4. **Do not add `CONVEX_DEPLOY_KEY` to the Effect Index project, in any
    environment.** Its absence is what keeps the read-only publication deployment
    read-only under a shared build command. Adding it there would give
    `effectindex.com` a write path into the production database.
-4. Redeploy `dosewiki-admin` and read the build log. It must print
+5. Redeploy `dosewiki-admin` and read the build log. It must print
    `Convex functions WILL be deployed by this build`. If it prints
    `will NOT be deployed`, the variable is not visible to that build.
-5. Redeploy Effect Index and confirm the opposite: it must print
+6. Redeploy Effect Index and confirm the opposite: it must print
    `will NOT be deployed` and build successfully.
-6. Optionally add the same value as the `CONVEX_DEPLOY_KEY_PROD` **GitHub
+7. Optionally add the same value as the `CONVEX_DEPLOY_KEY_PROD` **GitHub
    Actions secret** to switch on the CI half of the drift gate (next section).
 
-Until step 2 is done, every `dosewiki-admin` build takes the verify path. That
-is strictly better than before — a call to a function missing from the checkout
-now fails the build — but it does **not** yet close the gap that caused the
-outage, because verifying against the live deployment needs the key.
+When `dosewiki-admin` lacks its Production deploy key, every build takes the
+verify path. Call-site checks still run, but the build cannot compare with or
+update the live deployment.
 
-### Limitation left in place: the CI drift gate is inert
+### CI drift credential branch
 
-This GitHub repository has **no Actions secrets at all**. The
-`Check Convex function drift against production` step in
-`.github/workflows/vercel-policy-checks.yml` therefore skips with a notice on
-every run, and the deployment half of that gate is not enforced in CI. It is
-left honest rather than made to look green: the step prints
-`SKIPPED` and states that the check was not enforced. Adding
-`CONVEX_DEPLOY_KEY_PROD` as a repository secret turns it on; nothing else needs
-to change.
+The `Check Convex function drift against production` step in
+`.github/workflows/vercel-policy-checks.yml` requires
+`CONVEX_DEPLOY_KEY_PROD`. Without that repository secret it prints `SKIPPED` and
+states that the check was not enforced. Adding the production key as that secret
+turns on the live drift check; no workflow edit is required.
 
-The steps that do run on every push — `--checkout-only` call-site integrity and
-`node scripts/deploy/check-build-command-wiring.mjs` — need no credential. The
-second one exists because the entire fix is one string in `vercel.json`; an edit
-back to a plain `bun run build` would silently restore the outage with nothing
-else failing.
+The credential-free checks run on every push:
+`--checkout-only` call-site integrity and
+`node scripts/deploy/check-build-command-wiring.mjs`. The wiring check guards the
+single build-command string in `vercel.json`; changing it back to a plain
+`bun run build` would restore the deployment gap without another failure.
 
 ### Environment variables the Effect Index project sets
 
@@ -212,23 +223,35 @@ else failing.
 
 ### Variables the Effect Index project deliberately omits
 
-The omissions are the security posture, not an oversight. Leaving these unset makes the deployment **read-only**:
+The omissions are the security posture, not an oversight. Leaving these unset
+makes the deployment read-only:
 
-- `CONVEX_DEPLOY_KEY` — the ability to publish Convex functions. Its absence is
-  what makes the shared `bun run build:vercel` command safe on this project: with
-  no key the build verifies and never deploys. See
+- `CONVEX_DEPLOY_KEY` — the ability to publish Convex functions. With no key,
+  the shared `bun run build:vercel` command verifies and never deploys. See
   [Shipping the app ships the Convex functions](#shipping-the-app-ships-the-convex-functions).
-- `CONVEX_URL` — the privileged write target. `lib/convex/runtimeTargets.ts` selects the write deployment from `CONVEX_URL` first and never falls back to `CONVEX_PUBLIC_READ_URL`, so with `CONVEX_URL` unset there is no write target at all.
-- `CONVEX_ADMIN_KEY` (and the `CONVEX_ADMIN_TOKEN_*` intent tokens) — without an admin key, `lib/convex/serverWriteCapability.ts` reports a configuration failure rather than a usable write client.
-- `AUTH_SECRET` / `NEXTAUTH_SECRET`, `AUTH_GITHUB_ID`, `AUTH_GITHUB_SECRET`, `AUTH_ADMIN_EMAILS` — no sign-in, no sessions, no admin membership.
+- `CONVEX_URL` — the explicit privileged write target. Compatibility resolution
+  may still identify `NEXT_PUBLIC_CONVEX_URL`, but no write capability exists
+  without an accepted admin credential.
+- `CONVEX_ADMIN_KEY` and every `CONVEX_ADMIN_TOKEN_*` intent token — without an
+  admin credential, `lib/convex/serverWriteCapability.ts` reports a
+  configuration failure instead of returning a usable write client.
+- `AUTH_SECRET` / `NEXTAUTH_SECRET`, `AUTH_GITHUB_ID`, `AUTH_GITHUB_SECRET`,
+  `AUTH_ADMIN_EMAILS` — no sign-in, sessions, or admin membership.
 
-**Consequence, and it is intended:** editor routes and `/sign-in` **fail on `effectindex.com`**. That is the designed behaviour of a read-only publication deployment, not a bug. Do not "fix" it by copying the write credentials across — doing so would give a public marketing domain a write path into the production database. Editing stays on `dosewiki-admin`.
+Editor routes and `/sign-in` therefore fail on `effectindex.com`. That is the
+intended read-only posture. Editing stays on `dosewiki-admin`; copying write
+credentials to Effect Index would give a public marketing domain a production
+write path.
 
 `NEXT_PUBLIC_HOME_CONSTRUCTION_MODE` is **left unset** on the Effect Index project. Effect Index launches as a live public site, so it must not serve the holding page.
 
 ### dose.wiki project environment
 
-**Unchanged.** The `dosewiki-admin` project keeps its existing variables exactly as they are, including `NEXT_PUBLIC_SITE_FLAVOR` left unset (which resolves to the dose.wiki flavor). Launching Effect Index must not touch it.
+The `dosewiki-admin` project leaves `NEXT_PUBLIC_SITE_FLAVOR` unset, which
+selects the dose.wiki flavor. Its local, Development, Preview, and Production
+Convex URLs must all resolve to `glad-minnow-656`; no environment mirrors or
+substitutes a second Convex deployment. Launching Effect Index must not change
+either rule.
 
 ### Domain arrangement
 
@@ -247,8 +270,8 @@ Importing content into Convex therefore does **not** immediately change the live
 On `effectindex.com`:
 
 - [ ] The homepage leads with the Subjective Effect Index and carries the Effect Index description.
-- [ ] Primary navigation reads Effects, Replications, Reports, Substances, About.
-- [ ] The blog resolves, and all four supporting pages resolve: `/donate`, `/contact`, `/discord`, `/copyright-disclaimer`.
+- [ ] Primary navigation reads Effects, Replications, Reports; About remains secondary and Substances is not advertised.
+- [ ] The blog and all four supporting pages resolve: `/donate`, `/contact`, `/discord`, `/copyright-disclaimer`.
 - [ ] A sample effect, substance, report, article and replication page each render.
 - [ ] Page source shows Effect Index in the `<title>`, the Open Graph tags and the JSON-LD structured data.
 - [ ] `/sitemap.xml` lists the Effect Index-only routes.
@@ -258,7 +281,7 @@ On `dose.wiki` / `dosewiki-admin`:
 
 - [ ] Appearance unchanged.
 - [ ] The light/dark theme toggle still works (Effect Index pins light and hides the toggle; dose.wiki must not).
-- [ ] The Effect Index-only routes 404: `/donate`, `/contact`, `/discord`, `/copyright-disclaimer`, and the blog.
+- [ ] The blog resolves. Effect Index-only routes return 404: `/donate`, `/contact`, `/discord`, `/copyright-disclaimer`, and `/documentation-style-guide`.
 
 ### Verifying the Effect Index build locally
 

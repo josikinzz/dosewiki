@@ -29,6 +29,8 @@ interface EffectArticlePageProps {
   replicationsSection?: ReactNode;
   drugHrefPrefix?: string;
   categoryHrefPrefix?: string;
+  linkableSubstanceSlugs: readonly string[];
+  linkableEffectSlugs: readonly string[];
   contributorDirectory?: ContributorDirectory;
 }
 
@@ -81,6 +83,8 @@ export function EffectArticlePage({
   replicationsSection,
   drugHrefPrefix,
   categoryHrefPrefix,
+  linkableSubstanceSlugs,
+  linkableEffectSlugs,
   contributorDirectory = [],
 }: EffectArticlePageProps) {
   const normalizedReplicationsSection = replicationsSection
@@ -258,6 +262,7 @@ export function EffectArticlePage({
                       groups={section.groups}
                       total={section.total}
                       drugHrefPrefix={drugHrefPrefix}
+                      linkableSubstanceSlugs={linkableSubstanceSlugs}
                       categoryHrefPrefix={categoryHrefPrefix}
                       showHeading={false}
                     />
@@ -273,6 +278,7 @@ export function EffectArticlePage({
                   citations={section.citations}
                   externalLinks={section.externalLinks}
                   seeAlso={section.seeAlso}
+                  linkableEffectSlugs={linkableEffectSlugs}
                 />
               );
 

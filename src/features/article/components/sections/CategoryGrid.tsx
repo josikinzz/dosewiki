@@ -118,6 +118,7 @@ interface CategoryGridProps {
   onSelectCategory?: (categoryKey: string) => void;
   drugHrefPrefix?: string;
   categoryHrefPrefix?: string;
+  linkableDrugSlugs?: readonly string[];
   defaultExpanded?: boolean;
   hideEmptyGroups?: boolean;
   limitColumns?: boolean;
@@ -138,6 +139,7 @@ export function CategoryGrid({
   onSelectCategory,
   drugHrefPrefix,
   categoryHrefPrefix,
+  linkableDrugSlugs,
   defaultExpanded = true,
   hideEmptyGroups = false,
   limitColumns,
@@ -303,9 +305,17 @@ export function CategoryGrid({
     onSelectCategory?.(key);
   }, [onSelectCategory]);
 
+  const linkableDrugSlugSet = useMemo(
+    () => (linkableDrugSlugs ? new Set(linkableDrugSlugs) : null),
+    [linkableDrugSlugs],
+  );
+
   const getDrugHref = useCallback(
-    (slug: string) => drugHrefPrefix ? `${drugHrefPrefix}${slug}` : undefined,
-    [drugHrefPrefix],
+    (slug: string) =>
+      drugHrefPrefix && (!linkableDrugSlugSet || linkableDrugSlugSet.has(slug))
+        ? `${drugHrefPrefix}${slug}`
+        : undefined,
+    [drugHrefPrefix, linkableDrugSlugSet],
   );
 
   const getCategoryHref = useCallback(

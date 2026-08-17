@@ -5,7 +5,7 @@ import {
   loadMechanismRoute,
   loadTaxonomyStaticParams,
   mechanismRouteDescriptor,
-} from "@server/next/routeLoaders";
+} from "@server/next/routeLoaders.taxonomy";
 import { MechanismDetailPage } from "@/components/pages/MechanismDetailPage";
 import { serializeJsonLd } from "@/utils/seo/structuredData";
 

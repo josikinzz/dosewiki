@@ -17,14 +17,12 @@ import { slugify } from "../lib/slug.mjs";
 
 // Find articles with incomplete tiers that have more data in parsed-sources
 const TIERS = ["threshold", "light", "moderate", "strong", "heavy"];
-const STAGES = ["onset", "come_up", "peak", "offset", "after_effects", "total_duration"];
 
 function tierHasData(tier) {
   return tier && (tier.min != null || tier.max != null);
 }
 
 const missingTiersFixable = [];
-const missingStagesFixable = [];
 
 for (const article of articles) {
   const slug = slugify(article.title);
@@ -44,10 +42,6 @@ for (const article of articles) {
       ) || [];
 
       for (const pr of parsedRoutes) {
-        const parsedTiers = TIERS.filter(t => {
-          const key = t === "moderate" ? "common" : t;
-          return tierHasData(pr.ranges?.[key]);
-        });
         const canFill = missingTiers.filter(t => {
           const key = t === "moderate" ? "common" : t;
           return tierHasData(pr.ranges?.[key]);

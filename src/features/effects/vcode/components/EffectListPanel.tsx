@@ -7,7 +7,7 @@ import {
 } from "@/components/common/IndexCard";
 import { cn } from "@/lib/utils";
 import { countVCodePanelRows, type VCodePanelSection } from "../panelModel";
-import { normalizeInternalPath } from "./IntLink";
+import { resolveInternalHref } from "./IntLink";
 
 /**
  * The effect roundups inside Effect Index's intensity-scale articles, rendered
@@ -86,7 +86,7 @@ export function EffectListPanel({
             title={section.title}
             count={isSectioned ? section.rows.length : undefined}
             titleHref={
-              section.titleHref ? normalizeInternalPath(section.titleHref) : undefined
+              section.titleHref ? resolveInternalHref(section.titleHref) : undefined
             }
             showDivider={sectionIndex > 0}
           >
@@ -95,14 +95,14 @@ export function EffectListPanel({
                 <IndexCardListItem
                   key={`${row.href}-${row.label}`}
                   label={row.label}
-                  href={normalizeInternalPath(row.href)}
+                  href={resolveInternalHref(row.href)}
                   meta={row.meta}
                 />,
                 ...(row.children ?? []).map((child) => (
                   <IndexCardListItem
                     key={`${child.href}-${child.label}`}
                     label={child.label}
-                    href={normalizeInternalPath(child.href)}
+                    href={resolveInternalHref(child.href)}
                     meta={child.meta}
                     depth={1}
                   />

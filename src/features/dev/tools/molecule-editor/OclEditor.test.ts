@@ -7,7 +7,7 @@ import {
   mirrorMoleculeCoordinates,
   readBoldBonds,
   rotateMoleculeCoordinates,
-} from "./OclEditor";
+} from "./moleculeTransforms";
 
 /** Minimal molecule standing in for OCL's bold-bond flag storage. */
 class BoldBondFixture {

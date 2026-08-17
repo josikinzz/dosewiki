@@ -2,6 +2,7 @@ import {
   isDirectUrlOnlySubstance,
   isHiddenSubstance,
   UNQUALIFIED_MECHANISM_QUALIFIER_KEY,
+  normalizeMechanisms,
   type NormalizedMechanism,
   type SubstancePriority,
 } from "../../schema";
@@ -78,11 +79,15 @@ export function deriveMechanismRouteData<TRecord>(
     }
 
     for (const mechanism of source.mechanisms) {
-      const normalizedBase = mechanism.base.trim();
-      const slug = mechanism.slug || normalizeTaxonomyKey(normalizedBase);
-      if (!normalizedBase || !slug) {
+      const [normalizedMechanism] = normalizeMechanisms([
+        mechanism.label || mechanism.base,
+      ]);
+      if (!normalizedMechanism) {
         continue;
       }
+
+      const normalizedBase = normalizedMechanism.base;
+      const slug = normalizedMechanism.slug;
 
       let accumulator = mechanismMap.get(slug);
       if (!accumulator) {
@@ -99,13 +104,14 @@ export function deriveMechanismRouteData<TRecord>(
       accumulator.records.add(source.record);
 
       const qualifierKey =
-        mechanism.qualifierSlug ?? UNQUALIFIED_MECHANISM_QUALIFIER_KEY;
+        normalizedMechanism.qualifierSlug ??
+        UNQUALIFIED_MECHANISM_QUALIFIER_KEY;
       let qualifier = accumulator.qualifierMap.get(qualifierKey);
       if (!qualifier) {
         qualifier = {
           key: qualifierKey,
-          label: mechanism.qualifier ?? "General (no qualifier)",
-          qualifier: mechanism.qualifier,
+          label: normalizedMechanism.qualifier ?? "General (no qualifier)",
+          qualifier: normalizedMechanism.qualifier,
           records: new Set(),
         };
         accumulator.qualifierMap.set(qualifierKey, qualifier);

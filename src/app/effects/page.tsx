@@ -1,5 +1,5 @@
 import { buildPublicPageMetadata, buildSiteUrl, getPublicRoutePath } from "@server/next/publicSite";
-import { loadEffectsIndexRoute } from "@server/next/routeLoaders";
+import { loadEffectsIndexRoute } from "@server/next/routeLoaders.substances";
 import { buildItemListSchema, serializeJsonLd } from "@/utils/seo/structuredData";
 import { EffectsIndexPage } from "@/features/effects/pages/EffectsIndexPage";
 import { SITE_FLAVOR_CONFIG } from "@/config/siteFlavor";

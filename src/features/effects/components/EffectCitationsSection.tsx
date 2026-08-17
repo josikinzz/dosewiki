@@ -24,6 +24,7 @@ interface EffectCitationsSectionProps {
   citations?: Citation[];
   externalLinks?: ExternalLink[];
   seeAlso?: SeeAlso[];
+  linkableEffectSlugs?: readonly string[];
 }
 
 /**
@@ -36,6 +37,7 @@ export function EffectCitationsSection({
   citations = [],
   externalLinks = [],
   seeAlso = [],
+  linkableEffectSlugs,
 }: EffectCitationsSectionProps) {
   const projection = projectEffectCitations({
     citations,
@@ -44,19 +46,31 @@ export function EffectCitationsSection({
     expandedReferences: true,
   });
   const { internalRelatedLinks, externalLinks: projectedExternalLinks, references } = projection;
+  const linkableEffectSlugSet = linkableEffectSlugs ? new Set(linkableEffectSlugs) : null;
+  const visibleInternalRelatedLinks = {
+    ...internalRelatedLinks,
+    items: internalRelatedLinks.items.filter((item) => {
+      const match = item.url.match(/^\/effects\/([^/]+)$/);
+      return !match || !linkableEffectSlugSet || linkableEffectSlugSet.has(match[1]);
+    }),
+  };
 
-  if (projection.isEmpty) {
+  if (
+    visibleInternalRelatedLinks.items.length === 0 &&
+    projectedExternalLinks.items.length === 0 &&
+    references.items.length === 0
+  ) {
     return null;
   }
 
   const groups = [
-    internalRelatedLinks.items.length > 0 && {
+    visibleInternalRelatedLinks.items.length > 0 && {
       key: "see-also",
       icon: "lucide:link",
       title: internalRelatedLinks.title,
       content: (
         <ul className="flex list-none flex-wrap gap-x-1.5 gap-y-1 p-0 text-sm">
-          {internalRelatedLinks.items.map((item, index) => (
+          {visibleInternalRelatedLinks.items.map((item, index) => (
             <li key={index} className="inline">
               <a
                 href={item.url}
@@ -64,7 +78,7 @@ export function EffectCitationsSection({
               >
                 {item.label}
               </a>
-              {index < internalRelatedLinks.items.length - 1 && (
+              {index < visibleInternalRelatedLinks.items.length - 1 && (
                 <span className="text-dose-text-ghost ml-1.5">&middot;</span>
               )}
             </li>

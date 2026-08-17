@@ -156,7 +156,7 @@ export function GalleryMediaTile({
             className={cn(
               'pointer-events-none absolute bottom-2 right-2 z-10 flex items-center gap-1 rounded-full',
               'bg-black/55 px-2 py-1 backdrop-blur-sm',
-              'text-[11px] font-medium leading-none tabular-nums text-[color:var(--theme-text-on-media)]',
+              'theme-media-tile-title text-[11px] font-medium leading-none tabular-nums',
               'transition-opacity duration-300 motion-reduce:transition-none',
               playing ? 'opacity-0' : 'opacity-100',
             )}

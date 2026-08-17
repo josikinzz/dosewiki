@@ -73,7 +73,7 @@ const slideFadeClassName =
  * the page theme either — the same reasoning as MediaTile's black scrim.
  */
 const mediaControlClassName = cn(
-  "grid flex-none place-items-center rounded-full bg-black/60 text-[color:var(--theme-text-on-media)]",
+  "theme-media-tile-title grid flex-none place-items-center rounded-full bg-black/60",
   "opacity-70 backdrop-blur-sm transition-opacity hover:opacity-100 focus-visible:opacity-100",
   "motion-reduce:transition-none",
   focusRingClassName,
@@ -393,7 +393,7 @@ export function ReplicationShowcase({ works, totalCount }: ReplicationShowcasePr
                       setLiveMessage(`Playing ${work.title}`);
                     }}
                     className={cn(
-                      "grid size-14 place-items-center rounded-full bg-black/60 text-[color:var(--theme-text-on-media)]",
+                      "theme-media-tile-title grid size-14 place-items-center rounded-full bg-black/60",
                       "backdrop-blur-sm transition-opacity hover:opacity-85",
                       "motion-reduce:transition-none",
                       focusRingClassName,
@@ -473,7 +473,7 @@ export function ReplicationShowcase({ works, totalCount }: ReplicationShowcasePr
                           focusRingClassName,
                           selected
                             ? "border-dose-accent-strong ring-dose-accent-strong opacity-100 ring-1"
-                            : "border-white/20 opacity-70 hover:opacity-100 focus-visible:opacity-100",
+                            : "theme-media-thumbnail-border opacity-70 hover:opacity-100 focus-visible:opacity-100",
                         )}
                       >
                         {thumbUrl ? (
@@ -493,7 +493,7 @@ export function ReplicationShowcase({ works, totalCount }: ReplicationShowcasePr
                           </span>
                         )}
                         {work.type === "video" ? (
-                          <span className="absolute bottom-0.5 right-0.5 grid size-3.5 place-items-center rounded-full bg-black/60 text-[color:var(--theme-text-on-media)]">
+                          <span className="theme-media-tile-title absolute bottom-0.5 right-0.5 grid size-3.5 place-items-center rounded-full bg-black/60">
                             <Icon icon="lucide:play" size={8} className="fill-current" />
                           </span>
                         ) : null}
@@ -507,7 +507,7 @@ export function ReplicationShowcase({ works, totalCount }: ReplicationShowcasePr
                     aria-label={`${total - count} more replications in the gallery`}
                     className={cn(
                       "grid size-9 flex-none snap-start place-items-center rounded-md pointer-coarse:size-11",
-                      "bg-black/60 text-[11px] font-semibold tabular-nums text-[color:var(--theme-text-on-media)]",
+                      "theme-media-tile-title bg-black/60 text-[11px] font-semibold tabular-nums",
                       "opacity-70 backdrop-blur-sm transition-opacity hover:opacity-100 focus-visible:opacity-100",
                       focusRingClassName,
                     )}

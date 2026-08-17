@@ -154,5 +154,3 @@ export const ContributorsSection = memo(function ContributorsSection({
     </section>
   );
 });
-
-export default ContributorsSection;

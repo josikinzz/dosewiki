@@ -8,7 +8,7 @@ import { Icon, type IconName } from "@/components/common/Icon";
 import {
   extractCitationTokens,
   stripCitationTokens,
-} from "@/lib/citations/referenceModel";
+} from "@/lib/citations/citationTokens";
 import { cn } from "@/lib/utils";
 import type { SubstanceArticle } from "@/schema";
 import { isPlainLeftClick } from "@/utils/navigation";

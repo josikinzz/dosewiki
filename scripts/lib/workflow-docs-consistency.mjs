@@ -28,8 +28,6 @@ export const workflowEnvVars = [
 
 export const workflowEnvDocsToCheck = [
   'README.md',
-  'CLAUDE.md',
-  'AGENTS.md',
   'scripts/README.md',
 ];
 

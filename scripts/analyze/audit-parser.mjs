@@ -47,7 +47,7 @@ for (const file of sourceFiles) {
   let content;
   try {
     content = fs.readFileSync(filePath, "utf-8");
-  } catch (e) {
+  } catch {
     continue;
   }
 
@@ -181,11 +181,9 @@ for (const [slug, data] of Object.entries(parsed.substances)) {
     noParsedCount++;
     if (noParsedCount <= 20) {
       const sourceFile = path.join(sourcesDir, `${slug}.ts`);
-      let hasSourceFile = false;
       let sourceSnippet = "";
       try {
         const content = fs.readFileSync(sourceFile, "utf-8");
-        hasSourceFile = true;
         // Check what sources are in the file
         const sources = [];
         if (content.includes("tripsit")) sources.push("tripsit");
@@ -194,7 +192,7 @@ for (const [slug, data] of Object.entries(parsed.substances)) {
         if (content.includes("drugbank")) sources.push("drugbank");
         if (content.includes("wikipedia")) sources.push("wikipedia");
         sourceSnippet = sources.join(", ") || "unknown";
-      } catch (e) {
+      } catch {
         sourceSnippet = "NO SOURCE FILE";
       }
       console.log(`  ${slug}: Sources in file: ${sourceSnippet}`);

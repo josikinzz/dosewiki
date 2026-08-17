@@ -1,6 +1,6 @@
 import { permanentRedirect, notFound } from "next/navigation";
 import { buildPublicPageMetadata, buildSiteUrl, getPublicRoutePath } from "@server/next/publicSite";
-import { loadReplicationRoute } from "@server/next/routeLoaders";
+import { loadReplicationRoute } from "@server/next/routeLoaders.replications";
 import { getStaticReplicationParams } from "@server/next/staticParams";
 import { SITE_FLAVOR_CONFIG } from "@/config/siteFlavor";
 import { ReplicationDetailPage } from "@/features/effects/pages/ReplicationDetailPage";

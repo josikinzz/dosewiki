@@ -100,6 +100,25 @@ const SUBARTICLE_SELECTOR_CORRECTIONS: Record<string, string> = {
   "/effects/memory-suppression?s=physical-auntomy": "/effects/physical-autonomy",
 };
 
+const DIRECT_PATH_CORRECTIONS: Readonly<Record<string, string>> = {
+  "/dxm": "/dextromethorphan",
+  "/effects/acuity-enhancement": "/effects/visual-acuity-enhancement",
+  "/effects/category/effects": "/effects",
+  "/effects/category/visual-enhancements": "/effects/category/visual-amplifications",
+  "/effects/diffraction-spikes": "/effects/diffraction",
+  "/effects/memory-suppressionShort": "/effects/memory-suppression",
+  "/effects/stimulating": "/effects/stimulation",
+  "/effects/suggestibility-enhancement": "/effects/increased-suggestibility",
+  "/effects/sweating": "/effects/increased-perspiration",
+  "/profiles/Josie": "/contributors/josie",
+};
+
+const NON_LINKABLE_INTERNAL_PATHS: ReadonlySet<string> = new Set([
+  "/effects/pattern-recognition-enhancement",
+  "/effects/pattern-recognition-suppression",
+  "/effects/psychedelic-therapy",
+]);
+
 /**
  * Legacy redirect sources that `normalizeInternalPath` would otherwise rewrite
  * past. `/substances/dxm` is the live example: the `/substances/` flattening turns
@@ -247,6 +266,10 @@ export function normalizeInternalPath(to?: string) {
     return "#";
   }
 
+  if (/^\/https?:\/\//i.test(rawPath)) {
+    return rawPath.slice(1);
+  }
+
   if (rawPath.startsWith("#") || isExternalHref(rawPath)) {
     return rawPath;
   }
@@ -286,7 +309,17 @@ export function normalizeInternalPath(to?: string) {
     return corrected;
   }
 
+  const directCorrection = DIRECT_PATH_CORRECTIONS[normalizedPath];
+  if (directCorrection) {
+    return `${directCorrection}${normalizeSubarticleSuffix(suffix)}`;
+  }
+
   return `${normalizedPath}${normalizeSubarticleSuffix(suffix)}`;
+}
+
+export function resolveInternalHref(to?: string): string | undefined {
+  const href = normalizeInternalPath(to);
+  return NON_LINKABLE_INTERNAL_PATHS.has(splitPathSuffix(href).pathname) ? undefined : href;
 }
 
 /**
@@ -299,7 +332,10 @@ export function IntLink({
   to, 
   children,
 }: PropsWithChildren<IntLinkProps>) {
-  const href = normalizeInternalPath(to);
+  const href = resolveInternalHref(to);
+  if (!href) {
+    return <span>{children}</span>;
+  }
 
   return (
     <Link

@@ -46,7 +46,7 @@ const HEADER_HEIGHT_FALLBACK = 57;
 /** Round on-media control chip (same optics as the showcase's controls). */
 const deckControlClassName = cn(
   'pointer-events-auto grid size-11 flex-none place-items-center rounded-full',
-  'bg-black/55 text-[color:var(--theme-text-on-media)] backdrop-blur-sm',
+  'bg-black/55 theme-media-tile-title backdrop-blur-sm',
   'transition-opacity active:opacity-100 hover:opacity-100 opacity-80',
   'motion-reduce:transition-none',
   focusRingClassName,
@@ -266,7 +266,7 @@ function DeckPane({ work, sectionNearby, muted, reducedMotion, effectName }: Dec
         />
       ) : (
         <div className="absolute inset-0 grid place-items-center">
-          <Icon icon="svg-spinners:ring-resize" className="size-8 text-white/40" aria-hidden />
+          <Icon icon="svg-spinners:ring-resize" className="theme-media-loading-idle size-8" aria-hidden />
         </div>
       )}
 
@@ -285,12 +285,12 @@ function DeckPane({ work, sectionNearby, muted, reducedMotion, effectName }: Dec
       {showPausedBadge ? (
         <div className="pointer-events-none absolute inset-0 grid place-items-center">
           <span className="grid size-16 place-items-center rounded-full bg-black/50 backdrop-blur-sm">
-            <Icon icon="lucide:play" className="size-7 fill-current text-white" aria-hidden />
+            <Icon icon="lucide:play" className="theme-media-tile-title size-7 fill-current" aria-hidden />
           </span>
         </div>
       ) : buffering && shouldPlay ? (
         <div className="pointer-events-none absolute inset-0 grid place-items-center">
-          <Icon icon="svg-spinners:ring-resize" className="size-8 text-white/60" aria-hidden />
+          <Icon icon="svg-spinners:ring-resize" className="theme-media-loading-active size-8" aria-hidden />
         </div>
       ) : null}
 
@@ -302,15 +302,15 @@ function DeckPane({ work, sectionNearby, muted, reducedMotion, effectName }: Dec
         <Link
           href={publicHref.replication(work.slug)}
           className={cn(
-            'pointer-events-auto inline-flex min-h-11 max-w-full items-center gap-1.5 text-base font-semibold text-white',
+            'theme-media-tile-title pointer-events-auto inline-flex min-h-11 max-w-full items-center gap-1.5 text-base font-semibold',
             focusRingClassName,
           )}
           style={onMediaTextShadow}
         >
           <span className="truncate">{work.title}</span>
-          <Icon icon="lucide:arrow-up-right" size={14} className="shrink-0 text-white/70" aria-hidden />
+          <Icon icon="lucide:arrow-up-right" size={14} className="theme-media-tile-creator shrink-0" aria-hidden />
         </Link>
-        <p className="truncate text-sm text-white/75" style={onMediaTextShadow}>
+        <p className="theme-media-tile-creator truncate text-sm" style={onMediaTextShadow}>
           {byline}
         </p>
         {work.effect_slug ? (
@@ -409,23 +409,23 @@ function DeckSection({ group, index, total, muted, reducedMotion, effectName, on
         <Link
           href={artistHref}
           className={cn(
-            'pointer-events-auto inline-flex min-h-11 items-center gap-1.5 text-sm font-semibold text-white',
+            'theme-media-tile-title pointer-events-auto inline-flex min-h-11 items-center gap-1.5 text-sm font-semibold',
             focusRingClassName,
           )}
           style={onMediaTextShadow}
         >
-          <Icon icon="lucide:user-round" size={14} className="text-white/70" aria-hidden />
+          <Icon icon="lucide:user-round" size={14} className="theme-media-tile-creator" aria-hidden />
           <span className="max-w-[15rem] truncate">{group.label}</span>
-          <Icon icon="lucide:chevron-right" size={14} className="text-white/50" aria-hidden />
+          <Icon icon="lucide:chevron-right" size={14} className="theme-media-tile-creator opacity-70" aria-hidden />
         </Link>
-        <p className="text-xs tabular-nums text-white/60" style={onMediaTextShadow}>
+        <p className="theme-media-loading-active text-xs tabular-nums" style={onMediaTextShadow}>
           {workIndex + 1} / {count} · artist {index + 1} of {total}
         </p>
         {/* Per-artist progress bar */}
         {count > 1 ? (
-          <div className="mt-2 h-0.5 w-full overflow-hidden rounded-full bg-white/20">
+          <div className="theme-media-progress-track mt-2 h-0.5 w-full overflow-hidden rounded-full">
             <div
-              className="h-full rounded-full bg-white/80 transition-[width] duration-200 motion-reduce:transition-none"
+              className="theme-media-progress-fill h-full rounded-full transition-[width] duration-200 motion-reduce:transition-none"
               style={{ width: `${((workIndex + 1) / count) * 100}%` }}
             />
           </div>

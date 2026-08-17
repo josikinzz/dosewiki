@@ -321,5 +321,3 @@ function FeedbackField({
     </div>
   );
 }
-
-export default FeedbackSection;

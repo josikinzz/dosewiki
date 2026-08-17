@@ -1,4 +1,6 @@
-export const citationWorkflowCommandNames = Object.freeze([
+// Package scripts may also expose bounded repair or migration tools. Stability is
+// an explicit allowlist; the `citations:` prefix alone does not make a command stable.
+export const stableCitationWorkflowCommandNames = Object.freeze([
   'citations:formal',
   'citations:apply-workbench',
   'citations:campaign',
@@ -30,7 +32,7 @@ export function buildCitationWorkflowCommands({
         'CONVEX_ADMIN_TOKEN_CITATION_EVIDENCE_REVIEW or CONVEX_ADMIN_KEY',
         'CONVEX_ADMIN_TOKEN_CITATION_EVIDENCE_WRITE or CONVEX_ADMIN_KEY when writing',
         'SOURCE_CONVEX_URL or CONVEX_PUBLIC_READ_URL or VITE_CONVEX_URL',
-        'TARGET_CONVEX_URL or VITE_CONVEX_URL when writing',
+        'TARGET_CONVEX_URL or --target-url when writing',
       ],
       scriptPath: 'scripts/citations/formal-citations.mjs',
       reads: [

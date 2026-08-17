@@ -93,7 +93,7 @@ export function EffectTagInput({
           disabled={disabled}
           value={draft}
           placeholder={placeholder ?? (value.length > 0 ? "Add effect…" : "Type to search effects…")}
-          className="h-7 min-w-[10rem] flex-1 border-0 bg-transparent px-1 shadow-none focus-visible:ring-0"
+          className="theme-elevation-none h-7 min-w-[10rem] flex-1 border-0 bg-transparent px-1 focus-visible:ring-0"
           onChange={(event) => {
             setDraft(event.target.value);
             setActiveIndex(-1);

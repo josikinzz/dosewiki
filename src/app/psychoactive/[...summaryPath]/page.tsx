@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
 
 import { buildPublicPageMetadata } from "@server/next/publicSite";
-import { loadPsychoactiveSummaryRoute } from "@server/next/routeLoaders";
+import { loadPsychoactiveSummaryRoute } from "@server/next/routeLoaders.substances";
 import { getStaticPsychoactiveSummaryParams } from "@server/next/staticParams";
 import { PsychoactiveSummaryPage } from "@/features/psychoactive-summaries/PsychoactiveSummaryPage";
 

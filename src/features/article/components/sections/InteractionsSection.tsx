@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { memo, useState, useCallback, useMemo } from "react";
+import { memo, useState, useCallback, useMemo, type MouseEvent } from "react";
 import { ExpandButton } from "@/components/common/ExpandButton";
 import { Icon, type IconName } from "@/components/common/Icon";
 import { PublicNameChip } from "@/components/common/PublicTokens";
@@ -26,6 +26,8 @@ const INTERACTIONS_ELSEWHERE = { ...INTERACTIONS_SOURCE, prefix: "Check" };
 
 interface InteractionsSectionProps {
   article: SubstanceArticle;
+  /** Canonical public article slugs; interaction groups without a page render as text. */
+  linkableSubstanceSlugs?: readonly string[];
   /** Called when an interaction substance is clicked */
   onSelectInteraction?: (substance: string) => void;
 }
@@ -79,13 +81,20 @@ const INTERACTION_CATEGORIES: Array<{
 /** Memoized interaction badge component */
 const InteractionBadge = memo(function InteractionBadge({
   item,
+  hasPublicRoute,
   isExpanded,
   onToggleExpand,
   onSelectInteraction,
   article,
   tone,
 }: {
-  item: { raw: string; substance: string; rationale: string | null };
+  item: {
+    raw: string;
+    substance: string;
+    substanceSlug: string;
+    rationale: string | null;
+  };
+  hasPublicRoute: boolean;
   isExpanded: boolean;
   onToggleExpand: (key: string) => void;
   onSelectInteraction?: (substance: string) => void;
@@ -93,8 +102,8 @@ const InteractionBadge = memo(function InteractionBadge({
   tone: string;
 }) {
   const hasRationale = !!item.rationale;
-  const href = `/${slugify(item.substance)}`;
-  const panelId = `interaction-${slugify(item.substance)}-${tone}`;
+  const href = hasPublicRoute ? `/${item.substanceSlug}` : null;
+  const panelId = `interaction-${item.substanceSlug}-${tone}`;
 
   const handleToggle = useCallback(() => {
     onToggleExpand(item.raw);
@@ -103,6 +112,22 @@ const InteractionBadge = memo(function InteractionBadge({
   const handleSelect = useCallback(() => {
     onSelectInteraction?.(item.substance);
   }, [onSelectInteraction, item.substance]);
+
+  const linkClickHandler = onSelectInteraction
+    ? (event: MouseEvent<HTMLAnchorElement>) => {
+        if (!isPlainLeftClick(event)) {
+          return;
+        }
+
+        event.preventDefault();
+        handleSelect();
+      }
+    : undefined;
+
+  const expandedNameClassName =
+    "theme-accent-heading pr-8 text-sm font-semibold transition-colors";
+  const collapsedNameClassName =
+    "text-current transition hover:opacity-90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fuchsia-400";
 
   // Expanded state - full-width inline card
   if (isExpanded && hasRationale) {
@@ -119,24 +144,17 @@ const InteractionBadge = memo(function InteractionBadge({
           ariaLabel={`Collapse ${item.substance} interaction rationale`}
           ariaControls={panelId}
         />
-        <Link
-          href={href}
-          onClick={
-            onSelectInteraction
-              ? (event) => {
-                  if (!isPlainLeftClick(event)) {
-                    return;
-                  }
-
-                  event.preventDefault();
-                  handleSelect();
-                }
-              : undefined
-          }
-          className="theme-accent-heading pr-8 text-sm font-semibold transition-colors hover:opacity-90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fuchsia-400"
-        >
-          {item.substance}
-        </Link>
+        {href ? (
+          <Link
+            href={href}
+            onClick={linkClickHandler}
+            className={`${expandedNameClassName} hover:opacity-90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fuchsia-400`}
+          >
+            {item.substance}
+          </Link>
+        ) : (
+          <span className={expandedNameClassName}>{item.substance}</span>
+        )}
         <p className="theme-text-muted text-sm leading-relaxed">
           <CitedText text={item.rationale ?? ""} article={article} />
         </p>
@@ -146,25 +164,18 @@ const InteractionBadge = memo(function InteractionBadge({
 
   // Collapsed state - compact badge
   return (
-    <PublicNameChip interactive>
-      <Link
-        href={href}
-        onClick={
-          onSelectInteraction
-            ? (event) => {
-                if (!isPlainLeftClick(event)) {
-                  return;
-                }
-
-                event.preventDefault();
-                handleSelect();
-              }
-            : undefined
-        }
-        className="text-current transition hover:opacity-90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fuchsia-400"
-      >
-        {item.substance}
-      </Link>
+    <PublicNameChip interactive={Boolean(href) || hasRationale}>
+      {href ? (
+        <Link
+          href={href}
+          onClick={linkClickHandler}
+          className={collapsedNameClassName}
+        >
+          {item.substance}
+        </Link>
+      ) : (
+        <span>{item.substance}</span>
+      )}
       {hasRationale && (
         <ExpandButton
           isExpanded={false}
@@ -181,9 +192,14 @@ const InteractionBadge = memo(function InteractionBadge({
 
 export const InteractionsSection = memo(function InteractionsSection({
   article,
+  linkableSubstanceSlugs = [],
   onSelectInteraction,
 }: InteractionsSectionProps) {
   const { interactions } = article;
+  const linkableSubstanceSlugSet = useMemo(
+    () => new Set(linkableSubstanceSlugs),
+    [linkableSubstanceSlugs],
+  );
 
   const [expandedItems, setExpandedItems] = useState<Set<string>>(new Set());
 
@@ -212,6 +228,7 @@ export const InteractionsSection = memo(function InteractionsSection({
           raw: item,
           substance: match ? match[1].trim() : item,
           rationale: match ? match[2].trim() : null,
+          substanceSlug: slugify(match ? match[1].trim() : item),
         };
       });
 
@@ -268,6 +285,7 @@ export const InteractionsSection = memo(function InteractionsSection({
                   <InteractionBadge
                     key={item.raw}
                     item={item}
+                    hasPublicRoute={linkableSubstanceSlugSet.has(item.substanceSlug)}
                     isExpanded={expandedItems.has(item.raw)}
                     onToggleExpand={toggleExpand}
                     onSelectInteraction={onSelectInteraction}

@@ -123,5 +123,3 @@ export function CollapsibleEditorCard({
     </div>
   );
 }
-
-export default CollapsibleEditorCard;

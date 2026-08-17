@@ -71,6 +71,8 @@ describe("EffectArticlePage", () => {
       <EffectArticlePage
         article={article}
         replicationsSection={<section id="replications">Injected replications</section>}
+        linkableSubstanceSlugs={[]}
+        linkableEffectSlugs={[]}
       />,
     );
 
@@ -92,6 +94,8 @@ describe("EffectArticlePage", () => {
       <EffectArticlePage
         article={article}
         contributorDirectory={[{ key: "ADA", displayName: "Ada Lovelace", aliases: [] }]}
+        linkableSubstanceSlugs={[]}
+        linkableEffectSlugs={[]}
       />,
     );
 

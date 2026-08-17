@@ -20,11 +20,11 @@ import {
   getPublicSubstanceLookup,
 } from "../convex/publicData";
 import { getPublicRoutePath } from "./publicSite";
+import { getSubstanceRouteAlias } from "./substanceRouteAliases";
 
 export const STATIC_PUBLIC_PATHS = [
   getPublicRoutePath({ family: "home" }),
   getPublicRoutePath({ family: "substances" }),
-  getPublicRoutePath({ family: "mantras" }),
   getPublicRoutePath({ family: "replications" }),
   getPublicRoutePath({ family: "replicationTutorials" }),
   getPublicRoutePath({ family: "replicationAudio" }),
@@ -131,7 +131,7 @@ function substanceEntriesFromLookup(
   const entriesBySlug = new Map<string, PublicRouteEntry<{ slug: string }>>();
 
   for (const { slug, priority } of substances) {
-    if (!slug) {
+    if (!slug || getSubstanceRouteAlias(slug)) {
       continue;
     }
 
@@ -351,7 +351,7 @@ const getCachedPublicRoutePlan = unstable_cache(async () => {
     contributorKeys,
     mechanismRouteInput,
   });
-}, ["convex-public-route-plan"], {
+}, ["convex-public-route-plan-v3"], {
   revalidate: PUBLIC_CONVEX_CACHE_REVALIDATE_SECONDS,
   tags: [
     PUBLIC_CONVEX_CACHE_TAGS.all,

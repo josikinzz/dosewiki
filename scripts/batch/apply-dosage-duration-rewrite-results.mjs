@@ -139,7 +139,12 @@ function sanitizeKeys(obj) {
     for (const [greek, ascii] of Object.entries(GREEK_REPLACEMENTS)) {
       sanitizedKey = sanitizedKey.replaceAll(greek, ascii);
     }
-    sanitizedKey = sanitizedKey.replace(/[^\x00-\x7F]/g, "_");
+    let asciiKey = "";
+    for (let index = 0; index < sanitizedKey.length; index++) {
+      const character = sanitizedKey[index];
+      asciiKey += character.charCodeAt(0) <= 0x7f ? character : "_";
+    }
+    sanitizedKey = asciiKey;
     result[sanitizedKey] = sanitizeKeys(value);
   }
   return result;

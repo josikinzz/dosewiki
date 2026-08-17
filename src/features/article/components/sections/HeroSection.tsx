@@ -43,6 +43,8 @@ interface HeroSectionProps {
   onSelectCategory?: (categoryKey: string) => void;
   /** Called when a classification badge is clicked */
   onSelectClassification?: (type: "psychoactive" | "chemical", label: string) => void;
+  /** Canonical public category keys; omitted in editor previews that own navigation. */
+  linkableCategoryKeys?: readonly string[];
   /** Whether to show the "Preview" indicator badge (default: true in dev context) */
   showPreviewBadge?: boolean;
 }
@@ -54,6 +56,7 @@ export const HeroSection = memo(function HeroSection({
   moleculeAssets,
   onSelectCategory,
   onSelectClassification,
+  linkableCategoryKeys,
   showPreviewBadge = true,
 }: HeroSectionProps) {
   const { title, identification, classification, summary, index_categories } = article;
@@ -362,29 +365,43 @@ export const HeroSection = memo(function HeroSection({
       {/* Index categories */}
       {hasCategories && (
         <div className="mt-5 flex flex-wrap gap-2">
-          {index_categories.map((cat) => (
-            <PublicNameChip
-              as={Link}
-              key={cat}
-              href={publicHref.category(cat)}
-              onClick={
-                onSelectCategory
-                  ? (event) => {
-                      if (!isPlainLeftClick(event)) {
-                        return;
-                      }
+          {index_categories.map((cat) => {
+            const isLinkable =
+              !linkableCategoryKeys ||
+              linkableCategoryKeys.includes(cat.trim().toLowerCase());
 
-                      event.preventDefault();
-                      onSelectCategory(cat);
-                    }
-                  : undefined
-              }
-              icon="lucide:tag"
-              interactive
-            >
-              {cat}
-            </PublicNameChip>
-          ))}
+            if (!isLinkable) {
+              return (
+                <PublicNameChip key={cat} icon="lucide:tag">
+                  {cat}
+                </PublicNameChip>
+              );
+            }
+
+            return (
+              <PublicNameChip
+                as={Link}
+                key={cat}
+                href={publicHref.category(cat)}
+                onClick={
+                  onSelectCategory
+                    ? (event) => {
+                        if (!isPlainLeftClick(event)) {
+                          return;
+                        }
+
+                        event.preventDefault();
+                        onSelectCategory(cat);
+                      }
+                    : undefined
+                }
+                icon="lucide:tag"
+                interactive
+              >
+                {cat}
+              </PublicNameChip>
+            );
+          })}
         </div>
       )}
 

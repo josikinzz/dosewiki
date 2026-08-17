@@ -5,6 +5,11 @@ interface ExtLinkProps {
   to?: string;
 }
 
+export function normalizeExternalHref(to: string): string {
+  const trimmed = to.trim();
+  return /^\/https?:\/\//i.test(trimmed) ? trimmed.slice(1) : trimmed;
+}
+
 /**
  * External link to other websites.
  * 
@@ -18,9 +23,11 @@ export function ExtLink({
     return <span>{children}</span>;
   }
 
+  const href = normalizeExternalHref(to);
+
   return (
     <a
-      href={to}
+      href={href}
       target="_blank"
       rel="noopener noreferrer"
       className="theme-accent-emphasis inline-flex cursor-pointer items-center gap-1 underline decoration-fuchsia-300/35 underline-offset-[0.18em] transition-colors hover:text-dose-accent-soft hover:decoration-fuchsia-200/55"

@@ -3,6 +3,7 @@ import type { Reference } from "@/schema/substance/shared";
 import { buildCitationNumbering, formatApaReference } from "./citations/referenceModel";
 import { projectSubstanceCitationCompatibility } from "./citations/substanceCitationCompatibility";
 import { normalizeDoi } from "../../lib/citations/referenceIdentity.mjs";
+import { slugify } from "@/utils/slug";
 
 export const CITATION_COLLAPSED_LIMIT = 3;
 
@@ -105,6 +106,29 @@ export function normalizeCitationUrl(value: unknown): string {
   }
 }
 
+function normalizeExternalCitationUrl(value: unknown): string {
+  const normalized = normalizeCitationUrl(value);
+  if (!normalized) return "";
+
+  try {
+    const parsed = new URL(normalized);
+    return parsed.protocol === "http:" || parsed.protocol === "https:"
+      ? normalized
+      : "";
+  } catch {
+    return "";
+  }
+}
+
+function normalizeEffectSeeAlsoUrl(value: unknown): string {
+  const location = normalizeText(value);
+  const match = location.match(/^\/?effects\/?([A-Za-z0-9][A-Za-z0-9 _-]*)\/?$/i);
+  if (!match) return "";
+
+  const slug = slugify(match[1]);
+  return slug ? `/effects/${slug}` : "";
+}
+
 function dedupeByUrl<T extends { url: string }>(items: T[]): T[] {
   const seen = new Set<string>();
   return items.filter((item) => {
@@ -143,7 +167,7 @@ function projectUrlCitation(
   index: number,
   labelFallback: string,
 ): ProjectedCitation | null {
-  const url = normalizeText(raw.url);
+  const url = normalizeExternalCitationUrl(raw.url);
   let rawLabel: string | null | undefined;
   if ("name" in raw) {
     rawLabel = raw.name;
@@ -171,9 +195,9 @@ function projectUrlCitation(
 }
 
 function projectInternalLink(raw: RawSeeAlsoLink, index: number): ProjectedCitation | null {
-  const url = normalizeText(raw.location);
+  const url = normalizeEffectSeeAlsoUrl(raw.location);
   const label = normalizeText(raw.title) || url;
-  if (!url && !label) return null;
+  if (!url || !label) return null;
 
   return {
     role: "internal-link",

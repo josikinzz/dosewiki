@@ -1,6 +1,7 @@
 import type { ComponentPropsWithoutRef, MouseEvent, ReactNode } from "react";
 import type { SubstanceArticle } from "@/schema";
-import { CITE_TOKEN_PATTERN, buildCitationNumbering } from "@/lib/citations/referenceModel";
+import { CITE_TOKEN_PATTERN } from "@/lib/citations/citationTokens";
+import { buildCitationNumbering } from "@/lib/citations/referenceModel";
 import { cn } from "@/lib/utils";
 
 export type CitationSupProps = Omit<

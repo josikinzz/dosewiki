@@ -402,7 +402,13 @@ for (const embed of [...embeds.values()]) {
 // Report + dry-run diff
 // ---------------------------------------------------------------------------
 
-const flagged = flaggedImages.map(({ fingerprint, width, height, ...item }) => item);
+const flagged = flaggedImages.map((item) => {
+  const reportItem = { ...item };
+  delete reportItem.fingerprint;
+  delete reportItem.width;
+  delete reportItem.height;
+  return reportItem;
+});
 
 const report = {
   operation,

@@ -112,7 +112,11 @@ function transformForTable(name, docs) {
       return docs.map(({ key, content }) => ({ key, content }));
     case "replications":
       // bulkImport expects all fields except created_at
-      return docs.map(({ created_at, ...rest }) => rest);
+      return docs.map((doc) => {
+        const rest = { ...doc };
+        delete rest.created_at;
+        return rest;
+      });
     default:
       return docs;
   }
@@ -272,7 +276,11 @@ async function main() {
     try {
       const config = await sourceClient.query(api.siteConfig.getAbout, {});
       if (config) {
-        const { _id, _creationTime, key, updatedAt, ...data } = config;
+        const data = { ...config };
+        delete data._id;
+        delete data._creationTime;
+        delete data.key;
+        delete data.updatedAt;
         await targetClient.mutation(api.siteConfig.saveAbout, {
           ...data,
           apiKey: tableCredentials.siteConfig.token,

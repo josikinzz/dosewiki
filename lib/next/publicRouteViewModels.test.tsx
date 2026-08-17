@@ -108,16 +108,19 @@ describe("public route view models", () => {
     const viewModel = buildSubstanceArticleViewModel({
       slug: "lsd",
       substance,
+      linkableSubstanceSlugs: ["lsd"],
+      linkableCategoryKeys: ["psychedelic"],
       tripReportsSection,
       hasRelatedTripReports: true,
       warningBanners: [],
     });
 
     expect(viewModel.metadata).toEqual({
-      title: "LSD - dose.wiki",
+      title: "LSD: Dosage, Effects & Safety | dose.wiki",
       description: "A lysergamide.",
     });
     expect(viewModel.pageProps.fromSubstanceSlug).toBe("lsd");
+    expect(viewModel.pageProps.linkableSubstanceSlugs).toEqual(["lsd"]);
     expect(viewModel.pageProps.article.summary).toBe("A lysergamide [cite:paper-a][cite:paper-b].");
     expect(viewModel.pageProps.tripReportsSection).toBe(tripReportsSection);
     expect("slug" in viewModel.pageProps.article).toBe(false);
@@ -141,13 +144,15 @@ describe("public route view models", () => {
     const viewModel = buildSubstanceArticleViewModel({
       slug: "dmt",
       substance,
+      linkableSubstanceSlugs: [],
+      linkableCategoryKeys: [],
       tripReportsSection: <section />,
       hasRelatedTripReports: false,
       warningBanners: [],
     });
 
     expect(viewModel.metadata).toEqual({
-      title: "DMT - dose.wiki",
+      title: "DMT: Dosage, Effects & Safety | dose.wiki",
       description:
         "DMT substance profile in the Psychedelic, Tryptamine class covering dosage, duration, effects, interactions, tolerance, harm potential, legality, and references.",
     });
@@ -169,6 +174,8 @@ describe("public route view models", () => {
     const viewModel = buildSubstanceArticleViewModel({
       slug: "fixtureamine",
       substance,
+      linkableSubstanceSlugs: [],
+      linkableCategoryKeys: [],
       tripReportsSection: <section />,
       hasRelatedTripReports: false,
       warningBanners: [],
@@ -202,14 +209,18 @@ describe("public route view models", () => {
         definition: { key: "visual-drifting", label: "Visual drifting", total: 1 },
         groups: [{ label: "LSD", entries: [{ name: "LSD", slug: "lsd" }] }],
       } as never,
+      linkableSubstanceSlugs: ["lsd"],
+      linkableEffectSlugs: ["geometry"],
     });
 
     expect(viewModel.metadata).toEqual({
-      title: "Visual drifting",
+      title: "Visual drifting: Subjective Effect | dose.wiki",
       description: "Objects appear to drift.",
     });
     expect(viewModel.pageProps.drugHrefPrefix).toBe("/");
     expect(viewModel.pageProps.categoryHrefPrefix).toBe("/category/");
+    expect(viewModel.pageProps.linkableSubstanceSlugs).toEqual(["lsd"]);
+    expect(viewModel.pageProps.linkableEffectSlugs).toEqual(["geometry"]);
     expect(viewModel.pageProps.replicationsSection).toBeDefined();
     expect(viewModel.pageProps.article.hero).toEqual({
       name: "Visual drifting",
@@ -234,10 +245,12 @@ describe("public route view models", () => {
         description_raw: "",
       },
       replicationsSection: <section />,
+      linkableSubstanceSlugs: [],
+      linkableEffectSlugs: [],
     });
 
     expect(viewModel.metadata).toEqual({
-      title: "Serotonin syndrome",
+      title: "Serotonin syndrome: Subjective Effect | dose.wiki",
       description:
         "Serotonin syndrome subjective effect profile covering description, analysis, replications, related substances, and citations.",
     });

@@ -28,14 +28,6 @@ import { Icon } from "@/components/common/Icon";
 import { StateCard } from "@/components/common/StateCard";
 import { Button } from "@/components/ui/button";
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import {
   compareWarningBanners,
   clampSafetyBannerIconSize,
   isWarningBannerTone,
@@ -45,17 +37,15 @@ import {
   type WarningBannerTarget,
 } from "@/data/substanceWarningBanners";
 import {
-  EditorNavTabs,
-  EditorNotice,
-  EditorSection,
-  EditorStatusPill,
   type EditorActionStatusState,
   type EditorNoticeMessage,
 } from "@/features/dev/components";
 import { api } from "../../../../../convex/_generated/api";
-import { CoverageView } from "./CoverageView";
-import { PresetsView } from "./PresetsView";
 import { WarningBannersBoundary } from "./WarningBannersBoundary";
+import {
+  WarningBannersStudioView,
+  type WarningBannersStudioViewMode,
+} from "./WarningBannersStudioView";
 import {
   cachedWarningBannerTargets,
   fetchWarningBannerTargets,
@@ -87,7 +77,7 @@ type WarningBannerPresetDoc = {
   enabledSlugs: string[];
 };
 
-type StudioView = "presets" | "coverage";
+type StudioView = WarningBannersStudioViewMode;
 
 type SaveState = EditorActionStatusState | "idle";
 
@@ -469,186 +459,74 @@ function WarningBannersStudio({ initialSubstanceSlug }: WarningBannersTabProps) 
   const isDirty = editor
     ? editor.origin === null || JSON.stringify(editor.origin) !== JSON.stringify(editor.draft)
     : false;
-  const nothingLive = liveSlugs.size === 0;
   // A new preset has no row to expand, so nothing in the table is marked open.
   const openKey = editor?.origin?.key ?? null;
 
   return (
-    <div className="mt-6 space-y-8 md:mt-8">
-      <EditorSection
-        icon="lucide:triangle-alert"
-        title="Banner Studio"
-        description="Safety banners for a drug class. A preset renders on a substance only when it is enabled and that substance is on its list — never because of how the article is classified."
-        actions={
-          <EditorStatusPill tone="neutral">
-            {`${presets.length} preset${presets.length === 1 ? "" : "s"}`}
-          </EditorStatusPill>
-        }
-      >
-        {/* The rollout readout. Deliberately the largest type in the tool: no
-            other /dev surface leads with the blast radius of its own data, and
-            it stays at zero until an editor acts (design brief §2). */}
-        <div className="flex flex-wrap items-baseline gap-x-4 gap-y-1">
-          <p
-            className={
-              nothingLive
-                ? "theme-text-primary font-display text-[22px] font-semibold tabular-nums"
-                : "font-display text-[22px] font-semibold tabular-nums text-dose-success"
-            }
-          >
-            {targets.length > 0
-              ? `${liveSlugs.size} of ${targets.length} substances show a banner`
-              : `${liveSlugs.size} substances show a banner`}
-          </p>
-          {nothingLive ? (
-            <p className="theme-text-secondary text-sm">
-              No preset is live. Nothing on the public site shows a banner.
-            </p>
-          ) : null}
-        </div>
-
-        {targetsError ? (
-          <EditorNotice
-            notice={{
-              tone: "danger",
-              title: "Couldn't load the substance list",
-              message: (
-                <>
-                  {targetsError}
-                  {" Substance search and the Coverage rail stay empty until it loads."}
-                </>
-              ),
-              actions: (
-                <Button
-                  type="button"
-                  variant="secondary"
-                  size="sm"
-                  onClick={() => setTargetsToken((token) => token + 1)}
-                >
-                  <Icon icon="lucide:refresh-cw" size={15} />
-                  Retry
-                </Button>
-              ),
-            }}
-          />
-        ) : null}
-
-        {notice ? <EditorNotice notice={notice} /> : null}
-        {/* A second, separate notice. Sharing one would let a preset save and a
-            size save overwrite each other's outcome on screen. */}
-        {iconSizeNotice ? <EditorNotice notice={iconSizeNotice} /> : null}
-
-        <EditorNavTabs
-          label="Banner Studio views"
-          value={view}
-          onChange={(next) => setView(next === "coverage" ? "coverage" : "presets")}
-          options={[
-            { value: "presets", label: "Presets", icon: "lucide:layers", badge: presets.length },
-            {
-              value: "coverage",
-              label: "Coverage",
-              icon: "lucide:list-checks",
-              badge: liveSlugs.size,
-            },
-          ]}
-        />
-
-        {initialSubstanceSlug ? (
-          <p className="theme-text-faint text-xs">
-            {"Opened from "}
-            <span className="font-mono">{`/dev/banners/${initialSubstanceSlug}`}</span>
-            {" — Coverage started on that substance."}
-          </p>
-        ) : null}
-
-        {view === "presets" ? (
-          <PresetsView
-            presets={presets}
-            targets={targets}
-            iconSizeControl={{
-              size: iconSize,
-              text: iconSizeText,
-              dirty: iconSizeDirty,
-              saveState: iconSizeSaveState,
-              onTextChange: (text) => {
-                setIconSizeSaveState("idle");
-                setIconSizeDraft(text);
-              },
-              onSave: () => void handleSaveIconSize(),
-              onReset: () => {
-                setIconSizeDraft(null);
-                setIconSizeSaveState("idle");
-                setIconSizeNotice(null);
-              },
-            }}
-            openKey={openKey}
-            draft={editor?.draft ?? null}
-            isNew={editor !== null && editor.origin === null}
-            isDirty={isDirty}
-            saveState={saveState}
-            iconValid={iconValid}
-            onIconValidityChange={setIconValid}
-            onDraftChange={(draft) => {
-              setSaveState("idle");
-              setEditor((current) => (current ? { ...current, draft } : current));
-            }}
-            onOpen={openPreset}
-            onCreate={() => {
-              setEditor({ origin: null, draft: BLANK_PRESET });
-              setSaveState("idle");
-              setNotice(null);
-            }}
-            onSave={() => void handleSave()}
-            onDiscard={() =>
-              setEditor((current) =>
-                current?.origin ? { origin: current.origin, draft: current.origin } : null,
-              )
-            }
-            onCommitEnabledSlugs={commitEnabledSlugs}
-            onRequestDelete={setPendingDelete}
-            onInspectCoverage={(slug) => {
-              setCoverageSlug(slug);
-              setView("coverage");
-            }}
-          />
-        ) : (
-          <CoverageView
-            presets={presets}
-            targets={targets}
-            iconSize={iconSize}
-            activeSlug={coverageSlug}
-            onActiveSlugChange={setCoverageSlug}
-            saveState={saveState}
-            onCommitEnabledSlugs={commitEnabledSlugs}
-            onEditPreset={(preset) => {
-              openPreset(preset);
-              setView("presets");
-            }}
-          />
-        )}
-      </EditorSection>
-
-      <Dialog open={pendingDelete !== null} onOpenChange={(open) => !open && setPendingDelete(null)}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Delete preset</DialogTitle>
-            <DialogDescription>
-              {pendingDelete
-                ? `${pendingDelete.key} is enabled on ${pendingDelete.enabledSlugs.length} substance${pendingDelete.enabledSlugs.length === 1 ? "" : "s"}. Deleting destroys its headline and mechanism text, and it stops rendering everywhere.`
-                : null}
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter>
-            <Button type="button" variant="secondary" size="sm" onClick={() => setPendingDelete(null)}>
-              Keep preset
-            </Button>
-            <Button type="button" variant="destructive" size="sm" onClick={() => void handleDelete()}>
-              <Icon icon="lucide:trash-2" size={15} />
-              Delete preset
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-    </div>
+    <WarningBannersStudioView
+      initialSubstanceSlug={initialSubstanceSlug}
+      presets={presets}
+      targets={targets}
+      targetsError={targetsError}
+      liveSlugs={liveSlugs}
+      view={view}
+      coverageSlug={coverageSlug}
+      openKey={openKey}
+      draft={editor?.draft ?? null}
+      isNew={editor !== null && editor.origin === null}
+      isDirty={isDirty}
+      saveState={saveState}
+      notice={notice}
+      iconSizeNotice={iconSizeNotice}
+      iconSizeControl={{
+        size: iconSize,
+        text: iconSizeText,
+        dirty: iconSizeDirty,
+        saveState: iconSizeSaveState,
+        onTextChange: (text) => {
+          setIconSizeSaveState("idle");
+          setIconSizeDraft(text);
+        },
+        onSave: () => void handleSaveIconSize(),
+        onReset: () => {
+          setIconSizeDraft(null);
+          setIconSizeSaveState("idle");
+          setIconSizeNotice(null);
+        },
+      }}
+      iconValid={iconValid}
+      pendingDelete={pendingDelete}
+      onRetryTargets={() => setTargetsToken((token) => token + 1)}
+      onViewChange={setView}
+      onIconValidityChange={setIconValid}
+      onDraftChange={(draft) => {
+        setSaveState("idle");
+        setEditor((current) => (current ? { ...current, draft } : current));
+      }}
+      onOpen={openPreset}
+      onCreate={() => {
+        setEditor({ origin: null, draft: BLANK_PRESET });
+        setSaveState("idle");
+        setNotice(null);
+      }}
+      onSave={() => void handleSave()}
+      onDiscard={() =>
+        setEditor((current) =>
+          current?.origin ? { origin: current.origin, draft: current.origin } : null,
+        )
+      }
+      onCommitEnabledSlugs={commitEnabledSlugs}
+      onRequestDelete={setPendingDelete}
+      onInspectCoverage={(slug) => {
+        setCoverageSlug(slug);
+        setView("coverage");
+      }}
+      onCoverageSlugChange={setCoverageSlug}
+      onEditCoveragePreset={(preset) => {
+        openPreset(preset);
+        setView("presets");
+      }}
+      onConfirmDelete={() => void handleDelete()}
+    />
   );
 }

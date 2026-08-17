@@ -92,7 +92,7 @@ function SortableRow({
         variant="public"
         padding="sm"
         radius="lg"
-        className={isDragging ? "opacity-60 ring-1 ring-[var(--theme-accent-strong)]" : undefined}
+        className={isDragging ? "opacity-60 ring-1 ring-dose-accent-strong" : undefined}
       >
         <div className="flex items-center gap-2">
           <Button

@@ -2,88 +2,180 @@
 
 ## Scope
 
-- This file preserves the citation-workbench guidance that previously lived in root `AGENTS.md`.
-- It is intentionally focused on the current citation-workbench project.
-- The external citation worker lives at `/Users/josie/.codex/dosewiki-citation-workbench`.
-- This repo owns the dose.wiki integration path: adapting reviewed workbench drafts into article data, citation evidence, and public citation rendering.
+- The active citation path is the repo-local Pi workflow in `.pi/skills/pi-citation-workflow/`.
+- `/Users/josie/.codex/dosewiki-citation-workbench` stores run inputs, artifacts, and validation output. This repository owns export, adaptation, review, apply, and public rendering.
+- Use the external Claude workbench transport only when the user explicitly asks for that transport or for its queue orchestration.
 
-## Start Here
+## Start here
 
-- Read [docs/citation-workbench-tracker.md](../citation-workbench-tracker.md) for the project state and integration notes.
-- Claude-visible workbench instructions live at `/Users/josie/.codex/dosewiki-citation-workbench/CLAUDE.md`; keep Codex orchestration details out of that file.
-- Use the visual explainer for the end-to-end pipeline: `/Users/josie/.agent/diagrams/dosewiki-citation-pipeline.html`.
-- For script details, use [scripts/README.md](../../scripts/README.md), especially the "Formal citations" section.
+- Read `.pi/skills/pi-citation-workflow/SKILL.md` for the active run contract.
+- Read [docs/citation-workbench-tracker.md](../citation-workbench-tracker.md) for project state and integration notes.
+- Use [scripts/README.md](../../scripts/README.md), especially "Formal citations," for script details.
+- The completed citation-author repair and provenance records are historical evidence. They live in [Historical citation-author repair evidence](#historical-citation-author-repair-evidence), outside the run sequence.
 
-## Current Project Paths
+## Current project paths
 
-- Workbench apply script: `scripts/citations/apply-workbench-draft.mjs`
-- Workbench draft adapter: `scripts/citations/workbench-draft-adapter.mjs`
+- Pi workflow and agents: `.pi/skills/pi-citation-workflow/` and `.pi/agents/`
+- Workbench apply script and adapter: `scripts/citations/apply-workbench-draft.mjs` and `scripts/citations/workbench-draft-adapter.mjs`
 - Citation workflow scripts and tests: `scripts/citations/`
-- Citation-author repair planner: `scripts/citations/plan-reference-author-repairs.mjs`
-- Citation-author residual queue builder: `scripts/citations/build-reference-author-review-queue.mjs`
-- Independently reviewed residual proposal builder: `scripts/citations/build-reviewed-reference-author-repair-proposal.mjs`
-- Citation-author guarded apply command: `scripts/citations/apply-reference-author-repairs.mjs`
-- Historical provenance backfill planner: `scripts/citations/plan-reference-metadata-provenance-backfill.mjs`
-- Historical provenance guarded apply command: `scripts/citations/apply-reference-metadata-provenance-backfill.mjs`
-- Citation reference identity helpers: `lib/citations/referenceIdentity.js`
+- Citation reference identity helpers: `lib/citations/referenceIdentity.mjs`
 - Public citation token rendering: `src/features/article/components/CitedText.tsx`
-- Article sections currently touched by citation rendering: `src/features/article/components/sections/`
 - Article schema source of truth: `src/schema/substance.schema.ts`
 
-## Friction Notes
+## Friction notes
 
-- When operating the workbench, record friction points that could be prevented by a short instruction tweak. Keep these notes practical and lightweight; prefer simple wording changes over new scripts or process.
-- Record per-substance Claude citation-run friction in [docs/citation-claude-friction-log.md](../citation-claude-friction-log.md). This is a Codex-only, repo-local notes file; do not mirror it into the external workbench where Claude can see it.
-- Example: if large worker outputs fail because a subagent tries to write too much JSON at once, note that the worker should write large artifacts in chunks after a modest size threshold instead of one giant response.
-- The Computer Use → ttyd browser-terminal transport is retired (the `terminal:claude` npm script no longer exists). Citation runs launch headlessly via `pi -p "/skill:pi-citation-workflow <slug>"` from this repo; queue orchestration lives in the workbench `.codex/skills/cite` skill.
+- Record a friction point only when a short instruction change could prevent it.
+- For the optional external Claude branch, record per-substance friction in [docs/citation-claude-friction-log.md](../citation-claude-friction-log.md). Keep this Codex-only file in this repository.
+- The Computer Use → ttyd transport and `terminal:claude` script are retired. Pi runs launch headlessly from this repository. External queue orchestration stays in the workbench `.codex/skills/cite` skill.
 
-## Claude Boundary
+## Transport branches
 
-- Codex-only workflow notes belong in this file, not in the citation workbench repo.
-- The workbench repo should expose only `CLAUDE.md` to Claude. Do not recreate a workbench `AGENTS.md` unless the user explicitly asks for a new Codex-visible instruction surface there.
-- Claude should not need to know that Codex exports tasks, orchestrates the queue, applies drafts, deploys, or receives handoffs.
-- Claude must stay inside the workbench repo during citation runs. If outside data is needed, Codex should scaffold it into the run before Claude starts.
+- **Active Pi path:** Use this for an explicit substance slug or immutable local proposal unless the user explicitly chooses the external Claude branch. Launch `.pi/skills/pi-citation-workflow/` from this repository. It writes and validates artifacts in the external workbench without changing repository content or Convex.
+- **Optional external Claude branch:** Use this only when the user explicitly asks for the external Claude `/cite` transport or its queue orchestration. Read `/Users/josie/.codex/dosewiki-citation-workbench/CLAUDE.md` and the workbench `.codex/skills/cite` skill. Keep Claude inside the workbench; scaffold any outside data before launch. Keep repository orchestration, apply, deploy, and handoff details out of Claude-visible instructions.
+- **Apply branch:** Enter this only after a reviewed, apply-bound live-task draft exists and the user explicitly asks to write it. Local-proposal drafts can never enter this branch.
 
-## Hard Invariants
+## Hard invariants
 
-- Convex is authoritative for live article data. Do not fix live citation content by hand-editing local JSON.
-- Workbench outputs are drafts until this repo adapts, dry-runs, reviews, and explicitly writes them.
-- The normal citation run launch is `pi -p "/skill:pi-citation-workflow <drug-slug>"` from this repo (the app repo hosts the workflow's skill/agent definitions); all run artifacts, trackers, and validation stay in `/Users/josie/.codex/dosewiki-citation-workbench`, and the run never edits this repo's content.
-- Before `/cite`, run `npm --prefix /Users/josie/.codex/dosewiki-citation-workbench run preflight -- --slug <drug-slug>`; if it reports an empty citable surface, re-export the live Convex task and rerun workbench `fresh-run` before starting a run.
-- The active workbench draft mode is marker-only: public article text receives `[cite:reference-id]` markers, and stripping those markers must restore original text exactly.
-- The citable surface is exactly `summary`, `pharmacology`, `tolerance`, `harm_potential`, `history_culture`, and `legality`; dosage, duration, subjective effects, comparisons, reagent testing, interactions, identification, and classification stay out of this pass.
-- Claude should launch section workers in batches of at most 3, then verify visible/active `citation-section-worker` labels and output paths against every non-empty citable section before waiting. Do not rely on plan text or worker count alone.
-- Before article-wide assembly, full workbench runs should record a six-row section status table for `summary`, `pharmacology`, `tolerance`, `harm_potential`, `history_culture`, and `legality`. Missing citable section outputs, including `legality`, are warnings rather than blockers only when the original section is preserved exactly and no unsupported public markers are added; invalid section outputs remain failures.
-- Before `article-wide:packet`, run `node /Users/josie/.codex/dosewiki-citation-workbench/scripts/remap-section-reference-ids.mjs --run runs/<slug>`; if remaps are reported, rerun with `--write`, then run `node /Users/josie/.codex/dosewiki-citation-workbench/scripts/proactive-scan.mjs --run runs/<slug>` and repair until clean.
-- Workbench references should be Wikipedia-style structured source records. Wikipedia, local Wikipedia reference caches, and local PsychonautWiki reference caches are discovery-only, not public claim citations.
-- Reference/source IDs must be page-specific enough to survive merge/dedupe. For repeated same-site sources such as DailyMed labels, include setid, label name, or another page-specific suffix rather than a generic site ID. For Health Canada DPD, use DIN/product-specific URLs or IDs instead of generic placeholder query URLs.
-- Workbench `fresh-run` attaches local cache packets from `/Users/josie/.codex/dosewiki-citation-workbench/source-cache/wikipedia/` and `/Users/josie/.codex/dosewiki-citation-workbench/source-cache/psychonautwiki/` when present. Wikipedia cache excerpts are for section-worker discovery only; `article-wide-input.json` should contain dose.wiki citable sections plus prior references/evidence, not full Wikipedia articles or Wikipedia article excerpts.
-- Citation placement should follow Wikipedia-style density: compact clusters for shared sentence support, no repeated markers for obvious definitions, and no comma-adjacent markers unless only that clause is supported.
-- After `article-wide:packet`, run `npm --prefix /Users/josie/.codex/dosewiki-citation-workbench run article-wide:sanitize -- --run runs/<slug>`, then confirm `article-wide-input.json` is free of wiki/raw packet residue: `rawCitation`, `sectionRaw`, `[[`, `<ref`, `{{`, `wikipedia.org/wiki`, and `psychonautwiki.org/wiki`.
-- If accepted section outputs exist, article-wide failure cases include a 156-byte stub, empty `markedSections`/`references`/`evidence`, markers with zero references/evidence, evidence rows missing `status`, marker/evidence mismatches, or returned sections with fewer markers than the accepted article-wide input.
-- Expected finish sequence: launch/verify section workers -> post-section scan/fix -> remap/proactive scan -> `article-wide:packet` -> packet sanitation -> article-wide -> deterministic non-empty/evidence check -> assemble -> validate -> validate:patches. If any step is repaired, rerun the later steps.
-- Paywalled papers are acceptable public citations when an accessible abstract directly supports the claim; record them as `access: "abstract_only"` rather than dropping them solely for paywall status.
-- `citations:apply-workbench` is for reviewed `citation-draft.json` output only. It must not generate new citations or bypass workbench validation.
-- Writes must use the shared data-ops confirmation flow and require `--write --confirm-citation-write`.
-- Citation-author proposal generation is not approval. Never apply an unreviewed proposal: the apply command requires a separate human approval artifact bound to the proposal's immutable digest and permits only its high-confidence rows.
-- Citation-author residual rows are review-only. Group them with `citations:build-author-review-queue` for human or selective subagent research; never promote a residual row through the automated apply path.
-- Keep unsupported or review-only evidence out of public citation markers unless the adapter explicitly models that behavior.
-- Do not hand-edit generated files in `convex/_generated/` or `src/data/schema/*.generated.ts`.
-- Keep `editorial_review` as editor-only metadata. Do not render it as public article content.
+- Convex `glad-minnow-656` is authoritative for every live-task export, dry-run, and write. Fix live citation content through the reviewed draft path, not local JSON.
+- Workbench output stays a draft until this repository adapts, validates, reviews, and explicitly writes it.
+- Citation drafts are marker-only. Stripping `[cite:reference-id]` markers must restore the original text exactly.
+- The citable surface is exactly `summary`, `pharmacology`, `tolerance`, `harm_potential`, `history_culture`, and `legality`. Keep dosage, duration, subjective effects, comparisons, reagent testing, interactions, identification, and classification unchanged.
+- A missing citable section output is a warning only when the original section is preserved exactly and no unsupported public marker is added. Invalid output is a failure.
+- Wikipedia and PsychonautWiki articles and local caches are discovery-only. Public markers require inspected, non-wiki evidence at the exact field path.
+- Use page-specific reference IDs. Repeated same-site sources need a stable page identifier such as a DailyMed setid or Health Canada DIN/product ID.
+- Keep `article-wide-input.json` free of raw packet residue, including `rawCitation`, `sectionRaw`, `[[`, `<ref`, `{{`, `wikipedia.org/wiki`, and `psychonautwiki.org/wiki`.
+- A 156-byte article-wide stub, empty `markedSections`/`references`/`evidence`, markers with zero references or evidence, evidence without `status`, marker/evidence mismatches, or fewer returned markers than accepted input is a failure.
+- An accessible abstract may support a public citation to a paywalled paper. Record `access: "abstract_only"`.
+- `citations:apply-workbench` accepts reviewed `citation-draft.json` output only. It does not generate citations or bypass validation.
+- Keep unsupported and review-only evidence out of public markers. Keep `editorial_review` editor-only.
+- Writes use the shared data-ops confirmation flow and require `--write --confirm-citation-write`.
+- Leave generated files in `convex/_generated/` and `src/data/schema/*.generated.ts` to their generators.
 
-## Pi-native workflow boundary
+## Pi workflow contract
 
-- The repo-local Pi workflow is owned by `.pi/skills/pi-citation-workflow/` and uses the named project agents in `.pi/agents/`; it does not replace the external Claude `/cite` transport described elsewhere in this file.
-- Pi workers return the shared schema-validated handoff after writing their assigned artifact. The handoff plus `check-section` or `article_wide_check` replaces file size/mtime waiting.
-- Workbench `scripts/artifact-contract.mjs` is the single executable worker/draft evidence contract. Section checks, merged proactive scans, and final validation all consume it, including unique claim keys and complete reference → inspected source → quote closure.
-- `article_wide_check` normalizes discovery-source wording only in internal gaps/research logs/notes, preserving the original wording under top-level `metadata.discoveryProvenance`; public marked prose, references, evidence, and patches remain fail-closed and are never rewritten.
-- Use `pi-run-manifest.mjs run-sequence` for the six reconciliation gates. Corrective finalized attempts may use `rerun --reuse-sections`; only accepted artifacts with matching recorded hashes carry forward.
-- Final review artifacts may retain discovery history only at top-level `metadata.discoveryProvenance` in JSON and one exact `## Discovery provenance` report section. Public marker, reference, evidence, and patch surfaces remain fail-closed.
+- `.pi/skills/pi-citation-workflow/` and the named agents in `.pi/agents/` own the active workflow. Follow that skill instead of copying its internal gates into this file.
+- Pi workers signal completion with a schema-validated handoff. `check-section`, `article_wide_check`, and `scripts/artifact-contract.mjs` decide whether an artifact is accepted.
+- `pi-run-manifest.mjs run-sequence` owns reconciliation. A corrective finalized attempt uses `rerun --reuse-sections`; only accepted artifacts with matching recorded hashes carry forward.
+- Discovery history may appear only at top-level `metadata.discoveryProvenance` in JSON and in one exact `## Discovery provenance` report section. Public marked prose, references, evidence, and patches remain fail-closed.
 
-## Common Commands
+## Focused validation commands
 
 ```bash
-npm run citations:archive-production-dataset -- --label=pre-2c-b-citation-rollout
+npx vitest run --config scripts/test/vitest.workflow.config.ts scripts/citations/workbench-draft-adapter.test.mjs
+npm run test -- src/features/article/components/sections/PilotSectionCitations.test.tsx
+npm run lint:scripts
+npm run typecheck
+```
+
+## Ordered run and handoff sequence
+
+Run every repository command from the DoseWiki repository root. Use one slug per run.
+
+1. Prepare a fresh live-task input from production. Dry-run the export, write the export, prepare a fresh workbench run, and pass preflight:
+
+   ```bash
+   SOURCE_CONVEX_URL=https://glad-minnow-656.convex.cloud \
+     npm run citations:export-workbench-task -- --slug=<drug-slug> --dry-run
+   SOURCE_CONVEX_URL=https://glad-minnow-656.convex.cloud \
+     npm run citations:export-workbench-task -- --slug=<drug-slug> --overwrite
+   npm --prefix /Users/josie/.codex/dosewiki-citation-workbench run fresh-run -- --slug <drug-slug> --dry-run
+   npm --prefix /Users/josie/.codex/dosewiki-citation-workbench run fresh-run -- --slug <drug-slug>
+   npm --prefix /Users/josie/.codex/dosewiki-citation-workbench run preflight -- --slug <drug-slug>
+   ```
+
+   If preflight reports an empty citable surface, repeat the production export and `fresh-run`. Refresh the local discovery caches before `fresh-run` only when the run needs newer discovery material:
+
+   ```bash
+   npm --prefix /Users/josie/.codex/dosewiki-citation-workbench run cache:wikipedia
+   npm --prefix /Users/josie/.codex/dosewiki-citation-workbench run cache:psychonautwiki:local
+   ```
+
+   For an immutable local proposal, skip export and `fresh-run`; invoke the Pi skill with `--proposal <path>`. That draft remains permanently local and review-only.
+
+   For an approved second pass, use the immutable plan:
+
+   ```bash
+   npm run citations:plan-second-pass -- --audit=tmp/subsection-citation-audit.json
+   SOURCE_CONVEX_URL=https://glad-minnow-656.convex.cloud \
+     npm run citations:export-workbench-task -- --slug=<drug-slug> --overwrite \
+     --second-pass-plan=outputs/citation-second-pass-research-plan.json \
+     --second-pass-max-wave=1
+   npm --prefix /Users/josie/.codex/dosewiki-citation-workbench run fresh-run -- \
+     --slug <drug-slug> --run-id <drug-slug>-second-pass-1
+   ```
+
+   The task's `researchBrief` controls source order and negative-search completion. Tolerance and Deschloroketamine remain excluded; a second pass does not permit analogue inference or automatic production apply.
+
+2. Choose one transport:
+   - Active Pi path:
+
+     ```bash
+     command /opt/homebrew/bin/pi -p "/skill:pi-citation-workflow <drug-slug>" </dev/null
+     ```
+
+   - Optional external Claude branch: enter only for an explicit request for the external Claude `/cite` transport or its queue orchestration. Run it inside `/Users/josie/.codex/dosewiki-citation-workbench` under its `CLAUDE.md` and `.codex/skills/cite` instructions. Do not run Pi and Claude against the same attempt.
+
+3. Verify the selected transport completed the same artifact contract. `runs/<drug-slug>/citation-draft.json` and `citation-report.md` must exist; both workbench validators must pass; a Pi run must also have a finalized `pi-run-manifest.json` with outcome `needs_review`:
+
+   ```bash
+   npm --prefix /Users/josie/.codex/dosewiki-citation-workbench run validate -- --run runs/<drug-slug>
+   npm --prefix /Users/josie/.codex/dosewiki-citation-workbench run validate:patches -- --run runs/<drug-slug>
+   ```
+
+   Repair quote fidelity, ellipses in `supportingQuote`, discovery-only support, unsupported public markers, marker-path mismatches, missing evidence `status`, and marker/evidence mismatches before handoff. For a workbench queue run, update its queue and progress trackers after validation.
+
+4. Return to the repository root and dry-run the reviewed draft against production:
+
+   ```bash
+   TARGET_CONVEX_URL=https://glad-minnow-656.convex.cloud \
+     npm run citations:apply-workbench -- --slug=<drug-slug> --dry-run \
+     --expected-deployment=glad-minnow-656
+   ```
+
+   If the dry-run reports `text_changed`, rebase and dry-run the rebased draft:
+
+   ```bash
+   TARGET_CONVEX_URL=https://glad-minnow-656.convex.cloud \
+     npm run citations:rebase-workbench -- --slug=<drug-slug>
+   TARGET_CONVEX_URL=https://glad-minnow-656.convex.cloud \
+     npm run citations:apply-workbench -- --slug=<drug-slug> \
+     --draft=<workbench>/runs/<drug-slug>/citation-draft.rebased.json --dry-run \
+     --expected-deployment=glad-minnow-656
+   ```
+
+5. Stop after the clean dry-run unless the user explicitly asks for a production write or a queue continuation. For an approved write, apply one slug with the production target and full confirmation:
+
+   ```bash
+   TARGET_CONVEX_URL=https://glad-minnow-656.convex.cloud \
+     npm run citations:apply-workbench -- --slug=<drug-slug> \
+     --write --confirm-citation-write \
+     --confirm-write=apply-citation-workbench-draft \
+     --expected-deployment=glad-minnow-656
+   ```
+
+Completion criterion: the selected run is validated, its review artifacts are present, the production apply dry-run is clean, and no write or next-slug run occurs without the matching explicit user request.
+
+## Environment variables
+
+- `SOURCE_CONVEX_URL`: set to `https://glad-minnow-656.convex.cloud` for live-task exports and archive reads.
+- `TARGET_CONVEX_URL`: set to `https://glad-minnow-656.convex.cloud` for every citation dry-run and write.
+- `CONVEX_ADMIN_TOKEN_CITATION_EVIDENCE_WRITE`: production admin-intent token required by `citations:apply-workbench --write`.
+- `OPENROUTER_API_KEY`: required for OpenRouter-backed generation, not for applying reviewed drafts.
+
+## Validation
+
+- For adapter changes, run the focused `workbench-draft-adapter` test first with the workflow Vitest config.
+- For public marker rendering changes, run the focused article citation rendering tests first.
+- For script workflow changes, run `npm run lint:scripts`; broaden to `npm run test:workflow` when the shared data-ops path changes.
+- For schema changes, inspect `src/schema/substance.schema.ts`, run `npm run generate:schema`, and include generated helper updates.
+
+## Historical citation-author repair evidence
+
+This appendix preserves completed repair, provenance, and tracker evidence. It is not part of the citation run sequence. Enter these repair or reapplication lanes only when the user explicitly asks to verify or revisit that historical work.
+
+Historical repair commands:
+
+```bash
 npm run citations:plan-author-repairs -- --limit=20 --output=tmp/citation-author-repair-proposals/canary.json
 npm run citations:build-author-review-queue -- --proposal=tmp/citation-author-repair-proposals/canary.json --output=tmp/citation-author-repair-review-queues/canary.json
 TARGET_CONVEX_URL=https://glad-minnow-656.convex.cloud \
@@ -96,23 +188,9 @@ TARGET_CONVEX_URL=https://glad-minnow-656.convex.cloud \
   --proposal=tmp/citation-author-repair-proposals/canary.json \
   --approval=tmp/citation-author-repair-approvals/canary.json \
   --write --confirm-citation-author-write \
-  --confirm-write=apply-citation-author-repairs --expected-deployment=glad-minnow-656
-npm run citations:plan-second-pass -- --audit=tmp/subsection-citation-audit.json
-npm run citations:export-workbench-task -- --slug=2c-b --dry-run
-npm run citations:export-workbench-task -- --slug=2c-b --overwrite
-TARGET_CONVEX_URL=https://glad-minnow-656.convex.cloud \
-  npm run citations:apply-workbench -- --slug=2c-b --dry-run \
+  --confirm-write=apply-citation-author-repairs \
   --expected-deployment=glad-minnow-656
-TARGET_CONVEX_URL=https://glad-minnow-656.convex.cloud \
-  npm run citations:apply-workbench -- --slug=2c-b --write --confirm-citation-write \
-  --confirm-write=apply-citation-workbench-draft --expected-deployment=glad-minnow-656
-npx vitest run --config scripts/test/vitest.workflow.config.ts scripts/citations/workbench-draft-adapter.test.mjs
-npm run test -- src/features/article/components/sections/PilotSectionCitations.test.tsx
-npm run lint:scripts
-npm run typecheck
 ```
-
-## Citation-author repair boundary
 
 The author-repair planner is a read-only metadata completion workflow, not a
 citation-authoring workflow. For each marker-linked authorless reference it uses
@@ -261,144 +339,3 @@ npm run citations:validate-metadata-repair-tracker
 
 Pass `--write` only to deterministically replace the embedded row payload from
 that tracked JSON; this command never queries or writes Convex.
-
-## Rerunning Citation Test Cases
-
-When asked to rerun a citation test for a substance, treat it as a workbench
-fresh-run request, not a main-repo generation task.
-
-1. If the result may be applied back to Convex, export the task from the same Convex article target first:
-
-```bash
-npm run citations:export-workbench-task -- --slug=<drug-slug> --dry-run
-npm run citations:export-workbench-task -- --slug=<drug-slug> --overwrite
-```
-
-2. Work in the external workbench:
-
-```bash
-npm --prefix /Users/josie/.codex/dosewiki-citation-workbench run fresh-run -- --slug <drug-slug> --dry-run
-npm --prefix /Users/josie/.codex/dosewiki-citation-workbench run fresh-run -- --slug <drug-slug>
-npm --prefix /Users/josie/.codex/dosewiki-citation-workbench run preflight -- --slug <drug-slug>
-```
-
-If local discovery caches need refreshing before `fresh-run`, run:
-
-```bash
-npm --prefix /Users/josie/.codex/dosewiki-citation-workbench run cache:wikipedia
-npm --prefix /Users/josie/.codex/dosewiki-citation-workbench run cache:psychonautwiki:local
-```
-
-3. Launch one headless citation run from this repo (one slug per invocation):
-
-```bash
-command /opt/homebrew/bin/pi -p "/skill:pi-citation-workflow <drug-slug>" </dev/null
-```
-
-4. Before article-wide assembly, confirm Claude recorded a section status table
-   for `summary`, `pharmacology`, `tolerance`, `harm_potential`,
-   `history_culture`, and `legality`. Existing output files should pass
-   `npm --prefix /Users/josie/.codex/dosewiki-citation-workbench run check:worker-output -- --run runs/<drug-slug> --section <section>`.
-   Missing sections are warnings only when the original section is preserved
-   exactly and no public markers are added there; invalid outputs are failures.
-   Also confirm Claude launched section workers in batches of at most 3 and
-   verified visible/active worker labels against the citable section set.
-
-5. Before article-wide assembly, confirm remap/proactive scan gates passed:
-
-```bash
-cd /Users/josie/.codex/dosewiki-citation-workbench
-node /Users/josie/.codex/dosewiki-citation-workbench/scripts/remap-section-reference-ids.mjs --run runs/<drug-slug>
-# If remaps are reported, run:
-node /Users/josie/.codex/dosewiki-citation-workbench/scripts/remap-section-reference-ids.mjs --run runs/<drug-slug> --write
-# Then always run:
-node /Users/josie/.codex/dosewiki-citation-workbench/scripts/proactive-scan.mjs --run runs/<drug-slug>
-```
-
-After `article-wide:packet`, confirm Claude ran:
-
-```bash
-npm run article-wide:sanitize -- --run runs/<drug-slug>
-```
-
-6. After Claude finishes, validate in the workbench:
-
-```bash
-npm --prefix /Users/josie/.codex/dosewiki-citation-workbench run validate -- --run runs/<drug-slug>
-npm --prefix /Users/josie/.codex/dosewiki-citation-workbench run validate:patches -- --run runs/<drug-slug>
-```
-
-Repair and reassemble before handoff if validation reports quote fidelity
-failures, ellipses in `supportingQuote`, discovery-only support, public markers
-without supported evidence, marker path mismatches, evidence rows missing
-`status`, or marker/evidence mismatch.
-
-7. Update `/Users/josie/.codex/dosewiki-citation-workbench/trackers/citation-queue.json`
-and `/Users/josie/.codex/dosewiki-citation-workbench/trackers/citation-progress.md`.
-
-8. Return to this repo and run the apply dry-run only:
-
-```bash
-TARGET_CONVEX_URL=https://glad-minnow-656.convex.cloud \
-  npm run citations:apply-workbench -- --slug=<drug-slug> --dry-run \
-  --expected-deployment=glad-minnow-656
-```
-
-For a planned second-pass attempt, use the immutable plan rather than an ad-hoc
-research prompt:
-
-```bash
-npm run citations:plan-second-pass -- --audit=tmp/subsection-citation-audit.json
-SOURCE_CONVEX_URL=https://glad-minnow-656.convex.cloud \
-  npm run citations:export-workbench-task -- --slug=<drug-slug> --overwrite \
-  --second-pass-plan=outputs/citation-second-pass-research-plan.json \
-  --second-pass-max-wave=1
-npm --prefix /Users/josie/.codex/dosewiki-citation-workbench run fresh-run -- \
-  --slug <drug-slug> --run-id <drug-slug>-second-pass-1
-```
-
-The task's `researchBrief` owns ordered source lanes and negative-search
-completion criteria. Tolerance and Deschloroketamine remain excluded, and a
-second pass never permits analogue inference or automatic production apply.
-
-If the dry-run fails with `text_changed` (the live article drifted since the
-draft was made), rebase the draft instead of rerunning research: field-level
-marker transplant keeps every marker whose prose is unchanged and drops only
-the stale fields (recorded in the draft's `rebase` report; dropped fields are
-targeted re-cite candidates). It also sanitizes reference `template` values and
-numeric `volume`/`issue`/`pages` that the Convex article contract rejects:
-
-```bash
-TARGET_CONVEX_URL=https://glad-minnow-656.convex.cloud npm run citations:rebase-workbench -- --slug=<drug-slug>
-TARGET_CONVEX_URL=https://glad-minnow-656.convex.cloud \
-  npm run citations:apply-workbench -- --slug=<drug-slug> \
-  --draft=<workbench>/runs/<drug-slug>/citation-draft.rebased.json --dry-run \
-  --expected-deployment=glad-minnow-656
-```
-
-Stop there unless the user explicitly asks to write to Convex or continue the
-queue. Do not automatically advance to the next `ready` drug after a
-single-substance rerun. For an approved local-only multi-substance campaign, use
-`citations:run-local-campaign`; it resumes from manifest state and has no
-production apply capability. Rebuild the nontechnical review artifact with
-`citations:review-dossier` before seeking batch promotion approval.
-
-Always run the dry-run first and inspect the planned archive moves. `fresh-run`
-archives stale run folders outside the workbench so Claude cannot see prior
-section evidence, draft output, or report text.
-
-## Environment Variables
-
-- `TARGET_CONVEX_URL`: explicit production Convex target for citation writes.
-- `SOURCE_CONVEX_URL` or `CONVEX_PUBLIC_READ_URL`: explicit source Convex deployment for archive/export reads.
-- `VITE_CONVEX_URL`: local/default Convex URL used by existing data-ops scripts when a more specific source/target is not set.
-- `CONVEX_ADMIN_TOKEN_CITATION_EVIDENCE_WRITE`: admin intent token required by `citations:apply-workbench --write`.
-- `CONVEX_ADMIN_KEY`: legacy/shared admin key still required by broader Convex sync and some non-citation workflows.
-- `OPENROUTER_API_KEY`: required for OpenRouter-backed batch generation, not for applying reviewed workbench drafts.
-
-## Validation
-
-- For adapter changes, run the focused `workbench-draft-adapter` test first with the workflow Vitest config.
-- For public marker rendering changes, run the focused article citation rendering tests first.
-- For script workflow changes, run `npm run lint:scripts`; broaden to `npm run test:workflow` when the shared data-ops path changes.
-- For schema changes, inspect `src/schema/substance.schema.ts`, run `npm run generate:schema`, and include generated helper updates.

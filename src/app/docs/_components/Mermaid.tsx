@@ -221,5 +221,3 @@ export function Mermaid({ chart, title }: { chart: string; title?: string }) {
     </div>
   );
 }
-
-export default Mermaid;

@@ -235,5 +235,3 @@ export const PublicTocStrip = memo(function PublicTocStrip({
     </nav>
   );
 });
-
-export default PublicTocStrip;

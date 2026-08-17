@@ -163,6 +163,36 @@ describe("citation projection", () => {
     ]);
   });
 
+  it("canonicalizes legacy effect links and rejects misplaced source citations", () => {
+    const projection = projectEffectCitations({
+      seeAlso: [
+        { title: "Stimulation", location: "/effectsStimulation" },
+        { title: "Increased pareidolia", location: "/effects/Increased pareidolia" },
+        {
+          title: "Nefazodone study",
+          location:
+            "/effects/Schwartz, K. (1997). Nefazodone and visual side effects.",
+        },
+      ],
+    });
+
+    expect(projection.internalRelatedLinks.items.map((item) => item.url)).toEqual([
+      "/effects/stimulation",
+      "/effects/increased-pareidolia",
+    ]);
+  });
+
+  it("renders malformed legacy citation locators as unlinked labels", () => {
+    const projection = projectSubstanceCitations({
+      citations: [{ name: "Legacy book reference", url: "ISBN 9780853697114" }],
+    });
+
+    expect(projection.furtherReading.items[0]).toMatchObject({
+      label: "Legacy book reference",
+      url: "",
+    });
+  });
+
   it("returns VCode reference targets from the same projected anchors", () => {
     expect(
       getEffectReferenceTarget("source-a", [

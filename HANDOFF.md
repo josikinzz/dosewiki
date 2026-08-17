@@ -10,7 +10,7 @@ OpenAPI 3.1:       https://dosewiki-admin.vercel.app/api/v1/openapi.json
 Metadata:          https://dosewiki-admin.vercel.app/api/v1/meta
 ```
 
-Use the admin host above while the public `dose.wiki` site is under its construction gate. API paths are versioned under `/api/v1`; do not build against unversioned or `/dev` routes.
+Use the admin host above while the public `dose.wiki` and `www.dose.wiki` hosts are construction-gated through 2026-08-31. Passing that date does not launch them; the user must explicitly authorize launch. API paths are versioned under `/api/v1`; do not build against unversioned or `/dev` routes.
 
 The API is public and read-only:
 
@@ -594,6 +594,7 @@ type Replication = {
   effect_slug: string;
   url: string;
   thumbnail_url?: string;
+  preview_url?: string;
   width?: number;
   height?: number;
   format: string;
@@ -611,7 +612,7 @@ type Replication = {
 };
 ```
 
-`url` and `thumbnail_url` are storage URLs and may be time-sensitive; refresh API records rather than assuming they are permanent. Never infer permission from public availability. If `rights.status` is `unknown`, treat reuse rights as unknown. Keep `artist`, `credit_line`, and applicable source/license links with the media.
+`url`, `thumbnail_url`, and `preview_url` are storage URLs and may be time-sensitive. Refresh the API record before display instead of persisting those URLs as permanent identifiers; video preview renditions may receive a new URL when regenerated. Never infer permission from public availability. If `rights.status` is `unknown`, treat reuse rights as unknown. Keep `artist`, `credit_line`, and applicable source/license links with the media.
 
 ## Errors and retries
 

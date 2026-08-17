@@ -20,7 +20,7 @@ import {
   getEffectArticleReplicationState,
   type EffectArticleModel,
 } from "../../src/features/effects/articleSectionModel";
-import { stripCitationTokens } from "../../src/lib/citations/referenceModel";
+import { stripCitationTokens } from "../../src/lib/citations/citationTokens";
 import { toTripReportPreviewModel } from "../../src/features/reports/domain/tripReportIndex";
 import type { SubstanceArticle } from "../../src/schema";
 import type { MoleculeAsset, SubstanceContent } from "../../src/types/content";
@@ -70,7 +70,7 @@ function buildSubstanceMetadataDescription(substance: PublicSubstanceRecord): st
 function buildSubstanceMetadataTitle(substance: PublicSubstanceRecord): string {
   const name = substance.identification?.common_name?.trim() || substance.title.trim() || "Substance";
 
-  return `${name} - ${SITE_FLAVOR_CONFIG.name}`;
+  return `${name}: Dosage, Effects & Safety | ${SITE_FLAVOR_CONFIG.name}`;
 }
 
 function buildEffectMetadataDescription(effect: SubjectiveEffectDetailRecord): string {
@@ -123,6 +123,8 @@ export interface SubstanceArticleViewModel {
     article: SubstanceArticle;
     content?: SubstanceContent;
     fromSubstanceSlug: string;
+    linkableSubstanceSlugs: string[];
+    linkableCategoryKeys: string[];
     tripReportsSection: ReactNode;
     hasRelatedTripReports: boolean;
     replicationShowcaseSection: ReactNode;
@@ -147,6 +149,8 @@ export interface EffectArticleViewModel {
     article: EffectArticleModel;
     drugHrefPrefix: string;
     categoryHrefPrefix: string;
+    linkableSubstanceSlugs: string[];
+    linkableEffectSlugs: string[];
     replicationsSection?: ReactNode;
     contributorDirectory: ContributorDirectory;
   };
@@ -213,6 +217,8 @@ function applyMoleculeOverrideUrl(
 export function buildSubstanceArticleViewModel(input: {
   slug: string;
   substance: PublicSubstanceRecord;
+  linkableSubstanceSlugs: string[];
+  linkableCategoryKeys: string[];
   tripReportsSection?: ReactNode;
   replicationShowcaseSection?: ReactNode;
   contributorAvatars?: ContributorAvatarMap;
@@ -245,6 +251,8 @@ export function buildSubstanceArticleViewModel(input: {
         input.slug,
       ),
       fromSubstanceSlug: input.slug,
+      linkableSubstanceSlugs: input.linkableSubstanceSlugs,
+      linkableCategoryKeys: input.linkableCategoryKeys,
       hasRelatedTripReports: input.hasRelatedTripReports,
       tripReportsSection:
         input.tripReportsSection ??
@@ -275,6 +283,8 @@ export function buildEffectArticleViewModel(input: {
   detail?: Awaited<ReturnType<typeof getPublicEffectDetail>> | null;
   replicationsSection?: ReactNode;
   contributorDirectory?: ContributorDirectory;
+  linkableSubstanceSlugs: string[];
+  linkableEffectSlugs: string[];
 }): EffectArticleViewModel {
   const replicationState = getEffectArticleReplicationState(input.effect);
   const article = buildEffectArticleModel({
@@ -285,7 +295,7 @@ export function buildEffectArticleViewModel(input: {
 
   return {
     metadata: {
-      title: input.effect.name,
+      title: `${input.effect.name}: Subjective Effect | ${SITE_FLAVOR_CONFIG.name}`,
       description: buildEffectMetadataDescription(input.effect),
     },
     pageProps: {
@@ -293,6 +303,8 @@ export function buildEffectArticleViewModel(input: {
       article,
       drugHrefPrefix: DRUG_HREF_PREFIX,
       categoryHrefPrefix: CATEGORY_HREF_PREFIX,
+      linkableSubstanceSlugs: input.linkableSubstanceSlugs,
+      linkableEffectSlugs: input.linkableEffectSlugs,
       replicationsSection:
         input.replicationsSection ??
         (replicationState.kind === "server" ? (

@@ -21,6 +21,7 @@
     "paths": {
       "@/*": ["./src/*"],
       "@site-font": ["./src/app/_fonts/dosewiki"],
+      "@site-styles": ["./src/app/_styles/dosewiki"],
       "@lib/*": ["./lib/*"],
       "@auth": ["./auth.ts"],
       "@server/*": ["./lib/*"]

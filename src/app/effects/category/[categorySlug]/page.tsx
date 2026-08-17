@@ -5,7 +5,7 @@ import {
   effectCategoryRouteDescriptor,
   loadEffectCategoryRoute,
   loadTaxonomyStaticParams,
-} from "@server/next/routeLoaders";
+} from "@server/next/routeLoaders.taxonomy";
 import { getEffectCategoryDefinition } from "@/data/effectCategoryDefinitions";
 import { EffectCategoryPage as EffectCategoryDetailPage } from "@/features/effects/pages/EffectCategoryPage";
 import { serializeJsonLd } from "@/utils/seo/structuredData";
