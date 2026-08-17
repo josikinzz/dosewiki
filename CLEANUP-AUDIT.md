@@ -4,14 +4,14 @@
 
 ## Final Result
 
-The cleanup guardrail is clean. The current checked scan reports **2,121 source files** and **298,644 nonblank, non-comment LOC**. All **41 reviewed file budgets** and all **8 focused hotspot thresholds** pass. No budget was raised merely to clear a failure.
+The cleanup guardrail is clean. The current checked scan reports **2,124 source files** and **299,360 nonblank, non-comment LOC**. All **41 reviewed file budgets** and all **8 focused hotspot thresholds** pass. No budget was raised merely to clear a failure.
 
 | Category | Files | LOC | Files >300 LOC | Files >500 LOC |
 |---|---:|---:|---:|---:|
-| Active logic | 1,540 | 212,787 | 171 | 26 |
-| Tests | 534 | 77,158 | 46 | 7 |
+| Active logic | 1,541 | 213,110 | 172 | 26 |
+| Tests | 536 | 77,555 | 47 | 7 |
 | Static registries | 6 | 4,415 | 5 | 5 |
-| Cohesive document components | 3 | 3,845 | 3 | 3 |
+| Cohesive document components | 3 | 3,841 | 3 | 3 |
 | Generated/config-heavy | 3 | 213 | 0 | 0 |
 | Deprecated | 35 | 226 | 0 | 0 |
 
@@ -53,11 +53,11 @@ The category default remains 500 LOC. Classification makes intentional tests, re
 - `bun install --frozen-lockfile`
 - `npm run verify:all`
   - OpenChemLib fork verification: pass
-  - application tests: 419 files, 3,410 passed, 2 todo
+  - application tests: 421 files, 3,433 passed, 2 todo
   - application lint, API lint, and TypeScript: pass
-  - production build: pass; 2,091 static pages generated
-  - workflow node tests: 63 passed
-  - workflow Vitest tests: 105 files, 991 passed
+  - production build: pass; 2,185 static pages generated
+  - workflow node tests: 64 passed
+  - workflow Vitest tests: 105 files, 995 passed
   - script and Convex TypeScript checks: pass
   - cleanup metrics and generated-data provenance: pass
 - Production-server smoke: `/`, `/docs/code`, `/docs/how`, `/api/v1`, `/substances`, `/effects`, `/replications`, `/dmt`, and `/contributors/josie` all returned HTTP 200.

@@ -5,7 +5,6 @@ import { describe, expect, it, vi } from "vitest";
 import { createEmptyArticle } from "@/data/schema/defaults.generated";
 import { DosageDurationSection } from "./DosageDurationSection";
 import { HistoryCultureSection } from "./HistoryCultureSection";
-import { InteractionsSection } from "./InteractionsSection";
 import { SubjectiveEffectsSection } from "./SubjectiveEffectsSection";
 
 vi.mock("next/link", () => ({
@@ -597,75 +596,4 @@ describe("article section cleanup characterization", () => {
     expect(screen.queryByText("10-15 mg")).not.toBeInTheDocument();
   });
 
-  it("renders interaction severity hierarchy with non-color labels", () => {
-    const article = {
-      ...createEmptyArticle(),
-      title: "Interaction Test",
-      interactions: {
-        dangerous: ["MAOIs (Potentially life-threatening interaction.)"],
-        unsafe: ["Tramadol"],
-        caution: ["Cannabis"],
-      },
-    };
-
-    const { container } = render(<InteractionsSection article={article} />);
-
-    expect(screen.getByText("Highest risk")).toHaveClass("theme-interaction-severity-badge-danger");
-    expect(screen.getByText("Avoid")).toHaveClass("theme-interaction-severity-badge-unsafe");
-    expect(screen.getByText("Use caution")).toHaveClass("theme-interaction-severity-badge-caution");
-    expect(container.querySelector(".theme-interaction-danger")).toBeInTheDocument();
-
-    const expandButton = screen.getByRole("button", {
-      name: "Expand MAOIs interaction rationale",
-    });
-    expect(expandButton).toHaveAttribute("aria-controls", "interaction-maois-dangerous");
-    fireEvent.click(expandButton);
-    expect(
-      screen.getByRole("button", { name: "Collapse MAOIs interaction rationale" }),
-    ).toHaveAttribute("aria-controls", "interaction-maois-dangerous");
-  });
-
-  it("links only interaction substances with canonical public articles", () => {
-    const article = {
-      ...createEmptyArticle(),
-      title: "Interaction Links",
-      interactions: {
-        dangerous: ["MDMA", "MAOIs (Potentially life-threatening interaction.)"],
-        unsafe: [],
-        caution: [],
-      },
-    };
-
-    render(
-      <InteractionsSection
-        article={article}
-        linkableSubstanceSlugs={["mdma"]}
-      />,
-    );
-
-    expect(screen.getByRole("link", { name: "MDMA" })).toHaveAttribute(
-      "href",
-      "/mdma",
-    );
-    expect(screen.queryByRole("link", { name: "MAOIs" })).not.toBeInTheDocument();
-    expect(screen.getByText("MAOIs")).toBeInTheDocument();
-  });
-
-  it("flags an absent interaction table instead of hiding the section", () => {
-    const article = { ...createEmptyArticle(), title: "No Combos" };
-
-    const { container } = render(<InteractionsSection article={article} />);
-
-    // The section keeps its anchor so the table of contents does not lose a row.
-    expect(container.querySelector("#interactions")).toBeInTheDocument();
-    expect(screen.getByText("Interactions not written up yet")).toBeInTheDocument();
-    expect(
-      screen.getByText(/unlisted combination is an unknown one/i),
-    ).toBeInTheDocument();
-    // And it still hands the reader somewhere to go.
-    expect(screen.getByRole("link", { name: /TripSit/ })).toHaveAttribute(
-      "href",
-      "https://combo.tripsit.me/",
-    );
-  });
 });

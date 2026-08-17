@@ -53,9 +53,23 @@ Feature folders must be reachable from the active App Router tree or explicitly 
 
 ## Local Artifact Hygiene
 
-Run `npm run hygiene:check` to inspect local artifacts. Run `npm run hygiene:clean` to remove only artifacts classified as cleanable.
+`scripts/lib/local-artifact-hygiene-policy.mjs` is the authority for removable paths, protected paths, and generated-export retention.
 
-`scripts/lib/local-artifact-hygiene-policy.mjs` is the authority for removable and protected paths and for generated-export retention. Update that policy and its tests when the rules change; do not cache its path inventory in this guide.
+## Ignored Local Artifacts
+
+The policy covers these active local artifact paths:
+
+- Generated output: `.next`, `.generated`, `dist`, `dist-inline`, `coverage`, `public/share`, and `tmp`.
+- Protected export boundary: `notes-and-plans/exports`. The cleanup command never removes tracked files from this boundary.
+- Local process files: `.codex-dev.log` and `.codex-dev.pid`.
+- macOS metadata: `.DS_Store`.
+
+Use:
+
+- `npm run hygiene:check` to list local artifacts.
+- `npm run hygiene:clean` to remove only artifacts that the policy classifies as cleanable.
+
+The contract test keeps this list aligned with the policy.
 
 ## Documentation Pointers
 
