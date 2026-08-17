@@ -280,7 +280,9 @@ On `effectindex.com`:
 On `dose.wiki` / `dosewiki-admin`:
 
 - [ ] Appearance unchanged.
-- [ ] The light/dark theme toggle still works (Effect Index pins light and hides the toggle; dose.wiki must not).
+- [ ] Both appearance axes work: the day/night toggle is a reader preference on
+  both publications, and dose.wiki additionally exposes the Fun/Pro visual-style
+  toggle. Effect Index locks the style to Pro and must not offer that control.
 - [ ] The blog resolves. Effect Index-only routes return 404: `/donate`, `/contact`, `/discord`, `/copyright-disclaimer`, and `/documentation-style-guide`.
 
 ### Verifying the Effect Index build locally
