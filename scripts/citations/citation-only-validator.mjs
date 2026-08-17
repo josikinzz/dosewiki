@@ -65,6 +65,68 @@ export function collectCitationMarkersFromValue(value, path = "") {
   return [];
 }
 
+function collectAnchoredCitationMarkersFromText(value, path = "") {
+  if (typeof value !== "string" || !value.includes("[cite:")) return [];
+
+  let removedLength = 0;
+  return Array.from(value.matchAll(CITE_MARKER_PATTERN), (match) => {
+    const marker = match[0];
+    const index = match.index ?? 0;
+    const anchoredMarker = {
+      marker,
+      referenceId: match[1],
+      path,
+      anchorIndex: index - removedLength,
+    };
+    removedLength += marker.length;
+    return anchoredMarker;
+  });
+}
+
+function collectAnchoredCitationMarkersFromValue(value, path = "") {
+  if (typeof value === "string") return collectAnchoredCitationMarkersFromText(value, path);
+  if (Array.isArray(value)) {
+    return value.flatMap((entry, index) => (
+      collectAnchoredCitationMarkersFromValue(entry, pathWithChild(path, index))
+    ));
+  }
+  if (isObjectRecord(value)) {
+    return Object.entries(value).flatMap(([key, entry]) => (
+      collectAnchoredCitationMarkersFromValue(entry, pathWithChild(path, key))
+    ));
+  }
+  return [];
+}
+
+function anchoredMarkerIdentity(marker) {
+  return `${marker.path}\u0000${marker.anchorIndex}\u0000${marker.marker}`;
+}
+
+function unmatchedAnchoredMarkers(sourceValue, comparisonValue, path = "") {
+  const comparisonCounts = new Map();
+  for (const marker of collectAnchoredCitationMarkersFromValue(comparisonValue, path)) {
+    const identity = anchoredMarkerIdentity(marker);
+    comparisonCounts.set(identity, (comparisonCounts.get(identity) ?? 0) + 1);
+  }
+
+  return collectAnchoredCitationMarkersFromValue(sourceValue, path).filter((marker) => {
+    const identity = anchoredMarkerIdentity(marker);
+    const count = comparisonCounts.get(identity) ?? 0;
+    if (count <= 0) return true;
+    if (count === 1) comparisonCounts.delete(identity);
+    else comparisonCounts.set(identity, count - 1);
+    return false;
+  });
+}
+
+function findRemovedOrMovedMarkers(originalValue, markedValue, path = "") {
+  return unmatchedAnchoredMarkers(originalValue, markedValue, path);
+}
+
+function findNewMarkers(originalValue, markedValue, path = "") {
+  return unmatchedAnchoredMarkers(markedValue, originalValue, path);
+}
+
 export function stripCitationMarkers(value) {
   return String(value ?? "").replace(CITE_MARKER_PATTERN, "");
 }
@@ -214,6 +276,18 @@ export function validateCitationOnlyEdit(originalValue, markedValue, {
     ));
   }
 
+  for (const marker of findRemovedOrMovedMarkers(originalValue, markedValue, path)) {
+    diagnostics.push(diagnostic(
+      "existing_marker_removed_or_moved",
+      `${marker.marker} existing marker was removed or moved from its original text anchor.`,
+      {
+        path: marker.path,
+        referenceId: marker.referenceId,
+        anchorIndex: marker.anchorIndex,
+      },
+    ));
+  }
+
   const strippedOriginalValue = stripCitationMarkersFromValue(originalValue);
   const strippedValue = stripCitationMarkersFromValue(markedValue);
   if (stableStringify(strippedValue) !== stableStringify(strippedOriginalValue)) {
@@ -229,6 +303,7 @@ export function validateCitationOnlyEdit(originalValue, markedValue, {
     accepted: ok,
     markerCount: markers.length,
     markers,
+    newMarkers: findNewMarkers(originalValue, markedValue, path),
     strippedValue,
     diagnostics,
   };

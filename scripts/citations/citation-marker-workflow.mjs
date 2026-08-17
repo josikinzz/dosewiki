@@ -111,6 +111,7 @@ function validateMarkerValue({
     sectionKey,
     markerCount: edit.markerCount,
     markers: edit.markers,
+    newMarkers: edit.newMarkers,
     strippedValue: edit.strippedValue,
     diagnostics,
   };

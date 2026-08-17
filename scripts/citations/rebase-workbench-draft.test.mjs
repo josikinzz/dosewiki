@@ -109,6 +109,39 @@ test("scoped rebase preserves selectedSections and reports dropped selected sect
   assert.deepEqual(report.selectedSections, ["pharmacology"]);
 });
 
+test("rebase merges draft markers with existing live markers", () => {
+  const draft = {
+    citationMode: "marker_only",
+    selectedSections: ["pharmacology"],
+    markedSections: {
+      pharmacology: {
+        mechanism: "First claim. Second claim.[cite:new-ref]",
+      },
+    },
+    evidence: [{
+      status: "supported",
+      fieldPath: "pharmacology.mechanism",
+      referenceIds: ["new-ref"],
+    }],
+    references: [{ id: "new-ref" }],
+    sources: [],
+  };
+  const article = {
+    pharmacology: {
+      mechanism: "First claim.[cite:existing-a] Second claim.[cite:existing-b]",
+    },
+  };
+
+  const { rebasedDraft, report } = rebaseWorkbenchDraft({ draft, article });
+
+  assert.equal(
+    rebasedDraft.markedSections.pharmacology.mechanism,
+    "First claim.[cite:existing-a] Second claim.[cite:existing-b][cite:new-ref]",
+  );
+  assert.equal(report.preservedExistingMarkerCount, 2);
+  assert.equal(report.transplantedMarkerCount, 1);
+});
+
 test("scoped rebase transplants unchanged selected fields and keeps live edits", () => {
   const draft = {
     citationMode: "marker_only",

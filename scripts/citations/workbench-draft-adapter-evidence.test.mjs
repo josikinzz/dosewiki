@@ -213,4 +213,89 @@ describe("workbench draft adapter evidence scope", () => {
       },
     })).toThrow(/marker-only draft failed validation/i);
   });
+
+  it("rejects a scoped draft that drops existing markers from the selected section", () => {
+    const article = createArticle();
+    article.pharmacology.pharmacodynamics =
+      "First DET claim.[cite:existing-a] Second DET claim.[cite:existing-b] " +
+      "Third DET claim.[cite:existing-a] Fourth DET claim.[cite:existing-a]";
+    article.references = [
+      { id: "existing-a", type: "journal_article", title: "Existing paper A" },
+      { id: "existing-b", type: "journal_article", title: "Existing paper B" },
+    ];
+
+    expect(() => buildWorkbenchApplyDraft({
+      article,
+      workbenchDraft: {
+        taskId: "det",
+        citationMode: "marker_only",
+        selectedSections: ["pharmacology"],
+        article: { slug: "det", title: "DET" },
+        references: article.references,
+        markedSections: {
+          pharmacology: {
+            ...article.pharmacology,
+            pharmacodynamics:
+              "First DET claim. Second DET claim. Third DET claim. " +
+              "Fourth DET claim.[cite:existing-a]",
+          },
+        },
+        evidence: [
+          {
+            claimKey: "det-pharmacodynamics",
+            fieldPath: "pharmacology.pharmacodynamics",
+            claimText: "Fourth DET claim.",
+            status: "supported",
+            referenceIds: ["existing-a"],
+            supports: support("existing-a"),
+          },
+        ],
+        gaps: [],
+      },
+    })).toThrow(/existing marker was removed or moved/i);
+  });
+
+  it("requires evidence only for new markers when existing markers are preserved", () => {
+    const article = createArticle();
+    article.pharmacology.pharmacodynamics =
+      "First claim.[cite:existing-ref] Second claim.";
+    article.references = [
+      { id: "existing-ref", type: "journal_article", title: "Existing paper" },
+    ];
+
+    const draft = buildWorkbenchApplyDraft({
+      article,
+      workbenchDraft: {
+        taskId: "2c-b",
+        citationMode: "marker_only",
+        selectedSections: ["pharmacology"],
+        article: { slug: "2c-b", title: "2C-B" },
+        references: [
+          { id: "new-ref", type: "journal_article", title: "New paper" },
+        ],
+        markedSections: {
+          pharmacology: {
+            ...article.pharmacology,
+            pharmacodynamics:
+              "First claim.[cite:existing-ref] Second claim.[cite:new-ref]",
+          },
+        },
+        evidence: [
+          {
+            claimKey: "pharmacology.second-claim",
+            fieldPath: "pharmacology.pharmacodynamics",
+            claimText: "Second claim.",
+            status: "supported",
+            referenceIds: ["new-ref"],
+            supports: support("new-ref"),
+          },
+        ],
+        gaps: [],
+      },
+    });
+
+    expect(draft.article.pharmacology.pharmacodynamics).toBe(
+      "First claim.[cite:existing-ref] Second claim.[cite:new-ref]",
+    );
+  });
 });

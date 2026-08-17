@@ -508,7 +508,7 @@ function buildArticleFromMarkerOnlyWorkbenchDraft({ article, workbenchDraft }) {
 
   const markedSections = markerSectionsFromDraft(normalizedWorkbenchDraft);
   assertScopedSelection(normalizedWorkbenchDraft, markedSections);
-  const allMarkers = [];
+  const newMarkers = [];
   for (const [sectionKey, candidateSection] of Object.entries(markedSections)) {
     if (!CITABLE_ARTICLE_SECTIONS.includes(sectionKey)) {
       throw new Error(`Marker-only draft included non-citable section ${sectionKey}.`);
@@ -526,11 +526,11 @@ function buildArticleFromMarkerOnlyWorkbenchDraft({ article, workbenchDraft }) {
     }
 
     nextArticle[sectionKey] = clone(candidateSection);
-    allMarkers.push(...validation.markers);
+    newMarkers.push(...validation.newMarkers);
     recordChange(changes, sectionKey, article?.[sectionKey], candidateSection);
   }
 
-  assertMarkerEvidenceCoverage(normalizedWorkbenchDraft, allMarkers);
+  assertMarkerEvidenceCoverage(normalizedWorkbenchDraft, newMarkers);
   recordChange(changes, "references", article.references ?? [], nextArticle.references);
   return { article: nextArticle, changes };
 }

@@ -33,6 +33,39 @@ describe("citation-only edit validator", () => {
     expect(result.markers.map((marker) => marker.referenceId)).toEqual(["shulgin1991", "dea2cb"]);
   });
 
+  it("rejects removing or relocating existing markers", () => {
+    const original = "First claim.[cite:shulgin1991] Second claim.[cite:dea2cb]";
+    const marked = "First claim. Second claim.[cite:shulgin1991]";
+
+    const result = validateCitationOnlyEdit(original, marked, { knownReferenceIds });
+
+    expect(result.ok).toBe(false);
+    expect(result.diagnostics).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        code: "existing_marker_removed_or_moved",
+        path: "",
+        referenceId: "shulgin1991",
+      }),
+      expect.objectContaining({
+        code: "existing_marker_removed_or_moved",
+        path: "",
+        referenceId: "dea2cb",
+      }),
+    ]));
+  });
+
+  it("reports only newly added markers for evidence coverage", () => {
+    const original = "First claim.[cite:shulgin1991] Second claim.";
+    const marked = "First claim.[cite:shulgin1991] Second claim.[cite:dea2cb]";
+
+    const result = validateCitationOnlyEdit(original, marked, { knownReferenceIds });
+
+    expect(result.ok).toBe(true);
+    expect(result.newMarkers).toEqual([
+      expect.objectContaining({ marker: "[cite:dea2cb]", referenceId: "dea2cb" }),
+    ]);
+  });
+
   it("rejects a duplicated reference id in one marker cluster (double-insertion)", () => {
     const original = "Tolerance may develop with repeated use.";
     // Stripping markers yields the original either way, so text_changed cannot

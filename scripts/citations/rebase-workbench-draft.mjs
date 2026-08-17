@@ -89,6 +89,71 @@ function markerIds(text) {
   return [...text.matchAll(MARKER_PATTERN)].map((match) => match[1]);
 }
 
+function markerPlacements(text) {
+  let removedLength = 0;
+  return [...text.matchAll(MARKER_PATTERN)].map((match) => {
+    const marker = match[0];
+    const placement = {
+      marker,
+      anchorIndex: (match.index ?? 0) - removedLength,
+    };
+    removedLength += marker.length;
+    return placement;
+  });
+}
+
+function markerPlacementIdentity(placement) {
+  return `${placement.anchorIndex}\u0000${placement.marker}`;
+}
+
+export function mergeCitationMarkers(liveText, draftText) {
+  const plainText = stripCitationMarkers(liveText);
+  if (plainText !== stripCitationMarkers(draftText)) {
+    throw new Error("Cannot merge citation markers when live and draft prose differ.");
+  }
+
+  const livePlacements = markerPlacements(liveText);
+  const mergedPlacements = [...livePlacements];
+  const liveCounts = new Map();
+  for (const placement of livePlacements) {
+    const identity = markerPlacementIdentity(placement);
+    liveCounts.set(identity, (liveCounts.get(identity) ?? 0) + 1);
+  }
+
+  const seenDraftCounts = new Map();
+  let transplantedMarkerCount = 0;
+  for (const placement of markerPlacements(draftText)) {
+    const identity = markerPlacementIdentity(placement);
+    const draftCount = (seenDraftCounts.get(identity) ?? 0) + 1;
+    seenDraftCounts.set(identity, draftCount);
+    if (draftCount <= (liveCounts.get(identity) ?? 0)) continue;
+    mergedPlacements.push(placement);
+    transplantedMarkerCount += 1;
+  }
+
+  const markersByAnchor = new Map();
+  for (const placement of mergedPlacements) {
+    const markers = markersByAnchor.get(placement.anchorIndex) ?? [];
+    markers.push(placement.marker);
+    markersByAnchor.set(placement.anchorIndex, markers);
+  }
+
+  let mergedText = "";
+  let cursor = 0;
+  for (const anchorIndex of [...markersByAnchor.keys()].sort((left, right) => left - right)) {
+    mergedText += plainText.slice(cursor, anchorIndex);
+    mergedText += markersByAnchor.get(anchorIndex).join("");
+    cursor = anchorIndex;
+  }
+  mergedText += plainText.slice(cursor);
+
+  return {
+    text: mergedText,
+    preservedExistingMarkerCount: livePlacements.length,
+    transplantedMarkerCount,
+  };
+}
+
 const clone = (value) => (value === undefined ? undefined : JSON.parse(JSON.stringify(value)));
 
 // Reference fields the Convex article contract rejects if left in their raw
@@ -142,17 +207,22 @@ export function rebaseWorkbenchDraft({ draft, article }) {
     let kept = 0;
     for (const { path, text } of candidates) {
       const liveValue = path === "" ? liveSection : getAtPath(liveSection, parsePath(path));
-      if (typeof liveValue === "string" && stripCitationMarkers(text) === liveValue) {
+      if (
+        typeof liveValue === "string"
+        && stripCitationMarkers(text) === stripCitationMarkers(liveValue)
+      ) {
+        const merged = mergeCitationMarkers(liveValue, text);
         if (path === "") {
-          rebased = text;
+          rebased = merged.text;
         } else {
-          setAtPath(rebased, parsePath(path), text);
+          setAtPath(rebased, parsePath(path), merged.text);
         }
         kept += 1;
         transplanted.push({
           section: sectionKey,
           fieldPath: path ? `${sectionKey}.${path}` : sectionKey,
-          markerCount: markerIds(text).length,
+          markerCount: merged.transplantedMarkerCount,
+          preservedExistingMarkerCount: merged.preservedExistingMarkerCount,
         });
       } else {
         dropped.push({
@@ -199,6 +269,10 @@ export function rebaseWorkbenchDraft({ draft, article }) {
   const report = {
     transplantedFieldCount: transplanted.length,
     transplantedMarkerCount: transplanted.reduce((sum, entry) => sum + entry.markerCount, 0),
+    preservedExistingMarkerCount: transplanted.reduce(
+      (sum, entry) => sum + entry.preservedExistingMarkerCount,
+      0,
+    ),
     droppedFieldCount: dropped.length,
     droppedMarkerCount: dropped.reduce((sum, entry) => sum + entry.markerIds.length, 0),
     dropped,
@@ -261,7 +335,8 @@ async function main() {
   rebasedDraft.rebase.articleSource = url;
   writeFileSync(outPath, `${JSON.stringify(rebasedDraft, null, 2)}\n`);
 
-  console.log(`Rebased ${slug}: ${report.transplantedMarkerCount} markers kept across ${report.transplantedFieldCount} fields; ` +
+  console.log(`Rebased ${slug}: ${report.transplantedMarkerCount} new markers transplanted and ` +
+    `${report.preservedExistingMarkerCount} existing markers preserved across ${report.transplantedFieldCount} fields; ` +
     `${report.droppedMarkerCount} markers dropped across ${report.droppedFieldCount} fields.`);
   for (const entry of report.dropped) {
     console.log(`  dropped ${entry.fieldPath} (${entry.reason}): ${entry.markerIds.join(", ")}`);

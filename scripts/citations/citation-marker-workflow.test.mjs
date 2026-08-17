@@ -178,7 +178,7 @@ describe("citation marker workflow", () => {
     expect(stripCitationMarkersFromValue(candidate)).toEqual(article.legality);
   });
 
-  it("ignores object key order and pre-existing citation markers when checking marker-only text safety", () => {
+  it("ignores object key order while preserving pre-existing citation markers", () => {
     const originalSection = {
       sections: [
         {
@@ -194,7 +194,7 @@ describe("citation marker workflow", () => {
       sections: [
         {
           heading: "Discovery",
-          content: "Alexander Shulgin first synthesized 2C-B in 1974.[cite:shulgin1991]",
+          content: "Alexander Shulgin first synthesized 2C-B in 1974.[cite:old-ref][cite:shulgin1991]",
           subsections: [],
         },
       ],
@@ -209,6 +209,16 @@ describe("citation marker workflow", () => {
 
     expect(validation.ok).toBe(true);
     expect(validation.markers).toEqual([
+      expect.objectContaining({
+        path: "history_culture.sections[0].content",
+        referenceId: "old-ref",
+      }),
+      expect.objectContaining({
+        path: "history_culture.sections[0].content",
+        referenceId: "shulgin1991",
+      }),
+    ]);
+    expect(validation.newMarkers).toEqual([
       expect.objectContaining({
         path: "history_culture.sections[0].content",
         referenceId: "shulgin1991",
