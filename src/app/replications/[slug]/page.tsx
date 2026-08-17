@@ -12,7 +12,8 @@ export const revalidate = 3600;
 // HTTP 200, which is a soft 404 that search engines will index. These are
 // permalinks carrying licence metadata, so a bogus one must be a real 404.
 // The cost is that a replication uploaded after a build 404s until the next
-// deploy, which is acceptable for a curated archive that changes rarely.
+// deploy. Media-import campaigns therefore finish by rebuilding both public
+// deployments so the newly curated slug set is generated atomically.
 export const dynamicParams = false;
 
 export async function generateStaticParams() {
