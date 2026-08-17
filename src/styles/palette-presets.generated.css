@@ -5,8 +5,8 @@
    One attribute-scoped block per shipped preset per theme, so a saved palette
    paints from the stylesheet before any script runs. The Theme Lab's
    pre-paint bootstrap only sets html[data-palette]; the visitor's own
-   edits ride in the injected #palette-lab-overrides element at matching
-   specificity and win on source order. */
+   edits ride in the injected #palette-lab-overrides element, which out-ranks
+   these blocks on specificity alone. */
 
 /* Abyss — Bioluminescent cyan over deep ocean navy. */
 html[data-palette="abyss"][data-theme="dark"],
@@ -42,7 +42,6 @@ html[data-palette="abyss"][data-theme="light"] .theme-chrome-dark {
   --c-blue-200: #c7d2fe;
   --c-brand: 103 232 249;
   --theme-page-start: oklch(45% 0.231 var(--h-plum));
-  --theme-route-active-base: oklch(35.7% 0.112 var(--h-violet));
   --theme-body-bg: #020a12;
   --theme-accent: #a5f3fc;
   --theme-panel-base: #07202e;
@@ -131,7 +130,6 @@ html[data-palette="twilight"][data-theme="light"] .theme-chrome-dark {
   --c-blue-200: #a5f3fc;
   --c-brand: 165 180 252;
   --theme-page-start: oklch(45% 0.231 var(--h-plum));
-  --theme-route-active-base: oklch(35.7% 0.112 var(--h-violet));
   --theme-body-bg: #050414;
   --theme-accent: #c7d2fe;
   --theme-panel-base: #131034;
@@ -208,7 +206,6 @@ html[data-palette="graphite"][data-theme="light"] .theme-chrome-dark {
   --c-violet-700: #1e293b;
   --c-brand: 154 167 184;
   --theme-page-start: oklch(45% 0.03 250);
-  --theme-route-active-base: oklch(35.7% 0.02 250);
   --theme-body-bg: #08090b;
   --theme-accent: #cdd6e0;
   --theme-panel-base: #16181d;
@@ -229,6 +226,7 @@ html[data-palette="graphite"][data-theme="light"] .theme-chrome-dark {
   --theme-field-on-panel-surface: oklch(16% 0.014 250);
   --theme-field-on-panel-surface-alt: oklch(14% 0.012 250);
   --theme-article-neutral-panel-base: oklch(22.9% 0.014 250);
+  --theme-route-active-base: oklch(35.7% 0.02 250);
   --theme-header-nav-active-bg: oklch(25.9% 0.022 250);
   --theme-scroll-thumb-bg: radial-gradient(circle at 12% 0%, color-mix(in srgb, oklch(76% 0.020 250) 66%, var(--theme-scroll-track)), color-mix(in srgb, oklch(62% 0.026 250) 50%, var(--theme-scroll-track)) 42%), linear-gradient(135deg, color-mix(in srgb, oklch(62% 0.026 250) 50%, var(--theme-scroll-track)), color-mix(in srgb, oklch(50% 0.022 250) 40%, var(--theme-scroll-track)));
   --theme-scroll-thumb-hover-bg: radial-gradient(circle at 12% 0%, color-mix(in srgb, oklch(82% 0.018 250) 82%, var(--theme-scroll-track)), color-mix(in srgb, oklch(68% 0.027 250) 64%, var(--theme-scroll-track)) 42%), linear-gradient(135deg, color-mix(in srgb, oklch(68% 0.027 250) 64%, var(--theme-scroll-track)), color-mix(in srgb, oklch(56% 0.024 250) 52%, var(--theme-scroll-track)));
@@ -312,7 +310,6 @@ html[data-palette="parchment"][data-theme="light"] .theme-chrome-dark {
   --c-amber-800: #78350f;
   --c-brand: 201 111 157;
   --theme-page-start: oklch(45% 0.231 var(--h-plum));
-  --theme-route-active-base: oklch(35.7% 0.112 var(--h-violet));
   --theme-body-bg: #140d0a;
   --theme-accent: #e3aec7;
   --theme-panel-base: #261913;
@@ -406,7 +403,6 @@ html[data-palette="canopy"][data-theme="light"] .theme-chrome-dark {
   --c-emerald-800: #115e59;
   --c-brand: 74 222 128;
   --theme-page-start: oklch(45% 0.231 var(--h-plum));
-  --theme-route-active-base: oklch(35.7% 0.112 var(--h-violet));
   --theme-body-bg: #06110b;
   --theme-accent: #bbf7d0;
   --theme-panel-base: #0e2517;
@@ -469,6 +465,7 @@ html[data-palette="garnet"][data-theme="light"] .theme-chrome-dark {
   --h-brand: 25;
   --h-plum: 15;
   --h-text: 15;
+  --h-violet: 15;
   --theme-molecule-hue-rotate: 68deg;
   --c-accent: 252 165 165;
   --c-plum-deep: 43 11 18;
@@ -487,7 +484,6 @@ html[data-palette="garnet"][data-theme="light"] .theme-chrome-dark {
   --c-rose-800: #9d174d;
   --c-brand: 248 113 113;
   --theme-page-start: oklch(45% 0.231 var(--h-plum));
-  --theme-route-active-base: oklch(35.7% 0.112 var(--h-violet));
   --theme-body-bg: #140508;
   --theme-accent: #fca5a5;
   --theme-panel-base: #2b0b12;
@@ -511,6 +507,7 @@ html[data-palette="garnet"][data-theme="light"] {
   --h-brand: 25;
   --h-plum: 15;
   --h-text: 15;
+  --h-violet: 15;
   --theme-molecule-hue-rotate: 68deg;
   --c-accent: 252 165 165;
   --c-plum-deep: 43 11 18;
@@ -551,6 +548,7 @@ html[data-palette="sunset"][data-theme="light"] .theme-chrome-dark {
   --h-brand: 45;
   --h-plum: 310;
   --h-text: 320;
+  --h-violet: 310;
   --theme-molecule-hue-rotate: 80deg;
   --c-accent: 253 195 143;
   --c-plum-deep: 45 17 48;
@@ -571,7 +569,6 @@ html[data-palette="sunset"][data-theme="light"] .theme-chrome-dark {
   --c-orange: 220 70 20;
   --c-brand: 232 93 138;
   --theme-page-start: oklch(45% 0.231 var(--h-plum));
-  --theme-route-active-base: oklch(35.7% 0.112 var(--h-violet));
   --theme-body-bg: #170a1c;
   --theme-accent: #fdc38f;
   --theme-panel-base: #2d1130;
@@ -595,6 +592,7 @@ html[data-palette="sunset"][data-theme="light"] {
   --h-brand: 45;
   --h-plum: 310;
   --h-text: 320;
+  --h-violet: 310;
   --theme-molecule-hue-rotate: 80deg;
   --c-accent: 253 195 143;
   --c-plum-deep: 45 17 48;
@@ -667,7 +665,6 @@ html[data-palette="liberty"][data-theme="light"] .theme-chrome-dark {
   --c-rose-800: #9d174d;
   --c-brand: 239 68 68;
   --theme-page-start: oklch(45% 0.231 var(--h-plum));
-  --theme-route-active-base: oklch(35.7% 0.112 var(--h-violet));
   --theme-body-bg: #050a17;
   --theme-accent: #93c5fd;
   --theme-panel-base: #101c38;
@@ -770,7 +767,6 @@ html[data-palette="halloween"][data-theme="light"] .theme-chrome-dark {
   --c-orange: 194 65 12;
   --c-brand: 251 146 60;
   --theme-page-start: oklch(45% 0.231 var(--h-plum));
-  --theme-route-active-base: oklch(35.7% 0.112 var(--h-violet));
   --theme-body-bg: #0b0612;
   --theme-accent: #fed7aa;
   --theme-panel-base: #200f31;
@@ -885,7 +881,6 @@ html[data-palette="yuletide"][data-theme="light"] .theme-chrome-dark {
   --c-rose-800: #9d174d;
   --c-brand: 34 197 94;
   --theme-page-start: oklch(45% 0.231 var(--h-plum));
-  --theme-route-active-base: oklch(35.7% 0.112 var(--h-violet));
   --theme-body-bg: #030f09;
   --theme-accent: #a7f3d0;
   --theme-panel-base: #0a2318;

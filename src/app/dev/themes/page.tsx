@@ -13,13 +13,13 @@ import { ThemeLabWorkbench } from "./ThemeLabWorkbench";
 export const dynamic = "force-dynamic";
 export const metadata = buildNoIndexPageMetadata({
   title: "Palette Lab",
-  description: "Protected palette editor for the dose.wiki Fun visual style.",
+  description: "Protected palette editor for the dose.wiki visual styles.",
   pathname: STATUS_PAGE_PATHS.dev,
 });
 
 export default async function DevThemesPage() {
-  // Flavor gate first: the lab edits the Fun palette, and Effect Index is locked
-  // to Pro, so on that build this route does not exist. The page is dynamic, so
+  // Flavor gate first: the lab is an editor tool on a route Effect Index has no
+  // /dev surface for, so on that build it does not exist. The page is dynamic, so
   // `notFound()` answers a real 404 rather than a prerendered soft one.
   if (isEffectIndex()) {
     notFound();

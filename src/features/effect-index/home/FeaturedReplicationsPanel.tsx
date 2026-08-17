@@ -32,7 +32,7 @@ import type { HomeFeaturedReplication } from "./homeModel";
  * The stage and everything on it read against arbitrary dark media, so their colours cannot
  * come from the light/dark text ramp — they are fixed the way the original's were. They are
  * taken from the Effect Index palette's own on-dark family (`--ei-chrome-dark`,
- * `--ei-on-dark`, `--ei-teal-on-dark`), which is the same set that dresses the site's dark
+ * `--ei-on-dark`, `--ei-accent-on-dark`), which is the same set that dresses the site's dark
  * header and footer, with the literal kept as a fallback for any flavor that lacks them.
  */
 const STAGE_BACKGROUND = "bg-[color:var(--ei-chrome-dark,#2e2e2e)]";
@@ -44,7 +44,7 @@ const CONTROL_CLASS =
 
 /** The caption's effect link. Teal on charcoal, not the deep teal used on paper. */
 const CAPTION_LINK_CLASS =
-  "pointer-events-auto text-[color:var(--ei-teal-on-dark,#6fc4bb)] transition-colors hover:underline hover:decoration-1 hover:underline-offset-2 focus-visible:outline-offset-2";
+  "pointer-events-auto text-[color:var(--ei-accent-on-dark,#6fc4bb)] transition-colors hover:underline hover:decoration-1 hover:underline-offset-2 focus-visible:outline-offset-2";
 
 function useReducedMotion(): boolean {
   const [reduced, setReduced] = useState(false);

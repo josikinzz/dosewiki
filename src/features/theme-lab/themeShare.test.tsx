@@ -2,6 +2,7 @@ import { act, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { AppearanceTestProvider } from "@/test/AppearanceTestProvider";
+import { PRO_ACCENT_SEED_NAMES } from "@/theme/accents";
 import { PaletteLabLazy as PaletteLab } from "./PaletteLabLazy";
 import { getPreset } from "./palettePresets";
 import { PALETTE_ATTRIBUTE, PALETTE_LAB_OVERRIDE_STYLE_ID } from "./paletteLabStorage";
@@ -339,5 +340,74 @@ describe("Theme Lab share links", { timeout: 20_000 }, () => {
       expect(envelope.customThemes[0].name).toBe("Abyss");
       expect(envelope.customThemes[0].basePresetId).toBe("abyss");
     });
+  });
+
+  it("hands a tuned accent back as a table entry, with the swatch measured", async () => {
+    // The other direction of "I am done tuning": out of the browser and into
+    // `accents.ts`. Nine seeds in light, eight in dark, and a swatch read from
+    // Fun dark — none of which is the combination the editor is looking at, so all
+    // three are measured rather than taken off the page in front of them.
+    const lightSeeds = Object.fromEntries(
+      PRO_ACCENT_SEED_NAMES.light.map((id, index) => [id, `#00000${index + 1}`]),
+    );
+    const darkSeeds = Object.fromEntries(
+      PRO_ACCENT_SEED_NAMES.dark.map((id, index) => [id, `#0000${11 + index}`]),
+    );
+    const fixture = document.createElement("style");
+    fixture.textContent = [
+      'html[data-theme="dark"]{--theme-accent:#a5f3fc;}',
+      `html[data-visual-style="pro"][data-theme="light"]{${Object.entries(lightSeeds)
+        .map(([id, value]) => `${id}:${value};`)
+        .join("")}}`,
+      `html[data-visual-style="pro"][data-theme="dark"]{${Object.entries(darkSeeds)
+        .map(([id, value]) => `${id}:${value};`)
+        .join("")}}`,
+    ].join("");
+    document.head.appendChild(fixture);
+
+    try {
+      render(<AppearanceTestProvider><PaletteLab /></AppearanceTestProvider>);
+      act(() => setPaletteLabOpen(true));
+      const panel = await screen.findByRole("dialog", { name: "Theme Lab" });
+
+      await userEvent.click(within(panel).getByRole("button", { name: /^Abyss/ }));
+      await userEvent.click(within(panel).getByRole("button", { name: /^Share/ }));
+
+      const clipboard: string[] = [];
+      Object.defineProperty(navigator, "clipboard", {
+        configurable: true,
+        value: { writeText: (text: string) => (clipboard.push(text), Promise.resolve()) },
+      });
+      // The button names the accent being edited, which is the default one here.
+      await userEvent.click(within(panel).getByRole("button", { name: "Copy Default entry" }));
+      await waitFor(() => expect(clipboard).toHaveLength(1));
+
+      const entry = clipboard[0];
+      // Paste-ready: the binding `accents.ts` uses for this accent, the three
+      // hand-picked fields filled with the combination it was measured in, and the
+      // swatch as rendered rather than a placeholder.
+      expect(entry).toContain("const defaultAccent: Accent = {");
+      expect(entry).toContain('id: "default",');
+      expect(entry).toContain('label: "Default",');
+      expect(entry).toContain('funPresetId: "abyss",');
+      expect(entry).toContain('swatch: "#a5f3fc",');
+      for (const [id, value] of Object.entries(lightSeeds)) {
+        expect(entry, `light ${id}`).toContain(`"${id}": "${value}",`);
+      }
+      for (const [id, value] of Object.entries(darkSeeds)) {
+        expect(entry, `dark ${id}`).toContain(`"${id}": "${value}",`);
+      }
+      // Declared once, in light: a dark restatement would be an orphan nothing
+      // reads, and the generator asserts the count.
+      expect(entry.split('"--ei-accent-on-dark"')).toHaveLength(2);
+      expect(entry.trimEnd().endsWith("};")).toBe(true);
+
+      // Nothing was left behind by the measurement: the editor is still looking at
+      // the combination they were.
+      expect(document.documentElement.getAttribute("data-theme")).toBe("dark");
+      expect(document.documentElement.getAttribute("data-visual-style")).toBe("fun");
+    } finally {
+      fixture.remove();
+    }
   });
 });

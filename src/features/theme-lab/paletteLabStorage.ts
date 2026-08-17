@@ -268,25 +268,37 @@ export function writeSerializedEnvelope(serialized: string): boolean {
 /**
  * Selector for the visitor's own layer in one theme.
  *
- * `data-theme` is named twice on purpose. The repetition is what makes this
- * (0,2,1) — exactly level with the generated preset blocks
- * (`html[data-palette="…"][data-theme="…"]`), so an explicit edit beats the
- * preset it diverges from by source order (this element is appended to `<head>`
- * after the stylesheet) instead of by out-specifying it. Matching on the
- * doubled attribute rather than on `[data-palette]` also keeps the layer
- * applying when no preset is worn at all, and lets the baseline sampler strip
- * the palette attribute without silencing the layer it is staging.
+ * `data-theme` is named four times on purpose. The repetition is the whole rank:
+ * it puts this layer at (0,4,1), one step above the highest block any stylesheet
+ * emits — the generated Pro accent block
+ * `html[data-visual-style="pro"][data-accent="…"][data-theme="…"]` at (0,3,1),
+ * rung 4 of the ladder `proTheme.test.ts` pins. Out-specifying rung 4 rather
+ * than tying it is deliberate. A tie would leave the visitor's own edits winning
+ * only because this element is appended to `<head>` after the bundled sheets,
+ * and where a bundler drops a generated CSS chunk is not something this module
+ * controls; a strict win needs nothing but the selector. Source order still
+ * decides between the stylesheets themselves, but it stopped being load-bearing
+ * here.
+ *
+ * Matching on the repeated attribute rather than on `[data-palette]` also keeps
+ * the layer applying when no preset is worn at all, and lets the baseline
+ * sampler strip the palette attribute without silencing the layer it is
+ * staging.
  *
  * The dark layer carries a second selector: a {@link CHROME_DARK_CLASS} subtree
  * wears the visitor's dark edits even while the root is light, so their tuning
- * of the chrome follows the dark header onto a light page. It is (0,3,1),
- * level with the generated preset island and again winning on source order.
- * The sampler is unaffected — that selector can never match the root element.
+ * of the chrome follows the dark header onto a light page. It takes the same
+ * repetition and lands at (0,5,1), keeping it one step above the root selector
+ * exactly as before. The sampler is unaffected — that selector can never match
+ * the root element.
  */
 export function userLayerSelector(theme: ColorScheme): string {
-  const own = `html[data-theme="${theme}"][data-theme]`;
+  // Applied to both selectors from one place so the chrome subtree can never
+  // drift below the root layer it is meant to out-rank.
+  const rank = "[data-theme][data-theme][data-theme]";
+  const own = `html[data-theme="${theme}"]${rank}`;
   if (theme !== "dark") return own;
-  return `${own},html[data-theme="light"][data-theme] .${CHROME_DARK_CLASS}`;
+  return `${own},html[data-theme="light"]${rank} .${CHROME_DARK_CLASS}`;
 }
 
 /** The lab's CSS shape: one attribute-scoped block per theme. Exported so the

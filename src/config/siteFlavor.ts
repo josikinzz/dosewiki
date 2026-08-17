@@ -227,9 +227,9 @@ export type SiteAboutConfig = {
 
 /**
  * Everything that differs between the two publications, including their {@link
- * AppearancePolicy}: `defaultColorScheme`, `showColorSchemeToggle`, `defaultVisualStyle` and
- * `showVisualStyleToggle` are contributed by that type rather than redeclared here, so the
- * axis vocabulary has exactly one owner.
+ * AppearancePolicy}: `defaultColorScheme`, `showColorSchemeToggle`, `defaultVisualStyle`,
+ * `showVisualStyleToggle` and `showAccentPicker` are contributed by that type rather than
+ * redeclared here, so the axis vocabulary has exactly one owner.
  */
 export type SiteFlavorConfig = AppearancePolicy & {
   /** The flavor this config describes. */
@@ -407,11 +407,14 @@ const DOSEWIKI_CONFIG: SiteFlavorConfig = {
   // dose.wiki's header is flat: every top-level item is a plain link to its section.
   navMenus: {},
   // Dark-first cosmic-laboratory identity, and the only publication that offers the Fun/Pro
-  // choice: Pro is a selectable presentation here, not an imported build identity.
+  // choice: Pro is a selectable presentation here, not an imported build identity. The accent
+  // axis is offered for the same reason — it re-tints a presentation without touching
+  // publication identity, so a reader may wear whichever hue they like.
   defaultColorScheme: "dark",
   showColorSchemeToggle: true,
   defaultVisualStyle: "fun",
   showVisualStyleToggle: true,
+  showAccentPicker: true,
   // dose.wiki owns `/blog` too now — its own blog, written in the /dev Blog tab
   // and stored as `kind: "blog"` rows of `effectIndexArticles`. It is a
   // different publication from the frozen Effect Index archive that the same
@@ -619,11 +622,16 @@ const EFFECT_INDEX_CONFIG: SiteFlavorConfig = {
     },
   },
   // Pro is this publication's identity, so the style is locked and its storage key is never
-  // read; day/night stays a reader preference, which is new and deliberate.
+  // read; day/night stays a reader preference, which is new and deliberate. The accent is
+  // locked for the identity reason too: Effect Index's teal is the archive's own colour, and a
+  // lock means its storage key never appears in the emitted script, so a dose.wiki reader's
+  // accent cannot follow them here. The accent stylesheet is not imported on this flavor
+  // either, so the bytes are not merely inert, they are absent.
   defaultColorScheme: "light",
   showColorSchemeToggle: true,
   defaultVisualStyle: "pro",
   showVisualStyleToggle: false,
+  showAccentPicker: false,
   flavorGatedRoutes: ["blog", "donate", "contact", "discord", "copyrightDisclaimer"],
   rootMetadata: {
     title: "Effect Index",

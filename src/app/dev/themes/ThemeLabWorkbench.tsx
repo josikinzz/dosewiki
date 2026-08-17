@@ -5,10 +5,8 @@ import { useEffect, useRef } from "react";
 import { Icon } from "@/components/common/Icon";
 import { Button } from "@/components/ui";
 import { Surface } from "@/components/ui/surface";
-import { useTheme } from "@/context/ThemeContext";
 import { PaletteLabLazy } from "@/features/theme-lab/PaletteLabLazy";
 import { setPaletteLabOpen, usePaletteLabOpen } from "@/features/theme-lab/paletteLabStore";
-import type { VisualStyle } from "@/theme";
 
 /**
  * The Palette Lab's only entry point.
@@ -19,36 +17,23 @@ import type { VisualStyle } from "@/theme";
  * editor, closing it leaves the route-local action below, and leaving the route
  * releases both the open state and the runtime that paints the saved palette.
  *
- * The route also holds the page in the Fun style while it is mounted. Pro's
- * presentation selectors out-specify the palette layer the lab writes, so an
- * edit made under Pro would look like it did nothing at all. The style the
- * reader arrived with is handed back on the way out.
+ * The route used to hold the page in Fun while it was mounted, and to hand the
+ * reader's own style back on the way out. Both are gone. The lab's user layer
+ * now out-specifies every block any stylesheet emits, the generated Pro accent
+ * blocks included, so an edit made under Pro lands on a Pro page and Pro is
+ * something to author here rather than something to bounce off. Nothing on this
+ * route writes the style axis any more, so there is nothing to hand back: a
+ * style chosen while the lab is open is the reader's own choice and sticks,
+ * exactly as it does on every other page.
  */
 export function ThemeLabWorkbench() {
   const open = usePaletteLabOpen();
-  const { visualStyle, setVisualStyle } = useTheme();
   const reopenRef = useRef<HTMLButtonElement>(null);
   const wasOpen = useRef(false);
-  // Captured before the effect below forces Fun, so leaving the route restores
-  // the reader's own preference rather than pinning them to the lab's.
-  const styleOnEntry = useRef<VisualStyle | null>(null);
-  styleOnEntry.current ??= visualStyle;
 
   useEffect(() => {
     setPaletteLabOpen(true);
   }, []);
-
-  useEffect(() => {
-    if (visualStyle !== "fun") setVisualStyle("fun");
-  }, [setVisualStyle, visualStyle]);
-
-  useEffect(
-    () => () => {
-      const previous = styleOnEntry.current;
-      if (previous && previous !== "fun") setVisualStyle(previous);
-    },
-    [setVisualStyle],
-  );
 
   // Closing the panel must not drop focus on the body: the action that reopens
   // it renders in the same commit, so it is the natural place to land.
@@ -63,7 +48,8 @@ export function ThemeLabWorkbench() {
         <header className="flex flex-col gap-3">
           <h1 className="text-2xl font-semibold text-dose-text">Palette Lab</h1>
           <p className="text-sm text-dose-text-secondary">
-            Recolor the Fun palette live and save it to this browser.
+            Recolor the site live — the Fun palette or Pro’s accent seeds — and save it to this
+            browser.
           </p>
         </header>
 
@@ -72,15 +58,23 @@ export function ThemeLabWorkbench() {
             Scope
           </h2>
           <p className="text-sm text-dose-text-secondary">
-            The lab edits the <strong className="font-semibold text-dose-text">Fun</strong> palette
-            only. <strong className="font-semibold text-dose-text">Pro</strong> is the official,
-            separate visual style; it is authored in{" "}
-            <code className="text-dose-accent-strong">src/styles/pro-theme.css</code> and its
-            selectors out-specify anything saved here.
+            The lab edits custom properties, in whichever style you are wearing.{" "}
+            <strong className="font-semibold text-dose-text">Fun</strong>’s palette and{" "}
+            <strong className="font-semibold text-dose-text">Pro</strong>’s{" "}
+            <code className="text-dose-accent-strong">--ei-*</code> accent seeds are both editable:
+            what the lab injects out-specifies every stylesheet, the generated accent blocks
+            included, so an edit lands on the page in front of you either way.
           </p>
           <p className="text-sm text-dose-text-secondary">
-            This route holds the page in Fun while you work and restores your style when you leave.
-            Day and night stay switchable — the lab edits whichever scheme you are viewing.
+            Pro’s structure — its typography, geometry and selectors — stays authored in{" "}
+            <code className="text-dose-accent-strong">src/styles/pro-theme.css</code>, and an
+            accent’s shipped seeds in{" "}
+            <code className="text-dose-accent-strong">src/theme/accents.ts</code>. The lab writes
+            neither file; use Share → accent entry to copy a tuned accent back out.
+          </p>
+          <p className="text-sm text-dose-text-secondary">
+            Day, night, Fun, Pro and the accent all stay switchable while you work — the lab edits
+            whichever combination you are looking at, and leaves your choice alone when you go.
           </p>
           <p className="text-sm text-dose-text-secondary">
             A saved palette lives in this browser and paints here, not on the public site.

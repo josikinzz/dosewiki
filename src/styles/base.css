@@ -11,24 +11,17 @@
     --popover: 261 35% 10%;
     --popover-foreground: 0 0% 100%;
 
-    --primary: 292 91% 73%;
-    --primary-foreground: 261 40% 6%;
-
     --secondary: 0 0% 100%;
     --secondary-foreground: 0 0% 100%;
 
     --muted: 261 20% 12%;
     --muted-foreground: 0 0% 75%;
 
-    --accent: 292 91% 73%;
-    --accent-foreground: 261 40% 6%;
-
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
 
     --border: 0 0% 100%;
     --input: 0 0% 100%;
-    --ring: 292 91% 73%;
 
     /* Corner roundness: the Theme Lab's "Sharp" step, baked in as the shipped
        default. Sharp is 0.375x the scale it is applied to, so these are the
@@ -67,19 +60,11 @@
     --type-measure-reading: 68ch;
     --type-measure-deck: 54ch;
 
-    --dose-bg-deep: 0 0% 0%;
-    --dose-fuchsia-100: 292 88% 90%;
-    --dose-fuchsia-200: 292 91% 82%;
-    --dose-fuchsia-300: 292 91% 73%;
-    --dose-fuchsia-400: 292 91% 63%;
-    --dose-fuchsia-500: 292 84% 61%;
-    --dose-violet-500: 258 90% 66%;
-
     /* Color tokens live in site-colors.css — the single, annotated source of
        truth for both themes (page canvas, text, accent, surfaces, chrome,
        fields, frosted panels, the semantic safety ramp, trip-report colors,
        and misc UI accents). Edit colors there, not here. base.css keeps only
-       the shadcn HSL bridge and the --dose-* / type scales above, plus the
+       the shadcn HSL bridge and the type scale above, plus the
        --editor-* aliases below (which just re-point at the palette tokens). */
     --editor-panel-bg: var(--theme-surface-soft);
     --editor-panel-bg-subtle: var(--theme-surface-muted);
@@ -112,24 +97,17 @@
     --popover: 0 0% 100%;
     --popover-foreground: 271 31% 18%;
 
-    --primary: 292 72% 48%;
-    --primary-foreground: 0 0% 100%;
-
     --secondary: 274 29% 88%;
     --secondary-foreground: 271 31% 18%;
 
     --muted: 276 34% 94%;
     --muted-foreground: 272 18% 42%;
 
-    --accent: 292 72% 48%;
-    --accent-foreground: 0 0% 100%;
-
     --destructive: 0 72% 52%;
     --destructive-foreground: 0 0% 100%;
 
     --border: 272 23% 58%;
     --input: 272 23% 58%;
-    --ring: 292 72% 48%;
 
     /* Light-mode color tokens also live in site-colors.css. Only the shadcn
        HSL bridge for light mode stays in this file. */

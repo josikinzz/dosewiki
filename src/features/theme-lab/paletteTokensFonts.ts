@@ -283,8 +283,8 @@ export const FONT_ESSENTIALS: EssentialGroup = {
  * That skin re-points both families at Titillium; the same swap comes out of
  * these two tokens with no component or stylesheet touched, which is the
  * self-check that this control is wired to the real mechanism. Test-facing only
- * — the Pro stylesheet is untouched by the lab, and the lab's own edits are a
- * Fun-palette layer that Pro's selectors out-specify.
+ * — the Pro stylesheet is untouched by the lab, which writes a user layer over
+ * it and never edits the file.
  */
 export const PRO_STYLE_FONTS: Record<string, string> = {
   "--font-family-body": getFontChoice("titillium")!.stack,

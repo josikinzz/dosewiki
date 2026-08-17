@@ -1,3 +1,5 @@
+import { readFileSync } from "node:fs";
+import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
 import { ALL_TOKEN_IDS } from "./paletteTokens";
 import { RADIUS_TOKEN_IDS, getLengthSpec, parseRem } from "./paletteTokensRadius";
@@ -121,6 +123,30 @@ describe("palettePresets definitions", () => {
     }
   });
 
+  it("re-seats the whole brand seed group wherever it re-seats the brand hue", () => {
+    // --h-brand never travels alone. --h-plum and --h-text carry the surfaces
+    // and the ink beneath the brand; --h-violet carries the secondary
+    // selected/informational role — active index and dosage/duration tabs,
+    // reference controls, the modal dim. Garnet and Sunset shipped without
+    // --h-violet, so --theme-route-active-base, which the base sheet and every
+    // alternate look express as `oklch(35.7% 0.112 var(--h-violet))`, resolved
+    // back to Orchid's 290 and painted a violet active tab on a scarlet and a
+    // coral page. Re-seat the group together or the look half-applies.
+    const SEED_GROUP = ["--h-plum", "--h-text", "--h-violet"] as const;
+    for (const preset of PALETTE_PRESETS) {
+      for (const themeName of THEMES) {
+        const overrides = preset.overrides[themeName];
+        if (!overrides["--h-brand"]) continue;
+        for (const seed of SEED_GROUP) {
+          expect(
+            overrides[seed],
+            `${preset.id}/${themeName} re-seats --h-brand and must also re-seat ${seed}`,
+          ).toBeTruthy();
+        }
+      }
+    }
+  });
+
   it("ships five swatch hexes per theme for the picker strips", () => {
     for (const preset of PALETTE_PRESETS) {
       for (const themeName of THEMES) {
@@ -154,5 +180,153 @@ describe("palettePresets definitions", () => {
     expect(getPreset("not-a-preset").id).toBe(DEFAULT_PRESET_ID);
     expect(getPreset(undefined).id).toBe(DEFAULT_PRESET_ID);
     expect(getPreset("sunset").id).toBe("sunset");
+  });
+});
+
+/* -------------------------------------------------------------------------
+ * Harm-reduction immunity.
+ *
+ * A colourway dresses the page; it must never restate a safety signal. The
+ * families below are the signal: the dose and plateau tier ramps, the inline
+ * success / warning / danger / evidence ramp, and the semantic cards and
+ * badges. Membership is measured out of site-colors.css rather than trusted
+ * from a hand-kept list, so a token added to a family cannot slip the net.
+ *
+ * The molecule CPK palette is the fourth harm-reduction surface and is
+ * deliberately absent from this suite: it lives in
+ * src/data/mappings/moleculePalette.ts and paints structure SVGs served
+ * through <img>, so no custom property reaches it and no colourway can touch
+ * it. There is nothing here to assert.
+ * ---------------------------------------------------------------------- */
+
+const SITE_COLORS = readFileSync(resolve(process.cwd(), "src/styles/site-colors.css"), "utf8");
+const DECLARATIONS = [...SITE_COLORS.matchAll(/^\s*(--[a-z0-9-]+):\s*([^;]*);/gm)].map(
+  (match) => ({ id: match[1], value: match[2].trim() }),
+);
+
+const FAMILIES = {
+  // `-fade` is out on purpose: it is the tinted grey wash *behind* a tier bar,
+  // not a tier. Its chroma is 0.02 in dark and 0.004 in light, and it is
+  // seeded off --h-brand so the wash follows the page. The ten below are the
+  // signal, and they are the only members that must never move.
+  tierRamp: /^--theme-(?:dose|plateau)-tier-(?!fade$)/,
+  inlineRamp:
+    /^--theme-(?:success|warning|danger|evidence)-(?:bg|bg-strong|border|border-strong|text|text-strong|ring)$/,
+  semanticCards: /^--theme-(?:semantic|interaction)-(?:danger|unsafe|caution)-card-/,
+  // The neutral badge is out: it is chrome borrowed from the frosted-control
+  // recipe, carries no safety meaning, and its glow is seeded off --h-text so
+  // it follows the page ink.
+  semanticBadges: /^--theme-semantic-(?:danger|unsafe|caution|info|success)-badge-/,
+} as const;
+
+/** Membership as measured when the exemptions below were written. */
+const MEASURED_SIZES: Record<keyof typeof FAMILIES, number> = {
+  tierRamp: 10,
+  inlineRamp: 28,
+  semanticCards: 15,
+  semanticBadges: 25,
+};
+
+function membersOf(family: keyof typeof FAMILIES): string[] {
+  const pattern = FAMILIES[family];
+  return [...new Set(DECLARATIONS.map((d) => d.id).filter((id) => pattern.test(id)))].sort();
+}
+
+const IMMUNE = new Set(
+  (Object.keys(FAMILIES) as (keyof typeof FAMILIES)[]).flatMap((family) => membersOf(family)),
+);
+
+/**
+ * Named, deliberate exceptions. Each covers a colourway whose *brand* lands on
+ * top of a safety hue, where leaving the signal alone would be the unsafe
+ * choice. Loosening an assertion instead of naming the case here is forbidden:
+ * the point of the list is that adding to it is a decision someone has to
+ * write down.
+ *
+ * DANGER_RETINT — Garnet (scarlet), Liberty (federal red) and Yuletide
+ * (crimson) each carry a red brand that a rose danger would blur into, so each
+ * re-seats --h-rose to 350 and moves danger to magenta-pink: an alarm then
+ * differs from the brand by hue, not only by intensity. These two tokens are
+ * the hand-tuned literals in that family that do not follow --h-rose, so each
+ * of the three has to re-pin them or the callout panel and the chip text stay
+ * rose while the rest of the family moves.
+ *
+ * CAUTION_GOLD — Sunset and Halloween re-seat --h-gold to 95 and swap the
+ * amber scale for yellow-gold, so brand coral/pumpkin, gold caution and burnt
+ * unsafe stay three distinct steps. --theme-warning-bg is the one hand-tuned
+ * literal in the warning ramp that does not follow --c-amber, so a wash
+ * derived from gold has to move with the gold or it stops matching its own
+ * family: the caution panel would keep an orange-brown fill under gold text.
+ */
+const DANGER_RETINT = [
+  "--theme-interaction-danger-card-primary",
+  "--theme-semantic-danger-badge-text",
+] as const;
+const CAUTION_GOLD = ["--theme-warning-bg"] as const;
+const EXEMPTIONS: Record<string, readonly string[]> = {
+  garnet: DANGER_RETINT,
+  liberty: DANGER_RETINT,
+  yuletide: DANGER_RETINT,
+  sunset: CAUTION_GOLD,
+  halloween: CAUTION_GOLD,
+};
+
+describe("harm-reduction immunity", () => {
+  it("measures the family membership the exemptions were written against", () => {
+    for (const family of Object.keys(MEASURED_SIZES) as (keyof typeof FAMILIES)[]) {
+      expect(membersOf(family), `${family} membership moved`).toHaveLength(
+        MEASURED_SIZES[family],
+      );
+    }
+  });
+
+  it("keeps both tier ramps byte-identical in every colourway", () => {
+    // The ramps hard-code their hue numbers (165 / 235 / 82 / 54 / 16) instead
+    // of reading --h-green, --h-cyan, --h-yellow, --h-orange or --h-rose. That
+    // is not an oversight: a seed reference would let Canopy or Garnet re-tint
+    // a dose bar. No var() at all means no seed and no --c-* scale can reach
+    // them, which is what makes "byte-identical" literally true here.
+    const ramp = new Set(membersOf("tierRamp"));
+    const declared = DECLARATIONS.filter((d) => ramp.has(d.id));
+    expect(declared.length).toBe(ramp.size * 2); // one dark block, one light
+    for (const { id, value } of declared) {
+      expect(value, `${id} must not reach a custom property`).not.toContain("var(");
+    }
+    for (const preset of PALETTE_PRESETS) {
+      for (const themeName of THEMES) {
+        for (const tokenId of Object.keys(preset.overrides[themeName])) {
+          expect(
+            ramp.has(tokenId),
+            `${preset.id}/${themeName} must not re-tint the tier ramp (${tokenId})`,
+          ).toBe(false);
+        }
+      }
+    }
+  });
+
+  it("lets no colourway restate a safety signal outside the named exemptions", () => {
+    const used = new Set<string>();
+    for (const preset of PALETTE_PRESETS) {
+      const allowed = new Set(EXEMPTIONS[preset.id] ?? []);
+      for (const themeName of THEMES) {
+        for (const tokenId of Object.keys(preset.overrides[themeName])) {
+          if (!IMMUNE.has(tokenId)) continue;
+          expect(
+            allowed.has(tokenId),
+            `${preset.id}/${themeName} re-tints ${tokenId}; name the exemption or drop the override`,
+          ).toBe(true);
+          used.add(`${preset.id}|${tokenId}`);
+        }
+      }
+    }
+    // A stale exemption is a hole nobody is watching, so every entry must be
+    // one a colourway actually exercises.
+    for (const [presetId, tokenIds] of Object.entries(EXEMPTIONS)) {
+      for (const tokenId of tokenIds) {
+        expect(used.has(`${presetId}|${tokenId}`), `${presetId} no longer needs ${tokenId}`).toBe(
+          true,
+        );
+      }
+    }
   });
 });

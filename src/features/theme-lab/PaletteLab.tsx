@@ -9,6 +9,7 @@ import { ColorField } from "./ColorField";
 import { FontField } from "./FontField";
 import { LengthField } from "./LengthField";
 import { ThemeGallery } from "./ThemeGallery";
+import { AccentScope } from "./AccentScope";
 import { FlatnessControls } from "./FlatnessControls";
 import { BLUR_TOKEN_ID, blurDisabledIn } from "./flatnessAxes";
 import { AdvancedDrawer } from "./AdvancedDrawer";
@@ -717,6 +718,11 @@ export function PaletteLab() {
           </PanelButton>
         )}
       </div>
+
+      {/* Under the day/night switch, because it answers the same question about
+          the other axis: which of the appearance combinations these edits are
+          being made in. */}
+      <AccentScope />
 
       {/* Collapsed until there is something to edit: in the gallery it is not
           rendered at all, and in the catalog views it is a single line of hint

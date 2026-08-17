@@ -212,10 +212,17 @@ describe("theme token interface", () => {
   });
 
   it("opens each publication on its own declared appearance", () => {
-    expect(getInitialAppearance(DOSEWIKI)).toEqual({ colorScheme: "dark", visualStyle: "fun" });
+    // Both publications open on the same accent, because the accent that renders no attribute
+    // and no CSS is the only opening value a publication has no reason to choose differently.
+    expect(getInitialAppearance(DOSEWIKI)).toEqual({
+      colorScheme: "dark",
+      visualStyle: "fun",
+      accent: "default",
+    });
     expect(getInitialAppearance(EFFECT_INDEX)).toEqual({
       colorScheme: "light",
       visualStyle: "pro",
+      accent: "default",
     });
     // The locked style's light tint is that publication's own manifest colour, so the address
     // bar and the installed app agree instead of flashing the shared lilac-white.

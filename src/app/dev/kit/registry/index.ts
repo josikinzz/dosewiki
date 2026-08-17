@@ -56,7 +56,8 @@ import { statusBadgeStory } from "../stories/status-badge.story";
 import { statusOrbStory } from "../stories/status-orb.story";
 import { stickyTocLayoutStory } from "../stories/sticky-toc-layout.story";
 
-// Layout — src/components/layout
+// Layout & chrome — src/components/layout, plus the app-level appearance chrome
+import { appearanceCogStory } from "../stories/appearance-cog.story";
 import { footerStory } from "../stories/footer.story";
 import { headerStory } from "../stories/header.story";
 import { pageHeaderStory } from "../stories/page-header.story";
@@ -128,7 +129,8 @@ export const stories: StoryDef[] = [
   statusOrbStory,
   stickyTocLayoutStory,
 
-  // Layout — src/components/layout
+  // Layout & chrome — src/components/layout, plus the app-level appearance chrome
+  appearanceCogStory,
   footerStory,
   headerStory,
   pageHeaderStory,

@@ -317,10 +317,10 @@ html[data-theme="light"] .theme-article-hero-summary {
   --theme-article-hero-summary-divider: linear-gradient(
     90deg,
     transparent 0%,
-    oklch(48% 0.085 326 / 0.08) 4%,
-    oklch(48% 0.085 326 / 0.16) 16%,
-    oklch(48% 0.085 326 / 0.16) 84%,
-    oklch(48% 0.085 326 / 0.08) 96%,
+    oklch(48% 0.085 var(--h-brand) / 0.08) 4%,
+    oklch(48% 0.085 var(--h-brand) / 0.16) 16%,
+    oklch(48% 0.085 var(--h-brand) / 0.16) 84%,
+    oklch(48% 0.085 var(--h-brand) / 0.08) 96%,
     transparent 100%
   );
 }
@@ -662,7 +662,7 @@ html[data-theme="light"] .prose.prose-fuchsia :where(strong, b) {
 html[data-theme="light"] .prose-invert :where(a),
 html[data-theme="light"] .prose.prose-invert :where(a),
 html[data-theme="light"] .prose-fuchsia :where(a) {
-  color: hsl(var(--primary));
+  color: var(--theme-accent-strong);
 }
 
 html[data-theme="light"] :is(

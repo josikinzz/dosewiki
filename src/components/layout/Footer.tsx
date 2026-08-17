@@ -70,11 +70,11 @@ export function Footer({ model = getRouteChromeModel("/") }: FooterProps) {
                 </a>
               );
             })}
-            {/* Which appearance axes are offered is publication policy, resolved inside
-                the group — the route chrome model has no say in it. The pair stacks below
-                420px on the same breakpoint this nav flips on, so the disclaimer column
-                keeps the width it had when there was one control. */}
-            <AppearanceControls className="flex-col min-[420px]:flex-row" />
+            {/* Which appearance rows are offered is publication and role policy, resolved
+                inside the control — the route chrome model has no say in it. One 44px cog,
+                the same width as the icon links beside it, so this nav column keeps the
+                width it had at every breakpoint. */}
+            <AppearanceControls />
           </nav>
         </div>
       </div>

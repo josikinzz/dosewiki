@@ -11,8 +11,8 @@ import { ThemeLabWorkbench } from "./ThemeLabWorkbench";
 /**
  * The route's own contract, which is everything the retired footer and homepage
  * triggers used to spread across the public app: the editor opens on entry, the
- * page is held in Fun while it is open, and leaving hands both the style and the
- * shared open state back.
+ * reader's style axis is left alone throughout, and leaving hands the shared
+ * open state back.
  */
 
 vi.mock("@/components/common/Icon", () => ({
@@ -51,32 +51,34 @@ describe("Palette Lab workbench", { timeout: 15_000 }, () => {
     expect(await screen.findByRole("dialog", { name: "Theme Lab" })).toBeInTheDocument();
   });
 
-  it("says what it edits, so Pro is not mistaken for something the lab owns", async () => {
+  it("says what it edits, now that Pro is authored here too", async () => {
     render(<Harness onRoute />);
     await screen.findByRole("dialog", { name: "Theme Lab" });
 
     const scope = screen.getByRole("heading", { name: "Scope" }).parentElement;
     expect(scope).not.toBeNull();
-    expect(within(scope!).getByText(/palette only/)).toBeInTheDocument();
-    expect(within(scope!).getByText(/official, separate visual style/)).toBeInTheDocument();
+    expect(within(scope!).getByText(/in whichever style you are wearing/)).toBeInTheDocument();
+    expect(within(scope!).getByText(/accent seeds are both editable/)).toBeInTheDocument();
+    // And what it still does not own: the two files an accent actually ships from.
+    expect(within(scope!).getByText(/writes\s+neither file/)).toBeInTheDocument();
   });
 
-  it("holds the page in Fun while the lab is open, then gives the style back", async () => {
-    // Pro's presentation selectors out-specify the palette layer the lab writes,
-    // so an edit made under Pro would look like it did nothing.
+  it("leaves the style axis alone, so Pro can be authored here", async () => {
+    // The route used to pin Fun and restore the entry style on the way out,
+    // because the lab's layer lost to Pro's selectors. It wins now, so the pin
+    // is gone — and with nothing pinned there is nothing to hand back. A style
+    // chosen while the lab is open is the reader's own and survives the route.
     const view = render(<Harness onRoute style="pro" />);
     await screen.findByRole("dialog", { name: "Theme Lab" });
 
     await waitFor(() =>
-      expect(document.documentElement.getAttribute("data-visual-style")).toBe("fun"),
+      expect(document.documentElement.getAttribute("data-visual-style")).toBe("pro"),
     );
 
     view.rerender(<Harness onRoute={false} style="pro" />);
 
-    await waitFor(() =>
-      expect(document.documentElement.getAttribute("data-visual-style")).toBe("pro"),
-    );
-    expect(getPaletteLabOpen()).toBe(false);
+    await waitFor(() => expect(getPaletteLabOpen()).toBe(false));
+    expect(document.documentElement.getAttribute("data-visual-style")).toBe("pro");
   });
 
   it("leaves a full-size action behind when the editor is closed", async () => {

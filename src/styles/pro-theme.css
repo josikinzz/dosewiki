@@ -7,8 +7,8 @@
    routes, copy, navigation, wordmark strings, metadata and licensing stay
    behind data-site, and this sheet never reads that attribute.
 
-   Imported LAST from both style entries and deliberately UNLAYERED. Two
-   consequences the whole sheet depends on:
+   Deliberately UNLAYERED, and imported after every other token sheet except
+   the generated accent blocks. Two consequences the whole sheet depends on:
 
    1. Unlayered rules beat every layered rule regardless of specificity,
       so these rules win over Tailwind call-site utilities (backdrop-blur-*,
@@ -44,10 +44,27 @@
    The three-selector list is specificity, not repetition. It matches at
    (0,2,1) whenever data-theme is present — light OR dark — and still at
    (0,1,1) if the attribute is missing, so the palette never depends on
-   script timing and never leaves Pro unstyled. (0,2,1) is also what beats
-   the Theme Lab's runtime html[data-theme="light"] / html[data-theme="dark"]
-   overrides, which are (0,1,1) and land in <head> after this sheet: the Lab
-   edits the Fun palette, and it must not repaint Pro from underneath.
+   script timing and never leaves Pro unstyled. (0,2,1) is what puts this
+   palette level with the generated colourway blocks in
+   palette-presets.generated.css and above the authored Fun token blocks in
+   site-colors.css; against the colourways it wins on source order, because
+   this sheet is imported after them.
+
+   One sheet does land after this one: accent-tokens.generated.css, which has
+   to, so that an accent can out-rank a colourway the reader also saved. Its
+   Pro blocks re-seat the --ei-* palette below at (0,3,1), one attribute above
+   this block, which is how the accent axis re-tints roughly two hundred
+   derived tokens from outside this file. Its FUN blocks carry
+   :where(:not([data-visual-style="pro"])) so that landing later cannot let a
+   colourway repaint a Pro page at the tie.
+
+   It does NOT out-rank the Theme Lab. The Lab's runtime overrides name
+   data-theme four times to reach (0,4,1) (see userLayerSelector in
+   paletteLabStorage.ts) and land in <head> after this sheet, so they win
+   over everything here. That is the intended direction: an editor authoring
+   in the Lab has to be able to see a Pro edit take effect, and a palette
+   that repainted Pro from underneath the Lab would make every such edit look
+   like it did nothing. proTheme.test.ts pins the whole ladder.
 
    The dark seed block below repeats the (0,2,1) dark selector and wins on
    source order, which is why only the seeds have to be restated there.
@@ -79,10 +96,10 @@ html[data-visual-style="pro"][data-theme="dark"] {
   --ei-ink-4: #8a8a8a;
   --ei-ink-5: #9d9d9d;
 
-  --ei-teal: #3d9991;
-  --ei-teal-strong: #27635d;
-  --ei-teal-soft: #5cb3aa;
-  --ei-teal-muted: #34837c;
+  --ei-accent: #3d9991;
+  --ei-accent-strong: #27635d;
+  --ei-accent-soft: #5cb3aa;
+  --ei-accent-muted: #34837c;
 
   --ei-shadow-soft: rgb(51 51 51 / 0.08);
   --ei-shadow-strong: rgb(51 51 51 / 0.12);
@@ -105,9 +122,16 @@ html[data-visual-style="pro"][data-theme="dark"] {
   --ei-on-dark: #f2f2f0;
   --ei-on-dark-muted: #cccccc;
   --ei-on-dark-faint: #8a8a8a;
-  /* Teal has to lighten to stay legible on charcoal; the mid teal is the
-     brand hue at a luminance that reads on a dark bar. */
-  --ei-teal-on-dark: #6fc4bb;
+  /* The accent has to lighten to stay legible on charcoal; this is the accent
+     hue at a luminance that reads on a dark bar. Declared ONCE, here in the
+     light/root block, because the chrome rails read it in BOTH schemes — their
+     selectors carry no data-theme — so the dark block never restates it.
+
+     Teal is this family's DEFAULT VALUE, not its nature. `--ei-accent*` is the
+     accent axis's Pro half: accent-tokens.generated.css re-seats all five steps
+     under html[data-accent="…"], so every token below that resolves one of them
+     follows the reader's accent without a single rule being restated. */
+  --ei-accent-on-dark: #6fc4bb;
 
   /* Tinted washes and marks — the values that cannot be derived from the
      ramps above: a selection wash, a search-hit fill, the scrim that fades a
@@ -157,32 +181,20 @@ html[data-visual-style="pro"][data-theme="dark"] {
   --theme-text-ghost: var(--ei-ink-5);
 
   /* Accent */
-  --theme-accent-strong: var(--ei-teal-strong);
-  --theme-accent: var(--ei-teal);
-  --theme-accent-soft: var(--ei-teal-soft);
-  --theme-accent-muted: var(--ei-teal-muted);
+  --theme-accent-strong: var(--ei-accent-strong);
+  --theme-accent: var(--ei-accent);
+  --theme-accent-soft: var(--ei-accent-soft);
+  --theme-accent-muted: var(--ei-accent-muted);
   /* Opaque rather than alpha-blended: on paper a translucent wash reads as a
      smudge. Shadow tokens keep their alpha — a shadow colour has to. */
   --theme-selection: var(--ei-selection);
-  /* Static section headings are ink, not accent. On the original site teal
-     meant "clickable" and nothing else; spending it on structure is what made
-     the reskin read as teal-saturated. Full ink, not the dimmer ink-2 step,
+  /* Static section headings are ink, not accent. On the original site the
+     accent meant "clickable" and nothing else; spending it on structure is what
+     made the reskin read as accent-saturated. Full ink, not the dimmer ink-2 step,
      so a heading never reads weaker than the body it introduces; the
      distinction now comes from weight, case and tracking. */
   --theme-section-heading: var(--ei-ink);
   --theme-ring-soft: var(--ei-ring-soft);
-
-  /* shadcn HSL bridge. theme-light-mode.css:687 paints prose links with
-     hsl(var(--primary)), bypassing the --theme-* layer entirely, and
-     base.css:99 leaves it fuchsia (292 72% 48%) — that, not any --theme-*
-     token, is why article body links rendered pink. Teal here is
-     #3d9991 / #27635d expressed in HSL, and the dark block restates all five
-     because an HSL triplet cannot read a seed. */
-  --primary: 175 43% 42%;
-  --primary-foreground: 0 0% 100%;
-  --accent: 175 43% 42%;
-  --accent-foreground: 0 0% 100%;
-  --ring: 174 43% 27%;
 
   /* Logo. The mark is an alpha mask over --theme-logo-fill, so these stops are
      the only thing that gives the mark its colour.
@@ -201,15 +213,15 @@ html[data-visual-style="pro"][data-theme="dark"] {
      a stop parked at 100% would never be seen.
 
      Both ends resolve seeds, so the scheme axis stays in the palette: ink
-     flips black/white with the scheme and --ei-teal already flips to its
+     flips black/white with the scheme and --ei-accent already flips to its
      dark-canvas luminance. The mid stop is mixed rather than seeded so it
      tracks whichever pair is in force. --theme-logo-fill has to stay
      <image>-typed because it is consumed as a background-image over a mask —
      a bare hex is silently dropped by the CSS parser. */
   --site-logo-stop-1: var(--ei-logo-ink);
   --site-logo-stop-2: var(--ei-logo-ink);
-  --site-logo-stop-3: color-mix(in srgb, var(--ei-teal) 45%, var(--ei-logo-ink));
-  --site-logo-stop-4: var(--ei-teal);
+  --site-logo-stop-3: color-mix(in srgb, var(--ei-accent) 45%, var(--ei-logo-ink));
+  --site-logo-stop-4: var(--ei-accent);
   --theme-logo-fill: linear-gradient(
     118deg,
     var(--site-logo-stop-1) 0%,
@@ -233,12 +245,12 @@ html[data-visual-style="pro"][data-theme="dark"] {
      inherit --theme-shadow-* above, so only the three brand-coloured lifts
      need restating: two magenta/violet glows this skin has always killed
      (the gradient button and the public-content icon tile) and the search
-     mark's pink hairline, which keeps its geometry and takes teal. Killing a
+     mark's pink hairline, which keeps its geometry and takes the accent. Killing a
      shadow by token rather than by `box-shadow: none` leaves the element's
      ring intact, which is why these were --tw-shadow-color patches before. */
   --theme-elevation-control-primary: 0 0 #0000;
   --theme-elevation-icon-tile: 0 0 #0000;
-  --theme-elevation-mark-hairline: inset 0 0 0 1px color-mix(in srgb, var(--ei-teal) 34%, transparent);
+  --theme-elevation-mark-hairline: inset 0 0 0 1px color-mix(in srgb, var(--ei-accent) 34%, transparent);
 
   /* Opaque surfaces — never translucent, never a colour-mix over the page */
   --theme-surface-soft: var(--ei-surface);
@@ -273,7 +285,7 @@ html[data-visual-style="pro"][data-theme="dark"] {
   --theme-chrome-rail-bg: var(--ei-chrome);
   --theme-header-shadow: 0 1px 0 var(--ei-border);
   --theme-header-nav-active-bg: var(--ei-surface-sunk);
-  --theme-header-nav-active-border: var(--ei-teal);
+  --theme-header-nav-active-border: var(--ei-accent);
   /* Recessed track: the thumb takes the raised step, so the two stop being
      the same near-white. */
   --theme-toggle-pill-bg: var(--ei-surface-sunk);
@@ -291,7 +303,7 @@ html[data-visual-style="pro"][data-theme="dark"] {
      invalid at computed-value time and delete that panel's caution hairline too.
      A fully transparent shadow is visually identical and composes. */
   --theme-frosted-panel-shadow: 0 0 #0000;
-  --theme-frosted-panel-hover-border: var(--ei-teal);
+  --theme-frosted-panel-hover-border: var(--ei-accent);
   --theme-frosted-panel-hover-bg: var(--ei-surface-raised);
   --theme-frosted-panel-hover-shadow: 0 0 #0000;
 
@@ -303,16 +315,16 @@ html[data-visual-style="pro"][data-theme="dark"] {
   --theme-frosted-control-secondary: var(--ei-surface-sunk);
   --theme-frosted-control-bg: var(--ei-surface-sunk);
   --theme-frosted-control-shadow: 0 0 0 1px var(--ei-border);
-  --theme-frosted-control-hover-border: var(--ei-teal);
+  --theme-frosted-control-hover-border: var(--ei-accent);
   --theme-frosted-control-hover-bg: var(--ei-surface-raised);
-  --theme-frosted-control-hover-shadow: 0 0 0 1px var(--ei-teal);
+  --theme-frosted-control-hover-shadow: 0 0 0 1px var(--ei-accent);
 
   --theme-frosted-control-on-panel-border: var(--ei-border);
   --theme-frosted-control-on-panel-bg: var(--ei-surface-raised);
   --theme-frosted-control-on-panel-shadow: 0 0 0 1px var(--ei-border);
-  --theme-frosted-control-on-panel-hover-border: var(--ei-teal);
+  --theme-frosted-control-on-panel-hover-border: var(--ei-accent);
   --theme-frosted-control-on-panel-hover-bg: var(--ei-surface-raised);
-  --theme-frosted-control-on-panel-hover-shadow: 0 0 0 1px var(--ei-teal);
+  --theme-frosted-control-on-panel-hover-shadow: 0 0 0 1px var(--ei-accent);
 
   /* Article panel families */
   --theme-article-neutral-panel-border: var(--ei-border);
@@ -324,50 +336,50 @@ html[data-visual-style="pro"][data-theme="dark"] {
   --theme-article-neutral-panel-shadow: none;
 
   --theme-route-active-base: var(--ei-surface-sunk);
-  --theme-article-route-active-border: var(--ei-teal);
+  --theme-article-route-active-border: var(--ei-accent);
   --theme-article-route-active-highlight: var(--ei-surface-sunk);
   --theme-article-route-active-primary: var(--ei-surface-sunk);
   --theme-article-route-active-secondary: var(--ei-surface-sunk);
   --theme-article-route-active-bg: var(--ei-surface-sunk);
-  --theme-article-route-active-text: var(--ei-teal-strong);
-  /* Flat: the 1px teal border IS the selected edge. The Fun stack draws a
+  --theme-article-route-active-text: var(--ei-accent-strong);
+  /* Flat: the 1px accent border IS the selected edge. The Fun stack draws a
      1px halo on top of that border, which reads as a soft glow only because
-     the Fun border is translucent — against an opaque teal it doubles into a
+     the Fun border is translucent — against an opaque accent it doubles into a
      hard 2px outline. Depth here is occlusion, not light. */
   --theme-article-route-active-shadow: none;
 
   --theme-article-reference-control-border: var(--ei-border);
   --theme-article-reference-control-bg: var(--ei-surface-raised);
-  --theme-article-reference-control-text: var(--ei-teal-strong);
+  --theme-article-reference-control-text: var(--ei-accent-strong);
 
   /* Scrollbars pick up the accent. */
   --theme-scroll-track: var(--ei-surface-sunk);
   --theme-scroll-track-bg: var(--ei-surface-sunk);
   --theme-scroll-track-border: var(--ei-border);
-  --theme-scroll-thumb: var(--ei-teal);
-  --theme-scroll-thumb-hover: var(--ei-teal-strong);
-  --theme-scroll-thumb-bg: var(--ei-teal);
-  --theme-scroll-thumb-hover-bg: var(--ei-teal-strong);
+  --theme-scroll-thumb: var(--ei-accent);
+  --theme-scroll-thumb-hover: var(--ei-accent-strong);
+  --theme-scroll-thumb-bg: var(--ei-accent);
+  --theme-scroll-thumb-hover-bg: var(--ei-accent-strong);
   --theme-scroll-thumb-glow: transparent;
 
   /* Misc UI accents */
   --theme-name-chip-bg: var(--ei-surface-sunk);
   --theme-name-chip-bg-hover: var(--ei-surface-raised);
   --theme-name-chip-text: var(--ei-ink-2);
-  --theme-name-chip-text-hover: var(--ei-teal-strong);
+  --theme-name-chip-text-hover: var(--ei-accent-strong);
   --theme-name-chip-ring: var(--ei-border);
-  --theme-name-chip-ring-hover: var(--ei-teal);
-  --theme-skip-link-bg: var(--ei-teal-strong);
+  --theme-name-chip-ring-hover: var(--ei-accent);
+  --theme-skip-link-bg: var(--ei-accent-strong);
   --theme-skip-link-text: var(--ei-on-accent);
   --theme-flag-ring: var(--ei-border);
   --theme-flag-shadow: none;
   --theme-profile-markdown-quote-bg: var(--ei-surface-sunk);
   --theme-profile-markdown-quote-border: var(--ei-border-strong);
-  /* Neutral, not teal: the entry label beside it is the link, and doubling
-     the affordance on the bullet is what made the index read as teal-washed. */
+  /* Neutral, not the accent: the entry label beside it is the link, and doubling
+     the affordance on the bullet is what made the index read as accent-washed. */
   --theme-index-card-bullet: var(--ei-ink-4);
-  --theme-avatar-gradient-from: var(--ei-teal-soft);
-  --theme-avatar-gradient-to: var(--ei-teal-strong);
+  --theme-avatar-gradient-from: var(--ei-accent-soft);
+  --theme-avatar-gradient-to: var(--ei-accent-strong);
   --theme-home-nav-card-border: var(--ei-border);
   --theme-dose-tier-fade: var(--ei-fade);
   --theme-plateau-tier-fade: var(--theme-dose-tier-fade);
@@ -381,21 +393,21 @@ html[data-visual-style="pro"][data-theme="dark"] {
   /* Trip report identity colours (plum/violet in stock light mode). These
      are brand decoration, not the safety ramp, so they retint. The onset
      green is left alone — it belongs to the phase ramp's own logic. */
-  --theme-report-substance-text: var(--ei-teal-strong);
+  --theme-report-substance-text: var(--ei-accent-strong);
   --theme-report-metadata-text: var(--ei-ink-3);
-  --theme-report-phase-peak-text: var(--ei-teal-strong);
+  --theme-report-phase-peak-text: var(--ei-accent-strong);
   --theme-report-phase-offset-text: var(--ei-ink-2);
   --theme-report-phase-peak-bg: var(--ei-surface-sunk);
   --theme-report-phase-offset-bg: var(--ei-surface-sunk);
   --theme-report-phase-onset-bg: var(--ei-surface-sunk);
   --theme-report-phase-peak-border: var(--ei-border);
   --theme-report-phase-offset-border: var(--ei-border);
-  --theme-report-phase-peak-dot: var(--ei-teal);
+  --theme-report-phase-peak-dot: var(--ei-accent);
   --theme-report-phase-offset-dot: var(--ei-ink-3);
 
   /* Status badges and interaction cards. The semantic ramp's TEXT, BORDER and
      RING colours stay untouched — they are the safety signal and must remain
-     readable and distinguishable from the teal link accent. Only the glassy
+     readable and distinguishable from the link accent. Only the glassy
      gradient FILLS are flattened to solid tints of the same hue over the
      neutral surface, so danger / unsafe / caution / info / success still read
      at a glance without the Fun sheen. Cards sit on the surface; chips sit
@@ -456,11 +468,12 @@ html[data-visual-style="pro"][data-theme="dark"] {
    through var(), and custom properties are substituted per element AFTER the
    cascade has picked a winner for each property independently, so redefining
    the seed here re-tints roughly two hundred derived tokens without repeating
-   one of them. The five HSL triplets are the exception: an hsl() component
-   list cannot read a colour-valued seed, so they are restated.
+   one of them. Nothing in either block is exempt: every colour token holds a
+   colour value, never an `H S% L%` component list, because a component list
+   cannot read a colour-valued seed and so cannot follow the palette.
 
    What does NOT change: type, case, tracking, radii, flatness, and the rule
-   that teal means "interactive" and nothing else. This is a palette swap
+   that the accent means "interactive" and nothing else. This is a palette swap
    inside one visual system, not a second visual system.
 
    The chrome rails do not flip. Header and footer are charcoal in both
@@ -498,13 +511,16 @@ html[data-visual-style="pro"][data-theme="dark"] {
   --ei-ink-4: #9b9b98;
   --ei-ink-5: #7f7f7c;
 
-  /* Teal keeps its meaning and swaps its direction: "strong" is the highest
-     contrast against the canvas, which on paper meant darker and here means
-     lighter. 7.4:1 for the base link, 9.2:1 for the strong one. */
-  --ei-teal: #6fc4bb;
-  --ei-teal-strong: #8fd6ce;
-  --ei-teal-soft: #4e9c95;
-  --ei-teal-muted: #59aaa2;
+  /* The accent keeps its meaning and swaps its direction: "strong" is the
+     highest contrast against the canvas, which on paper meant darker and here
+     means lighter. 7.4:1 for the base link, 9.2:1 for the strong one, measured
+     against the raised charcoal surface these sit on rather than the page: the
+     canvas is darker still, so the same pair measures 9.1:1 and 11.2:1 there.
+     Every accent in accents.ts clears both numbers. */
+  --ei-accent: #6fc4bb;
+  --ei-accent-strong: #8fd6ce;
+  --ei-accent-soft: #4e9c95;
+  --ei-accent-muted: #59aaa2;
 
   /* Shadows carry the separation that borders carry on paper, so they deepen
      rather than tint. No glow: depth here is occlusion, not light. */
@@ -520,8 +536,8 @@ html[data-visual-style="pro"][data-theme="dark"] {
   --ei-chrome-raised: #2b2b2b;
   --ei-chrome-border: #383838;
 
-  /* Washes and marks. The selection and search-hit fills become deep teals
-     that keep the primary ink above 7:1; the tier scrim fades to the dark
+  /* Washes and marks. The selection and search-hit fills become deep tints of
+     the accent that keep the primary ink above 7:1; the tier scrim fades to the dark
      canvas; accent fills now want dark ink on them; the mark's lead end goes
      white, which is the other half of its ink→accent ramp. */
   --ei-selection: #2f4f4c;
@@ -545,14 +561,6 @@ html[data-visual-style="pro"][data-theme="dark"] {
   --ei-level-3-mark: #b0b0b0;
   --ei-level-4-mark: #d8d8d8;
   --ei-level-5-mark: #f2f2f0;
-
-  /* shadcn HSL bridge, restated: #6fc4bb and #8fd6ce as component lists, with
-     the foregrounds flipped to dark ink because a filled teal is now light. */
-  --primary: 174 42% 60%;
-  --primary-foreground: 0 0% 11%;
-  --accent: 174 42% 60%;
-  --accent-foreground: 0 0% 11%;
-  --ring: 174 50% 70%;
 }
 
 /* ---------------------------------------------------------------------
@@ -654,7 +662,7 @@ html[data-visual-style="pro"] .theme-mobile-nav-panel {
   html[data-visual-style="pro"] .theme-public-card-interactive:hover,
   html[data-visual-style="pro"] .theme-public-card-hover-quiet:hover,
   html[data-visual-style="pro"] .theme-card-surface:hover {
-    border-color: var(--ei-teal);
+    border-color: var(--ei-accent);
     background-color: var(--ei-surface-raised);
     background-image: none;
     box-shadow: none;
@@ -679,7 +687,7 @@ html[data-visual-style="pro"] .theme-mobile-nav-panel {
    here covers both schemes directly; the semantic border and text stay via
    the existing tokens. The accent CTA (the single solid action on a page,
    e.g. "Submit report") is painted with a brand gradient and glow shadow in
-   utilities-theme.css; on Pro the fill is flat teal and the lift is removed.
+   utilities-theme.css; on Pro the fill is flat accent and the lift is removed.
    --------------------------------------------------------------------- */
 html[data-visual-style="pro"] .theme-interaction-danger,
 html[data-visual-style="pro"] .theme-interaction-unsafe,
@@ -689,13 +697,13 @@ html[data-visual-style="pro"] .theme-interaction-caution {
 }
 
 html[data-visual-style="pro"] .theme-cta-accent {
-  background: var(--ei-teal-strong);
+  background: var(--ei-accent-strong);
   box-shadow: none;
 }
 
 html[data-visual-style="pro"] .theme-cta-accent:hover,
 html[data-visual-style="pro"] .theme-cta-accent:focus-visible {
-  background: var(--ei-teal);
+  background: var(--ei-accent);
   box-shadow: none;
   transform: none;
   filter: none;
@@ -726,7 +734,7 @@ html[data-visual-style="pro"] .theme-interaction-caution .theme-interaction-expa
 html[data-visual-style="pro"] .theme-public-card-icon {
   border: 1px solid var(--ei-border);
   background: var(--ei-surface-sunk);
-  color: var(--ei-teal-strong);
+  color: var(--ei-accent-strong);
   box-shadow: none;
 }
 
@@ -743,7 +751,7 @@ html[data-visual-style="pro"] .theme-home-shell[data-search-mode="true"] .theme-
 
 @media (hover: hover) {
   html[data-visual-style="pro"] .theme-home-nav-link:hover .theme-home-nav-icon {
-    border-color: var(--ei-teal);
+    border-color: var(--ei-accent);
     background: var(--ei-surface-raised);
     box-shadow: none;
     transform: none;
@@ -755,7 +763,7 @@ html[data-visual-style="pro"]
   .theme-home-shell[data-search-mode="true"]
   .theme-home-nav-link:focus-visible
   .theme-home-nav-icon {
-  border-color: var(--ei-teal);
+  border-color: var(--ei-accent);
   background: var(--ei-surface-raised);
   box-shadow: none;
   transform: none;
@@ -829,7 +837,7 @@ html[data-visual-style="pro"] .from-fuchsia-500\/10 {
    removed. `bg-gradient-to-r` only sets background-image; overriding that
    supersedes the from-/to- colour stops. */
 html[data-visual-style="pro"] .from-fuchsia-500 {
-  background-image: linear-gradient(to right, var(--ei-teal), var(--ei-teal-strong));
+  background-image: linear-gradient(to right, var(--ei-accent), var(--ei-accent-strong));
 }
 
 /* Prose link underlines. IntLink and ExtLink (the VCode renderers behind
@@ -837,12 +845,12 @@ html[data-visual-style="pro"] .from-fuchsia-500 {
    pages that is well over a hundred plum underlines per page. The link
    text itself already follows --theme-accent-* and needs nothing. */
 html[data-visual-style="pro"] .decoration-fuchsia-300\/35 {
-  text-decoration-color: color-mix(in srgb, var(--ei-teal) 45%, transparent);
+  text-decoration-color: color-mix(in srgb, var(--ei-accent) 45%, transparent);
 }
 
 @media (hover: hover) {
   html[data-visual-style="pro"] .hover\:decoration-fuchsia-200\/55:hover {
-    text-decoration-color: var(--ei-teal);
+    text-decoration-color: var(--ei-accent);
   }
 }
 
@@ -886,12 +894,12 @@ html[data-visual-style="pro"] .from-\[color-mix\(in_srgb\,\#fff_12\%\,var\(--the
    --tw-ring-color with !important. */
 html[data-visual-style="pro"] .focus-visible\:outline-fuchsia-400,
 html[data-visual-style="pro"] .peer-focus-visible\:outline-fuchsia-400 {
-  outline-color: var(--ei-teal-strong);
+  outline-color: var(--ei-accent-strong);
 }
 
 html[data-visual-style="pro"] .focus\:ring-fuchsia-400:focus,
 html[data-visual-style="pro"] .focus-visible\:ring-fuchsia-400:focus-visible {
-  --tw-ring-color: var(--ei-teal-strong) !important;
+  --tw-ring-color: var(--ei-accent-strong) !important;
 }
 
 /* Resting decorative rings: contributor avatars and the article-section
@@ -904,7 +912,7 @@ html[data-visual-style="pro"] .ring-fuchsia-400\/22 {
 
 @media (hover: hover) {
   html[data-visual-style="pro"] .group:hover .group-hover\:ring-fuchsia-400\/50 {
-    --tw-ring-color: var(--ei-teal);
+    --tw-ring-color: var(--ei-accent);
   }
 }
 
@@ -934,14 +942,14 @@ html[data-visual-style="pro"] .theme-search-overlay {
    two-radial pink wash. Declared twice upstream (once plain, once deeper);
    one override covers both because it is the same selector. */
 html[data-visual-style="pro"] .theme-search-suggestion[data-highlighted="true"] {
-  border-color: var(--ei-teal);
+  border-color: var(--ei-accent);
   background: var(--ei-surface-sunk);
   box-shadow: none;
 }
 
 @media (hover: hover) {
   html[data-visual-style="pro"] .theme-search-suggestion:hover {
-    border-color: var(--ei-teal);
+    border-color: var(--ei-accent);
     background: var(--ei-surface-sunk);
     box-shadow: none;
   }
@@ -959,22 +967,22 @@ html[data-visual-style="pro"] .theme-search-suggestion-secondary {
 html[data-visual-style="pro"] .theme-search-suggestion-icon {
   border-color: var(--ei-border);
   background: var(--ei-surface-sunk);
-  color: var(--ei-teal-strong);
+  color: var(--ei-accent-strong);
   box-shadow: none;
   --tw-ring-color: var(--ei-border);
 }
 
 /* "Best match" chip. */
 html[data-visual-style="pro"] .theme-search-best-match {
-  border-color: var(--ei-teal);
+  border-color: var(--ei-accent);
   background: var(--ei-surface-sunk);
-  color: var(--ei-teal-strong);
+  color: var(--ei-accent-strong);
   box-shadow: none;
 }
 
 /* The <mark> around a matched run. The light rule fills it with the raised
    surface and inks the text oklch(31% 0.12 326); pointing both back at the
-   --theme-search-highlight-* tokens is what finally puts the pale teal fill
+   --theme-search-highlight-* tokens is what finally puts the pale accent fill
    set in the palette block on screen.
 
    The ring is stated rather than inherited. In light, upstream already
@@ -998,15 +1006,15 @@ html[data-visual-style="pro"] .theme-home-search-input {
 
 @media (hover: hover) {
   html[data-visual-style="pro"] .theme-home-search-input:hover {
-    border-color: var(--ei-teal);
+    border-color: var(--ei-accent);
     background-color: var(--ei-surface-raised);
   }
 }
 
 html[data-visual-style="pro"] .theme-home-search-input:focus {
-  border-color: var(--ei-teal-strong);
+  border-color: var(--ei-accent-strong);
   background-color: var(--ei-surface-raised);
-  box-shadow: 0 0 0 1px var(--ei-teal-strong);
+  box-shadow: 0 0 0 1px var(--ei-accent-strong);
 }
 
 /* ---------------------------------------------------------------------
@@ -1060,7 +1068,7 @@ html[data-visual-style="pro"] .theme-index-card-icon {
   background: var(--ei-surface-raised) !important;
   border-color: var(--ei-border) !important;
   box-shadow: none !important;
-  color: var(--ei-teal-strong) !important;
+  color: var(--ei-accent-strong) !important;
   --tw-ring-color: var(--ei-border) !important;
 }
 
@@ -1078,7 +1086,7 @@ html[data-visual-style="pro"] .theme-country-flag-icon {
 /* theme-light-mode.css:596 tints every table-of-contents icon with a mauve
    (rgb 93 56 123) mixed into the page background. */
 html[data-visual-style="pro"] .theme-toc-icon {
-  color: var(--ei-teal-strong) !important;
+  color: var(--ei-accent-strong) !important;
 }
 
 /* theme-light-mode.css:1268 fills the expanded dose-detail and plateau-tier
@@ -1174,7 +1182,7 @@ html[data-visual-style="pro"] .theme-reagent-results-panel {
    3. Inside the rails the control sits on charcoal in BOTH schemes, so it
       takes chrome tones rather than page tones.
 
-   The active slot keeps --theme-accent-strong, which is Pro's link teal in
+   The active slot keeps --theme-accent-strong, which is Pro's link accent in
    both schemes: state stays colour-coded the same way every other affordance
    here is. Focus is untouched — the shared rule outlines with the same token.
    --------------------------------------------------------------------- */
@@ -1194,14 +1202,6 @@ html[data-visual-style="pro"] :is(.app-header, .app-footer) .theme-toggle-thumb 
 
 html[data-visual-style="pro"] :is(.app-header, .app-footer) .theme-toggle-icon-muted {
   color: var(--ei-on-dark-muted);
-}
-
-/* The style control sets three-letter words where the scheme control sets
-   icons. Tracking is all Pro asks of them: every other label in this sheet is
-   tracked out, and 0.08em beside 0.14em reads as an oversight rather than a
-   difference. Size, weight, case and colour stay with the shared component. */
-html[data-visual-style="pro"] .theme-appearance-controls [data-appearance-axis="visual-style"] {
-  letter-spacing: 0.12em;
 }
 
 /* The homepage logo "charge" keyframes animate a hardcoded conic rainbow
@@ -1283,23 +1283,23 @@ html[data-visual-style="pro"] .app-header {
   --theme-text-ghost: #6f6f6f;
 
   /* Nav icons, the wordmark accent and the search magnifier all read
-     --theme-accent-strong; the deep teal disappears on charcoal. */
-  --theme-accent: var(--ei-teal-on-dark);
-  --theme-accent-strong: var(--ei-teal-on-dark);
-  --theme-accent-soft: var(--ei-teal-on-dark);
+     --theme-accent-strong; the page-scheme accent disappears on charcoal. */
+  --theme-accent: var(--ei-accent-on-dark);
+  --theme-accent-strong: var(--ei-accent-on-dark);
+  --theme-accent-soft: var(--ei-accent-on-dark);
   --theme-accent-muted: #58a89f;
 
   /* The mark on dark chrome, mirrored. The page mark runs ink → accent; the
      rail runs the other way, accent → white, so the two marks visible at once
      read as a pair rather than a repeat. The rail is charcoal in BOTH schemes,
-     so this ramp is scheme-independent and uses the on-dark teal rather than
+     so this ramp is scheme-independent and uses the on-dark accent rather than
      the canvas accent. Positions match the page ramp's inset (the mask paints
      this at background-size: 140%, which crops the outer ~15% of each end). */
   --theme-logo-fill: linear-gradient(
     118deg,
-    var(--ei-teal-on-dark) 0%,
-    var(--ei-teal-on-dark) 12%,
-    color-mix(in srgb, var(--ei-teal-on-dark) 45%, var(--ei-on-dark)) 52%,
+    var(--ei-accent-on-dark) 0%,
+    var(--ei-accent-on-dark) 12%,
+    color-mix(in srgb, var(--ei-accent-on-dark) 45%, var(--ei-on-dark)) 52%,
     var(--ei-on-dark) 90%
   );
 
@@ -1438,9 +1438,9 @@ html[data-visual-style="pro"] .app-footer {
   --theme-text-faint: #6b6b6b;
   --theme-text-ghost: #5a5a5a;
 
-  --theme-accent: var(--ei-teal-on-dark);
-  --theme-accent-strong: var(--ei-teal-on-dark);
-  --theme-accent-soft: var(--ei-teal-on-dark);
+  --theme-accent: var(--ei-accent-on-dark);
+  --theme-accent-strong: var(--ei-accent-on-dark);
+  --theme-accent-soft: var(--ei-accent-on-dark);
 
   /* Same treatment as the header: the rail mark runs accent → white, the
      mirror of the page mark's ink → accent. It is not dimmed to a grey ramp to
@@ -1449,9 +1449,9 @@ html[data-visual-style="pro"] .app-footer {
      because this rail is charcoal in both schemes. */
   --theme-logo-fill: linear-gradient(
     118deg,
-    var(--ei-teal-on-dark) 0%,
-    var(--ei-teal-on-dark) 12%,
-    color-mix(in srgb, var(--ei-teal-on-dark) 45%, var(--ei-on-dark)) 52%,
+    var(--ei-accent-on-dark) 0%,
+    var(--ei-accent-on-dark) 12%,
+    color-mix(in srgb, var(--ei-accent-on-dark) 45%, var(--ei-on-dark)) 52%,
     var(--ei-on-dark) 90%
   );
 
@@ -1477,14 +1477,14 @@ html[data-visual-style="pro"] .app-footer .theme-text-primary {
    The original expressed hierarchy through weight, case and tracking, not
    colour: #333 h1 at regular weight, #4a4a4a section heads in uppercase
    with 2px tracking. That vocabulary — not the palette — is the site's
-   real signature, and restoring it is what lets teal retreat to meaning
+   real signature, and restoring it is what lets the accent retreat to meaning
    "link" and nothing else.
    --------------------------------------------------------------------- */
 
 /* .theme-accent-heading is a MIXED class: it dresses static headings
    (article h1, VCode headings, subarticle h3) and genuine links
    (contributor names) alike. Neutralising it by element type and then
-   restoring it on <a> keeps links teal without touching the components. */
+   restoring it on <a> keeps links accented without touching the components. */
 html[data-visual-style="pro"] :is(h1, h2, h3, h4, h5, h6).theme-accent-heading {
   color: var(--theme-text-primary);
 }
@@ -1492,7 +1492,7 @@ html[data-visual-style="pro"] :is(h1, h2, h3, h4, h5, h6).theme-accent-heading {
 /* Article bodies carry BOTH prose-invert and prose-fuchsia, which makes
    theme-light-mode.css:668 match as `.prose.prose-invert :where(h1..h4)`
    at (0,3,1) — one class ahead of the rule above, so it kept every VCode
-   heading teal. Naming two classes here restores the ordering at (0,3,2).
+   heading accent-coloured. Naming two classes here restores the ordering at (0,3,2).
    This is the whole reason in-article headings resisted the ink ramp. */
 html[data-visual-style="pro"] .prose.prose-fuchsia :is(h1, h2, h3, h4, h5, h6) {
   color: var(--theme-text-primary);
@@ -1654,7 +1654,7 @@ html[data-visual-style="pro"] .rounded-\[1\.75rem\] {
    LINKS
    =====================================================================
    The original underlined nothing: links were colour-only, which works
-   now that teal is exclusive to them. An underline is kept on hover as
+   now that the accent is exclusive to them. An underline is kept on hover as
    the interaction affordance, so the cue survives for anyone who cannot
    separate the hues.
    --------------------------------------------------------------------- */
@@ -1673,7 +1673,7 @@ html[data-visual-style="pro"] a.theme-accent-emphasis:hover {
 /* .theme-accent-emphasis is mixed the same way .theme-accent-heading is:
    VCode links use it, but so do the index intro's emphasised phrases and
    quote attributions. Static uses go to ink; the <a> rule above and the
-   token bridge keep real links teal. */
+   token bridge keep real links accented. */
 html[data-visual-style="pro"] :not(a).theme-accent-emphasis {
   color: var(--theme-text-primary);
 }
@@ -1681,8 +1681,8 @@ html[data-visual-style="pro"] :not(a).theme-accent-emphasis {
 /* =====================================================================
    AFFORDANCE CLEANUP
    =====================================================================
-   Two leftovers from inverting the teal ratio: index entries were the one
-   place where links were NOT teal, and heading icons were the one place
+   Two leftovers from inverting the accent ratio: index entries were the one
+   place where links were NOT accented, and heading icons were the one place
    where static content still was.
    --------------------------------------------------------------------- */
 
@@ -1738,7 +1738,7 @@ html[data-visual-style="pro"] h4.theme-accent-heading {
    COLOUR IS DELIBERATELY ABSENT. These titles are usually wrapped in a <Link>
    (IndexCard.tsx:185) and theme-light-mode.css:624 pins them to
    var(--theme-accent-strong) !important, which the palette block above has
-   already resolved to teal — the link affordance. Declaring any colour here,
+   already resolved to the accent — the link affordance. Declaring any colour here,
    even the same one, risks breaking that; only weight, case, tracking and size
    are touched. Both classes ride the same element; naming each keeps the
    `-accent` variant covered if it is ever used alone.

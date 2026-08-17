@@ -3,7 +3,8 @@
  *
  * This is purely *which* tokens to expose and how to label/group them — the
  * actual default values are read live from the stylesheet at runtime so the
- * tool can never drift from `src/styles/site-colors.css`.
+ * tool can never drift from `src/styles/site-colors.css`, or, for the `--ei-*`
+ * accent seeds, from `src/styles/pro-theme.css`.
  *
  * kind:
  *   "color"    — a single solid color → editable on the HSV wheel
@@ -464,6 +465,34 @@ export const PALETTE_GROUPS: PaletteGroup[] = [
       raw("--theme-header-shadow", "Header drop shadow"),
       color("--theme-profile-markdown-quote-bg", "Profile quote — fill"),
       color("--theme-profile-markdown-quote-border", "Profile quote — border"),
+    ],
+  },
+  // Last on purpose: the only group that paints nothing in Fun. It is the Pro
+  // half of an accent, so it belongs to the same authoring pass as the swatch
+  // above it rather than to the reader-facing catalog.
+  {
+    id: "pro-accent",
+    title: "Pro accent seeds",
+    blurb:
+      "Pro's --ei-* accent family — the half of an accent that src/theme/accents.ts carries per colour scheme. Only paints under the Pro visual style. Paper and ink (--ei-fade, --ei-logo-ink) sit in the same authored block but are not accent, so they are not here.",
+    tokens: [
+      color("--ei-accent", "Pro accent — base", "The link colour on paper. Pro budgets it at 7.4:1 on charcoal."),
+      color("--ei-accent-strong", "Pro accent — strong", "The emphatic step. Pro budgets it at 9.2:1 on charcoal."),
+      color("--ei-accent-soft", "Pro accent — soft"),
+      color("--ei-accent-muted", "Pro accent — muted"),
+      color(
+        "--ei-accent-on-dark",
+        "Pro accent — on charcoal",
+        "The step the charcoal header and footer rails wear. Authored once, in day, and read in both schemes — an accent entry states it in its light half only.",
+      ),
+      color("--ei-selection", "Pro selection wash"),
+      color("--ei-ring-soft", "Pro ring — soft"),
+      color("--ei-highlight", "Pro search-hit fill"),
+      color(
+        "--ei-on-accent",
+        "Pro ink on accent",
+        "Ink ON a filled accent, so it follows the fill's lightness rather than the accent's hue: white over a dark fill, near-black over a light one.",
+      ),
     ],
   },
 ];

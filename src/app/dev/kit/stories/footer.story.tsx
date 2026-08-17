@@ -38,7 +38,7 @@ export const footerStory: StoryDef = {
   examples: [
     {
       label: "Default",
-      note: "No footer nav items — disclaimer, license link, supporter credit, and the appearance group only. This is the shipped public default.",
+      note: "No footer nav items — disclaimer, license link, supporter credit, and the appearance cog only. This is the shipped public default.",
       background: "plain",
       full: true,
       render: () => <Footer model={mockFooterModel({})} />,
@@ -102,7 +102,7 @@ export const footerStory: StoryDef = {
   notes: [
     "Defaults its model from getRouteChromeModel(\"/\"), so it renders standalone without props.",
     "footerNavItems use internal next/link; footerExternalNavItems render <a> with target=_blank rel=noopener.",
-    "The appearance group is publication policy, not a prop: day/night follows showColorSchemeToggle, and Fun/Pro is omitted entirely on a publication whose style is locked.",
-    "Appearance state comes from the root ThemeProvider — the controls hold none of their own, so the footer pair and the homepage pair always agree.",
+    "The appearance cog is publication policy, not a prop: day/night follows showColorSchemeToggle, and the Fun/Pro row is omitted entirely on a publication whose style is locked.",
+    "Appearance state comes from the root ThemeProvider — the cog holds none of its own, so the footer's and the homepage's always agree.",
   ],
 };

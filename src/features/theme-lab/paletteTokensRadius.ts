@@ -147,8 +147,8 @@ export function formatRem(rem: number): string {
  * its own attribute; the same look comes out of these four tokens with no
  * component or stylesheet touched, which is the self-check that this control is
  * wired to the real mechanism. Test-facing only — the Pro stylesheet is
- * untouched by the lab, and the lab's own edits are a Fun-palette layer that
- * Pro's selectors out-specify.
+ * untouched by the lab, which writes a user layer over it and never edits the
+ * file.
  */
 export const PRO_STYLE_RADIUS: Record<string, string> = {
   "--radius": "0.1875rem",

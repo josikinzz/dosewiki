@@ -18,7 +18,7 @@ interface AppearanceTogglePillProps {
   /** Slot the thumb rests under: the left option or the right one. */
   side: "start" | "end";
   /**
-   * Pressed state for this axis alone. Two appearance pills sit side by side and
+   * Pressed state for this axis alone. Both appearance pills sit in the cog's panel and
    * must never mirror each other, so each publishes its own state.
    */
   pressed: boolean;

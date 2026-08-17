@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { PRO_ACCENT_SEED_NAMES } from "@/theme/accents";
 import { PALETTE_PRESETS, getPreset } from "./palettePresets";
 import { ALL_TOKEN_IDS } from "./paletteTokens";
 import { FONT_CHOICES } from "./paletteTokensFonts";
@@ -257,5 +258,62 @@ describe("theme share codec", () => {
     expect(shareCodeFits(code)).toBe(false);
     // And the receiving end would refuse it too, rather than truncating.
     expect(decodeSharedTheme(code).value).toBeNull();
+  });
+
+  it("round-trips every Pro accent seed, so a shared accent keeps its Pro half", () => {
+    // The codec ships only what the registry names, and the registry held no
+    // `--ei-*` id at all until the accent axis: a theme authored in Pro crossed
+    // the wire with its Fun colourway intact and its Pro half silently gone.
+    // Nine seeds in light, eight in dark — `--ei-accent-on-dark` is declared once,
+    // in light, and read by the charcoal rails in both schemes.
+    const light = Object.fromEntries(
+      PRO_ACCENT_SEED_NAMES.light.map((id, index) => [id, `#00000${index + 1}`]),
+    );
+    const dark = Object.fromEntries(
+      PRO_ACCENT_SEED_NAMES.dark.map((id, index) => [id, `#0000${11 + index}`]),
+    );
+
+    const code = encodeSharedTheme({ name: "Authored", basePresetId: "abyss", overrides: { dark, light } });
+    const { value, error } = decodeSharedTheme(code);
+
+    expect(error).toBeNull();
+    for (const [id, seed] of Object.entries(light)) {
+      expect(value.overrides.light[id], `light ${id}`).toBe(seed);
+    }
+    for (const [id, seed] of Object.entries(dark)) {
+      expect(value.overrides.dark[id], `dark ${id}`).toBe(seed);
+    }
+    // Nothing extra rode along, and nothing was dropped: the palette it named
+    // carries no `--ei-*` of its own, so these counts are exactly the shared set.
+    expect(Object.keys(value.overrides.light).filter((id) => id.startsWith("--ei-"))).toHaveLength(
+      9,
+    );
+    expect(Object.keys(value.overrides.dark).filter((id) => id.startsWith("--ei-"))).toHaveLength(
+      8,
+    );
+  });
+
+  it("registers the accent seed set, and nothing that only sits beside it", () => {
+    const registered = ALL_TOKEN_IDS.filter((id) => id.startsWith("--ei-"));
+    expect(registered.slice().sort()).toEqual([...PRO_ACCENT_SEED_NAMES.light].sort());
+    // Paper and ink are authored in the same block as the washes and are not
+    // accent: sharing them would recolour the page, not the accent on it.
+    expect(registered).not.toContain("--ei-fade");
+    expect(registered).not.toContain("--ei-logo-ink");
+  });
+
+  it("still reads a code minted before the accent seeds existed", () => {
+    // Registering nine ids widened the allowlist without touching the payload
+    // shape, so the wire version stays where it was and every link already in the
+    // wild still decodes. A bump would have refused all of them for nothing.
+    expect(THEME_SHARE_CODEC_VERSION).toBe(1);
+    const { value, error } = decodeSharedTheme(
+      mint({ v: 1, b: "abyss", n: "Old link", d: { "~accent": "#abcdef" }, l: {} }),
+    );
+
+    expect(error).toBeNull();
+    expect(value.name).toBe("Old link");
+    expect(value.overrides.dark["--theme-accent"]).toBe("#abcdef");
+    expect(Object.keys(value.overrides.dark).some((id) => id.startsWith("--ei-"))).toBe(false);
   });
 });

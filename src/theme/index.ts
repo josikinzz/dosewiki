@@ -1,4 +1,5 @@
 import { SITE_FLAVOR_CONFIG } from "@/config/siteFlavor";
+import type { AccentId } from "./accents";
 import tokenInterface from "./theme-token-interface.json";
 
 export const THEME_TOKEN_INTERFACE = tokenInterface;
@@ -21,10 +22,27 @@ export type ColorScheme = "light" | "dark";
  */
 export type VisualStyle = "fun" | "pro";
 
-/** One resolved appearance: a point on both axes. */
+/**
+ * The accent axis: which hue the interactive surface wears. Carried on the document root as
+ * `data-accent`, and **absent for the default accent**.
+ *
+ * Absence is the design, not a shortcut. The default accent has no CSS block at all, so a
+ * page painted before any script has run is already correct; only a reader who chose
+ * something else pays for an attribute and a block. The other two axes cannot work that way
+ * because each publication opens on its own point (Effect Index opens light and Pro), but
+ * every publication opens on the authored accent.
+ *
+ * {@link AccentId} is the compile-time union; `accents.ts` holds the table each id resolves
+ * to, including the Fun colourway and Pro `--ei-*` seeds the generated stylesheet carries.
+ */
+export type { AccentId } from "./accents";
+export { getAccent, isAccent, type Accent, type ProAccentSeeds } from "./accents";
+
+/** One resolved appearance: a point on all three axes. */
 export type Appearance = {
   readonly colorScheme: ColorScheme;
   readonly visualStyle: VisualStyle;
+  readonly accent: AccentId;
 };
 
 /**
@@ -36,6 +54,7 @@ export const SUPPORTED_COLOR_SCHEMES =
   THEME_TOKEN_INTERFACE.supportedColorSchemes as readonly ColorScheme[];
 export const SUPPORTED_VISUAL_STYLES =
   THEME_TOKEN_INTERFACE.supportedVisualStyles as readonly VisualStyle[];
+export const SUPPORTED_ACCENTS = THEME_TOKEN_INTERFACE.supportedAccents as readonly AccentId[];
 
 /**
  * The appearance the stylesheets render with no root attribute present: dark values live on
@@ -44,9 +63,17 @@ export const SUPPORTED_VISUAL_STYLES =
  */
 export const DEFAULT_COLOR_SCHEME = THEME_TOKEN_INTERFACE.defaultColorScheme as ColorScheme;
 export const DEFAULT_VISUAL_STYLE = THEME_TOKEN_INTERFACE.defaultVisualStyle as VisualStyle;
+/**
+ * The accent the stylesheets render with no `data-accent` present. It is the same value
+ * `accents.ts` declares as {@link DEFAULT_ACCENT_ID} — stated in both places because the
+ * manifest is what the bootstrap and the stylesheets agree through, and the table is what
+ * the type system checks; `accents.test.ts` asserts they have not drifted apart.
+ */
+export const DEFAULT_ACCENT = THEME_TOKEN_INTERFACE.defaultAccent as AccentId;
 
 export const COLOR_SCHEME_STORAGE_KEY = THEME_TOKEN_INTERFACE.colorSchemeStorageKey;
 export const VISUAL_STYLE_STORAGE_KEY = THEME_TOKEN_INTERFACE.visualStyleStorageKey;
+export const ACCENT_STORAGE_KEY = THEME_TOKEN_INTERFACE.accentStorageKey;
 export const THEME_META_ID = THEME_TOKEN_INTERFACE.metaId;
 
 /**
@@ -90,16 +117,32 @@ export function isVisualStyle(value: string | null | undefined): value is Visual
  * A `false` toggle flag is a *lock*, not merely a hidden control: the locked axis resolves
  * from the build and its storage key is never read or written. That is what keeps a reader's
  * dose.wiki style choice from following them into Effect Index's identity.
+ *
+ * The accent axis has no `defaultAccent` here, and that asymmetry is deliberate: the other
+ * two axes open on a point the publication chose, while every publication opens on the
+ * authored accent, so the default is one manifest value rather than a per-publication one.
  */
 export type AppearancePolicy = {
   readonly defaultColorScheme: ColorScheme;
   readonly showColorSchemeToggle: boolean;
   readonly defaultVisualStyle: VisualStyle;
   readonly showVisualStyleToggle: boolean;
+  readonly showAccentPicker: boolean;
 };
 
-/** Browser-chrome tint for one point on both axes. */
-export function getAppearanceMetaColor({ colorScheme, visualStyle }: Appearance): string {
+/**
+ * Browser-chrome tint for one point on the scheme and style axes.
+ *
+ * Narrowed to the two axes it reads rather than taking a whole {@link Appearance}: the accent
+ * deliberately does not tint browser chrome. The address bar and the installed-app splash are
+ * publication identity, and an accent is a reader's preference inside a publication, so
+ * letting one repaint the other would put a reader's choice where the publication's own colour
+ * belongs.
+ */
+export function getAppearanceMetaColor({
+  colorScheme,
+  visualStyle,
+}: Pick<Appearance, "colorScheme" | "visualStyle">): string {
   return APPEARANCE_META_COLORS[visualStyle][colorScheme];
 }
 
@@ -107,11 +150,16 @@ export function getAppearanceMetaColor({ colorScheme, visualStyle }: Appearance)
  * The appearance the server must render, and the appearance the bootstrap falls back to per
  * axis. Rendering both root attributes and the matching `theme-color` meta value from one
  * source keeps the first painted frame — page *and* browser chrome — off the wrong style.
+ *
+ * The accent opens on the manifest default for every publication, which is also the accent
+ * that writes no attribute: the server renders no `data-accent`, so the markup it ships and
+ * the frame the bootstrap paints are the same one.
  */
 export function getInitialAppearance(policy: AppearancePolicy = SITE_FLAVOR_CONFIG): Appearance {
   return {
     colorScheme: policy.defaultColorScheme,
     visualStyle: policy.defaultVisualStyle,
+    accent: DEFAULT_ACCENT,
   };
 }
 
@@ -150,12 +198,18 @@ function buildAxisResolution({
 }
 
 /**
- * The one pre-paint script. Resolves both axes independently, then applies both root
+ * The one pre-paint script. Resolves all three axes independently, then applies the root
  * attributes, `color-scheme` and the style-by-scheme browser-chrome tint.
  *
  * The root attributes are written outside any `try` so they always land: a missing or
  * throwing `theme-color` meta element must cost the reader their chrome tint, never their
  * theme. The style is resolved first because it selects the scheme's validity row.
+ *
+ * The accent is the one axis that can resolve to *no attribute*. The default accent has no
+ * block in the generated stylesheet, so writing `data-accent="default"` would advertise an
+ * override that does not exist and give the Theme Lab and the DOM inspector a value with no
+ * meaning. The attribute is therefore removed rather than set — the same rule
+ * `applyAppearanceToDocument` follows in the provider, which is the only other writer.
  */
 export function buildThemeBootstrapScript(policy: AppearancePolicy = SITE_FLAVOR_CONFIG): string {
   const visualStyle = buildAxisResolution({
@@ -172,16 +226,47 @@ export function buildThemeBootstrapScript(policy: AppearancePolicy = SITE_FLAVOR
     storageKey: COLOR_SCHEME_STORAGE_KEY,
     validitySet: "COLORS[style]",
   });
+  // The accent's validity set is the only one this script has to carry for its own sake; the
+  // other two read rows of the meta-colour matrix, which the chrome tint needs anyway. A
+  // locked accent resolves at build time, so under a lock neither the set nor the resolution
+  // nor the branch below is emitted at all — they would be dead bytes on every page.
+  const accentLocked = !policy.showAccentPicker;
+  const accent = accentLocked
+    ? ""
+    : `\n${buildAxisResolution({
+        variable: "accent",
+        fallback: DEFAULT_ACCENT,
+        locked: false,
+        storageKey: ACCENT_STORAGE_KEY,
+        validitySet: "ACCENTS",
+      })}`;
+  const accentValiditySet = accentLocked
+    ? ""
+    : `\n  const ACCENTS = ${JSON.stringify(Object.fromEntries(SUPPORTED_ACCENTS.map((id) => [id, 1])))};`;
+  // Under a lock the attribute is still *removed* rather than left alone. A locked accent always
+  // resolves to the default — the axis has no per-publication default to lock to something else
+  // — so this is one unconditional statement instead of a branch over a constant. It is kept
+  // rather than dropped so the script does not depend on the server having rendered no
+  // attribute: true today, but not this script's fact to rely on.
+  const accentWrite = accentLocked
+    ? `  delete root.dataset.accent;`
+    : `  if (accent === ${JSON.stringify(DEFAULT_ACCENT)}) {
+    delete root.dataset.accent;
+  } else {
+    root.dataset.accent = accent;
+  }`;
 
   return `(() => {
-  const COLORS = ${JSON.stringify(APPEARANCE_META_COLORS)};
+  const COLORS = ${JSON.stringify(APPEARANCE_META_COLORS)};${accentValiditySet}
 ${visualStyle}
-${colorScheme}
+${colorScheme}${accent}
 
   const root = document.documentElement;
   root.dataset.visualStyle = style;
   root.dataset.theme = scheme;
   root.style.colorScheme = scheme;
+
+${accentWrite}
 
   try {
     const meta = document.getElementById(${JSON.stringify(THEME_META_ID)});

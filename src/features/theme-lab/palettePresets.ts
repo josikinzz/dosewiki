@@ -111,17 +111,20 @@ function scrollThumbOverridesLight(hue: number, chroma: number): ThemeOverrideMa
 }
 
 /**
- * Two dark tokens the dark-mode retune left as hand-tuned literals in
- * site-colors.css because their hues sit off the seed families they belong to
- * (the page-gradient top stop lands at hue 307 vs `--h-plum` 318; the
- * active-tab fill at 310 vs `--h-violet` 290), so re-deriving them from the
- * seeds would visibly shift the shipped Orchid look. Every alternate palette
- * therefore re-derives them at the same lightness/chroma from its own seeds,
- * or it inherits Orchid's purple for the page gradient and active tabs.
+ * The one dark token the dark-mode retune left as a hand-tuned literal in
+ * site-colors.css because its hue sits off the seed family it belongs to (the
+ * page-gradient top stop lands at hue 307 vs `--h-plum` 318), so re-deriving
+ * it from the seed would visibly shift the shipped Orchid look. Every
+ * alternate palette therefore re-derives it at the same lightness/chroma from
+ * its own seed, or it inherits Orchid's purple page gradient.
+ *
+ * The active-tab fill used to live here too. It no longer does: the base
+ * sheet now authors `--theme-route-active-base` as
+ * `oklch(35.7% 0.112 var(--h-violet))` itself, so restating it per preset
+ * would be a byte-for-byte duplicate.
  */
 const retunedDarkLiterals: ThemeOverrideMap = {
   "--theme-page-start": "oklch(45% 0.231 var(--h-plum))",
-  "--theme-route-active-base": "oklch(35.7% 0.112 var(--h-violet))",
 };
 
 /* ------------------------------------------------------------------------- */
@@ -573,6 +576,11 @@ const garnet: PalettePreset = {
       "--h-brand": "25",
       "--h-plum": "15",
       "--h-text": "15",
+      // Selected/info surfaces — active tabs, reference controls, the modal
+      // dim — join the black-cherry family rather than staying Orchid's 290.
+      // The other direction is blocked: danger is re-seated to magenta-pink
+      // at 350 below, and unsafe orange 48 / caution gold 68 sit just above.
+      "--h-violet": "15",
       "--theme-molecule-hue-rotate": "68deg",
       "--c-accent": "252 165 165",
       "--c-plum-deep": "43 11 18",
@@ -648,6 +656,10 @@ const sunset: PalettePreset = {
       "--h-brand": "45",
       "--h-plum": "310",
       "--h-text": "320",
+      // Selected/info surfaces take the palette's own dusk violet instead of
+      // Orchid's 290 — it is the fourth stop of the sunset wordmark. The
+      // coral brand at 45 is 95° away, so a selected tab never blurs into it.
+      "--h-violet": "310",
       "--theme-molecule-hue-rotate": "80deg",
       "--c-accent": "253 195 143",
       "--c-plum-deep": "45 17 48",

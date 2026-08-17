@@ -1,5 +1,5 @@
 import { render, screen, waitFor, within } from "@testing-library/react";
-import userEvent from "@testing-library/user-event";
+import userEvent, { type UserEvent } from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import {
   SITE_FLAVOR_CONFIG,
@@ -64,6 +64,18 @@ function installMockStorage() {
   return storage;
 }
 
+/**
+ * The footer's appearance surface is one cog; the axes live in its popover. Every case that
+ * asserts an axis opens it first, and reads the axes out of the returned panel rather than
+ * out of the document — the panel is portalled to <body>, so a document-wide query would
+ * also see anything else a case mounted.
+ */
+async function openFooterCog(user: UserEvent) {
+  await user.click(screen.getByRole("button", { name: "Appearance settings" }));
+
+  return screen.findByRole("dialog", { name: "Appearance" });
+}
+
 describe("Footer appearance controls", () => {
   beforeEach(() => {
     installMockStorage();
@@ -83,7 +95,8 @@ describe("Footer appearance controls", () => {
     // decide whether this case has something to click.
     const firstRender = renderFooter(DOSEWIKI);
 
-    const dayNight = screen.getByRole("button", { name: "Switch to day mode" });
+    const panel = await openFooterCog(user);
+    const dayNight = within(panel).getByRole("button", { name: "Switch to day mode" });
     expect(dayNight).toHaveAttribute("aria-pressed", "false");
 
     await user.click(dayNight);
@@ -99,9 +112,10 @@ describe("Footer appearance controls", () => {
 
     firstRender.unmount();
     renderFooter(DOSEWIKI);
+    const remounted = await openFooterCog(user);
 
     await waitFor(() => {
-      expect(screen.getByRole("button", { name: "Switch to night mode" })).toHaveAttribute(
+      expect(within(remounted).getByRole("button", { name: "Switch to night mode" })).toHaveAttribute(
         "aria-pressed",
         "true",
       );
@@ -112,32 +126,31 @@ describe("Footer appearance controls", () => {
   it("keeps day/night and Fun/Pro pressed state independent", async () => {
     const user = userEvent.setup();
     renderFooter(DOSEWIKI);
+    const panel = await openFooterCog(user);
 
-    await user.click(screen.getByRole("button", { name: "Switch to Pro visual style" }));
+    await user.click(within(panel).getByRole("button", { name: "Switch to Pro visual style" }));
 
     await waitFor(() => {
-      expect(screen.getByRole("button", { name: "Switch to Fun visual style" })).toHaveAttribute(
-        "aria-pressed",
-        "true",
-      );
+      expect(
+        within(panel).getByRole("button", { name: "Switch to Fun visual style" }),
+      ).toHaveAttribute("aria-pressed", "true");
     });
     // The scheme axis did not move with it.
-    expect(screen.getByRole("button", { name: "Switch to day mode" })).toHaveAttribute(
+    expect(within(panel).getByRole("button", { name: "Switch to day mode" })).toHaveAttribute(
       "aria-pressed",
       "false",
     );
     expect(document.documentElement.dataset.theme).not.toBe("light");
 
-    await user.click(screen.getByRole("button", { name: "Switch to day mode" }));
+    await user.click(within(panel).getByRole("button", { name: "Switch to day mode" }));
 
     await waitFor(() => {
       expect(document.documentElement.dataset.theme).toBe("light");
     });
     // …and the style axis did not move back.
-    expect(screen.getByRole("button", { name: "Switch to Fun visual style" })).toHaveAttribute(
-      "aria-pressed",
-      "true",
-    );
+    expect(
+      within(panel).getByRole("button", { name: "Switch to Fun visual style" }),
+    ).toHaveAttribute("aria-pressed", "true");
   });
 
   it("renders the updated footer copy and action buttons", () => {
@@ -155,30 +168,36 @@ describe("Footer appearance controls", () => {
     expect(screen.queryByRole("link", { name: "dose.wiki GitHub" })).not.toBeInTheDocument();
   });
 
-  it("drops the style control, and only that control, when the publication locks its style", () => {
+  it("drops the style row, and only that row, when the publication locks its style", async () => {
+    const user = userEvent.setup();
     renderFooter(SITE_FLAVOR_CONFIGS.effectindex, { isVisualStyleLocked: true });
 
+    const panel = await openFooterCog(user);
+
     // Effect Index is Pro by identity but still lets readers choose day or night.
-    expect(screen.getByRole("button", { name: "Switch to day mode" })).toBeInTheDocument();
-    expect(screen.queryByRole("button", { name: /visual style/ })).not.toBeInTheDocument();
-    expect(
-      screen
-        .getByRole("group", { name: "Appearance" })
-        .querySelectorAll("[data-appearance-axis]"),
-    ).toHaveLength(1);
+    expect(within(panel).getByRole("button", { name: "Switch to day mode" })).toBeInTheDocument();
+    expect(within(panel).queryByRole("button", { name: /visual style/ })).not.toBeInTheDocument();
+    expect(panel.querySelectorAll("[data-appearance-axis]")).toHaveLength(1);
   });
 
-  it("exposes no editor tooling beside the reader controls", () => {
+  it("exposes no editor tooling beside the reader controls", async () => {
+    const user = userEvent.setup();
     renderFooter(DOSEWIKI);
 
-    // The footer's whole button surface is the two appearance pills. A Palette Lab or
-    // any other editor trigger reappearing on the public footer fails here.
-    const buttons = within(screen.getByRole("navigation")).getAllByRole("button");
+    // The footer's whole button surface is the one appearance cog. A Palette Lab or any
+    // other editor trigger reappearing on the public footer fails here.
+    const nav = screen.getByRole("navigation");
+    const buttons = within(nav).getAllByRole("button");
 
-    expect(buttons.map((button) => button.dataset.appearanceAxis)).toEqual([
-      "color-scheme",
-      "visual-style",
+    expect(buttons.map((button) => button.getAttribute("aria-label"))).toEqual([
+      "Appearance settings",
     ]);
     expect(screen.queryByRole("button", { name: /theme lab/i })).not.toBeInTheDocument();
+
+    // …and opening it adds no editor row either: the footer mounts no session provider, so
+    // there is no editor to offer the Theme Lab to.
+    const panel = await openFooterCog(user);
+    expect(within(panel).queryByRole("link", { name: /More settings/ })).not.toBeInTheDocument();
+    expect(within(nav).getAllByRole("button")).toHaveLength(1);
   });
 });

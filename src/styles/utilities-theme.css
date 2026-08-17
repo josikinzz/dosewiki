@@ -1601,7 +1601,7 @@
         oklch(93% 0.048 326 / 0.96) 58%,
         oklch(89% 0.064 319 / 0.97) 100%
       );
-    --tw-ring-color: oklch(46% 0.13 326 / 0.08);
+    --tw-ring-color: oklch(46% 0.13 var(--h-brand) / 0.08);
     box-shadow:
       0 24px 48px -34px oklch(48% 0.14 318 / 0.28),
       inset 0 1px 0 oklch(99% 0.01 333 / 0.78),
@@ -2516,9 +2516,13 @@
 
   /* Accent CTA: the single solid-magenta action on a page (e.g. Submit
      report). Uses the brand accent tokens so dark mode gets a luminous pink
-     pill with dark text and light mode a deep magenta pill with white text. */
+     pill with dark text and light mode a deep magenta pill with white text.
+     The label is painted with the page canvas: it already inverts with the
+     colour scheme exactly as ink on a filled accent must, and it resolves the
+     same palette seeds the fill does, so recolouring the accent can never
+     leave the label stranded on top of it. */
   .theme-cta-accent {
-    color: hsl(var(--accent-foreground));
+    color: var(--theme-body-bg);
     background:
       radial-gradient(circle at 12% 0%, rgba(255, 255, 255, 0.34), transparent 46%), linear-gradient(
         135deg, color-mix(in srgb, var(--theme-accent-strong) 80%, var(--theme-accent)), var(--theme-accent));

@@ -1,4 +1,5 @@
 import { render, screen, within } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 
 import { SITE_FLAVOR_CONFIGS } from "@/config/siteFlavor";
@@ -107,20 +108,35 @@ describe("dose.wiki homepage", () => {
     }
   });
 
-  it("floats the same appearance group the footer uses, and nothing else", () => {
+  it("floats the same appearance cog the footer uses, and nothing else", async () => {
+    const user = userEvent.setup();
     renderHome();
 
-    const group = screen.getByRole("group", { name: "Appearance" });
+    const cog = screen.getByRole("button", { name: "Appearance settings" });
 
-    // Positioning lives on the group itself: `theme-home-theme-toggle` is the hook the
-    // search-mode rules reposition, so an extra wrapper would break that offset.
-    expect(group.className).toMatch(/theme-home-theme-toggle/);
+    // Positioning lives on the control itself: `theme-home-theme-toggle` is the hook the
+    // search-mode rules reposition, so any wrapper between the class and the button would
+    // take the offset and leave the cog where it was.
+    expect(cog.className).toMatch(/theme-home-theme-toggle/);
+    expect(cog.className).toMatch(/(?:^|\s)fixed(?:\s|$)/);
+    // One floating control over the hero, not a cluster.
     expect(
-      within(group)
+      screen
         .getAllByRole("button")
-        .map((button) => button.dataset.appearanceAxis),
-    ).toEqual(["color-scheme", "visual-style"]);
-    // No editor tooling on the public homepage.
+        .filter((button) => button.className.includes("theme-home-theme-toggle")),
+    ).toHaveLength(1);
+
+    // The axes are inside it, and only the axes: no editor tooling on the public homepage.
+    await user.click(cog);
+    const panel = await screen.findByRole("dialog", { name: "Appearance" });
+
+    expect(
+      within(panel)
+        .getAllByRole("button")
+        .map((control) => control.dataset.appearanceAxis)
+        .filter(Boolean),
+    ).toEqual(["visual-style", "color-scheme"]);
     expect(screen.queryByRole("button", { name: /theme lab/i })).not.toBeInTheDocument();
+    expect(within(panel).queryByRole("link", { name: /More settings/ })).not.toBeInTheDocument();
   });
 });

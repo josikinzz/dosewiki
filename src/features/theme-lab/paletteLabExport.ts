@@ -1,3 +1,5 @@
+import { DEFAULT_ACCENT_ID, PRO_ACCENT_SEED_NAMES } from "@/theme/accents";
+import { formatColor, parseColorToRgba } from "./colorUtils";
 import {
   THEME_SHARE_FORMAT,
   emptyOverrides,
@@ -151,4 +153,89 @@ export function editsFromImport(
     );
   }
   return next;
+}
+
+/* ---------------------------------------------------------------- accent entry */
+
+/**
+ * The other thing an editor takes out of the lab: one entry for the accent table
+ * in `src/theme/accents.ts`.
+ *
+ * A share code carries a look to another browser; this carries a tuned accent
+ * back into the repository, which is the only place an accent can actually ship
+ * from. Same sending surface, because both answer "I am done tuning — now what?"
+ *
+ * Only the swatch and the Pro seeds are measured. `id`, `label` and `funPresetId`
+ * are the combination the values were read in, offered as a starting point: a new
+ * accent needs an id added to `AccentId` first, and the emitted comment says so.
+ */
+export type AccentEntryDraft = {
+  /** The accent the seeds were measured under — the value of `data-accent`, or
+   *  the default when the attribute is absent. */
+  id: string;
+  label: string;
+  /** The accent's own Fun half when it declares one, else the colourway being
+   *  worn — the best guess for an accent that does not exist yet. */
+  funPresetId: string;
+  /** Measured Fun-dark `--theme-accent`: the swatch is a measurement, not a choice. */
+  swatch: string;
+  /** Rendered `--ei-*` seeds per colour scheme. Keys outside
+   *  {@link PRO_ACCENT_SEED_NAMES} are ignored, which is what keeps light at nine
+   *  declarations and dark at eight. */
+  pro: { light: Record<string, string>; dark: Record<string, string> };
+};
+
+/** Normalize a sampled value the way the lab writes colors: hex when opaque,
+ *  `rgba()` when not. A value the canvas cannot read (a gradient, an empty
+ *  sample) is emitted verbatim rather than dropped, so a bad seed is visible in
+ *  the paste instead of silently missing from it. */
+function accentValue(raw: string | undefined): string {
+  const trimmed = (raw ?? "").trim();
+  const rgba = parseColorToRgba(trimmed);
+  return rgba ? formatColor(rgba) : trimmed;
+}
+
+function seedBlock(scheme: "light" | "dark", values: Record<string, string>): string {
+  return [
+    `    ${scheme}: {`,
+    ...PRO_ACCENT_SEED_NAMES[scheme].map(
+      (id) => `      ${JSON.stringify(id)}: ${JSON.stringify(accentValue(values[id]))},`,
+    ),
+    "    },",
+  ].join("\n");
+}
+
+/**
+ * Serialize a draft as the `Accent` literal `accents.ts` declares — ready to
+ * paste, with the comment discipline that file's own entries carry stubbed out
+ * rather than skipped. `blue` is the worked example the header points at.
+ */
+export function serializeAccentEntry(draft: AccentEntryDraft): string {
+  // `default` is a reserved word, and `accents.ts` already calls its own entry
+  // `defaultAccent`; every other id is a bare identifier.
+  const binding = draft.id === DEFAULT_ACCENT_ID ? "defaultAccent" : draft.id;
+  return [
+    "/**",
+    ` * ${draft.label} — TODO: replace this paragraph. Say what the accent IS, not what it`,
+    " * contains: the hue angle both halves share, the floors it clears (canvas ≥ 4.5:1, and",
+    " * Pro's own 7.4:1 base / 9.2:1 strong on charcoal), and every value that departs from a",
+    " * pure rotation, with the reason. `blue` is the worked example — an entry that lists only",
+    " * hexes tells the next editor nothing.",
+    " *",
+    " * `id`, `label` and `funPresetId` are the combination these values were measured in, not a",
+    " * decision: a new accent needs its own id added to `AccentId` and its own Fun colourway.",
+    " */",
+    `const ${binding}: Accent = {`,
+    `  id: ${JSON.stringify(draft.id)},`,
+    `  label: ${JSON.stringify(draft.label)},`,
+    "  // Measured, not chosen: the rendered Fun-dark `--theme-accent`.",
+    `  swatch: ${JSON.stringify(accentValue(draft.swatch))},`,
+    `  funPresetId: ${JSON.stringify(draft.funPresetId)},`,
+    "  pro: {",
+    seedBlock("light", draft.pro.light),
+    seedBlock("dark", draft.pro.dark),
+    "  },",
+    "};",
+    "",
+  ].join("\n");
 }

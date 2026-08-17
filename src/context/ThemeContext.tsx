@@ -11,30 +11,42 @@ import {
 } from "react";
 import { SITE_FLAVOR_CONFIG } from "@/config/siteFlavor";
 import {
+  ACCENT_STORAGE_KEY,
   COLOR_SCHEME_STORAGE_KEY,
+  DEFAULT_ACCENT,
   THEME_META_ID,
   VISUAL_STYLE_STORAGE_KEY,
   getAppearanceMetaColor,
+  isAccent,
   isColorScheme,
   isVisualStyle,
+  type AccentId,
   type Appearance,
   type ColorScheme,
   type VisualStyle,
 } from "@/theme";
 
-export type { Appearance, ColorScheme, VisualStyle } from "@/theme";
-export { COLOR_SCHEME_STORAGE_KEY, THEME_META_ID, VISUAL_STYLE_STORAGE_KEY } from "@/theme";
+export type { AccentId, Appearance, ColorScheme, VisualStyle } from "@/theme";
+export {
+  ACCENT_STORAGE_KEY,
+  COLOR_SCHEME_STORAGE_KEY,
+  THEME_META_ID,
+  VISUAL_STYLE_STORAGE_KEY,
+} from "@/theme";
 
 /**
- * Two independent reader preferences, one owner. Every appearance control consumes this
- * context; nothing else may write `data-theme`, `data-visual-style`, `color-scheme` or the
- * `theme-color` meta value, because two writers cannot agree about what the reader chose.
+ * Three independent reader preferences, one owner. Every appearance control consumes this
+ * context; nothing else may write `data-theme`, `data-visual-style`, `data-accent`,
+ * `color-scheme` or the `theme-color` meta value, because two writers cannot agree about what
+ * the reader chose.
  */
 type ThemeContextValue = {
   colorScheme: ColorScheme;
   visualStyle: VisualStyle;
+  accent: AccentId;
   setColorScheme: (value: ColorScheme) => void;
   setVisualStyle: (value: VisualStyle) => void;
+  setAccent: (value: AccentId) => void;
   toggleColorScheme: () => void;
   toggleVisualStyle: () => void;
   /**
@@ -44,6 +56,8 @@ type ThemeContextValue = {
    * the Fun/Pro control on this rather than re-deriving the policy from the flavor config.
    */
   isVisualStyleLocked: boolean;
+  /** Same contract for the accent axis: under a lock `setAccent` is a no-op. */
+  isAccentLocked: boolean;
 };
 
 const ThemeContext = createContext<ThemeContextValue | null>(null);
@@ -57,9 +71,15 @@ type AppearanceGuard<T extends string> = (value: string | null | undefined) => v
  * validated storage and painted the result, so reading the document is how this provider ends
  * up agreeing with the frame the reader is looking at. Storage is consulted only for a
  * document carrying no valid attribute — a nested provider, or a bare test render.
+ *
+ * The accent axis relies on that fallback rather than working around it. Its default writes
+ * *no* attribute, so an absent `data-accent` is not a missing paint to be corrected: it is
+ * the default accent, correctly painted. Falling through to storage then returns the reader's
+ * saved id if they have one and null otherwise, and null leaves the default in place — which
+ * is the same answer either way.
  */
 function resolvePaintedAxis<T extends string>(
-  datasetKey: "theme" | "visualStyle",
+  datasetKey: "theme" | "visualStyle" | "accent",
   storageKey: string,
   isSupported: AppearanceGuard<T>,
 ): T | null {
@@ -95,7 +115,7 @@ function persistPreference(storageKey: string, value: string) {
   }
 }
 
-function applyAppearanceToDocument({ colorScheme, visualStyle }: Appearance) {
+function applyAppearanceToDocument({ colorScheme, visualStyle, accent }: Appearance) {
   if (typeof document === "undefined") {
     return;
   }
@@ -104,6 +124,16 @@ function applyAppearanceToDocument({ colorScheme, visualStyle }: Appearance) {
   root.dataset.theme = colorScheme;
   root.dataset.visualStyle = visualStyle;
   root.style.colorScheme = colorScheme;
+
+  // The default accent is the *absence* of the attribute, matching the bootstrap: it has no
+  // block in the generated stylesheet, so an attribute would name an override that does not
+  // exist. Removal rather than assignment also covers the case the bootstrap never sees — a
+  // reader switching back to the default from something else.
+  if (accent === DEFAULT_ACCENT) {
+    delete root.dataset.accent;
+  } else {
+    root.dataset.accent = accent;
+  }
 
   const meta =
     document.getElementById(THEME_META_ID) ??
@@ -118,17 +148,23 @@ export function ThemeProvider({
   children,
   initialColorScheme = SITE_FLAVOR_CONFIG.defaultColorScheme,
   initialVisualStyle = SITE_FLAVOR_CONFIG.defaultVisualStyle,
+  initialAccent = DEFAULT_ACCENT,
   isVisualStyleLocked = !SITE_FLAVOR_CONFIG.showVisualStyleToggle,
+  isAccentLocked = !SITE_FLAVOR_CONFIG.showAccentPicker,
 }: {
   children: ReactNode;
   /** What the server rendered, so the first client render matches the painted markup. */
   initialColorScheme?: ColorScheme;
   initialVisualStyle?: VisualStyle;
+  initialAccent?: AccentId;
   /** Pins the style axis: setters become no-ops and the style key is never read or written. */
   isVisualStyleLocked?: boolean;
+  /** Pins the accent axis, on the same terms. */
+  isAccentLocked?: boolean;
 }) {
   const [colorScheme, setColorScheme] = useState<ColorScheme>(initialColorScheme);
   const [visualStyle, setVisualStyleState] = useState<VisualStyle>(initialVisualStyle);
+  const [accent, setAccentState] = useState<AccentId>(initialAccent);
   /**
    * Until the mount effect has read back what the bootstrap resolved, this provider is still
    * holding the server's opening guess. Applying it would be harmless — the document already
@@ -163,21 +199,33 @@ export function ThemeProvider({
       }
     }
 
+    if (!isAccentLocked) {
+      const paintedAccent = resolvePaintedAxis("accent", ACCENT_STORAGE_KEY, isAccent);
+
+      if (paintedAccent) {
+        setAccentState(paintedAccent);
+      }
+    }
+
     setHydrated(true);
-  }, [isVisualStyleLocked]);
+  }, [isVisualStyleLocked, isAccentLocked]);
 
   useEffect(() => {
     if (!hydrated) {
       return;
     }
 
-    applyAppearanceToDocument({ colorScheme, visualStyle });
+    applyAppearanceToDocument({ colorScheme, visualStyle, accent });
     persistPreference(COLOR_SCHEME_STORAGE_KEY, colorScheme);
 
     if (!isVisualStyleLocked) {
       persistPreference(VISUAL_STYLE_STORAGE_KEY, visualStyle);
     }
-  }, [hydrated, colorScheme, visualStyle, isVisualStyleLocked]);
+
+    if (!isAccentLocked) {
+      persistPreference(ACCENT_STORAGE_KEY, accent);
+    }
+  }, [hydrated, colorScheme, visualStyle, accent, isVisualStyleLocked, isAccentLocked]);
 
   const setVisualStyle = useCallback(
     (value: VisualStyle) => {
@@ -188,6 +236,17 @@ export function ThemeProvider({
       setVisualStyleState(value);
     },
     [isVisualStyleLocked],
+  );
+
+  const setAccent = useCallback(
+    (value: AccentId) => {
+      if (isAccentLocked) {
+        return;
+      }
+
+      setAccentState(value);
+    },
+    [isAccentLocked],
   );
 
   const toggleColorScheme = useCallback(() => {
@@ -206,19 +265,25 @@ export function ThemeProvider({
     () => ({
       colorScheme,
       visualStyle,
+      accent,
       setColorScheme,
       setVisualStyle,
+      setAccent,
       toggleColorScheme,
       toggleVisualStyle,
       isVisualStyleLocked,
+      isAccentLocked,
     }),
     [
       colorScheme,
       visualStyle,
+      accent,
       setVisualStyle,
+      setAccent,
       toggleColorScheme,
       toggleVisualStyle,
       isVisualStyleLocked,
+      isAccentLocked,
     ],
   );
 

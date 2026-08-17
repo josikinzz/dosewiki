@@ -1,12 +1,16 @@
 import { render, screen, waitFor, within } from "@testing-library/react";
-import userEvent from "@testing-library/user-event";
+import userEvent, { type UserEvent } from "@testing-library/user-event";
+import type { ReactNode } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import {
+  ACCENT_STORAGE_KEY,
   COLOR_SCHEME_STORAGE_KEY,
   ThemeProvider,
   VISUAL_STYLE_STORAGE_KEY,
 } from "@/context/ThemeContext";
+import { ACCENTS, DEFAULT_ACCENT_ID } from "@/theme/accents";
+import { AppearanceCog, type AppearanceCogRows } from "./AppearanceCog";
 import { AppearanceControls } from "./AppearanceControls";
 import { ThemeToggle } from "./ThemeToggle";
 import { VisualStyleToggle } from "./VisualStyleToggle";
@@ -15,7 +19,47 @@ vi.mock("@/components/common/Icon", () => ({
   Icon: ({ icon }: { icon: string }) => <span data-testid="icon">{icon}</span>,
 }));
 
-describe("AppearanceControls", () => {
+/** The default accent, and the first that is not — so a pick is observable as an attribute. */
+const DEFAULT_ACCENT = ACCENTS.find((accent) => accent.id === DEFAULT_ACCENT_ID);
+const OTHER_ACCENT = ACCENTS.find((accent) => accent.id !== DEFAULT_ACCENT_ID);
+
+if (!DEFAULT_ACCENT || !OTHER_ACCENT) {
+  throw new Error("The accent table must offer the default plus something else to pick.");
+}
+
+/** Every row on. The policy that decides these is asserted separately, below. */
+const ALL_ROWS: AppearanceCogRows = {
+  showVisualStyle: true,
+  showColorScheme: true,
+  showAccent: true,
+  showMoreSettings: true,
+};
+
+function renderCog(
+  rows: Partial<AppearanceCogRows> = {},
+  children?: ReactNode,
+  provider: { isVisualStyleLocked?: boolean; isAccentLocked?: boolean } = {},
+) {
+  return render(
+    <ThemeProvider
+      initialColorScheme="dark"
+      initialVisualStyle="fun"
+      isVisualStyleLocked={false}
+      {...provider}
+    >
+      <AppearanceCog {...ALL_ROWS} {...rows} />
+      {children}
+    </ThemeProvider>,
+  );
+}
+
+async function openCog(user: UserEvent) {
+  await user.click(screen.getByRole("button", { name: "Appearance settings" }));
+
+  return screen.findByRole("dialog", { name: "Appearance" });
+}
+
+describe("AppearanceCog", () => {
   // Pin the starting appearance in both places the provider can restore it from, so the
   // "Switch to day mode" / "Switch to Pro visual style" queries below mean the same thing
   // whichever publication flavor the suite runs under.
@@ -23,47 +67,52 @@ describe("AppearanceControls", () => {
     window.localStorage.clear();
     window.localStorage.setItem(COLOR_SCHEME_STORAGE_KEY, "dark");
     window.localStorage.setItem(VISUAL_STYLE_STORAGE_KEY, "fun");
+    window.localStorage.setItem(ACCENT_STORAGE_KEY, DEFAULT_ACCENT_ID);
     document.documentElement.dataset.theme = "dark";
     document.documentElement.dataset.visualStyle = "fun";
+    delete document.documentElement.dataset.accent;
   });
 
-  it("presents the two axes as one labelled group of 44px targets", () => {
-    render(
-      <ThemeProvider initialColorScheme="dark" initialVisualStyle="fun" isVisualStyleLocked={false}>
-        <AppearanceControls />
-      </ThemeProvider>,
-    );
+  it("presents one 44px cog and nothing else until it is opened", async () => {
+    const user = userEvent.setup();
+    renderCog();
 
-    const pills = within(screen.getByRole("group", { name: "Appearance" })).getAllByRole("button");
+    const cog = screen.getByRole("button", { name: "Appearance settings" });
 
-    expect(pills.map((pill) => pill.dataset.appearanceAxis)).toEqual([
-      "color-scheme",
-      "visual-style",
-    ]);
-    expect(pills.map((pill) => pill.dataset.appearanceValue)).toEqual(["dark", "fun"]);
-    // jsdom does no layout, so the hit area is only observable as the sizing classes both
-    // pills share: h-11 is the 44px minimum, and the twins must not diverge.
-    for (const pill of pills) {
-      expect(pill.className).toMatch(/(?:^|\s)h-11(?:\s|$)/);
-      expect(pill.className).toMatch(/(?:^|\s)w-20(?:\s|$)/);
-    }
-    expect(within(pills[1]).getByText("streamline:smiley-cute-remix")).toBeInTheDocument();
-    expect(within(pills[1]).getByText("hugeicons:tie")).toBeInTheDocument();
+    // jsdom does no layout, so the hit area is only observable as the sizing classes: h-11
+    // and w-11 are the 44px minimum this control has to clear as the only appearance
+    // affordance a reader ever sees.
+    expect(cog.className).toMatch(/(?:^|\s)h-11(?:\s|$)/);
+    expect(cog.className).toMatch(/(?:^|\s)w-11(?:\s|$)/);
+    // The whole point of the cog: the surface carries one control, not a row of them.
+    expect(screen.getAllByRole("button")).toHaveLength(1);
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+
+    const panel = await openCog(user);
+    // Every axis is inside, in the settled order: style, colour scheme, accent.
+    expect(
+      within(panel)
+        .getAllByRole("button")
+        .map((control) => control.dataset.appearanceAxis ?? control.dataset.accentSwatch),
+    ).toEqual(["visual-style", "color-scheme", ...ACCENTS.map((accent) => accent.id)]);
   });
 
   it("holds no state of its own: every mounted control reflects one provider", async () => {
     const user = userEvent.setup();
-    render(
-      <ThemeProvider initialColorScheme="dark" initialVisualStyle="fun" isVisualStyleLocked={false}>
-        <AppearanceControls />
-        {/* A second, independently mounted pair. Were the controls holding local state,
-            these would disagree with the group above after the first click. */}
+    renderCog(
+      {},
+      // A second, independently mounted pair. Were the controls holding local state, these
+      // would disagree with the cog's panel after the first click.
+      <>
         <ThemeToggle />
         <VisualStyleToggle />
-      </ThemeProvider>,
+      </>,
     );
 
-    await user.click(screen.getAllByRole("button", { name: "Switch to day mode" })[0]);
+    const panel = await openCog(user);
+    // Driven from inside the panel: clicking the loose pair instead would be an outside
+    // click and dismiss the popover before the second half of the assertion.
+    await user.click(within(panel).getByRole("button", { name: "Switch to day mode" }));
 
     await waitFor(() => {
       const dayNight = screen.getAllByRole("button", { name: "Switch to night mode" });
@@ -71,7 +120,7 @@ describe("AppearanceControls", () => {
       expect(dayNight.map((pill) => pill.getAttribute("aria-pressed"))).toEqual(["true", "true"]);
     });
 
-    await user.click(screen.getAllByRole("button", { name: "Switch to Pro visual style" })[1]);
+    await user.click(within(panel).getByRole("button", { name: "Switch to Pro visual style" }));
 
     await waitFor(() => {
       const funPro = screen.getAllByRole("button", { name: "Switch to Fun visual style" });
@@ -80,14 +129,11 @@ describe("AppearanceControls", () => {
     });
   });
 
-  it("drives both document attributes, which is what makes /dev/kit a four-way harness", async () => {
+  it("drives every document attribute, which is what makes /dev/kit a four-way harness", async () => {
     const user = userEvent.setup();
-    render(
-      <ThemeProvider initialColorScheme="dark" initialVisualStyle="fun" isVisualStyleLocked={false}>
-        <AppearanceControls />
-      </ThemeProvider>,
-    );
+    renderCog();
 
+    await openCog(user);
     await user.click(screen.getByRole("button", { name: "Switch to Pro visual style" }));
     await user.click(screen.getByRole("button", { name: "Switch to day mode" }));
 
@@ -97,14 +143,40 @@ describe("AppearanceControls", () => {
     });
   });
 
-  it("operates from the keyboard alone", async () => {
+  it("operates from the keyboard alone: trigger, every row, close, back to the trigger", async () => {
     const user = userEvent.setup();
-    render(
-      <ThemeProvider initialColorScheme="dark" initialVisualStyle="fun" isVisualStyleLocked={false}>
-        <AppearanceControls />
-      </ThemeProvider>,
-    );
+    renderCog();
 
+    const cog = screen.getByRole("button", { name: "Appearance settings" });
+
+    await user.tab();
+    expect(cog).toHaveFocus();
+    await user.keyboard("{Enter}");
+
+    const panel = await screen.findByRole("dialog", { name: "Appearance" });
+    // The panel is portalled, so tab order is no longer "the next sibling in the markup".
+    // What has to hold is that opening from the keyboard lands inside the panel and that
+    // tabbing from there reaches every control in the order they read.
+    const controls = within(panel).getAllByRole("button");
+    const reachable = [...controls, within(panel).getByRole("link", { name: /More settings/ })];
+
+    await waitFor(() => {
+      expect(reachable[0]).toHaveFocus();
+    });
+
+    for (const control of reachable.slice(1)) {
+      await user.tab();
+      expect(control).toHaveFocus();
+    }
+
+    // Every axis is operable once reached, not merely focusable.
+    await user.keyboard("{Escape}");
+    await waitFor(() => {
+      expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+    });
+    expect(cog).toHaveFocus();
+
+    await user.keyboard(" ");
     await user.tab();
     expect(screen.getByRole("button", { name: "Switch to day mode" })).toHaveFocus();
     await user.keyboard("{Enter}");
@@ -115,29 +187,216 @@ describe("AppearanceControls", () => {
         "true",
       );
     });
-
-    await user.tab();
-    expect(screen.getByRole("button", { name: "Switch to Pro visual style" })).toHaveFocus();
-    await user.keyboard(" ");
-
-    await waitFor(() => {
-      expect(screen.getByRole("button", { name: "Switch to Fun visual style" })).toHaveAttribute(
-        "aria-pressed",
-        "true",
-      );
-    });
   });
 
-  it("renders nothing but day and night when the publication locks its style", () => {
+  it("keeps Escape inside the panel, so it cannot also close the page around it", async () => {
+    const user = userEvent.setup();
+    const reactAncestorEscape = vi.fn();
+    // The other kind of page-level handler: the /dev shell's "Escape leaves the editor" is a
+    // window listener, and React's own root listener sits inside <body>, so stopping the key
+    // in the panel has to keep it from arriving here too.
+    const windowEscape = vi.fn();
+    window.addEventListener("keydown", windowEscape);
+
+    try {
+      render(
+        // React routes events from portalled content up the component tree, not the DOM
+        // tree, so an ancestor handler would otherwise see the panel's Escape.
+        //
+        // This div is a probe, not UI: it exists to observe whether the key escapes the panel,
+        // so the a11y rule about interactive non-native elements has nothing to bite on here.
+        // eslint-disable-next-line jsx-a11y/no-static-element-interactions
+        <div onKeyDown={reactAncestorEscape}>
+          <ThemeProvider
+            initialColorScheme="dark"
+            initialVisualStyle="fun"
+            isVisualStyleLocked={false}
+          >
+            <AppearanceCog {...ALL_ROWS} />
+          </ThemeProvider>
+        </div>,
+      );
+
+      await openCog(user);
+      reactAncestorEscape.mockClear();
+      windowEscape.mockClear();
+      await user.keyboard("{Escape}");
+
+      await waitFor(() => {
+        expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+      });
+      expect(reactAncestorEscape).not.toHaveBeenCalled();
+      expect(windowEscape).not.toHaveBeenCalled();
+    } finally {
+      window.removeEventListener("keydown", windowEscape);
+    }
+  });
+
+  it("applies an accent pick immediately, with no save step", async () => {
+    const user = userEvent.setup();
+    renderCog();
+
+    const panel = await openCog(user);
+    const swatches = within(panel).getByRole("group", { name: "Accent" });
+
+    // One swatch per entry in ACCENTS — the row states no count of its own.
+    expect(
+      within(swatches)
+        .getAllByRole("button")
+        .map((button) => button.getAttribute("aria-label")),
+    ).toEqual(ACCENTS.map((accent) => accent.label));
+
+    const active = within(swatches).getByRole("button", { name: DEFAULT_ACCENT.label });
+    expect(active).toHaveAttribute("aria-pressed", "true");
+    expect(active.dataset.active).toBe("true");
+
+    await user.click(within(swatches).getByRole("button", { name: OTHER_ACCENT.label }));
+
+    await waitFor(() => {
+      // setAccent ran and the provider wrote the axis through: no confirm, no save.
+      expect(document.documentElement.dataset.accent).toBe(OTHER_ACCENT.id);
+    });
+    expect(within(swatches).getByRole("button", { name: OTHER_ACCENT.label })).toHaveAttribute(
+      "aria-pressed",
+      "true",
+    );
+    expect(active).toHaveAttribute("aria-pressed", "false");
+    // The panel stays open, so the reader can compare accents without reopening it.
+    expect(screen.getByRole("dialog", { name: "Appearance" })).toBeInTheDocument();
+  });
+
+  it("drops a locked row rather than rendering it inert", async () => {
+    const user = userEvent.setup();
+    renderCog({ showVisualStyle: false, showAccent: false, showMoreSettings: false });
+
+    const panel = await openCog(user);
+
+    expect(within(panel).queryByRole("button", { name: /visual style/ })).not.toBeInTheDocument();
+    expect(within(panel).queryByRole("group", { name: "Accent" })).not.toBeInTheDocument();
+    expect(within(panel).queryByRole("link", { name: /More settings/ })).not.toBeInTheDocument();
+    expect(
+      within(panel)
+        .getAllByRole("button")
+        .map((control) => control.dataset.appearanceAxis),
+    ).toEqual(["color-scheme"]);
+  });
+
+  it("renders no cog at all when a build offers a reader nothing", () => {
+    renderCog({
+      showVisualStyle: false,
+      showColorScheme: false,
+      showAccent: false,
+      showMoreSettings: false,
+    });
+
+    expect(screen.queryByRole("button", { name: "Appearance settings" })).not.toBeInTheDocument();
+  });
+
+  /**
+   * The `/dev/kit` sweep server-renders every story in all four combinations, but a closed
+   * Radix popover renders nothing on the server and its portal returns null before mount —
+   * so the panel's four-way coverage has to live here, where it can actually be opened.
+   *
+   * Structure only. What each combination *looks* like is a token question, answered by the
+   * shared recipes the panel is built from and reviewed in the browser.
+   */
+  it.each([
+    { colorScheme: "light", visualStyle: "fun" },
+    { colorScheme: "dark", visualStyle: "fun" },
+    { colorScheme: "light", visualStyle: "pro" },
+    { colorScheme: "dark", visualStyle: "pro" },
+  ] as const)(
+    "opens a complete panel in $visualStyle $colorScheme",
+    async ({ colorScheme, visualStyle }) => {
+      const user = userEvent.setup();
+      document.documentElement.dataset.theme = colorScheme;
+      document.documentElement.dataset.visualStyle = visualStyle;
+      window.localStorage.setItem(COLOR_SCHEME_STORAGE_KEY, colorScheme);
+      window.localStorage.setItem(VISUAL_STYLE_STORAGE_KEY, visualStyle);
+
+      render(
+        <ThemeProvider
+          initialColorScheme={colorScheme}
+          initialVisualStyle={visualStyle}
+          isVisualStyleLocked={false}
+        >
+          <AppearanceCog {...ALL_ROWS} />
+        </ThemeProvider>,
+      );
+
+      const panel = await openCog(user);
+
+      expect(panel).toHaveClass("theme-overlay-surface");
+      expect(panel.querySelectorAll("[data-appearance-axis]")).toHaveLength(2);
+      expect(panel.querySelectorAll("[data-accent-swatch]")).toHaveLength(ACCENTS.length);
+      expect(within(panel).getByRole("link", { name: /More settings/ })).toHaveAttribute(
+        "href",
+        "/dev/themes",
+      );
+    },
+  );
+});
+
+describe("AppearanceControls", () => {
+  beforeEach(() => {
+    window.localStorage.clear();
+    document.documentElement.dataset.theme = "dark";
+    document.documentElement.dataset.visualStyle = "fun";
+  });
+
+  it("omits the style row when the provider says the axis is not writable", async () => {
+    const user = userEvent.setup();
     render(
       <ThemeProvider initialColorScheme="light" initialVisualStyle="pro" isVisualStyleLocked>
         <AppearanceControls />
       </ThemeProvider>,
     );
 
-    const pills = within(screen.getByRole("group", { name: "Appearance" })).getAllByRole("button");
+    const panel = await openCog(user);
 
-    expect(pills.map((pill) => pill.dataset.appearanceAxis)).toEqual(["color-scheme"]);
-    expect(screen.queryByRole("button", { name: /visual style/ })).not.toBeInTheDocument();
+    // The lock is read from the provider, the only thing that knows whether setVisualStyle
+    // does anything, rather than re-derived from the flavor config.
+    expect(within(panel).queryByRole("button", { name: /visual style/ })).not.toBeInTheDocument();
+    expect(within(panel).getByRole("button", { name: /day mode|night mode/ })).toBeInTheDocument();
+  });
+
+  it("omits the accent row when the publication locks the accent axis", async () => {
+    const user = userEvent.setup();
+    render(
+      <ThemeProvider initialColorScheme="dark" initialVisualStyle="pro" isAccentLocked>
+        <AppearanceControls />
+      </ThemeProvider>,
+    );
+
+    const panel = await openCog(user);
+
+    expect(within(panel).queryByRole("group", { name: "Accent" })).not.toBeInTheDocument();
+  });
+
+  it("keeps the Theme Lab link off a reader's cog", async () => {
+    const user = userEvent.setup();
+    render(
+      <ThemeProvider initialColorScheme="dark" initialVisualStyle="fun" isVisualStyleLocked={false}>
+        <AppearanceControls />
+      </ThemeProvider>,
+    );
+
+    const panel = await openCog(user);
+
+    // No <SessionProvider /> here, exactly as on a public page, so there is no editor
+    // session to read. A row pointing at an editor route a reader cannot open is noise.
+    expect(within(panel).queryByRole("link", { name: /More settings/ })).not.toBeInTheDocument();
+  });
+
+  it("puts the caller's class on the trigger itself, with no wrapper to take the offset", () => {
+    render(
+      <ThemeProvider initialColorScheme="dark" initialVisualStyle="fun" isVisualStyleLocked={false}>
+        <AppearanceControls className="theme-home-theme-toggle fixed bottom-4 right-4" />
+      </ThemeProvider>,
+    );
+
+    expect(screen.getByRole("button", { name: "Appearance settings" }).className).toMatch(
+      /theme-home-theme-toggle/,
+    );
   });
 });

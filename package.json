@@ -38,6 +38,7 @@
     "generate:manifest": "bun scripts/build/generateArticleManifest.mjs",
     "generate:schema": "bun scripts/generate/generateSchemaUtils.ts",
     "generate:palette-css": "bun scripts/build/generatePalettePresetCss.ts",
+    "generate:accent-css": "bun scripts/build/generateAccentCss.ts",
     "generate:subjective-effects-provenance": "node scripts/convex/generate-subjective-effects-provenance.mjs",
     "provenance:check": "node scripts/data/verifyGeneratedDataProvenance.mjs",
     "parse:sources": "bun scripts/parse-sources.ts --stats",

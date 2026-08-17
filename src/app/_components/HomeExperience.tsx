@@ -322,11 +322,10 @@ export function HomeExperience({
           aria-hidden="true"
           className="theme-home-ambient absolute inset-0 -z-20"
         />
-        {/* The appearance group is the cluster: it already lays its own pills out, and
-            `theme-home-theme-toggle` is the hook the search-mode rules reposition.
-            Below sm the pair stacks, because in search mode this overlay shares the
-            bottom line with the centred quick-link row. */}
-        <AppearanceControls className="theme-home-theme-toggle fixed bottom-4 right-4 z-30 flex-col sm:bottom-6 sm:right-6 sm:flex-row" />
+        {/* The positioning lives on the cog's own trigger: `theme-home-theme-toggle` is the
+            hook the search-mode rules reposition, so any wrapper between this class and the
+            button would take the offset and leave the control where it was. */}
+        <AppearanceControls className="theme-home-theme-toggle fixed bottom-4 right-4 z-30 sm:bottom-6 sm:right-6" />
 
         <section className="theme-home-stage mx-auto flex w-full max-w-5xl flex-col items-center transition-[max-width,padding,transform] duration-300 ease-out">
           <div className="theme-home-brand-lockup flex flex-col items-center justify-center gap-3 transition-[gap,opacity,transform] duration-300 ease-out sm:gap-4">

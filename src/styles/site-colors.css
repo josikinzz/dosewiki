@@ -268,20 +268,27 @@ html[data-theme="light"]:where(:not([data-visual-style="pro"])) .theme-chrome-da
   --theme-elevation-accent-ring: 0 0 0 1px var(--theme-accent);
   --theme-elevation-danger: 0 14px 36px -22px var(--theme-danger-ring);
   --theme-elevation-danger-hover: 0 18px 46px -25px var(--theme-danger-ring);
-  --theme-elevation-control-active: 0 10px 30px -12px rgb(168 85 247 / 0.65);
-  --theme-elevation-control-primary: 0 18px 40px -24px rgb(155 65 255 / 0.6);
-  /* Was `shadow-lg shadow-fuchsia-500/8`. The literal is Tailwind's
-     fuchsia-500 (#d946ef), which is also the tile's own gradient `from-` stop
-     — not --c-brand, which is #f0abfc here in dark mode and would pale the
-     glow out. Keep the two in step if the tile is ever re-tinted. */
+  --theme-elevation-control-active: 0 10px 30px -12px oklch(62.7% 0.233 var(--h-violet) / 0.65);
+  --theme-elevation-control-primary: 0 18px 40px -24px oklch(59.6% 0.261 var(--h-violet) / 0.6);
+  /* Was `shadow-lg shadow-fuchsia-500/8`. The stop is the icon tile's own
+     gradient `from-` stop (Tailwind fuchsia-500, #d946ef) re-expressed off
+     --h-brand at that literal's own lightness and chroma — not --c-brand,
+     which is #f0abfc here in dark mode and would pale the glow out. The tile
+     still hard-codes #d946ef in PublicContentPrimitives.tsx, so keep the two
+     in step if the tile is ever re-tinted. */
   --theme-elevation-icon-tile:
-    0 10px 15px -3px rgb(217 70 239 / 0.08), 0 4px 6px -4px rgb(217 70 239 / 0.08);
+    0 10px 15px -3px oklch(66.7% 0.259 var(--h-brand) / 0.08), 0 4px 6px -4px oklch(66.7% 0.259 var(--h-brand) / 0.08);
   /* Insets and hairlines. */
   --theme-elevation-field-inset: inset 0 1px 2px var(--theme-shadow-soft);
   --theme-elevation-inner-accent: inset 0 2px 4px 0 color-mix(in srgb, var(--theme-accent) 22%, transparent);
   --theme-elevation-top-highlight: inset 0 1px 0 rgb(var(--c-white) / 0.04);
   --theme-elevation-top-highlight-faint: inset 0 1px 0 rgb(var(--c-white) / 0.03);
-  --theme-elevation-mark-hairline: inset 0 0 0 1px rgb(244 114 182 / 0.18);
+  /* The pre-seed literal rgb(244 114 182) measures hue 349.8, near-equidistant
+     from --h-rose (14) and --h-brand (326). It takes --h-brand: this hairline
+     rings the search <mark>, whose fill is brand-tinted, and --h-rose is the
+     danger seed — decoration must not hang off a safety hue. --h-rose would
+     also push the stop out of sRGB and clip. Do not re-litigate. */
+  --theme-elevation-mark-hairline: inset 0 0 0 1px oklch(72.5% 0.175 var(--h-brand) / 0.18);
   --theme-elevation-avatar-inner: inset 0 2px 4px 0 rgb(var(--c-black) / 0.2);
   --theme-elevation-avatar-glow: 0 25px 50px -12px rgb(var(--c-black) / 0.5);
 
@@ -290,8 +297,8 @@ html[data-theme="light"]:where(:not([data-visual-style="pro"])) .theme-chrome-da
   --theme-surface-muted: #070015;
   --theme-surface-strong: color-mix(in srgb, rgb(22 15 39) 96%, var(--theme-body-bg));
   --theme-surface-deep: color-mix(in srgb, oklch(13% 0.026 var(--h-plum)) 90%, var(--theme-body-bg));
-  --theme-chrome-surface: color-mix(in srgb, rgb(72 18 87) 72%, var(--theme-body-bg));
-  --theme-chrome-surface-strong: color-mix(in srgb, rgb(82 22 98) 82%, var(--theme-body-bg));
+  --theme-chrome-surface: color-mix(in srgb, oklch(30.8% 0.123 var(--h-plum)) 72%, var(--theme-body-bg));
+  --theme-chrome-surface-strong: color-mix(in srgb, oklch(33.6% 0.134 var(--h-plum)) 82%, var(--theme-body-bg));
   --theme-chrome-border: rgb(var(--c-brand) / 0.22);
   --theme-chrome-rail-base: oklch(15.5% 0.037 var(--h-plum));
   --theme-chrome-rail-highlight: oklch(from var(--theme-chrome-rail-base) calc(l + 0.05) calc(c + 0.008) h);
@@ -335,10 +342,12 @@ html[data-theme="light"]:where(:not([data-visual-style="pro"])) .theme-chrome-da
   /* Secondary "selected/informational" hue: violet 290 (sits between the
      brand magenta and blue), replacing the off-brand cyan/teal. */
   /* Active index / dosage-duration tab fill — one editable base.
-     Hand-tuned literal: its hue (310) sits off --h-violet (290), so it cannot
-     be re-derived without shifting the default. Every alternate palette
-     re-derives it at this lightness/chroma from its own --h-violet. */
-  --theme-route-active-base: #4e2767;
+     Expressed off the seed at the retune's lightness/chroma: the pre-seed
+     literal #4e2767 is oklch(35.65% 0.112 310), 20° off --h-violet. Snapping
+     it onto the seed matches the light block below and the value every
+     alternate palette already re-derived, so each palette tints the selected
+     tab with its own violet instead of inheriting Orchid's. */
+  --theme-route-active-base: oklch(35.7% 0.112 var(--h-violet));
   --theme-article-route-active-border: oklch(66% 0.12 var(--h-violet) / 0.34);
   --theme-article-route-active-highlight: color-mix(in srgb, rgb(var(--c-white)) 7%, var(--theme-route-active-base));
   --theme-article-route-active-primary: var(--theme-route-active-base);
@@ -428,7 +437,7 @@ html[data-theme="light"]:where(:not([data-visual-style="pro"])) .theme-chrome-da
   --theme-frosted-control-on-panel-hover-border: rgb(var(--c-accent) / 0.3);
   --theme-frosted-control-on-panel-hover-bg:
     radial-gradient(circle at 12% 0%, oklch(19% 0.034 var(--h-plum)), oklch(13% 0.024 var(--h-plum)) 38%),
-    linear-gradient(135deg, oklch(13% 0.024 var(--h-plum)), oklch(19% 0.045 305));
+    linear-gradient(135deg, oklch(13% 0.024 var(--h-plum)), oklch(19% 0.045 var(--h-plum)));
   --theme-frosted-control-on-panel-hover-shadow:
     0 0 0 1px var(--theme-frosted-control-on-panel-hover-border),
     0 10px 22px -20px rgb(var(--c-brand) / 0.28),
@@ -449,7 +458,7 @@ html[data-theme="light"]:where(:not([data-visual-style="pro"])) .theme-chrome-da
   --theme-scroll-thumb: color-mix(in srgb, rgb(var(--c-brand)) 50%, var(--theme-scroll-track));
   --theme-scroll-thumb-hover: color-mix(in srgb, rgb(var(--c-brand)) 70%, var(--theme-scroll-track));
   --theme-scroll-thumb-bg:
-    radial-gradient(circle at 12% 0%, color-mix(in srgb, oklch(76% 0.2 var(--h-brand)) 66%, var(--theme-scroll-track)), color-mix(in srgb, oklch(62% 0.26 322) 50%, var(--theme-scroll-track)) 42%), linear-gradient(135deg, color-mix(in srgb, oklch(62% 0.26 322) 50%, var(--theme-scroll-track)), color-mix(in srgb, oklch(50% 0.22 var(--h-plum)) 40%, var(--theme-scroll-track)));
+    radial-gradient(circle at 12% 0%, color-mix(in srgb, oklch(76% 0.2 var(--h-brand)) 66%, var(--theme-scroll-track)), color-mix(in srgb, oklch(62% 0.26 var(--h-brand)) 50%, var(--theme-scroll-track)) 42%), linear-gradient(135deg, color-mix(in srgb, oklch(62% 0.26 var(--h-brand)) 50%, var(--theme-scroll-track)), color-mix(in srgb, oklch(50% 0.22 var(--h-plum)) 40%, var(--theme-scroll-track)));
   --theme-scroll-thumb-hover-bg:
     radial-gradient(circle at 12% 0%, color-mix(in srgb, oklch(82% 0.18 var(--h-brand)) 82%, var(--theme-scroll-track)), color-mix(in srgb, oklch(68% 0.27 var(--h-brand)) 64%, var(--theme-scroll-track)) 42%), linear-gradient(135deg, color-mix(in srgb, oklch(68% 0.27 var(--h-brand)) 64%, var(--theme-scroll-track)), color-mix(in srgb, oklch(56% 0.24 var(--h-plum)) 52%, var(--theme-scroll-track)));
   --theme-scroll-thumb-glow: oklch(70% 0.26 var(--h-brand) / 0.42);
@@ -557,7 +566,7 @@ html[data-theme="light"]:where(:not([data-visual-style="pro"])) .theme-chrome-da
   --theme-semantic-neutral-badge-bg: var(--theme-frosted-control-on-panel-bg);
   --theme-semantic-neutral-badge-text: var(--theme-text-muted);
   --theme-semantic-neutral-badge-ring: var(--theme-frosted-control-on-panel-border);
-  --theme-semantic-neutral-badge-glow: rgba(84, 46, 112, 0.1);
+  --theme-semantic-neutral-badge-glow: oklch(38% 0.114 var(--h-text) / 0.1);
   --theme-status-badge-inset: rgb(var(--c-white) / 0.08);
   --theme-status-badge-shadow:
     0 0 0 1px var(--theme-status-badge-ring, var(--theme-semantic-neutral-badge-ring)),
@@ -613,7 +622,7 @@ html[data-theme="light"]:where(:not([data-visual-style="pro"])) .theme-chrome-da
      /docs/code architecture diagram and must stay in lockstep with them; they
      darken/desaturate in light mode to keep contrast on near-white cards. */
   --theme-doc-domain-blue: oklch(74% 0.13 235);
-  --theme-doc-domain-gold: oklch(72% 0.18 322);
+  --theme-doc-domain-gold: oklch(72% 0.18 var(--h-brand));
   --theme-doc-domain-green: oklch(74% 0.13 165);
   --theme-doc-domain-orange: oklch(74% 0.13 54);
   --theme-doc-domain-plum: oklch(74% 0.12 350);
@@ -676,7 +685,7 @@ html[data-theme="light"]:where(:not([data-visual-style="pro"])) .theme-chrome-da
   --theme-dose-tier-moderate: oklch(58% 0.12 82);
   --theme-dose-tier-strong: oklch(58% 0.12 54);
   --theme-dose-tier-heavy: oklch(58% 0.12 16);
-  --theme-dose-tier-fade: color-mix(in srgb, oklch(22% 0.02 326) 40%, var(--theme-field-on-panel-surface-alt));
+  --theme-dose-tier-fade: color-mix(in srgb, oklch(22% 0.02 var(--h-brand)) 40%, var(--theme-field-on-panel-surface-alt));
   --theme-plateau-tier-first: oklch(58% 0.12 165);
   --theme-plateau-tier-second: oklch(58% 0.12 235);
   --theme-plateau-tier-third: oklch(58% 0.12 82);
@@ -892,9 +901,9 @@ html[data-theme="light"] {
   --theme-scroll-thumb: color-mix(in srgb, oklch(48% 0.17 var(--h-brand)) 42%, var(--theme-scroll-track));
   --theme-scroll-thumb-hover: color-mix(in srgb, oklch(44% 0.18 var(--h-brand)) 56%, var(--theme-scroll-track));
   --theme-scroll-thumb-bg:
-    radial-gradient(circle at 12% 0%, color-mix(in srgb, oklch(72% 0.16 330) 64%, var(--theme-scroll-track)), color-mix(in srgb, oklch(54% 0.19 var(--h-brand)) 50%, var(--theme-scroll-track)) 42%), linear-gradient(135deg, color-mix(in srgb, oklch(54% 0.19 var(--h-brand)) 50%, var(--theme-scroll-track)), color-mix(in srgb, oklch(46% 0.17 var(--h-brand)) 42%, var(--theme-scroll-track)));
+    radial-gradient(circle at 12% 0%, color-mix(in srgb, oklch(72% 0.16 var(--h-brand)) 64%, var(--theme-scroll-track)), color-mix(in srgb, oklch(54% 0.19 var(--h-brand)) 50%, var(--theme-scroll-track)) 42%), linear-gradient(135deg, color-mix(in srgb, oklch(54% 0.19 var(--h-brand)) 50%, var(--theme-scroll-track)), color-mix(in srgb, oklch(46% 0.17 var(--h-brand)) 42%, var(--theme-scroll-track)));
   --theme-scroll-thumb-hover-bg:
-    radial-gradient(circle at 12% 0%, color-mix(in srgb, oklch(76% 0.16 330) 78%, var(--theme-scroll-track)), color-mix(in srgb, oklch(50% 0.2 var(--h-brand)) 64%, var(--theme-scroll-track)) 42%), linear-gradient(135deg, color-mix(in srgb, oklch(50% 0.2 var(--h-brand)) 64%, var(--theme-scroll-track)), color-mix(in srgb, oklch(42% 0.18 var(--h-brand)) 54%, var(--theme-scroll-track)));
+    radial-gradient(circle at 12% 0%, color-mix(in srgb, oklch(76% 0.16 var(--h-brand)) 78%, var(--theme-scroll-track)), color-mix(in srgb, oklch(50% 0.2 var(--h-brand)) 64%, var(--theme-scroll-track)) 42%), linear-gradient(135deg, color-mix(in srgb, oklch(50% 0.2 var(--h-brand)) 64%, var(--theme-scroll-track)), color-mix(in srgb, oklch(42% 0.18 var(--h-brand)) 54%, var(--theme-scroll-track)));
   --theme-scroll-thumb-glow: oklch(52% 0.18 var(--h-brand) / 0.3);
 
   /* ---------------------------------------------------------------------
@@ -1012,7 +1021,7 @@ html[data-theme="light"] {
   --theme-report-phase-offset-bg: color-mix(in srgb, rgb(var(--c-violet-deep)) 8%, var(--theme-body-bg));
   --theme-report-phase-onset-border: rgb(var(--c-emerald-deep) / 0.24);
   --theme-report-phase-peak-border: rgb(var(--c-plum-pink) / 0.2);
-  --theme-report-phase-offset-border: rgba(109, 40, 217, 0.2);
+  --theme-report-phase-offset-border: oklch(49.1% 0.241 var(--h-violet) / 0.2);
   --theme-report-phase-onset-dot: rgb(var(--c-emerald-deep));
   --theme-report-phase-peak-dot: rgb(var(--c-plum-pink));
   --theme-report-phase-offset-dot: rgb(var(--c-violet-deep));
@@ -1038,7 +1047,7 @@ html[data-theme="light"] {
 
   /* Docs diagram domain hues — darker/more saturated for near-white cards. */
   --theme-doc-domain-blue: oklch(47% 0.13 235);
-  --theme-doc-domain-gold: oklch(45% 0.18 322);
+  --theme-doc-domain-gold: oklch(45% 0.18 var(--h-brand));
   --theme-doc-domain-green: oklch(45% 0.12 165);
   --theme-doc-domain-orange: oklch(50% 0.13 54);
   --theme-doc-domain-plum: oklch(46% 0.15 350);
@@ -1066,7 +1075,7 @@ html[data-theme="light"] {
     0 10px 22px -12px oklch(36% 0.02 var(--h-text) / 0.26),
     0 1px 0 oklch(46% 0.16 var(--h-brand) / 0.14);
   --theme-profile-markdown-quote-bg: color-mix(in srgb, rgb(var(--c-plum-pink)) 7%, var(--theme-body-bg));
-  --theme-profile-markdown-quote-border: rgba(93, 56, 123, 0.16);
+  --theme-profile-markdown-quote-border: oklch(41.6% 0.113 var(--h-plum) / 0.16);
 
   /* Homepage ambient glows (light variant; see the dark block). */
   --theme-home-glow-top: rgba(159, 33, 128, 0.032);
@@ -1082,7 +1091,7 @@ html[data-theme="light"] {
   --theme-dose-tier-moderate: oklch(84% 0.115 82);
   --theme-dose-tier-strong: oklch(78% 0.11 54);
   --theme-dose-tier-heavy: oklch(78% 0.12 16);
-  --theme-dose-tier-fade: oklch(99% 0.004 326 / 0.88);
+  --theme-dose-tier-fade: oklch(99% 0.004 var(--h-brand) / 0.88);
   --theme-plateau-tier-first: oklch(78% 0.105 165);
   --theme-plateau-tier-second: oklch(80% 0.105 235);
   --theme-plateau-tier-third: oklch(84% 0.115 82);
@@ -1092,7 +1101,7 @@ html[data-theme="light"] {
   --theme-section-heading: rgb(var(--c-accent));
   --theme-avatar-gradient-from: oklch(89.5% 0.075 334);
   --theme-avatar-gradient-to: oklch(80.5% 0.114 319);
-  --theme-index-card-bullet: color-mix(in srgb, var(--theme-accent) 28%, rgba(93, 56, 123, 0.18));
+  --theme-index-card-bullet: color-mix(in srgb, var(--theme-accent) 28%, oklch(41.6% 0.113 var(--h-plum) / 0.18));
   --theme-construction-banner-text: oklch(56% 0.13 78);
   --theme-home-nav-card-border: oklch(58% 0.1 326 / 0.14);
 

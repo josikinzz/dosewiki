@@ -26,6 +26,16 @@ const APPEARANCE_MATRIX = [
  *
  * This test renders every example of every registered story in all four appearance
  * combinations, so a style-dependent crash fails here instead of in `next build`.
+ *
+ * The matrix is visual style × colour scheme and stays that way. The accent axis is a third
+ * appearance axis but it is attribute-only and pre-paint: it changes token values, not
+ * markup, so multiplying this sweep by it would render 24 identical trees. Accent coverage
+ * is table-driven in `src/theme/accents.test.ts`.
+ *
+ * One boundary worth knowing: a closed Radix popover renders nothing on the server, and
+ * `@radix-ui/react-portal` returns null before mount, so this sweep covers the appearance
+ * cog's trigger and not its panel. The panel's four-way structure is asserted in jsdom, in
+ * `src/app/_components/AppearanceControls.test.tsx`.
  */
 describe("UI Kit catalog render safety", () => {
   for (const story of stories) {

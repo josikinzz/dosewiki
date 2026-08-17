@@ -7,6 +7,7 @@ import {
   PALETTE_ATTRIBUTE,
   PALETTE_LAB_OVERRIDE_STYLE_ID,
   PALETTE_LAB_STORAGE_KEY,
+  userLayerSelector,
 } from "./paletteLabStorage";
 import { setPaletteLabOpen } from "./paletteLabStore";
 import { clearThemeBaselineCache } from "./presetBaselines";
@@ -188,15 +189,15 @@ describe("radius edits through the lab's seam", { timeout: 15_000 }, () => {
     });
 
     const css = overrideCss();
-    // The doubled attribute is the lab's user-layer selector — the specificity
-    // that puts an edit level with the compiled preset blocks. The dark block
-    // heads a two-selector list so the dark chrome island (the header on a
-    // light page) wears the visitor's dark edits too.
-    expect(css).toContain(
-      'html[data-theme="dark"][data-theme],html[data-theme="light"][data-theme] .theme-chrome-dark{--radius-xl:0.25rem;}',
-    );
+    // Built from userLayerSelector rather than spelled out: the selector's
+    // repeated attribute is a cascade rank that module owns, and a test that
+    // hardcodes it goes stale the moment the rank moves. What this test is
+    // actually about is the block's SHAPE — the dark edit heads a two-selector
+    // list so the dark chrome island (the header on a light page) wears it too.
+    expect(css).toContain(`${userLayerSelector("dark")}{--radius-xl:0.25rem;}`);
+    expect(userLayerSelector("dark")).toContain(" .theme-chrome-dark");
     // No *light* user layer: editing dark must not write light's own block.
-    expect(css).not.toContain('html[data-theme="light"][data-theme]{');
+    expect(css).not.toContain(`${userLayerSelector("light")}{`);
   });
 
   it("resets a radius token back to the theme's own value", async () => {

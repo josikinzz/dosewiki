@@ -9,6 +9,7 @@ import {
   PALETTE_ATTRIBUTE,
   PALETTE_LAB_OVERRIDE_STYLE_ID,
   PALETTE_LAB_STORAGE_KEY,
+  userLayerSelector,
 } from "./paletteLabStorage";
 import { setPaletteLabOpen } from "./paletteLabStore";
 import { clearThemeBaselineCache } from "./presetBaselines";
@@ -270,13 +271,14 @@ describe("font choices through the lab's seam", { timeout: 15_000 }, () => {
 
     expect(overrideCss()).toContain("--font-family-body:");
     expect(overrideCss()).toContain("Titillium Web");
-    // The doubled attribute is the lab's user-layer selector — the specificity
-    // that puts an edit level with the compiled preset blocks. The dark block
-    // heads a two-selector list so the dark chrome island (the header on a
-    // light page) wears the visitor's dark edits too.
-    expect(overrideCss()).toContain('html[data-theme="dark"][data-theme]');
+    // Built from userLayerSelector rather than spelled out: the repeated
+    // attribute is a cascade rank that module owns, and hardcoding it here
+    // makes the negative assertion below silently unfailable the moment the
+    // rank moves. The dark block heads a two-selector list so the dark chrome
+    // island (the header on a light page) wears the visitor's dark edits too.
+    expect(overrideCss()).toContain(userLayerSelector("dark"));
     // No *light* user layer: editing dark must not write light's own block.
-    expect(overrideCss()).not.toContain('html[data-theme="light"][data-theme]{');
+    expect(overrideCss()).not.toContain(`${userLayerSelector("light")}{`);
     // …and only now does the face exist in the document.
     await waitFor(() => expect(registeredFontChoiceIds()).toEqual(["titillium"]));
 

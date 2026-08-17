@@ -1,6 +1,7 @@
 import { act, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { ThemeProvider } from "@/context/ThemeContext";
 import { AppearanceTestProvider } from "@/test/AppearanceTestProvider";
 import { PaletteLabLazy as PaletteLab } from "./PaletteLabLazy";
 import { PALETTE_ATTRIBUTE } from "./paletteLabStorage";
@@ -41,6 +42,7 @@ beforeEach(() => {
   installMockStorage();
   document.documentElement.setAttribute("data-theme", "dark");
   document.documentElement.removeAttribute(PALETTE_ATTRIBUTE);
+  document.documentElement.removeAttribute("data-accent");
   document.getElementById("palette-lab-overrides")?.remove();
   clearThemeBaselineCache();
   setPaletteLabOpen(false);
@@ -49,6 +51,7 @@ beforeEach(() => {
 afterEach(() => {
   vi.restoreAllMocks();
   document.documentElement.removeAttribute(PALETTE_ATTRIBUTE);
+  document.documentElement.removeAttribute("data-accent");
   document.getElementById("palette-lab-overrides")?.remove();
 });
 
@@ -83,6 +86,45 @@ async function switchToSections(panel: HTMLElement) {
 async function wearTheme(panel: HTMLElement, name: RegExp) {
   await userEvent.click(within(panel).getByRole("button", { name: "Themes" }));
   await userEvent.click(within(panel).getByRole("button", { name }));
+}
+
+/**
+ * The panel with an accent worn, and a stylesheet that paints one token twice:
+ * the value the theme itself renders, and the accent's own value on top of it.
+ *
+ * The selector shapes are reduced to the axis under test — the shipped Pro
+ * blocks also name `[data-visual-style="pro"]`, which changes their rank and
+ * nothing else here. The accent is passed to the provider rather than written by
+ * hand, because the provider is the only writer of `data-accent`.
+ */
+async function openAccentedPanel(authored: string, accented: string) {
+  const fixture = document.createElement("style");
+  fixture.textContent = [
+    `html[data-theme="dark"]{--ei-accent:${authored};}`,
+    `html[data-accent="blue"][data-theme="dark"]{--ei-accent:${accented};}`,
+  ].join("");
+  document.head.appendChild(fixture);
+
+  render(
+    <ThemeProvider
+      initialColorScheme="dark"
+      initialVisualStyle="pro"
+      initialAccent="blue"
+      isVisualStyleLocked={false}
+      isAccentLocked={false}
+    >
+      <PaletteLab />
+    </ThemeProvider>,
+  );
+  act(() => setPaletteLabOpen(true));
+  const panel = await screen.findByRole("dialog", { name: "Theme Lab" });
+  return { panel, fixture };
+}
+
+/** The Pro seed group starts collapsed, like every non-major group. */
+async function openProSeed(panel: HTMLElement) {
+  await userEvent.click(within(panel).getByRole("button", { name: /Pro accent seeds/ }));
+  await userEvent.click(within(panel).getByRole("button", { name: /Pro accent — base/ }));
 }
 
 describe("Theme Lab per-preset edits", { timeout: 15_000 }, () => {
@@ -151,6 +193,40 @@ describe("Theme Lab per-preset edits", { timeout: 15_000 }, () => {
       expect(stored.editsByPreset.abyss).toBeUndefined();
       expect(stored.editsByPreset.orchid.dark["--theme-accent"]).toBe("#a5f3fc");
     });
+  });
+
+  it("keeps an edit that lands on the worn accent's value, not the theme's own", async () => {
+    // The accent is a layer the editor edits *over*, so a Pro seed set to the
+    // accent's own value is a real divergence from what the theme renders with no
+    // accent at all, and has to survive. It only reads that way because the
+    // baseline sampler strips `data-accent` before sampling: with the attribute
+    // left in place the "pristine" value comes back as the accent's own, and the
+    // delete-on-equal rule throws the edit away as a no-op.
+    const authored = "#a5f3fc";
+    const accented = "#3d9991";
+    const { panel, fixture } = await openAccentedPanel(authored, accented);
+    try {
+      await switchToSections(panel);
+      await openProSeed(panel);
+
+      fireEvent.change(within(panel).getByRole("textbox", { name: /Hex/ }), {
+        target: { value: accented },
+      });
+      expect(within(panel).getByRole("button", { name: /1 changed/ })).toBeInTheDocument();
+      await waitFor(() => {
+        const stored = JSON.parse(window.localStorage.getItem(STORAGE_KEY) ?? "{}");
+        expect(stored.editsByPreset.orchid.dark["--ei-accent"]).toBe(accented);
+      });
+
+      // And the rule still fires against the real pristine value, which is the
+      // authored declaration the accent was painting over.
+      fireEvent.change(within(panel).getByRole("textbox", { name: /Hex/ }), {
+        target: { value: authored },
+      });
+      expect(within(panel).getByText("No changes")).toBeInTheDocument();
+    } finally {
+      fixture.remove();
+    }
   });
 
   it("round-trips a stamped export back onto the same palette with zero edits", async () => {

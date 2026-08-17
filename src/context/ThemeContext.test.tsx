@@ -4,29 +4,47 @@ import { beforeEach, describe, expect, it } from "vitest";
 import { SITE_FLAVOR_CONFIG } from "@/config/siteFlavor";
 import { APPEARANCE_META_COLORS, getAppearanceMetaColor } from "@/theme";
 import {
+  ACCENT_STORAGE_KEY,
   COLOR_SCHEME_STORAGE_KEY,
   THEME_META_ID,
   VISUAL_STYLE_STORAGE_KEY,
   ThemeProvider,
   useTheme,
+  type AccentId,
   type ColorScheme,
   type VisualStyle,
 } from "./ThemeContext";
 
 function AppearanceProbe() {
-  const { colorScheme, visualStyle, isVisualStyleLocked, toggleColorScheme, toggleVisualStyle } =
-    useTheme();
+  const {
+    colorScheme,
+    visualStyle,
+    accent,
+    setAccent,
+    isVisualStyleLocked,
+    isAccentLocked,
+    toggleColorScheme,
+    toggleVisualStyle,
+  } = useTheme();
 
   return (
     <div>
       <span data-testid="color-scheme">{colorScheme}</span>
       <span data-testid="visual-style">{visualStyle}</span>
+      <span data-testid="accent">{accent}</span>
       <span data-testid="style-locked">{String(isVisualStyleLocked)}</span>
+      <span data-testid="accent-locked">{String(isAccentLocked)}</span>
       <button type="button" onClick={toggleColorScheme}>
         Toggle scheme
       </button>
       <button type="button" onClick={toggleVisualStyle}>
         Toggle style
+      </button>
+      <button type="button" onClick={() => setAccent("blue")}>
+        Wear blue
+      </button>
+      <button type="button" onClick={() => setAccent("default")}>
+        Wear default
       </button>
     </div>
   );
@@ -99,7 +117,9 @@ function renderProvider(
   overrides: {
     initialColorScheme?: ColorScheme;
     initialVisualStyle?: VisualStyle;
+    initialAccent?: AccentId;
     isVisualStyleLocked?: boolean;
+    isAccentLocked?: boolean;
   } = {},
 ) {
   return render(
@@ -107,6 +127,7 @@ function renderProvider(
       initialColorScheme="dark"
       initialVisualStyle="fun"
       isVisualStyleLocked={false}
+      isAccentLocked={false}
       {...overrides}
     >
       <AppearanceProbe />
@@ -119,6 +140,7 @@ describe("ThemeProvider", () => {
     storage = installMockStorage();
     document.documentElement.removeAttribute("data-theme");
     document.documentElement.removeAttribute("data-visual-style");
+    document.documentElement.removeAttribute("data-accent");
     document.documentElement.style.colorScheme = "";
     ensureThemeMeta().content = "";
   });
@@ -259,5 +281,71 @@ describe("ThemeProvider", () => {
     expect(document.documentElement.dataset.visualStyle).toBe("pro");
     expect(document.documentElement.dataset.theme).toBe("dark");
     expect(ensureThemeMeta().content).toBe(APPEARANCE_META_COLORS.pro.dark);
+  });
+
+  it("writes the accent attribute only for a non-default accent", async () => {
+    const user = userEvent.setup();
+
+    renderProvider();
+
+    await waitFor(() => expect(document.documentElement.dataset.theme).toBe("dark"));
+
+    // The default accent is the ABSENCE of the attribute. It has no block in the generated
+    // stylesheet, so writing data-accent="default" would name an override that does not exist —
+    // and the pre-paint bootstrap leaves it absent, so a provider that set it would disagree
+    // with the frame the reader is already looking at.
+    expect(screen.getByTestId("accent")).toHaveTextContent("default");
+    expect(document.documentElement.dataset.accent).toBeUndefined();
+
+    await user.click(screen.getByRole("button", { name: "Wear blue" }));
+
+    await waitFor(() => {
+      expect(screen.getByTestId("accent")).toHaveTextContent("blue");
+      expect(document.documentElement.dataset.accent).toBe("blue");
+      expect(window.localStorage.getItem(ACCENT_STORAGE_KEY)).toBe("blue");
+      // The accent is its own axis: neither of the other two moved with it, and the browser
+      // chrome tint is publication identity, so it does not follow the accent either.
+      expect(document.documentElement.dataset.theme).toBe("dark");
+      expect(document.documentElement.dataset.visualStyle).toBe("fun");
+      expect(ensureThemeMeta().content).toBe(APPEARANCE_META_COLORS.fun.dark);
+    });
+
+    await user.click(screen.getByRole("button", { name: "Wear default" }));
+
+    await waitFor(() => {
+      // Removed, not set back to the id: this is the transition the bootstrap never sees.
+      expect(document.documentElement.dataset.accent).toBeUndefined();
+      expect(window.localStorage.getItem(ACCENT_STORAGE_KEY)).toBe("default");
+    });
+  });
+
+  it("adopts a painted accent and never touches the key while the axis is locked", async () => {
+    const user = userEvent.setup();
+    // What the bootstrap leaves for a reader who chose Blue.
+    window.localStorage.setItem(ACCENT_STORAGE_KEY, "blue");
+    document.documentElement.dataset.accent = "blue";
+    storage.forgetTraffic();
+
+    renderProvider();
+
+    await waitFor(() => expect(screen.getByTestId("accent")).toHaveTextContent("blue"));
+    expect(storage.writes).not.toContainEqual([ACCENT_STORAGE_KEY, "default"]);
+
+    renderProvider({ isAccentLocked: true });
+    storage.forgetTraffic();
+
+    // Both providers stay mounted, so every probe appears twice; the locked one renders last.
+    // Index arithmetic rather than `Array.prototype.at`, which this project's `lib` target
+    // does not carry.
+    const lockedProbes = screen.getAllByTestId("accent-locked");
+    expect(lockedProbes[lockedProbes.length - 1]).toHaveTextContent("true");
+
+    const lockedButtons = screen.getAllByRole("button", { name: "Wear blue" });
+    await user.click(lockedButtons[lockedButtons.length - 1]!);
+
+    const accentProbes = screen.getAllByTestId("accent");
+    expect(accentProbes[accentProbes.length - 1]).toHaveTextContent("default");
+    expect(storage.reads).not.toContain(ACCENT_STORAGE_KEY);
+    expect(storage.writes.map(([key]) => key)).not.toContain(ACCENT_STORAGE_KEY);
   });
 });

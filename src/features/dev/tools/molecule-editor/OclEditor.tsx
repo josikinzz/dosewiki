@@ -446,7 +446,7 @@ export function OclEditor({
         >
           <svg className="pointer-events-none absolute inset-0 h-full w-full" aria-hidden="true">
             {pickHover ? (
-              <g style={{ color: "hsl(var(--dose-fuchsia-500, 292 84% 61%))" }}>
+              <g className="text-dose-accent-strong">
                 <line
                   x1={pickHover.x1}
                   y1={pickHover.y1}

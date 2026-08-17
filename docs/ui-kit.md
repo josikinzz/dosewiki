@@ -15,8 +15,8 @@ Use these companion references for decisions outside the catalog:
 
 The catalog renders every shared primitive with its real variants, props, a
 copy-paste import line, and when-to-use / when-not-to-use guidance — in the real
-theme tokens, with working appearance controls: day/night beside Fun/Pro, so every
-story is reviewable in all four combinations.
+theme tokens, with a working appearance cog: day/night and Fun/Pro in one popover, so
+every story is reviewable in all four combinations.
 
 - Route: **`/dev/kit`** (auth-gated under `/dev`, like the rest of the editor surface).
 - Run `npm run dev` and open `/dev/kit`. The catalog demonstrates the current

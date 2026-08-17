@@ -43,9 +43,10 @@ export const CHROME_DARK_CLASS = "theme-chrome-dark";
  * Selector for one preset's block in one theme.
  *
  * Two attributes on purpose: (0,2,1) puts the compiled block above the authored
- * `html[data-theme="…"]` token blocks in `site-colors.css` (0,1,1) — and exactly
- * level with the lab's own injected user layer, which then wins on source order
- * because it is appended to `<head>` after the stylesheet.
+ * `html[data-theme="…"]` token blocks in `site-colors.css` (0,1,1), and level
+ * with the Pro palette in `pro-theme.css`, which wins on source order. The
+ * lab's own injected user layer sits above both at (0,4,1), by specificity
+ * rather than by source order — see `userLayerSelector`.
  */
 export function presetBlockSelector(presetId: string, theme: string): string {
   return `html[${PALETTE_ATTRIBUTE}="${presetId}"][data-theme="${theme}"]`;
@@ -89,8 +90,8 @@ const HEADER = `/* GENERATED FILE — do not edit by hand.
    One attribute-scoped block per shipped preset per theme, so a saved palette
    paints from the stylesheet before any script runs. The Theme Lab's
    pre-paint bootstrap only sets html[${PALETTE_ATTRIBUTE}]; the visitor's own
-   edits ride in the injected #palette-lab-overrides element at matching
-   specificity and win on source order. */
+   edits ride in the injected #palette-lab-overrides element, which out-ranks
+   these blocks on specificity alone. */
 `;
 
 /**

@@ -40,16 +40,17 @@ export const ZOD_JITLESS_BOOTSTRAP_CSP_HASH =
   "'sha256-iBFdfuGT0De586Hk5F1vEPXiYlo70p9qtlKCG8zhnV4='";
 
 /**
- * Per flavor, because the appearance bootstrap encodes that publication's policy: a flavor
- * that locks its visual style emits a constant for that axis and no style storage key at all,
- * so its bytes — and therefore its hash — differ from the reader-chooses variant. Allowing
- * only the running flavor's hash keeps each deployment's `script-src` exactly as narrow as it
- * was before flavors existed. The policy test recomputes every entry from the real builder and
- * fails if either drifts.
+ * Per flavor, because the appearance bootstrap encodes that publication's policy: a flavor that
+ * locks an axis emits a constant for it and no storage key at all, so its bytes — and therefore
+ * its hash — differ from the reader-chooses variant. dose.wiki resolves all three axes from
+ * storage; Effect Index locks style and accent, which is why its script is roughly half the
+ * size. Allowing only the running flavor's hash keeps each deployment's `script-src` exactly as
+ * narrow as it was before flavors existed. The policy test recomputes every entry from the real
+ * builder and fails if either drifts.
  */
 export const THEME_BOOTSTRAP_CSP_HASHES: Readonly<Record<SiteFlavor, string>> = {
-  dosewiki: "'sha256-AfYRfAQnMlsG9/fvIBWykV14DyoZ8Vu9d3U94EPoxMY='",
-  effectindex: "'sha256-qfrFqMFh17SWPrXTj5HnU+EIzlxIh5RJgmkppv9T91w='",
+  dosewiki: "'sha256-lQLgoeDGUwOlzXyLaTpHK688hYQZdJ60NCnjh4AfXcI='",
+  effectindex: "'sha256-qGFLhh2Y1+7tW2XJ/nl7SlRJTV+qO5sDL2zbisjQxf0='",
 };
 
 export const THEME_BOOTSTRAP_CSP_HASH = THEME_BOOTSTRAP_CSP_HASHES[SITE_FLAVOR];

@@ -1,4 +1,5 @@
-import type { ColorScheme } from "@/theme";
+import { ACCENT_ATTRIBUTE } from "@/theme/accentStylesheet";
+import type { ColorScheme, VisualStyle } from "@/theme";
 import {
   PALETTE_ATTRIBUTE,
   PALETTE_LAB_OVERRIDE_STYLE_ID,
@@ -28,6 +29,9 @@ export type ThemeDefaults = Record<ColorScheme, Record<string, string>>;
 
 const THEMES: ColorScheme[] = ["dark", "light"];
 const SAMPLE_STYLE_ID = "palette-lab-baseline-sample";
+/** The visual-style axis, named here because the accent sampler below has to
+ *  read a combination the editor is not currently wearing. */
+const STYLE_ATTRIBUTE = "data-visual-style";
 
 const cache = new Map<string, ThemeDefaults>();
 
@@ -48,9 +52,10 @@ function sampleDefaults(base: PaletteOverrides): ThemeDefaults {
   const hadTheme = root.hasAttribute("data-theme");
   const previousTheme = root.getAttribute("data-theme");
 
-  // Two things now paint the visitor's look, and both have to be neutralized or
-  // the "pristine" sample comes back carrying the very values it is supposed to
-  // be the baseline for: the injected element (custom-slot tokens plus edits)…
+  // Three things now paint the visitor's look, and all of them have to be
+  // neutralized or the "pristine" sample comes back carrying the very values it
+  // is supposed to be the baseline for: the injected element (custom-slot tokens
+  // plus edits)…
   const overrideEl = document.getElementById(PALETTE_LAB_OVERRIDE_STYLE_ID);
   const overrideText = overrideEl?.textContent ?? "";
   if (overrideEl) overrideEl.textContent = "";
@@ -62,6 +67,17 @@ function sampleDefaults(base: PaletteOverrides): ThemeDefaults {
   const hadPalette = root.hasAttribute(PALETTE_ATTRIBUTE);
   const previousPalette = root.getAttribute(PALETTE_ATTRIBUTE);
   if (hadPalette) root.removeAttribute(PALETTE_ATTRIBUTE);
+
+  // …and the accent attribute, which switches on a compiled accent block in the
+  // generated sheet — a Fun colourway in Fun, `--ei-*` seeds in Pro. Left in
+  // place it breaks the delete-on-equal rule outright: an editor whose token
+  // value happens to match the accent's would have their edit read as "same as
+  // pristine" and silently dropped, when the accent is a layer they are editing
+  // *over*. Removed on the same terms as the palette attribute, and for the same
+  // reason — `base` is the authoritative statement of this theme's own values.
+  const hadAccent = root.hasAttribute(ACCENT_ATTRIBUTE);
+  const previousAccent = root.getAttribute(ACCENT_ATTRIBUTE);
+  if (hadAccent) root.removeAttribute(ACCENT_ATTRIBUTE);
 
   // Stage this theme's own layer at the same specificity the lab renders it at.
   // The user-layer selector matches on `data-theme` alone, so stripping the
@@ -85,6 +101,9 @@ function sampleDefaults(base: PaletteOverrides): ThemeDefaults {
     else root.removeAttribute("data-theme");
     if (hadPalette && previousPalette !== null) {
       root.setAttribute(PALETTE_ATTRIBUTE, previousPalette);
+    }
+    if (hadAccent && previousAccent !== null) {
+      root.setAttribute(ACCENT_ATTRIBUTE, previousAccent);
     }
     if (overrideEl) overrideEl.textContent = overrideText;
   }
@@ -112,4 +131,44 @@ export function getThemeBaselines(cacheKey: string, base: PaletteOverrides): The
 export function clearThemeBaselineCache(cacheKey?: string): void {
   if (cacheKey === undefined) cache.clear();
   else cache.delete(cacheKey);
+}
+
+/**
+ * Read tokens exactly as they render in one appearance combination, with
+ * everything that paints the visitor's look left in place.
+ *
+ * The mirror image of the baseline sampler above: nothing is neutralized,
+ * because an accent export wants the *rendered* value — the accent block, the
+ * colourway and the editor's own edits included. It exists because an accent's
+ * shape spans combinations the editor is not currently wearing: the Pro seeds
+ * cannot be read off a Fun page, and the measured swatch is the Fun-dark
+ * `--theme-accent` however the editor happens to be viewing it.
+ *
+ * Synchronous like its neighbour, and it puts both attributes back exactly as it
+ * found them, so no intermediate frame is ever painted.
+ */
+export function sampleRenderedTokens(
+  ids: readonly string[],
+  at: { visualStyle: VisualStyle; colorScheme: ColorScheme },
+): Record<string, string> {
+  const result: Record<string, string> = {};
+  if (typeof document === "undefined") return result;
+
+  const root = document.documentElement;
+  const previousStyle = root.getAttribute(STYLE_ATTRIBUTE);
+  const previousTheme = root.getAttribute("data-theme");
+
+  root.setAttribute(STYLE_ATTRIBUTE, at.visualStyle);
+  root.setAttribute("data-theme", at.colorScheme);
+  try {
+    const computed = getComputedStyle(root);
+    for (const id of ids) result[id] = computed.getPropertyValue(id).trim();
+  } finally {
+    if (previousStyle === null) root.removeAttribute(STYLE_ATTRIBUTE);
+    else root.setAttribute(STYLE_ATTRIBUTE, previousStyle);
+    if (previousTheme === null) root.removeAttribute("data-theme");
+    else root.setAttribute("data-theme", previousTheme);
+  }
+
+  return result;
 }
