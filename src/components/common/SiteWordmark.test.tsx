@@ -33,7 +33,7 @@ describe("SiteWordmark", () => {
     );
   });
 
-  it("splits the Effect Index wordmark so the accent lands on Index, with the space preserved", () => {
+  it("keeps one non-breaking space between the Effect Index wordmark runs", () => {
     const markup = renderToStaticMarkup(
       <span className="brand">
         <SiteWordmark config={effectindex} />
@@ -41,7 +41,7 @@ describe("SiteWordmark", () => {
     );
 
     expect(markup).toBe(
-      '<span class="brand">Effect <span class="theme-accent-heading">Index</span></span>',
+      '<span class="brand">Effect <span class="theme-accent-heading">Index</span></span>',
     );
   });
 

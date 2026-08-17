@@ -8,23 +8,21 @@
  * carry bond/atom *indices*. **Colour is therefore the only element signal available**, and
  * every recolour in this project is a literal hex substitution.
  *
- * Two publications, two colourways:
- *   * dose.wiki ships the fuchsia brand palette. Substance depictions are Convex
- *     `moleculeOverrides` rows (brand-coloured at save time); the chemical-class Markush
- *     skeletons are still static files under `public/molecules/classes/`, baked by
- *     `scripts/chemistry/render_class_structures.py`.
- *   * Effect Index needs CPK's *hues* desaturated into its own near-white theme
- *     (page `#f6f5f1`, ink `#333333`, accent teal `#3d9991`). Raw CPK would put pure
- *     `#000000` and `#ff0000` on that page as its only saturated primaries.
+ * Two visual styles, three colourways:
+ *   * Fun uses the dose.wiki fuchsia palette already baked into canonical SVGs.
+ *   * Pro light uses desaturated CPK hues against the paper canvas.
+ *   * Pro dark keeps those element identities but raises their luminance against
+ *     the charcoal canvas.
  *
- * This module is the single source of truth for that second colourway. It is a pure string
- * transform (no DOM) so the same function can be used by
- *   * `scripts/data/generateEffectIndexMoleculeColorway.ts` — bakes `public/molecules-ei/classes/`
- *   * `src/app/api/molecules/[slug]/route.ts` and `.../classes/[key]/route.ts` — recolour
- *     hand-authored Convex `moleculeOverrides` rows at serve time. The Convex deployment is
- *     shared by both publications, so the colourway can never live in the stored data.
+ * This module is the single source of truth for both Pro colourways. It is a
+ * pure string transform (no DOM) shared by:
+ *   * `scripts/data/generateEffectIndexMoleculeColorway.ts`, which bakes both
+ *     static class-structure directories.
+ *   * `src/app/api/molecules/**`, which recolours Convex molecule overrides at
+ *     serve time. Convex stores only the canonical Fun bytes.
  */
 import { SITE_FLAVOR_CONFIG, isEffectIndex, type SiteFlavorConfig } from "../../config/siteFlavor";
+import type { ColorScheme } from "../../theme";
 
 /** Where the dose.wiki (brand) static class-structure colourway is served from. */
 export const DOSEWIKI_MOLECULE_BASE_PATH = "/molecules/";
@@ -35,29 +33,50 @@ export const EFFECT_INDEX_MOLECULE_DIRNAME = "molecules-ei";
 /** Where the Effect Index colourway is served from. */
 export const EFFECT_INDEX_MOLECULE_BASE_PATH = `/${EFFECT_INDEX_MOLECULE_DIRNAME}/`;
 
-/**
- * Effect Index element palette: CPK hues pulled into the Effect Index theme.
- *
- * `rGroup` is not an element — RDKit paints Markush (R-group) attachment labels on the
- * chemical-class skeletons with a dedicated colour, and the accent teal is what reads as
- * "variable site" inside this theme. `surface` stands in for white/background fills.
- */
-export const EFFECT_INDEX_MOLECULE_PALETTE = {
-  /** Carbon, hydrogen, bonds and RDKit's default colour. Matches the theme's ink. */
-  carbon: "#333333",
-  nitrogen: "#2f4a8f",
-  oxygen: "#b0413e",
-  sulfur: "#9a7d20",
-  phosphorus: "#b06a2c",
-  fluorine: "#4a8f6f",
-  chlorine: "#3d7d52",
-  bromine: "#8a4230",
-  iodine: "#6a4b8f",
-  rGroup: "#3d9991",
-  surface: "#f6f5f1",
-} as const;
+/** Directory and public base path for the Pro dark static colourway. */
+export const EFFECT_INDEX_DARK_MOLECULE_DIRNAME = "molecules-ei-dark";
+export const EFFECT_INDEX_DARK_MOLECULE_BASE_PATH =
+  `/${EFFECT_INDEX_DARK_MOLECULE_DIRNAME}/`;
 
-export type EffectIndexMoleculeColorKey = keyof typeof EFFECT_INDEX_MOLECULE_PALETTE;
+/**
+ * Effect Index element palettes: restrained CPK hues tuned for each canvas.
+ *
+ * `rGroup` is not an element — RDKit paints Markush attachment labels with a
+ * dedicated colour, and teal reads as "variable site" in Pro. `surface`
+ * replaces opaque background fills embedded in legacy SVGs.
+ */
+export const EFFECT_INDEX_MOLECULE_PALETTES = {
+  light: {
+    carbon: "#333333",
+    nitrogen: "#2f4a8f",
+    oxygen: "#b0413e",
+    sulfur: "#9a7d20",
+    phosphorus: "#b06a2c",
+    fluorine: "#4a8f6f",
+    chlorine: "#3d7d52",
+    bromine: "#8a4230",
+    iodine: "#6a4b8f",
+    rGroup: "#3d9991",
+    surface: "#f6f5f1",
+  },
+  dark: {
+    carbon: "#f2f2f0",
+    nitrogen: "#91aef2",
+    oxygen: "#ef8580",
+    sulfur: "#d8bc5d",
+    phosphorus: "#e2a06b",
+    fluorine: "#8ed0b2",
+    chlorine: "#7fc495",
+    bromine: "#d78a72",
+    iodine: "#b9a0df",
+    rGroup: "#6fc4bb",
+    surface: "#131313",
+  },
+} as const satisfies Record<ColorScheme, Record<string, string>>;
+
+export type EffectIndexMoleculeColorKey =
+  keyof (typeof EFFECT_INDEX_MOLECULE_PALETTES)["light"];
+export type MoleculeColorway = "brand" | "pro-light" | "pro-dark";
 
 /**
  * Source hex (lowercase, no `#`) → Effect Index hex.
@@ -179,8 +198,8 @@ function expandShorthandHex(digits: string): string {
     .join("");
 }
 
-function paletteHex(key: EffectIndexMoleculeColorKey): string {
-  return EFFECT_INDEX_MOLECULE_PALETTE[key];
+function paletteHex(key: EffectIndexMoleculeColorKey, colorScheme: ColorScheme): string {
+  return EFFECT_INDEX_MOLECULE_PALETTES[colorScheme][key];
 }
 
 /**
@@ -190,24 +209,24 @@ function paletteHex(key: EffectIndexMoleculeColorKey): string {
  * legacy grouping), then by its RGB prefix with the original alpha re-attached — that is what
  * makes an arbitrary hand-authored `#F0ABFC80` recolour instead of surviving as fuchsia.
  */
-function resolveHexDigits(rawDigits: string): string | null {
+function resolveHexDigits(rawDigits: string, colorScheme: ColorScheme): string | null {
   const digits = expandShorthandHex(rawDigits.toLowerCase());
 
   const exception = SOURCE_HEX_EXCEPTIONS[digits];
   if (exception) {
-    return `${paletteHex(exception.key)}${exception.alpha}`;
+    return `${paletteHex(exception.key, colorScheme)}${exception.alpha}`;
   }
 
   const direct = SOURCE_HEX_TO_COLOR_KEY[digits];
   if (direct) {
-    return paletteHex(direct);
+    return paletteHex(direct, colorScheme);
   }
 
-  // An 8-digit literal the tables do not name: recolour the RGB half and keep the alpha, so
-  // a hand-authored `#F0ABFC80` in a Convex override still leaves the fuchsia behind.
+  // An 8-digit literal the tables do not name: recolour the RGB half and keep
+  // the original alpha channel.
   if (digits.length === 8) {
     const mapped = SOURCE_HEX_TO_COLOR_KEY[digits.slice(0, 6)];
-    return mapped ? `${paletteHex(mapped)}${digits.slice(6)}` : null;
+    return mapped ? `${paletteHex(mapped, colorScheme)}${digits.slice(6)}` : null;
   }
 
   return null;
@@ -226,36 +245,49 @@ function toHexDigits(r: number, g: number, b: number): string | null {
  * Pure string transform: unrecognised colours pass through untouched, and the result is
  * idempotent (no Effect Index output value is itself a source that maps elsewhere).
  */
-export function recolorMoleculeSvgToEffectIndex(svg: string): string {
+export function recolorMoleculeSvgToEffectIndex(
+  svg: string,
+  colorScheme: ColorScheme = "light",
+): string {
   return svg
-    .replace(HEX_TOKEN_RE, (match, digits: string) => resolveHexDigits(digits) ?? match)
+    .replace(HEX_TOKEN_RE, (match, digits: string) =>
+      resolveHexDigits(digits, colorScheme) ?? match)
     .replace(RGB_TOKEN_RE, (match, r: string, g: string, b: string) => {
       const digits = toHexDigits(Number(r), Number(g), Number(b));
       if (!digits) {
         return match;
       }
-      return resolveHexDigits(digits) ?? match;
+      return resolveHexDigits(digits, colorScheme) ?? match;
     })
     .replace(
       NAMED_COLOR_RE,
       (match, property: string, separator: string, name: string) => {
         const key = NAMED_COLOR_TO_COLOR_KEY[name.toLowerCase()];
-        return key ? `${property}${separator}${paletteHex(key)}` : match;
+        return key ? `${property}${separator}${paletteHex(key, colorScheme)}` : match;
       },
     );
 }
 
-/**
- * Apply the running publication's molecule colourway to an SVG string.
- *
- * dose.wiki gets its stored bytes back verbatim — the brand palette is already baked in, and
- * that build must never be recoloured.
- */
-export function applyFlavorMoleculeColorway(
-  svg: string,
+/** Resolve an optional image-route request onto a concrete byte colourway. */
+export function resolveMoleculeColorway(
+  requested: string | null,
   config: SiteFlavorConfig = SITE_FLAVOR_CONFIG,
-): string {
-  return isEffectIndex(config) ? recolorMoleculeSvgToEffectIndex(svg) : svg;
+): MoleculeColorway {
+  if (requested === "pro-light" || requested === "pro-dark") {
+    return requested;
+  }
+  return isEffectIndex(config) ? "pro-light" : "brand";
+}
+
+/** Apply one resolved colourway to canonical Fun SVG bytes. */
+export function applyMoleculeColorway(svg: string, colorway: MoleculeColorway): string {
+  if (colorway === "brand") {
+    return svg;
+  }
+  return recolorMoleculeSvgToEffectIndex(
+    svg,
+    colorway === "pro-dark" ? "dark" : "light",
+  );
 }
 
 /**

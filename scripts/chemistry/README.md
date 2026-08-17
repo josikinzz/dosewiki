@@ -4,8 +4,9 @@ The canonical molecule set lives in Convex `moleculeOverrides`: one MOL block an
 brand-coloured SVG per substance. It is the **only** source of substance depictions —
 `/dev` → Molecules, public substance pages, the chemical-class comparison rows, and the
 download pack all read that same row set. The retired static substance SVGs are gone; the
-only static molecule art left is the chemical-class Markush skeletons
-(`public/molecules/classes/`, Effect Index colourway in `public/molecules-ei/classes/`).
+only static molecule art left is the chemical-class Markush skeletons: Fun in
+`public/molecules/classes/`, Pro light in `public/molecules-ei/classes/`, and Pro dark in
+`public/molecules-ei-dark/classes/`.
 
 The baseline Convex set is generated from each live `substanceIndex.identification.smiles` with
 the editor's exact OpenChemLib path (`smilesToMolblock.ts`: `fromSmiles` +
@@ -106,13 +107,13 @@ deployed.
 ```bash
 npm run molecules:setup-venv        # one-time: create .venv-molecules with RDKit
 npm run molecules:generate-classes  # chemicalIndexManual.json -> public/molecules/classes/<key>.svg
-npm run molecules:generate-ei       # recolour classes -> public/molecules-ei/classes/
-npm run molecules:check-ei          # fail if public/molecules-ei/classes/ is out of date (no writes)
+npm run molecules:generate-ei       # recolour classes -> both public/molecules-ei*/classes/
+npm run molecules:check-ei          # fail if either Pro directory is out of date (no writes)
 ```
 
-The Effect Index recolour is a pure string substitution over the SVG bytes, defined once in
-`src/data/mappings/moleculePalette.ts` and shared with the serve-time recolour applied to
-Convex `moleculeOverrides` rows by `src/app/api/molecules/**`. It needs no Python env.
+The Pro light and dark recolours are pure string substitutions over the SVG bytes, defined
+once in `src/data/mappings/moleculePalette.ts` and shared with the serve-time recolour applied
+to Convex `moleculeOverrides` rows by `src/app/api/molecules/**`. They need no Python env.
 
 Override the interpreter with `MOLECULE_PYTHON=/path/to/python npm run molecules:generate-classes`.
 
@@ -154,5 +155,5 @@ the class skeleton from `chemicalIndexManual.json`. The orchestrator and
 - `../data/resolveSmilesCoverage.mjs` — resolve a SMILES per substance.
 - `../data/mergeGeneratedSmiles.mjs` — merge gap-fill batches → `generatedSmiles.json`.
 - `../data/generateEffectIndexMoleculeColorway.ts` — recolour the class skeletons into the
-  Effect Index colourway.
+  Pro light and dark colourways.
 - `../data/buildMoleculePack.ts` — build the download manifest + ZIP from Convex.

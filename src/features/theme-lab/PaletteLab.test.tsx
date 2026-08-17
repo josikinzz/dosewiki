@@ -1,9 +1,9 @@
-import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
+import { act, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { AppearanceTestProvider } from "@/test/AppearanceTestProvider";
 import { ColorField } from "./ColorField";
 import { PaletteLabLazy as PaletteLab } from "./PaletteLabLazy";
-import { PaletteLabTrigger } from "./PaletteLabTrigger";
 import { setPaletteLabOpen } from "./paletteLabStore";
 import { clearThemeBaselineCache } from "./presetBaselines";
 import styles from "./PaletteLab.module.css";
@@ -54,17 +54,16 @@ afterEach(() => {
 });
 
 async function openPanel() {
-  // The trigger and panel are now decoupled: the trigger toggles a shared store
-  // that the globally-mounted panel reads. Render both together to exercise the
-  // real open path.
+  // The protected /dev/themes route owns the open state and hands the lab the
+  // element focus should return to on close. This button stands in for that
+  // route-local action.
   render(
     <>
-      <PaletteLabTrigger />
-      <PaletteLab />
+      <button type="button">Open Theme Lab</button>
+      <AppearanceTestProvider><PaletteLab /></AppearanceTestProvider>
     </>,
   );
-  const trigger = await screen.findByRole("button", { name: /Open Theme Lab/i });
-  await userEvent.click(trigger);
+  act(() => setPaletteLabOpen(true, screen.getByRole("button", { name: "Open Theme Lab" })));
   return screen.findByRole("dialog", { name: "Theme Lab" });
 }
 
@@ -412,7 +411,7 @@ describe("PaletteLab", { timeout: 15_000 }, () => {
     expect(within(panel).getByText(/No colors match your search/)).toBeInTheDocument();
   });
 
-  it("closes on Escape", async () => {
+  it("closes on Escape and hands focus back to the action that opened it", async () => {
     await openPanel();
     await userEvent.keyboard("{Escape}");
     await waitFor(() => {

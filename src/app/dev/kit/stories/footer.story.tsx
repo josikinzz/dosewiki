@@ -12,7 +12,6 @@ import type { StoryDef } from "../registry/types";
 function mockFooterModel(overrides: {
   footerNavItems?: RouteChromeModel["footerNavItems"];
   footerExternalNavItems?: RouteChromeModel["footerExternalNavItems"];
-  footerShowsThemeToggle?: boolean;
 }): RouteChromeModel {
   return {
     currentView: { type: "home" },
@@ -23,7 +22,6 @@ function mockFooterModel(overrides: {
     secondaryNavItems: [],
     footerNavItems: overrides.footerNavItems ?? [],
     footerExternalNavItems: overrides.footerExternalNavItems ?? [],
-    footerShowsThemeToggle: overrides.footerShowsThemeToggle ?? true,
   };
 }
 
@@ -33,14 +31,14 @@ export const footerStory: StoryDef = {
   tier: "layout",
   status: "stable",
   summary:
-    "Public site footer chrome: harm-reduction disclaimer, license link, supporter credit, optional icon nav, and the Theme Lab + theme toggle cluster. It carries no brand mark — the header already has one on every page that renders this footer.",
+    "Public site footer chrome: harm-reduction disclaimer, license link, supporter credit, optional icon nav, and the reader appearance controls. It carries no brand mark — the header already has one on every page that renders this footer.",
   source: "src/components/layout/Footer.tsx",
   importLine: 'import { Footer } from "@/components/layout/Footer";',
   exports: ["Footer"],
   examples: [
     {
       label: "Default",
-      note: "No footer nav items — brand block, disclaimer, license link, and the toggle cluster only. This is the shipped public default.",
+      note: "No footer nav items — disclaimer, license link, supporter credit, and the appearance group only. This is the shipped public default.",
       background: "plain",
       full: true,
       render: () => <Footer model={mockFooterModel({})} />,
@@ -83,27 +81,6 @@ export const footerStory: StoryDef = {
         />
       ),
     },
-    {
-      label: "Theme toggle hidden",
-      note: "footerShowsThemeToggle={false} drops the day/night toggle; the Theme Lab trigger still mounts (desktop-only via its own CSS).",
-      background: "plain",
-      full: true,
-      render: () => (
-        <Footer
-          model={mockFooterModel({
-            footerShowsThemeToggle: false,
-            footerExternalNavItems: [
-              {
-                id: "github",
-                label: "Source on GitHub",
-                href: "https://github.com/",
-                icon: "github",
-              },
-            ],
-          })}
-        />
-      ),
-    },
   ],
   props: [
     {
@@ -111,12 +88,12 @@ export const footerStory: StoryDef = {
       type: "RouteChromeModel",
       default: 'getRouteChromeModel("/")',
       description:
-        "Route chrome model. Footer reads only its footer slice: footerNavItems, footerExternalNavItems, and footerShowsThemeToggle.",
+        "Route chrome model. Footer reads only its footer slice: footerNavItems and footerExternalNavItems.",
     },
   ],
   whenToUse: [
     "The bottom chrome of public App Router pages, rendered once per page shell.",
-    "Surfacing the harm-reduction disclaimer, CC0 license link, and the Theme Lab / theme toggle cluster.",
+    "Surfacing the harm-reduction disclaimer, CC0 license link, and the appearance controls.",
   ],
   whenNotToUse: [
     "Dev editor or admin surfaces — those use their own chrome, not the public footer.",
@@ -125,7 +102,7 @@ export const footerStory: StoryDef = {
   notes: [
     "Defaults its model from getRouteChromeModel(\"/\"), so it renders standalone without props.",
     "footerNavItems use internal next/link; footerExternalNavItems render <a> with target=_blank rel=noopener.",
-    "The Theme Lab trigger is always mounted but hidden below the desktop breakpoint via its own module CSS.",
-    "ThemeToggle reads the active theme from the DOM after hydration to avoid a mismatch — it initialises to dark on first render.",
+    "The appearance group is publication policy, not a prop: day/night follows showColorSchemeToggle, and Fun/Pro is omitted entirely on a publication whose style is locked.",
+    "Appearance state comes from the root ThemeProvider — the controls hold none of their own, so the footer pair and the homepage pair always agree.",
   ],
 };

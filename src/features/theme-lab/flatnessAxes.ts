@@ -192,7 +192,7 @@ export function cornerOverrides(
  * A token with no override still matches a step when that step's computed write
  * equals the baseline (the write path's delete-on-equal rule stores nothing for
  * it) or when the step cannot write it at all (an unparseable corner baseline).
- * Without this, a theme that ships some tokens already flat — Journal's
+ * Without this, a theme that ships some tokens already flat — Letterpress's
  * `0 0 #0000` elevations and `transparent` halos — makes every non-default
  * step undetectable, so the chips never highlight what was just tapped.
  */

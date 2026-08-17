@@ -1,4 +1,4 @@
-import type { ThemeName } from "@/theme";
+import type { ColorScheme } from "@/theme";
 import {
   PALETTE_ATTRIBUTE,
   PALETTE_LAB_OVERRIDE_STYLE_ID,
@@ -24,9 +24,9 @@ import { ALL_TOKEN_IDS } from "./paletteTokens";
  */
 
 /** Token values per theme, as they render with no user edit in play. */
-export type ThemeDefaults = Record<ThemeName, Record<string, string>>;
+export type ThemeDefaults = Record<ColorScheme, Record<string, string>>;
 
-const THEMES: ThemeName[] = ["dark", "light"];
+const THEMES: ColorScheme[] = ["dark", "light"];
 const SAMPLE_STYLE_ID = "palette-lab-baseline-sample";
 
 const cache = new Map<string, ThemeDefaults>();

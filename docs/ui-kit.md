@@ -15,7 +15,8 @@ Use these companion references for decisions outside the catalog:
 
 The catalog renders every shared primitive with its real variants, props, a
 copy-paste import line, and when-to-use / when-not-to-use guidance — in the real
-theme tokens, with a working light/dark toggle.
+theme tokens, with working appearance controls: day/night beside Fun/Pro, so every
+story is reviewable in all four combinations.
 
 - Route: **`/dev/kit`** (auth-gated under `/dev`, like the rest of the editor surface).
 - Run `npm run dev` and open `/dev/kit`. The catalog demonstrates the current
@@ -59,8 +60,8 @@ Two Vitest checks keep the catalog aligned with the shared barrels:
 
 - `src/app/dev/kit/registry/completeness.test.ts` checks that every runtime export
   from `ui/`, `common/`, and `layout/` has one catalog story.
-- `src/app/dev/kit/registry/render.test.tsx` server-renders every example and
-  catches missing providers or other render failures.
+- `src/app/dev/kit/registry/render.test.tsx` server-renders every example in all
+  four appearance combinations and catches missing providers or other render failures.
 
 These are verification checks, not build-time checks. They run with the Vitest
 suite, including the `npm run test` step inside `npm run verify:app`.
@@ -80,7 +81,7 @@ Catalog source layout:
 ```
 src/app/dev/kit/
   page.tsx                      # gated route entry
-  KitCatalog.tsx                # catalog shell + token showcase + theme toggle
+  KitCatalog.tsx                # catalog shell + token showcase + appearance controls
   components/CatalogPrimitives.tsx  # StoryCard / PropsTable / copyable import
   registry/
     types.ts                    # StoryDef contract

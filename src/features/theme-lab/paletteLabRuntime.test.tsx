@@ -1,8 +1,8 @@
 import { act, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { AppearanceTestProvider } from "@/test/AppearanceTestProvider";
 import { PaletteLabLazy as PaletteLab } from "./PaletteLabLazy";
-import { PaletteLabTrigger } from "./PaletteLabTrigger";
 import {
   PALETTE_ATTRIBUTE,
   PALETTE_LAB_OVERRIDE_STYLE_ID,
@@ -16,9 +16,10 @@ import { clearThemeBaselineCache } from "./presetBaselines";
  * with the editor panel never opened.
  *
  * This is the regression suite the lazy-loading bug slipped through — every test
- * here mounts the global lab and asserts on the injected override style, the
- * persisted envelope, or the panel's honest status line, without ever depending
- * on the editor having been loaded.
+ * here mounts the lab and asserts on the injected override style, the persisted
+ * envelope, or the panel's honest status line, without ever depending on the
+ * editor having been loaded. The open state belongs to the protected route, so
+ * these tests drive it directly instead of clicking a trigger.
  */
 
 vi.mock("@/components/common/Icon", () => ({
@@ -35,8 +36,10 @@ function installMockStorage({ failWrites = false } = {}) {
     value: {
       getItem: (key: string) => store.get(key) ?? null,
       setItem: (key: string, value: string) => {
-        setItemCalls += 1;
-        if (failWrites) throw new Error("storage blocked");
+        if (key === PALETTE_LAB_STORAGE_KEY) {
+          setItemCalls += 1;
+          if (failWrites) throw new Error("storage blocked");
+        }
         store.set(key, String(value));
       },
       removeItem: (key: string) => store.delete(key),
@@ -50,9 +53,9 @@ function overrideCss() {
 }
 
 /**
- * Which shipped palette is worn. Since the pre-paint bootstrap landed, a preset
- * is applied by naming it here — its tokens live in the generated stylesheet —
- * and only the visitor's own layer goes into the injected element.
+ * Which shipped palette is worn. A preset is applied by naming it here — its
+ * tokens live in the generated stylesheet — and only the visitor's own layer
+ * goes into the injected element.
  */
 function palette() {
   return document.documentElement.getAttribute(PALETTE_ATTRIBUTE);
@@ -92,17 +95,16 @@ afterEach(() => {
 });
 
 describe("Theme Lab runtime", { timeout: 15_000 }, () => {
-  it("applies a saved theme on load with no trigger rendered and the panel never opened", async () => {
+  it("applies a saved theme on mount, with the panel never opened", async () => {
     seed({
       version: 2,
       presetId: "abyss",
       overrides: { dark: { "--theme-accent": "#0ff0ff" }, light: {} },
     });
 
-    render(<PaletteLab />);
+    render(<AppearanceTestProvider><PaletteLab /></AppearanceTestProvider>);
 
-    // The preset and the visitor's own edit both land, on a page that offers no
-    // way to open the lab at all.
+    // The preset and the editor's own edit both land before anything opens.
     await waitFor(() => expect(palette()).toBe("abyss"));
     expect(overrideCss()).toContain("--theme-accent:#0ff0ff");
     expect(screen.queryByRole("dialog", { name: "Theme Lab" })).not.toBeInTheDocument();
@@ -111,7 +113,7 @@ describe("Theme Lab runtime", { timeout: 15_000 }, () => {
   it("restores a legacy v1 blob and rewrites it in the current shape without the panel", async () => {
     seed({ dark: { "--theme-accent": "#123456" }, light: {} });
 
-    render(<PaletteLab />);
+    render(<AppearanceTestProvider><PaletteLab /></AppearanceTestProvider>);
 
     expect(overrideCss()).toContain("--theme-accent:#123456");
     await waitFor(() => {
@@ -129,7 +131,7 @@ describe("Theme Lab runtime", { timeout: 15_000 }, () => {
       overrides: { dark: { "--theme-accent": "#0ff0ff" }, light: {} },
     });
 
-    render(<PaletteLab />);
+    render(<AppearanceTestProvider><PaletteLab /></AppearanceTestProvider>);
 
     // Same look as before the migration: Abyss plus the visitor's edit.
     await waitFor(() => expect(palette()).toBe("abyss"));
@@ -155,7 +157,7 @@ describe("Theme Lab runtime", { timeout: 15_000 }, () => {
       shareFormat: 1,
     });
 
-    render(<PaletteLab />);
+    render(<AppearanceTestProvider><PaletteLab /></AppearanceTestProvider>);
 
     // Renders: the visitor's own edits over the default look.
     expect(overrideCss()).toContain("--theme-accent:#123456");
@@ -168,14 +170,14 @@ describe("Theme Lab runtime", { timeout: 15_000 }, () => {
   });
 
   it("leaves storage untouched for a visitor who never customized", async () => {
-    render(<PaletteLab />);
+    render(<AppearanceTestProvider><PaletteLab /></AppearanceTestProvider>);
 
     await waitFor(() => expect(setItemCalls).toBe(0));
     expect(stored()).toBeNull();
   });
 
   it("adopts a theme saved by another tab without echoing it back to storage", async () => {
-    render(<PaletteLab />);
+    render(<AppearanceTestProvider><PaletteLab /></AppearanceTestProvider>);
     const writesBefore = setItemCalls;
 
     act(() => {
@@ -198,7 +200,7 @@ describe("Theme Lab runtime", { timeout: 15_000 }, () => {
   });
 
   it("persists edits made just before the tab is hidden", async () => {
-    render(<PaletteLab />);
+    render(<AppearanceTestProvider><PaletteLab /></AppearanceTestProvider>);
 
     act(() => {
       setActiveEdits({ dark: { "--theme-accent": "#abcdef" }, light: {} });
@@ -211,7 +213,7 @@ describe("Theme Lab runtime", { timeout: 15_000 }, () => {
   });
 
   it("persists edits made just before the page is unloaded", async () => {
-    render(<PaletteLab />);
+    render(<AppearanceTestProvider><PaletteLab /></AppearanceTestProvider>);
 
     act(() => {
       setActiveEdits({ dark: { "--theme-accent": "#fedcba" }, light: {} });
@@ -228,17 +230,13 @@ describe("Theme Lab runtime", { timeout: 15_000 }, () => {
   it("still lazy-loads the editor, and the restored look is already applied before it opens", async () => {
     seed({ version: 2, presetId: "abyss", overrides: { dark: {}, light: {} } });
 
-    render(
-      <>
-        <PaletteLabTrigger />
-        <PaletteLab />
-      </>,
-    );
+    render(<AppearanceTestProvider><PaletteLab /></AppearanceTestProvider>);
 
     expect(palette()).toBe("abyss");
     expect(screen.queryByRole("dialog", { name: "Theme Lab" })).not.toBeInTheDocument();
 
-    await userEvent.click(screen.getByRole("button", { name: /Open Theme Lab/i }));
+    // The protected route owns the open state; the mount only follows it.
+    act(() => setPaletteLabOpen(true));
 
     const panel = await screen.findByRole("dialog", { name: "Theme Lab" });
     expect(within(panel).getByRole("button", { name: /^Abyss/ })).toHaveAttribute(
@@ -247,16 +245,30 @@ describe("Theme Lab runtime", { timeout: 15_000 }, () => {
     );
   });
 
+  it("unpaints the document when the tool route unmounts", async () => {
+    seed({
+      version: 2,
+      presetId: "abyss",
+      overrides: { dark: { "--theme-accent": "#0ff0ff" }, light: {} },
+    });
+
+    const view = render(<AppearanceTestProvider><PaletteLab /></AppearanceTestProvider>);
+    await waitFor(() => expect(palette()).toBe("abyss"));
+    expect(overrideCss()).toContain("--theme-accent:#0ff0ff");
+
+    // Navigating away from /dev/themes must not leave a public page wearing an
+    // editor's in-progress palette for the rest of the session.
+    view.unmount();
+
+    expect(palette()).toBeNull();
+    expect(overrideCss()).toBe("");
+  });
+
   it("tells the visitor their theme is not being saved when storage writes fail", async () => {
     installMockStorage({ failWrites: true });
 
-    render(
-      <>
-        <PaletteLabTrigger />
-        <PaletteLab />
-      </>,
-    );
-    await userEvent.click(screen.getByRole("button", { name: /Open Theme Lab/i }));
+    render(<AppearanceTestProvider><PaletteLab /></AppearanceTestProvider>);
+    act(() => setPaletteLabOpen(true));
     const panel = await screen.findByRole("dialog", { name: "Theme Lab" });
     expect(within(panel).getByText(/saved to this browser/)).toBeInTheDocument();
 

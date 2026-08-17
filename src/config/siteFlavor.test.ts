@@ -56,8 +56,10 @@ describe("site flavor config", () => {
       appleTouchIconPath: "/apple-touch-icon.png",
       homeTitle: "dose.wiki",
       aboutTitle: "About dose.wiki",
-      showThemeToggle: true,
-      lockedTheme: null,
+      defaultColorScheme: "dark",
+      showColorSchemeToggle: true,
+      defaultVisualStyle: "fun",
+      showVisualStyleToggle: true,
     });
     expect(config.primaryNavIds).toEqual(["substances", "effects", "reports", "replications"]);
     expect(config.secondaryNavIds).toEqual(["about"]);
@@ -92,8 +94,12 @@ describe("site flavor config", () => {
       appleTouchIconPath: "/effectindex/icon.png",
       homeTitle: "Effect Index",
       aboutTitle: "About Effect Index",
-      showThemeToggle: false,
-      lockedTheme: "light",
+      defaultColorScheme: "light",
+      showColorSchemeToggle: true,
+      // Pro is this publication's identity, so readers get the scheme control and not the
+      // style control — the lock is what keeps Effect Index looking like Effect Index.
+      defaultVisualStyle: "pro",
+      showVisualStyleToggle: false,
     });
     expect(config.primaryNavIds).toEqual(["effects", "replications", "reports"]);
     expect(config.secondaryNavIds).toEqual(["about"]);

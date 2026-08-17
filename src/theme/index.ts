@@ -1,15 +1,62 @@
-import { SITE_FLAVOR_CONFIG, type SiteFlavorConfig } from "@/config/siteFlavor";
+import { SITE_FLAVOR_CONFIG } from "@/config/siteFlavor";
 import tokenInterface from "./theme-token-interface.json";
 
 export const THEME_TOKEN_INTERFACE = tokenInterface;
 
-export type ThemeName = (typeof THEME_TOKEN_INTERFACE.supportedThemes)[number];
+/**
+ * The colour axis: canvas, surfaces, ink, borders, accents, controls and browser chrome.
+ * Carried on the document root as `data-theme`, which is also the storage key's history —
+ * the attribute name predates the second axis and is kept so saved preferences survive.
+ */
+export type ColorScheme = "light" | "dark";
 
-export const SUPPORTED_THEMES = THEME_TOKEN_INTERFACE.supportedThemes as readonly ThemeName[];
-export const DEFAULT_THEME = THEME_TOKEN_INTERFACE.defaultTheme as ThemeName;
-export const THEME_STORAGE_KEY = THEME_TOKEN_INTERFACE.storageKey;
+/**
+ * The presentation axis: typography, radii, elevation, spacing treatment, logo treatment
+ * and visual vocabulary. Carried on the document root as `data-visual-style`.
+ *
+ * This is deliberately *not* the publication axis. `data-site` still owns routes, copy,
+ * navigation, wordmarks, metadata and licensing; Fun and Pro only change how the one shared
+ * component kit looks, so either publication can wear either style without leaking the
+ * other's identity.
+ */
+export type VisualStyle = "fun" | "pro";
+
+/** One resolved appearance: a point on both axes. */
+export type Appearance = {
+  readonly colorScheme: ColorScheme;
+  readonly visualStyle: VisualStyle;
+};
+
+/**
+ * The unions above are the compile-time contract; these arrays are the runtime validity
+ * sets, read from the manifest so the stylesheets, the bootstrap and the provider cannot
+ * disagree about which values exist. The token-interface test asserts the two agree.
+ */
+export const SUPPORTED_COLOR_SCHEMES =
+  THEME_TOKEN_INTERFACE.supportedColorSchemes as readonly ColorScheme[];
+export const SUPPORTED_VISUAL_STYLES =
+  THEME_TOKEN_INTERFACE.supportedVisualStyles as readonly VisualStyle[];
+
+/**
+ * The appearance the stylesheets render with no root attribute present: dark values live on
+ * `:root` and Fun is the unqualified layer, so these are the token system's base rather than
+ * a preference. A publication's own opening appearance is its {@link AppearancePolicy}.
+ */
+export const DEFAULT_COLOR_SCHEME = THEME_TOKEN_INTERFACE.defaultColorScheme as ColorScheme;
+export const DEFAULT_VISUAL_STYLE = THEME_TOKEN_INTERFACE.defaultVisualStyle as VisualStyle;
+
+export const COLOR_SCHEME_STORAGE_KEY = THEME_TOKEN_INTERFACE.colorSchemeStorageKey;
+export const VISUAL_STYLE_STORAGE_KEY = THEME_TOKEN_INTERFACE.visualStyleStorageKey;
 export const THEME_META_ID = THEME_TOKEN_INTERFACE.metaId;
-export const THEME_META_COLORS = THEME_TOKEN_INTERFACE.metaColors as Record<ThemeName, string>;
+
+/**
+ * Browser-chrome tint per style, per scheme. A full matrix over both axes on purpose: the
+ * pre-paint bootstrap uses it as the validity set for both stored preferences, so a missing
+ * row or column would silently make a supported value look unsupported.
+ */
+export const APPEARANCE_META_COLORS = THEME_TOKEN_INTERFACE.metaColors as Readonly<
+  Record<VisualStyle, Readonly<Record<ColorScheme, string>>>
+>;
 
 export const THEME_CLASS = {
   textPrimary: "theme-text-primary",
@@ -27,106 +74,120 @@ export const THEME_CLASS = {
   pageShell: "theme-page-shell",
 } as const;
 
-export function isThemeName(value: string | null | undefined): value is ThemeName {
-  return SUPPORTED_THEMES.includes(value as ThemeName);
+export function isColorScheme(value: string | null | undefined): value is ColorScheme {
+  return SUPPORTED_COLOR_SCHEMES.includes(value as ColorScheme);
+}
+
+export function isVisualStyle(value: string | null | undefined): value is VisualStyle {
+  return SUPPORTED_VISUAL_STYLES.includes(value as VisualStyle);
 }
 
 /**
- * Browser-chrome tint per theme for one publication.
+ * A publication's appearance policy: where it opens on each axis, and which axes its readers
+ * may change. Declared here because this module owns the axis vocabulary, and composed into
+ * `SiteFlavorConfig`, which owns everything else about a publication.
  *
- * A flavor that pins itself to a single theme ({@link SiteFlavorConfig.lockedTheme}) tints
- * that theme with its own `manifest.themeColor`, so the address bar matches the page the
- * reader actually gets instead of the shared lilac-white. A flavor whose readers choose
- * their own theme keeps the shared map — identity, same object, no delta.
+ * A `false` toggle flag is a *lock*, not merely a hidden control: the locked axis resolves
+ * from the build and its storage key is never read or written. That is what keeps a reader's
+ * dose.wiki style choice from following them into Effect Index's identity.
  */
-export function getThemeMetaColors(
-  config: SiteFlavorConfig = SITE_FLAVOR_CONFIG,
-): Readonly<Record<ThemeName, string>> {
-  const lockedTheme = config.lockedTheme;
-
-  if (!lockedTheme) {
-    return THEME_META_COLORS;
-  }
-
-  return { ...THEME_META_COLORS, [lockedTheme]: config.manifest.themeColor };
-}
-
-export function getThemeMetaColor(theme: ThemeName, config: SiteFlavorConfig = SITE_FLAVOR_CONFIG) {
-  return getThemeMetaColors(config)[theme];
-}
-
-/**
- * The theme the server must render for: a locked flavor's pinned theme, otherwise the
- * shared default the bootstrap falls back to. Rendering the matching `theme-color` meta
- * value keeps the browser chrome from flashing the wrong tint before hydration.
- */
-export function getInitialTheme(config: SiteFlavorConfig = SITE_FLAVOR_CONFIG): ThemeName {
-  return config.lockedTheme ?? DEFAULT_THEME;
-}
-
-export type ThemeBootstrapOptions = {
-  /**
-   * Theme to apply unconditionally. When set, the emitted script never reads the stored
-   * preference — it is not consulted and then overridden, it is never consulted at all.
-   */
-  lockedTheme?: ThemeName | null;
-  /**
-   * Theme → `theme-color` map. Doubles as the validity set for the stored preference on
-   * the unlocked path, so it must stay a full map over the supported themes.
-   */
-  metaColors?: Readonly<Record<ThemeName, string>>;
+export type AppearancePolicy = {
+  readonly defaultColorScheme: ColorScheme;
+  readonly showColorSchemeToggle: boolean;
+  readonly defaultVisualStyle: VisualStyle;
+  readonly showVisualStyleToggle: boolean;
 };
 
-export function buildThemeBootstrapScript({
-  lockedTheme = SITE_FLAVOR_CONFIG.lockedTheme,
-  metaColors = getThemeMetaColors(),
-}: ThemeBootstrapOptions = {}) {
-  const storageKey = JSON.stringify(THEME_STORAGE_KEY);
-  const defaultTheme = JSON.stringify(DEFAULT_THEME);
-  const metaId = JSON.stringify(THEME_META_ID);
-  const themes = JSON.stringify(metaColors);
+/** Browser-chrome tint for one point on both axes. */
+export function getAppearanceMetaColor({ colorScheme, visualStyle }: Appearance): string {
+  return APPEARANCE_META_COLORS[visualStyle][colorScheme];
+}
 
-  if (lockedTheme) {
-    // No STORAGE_KEY, no getItem, no validity check: on a locked flavor the stored
-    // preference is not part of the resolution at all. The catch re-applies the same
-    // locked theme so a throwing meta lookup still leaves a valid theme on the document.
-    return `(() => {
-  const THEME = ${JSON.stringify(lockedTheme)};
-  const THEMES = ${themes};
+/**
+ * The appearance the server must render, and the appearance the bootstrap falls back to per
+ * axis. Rendering both root attributes and the matching `theme-color` meta value from one
+ * source keeps the first painted frame — page *and* browser chrome — off the wrong style.
+ */
+export function getInitialAppearance(policy: AppearancePolicy = SITE_FLAVOR_CONFIG): Appearance {
+  return {
+    colorScheme: policy.defaultColorScheme,
+    visualStyle: policy.defaultVisualStyle,
+  };
+}
 
+/**
+ * One axis of the pre-paint resolution, emitted as source.
+ *
+ * A locked axis compiles to a constant: no storage key appears in the script at all, so the
+ * stored preference is not read and then overridden, it is never consulted. An unlocked axis
+ * gets its own `try`, so a value this build does not support — or a storage read that throws
+ * outright — costs that axis its default and leaves the other axis alone.
+ */
+function buildAxisResolution({
+  variable,
+  fallback,
+  locked,
+  storageKey,
+  validitySet,
+}: {
+  variable: string;
+  fallback: string;
+  locked: boolean;
+  storageKey: string;
+  validitySet: string;
+}): string {
+  if (locked) {
+    return `  const ${variable} = ${JSON.stringify(fallback)};`;
+  }
+
+  return `  let ${variable} = ${JSON.stringify(fallback)};
   try {
-    document.documentElement.dataset.theme = THEME;
-    document.documentElement.style.colorScheme = THEME;
-
-    const meta = document.getElementById(${metaId});
-    if (meta) {
-      meta.setAttribute("content", THEMES[THEME]);
+    const stored = window.localStorage.getItem(${JSON.stringify(storageKey)});
+    if (Object.prototype.hasOwnProperty.call(${validitySet}, stored)) {
+      ${variable} = stored;
     }
-  } catch {
-    document.documentElement.dataset.theme = THEME;
-    document.documentElement.style.colorScheme = THEME;
-  }
-})();`;
-  }
+  } catch {}`;
+}
+
+/**
+ * The one pre-paint script. Resolves both axes independently, then applies both root
+ * attributes, `color-scheme` and the style-by-scheme browser-chrome tint.
+ *
+ * The root attributes are written outside any `try` so they always land: a missing or
+ * throwing `theme-color` meta element must cost the reader their chrome tint, never their
+ * theme. The style is resolved first because it selects the scheme's validity row.
+ */
+export function buildThemeBootstrapScript(policy: AppearancePolicy = SITE_FLAVOR_CONFIG): string {
+  const visualStyle = buildAxisResolution({
+    variable: "style",
+    fallback: policy.defaultVisualStyle,
+    locked: !policy.showVisualStyleToggle,
+    storageKey: VISUAL_STYLE_STORAGE_KEY,
+    validitySet: "COLORS",
+  });
+  const colorScheme = buildAxisResolution({
+    variable: "scheme",
+    fallback: policy.defaultColorScheme,
+    locked: !policy.showColorSchemeToggle,
+    storageKey: COLOR_SCHEME_STORAGE_KEY,
+    validitySet: "COLORS[style]",
+  });
 
   return `(() => {
-  const STORAGE_KEY = ${storageKey};
-  const DEFAULT_THEME = ${defaultTheme};
-  const THEMES = ${themes};
+  const COLORS = ${JSON.stringify(APPEARANCE_META_COLORS)};
+${visualStyle}
+${colorScheme}
+
+  const root = document.documentElement;
+  root.dataset.visualStyle = style;
+  root.dataset.theme = scheme;
+  root.style.colorScheme = scheme;
 
   try {
-    const storedTheme = window.localStorage.getItem(STORAGE_KEY);
-    const theme = Object.prototype.hasOwnProperty.call(THEMES, storedTheme) ? storedTheme : DEFAULT_THEME;
-    document.documentElement.dataset.theme = theme;
-    document.documentElement.style.colorScheme = theme;
-
-    const meta = document.getElementById(${metaId});
+    const meta = document.getElementById(${JSON.stringify(THEME_META_ID)});
     if (meta) {
-      meta.setAttribute("content", THEMES[theme]);
+      meta.setAttribute("content", COLORS[style][scheme]);
     }
-  } catch {
-    document.documentElement.dataset.theme = DEFAULT_THEME;
-    document.documentElement.style.colorScheme = DEFAULT_THEME;
-  }
+  } catch {}
 })();`;
 }

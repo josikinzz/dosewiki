@@ -1,22 +1,19 @@
 "use client";
 
 import { useEffect } from "react";
-import { isEffectIndex } from "@/config/siteFlavor";
 import { startPaletteLabRuntime } from "./paletteLabRuntime";
 
 /**
- * Renders nothing. It exists only to bind the Theme Lab runtime to the app's
- * lifetime, so a saved theme applies on every page load — including on routes
- * with no trigger, and without the editor panel ever being opened or loaded.
+ * Renders nothing. It exists only to bind the Theme Lab runtime to the lifetime
+ * of the protected `/dev/themes` route, so the saved palette is applied while
+ * the tool is open — without the editor panel ever being opened or loaded.
  *
- * Effect Index wears a locked skin and never offers the lab, so the runtime is
- * not started there at all.
+ * Leaving the route releases the runtime, which unpaints the palette again: no
+ * public page carries this mount, so nothing outside the tool wears an editor's
+ * saved look.
  */
 export function PaletteLabRuntimeMount() {
-  useEffect(() => {
-    if (isEffectIndex()) return;
-    return startPaletteLabRuntime();
-  }, []);
+  useEffect(() => startPaletteLabRuntime(), []);
 
   return null;
 }

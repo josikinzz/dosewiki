@@ -1,70 +1,32 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import { Icon } from "@/components/common/Icon";
-import {
-  applyThemeToDocument,
-  persistTheme,
-  readInitialTheme,
-  type ThemeName,
-} from "@/context/ThemeContext";
+import { useTheme } from "@/context/ThemeContext";
+import { AppearanceTogglePill } from "./AppearanceTogglePill";
 
+/**
+ * Day/Night control for the colour-scheme axis only.
+ *
+ * It holds no state of its own: `ThemeProvider` owns the stored preference, the
+ * `data-theme` attribute and the browser-chrome colour, so this control neither
+ * reads the document nor writes storage. Two of these in one tree therefore
+ * always agree. The visual style is a separate axis with its own control
+ * (`VisualStyleToggle`); neither ever changes the other's pressed state.
+ */
 export function ThemeToggle() {
-  // Always initialise with "dark" so server and client first-render match.
-  // The real theme is synced from the DOM (set by the bootstrap script) in
-  // the mount effect, avoiding a hydration mismatch.
-  const [theme, setTheme] = useState<ThemeName>("dark");
-  const [mounted, setMounted] = useState(false);
-  const isLight = theme === "light";
-
-  // After hydration, read the theme the bootstrap script already applied.
-  useEffect(() => {
-    setTheme(readInitialTheme());
-    setMounted(true);
-  }, []);
-
-  useEffect(() => {
-    if (mounted) {
-      applyThemeToDocument(theme);
-      persistTheme(theme);
-    }
-  }, [theme, mounted]);
-
-  const toggleTheme = () => {
-    setTheme((current) => (current === "dark" ? "light" : "dark"));
-  };
+  const { colorScheme, toggleColorScheme } = useTheme();
+  const isDay = colorScheme === "light";
 
   return (
-    <button
-      type="button"
-      onClick={toggleTheme}
-      aria-pressed={isLight}
-      aria-label={`Switch to ${isLight ? "dark" : "light"} mode`}
-      title={`Switch to ${isLight ? "dark" : "light"} mode`}
-      className="theme-toggle-pill group relative inline-flex h-11 w-20 items-center rounded-full px-1 transition-[border-color,background-color] duration-300"
-    >
-      <span
-        aria-hidden="true"
-        className={`theme-toggle-thumb pointer-events-none absolute left-1 top-1 h-9 w-9 rounded-full border transition-transform duration-300 ${
-          isLight ? "translate-x-9" : "translate-x-0"
-        }`}
-      />
-      <span
-        aria-hidden="true"
-        className={`relative z-10 inline-flex h-9 w-9 items-center justify-center transition-colors duration-300 ${
-          isLight ? "theme-toggle-icon-muted" : "theme-toggle-icon-accent"
-        }`}
-      >
-        <Icon icon="lucide:moon" size={16} />
-      </span>
-      <span
-        aria-hidden="true"
-        className={`relative z-10 inline-flex h-9 w-9 items-center justify-center transition-colors duration-300 ${
-          isLight ? "theme-toggle-icon-accent" : "theme-toggle-icon-muted"
-        }`}
-      >
-        <Icon icon="lucide:sun" size={16} />
-      </span>
-    </button>
+    <AppearanceTogglePill
+      axis="color-scheme"
+      value={colorScheme}
+      side={isDay ? "end" : "start"}
+      pressed={isDay}
+      label={isDay ? "Switch to night mode" : "Switch to day mode"}
+      onToggle={toggleColorScheme}
+      start={<Icon icon="lucide:moon" size={16} />}
+      end={<Icon icon="lucide:sun" size={16} />}
+    />
   );
 }

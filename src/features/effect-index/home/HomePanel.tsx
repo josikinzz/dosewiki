@@ -12,8 +12,8 @@ import { cn } from "@/lib/utils";
  *
  * TYPOGRAPHY NOTE — do not "fix" this by reaching for the site's heading classes.
  * `theme-accent-heading` and the `--theme-section-heading` text utility are both rewritten under
- * `html[data-site="effectindex"]` into the uppercase, tracked-out, teal section-head voice
- * (see src/styles/effectindex-theme.css). That voice is correct for in-article section heads
+ * `html[data-visual-style="pro"]` into the uppercase, tracked-out, teal section-head voice
+ * (see src/styles/pro-theme.css). That voice is correct for in-article section heads
  * and for the effects-index column cards; it is wrong here. Verified against the live
  * original: these panel titles are MIXED CASE, regular weight, dark grey ink. The uppercase
  * tracked-out treatment belongs to the sub-group labels *inside* a panel's content

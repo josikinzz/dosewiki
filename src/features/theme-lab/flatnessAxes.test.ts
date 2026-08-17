@@ -84,11 +84,11 @@ describe("flatness axes", () => {
     ).toBeNull();
   });
 
-  it("detects a step on a theme that ships some tokens already flat (Journal)", () => {
+  it("detects a step on a theme that ships some tokens already flat (Letterpress)", () => {
     // The write path's delete-on-equal rule stores nothing for a token whose
     // computed step value equals the baseline — `0 0 #0000` elevations and
     // `transparent` halos fade to themselves. Detection must treat that gap as
-    // a match, or no chip ever highlights on Journal.
+    // a match, or no chip ever highlights on Letterpress.
     const journalBaseline = (id: string) => journal.overrides.dark[id] ?? "";
     for (const [steps, ids, compute] of [
       [DEPTH_STEPS, DEPTH_TOKEN_IDS, depthOverrides],

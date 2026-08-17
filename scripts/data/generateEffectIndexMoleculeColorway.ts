@@ -1,16 +1,14 @@
 #!/usr/bin/env bun
 /**
- * Bake the Effect Index class-structure colourway into `public/molecules-ei/classes/`.
+ * Bake Pro light and dark class-structure colourways from canonical Fun SVGs.
  *
- * Structure diagrams render through `<img>`, so CSS cannot recolour individual atoms — the
- * palette has to be in the bytes. Substance depictions are Convex `moleculeOverrides` rows
- * (recoloured at serve time by `src/app/api/molecules/**`), but the chemical-class Markush
- * skeletons are still static files: dose.wiki tracks the brand renders in
- * `public/molecules/classes/` and this script derives the Effect Index colourway from them
- * without needing RDKit or a Python env.
+ * Structure diagrams render through `<img>`, so CSS cannot recolour individual
+ * atoms. Convex substance depictions are recoloured at serve time by
+ * `src/app/api/molecules/**`; static chemical-class skeletons are generated here
+ * without RDKit or a Python environment.
  *
  * Usage: bun scripts/data/generateEffectIndexMoleculeColorway.ts [--check]
- *   --check  verify the committed colourway is up to date without writing anything
+ *   --check  verify both committed colourways without writing
  */
 import { mkdir, readFile, readdir, rm, writeFile } from "node:fs/promises";
 import path from "node:path";
@@ -19,6 +17,7 @@ import { fileURLToPath } from "node:url";
 
 import {
   BRAND_MOLECULE_HEXES,
+  EFFECT_INDEX_DARK_MOLECULE_DIRNAME,
   EFFECT_INDEX_MOLECULE_DIRNAME,
   recolorMoleculeSvgToEffectIndex,
 } from "../../src/data/mappings/moleculePalette";
@@ -26,8 +25,10 @@ import {
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
 
 const BRAND_CLASSES_DIR = path.join(ROOT, "public/molecules/classes");
-const OUT_CLASSES_DIR = path.join(ROOT, "public", EFFECT_INDEX_MOLECULE_DIRNAME, "classes");
-
+const OUTPUTS = [
+  { colorScheme: "light", dirname: EFFECT_INDEX_MOLECULE_DIRNAME },
+  { colorScheme: "dark", dirname: EFFECT_INDEX_DARK_MOLECULE_DIRNAME },
+] as const;
 const checkOnly = process.argv.includes("--check");
 
 const listSvgs = async (dir: string): Promise<string[]> => {
@@ -100,35 +101,38 @@ async function main(): Promise<void> {
     process.exit(1);
   }
 
-  if (!checkOnly) {
-    await mkdir(OUT_CLASSES_DIR, { recursive: true });
-  }
+  for (const output of OUTPUTS) {
+    const outClassesDir = path.join(ROOT, "public", output.dirname, "classes");
+    if (!checkOnly) {
+      await mkdir(outClassesDir, { recursive: true });
+    }
 
-  for (const name of classNames) {
-    const source = await readFile(path.join(BRAND_CLASSES_DIR, name), "utf8");
-    await emit(
-      path.join(OUT_CLASSES_DIR, name),
-      recolorMoleculeSvgToEffectIndex(source),
-      `classes/${name}`,
+    for (const name of classNames) {
+      const source = await readFile(path.join(BRAND_CLASSES_DIR, name), "utf8");
+      await emit(
+        path.join(outClassesDir, name),
+        recolorMoleculeSvgToEffectIndex(source, output.colorScheme),
+        `${output.colorScheme}/classes/${name}`,
+      );
+    }
+
+    // A renamed source must not leave an obsolete file in either colourway.
+    const expected = new Set(classNames);
+    const orphans = (await listSvgs(outClassesDir)).filter((name) => !expected.has(name));
+    for (const name of orphans) {
+      const label = `${output.colorScheme}/classes/${name} (orphan)`;
+      stats.stale.push(label);
+      if (!checkOnly) {
+        await rm(path.join(outClassesDir, name));
+      }
+    }
+
+    console.log(
+      `${checkOnly ? "Checked" : "Processed"} ${classNames.length} class structures in ` +
+        `${path.relative(ROOT, outClassesDir)}/`,
     );
   }
 
-  // Drop outputs whose brand source no longer exists, so a renamed class cannot leave a
-  // stale Effect Index file behind.
-  const expected = new Set(classNames);
-  const orphans = (await listSvgs(OUT_CLASSES_DIR)).filter((name) => !expected.has(name));
-  for (const name of orphans) {
-    const label = `classes/${name} (orphan)`;
-    stats.stale.push(label);
-    if (!checkOnly) {
-      await rm(path.join(OUT_CLASSES_DIR, name));
-    }
-  }
-
-  const outRel = path.relative(ROOT, OUT_CLASSES_DIR);
-  console.log(
-    `${checkOnly ? "Checked" : "Wrote"} ${classNames.length} class structures in ${outRel}/`,
-  );
   if (!checkOnly) {
     console.log(`  ${stats.written} written, ${stats.unchanged} already current`);
   }

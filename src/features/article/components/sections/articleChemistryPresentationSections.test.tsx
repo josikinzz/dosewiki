@@ -1,10 +1,11 @@
 import { fireEvent, render, screen } from "@testing-library/react";
-import type { ImgHTMLAttributes } from "react";
+import type { ImgHTMLAttributes, ReactNode } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { buildArticleChemistryPresentation } from "@/data/builders/articleChemistryPresentation";
 import { createEmptyArticle } from "@/data/schema/defaults.generated";
 import { useReagentData } from "@/hooks/useReagentData";
+import { AppearanceTestProvider } from "@/test/AppearanceTestProvider";
 
 import { HeroSection } from "./HeroSection";
 import { ReagentSection } from "./ReagentSection";
@@ -23,6 +24,10 @@ vi.mock("@/hooks/useReagentData", () => ({
     isError: false,
   })),
 }));
+
+function renderWithAppearance(children: ReactNode) {
+  return render(<AppearanceTestProvider>{children}</AppearanceTestProvider>);
+}
 
 describe("article chemistry presentation sections", () => {
   const mockedUseReagentData = vi.mocked(useReagentData);
@@ -49,7 +54,7 @@ describe("article chemistry presentation sections", () => {
       { key: "iupac_name", label: "IUPAC", value: "Presentation IUPAC", format: "code" },
     ];
 
-    render(
+    renderWithAppearance(
       <HeroSection
         article={article}
         chemistryPresentation={chemistryPresentation}
@@ -74,7 +79,7 @@ describe("article chemistry presentation sections", () => {
 
     const chemistryPresentation = buildArticleChemistryPresentation(article);
 
-    render(
+    renderWithAppearance(
       <HeroSection
         article={article}
         chemistryPresentation={chemistryPresentation}
@@ -99,7 +104,7 @@ describe("article chemistry presentation sections", () => {
 
     const chemistryPresentation = buildArticleChemistryPresentation(article);
 
-    render(
+    renderWithAppearance(
       <HeroSection
         article={article}
         chemistryPresentation={chemistryPresentation}
@@ -156,7 +161,7 @@ describe("article chemistry presentation sections", () => {
 
     const chemistryPresentation = buildArticleChemistryPresentation(article);
 
-    const { container } = render(
+    const { container } = renderWithAppearance(
       <HeroSection
         article={article}
         chemistryPresentation={chemistryPresentation}
@@ -192,7 +197,7 @@ describe("article chemistry presentation sections", () => {
     chemistryPresentation.reagentTesting.aliases = ["Alias"];
     chemistryPresentation.reagentTesting.shouldFetchApiData = true;
 
-    render(<ReagentSection article={article} chemistryPresentation={chemistryPresentation} />);
+    renderWithAppearance(<ReagentSection article={article} chemistryPresentation={chemistryPresentation} />);
 
     expect(mockedUseReagentData).toHaveBeenCalledWith("lookup-name");
   });
@@ -207,7 +212,7 @@ describe("article chemistry presentation sections", () => {
     chemistryPresentation.reagentTesting.hasStaticData = true;
     chemistryPresentation.reagentTesting.shouldFetchApiData = false;
 
-    render(<ReagentSection article={article} chemistryPresentation={chemistryPresentation} />);
+    renderWithAppearance(<ReagentSection article={article} chemistryPresentation={chemistryPresentation} />);
 
     expect(mockedUseReagentData).toHaveBeenCalledWith("");
     expect(screen.getByText("Reagent Testing")).toBeInTheDocument();

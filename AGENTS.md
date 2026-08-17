@@ -5,6 +5,7 @@
 - Read [CONTEXT.md](CONTEXT.md) before non-trivial changes.
 - For UI work, reuse the [UI kit](docs/ui-kit.md), then follow [.impeccable.md](.impeccable.md) and the [visual style guide](notes-and-plans/guides/dosewiki-visual-style-guide.md). Use the [project visual](docs/assets/dose-wiki-project-guide-stacked-no-context.jpg) as the visual reference.
 - For environment or deployment work, use [README environment guidance](README.md#environment-and-deployment) and [deployment routing](docs/agents/deployment.md). Keep credentials out of committed files.
+- For a trip report submitted as one flat body, follow the [trip report timeline skill](.agents/skills/trip-report-timeline/SKILL.md) so the reshape stays lossless.
 
 ## Hard Invariants
 

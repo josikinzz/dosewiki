@@ -152,7 +152,7 @@ export const FONT_CHOICES: readonly FontChoice[] = [
   {
     id: "titillium",
     label: "Titillium Web",
-    hint: "The formal, journal-like face the Effect Index wears. Downloaded the first time you pick it.",
+    hint: "The formal, printed-looking face the Pro style wears. Downloaded the first time you pick it.",
     stack: `"${TITILLIUM}", "${TITILLIUM_FALLBACK}", Inter, ${SYSTEM_SANS}`,
     faces: TITILLIUM_FACES,
   },
@@ -239,7 +239,7 @@ export const FONT_GROUP: PaletteGroup = {
   // lab offers, and a collapsed pair of rows reads as one more color group.
   major: true,
   blurb:
-    "The two faces the whole site is set in. Body is the reading text; display is headings, the wordmark, and the site's louder labels. Picking the journal face downloads it the first time — every other choice is already on your machine.",
+    "The two faces the whole site is set in. Body is the reading text; display is headings, the wordmark, and the site's louder labels. Picking Titillium Web downloads it the first time — every other choice is already on your machine.",
   tokens: [
     font(
       "--font-family-body",
@@ -278,15 +278,15 @@ export const FONT_ESSENTIALS: EssentialGroup = {
 };
 
 /**
- * The Effect Index skin's type, restated as font-token values.
+ * The Pro skin's type, restated as font-token values.
  *
  * That skin re-points both families at Titillium; the same swap comes out of
  * these two tokens with no component or stylesheet touched, which is the
  * self-check that this control is wired to the real mechanism. Test-facing only
- * — the Effect Index flavor never mounts the lab, and its stylesheet is
- * untouched by it.
+ * — the Pro stylesheet is untouched by the lab, and the lab's own edits are a
+ * Fun-palette layer that Pro's selectors out-specify.
  */
-export const EFFECT_INDEX_FONTS: Record<string, string> = {
+export const PRO_STYLE_FONTS: Record<string, string> = {
   "--font-family-body": getFontChoice("titillium")!.stack,
   "--font-family-display": getFontChoice("titillium")!.stack,
 };

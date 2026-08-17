@@ -1,11 +1,10 @@
 import { existsSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
-import { render, screen, waitFor, within } from "@testing-library/react";
+import { act, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { AppearanceTestProvider } from "@/test/AppearanceTestProvider";
 import { PaletteLabLazy as PaletteLab } from "./PaletteLabLazy";
-import { PaletteLabTrigger } from "./PaletteLabTrigger";
-import { buildPaletteLabBootstrapScript } from "./paletteLabBootstrap";
 import {
   PALETTE_ATTRIBUTE,
   PALETTE_LAB_OVERRIDE_STYLE_ID,
@@ -21,7 +20,7 @@ import {
   resetFontFaceRegistry,
 } from "./fontFaces";
 import {
-  EFFECT_INDEX_FONTS,
+  PRO_STYLE_FONTS,
   FONT_CHOICES,
   FONT_GROUP,
   FONT_TOKEN_IDS,
@@ -34,12 +33,11 @@ import {
  * Typography as a theme axis, tested at the lab's one real seam:
  * *stored envelope in → applied document state out*.
  *
- * A font choice is only real if it reaches the injected override element, the
- * persisted envelope, and the pre-paint bootstrap's output — the same three
- * places a color edit has to reach. The one thing fonts add on top is the
- * *bytes*: the formal face's `@font-face` block must not exist in the document
- * until a visitor has actually asked for it, which is asserted here as the
- * absence of the element that would carry it.
+ * A font choice is only real if it reaches the injected override element and
+ * the persisted envelope — the same two places a color edit has to reach. The
+ * one thing fonts add on top is the *bytes*: the formal face's `@font-face`
+ * block must not exist in the document until an editor has actually asked for
+ * it, which is asserted here as the absence of the element that would carry it.
  */
 
 vi.mock("@/components/common/Icon", () => ({
@@ -182,12 +180,12 @@ describe("font token group", () => {
     expect(css).toContain('local("Arial")');
   });
 
-  it("can express the sibling flavor's type with no component change", () => {
-    // The self-check from the investigation: the Effect Index skin re-points the
-    // same two variables these tokens sit behind. If its type is expressible
-    // here, the control is wired to the real mechanism.
-    expect(Object.keys(EFFECT_INDEX_FONTS).sort()).toEqual([...FONT_TOKEN_IDS].sort());
-    for (const value of Object.values(EFFECT_INDEX_FONTS)) {
+  it("can express the Pro style's type with no component change", () => {
+    // The self-check from the investigation: the Pro skin re-points the same two
+    // variables these tokens sit behind. If its type is expressible here, the
+    // control is wired to the real mechanism.
+    expect(Object.keys(PRO_STYLE_FONTS).sort()).toEqual([...FONT_TOKEN_IDS].sort());
+    for (const value of Object.values(PRO_STYLE_FONTS)) {
       expect(fontChoiceForValue(value).id).toBe("titillium");
     }
   });
@@ -223,7 +221,7 @@ describe("font choices through the lab's seam", { timeout: 15_000 }, () => {
   it("applies a saved face on load with the panel never opened", async () => {
     installMockStorage(envelopeWithFont("--font-family-body", TITILLIUM.stack));
 
-    render(<PaletteLab />);
+    render(<AppearanceTestProvider><PaletteLab /></AppearanceTestProvider>);
 
     await waitFor(() => expect(overrideCss()).toContain("--font-family-body:"));
     expect(overrideCss()).toContain("Titillium Web");
@@ -231,22 +229,12 @@ describe("font choices through the lab's seam", { timeout: 15_000 }, () => {
     expect(screen.queryByRole("dialog", { name: "Theme Lab" })).not.toBeInTheDocument();
   });
 
-  it("restores a saved face before first paint, so type never flashes", () => {
-    installMockStorage(envelopeWithFont("--font-family-display", TITILLIUM.stack));
-
-    // The bootstrap runs from <head>, before the app exists at all.
-    Function(buildPaletteLabBootstrapScript())();
-
-    expect(overrideCss()).toContain("--font-family-display:");
-    expect(overrideCss()).toContain("Titillium Web");
-  });
-
   it("registers the formal face only once a rendered theme names it", async () => {
     // A visitor with a saved theme that touches everything *except* type: the
     // runtime restores it in full, and still declares no face.
     installMockStorage(envelopeWithFont("--radius", "0rem"));
 
-    render(<PaletteLab />);
+    render(<AppearanceTestProvider><PaletteLab /></AppearanceTestProvider>);
     await waitFor(() => expect(overrideCss()).toContain("--radius:0rem"));
 
     // The whole promise: a visitor who never picks it has no declaration in the
@@ -258,7 +246,7 @@ describe("font choices through the lab's seam", { timeout: 15_000 }, () => {
   it("registers the formal face when a saved theme restores it", async () => {
     installMockStorage(envelopeWithFont("--font-family-body", TITILLIUM.stack));
 
-    render(<PaletteLab />);
+    render(<AppearanceTestProvider><PaletteLab /></AppearanceTestProvider>);
 
     await waitFor(() => expect(registeredFontChoiceIds()).toEqual(["titillium"]));
     const css = faceCss() ?? "";
@@ -268,13 +256,8 @@ describe("font choices through the lab's seam", { timeout: 15_000 }, () => {
   });
 
   it("picks a face in the editor, applies it site-wide, and persists it per theme", async () => {
-    render(
-      <>
-        <PaletteLabTrigger />
-        <PaletteLab />
-      </>,
-    );
-    await userEvent.click(await screen.findByRole("button", { name: /Open Theme Lab/i }));
+    render(<AppearanceTestProvider><PaletteLab /></AppearanceTestProvider>);
+    act(() => setPaletteLabOpen(true));
     const panel = await screen.findByRole("dialog", { name: "Theme Lab" });
 
     await userEvent.click(within(panel).getByRole("button", { name: /All colors/ }));
@@ -302,13 +285,8 @@ describe("font choices through the lab's seam", { timeout: 15_000 }, () => {
   });
 
   it("switches back to the theme's own face by clearing the choice", async () => {
-    render(
-      <>
-        <PaletteLabTrigger />
-        <PaletteLab />
-      </>,
-    );
-    await userEvent.click(await screen.findByRole("button", { name: /Open Theme Lab/i }));
+    render(<AppearanceTestProvider><PaletteLab /></AppearanceTestProvider>);
+    act(() => setPaletteLabOpen(true));
     const panel = await screen.findByRole("dialog", { name: "Theme Lab" });
 
     await userEvent.click(within(panel).getByRole("button", { name: /All colors/ }));
@@ -325,13 +303,8 @@ describe("font choices through the lab's seam", { timeout: 15_000 }, () => {
   });
 
   it("costs nothing to pick a face the visitor's machine already has", async () => {
-    render(
-      <>
-        <PaletteLabTrigger />
-        <PaletteLab />
-      </>,
-    );
-    await userEvent.click(await screen.findByRole("button", { name: /Open Theme Lab/i }));
+    render(<AppearanceTestProvider><PaletteLab /></AppearanceTestProvider>);
+    act(() => setPaletteLabOpen(true));
     const panel = await screen.findByRole("dialog", { name: "Theme Lab" });
 
     await userEvent.click(within(panel).getByRole("button", { name: /All colors/ }));

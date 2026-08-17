@@ -1,9 +1,8 @@
-import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
+import { act, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { AppearanceTestProvider } from "@/test/AppearanceTestProvider";
 import { PaletteLabLazy as PaletteLab } from "./PaletteLabLazy";
-import { PaletteLabTrigger } from "./PaletteLabTrigger";
-import { buildPaletteLabBootstrapScript } from "./paletteLabBootstrap";
 import {
   PALETTE_ATTRIBUTE,
   PALETTE_LAB_OVERRIDE_STYLE_ID,
@@ -13,7 +12,7 @@ import { setPaletteLabOpen } from "./paletteLabStore";
 import { clearThemeBaselineCache } from "./presetBaselines";
 import { ALL_TOKEN_IDS, PALETTE_GROUPS, ESSENTIAL_IDS, getToken } from "./paletteTokens";
 import {
-  EFFECT_INDEX_RADIUS,
+  PRO_STYLE_RADIUS,
   RADIUS_GROUP,
   RADIUS_TOKEN_IDS,
   formatRem,
@@ -26,9 +25,8 @@ import {
  * *stored envelope in → applied document state out*.
  *
  * Nothing here asserts on a component's internal state. A radius edit is only
- * real if it reaches the injected override element, the persisted envelope, and
- * the pre-paint bootstrap's output — the same three places a color edit has to
- * reach.
+ * real if it reaches the injected override element and the persisted envelope —
+ * the same two places a color edit has to reach.
  */
 
 vi.mock("@/components/common/Icon", () => ({
@@ -115,12 +113,12 @@ describe("radius token group", () => {
     expect(formatRem(0)).toBe("0rem");
   });
 
-  it("can express the sibling flavor's squared-off geometry with no component change", () => {
-    // The self-check from the investigation: the Effect Index skin squares the
-    // site by redefining the same utilities these tokens sit behind. If its
-    // values are expressible here, the control is wired to the real mechanism.
-    expect(Object.keys(EFFECT_INDEX_RADIUS).sort()).toEqual([...RADIUS_TOKEN_IDS].sort());
-    for (const [id, value] of Object.entries(EFFECT_INDEX_RADIUS)) {
+  it("can express the Pro style's squared-off geometry with no component change", () => {
+    // The self-check from the investigation: the Pro skin squares the site by
+    // redefining the same utilities these tokens sit behind. If its values are
+    // expressible here, the control is wired to the real mechanism.
+    expect(Object.keys(PRO_STYLE_RADIUS).sort()).toEqual([...RADIUS_TOKEN_IDS].sort());
+    for (const [id, value] of Object.entries(PRO_STYLE_RADIUS)) {
       const rem = parseRem(value);
       expect(rem, `${id} must be a plain length`).not.toBeNull();
       const spec = getLengthSpec(id)!;
@@ -136,13 +134,13 @@ describe("radius edits through the lab's seam", { timeout: 15_000 }, () => {
       JSON.stringify({
         version: 3,
         activeThemeRef: { kind: "preset", id: "orchid" },
-        editsByPreset: { orchid: { dark: EFFECT_INDEX_RADIUS, light: {} } },
+        editsByPreset: { orchid: { dark: PRO_STYLE_RADIUS, light: {} } },
         customThemes: [],
         shareFormat: 1,
       }),
     );
 
-    render(<PaletteLab />);
+    render(<AppearanceTestProvider><PaletteLab /></AppearanceTestProvider>);
 
     await waitFor(() => expect(overrideCss()).toContain("--radius:0.1875rem"));
     expect(overrideCss()).toContain("--radius-xl:0.25rem");
@@ -152,31 +150,9 @@ describe("radius edits through the lab's seam", { timeout: 15_000 }, () => {
     expect(screen.queryByRole("dialog", { name: "Theme Lab" })).not.toBeInTheDocument();
   });
 
-  it("restores a saved radius before first paint, so geometry never flashes", () => {
-    installMockStorage(
-      JSON.stringify({
-        version: 3,
-        activeThemeRef: { kind: "preset", id: "orchid" },
-        editsByPreset: { orchid: { dark: { "--radius": "0rem" }, light: {} } },
-        customThemes: [],
-        shareFormat: 1,
-      }),
-    );
-
-    // The bootstrap runs from <head>, before the app exists at all.
-    Function(buildPaletteLabBootstrapScript())();
-
-    expect(overrideCss()).toContain("--radius:0rem");
-  });
-
   it("drags roundness to sharp and persists it scoped to the active theme", async () => {
-    render(
-      <>
-        <PaletteLabTrigger />
-        <PaletteLab />
-      </>,
-    );
-    await userEvent.click(await screen.findByRole("button", { name: /Open Theme Lab/i }));
+    render(<AppearanceTestProvider><PaletteLab /></AppearanceTestProvider>);
+    act(() => setPaletteLabOpen(true));
     const panel = await screen.findByRole("dialog", { name: "Theme Lab" });
 
     await userEvent.click(within(panel).getByRole("button", { name: /All colors/ }));
@@ -201,13 +177,8 @@ describe("radius edits through the lab's seam", { timeout: 15_000 }, () => {
   });
 
   it("scopes a radius edit to the theme being edited", async () => {
-    render(
-      <>
-        <PaletteLabTrigger />
-        <PaletteLab />
-      </>,
-    );
-    await userEvent.click(await screen.findByRole("button", { name: /Open Theme Lab/i }));
+    render(<AppearanceTestProvider><PaletteLab /></AppearanceTestProvider>);
+    act(() => setPaletteLabOpen(true));
     const panel = await screen.findByRole("dialog", { name: "Theme Lab" });
 
     await userEvent.click(within(panel).getByRole("button", { name: /All colors/ }));
@@ -229,13 +200,8 @@ describe("radius edits through the lab's seam", { timeout: 15_000 }, () => {
   });
 
   it("resets a radius token back to the theme's own value", async () => {
-    render(
-      <>
-        <PaletteLabTrigger />
-        <PaletteLab />
-      </>,
-    );
-    await userEvent.click(await screen.findByRole("button", { name: /Open Theme Lab/i }));
+    render(<AppearanceTestProvider><PaletteLab /></AppearanceTestProvider>);
+    act(() => setPaletteLabOpen(true));
     const panel = await screen.findByRole("dialog", { name: "Theme Lab" });
 
     await userEvent.click(within(panel).getByRole("button", { name: /All colors/ }));

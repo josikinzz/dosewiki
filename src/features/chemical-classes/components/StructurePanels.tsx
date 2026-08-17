@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react";
 import Link from "next/link";
 
-import { AppImage } from "@/components/common/AppImage";
+import { MoleculeImage } from "@/components/pages/MoleculeImage";
 import { Icon } from "@/components/common/Icon";
 import { icons } from "@/utils/iconNames";
 import type { DosageCategoryGroup } from "@/data/builders/library";
@@ -47,7 +47,7 @@ function StructureRow({
         </span>
         <span className="flex h-20 w-40 shrink-0 items-center justify-center sm:w-48">
           {structureUrl ? (
-            <AppImage
+            <MoleculeImage
               src={structureUrl}
               alt={`${name} molecule structure`}
               width={220}

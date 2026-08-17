@@ -905,10 +905,7 @@ html[data-theme="light"] .theme-route-tab[data-state="active"] {
   background-clip: border-box !important;
   background-origin: border-box !important;
   color: var(--theme-article-route-active-text) !important;
-  box-shadow:
-    0 0 0 1px var(--theme-article-route-active-border),
-    0 12px 24px -22px color-mix(in srgb, var(--theme-article-route-active-text) 34%, transparent),
-    inset 0 1px 0 oklch(100% 0 0 / 0.72) !important;
+  box-shadow: var(--theme-article-route-active-shadow) !important;
   --tw-ring-color: var(--theme-article-route-active-border) !important;
 }
 

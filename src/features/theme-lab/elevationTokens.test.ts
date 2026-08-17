@@ -13,10 +13,7 @@ import { PALETTE_GROUPS } from "./paletteTokens";
 
 const REPO_ROOT = path.resolve(__dirname, "../../..");
 const SITE_COLORS = fs.readFileSync(path.join(REPO_ROOT, "src/styles/site-colors.css"), "utf8");
-const EFFECT_INDEX = fs.readFileSync(
-  path.join(REPO_ROOT, "src/styles/effectindex-theme.css"),
-  "utf8",
-);
+const PRO_THEME = fs.readFileSync(path.join(REPO_ROOT, "src/styles/pro-theme.css"), "utf8");
 
 const ELEVATION_PREFIX = "--theme-elevation-";
 
@@ -117,16 +114,16 @@ describe("elevation tokens", () => {
     expect(offenders).toEqual([]);
   });
 
-  it("keeps the Effect Index skin's flattened shadows expressed as token values", () => {
+  it("keeps the Pro skin's flattened shadows expressed as token values", () => {
     // The skin used to reach into `--tw-shadow-color` on three utility class
     // selectors. Those selectors no longer exist, so the overrides have to be
-    // token-level or the sibling site regains dosewiki's brand glows.
+    // token-level or the Pro style regains the Fun style's brand glows.
     for (const tokenId of [
       "--theme-elevation-control-primary",
       "--theme-elevation-icon-tile",
       "--theme-elevation-mark-hairline",
     ]) {
-      expect(definedIn(EFFECT_INDEX).has(tokenId), `${tokenId} is unskinned`).toBe(true);
+      expect(definedIn(PRO_THEME).has(tokenId), `${tokenId} is unskinned`).toBe(true);
     }
   });
 });

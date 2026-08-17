@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { memo, useState } from "react";
-import { AppImage } from "@/components/common/AppImage";
+import { MoleculeImage } from "@/components/pages/MoleculeImage";
 import { ExpandButton } from "@/components/common/ExpandButton";
 import { Icon } from "@/components/common/Icon";
 import { PublicNameChip } from "@/components/common/PublicTokens";
@@ -99,7 +99,7 @@ export const HeroSection = memo(function HeroSection({
 
       {/* Molecule SVG - floated right on md+, hidden on mobile (shown below title instead) */}
       {moleculeUrl && (
-        <AppImage
+        <MoleculeImage
           src={moleculeUrl}
           alt={chemistryPresentation.molecule.alt}
           width={256}
@@ -136,7 +136,7 @@ export const HeroSection = memo(function HeroSection({
       {/* Molecule SVG - centered below title on mobile only */}
       {moleculeUrl && (
         <div className="flex justify-center my-5 md:hidden">
-          <AppImage
+          <MoleculeImage
             src={moleculeUrl}
             alt={chemistryPresentation.molecule.alt}
             width={288}

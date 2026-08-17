@@ -243,6 +243,5 @@ export function getRouteChromeModel(
     secondaryNavItems: buildNavItems(config.secondaryNavIds, config, activeGroup),
     footerNavItems: [],
     footerExternalNavItems: [],
-    footerShowsThemeToggle: config.showThemeToggle,
   };
 }

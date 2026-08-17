@@ -2,6 +2,7 @@ import {
   PALETTE_LAB_PERSIST_DELAY_MS,
   PALETTE_LAB_STORAGE_KEY,
   THEME_SHARE_FORMAT,
+  emptyOverrides,
   parseStoredEnvelope,
   readStoredEnvelope,
   serializeEnvelope,
@@ -23,16 +24,15 @@ import {
 } from "./paletteLabStore";
 
 /**
- * The always-on half of the Theme Lab: it reads the saved envelope on page
- * load, applies it to the document, and owns persistence — with no UI at all.
+ * The UI-free half of the Theme Lab: it reads the saved envelope when the tool
+ * route mounts, applies it to the document, and owns persistence.
  *
- * The editor panel used to do this, which meant a returning visitor saw the
- * stock site until they happened to open the panel (and never on routes with no
- * trigger). Keeping it here means the panel can stay lazily loaded while a saved
- * theme still applies on every load, on every route, after a hard refresh.
+ * The editor panel used to do this, which meant the saved palette only appeared
+ * once the panel happened to be opened. Keeping it here means the panel can stay
+ * lazily loaded while the saved palette is already on the page behind it.
  *
  * Deliberately framework-free so it can be driven and asserted directly; the
- * `PaletteLabRuntime` component is only a mount point for it.
+ * `PaletteLabRuntimeMount` component is only a mount point for it.
  */
 
 /** How many mounted runtime components are asking for this. Reference-counted
@@ -177,6 +177,15 @@ function hydrate() {
   if (raw !== null && raw !== serialized) schedulePersist(serialized);
 }
 
+/**
+ * Release the runtime and hand the document back unpainted.
+ *
+ * The lab used to be mounted for the life of the app, so stopping was a
+ * theoretical path. Now the tool route owns the mount, and leaving it must take
+ * the editor's palette off `<html>` with it — otherwise a client-side
+ * navigation back to a public page would keep wearing an in-progress palette
+ * that page never asked for and could not have loaded on its own.
+ */
 function stop() {
   unsubscribe?.();
   unsubscribe = null;
@@ -185,6 +194,9 @@ function stop() {
   document.removeEventListener("visibilitychange", onVisibilityChange);
   flush();
   lastPersistAttempt = null;
+  writePaletteAttribute("");
+  writeBlurAttribute(false);
+  writeOverrideStyle(emptyOverrides());
   resetPaletteLabTheme();
 }
 

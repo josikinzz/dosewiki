@@ -152,7 +152,7 @@ export const ArticleSubsectionHeader = memo(function ArticleSubsectionHeader({
             className={cn("theme-icon-accent", iconClassName)}
           />
         ) : null}
-        <Heading className={cn("theme-text-primary font-semibold", headingClassName)}>
+        <Heading className={cn("theme-article-subsection-heading theme-text-primary font-semibold", headingClassName)}>
           {heading}
         </Heading>
       </div>

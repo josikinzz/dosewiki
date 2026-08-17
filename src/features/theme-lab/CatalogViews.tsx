@@ -1,6 +1,6 @@
 "use client";
 
-import type { ThemeName } from "@/context/ThemeContext";
+import type { ColorScheme } from "@/context/ThemeContext";
 import { Icon } from "@/components/common/Icon";
 import { Button } from "@/components/ui";
 import { cn } from "@/lib/utils";
@@ -202,7 +202,7 @@ export function EmptyResults() {
 }
 
 interface CatalogProps {
-  theme: ThemeName;
+  theme: ColorScheme;
   query: string;
   selectedToken: string | null;
   currentValue: (id: string) => string;
@@ -371,7 +371,7 @@ interface MergedProps {
   groups: ColorGroup[];
   query: string;
   activeKey: string | null;
-  theme: ThemeName;
+  theme: ColorScheme;
   onSelect: (repId: string) => void;
   isOverridden: (id: string) => boolean;
 }

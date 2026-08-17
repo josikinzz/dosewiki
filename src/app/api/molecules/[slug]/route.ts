@@ -11,7 +11,10 @@
  */
 import { NextResponse } from "next/server";
 import { api } from "../../../../../convex/_generated/api";
-import { applyFlavorMoleculeColorway } from "@/data/mappings/moleculePalette";
+import {
+  applyMoleculeColorway,
+  resolveMoleculeColorway,
+} from "@/data/mappings/moleculePalette";
 import { getServerConvexReadClient } from "@server/convex/serverClient";
 import { enforceRateLimit } from "@server/http/nextRateLimit";
 
@@ -44,13 +47,13 @@ export async function GET(
     return NextResponse.json({ error: "No override for this molecule." }, { status: 404 });
   }
 
-  // Only a versioned URL is safe to freeze: the page busts ?v=<updatedAt> on
-  // every save. A bare hit (opened directly, or a crawler that dropped the
-  // query) has no buster, so freezing it would pin whichever depiction was
-  // current at that moment for a year.
-  const isVersioned = new URL(request.url).searchParams.has("v");
+  // Every colorway is a distinct cache key. A versioned URL is safe to freeze
+  // because each Convex save changes `v`; direct unversioned hits stay fresh.
+  const searchParams = new URL(request.url).searchParams;
+  const isVersioned = searchParams.has("v");
+  const colorway = resolveMoleculeColorway(searchParams.get("colorway"));
 
-  return new NextResponse(applyFlavorMoleculeColorway(override.svg), {
+  return new NextResponse(applyMoleculeColorway(override.svg, colorway), {
     status: 200,
     headers: {
       "Content-Type": "image/svg+xml; charset=utf-8",

@@ -41,7 +41,6 @@ function mockModel(activeId: string): RouteChromeModel {
     ],
     footerNavItems: [],
     footerExternalNavItems: [],
-    footerShowsThemeToggle: false,
   };
 }
 

@@ -52,7 +52,7 @@ const endpoints = [
   {
     method: "GET",
     path: "/api/v1/molecules/{slug}.svg?scheme=dosewiki",
-    description: "A sandboxed molecule SVG in the dose.wiki or effect-index color scheme.",
+    description: "A sandboxed molecule SVG in the dose.wiki, Effect Index light, or Effect Index dark color scheme.",
   },
   {
     method: "GET",
@@ -171,8 +171,9 @@ export default function PublicApiPage() {
           <ContentCard>
             <h3 className="theme-accent-heading font-display text-xl font-semibold">Molecule schemes</h3>
             <p className="theme-text-secondary mt-4 text-sm leading-6">
-              Request <code>scheme=dosewiki</code> or <code>scheme=effect-index</code>. Canonical editor
-              depictions are preferred, with the packaged static SVG collections as a resilient fallback.
+              Request <code>scheme=dosewiki</code>, <code>scheme=effect-index</code>, or{" "}
+              <code>scheme=effect-index-dark</code>. Canonical editor depictions are preferred,
+              with the packaged static SVG collections as a resilient fallback.
             </p>
           </ContentCard>
           <ContentCard>

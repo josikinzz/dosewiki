@@ -2,7 +2,10 @@ import { readFile } from "node:fs/promises";
 import path from "node:path";
 import { NextResponse } from "next/server";
 import { api } from "../../../../../../convex/_generated/api";
-import { recolorMoleculeSvgToEffectIndex } from "@/data/mappings/moleculePalette";
+import {
+  applyMoleculeColorway,
+  type MoleculeColorway,
+} from "@/data/mappings/moleculePalette";
 import { getServerConvexReadClient } from "@server/convex/serverClient";
 import { enforceRateLimit } from "@server/http/nextRateLimit";
 import {
@@ -14,7 +17,15 @@ import {
 
 export const runtime = "nodejs";
 const SLUG_RE = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
-const SCHEMES = new Set(["dosewiki", "effect-index"]);
+const SCHEME_COLORWAYS = {
+  dosewiki: "brand",
+  "effect-index": "pro-light",
+  "effect-index-dark": "pro-dark",
+} as const satisfies Record<string, MoleculeColorway>;
+
+function isMoleculeScheme(value: string): value is keyof typeof SCHEME_COLORWAYS {
+  return Object.prototype.hasOwnProperty.call(SCHEME_COLORWAYS, value);
+}
 
 export function OPTIONS() {
   return new NextResponse(null, { status: 204, headers: getPublicApiCorsHeaders() });
@@ -27,12 +38,13 @@ export async function GET(request: Request, { params }: { params: Promise<{ slug
   const rawSlug = (await params).slug;
   const slug = rawSlug.endsWith(".svg") ? rawSlug.slice(0, -4) : rawSlug;
   const scheme = new URL(request.url).searchParams.get("scheme") ?? "dosewiki";
-  if (!SLUG_RE.test(slug) || !SCHEMES.has(scheme)) {
+  if (!SLUG_RE.test(slug) || !isMoleculeScheme(scheme)) {
     return NextResponse.json(publicApiError("invalid_request", "slug or scheme is invalid."), {
       status: 400,
       headers: getPublicApiResponseHeaders({ cache: false }),
     });
   }
+  const colorway = SCHEME_COLORWAYS[scheme];
 
   let svg: string | null = null;
   try {
@@ -43,7 +55,12 @@ export async function GET(request: Request, { params }: { params: Promise<{ slug
   }
 
   if (!svg) {
-    const directory = scheme === "effect-index" ? "molecules-ei" : "molecules";
+    const directory =
+      colorway === "brand"
+        ? "molecules"
+        : colorway === "pro-dark"
+          ? "molecules-ei-dark"
+          : "molecules-ei";
     try {
       svg = await readFile(path.join(process.cwd(), "public", directory, `${slug}.svg`), "utf8");
     } catch {
@@ -52,8 +69,8 @@ export async function GET(request: Request, { params }: { params: Promise<{ slug
         headers: getPublicApiResponseHeaders({ cache: false }),
       });
     }
-  } else if (scheme === "effect-index") {
-    svg = recolorMoleculeSvgToEffectIndex(svg);
+  } else {
+    svg = applyMoleculeColorway(svg, colorway);
   }
 
   const headers = getPublicApiResponseHeaders();

@@ -10,7 +10,10 @@
  */
 import { NextResponse } from "next/server";
 import { api } from "../../../../../../convex/_generated/api";
-import { applyFlavorMoleculeColorway } from "@/data/mappings/moleculePalette";
+import {
+  applyMoleculeColorway,
+  resolveMoleculeColorway,
+} from "@/data/mappings/moleculePalette";
 import { getServerConvexReadClient } from "@server/convex/serverClient";
 import { enforceRateLimit } from "@server/http/nextRateLimit";
 
@@ -45,11 +48,13 @@ export async function GET(
     return NextResponse.json({ error: "No override for this class structure." }, { status: 404 });
   }
 
-  // Freezing is only safe for the ?v=<updatedAt> form the pages emit; a bare
-  // hit has no buster and would pin one depiction for a year.
-  const isVersioned = new URL(request.url).searchParams.has("v");
+  // Every colorway is a distinct cache key. Only versioned Convex depictions
+  // are immutable; direct unversioned requests stay short-lived.
+  const searchParams = new URL(request.url).searchParams;
+  const isVersioned = searchParams.has("v");
+  const colorway = resolveMoleculeColorway(searchParams.get("colorway"));
 
-  return new NextResponse(applyFlavorMoleculeColorway(override.svg), {
+  return new NextResponse(applyMoleculeColorway(override.svg, colorway), {
     status: 200,
     headers: {
       "Content-Type": "image/svg+xml; charset=utf-8",

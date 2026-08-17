@@ -2,6 +2,7 @@
 
 import { useCallback } from "react";
 import { Icon } from "../common/Icon";
+import { MoleculeImage } from "./MoleculeImage";
 import { Button } from "@/components/ui/button";
 
 /** A few representative structures shown as a preview strip. */
@@ -47,10 +48,13 @@ export function MoleculeDownloadPack({ moleculeCount }: { moleculeCount: number 
       >
         {PREVIEW_SLUGS.map((slug) => (
           <li key={slug} className="flex items-center justify-center">
-            <img
+            <MoleculeImage
               src={`/api/molecules/${slug}`}
               alt=""
+              width={40}
+              height={40}
               loading="lazy"
+              unoptimized
               className="theme-molecule-image h-10 w-10 object-contain"
               draggable={false}
             />

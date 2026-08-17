@@ -12,6 +12,9 @@
  * page's CMS document and unrelated to branding.
  */
 import { notFound } from "next/navigation";
+// Type-only, so it is erased at compile time: `@/theme` imports this module's ambient config
+// as a value, and a value import in this direction would close that into a runtime cycle.
+import type { AppearancePolicy } from "@/theme";
 
 export const SITE_FLAVORS = ["dosewiki", "effectindex"] as const;
 
@@ -63,8 +66,6 @@ export type SiteNavMenu = {
 
 /** Routes that only exist on some flavors. Guarded with {@link requireEffectIndexFlavor}. */
 export type FlavorGatedRoute = "blog" | "donate" | "contact" | "discord" | "copyrightDisclaimer";
-
-export type SiteThemeName = "light" | "dark";
 
 export type SiteSocialCard = {
   readonly path: string;
@@ -224,7 +225,13 @@ export type SiteAboutConfig = {
   readonly contact: SiteAboutContact | null;
 };
 
-export type SiteFlavorConfig = {
+/**
+ * Everything that differs between the two publications, including their {@link
+ * AppearancePolicy}: `defaultColorScheme`, `showColorSchemeToggle`, `defaultVisualStyle` and
+ * `showVisualStyleToggle` are contributed by that type rather than redeclared here, so the
+ * axis vocabulary has exactly one owner.
+ */
+export type SiteFlavorConfig = AppearancePolicy & {
   /** The flavor this config describes. */
   readonly flavor: SiteFlavor;
   /** Display name, e.g. "dose.wiki". Use {@link SiteFlavorConfig.wordmark} to render it. */
@@ -278,10 +285,6 @@ export type SiteFlavorConfig = {
    * entire header, so it declares `{}`.
    */
   readonly navMenus: Readonly<Partial<Record<SiteNavId, SiteNavMenu>>>;
-  /** Whether the light/dark toggle is offered to readers. */
-  readonly showThemeToggle: boolean;
-  /** Theme this flavor is pinned to, or `null` when readers choose. */
-  readonly lockedTheme: SiteThemeName | null;
   /** Flavor-gated routes enabled for this flavor. */
   readonly flavorGatedRoutes: readonly FlavorGatedRoute[];
   /** Root layout `<head>` identity. */
@@ -403,8 +406,12 @@ const DOSEWIKI_CONFIG: SiteFlavorConfig = {
   quickLinkIds: ["substances", "effects", "reports", "replications", "about"],
   // dose.wiki's header is flat: every top-level item is a plain link to its section.
   navMenus: {},
-  showThemeToggle: true,
-  lockedTheme: null,
+  // Dark-first cosmic-laboratory identity, and the only publication that offers the Fun/Pro
+  // choice: Pro is a selectable presentation here, not an imported build identity.
+  defaultColorScheme: "dark",
+  showColorSchemeToggle: true,
+  defaultVisualStyle: "fun",
+  showVisualStyleToggle: true,
   // dose.wiki owns `/blog` too now — its own blog, written in the /dev Blog tab
   // and stored as `kind: "blog"` rows of `effectIndexArticles`. It is a
   // different publication from the frozen Effect Index archive that the same
@@ -611,8 +618,12 @@ const EFFECT_INDEX_CONFIG: SiteFlavorConfig = {
       ],
     },
   },
-  showThemeToggle: false,
-  lockedTheme: "light",
+  // Pro is this publication's identity, so the style is locked and its storage key is never
+  // read; day/night stays a reader preference, which is new and deliberate.
+  defaultColorScheme: "light",
+  showColorSchemeToggle: true,
+  defaultVisualStyle: "pro",
+  showVisualStyleToggle: false,
   flavorGatedRoutes: ["blog", "donate", "contact", "discord", "copyrightDisclaimer"],
   rootMetadata: {
     title: "Effect Index",

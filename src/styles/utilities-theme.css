@@ -3703,10 +3703,7 @@
     background-clip: border-box;
     background-origin: border-box;
     color: var(--theme-article-route-active-text);
-    box-shadow:
-      0 0 0 1px var(--theme-article-route-active-border),
-      0 12px 26px -22px color-mix(in srgb, var(--theme-article-route-active-text) 42%, transparent),
-      inset 0 1px 0 color-mix(in srgb, var(--theme-text-primary) 8%, transparent);
+    box-shadow: var(--theme-article-route-active-shadow);
     --tw-ring-color: var(--theme-article-route-active-border);
   }
 
@@ -4476,7 +4473,10 @@
     --tw-ring-offset-color: var(--theme-page-end);
   }
 
-  html:not([data-theme="light"]) .theme-reagent-results-panel {
+  /* Pro is excluded: this is a glass recipe (white sheen over a cool near-black)
+     and it is layered `!important`, so the flat Pro sheet cannot out-cascade it
+     from outside a layer. pro-theme.css paints the panel instead. */
+  html:not([data-theme="light"]):not([data-visual-style="pro"]) .theme-reagent-results-panel {
     border: 1px solid rgba(255, 255, 255, 0.08);
     background:
       radial-gradient(circle at 12% 0%, rgba(255, 255, 255, 0.055), transparent 38%),
@@ -4592,17 +4592,19 @@
      reads as content framed between a permanent dark rail above and a
      theme-following rail below.
 
-     Effect Index is excluded: it paints its own charcoal chrome, and its sheet
-     wants a floating drop shadow rather than the rail's hairline. This rule is
-     layered `!important`, which outranks unlayered `!important`, so without the
-     exclusion it would silently beat effectindex-theme.css:1040.
+     The Pro visual style is excluded: it paints its own charcoal chrome, and
+     its sheet wants a floating drop shadow rather than the rail's hairline.
+     This rule is layered `!important`, which outranks unlayered `!important`,
+     so without the exclusion it would silently beat the mobile-panel rule in
+     pro-theme.css. The exclusion follows the STYLE, not the publication:
+     dose.wiki readers can now select Pro too.
 
      `box-shadow` is stated here so the panels keep the header shadow in light
      mode; the shared `.theme-overlay-surface` rules in theme-light-mode.css
      would otherwise hand them the frosted-panel shadow. The value matches what
      the base classes already resolve in dark mode, so dark is unchanged. */
-  html:not([data-site="effectindex"]) .theme-header-surface,
-  html:not([data-site="effectindex"]) .theme-overlay-surface.theme-mobile-nav-panel {
+  html:not([data-visual-style="pro"]) .theme-header-surface,
+  html:not([data-visual-style="pro"]) .theme-overlay-surface.theme-mobile-nav-panel {
     border-color: var(--theme-frosted-panel-border) !important;
     background: var(--theme-chrome-rail-bg) !important;
     box-shadow: var(--theme-header-shadow) !important;
@@ -4613,11 +4615,11 @@
   /* Second selector is the light-mode dark-chrome island. It has to be spelled
      out rather than left to the token block alone: the rail background is only
      handed to the footer by this rule, and the light-mode rule above would
-     otherwise paint it with the frosted panel. Effect Index is excluded for the
+     otherwise paint it with the frosted panel. Pro is excluded for the
      same reason as the header pair above — layered `!important` outranks the
      unlayered `!important` its own footer block relies on. */
   html:not([data-theme="light"]) .theme-footer-surface,
-  html[data-theme="light"]:not([data-site="effectindex"])
+  html[data-theme="light"]:not([data-visual-style="pro"])
     .theme-chrome-dark.theme-footer-surface {
     border-color: var(--theme-frosted-panel-border) !important;
     background: var(--theme-chrome-rail-bg) !important;

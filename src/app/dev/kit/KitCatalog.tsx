@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 
-import { ThemeToggle } from "@/app/_components/ThemeToggle";
+import { AppearanceControls } from "@/app/_components/AppearanceControls";
 import { Surface } from "@/components/ui/surface";
 import { cn } from "@/lib/utils";
 
@@ -155,14 +155,19 @@ export function KitCatalog() {
         <main className="flex min-w-0 flex-1 flex-col gap-6">
           <header className="flex flex-col gap-4 border-b border-[var(--theme-border-subtle)] pb-6">
             <div className="flex flex-wrap items-start justify-between gap-4">
-              <div className="flex flex-col gap-1">
+              <div className="flex flex-col gap-2">
                 <h1 className="text-2xl font-semibold text-[var(--theme-text-primary)]">UI Kit</h1>
                 <p className="max-w-[70ch] text-sm text-[var(--theme-text-secondary)]">
                   The shared component catalog. Every primitive renders live here — use these before building new
                   UI. Ownership rules live in <code>docs/ui-kit.md</code>.
                 </p>
+                <p className="max-w-[70ch] text-sm text-[var(--theme-text-muted)]">
+                  The appearance controls dress the whole document, so every story below is the parity harness for
+                  all four Fun/Pro × day/night combinations. There is one kit — a story that only passes in one
+                  combination is a token or call-site defect, never a reason to fork the component.
+                </p>
               </div>
-              <ThemeToggle />
+              <AppearanceControls />
             </div>
             <input
               type="search"
@@ -192,7 +197,7 @@ export function KitCatalog() {
           })}
 
           {filtered.length === 0 ? (
-            <Surface variant="subtle" padding="lg" radius="xl" className="text-center text-sm text-[var(--theme-text-muted)]">
+            <Surface variant="subtle" padding="lg" radius="xl" className="theme-text-muted text-center text-sm">
               No components match “{query}”.
             </Surface>
           ) : null}

@@ -2,68 +2,6 @@
    Everything reads the site's own --theme-* tokens so the tool itself recolors
    along with whatever the visitor is editing. */
 
-/* The Theme Lab is open to every visitor at every width: a right-edge sidebar
-   on desktop, a bottom sheet on mobile (see the panel rules below). `.trigger`
-   owns the `display` for this button, so this single rule governs both the
-   footer and homepage triggers. */
-.trigger {
-  display: inline-flex;
-  height: 2.75rem;
-  width: 2.75rem;
-  align-items: center;
-  justify-content: center;
-  border-radius: 9999px;
-  border: 1px solid transparent;
-}
-
-/* The rainbow conic glyph is a deliberate brand mark for the color tool — it
-   intentionally spans the full spectrum (including cyan), which is the one
-   sanctioned exception to the no-cyan rule because it is the product's logo,
-   not a semantic/interactive color. It must read identically in both themes,
-   so its stops stay fixed seed colors rather than theme tokens. */
-.triggerWheel,
-.titleWheel {
-  position: relative;
-  display: inline-block;
-  border-radius: 50%;
-  background: conic-gradient(
-    from 0deg,
-    #ff4d6d,
-    #ffd166,
-    #06d6a0,
-    #4cc9f0,
-    #7b6cff,
-    #f15bb5,
-    #ff4d6d
-  );
-  box-shadow: inset 0 0 0 1px rgb(var(--c-white) / 0.4);
-}
-
-.triggerWheel {
-  width: 1.15rem;
-  height: 1.15rem;
-}
-
-.triggerWheel::after {
-  content: "";
-  position: absolute;
-  inset: 34%;
-  border-radius: 50%;
-  background: var(--theme-body-bg);
-  box-shadow: inset 0 0 0 1px rgb(var(--c-white) / 0.18);
-}
-
-.trigger:hover .triggerWheel {
-  box-shadow:
-    inset 0 0 0 1px rgb(var(--c-white) / 0.5),
-    0 0 10px -2px var(--theme-logo-shadow);
-}
-
-.triggerActive {
-  border-color: var(--theme-accent);
-  background-color: var(--theme-surface-muted);
-}
-
 /* ---------------------------------------------------------------- Panel */
 
 :global(:root) {
@@ -176,18 +114,6 @@
   .panelClosed.panelPicking {
     transform: translateY(100%);
   }
-
-  /* The homepage's fixed trigger/theme cluster sits exactly where the sheet
-     lands. Fade it out while the sheet is up — the sheet carries its own close
-     button and theme chips — and let it return when the sheet closes. */
-  :global(.theme-home-theme-toggle) {
-    transition: opacity 180ms ease;
-  }
-
-  :global(html.pl-sidebar-open .theme-home-theme-toggle) {
-    opacity: 0;
-    pointer-events: none;
-  }
 }
 
 /* ---- Split layout: push the page aside instead of overlaying it ---------- */
@@ -204,23 +130,12 @@
   :global(html.pl-sidebar-open body) {
     padding-right: var(--pl-sidebar-width);
   }
-
-  /* The homepage theme-toggle + lab-trigger cluster is position:fixed, so body
-     padding can't move it — shift it left of the panel explicitly. */
-  :global(.theme-home-theme-toggle) {
-    transition: transform 240ms cubic-bezier(0.22, 1, 0.36, 1);
-  }
-
-  :global(html.pl-sidebar-open .theme-home-theme-toggle) {
-    transform: translateX(calc(-1 * var(--pl-sidebar-width)));
-  }
 }
 
 @media (prefers-reduced-motion: reduce) {
   .panel,
   .panelClosed,
   :global(body),
-  :global(.theme-home-theme-toggle),
   .groupCaret,
   .advancedCaret {
     transition: none;
@@ -242,10 +157,29 @@
   gap: 0.625rem;
 }
 
+/* The rainbow conic glyph is a deliberate brand mark for the color tool — it
+   intentionally spans the full spectrum (including cyan), which is the one
+   sanctioned exception to the no-cyan rule because it is the product's logo,
+   not a semantic/interactive color. It must read identically in both themes,
+   so its stops stay fixed seed colors rather than theme tokens. */
 .titleWheel {
+  position: relative;
+  display: inline-block;
   width: 1.6rem;
   height: 1.6rem;
   flex-shrink: 0;
+  border-radius: 50%;
+  background: conic-gradient(
+    from 0deg,
+    #ff4d6d,
+    #ffd166,
+    #06d6a0,
+    #4cc9f0,
+    #7b6cff,
+    #f15bb5,
+    #ff4d6d
+  );
+  box-shadow: inset 0 0 0 1px rgb(var(--c-white) / 0.4);
 }
 
 .titleWheel::after {
@@ -397,7 +331,7 @@
 /* The compact editing control: a full-width saturation/value rectangle over a
    full-width hue slider. It replaces the fixed 176px ring-plus-square wheel,
    which pinned more of the panel than the catalog beneath it. The rainbow wheel
-   still exists — as the brand glyph on the trigger and the header. */
+   still exists — as the brand glyph in the panel header. */
 .colorField {
   display: flex;
   flex-direction: column;

@@ -272,6 +272,7 @@ export const PALETTE_GROUPS: PaletteGroup[] = [
       color("--theme-article-route-active-secondary", "Active tab gradient — secondary"),
       raw("--theme-article-route-active-bg", "Active route — body"),
       color("--theme-article-route-active-text", "Active route — text"),
+      raw("--theme-article-route-active-shadow", "Active route — shadow"),
       color("--theme-article-reference-control-border", "Reference control — border"),
       raw("--theme-article-reference-control-bg", "Reference control — body"),
       color("--theme-article-reference-control-text", "Reference control — text"),

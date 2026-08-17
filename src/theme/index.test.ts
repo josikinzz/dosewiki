@@ -1,17 +1,20 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { SITE_FLAVOR_CONFIGS } from "@/config/siteFlavor";
 import {
-  DEFAULT_THEME,
-  SUPPORTED_THEMES,
-  THEME_META_COLORS,
+  APPEARANCE_META_COLORS,
+  COLOR_SCHEME_STORAGE_KEY,
+  DEFAULT_COLOR_SCHEME,
+  DEFAULT_VISUAL_STYLE,
+  SUPPORTED_COLOR_SCHEMES,
+  SUPPORTED_VISUAL_STYLES,
   THEME_META_ID,
-  THEME_STORAGE_KEY,
   THEME_TOKEN_INTERFACE,
+  VISUAL_STYLE_STORAGE_KEY,
   buildThemeBootstrapScript,
-  getInitialTheme,
-  getThemeMetaColor,
-  getThemeMetaColors,
-  isThemeName,
+  getAppearanceMetaColor,
+  getInitialAppearance,
+  isColorScheme,
+  isVisualStyle,
 } from "./index";
 import {
   DEFAULT_THEME_TOKEN_AUDIT_SCAN_ROOTS,
@@ -26,12 +29,8 @@ import {
 const DOSEWIKI = SITE_FLAVOR_CONFIGS.dosewiki;
 const EFFECT_INDEX = SITE_FLAVOR_CONFIGS.effectindex;
 
-function installMockStorage(value?: string) {
-  const store = new Map<string, string>();
-
-  if (value) {
-    store.set(THEME_STORAGE_KEY, value);
-  }
+function installMockStorage(stored: Record<string, string> = {}) {
+  const store = new Map(Object.entries(stored));
 
   Object.defineProperty(window, "localStorage", {
     configurable: true,
@@ -41,14 +40,6 @@ function installMockStorage(value?: string) {
         store.set(key, String(nextValue));
       },
     },
-  });
-}
-
-/** The reader-chooses bootstrap, built for the unlocked flavor rather than the ambient one. */
-function buildUnlockedBootstrapScript() {
-  return buildThemeBootstrapScript({
-    lockedTheme: DOSEWIKI.lockedTheme,
-    metaColors: getThemeMetaColors(DOSEWIKI),
   });
 }
 
@@ -65,17 +56,39 @@ describe("theme token interface", () => {
   beforeEach(() => {
     document.head.innerHTML = "";
     document.documentElement.removeAttribute("data-theme");
+    document.documentElement.removeAttribute("data-visual-style");
     document.documentElement.style.colorScheme = "";
   });
 
-  it("names the supported runtime themes and meta colors", () => {
+  it("names both appearance axes, their storage keys, and the meta-colour matrix", () => {
     expect(THEME_TOKEN_INTERFACE.name).toBe("dosewiki-theme-token-interface");
-    expect(SUPPORTED_THEMES).toEqual(["dark", "light"]);
-    expect(DEFAULT_THEME).toBe("dark");
-    expect(THEME_STORAGE_KEY).toBe("dosewiki-theme");
-    expect(getThemeMetaColor("dark")).toBe(THEME_META_COLORS.dark);
-    expect(isThemeName("light")).toBe(true);
-    expect(isThemeName("sepia")).toBe(false);
+    expect(SUPPORTED_COLOR_SCHEMES).toEqual(["light", "dark"]);
+    expect(SUPPORTED_VISUAL_STYLES).toEqual(["fun", "pro"]);
+    expect(DEFAULT_COLOR_SCHEME).toBe("dark");
+    expect(DEFAULT_VISUAL_STYLE).toBe("fun");
+    // The scheme key is unchanged from the single-axis era: saved day/night preferences have
+    // to survive the second axis arriving.
+    expect(COLOR_SCHEME_STORAGE_KEY).toBe("dosewiki-theme");
+    expect(VISUAL_STYLE_STORAGE_KEY).toBe("dosewiki-visual-style");
+
+    expect(isColorScheme("light")).toBe(true);
+    expect(isColorScheme("sepia")).toBe(false);
+    expect(isVisualStyle("fun")).toBe(true);
+    expect(isVisualStyle("pro")).toBe(true);
+    // The axes are not interchangeable: a scheme value is not a style value.
+    expect(isVisualStyle("dark")).toBe(false);
+    expect(isColorScheme("pro")).toBe(false);
+
+    // A complete matrix, because the pre-paint script uses it as the validity set for both
+    // stored preferences — a missing row would make a supported value look unsupported.
+    for (const visualStyle of SUPPORTED_VISUAL_STYLES) {
+      for (const colorScheme of SUPPORTED_COLOR_SCHEMES) {
+        expect(getAppearanceMetaColor({ colorScheme, visualStyle })).toBe(
+          APPEARANCE_META_COLORS[visualStyle][colorScheme],
+        );
+        expect(getAppearanceMetaColor({ colorScheme, visualStyle })).toMatch(/^#[0-9a-f]{6}$/);
+      }
+    }
   });
 
   it("exposes semantic classes and Tailwind aliases from the manifest", () => {
@@ -136,31 +149,51 @@ describe("theme token interface", () => {
     expect(THEME_TOKEN_INTERFACE.cssVariables.typography).toContain("--type-tracking-body");
   });
 
-  it("builds a bootstrap script from shared constants", () => {
-    installMockStorage("light");
+  it("restores both saved preferences before paint", () => {
+    installMockStorage({
+      [COLOR_SCHEME_STORAGE_KEY]: "light",
+      [VISUAL_STYLE_STORAGE_KEY]: "pro",
+    });
     const meta = ensureThemeMeta();
 
-    // Named the unlocked flavor explicitly: this case is about the reader-chooses path,
-    // which the ambient flavor may not be. No process.env mutation, just an argument.
-    Function(buildUnlockedBootstrapScript())();
+    // dose.wiki explicitly, not the ambient flavor: this is the both-axes-selectable path.
+    Function(buildThemeBootstrapScript(DOSEWIKI))();
 
     expect(document.documentElement.dataset.theme).toBe("light");
+    expect(document.documentElement.dataset.visualStyle).toBe("pro");
     expect(document.documentElement.style.colorScheme).toBe("light");
-    expect(meta.content).toBe(THEME_META_COLORS.light);
+    expect(meta.content).toBe(APPEARANCE_META_COLORS.pro.light);
   });
 
-  it("falls back to the default theme for unsupported stored values", () => {
-    installMockStorage("sepia");
+  it("falls back per axis, so one unsupported value cannot drag the other to its default", () => {
+    installMockStorage({
+      [COLOR_SCHEME_STORAGE_KEY]: "sepia",
+      [VISUAL_STYLE_STORAGE_KEY]: "pro",
+    });
     const meta = ensureThemeMeta();
 
-    Function(buildUnlockedBootstrapScript())();
+    Function(buildThemeBootstrapScript(DOSEWIKI))();
 
-    expect(document.documentElement.dataset.theme).toBe(DEFAULT_THEME);
-    expect(document.documentElement.style.colorScheme).toBe(DEFAULT_THEME);
-    expect(meta.content).toBe(THEME_META_COLORS.dark);
+    expect(document.documentElement.dataset.theme).toBe(DOSEWIKI.defaultColorScheme);
+    expect(document.documentElement.dataset.visualStyle).toBe("pro");
+    expect(meta.content).toBe(APPEARANCE_META_COLORS.pro.dark);
   });
 
-  it("falls back to the default theme when the unlocked path throws", () => {
+  it("keeps a supported scheme when the saved style is unsupported", () => {
+    installMockStorage({
+      [COLOR_SCHEME_STORAGE_KEY]: "light",
+      [VISUAL_STYLE_STORAGE_KEY]: "journal",
+    });
+    const meta = ensureThemeMeta();
+
+    Function(buildThemeBootstrapScript(DOSEWIKI))();
+
+    expect(document.documentElement.dataset.theme).toBe("light");
+    expect(document.documentElement.dataset.visualStyle).toBe(DOSEWIKI.defaultVisualStyle);
+    expect(meta.content).toBe(APPEARANCE_META_COLORS.fun.light);
+  });
+
+  it("falls back to both declared defaults when storage throws", () => {
     Object.defineProperty(window, "localStorage", {
       configurable: true,
       value: {
@@ -171,66 +204,63 @@ describe("theme token interface", () => {
     });
     ensureThemeMeta();
 
-    Function(buildThemeBootstrapScript({ lockedTheme: null }))();
+    Function(buildThemeBootstrapScript(DOSEWIKI))();
 
-    expect(document.documentElement.dataset.theme).toBe(DEFAULT_THEME);
-    expect(document.documentElement.style.colorScheme).toBe(DEFAULT_THEME);
+    expect(document.documentElement.dataset.theme).toBe(DOSEWIKI.defaultColorScheme);
+    expect(document.documentElement.dataset.visualStyle).toBe(DOSEWIKI.defaultVisualStyle);
+    expect(document.documentElement.style.colorScheme).toBe(DOSEWIKI.defaultColorScheme);
   });
 
-  it("tints a locked flavor's pinned theme with its manifest colour", () => {
-    // dose.wiki lets readers choose, so its map is the shared one, unchanged.
-    expect(getThemeMetaColors(DOSEWIKI)).toBe(THEME_META_COLORS);
-    expect(getInitialTheme(DOSEWIKI)).toBe(DEFAULT_THEME);
-
-    expect(getThemeMetaColors(EFFECT_INDEX)).toEqual({
-      dark: THEME_META_COLORS.dark,
-      light: EFFECT_INDEX.manifest.themeColor,
+  it("opens each publication on its own declared appearance", () => {
+    expect(getInitialAppearance(DOSEWIKI)).toEqual({ colorScheme: "dark", visualStyle: "fun" });
+    expect(getInitialAppearance(EFFECT_INDEX)).toEqual({
+      colorScheme: "light",
+      visualStyle: "pro",
     });
-    expect(getThemeMetaColor("light", EFFECT_INDEX)).toBe(EFFECT_INDEX.manifest.themeColor);
-    expect(getThemeMetaColor("light", EFFECT_INDEX)).not.toBe(THEME_META_COLORS.light);
-    expect(getInitialTheme(EFFECT_INDEX)).toBe(EFFECT_INDEX.lockedTheme);
+    // The locked style's light tint is that publication's own manifest colour, so the address
+    // bar and the installed app agree instead of flashing the shared lilac-white.
+    expect(getAppearanceMetaColor(getInitialAppearance(EFFECT_INDEX))).toBe(
+      EFFECT_INDEX.manifest.themeColor,
+    );
   });
 
-  it("applies a locked theme without consulting the stored preference", () => {
-    installMockStorage("dark");
+  it("applies a locked style without ever consulting its storage key", () => {
+    installMockStorage({
+      [COLOR_SCHEME_STORAGE_KEY]: "dark",
+      [VISUAL_STYLE_STORAGE_KEY]: "fun",
+    });
     const getItem = vi.spyOn(window.localStorage, "getItem");
     const meta = ensureThemeMeta();
-    const script = buildThemeBootstrapScript({
-      lockedTheme: "light",
-      metaColors: getThemeMetaColors(EFFECT_INDEX),
-    });
+    const script = buildThemeBootstrapScript(EFFECT_INDEX);
 
     Function(script)();
 
-    expect(document.documentElement.dataset.theme).toBe("light");
-    expect(document.documentElement.style.colorScheme).toBe("light");
-    expect(meta.content).toBe(EFFECT_INDEX.manifest.themeColor);
-    // Skipped entirely, not read and then overridden.
-    expect(getItem).not.toHaveBeenCalled();
-    expect(script).not.toContain(THEME_STORAGE_KEY);
+    // The saved Fun choice is not read and then overridden: the key is not in the script.
+    expect(script).not.toContain(VISUAL_STYLE_STORAGE_KEY);
+    expect(getItem.mock.calls.flat()).toEqual([COLOR_SCHEME_STORAGE_KEY]);
+    expect(document.documentElement.dataset.visualStyle).toBe("pro");
+    // The unlocked axis still restores, so a locked style does not cost night mode.
+    expect(document.documentElement.dataset.theme).toBe("dark");
+    expect(meta.content).toBe(APPEARANCE_META_COLORS.pro.dark);
   });
 
-  it("still applies the locked theme when the locked path throws", () => {
-    installMockStorage("dark");
+  it("lands both root attributes even when the meta lookup throws", () => {
+    installMockStorage({ [COLOR_SCHEME_STORAGE_KEY]: "dark" });
     const meta = ensureThemeMeta();
     const getElementById = vi.spyOn(document, "getElementById").mockImplementation(() => {
       throw new Error("meta lookup blocked");
     });
 
     try {
-      Function(
-        buildThemeBootstrapScript({
-          lockedTheme: "light",
-          metaColors: getThemeMetaColors(EFFECT_INDEX),
-        }),
-      )();
+      Function(buildThemeBootstrapScript(EFFECT_INDEX))();
     } finally {
       getElementById.mockRestore();
     }
 
-    // The shared catch must not fall back to DEFAULT_THEME ("dark") on a light-locked site.
-    expect(document.documentElement.dataset.theme).toBe("light");
-    expect(document.documentElement.style.colorScheme).toBe("light");
+    // A broken chrome tint costs the reader their tint, never their appearance.
+    expect(document.documentElement.dataset.theme).toBe("dark");
+    expect(document.documentElement.dataset.visualStyle).toBe("pro");
+    expect(document.documentElement.style.colorScheme).toBe("dark");
     expect(meta.content).toBe("");
   });
 });

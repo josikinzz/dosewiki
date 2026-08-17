@@ -58,7 +58,6 @@ describe("route chrome model", () => {
     ]);
     expect(model.footerNavItems).toEqual([]);
     expect(model.footerExternalNavItems).toEqual([]);
-    expect(model.footerShowsThemeToggle).toBe(true);
   });
 
   it("uses the canonical header icons for primary home navigation", () => {
@@ -86,7 +85,7 @@ describe("route chrome model", () => {
     expect(getRouteChromePageTitle({ type: "replications" }, EFFECT_INDEX)).toBe("Replications");
   });
 
-  it("orders Effect Index navigation from its config and drops the theme toggle", () => {
+  it("orders Effect Index navigation from its config", () => {
     const model = getRouteChromeModel("/replications/audio", null, EFFECT_INDEX);
 
     expect(model.pageTitle).toBe("Replications");
@@ -98,7 +97,6 @@ describe("route chrome model", () => {
     expect(model.secondaryNavItems.map((item) => [item.id, item.href, item.mobileLabel])).toEqual([
       ["about", "/about", "Project"],
     ]);
-    expect(model.footerShowsThemeToggle).toBe(false);
   });
 
   it("uses the canonical header icons for Effect Index navigation", () => {

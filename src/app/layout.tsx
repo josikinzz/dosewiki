@@ -2,32 +2,31 @@ import type { Metadata } from "next";
 import { env } from "node:process";
 import Script from "next/script";
 import { PUBLIC_SITE, buildSiteAssetUrl, buildSiteUrl } from "@server/next/publicSite";
-import { SITE_FLAVOR, SITE_FLAVOR_CONFIG, isEffectIndex } from "@/config/siteFlavor";
+import { SITE_FLAVOR, SITE_FLAVOR_CONFIG } from "@/config/siteFlavor";
 import { buildZodJitlessBootstrapScript } from "@server/next/zodBrowserPolicy";
 import {
   THEME_META_ID,
   buildThemeBootstrapScript,
-  getInitialTheme,
-  getThemeMetaColor,
+  getAppearanceMetaColor,
+  getInitialAppearance,
 } from "@/theme";
-import { buildPaletteLabBootstrapScript } from "@/features/theme-lab/paletteLabBootstrap";
-import { siteFont } from "./fonts";
+import { ThemeProvider } from "@/context/ThemeContext";
+import { proFont, siteFont } from "./fonts";
 import { RouteChrome, RouteFooter } from "./_components/RouteChrome";
 import { ApprovedPublicAnalytics } from "./_components/ApprovedPublicAnalytics";
-import { PaletteLab } from "@/features/theme-lab";
 import "@site-styles";
 
-// Both read the flavor's `lockedTheme`: the bootstrap applies it without consulting the
-// stored preference, and the layout renders the matching theme-colour meta value (plus a
-// server-rendered `data-theme`) so a locked flavor never paints the wrong theme first.
+// One appearance policy feeds all three resolvers, so they cannot disagree: the server
+// renders both root attributes and the matching browser-chrome tint, the pre-paint script
+// re-resolves each axis from storage, and the provider adopts whatever was painted.
+const initialAppearance = getInitialAppearance();
+const initialThemeMetaColor = getAppearanceMetaColor(initialAppearance);
 const themeBootstrap = buildThemeBootstrapScript();
-const initialTheme = getInitialTheme();
-const initialThemeMetaColor = getThemeMetaColor(initialTheme);
-const lockedTheme = SITE_FLAVOR_CONFIG.lockedTheme ?? undefined;
+const isVisualStyleLocked = !SITE_FLAVOR_CONFIG.showVisualStyleToggle;
 const zodJitlessBootstrap = buildZodJitlessBootstrapScript();
-// Only the flavor that offers the lab: Effect Index wears a locked skin, never
-// mounts the lab, and must keep its head byte-identical.
-const paletteLabBootstrap = isEffectIndex() ? null : buildPaletteLabBootstrapScript();
+// Both faces are registered in both builds so the Fun/Pro choice is a style switch, not a
+// reload. `proFont` sets `preload: false`, so a Fun reader downloads none of it.
+const rootFontClassName = `${siteFont.variable} ${proFont.variable}`;
 const homeConstructionMode = env.NEXT_PUBLIC_HOME_CONSTRUCTION_MODE === "true";
 
 export const metadata: Metadata = {
@@ -72,30 +71,22 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html
       lang="en"
       data-site={SITE_FLAVOR}
-      data-theme={lockedTheme}
+      data-theme={initialAppearance.colorScheme}
+      data-visual-style={initialAppearance.visualStyle}
       suppressHydrationWarning
-      className={siteFont.variable}
+      className={rootFontClassName}
     >
       <head>
         <meta id={THEME_META_ID} name="theme-color" content={initialThemeMetaColor} />
-        {/* Raw inline, in <head>, on purpose: `next/script`'s beforeInteractive
-            strategy compiles to a body-side queue push, which is after the head
-            has been parsed and so cannot be a *pre*-paint restore. Rendered
-            after the stylesheet links, so the element it injects lands later in
-            the head and its rules win ties against the compiled preset blocks. */}
-        {paletteLabBootstrap ? (
-          <script
-            id="palette-lab-bootstrap"
-            dangerouslySetInnerHTML={{ __html: paletteLabBootstrap }}
-          />
-        ) : null}
+        {/* Raw inline, in <head>, on purpose: `next/script`'s beforeInteractive strategy
+            compiles to a body-side queue push, which runs after the head has been parsed
+            and so cannot be a *pre*-paint restore. This script is the only thing standing
+            between a reader with a saved preference and a frame of the wrong appearance. */}
+        <script id="theme-bootstrap" dangerouslySetInnerHTML={{ __html: themeBootstrap }} />
       </head>
       <body className="app-container theme-page-shell relative">
         <Script id="zod-jitless-bootstrap" strategy="beforeInteractive">
           {zodJitlessBootstrap}
-        </Script>
-        <Script id="theme-bootstrap" strategy="beforeInteractive">
-          {themeBootstrap}
         </Script>
         <ApprovedPublicAnalytics />
         <span data-nosnippet>
@@ -106,16 +97,19 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             Skip to main content
           </a>
         </span>
-        <RouteChrome homeConstructionMode={homeConstructionMode} />
-        <div className="app-content relative">
-          <div className="flex-1">
-            {children}
+        <ThemeProvider
+          initialColorScheme={initialAppearance.colorScheme}
+          initialVisualStyle={initialAppearance.visualStyle}
+          isVisualStyleLocked={isVisualStyleLocked}
+        >
+          <RouteChrome homeConstructionMode={homeConstructionMode} />
+          <div className="app-content relative">
+            <div className="flex-1">
+              {children}
+            </div>
+            <RouteFooter />
           </div>
-          <RouteFooter />
-        </div>
-        {/* Single global instance: a right-docked sidebar that persists across
-            navigation (including the homepage) and portals itself to <body>. */}
-        <PaletteLab />
+        </ThemeProvider>
       </body>
     </html>
   );

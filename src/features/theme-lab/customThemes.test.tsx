@@ -1,21 +1,21 @@
-import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
+import { act, cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { AppearanceTestProvider } from "@/test/AppearanceTestProvider";
 import { PaletteLabLazy as PaletteLab } from "./PaletteLabLazy";
-import { PaletteLabTrigger } from "./PaletteLabTrigger";
-import { buildPaletteLabBootstrapScript } from "./paletteLabBootstrap";
 import { PALETTE_ATTRIBUTE, PALETTE_LAB_OVERRIDE_STYLE_ID } from "./paletteLabStorage";
 import { setPaletteLabOpen } from "./paletteLabStore";
 import { clearThemeBaselineCache } from "./presetBaselines";
 
 /**
  * Named custom theme slots, through the suite's one seam: *stored envelope in →
- * applied document state out*. Everything asserted here is something a visitor
+ * applied document state out*. Everything asserted here is something an editor
  * can observe — which card is worn, what the injected override element says,
  * which palette the root names, and what ends up in storage.
  *
- * The pre-paint case is the integration proof that a slot rides the same
- * bootstrap path as a shipped preset rather than needing the panel to open.
+ * The revisit case is the integration proof that a slot is restored by the
+ * runtime on the next visit to the tool route, rather than needing the panel to
+ * be opened again.
  */
 
 const STORAGE_KEY = "dosewiki-palette-lab";
@@ -65,13 +65,9 @@ function stored() {
 }
 
 async function openPanel() {
-  render(
-    <>
-      <PaletteLabTrigger />
-      <PaletteLab />
-    </>,
-  );
-  await userEvent.click(await screen.findByRole("button", { name: /Open Theme Lab/i }));
+  // The protected /dev/themes route owns the open state; the mount reads it.
+  render(<AppearanceTestProvider><PaletteLab /></AppearanceTestProvider>);
+  act(() => setPaletteLabOpen(true));
   return screen.findByRole("dialog", { name: "Theme Lab" });
 }
 
@@ -223,21 +219,23 @@ describe("Theme Lab custom themes", { timeout: 20_000 }, () => {
     });
   });
 
-  it("restores a saved theme pre-paint, with no panel and no flash", async () => {
+  it("restores a saved theme on the next visit, with no panel opened", async () => {
     const panel = await openPanel();
     await editAccent(panel, "#abcdef");
     await showGallery(panel);
     await saveAs(panel, "Midnight");
     await waitFor(() => expect(stored().customThemes).toHaveLength(1));
 
-    // A hard refresh: nothing of the applied look survives into the new
-    // document, and only the head script has run.
-    document.getElementById(PALETTE_LAB_OVERRIDE_STYLE_ID)?.remove();
-    document.documentElement.removeAttribute(PALETTE_ATTRIBUTE);
-    Function(buildPaletteLabBootstrapScript())();
+    // Leaving the tool route takes the palette off the document with it.
+    cleanup();
+    expect(palette()).toBeNull();
 
+    // Coming back re-reads storage and repaints the slot, editor unopened.
+    render(<AppearanceTestProvider><PaletteLab /></AppearanceTestProvider>);
+
+    await waitFor(() => expect(injectedCss()).toContain("--theme-accent:#abcdef"));
     expect(palette()).toBe("orchid");
-    expect(injectedCss()).toContain("--theme-accent:#abcdef");
+    expect(screen.queryByRole("dialog", { name: "Theme Lab" })).not.toBeInTheDocument();
   });
 
   it("round-trips a saved theme through export", async () => {

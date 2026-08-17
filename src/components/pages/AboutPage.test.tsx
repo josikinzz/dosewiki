@@ -8,6 +8,7 @@ import {
   selectAboutContributors,
 } from "@/data/contributorRoster";
 import type { NormalizedUserProfile } from "@/data/userProfiles";
+import { AppearanceTestProvider } from "@/test/AppearanceTestProvider";
 import { AboutPage } from "./AboutPage";
 
 /** Flavored: "Documentation" on dose.wiki, "Licensing & Contact" on Effect Index. */
@@ -54,13 +55,15 @@ function renderAboutPage(
   overrides: Partial<React.ComponentProps<typeof AboutPage>> = {},
 ) {
   return render(
-    <AboutPage
-      founderProfiles={founderProfiles}
-      previewSnapshots={[]}
-      missionContent={<p>Mission test copy for harm reduction.</p>}
-      moleculeCount={572}
-      {...overrides}
-    />,
+    <AppearanceTestProvider>
+      <AboutPage
+        founderProfiles={founderProfiles}
+        previewSnapshots={[]}
+        missionContent={<p>Mission test copy for harm reduction.</p>}
+        moleculeCount={572}
+        {...overrides}
+      />
+    </AppearanceTestProvider>,
   );
 }
 

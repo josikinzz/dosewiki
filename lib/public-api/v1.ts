@@ -160,6 +160,9 @@ export function projectPublicApiSubstanceDetail(
       schemes: {
         dosewiki: { url: `${PUBLIC_API_BASE_PATH}/molecules/${article.slug}.svg?scheme=dosewiki` },
         "effect-index": { url: `${PUBLIC_API_BASE_PATH}/molecules/${article.slug}.svg?scheme=effect-index` },
+        "effect-index-dark": {
+          url: `${PUBLIC_API_BASE_PATH}/molecules/${article.slug}.svg?scheme=effect-index-dark`,
+        },
       },
     },
     url: `https://dose.wiki/${article.slug}`,

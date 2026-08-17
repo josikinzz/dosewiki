@@ -973,7 +973,7 @@ html[data-palette="yuletide"][data-theme="light"] {
   --theme-scroll-thumb-hover-bg: radial-gradient(circle at 12% 0%, color-mix(in srgb, oklch(76% 0.140 25) 78%, var(--theme-scroll-track)), color-mix(in srgb, oklch(50% 0.140 25) 64%, var(--theme-scroll-track)) 42%), linear-gradient(135deg, color-mix(in srgb, oklch(50% 0.140 25) 64%, var(--theme-scroll-track)), color-mix(in srgb, oklch(42% 0.140 25) 54%, var(--theme-scroll-track)));
 }
 
-/* Journal — Paper, ink, and one deep teal — the formal register, flat and sharp. */
+/* Letterpress — Paper, ink, and one deep teal — flat and sharp. */
 html[data-palette="journal"][data-theme="dark"],
 html[data-palette="journal"][data-theme="light"] .theme-chrome-dark {
   --h-brand: 175;

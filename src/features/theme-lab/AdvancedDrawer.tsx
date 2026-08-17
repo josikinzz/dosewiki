@@ -1,6 +1,6 @@
 "use client";
 
-import type { ThemeName } from "@/context/ThemeContext";
+import type { ColorScheme } from "@/context/ThemeContext";
 import { Icon } from "@/components/common/Icon";
 import { PanelButton, PanelDisclosure, PanelIconButton, PanelTextarea } from "./panelKit";
 import styles from "./PaletteLab.module.css";
@@ -15,7 +15,7 @@ import styles from "./PaletteLab.module.css";
  */
 
 interface AdvancedDrawerProps {
-  theme: ThemeName;
+  theme: ColorScheme;
   open: boolean;
   onToggle: () => void;
   copied: boolean;

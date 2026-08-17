@@ -2,20 +2,26 @@ import type { PalettePreset, PresetOverrides, ThemeOverrideMap } from "./palette
 import { getFontChoice } from "./paletteTokensFonts";
 
 /**
- * Journal — the Effect Index aesthetic worn by dosewiki: warm paper, near-black
- * ink, a single deep teal, sharp corners, formal Titillium type, and almost no
- * depth. Values are *read from* the Effect Index skin (`effectindex-theme.css`
- * seeds like paper #f6f5f1 / ink #333 / teal #3d9991, its 0.1875–0.375rem
- * radii, its flattened elevations); the skin itself is untouched and the
- * Effect Index flavor never renders through this preset.
+ * Letterpress — a Fun palette in the flat, printed register: warm paper,
+ * near-black ink, a single deep teal, sharp corners, formal Titillium type, and
+ * almost no depth. Its values are *read from* the Pro skin
+ * (`src/styles/pro-theme.css` seeds like paper #f6f5f1 / ink #333 / teal
+ * #3d9991, its 0.1875–0.375rem radii, its flattened elevations).
  *
- * Deliberately excluded: Effect Index layout, page structure, navigation
- * composition, and voice — this is a token bundle, dosewiki wearing the
- * sibling's flavor, not an impersonation of the site.
+ * It is not the Pro visual style and must not be presented as one. Pro is a
+ * selectable style with its own stylesheet, typography and structure; this is a
+ * palette the Theme Lab can edit, wearing Pro's colours over Fun's layout.
  *
- * Dark mode has no Effect Index original (that site is light-locked), so it is
- * an adaptation in the same register: charcoal chrome, muted ink-on-dark, the
- * skin's own on-dark teal — restrained rather than inventive.
+ * The stored id stays `journal`. It is a saved value in editors' browsers, and
+ * renaming it would silently retire every palette saved against it — only the
+ * public label changed.
+ *
+ * Its dark register (charcoal chrome, muted ink-on-dark, the on-dark teal) is
+ * this palette's own adaptation, sampled before Pro grew a dark scheme; the two
+ * are close, but `pro-theme.css` is the authority for Pro.
+ *
+ * Deliberately excluded: Pro's layout, page structure, navigation composition,
+ * and voice — this is a token bundle, not an impersonation.
  *
  * Kept as a sibling module so `palettePresets.ts` stays under its cleanup
  * budget; the preset registers in `PALETTE_PRESETS` there like any other.
@@ -31,8 +37,8 @@ function split(
   return { dark: { ...shared, ...dark }, light: { ...shared, ...light } };
 }
 
-/** The journal look carries almost no depth: functional shadows stay as faint
- *  ink washes, decorative lifts and glows go entirely. */
+/** The letterpress look carries almost no depth: functional shadows stay as
+ *  faint ink washes, decorative lifts and glows go entirely. */
 const FLAT_ELEVATIONS: ThemeOverrideMap = {
   "--theme-elevation-sm": "0 1px 2px 0 rgb(51 51 51 / 0.06)",
   "--theme-elevation-lg": "0 2px 6px -1px rgb(51 51 51 / 0.08)",
@@ -61,9 +67,11 @@ const FLAT_ELEVATIONS: ThemeOverrideMap = {
 };
 
 export const journal: PalettePreset = {
+  // Frozen: this id is a saved value in editors' browsers. Only `name` and
+  // `tagline` are the public label, and only they were renamed.
   id: "journal",
-  name: "Journal",
-  tagline: "Paper, ink, and one deep teal — the formal register, flat and sharp.",
+  name: "Letterpress",
+  tagline: "Paper, ink, and one deep teal — flat and sharp.",
   swatch: {
     dark: ["#262626", "#2e2e2e", "#f2f2f0", "#8a8a8a", "#6fc4bb"],
     light: ["#f6f5f1", "#fbfaf8", "#333333", "#6b6b6b", "#3d9991"],
@@ -90,10 +98,10 @@ export const journal: PalettePreset = {
       "--c-fuchsia-700": "#27635d",
       "--c-violet-200": "#d5e5e3",
       "--c-violet-700": "#1f4a45",
-      // The journal wears its type formally: Titillium for body and display.
+      // Letterpress wears its type formally: Titillium for body and display.
       "--font-family-body": titillium,
       "--font-family-display": titillium,
-      // Sharp corners, straight from the Effect Index scale.
+      // Sharp corners, straight from the Pro scale.
       "--radius": "0.375rem",
       "--radius-xl": "0.25rem",
       "--radius-2xl": "0.375rem",

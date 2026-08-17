@@ -1,11 +1,10 @@
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
-import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
+import { act, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { AppearanceTestProvider } from "@/test/AppearanceTestProvider";
 import { PaletteLabLazy as PaletteLab } from "./PaletteLabLazy";
-import { PaletteLabTrigger } from "./PaletteLabTrigger";
-import { buildPaletteLabBootstrapScript } from "./paletteLabBootstrap";
 import {
   PALETTE_ATTRIBUTE,
   PALETTE_LAB_OVERRIDE_STYLE_ID,
@@ -29,11 +28,11 @@ import {
  * *stored envelope in → applied document state out*.
  *
  * Nothing here asserts on a component's internal state. A seed edit is only
- * real if it reaches the injected override element, the persisted envelope, and
- * the pre-paint bootstrap's output — the same three places a color edit has to
- * reach. What a seed adds on top is *reach*: jsdom cannot resolve the OKLCH
- * cascade, so the proof that one nudge re-hues whole families is asserted where
- * the derivation actually lives — the stylesheet.
+ * real if it reaches the injected override element and the persisted envelope —
+ * the same two places a color edit has to reach. Hue seeds drive derived colors
+ * through the stylesheet's own cascade, so the proof that one nudge re-hues
+ * whole families is asserted where the derivation actually lives — the
+ * stylesheet.
  */
 
 vi.mock("@/components/common/Icon", () => ({
@@ -87,13 +86,8 @@ function envelope(edits: Record<string, string>, presetId = "orchid") {
 }
 
 async function openPanel() {
-  render(
-    <>
-      <PaletteLabTrigger />
-      <PaletteLab />
-    </>,
-  );
-  await userEvent.click(await screen.findByRole("button", { name: /Open Theme Lab/i }));
+  render(<AppearanceTestProvider><PaletteLab /></AppearanceTestProvider>);
+  act(() => setPaletteLabOpen(true));
   const panel = await screen.findByRole("dialog", { name: "Theme Lab" });
   await userEvent.click(within(panel).getByRole("button", { name: /All colors/ }));
   return panel;
@@ -206,21 +200,12 @@ describe("hue seed edits through the lab's seam", { timeout: 15_000 }, () => {
   it("applies a saved hue seed on load with the panel never opened", async () => {
     installMockStorage(envelope({ "--h-brand": "200", "--h-plum": "210" }));
 
-    render(<PaletteLab />);
+    render(<AppearanceTestProvider><PaletteLab /></AppearanceTestProvider>);
 
     await waitFor(() => expect(overrideCss()).toContain("--h-brand:200"));
     expect(overrideCss()).toContain("--h-plum:210");
     expect(overrideCss()).toContain('html[data-theme="dark"]');
     expect(screen.queryByRole("dialog", { name: "Theme Lab" })).not.toBeInTheDocument();
-  });
-
-  it("restores a saved hue seed before first paint, so the palette never flashes", () => {
-    installMockStorage(envelope({ "--h-brand": "120" }));
-
-    // The bootstrap runs from <head>, before the app exists at all.
-    Function(buildPaletteLabBootstrapScript())();
-
-    expect(overrideCss()).toContain("--h-brand:120");
   });
 
   it("nudges a seed and persists it scoped to the active theme", async () => {

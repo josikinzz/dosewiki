@@ -1,7 +1,9 @@
-import { render, screen } from "@testing-library/react";
+import { render, screen, within } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 
 import { SITE_FLAVOR_CONFIGS } from "@/config/siteFlavor";
+import type * as SiteFlavorModule from "@/config/siteFlavor";
+import { ThemeProvider } from "@/context/ThemeContext";
 import { HomeExperience } from "./HomeExperience";
 import { buildHomeQuickLinks } from "./homeQuickLinks";
 
@@ -23,7 +25,7 @@ vi.mock("next/navigation", () => ({
  * behaviour when handed an explicit config; only the ambient default moves.
  */
 vi.mock("@/config/siteFlavor", async (importOriginal) => {
-  const actual = await importOriginal<typeof import("@/config/siteFlavor")>();
+  const actual = await importOriginal<typeof SiteFlavorModule>();
   return {
     ...actual,
     SITE_FLAVOR_CONFIG: actual.SITE_FLAVOR_CONFIGS.dosewiki,
@@ -39,8 +41,17 @@ vi.mock("@/config/siteFlavor", async (importOriginal) => {
 describe("dose.wiki homepage", () => {
   const quickLinks = buildHomeQuickLinks(SITE_FLAVOR_CONFIGS.dosewiki);
 
+  // The floating appearance cluster is provider-backed, so the page needs one mounted.
+  // Values are explicit so the file reads the same under either build flavor.
+  const renderHome = () =>
+    render(
+      <ThemeProvider initialColorScheme="dark" initialVisualStyle="fun" isVisualStyleLocked={false}>
+        <HomeExperience quickLinks={quickLinks} />
+      </ThemeProvider>,
+    );
+
   it("renders the wordmark hero over the tile grid", () => {
-    render(<HomeExperience quickLinks={quickLinks} showThemeToggle={false} showPaletteLabTrigger={false} />);
+    renderHome();
 
     const heading = screen.getByRole("heading", { level: 1 });
 
@@ -52,7 +63,7 @@ describe("dose.wiki homepage", () => {
   });
 
   it("keeps all five quick-link tiles, in the flavor's declared order", () => {
-    render(<HomeExperience quickLinks={quickLinks} showThemeToggle={false} showPaletteLabTrigger={false} />);
+    renderHome();
 
     const tiles = screen.getByRole("navigation", { name: "App sections" });
     const links = Array.from(tiles.querySelectorAll("a"));
@@ -74,7 +85,7 @@ describe("dose.wiki homepage", () => {
   });
 
   it("splits the five tiles into centred 3 + 2 rows with row-scoped spacing", () => {
-    render(<HomeExperience quickLinks={quickLinks} showThemeToggle={false} showPaletteLabTrigger={false} />);
+    renderHome();
 
     const tiles = screen.getByRole("navigation", { name: "App sections" });
     const rows = Array.from(tiles.children);
@@ -89,10 +100,27 @@ describe("dose.wiki homepage", () => {
   });
 
   it("does not render any Effect Index homepage panel", () => {
-    render(<HomeExperience quickLinks={quickLinks} showThemeToggle={false} showPaletteLabTrigger={false} />);
+    renderHome();
 
     for (const title of ["Substance Summaries", "Featured Effects", "Featured Reports"]) {
       expect(screen.queryByText(title)).toBeNull();
     }
+  });
+
+  it("floats the same appearance group the footer uses, and nothing else", () => {
+    renderHome();
+
+    const group = screen.getByRole("group", { name: "Appearance" });
+
+    // Positioning lives on the group itself: `theme-home-theme-toggle` is the hook the
+    // search-mode rules reposition, so an extra wrapper would break that offset.
+    expect(group.className).toMatch(/theme-home-theme-toggle/);
+    expect(
+      within(group)
+        .getAllByRole("button")
+        .map((button) => button.dataset.appearanceAxis),
+    ).toEqual(["color-scheme", "visual-style"]);
+    // No editor tooling on the public homepage.
+    expect(screen.queryByRole("button", { name: /theme lab/i })).not.toBeInTheDocument();
   });
 });

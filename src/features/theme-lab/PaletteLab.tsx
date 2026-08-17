@@ -2,12 +2,7 @@
 
 import { useCallback, useEffect, useId, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import {
-  applyThemeToDocument,
-  persistTheme,
-  readInitialTheme,
-  type ThemeName,
-} from "@/context/ThemeContext";
+import { useTheme, type ColorScheme } from "@/context/ThemeContext";
 import { Icon } from "@/components/common/Icon";
 import { AngleField } from "./AngleField";
 import { ColorField } from "./ColorField";
@@ -88,19 +83,20 @@ const VIEW_TABS: { mode: ViewMode; label: string; hint: string }[] = [
   },
 ];
 
-const THEMES: ThemeName[] = ["dark", "light"];
+const THEMES: ColorScheme[] = ["dark", "light"];
 const FALLBACK: Rgba = { r: 0, g: 0, b: 0, a: 1 };
 
 export function PaletteLab() {
   const [mounted, setMounted] = useState(false);
   // The raw-value field is a kit Textarea, so its caption pairs by id.
   const rawFieldId = useId();
-  // Open state lives in a shared store so the footer / homepage triggers can
-  // drive this single globally-mounted panel.
+  // Open state lives in a shared store so the protected /dev/themes route, which owns it, can
+  // drive this portalled panel.
   const open = usePaletteLabOpen();
-  // The theme itself belongs to the always-mounted runtime, which restored it
-  // before this panel ever loaded. The editor is a subscriber and a writer, not
-  // the owner: it never reads or writes storage, and never injects CSS.
+  // The theme belongs to the route's runtime, which restored it as the route
+  // mounted and before this chunk finished loading. The editor is a subscriber
+  // and a writer, not the owner: it never reads or writes storage, and never
+  // injects CSS.
   const themeState = usePaletteLabTheme();
   const { activeThemeRef, customThemes, storageOk } = themeState;
   // Edits belong to the theme they diverge from, so everything the editor shows
@@ -111,7 +107,10 @@ export function PaletteLab() {
     () => baseOverrides({ activeThemeRef, customThemes, editsByPreset: {} }),
     [activeThemeRef, customThemes],
   );
-  const [theme, setTheme] = useState<ThemeName>("dark");
+  // The scheme being edited is the reader's own scheme, borrowed from the one appearance
+  // owner: switching it here is the same switch the site's Day/Night control makes, so the
+  // editor stays in step with the page it is editing without writing the document itself.
+  const { colorScheme: theme, setColorScheme } = useTheme();
   const [defaults, setDefaults] = useState<ThemeDefaults | null>(null);
   // Gallery-first: the panel lands on the shipped looks, and nothing is
   // selected for editing until the visitor picks a swatch.
@@ -144,7 +143,6 @@ export function PaletteLab() {
 
   useEffect(() => {
     setMounted(true);
-    setTheme(readInitialTheme());
   }, []);
 
   // Revert baselines are this theme's own values, re-sampled (and cached) when
@@ -154,19 +152,6 @@ export function PaletteLab() {
     if (!mounted) return;
     setDefaults(getThemeBaselines(baseKey, base));
   }, [mounted, baseKey, base]);
-
-  useEffect(() => {
-    if (!mounted) return;
-    const root = document.documentElement;
-    const observer = new MutationObserver(() => {
-      const next = root.dataset.theme;
-      if (next === "dark" || next === "light") {
-        setTheme((current) => (current === next ? current : next));
-      }
-    });
-    observer.observe(root, { attributes: true, attributeFilter: ["data-theme"] });
-    return () => observer.disconnect();
-  }, [mounted]);
 
   // What actually renders: the active theme's base layer with its own edits on
   // top (the visitor wins per token).
@@ -336,12 +321,13 @@ export function PaletteLab() {
     [revealEditor],
   );
 
-  const setEditingTheme = useCallback((next: ThemeName) => {
-    setTheme(next);
-    applyThemeToDocument(next);
-    persistTheme(next);
-    setEpoch((value) => value + 1);
-  }, []);
+  const setEditingTheme = useCallback(
+    (next: ColorScheme) => {
+      setColorScheme(next);
+      setEpoch((value) => value + 1);
+    },
+    [setColorScheme],
+  );
 
   /** Changing view never selects anything: the editor stays collapsed until the
    *  visitor picks a swatch, which is what gives the catalog its rows back. */
@@ -639,8 +625,8 @@ export function PaletteLab() {
     setEpoch((value) => value + 1);
   }, [editIds, theme]);
 
-  // The trigger lives elsewhere (footer / homepage); this component is only the
-  // globally-mounted panel, so render nothing until mounted or while closed.
+  // The panel is mounted only by the protected /dev/themes route, which owns its open state;
+  // render nothing until mounted or while closed.
   if (!mounted) return null;
 
   const panel = (

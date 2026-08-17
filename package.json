@@ -96,6 +96,7 @@
     "legality:apply": "node scripts/legality/apply-draft.mjs",
     "legality:cite": "node scripts/legality/apply-citations.mjs",
     "scry:query": "node scripts/scry-query.mjs",
+    "reports:format-flat": "node scripts/reports/format-flat-trip-report.mjs",
     "prototype:trip-report-submissions": "bun src/features/reports/prototypes/trip-report-submission-intake.prototype.ts",
     "migrate:trip-reports": "node scripts/migrate/migrate-trip-reports.mjs",
     "migrate:effects": "node scripts/migrate/migrate-effects.mjs",

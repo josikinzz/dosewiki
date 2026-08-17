@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from "@testing-library/react";
+import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import {
@@ -9,23 +9,33 @@ import {
 import { getRouteChromeModel } from "@/utils/routeChrome";
 import { Footer } from "./Footer";
 import {
-  THEME_STORAGE_KEY,
+  COLOR_SCHEME_STORAGE_KEY,
   ThemeProvider,
+  VISUAL_STYLE_STORAGE_KEY,
 } from "../../context/ThemeContext";
 
 vi.mock("../common/Icon", () => ({
   Icon: ({ icon }: { icon: string }) => <span data-testid="icon">{icon}</span>,
 }));
 
-vi.mock("@/features/theme-lab", () => ({
-  PaletteLabTrigger: () => <button type="button" aria-label="Open Theme Lab" />,
-}));
-
 const DOSEWIKI = SITE_FLAVOR_CONFIGS.dosewiki;
 
-function renderFooter(config: SiteFlavorConfig = SITE_FLAVOR_CONFIG) {
+/**
+ * Appearance state is the provider's, never the control's, so every footer render
+ * here mounts one. The provider values are passed explicitly rather than inherited
+ * from the ambient build flavor: this file asserts control behavior, and it must
+ * read the same under `NEXT_PUBLIC_SITE_FLAVOR=effectindex`.
+ */
+function renderFooter(
+  config: SiteFlavorConfig = SITE_FLAVOR_CONFIG,
+  { isVisualStyleLocked = false }: { isVisualStyleLocked?: boolean } = {},
+) {
   return render(
-    <ThemeProvider>
+    <ThemeProvider
+      initialColorScheme="dark"
+      initialVisualStyle="fun"
+      isVisualStyleLocked={isVisualStyleLocked}
+    >
       <Footer model={getRouteChromeModel("/dev/profile", null, config)} />
     </ThemeProvider>,
   );
@@ -54,38 +64,80 @@ function installMockStorage() {
   return storage;
 }
 
-describe("Footer theme toggle", () => {
+describe("Footer appearance controls", () => {
   beforeEach(() => {
     installMockStorage();
     window.localStorage.clear();
-    document.documentElement.removeAttribute("data-theme");
+    // Pin night + Fun in both restore sources, so the control names asserted below mean
+    // the same thing whichever publication flavor the suite runs under.
+    window.localStorage.setItem(COLOR_SCHEME_STORAGE_KEY, "dark");
+    window.localStorage.setItem(VISUAL_STYLE_STORAGE_KEY, "fun");
+    document.documentElement.dataset.theme = "dark";
+    document.documentElement.dataset.visualStyle = "fun";
     document.documentElement.classList.remove("is-safari");
   });
 
-  it("toggles to light mode and persists across remounts", async () => {
+  it("switches day and night through the provider and persists across remounts", async () => {
     const user = userEvent.setup();
-    // A flavor that offers the toggle, named explicitly: the theme-locked flavor has no
-    // toggle to click, and this case is about the toggle, not about the ambient build.
+    // A flavor that offers the control, named explicitly: the ambient build must not
+    // decide whether this case has something to click.
     const firstRender = renderFooter(DOSEWIKI);
 
-    const toggle = screen.getByRole("button", { name: "Switch to light mode" });
-    expect(toggle).toHaveAttribute("aria-pressed", "false");
+    const dayNight = screen.getByRole("button", { name: "Switch to day mode" });
+    expect(dayNight).toHaveAttribute("aria-pressed", "false");
 
-    await user.click(toggle);
+    await user.click(dayNight);
 
     await waitFor(() => {
       expect(document.documentElement.dataset.theme).toBe("light");
-      expect(window.localStorage.getItem(THEME_STORAGE_KEY)).toBe("light");
-      expect(screen.getByRole("button", { name: "Switch to dark mode" })).toHaveAttribute("aria-pressed", "true");
+      expect(window.localStorage.getItem(COLOR_SCHEME_STORAGE_KEY)).toBe("light");
+      expect(screen.getByRole("button", { name: "Switch to night mode" })).toHaveAttribute(
+        "aria-pressed",
+        "true",
+      );
     });
 
     firstRender.unmount();
     renderFooter(DOSEWIKI);
 
     await waitFor(() => {
-      expect(screen.getByRole("button", { name: "Switch to dark mode" })).toHaveAttribute("aria-pressed", "true");
+      expect(screen.getByRole("button", { name: "Switch to night mode" })).toHaveAttribute(
+        "aria-pressed",
+        "true",
+      );
       expect(document.documentElement.dataset.theme).toBe("light");
     });
+  });
+
+  it("keeps day/night and Fun/Pro pressed state independent", async () => {
+    const user = userEvent.setup();
+    renderFooter(DOSEWIKI);
+
+    await user.click(screen.getByRole("button", { name: "Switch to Pro visual style" }));
+
+    await waitFor(() => {
+      expect(screen.getByRole("button", { name: "Switch to Fun visual style" })).toHaveAttribute(
+        "aria-pressed",
+        "true",
+      );
+    });
+    // The scheme axis did not move with it.
+    expect(screen.getByRole("button", { name: "Switch to day mode" })).toHaveAttribute(
+      "aria-pressed",
+      "false",
+    );
+    expect(document.documentElement.dataset.theme).not.toBe("light");
+
+    await user.click(screen.getByRole("button", { name: "Switch to day mode" }));
+
+    await waitFor(() => {
+      expect(document.documentElement.dataset.theme).toBe("light");
+    });
+    // …and the style axis did not move back.
+    expect(screen.getByRole("button", { name: "Switch to Fun visual style" })).toHaveAttribute(
+      "aria-pressed",
+      "true",
+    );
   });
 
   it("renders the updated footer copy and action buttons", () => {
@@ -103,15 +155,30 @@ describe("Footer theme toggle", () => {
     expect(screen.queryByRole("link", { name: "dose.wiki GitHub" })).not.toBeInTheDocument();
   });
 
-  it("offers neither the toggle nor the Theme Lab on a theme-locked flavor", () => {
-    render(
-      <Footer
-        model={getRouteChromeModel("/", null, SITE_FLAVOR_CONFIGS.effectindex)}
-        showPaletteLabTrigger={false}
-      />,
-    );
+  it("drops the style control, and only that control, when the publication locks its style", () => {
+    renderFooter(SITE_FLAVOR_CONFIGS.effectindex, { isVisualStyleLocked: true });
 
-    expect(screen.queryByRole("button", { name: /Switch to .* mode/ })).not.toBeInTheDocument();
-    expect(screen.queryByRole("button", { name: "Open Theme Lab" })).not.toBeInTheDocument();
+    // Effect Index is Pro by identity but still lets readers choose day or night.
+    expect(screen.getByRole("button", { name: "Switch to day mode" })).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /visual style/ })).not.toBeInTheDocument();
+    expect(
+      screen
+        .getByRole("group", { name: "Appearance" })
+        .querySelectorAll("[data-appearance-axis]"),
+    ).toHaveLength(1);
+  });
+
+  it("exposes no editor tooling beside the reader controls", () => {
+    renderFooter(DOSEWIKI);
+
+    // The footer's whole button surface is the two appearance pills. A Palette Lab or
+    // any other editor trigger reappearing on the public footer fails here.
+    const buttons = within(screen.getByRole("navigation")).getAllByRole("button");
+
+    expect(buttons.map((button) => button.dataset.appearanceAxis)).toEqual([
+      "color-scheme",
+      "visual-style",
+    ]);
+    expect(screen.queryByRole("button", { name: /theme lab/i })).not.toBeInTheDocument();
   });
 });

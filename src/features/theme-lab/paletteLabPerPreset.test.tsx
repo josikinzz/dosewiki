@@ -1,8 +1,8 @@
-import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
+import { act, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { AppearanceTestProvider } from "@/test/AppearanceTestProvider";
 import { PaletteLabLazy as PaletteLab } from "./PaletteLabLazy";
-import { PaletteLabTrigger } from "./PaletteLabTrigger";
 import { PALETTE_ATTRIBUTE } from "./paletteLabStorage";
 import { setPaletteLabOpen } from "./paletteLabStore";
 import { clearThemeBaselineCache } from "./presetBaselines";
@@ -59,13 +59,9 @@ function palette() {
 }
 
 async function openPanel() {
-  render(
-    <>
-      <PaletteLabTrigger />
-      <PaletteLab />
-    </>,
-  );
-  await userEvent.click(await screen.findByRole("button", { name: /Open Theme Lab/i }));
+  // The protected /dev/themes route owns the open state; the mount reads it.
+  render(<AppearanceTestProvider><PaletteLab /></AppearanceTestProvider>);
+  act(() => setPaletteLabOpen(true));
   return screen.findByRole("dialog", { name: "Theme Lab" });
 }
 

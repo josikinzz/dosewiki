@@ -8,12 +8,18 @@ import { describe, expect, it } from "vitest";
  * to `tsc`, to `eslint` and to any test that imports the modules — they only surface as
  * a failed `next build` or as bytes silently added to the wrong publication.
  *
- * Two regressions are pinned:
+ * Four regressions are pinned:
  *  - a non-literal `next/font` option (e.g. `preload: !isEffectIndex`), which fails the
  *    build on BOTH flavors with "Font loader values must be explicitly written literals";
- *  - `next/font/google` reaching the dose.wiki build, which would add a build-time
+ *  - `next/font/google` reaching either build, which would add a build-time
  *    fonts.googleapis.com fetch (the loader throws on fetch failure, with no fallback)
- *    and bundle @font-face blocks that flavor never renders.
+ *    for a face that is already committed as woff2 in this repo;
+ *  - a preloaded Pro face on dose.wiki, where Pro is a reader preference: a preload link
+ *    downloads the face for every Fun reader who will never see it;
+ *  - a second registration of Titillium on Effect Index, where it is already the build's
+ *    own face. `next/font` folds the preload flag into the emitted filename, so the two
+ *    registrations would not even dedupe — the build would ship the bytes twice and
+ *    preload the copy that nothing paints.
  */
 const REPO_ROOT = path.resolve(__dirname, "..", "..", "..");
 
@@ -21,6 +27,17 @@ const FLAVOR_MODULES = {
   dosewiki: "src/app/_fonts/dosewiki.ts",
   effectindex: "src/app/_fonts/effectindex.ts",
 } as const;
+
+/**
+ * The Pro face. `base.css` sets `font-synthesis: none`, so every weight and slope the
+ * sheet asks for needs a real file: a missing 600 renders at 400 rather than faking it.
+ */
+const PRO_FACES = [
+  "public/fonts/titillium-web/titillium-web-400-normal-latin.woff2",
+  "public/fonts/titillium-web/titillium-web-400-italic-latin.woff2",
+  "public/fonts/titillium-web/titillium-web-600-normal-latin.woff2",
+  "public/fonts/titillium-web/titillium-web-700-normal-latin.woff2",
+] as const;
 
 function read(relativePath: string): string {
   return fs.readFileSync(path.join(REPO_ROOT, relativePath), "utf8");
@@ -32,12 +49,13 @@ function stripComments(source: string): string {
 }
 
 describe("site font selection", () => {
-  it("gives every flavor its own module with a single siteFont export", () => {
+  it("gives every flavor its own module with the same two exports", () => {
     for (const modulePath of Object.values(FLAVOR_MODULES)) {
       const source = stripComments(read(modulePath));
 
       expect(source).toContain("export const siteFont = ");
       expect(source).toContain('variable: "--font-display"');
+      expect(source).toMatch(/export const proFont = /);
     }
   });
 
@@ -56,15 +74,47 @@ describe("site font selection", () => {
     }
   });
 
-  it("keeps the Google loader out of the dose.wiki build", () => {
-    expect(stripComments(read(FLAVOR_MODULES.dosewiki))).not.toContain("next/font/google");
-    expect(stripComments(read(FLAVOR_MODULES.effectindex))).toContain("next/font/google");
+  it("keeps the Google loader out of both builds", () => {
+    for (const modulePath of Object.values(FLAVOR_MODULES)) {
+      expect(stripComments(read(modulePath))).not.toContain("next/font/google");
+    }
+  });
+
+  it("registers the Pro face from the committed subsets, at every weight the sheet uses", () => {
+    const source = stripComments(read(FLAVOR_MODULES.dosewiki));
+
+    for (const face of PRO_FACES) {
+      expect(source).toContain(face.replace("public/", "../../../public/"));
+      expect(fs.existsSync(path.join(REPO_ROOT, face))).toBe(true);
+    }
+  });
+
+  it("never preloads the Pro face where Pro is optional", () => {
+    const source = stripComments(read(FLAVOR_MODULES.dosewiki));
+    const proRegistration = source.slice(source.indexOf("export const proFont"));
+
+    expect(proRegistration).toContain("preload: false");
+    expect(proRegistration).toContain('display: "swap"');
+    expect(proRegistration).toContain('variable: "--font-pro"');
+    // The Fun face is the one this build always paints, so it keeps its preload.
+    expect(source.slice(0, source.indexOf("export const proFont"))).not.toContain("preload");
+  });
+
+  it("registers Titillium once on the publication that already ships it", () => {
+    const source = stripComments(read(FLAVOR_MODULES.effectindex));
+
+    expect([...source.matchAll(/localFont\(/g)]).toHaveLength(1);
+    expect(source).toContain("export const proFont = siteFont;");
+    // Which means that build defines no --font-pro, and pro-theme.css has to ask
+    // for the face with a fallback. These two travel together.
+    expect(source).not.toContain('"--font-pro"');
+    expect(read("src/styles/pro-theme.css")).toContain("var(--font-pro, var(--font-display))");
   });
 
   it("selects the module through the @site-font alias rather than in JavaScript", () => {
     const entry = stripComments(read("src/app/fonts.ts"));
 
-    expect(entry).toContain('from "@site-font"');
+    expect(entry).toContain('export { proFont, siteFont } from "@site-font"');
     expect(entry).not.toContain("next/font");
     expect(entry).not.toContain("siteFlavor");
   });

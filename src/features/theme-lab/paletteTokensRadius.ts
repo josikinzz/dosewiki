@@ -8,9 +8,9 @@ import type { EssentialGroup, PaletteGroup, PaletteToken } from "./paletteTokens
  * Why this is a registry addition and not a styling refactor: Tailwind compiles
  * every non-pill `rounded-*` utility down to `border-radius: var(--radius…)`, so
  * the geometry of ~90% of the site's corners is already a handful of custom
- * properties. Re-seating them is exactly what the Effect Index skin does to
- * square the site off, which is the proof the mechanism works (see
- * `EFFECT_INDEX_RADIUS` below).
+ * properties. Re-seating them is exactly what the Pro skin does to square the
+ * site off, which is the proof the mechanism works (see
+ * `PRO_STYLE_RADIUS` below).
  *
  * Only the four variables the compiled utilities actually reference are exposed:
  *
@@ -141,15 +141,16 @@ export function formatRem(rem: number): string {
 }
 
 /**
- * The Effect Index skin's flattened geometry, restated as radius-token values.
+ * The Pro skin's flattened geometry, restated as radius-token values.
  *
  * That skin squares the site off by redefining the `rounded-*` utilities under
  * its own attribute; the same look comes out of these four tokens with no
  * component or stylesheet touched, which is the self-check that this control is
- * wired to the real mechanism. Test-facing only — the Effect Index flavor never
- * mounts the lab, and its stylesheet is untouched by it.
+ * wired to the real mechanism. Test-facing only — the Pro stylesheet is
+ * untouched by the lab, and the lab's own edits are a Fun-palette layer that
+ * Pro's selectors out-specify.
  */
-export const EFFECT_INDEX_RADIUS: Record<string, string> = {
+export const PRO_STYLE_RADIUS: Record<string, string> = {
   "--radius": "0.1875rem",
   "--radius-xl": "0.25rem",
   "--radius-2xl": "0.25rem",

@@ -1,8 +1,8 @@
-import { render, screen, waitFor, within } from "@testing-library/react";
+import { act, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { AppearanceTestProvider } from "@/test/AppearanceTestProvider";
 import { PaletteLabLazy as PaletteLab } from "./PaletteLabLazy";
-import { PaletteLabTrigger } from "./PaletteLabTrigger";
 import { getPreset } from "./palettePresets";
 import { PALETTE_ATTRIBUTE, PALETTE_LAB_OVERRIDE_STYLE_ID } from "./paletteLabStorage";
 import { setPaletteLabOpen } from "./paletteLabStore";
@@ -21,8 +21,8 @@ import {
  * the injected override element says, what palette the root names, what is in
  * localStorage, and what the visitor is shown.
  *
- * The fresh-browser cases are the point of the ticket: a link arriving at a
- * visitor who has never opened the Theme Lab must preview without writing, and
+ * The fresh-browser cases are the point of the ticket: a link arriving at an
+ * editor who has never opened the Theme Lab must preview without writing, and
  * must land as a *new* slot beside anything they already had.
  */
 
@@ -101,10 +101,10 @@ function mint(payload: unknown): string {
   return btoa(binary).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
 }
 
-/** Open the link, then mount the app the way the root layout does. */
+/** Open the link, then mount the tool the way the protected route does. */
 async function visitWithCode(code: string) {
   window.history.replaceState({}, "", `/?${THEME_SHARE_PARAM}=${encodeURIComponent(code)}`);
-  render(<PaletteLab />);
+  render(<AppearanceTestProvider><PaletteLab /></AppearanceTestProvider>);
 }
 
 function invite() {
@@ -301,13 +301,8 @@ describe("Theme Lab share links", { timeout: 20_000 }, () => {
   });
 
   it("shares the look being worn, and takes a pasted code back through the preview", async () => {
-    render(
-      <>
-        <PaletteLabTrigger />
-        <PaletteLab />
-      </>,
-    );
-    await userEvent.click(await screen.findByRole("button", { name: /Open Theme Lab/i }));
+    render(<AppearanceTestProvider><PaletteLab /></AppearanceTestProvider>);
+    act(() => setPaletteLabOpen(true));
     const panel = await screen.findByRole("dialog", { name: "Theme Lab" });
 
     await userEvent.click(within(panel).getByRole("button", { name: /^Abyss/ }));

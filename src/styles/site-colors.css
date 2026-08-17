@@ -162,13 +162,15 @@
    The light block below is a strict subset of this one (256 of 288 tokens), so
    nothing light can leak past it.
 
-   Effect Index is excluded: it is locked to light and already dresses its own
-   header in charcoal from `html[data-site="effectindex"] .app-header`, which
-   pins 38 tokens. Handing it this block would flood the other 250 with
-   dose.wiki's plum dark. `:where()` carries no specificity, so the island stays
-   (0,2,1) and the preset/user layers keep out-ranking it as before. */
+   The Pro visual style is excluded: it dresses its own header in charcoal from
+   `html[data-visual-style="pro"] .app-header`, which pins 38 tokens. Handing it
+   this block would flood the other 250 with dose.wiki's plum dark. The
+   exclusion follows the STYLE rather than the publication because Pro is now a
+   dose.wiki reader preference as well as the Effect Index default.
+   `:where()` carries no specificity, so the island stays (0,2,1) and the
+   preset/user layers keep out-ranking it as before. */
 :root,
-html[data-theme="light"]:where(:not([data-site="effectindex"])) .theme-chrome-dark {
+html[data-theme="light"]:where(:not([data-visual-style="pro"])) .theme-chrome-dark {
   --c-brand: 240 171 252; /* #f0abfc */
 
   /* Dark mode page canvas. The visible page gradient still uses the
@@ -344,6 +346,14 @@ html[data-theme="light"]:where(:not([data-site="effectindex"])) .theme-chrome-da
   --theme-article-route-active-bg:
     radial-gradient(circle at 18% 0%, var(--theme-article-route-active-highlight), transparent 42%), linear-gradient(135deg, var(--theme-article-route-active-primary), var(--theme-article-route-active-secondary));
   --theme-article-route-active-text: oklch(84% 0.075 var(--h-violet));
+  /* The pill's whole edge treatment, as one token: a hairline halo that
+     doubles the translucent border into a soft 2px glow, the drop shadow that
+     lifts it, and the top highlight. Pro flattens the lot to `none` — its
+     border is opaque, so the halo would draw a hard second ring. */
+  --theme-article-route-active-shadow:
+    0 0 0 1px var(--theme-article-route-active-border),
+    0 12px 26px -22px color-mix(in srgb, var(--theme-article-route-active-text) 42%, transparent),
+    inset 0 1px 0 color-mix(in srgb, var(--theme-text-primary) 8%, transparent);
   --theme-article-reference-control-border: oklch(68% 0.1 var(--h-violet) / 0.28);
   --theme-article-reference-control-bg:
     radial-gradient(circle at 12% 0%, color-mix(in srgb, rgb(var(--c-white)) 5.5%, color-mix(in srgb, oklch(36% 0.09 var(--h-violet)) 32%, var(--theme-body-bg))), transparent 36%), linear-gradient(135deg, color-mix(in srgb, oklch(36% 0.09 var(--h-violet)) 32%, var(--theme-body-bg)), color-mix(in srgb, oklch(17% 0.03 var(--h-violet)) 82%, var(--theme-body-bg)));
@@ -800,6 +810,10 @@ html[data-theme="light"] {
   --theme-article-route-active-bg:
     radial-gradient(circle at 18% 0%, var(--theme-article-route-active-highlight), transparent 42%), linear-gradient(135deg, var(--theme-article-route-active-primary), var(--theme-article-route-active-secondary));
   --theme-article-route-active-text: oklch(40% 0.13 var(--h-violet));
+  --theme-article-route-active-shadow:
+    0 0 0 1px var(--theme-article-route-active-border),
+    0 12px 24px -22px color-mix(in srgb, var(--theme-article-route-active-text) 34%, transparent),
+    inset 0 1px 0 oklch(100% 0 0 / 0.72);
   --theme-article-reference-control-border: oklch(54% 0.095 var(--h-violet) / 0.24);
   --theme-article-reference-control-bg:
     radial-gradient(circle at 12% 0%, color-mix(in srgb, oklch(100% 0 0) 68%, color-mix(in srgb, oklch(96.5% 0.022 var(--h-violet)) 92%, var(--theme-body-bg))), transparent 36%), linear-gradient(135deg, color-mix(in srgb, oklch(96.5% 0.022 var(--h-violet)) 92%, var(--theme-body-bg)), color-mix(in srgb, oklch(93% 0.032 var(--h-violet)) 94%, var(--theme-body-bg)));

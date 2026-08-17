@@ -107,5 +107,4 @@ export interface RouteChromeModel {
   secondaryNavItems: RouteChromeNavItem[];
   footerNavItems: RouteChromeNavItem[];
   footerExternalNavItems: RouteChromeExternalNavItem[];
-  footerShowsThemeToggle: boolean;
 }

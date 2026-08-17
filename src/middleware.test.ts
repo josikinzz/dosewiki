@@ -50,7 +50,7 @@ describe("middleware role policy adapter", () => {
     const csp = response.headers.get("content-security-policy") ?? "";
 
     expect(csp).toMatch(
-      /script-src 'self' 'nonce-[A-Za-z0-9+/_-]+' 'sha256-[A-Za-z0-9+/=]+' 'sha256-[A-Za-z0-9+/=]+' 'sha256-[A-Za-z0-9+/=]+' 'wasm-unsafe-eval'/,
+      /script-src 'self' 'nonce-[A-Za-z0-9+/_-]+' 'sha256-[A-Za-z0-9+/=]+' 'sha256-[A-Za-z0-9+/=]+' 'wasm-unsafe-eval'/,
     );
     expect(csp).not.toContain("analytics.dose.wiki");
     expect(csp).not.toMatch(/script-src[^;]*'unsafe-inline'/);

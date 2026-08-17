@@ -1,21 +1,20 @@
-# Titillium Web — Theme Lab lazy faces
+# Titillium Web — Pro visual style faces
 
-Titillium Web is the Effect Index flavor's display/body face. That flavor gets it from
-`next/font/google` at build time (`src/app/_fonts/effectindex.ts`), which self-hosts it into
-that build only — a dose.wiki build ships no Titillium bytes at all.
+Titillium Web is the Pro visual style's display and body face. Both publication builds
+self-host these committed WOFF2 files through `next/font/local`: Effect Index uses them
+as its always-on `siteFont`, while dose.wiki registers them as the optional, non-preloaded
+`proFont`. No build-time or runtime Google Fonts request is required.
 
-The Theme Lab offers the same face as a font choice on dose.wiki, so it needs the files as
-plain static assets it can point an `@font-face` at *after* a visitor picks it. These are
-those files: the exact woff2 subsets `next/font/google` produced for the Effect Index build,
-copied out of `.next/static/media` and given stable names.
+The Theme Lab also exposes Titillium Web as a Fun-palette font choice. It loads the same
+files through stable public URLs only after an editor selects the face.
 
-Subsets are Google's `latin` and `latin-ext` splits; the matching `unicode-range` for each
-lives beside the face table in `src/features/palette-lab/paletteTokensFonts.ts`. The metric
-overrides on the `Titillium Web Fallback` face in that same table are `next/font`'s computed
-values for this face — they are what keeps the lazy swap from reflowing the page.
+Google's `latin` and `latin-ext` subsets are committed here. The application font modules
+register the Latin files for 400/600/700 normal and 400 italic. The Theme Lab registers
+both subsets with their matching `unicode-range` values from
+`src/features/palette-lab/paletteTokensFonts.ts`.
 
-Nothing links these files. They are fetched only when a rendered element actually resolves to
-Titillium Web, which cannot happen until the visitor selects it in the Theme Lab.
+The fallback metrics in that face table keep the lazy Theme Lab swap from reflowing the
+page. The application path receives equivalent metric-matched fallbacks from `next/font`.
 
 Weights: 400/600/700 normal, 400 italic. Licence: SIL Open Font License 1.1
 (<https://fonts.google.com/specimen/Titillium+Web/license>).

@@ -68,7 +68,7 @@ export const PageHeader = memo(function PageHeader({
             isLeft ? "left-0 -translate-x-1/4" : "left-1/2 -translate-x-1/2",
           )}
         >
-          <div className="h-full w-full bg-[radial-gradient(closest-side,rgba(217,70,239,0.12)_0%,transparent_100%)] blur-[48px]" />
+          <div className="theme-page-header-glow h-full w-full bg-[radial-gradient(closest-side,rgba(217,70,239,0.12)_0%,transparent_100%)] blur-[48px]" />
         </div>
       ) : null}
 

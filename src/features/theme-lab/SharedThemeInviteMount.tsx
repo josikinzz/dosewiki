@@ -1,25 +1,18 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { isEffectIndex } from "@/config/siteFlavor";
 import { consumeShareCodeFromLocation, usePendingShare } from "./paletteLabShare";
 import { SharedThemeInvite } from "./SharedThemeInvite";
 
 /**
- * The always-on receiving end of a share link.
- *
- * Mounted beside the lab's runtime rather than inside the editor panel, because
- * a share link has to work on a visitor's *first* visit — before they have ever
- * opened the Theme Lab, and on whatever route the link happened to point at.
- * It renders nothing at all until a code is actually offered, so the ordinary
- * visitor pays only this component's mount.
+ * The receiving end of a share link, mounted beside the lab's runtime on the
+ * protected `/dev/themes` route rather than inside the editor panel: a shared
+ * palette has to be offered on the first load of the route, before the editor
+ * chunk exists. It renders nothing at all until a code is actually offered.
  *
  * Reads `window.location` in an effect rather than through the router's search
- * params hook on purpose: this must not opt every page in the app into dynamic
- * rendering or need a Suspense boundary in the root layout.
- *
- * Effect Index wears a locked skin and never offers the lab, so a share link
- * does nothing there.
+ * params hook on purpose: this must not opt the route into dynamic rendering
+ * for the sake of a query parameter that is usually absent.
  */
 export function SharedThemeInviteMount() {
   const [mounted, setMounted] = useState(false);
@@ -27,7 +20,6 @@ export function SharedThemeInviteMount() {
 
   useEffect(() => {
     setMounted(true);
-    if (isEffectIndex()) return;
     consumeShareCodeFromLocation();
   }, []);
 

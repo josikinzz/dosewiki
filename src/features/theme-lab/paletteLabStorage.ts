@@ -1,4 +1,4 @@
-import type { ThemeName } from "@/theme";
+import type { ColorScheme } from "@/theme";
 import { DEFAULT_PRESET_ID } from "./palettePresets";
 import { CHROME_DARK_CLASS, PALETTE_ATTRIBUTE } from "./presetStylesheet";
 
@@ -8,8 +8,8 @@ import { CHROME_DARK_CLASS, PALETTE_ATTRIBUTE } from "./presetStylesheet";
  *
  * This module deliberately owns no React and no component state. The panel used
  * to hold all of it, which meant a saved look only ever applied once the panel
- * had been opened; the always-mounted runtime (`paletteLabRuntime.ts`) now uses
- * these helpers on page load instead, and the panel became a subscriber.
+ * had been opened; the runtime (`paletteLabRuntime.ts`) now uses these helpers
+ * as the tool route mounts, and the panel became a subscriber.
  */
 
 /** localStorage key. Historical, load-bearing: never rename it — every saved
@@ -30,7 +30,7 @@ export type ThemeOverrides = Record<string, string>;
 
 /** One override map per theme, in the exact shape the injected style element
  *  and the presets both use. */
-export type PaletteOverrides = Record<ThemeName, ThemeOverrides>;
+export type PaletteOverrides = Record<ColorScheme, ThemeOverrides>;
 
 /**
  * Which theme the visitor is wearing: a shipped preset, or one of their own
@@ -283,7 +283,7 @@ export function writeSerializedEnvelope(serialized: string): boolean {
  * level with the generated preset island and again winning on source order.
  * The sampler is unaffected — that selector can never match the root element.
  */
-export function userLayerSelector(theme: ThemeName): string {
+export function userLayerSelector(theme: ColorScheme): string {
   const own = `html[data-theme="${theme}"][data-theme]`;
   if (theme !== "dark") return own;
   return `${own},html[data-theme="light"][data-theme] .${CHROME_DARK_CLASS}`;
@@ -292,7 +292,7 @@ export function userLayerSelector(theme: ThemeName): string {
 /** The lab's CSS shape: one attribute-scoped block per theme. Exported so the
  *  baseline sampler can stage a theme's own layer the same way it renders. */
 export function buildOverrideCss(overrides: PaletteOverrides): string {
-  const block = (theme: ThemeName, map: ThemeOverrides) => {
+  const block = (theme: ColorScheme, map: ThemeOverrides) => {
     const entries = Object.entries(map);
     if (entries.length === 0) return "";
     return `${userLayerSelector(theme)}{${entries.map(([key, value]) => `${key}:${value};`).join("")}}`;

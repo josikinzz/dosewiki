@@ -48,6 +48,9 @@ describe("public API v1 contract helpers", () => {
         schemes: {
           dosewiki: { url: "/api/v1/molecules/lsd.svg?scheme=dosewiki" },
           "effect-index": { url: "/api/v1/molecules/lsd.svg?scheme=effect-index" },
+          "effect-index-dark": {
+            url: "/api/v1/molecules/lsd.svg?scheme=effect-index-dark",
+          },
         },
       },
     });

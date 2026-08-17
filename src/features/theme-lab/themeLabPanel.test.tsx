@@ -1,17 +1,17 @@
-import { fireEvent, render, screen, within } from "@testing-library/react";
+import { act, fireEvent, render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, afterEach, describe, expect, it, vi } from "vitest";
+import { AppearanceTestProvider } from "@/test/AppearanceTestProvider";
 import { PaletteLabLazy as PaletteLab } from "./PaletteLabLazy";
-import { PaletteLabTrigger } from "./PaletteLabTrigger";
 import { PALETTE_ATTRIBUTE } from "./paletteLabStorage";
 import { setPaletteLabOpen } from "./paletteLabStore";
 import { clearThemeBaselineCache } from "./presetBaselines";
 
 /**
- * The gallery-first panel, through the suite's usual seam: drive the real
- * trigger and panel with real user events, and assert on what a visitor can
- * observe — which view is showing, whether an editor exists at all, where focus
- * is, and what Escape does.
+ * The gallery-first panel, through the suite's usual seam: open it the way the
+ * protected `/dev/themes` route does, drive it with real user events, and assert
+ * on what an editor can observe — which view is showing, whether an editor
+ * exists at all, where focus is, and what Escape does.
  *
  * These replace the behaviors the redesign retired: the panel no longer
  * force-selects a token on open (so the editor is no longer always expanded),
@@ -51,14 +51,16 @@ afterEach(() => {
 });
 
 async function openPanel() {
+  // The route opens the lab and hands it the element focus returns to; the
+  // second button stands in for that route-local action.
   render(
     <>
       <button type="button">Elsewhere on the page</button>
-      <PaletteLabTrigger />
-      <PaletteLab />
+      <button type="button">Open Theme Lab</button>
+      <AppearanceTestProvider><PaletteLab /></AppearanceTestProvider>
     </>,
   );
-  await userEvent.click(await screen.findByRole("button", { name: /Open Theme Lab/i }));
+  act(() => setPaletteLabOpen(true, screen.getByRole("button", { name: "Open Theme Lab" })));
   return screen.findByRole("dialog", { name: "Theme Lab" });
 }
 
@@ -111,7 +113,7 @@ describe("Theme Lab panel", { timeout: 15_000 }, () => {
     await userEvent.keyboard("{Escape}");
     expect(screen.getByRole("dialog", { name: "Theme Lab" })).toBeInTheDocument();
 
-    // Escape inside the panel closes it and hands focus back to the trigger.
+    // Escape inside the panel closes it and hands focus back to the opener.
     within(panel).getByRole("button", { name: "Close Theme Lab" }).focus();
     await userEvent.keyboard("{Escape}");
     expect(screen.queryByRole("dialog", { name: "Theme Lab" })).not.toBeInTheDocument();

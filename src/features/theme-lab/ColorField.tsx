@@ -20,7 +20,7 @@ import styles from "./PaletteLab.module.css";
  *
  * It replaces the fixed 176px ring-plus-square wheel, which pinned more panel
  * height than the catalog it sat above. The rainbow wheel is not gone — it
- * survives as the tool's brand glyph on the trigger and the panel header — but
+ * survives as the tool's brand glyph in the panel header — but
  * the *editing* surface is now a rectangle that spans the panel width and costs
  * roughly half the vertical space.
  *

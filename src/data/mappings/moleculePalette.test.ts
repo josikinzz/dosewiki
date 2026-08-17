@@ -4,15 +4,17 @@ import { SITE_FLAVOR_CONFIGS } from "@/config/siteFlavor";
 import {
   BRAND_MOLECULE_HEXES,
   DOSEWIKI_MOLECULE_BASE_PATH,
+  EFFECT_INDEX_DARK_MOLECULE_BASE_PATH,
   EFFECT_INDEX_MOLECULE_BASE_PATH,
-  EFFECT_INDEX_MOLECULE_PALETTE,
+  EFFECT_INDEX_MOLECULE_PALETTES,
   RECOLORABLE_MOLECULE_HEXES,
-  applyFlavorMoleculeColorway,
+  applyMoleculeColorway,
   moleculeColorwayBasePath,
   recolorMoleculeSvgToEffectIndex,
+  resolveMoleculeColorway,
 } from "./moleculePalette";
 
-const EI_HEXES = Object.values(EFFECT_INDEX_MOLECULE_PALETTE);
+const EI_HEXES = Object.values(EFFECT_INDEX_MOLECULE_PALETTES.light);
 
 /** A bond path and an atom-glyph path, shaped exactly as RDKit writes them. */
 const bondPath = (hex: string) =>
@@ -77,6 +79,23 @@ describe("recolorMoleculeSvgToEffectIndex", () => {
     }
   });
 
+  it("uses brighter element colours on the Pro dark canvas", () => {
+    const cases: Array<[string, string]> = [
+      ["#F0ABFC", "#f2f2f0"],
+      ["#C4B5FD", "#91aef2"],
+      ["#FDA4AF", "#ef8580"],
+      ["#BEF264", "#d8bc5d"],
+      ["#C084FC", "#6fc4bb"],
+      ["#FFFFFF", "#131313"],
+    ];
+
+    for (const [source, expected] of cases) {
+      expect(recolorMoleculeSvgToEffectIndex(atomPath(source), "dark"), source).toBe(
+        atomPath(expected),
+      );
+    }
+  });
+
   it("leaves unknown colours untouched", () => {
     const svg = [
       bondPath("#123456"),
@@ -90,7 +109,7 @@ describe("recolorMoleculeSvgToEffectIndex", () => {
     expect(recolorMoleculeSvgToEffectIndex(svg)).toBe(svg);
   });
 
-  it("is idempotent", () => {
+  it.each(["light", "dark"] as const)("is idempotent in %s mode", (colorScheme) => {
     const svg = [
       ...BRAND_MOLECULE_HEXES.map(bondPath),
       ...RECOLORABLE_MOLECULE_HEXES.map(atomPath),
@@ -102,9 +121,9 @@ describe("recolorMoleculeSvgToEffectIndex", () => {
       bondPath("#123456"),
     ].join("\n");
 
-    const once = recolorMoleculeSvgToEffectIndex(svg);
-    const twice = recolorMoleculeSvgToEffectIndex(once);
-    const thrice = recolorMoleculeSvgToEffectIndex(twice);
+    const once = recolorMoleculeSvgToEffectIndex(svg, colorScheme);
+    const twice = recolorMoleculeSvgToEffectIndex(once, colorScheme);
+    const thrice = recolorMoleculeSvgToEffectIndex(twice, colorScheme);
 
     expect(twice).toBe(once);
     expect(thrice).toBe(once);
@@ -186,17 +205,27 @@ describe("recolorMoleculeSvgToEffectIndex", () => {
   });
 });
 
-describe("applyFlavorMoleculeColorway", () => {
+describe("resolved molecule colorways", () => {
   const svg = bondPath("#F0ABFC");
 
-  it("recolours on the Effect Index flavor", () => {
-    expect(applyFlavorMoleculeColorway(svg, SITE_FLAVOR_CONFIGS.effectindex)).toBe(
-      recolorMoleculeSvgToEffectIndex(svg),
-    );
+  it("defaults to the publication's native colorway", () => {
+    expect(resolveMoleculeColorway(null, SITE_FLAVOR_CONFIGS.dosewiki)).toBe("brand");
+    expect(resolveMoleculeColorway(null, SITE_FLAVOR_CONFIGS.effectindex)).toBe("pro-light");
   });
 
-  it("returns dose.wiki bytes verbatim", () => {
-    expect(applyFlavorMoleculeColorway(svg, SITE_FLAVOR_CONFIGS.dosewiki)).toBe(svg);
+  it("honours either requested Pro scheme on both publications", () => {
+    expect(resolveMoleculeColorway("pro-light", SITE_FLAVOR_CONFIGS.dosewiki)).toBe("pro-light");
+    expect(resolveMoleculeColorway("pro-dark", SITE_FLAVOR_CONFIGS.effectindex)).toBe("pro-dark");
+  });
+
+  it("applies only the resolved Pro byte transforms", () => {
+    expect(applyMoleculeColorway(svg, "brand")).toBe(svg);
+    expect(applyMoleculeColorway(svg, "pro-light")).toBe(
+      recolorMoleculeSvgToEffectIndex(svg, "light"),
+    );
+    expect(applyMoleculeColorway(svg, "pro-dark")).toBe(
+      recolorMoleculeSvgToEffectIndex(svg, "dark"),
+    );
   });
 });
 
@@ -213,5 +242,6 @@ describe("moleculeColorwayBasePath", () => {
   it("keeps dose.wiki on the pipeline's own output directory", () => {
     expect(DOSEWIKI_MOLECULE_BASE_PATH).toBe("/molecules/");
     expect(EFFECT_INDEX_MOLECULE_BASE_PATH).toBe("/molecules-ei/");
+    expect(EFFECT_INDEX_DARK_MOLECULE_BASE_PATH).toBe("/molecules-ei-dark/");
   });
 });

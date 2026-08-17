@@ -8,26 +8,15 @@ import { GlobalSearch } from "@/components/common/GlobalSearch";
 import { Icon } from "@/components/common/Icon";
 import { SiteSupporter } from "@/components/common/SiteSupporter";
 import { SiteWordmark } from "@/components/common/SiteWordmark";
-import { SITE_FLAVOR_CONFIG, isEffectIndex } from "@/config/siteFlavor";
+import { SITE_FLAVOR_CONFIG } from "@/config/siteFlavor";
 import type { AppView } from "@/types/navigation";
 import { partitionQuickLinkRows, type HomeQuickLink } from "./homeQuickLinks";
 import { viewToPath } from "@/utils/routing";
-import { PaletteLabTrigger } from "@/features/theme-lab";
-import { ThemeToggle } from "./ThemeToggle";
+import { AppearanceControls } from "./AppearanceControls";
 
 interface HomeExperienceProps {
   quickLinks: readonly HomeQuickLink[];
   isConstructionMode?: boolean;
-  /**
-   * Whether the floating light/dark toggle mounts. A flavor pinned to one theme offers no
-   * toggle anywhere, so this mirrors the footer's `footerShowsThemeToggle`.
-   */
-  showThemeToggle?: boolean;
-  /**
-   * Whether the Theme Lab trigger mounts. Off on Effect Index: its runtime
-   * `html[data-theme="…"]` overrides lose to the site-scoped skin.
-   */
-  showPaletteLabTrigger?: boolean;
   /**
    * Editable hero and banner copy, resolved on the server. Each falls back to
    * the flavor config value this page shipped with, so an un-seeded deployment
@@ -43,8 +32,6 @@ interface HomeExperienceProps {
 export function HomeExperience({
   quickLinks,
   isConstructionMode = false,
-  showThemeToggle = SITE_FLAVOR_CONFIG.showThemeToggle,
-  showPaletteLabTrigger = !isEffectIndex(),
   copy,
 }: HomeExperienceProps) {
   const router = useRouter();
@@ -335,12 +322,11 @@ export function HomeExperience({
           aria-hidden="true"
           className="theme-home-ambient absolute inset-0 -z-20"
         />
-        {(showThemeToggle || showPaletteLabTrigger) && (
-          <div className="theme-home-theme-toggle fixed bottom-4 right-4 z-30 flex items-center gap-2 sm:bottom-6 sm:right-6">
-            {showPaletteLabTrigger && <PaletteLabTrigger />}
-            {showThemeToggle && <ThemeToggle />}
-          </div>
-        )}
+        {/* The appearance group is the cluster: it already lays its own pills out, and
+            `theme-home-theme-toggle` is the hook the search-mode rules reposition.
+            Below sm the pair stacks, because in search mode this overlay shares the
+            bottom line with the centred quick-link row. */}
+        <AppearanceControls className="theme-home-theme-toggle fixed bottom-4 right-4 z-30 flex-col sm:bottom-6 sm:right-6 sm:flex-row" />
 
         <section className="theme-home-stage mx-auto flex w-full max-w-5xl flex-col items-center transition-[max-width,padding,transform] duration-300 ease-out">
           <div className="theme-home-brand-lockup flex flex-col items-center justify-center gap-3 transition-[gap,opacity,transform] duration-300 ease-out sm:gap-4">
@@ -447,7 +433,7 @@ export function HomeExperience({
 
         {/* The dose.wiki homepage suppresses the site footer (see RouteFooter), so the
             supporter credit that lives there has to be repeated somewhere. It anchors the
-            bottom-left corner opposite the Theme Lab / theme-toggle cluster, which keeps it
+            bottom-left corner opposite the appearance controls, which keeps it
             clear of the hero's vertical rhythm at every viewport height. It sits outside
             <section> because the hero stage animates `transform`, and a transformed
             ancestor would become the containing block for a fixed child. Last in the DOM,

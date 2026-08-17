@@ -13,8 +13,11 @@ const publicBrowserConfig = getPublicBrowserRuntimeConfig();
  *
  * `next/font` is an SWC compile-time transform: every option value must be a written
  * literal, so the two publications' faces cannot be gated inside one module, and
- * importing both would ship the unused face's `@font-face` blocks and preload links (and,
- * for Titillium, a `next/font/google` fetch) into the flavor that does not render it.
+ * importing both would ship the unused face's `@font-face` blocks and preload links into
+ * the flavor that does not render it. Each module exports the same two faces — the
+ * publication's own `siteFont` and the Pro style's `proFont` — and differs in what those
+ * mean: dose.wiki registers Titillium separately and never preloads it, while Effect
+ * Index paints it as its own face and aliases the two names onto one registration.
  * Resolving each `@site-*` alias to exactly one module is the only place that decision can
  * live. The stylesheet alias also keeps each publication's inert, flavor-scoped CSS out of
  * the other publication's critical CSS payload.

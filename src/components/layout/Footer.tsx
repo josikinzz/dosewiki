@@ -2,27 +2,17 @@ import Link from "next/link";
 import { Icon } from "../common/Icon";
 import { SiteLicenceNotice } from "../common/SiteLicenceNotice";
 import { SiteSupporter } from "../common/SiteSupporter";
-import { SITE_FLAVOR_CONFIG, isEffectIndex } from "@/config/siteFlavor";
-import { PaletteLabTrigger } from "@/features/theme-lab";
-import { ThemeToggle } from "@/app/_components/ThemeToggle";
+import { SITE_FLAVOR_CONFIG } from "@/config/siteFlavor";
+import { AppearanceControls } from "@/app/_components/AppearanceControls";
 import type { RouteChromeModel } from "@/types/navigation";
 import { getRouteChromeModel } from "@/utils/routeChrome";
 import { resolveRouteChromeIcon } from "@/utils/routeChromeIcons";
 
 interface FooterProps {
   model?: RouteChromeModel;
-  /**
-   * Whether the Theme Lab trigger mounts. Off on Effect Index: the lab writes
-   * `html[data-theme="…"]` overrides, which lose to the site-scoped skin, so the tool
-   * would appear broken. Defaults to the ambient flavor; a parameter so tests need no env.
-   */
-  showPaletteLabTrigger?: boolean;
 }
 
-export function Footer({
-  model = getRouteChromeModel("/"),
-  showPaletteLabTrigger = !isEffectIndex(),
-}: FooterProps) {
+export function Footer({ model = getRouteChromeModel("/") }: FooterProps) {
   return (
     // `theme-chrome-dark` pins the dark palette on this subtree exactly as it does
     // on the header, so the footer bar stays the same colour in light mode instead
@@ -30,8 +20,8 @@ export function Footer({
     // Index, which dresses its own footer from `html[data-site="effectindex"]`.
     <footer className="app-footer theme-chrome-dark theme-footer-surface py-6">
       {/* Full-bleed on purpose, unlike the header: no `mx-auto max-w-7xl` here, so the
-          disclaimer and the theme controls sit against the viewport edges rather than
-          the page column. The gutter is the only inset. */}
+          disclaimer and the appearance controls sit against the viewport edges rather
+          than the page column. The gutter is the only inset. */}
       <div className="flex w-full flex-col gap-4 px-6" data-nosnippet>
         <div className="flex items-start justify-between gap-3 sm:items-center sm:gap-6">
           {/* No brand mark here. The header already carries the logo and wordmark on every
@@ -80,8 +70,11 @@ export function Footer({
                 </a>
               );
             })}
-            {showPaletteLabTrigger && <PaletteLabTrigger />}
-            {model.footerShowsThemeToggle && <ThemeToggle />}
+            {/* Which appearance axes are offered is publication policy, resolved inside
+                the group — the route chrome model has no say in it. The pair stacks below
+                420px on the same breakpoint this nav flips on, so the disclaimer column
+                keeps the width it had when there was one control. */}
+            <AppearanceControls className="flex-col min-[420px]:flex-row" />
           </nav>
         </div>
       </div>

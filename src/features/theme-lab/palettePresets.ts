@@ -31,7 +31,7 @@ export type ThemeOverrideMap = Record<string, string>;
 /**
  * Override maps keyed by theme name ("dark" / "light"). Structurally the same
  * shape as the lab's own `Overrides` record (whose key type is the app-wide
- * ThemeName, a string), so presets and user edits merge without casts. The
+ * `ColorScheme`, a string), so presets and user edits merge without casts. The
  * definition tests enforce that every preset carries both theme keys.
  */
 export type PresetOverrides = Record<string, ThemeOverrideMap>;

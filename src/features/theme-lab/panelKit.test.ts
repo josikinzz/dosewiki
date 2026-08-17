@@ -13,8 +13,8 @@ import { describe, expect, it } from "vitest";
  *
  * This is the missing half of that gate, scoped to this panel: the private
  * stylesheet may describe the panel's layout and its two bespoke instruments,
- * and nothing else. It is a build-artifact test in the same spirit as the
- * pre-paint bootstrap's byte-stability test — it reads the checked-in source.
+ * and nothing else. It is a build-artifact test: it reads the checked-in source
+ * rather than a render.
  */
 
 const FEATURE_DIR = resolve(process.cwd(), "src/features/theme-lab");
@@ -63,9 +63,6 @@ const RETIRED_CONTROL_CLASSES = [
 /**
  * Files allowed to render a raw form element, and why:
  *
- * - `PaletteLabTrigger` is site chrome, not a panel control: it sits beside the
- *   footer/homepage theme toggle and wears the same shared `theme-icon-button`
- *   recipe those neighbours do.
  * - `ColorField`'s alpha track is a `type="range"` instrument painted with a
  *   live gradient; the kit's `Input` is a text field and has no analogue.
  * - `LengthField` is the same instrument for the radius scale: a `type="range"`
@@ -76,7 +73,6 @@ const RETIRED_CONTROL_CLASSES = [
  *   readout) is a kit component; only the track is raw.
  */
 const RAW_ELEMENT_ALLOWLIST = new Set([
-  "PaletteLabTrigger.tsx",
   "ColorField.tsx",
   "LengthField.tsx",
   "AngleField.tsx",
@@ -132,9 +128,11 @@ describe("Theme Lab panel controls", () => {
     // and alpha track, the swatch checkerboard, the eyedropper overlays, and
     // the docked share-invite card — the one surface the lab paints outside its
     // own panel, whose contents still borrow the drawer, action-row and error
-    // classes rather than growing their own. (+8 over the original 1,320:
-    // instrument polish — grabbing cursors, Firefox thumb parity, and the
-    // caret transitions joining the reduced-motion block.)
-    expect(stylesheet.split("\n").length).toBeLessThanOrEqual(1328);
+    // classes rather than growing their own. (−66 since the public trigger was
+    // retired: its button, wheel glyph and pressed state went with it, the panel
+    // title's wheel is declared once instead of twice, and the rules that moved
+    // the homepage's fixed control cluster around the sheet went with the
+    // homepage mount.)
+    expect(stylesheet.split("\n").length).toBeLessThanOrEqual(1260);
   });
 });

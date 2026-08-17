@@ -8,7 +8,7 @@ import { PublicContentShell } from "@/components/layout/PublicPagePrimitives";
 import { CategoryIntro } from "@/components/pages/CategoryIntro";
 import { icons } from "@/utils/iconNames";
 import { cn } from "@/lib/utils";
-import { AppImage } from "@/components/common/AppImage";
+import { MoleculeImage } from "@/components/pages/MoleculeImage";
 import { StructurePanels } from "../components/StructurePanels";
 import type { ChemicalClassDetail, ChemicalClassTreeSummary } from "../types";
 
@@ -135,7 +135,7 @@ function LineageBlock({ detail }: { detail: ChemicalClassDetail }) {
 
         {detail.structureUrl ? (
           <figure className="shrink-0 self-center sm:self-start">
-            <AppImage
+            <MoleculeImage
               src={detail.structureUrl}
               alt={`Generic ${detail.label} structure with variable R-group positions`}
               width={240}
