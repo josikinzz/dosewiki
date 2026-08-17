@@ -11,7 +11,7 @@ import { ACCENTS, DEFAULT_ACCENT_ID, type Accent } from "./accents";
  * line of application code, and the pre-paint bootstrap only names which one to wear.
  *
  * {@link ACCENTS} stays the single source of truth; this module only serialises it. The
- * checked-in stylesheet is emitted by `npm run generate:accent-css`, and `accents.test.ts`
+ * checked-in stylesheet is emitted by `npm run generate:accent-css`, and `accents.axis.test.ts`
  * fails if the file drifts from what the definitions produce.
  */
 
@@ -151,7 +151,7 @@ const HEADER = `/* GENERATED FILE — do not edit by hand.
  * is a measurement: this sheet is imported after `pro-theme.css` (a Fun accent has to beat a
  * saved colourway, which ties it at (0,2,1)), and a Fun block ties the Pro palette too, so
  * the later sheet wins. Unguarded, a Pro page wearing Blue painted Abyss's navy canvas
- * #020a12 instead of Pro's paper #f6f5f1. `accents.test.ts` asserts the canvas per visual
+ * #020a12 instead of Pro's paper #f6f5f1. `accents.axis.test.ts` asserts the canvas per visual
  * style, which is the case that fails if the guard is ever dropped.
  */
 export function buildAccentStylesheetCss(accents: readonly Accent[] = ACCENTS) {

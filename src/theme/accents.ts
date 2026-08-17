@@ -18,7 +18,7 @@ import type { PalettePresetId } from "@/features/theme-lab/palettePresets";
  *
  * These definitions are the single source of truth. The stylesheet that carries them into
  * the browser is emitted from {@link buildAccentStylesheetCss} by
- * `npm run generate:accent-css`, and `accents.test.ts` fails if the checked-in file drifts.
+ * `npm run generate:accent-css`, and `accents.axis.test.ts` fails if the checked-in file drifts.
  */
 
 export type AccentId = "default" | "blue" | "green" | "red" | "amber" | "neutral";
@@ -168,8 +168,8 @@ const blue: Accent = {
  *
  * Safety adjacency is real here and Canopy already answers it: success green is authored at
  * `--h-green: 160`, ten degrees off this brand, so Canopy re-seats it to 185 (emerald to teal).
- * That leaves 35° between a leaf-green link and a "safe" callout. `accents.test.ts` measures
- * that separation rather than trusting it.
+ * That leaves 35° between a leaf-green link and a "safe" callout. `accents.immunity.test.ts`
+ * measures that separation rather than trusting it.
  */
 const green: Accent = {
   id: "green",
@@ -219,8 +219,8 @@ const green: Accent = {
  * `--h-rose: 14` is eleven degrees from this brand, so Garnet moves rose to 350 and re-pins the
  * two danger literals that do not follow the seed (`DANGER_RETINT` in
  * `palettePresets.test.ts`). Red inherits that map, so it inherits the exemption — restated as a
- * named exemption in `accents.test.ts` rather than passing silently. The separation it buys is
- * 35°.
+ * named exemption in `accents.immunity.test.ts` rather than passing silently. The separation it
+ * buys is 35°.
  */
 const red: Accent = {
   id: "red",
@@ -268,8 +268,8 @@ const red: Accent = {
  * it widens them in opposite directions — caution gold re-seats to 95 and its one hand-tuned
  * literal moves with it (`CAUTION_GOLD`), while unsafe deepens to a burnt vermilion at 35. So
  * the shipped separations Amber inherits are 50° to caution and 10° to unsafe, and the 10° is
- * carried further by a much deeper value. `accents.test.ts` measures both and names the
- * inherited exemption.
+ * carried further by a much deeper value. `accents.immunity.test.ts` measures both and names
+ * the inherited exemption.
  */
 const amber: Accent = {
   id: "amber",

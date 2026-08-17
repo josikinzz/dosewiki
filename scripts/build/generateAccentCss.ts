@@ -9,7 +9,7 @@
  *   npm run generate:accent-css            write the stylesheet
  *   npm run generate:accent-css -- --check  fail if it is stale
  *
- * `accents.test.ts` runs the same comparison, so an accent edit without a regenerate fails
+ * `accents.axis.test.ts` runs the same comparison, so an accent edit without a regenerate fails
  * the test suite rather than shipping a stale palette.
  */
 import { readFileSync, writeFileSync } from "node:fs";

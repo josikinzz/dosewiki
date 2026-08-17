@@ -30,7 +30,7 @@ const APPEARANCE_MATRIX = [
  * The matrix is visual style × colour scheme and stays that way. The accent axis is a third
  * appearance axis but it is attribute-only and pre-paint: it changes token values, not
  * markup, so multiplying this sweep by it would render 24 identical trees. Accent coverage
- * is table-driven in `src/theme/accents.test.ts`.
+ * is table-driven across the `src/theme/accents.*.test.ts` suites.
  *
  * One boundary worth knowing: a closed Radix popover renders nothing on the server, and
  * `@radix-ui/react-portal` returns null before mount, so this sweep covers the appearance
