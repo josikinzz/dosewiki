@@ -21,10 +21,10 @@ This repo is linked to Vercel. Treat this file as the repo-local deployment/acco
 - If the public domains are attached to this Vercel project, `middleware.ts`
   must keep the host gate that redirects non-homepage requests on `dose.wiki` /
   `www.dose.wiki` back to `/`.
-- The construction-host gate deliberately passes the read-only `/api/v1` API
-  and its descendants. It may also pass `/api/csp-report` for report-only
-  security telemetry; that endpoint must not expose application data or editor
-  APIs. `lib/next/publicConstructionPolicy.ts` owns the complete allowlist.
+- The construction-host gate passes the read-only `/api/v1` API and its descendants.
+- It also passes `/api/csp-report` because the enforced CSP uses `report-uri`.
+- That endpoint accepts only size-limited, rate-limited, redacted violation reports.
+- It does not expose application data or editor APIs.
 - Keep `NEXT_PUBLIC_SITE_URL` pointed at the crawlable full-app host
   (`https://dosewiki-admin.vercel.app` or the active admin preview URL) while the
   public hosts are gated. Switch it to `https://dose.wiki` only after the launch

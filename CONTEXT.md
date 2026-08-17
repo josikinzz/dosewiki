@@ -151,11 +151,11 @@ A deliberate group of locally archived citation results promoted to production t
 _Avoid_: per-drug automatic publish, immediate Convex write
 
 **Citation Rollout Stage Gate**:
-A deliberate rollout pause: calibrate on `2c-b`, publish and review the homepage `common` substances, then stop before expanding to other homepage-visible substances.
+A deliberate pause between rollout tiers. Calibration on `2c-b` is complete. Publish and review the homepage `common` substances. Then stop before expansion to other homepage-visible substances.
 _Avoid_: continuous production rollout, jumping tiers
 
 **Citation Canary**:
-The substance rerun repeatedly to prove and refine citation workflow changes before scaling. `2c-b` is the current citation canary.
+A Citation Canary is a substance used for repeated runs that prove and refine workflow changes before scaling. `2c-b` is the completed historical canary. Select the next canary explicitly.
 _Avoid_: one-and-done pilot
 
 ## Legality Research Language
@@ -203,8 +203,8 @@ A required record that a country was researched without finding a Primary Legal 
 _Avoid_: silent omission, guessed status
 
 **Legality Refuter**:
-An independent verification run, using a stronger model than the researcher, that tries to refute every new entry and correction against its cited source. Refuted work becomes a Legality Gap; only unrefuted work enters the draft.
-_Avoid_: rubber-stamp check, same-model self-review
+An adversarial verification run in a fresh blank context on the session model. It tries to refute a finding against its cited source. A refuted finding enters bounded recovery before its terminal gap or `draft.refuted` disposition.
+_Avoid_: rubber-stamp check, producer reviewing its own finding, unbounded recovery
 
 **Legality Draft**:
 The run-local artifact containing verified entries, corrections, International Convention Status, evidence, and gaps for one substance. It reaches Convex only through a dry-run followed by a confirmed write.
@@ -219,7 +219,7 @@ A substance's primary-sourced scheduling under the 1961, 1971, and 1988 UN drug 
 _Avoid_: empty international section, uncited UN claim
 
 **Common-First Legality Rollout**:
-The rollout of publicly listed substances in common-first order: substances marked `common` in each psychoactive category, then every remaining unprocessed substance. Completed runs are skipped. Each substance is published once to production Convex (`glad-minnow-656`) and verified on the full admin host (`https://dosewiki-admin.vercel.app/`) before the next begins.
+The rollout of publicly listed substances in common-first order: substances marked `common` in each psychoactive category, then every remaining unprocessed substance. Completed runs are skipped. Each substance is published once to production Convex (`glad-minnow-656`). Completion requires `applied.json` and `citations-applied.json` to record successful writes before the next substance begins.
 _Avoid_: source-material-priority rollout, rerunning completed substances, bulk publish
 
 ## Article Review Language
