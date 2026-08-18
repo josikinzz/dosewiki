@@ -259,6 +259,13 @@ export const CLEANUP_METRIC_BUDGET_EXCEPTIONS: CleanupMetricBudgetException[] = 
     reviewDate: "2026-06-12",
   },
   {
+    file: "scripts/review/build-review-plan.ts",
+    maxLoc: 625,
+    owner: "data-ops-maintainers",
+    reason: "Review-plan orchestration remains consolidated while the deterministic transformation and refusal workflow stabilizes.",
+    reviewDate: "2026-08-18",
+  },
+  {
     file: "scripts/research/collect-psychonautwiki-2015-subjective-effects.mjs",
     maxLoc: 650,
     owner: "research-tooling-maintainers",

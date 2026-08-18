@@ -4638,12 +4638,17 @@
     -webkit-backdrop-filter: none !important;
   }
 
-  .theme-header-surface .theme-home-mock-search {
+  /* Header search fields should sit into the chrome rather than float above it.
+     Their quiet rim reuses the same panel hairline as the homepage icon tiles;
+     depth comes from the sunk fill and inner shading, not a brighter outline. */
+  .theme-header-surface :is(.theme-global-search-input, .theme-home-mock-search) {
     color: var(--theme-text-secondary);
-    border-color: transparent;
-    background: var(--theme-frosted-control-on-panel-bg);
-    box-shadow: var(--theme-frosted-control-on-panel-shadow);
-    --tw-ring-color: var(--theme-frosted-control-on-panel-border);
+    border-color: var(--theme-frosted-panel-border);
+    background: color-mix(in srgb, var(--theme-toggle-pill-bg) 82%, var(--theme-field-on-chrome-surface));
+    box-shadow:
+      inset 0 2px 3px color-mix(in srgb, var(--theme-shadow-soft) 44%, transparent),
+      inset 0 -1px 0 color-mix(in srgb, var(--theme-text-primary) 4%, transparent);
+    --tw-ring-color: var(--theme-frosted-panel-border);
   }
 
   .theme-header-surface .theme-home-mock-search input[type="search"] {
@@ -4651,6 +4656,23 @@
     background: transparent;
     box-shadow: none;
     color: inherit;
+  }
+
+  @media (hover: hover) {
+    .theme-header-surface :is(.theme-global-search-input, .theme-home-mock-search):hover {
+      border-color: color-mix(in srgb, var(--theme-accent) 16%, var(--theme-frosted-panel-border));
+      background: color-mix(in srgb, var(--theme-toggle-pill-bg) 76%, var(--theme-field-on-chrome-surface));
+    }
+  }
+
+  .theme-header-surface .theme-global-search-input:focus,
+  .theme-header-surface .theme-home-mock-search:focus-within {
+    border-color: color-mix(in srgb, var(--theme-accent-strong) 38%, var(--theme-frosted-panel-border));
+    background: color-mix(in srgb, var(--theme-toggle-pill-bg) 76%, var(--theme-field-on-chrome-surface));
+    box-shadow:
+      inset 0 2px 3px color-mix(in srgb, var(--theme-shadow-soft) 44%, transparent),
+      inset 0 -1px 0 color-mix(in srgb, var(--theme-text-primary) 4%, transparent),
+      0 0 0 1px var(--theme-ring-soft);
   }
 
   /* Shared theme-token focus ring. Drop-in replacement for the raw 4-utility

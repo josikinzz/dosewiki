@@ -123,7 +123,7 @@ export function HomeExperience({
             <button
               type="button"
               onClick={() => showComingSoon("Home")}
-              className="group/brand flex h-11 w-11 items-center gap-2 p-0 text-left hover:bg-transparent xl:h-10 xl:w-auto xl:pl-0 xl:pr-4"
+              className="group/brand flex h-11 w-11 items-center gap-2 p-0 text-left hover:bg-transparent xl:h-10 xl:w-auto xl:pl-0"
               aria-label={`${SITE_FLAVOR_CONFIG.name} home mockup`}
             >
               <span className="inline-flex items-center justify-center transition-transform duration-200 group-hover/brand:scale-105 group-focus-visible/brand:scale-105">
@@ -141,7 +141,7 @@ export function HomeExperience({
           ) : (
             <Link
               href="/"
-              className="group/brand flex h-11 w-11 items-center gap-2 p-0 text-left hover:bg-transparent xl:h-10 xl:w-auto xl:pl-0 xl:pr-4"
+              className="group/brand flex h-11 w-11 items-center gap-2 p-0 text-left hover:bg-transparent xl:h-10 xl:w-auto xl:pl-0"
               aria-label={`${SITE_FLAVOR_CONFIG.name} home`}
             >
               <span className="inline-flex items-center justify-center transition-transform duration-200 group-hover/brand:scale-105 group-focus-visible/brand:scale-105">
