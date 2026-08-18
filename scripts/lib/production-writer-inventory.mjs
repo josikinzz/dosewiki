@@ -20,6 +20,7 @@ export const productionWriterClassifications = Object.freeze({
     "scripts/remove-contributor.mjs",
     "scripts/replications/apply-artist-license.mjs",
     "scripts/replications/apply-provenance-corrections.mjs",
+    "scripts/replications/apply-psychonautwiki-metadata-corrections.mjs",
     "scripts/replications/apply-slug-aliases.mjs",
     "scripts/replications/backfill-rights-metadata.mjs",
     "scripts/replications/generate-preview-renditions.mjs",
