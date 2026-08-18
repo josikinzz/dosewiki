@@ -46,7 +46,7 @@ export type Accent = {
   readonly pro: { readonly light: ProAccentSeeds; readonly dark: ProAccentSeeds } | null;
 };
 
-export const DEFAULT_ACCENT_ID: AccentId = "default";
+export const BASE_ACCENT_ID: AccentId = "default";
 
 /**
  * The nine Pro seeds an accent owns, derived from the authored declarations in

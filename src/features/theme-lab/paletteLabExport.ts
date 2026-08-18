@@ -1,4 +1,4 @@
-import { DEFAULT_ACCENT_ID, PRO_ACCENT_SEED_NAMES } from "@/theme/accents";
+import { BASE_ACCENT_ID, PRO_ACCENT_SEED_NAMES } from "@/theme/accents";
 import { formatColor, parseColorToRgba } from "./colorUtils";
 import {
   THEME_SHARE_FORMAT,
@@ -214,7 +214,7 @@ function seedBlock(scheme: "light" | "dark", values: Record<string, string>): st
 export function serializeAccentEntry(draft: AccentEntryDraft): string {
   // `default` is a reserved word, and `accents.ts` already calls its own entry
   // `defaultAccent`; every other id is a bare identifier.
-  const binding = draft.id === DEFAULT_ACCENT_ID ? "defaultAccent" : draft.id;
+  const binding = draft.id === BASE_ACCENT_ID ? "defaultAccent" : draft.id;
   return [
     "/**",
     ` * ${draft.label} — TODO: replace this paragraph. Say what the accent IS, not what it`,

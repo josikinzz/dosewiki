@@ -9,7 +9,7 @@ import {
   read,
   toHex,
 } from "@/test/fixtures/accentAppearanceGrid";
-import { ACCENTS, DEFAULT_ACCENT_ID, PRO_ACCENT_SEED_NAMES, getAccent, isAccent } from "./accents";
+import { ACCENTS, BASE_ACCENT_ID, PRO_ACCENT_SEED_NAMES, getAccent, isAccent } from "./accents";
 import {
   ACCENT_ATTRIBUTE,
   ACCENT_STYLESHEET_PATH,
@@ -17,7 +17,7 @@ import {
   accentFunBlockSelector,
   buildAccentStylesheetCss,
 } from "./accentStylesheet";
-import { ACCENT_STORAGE_KEY, DEFAULT_ACCENT, SUPPORTED_ACCENTS } from "./index";
+import { ACCENT_STORAGE_KEY, BASE_ACCENT, SUPPORTED_ACCENTS } from "./index";
 
 /**
  * The accent table, and the shape of what it emits.
@@ -49,7 +49,7 @@ describe("accent table", () => {
       "neutral",
       "teal",
     ]);
-    expect(DEFAULT_ACCENT).toBe(DEFAULT_ACCENT_ID);
+    expect(BASE_ACCENT).toBe(BASE_ACCENT_ID);
     expect(ACCENT_STORAGE_KEY).toBe("dosewiki-accent");
     expect(ACCENT_ATTRIBUTE).toBe("data-accent");
   });
@@ -80,7 +80,7 @@ describe("accent table", () => {
       // And not as an accent ID either: an accent row is a list of ids, and a colourway id that
       // happened to resolve there would render a palette the cog never advertised.
       expect(isAccent(id)).toBe(false);
-      expect(getAccent(id).id).toBe(DEFAULT_ACCENT_ID);
+      expect(getAccent(id).id).toBe(BASE_ACCENT_ID);
     }
   });
 
@@ -92,8 +92,8 @@ describe("accent table", () => {
     expect(isAccent("dark")).toBe(false);
     expect(isAccent("pro")).toBe(false);
     expect(isAccent("journal")).toBe(false);
-    expect(getAccent("journal").id).toBe(DEFAULT_ACCENT_ID);
-    expect(getAccent(null).id).toBe(DEFAULT_ACCENT_ID);
+    expect(getAccent("journal").id).toBe(BASE_ACCENT_ID);
+    expect(getAccent(null).id).toBe(BASE_ACCENT_ID);
     expect(getAccent("blue").funPresetId).toBe("abyss");
     expect(getAccent("green").funPresetId).toBe("canopy");
     expect(getAccent("red").funPresetId).toBe("garnet");
@@ -109,7 +109,7 @@ describe("accent table", () => {
 
 describe("accent seeds", () => {
   it("keys the default accent by the attribute's absence rather than by its id", () => {
-    const defaultAccent = ACCENTS.find((accent) => accent.id === DEFAULT_ACCENT_ID)!;
+    const defaultAccent = ACCENTS.find((accent) => accent.id === BASE_ACCENT_ID)!;
     const css = buildAccentStylesheetCss([defaultAccent]);
 
     // The Fun half still emits nothing, and that is not tidiness: Fun's authored palette IS the
@@ -117,7 +117,7 @@ describe("accent seeds", () => {
     // correct. `null` rather than a colourway id is what says so.
     expect(defaultAccent.funPresetId).toBeNull();
     for (const theme of ["light", "dark"]) {
-      expect(css).not.toContain(accentFunBlockSelector(DEFAULT_ACCENT_ID, theme));
+      expect(css).not.toContain(accentFunBlockSelector(BASE_ACCENT_ID, theme));
     }
 
     // The Pro half does emit, because pro-theme.css seeds Effect Index's teal and dose.wiki's Pro
@@ -128,7 +128,7 @@ describe("accent seeds", () => {
       expect(css).toContain(accentDefaultProBlockSelector(theme));
     }
     expect(css).not.toContain(`${ACCENT_ATTRIBUTE}="`);
-    expect(read(ACCENT_STYLESHEET_PATH)).not.toContain(`${ACCENT_ATTRIBUTE}="${DEFAULT_ACCENT_ID}"`);
+    expect(read(ACCENT_STYLESHEET_PATH)).not.toContain(`${ACCENT_ATTRIBUTE}="${BASE_ACCENT_ID}"`);
   });
 
   it("declares exactly the Pro seeds the authored palette declares", () => {

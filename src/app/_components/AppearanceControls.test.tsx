@@ -9,7 +9,7 @@ import {
   ThemeProvider,
   VISUAL_STYLE_STORAGE_KEY,
 } from "@/context/ThemeContext";
-import { ACCENTS, DEFAULT_ACCENT_ID } from "@/theme/accents";
+import { ACCENTS, BASE_ACCENT_ID } from "@/theme/accents";
 import { AppearanceCog, type AppearanceCogRows } from "./AppearanceCog";
 import { AppearanceControls } from "./AppearanceControls";
 import { ThemeToggle } from "./ThemeToggle";
@@ -26,10 +26,10 @@ vi.mock("@/components/common/Icon", () => ({
 }));
 
 /** The default accent, and the first that is not — so a pick is observable as an attribute. */
-const DEFAULT_ACCENT = ACCENTS.find((accent) => accent.id === DEFAULT_ACCENT_ID);
-const OTHER_ACCENT = ACCENTS.find((accent) => accent.id !== DEFAULT_ACCENT_ID);
+const BASE_ACCENT = ACCENTS.find((accent) => accent.id === BASE_ACCENT_ID);
+const OTHER_ACCENT = ACCENTS.find((accent) => accent.id !== BASE_ACCENT_ID);
 
-if (!DEFAULT_ACCENT || !OTHER_ACCENT) {
+if (!BASE_ACCENT || !OTHER_ACCENT) {
   throw new Error("The accent table must offer the default plus something else to pick.");
 }
 
@@ -73,7 +73,7 @@ describe("AppearanceCog", () => {
     window.localStorage.clear();
     window.localStorage.setItem(COLOR_SCHEME_STORAGE_KEY, "dark");
     window.localStorage.setItem(VISUAL_STYLE_STORAGE_KEY, "fun");
-    window.localStorage.setItem(ACCENT_STORAGE_KEY, DEFAULT_ACCENT_ID);
+    window.localStorage.setItem(ACCENT_STORAGE_KEY, BASE_ACCENT_ID);
     document.documentElement.dataset.theme = "dark";
     document.documentElement.dataset.visualStyle = "fun";
     delete document.documentElement.dataset.accent;
@@ -295,7 +295,7 @@ describe("AppearanceCog", () => {
         .map((button) => button.getAttribute("aria-label")),
     ).toEqual(ACCENTS.map((accent) => accent.label));
 
-    const active = within(swatches).getByRole("button", { name: DEFAULT_ACCENT.label });
+    const active = within(swatches).getByRole("button", { name: BASE_ACCENT.label });
     expect(active).toHaveAttribute("aria-pressed", "true");
     expect(active.dataset.active).toBe("true");
 

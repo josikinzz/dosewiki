@@ -65,11 +65,15 @@ export const DEFAULT_COLOR_SCHEME = THEME_TOKEN_INTERFACE.defaultColorScheme as 
 export const DEFAULT_VISUAL_STYLE = THEME_TOKEN_INTERFACE.defaultVisualStyle as VisualStyle;
 /**
  * The accent the stylesheets render with no `data-accent` present. It is the same value
- * `accents.ts` declares as {@link DEFAULT_ACCENT_ID} — stated in both places because the
+ * `accents.ts` declares as {@link BASE_ACCENT_ID} — stated in both places because the
  * manifest is what the bootstrap and the stylesheets agree through, and the table is what
  * the type system checks; `accents.test.ts` asserts they have not drifted apart.
+ *
+ * This is the *base* of the paint, not where a publication opens. Those were one value until
+ * dose.wiki chose to open on Neutral; {@link AppearancePolicy.defaultAccent} is the opening
+ * accent now, and only a publication that opens on this one ships no attribute.
  */
-export const DEFAULT_ACCENT = THEME_TOKEN_INTERFACE.defaultAccent as AccentId;
+export const BASE_ACCENT = THEME_TOKEN_INTERFACE.baseAccent as AccentId;
 
 export const COLOR_SCHEME_STORAGE_KEY = THEME_TOKEN_INTERFACE.colorSchemeStorageKey;
 export const VISUAL_STYLE_STORAGE_KEY = THEME_TOKEN_INTERFACE.visualStyleStorageKey;
@@ -118,15 +122,19 @@ export function isVisualStyle(value: string | null | undefined): value is Visual
  * from the build and its storage key is never read or written. That is what keeps a reader's
  * dose.wiki style choice from following them into Effect Index's identity.
  *
- * The accent axis has no `defaultAccent` here, and that asymmetry is deliberate: the other
- * two axes open on a point the publication chose, while every publication opens on the
- * authored accent, so the default is one manifest value rather than a per-publication one.
+ * All three axes carry a `default*` here. The accent one used to be absent, on the reasoning
+ * that every publication opened on the authored base — true until dose.wiki chose to open on
+ * Neutral. {@link BASE_ACCENT} remains the accent the stylesheets paint with no attribute;
+ * `defaultAccent` is where a publication opens, and the two are only the same value for a
+ * publication that wants the authored base. A locked accent axis ignores `defaultAccent` and
+ * resolves to {@link BASE_ACCENT}, because a lock means "wear the publication's own identity".
  */
 export type AppearancePolicy = {
   readonly defaultColorScheme: ColorScheme;
   readonly showColorSchemeToggle: boolean;
   readonly defaultVisualStyle: VisualStyle;
   readonly showVisualStyleToggle: boolean;
+  readonly defaultAccent: AccentId;
   readonly showAccentPicker: boolean;
 };
 
@@ -151,15 +159,17 @@ export function getAppearanceMetaColor({
  * axis. Rendering both root attributes and the matching `theme-color` meta value from one
  * source keeps the first painted frame — page *and* browser chrome — off the wrong style.
  *
- * The accent opens on the manifest default for every publication, which is also the accent
- * that writes no attribute: the server renders no `data-accent`, so the markup it ships and
- * the frame the bootstrap paints are the same one.
+ * The accent opens on the publication's own {@link AppearancePolicy.defaultAccent}, except
+ * under a lock, where it resolves to {@link BASE_ACCENT} — the locked axis wears the
+ * publication's identity rather than a reader-facing opening choice. When the result is not
+ * `BASE_ACCENT` the server must render `data-accent` for it, or the markup it ships and the
+ * frame the bootstrap paints are different ones.
  */
 export function getInitialAppearance(policy: AppearancePolicy = SITE_FLAVOR_CONFIG): Appearance {
   return {
     colorScheme: policy.defaultColorScheme,
     visualStyle: policy.defaultVisualStyle,
-    accent: DEFAULT_ACCENT,
+    accent: policy.showAccentPicker ? policy.defaultAccent : BASE_ACCENT,
   };
 }
 
@@ -205,11 +215,12 @@ function buildAxisResolution({
  * throwing `theme-color` meta element must cost the reader their chrome tint, never their
  * theme. The style is resolved first because it selects the scheme's validity row.
  *
- * The accent is the one axis that can resolve to *no attribute*. The default accent has no
+ * The accent is the one axis that can resolve to *no attribute*. {@link BASE_ACCENT} has no
  * block in the generated stylesheet, so writing `data-accent="default"` would advertise an
  * override that does not exist and give the Theme Lab and the DOM inspector a value with no
- * meaning. The attribute is therefore removed rather than set — the same rule
- * `applyAppearanceToDocument` follows in the provider, which is the only other writer.
+ * meaning. That accent is therefore removed rather than set — the same rule
+ * `applyAppearanceToDocument` follows in the provider, which is the only other writer. Every
+ * other accent, including a publication opening on one, is written.
  */
 export function buildThemeBootstrapScript(policy: AppearancePolicy = SITE_FLAVOR_CONFIG): string {
   const visualStyle = buildAxisResolution({
@@ -235,7 +246,7 @@ export function buildThemeBootstrapScript(policy: AppearancePolicy = SITE_FLAVOR
     ? ""
     : `\n${buildAxisResolution({
         variable: "accent",
-        fallback: DEFAULT_ACCENT,
+        fallback: policy.defaultAccent,
         locked: false,
         storageKey: ACCENT_STORAGE_KEY,
         validitySet: "ACCENTS",
@@ -243,14 +254,14 @@ export function buildThemeBootstrapScript(policy: AppearancePolicy = SITE_FLAVOR
   const accentValiditySet = accentLocked
     ? ""
     : `\n  const ACCENTS = ${JSON.stringify(Object.fromEntries(SUPPORTED_ACCENTS.map((id) => [id, 1])))};`;
-  // Under a lock the attribute is still *removed* rather than left alone. A locked accent always
-  // resolves to the default — the axis has no per-publication default to lock to something else
-  // — so this is one unconditional statement instead of a branch over a constant. It is kept
-  // rather than dropped so the script does not depend on the server having rendered no
-  // attribute: true today, but not this script's fact to rely on.
+  // Under a lock the attribute is still *removed* rather than left alone. A locked accent
+  // resolves to BASE_ACCENT rather than to `policy.defaultAccent` — a lock means the
+  // publication's own identity, not a reader-facing opening choice — so this is one
+  // unconditional statement instead of a branch over a constant. It is kept rather than
+  // dropped so the script does not depend on the server having rendered no attribute.
   const accentWrite = accentLocked
     ? `  delete root.dataset.accent;`
-    : `  if (accent === ${JSON.stringify(DEFAULT_ACCENT)}) {
+    : `  if (accent === ${JSON.stringify(BASE_ACCENT)}) {
     delete root.dataset.accent;
   } else {
     root.dataset.accent = accent;

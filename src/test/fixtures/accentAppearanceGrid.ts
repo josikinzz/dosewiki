@@ -1,7 +1,7 @@
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 
-import { ACCENTS, DEFAULT_ACCENT_ID } from "@/theme/accents";
+import { ACCENTS, BASE_ACCENT_ID } from "@/theme/accents";
 import { ACCENT_ATTRIBUTE, ACCENT_STYLESHEET_PATH } from "@/theme/accentStylesheet";
 
 /**
@@ -45,8 +45,16 @@ const LADDER = [
 
 export type VisualStyle = "fun" | "pro";
 export type ColorScheme = "light" | "dark";
-/** One point on the appearance grid. An absent accent is the default accent. */
-export type AppearanceState = { visualStyle: VisualStyle; theme: ColorScheme; accent?: string };
+/**
+ * One point on the appearance grid. An absent accent is the default accent; an absent palette is
+ * the base sheet's own colourway, which is what a reader who never opened the Theme Lab sees.
+ */
+export type AppearanceState = {
+  visualStyle: VisualStyle;
+  theme: ColorScheme;
+  accent?: string;
+  palette?: string;
+};
 
 export type Specificity = [number, number, number];
 export type Declaration = {
@@ -106,9 +114,19 @@ const ROOT_SELECTOR =
 const SELECTOR_PIECE =
   /\[([a-z-]+)(?:="([^"]*)")?\]|:where\(:not\(\[([a-z-]+)(?:="([^"]*)")?\]\)\)|:not\(\[([a-z-]+)(?:="([^"]*)")?\]\)/g;
 
+/**
+ * The four attributes that can seed a page-wide colourway, and the state field each drives.
+ *
+ * `data-palette` is modelled because `palette-presets.generated.css` is already on the LADDER and
+ * every one of its twelve colourway blocks names it. Without an entry here `rootSelector` returned
+ * null for all of them, which is the "unmodelled attribute" branch below: the whole sheet dropped
+ * out of the cascade and every Theme Lab colourway measured as the base sheet. Twelve reachable
+ * appearance states were silently unmeasured for the life of this fixture.
+ */
 const STATE_KEY_BY_ATTRIBUTE: Record<string, keyof AppearanceState> = {
   "data-theme": "theme",
   "data-visual-style": "visualStyle",
+  "data-palette": "palette",
   [ACCENT_ATTRIBUTE]: "accent",
 };
 
@@ -137,7 +155,11 @@ export function rootSelector(part: string): Pick<Declaration, "specificity" | "m
     const attribute = piece[1] ?? piece[3] ?? piece[5];
     const key = STATE_KEY_BY_ATTRIBUTE[attribute];
     // An attribute this grid does not model (data-site, data-blur) cannot be satisfied, so a
-    // rule naming one is treated as non-matching rather than silently ignored.
+    // rule naming one is treated as non-matching rather than silently ignored. That is still the
+    // right default for attributes outside the colourway axes, but it is a sharp edge: an
+    // attribute that DOES paint a colourway and is missing from the map above disappears
+    // silently, which is exactly how `data-palette` went unmeasured. Anything added to that
+    // sheet ladder that carries its own attribute belongs in the map, not here.
     if (!key) return null;
     if (piece[1] !== undefined) {
       classes += 1;
@@ -286,6 +308,14 @@ export function resolveTokens(state: AppearanceState): Record<string, string> {
  * ---------------------------------------------------------------------- */
 
 export type Rgb = [number, number, number];
+/**
+ * The same 8-bit sRGB channels with the alpha the value actually declared, 0-1.
+ *
+ * A separate type rather than an optional fourth slot on `Rgb`, because the distinction is the
+ * whole point: a `Rgb` in this module is a colour something renders, and a `Rgba` is a colour
+ * that still needs a ground before it renders anything. `composite` is the only bridge.
+ */
+export type Rgba = [number, number, number, number];
 
 const linearise = (channel: number) =>
   channel <= 0.04045 ? channel / 12.92 : ((channel + 0.055) / 1.055) ** 2.4;
@@ -353,6 +383,39 @@ function splitArguments(body: string): string[] {
   return parts.filter(Boolean);
 }
 
+/**
+ * Split a relative-colour component list on top-level whitespace.
+ *
+ * `componentPart.split(/\s+/)` cannot do this: `oklch(from rgb(232 121 249) calc(l - 0.041)
+ * calc(c * 1.35) h)` — Fun dark's `--theme-accent-strong` — has spaces *inside* two of its three
+ * components, so a flat split yields `calc(l`, `-`, `0.041)` and `evaluateComponent` throws
+ * `unevaluable colour component: calc(l`. That threw for all 36 Fun dark states the moment
+ * `--theme-accent-strong` was first measured, because `accents.contrast.test.ts` only ever read
+ * `--theme-accent`. Depth-aware, so a `calc()` arrives whole and a space-free component list
+ * tokenizes exactly as before.
+ */
+function splitComponents(body: string): string[] {
+  const parts: string[] = [];
+  let depth = 0;
+  let current = "";
+
+  for (const character of body) {
+    if (character === "(") depth += 1;
+    else if (character === ")") depth -= 1;
+
+    if (/\s/.test(character) && depth === 0) {
+      if (current) parts.push(current);
+      current = "";
+      continue;
+    }
+
+    current += character;
+  }
+
+  if (current) parts.push(current);
+  return parts;
+}
+
 /** Evaluate one relative-colour component: `h`, `calc(l - 0.041)`, `43%`, `0.12`. */
 function evaluateComponent(expression: string, base: { l: number; c: number; h: number }): number {
   const inner = /^calc\(([\s\S]*)\)$/.exec(expression.trim());
@@ -377,16 +440,41 @@ function evaluateComponent(expression: string, base: { l: number; c: number; h: 
   return literal;
 }
 
+/** One alpha component: a 0-1 number, or a percentage of one. */
+function parseAlpha(expression: string): number {
+  const source = expression.trim();
+  const value = Number.parseFloat(source);
+  if (Number.isNaN(value)) throw new Error(`unparseable alpha: ${expression}`);
+  return source.endsWith("%") ? value / 100 : value;
+}
+
 /**
- * Parse a fully `var()`-substituted colour value.
+ * Parse a fully `var()`-substituted colour value, alpha included.
  *
- * Alpha is dropped rather than composited: every token these floors measure is opaque, and
- * silently compositing a translucent one against a guessed backdrop would report a contrast
- * ratio nothing renders. An unrecognised value throws — a floor that cannot be measured must
- * fail the suite, not pass it.
+ * Alpha is carried rather than discarded, and that is a correction rather than a feature. The
+ * sheets declare their hairlines translucently — `--theme-field-border: rgb(var(--c-white) / 0.36)`
+ * in Fun dark, `oklch(50% 0.11 var(--h-brand) / 0.76)` in Fun light — and a parser that dropped
+ * the fourth channel measured a colour nothing paints. On Fun dark's field surface `#200e25`, that
+ * border read as pure white at **18.21:1**; the 36% white the compositor actually produces is
+ * `#706574`, at **3.30:1**. Both readings clear SC 1.4.11 today, and the gap between them is the
+ * point: the discarded-alpha figure carries six times the headroom the rendered one has, so it
+ * cannot tell a hairline that is comfortably visible from one sitting 0.30 above the floor. It
+ * could not tell a passing hairline from a failing one either — these two tokens were at 0.12 and
+ * 0.28 alpha until the audit, measuring 1.39:1 and 1.49:1 composited, and this arithmetic is why
+ * every border breach of 1.4.11 in this theme went unseen for as long as the fixture existed.
+ *
+ * Nothing is composited here. A ground is the caller's to name, because there is no honest guess
+ * for it — the same border sits on a field surface, a chrome surface and a card — so this returns
+ * the declared colour and `composite` is the only place a backdrop enters.
+ *
+ * An unrecognised value throws — a floor that cannot be measured must fail the suite, not pass it.
  */
-export function parseColor(value: string): Rgb {
+export function parseColorWithAlpha(value: string): Rgba {
   const trimmed = value.trim();
+
+  // `transparent` is `rgba(0 0 0 / 0)`. It matters as the second colour of a `color-mix`: that is
+  // how these sheets spell "this fill at 8% of itself".
+  if (trimmed === "transparent") return [0, 0, 0, 0];
 
   const relative = /^oklch\(\s*from\s+([\s\S]*)\)$/.exec(trimmed);
   if (relative) {
@@ -401,13 +489,21 @@ export function parseColor(value: string): Rgb {
         break;
       }
     }
-    const [l, c, h] = rgbToOklch(parseColor(rest.slice(0, cut)));
-    const components = rest.slice(cut).trim().split(/\s+/);
-    return oklchToRgb(
-      evaluateComponent(components[0], { l, c, h }),
-      evaluateComponent(components[1], { l, c, h }),
-      evaluateComponent(components[2], { l, c, h }),
-    );
+    const base = parseColorWithAlpha(rest.slice(0, cut));
+    const [l, c, h] = rgbToOklch([base[0], base[1], base[2]]);
+    // `splitArguments` cuts on top-level slashes, so a `/ a` tail arrives as a second part while
+    // the slash inside `calc(c / 2)` stays at depth. With no tail the base colour's alpha rides
+    // through, which is what the relative syntax specifies.
+    const [componentPart, alphaPart] = splitArguments(rest.slice(cut));
+    const components = splitComponents(componentPart);
+    return [
+      ...oklchToRgb(
+        evaluateComponent(components[0], { l, c, h }),
+        evaluateComponent(components[1], { l, c, h }),
+        evaluateComponent(components[2], { l, c, h }),
+      ),
+      alphaPart === undefined ? base[3] : parseAlpha(alphaPart),
+    ] as Rgba;
   }
 
   const hex = /^#([0-9a-fA-F]{3,8})$/.exec(trimmed);
@@ -416,26 +512,43 @@ export function parseColor(value: string): Rgb {
       hex[1].length === 3 || hex[1].length === 4
         ? [...hex[1]].map((digit) => digit + digit).join("")
         : hex[1];
-    return [0, 2, 4].map((offset) =>
+    const [r, g, b] = [0, 2, 4].map((offset) =>
       Number.parseInt(digits.slice(offset, offset + 2), 16),
-    ) as Rgb;
+    );
+    // `#rgba` and `#rrggbbaa` carry alpha in the fourth byte; the three- and six-digit forms are
+    // opaque by definition.
+    return [r, g, b, digits.length === 8 ? Number.parseInt(digits.slice(6, 8), 16) / 255 : 1];
   }
 
   const rgb = /^rgba?\(([\s\S]*)\)$/.exec(trimmed);
   if (rgb) {
-    const args = splitArguments(rgb[1]);
-    const channels = args.length === 1 ? args[0].split(/[\s,]+/) : args;
-    return [0, 1, 2].map((index) => Number.parseFloat(channels[index])) as Rgb;
+    // Legacy commas, modern spaces and a substituted channel triple all reach here, and the
+    // slash-alpha form glues three channels into one part: `rgb(255 255 255 / 0.12)` splits to
+    // ["255 255 255", "0.12"], and `rgb(var(--c-white) / 0.12)` to the same thing once the var is
+    // substituted. So flatten the parts before indexing rather than indexing the parts.
+    const channels = splitArguments(rgb[1])
+      .flatMap((part) => part.split(/[\s,]+/))
+      .filter(Boolean);
+    return [
+      Number.parseFloat(channels[0]),
+      Number.parseFloat(channels[1]),
+      Number.parseFloat(channels[2]),
+      channels[3] === undefined ? 1 : parseAlpha(channels[3]),
+    ];
   }
 
   const oklch = /^oklch\(([\s\S]*)\)$/.exec(trimmed);
   if (oklch) {
-    const [lightness, chroma, hue] = oklch[1].trim().split(/\s+/);
-    return oklchToRgb(
-      lightness.endsWith("%") ? Number.parseFloat(lightness) / 100 : Number.parseFloat(lightness),
-      Number.parseFloat(chroma),
-      Number.parseFloat(hue),
-    );
+    const [componentPart, alphaPart] = splitArguments(oklch[1]);
+    const [lightness, chroma, hue] = componentPart.split(/\s+/);
+    return [
+      ...oklchToRgb(
+        lightness.endsWith("%") ? Number.parseFloat(lightness) / 100 : Number.parseFloat(lightness),
+        Number.parseFloat(chroma),
+        Number.parseFloat(hue),
+      ),
+      alphaPart === undefined ? 1 : parseAlpha(alphaPart),
+    ] as Rgba;
   }
 
   const mix = /^color-mix\(in\s+srgb\s*,([\s\S]*)\)$/.exec(trimmed);
@@ -449,16 +562,57 @@ export function parseColor(value: string): Rgb {
       : secondWeight
         ? 1 - Number.parseFloat(secondWeight[1]) / 100
         : 0.5;
-    const colourA = parseColor(first.replace(percentage, "").trim());
-    const colourB = parseColor(second.replace(percentage, "").trim());
-    return [0, 1, 2].map(
-      (index) => colourA[index] * weightA + colourB[index] * (1 - weightA),
-    ) as Rgb;
+    const colourA = parseColorWithAlpha(first.replace(percentage, "").trim());
+    const colourB = parseColorWithAlpha(second.replace(percentage, "").trim());
+    // CSS mixes in premultiplied alpha, which is the reason `color-mix(in srgb, X 8%, transparent)`
+    // is X at 8% alpha and not X dragged 92% of the way towards black: `transparent` contributes
+    // alpha and never colour. With two opaque operands this reduces exactly to the plain
+    // channel-wise average this function used to compute.
+    const alpha = colourA[3] * weightA + colourB[3] * (1 - weightA);
+    if (alpha === 0) return [0, 0, 0, 0];
+    return [
+      ...([0, 1, 2].map(
+        (index) =>
+          (colourA[index] * colourA[3] * weightA + colourB[index] * colourB[3] * (1 - weightA)) /
+          alpha,
+      ) as Rgb),
+      alpha,
+    ] as Rgba;
   }
 
-  if (/^[\d.]+\s+[\d.]+\s+[\d.]+$/.test(trimmed)) return trimmed.split(/\s+/).map(Number) as Rgb;
+  if (/^[\d.]+\s+[\d.]+\s+[\d.]+$/.test(trimmed)) {
+    return [...(trimmed.split(/\s+/).map(Number) as Rgb), 1] as Rgba;
+  }
 
   throw new Error(`unparseable colour: ${value}`);
+}
+
+/**
+ * The colour a value renders as with alpha dropped, not composited.
+ *
+ * This stays the module's plain reading, and stays a three-tuple, because the four accent suites
+ * measure opaque tokens and read better for it. Dropping alpha is a deliberate narrowing rather
+ * than an approximation: anything translucent has to name its ground, which means
+ * `parseColorWithAlpha` and then `composite`.
+ */
+export function parseColor(value: string): Rgb {
+  const [r, g, b] = parseColorWithAlpha(value);
+  return [r, g, b];
+}
+
+/**
+ * A translucent value over the ground it is painted on: `fg * a + ground * (1 - a)` per channel.
+ *
+ * In 8-bit sRGB rather than linear light, because that is what a compositor does — simple alpha
+ * blending of the encoded values — and blending anywhere else would report a colour no browser
+ * produces. An opaque `fg` returns itself, so a caller need not branch on alpha.
+ */
+export function composite([r, g, b, alpha]: Rgba, ground: Rgb): Rgb {
+  return [
+    r * alpha + ground[0] * (1 - alpha),
+    g * alpha + ground[1] * (1 - alpha),
+    b * alpha + ground[2] * (1 - alpha),
+  ];
 }
 
 const relativeLuminance = ([r, g, b]: Rgb) =>
@@ -495,7 +649,7 @@ export const GRID = ACCENTS.flatMap((accent) =>
   STYLES.flatMap((visualStyle) =>
     SCHEMES.map((theme) => {
       const state: AppearanceState =
-        accent.id === DEFAULT_ACCENT_ID
+        accent.id === BASE_ACCENT_ID
           ? { visualStyle, theme }
           : { visualStyle, theme, accent: accent.id };
 

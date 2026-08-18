@@ -52,11 +52,16 @@ export const ZOD_JITLESS_BOOTSTRAP_CSP_HASH =
  * table (`const ACCENTS = {…}`) it checks a stored value against. Adding `teal` moved it from
  * `'sha256-lQLgoeDGUwOlzXyLaTpHK688hYQZdJ60NCnjh4AfXcI='`; removing the one `,"teal":1` from the
  * emitted script reproduces that old digest byte for byte, which is how the re-pin was checked.
- * Effect Index's entry does NOT move and must not: it locks the axis, so its script names no
- * accent, carries no table, and is unaffected by anything the row gains.
+ * It also moves whenever the accent the script FALLS BACK to does, because that id is inlined
+ * as a literal. Opening dose.wiki on Neutral moved it from
+ * `'sha256-ToPUru2o+p5Gswlm5QALY0DdbmeSe6tNfqo75lkTXu4='`; substituting `"default"` back for the
+ * one `"neutral"` in the emitted script reproduces that digest, which is how this re-pin was
+ * checked. Effect Index's entry does NOT move and must not: it locks the axis, so its script
+ * names no accent, carries no table, and is unaffected by anything the row gains — its digest
+ * below is byte-identical across both of those changes, which is the proof the lock holds.
  */
 export const THEME_BOOTSTRAP_CSP_HASHES: Readonly<Record<SiteFlavor, string>> = {
-  dosewiki: "'sha256-ToPUru2o+p5Gswlm5QALY0DdbmeSe6tNfqo75lkTXu4='",
+  dosewiki: "'sha256-9SDoB83pqTfH+ek6yWTMSROPoa76lpSXXx1MEv7q1k0='",
   effectindex: "'sha256-qGFLhh2Y1+7tW2XJ/nl7SlRJTV+qO5sDL2zbisjQxf0='",
 };
 

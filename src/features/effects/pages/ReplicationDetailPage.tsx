@@ -318,7 +318,7 @@ export function ReplicationDetailPage({
           <p className="theme-text-secondary mt-2 select-all text-sm leading-6">{attribution}</p>
         </NestedContentCard>
 
-        <p className="theme-text-ghost mt-4 text-xs leading-5">
+        <p className="theme-text-faint mt-4 text-xs leading-5">
           To correct a credit or request removal, see the{" "}
           <Link href="/docs/license#replication-media-terms" className={proseLinkClassName}>
             licensing terms
@@ -337,14 +337,14 @@ export function ReplicationDetailPage({
         >
           <p
             id={NEIGHBOR_NAV_LABEL_ID}
-            className="theme-text-ghost mb-3 text-center text-[0.6875rem] uppercase tracking-[0.18em]"
+            className="theme-text-faint mb-3 text-center text-[0.6875rem] uppercase tracking-[0.18em]"
           >
             {neighborSetLabel}
           </p>
 
           <div className="flex items-stretch justify-between gap-3">
             <NeighborLink neighbor={neighbors.previous} direction="previous" />
-            <p className="theme-text-ghost self-center whitespace-nowrap text-xs tabular-nums">
+            <p className="theme-text-faint self-center whitespace-nowrap text-xs tabular-nums">
               {neighbors.position} / {neighbors.total}
             </p>
             <NeighborLink neighbor={neighbors.next} direction="next" />
@@ -400,7 +400,7 @@ function NeighborLink({
         />
       ) : null}
       <span className="min-w-0">
-        <span className="theme-text-ghost block text-[0.6875rem] uppercase tracking-[0.18em]">
+        <span className="theme-text-faint block text-[0.6875rem] uppercase tracking-[0.18em]">
           {isNext ? "Next" : "Previous"}
         </span>
         <span className="block truncate">{neighbor.title}</span>

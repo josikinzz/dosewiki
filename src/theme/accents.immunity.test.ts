@@ -8,7 +8,7 @@ import {
   read,
   rgbToOklch,
 } from "@/test/fixtures/accentAppearanceGrid";
-import { ACCENTS, DEFAULT_ACCENT_ID } from "./accents";
+import { ACCENTS, BASE_ACCENT_ID } from "./accents";
 
 /**
  * What an accent may not touch: the harm-reduction signal, and every literal still painted in
@@ -274,7 +274,7 @@ const brandBandColours = (value: string) =>
   });
 
 describe("brand-band leaks", () => {
-  it.each(GRID.filter((entry) => entry.accent.id !== DEFAULT_ACCENT_ID))(
+  it.each(GRID.filter((entry) => entry.accent.id !== BASE_ACCENT_ID))(
     "leaves no brand-band literal at the default value under $label",
     ({ label, accent, tokens, baseline }) => {
       // #115 made every brand-coloured literal in the Fun palette read an --h-* seed, so a
@@ -294,7 +294,7 @@ describe("brand-band leaks", () => {
   );
 
   it("exercises the named leak exemption", () => {
-    const exempted = GRID.filter((entry) => entry.accent.id !== DEFAULT_ACCENT_ID).flatMap(
+    const exempted = GRID.filter((entry) => entry.accent.id !== BASE_ACCENT_ID).flatMap(
       (entry) =>
         Object.keys(entry.baseline).filter(
           (token) =>

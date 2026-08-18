@@ -17,6 +17,9 @@ export const substanceRouteAliases = {
   "2cb": "2c-b",
   dxm: "dextromethorphan",
   lean: "codeine",
+  // Sonata is a brand name for zaleplon. The duplicate article carried its own
+  // divergent, uncited US scheduling row, so the brand route resolves here.
+  sonata: "zaleplon",
 } as const satisfies Record<string, string>;
 
 export function getSubstanceRouteAlias(slug: string): string | null {

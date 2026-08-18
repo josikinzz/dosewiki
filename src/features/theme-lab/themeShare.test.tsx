@@ -3,6 +3,8 @@ import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { AppearanceTestProvider } from "@/test/AppearanceTestProvider";
 import { PRO_ACCENT_SEED_NAMES } from "@/theme/accents";
+import { BASE_ACCENT } from "@/theme";
+import { ACCENT_ATTRIBUTE } from "@/theme/accentStylesheet";
 import { PaletteLabLazy as PaletteLab } from "./PaletteLabLazy";
 import { getPreset } from "./palettePresets";
 import { PALETTE_ATTRIBUTE, PALETTE_LAB_OVERRIDE_STYLE_ID } from "./paletteLabStorage";
@@ -49,6 +51,10 @@ function installMockStorage() {
 beforeEach(() => {
   installMockStorage();
   document.documentElement.setAttribute("data-theme", "dark");
+  // A fresh page load carries no accent until the bootstrap writes one. Reset it here or the
+  // accent the previous test's provider painted leaks in, and a test that pins `initialAccent`
+  // still adopts the stale painted value — which is the provider behaving correctly.
+  document.documentElement.removeAttribute(ACCENT_ATTRIBUTE);
   document.documentElement.removeAttribute(PALETTE_ATTRIBUTE);
   document.getElementById(PALETTE_LAB_OVERRIDE_STYLE_ID)?.remove();
   clearThemeBaselineCache();
@@ -60,6 +66,7 @@ beforeEach(() => {
 afterEach(() => {
   vi.restoreAllMocks();
   declinePendingShare();
+  document.documentElement.removeAttribute(ACCENT_ATTRIBUTE);
   document.documentElement.removeAttribute(PALETTE_ATTRIBUTE);
   document.getElementById(PALETTE_LAB_OVERRIDE_STYLE_ID)?.remove();
   window.history.replaceState({}, "", "/");
@@ -366,7 +373,14 @@ describe("Theme Lab share links", { timeout: 20_000 }, () => {
     document.head.appendChild(fixture);
 
     try {
-      render(<AppearanceTestProvider><PaletteLab /></AppearanceTestProvider>);
+      // Pinned to the base accent: this test is about the shape of the exported table entry,
+      // not about which accent dose.wiki happens to open on. Without the pin it would follow
+      // the publication to Neutral and assert Neutral's binding name instead.
+      render(
+        <AppearanceTestProvider initialAccent={BASE_ACCENT}>
+          <PaletteLab />
+        </AppearanceTestProvider>,
+      );
       act(() => setPaletteLabOpen(true));
       const panel = await screen.findByRole("dialog", { name: "Theme Lab" });
 
@@ -378,7 +392,7 @@ describe("Theme Lab share links", { timeout: 20_000 }, () => {
         configurable: true,
         value: { writeText: (text: string) => (clipboard.push(text), Promise.resolve()) },
       });
-      // The button names the accent being edited, which is the default one here.
+      // The button names the accent being edited, pinned to the base one above.
       await userEvent.click(within(panel).getByRole("button", { name: "Copy Default entry" }));
       await waitFor(() => expect(clipboard).toHaveLength(1));
 

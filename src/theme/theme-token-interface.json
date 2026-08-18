@@ -6,7 +6,7 @@
   "defaultVisualStyle": "fun",
   "supportedVisualStyles": ["fun", "pro"],
   "visualStyleStorageKey": "dosewiki-visual-style",
-  "defaultAccent": "default",
+  "baseAccent": "default",
   "supportedAccents": ["default", "blue", "green", "red", "amber", "neutral", "teal"],
   "accentStorageKey": "dosewiki-accent",
   "metaId": "theme-color-meta",

@@ -283,19 +283,19 @@ describe("ThemeProvider", () => {
     expect(ensureThemeMeta().content).toBe(APPEARANCE_META_COLORS.pro.dark);
   });
 
-  it("writes the accent attribute only for a non-default accent", async () => {
+  it("opens on the publication accent and writes the attribute for every non-base accent", async () => {
     const user = userEvent.setup();
 
     renderProvider();
 
     await waitFor(() => expect(document.documentElement.dataset.theme).toBe("dark"));
 
-    // The default accent is the ABSENCE of the attribute. It has no block in the generated
-    // stylesheet, so writing data-accent="default" would name an override that does not exist —
-    // and the pre-paint bootstrap leaves it absent, so a provider that set it would disagree
-    // with the frame the reader is already looking at.
-    expect(screen.getByTestId("accent")).toHaveTextContent("default");
-    expect(document.documentElement.dataset.accent).toBeUndefined();
+    // dose.wiki opens on Neutral, which owns a real block in the generated stylesheet, so the
+    // provider writes the attribute — matching the frame the pre-paint bootstrap already
+    // painted. Only BASE_ACCENT is the ABSENCE of the attribute, and that case is asserted at
+    // the end of this test rather than at the start, where it used to sit.
+    expect(screen.getByTestId("accent")).toHaveTextContent("neutral");
+    expect(document.documentElement.dataset.accent).toBe("neutral");
 
     await user.click(screen.getByRole("button", { name: "Wear blue" }));
 

@@ -255,7 +255,7 @@ export function ContributorCard({
         <p className="theme-text-primary truncate text-base font-semibold transition">
           {contributor.displayName}
         </p>
-        <p className="theme-accent-heading mt-0.5 truncate text-xs font-bold uppercase tracking-[0.15em] opacity-70 transition-opacity group-hover:opacity-90">
+        <p className="theme-accent-heading mt-0.5 truncate text-xs font-bold uppercase tracking-[0.15em] transition">
           {subtitle}
         </p>
       </div>

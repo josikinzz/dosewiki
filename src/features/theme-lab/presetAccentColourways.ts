@@ -196,7 +196,17 @@ export const graphite: PalettePreset = {
       "--theme-frosted-panel-hover-border": "oklch(50% 0.03 250 / 0.22)",
       "--theme-frosted-control-border": "oklch(58% 0.02 250 / 0.18)",
       "--theme-frosted-control-hover-border": "oklch(47% 0.03 250 / 0.26)",
-      "--theme-field-border": "oklch(50% 0.025 250 / 0.3)",
+      // WCAG 1.4.11, per the note on --theme-field-border in site-colors.css.
+      // Opaque, and the only border in this file that is: this declaration is
+      // Graphite's *light* value, but a .theme-chrome-dark island in light mode
+      // keeps the dark L20.3% field fill above, so the one value has to mark a
+      // field on both grounds. The old oklch(50% 0.025 250 / 0.3) painted #bec8d4
+      // on the light fill (1.51:1) and #282e35 on the dark one (1.32:1), and no
+      // alpha under ~0.82 clears 3:1 on both, so the alpha drops. L61% opaque
+      // paints #788592: 3.38:1 against Graphite's light field fill #e9f3fe and
+      // 4.76:1 against its dark fill #13171b, within a tenth of the base sheet's
+      // own light border weight (3.46:1).
+      "--theme-field-border": "oklch(61% 0.025 250)",
       "--theme-selection": "oklch(50% 0.03 250 / 0.18)",
       "--theme-section-heading": "#47535f",
       ...scrollThumbOverridesLight(250, 0.02),
@@ -272,7 +282,15 @@ export const canopy: PalettePreset = {
     },
     {
       "--c-brand": "21 128 61",
-      "--theme-section-heading": "#15803d",
+      // Green-700 #15803d measured 4.41:1 on this preset's own
+      // --theme-surface-muted #e6f4e8, below the 4.5:1 text floor; the heading
+      // is small text in .theme-portal-group-heading, so the large-text
+      // allowance does not apply. #117e3b is the same green (hue 150.1,
+      // chroma 0.137 both unmoved) seven tenths of a point of OKLCH lightness
+      // darker, and measures 4.55:1 there. This declaration is emitted into
+      // both palette-presets.generated.css (Theme Lab "canopy") and
+      // accent-tokens.generated.css (the "green" accent), so it fixes both.
+      "--theme-section-heading": "#117e3b",
       ...scrollThumbOverridesLight(150, 0.12),
       "--site-logo-stop-3": "#166534",
       "--theme-search-overlay-bg": "oklch(96% 0.025 150)",
@@ -281,7 +299,12 @@ export const canopy: PalettePreset = {
       "--theme-home-nav-card-border": "oklch(58% 0.09 150 / 0.14)",
       "--theme-report-substance-text": "#166534",
       "--theme-report-metadata-text": "#43604d",
-      "--theme-report-phase-peak-text": "#15803d",
+      // Green-700 #15803d measured 4.44:1 on this preset's own
+      // --theme-report-phase-peak-bg #eaf3ed, below the 4.5:1 text floor.
+      // #117536 is the same green three points of OKLCH lightness darker and
+      // measures 5.12:1 there, still clear of --theme-report-substance-text
+      // #166534 above.
+      "--theme-report-phase-peak-text": "#117536",
       "--theme-avatar-gradient-from": "oklch(89.5% 0.06 150)",
       "--theme-avatar-gradient-to": "oklch(80.5% 0.09 155)",
       "--theme-home-glow-top": "rgba(22, 101, 52, 0.03)",

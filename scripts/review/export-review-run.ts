@@ -172,11 +172,16 @@ function renderDosage(article: Article): string[] {
   if (!routes.length && !present(article.dosage?.plateau_dosing)) return [];
   const lines = ["## Dosage", ""];
   for (const route of routes) {
-    lines.push(`### ${route.route || "Unspecified route"}`, "", "| Tier | Range |", "| --- | --- |");
+    lines.push(`### ${route.route || "Unspecified route"}`, "");
+    // A prose-only route is a supported state: every tier is null and the human
+    // content lives in notes/bioavailability. Emitting the header first produced
+    // a table with no rows, so the rows are collected before it is written.
+    const tierRows: string[] = [];
     for (const tier of DOSE_TIERS) {
       const rendered = range(route.dose_ranges?.[tier], tier === "threshold" ? "threshold" : "ordinary");
-      if (rendered) lines.push(`| ${label(tier)} | ${escapeTable(rendered)} |`);
+      if (rendered) tierRows.push(`| ${label(tier)} | ${escapeTable(rendered)} |`);
     }
+    if (tierRows.length) lines.push("| Tier | Range |", "| --- | --- |", ...tierRows);
     if (present(route.bioavailability)) lines.push("", `**Bioavailability:** ${route.bioavailability}`);
     if (present(route.bioavailability_notes)) lines.push("", String(route.bioavailability_notes));
     if (present(route.notes)) lines.push("", String(route.notes));

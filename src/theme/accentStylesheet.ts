@@ -1,6 +1,6 @@
 import { CHROME_DARK_CLASS } from "@/features/theme-lab/presetStylesheet";
 import { PALETTE_PRESETS } from "@/features/theme-lab/palettePresets";
-import { ACCENTS, DEFAULT_ACCENT_ID, type Accent } from "./accents";
+import { ACCENTS, BASE_ACCENT_ID, type Accent } from "./accents";
 
 /**
  * The accent axis, compiled into plain CSS.
@@ -124,7 +124,7 @@ function block(selectors: readonly string[], declarations: Record<string, string
  * selector reaches the sheet from either half.
  */
 function accentCss(accent: Accent): string {
-  const isDefault = accent.id === DEFAULT_ACCENT_ID;
+  const isDefault = accent.id === BASE_ACCENT_ID;
   const blocks: string[] = [];
 
   if (accent.funPresetId) {

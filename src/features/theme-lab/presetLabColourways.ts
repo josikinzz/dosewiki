@@ -349,14 +349,24 @@ export const halloween: PalettePreset = {
       "--theme-chrome-border": "oklch(46% 0.08 55 / 0.25)",
       "--theme-menu-surface": "oklch(90.5% 0.04 72)",
       "--site-logo-stop-3": "#7e22ce",
-      "--theme-section-heading": "#c2410c",
+      // Orange-700 #c2410c measured 4.46:1 on this preset's own
+      // --theme-surface-muted #fcebe0, below the 4.5:1 text floor; the heading
+      // is small text in .theme-portal-group-heading, so the large-text
+      // allowance does not apply. #c03f09 is the same orange (hue 38.4,
+      // chroma 0.174 both unmoved) four tenths of a point of OKLCH lightness
+      // darker, and measures 4.55:1 there.
+      "--theme-section-heading": "#c03f09",
       "--theme-search-overlay-bg": "oklch(95% 0.03 75)",
       "--theme-search-highlight-bg": "#fbe4cf",
       "--theme-search-highlight-text": "#431407",
       "--theme-home-nav-card-border": "oklch(58% 0.12 55 / 0.16)",
       "--theme-report-substance-text": "#9a3412",
       "--theme-report-metadata-text": "#6d5346",
-      "--theme-report-phase-peak-text": "#c2410c",
+      // Orange-700 #c2410c measured 4.11:1 on this preset's own
+      // --theme-report-phase-peak-bg #f1e2e3, below the 4.5:1 text floor.
+      // #aa3a0b is the same orange one point of OKLCH lightness above
+      // --theme-report-substance-text #9a3412 and measures 5.04:1 there.
+      "--theme-report-phase-peak-text": "#aa3a0b",
       "--theme-avatar-gradient-from": "oklch(89% 0.05 70)",
       "--theme-avatar-gradient-to": "oklch(79% 0.09 300)",
       "--theme-home-glow-top": "rgba(126, 34, 206, 0.026)",

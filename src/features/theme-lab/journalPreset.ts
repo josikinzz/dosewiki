@@ -118,6 +118,22 @@ export const journal: PalettePreset = {
       "--theme-accent-strong": "#6fc4bb",
       "--theme-accent-soft": "#8ed0c9",
       "--theme-accent-muted": "#58a89f",
+      // Journal's dark canvas #262626 is far lighter than the near-black the
+      // other twelve colourways use, so the base sheet's dark heading
+      // rgb(var(--c-accent)) — which this preset seeds to #3d9991 above —
+      // lands under the floor on most of its own dark grounds: 4.44:1 on the
+      // #262626 canvas, 4.21:1 on --theme-surface-soft #2a2a2a, 4.67:1 on
+      // --theme-surface-strong #222222, and 3.76:1 on --theme-surface-muted
+      // #323232. The floor is 4.5:1, not the 3:1 large-text allowance, because
+      // .theme-portal-group-heading (utilities-theme.css:3966) also paints this
+      // token at text-xs. #6fc4bb is this register's own --theme-accent and
+      // --theme-accent-strong three lines up, so the heading keeps the base
+      // dark sheet's relationship — there section-heading and --theme-accent
+      // are the same colour — while measuring 7.42:1 / 7.03:1 / 7.80:1 on those
+      // three grounds, floor 6.28:1 once #323232 is included. Same root cause
+      // and same remedy as --theme-report-phase-peak-text below. The light
+      // register keeps its own ink #333333.
+      "--theme-section-heading": "#6fc4bb",
       "--theme-control-base": "oklch(30% 0.006 175)",
       "--theme-surface-soft": "#2a2a2a",
       "--theme-surface-muted": "#323232",
@@ -144,16 +160,46 @@ export const journal: PalettePreset = {
       "--theme-page-halo-top": "transparent",
       "--theme-page-halo-left": "transparent",
       "--theme-page-halo-right": "transparent",
+      // Journal's dark canvas is #262626, far lighter than the near-black every
+      // other colourway uses, so the base sheet's dark peak ink
+      // rgb(var(--c-accent)) #3d9991 collapses to 3.81:1 on the 8% brand wash
+      // this preset resolves to, #2c3332. The preset's own dark brand teal
+      // #6fc4bb measures 6.33:1 there. Only Journal needs this: the other
+      // twelve colourways clear the 4.5:1 floor on their darker canvases.
+      "--theme-report-phase-peak-text": "#6fc4bb",
     },
     {
       // Paper register: the skin's seeds, verbatim where a token maps 1:1.
       "--c-brand": "61 153 145",
       "--theme-body-bg": "#f6f5f1",
       "--theme-panel-base": "#fbfaf8",
-      "--theme-accent": "#3d9991",
+      // Light accent family, moved down the teal ladder. The Pro seed #3d9991
+      // (OKLCH L62.6% C0.087 H187.3) is a mid-lightness teal and journal's light
+      // grounds are the lightest of the thirteen colourways, so as --theme-accent
+      // it failed the 4.5:1 text floor on both cards themeRamp.contrast.test.ts
+      // measures that token against: 3.14:1 on --theme-surface-soft #edf8f4 and
+      // 3.23:1 on --theme-surface-strong #f1fbf8 (3.12:1 on the #f6f5f1 paper
+      // canvas, which the pair list does not assert and which is no better).
+      // #147a73 is the same teal ten OKLCH lightness points darker — L52.4%
+      // C0.0866 H187.6, inside the 186.8-187.7 Effect Index teal band
+      // lagoonPreset.ts measures — and reads 4.76:1 on #edf8f4, 4.90:1 on
+      // #f1fbf8, 4.74:1 on the canvas. Its chroma sits under the sRGB ceiling at
+      // that lightness (0.0915, binary-searched in OKLCH), so no channel clamps:
+      // per lagoonPreset.ts's note on teal outside sRGB, clamping lightens the
+      // result and would hand back the contrast this step buys.
+      // --theme-accent-muted follows it down from #34837c (L55.9%) to #0a736c
+      // (L50.1% C0.0852, ceiling 0.0872), so the family stays monotonic in
+      // lightness — strong #27635d 45.9% < muted 50.1% < accent 52.4% < soft
+      // #5cb3aa 71.0% — rather than leaving muted stranded above the base step.
+      // On the same three grounds: strong 6.38:1 / 6.57:1 / 6.36:1, muted 5.25:1
+      // / 5.40:1 / 5.23:1. Soft is a background wash and never ink (ReferenceList
+      // mixes it at 18% behind a backlink), so it keeps its 2.28:1 and its value.
+      // The dark register carries its own lighter #6fc4bb family above; #3d9991
+      // stays the shared --c-accent seed, so the palette's identity is unmoved.
+      "--theme-accent": "#147a73",
       "--theme-accent-strong": "#27635d",
       "--theme-accent-soft": "#5cb3aa",
-      "--theme-accent-muted": "#34837c",
+      "--theme-accent-muted": "#0a736c",
       "--theme-control-base": "#efeee9",
       "--theme-page-start": "#f6f5f1",
       "--theme-page-mid": "#f6f5f1",
@@ -166,7 +212,17 @@ export const journal: PalettePreset = {
       "--theme-frosted-panel-hover-border": "#c6c3ba",
       "--theme-frosted-control-border": "#dcdad3",
       "--theme-frosted-control-hover-border": "#c6c3ba",
-      "--theme-field-border": "#c6c3ba",
+      // WCAG 1.4.11, per the note on --theme-field-border in site-colors.css: the
+      // shared #c6c3ba rim the four border tokens above wear is only 1.58:1
+      // against this preset's light field fill #e6f6f1, so the field breaks off
+      // the family and takes the same warm gray four steps down. #8b8880 is
+      // 3.17:1 against that fill, 3.25:1 against the #f6f5f1 paper and 3.26:1
+      // against a card; opaque like the rest of Journal, which also keeps it at
+      // 4.11:1 over the dark L28% field fill a .theme-chrome-dark island wears in
+      // light mode. Journal's dark half needs no override — the base sheet's
+      // white/0.36 clears its lighter field at 3.19:1, the tightest of the 13
+      // colourways.
+      "--theme-field-border": "#8b8880",
       "--theme-selection": "rgba(61, 153, 145, 0.18)",
       "--theme-section-heading": "#333333",
       "--site-logo-stop-3": "#27635d",
@@ -176,7 +232,15 @@ export const journal: PalettePreset = {
       "--theme-home-nav-card-border": "#dcdad3",
       "--theme-report-substance-text": "#27635d",
       "--theme-report-metadata-text": "#6b6b6b",
-      "--theme-report-phase-peak-text": "#34837c",
+      // #34837c, the --theme-accent-muted this preset carried before the light
+      // accent family moved down, measured 3.71:1 on its own
+      // --theme-report-phase-peak-bg #e9eae6, the worst light peak pairing of
+      // the thirteen colourways. #286d67 is the same teal seven points of OKLCH
+      // lightness darker than that retired value, measures 5.00:1 there, and
+      // stays three points above --theme-report-substance-text #27635d. It now
+      // sits one OKLCH point below the current --theme-accent-muted #0a736c
+      // (4.72:1 there), so the pin still gives the peak ink its own step.
+      "--theme-report-phase-peak-text": "#286d67",
       "--theme-avatar-gradient-from": "#efeee9",
       "--theme-avatar-gradient-to": "#e4e2db",
       "--theme-home-glow-top": "rgba(61, 153, 145, 0.03)",

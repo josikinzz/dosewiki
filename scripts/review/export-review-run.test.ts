@@ -126,3 +126,37 @@ describe("Review Run rendering", () => {
     });
   });
 });
+
+describe("Review Run dosage tables", () => {
+  it("omits the Tier/Range header for a prose-only route but keeps its heading and notes", () => {
+    // A route whose every tier is null is a supported state: the human content
+    // lives in `notes`. Emitting the header regardless produced a table with no
+    // rows in the exported review Markdown.
+    const proseOnly = {
+      ...fixture,
+      dosage: {
+        routes: [{
+          route: "Oral",
+          bioavailability: "",
+          bioavailability_notes: "",
+          notes: "Dosing cannot be stated numerically; preparations vary widely.",
+          reference_ids: [],
+          dose_ranges: Object.fromEntries(
+            ["threshold", "light", "moderate", "strong", "heavy"].map((tier) => [tier, emptyRange]),
+          ),
+        }],
+        plateau_dosing: null,
+      },
+    };
+    const markdown = renderReviewMarkdown(proseOnly);
+    expect(markdown).toContain("### Oral");
+    expect(markdown).toContain("preparations vary widely");
+    expect(markdown).not.toContain("| Tier | Range |");
+  });
+
+  it("still renders the table when a tier carries a numeric bound", () => {
+    const markdown = renderReviewMarkdown(fixture);
+    expect(markdown).toContain("| Tier | Range |");
+    expect(markdown).toContain("10");
+  });
+});

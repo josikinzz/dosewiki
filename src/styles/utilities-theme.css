@@ -2428,6 +2428,13 @@
     color: var(--theme-text-faint);
   }
 
+  /* Decorative/divider step of the text ramp (3:1 non-text floor, not 4.5:1).
+     The class was missing while five call sites already passed it, so those
+     nodes silently inherited --theme-text-primary #ffffff instead of dimming. */
+  .theme-text-ghost {
+    color: var(--theme-text-ghost);
+  }
+
   .theme-elevation-none {
     box-shadow: var(--theme-elevation-none);
   }

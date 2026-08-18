@@ -9,7 +9,7 @@ import {
   read,
   toHex,
 } from "@/test/fixtures/accentAppearanceGrid";
-import { ACCENTS, DEFAULT_ACCENT_ID, PRO_ACCENT_SEED_NAMES } from "./accents";
+import { ACCENTS, BASE_ACCENT_ID, PRO_ACCENT_SEED_NAMES } from "./accents";
 import {
   ACCENT_STYLESHEET_PATH,
   accentDefaultProBlockSelector,
@@ -17,7 +17,7 @@ import {
   accentProBlockSelector,
   buildAccentStylesheetCss,
 } from "./accentStylesheet";
-import { ACCENT_STORAGE_KEY, DEFAULT_ACCENT, buildThemeBootstrapScript } from "./index";
+import { ACCENT_STORAGE_KEY, BASE_ACCENT, buildThemeBootstrapScript } from "./index";
 
 /**
  * How the axis is wired: what the generator emits, what Pro contains, and what the bootstrap
@@ -68,7 +68,7 @@ describe("visual-style containment", () => {
       // matches, so for the default the two sides of this comparison are the same appearance by
       // construction. What its block actually moves is `pro-theme.css`'s authored teal, and that
       // is measured by the seed-for-seed assertion below plus the canvas floor it now clears.
-      if (accent.pro && accent.id !== DEFAULT_ACCENT_ID) expect(moved.length).toBeGreaterThan(0);
+      if (accent.pro && accent.id !== BASE_ACCENT_ID) expect(moved.length).toBeGreaterThan(0);
     },
   );
 
@@ -137,10 +137,10 @@ describe("accent stylesheet generation", () => {
     for (const theme of SCHEMES) expect(css).toContain(accentDefaultProBlockSelector(theme));
     // And the sheet names no accent value for the default from either half — the Fun half emits
     // nothing and the Pro half is keyed by the absence.
-    expect(css).not.toContain(`data-accent="${DEFAULT_ACCENT_ID}"`);
+    expect(css).not.toContain(`data-accent="${BASE_ACCENT_ID}"`);
 
     for (const accent of ACCENTS) {
-      if (accent.id === DEFAULT_ACCENT_ID) continue;
+      if (accent.id === BASE_ACCENT_ID) continue;
       for (const theme of SCHEMES) {
         expect(css).toContain(accentFunBlockSelector(accent.id, theme));
         expect(css).toContain(accentProBlockSelector(accent.id, theme));
@@ -164,15 +164,19 @@ describe("accent bootstrap", () => {
     document.documentElement.removeAttribute("data-visual-style");
   });
 
-  it("leaves the attribute absent for the default and writes it otherwise", () => {
+  it("opens on the publication's accent and removes the attribute only for the base", () => {
     const script = buildThemeBootstrapScript(SITE_FLAVOR_CONFIGS.dosewiki);
 
+    // No stored preference: a first-time reader gets the publication's opening accent. That is
+    // Neutral on dose.wiki, which owns a real `data-accent` block, so the attribute is WRITTEN.
+    // It used to be absent here, back when opening on the base accent was the only option.
     Object.defineProperty(window, "localStorage", {
       configurable: true,
       value: { getItem: () => null },
     });
     Function(script)();
-    expect(document.documentElement.dataset.accent).toBeUndefined();
+    expect(SITE_FLAVOR_CONFIGS.dosewiki.defaultAccent).toBe("neutral");
+    expect(document.documentElement.dataset.accent).toBe("neutral");
 
     Object.defineProperty(window, "localStorage", {
       configurable: true,
@@ -181,11 +185,12 @@ describe("accent bootstrap", () => {
     Function(script)();
     expect(document.documentElement.dataset.accent).toBe("blue");
 
-    // And back again: switching to the default has to REMOVE the attribute, not set it to the
-    // default id, or the reader ends up matching a block that does not exist.
+    // Picking the base accent has to REMOVE the attribute, not set it to the base id, or the
+    // reader ends up matching a block that does not exist. This is the rule the opening accent
+    // no longer exercises, so it is the one that most needs asserting directly.
     Object.defineProperty(window, "localStorage", {
       configurable: true,
-      value: { getItem: (key: string) => (key === ACCENT_STORAGE_KEY ? DEFAULT_ACCENT : null) },
+      value: { getItem: (key: string) => (key === ACCENT_STORAGE_KEY ? BASE_ACCENT : null) },
     });
     Function(script)();
     expect(document.documentElement.dataset.accent).toBeUndefined();
@@ -217,7 +222,7 @@ describe("accent bootstrap", () => {
       buildThemeBootstrapScript(SITE_FLAVOR_CONFIGS.dosewiki).length,
     );
     for (const accent of ACCENTS) {
-      if (accent.id === DEFAULT_ACCENT_ID) continue;
+      if (accent.id === BASE_ACCENT_ID) continue;
       expect(locked, `${accent.id} leaked into the locked bootstrap`).not.toContain(
         `"${accent.id}"`,
       );

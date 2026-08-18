@@ -86,15 +86,52 @@ html[data-visual-style="pro"][data-theme="dark"] {
   --ei-chrome: #efeee9;
 
   --ei-border: #dcdad3;
-  --ei-border-strong: #c6c3ba;
+  /* The strong border is the one that outlines fields, selects and other real
+     controls, so SC 1.4.11 puts a 3:1 floor on it against the surface it is
+     drawn on. The retired #c6c3ba measured 1.76:1 on the raised surface
+     #ffffff that every Pro light field fills with, and 1.62:1 on paper — it
+     was a hairline wearing the "strong" name. #8b8880 keeps the same warm
+     R>G>B cast and reads 3.54:1 on #ffffff, 3.39:1 on --ei-surface #fbfaf8,
+     3.25:1 on paper #f6f5f1 and 3.05:1 on the sunk step #efeee9, so it clears
+     the floor on every light ground rather than only the measured one.
 
-  /* Neutral warm-grey ink, matching the original's #333 body / #4a4a4a
-     headings / #999 subtitles rather than the stock blue-cast near-black. */
+     Repainting the token rather than splitting a field-only value out of it:
+     the dark block already defines this token BY that role (see :540) and
+     tunes it to 4.08:1 there, so light was the scheme that disagreed with the
+     shared definition. The three decorative consumers — --theme-border-strong,
+     --theme-card-border-strong and --theme-profile-markdown-quote-border —
+     darken with it, which is the point: the quiet hairline is --ei-border
+     #dcdad3, and "strong" now differs from it by more than a rounding step. */
+  --ei-border-strong: #8b8880;
+
+  /* Neutral warm-grey ink. The original's #333 body anchor is kept; its
+     #4a4a4a headings and #999 subtitles are not, because #999 could not carry
+     text at any Pro light ground and pulling only the tail down would have
+     bunched the last three steps.
+
+     Every step from --ei-ink to --ei-ink-4 is text (--theme-text-primary
+     through --theme-text-faint), so all four owe 4.5:1 against the WORST light
+     ground, the sunk surface #efeee9; --ei-ink-5 is --theme-text-ghost, which
+     owes 3:1. The retired #8a8a8a faint step measured 2.97:1 there and the
+     retired #9d9d9d ghost step 2.33:1. Clearing 4.5:1 on #efeee9 caps a text
+     step at #6c6c6c, which is where the old ink-3 already sat, so the ramp is
+     redistributed as a set instead of having its top two steps darkened into
+     the step below them.
+
+     The five steps are now evenly spaced at a constant 7.7 L* pitch
+     (21.2 / 28.9 / 36.6 / 44.4 / 52.0), so the separation the old ramp had is
+     preserved while the whole ramp fits under the floor. Measured on the sunk
+     step #efeee9 / on paper #f6f5f1: 10.88:1 / 11.58:1 primary, 8.38:1 /
+     8.93:1 headings, 6.32:1 / 6.73:1 muted, 4.73:1 / 5.03:1 faint, and
+     3.59:1 / 3.83:1 ghost. #4a4a4a moved 2.6 L* to #444444 to hold that pitch;
+     the other three light grounds (#fbfaf8, #ffffff, #f6f5f1) are all lighter
+     than #efeee9, so every one of them measures higher than the figures
+     above. */
   --ei-ink: #333333;
-  --ei-ink-2: #4a4a4a;
-  --ei-ink-3: #6b6b6b;
-  --ei-ink-4: #8a8a8a;
-  --ei-ink-5: #9d9d9d;
+  --ei-ink-2: #444444;
+  --ei-ink-3: #565656;
+  --ei-ink-4: #696969;
+  --ei-ink-5: #7c7c7c;
 
   --ei-accent: #3d9991;
   --ei-accent-strong: #27635d;
@@ -121,7 +158,14 @@ html[data-visual-style="pro"][data-theme="dark"] {
   --ei-chrome-border: #444444;
   --ei-on-dark: #f2f2f0;
   --ei-on-dark-muted: #cccccc;
-  --ei-on-dark-faint: #8a8a8a;
+  /* The faint step is the header's smallest ink — nav icons, and via
+     --theme-text-faint anything the bar renders below label weight. Both
+     rails read this ONE value: their selectors carry no data-theme, so it is
+     measured against the LIGHTER of the two, the light scheme's #2e2e2e bar,
+     where it reads 4.83:1; on the dark scheme's #1f1f1f bar it reads 5.86:1.
+     The retired #8a8a8a was tuned against #1f1f1f alone (4.77:1) and fell to
+     3.93:1 on the light bar, under the 4.5:1 body-text floor. */
+  --ei-on-dark-faint: #9a9a9a;
   /* The accent has to lighten to stay legible on charcoal; this is the accent
      hue at a luminance that reads on a dark bar. Declared ONCE, here in the
      light/root block, because the chrome rails read it in BOTH schemes — their
@@ -147,19 +191,43 @@ html[data-visual-style="pro"][data-theme="dark"] {
   --ei-logo-ink: #000000;
 
   /* Intensity ramp for the Levelling System rows: five steps of neutral grey
-     running away from the canvas. Label and marker are tuned separately
-     because a solid marker reads darker than type set at the same value. The
-     dark block runs the same five steps in the opposite direction. */
-  --ei-level-1: #9a9a9a;
-  --ei-level-2: #7c7c7c;
-  --ei-level-3: #5c5c5c;
-  --ei-level-4: #3a3a3a;
+     running away from the canvas — light→dark here, dark→light in the dark
+     block, which runs the same five steps in the opposite direction. Still
+     greyscale: the Levelling System is not the safety ramp and must not borrow
+     its colours.
+
+     The two families answer to DIFFERENT floors, which nothing here recorded
+     before and which is how the quiet end of both drifted under its own.
+     --ei-level-N is the level label, set 12px/600 at :1684-1727 — normal text,
+     so 4.5:1. --ei-level-N-mark is painted as background-color on that row's
+     dot/bar in the same block — a graphical object, so 3:1. Label and marker
+     also stay tuned apart because a solid fill reads with more presence than
+     type set at the same value.
+
+     Both are measured against the WORST light ground, the sunk surface
+     #efeee9; paper #f6f5f1 and surface #fbfaf8 are lighter, so every step
+     reads higher on them. Retired against that ground: label #9a9a9a at
+     2.42:1 (2.70:1 even on surface) and label #7c7c7c at 3.59:1 (3.83:1 on
+     paper), both under 4.5:1, and mark #a8a8a8 at 2.05:1, under the mark
+     family's 3:1. Clearing 4.5:1 on #efeee9 caps a text step at #6c6c6c, so
+     — as with --ei-ink at :107 — the whole five-step ramp is redistributed at
+     an even pitch instead of the failing tail being darkened into the step
+     beside it.
+
+     Labels now sit at a constant 8.3 L* pitch (44.8 / 36.6 / 28.4 / 19.9 /
+     11.8) measuring 4.66 / 6.32 / 8.52 / 11.36 / 14.19:1 on #efeee9. The mark
+     family is that ramp lifted a uniform 6 L*, measuring 3.75 / 5.09 / 6.83 /
+     9.21 / 12.19:1 there. The #1f1f1f lead label is unchanged. */
+  --ei-level-1: #6a6a6a;
+  --ei-level-2: #565656;
+  --ei-level-3: #434343;
+  --ei-level-4: #303030;
   --ei-level-5: #1f1f1f;
-  --ei-level-1-mark: #a8a8a8;
-  --ei-level-2-mark: #858585;
-  --ei-level-3-mark: #616161;
-  --ei-level-4-mark: #3a3a3a;
-  --ei-level-5-mark: #1f1f1f;
+  --ei-level-1-mark: #797979;
+  --ei-level-2-mark: #646464;
+  --ei-level-3-mark: #515151;
+  --ei-level-4-mark: #3e3e3e;
+  --ei-level-5-mark: #2b2b2b;
 
   /* Page canvas */
   --theme-body-bg: var(--ei-paper);
@@ -495,8 +563,12 @@ html[data-visual-style="pro"][data-theme="dark"] {
 
   /* Hairlines stay quiet; the strong border is the one that outlines fields,
      selects and other real controls, so it clears 3:1 against the raised
-     surface it sits on (#808080 on #212121) rather than matching the paper
-     scheme's decorative 1.8:1. */
+     surface it sits on: #808080 on #212121 measures 4.08:1. The paper scheme
+     is held to the same role rather than to a decorative hairline — this
+     comment used to describe it as "decorative 1.8:1", which was a statement
+     of the defect, not of a design: the same token outlines the same controls
+     in both schemes, and light now carries #8b8880 at 3.54:1 on its own raised
+     surface #ffffff (see :89). */
   --ei-border: #3f3f3f;
   --ei-border-strong: #808080;
 
@@ -550,17 +622,34 @@ html[data-visual-style="pro"][data-theme="dark"] {
   /* The intensity ramp runs the other way: level 1 is the step nearest the
      canvas and level 5 the furthest from it, which on a dark ground means
      climbing toward the ink rather than away from it. Still greyscale — the
-     Levelling System is not the safety ramp and must not borrow its colours. */
-  --ei-level-1: #7a7a7a;
-  --ei-level-2: #999999;
-  --ei-level-3: #b8b8b8;
-  --ei-level-4: #d8d8d8;
+     Levelling System is not the safety ramp and must not borrow its colours.
+
+     Same two floors as the light block at :193: --ei-level-N is 12px/600 label
+     text (4.5:1), --ei-level-N-mark is a background-color fill on the row's
+     dot/bar (3:1, a graphical object). Measured against the WORST dark ground,
+     the raised surface #212121; surface #191919 and paper #131313 are darker,
+     so every step reads higher on them. The retired #7a7a7a level-1 label
+     measured 3.75:1 there — 4.10:1 on surface and 4.33:1 on paper, under
+     4.5:1 on all three. The retired marks all cleared 3:1 (#6e6e6e, the
+     quietest, at 3.16:1) but sat only a rounding step above it.
+
+     Clearing 4.5:1 on #212121 floors a text step at #888888, so the ramp is
+     redistributed as a set at a constant 9.3 L* pitch (58.3 / 67.4 / 77.0 /
+     86.0 / 95.4) measuring 4.79 / 6.46 / 8.66 / 11.19 / 14.37:1 on #212121.
+     The mark family is that ramp dropped a uniform 6 L* — toward the ground,
+     since a solid fill reads with more presence than type — measuring 3.91 /
+     5.38 / 7.18 / 9.53 / 12.31:1 there. The #f2f2f0 lead label is unchanged;
+     it is the --ei-on-dark ink anchor. */
+  --ei-level-1: #8c8c8c;
+  --ei-level-2: #a4a4a4;
+  --ei-level-3: #bebebe;
+  --ei-level-4: #d7d7d7;
   --ei-level-5: #f2f2f0;
-  --ei-level-1-mark: #6e6e6e;
-  --ei-level-2-mark: #8f8f8f;
-  --ei-level-3-mark: #b0b0b0;
-  --ei-level-4-mark: #d8d8d8;
-  --ei-level-5-mark: #f2f2f0;
+  --ei-level-1-mark: #7d7d7d;
+  --ei-level-2-mark: #959595;
+  --ei-level-3-mark: #adadad;
+  --ei-level-4-mark: #c7c7c7;
+  --ei-level-5-mark: #e1e1e1;
 }
 
 /* ---------------------------------------------------------------------
@@ -1176,9 +1265,14 @@ html[data-visual-style="pro"] .theme-reagent-results-panel {
       palette block; the thumb keeps the raised step and takes the strong
       border, which is the same recessed-track/raised-control pairing every
       other Pro field uses.
-   2. The resting label reads --theme-text-faint: 3:1 against the track, and
-      these slots carry 11px type. Both controls take the muted step instead —
-      4.6:1 on paper, 9:1 on the dark canvas.
+   2. These slots carry 11px type, so the resting label takes the muted step
+      rather than the faint one it would inherit: --theme-text-muted #565656
+      reads 6.32:1 against the sunk track #efeee9, where --theme-text-faint
+      #696969 reads 4.73:1. In the dark scheme the same pair reads 10.96:1 and
+      7.02:1 against that scheme's sunk track #0c0c0c. (Both light figures
+      moved when the paper ink ramp was redistributed at :107;
+      before that the faint step read 2.97:1 here, under the floor, which is
+      what first put the muted step in this slot.)
    3. Inside the rails the control sits on charcoal in BOTH schemes, so it
       takes chrome tones rather than page tones.
 
@@ -1275,12 +1369,20 @@ html[data-visual-style="pro"] .app-header {
      search clear button all resolve --theme-text-muted (utilities-theme.css
      :2334, :1515), so it carries the original's #ccc rest ink rather than the
      faint step — the faint step stays on --theme-text-faint, which is what the
-     nav icons read. */
+     nav icons read.
+
+     One ramp serves both bars, because this selector carries no data-theme,
+     so every step is measured against the LIGHTER one — #2e2e2e in the light
+     scheme, #1f1f1f in the dark — and quoted light/dark below. Muted #cccccc
+     is 8.46:1 / 10.26:1 and faint --ei-on-dark-faint 4.83:1 / 5.86:1, both
+     over the 4.5:1 body floor. Ghost is the decorative step, so its floor is
+     3:1: #7d7d7d is 3.30:1 / 4.00:1. The retired #6f6f6f cleared neither bar
+     — 2.70:1 light, 3.28:1 dark. */
   --theme-text-primary: var(--ei-on-dark-muted);
   --theme-text-secondary: var(--ei-on-dark-muted);
   --theme-text-muted: var(--ei-on-dark-muted);
   --theme-text-faint: var(--ei-on-dark-faint);
-  --theme-text-ghost: #6f6f6f;
+  --theme-text-ghost: #7d7d7d;
 
   /* Nav icons, the wordmark accent and the search magnifier all read
      --theme-accent-strong; the page-scheme accent disappears on charcoal, so
@@ -1451,9 +1553,20 @@ html[data-visual-style="pro"] .app-footer {
 
   --theme-text-primary: var(--ei-on-dark-muted);
   --theme-text-secondary: var(--ei-on-dark-muted);
-  --theme-text-muted: #7d7d7d;
-  --theme-text-faint: #6b6b6b;
-  --theme-text-ghost: #5a5a5a;
+  /* Three steps that stay three steps, all measured against the LIGHTER rail
+     for the same reason as the header: this selector carries no data-theme
+     and --ei-chrome-darker is #1f1f1f in the light scheme, #0a0a0a in the
+     dark. Muted and faint are body and label ink — the tagline at
+     Footer.tsx:31, the licence notice at SiteLicenceNotice.tsx:32, the 11px
+     "Supported by" label, and .theme-link-muted, which is a LINK and so has
+     no large-text exemption — so both clear 4.5:1 on #1f1f1f: muted 6.77:1 /
+     8.13:1, faint 4.77:1 / 5.73:1 (light / dark). Ghost is decorative and
+     clears the 3:1 floor at 3.63:1 / 4.36:1. The retired #7d7d7d / #6b6b6b /
+     #5a5a5a trio was tuned against #0a0a0a alone and read 4.00 / 3.09 / 2.39
+     on the light rail. */
+  --theme-text-muted: #a6a6a6;
+  --theme-text-faint: #8a8a8a;
+  --theme-text-ghost: #767676;
 
   /* The header's accent family, all four members, for the same reason: this
      rail is charcoal in both schemes, so every accent it shows has to come

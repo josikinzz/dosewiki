@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { SITE_FLAVOR_CONFIGS } from "@/config/siteFlavor";
 import {
   APPEARANCE_META_COLORS,
+  BASE_ACCENT,
   COLOR_SCHEME_STORAGE_KEY,
   DEFAULT_COLOR_SCHEME,
   DEFAULT_VISUAL_STYLE,
@@ -212,18 +213,26 @@ describe("theme token interface", () => {
   });
 
   it("opens each publication on its own declared appearance", () => {
-    // Both publications open on the same accent, because the accent that renders no attribute
-    // and no CSS is the only opening value a publication has no reason to choose differently.
+    // The two publications open on different accents now. dose.wiki chose Neutral, which is a
+    // real colourway with a real `data-accent` block, so its opening value is not the base.
+    // Effect Index locks the axis, and a lock resolves to BASE_ACCENT no matter what the
+    // policy declares — asserted here against a policy that declares the same thing, and
+    // again below against one that does not.
     expect(getInitialAppearance(DOSEWIKI)).toEqual({
       colorScheme: "dark",
       visualStyle: "fun",
-      accent: "default",
+      accent: "neutral",
     });
     expect(getInitialAppearance(EFFECT_INDEX)).toEqual({
       colorScheme: "light",
       visualStyle: "pro",
-      accent: "default",
+      accent: BASE_ACCENT,
     });
+    // A lock outranks the declared opening accent: the axis wears the publication's identity.
+    expect(
+      getInitialAppearance({ ...EFFECT_INDEX, defaultAccent: "teal", showAccentPicker: false })
+        .accent,
+    ).toBe(BASE_ACCENT);
     // The locked style's light tint is that publication's own manifest colour, so the address
     // bar and the installed app agree instead of flashing the shared lilac-white.
     expect(getAppearanceMetaColor(getInitialAppearance(EFFECT_INDEX))).toBe(

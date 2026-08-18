@@ -13,7 +13,8 @@ import { SITE_FLAVOR_CONFIG } from "@/config/siteFlavor";
 import {
   ACCENT_STORAGE_KEY,
   COLOR_SCHEME_STORAGE_KEY,
-  DEFAULT_ACCENT,
+  BASE_ACCENT,
+  getInitialAppearance,
   THEME_META_ID,
   VISUAL_STYLE_STORAGE_KEY,
   getAppearanceMetaColor,
@@ -129,7 +130,7 @@ function applyAppearanceToDocument({ colorScheme, visualStyle, accent }: Appeara
   // block in the generated stylesheet, so an attribute would name an override that does not
   // exist. Removal rather than assignment also covers the case the bootstrap never sees — a
   // reader switching back to the default from something else.
-  if (accent === DEFAULT_ACCENT) {
+  if (accent === BASE_ACCENT) {
     delete root.dataset.accent;
   } else {
     root.dataset.accent = accent;
@@ -148,7 +149,7 @@ export function ThemeProvider({
   children,
   initialColorScheme = SITE_FLAVOR_CONFIG.defaultColorScheme,
   initialVisualStyle = SITE_FLAVOR_CONFIG.defaultVisualStyle,
-  initialAccent = DEFAULT_ACCENT,
+  initialAccent,
   isVisualStyleLocked = !SITE_FLAVOR_CONFIG.showVisualStyleToggle,
   isAccentLocked = !SITE_FLAVOR_CONFIG.showAccentPicker,
 }: {
@@ -164,7 +165,16 @@ export function ThemeProvider({
 }) {
   const [colorScheme, setColorScheme] = useState<ColorScheme>(initialColorScheme);
   const [visualStyle, setVisualStyleState] = useState<VisualStyle>(initialVisualStyle);
-  const [accent, setAccentState] = useState<AccentId>(initialAccent);
+  /**
+   * A lock outranks the publication's opening accent, the same rule `getInitialAppearance`
+   * follows: a locked axis never adopts a painted value, so opening it anywhere but the base
+   * would strand the provider on an accent the reader can never leave. Resolved here rather
+   * than as a destructuring default because it reads `isAccentLocked`, declared below it.
+   */
+  const [accent, setAccentState] = useState<AccentId>(
+    initialAccent ??
+      (isAccentLocked ? BASE_ACCENT : getInitialAppearance(SITE_FLAVOR_CONFIG).accent),
+  );
   /**
    * Until the mount effect has read back what the bootstrap resolved, this provider is still
    * holding the server's opening guess. Applying it would be harmless — the document already
