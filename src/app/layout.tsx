@@ -78,6 +78,21 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     >
       <head>
         <meta id={THEME_META_ID} name="theme-color" content={initialThemeMetaColor} />
+        {/* Every glyph on the site is fetched from the Iconify API at runtime — nothing is
+            bundled (`src/components/common/Icon.tsx:6-10`) — so the first icon on a cold
+            visit pays a DNS lookup and a TLS handshake before any pixels. That was cosmetic
+            while controls carried text; the appearance panel is now icon-only, so warming
+            the socket in <head> is the difference between a late glyph and a late control.
+            One host, not three: this is `@iconify/react`'s primary resource, and its two
+            redundant APIs are only rotated in when this one stays silent past 750ms, so
+            warming all three would leave two sockets nothing opens.
+            `connect-src` already lists this exact origin
+            (`lib/next/cspObservationPolicy.ts:19-23,135,144`), so no policy changes with
+            this. `crossOrigin` is required rather than decorative: the icon request is a
+            CORS `fetch`, and an anonymous preconnect is the only one it can reuse. There is
+            no font equivalent to add — `next/font` self-hosts both faces, which is why this
+            is the layout's first preconnect. */}
+        <link rel="preconnect" href="https://api.iconify.design" crossOrigin="anonymous" />
         {/* Raw inline, in <head>, on purpose: `next/script`'s beforeInteractive strategy
             compiles to a body-side queue push, which runs after the head has been parsed
             and so cannot be a *pre*-paint restore. This script is the only thing standing

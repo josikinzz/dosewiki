@@ -47,9 +47,16 @@ export const ZOD_JITLESS_BOOTSTRAP_CSP_HASH =
  * size. Allowing only the running flavor's hash keeps each deployment's `script-src` exactly as
  * narrow as it was before flavors existed. The policy test recomputes every entry from the real
  * builder and fails if either drifts.
+ *
+ * dose.wiki's entry moves whenever the accent SET does, because its script carries the validity
+ * table (`const ACCENTS = {…}`) it checks a stored value against. Adding `teal` moved it from
+ * `'sha256-lQLgoeDGUwOlzXyLaTpHK688hYQZdJ60NCnjh4AfXcI='`; removing the one `,"teal":1` from the
+ * emitted script reproduces that old digest byte for byte, which is how the re-pin was checked.
+ * Effect Index's entry does NOT move and must not: it locks the axis, so its script names no
+ * accent, carries no table, and is unaffected by anything the row gains.
  */
 export const THEME_BOOTSTRAP_CSP_HASHES: Readonly<Record<SiteFlavor, string>> = {
-  dosewiki: "'sha256-lQLgoeDGUwOlzXyLaTpHK688hYQZdJ60NCnjh4AfXcI='",
+  dosewiki: "'sha256-ToPUru2o+p5Gswlm5QALY0DdbmeSe6tNfqo75lkTXu4='",
   effectindex: "'sha256-qGFLhh2Y1+7tW2XJ/nl7SlRJTV+qO5sDL2zbisjQxf0='",
 };
 

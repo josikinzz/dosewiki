@@ -635,6 +635,97 @@ html[data-palette="sunset"][data-theme="light"] {
   --theme-home-glow-bottom: rgba(217, 119, 6, 0.022);
 }
 
+/* Lagoon — Aquamarine shallows over dark reef water; sea-glass paper by day. */
+html[data-palette="lagoon"][data-theme="dark"],
+html[data-palette="lagoon"][data-theme="light"] .theme-chrome-dark {
+  --h-brand: 187;
+  --h-plum: 200;
+  --h-text: 200;
+  --h-violet: 222;
+  --theme-molecule-hue-rotate: -117deg;
+  --c-accent: 153 246 228;
+  --c-violet: 34 211 238;
+  --c-violet-bright: 103 232 249;
+  --c-violet-deep: 8 145 178;
+  --c-plum-deep: 5 35 37;
+  --c-plum-pink: 15 118 110;
+  --c-fuchsia-200: #ccfbf1;
+  --c-fuchsia-400: #5eead4;
+  --c-fuchsia-600: #0d9488;
+  --c-fuchsia-700: #0f766e;
+  --c-violet-200: #a5f3fc;
+  --c-violet-700: #155e75;
+  --h-green: 150;
+  --c-emerald: 74 222 128;
+  --c-emerald-bright: 134 239 172;
+  --c-emerald-deep: 22 163 74;
+  --c-emerald-100: #dcfce7;
+  --c-emerald-200: #bbf7d0;
+  --c-emerald-700: #15803d;
+  --c-emerald-800: #166534;
+  --c-brand: 94 234 212;
+  --theme-page-start: oklch(45% 0.231 var(--h-plum));
+  --theme-body-bg: #020d0e;
+  --theme-accent: #99f6e4;
+  --theme-panel-base: #052325;
+  --theme-control-base: oklch(24% 0.042 200);
+  --theme-surface-soft: #041d1e;
+  --theme-surface-muted: #07282a;
+  --theme-surface-strong: #031819;
+  --theme-search-overlay-bg: #062628;
+  --theme-search-highlight-bg: #0a3435;
+  --theme-search-highlight-text: #ccfbf1;
+  --theme-home-glow-top: rgba(13, 148, 136, 0.13);
+  --theme-home-glow-bottom: rgba(45, 212, 191, 0.06);
+  --theme-home-nav-card-border: rgba(45, 212, 191, 0.18);
+  --theme-scroll-thumb-bg: radial-gradient(circle at 12% 0%, color-mix(in srgb, oklch(76% 0.080 187) 66%, var(--theme-scroll-track)), color-mix(in srgb, oklch(62% 0.104 187) 50%, var(--theme-scroll-track)) 42%), linear-gradient(135deg, color-mix(in srgb, oklch(62% 0.104 187) 50%, var(--theme-scroll-track)), color-mix(in srgb, oklch(50% 0.088 187) 40%, var(--theme-scroll-track)));
+  --theme-scroll-thumb-hover-bg: radial-gradient(circle at 12% 0%, color-mix(in srgb, oklch(82% 0.072 187) 82%, var(--theme-scroll-track)), color-mix(in srgb, oklch(68% 0.108 187) 64%, var(--theme-scroll-track)) 42%), linear-gradient(135deg, color-mix(in srgb, oklch(68% 0.108 187) 64%, var(--theme-scroll-track)), color-mix(in srgb, oklch(56% 0.096 187) 52%, var(--theme-scroll-track)));
+}
+
+html[data-palette="lagoon"][data-theme="light"] {
+  --h-brand: 187;
+  --h-plum: 200;
+  --h-text: 200;
+  --h-violet: 222;
+  --theme-molecule-hue-rotate: -117deg;
+  --c-accent: 153 246 228;
+  --c-violet: 34 211 238;
+  --c-violet-bright: 103 232 249;
+  --c-violet-deep: 8 145 178;
+  --c-plum-deep: 5 35 37;
+  --c-plum-pink: 15 118 110;
+  --c-fuchsia-200: #ccfbf1;
+  --c-fuchsia-400: #5eead4;
+  --c-fuchsia-600: #0d9488;
+  --c-fuchsia-700: #0f766e;
+  --c-violet-200: #a5f3fc;
+  --c-violet-700: #155e75;
+  --h-green: 150;
+  --c-emerald: 74 222 128;
+  --c-emerald-bright: 134 239 172;
+  --c-emerald-deep: 22 163 74;
+  --c-emerald-100: #dcfce7;
+  --c-emerald-200: #bbf7d0;
+  --c-emerald-700: #15803d;
+  --c-emerald-800: #166534;
+  --c-brand: 13 148 136;
+  --theme-section-heading: #0f766e;
+  --theme-scroll-thumb-bg: radial-gradient(circle at 12% 0%, color-mix(in srgb, oklch(72% 0.080 187) 64%, var(--theme-scroll-track)), color-mix(in srgb, oklch(54% 0.080 187) 50%, var(--theme-scroll-track)) 42%), linear-gradient(135deg, color-mix(in srgb, oklch(54% 0.080 187) 50%, var(--theme-scroll-track)), color-mix(in srgb, oklch(46% 0.080 187) 42%, var(--theme-scroll-track)));
+  --theme-scroll-thumb-hover-bg: radial-gradient(circle at 12% 0%, color-mix(in srgb, oklch(76% 0.080 187) 78%, var(--theme-scroll-track)), color-mix(in srgb, oklch(50% 0.080 187) 64%, var(--theme-scroll-track)) 42%), linear-gradient(135deg, color-mix(in srgb, oklch(50% 0.080 187) 64%, var(--theme-scroll-track)), color-mix(in srgb, oklch(42% 0.080 187) 54%, var(--theme-scroll-track)));
+  --site-logo-stop-3: #115e59;
+  --theme-search-overlay-bg: oklch(96% 0.025 187);
+  --theme-search-highlight-bg: #d3f5ef;
+  --theme-search-highlight-text: #042f2e;
+  --theme-home-nav-card-border: oklch(58% 0.09 187 / 0.14);
+  --theme-report-substance-text: #115e59;
+  --theme-report-metadata-text: #41615f;
+  --theme-report-phase-peak-text: #0f766e;
+  --theme-avatar-gradient-from: oklch(89.5% 0.06 187);
+  --theme-avatar-gradient-to: oklch(80.5% 0.09 200);
+  --theme-home-glow-top: rgba(15, 118, 110, 0.03);
+  --theme-home-glow-bottom: rgba(13, 148, 136, 0.022);
+}
+
 /* 🦅🦅🦅 — Stars-and-stripes — red and white over midnight navy. */
 html[data-palette="liberty"][data-theme="dark"],
 html[data-palette="liberty"][data-theme="light"] .theme-chrome-dark {

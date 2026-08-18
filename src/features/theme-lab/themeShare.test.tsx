@@ -397,9 +397,10 @@ describe("Theme Lab share links", { timeout: 20_000 }, () => {
       for (const [id, value] of Object.entries(darkSeeds)) {
         expect(entry, `dark ${id}`).toContain(`"${id}": "${value}",`);
       }
-      // Declared once, in light: a dark restatement would be an orphan nothing
-      // reads, and the generator asserts the count.
-      expect(entry.split('"--ei-accent-on-dark"')).toHaveLength(2);
+      // Stated in BOTH halves, at the same value: the charcoal rails that read it carry no
+      // data-theme, but an accent's blocks are per-scheme, so a light-only restatement leaves a
+      // dark Pro page on the authored teal. The two occurrences are what the export owes it.
+      expect(entry.split('"--ei-accent-on-dark"')).toHaveLength(3);
       expect(entry.trimEnd().endsWith("};")).toBe(true);
 
       // Nothing was left behind by the measurement: the editor is still looking at

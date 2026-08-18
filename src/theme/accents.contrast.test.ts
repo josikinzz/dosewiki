@@ -24,58 +24,37 @@ const PRO_DARK_LINK_BUDGET = 7.4;
 const PRO_DARK_STRONG_BUDGET = 9.2;
 
 /**
- * The one point on the grid where `--theme-accent` does not clear 4.5:1 against the canvas,
- * named rather than papered over — the same discipline `palettePresets.test.ts` applies to its
- * safety exemptions, because an exemption someone had to write down is an exemption someone
- * has read.
+ * Every point on the grid clears 4.5:1 against its own canvas, with no exemption. That was not
+ * true until the default accent got a Pro half, and the history is worth keeping because it is
+ * the reason this file no longer carries an exemption registry at all.
  *
- * Pro's authored light accent (`--ei-accent: #3d9991`) measures 3.12:1 on paper. That predates
- * this axis by the whole life of the sheet, and it is not what a light-scheme Pro link renders:
- * `theme-light-mode.css` pins prose links and index-card titles to `--theme-accent-strong`,
- * which measures 6.35:1. `--ei-accent` in Pro light carries hairlines, hover edges and the
- * selected-route border — non-text — plus two text uses this ticket did not introduce.
+ * `default/pro/light` used to be pinned at 3.12:1 and excused. The breached value was not the
+ * accent axis's: it is `pro-theme.css`'s authored `--ei-accent: #3d9991`, which has measured
+ * 3.12:1 on paper `#f6f5f1` for the whole life of that sheet, and the default accent inherited it
+ * by emitting no Pro block. Fixing the authored declaration would repaint Effect Index, which is
+ * that publication's decision rather than this axis's — so instead the default now emits its own
+ * Pro block, plum at Orchid's hue, measuring **4.5034:1**. The breach closes for every dose.wiki
+ * reader, Effect Index keeps its teal byte for byte because it never imports the accent sheet,
+ * and the floor below applies to all twenty-eight points unconditionally.
  *
- * Fixing the authored teal would repaint Effect Index, which is a different decision from
- * shipping an accent axis, so the breach is pinned at its measured value instead: `default` may
- * not get worse here, and every other accent must clear the real floor. All five do, and each
- * pays for it the same way — the light ramp is shifted down by one uniform ΔL until the base
- * seed lifts over 4.5:1, and no further. Measured on paper: Blue 4.63:1, Green 4.51:1, Red
- * 4.54:1, Amber 4.51:1, Neutral 4.53:1. The margins are thin because the shift is minimal by
- * construction; a wider one would darken hairlines and hover edges for no accessibility gain.
+ * Every accent pays for the light half the same way: the ramp is shifted down by one uniform ΔL
+ * until the base seed lifts over 4.5:1, and no further. Measured on paper — Default 4.50:1,
+ * Blue 4.63:1, Green 4.51:1, Red 4.54:1, Amber 4.51:1, Neutral 4.53:1, Teal 4.55:1. The margins
+ * are thin because the shift is minimal by construction; a wider one would darken hairlines and
+ * hover edges for no accessibility gain. Default's is the thinnest at 0.0034, which is what makes
+ * an unconditional floor the right assertion here: there is no slack left to hide a regression in.
  */
-const CANVAS_FLOOR_EXEMPTIONS: Record<string, number> = { "default/pro/light": 3.12 };
-
 describe("accent floors", () => {
   it.each(GRID)("keeps $label above the canvas floor", ({ label, tokens }) => {
     const accentColour = parseColor(tokens["--theme-accent"]);
     const canvas = parseColor(tokens["--theme-body-bg"]);
     const measured = contrastRatio(accentColour, canvas);
-    const exemption = CANVAS_FLOOR_EXEMPTIONS[label];
 
     expect(
       measured,
       `${label}: --theme-accent ${toHex(accentColour)} on canvas ${toHex(canvas)} measures ` +
-        `${ratio(measured)}, below the ${exemption ?? CANVAS_FLOOR} floor`,
-    ).toBeGreaterThanOrEqual(exemption ?? CANVAS_FLOOR);
-  });
-
-  it("exercises every named canvas-floor exemption", () => {
-    // A stale exemption is a hole nobody is watching: each one must name a point that really
-    // is below the floor, and really is no worse than the ratio recorded for it.
-    for (const [label, pinned] of Object.entries(CANVAS_FLOOR_EXEMPTIONS)) {
-      const point = GRID.find((entry) => entry.label === label);
-      expect(point, `${label} is not a point on the grid`).toBeDefined();
-
-      const measured = contrastRatio(
-        parseColor(point!.tokens["--theme-accent"]),
-        parseColor(point!.tokens["--theme-body-bg"]),
-      );
-
-      expect(measured, `${label} now measures ${ratio(measured)}; drop the exemption`).toBeLessThan(
-        CANVAS_FLOOR,
-      );
-      expect(pinned).toBeLessThan(CANVAS_FLOOR);
-    }
+        `${ratio(measured)}, below the ${CANVAS_FLOOR} floor`,
+    ).toBeGreaterThanOrEqual(CANVAS_FLOOR);
   });
 
   it.each(GRID.filter((entry) => entry.visualStyle === "pro"))(

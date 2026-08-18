@@ -12,6 +12,7 @@ import {
 import { ACCENTS, DEFAULT_ACCENT_ID, PRO_ACCENT_SEED_NAMES } from "./accents";
 import {
   ACCENT_STYLESHEET_PATH,
+  accentDefaultProBlockSelector,
   accentFunBlockSelector,
   accentProBlockSelector,
   buildAccentStylesheetCss,
@@ -61,7 +62,42 @@ describe("visual-style containment", () => {
 
       expect(unexplained, `${label}: ${unexplained.join(", ")} moved without reading an accent seed`)
         .toEqual([]);
-      if (accent.pro) expect(moved.length).toBeGreaterThan(0);
+      // A named accent with Pro seeds has to move something, or its block is not reaching the
+      // page. The default is exempt from that half and cannot be otherwise: `baseline` is the
+      // grid's no-attribute state, which is precisely the state the default's own Pro block
+      // matches, so for the default the two sides of this comparison are the same appearance by
+      // construction. What its block actually moves is `pro-theme.css`'s authored teal, and that
+      // is measured by the seed-for-seed assertion below plus the canvas floor it now clears.
+      if (accent.pro && accent.id !== DEFAULT_ACCENT_ID) expect(moved.length).toBeGreaterThan(0);
+    },
+  );
+
+  it.each(GRID.filter((entry) => entry.visualStyle === "pro" && entry.accent.pro))(
+    "re-seats every Pro seed it declares on $label",
+    ({ label, accent, theme, tokens }) => {
+      // The complement of the assertion above, and the hole the shipped --ei-accent-on-dark leak
+      // fell through: that one flags a token that moved WRONGLY, so a token that wrongly failed
+      // to move at all was invisible to it. Every seed this accent declares for this scheme has
+      // to resolve to the accent's own value here rather than the authored Pro palette's.
+      const declared = accent.pro![theme];
+      const resolved = Object.fromEntries(
+        Object.keys(declared).map((seed) => [seed, toHex(parseColor(tokens[seed]))]),
+      );
+
+      expect(resolved, `${label}: a declared seed still resolves the authored Pro value`).toEqual({
+        ...declared,
+      });
+
+      // --ei-accent-on-dark is the one seed whose value may not vary by scheme, so it is measured
+      // against the LIGHT half: a dark half that simply omits the key declares nothing for the
+      // loop above to catch, and resolves the authored teal #6fc4bb instead. The rails that read
+      // it (pro-theme.css:1304-1307, :1466-1469) are charcoal in both schemes and carry no
+      // data-theme, so on a dark Pro page that leak painted a teal wordmark, teal nav icons and a
+      // teal search magnifier over a blue, green, red or amber page.
+      expect(
+        toHex(parseColor(tokens["--ei-accent-on-dark"])),
+        `${label}: the on-dark step is not this accent's`,
+      ).toBe(accent.pro!.light["--ei-accent-on-dark"]);
     },
   );
 });
@@ -86,6 +122,22 @@ describe("accent stylesheet generation", () => {
     expect(accentProBlockSelector("blue", "light")).toBe(
       'html[data-visual-style="pro"][data-accent="blue"][data-theme="light"]',
     );
+    // The default's Pro block, verbatim, because its exact shape is what puts it at (0,3,1). The
+    // `:not()` is BARE: a bare `:not()` carries the specificity of its argument, so this ties
+    // every named accent's Pro block and beats the Pro palette it overrides. Wrapping it in
+    // `:where()` would contribute nothing, drop the block to (0,2,1), and hand the tie to import
+    // order — pro-theme.css's authored teal would win and dose.wiki's Pro would go back to
+    // wearing Effect Index's colour. Asserting the literal is how that stays deliberate.
+    expect(accentDefaultProBlockSelector("light")).toBe(
+      'html[data-visual-style="pro"]:not([data-accent])[data-theme="light"]',
+    );
+    expect(accentDefaultProBlockSelector("dark")).toBe(
+      'html[data-visual-style="pro"]:not([data-accent])[data-theme="dark"]',
+    );
+    for (const theme of SCHEMES) expect(css).toContain(accentDefaultProBlockSelector(theme));
+    // And the sheet names no accent value for the default from either half — the Fun half emits
+    // nothing and the Pro half is keyed by the absence.
+    expect(css).not.toContain(`data-accent="${DEFAULT_ACCENT_ID}"`);
 
     for (const accent of ACCENTS) {
       if (accent.id === DEFAULT_ACCENT_ID) continue;
@@ -154,9 +206,10 @@ describe("accent bootstrap", () => {
     expect(locked).not.toContain("accent =");
     expect(locked).not.toContain("if (accent");
     expect(locked).toContain("delete root.dataset.accent;");
-    // And the validity set is absent too, not merely unused. Six accents is three times the
-    // bytes two were, so a locked publication that emitted the list would carry a table it can
-    // never consult — and the cost would grow every time the set does.
+    // And the validity set is absent too, not merely unused. It grows with the row: seven accents
+    // are three and a half times the bytes two were, and the axis has already gained one since
+    // that was written. A locked publication that emitted the list would carry a table it can
+    // never consult, and would pay a little more for it every time the set widens.
     expect(locked).not.toContain("const ACCENTS =");
     // The whole locked script stays under the unlocked one by a wide margin; a regression that
     // re-emits the resolution would close that gap.

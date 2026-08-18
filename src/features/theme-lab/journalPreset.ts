@@ -1,5 +1,6 @@
-import type { PalettePreset, PresetOverrides, ThemeOverrideMap } from "./palettePresets";
+import type { PalettePreset, ThemeOverrideMap } from "./palettePresets";
 import { getFontChoice } from "./paletteTokensFonts";
+import { split } from "./presetRecipes";
 
 /**
  * Letterpress — a Fun palette in the flat, printed register: warm paper,
@@ -23,19 +24,15 @@ import { getFontChoice } from "./paletteTokensFonts";
  * Deliberately excluded: Pro's layout, page structure, navigation composition,
  * and voice — this is a token bundle, not an impersonation.
  *
- * Kept as a sibling module so `palettePresets.ts` stays under its cleanup
- * budget; the preset registers in `PALETTE_PRESETS` there like any other.
+ * Kept as its own module so `palettePresets.ts` stays under its cleanup budget —
+ * the same reason the other eleven colourways now sit in
+ * `presetAccentColourways.ts` and `presetLabColourways.ts`. The preset registers
+ * in `PALETTE_PRESETS` there like any other, and takes its `split` from the
+ * shared `presetRecipes.ts` rather than keeping the local copy it carried while
+ * there was nowhere shared to put it.
  */
 
 const titillium = getFontChoice("titillium")!.stack;
-
-function split(
-  shared: ThemeOverrideMap,
-  dark: ThemeOverrideMap,
-  light: ThemeOverrideMap,
-): PresetOverrides {
-  return { dark: { ...shared, ...dark }, light: { ...shared, ...light } };
-}
 
 /** The letterpress look carries almost no depth: functional shadows stay as
  *  faint ink washes, decorative lifts and glows go entirely. */

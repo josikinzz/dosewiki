@@ -11,17 +11,25 @@ import type { PalettePresetId } from "@/features/theme-lab/palettePresets";
  * hue angle: both halves are cut from the colourway's own `--h-brand`, so a reader who picks
  * Blue and then switches style sees the same colour in a different vocabulary.
  *
- * The root attribute is `data-accent`, and **its absence means the default accent**. The
- * default emits no CSS at all, so a first paint with no attribute is already correct and a
- * reader who never touches the control pays nothing. That is load-bearing rather than tidy:
- * it is why the axis needs no runtime and no blocking style recalculation.
+ * The root attribute is `data-accent`, and **its absence means the default accent** — the
+ * bootstrap removes the attribute rather than writing `"default"`, so nothing in this axis
+ * needs a runtime and no first paint waits on a style recalculation.
+ *
+ * The default is not the accent that emits nothing, though; it is the accent that is keyed by
+ * an absence. Its Fun half genuinely emits nothing, because Fun's authored palette IS the
+ * default (Orchid, plum/fuchsia at `--h-brand: 326`). Its Pro half has to emit, because Pro's
+ * authored `--ei-*` seeds are Effect Index's teal: unblocked, dose.wiki's Pro wore another
+ * publication's colour while its Fun wore plum. So the generator emits the default's Pro seeds
+ * under `html[data-visual-style="pro"]:not([data-accent])[data-theme="…"]`, and Effect Index
+ * keeps the authored teal byte for byte because it never imports that stylesheet at all
+ * (`src/app/_styles/effectindex.ts` imports `styles.css` and `pro-theme.css`, nothing else).
  *
  * These definitions are the single source of truth. The stylesheet that carries them into
  * the browser is emitted from {@link buildAccentStylesheetCss} by
  * `npm run generate:accent-css`, and `accents.axis.test.ts` fails if the checked-in file drifts.
  */
 
-export type AccentId = "default" | "blue" | "green" | "red" | "amber" | "neutral";
+export type AccentId = "default" | "blue" | "green" | "red" | "amber" | "neutral" | "teal";
 
 /** One colour scheme's worth of Pro accent seeds. Keys are `--ei-*` custom property names. */
 export type ProAccentSeeds = Readonly<Record<string, string>>;
@@ -50,11 +58,28 @@ export const DEFAULT_ACCENT_ID: AccentId = "default";
  * (the scrim that fades a collapsed dose table into the page) and `--ei-logo-ink` is the
  * wordmark's ink end. Re-tinting either would tint paper or ink, not the accent.
  *
- * `--ei-accent-on-dark` is declared ONCE, in the light/root block, and read by the chrome
- * rails (`.app-header`, `.app-footer`) in BOTH schemes — those selectors carry no
- * `data-theme`, because header and footer are charcoal in light and dark alike. An accent
- * therefore states it in its light half only, exactly as the authored palette does; a dark
- * restatement would be an orphan nothing reads.
+ * `--ei-accent-on-dark` is declared ONCE in `pro-theme.css` (`:134`), and that one declaration
+ * is already scheme-independent: its selector list (`:72-74`) includes
+ * `html[data-visual-style="pro"][data-theme="dark"]`. An accent's blocks are NOT — each half is
+ * keyed `[data-theme="light"]` or `[data-theme="dark"]` — so a light-half-only restatement
+ * cannot match a dark page and the authored teal goes on winning there. Measured on
+ * `{pro, dark, accent:blue}` before this was corrected: `--ei-accent` resolved to Blue's
+ * `#6fc0d4` while `--ei-accent-on-dark` still resolved to teal `#6fc4bb`. The chrome rails are
+ * the consumer that proves it: `.app-header` (`pro-theme.css:1304-1307`) and `.app-footer`
+ * (`:1466-1469`) resolve their whole four-member `--theme-accent` family through it — three bare
+ * `var()`s and a `color-mix(… 83%, #000000)` for the muted step — as do both wordmark gradients
+ * (`:1317-1319`, `:1478-1480`), under selectors carrying no `data-theme`. So Pro in dark rendered
+ * a teal wordmark, teal nav icons and a teal magnifier over a blue page. Every accent therefore
+ * states it in BOTH halves at the SAME value: the rails are charcoal in either scheme, so "the
+ * accent as it appears on a dark bar" has one value per accent, not two. `proTheme.test.ts:381`
+ * enforces the same invariant from the CSS side — inside the rails this is the ONLY accent seed a
+ * declaration may resolve, precisely because it is the only one that does not vary by scheme.
+ *
+ * The two guards are not redundant, and neither subsumes the other: that one goes red when a rail
+ * declaration reads a per-scheme seed, but never opens this file, so it cannot see whether the
+ * seed it permits is populated; `accents.axis.test.ts` goes red when this seed stops carrying the
+ * reader's accent in the dark half, but cannot see a rail that bypassed the seed entirely. Drop
+ * either and the leak returns through the gap the survivor does not cover.
  */
 export const PRO_ACCENT_SEED_NAMES = {
   light: [
@@ -73,6 +98,7 @@ export const PRO_ACCENT_SEED_NAMES = {
     "--ei-accent-strong",
     "--ei-accent-soft",
     "--ei-accent-muted",
+    "--ei-accent-on-dark",
     "--ei-selection",
     "--ei-ring-soft",
     "--ei-highlight",
@@ -81,19 +107,76 @@ export const PRO_ACCENT_SEED_NAMES = {
 } as const;
 
 /**
- * Default — the authored look, and the only accent that emits nothing.
+ * Default — the authored look on Fun, and dose.wiki's own plum on Pro.
  *
- * Fun renders `site-colors.css` as written and Pro renders its authored teal. The swatch is
- * the measured Fun-dark `--theme-accent`, which is the publication's opening appearance:
- * `#f0abfc`, the light fuchsia, NOT the `#d946ef` mid-fuchsia of the brand seed. The dot has
- * to be the colour the reader will actually see, or it advertises a page nobody renders.
+ * Fun renders `site-colors.css` as written, so this half is `null`: Orchid's plum/fuchsia at
+ * `--h-brand: 326` is the publication's opening appearance and there is nothing to override.
+ * The swatch is the measured Fun-dark `--theme-accent`: `#f0abfc`, the light fuchsia, NOT the
+ * `#d946ef` mid-fuchsia of the brand seed. The dot has to be the colour the reader will
+ * actually see, or it advertises a page nobody renders.
+ *
+ * Pro cannot be `null`, and that is the asymmetry worth naming. `pro-theme.css` seeds
+ * `--ei-accent: #3d9991` in light and `#6fc4bb` in dark — Effect Index's teal, because that
+ * sheet is Effect Index's presentation, shared with dose.wiki's Pro style. With no block here a
+ * dose.wiki reader who switched to Pro left the publication's own colour behind and arrived in
+ * another publication's identity, while their Fun half stayed plum. So the default's Pro half
+ * is Pro's ramp rotated to Orchid's own 326, exactly as every other accent is rotated to its
+ * colourway's brand: measured at hue 326.7 light and 325.7 dark, at Pro's chroma. Effect Index
+ * is unaffected because it never imports `accent-tokens.generated.css` at all.
+ *
+ * Both floors bind, in both schemes, and both margins are the narrowest in the table — recorded
+ * here for the same reason Amber's 7.42/9.23 is recorded below, because they are what a future
+ * chroma or budget change breaks first:
+ *
+ * - **Light: 4.5034:1 on paper `#f6f5f1`, against the 4.5 floor.** A pure rotation of the
+ *   authored light ramp to 326 measures 3.4016:1, and the authored teal it starts from measures
+ *   3.12:1 — a breach that predated this axis and was, until this accent existed, a named
+ *   exemption in `accents.contrast.test.ts` worn by `default/pro/light` itself. The ramp takes a
+ *   uniform ΔL of −0.068 across `accent`, `strong`, `soft` and `muted`, the least that lifts the
+ *   base seed over the floor, applied uniformly so every authored gap survives rather than the
+ *   base sliding past `muted`. `strong` then measures 9.05:1 and ink-on-fill 9.87:1.
+ * - **Dark: 7.41:1 base and 9.2160:1 strong on `--ei-surface-raised` `#212121`, against Pro's
+ *   own stated 7.4 / 9.2 budgets.** A pure rotation lands the base at 7.3475:1 — under budget,
+ *   the way Red's is — so the dark ramp takes ΔL of +0.002, about one 8-bit step, exactly as far
+ *   as the budget asks. `strong` is the pure rotation untouched, and **it clears its 9.2 budget
+ *   by 0.02, the tightest margin in the whole set** (Amber's is 0.03, Red's 0.10). Plum at hue
+ *   326 carries less luminance per unit lightness than the authored teal, so nothing here is
+ *   slack. Ink-on-fill measures 9.86:1, and the base step 8.55:1 against the dark canvas.
+ *
+ * `--ei-accent-on-dark` is `#cfa0cf` in BOTH halves, like every other accent: the chrome rails
+ * are charcoal in either scheme, so "the accent as it appears on a dark bar" has one value. It
+ * is the pure rotation, unlifted — it sits on a rail rather than on the raised surface Pro's
+ * budgets were authored against, so neither budget reaches it.
  */
 const defaultAccent: Accent = {
   id: "default",
   label: "Default",
   swatch: "#f0abfc",
   funPresetId: null,
-  pro: null,
+  pro: {
+    light: {
+      "--ei-accent": "#8f618f",
+      "--ei-accent-strong": "#573957",
+      "--ei-accent-soft": "#a87ba9",
+      "--ei-accent-muted": "#785178",
+      "--ei-accent-on-dark": "#cfa0cf",
+      "--ei-selection": "#e9d9e8",
+      "--ei-ring-soft": "#d4b7d4",
+      "--ei-highlight": "#e9dfe9",
+      "--ei-on-accent": "#ffffff",
+    },
+    dark: {
+      "--ei-accent": "#cfa1d0",
+      "--ei-accent-strong": "#e0b7e0",
+      "--ei-accent-soft": "#a67da7",
+      "--ei-accent-muted": "#b589b5",
+      "--ei-accent-on-dark": "#cfa0cf",
+      "--ei-selection": "#534153",
+      "--ei-ring-soft": "#926f92",
+      "--ei-highlight": "#574557",
+      "--ei-on-accent": "#1b1b1b",
+    },
+  },
 };
 
 /**
@@ -146,6 +229,7 @@ const blue: Accent = {
       "--ei-accent-strong": "#8fd3e4",
       "--ei-accent-soft": "#4f99aa",
       "--ei-accent-muted": "#59a7b9",
+      "--ei-accent-on-dark": "#6fc0d4",
       "--ei-selection": "#2f4e55",
       "--ei-ring-soft": "#4a8796",
       "--ei-highlight": "#335259",
@@ -193,6 +277,7 @@ const green: Accent = {
       "--ei-accent-strong": "#a5d4ae",
       "--ei-accent-soft": "#6a9a73",
       "--ei-accent-muted": "#75a87f",
+      "--ei-accent-on-dark": "#8cc296",
       "--ei-selection": "#394e3d",
       "--ei-ring-soft": "#608868",
       "--ei-highlight": "#3d5241",
@@ -244,6 +329,7 @@ const red: Accent = {
       "--ei-accent-strong": "#f3b6b0",
       "--ei-accent-soft": "#b87b75",
       "--ei-accent-muted": "#c88781",
+      "--ei-accent-on-dark": "#e49f98",
       "--ei-selection": "#5b403e",
       "--ei-ring-soft": "#a16d69",
       "--ei-highlight": "#5f4441",
@@ -293,6 +379,7 @@ const amber: Accent = {
       "--ei-accent-strong": "#efb8a0",
       "--ei-accent-soft": "#b57d65",
       "--ei-accent-muted": "#c48a70",
+      "--ei-accent-on-dark": "#e0a286",
       "--ei-selection": "#5a4237",
       "--ei-ring-soft": "#9f705c",
       "--ei-highlight": "#5e463b",
@@ -359,6 +446,7 @@ const neutral: Accent = {
       "--ei-accent-strong": "#b9c8d9",
       "--ei-accent-soft": "#7f8e9f",
       "--ei-accent-muted": "#8b9cad",
+      "--ei-accent-on-dark": "#a3b5c7",
       "--ei-selection": "#424950",
       "--ei-ring-soft": "#717e8d",
       "--ei-highlight": "#464d54",
@@ -367,8 +455,79 @@ const neutral: Accent = {
   },
 };
 
-/** Declaration order is emission order and menu order. `default` leads because it is home. */
-export const ACCENTS: readonly Accent[] = [defaultAccent, blue, green, red, amber, neutral];
+/**
+ * Teal — Lagoon on Fun, and Pro's authored ramp itself on Pro, at Lagoon's `--h-brand` of 187.
+ *
+ * The one accent where the rotation is a no-op, because Pro's authored `--ei-accent*` family
+ * already measures hue 186.3–187.7. Teal is Effect Index's colour, and this accent is the row
+ * that lets a dose.wiki reader wear it on purpose instead of receiving it by default.
+ *
+ * **The dark half is a byte-identical carry-over of the authored ramp** — `#6fc4bb`, `#8fd6ce`,
+ * `#4e9c95`, `#59aaa2`, and the same three washes — so dose.wiki's Teal in dark mode renders
+ * exactly what Effect Index renders, seed for seed. Nothing needed deriving: the authored dark
+ * ramp measures 7.89:1 base and 9.72:1 strong on `--ei-surface-raised` `#212121`, well over
+ * Pro's own 7.4 / 9.2 budgets, which is unsurprising because those budgets were written for it.
+ *
+ * The light half is the one place this accent cannot be a carry-over, and the reason is a
+ * pre-existing accessibility fact rather than anything about the accent axis: Effect Index's own
+ * light link, `--ei-accent: #3d9991`, measures **3.12:1** on paper `#f6f5f1` and has always sat
+ * below the 4.5:1 WCAG floor. So the light ramp is that ramp with a uniform ΔL of −0.092 across
+ * `accent`, `strong`, `soft` and `muted` — no hue movement at all, only the darkening the floor
+ * demands — which lifts `--ei-accent` to 4.55:1. `strong` then measures 9.30:1 and ink-on-fill
+ * 10.14:1. Two publications therefore render the same hue at two lightnesses in light mode, and
+ * that is deliberate: fixing the authored value would repaint Effect Index, which is a different
+ * decision from shipping an accent row.
+ *
+ * `--ei-accent-on-dark` is `#6fc4bb` in both halves — the authored value verbatim, which is
+ * `pro-theme.css`'s own single declaration of it, so the chrome rails render identically to
+ * Effect Index's in either scheme.
+ *
+ * Safety adjacency is the widest in the set and needs no exemption. Against the authored angles
+ * a brand at 187 sits 173° from danger rose (14), 139° from unsafe orange (48), 119° from
+ * caution gold (68) and 27° from success green (160) — every one of them past the 10°
+ * `accents.immunity.test.ts` treats as the reviewed minimum, and past the 23° every pair other
+ * than Amber's clears. Lagoon re-seats `--h-green` to 150 anyway, on Abyss's precedent, which
+ * widens the only near pair to 37°: teal and emerald are the two hues a reader is most likely to
+ * confuse, so the colourway buys headroom it does not strictly need. The nearest other accent is
+ * Blue at Abyss's 215, 28° away, which no test measures because accents do not have to be
+ * mutually distinct — only distinguishable from the harm-reduction signal.
+ */
+const teal: Accent = {
+  id: "teal",
+  label: "Teal",
+  swatch: "#99f6e4",
+  funPresetId: "lagoon",
+  pro: {
+    light: {
+      "--ei-accent": "#187d76",
+      "--ei-accent-strong": "#044a45",
+      "--ei-accent-soft": "#3d978f",
+      "--ei-accent-muted": "#106862",
+      "--ei-accent-on-dark": "#6fc4bb",
+      "--ei-selection": "#cde5e2",
+      "--ei-ring-soft": "#9ecdc7",
+      "--ei-highlight": "#d7e7e5",
+      "--ei-on-accent": "#ffffff",
+    },
+    dark: {
+      "--ei-accent": "#6fc4bb",
+      "--ei-accent-strong": "#8fd6ce",
+      "--ei-accent-soft": "#4e9c95",
+      "--ei-accent-muted": "#59aaa2",
+      "--ei-accent-on-dark": "#6fc4bb",
+      "--ei-selection": "#2f4f4c",
+      "--ei-ring-soft": "#4a8a84",
+      "--ei-highlight": "#335350",
+      "--ei-on-accent": "#1b1b1b",
+    },
+  },
+};
+
+/**
+ * Declaration order is emission order and menu order. `default` leads because it is home, and
+ * `teal` trails because it is the newest row rather than a peer of the five hue rotations.
+ */
+export const ACCENTS: readonly Accent[] = [defaultAccent, blue, green, red, amber, neutral, teal];
 
 const ACCENT_BY_ID = new Map<string, Accent>(ACCENTS.map((accent) => [accent.id, accent]));
 
@@ -378,8 +537,9 @@ export function isAccent(value: string | null | undefined): value is AccentId {
 
 /**
  * Resolve an accent from storage or an attribute. An unknown or retired id degrades to the
- * default, which is also the accent that emits no CSS — so a stale saved value renders the
- * authored look rather than erroring or leaving a block half-applied.
+ * default, which is the accent keyed by the attribute's absence — so a stale saved value renders
+ * exactly the appearance a first-time reader gets, rather than erroring or leaving a block half
+ * applied to a value no selector names.
  */
 export function getAccent(id: string | null | undefined): Accent {
   return (isAccent(id) ? ACCENT_BY_ID.get(id) : undefined) ?? defaultAccent;

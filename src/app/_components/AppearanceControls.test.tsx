@@ -16,7 +16,13 @@ import { ThemeToggle } from "./ThemeToggle";
 import { VisualStyleToggle } from "./VisualStyleToggle";
 
 vi.mock("@/components/common/Icon", () => ({
-  Icon: ({ icon }: { icon: string }) => <span data-testid="icon">{icon}</span>,
+  // Faithful to the real one (`src/components/common/Icon.tsx:36-44`): the glyph is
+  // `aria-hidden` and contributes no text. That is what makes the name queries below
+  // load-bearing — an icon-only control that lost its `aria-label` has no accessible name
+  // at all here, exactly as in the browser, so it fails instead of matching its icon name.
+  Icon: ({ icon }: { icon: string }) => (
+    <span data-testid="icon" data-icon={icon} aria-hidden="true" />
+  ),
 }));
 
 /** The default accent, and the first that is not — so a pick is observable as an attribute. */
@@ -89,12 +95,49 @@ describe("AppearanceCog", () => {
     expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
 
     const panel = await openCog(user);
-    // Every axis is inside, in the settled order: style, colour scheme, accent.
+    // Every axis is inside, in the settled order: style, colour scheme, accent. The Lab
+    // link sits between the pills and the swatches in the markup, but it is an <a>, so it
+    // is not in this list.
     expect(
       within(panel)
         .getAllByRole("button")
         .map((control) => control.dataset.appearanceAxis ?? control.dataset.accentSwatch),
     ).toEqual(["visual-style", "color-scheme", ...ACCENTS.map((accent) => accent.id)]);
+  });
+
+  it("holds no text at all, so each control carries its own name", async () => {
+    const user = userEvent.setup();
+    renderCog();
+
+    const panel = await openCog(user);
+
+    // The "Style" / "Colour scheme" / "Accent" labels are gone and no control has a visible
+    // caption, so a control that loses its label is unnamed rather than badly named.
+    expect(panel.textContent).toBe("");
+    // Document order, across both roles, is the order the panel reads: row one is the two
+    // pills then the Lab link, and the swatch strip is under them.
+    //
+    // It reads the attribute on purpose, and it is the only assertion in the suite that
+    // catches a dropped `aria-label` on the icon-only link. Measured by deleting each of the
+    // link's two names: `title` is the last-resort fallback in the accessible-name
+    // computation, so with `aria-label` gone every name query below still passes on a name
+    // screen readers may ignore and touch never surfaces. Only losing both makes the queries
+    // fail — six in this file, while `Footer.test.tsx:200` and `HomeExperience.test.tsx:140`
+    // would keep passing on a link they can no longer find by name, asserting nothing.
+    expect(
+      [...panel.querySelectorAll("button, a")].map((control) => control.getAttribute("aria-label")),
+    ).toEqual([
+      "Switch to Pro visual style",
+      "Switch to day mode",
+      "More settings",
+      ...ACCENTS.map((option) => option.label),
+    ]);
+    // Positively and by name, so the four "a reader is never offered an editor route"
+    // negatives cannot quietly become assertions about nothing: this fails loudly the moment
+    // the link stops being named "More settings".
+    expect(within(panel).getByRole("link", { name: "More settings" })).toHaveAccessibleName(
+      "More settings",
+    );
   });
 
   it("holds no state of its own: every mounted control reflects one provider", async () => {
@@ -156,9 +199,15 @@ describe("AppearanceCog", () => {
     const panel = await screen.findByRole("dialog", { name: "Appearance" });
     // The panel is portalled, so tab order is no longer "the next sibling in the markup".
     // What has to hold is that opening from the keyboard lands inside the panel and that
-    // tabbing from there reaches every control in the order they read.
-    const controls = within(panel).getAllByRole("button");
-    const reachable = [...controls, within(panel).getByRole("link", { name: /More settings/ })];
+    // tabbing from there reaches every control in the order they read: both pills and the
+    // Lab link across row one, then the swatch strip beneath them.
+    const [visualStyle, colorScheme, ...swatches] = within(panel).getAllByRole("button");
+    const reachable = [
+      visualStyle,
+      colorScheme,
+      within(panel).getByRole("link", { name: "More settings" }),
+      ...swatches,
+    ];
 
     await waitFor(() => {
       expect(reachable[0]).toHaveFocus();
@@ -273,7 +322,10 @@ describe("AppearanceCog", () => {
 
     expect(within(panel).queryByRole("button", { name: /visual style/ })).not.toBeInTheDocument();
     expect(within(panel).queryByRole("group", { name: "Accent" })).not.toBeInTheDocument();
-    expect(within(panel).queryByRole("link", { name: /More settings/ })).not.toBeInTheDocument();
+    // No link at all, rather than no link with a particular name: the guarantee is that a
+    // reader is never handed an editor route, and stating it this way cannot quietly stop
+    // meaning anything if the link's name ever changes.
+    expect(within(panel).queryByRole("link")).not.toBeInTheDocument();
     expect(
       within(panel)
         .getAllByRole("button")
@@ -385,7 +437,7 @@ describe("AppearanceControls", () => {
 
     // No <SessionProvider /> here, exactly as on a public page, so there is no editor
     // session to read. A row pointing at an editor route a reader cannot open is noise.
-    expect(within(panel).queryByRole("link", { name: /More settings/ })).not.toBeInTheDocument();
+    expect(within(panel).queryByRole("link")).not.toBeInTheDocument();
   });
 
   it("puts the caller's class on the trigger itself, with no wrapper to take the offset", () => {

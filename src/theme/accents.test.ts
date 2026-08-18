@@ -13,6 +13,8 @@ import { ACCENTS, DEFAULT_ACCENT_ID, PRO_ACCENT_SEED_NAMES, getAccent, isAccent 
 import {
   ACCENT_ATTRIBUTE,
   ACCENT_STYLESHEET_PATH,
+  accentDefaultProBlockSelector,
+  accentFunBlockSelector,
   buildAccentStylesheetCss,
 } from "./accentStylesheet";
 import { ACCENT_STORAGE_KEY, DEFAULT_ACCENT, SUPPORTED_ACCENTS } from "./index";
@@ -34,8 +36,10 @@ import { ACCENT_STORAGE_KEY, DEFAULT_ACCENT, SUPPORTED_ACCENTS } from "./index";
 describe("accent table", () => {
   it("agrees with the manifest about which accents exist", () => {
     expect([...SUPPORTED_ACCENTS]).toEqual(ACCENTS.map((accent) => accent.id));
-    // Six, and the six the contract settled. Named rather than counted: a set that silently
-    // grew or lost a member would still satisfy a length check.
+    // Seven, and the seven the contract settled, in order. Named rather than counted: a set that
+    // silently grew or lost a member would still satisfy a length check. Order is load-bearing
+    // twice over — it is the emission order in the generated sheet and the menu order in the cog
+    // — so `default` leads and `teal`, the newest row, trails.
     expect(ACCENTS.map((accent) => accent.id)).toEqual([
       "default",
       "blue",
@@ -43,6 +47,7 @@ describe("accent table", () => {
       "red",
       "amber",
       "neutral",
+      "teal",
     ]);
     expect(DEFAULT_ACCENT).toBe(DEFAULT_ACCENT_ID);
     expect(ACCENT_STORAGE_KEY).toBe("dosewiki-accent");
@@ -83,8 +88,7 @@ describe("accent table", () => {
     for (const accent of ACCENTS) expect(isAccent(accent.id)).toBe(true);
     // A colour scheme, a visual style and a colourway are the three ids most likely to arrive
     // here by mistake, from a mis-keyed storage read or a hand-typed attribute. None is an
-    // accent, and each has to land on the accent that emits nothing rather than on a
-    // half-applied block.
+    // accent, and each has to land on the default rather than on a half-applied block.
     expect(isAccent("dark")).toBe(false);
     expect(isAccent("pro")).toBe(false);
     expect(isAccent("journal")).toBe(false);
@@ -95,6 +99,7 @@ describe("accent table", () => {
     expect(getAccent("red").funPresetId).toBe("garnet");
     expect(getAccent("amber").funPresetId).toBe("sunset");
     expect(getAccent("neutral").funPresetId).toBe("graphite");
+    expect(getAccent("teal").funPresetId).toBe("lagoon");
   });
 });
 
@@ -103,22 +108,36 @@ describe("accent table", () => {
  * ---------------------------------------------------------------------- */
 
 describe("accent seeds", () => {
-  it("emits nothing at all for the default accent", () => {
+  it("keys the default accent by the attribute's absence rather than by its id", () => {
     const defaultAccent = ACCENTS.find((accent) => accent.id === DEFAULT_ACCENT_ID)!;
+    const css = buildAccentStylesheetCss([defaultAccent]);
 
+    // The Fun half still emits nothing, and that is not tidiness: Fun's authored palette IS the
+    // default, so there is no override to make and a first Fun paint with no attribute is already
+    // correct. `null` rather than a colourway id is what says so.
     expect(defaultAccent.funPresetId).toBeNull();
-    expect(defaultAccent.pro).toBeNull();
-    // Not "emits an empty block": emits no block. Zero overrides is what makes a first paint
-    // with no attribute already correct, so a block here — even an empty one — would mean the
-    // default had become a thing the cascade has to resolve.
-    expect(buildAccentStylesheetCss([defaultAccent])).toBe(buildAccentStylesheetCss([]));
+    for (const theme of ["light", "dark"]) {
+      expect(css).not.toContain(accentFunBlockSelector(DEFAULT_ACCENT_ID, theme));
+    }
+
+    // The Pro half does emit, because pro-theme.css seeds Effect Index's teal and dose.wiki's Pro
+    // has to wear dose.wiki's hue. It is keyed by :not([data-accent]) — the absence the bootstrap
+    // actually writes — so no selector anywhere in the sheet names a value for this accent.
+    expect(defaultAccent.pro).not.toBeNull();
+    for (const theme of ["light", "dark"]) {
+      expect(css).toContain(accentDefaultProBlockSelector(theme));
+    }
+    expect(css).not.toContain(`${ACCENT_ATTRIBUTE}="`);
     expect(read(ACCENT_STYLESHEET_PATH)).not.toContain(`${ACCENT_ATTRIBUTE}="${DEFAULT_ACCENT_ID}"`);
   });
 
   it("declares exactly the Pro seeds the authored palette declares", () => {
-    // Derived from pro-theme.css, not from a wish list: --ei-accent-on-dark is declared once,
-    // in the light block, because the chrome rails read it in both schemes, and --ei-fade and
-    // --ei-logo-ink are paper and ink rather than accent.
+    // Derived from pro-theme.css, not from a wish list: --ei-fade and --ei-logo-ink are paper
+    // and ink rather than accent, so neither half carries them. --ei-accent-on-dark is authored
+    // ONCE (pro-theme.css:134) under a selector list that already includes the dark root, so the
+    // authored value is scheme-independent — but an accent's blocks are per-scheme, so both
+    // halves have to restate it or the dark half resolves the authored teal. This assertion also
+    // pins that the authored seed is never re-authored: Effect Index reads that literal.
     const skin = read("src/styles/pro-theme.css");
     expect(skin).toContain("--ei-accent-on-dark: #6fc4bb;");
     expect(skin.match(/--ei-accent-on-dark:/g)).toHaveLength(1);

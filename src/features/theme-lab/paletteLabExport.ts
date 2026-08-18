@@ -180,8 +180,9 @@ export type AccentEntryDraft = {
   /** Measured Fun-dark `--theme-accent`: the swatch is a measurement, not a choice. */
   swatch: string;
   /** Rendered `--ei-*` seeds per colour scheme. Keys outside
-   *  {@link PRO_ACCENT_SEED_NAMES} are ignored, which is what keeps light at nine
-   *  declarations and dark at eight. */
+   *  {@link PRO_ACCENT_SEED_NAMES} are ignored, which is what keeps each scheme at
+   *  nine declarations — including `--ei-accent-on-dark`, which both halves state at
+   *  the same value because the charcoal rails read it in either scheme. */
   pro: { light: Record<string, string>; dark: Record<string, string> };
 };
 

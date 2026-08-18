@@ -62,6 +62,29 @@ export function accentProBlockSelector(accentId: string, theme: string): string 
 }
 
 /**
+ * Selector for the DEFAULT accent's Pro block in one scheme.
+ *
+ * The default accent is keyed by the *absence* of `data-accent`, because that is what the
+ * bootstrap writes for it, so its Pro block cannot name a value. It still has to exist: the
+ * `--ei-*` seeds `pro-theme.css` authors are Effect Index's teal, and dose.wiki's Pro wearing
+ * them meant the publication's own Pro style rendered another publication's colour while its Fun
+ * rendered plum. This block re-seats them to Orchid's own hue, and Effect Index is untouched
+ * because `src/app/_styles/effectindex.ts` imports `styles.css` and `pro-theme.css` and never
+ * this sheet — the isolation is a missing import, not a flag anyone can flip.
+ *
+ * (0,3,1), the same rank as {@link accentProBlockSelector}, so the default sits in the ladder
+ * exactly where a named accent does and no source-order tie decides it. That rank is why the
+ * `:not()` is BARE: a bare `:not()` takes the specificity of its most specific argument, so
+ * `:not([data-accent])` contributes one attribute the way `[data-accent="blue"]` does.
+ * `:where(:not([data-accent]))` would contribute nothing, dropping the block to (0,2,1) — level
+ * with the Pro palette it exists to override, decided by import order. That is not a style
+ * preference; it decides the winner.
+ */
+export function accentDefaultProBlockSelector(theme: string): string {
+  return `html[data-visual-style="pro"]:not([${ACCENT_ATTRIBUTE}])[data-theme="${theme}"]`;
+}
+
+/**
  * Every selector one accent's Fun block is emitted under.
  *
  * A dark block is worn twice: by the root in dark mode, and by a {@link CHROME_DARK_CLASS}
@@ -93,10 +116,15 @@ function block(selectors: readonly string[], declarations: Record<string, string
  * the accent table, so editing a colourway moves its accent with it and the two cannot drift
  * into disagreeing about what Blue is. An accent naming a colourway that no longer exists is
  * a build error here rather than a silently empty block.
+ *
+ * The default accent takes both halves of that treatment unchanged and differs in one thing: its
+ * Pro block is keyed by {@link accentDefaultProBlockSelector} rather than by its id, because the
+ * bootstrap writes no attribute for it. Its Fun half then emits nothing on its own — the default
+ * names no colourway, since Fun's authored palette IS the default — so no `data-accent="default"`
+ * selector reaches the sheet from either half.
  */
 function accentCss(accent: Accent): string {
-  if (accent.id === DEFAULT_ACCENT_ID) return "";
-
+  const isDefault = accent.id === DEFAULT_ACCENT_ID;
   const blocks: string[] = [];
 
   if (accent.funPresetId) {
@@ -111,7 +139,10 @@ function accentCss(accent: Accent): string {
 
   if (accent.pro) {
     for (const theme of ["dark", "light"] as const) {
-      blocks.push(block([accentProBlockSelector(accent.id, theme)], { ...accent.pro[theme] }));
+      const selector = isDefault
+        ? accentDefaultProBlockSelector(theme)
+        : accentProBlockSelector(accent.id, theme);
+      blocks.push(block([selector], { ...accent.pro[theme] }));
     }
   }
 
@@ -126,8 +157,12 @@ const HEADER = `/* GENERATED FILE — do not edit by hand.
 
    One attribute-scoped block per accent, per visual style, per colour scheme, so a saved
    accent paints from the stylesheet before any script runs. The bootstrap only sets
-   html[${ACCENT_ATTRIBUTE}]; the default accent sets nothing at all and has no block here,
-   which is why a first paint with no attribute is already correct. The Theme Lab's own
+   html[${ACCENT_ATTRIBUTE}], and for the default accent it removes the attribute instead of
+   naming it — so no selector below names the default by value, and a search for one finds
+   nothing on purpose. The default's Fun half is the authored palette and emits nothing; its Pro
+   half is keyed by the absence itself, :not([${ACCENT_ATTRIBUTE}]) — bare, so it keeps the
+   (0,3,1) every other Pro block has — because pro-theme.css seeds Effect Index's teal and
+   dose.wiki's Pro wears its own hue. Effect Index never imports this file. The Theme Lab's own
    injected overrides out-rank every block below on specificity alone.
 
    Every Fun block carries ${NOT_PRO}. That is measured, not
@@ -142,9 +177,14 @@ const HEADER = `/* GENERATED FILE — do not edit by hand.
  * The whole generated stylesheet. Deterministic: accents in declaration order, Fun before
  * Pro, schemes sorted, so regenerating without changing an accent is a no-op diff.
  *
- * The default accent emits nothing — no colourway to name and no Pro seeds to restate — so
- * an unknown or retired `data-accent` value renders exactly what the default renders, with
- * no block to match.
+ * The default accent names no value in any selector it emits, so nothing here carries
+ * `data-accent="default"`. A stale or retired id therefore matches no block at all — including,
+ * on Pro, the default's own block, which is keyed on the attribute's *absence* and so cannot
+ * match a root that carries a value. Fun then renders the authored palette, which is what the
+ * default renders; Pro renders `pro-theme.css`'s authored teal rather than the default's plum.
+ * The gap is narrow by construction: the bootstrap validates against the accent set and removes
+ * the attribute when the saved value is unknown, and `applyAppearanceToDocument` writes only
+ * resolved ids, so a value no selector names reaches the root only by hand in a devtools pane.
  *
  * Every Fun block is emitted with the {@link NOT_PRO} guard, and it is emitted here rather
  * than written by hand so an accent added later inherits it and cannot forget it. The reason

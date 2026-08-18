@@ -1283,11 +1283,28 @@ html[data-visual-style="pro"] .app-header {
   --theme-text-ghost: #6f6f6f;
 
   /* Nav icons, the wordmark accent and the search magnifier all read
-     --theme-accent-strong; the page-scheme accent disappears on charcoal. */
+     --theme-accent-strong; the page-scheme accent disappears on charcoal, so
+     base, strong and soft all flatten onto --ei-accent-on-dark — steps a few
+     percent of luminance apart are indistinguishable on a #2e2e2e bar. Muted
+     keeps a step of its own: a token named "muted" that equals the base is a
+     lie the next reader has to discover.
+
+     It used to be a hand-tuned teal literal, which is why it was the one
+     member of the family no accent could reach. The mix below is a SEMANTIC
+     derivation, not a port of that literal — it holds the same mute depth
+     (HSL L 0.500 against the old 0.502) while following the reader's accent,
+     and measures 4.63:1 on this bar. It lands 4/5/4 per channel off the
+     retired colour, close but incidentally so; no mix could have hit that
+     colour exactly, because the two hold the same 9/255 green-blue gap while
+     their red-green gap narrows 85 → 80 — a chroma move, and a scalar mix
+     scales every gap alike.
+
+     Black anchors the mix rather than a chrome token because --ei-chrome-* is
+     scheme-dependent and these rail selectors carry no data-theme. */
   --theme-accent: var(--ei-accent-on-dark);
   --theme-accent-strong: var(--ei-accent-on-dark);
   --theme-accent-soft: var(--ei-accent-on-dark);
-  --theme-accent-muted: #58a89f;
+  --theme-accent-muted: color-mix(in srgb, var(--ei-accent-on-dark) 83%, #000000);
 
   /* The mark on dark chrome, mirrored. The page mark runs ink → accent; the
      rail runs the other way, accent → white, so the two marks visible at once
@@ -1438,9 +1455,18 @@ html[data-visual-style="pro"] .app-footer {
   --theme-text-faint: #6b6b6b;
   --theme-text-ghost: #5a5a5a;
 
+  /* The header's accent family, all four members, for the same reason: this
+     rail is charcoal in both schemes, so every accent it shows has to come
+     from the scheme-independent on-dark seed. The footer stopped at three,
+     which left --theme-accent-muted resolving the page-scheme
+     --ei-accent-muted — #34837c at 3.68:1 here on paper — for anything that
+     lands in this subtree. Nothing does yet; the AppearanceControls cluster
+     lives here and is the likeliest first. The muted step repeats the
+     header's mix and measures 5.63:1 against this darker rail. */
   --theme-accent: var(--ei-accent-on-dark);
   --theme-accent-strong: var(--ei-accent-on-dark);
   --theme-accent-soft: var(--ei-accent-on-dark);
+  --theme-accent-muted: color-mix(in srgb, var(--ei-accent-on-dark) 83%, #000000);
 
   /* Same treatment as the header: the rail mark runs accent → white, the
      mirror of the page mark's ink → accent. It is not dimmed to a grey ramp to

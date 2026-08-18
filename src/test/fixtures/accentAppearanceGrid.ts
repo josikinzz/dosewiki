@@ -48,8 +48,8 @@ export type ColorScheme = "light" | "dark";
 /** One point on the appearance grid. An absent accent is the default accent. */
 export type AppearanceState = { visualStyle: VisualStyle; theme: ColorScheme; accent?: string };
 
-type Specificity = [number, number, number];
-type Declaration = {
+export type Specificity = [number, number, number];
+export type Declaration = {
   property: string;
   value: string;
   specificity: Specificity;
@@ -87,10 +87,24 @@ function splitSelectorList(selector: string): string[] {
   return parts.map((part) => part.trim()).filter(Boolean);
 }
 
-/** `html`/`:root` followed only by attribute selectors and `:where(:not([attr]))` guards. */
-const ROOT_SELECTOR = /^(?:html|:root)((?:\[[^\]]*\]|:where\(:not\(\[[^\]]*\]\)\))*)$/;
+/**
+ * `html`/`:root` followed only by attribute selectors and `:not([attr])` guards, bare or wrapped
+ * in `:where()`.
+ *
+ * Both shapes ship, and the difference between them is the whole point of parsing them
+ * separately rather than together. `:where(:not([data-visual-style="pro"]))` keeps a Fun block at
+ * (0,2,1); bare `:not([data-accent])` carries the specificity of its argument, which is what puts
+ * the default accent's Pro block at (0,3,1) — level with every named accent's Pro block and a
+ * step above the Pro palette it overrides. A parser that knew only the `:where()` form would
+ * reject the default's Pro block outright, drop its declarations from the cascade, and leave the
+ * whole grid measuring `pro-theme.css`'s authored teal while the browser rendered plum. That is
+ * the one failure in this apparatus that is silent in both directions, so it is measured directly
+ * in `accentAppearanceGrid.test.ts` as well as through the grid.
+ */
+const ROOT_SELECTOR =
+  /^(?:html|:root)((?:\[[^\]]*\]|:not\(\[[^\]]*\]\)|:where\(:not\(\[[^\]]*\]\)\))*)$/;
 const SELECTOR_PIECE =
-  /\[([a-z-]+)(?:="([^"]*)")?\]|:where\(:not\(\[([a-z-]+)(?:="([^"]*)")?\]\)\)/g;
+  /\[([a-z-]+)(?:="([^"]*)")?\]|:where\(:not\(\[([a-z-]+)(?:="([^"]*)")?\]\)\)|:not\(\[([a-z-]+)(?:="([^"]*)")?\]\)/g;
 
 const STATE_KEY_BY_ATTRIBUTE: Record<string, keyof AppearanceState> = {
   "data-theme": "theme",
@@ -102,11 +116,16 @@ const STATE_KEY_BY_ATTRIBUTE: Record<string, keyof AppearanceState> = {
  * A root selector's specificity and its match test, or null if it is not a root selector.
  *
  * Attributes count as classes, `:root` counts as one class, `html` as one type, and `:where()`
- * as nothing — CSS Selectors 4. Anything with a descendant, a class or a pseudo-element is
+ * as nothing — CSS Selectors 4. A bare `:not()` is the case in between: it contributes nothing
+ * itself but takes the specificity of its most specific argument, so `:not([data-accent])` counts
+ * exactly as one attribute does. Anything with a descendant, a class or a pseudo-element is
  * rejected outright rather than approximated: those rules cannot seed a page-wide token, so
  * dropping them loses nothing and modelling them badly would lose correctness.
+ *
+ * Exported because the specificity arithmetic above is the apparatus the accent suites depend on
+ * rather than something they measure, so it is asserted directly in `accentAppearanceGrid.test.ts`.
  */
-function rootSelector(part: string): Pick<Declaration, "specificity" | "matches"> | null {
+export function rootSelector(part: string): Pick<Declaration, "specificity" | "matches"> | null {
   const match = ROOT_SELECTOR.exec(part);
   if (!match) return null;
 
@@ -115,7 +134,7 @@ function rootSelector(part: string): Pick<Declaration, "specificity" | "matches"
   const conditions: { key: keyof AppearanceState; value?: string; negate: boolean }[] = [];
 
   for (const piece of match[1].matchAll(SELECTOR_PIECE)) {
-    const attribute = piece[1] ?? piece[3];
+    const attribute = piece[1] ?? piece[3] ?? piece[5];
     const key = STATE_KEY_BY_ATTRIBUTE[attribute];
     // An attribute this grid does not model (data-site, data-blur) cannot be satisfied, so a
     // rule naming one is treated as non-matching rather than silently ignored.
@@ -123,8 +142,11 @@ function rootSelector(part: string): Pick<Declaration, "specificity" | "matches"
     if (piece[1] !== undefined) {
       classes += 1;
       conditions.push({ key, value: piece[2], negate: false });
-    } else {
+    } else if (piece[3] !== undefined) {
       conditions.push({ key, value: piece[4], negate: true });
+    } else {
+      classes += 1;
+      conditions.push({ key, value: piece[6], negate: true });
     }
   }
 

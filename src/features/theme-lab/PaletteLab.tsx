@@ -108,10 +108,12 @@ export function PaletteLab() {
     () => baseOverrides({ activeThemeRef, customThemes, editsByPreset: {} }),
     [activeThemeRef, customThemes],
   );
-  // The scheme being edited is the reader's own scheme, borrowed from the one appearance
-  // owner: switching it here is the same switch the site's Day/Night control makes, so the
-  // editor stays in step with the page it is editing without writing the document itself.
-  const { colorScheme: theme, setColorScheme } = useTheme();
+  // The scheme and style being edited are the reader's own, borrowed from the one appearance
+  // owner: switching the scheme here is the same switch the site's Day/Night control makes, so
+  // the editor stays in step with the page it is editing without writing the document itself.
+  // The style is read-only here — the cog owns it — but the baselines below are sampled per
+  // style, so the panel has to know which one is being worn.
+  const { colorScheme: theme, visualStyle, setColorScheme } = useTheme();
   const [defaults, setDefaults] = useState<ThemeDefaults | null>(null);
   // Gallery-first: the panel lands on the shipped looks, and nothing is
   // selected for editing until the visitor picks a swatch.
@@ -146,13 +148,16 @@ export function PaletteLab() {
     setMounted(true);
   }, []);
 
-  // Revert baselines are this theme's own values, re-sampled (and cached) when
-  // the visitor switches themes. A layout effect so the new baselines are in
-  // place before the switched-to look paints.
+  // Revert baselines are this theme's own values in the style being worn, re-sampled (and
+  // cached) when the visitor switches either. `visualStyle` is a dependency because Pro
+  // re-seats hundreds of `--theme-*` tokens: a Fun sample is the wrong baseline for a Pro
+  // page, and the delete-on-equal rule in the token-write path would then drop real edits and
+  // keep phantom ones. A layout effect so the new baselines are in place before the
+  // switched-to look paints.
   useLayoutEffect(() => {
     if (!mounted) return;
-    setDefaults(getThemeBaselines(baseKey, base));
-  }, [mounted, baseKey, base]);
+    setDefaults(getThemeBaselines(baseKey, visualStyle, base));
+  }, [mounted, baseKey, visualStyle, base]);
 
   // What actually renders: the active theme's base layer with its own edits on
   // top (the visitor wins per token).
@@ -376,13 +381,14 @@ export function PaletteLab() {
       const targetBase = baseOverrides(target);
       return {
         activeThemeRef: targetRef,
-        // Stored as the diff against the target theme's own values, so
-        // export → import of an untouched theme leaves zero edits behind.
+        // Stored as the diff against the target theme's own values in the style
+        // being worn, so export → import of an untouched theme leaves zero edits
+        // behind — in Pro as well as in Fun.
         editsByPreset: withActiveEdits(
           target,
           editsFromImport(payload, {
             base: targetBase,
-            baselines: getThemeBaselines(themeKey(targetRef), targetBase),
+            baselines: getThemeBaselines(themeKey(targetRef), visualStyle, targetBase),
             currentEdits: activeEdits(target),
           }),
         ),
@@ -391,7 +397,7 @@ export function PaletteLab() {
     setEpoch((value) => value + 1);
     setJsonDirty(false);
     setJsonError(null);
-  }, [jsonValue]);
+  }, [jsonValue, visualStyle]);
 
   // Resets clear this theme's edits back to its own values; returning to stock
   // is choosing the default palette in Palettes.

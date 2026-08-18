@@ -46,7 +46,7 @@ export const PRO_ACCENT_GROUP: PaletteGroup = {
     color(
       "--ei-accent-on-dark",
       "Pro accent — on charcoal",
-      "The step the charcoal header and footer rails wear. Authored once, in day, and read in both schemes — an accent entry states it in its light half only.",
+      "The step the charcoal header and footer rails wear. Authored once, in the day block, and read in both schemes — but an accent's blocks are per-scheme, so an accent states it in both halves at one value.",
     ),
     color("--ei-selection", "Pro selection wash"),
     color("--ei-ring-soft", "Pro ring — soft"),

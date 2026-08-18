@@ -264,8 +264,8 @@ describe("theme share codec", () => {
     // The codec ships only what the registry names, and the registry held no
     // `--ei-*` id at all until the accent axis: a theme authored in Pro crossed
     // the wire with its Fun colourway intact and its Pro half silently gone.
-    // Nine seeds in light, eight in dark — `--ei-accent-on-dark` is declared once,
-    // in light, and read by the charcoal rails in both schemes.
+    // Nine seeds in each scheme — `--ei-accent-on-dark` is authored once, but an
+    // accent's blocks are per-scheme, so both halves carry it at one value.
     const light = Object.fromEntries(
       PRO_ACCENT_SEED_NAMES.light.map((id, index) => [id, `#00000${index + 1}`]),
     );
@@ -285,11 +285,12 @@ describe("theme share codec", () => {
     }
     // Nothing extra rode along, and nothing was dropped: the palette it named
     // carries no `--ei-*` of its own, so these counts are exactly the shared set.
+    // Nine in each scheme, symmetric since `--ei-accent-on-dark` became a dark seed too.
     expect(Object.keys(value.overrides.light).filter((id) => id.startsWith("--ei-"))).toHaveLength(
       9,
     );
     expect(Object.keys(value.overrides.dark).filter((id) => id.startsWith("--ei-"))).toHaveLength(
-      8,
+      9,
     );
   });
 

@@ -1,6 +1,6 @@
 {
  "schemaVersion": 1,
- "reviewedAt": "2026-08-11T00:00:00.000Z",
+ "reviewedAt": "2026-08-17T00:00:00.000Z",
  "reviewScope": "production push shared public UI token audit review",
  "scanRoots": [
   "src/app",
@@ -6404,114 +6404,114 @@
   },
   {
    "rule": "direct-theme-variable",
-   "filePath": "src/features/theme-lab/palettePresets.ts",
+   "filePath": "src/features/theme-lab/presetRecipes.ts",
    "match": "var(--theme-scroll-track)",
-   "line": 100,
+   "line": 39,
    "column": 117
   },
   {
    "rule": "direct-theme-variable",
-   "filePath": "src/features/theme-lab/palettePresets.ts",
+   "filePath": "src/features/theme-lab/presetRecipes.ts",
    "match": "var(--theme-scroll-track)",
-   "line": 100,
+   "line": 39,
    "column": 197
   },
   {
    "rule": "direct-theme-variable",
-   "filePath": "src/features/theme-lab/palettePresets.ts",
+   "filePath": "src/features/theme-lab/presetRecipes.ts",
    "match": "var(--theme-scroll-track)",
-   "line": 100,
+   "line": 39,
    "column": 306
   },
   {
    "rule": "direct-theme-variable",
-   "filePath": "src/features/theme-lab/palettePresets.ts",
+   "filePath": "src/features/theme-lab/presetRecipes.ts",
    "match": "var(--theme-scroll-track)",
-   "line": 100,
+   "line": 39,
    "column": 386
   },
   {
    "rule": "direct-theme-variable",
-   "filePath": "src/features/theme-lab/palettePresets.ts",
+   "filePath": "src/features/theme-lab/presetRecipes.ts",
    "match": "var(--theme-scroll-track)",
-   "line": 101,
+   "line": 40,
    "column": 125
   },
   {
    "rule": "direct-theme-variable",
-   "filePath": "src/features/theme-lab/palettePresets.ts",
+   "filePath": "src/features/theme-lab/presetRecipes.ts",
    "match": "var(--theme-scroll-track)",
-   "line": 101,
+   "line": 40,
    "column": 206
   },
   {
    "rule": "direct-theme-variable",
-   "filePath": "src/features/theme-lab/palettePresets.ts",
+   "filePath": "src/features/theme-lab/presetRecipes.ts",
    "match": "var(--theme-scroll-track)",
-   "line": 101,
+   "line": 40,
    "column": 316
   },
   {
    "rule": "direct-theme-variable",
-   "filePath": "src/features/theme-lab/palettePresets.ts",
+   "filePath": "src/features/theme-lab/presetRecipes.ts",
    "match": "var(--theme-scroll-track)",
-   "line": 101,
+   "line": 40,
    "column": 396
   },
   {
    "rule": "direct-theme-variable",
-   "filePath": "src/features/theme-lab/palettePresets.ts",
+   "filePath": "src/features/theme-lab/presetRecipes.ts",
    "match": "var(--theme-scroll-track)",
-   "line": 108,
+   "line": 47,
    "column": 114
   },
   {
    "rule": "direct-theme-variable",
-   "filePath": "src/features/theme-lab/palettePresets.ts",
+   "filePath": "src/features/theme-lab/presetRecipes.ts",
    "match": "var(--theme-scroll-track)",
-   "line": 108,
+   "line": 47,
    "column": 189
   },
   {
    "rule": "direct-theme-variable",
-   "filePath": "src/features/theme-lab/palettePresets.ts",
+   "filePath": "src/features/theme-lab/presetRecipes.ts",
    "match": "var(--theme-scroll-track)",
-   "line": 108,
+   "line": 47,
    "column": 293
   },
   {
    "rule": "direct-theme-variable",
-   "filePath": "src/features/theme-lab/palettePresets.ts",
+   "filePath": "src/features/theme-lab/presetRecipes.ts",
    "match": "var(--theme-scroll-track)",
-   "line": 108,
+   "line": 47,
    "column": 368
   },
   {
    "rule": "direct-theme-variable",
-   "filePath": "src/features/theme-lab/palettePresets.ts",
+   "filePath": "src/features/theme-lab/presetRecipes.ts",
    "match": "var(--theme-scroll-track)",
-   "line": 109,
+   "line": 48,
    "column": 120
   },
   {
    "rule": "direct-theme-variable",
-   "filePath": "src/features/theme-lab/palettePresets.ts",
+   "filePath": "src/features/theme-lab/presetRecipes.ts",
    "match": "var(--theme-scroll-track)",
-   "line": 109,
+   "line": 48,
    "column": 195
   },
   {
    "rule": "direct-theme-variable",
-   "filePath": "src/features/theme-lab/palettePresets.ts",
+   "filePath": "src/features/theme-lab/presetRecipes.ts",
    "match": "var(--theme-scroll-track)",
-   "line": 109,
+   "line": 48,
    "column": 299
   },
   {
    "rule": "direct-theme-variable",
-   "filePath": "src/features/theme-lab/palettePresets.ts",
+   "filePath": "src/features/theme-lab/presetRecipes.ts",
    "match": "var(--theme-scroll-track)",
-   "line": 109,
+   "line": 48,
    "column": 374
   },
   {

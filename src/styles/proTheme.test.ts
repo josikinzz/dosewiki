@@ -378,6 +378,52 @@ describe("pro visual style", () => {
     expect(offenders).toEqual([]);
   });
 
+  it("reaches the accent through the on-dark seed alone inside the rails", () => {
+    // The defect this closes: .app-header and .app-footer carry no data-theme,
+    // so a declaration inside them resolves whichever half of the palette the
+    // PAGE is in. These four accent seeds hold a different value per half, so
+    // a rail that reads one paints the page-scheme accent onto a charcoal bar
+    // — --ei-accent-muted is #34837c over paper, 3.03:1 on the header, which
+    // is how the muted step got hard-coded to a literal in the first place.
+    // --ei-accent-on-dark is the one accent seed that means "as it appears on
+    // a dark bar" and carries one value in both halves, so it is the only one
+    // a rail may resolve; a rail that wants a step off it mixes, as the muted
+    // step does.
+    //
+    // The chrome, ink and wash seeds are deliberately NOT on this list. The
+    // rails do shift with the scheme — #2e2e2e over paper, #1f1f1f over a dark
+    // canvas — and that bracketing is the design. Only the accent must hold.
+    const schemeDependentAccents: Record<string, true> = {
+      "--ei-accent": true,
+      "--ei-accent-strong": true,
+      "--ei-accent-soft": true,
+      "--ei-accent-muted": true,
+    };
+
+    // Guard the guard: a renamed seed has to break this test, not empty it.
+    const seeded = new Set(
+      blocks
+        .filter((block) => block.selector.includes(LIGHT_SCHEME_SCOPE))
+        .flatMap((block) => declaredProperties(block.body)),
+    );
+    expect(Object.keys(schemeDependentAccents).filter((name) => !seeded.has(name))).toEqual([]);
+
+    const railBlocks = blocks.filter((block) => /\.app-(header|footer)\b/.test(block.selector));
+    const offenders = railBlocks.flatMap((block) =>
+      [...block.body.matchAll(/var\(\s*(--ei-[a-z0-9-]+)/g)]
+        .map((match) => match[1])
+        .filter((name) => name in schemeDependentAccents)
+        .map((name) => `${block.selector} reads ${name}`),
+    );
+
+    expect(offenders).toEqual([]);
+    // Non-vacuous: the rails really do paint accent, through the on-dark seed.
+    const onDarkReads = railBlocks.flatMap((block) => [
+      ...block.body.matchAll(/var\(\s*--ei-accent-on-dark\b/g),
+    ]);
+    expect(onDarkReads.length).toBeGreaterThanOrEqual(8);
+  });
+
   it("paints accent through colour-valued tokens, never an hsl() component list", () => {
     // The retired shadcn bridge declared --primary/--accent/--ring as bare
     // `H S% L%` component lists — in base.css for Fun, restated here for Pro —
