@@ -6,6 +6,10 @@
   "defaultVisualStyle": "fun",
   "supportedVisualStyles": ["fun", "pro"],
   "visualStyleStorageKey": "dosewiki-visual-style",
+  "baseSurface": "orchid",
+  "supportedSurfaces": ["orchid", "abyss", "canopy", "garnet", "sunset", "graphite", "lagoon"],
+  "surfaceStorageKey": "dosewiki-surface",
+  "appearanceStorageKey": "dosewiki-appearance-v4",
   "baseAccent": "default",
   "supportedAccents": ["default", "blue", "green", "red", "amber", "neutral", "teal"],
   "accentStorageKey": "dosewiki-accent",
@@ -68,6 +72,27 @@
       "--theme-accent-strong",
       "--theme-accent-soft",
       "--theme-accent-muted"
+    ],
+    "selection": [
+      "--theme-selected-control-base",
+      "--theme-selected-control-border",
+      "--theme-selected-control-highlight",
+      "--theme-selected-control-primary",
+      "--theme-selected-control-secondary",
+      "--theme-selected-control-bg",
+      "--theme-selected-control-text",
+      "--theme-selected-control-shadow",
+      "--theme-selected-control-focus",
+      "--theme-selected-control-glow"
+    ],
+    "inlineReference": [
+      "--theme-inline-reference-border",
+      "--theme-inline-reference-bg",
+      "--theme-inline-reference-text",
+      "--theme-inline-reference-hover-border",
+      "--theme-inline-reference-hover-bg",
+      "--theme-inline-reference-hover-text",
+      "--theme-inline-reference-focus"
     ],
     "evidence": [
       "--theme-evidence-bg",
@@ -204,6 +229,8 @@
       "theme-control-pill",
       "theme-control-pill-quiet",
       "theme-name-chip-interactive",
+      "theme-selected-control",
+      "theme-selected-control-glow",
       "theme-citation-marker",
       "theme-evidence-link",
       "theme-profile-markdown-link",

@@ -6,6 +6,7 @@ import { SITE_FLAVOR, SITE_FLAVOR_CONFIG } from "@/config/siteFlavor";
 import { buildZodJitlessBootstrapScript } from "@server/next/zodBrowserPolicy";
 import {
   BASE_ACCENT,
+  BASE_SURFACE,
   THEME_META_ID,
   buildThemeBootstrapScript,
   getAppearanceMetaColor,
@@ -74,6 +75,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       data-site={SITE_FLAVOR}
       data-theme={initialAppearance.colorScheme}
       data-visual-style={initialAppearance.visualStyle}
+      {...(initialAppearance.surface === BASE_SURFACE
+        ? {}
+        : { "data-surface": initialAppearance.surface })}
       {...(initialAppearance.accent === BASE_ACCENT
         ? {}
         : { "data-accent": initialAppearance.accent })}
@@ -111,7 +115,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <span data-nosnippet>
           <a
             href="#main-content"
-            className="theme-skip-link sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-50 focus:rounded-lg focus:px-4 focus:py-2 focus:outline-none focus:ring-2 focus:ring-fuchsia-400 focus:ring-offset-2"
+            className="theme-skip-link theme-focus-ring sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-50 focus:rounded-lg focus:px-4 focus:py-2 focus:outline-none"
           >
             Skip to main content
           </a>
@@ -119,6 +123,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <ThemeProvider
           initialColorScheme={initialAppearance.colorScheme}
           initialVisualStyle={initialAppearance.visualStyle}
+          initialSurface={initialAppearance.surface}
           isVisualStyleLocked={isVisualStyleLocked}
         >
           <RouteChrome homeConstructionMode={homeConstructionMode} />

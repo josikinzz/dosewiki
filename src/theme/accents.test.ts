@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-
 import { PALETTE_PRESETS } from "@/features/theme-lab/palettePresets";
+
 import {
   GRID,
   SWATCH_TOLERANCE,
@@ -17,6 +17,7 @@ import {
   accentFunBlockSelector,
   buildAccentStylesheetCss,
 } from "./accentStylesheet";
+import { paletteTokenRole } from "./paletteOwnership";
 import { ACCENT_STORAGE_KEY, BASE_ACCENT, SUPPORTED_ACCENTS } from "./index";
 
 /**
@@ -153,17 +154,10 @@ describe("accent seeds", () => {
     }
   });
 
-  it("reads the Fun half out of the colourway rather than copying it", () => {
+  it("emits no surface-owned tokens", () => {
     const css = read(ACCENT_STYLESHEET_PATH);
-
-    for (const accent of ACCENTS) {
-      if (!accent.funPresetId) continue;
-      const preset = PALETTE_PRESETS.find((candidate) => candidate.id === accent.funPresetId);
-      expect(preset, `${accent.id} names a colourway that exists`).toBeDefined();
-
-      for (const [token, value] of Object.entries(preset!.overrides.dark)) {
-        expect(css).toContain(`  ${token}: ${value};`);
-      }
+    for (const match of css.matchAll(/(--[a-z0-9-]+)\s*:/g)) {
+      expect(paletteTokenRole(match[1]), match[1]).not.toBe("surface");
     }
   });
 });

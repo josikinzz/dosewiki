@@ -66,7 +66,7 @@ export function buildCitationWorkflowCommands({
       name: 'citations:campaign',
       purpose: 'Create one locked local citation campaign manifest and report immutable Pi workbench run status without generation or publication.',
       env: ['DOSEWIKI_CITATION_WORKBENCH optional'],
-      scriptPath: '.pi/skills/pi-citation-workflow/scripts/citation-campaign.mjs',
+      scriptPath: 'tools/pi-citation-workflow/citation-campaign.mjs',
       reads: [workflowAccessTargets.localArtifacts],
       writes: [workflowAccessTargets.localArtifacts],
       dryRun: workflowDryRunPolicies.reportOnly,

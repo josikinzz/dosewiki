@@ -67,10 +67,9 @@ export function AboutFounderSelectionSection({
             return (
               <label
                 key={profile.key}
-                className={`theme-gradient-divider-after relative flex cursor-pointer items-center gap-3 rounded-lg px-2 py-3 transition after:pointer-events-none after:absolute after:inset-x-2 after:bottom-0 after:h-px focus-within:outline focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-[var(--theme-accent-strong)] ${
-                  isSelected
-                    ? "bg-[color:var(--theme-article-route-active-bg)] after:opacity-0"
-                    : "hover:bg-[var(--editor-field-bg)]"
+                data-state={isSelected ? "active" : "inactive"}
+                className={`theme-gradient-divider-after theme-selected-control relative flex cursor-pointer items-center gap-3 rounded-lg px-2 py-3 transition after:pointer-events-none after:absolute after:inset-x-2 after:bottom-0 after:h-px focus-within:outline focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-[var(--theme-accent-strong)] ${
+                  isSelected ? "after:opacity-0" : "hover:bg-[var(--editor-field-bg)]"
                 }`}
               >
                 <input

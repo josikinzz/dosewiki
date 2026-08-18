@@ -63,7 +63,7 @@ function LineageRow({
         <Link
           href={`/chemical-classes/${item.key}`}
           className={cn(
-            "inline-flex items-center rounded-sm text-sm leading-6 transition-colors hover:opacity-85 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fuchsia-400 sm:text-[0.9375rem]",
+            "theme-focus-ring inline-flex items-center rounded-sm text-sm leading-6 transition-colors hover:opacity-85 sm:text-[0.9375rem]",
             tone === "bioisostere" ? "theme-text-faint" : "theme-text-secondary",
           )}
         >
@@ -123,7 +123,7 @@ function LineageBlock({ detail }: { detail: ChemicalClassDetail }) {
                   {index > 0 ? ", " : null}
                   <Link
                     href={`/chemical-classes/${parent.key}`}
-                    className="rounded-sm underline-offset-4 transition-colors hover:opacity-85 hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fuchsia-400"
+                    className="theme-focus-ring rounded-sm underline-offset-4 transition-colors hover:opacity-85 hover:underline"
                   >
                     {parent.label}
                   </Link>

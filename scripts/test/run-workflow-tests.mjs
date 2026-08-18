@@ -4,7 +4,10 @@ import { spawnSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
-const scriptsRoot = path.join(repoRoot, "scripts");
+const workflowRoots = [
+  path.join(repoRoot, "scripts"),
+  path.join(repoRoot, "tools", "pi-citation-workflow"),
+];
 
 function walkTestFiles(dir, files = []) {
   for (const entry of readdirSync(dir)) {
@@ -48,7 +51,7 @@ function run(command, args) {
   }
 }
 
-const testFiles = walkTestFiles(scriptsRoot);
+const testFiles = workflowRoots.flatMap((root) => walkTestFiles(root));
 const nodeTests = testFiles.filter((file) => {
   const content = readFileSync(path.join(repoRoot, file), "utf8");
   return content.includes("node:test");

@@ -361,34 +361,34 @@ html[data-theme="light"]:where(:not([data-visual-style="pro"])) .theme-chrome-da
   --theme-article-neutral-panel-shadow:
     0 16px 32px -28px rgb(var(--c-black) / 0.66),
     inset 0 1px 0 rgb(var(--c-white) / 0.07);
-  /* Secondary "selected/informational" hue: violet 290 (sits between the
-     brand magenta and blue), replacing the off-brand cyan/teal. */
-  /* Active index / dosage-duration tab fill — one editable base.
-     Expressed off the seed at the retune's lightness/chroma: the pre-seed
-     literal #4e2767 is oklch(35.65% 0.112 310), 20° off --h-violet. Snapping
-     it onto the seed matches the light block below and the value every
-     alternate palette already re-derived, so each palette tints the selected
-     tab with its own violet instead of inheriting Orchid's. */
-  --theme-route-active-base: oklch(35.7% 0.112 var(--h-violet));
-  --theme-article-route-active-border: oklch(66% 0.12 var(--h-violet) / 0.34);
-  --theme-article-route-active-highlight: color-mix(in srgb, rgb(var(--c-white)) 7%, var(--theme-route-active-base));
-  --theme-article-route-active-primary: var(--theme-route-active-base);
-  --theme-article-route-active-secondary: oklch(from var(--theme-route-active-base) calc(l - 0.21) calc(c - 0.075) h);
-  --theme-article-route-active-bg:
-    radial-gradient(circle at 18% 0%, var(--theme-article-route-active-highlight), transparent 42%), linear-gradient(135deg, var(--theme-article-route-active-primary), var(--theme-article-route-active-secondary));
-  --theme-article-route-active-text: oklch(84% 0.075 var(--h-violet));
-  /* The pill's whole edge treatment, as one token: a hairline halo that
-     doubles the translucent border into a soft 2px glow, the drop shadow that
-     lifts it, and the top highlight. Pro flattens the lot to `none` — its
-     border is opaque, so the halo would draw a hard second ring. */
-  --theme-article-route-active-shadow:
-    0 0 0 1px var(--theme-article-route-active-border),
-    0 12px 26px -22px color-mix(in srgb, var(--theme-article-route-active-text) 42%, transparent),
+  /* Selected controls combine the active Accent with the current Surface. The
+     Accent owns hue; the Surface only supplies material and depth. */
+  --theme-selected-control-base: color-mix(in srgb, var(--theme-accent) 24%, var(--theme-control-base));
+  --theme-selected-control-border: color-mix(in srgb, var(--theme-accent-strong) 46%, transparent);
+  --theme-selected-control-highlight: color-mix(in srgb, rgb(var(--c-white)) 8%, var(--theme-selected-control-base));
+  --theme-selected-control-primary: var(--theme-selected-control-base);
+  --theme-selected-control-secondary: color-mix(in srgb, var(--theme-accent-muted) 18%, var(--theme-body-bg));
+  --theme-selected-control-bg:
+    radial-gradient(circle at 18% 0%, var(--theme-selected-control-highlight), transparent 42%),
+    linear-gradient(135deg, var(--theme-selected-control-primary), var(--theme-selected-control-secondary));
+  --theme-selected-control-text: var(--theme-accent);
+  --theme-selected-control-shadow:
+    0 0 0 1px var(--theme-selected-control-border),
+    0 12px 26px -22px color-mix(in srgb, var(--theme-selected-control-text) 42%, transparent),
     inset 0 1px 0 color-mix(in srgb, var(--theme-text-primary) 8%, transparent);
-  --theme-article-reference-control-border: oklch(68% 0.1 var(--h-violet) / 0.28);
-  --theme-article-reference-control-bg:
-    radial-gradient(circle at 12% 0%, color-mix(in srgb, rgb(var(--c-white)) 5.5%, color-mix(in srgb, oklch(36% 0.09 var(--h-violet)) 32%, var(--theme-body-bg))), transparent 36%), linear-gradient(135deg, color-mix(in srgb, oklch(36% 0.09 var(--h-violet)) 32%, var(--theme-body-bg)), color-mix(in srgb, oklch(17% 0.03 var(--h-violet)) 82%, var(--theme-body-bg)));
-  --theme-article-reference-control-text: oklch(86% 0.065 var(--h-violet));
+  --theme-selected-control-focus: var(--theme-accent);
+  --theme-selected-control-glow:
+    linear-gradient(90deg, color-mix(in srgb, var(--theme-accent) 10%, transparent), color-mix(in srgb, var(--theme-accent-soft) 12%, transparent), color-mix(in srgb, var(--theme-accent) 10%, transparent));
+
+  /* Inline references share Accent identity but remain quieter than a selected
+     control. Their fill mixes into whichever Surface contains them. */
+  --theme-inline-reference-border: color-mix(in srgb, var(--theme-accent-strong) 38%, transparent);
+  --theme-inline-reference-bg: color-mix(in srgb, var(--theme-accent) 13%, var(--theme-body-bg));
+  --theme-inline-reference-text: var(--theme-accent);
+  --theme-inline-reference-hover-border: color-mix(in srgb, var(--theme-accent-soft) 58%, transparent);
+  --theme-inline-reference-hover-bg: color-mix(in srgb, var(--theme-accent) 20%, var(--theme-body-bg));
+  --theme-inline-reference-hover-text: var(--theme-accent-soft);
+  --theme-inline-reference-focus: var(--theme-accent);
   --theme-json-string: oklch(77% 0.15 var(--h-green));
   --theme-json-number: oklch(76% 0.13 var(--h-cyan));
   --theme-json-boolean: oklch(78% 0.14 var(--h-yellow));
@@ -871,23 +871,32 @@ html[data-theme="light"] {
   --theme-article-neutral-panel-shadow:
     0 16px 32px -28px oklch(38% 0.04 var(--h-plum) / 0.18),
     inset 0 1px 0 oklch(100% 0 0 / 0.74);
-  /* Secondary "selected/informational" hue: violet 290, mirroring dark. */
-  --theme-route-active-base: oklch(96% 0.028 var(--h-violet));
-  --theme-article-route-active-border: oklch(54% 0.105 var(--h-violet) / 0.24);
-  --theme-article-route-active-highlight: color-mix(in srgb, oklch(100% 0 0) 68%, var(--theme-route-active-base));
-  --theme-article-route-active-primary: var(--theme-route-active-base);
-  --theme-article-route-active-secondary: oklch(from var(--theme-route-active-base) calc(l - 0.04) calc(c + 0.012) h);
-  --theme-article-route-active-bg:
-    radial-gradient(circle at 18% 0%, var(--theme-article-route-active-highlight), transparent 42%), linear-gradient(135deg, var(--theme-article-route-active-primary), var(--theme-article-route-active-secondary));
-  --theme-article-route-active-text: oklch(40% 0.13 var(--h-violet));
-  --theme-article-route-active-shadow:
-    0 0 0 1px var(--theme-article-route-active-border),
-    0 12px 24px -22px color-mix(in srgb, var(--theme-article-route-active-text) 34%, transparent),
+  /* Light selected controls keep the same Accent ownership with a brighter
+     Surface mix. Pro replaces the treatment, not the owner. */
+  --theme-selected-control-base: color-mix(in srgb, var(--theme-accent-soft) 14%, var(--theme-control-base));
+  --theme-selected-control-border: color-mix(in srgb, var(--theme-accent-strong) 30%, transparent);
+  --theme-selected-control-highlight: color-mix(in srgb, oklch(100% 0 0) 68%, var(--theme-selected-control-base));
+  --theme-selected-control-primary: var(--theme-selected-control-base);
+  --theme-selected-control-secondary: color-mix(in srgb, var(--theme-accent-muted) 12%, var(--theme-body-bg));
+  --theme-selected-control-bg:
+    radial-gradient(circle at 18% 0%, var(--theme-selected-control-highlight), transparent 42%),
+    linear-gradient(135deg, var(--theme-selected-control-primary), var(--theme-selected-control-secondary));
+  --theme-selected-control-text: var(--theme-accent-strong);
+  --theme-selected-control-shadow:
+    0 0 0 1px var(--theme-selected-control-border),
+    0 12px 24px -22px color-mix(in srgb, var(--theme-selected-control-text) 34%, transparent),
     inset 0 1px 0 oklch(100% 0 0 / 0.72);
-  --theme-article-reference-control-border: oklch(54% 0.095 var(--h-violet) / 0.24);
-  --theme-article-reference-control-bg:
-    radial-gradient(circle at 12% 0%, color-mix(in srgb, oklch(100% 0 0) 68%, color-mix(in srgb, oklch(96.5% 0.022 var(--h-violet)) 92%, var(--theme-body-bg))), transparent 36%), linear-gradient(135deg, color-mix(in srgb, oklch(96.5% 0.022 var(--h-violet)) 92%, var(--theme-body-bg)), color-mix(in srgb, oklch(93% 0.032 var(--h-violet)) 94%, var(--theme-body-bg)));
-  --theme-article-reference-control-text: oklch(40% 0.105 var(--h-violet));
+  --theme-selected-control-focus: var(--theme-accent-strong);
+  --theme-selected-control-glow:
+    linear-gradient(90deg, color-mix(in srgb, var(--theme-accent) 8%, transparent), color-mix(in srgb, var(--theme-accent-soft) 11%, transparent), color-mix(in srgb, var(--theme-accent) 8%, transparent));
+
+  --theme-inline-reference-border: color-mix(in srgb, var(--theme-accent-strong) 28%, transparent);
+  --theme-inline-reference-bg: color-mix(in srgb, var(--theme-accent-soft) 14%, var(--theme-body-bg));
+  --theme-inline-reference-text: var(--theme-accent-strong);
+  --theme-inline-reference-hover-border: color-mix(in srgb, var(--theme-accent-strong) 44%, transparent);
+  --theme-inline-reference-hover-bg: color-mix(in srgb, var(--theme-accent-soft) 22%, var(--theme-body-bg));
+  --theme-inline-reference-hover-text: var(--theme-accent-strong);
+  --theme-inline-reference-focus: var(--theme-accent-strong);
   --theme-json-string: oklch(44% 0.118 var(--h-green));
   --theme-json-number: oklch(46% 0.12 var(--h-cyan));
   --theme-json-boolean: oklch(48% 0.12 var(--h-yellow));

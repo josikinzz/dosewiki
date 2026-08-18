@@ -28,11 +28,11 @@ import styles from "./PaletteLab.module.css";
 const TOUCH = "[@media(pointer:coarse)]:min-h-11";
 
 /**
- * The site's canonical "this view is selected" pill (`theme-route-tab`), the
- * same recipe the public segmented tabs wear, keyed off `data-state`. Reusing
- * it is what lets the panel's tabs and chips drop their bespoke active styling.
+ * The site's canonical "this view is selected" pill
+ * (`theme-selected-control`), shared with public segmented tabs and keyed off
+ * `data-state`. Reuse lets panel tabs and chips drop bespoke active styling.
  */
-const ROUTE_TAB = "theme-route-tab border border-transparent";
+const ROUTE_TAB = "theme-selected-control border border-transparent";
 
 /**
  * Icon sizes, restated at the button.

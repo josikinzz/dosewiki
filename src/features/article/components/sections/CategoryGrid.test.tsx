@@ -30,10 +30,7 @@ describe("CategoryGrid", () => {
     expect(expandButton).toHaveAttribute("aria-expanded", "false");
     expect(expandButton).toHaveAttribute("aria-controls", "psychedelics-list");
     expect(expandButton).toHaveClass(
-      "h-8",
-      "w-8",
-      "focus-visible:ring-2",
-      "focus-visible:ring-fuchsia-400",
+      "theme-focus-ring",
     );
 
     await user.click(expandButton);

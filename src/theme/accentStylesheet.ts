@@ -1,6 +1,6 @@
 import { CHROME_DARK_CLASS } from "@/features/theme-lab/presetStylesheet";
-import { PALETTE_PRESETS } from "@/features/theme-lab/palettePresets";
 import { ACCENTS, BASE_ACCENT_ID, type Accent } from "./accents";
+import funTokens from "./accentFunTokens.generated.json";
 
 /**
  * The accent axis, compiled into plain CSS.
@@ -49,6 +49,9 @@ const NOT_PRO = ':where(:not([data-visual-style="pro"]))';
 export function accentFunBlockSelector(accentId: string, theme: string): string {
   return `html[${ACCENT_ATTRIBUTE}="${accentId}"][data-theme="${theme}"]${NOT_PRO}`;
 }
+export function accentDefaultFunBlockSelector(theme: string): string {
+  return `html:not([${ACCENT_ATTRIBUTE}])[data-theme="${theme}"]${NOT_PRO}`;
+}
 
 /**
  * Selector for one accent's Pro block in one scheme.
@@ -96,10 +99,15 @@ export function accentDefaultProBlockSelector(theme: string): string {
  * `.app-header` / `.app-footer` scoped tokens rather than by wearing the dark palette, and
  * the authored island selector excludes Pro outright.
  */
-function accentFunBlockSelectors(accentId: string, theme: string): string[] {
-  const own = accentFunBlockSelector(accentId, theme);
+function accentFunBlockSelectors(accentId: string, theme: string, isDefault = false): string[] {
+  const own = isDefault
+    ? accentDefaultFunBlockSelector(theme)
+    : accentFunBlockSelector(accentId, theme);
   if (theme !== "dark") return [own];
-  return [own, `${accentFunBlockSelector(accentId, "light")} .${CHROME_DARK_CLASS}`];
+  const light = isDefault
+    ? accentDefaultFunBlockSelector("light")
+    : accentFunBlockSelector(accentId, "light");
+  return [own, `${light} .${CHROME_DARK_CLASS}`];
 }
 
 function block(selectors: readonly string[], declarations: Record<string, string>): string {
@@ -126,14 +134,14 @@ function block(selectors: readonly string[], declarations: Record<string, string
 function accentCss(accent: Accent): string {
   const isDefault = accent.id === BASE_ACCENT_ID;
   const blocks: string[] = [];
-
-  if (accent.funPresetId) {
-    const preset = PALETTE_PRESETS.find((candidate) => candidate.id === accent.funPresetId);
-    if (!preset) {
-      throw new Error(`Accent "${accent.id}" names unknown colourway "${accent.funPresetId}".`);
-    }
-    for (const theme of Object.keys(preset.overrides).sort()) {
-      blocks.push(block(accentFunBlockSelectors(accent.id, theme), preset.overrides[theme] ?? {}));
+  if (!isDefault) {
+    for (const theme of ["dark", "light"] as const) {
+      blocks.push(
+        block(
+          accentFunBlockSelectors(accent.id, theme),
+          funTokens[accent.id][theme] as Record<string, string>,
+        ),
+      );
     }
   }
 

@@ -194,7 +194,7 @@ export function AudioReplicationPlayer({ src, label, className }: AudioReplicati
             This clip could not be loaded.{" "}
             <a
               href={src}
-              className="theme-accent-heading transition-opacity hover:opacity-90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fuchsia-400"
+              className="theme-accent-heading theme-focus-ring transition-opacity hover:opacity-90"
             >
               Open the file directly
             </a>
@@ -220,7 +220,7 @@ export function AudioReplicationPlayer({ src, label, className }: AudioReplicati
                 style={{ "--audio-progress": progressOffset } as CSSProperties}
                 className={cn(
                   "theme-audio-scrubber-track pointer-events-none absolute inset-x-0 h-1.5 rounded-full transition-opacity",
-                  "peer-focus-visible:outline peer-focus-visible:outline-2 peer-focus-visible:outline-offset-4 peer-focus-visible:outline-fuchsia-400",
+                  "theme-peer-focus-ring",
                   !hasDuration && "opacity-60",
                 )}
               >

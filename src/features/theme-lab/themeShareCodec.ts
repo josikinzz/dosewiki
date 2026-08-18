@@ -1,6 +1,21 @@
+import {
+  BASE_ACCENT,
+  BASE_SURFACE,
+  isAccent,
+  isSurface,
+  type AccentId,
+  type SurfaceId,
+} from "@/theme";
+import { paletteTokenRole, type PaletteRole } from "@/theme/paletteOwnership";
 import { DEFAULT_PRESET_ID, getPreset, isKnownPresetId, mergeOverrides } from "./palettePresets";
 import { ALL_TOKEN_IDS } from "./paletteTokens";
-import { emptyOverrides, type PaletteOverrides, type ThemeOverrides } from "./paletteLabStorage";
+import {
+  emptyOverrides,
+  partitionOverrides,
+  type PaletteOverrides,
+  type RolePaletteOverrides,
+  type ThemeOverrides,
+} from "./paletteLabStorage";
 
 /**
  * The Theme Lab's share codec: a theme ⇄ a compact code you can paste in chat or
@@ -35,7 +50,7 @@ import { emptyOverrides, type PaletteOverrides, type ThemeOverrides } from "./pa
 
 /** Wire format version. Bump only for a breaking payload change, and keep the
  *  old branch decodable — links are forever. */
-export const THEME_SHARE_CODEC_VERSION = 1;
+export const THEME_SHARE_CODEC_VERSION = 2;
 
 /** Query parameter a share link hangs the code off. */
 export const THEME_SHARE_PARAM = "themelab";
@@ -77,6 +92,9 @@ export type SharedTheme = {
   /** The shipped preset that paints underneath. Always an id this build has. */
   basePresetId: string;
   overrides: PaletteOverrides;
+  surfaceId: SurfaceId;
+  accentId: AccentId;
+  roleOverrides: RolePaletteOverrides;
   /** True when the code named a palette this build no longer ships — the look
    *  still applies, over the stock palette. */
   unknownBase: boolean;
@@ -229,6 +247,8 @@ function deltaAgainst(map: ThemeOverrides, base: Record<string, string>): Record
 export type ShareSource = {
   name: string;
   basePresetId: string;
+  surfaceId?: SurfaceId;
+  accentId?: AccentId;
   /** The complete look being shared, both themes. */
   overrides: PaletteOverrides;
 };
@@ -245,12 +265,23 @@ export function shareCodeFits(code: string): boolean {
 
 export function encodeSharedTheme(source: ShareSource): string {
   const preset = getPreset(source.basePresetId);
+  const roles = partitionOverrides(source.overrides);
+  const encodeRole = (overrides: PaletteOverrides) => ({
+    d: deltaAgainst(overrides.dark, preset.overrides.dark),
+    l: deltaAgainst(overrides.light, preset.overrides.light),
+  });
   const payload = {
     v: THEME_SHARE_CODEC_VERSION,
     n: source.name.slice(0, MAX_SHARE_NAME_LENGTH),
     b: preset.id,
-    d: deltaAgainst(source.overrides?.dark, preset.overrides.dark),
-    l: deltaAgainst(source.overrides?.light, preset.overrides.light),
+    s: source.surfaceId ?? BASE_SURFACE,
+    a: source.accentId ?? BASE_ACCENT,
+    r: {
+      s: encodeRole(roles.surfaceOverrides),
+      a: encodeRole(roles.accentOverrides),
+      m: encodeRole(roles.semanticOverrides),
+      x: encodeRole(roles.residualOverrides),
+    },
   };
   return toBase64Url(JSON.stringify(payload));
 }
@@ -292,7 +323,7 @@ export function decodeSharedTheme(rawCode: string): ShareDecodeResult {
   }
 
   const record = parsed as Record<string, unknown>;
-  if (record.v !== THEME_SHARE_CODEC_VERSION) {
+  if (record.v !== 1 && record.v !== THEME_SHARE_CODEC_VERSION) {
     return {
       value: null,
       error: "That share code was made by a newer Theme Lab — this site can’t read it yet.",
@@ -305,20 +336,39 @@ export function decodeSharedTheme(rawCode: string): ShareDecodeResult {
 
   const delta = emptyOverrides();
   let tokenCount = 0;
-  for (const [theme, key] of [
-    ["dark", "d"],
-    ["light", "l"],
-  ] as const) {
-    for (const [packedId, value] of Object.entries(readMap(record[key]))) {
+  const roleKeys: readonly [string, PaletteRole | "residual"][] = [
+    ["s", "surface"],
+    ["a", "accent"],
+    ["m", "semantic"],
+    ["x", "residual"],
+  ];
+  const hasRoleEnvelope = record.v === 2 && record.r && typeof record.r === "object";
+  const sources: readonly ["dark" | "light", unknown, PaletteRole | "residual"][] =
+    !hasRoleEnvelope
+      ? [
+          ["dark", record.d, "residual"],
+          ["light", record.l, "residual"],
+        ]
+      : roleKeys.flatMap(([key, role]) => {
+          const bucket = (record.r as Record<string, unknown>)[key] as
+            | Record<string, unknown>
+            | undefined;
+          return [
+            ["dark", bucket?.d, role],
+            ["light", bucket?.l, role],
+          ] as const;
+        });
+  for (const [theme, rawMap, expectedRole] of sources) {
+    for (const [packedId, value] of Object.entries(readMap(rawMap))) {
       const id = unpackKey(packedId);
-      // The registry is the allowlist. A payload naming anything else was not
-      // produced by this tool, so it is refused rather than filtered — a
-      // half-applied hostile theme is worse than none.
       if (!TOKEN_ALLOWLIST.has(id)) {
         return {
           value: null,
           error: "That share code sets something that isn’t a Theme Lab color — ignoring it.",
         };
+      }
+      if (record.v === 2 && expectedRole !== "residual" && paletteTokenRole(id) !== expectedRole) {
+        return { value: null, error: "That share code puts a color in the wrong palette role." };
       }
       if (typeof value !== "string" || !value.trim()) {
         return { value: null, error: "That share code has a color the Theme Lab can’t read." };
@@ -343,9 +393,12 @@ export function decodeSharedTheme(rawCode: string): ShareDecodeResult {
     value: {
       name: name || "Shared theme",
       basePresetId: preset.id,
+      surfaceId: isSurface(record.s as string) ? (record.s as SurfaceId) : BASE_SURFACE,
+      accentId: isAccent(record.a as string) ? (record.a as AccentId) : BASE_ACCENT,
       // Self-contained on the way out: the preset the code named, with the
       // shared divergence on top.
       overrides: mergeOverrides(preset.overrides, delta) as PaletteOverrides,
+      roleOverrides: partitionOverrides(mergeOverrides(preset.overrides, delta) as PaletteOverrides),
       unknownBase: Boolean(rawBase) && !knownBase,
       tokenCount,
     },

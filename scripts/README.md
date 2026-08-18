@@ -441,7 +441,7 @@ npm run citations:audit-subsections
 npm run citations:seed-subsection-tracker -- --dry-run
 npm run citations:seed-subsection-tracker
 npm run citations:update-subsection-status -- --slug=3-me-pcpy --section=pharmacology --status=researching --run-id=3-me-pcpy
-node .pi/skills/pi-citation-workflow/scripts/prepare-local-proposal-run.mjs \
+node tools/pi-citation-workflow/prepare-local-proposal-run.mjs \
   --proposal notes-and-plans/exports/batch-proposals/<slug>/<section>/<artifact>/proposal.json
 TARGET_CONVEX_URL=https://glad-minnow-656.convex.cloud \
   npm run citations:apply-workbench -- --slug=2c-b --dry-run \

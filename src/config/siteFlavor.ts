@@ -417,6 +417,8 @@ const DOSEWIKI_CONFIG: SiteFlavorConfig = {
   // dose.wiki opens on Neutral — the graphite monotone grey — rather than on the authored
   // fuchsia base. The base is still what the stylesheets paint with no `data-accent`, so this
   // is an opening choice the server and the bootstrap both have to write the attribute for.
+  defaultSurface: "graphite",
+  showSurfacePicker: true,
   defaultAccent: "neutral",
   showAccentPicker: true,
   // dose.wiki owns `/blog` too now — its own blog, written in the /dev Blog tab
@@ -637,6 +639,8 @@ const EFFECT_INDEX_CONFIG: SiteFlavorConfig = {
   showVisualStyleToggle: false,
   // Inert under the lock below — a locked axis resolves to BASE_ACCENT — but stated rather
   // than left to the resolver so the policy reads as a complete answer on all three axes.
+  defaultSurface: "orchid",
+  showSurfacePicker: false,
   defaultAccent: "default",
   showAccentPicker: false,
   flavorGatedRoutes: ["blog", "donate", "contact", "discord", "copyrightDisclaimer"],

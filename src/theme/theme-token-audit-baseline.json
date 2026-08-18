@@ -4753,13 +4753,6 @@
   {
    "rule": "direct-theme-variable",
    "filePath": "src/features/dev/tools/about/AboutFounderSelectionSection.tsx",
-   "match": "var(--theme-article-route-active-bg)",
-   "line": 72,
-   "column": 34
-  },
-  {
-   "rule": "direct-theme-variable",
-   "filePath": "src/features/dev/tools/about/AboutFounderSelectionSection.tsx",
    "match": "var(--theme-evidence-text)",
    "line": 125,
    "column": 58
@@ -5365,20 +5358,6 @@
    "match": "var(--theme-accent-strong)",
    "line": 36,
    "column": 51
-  },
-  {
-   "rule": "direct-theme-variable",
-   "filePath": "src/features/effects/vcode/components/SeparatedTextbox.tsx",
-   "match": "var(--theme-article-route-active-text)",
-   "line": 26,
-   "column": 44
-  },
-  {
-   "rule": "direct-theme-variable",
-   "filePath": "src/features/effects/vcode/components/SeparatedTextbox.tsx",
-   "match": "var(--theme-article-route-active-text)",
-   "line": 34,
-   "column": 44
   },
   {
    "rule": "direct-theme-variable",

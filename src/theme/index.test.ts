@@ -221,11 +221,13 @@ describe("theme token interface", () => {
     expect(getInitialAppearance(DOSEWIKI)).toEqual({
       colorScheme: "dark",
       visualStyle: "fun",
+      surface: "graphite",
       accent: "neutral",
     });
     expect(getInitialAppearance(EFFECT_INDEX)).toEqual({
       colorScheme: "light",
       visualStyle: "pro",
+      surface: "orchid",
       accent: BASE_ACCENT,
     });
     // A lock outranks the declared opening accent: the axis wears the publication's identity.

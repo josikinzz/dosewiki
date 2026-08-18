@@ -184,7 +184,7 @@ export const DosageDurationSection = memo(function DosageDurationSection({
                 value={route}
                 aria-label={`${routeLabel} route`}
                 className={cn(
-                  "theme-route-tab group relative isolate min-h-8 gap-1.5 overflow-hidden rounded-full border px-3 py-1.5 text-sm font-medium transition-[transform,background-color,color,box-shadow,border-color] duration-[260ms] ease-[cubic-bezier(0.25,1,0.5,1)] motion-reduce:transition-none [@media(pointer:coarse)]:min-h-11",
+                  "theme-selected-control group relative isolate min-h-8 gap-1.5 overflow-hidden rounded-full border px-3 py-1.5 text-sm font-medium transition-[transform,background-color,color,box-shadow,border-color] duration-[260ms] ease-[cubic-bezier(0.25,1,0.5,1)] motion-reduce:transition-none [@media(pointer:coarse)]:min-h-11",
                   "border-transparent bg-transparent shadow-[var(--theme-elevation-none)] hover:border-transparent hover:bg-transparent",
                   "active:scale-[0.99] motion-reduce:active:scale-100",
                 )}
@@ -192,7 +192,7 @@ export const DosageDurationSection = memo(function DosageDurationSection({
                 {routeIcon ? (
                   <span
                     className={cn(
-                      "theme-route-tab-icon relative flex h-6 w-6 shrink-0 items-center justify-center rounded-full ring-1 transition-[background-color,color,box-shadow,transform] duration-300",
+                      "theme-selected-control-icon relative flex h-6 w-6 shrink-0 items-center justify-center rounded-full ring-1 transition-[background-color,color,box-shadow,transform] duration-300",
                       !isActive && "bg-transparent ring-transparent shadow-[var(--theme-elevation-none)]"
                     )}
                   >
@@ -209,7 +209,7 @@ export const DosageDurationSection = memo(function DosageDurationSection({
           <div className="relative">
             <div
               aria-hidden
-              className="pointer-events-none absolute inset-x-6 top-0 h-24 bg-gradient-to-r from-fuchsia-500/10 via-violet-400/10 to-violet-500/10 blur-3xl"
+              className="theme-selected-control-glow pointer-events-none absolute inset-x-6 top-0 h-24 blur-3xl"
             />
             <div className={cn("relative grid gap-4 items-start", hasBothPanels ? "md:grid-cols-2" : "md:grid-cols-1")}>
               {dosageForActiveRoute ? (

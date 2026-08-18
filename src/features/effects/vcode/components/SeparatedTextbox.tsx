@@ -23,7 +23,7 @@ export function SeparatedTextbox({
         <div className="mb-4">
           <div className="flex items-center justify-center gap-3 pb-2.5">
             {leftHeader && (
-              <span className="text-[color:var(--theme-article-route-active-text)] text-base font-semibold sm:text-lg">
+              <span className="theme-accent-heading text-base font-semibold sm:text-lg">
                 {leftHeader}
               </span>
             )}
@@ -31,7 +31,7 @@ export function SeparatedTextbox({
               <span className="theme-text-faint text-xs font-medium uppercase tracking-wider">vs</span>
             )}
             {rightHeader && (
-              <span className="text-[color:var(--theme-article-route-active-text)] text-base font-semibold sm:text-lg">
+              <span className="theme-accent-heading text-base font-semibold sm:text-lg">
                 {rightHeader}
               </span>
             )}

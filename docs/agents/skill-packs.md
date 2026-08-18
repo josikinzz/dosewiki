@@ -1,13 +1,6 @@
-# Repo-local Skill Packs
+# Repo-local skill
 
-Repo-specific routing skills live under `.agents/skills/`. Read a skill only when its description matches the current branch of work.
-
-## Installed Skills
-
-- `convex`
-- `deployment`
-- `frontend-stack`
-- `legality-pi`
-- `scry`
-
-The `.agents/skills/` directory is authoritative. Each entry's `SKILL.md` defines its trigger and any progressively disclosed references.
+The only repository-specific skill is `.agents/skills/legality-pi/SKILL.md`.
+It owns the Oh My Pi legality research workflow and its progressively disclosed
+prompts and references. All other repository workflows route through owning
+documentation, source files, and package scripts.

@@ -93,7 +93,7 @@ export function inspectRunStage({ manifest = null, runFiles = {} } = {}) {
 
 export function buildStageAwareResumePrompt({ slug, runId, stage, researchPass = null }) {
   const common = [
-    `Resume /skill:pi-citation-workflow ${slug} using existing run ${runId}.`,
+    `Resume the Pi citation workflow for ${slug} using existing run ${runId}. Follow docs/agents/pi-citation-run-contract.md and docs/agents/pi-citation-workflow.md.`,
     "Execute synchronously with the named Pi citation agents; do not launch functions.workflow or an asynchronous/resumable wrapper.",
     "Treat pi-run-manifest.json as authoritative, preserve every accepted artifact whose recorded SHA-256 still matches, and never repeat completed research.",
     ...(researchPass === "second" ? ["This is a second-pass task: follow the immutable researchBrief lanes in citation-task.json, log exact query/source outcomes, and accept confirmed_needs_source only after every prescribed lane is exhausted."] : []),

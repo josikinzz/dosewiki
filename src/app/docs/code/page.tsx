@@ -579,8 +579,8 @@ export default function DocsCodePage() {
 ├── docs/  notes-and-plans/   `}
             <span className="theme-text-faint">— architecture docs, ADRs, plans</span>
             {`
-├── .claude/skills/           `}
-            <span className="theme-text-faint">— ~45 runbooks for the AI content workflows</span>
+├── .agents/skills/legality-pi/`}
+            <span className="theme-text-faint">— Pi legality research workflow</span>
             {`
 └── README.md  ARCHITECTURE.md  CLAUDE.md  CONTEXT.md`}
           </pre>
@@ -588,11 +588,9 @@ export default function DocsCodePage() {
           {/* Demoted from a status-less role=alert callout to emphasized prose. */}
           <div role="presentation" className="theme-horizontal-divider mt-6" />
           <p className={`${PROSE_CLASS} mt-6`}>
-            <code>.claude/skills/</code> holds ~45 markdown runbooks for the AI content tooling. Most
-            repositories do not have this directory. The runbooks describe how to run batch section
-            generation, the rules that the citation workflow must obey, and the rules for Convex data
-            changes. Much of the text processing here is automated, so the runbooks record these
-            procedures and every run follows the same rules.
+            The repository keeps one local skill: <code>.agents/skills/legality-pi/</code>. Other
+            automated workflows are documented beside their owning scripts under <code>scripts/</code>
+            and <code>docs/agents/</code>, so executable behavior and operating guidance stay together.
           </p>
         </section>
 

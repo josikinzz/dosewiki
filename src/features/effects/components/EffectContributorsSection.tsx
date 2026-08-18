@@ -35,7 +35,7 @@ export function EffectContributorsSection({
             {href ? (
               <Link
                 href={href}
-                className="theme-accent-heading rounded-sm transition hover:opacity-90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fuchsia-400"
+                className="theme-accent-heading theme-focus-ring rounded-sm transition hover:opacity-90"
               >
                 {contributor}
               </Link>

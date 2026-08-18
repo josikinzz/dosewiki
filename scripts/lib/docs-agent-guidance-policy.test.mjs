@@ -35,7 +35,7 @@ describe("docs and agent guidance policy", () => {
     expect(validateAgentGuidanceAvoidsLiveLocalJsonEdits(repoRoot)).toEqual([]);
   });
 
-  it("classifies Claude skills as current, patch-needed, or retired", () => {
+  it("classifies the remaining repository skill", () => {
     expect(validateAgentSkillInventory(repoRoot)).toEqual([]);
   });
 });

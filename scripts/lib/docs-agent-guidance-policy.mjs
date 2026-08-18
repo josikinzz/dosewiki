@@ -16,7 +16,6 @@ export const currentGuidanceDocs = [
 
 export const retiredRuntimeGuidanceFiles = [
   "notes-and-plans/guides/dosewiki-site-readme.md",
-  ".claude/skills/vite/SKILL.md",
 ];
 
 const markdownExtensions = new Set([".md", ".mdx"]);
@@ -147,6 +146,7 @@ export function validateRootHasNoLooseSkillFiles(repoRoot) {
 export function validateAgentGuidanceAvoidsLiveLocalJsonEdits(repoRoot) {
   const failures = [];
   const agentFiles = [
+    ...walkMarkdown(repoRoot, ".agents/skills"),
     ...walkMarkdown(repoRoot, ".claude"),
     ...walkMarkdown(repoRoot, ".cursor"),
   ];
@@ -173,15 +173,14 @@ export function validateAgentGuidanceAvoidsLiveLocalJsonEdits(repoRoot) {
 }
 
 export function validateAgentSkillInventory(repoRoot) {
-  const inventoryPath = ".claude/skills/README.md";
+  const inventoryPath = "docs/agents/skill-packs.md";
   const content = readIfExists(repoRoot, inventoryPath);
   if (content === null) {
-    return [`${inventoryPath}: missing active/retired skill inventory`];
+    return [`${inventoryPath}: missing repository skill inventory`];
   }
 
-  const skillFiles = walkMarkdown(repoRoot, ".claude/skills")
-    .filter((docPath) => basename(docPath) === "SKILL.md")
-    .filter((docPath) => docPath !== inventoryPath);
+  const skillFiles = walkMarkdown(repoRoot, ".agents/skills")
+    .filter((docPath) => basename(docPath) === "SKILL.md");
 
   return skillFiles
     .filter((docPath) => !content.includes(dirname(docPath)))

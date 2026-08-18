@@ -57,7 +57,7 @@ export function ExternalSourcePill({
           target={target}
           rel={rel}
           aria-label={ariaLabel ?? fallbackAriaLabel}
-          className="absolute inset-0 z-10 rounded-[inherit] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fuchsia-400"
+          className="theme-focus-ring absolute inset-0 z-10 rounded-[inherit]"
         />
       ) : null}
       <span

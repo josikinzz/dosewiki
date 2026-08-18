@@ -191,13 +191,18 @@ describe("Theme Lab share links", { timeout: 20_000 }, () => {
     await waitFor(() => {
       const envelope = stored();
       expect(envelope.customThemes).toHaveLength(2);
-      // The visitor's own slot is exactly as it was.
-      expect(envelope.customThemes[0]).toEqual({
-        id: "custom-1",
-        name: "Mine",
-        overrides: { dark: { "--theme-accent": "#222222" }, light: {} },
-        basePresetId: "twilight",
-      });
+      // v4 adds role-partitioned maps without changing the original slot values.
+      expect(envelope.customThemes[0]).toEqual(
+        expect.objectContaining({
+          id: "custom-1",
+          name: "Mine",
+          overrides: { dark: { "--theme-accent": "#222222" }, light: {} },
+          basePresetId: "twilight",
+        }),
+      );
+      expect(
+        envelope.customThemes[0].roleOverrides.accentOverrides.dark["--theme-accent"],
+      ).toBe("#222222");
       // The shared one is new, named, and worn.
       const landed = envelope.customThemes[1];
       expect(landed.id).toBe("custom-2");

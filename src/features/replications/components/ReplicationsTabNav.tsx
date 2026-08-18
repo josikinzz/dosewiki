@@ -27,11 +27,10 @@ const SECTION_TABS: SectionTab[] = [
 const SUBREDDIT_URL = "https://www.reddit.com/r/replications";
 
 /**
- * Route tabs for the replications section (Gallery · Tutorials · Audio), worn
- * as the site's canonical `theme-route-tab` pills so the control matches the
- * effects index and the substance article's route tabs. The trailing
- * r/replications link is deliberately *not* a tab: it leaves the site, so it
- * reads as a plain link with an external glyph.
+ * Replication section tabs wear the site's canonical `theme-selected-control`
+ * pills so they match public segmented tabs and article route tabs. The
+ * trailing r/replications link is deliberately *not* a tab: it leaves the
+ * site, so it reads as a plain link with an external glyph.
  *
  * The row scrolls horizontally on narrow viewports (it bleeds into the page
  * padding so the scroll area reaches the screen edge) and every target keeps a
@@ -63,13 +62,13 @@ export function ReplicationsTabNav({ className }: { className?: string }) {
               aria-current={isActive ? "page" : undefined}
               data-state={isActive ? "active" : "inactive"}
               className={cn(
-                "theme-route-tab group relative isolate flex min-h-8 shrink-0 items-center gap-1.5 overflow-hidden whitespace-nowrap rounded-full border border-transparent px-3 py-1.5 text-sm font-medium transition-[transform,background-color,color,box-shadow,border-color] duration-[260ms] ease-[cubic-bezier(0.25,1,0.5,1)] motion-reduce:transition-none [@media(pointer:coarse)]:min-h-11",
+                "theme-selected-control group relative isolate flex min-h-8 shrink-0 items-center gap-1.5 overflow-hidden whitespace-nowrap rounded-full border border-transparent px-3 py-1.5 text-sm font-medium transition-[transform,background-color,color,box-shadow,border-color] duration-[260ms] ease-[cubic-bezier(0.25,1,0.5,1)] motion-reduce:transition-none [@media(pointer:coarse)]:min-h-11",
                 "active:scale-[0.99] motion-reduce:active:scale-100",
               )}
             >
               <span
                 className={cn(
-                  "theme-route-tab-icon relative flex h-6 w-6 shrink-0 items-center justify-center rounded-full ring-1 transition-[background-color,color,box-shadow,transform] duration-300",
+                  "theme-selected-control-icon relative flex h-6 w-6 shrink-0 items-center justify-center rounded-full ring-1 transition-[background-color,color,box-shadow,transform] duration-300",
                   !isActive && "bg-transparent ring-transparent shadow-[var(--theme-elevation-none)]",
                 )}
               >

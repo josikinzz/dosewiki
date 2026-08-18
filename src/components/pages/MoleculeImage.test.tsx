@@ -10,12 +10,14 @@ vi.mock("@/components/common/AppImage", () => ({
 }));
 
 function Harness({ src }: { src: string }) {
-  const { setColorScheme, setVisualStyle } = useTheme();
+  const { setAccent, setColorScheme, setVisualStyle } = useTheme();
   return (
     <>
       <button type="button" onClick={() => setVisualStyle("pro")}>Pro</button>
       <button type="button" onClick={() => setVisualStyle("fun")}>Fun</button>
       <button type="button" onClick={() => setColorScheme("dark")}>Dark</button>
+      <button type="button" onClick={() => setAccent("neutral")}>Neutral</button>
+      <button type="button" onClick={() => setAccent("default")}>Default accent</button>
       <MoleculeImage src={src} alt="Structure" width={100} height={100} />
     </>
   );
@@ -25,6 +27,7 @@ describe("MoleculeImage", () => {
   beforeEach(() => {
     document.documentElement.dataset.theme = "light";
     document.documentElement.dataset.visualStyle = "fun";
+    delete document.documentElement.dataset.accent;
     localStorage.clear();
   });
 
@@ -34,6 +37,7 @@ describe("MoleculeImage", () => {
       <ThemeProvider
         initialColorScheme="light"
         initialVisualStyle="fun"
+        initialAccent="default"
         isVisualStyleLocked={false}
       >
         <Harness src="/molecules/classes/tryptamine.svg" />
@@ -51,6 +55,9 @@ describe("MoleculeImage", () => {
 
     await user.click(screen.getByRole("button", { name: "Fun" }));
     expect(image).toHaveAttribute("src", "/molecules/classes/tryptamine.svg");
+
+    await user.click(screen.getByRole("button", { name: "Neutral" }));
+    expect(image).toHaveAttribute("src", "/molecules-ei-dark/classes/tryptamine.svg");
   });
 
   it("changes dynamic route colorways without remounting", async () => {
@@ -59,6 +66,7 @@ describe("MoleculeImage", () => {
       <ThemeProvider
         initialColorScheme="light"
         initialVisualStyle="fun"
+        initialAccent="default"
         isVisualStyleLocked={false}
       >
         <Harness src="/api/molecules/lsd?v=published" />
@@ -73,6 +81,15 @@ describe("MoleculeImage", () => {
     );
 
     await user.click(screen.getByRole("button", { name: "Dark" }));
+    expect(image).toHaveAttribute(
+      "src",
+      "/api/molecules/lsd?v=published&colorway=pro-dark",
+    );
+
+    await user.click(screen.getByRole("button", { name: "Fun" }));
+    expect(image).toHaveAttribute("src", "/api/molecules/lsd?v=published");
+
+    await user.click(screen.getByRole("button", { name: "Neutral" }));
     expect(image).toHaveAttribute(
       "src",
       "/api/molecules/lsd?v=published&colorway=pro-dark",

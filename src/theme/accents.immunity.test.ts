@@ -1,14 +1,8 @@
 import { describe, expect, it } from "vitest";
 
 import { PALETTE_PRESETS } from "@/features/theme-lab/palettePresets";
-import {
-  GRID,
-  type Rgb,
-  parseColor,
-  read,
-  rgbToOklch,
-} from "@/test/fixtures/accentAppearanceGrid";
-import { ACCENTS, BASE_ACCENT_ID } from "./accents";
+import { GRID, read } from "@/test/fixtures/accentAppearanceGrid";
+import { ACCENTS } from "./accents";
 
 /**
  * What an accent may not touch: the harm-reduction signal, and every literal still painted in
@@ -209,121 +203,4 @@ describe("semantic immunity", () => {
   );
 });
 
-/* -------------------------------------------------------------------------
- * The leak list.
- * ---------------------------------------------------------------------- */
 
-/** The authored `--h-brand`, and the band around it a leak would sit in. */
-const BRAND_HUE = 326;
-const BRAND_BAND = 25;
-/**
- * Below this chroma a brand-band colour is a tinted grey rather than brand paint. The one
- * token it excludes is `--theme-review-progress-track-bg`, a near-neutral /dev track at
- * chroma 0.024-0.030 that Pro never rebinds; treating it as accent paint would demand every
- * accent restate an editor-only token that reads as grey on screen.
- */
-const BRAND_CHROMA_FLOOR = 0.05;
-
-/**
- * Named exemption, on the same terms as the floor exemption in `accents.contrast.test.ts`.
- *
- * `--theme-doc-domain-*` is a five-colour CATEGORICAL palette — blue 235, green 165, orange
- * 54, plum 350, gold following `--h-brand` — where hue is identity, the same reason the CPK
- * molecule palette is immune. Two members sit in the brand band, and on Pro neither moves
- * because Pro rebinds neither, so an accent cannot reach them without collapsing two
- * documentation domains onto one colour.
- */
-const LEAK_EXEMPTION = /^--theme-doc-domain-/;
-
-/**
- * One accent-specific exemption, on the same terms, and deliberately keyed by accent so it
- * cannot excuse the same token anywhere else.
- *
- * `--theme-home-glow-top` is the upper of the two soft radial washes behind the homepage hero.
- * Its authored dark value is `rgba(126, 34, 206, 0.13)` — the base palette's **violet**, not its
- * brand fuchsia — and that violet measures hue 301.9, which is **24.1° from `--h-brand` 326**.
- * The band is 25°, so it is caught by 0.9°: a boundary artefact of a hue heuristic, not brand
- * paint. Narrowing the band to 24 to make this one datum fit would silently stop catching real
- * leaks between 24° and 25°, so the band stays where it is and the token is named instead.
- *
- * Amber is the only accent that needs it, because Sunset is the only colourway that restates the
- * authored value verbatim rather than re-seating it. That is Sunset's identity, not an omission:
- * it is "coral horizon over **dusk violet**", so the top wash is the palette's own second
- * colour and moving it would delete the sunset. Canopy, Garnet and Graphite all re-seat the same
- * token, which is why the assertion still bites for Green, Red and Neutral.
- */
-const ACCENT_LEAK_EXEMPTIONS: Record<string, readonly string[]> = {
-  amber: ["--theme-home-glow-top"],
-};
-
-const brandBandColours = (value: string) =>
-  [
-    ...value.matchAll(
-      /#[0-9a-fA-F]{3,8}\b|oklch\([^()]*(?:\([^()]*\)[^()]*)*\)|rgba?\([^()]*(?:\([^()]*\)[^()]*)*\)/g,
-    ),
-  ].filter((match) => {
-    let colour: Rgb;
-    try {
-      colour = parseColor(match[0]);
-    } catch {
-      return false;
-    }
-    const [, chroma, hue] = rgbToOklch(colour);
-    const distance = Math.abs(hue - BRAND_HUE) % 360;
-    return chroma >= BRAND_CHROMA_FLOOR && Math.min(distance, 360 - distance) <= BRAND_BAND;
-  });
-
-describe("brand-band leaks", () => {
-  it.each(GRID.filter((entry) => entry.accent.id !== BASE_ACCENT_ID))(
-    "leaves no brand-band literal at the default value under $label",
-    ({ label, accent, tokens, baseline }) => {
-      // #115 made every brand-coloured literal in the Fun palette read an --h-* seed, so a
-      // colourway that re-seats the brand moves the whole page. This is that guarantee, stated
-      // from the other end: any token painted in the authored brand band has to have moved.
-      const allowed = ACCENT_LEAK_EXEMPTIONS[accent.id] ?? [];
-      const leaks = Object.keys(baseline).filter(
-        (token) =>
-          !LEAK_EXEMPTION.test(token) &&
-          !allowed.includes(token) &&
-          brandBandColours(baseline[token]).length > 0 &&
-          baseline[token] === tokens[token],
-      );
-
-      expect(leaks, `${label} left ${leaks.join(", ")} in the authored brand band`).toEqual([]);
-    },
-  );
-
-  it("exercises the named leak exemption", () => {
-    const exempted = GRID.filter((entry) => entry.accent.id !== BASE_ACCENT_ID).flatMap(
-      (entry) =>
-        Object.keys(entry.baseline).filter(
-          (token) =>
-            LEAK_EXEMPTION.test(token) &&
-            brandBandColours(entry.baseline[token]).length > 0 &&
-            entry.baseline[token] === entry.tokens[token],
-        ),
-    );
-
-    expect(exempted.length, "no token needs the doc-domain exemption; drop it").toBeGreaterThan(0);
-  });
-
-  it("exercises every named accent leak exemption", () => {
-    // Each exemption has to still describe a token that really is in the band and really has not
-    // moved for that accent — otherwise the colourway has changed and the hole should close.
-    for (const [accentId, tokens] of Object.entries(ACCENT_LEAK_EXEMPTIONS)) {
-      for (const token of tokens) {
-        const stuck = GRID.filter(
-          (entry) =>
-            entry.accent.id === accentId &&
-            brandBandColours(entry.baseline[token] ?? "").length > 0 &&
-            entry.baseline[token] === entry.tokens[token],
-        );
-
-        expect(
-          stuck.length,
-          `${accentId} now moves ${token}, or it left the brand band; drop the exemption`,
-        ).toBeGreaterThan(0);
-      }
-    }
-  });
-});

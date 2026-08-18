@@ -161,7 +161,7 @@ export function PublicFactTile({
           rel="noopener noreferrer"
           className={cn(
             tileClassName,
-            "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fuchsia-400",
+            "theme-focus-ring",
           )}
         >
           {body}
@@ -238,13 +238,13 @@ export function PublicAttributionSection({
             target={hrefTarget}
             rel={hrefRel}
             aria-label={hrefAriaLabel}
-            className="absolute inset-0 z-10 rounded-2xl focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fuchsia-400"
+            className="theme-focus-ring absolute inset-0 z-10 rounded-2xl"
           />
         ) : null}
         {avatar && avatarHref ? (
           <Link
             href={avatarHref}
-            className="relative z-20 shrink-0 rounded-full focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fuchsia-400"
+            className="theme-focus-ring relative z-20 shrink-0 rounded-full"
           >
             {avatar}
           </Link>

@@ -145,7 +145,7 @@ function NavChildLink({
 }
 
 const DESKTOP_SUBMENU_LINK_CLASS =
-  "theme-header-nav-link flex min-h-10 items-center gap-2 rounded-lg border border-transparent px-3 py-2 text-sm font-medium focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fuchsia-400";
+  "theme-header-nav-link theme-focus-ring flex min-h-10 items-center gap-2 rounded-lg border border-transparent px-3 py-2 text-sm font-medium";
 
 /**
  * The chevron's own hit target. A real button, sized 36×44 so it clears the 24px minimum on
@@ -153,7 +153,7 @@ const DESKTOP_SUBMENU_LINK_CLASS =
  * margin so the pair still reads as one nav item.
  */
 const DESKTOP_DISCLOSURE_CLASS =
-  "theme-header-nav-link -ml-1.5 flex h-11 w-9 shrink-0 items-center justify-center rounded-full border border-transparent focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fuchsia-400";
+  "theme-header-nav-link theme-focus-ring -ml-1.5 flex h-11 w-9 shrink-0 items-center justify-center rounded-full border border-transparent";
 
 /**
  * A top-level desktop nav item: a plain link when there is no submenu, and a label link plus
@@ -411,11 +411,11 @@ function DesktopNavItem({
 }
 
 const MOBILE_SUBMENU_LINK_CLASS =
-  "theme-header-nav-link theme-mobile-nav-link flex min-h-10 items-center gap-2 rounded-lg border border-transparent px-3 py-2 text-sm font-medium focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fuchsia-400";
+  "theme-header-nav-link theme-focus-ring theme-mobile-nav-link flex min-h-10 items-center gap-2 rounded-lg border border-transparent px-3 py-2 text-sm font-medium";
 
 /** The mobile chevron's hit target: a full 44×44 square at the right edge of the row. */
 const MOBILE_DISCLOSURE_CLASS =
-  "theme-header-nav-link theme-mobile-nav-link flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-transparent focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fuchsia-400";
+  "theme-header-nav-link theme-focus-ring theme-mobile-nav-link flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-transparent";
 
 /**
  * A top-level item in the mobile sheet, split the same way as the desktop bar: the label
@@ -696,7 +696,7 @@ export function Header({
                 align="left"
                 isOpen={openMenuId === item.id}
                 onOpenChange={setOpenMenuId}
-                className={`theme-header-nav-link relative flex min-h-11 items-center gap-2.5 rounded-full border border-transparent px-4 py-2 text-sm font-medium focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fuchsia-400 ${
+                className={`theme-header-nav-link theme-focus-ring relative flex min-h-11 items-center gap-2.5 rounded-full border border-transparent px-4 py-2 text-sm font-medium ${
                   item.active
                     ? "ring-1 ring-dose-card-border"
                     : ""
@@ -715,7 +715,7 @@ export function Header({
               align="right"
               isOpen={openMenuId === aboutItem.id}
               onOpenChange={setOpenMenuId}
-              className={`theme-header-nav-link flex min-h-11 items-center gap-2.5 rounded-full border border-transparent px-4 py-2 text-sm font-medium focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fuchsia-400 ${
+              className={`theme-header-nav-link theme-focus-ring flex min-h-11 items-center gap-2.5 rounded-full border border-transparent px-4 py-2 text-sm font-medium ${
                 aboutItem.active
                   ? "ring-1 ring-dose-card-border"
                   : ""
@@ -760,7 +760,7 @@ export function Header({
                     isExpanded={expandedMobileIds.includes(item.id)}
                     onToggle={toggleMobileGroup}
                     onNavigate={() => setIsMenuOpen(false)}
-                    className={`theme-header-nav-link theme-mobile-nav-link flex min-h-11 items-center gap-3.5 rounded-xl border border-transparent px-3 py-2.5 text-sm font-semibold focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fuchsia-400 ${
+                    className={`theme-header-nav-link theme-focus-ring theme-mobile-nav-link flex min-h-11 items-center gap-3.5 rounded-xl border border-transparent px-3 py-2.5 text-sm font-semibold ${
                       item.active
                         ? "ring-1 ring-dose-card-border"
                         : ""
@@ -778,7 +778,7 @@ export function Header({
                   isExpanded={expandedMobileIds.includes(aboutItem.id)}
                   onToggle={toggleMobileGroup}
                   onNavigate={() => setIsMenuOpen(false)}
-                  className={`theme-header-nav-link theme-mobile-nav-link flex min-h-11 items-center gap-3.5 rounded-xl border border-transparent px-3 py-2.5 text-sm font-semibold focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fuchsia-400 ${
+                  className={`theme-header-nav-link theme-focus-ring theme-mobile-nav-link flex min-h-11 items-center gap-3.5 rounded-xl border border-transparent px-3 py-2.5 text-sm font-semibold ${
                     aboutItem.active
                       ? "ring-1 ring-dose-card-border"
                       : ""

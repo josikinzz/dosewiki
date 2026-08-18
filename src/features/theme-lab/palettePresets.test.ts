@@ -124,14 +124,11 @@ describe("palettePresets definitions", () => {
   });
 
   it("re-seats the whole brand seed group wherever it re-seats the brand hue", () => {
-    // --h-brand never travels alone. --h-plum and --h-text carry the surfaces
-    // and the ink beneath the brand; --h-violet carries the secondary
-    // selected/informational role — active index and dosage/duration tabs,
-    // reference controls, the modal dim. Garnet and Sunset shipped without
-    // --h-violet, so --theme-route-active-base, which the base sheet and every
-    // alternate look express as `oklch(35.7% 0.112 var(--h-violet))`, resolved
-    // back to Orchid's 290 and painted a violet active tab on a scarlet and a
-    // coral page. Re-seat the group together or the look half-applies.
+    // --h-brand never travels alone in a legacy palette preset. --h-plum and
+    // --h-text carry its surfaces and ink; --h-violet carries a secondary
+    // surface-local decorative hue. Selected controls and inline references
+    // deliberately do not consume --h-violet: the independent Accent axis
+    // owns those recipes.
     const SEED_GROUP = ["--h-plum", "--h-text", "--h-violet"] as const;
     for (const preset of PALETTE_PRESETS) {
       for (const themeName of THEMES) {

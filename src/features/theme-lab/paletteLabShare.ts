@@ -163,9 +163,9 @@ function settle(share: PendingShare) {
  * it. The preview is dropped first so the slot renders through the ordinary
  * path — the same one a saved theme uses on every later page load.
  */
-export function acceptPendingShare(): void {
+export function acceptPendingShare(): SharedTheme | null {
   const share = pending;
-  if (!share?.theme) return;
+  if (!share?.theme) return null;
   const theme = share.theme;
   settle(share);
   updatePaletteLabTheme((previous) =>
@@ -175,6 +175,7 @@ export function acceptPendingShare(): void {
       overrides: theme.overrides,
     }),
   );
+  return theme;
 }
 
 /** Decline: clear the preview and the invite, and change nothing else. */

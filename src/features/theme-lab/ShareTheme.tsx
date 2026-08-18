@@ -95,16 +95,18 @@ export function ShareTheme({ themeState }: ShareThemeProps) {
   const [error, setError] = useState<string | null>(null);
   // The accent being tuned. It is the one thing on the panel that is not a
   // palette token: the entry has to name the accent whose seeds these are.
-  const { accent } = useTheme();
+  const { surface, accent } = useTheme();
 
   const code = useMemo(
     () =>
       buildShareCode({
         name: shareName(themeState),
         basePresetId: activeBasePresetId(themeState),
+        surfaceId: surface,
+        accentId: accent,
         overrides: effectiveOverrides(themeState),
       }),
-    [themeState],
+    [themeState, surface, accent],
   );
 
   // A look tuned token-by-token can outgrow what a URL will carry. Say so

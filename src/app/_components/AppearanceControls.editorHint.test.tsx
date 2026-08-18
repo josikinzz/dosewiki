@@ -23,12 +23,10 @@ vi.mock("@/components/common/Icon", () => ({
 }));
 
 /**
- * Who may reach the Palette Lab from the appearance cog, on a public page that mounts no
- * `<SessionProvider />`.
- *
- * The role-precise path and the browser-hint path are asserted against the same rendered panel,
- * because the whole point of the pair is that they answer one question between them. The panel's
- * *rows* are asserted in `AppearanceControls.test.tsx`; nothing here re-tests them.
+ * The protected Palette Lab route is discoverable from DoseWiki regardless of
+ * session or local hint state. Authentication remains the route's job. These
+ * cases keep stale or malformed hint data from changing that navigation
+ * contract; the utility's storage behavior is covered below.
  */
 
 /** The session shapes the raw context can hold, built without standing up a provider or a fetch. */
@@ -85,7 +83,7 @@ function labEntry(panel: HTMLElement) {
   return within(panel).queryByRole("link");
 }
 
-describe("AppearanceControls editor gate", () => {
+describe("AppearanceControls Palette Lab entry", () => {
   beforeEach(() => {
     window.localStorage.clear();
   });
@@ -95,13 +93,13 @@ describe("AppearanceControls editor gate", () => {
     vi.restoreAllMocks();
   });
 
-  it("offers no Lab entry to a reader with no hint and no session", async () => {
+  it("offers the protected Lab entry without a local editor hint", async () => {
     const user = userEvent.setup();
     renderControls();
 
     const panel = await openPanel(user);
 
-    expect(labEntry(panel)).toBeNull();
+    expect(labEntry(panel)).toHaveAttribute("href", "/dev/themes");
   });
 
   it("offers the Lab entry on a page with no session provider once the hint is stored", async () => {
@@ -125,32 +123,27 @@ describe("AppearanceControls editor gate", () => {
     expect(labEntry(panel)).toHaveAttribute("href", "/dev/themes");
   });
 
-  it("keeps the role-precise answer authoritative: a signed-in viewer is refused", async () => {
-    // The hint is present *and* ignored. A viewer inside /dev or /review is answered by the context,
-    // which knows the role the hint cannot carry, so they are never sent to a route that would
-    // bounce them to /unauthorized.
+  it("keeps the protected Lab entry visible to a signed-in viewer", async () => {
     writeEditorHint();
     const user = userEvent.setup();
     renderControls(signedInAs("viewer"));
 
     const panel = await openPanel(user);
 
-    expect(labEntry(panel)).toBeNull();
+    expect(labEntry(panel)).toHaveAttribute("href", "/dev/themes");
   });
 
-  it("refuses a signed-out reader inside a provider even with the hint stored", async () => {
+  it("keeps the protected Lab entry visible to a signed-out reader", async () => {
     writeEditorHint();
     const user = userEvent.setup();
     renderControls(SIGNED_OUT);
 
     const panel = await openPanel(user);
 
-    expect(labEntry(panel)).toBeNull();
+    expect(labEntry(panel)).toHaveAttribute("href", "/dev/themes");
   });
 
-  it("lets the hint lapse: a stamp older than the window offers nothing", async () => {
-    // `localStorage` never expires on its own, so the read has to do it. An editor who signed out
-    // from a public page — where nothing can retract the hint — stops seeing the entry here.
+  it("does not let an expired hint hide the protected Lab entry", async () => {
     window.localStorage.setItem(
       EDITOR_HINT_STORAGE_KEY,
       String(Date.now() - EDITOR_HINT_MAX_AGE_MS - 1),
@@ -160,28 +153,22 @@ describe("AppearanceControls editor gate", () => {
 
     const panel = await openPanel(user);
 
-    expect(labEntry(panel)).toBeNull();
+    expect(labEntry(panel)).toHaveAttribute("href", "/dev/themes");
   });
 
-  it("survives a hand-edited value: garbage reads as no hint, and the cog still renders", async () => {
-    // This runs in the footer of every page. A throw here would take the footer down site-wide over
-    // a UI hint, which is a far worse failure than a missing control.
+  it("does not let a hand-edited hint hide the protected Lab entry", async () => {
     window.localStorage.setItem(EDITOR_HINT_STORAGE_KEY, '{"role":"admin"}');
     const user = userEvent.setup();
     renderControls();
 
     const panel = await openPanel(user);
 
-    expect(labEntry(panel)).toBeNull();
+    expect(labEntry(panel)).toHaveAttribute("href", "/dev/themes");
   });
 
-  it("reads the hint after mount, so the server and the first client pass agree", async () => {
-    // The failure this guards is a render-time read: the real server has no `localStorage` and would
-    // emit one markup, the client has the hint and would emit another. `AppearanceCog` returns
-    // `null` when every row is off (`AppearanceCog.tsx:78-80`), so the hint can decide whether the
-    // cog exists at all — the mismatch would not stay confined to the closed panel. jsdom cannot
-    // take the store away during `renderToString`, so the render pass is checked directly: it must
-    // not touch the key.
+  it("keeps the first render independent of browser-only hint storage", async () => {
+    // The footer is server-rendered. Any future localStorage read must stay out
+    // of the first render pass so the server and first client markup agree.
     writeEditorHint();
 
     const tree: ReactNode = (
@@ -213,7 +200,7 @@ describe("AppearanceControls editor gate", () => {
     // Only hydration complaints are of interest; `renderToString` in jsdom also warns about
     // `useLayoutEffect`, which is Radix's business and not this component's.
     expect(errors.filter((message) => /hydrat|did not match/i.test(message))).toEqual([]);
-    // And the effect did land, so the control is available to the reader who clicks.
+    // Hydration completes and the appearance control remains available.
     expect(container.querySelector("[data-appearance-cog]")).not.toBeNull();
 
     container.remove();

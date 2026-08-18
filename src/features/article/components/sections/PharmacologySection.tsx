@@ -363,7 +363,7 @@ export const PharmacologySection = memo(function PharmacologySection({
                       // two halves link to the same mechanism page separately.
                       const { site, activity } = splitMechanismActivity(base);
                       const labelClassName =
-                        "font-medium theme-text-primary transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fuchsia-400";
+                        "theme-focus-ring font-medium theme-text-primary transition-colors";
                       const renderLabelPart = (text: string) =>
                         mechanismLink ? (
                           <Link

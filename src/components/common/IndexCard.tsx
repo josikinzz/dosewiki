@@ -117,7 +117,7 @@ export const IndexCard = memo(function IndexCard({
   const iconClassName = cn(
     "theme-index-card-icon flex h-10 w-10 shrink-0 items-center justify-center rounded-[0.85rem] ring-1 ring-white/10 outline-none transition-colors duration-200",
     onIconClick
-      ? "cursor-pointer focus-visible:ring-2 focus-visible:ring-fuchsia-400"
+      ? "theme-focus-ring cursor-pointer"
       : undefined,
   );
 
@@ -184,7 +184,7 @@ export const IndexCard = memo(function IndexCard({
             {titleHref ? (
               <Link
                 href={titleHref}
-                className="block min-w-0 text-left transition-opacity hover:opacity-80 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fuchsia-400"
+                className="theme-focus-ring block min-w-0 text-left transition-opacity hover:opacity-80"
               >
                 {titleElement}
               </Link>
@@ -192,7 +192,7 @@ export const IndexCard = memo(function IndexCard({
               <button
                 type="button"
                 onClick={onTitleClick}
-                className="min-w-0 text-left transition-opacity hover:opacity-80 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fuchsia-400"
+                className="theme-focus-ring min-w-0 text-left transition-opacity hover:opacity-80"
               >
                 {titleElement}
               </button>
@@ -209,7 +209,7 @@ export const IndexCard = memo(function IndexCard({
             aria-expanded={isExpanded}
             aria-controls={resolvedContentId}
             aria-label={resolvedToggleLabel}
-            className="theme-index-card-toggle mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg outline-none transition focus-visible:ring-2 focus-visible:ring-fuchsia-400"
+            className="theme-index-card-toggle theme-focus-ring mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg outline-none transition"
           >
             <Icon icon={chevronIcon} size={16} />
           </button>
@@ -284,7 +284,7 @@ export const IndexCardSection = memo(function IndexCardSection({
           {titleHref ? (
             <Link
               href={titleHref}
-              className="rounded-sm transition-opacity hover:opacity-80 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fuchsia-400"
+              className="theme-focus-ring rounded-sm transition-opacity hover:opacity-80"
             >
               {title}
             </Link>

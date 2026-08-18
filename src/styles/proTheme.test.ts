@@ -256,13 +256,13 @@ describe("pro visual style", () => {
       ...read(DOSEWIKI_ENTRY_PATH).matchAll(/import\s+"([^"]+)";/g),
     ].map((match) => match[1]);
 
-    // Pro after the colourways, and the accent axis after Pro: an accent's Fun block ties a
-    // colourway at (0,2,1) and can only win on source order, and its Pro block out-ranks this
-    // sheet on specificity so its position costs Pro nothing.
+    // Pro follows the base and preset layers. The independent surface and accent layers follow
+    // Pro, and their Pro selectors have sufficient specificity to apply their restrained seeds.
     expect(dosewikiImports).toEqual([
       "../../styles.css",
       "../../styles/palette-presets.generated.css",
       "../../styles/pro-theme.css",
+      "../../styles/surface-tokens.generated.css",
       "../../styles/accent-tokens.generated.css",
     ]);
 

@@ -28,5 +28,4 @@ Archived plans, audits, generated records, and retired guides are historical con
 | `docs/archive/improvement-tasks/` | `durable-record` | Historical improvement task records. Use as background only. |
 | `docs/audits/thermo-nuclear-2026-05-28/` | `durable-record` while implementation is in progress | Current Phase 3 work may still reference open tasks; completed tasks should remain indexed by `TASK-TRACKER.md`. |
 | `notes-and-plans/guides/dosewiki-site-readme.md` | `retired-runtime` | Old Vite/static guide retained with a tombstone. |
-| `.claude/skills/vite/` | `retired-runtime` | Tombstone only. |
 | `notes-and-plans/exports/` | `generated-record` | Governed by `scripts/lib/local-artifact-hygiene-policy.mjs` and `src/data/artifactLineageManifest.json`. |

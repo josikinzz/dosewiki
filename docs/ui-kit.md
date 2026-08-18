@@ -13,12 +13,12 @@ Use these companion references for decisions outside the catalog:
 
 ## Browse it live: `/dev/kit`
 
-The catalog renders every shared primitive with its real variants, props, a
-copy-paste import line, and when-to-use / when-not-to-use guidance — in the real
-theme tokens, with a working appearance cog: day/night, Fun/Pro and the accent swatches
-in one popover, so every story is reviewable in all four style-and-scheme combinations.
-The accent is a third axis but it only moves token values, so the review matrix stays
-four-way rather than multiplying by it.
+The catalog renders each shared primitive with its real variants and properties.
+It also provides an import line and use guidance.
+
+The appearance cog contains four independent controls: color scheme, visual style,
+surfaces, and accent. The catalog sweep covers color scheme and visual style.
+The appearance matrix tests cover all 196 supported combinations.
 
 - Route: **`/dev/kit`** (auth-gated under `/dev`, like the rest of the editor surface).
 - Run `npm run dev` and open `/dev/kit`. The catalog demonstrates the current

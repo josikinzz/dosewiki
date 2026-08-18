@@ -36,7 +36,7 @@ function TreeLink({
       <Link
         href={`/chemical-classes/${node.key}`}
         className={cn(
-          "inline-flex items-center rounded-sm leading-6 transition-colors hover:opacity-85 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fuchsia-400",
+          "theme-focus-ring inline-flex items-center rounded-sm leading-6 transition-colors hover:opacity-85",
           isRoot ? "text-base font-semibold sm:text-lg" : "text-sm sm:text-[0.9375rem]",
           crossReference ? "theme-text-faint" : "theme-accent-heading",
         )}

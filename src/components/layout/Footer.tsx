@@ -48,7 +48,7 @@ export function Footer({ model = getRouteChromeModel("/") }: FooterProps) {
                   scroll={false}
                   aria-label={item.label}
                   title={item.label}
-                  className="theme-icon-button inline-flex h-11 w-11 items-center justify-center rounded-full border border-transparent transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fuchsia-400"
+                  className="theme-icon-button theme-focus-ring inline-flex h-11 w-11 items-center justify-center rounded-full border border-transparent transition-colors"
                 >
                   <Icon icon={footerIcon} size={18} />
                 </Link>
@@ -64,7 +64,7 @@ export function Footer({ model = getRouteChromeModel("/") }: FooterProps) {
                   target="_blank"
                   rel="noopener noreferrer"
                   aria-label={item.label}
-                  className="theme-icon-button inline-flex h-11 w-11 items-center justify-center rounded-full border border-transparent transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fuchsia-400"
+                  className="theme-icon-button theme-focus-ring inline-flex h-11 w-11 items-center justify-center rounded-full border border-transparent transition-colors"
                 >
                   <Icon icon={footerIcon} size={18} />
                 </a>

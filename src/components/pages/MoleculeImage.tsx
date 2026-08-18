@@ -16,8 +16,8 @@ type MoleculeImageProps = Omit<ComponentProps<typeof AppImage>, "src"> & {
  * this client seam and updates immediately when either appearance axis changes.
  */
 export function MoleculeImage({ src, ...props }: MoleculeImageProps) {
-  const { colorScheme, visualStyle } = useTheme();
-  const appearanceSrc = moleculeImageUrlForAppearance(src, visualStyle, colorScheme);
+  const { colorScheme, visualStyle, accent } = useTheme();
+  const appearanceSrc = moleculeImageUrlForAppearance(src, visualStyle, colorScheme, accent);
 
   return <AppImage {...props} src={appearanceSrc} />;
 }

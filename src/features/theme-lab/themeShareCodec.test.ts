@@ -304,10 +304,9 @@ describe("theme share codec", () => {
   });
 
   it("still reads a code minted before the accent seeds existed", () => {
-    // Registering nine ids widened the allowlist without touching the payload
-    // shape, so the wire version stays where it was and every link already in the
-    // wild still decodes. A bump would have refused all of them for nothing.
-    expect(THEME_SHARE_CODEC_VERSION).toBe(1);
+    // v2 carries independent surface/accent identities and role buckets. The
+    // decoder keeps v1 readable so links already in the wild remain valid.
+    expect(THEME_SHARE_CODEC_VERSION).toBe(2);
     const { value, error } = decodeSharedTheme(
       mint({ v: 1, b: "abyss", n: "Old link", d: { "~accent": "#abcdef" }, l: {} }),
     );

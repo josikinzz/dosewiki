@@ -363,11 +363,16 @@
     outline-offset: 3px;
   }
 
+  .theme-citation-marker,
+  .theme-reference-number {
+    color: var(--theme-inline-reference-text);
+    background: var(--theme-inline-reference-bg);
+    box-shadow: 0 0 0 1px var(--theme-inline-reference-border);
+    --tw-ring-color: var(--theme-inline-reference-border);
+  }
+
   .theme-citation-marker {
-    color: var(--theme-accent-strong);
-    background-color: color-mix(in srgb, var(--theme-accent) 13%, var(--theme-body-bg));
-    box-shadow: 0 0 0 1px color-mix(in srgb, var(--theme-accent-strong) 38%, transparent);
-    text-decoration-color: color-mix(in srgb, var(--theme-accent-strong) 46%, var(--theme-body-bg));
+    text-decoration-color: color-mix(in srgb, var(--theme-inline-reference-text) 46%, var(--theme-body-bg));
     text-underline-offset: 0.18em;
     transition:
       color 160ms ease,
@@ -378,16 +383,16 @@
 
   @media (hover: hover) {
     .theme-citation-marker:hover {
-      background-color: color-mix(in srgb, var(--theme-accent) 20%, var(--theme-body-bg));
-      box-shadow: 0 0 0 1px color-mix(in srgb, var(--theme-accent-soft) 58%, transparent);
-      color: var(--theme-accent-soft);
-      text-decoration-color: color-mix(in srgb, var(--theme-accent-soft) 72%, var(--theme-body-bg));
+      background: var(--theme-inline-reference-hover-bg);
+      box-shadow: 0 0 0 1px var(--theme-inline-reference-hover-border);
+      color: var(--theme-inline-reference-hover-text);
+      text-decoration-color: color-mix(in srgb, var(--theme-inline-reference-hover-text) 72%, var(--theme-body-bg));
     }
   }
 
   .theme-citation-marker:focus-visible {
     border-radius: 0.12rem;
-    outline: 2px solid var(--theme-accent-strong);
+    outline: 2px solid var(--theme-inline-reference-focus);
     outline-offset: 3px;
   }
 
@@ -442,8 +447,6 @@
     .theme-badge-surface,
     .theme-name-chip,
     .theme-external-source-pill,
-    .theme-reference-number,
-    .theme-citation-marker,
     .theme-control-pill,
     .theme-control-pill-quiet
   ) {
@@ -462,7 +465,7 @@
     --tw-ring-color: var(--theme-frosted-control-hover-border);
   }
   @media (hover: hover) {
-    html[data-theme="light"] :is(.theme-name-chip-interactive:hover, .theme-external-source-pill:hover, .theme-citation-marker:hover, .theme-control-pill:hover, .theme-control-pill-quiet:hover) {
+    html[data-theme="light"] :is(.theme-name-chip-interactive:hover, .theme-external-source-pill:hover, .theme-control-pill:hover, .theme-control-pill-quiet:hover) {
       border-color: transparent;
       background: var(--theme-frosted-control-hover-bg);
       color: var(--theme-accent-strong);
@@ -491,8 +494,6 @@
     .theme-badge-surface,
     .theme-name-chip,
     .theme-external-source-pill,
-    .theme-reference-number,
-    .theme-citation-marker,
     .theme-control-pill,
     .theme-control-pill-quiet,
     .theme-interaction-severity-badge-danger,
@@ -543,7 +544,7 @@
       .theme-interaction-danger,
       .theme-interaction-unsafe,
       .theme-interaction-caution
-    ) :is(.theme-name-chip-interactive:hover, .theme-external-source-pill:hover, .theme-citation-marker:hover, .theme-control-pill:hover, .theme-control-pill-quiet:hover, .theme-interaction-severity-badge-danger:hover, .theme-interaction-severity-badge-unsafe:hover, .theme-interaction-severity-badge-caution:hover) {
+    ) :is(.theme-name-chip-interactive:hover, .theme-external-source-pill:hover, .theme-control-pill:hover, .theme-control-pill-quiet:hover, .theme-interaction-severity-badge-danger:hover, .theme-interaction-severity-badge-unsafe:hover, .theme-interaction-severity-badge-caution:hover) {
       background: var(--theme-frosted-control-on-panel-hover-bg);
       box-shadow: var(--theme-frosted-control-on-panel-hover-shadow);
       --tw-ring-color: var(--theme-frosted-control-on-panel-hover-border);
@@ -1867,11 +1868,6 @@
     }
   }
 
-  .theme-reference-number {
-    color: var(--theme-accent-muted);
-    background-color: color-mix(in srgb, var(--theme-accent) 13%, var(--theme-body-bg));
-    box-shadow: 0 0 0 1px color-mix(in srgb, var(--theme-accent-strong) 38%, transparent);
-  }
 
   .theme-reference-link {
     text-decoration-color: color-mix(in srgb, var(--theme-text-primary) 12%, var(--theme-body-bg));
@@ -3454,8 +3450,6 @@
   .theme-author-avatar-placeholder,
   .theme-name-chip,
   .theme-external-source-pill,
-  .theme-reference-number,
-  .theme-citation-marker,
   .theme-control-pill,
   .theme-control-pill-quiet,
   .theme-toggle-pill,
@@ -3467,12 +3461,6 @@
     --tw-ring-color: var(--theme-frosted-control-border);
   }
 
-  .theme-reference-number {
-    background: var(--theme-article-reference-control-bg);
-    color: var(--theme-article-reference-control-text);
-    box-shadow: 0 0 0 1px var(--theme-article-reference-control-border);
-    --tw-ring-color: var(--theme-article-reference-control-border);
-  }
 
   .theme-name-chip-interactive:focus-visible,
   .theme-control-pill:focus-visible,
@@ -3490,7 +3478,6 @@
   @media (hover: hover) {
     .theme-name-chip-interactive:hover,
     .theme-external-source-pill:hover,
-    .theme-citation-marker:hover,
     .theme-control-pill:hover,
     .theme-control-pill-quiet:hover,
     .theme-toggle-pill:hover,
@@ -3570,7 +3557,6 @@
     .theme-author-avatar-placeholder,
     .theme-name-chip,
     .theme-external-source-pill,
-    .theme-citation-marker,
     .theme-control-pill,
     .theme-control-pill-quiet,
     .theme-icon-button
@@ -3581,25 +3567,6 @@
     --tw-ring-color: var(--theme-frosted-control-on-panel-border);
   }
 
-  :is(
-    .theme-public-card,
-    .theme-public-card-subtle,
-    .theme-public-card-hover-quiet,
-    .theme-card-surface,
-    .theme-overlay-surface,
-    .theme-article-hero,
-    .theme-article-subsection-card,
-    .theme-article-subsection-card-nested,
-    .theme-article-subsection-card-interactive,
-    .theme-inline-expanded-card,
-    .theme-dose-duration-panel,
-    .theme-article-toc-panel
-  ) .theme-reference-number {
-    background: var(--theme-article-reference-control-bg);
-    color: var(--theme-article-reference-control-text);
-    box-shadow: 0 0 0 1px var(--theme-article-reference-control-border);
-    --tw-ring-color: var(--theme-article-reference-control-border);
-  }
 
   :is(
     .theme-public-card,
@@ -3694,51 +3661,48 @@
     }
   }
 
-  .theme-route-tab {
+  .theme-selected-control {
     color: var(--theme-text-secondary);
     --tw-ring-color: transparent;
   }
 
-  .theme-route-tab:focus-visible {
+  .theme-selected-control:focus-visible {
     color: var(--theme-text-primary);
+    outline-color: var(--theme-selected-control-focus);
   }
   @media (hover: hover) {
-    .theme-route-tab:hover {
+    .theme-selected-control:hover {
       color: var(--theme-text-primary);
     }
   }
 
-  .theme-route-tab[data-state="active"] {
-    border-color: var(--theme-article-route-active-border);
-    background: var(--theme-article-route-active-bg);
+  .theme-selected-control[data-state="active"] {
+    border-color: var(--theme-selected-control-border);
+    background: var(--theme-selected-control-bg);
     background-clip: border-box;
     background-origin: border-box;
-    color: var(--theme-article-route-active-text);
-    box-shadow: var(--theme-article-route-active-shadow);
-    --tw-ring-color: var(--theme-article-route-active-border);
+    color: var(--theme-selected-control-text);
+    box-shadow: var(--theme-selected-control-shadow);
+    --tw-ring-color: var(--theme-selected-control-border);
   }
 
-  html:not([data-theme="light"]) .theme-route-tab[data-state="active"] {
-    border-color: var(--theme-article-route-active-border);
-  }
-
-  .theme-route-tab-icon {
+  .theme-selected-control-icon {
     color: var(--theme-text-secondary);
   }
 
-  .theme-route-tab:focus-visible .theme-route-tab-icon,
-  .theme-route-tab[data-state="active"] .theme-route-tab-icon {
-    background: var(--theme-article-route-active-bg);
-    color: var(--theme-article-route-active-text);
-    box-shadow: 0 0 0 1px var(--theme-article-route-active-border);
-    --tw-ring-color: var(--theme-article-route-active-border);
+  .theme-selected-control:focus-visible .theme-selected-control-icon,
+  .theme-selected-control[data-state="active"] .theme-selected-control-icon {
+    background: var(--theme-selected-control-bg);
+    color: var(--theme-selected-control-text);
+    box-shadow: 0 0 0 1px var(--theme-selected-control-border);
+    --tw-ring-color: var(--theme-selected-control-border);
   }
   @media (hover: hover) {
-    .theme-route-tab:hover .theme-route-tab-icon {
-      background: var(--theme-article-route-active-bg);
-      color: var(--theme-article-route-active-text);
-      box-shadow: 0 0 0 1px var(--theme-article-route-active-border);
-      --tw-ring-color: var(--theme-article-route-active-border);
+    .theme-selected-control:hover .theme-selected-control-icon {
+      background: var(--theme-selected-control-bg);
+      color: var(--theme-selected-control-text);
+      box-shadow: 0 0 0 1px var(--theme-selected-control-border);
+      --tw-ring-color: var(--theme-selected-control-border);
     }
   }
 
@@ -3775,10 +3739,14 @@
     }
   }
 
+  .theme-selected-control-glow {
+    background-image: var(--theme-selected-control-glow);
+  }
+
   .theme-dev-rail-tab[data-state="active"] {
-    background: var(--theme-article-route-active-bg);
-    color: var(--theme-article-route-active-text);
-    box-shadow: 0 0 0 1px var(--theme-article-route-active-border);
+    background: var(--theme-selected-control-bg);
+    color: var(--theme-selected-control-text);
+    box-shadow: 0 0 0 1px var(--theme-selected-control-border);
   }
 
   .theme-dev-rail-user {
@@ -3833,8 +3801,8 @@
   }
 
   .theme-replication-facet-option[data-state="active"] {
-    background: var(--theme-article-route-active-bg);
-    color: var(--theme-article-route-active-text);
+    background: var(--theme-selected-control-bg);
+    color: var(--theme-selected-control-text);
   }
 
   .theme-replication-checkbox {
@@ -3858,8 +3826,8 @@
   }
 
   .theme-replication-card[data-state="active"] {
-    background: var(--theme-article-route-active-bg);
-    border-color: var(--theme-article-route-active-border);
+    background: var(--theme-selected-control-bg);
+    border-color: var(--theme-selected-control-border);
     box-shadow: var(--theme-elevation-control-active);
   }
 
@@ -3911,12 +3879,12 @@
   }
 
   .theme-portal-row[data-state="active"] {
-    background: var(--theme-article-route-active-bg);
-    box-shadow: inset 0 0 0 1px var(--theme-article-route-active-border);
+    background: var(--theme-selected-control-bg);
+    box-shadow: inset 0 0 0 1px var(--theme-selected-control-border);
   }
 
   .theme-portal-row[data-state="active"] .theme-portal-row-title {
-    color: var(--theme-article-route-active-text);
+    color: var(--theme-selected-control-text);
   }
 
   .theme-portal-row:focus-visible {
@@ -3936,9 +3904,9 @@
   }
 
   .theme-portal-bucket[data-state="active"] {
-    background: var(--theme-article-route-active-bg);
-    color: var(--theme-article-route-active-text);
-    box-shadow: 0 0 0 1px var(--theme-article-route-active-border);
+    background: var(--theme-selected-control-bg);
+    color: var(--theme-selected-control-text);
+    box-shadow: 0 0 0 1px var(--theme-selected-control-border);
   }
 
   /* The needs-review marker, and the same magenta pill on the dev tab. */
@@ -4026,13 +3994,13 @@
   }
 
   .theme-index-mobile-tab[data-state="active"] .theme-index-mobile-tab-icon {
-    background: var(--theme-article-route-active-bg);
-    color: var(--theme-article-route-active-text);
+    background: var(--theme-selected-control-bg);
+    color: var(--theme-selected-control-text);
     box-shadow:
-      0 0 0 1px var(--theme-article-route-active-border),
-      0 14px 28px -20px color-mix(in srgb, var(--theme-article-route-active-text) 58%, transparent),
+      0 0 0 1px var(--theme-selected-control-border),
+      0 14px 28px -20px color-mix(in srgb, var(--theme-selected-control-text) 58%, transparent),
       inset 0 1px 0 color-mix(in srgb, var(--theme-text-primary) 12%, transparent);
-    --tw-ring-color: var(--theme-article-route-active-border);
+    --tw-ring-color: var(--theme-selected-control-border);
   }
 
   .theme-index-mobile-tab-label {
@@ -4675,14 +4643,18 @@
       0 0 0 1px var(--theme-ring-soft);
   }
 
-  /* Shared theme-token focus ring. Drop-in replacement for the raw 4-utility
-     `focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2
-     focus-visible:outline-fuchsia-400` incantation: applying `theme-focus-ring`
-     alone yields the full focus-visible ring, theme-aware via the brand accent
-     token (mirrors the `focusRing` constant in src/components/ui/surface.tsx). */
+  /* Shared theme-token focus ring. Applying `theme-focus-ring` yields the full
+     focus-visible treatment through the active Accent token. This mirrors the
+     `focusRingClassName` constant in src/components/ui/surface.tsx. */
   .theme-focus-ring:focus-visible {
     outline: 2px solid var(--theme-accent-strong);
     outline-offset: 2px;
+  }
+
+  /* Sibling target for visually hidden range inputs such as the audio scrubber. */
+  .peer:focus-visible ~ .theme-peer-focus-ring {
+    outline: 2px solid var(--theme-accent-strong);
+    outline-offset: 4px;
   }
 
   /* Inset variant for full-bleed list rows where an outset ring would be

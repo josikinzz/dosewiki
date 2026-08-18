@@ -1,6 +1,16 @@
-import type { ColorScheme } from "@/theme";
+import {
+  BASE_ACCENT,
+  BASE_SURFACE,
+  LEGACY_ACCENT_TO_SURFACE,
+  isAccent,
+  isSurface,
+  type AccentId,
+  type ColorScheme,
+  type SurfaceId,
+} from "@/theme";
 import { DEFAULT_PRESET_ID } from "./palettePresets";
 import { CHROME_DARK_CLASS, PALETTE_ATTRIBUTE } from "./presetStylesheet";
+import { paletteTokenRole } from "@/theme/paletteOwnership";
 
 /**
  * Theme Lab persistence and DOM application — the two ends of the feature's
@@ -31,6 +41,28 @@ export type ThemeOverrides = Record<string, string>;
 /** One override map per theme, in the exact shape the injected style element
  *  and the presets both use. */
 export type PaletteOverrides = Record<ColorScheme, ThemeOverrides>;
+export type RolePaletteOverrides = {
+  surfaceOverrides: PaletteOverrides;
+  accentOverrides: PaletteOverrides;
+  semanticOverrides: PaletteOverrides;
+  residualOverrides: PaletteOverrides;
+};
+
+export function partitionOverrides(overrides: PaletteOverrides): RolePaletteOverrides {
+  const result: RolePaletteOverrides = {
+    surfaceOverrides: emptyOverrides(),
+    accentOverrides: emptyOverrides(),
+    semanticOverrides: emptyOverrides(),
+    residualOverrides: emptyOverrides(),
+  };
+  for (const theme of ["dark", "light"] as const) {
+    for (const [token, value] of Object.entries(overrides[theme] ?? {})) {
+      const role = paletteTokenRole(token);
+      result[`${role}Overrides`][theme][token] = value;
+    }
+  }
+  return result;
+}
 
 /**
  * Which theme the visitor is wearing: a shipped preset, or one of their own
@@ -51,6 +83,7 @@ export type CustomThemeSlot = {
   id: string;
   name: string;
   overrides: PaletteOverrides;
+  roleOverrides?: RolePaletteOverrides;
   /** The shipped preset the slot diverged from, when it had one. */
   basePresetId?: string;
 };
@@ -70,11 +103,14 @@ export const THEME_SHARE_FORMAT = 1;
  * v2's `{presetId, overrides}` becomes that preset's own edit map, and a v1
  * bare `{dark, light}` blob becomes edits on the default preset.
  */
-export type StoredEnvelopeV3 = {
-  version: 3;
+export type StoredEnvelopeV4 = {
+  version: 4;
   activeThemeRef: ThemeRef;
-  /** Edit maps keyed by `themeKey()` — a bare preset id, or `custom:<slot id>`. */
+  activeSurfaceId: SurfaceId;
+  activeAccentId: AccentId;
+  /** Legacy editor indexing retained internally; serialized role maps are authoritative v4 data. */
   editsByPreset: Record<string, PaletteOverrides>;
+  roleEditsByPreset: Record<string, RolePaletteOverrides>;
   customThemes: CustomThemeSlot[];
   shareFormat: number;
 };
@@ -101,11 +137,14 @@ export function sameThemeRef(a: ThemeRef, b: ThemeRef): boolean {
   return a.kind === b.kind && a.id === b.id;
 }
 
-function defaultEnvelope(): StoredEnvelopeV3 {
+function defaultEnvelope(): StoredEnvelopeV4 {
   return {
-    version: 3,
+    version: 4,
     activeThemeRef: defaultThemeRef(),
+    activeSurfaceId: BASE_SURFACE,
+    activeAccentId: BASE_ACCENT,
     editsByPreset: {},
+    roleEditsByPreset: {},
     customThemes: [],
     shareFormat: THEME_SHARE_FORMAT,
   };
@@ -185,7 +224,7 @@ function readCustomThemes(value: unknown): CustomThemeSlot[] {
  * An unknown id is *preserved*, not overwritten: the visitor keeps their saved
  * reference (and their edits under it) while `getPreset` renders the fallback.
  */
-export function parseStoredEnvelope(raw: string | null | undefined): StoredEnvelopeV3 {
+export function parseStoredEnvelope(raw: string | null | undefined): StoredEnvelopeV4 {
   if (!raw) return defaultEnvelope();
 
   let parsed: unknown;
@@ -198,16 +237,49 @@ export function parseStoredEnvelope(raw: string | null | undefined): StoredEnvel
 
   const record = parsed as Record<string, unknown>;
 
-  if (record.version === 3) {
+  if (record.version === 4) {
+    const editsByPreset = readEditsByPreset(record.editsByPreset);
     return {
-      version: 3,
+      version: 4,
       activeThemeRef: readThemeRef(record.activeThemeRef) ?? defaultThemeRef(),
-      editsByPreset: readEditsByPreset(record.editsByPreset),
+      activeSurfaceId: isSurface(record.activeSurfaceId as string)
+        ? (record.activeSurfaceId as SurfaceId)
+        : BASE_SURFACE,
+      activeAccentId: isAccent(record.activeAccentId as string)
+        ? (record.activeAccentId as AccentId)
+        : BASE_ACCENT,
+      editsByPreset,
+      roleEditsByPreset: Object.fromEntries(
+        Object.entries(editsByPreset).map(([key, value]) => [key, partitionOverrides(value)]),
+      ),
       customThemes: readCustomThemes(record.customThemes),
       shareFormat:
         typeof record.shareFormat === "number" ? record.shareFormat : THEME_SHARE_FORMAT,
     };
   }
+  if (record.version === 3) {
+    const activeThemeRef = readThemeRef(record.activeThemeRef) ?? defaultThemeRef();
+    const surface = isSurface(activeThemeRef.id) ? activeThemeRef.id : BASE_SURFACE;
+    const accent =
+      (Object.entries(LEGACY_ACCENT_TO_SURFACE).find(([, id]) => id === surface)?.[0] as
+        | AccentId
+        | undefined) ?? BASE_ACCENT;
+    const editsByPreset = readEditsByPreset(record.editsByPreset);
+    return {
+      version: 4,
+      activeThemeRef,
+      activeSurfaceId: surface,
+      activeAccentId: accent,
+      editsByPreset,
+      roleEditsByPreset: Object.fromEntries(
+        Object.entries(editsByPreset).map(([key, value]) => [key, partitionOverrides(value)]),
+      ),
+      customThemes: readCustomThemes(record.customThemes),
+      shareFormat:
+        typeof record.shareFormat === "number" ? record.shareFormat : THEME_SHARE_FORMAT,
+    };
+  }
+
 
   // v2 carried one global edit map plus the preset it sat on; v1 was the bare
   // `{dark, light}` map itself, which is edits on the default preset.
@@ -218,17 +290,41 @@ export function parseStoredEnvelope(raw: string | null | undefined): StoredEnvel
       : DEFAULT_PRESET_ID;
   const overrides = readOverrides(isV2 ? record.overrides : record);
 
+  const activeAccentId = isAccent(record.activeAccentId as string)
+    ? (record.activeAccentId as AccentId)
+    : BASE_ACCENT;
+  const activeSurfaceId = isSurface(record.activeSurfaceId as string)
+    ? (record.activeSurfaceId as SurfaceId)
+    : LEGACY_ACCENT_TO_SURFACE[activeAccentId];
+  const editsByPreset = pruneEdits({ [presetId]: overrides });
   return {
-    version: 3,
+    version: 4,
     activeThemeRef: presetRef(presetId),
-    editsByPreset: pruneEdits({ [presetId]: overrides }),
+    activeSurfaceId,
+    activeAccentId,
+    editsByPreset,
+    roleEditsByPreset: Object.fromEntries(
+      Object.entries(editsByPreset).map(([key, value]) => [key, partitionOverrides(value)]),
+    ),
     customThemes: [],
     shareFormat: THEME_SHARE_FORMAT,
   };
 }
 
-export function serializeEnvelope(envelope: StoredEnvelopeV3): string {
-  return JSON.stringify({ ...envelope, editsByPreset: pruneEdits(envelope.editsByPreset) });
+export function serializeEnvelope(envelope: StoredEnvelopeV4): string {
+  const editsByPreset = pruneEdits(envelope.editsByPreset);
+  return JSON.stringify({
+    ...envelope,
+    version: 4,
+    editsByPreset,
+    roleEditsByPreset: Object.fromEntries(
+      Object.entries(editsByPreset).map(([key, value]) => [key, partitionOverrides(value)]),
+    ),
+    customThemes: envelope.customThemes.map((slot) => ({
+      ...slot,
+      roleOverrides: partitionOverrides(slot.overrides),
+    })),
+  });
 }
 
 /**
@@ -237,7 +333,7 @@ export function serializeEnvelope(envelope: StoredEnvelopeV3): string {
  * surfaces that instead of promising the look is "saved to this browser".
  */
 export function readStoredEnvelope(): {
-  envelope: StoredEnvelopeV3;
+  envelope: StoredEnvelopeV4;
   available: boolean;
   /** Exactly what was in storage, so a legacy shape can be rewritten in place. */
   raw: string | null;

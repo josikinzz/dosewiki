@@ -444,7 +444,7 @@ describe("PaletteLab", { timeout: 15_000 }, () => {
 
       await waitFor(() => {
         const stored = window.localStorage.getItem(STORAGE_KEY) ?? "";
-        expect(stored).toContain('"version":3');
+        expect(stored).toContain('"version":4');
         expect(stored).toContain('"activeThemeRef":{"kind":"preset","id":"abyss"}');
       });
       expect(within(panel).getByRole("button", { name: /^Abyss/ })).toHaveAttribute(
@@ -470,7 +470,7 @@ describe("PaletteLab", { timeout: 15_000 }, () => {
       );
       await waitFor(() => {
         const stored = window.localStorage.getItem(STORAGE_KEY) ?? "";
-        expect(stored).toContain('"version":3');
+        expect(stored).toContain('"version":4');
         expect(stored).toContain('"activeThemeRef":{"kind":"preset","id":"orchid"}');
         expect(stored).toContain('"--theme-accent":"#123456"');
       });

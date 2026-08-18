@@ -127,7 +127,7 @@ const InteractionBadge = memo(function InteractionBadge({
   const expandedNameClassName =
     "theme-accent-heading pr-8 text-sm font-semibold transition-colors";
   const collapsedNameClassName =
-    "text-current transition hover:opacity-90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fuchsia-400";
+    "theme-focus-ring text-current transition hover:opacity-90";
 
   // Expanded state - full-width inline card
   if (isExpanded && hasRationale) {
@@ -148,7 +148,7 @@ const InteractionBadge = memo(function InteractionBadge({
           <Link
             href={href}
             onClick={linkClickHandler}
-            className={`${expandedNameClassName} hover:opacity-90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fuchsia-400`}
+            className={`${expandedNameClassName} theme-focus-ring hover:opacity-90`}
           >
             {item.substance}
           </Link>

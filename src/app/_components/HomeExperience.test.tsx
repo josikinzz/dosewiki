@@ -126,7 +126,7 @@ describe("dose.wiki homepage", () => {
         .filter((button) => button.className.includes("theme-home-theme-toggle")),
     ).toHaveLength(1);
 
-    // The axes are inside it, and only the axes: no editor tooling on the public homepage.
+    // Appearance axes and the protected full Palette Lab action live inside the cog.
     await user.click(cog);
     const panel = await screen.findByRole("dialog", { name: "Appearance" });
 
@@ -136,7 +136,8 @@ describe("dose.wiki homepage", () => {
         .map((control) => control.dataset.appearanceAxis)
         .filter(Boolean),
     ).toEqual(["visual-style", "color-scheme"]);
-    expect(screen.queryByRole("button", { name: /theme lab/i })).not.toBeInTheDocument();
-    expect(within(panel).queryByRole("link", { name: /More settings/ })).not.toBeInTheDocument();
+    expect(
+      within(panel).getByRole("link", { name: "Open full Palette Lab" }),
+    ).toHaveAttribute("href", "/dev/themes");
   });
 });

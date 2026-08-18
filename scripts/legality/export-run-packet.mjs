@@ -21,7 +21,7 @@ function requireSlug(argv) {
 }
 
 function readCoreCountries(repoRoot) {
-  const path = resolve(repoRoot, ".claude/skills/legality/reference/core-countries.md");
+  const path = resolve(repoRoot, ".agents/skills/legality-pi/shared/reference/core-countries.md");
   return readFileSync(path, "utf8")
     .split(/\r?\n/)
     .filter((line) => line.startsWith("- "))

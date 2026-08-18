@@ -3,6 +3,7 @@ import { resolve } from "node:path";
 
 import { ACCENTS, BASE_ACCENT_ID } from "@/theme/accents";
 import { ACCENT_ATTRIBUTE, ACCENT_STYLESHEET_PATH } from "@/theme/accentStylesheet";
+import { SURFACE_ATTRIBUTE, SURFACE_STYLESHEET_PATH } from "@/theme/surfaceStylesheet";
 
 /**
  * The accent axis, measured rather than asserted.
@@ -36,12 +37,12 @@ export const read = (relativePath: string) => readFileSync(resolve(REPO_ROOT, re
  * The cascade the browser sees on a dose.wiki page, in import order. `dosewiki.ts` pins this
  * list, and `proTheme.test.ts` pins that it matches these imports.
  */
-const LADDER = [
+const BASE_LADDER = [
   "src/styles/site-colors.css",
   "src/styles/palette-presets.generated.css",
   "src/styles/pro-theme.css",
-  ACCENT_STYLESHEET_PATH,
-];
+] as const;
+const LADDER = [...BASE_LADDER, SURFACE_STYLESHEET_PATH, ACCENT_STYLESHEET_PATH];
 
 export type VisualStyle = "fun" | "pro";
 export type ColorScheme = "light" | "dark";
@@ -53,6 +54,7 @@ export type AppearanceState = {
   visualStyle: VisualStyle;
   theme: ColorScheme;
   accent?: string;
+  surface?: string;
   palette?: string;
 };
 
@@ -127,6 +129,7 @@ const STATE_KEY_BY_ATTRIBUTE: Record<string, keyof AppearanceState> = {
   "data-theme": "theme",
   "data-visual-style": "visualStyle",
   "data-palette": "palette",
+  [SURFACE_ATTRIBUTE]: "surface",
   [ACCENT_ATTRIBUTE]: "accent",
 };
 
@@ -215,12 +218,18 @@ function declarationsOf(css: string, firstOrder: number): Declaration[] {
 const LADDER_DECLARATIONS = LADDER.flatMap((sheet, index) =>
   declarationsOf(read(sheet), index * 100_000),
 );
+const BASE_LADDER_DECLARATIONS = BASE_LADDER.flatMap((sheet, index) =>
+  declarationsOf(read(sheet), index * 100_000),
+);
 
 /** The declaration that wins each property: highest specificity, then latest in source. */
-function cascade(state: AppearanceState): Map<string, string> {
+function cascade(
+  state: AppearanceState,
+  declarations: readonly Declaration[] = LADDER_DECLARATIONS,
+): Map<string, string> {
   const winners = new Map<string, Declaration>();
 
-  for (const declaration of LADDER_DECLARATIONS) {
+  for (const declaration of declarations) {
     if (!declaration.matches(state)) continue;
 
     const previous = winners.get(declaration.property);
@@ -290,17 +299,28 @@ function substituteVars(value: string, declarations: Map<string, string>, depth 
 }
 
 /** Every `--theme-*` and `--ei-*` token, fully resolved, at one point on the grid. */
-export function resolveTokens(state: AppearanceState): Record<string, string> {
-  const declarations = cascade(state);
+function resolveTokenDeclarations(
+  state: AppearanceState,
+  declarations: readonly Declaration[],
+): Record<string, string> {
+  const cascaded = cascade(state, declarations);
   const tokens: Record<string, string> = {};
 
-  for (const property of declarations.keys()) {
+  for (const property of cascaded.keys()) {
     if (/^--(?:theme|ei)-/.test(property)) {
-      tokens[property] = substituteVars(declarations.get(property)!, declarations);
+      tokens[property] = substituteVars(cascaded.get(property)!, cascaded);
     }
   }
 
   return tokens;
+}
+
+export function resolveTokens(state: AppearanceState): Record<string, string> {
+  return resolveTokenDeclarations(state, LADDER_DECLARATIONS);
+}
+
+export function resolveBasePaletteTokens(state: AppearanceState): Record<string, string> {
+  return resolveTokenDeclarations(state, BASE_LADDER_DECLARATIONS);
 }
 
 /* -------------------------------------------------------------------------

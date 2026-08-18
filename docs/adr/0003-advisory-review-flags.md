@@ -1,7 +1,7 @@
 # Advisory Review Flags, Human-Only Approval
 
 **Status:** Accepted; implemented.
-**Current implementation:** `src/schema/substance/editorial.ts` is the runtime authority for canonical labels and the open 1–3-word label constraint. `.claude/skills/article-review/SKILL.md` is the agent-facing mirror and must stay synchronized with that schema.
+**Current implementation:** `src/schema/substance/editorial.ts` is the runtime authority for canonical labels and the open 1–3-word label constraint; `scripts/review/export-review-run.ts` and `scripts/review/apply-review-flags.ts` own the executable review workflow.
 
 Article-review findings are stored as review flags: advisory, badge-labeled to-do notes inside each article's editor-only editorial review metadata. Flags never gate anything — an editor may mark an article reviewed with open `major` flags, and no flag state changes visibility or publication. Approval stays exclusively human: the review workflow's write path can only replace agent-sourced flags and is structurally unable to touch review status, so the public `expert_reviewed` claim always traces to a human editor's sign-off in the review workbench.
 

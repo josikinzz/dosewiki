@@ -1,5 +1,6 @@
 import { SITE_FLAVOR_CONFIG } from "@/config/siteFlavor";
-import type { AccentId } from "./accents";
+import { isAccent, type AccentId } from "./accents";
+import { isSurface, LEGACY_ACCENT_TO_SURFACE, type SurfaceId } from "./surfaces";
 import tokenInterface from "./theme-token-interface.json";
 
 export const THEME_TOKEN_INTERFACE = tokenInterface;
@@ -37,11 +38,14 @@ export type VisualStyle = "fun" | "pro";
  */
 export type { AccentId } from "./accents";
 export { getAccent, isAccent, type Accent, type ProAccentSeeds } from "./accents";
+export type { SurfaceId } from "./surfaces";
+export { getSurface, isSurface, SURFACES, LEGACY_ACCENT_TO_SURFACE } from "./surfaces";
 
-/** One resolved appearance: a point on all three axes. */
+/** One resolved appearance: a point on all four axes. */
 export type Appearance = {
   readonly colorScheme: ColorScheme;
   readonly visualStyle: VisualStyle;
+  readonly surface: SurfaceId;
   readonly accent: AccentId;
 };
 
@@ -55,6 +59,8 @@ export const SUPPORTED_COLOR_SCHEMES =
 export const SUPPORTED_VISUAL_STYLES =
   THEME_TOKEN_INTERFACE.supportedVisualStyles as readonly VisualStyle[];
 export const SUPPORTED_ACCENTS = THEME_TOKEN_INTERFACE.supportedAccents as readonly AccentId[];
+export const SUPPORTED_SURFACES =
+  THEME_TOKEN_INTERFACE.supportedSurfaces as readonly SurfaceId[];
 
 /**
  * The appearance the stylesheets render with no root attribute present: dark values live on
@@ -74,10 +80,13 @@ export const DEFAULT_VISUAL_STYLE = THEME_TOKEN_INTERFACE.defaultVisualStyle as 
  * accent now, and only a publication that opens on this one ships no attribute.
  */
 export const BASE_ACCENT = THEME_TOKEN_INTERFACE.baseAccent as AccentId;
+export const BASE_SURFACE = THEME_TOKEN_INTERFACE.baseSurface as SurfaceId;
 
 export const COLOR_SCHEME_STORAGE_KEY = THEME_TOKEN_INTERFACE.colorSchemeStorageKey;
 export const VISUAL_STYLE_STORAGE_KEY = THEME_TOKEN_INTERFACE.visualStyleStorageKey;
 export const ACCENT_STORAGE_KEY = THEME_TOKEN_INTERFACE.accentStorageKey;
+export const SURFACE_STORAGE_KEY = THEME_TOKEN_INTERFACE.surfaceStorageKey;
+export const APPEARANCE_STORAGE_KEY = THEME_TOKEN_INTERFACE.appearanceStorageKey;
 export const THEME_META_ID = THEME_TOKEN_INTERFACE.metaId;
 
 /**
@@ -135,6 +144,8 @@ export type AppearancePolicy = {
   readonly defaultVisualStyle: VisualStyle;
   readonly showVisualStyleToggle: boolean;
   readonly defaultAccent: AccentId;
+  readonly defaultSurface: SurfaceId;
+  readonly showSurfacePicker: boolean;
   readonly showAccentPicker: boolean;
 };
 
@@ -169,7 +180,34 @@ export function getInitialAppearance(policy: AppearancePolicy = SITE_FLAVOR_CONF
   return {
     colorScheme: policy.defaultColorScheme,
     visualStyle: policy.defaultVisualStyle,
+    surface: policy.showSurfacePicker ? policy.defaultSurface : BASE_SURFACE,
     accent: policy.showAccentPicker ? policy.defaultAccent : BASE_ACCENT,
+  };
+}
+export type StoredAppearanceV4 = Appearance & { readonly version: 4 };
+
+export function resolveInitialAppearance(
+  policy: AppearancePolicy,
+  stored: Partial<Record<"visualStyle" | "colorScheme" | "surface" | "accent", string>> | null,
+): Appearance {
+  const initial = getInitialAppearance(policy);
+  const legacyAccent = policy.showAccentPicker && isAccent(stored?.accent) ? stored.accent : initial.accent;
+  return {
+    visualStyle:
+      policy.showVisualStyleToggle && isVisualStyle(stored?.visualStyle)
+        ? stored.visualStyle
+        : initial.visualStyle,
+    colorScheme:
+      policy.showColorSchemeToggle && isColorScheme(stored?.colorScheme)
+        ? stored.colorScheme
+        : initial.colorScheme,
+    surface:
+      policy.showSurfacePicker && isSurface(stored?.surface)
+        ? stored.surface
+        : policy.showSurfacePicker && isAccent(stored?.accent)
+          ? LEGACY_ACCENT_TO_SURFACE[stored.accent]
+          : initial.surface,
+    accent: legacyAccent,
   };
 }
 
@@ -254,6 +292,28 @@ export function buildThemeBootstrapScript(policy: AppearancePolicy = SITE_FLAVOR
   const accentValiditySet = accentLocked
     ? ""
     : `\n  const ACCENTS = ${JSON.stringify(Object.fromEntries(SUPPORTED_ACCENTS.map((id) => [id, 1])))};`;
+  const surfaceLocked = !policy.showSurfacePicker;
+  const surface = surfaceLocked
+    ? `\n  const surface = ${JSON.stringify(BASE_SURFACE)};`
+    : `\n  const SURFACES = ${JSON.stringify(Object.fromEntries(SUPPORTED_SURFACES.map((id) => [id, 1])))};
+  const LEGACY_SURFACES = ${JSON.stringify(LEGACY_ACCENT_TO_SURFACE)};
+  let surface = ${JSON.stringify(policy.defaultSurface)};
+  try {
+    const storedSurface = window.localStorage.getItem(${JSON.stringify(SURFACE_STORAGE_KEY)});
+    const storedAccent = window.localStorage.getItem(${JSON.stringify(ACCENT_STORAGE_KEY)});
+    if (Object.prototype.hasOwnProperty.call(SURFACES, storedSurface)) {
+      surface = storedSurface;
+    } else if (Object.prototype.hasOwnProperty.call(LEGACY_SURFACES, storedAccent)) {
+      surface = LEGACY_SURFACES[storedAccent];
+    }
+  } catch {}`;
+  const surfaceWrite = surfaceLocked
+    ? `  delete root.dataset.surface;`
+    : `  if (surface === ${JSON.stringify(BASE_SURFACE)}) {
+    delete root.dataset.surface;
+  } else {
+    root.dataset.surface = surface;
+  }`;
   // Under a lock the attribute is still *removed* rather than left alone. A locked accent
   // resolves to BASE_ACCENT rather than to `policy.defaultAccent` — a lock means the
   // publication's own identity, not a reader-facing opening choice — so this is one
@@ -270,12 +330,14 @@ export function buildThemeBootstrapScript(policy: AppearancePolicy = SITE_FLAVOR
   return `(() => {
   const COLORS = ${JSON.stringify(APPEARANCE_META_COLORS)};${accentValiditySet}
 ${visualStyle}
-${colorScheme}${accent}
+${colorScheme}${accent}${surface}
 
   const root = document.documentElement;
   root.dataset.visualStyle = style;
   root.dataset.theme = scheme;
   root.style.colorScheme = scheme;
+
+${surfaceWrite}
 
 ${accentWrite}
 

@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
 import { Icon } from "@/components/common/Icon";
+import { useTheme } from "@/context/ThemeContext";
 import { PanelBadge, PanelButton } from "./panelKit";
 import { customThemeSwatch } from "./customThemes";
 import { getPreset } from "./palettePresets";
@@ -40,6 +41,13 @@ export function SharedThemeInvite({ pending }: { pending: PendingShare }) {
   // this card is up should immediately be able to keep the shared one.
   const themeState = usePaletteLabTheme();
   const atCap = Boolean(theme) && !canAcceptSharedTheme(themeState);
+  const { setSurface, setAccent } = useTheme();
+  const accept = useCallback(() => {
+    const accepted = acceptPendingShare();
+    if (!accepted) return;
+    setSurface(accepted.surfaceId);
+    setAccent(accepted.accentId);
+  }, [setSurface, setAccent]);
 
   // The card can appear without the visitor asking for it (they followed a
   // link), so focus moves to it — otherwise a keyboard visitor has no idea the
@@ -109,7 +117,7 @@ export function SharedThemeInvite({ pending }: { pending: PendingShare }) {
               <PanelButton
                 className="flex-1 justify-center"
                 disabled={atCap}
-                onClick={acceptPendingShare}
+                onClick={accept}
               >
                 <Icon icon="lucide:check" size={14} />
                 <span>Keep this theme</span>

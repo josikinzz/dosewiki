@@ -428,7 +428,7 @@ export function ArticleContributorAttribution({
   const creditText = formatAttributionCreditText(attributionText);
   const isExternalAuthorHref = typeof authorHref === "string" && /^https?:\/\//.test(authorHref);
   const authorLinkClassName =
-    "relative z-20 rounded-full focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fuchsia-400";
+    "theme-focus-ring relative z-20 rounded-full";
   const authorLink = !authorHref ? (
     // No z-index: an unlinked name must not sit above the pill's own overlay
     // link, or it would punch a dead hole in an otherwise clickable card.

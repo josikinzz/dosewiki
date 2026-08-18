@@ -708,13 +708,11 @@ html[data-theme="light"] :is(
   .theme-external-source-pill,
   .theme-control-pill,
   .theme-control-pill-quiet,
-  .theme-reference-number,
   .theme-dose-tier-row,
   .theme-duration-stage-row,
   .theme-dose-detail-row,
   .theme-plateau-tier-row,
-  .theme-dosage-mode-tabs,
-  .theme-dosage-mode-tab
+  .theme-dosage-mode-tabs
 ) {
   border-color: transparent !important;
   background: var(--theme-frosted-control-bg) !important;
@@ -723,7 +721,7 @@ html[data-theme="light"] :is(
   --tw-ring-color: var(--theme-frosted-control-border) !important;
 }
 
-html[data-theme="light"] :is(.theme-name-chip-interactive:focus-visible, .theme-control-pill:focus-visible, .theme-control-pill[data-active="true"], .theme-control-pill-quiet:focus-visible, .theme-control-pill-quiet[data-active="true"], .theme-dosage-mode-tab[data-state="active"]) {
+html[data-theme="light"] :is(.theme-name-chip-interactive:focus-visible, .theme-control-pill:focus-visible, .theme-control-pill[data-active="true"], .theme-control-pill-quiet:focus-visible, .theme-control-pill-quiet[data-active="true"]) {
   border-color: transparent !important;
   background: var(--theme-frosted-control-hover-bg) !important;
   color: var(--theme-accent-strong) !important;
@@ -731,7 +729,7 @@ html[data-theme="light"] :is(.theme-name-chip-interactive:focus-visible, .theme-
   --tw-ring-color: var(--theme-frosted-control-hover-border) !important;
 }
 @media (hover: hover) {
-  html[data-theme="light"] :is(.theme-name-chip-interactive:hover, .theme-external-source-pill:hover, .theme-control-pill:hover, .theme-control-pill-quiet:hover, .theme-dosage-mode-tab:hover) {
+  html[data-theme="light"] :is(.theme-name-chip-interactive:hover, .theme-external-source-pill:hover, .theme-control-pill:hover, .theme-control-pill-quiet:hover) {
     border-color: transparent !important;
     background: var(--theme-frosted-control-hover-bg) !important;
     color: var(--theme-accent-strong) !important;
@@ -763,8 +761,6 @@ html[data-theme="light"] :is(
   .theme-external-source-pill,
   .theme-control-pill,
   .theme-control-pill-quiet,
-  .theme-reference-number,
-  .theme-citation-marker,
   .theme-interaction-severity-badge-danger,
   .theme-interaction-severity-badge-unsafe,
   .theme-interaction-severity-badge-caution
@@ -811,7 +807,7 @@ html[data-theme="light"] :is(
     .theme-interaction-danger,
     .theme-interaction-unsafe,
     .theme-interaction-caution
-  ) :is(.theme-name-chip-interactive:hover, .theme-external-source-pill:hover, .theme-citation-marker:hover, .theme-control-pill:hover, .theme-control-pill-quiet:hover, .theme-interaction-severity-badge-danger:hover, .theme-interaction-severity-badge-unsafe:hover, .theme-interaction-severity-badge-caution:hover) {
+  ) :is(.theme-name-chip-interactive:hover, .theme-external-source-pill:hover, .theme-control-pill:hover, .theme-control-pill-quiet:hover, .theme-interaction-severity-badge-danger:hover, .theme-interaction-severity-badge-unsafe:hover, .theme-interaction-severity-badge-caution:hover) {
     background: var(--theme-frosted-control-on-panel-hover-bg) !important;
     box-shadow: var(--theme-frosted-control-on-panel-hover-shadow) !important;
     --tw-ring-color: var(--theme-frosted-control-on-panel-hover-border) !important;
@@ -875,7 +871,7 @@ html[data-theme="light"] .theme-interaction-caution .theme-interaction-expanded-
     inset 0 1px 0 oklch(99% 0.01 82 / 0.66) !important;
 }
 
-html[data-theme="light"] .theme-route-tab {
+html[data-theme="light"] .theme-selected-control {
   border-color: transparent !important;
   background: transparent !important;
   color: var(--theme-text-secondary) !important;
@@ -891,7 +887,7 @@ html[data-theme="light"] .theme-route-tabs-list {
 }
 
 @media (hover: hover) {
-  html[data-theme="light"] .theme-route-tab:hover {
+  html[data-theme="light"] .theme-selected-control:hover {
     border-color: transparent !important;
     background: transparent !important;
     color: var(--theme-text-primary) !important;
@@ -899,14 +895,14 @@ html[data-theme="light"] .theme-route-tabs-list {
   }
 }
 
-html[data-theme="light"] .theme-route-tab[data-state="active"] {
-  border-color: var(--theme-article-route-active-border) !important;
-  background: var(--theme-article-route-active-bg) !important;
+html[data-theme="light"] .theme-selected-control[data-state="active"] {
+  border-color: var(--theme-selected-control-border) !important;
+  background: var(--theme-selected-control-bg) !important;
   background-clip: border-box !important;
   background-origin: border-box !important;
-  color: var(--theme-article-route-active-text) !important;
-  box-shadow: var(--theme-article-route-active-shadow) !important;
-  --tw-ring-color: var(--theme-article-route-active-border) !important;
+  color: var(--theme-selected-control-text) !important;
+  box-shadow: var(--theme-selected-control-shadow) !important;
+  --tw-ring-color: var(--theme-selected-control-border) !important;
 }
 
 html[data-theme="light"] .theme-article-toc-panel h2 {
@@ -938,7 +934,7 @@ html[data-theme="light"] .theme-article-toc-item[data-active="true"] {
   }
 }
 
-html[data-theme="light"] .theme-route-tab-icon {
+html[data-theme="light"] .theme-selected-control-icon {
   border-color: transparent !important;
   background: transparent !important;
   color: var(--theme-accent-strong) !important;
@@ -946,26 +942,26 @@ html[data-theme="light"] .theme-route-tab-icon {
   box-shadow: none !important;
 }
 
-html[data-theme="light"] .theme-route-tab:focus-visible .theme-route-tab-icon {
-  background: var(--theme-article-route-active-bg) !important;
-  color: var(--theme-article-route-active-text) !important;
-  --tw-ring-color: var(--theme-article-route-active-border) !important;
-  box-shadow: 0 0 0 1px var(--theme-article-route-active-border) !important;
+html[data-theme="light"] .theme-selected-control:focus-visible .theme-selected-control-icon {
+  background: var(--theme-selected-control-bg) !important;
+  color: var(--theme-selected-control-text) !important;
+  --tw-ring-color: var(--theme-selected-control-border) !important;
+  box-shadow: 0 0 0 1px var(--theme-selected-control-border) !important;
 }
 @media (hover: hover) {
-  html[data-theme="light"] .theme-route-tab:hover .theme-route-tab-icon {
-    background: var(--theme-article-route-active-bg) !important;
-    color: var(--theme-article-route-active-text) !important;
-    --tw-ring-color: var(--theme-article-route-active-border) !important;
-    box-shadow: 0 0 0 1px var(--theme-article-route-active-border) !important;
+  html[data-theme="light"] .theme-selected-control:hover .theme-selected-control-icon {
+    background: var(--theme-selected-control-bg) !important;
+    color: var(--theme-selected-control-text) !important;
+    --tw-ring-color: var(--theme-selected-control-border) !important;
+    box-shadow: 0 0 0 1px var(--theme-selected-control-border) !important;
   }
 }
 
-html[data-theme="light"] .theme-route-tab[data-state="active"] .theme-route-tab-icon {
-  background: var(--theme-article-route-active-bg) !important;
-  color: var(--theme-article-route-active-text) !important;
-  --tw-ring-color: var(--theme-article-route-active-border) !important;
-  box-shadow: 0 0 0 1px var(--theme-article-route-active-border) !important;
+html[data-theme="light"] .theme-selected-control[data-state="active"] .theme-selected-control-icon {
+  background: var(--theme-selected-control-bg) !important;
+  color: var(--theme-selected-control-text) !important;
+  --tw-ring-color: var(--theme-selected-control-border) !important;
+  box-shadow: 0 0 0 1px var(--theme-selected-control-border) !important;
 }
 
 html[data-theme="light"] .theme-author-avatar-placeholder {
@@ -1139,26 +1135,6 @@ html[data-theme="light"] :is(.theme-dose-detail-expanded, .theme-plateau-tier-ex
     linear-gradient(135deg, color-mix(in srgb, oklch(98% 0.016 334) 76%, var(--theme-body-bg)), color-mix(in srgb, oklch(95% 0.032 319) 78%, var(--theme-body-bg))) !important;
 }
 
-html[data-theme="light"] .theme-citation-marker {
-  background: var(--theme-frosted-control-bg) !important;
-  color: var(--theme-accent-strong) !important;
-  box-shadow: var(--theme-frosted-control-shadow);
-}
-
-html[data-theme="light"] .theme-reference-number {
-  background: var(--theme-article-reference-control-bg) !important;
-  color: var(--theme-article-reference-control-text) !important;
-  box-shadow: 0 0 0 1px var(--theme-article-reference-control-border) !important;
-  --tw-ring-color: var(--theme-article-reference-control-border) !important;
-}
-
-@media (hover: hover) {
-  html[data-theme="light"] .theme-citation-marker:hover {
-    background: var(--theme-frosted-control-hover-bg) !important;
-    color: var(--theme-accent-strong) !important;
-    box-shadow: var(--theme-frosted-control-hover-shadow);
-  }
-}
 
 html[data-theme="light"] .theme-interaction-severity-badge-danger {
   border-color: transparent !important;

@@ -226,7 +226,6 @@ html[data-palette="graphite"][data-theme="light"] .theme-chrome-dark {
   --theme-field-on-panel-surface: oklch(16% 0.014 250);
   --theme-field-on-panel-surface-alt: oklch(14% 0.012 250);
   --theme-article-neutral-panel-base: oklch(22.9% 0.014 250);
-  --theme-route-active-base: oklch(35.7% 0.02 250);
   --theme-header-nav-active-bg: oklch(25.9% 0.022 250);
   --theme-scroll-thumb-bg: radial-gradient(circle at 12% 0%, color-mix(in srgb, oklch(76% 0.020 250) 66%, var(--theme-scroll-track)), color-mix(in srgb, oklch(62% 0.026 250) 50%, var(--theme-scroll-track)) 42%), linear-gradient(135deg, color-mix(in srgb, oklch(62% 0.026 250) 50%, var(--theme-scroll-track)), color-mix(in srgb, oklch(50% 0.022 250) 40%, var(--theme-scroll-track)));
   --theme-scroll-thumb-hover-bg: radial-gradient(circle at 12% 0%, color-mix(in srgb, oklch(82% 0.018 250) 82%, var(--theme-scroll-track)), color-mix(in srgb, oklch(68% 0.027 250) 64%, var(--theme-scroll-track)) 42%), linear-gradient(135deg, color-mix(in srgb, oklch(68% 0.027 250) 64%, var(--theme-scroll-track)), color-mix(in srgb, oklch(56% 0.024 250) 52%, var(--theme-scroll-track)));
@@ -257,8 +256,6 @@ html[data-palette="graphite"][data-theme="light"] {
   --theme-accent-muted: oklch(45% 0.025 250);
   --theme-panel-base: oklch(95.5% 0.005 250);
   --theme-control-base: oklch(94% 0.006 250);
-  --theme-route-active-base: oklch(96% 0.007 250);
-  --theme-article-route-active-text: oklch(38% 0.03 250);
   --theme-card-border: oklch(48% 0.03 250 / 0.2);
   --theme-card-border-strong: oklch(45% 0.035 250 / 0.32);
   --theme-frosted-panel-border: oklch(58% 0.02 250 / 0.16);
@@ -1131,7 +1128,6 @@ html[data-palette="journal"][data-theme="light"] .theme-chrome-dark {
   --theme-field-on-panel-surface: oklch(27% 0.005 175);
   --theme-field-on-panel-surface-alt: oklch(25% 0.005 175);
   --theme-article-neutral-panel-base: oklch(29% 0.005 175);
-  --theme-route-active-base: oklch(38% 0.01 175);
   --theme-header-nav-active-bg: oklch(32% 0.008 175);
   --theme-search-overlay-bg: #2e2e2e;
   --theme-search-highlight-bg: #3a3a3a;
@@ -1206,8 +1202,6 @@ html[data-palette="journal"][data-theme="light"] {
   --theme-page-start: #f6f5f1;
   --theme-page-mid: #f6f5f1;
   --theme-article-neutral-panel-base: #fbfaf8;
-  --theme-route-active-base: oklch(94% 0.012 175);
-  --theme-article-route-active-text: #27635d;
   --theme-card-border: #dcdad3;
   --theme-card-border-strong: #c6c3ba;
   --theme-frosted-panel-border: #dcdad3;

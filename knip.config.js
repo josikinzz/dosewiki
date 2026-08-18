@@ -24,7 +24,7 @@ const config = {
       entry: [
         ...executableScripts,
         ".claude/workflows/*.mjs",
-        ".pi/skills/pi-citation-workflow/scripts/citation-campaign.mjs",
+        "tools/pi-citation-workflow/citation-campaign.mjs",
         "docs/perf/*.workflow.mjs",
         "tests/perf/*.mjs",
         "tools/local-public-fixture/{run-build,run-start}.mjs",
@@ -34,7 +34,6 @@ const config = {
         "middleware.ts",
         "*.config.{js,mjs,cjs,ts,mts,cts}",
         ".claude/workflows/**/*.mjs",
-        ".pi/skills/pi-citation-workflow/scripts/**/*.{js,mjs,cjs,ts,mts,cts,tsx}",
         "convex/**/*.{js,mjs,cjs,ts,mts,cts,tsx}",
         "docs/perf/**/*.mjs",
         "eslint-plugins/**/*.{js,mjs,cjs,ts,mts,cts,tsx}",

@@ -94,7 +94,7 @@ describe("article chemistry presentation sections", () => {
     );
 
     const moleculeImages = screen.getAllByAltText(chemistryPresentation.molecule.alt);
-    expect(moleculeImages[0]).toHaveAttribute("src", "/molecules/Display%20Only.svg");
+    expect(moleculeImages[0]).toHaveAttribute("src", "/molecules-ei-dark/Display%20Only.svg");
   });
 
   it("prioritizes above-the-fold molecule images with responsive sizes", () => {

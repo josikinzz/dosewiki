@@ -16,7 +16,7 @@ const reviewerLinkClassName = cn(
   "theme-accent-heading rounded font-semibold",
   "underline decoration-[color-mix(in_srgb,currentColor_35%,transparent)] decoration-1 underline-offset-2",
   "transition-[text-decoration-color,opacity] hover:decoration-current",
-  "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fuchsia-400",
+  "theme-focus-ring",
 );
 
 export interface ReviewStatusBannerProps {

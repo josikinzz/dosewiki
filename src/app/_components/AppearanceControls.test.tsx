@@ -10,6 +10,7 @@ import {
   VISUAL_STYLE_STORAGE_KEY,
 } from "@/context/ThemeContext";
 import { ACCENTS, BASE_ACCENT_ID } from "@/theme/accents";
+import { SURFACES } from "@/theme/surfaces";
 import { AppearanceCog, type AppearanceCogRows } from "./AppearanceCog";
 import { AppearanceControls } from "./AppearanceControls";
 import { ThemeToggle } from "./ThemeToggle";
@@ -37,6 +38,7 @@ if (!BASE_ACCENT || !OTHER_ACCENT) {
 const ALL_ROWS: AppearanceCogRows = {
   showVisualStyle: true,
   showColorScheme: true,
+  showSurface: true,
   showAccent: true,
   showMoreSettings: true,
 };
@@ -95,49 +97,43 @@ describe("AppearanceCog", () => {
     expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
 
     const panel = await openCog(user);
-    // Every axis is inside, in the settled order: style, colour scheme, accent. The Lab
-    // link sits between the pills and the swatches in the markup, but it is an <a>, so it
-    // is not in this list.
+    // Every axis is inside, in order: style, colour scheme, surfaces, accent.
     expect(
       within(panel)
         .getAllByRole("button")
-        .map((control) => control.dataset.appearanceAxis ?? control.dataset.accentSwatch),
-    ).toEqual(["visual-style", "color-scheme", ...ACCENTS.map((accent) => accent.id)]);
+        .map(
+          (control) =>
+            control.dataset.appearanceAxis ??
+            control.dataset.surfaceSwatch ??
+            control.dataset.accentSwatch,
+        ),
+    ).toEqual([
+      "visual-style",
+      "color-scheme",
+      ...SURFACES.map((surface) => surface.id),
+      ...ACCENTS.map((accent) => accent.id),
+    ]);
   });
 
-  it("holds no text at all, so each control carries its own name", async () => {
+  it("visibly labels both palette rows while every swatch keeps its own name", async () => {
     const user = userEvent.setup();
     renderCog();
 
     const panel = await openCog(user);
-
-    // The "Style" / "Colour scheme" / "Accent" labels are gone and no control has a visible
-    // caption, so a control that loses its label is unnamed rather than badly named.
-    expect(panel.textContent).toBe("");
-    // Document order, across both roles, is the order the panel reads: row one is the two
-    // pills then the Lab link, and the swatch strip is under them.
-    //
-    // It reads the attribute on purpose, and it is the only assertion in the suite that
-    // catches a dropped `aria-label` on the icon-only link. Measured by deleting each of the
-    // link's two names: `title` is the last-resort fallback in the accessible-name
-    // computation, so with `aria-label` gone every name query below still passes on a name
-    // screen readers may ignore and touch never surfaces. Only losing both makes the queries
-    // fail — six in this file, while `Footer.test.tsx:200` and `HomeExperience.test.tsx:140`
-    // would keep passing on a link they can no longer find by name, asserting nothing.
+    expect(within(panel).getByText("Surfaces")).toBeVisible();
+    expect(within(panel).getByText("Accent")).toBeVisible();
     expect(
       [...panel.querySelectorAll("button, a")].map((control) => control.getAttribute("aria-label")),
     ).toEqual([
       "Switch to Pro visual style",
       "Switch to day mode",
-      "More settings",
+      ...SURFACES.map((option) => option.label),
       ...ACCENTS.map((option) => option.label),
+      "Open full Palette Lab",
     ]);
-    // Positively and by name, so the four "a reader is never offered an editor route"
-    // negatives cannot quietly become assertions about nothing: this fails loudly the moment
-    // the link stops being named "More settings".
-    expect(within(panel).getByRole("link", { name: "More settings" })).toHaveAccessibleName(
-      "More settings",
-    );
+    expect(
+      within(panel).getByRole("link", { name: "Open full Palette Lab" }),
+    ).toHaveAccessibleName("Open full Palette Lab");
   });
 
   it("holds no state of its own: every mounted control reflects one provider", async () => {
@@ -198,15 +194,11 @@ describe("AppearanceCog", () => {
 
     const panel = await screen.findByRole("dialog", { name: "Appearance" });
     // The panel is portalled, so tab order is no longer "the next sibling in the markup".
-    // What has to hold is that opening from the keyboard lands inside the panel and that
-    // tabbing from there reaches every control in the order they read: both pills and the
-    // Lab link across row one, then the swatch strip beneath them.
-    const [visualStyle, colorScheme, ...swatches] = within(panel).getAllByRole("button");
+    // Visual order and focus order agree: binary controls, both swatch rows, then the
+    // full-width Palette Lab action.
     const reachable = [
-      visualStyle,
-      colorScheme,
-      within(panel).getByRole("link", { name: "More settings" }),
-      ...swatches,
+      ...within(panel).getAllByRole("button"),
+      within(panel).getByRole("link", { name: "Open full Palette Lab" }),
     ];
 
     await waitFor(() => {
@@ -316,7 +308,12 @@ describe("AppearanceCog", () => {
 
   it("drops a locked row rather than rendering it inert", async () => {
     const user = userEvent.setup();
-    renderCog({ showVisualStyle: false, showAccent: false, showMoreSettings: false });
+    renderCog({
+      showVisualStyle: false,
+      showSurface: false,
+      showAccent: false,
+      showMoreSettings: false,
+    });
 
     const panel = await openCog(user);
 
@@ -337,6 +334,7 @@ describe("AppearanceCog", () => {
     renderCog({
       showVisualStyle: false,
       showColorScheme: false,
+      showSurface: false,
       showAccent: false,
       showMoreSettings: false,
     });
@@ -348,9 +346,6 @@ describe("AppearanceCog", () => {
    * The `/dev/kit` sweep server-renders every story in all four combinations, but a closed
    * Radix popover renders nothing on the server and its portal returns null before mount —
    * so the panel's four-way coverage has to live here, where it can actually be opened.
-   *
-   * Structure only. What each combination *looks* like is a token question, answered by the
-   * shared recipes the panel is built from and reviewed in the browser.
    */
   it.each([
     { colorScheme: "light", visualStyle: "fun" },
@@ -377,14 +372,24 @@ describe("AppearanceCog", () => {
       );
 
       const panel = await openCog(user);
+      const surfaceButtons = SURFACES.map((option) =>
+        within(panel).getByRole("button", { name: option.label }),
+      );
 
       expect(panel).toHaveClass("theme-overlay-surface");
       expect(panel.querySelectorAll("[data-appearance-axis]")).toHaveLength(2);
       expect(panel.querySelectorAll("[data-accent-swatch]")).toHaveLength(ACCENTS.length);
-      expect(within(panel).getByRole("link", { name: /More settings/ })).toHaveAttribute(
-        "href",
-        "/dev/themes",
+      expect(surfaceButtons.every((button) => button.hasAttribute("disabled"))).toBe(
+        visualStyle === "pro",
       );
+      for (const [index, button] of surfaceButtons.entries()) {
+        expect(button.firstElementChild).toHaveStyle({
+          backgroundColor: SURFACES[index]!.tint[colorScheme],
+        });
+      }
+      expect(
+        within(panel).getByRole("link", { name: "Open full Palette Lab" }),
+      ).toHaveAttribute("href", "/dev/themes");
     },
   );
 });
@@ -425,7 +430,7 @@ describe("AppearanceControls", () => {
     expect(within(panel).queryByRole("group", { name: "Accent" })).not.toBeInTheDocument();
   });
 
-  it("keeps the Theme Lab link off a reader's cog", async () => {
+  it("offers the protected full Palette Lab from a reader's cog", async () => {
     const user = userEvent.setup();
     render(
       <ThemeProvider initialColorScheme="dark" initialVisualStyle="fun" isVisualStyleLocked={false}>
@@ -435,9 +440,9 @@ describe("AppearanceControls", () => {
 
     const panel = await openCog(user);
 
-    // No <SessionProvider /> here, exactly as on a public page, so there is no editor
-    // session to read. A row pointing at an editor route a reader cannot open is noise.
-    expect(within(panel).queryByRole("link")).not.toBeInTheDocument();
+    expect(
+      within(panel).getByRole("link", { name: "Open full Palette Lab" }),
+    ).toHaveAttribute("href", "/dev/themes");
   });
 
   it("puts the caller's class on the trigger itself, with no wrapper to take the offset", () => {

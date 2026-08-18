@@ -109,7 +109,7 @@ export function PublicNameChip<TElement extends ElementType = "span">({
     <Component
       className={cn(
         "theme-name-chip inline-flex items-center gap-1.5 rounded-lg px-3.5 py-1.5 text-xs font-medium ring-1 ring-transparent transition",
-        "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fuchsia-400",
+        "theme-focus-ring",
         hasElementHitTarget
           ? "relative before:absolute before:inset-[-0.375rem] before:content-[''] [@media(pointer:fine)]:before:inset-0"
           : undefined,
@@ -153,7 +153,7 @@ export function PublicChipNav({
       {items.map((item) => {
         const tone = item.active ? (item.tone ?? "accent") : (item.tone ?? "neutral");
         const chipClassName = cn(
-          "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fuchsia-400",
+          "theme-focus-ring",
           item.href || onSelect
             ? "relative cursor-pointer hover:opacity-90 before:absolute before:inset-[-0.375rem] before:content-[''] [@media(pointer:fine)]:before:inset-0"
             : undefined,

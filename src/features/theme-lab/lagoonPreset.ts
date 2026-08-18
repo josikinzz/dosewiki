@@ -41,14 +41,10 @@ import {
  * - `--h-text: 200` — matched to `--h-plum`, as every other colourway matches
  *   the two, so the near-neutral ink shares the surface family instead of
  *   cross-tinting it.
- * - `--h-violet: 222` — the secondary selected/informational role: active index
- *   and dosage/duration tabs, reference controls, the modal dim, and
- *   `--theme-route-active-base`, which the base sheet expresses as
- *   `oklch(35.7% 0.112 var(--h-violet))`. 35° off the brand — exactly Abyss's
- *   brand-to-violet gap — so a selected tab stays a distinguishable cyan-blue
- *   step rather than a second teal, and 38° clear of the info blue at
- *   `--h-blue: 260` (Orchid ships 36°, Abyss 30°), so "selected" and
- *   "informational" do not collapse onto each other.
+ * - `--h-violet: 222` — the surface-local secondary hue used by decorative
+ *   and informational treatments such as the modal dim. Selected controls and
+ *   inline references no longer consume it; those derive from the independent
+ *   Accent axis.
  *
  * Safety: `--h-green` moves from the authored 160 to **150**, Abyss's precedent,
  * which widens brand-to-success from 27° to 37° and takes the success and

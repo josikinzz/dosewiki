@@ -1,3 +1,4 @@
+import { BASE_ACCENT, BASE_SURFACE, isAccent, isSurface } from "@/theme";
 import {
   PALETTE_LAB_PERSIST_DELAY_MS,
   PALETTE_LAB_STORAGE_KEY,
@@ -10,7 +11,8 @@ import {
   writeOverrideStyle,
   writePaletteAttribute,
   writeSerializedEnvelope,
-  type StoredEnvelopeV3,
+  partitionOverrides,
+  type StoredEnvelopeV4,
 } from "./paletteLabStorage";
 import { activePaletteId, effectiveOverrides, userLayerOverrides } from "./paletteLabTheme";
 import { blurDisabledIn } from "./flatnessAxes";
@@ -49,12 +51,19 @@ let pending: string | null = null;
  */
 let lastPersistAttempt: string | null = null;
 
-function envelopeFor(): StoredEnvelopeV3 {
+function envelopeFor(): StoredEnvelopeV4 {
   const { activeThemeRef, editsByPreset, customThemes } = getPaletteLabTheme();
+  const surface = typeof document === "undefined" ? null : document.documentElement.dataset.surface;
+  const accent = typeof document === "undefined" ? null : document.documentElement.dataset.accent;
   return {
-    version: 3,
+    version: 4,
     activeThemeRef,
+    activeSurfaceId: isSurface(surface) ? surface : BASE_SURFACE,
+    activeAccentId: isAccent(accent) ? accent : BASE_ACCENT,
     editsByPreset,
+    roleEditsByPreset: Object.fromEntries(
+      Object.entries(editsByPreset).map(([key, value]) => [key, partitionOverrides(value)]),
+    ),
     customThemes,
     shareFormat: THEME_SHARE_FORMAT,
   };
@@ -155,6 +164,12 @@ function onStorage(event: StorageEvent) {
     editsByPreset: envelope.editsByPreset,
     customThemes: envelope.customThemes,
   });
+  if (persistTimer !== null) {
+    window.clearTimeout(persistTimer);
+    persistTimer = null;
+  }
+  pending = null;
+  lastPersistAttempt = serializeEnvelope(envelopeFor());
   applyOverrideStyle();
 }
 

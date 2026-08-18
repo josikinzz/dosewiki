@@ -52,6 +52,7 @@ describe("local subsection campaign hardening", () => {
       stage: { stage: "article_wide", reason: "article_wide_missing" },
     });
     expect(prompt).toContain("Create only article-wide.json");
+    expect(prompt).toContain("docs/agents/pi-citation-run-contract.md");
     expect(prompt).toContain("preserve every accepted artifact");
     expect(prompt).toContain("Never apply a draft");
   });

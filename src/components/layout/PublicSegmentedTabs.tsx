@@ -155,7 +155,7 @@ export function PublicSegmentedTabs<TValue extends string = string>({
                 : undefined
             }
             className={cn(
-              "theme-route-tab group relative isolate overflow-hidden rounded-full border border-transparent font-medium transition-[transform,background-color,color,box-shadow,border-color] duration-[260ms] ease-[cubic-bezier(0.25,1,0.5,1)] motion-reduce:transition-none [@media(pointer:coarse)]:min-h-11",
+              "theme-selected-control group relative isolate overflow-hidden rounded-full border border-transparent font-medium transition-[transform,background-color,color,box-shadow,border-color] duration-[260ms] ease-[cubic-bezier(0.25,1,0.5,1)] motion-reduce:transition-none [@media(pointer:coarse)]:min-h-11",
               item.prominence === "major"
                 ? "min-h-9 gap-2 px-4 py-2 text-[0.9375rem] font-semibold"
                 : "min-h-8 gap-1.5 px-3 py-1.5 text-sm",
@@ -164,7 +164,7 @@ export function PublicSegmentedTabs<TValue extends string = string>({
             {item.icon ? (
               <span
                 className={cn(
-                  "theme-route-tab-icon relative flex shrink-0 items-center justify-center rounded-full ring-1 transition-[background-color,color,box-shadow,transform] duration-300",
+                  "theme-selected-control-icon relative flex shrink-0 items-center justify-center rounded-full ring-1 transition-[background-color,color,box-shadow,transform] duration-300",
                   item.prominence === "major" ? "h-7 w-7" : "h-6 w-6",
                   item.id !== value && "bg-transparent ring-transparent shadow-[var(--theme-elevation-none)]",
                 )}

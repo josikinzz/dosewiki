@@ -2,20 +2,20 @@
 
 ## Scope
 
-- The active citation path is the repo-local Pi workflow in `.pi/skills/pi-citation-workflow/`.
+- The active citation path is the repo-local Pi contract in `docs/agents/pi-citation-run-contract.md`, implemented under `tools/pi-citation-workflow/`.
 - `/Users/josie/.codex/dosewiki-citation-workbench` stores run inputs, artifacts, and validation output. This repository owns export, adaptation, review, apply, and public rendering.
 - Use the external Claude workbench transport only when the user explicitly asks for that transport or for its queue orchestration.
 
 ## Start here
 
-- Read `.pi/skills/pi-citation-workflow/SKILL.md` for the active run contract.
+- Read [the Pi citation run contract](pi-citation-run-contract.md) and [workflow guide](pi-citation-workflow.md).
 - Read [docs/citation-workbench-tracker.md](../citation-workbench-tracker.md) for project state and integration notes.
 - Use [scripts/README.md](../../scripts/README.md), especially "Formal citations," for script details.
 - The completed citation-author repair and provenance records are historical evidence. They live in [Historical citation-author repair evidence](#historical-citation-author-repair-evidence), outside the run sequence.
 
 ## Current project paths
 
-- Pi workflow and agents: `.pi/skills/pi-citation-workflow/` and `.pi/agents/`
+- Pi workflow implementation and agents: `tools/pi-citation-workflow/` and `.pi/agents/`
 - Workbench apply script and adapter: `scripts/citations/apply-workbench-draft.mjs` and `scripts/citations/workbench-draft-adapter.mjs`
 - Citation workflow scripts and tests: `scripts/citations/`
 - Citation reference identity helpers: `lib/citations/referenceIdentity.mjs`
@@ -30,7 +30,7 @@
 
 ## Transport branches
 
-- **Active Pi path:** Use this for an explicit substance slug or immutable local proposal unless the user explicitly chooses the external Claude branch. Launch `.pi/skills/pi-citation-workflow/` from this repository. It writes and validates artifacts in the external workbench without changing repository content or Convex.
+- **Active Pi path:** Use this for an explicit substance slug or immutable local proposal unless the user explicitly chooses the external Claude branch. Invoke Pi with an explicit prompt to follow `docs/agents/pi-citation-run-contract.md` and `docs/agents/pi-citation-workflow.md`. It writes and validates artifacts in the external workbench without changing repository content or Convex.
 - **Optional external Claude branch:** Use this only when the user explicitly asks for the external Claude `/cite` transport or its queue orchestration. Read `/Users/josie/.codex/dosewiki-citation-workbench/CLAUDE.md` and the workbench `.codex/skills/cite` skill. Keep Claude inside the workbench; scaffold any outside data before launch. Keep repository orchestration, apply, deploy, and handoff details out of Claude-visible instructions.
 - **Apply branch:** Enter this only after a reviewed, apply-bound live-task draft exists and the user explicitly asks to write it. Local-proposal drafts can never enter this branch.
 
@@ -53,7 +53,7 @@
 
 ## Pi workflow contract
 
-- `.pi/skills/pi-citation-workflow/` and the named agents in `.pi/agents/` own the active workflow. Follow that skill instead of copying its internal gates into this file.
+- `docs/agents/pi-citation-run-contract.md`, `tools/pi-citation-workflow/`, and the named agents in `.pi/agents/` own the active workflow. Follow the contract instead of copying its internal gates into this file.
 - Pi workers signal completion with a schema-validated handoff. `check-section`, `article_wide_check`, and `scripts/artifact-contract.mjs` decide whether an artifact is accepted.
 - `pi-run-manifest.mjs run-sequence` owns reconciliation. A corrective finalized attempt uses `rerun --reuse-sections`; only accepted artifacts with matching recorded hashes carry forward.
 - Discovery history may appear only at top-level `metadata.discoveryProvenance` in JSON and in one exact `## Discovery provenance` report section. Public marked prose, references, evidence, and patches remain fail-closed.
@@ -90,7 +90,7 @@ Run every repository command from the DoseWiki repository root. Use one slug per
    npm --prefix /Users/josie/.codex/dosewiki-citation-workbench run cache:psychonautwiki:local
    ```
 
-   For an immutable local proposal, skip export and `fresh-run`; invoke the Pi skill with `--proposal <path>`. That draft remains permanently local and review-only.
+   For an immutable local proposal, skip export and `fresh-run`; prepare it with `tools/pi-citation-workflow/prepare-local-proposal-run.mjs`, then invoke Pi with an explicit prompt naming the returned run and the Pi citation run contract. That draft remains permanently local and review-only.
 
    For an approved second pass, use the immutable plan:
 
@@ -110,7 +110,7 @@ Run every repository command from the DoseWiki repository root. Use one slug per
    - Active Pi path:
 
      ```bash
-     command /opt/homebrew/bin/pi -p "/skill:pi-citation-workflow <drug-slug>" </dev/null
+     command /opt/homebrew/bin/pi -p "Run the Pi citation workflow for <drug-slug>. Follow docs/agents/pi-citation-run-contract.md and docs/agents/pi-citation-workflow.md." </dev/null
      ```
 
    - Optional external Claude branch: enter only for an explicit request for the external Claude `/cite` transport or its queue orchestration. Run it inside `/Users/josie/.codex/dosewiki-citation-workbench` under its `CLAUDE.md` and `.codex/skills/cite` instructions. Do not run Pi and Claude against the same attempt.

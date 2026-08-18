@@ -184,7 +184,7 @@ export function HomeExperience({
                   <div className="theme-divider mx-3 hidden h-7 w-px sm:block" />
                   <button
                     type="submit"
-                    className="theme-accent-heading inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full transition-transform duration-200 hover:scale-105 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fuchsia-400"
+                    className="theme-accent-heading theme-focus-ring inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full transition-transform duration-200 hover:scale-105"
                     aria-label="Search mockup"
                   >
                     <Icon icon="lucide:search" size={22} />
@@ -213,7 +213,7 @@ export function HomeExperience({
                     type="button"
                     onClick={() => showComingSoon(item.label)}
                     data-clicked={clickedItem === item.label}
-                    className="theme-header-nav-link theme-home-mock-button relative flex min-h-11 items-center gap-2.5 rounded-full border border-transparent px-4 py-2 text-sm font-medium focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fuchsia-400"
+                    className="theme-header-nav-link theme-focus-ring theme-home-mock-button relative flex min-h-11 items-center gap-2.5 rounded-full border border-transparent px-4 py-2 text-sm font-medium"
                   >
                     <Icon icon={item.icon} size={22} className="theme-header-nav-icon shrink-0" />
                     <span>{item.label}</span>
@@ -223,7 +223,7 @@ export function HomeExperience({
                   <Link
                     key={item.label}
                     href={item.href}
-                    className="theme-header-nav-link relative flex min-h-11 items-center gap-2.5 rounded-full border border-transparent px-4 py-2 text-sm font-medium focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fuchsia-400"
+                    className="theme-header-nav-link theme-focus-ring relative flex min-h-11 items-center gap-2.5 rounded-full border border-transparent px-4 py-2 text-sm font-medium"
                   >
                     <Icon icon={item.icon} size={22} className="theme-header-nav-icon shrink-0" />
                     <span>{item.label}</span>
@@ -241,7 +241,7 @@ export function HomeExperience({
                   type="button"
                   onClick={() => showComingSoon(item.label)}
                   data-clicked={clickedItem === item.label}
-                  className="theme-header-nav-link theme-home-mock-button relative flex min-h-11 items-center gap-2.5 rounded-full border border-transparent px-4 py-2 text-sm font-medium focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fuchsia-400"
+                  className="theme-header-nav-link theme-focus-ring theme-home-mock-button relative flex min-h-11 items-center gap-2.5 rounded-full border border-transparent px-4 py-2 text-sm font-medium"
                 >
                   <Icon icon={item.icon} size={22} className="theme-header-nav-icon shrink-0" />
                   <span>{item.label}</span>
@@ -251,7 +251,7 @@ export function HomeExperience({
                 <Link
                   key={item.label}
                   href={item.href}
-                  className="theme-header-nav-link relative flex min-h-11 items-center gap-2.5 rounded-full border border-transparent px-4 py-2 text-sm font-medium focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fuchsia-400"
+                  className="theme-header-nav-link theme-focus-ring relative flex min-h-11 items-center gap-2.5 rounded-full border border-transparent px-4 py-2 text-sm font-medium"
                 >
                   <Icon icon={item.icon} size={22} className="theme-header-nav-icon shrink-0" />
                   <span>{item.label}</span>
@@ -287,7 +287,7 @@ export function HomeExperience({
                         type="button"
                         onClick={() => showComingSoon(item.label)}
                         data-clicked={clickedItem === item.label}
-                        className="theme-header-nav-link theme-mobile-nav-link theme-home-mock-button relative flex min-h-11 items-center gap-3.5 rounded-xl border border-transparent px-3 py-2.5 text-sm font-semibold focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fuchsia-400"
+                        className="theme-header-nav-link theme-focus-ring theme-mobile-nav-link theme-home-mock-button relative flex min-h-11 items-center gap-3.5 rounded-xl border border-transparent px-3 py-2.5 text-sm font-semibold"
                       >
                         <Icon icon={item.icon} size={24} className="theme-header-nav-icon shrink-0" />
                         <span>{item.label}</span>
@@ -298,7 +298,7 @@ export function HomeExperience({
                         key={item.label}
                         href={item.href}
                         onClick={() => setIsMenuOpen(false)}
-                        className="theme-header-nav-link theme-mobile-nav-link relative flex min-h-11 items-center gap-3.5 rounded-xl border border-transparent px-3 py-2.5 text-sm font-semibold focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fuchsia-400"
+                        className="theme-header-nav-link theme-focus-ring theme-mobile-nav-link relative flex min-h-11 items-center gap-3.5 rounded-xl border border-transparent px-3 py-2.5 text-sm font-semibold"
                       >
                         <Icon icon={item.icon} size={24} className="theme-header-nav-icon shrink-0" />
                         <span>{item.label}</span>

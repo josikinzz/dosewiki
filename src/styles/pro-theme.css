@@ -403,22 +403,26 @@ html[data-visual-style="pro"][data-theme="dark"] {
   --theme-article-neutral-panel-bg: var(--ei-surface);
   --theme-article-neutral-panel-shadow: none;
 
-  --theme-route-active-base: var(--ei-surface-sunk);
-  --theme-article-route-active-border: var(--ei-accent);
-  --theme-article-route-active-highlight: var(--ei-surface-sunk);
-  --theme-article-route-active-primary: var(--ei-surface-sunk);
-  --theme-article-route-active-secondary: var(--ei-surface-sunk);
-  --theme-article-route-active-bg: var(--ei-surface-sunk);
-  --theme-article-route-active-text: var(--ei-accent-strong);
-  /* Flat: the 1px accent border IS the selected edge. The Fun stack draws a
-     1px halo on top of that border, which reads as a soft glow only because
-     the Fun border is translucent — against an opaque accent it doubles into a
-     hard 2px outline. Depth here is occlusion, not light. */
-  --theme-article-route-active-shadow: none;
+  /* Pro uses the same Accent-owned selected-control and inline-reference
+     contracts as Fun, but flattens them onto restrained paper surfaces. */
+  --theme-selected-control-base: var(--ei-surface-sunk);
+  --theme-selected-control-border: var(--ei-accent);
+  --theme-selected-control-highlight: var(--ei-surface-sunk);
+  --theme-selected-control-primary: var(--ei-surface-sunk);
+  --theme-selected-control-secondary: var(--ei-surface-sunk);
+  --theme-selected-control-bg: var(--ei-surface-sunk);
+  --theme-selected-control-text: var(--ei-accent-strong);
+  --theme-selected-control-shadow: none;
+  --theme-selected-control-focus: var(--ei-accent);
+  --theme-selected-control-glow: none;
 
-  --theme-article-reference-control-border: var(--ei-border);
-  --theme-article-reference-control-bg: var(--ei-surface-raised);
-  --theme-article-reference-control-text: var(--ei-accent-strong);
+  --theme-inline-reference-border: var(--ei-accent);
+  --theme-inline-reference-bg: var(--ei-surface-raised);
+  --theme-inline-reference-text: var(--ei-accent-strong);
+  --theme-inline-reference-hover-border: var(--ei-accent-strong);
+  --theme-inline-reference-hover-bg: var(--ei-surface-raised);
+  --theme-inline-reference-hover-text: var(--ei-accent-strong);
+  --theme-inline-reference-focus: var(--ei-accent);
 
   /* Scrollbars pick up the accent. */
   --theme-scroll-track: var(--ei-surface-sunk);
@@ -971,25 +975,6 @@ html[data-visual-style="pro"] .from-\[color-mix\(in_srgb\,\#fff_12\%\,var\(--the
   background-color: var(--ei-surface-sunk);
 }
 
-/* Focus rings. 42 call sites hardcode `focus-visible:outline-fuchsia-400`
-   and 7 more use a `ring-fuchsia-400` variant; theme-light-mode.css remaps
-   text/bg/border/ring-white and text-fuchsia-* but never outline-*, so
-   without this every keyboard focus ring renders Tailwind fuchsia.
-
-   outline-color is safe to set unconditionally: the utility only turns the
-   outline on under :focus-visible. The ring rules are gated on the state
-   because several of these elements also carry a resting ring, and they
-   need !important because .theme-index-card-icon below pins
-   --tw-ring-color with !important. */
-html[data-visual-style="pro"] .focus-visible\:outline-fuchsia-400,
-html[data-visual-style="pro"] .peer-focus-visible\:outline-fuchsia-400 {
-  outline-color: var(--ei-accent-strong);
-}
-
-html[data-visual-style="pro"] .focus\:ring-fuchsia-400:focus,
-html[data-visual-style="pro"] .focus-visible\:ring-fuchsia-400:focus-visible {
-  --tw-ring-color: var(--ei-accent-strong) !important;
-}
 
 /* Resting decorative rings: contributor avatars and the article-section
    card hairline. */

@@ -1,0 +1,70 @@
+import { BASE_SURFACE_ID, SURFACES, type Surface } from "./surfaces";
+import funTokens from "./surfaceFunTokens.generated.json";
+
+export const SURFACE_ATTRIBUTE = "data-surface";
+export const SURFACE_STYLESHEET_PATH = "src/styles/surface-tokens.generated.css";
+const NOT_PRO = ':where(:not([data-visual-style="pro"]))';
+
+function block(selector: string, declarations: Readonly<Record<string, string>>) {
+  const entries = Object.entries(declarations);
+  if (!entries.length) return "";
+  return `${selector} {\n${entries.map(([key, value]) => `  ${key}: ${value};`).join("\n")}\n}\n`;
+}
+
+function funSelector(id: string, theme: string, isBase: boolean) {
+  const surface = isBase ? `:not([${SURFACE_ATTRIBUTE}])` : `[${SURFACE_ATTRIBUTE}="${id}"]`;
+  return `html${surface}[data-theme="${theme}"]:where(:not([data-palette]))${NOT_PRO}`;
+}
+function proSelector(id: string, theme: string, isBase: boolean) {
+  const surface = isBase ? `:not([${SURFACE_ATTRIBUTE}])` : `[${SURFACE_ATTRIBUTE}="${id}"]`;
+  return `html[data-visual-style="pro"]${surface}[data-theme="${theme}"]`;
+}
+
+function blendHex(base: string, tint: string, amount = 0.04) {
+  const expand = (value: string) =>
+    value.length === 4
+      ? `#${value
+          .slice(1)
+          .split("")
+          .map((part) => part + part)
+          .join("")}`
+      : value;
+  const from = expand(base);
+  const to = expand(tint);
+  const channel = (offset: number) =>
+    Math.round(
+      Number.parseInt(from.slice(offset, offset + 2), 16) * (1 - amount) +
+        Number.parseInt(to.slice(offset, offset + 2), 16) * amount,
+    )
+      .toString(16)
+      .padStart(2, "0");
+  return `#${channel(1)}${channel(3)}${channel(5)}`;
+}
+
+function proSurface(surface: Surface, theme: "dark" | "light") {
+  const tint = surface.tint[theme];
+  const dark = theme === "dark";
+  const bases = dark
+    ? { "--ei-surface": "#191919", "--ei-surface-sunk": "#0c0c0c", "--ei-surface-deep": "#070707", "--ei-border": "#3f3f3f", "--ei-border-strong": "#808080" }
+    : { "--ei-surface": "#fbfaf8", "--ei-surface-sunk": "#efeee9", "--ei-surface-deep": "#e4e2db", "--ei-border": "#dcdad3", "--ei-border-strong": "#8b8880" };
+  return Object.fromEntries(
+    Object.entries(bases).map(([key, value]) => [key, blendHex(value, tint)]),
+  );
+}
+
+function surfaceCss(surface: Surface) {
+  const parts: string[] = [];
+  const isBase = surface.id === BASE_SURFACE_ID;
+  for (const theme of ["dark", "light"] as const) {
+    const fun = funTokens[surface.id][theme] as Record<string, string>;
+    parts.push(block(funSelector(surface.id, theme, isBase), fun));
+    if (!isBase) {
+      parts.push(block(proSelector(surface.id, theme, false), proSurface(surface, theme)));
+    }
+  }
+  return `/* ${surface.label} */\n${parts.filter(Boolean).join("\n")}`;
+}
+
+export function buildSurfaceStylesheetCss() {
+  return `/* GENERATED FILE — Source: src/theme/surfaces.ts. Regenerate: npm run generate:surface-css */\n\n${SURFACES.map(surfaceCss).join("\n")}`;
+}

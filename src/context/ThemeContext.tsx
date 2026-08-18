@@ -12,26 +12,32 @@ import {
 import { SITE_FLAVOR_CONFIG } from "@/config/siteFlavor";
 import {
   ACCENT_STORAGE_KEY,
+  SURFACE_STORAGE_KEY,
+  BASE_SURFACE,
   COLOR_SCHEME_STORAGE_KEY,
   BASE_ACCENT,
   getInitialAppearance,
+  LEGACY_ACCENT_TO_SURFACE,
   THEME_META_ID,
   VISUAL_STYLE_STORAGE_KEY,
   getAppearanceMetaColor,
   isAccent,
   isColorScheme,
+  isSurface,
   isVisualStyle,
   type AccentId,
   type Appearance,
+  type SurfaceId,
   type ColorScheme,
   type VisualStyle,
 } from "@/theme";
 
-export type { AccentId, Appearance, ColorScheme, VisualStyle } from "@/theme";
+export type { AccentId, Appearance, ColorScheme, SurfaceId, VisualStyle } from "@/theme";
 export {
   ACCENT_STORAGE_KEY,
   COLOR_SCHEME_STORAGE_KEY,
   THEME_META_ID,
+  SURFACE_STORAGE_KEY,
   VISUAL_STYLE_STORAGE_KEY,
 } from "@/theme";
 
@@ -45,9 +51,11 @@ type ThemeContextValue = {
   colorScheme: ColorScheme;
   visualStyle: VisualStyle;
   accent: AccentId;
+  surface: SurfaceId;
   setColorScheme: (value: ColorScheme) => void;
   setVisualStyle: (value: VisualStyle) => void;
   setAccent: (value: AccentId) => void;
+  setSurface: (value: SurfaceId) => void;
   toggleColorScheme: () => void;
   toggleVisualStyle: () => void;
   /**
@@ -59,6 +67,7 @@ type ThemeContextValue = {
   isVisualStyleLocked: boolean;
   /** Same contract for the accent axis: under a lock `setAccent` is a no-op. */
   isAccentLocked: boolean;
+  isSurfaceLocked: boolean;
 };
 
 const ThemeContext = createContext<ThemeContextValue | null>(null);
@@ -80,7 +89,7 @@ type AppearanceGuard<T extends string> = (value: string | null | undefined) => v
  * is the same answer either way.
  */
 function resolvePaintedAxis<T extends string>(
-  datasetKey: "theme" | "visualStyle" | "accent",
+  datasetKey: "theme" | "visualStyle" | "surface" | "accent",
   storageKey: string,
   isSupported: AppearanceGuard<T>,
 ): T | null {
@@ -116,7 +125,7 @@ function persistPreference(storageKey: string, value: string) {
   }
 }
 
-function applyAppearanceToDocument({ colorScheme, visualStyle, accent }: Appearance) {
+function applyAppearanceToDocument({ colorScheme, visualStyle, surface, accent }: Appearance) {
   if (typeof document === "undefined") {
     return;
   }
@@ -125,6 +134,8 @@ function applyAppearanceToDocument({ colorScheme, visualStyle, accent }: Appeara
   root.dataset.theme = colorScheme;
   root.dataset.visualStyle = visualStyle;
   root.style.colorScheme = colorScheme;
+  if (surface === BASE_SURFACE) delete root.dataset.surface;
+  else root.dataset.surface = surface;
 
   // The default accent is the *absence* of the attribute, matching the bootstrap: it has no
   // block in the generated stylesheet, so an attribute would name an override that does not
@@ -150,21 +161,29 @@ export function ThemeProvider({
   initialColorScheme = SITE_FLAVOR_CONFIG.defaultColorScheme,
   initialVisualStyle = SITE_FLAVOR_CONFIG.defaultVisualStyle,
   initialAccent,
+  initialSurface,
   isVisualStyleLocked = !SITE_FLAVOR_CONFIG.showVisualStyleToggle,
   isAccentLocked = !SITE_FLAVOR_CONFIG.showAccentPicker,
+  isSurfaceLocked = !SITE_FLAVOR_CONFIG.showSurfacePicker,
 }: {
   children: ReactNode;
   /** What the server rendered, so the first client render matches the painted markup. */
   initialColorScheme?: ColorScheme;
   initialVisualStyle?: VisualStyle;
   initialAccent?: AccentId;
+  initialSurface?: SurfaceId;
   /** Pins the style axis: setters become no-ops and the style key is never read or written. */
   isVisualStyleLocked?: boolean;
   /** Pins the accent axis, on the same terms. */
   isAccentLocked?: boolean;
+  isSurfaceLocked?: boolean;
 }) {
   const [colorScheme, setColorScheme] = useState<ColorScheme>(initialColorScheme);
   const [visualStyle, setVisualStyleState] = useState<VisualStyle>(initialVisualStyle);
+  const [surface, setSurfaceState] = useState<SurfaceId>(
+    initialSurface ??
+      (isSurfaceLocked ? BASE_SURFACE : getInitialAppearance(SITE_FLAVOR_CONFIG).surface),
+  );
   /**
    * A lock outranks the publication's opening accent, the same rule `getInitialAppearance`
    * follows: a locked axis never adopts a painted value, so opening it anywhere but the base
@@ -209,6 +228,17 @@ export function ThemeProvider({
       }
     }
 
+    if (!isSurfaceLocked) {
+      const paintedSurface = resolvePaintedAxis("surface", SURFACE_STORAGE_KEY, isSurface);
+      if (paintedSurface) {
+        setSurfaceState(paintedSurface);
+      } else {
+        const legacyAccent = resolvePaintedAxis("accent", ACCENT_STORAGE_KEY, isAccent);
+        if (legacyAccent) {
+          setSurfaceState(LEGACY_ACCENT_TO_SURFACE[legacyAccent]);
+        }
+      }
+    }
     if (!isAccentLocked) {
       const paintedAccent = resolvePaintedAxis("accent", ACCENT_STORAGE_KEY, isAccent);
 
@@ -218,24 +248,27 @@ export function ThemeProvider({
     }
 
     setHydrated(true);
-  }, [isVisualStyleLocked, isAccentLocked]);
+  }, [isVisualStyleLocked, isSurfaceLocked, isAccentLocked]);
 
   useEffect(() => {
     if (!hydrated) {
       return;
     }
 
-    applyAppearanceToDocument({ colorScheme, visualStyle, accent });
+    applyAppearanceToDocument({ colorScheme, visualStyle, surface, accent });
     persistPreference(COLOR_SCHEME_STORAGE_KEY, colorScheme);
 
     if (!isVisualStyleLocked) {
       persistPreference(VISUAL_STYLE_STORAGE_KEY, visualStyle);
     }
 
+    if (!isSurfaceLocked) {
+      persistPreference(SURFACE_STORAGE_KEY, surface);
+    }
     if (!isAccentLocked) {
       persistPreference(ACCENT_STORAGE_KEY, accent);
     }
-  }, [hydrated, colorScheme, visualStyle, accent, isVisualStyleLocked, isAccentLocked]);
+  }, [hydrated, colorScheme, visualStyle, surface, accent, isVisualStyleLocked, isSurfaceLocked, isAccentLocked]);
 
   const setVisualStyle = useCallback(
     (value: VisualStyle) => {
@@ -246,6 +279,13 @@ export function ThemeProvider({
       setVisualStyleState(value);
     },
     [isVisualStyleLocked],
+  );
+
+  const setSurface = useCallback(
+    (value: SurfaceId) => {
+      if (!isSurfaceLocked) setSurfaceState(value);
+    },
+    [isSurfaceLocked],
   );
 
   const setAccent = useCallback(
@@ -276,23 +316,29 @@ export function ThemeProvider({
       colorScheme,
       visualStyle,
       accent,
+      surface,
       setColorScheme,
       setVisualStyle,
       setAccent,
+      setSurface,
       toggleColorScheme,
       toggleVisualStyle,
       isVisualStyleLocked,
       isAccentLocked,
+      isSurfaceLocked,
     }),
     [
       colorScheme,
       visualStyle,
       accent,
+      surface,
       setVisualStyle,
       setAccent,
+      setSurface,
       toggleColorScheme,
       toggleVisualStyle,
       isVisualStyleLocked,
+      isSurfaceLocked,
       isAccentLocked,
     ],
   );

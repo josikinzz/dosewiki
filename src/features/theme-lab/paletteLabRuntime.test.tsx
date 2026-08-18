@@ -117,7 +117,7 @@ describe("Theme Lab runtime", { timeout: 15_000 }, () => {
 
     expect(overrideCss()).toContain("--theme-accent:#123456");
     await waitFor(() => {
-      expect(stored()).toContain('"version":3');
+      expect(stored()).toContain('"version":4');
       expect(stored()).toContain('"activeThemeRef":{"kind":"preset","id":"orchid"}');
       expect(stored()).toContain('"--theme-accent":"#123456"');
     });
@@ -138,7 +138,7 @@ describe("Theme Lab runtime", { timeout: 15_000 }, () => {
     expect(overrideCss()).toContain("--theme-accent:#0ff0ff");
     await waitFor(() => {
       const raw = stored() ?? "";
-      expect(raw).toContain('"version":3');
+      expect(raw).toContain('"version":4');
       expect(raw).toContain('"activeThemeRef":{"kind":"preset","id":"abyss"}');
       // The edit now belongs to Abyss rather than to a single global map.
       expect(JSON.parse(raw).editsByPreset).toEqual({

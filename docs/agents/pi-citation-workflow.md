@@ -2,23 +2,23 @@
 
 ## Purpose
 
-`/skill:pi-citation-workflow <slug>` is the project-local Pi replacement for the previous Codex Browser → Claude Code citation transport. It also supports one immutable local section proposal through `--proposal`. Both modes create a marker-only citation draft in the existing external workbench and stop at `needs_review`.
+The repository-owned Pi citation contract replaces the previous Codex Browser → Claude Code transport. It supports one explicit substance slug or one immutable local section proposal through `--proposal`. Both modes create a marker-only citation draft in the existing external workbench and stop at `needs_review`.
 
 It does not apply a draft to Convex, deploy, select a queue item, or continue to another drug.
 
 ## Entry point
 
-```text
-/skill:pi-citation-workflow 2c-b
-/skill:pi-citation-workflow --proposal notes-and-plans/exports/batch-proposals/<slug>/<section>/<artifact>/proposal.json
+```bash
+/opt/homebrew/bin/pi -p "Run the Pi citation workflow for 2c-b. Follow docs/agents/pi-citation-run-contract.md and docs/agents/pi-citation-workflow.md."
+/opt/homebrew/bin/pi -p "Run the Pi citation workflow for --proposal notes-and-plans/exports/batch-proposals/<slug>/<section>/<artifact>/proposal.json. Follow docs/agents/pi-citation-run-contract.md and docs/agents/pi-citation-workflow.md."
 ```
 
 Exactly one slug or proposal path is mandatory and is the sole target for that invocation. The workflow never infers a target from queue order, prior messages, or a run directory.
 
-The skill and run-manifest helper live at:
+The run-manifest, campaign, proposal-preparation, and handoff-schema implementation lives at:
 
 ```text
-.pi/skills/pi-citation-workflow/
+tools/pi-citation-workflow/
 ```
 
 The current external workbench remains:
@@ -34,7 +34,7 @@ Set `DOSEWIKI_CITATION_WORKBENCH` only when intentionally using a different work
 The exact preparation command, run from the DoseWiki repository root, is:
 
 ```bash
-node .pi/skills/pi-citation-workflow/scripts/prepare-local-proposal-run.mjs \
+node tools/pi-citation-workflow/prepare-local-proposal-run.mjs \
   --proposal notes-and-plans/exports/batch-proposals/<slug>/<section>/<artifact>/proposal.json
 ```
 
@@ -74,7 +74,7 @@ Run its helper directly only when coordinating a citation run:
 
 ```bash
 REPO_ROOT="$PWD" # Invoke from the DoseWiki repository root.
-MANIFEST="$REPO_ROOT/.pi/skills/pi-citation-workflow/scripts/pi-run-manifest.mjs"
+MANIFEST="$REPO_ROOT/tools/pi-citation-workflow/pi-run-manifest.mjs"
 node "$MANIFEST" init --run "$WORKBENCH/runs/2c-b" --slug 2c-b
 node "$MANIFEST" show --run "$WORKBENCH/runs/2c-b"
 ```
@@ -90,7 +90,7 @@ node "$MANIFEST" rerun --run "$RUN" --workbench "$WORKBENCH" \
 
 The new atomically reserved `--correction-<uuid>` run records the superseded run, immutable parent task/manifest digests, finalization time, and reason in its own manifest; the original run is preserved unchanged.
 
-See `.pi/skills/pi-citation-workflow/references/run-contract.md` for the required execution order and all gates.
+See [the Pi citation run contract](pi-citation-run-contract.md) for the required execution order and all gates.
 
 ## Read-only campaign manifest
 

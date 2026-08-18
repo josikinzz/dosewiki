@@ -56,11 +56,6 @@ export function scrollThumbOverridesLight(hue: number, chroma: number): ThemeOve
  * it from the seed would visibly shift the shipped Orchid look. Every
  * alternate palette therefore re-derives it at the same lightness/chroma from
  * its own seed, or it inherits Orchid's purple page gradient.
- *
- * The active-tab fill used to live here too. It no longer does: the base
- * sheet now authors `--theme-route-active-base` as
- * `oklch(35.7% 0.112 var(--h-violet))` itself, so restating it per preset
- * would be a byte-for-byte duplicate.
  */
 export const retunedDarkLiterals: ThemeOverrideMap = {
   "--theme-page-start": "oklch(45% 0.231 var(--h-plum))",

@@ -180,24 +180,21 @@ describe("Footer appearance controls", () => {
     expect(panel.querySelectorAll("[data-appearance-axis]")).toHaveLength(1);
   });
 
-  it("exposes no editor tooling beside the reader controls", async () => {
+  it("keeps the protected Palette Lab action inside the appearance panel", async () => {
     const user = userEvent.setup();
     renderFooter(DOSEWIKI);
 
-    // The footer's whole button surface is the one appearance cog. A Palette Lab or any
-    // other editor trigger reappearing on the public footer fails here.
     const nav = screen.getByRole("navigation");
     const buttons = within(nav).getAllByRole("button");
 
     expect(buttons.map((button) => button.getAttribute("aria-label"))).toEqual([
       "Appearance settings",
     ]);
-    expect(screen.queryByRole("button", { name: /theme lab/i })).not.toBeInTheDocument();
 
-    // …and opening it adds no editor row either: the footer mounts no session provider, so
-    // there is no editor to offer the Theme Lab to.
     const panel = await openFooterCog(user);
-    expect(within(panel).queryByRole("link", { name: /More settings/ })).not.toBeInTheDocument();
+    expect(
+      within(panel).getByRole("link", { name: "Open full Palette Lab" }),
+    ).toHaveAttribute("href", "/dev/themes");
     expect(within(nav).getAllByRole("button")).toHaveLength(1);
   });
 });

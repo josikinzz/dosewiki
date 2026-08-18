@@ -57,7 +57,7 @@ export default async function ReplicationAudioPage() {
                 contextLabel={
                   <Link
                     href={`/effects/${entry.effectSlug}`}
-                    className="theme-accent-heading text-xs font-medium transition hover:opacity-90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fuchsia-400"
+                    className="theme-accent-heading theme-focus-ring text-xs font-medium transition hover:opacity-90"
                   >
                     {entry.effectName}
                   </Link>

@@ -23,4 +23,5 @@
 import "../../styles.css";
 import "../../styles/palette-presets.generated.css";
 import "../../styles/pro-theme.css";
+import "../../styles/surface-tokens.generated.css";
 import "../../styles/accent-tokens.generated.css";

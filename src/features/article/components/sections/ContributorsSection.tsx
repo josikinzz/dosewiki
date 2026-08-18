@@ -42,7 +42,7 @@ const creditLinkClassName = cn(
   "theme-accent-heading rounded font-semibold",
   "underline decoration-[color-mix(in_srgb,currentColor_35%,transparent)] decoration-1 underline-offset-2",
   "transition-[text-decoration-color,opacity] hover:decoration-current",
-  "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fuchsia-400",
+  "theme-focus-ring",
 );
 
 // An unlinked credit keeps the name emphasized but drops the accent colour,
@@ -82,7 +82,7 @@ function ContributorCredit({
         <Link
           href={profileHref}
           aria-label={`View ${name}'s contributor profile`}
-          className="group mt-0.5 shrink-0 rounded-full focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fuchsia-400 sm:mt-0"
+          className="theme-focus-ring group mt-0.5 shrink-0 rounded-full sm:mt-0"
         >
           <ContributorAvatar imageUrl={avatarSrc} name={name} size="xs" />
         </Link>

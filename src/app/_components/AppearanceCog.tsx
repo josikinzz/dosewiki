@@ -1,13 +1,14 @@
 "use client";
 
 import Link from "next/link";
-import type { KeyboardEvent as ReactKeyboardEvent } from "react";
+import { useId, type KeyboardEvent as ReactKeyboardEvent } from "react";
 
 import { Icon } from "@/components/common/Icon";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { useTheme } from "@/context/ThemeContext";
 import { cn } from "@/lib/utils";
 import { ACCENTS } from "@/theme/accents";
+import { SURFACES } from "@/theme/surfaces";
 import { ThemeToggle } from "./ThemeToggle";
 import { VisualStyleToggle } from "./VisualStyleToggle";
 
@@ -23,80 +24,46 @@ export type AppearanceCogRows = {
   /** Day/Night. */
   showColorScheme: boolean;
   /** The swatch row. */
+  /** Canvas and component material family. */
+  showSurface: boolean;
   showAccent: boolean;
-  /** The Theme Lab link. Editors only: a reader cannot use that route. */
+  /** The protected full Palette Lab action. */
   showMoreSettings: boolean;
 };
 
 /**
- * The reader's appearance cog: one 44px trigger, one popover holding every appearance
- * choice the build offers.
+ * One 44px trigger for every reader-facing appearance choice.
  *
- * It replaces a loose row of pills. The pills were fine at two axes and unreadable at
- * three, and the accent row has no pill shape at all — so the axes moved inside a panel and
- * the surface keeps exactly one control. The colour scheme moved in with them on purpose: a
- * cog *plus* a loose day/night pill reinstates the clutter the cog exists to remove.
+ * Surface swatches follow the active color scheme so they preview the material
+ * the page will actually use. Pro keeps its restrained fixed materials, so the
+ * Surface row remains visible for context but is disabled and explicitly marked
+ * "Fun only". The selected Surface is preserved when switching styles.
  *
- * Two rows, and no visible text in either. The panel used to carry a "Style" / "Colour
- * scheme" / "Accent" label beside each control, deliberately left unassociated so it could
- * not overwrite the control's own action-shaped name. A label that may neither name nor
- * associate is a caption for a glyph the reader has already parsed, and it cost a label
- * column plus one row per axis. Deleting all three folds four rows into two — both axis
- * pills and the Theme Lab link on one line, the swatch strip under it. Measured in the
- * browser: 250x118 at a fine pointer and 246x174 at a coarse one, against 250x266 and
- * 290x274 for the four-row panel — the two folded 44px rows, the 17px label with its 6px
- * gap, the 1px rule and the three 12px column gaps that went with them. The fine-pointer
- * width does not move because the widest thing in the panel is still the swatch strip.
- *
- * So every accessible name in here is load-bearing, with nothing visible to fall back on:
- * the two pills state an action ("Switch to night mode"), each swatch states its accent's
- * label, the swatch row states "Accent", and the Theme Lab link states "More settings" —
- * that last one because {@link Icon} hard-codes `aria-hidden` with no escape hatch, so an
- * icon-only link would otherwise have no name at all. `AppearanceControls.test.tsx` holds
- * the panel to it: no text inside, every control reachable by name.
- *
- * The Lab link sits third in the markup, between the pills and the swatches, because that is
- * where it sits on screen. The tempting alternative — DOM-last, so the one control that
- * leaves the panel is also last in tab order, while `ml-auto` keeps it visually top-right —
- * is rejected. A sighted keyboard user's expectation is set by what they can see, so that
- * ordering walks the focus ring from the colour-scheme pill *down* to the swatch strip and
- * then back *up* to the top-right corner: exactly the loss of meaning and operability WCAG
- * 2.4.3 is about. Visual order, DOM order and focus order agreeing is worth more than the
- * habit of putting an exit action last, the more so because this one is already unmistakable
- * by shape — a round icon button beside two segmented pills, above a row of colour dots —
- * and by role, being the panel's only link. `AppearanceControls.test.tsx` tabs the whole
- * panel and asserts that single order.
- *
- * Nothing here is styled per visual style. Every surface it wears is an existing themed
- * recipe — `theme-overlay-surface` for the panel, `theme-toggle-pill` for the trigger,
- * `theme-control-pill-quiet` for the swatches and the link — so Fun gets its frosted,
- * rounded, glowing treatment and Pro gets Effect Index's flat hairline one from the same
- * markup, in all four appearance combinations.
- *
- * Both axis controls are the shared {@link ThemeToggle} / {@link VisualStyleToggle} pills,
- * unchanged: they are already two-state segmented switches with a sliding thumb, already
- * bound to the provider, and already dressed for every combination. Rebuilding them as
- * panel-local segments would be a second convention for the same job.
+ * The shared toggle and pill recipes provide the Fun and Pro treatments. The
+ * Palette Lab is a separate, visible navigation action at the end of the panel.
  */
 export function AppearanceCog({
   className,
   showVisualStyle,
   showColorScheme,
   showAccent,
+  showSurface,
   showMoreSettings,
 }: AppearanceCogRows & { className?: string }) {
-  const { accent, setAccent } = useTheme();
+  const { colorScheme, visualStyle, surface, setSurface, accent, setAccent } = useTheme();
+  const surfaceAvailabilityId = useId();
+  const surfacesDisabled = visualStyle === "pro";
 
   // A cog that opens an empty panel is worse than no cog. Effect Index with its style locked
   // and its accent locked still has day/night, so this is reached only by a build that offers
   // a reader nothing at all.
-  if (!showVisualStyle && !showColorScheme && !showAccent && !showMoreSettings) {
+  if (!showVisualStyle && !showColorScheme && !showSurface && !showAccent && !showMoreSettings) {
     return null;
   }
 
-  // Row one is the two pills plus the Lab link. Named because an accent-only build would
-  // otherwise render an empty flex row and still pay the column's `gap-3` for it.
-  const hasControlRow = showVisualStyle || showColorScheme || showMoreSettings;
+  // The first row only holds the two compact binary controls. Palette Lab is a
+  // separate, explicit action at the bottom of the panel.
+  const hasControlRow = showVisualStyle || showColorScheme;
 
   return (
     <Popover>
@@ -158,30 +125,6 @@ export function AppearanceCog({
               {showVisualStyle ? <VisualStyleToggle /> : null}
               {showColorScheme ? <ThemeToggle /> : null}
 
-              {showMoreSettings ? (
-                <Link
-                  href="/dev/themes"
-                  // The panel's only link, and the only control in it that navigates rather
-                  // than mutates. It carries no text and {@link Icon} hard-codes
-                  // `aria-hidden`, so these two attributes are the whole of its accessible
-                  // name. Measured, by deleting each: `title` alone still names it, because
-                  // it is the last-resort fallback in the name computation — so dropping
-                  // `aria-label` fails exactly one assertion, the document-order label list
-                  // in `AppearanceControls.test.tsx`, and every name query keeps passing on
-                  // a `title` that screen readers may ignore and touch never shows. Dropping
-                  // both fails six assertions in that file — and quietly hollows out two more
-                  // that no test run reports, `Footer.test.tsx:200` and
-                  // `HomeExperience.test.tsx:140`, which prove a reader is offered no editor
-                  // route by finding no link named this: an unnamed link satisfies them
-                  // without asserting anything. Keep the pair, as on the trigger and on every
-                  // swatch.
-                  aria-label="More settings"
-                  title="More settings"
-                  className="theme-control-pill-quiet ml-auto inline-flex h-11 w-11 items-center justify-center rounded-full"
-                >
-                  <Icon icon="lucide:settings-2" size={16} />
-                </Link>
-              ) : null}
             </div>
           ) : null}
 
@@ -198,12 +141,73 @@ export function AppearanceCog({
               viewport grants by 6px, and a seventh overflows it by 42px. Four per line is
               the balanced break, and it holds the panel to the width row one already asks
               for. */}
+          {showSurface ? (
+            <div className="flex flex-col gap-1.5">
+              <div className="flex items-center justify-between gap-3 px-1">
+                <span className="text-[0.6875rem] font-semibold uppercase tracking-[0.12em] text-dose-text-muted">
+                  Surfaces
+                </span>
+                {surfacesDisabled ? (
+                  <span
+                    id={surfaceAvailabilityId}
+                    className="text-[0.625rem] font-medium uppercase tracking-[0.1em] text-dose-text-muted"
+                  >
+                    Fun only
+                  </span>
+                ) : null}
+              </div>
+              <div
+                role="group"
+                aria-label="Surfaces"
+                aria-describedby={surfacesDisabled ? surfaceAvailabilityId : undefined}
+                className="-mx-1.5 flex flex-wrap items-center gap-1 [@media(pointer:coarse)]:-mx-2.5 [@media(pointer:coarse)]:max-w-[11.75rem]"
+              >
+                {SURFACES.map((option) => {
+                  const isActive = option.id === surface;
+                  const swatch = option.tint[colorScheme];
+                  return (
+                    <button
+                      key={option.id}
+                      type="button"
+                      onClick={() => setSurface(option.id)}
+                      disabled={surfacesDisabled}
+                      aria-pressed={isActive}
+                      aria-label={option.label}
+                      title={
+                        surfacesDisabled
+                          ? `${option.label} · switch to Fun to change surfaces`
+                          : option.label
+                      }
+                      data-surface-swatch={option.id}
+                      data-active={isActive}
+                      className={cn(
+                        "theme-control-pill-quiet inline-flex h-9 w-9 items-center justify-center rounded-full",
+                        "[@media(pointer:coarse)]:h-11 [@media(pointer:coarse)]:w-11",
+                        "disabled:cursor-not-allowed disabled:opacity-50 disabled:saturate-0",
+                      )}
+                    >
+                      <span
+                        aria-hidden="true"
+                        className="h-5 w-5 rounded-full border border-current/25"
+                        style={{ backgroundColor: swatch }}
+                      />
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          ) : null}
+
           {showAccent ? (
-            <div
-              role="group"
-              aria-label="Accent"
-              className="-mx-1.5 flex flex-wrap items-center gap-1 [@media(pointer:coarse)]:-mx-2.5 [@media(pointer:coarse)]:max-w-[11.75rem]"
-            >
+            <div className="flex flex-col gap-1.5">
+              <span className="px-1 text-[0.6875rem] font-semibold uppercase tracking-[0.12em] text-dose-text-muted">
+                Accent
+              </span>
+              <div
+                role="group"
+                aria-label="Accent"
+                className="-mx-1.5 flex flex-wrap items-center gap-1 [@media(pointer:coarse)]:-mx-2.5 [@media(pointer:coarse)]:max-w-[11.75rem]"
+              >
               {ACCENTS.map((option) => {
                 const isActive = option.id === accent;
 
@@ -241,7 +245,24 @@ export function AppearanceCog({
                   </button>
                 );
               })}
+              </div>
             </div>
+          ) : null}
+
+          {showMoreSettings ? (
+            <Link
+              href="/dev/themes"
+              aria-label="Open full Palette Lab"
+              title="Open full Palette Lab"
+              className={cn(
+                "theme-control-pill-quiet inline-flex h-10 w-full items-center justify-center gap-2 rounded-full px-3",
+                "text-xs font-semibold tracking-[0.01em]",
+              )}
+            >
+              <Icon icon="lucide:palette" size={15} />
+              <span>Full Palette Lab</span>
+              <Icon icon="lucide:arrow-right" size={14} />
+            </Link>
           ) : null}
         </div>
       </PopoverContent>

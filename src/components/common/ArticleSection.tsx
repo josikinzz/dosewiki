@@ -79,7 +79,7 @@ const subsectionVariantClasses = {
   subtle: "theme-article-subsection-card",
   nested: "theme-article-subsection-card-nested",
   interactive:
-    "theme-article-subsection-card-interactive focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fuchsia-400",
+    "theme-article-subsection-card-interactive theme-focus-ring",
 } satisfies Record<ArticleSubsectionCardVariant, string>;
 
 export const ArticleSubsectionCard = forwardRef<
@@ -412,7 +412,7 @@ export function ArticleKeyValueRows({
                 href={row.href}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="theme-accent-heading break-words transition-opacity hover:opacity-90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fuchsia-400"
+                className="theme-accent-heading theme-focus-ring break-words transition-opacity hover:opacity-90"
               >
                 {row.value}
               </a>

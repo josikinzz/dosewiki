@@ -227,7 +227,7 @@ export function EffectArticlePage({
                           {contributorHref ? (
                             <Link
                               href={contributorHref}
-                              className="theme-accent-heading font-semibold transition hover:opacity-90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fuchsia-400"
+                              className="theme-accent-heading theme-focus-ring font-semibold transition hover:opacity-90"
                             >
                               {section.attribution.name}
                             </Link>
