@@ -26,7 +26,7 @@ export const appearanceCogStory: StoryDef = {
     },
     {
       label: "Without Palette Lab",
-      note: "A publication or embedding surface without the protected Palette Lab route.",
+      note: "A publication or embedding surface without the public Palette Lab route.",
       background: "plain",
       render: () => (
         <AppearanceCog

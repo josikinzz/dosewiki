@@ -1,6 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { getToken } from "next-auth/jwt";
-import { getDevRouteDecision } from "@/lib/auth/roles";
+import { getDevRouteDecision, isPublicDevRoutePath } from "@/lib/auth/roles";
 import { authSecret } from "@server/auth/runtimePolicy";
 import {
   isPublicConstructionAllowedPath,
@@ -178,6 +178,12 @@ export async function middleware(request: NextRequest) {
   }
 
   if (!request.nextUrl.pathname.startsWith("/dev")) {
+    return browserPolicy.secure(
+      NextResponse.next({ request: { headers: browserPolicy.requestHeaders } }),
+    );
+  }
+
+  if (isPublicDevRoutePath(request.nextUrl.pathname)) {
     return browserPolicy.secure(
       NextResponse.next({ request: { headers: browserPolicy.requestHeaders } }),
     );

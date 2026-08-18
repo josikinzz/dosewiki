@@ -62,7 +62,7 @@ function palette() {
 }
 
 async function openPanel() {
-  // The protected /dev/themes route owns the open state; the mount reads it.
+  // The public /dev/themes route owns the open state; the mount reads it.
   render(<AppearanceTestProvider><PaletteLab /></AppearanceTestProvider>);
   act(() => setPaletteLabOpen(true));
   return screen.findByRole("dialog", { name: "Theme Lab" });

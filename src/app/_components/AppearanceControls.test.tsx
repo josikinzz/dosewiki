@@ -430,7 +430,7 @@ describe("AppearanceControls", () => {
     expect(within(panel).queryByRole("group", { name: "Accent" })).not.toBeInTheDocument();
   });
 
-  it("offers the protected full Palette Lab from a reader's cog", async () => {
+  it("offers the public full Palette Lab from a reader's cog", async () => {
     const user = userEvent.setup();
     render(
       <ThemeProvider initialColorScheme="dark" initialVisualStyle="fun" isVisualStyleLocked={false}>

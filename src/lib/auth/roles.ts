@@ -48,6 +48,10 @@ export function isDevSelfProfilePath(pathname: string): boolean {
   );
 }
 
+export function isPublicDevRoutePath(pathname: string): boolean {
+  return pathname === "/dev/themes" || pathname === "/dev/themes/";
+}
+
 export type DevRouteDecision =
   | {
       type: "allow";
@@ -71,6 +75,14 @@ export function getDevRouteDecision(input: {
   role?: unknown;
 }): DevRouteDecision {
   const callbackUrl = `${input.pathname}${input.search ?? ""}`;
+
+  if (isPublicDevRoutePath(input.pathname)) {
+    return {
+      type: "allow",
+      role: resolveSessionRole({ role: input.role }),
+      access: "public",
+    };
+  }
 
   if (!canUseSelfProfileRoute({ email: input.email })) {
     return {

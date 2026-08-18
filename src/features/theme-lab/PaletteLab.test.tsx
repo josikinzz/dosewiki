@@ -54,7 +54,7 @@ afterEach(() => {
 });
 
 async function openPanel() {
-  // The protected /dev/themes route owns the open state and hands the lab the
+  // The public /dev/themes route owns the open state and hands the lab the
   // element focus should return to on close. This button stands in for that
   // route-local action.
   render(

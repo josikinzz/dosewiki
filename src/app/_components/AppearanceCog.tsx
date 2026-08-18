@@ -27,7 +27,7 @@ export type AppearanceCogRows = {
   /** Canvas and component material family. */
   showSurface: boolean;
   showAccent: boolean;
-  /** The protected full Palette Lab action. */
+  /** The public full Palette Lab action. */
   showMoreSettings: boolean;
 };
 

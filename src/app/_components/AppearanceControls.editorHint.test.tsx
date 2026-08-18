@@ -23,10 +23,9 @@ vi.mock("@/components/common/Icon", () => ({
 }));
 
 /**
- * The protected Palette Lab route is discoverable from DoseWiki regardless of
- * session or local hint state. Authentication remains the route's job. These
- * cases keep stale or malformed hint data from changing that navigation
- * contract; the utility's storage behavior is covered below.
+ * The public Palette Lab route is discoverable from DoseWiki regardless of
+ * session or local hint state. Stale or malformed hint data must not change
+ * that navigation contract; the utility's storage behavior is covered below.
  */
 
 /** The session shapes the raw context can hold, built without standing up a provider or a fetch. */

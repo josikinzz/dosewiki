@@ -91,7 +91,7 @@ export function PaletteLab() {
   const [mounted, setMounted] = useState(false);
   // The raw-value field is a kit Textarea, so its caption pairs by id.
   const rawFieldId = useId();
-  // Open state lives in a shared store so the protected /dev/themes route, which owns it, can
+  // Open state lives in a shared store so the public /dev/themes route, which owns it, can
   // drive this portalled panel.
   const open = usePaletteLabOpen();
   // The theme belongs to the route's runtime, which restored it as the route
@@ -632,7 +632,7 @@ export function PaletteLab() {
     setEpoch((value) => value + 1);
   }, [editIds, theme]);
 
-  // The panel is mounted only by the protected /dev/themes route, which owns its open state;
+  // The panel is mounted only by the public /dev/themes route, which owns its open state;
   // render nothing until mounted or while closed.
   if (!mounted) return null;
 

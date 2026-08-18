@@ -126,7 +126,7 @@ describe("dose.wiki homepage", () => {
         .filter((button) => button.className.includes("theme-home-theme-toggle")),
     ).toHaveLength(1);
 
-    // Appearance axes and the protected full Palette Lab action live inside the cog.
+    // Appearance axes and the public full Palette Lab action live inside the cog.
     await user.click(cog);
     const panel = await screen.findByRole("dialog", { name: "Appearance" });
 

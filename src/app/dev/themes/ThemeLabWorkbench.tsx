@@ -12,10 +12,10 @@ import { setPaletteLabOpen, usePaletteLabOpen } from "@/features/theme-lab/palet
  * The Palette Lab's only entry point.
  *
  * The editor used to be a global mount with triggers in the footer and on the
- * homepage; it now belongs to this protected route alone, which is why the open
- * state is owned here rather than by the mount. Entering the route opens the
- * editor, closing it leaves the route-local action below, and leaving the route
- * releases both the open state and the runtime that paints the saved palette.
+ * homepage. It now belongs to this public route alone, so the open state is
+ * owned here rather than by the mount. Entering the route opens the editor;
+ * closing it leaves the route-local action below, and leaving the route releases
+ * both the open state and the runtime that paints the saved palette.
  *
  * The route used to hold the page in Fun while it was mounted, and to hand the
  * reader's own style back on the way out. Both are gone. The lab's user layer

@@ -42,6 +42,16 @@ describe("middleware role policy adapter", () => {
     );
   });
 
+  it("allows anonymous readers into the public Palette Lab without reading a token", async () => {
+    const { middleware } = await import("../middleware");
+
+    const response = await middleware(makeRequest("/dev/themes"));
+
+    expect(response.status).toBe(200);
+    expect(response.headers.get("location")).toBeNull();
+    expect(mocks.getToken).not.toHaveBeenCalled();
+  });
+
   it("enforces the admin browser policy on protected-route redirects", async () => {
     mocks.getToken.mockResolvedValue(null);
     const { middleware } = await import("../middleware");

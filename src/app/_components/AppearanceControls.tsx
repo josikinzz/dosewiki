@@ -6,9 +6,8 @@ import { useTheme } from "@/context/ThemeContext";
 import { AppearanceCog } from "./AppearanceCog";
 
 /**
- * The reader's single appearance control. Publication locks decide which
- * appearance axes are writable. DoseWiki always exposes the protected Palette
- * Lab route from the panel; that route remains responsible for authentication.
+ * appearance axes are writable. DoseWiki always exposes its public Palette Lab
+ * route from the panel.
  *
  * `className` lands on the trigger itself because the homepage positions that
  * button directly.

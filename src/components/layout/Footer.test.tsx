@@ -180,7 +180,7 @@ describe("Footer appearance controls", () => {
     expect(panel.querySelectorAll("[data-appearance-axis]")).toHaveLength(1);
   });
 
-  it("keeps the protected Palette Lab action inside the appearance panel", async () => {
+  it("keeps the public Palette Lab action inside the appearance panel", async () => {
     const user = userEvent.setup();
     renderFooter(DOSEWIKI);
 
