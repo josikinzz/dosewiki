@@ -1,6 +1,6 @@
 {
   "__comment": "dose.wiki molecule pack manifest. Every molecule SVG is rendered by OpenChemLib from the canonical Convex depiction set (one editable MOL block per substance). The pack ZIP contains each structure in two colourways: molecules/ (dose.wiki brand colours, the stored depiction) and molecules-standard/ (standard textbook element colours — black skeleton, blue N, red O — derived from the same MOL block at pack time). `represents` names the active molecule when the substance is a plant, preparation, or brand name. Pack ZIP: /dosewiki-molecules.zip",
-  "count": 272,
+  "count": 266,
   "license": "CC0 1.0 (public domain) — dose.wiki-generated artwork; credit appreciated, not required",
   "molecules": [
     {
@@ -180,14 +180,6 @@
       "source": "seeded"
     },
     {
-      "slug": "25i-nbf",
-      "title": "25I-NBF",
-      "filename": "25i-nbf.svg",
-      "smiles": "IC1=CC(=C(C=C1OC)CCNCC1=C(C=CC=C1)F)OC",
-      "represents": "",
-      "source": "template"
-    },
-    {
       "slug": "25i-nbmd",
       "title": "25I-NBMD",
       "filename": "25i-nbmd.svg",
@@ -228,28 +220,12 @@
       "source": ""
     },
     {
-      "slug": "2c-b-an",
-      "title": "2C-B-AN",
-      "filename": "2c-b-an.svg",
-      "smiles": "BrC1=CC(=C(C=C1OC)CCNC(C#N)C1=CC=CC=C1)OC",
-      "represents": "",
-      "source": "template"
-    },
-    {
       "slug": "2c-b-fly",
       "title": "2C-B-FLY",
       "filename": "2c-b-fly.svg",
       "smiles": "NCCc1c2OCCc2c(c2c1CCO2)Br",
       "represents": "",
       "source": "seeded"
-    },
-    {
-      "slug": "2c-b-fly-nbome",
-      "title": "2C-B-FLY-NBOMe",
-      "filename": "2c-b-fly-nbome.svg",
-      "smiles": "BrC1=C2OCCC2=C(C=2OCCC21)CCNCC2=C(C=CC=C2)OC",
-      "represents": "",
-      "source": "editor"
     },
     {
       "slug": "2c-c",
@@ -290,14 +266,6 @@
       "smiles": "IC1=CC(=C(C=C1OC)CCN)OC",
       "represents": "",
       "source": "template"
-    },
-    {
-      "slug": "2c-ip",
-      "title": "2C-iP",
-      "filename": "2c-ip.svg",
-      "smiles": "CC(C)C1=C(C=C(C(=C1)OC)CCN)OC",
-      "represents": "",
-      "source": "editor"
     },
     {
       "slug": "2c-p",
@@ -354,14 +322,6 @@
       "smiles": "CC(C)(CC)O",
       "represents": "",
       "source": "seeded"
-    },
-    {
-      "slug": "3-cl-pcp",
-      "title": "3-Cl-PCP",
-      "filename": "3-cl-pcp.svg",
-      "smiles": "Clc1cccc(c1)C1(CCCCC1)N1CCCCC1",
-      "represents": "",
-      "source": "editor"
     },
     {
       "slug": "3-cmc",
@@ -1170,14 +1130,6 @@
       "smiles": "C(C)NC(CC1=CC=CC=C1)C1=CC=CC=C1",
       "represents": "",
       "source": "editor"
-    },
-    {
-      "slug": "ept",
-      "title": "EPT",
-      "filename": "ept.svg",
-      "smiles": "CCCN(CCc1c[nH]c2c1cccc2)CC",
-      "represents": "",
-      "source": "template"
     },
     {
       "slug": "escaline",
