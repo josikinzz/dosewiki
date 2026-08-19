@@ -3,19 +3,16 @@ import type { PresetOverrides, ThemeOverrideMap } from "./palettePresets";
 /**
  * The recipes every alternate colourway is authored with.
  *
- * They live in their own module because the colourways do. `palettePresets.ts`
- * kept them beside twelve preset declarations until that file measured 889 lines
- * against its reviewed 925-line cleanup budget; once the colourways moved out,
- * the recipes had three callers — `presetAccentColourways.ts`,
- * `presetLabColourways.ts`, and `journalPreset.ts`.
+ * They live in their own module because the colourways do: both
+ * `presetAccentColourways.ts` and `lagoonPreset.ts` call them.
  *
- * The alternative was a local copy per colourway module, which is the shape
- * `journalPreset.ts` used while there was nowhere shared to put `split`. It is
- * rejected for the scrollbar recipes in particular: each returns a single
- * ~800-character gradient literal whose whole purpose is to mirror one stock
- * recipe, and `palette-presets.generated.css` is byte-compared in CI, so a copy
- * that drifted would silently rewrite the checked-in stylesheet for half the
- * palettes. `split` follows them rather than staying duplicated a third time.
+ * The alternative was a local copy per colourway module. It is rejected for the
+ * scrollbar recipes in particular: each returns a single ~800-character gradient
+ * literal whose whole purpose is to mirror one stock recipe, and the surface and
+ * accent stylesheets compiled from these payloads are checked in and
+ * byte-compared in CI, so a copy that drifted would silently rewrite a
+ * checked-in stylesheet for half the colourways. `split` follows them rather
+ * than staying duplicated per module.
  */
 
 /** Shared entries land in both themes; theme maps win on conflicts. */

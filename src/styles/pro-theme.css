@@ -45,22 +45,26 @@
    (0,2,1) whenever data-theme is present — light OR dark — and still at
    (0,1,1) if the attribute is missing, so the palette never depends on
    script timing and never leaves Pro unstyled. (0,2,1) is what puts this
-   palette level with the generated colourway blocks in
-   palette-presets.generated.css and above the authored Fun token blocks in
-   site-colors.css; against the colourways it wins on source order, because
-   this sheet is imported after them.
+   palette above the authored Fun token blocks in site-colors.css and level
+   with the Fun halves of the two generated appearance sheets,
+   surface-tokens.generated.css and accent-tokens.generated.css.
 
-   One sheet does land after this one: accent-tokens.generated.css, which has
-   to, so that an accent can out-rank a colourway the reader also saved. Its
-   Pro blocks re-seat the --ei-* palette below at (0,3,1), one attribute above
-   this block, which is how the accent axis re-tints roughly two hundred
-   derived tokens from outside this file. Its FUN blocks carry
-   :where(:not([data-visual-style="pro"])) so that landing later cannot let a
-   colourway repaint a Pro page at the tie.
+   Both of those land AFTER this sheet, so at that tie they would win on
+   source order and repaint a Pro page in the reader's surface. They cannot,
+   because every Fun block either sheet emits carries
+   :where(:not([data-visual-style="pro"])) and so matches no Pro root at all.
+   That guard adds nothing to specificity, which is the point: it separates
+   the rungs without moving them.
+
+   Their PRO blocks are the half that is meant to reach this palette, and they
+   re-seat the --ei-* seeds below at (0,3,1), one attribute above this block.
+   That is how the surface and accent axes re-tint roughly two hundred derived
+   tokens from outside this file, on specificity rather than on where the
+   bundler happens to put them.
 
    It does NOT out-rank the Theme Lab. The Lab's runtime overrides name
    data-theme four times to reach (0,4,1) (see userLayerSelector in
-   paletteLabStorage.ts) and land in <head> after this sheet, so they win
+   themeLabStorage.ts) and land in <head> after this sheet, so they win
    over everything here. That is the intended direction: an editor authoring
    in the Lab has to be able to see a Pro edit take effect, and a palette
    that repainted Pro from underneath the Lab would make every such edit look

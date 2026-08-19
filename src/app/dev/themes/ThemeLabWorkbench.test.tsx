@@ -3,9 +3,8 @@ import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { ThemeProvider } from "@/context/ThemeContext";
-import { PaletteLabLazy } from "@/features/theme-lab/PaletteLabLazy";
-import { PALETTE_ATTRIBUTE } from "@/features/theme-lab/paletteLabStorage";
-import { getPaletteLabOpen, setPaletteLabOpen } from "@/features/theme-lab/paletteLabStore";
+import { ThemeLabLazy } from "@/features/theme-lab/ThemeLabLazy";
+import { getThemeLabOpen, setThemeLabOpen } from "@/features/theme-lab/themeLabStore";
 import { clearThemeBaselineCache } from "@/features/theme-lab/presetBaselines";
 import { ThemeLabWorkbench } from "./ThemeLabWorkbench";
 
@@ -18,32 +17,30 @@ vi.mock("@/components/common/Icon", () => ({
   Icon: ({ icon }: { icon: string }) => <span data-icon={icon} />,
 }));
 
-/** The route inside the root layout's provider and global Palette Lab mount. */
+/** The route inside the root layout's provider and global Theme Lab mount. */
 function Harness({ onRoute, style = "fun" }: { onRoute: boolean; style?: "fun" | "pro" }) {
   return (
     <ThemeProvider initialVisualStyle={style} initialColorScheme="dark" isVisualStyleLocked={false}>
       {onRoute ? <ThemeLabWorkbench /> : <p>Somewhere else entirely</p>}
-      <PaletteLabLazy />
+      <ThemeLabLazy />
     </ThemeProvider>
   );
 }
 
 beforeEach(() => {
   window.localStorage.clear();
-  document.documentElement.removeAttribute(PALETTE_ATTRIBUTE);
   document.documentElement.removeAttribute("data-visual-style");
   document.documentElement.removeAttribute("data-theme");
-  document.getElementById("palette-lab-overrides")?.remove();
+  document.getElementById("theme-lab-overrides")?.remove();
   clearThemeBaselineCache();
-  setPaletteLabOpen(false);
+  setThemeLabOpen(false);
 });
 
 afterEach(() => {
-  document.documentElement.removeAttribute(PALETTE_ATTRIBUTE);
-  document.getElementById("palette-lab-overrides")?.remove();
+  document.getElementById("theme-lab-overrides")?.remove();
 });
 
-describe("Palette Lab workbench", { timeout: 15_000 }, () => {
+describe("Theme Lab workbench", { timeout: 15_000 }, () => {
   it("opens the editor on entry", async () => {
     render(<Harness onRoute />);
 
@@ -74,7 +71,7 @@ describe("Palette Lab workbench", { timeout: 15_000 }, () => {
 
     view.rerender(<Harness onRoute={false} style="pro" />);
 
-    await waitFor(() => expect(getPaletteLabOpen()).toBe(true));
+    await waitFor(() => expect(getThemeLabOpen()).toBe(true));
     expect(screen.getByRole("dialog", { name: "Theme Lab" })).toBeInTheDocument();
     expect(document.documentElement.getAttribute("data-visual-style")).toBe("pro");
   });

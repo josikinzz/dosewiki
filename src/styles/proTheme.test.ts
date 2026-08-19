@@ -1,7 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
-import { userLayerSelector } from "@/features/theme-lab/paletteLabStorage";
+import { userLayerSelector } from "@/features/theme-lab/themeLabStorage";
 
 /**
  * Structural guards for the Pro visual style. The properties asserted here are
@@ -23,7 +23,7 @@ const CONFIG_PATH = path.join(REPO_ROOT, "next.config.ts");
 const DOSEWIKI_ENTRY_PATH = path.join(REPO_ROOT, "src", "app", "_styles", "dosewiki.ts");
 const EFFECT_INDEX_ENTRY_PATH = path.join(REPO_ROOT, "src", "app", "_styles", "effectindex.ts");
 const SITE_COLORS_PATH = path.join(REPO_ROOT, "src", "styles", "site-colors.css");
-const PRESET_CSS_PATH = path.join(REPO_ROOT, "src", "styles", "palette-presets.generated.css");
+const SURFACE_CSS_PATH = path.join(REPO_ROOT, "src", "styles", "surface-tokens.generated.css");
 const ACCENT_CSS_PATH = path.join(REPO_ROOT, "src", "styles", "accent-tokens.generated.css");
 
 const STYLE_SCOPE = '[data-visual-style="pro"]';
@@ -256,11 +256,10 @@ describe("pro visual style", () => {
       ...read(DOSEWIKI_ENTRY_PATH).matchAll(/import\s+"([^"]+)";/g),
     ].map((match) => match[1]);
 
-    // Pro follows the base and preset layers. The independent surface and accent layers follow
-    // Pro, and their Pro selectors have sufficient specificity to apply their restrained seeds.
+    // Pro follows the authored base layer. The independent surface and accent layers follow Pro,
+    // and their Pro selectors have sufficient specificity to apply their restrained seeds.
     expect(dosewikiImports).toEqual([
       "../../styles.css",
-      "../../styles/palette-presets.generated.css",
       "../../styles/pro-theme.css",
       "../../styles/surface-tokens.generated.css",
       "../../styles/accent-tokens.generated.css",
@@ -283,7 +282,7 @@ describe("pro visual style", () => {
 
     expect(utilitiesIndex).toBeGreaterThan(-1);
     expect(componentsIndex).toBeGreaterThan(utilitiesIndex);
-    expect(read(EFFECT_INDEX_ENTRY_PATH)).not.toContain("palette-presets.generated.css");
+    expect(read(EFFECT_INDEX_ENTRY_PATH)).not.toContain("surface-tokens.generated.css");
     expect(read(EFFECT_INDEX_ENTRY_PATH)).not.toContain("accent-tokens.generated.css");
     expect(config).toContain('dosewiki: "./src/app/_styles/dosewiki.ts"');
     expect(config).toContain('effectindex: "./src/app/_styles/effectindex.ts"');
@@ -577,20 +576,29 @@ describe("pro visual style", () => {
  * The cascade rank ladder, asserted as arithmetic.
  *
  * Five rungs, higher wins: the authored Fun palette in site-colors.css, the
- * generated colourway blocks, the Pro palette, the generated accent blocks, and
+ * generated surface blocks, the Pro palette, the generated accent blocks, and
  * the Theme Lab's runtime user layer on top. Each rung exists so a reader's
  * later choice can re-tint an earlier one, so the ORDER is the contract — not
  * any particular selector text. Hence computed specificity here: a rewrite that
  * keeps every string parsing but swaps two rungs has to fail.
  *
- * Rung 4 is now a file rather than a fixture: `accent-tokens.generated.css`
- * ships, and the selectors measured here are read out of it. Both of its shapes
- * are checked, because they are not the same rank — a Pro accent block names
- * three attributes (0,3,1) so it out-ranks the Pro palette it re-seeds on
- * specificity, while a Fun accent block names two (0,2,1) and out-ranks a
- * colourway only on source order, which is why the sheet is imported last.
+ * Rungs 2 and 4 are files rather than fixtures: `surface-tokens.generated.css`
+ * and `accent-tokens.generated.css` both ship, and the selectors measured here
+ * are read out of them. Each has two shapes at two different ranks — a Pro block
+ * names three attributes (0,3,1) so it out-ranks the Pro palette it re-seeds on
+ * specificity alone, while a Fun block names two (0,2,1) and merely ties it.
  *
- * Rung 5 is no longer latent. The Palette Lab's Fun force-lock is gone, so an
+ * That tie is the one place the ladder's reasoning is not "later wins", and it
+ * is worth stating because the import order looks like it decides and does not.
+ * Both generated sheets load AFTER pro-theme.css, so at (0,2,1) a Fun block
+ * would take the tie and repaint a Pro page. Every Fun block therefore carries
+ * `:where(:not([data-visual-style="pro"]))`, which cannot match a Pro root at
+ * all and contributes nothing to specificity: it separates the two rungs
+ * without moving either. Between rungs 2 and 4 the tie IS decided by source
+ * order, and the accent sheet is imported last so that a reader's accent tints
+ * the surface they chose rather than the other way round.
+ *
+ * Rung 5 is no longer latent. The Theme Lab's Fun force-lock is gone, so an
  * editor wears Pro on `/dev/themes` and edits its `--ei-*` accent seeds there;
  * the rank measured here is what makes those edits visible instead of inert. What
  * guarantees the win is specificity alone: `userLayerSelector()` names
@@ -602,9 +610,11 @@ describe("pro visual style", () => {
 describe("cascade rank ladder", () => {
   const CHROME_DARK = ".theme-chrome-dark";
 
-  const colourwaySelectors = selectorsOf(read(PRESET_CSS_PATH));
-  const rootColourways = colourwaySelectors.filter((part) => !part.includes(CHROME_DARK));
-  const islandColourways = colourwaySelectors.filter((part) => part.includes(CHROME_DARK));
+  const surfaceSelectors = selectorsOf(read(SURFACE_CSS_PATH));
+  // Split on the POSITIVE Pro scope, for the same reason the accent split below does: a Fun
+  // block names the same attribute inside a :where(:not(…)) guard.
+  const proSurfaces = surfaceSelectors.filter((part) => part.startsWith(`html${STYLE_SCOPE}`));
+  const funSurfaces = surfaceSelectors.filter((part) => !part.startsWith(`html${STYLE_SCOPE}`));
 
   const accentSelectors = selectorsOf(read(ACCENT_CSS_PATH));
   // Split on the POSITIVE Pro scope. A Fun block names the same attribute inside a
@@ -629,7 +639,7 @@ describe("cascade rank ladder", () => {
     expect(specificityOf('html[data-theme="dark"][data-theme]')).toEqual([0, 2, 1]);
   });
 
-  it("keeps the authored Fun palette below the generated colourways", () => {
+  it("keeps the authored Fun palette below the generated surface blocks", () => {
     const authored = selectorsOf(read(SITE_COLORS_PATH));
     const funRoot = ":root";
     const funLight = 'html[data-theme="light"]';
@@ -641,37 +651,55 @@ describe("cascade rank ladder", () => {
       expect(authored).toContain(selector);
     }
 
-    expect(rootColourways.length).toBeGreaterThan(0);
-    expect(islandColourways.length).toBeGreaterThan(0);
-    for (const selector of rootColourways) expect(specificityOf(selector)).toEqual([0, 2, 1]);
-    for (const selector of islandColourways) expect(specificityOf(selector)).toEqual([0, 3, 1]);
+    expect(funSurfaces.length).toBeGreaterThan(0);
+    expect(proSurfaces.length).toBeGreaterThan(0);
+    for (const selector of funSurfaces) expect(specificityOf(selector)).toEqual([0, 2, 1]);
+    for (const selector of proSurfaces) expect(specificityOf(selector)).toEqual([0, 3, 1]);
 
-    // Like for like: the root blocks out-rank the authored root blocks, and the
-    // colourway's dark-chrome island out-ranks the authored one.
-    for (const base of [funRoot, funLight]) {
-      expect(compareSpecificity(specificityOf(rootColourways[0]), specificityOf(base))).toBeGreaterThan(0);
+    // Both shapes have to clear the authored blocks, and the base surface is the one that could
+    // quietly stop doing so: it is keyed on the attribute's ABSENCE, and the `:not()` is bare so
+    // that it keeps the (0,2,1) a named surface has. Wrapped in `:where()` it would drop to
+    // (0,1,1), below the authored light block it has to re-seat, and a reader with no surface
+    // saved would see the authored palette instead of the base surface's own.
+    const base = funSurfaces.filter((part) => part.includes(":not([data-surface])"));
+    expect(base.length).toBeGreaterThan(0);
+    expect(funSurfaces.filter((part) => part.includes('[data-surface="')).length).toBeGreaterThan(0);
+
+    for (const selector of [...funSurfaces, ...proSurfaces]) {
+      for (const lower of [funRoot, funLight]) {
+        expect(compareSpecificity(specificityOf(selector), specificityOf(lower))).toBeGreaterThan(0);
+      }
     }
-    expect(
-      compareSpecificity(specificityOf(islandColourways[0]), specificityOf(funIsland)),
-    ).toBeGreaterThan(0);
   });
 
-  it("ties the Pro palette with the colourways and lets import order break it", () => {
+  it("ties the Pro palette with a Fun surface block and separates them with the Pro guard", () => {
     for (const scheme of [LIGHT_SCHEME_SCOPE, DARK_SCHEME_SCOPE]) {
       expect(specificityOf(`html${scheme}`)).toEqual([0, 2, 1]);
-      expect(compareSpecificity(specificityOf(`html${scheme}`), specificityOf(rootColourways[0]))).toBe(0);
+      expect(compareSpecificity(specificityOf(`html${scheme}`), specificityOf(funSurfaces[0]))).toBe(0);
     }
 
-    // A tie is decided by source order, so the tie is only safe while Pro is
-    // imported after the colourways. Both sheets are unlayered.
+    // The surface sheet is imported after Pro, so at that tie a Fun block would win on source
+    // order and hand a Pro page the surface's own canvas. The guard is what makes the later
+    // import safe, so both halves of that reasoning are pinned together: the order, and the fact
+    // that every Fun block is unmatchable under Pro.
     const imports = [...read(DOSEWIKI_ENTRY_PATH).matchAll(/import\s+"([^"]+)";/g)].map(
       (match) => match[1],
     );
 
-    expect(imports.indexOf("../../styles/pro-theme.css")).toBeGreaterThan(
-      imports.indexOf("../../styles/palette-presets.generated.css"),
+    expect(imports.indexOf("../../styles/surface-tokens.generated.css")).toBeGreaterThan(
+      imports.indexOf("../../styles/pro-theme.css"),
     );
-    expect(imports.indexOf("../../styles/palette-presets.generated.css")).toBeGreaterThan(-1);
+    expect(imports.indexOf("../../styles/pro-theme.css")).toBeGreaterThan(-1);
+
+    for (const selector of funSurfaces) {
+      expect(selector).toContain(`:where(:not(${STYLE_SCOPE}))`);
+    }
+
+    // And the Pro half of the surface axis wins on specificity rather than order, so it re-tints
+    // Pro's own palette from wherever the bundler drops it.
+    for (const selector of proSurfaces) {
+      expect(compareSpecificity(specificityOf(selector), specificityOf(`html${DARK_SCHEME_SCOPE}`))).toBeGreaterThan(0);
+    }
   });
 
   it("puts the Theme Lab's user layer above a generated accent block", () => {
@@ -680,13 +708,14 @@ describe("cascade rank ladder", () => {
     expect(proAccents.length).toBeGreaterThan(0);
     expect(funAccents.length).toBeGreaterThan(0);
     for (const selector of proAccents) expect(specificityOf(selector)).toEqual([0, 3, 1]);
-    // A Fun accent block ties the colourways and the Pro palette at (0,2,1) and
-    // wins on source order. Its Pro guard is a :where(:not(…)), which contributes
-    // nothing, so carrying it cannot move the rung.
+    // A Fun accent block ties a Fun surface block and the Pro palette at (0,2,1)
+    // and wins on source order, because this sheet is imported last. Its Pro
+    // guard is a :where(:not(…)), which contributes nothing, so carrying it
+    // cannot move the rung.
     for (const selector of funAccents) {
       expect(selector).toContain(`:where(:not(${STYLE_SCOPE}))`);
       expect(specificityOf(selector)).toEqual([0, 2, 1]);
-      expect(compareSpecificity(specificityOf(selector), specificityOf(rootColourways[0]))).toBe(0);
+      expect(compareSpecificity(specificityOf(selector), specificityOf(funSurfaces[0]))).toBe(0);
     }
     // The dark layer is a two-selector list: the root, and the dark-chrome
     // subtree island that keeps a dark header dark on a light page.
@@ -707,7 +736,7 @@ describe("cascade rank ladder", () => {
     }
 
     // And still above every rung below 4, which is what a Fun edit relies on.
-    for (const lower of [rootColourways[0], islandColourways[0], `html${DARK_SCHEME_SCOPE}`]) {
+    for (const lower of [funSurfaces[0], proSurfaces[0], `html${DARK_SCHEME_SCOPE}`]) {
       expect(compareSpecificity(specificityOf(darkRoot), specificityOf(lower))).toBeGreaterThan(0);
     }
   });

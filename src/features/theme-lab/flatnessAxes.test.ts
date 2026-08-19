@@ -16,7 +16,6 @@ import {
   fadeColorsIn,
   glowOverrides,
 } from "./flatnessAxes";
-import { journal } from "./journalPreset";
 
 const REPO_ROOT = path.resolve(__dirname, "../../..");
 const SITE_COLORS = fs.readFileSync(path.join(REPO_ROOT, "src/styles/site-colors.css"), "utf8");
@@ -84,30 +83,33 @@ describe("flatness axes", () => {
     ).toBeNull();
   });
 
-  it("detects a step on a theme that ships some tokens already flat (Letterpress)", () => {
-    // The write path's delete-on-equal rule stores nothing for a token whose
-    // computed step value equals the baseline — `0 0 #0000` elevations and
-    // `transparent` halos fade to themselves. Detection must treat that gap as
-    // a match, or no chip ever highlights on Letterpress.
-    const journalBaseline = (id: string) => journal.overrides.dark[id] ?? "";
-    for (const [steps, ids, compute] of [
-      [DEPTH_STEPS, DEPTH_TOKEN_IDS, depthOverrides],
-      [GLOW_STEPS, GLOW_TOKEN_IDS, glowOverrides],
-    ] as const) {
-      for (const step of steps.filter((s) => s.factor !== null)) {
-        const computed = compute(journalBaseline, step.factor as number);
-        // Simulate delete-on-equal: entries equal to the baseline are dropped.
-        const stored = Object.fromEntries(
-          Object.entries(computed).filter(
-            ([id, value]) => value.trim() !== journalBaseline(id).trim(),
-          ),
-        );
-        // The scenario is real: some tokens must actually have been dropped.
-        expect(Object.keys(stored).length).toBeLessThan(Object.keys(computed).length);
-        expect(
-          detectStep(steps, [...ids], (id) => stored[id], journalBaseline, compute),
-        ).toBe(step.id);
-      }
+  it("detects a step when the theme already ships some depth tokens flat", () => {
+    // A partly flat baseline is the ordinary case, not an exotic one: every light
+    // scheme authors the avatar elevations as `0 0 #0000`, and Pro authors its
+    // control, icon-tile and frosted-panel elevations that way too, while the rest
+    // of the family carries real shadows. The write path's delete-on-equal rule
+    // stores nothing for those tokens — a flat shadow fades to itself at every
+    // factor — so detection has to read that gap as a match, or no chip ever
+    // highlights the step the visitor just tapped.
+    const alreadyFlat = DEPTH_TOKEN_IDS.filter((id) =>
+      new RegExp(`^\\s*${id}:\\s*0 0 #0000;`, "m").test(SITE_COLORS),
+    );
+    expect(alreadyFlat.length).toBeGreaterThan(0);
+    expect(alreadyFlat.length).toBeLessThan(DEPTH_TOKEN_IDS.length);
+    const baseline = (id: string) =>
+      alreadyFlat.includes(id) ? "0 0 #0000" : "0 4px 8px 0 rgb(2 6 23 / 0.2)";
+
+    for (const step of DEPTH_STEPS.filter((s) => s.factor !== null)) {
+      const computed = depthOverrides(baseline, step.factor as number);
+      // Simulate delete-on-equal: entries equal to the baseline are dropped.
+      const stored = Object.fromEntries(
+        Object.entries(computed).filter(([id, value]) => value.trim() !== baseline(id).trim()),
+      );
+      // The scenario is real: some tokens must actually have been dropped.
+      expect(Object.keys(stored).length).toBeLessThan(Object.keys(computed).length);
+      expect(
+        detectStep(DEPTH_STEPS, [...DEPTH_TOKEN_IDS], (id) => stored[id], baseline, depthOverrides),
+      ).toBe(step.id);
     }
   });
 

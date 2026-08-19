@@ -124,11 +124,10 @@ describe("palettePresets definitions", () => {
   });
 
   it("re-seats the whole brand seed group wherever it re-seats the brand hue", () => {
-    // --h-brand never travels alone in a legacy palette preset. --h-plum and
-    // --h-text carry its surfaces and ink; --h-violet carries a secondary
-    // surface-local decorative hue. Selected controls and inline references
-    // deliberately do not consume --h-violet: the independent Accent axis
-    // owns those recipes.
+    // --h-brand never travels alone in a colourway. --h-plum and --h-text carry
+    // its surfaces and ink; --h-violet carries a secondary surface-local
+    // decorative hue. Selected controls and inline references deliberately do not
+    // consume --h-violet: the independent Accent axis owns those recipes.
     const SEED_GROUP = ["--h-plum", "--h-text", "--h-violet"] as const;
     for (const preset of PALETTE_PRESETS) {
       for (const themeName of THEMES) {
@@ -144,9 +143,12 @@ describe("palettePresets definitions", () => {
     }
   });
 
-  it("ships five swatch hexes per theme for the picker strips", () => {
+  it("ships the five ordered swatch hexes the surface tint is read out of", () => {
     for (const preset of PALETTE_PRESETS) {
       for (const themeName of THEMES) {
+        // `src/theme/surfaces.ts` reads index 1 as the surface tint, so the tuple
+        // has to be the documented canvas/panel/text/brand/accent order and not
+        // some shorter list that happens to start the same way.
         const strip = preset.swatch[themeName];
         expect(strip, `${preset.id}/${themeName} swatch strip`).toHaveLength(5);
         for (const hex of strip) {
@@ -240,20 +242,19 @@ const IMMUNE = new Set(
  * the point of the list is that adding to it is a decision someone has to
  * write down.
  *
- * DANGER_RETINT — Garnet (scarlet), Liberty (federal red) and Yuletide
- * (crimson) each carry a red brand that a rose danger would blur into, so each
- * re-seats --h-rose to 350 and moves danger to magenta-pink: an alarm then
- * differs from the brand by hue, not only by intensity. These two tokens are
- * the hand-tuned literals in that family that do not follow --h-rose, so each
- * of the three has to re-pin them or the callout panel and the chip text stay
- * rose while the rest of the family moves.
+ * DANGER_RETINT — Garnet's scarlet brand is a red a rose danger would blur into,
+ * so it re-seats --h-rose to 350 and moves danger to magenta-pink: an alarm then
+ * differs from the brand by hue, not only by intensity. These two tokens are the
+ * hand-tuned literals in that family that do not follow --h-rose, so Garnet has
+ * to re-pin them or the callout panel and the chip text stay rose while the rest
+ * of the family moves.
  *
- * CAUTION_GOLD — Sunset and Halloween re-seat --h-gold to 95 and swap the
- * amber scale for yellow-gold, so brand coral/pumpkin, gold caution and burnt
- * unsafe stay three distinct steps. --theme-warning-bg is the one hand-tuned
- * literal in the warning ramp that does not follow --c-amber, so a wash
- * derived from gold has to move with the gold or it stops matching its own
- * family: the caution panel would keep an orange-brown fill under gold text.
+ * CAUTION_GOLD — Sunset re-seats --h-gold to 95 and swaps the amber scale for
+ * yellow-gold, so brand coral, gold caution and burnt unsafe stay three distinct
+ * steps. --theme-warning-bg is the one hand-tuned literal in the warning ramp
+ * that does not follow --c-amber, so a wash derived from gold has to move with
+ * the gold or it stops matching its own family: the caution panel would keep an
+ * orange-brown fill under gold text.
  */
 const DANGER_RETINT = [
   "--theme-interaction-danger-card-primary",
@@ -262,10 +263,7 @@ const DANGER_RETINT = [
 const CAUTION_GOLD = ["--theme-warning-bg"] as const;
 const EXEMPTIONS: Record<string, readonly string[]> = {
   garnet: DANGER_RETINT,
-  liberty: DANGER_RETINT,
-  yuletide: DANGER_RETINT,
   sunset: CAUTION_GOLD,
-  halloween: CAUTION_GOLD,
 };
 
 describe("harm-reduction immunity", () => {

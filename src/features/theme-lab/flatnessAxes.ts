@@ -1,6 +1,6 @@
 import { ELEVATION_GROUP } from "./paletteTokensElevation";
 import { RADIUS_TOKEN_IDS, formatRem, parseRem } from "./paletteTokensRadius";
-import type { PaletteOverrides } from "./paletteLabStorage";
+import type { PaletteOverrides } from "./themeLabStorage";
 
 /**
  * The flatness axes: bulk controls over token families that already exist.
@@ -8,9 +8,9 @@ import type { PaletteOverrides } from "./paletteLabStorage";
  * Depth, glow, and corners are not new state — they are conveniences that write
  * ordinary per-token overrides (the same `--theme-elevation-*`, halo/glow, and
  * `--radius*` tokens the catalog edits one at a time), so they persist, export,
- * share, and restore pre-paint through the machinery those tokens already ride.
- * Each step's values are derived from the *active theme's own baselines* at
- * apply time, which is what keeps "Soft" meaning "this preset's shadows, faded"
+ * and restore pre-paint through the machinery those tokens already ride.
+ * Each step's values are derived from the *active look's own baselines* at
+ * apply time, which is what keeps "Soft" meaning "this look's shadows, faded"
  * rather than some hardcoded look.
  *
  * Blur is the one axis that cannot be a token substitution: ~50 call sites
@@ -192,9 +192,10 @@ export function cornerOverrides(
  * A token with no override still matches a step when that step's computed write
  * equals the baseline (the write path's delete-on-equal rule stores nothing for
  * it) or when the step cannot write it at all (an unparseable corner baseline).
- * Without this, a theme that ships some tokens already flat — Letterpress's
- * `0 0 #0000` elevations and `transparent` halos — makes every non-default
- * step undetectable, so the chips never highlight what was just tapped.
+ * Without this, a look that ships some tokens already flat — light mode's
+ * `0 0 #0000` avatar elevations, Pro's flat controls and transparent halos —
+ * makes every non-default step undetectable, so the chips never highlight what
+ * was just tapped.
  */
 export function detectStep(
   steps: FlatnessStep[],

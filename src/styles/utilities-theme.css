@@ -3042,6 +3042,35 @@
     outline-offset: 3px;
   }
 
+  /* The rainbow conic ring is the appearance control's brand mark. It is the one
+     sanctioned exception to the no-cyan rule, because it is a product glyph
+     rather than a semantic or interactive colour, and its stops are fixed seeds
+     so it reads identically in both themes.
+
+     The hole is cut with a mask rather than filled with a surface colour, so the
+     glyph sits correctly on the cog's toggle pill, on a frosted panel, or on
+     anything else: nothing behind it has to be guessed. Size comes from the
+     caller; only the ring is defined here. */
+  .theme-color-wheel {
+    display: inline-block;
+    aspect-ratio: 1;
+    flex-shrink: 0;
+    border-radius: 50%;
+    background: conic-gradient(
+      from 0deg,
+      #ff4d6d,
+      #ffd166,
+      #06d6a0,
+      #4cc9f0,
+      #7b6cff,
+      #f15bb5,
+      #ff4d6d
+    );
+    box-shadow: inset 0 0 0 1px rgb(var(--c-white) / 0.4);
+    -webkit-mask: radial-gradient(closest-side, transparent 34%, #000 calc(34% + 1.5px));
+    mask: radial-gradient(closest-side, transparent 34%, #000 calc(34% + 1.5px));
+  }
+
   .theme-toggle-icon-muted {
     color: var(--theme-text-faint);
   }

@@ -1,4 +1,4 @@
-import { CHROME_DARK_CLASS } from "@/features/theme-lab/presetStylesheet";
+import { CHROME_DARK_CLASS } from "@/theme/chromeDark";
 import { ACCENTS, BASE_ACCENT_ID, type Accent } from "./accents";
 import funTokens from "./accentFunTokens.generated.json";
 
@@ -41,10 +41,10 @@ const NOT_PRO = ':where(:not([data-visual-style="pro"]))';
 /**
  * Selector for one accent's Fun block in one scheme.
  *
- * (0,2,1), which is level with the generated colourway blocks and with the Pro palette. The
- * tie is broken by source order, and this sheet is imported last, so an accent re-seats a
- * colourway the reader also has saved. It stays below the Theme Lab's user layer, which
- * reaches (0,4,1) by naming `data-theme` four times.
+ * (0,2,1), which is level with the generated surface blocks and with the Pro palette. The tie
+ * is broken by source order, and this sheet is imported last, so an accent re-tints the
+ * surface the reader picked rather than the other way round. It stays below the Theme Lab's
+ * user layer, which reaches (0,4,1) by naming `data-theme` four times.
  */
 export function accentFunBlockSelector(accentId: string, theme: string): string {
   return `html[${ACCENT_ATTRIBUTE}="${accentId}"][data-theme="${theme}"]${NOT_PRO}`;

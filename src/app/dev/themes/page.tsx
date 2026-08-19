@@ -12,8 +12,8 @@ import { ThemeLabWorkbench } from "./ThemeLabWorkbench";
 
 export const dynamic = "force-dynamic";
 export const metadata = buildNoIndexPageMetadata({
-  title: "Palette Lab",
-  description: "Protected palette editor for the dose.wiki visual styles.",
+  title: "Theme Lab",
+  description: "Protected theme editor for the dose.wiki visual styles.",
   pathname: STATUS_PAGE_PATHS.dev,
 });
 

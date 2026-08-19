@@ -11,7 +11,7 @@ files through stable public URLs only after an editor selects the face.
 Google's `latin` and `latin-ext` subsets are committed here. The application font modules
 register the Latin files for 400/600/700 normal and 400 italic. The Theme Lab registers
 both subsets with their matching `unicode-range` values from
-`src/features/palette-lab/paletteTokensFonts.ts`.
+`src/features/theme-lab/paletteTokensFonts.ts`.
 
 The fallback metrics in that face table keep the lazy Theme Lab swap from reflowing the
 page. The application path receives equivalent metric-matched fallbacks from `next/font`.

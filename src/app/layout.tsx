@@ -13,7 +13,7 @@ import {
   getInitialAppearance,
 } from "@/theme";
 import { ThemeProvider } from "@/context/ThemeContext";
-import { PaletteLabLazy } from "@/features/theme-lab/PaletteLabLazy";
+import { ThemeLabLazy } from "@/features/theme-lab/ThemeLabLazy";
 import { proFont, siteFont } from "./fonts";
 import { RouteChrome, RouteFooter } from "./_components/RouteChrome";
 import { ApprovedPublicAnalytics } from "./_components/ApprovedPublicAnalytics";
@@ -134,7 +134,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             </div>
             <RouteFooter />
           </div>
-          {SITE_FLAVOR === "dosewiki" ? <PaletteLabLazy /> : null}
+          {SITE_FLAVOR === "dosewiki" ? <ThemeLabLazy /> : null}
         </ThemeProvider>
       </body>
     </html>

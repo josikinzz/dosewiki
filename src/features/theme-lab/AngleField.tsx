@@ -12,7 +12,7 @@ import {
   parseAngle,
   type AngleSpec,
 } from "./paletteTokensHues";
-import styles from "./PaletteLab.module.css";
+import styles from "./ThemeLab.module.css";
 
 /**
  * The Theme Lab's angle control: one full turn of hue over a live preview of

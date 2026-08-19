@@ -1,26 +1,25 @@
 import { ACCENT_ATTRIBUTE } from "@/theme/accentStylesheet";
-import { SUPPORTED_VISUAL_STYLES, type ColorScheme, type VisualStyle } from "@/theme";
+import type { ColorScheme, VisualStyle } from "@/theme";
 import {
-  PALETTE_ATTRIBUTE,
-  PALETTE_LAB_OVERRIDE_STYLE_ID,
+  THEME_LAB_OVERRIDE_STYLE_ID,
   buildOverrideCss,
   type PaletteOverrides,
-} from "./paletteLabStorage";
+} from "./themeLabStorage";
 import { ALL_TOKEN_IDS } from "./paletteTokens";
 
 /**
- * Revert baselines: *the value a token has on this theme, in the visual style
+ * Revert baselines: *the value a token has in this colour scheme, on the look
  * being worn, when the visitor has not touched it*.
  *
- * This has to be sampled, not read off the preset, because most of the palette
- * derives from a handful of seeds — a preset that re-seats `--c-brand` changes
- * hundreds of tokens it never names. Without sampling per theme, "reset this
- * token" and the delete-on-equal rule in the token-write path would compare
- * against the *stock* look and either restore the wrong color or keep a
- * redundant edit around forever.
+ * This has to be sampled rather than looked up, because most of the palette
+ * derives from a handful of seeds — a surface that re-seats `--c-brand` changes
+ * hundreds of tokens it never names. Without sampling, "reset this token" and the
+ * delete-on-equal rule in the token-write path would compare against the *stock*
+ * look and either restore the wrong color or keep a redundant edit around
+ * forever.
  *
  * Cost: one synchronous double computed-style pass over every token. Cached per
- * theme *and visual style*, so switching back and forth is free after the first
+ * look *and visual style*, so switching back and forth is free after the first
  * visit of each; the panel calls it from a layout effect so the values are in
  * place before paint.
  */
@@ -31,7 +30,7 @@ import { ALL_TOKEN_IDS } from "./paletteTokens";
 export type ThemeDefaults = Record<ColorScheme, Record<string, string>>;
 
 const THEMES: ColorScheme[] = ["dark", "light"];
-const SAMPLE_STYLE_ID = "palette-lab-baseline-sample";
+const SAMPLE_STYLE_ID = "theme-lab-baseline-sample";
 /** The visual-style axis. Both samplers below stage it: it re-seats hundreds of
  *  `--theme-*` tokens, so neither a baseline nor an export means anything
  *  without naming which style it was read in. */
@@ -64,8 +63,8 @@ function restoreAttribute(root: HTMLElement, name: string, previous: string | nu
  * the first one is *written*, and every write lives inside the `try`. No path
  * through this function can strand an attribute — a throw out of
  * `buildOverrideCss` or `appendChild` unwinds through the same `finally` as a
- * clean pass, and the reader's page is handed back in the scheme, style, palette
- * and accent it arrived in. Do not lift a write above the `try` for tidiness;
+ * clean pass, and the reader's page is handed back in the scheme, style and
+ * accent it arrived in. Do not lift a write above the `try` for tidiness;
  * that is exactly the hole, and it is the one this function used to have.
  */
 function sampleDefaults(base: PaletteOverrides, visualStyle: VisualStyle): ThemeDefaults {
@@ -76,37 +75,31 @@ function sampleDefaults(base: PaletteOverrides, visualStyle: VisualStyle): Theme
   // Reads only, and all of them, before anything is written.
   const previousTheme = root.getAttribute("data-theme");
   const previousStyle = root.getAttribute(STYLE_ATTRIBUTE);
-  const previousPalette = root.getAttribute(PALETTE_ATTRIBUTE);
   const previousAccent = root.getAttribute(ACCENT_ATTRIBUTE);
-  const overrideEl = document.getElementById(PALETTE_LAB_OVERRIDE_STYLE_ID);
+  const overrideEl = document.getElementById(THEME_LAB_OVERRIDE_STYLE_ID);
   const overrideText = overrideEl?.textContent ?? "";
   const sample = document.createElement("style");
   sample.id = SAMPLE_STYLE_ID;
 
   try {
-    // Four things carry the visitor's look on top of the authored stylesheet, and
-    // the split between them is the whole design: three are layers the editor is
-    // editing *over* and are **neutralized**; the fourth is the base the editor is
-    // editing and is **held**.
+    // Four things carry the reader's look on top of the authored stylesheet, and
+    // the split between them is the whole design: two are layers the editor is
+    // editing *over* and are **neutralized**; the other two are the base the editor
+    // is editing and are **held** — one staged from the argument, one simply never
+    // touched.
     //
     // Neutralized, or the "pristine" sample comes back carrying the very values it
-    // is supposed to be the baseline for. First the injected element (custom-slot
-    // tokens plus edits)…
+    // is supposed to be the baseline for. First the injected element, which holds
+    // the visitor's own edits on the look being sampled…
     if (overrideEl) overrideEl.textContent = "";
-
-    // …then the palette attribute, which switches on a compiled preset block in
-    // the global stylesheet. Removed rather than re-pointed: `base` below is the
-    // authoritative statement of what this theme's own values are, and it must be
-    // the only preset layer in play while sampling.
-    root.removeAttribute(PALETTE_ATTRIBUTE);
 
     // …then the accent attribute, which switches on a compiled accent block in the
     // generated sheet — a Fun colourway in Fun, `--ei-*` seeds in Pro. Left in
     // place it breaks the delete-on-equal rule outright: an editor whose token
     // value happens to match the accent's would have their edit read as "same as
     // pristine" and silently dropped, when the accent is a layer they are editing
-    // *over*. Removed on the same terms as the palette attribute, and for the same
-    // reason — `base` is the authoritative statement of this theme's own values.
+    // *over*. Removed rather than re-pointed, because `base` is the authoritative
+    // statement of what values this sample is supposed to carry of its own.
     root.removeAttribute(ACCENT_ATTRIBUTE);
 
     // Held, not neutralized — the mirror case, and the one it is tempting to get
@@ -124,18 +117,23 @@ function sampleDefaults(base: PaletteOverrides, visualStyle: VisualStyle): Theme
     // writers fire in a fixed order the source does not show: the one appearance
     // owner writes `data-visual-style` from a *passive* effect
     // (`src/context/ThemeContext.tsx:213-228`) while the panel samples from a
-    // *layout* effect (`src/features/theme-lab/PaletteLab.tsx:157-160`), and the
+    // *layout* effect (`src/features/theme-lab/ThemeLab.tsx`), and the
     // layout effect runs before the passive write. On the commit that flips the
     // cog the React value is already the new style and the attribute is still the
     // old one. Trusting the document there would file a Fun sample under the Pro
     // key and poison it for the rest of the session — worse than the bug above,
     // which at least re-samples on remount. Staging makes the sample agree with
     // the key it is filed under whichever of the two effects lands first.
+    //
+    // The surface attribute is held on the same terms, which is why it is absent
+    // from this function entirely: its compiled block *is* the palette these
+    // baselines are the baseline of, so stripping it would make every reset
+    // restore the base surface's colour instead of the one the reader is on.
     root.setAttribute(STYLE_ATTRIBUTE, visualStyle);
 
-    // Stage this theme's own layer at the same specificity the lab renders it at.
+    // Stage the caller's own layer at the same specificity the lab renders it at.
     // The user-layer selector matches on `data-theme` alone, so stripping the
-    // palette attribute above does not silence what we are staging.
+    // accent attribute above does not silence what we are staging.
     sample.textContent = buildOverrideCss(base);
     document.head.appendChild(sample);
 
@@ -152,7 +150,6 @@ function sampleDefaults(base: PaletteOverrides, visualStyle: VisualStyle): Theme
     sample.remove();
     restoreAttribute(root, "data-theme", previousTheme);
     restoreAttribute(root, STYLE_ATTRIBUTE, previousStyle);
-    restoreAttribute(root, PALETTE_ATTRIBUTE, previousPalette);
     restoreAttribute(root, ACCENT_ATTRIBUTE, previousAccent);
     if (overrideEl) overrideEl.textContent = overrideText;
   }
@@ -161,18 +158,19 @@ function sampleDefaults(base: PaletteOverrides, visualStyle: VisualStyle): Theme
 }
 
 /**
- * Cache identity: the theme's storage key *and* the visual style it was sampled
- * in. The key alone is not enough — one theme has one baseline set per style,
- * because Pro re-seats hundreds of the tokens being sampled.
+ * Cache identity: the look the sample was taken on *and* the visual style it was
+ * taken in. The style is named separately rather than trusted to arrive inside
+ * `cacheKey`, because {@link sampleDefaults} stages the style it is *told* — the
+ * document may still carry the previous one for a commit — and the value staged
+ * has to be the value the entry is filed under.
  */
 function variantKey(cacheKey: string, visualStyle: VisualStyle): string {
   return `${visualStyle}:${cacheKey}`;
 }
 
 /**
- * Baselines for one theme in one visual style, cached under `cacheKey` (the
- * active theme's storage key, so shipped presets and custom slots never share an
- * entry) paired with the style.
+ * Baselines for one look in one visual style, cached under `cacheKey` (the
+ * caller's look key, so no two looks share an entry) paired with the style.
  */
 export function getThemeBaselines(
   cacheKey: string,
@@ -188,25 +186,15 @@ export function getThemeBaselines(
 }
 
 /**
- * Forget cached samples: one theme's when `cacheKey` is given (a deleted custom
- * slot, whose key a later slot could be handed again), otherwise all of them
- * (tests install fresh stylesheets between cases).
+ * Forget every cached sample.
  *
- * A named key clears *every* style variant, not the one the caller happens to be
- * wearing. Callers name a theme, never a style — `deleteCustomThemeSlot` has no
- * opinion about Fun or Pro — so leaving the other variant behind is exactly the
- * stale entry a recycled slot id would inherit. Enumerated rather than
- * prefix-matched: a theme key can itself contain a colon (`custom:<id>`), so
- * scanning for one would be guesswork where two exact deletes are not.
+ * A test seam, and only that: nothing in the app invalidates baselines, because a
+ * look's pristine values come from stylesheets the build shipped and cannot move
+ * while the page is alive. Tests install their own fixture stylesheets between
+ * cases, which is exactly the one thing that *can* move them.
  */
-export function clearThemeBaselineCache(cacheKey?: string): void {
-  if (cacheKey === undefined) {
-    cache.clear();
-    return;
-  }
-  for (const visualStyle of SUPPORTED_VISUAL_STYLES) {
-    cache.delete(variantKey(cacheKey, visualStyle));
-  }
+export function clearThemeBaselineCache(): void {
+  cache.clear();
 }
 
 /**

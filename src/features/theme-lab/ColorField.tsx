@@ -12,7 +12,7 @@ import {
   type Rgba,
 } from "./colorUtils";
 import { PanelInput } from "./panelKit";
-import styles from "./PaletteLab.module.css";
+import styles from "./ThemeLab.module.css";
 
 /**
  * The Theme Lab's compact color control: a saturation/value rectangle over a

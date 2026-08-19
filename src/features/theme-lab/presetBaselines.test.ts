@@ -1,53 +1,56 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { ACCENT_ATTRIBUTE } from "@/theme/accentStylesheet";
-import {
-  PALETTE_ATTRIBUTE,
-  PALETTE_LAB_OVERRIDE_STYLE_ID,
-  buildOverrideCss,
-} from "./paletteLabStorage";
+import { SURFACE_ATTRIBUTE } from "@/theme/surfaceStylesheet";
+import { THEME_LAB_OVERRIDE_STYLE_ID, buildOverrideCss } from "./themeLabStorage";
+import { lookKey } from "./themeLabLook";
 import {
   clearThemeBaselineCache,
   getThemeBaselines,
   sampleRenderedTokens,
 } from "./presetBaselines";
-import { presetBlockSelector } from "./presetStylesheet";
 
 /**
  * Revert baselines with the pre-paint bootstrap active.
  *
- * The bootstrap gives the visitor's look four carriers, and the sampler treats
- * them in two ways. Three are layers the editor edits *over* and are
- * **neutralized**: the palette attribute and the accent attribute (each switching
- * on a compiled block) and the injected style element. Miss one and "reset this
- * token" silently starts restoring whatever the visitor is already wearing
- * instead of the value the theme intends, and the delete-on-equal rule throws
- * away an edit that matches the layer it was made over.
+ * The bootstrap gives the reader's look four carriers, and the sampler treats them
+ * in two ways. Two are layers the editor edits *over* and are **neutralized**: the
+ * accent attribute (switching on a compiled accent block) and the injected style
+ * element. Miss one and "reset this token" silently starts restoring whatever the
+ * visitor is already wearing instead of the value the look intends, and the
+ * delete-on-equal rule throws away an edit that matches the layer it was made
+ * over.
  *
- * The fourth — the visual style — is the *base* being edited and is **held**:
- * staged to the style the panel says is on the page, never stripped, because
- * stripping it is what hands a Pro page Fun's baselines. It is staged from the
+ * The other two — the surface and the visual style — are the *base* being edited
+ * and are **held**: the style is staged to the value the panel says is on the page
+ * and the surface is simply never touched, because their blocks are the palette
+ * these baselines are the baseline of. Stripping either is what makes a reset
+ * restore a colour from a look the reader is not on. The style is staged from the
  * caller's value rather than read off the document because the layout effect that
  * samples runs before the passive effect that writes the attribute, so on a cog
  * flip the two disagree for one commit.
  */
 
 const TOKEN = "--theme-accent";
-/** A token the *worn* palette re-seats and the *sampled* theme does not. */
-const UNSTAGED_TOKEN = "--theme-panel-base";
-/** A Pro accent seed: no palette names one, so the accent block is the only
- *  thing between the authored value and the sample. */
+/** A token the *worn surface* re-seats and the staged base says nothing about.
+ *  The surface is held, so its value is what a reset should restore. */
+const SURFACE_TOKEN = "--theme-panel-base";
+/** A Pro accent seed, re-seated only by the accent block — so the accent block is
+ *  the only thing between the authored value and the sample. */
 const SEED_TOKEN = "--ei-accent";
 /** A token the Pro sheet re-seats, standing in for the ~200 real ones. Nothing
  *  else in the fixture touches it, so its value names the style it was read in. */
 const STYLE_TOKEN = "--theme-body-bg";
 const STOCK = "#111111";
-const COMPILED_PRESET = "#222222";
+const SURFACE_VALUE = "#222222";
 const USER_EDIT = "#333333";
-const THEME_OWN_VALUE = "#444444";
+const STAGED_BASE = "#444444";
 const ACCENT_VALUE = "#555555";
 const PRO_VALUE = "#666666";
 /** A later re-seat of the authored value: only a genuine re-sample can see it. */
 const RESEATED = "#777777";
+
+/** The look the fixture reader is wearing, in the shape the panel keys with. */
+const LOOK = lookKey({ visualStyle: "fun", accent: "blue", surface: "abyss" });
 
 let fixture: HTMLStyleElement;
 let overrideEl: HTMLStyleElement;
@@ -55,17 +58,19 @@ let overrideEl: HTMLStyleElement;
 beforeEach(() => {
   clearThemeBaselineCache();
   document.documentElement.setAttribute("data-theme", "dark");
-  // The bootstrap always paints this axis, so the harness does too.
+  // The bootstrap always paints these axes, so the harness does too.
   document.documentElement.setAttribute("data-visual-style", "fun");
-  document.documentElement.setAttribute(PALETTE_ATTRIBUTE, "fixture");
+  document.documentElement.setAttribute(SURFACE_ATTRIBUTE, "fixture-surface");
   document.documentElement.setAttribute(ACCENT_ATTRIBUTE, "fixture-accent");
 
-  // Stands in for the authored stylesheet plus the generated preset block.
+  // Stands in for the authored stylesheet plus the generated axis blocks.
   fixture = document.createElement("style");
   fixture.textContent = [
-    `html[data-theme="dark"]{${TOKEN}:${STOCK};${UNSTAGED_TOKEN}:${STOCK};${SEED_TOKEN}:${STOCK};${STYLE_TOKEN}:${STOCK};}`,
-    `html[data-theme="light"]{${TOKEN}:${STOCK};${UNSTAGED_TOKEN}:${STOCK};${SEED_TOKEN}:${STOCK};${STYLE_TOKEN}:${STOCK};}`,
-    `${presetBlockSelector("fixture", "dark")}{${TOKEN}:${COMPILED_PRESET};${UNSTAGED_TOKEN}:${COMPILED_PRESET};}`,
+    `html[data-theme="dark"]{${TOKEN}:${STOCK};${SURFACE_TOKEN}:${STOCK};${SEED_TOKEN}:${STOCK};${STYLE_TOKEN}:${STOCK};}`,
+    `html[data-theme="light"]{${TOKEN}:${STOCK};${SURFACE_TOKEN}:${STOCK};${SEED_TOKEN}:${STOCK};${STYLE_TOKEN}:${STOCK};}`,
+    // The generated surface block, in the (0,2,1) shape the sheet emits for a
+    // named Fun surface.
+    `html[${SURFACE_ATTRIBUTE}="fixture-surface"][data-theme="dark"]{${SURFACE_TOKEN}:${SURFACE_VALUE};}`,
     // The generated accent block, in the shape the stylesheet emits for Pro.
     `html[${ACCENT_ATTRIBUTE}="fixture-accent"][data-theme="dark"]{${SEED_TOKEN}:${ACCENT_VALUE};}`,
     // Pro re-seating a base token, the way `pro-theme.css` re-seats ~200 of them.
@@ -75,7 +80,7 @@ beforeEach(() => {
   document.head.appendChild(fixture);
 
   overrideEl = document.createElement("style");
-  overrideEl.id = PALETTE_LAB_OVERRIDE_STYLE_ID;
+  overrideEl.id = THEME_LAB_OVERRIDE_STYLE_ID;
   overrideEl.textContent = buildOverrideCss({ dark: { [TOKEN]: USER_EDIT }, light: {} });
   document.head.appendChild(overrideEl);
 });
@@ -83,37 +88,37 @@ beforeEach(() => {
 afterEach(() => {
   fixture.remove();
   overrideEl.remove();
-  document.documentElement.removeAttribute(PALETTE_ATTRIBUTE);
+  document.documentElement.removeAttribute(SURFACE_ATTRIBUTE);
   document.documentElement.removeAttribute(ACCENT_ATTRIBUTE);
   document.documentElement.removeAttribute("data-visual-style");
   clearThemeBaselineCache();
 });
 
 describe("revert baselines under the pre-paint bootstrap", () => {
-  it("samples the theme's own value, not the compiled preset or the visitor's edit", () => {
-    const baselines = getThemeBaselines("fixture", "fun", {
-      dark: { [TOKEN]: THEME_OWN_VALUE },
+  it("samples the staged base, not the visitor's own injected edit", () => {
+    const baselines = getThemeBaselines(LOOK, "fun", {
+      dark: { [TOKEN]: STAGED_BASE },
       light: {},
     });
 
-    expect(baselines.dark[TOKEN]).toBe(THEME_OWN_VALUE);
+    expect(baselines.dark[TOKEN]).toBe(STAGED_BASE);
+    expect(baselines.dark[TOKEN]).not.toBe(USER_EDIT);
     // Light has no staged value, so it falls through to the authored stylesheet
     // — which is exactly what reverting a light token should restore.
     expect(baselines.light[TOKEN]).toBe(STOCK);
   });
 
-  it("ignores a palette the visitor is wearing but is not the one being sampled", () => {
-    // The killer case for the palette attribute: the worn palette re-seats a
-    // token the sampled theme says nothing about. Left switched on, its value
-    // would be recorded as the sampled theme's own — so reverting that token
-    // would restore a colour from a different palette entirely.
-    const baselines = getThemeBaselines("fixture", "fun", {
-      dark: { [TOKEN]: THEME_OWN_VALUE },
+  it("keeps the surface the reader is wearing, because that is the palette being edited", () => {
+    // The surface block is not a layer over the look — it *is* the look. Strip it
+    // and every reset on a named surface restores the base surface's colour, which
+    // is a colour the reader has never seen on this page.
+    const baselines = getThemeBaselines(LOOK, "fun", {
+      dark: { [TOKEN]: STAGED_BASE },
       light: {},
     });
 
-    expect(baselines.dark[UNSTAGED_TOKEN]).toBe(STOCK);
-    expect(baselines.dark[UNSTAGED_TOKEN]).not.toBe(COMPILED_PRESET);
+    expect(baselines.dark[SURFACE_TOKEN]).toBe(SURFACE_VALUE);
+    expect(baselines.dark[SURFACE_TOKEN]).not.toBe(STOCK);
   });
 
   it("ignores the accent the visitor is wearing, so an edit over it is a real edit", () => {
@@ -121,8 +126,8 @@ describe("revert baselines under the pre-paint bootstrap", () => {
     // delete-on-equal rule: an editor whose seed lands on the accent's value would
     // have that edit compared against the accent itself, read as "no divergence",
     // and dropped. The baseline has to be the authored value underneath.
-    const baselines = getThemeBaselines("fixture", "fun", {
-      dark: { [TOKEN]: THEME_OWN_VALUE },
+    const baselines = getThemeBaselines(LOOK, "fun", {
+      dark: { [TOKEN]: STAGED_BASE },
       light: {},
     });
 
@@ -131,9 +136,9 @@ describe("revert baselines under the pre-paint bootstrap", () => {
   });
 
   it("puts the document back exactly as it found it", () => {
-    getThemeBaselines("fixture", "fun", { dark: { [TOKEN]: THEME_OWN_VALUE }, light: {} });
+    getThemeBaselines(LOOK, "fun", { dark: { [TOKEN]: STAGED_BASE }, light: {} });
 
-    expect(document.documentElement.getAttribute(PALETTE_ATTRIBUTE)).toBe("fixture");
+    expect(document.documentElement.getAttribute(SURFACE_ATTRIBUTE)).toBe("fixture-surface");
     expect(document.documentElement.getAttribute(ACCENT_ATTRIBUTE)).toBe("fixture-accent");
     expect(document.documentElement.getAttribute("data-theme")).toBe("dark");
     expect(document.documentElement.getAttribute("data-visual-style")).toBe("fun");
@@ -146,24 +151,11 @@ describe("revert baselines under the pre-paint bootstrap", () => {
     ).toBe(USER_EDIT);
   });
 
-  it("does not leave a palette attribute behind when there was none", () => {
-    document.documentElement.removeAttribute(PALETTE_ATTRIBUTE);
-    clearThemeBaselineCache();
-
-    const baselines = getThemeBaselines("no-palette", "fun", {
-      dark: { [TOKEN]: THEME_OWN_VALUE },
-      light: {},
-    });
-
-    expect(baselines.dark[TOKEN]).toBe(THEME_OWN_VALUE);
-    expect(document.documentElement.hasAttribute(PALETTE_ATTRIBUTE)).toBe(false);
-  });
-
   it("does not leave an accent attribute behind when there was none", () => {
     document.documentElement.removeAttribute(ACCENT_ATTRIBUTE);
     clearThemeBaselineCache();
 
-    getThemeBaselines("no-accent", "fun", { dark: { [TOKEN]: THEME_OWN_VALUE }, light: {} });
+    getThemeBaselines(LOOK, "fun", { dark: { [TOKEN]: STAGED_BASE }, light: {} });
 
     // The default accent IS the absent attribute, so writing one back would put
     // the visitor on an accent they never chose.
@@ -177,16 +169,16 @@ describe("revert baselines under the pre-paint bootstrap", () => {
     document.documentElement.removeAttribute("data-visual-style");
     clearThemeBaselineCache();
 
-    getThemeBaselines("no-style", "pro", { dark: { [TOKEN]: THEME_OWN_VALUE }, light: {} });
+    getThemeBaselines(LOOK, "pro", { dark: { [TOKEN]: STAGED_BASE }, light: {} });
 
     expect(document.documentElement.hasAttribute("data-visual-style")).toBe(false);
   });
 
   it("strands nothing when the sample throws part-way through", () => {
     // The whole point of reading every attribute before writing any and keeping
-    // every write inside the `try`: this throw lands after the palette and accent
-    // have been stripped and the style has been staged. Without the `finally` the
-    // reader is left on a page in the wrong visual style with no palette.
+    // every write inside the `try`: this throw lands after the accent has been
+    // stripped and the style has been staged. Without the `finally` the reader is
+    // left on a page in the wrong visual style with no accent.
     const appendChild = vi
       .spyOn(document.head, "appendChild")
       .mockImplementation(() => {
@@ -195,12 +187,12 @@ describe("revert baselines under the pre-paint bootstrap", () => {
 
     try {
       expect(() =>
-        getThemeBaselines("throws", "pro", { dark: { [TOKEN]: THEME_OWN_VALUE }, light: {} }),
+        getThemeBaselines(LOOK, "pro", { dark: { [TOKEN]: STAGED_BASE }, light: {} }),
       ).toThrow("stylesheet insertion blocked");
 
       expect(document.documentElement.getAttribute("data-visual-style")).toBe("fun");
       expect(document.documentElement.getAttribute("data-theme")).toBe("dark");
-      expect(document.documentElement.getAttribute(PALETTE_ATTRIBUTE)).toBe("fixture");
+      expect(document.documentElement.getAttribute(SURFACE_ATTRIBUTE)).toBe("fixture-surface");
       expect(document.documentElement.getAttribute(ACCENT_ATTRIBUTE)).toBe("fixture-accent");
       expect(overrideEl.textContent).toBe(
         buildOverrideCss({ dark: { [TOKEN]: USER_EDIT }, light: {} }),
@@ -214,34 +206,34 @@ describe("revert baselines under the pre-paint bootstrap", () => {
 /**
  * The visual-style axis, which #119 made reachable by lifting the force-lock that
  * had pinned the lab's route to Fun. Everything here fails against a sampler that
- * keys baselines on the theme alone, and the failure is invisible on screen: it
+ * keys baselines on the look alone, and the failure is invisible on screen: it
  * produces wrong *storage*, not a wrong pixel.
  */
 describe("revert baselines across a visual-style switch", () => {
-  const BASE = { dark: { [TOKEN]: THEME_OWN_VALUE }, light: {} };
+  const BASE = { dark: { [TOKEN]: STAGED_BASE }, light: {} };
 
   it("hands each style its own baselines rather than the first one sampled", () => {
     // The shipped bug: sample in Fun, flip the cog, and the cached Fun sample is
     // handed to a Pro page. Delete-on-equal then keeps an edit that equals the Pro
     // value as a divergence it is not, and drops an edit that equals the stale Fun
     // value even though it visibly moves the Pro page.
-    const fun = getThemeBaselines("fixture", "fun", BASE);
+    const fun = getThemeBaselines(LOOK, "fun", BASE);
     expect(fun.dark[STYLE_TOKEN]).toBe(STOCK);
 
     document.documentElement.setAttribute("data-visual-style", "pro");
-    const pro = getThemeBaselines("fixture", "pro", BASE);
+    const pro = getThemeBaselines(LOOK, "pro", BASE);
 
     expect(pro.dark[STYLE_TOKEN]).toBe(PRO_VALUE);
     expect(pro.dark[STYLE_TOKEN]).not.toBe(STOCK);
     // And Fun's entry is still Fun's — flipping back is a cache hit, not a re-read
     // of whatever is on the document now.
     document.documentElement.setAttribute("data-visual-style", "fun");
-    expect(getThemeBaselines("fixture", "fun", BASE).dark[STYLE_TOKEN]).toBe(STOCK);
+    expect(getThemeBaselines(LOOK, "fun", BASE).dark[STYLE_TOKEN]).toBe(STOCK);
   });
 
   it("samples the style it is told, not the one the document still carries", () => {
     // Pins the effect-ordering hazard that decides the whole design. The panel
-    // samples from a layout effect (`PaletteLab.tsx`) and the one appearance owner
+    // samples from a layout effect (`ThemeLab.tsx`) and the one appearance owner
     // writes `data-visual-style` from a passive effect (`ThemeContext.tsx`), and the
     // layout effect runs before the passive write — so for one commit after a cog
     // flip the React value is already "pro" while the attribute still says "fun".
@@ -251,7 +243,7 @@ describe("revert baselines across a visual-style switch", () => {
     // survives every later flip instead of re-sampling on remount.
     expect(document.documentElement.getAttribute("data-visual-style")).toBe("fun");
 
-    const pro = getThemeBaselines("fixture", "pro", BASE);
+    const pro = getThemeBaselines(LOOK, "pro", BASE);
 
     expect(pro.dark[STYLE_TOKEN]).toBe(PRO_VALUE);
     // The disagreement is not resolved by the sampler, only survived: the attribute
@@ -259,22 +251,33 @@ describe("revert baselines across a visual-style switch", () => {
     expect(document.documentElement.getAttribute("data-visual-style")).toBe("fun");
   });
 
-  it("forgets every style variant of a deleted slot, not just the worn one", () => {
-    // A deleted custom slot's key can be handed to a later slot. Callers name a
-    // theme and have no opinion about Fun or Pro, so a variant left behind is a
-    // stale baseline the recycled slot silently inherits.
-    expect(getThemeBaselines("fixture", "fun", BASE).dark[STYLE_TOKEN]).toBe(STOCK);
-    expect(getThemeBaselines("fixture", "pro", BASE).dark[STYLE_TOKEN]).toBe(PRO_VALUE);
+  it("gives each look its own entry rather than the first look sampled", () => {
+    // Two looks, one style: an entry keyed on the style alone would hand the second
+    // look the first one's pristine values, and every reset on it would restore a
+    // colour from a surface the reader left.
+    const other = lookKey({ visualStyle: "fun", accent: "red", surface: "garnet" });
 
-    clearThemeBaselineCache("fixture");
+    expect(getThemeBaselines(LOOK, "fun", BASE).dark[TOKEN]).toBe(STAGED_BASE);
+    expect(
+      getThemeBaselines(other, "fun", { dark: { [TOKEN]: RESEATED }, light: {} }).dark[TOKEN],
+    ).toBe(RESEATED);
+    // …and the first look's entry is untouched by the second's sample.
+    expect(getThemeBaselines(LOOK, "fun", BASE).dark[TOKEN]).toBe(STAGED_BASE);
+  });
+
+  it("re-samples every style variant after the cache is cleared", () => {
+    expect(getThemeBaselines(LOOK, "fun", BASE).dark[STYLE_TOKEN]).toBe(STOCK);
+    expect(getThemeBaselines(LOOK, "pro", BASE).dark[STYLE_TOKEN]).toBe(PRO_VALUE);
+
+    clearThemeBaselineCache();
     // Re-seat the authored value: only a genuine re-sample can see this.
     const reseat = document.createElement("style");
     reseat.textContent = `html[data-theme="dark"]{${STYLE_TOKEN}:${RESEATED};}html[data-visual-style="pro"]{${STYLE_TOKEN}:${RESEATED};}`;
     document.head.appendChild(reseat);
 
     try {
-      expect(getThemeBaselines("fixture", "fun", BASE).dark[STYLE_TOKEN]).toBe(RESEATED);
-      expect(getThemeBaselines("fixture", "pro", BASE).dark[STYLE_TOKEN]).toBe(RESEATED);
+      expect(getThemeBaselines(LOOK, "fun", BASE).dark[STYLE_TOKEN]).toBe(RESEATED);
+      expect(getThemeBaselines(LOOK, "pro", BASE).dark[STYLE_TOKEN]).toBe(RESEATED);
     } finally {
       reseat.remove();
     }

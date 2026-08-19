@@ -1,10 +1,10 @@
 import { describe, expect, it } from "vitest";
 
-import { DEFAULT_PRESET_ID, PALETTE_PRESETS } from "@/features/theme-lab/palettePresets";
 import {
   GRID,
   type Rgb,
   SCHEMES,
+  STYLES,
   composite,
   contrastRatio,
   parseColor,
@@ -13,6 +13,8 @@ import {
   resolveTokens,
   toHex,
 } from "@/test/fixtures/accentAppearanceGrid";
+// Aliased: `SURFACES` is already the local list of `--theme-surface-*` grounds below.
+import { BASE_SURFACE_ID, SURFACES as SURFACE_AXIS } from "./surfaces";
 
 /**
  * The theme ramp's contrast floors, measured on the resolved cascade.
@@ -34,9 +36,11 @@ import {
  * Two apparatus corrections in `accentAppearanceGrid.ts` are what make this measurable at all, and
  * both are the reason the defects survived so long:
  *
- * - `data-palette` is now a modelled attribute, so the twelve Theme Lab colourway blocks resolve
- *   instead of dropping out of the cascade unmatched. Twenty-four appearance states went from
- *   unreachable to measured.
+ * - `data-surface` is a modelled attribute, so the six named surface blocks resolve instead of
+ *   dropping out of the cascade unmatched. Twenty-four appearance states — both halves of the axis,
+ *   both schemes — went from unreachable to measured. An attribute that seeds a colourway and is
+ *   missing from that map takes its whole sheet silently out of the model, which is a failure that
+ *   reads as green.
  * - `parseColorWithAlpha` carries the fourth channel, so a translucent hairline is composited over
  *   the ground it is painted on rather than measured as if it were opaque. Fun's field borders were
  *   12–28% inks when the audit ran, measuring 1.3–1.5:1 composited against the 5–18:1 an
@@ -155,9 +159,9 @@ const BOUNDARY_PAIRS: [border: string, surface: string][] = [
  * gradient, so the card cannot be named more directly than this — see `flatFill`.
  *
  * `--theme-surface-muted` is the fourth ground and was the blind spot: it is the *darkest* of the
- * four in light mode, so it binds before the others, and omitting it let three colourways ship a
- * heading under the floor (canopy and the green accent at 4.41:1 on `#e6f4e8`, halloween at 4.46:1
- * on `#fcebe0`) while this suite stayed green. A browser pass over the resolved states found them.
+ * four in light mode, so it binds before the others, and omitting it let a colourway ship a heading
+ * under the floor — canopy, and the green accent that wears it, at 4.41:1 on `#e6f4e8` — while this
+ * suite stayed green. A browser pass over the resolved states found it.
  */
 const SECTION_HEADING_PAIRS: [ink: string, ground: string][] = [
   ["--theme-section-heading", "--theme-body-bg"],
@@ -226,26 +230,32 @@ type AppearancePoint = { label: string; tokens: Record<string, string> };
 const READER_STATES: AppearancePoint[] = GRID.map(({ label, tokens }) => ({ label, tokens }));
 
 /**
- * The Theme Lab colourways, Fun only, at the default accent.
+ * The six named surfaces, both visual styles, both schemes, at the default accent.
  *
- * Fun only because Pro overrides them wholesale: a colourway block is `html[data-palette=…]
- * [data-theme=…]` at (0,2,1) and Pro's is `html[data-visual-style="pro"][data-theme=…]` at the same
- * (0,2,1), so source order in the ladder decides and `pro-theme.css` imports later. Setting a
- * colourway under Pro resolves `--theme-body-bg` to Pro's own `#131313`, measured, not assumed —
- * there is nothing colourway-specific left to measure there.
+ * The surface axis is the one that carries a whole colourway — the canvas, the surface stack, the
+ * ink ramp and the borders — so these are the twenty-four states where every ground the pair lists
+ * below name can be a colour no reader-reachable state uses.
  *
- * `orchid` is excluded because it is the default preset with zero overrides: it emits no block at
- * all, so its resolved state is byte-for-byte `default/fun/*`, already in `READER_STATES`. Driving
- * the list off `PALETTE_PRESETS` rather than a hand-written array of twelve ids means a fourteenth
- * preset arrives here measured instead of arriving unmeasured.
+ * Both visual styles, because the axis has two halves and they move different things.
+ * `surfaceStylesheet.ts` emits a Fun block per surface per scheme carrying the full colourway, and
+ * a Pro block carrying five `--ei-*` panel and border seeds blended 4% toward the surface's tint.
+ * That Pro blend is small — it moves the pairs here by at most 0.25:1 — but it is not nothing, and
+ * a suite that measured only the Fun half would be asserting that the Pro half cannot break.
+ *
+ * `orchid` is excluded because it is the base surface: its block is keyed on the attribute's
+ * absence, so its resolved state is byte-for-byte `default/fun/*` and `default/pro/*`, already in
+ * `READER_STATES`. Driving the list off `SURFACE_AXIS` rather than a hand-written array of ids
+ * means an eighth surface arrives here measured instead of arriving unmeasured.
  */
-const COLOURWAY_STATES: AppearancePoint[] = PALETTE_PRESETS.filter(
-  (preset) => preset.id !== DEFAULT_PRESET_ID,
-).flatMap((preset) =>
-  SCHEMES.map((theme) => ({
-    label: `${preset.id}/fun/${theme}`,
-    tokens: resolveTokens({ visualStyle: "fun", theme, palette: preset.id }),
-  })),
+const SURFACE_STATES: AppearancePoint[] = SURFACE_AXIS.filter(
+  (surface) => surface.id !== BASE_SURFACE_ID,
+).flatMap((surface) =>
+  STYLES.flatMap((visualStyle) =>
+    SCHEMES.map((theme) => ({
+      label: `${surface.id}/${visualStyle}/${theme}`,
+      tokens: resolveTokens({ visualStyle, theme, surface: surface.id }),
+    })),
+  ),
 );
 
 /* -------------------------------------------------------------------------
@@ -379,9 +389,9 @@ function proCases(inks: string[], floor: number): Case[] {
 /**
  * The seven assertions, registered against a list of states.
  *
- * A function rather than two copies because the floors are identical for a reader-reachable state
- * and a Theme Lab colourway — a colourway is not a lower standard, it is the same theme with its
- * seeds re-seated — and two copies would let them drift.
+ * A function rather than two copies because the floors are identical for a state a reader reaches
+ * with no surface saved and a state on a named surface — a surface is not a lower standard, it is
+ * the same theme with its seeds re-seated — and two copies would let them drift.
  */
 function registerFloors(states: AppearancePoint[]) {
   it.each(casesFor(states, RAMP_PAIRS, TEXT_FLOOR))(
@@ -509,27 +519,49 @@ describe("theme ramp floors", () => {
 });
 
 /**
- * The Theme Lab colourways get the same floors, in their own block only so a failure reads as
- * "a colourway is broken" rather than "the theme is broken". They are editor-reachable rather than
- * reader-reachable — a visitor picks one and it persists — which changes who hits a breach, not
- * whether it is one.
+ * The named surfaces get the same floors, in their own block only so a failure reads as "a surface
+ * is broken" rather than "the theme is broken". A surface is a reader's own choice from the
+ * appearance cog and persists, so a breach here reaches exactly the readers who picked it.
  */
-describe("Theme Lab colourway floors", () => {
-  it("resolves a colourway distinctly from the base sheet", () => {
-    // The point of the `data-palette` correction: before it, every one of these states resolved to
-    // the base sheet and all the assertions below were the same twenty-four duplicate measurements.
-    const base = resolveTokens({ visualStyle: "fun", theme: "dark" });
-    const distinct = COLOURWAY_STATES.filter(
-      (state) => state.label.endsWith("/dark") && state.tokens["--theme-body-bg"] !== base["--theme-body-bg"],
+describe("surface floors", () => {
+  it("repaints the Fun canvas and the Pro borders, so these are not duplicate measurements", () => {
+    // Without this the suite is silently worthless: if `data-surface` ever stops being a modelled
+    // attribute in `accentAppearanceGrid.ts`, or the generated sheet regains a guard that keeps its
+    // blocks from matching, every state below resolves to the base sheet and all twenty-four become
+    // duplicates of `default/*` — passing, and measuring nothing. So each half is pinned on the
+    // token it actually owns.
+    const bases: Record<string, Record<string, string>> = {
+      fun: resolveTokens({ visualStyle: "fun", theme: "dark" }),
+      pro: resolveTokens({ visualStyle: "pro", theme: "dark" }),
+    };
+    const dark = SURFACE_STATES.filter((state) => state.label.endsWith("/dark"));
+    const funDark = dark.filter((state) => state.label.includes("/fun/"));
+    const proDark = dark.filter((state) => state.label.includes("/pro/"));
+
+    // The Fun half carries the whole colourway, canvas included.
+    const repainted = funDark.filter(
+      (state) => state.tokens["--theme-body-bg"] !== bases.fun["--theme-body-bg"],
     );
 
     expect(
-      distinct.length,
-      `only ${distinct.length} of ${COLOURWAY_STATES.length / 2} dark colourways repaint the canvas`,
-    ).toBe(COLOURWAY_STATES.length / 2);
+      repainted.map((state) => state.label),
+      `only ${repainted.length} of ${funDark.length} dark Fun surfaces repaint the canvas`,
+    ).toEqual(funDark.map((state) => state.label));
+
+    // The Pro half deliberately does NOT: Pro's canvas is fixed, and `accents.axis.test.ts` pins
+    // that for the accent axis for the same reason. What a Pro surface moves is the panel and
+    // border stack, so that is what proves its block resolved.
+    for (const state of proDark) {
+      expect(state.tokens["--theme-body-bg"], `${state.label} left Pro's canvas`).toBe(
+        bases.pro["--theme-body-bg"],
+      );
+      expect(state.tokens["--theme-card-border"], `${state.label} did not tint Pro's borders`).not.toBe(
+        bases.pro["--theme-card-border"],
+      );
+    }
   });
 
-  registerFloors(COLOURWAY_STATES);
+  registerFloors(SURFACE_STATES);
 });
 
 /**

@@ -19,7 +19,7 @@ import { describe, expect, it } from "vitest";
 
 const FEATURE_DIR = resolve(process.cwd(), "src/features/theme-lab");
 
-const stylesheet = readFileSync(resolve(FEATURE_DIR, "PaletteLab.module.css"), "utf8");
+const stylesheet = readFileSync(resolve(FEATURE_DIR, "ThemeLab.module.css"), "utf8");
 
 /**
  * Class names that existed only to re-style a control the kit already ships.
@@ -125,14 +125,12 @@ describe("Theme Lab panel controls", () => {
   it("keeps the panel's own stylesheet to layout and its bespoke instruments", () => {
     // A ratchet, not a target: the file was 1,747 lines before the controls
     // moved onto the kit. What is left is panel/sheet layout, the color field
-    // and alpha track, the swatch checkerboard, the eyedropper overlays, and
-    // the docked share-invite card — the one surface the lab paints outside its
-    // own panel, whose contents still borrow the drawer, action-row and error
-    // classes rather than growing their own. (−66 since the public trigger was
-    // retired: its button, wheel glyph and pressed state went with it, the panel
-    // title's wheel is declared once instead of twice, and the rules that moved
-    // the homepage's fixed control cluster around the sheet went with the
-    // homepage mount.)
-    expect(stylesheet.split("\n").length).toBeLessThanOrEqual(1260);
+    // and alpha track, the swatch checkerboard, and the eyedropper overlays —
+    // every one of which the lab paints itself because the kit ships no
+    // analogue. (−140 since the named-theme gallery went: the preset cards and
+    // their colour strips, the saved-slot affordances, the gallery footnote and
+    // the docked share-invite card left with it, and the panel's dark/light chip
+    // row became the site's own Day/Night toggle.)
+    expect(stylesheet.split("\n").length).toBeLessThanOrEqual(1120);
   });
 });

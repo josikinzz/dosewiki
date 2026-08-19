@@ -8,7 +8,7 @@ export const appearanceCogStory: StoryDef = {
   tier: "layout",
   status: "stable",
   summary:
-    "The reader's single appearance control: a 44px cog opens the Fun/Pro and Day/Night controls, scheme-aware Surface and Accent swatches, and an explicit full Palette Lab action. Pro keeps the Surface row visible but disabled because its materials are fixed.",
+    "The reader's single appearance control: a 44px cog opens the Fun/Pro and Day/Night controls, scheme-aware Surface and Accent swatches, and an explicit Theme Lab action. Pro keeps the Surface row visible but disabled because its materials are fixed.",
   source: "src/app/_components/AppearanceCog.tsx",
   importLine: 'import { AppearanceControls } from "@/app/_components/AppearanceControls";',
   // The symbol lives in src/app/_components, not in a shared ui/common/layout barrel, so the
@@ -18,15 +18,15 @@ export const appearanceCogStory: StoryDef = {
   examples: [
     {
       label: "DoseWiki",
-      note: "The shipped DoseWiki panel: both binary controls, both palette rows, and the full Palette Lab action at the end.",
+      note: "The shipped DoseWiki panel: both binary controls, both palette rows, and the Theme Lab action at the end.",
       background: "plain",
       render: () => (
         <AppearanceCog showVisualStyle showColorScheme showSurface showAccent showMoreSettings />
       ),
     },
     {
-      label: "Without Palette Lab",
-      note: "A publication or embedding surface without the public Palette Lab drawer.",
+      label: "Without Theme Lab",
+      note: "A publication or embedding surface without the public Theme Lab drawer.",
       background: "plain",
       render: () => (
         <AppearanceCog
@@ -87,7 +87,7 @@ export const appearanceCogStory: StoryDef = {
       name: "showMoreSettings",
       type: "boolean",
       description:
-        "Renders the explicit full-width action that opens the global Palette Lab drawer.",
+        "Renders the explicit full-width action that opens the global Theme Lab drawer.",
     },
   ],
   whenToUse: [

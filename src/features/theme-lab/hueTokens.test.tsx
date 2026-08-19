@@ -3,15 +3,16 @@ import { resolve } from "node:path";
 import { act, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { getInitialAppearance } from "@/theme";
 import { AppearanceTestProvider } from "@/test/AppearanceTestProvider";
-import { PaletteLabLazy as PaletteLab } from "./PaletteLabLazy";
+import { ThemeLabLazy as ThemeLab } from "./ThemeLabLazy";
 import {
-  PALETTE_ATTRIBUTE,
-  PALETTE_LAB_OVERRIDE_STYLE_ID,
-  PALETTE_LAB_STORAGE_KEY,
+  THEME_LAB_OVERRIDE_STYLE_ID,
+  THEME_LAB_STORAGE_KEY,
   userLayerSelector,
-} from "./paletteLabStorage";
-import { setPaletteLabOpen } from "./paletteLabStore";
+} from "./themeLabStorage";
+import { lookKey } from "./themeLabLook";
+import { setThemeLabOpen } from "./themeLabStore";
 import { clearThemeBaselineCache } from "./presetBaselines";
 import { ALL_TOKEN_IDS, ESSENTIAL_IDS, PALETTE_GROUPS, getToken } from "./paletteTokens";
 import {
@@ -56,7 +57,7 @@ function declaredSeeds(): Record<string, string> {
 
 function installMockStorage(seedValue?: string) {
   const store = new Map<string, string>();
-  if (seedValue !== undefined) store.set(PALETTE_LAB_STORAGE_KEY, seedValue);
+  if (seedValue !== undefined) store.set(THEME_LAB_STORAGE_KEY, seedValue);
   Object.defineProperty(window, "localStorage", {
     configurable: true,
     value: {
@@ -69,26 +70,55 @@ function installMockStorage(seedValue?: string) {
 }
 
 function overrideCss() {
-  return document.getElementById(PALETTE_LAB_OVERRIDE_STYLE_ID)?.textContent ?? "";
+  return document.getElementById(THEME_LAB_OVERRIDE_STYLE_ID)?.textContent ?? "";
 }
 
 function stored() {
-  return window.localStorage.getItem(PALETTE_LAB_STORAGE_KEY) ?? "";
+  return window.localStorage.getItem(THEME_LAB_STORAGE_KEY) ?? "";
 }
 
-function envelope(edits: Record<string, string>, presetId = "orchid") {
+/** The look `AppearanceTestProvider` opens on: the publication's own opening accent
+ *  and surface, with the style pinned to Fun. Edits are keyed by look, so a seeded
+ *  envelope has to name the look the panel will actually be editing. */
+const OPENING = getInitialAppearance();
+const OPEN_LOOK = lookKey({
+  visualStyle: "fun",
+  accent: OPENING.accent,
+  surface: OPENING.surface,
+});
+
+/** The authored brand angle, as the stylesheet declares it. */
+const AUTHORED_BRAND = String(parseAngle(declaredSeeds()["--h-brand"]));
+
+const SEED_FIXTURE_ID = "hue-seed-fixture";
+
+/**
+ * Declare every hue seed at its authored angle, because jsdom does not load
+ * `site-colors.css` and the revert baseline is *sampled off the live document*.
+ * Without this the sampler reads an empty string for every seed and the
+ * delete-on-equal rule has nothing to compare against — a green suite that proves
+ * nothing about either.
+ */
+function installAuthoredSeeds() {
+  const element = document.createElement("style");
+  element.id = SEED_FIXTURE_ID;
+  element.textContent = `:root{${Object.entries(declaredSeeds())
+    .map(([id, value]) => `${id}:${value};`)
+    .join("")}}`;
+  document.head.appendChild(element);
+}
+
+function envelope(edits: Record<string, string>) {
   return JSON.stringify({
-    version: 3,
-    activeThemeRef: { kind: "preset", id: presetId },
-    editsByPreset: { [presetId]: { dark: edits, light: {} } },
-    customThemes: [],
-    shareFormat: 1,
+    version: 5,
+    editsByLook: { [OPEN_LOOK]: { dark: edits, light: {} } },
+    roleEditsByLook: {},
   });
 }
 
 async function openPanel() {
-  render(<AppearanceTestProvider><PaletteLab /></AppearanceTestProvider>);
-  act(() => setPaletteLabOpen(true));
+  render(<AppearanceTestProvider><ThemeLab /></AppearanceTestProvider>);
+  act(() => setThemeLabOpen(true));
   const panel = await screen.findByRole("dialog", { name: "Theme Lab" });
   await userEvent.click(within(panel).getByRole("button", { name: /All colors/ }));
   return panel;
@@ -97,16 +127,16 @@ async function openPanel() {
 beforeEach(() => {
   installMockStorage();
   document.documentElement.setAttribute("data-theme", "dark");
-  document.documentElement.removeAttribute(PALETTE_ATTRIBUTE);
-  document.getElementById(PALETTE_LAB_OVERRIDE_STYLE_ID)?.remove();
+  installAuthoredSeeds();
+  document.getElementById(THEME_LAB_OVERRIDE_STYLE_ID)?.remove();
   clearThemeBaselineCache();
-  setPaletteLabOpen(false);
+  setThemeLabOpen(false);
 });
 
 afterEach(() => {
   vi.restoreAllMocks();
-  document.documentElement.removeAttribute(PALETTE_ATTRIBUTE);
-  document.getElementById(PALETTE_LAB_OVERRIDE_STYLE_ID)?.remove();
+  document.getElementById(SEED_FIXTURE_ID)?.remove();
+  document.getElementById(THEME_LAB_OVERRIDE_STYLE_ID)?.remove();
 });
 
 describe("hue seed token group", () => {
@@ -201,7 +231,7 @@ describe("hue seed edits through the lab's seam", { timeout: 15_000 }, () => {
   it("applies a saved hue seed on load with the panel never opened", async () => {
     installMockStorage(envelope({ "--h-brand": "200", "--h-plum": "210" }));
 
-    render(<AppearanceTestProvider><PaletteLab /></AppearanceTestProvider>);
+    render(<AppearanceTestProvider><ThemeLab /></AppearanceTestProvider>);
 
     await waitFor(() => expect(overrideCss()).toContain("--h-brand:200"));
     expect(overrideCss()).toContain("--h-plum:210");
@@ -209,7 +239,7 @@ describe("hue seed edits through the lab's seam", { timeout: 15_000 }, () => {
     expect(screen.queryByRole("dialog", { name: "Theme Lab" })).not.toBeInTheDocument();
   });
 
-  it("nudges a seed and persists it scoped to the active theme", async () => {
+  it("nudges a seed and persists it scoped to the active look", async () => {
     const panel = await openPanel();
 
     await userEvent.click(within(panel).getByRole("button", { name: /^Brand\s*\d+°$/ }));
@@ -219,9 +249,9 @@ describe("hue seed edits through the lab's seam", { timeout: 15_000 }, () => {
     expect(overrideCss()).toContain("--h-brand:200");
     await waitFor(() => {
       expect(stored()).toContain('"--h-brand":"200"');
-      // Edits belong to the theme they diverge from — the shipped preset's own
-      // map, not a global overlay.
-      expect(stored()).toContain('"activeThemeRef":{"kind":"preset","id":"orchid"}');
+      // Edits belong to the look they were made against — that look's own map, not
+      // a global overlay.
+      expect(JSON.parse(stored()).editsByLook[OPEN_LOOK].dark["--h-brand"]).toBe("200");
     });
 
     // …and the wrap-around nudges carry the seam a native track stops at.
@@ -249,14 +279,13 @@ describe("hue seed edits through the lab's seam", { timeout: 15_000 }, () => {
     expect(css).not.toContain(`${userLayerSelector("light")}{`);
   });
 
-  it("reverts a seed to the active preset's own angle, not the stock one", async () => {
-    // Abyss re-seats the brand hue to 215, so this is the case the isolation
-    // ticket is about: reverting must land on *this* look's seed, not Orchid's.
-    installMockStorage(envelope({}, "abyss"));
+  it("reverts a seed to the angle the page actually renders", async () => {
+    // The revert baseline is sampled off the live document, so it is the angle the
+    // stylesheets resolve — nothing in JS holds a second copy of it to drift from.
     const panel = await openPanel();
 
     const row = within(panel).getByRole("button", { name: /^Brand\s*\d+°$/ });
-    expect(row).toHaveTextContent("215°");
+    expect(row).toHaveTextContent(`${AUTHORED_BRAND}°`);
 
     await userEvent.click(row);
     fireEvent.change(within(panel).getByRole("slider", { name: /^Hue/ }), {
@@ -267,14 +296,12 @@ describe("hue seed edits through the lab's seam", { timeout: 15_000 }, () => {
     await userEvent.click(within(panel).getByRole("button", { name: /Reset this token/ }));
 
     expect(overrideCss()).not.toContain("--h-brand");
-    // Back to the preset's own seed, which paints from the compiled block.
     expect(within(panel).getByRole("button", { name: /^Brand\s*\d+°$/ })).toHaveTextContent(
-      "215°",
+      `${AUTHORED_BRAND}°`,
     );
   });
 
-  it("drops the edit when a seed is dragged back onto the preset's own angle", async () => {
-    installMockStorage(envelope({}, "abyss"));
+  it("drops the edit when a seed is dragged back onto the angle it already renders", async () => {
     const panel = await openPanel();
 
     await userEvent.click(within(panel).getByRole("button", { name: /^Brand\s*\d+°$/ }));
@@ -282,10 +309,10 @@ describe("hue seed edits through the lab's seam", { timeout: 15_000 }, () => {
     fireEvent.change(slider, { target: { value: "300" } });
     expect(overrideCss()).toContain("--h-brand:300");
 
-    fireEvent.change(slider, { target: { value: "215" } });
+    fireEvent.change(slider, { target: { value: AUTHORED_BRAND } });
 
-    // Delete-on-equal against the *active* preset's value: no redundant edit is
-    // left behind for a visitor who nudged and changed their mind.
+    // Delete-on-equal against the sampled baseline: no redundant edit is left
+    // behind for a visitor who nudged and changed their mind.
     expect(overrideCss()).not.toContain("--h-brand");
     await waitFor(() => expect(stored()).not.toContain("--h-brand"));
   });

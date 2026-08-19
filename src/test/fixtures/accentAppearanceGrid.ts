@@ -39,7 +39,6 @@ export const read = (relativePath: string) => readFileSync(resolve(REPO_ROOT, re
  */
 const BASE_LADDER = [
   "src/styles/site-colors.css",
-  "src/styles/palette-presets.generated.css",
   "src/styles/pro-theme.css",
 ] as const;
 const LADDER = [...BASE_LADDER, SURFACE_STYLESHEET_PATH, ACCENT_STYLESHEET_PATH];
@@ -47,15 +46,14 @@ const LADDER = [...BASE_LADDER, SURFACE_STYLESHEET_PATH, ACCENT_STYLESHEET_PATH]
 export type VisualStyle = "fun" | "pro";
 export type ColorScheme = "light" | "dark";
 /**
- * One point on the appearance grid. An absent accent is the default accent; an absent palette is
- * the base sheet's own colourway, which is what a reader who never opened the Theme Lab sees.
+ * One point on the appearance grid. An absent accent is the default accent; an absent surface is
+ * the base surface, which is what the authored sheets paint on their own.
  */
 export type AppearanceState = {
   visualStyle: VisualStyle;
   theme: ColorScheme;
   accent?: string;
   surface?: string;
-  palette?: string;
 };
 
 export type Specificity = [number, number, number];
@@ -117,18 +115,17 @@ const SELECTOR_PIECE =
   /\[([a-z-]+)(?:="([^"]*)")?\]|:where\(:not\(\[([a-z-]+)(?:="([^"]*)")?\]\)\)|:not\(\[([a-z-]+)(?:="([^"]*)")?\]\)/g;
 
 /**
- * The four attributes that can seed a page-wide colourway, and the state field each drives.
+ * The attributes that can seed a page-wide colourway, and the state field each drives.
  *
- * `data-palette` is modelled because `palette-presets.generated.css` is already on the LADDER and
- * every one of its twelve colourway blocks names it. Without an entry here `rootSelector` returned
- * null for all of them, which is the "unmodelled attribute" branch below: the whole sheet dropped
- * out of the cascade and every Theme Lab colourway measured as the base sheet. Twelve reachable
- * appearance states were silently unmeasured for the life of this fixture.
+ * Every attribute a sheet on the LADDER names has to appear here. An attribute that paints a
+ * colourway and is missing makes `rootSelector` return null for every block carrying it, which
+ * drops those blocks out of the cascade silently and measures the base sheet instead — a failure
+ * that looks like green rather than like a bug. Both colourway axes a reader can actually
+ * reach, `data-surface` and `data-accent`, are modelled for exactly that reason.
  */
 const STATE_KEY_BY_ATTRIBUTE: Record<string, keyof AppearanceState> = {
   "data-theme": "theme",
   "data-visual-style": "visualStyle",
-  "data-palette": "palette",
   [SURFACE_ATTRIBUTE]: "surface",
   [ACCENT_ATTRIBUTE]: "accent",
 };
@@ -161,8 +158,8 @@ export function rootSelector(part: string): Pick<Declaration, "specificity" | "m
     // rule naming one is treated as non-matching rather than silently ignored. That is still the
     // right default for attributes outside the colourway axes, but it is a sharp edge: an
     // attribute that DOES paint a colourway and is missing from the map above disappears
-    // silently, which is exactly how `data-palette` went unmeasured. Anything added to that
-    // sheet ladder that carries its own attribute belongs in the map, not here.
+    // silently, taking its whole sheet out of the measured cascade. Anything added to that sheet
+    // ladder that carries its own attribute belongs in the map, not here.
     if (!key) return null;
     if (piece[1] !== undefined) {
       classes += 1;
@@ -319,8 +316,32 @@ export function resolveTokens(state: AppearanceState): Record<string, string> {
   return resolveTokenDeclarations(state, LADDER_DECLARATIONS);
 }
 
-export function resolveBasePaletteTokens(state: AppearanceState): Record<string, string> {
-  return resolveTokenDeclarations(state, BASE_LADDER_DECLARATIONS);
+/**
+ * The base ladder with one colourway's own declarations laid over it.
+ *
+ * This is the appearance-data generator's entry point, and the layer is passed in as a map
+ * rather than read off a stylesheet because the colourway definitions in
+ * `palettePresets.ts` are the source the surface and accent axes are both compiled from —
+ * resolving them against a sheet that is itself generated from them would be circular.
+ *
+ * `[0, 2, 1]` and an order past the whole ladder is the rank a colourway block carries in the
+ * browser: one attribute above `site-colors.css`'s authored `:root` and `html[data-theme]`
+ * blocks, so every token the colourway names is the one that resolves, and every token it does
+ * not name falls through to the authored value. `matches` is unconditional because the caller
+ * has already chosen which colourway it is resolving.
+ */
+export function resolveBasePaletteTokens(
+  state: AppearanceState,
+  colourway: Readonly<Record<string, string>> = {},
+): Record<string, string> {
+  const layer: Declaration[] = Object.entries(colourway).map(([property, value], index) => ({
+    property,
+    value,
+    specificity: [0, 2, 1],
+    matches: () => true,
+    order: BASE_LADDER.length * 100_000 + index,
+  }));
+  return resolveTokenDeclarations(state, [...BASE_LADDER_DECLARATIONS, ...layer]);
 }
 
 /* -------------------------------------------------------------------------

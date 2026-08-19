@@ -1,5 +1,4 @@
 import { describe, expect, it } from "vitest";
-import { PALETTE_PRESETS } from "@/features/theme-lab/palettePresets";
 
 import {
   GRID,
@@ -55,45 +54,17 @@ describe("accent table", () => {
     expect(ACCENT_ATTRIBUTE).toBe("data-accent");
   });
 
-  it("keeps the Lab-only colourways out of the accent row and still resolving", () => {
-    // Letterpress is the case worth naming: `journal` is a Fun colourway that imitates Pro, and
-    // it is deliberately NOT an accent — a reader who wants Pro picks the visual style. Its id is
-    // frozen even so, because editors have saved palettes pointing at it, so it has to keep
-    // resolving as a colourway while being absent from the accent row. The jokes and the
-    // seasonals are the same shape: fun to wear from the Lab, not a publication appearance.
-    const LAB_ONLY = [
-      "journal",
-      "halloween",
-      "yuletide",
-      "liberty",
-      "twilight",
-      "parchment",
-    ] as const;
-    for (const id of LAB_ONLY) {
-      expect(
-        PALETTE_PRESETS.find((preset) => preset.id === id),
-        `${id} no longer resolves as a colourway; editors have palettes saved against it`,
-      ).toBeDefined();
-      expect(
-        ACCENTS.some((accent) => accent.funPresetId === id),
-        `${id} is a Lab-only colourway and must not be an accent`,
-      ).toBe(false);
-      // And not as an accent ID either: an accent row is a list of ids, and a colourway id that
-      // happened to resolve there would render a palette the cog never advertised.
-      expect(isAccent(id)).toBe(false);
-      expect(getAccent(id).id).toBe(BASE_ACCENT_ID);
-    }
-  });
-
   it("degrades an unknown accent to the default rather than erroring", () => {
     for (const accent of ACCENTS) expect(isAccent(accent.id)).toBe(true);
-    // A colour scheme, a visual style and a colourway are the three ids most likely to arrive
-    // here by mistake, from a mis-keyed storage read or a hand-typed attribute. None is an
-    // accent, and each has to land on the default rather than on a half-applied block.
+    // A colour scheme, a visual style and a surface are the three ids most likely to arrive here
+    // by mistake, from a mis-keyed storage read or a hand-typed attribute. None is an accent, and
+    // each has to land on the default rather than on a half-applied block. `orchid` is the sharp
+    // one: it is a live id on the surface axis, written to the same root element, so a resolver
+    // that accepted it would paint a colourway the cog never advertised on the accent row.
     expect(isAccent("dark")).toBe(false);
     expect(isAccent("pro")).toBe(false);
-    expect(isAccent("journal")).toBe(false);
-    expect(getAccent("journal").id).toBe(BASE_ACCENT_ID);
+    expect(isAccent("orchid")).toBe(false);
+    expect(getAccent("orchid").id).toBe(BASE_ACCENT_ID);
     expect(getAccent(null).id).toBe(BASE_ACCENT_ID);
     expect(getAccent("blue").funPresetId).toBe("abyss");
     expect(getAccent("green").funPresetId).toBe("canopy");

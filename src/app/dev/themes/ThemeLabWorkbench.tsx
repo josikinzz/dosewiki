@@ -5,12 +5,12 @@ import { useEffect, useRef } from "react";
 import { Icon } from "@/components/common/Icon";
 import { Button } from "@/components/ui";
 import { Surface } from "@/components/ui/surface";
-import { setPaletteLabOpen, usePaletteLabOpen } from "@/features/theme-lab/paletteLabStore";
+import { setThemeLabOpen, useThemeLabOpen } from "@/features/theme-lab/themeLabStore";
 
 /**
- * The protected developer workbench for Palette Lab.
+ * The protected developer workbench for Theme Lab.
  *
- * Palette Lab itself is mounted globally and opens from every DoseWiki
+ * Theme Lab itself is mounted globally and opens from every DoseWiki
  * appearance panel. This route adds implementation notes and a full-size reopen
  * action for editors; entering it opens the same global drawer.
  *
@@ -18,12 +18,12 @@ import { setPaletteLabOpen, usePaletteLabOpen } from "@/features/theme-lab/palet
  * Changes remain the reader's own choices exactly as they do on every page.
  */
 export function ThemeLabWorkbench() {
-  const open = usePaletteLabOpen();
+  const open = useThemeLabOpen();
   const reopenRef = useRef<HTMLButtonElement>(null);
   const wasOpen = useRef(false);
 
   useEffect(() => {
-    setPaletteLabOpen(true);
+    setThemeLabOpen(true);
   }, []);
 
   // Closing the panel must not drop focus on the body: the action that reopens
@@ -37,7 +37,7 @@ export function ThemeLabWorkbench() {
     <div className="min-h-screen bg-dose-body text-dose-text">
       <div className="mx-auto flex w-full max-w-[68ch] flex-col gap-8 px-4 py-10 sm:px-8">
         <header className="flex flex-col gap-3">
-          <h1 className="text-2xl font-semibold text-dose-text">Palette Lab</h1>
+          <h1 className="text-2xl font-semibold text-dose-text">Theme Lab</h1>
           <p className="text-sm text-dose-text-secondary">
             Recolor the site live — the Fun palette or Pro’s accent seeds — and save it to this
             browser.
@@ -84,10 +84,10 @@ export function ThemeLabWorkbench() {
               variant="accent"
               size="lg"
               aria-haspopup="dialog"
-              aria-controls="palette-lab-panel"
-              onClick={() => setPaletteLabOpen(true, reopenRef.current)}
+              aria-controls="theme-lab-panel"
+              onClick={() => setThemeLabOpen(true, reopenRef.current)}
             >
-              <Icon icon="lucide:palette" size={16} />
+              <Icon icon="ri:wrench-line" size={16} />
               Open Theme Lab
             </Button>
           </div>

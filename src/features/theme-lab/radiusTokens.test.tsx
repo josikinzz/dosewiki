@@ -1,15 +1,16 @@
 import { act, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { getInitialAppearance } from "@/theme";
 import { AppearanceTestProvider } from "@/test/AppearanceTestProvider";
-import { PaletteLabLazy as PaletteLab } from "./PaletteLabLazy";
+import { ThemeLabLazy as ThemeLab } from "./ThemeLabLazy";
 import {
-  PALETTE_ATTRIBUTE,
-  PALETTE_LAB_OVERRIDE_STYLE_ID,
-  PALETTE_LAB_STORAGE_KEY,
+  THEME_LAB_OVERRIDE_STYLE_ID,
+  THEME_LAB_STORAGE_KEY,
   userLayerSelector,
-} from "./paletteLabStorage";
-import { setPaletteLabOpen } from "./paletteLabStore";
+} from "./themeLabStorage";
+import { lookKey } from "./themeLabLook";
+import { setThemeLabOpen } from "./themeLabStore";
 import { clearThemeBaselineCache } from "./presetBaselines";
 import { ALL_TOKEN_IDS, PALETTE_GROUPS, ESSENTIAL_IDS, getToken } from "./paletteTokens";
 import {
@@ -36,7 +37,7 @@ vi.mock("@/components/common/Icon", () => ({
 
 function installMockStorage(seedValue?: string) {
   const store = new Map<string, string>();
-  if (seedValue !== undefined) store.set(PALETTE_LAB_STORAGE_KEY, seedValue);
+  if (seedValue !== undefined) store.set(THEME_LAB_STORAGE_KEY, seedValue);
   Object.defineProperty(window, "localStorage", {
     configurable: true,
     value: {
@@ -49,26 +50,34 @@ function installMockStorage(seedValue?: string) {
 }
 
 function overrideCss() {
-  return document.getElementById(PALETTE_LAB_OVERRIDE_STYLE_ID)?.textContent ?? "";
+  return document.getElementById(THEME_LAB_OVERRIDE_STYLE_ID)?.textContent ?? "";
 }
 
 function stored() {
-  return window.localStorage.getItem(PALETTE_LAB_STORAGE_KEY) ?? "";
+  return window.localStorage.getItem(THEME_LAB_STORAGE_KEY) ?? "";
 }
+
+/** The look `AppearanceTestProvider` opens on: the publication's own opening accent
+ *  and surface, with the style pinned to Fun. Edits are keyed by look, so a seeded
+ *  envelope has to name the look the panel will actually be editing. */
+const OPENING = getInitialAppearance();
+const OPEN_LOOK = lookKey({
+  visualStyle: "fun",
+  accent: OPENING.accent,
+  surface: OPENING.surface,
+});
 
 beforeEach(() => {
   installMockStorage();
   document.documentElement.setAttribute("data-theme", "dark");
-  document.documentElement.removeAttribute(PALETTE_ATTRIBUTE);
-  document.getElementById(PALETTE_LAB_OVERRIDE_STYLE_ID)?.remove();
+  document.getElementById(THEME_LAB_OVERRIDE_STYLE_ID)?.remove();
   clearThemeBaselineCache();
-  setPaletteLabOpen(false);
+  setThemeLabOpen(false);
 });
 
 afterEach(() => {
   vi.restoreAllMocks();
-  document.documentElement.removeAttribute(PALETTE_ATTRIBUTE);
-  document.getElementById(PALETTE_LAB_OVERRIDE_STYLE_ID)?.remove();
+  document.getElementById(THEME_LAB_OVERRIDE_STYLE_ID)?.remove();
 });
 
 describe("radius token group", () => {
@@ -133,15 +142,13 @@ describe("radius edits through the lab's seam", { timeout: 15_000 }, () => {
   it("applies a saved radius on load with the panel never opened", async () => {
     installMockStorage(
       JSON.stringify({
-        version: 3,
-        activeThemeRef: { kind: "preset", id: "orchid" },
-        editsByPreset: { orchid: { dark: PRO_STYLE_RADIUS, light: {} } },
-        customThemes: [],
-        shareFormat: 1,
+        version: 5,
+        editsByLook: { [OPEN_LOOK]: { dark: PRO_STYLE_RADIUS, light: {} } },
+        roleEditsByLook: {},
       }),
     );
 
-    render(<AppearanceTestProvider><PaletteLab /></AppearanceTestProvider>);
+    render(<AppearanceTestProvider><ThemeLab /></AppearanceTestProvider>);
 
     await waitFor(() => expect(overrideCss()).toContain("--radius:0.1875rem"));
     expect(overrideCss()).toContain("--radius-xl:0.25rem");
@@ -151,9 +158,9 @@ describe("radius edits through the lab's seam", { timeout: 15_000 }, () => {
     expect(screen.queryByRole("dialog", { name: "Theme Lab" })).not.toBeInTheDocument();
   });
 
-  it("drags roundness to sharp and persists it scoped to the active theme", async () => {
-    render(<AppearanceTestProvider><PaletteLab /></AppearanceTestProvider>);
-    act(() => setPaletteLabOpen(true));
+  it("drags roundness to sharp and persists it scoped to the active look", async () => {
+    render(<AppearanceTestProvider><ThemeLab /></AppearanceTestProvider>);
+    act(() => setThemeLabOpen(true));
     const panel = await screen.findByRole("dialog", { name: "Theme Lab" });
 
     await userEvent.click(within(panel).getByRole("button", { name: /All colors/ }));
@@ -167,9 +174,9 @@ describe("radius edits through the lab's seam", { timeout: 15_000 }, () => {
     expect(overrideCss()).toContain("--radius:0rem");
     await waitFor(() => {
       expect(stored()).toContain('"--radius":"0rem"');
-      // Edits belong to the theme they diverge from — the shipped preset's own
-      // map, not a global overlay.
-      expect(stored()).toContain('"activeThemeRef":{"kind":"preset","id":"orchid"}');
+      // Edits belong to the look they were made against — that look's own map, not
+      // a global overlay.
+      expect(JSON.parse(stored()).editsByLook[OPEN_LOOK].dark["--radius"]).toBe("0rem");
     });
 
     // …and dragging it back out reshapes in the other direction.
@@ -178,8 +185,8 @@ describe("radius edits through the lab's seam", { timeout: 15_000 }, () => {
   });
 
   it("scopes a radius edit to the theme being edited", async () => {
-    render(<AppearanceTestProvider><PaletteLab /></AppearanceTestProvider>);
-    act(() => setPaletteLabOpen(true));
+    render(<AppearanceTestProvider><ThemeLab /></AppearanceTestProvider>);
+    act(() => setThemeLabOpen(true));
     const panel = await screen.findByRole("dialog", { name: "Theme Lab" });
 
     await userEvent.click(within(panel).getByRole("button", { name: /All colors/ }));
@@ -201,8 +208,8 @@ describe("radius edits through the lab's seam", { timeout: 15_000 }, () => {
   });
 
   it("resets a radius token back to the theme's own value", async () => {
-    render(<AppearanceTestProvider><PaletteLab /></AppearanceTestProvider>);
-    act(() => setPaletteLabOpen(true));
+    render(<AppearanceTestProvider><ThemeLab /></AppearanceTestProvider>);
+    act(() => setThemeLabOpen(true));
     const panel = await screen.findByRole("dialog", { name: "Theme Lab" });
 
     await userEvent.click(within(panel).getByRole("button", { name: /All colors/ }));

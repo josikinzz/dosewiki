@@ -3,19 +3,20 @@ import { resolve } from "node:path";
 import { act, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { getInitialAppearance } from "@/theme";
 import { AppearanceTestProvider } from "@/test/AppearanceTestProvider";
-import { PaletteLabLazy as PaletteLab } from "./PaletteLabLazy";
+import { ThemeLabLazy as ThemeLab } from "./ThemeLabLazy";
 import {
-  PALETTE_ATTRIBUTE,
-  PALETTE_LAB_OVERRIDE_STYLE_ID,
-  PALETTE_LAB_STORAGE_KEY,
+  THEME_LAB_OVERRIDE_STYLE_ID,
+  THEME_LAB_STORAGE_KEY,
   userLayerSelector,
-} from "./paletteLabStorage";
-import { setPaletteLabOpen } from "./paletteLabStore";
+} from "./themeLabStorage";
+import { lookKey } from "./themeLabLook";
+import { setThemeLabOpen } from "./themeLabStore";
 import { clearThemeBaselineCache } from "./presetBaselines";
 import { ALL_TOKEN_IDS, PALETTE_GROUPS, ESSENTIAL_IDS, getToken } from "./paletteTokens";
 import {
-  PALETTE_LAB_FONT_STYLE_ID,
+  THEME_LAB_FONT_STYLE_ID,
   buildFontFaceCss,
   registeredFontChoiceIds,
   resetFontFaceRegistry,
@@ -47,7 +48,7 @@ vi.mock("@/components/common/Icon", () => ({
 
 function installMockStorage(seedValue?: string) {
   const store = new Map<string, string>();
-  if (seedValue !== undefined) store.set(PALETTE_LAB_STORAGE_KEY, seedValue);
+  if (seedValue !== undefined) store.set(THEME_LAB_STORAGE_KEY, seedValue);
   Object.defineProperty(window, "localStorage", {
     configurable: true,
     value: {
@@ -60,15 +61,15 @@ function installMockStorage(seedValue?: string) {
 }
 
 function overrideCss() {
-  return document.getElementById(PALETTE_LAB_OVERRIDE_STYLE_ID)?.textContent ?? "";
+  return document.getElementById(THEME_LAB_OVERRIDE_STYLE_ID)?.textContent ?? "";
 }
 
 function faceCss() {
-  return document.getElementById(PALETTE_LAB_FONT_STYLE_ID)?.textContent ?? null;
+  return document.getElementById(THEME_LAB_FONT_STYLE_ID)?.textContent ?? null;
 }
 
 function stored() {
-  return window.localStorage.getItem(PALETTE_LAB_STORAGE_KEY) ?? "";
+  return window.localStorage.getItem(THEME_LAB_STORAGE_KEY) ?? "";
 }
 
 const TITILLIUM = getFontChoice("titillium")!;
@@ -79,31 +80,37 @@ function faceButton(panel: HTMLElement, name: RegExp) {
   return within(within(panel).getByRole("group", { name: /face$/ })).getByRole("button", { name });
 }
 
-/** Envelope with one font token pinned on the active preset's dark map. */
+/** The look `AppearanceTestProvider` opens on: the publication's own opening accent
+ *  and surface, with the style pinned to Fun. Edits are keyed by look, so a seeded
+ *  envelope has to name the look the panel will actually be editing. */
+const OPENING = getInitialAppearance();
+const OPEN_LOOK = lookKey({
+  visualStyle: "fun",
+  accent: OPENING.accent,
+  surface: OPENING.surface,
+});
+
+/** Envelope with one token pinned on the worn look's dark map. */
 function envelopeWithFont(tokenId: string, stack: string) {
   return JSON.stringify({
-    version: 3,
-    activeThemeRef: { kind: "preset", id: "orchid" },
-    editsByPreset: { orchid: { dark: { [tokenId]: stack }, light: {} } },
-    customThemes: [],
-    shareFormat: 1,
+    version: 5,
+    editsByLook: { [OPEN_LOOK]: { dark: { [tokenId]: stack }, light: {} } },
+    roleEditsByLook: {},
   });
 }
 
 beforeEach(() => {
   installMockStorage();
   document.documentElement.setAttribute("data-theme", "dark");
-  document.documentElement.removeAttribute(PALETTE_ATTRIBUTE);
-  document.getElementById(PALETTE_LAB_OVERRIDE_STYLE_ID)?.remove();
+  document.getElementById(THEME_LAB_OVERRIDE_STYLE_ID)?.remove();
   resetFontFaceRegistry();
   clearThemeBaselineCache();
-  setPaletteLabOpen(false);
+  setThemeLabOpen(false);
 });
 
 afterEach(() => {
   vi.restoreAllMocks();
-  document.documentElement.removeAttribute(PALETTE_ATTRIBUTE);
-  document.getElementById(PALETTE_LAB_OVERRIDE_STYLE_ID)?.remove();
+  document.getElementById(THEME_LAB_OVERRIDE_STYLE_ID)?.remove();
   resetFontFaceRegistry();
 });
 
@@ -222,7 +229,7 @@ describe("font choices through the lab's seam", { timeout: 15_000 }, () => {
   it("applies a saved face on load with the panel never opened", async () => {
     installMockStorage(envelopeWithFont("--font-family-body", TITILLIUM.stack));
 
-    render(<AppearanceTestProvider><PaletteLab /></AppearanceTestProvider>);
+    render(<AppearanceTestProvider><ThemeLab /></AppearanceTestProvider>);
 
     await waitFor(() => expect(overrideCss()).toContain("--font-family-body:"));
     expect(overrideCss()).toContain("Titillium Web");
@@ -235,7 +242,7 @@ describe("font choices through the lab's seam", { timeout: 15_000 }, () => {
     // runtime restores it in full, and still declares no face.
     installMockStorage(envelopeWithFont("--radius", "0rem"));
 
-    render(<AppearanceTestProvider><PaletteLab /></AppearanceTestProvider>);
+    render(<AppearanceTestProvider><ThemeLab /></AppearanceTestProvider>);
     await waitFor(() => expect(overrideCss()).toContain("--radius:0rem"));
 
     // The whole promise: a visitor who never picks it has no declaration in the
@@ -247,7 +254,7 @@ describe("font choices through the lab's seam", { timeout: 15_000 }, () => {
   it("registers the formal face when a saved theme restores it", async () => {
     installMockStorage(envelopeWithFont("--font-family-body", TITILLIUM.stack));
 
-    render(<AppearanceTestProvider><PaletteLab /></AppearanceTestProvider>);
+    render(<AppearanceTestProvider><ThemeLab /></AppearanceTestProvider>);
 
     await waitFor(() => expect(registeredFontChoiceIds()).toEqual(["titillium"]));
     const css = faceCss() ?? "";
@@ -257,8 +264,8 @@ describe("font choices through the lab's seam", { timeout: 15_000 }, () => {
   });
 
   it("picks a face in the editor, applies it site-wide, and persists it per theme", async () => {
-    render(<AppearanceTestProvider><PaletteLab /></AppearanceTestProvider>);
-    act(() => setPaletteLabOpen(true));
+    render(<AppearanceTestProvider><ThemeLab /></AppearanceTestProvider>);
+    act(() => setThemeLabOpen(true));
     const panel = await screen.findByRole("dialog", { name: "Theme Lab" });
 
     await userEvent.click(within(panel).getByRole("button", { name: /All colors/ }));
@@ -287,8 +294,8 @@ describe("font choices through the lab's seam", { timeout: 15_000 }, () => {
   });
 
   it("switches back to the theme's own face by clearing the choice", async () => {
-    render(<AppearanceTestProvider><PaletteLab /></AppearanceTestProvider>);
-    act(() => setPaletteLabOpen(true));
+    render(<AppearanceTestProvider><ThemeLab /></AppearanceTestProvider>);
+    act(() => setThemeLabOpen(true));
     const panel = await screen.findByRole("dialog", { name: "Theme Lab" });
 
     await userEvent.click(within(panel).getByRole("button", { name: /All colors/ }));
@@ -305,8 +312,8 @@ describe("font choices through the lab's seam", { timeout: 15_000 }, () => {
   });
 
   it("costs nothing to pick a face the visitor's machine already has", async () => {
-    render(<AppearanceTestProvider><PaletteLab /></AppearanceTestProvider>);
-    act(() => setPaletteLabOpen(true));
+    render(<AppearanceTestProvider><ThemeLab /></AppearanceTestProvider>);
+    act(() => setThemeLabOpen(true));
     const panel = await screen.findByRole("dialog", { name: "Theme Lab" });
 
     await userEvent.click(within(panel).getByRole("button", { name: /All colors/ }));

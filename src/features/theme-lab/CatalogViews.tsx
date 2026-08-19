@@ -17,13 +17,13 @@ import { getLengthSpec } from "./paletteTokensRadius";
 import { fontChoiceForValue } from "./paletteTokensFonts";
 import { angleValue, formatAngle, hueSwatchColor } from "./paletteTokensHues";
 import { describeColor, parseChannelsToRgba, parseColorToRgba } from "./colorUtils";
-import styles from "./PaletteLab.module.css";
+import styles from "./ThemeLab.module.css";
 
 /**
  * The Theme Lab's three catalog depths — Essentials, All colors, Identical.
  *
  * Extracted from the panel component so the rows could be rebuilt on the shared
- * kit without pushing `PaletteLab.tsx` past its LOC budget, and so all three
+ * kit without pushing `ThemeLab.tsx` past its LOC budget, and so all three
  * depths render one row object instead of three near-copies.
  */
 

@@ -5655,721 +5655,721 @@
   },
   {
    "rule": "direct-theme-variable",
-   "filePath": "src/features/theme-lab/PaletteLab.module.css",
+   "filePath": "src/features/theme-lab/ThemeLab.module.css",
    "match": "var(--theme-body-bg)",
    "line": 52,
    "column": 15
   },
   {
    "rule": "direct-theme-variable",
-   "filePath": "src/features/theme-lab/PaletteLab.module.css",
+   "filePath": "src/features/theme-lab/ThemeLab.module.css",
    "match": "var(--theme-logo-shadow)",
    "line": 59,
    "column": 19
   },
   {
    "rule": "direct-theme-variable",
-   "filePath": "src/features/theme-lab/PaletteLab.module.css",
+   "filePath": "src/features/theme-lab/ThemeLab.module.css",
    "match": "var(--theme-accent)",
    "line": 63,
    "column": 17
   },
   {
    "rule": "direct-theme-variable",
-   "filePath": "src/features/theme-lab/PaletteLab.module.css",
+   "filePath": "src/features/theme-lab/ThemeLab.module.css",
    "match": "var(--theme-surface-muted)",
    "line": 64,
    "column": 21
   },
   {
    "rule": "direct-theme-variable",
-   "filePath": "src/features/theme-lab/PaletteLab.module.css",
+   "filePath": "src/features/theme-lab/ThemeLab.module.css",
    "match": "var(--theme-frosted-panel-border)",
    "line": 105,
    "column": 21
   },
   {
    "rule": "direct-theme-variable",
-   "filePath": "src/features/theme-lab/PaletteLab.module.css",
+   "filePath": "src/features/theme-lab/ThemeLab.module.css",
    "match": "var(--theme-frosted-panel-bg)",
    "line": 107,
    "column": 15
   },
   {
    "rule": "direct-theme-variable",
-   "filePath": "src/features/theme-lab/PaletteLab.module.css",
+   "filePath": "src/features/theme-lab/ThemeLab.module.css",
    "match": "var(--theme-frosted-panel-shadow)",
    "line": 109,
    "column": 5
   },
   {
    "rule": "direct-theme-variable",
-   "filePath": "src/features/theme-lab/PaletteLab.module.css",
+   "filePath": "src/features/theme-lab/ThemeLab.module.css",
    "match": "var(--theme-shadow-strong)",
    "line": 110,
    "column": 24
   },
   {
    "rule": "direct-theme-variable",
-   "filePath": "src/features/theme-lab/PaletteLab.module.css",
+   "filePath": "src/features/theme-lab/ThemeLab.module.css",
    "match": "var(--theme-text-secondary)",
    "line": 113,
    "column": 10
   },
   {
    "rule": "direct-theme-variable",
-   "filePath": "src/features/theme-lab/PaletteLab.module.css",
+   "filePath": "src/features/theme-lab/ThemeLab.module.css",
    "match": "var(--theme-frosted-panel-border)",
    "line": 159,
    "column": 29
   },
   {
    "rule": "direct-theme-variable",
-   "filePath": "src/features/theme-lab/PaletteLab.module.css",
+   "filePath": "src/features/theme-lab/ThemeLab.module.css",
    "match": "var(--theme-frosted-panel-shadow)",
    "line": 162,
    "column": 7
   },
   {
    "rule": "direct-theme-variable",
-   "filePath": "src/features/theme-lab/PaletteLab.module.css",
+   "filePath": "src/features/theme-lab/ThemeLab.module.css",
    "match": "var(--theme-shadow-strong)",
    "line": 163,
    "column": 26
   },
   {
    "rule": "direct-theme-variable",
-   "filePath": "src/features/theme-lab/PaletteLab.module.css",
+   "filePath": "src/features/theme-lab/ThemeLab.module.css",
    "match": "var(--theme-frosted-panel-bg)",
    "line": 256,
    "column": 15
   },
   {
    "rule": "direct-theme-variable",
-   "filePath": "src/features/theme-lab/PaletteLab.module.css",
+   "filePath": "src/features/theme-lab/ThemeLab.module.css",
    "match": "var(--theme-text-primary)",
    "line": 265,
    "column": 10
   },
   {
    "rule": "direct-theme-variable",
-   "filePath": "src/features/theme-lab/PaletteLab.module.css",
+   "filePath": "src/features/theme-lab/ThemeLab.module.css",
    "match": "var(--theme-text-faint)",
    "line": 272,
    "column": 10
   },
   {
    "rule": "direct-theme-variable",
-   "filePath": "src/features/theme-lab/PaletteLab.module.css",
+   "filePath": "src/features/theme-lab/ThemeLab.module.css",
    "match": "var(--theme-accent)",
    "line": 289,
    "column": 40
   },
   {
    "rule": "direct-theme-variable",
-   "filePath": "src/features/theme-lab/PaletteLab.module.css",
+   "filePath": "src/features/theme-lab/ThemeLab.module.css",
    "match": "var(--theme-accent)",
    "line": 290,
    "column": 34
   },
   {
    "rule": "direct-theme-variable",
-   "filePath": "src/features/theme-lab/PaletteLab.module.css",
+   "filePath": "src/features/theme-lab/ThemeLab.module.css",
    "match": "var(--theme-surface-muted)",
    "line": 290,
    "column": 59
   },
   {
    "rule": "direct-theme-variable",
-   "filePath": "src/features/theme-lab/PaletteLab.module.css",
+   "filePath": "src/features/theme-lab/ThemeLab.module.css",
    "match": "var(--theme-accent-strong)",
    "line": 291,
    "column": 10
   },
   {
    "rule": "direct-theme-variable",
-   "filePath": "src/features/theme-lab/PaletteLab.module.css",
+   "filePath": "src/features/theme-lab/ThemeLab.module.css",
    "match": "var(--theme-border-strong)",
    "line": 299,
    "column": 21
   },
   {
    "rule": "direct-theme-variable",
-   "filePath": "src/features/theme-lab/PaletteLab.module.css",
+   "filePath": "src/features/theme-lab/ThemeLab.module.css",
    "match": "var(--theme-surface-soft)",
    "line": 300,
    "column": 15
   },
   {
    "rule": "direct-theme-variable",
-   "filePath": "src/features/theme-lab/PaletteLab.module.css",
+   "filePath": "src/features/theme-lab/ThemeLab.module.css",
    "match": "var(--theme-text-secondary)",
    "line": 303,
    "column": 10
   },
   {
    "rule": "direct-theme-variable",
-   "filePath": "src/features/theme-lab/PaletteLab.module.css",
+   "filePath": "src/features/theme-lab/ThemeLab.module.css",
    "match": "var(--theme-text-faint)",
    "line": 320,
    "column": 10
   },
   {
    "rule": "direct-theme-variable",
-   "filePath": "src/features/theme-lab/PaletteLab.module.css",
+   "filePath": "src/features/theme-lab/ThemeLab.module.css",
    "match": "var(--theme-text-faint)",
    "line": 350,
    "column": 10
   },
   {
    "rule": "direct-theme-variable",
-   "filePath": "src/features/theme-lab/PaletteLab.module.css",
+   "filePath": "src/features/theme-lab/ThemeLab.module.css",
    "match": "var(--theme-accent-strong)",
    "line": 365,
    "column": 10
   },
   {
    "rule": "direct-theme-variable",
-   "filePath": "src/features/theme-lab/PaletteLab.module.css",
+   "filePath": "src/features/theme-lab/ThemeLab.module.css",
    "match": "var(--theme-text-primary)",
    "line": 372,
    "column": 10
   },
   {
    "rule": "direct-theme-variable",
-   "filePath": "src/features/theme-lab/PaletteLab.module.css",
+   "filePath": "src/features/theme-lab/ThemeLab.module.css",
    "match": "var(--theme-text-faint)",
    "line": 382,
    "column": 10
   },
   {
    "rule": "direct-theme-variable",
-   "filePath": "src/features/theme-lab/PaletteLab.module.css",
+   "filePath": "src/features/theme-lab/ThemeLab.module.css",
    "match": "var(--theme-accent-strong)",
    "line": 472,
    "column": 22
   },
   {
    "rule": "direct-theme-variable",
-   "filePath": "src/features/theme-lab/PaletteLab.module.css",
+   "filePath": "src/features/theme-lab/ThemeLab.module.css",
    "match": "var(--theme-border-strong)",
    "line": 496,
    "column": 31
   },
   {
    "rule": "direct-theme-variable",
-   "filePath": "src/features/theme-lab/PaletteLab.module.css",
+   "filePath": "src/features/theme-lab/ThemeLab.module.css",
    "match": "var(--theme-text-faint)",
    "line": 529,
    "column": 10
   },
   {
    "rule": "direct-theme-variable",
-   "filePath": "src/features/theme-lab/PaletteLab.module.css",
+   "filePath": "src/features/theme-lab/ThemeLab.module.css",
    "match": "var(--theme-text-secondary)",
    "line": 533,
    "column": 10
   },
   {
    "rule": "direct-theme-variable",
-   "filePath": "src/features/theme-lab/PaletteLab.module.css",
+   "filePath": "src/features/theme-lab/ThemeLab.module.css",
    "match": "var(--theme-field-border)",
    "line": 546,
    "column": 21
   },
   {
    "rule": "direct-theme-variable",
-   "filePath": "src/features/theme-lab/PaletteLab.module.css",
+   "filePath": "src/features/theme-lab/ThemeLab.module.css",
    "match": "var(--theme-border-strong)",
    "line": 594,
    "column": 21
   },
   {
    "rule": "direct-theme-variable",
-   "filePath": "src/features/theme-lab/PaletteLab.module.css",
+   "filePath": "src/features/theme-lab/ThemeLab.module.css",
    "match": "var(--theme-surface-strong)",
    "line": 595,
    "column": 15
   },
   {
    "rule": "direct-theme-variable",
-   "filePath": "src/features/theme-lab/PaletteLab.module.css",
+   "filePath": "src/features/theme-lab/ThemeLab.module.css",
    "match": "var(--theme-border-strong)",
    "line": 607,
    "column": 21
   },
   {
    "rule": "direct-theme-variable",
-   "filePath": "src/features/theme-lab/PaletteLab.module.css",
+   "filePath": "src/features/theme-lab/ThemeLab.module.css",
    "match": "var(--theme-surface-strong)",
    "line": 608,
    "column": 15
   },
   {
    "rule": "direct-theme-variable",
-   "filePath": "src/features/theme-lab/PaletteLab.module.css",
+   "filePath": "src/features/theme-lab/ThemeLab.module.css",
    "match": "var(--theme-border-strong)",
    "line": 622,
    "column": 21
   },
   {
    "rule": "direct-theme-variable",
-   "filePath": "src/features/theme-lab/PaletteLab.module.css",
+   "filePath": "src/features/theme-lab/ThemeLab.module.css",
    "match": "var(--theme-text-faint)",
    "line": 645,
    "column": 10
   },
   {
    "rule": "direct-theme-variable",
-   "filePath": "src/features/theme-lab/PaletteLab.module.css",
+   "filePath": "src/features/theme-lab/ThemeLab.module.css",
    "match": "var(--theme-border-subtle)",
    "line": 658,
    "column": 21
   },
   {
    "rule": "direct-theme-variable",
-   "filePath": "src/features/theme-lab/PaletteLab.module.css",
+   "filePath": "src/features/theme-lab/ThemeLab.module.css",
    "match": "var(--theme-field-surface)",
    "line": 659,
    "column": 15
   },
   {
    "rule": "direct-theme-variable",
-   "filePath": "src/features/theme-lab/PaletteLab.module.css",
+   "filePath": "src/features/theme-lab/ThemeLab.module.css",
    "match": "var(--theme-divider)",
    "line": 666,
    "column": 25
   },
   {
    "rule": "direct-theme-variable",
-   "filePath": "src/features/theme-lab/PaletteLab.module.css",
+   "filePath": "src/features/theme-lab/ThemeLab.module.css",
    "match": "var(--theme-divider)",
    "line": 670,
    "column": 25
   },
   {
    "rule": "direct-theme-variable",
-   "filePath": "src/features/theme-lab/PaletteLab.module.css",
+   "filePath": "src/features/theme-lab/ThemeLab.module.css",
    "match": "var(--theme-panel-base)",
    "line": 685,
    "column": 15
   },
   {
    "rule": "direct-theme-variable",
-   "filePath": "src/features/theme-lab/PaletteLab.module.css",
+   "filePath": "src/features/theme-lab/ThemeLab.module.css",
    "match": "var(--theme-text-muted)",
    "line": 692,
    "column": 10
   },
   {
    "rule": "direct-theme-variable",
-   "filePath": "src/features/theme-lab/PaletteLab.module.css",
+   "filePath": "src/features/theme-lab/ThemeLab.module.css",
    "match": "var(--theme-text-ghost)",
    "line": 708,
    "column": 10
   },
   {
    "rule": "direct-theme-variable",
-   "filePath": "src/features/theme-lab/PaletteLab.module.css",
+   "filePath": "src/features/theme-lab/ThemeLab.module.css",
    "match": "var(--theme-text-faint)",
    "line": 715,
    "column": 10
   },
   {
    "rule": "direct-theme-variable",
-   "filePath": "src/features/theme-lab/PaletteLab.module.css",
+   "filePath": "src/features/theme-lab/ThemeLab.module.css",
    "match": "var(--theme-panel-base)",
    "line": 728,
    "column": 15
   },
   {
    "rule": "direct-theme-variable",
-   "filePath": "src/features/theme-lab/PaletteLab.module.css",
+   "filePath": "src/features/theme-lab/ThemeLab.module.css",
    "match": "var(--theme-text-faint)",
    "line": 735,
    "column": 10
   },
   {
    "rule": "direct-theme-variable",
-   "filePath": "src/features/theme-lab/PaletteLab.module.css",
+   "filePath": "src/features/theme-lab/ThemeLab.module.css",
    "match": "var(--theme-text-faint)",
    "line": 741,
    "column": 10
   },
   {
    "rule": "direct-theme-variable",
-   "filePath": "src/features/theme-lab/PaletteLab.module.css",
+   "filePath": "src/features/theme-lab/ThemeLab.module.css",
    "match": "var(--theme-border-strong)",
    "line": 758,
    "column": 31
   },
   {
    "rule": "direct-theme-variable",
-   "filePath": "src/features/theme-lab/PaletteLab.module.css",
+   "filePath": "src/features/theme-lab/ThemeLab.module.css",
    "match": "var(--theme-text-secondary)",
    "line": 772,
    "column": 10
   },
   {
    "rule": "direct-theme-variable",
-   "filePath": "src/features/theme-lab/PaletteLab.module.css",
+   "filePath": "src/features/theme-lab/ThemeLab.module.css",
    "match": "var(--theme-warning-border)",
    "line": 783,
    "column": 40
   },
   {
    "rule": "direct-theme-variable",
-   "filePath": "src/features/theme-lab/PaletteLab.module.css",
+   "filePath": "src/features/theme-lab/ThemeLab.module.css",
    "match": "var(--theme-warning-bg)",
    "line": 784,
    "column": 15
   },
   {
    "rule": "direct-theme-variable",
-   "filePath": "src/features/theme-lab/PaletteLab.module.css",
+   "filePath": "src/features/theme-lab/ThemeLab.module.css",
    "match": "var(--theme-warning-text)",
    "line": 785,
    "column": 10
   },
   {
    "rule": "direct-theme-variable",
-   "filePath": "src/features/theme-lab/PaletteLab.module.css",
+   "filePath": "src/features/theme-lab/ThemeLab.module.css",
    "match": "var(--theme-border-subtle)",
    "line": 803,
    "column": 21
   },
   {
    "rule": "direct-theme-variable",
-   "filePath": "src/features/theme-lab/PaletteLab.module.css",
+   "filePath": "src/features/theme-lab/ThemeLab.module.css",
    "match": "var(--theme-surface-soft)",
    "line": 804,
    "column": 15
   },
   {
    "rule": "direct-theme-variable",
-   "filePath": "src/features/theme-lab/PaletteLab.module.css",
+   "filePath": "src/features/theme-lab/ThemeLab.module.css",
    "match": "var(--theme-text-muted)",
    "line": 805,
    "column": 10
   },
   {
    "rule": "direct-theme-variable",
-   "filePath": "src/features/theme-lab/PaletteLab.module.css",
+   "filePath": "src/features/theme-lab/ThemeLab.module.css",
    "match": "var(--theme-accent-strong)",
    "line": 813,
    "column": 10
   },
   {
    "rule": "direct-theme-variable",
-   "filePath": "src/features/theme-lab/PaletteLab.module.css",
+   "filePath": "src/features/theme-lab/ThemeLab.module.css",
    "match": "var(--theme-text-faint)",
    "line": 826,
    "column": 10
   },
   {
    "rule": "direct-theme-variable",
-   "filePath": "src/features/theme-lab/PaletteLab.module.css",
+   "filePath": "src/features/theme-lab/ThemeLab.module.css",
    "match": "var(--theme-accent)",
    "line": 840,
    "column": 40
   },
   {
    "rule": "direct-theme-variable",
-   "filePath": "src/features/theme-lab/PaletteLab.module.css",
+   "filePath": "src/features/theme-lab/ThemeLab.module.css",
    "match": "var(--theme-accent)",
    "line": 841,
    "column": 34
   },
   {
    "rule": "direct-theme-variable",
-   "filePath": "src/features/theme-lab/PaletteLab.module.css",
+   "filePath": "src/features/theme-lab/ThemeLab.module.css",
    "match": "var(--theme-accent-strong)",
    "line": 842,
    "column": 10
   },
   {
    "rule": "direct-theme-variable",
-   "filePath": "src/features/theme-lab/PaletteLab.module.css",
+   "filePath": "src/features/theme-lab/ThemeLab.module.css",
    "match": "var(--theme-divider)",
    "line": 853,
    "column": 25
   },
   {
    "rule": "direct-theme-variable",
-   "filePath": "src/features/theme-lab/PaletteLab.module.css",
+   "filePath": "src/features/theme-lab/ThemeLab.module.css",
    "match": "var(--theme-frosted-panel-border)",
    "line": 880,
    "column": 21
   },
   {
    "rule": "direct-theme-variable",
-   "filePath": "src/features/theme-lab/PaletteLab.module.css",
+   "filePath": "src/features/theme-lab/ThemeLab.module.css",
    "match": "var(--theme-frosted-panel-bg)",
    "line": 881,
    "column": 15
   },
   {
    "rule": "direct-theme-variable",
-   "filePath": "src/features/theme-lab/PaletteLab.module.css",
+   "filePath": "src/features/theme-lab/ThemeLab.module.css",
    "match": "var(--theme-text-secondary)",
    "line": 884,
    "column": 10
   },
   {
    "rule": "direct-theme-variable",
-   "filePath": "src/features/theme-lab/PaletteLab.module.css",
+   "filePath": "src/features/theme-lab/ThemeLab.module.css",
    "match": "var(--theme-frosted-panel-shadow)",
    "line": 885,
    "column": 15
   },
   {
    "rule": "direct-theme-variable",
-   "filePath": "src/features/theme-lab/PaletteLab.module.css",
+   "filePath": "src/features/theme-lab/ThemeLab.module.css",
    "match": "var(--theme-shadow-strong)",
    "line": 885,
    "column": 68
   },
   {
    "rule": "direct-theme-variable",
-   "filePath": "src/features/theme-lab/PaletteLab.module.css",
+   "filePath": "src/features/theme-lab/ThemeLab.module.css",
    "match": "var(--theme-text-primary)",
    "line": 902,
    "column": 10
   },
   {
    "rule": "direct-theme-variable",
-   "filePath": "src/features/theme-lab/PaletteLab.module.css",
+   "filePath": "src/features/theme-lab/ThemeLab.module.css",
    "match": "var(--theme-section-heading)",
    "line": 906,
    "column": 10
   },
   {
    "rule": "direct-theme-variable",
-   "filePath": "src/features/theme-lab/PaletteLab.module.css",
+   "filePath": "src/features/theme-lab/ThemeLab.module.css",
    "match": "var(--theme-divider)",
    "line": 914,
    "column": 25
   },
   {
    "rule": "direct-theme-variable",
-   "filePath": "src/features/theme-lab/PaletteLab.module.css",
+   "filePath": "src/features/theme-lab/ThemeLab.module.css",
    "match": "var(--theme-text-faint)",
    "line": 951,
    "column": 10
   },
   {
    "rule": "direct-theme-variable",
-   "filePath": "src/features/theme-lab/PaletteLab.module.css",
+   "filePath": "src/features/theme-lab/ThemeLab.module.css",
    "match": "var(--theme-text-muted)",
    "line": 956,
    "column": 10
   },
   {
    "rule": "direct-theme-variable",
-   "filePath": "src/features/theme-lab/PaletteLab.module.css",
+   "filePath": "src/features/theme-lab/ThemeLab.module.css",
    "match": "var(--theme-divider)",
    "line": 970,
    "column": 25
   },
   {
    "rule": "direct-theme-variable",
-   "filePath": "src/features/theme-lab/PaletteLab.module.css",
+   "filePath": "src/features/theme-lab/ThemeLab.module.css",
    "match": "var(--theme-danger-text-strong)",
    "line": 998,
    "column": 10
   },
   {
    "rule": "direct-theme-variable",
-   "filePath": "src/features/theme-lab/PaletteLab.module.css",
+   "filePath": "src/features/theme-lab/ThemeLab.module.css",
    "match": "var(--theme-divider)",
    "line": 1012,
    "column": 25
   },
   {
    "rule": "direct-theme-variable",
-   "filePath": "src/features/theme-lab/PaletteLab.module.css",
+   "filePath": "src/features/theme-lab/ThemeLab.module.css",
    "match": "var(--theme-danger-text-strong)",
    "line": 1021,
    "column": 10
   },
   {
    "rule": "direct-theme-variable",
-   "filePath": "src/features/theme-lab/PaletteLab.module.css",
+   "filePath": "src/features/theme-lab/ThemeLab.module.css",
    "match": "var(--theme-accent)",
    "line": 1038,
    "column": 21
   },
   {
    "rule": "direct-theme-variable",
-   "filePath": "src/features/theme-lab/PaletteLab.module.css",
+   "filePath": "src/features/theme-lab/ThemeLab.module.css",
    "match": "var(--theme-shadow-strong)",
    "line": 1041,
    "column": 15
   },
   {
    "rule": "direct-theme-variable",
-   "filePath": "src/features/theme-lab/PaletteLab.module.css",
+   "filePath": "src/features/theme-lab/ThemeLab.module.css",
    "match": "var(--theme-logo-shadow)",
    "line": 1042,
    "column": 19
   },
   {
    "rule": "direct-theme-variable",
-   "filePath": "src/features/theme-lab/PaletteLab.module.css",
+   "filePath": "src/features/theme-lab/ThemeLab.module.css",
    "match": "var(--theme-accent)",
    "line": 1055,
    "column": 15
   },
   {
    "rule": "direct-theme-variable",
-   "filePath": "src/features/theme-lab/PaletteLab.module.css",
+   "filePath": "src/features/theme-lab/ThemeLab.module.css",
    "match": "var(--theme-body-bg)",
    "line": 1056,
    "column": 10
   },
   {
    "rule": "direct-theme-variable",
-   "filePath": "src/features/theme-lab/PaletteLab.module.css",
+   "filePath": "src/features/theme-lab/ThemeLab.module.css",
    "match": "var(--theme-border-strong)",
    "line": 1069,
    "column": 21
   },
   {
    "rule": "direct-theme-variable",
-   "filePath": "src/features/theme-lab/PaletteLab.module.css",
+   "filePath": "src/features/theme-lab/ThemeLab.module.css",
    "match": "var(--theme-menu-surface, var(--theme-surface-strong)",
    "line": 1070,
    "column": 15
   },
   {
    "rule": "direct-theme-variable",
-   "filePath": "src/features/theme-lab/PaletteLab.module.css",
+   "filePath": "src/features/theme-lab/ThemeLab.module.css",
    "match": "var(--theme-text-secondary)",
    "line": 1073,
    "column": 10
   },
   {
    "rule": "direct-theme-variable",
-   "filePath": "src/features/theme-lab/PaletteLab.module.css",
+   "filePath": "src/features/theme-lab/ThemeLab.module.css",
    "match": "var(--theme-shadow-strong)",
    "line": 1075,
    "column": 33
   },
   {
    "rule": "direct-theme-variable",
-   "filePath": "src/features/theme-lab/PaletteLab.module.css",
+   "filePath": "src/features/theme-lab/ThemeLab.module.css",
    "match": "var(--theme-frosted-panel-border)",
    "line": 1087,
    "column": 21
   },
   {
    "rule": "direct-theme-variable",
-   "filePath": "src/features/theme-lab/PaletteLab.module.css",
+   "filePath": "src/features/theme-lab/ThemeLab.module.css",
    "match": "var(--theme-frosted-panel-bg)",
    "line": 1088,
    "column": 15
   },
   {
    "rule": "direct-theme-variable",
-   "filePath": "src/features/theme-lab/PaletteLab.module.css",
+   "filePath": "src/features/theme-lab/ThemeLab.module.css",
    "match": "var(--theme-frosted-panel-shadow)",
    "line": 1092,
    "column": 5
   },
   {
    "rule": "direct-theme-variable",
-   "filePath": "src/features/theme-lab/PaletteLab.module.css",
+   "filePath": "src/features/theme-lab/ThemeLab.module.css",
    "match": "var(--theme-shadow-strong)",
    "line": 1093,
    "column": 23
   },
   {
    "rule": "direct-theme-variable",
-   "filePath": "src/features/theme-lab/PaletteLab.module.css",
+   "filePath": "src/features/theme-lab/ThemeLab.module.css",
    "match": "var(--theme-text-faint)",
    "line": 1114,
    "column": 10
   },
   {
    "rule": "direct-theme-variable",
-   "filePath": "src/features/theme-lab/PaletteLab.module.css",
+   "filePath": "src/features/theme-lab/ThemeLab.module.css",
    "match": "var(--theme-text-faint)",
    "line": 1123,
    "column": 10
   },
   {
    "rule": "direct-theme-variable",
-   "filePath": "src/features/theme-lab/PaletteLab.module.css",
+   "filePath": "src/features/theme-lab/ThemeLab.module.css",
    "match": "var(--theme-text-primary)",
    "line": 1131,
    "column": 10
   },
   {
    "rule": "direct-theme-variable",
-   "filePath": "src/features/theme-lab/PaletteLab.module.css",
+   "filePath": "src/features/theme-lab/ThemeLab.module.css",
    "match": "var(--theme-text-secondary)",
    "line": 1162,
    "column": 10
   },
   {
    "rule": "direct-theme-variable",
-   "filePath": "src/features/theme-lab/PaletteLab.module.css",
+   "filePath": "src/features/theme-lab/ThemeLab.module.css",
    "match": "var(--theme-border-subtle)",
    "line": 1176,
    "column": 21
   },
   {
    "rule": "direct-theme-variable",
-   "filePath": "src/features/theme-lab/PaletteLab.module.css",
+   "filePath": "src/features/theme-lab/ThemeLab.module.css",
    "match": "var(--theme-text-secondary)",
    "line": 1211,
    "column": 10
   },
   {
    "rule": "direct-theme-variable",
-   "filePath": "src/features/theme-lab/PaletteLab.module.css",
+   "filePath": "src/features/theme-lab/ThemeLab.module.css",
    "match": "var(--theme-text-faint)",
    "line": 1220,
    "column": 10
   },
   {
    "rule": "direct-theme-variable",
-   "filePath": "src/features/theme-lab/PaletteLab.module.css",
+   "filePath": "src/features/theme-lab/ThemeLab.module.css",
    "match": "var(--theme-text-secondary)",
    "line": 1225,
    "column": 10
   },
   {
    "rule": "negative-letter-spacing",
-   "filePath": "src/features/theme-lab/PaletteLab.module.css",
+   "filePath": "src/features/theme-lab/ThemeLab.module.css",
    "match": "letter-spacing: -0.01em",
    "line": 264,
    "column": 3
   },
   {
    "rule": "direct-theme-variable",
-   "filePath": "src/features/theme-lab/PaletteLab.test.tsx",
+   "filePath": "src/features/theme-lab/ThemeLab.test.tsx",
    "match": "var(--theme-text-primary)",
    "line": 132,
    "column": 16
   },
   {
    "rule": "direct-theme-variable",
-   "filePath": "src/features/theme-lab/PaletteLab.test.tsx",
+   "filePath": "src/features/theme-lab/ThemeLab.test.tsx",
    "match": "var(--theme-frosted-panel-bg)",
    "line": 136,
    "column": 21
   },
   {
    "rule": "direct-theme-variable",
-   "filePath": "src/features/theme-lab/PaletteLab.test.tsx",
+   "filePath": "src/features/theme-lab/ThemeLab.test.tsx",
    "match": "var(--theme-text-primary)",
    "line": 175,
    "column": 16
   },
   {
    "rule": "direct-theme-variable",
-   "filePath": "src/features/theme-lab/PaletteLab.test.tsx",
+   "filePath": "src/features/theme-lab/ThemeLab.test.tsx",
    "match": "var(--theme-frosted-panel-bg)",
    "line": 179,
    "column": 21

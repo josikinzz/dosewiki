@@ -16,8 +16,8 @@ import {
  * a reader who picks Teal gets one hue whichever visual style they are in.
  *
  * Measured: Effect Index's teal is OKLCH hue **187** — `#187d76` (its light
- * link) 187.7, `#6fc4bb` (its on-dark accent) 186.8, `#3d9991` (the authored
- * light seed Letterpress reads) 187.3. `--h-brand: 187` is that hue, not a
+ * link) 187.7, `#6fc4bb` (its on-dark accent) 186.8, `#3d9991` (`pro-theme.css`'s
+ * authored light `--ei-accent`) 187.3. `--h-brand: 187` is that hue, not a
  * neighbour of it.
  *
  * The literal ramp is Tailwind's teal scale, which measures hue 180-188 across
@@ -30,14 +30,14 @@ import {
  * literal wins where the two disagree; the seed drives everything derived.
  *
  * The brand seed group, re-seated together because `--h-brand` never travels
- * alone (`palettePresets.test.ts:126-148`):
+ * alone (`palettePresets.test.ts`, "re-seats the whole brand seed group"):
  *
  * - `--h-brand: 187` — Effect Index's teal, above.
  * - `--h-plum: 200` — surfaces. 13° deeper than the brand, so the canvas and
- *   panels read as water rather than as a dimmed accent (the Graphite and
- *   Letterpress lesson: surfaces sitting on the brand hue read as a vividly
- *   tinted theme). Between Canopy's 5° and Abyss's 20°: further would turn the
- *   lagoon navy, which is Abyss's page.
+ *   panels read as water rather than as a dimmed accent (the Graphite lesson:
+ *   surfaces sitting on the brand hue read as a vividly tinted theme). Between
+ *   Canopy's 5° and Abyss's 20°: further would turn the lagoon navy, which is
+ *   Abyss's page.
  * - `--h-text: 200` — matched to `--h-plum`, as every other colourway matches
  *   the two, so the near-neutral ink shares the surface family instead of
  *   cross-tinting it.
@@ -82,7 +82,7 @@ import {
  * a near-black is about 0.04, so a flat-chroma ladder would either grey out the
  * top or clip the bottom.
  *
- * Contrast, resolved through `palette-presets.generated.css` rather than read off
+ * Contrast, resolved through `surface-tokens.generated.css` rather than read off
  * these literals. Fun dark, on this colourway's own canvas `#020d0e` — and, in
  * brackets, on Orchid's `#110617`, the canvas Fun dark paints without a
  * colourway: `--theme-accent` 15.62:1 (15.68:1); `--theme-accent-strong`, which
@@ -108,11 +108,11 @@ import {
  * within 25° of hue 326 at chroma >= 0.05 survives unchanged under Lagoon, so the
  * `teal` accent needs no named leak exemption.
  *
- * Kept as its own module for the reason Letterpress is: `palettePresets.ts` was
- * decomposed to stay under its cleanup budget, and the five accent colourways it
- * shed into `presetAccentColourways.ts` already measure 391 lines against 500.
- * A sixth there would leave under 50 lines of headroom and recreate the squeeze
- * the split just fixed. It registers in `PALETTE_PRESETS` with the other
+ * Kept as its own module because `palettePresets.ts` was decomposed to stay under
+ * its cleanup budget, and the five accent colourways it shed into
+ * `presetAccentColourways.ts` already measure 391 lines against 500. A sixth
+ * there would leave under 50 lines of headroom and recreate the squeeze the
+ * split just fixed. It registers in `PALETTE_PRESETS` with the other
  * accent-backing colourways, and takes `split` and the scroll recipes from
  * `presetRecipes.ts` like every other colourway.
  */

@@ -3,13 +3,13 @@
 import type { ColorScheme } from "@/context/ThemeContext";
 import { Icon } from "@/components/common/Icon";
 import { PanelButton, PanelDisclosure, PanelIconButton, PanelTextarea } from "./panelKit";
-import styles from "./PaletteLab.module.css";
+import styles from "./ThemeLab.module.css";
 
 /**
  * The panel's foot: the always-visible copy action, the disclosure, and the
  * technical drawer behind it (JSON console, apply/revert, danger zone).
  *
- * Lifted out of `PaletteLab.tsx` when its controls moved onto the shared kit —
+ * Lifted out of `ThemeLab.tsx` when its controls moved onto the shared kit —
  * the panel component sits against its LOC budget, and this block is a
  * self-contained slab of markup with no state of its own.
  */
@@ -66,13 +66,13 @@ export function AdvancedDrawer({
           label="Advanced"
           hint="export · import · reset"
           open={open}
-          controls="palette-lab-advanced"
+          controls="theme-lab-advanced"
           onToggle={onToggle}
         />
       </div>
 
       {open && (
-        <div className={styles.advancedDrawer} id="palette-lab-advanced">
+        <div className={styles.advancedDrawer} id="theme-lab-advanced">
           <span className={styles.fieldCaption}>JSON{jsonDirty ? " · edited" : ""}</span>
           <PanelTextarea
             className="mb-2 min-h-20 whitespace-pre"

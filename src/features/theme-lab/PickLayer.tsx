@@ -4,7 +4,7 @@ import { Button } from "@/components/ui";
 import { cn } from "@/lib/utils";
 import { TokenSwatch, channelSwatch } from "./CatalogViews";
 import type { PickCandidate, PickRole } from "./pickToken";
-import styles from "./PaletteLab.module.css";
+import styles from "./ThemeLab.module.css";
 
 /**
  * The eyedropper's page-level layer: the hover outline, the "not themed yet"

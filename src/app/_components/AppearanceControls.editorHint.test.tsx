@@ -23,7 +23,7 @@ vi.mock("@/components/common/Icon", () => ({
 }));
 
 /**
- * The public Palette Lab drawer is available from DoseWiki regardless of
+ * The public Theme Lab drawer is available from DoseWiki regardless of
  * session or local hint state. The utility's storage behavior is covered below.
  */
 
@@ -78,10 +78,10 @@ async function openPanel(user: UserEvent) {
 
 /** The Lab entry is the panel's only full-width drawer action. */
 function labEntry(panel: HTMLElement) {
-  return within(panel).queryByRole("button", { name: "Open full Palette Lab" });
+  return within(panel).queryByRole("button", { name: "Open Theme Lab" });
 }
 
-describe("AppearanceControls Palette Lab entry", () => {
+describe("AppearanceControls Theme Lab entry", () => {
   beforeEach(() => {
     window.localStorage.clear();
   });

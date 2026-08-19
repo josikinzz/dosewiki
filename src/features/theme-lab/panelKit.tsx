@@ -4,7 +4,7 @@ import type { ReactNode } from "react";
 import { Badge, Button, Input, Textarea } from "@/components/ui";
 import { cn } from "@/lib/utils";
 import { Icon } from "@/components/common/Icon";
-import styles from "./PaletteLab.module.css";
+import styles from "./ThemeLab.module.css";
 
 /**
  * The Theme Lab's controls, sourced from the shared UI Kit.
@@ -94,7 +94,7 @@ export function PanelTab({ active, onClick, children, className, ...rest }: Togg
   );
 }
 
-/** The dark/light editing chips: the same selected-pill recipe, pill-shaped. */
+/** The flatness axes' step chips: the same selected-pill recipe, pill-shaped. */
 export function PanelChip({ active, onClick, children, className, ...rest }: ToggleProps) {
   return (
     <Button
@@ -181,7 +181,7 @@ export function PanelRow({
   );
 }
 
-/** Compact inline status badges (raw, ×N shared, theme scope, active preset). */
+/** Compact inline status badges (raw, ×N shared, theme scope). */
 export function PanelBadge({
   variant,
   className,

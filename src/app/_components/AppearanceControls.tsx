@@ -6,14 +6,14 @@ import { AppearanceCog } from "./AppearanceCog";
 
 /**
  * Resolves publication policy for the appearance axes. DoseWiki always exposes
- * its public Palette Lab drawer from the panel.
+ * its public Theme Lab drawer from the panel.
  *
  * `className` lands on the trigger itself because the homepage positions that
  * button directly.
  */
 export function AppearanceControls({ className }: { className?: string }) {
   const { isVisualStyleLocked, isSurfaceLocked, isAccentLocked } = useTheme();
-  const hasPaletteLab = SITE_FLAVOR_CONFIG.flavor === "dosewiki";
+  const hasThemeLab = SITE_FLAVOR_CONFIG.flavor === "dosewiki";
 
   return (
     <AppearanceCog
@@ -22,7 +22,7 @@ export function AppearanceControls({ className }: { className?: string }) {
       showColorScheme={SITE_FLAVOR_CONFIG.showColorSchemeToggle}
       showSurface={!isSurfaceLocked}
       showAccent={!isAccentLocked}
-      showMoreSettings={hasPaletteLab}
+      showMoreSettings={hasThemeLab}
     />
   );
 }

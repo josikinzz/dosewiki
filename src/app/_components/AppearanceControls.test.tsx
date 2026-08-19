@@ -11,7 +11,7 @@ import {
 } from "@/context/ThemeContext";
 import { ACCENTS, BASE_ACCENT_ID } from "@/theme/accents";
 import { SURFACES } from "@/theme/surfaces";
-import { getPaletteLabOpen, setPaletteLabOpen } from "@/features/theme-lab/paletteLabStore";
+import { getThemeLabOpen, setThemeLabOpen } from "@/features/theme-lab/themeLabStore";
 import { AppearanceCog, type AppearanceCogRows } from "./AppearanceCog";
 import { AppearanceControls } from "./AppearanceControls";
 import { ThemeToggle } from "./ThemeToggle";
@@ -77,7 +77,7 @@ describe("AppearanceCog", () => {
     window.localStorage.setItem(COLOR_SCHEME_STORAGE_KEY, "dark");
     window.localStorage.setItem(VISUAL_STYLE_STORAGE_KEY, "fun");
     window.localStorage.setItem(ACCENT_STORAGE_KEY, BASE_ACCENT_ID);
-    setPaletteLabOpen(false);
+    setThemeLabOpen(false);
     document.documentElement.dataset.theme = "dark";
     document.documentElement.dataset.visualStyle = "fun";
     delete document.documentElement.dataset.accent;
@@ -132,11 +132,11 @@ describe("AppearanceCog", () => {
       "Switch to day mode",
       ...SURFACES.map((option) => option.label),
       ...ACCENTS.map((option) => option.label),
-      "Open full Palette Lab",
+      "Open Theme Lab",
     ]);
     expect(
-      within(panel).getByRole("button", { name: "Open full Palette Lab" }),
-    ).toHaveAccessibleName("Open full Palette Lab");
+      within(panel).getByRole("button", { name: "Open Theme Lab" }),
+    ).toHaveAccessibleName("Open Theme Lab");
   });
 
   it("holds no state of its own: every mounted control reflects one provider", async () => {
@@ -198,7 +198,7 @@ describe("AppearanceCog", () => {
     const panel = await screen.findByRole("dialog", { name: "Appearance" });
     // The panel is portalled, so tab order is no longer "the next sibling in the markup".
     // Visual order and focus order agree: binary controls, both swatch rows, then the
-    // full-width Palette Lab action.
+    // full-width Theme Lab action.
     const reachable = within(panel).getAllByRole("button");
 
     await waitFor(() => {
@@ -388,8 +388,8 @@ describe("AppearanceCog", () => {
         });
       }
       expect(
-        within(panel).getByRole("button", { name: "Open full Palette Lab" }),
-      ).toHaveAttribute("aria-controls", "palette-lab-panel");
+        within(panel).getByRole("button", { name: "Open Theme Lab" }),
+      ).toHaveAttribute("aria-controls", "theme-lab-panel");
     },
   );
 });
@@ -430,7 +430,7 @@ describe("AppearanceControls", () => {
     expect(within(panel).queryByRole("group", { name: "Accent" })).not.toBeInTheDocument();
   });
 
-  it("opens the public Palette Lab drawer from a reader's cog", async () => {
+  it("opens the public Theme Lab drawer from a reader's cog", async () => {
     const user = userEvent.setup();
     render(
       <ThemeProvider initialColorScheme="dark" initialVisualStyle="fun" isVisualStyleLocked={false}>
@@ -439,9 +439,9 @@ describe("AppearanceControls", () => {
     );
 
     const panel = await openCog(user);
-    await user.click(within(panel).getByRole("button", { name: "Open full Palette Lab" }));
+    await user.click(within(panel).getByRole("button", { name: "Open Theme Lab" }));
 
-    expect(getPaletteLabOpen()).toBe(true);
+    expect(getThemeLabOpen()).toBe(true);
     expect(screen.queryByRole("dialog", { name: "Appearance" })).not.toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Appearance settings" })).toHaveAttribute(
       "aria-expanded",

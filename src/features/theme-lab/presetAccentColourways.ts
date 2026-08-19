@@ -11,21 +11,20 @@ import {
  *
  * Every accent but `default` names one of these as its Fun half —
  * blue/Abyss, green/Canopy, red/Garnet, amber/Sunset, neutral/Graphite — and
- * `src/theme/accents.test.ts:93-97` pins the pairing by name rather than by
- * count. That is the seam this module is cut along, and it is the only grouping
- * of the colourways that anything outside the Theme Lab already depends on: the
- * sibling `presetLabColourways.ts` holds the ones the same test file asserts
- * must never resolve as an accent.
+ * `src/theme/accents.test.ts` pins the pairing by name rather than by count.
+ * That is the seam this module is cut along, and the pairing is why five of the
+ * seven shipped colourways sit here: they are the ones the accent axis depends
+ * on by name.
  *
  * A new accent's Fun half is declared here. Declaration order within the file is
- * free — `PALETTE_PRESETS` in `palettePresets.ts` fixes the order the picker
- * renders and `presetStylesheet.ts` emits.
+ * free — `PALETTE_PRESETS` in `palettePresets.ts` fixes the order the generated
+ * accent and surface stylesheets emit.
  *
  * Orchid is deliberately absent: it is the authored base an accent falls back to
  * rather than a colourway an accent selects, so it stays beside
  * `DEFAULT_PRESET_ID` in `palettePresets.ts`.
  *
- * Authoring model, and the harm-reduction safety constraint each preset below
+ * Authoring model, and the harm-reduction safety constraint each colourway below
  * respects: see `palettePresets.ts`.
  */
 
@@ -285,7 +284,7 @@ export const canopy: PalettePreset = {
       // allowance does not apply. #117e3b is the same green (hue 150.1,
       // chroma 0.137 both unmoved) seven tenths of a point of OKLCH lightness
       // darker, and measures 4.55:1 there. This declaration is emitted into
-      // both palette-presets.generated.css (Theme Lab "canopy") and
+      // both surface-tokens.generated.css (the "canopy" surface) and
       // accent-tokens.generated.css (the "green" accent), so it fixes both.
       "--theme-section-heading": "#117e3b",
       ...scrollThumbOverridesLight(150, 0.12),

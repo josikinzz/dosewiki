@@ -15,14 +15,14 @@ import {
   glowOverrides,
   type FlatnessStep,
 } from "./flatnessAxes";
-import styles from "./PaletteLab.module.css";
+import styles from "./ThemeLab.module.css";
 
 /**
- * The flat↔deep axis, as four one-tap rows in the gallery: shadow depth,
- * ambient glow, corner roundness, and the backdrop-blur switch. Depth, glow,
- * and corners write ordinary per-token overrides computed from the active
- * theme's own baselines (so "Soft" fades *this* look, not a hardcoded one);
- * blur writes the sentinel token the appliers translate into
+ * The flat↔deep axis, as four one-tap rows under the Essentials catalog: shadow
+ * depth, ambient glow, corner roundness, and the backdrop-blur switch. Depth,
+ * glow, and corners write ordinary per-token overrides computed from the look's
+ * own sampled baselines (so "Soft" fades *what is on screen*, not a hardcoded
+ * palette); blur writes the sentinel token the appliers translate into
  * `html[data-blur="off"]`.
  *
  * No step highlighted means the visitor's own per-token edits are in charge —
@@ -30,7 +30,7 @@ import styles from "./PaletteLab.module.css";
  */
 
 interface FlatnessControlsProps {
-  /** Baseline (preset-resolved, no user edits) value for a token id. */
+  /** The value a token resolves to for the live look, with no user edits. */
   baselineValue: (id: string) => string;
   /** The visitor's own override for a token id, if any. */
   overrideValue: (id: string) => string | undefined;

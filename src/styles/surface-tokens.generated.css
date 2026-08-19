@@ -1,7 +1,7 @@
 /* GENERATED FILE — Source: src/theme/surfaces.ts. Regenerate: npm run generate:surface-css */
 
 /* Orchid */
-html:not([data-surface])[data-theme="dark"]:where(:not([data-palette])):where(:not([data-visual-style="pro"])) {
+html:not([data-surface])[data-theme="dark"]:where(:not([data-visual-style="pro"])) {
   --theme-body-bg: #110617;
   --theme-page-start: #7800b5;
   --theme-page-mid: oklch(13.2% 0.045 318);
@@ -199,7 +199,7 @@ html:not([data-surface])[data-theme="dark"]:where(:not([data-palette])):where(:n
   --theme-toggle-pill-bg: oklch(14% 0.025 318);
 }
 
-html:not([data-surface])[data-theme="light"]:where(:not([data-palette])):where(:not([data-visual-style="pro"])) {
+html:not([data-surface])[data-theme="light"]:where(:not([data-visual-style="pro"])) {
   --theme-body-bg: oklch(99.4% 0.002 326);
   --theme-page-start: oklch(99.6% 0.002 326);
   --theme-page-mid: oklch(99.3% 0.003 326);
@@ -392,7 +392,7 @@ html:not([data-surface])[data-theme="light"]:where(:not([data-palette])):where(:
 }
 
 /* Abyss */
-html[data-surface="abyss"][data-theme="dark"]:where(:not([data-palette])):where(:not([data-visual-style="pro"])) {
+html[data-surface="abyss"][data-theme="dark"]:where(:not([data-visual-style="pro"])) {
   --theme-body-bg: #020a12;
   --theme-page-start: oklch(45% 0.231 235);
   --theme-page-mid: oklch(13.2% 0.045 235);
@@ -598,7 +598,7 @@ html[data-visual-style="pro"][data-surface="abyss"][data-theme="dark"] {
   --ei-border-strong: #7b7c7d;
 }
 
-html[data-surface="abyss"][data-theme="light"]:where(:not([data-palette])):where(:not([data-visual-style="pro"])) {
+html[data-surface="abyss"][data-theme="light"]:where(:not([data-visual-style="pro"])) {
   --theme-body-bg: oklch(99.4% 0.002 215);
   --theme-page-start: oklch(99.6% 0.002 215);
   --theme-page-mid: oklch(99.3% 0.003 215);
@@ -799,7 +799,7 @@ html[data-visual-style="pro"][data-surface="abyss"][data-theme="light"] {
 }
 
 /* Canopy */
-html[data-surface="canopy"][data-theme="dark"]:where(:not([data-palette])):where(:not([data-visual-style="pro"])) {
+html[data-surface="canopy"][data-theme="dark"]:where(:not([data-visual-style="pro"])) {
   --theme-body-bg: #06110b;
   --theme-page-start: oklch(45% 0.231 155);
   --theme-page-mid: oklch(13.2% 0.045 155);
@@ -1005,7 +1005,7 @@ html[data-visual-style="pro"][data-surface="canopy"][data-theme="dark"] {
   --ei-border-strong: #7b7c7c;
 }
 
-html[data-surface="canopy"][data-theme="light"]:where(:not([data-palette])):where(:not([data-visual-style="pro"])) {
+html[data-surface="canopy"][data-theme="light"]:where(:not([data-visual-style="pro"])) {
   --theme-body-bg: oklch(99.4% 0.002 150);
   --theme-page-start: oklch(99.6% 0.002 150);
   --theme-page-mid: oklch(99.3% 0.003 150);
@@ -1206,7 +1206,7 @@ html[data-visual-style="pro"][data-surface="canopy"][data-theme="light"] {
 }
 
 /* Garnet */
-html[data-surface="garnet"][data-theme="dark"]:where(:not([data-palette])):where(:not([data-visual-style="pro"])) {
+html[data-surface="garnet"][data-theme="dark"]:where(:not([data-visual-style="pro"])) {
   --theme-body-bg: #140508;
   --theme-page-start: oklch(45% 0.231 15);
   --theme-page-mid: oklch(13.2% 0.045 15);
@@ -1412,7 +1412,7 @@ html[data-visual-style="pro"][data-surface="garnet"][data-theme="dark"] {
   --ei-border-strong: #7d7b7c;
 }
 
-html[data-surface="garnet"][data-theme="light"]:where(:not([data-palette])):where(:not([data-visual-style="pro"])) {
+html[data-surface="garnet"][data-theme="light"]:where(:not([data-visual-style="pro"])) {
   --theme-body-bg: oklch(99.4% 0.002 25);
   --theme-page-start: oklch(99.6% 0.002 25);
   --theme-page-mid: oklch(99.3% 0.003 25);
@@ -1613,7 +1613,7 @@ html[data-visual-style="pro"][data-surface="garnet"][data-theme="light"] {
 }
 
 /* Sunset */
-html[data-surface="sunset"][data-theme="dark"]:where(:not([data-palette])):where(:not([data-visual-style="pro"])) {
+html[data-surface="sunset"][data-theme="dark"]:where(:not([data-visual-style="pro"])) {
   --theme-body-bg: #170a1c;
   --theme-page-start: oklch(45% 0.231 310);
   --theme-page-mid: oklch(13.2% 0.045 310);
@@ -1819,7 +1819,7 @@ html[data-visual-style="pro"][data-surface="sunset"][data-theme="dark"] {
   --ei-border-strong: #7d7c7d;
 }
 
-html[data-surface="sunset"][data-theme="light"]:where(:not([data-palette])):where(:not([data-visual-style="pro"])) {
+html[data-surface="sunset"][data-theme="light"]:where(:not([data-visual-style="pro"])) {
   --theme-body-bg: oklch(97.3% 0.012 85);
   --theme-page-start: oklch(97.6% 0.011 85);
   --theme-page-mid: oklch(97.1% 0.013 85);
@@ -2020,7 +2020,7 @@ html[data-visual-style="pro"][data-surface="sunset"][data-theme="light"] {
 }
 
 /* Graphite */
-html[data-surface="graphite"][data-theme="dark"]:where(:not([data-palette])):where(:not([data-visual-style="pro"])) {
+html[data-surface="graphite"][data-theme="dark"]:where(:not([data-visual-style="pro"])) {
   --theme-body-bg: #08090b;
   --theme-page-start: oklch(45% 0.03 250);
   --theme-page-mid: oklch(13.2% 0.009 250);
@@ -2226,7 +2226,7 @@ html[data-visual-style="pro"][data-surface="graphite"][data-theme="dark"] {
   --ei-border-strong: #7c7c7c;
 }
 
-html[data-surface="graphite"][data-theme="light"]:where(:not([data-palette])):where(:not([data-visual-style="pro"])) {
+html[data-surface="graphite"][data-theme="light"]:where(:not([data-visual-style="pro"])) {
   --theme-body-bg: oklch(99.4% 0.002 250);
   --theme-page-start: oklch(99.6% 0.002 250);
   --theme-page-mid: oklch(99.3% 0.003 250);
@@ -2427,7 +2427,7 @@ html[data-visual-style="pro"][data-surface="graphite"][data-theme="light"] {
 }
 
 /* Lagoon */
-html[data-surface="lagoon"][data-theme="dark"]:where(:not([data-palette])):where(:not([data-visual-style="pro"])) {
+html[data-surface="lagoon"][data-theme="dark"]:where(:not([data-visual-style="pro"])) {
   --theme-body-bg: #020d0e;
   --theme-page-start: oklch(45% 0.231 200);
   --theme-page-mid: oklch(13.2% 0.045 200);
@@ -2633,7 +2633,7 @@ html[data-visual-style="pro"][data-surface="lagoon"][data-theme="dark"] {
   --ei-border-strong: #7b7c7c;
 }
 
-html[data-surface="lagoon"][data-theme="light"]:where(:not([data-palette])):where(:not([data-visual-style="pro"])) {
+html[data-surface="lagoon"][data-theme="light"]:where(:not([data-visual-style="pro"])) {
   --theme-body-bg: oklch(99.4% 0.002 187);
   --theme-page-start: oklch(99.6% 0.002 187);
   --theme-page-mid: oklch(99.3% 0.003 187);

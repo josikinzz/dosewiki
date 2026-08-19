@@ -210,7 +210,7 @@ export const CLEANUP_METRIC_BUDGET_EXCEPTIONS: CleanupMetricBudgetException[] = 
     reviewDate: "2026-06-12",
   },
   {
-    file: "src/features/theme-lab/PaletteLab.tsx",
+    file: "src/features/theme-lab/ThemeLab.tsx",
     maxLoc: 1350,
     owner: "ui-system-maintainers",
     reason: "Interactive palette surface retained as one public community tool until post-launch panel decomposition.",

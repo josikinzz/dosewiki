@@ -11,10 +11,30 @@ function block(selector: string, declarations: Readonly<Record<string, string>>)
   return `${selector} {\n${entries.map(([key, value]) => `  ${key}: ${value};`).join("\n")}\n}\n`;
 }
 
+/**
+ * One surface's Fun block. `html:not([data-surface])[data-theme="…"]` for the base surface,
+ * `html[data-surface="…"][data-theme="…"]` for a named one — both (0,2,1), because a bare
+ * `:not()` carries the specificity of its argument and `:where()` carries none.
+ *
+ * (0,2,1) ties `pro-theme.css`'s own per-scheme palette blocks, and this sheet is imported
+ * after it, so the tie would go to the surface. `:where(:not([data-visual-style="pro"]))` is
+ * how a Fun surface stays off a Pro page without buying specificity it does not need
+ * elsewhere: it makes the block unmatchable under Pro rather than out-ranked.
+ *
+ * Nothing else has to suppress this block. The surface axis IS the colourway a reader picks,
+ * so there is no second colourway layer for it to yield to; the only rung above it is the
+ * Theme Lab's injected user layer, which reaches (0,4,1) by naming `data-theme` four times
+ * and therefore wins on specificity from wherever it is injected.
+ */
 function funSelector(id: string, theme: string, isBase: boolean) {
   const surface = isBase ? `:not([${SURFACE_ATTRIBUTE}])` : `[${SURFACE_ATTRIBUTE}="${id}"]`;
-  return `html${surface}[data-theme="${theme}"]:where(:not([data-palette]))${NOT_PRO}`;
+  return `html${surface}[data-theme="${theme}"]${NOT_PRO}`;
 }
+/**
+ * One surface's Pro block, at (0,3,1): a step above the Pro palette it re-tints, so it wins
+ * from anywhere in the bundle. Only named surfaces emit one — the base surface under Pro is
+ * `pro-theme.css` as authored.
+ */
 function proSelector(id: string, theme: string, isBase: boolean) {
   const surface = isBase ? `:not([${SURFACE_ATTRIBUTE}])` : `[${SURFACE_ATTRIBUTE}="${id}"]`;
   return `html[data-visual-style="pro"]${surface}[data-theme="${theme}"]`;

@@ -2,7 +2,7 @@
 
 import { useId, useState } from "react";
 import { formatRem, parseRem, type LengthSpec } from "./paletteTokensRadius";
-import styles from "./PaletteLab.module.css";
+import styles from "./ThemeLab.module.css";
 
 /**
  * The Theme Lab's length control: a slider over a live corner preview.

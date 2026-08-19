@@ -23,7 +23,7 @@ import { facesForValues, type FontChoice, type FontFaceSpec } from "./paletteTok
 /** Element holding the lazily-registered faces. Distinct from the token override
  *  element, which is rewritten wholesale on every change — faces are only ever
  *  added, and re-writing them would restart in-flight downloads. */
-export const PALETTE_LAB_FONT_STYLE_ID = "palette-lab-fonts";
+export const THEME_LAB_FONT_STYLE_ID = "theme-lab-fonts";
 
 /** Choice ids already declared in this document. */
 const registered = new Set<string>();
@@ -76,10 +76,10 @@ export function ensureFontFaces(values: Iterable<string | undefined | null>): vo
   const pending = facesForValues(values).filter((choice) => !registered.has(choice.id));
   if (pending.length === 0) return;
 
-  let style = document.getElementById(PALETTE_LAB_FONT_STYLE_ID);
+  let style = document.getElementById(THEME_LAB_FONT_STYLE_ID);
   if (!style) {
     style = document.createElement("style");
-    style.id = PALETTE_LAB_FONT_STYLE_ID;
+    style.id = THEME_LAB_FONT_STYLE_ID;
     // Appended to <head> after the stylesheet, like the token override element.
     // Order does not matter for @font-face — a face is looked up by name, not
     // by cascade — but keeping both of the lab's injected elements in the same
@@ -103,5 +103,5 @@ export function registeredFontChoiceIds(): string[] {
 export function resetFontFaceRegistry(): void {
   registered.clear();
   if (typeof document === "undefined") return;
-  document.getElementById(PALETTE_LAB_FONT_STYLE_ID)?.remove();
+  document.getElementById(THEME_LAB_FONT_STYLE_ID)?.remove();
 }

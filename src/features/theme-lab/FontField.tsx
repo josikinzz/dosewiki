@@ -3,7 +3,7 @@
 import { PanelBadge, PanelButton } from "./panelKit";
 import { FontSwatch } from "./CatalogViews";
 import { FONT_CHOICES, fontChoiceForValue, type FontChoice } from "./paletteTokensFonts";
-import styles from "./PaletteLab.module.css";
+import styles from "./ThemeLab.module.css";
 
 /**
  * The Theme Lab's font control: an enumerated list of faces, not a text field.

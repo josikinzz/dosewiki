@@ -754,25 +754,26 @@ html[data-theme="light"] {
      OKLCH lightness apart, redistributed as a set because --theme-text-faint
      had to move 8 points darker and the old 48%/57% muted/faint pair left no
      room for it. --theme-menu-surface is the binding ground for the two pale
-     steps: it is the deepest tint in the Fun surface stack (default light
-     #f4d6f3, yuletide #cbebd0, halloween #f1dcc3), so a step that clears the
-     menu clears the other five surfaces everywhere. */
+     steps: it is the deepest tint in the Fun surface stack (orchid #f4d6f3,
+     canopy #cbebd0, garnet #ffd5d1), so a step that clears the menu clears
+     the other five grounds on every surface. */
   --theme-text-primary: oklch(27% 0.082 var(--h-text));
   --theme-text-secondary: oklch(35% 0.058 var(--h-text));
   --theme-text-muted: oklch(42% 0.05 var(--h-text));
   /* Faint is real prose — footer tagline, licence notices, card descriptions,
      the CategoryPage aside — so it is held to 4.5:1, not to the ghost floor.
-     L 57% measured 4.46:1 on the default light canvas #fefdfe and only 3.40:1
-     on halloween's --theme-menu-surface #f1dcc3. L 50% still left the worst
-     ground at 4.57:1; L 49% measures 4.77:1 on the binding ground
-     (yuletide's --theme-menu-surface #cbebd0) and 6.02:1 on the canvas, and
-     no palette hue drops below 4.77:1 on any of the six surfaces. */
+     L 57% measures 3.41:1 on the deepest menu tint (garnet's #ffd5d1) and
+     L 50% still leaves the worst ground at 4.58:1; L 49% measures 4.78:1 on
+     the binding ground (canopy's --theme-menu-surface #cbebd0) and 6.04:1 on
+     that surface's canvas, and no surface drops below 4.78:1 on any of the
+     six grounds. */
   --theme-text-faint: oklch(49% 0.04 var(--h-text));
   /* Light-mode ghost, same decorative-step reasoning as the dark block: held
-     to the 3:1 non-text floor, not 4.5:1. L 60% measured 2.99:1 on halloween's
-     --theme-menu-surface #f1dcc3; L 57% measures 3.39:1 there, which is the
-     worst of all nineteen states on all six surfaces, and it keeps a full
-     8-point step above --theme-text-faint. */
+     to the 3:1 non-text floor, not 4.5:1. L 60% measures 3.00:1 on garnet's
+     --theme-menu-surface #ffd5d1 — the floor exactly, with nothing in hand;
+     L 57% measures 3.39:1 there, which is the worst reading across all seven
+     surfaces on all six grounds, and it keeps a full 8-point step above
+     --theme-text-faint. */
   --theme-text-ghost: oklch(57% 0.03 var(--h-text));
 
   /* Light mode accent text, icon, and ring colors */
@@ -990,14 +991,17 @@ html[data-theme="light"] {
   --theme-success-border-strong: rgb(var(--c-emerald-deep) / 0.34);
   --theme-success-text: var(--c-emerald-800);
   /* The `-strong` ink is the saturated step, not the darkest one: `-text` is
-     already --c-emerald-800. Taken straight, --c-emerald-700 #047857 measured
-     4.34:1 on parchment's --theme-success-bg #dbe9d6 and 4.45:1 on
-     halloween's #dfebd9. Scaling its lightness to 94.1% — 3 points down from
-     L 50.8% — keeps each colourway's own emerald hue and lands the worst
-     ground at 4.91:1, still 3 points lighter than --c-emerald-800 (L 44.8%)
-     so the two alert inks stay apart. The step is written multiplicatively
-     because the whitespace `calc(l - 0.03)` needs is what makes the value
-     unreadable to the appearance-grid fixture that measures this floor. */
+     already --c-emerald-800. The multiplicative step was derived when the
+     colourway set included fills the bare --c-emerald-700 #047857 failed on;
+     across the seven surfaces that ship it now measures 4.56:1 at worst
+     (sunset's --theme-success-bg #deeee0), so it would clear 4.5 unscaled
+     with almost nothing in hand. Scaling its lightness to 94.1% — 3 points
+     down from L 50.8% — keeps each surface's own emerald hue, lands the worst
+     ground at 5.15:1, and stays 3 points lighter than --c-emerald-800
+     (L 44.8%) so the two alert inks stay apart. The step is written
+     multiplicatively because the whitespace `calc(l - 0.03)` needs is what
+     makes the value unreadable to the appearance-grid fixture that measures
+     this floor. */
   --theme-success-text-strong: oklch(from var(--c-emerald-700) calc(l*0.941) c h);
   --theme-success-ring: rgb(var(--c-emerald-deep) / 0.18);
   --theme-warning-bg: color-mix(in srgb, rgb(var(--c-amber)) 14%, var(--theme-body-bg));
@@ -1005,15 +1009,15 @@ html[data-theme="light"] {
   --theme-warning-border: rgb(var(--c-amber-deep) / 0.24);
   --theme-warning-border-strong: rgb(var(--c-amber-deep) / 0.34);
   --theme-warning-text: var(--c-amber-800);
-  /* Same shape as the success pair, and the classic amber-on-pale-amber light
-     failure: --c-amber-700 #b45309 measured 4.18:1 on journal's
-     --theme-warning-bg #f6e9d1 and 4.44:1 on the default #fdefdc, while the
-     colourways that re-seat the ramp to yellow (#a16207) fell to 4.11:1 on
-     halloween's #f8e9c6. Scaling its lightness to 92.8% — 4 points down from
-     L 55.5% — puts the worst ground at 4.84:1 and leaves the ink between
-     --c-amber-800 (L 47.3%) and its own base. The fill is shared with the
-     warning border and ring, so it is not lightened. Multiplicative for the
-     same fixture reason as the success step above. */
+  /* Same shape as the success pair, and the one where the scale is still
+     load-bearing — the classic amber-on-pale-amber light failure. Bare
+     --c-amber-700 #b45309 measures 4.28:1 on sunset's --theme-warning-bg
+     #f8eccd and 4.44:1 on orchid's #fdefdc, both under the floor. Scaling its
+     lightness to 92.8% — 4 points down from L 55.5% — puts the worst ground
+     at 4.96:1 and leaves the ink between --c-amber-800 (L 47.3%) and its own
+     base. The fill is shared with the warning border and ring, so it is not
+     lightened. Multiplicative for the same fixture reason as the success step
+     above. */
   --theme-warning-text-strong: oklch(from var(--c-amber-700) calc(l*0.928) c h);
   --theme-warning-ring: rgb(var(--c-amber-deep) / 0.16);
   --theme-danger-bg: color-mix(in srgb, rgb(var(--c-rose)) 12%, var(--theme-body-bg));

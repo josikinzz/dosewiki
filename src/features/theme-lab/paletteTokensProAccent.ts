@@ -12,15 +12,16 @@ import type { PaletteGroup, PaletteToken } from "./paletteTokens";
  * `src/styles/pro-theme.css` at runtime, so the labels here can never carry a
  * stale value.
  *
- * Registration is not cosmetic. `themeShareCodec` drops any id the registry
- * does not list, so an omission here would silently strip the Pro half out of
- * every shared theme and exported palette while leaving the Fun half intact.
+ * Registration is not cosmetic. The panel only offers tokens the registry
+ * lists, and a copied palette is exactly the visitor's own edits, so an
+ * omission here would leave the Pro half of an accent unreachable in the editor
+ * and absent from every exported palette while the Fun half travelled intact.
  *
  * `--ei-fade` and `--ei-logo-ink` are deliberately absent, and asserted absent.
  * Both sit in the same authored block as the washes, but neither is accent:
  * `--ei-fade` is the paper canvas at 88% alpha and `--ei-logo-ink` is the
- * wordmark's ink end. Offering either would let a shared theme recolour the
- * page rather than the accent on it.
+ * wordmark's ink end. Offering either would let an imported palette recolour
+ * the page rather than the accent on it.
  *
  * The type import is deliberately type-only: `paletteTokens.ts` imports this
  * module at runtime, so a value import back would close a cycle.

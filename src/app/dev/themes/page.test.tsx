@@ -38,7 +38,7 @@ vi.mock("./ThemeLabWorkbench", () => ({
 import DevThemesPage from "./page";
 import { ThemeLabWorkbench } from "./ThemeLabWorkbench";
 
-describe("Palette Lab developer route access", () => {
+describe("Theme Lab developer route access", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     isEffectIndexMock.mockReturnValue(false);

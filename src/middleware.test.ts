@@ -42,7 +42,7 @@ describe("middleware role policy adapter", () => {
     );
   });
 
-  it("protects the legacy Palette Lab workbench route", async () => {
+  it("protects the legacy Theme Lab workbench route", async () => {
     mocks.getToken.mockResolvedValue(null);
     const { middleware } = await import("../middleware");
 
