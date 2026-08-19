@@ -5,26 +5,17 @@ import { useEffect, useRef } from "react";
 import { Icon } from "@/components/common/Icon";
 import { Button } from "@/components/ui";
 import { Surface } from "@/components/ui/surface";
-import { PaletteLabLazy } from "@/features/theme-lab/PaletteLabLazy";
 import { setPaletteLabOpen, usePaletteLabOpen } from "@/features/theme-lab/paletteLabStore";
 
 /**
- * The Palette Lab's only entry point.
+ * The protected developer workbench for Palette Lab.
  *
- * The editor used to be a global mount with triggers in the footer and on the
- * homepage. It now belongs to this public route alone, so the open state is
- * owned here rather than by the mount. Entering the route opens the editor;
- * closing it leaves the route-local action below, and leaving the route releases
- * both the open state and the runtime that paints the saved palette.
+ * Palette Lab itself is mounted globally and opens from every DoseWiki
+ * appearance panel. This route adds implementation notes and a full-size reopen
+ * action for editors; entering it opens the same global drawer.
  *
- * The route used to hold the page in Fun while it was mounted, and to hand the
- * reader's own style back on the way out. Both are gone. The lab's user layer
- * now out-specifies every block any stylesheet emits, the generated Pro accent
- * blocks included, so an edit made under Pro lands on a Pro page and Pro is
- * something to author here rather than something to bounce off. Nothing on this
- * route writes the style axis any more, so there is nothing to hand back: a
- * style chosen while the lab is open is the reader's own choice and sticks,
- * exactly as it does on every other page.
+ * The workbench leaves color scheme, visual style, surface, and accent alone.
+ * Changes remain the reader's own choices exactly as they do on every page.
  */
 export function ThemeLabWorkbench() {
   const open = usePaletteLabOpen();
@@ -103,7 +94,6 @@ export function ThemeLabWorkbench() {
         )}
       </div>
 
-      <PaletteLabLazy />
     </div>
   );
 }

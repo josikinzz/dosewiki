@@ -13,6 +13,7 @@ import {
   getInitialAppearance,
 } from "@/theme";
 import { ThemeProvider } from "@/context/ThemeContext";
+import { PaletteLabLazy } from "@/features/theme-lab/PaletteLabLazy";
 import { proFont, siteFont } from "./fonts";
 import { RouteChrome, RouteFooter } from "./_components/RouteChrome";
 import { ApprovedPublicAnalytics } from "./_components/ApprovedPublicAnalytics";
@@ -133,6 +134,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             </div>
             <RouteFooter />
           </div>
+          {SITE_FLAVOR === "dosewiki" ? <PaletteLabLazy /> : null}
         </ThemeProvider>
       </body>
     </html>

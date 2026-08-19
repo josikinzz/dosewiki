@@ -16,10 +16,9 @@ import { clearThemeBaselineCache } from "./presetBaselines";
  * with the editor panel never opened.
  *
  * This is the regression suite the lazy-loading bug slipped through — every test
- * here mounts the lab and asserts on the injected override style, the persisted
- * envelope, or the panel's honest status line, without ever depending on the
- * editor having been loaded. The open state belongs to the protected route, so
- * these tests drive it directly instead of clicking a trigger.
+ * here mounts the global lab and asserts on the injected override style, the
+ * persisted envelope, or the panel's honest status line without requiring the
+ * editor to have opened first.
  */
 
 vi.mock("@/components/common/Icon", () => ({
@@ -235,7 +234,7 @@ describe("Theme Lab runtime", { timeout: 15_000 }, () => {
     expect(palette()).toBe("abyss");
     expect(screen.queryByRole("dialog", { name: "Theme Lab" })).not.toBeInTheDocument();
 
-    // The protected route owns the open state; the mount only follows it.
+    // The shared store drives the globally mounted panel.
     act(() => setPaletteLabOpen(true));
 
     const panel = await screen.findByRole("dialog", { name: "Theme Lab" });
@@ -245,7 +244,7 @@ describe("Theme Lab runtime", { timeout: 15_000 }, () => {
     );
   });
 
-  it("unpaints the document when the tool route unmounts", async () => {
+  it("unpaints the document when the global app mount is torn down", async () => {
     seed({
       version: 2,
       presetId: "abyss",
@@ -256,8 +255,7 @@ describe("Theme Lab runtime", { timeout: 15_000 }, () => {
     await waitFor(() => expect(palette()).toBe("abyss"));
     expect(overrideCss()).toContain("--theme-accent:#0ff0ff");
 
-    // Navigating away from /dev/themes must not leave a public page wearing an
-    // editor's in-progress palette for the rest of the session.
+    // A full app teardown releases the runtime and its document-level styles.
     view.unmount();
 
     expect(palette()).toBeNull();

@@ -26,7 +26,7 @@ export const appearanceCogStory: StoryDef = {
     },
     {
       label: "Without Palette Lab",
-      note: "A publication or embedding surface without the public Palette Lab route.",
+      note: "A publication or embedding surface without the public Palette Lab drawer.",
       background: "plain",
       render: () => (
         <AppearanceCog
@@ -87,14 +87,14 @@ export const appearanceCogStory: StoryDef = {
       name: "showMoreSettings",
       type: "boolean",
       description:
-        "Renders the explicit full-width /dev/themes action at the end of the panel.",
+        "Renders the explicit full-width action that opens the global Palette Lab drawer.",
     },
   ],
   whenToUse: [
     "Any surface that offers appearance choices — mount AppearanceControls, which resolves the rows from publication policy.",
   ],
   whenNotToUse: [
-    "Editor colour authoring — that is the Theme Lab at /dev/themes, which this links to.",
+    "Editor-only workbench context — that remains on the protected /dev/themes route.",
     "A single axis on its own. The cog exists so a surface carries one control instead of a row of pills.",
   ],
   notes: [

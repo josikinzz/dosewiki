@@ -1,13 +1,12 @@
 "use client";
 
-
 import { SITE_FLAVOR_CONFIG } from "@/config/siteFlavor";
 import { useTheme } from "@/context/ThemeContext";
 import { AppearanceCog } from "./AppearanceCog";
 
 /**
- * appearance axes are writable. DoseWiki always exposes its public Palette Lab
- * route from the panel.
+ * Resolves publication policy for the appearance axes. DoseWiki always exposes
+ * its public Palette Lab drawer from the panel.
  *
  * `className` lands on the trigger itself because the homepage positions that
  * button directly.

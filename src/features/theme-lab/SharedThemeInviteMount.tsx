@@ -5,10 +5,10 @@ import { consumeShareCodeFromLocation, usePendingShare } from "./paletteLabShare
 import { SharedThemeInvite } from "./SharedThemeInvite";
 
 /**
- * The receiving end of a share link, mounted beside the lab's runtime on the
- * protected `/dev/themes` route rather than inside the editor panel: a shared
- * palette has to be offered on the first load of the route, before the editor
- * chunk exists. It renders nothing at all until a code is actually offered.
+ * The receiving end of a share link, mounted beside the global lab runtime
+ * rather than inside the editor panel. A shared palette has to be offered on
+ * first load, before the editor chunk exists. It renders nothing until a code
+ * is actually offered.
  *
  * Reads `window.location` in an effect rather than through the router's search
  * params hook on purpose: this must not opt the route into dynamic rendering

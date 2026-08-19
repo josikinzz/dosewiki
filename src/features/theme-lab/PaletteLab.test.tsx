@@ -54,9 +54,8 @@ afterEach(() => {
 });
 
 async function openPanel() {
-  // The public /dev/themes route owns the open state and hands the lab the
-  // element focus should return to on close. This button stands in for that
-  // route-local action.
+  // Appearance controls own the open action and hand the lab the element focus
+  // should return to on close. This button stands in for that public action.
   render(
     <>
       <button type="button">Open Theme Lab</button>

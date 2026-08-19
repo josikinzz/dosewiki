@@ -126,7 +126,7 @@ describe("dose.wiki homepage", () => {
         .filter((button) => button.className.includes("theme-home-theme-toggle")),
     ).toHaveLength(1);
 
-    // Appearance axes and the public full Palette Lab action live inside the cog.
+    // Appearance axes and the public Palette Lab drawer action live inside the cog.
     await user.click(cog);
     const panel = await screen.findByRole("dialog", { name: "Appearance" });
 
@@ -137,7 +137,7 @@ describe("dose.wiki homepage", () => {
         .filter(Boolean),
     ).toEqual(["visual-style", "color-scheme"]);
     expect(
-      within(panel).getByRole("link", { name: "Open full Palette Lab" }),
-    ).toHaveAttribute("href", "/dev/themes");
+      within(panel).getByRole("button", { name: "Open full Palette Lab" }),
+    ).toHaveAttribute("aria-controls", "palette-lab-panel");
   });
 });

@@ -91,13 +91,12 @@ export function PaletteLab() {
   const [mounted, setMounted] = useState(false);
   // The raw-value field is a kit Textarea, so its caption pairs by id.
   const rawFieldId = useId();
-  // Open state lives in a shared store so the public /dev/themes route, which owns it, can
-  // drive this portalled panel.
+  // Open state lives in a shared store so appearance controls anywhere in the
+  // app can drive this portalled panel.
   const open = usePaletteLabOpen();
-  // The theme belongs to the route's runtime, which restored it as the route
-  // mounted and before this chunk finished loading. The editor is a subscriber
-  // and a writer, not the owner: it never reads or writes storage, and never
-  // injects CSS.
+  // The root runtime restores the theme before this chunk finishes loading.
+  // The editor is a subscriber and writer, not the owner: it never reads or
+  // writes storage and never injects CSS.
   const themeState = usePaletteLabTheme();
   const { activeThemeRef, customThemes, storageOk } = themeState;
   // Edits belong to the theme they diverge from, so everything the editor shows
@@ -632,8 +631,9 @@ export function PaletteLab() {
     setEpoch((value) => value + 1);
   }, [editIds, theme]);
 
-  // The panel is mounted only by the public /dev/themes route, which owns its open state;
-  // render nothing until mounted or while closed.
+  // Root layout owns the panel; wait for the browser before creating its body
+  // portal. Closed panels remain mounted off-screen so close animations and
+  // navigation preserve their state.
   if (!mounted) return null;
 
   const panel = (

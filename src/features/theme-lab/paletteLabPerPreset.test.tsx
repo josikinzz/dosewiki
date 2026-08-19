@@ -62,7 +62,7 @@ function palette() {
 }
 
 async function openPanel() {
-  // The public /dev/themes route owns the open state; the mount reads it.
+  // The global open store drives the mounted panel.
   render(<AppearanceTestProvider><PaletteLab /></AppearanceTestProvider>);
   act(() => setPaletteLabOpen(true));
   return screen.findByRole("dialog", { name: "Theme Lab" });

@@ -48,8 +48,6 @@ describe("role policy", () => {
     ["/dev", "", undefined, undefined, { type: "sign-in", callbackUrl: "/dev" }],
     ["/dev", "?tab=articles", undefined, undefined, { type: "sign-in", callbackUrl: "/dev?tab=articles" }],
     ["/dev/profile", "", undefined, undefined, { type: "sign-in", callbackUrl: "/dev/profile" }],
-    ["/dev/themes", "", undefined, undefined, { type: "allow", role: null, access: "public" }],
-    ["/dev/themes/", "", "viewer@example.com", "viewer", { type: "allow", role: "viewer", access: "public" }],
     ["/dev", "", "viewer@example.com", "viewer", { type: "unauthorized", role: "viewer", from: "/dev" }],
     ["/dev/profile", "", "viewer@example.com", "viewer", { type: "allow", role: "viewer", access: "profile" }],
     ["/dev/profiles/ABC", "", "viewer@example.com", "viewer", { type: "allow", role: "viewer", access: "profile" }],

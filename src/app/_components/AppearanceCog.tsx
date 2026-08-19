@@ -1,11 +1,11 @@
 "use client";
 
-import Link from "next/link";
-import { useId, type KeyboardEvent as ReactKeyboardEvent } from "react";
+import { useId, useRef, useState, type KeyboardEvent as ReactKeyboardEvent } from "react";
 
 import { Icon } from "@/components/common/Icon";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { useTheme } from "@/context/ThemeContext";
+import { setPaletteLabOpen } from "@/features/theme-lab/paletteLabStore";
 import { cn } from "@/lib/utils";
 import { ACCENTS } from "@/theme/accents";
 import { SURFACES } from "@/theme/surfaces";
@@ -27,7 +27,7 @@ export type AppearanceCogRows = {
   /** Canvas and component material family. */
   showSurface: boolean;
   showAccent: boolean;
-  /** The public full Palette Lab action. */
+  /** The public Palette Lab drawer action. */
   showMoreSettings: boolean;
 };
 
@@ -39,8 +39,7 @@ export type AppearanceCogRows = {
  * Surface row remains visible for context but is disabled and explicitly marked
  * "Fun only". The selected Surface is preserved when switching styles.
  *
- * The shared toggle and pill recipes provide the Fun and Pro treatments. The
- * Palette Lab is a separate, visible navigation action at the end of the panel.
+ * Palette Lab opens the global drawer over the page instead of navigating away.
  */
 export function AppearanceCog({
   className,
@@ -51,6 +50,8 @@ export function AppearanceCog({
   showMoreSettings,
 }: AppearanceCogRows & { className?: string }) {
   const { colorScheme, visualStyle, surface, setSurface, accent, setAccent } = useTheme();
+  const appearanceTriggerRef = useRef<HTMLButtonElement>(null);
+  const [popoverOpen, setPopoverOpen] = useState(false);
   const surfaceAvailabilityId = useId();
   const surfacesDisabled = visualStyle === "pro";
 
@@ -62,14 +63,15 @@ export function AppearanceCog({
   }
 
   // The first row only holds the two compact binary controls. Palette Lab is a
-  // separate, explicit action at the bottom of the panel.
+  // separate, explicit drawer action at the bottom of the panel.
   const hasControlRow = showVisualStyle || showColorScheme;
 
   return (
-    <Popover>
+    <Popover open={popoverOpen} onOpenChange={setPopoverOpen}>
       <PopoverTrigger asChild>
         <button
           type="button"
+          ref={appearanceTriggerRef}
           // Names the panel, not the icon: "Appearance settings" tells a screen-reader user
           // what pressing this opens. Radix adds the expanded state and the panel's id.
           aria-label="Appearance settings"
@@ -250,10 +252,16 @@ export function AppearanceCog({
           ) : null}
 
           {showMoreSettings ? (
-            <Link
-              href="/dev/themes"
+            <button
+              type="button"
               aria-label="Open full Palette Lab"
               title="Open full Palette Lab"
+              aria-haspopup="dialog"
+              aria-controls="palette-lab-panel"
+              onClick={() => {
+                setPopoverOpen(false);
+                setPaletteLabOpen(true, appearanceTriggerRef.current);
+              }}
               className={cn(
                 "theme-control-pill-quiet inline-flex h-10 w-full items-center justify-center gap-2 rounded-full px-3",
                 "text-xs font-semibold tracking-[0.01em]",
@@ -261,8 +269,8 @@ export function AppearanceCog({
             >
               <Icon icon="lucide:palette" size={15} />
               <span>Full Palette Lab</span>
-              <Icon icon="lucide:arrow-right" size={14} />
-            </Link>
+              <Icon icon="lucide:panel-right-open" size={14} />
+            </button>
           ) : null}
         </div>
       </PopoverContent>

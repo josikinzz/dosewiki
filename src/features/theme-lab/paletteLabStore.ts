@@ -14,8 +14,8 @@ import { activeEdits, withActiveEdits, type ThemeLabState } from "./paletteLabTh
  *
  * Two things need sharing between parts of the React tree that never meet:
  *
- * 1. **Open state** — the panel portals itself to `<body>`, while the controls
- *    that open and close it are the protected `/dev/themes` route's own chrome.
+ * 1. **Open state** — the panel portals itself to `<body>`, while appearance
+ *    controls in the homepage, footer, or any other page open it.
  * 2. **Theme state** (the active theme reference, each theme's own edits, and
  *    the saved custom slots) — owned here so the UI-free runtime and the lazily
  *    loaded editor panel read and write *one* source of truth. Before this split

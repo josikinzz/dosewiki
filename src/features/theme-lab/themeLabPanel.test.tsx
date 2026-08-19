@@ -8,10 +8,10 @@ import { setPaletteLabOpen } from "./paletteLabStore";
 import { clearThemeBaselineCache } from "./presetBaselines";
 
 /**
- * The gallery-first panel, through the suite's usual seam: open it the way the
- * protected `/dev/themes` route does, drive it with real user events, and assert
- * on what an editor can observe — which view is showing, whether an editor
- * exists at all, where focus is, and what Escape does.
+ * The gallery-first panel, through the suite's usual seam: open it through the
+ * global store, drive it with real user events, and assert what a reader can
+ * observe — which view is showing, whether an editor exists at all, where focus
+ * is, and what Escape does.
  *
  * These replace the behaviors the redesign retired: the panel no longer
  * force-selects a token on open (so the editor is no longer always expanded),

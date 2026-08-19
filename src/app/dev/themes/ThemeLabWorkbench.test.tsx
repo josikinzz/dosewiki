@@ -3,28 +3,27 @@ import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { ThemeProvider } from "@/context/ThemeContext";
+import { PaletteLabLazy } from "@/features/theme-lab/PaletteLabLazy";
 import { PALETTE_ATTRIBUTE } from "@/features/theme-lab/paletteLabStorage";
 import { getPaletteLabOpen, setPaletteLabOpen } from "@/features/theme-lab/paletteLabStore";
 import { clearThemeBaselineCache } from "@/features/theme-lab/presetBaselines";
 import { ThemeLabWorkbench } from "./ThemeLabWorkbench";
 
 /**
- * The route's own contract, which is everything the retired footer and homepage
- * triggers used to spread across the public app: the editor opens on entry, the
- * reader's style axis is left alone throughout, and leaving hands the shared
- * open state back.
+ * The protected workbench opens the same global drawer readers can use from
+ * any page. The root-owned mount survives route navigation.
  */
 
 vi.mock("@/components/common/Icon", () => ({
   Icon: ({ icon }: { icon: string }) => <span data-icon={icon} />,
 }));
 
-/** The route mounted inside the root layout's provider, and navigated away from
- *  without taking that provider with it. */
+/** The route inside the root layout's provider and global Palette Lab mount. */
 function Harness({ onRoute, style = "fun" }: { onRoute: boolean; style?: "fun" | "pro" }) {
   return (
     <ThemeProvider initialVisualStyle={style} initialColorScheme="dark" isVisualStyleLocked={false}>
       {onRoute ? <ThemeLabWorkbench /> : <p>Somewhere else entirely</p>}
+      <PaletteLabLazy />
     </ThemeProvider>
   );
 }
@@ -63,11 +62,9 @@ describe("Palette Lab workbench", { timeout: 15_000 }, () => {
     expect(within(scope!).getByText(/writes\s+neither file/)).toBeInTheDocument();
   });
 
-  it("leaves the style axis alone, so Pro can be authored here", async () => {
-    // The route used to pin Fun and restore the entry style on the way out,
-    // because the lab's layer lost to Pro's selectors. It wins now, so the pin
-    // is gone — and with nothing pinned there is nothing to hand back. A style
-    // chosen while the lab is open is the reader's own and survives the route.
+  it("leaves the style axis and open drawer alone across navigation", async () => {
+    // The drawer and appearance provider belong to the root layout. Navigating
+    // away from the protected workbench must not reset either.
     const view = render(<Harness onRoute style="pro" />);
     await screen.findByRole("dialog", { name: "Theme Lab" });
 
@@ -77,7 +74,8 @@ describe("Palette Lab workbench", { timeout: 15_000 }, () => {
 
     view.rerender(<Harness onRoute={false} style="pro" />);
 
-    await waitFor(() => expect(getPaletteLabOpen()).toBe(false));
+    await waitFor(() => expect(getPaletteLabOpen()).toBe(true));
+    expect(screen.getByRole("dialog", { name: "Theme Lab" })).toBeInTheDocument();
     expect(document.documentElement.getAttribute("data-visual-style")).toBe("pro");
   });
 

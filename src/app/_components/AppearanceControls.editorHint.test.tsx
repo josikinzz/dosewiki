@@ -23,9 +23,8 @@ vi.mock("@/components/common/Icon", () => ({
 }));
 
 /**
- * The public Palette Lab route is discoverable from DoseWiki regardless of
- * session or local hint state. Stale or malformed hint data must not change
- * that navigation contract; the utility's storage behavior is covered below.
+ * The public Palette Lab drawer is available from DoseWiki regardless of
+ * session or local hint state. The utility's storage behavior is covered below.
  */
 
 /** The session shapes the raw context can hold, built without standing up a provider or a fetch. */
@@ -77,9 +76,9 @@ async function openPanel(user: UserEvent) {
   return screen.findByRole("dialog");
 }
 
-/** The Lab entry is the panel's only link, so its presence is the whole assertion. */
+/** The Lab entry is the panel's only full-width drawer action. */
 function labEntry(panel: HTMLElement) {
-  return within(panel).queryByRole("link");
+  return within(panel).queryByRole("button", { name: "Open full Palette Lab" });
 }
 
 describe("AppearanceControls Palette Lab entry", () => {
@@ -92,13 +91,13 @@ describe("AppearanceControls Palette Lab entry", () => {
     vi.restoreAllMocks();
   });
 
-  it("offers the protected Lab entry without a local editor hint", async () => {
+  it("offers the public Lab drawer without a local editor hint", async () => {
     const user = userEvent.setup();
     renderControls();
 
     const panel = await openPanel(user);
 
-    expect(labEntry(panel)).toHaveAttribute("href", "/dev/themes");
+    expect(labEntry(panel)).toBeInTheDocument();
   });
 
   it("offers the Lab entry on a page with no session provider once the hint is stored", async () => {
@@ -110,7 +109,7 @@ describe("AppearanceControls Palette Lab entry", () => {
     const entry = labEntry(panel);
 
     expect(entry).not.toBeNull();
-    expect(entry).toHaveAttribute("href", "/dev/themes");
+    expect(entry).toBeInTheDocument();
   });
 
   it("offers the Lab entry when the session context itself says editor", async () => {
@@ -119,30 +118,30 @@ describe("AppearanceControls Palette Lab entry", () => {
 
     const panel = await openPanel(user);
 
-    expect(labEntry(panel)).toHaveAttribute("href", "/dev/themes");
+    expect(labEntry(panel)).toBeInTheDocument();
   });
 
-  it("keeps the protected Lab entry visible to a signed-in viewer", async () => {
+  it("keeps the public Lab drawer visible to a signed-in viewer", async () => {
     writeEditorHint();
     const user = userEvent.setup();
     renderControls(signedInAs("viewer"));
 
     const panel = await openPanel(user);
 
-    expect(labEntry(panel)).toHaveAttribute("href", "/dev/themes");
+    expect(labEntry(panel)).toBeInTheDocument();
   });
 
-  it("keeps the protected Lab entry visible to a signed-out reader", async () => {
+  it("keeps the public Lab drawer visible to a signed-out reader", async () => {
     writeEditorHint();
     const user = userEvent.setup();
     renderControls(SIGNED_OUT);
 
     const panel = await openPanel(user);
 
-    expect(labEntry(panel)).toHaveAttribute("href", "/dev/themes");
+    expect(labEntry(panel)).toBeInTheDocument();
   });
 
-  it("does not let an expired hint hide the protected Lab entry", async () => {
+  it("does not let an expired hint hide the public Lab drawer", async () => {
     window.localStorage.setItem(
       EDITOR_HINT_STORAGE_KEY,
       String(Date.now() - EDITOR_HINT_MAX_AGE_MS - 1),
@@ -152,17 +151,17 @@ describe("AppearanceControls Palette Lab entry", () => {
 
     const panel = await openPanel(user);
 
-    expect(labEntry(panel)).toHaveAttribute("href", "/dev/themes");
+    expect(labEntry(panel)).toBeInTheDocument();
   });
 
-  it("does not let a hand-edited hint hide the protected Lab entry", async () => {
+  it("does not let a hand-edited hint hide the public Lab drawer", async () => {
     window.localStorage.setItem(EDITOR_HINT_STORAGE_KEY, '{"role":"admin"}');
     const user = userEvent.setup();
     renderControls();
 
     const panel = await openPanel(user);
 
-    expect(labEntry(panel)).toHaveAttribute("href", "/dev/themes");
+    expect(labEntry(panel)).toBeInTheDocument();
   });
 
   it("keeps the first render independent of browser-only hint storage", async () => {

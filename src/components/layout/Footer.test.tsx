@@ -180,7 +180,7 @@ describe("Footer appearance controls", () => {
     expect(panel.querySelectorAll("[data-appearance-axis]")).toHaveLength(1);
   });
 
-  it("keeps the public Palette Lab action inside the appearance panel", async () => {
+  it("keeps the public Palette Lab drawer action inside the appearance panel", async () => {
     const user = userEvent.setup();
     renderFooter(DOSEWIKI);
 
@@ -193,8 +193,8 @@ describe("Footer appearance controls", () => {
 
     const panel = await openFooterCog(user);
     expect(
-      within(panel).getByRole("link", { name: "Open full Palette Lab" }),
-    ).toHaveAttribute("href", "/dev/themes");
+      within(panel).getByRole("button", { name: "Open full Palette Lab" }),
+    ).toHaveAttribute("aria-controls", "palette-lab-panel");
     expect(within(nav).getAllByRole("button")).toHaveLength(1);
   });
 });
