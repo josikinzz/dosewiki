@@ -356,8 +356,6 @@ html[data-visual-style="pro"][data-theme="dark"] {
      bare colour is legal here — verified, this token is NOT <image>-typed. */
   --theme-chrome-rail-bg: var(--ei-chrome);
   --theme-header-shadow: 0 1px 0 var(--ei-border);
-  --theme-header-nav-active-bg: var(--ei-surface-sunk);
-  --theme-header-nav-active-border: var(--ei-accent);
   /* Recessed track: the thumb takes the raised step, so the two stop being
      the same near-white. */
   --theme-toggle-pill-bg: var(--ei-surface-sunk);
@@ -1099,15 +1097,6 @@ html[data-visual-style="pro"] .theme-home-search-input:focus {
    Site chrome and shared cards that hardcode plum outside the search stack.
    --------------------------------------------------------------------- */
 
-/* The active header nav pill drops a plum shadow — oklch(42% 0.14 326) — under
-   itself on every single page. The EI bar carries the active state with colour
-   alone (the nav-active bg/border tokens are transparent), so this goes to
-   `none` rather than being retinted — a 1px ring in any colour would rebuild
-   the pill outline this is meant to remove. */
-html[data-visual-style="pro"] .theme-header-nav-link[data-active="true"] {
-  box-shadow: none;
-}
-
 /* Homepage mark: a plum drop-shadow filter, resting and on hover. The
    backdrop-filter kill above does not reach it — `filter` is a different
    property. */
@@ -1437,16 +1426,6 @@ html[data-visual-style="pro"] .app-header {
   --theme-frosted-control-on-panel-hover-bg: #454545;
   --theme-frosted-control-on-panel-hover-border: #5c5c5c;
   --theme-frosted-control-on-panel-hover-shadow: 0 0 0 1px #5c5c5c;
-  /* Transparent so the layered utilities-theme.css rules for the active nav
-     item paint no fill and no border. They are not sufficient on their own:
-     the same rule (utilities-theme.css:2350) also lays a 1px box-shadow ring
-     resolved from --theme-field-on-chrome-border, which is shared with the
-     header search field and so cannot be rebound here. Flattening the pill on
-     EI therefore also needs the rule near the [data-active] colour rule below;
-     these tokens only stop the fill and border from being repainted. */
-  --theme-header-nav-active-bg: transparent;
-  --theme-header-nav-active-border: transparent;
-
   --theme-divider: var(--ei-chrome-border);
   --theme-card-border: var(--ei-chrome-border);
   --theme-border-subtle: var(--ei-chrome-border);
@@ -1486,27 +1465,6 @@ html[data-visual-style="pro"] .app-header .theme-header-nav-link {
 
 html[data-visual-style="pro"] .app-header .theme-header-nav-link[data-active="true"] {
   color: var(--ei-on-dark) !important;
-}
-
-/* Flatten the active-item pill down to bare type. The original marked the
-   current section by brightening its label and nothing else; the shared header
-   wraps it in a raised fill + border + 1px ring, which is a dose.wiki
-   affordance and was the loudest remaining tell in the EI bar.
-
-   This is one of the few warranted !important rules in this sheet. The pill is
-   painted by theme-light-mode.css:716, which is itself !important, so no amount
-   of added specificity can beat it — and it resolves --theme-field-on-chrome-*,
-   a token family shared with the header search field, so rebinding the tokens
-   would flatten that field too. Overriding the four declarations directly, and
-   only for the active nav item, is the narrowest available fix.
-
-   Colour is deliberately not touched here: the [data-active] rule below lifts
-   the label to --ei-on-dark, which is now the entire active affordance. */
-html[data-visual-style="pro"] .app-header .theme-header-nav-link[data-active="true"] {
-  background: transparent !important;
-  border-color: transparent !important;
-  box-shadow: none !important;
-  --tw-ring-color: transparent !important;
 }
 
 /* The route icons in the nav are kept. The original site's nav was type only,

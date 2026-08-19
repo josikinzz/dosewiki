@@ -334,10 +334,8 @@ html[data-theme="light"]:where(:not([data-visual-style="pro"])) .theme-chrome-da
      what Effect Index gets from #2e2e2e bar / #3a3a3a field. It was L13.2%, i.e.
      *below* the rail at a ratio of 1.026, which is invisible: equal OKLCH
      lightness steps stop reading as equal down at the near-black end, where a
-     small luminance delta is swamped by screen flare. Kept under
-     --theme-header-nav-active-bg (L25.9%) so hover still steps up into active.
-     Header-only token: the search field, nav hover, and the light-mode active
-     pill are its only consumers. */
+     small luminance delta is swamped by screen flare. Header-only token: the
+     search field and nav hover are its only consumers. */
   --theme-field-on-chrome-surface: oklch(24.5% 0.045 var(--h-plum));
   /* Same 1.4.11 floor as --theme-field-border, and the same alpha even though
      this fill is 4 points lighter: 0.1 painted #3f3043 on L24.5% for 1.34:1, and
@@ -730,8 +728,6 @@ html[data-theme="light"]:where(:not([data-visual-style="pro"])) .theme-chrome-da
   --theme-search-highlight-bg: color-mix(in srgb, #e879f9 15%, var(--theme-body-bg));
   --theme-search-highlight-text: #fae8ff;
   --theme-search-overlay-bg: #1f1230;
-  --theme-header-nav-active-bg: oklch(25.9% 0.123 var(--h-plum));
-  --theme-header-nav-active-border: var(--theme-field-on-chrome-border);
   /* Solid (not the on-panel gradient) so it's a single editable color, not a
      raw gradient string in the lab; matches the on-panel control's mid tone. */
   --theme-toggle-pill-bg: oklch(14% 0.025 var(--h-plum));
@@ -1236,8 +1232,6 @@ html[data-theme="light"] {
      already overrides this pair in light (a deep tone of its own hue). */
   --theme-search-highlight-text: var(--c-fuchsia-700);
   --theme-search-overlay-bg: oklch(96% 0.032 334);
-  --theme-header-nav-active-bg: var(--theme-chrome-surface-strong);
-  --theme-header-nav-active-border: color-mix(in oklch, var(--theme-accent) 34%, var(--theme-chrome-border));
   --theme-toggle-pill-bg: #ffffff;
 }
 

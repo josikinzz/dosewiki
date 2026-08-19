@@ -313,8 +313,6 @@ export const PALETTE_GROUPS: PaletteGroup[] = [
       color("--theme-home-nav-card-border", "Home nav card edge"),
       color("--theme-home-glow-top", "Home ambient — upper glow", "Soft radial wash behind the homepage logo."),
       color("--theme-home-glow-bottom", "Home ambient — lower glow", "Soft radial wash behind the homepage nav cards."),
-      color("--theme-header-nav-active-bg", "Header — active nav fill"),
-      color("--theme-header-nav-active-border", "Header — active nav edge"),
       color("--theme-toggle-pill-bg", "Footer — theme toggle"),
       color("--theme-search-overlay-bg", "Search — result panel"),
       color("--theme-search-highlight-bg", "Search — match highlight"),
@@ -745,14 +743,12 @@ export const ESSENTIALS: EssentialGroup[] = [
   {
     id: "essentials-header",
     title: "Header",
-    blurb: "The top navigation bar and its active item.",
+    blurb: "The top navigation bar.",
     items: [
       { id: "--theme-chrome-rail-base", label: "Top bar", hint: "The header surface, mobile navigation panel, and footer rail." },
       { id: "--theme-chrome-rail-highlight", label: "Top bar — highlight", hint: "Upper-left highlight stop in the header/footer rail gradient." },
       { id: "--theme-chrome-rail-primary", label: "Top bar — primary", hint: "Main gradient stop in the header/footer rail." },
       { id: "--theme-chrome-rail-secondary", label: "Top bar — secondary", hint: "Trailing gradient stop in the header/footer rail." },
-      { id: "--theme-header-nav-active-bg", label: "Active nav fill", hint: "Background of the current-page nav item." },
-      { id: "--theme-header-nav-active-border", label: "Active nav edge", hint: "Outline of the current-page nav item." },
     ],
   },
   {

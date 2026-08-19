@@ -696,11 +696,7 @@ export function Header({
                 align="left"
                 isOpen={openMenuId === item.id}
                 onOpenChange={setOpenMenuId}
-                className={`theme-header-nav-link theme-focus-ring relative flex min-h-11 items-center gap-2.5 rounded-full border border-transparent px-4 py-2 text-sm font-medium ${
-                  item.active
-                    ? "ring-1 ring-dose-card-border"
-                    : ""
-                }`}
+                className="theme-header-nav-link theme-focus-ring relative flex min-h-11 items-center gap-2.5 rounded-full border border-transparent px-4 py-2 text-sm font-medium"
               />
             ))}
           </nav>
@@ -715,11 +711,7 @@ export function Header({
               align="right"
               isOpen={openMenuId === aboutItem.id}
               onOpenChange={setOpenMenuId}
-              className={`theme-header-nav-link theme-focus-ring flex min-h-11 items-center gap-2.5 rounded-full border border-transparent px-4 py-2 text-sm font-medium ${
-                aboutItem.active
-                  ? "ring-1 ring-dose-card-border"
-                  : ""
-              }`}
+              className="theme-header-nav-link theme-focus-ring flex min-h-11 items-center gap-2.5 rounded-full border border-transparent px-4 py-2 text-sm font-medium"
             />
           )}
         </div>
@@ -760,11 +752,7 @@ export function Header({
                     isExpanded={expandedMobileIds.includes(item.id)}
                     onToggle={toggleMobileGroup}
                     onNavigate={() => setIsMenuOpen(false)}
-                    className={`theme-header-nav-link theme-focus-ring theme-mobile-nav-link flex min-h-11 items-center gap-3.5 rounded-xl border border-transparent px-3 py-2.5 text-sm font-semibold ${
-                      item.active
-                        ? "ring-1 ring-dose-card-border"
-                        : ""
-                    }`}
+                    className="theme-header-nav-link theme-focus-ring theme-mobile-nav-link flex min-h-11 items-center gap-3.5 rounded-xl border border-transparent px-3 py-2.5 text-sm font-semibold"
                   />
                 ))}
               </nav>
@@ -778,11 +766,7 @@ export function Header({
                   isExpanded={expandedMobileIds.includes(aboutItem.id)}
                   onToggle={toggleMobileGroup}
                   onNavigate={() => setIsMenuOpen(false)}
-                  className={`theme-header-nav-link theme-focus-ring theme-mobile-nav-link flex min-h-11 items-center gap-3.5 rounded-xl border border-transparent px-3 py-2.5 text-sm font-semibold ${
-                    aboutItem.active
-                      ? "ring-1 ring-dose-card-border"
-                      : ""
-                  }`}
+                  className="theme-header-nav-link theme-focus-ring theme-mobile-nav-link flex min-h-11 items-center gap-3.5 rounded-xl border border-transparent px-3 py-2.5 text-sm font-semibold"
                 />
               )}
             </div>

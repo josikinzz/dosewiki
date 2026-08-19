@@ -166,13 +166,11 @@ export const graphite: PalettePreset = {
       "--theme-chrome-rail-base": "oklch(15.5% 0.008 250)",
       "--theme-field-surface": "oklch(20.3% 0.01 250)",
       // Tracks the base token's lift off the rail (see site-colors.css): raised
-      // to a 1.19 luminance ratio over Graphite's own L15.5% rail, held just
-      // under --theme-header-nav-active-bg below.
+      // to a 1.19 luminance ratio over Graphite's own L15.5% rail.
       "--theme-field-on-chrome-surface": "oklch(24% 0.009 250)",
       "--theme-field-on-panel-surface": "oklch(16% 0.014 250)",
       "--theme-field-on-panel-surface-alt": "oklch(14% 0.012 250)",
       "--theme-article-neutral-panel-base": "oklch(22.9% 0.014 250)",
-      "--theme-header-nav-active-bg": "oklch(25.9% 0.022 250)",
       ...scrollThumbOverrides(250, 0.02),
     },
     {

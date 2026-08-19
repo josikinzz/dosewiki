@@ -30,9 +30,7 @@
       "--theme-section-heading": "rgb(240 171 252)",
       "--theme-index-card-bullet": "rgba(255, 255, 255, 0.39)",
       "--theme-search-highlight-bg": "color-mix(in srgb, #e879f9 15%, #110617)",
-      "--theme-search-highlight-text": "#fae8ff",
-      "--theme-header-nav-active-bg": "oklch(25.9% 0.123 318)",
-      "--theme-header-nav-active-border": "rgb(255 255 255 / 0.36)"
+      "--theme-search-highlight-text": "#fae8ff"
     },
     "light": {
       "--theme-accent-strong": "oklch(43% 0.205 326)",
@@ -64,9 +62,7 @@
       "--theme-section-heading": "oklch(43% 0.205 326)",
       "--theme-index-card-bullet": "color-mix(in srgb, oklch(49% 0.19 326) 28%, oklch(41.6% 0.113 318 / 0.18))",
       "--theme-search-highlight-bg": "color-mix(in srgb, #e879f9 15%, oklch(99.4% 0.002 326))",
-      "--theme-search-highlight-text": "#a21caf",
-      "--theme-header-nav-active-bg": "color-mix(in srgb, oklch(84% 0.07 326) 94%, oklch(99.4% 0.002 326))",
-      "--theme-header-nav-active-border": "color-mix(in oklch, oklch(49% 0.19 326) 34%, oklch(46% 0.13 326 / 0.2))"
+      "--theme-search-highlight-text": "#a21caf"
     }
   },
   "blue": {
@@ -100,9 +96,7 @@
       "--theme-section-heading": "rgb(165 243 252)",
       "--theme-index-card-bullet": "rgba(255, 255, 255, 0.39)",
       "--theme-search-highlight-bg": "#0d2e3f",
-      "--theme-search-highlight-text": "#cffafe",
-      "--theme-header-nav-active-bg": "oklch(25.9% 0.123 235)",
-      "--theme-header-nav-active-border": "rgb(255 255 255 / 0.36)"
+      "--theme-search-highlight-text": "#cffafe"
     },
     "light": {
       "--theme-accent-strong": "oklch(43% 0.205 215)",
@@ -134,9 +128,7 @@
       "--theme-section-heading": "#0e7490",
       "--theme-index-card-bullet": "color-mix(in srgb, oklch(49% 0.19 215) 28%, oklch(41.6% 0.113 235 / 0.18))",
       "--theme-search-highlight-bg": "#d8f6fc",
-      "--theme-search-highlight-text": "#083344",
-      "--theme-header-nav-active-bg": "color-mix(in srgb, oklch(84% 0.07 215) 94%, oklch(99.4% 0.002 215))",
-      "--theme-header-nav-active-border": "color-mix(in oklch, oklch(49% 0.19 215) 34%, oklch(46% 0.13 215 / 0.2))"
+      "--theme-search-highlight-text": "#083344"
     }
   },
   "green": {
@@ -170,9 +162,7 @@
       "--theme-section-heading": "rgb(187 247 208)",
       "--theme-index-card-bullet": "rgba(255, 255, 255, 0.39)",
       "--theme-search-highlight-bg": "#17402a",
-      "--theme-search-highlight-text": "#dcfce7",
-      "--theme-header-nav-active-bg": "oklch(25.9% 0.123 155)",
-      "--theme-header-nav-active-border": "rgb(255 255 255 / 0.36)"
+      "--theme-search-highlight-text": "#dcfce7"
     },
     "light": {
       "--theme-accent-strong": "oklch(43% 0.205 150)",
@@ -204,9 +194,7 @@
       "--theme-section-heading": "#10783a",
       "--theme-index-card-bullet": "color-mix(in srgb, oklch(49% 0.19 150) 28%, oklch(41.6% 0.113 155 / 0.18))",
       "--theme-search-highlight-bg": "#d9f5e2",
-      "--theme-search-highlight-text": "#14532d",
-      "--theme-header-nav-active-bg": "color-mix(in srgb, oklch(84% 0.07 150) 94%, oklch(99.4% 0.002 150))",
-      "--theme-header-nav-active-border": "color-mix(in oklch, oklch(49% 0.19 150) 34%, oklch(46% 0.13 150 / 0.2))"
+      "--theme-search-highlight-text": "#14532d"
     }
   },
   "red": {
@@ -240,9 +228,7 @@
       "--theme-section-heading": "rgb(252 165 165)",
       "--theme-index-card-bullet": "rgba(255, 255, 255, 0.39)",
       "--theme-search-highlight-bg": "#46181f",
-      "--theme-search-highlight-text": "#fee2e2",
-      "--theme-header-nav-active-bg": "oklch(25.9% 0.123 15)",
-      "--theme-header-nav-active-border": "rgb(255 255 255 / 0.36)"
+      "--theme-search-highlight-text": "#fee2e2"
     },
     "light": {
       "--theme-accent-strong": "oklch(43% 0.205 25)",
@@ -274,9 +260,7 @@
       "--theme-section-heading": "#b91c1c",
       "--theme-index-card-bullet": "color-mix(in srgb, oklch(49% 0.19 25) 28%, oklch(41.6% 0.113 15 / 0.18))",
       "--theme-search-highlight-bg": "#f8dfe0",
-      "--theme-search-highlight-text": "#47191d",
-      "--theme-header-nav-active-bg": "color-mix(in srgb, oklch(84% 0.07 25) 94%, oklch(99.4% 0.002 25))",
-      "--theme-header-nav-active-border": "color-mix(in oklch, oklch(49% 0.19 25) 34%, oklch(46% 0.13 25 / 0.2))"
+      "--theme-search-highlight-text": "#47191d"
     }
   },
   "amber": {
@@ -310,9 +294,7 @@
       "--theme-section-heading": "rgb(253 195 143)",
       "--theme-index-card-bullet": "rgba(255, 255, 255, 0.39)",
       "--theme-search-highlight-bg": "#45203a",
-      "--theme-search-highlight-text": "#fde3cd",
-      "--theme-header-nav-active-bg": "oklch(25.9% 0.123 310)",
-      "--theme-header-nav-active-border": "rgb(255 255 255 / 0.36)"
+      "--theme-search-highlight-text": "#fde3cd"
     },
     "light": {
       "--theme-accent-strong": "oklch(43% 0.205 45)",
@@ -344,9 +326,7 @@
       "--theme-section-heading": "#b83a52",
       "--theme-index-card-bullet": "color-mix(in srgb, oklch(49% 0.19 45) 28%, oklch(41.6% 0.113 310 / 0.18))",
       "--theme-search-highlight-bg": "#fbe3d5",
-      "--theme-search-highlight-text": "#4a1a2e",
-      "--theme-header-nav-active-bg": "color-mix(in srgb, oklch(84% 0.07 45) 94%, oklch(97.3% 0.012 85))",
-      "--theme-header-nav-active-border": "color-mix(in oklch, oklch(49% 0.19 45) 34%, oklch(46% 0.13 45 / 0.2))"
+      "--theme-search-highlight-text": "#4a1a2e"
     }
   },
   "neutral": {
@@ -380,9 +360,7 @@
       "--theme-section-heading": "rgb(205 214 224)",
       "--theme-index-card-bullet": "rgba(255, 255, 255, 0.39)",
       "--theme-search-highlight-bg": "#262b33",
-      "--theme-search-highlight-text": "#e6eaef",
-      "--theme-header-nav-active-bg": "oklch(25.9% 0.022 250)",
-      "--theme-header-nav-active-border": "rgb(255 255 255 / 0.36)"
+      "--theme-search-highlight-text": "#e6eaef"
     },
     "light": {
       "--theme-accent-strong": "oklch(36% 0.03 250)",
@@ -414,9 +392,7 @@
       "--theme-section-heading": "#47535f",
       "--theme-index-card-bullet": "color-mix(in srgb, oklch(42% 0.035 250) 28%, oklch(41.6% 0.113 250 / 0.18))",
       "--theme-search-highlight-bg": "#e4e7ea",
-      "--theme-search-highlight-text": "#1e242c",
-      "--theme-header-nav-active-bg": "color-mix(in srgb, oklch(84% 0.07 250) 94%, oklch(99.4% 0.002 250))",
-      "--theme-header-nav-active-border": "color-mix(in oklch, oklch(42% 0.035 250) 34%, oklch(46% 0.13 250 / 0.2))"
+      "--theme-search-highlight-text": "#1e242c"
     }
   },
   "teal": {
@@ -450,9 +426,7 @@
       "--theme-section-heading": "rgb(153 246 228)",
       "--theme-index-card-bullet": "rgba(255, 255, 255, 0.39)",
       "--theme-search-highlight-bg": "#0a3435",
-      "--theme-search-highlight-text": "#ccfbf1",
-      "--theme-header-nav-active-bg": "oklch(25.9% 0.123 200)",
-      "--theme-header-nav-active-border": "rgb(255 255 255 / 0.36)"
+      "--theme-search-highlight-text": "#ccfbf1"
     },
     "light": {
       "--theme-accent-strong": "oklch(43% 0.205 187)",
@@ -484,9 +458,7 @@
       "--theme-section-heading": "#0f766e",
       "--theme-index-card-bullet": "color-mix(in srgb, oklch(49% 0.19 187) 28%, oklch(41.6% 0.113 200 / 0.18))",
       "--theme-search-highlight-bg": "#d3f5ef",
-      "--theme-search-highlight-text": "#042f2e",
-      "--theme-header-nav-active-bg": "color-mix(in srgb, oklch(84% 0.07 187) 94%, oklch(99.4% 0.002 187))",
-      "--theme-header-nav-active-border": "color-mix(in oklch, oklch(49% 0.19 187) 34%, oklch(46% 0.13 187 / 0.2))"
+      "--theme-search-highlight-text": "#042f2e"
     }
   }
 }

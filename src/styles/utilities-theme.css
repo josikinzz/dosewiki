@@ -2329,7 +2329,7 @@
 
   .theme-header-nav-link {
     color: var(--theme-text-muted);
-    transition: background-color 180ms ease, color 180ms ease, box-shadow 180ms ease, border-color 180ms ease;
+    transition: background-color 180ms ease, color 180ms ease;
   }
 
   @media (hover: hover) {
@@ -2343,14 +2343,21 @@
     color: var(--theme-text-primary);
   }
 
+  /* The current page is named by colour alone. The label joins the icon on the
+     accent, which is the one thing hover never does — hover lifts the label only
+     as far as --theme-text-primary — so the two states stay distinguishable
+     without a fill.
+
+     What used to be here: --theme-header-nav-active-bg, a matching border, and a
+     three-layer box-shadow (1px ring, accent glow, inset highlight). Together
+     they drew a pill solid and bright enough to read as a button, an affordance
+     a nav link does not have, on every page of the site.
+
+     --theme-accent-strong is legible on the rail in both schemes because the
+     .theme-chrome-dark island (site-colors.css:173) rebinds it to its dark value
+     while the page around it is light. */
   .theme-header-nav-link[data-active="true"] {
-    border-color: var(--theme-header-nav-active-border);
-    background: var(--theme-header-nav-active-bg);
-    color: var(--theme-text-primary);
-    box-shadow:
-      0 0 0 1px color-mix(in srgb, var(--theme-field-on-chrome-border) 72%, transparent),
-      0 16px 30px -24px color-mix(in srgb, var(--theme-accent) 48%, transparent),
-      inset 0 1px 0 color-mix(in srgb, var(--theme-text-primary) 8%, transparent);
+    color: var(--theme-accent-strong);
   }
 
 
