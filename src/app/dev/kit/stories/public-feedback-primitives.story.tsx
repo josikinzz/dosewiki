@@ -112,7 +112,7 @@ export const publicFeedbackPrimitivesStory: StoryDef = {
     },
     {
       label: "StatusHeader",
-      note: "Badge + status orb + title + description for under-construction / status pages.",
+      note: "Badge + status orb + title + description for status pages (StatusPageShell).",
       background: "card",
       full: true,
       render: () => (

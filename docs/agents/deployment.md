@@ -245,6 +245,22 @@ write path.
 
 `NEXT_PUBLIC_HOME_CONSTRUCTION_MODE` is **left unset** on the Effect Index project. Effect Index launches as a live public site, so it must not serve the holding page.
 
+### The holding page is the homepage
+
+There is one blocked surface, `src/app/_components/ConstructionLanding.tsx`: the
+live homepage — real header, hero, tile grid, appearance cog — with every
+destination answering "SOON" instead of navigating, and with the Theme Lab
+withheld. It is reached two ways because the gate is:
+
+- **Per host.** The middleware rewrites `/` on `dose.wiki` and `www.dose.wiki`
+  to `/under-construction`. This is the production mechanism, and the only one
+  that can hold one host back while the same build serves the full site on
+  `dosewiki-admin`.
+- **Per deployment.** `NEXT_PUBLIC_HOME_CONSTRUCTION_MODE=true` puts it at `/`
+  for a whole build, on either flavor.
+
+To see it locally, open `/under-construction`; no environment variable needed.
+
 ### dose.wiki project environment
 
 The `dosewiki-admin` project leaves `NEXT_PUBLIC_SITE_FLAVOR` unset, which

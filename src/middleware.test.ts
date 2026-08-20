@@ -248,6 +248,21 @@ describe("middleware role policy adapter", () => {
     expect(mocks.getToken).not.toHaveBeenCalled();
   });
 
+  it("allows the supporter mark the construction homepage renders", async () => {
+    const { middleware } = await import("../middleware");
+
+    // Not decoration: the holding page is the homepage, so it carries the footer's
+    // supporter credit, and that mark is a CSS mask. A redirect here does not degrade to a
+    // missing image — the lockup prints as a solid block.
+    const response = await middleware(
+      makePublicRequest("/supporters/mindstate-design-labs.webp"),
+    );
+
+    expect(response.status).toBe(200);
+    expect(response.headers.get("location")).toBeNull();
+    expect(mocks.getToken).not.toHaveBeenCalled();
+  });
+
   it.each(["/robots.txt", "/sitemap.xml"])(
     "allows public dose.wiki crawler policy endpoint %s during construction",
     async (path) => {

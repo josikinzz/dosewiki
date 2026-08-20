@@ -142,6 +142,19 @@ html[data-visual-style="pro"][data-theme="dark"] {
   --ei-accent-soft: #5cb3aa;
   --ei-accent-muted: #34837c;
 
+  /* Border-weight accent. The four seeds above are TEXT-contrast values
+     (links, labels), and reusing them as 1px hover/selected outlines is what
+     made every interactive edge read as a hard bright line. These two are the
+     accent mixed back toward the hairline: `edge` is the hover cue, and
+     `edge-strong` is the selected/inline-reference outline that still has to
+     be identifiable at rest. Derived with color-mix rather than authored so
+     the generated plum seeds (accent-tokens.generated.css) re-tint them for
+     free in both schemes — custom properties substitute per element after the
+     cascade, so each scheme's own --ei-accent/--ei-border pair feeds the mix.
+     Focus rings deliberately do NOT use these: focus keeps the full accent. */
+  --ei-accent-edge: color-mix(in srgb, var(--ei-accent) 30%, var(--ei-border));
+  --ei-accent-edge-strong: color-mix(in srgb, var(--ei-accent) 55%, var(--ei-border));
+
   --ei-shadow-soft: rgb(51 51 51 / 0.08);
   --ei-shadow-strong: rgb(51 51 51 / 0.12);
 
@@ -373,7 +386,7 @@ html[data-visual-style="pro"][data-theme="dark"] {
      invalid at computed-value time and delete that panel's caution hairline too.
      A fully transparent shadow is visually identical and composes. */
   --theme-frosted-panel-shadow: 0 0 #0000;
-  --theme-frosted-panel-hover-border: var(--ei-accent);
+  --theme-frosted-panel-hover-border: var(--ei-accent-edge);
   --theme-frosted-panel-hover-bg: var(--ei-surface-raised);
   --theme-frosted-panel-hover-shadow: 0 0 #0000;
 
@@ -385,16 +398,16 @@ html[data-visual-style="pro"][data-theme="dark"] {
   --theme-frosted-control-secondary: var(--ei-surface-sunk);
   --theme-frosted-control-bg: var(--ei-surface-sunk);
   --theme-frosted-control-shadow: 0 0 0 1px var(--ei-border);
-  --theme-frosted-control-hover-border: var(--ei-accent);
+  --theme-frosted-control-hover-border: var(--ei-accent-edge);
   --theme-frosted-control-hover-bg: var(--ei-surface-raised);
-  --theme-frosted-control-hover-shadow: 0 0 0 1px var(--ei-accent);
+  --theme-frosted-control-hover-shadow: 0 0 0 1px var(--ei-accent-edge);
 
   --theme-frosted-control-on-panel-border: var(--ei-border);
   --theme-frosted-control-on-panel-bg: var(--ei-surface-raised);
   --theme-frosted-control-on-panel-shadow: 0 0 0 1px var(--ei-border);
-  --theme-frosted-control-on-panel-hover-border: var(--ei-accent);
+  --theme-frosted-control-on-panel-hover-border: var(--ei-accent-edge);
   --theme-frosted-control-on-panel-hover-bg: var(--ei-surface-raised);
-  --theme-frosted-control-on-panel-hover-shadow: 0 0 0 1px var(--ei-accent);
+  --theme-frosted-control-on-panel-hover-shadow: 0 0 0 1px var(--ei-accent-edge);
 
   /* Article panel families */
   --theme-article-neutral-panel-border: var(--ei-border);
@@ -408,7 +421,7 @@ html[data-visual-style="pro"][data-theme="dark"] {
   /* Pro uses the same Accent-owned selected-control and inline-reference
      contracts as Fun, but flattens them onto restrained paper surfaces. */
   --theme-selected-control-base: var(--ei-surface-sunk);
-  --theme-selected-control-border: var(--ei-accent);
+  --theme-selected-control-border: var(--ei-accent-edge-strong);
   --theme-selected-control-highlight: var(--ei-surface-sunk);
   --theme-selected-control-primary: var(--ei-surface-sunk);
   --theme-selected-control-secondary: var(--ei-surface-sunk);
@@ -418,10 +431,10 @@ html[data-visual-style="pro"][data-theme="dark"] {
   --theme-selected-control-focus: var(--ei-accent);
   --theme-selected-control-glow: none;
 
-  --theme-inline-reference-border: var(--ei-accent);
+  --theme-inline-reference-border: var(--ei-accent-edge-strong);
   --theme-inline-reference-bg: var(--ei-surface-raised);
   --theme-inline-reference-text: var(--ei-accent-strong);
-  --theme-inline-reference-hover-border: var(--ei-accent-strong);
+  --theme-inline-reference-hover-border: var(--ei-accent);
   --theme-inline-reference-hover-bg: var(--ei-surface-raised);
   --theme-inline-reference-hover-text: var(--ei-accent-strong);
   --theme-inline-reference-focus: var(--ei-accent);
@@ -442,7 +455,7 @@ html[data-visual-style="pro"][data-theme="dark"] {
   --theme-name-chip-text: var(--ei-ink-2);
   --theme-name-chip-text-hover: var(--ei-accent-strong);
   --theme-name-chip-ring: var(--ei-border);
-  --theme-name-chip-ring-hover: var(--ei-accent);
+  --theme-name-chip-ring-hover: var(--ei-accent-edge);
   --theme-skip-link-bg: var(--ei-accent-strong);
   --theme-skip-link-text: var(--ei-on-accent);
   --theme-flag-ring: var(--ei-border);
@@ -757,7 +770,7 @@ html[data-visual-style="pro"] .theme-mobile-nav-panel {
   html[data-visual-style="pro"] .theme-public-card-interactive:hover,
   html[data-visual-style="pro"] .theme-public-card-hover-quiet:hover,
   html[data-visual-style="pro"] .theme-card-surface:hover {
-    border-color: var(--ei-accent);
+    border-color: var(--ei-accent-edge);
     background-color: var(--ei-surface-raised);
     background-image: none;
     box-shadow: none;
@@ -846,7 +859,7 @@ html[data-visual-style="pro"] .theme-home-shell[data-search-mode="true"] .theme-
 
 @media (hover: hover) {
   html[data-visual-style="pro"] .theme-home-nav-link:hover .theme-home-nav-icon {
-    border-color: var(--ei-accent);
+    border-color: var(--ei-accent-edge);
     background: var(--ei-surface-raised);
     box-shadow: none;
     transform: none;
@@ -988,7 +1001,7 @@ html[data-visual-style="pro"] .ring-fuchsia-400\/22 {
 
 @media (hover: hover) {
   html[data-visual-style="pro"] .group:hover .group-hover\:ring-fuchsia-400\/50 {
-    --tw-ring-color: var(--ei-accent);
+    --tw-ring-color: var(--ei-accent-edge);
   }
 }
 
@@ -1018,14 +1031,14 @@ html[data-visual-style="pro"] .theme-search-overlay {
    two-radial pink wash. Declared twice upstream (once plain, once deeper);
    one override covers both because it is the same selector. */
 html[data-visual-style="pro"] .theme-search-suggestion[data-highlighted="true"] {
-  border-color: var(--ei-accent);
+  border-color: var(--ei-accent-edge-strong);
   background: var(--ei-surface-sunk);
   box-shadow: none;
 }
 
 @media (hover: hover) {
   html[data-visual-style="pro"] .theme-search-suggestion:hover {
-    border-color: var(--ei-accent);
+    border-color: var(--ei-accent-edge);
     background: var(--ei-surface-sunk);
     box-shadow: none;
   }
@@ -1050,7 +1063,7 @@ html[data-visual-style="pro"] .theme-search-suggestion-icon {
 
 /* "Best match" chip. */
 html[data-visual-style="pro"] .theme-search-best-match {
-  border-color: var(--ei-accent);
+  border-color: var(--ei-accent-edge-strong);
   background: var(--ei-surface-sunk);
   color: var(--ei-accent-strong);
   box-shadow: none;
@@ -1082,7 +1095,7 @@ html[data-visual-style="pro"] .theme-home-search-input {
 
 @media (hover: hover) {
   html[data-visual-style="pro"] .theme-home-search-input:hover {
-    border-color: var(--ei-accent);
+    border-color: var(--ei-accent-edge);
     background-color: var(--ei-surface-raised);
   }
 }
@@ -1460,9 +1473,10 @@ html[data-visual-style="pro"] .app-header .theme-text-primary {
 
 /* Restore the original Effect Index nav rhythm: small, regular, uppercase
    labels tracked widely inside full 44px targets. The target geometry remains
-   generous; only the type returns to the reference's compact scale. */
+   generous; the type keeps the reference's compact voice but the floor is
+   raised to 12px so the labels stay legible. */
 html[data-visual-style="pro"] .app-header .theme-header-nav-link {
-  font-size: 0.6875rem;
+  font-size: 0.75rem;
   font-weight: 400;
   letter-spacing: 0.14em;
   text-transform: uppercase;
@@ -1598,13 +1612,15 @@ html[data-visual-style="pro"] .prose.prose-fuchsia :is(h1, h2, h3, h4, h5, h6) {
 }
 
 /* In-article section heads ("Sub-types", "Levelling System") take the same
-   uppercase/tracked/regular-weight treatment as the standalone ones. */
+   real size step as the standalone ones: semibold, sentence case, a clear
+   rung below the page title. The uppercase-tracked voice is reserved for
+   the kicker/TOC/sub-label tier below. */
 html[data-visual-style="pro"] .prose.prose-fuchsia :is(h1, h2) {
-  font-size: 1rem;
+  font-size: 1.375rem;
   font-weight: 600;
-  letter-spacing: 0.16em;
-  line-height: 1.5;
-  text-transform: uppercase;
+  letter-spacing: -0.005em;
+  line-height: 1.3;
+  text-transform: none;
 }
 
 html[data-visual-style="pro"] .prose.prose-fuchsia :is(h3, h4) {
@@ -1620,27 +1636,29 @@ html[data-visual-style="pro"] a .theme-accent-heading {
   color: var(--theme-accent);
 }
 
-/* Article and page titles: regular weight at 32px, the way the original set
-   its h1. `type-page-title` carries the Fun display clamp (up to 4.5rem); the
+/* Article and page titles: the top of the ramp regains its mass — 2.75rem
+   semibold, roughly 1.6x below Fun's 72px display clamp instead of the old
+   2.25x cut. `type-page-title` carries that Fun clamp (up to 4.5rem); the
    size is pinned here so Pro does not inherit the oversized display scale. */
 html[data-visual-style="pro"] h1.theme-accent-heading {
-  font-size: 2rem;
-  font-weight: 400;
+  font-size: 2.75rem;
+  font-weight: 600;
   letter-spacing: -0.005em;
 }
 
 /* Section heads (SectionHeader's h2 — "Sub-types", "Levelling System").
    The colour already resolves to ink via --theme-section-heading; this
-   supplies the case and tracking. */
+   supplies the size step: semibold sentence case, matching the in-prose tier. */
 html[data-visual-style="pro"] h2.text-\[var\(--theme-section-heading\)\] {
-  font-size: 1rem;
+  font-size: 1.375rem;
   font-weight: 600;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
+  letter-spacing: -0.005em;
+  line-height: 1.3;
+  text-transform: none;
 }
 
 /* The section icon is sized against the old 2xl/3xl heading; rebalance it
-   against the smaller tracked-out one. */
+   against the smaller section head. */
 html[data-visual-style="pro"] h2.text-\[var\(--theme-section-heading\)\] svg {
   height: 1.2rem;
   width: 1.2rem;
@@ -1660,7 +1678,7 @@ html[data-visual-style="pro"] h3.theme-accent-heading {
    ArticleSubsectionHeader ships them semibold, but the feature headingClassNames
    re-add the Fun voice (font-bold + tracking-tight at text-lg/xl). Pro drops
    them to semibold at body scale with neutral tracking, so a category head
-   never outranks its uppercase section label above it. */
+   never outranks the section head above it. */
 html[data-visual-style="pro"] .theme-article-subsection-heading {
   font-size: 1rem;
   font-weight: 600;
@@ -1808,15 +1826,15 @@ html[data-visual-style="pro"] svg.theme-accent-heading {
 
 /* Standalone section heads (the /contact "Site founder" family) carry
    .theme-accent-heading rather than the --theme-section-heading class, so
-   the in-prose rule above never reached them and they kept sentence case
-   beside uppercase ones. h1 is deliberately excluded: page titles stay
-   large and sentence-cased, the way the original set its 32px h1. */
+   the in-prose rule above never reached them and they missed the section
+   size step. h1 is deliberately excluded: page titles ride the larger
+   top-of-ramp rule above. */
 html[data-visual-style="pro"] h2.theme-accent-heading {
-  font-size: 1rem;
+  font-size: 1.375rem;
   font-weight: 600;
-  letter-spacing: 0.16em;
-  line-height: 1.5;
-  text-transform: uppercase;
+  letter-spacing: -0.005em;
+  line-height: 1.3;
+  text-transform: none;
 }
 
 html[data-visual-style="pro"] h3.theme-accent-heading,
@@ -1847,7 +1865,7 @@ html[data-visual-style="pro"] h4.theme-accent-heading {
 html[data-visual-style="pro"] .theme-index-card-title,
 html[data-visual-style="pro"] .theme-index-card-title-accent {
   font-size: 0.9375rem;
-  font-weight: 400;
+  font-weight: 600;
   letter-spacing: 0.16em;
   line-height: 1.5;
   text-transform: uppercase;

@@ -158,18 +158,6 @@ export type SiteLoadingScreenCopy = {
   readonly captionLine: string;
 };
 
-/**
- * Copy for the pre-launch holding page. The remit sentence differs per publication:
- * dose.wiki describes a harm-reduction library, Effect Index a subjective effect archive.
- * Shipping one flavor's remit on the other would misstate what the site is for.
- */
-export type SiteUnderConstructionCopy = {
-  /** Metadata description. */
-  readonly description: string;
-  /** The single body sentence rendered under the wordmark. */
-  readonly body: string;
-};
-
 /** One card in the About page's final tab. */
 export type SiteAboutDocLink = {
   readonly href: string;
@@ -271,8 +259,15 @@ export type SiteFlavorConfig = AppearancePolicy & {
   };
   /** Full-screen loading indicator copy. */
   readonly loadingScreen: SiteLoadingScreenCopy;
-  /** Pre-launch holding page copy. */
-  readonly underConstruction: SiteUnderConstructionCopy;
+  /**
+   * Metadata description for the pre-launch holding page. The remit differs per
+   * publication: dose.wiki describes a harm-reduction library, Effect Index a subjective
+   * effect archive. Shipping one flavor's remit on the other would misstate what the site
+   * is for. The page itself is the live homepage with its destinations blocked
+   * (`ConstructionLanding`), so its visible copy comes from the homepage's own copy
+   * blocks, not from here.
+   */
+  readonly underConstructionDescription: string;
   /** Ordered primary (header) navigation ids. */
   readonly primaryNavIds: readonly SiteNavId[];
   /** Ordered secondary (utility) navigation ids. */
@@ -397,10 +392,7 @@ const DOSEWIKI_CONFIG: SiteFlavorConfig = {
     statusLine: "Indexing dosage, effects, and safety references…",
     captionLine: "Preparing the public library",
   },
-  underConstruction: {
-    description: "dose.wiki is preparing its public harm-reduction library.",
-    body: "The public site is under construction while the harm-reduction library is being reviewed.",
-  },
+  underConstructionDescription: "dose.wiki is preparing its public harm-reduction library.",
   primaryNavIds: ["substances", "effects", "reports", "replications"],
   secondaryNavIds: ["about"],
   quickLinkIds: ["substances", "effects", "reports", "replications", "about"],
@@ -571,10 +563,8 @@ const EFFECT_INDEX_CONFIG: SiteFlavorConfig = {
     statusLine: "Indexing subjective effects, replications, and reports…",
     captionLine: "Preparing the public library",
   },
-  underConstruction: {
-    description: "Effect Index is preparing its public archive of subjective effect documentation.",
-    body: "The public site is under construction while the subjective effect archive is being reviewed.",
-  },
+  underConstructionDescription:
+    "Effect Index is preparing its public archive of subjective effect documentation.",
   // The original effectindex.com header, restored from that site's `store/navigation.json`:
   // Effects · Replications · Trip Reports · Project. It carried no Substances entry, and the
   // site owner wants it kept that way — `/substances` stays live and reachable, it is simply

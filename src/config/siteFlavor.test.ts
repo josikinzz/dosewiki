@@ -234,11 +234,9 @@ describe("site flavor config", () => {
       captionLine: "Preparing the public library",
     });
     expect(dosewiki.articleFallbackDescription).toBe("Browse Effect Index articles in dose.wiki.");
-    // Byte-identical to the copy the page carried before it was moved into the config.
-    expect(dosewiki.underConstruction).toEqual({
-      description: "dose.wiki is preparing its public harm-reduction library.",
-      body: "The public site is under construction while the harm-reduction library is being reviewed.",
-    });
+    expect(dosewiki.underConstructionDescription).toBe(
+      "dose.wiki is preparing its public harm-reduction library.",
+    );
 
     expect(effectindex.wordmark).toEqual({ lead: "Effect ", accent: "Index" });
     expect(effectindex.logo.markPath).toBe("/effectindex/logo.svg");
@@ -253,8 +251,7 @@ describe("site flavor config", () => {
       effectindex.loadingScreen.statusLine,
       effectindex.loadingScreen.captionLine,
       effectindex.articleFallbackDescription,
-      effectindex.underConstruction.description,
-      effectindex.underConstruction.body,
+      effectindex.underConstructionDescription,
     ].join(" ");
 
     expect(effectIndexFooterCopy).not.toMatch(/dose\.wiki|CC0|public domain/i);

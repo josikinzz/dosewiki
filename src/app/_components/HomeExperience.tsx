@@ -1,17 +1,15 @@
 "use client";
 
-import { type CSSProperties, useEffect, useRef, useState } from "react";
+import { type CSSProperties, useEffect, useId, useRef, useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { Search } from "lucide-react";
 import { DoseWikiLogo } from "@/components/common/DoseWikiLogo";
-import { GlobalSearch } from "@/components/common/GlobalSearch";
 import { Icon } from "@/components/common/Icon";
 import { SiteSupporter } from "@/components/common/SiteSupporter";
 import { SiteWordmark } from "@/components/common/SiteWordmark";
+import { Input } from "@/components/ui/input";
 import { SITE_FLAVOR_CONFIG } from "@/config/siteFlavor";
-import type { AppView } from "@/types/navigation";
 import { partitionQuickLinkRows, type HomeQuickLink } from "./homeQuickLinks";
-import { viewToPath } from "@/utils/routing";
 import { AppearanceControls } from "./AppearanceControls";
 
 interface HomeExperienceProps {
@@ -34,7 +32,7 @@ export function HomeExperience({
   isConstructionMode = false,
   copy,
 }: HomeExperienceProps) {
-  const router = useRouter();
+  const searchInputId = useId();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [clickedItem, setClickedItem] = useState<string | null>(null);
   // Logo click delight: "charge & bloom" pop + hue sweep, escalating on rapid clicks.
@@ -53,17 +51,6 @@ export function HomeExperience({
   const secondaryItems = quickLinks.filter((item) =>
     SITE_FLAVOR_CONFIG.secondaryNavIds.includes(item.id),
   );
-
-  const navItems = [...primaryItems, ...secondaryItems];
-  const homeView = { type: "home" } satisfies AppView;
-
-  const navigateToView = (nextView: AppView) => {
-    router.push(viewToPath(nextView));
-  };
-
-  const replaceWithView = (nextView: AppView) => {
-    router.replace(viewToPath(nextView), { scroll: false });
-  };
 
   const chargeLogo = () => {
     const nextLevel = Math.min(logoChargeLevelRef.current + 1, 6);
@@ -116,148 +103,75 @@ export function HomeExperience({
 
   return (
     <>
+      {/* The blocked landing's header. The live site's header is `RouteChrome`'s own
+          `Header`, which this deliberately mirrors at its dose.wiki-home shape — brand,
+          full-width search, hamburger, no desktop nav bar — down to the classes, so the
+          holding page shows the chrome a visitor will actually get. What differs is that
+          nothing here navigates: each control answers with the SOON badge instead. */}
       {isConstructionMode && (
       <header className="app-header theme-chrome-dark theme-header-surface backdrop-blur-sm backdrop-safe">
-        <div className="flex w-full items-center gap-3 px-4 py-3 min-[1600px]:px-6 gap-fallback-row-4 lg:grid lg:grid-cols-[auto_minmax(0,1fr)_auto] lg:gap-4">
-          {isConstructionMode ? (
-            <button
-              type="button"
-              onClick={() => showComingSoon("Home")}
-              className="group/brand flex h-11 w-11 items-center gap-2 p-0 text-left hover:bg-transparent xl:h-10 xl:w-auto xl:pl-0"
-              aria-label={`${SITE_FLAVOR_CONFIG.name} home mockup`}
-            >
-              <span className="inline-flex items-center justify-center transition-transform duration-200 group-hover/brand:scale-105 group-focus-visible/brand:scale-105">
-                <DoseWikiLogo
-                  width={40}
-                  height={40}
-                  className="safari-svg-gpu h-10 w-10"
-                  draggable={false}
-                />
-              </span>
-              <span className="theme-text-primary hidden items-center text-2xl font-display font-bold tracking-tight transition-transform duration-200 group-hover/brand:scale-[1.04] group-focus-visible/brand:scale-[1.04] xl:inline-flex">
-                <SiteWordmark />
-              </span>
-            </button>
-          ) : (
-            <Link
-              href="/"
-              className="group/brand flex h-11 w-11 items-center gap-2 p-0 text-left hover:bg-transparent xl:h-10 xl:w-auto xl:pl-0"
-              aria-label={`${SITE_FLAVOR_CONFIG.name} home`}
-            >
-              <span className="inline-flex items-center justify-center transition-transform duration-200 group-hover/brand:scale-105 group-focus-visible/brand:scale-105">
-                <DoseWikiLogo
-                  width={40}
-                  height={40}
-                  className="safari-svg-gpu h-10 w-10"
-                  draggable={false}
-                />
-              </span>
-              <span className="theme-text-primary hidden items-center text-2xl font-display font-bold tracking-tight transition-transform duration-200 group-hover/brand:scale-[1.04] group-focus-visible/brand:scale-[1.04] xl:inline-flex">
-                <SiteWordmark />
-              </span>
-            </Link>
-          )}
+        <div className="flex w-full items-center gap-3 px-4 py-3 min-[1600px]:px-6 gap-fallback-row-4">
+          <button
+            type="button"
+            onClick={() => showComingSoon("Home")}
+            className="group/brand flex h-11 w-11 items-center gap-2 p-0 text-left hover:bg-transparent xl:h-10 xl:w-auto xl:pl-0"
+            aria-label={`${SITE_FLAVOR_CONFIG.name} home mockup`}
+          >
+            <span className="inline-flex items-center justify-center transition-transform duration-200 group-hover/brand:scale-105 group-focus-visible/brand:scale-105">
+              <DoseWikiLogo
+                width={40}
+                height={40}
+                className="safari-svg-gpu h-10 w-10"
+                draggable={false}
+              />
+            </span>
+            <span className="theme-text-primary hidden items-center text-2xl font-display font-bold tracking-tight transition-transform duration-200 group-hover/brand:scale-[1.04] group-focus-visible/brand:scale-[1.04] xl:inline-flex">
+              <SiteWordmark />
+            </span>
+          </button>
 
-          <div className="flex min-h-[44px] min-w-0 flex-1 items-center lg:w-full lg:max-w-none">
-            {isConstructionMode ? (
-              <form
-                className="w-full"
-                onSubmit={(event) => {
-                  event.preventDefault();
-                  showComingSoon("Search");
-                }}
-                role="search"
-              >
-                <div
-                  className="theme-home-mock-search relative flex h-11 w-full min-w-0 items-center rounded-full border px-4"
-                  data-clicked={clickedItem === "Search"}
-                >
-                  <input
-                    type="search"
-                    aria-label="Search mockup"
-                    placeholder="Search..."
-                    readOnly
-                    onFocus={() => showComingSoon("Search")}
-                    onKeyDown={() => showComingSoon("Search")}
-                    className="min-w-0 flex-1 bg-transparent text-base italic outline-none placeholder:text-current"
-                  />
-                  <div className="theme-divider mx-3 hidden h-7 w-px sm:block" />
+          <div className="flex min-h-[44px] min-w-0 flex-1 items-center">
+            <form
+              className="w-full min-w-0"
+              onSubmit={(event) => {
+                event.preventDefault();
+                showComingSoon("Search");
+              }}
+              role="search"
+            >
+              {/* `GlobalSearch`' compact header variant, inert: same `Input`, same
+                  `theme-global-search-input` pill, same trailing divider and round submit
+                  button (`GlobalSearch.tsx` compact branch). The live field's own machinery
+                  — debounce, manifest prefetch, live results — has nothing to search here. */}
+              <div className="relative min-w-0" data-clicked={clickedItem === "Search"}>
+                <label htmlFor={searchInputId} className="sr-only">
+                  Search the library
+                </label>
+                <Input
+                  id={searchInputId}
+                  type="search"
+                  placeholder="Search..."
+                  aria-label="Search mockup"
+                  readOnly
+                  autoComplete="off"
+                  spellCheck={false}
+                  onFocus={() => showComingSoon("Search")}
+                  onKeyDown={() => showComingSoon("Search")}
+                  className="theme-global-search-input min-w-0 w-full rounded-full py-2 pl-4 pr-16 transition-[border-color,background-color,box-shadow,transform] duration-200 placeholder:italic placeholder:opacity-60"
+                />
+                <div className="absolute right-0 top-1/2 flex -translate-y-1/2 items-center gap-2">
+                  <span aria-hidden="true" className="theme-home-search-divider h-7 w-px" />
                   <button
                     type="submit"
-                    className="theme-accent-heading theme-focus-ring inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full transition-transform duration-200 hover:scale-105"
-                    aria-label="Search mockup"
+                    className="theme-home-search-button inline-flex h-11 w-11 items-center justify-center rounded-full border border-transparent transition-transform duration-[220ms] ease-[cubic-bezier(0.25,1,0.5,1)] hover:scale-[1.025] focus-visible:outline-none focus-visible:ring-2 active:scale-[0.98] motion-reduce:transition-none motion-reduce:hover:scale-100 motion-reduce:active:scale-100"
+                    aria-label={`Search ${SITE_FLAVOR_CONFIG.name}`}
                   >
-                    <Icon icon="lucide:search" size={22} />
+                    <Search size={18} />
                   </button>
-                  {renderSoonBadge("-top-3 right-3")}
                 </div>
-              </form>
-            ) : (
-              <GlobalSearch
-                currentView={homeView}
-                onNavigate={navigateToView}
-                onReplaceNavigate={replaceWithView}
-                containerClassName="min-w-0 w-full"
-                compact
-                liveResultsMode
-              />
-            )}
-          </div>
-
-          <div className="hidden">
-            <nav className="flex items-center gap-1" aria-label="Site sections">
-              {primaryItems.map((item) => (
-                isConstructionMode ? (
-                  <button
-                    key={item.label}
-                    type="button"
-                    onClick={() => showComingSoon(item.label)}
-                    data-clicked={clickedItem === item.label}
-                    className="theme-header-nav-link theme-focus-ring theme-home-mock-button relative flex min-h-11 items-center gap-2.5 rounded-full border border-transparent px-4 py-2 text-sm font-medium"
-                  >
-                    <Icon icon={item.icon} size={22} className="theme-header-nav-icon shrink-0" />
-                    <span>{item.label}</span>
-                    {renderSoonBadge("-right-2 -top-2")}
-                  </button>
-                ) : (
-                  <Link
-                    key={item.label}
-                    href={item.href}
-                    className="theme-header-nav-link theme-focus-ring relative flex min-h-11 items-center gap-2.5 rounded-full border border-transparent px-4 py-2 text-sm font-medium"
-                  >
-                    <Icon icon={item.icon} size={22} className="theme-header-nav-icon shrink-0" />
-                    <span>{item.label}</span>
-                  </Link>
-                )
-              ))}
-            </nav>
-
-            <div className="theme-divider mx-2 h-6 w-px" />
-
-            {secondaryItems.map((item) => (
-              isConstructionMode ? (
-                <button
-                  key={item.label}
-                  type="button"
-                  onClick={() => showComingSoon(item.label)}
-                  data-clicked={clickedItem === item.label}
-                  className="theme-header-nav-link theme-focus-ring theme-home-mock-button relative flex min-h-11 items-center gap-2.5 rounded-full border border-transparent px-4 py-2 text-sm font-medium"
-                >
-                  <Icon icon={item.icon} size={22} className="theme-header-nav-icon shrink-0" />
-                  <span>{item.label}</span>
-                  {renderSoonBadge("-right-2 -top-2")}
-                </button>
-              ) : (
-                <Link
-                  key={item.label}
-                  href={item.href}
-                  className="theme-header-nav-link theme-focus-ring relative flex min-h-11 items-center gap-2.5 rounded-full border border-transparent px-4 py-2 text-sm font-medium"
-                >
-                  <Icon icon={item.icon} size={22} className="theme-header-nav-icon shrink-0" />
-                  <span>{item.label}</span>
-                </Link>
-              )
-            ))}
+                {renderSoonBadge("-top-3 right-14")}
+              </div>
+            </form>
           </div>
 
           <div className="relative ml-auto flex-shrink-0">
@@ -280,32 +194,37 @@ export function HomeExperience({
                 className="theme-overlay-surface theme-mobile-nav-panel absolute right-0 top-[calc(100%+0.5rem)] w-64 origin-top-right rounded-2xl border p-2.5 shadow-[var(--theme-elevation-xl)] ring-1 ring-dose-divider backdrop-blur-sm"
               >
                 <nav className="flex flex-col gap-1" aria-label="Mobile site sections">
-                  {navItems.map((item) => (
-                    isConstructionMode ? (
-                      <button
-                        key={item.label}
-                        type="button"
-                        onClick={() => showComingSoon(item.label)}
-                        data-clicked={clickedItem === item.label}
-                        className="theme-header-nav-link theme-focus-ring theme-mobile-nav-link theme-home-mock-button relative flex min-h-11 items-center gap-3.5 rounded-xl border border-transparent px-3 py-2.5 text-sm font-semibold"
-                      >
-                        <Icon icon={item.icon} size={24} className="theme-header-nav-icon shrink-0" />
-                        <span>{item.label}</span>
-                        {renderSoonBadge("right-2 top-1")}
-                      </button>
-                    ) : (
-                      <Link
-                        key={item.label}
-                        href={item.href}
-                        onClick={() => setIsMenuOpen(false)}
-                        className="theme-header-nav-link theme-focus-ring theme-mobile-nav-link relative flex min-h-11 items-center gap-3.5 rounded-xl border border-transparent px-3 py-2.5 text-sm font-semibold"
-                      >
-                        <Icon icon={item.icon} size={24} className="theme-header-nav-icon shrink-0" />
-                        <span>{item.label}</span>
-                      </Link>
-                    )
+                  {primaryItems.map((item) => (
+                    <button
+                      key={item.label}
+                      type="button"
+                      onClick={() => showComingSoon(item.label)}
+                      data-clicked={clickedItem === item.label}
+                      className="theme-header-nav-link theme-focus-ring theme-mobile-nav-link theme-home-mock-button relative flex min-h-11 items-center gap-3.5 rounded-xl border border-transparent px-3 py-2.5 text-sm font-semibold"
+                    >
+                      <Icon icon={item.icon} size={24} className="theme-header-nav-icon shrink-0" />
+                      <span>{item.label}</span>
+                      {renderSoonBadge("right-2 top-1")}
+                    </button>
                   ))}
                 </nav>
+
+                {/* The live header rules off its utility section the same way. */}
+                <div className="theme-gradient-divider my-2 h-px" />
+
+                {secondaryItems.map((item) => (
+                  <button
+                    key={item.label}
+                    type="button"
+                    onClick={() => showComingSoon(item.label)}
+                    data-clicked={clickedItem === item.label}
+                    className="theme-header-nav-link theme-focus-ring theme-mobile-nav-link theme-home-mock-button relative flex min-h-11 items-center gap-3.5 rounded-xl border border-transparent px-3 py-2.5 text-sm font-semibold"
+                  >
+                    <Icon icon={item.icon} size={24} className="theme-header-nav-icon shrink-0" />
+                    <span>{item.label}</span>
+                    {renderSoonBadge("right-2 top-1")}
+                  </button>
+                ))}
               </div>
             )}
           </div>
@@ -324,8 +243,16 @@ export function HomeExperience({
         />
         {/* The positioning lives on the cog's own trigger: `theme-home-theme-toggle` is the
             hook the search-mode rules reposition, so any wrapper between this class and the
-            button would take the offset and leave the control where it was. */}
-        <AppearanceControls className="theme-home-theme-toggle fixed bottom-4 right-4 z-30 sm:bottom-6 sm:right-6" />
+            button would take the offset and leave the control where it was.
+
+            The blocked landing keeps the four appearance axes — a visitor may as well see
+            the site in the appearance they prefer — but withholds the Theme Lab. The Lab
+            authors and shares custom palettes through routes the construction hosts do not
+            serve, so its drawer would open onto a surface that cannot answer. */}
+        <AppearanceControls
+          className="theme-home-theme-toggle fixed bottom-4 right-4 z-30 sm:bottom-6 sm:right-6"
+          allowThemeLab={!isConstructionMode}
+        />
 
         <section className="theme-home-stage mx-auto flex w-full max-w-5xl flex-col items-center transition-[max-width,padding,transform] duration-300 ease-out">
           <div className="theme-home-brand-lockup flex flex-col items-center justify-center gap-3 transition-[gap,opacity,transform] duration-300 ease-out sm:gap-4">

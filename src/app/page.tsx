@@ -9,6 +9,7 @@ import {
   EFFECT_INDEX_HOME_PANEL_BLURBS_KEY,
   type EffectIndexHomeCopy,
 } from "@/features/effect-index/home/homeIntroCopy";
+import { ConstructionLanding } from "./_components/ConstructionLanding";
 import { HomeExperience } from "./_components/HomeExperience";
 import { buildHomeQuickLinks } from "./_components/homeQuickLinks";
 import { flavoredCopyText, getCopy, type CopyResolver } from "@server/next/copyBlocks";
@@ -78,15 +79,18 @@ function resolveEffectIndexHomeCopy(copy: CopyResolver): EffectIndexHomeCopy {
  * content panels. The flavor is a build-time constant, so only one of these two branches is
  * ever reachable in a given build — the dose.wiki path below is byte-for-byte what it was.
  *
- * The holding page takes precedence on either flavor: under construction mode the tile-grid
- * mock is what the site is meant to show, so it stays in front of the panel layout too.
+ * The holding page takes precedence on either flavor: under construction mode the whole
+ * deployment is held back, so `ConstructionLanding` — the same blocked surface the
+ * construction hosts reach at `/under-construction` — stays in front of both layouts.
  */
 export default async function HomePage() {
-  const isConstructionMode = env.NEXT_PUBLIC_HOME_CONSTRUCTION_MODE === "true";
+  if (env.NEXT_PUBLIC_HOME_CONSTRUCTION_MODE === "true") {
+    return <ConstructionLanding />;
+  }
 
   const copy = await getCopy();
 
-  if (isEffectIndex() && !isConstructionMode) {
+  if (isEffectIndex()) {
     return (
       <EffectIndexHomePage
         {...(await loadEffectIndexHomeData())}
@@ -98,15 +102,12 @@ export default async function HomePage() {
   return (
     <HomeExperience
       quickLinks={quickLinks}
-      isConstructionMode={isConstructionMode}
       copy={{
         tagline: flavoredCopyText(
           copy,
           "home-hero-tagline",
           SITE_FLAVOR_CONFIG.description,
         ),
-        constructionTitle: copy.text("home-construction-title"),
-        constructionSubtitle: copy.text("home-construction-subtitle"),
       }}
     />
   );

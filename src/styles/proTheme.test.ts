@@ -513,7 +513,7 @@ describe("pro visual style", () => {
     );
 
     expect(navRule).toBeDefined();
-    expect(navRule!.body).toMatch(/font-size:\s*0\.6875rem/);
+    expect(navRule!.body).toMatch(/font-size:\s*0\.75rem/);
     expect(navRule!.body).toMatch(/text-transform:\s*uppercase/);
     expect(navRule!.body).toMatch(/letter-spacing:\s*0\.14em/);
 

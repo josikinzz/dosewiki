@@ -33,7 +33,11 @@ export function isPublicConstructionAllowedPath(pathname: string): boolean {
     pathname === "/api/v1" ||
     pathname.startsWith("/api/v1/") ||
     pathname.startsWith("/_next/") ||
-    pathname.startsWith("/assets/")
+    pathname.startsWith("/assets/") ||
+    // The holding page is the homepage, so it carries the footer's supporter credit. The
+    // mark is a CSS mask rather than an `<img>`, and a redirected mask resolves to no
+    // silhouette at all — the lockup would print as a solid block.
+    pathname.startsWith("/supporters/")
   );
 }
 
