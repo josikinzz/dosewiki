@@ -207,10 +207,6 @@ export const DosageDurationSection = memo(function DosageDurationSection({
 
         <TabsContent value={activeRoute} forceMount className="mt-3">
           <div className="relative">
-            <div
-              aria-hidden
-              className="theme-selected-control-glow pointer-events-none absolute inset-x-6 top-0 h-24 blur-3xl"
-            />
             <div className={cn("relative grid gap-4 items-start", hasBothPanels ? "md:grid-cols-2" : "md:grid-cols-1")}>
               {dosageForActiveRoute ? (
                 <DosagePanel

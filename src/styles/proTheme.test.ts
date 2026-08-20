@@ -257,12 +257,15 @@ describe("pro visual style", () => {
     ].map((match) => match[1]);
 
     // Pro follows the authored base layer. The independent surface and accent layers follow Pro,
-    // and their Pro selectors have sufficient specificity to apply their restrained seeds.
+    // and their Pro selectors have sufficient specificity to apply their restrained seeds. The
+    // off-homepage bloom removal lands last and only re-seats tokens on `body`, so it cannot
+    // reorder anything above it.
     expect(dosewikiImports).toEqual([
       "../../styles.css",
       "../../styles/pro-theme.css",
       "../../styles/surface-tokens.generated.css",
       "../../styles/accent-tokens.generated.css",
+      "../../styles/fun-flat-glow.css",
     ]);
 
     const effectIndexImports = [

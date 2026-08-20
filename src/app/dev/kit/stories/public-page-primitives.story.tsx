@@ -102,7 +102,7 @@ export const publicPagePrimitivesStory: StoryDef = {
         <div className="flex items-end gap-4">
           <ContributorAvatar name="Josie Kins" size="xs" />
           <ContributorAvatar name="Ada Lovelace" size="sm" />
-          <ContributorAvatar name="Marie Curie" size="lg" glow />
+          <ContributorAvatar name="Marie Curie" size="lg" lifted />
         </div>
       ),
     },
@@ -322,7 +322,7 @@ export const publicPagePrimitivesStory: StoryDef = {
   ],
   notes: [
     "All pieces are presentational and mount with plain props; the live examples above use inline mock data.",
-    "ContributorAvatar glow and ContributorCard hover affordances respond to a parent .group hover.",
+    "ContributorAvatar takes its depth cast from `lifted`; ContributorCard hover affordances respond to a parent .group hover.",
     "SearchResultCard composes SearchMetaChips internally and uses the result surface variant.",
   ],
 };

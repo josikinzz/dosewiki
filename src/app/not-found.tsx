@@ -28,11 +28,6 @@ export default async function NotFound() {
       className="mx-auto flex min-h-[60vh] w-full max-w-2xl flex-col justify-center px-6 py-20 focus:outline-none"
     >
       <div className="relative">
-        <div
-          aria-hidden="true"
-          className="theme-section-header-glow pointer-events-none absolute -left-10 -top-12 -z-10 h-32 w-64 rounded-full opacity-60 blur-3xl"
-        />
-
         <p className="theme-text-faint text-[11px] font-semibold uppercase tracking-[0.24em]">
           404
         </p>

@@ -10,12 +10,6 @@ import { DoseWikiLogo } from "./DoseWikiLogo";
 export function LoadingScreen() {
   return (
     <div className="theme-page-shell fixed inset-0 flex flex-col items-center justify-center">
-      {/* Background blur effects */}
-      <div className="pointer-events-none absolute inset-0 -z-10 overflow-hidden">
-        <div className="absolute -left-20 -top-20 h-72 w-72 rounded-full bg-fuchsia-600/14 blur-2xl" />
-        <div className="absolute top-40 -right-20 h-80 w-80 rounded-full bg-violet-600/14 blur-2xl" />
-      </div>
-
       {/* Content */}
       <div className="flex flex-col items-center gap-6">
         {/* Spinning logo */}
@@ -27,8 +21,6 @@ export function LoadingScreen() {
             style={{ animationDuration: "3s" }}
             draggable={false}
           />
-          {/* Glow effect */}
-          <div className="absolute inset-0 -z-10 h-20 w-20 rounded-full bg-fuchsia-500/30 blur-xl" />
         </div>
 
         {/* Text */}

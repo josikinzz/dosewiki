@@ -8,7 +8,6 @@ interface PageHeaderProps {
   description?: ReactNode;
   icon?: IconName;
   prominentMobileIcon?: boolean;
-  showSpotlight?: boolean;
   descriptionClassName?: string;
   /** Extra classes merged onto the `h1`, e.g. a page that wants a smaller title. */
   titleClassName?: string;
@@ -30,7 +29,6 @@ export const PageHeader = memo(function PageHeader({
   description,
   icon,
   prominentMobileIcon = false,
-  showSpotlight = true,
   descriptionClassName,
   titleClassName,
   align = "center",
@@ -59,19 +57,6 @@ export const PageHeader = memo(function PageHeader({
         className,
       )}
     >
-      {showSpotlight ? (
-        // The glow sits behind the title, so it follows it: centred under a
-        // centred header, tucked behind the icon when the header is left-aligned.
-        <div
-          className={cn(
-            "pointer-events-none absolute top-1/2 -z-10 h-[320px] w-[320px] -translate-y-1/2 opacity-10",
-            isLeft ? "left-0 -translate-x-1/4" : "left-1/2 -translate-x-1/2",
-          )}
-        >
-          <div className="theme-page-header-glow h-full w-full bg-[radial-gradient(closest-side,rgba(217,70,239,0.12)_0%,transparent_100%)] blur-[48px]" />
-        </div>
-      ) : null}
-
       <h1 className={titleClasses}>
         {icon ? <IconComponent icon={icon} size="1.12em" className={iconClassName} /> : null}
         <span className="min-w-0">{title}</span>

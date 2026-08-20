@@ -23,8 +23,14 @@
  *
  * `effectindex.ts` deliberately does NOT import the accent sheet: that publication locks the
  * axis, so dose.wiki's plum Pro seeds would be dead bytes over its authored teal.
+ *
+ * `fun-flat-glow.css` is last and lowest-stakes: it re-seats the accent bloom recipes on
+ * `body` for every route except the homepage, so nothing above it has to know the rule
+ * exists. Effect Index does not import it — that publication is Pro-locked and Pro has no
+ * bloom to remove.
  */
 import "../../styles.css";
 import "../../styles/pro-theme.css";
 import "../../styles/surface-tokens.generated.css";
 import "../../styles/accent-tokens.generated.css";
+import "../../styles/fun-flat-glow.css";

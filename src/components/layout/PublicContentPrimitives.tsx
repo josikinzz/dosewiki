@@ -295,10 +295,6 @@ export function PublicDetailHero({
   return (
     <Surface asChild variant="articleHero" padding="lg" radius="xl">
       <section className={cn("relative", className)} data-public-detail-kind={kind} {...props}>
-        <div
-          className="pointer-events-none absolute -left-14 -top-14 h-64 w-64 rounded-full bg-fuchsia-500/10 blur-[88px]"
-          aria-hidden="true"
-        />
         {badges ? <div className="absolute right-4 top-4 z-10">{badges}</div> : null}
 
         <div className={cn("relative flex flex-col gap-6", media ? "pr-0 md:pr-24" : undefined)}>

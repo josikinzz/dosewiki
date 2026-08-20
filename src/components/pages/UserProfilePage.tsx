@@ -89,7 +89,7 @@ export function UserProfilePage({
           imageUrl={profile.avatarUrl}
           name={profile.displayName || profile.key}
           size="lg"
-          glow
+          lifted
           className="group"
         />
 

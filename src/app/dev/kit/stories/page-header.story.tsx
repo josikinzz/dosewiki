@@ -8,7 +8,7 @@ export const pageHeaderStory: StoryDef = {
   tier: "layout",
   status: "stable",
   summary:
-    "Centered public page header: balanced title with an optional accent icon, optional lead description, and a soft spotlight glow behind it.",
+    "Centered public page header: balanced title with an optional accent icon and optional lead description.",
   source: "src/components/layout/PageHeader.tsx",
   importLine: 'import { PageHeader } from "@/components/layout/PageHeader";',
   exports: ["PageHeader"],
@@ -78,20 +78,6 @@ export const pageHeaderStory: StoryDef = {
       ),
     },
     {
-      label: "Spotlight off",
-      note: "showSpotlight={false} drops the radial glow for denser or nested layouts.",
-      background: "card",
-      full: true,
-      render: () => (
-        <PageHeader
-          className="mb-0"
-          title="About dose.wiki"
-          showSpotlight={false}
-          description="An open, harm-reduction reference for psychoactive substances."
-        />
-      ),
-    },
-    {
       label: "Rich description node",
       note: "description accepts any ReactNode, so inline emphasis and links compose freely.",
       background: "subtle",
@@ -127,12 +113,6 @@ export const pageHeaderStory: StoryDef = {
       type: "boolean",
       default: "false",
       description: "Enlarges the icon and stacks it above the title on mobile, inlining it again at sm and up.",
-    },
-    {
-      name: "showSpotlight",
-      type: "boolean",
-      default: "true",
-      description: "Toggles the soft radial glow rendered behind the header.",
     },
     {
       name: "descriptionClassName",

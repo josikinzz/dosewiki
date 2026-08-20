@@ -411,7 +411,6 @@ export function DosagesPage({
             title="Substance Index"
             icon={SUBSTANCE_INDEX_ICON}
             prominentMobileIcon
-            showSpotlight={false}
           />
         </div>
       </div>

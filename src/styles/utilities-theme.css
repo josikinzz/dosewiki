@@ -141,16 +141,6 @@
     }
   }
 
-  .theme-contributor-card-glow {
-    background: color-mix(in srgb, var(--theme-accent-strong) 5%, transparent);
-  }
-
-  @media (hover: hover) {
-    .group:hover .theme-contributor-card-glow {
-      background: color-mix(in srgb, var(--theme-accent-strong) 10%, transparent);
-    }
-  }
-
   html[data-theme="light"] :is(
     .theme-public-card,
     .theme-card-surface,
@@ -3395,11 +3385,6 @@
     background:
       linear-gradient(135deg, rgba(217, 70, 239, 0.05), transparent 55%),
       linear-gradient(135deg, color-mix(in srgb, rgb(255 255 255) 2.5%, var(--theme-body-bg)), color-mix(in srgb, rgb(255 255 255) 1.5%, var(--theme-body-bg)));
-  }
-
-  .theme-section-header-glow {
-    background-color: rgba(217, 70, 239, 0.14);
-    transition: background-color 180ms ease;
   }
 
   .theme-molecule-panel {

@@ -56,11 +56,6 @@ export function StatusPageShell({
       )}
     >
       <div className="relative w-full space-y-8">
-        <div
-          aria-hidden="true"
-          className="theme-section-header-glow pointer-events-none absolute inset-x-6 top-0 -z-10 h-32 rounded-full opacity-80 blur-3xl"
-        />
-
         <StatusHeader
           badge={badge}
           badgeVariant={badgeVariant}

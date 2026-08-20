@@ -877,17 +877,6 @@ html[data-visual-style="pro"]
   transform: none;
 }
 
-/* Contributor card glow — a tinted wash behind the avatar. */
-html[data-visual-style="pro"] .theme-contributor-card-glow {
-  background: transparent;
-}
-
-@media (hover: hover) {
-  html[data-visual-style="pro"] .group:hover .theme-contributor-card-glow {
-    background: transparent;
-  }
-}
-
 /* Search overlay scrim, homepage ambient wash and the search focus glow
    (the last hardcodes a pink radial in BOTH themes). */
 html[data-visual-style="pro"] .theme-site-search-layer {
@@ -899,18 +888,6 @@ html[data-visual-style="pro"] .theme-home-ambient {
 }
 
 html[data-visual-style="pro"] .theme-search-focus-glow {
-  background: transparent;
-}
-
-html[data-visual-style="pro"] .theme-section-header-glow {
-  background-color: transparent;
-}
-
-/* Page-header spotlight (PageHeader.tsx): a fuchsia radial glow rendered
-   behind page titles. The call site hardcodes rgba(217 70 239) rather than
-   reading a token, so nothing in the palette block reaches it; removed
-   outright on paper. */
-html[data-visual-style="pro"] .theme-page-header-glow {
   background: transparent;
 }
 
@@ -1636,13 +1613,10 @@ html[data-visual-style="pro"] a .theme-accent-heading {
   color: var(--theme-accent);
 }
 
-/* Article and page titles: the top of the ramp regains its mass — 2.75rem
-   semibold, roughly 1.6x below Fun's 72px display clamp instead of the old
-   2.25x cut. `type-page-title` carries that Fun clamp (up to 4.5rem); the
-   size is pinned here so Pro does not inherit the oversized display scale. */
+/* Article and page titles inherit Fun's responsive scale (`type-page-title`'s
+   clamp, or the call site's Tailwind ramp): the Pro voice keeps its own family
+   and tracking, not a smaller display size. */
 html[data-visual-style="pro"] h1.theme-accent-heading {
-  font-size: 2.75rem;
-  font-weight: 600;
   letter-spacing: -0.005em;
 }
 

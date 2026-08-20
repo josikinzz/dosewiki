@@ -341,10 +341,6 @@ html[data-theme="light"] .theme-molecule-shell {
     linear-gradient(135deg, rgba(159, 33, 128, 0.08), transparent 55%), color-mix(in srgb, rgb(255 255 255) 80%, var(--theme-body-bg));
 }
 
-html[data-theme="light"] .theme-section-header-glow {
-  background-color: color-mix(in srgb, rgb(255 255 255) 78%, var(--theme-body-bg));
-}
-
 html[data-theme="light"] .theme-molecule-panel,
 html[data-theme="light"] .theme-molecule-fallback {
   border-color: rgba(93, 56, 123, 0.12);

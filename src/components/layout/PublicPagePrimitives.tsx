@@ -146,7 +146,8 @@ interface ContributorAvatarProps {
   imageUrl?: string | null;
   name: string;
   size?: ContributorAvatarSize;
-  glow?: boolean;
+  /** Adds the neutral depth cast under the frame. */
+  lifted?: boolean;
   className?: string;
 }
 
@@ -175,7 +176,7 @@ export function ContributorAvatar({
   imageUrl,
   name,
   size = "sm",
-  glow = false,
+  lifted = false,
   className,
 }: ContributorAvatarProps) {
   const sizeConfig = contributorAvatarSizes[size];
@@ -183,13 +184,10 @@ export function ContributorAvatar({
 
   return (
     <div className={cn("relative shrink-0", className)}>
-      {glow ? (
-        <div className="absolute inset-0 rounded-full bg-[color-mix(in_srgb,var(--theme-accent)_20%,transparent)] blur-2xl transition duration-500 group-hover:bg-[color-mix(in_srgb,var(--theme-accent)_30%,transparent)] group-hover:blur-3xl" />
-      ) : null}
       <div
         className={cn(
           "theme-public-card-subtle theme-contributor-avatar relative overflow-hidden rounded-full border bg-gradient-to-br from-[var(--theme-avatar-gradient-from)] to-[var(--theme-avatar-gradient-to)] text-center font-semibold shadow-[var(--theme-elevation-avatar-inner)] transition duration-300",
-          glow ? "shadow-[var(--theme-elevation-avatar-glow)]" : undefined,
+          lifted ? "shadow-[var(--theme-elevation-avatar-glow)]" : undefined,
           sizeConfig.frame,
         )}
       >
@@ -245,7 +243,6 @@ export function ContributorCard({
         className,
       )}
     >
-      <div className="theme-contributor-card-glow absolute -right-4 -top-4 h-16 w-16 rounded-full blur-lg transition-colors" />
       <ContributorAvatar
         imageUrl={contributor.avatarUrl}
         name={contributor.displayName || contributor.key}

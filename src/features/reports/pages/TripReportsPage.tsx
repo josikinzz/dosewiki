@@ -40,7 +40,6 @@ export function TripReportsPage({
         title="Trip Reports"
         icon={icons.fileSignature}
         prominentMobileIcon
-        showSpotlight={false}
         className="mb-7"
         description={reportsDescription}
       />

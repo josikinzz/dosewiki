@@ -185,12 +185,6 @@ export const AboutPage = memo(function AboutPage({
 
         {/* Hero Section */}
         <div className="relative flex flex-col gap-6 py-6 sm:py-8">
-          {/* Decorative background glow */}
-          <div
-            className="pointer-events-none absolute -left-12 -top-12 h-64 w-64 rounded-full bg-[color:color-mix(in_srgb,var(--theme-accent)_12%,transparent)] blur-[80px]"
-            aria-hidden="true"
-          />
-
           <div className="relative flex flex-col gap-6">
             {/* Title with icon */}
             <div className="flex flex-col items-center gap-4 text-center sm:flex-row sm:flex-wrap sm:justify-start sm:gap-6 sm:text-left">

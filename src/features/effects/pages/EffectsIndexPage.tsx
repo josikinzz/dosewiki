@@ -44,7 +44,6 @@ export function EffectsIndexPage({
           title="Subjective Effect Index"
           icon={icons.subjectiveEffectIndex}
           prominentMobileIcon
-          showSpotlight={false}
         />
 
         <div className="-mt-14 mb-12 flex justify-center relative z-10">
