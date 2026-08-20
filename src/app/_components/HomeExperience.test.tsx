@@ -1,10 +1,11 @@
 import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { SITE_FLAVOR_CONFIGS } from "@/config/siteFlavor";
 import type * as SiteFlavorModule from "@/config/siteFlavor";
 import { ThemeProvider } from "@/context/ThemeContext";
+import { clearEditorHint, writeEditorHint } from "@/lib/auth/editorHint";
 import { HomeExperience } from "./HomeExperience";
 import { buildHomeQuickLinks } from "./homeQuickLinks";
 
@@ -41,6 +42,10 @@ vi.mock("@/config/siteFlavor", async (importOriginal) => {
  */
 describe("dose.wiki homepage", () => {
   const quickLinks = buildHomeQuickLinks(SITE_FLAVOR_CONFIGS.dosewiki);
+
+  afterEach(() => {
+    clearEditorHint();
+  });
 
   // The floating appearance cluster is provider-backed, so the page needs one mounted.
   // Values are explicit so the file reads the same under either build flavor.
@@ -109,6 +114,8 @@ describe("dose.wiki homepage", () => {
   });
 
   it("floats the same appearance cog the footer uses, and nothing else", async () => {
+    // The Theme Lab entry is dev-gated; this browser carries the editor hint.
+    writeEditorHint();
     const user = userEvent.setup();
     renderHome();
 
@@ -139,5 +146,82 @@ describe("dose.wiki homepage", () => {
     expect(
       within(panel).getByRole("button", { name: "Open Theme Lab" }),
     ).toHaveAttribute("aria-controls", "theme-lab-panel");
+  });
+});
+
+/**
+ * The pre-launch holding page is the same component with its destinations blocked — the
+ * construction hosts are rewritten to `/under-construction`, which renders it through
+ * `ConstructionLanding`. The point of showing the real homepage there is that a visitor
+ * sees the site they will get, so what is asserted here is the two ways it must differ:
+ * nothing navigates, and the Theme Lab is withheld.
+ */
+describe("dose.wiki pre-launch holding page", () => {
+  const quickLinks = buildHomeQuickLinks(SITE_FLAVOR_CONFIGS.dosewiki);
+
+  const renderBlocked = () =>
+    render(
+      <ThemeProvider initialColorScheme="dark" initialVisualStyle="fun" isVisualStyleLocked={false}>
+        <HomeExperience
+          quickLinks={quickLinks}
+          isConstructionMode
+          copy={{ constructionTitle: "Under construction", constructionSubtitle: "coming soon" }}
+        />
+      </ThemeProvider>,
+    );
+
+  it("offers no route into the site: every destination is a blocked control", async () => {
+    const user = userEvent.setup();
+    const { container } = renderBlocked();
+
+    // Not "no link named X" but no in-site link at all — the guarantee is that the gated
+    // host hands a visitor nowhere to go, and stating it this way cannot quietly stop
+    // meaning anything when a tile or a nav entry is renamed. The supporter credit's
+    // external link is not a route and is left alone.
+    expect(container.querySelectorAll('a[href^="/"]')).toHaveLength(0);
+
+    const tiles = screen.getByRole("navigation", { name: "Mock app sections" });
+    const controls = within(tiles).getAllByRole("button");
+
+    expect(controls.map((control) => control.textContent)).toEqual([
+      "SOONtmSubstances",
+      "SOONtmEffects",
+      "SOONtmReports",
+      "SOONtmReplications",
+      "SOONtmAbout",
+    ]);
+
+    // The badge is the answer a press gets, so it has to be driven, not merely present.
+    await user.click(controls[0]!);
+    expect(controls[0]!.dataset.clicked).toBe("true");
+
+    // The mock header mirrors the live one at its dose.wiki-home shape: brand, search,
+    // hamburger — and its search field cannot be typed into either.
+    expect(screen.getByRole("searchbox", { name: "Search mockup" })).toHaveAttribute("readonly");
+    expect(screen.getByRole("button", { name: "Toggle navigation" })).toBeInTheDocument();
+  });
+
+  it("keeps every appearance axis but withholds the Theme Lab", async () => {
+    const user = userEvent.setup();
+    renderBlocked();
+
+    await user.click(screen.getByRole("button", { name: "Appearance settings" }));
+    const panel = await screen.findByRole("dialog", { name: "Appearance" });
+
+    expect(
+      within(panel)
+        .getAllByRole("button")
+        .map((control) => control.dataset.appearanceAxis)
+        .filter(Boolean),
+    ).toEqual(["visual-style", "color-scheme"]);
+    // The Lab authors and shares palettes over routes the construction hosts do not serve.
+    expect(within(panel).queryByRole("button", { name: "Open Theme Lab" })).not.toBeInTheDocument();
+  });
+
+  it("dates the launch from the editable banner copy", () => {
+    renderBlocked();
+
+    expect(screen.getByText("Under construction")).toBeVisible();
+    expect(screen.getByText("coming soon")).toBeVisible();
   });
 });

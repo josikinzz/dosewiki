@@ -6,6 +6,7 @@ import {
   SITE_FLAVOR_CONFIGS,
   type SiteFlavorConfig,
 } from "@/config/siteFlavor";
+import { writeEditorHint } from "@/lib/auth/editorHint";
 import { getRouteChromeModel } from "@/utils/routeChrome";
 import { Footer } from "./Footer";
 import {
@@ -180,7 +181,9 @@ describe("Footer appearance controls", () => {
     expect(panel.querySelectorAll("[data-appearance-axis]")).toHaveLength(1);
   });
 
-  it("keeps the public Theme Lab drawer action inside the appearance panel", async () => {
+  it("keeps the dev-gated Theme Lab drawer action inside the appearance panel", async () => {
+    // The Theme Lab entry is dev-gated; this browser carries the editor hint.
+    writeEditorHint();
     const user = userEvent.setup();
     renderFooter(DOSEWIKI);
 

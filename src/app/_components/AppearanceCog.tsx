@@ -56,23 +56,23 @@ export function AppearanceCog({
           aria-label="Appearance settings"
           title="Appearance settings"
           data-appearance-cog=""
+          // The wheel IS the button: no pill chrome around it. The 44px box is
+          // the hit target (invisible), and the glyph fills most of it.
           className={cn(
-            "theme-toggle-pill group inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full",
-            "transition-[border-color,background-color,color] duration-300 motion-reduce:transition-none",
-            "data-[state=open]:text-dose-accent-strong",
+            "group inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full",
             className,
           )}
         >
           <span
             aria-hidden="true"
             // The brand wheel, shared as a global utility so the same glyph can sit on this
-            // pill and anywhere else without either copy owning the gradient. Open swells it
+            // button and anywhere else without either copy owning the gradient. Open swells it
             // 10% rather than rotating it: the ring's outline is radially symmetric, so a
             // rotation would only sweep hues, and the swell is a cue that does not depend on
             // colour — which matters here because the panel this opens exists to change colour.
             className={cn(
-              "theme-color-wheel h-4 w-4",
-              "transition-transform duration-300 ease-out group-data-[state=open]:scale-110 motion-reduce:transition-none",
+              "theme-color-wheel h-8 w-8",
+              "transition-transform duration-300 ease-out group-hover:scale-105 group-data-[state=open]:scale-110 motion-reduce:transition-none",
             )}
           />
         </button>

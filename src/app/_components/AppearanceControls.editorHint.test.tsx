@@ -23,8 +23,9 @@ vi.mock("@/components/common/Icon", () => ({
 }));
 
 /**
- * The public Theme Lab drawer is available from DoseWiki regardless of
- * session or local hint state. The utility's storage behavior is covered below.
+ * The Theme Lab entry is dev-gated: it appears for a dev-capable session, or
+ * when the browser carries a fresh editor hint. The utility's storage behavior
+ * is covered below.
  */
 
 /** The session shapes the raw context can hold, built without standing up a provider or a fetch. */
@@ -91,13 +92,13 @@ describe("AppearanceControls Theme Lab entry", () => {
     vi.restoreAllMocks();
   });
 
-  it("offers the public Lab drawer without a local editor hint", async () => {
+  it("hides the Lab entry without a session or a local editor hint", async () => {
     const user = userEvent.setup();
     renderControls();
 
     const panel = await openPanel(user);
 
-    expect(labEntry(panel)).toBeInTheDocument();
+    expect(labEntry(panel)).not.toBeInTheDocument();
   });
 
   it("offers the Lab entry on a page with no session provider once the hint is stored", async () => {
@@ -112,7 +113,7 @@ describe("AppearanceControls Theme Lab entry", () => {
     expect(entry).toBeInTheDocument();
   });
 
-  it("offers the Lab entry when the session context itself says editor", async () => {
+  it("offers the Lab entry when the session context itself says editor, before any hint lands", async () => {
     const user = userEvent.setup();
     renderControls(signedInAs("editor"));
 
@@ -121,7 +122,10 @@ describe("AppearanceControls Theme Lab entry", () => {
     expect(labEntry(panel)).toBeInTheDocument();
   });
 
-  it("keeps the public Lab drawer visible to a signed-in viewer", async () => {
+  it("keeps the entry for a signed-in viewer only while the dev hint is fresh", async () => {
+    // The hint says a dev used this browser recently; providers.tsx retracts it
+    // the moment a lesser session mounts a provider-backed page. Until then the
+    // stale-but-fresh hint keeps the entry — presentation, not a boundary.
     writeEditorHint();
     const user = userEvent.setup();
     renderControls(signedInAs("viewer"));
@@ -131,17 +135,25 @@ describe("AppearanceControls Theme Lab entry", () => {
     expect(labEntry(panel)).toBeInTheDocument();
   });
 
-  it("keeps the public Lab drawer visible to a signed-out reader", async () => {
-    writeEditorHint();
+  it("hides the entry from a signed-in viewer without the hint", async () => {
+    const user = userEvent.setup();
+    renderControls(signedInAs("viewer"));
+
+    const panel = await openPanel(user);
+
+    expect(labEntry(panel)).not.toBeInTheDocument();
+  });
+
+  it("hides the entry from a signed-out reader without the hint", async () => {
     const user = userEvent.setup();
     renderControls(SIGNED_OUT);
 
     const panel = await openPanel(user);
 
-    expect(labEntry(panel)).toBeInTheDocument();
+    expect(labEntry(panel)).not.toBeInTheDocument();
   });
 
-  it("does not let an expired hint hide the public Lab drawer", async () => {
+  it("treats an expired hint as no hint", async () => {
     window.localStorage.setItem(
       EDITOR_HINT_STORAGE_KEY,
       String(Date.now() - EDITOR_HINT_MAX_AGE_MS - 1),
@@ -151,17 +163,17 @@ describe("AppearanceControls Theme Lab entry", () => {
 
     const panel = await openPanel(user);
 
-    expect(labEntry(panel)).toBeInTheDocument();
+    expect(labEntry(panel)).not.toBeInTheDocument();
   });
 
-  it("does not let a hand-edited hint hide the public Lab drawer", async () => {
+  it("treats a hand-edited hint as no hint", async () => {
     window.localStorage.setItem(EDITOR_HINT_STORAGE_KEY, '{"role":"admin"}');
     const user = userEvent.setup();
     renderControls();
 
     const panel = await openPanel(user);
 
-    expect(labEntry(panel)).toBeInTheDocument();
+    expect(labEntry(panel)).not.toBeInTheDocument();
   });
 
   it("keeps the first render independent of browser-only hint storage", async () => {

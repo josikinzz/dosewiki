@@ -10,6 +10,7 @@ import {
   ThemeProvider,
   VISUAL_STYLE_STORAGE_KEY,
 } from "@/context/ThemeContext";
+import { writeEditorHint } from "@/lib/auth/editorHint";
 import {
   ACCENT_HUE_PROPERTY,
   DEFAULT_ACCENT_HUE,
@@ -130,8 +131,9 @@ describe("AppearanceCog", () => {
     ).toEqual([
       "Switch to Pro visual style",
       "Switch to day mode",
-      // The compact Theme Lab entry sits at the end of the binary-control row,
-      // ahead of the slider pairs.
+      // The colour reset and the compact Theme Lab entry sit at the end of the
+      // binary-control row, ahead of the slider pairs.
+      "Reset colors to default",
       "Open Theme Lab",
     ]);
     expect(
@@ -200,13 +202,15 @@ describe("AppearanceCog", () => {
 
     const panel = await screen.findByRole("dialog", { name: "Appearance" });
     // The panel is portalled, so tab order is no longer "the next sibling in the markup".
-    // Visual order and focus order agree: the two binary toggles with the compact Theme
-    // Lab entry, then each colour axis's hue slider followed by its saturation slider.
+    // Visual order and focus order agree: the two binary toggles, the colour
+    // reset, the compact Theme Lab entry, then each colour axis's hue slider
+    // followed by its saturation slider.
     const reachable = within(panel).getAllByRole("button");
     const sliders = within(panel).getAllByRole("slider");
     expect(reachable.map((control) => control.getAttribute("aria-label"))).toEqual([
       "Switch to Pro visual style",
       "Switch to day mode",
+      "Reset colors to default",
       "Open Theme Lab",
     ]);
     expect(sliders.map((slider) => slider.getAttribute("aria-label"))).toEqual([
@@ -479,7 +483,9 @@ describe("AppearanceControls", () => {
     expect(within(panel).queryByRole("slider", { name: "Accent hue" })).not.toBeInTheDocument();
   });
 
-  it("opens the public Theme Lab drawer from a reader's cog", async () => {
+  it("opens the Theme Lab drawer from a dev's cog", async () => {
+    // The entry is dev-gated: this browser carries the editor hint.
+    writeEditorHint();
     const user = userEvent.setup();
     render(
       <ThemeProvider initialColorScheme="dark" initialVisualStyle="fun" isVisualStyleLocked={false}>

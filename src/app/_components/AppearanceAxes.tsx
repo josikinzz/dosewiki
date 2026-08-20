@@ -2,6 +2,7 @@
 
 import { useId, type CSSProperties, type ReactNode } from "react";
 
+import { Icon } from "@/components/common/Icon";
 import { useTheme } from "@/context/ThemeContext";
 import { cn } from "@/lib/utils";
 import { BASE_ACCENT_ID, BASE_ACCENT_PRO_SEEDS, BASE_ACCENT_SWATCH } from "@/theme/accents";
@@ -266,15 +267,39 @@ export function AppearanceAxes({
       : null;
   const accentSwatch = proAccentSeed ?? BASE_ACCENT_SWATCH;
 
-  // The first row holds the two compact binary controls and the cog's end slot.
-  const hasControlRow = showVisualStyle || showColorScheme || endSlot != null;
+  // The first row holds the two compact binary controls, the colour reset, and
+  // the cog's end slot.
+  const showReset = showSurface || showAccent;
+  const hasControlRow = showVisualStyle || showColorScheme || showReset || endSlot != null;
   return (
     <div className={cn("flex flex-col gap-3", className)}>
       {hasControlRow ? (
         <div className="flex items-center gap-2">
           {showVisualStyle ? <VisualStyleToggle /> : null}
           {showColorScheme ? <ThemeToggle /> : null}
-          {endSlot != null ? <div className="ml-auto">{endSlot}</div> : null}
+          {showReset || endSlot != null ? (
+            <div className="ml-auto flex items-center gap-2">
+              {showReset ? (
+                <button
+                  type="button"
+                  aria-label="Reset colors to default"
+                  title="Reset colors to default"
+                  onClick={() => {
+                    // Null is the setters' "back to the site default": the storage
+                    // keys are removed, and every axis returns to the authored look.
+                    setSurfaceHue(null);
+                    setSurfaceChroma(null);
+                    setAccentHue(null);
+                    setAccentChroma(null);
+                  }}
+                  className="theme-control-pill-quiet inline-flex h-9 w-9 items-center justify-center rounded-full [@media(pointer:coarse)]:h-11 [@media(pointer:coarse)]:w-11"
+                >
+                  <Icon icon="fluent:arrow-reset-24-filled" size={15} />
+                </button>
+              ) : null}
+              {endSlot}
+            </div>
+          ) : null}
         </div>
       ) : null}
 
