@@ -1118,6 +1118,19 @@ html[data-visual-style="pro"] .theme-state-card::before {
   background: none;
 }
 
+/* Pharmacology zebra rows. The stock rule (utilities-theme.css:3446) builds
+   its well from --theme-field-on-panel-surface-alt plus inner shading, and in
+   Pro both halves collapse: the alt surface maps to --ei-surface, the same
+   value as the panel it sits on, and --ei-shadow-soft is 0.08 alpha in light,
+   so the zebra disappears. Pro states the well with the real sunk surface and
+   nothing else. A hairline was tried and dropped: --ei-border is lighter than
+   --ei-surface-sunk in Pro Dark, so it drew the outline this change exists to
+   remove. */
+html[data-visual-style="pro"] .theme-pharmacology-table-row-alt {
+  background: var(--ei-surface-sunk);
+  box-shadow: inset 0 1px 2px var(--ei-shadow-soft);
+}
+
 /* ---------------------------------------------------------------------
    theme-light-mode.css decorations that hardcode colour AND carry
    !important. These are the only rules in this sheet, besides the

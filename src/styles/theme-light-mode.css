@@ -1046,12 +1046,12 @@ html[data-theme="light"] .theme-duration-stage-row:nth-child(even) {
     radial-gradient(circle at 12% 0%, oklch(100% 0 0 / 0.74), transparent 38%), linear-gradient(135deg, color-mix(in srgb, oklch(98.4% 0.006 326) 92%, var(--theme-body-bg)), color-mix(in srgb, oklch(95.5% 0.018 326) 94%, var(--theme-body-bg))) !important;
 }
 
-html[data-theme="light"] .theme-pharmacology-table-row-alt {
-  border-color: transparent !important;
-  background: var(--theme-frosted-control-on-panel-bg) !important;
-  box-shadow: var(--theme-frosted-control-on-panel-shadow) !important;
-  --tw-ring-color: var(--theme-frosted-control-on-panel-border) !important;
-}
+/* The alt-row well is fully tokenised at utilities-theme.css:3446 and lands
+   correctly in light: the sunk fill sits below the panel and the inner shading
+   uses the light plum shadow. Light used to repaint it with
+   --theme-frosted-control-on-panel-shadow, a raised-control rim, which fought
+   the recessed geometry. Only the badges nested inside still need a light
+   pass. */
 
 html[data-theme="light"] .theme-receptor-qualifier-badge {
   border-color: transparent !important;

@@ -3437,9 +3437,17 @@
     transition: background-color 180ms ease, border-color 180ms ease;
   }
 
+  /* Zebra rows in the pharmacology tables (receptor binding, metabolites) are
+     shallow wells cut into the card, dressed like the header search field:
+     depth comes from the sunk fill and inner shading, never a brighter
+     outline. The retired `0 0 0 1px var(--theme-field-on-chrome-border)` drew
+     a 36%-white rectangle around every other row — an on-chrome control rim
+     borrowed onto an inert data row, and the loudest edge in the section. */
   .theme-pharmacology-table-row-alt {
     background: var(--theme-field-on-panel-surface-alt);
-    box-shadow: 0 0 0 1px var(--theme-field-on-chrome-border);
+    box-shadow:
+      inset 0 2px 3px color-mix(in srgb, var(--theme-shadow-soft) 44%, transparent),
+      inset 0 -1px 0 var(--theme-frosted-panel-highlight);
   }
 
   .theme-receptor-qualifier-badge {
