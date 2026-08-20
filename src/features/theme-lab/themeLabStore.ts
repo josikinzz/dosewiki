@@ -107,8 +107,6 @@ export function updateThemeLabTheme(
   const next: ThemeLabThemeState = { ...themeState, ...resolved };
   if (
     next.look.visualStyle === themeState.look.visualStyle &&
-    next.look.accent === themeState.look.accent &&
-    next.look.surface === themeState.look.surface &&
     next.editsByLook === themeState.editsByLook &&
     next.storageOk === themeState.storageOk
   ) {

@@ -136,8 +136,8 @@ export function ThemeLab() {
   // cached) when the visitor switches either. `visualStyle` is a dependency because Pro
   // re-seats hundreds of `--theme-*` tokens: a Fun sample is the wrong baseline for a Pro
   // page, and the delete-on-equal rule in the token-write path would then drop real edits and
-  // keep phantom ones. Nothing is staged under the sample — the style, scheme, surface and
-  // accent stylesheets already resolve the look on the live document — so the base layer
+  // keep phantom ones. Nothing is staged under the sample — the style, scheme and
+  // chroma stylesheets already resolve the look on the live document — so the base layer
   // handed in is empty. A layout effect so the new baselines are in place before the
   // switched-to look paints.
   useLayoutEffect(() => {

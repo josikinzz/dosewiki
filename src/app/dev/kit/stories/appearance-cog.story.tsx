@@ -8,7 +8,7 @@ export const appearanceCogStory: StoryDef = {
   tier: "layout",
   status: "stable",
   summary:
-    "The reader's single appearance control: a 44px cog opens the Fun/Pro and Day/Night controls, scheme-aware Surface and Accent swatches, and an explicit Theme Lab action. Pro keeps the Surface row visible but disabled because its materials are fixed.",
+    "The reader's single appearance control: a 44px cog opens the Fun/Pro and Day/Night controls, Surface and Accent hue/saturation sliders, and an explicit Theme Lab action. Pro keeps the Surface rows visible but disabled because its materials are fixed.",
   source: "src/app/_components/AppearanceCog.tsx",
   importLine: 'import { AppearanceControls } from "@/app/_components/AppearanceControls";',
   // The symbol lives in src/app/_components, not in a shared ui/common/layout barrel, so the
@@ -18,7 +18,7 @@ export const appearanceCogStory: StoryDef = {
   examples: [
     {
       label: "DoseWiki",
-      note: "The shipped DoseWiki panel: both binary controls, both palette rows, and the Theme Lab action at the end.",
+      note: "The shipped DoseWiki panel: both binary controls, both slider rows, and the Theme Lab action at the end.",
       background: "plain",
       render: () => (
         <AppearanceCog showVisualStyle showColorScheme showSurface showAccent showMoreSettings />
@@ -40,7 +40,7 @@ export const appearanceCogStory: StoryDef = {
     },
     {
       label: "Style and accent locked",
-      note: "Effect Index: its identity is Pro and it ships no accent picker, so neither control is present — never present and inert. Day/night remains, alone on row one.",
+      note: "Effect Index: its identity is Pro and it ships no colour sliders, so neither control is present — never present and inert. Day/night remains, alone on row one.",
       background: "plain",
       render: () => (
         <AppearanceCog
@@ -75,13 +75,13 @@ export const appearanceCogStory: StoryDef = {
       name: "showSurface",
       type: "boolean",
       description:
-        "Renders one scheme-aware swatch per shipped Surface. The row is disabled and marked Fun only while Pro is active.",
+        "Renders the Surface hue and saturation sliders. The rows are disabled and marked Fun only while Pro is active.",
     },
     {
       name: "showAccent",
       type: "boolean",
       description:
-        "Renders one swatch per entry in ACCENTS. AppearanceControls passes !isAccentLocked.",
+        "Renders the Accent hue and saturation sliders. AppearanceControls passes !isAccentLocked.",
     },
     {
       name: "showMoreSettings",
@@ -99,8 +99,8 @@ export const appearanceCogStory: StoryDef = {
   ],
   notes: [
     "Mount AppearanceControls, not AppearanceCog: the row props are publication policy, not a caller decision.",
-    "Surface swatches preview the active light or dark material. Pro keeps its fixed restrained materials, so the Surface controls become disabled without discarding the stored selection.",
-    "The swatch rows read SURFACES and ACCENTS from their registries and wrap to preserve 44px coarse-pointer targets.",
+    "The Surface sliders preview the effective material. Pro keeps its fixed restrained materials, so the Surface controls become disabled without discarding the stored levels.",
+    "Every colour choice is a (hue, saturation) pair over the one authored palette; there are no swatch registries left to enumerate.",
     "Escape closes the panel and is stopped inside it, so it cannot also reach a page-level Escape handler above the portal. Closing returns focus to the cog.",
   ],
 };

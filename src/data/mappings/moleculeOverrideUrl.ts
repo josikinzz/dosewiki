@@ -3,7 +3,8 @@
  * server-only imports so client surfaces (e.g. the review workbench) can
  * version the same public image routes the server view models use.
  */
-import type { AccentId, ColorScheme, VisualStyle } from "@/theme";
+import type { ColorScheme, VisualStyle } from "@/theme";
+import { DEFAULT_ACCENT_LEVEL } from "@/theme/appearanceChroma";
 
 import {
   EFFECT_INDEX_DARK_MOLECULE_BASE_PATH,
@@ -14,10 +15,10 @@ import {
 function colorwayForAppearance(
   visualStyle: VisualStyle,
   colorScheme: ColorScheme,
-  accent: AccentId,
+  accentChroma: number | null,
 ): MoleculeColorway {
   if (visualStyle === "fun") {
-    return accent === "neutral" ? "pro-dark" : "brand";
+    return (accentChroma ?? DEFAULT_ACCENT_LEVEL) === 0 ? "pro-dark" : "brand";
   }
 
   return `pro-${colorScheme}`;
@@ -26,18 +27,20 @@ function colorwayForAppearance(
 /**
  * Resolve canonical molecule URLs onto the byte colourway for one appearance.
  *
- * Neutral Fun deliberately borrows Pro Dark's chemically differentiated atom colours instead
- * of flattening every atom and bond into Graphite grey. Other Fun accents retain the authored
- * brand colourway. Convex depictions use a query parameter handled by the public image route;
- * static class structures switch between their three generated directories.
+ * `accentChroma` is the effective accent saturation level (0..1), or `null` for the site
+ * default. A fully desaturated accent (level 0) deliberately borrows Pro Dark's chemically
+ * differentiated atom colours instead of flattening every atom and bond into grey; every
+ * other Fun level retains the authored brand colourway. Convex depictions use a query
+ * parameter handled by the public image route; static class structures switch between
+ * their three generated directories.
  */
 export function moleculeImageUrlForAppearance(
   source: string,
   visualStyle: VisualStyle,
   colorScheme: ColorScheme,
-  accent: AccentId,
+  accentChroma: number | null,
 ): string {
-  const colorway = colorwayForAppearance(visualStyle, colorScheme, accent);
+  const colorway = colorwayForAppearance(visualStyle, colorScheme, accentChroma);
   if (colorway === "brand") {
     return source;
   }

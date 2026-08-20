@@ -82,11 +82,11 @@ describe("article chemistry presentation sections", () => {
 
     const chemistryPresentation = buildArticleChemistryPresentation(article);
 
-    // Neutral is pinned because the assertion below is about the neutral→Pro-dark
-    // molecule mapping, not the site's opening accent (now Default, which maps to
-    // the Fun colourway).
+    // Accent saturation is pinned to zero because the assertion below is about the
+    // grey→Pro-dark molecule mapping, not the site's opening level (saturated, which
+    // maps to the Fun colourway).
     render(
-      <AppearanceTestProvider initialAccent="neutral">
+      <AppearanceTestProvider initialAccentChroma={0}>
         <HeroSection
           article={article}
           chemistryPresentation={chemistryPresentation}

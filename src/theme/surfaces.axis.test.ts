@@ -1,128 +1,134 @@
 import { describe, expect, it } from "vitest";
 
+import { getPreset } from "@/features/theme-lab/palettePresets";
 import {
+  GRID,
   SCHEMES,
-  STYLES,
   composite,
   contrastRatio,
   deltaEok,
   parseColor,
   parseColorWithAlpha,
-  resolveTokens,
+  read,
 } from "@/test/fixtures/accentAppearanceGrid";
-import { ACCENTS, BASE_ACCENT_ID } from "./accents";
 import { paletteTokenRole } from "./paletteOwnership";
-import { SURFACE_STYLESHEET_PATH, buildSurfaceStylesheetCss } from "./surfaceStylesheet";
-import { BASE_SURFACE_ID, SURFACES } from "./surfaces";
+import {
+  SURFACE_STYLESHEET_PATH,
+  buildSurfaceStylesheetCss,
+  surfaceBaseBlockSelector,
+} from "./surfaceStylesheet";
+import { LEGACY_SURFACE_TO_HUE, isSurface } from "./surfaces";
 import { readFileSync } from "node:fs";
 
-const points = STYLES.flatMap((visualStyle) =>
-  SCHEMES.flatMap((theme) =>
-    SURFACES.flatMap((surface) =>
-      ACCENTS.map((accent) => ({
-        visualStyle,
-        theme,
-        surface,
-        accent,
-        tokens: resolveTokens({
-          visualStyle,
-          theme,
-          ...(surface.id === BASE_SURFACE_ID ? {} : { surface: surface.id }),
-          ...(accent.id === BASE_ACCENT_ID ? {} : { accent: accent.id }),
-        }),
-      })),
-    ),
-  ),
-);
+/**
+ * The base surface: the one authored colourway left, and the migration table that carries the
+ * retired ones onto the hue/chroma axes. The hue-rotation runtime itself is covered in
+ * `chromaStylesheet.test.ts` and the bootstrap migration in `index.test.ts`.
+ */
 
-const SURFACE_SAMPLE = [
-  "--theme-body-bg",
-  "--theme-surface-soft",
-  "--theme-surface-strong",
-  "--theme-field-surface",
-  "--theme-border-strong",
-  "--theme-text-primary",
-  "--theme-text-secondary",
-  "--theme-success-bg",
-  "--theme-success-text",
-  "--theme-warning-bg",
-  "--theme-warning-text",
-  "--theme-danger-bg",
-  "--theme-danger-text",
-  "--theme-evidence-bg",
-  "--theme-evidence-text",
-] as const;
-const ACCENT_SAMPLE = [
-  "--theme-accent",
-  "--theme-accent-strong",
-  "--theme-section-heading",
-  "--theme-logo-fill",
-  "--theme-selected-control-text",
-  "--theme-selected-control-border",
-  "--theme-selected-control-focus",
-  "--theme-inline-reference-text",
-  "--theme-inline-reference-hover-text",
-  "--theme-inline-reference-focus",
-] as const;
+/* -------------------------------------------------------------------------
+ * The migration table.
+ * ---------------------------------------------------------------------- */
 
-function pick(tokens: Record<string, string>, names: readonly string[]) {
-  return Object.fromEntries(names.map((name) => [name, tokens[name]]));
-}
+describe("legacy surface migration", () => {
+  it("keeps exactly the seven retired ids as vocabulary, in the settled order", () => {
+    expect(Object.keys(LEGACY_SURFACE_TO_HUE)).toEqual([
+      "orchid",
+      "abyss",
+      "canopy",
+      "garnet",
+      "sunset",
+      "graphite",
+      "lagoon",
+    ]);
+    for (const id of Object.keys(LEGACY_SURFACE_TO_HUE)) expect(isSurface(id)).toBe(true);
+    // A colour scheme, a visual style and a retired accent id are the values most likely to
+    // arrive by mistake from a mis-keyed storage read. None is a surface id.
+    expect(isSurface("dark")).toBe(false);
+    expect(isSurface("pro")).toBe(false);
+    expect(isSurface("blue")).toBe(false);
+    expect(isSurface(null)).toBe(false);
+  });
 
-describe("independent surface and accent axes", () => {
-  it("covers all 196 supported appearances", () => {
-    expect(points).toHaveLength(196);
-    for (const point of points) {
-      expect(point.tokens["--theme-body-bg"]).toBeTruthy();
-      expect(point.tokens["--theme-accent"]).toBeTruthy();
+  it("maps every retired chromatic surface to its authored hue delta", () => {
+    // The base brand hue, read off the sheet rather than restated.
+    const baseMatch = /--h-brand:\s*(\d+)\s*;/.exec(read("src/styles/site-colors.css"));
+    expect(baseMatch, "site-colors.css no longer declares --h-brand").not.toBeNull();
+    const base = Number(baseMatch![1]);
+
+    // Each retired surface WAS a colourway, and its authored `--h-brand` is the hue the reader
+    // actually saw. The migration hue is that angle minus the base's, normalised — asserted
+    // against the authored seeds (which live on as the Theme Lab's preset payloads) so the
+    // frozen table cannot silently disagree with what shipped.
+    for (const id of ["abyss", "canopy", "garnet", "sunset", "lagoon"] as const) {
+      const authored = Number(getPreset(id).overrides.dark["--h-brand"]);
+      expect(Number.isFinite(authored), `${id} authors no --h-brand`).toBe(true);
+
+      const expected = (((authored - base) % 360) + 360) % 360;
+      const entry = LEGACY_SURFACE_TO_HUE[id];
+
+      expect(entry.hue, `${id}: expected ${authored} − ${base} mod 360`).toBe(expected);
+      // A chromatic colourway is a rotation, never a grey: a zero shift here would migrate a
+      // saved reader onto the base plum.
+      expect(entry.hue).toBeGreaterThan(0);
+      expect(Number.isInteger(entry.hue)).toBe(true);
+      expect(entry.hue).toBeLessThan(360);
+      expect(entry.chroma).toBeUndefined();
     }
   });
 
-  it("keeps sampled surface outputs byte-identical while accent changes", () => {
-    for (const style of STYLES) for (const theme of SCHEMES) for (const surface of SURFACES) {
-      const row = points.filter(
-        (point) => point.visualStyle === style && point.theme === theme && point.surface.id === surface.id,
+  it("maps the base and the achromatic surface onto the axes' own vocabulary", () => {
+    expect(LEGACY_SURFACE_TO_HUE.orchid).toEqual({ hue: 0 });
+    // Graphite was never a hue — it pinned the palette's chroma near zero — so its heir is
+    // saturation level 0. The chroma pin overrides a stored chroma level during migration; a
+    // hue rotation of grey would answer nothing.
+    expect(LEGACY_SURFACE_TO_HUE.graphite).toEqual({ hue: 0, chroma: 0 });
+  });
+});
+
+/* -------------------------------------------------------------------------
+ * The generated stylesheet.
+ * ---------------------------------------------------------------------- */
+
+describe("surface stylesheet generation", () => {
+  it("matches the checked-in stylesheet", () => {
+    expect(readFileSync(SURFACE_STYLESHEET_PATH, "utf8")).toBe(buildSurfaceStylesheetCss());
+  });
+
+  it("emits only the base blocks, at the rank the cascade ladder pins", () => {
+    const css = buildSurfaceStylesheetCss();
+
+    // The base block, verbatim: keyed on the retired attribute's ABSENCE with a BARE :not(),
+    // so it keeps the (0,2,1) the cascade was balanced around — it has to re-seat the authored
+    // (0,1,1) light block below it, and it ties pro-theme.css's palette blocks, which is why
+    // it also carries the zero-specificity :where() Pro guard. Wrapped in :where() the :not()
+    // would drop the block to (0,1,1) and a reader would see the authored palette instead.
+    for (const theme of SCHEMES) {
+      expect(surfaceBaseBlockSelector(theme)).toBe(
+        `html:not([data-surface])[data-theme="${theme}"]:where(:not([data-visual-style="pro"]))`,
       );
-      const baseline = pick(row[0]!.tokens, SURFACE_SAMPLE);
-      for (const point of row) expect(pick(point.tokens, SURFACE_SAMPLE)).toEqual(baseline);
+      expect(css).toContain(surfaceBaseBlockSelector(theme));
     }
+
+    // The named surfaces are retired: no value selector, and no Pro re-tint blocks — the base
+    // surface under Pro is pro-theme.css as authored.
+    expect(css).not.toContain('data-surface="');
+    expect(css).not.toContain("--ei-");
   });
 
-  it("keeps sampled accent outputs byte-identical while surfaces change", () => {
-    for (const style of STYLES) for (const theme of SCHEMES) for (const accent of ACCENTS) {
-      const row = points.filter(
-        (point) => point.visualStyle === style && point.theme === theme && point.accent.id === accent.id,
-      );
-      const baseline = pick(row[0]!.tokens, ACCENT_SAMPLE);
-      for (const point of row) expect(pick(point.tokens, ACCENT_SAMPLE)).toEqual(baseline);
+  it("emits only surface-owned declarations", () => {
+    for (const match of buildSurfaceStylesheetCss().matchAll(/(--[a-z0-9-]+)\s*:/g)) {
+      expect(paletteTokenRole(match[1]), match[1]).toBe("surface");
     }
   });
+});
 
-  it("gives every Accent a distinct selected-control hue", () => {
-    for (const style of STYLES) for (const theme of SCHEMES) for (const surface of SURFACES) {
-      const row = points.filter(
-        (point) =>
-          point.visualStyle === style &&
-          point.theme === theme &&
-          point.surface.id === surface.id,
-      );
-      for (const token of [
-        "--theme-selected-control-text",
-        "--theme-selected-control-border",
-        "--theme-selected-control-focus",
-        "--theme-inline-reference-text",
-        "--theme-inline-reference-hover-text",
-        "--theme-inline-reference-focus",
-      ]) {
-        expect(
-          new Set(row.map((point) => point.tokens[token])).size,
-          `${style}/${theme}/${surface.id}: ${token} did not follow every Accent`,
-        ).toBe(ACCENTS.length);
-      }
-    }
-  });
+/* -------------------------------------------------------------------------
+ * Readability floors on the base palette.
+ * ---------------------------------------------------------------------- */
 
-  it("keeps text and accent readable across the complete matrix", () => {
+describe("base palette readability", () => {
+  it.each(GRID)("keeps text and accent readable on $label", ({ label, tokens }) => {
     const pairs = [
       ["--theme-text-primary", "--theme-body-bg"],
       ["--theme-text-secondary", "--theme-surface-soft"],
@@ -130,44 +136,27 @@ describe("independent surface and accent axes", () => {
       ["--theme-accent", "--theme-surface-strong"],
       ["--theme-selected-control-text", "--theme-selected-control-base"],
     ] as const;
-    for (const point of points) for (const [ink, ground] of pairs) {
+    for (const [ink, ground] of pairs) {
       expect(
-        contrastRatio(parseColor(point.tokens[ink]), parseColor(point.tokens[ground])),
-        `${point.visualStyle}/${point.theme}/${point.surface.id}/${point.accent.id}: ${ink} on ${ground}`,
+        contrastRatio(parseColor(tokens[ink]), parseColor(tokens[ground])),
+        `${label}: ${ink} on ${ground}`,
       ).toBeGreaterThanOrEqual(4.5);
     }
   });
 
-  it("keeps inline references readable across the complete matrix", () => {
-    for (const point of points) {
-      const body = parseColor(point.tokens["--theme-body-bg"]);
-      const referenceBg = composite(
-        parseColorWithAlpha(point.tokens["--theme-inline-reference-bg"]),
-        body,
-      );
-      expect(
-        contrastRatio(parseColor(point.tokens["--theme-inline-reference-text"]), referenceBg),
-        `${point.visualStyle}/${point.theme}/${point.surface.id}/${point.accent.id}: inline reference`,
-      ).toBeGreaterThanOrEqual(4.5);
-    }
+  it.each(GRID)("keeps inline references readable on $label", ({ label, tokens }) => {
+    const body = parseColor(tokens["--theme-body-bg"]);
+    const referenceBg = composite(parseColorWithAlpha(tokens["--theme-inline-reference-bg"]), body);
+    expect(
+      contrastRatio(parseColor(tokens["--theme-inline-reference-text"]), referenceBg),
+      `${label}: inline reference`,
+    ).toBeGreaterThanOrEqual(4.5);
   });
 
-  it("keeps safety categories perceptually separate from the accent", () => {
-    const semantic = ["--theme-success-text", "--theme-warning-text", "--theme-danger-text"];
-    for (const point of points) {
-      const accent = parseColor(point.tokens["--theme-accent"]);
-      for (const token of semantic) {
-        expect(deltaEok(accent, parseColor(point.tokens[token]))).toBeGreaterThanOrEqual(0.02);
-      }
-    }
-  });
-
-  it("emits only surface-owned Fun declarations", () => {
-    const css = readFileSync(SURFACE_STYLESHEET_PATH, "utf8");
-    expect(css).toBe(buildSurfaceStylesheetCss());
-    for (const match of css.matchAll(/(--[a-z0-9-]+)\s*:/g)) {
-      if (match[1].startsWith("--ei-")) continue;
-      expect(paletteTokenRole(match[1])).toBe("surface");
+  it.each(GRID)("keeps safety categories perceptually separate from the accent on $label", ({ tokens }) => {
+    const accent = parseColor(tokens["--theme-accent"]);
+    for (const token of ["--theme-success-text", "--theme-warning-text", "--theme-danger-text"]) {
+      expect(deltaEok(accent, parseColor(tokens[token]))).toBeGreaterThanOrEqual(0.02);
     }
   });
 });

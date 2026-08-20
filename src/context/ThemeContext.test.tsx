@@ -7,16 +7,20 @@ import {
   DEFAULT_ACCENT_LEVEL,
   DEFAULT_SURFACE_LEVEL,
 } from "@/theme/appearanceChroma";
+import { LEGACY_ACCENT_TO_HUE } from "@/theme/accents";
+import { LEGACY_SURFACE_TO_HUE } from "@/theme/surfaces";
 import {
   ACCENT_CHROMA_STORAGE_KEY,
+  ACCENT_HUE_STORAGE_KEY,
   ACCENT_STORAGE_KEY,
   COLOR_SCHEME_STORAGE_KEY,
   SURFACE_CHROMA_STORAGE_KEY,
+  SURFACE_HUE_STORAGE_KEY,
+  SURFACE_STORAGE_KEY,
   THEME_META_ID,
   VISUAL_STYLE_STORAGE_KEY,
   ThemeProvider,
   useTheme,
-  type AccentId,
   type ColorScheme,
   type VisualStyle,
 } from "./ThemeContext";
@@ -25,11 +29,13 @@ function AppearanceProbe() {
   const {
     colorScheme,
     visualStyle,
-    accent,
-    setAccent,
     surfaceChroma,
     accentChroma,
     setSurfaceChroma,
+    surfaceHue,
+    accentHue,
+    setSurfaceHue,
+    setAccentHue,
     isVisualStyleLocked,
     isAccentLocked,
     toggleColorScheme,
@@ -40,28 +46,32 @@ function AppearanceProbe() {
     <div>
       <span data-testid="color-scheme">{colorScheme}</span>
       <span data-testid="visual-style">{visualStyle}</span>
-      <span data-testid="accent">{accent}</span>
       <span data-testid="style-locked">{String(isVisualStyleLocked)}</span>
       <span data-testid="accent-locked">{String(isAccentLocked)}</span>
       <span data-testid="surface-chroma">{String(surfaceChroma)}</span>
       <span data-testid="accent-chroma">{String(accentChroma)}</span>
+      <span data-testid="surface-hue">{String(surfaceHue)}</span>
+      <span data-testid="accent-hue">{String(accentHue)}</span>
       <button type="button" onClick={toggleColorScheme}>
         Toggle scheme
       </button>
       <button type="button" onClick={toggleVisualStyle}>
         Toggle style
       </button>
-      <button type="button" onClick={() => setAccent("blue")}>
-        Wear blue
-      </button>
-      <button type="button" onClick={() => setAccent("default")}>
-        Wear default
-      </button>
       <button type="button" onClick={() => setSurfaceChroma(0.4)}>
         Saturate surface
       </button>
       <button type="button" onClick={() => setSurfaceChroma(null)}>
         Reset surface saturation
+      </button>
+      <button type="button" onClick={() => setSurfaceHue(120)}>
+        Rotate surface
+      </button>
+      <button type="button" onClick={() => setSurfaceHue(null)}>
+        Reset surface hue
+      </button>
+      <button type="button" onClick={() => setAccentHue(249)}>
+        Rotate accent
       </button>
     </div>
   );
@@ -84,18 +94,21 @@ function ensureThemeMeta() {
 type MockStorage = {
   readonly reads: string[];
   readonly writes: Array<[string, string]>;
+  readonly removals: string[];
   forgetTraffic(): void;
 };
 
 /**
- * Storage that records the keys it is asked for and the writes it takes, because two of this
- * provider's guarantees are about traffic rather than end state: a locked axis must never
- * touch its key, and a server default must never be written over a saved preference.
+ * Storage that records the keys it is asked for and the writes it takes, because several of
+ * this provider's guarantees are about traffic rather than end state: a locked axis must
+ * never touch its keys, a server default must never be written over a saved preference, and
+ * the legacy colourway keys must be removed exactly on migration.
  */
 function installMockStorage(): MockStorage {
   const store = new Map<string, string>();
   const reads: string[] = [];
   const writes: Array<[string, string]> = [];
+  const removals: string[] = [];
 
   Object.defineProperty(window, "localStorage", {
     configurable: true,
@@ -109,6 +122,7 @@ function installMockStorage(): MockStorage {
         store.set(key, String(value));
       },
       removeItem: (key: string) => {
+        removals.push(key);
         store.delete(key);
       },
       clear: () => {
@@ -120,9 +134,11 @@ function installMockStorage(): MockStorage {
   return {
     reads,
     writes,
+    removals,
     forgetTraffic() {
       reads.length = 0;
       writes.length = 0;
+      removals.length = 0;
     },
   };
 }
@@ -134,9 +150,9 @@ function renderProvider(
   overrides: {
     initialColorScheme?: ColorScheme;
     initialVisualStyle?: VisualStyle;
-    initialAccent?: AccentId;
     isVisualStyleLocked?: boolean;
     isAccentLocked?: boolean;
+    isSurfaceLocked?: boolean;
   } = {},
 ) {
   return render(
@@ -145,6 +161,7 @@ function renderProvider(
       initialVisualStyle="fun"
       isVisualStyleLocked={false}
       isAccentLocked={false}
+      isSurfaceLocked={false}
       {...overrides}
     >
       <AppearanceProbe />
@@ -157,7 +174,6 @@ describe("ThemeProvider", () => {
     storage = installMockStorage();
     document.documentElement.removeAttribute("data-theme");
     document.documentElement.removeAttribute("data-visual-style");
-    document.documentElement.removeAttribute("data-accent");
     document.documentElement.style.colorScheme = "";
     ensureThemeMeta().content = "";
   });
@@ -300,58 +316,29 @@ describe("ThemeProvider", () => {
     expect(ensureThemeMeta().content).toBe(APPEARANCE_META_COLORS.pro.dark);
   });
 
-  it("opens on the publication accent and writes the attribute for every non-base accent", async () => {
-    const user = userEvent.setup();
-
-    renderProvider();
-
-    await waitFor(() => expect(document.documentElement.dataset.theme).toBe("dark"));
-
-    // dose.wiki opens on the Default accent now, and BASE_ACCENT is the ABSENCE of the
-    // attribute: the bootstrap paints nothing for it, and the provider agrees rather than
-    // writing an override that names no block in the generated stylesheet.
-    expect(screen.getByTestId("accent")).toHaveTextContent("default");
-    expect(document.documentElement.dataset.accent).toBeUndefined();
-
-    await user.click(screen.getByRole("button", { name: "Wear blue" }));
-
-    await waitFor(() => {
-      expect(screen.getByTestId("accent")).toHaveTextContent("blue");
-      expect(document.documentElement.dataset.accent).toBe("blue");
-      expect(window.localStorage.getItem(ACCENT_STORAGE_KEY)).toBe("blue");
-      // The accent is its own axis: neither of the other two moved with it, and the browser
-      // chrome tint is publication identity, so it does not follow the accent either.
-      expect(document.documentElement.dataset.theme).toBe("dark");
-      expect(document.documentElement.dataset.visualStyle).toBe("fun");
-      expect(ensureThemeMeta().content).toBe(APPEARANCE_META_COLORS.fun.dark);
-    });
-
-    await user.click(screen.getByRole("button", { name: "Wear default" }));
-
-    await waitFor(() => {
-      // Removed, not set back to the id: this is the transition the bootstrap never sees.
-      expect(document.documentElement.dataset.accent).toBeUndefined();
-      expect(window.localStorage.getItem(ACCENT_STORAGE_KEY)).toBe("default");
-    });
-  });
-
-  it("hydrates the site-default levels without ever writing them to storage", async () => {
+  it("hydrates the site-default levels and hues without ever writing them to storage", async () => {
     renderProvider();
 
     await waitFor(() => expect(document.documentElement.dataset.theme).toBe("dark"));
 
     // The effective level is the default, exposed as a number — the sliders park on it —
-    // and the document engages the axis, matching the frame the bootstrap painted.
+    // and the document engages the axis, matching the frame the bootstrap painted. The
+    // hue is exposed as null itself: "never chose" is part of the hue interface.
     expect(screen.getByTestId("surface-chroma")).toHaveTextContent(String(DEFAULT_SURFACE_LEVEL));
     expect(screen.getByTestId("accent-chroma")).toHaveTextContent(String(DEFAULT_ACCENT_LEVEL));
+    expect(screen.getByTestId("surface-hue")).toHaveTextContent("null");
+    expect(screen.getByTestId("accent-hue")).toHaveTextContent("null");
     expect(document.documentElement.dataset.chroma).toBe("");
 
     // But a default is never persisted: absence of the key IS the default, so a future
     // default change reaches every reader who never moved a slider.
-    expect(storage.writes.map(([key]) => key)).not.toContain(SURFACE_CHROMA_STORAGE_KEY);
-    expect(storage.writes.map(([key]) => key)).not.toContain(ACCENT_CHROMA_STORAGE_KEY);
-    expect(window.localStorage.getItem(SURFACE_CHROMA_STORAGE_KEY)).toBeNull();
-    expect(window.localStorage.getItem(ACCENT_CHROMA_STORAGE_KEY)).toBeNull();
+    const writtenKeys = storage.writes.map(([key]) => key);
+    expect(writtenKeys).not.toContain(SURFACE_CHROMA_STORAGE_KEY);
+    expect(writtenKeys).not.toContain(ACCENT_CHROMA_STORAGE_KEY);
+    expect(writtenKeys).not.toContain(SURFACE_HUE_STORAGE_KEY);
+    expect(writtenKeys).not.toContain(ACCENT_HUE_STORAGE_KEY);
+    expect(window.localStorage.getItem(SURFACE_HUE_STORAGE_KEY)).toBeNull();
+    expect(window.localStorage.getItem(ACCENT_HUE_STORAGE_KEY)).toBeNull();
   });
 
   it("restores a saved level over the default, and null resets to the default", async () => {
@@ -385,33 +372,137 @@ describe("ThemeProvider", () => {
     });
   });
 
-  it("adopts a painted accent and never touches the key while the axis is locked", async () => {
+  it("persists a picked hue as integer degrees, and null removes the key", async () => {
     const user = userEvent.setup();
-    // What the bootstrap leaves for a reader who chose Blue.
-    window.localStorage.setItem(ACCENT_STORAGE_KEY, "blue");
-    document.documentElement.dataset.accent = "blue";
+
+    renderProvider();
+
+    await waitFor(() => expect(document.documentElement.dataset.theme).toBe("dark"));
+
+    await user.click(screen.getByRole("button", { name: "Rotate surface" }));
+
+    await waitFor(() => {
+      expect(screen.getByTestId("surface-hue")).toHaveTextContent("120");
+      expect(window.localStorage.getItem(SURFACE_HUE_STORAGE_KEY)).toBe("120");
+    });
+    // The axes are independent: rotating the surface moved nothing else.
+    expect(screen.getByTestId("accent-hue")).toHaveTextContent("null");
+    expect(window.localStorage.getItem(ACCENT_HUE_STORAGE_KEY)).toBeNull();
+
+    await user.click(screen.getByRole("button", { name: "Rotate accent" }));
+
+    await waitFor(() => {
+      expect(screen.getByTestId("accent-hue")).toHaveTextContent("249");
+      expect(window.localStorage.getItem(ACCENT_HUE_STORAGE_KEY)).toBe("249");
+    });
+
+    // Null means "back to the site default": the key is removed, never written as 0.
+    await user.click(screen.getByRole("button", { name: "Reset surface hue" }));
+
+    await waitFor(() => {
+      expect(screen.getByTestId("surface-hue")).toHaveTextContent("null");
+      expect(window.localStorage.getItem(SURFACE_HUE_STORAGE_KEY)).toBeNull();
+    });
+  });
+
+  it("restores a saved hue over a lingering legacy id, and still retires the id", async () => {
+    // A reader who migrated already (or chose a hue) while an old colourway id lingers.
+    window.localStorage.setItem(SURFACE_HUE_STORAGE_KEY, "40");
+    window.localStorage.setItem(SURFACE_STORAGE_KEY, "abyss");
     storage.forgetTraffic();
 
     renderProvider();
 
-    await waitFor(() => expect(screen.getByTestId("accent")).toHaveTextContent("blue"));
-    expect(storage.writes).not.toContainEqual([ACCENT_STORAGE_KEY, "default"]);
+    await waitFor(() => {
+      expect(screen.getByTestId("surface-hue")).toHaveTextContent("40");
+    });
+    expect(storage.removals).toContain(SURFACE_STORAGE_KEY);
+    expect(window.localStorage.getItem(SURFACE_STORAGE_KEY)).toBeNull();
+    expect(window.localStorage.getItem(SURFACE_HUE_STORAGE_KEY)).toBe("40");
+  });
 
-    renderProvider({ isAccentLocked: true });
+  it("translates the legacy colourway keys into hue coordinates and removes them", async () => {
+    // What the discrete-swatch era left behind for a reader who wore Abyss and Teal.
+    window.localStorage.setItem(SURFACE_STORAGE_KEY, "abyss");
+    window.localStorage.setItem(ACCENT_STORAGE_KEY, "teal");
     storage.forgetTraffic();
 
-    // Both providers stay mounted, so every probe appears twice; the locked one renders last.
-    // Index arithmetic rather than `Array.prototype.at`, which this project's `lib` target
-    // does not carry.
-    const lockedProbes = screen.getAllByTestId("accent-locked");
-    expect(lockedProbes[lockedProbes.length - 1]).toHaveTextContent("true");
+    renderProvider();
 
-    const lockedButtons = screen.getAllByRole("button", { name: "Wear blue" });
-    await user.click(lockedButtons[lockedButtons.length - 1]!);
+    await waitFor(() => {
+      expect(screen.getByTestId("surface-hue")).toHaveTextContent(
+        String(LEGACY_SURFACE_TO_HUE.abyss.hue),
+      );
+      expect(screen.getByTestId("accent-hue")).toHaveTextContent(
+        String(LEGACY_ACCENT_TO_HUE.teal.hue),
+      );
+    });
 
-    const accentProbes = screen.getAllByTestId("accent");
-    expect(accentProbes[accentProbes.length - 1]).toHaveTextContent("default");
-    expect(storage.reads).not.toContain(ACCENT_STORAGE_KEY);
-    expect(storage.writes.map(([key]) => key)).not.toContain(ACCENT_STORAGE_KEY);
+    // The translation is persisted and the old keys are gone: the migration runs once.
+    await waitFor(() => {
+      expect(window.localStorage.getItem(SURFACE_HUE_STORAGE_KEY)).toBe(
+        String(LEGACY_SURFACE_TO_HUE.abyss.hue),
+      );
+      expect(window.localStorage.getItem(ACCENT_HUE_STORAGE_KEY)).toBe(
+        String(LEGACY_ACCENT_TO_HUE.teal.hue),
+      );
+      expect(window.localStorage.getItem(SURFACE_STORAGE_KEY)).toBeNull();
+      expect(window.localStorage.getItem(ACCENT_STORAGE_KEY)).toBeNull();
+    });
+  });
+
+  it("maps the retired achromatic ids to saturation 0, overriding a stored level", async () => {
+    // Graphite/Neutral were "grey", which is now just saturation 0: the stored level —
+    // saved back when the reader wore a chromatic colourway — must not resurrect colour.
+    window.localStorage.setItem(SURFACE_STORAGE_KEY, "graphite");
+    window.localStorage.setItem(SURFACE_CHROMA_STORAGE_KEY, "0.8");
+    window.localStorage.setItem(ACCENT_STORAGE_KEY, "neutral");
+    storage.forgetTraffic();
+
+    renderProvider();
+
+    await waitFor(() => {
+      expect(screen.getByTestId("surface-hue")).toHaveTextContent("0");
+      expect(screen.getByTestId("surface-chroma")).toHaveTextContent("0");
+      expect(screen.getByTestId("accent-chroma")).toHaveTextContent("0");
+    });
+
+    await waitFor(() => {
+      expect(window.localStorage.getItem(SURFACE_CHROMA_STORAGE_KEY)).toBe("0");
+      expect(window.localStorage.getItem(ACCENT_CHROMA_STORAGE_KEY)).toBe("0");
+      expect(window.localStorage.getItem(SURFACE_STORAGE_KEY)).toBeNull();
+      expect(window.localStorage.getItem(ACCENT_STORAGE_KEY)).toBeNull();
+    });
+  });
+
+  it("never touches the colour keys while both colour axes are locked", async () => {
+    // Effect Index: a dose.wiki reader's saved coordinates and un-migrated ids must
+    // survive a visit untouched — neither read, nor migrated, nor removed.
+    window.localStorage.setItem(SURFACE_STORAGE_KEY, "abyss");
+    window.localStorage.setItem(ACCENT_STORAGE_KEY, "teal");
+    window.localStorage.setItem(SURFACE_HUE_STORAGE_KEY, "40");
+    storage.forgetTraffic();
+
+    renderProvider({ isSurfaceLocked: true, isAccentLocked: true });
+
+    await waitFor(() => expect(document.documentElement.dataset.theme).toBe("dark"));
+
+    for (const key of [
+      SURFACE_STORAGE_KEY,
+      ACCENT_STORAGE_KEY,
+      SURFACE_HUE_STORAGE_KEY,
+      ACCENT_HUE_STORAGE_KEY,
+      SURFACE_CHROMA_STORAGE_KEY,
+      ACCENT_CHROMA_STORAGE_KEY,
+    ]) {
+      expect(storage.reads).not.toContain(key);
+      expect(storage.writes.map(([written]) => written)).not.toContain(key);
+      expect(storage.removals).not.toContain(key);
+    }
+    expect(window.localStorage.getItem(SURFACE_STORAGE_KEY)).toBe("abyss");
+    expect(window.localStorage.getItem(SURFACE_HUE_STORAGE_KEY)).toBe("40");
+    // Both colour axes null disengages the axis attribute entirely: the page renders
+    // the authored palette, exactly what a locked publication wants.
+    expect(document.documentElement.dataset.chroma).toBeUndefined();
   });
 });

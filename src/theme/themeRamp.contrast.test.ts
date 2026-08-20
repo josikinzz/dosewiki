@@ -3,18 +3,13 @@ import { describe, expect, it } from "vitest";
 import {
   GRID,
   type Rgb,
-  SCHEMES,
-  STYLES,
   composite,
   contrastRatio,
   parseColor,
   parseColorWithAlpha,
   ratio,
-  resolveTokens,
   toHex,
 } from "@/test/fixtures/accentAppearanceGrid";
-// Aliased: `SURFACES` is already the local list of `--theme-surface-*` grounds below.
-import { BASE_SURFACE_ID, SURFACES as SURFACE_AXIS } from "./surfaces";
 
 /**
  * The theme ramp's contrast floors, measured on the resolved cascade.
@@ -223,40 +218,12 @@ const LEVEL_MARKS = LEVEL_STEPS.map((step) => `--ei-level-${step}-mark`);
 type AppearancePoint = { label: string; tokens: Record<string, string> };
 
 /**
- * The twenty-eight states a reader reaches without opening anything: both visual styles, both
- * schemes, the default accent and the six named ones. This is the same grid the accent suites
- * measure, reused rather than rebuilt so the two files cannot drift apart on what "a state" is.
+ * The four states a reader reaches without opening anything: both visual styles, both schemes,
+ * on the base palette. This is the same grid the accent suites measure, reused rather than
+ * rebuilt so the files cannot drift apart on what "a state" is. The continuous hue/chroma axes
+ * layer relative-colour rewrites over these states and are measured in `chromaStylesheet.test.ts`.
  */
 const READER_STATES: AppearancePoint[] = GRID.map(({ label, tokens }) => ({ label, tokens }));
-
-/**
- * The six named surfaces, both visual styles, both schemes, at the default accent.
- *
- * The surface axis is the one that carries a whole colourway — the canvas, the surface stack, the
- * ink ramp and the borders — so these are the twenty-four states where every ground the pair lists
- * below name can be a colour no reader-reachable state uses.
- *
- * Both visual styles, because the axis has two halves and they move different things.
- * `surfaceStylesheet.ts` emits a Fun block per surface per scheme carrying the full colourway, and
- * a Pro block carrying five `--ei-*` panel and border seeds blended 4% toward the surface's tint.
- * That Pro blend is small — it moves the pairs here by at most 0.25:1 — but it is not nothing, and
- * a suite that measured only the Fun half would be asserting that the Pro half cannot break.
- *
- * `orchid` is excluded because it is the base surface: its block is keyed on the attribute's
- * absence, so its resolved state is byte-for-byte `default/fun/*` and `default/pro/*`, already in
- * `READER_STATES`. Driving the list off `SURFACE_AXIS` rather than a hand-written array of ids
- * means an eighth surface arrives here measured instead of arriving unmeasured.
- */
-const SURFACE_STATES: AppearancePoint[] = SURFACE_AXIS.filter(
-  (surface) => surface.id !== BASE_SURFACE_ID,
-).flatMap((surface) =>
-  STYLES.flatMap((visualStyle) =>
-    SCHEMES.map((theme) => ({
-      label: `${surface.id}/${visualStyle}/${theme}`,
-      tokens: resolveTokens({ visualStyle, theme, surface: surface.id }),
-    })),
-  ),
-);
 
 /* -------------------------------------------------------------------------
  * The cases.
@@ -346,7 +313,7 @@ const BADGE_PAIRS = BADGE_TONES.map((tone): [string, string] => [
 ]);
 
 /** The Pro half of the reader grid. `--ei-*` resolves to nothing under Fun, so only Pro is measured. */
-const PRO_STATES = READER_STATES.filter((state) => state.label.includes("/pro/"));
+const PRO_STATES = READER_STATES.filter((state) => state.label.startsWith("pro/"));
 
 /**
  * The three Pro panels a level step is painted on, per scheme.
@@ -362,7 +329,7 @@ function proGrounds(label: string): string[] {
   return [
     "--ei-paper",
     "--ei-surface",
-    label.endsWith("/dark") ? "--ei-surface-raised" : "--ei-surface-sunk",
+    label.endsWith("dark") ? "--ei-surface-raised" : "--ei-surface-sunk",
   ];
 }
 
@@ -518,51 +485,6 @@ describe("theme ramp floors", () => {
   registerFloors(READER_STATES);
 });
 
-/**
- * The named surfaces get the same floors, in their own block only so a failure reads as "a surface
- * is broken" rather than "the theme is broken". A surface is a reader's own choice from the
- * appearance cog and persists, so a breach here reaches exactly the readers who picked it.
- */
-describe("surface floors", () => {
-  it("repaints the Fun canvas and the Pro borders, so these are not duplicate measurements", () => {
-    // Without this the suite is silently worthless: if `data-surface` ever stops being a modelled
-    // attribute in `accentAppearanceGrid.ts`, or the generated sheet regains a guard that keeps its
-    // blocks from matching, every state below resolves to the base sheet and all twenty-four become
-    // duplicates of `default/*` — passing, and measuring nothing. So each half is pinned on the
-    // token it actually owns.
-    const bases: Record<string, Record<string, string>> = {
-      fun: resolveTokens({ visualStyle: "fun", theme: "dark" }),
-      pro: resolveTokens({ visualStyle: "pro", theme: "dark" }),
-    };
-    const dark = SURFACE_STATES.filter((state) => state.label.endsWith("/dark"));
-    const funDark = dark.filter((state) => state.label.includes("/fun/"));
-    const proDark = dark.filter((state) => state.label.includes("/pro/"));
-
-    // The Fun half carries the whole colourway, canvas included.
-    const repainted = funDark.filter(
-      (state) => state.tokens["--theme-body-bg"] !== bases.fun["--theme-body-bg"],
-    );
-
-    expect(
-      repainted.map((state) => state.label),
-      `only ${repainted.length} of ${funDark.length} dark Fun surfaces repaint the canvas`,
-    ).toEqual(funDark.map((state) => state.label));
-
-    // The Pro half deliberately does NOT: Pro's canvas is fixed, and `accents.axis.test.ts` pins
-    // that for the accent axis for the same reason. What a Pro surface moves is the panel and
-    // border stack, so that is what proves its block resolved.
-    for (const state of proDark) {
-      expect(state.tokens["--theme-body-bg"], `${state.label} left Pro's canvas`).toBe(
-        bases.pro["--theme-body-bg"],
-      );
-      expect(state.tokens["--theme-card-border"], `${state.label} did not tint Pro's borders`).not.toBe(
-        bases.pro["--theme-card-border"],
-      );
-    }
-  });
-
-  registerFloors(SURFACE_STATES);
-});
 
 /**
  * Pro's Levelling System ramp, in its own block because it is Pro-only and its grounds are Pro's
@@ -575,7 +497,7 @@ describe("Pro Levelling System floors", () => {
     // The `--ei-*` family only exists behind `html[data-visual-style="pro"]`, so a mis-scoped state
     // list would resolve every token to undefined and every assertion below would throw rather than
     // measure. This pins that the ramp is actually present before anything is divided by it.
-    const missing = [...LEVEL_INKS, ...LEVEL_MARKS, ...proGrounds("default/pro/light")].filter(
+    const missing = [...LEVEL_INKS, ...LEVEL_MARKS, ...proGrounds("pro/light")].filter(
       (token) => PRO_STATES[0].tokens[token] === undefined,
     );
 

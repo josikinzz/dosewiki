@@ -1,31 +1,30 @@
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 
-import { ACCENTS, BASE_ACCENT_ID } from "@/theme/accents";
 import { ACCENT_ATTRIBUTE, ACCENT_STYLESHEET_PATH } from "@/theme/accentStylesheet";
 import { SURFACE_ATTRIBUTE, SURFACE_STYLESHEET_PATH } from "@/theme/surfaceStylesheet";
 
 /**
- * The accent axis, measured rather than asserted.
+ * The appearance cascade, measured rather than asserted.
  *
- * Every claim an accent makes is a claim about a *rendered colour*, and a rendered colour is
+ * Every claim the theme makes is a claim about a *rendered colour*, and a rendered colour is
  * the end of a chain: four stylesheets, a cascade, a stack of `var()` references, and a
  * colour function. Asserting the declarations instead would let an accent pass while painting
- * something illegible — the value in `accents.ts` is not the value on screen. So this module
- * carries a small cascade resolver and a contrast calculator, runs the real sheets through
- * them, and exposes the result at every point on the three-axis grid.
+ * something illegible — the value in a source module is not the value on screen. So this
+ * module carries a small cascade resolver and a contrast calculator, runs the real sheets
+ * through them, and exposes the result at every point on the visual-style × scheme grid.
  *
  * The resolver deliberately understands only ROOT selectors. Nothing else can seed a token
  * for the whole page, and refusing to model descendant selectors keeps it honest: a rule it
  * cannot evaluate is skipped, never guessed at.
  *
- * This is the fixture four suites share, and it is a fixture rather than four copies because
+ * This is the fixture the theme suites share, and it is a fixture rather than copies because
  * every one of them measures the same rendered grid:
  *
- * - `src/theme/accents.test.ts` — the table, its shape, and swatch honesty.
+ * - `src/theme/accents.test.ts` — the base Pro seeds, their shape, and swatch honesty.
  * - `src/theme/accents.contrast.test.ts` — the contrast floors and the budgets.
- * - `src/theme/accents.immunity.test.ts` — semantic immunity and the brand-band leak list.
- * - `src/theme/accents.axis.test.ts` — the generated selectors, containment and the bootstrap.
+ * - `src/theme/accents.axis.test.ts` — the generated selectors and containment.
+ * - `src/theme/surfaces.axis.test.ts` / `themeRamp.contrast.test.ts` — the base palette's floors.
  */
 
 const REPO_ROOT = resolve(__dirname, "..", "..", "..");
@@ -46,8 +45,9 @@ const LADDER = [...BASE_LADDER, SURFACE_STYLESHEET_PATH, ACCENT_STYLESHEET_PATH]
 export type VisualStyle = "fun" | "pro";
 export type ColorScheme = "light" | "dark";
 /**
- * One point on the appearance grid. An absent accent is the default accent; an absent surface is
- * the base surface, which is what the authored sheets paint on their own.
+ * One point on the appearance grid. The retired accent/surface attributes remain modelled so
+ * the resolver can evaluate the shipped `:not([data-accent])` / `:not([data-surface])` guards;
+ * no reader-reachable state sets either any more.
  */
 export type AppearanceState = {
   visualStyle: VisualStyle;
@@ -685,25 +685,14 @@ export const ratio = (value: number) => `${value.toFixed(2)}:1`;
  * The grid.
  * ---------------------------------------------------------------------- */
 
-/** Every accent at every point, resolved once. Every assertion in the four suites reads this. */
-export const GRID = ACCENTS.flatMap((accent) =>
-  STYLES.flatMap((visualStyle) =>
-    SCHEMES.map((theme) => {
-      const state: AppearanceState =
-        accent.id === BASE_ACCENT_ID
-          ? { visualStyle, theme }
-          : { visualStyle, theme, accent: accent.id };
-
-      return {
-        accent,
-        visualStyle,
-        theme,
-        label: `${accent.id}/${visualStyle}/${theme}`,
-        tokens: resolveTokens(state),
-        baseline: resolveTokens({ visualStyle, theme }),
-      };
-    }),
-  ),
+/** The base look at every style/scheme point, resolved once. Every suite reads this. */
+export const GRID = STYLES.flatMap((visualStyle) =>
+  SCHEMES.map((theme) => ({
+    visualStyle,
+    theme,
+    label: `${visualStyle}/${theme}`,
+    tokens: resolveTokens({ visualStyle, theme }),
+  })),
 );
 
 /** One resolved point on the grid. */

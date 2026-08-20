@@ -46,18 +46,18 @@
    (0,1,1) if the attribute is missing, so the palette never depends on
    script timing and never leaves Pro unstyled. (0,2,1) is what puts this
    palette above the authored Fun token blocks in site-colors.css and level
-   with the Fun halves of the two generated appearance sheets,
-   surface-tokens.generated.css and accent-tokens.generated.css.
+   with the Fun half of the generated surface sheet,
+   surface-tokens.generated.css (the base block of the retired surface axis).
 
-   Both of those land AFTER this sheet, so at that tie they would win on
-   source order and repaint a Pro page in the reader's surface. They cannot,
-   because every Fun block either sheet emits carries
+   That sheet lands AFTER this one, so at that tie it would win on source
+   order and repaint a Pro page in the base Fun palette. It cannot, because
+   the Fun block it emits carries
    :where(:not([data-visual-style="pro"])) and so matches no Pro root at all.
    That guard adds nothing to specificity, which is the point: it separates
    the rungs without moving them.
 
-   Their PRO blocks are the half that is meant to reach this palette, and they
-   re-seat the --ei-* seeds below at (0,3,1), one attribute above this block.
+   accent-tokens.generated.css is the half that is meant to reach this palette:
+   it re-seats the --ei-* seeds below at (0,3,1), one attribute above this block.
    That is how the surface and accent axes re-tint roughly two hundred derived
    tokens from outside this file, on specificity rather than on where the
    bundler happens to put them.
@@ -177,8 +177,8 @@ html[data-visual-style="pro"][data-theme="dark"] {
 
      Teal is this family's DEFAULT VALUE, not its nature. `--ei-accent*` is the
      accent axis's Pro half: accent-tokens.generated.css re-seats all five steps
-     under html[data-accent="…"], so every token below that resolves one of them
-     follows the reader's accent without a single rule being restated. */
+     under html:not([data-accent]) on dose.wiki, so every token below that
+     resolves one of them wears that publication's plum with no restatement. */
   --ei-accent-on-dark: #6fc4bb;
 
   /* Tinted washes and marks — the values that cannot be derived from the

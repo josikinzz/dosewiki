@@ -228,8 +228,8 @@ export type SiteAboutConfig = {
 /**
  * Everything that differs between the two publications, including their {@link
  * AppearancePolicy}: `defaultColorScheme`, `showColorSchemeToggle`, `defaultVisualStyle`,
- * `showVisualStyleToggle` and `showAccentPicker` are contributed by that type rather than
- * redeclared here, so the axis vocabulary has exactly one owner.
+ * `showVisualStyleToggle`, `showSurfacePicker` and `showAccentPicker` are contributed by that
+ * type rather than redeclared here, so the axis vocabulary has exactly one owner.
  */
 export type SiteFlavorConfig = AppearancePolicy & {
   /** The flavor this config describes. */
@@ -414,14 +414,12 @@ const DOSEWIKI_CONFIG: SiteFlavorConfig = {
   showColorSchemeToggle: true,
   defaultVisualStyle: "fun",
   showVisualStyleToggle: true,
-  // dose.wiki opens on Orchid and the Default plum-pink accent — the authored base on both
-  // colour axes, softened by the site-default saturation levels the bootstrap applies
-  // (`DEFAULT_SURFACE_LEVEL` / `DEFAULT_ACCENT_LEVEL` in `src/theme/appearanceChroma.ts`).
-  // Both defaults equal the base ids, so a fresh document carries no `data-surface` or
-  // `data-accent`; a reader's saved Graphite/Neutral choice still restores from storage.
-  defaultSurface: "orchid",
+  // dose.wiki opens on the authored base look — Orchid's plum with the Default accent —
+  // shifted only by the site-default saturation levels and zero hue rotation the bootstrap
+  // applies (`src/theme/appearanceChroma.ts`). The pickers are continuous hue sliders now;
+  // a reader's saved legacy colourway id still restores via the migration tables in
+  // `src/theme/surfaces.ts` / `src/theme/accents.ts`.
   showSurfacePicker: true,
-  defaultAccent: "default",
   showAccentPicker: true,
   // dose.wiki owns `/blog` too now — its own blog, written in the /dev Blog tab
   // and stored as `kind: "blog"` rows of `effectIndexArticles`. It is a
@@ -639,11 +637,7 @@ const EFFECT_INDEX_CONFIG: SiteFlavorConfig = {
   showColorSchemeToggle: true,
   defaultVisualStyle: "pro",
   showVisualStyleToggle: false,
-  // Inert under the lock below — a locked axis resolves to BASE_ACCENT — but stated rather
-  // than left to the resolver so the policy reads as a complete answer on all three axes.
-  defaultSurface: "orchid",
   showSurfacePicker: false,
-  defaultAccent: "default",
   showAccentPicker: false,
   flavorGatedRoutes: ["blog", "donate", "contact", "discord", "copyrightDisclaimer"],
   rootMetadata: {

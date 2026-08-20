@@ -1,11 +1,13 @@
 import { CHROME_DARK_CLASS } from "@/theme/chromeDark";
-import { ACCENTS, BASE_ACCENT_ID } from "./accents";
+import { BASE_ACCENT_ID, BASE_ACCENT_PRO_SEEDS, BASE_ACCENT_SWATCH } from "./accents";
 import {
+  ACCENT_HUE_PROPERTY,
   ACCENT_LEVEL_PROPERTY,
   CHROMA_ATTRIBUTE,
+  SURFACE_HUE_PROPERTY,
   SURFACE_LEVEL_PROPERTY,
 } from "./appearanceChroma";
-import { BASE_SURFACE_ID, SURFACES } from "./surfaces";
+import { BASE_SURFACE_ID, BASE_SURFACE_TINT } from "./surfaces";
 import {
   ACHROMATIC_CHROMA,
   authoredLevel,
@@ -16,44 +18,48 @@ import accentFunTokens from "./accentFunTokens.generated.json";
 import surfaceFunTokens from "./surfaceFunTokens.generated.json";
 
 /**
- * The saturation appearance axis, compiled into plain CSS.
+ * The saturation and hue appearance axes, compiled into plain CSS.
  *
- * The reader owns one *level* per colour axis — 0..1, where a colour at level t
- * renders with chroma `t × Cmax(L,H)` (see `chromaMath.ts`). This module turns
- * the two role-filtered Fun token maps — and, for the accent axis, each
- * accent's Pro `--ei-*` seeds — into blocks that apply that model with pure
- * CSS: every chromatic literal in a token's value is re-emitted through
- * relative colour syntax with its chroma multiplied by a per-block *gain*,
+ * The reader owns one *level* (0..1) and one *hue rotation* (0..359 degrees)
+ * per colour axis: a colour at level t renders with chroma `t × Cmax(L,H)`
+ * (see `chromaMath.ts`), rotated `<shift>` degrees around the hue wheel. This
+ * module turns the two role-filtered base Fun token maps — Orchid surfaces and
+ * the Default plum accent, the only authored colourways left — and, for the
+ * accent axis, the base Pro `--ei-*` seeds, into blocks that apply that model
+ * with pure CSS: every chromatic literal in a token's value is re-emitted
+ * through relative colour syntax with its chroma multiplied by a per-block
+ * *gain*,
  *
  *   --dw-surface-gain: calc(var(--dw-surface-level, <authored>) / <authored>);
  *
- * where `<authored>` is the colourway's own representative level in that
- * scheme. One shared gain per block keeps a colourway's internal chroma
- * relationships (muted panel vs vivid brand) intact while the seven options
- * equalise: at the same level, every colourway's representative lands on the
- * same gamut-relative saturation. An unset level falls back to the authored
- * denominator, so gain resolves to 1 and the block is inert.
+ * where `<authored>` is the base colourway's own representative level in that
+ * scheme, and its hue slot rewritten to `calc(h + var(--dw-*-hue, 0deg))`.
+ * Hue is periodic in CSS `oklch()`, so plain addition needs no wrap-around;
+ * lightness is never touched on either axis. One shared gain and one shared
+ * shift per block keep the palette's internal relationships (muted panel vs
+ * vivid brand) intact while the whole palette rotates and re-saturates
+ * together. Unset properties fall back to the authored denominator and 0deg,
+ * so a matched block with nothing on its axis is inert.
  *
  * Every block requires `data-chroma` on the root. The pre-paint bootstrap sets
  * that attribute — and injects this stylesheet — on every page now: a reader
- * with no saved level gets the site-default levels (`DEFAULT_SURFACE_LEVEL` /
- * `DEFAULT_ACCENT_LEVEL` in `appearanceChroma.ts`), so only a publication that
- * locks both colour axes (Effect Index) ships none of this.
+ * with no saved values gets the site defaults (`DEFAULT_*` in
+ * `appearanceChroma.ts`), so only a publication that locks both colour axes
+ * (Effect Index) ships none of this.
  *
  * Safety: the input maps are already filtered by `paletteTokenRole`, which
  * routes the harm-reduction ramp (success/caution/unsafe/danger/info), the
  * dose-tier and the plateau-tier families to "semantic" — none of them can
- * appear here, so no level can desaturate a warning. `chromaStylesheet.test.ts`
- * asserts that exclusion against the emitted text. The Pro accent seeds are
- * not role-filtered maps, but the nine `PRO_ACCENT_SEED_NAMES` are all
- * accent-family by construction (and `paletteTokenRole` classifies every one
- * of them "accent"), so the same invariant holds there.
+ * appear here, so no level or rotation can restyle a warning. The Pro accent
+ * seeds are not role-filtered maps, but the nine `PRO_ACCENT_SEED_NAMES` are
+ * all accent-family by construction (and `paletteTokenRole` classifies every
+ * one of them "accent"), so the same invariant holds there.
  *
- * Achromatic colourways (Graphite surface, Neutral accent) emit no block: they
- * have no chroma to scale, and their slider is faded in the panel. Pro's
- * surface family is in the same position — see the note in
- * `buildChromaStylesheetCss` — so the surface axis is Fun-only while the
- * accent axis works on both visual styles.
+ * Pro's surface family emits no block — see the note in
+ * `buildChromaStylesheetCss` — so the surface axes are Fun-only while the
+ * accent axes work on both visual styles. The retired non-base colourways
+ * emit nothing at all any more: their looks are (hue, level) points now, and
+ * their stored ids migrate through `LEGACY_*_TO_HUE`.
  */
 
 /** Block-local gains derived from the levels; never written by script. */
@@ -71,19 +77,23 @@ type ColourwayTokens = { dark: SchemeTokens; light: SchemeTokens };
 
 /**
  * Rewrite one token value so every chromatic literal's chroma is multiplied by
- * `var(gainProperty)`. Achromatic literals (greys, black, white, shadow ink)
- * pass through untouched; a value with nothing chromatic reports `wrapped: 0`
- * and is dropped by the caller. Handles the whole value grammar the generated
- * maps use: bare hex / `rgb()` / `oklch()`, and literals nested inside
- * `color-mix()`, gradients, shadow lists and existing `oklch(from …)`
- * relative-colour expressions (whose chroma component is multiplied in place).
+ * `var(gainProperty)` and its hue rotated by `var(hueProperty, 0deg)`.
+ * Achromatic literals (greys, black, white, shadow ink) pass through
+ * untouched — a grey must not pick up colour under a rotation; a value with
+ * nothing chromatic reports `wrapped: 0` and is dropped by the caller.
+ * Handles the whole value grammar the generated maps use: bare hex / `rgb()`
+ * / `oklch()`, and literals nested inside `color-mix()`, gradients, shadow
+ * lists and existing `oklch(from …)` relative-colour expressions (whose
+ * chroma and hue components are rewritten in place).
  */
 export function wrapChromaValue(
   value: string,
   gainProperty: string,
+  hueProperty: string,
 ): { text: string; wrapped: number } {
   if (!/#|rgba?\(|oklch\(|hsla?\(/.test(value)) return { text: value, wrapped: 0 };
   const gain = `var(${gainProperty})`;
+  const shift = `var(${hueProperty}, 0deg)`;
   let out = "";
   let index = 0;
   let wrapped = 0;
@@ -94,7 +104,7 @@ export function wrapChromaValue(
     const hex = /^#[0-9a-fA-F]{3,8}\b/.exec(rest);
     if (hex) {
       if (isChromaticLiteral(hex[0])) {
-        out += `oklch(from ${hex[0]} l calc(c * ${gain}) h)`;
+        out += `oklch(from ${hex[0]} l calc(c * ${gain}) calc(h + ${shift}))`;
         wrapped += 1;
       } else {
         out += hex[0];
@@ -116,12 +126,12 @@ export function wrapChromaValue(
     index = close + 1;
 
     if (fn[1] === "oklch" && /^\s*from\s/.test(inner)) {
-      out += scaleRelativeOklch(inner, gain);
+      out += scaleRelativeOklch(inner, gain, shift);
       wrapped += 1;
       continue;
     }
     if (fn[1] === "oklch") {
-      const scaled = scaleBareOklch(whole, inner, gain);
+      const scaled = scaleBareOklch(whole, inner, gain, shift);
       out += scaled ?? whole;
       if (scaled) wrapped += 1;
       continue;
@@ -129,7 +139,7 @@ export function wrapChromaValue(
     // rgb()/hsl(): relative colour syntax carries the origin's alpha when the
     // alpha channel is omitted, so plain wrapping preserves translucency.
     if (fn[1].startsWith("hsl") || isChromaticLiteral(whole)) {
-      out += `oklch(from ${whole} l calc(c * ${gain}) h)`;
+      out += `oklch(from ${whole} l calc(c * ${gain}) calc(h + ${shift}))`;
       wrapped += 1;
     } else {
       out += whole;
@@ -153,35 +163,50 @@ function matchingParen(text: string, open: number): number {
 }
 
 /**
- * Multiply the chroma component of an existing `oklch(from …)` expression.
- * `calc(c * 1.35)` becomes `calc((c * 1.35) * gain)` — parenthesised, so a
- * `calc(c + x)` form cannot silently change meaning under the multiplication.
+ * Rewrite the chroma and hue components of an existing `oklch(from …)`
+ * expression. `calc(c * 1.35)` becomes `calc((c * 1.35) * gain)` —
+ * parenthesised, so a `calc(c + x)` form cannot silently change meaning under
+ * the multiplication — and the hue component gains `+ shift` the same way.
  */
-function scaleRelativeOklch(inner: string, gain: string): string {
+function scaleRelativeOklch(inner: string, gain: string, shift: string): string {
   const afterFrom = inner.trim().replace(/^from\s+/, "");
   const parts = splitTopLevel(afterFrom);
-  // parts: [origin, L, C, H] with an optional trailing "/ alpha" kept on H's tail.
+  // parts: [origin, L, C, H] with an optional trailing "/ alpha" in parts[4…].
   if (parts.length < 4) throw new Error(`Unrecognised relative oklch: oklch(${inner})`);
   const c = parts[2]!;
   const scaled = c.startsWith("calc(")
     ? `calc((${c.slice(5, -1)}) * ${gain})`
     : `calc(${c} * ${gain})`;
-  return `oklch(from ${parts[0]} ${parts[1]} ${scaled} ${parts.slice(3).join(" ")})`;
+  const tail = parts.length > 4 ? ` ${parts.slice(4).join(" ")}` : "";
+  return `oklch(from ${parts[0]} ${parts[1]} ${scaled} ${rotateHue(parts[3]!, shift)}${tail})`;
 }
 
 /**
- * Multiply the chroma slot of a bare `oklch(L C H …)` literal in place, or
- * return null to leave achromatic literals untouched.
+ * Rotate one hue component by `shift`. A bare number means degrees in
+ * `oklch()` but cannot meet an angle inside `calc()`, so it is given its unit;
+ * an existing `calc()` is parenthesised whole, same reason as the chroma slot.
  */
-function scaleBareOklch(whole: string, inner: string, gain: string): string | null {
+function rotateHue(hue: string, shift: string): string {
+  if (hue.startsWith("calc(")) return `calc((${hue.slice(5, -1)}) + ${shift})`;
+  const withUnit = /^-?(\d+\.?\d*|\.\d+)$/.test(hue) ? `${hue}deg` : hue;
+  return `calc(${withUnit} + ${shift})`;
+}
+
+/**
+ * Rewrite the chroma and hue slots of a bare `oklch(L C H …)` literal in
+ * place, or return null to leave achromatic literals untouched: a grey must
+ * not pick up colour under a gain or a rotation.
+ */
+function scaleBareOklch(whole: string, inner: string, gain: string, shift: string): string | null {
   const parts = splitTopLevel(inner.trim());
   const chroma = Number(parts[1]);
   if (!Number.isFinite(chroma)) {
     // Unparseable chroma slot: wrap the whole literal instead of guessing.
-    return `oklch(from ${whole} l calc(c * ${gain}) h)`;
+    return `oklch(from ${whole} l calc(c * ${gain}) calc(h + ${shift}))`;
   }
   if (chroma < ACHROMATIC_CHROMA) return null;
-  return `oklch(${parts[0]} calc(${parts[1]} * ${gain}) ${parts.slice(2).join(" ")})`;
+  const tail = parts.length > 3 ? ` ${parts.slice(3).join(" ")}` : "";
+  return `oklch(${parts[0]} calc(${parts[1]} * ${gain}) ${rotateHue(parts[2]!, shift)}${tail})`;
 }
 
 /** Split on top-level whitespace, keeping parenthesised groups whole. */
@@ -203,10 +228,14 @@ function splitTopLevel(text: string): string[] {
   return parts;
 }
 
-function surfaceBlockSelector(surfaceId: string, theme: string): string {
-  const axis =
-    surfaceId === BASE_SURFACE_ID ? ":not([data-surface])" : `[data-surface="${surfaceId}"]`;
-  return `html[${CHROMA_ATTRIBUTE}]${axis}[data-theme="${theme}"]${NOT_PRO}`;
+/**
+ * The base selectors carry `:not([data-surface])`/`:not([data-accent])` even
+ * though nothing writes those attributes any more: the base sheets key their
+ * own blocks that way, and the extra (0,1,0) is what keeps these blocks'
+ * specificity above the palettes they rewrite (see {@link proAccentBlockSelector}).
+ */
+function surfaceBlockSelector(theme: string): string {
+  return `html[${CHROMA_ATTRIBUTE}]:not([data-surface])[data-theme="${theme}"]${NOT_PRO}`;
 }
 
 /**
@@ -215,79 +244,86 @@ function surfaceBlockSelector(surfaceId: string, theme: string): string {
  * the accented header re-saturates with the rest of the accent. The gain
  * property declared on `<html>` by the light block inherits into the island.
  */
-function accentBlockSelectors(accentId: string, theme: string): string[] {
-  const axis =
-    accentId === BASE_ACCENT_ID ? ":not([data-accent])" : `[data-accent="${accentId}"]`;
-  const own = `html[${CHROMA_ATTRIBUTE}]${axis}[data-theme="${theme}"]${NOT_PRO}`;
+function accentBlockSelectors(theme: string): string[] {
+  const own = `html[${CHROMA_ATTRIBUTE}]:not([data-accent])[data-theme="${theme}"]${NOT_PRO}`;
   if (theme !== "dark") return [own];
   return [
     own,
-    `html[${CHROMA_ATTRIBUTE}]${axis}[data-theme="light"]${NOT_PRO} .${CHROME_DARK_CLASS}`,
+    `html[${CHROMA_ATTRIBUTE}]:not([data-accent])[data-theme="light"]${NOT_PRO} .${CHROME_DARK_CLASS}`,
   ];
 }
 
 /**
- * One accent's Pro block in one scheme. Shape and order follow the parent
+ * The accent's Pro block in one scheme. Shape and order follow the parent
  * axes: engage attribute, accent axis, scheme, then the style key. Four
- * attributes on `html` is (0,4,1) — one above both `pro-theme.css`'s palette
- * (which tops out at (0,3,1) for its dark seeds) and the accent sheet's Pro
- * blocks at (0,3,1), so the wrapped seeds win on specificity rather than on
- * where the bundler puts the `<link>`.
+ * attribute-weight simple selectors on `html` is (0,4,1) — one above both
+ * `pro-theme.css`'s palette (which tops out at (0,3,1) for its dark seeds)
+ * and the accent sheet's Pro block at (0,3,1), so the wrapped seeds win on
+ * specificity rather than on where the bundler puts the `<link>`.
  *
  * No dark-chrome island, unlike {@link accentBlockSelectors}: Pro's charcoal
  * rails read `--ei-accent-on-dark`, which is scheme-independent by design and
  * wrapped at the same value in both halves, so whichever half matches the
  * root already re-saturates the rails by inheritance.
  */
-function proAccentBlockSelector(accentId: string, theme: string): string {
-  const axis =
-    accentId === BASE_ACCENT_ID ? ":not([data-accent])" : `[data-accent="${accentId}"]`;
-  return `html[${CHROMA_ATTRIBUTE}]${axis}[data-theme="${theme}"][data-visual-style="pro"]`;
+function proAccentBlockSelector(theme: string): string {
+  return `html[${CHROMA_ATTRIBUTE}]:not([data-accent])[data-theme="${theme}"][data-visual-style="pro"]`;
 }
+
+type AxisProperties = {
+  readonly gain: string;
+  readonly level: string;
+  readonly hue: string;
+};
+
+const SURFACE_AXIS: AxisProperties = {
+  gain: SURFACE_GAIN_PROPERTY,
+  level: SURFACE_LEVEL_PROPERTY,
+  hue: SURFACE_HUE_PROPERTY,
+};
+
+const ACCENT_AXIS: AxisProperties = {
+  gain: ACCENT_GAIN_PROPERTY,
+  level: ACCENT_LEVEL_PROPERTY,
+  hue: ACCENT_HUE_PROPERTY,
+};
 
 function chromaBlock(
   selectors: readonly string[],
   tokens: SchemeTokens,
-  gainProperty: string,
-  levelProperty: string,
+  axis: AxisProperties,
   authored: number,
 ): string {
   const declarations: string[] = [];
   for (const [token, value] of Object.entries(tokens)) {
-    const { text, wrapped } = wrapChromaValue(value, gainProperty);
+    const { text, wrapped } = wrapChromaValue(value, axis.gain, axis.hue);
     if (wrapped > 0) declarations.push(`  ${token}: ${text};`);
   }
   if (declarations.length === 0) return "";
   const denominator = authored.toFixed(4);
-  const gain = `  ${gainProperty}: calc(var(${levelProperty}, ${denominator}) / ${denominator});`;
+  const gain = `  ${axis.gain}: calc(var(${axis.level}, ${denominator}) / ${denominator});`;
   return `${selectors.join(",\n")} {\n${gain}\n${declarations.join("\n")}\n}\n`;
 }
 
 /**
- * Authored levels per colourway — the slider's resting position, its tick, and
- * the gain denominators. Surfaces differ per scheme (a pale light panel sits at
- * a different level than its dark sibling); an accent is one swatch for both.
- * Achromatic colourways are omitted: they have no level, and their blocks are
- * never emitted.
+ * Authored levels of the base colourways — the sliders' resting positions,
+ * their ticks, and the gain denominators. The surface differs per scheme (the
+ * pale light panel sits at a different level than its dark sibling); the
+ * accent is one swatch for both.
  */
 export function buildChromaLevels(): {
   surfaces: Record<string, { dark: number; light: number }>;
   accents: Record<string, number>;
 } {
-  const surfaces: Record<string, { dark: number; light: number }> = {};
-  for (const surface of SURFACES) {
-    if (surface.achromatic) continue;
-    surfaces[surface.id] = {
-      dark: round4(authoredLevel(surface.tint.dark)),
-      light: round4(authoredLevel(surface.tint.light)),
-    };
-  }
-  const accents: Record<string, number> = {};
-  for (const accent of ACCENTS) {
-    if (accent.achromatic) continue;
-    accents[accent.id] = round4(authoredLevel(accent.swatch));
-  }
-  return { surfaces, accents };
+  return {
+    surfaces: {
+      [BASE_SURFACE_ID]: {
+        dark: round4(authoredLevel(BASE_SURFACE_TINT.dark)),
+        light: round4(authoredLevel(BASE_SURFACE_TINT.light)),
+      },
+    },
+    accents: { [BASE_ACCENT_ID]: round4(authoredLevel(BASE_ACCENT_SWATCH)) },
+  };
 }
 
 function round4(value: number): number {
@@ -298,90 +334,83 @@ const HEADER = `/* GENERATED FILE — do not edit by hand.
    Source: src/theme/chromaStylesheet.ts
    Regenerate: npm run generate:chroma-css
 
-   The saturation appearance axis. Loaded ONLY by the pre-paint bootstrap —
-   never imported by the application bundle — on every page whose build leaves
-   a colour axis unlocked: the bootstrap paints the reader's saved level or the
-   site default. Every block requires html[${CHROMA_ATTRIBUTE}] and computes one gain,
-   level ÷ authored-level, applied to the chroma of every chromatic literal in
-   its colourway's tokens through relative colour syntax. Lightness and hue are
-   never touched. An unset level falls back to the authored denominator, so a
-   matched block with no level on its axis is inert.
+   The saturation and hue appearance axes. Loaded ONLY by the pre-paint
+   bootstrap — never imported by the application bundle — on every page whose
+   build leaves a colour axis unlocked: the bootstrap paints the reader's
+   saved values or the site defaults. Every block requires html[${CHROMA_ATTRIBUTE}]
+   and computes one gain, level ÷ authored-level, applied to the chroma of
+   every chromatic literal in the base palette's tokens through relative
+   colour syntax, while each literal's hue slot gains + var(--dw-*-hue, 0deg).
+   Lightness is never touched, and hue is periodic in oklch() so plain
+   addition needs no wrap-around. Unset properties fall back to the authored
+   denominator and 0deg, so a matched block with nothing on its axis is inert.
 
    The harm-reduction ramp, dose tiers and plateau tiers are structurally
    absent: the Fun blocks' input token maps are filtered by paletteTokenRole,
-   which routes every semantic family away from both appearance axes, and the
+   which routes every semantic family away from the appearance axes, and the
    Pro accent blocks re-seat only the nine --ei-* accent seeds. Fun blocks
-   carry the same :where() Pro guard as the base sheets; the accent axis also
-   emits Pro blocks, keyed [data-visual-style="pro"], whose gain denominator is
-   the Pro ramp's own --ei-accent level per scheme. The surface axis emits no
-   Pro half: Pro's one charcoal family is effectively achromatic. Graphite and
-   Neutral are achromatic and emit nothing. */
+   carry the same :where() Pro guard as the base sheets; the accent axes also
+   emit Pro blocks, keyed [data-visual-style="pro"], whose gain denominator is
+   the Pro ramp's own --ei-accent level per scheme. The surface axes emit no
+   Pro half: Pro's one charcoal family is effectively achromatic. Only the
+   base colourways exist now — every other look is a (hue, level) point. */
 `;
 
-/** The whole stylesheet. Deterministic: declaration order of SURFACES/ACCENTS, dark before light. */
+/** The whole stylesheet. Deterministic: surface then accent then Pro, dark before light. */
 export function buildChromaStylesheetCss(): string {
   const blocks: string[] = [];
 
-  // The surface axis is Fun-only, decided from the authored literals rather
-  // than assumed: Pro ships one charcoal/paper family regardless of
-  // data-surface (`src/styles/pro-theme.css`), and measured through
-  // `chromaMath` its dark seeds (#131313…#212121, borders #3f3f3f/#808080)
-  // are pure grey — C = 0 — while the light seeds carry only the deliberate
-  // trace of warmth, C 0.003–0.012 straddling ACHROMATIC_CHROMA's 0.005 line
-  // (paper #f6f5f1 C 0.0054, sunk #efeee9 C 0.0067, deep #e4e2db C 0.0097).
-  // Ramping a whisper is Graphite's situation exactly, so Pro's surface is
-  // treated as achromatic: no Pro surface block, and the panel keeps the
-  // surface slider disabled on Pro.
-  for (const surface of SURFACES) {
-    if (surface.achromatic) continue;
-    const tokens = (surfaceFunTokens as Record<string, ColourwayTokens>)[surface.id];
-    if (!tokens) throw new Error(`No generated tokens for surface "${surface.id}"`);
-    for (const theme of ["dark", "light"] as const) {
-      blocks.push(
-        chromaBlock(
-          [surfaceBlockSelector(surface.id, theme)],
-          tokens[theme],
-          SURFACE_GAIN_PROPERTY,
-          SURFACE_LEVEL_PROPERTY,
-          authoredLevel(surface.tint[theme]),
-        ),
-      );
-    }
+  // The surface axes are Fun-only, decided from the authored literals rather
+  // than assumed: Pro ships one charcoal/paper family regardless of surface
+  // (`src/styles/pro-theme.css`), and measured through `chromaMath` its dark
+  // seeds (#131313…#212121, borders #3f3f3f/#808080) are pure grey — C = 0 —
+  // while the light seeds carry only the deliberate trace of warmth, C
+  // 0.003–0.012 straddling ACHROMATIC_CHROMA's 0.005 line (paper #f6f5f1 C
+  // 0.0054, sunk #efeee9 C 0.0067, deep #e4e2db C 0.0097). Ramping or
+  // rotating a whisper would surface noise, so Pro's surface is treated as
+  // achromatic: no Pro surface block, and the panel keeps both surface
+  // sliders disabled on Pro.
+  const surfaceTokens = (surfaceFunTokens as Record<string, ColourwayTokens>)[BASE_SURFACE_ID];
+  if (!surfaceTokens) throw new Error(`No generated tokens for surface "${BASE_SURFACE_ID}"`);
+  for (const theme of ["dark", "light"] as const) {
+    blocks.push(
+      chromaBlock(
+        [surfaceBlockSelector(theme)],
+        surfaceTokens[theme],
+        SURFACE_AXIS,
+        authoredLevel(BASE_SURFACE_TINT[theme]),
+      ),
+    );
   }
 
-  for (const accent of ACCENTS) {
-    if (accent.achromatic) continue;
-    const tokens = (accentFunTokens as Record<string, ColourwayTokens>)[accent.id];
-    if (!tokens) throw new Error(`No generated tokens for accent "${accent.id}"`);
-    for (const theme of ["dark", "light"] as const) {
-      blocks.push(
-        chromaBlock(
-          accentBlockSelectors(accent.id, theme),
-          tokens[theme],
-          ACCENT_GAIN_PROPERTY,
-          ACCENT_LEVEL_PROPERTY,
-          authoredLevel(accent.swatch),
-        ),
-      );
-    }
-    // The Pro half: the same accent, worn as the nine --ei-* seeds. The gain
-    // denominator is the Pro ramp's own authored level — per scheme, because
-    // the light and dark ramps sit at different levels — measured on the
-    // representative seed shared with the slider rail (see
-    // proAccentRepresentativeSeed), so an unset level leaves Pro inert too.
-    for (const theme of ["dark", "light"] as const) {
-      const seed = proAccentRepresentativeSeed(accent, theme);
-      if (seed === null) continue;
-      blocks.push(
-        chromaBlock(
-          [proAccentBlockSelector(accent.id, theme)],
-          { ...accent.pro![theme] },
-          ACCENT_GAIN_PROPERTY,
-          ACCENT_LEVEL_PROPERTY,
-          authoredLevel(seed),
-        ),
-      );
-    }
+  const accentTokens = (accentFunTokens as Record<string, ColourwayTokens>)[BASE_ACCENT_ID];
+  if (!accentTokens) throw new Error(`No generated tokens for accent "${BASE_ACCENT_ID}"`);
+  for (const theme of ["dark", "light"] as const) {
+    blocks.push(
+      chromaBlock(
+        accentBlockSelectors(theme),
+        accentTokens[theme],
+        ACCENT_AXIS,
+        authoredLevel(BASE_ACCENT_SWATCH),
+      ),
+    );
+  }
+  // The Pro half: the same accent axes, worn as the nine --ei-* seeds. The
+  // gain denominator is the Pro ramp's own authored level — per scheme,
+  // because the light and dark ramps sit at different levels — measured on
+  // the representative seed shared with the slider rail (see
+  // proAccentRepresentativeSeed), so an unset level leaves Pro inert too.
+  for (const theme of ["dark", "light"] as const) {
+    const seed = proAccentRepresentativeSeed(BASE_ACCENT_PRO_SEEDS, theme);
+    if (seed === null) continue;
+    blocks.push(
+      chromaBlock(
+        [proAccentBlockSelector(theme)],
+        { ...BASE_ACCENT_PRO_SEEDS[theme] },
+        ACCENT_AXIS,
+        authoredLevel(seed),
+      ),
+    );
   }
 
   return `${HEADER}\n${blocks.filter(Boolean).join("\n")}`;

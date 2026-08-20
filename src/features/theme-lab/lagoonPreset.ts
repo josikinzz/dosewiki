@@ -103,10 +103,10 @@ import {
  * this is the authored derivation doing what it does at a low-chroma hue, and
  * both readings clear the floor.
  *
- * Brand-band leaks: zero, measured in both themes with
- * `accents.immunity.test.ts`'s own test — no token whose authored value sits
- * within 25° of hue 326 at chroma >= 0.05 survives unchanged under Lagoon, so the
- * `teal` accent needs no named leak exemption.
+ * Brand-band leaks: zero, measured in both themes when the colourway shipped
+ * as a reader-facing accent (with the then-live `accents.immunity.test.ts`) —
+ * no token whose authored value sits within 25° of hue 326 at chroma >= 0.05
+ * survived unchanged under Lagoon.
  *
  * Kept as its own module because `palettePresets.ts` was decomposed to stay under
  * its cleanup budget, and the five accent colourways it shed into

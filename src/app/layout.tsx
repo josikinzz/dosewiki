@@ -5,8 +5,6 @@ import { PUBLIC_SITE, buildSiteAssetUrl, buildSiteUrl } from "@server/next/publi
 import { SITE_FLAVOR, SITE_FLAVOR_CONFIG } from "@/config/siteFlavor";
 import { buildZodJitlessBootstrapScript } from "@server/next/zodBrowserPolicy";
 import {
-  BASE_ACCENT,
-  BASE_SURFACE,
   THEME_META_ID,
   buildThemeBootstrapScript,
   getAppearanceMetaColor,
@@ -76,12 +74,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       data-site={SITE_FLAVOR}
       data-theme={initialAppearance.colorScheme}
       data-visual-style={initialAppearance.visualStyle}
-      {...(initialAppearance.surface === BASE_SURFACE
-        ? {}
-        : { "data-surface": initialAppearance.surface })}
-      {...(initialAppearance.accent === BASE_ACCENT
-        ? {}
-        : { "data-accent": initialAppearance.accent })}
       suppressHydrationWarning
       className={rootFontClassName}
     >
@@ -124,7 +116,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <ThemeProvider
           initialColorScheme={initialAppearance.colorScheme}
           initialVisualStyle={initialAppearance.visualStyle}
-          initialSurface={initialAppearance.surface}
           isVisualStyleLocked={isVisualStyleLocked}
         >
           <RouteChrome homeConstructionMode={homeConstructionMode} />

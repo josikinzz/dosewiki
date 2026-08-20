@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 
+import { getPreset } from "@/features/theme-lab/palettePresets";
 import {
   GRID,
   SWATCH_TOLERANCE,
@@ -8,39 +9,50 @@ import {
   read,
   toHex,
 } from "@/test/fixtures/accentAppearanceGrid";
-import { ACCENTS, BASE_ACCENT_ID, PRO_ACCENT_SEED_NAMES, getAccent, isAccent } from "./accents";
+import {
+  BASE_ACCENT_ID,
+  BASE_ACCENT_PRO_SEEDS,
+  BASE_ACCENT_SWATCH,
+  LEGACY_ACCENT_TO_HUE,
+  PRO_ACCENT_SEED_NAMES,
+  isAccent,
+} from "./accents";
 import {
   ACCENT_ATTRIBUTE,
-  ACCENT_STYLESHEET_PATH,
   accentDefaultProBlockSelector,
-  accentFunBlockSelector,
   buildAccentStylesheetCss,
 } from "./accentStylesheet";
 import { paletteTokenRole } from "./paletteOwnership";
-import { ACCENT_STORAGE_KEY, BASE_ACCENT, SUPPORTED_ACCENTS } from "./index";
 
 /**
- * The accent table, and the shape of what it emits.
+ * What remains of the accent axis, and the shape of what it emits.
  *
  * The axis is measured rather than asserted, and the measuring apparatus — the cascade
  * resolver, the colour maths and the resolved appearance grid — is
- * `src/test/fixtures/accentAppearanceGrid.ts`. The suite is split across four files by concern,
- * all reading that one grid:
+ * `src/test/fixtures/accentAppearanceGrid.ts`. The suite is split across three files:
  *
- * - this file — the table's structural invariants, the seed key-lists, and swatch honesty.
- * - `accents.contrast.test.ts` — the canvas floors, ink-on-fill, Pro's budgets, the grey floor.
- * - `accents.immunity.test.ts` — harm-reduction immunity and the brand-band leak list.
- * - `accents.axis.test.ts` — containment, the generated selectors, and the bootstrap.
+ * - this file — the base seeds, swatch honesty, and the legacy migration table.
+ * - `accents.contrast.test.ts` — the canvas floors, ink-on-fill, and Pro's budgets.
+ * - `accents.axis.test.ts` — containment and the generated stylesheet.
  */
 
-describe("accent table", () => {
-  it("agrees with the manifest about which accents exist", () => {
-    expect([...SUPPORTED_ACCENTS]).toEqual(ACCENTS.map((accent) => accent.id));
-    // Seven, and the seven the contract settled, in order. Named rather than counted: a set that
-    // silently grew or lost a member would still satisfy a length check. Order is load-bearing
-    // twice over — it is the emission order in the generated sheet and the menu order in the cog
-    // — so `default` leads and `teal`, the newest row, trails.
-    expect(ACCENTS.map((accent) => accent.id)).toEqual([
+/** The authored base brand hue, read off the sheet rather than restated. */
+function baseBrandHue(): number {
+  const match = /--h-brand:\s*(\d+)\s*;/.exec(read("src/styles/site-colors.css"));
+  expect(match, "site-colors.css no longer declares --h-brand").not.toBeNull();
+  return Number(match![1]);
+}
+
+/* -------------------------------------------------------------------------
+ * The migration table.
+ * ---------------------------------------------------------------------- */
+
+describe("legacy accent migration", () => {
+  it("keeps exactly the seven retired ids as vocabulary, in the settled order", () => {
+    // Named rather than counted: a set that silently grew or lost a member would still satisfy
+    // a length check. The order is the retired cog's menu order, kept stable because the table
+    // is frozen history rather than a live registry.
+    expect(Object.keys(LEGACY_ACCENT_TO_HUE)).toEqual([
       "default",
       "blue",
       "green",
@@ -49,29 +61,55 @@ describe("accent table", () => {
       "neutral",
       "teal",
     ]);
-    expect(BASE_ACCENT).toBe(BASE_ACCENT_ID);
-    expect(ACCENT_STORAGE_KEY).toBe("dosewiki-accent");
-    expect(ACCENT_ATTRIBUTE).toBe("data-accent");
-  });
-
-  it("degrades an unknown accent to the default rather than erroring", () => {
-    for (const accent of ACCENTS) expect(isAccent(accent.id)).toBe(true);
-    // A colour scheme, a visual style and a surface are the three ids most likely to arrive here
-    // by mistake, from a mis-keyed storage read or a hand-typed attribute. None is an accent, and
-    // each has to land on the default rather than on a half-applied block. `orchid` is the sharp
-    // one: it is a live id on the surface axis, written to the same root element, so a resolver
-    // that accepted it would paint a colourway the cog never advertised on the accent row.
+    for (const id of Object.keys(LEGACY_ACCENT_TO_HUE)) expect(isAccent(id)).toBe(true);
+    // A colour scheme, a visual style and a retired surface id are the values most likely to
+    // arrive by mistake from a mis-keyed storage read. None is an accent id.
     expect(isAccent("dark")).toBe(false);
     expect(isAccent("pro")).toBe(false);
     expect(isAccent("orchid")).toBe(false);
-    expect(getAccent("orchid").id).toBe(BASE_ACCENT_ID);
-    expect(getAccent(null).id).toBe(BASE_ACCENT_ID);
-    expect(getAccent("blue").funPresetId).toBe("abyss");
-    expect(getAccent("green").funPresetId).toBe("canopy");
-    expect(getAccent("red").funPresetId).toBe("garnet");
-    expect(getAccent("amber").funPresetId).toBe("sunset");
-    expect(getAccent("neutral").funPresetId).toBe("graphite");
-    expect(getAccent("teal").funPresetId).toBe("lagoon");
+    expect(isAccent(null)).toBe(false);
+  });
+
+  it("maps every retired chromatic accent to its colourway's authored hue delta", () => {
+    const base = baseBrandHue();
+
+    // Each retired accent wore one Fun colourway, and the colourway's authored `--h-brand` is
+    // the hue the reader actually saw. The migration hue is that angle minus the base's,
+    // normalised — asserted against the authored seeds (which live on as the Theme Lab's
+    // preset payloads) so the frozen table cannot silently disagree with what shipped.
+    const WORE: Record<string, string> = {
+      blue: "abyss",
+      green: "canopy",
+      red: "garnet",
+      amber: "sunset",
+      teal: "lagoon",
+    };
+
+    for (const [accentId, presetId] of Object.entries(WORE)) {
+      const authored = Number(getPreset(presetId).overrides.dark["--h-brand"]);
+      expect(Number.isFinite(authored), `${presetId} authors no --h-brand`).toBe(true);
+
+      const expected = (((authored - base) % 360) + 360) % 360;
+      const entry = LEGACY_ACCENT_TO_HUE[accentId as keyof typeof LEGACY_ACCENT_TO_HUE];
+
+      expect(entry.hue, `${accentId}: expected ${authored} − ${base} mod 360`).toBe(expected);
+      // A chromatic colourway is a rotation, never a grey: a zero shift here would migrate a
+      // saved Blue reader onto the base plum.
+      expect(entry.hue).toBeGreaterThan(0);
+      expect(Number.isInteger(entry.hue)).toBe(true);
+      expect(entry.hue).toBeLessThan(360);
+      expect(entry.chroma).toBeUndefined();
+    }
+  });
+
+  it("maps the base and the achromatic accent onto the axes' own vocabulary", () => {
+    // The base accent is a zero rotation, not an absent row: the migration writes the mapped
+    // value, so the table has to answer for every id the old storage key could hold.
+    expect(LEGACY_ACCENT_TO_HUE.default).toEqual({ hue: 0 });
+    // Neutral was never a hue — it wore Graphite, the near-zero-chroma colourway — so its heir
+    // is saturation level 0. The chroma pin overrides a stored chroma level during migration;
+    // a hue rotation of grey would answer nothing.
+    expect(LEGACY_ACCENT_TO_HUE.neutral).toEqual({ hue: 0, chroma: 0 });
   });
 });
 
@@ -79,55 +117,43 @@ describe("accent table", () => {
  * The seeds.
  * ---------------------------------------------------------------------- */
 
-describe("accent seeds", () => {
-  it("keys the default accent by the attribute's absence rather than by its id", () => {
-    const defaultAccent = ACCENTS.find((accent) => accent.id === BASE_ACCENT_ID)!;
-    const css = buildAccentStylesheetCss([defaultAccent]);
+describe("base accent seeds", () => {
+  it("keys the base Pro block by the attribute's absence rather than by a value", () => {
+    const css = buildAccentStylesheetCss();
 
-    // The Fun half still emits nothing, and that is not tidiness: Fun's authored palette IS the
-    // default, so there is no override to make and a first Fun paint with no attribute is already
-    // correct. `null` rather than a colourway id is what says so.
-    expect(defaultAccent.funPresetId).toBeNull();
-    for (const theme of ["light", "dark"]) {
-      expect(css).not.toContain(accentFunBlockSelector(BASE_ACCENT_ID, theme));
-    }
-
-    // The Pro half does emit, because pro-theme.css seeds Effect Index's teal and dose.wiki's Pro
-    // has to wear dose.wiki's hue. It is keyed by :not([data-accent]) — the absence the bootstrap
-    // actually writes — so no selector anywhere in the sheet names a value for this accent.
-    expect(defaultAccent.pro).not.toBeNull();
+    // The Fun half emits nothing, and that is not tidiness: Fun's authored palette IS the base
+    // accent, so there is no override to make and a first Fun paint is already correct. The Pro
+    // half does emit, because pro-theme.css seeds Effect Index's teal and dose.wiki's Pro has
+    // to wear dose.wiki's hue. It is keyed by :not([data-accent]) — nothing writes the retired
+    // attribute any more — so no selector in the sheet names an accent by value.
     for (const theme of ["light", "dark"]) {
       expect(css).toContain(accentDefaultProBlockSelector(theme));
     }
     expect(css).not.toContain(`${ACCENT_ATTRIBUTE}="`);
-    expect(read(ACCENT_STYLESHEET_PATH)).not.toContain(`${ACCENT_ATTRIBUTE}="${BASE_ACCENT_ID}"`);
   });
 
   it("declares exactly the Pro seeds the authored palette declares", () => {
     // Derived from pro-theme.css, not from a wish list: --ei-fade and --ei-logo-ink are paper
     // and ink rather than accent, so neither half carries them. --ei-accent-on-dark is authored
     // ONCE (pro-theme.css:134) under a selector list that already includes the dark root, so the
-    // authored value is scheme-independent — but an accent's blocks are per-scheme, so both
-    // halves have to restate it or the dark half resolves the authored teal. This assertion also
+    // authored value is scheme-independent — but the base accent's blocks are per-scheme, so
+    // both halves have to restate it or the dark half resolves the authored teal. This also
     // pins that the authored seed is never re-authored: Effect Index reads that literal.
     const skin = read("src/styles/pro-theme.css");
     expect(skin).toContain("--ei-accent-on-dark: #6fc4bb;");
     expect(skin.match(/--ei-accent-on-dark:/g)).toHaveLength(1);
 
-    for (const accent of ACCENTS) {
-      if (!accent.pro) continue;
-      expect(Object.keys(accent.pro.light), `${accent.id} light seeds`).toEqual([
-        ...PRO_ACCENT_SEED_NAMES.light,
-      ]);
-      expect(Object.keys(accent.pro.dark), `${accent.id} dark seeds`).toEqual([
-        ...PRO_ACCENT_SEED_NAMES.dark,
-      ]);
-    }
+    expect(Object.keys(BASE_ACCENT_PRO_SEEDS.light)).toEqual([...PRO_ACCENT_SEED_NAMES.light]);
+    expect(Object.keys(BASE_ACCENT_PRO_SEEDS.dark)).toEqual([...PRO_ACCENT_SEED_NAMES.dark]);
+    // One value per accent, not two: the chrome rails are charcoal in either scheme, so "the
+    // accent as it appears on a dark bar" cannot vary by scheme.
+    expect(BASE_ACCENT_PRO_SEEDS.light["--ei-accent-on-dark"]).toBe(
+      BASE_ACCENT_PRO_SEEDS.dark["--ei-accent-on-dark"],
+    );
   });
 
   it("emits no surface-owned tokens", () => {
-    const css = read(ACCENT_STYLESHEET_PATH);
-    for (const match of css.matchAll(/(--[a-z0-9-]+)\s*:/g)) {
+    for (const match of buildAccentStylesheetCss().matchAll(/(--[a-z0-9-]+)\s*:/g)) {
       expect(paletteTokenRole(match[1]), match[1]).not.toBe("surface");
     }
   });
@@ -140,18 +166,19 @@ describe("accent seeds", () => {
 describe("swatch honesty", () => {
   it.each(GRID.filter((entry) => entry.visualStyle === "fun" && entry.theme === "dark"))(
     "advertises what $label actually paints",
-    ({ accent, tokens }) => {
+    ({ tokens }) => {
       // Fun dark is the publication's opening appearance, so it is the one appearance a single
-      // dot can honestly stand for. Measuring it here is what stops a hand-picked swatch from
-      // describing a page nobody renders.
+      // dot can honestly stand for. BASE_ACCENT_SWATCH is what the hue slider's zero-shift end
+      // advertises; measuring it against the rendered token is what stops a hand-picked hex
+      // from describing a page nobody renders.
       const rendered = parseColor(tokens["--theme-accent"]);
-      const advertised = parseColor(accent.swatch);
+      const advertised = parseColor(BASE_ACCENT_SWATCH);
       const distance = deltaEok(advertised, rendered);
 
       expect(
         distance,
-        `${accent.id}: swatch ${accent.swatch} is ΔEok ${distance.toFixed(3)} from the rendered ` +
-          `Fun-dark --theme-accent ${toHex(rendered)}`,
+        `${BASE_ACCENT_ID}: swatch ${BASE_ACCENT_SWATCH} is ΔEok ${distance.toFixed(3)} from ` +
+          `the rendered Fun-dark --theme-accent ${toHex(rendered)}`,
       ).toBeLessThanOrEqual(SWATCH_TOLERANCE);
     },
   );

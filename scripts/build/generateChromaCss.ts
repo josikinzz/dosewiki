@@ -1,9 +1,9 @@
 #!/usr/bin/env bun
 /**
- * Emit the saturation appearance axis: the chroma-gain stylesheet the
- * pre-paint bootstrap injects for every reader (the site defaults are levels
- * too), plus the small generated manifest (`appearanceChroma.generated.json`)
- * carrying the stylesheet's content version and every colourway's authored level.
+ * Emit the saturation and hue appearance axes: the stylesheet the pre-paint
+ * bootstrap injects for every reader (the site defaults are values on the
+ * same axes), plus the small generated manifest (`appearanceChroma.generated.json`)
+ * carrying the stylesheet's content version and the base colourways' authored levels.
  *
  * The version is a content hash: the bootstrap embeds it as `?v=` on the
  * stylesheet URL, so engaged readers cache the file immutably and a palette

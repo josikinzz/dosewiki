@@ -3,7 +3,6 @@ import { resolve } from "node:path";
 import { act, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { getInitialAppearance } from "@/theme";
 import { AppearanceTestProvider } from "@/test/AppearanceTestProvider";
 import { ThemeLabLazy as ThemeLab } from "./ThemeLabLazy";
 import {
@@ -11,7 +10,7 @@ import {
   THEME_LAB_STORAGE_KEY,
   userLayerSelector,
 } from "./themeLabStorage";
-import { lookKey } from "./themeLabLook";
+import { DEFAULT_LOOK, lookKey } from "./themeLabLook";
 import { setThemeLabOpen } from "./themeLabStore";
 import { clearThemeBaselineCache } from "./presetBaselines";
 import { ALL_TOKEN_IDS, PALETTE_GROUPS, ESSENTIAL_IDS, getToken } from "./paletteTokens";
@@ -75,20 +74,17 @@ function stored() {
 const TITILLIUM = getFontChoice("titillium")!;
 
 /** One face row inside the editor's picker, scoped away from the catalog row
- *  behind it (whose accessible name also carries the face it is wearing). */
+ *  behind it (whose accessible name also carries the face it is wearing) and
+ *  from the appearance panel's "Surface" group, whose name also ends in
+ *  "face". */
 function faceButton(panel: HTMLElement, name: RegExp) {
-  return within(within(panel).getByRole("group", { name: /face$/ })).getByRole("button", { name });
+  return within(within(panel).getByRole("group", { name: /\bface$/ })).getByRole("button", { name });
 }
 
-/** The look `AppearanceTestProvider` opens on: the publication's own opening accent
- *  and surface, with the style pinned to Fun. Edits are keyed by look, so a seeded
- *  envelope has to name the look the panel will actually be editing. */
-const OPENING = getInitialAppearance();
-const OPEN_LOOK = lookKey({
-  visualStyle: "fun",
-  accent: OPENING.accent,
-  surface: OPENING.surface,
-});
+/** The look `AppearanceTestProvider` opens on: the style pinned to Fun. Edits are
+ *  keyed by look, so a seeded envelope has to name the look the panel will
+ *  actually be editing. */
+const OPEN_LOOK = lookKey(DEFAULT_LOOK);
 
 /** Envelope with one token pinned on the worn look's dark map. */
 function envelopeWithFont(tokenId: string, stack: string) {

@@ -279,11 +279,13 @@
     outline-offset: 3px;
   }
 
-  /* The saturation slider in the appearance panel. The track's gradient is
-     data — five stops of the active colourway at levels 0..1, painted as an
-     inline background on the wrapper by AppearanceAxes — so the recipe only
-     shapes the rail, the authored-level tick and the thumb. The input itself
-     is transparent and sits over the rail for the full-height hit target. */
+  /* The hue and saturation sliders in the appearance panel — one recipe for
+     both rails. The track's gradient is data, painted as an inline background
+     on the wrapper by AppearanceAxes: five stops of the axis's base colour at
+     levels 0..1 for a saturation rail, seven relative-colour rotations across
+     the hue circle for a hue rail. The recipe only shapes the rail, the
+     authored-position tick and the thumb. The input itself is transparent and
+     sits over the rail for the full-height hit target. */
   .theme-chroma-track {
     position: relative;
     display: flex;
@@ -302,9 +304,11 @@
     box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--theme-text-primary) 14%, transparent);
   }
 
-  /* Where the authored colour sits. --theme-chroma-tick is unitless 0..1; the
-     7px inset is half a thumb, because a range thumb's centre travels between
-     7px and width-7px rather than 0 and 100%. */
+  /* Where the authored colour sits: the authored saturation level as a
+     unitless 0..1 on a saturation rail, and 0 — the left edge — on a hue rail,
+     because the authored palette is always at 0°. The 7px inset is half a
+     thumb, because a range thumb's centre travels between 7px and width-7px
+     rather than 0 and 100%. */
   .theme-chroma-tick {
     position: absolute;
     top: 1px;

@@ -3,41 +3,59 @@ import { describe, expect, it } from "vitest";
 import { moleculeImageUrlForAppearance } from "./moleculeOverrideUrl";
 
 describe("moleculeImageUrlForAppearance", () => {
-  it("leaves non-neutral Fun URLs untouched in either color scheme", () => {
+  it("leaves saturated Fun URLs untouched in either color scheme", () => {
     expect(
       moleculeImageUrlForAppearance(
         "/molecules/classes/tryptamine.svg",
         "fun",
         "light",
-        "default",
+        0.65,
       ),
     ).toBe("/molecules/classes/tryptamine.svg");
-    expect(moleculeImageUrlForAppearance("/api/molecules/lsd?v=1", "fun", "dark", "blue")).toBe(
+    expect(moleculeImageUrlForAppearance("/api/molecules/lsd?v=1", "fun", "dark", 0.4)).toBe(
       "/api/molecules/lsd?v=1",
     );
   });
 
-  it("uses the Pro Dark molecule palette for neutral Fun", () => {
+  it("treats null as the site-default level, which is saturated and stays brand", () => {
     expect(
       moleculeImageUrlForAppearance(
         "/molecules/classes/tryptamine.svg",
         "fun",
         "light",
-        "neutral",
+        null,
+      ),
+    ).toBe("/molecules/classes/tryptamine.svg");
+  });
+
+  it("borrows Pro Dark bytes when the accent is fully desaturated on Fun", () => {
+    expect(
+      moleculeImageUrlForAppearance(
+        "/molecules/classes/tryptamine.svg",
+        "fun",
+        "light",
+        0,
       ),
     ).toBe("/molecules-ei-dark/classes/tryptamine.svg");
     expect(
-      moleculeImageUrlForAppearance("/api/molecules/lsd?v=1", "fun", "dark", "neutral"),
+      moleculeImageUrlForAppearance("/api/molecules/lsd?v=1", "fun", "dark", 0),
     ).toBe("/api/molecules/lsd?v=1&colorway=pro-dark");
   });
 
-  it("selects the Pro light and dark static directories", () => {
+  it("keeps the barest trace of saturation on the brand colourway", () => {
+    // The borrow triggers on exactly zero — grey — not on "low".
+    expect(
+      moleculeImageUrlForAppearance("/api/molecules/lsd?v=1", "fun", "dark", 0.01),
+    ).toBe("/api/molecules/lsd?v=1");
+  });
+
+  it("switches static class structures between the generated Pro directories", () => {
     expect(
       moleculeImageUrlForAppearance(
         "/molecules/classes/tryptamine.svg",
         "pro",
         "light",
-        "default",
+        null,
       ),
     ).toBe("/molecules-ei/classes/tryptamine.svg");
     expect(
@@ -45,22 +63,22 @@ describe("moleculeImageUrlForAppearance", () => {
         "/molecules-ei/classes/tryptamine.svg",
         "pro",
         "dark",
-        "neutral",
+        null,
       ),
     ).toBe("/molecules-ei-dark/classes/tryptamine.svg");
   });
 
   it("adds the requested Pro byte colorway to dynamic image routes", () => {
-    expect(moleculeImageUrlForAppearance("/api/molecules/lsd", "pro", "light", "default")).toBe(
+    expect(moleculeImageUrlForAppearance("/api/molecules/lsd", "pro", "light", null)).toBe(
       "/api/molecules/lsd?colorway=pro-light",
     );
     expect(
-      moleculeImageUrlForAppearance("/api/molecules/lsd?v=1", "pro", "dark", "neutral"),
+      moleculeImageUrlForAppearance("/api/molecules/lsd?v=1", "pro", "dark", 0),
     ).toBe("/api/molecules/lsd?v=1&colorway=pro-dark");
   });
 
   it("does not rewrite unrelated images", () => {
-    expect(moleculeImageUrlForAppearance("/images/logo.svg", "fun", "dark", "neutral")).toBe(
+    expect(moleculeImageUrlForAppearance("/images/logo.svg", "fun", "dark", 0)).toBe(
       "/images/logo.svg",
     );
   });

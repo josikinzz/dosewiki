@@ -79,8 +79,8 @@ export function AppearanceCog({
       </PopoverTrigger>
       <PopoverContent
         // Sized to its rows rather than the primitive's fixed w-72, so the panel carries no
-        // dead width when an axis is locked. Which row is widest depends on the pointer: the
-        // swatch strip at a fine one, the control row once the strip wraps at a coarse one.
+        // dead width when an axis is locked: with the colour axes as slider pairs, the
+        // control row is the widest thing left when both are.
         className="w-auto p-3 motion-reduce:animate-none"
         align="end"
         sideOffset={12}

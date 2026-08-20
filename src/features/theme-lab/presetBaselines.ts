@@ -1,4 +1,3 @@
-import { ACCENT_ATTRIBUTE } from "@/theme/accentStylesheet";
 import type { ColorScheme, VisualStyle } from "@/theme";
 import {
   THEME_LAB_OVERRIDE_STYLE_ID,
@@ -44,9 +43,8 @@ function emptyDefaults(): ThemeDefaults {
 
 /**
  * Put one attribute back exactly as it was found, where `null` means "was not
- * there" and has to stay not there: for the accent the absence *is* a value (the
- * default accent has no block to name), so writing an empty string back would
- * put the reader on an accent they never chose.
+ * there" and has to stay not there: a bare test render carries no visual style,
+ * and writing an empty string back would invent one the reader never had.
  */
 function restoreAttribute(root: HTMLElement, name: string, previous: string | null): void {
   if (previous === null) root.removeAttribute(name);
@@ -63,8 +61,8 @@ function restoreAttribute(root: HTMLElement, name: string, previous: string | nu
  * the first one is *written*, and every write lives inside the `try`. No path
  * through this function can strand an attribute — a throw out of
  * `buildOverrideCss` or `appendChild` unwinds through the same `finally` as a
- * clean pass, and the reader's page is handed back in the scheme, style and
- * accent it arrived in. Do not lift a write above the `try` for tidiness;
+ * clean pass, and the reader's page is handed back in the scheme and style it
+ * arrived in. Do not lift a write above the `try` for tidiness;
  * that is exactly the hole, and it is the one this function used to have.
  */
 function sampleDefaults(base: PaletteOverrides, visualStyle: VisualStyle): ThemeDefaults {
@@ -75,32 +73,22 @@ function sampleDefaults(base: PaletteOverrides, visualStyle: VisualStyle): Theme
   // Reads only, and all of them, before anything is written.
   const previousTheme = root.getAttribute("data-theme");
   const previousStyle = root.getAttribute(STYLE_ATTRIBUTE);
-  const previousAccent = root.getAttribute(ACCENT_ATTRIBUTE);
   const overrideEl = document.getElementById(THEME_LAB_OVERRIDE_STYLE_ID);
   const overrideText = overrideEl?.textContent ?? "";
   const sample = document.createElement("style");
   sample.id = SAMPLE_STYLE_ID;
 
   try {
-    // Four things carry the reader's look on top of the authored stylesheet, and
-    // the split between them is the whole design: two are layers the editor is
-    // editing *over* and are **neutralized**; the other two are the base the editor
-    // is editing and are **held** — one staged from the argument, one simply never
-    // touched.
+    // Three things carry the reader's look on top of the authored stylesheet,
+    // and the split between them is the whole design: one is a layer the editor
+    // is editing *over* and is **neutralized**; the other two are the base the
+    // editor is editing and are **held** — one staged from the argument, one
+    // simply never touched.
     //
-    // Neutralized, or the "pristine" sample comes back carrying the very values it
-    // is supposed to be the baseline for. First the injected element, which holds
-    // the visitor's own edits on the look being sampled…
+    // Neutralized, or the "pristine" sample comes back carrying the very values
+    // it is supposed to be the baseline for: the injected element, which holds
+    // the visitor's own edits on the look being sampled.
     if (overrideEl) overrideEl.textContent = "";
-
-    // …then the accent attribute, which switches on a compiled accent block in the
-    // generated sheet — a Fun colourway in Fun, `--ei-*` seeds in Pro. Left in
-    // place it breaks the delete-on-equal rule outright: an editor whose token
-    // value happens to match the accent's would have their edit read as "same as
-    // pristine" and silently dropped, when the accent is a layer they are editing
-    // *over*. Removed rather than re-pointed, because `base` is the authoritative
-    // statement of what values this sample is supposed to carry of its own.
-    root.removeAttribute(ACCENT_ATTRIBUTE);
 
     // Held, not neutralized — the mirror case, and the one it is tempting to get
     // wrong. `pro-theme.css` re-seats hundreds of `--theme-*` tokens as the *base*
@@ -116,7 +104,7 @@ function sampleDefaults(base: PaletteOverrides, visualStyle: VisualStyle): Theme
     // Staged from the argument rather than read off the document because the two
     // writers fire in a fixed order the source does not show: the one appearance
     // owner writes `data-visual-style` from a *passive* effect
-    // (`src/context/ThemeContext.tsx:213-228`) while the panel samples from a
+    // (`src/context/ThemeContext.tsx`) while the panel samples from a
     // *layout* effect (`src/features/theme-lab/ThemeLab.tsx`), and the
     // layout effect runs before the passive write. On the commit that flips the
     // cog the React value is already the new style and the attribute is still the
@@ -125,15 +113,15 @@ function sampleDefaults(base: PaletteOverrides, visualStyle: VisualStyle): Theme
     // which at least re-samples on remount. Staging makes the sample agree with
     // the key it is filed under whichever of the two effects lands first.
     //
-    // The surface attribute is held on the same terms, which is why it is absent
-    // from this function entirely: its compiled block *is* the palette these
-    // baselines are the baseline of, so stripping it would make every reset
-    // restore the base surface's colour instead of the one the reader is on.
+    // The hue and saturation axes are held on the same terms, which is why they
+    // are absent from this function entirely: the reader's `--dw-*` properties
+    // and the chroma attribute rotate the palette these baselines are the
+    // baseline of, so stripping them would make every reset restore the base
+    // position's colour instead of the one the reader is on.
     root.setAttribute(STYLE_ATTRIBUTE, visualStyle);
 
     // Stage the caller's own layer at the same specificity the lab renders it at.
-    // The user-layer selector matches on `data-theme` alone, so stripping the
-    // accent attribute above does not silence what we are staging.
+    // The user-layer selector matches on `data-theme` alone.
     sample.textContent = buildOverrideCss(base);
     document.head.appendChild(sample);
 
@@ -150,7 +138,6 @@ function sampleDefaults(base: PaletteOverrides, visualStyle: VisualStyle): Theme
     sample.remove();
     restoreAttribute(root, "data-theme", previousTheme);
     restoreAttribute(root, STYLE_ATTRIBUTE, previousStyle);
-    restoreAttribute(root, ACCENT_ATTRIBUTE, previousAccent);
     if (overrideEl) overrideEl.textContent = overrideText;
   }
 
@@ -202,11 +189,11 @@ export function clearThemeBaselineCache(): void {
  * everything that paints the visitor's look left in place.
  *
  * The mirror image of the baseline sampler above: nothing is neutralized,
- * because an accent export wants the *rendered* value — the accent block, the
- * colourway and the editor's own edits included. It exists because an accent's
- * shape spans combinations the editor is not currently wearing: the Pro seeds
- * cannot be read off a Fun page, and the measured swatch is the Fun-dark
- * `--theme-accent` however the editor happens to be viewing it.
+ * because an export wants the *rendered* value — the reader's hue and
+ * saturation rotation and the editor's own edits included. It exists because an
+ * accent's shape spans combinations the editor is not currently wearing: the
+ * Pro seeds cannot be read off a Fun page, and the measured swatch is the
+ * Fun-dark `--theme-accent` however the editor happens to be viewing it.
  *
  * Synchronous like its neighbour, and it writes inside the `try` and restores
  * through the same helper, so no path leaves an attribute stranded and no

@@ -10,14 +10,14 @@ vi.mock("@/components/common/AppImage", () => ({
 }));
 
 function Harness({ src }: { src: string }) {
-  const { setAccent, setColorScheme, setVisualStyle } = useTheme();
+  const { setAccentChroma, setColorScheme, setVisualStyle } = useTheme();
   return (
     <>
       <button type="button" onClick={() => setVisualStyle("pro")}>Pro</button>
       <button type="button" onClick={() => setVisualStyle("fun")}>Fun</button>
       <button type="button" onClick={() => setColorScheme("dark")}>Dark</button>
-      <button type="button" onClick={() => setAccent("neutral")}>Neutral</button>
-      <button type="button" onClick={() => setAccent("default")}>Default accent</button>
+      <button type="button" onClick={() => setAccentChroma(0)}>Grey accent</button>
+      <button type="button" onClick={() => setAccentChroma(null)}>Default accent</button>
       <MoleculeImage src={src} alt="Structure" width={100} height={100} />
     </>
   );
@@ -27,7 +27,6 @@ describe("MoleculeImage", () => {
   beforeEach(() => {
     document.documentElement.dataset.theme = "light";
     document.documentElement.dataset.visualStyle = "fun";
-    delete document.documentElement.dataset.accent;
     localStorage.clear();
   });
 
@@ -37,7 +36,6 @@ describe("MoleculeImage", () => {
       <ThemeProvider
         initialColorScheme="light"
         initialVisualStyle="fun"
-        initialAccent="default"
         isVisualStyleLocked={false}
       >
         <Harness src="/molecules/classes/tryptamine.svg" />
@@ -56,8 +54,13 @@ describe("MoleculeImage", () => {
     await user.click(screen.getByRole("button", { name: "Fun" }));
     expect(image).toHaveAttribute("src", "/molecules/classes/tryptamine.svg");
 
-    await user.click(screen.getByRole("button", { name: "Neutral" }));
+    // Accent saturation zero is grey — the Fun page borrows Pro Dark's
+    // chemically differentiated bytes rather than flattening the structure.
+    await user.click(screen.getByRole("button", { name: "Grey accent" }));
     expect(image).toHaveAttribute("src", "/molecules-ei-dark/classes/tryptamine.svg");
+
+    await user.click(screen.getByRole("button", { name: "Default accent" }));
+    expect(image).toHaveAttribute("src", "/molecules/classes/tryptamine.svg");
   });
 
   it("changes dynamic route colorways without remounting", async () => {
@@ -66,7 +69,6 @@ describe("MoleculeImage", () => {
       <ThemeProvider
         initialColorScheme="light"
         initialVisualStyle="fun"
-        initialAccent="default"
         isVisualStyleLocked={false}
       >
         <Harness src="/api/molecules/lsd?v=published" />
@@ -89,7 +91,7 @@ describe("MoleculeImage", () => {
     await user.click(screen.getByRole("button", { name: "Fun" }));
     expect(image).toHaveAttribute("src", "/api/molecules/lsd?v=published");
 
-    await user.click(screen.getByRole("button", { name: "Neutral" }));
+    await user.click(screen.getByRole("button", { name: "Grey accent" }));
     expect(image).toHaveAttribute(
       "src",
       "/api/molecules/lsd?v=published&colorway=pro-dark",

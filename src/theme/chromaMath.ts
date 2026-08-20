@@ -14,7 +14,6 @@
  * directory, and the palette's other colour policy already lives here.
  */
 
-import type { Accent } from "./accents";
 
 const enum Channel {
   R = 0,
@@ -112,8 +111,7 @@ export function isChromaticLiteral(literal: string): boolean {
 
 /**
  * Where a colour already sits, as a level in 0..1. Achromatic colours have no
- * meaningful level; callers gate on their declared achromatic flag, and this
- * returns 0 for them.
+ * meaningful level, and this returns 0 for them.
  */
 export function authoredLevel(literal: string): number {
   const oklch = toOklch(literal);
@@ -145,15 +143,15 @@ export function atLevel(literal: string, level: number): string {
  * calls "authored" is exactly the level at which the emitted Pro block's gain
  * resolves to 1 — the two cannot diverge.
  *
- * Null for an accent declared achromatic (Neutral's slate computes to a
- * non-zero level, which is exactly why the declared flag decides, not a
- * threshold) or with no Pro half — the same gate block emission uses, so a
- * faded slider can never sit over a live block.
+ * Null when the ramp does not declare the seed — the same gate block emission
+ * uses, so a slider tick can never sit over a block that was never emitted.
  */
 export function proAccentRepresentativeSeed(
-  accent: Pick<Accent, "achromatic" | "pro">,
+  pro: {
+    readonly light: Readonly<Record<string, string>>;
+    readonly dark: Readonly<Record<string, string>>;
+  },
   scheme: "dark" | "light",
 ): string | null {
-  if (accent.achromatic || !accent.pro) return null;
-  return accent.pro[scheme]["--ei-accent"] ?? null;
+  return pro[scheme]["--ei-accent"] ?? null;
 }

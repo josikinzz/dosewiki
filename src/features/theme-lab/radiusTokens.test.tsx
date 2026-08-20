@@ -1,7 +1,6 @@
 import { act, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { getInitialAppearance } from "@/theme";
 import { AppearanceTestProvider } from "@/test/AppearanceTestProvider";
 import { ThemeLabLazy as ThemeLab } from "./ThemeLabLazy";
 import {
@@ -9,7 +8,7 @@ import {
   THEME_LAB_STORAGE_KEY,
   userLayerSelector,
 } from "./themeLabStorage";
-import { lookKey } from "./themeLabLook";
+import { DEFAULT_LOOK, lookKey } from "./themeLabLook";
 import { setThemeLabOpen } from "./themeLabStore";
 import { clearThemeBaselineCache } from "./presetBaselines";
 import { ALL_TOKEN_IDS, PALETTE_GROUPS, ESSENTIAL_IDS, getToken } from "./paletteTokens";
@@ -57,15 +56,10 @@ function stored() {
   return window.localStorage.getItem(THEME_LAB_STORAGE_KEY) ?? "";
 }
 
-/** The look `AppearanceTestProvider` opens on: the publication's own opening accent
- *  and surface, with the style pinned to Fun. Edits are keyed by look, so a seeded
- *  envelope has to name the look the panel will actually be editing. */
-const OPENING = getInitialAppearance();
-const OPEN_LOOK = lookKey({
-  visualStyle: "fun",
-  accent: OPENING.accent,
-  surface: OPENING.surface,
-});
+/** The look `AppearanceTestProvider` opens on: the style pinned to Fun. Edits are
+ *  keyed by look, so a seeded envelope has to name the look the panel will
+ *  actually be editing. */
+const OPEN_LOOK = lookKey(DEFAULT_LOOK);
 
 beforeEach(() => {
   installMockStorage();

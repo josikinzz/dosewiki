@@ -2,6 +2,8 @@ import fs from "node:fs";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
 import { userLayerSelector } from "@/features/theme-lab/themeLabStorage";
+import { buildAccentStylesheetCss } from "@/theme/accentStylesheet";
+import { buildSurfaceStylesheetCss } from "@/theme/surfaceStylesheet";
 
 /**
  * Structural guards for the Pro visual style. The properties asserted here are
@@ -23,8 +25,6 @@ const CONFIG_PATH = path.join(REPO_ROOT, "next.config.ts");
 const DOSEWIKI_ENTRY_PATH = path.join(REPO_ROOT, "src", "app", "_styles", "dosewiki.ts");
 const EFFECT_INDEX_ENTRY_PATH = path.join(REPO_ROOT, "src", "app", "_styles", "effectindex.ts");
 const SITE_COLORS_PATH = path.join(REPO_ROOT, "src", "styles", "site-colors.css");
-const SURFACE_CSS_PATH = path.join(REPO_ROOT, "src", "styles", "surface-tokens.generated.css");
-const ACCENT_CSS_PATH = path.join(REPO_ROOT, "src", "styles", "accent-tokens.generated.css");
 
 const STYLE_SCOPE = '[data-visual-style="pro"]';
 const LIGHT_SCHEME_SCOPE = `${STYLE_SCOPE}[data-theme="light"]`;
@@ -582,21 +582,18 @@ describe("pro visual style", () => {
  * any particular selector text. Hence computed specificity here: a rewrite that
  * keeps every string parsing but swaps two rungs has to fail.
  *
- * Rungs 2 and 4 are files rather than fixtures: `surface-tokens.generated.css`
- * and `accent-tokens.generated.css` both ship, and the selectors measured here
- * are read out of them. Each has two shapes at two different ranks — a Pro block
- * names three attributes (0,3,1) so it out-ranks the Pro palette it re-seeds on
- * specificity alone, while a Fun block names two (0,2,1) and merely ties it.
+ * Rungs 2 and 4 are the generated sheets, measured off the builders (`accents.axis.test.ts` /
+ * `surfaces.axis.test.ts` pin the checked-in files to the same builders). Each sheet has ONE
+ * shape now that the named colourways are retired: the surface sheet's base Fun block names
+ * two attributes through a bare `:not()` for (0,2,1), and the accent sheet's base Pro block
+ * names three for (0,3,1), so it out-ranks the Pro palette it re-seeds on specificity alone.
  *
- * That tie is the one place the ladder's reasoning is not "later wins", and it
- * is worth stating because the import order looks like it decides and does not.
- * Both generated sheets load AFTER pro-theme.css, so at (0,2,1) a Fun block
- * would take the tie and repaint a Pro page. Every Fun block therefore carries
- * `:where(:not([data-visual-style="pro"]))`, which cannot match a Pro root at
- * all and contributes nothing to specificity: it separates the two rungs
- * without moving either. Between rungs 2 and 4 the tie IS decided by source
- * order, and the accent sheet is imported last so that a reader's accent tints
- * the surface they chose rather than the other way round.
+ * That (0,2,1) tie is the one place the ladder's reasoning is not "later wins", and it is
+ * worth stating because the import order looks like it decides and does not. Both generated
+ * sheets load AFTER pro-theme.css, so at (0,2,1) the Fun block would take the tie and repaint
+ * a Pro page. It therefore carries `:where(:not([data-visual-style="pro"]))`, which cannot
+ * match a Pro root at all and contributes nothing to specificity: it separates the rungs
+ * without moving either.
  *
  * Rung 5 is no longer latent. The Theme Lab's Fun force-lock is gone, so an
  * editor wears Pro on `/dev/themes` and edits its `--ei-*` accent seeds there;
@@ -610,20 +607,9 @@ describe("pro visual style", () => {
 describe("cascade rank ladder", () => {
   const CHROME_DARK = ".theme-chrome-dark";
 
-  const surfaceSelectors = selectorsOf(read(SURFACE_CSS_PATH));
-  // Split on the POSITIVE Pro scope, for the same reason the accent split below does: a Fun
-  // block names the same attribute inside a :where(:not(…)) guard.
-  const proSurfaces = surfaceSelectors.filter((part) => part.startsWith(`html${STYLE_SCOPE}`));
-  const funSurfaces = surfaceSelectors.filter((part) => !part.startsWith(`html${STYLE_SCOPE}`));
-
-  const accentSelectors = selectorsOf(read(ACCENT_CSS_PATH));
-  // Split on the POSITIVE Pro scope. A Fun block names the same attribute inside a
-  // :where(:not(…)) guard, so `includes` would sort every Fun selector as a Pro one.
-  const proAccents = accentSelectors.filter((part) => part.startsWith(`html${STYLE_SCOPE}`));
-  const funAccents = accentSelectors.filter(
-    (part) => !part.startsWith(`html${STYLE_SCOPE}`) && !part.includes(CHROME_DARK),
-  );
-  /** Rung 4, measured out of the shipped sheet rather than asserted as a string. */
+  const funSurfaces = selectorsOf(buildSurfaceStylesheetCss());
+  const proAccents = selectorsOf(buildAccentStylesheetCss());
+  /** Rung 4, measured out of the builder rather than asserted as a string. */
   const PRO_ACCENT_BLOCK = proAccents[0];
 
   it("reads the selector forms the theme sheets actually use", () => {
@@ -652,20 +638,18 @@ describe("cascade rank ladder", () => {
     }
 
     expect(funSurfaces.length).toBeGreaterThan(0);
-    expect(proSurfaces.length).toBeGreaterThan(0);
     for (const selector of funSurfaces) expect(specificityOf(selector)).toEqual([0, 2, 1]);
-    for (const selector of proSurfaces) expect(specificityOf(selector)).toEqual([0, 3, 1]);
 
-    // Both shapes have to clear the authored blocks, and the base surface is the one that could
-    // quietly stop doing so: it is keyed on the attribute's ABSENCE, and the `:not()` is bare so
-    // that it keeps the (0,2,1) a named surface has. Wrapped in `:where()` it would drop to
-    // (0,1,1), below the authored light block it has to re-seat, and a reader with no surface
-    // saved would see the authored palette instead of the base surface's own.
-    const base = funSurfaces.filter((part) => part.includes(":not([data-surface])"));
-    expect(base.length).toBeGreaterThan(0);
-    expect(funSurfaces.filter((part) => part.includes('[data-surface="')).length).toBeGreaterThan(0);
+    // The one shape has to clear the authored blocks, and it is the shape that could quietly
+    // stop doing so: it is keyed on the retired attribute's ABSENCE, and the `:not()` is bare
+    // so that it keeps (0,2,1). Wrapped in `:where()` it would drop to (0,1,1), below the
+    // authored light block it has to re-seat, and a reader would see the authored palette
+    // instead of the base surface's own. The named colourways are retired, so a value selector
+    // reappearing means a colourway block came back without its axis.
+    for (const selector of funSurfaces) expect(selector).toContain(":not([data-surface])");
+    expect(funSurfaces.filter((part) => part.includes('[data-surface="'))).toEqual([]);
 
-    for (const selector of [...funSurfaces, ...proSurfaces]) {
+    for (const selector of funSurfaces) {
       for (const lower of [funRoot, funLight]) {
         expect(compareSpecificity(specificityOf(selector), specificityOf(lower))).toBeGreaterThan(0);
       }
@@ -694,29 +678,20 @@ describe("cascade rank ladder", () => {
     for (const selector of funSurfaces) {
       expect(selector).toContain(`:where(:not(${STYLE_SCOPE}))`);
     }
-
-    // And the Pro half of the surface axis wins on specificity rather than order, so it re-tints
-    // Pro's own palette from wherever the bundler drops it.
-    for (const selector of proSurfaces) {
-      expect(compareSpecificity(specificityOf(selector), specificityOf(`html${DARK_SCHEME_SCOPE}`))).toBeGreaterThan(0);
-    }
   });
 
   it("puts the Theme Lab's user layer above a generated accent block", () => {
-    // Both shapes come out of the shipped sheet, so a regenerated selector that
-    // changed rank fails here rather than passing against a stale string.
-    expect(proAccents.length).toBeGreaterThan(0);
-    expect(funAccents.length).toBeGreaterThan(0);
-    for (const selector of proAccents) expect(specificityOf(selector)).toEqual([0, 3, 1]);
-    // A Fun accent block ties a Fun surface block and the Pro palette at (0,2,1)
-    // and wins on source order, because this sheet is imported last. Its Pro
-    // guard is a :where(:not(…)), which contributes nothing, so carrying it
-    // cannot move the rung.
-    for (const selector of funAccents) {
-      expect(selector).toContain(`:where(:not(${STYLE_SCOPE}))`);
-      expect(specificityOf(selector)).toEqual([0, 2, 1]);
-      expect(compareSpecificity(specificityOf(selector), specificityOf(funSurfaces[0]))).toBe(0);
+    // Every shape comes out of the builder the checked-in sheet is pinned to, so a regenerated
+    // selector that changed rank fails here rather than passing against a stale string. The
+    // accent sheet is Pro-only now: one base block-pair at (0,3,1), keyed on the retired
+    // attribute's absence through a bare :not(), which is what beats the Pro palette it
+    // re-seeds from wherever the bundler drops it.
+    expect(proAccents.length).toBe(2);
+    for (const selector of proAccents) {
+      expect(specificityOf(selector)).toEqual([0, 3, 1]);
+      expect(selector).toContain(":not([data-accent])");
     }
+    expect(proAccents.filter((part) => part.includes('[data-accent="'))).toEqual([]);
     // The dark layer is a two-selector list: the root, and the dark-chrome
     // subtree island that keeps a dark header dark on a light page.
     const [darkRoot, darkIsland] = splitSelectorList(userLayerSelector("dark")).map((part) =>
@@ -736,7 +711,7 @@ describe("cascade rank ladder", () => {
     }
 
     // And still above every rung below 4, which is what a Fun edit relies on.
-    for (const lower of [funSurfaces[0], proSurfaces[0], `html${DARK_SCHEME_SCOPE}`]) {
+    for (const lower of [funSurfaces[0], `html${DARK_SCHEME_SCOPE}`]) {
       expect(compareSpecificity(specificityOf(darkRoot), specificityOf(lower))).toBeGreaterThan(0);
     }
   });

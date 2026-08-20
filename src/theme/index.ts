@@ -1,12 +1,16 @@
 import { SITE_FLAVOR_CONFIG } from "@/config/siteFlavor";
-import { isAccent, type AccentId } from "./accents";
-import { isSurface, LEGACY_ACCENT_TO_SURFACE, type SurfaceId } from "./surfaces";
+import { LEGACY_ACCENT_TO_HUE } from "./accents";
+import { BASE_SURFACE_ID, LEGACY_SURFACE_TO_HUE } from "./surfaces";
 import {
+  ACCENT_HUE_PROPERTY,
   ACCENT_LEVEL_PROPERTY,
   CHROMA_STYLESHEET_HREF,
   CHROMA_STYLESHEET_LINK_ID,
+  DEFAULT_ACCENT_HUE,
   DEFAULT_ACCENT_LEVEL,
+  DEFAULT_SURFACE_HUE,
   DEFAULT_SURFACE_LEVEL,
+  SURFACE_HUE_PROPERTY,
   SURFACE_LEVEL_PROPERTY,
 } from "./appearanceChroma";
 import tokenInterface from "./theme-token-interface.json";
@@ -32,29 +36,25 @@ export type ColorScheme = "light" | "dark";
 export type VisualStyle = "fun" | "pro";
 
 /**
- * The accent axis: which hue the interactive surface wears. Carried on the document root as
- * `data-accent`, and **absent for the default accent**.
- *
- * Absence is the design, not a shortcut. The default accent has no CSS block at all, so a
- * page painted before any script has run is already correct; only a reader who chose
- * something else pays for an attribute and a block. The other two axes cannot work that way
- * because each publication opens on its own point (Effect Index opens light and Pro), but
- * every publication opens on the authored accent.
- *
- * {@link AccentId} is the compile-time union; `accents.ts` holds the table each id resolves
- * to, including the Fun colourway and Pro `--ei-*` seeds the generated stylesheet carries.
+ * The colour axes: continuous hue rotations and saturation levels over the one authored
+ * palette (Orchid surfaces, the Default plum accent), carried as the `--dw-*-hue` and
+ * `--dw-*-level` custom properties the generated chroma stylesheet composes into every
+ * chromatic token. No colourway vocabulary reaches the document root any more — the retired
+ * `data-surface`/`data-accent` ids survive only as {@link LEGACY_SURFACE_TO_HUE} and
+ * {@link LEGACY_ACCENT_TO_HUE}, which map a stored id onto the hue rotation (and, for the
+ * achromatic Graphite/Neutral pair, the saturation level 0) that reproduces its look.
  */
-export type { AccentId } from "./accents";
-export { getAccent, isAccent, type Accent, type ProAccentSeeds } from "./accents";
-export type { SurfaceId } from "./surfaces";
-export { getSurface, isSurface, SURFACES, LEGACY_ACCENT_TO_SURFACE } from "./surfaces";
+export { isAccent, LEGACY_ACCENT_TO_HUE, type AccentId, type ProAccentSeeds } from "./accents";
+export { isSurface, LEGACY_SURFACE_TO_HUE, type SurfaceId } from "./surfaces";
 
-/** One resolved appearance: a point on all four axes. */
+/**
+ * One resolved appearance: a point on the two attribute axes. The colour axes (hue and
+ * saturation) are numeric, resolved separately from storage-or-default by the bootstrap
+ * and the provider.
+ */
 export type Appearance = {
   readonly colorScheme: ColorScheme;
   readonly visualStyle: VisualStyle;
-  readonly surface: SurfaceId;
-  readonly accent: AccentId;
 };
 
 /**
@@ -66,9 +66,6 @@ export const SUPPORTED_COLOR_SCHEMES =
   THEME_TOKEN_INTERFACE.supportedColorSchemes as readonly ColorScheme[];
 export const SUPPORTED_VISUAL_STYLES =
   THEME_TOKEN_INTERFACE.supportedVisualStyles as readonly VisualStyle[];
-export const SUPPORTED_ACCENTS = THEME_TOKEN_INTERFACE.supportedAccents as readonly AccentId[];
-export const SUPPORTED_SURFACES =
-  THEME_TOKEN_INTERFACE.supportedSurfaces as readonly SurfaceId[];
 
 /**
  * The appearance the stylesheets render with no root attribute present: dark values live on
@@ -77,26 +74,21 @@ export const SUPPORTED_SURFACES =
  */
 export const DEFAULT_COLOR_SCHEME = THEME_TOKEN_INTERFACE.defaultColorScheme as ColorScheme;
 export const DEFAULT_VISUAL_STYLE = THEME_TOKEN_INTERFACE.defaultVisualStyle as VisualStyle;
-/**
- * The accent the stylesheets render with no `data-accent` present. It is the same value
- * `accents.ts` declares as {@link BASE_ACCENT_ID} — stated in both places because the
- * manifest is what the bootstrap and the stylesheets agree through, and the table is what
- * the type system checks; `accents.test.ts` asserts they have not drifted apart.
- *
- * This is the *base* of the paint, not where a publication opens. Those were one value until
- * dose.wiki chose to open on Neutral; {@link AppearancePolicy.defaultAccent} is the opening
- * accent now, and only a publication that opens on this one ships no attribute.
- */
-export const BASE_ACCENT = THEME_TOKEN_INTERFACE.baseAccent as AccentId;
-export const BASE_SURFACE = THEME_TOKEN_INTERFACE.baseSurface as SurfaceId;
 
 export const COLOR_SCHEME_STORAGE_KEY = THEME_TOKEN_INTERFACE.colorSchemeStorageKey;
 export const VISUAL_STYLE_STORAGE_KEY = THEME_TOKEN_INTERFACE.visualStyleStorageKey;
+/**
+ * The retired colourway keys. Never written any more: the bootstrap and the provider read
+ * them only to migrate a saved colourway onto the hue axes, and the provider removes them
+ * once the migrated hue is persisted.
+ */
 export const ACCENT_STORAGE_KEY = THEME_TOKEN_INTERFACE.accentStorageKey;
 export const SURFACE_STORAGE_KEY = THEME_TOKEN_INTERFACE.surfaceStorageKey;
 export const APPEARANCE_STORAGE_KEY = THEME_TOKEN_INTERFACE.appearanceStorageKey;
 export const SURFACE_CHROMA_STORAGE_KEY = THEME_TOKEN_INTERFACE.surfaceChromaStorageKey;
 export const ACCENT_CHROMA_STORAGE_KEY = THEME_TOKEN_INTERFACE.accentChromaStorageKey;
+export const SURFACE_HUE_STORAGE_KEY = THEME_TOKEN_INTERFACE.surfaceHueStorageKey;
+export const ACCENT_HUE_STORAGE_KEY = THEME_TOKEN_INTERFACE.accentHueStorageKey;
 export const THEME_META_ID = THEME_TOKEN_INTERFACE.metaId;
 
 /**
@@ -141,20 +133,16 @@ export function isVisualStyle(value: string | null | undefined): value is Visual
  * from the build and its storage key is never read or written. That is what keeps a reader's
  * dose.wiki style choice from following them into Effect Index's identity.
  *
- * All three axes carry a `default*` here. The accent one used to be absent, on the reasoning
- * that every publication opened on the authored base — true until dose.wiki chose to open on
- * Neutral. {@link BASE_ACCENT} remains the accent the stylesheets paint with no attribute;
- * `defaultAccent` is where a publication opens, and the two are only the same value for a
- * publication that wants the authored base. A locked accent axis ignores `defaultAccent` and
- * resolves to {@link BASE_ACCENT}, because a lock means "wear the publication's own identity".
+ * The two attribute axes carry a `default*` here — each publication opens on its own point.
+ * The colour axes (hue and saturation, one pair per picker flag) carry none: their site
+ * defaults are the `DEFAULT_*` constants in `appearanceChroma.ts`, and a lock simply leaves
+ * the authored palette untouched.
  */
 export type AppearancePolicy = {
   readonly defaultColorScheme: ColorScheme;
   readonly showColorSchemeToggle: boolean;
   readonly defaultVisualStyle: VisualStyle;
   readonly showVisualStyleToggle: boolean;
-  readonly defaultAccent: AccentId;
-  readonly defaultSurface: SurfaceId;
   readonly showSurfacePicker: boolean;
   readonly showAccentPicker: boolean;
 };
@@ -179,45 +167,11 @@ export function getAppearanceMetaColor({
  * The appearance the server must render, and the appearance the bootstrap falls back to per
  * axis. Rendering both root attributes and the matching `theme-color` meta value from one
  * source keeps the first painted frame — page *and* browser chrome — off the wrong style.
- *
- * The accent opens on the publication's own {@link AppearancePolicy.defaultAccent}, except
- * under a lock, where it resolves to {@link BASE_ACCENT} — the locked axis wears the
- * publication's identity rather than a reader-facing opening choice. When the result is not
- * `BASE_ACCENT` the server must render `data-accent` for it, or the markup it ships and the
- * frame the bootstrap paints are different ones.
  */
 export function getInitialAppearance(policy: AppearancePolicy = SITE_FLAVOR_CONFIG): Appearance {
   return {
     colorScheme: policy.defaultColorScheme,
     visualStyle: policy.defaultVisualStyle,
-    surface: policy.showSurfacePicker ? policy.defaultSurface : BASE_SURFACE,
-    accent: policy.showAccentPicker ? policy.defaultAccent : BASE_ACCENT,
-  };
-}
-export type StoredAppearanceV4 = Appearance & { readonly version: 4 };
-
-export function resolveInitialAppearance(
-  policy: AppearancePolicy,
-  stored: Partial<Record<"visualStyle" | "colorScheme" | "surface" | "accent", string>> | null,
-): Appearance {
-  const initial = getInitialAppearance(policy);
-  const legacyAccent = policy.showAccentPicker && isAccent(stored?.accent) ? stored.accent : initial.accent;
-  return {
-    visualStyle:
-      policy.showVisualStyleToggle && isVisualStyle(stored?.visualStyle)
-        ? stored.visualStyle
-        : initial.visualStyle,
-    colorScheme:
-      policy.showColorSchemeToggle && isColorScheme(stored?.colorScheme)
-        ? stored.colorScheme
-        : initial.colorScheme,
-    surface:
-      policy.showSurfacePicker && isSurface(stored?.surface)
-        ? stored.surface
-        : policy.showSurfacePicker && isAccent(stored?.accent)
-          ? LEGACY_ACCENT_TO_SURFACE[stored.accent]
-          : initial.surface,
-    accent: legacyAccent,
   };
 }
 
@@ -256,19 +210,20 @@ function buildAxisResolution({
 }
 
 /**
- * The one pre-paint script. Resolves all three axes independently, then applies the root
- * attributes, `color-scheme` and the style-by-scheme browser-chrome tint.
+ * The one pre-paint script. Resolves the style and scheme axes independently, then applies
+ * the root attributes, `color-scheme` and the style-by-scheme browser-chrome tint.
  *
  * The root attributes are written outside any `try` so they always land: a missing or
  * throwing `theme-color` meta element must cost the reader their chrome tint, never their
  * theme. The style is resolved first because it selects the scheme's validity row.
  *
- * The accent is the one axis that can resolve to *no attribute*. {@link BASE_ACCENT} has no
- * block in the generated stylesheet, so writing `data-accent="default"` would advertise an
- * override that does not exist and give the Theme Lab and the DOM inspector a value with no
- * meaning. That accent is therefore removed rather than set — the same rule
- * `applyAppearanceToDocument` follows in the provider, which is the only other writer. Every
- * other accent, including a publication opening on one, is written.
+ * The retired colourway attributes (`data-surface`/`data-accent`) are unconditionally
+ * removed rather than left alone, so the script does not depend on the server having
+ * rendered no attribute. Their stored ids survive as *inputs* to the hue axes: a reader
+ * with no saved hue but a saved colourway id gets the hue rotation that reproduces it —
+ * and, for the achromatic Graphite/Neutral pair, the saturation level 0 — pre-paint. The
+ * script never writes storage; persisting the migrated values and removing the old keys is
+ * the provider's job on hydration.
  */
 export function buildThemeBootstrapScript(policy: AppearancePolicy = SITE_FLAVOR_CONFIG): string {
   const visualStyle = buildAxisResolution({
@@ -285,81 +240,95 @@ export function buildThemeBootstrapScript(policy: AppearancePolicy = SITE_FLAVOR
     storageKey: COLOR_SCHEME_STORAGE_KEY,
     validitySet: "COLORS[style]",
   });
-  // The accent's validity set is the only one this script has to carry for its own sake; the
-  // other two read rows of the meta-colour matrix, which the chrome tint needs anyway. A
-  // locked accent resolves at build time, so under a lock neither the set nor the resolution
-  // nor the branch below is emitted at all — they would be dead bytes on every page.
   const accentLocked = !policy.showAccentPicker;
-  const accent = accentLocked
-    ? ""
-    : `\n${buildAxisResolution({
-        variable: "accent",
-        fallback: policy.defaultAccent,
-        locked: false,
-        storageKey: ACCENT_STORAGE_KEY,
-        validitySet: "ACCENTS",
-      })}`;
-  const accentValiditySet = accentLocked
-    ? ""
-    : `\n  const ACCENTS = ${JSON.stringify(Object.fromEntries(SUPPORTED_ACCENTS.map((id) => [id, 1])))};`;
   const surfaceLocked = !policy.showSurfacePicker;
-  const surface = surfaceLocked
-    ? `\n  const surface = ${JSON.stringify(BASE_SURFACE)};`
-    : `\n  const SURFACES = ${JSON.stringify(Object.fromEntries(SUPPORTED_SURFACES.map((id) => [id, 1])))};
-  const LEGACY_SURFACES = ${JSON.stringify(LEGACY_ACCENT_TO_SURFACE)};
-  let surface = ${JSON.stringify(policy.defaultSurface)};
+  // A locked surface still compiles to this constant, unused though it is next to the
+  // unconditional attribute removal below: these are the exact bytes Effect Index's pinned
+  // CSP hash covers (lib/next/cspObservationPolicy.ts), and the colourway axis's retirement
+  // must not move that publication's locked script by a single byte.
+  const surface = surfaceLocked ? `\n  const surface = ${JSON.stringify(BASE_SURFACE_ID)};` : "";
+  // The colour axes: numeric rather than enumerated, so they cannot share
+  // buildAxisResolution's membership test. A stored level is a decimal in 0..1 and a stored
+  // hue an integer 0..359; anything else — including "" — resolves to the site default,
+  // except that a missing hue falls back once more to a saved colourway id through the
+  // legacy tables (entries that would be no-ops are filtered out at build time). Each
+  // pair's read is gated on the same lock as its parent picker, so a fully locked
+  // publication (Effect Index) emits none of this and its script stays byte-identical.
+  // Every other reader — including one who never touched a slider — gets the attribute,
+  // all four custom properties (stored ?? default), and the render-blocking <link> to the
+  // generated stylesheet, all pre-paint, so neither a saved value nor the default ever
+  // flashes the authored palette. The href's ?v= is the stylesheet's content hash from
+  // appearanceChroma.generated.json.
+  const chromaRead = ({
+    levelVariable,
+    hueVariable,
+    defaultLevel,
+    defaultHue,
+    levelKey,
+    hueKey,
+    legacyKey,
+    legacyHues,
+  }: {
+    levelVariable: string;
+    hueVariable: string;
+    defaultLevel: number;
+    defaultHue: number;
+    levelKey: string;
+    hueKey: string;
+    legacyKey: string;
+    legacyHues: Readonly<Record<string, { readonly hue: number; readonly chroma?: 0 }>>;
+  }) => {
+    const legacy = JSON.stringify(
+      Object.fromEntries(
+        Object.entries(legacyHues).filter(([, mapped]) => mapped.hue !== 0 || mapped.chroma === 0),
+      ),
+    );
+    return `  let ${levelVariable} = ${defaultLevel};
+  let ${hueVariable} = ${defaultHue};
   try {
-    const storedSurface = window.localStorage.getItem(${JSON.stringify(SURFACE_STORAGE_KEY)});
-    const storedAccent = window.localStorage.getItem(${JSON.stringify(ACCENT_STORAGE_KEY)});
-    if (Object.prototype.hasOwnProperty.call(SURFACES, storedSurface)) {
-      surface = storedSurface;
-    } else if (Object.prototype.hasOwnProperty.call(LEGACY_SURFACES, storedAccent)) {
-      surface = LEGACY_SURFACES[storedAccent];
+    const raw = window.localStorage.getItem(${JSON.stringify(levelKey)});
+    const level = raw ? +raw : NaN;
+    if (level >= 0 && level <= 1) ${levelVariable} = level;
+  } catch {}
+  try {
+    const raw = window.localStorage.getItem(${JSON.stringify(hueKey)});
+    if (raw && /^\\d+$/.test(raw) && +raw <= 359) {
+      ${hueVariable} = +raw;
+    } else {
+      const LEGACY = ${legacy};
+      const stored = window.localStorage.getItem(${JSON.stringify(legacyKey)});
+      if (Object.prototype.hasOwnProperty.call(LEGACY, stored)) {
+        ${hueVariable} = LEGACY[stored].hue;
+        if (LEGACY[stored].chroma === 0) ${levelVariable} = 0;
+      }
     }
   } catch {}`;
-  const surfaceWrite = surfaceLocked
-    ? `  delete root.dataset.surface;`
-    : `  if (surface === ${JSON.stringify(BASE_SURFACE)}) {
-    delete root.dataset.surface;
-  } else {
-    root.dataset.surface = surface;
-  }`;
-  // Under a lock the attribute is still *removed* rather than left alone. A locked accent
-  // resolves to BASE_ACCENT rather than to `policy.defaultAccent` — a lock means the
-  // publication's own identity, not a reader-facing opening choice — so this is one
-  // unconditional statement instead of a branch over a constant. It is kept rather than
-  // dropped so the script does not depend on the server having rendered no attribute.
-  const accentWrite = accentLocked
-    ? `  delete root.dataset.accent;`
-    : `  if (accent === ${JSON.stringify(BASE_ACCENT)}) {
-    delete root.dataset.accent;
-  } else {
-    root.dataset.accent = accent;
-  }`;
-  // The saturation axis. Numeric rather than enumerated, so it cannot share
-  // buildAxisResolution's membership test: a stored level is a decimal in 0..1
-  // and anything else — including "" — resolves to the site-default level.
-  // Each axis's read is gated on the same lock as its parent picker, so a
-  // fully locked publication (Effect Index) emits none of this and its script
-  // stays byte-identical. Every other reader — including one who never touched
-  // a slider — gets the attribute, both level properties (stored ?? default),
-  // and the render-blocking <link> to the generated gain stylesheet, all
-  // pre-paint, so neither a saved level nor the default ever flashes the
-  // authored palette. The href's ?v= is the stylesheet's content hash from
-  // appearanceChroma.generated.json.
-  const chromaRead = (variable: string, storageKey: string, defaultLevel: number) => `  let ${variable} = ${defaultLevel};
-  try {
-    const raw = window.localStorage.getItem(${JSON.stringify(storageKey)});
-    const level = raw ? +raw : NaN;
-    if (level >= 0 && level <= 1) ${variable} = level;
-  } catch {}`;
+  };
   const chromaResolution = [
     surfaceLocked
       ? ""
-      : `\n${chromaRead("chromaSurface", SURFACE_CHROMA_STORAGE_KEY, DEFAULT_SURFACE_LEVEL)}`,
+      : `\n${chromaRead({
+          levelVariable: "chromaSurface",
+          hueVariable: "hueSurface",
+          defaultLevel: DEFAULT_SURFACE_LEVEL,
+          defaultHue: DEFAULT_SURFACE_HUE,
+          levelKey: SURFACE_CHROMA_STORAGE_KEY,
+          hueKey: SURFACE_HUE_STORAGE_KEY,
+          legacyKey: SURFACE_STORAGE_KEY,
+          legacyHues: LEGACY_SURFACE_TO_HUE,
+        })}`,
     accentLocked
       ? ""
-      : `\n${chromaRead("chromaAccent", ACCENT_CHROMA_STORAGE_KEY, DEFAULT_ACCENT_LEVEL)}`,
+      : `\n${chromaRead({
+          levelVariable: "chromaAccent",
+          hueVariable: "hueAccent",
+          defaultLevel: DEFAULT_ACCENT_LEVEL,
+          defaultHue: DEFAULT_ACCENT_HUE,
+          levelKey: ACCENT_CHROMA_STORAGE_KEY,
+          hueKey: ACCENT_HUE_STORAGE_KEY,
+          legacyKey: ACCENT_STORAGE_KEY,
+          legacyHues: LEGACY_ACCENT_TO_HUE,
+        })}`,
   ].join("");
   const chromaWrite =
     surfaceLocked && accentLocked
@@ -368,12 +337,14 @@ export function buildThemeBootstrapScript(policy: AppearancePolicy = SITE_FLAVOR
           surfaceLocked
             ? ""
             : `
-  root.style.setProperty(${JSON.stringify(SURFACE_LEVEL_PROPERTY)}, "" + chromaSurface);`
+  root.style.setProperty(${JSON.stringify(SURFACE_LEVEL_PROPERTY)}, "" + chromaSurface);
+  root.style.setProperty(${JSON.stringify(SURFACE_HUE_PROPERTY)}, hueSurface + "deg");`
         }${
           accentLocked
             ? ""
             : `
-  root.style.setProperty(${JSON.stringify(ACCENT_LEVEL_PROPERTY)}, "" + chromaAccent);`
+  root.style.setProperty(${JSON.stringify(ACCENT_LEVEL_PROPERTY)}, "" + chromaAccent);
+  root.style.setProperty(${JSON.stringify(ACCENT_HUE_PROPERTY)}, hueAccent + "deg");`
         }
   try {
     const link = document.createElement("link");
@@ -384,18 +355,18 @@ export function buildThemeBootstrapScript(policy: AppearancePolicy = SITE_FLAVOR
   } catch {}`;
 
   return `(() => {
-  const COLORS = ${JSON.stringify(APPEARANCE_META_COLORS)};${accentValiditySet}
+  const COLORS = ${JSON.stringify(APPEARANCE_META_COLORS)};
 ${visualStyle}
-${colorScheme}${accent}${surface}${chromaResolution}
+${colorScheme}${surface}${chromaResolution}
 
   const root = document.documentElement;
   root.dataset.visualStyle = style;
   root.dataset.theme = scheme;
   root.style.colorScheme = scheme;
 
-${surfaceWrite}
+  delete root.dataset.surface;
 
-${accentWrite}${chromaWrite}
+  delete root.dataset.accent;${chromaWrite}
 
   try {
     const meta = document.getElementById(${JSON.stringify(THEME_META_ID)});

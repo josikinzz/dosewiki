@@ -1,39 +1,14 @@
 {
-  "version": "710c03fe",
+  "version": "4aff76d6",
   "levels": {
     "surfaces": {
       "orchid": {
         "dark": 0.7763,
         "light": 0.5268
-      },
-      "abyss": {
-        "dark": 0.7951,
-        "light": 0.4741
-      },
-      "canopy": {
-        "dark": 0.6627,
-        "light": 0.2608
-      },
-      "garnet": {
-        "dark": 0.6345,
-        "light": 0.6348
-      },
-      "sunset": {
-        "dark": 0.6007,
-        "light": 0.7694
-      },
-      "lagoon": {
-        "dark": 0.8617,
-        "light": 0.3892
       }
     },
     "accents": {
-      "default": 0.9429,
-      "blue": 0.8897,
-      "green": 0.6576,
-      "red": 0.9461,
-      "amber": 0.954,
-      "teal": 0.6736
+      "default": 0.9429
     }
   }
 }

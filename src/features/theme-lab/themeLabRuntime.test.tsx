@@ -3,8 +3,6 @@ import { act, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { ThemeProvider, useTheme } from "@/context/ThemeContext";
-import { SURFACE_ATTRIBUTE } from "@/theme/surfaceStylesheet";
-import { ACCENT_ATTRIBUTE } from "@/theme/accentStylesheet";
 import { ThemeLabLazy as ThemeLab } from "./ThemeLabLazy";
 import { DEFAULT_LOOK, lookKey } from "./themeLabLook";
 import {
@@ -31,21 +29,19 @@ vi.mock("@/components/common/Icon", () => ({
 }));
 
 /**
- * The appearance owner, with all four axes pinned.
+ * The appearance owner, with the axes pinned.
  *
  * Pinned rather than left to the publication's opening choice because the look is
- * the lab's storage key now: a test that let the flavor config pick the accent
- * would be seeding envelopes under a key it could not name. These values are the
- * base look, so a legacy envelope's best-effort migration — which can only guess
- * at the base — lands on the look under test.
+ * the lab's storage key now: a test that let the flavor config pick the style
+ * would be seeding envelopes under a key it could not name. Fun is the base look,
+ * so a legacy envelope's best-effort migration — which can only guess at the base
+ * — lands on the look under test.
  */
 function Harness({ children }: PropsWithChildren) {
   return (
     <ThemeProvider
       initialColorScheme="dark"
-      initialVisualStyle="fun"
-      initialAccent={DEFAULT_LOOK.accent}
-      initialSurface={DEFAULT_LOOK.surface}
+      initialVisualStyle={DEFAULT_LOOK.visualStyle}
       isVisualStyleLocked={false}
     >
       {children}
@@ -53,24 +49,24 @@ function Harness({ children }: PropsWithChildren) {
   );
 }
 
-/** Moves the reader onto another surface through the same context the appearance
+/** Flips the reader's visual style through the same context the appearance
  *  controls use, which is the only thing that changes the lab's active look. */
-function SurfaceControls() {
-  const { setSurface } = useTheme();
+function StyleControls() {
+  const { setVisualStyle } = useTheme();
   return (
     <>
-      <button type="button" onClick={() => setSurface("abyss")}>
-        wear abyss
+      <button type="button" onClick={() => setVisualStyle("pro")}>
+        wear pro
       </button>
-      <button type="button" onClick={() => setSurface(DEFAULT_LOOK.surface)}>
-        wear base
+      <button type="button" onClick={() => setVisualStyle(DEFAULT_LOOK.visualStyle)}>
+        wear fun
       </button>
     </>
   );
 }
 
 const BASE_LOOK = lookKey(DEFAULT_LOOK);
-const ABYSS_LOOK = lookKey({ ...DEFAULT_LOOK, surface: "abyss" });
+const PRO_LOOK = lookKey({ visualStyle: "pro" });
 
 let setItemCalls = 0;
 
@@ -129,11 +125,10 @@ function waitOutDebounce() {
 beforeEach(() => {
   installMockStorage();
   document.documentElement.setAttribute("data-theme", "dark");
-  // Left over from an earlier render, these would out-rank the pinned props: the
+  // Left over from an earlier render, this would out-rank the pinned props: the
   // provider adopts whatever the bootstrap painted before trusting its own initial
   // values.
-  document.documentElement.removeAttribute(SURFACE_ATTRIBUTE);
-  document.documentElement.removeAttribute(ACCENT_ATTRIBUTE);
+  document.documentElement.removeAttribute("data-visual-style");
   document.getElementById(THEME_LAB_OVERRIDE_STYLE_ID)?.remove();
   clearThemeBaselineCache();
   setThemeLabOpen(false);
@@ -141,8 +136,7 @@ beforeEach(() => {
 
 afterEach(() => {
   vi.restoreAllMocks();
-  document.documentElement.removeAttribute(SURFACE_ATTRIBUTE);
-  document.documentElement.removeAttribute(ACCENT_ATTRIBUTE);
+  document.documentElement.removeAttribute("data-visual-style");
   document.getElementById(THEME_LAB_OVERRIDE_STYLE_ID)?.remove();
   delete (document as unknown as Record<string, unknown>).visibilityState;
 });
@@ -181,8 +175,9 @@ describe("Theme Lab runtime", { timeout: 15_000 }, () => {
     seed({
       version: 4,
       activeThemeRef: { kind: "preset", id: "abyss" },
-      activeAccentId: DEFAULT_LOOK.accent,
-      activeSurfaceId: DEFAULT_LOOK.surface,
+      // The legacy colourway axes, as an old build recorded them: the base ids.
+      activeAccentId: "default",
+      activeSurfaceId: "orchid",
       editsByPreset: {
         abyss: { dark: { "--theme-accent": "#0ff0ff" }, light: {} },
         canopy: { dark: { "--theme-accent": "#deadbe" }, light: {} },
@@ -215,6 +210,25 @@ describe("Theme Lab runtime", { timeout: 15_000 }, () => {
         [BASE_LOOK]: { dark: { "--theme-accent": "#0ff0ff" }, light: {} },
       });
     });
+  });
+
+  it("re-files a pre-hue v5 envelope's base-look edits and drops retired colourway looks", async () => {
+    seed({
+      version: 5,
+      editsByLook: {
+        // The base triple describes the palette this build still ships.
+        "fun|default|orchid": { dark: { "--theme-accent": "#0ff0ff" }, light: {} },
+        // A retired colourway's look: literal colours sampled against a palette
+        // this build does not render.
+        "fun|blue|abyss": { dark: { "--theme-accent": "#deadbe" }, light: {} },
+      },
+      roleEditsByLook: {},
+    });
+
+    render(<Harness><ThemeLab /></Harness>);
+
+    await waitFor(() => expect(overrideCss()).toContain("--theme-accent:#0ff0ff"));
+    expect(overrideCss()).not.toContain("#deadbe");
   });
 
   it("leaves storage untouched for a visitor who never customized", async () => {
@@ -301,7 +315,7 @@ describe("Theme Lab runtime", { timeout: 15_000 }, () => {
   it("keeps each look's edits to itself, and gives them back when the look returns", async () => {
     render(
       <Harness>
-        <SurfaceControls />
+        <StyleControls />
         <ThemeLab />
       </Harness>,
     );
@@ -311,9 +325,9 @@ describe("Theme Lab runtime", { timeout: 15_000 }, () => {
     });
     expect(overrideCss()).toContain("--theme-accent:#abcdef");
 
-    // Changing surface is navigation, not an edit: the base look's tweak stops
-    // applying because it was never a statement about this palette.
-    await userEvent.click(screen.getByRole("button", { name: "wear abyss" }));
+    // Changing style is navigation, not an edit: the base look's tweak stops
+    // applying because it was never a statement about Pro's re-seated palette.
+    await userEvent.click(screen.getByRole("button", { name: "wear pro" }));
     await waitFor(() => expect(overrideCss()).not.toContain("#abcdef"));
 
     // The new look starts clean and takes its own edit, which does not disturb the
@@ -324,7 +338,7 @@ describe("Theme Lab runtime", { timeout: 15_000 }, () => {
     expect(overrideCss()).toContain("--theme-accent:#013579");
     expect(overrideCss()).not.toContain("#abcdef");
 
-    await userEvent.click(screen.getByRole("button", { name: "wear base" }));
+    await userEvent.click(screen.getByRole("button", { name: "wear fun" }));
     await waitFor(() => expect(overrideCss()).toContain("--theme-accent:#abcdef"));
     expect(overrideCss()).not.toContain("#013579");
 
@@ -332,22 +346,22 @@ describe("Theme Lab runtime", { timeout: 15_000 }, () => {
     hideTab();
     expect(JSON.parse(stored() ?? "{}").editsByLook).toEqual({
       [BASE_LOOK]: { dark: { "--theme-accent": "#abcdef" }, light: {} },
-      [ABYSS_LOOK]: { dark: { "--theme-accent": "#013579" }, light: {} },
+      [PRO_LOOK]: { dark: { "--theme-accent": "#013579" }, light: {} },
     });
   });
 
   it("writes nothing when the reader only changes their look", async () => {
     render(
       <Harness>
-        <SurfaceControls />
+        <StyleControls />
         <ThemeLab />
       </Harness>,
     );
 
-    await userEvent.click(screen.getByRole("button", { name: "wear abyss" }));
+    await userEvent.click(screen.getByRole("button", { name: "wear pro" }));
     hideTab();
 
-    // The four appearance axes are the reader's own preference, saved by the
+    // The appearance axes are the reader's own preference, saved by the
     // appearance owner under its own keys. This envelope holds edits, so a look
     // with no edits on either side of the switch is nothing for it to say.
     expect(stored()).toBeNull();

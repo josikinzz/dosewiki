@@ -1,12 +1,4 @@
-import {
-  BASE_ACCENT,
-  BASE_SURFACE,
-  isAccent,
-  isSurface,
-  type AccentId,
-  type ColorScheme,
-  type SurfaceId,
-} from "@/theme";
+import type { ColorScheme } from "@/theme";
 import { CHROME_DARK_CLASS } from "@/theme/chromeDark";
 import { paletteTokenRole } from "@/theme/paletteOwnership";
 import { DEFAULT_LOOK, lookKey, parseLookKey } from "./themeLabLook";
@@ -114,8 +106,8 @@ export function isEmptyOverrides(overrides: PaletteOverrides): boolean {
   return Object.keys(overrides.dark).length === 0 && Object.keys(overrides.light).length === 0;
 }
 
-/** Drop looks whose edit map is empty, so browsing every accent and surface does
- *  not leave a row of `{}` behind in the envelope. */
+/** Drop looks whose edit map is empty, so browsing between styles does not
+ *  leave a row of `{}` behind in the envelope. */
 export function pruneEdits(
   edits: Record<string, PaletteOverrides>,
 ): Record<string, PaletteOverrides> {
@@ -130,9 +122,9 @@ export function pruneEdits(
  * Read a stored `editsByLook` map, keeping only entries whose key names a look
  * this build still renders.
  *
- * A key naming a retired accent or surface is dropped rather than preserved: the
- * map's values are literal colours, and there is no look left to apply them to,
- * so keeping them could only mean painting them over some *other* live palette.
+ * A key naming a retired look is dropped rather than preserved: the map's
+ * values are literal colours, and there is no look left to apply them to, so
+ * keeping them could only mean painting them over some *other* live palette.
  */
 function readEditsByLook(value: unknown): Record<string, PaletteOverrides> {
   if (!value || typeof value !== "object") return {};
@@ -162,6 +154,23 @@ function legacyActiveEditKey(value: unknown): string | null {
   if (!id) return null;
   return ref.kind === "custom" ? `custom:${id}` : id;
 }
+
+/** Every retired non-base colourway id a pre-v5 envelope could have recorded.
+ *  A stored id outside this table (junk, or the base ids) always degraded to
+ *  the base look, which is the one palette that still ships. */
+const LEGACY_NON_BASE_COLOURWAY_IDS: Record<string, true> = {
+  blue: true,
+  green: true,
+  red: true,
+  amber: true,
+  neutral: true,
+  teal: true,
+  abyss: true,
+  canopy: true,
+  garnet: true,
+  sunset: true,
+  graphite: true,
+};
 
 /**
  * Parse whatever is in storage into a v5 envelope. Never throws: junk, a v1
@@ -209,19 +218,20 @@ export function parseStoredEnvelope(raw: string | null | undefined): StoredEnvel
     overrides = readOverrides(record);
   }
 
-  // The axes the legacy envelope recorded, and the base look where it recorded
-  // none. Visual style was never in the envelope: the lab's route was pinned to
-  // Fun for the whole life of these shapes.
-  const look = lookKey({
-    visualStyle: DEFAULT_LOOK.visualStyle,
-    accent: isAccent(record.activeAccentId as string)
-      ? (record.activeAccentId as AccentId)
-      : BASE_ACCENT,
-    surface: isSurface(record.activeSurfaceId as string)
-      ? (record.activeSurfaceId as SurfaceId)
-      : BASE_SURFACE,
-  });
-  const editsByLook = pruneEdits({ [look]: overrides });
+  // The colourway axes the legacy envelope recorded. Visual style was never in
+  // the envelope — the lab's route was pinned to Fun for the whole life of these
+  // shapes — so a visitor worn onto the base colourway (or one whose envelope
+  // recorded nothing) re-files under the Fun look. A named alternate colourway
+  // was retired with the hue axis: its edits are literal colours sampled against
+  // a palette this build does not ship, so they are dropped rather than painted
+  // over the base palette. Hardcoded legacy ids, not live imports: these strings
+  // exist only inside old storage blobs now.
+  const wornRetiredColourway =
+    LEGACY_NON_BASE_COLOURWAY_IDS[record.activeAccentId as string] === true ||
+    LEGACY_NON_BASE_COLOURWAY_IDS[record.activeSurfaceId as string] === true;
+  const editsByLook = wornRetiredColourway
+    ? {}
+    : pruneEdits({ [lookKey(DEFAULT_LOOK)]: overrides });
   return { version: 5, editsByLook, roleEditsByLook: roleMirror(editsByLook) };
 }
 
@@ -279,8 +289,8 @@ export function writeSerializedEnvelope(serialized: string): boolean {
  *
  * `data-theme` is named four times on purpose. The repetition is the whole rank:
  * it puts this layer at (0,4,1), one step above the highest block any stylesheet
- * emits — the generated Pro accent block
- * `html[data-visual-style="pro"][data-accent="…"][data-theme="…"]` at (0,3,1),
+ * emits — the generated Pro chroma block
+ * `html[data-chroma][data-theme="…"][data-visual-style="pro"]` at (0,3,1),
  * rung 4 of the ladder `proTheme.test.ts` pins. Out-specifying rung 4 rather
  * than tying it is deliberate. A tie would leave the visitor's own edits winning
  * only because this element is appended to `<head>` after the bundled sheets,
@@ -291,10 +301,8 @@ export function writeSerializedEnvelope(serialized: string): boolean {
  *
  * Keying on the repeated `data-theme` rather than on any of the other appearance
  * attributes is what keeps the layer applying on every look the reader can reach:
- * one selector out-ranks the accent, surface and visual-style blocks alike,
- * without this module having to know which combination is worn. It is also what
- * lets the baseline sampler strip the accent attribute without silencing the
- * layer it is staging.
+ * one selector out-ranks the chroma and visual-style blocks alike, without this
+ * module having to know which combination is worn.
  *
  * The dark layer carries a second selector: a {@link CHROME_DARK_CLASS} subtree
  * wears the visitor's dark edits even while the root is light, so their tuning

@@ -12,60 +12,60 @@ import {
 import { SITE_FLAVOR_CONFIG } from "@/config/siteFlavor";
 import {
   applyChromaToDocument,
+  DEFAULT_ACCENT_HUE,
   DEFAULT_ACCENT_LEVEL,
+  DEFAULT_SURFACE_HUE,
   DEFAULT_SURFACE_LEVEL,
   parseChromaLevel,
+  parseHueDegrees,
 } from "@/theme/appearanceChroma";
+import { LEGACY_ACCENT_TO_HUE } from "@/theme/accents";
+import { LEGACY_SURFACE_TO_HUE } from "@/theme/surfaces";
 import {
-  ACCENT_STORAGE_KEY,
   ACCENT_CHROMA_STORAGE_KEY,
-  SURFACE_CHROMA_STORAGE_KEY,
-  SURFACE_STORAGE_KEY,
-  BASE_SURFACE,
+  ACCENT_HUE_STORAGE_KEY,
+  ACCENT_STORAGE_KEY,
   COLOR_SCHEME_STORAGE_KEY,
-  BASE_ACCENT,
-  getInitialAppearance,
-  LEGACY_ACCENT_TO_SURFACE,
+  SURFACE_CHROMA_STORAGE_KEY,
+  SURFACE_HUE_STORAGE_KEY,
+  SURFACE_STORAGE_KEY,
   THEME_META_ID,
   VISUAL_STYLE_STORAGE_KEY,
   getAppearanceMetaColor,
-  isAccent,
   isColorScheme,
-  isSurface,
   isVisualStyle,
-  type AccentId,
   type Appearance,
-  type SurfaceId,
   type ColorScheme,
   type VisualStyle,
 } from "@/theme";
 
-export type { AccentId, Appearance, ColorScheme, SurfaceId, VisualStyle } from "@/theme";
+export type { Appearance, ColorScheme, VisualStyle } from "@/theme";
 export {
   ACCENT_CHROMA_STORAGE_KEY,
+  ACCENT_HUE_STORAGE_KEY,
+  // The retired colourway keys: still exported because the migration below is
+  // observable — tests and the bootstrap name them — not because anything may
+  // write them again.
   ACCENT_STORAGE_KEY,
   COLOR_SCHEME_STORAGE_KEY,
   THEME_META_ID,
   SURFACE_CHROMA_STORAGE_KEY,
+  SURFACE_HUE_STORAGE_KEY,
   SURFACE_STORAGE_KEY,
   VISUAL_STYLE_STORAGE_KEY,
 } from "@/theme";
 
 /**
- * Three independent reader preferences, one owner. Every appearance control consumes this
- * context; nothing else may write `data-theme`, `data-visual-style`, `data-accent`,
- * `color-scheme` or the `theme-color` meta value, because two writers cannot agree about what
- * the reader chose.
+ * The reader's appearance preferences, one owner. Every appearance control consumes this
+ * context; nothing else may write `data-theme`, `data-visual-style`, `color-scheme`, the
+ * `--dw-*` appearance properties or the `theme-color` meta value, because two writers
+ * cannot agree about what the reader chose.
  */
 type ThemeContextValue = {
   colorScheme: ColorScheme;
   visualStyle: VisualStyle;
-  accent: AccentId;
-  surface: SurfaceId;
   setColorScheme: (value: ColorScheme) => void;
   setVisualStyle: (value: VisualStyle) => void;
-  setAccent: (value: AccentId) => void;
-  setSurface: (value: SurfaceId) => void;
   /**
    * The effective saturation levels — always a decimal in 0..1: the reader's
    * saved level, or the site default (`DEFAULT_SURFACE_LEVEL` /
@@ -78,6 +78,17 @@ type ThemeContextValue = {
   accentChroma: number;
   setSurfaceChroma: (value: number | null) => void;
   setAccentChroma: (value: number | null) => void;
+  /**
+   * The hue axes: the reader's saved rotation in integer degrees 0..359, or
+   * null while they never moved that slider — null IS the site default
+   * (`DEFAULT_SURFACE_HUE` / `DEFAULT_ACCENT_HUE`), exposed as null so a
+   * consumer can tell "chose 0" from "never chose". The setters take null on
+   * the chroma setters' terms: key removed, back to the default.
+   */
+  surfaceHue: number | null;
+  accentHue: number | null;
+  setSurfaceHue: (value: number | null) => void;
+  setAccentHue: (value: number | null) => void;
   toggleColorScheme: () => void;
   toggleVisualStyle: () => void;
   /**
@@ -87,7 +98,7 @@ type ThemeContextValue = {
    * the Fun/Pro control on this rather than re-deriving the policy from the flavor config.
    */
   isVisualStyleLocked: boolean;
-  /** Same contract for the accent axis: under a lock `setAccent` is a no-op. */
+  /** Same contract for the accent axes: under a lock the hue and chroma setters are no-ops. */
   isAccentLocked: boolean;
   isSurfaceLocked: boolean;
 };
@@ -103,15 +114,9 @@ type AppearanceGuard<T extends string> = (value: string | null | undefined) => v
  * validated storage and painted the result, so reading the document is how this provider ends
  * up agreeing with the frame the reader is looking at. Storage is consulted only for a
  * document carrying no valid attribute — a nested provider, or a bare test render.
- *
- * The accent axis relies on that fallback rather than working around it. Its default writes
- * *no* attribute, so an absent `data-accent` is not a missing paint to be corrected: it is
- * the default accent, correctly painted. Falling through to storage then returns the reader's
- * saved id if they have one and null otherwise, and null leaves the default in place — which
- * is the same answer either way.
  */
 function resolvePaintedAxis<T extends string>(
-  datasetKey: "theme" | "visualStyle" | "surface" | "accent",
+  datasetKey: "theme" | "visualStyle",
   storageKey: string,
   isSupported: AppearanceGuard<T>,
 ): T | null {
@@ -148,25 +153,26 @@ function persistPreference(storageKey: string, value: string) {
 }
 
 /**
- * A level persists as its decimal string, and null removes the key: a missing
- * key is what "the site default" means to the pre-paint bootstrap, so removal
- * — not writing the default's current value — is what keeps a reader on the
- * default as it evolves.
+ * A saved axis number — a chroma level's decimal or a hue's integer degrees —
+ * persists as its string, and null removes the key: a missing key is what "the
+ * site default" means to the pre-paint bootstrap, so removal — not writing the
+ * default's current value — is what keeps a reader on the default as it
+ * evolves.
  */
-function persistChromaLevel(storageKey: string, value: number | null) {
+function persistAxisNumber(storageKey: string, value: number | null) {
   if (typeof window === "undefined") return;
   try {
     if (value === null) window.localStorage.removeItem(storageKey);
     else window.localStorage.setItem(storageKey, String(value));
   } catch {
-    // Ignore storage failures and keep the in-memory level active.
+    // Ignore storage failures and keep the in-memory value active.
   }
 }
 
 /**
- * The reader's saved level, or null when they never saved one. Storage, not
- * the painted custom property: the bootstrap paints stored ?? default, so the
- * property alone cannot say whether the reader chose the value it carries —
+ * The reader's saved level or hue, or null when they never saved one. Storage,
+ * not the painted custom property: the bootstrap paints stored ?? default, so
+ * the property alone cannot say whether the reader chose the value it carries —
  * and adopting a painted default as "saved" would persist it, freezing the
  * reader on a default they never picked.
  */
@@ -179,7 +185,54 @@ function resolveStoredChroma(storageKey: string): number | null {
   }
 }
 
-function applyAppearanceToDocument({ colorScheme, visualStyle, surface, accent }: Appearance) {
+function resolveStoredHue(storageKey: string): number | null {
+  if (typeof window === "undefined") return null;
+  try {
+    return parseHueDegrees(window.localStorage.getItem(storageKey));
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * One retired colourway id and its (hue, chroma) coordinates, or null. Raw
+ * string in: the legacy keys hold ids from the discrete-swatch era, and an
+ * unknown or retired id maps to nothing rather than to a guess.
+ */
+function resolveLegacyColourway<K extends string>(
+  map: Readonly<Record<K, { readonly hue: number; readonly chroma?: 0 }>>,
+  storageKey: string,
+): { readonly hue: number; readonly chroma?: 0 } | null {
+  if (typeof window === "undefined") return null;
+  try {
+    const stored = window.localStorage.getItem(storageKey);
+    if (stored === null) return null;
+    // `hasOwnProperty` rather than `Object.hasOwn`, which this project's `lib`
+    // target does not carry.
+    return Object.prototype.hasOwnProperty.call(map, stored) ? map[stored as K] : null;
+  } catch {
+    return null;
+  }
+}
+
+function removeStoredKey(storageKey: string) {
+  if (typeof window === "undefined") return;
+  try {
+    window.localStorage.removeItem(storageKey);
+  } catch {
+    // A key that cannot be removed is a key that also could not be read later.
+  }
+}
+
+/** Integer degrees on the hue circle; the slider's own domain. */
+function clampHueDegrees(value: number): number {
+  return Math.min(Math.max(Math.round(value), 0), 359);
+}
+
+function applyAppearanceToDocument({
+  colorScheme,
+  visualStyle,
+}: Pick<Appearance, "colorScheme" | "visualStyle">) {
   if (typeof document === "undefined") {
     return;
   }
@@ -188,18 +241,6 @@ function applyAppearanceToDocument({ colorScheme, visualStyle, surface, accent }
   root.dataset.theme = colorScheme;
   root.dataset.visualStyle = visualStyle;
   root.style.colorScheme = colorScheme;
-  if (surface === BASE_SURFACE) delete root.dataset.surface;
-  else root.dataset.surface = surface;
-
-  // The default accent is the *absence* of the attribute, matching the bootstrap: it has no
-  // block in the generated stylesheet, so an attribute would name an override that does not
-  // exist. Removal rather than assignment also covers the case the bootstrap never sees — a
-  // reader switching back to the default from something else.
-  if (accent === BASE_ACCENT) {
-    delete root.dataset.accent;
-  } else {
-    root.dataset.accent = accent;
-  }
 
   const meta =
     document.getElementById(THEME_META_ID) ??
@@ -214,8 +255,6 @@ export function ThemeProvider({
   children,
   initialColorScheme = SITE_FLAVOR_CONFIG.defaultColorScheme,
   initialVisualStyle = SITE_FLAVOR_CONFIG.defaultVisualStyle,
-  initialAccent,
-  initialSurface,
   isVisualStyleLocked = !SITE_FLAVOR_CONFIG.showVisualStyleToggle,
   isAccentLocked = !SITE_FLAVOR_CONFIG.showAccentPicker,
   isSurfaceLocked = !SITE_FLAVOR_CONFIG.showSurfacePicker,
@@ -224,38 +263,26 @@ export function ThemeProvider({
   /** What the server rendered, so the first client render matches the painted markup. */
   initialColorScheme?: ColorScheme;
   initialVisualStyle?: VisualStyle;
-  initialAccent?: AccentId;
-  initialSurface?: SurfaceId;
   /** Pins the style axis: setters become no-ops and the style key is never read or written. */
   isVisualStyleLocked?: boolean;
-  /** Pins the accent axis, on the same terms. */
+  /** Pins the accent hue and saturation axes, on the same terms. */
   isAccentLocked?: boolean;
   isSurfaceLocked?: boolean;
 }) {
   const [colorScheme, setColorScheme] = useState<ColorScheme>(initialColorScheme);
   const [visualStyle, setVisualStyleState] = useState<VisualStyle>(initialVisualStyle);
-  const [surface, setSurfaceState] = useState<SurfaceId>(
-    initialSurface ??
-      (isSurfaceLocked ? BASE_SURFACE : getInitialAppearance(SITE_FLAVOR_CONFIG).surface),
-  );
   /**
-   * A lock outranks the publication's opening accent, the same rule `getInitialAppearance`
-   * follows: a locked axis never adopts a painted value, so opening it anywhere but the base
-   * would strand the provider on an accent the reader can never leave. Resolved here rather
-   * than as a destructuring default because it reads `isAccentLocked`, declared below it.
-   */
-  const [accent, setAccentState] = useState<AccentId>(
-    initialAccent ??
-      (isAccentLocked ? BASE_ACCENT : getInitialAppearance(SITE_FLAVOR_CONFIG).accent),
-  );
-  /**
-   * The reader's *saved* level, or null while they never saved one. Null is the
-   * persistence state, not the display one: the exposed level resolves
-   * `?? DEFAULT_*_LEVEL`, and the persist effect removes the key on null so a
-   * default is never written into storage.
+   * The reader's *saved* level and hue per axis, or null while they never
+   * saved one. Null is the persistence state, not the display one: the exposed
+   * level resolves `?? DEFAULT_*`, and the persist effect removes the key on
+   * null so a default is never written into storage. The hue is exposed as the
+   * null itself — its consumers resolve the default — but persists on exactly
+   * the same terms.
    */
   const [savedSurfaceChroma, setSurfaceChromaState] = useState<number | null>(null);
   const [savedAccentChroma, setAccentChromaState] = useState<number | null>(null);
+  const [savedSurfaceHue, setSurfaceHueState] = useState<number | null>(null);
+  const [savedAccentHue, setAccentHueState] = useState<number | null>(null);
   const surfaceChroma = savedSurfaceChroma ?? DEFAULT_SURFACE_LEVEL;
   const accentChroma = savedAccentChroma ?? DEFAULT_ACCENT_LEVEL;
   /**
@@ -292,29 +319,45 @@ export function ThemeProvider({
       }
     }
 
+    /**
+     * Hue and chroma per colour axis, plus the one-time migration off the
+     * discrete-swatch era. A reader who last chose a colourway id has it in the
+     * legacy key and no hue key: the id's (hue, chroma) coordinates become
+     * their saved values — the achromatic ids also pin chroma to 0, overriding
+     * any stored level, because grey was the whole point of that pick. The
+     * legacy key is then removed either way: with the hue key present or the id
+     * translated, it answers nothing anymore. A locked axis touches none of its
+     * keys, so an Effect Index visit cannot eat a dose.wiki reader's migration.
+     */
     if (!isSurfaceLocked) {
-      const paintedSurface = resolvePaintedAxis("surface", SURFACE_STORAGE_KEY, isSurface);
-      if (paintedSurface) {
-        setSurfaceState(paintedSurface);
-      } else {
-        const legacyAccent = resolvePaintedAxis("accent", ACCENT_STORAGE_KEY, isAccent);
-        if (legacyAccent) {
-          setSurfaceState(LEGACY_ACCENT_TO_SURFACE[legacyAccent]);
+      const storedHue = resolveStoredHue(SURFACE_HUE_STORAGE_KEY);
+      let hue = storedHue;
+      let chroma = resolveStoredChroma(SURFACE_CHROMA_STORAGE_KEY);
+      if (storedHue === null) {
+        const legacy = resolveLegacyColourway(LEGACY_SURFACE_TO_HUE, SURFACE_STORAGE_KEY);
+        if (legacy) {
+          hue = legacy.hue;
+          if (legacy.chroma !== undefined) chroma = legacy.chroma;
         }
       }
+      removeStoredKey(SURFACE_STORAGE_KEY);
+      setSurfaceHueState(hue);
+      setSurfaceChromaState(chroma);
     }
     if (!isAccentLocked) {
-      const paintedAccent = resolvePaintedAxis("accent", ACCENT_STORAGE_KEY, isAccent);
-
-      if (paintedAccent) {
-        setAccentState(paintedAccent);
+      const storedHue = resolveStoredHue(ACCENT_HUE_STORAGE_KEY);
+      let hue = storedHue;
+      let chroma = resolveStoredChroma(ACCENT_CHROMA_STORAGE_KEY);
+      if (storedHue === null) {
+        const legacy = resolveLegacyColourway(LEGACY_ACCENT_TO_HUE, ACCENT_STORAGE_KEY);
+        if (legacy) {
+          hue = legacy.hue;
+          if (legacy.chroma !== undefined) chroma = legacy.chroma;
+        }
       }
-    }
-    if (!isSurfaceLocked) {
-      setSurfaceChromaState(resolveStoredChroma(SURFACE_CHROMA_STORAGE_KEY));
-    }
-    if (!isAccentLocked) {
-      setAccentChromaState(resolveStoredChroma(ACCENT_CHROMA_STORAGE_KEY));
+      removeStoredKey(ACCENT_STORAGE_KEY);
+      setAccentHueState(hue);
+      setAccentChromaState(chroma);
     }
 
     setHydrated(true);
@@ -325,10 +368,16 @@ export function ThemeProvider({
       return;
     }
 
-    applyAppearanceToDocument({ colorScheme, visualStyle, surface, accent });
+    applyAppearanceToDocument({ colorScheme, visualStyle });
+    // Effective values on unlocked axes — the saved number or the default —
+    // and null under a lock, which is how the runtime knows to leave that
+    // axis's properties off the root (all four null disengages the axis
+    // attribute entirely: Effect Index renders its authored palette).
     applyChromaToDocument(
       isSurfaceLocked ? null : surfaceChroma,
       isAccentLocked ? null : accentChroma,
+      isSurfaceLocked ? null : (savedSurfaceHue ?? DEFAULT_SURFACE_HUE),
+      isAccentLocked ? null : (savedAccentHue ?? DEFAULT_ACCENT_HUE),
     );
     persistPreference(COLOR_SCHEME_STORAGE_KEY, colorScheme);
 
@@ -337,14 +386,14 @@ export function ThemeProvider({
     }
 
     if (!isSurfaceLocked) {
-      persistPreference(SURFACE_STORAGE_KEY, surface);
-      persistChromaLevel(SURFACE_CHROMA_STORAGE_KEY, savedSurfaceChroma);
+      persistAxisNumber(SURFACE_CHROMA_STORAGE_KEY, savedSurfaceChroma);
+      persistAxisNumber(SURFACE_HUE_STORAGE_KEY, savedSurfaceHue);
     }
     if (!isAccentLocked) {
-      persistPreference(ACCENT_STORAGE_KEY, accent);
-      persistChromaLevel(ACCENT_CHROMA_STORAGE_KEY, savedAccentChroma);
+      persistAxisNumber(ACCENT_CHROMA_STORAGE_KEY, savedAccentChroma);
+      persistAxisNumber(ACCENT_HUE_STORAGE_KEY, savedAccentHue);
     }
-  }, [hydrated, colorScheme, visualStyle, surface, accent, surfaceChroma, accentChroma, savedSurfaceChroma, savedAccentChroma, isVisualStyleLocked, isSurfaceLocked, isAccentLocked]);
+  }, [hydrated, colorScheme, visualStyle, surfaceChroma, accentChroma, savedSurfaceChroma, savedAccentChroma, savedSurfaceHue, savedAccentHue, isVisualStyleLocked, isSurfaceLocked, isAccentLocked]);
 
   const setVisualStyle = useCallback(
     (value: VisualStyle) => {
@@ -355,24 +404,6 @@ export function ThemeProvider({
       setVisualStyleState(value);
     },
     [isVisualStyleLocked],
-  );
-
-  const setSurface = useCallback(
-    (value: SurfaceId) => {
-      if (!isSurfaceLocked) setSurfaceState(value);
-    },
-    [isSurfaceLocked],
-  );
-
-  const setAccent = useCallback(
-    (value: AccentId) => {
-      if (isAccentLocked) {
-        return;
-      }
-
-      setAccentState(value);
-    },
-    [isAccentLocked],
   );
 
   const setSurfaceChroma = useCallback(
@@ -388,6 +419,24 @@ export function ThemeProvider({
     (value: number | null) => {
       if (!isAccentLocked) {
         setAccentChromaState(value === null ? null : Math.min(Math.max(value, 0), 1));
+      }
+    },
+    [isAccentLocked],
+  );
+
+  const setSurfaceHue = useCallback(
+    (value: number | null) => {
+      if (!isSurfaceLocked) {
+        setSurfaceHueState(value === null ? null : clampHueDegrees(value));
+      }
+    },
+    [isSurfaceLocked],
+  );
+
+  const setAccentHue = useCallback(
+    (value: number | null) => {
+      if (!isAccentLocked) {
+        setAccentHueState(value === null ? null : clampHueDegrees(value));
       }
     },
     [isAccentLocked],
@@ -409,16 +458,16 @@ export function ThemeProvider({
     () => ({
       colorScheme,
       visualStyle,
-      accent,
-      surface,
       setColorScheme,
       setVisualStyle,
-      setAccent,
-      setSurface,
       surfaceChroma,
       accentChroma,
       setSurfaceChroma,
       setAccentChroma,
+      surfaceHue: savedSurfaceHue,
+      accentHue: savedAccentHue,
+      setSurfaceHue,
+      setAccentHue,
       toggleColorScheme,
       toggleVisualStyle,
       isVisualStyleLocked,
@@ -428,15 +477,15 @@ export function ThemeProvider({
     [
       colorScheme,
       visualStyle,
-      accent,
-      surface,
       setVisualStyle,
-      setAccent,
-      setSurface,
       surfaceChroma,
       accentChroma,
       setSurfaceChroma,
       setAccentChroma,
+      savedSurfaceHue,
+      savedAccentHue,
+      setSurfaceHue,
+      setAccentHue,
       toggleColorScheme,
       toggleVisualStyle,
       isVisualStyleLocked,

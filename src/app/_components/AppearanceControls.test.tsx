@@ -1,18 +1,22 @@
-import { render, screen, waitFor, within } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent, { type UserEvent } from "@testing-library/user-event";
 import type { ReactNode } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import {
-  ACCENT_STORAGE_KEY,
+  ACCENT_HUE_STORAGE_KEY,
   COLOR_SCHEME_STORAGE_KEY,
+  SURFACE_HUE_STORAGE_KEY,
   ThemeProvider,
   VISUAL_STYLE_STORAGE_KEY,
 } from "@/context/ThemeContext";
-import { ACCENTS, BASE_ACCENT_ID } from "@/theme/accents";
-import { DEFAULT_ACCENT_LEVEL, DEFAULT_SURFACE_LEVEL } from "@/theme/appearanceChroma";
-import { atLevel } from "@/theme/chromaMath";
-import { SURFACES } from "@/theme/surfaces";
+import {
+  ACCENT_HUE_PROPERTY,
+  DEFAULT_ACCENT_HUE,
+  DEFAULT_ACCENT_LEVEL,
+  DEFAULT_SURFACE_HUE,
+  DEFAULT_SURFACE_LEVEL,
+} from "@/theme/appearanceChroma";
 import { getThemeLabOpen, setThemeLabOpen } from "@/features/theme-lab/themeLabStore";
 import { AppearanceCog, type AppearanceCogRows } from "./AppearanceCog";
 import { AppearanceControls } from "./AppearanceControls";
@@ -29,13 +33,13 @@ vi.mock("@/components/common/Icon", () => ({
   ),
 }));
 
-/** The default accent, and the first that is not — so a pick is observable as an attribute. */
-const BASE_ACCENT = ACCENTS.find((accent) => accent.id === BASE_ACCENT_ID);
-const OTHER_ACCENT = ACCENTS.find((accent) => accent.id !== BASE_ACCENT_ID);
-
-if (!BASE_ACCENT || !OTHER_ACCENT) {
-  throw new Error("The accent table must offer the default plus something else to pick.");
-}
+/** The four sliders' accessible names, in visual and focus order. */
+const SLIDER_NAMES = [
+  "Surface hue",
+  "Surface saturation",
+  "Accent hue",
+  "Accent saturation",
+] as const;
 
 /** Every row on. The policy that decides these is asserted separately, below. */
 const ALL_ROWS: AppearanceCogRows = {
@@ -78,14 +82,9 @@ describe("AppearanceCog", () => {
     window.localStorage.clear();
     window.localStorage.setItem(COLOR_SCHEME_STORAGE_KEY, "dark");
     window.localStorage.setItem(VISUAL_STYLE_STORAGE_KEY, "fun");
-    window.localStorage.setItem(ACCENT_STORAGE_KEY, BASE_ACCENT_ID);
     setThemeLabOpen(false);
     document.documentElement.dataset.theme = "dark";
     document.documentElement.dataset.visualStyle = "fun";
-    delete document.documentElement.dataset.accent;
-    // A test that picks a surface paints `data-surface`, which hydration would
-    // otherwise adopt in the next test as a saved choice.
-    delete document.documentElement.dataset.surface;
   });
 
   it("presents one 44px cog and nothing else until it is opened", async () => {
@@ -104,31 +103,27 @@ describe("AppearanceCog", () => {
     expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
 
     const panel = await openCog(user);
-    // Every axis is inside, in order: style, colour scheme, surfaces, accent.
+    // The two binary axes, in order — and no swatches anywhere: the colour axes are
+    // sliders now, asserted below in the same visual order.
     expect(
       within(panel)
         .getAllByRole("button")
-        .map(
-          (control) =>
-            control.dataset.appearanceAxis ??
-            control.dataset.surfaceSwatch ??
-            control.dataset.accentSwatch,
-        )
+        .map((control) => control.dataset.appearanceAxis)
         .filter(Boolean),
-    ).toEqual([
-      "visual-style",
-      "color-scheme",
-      ...SURFACES.map((surface) => surface.id),
-      ...ACCENTS.map((accent) => accent.id),
-    ]);
+    ).toEqual(["visual-style", "color-scheme"]);
+    expect(
+      within(panel)
+        .getAllByRole("slider")
+        .map((slider) => slider.getAttribute("aria-label")),
+    ).toEqual([...SLIDER_NAMES]);
   });
 
-  it("visibly labels both palette rows while every swatch keeps its own name", async () => {
+  it("visibly labels both colour axes while every slider keeps its own name", async () => {
     const user = userEvent.setup();
     renderCog();
 
     const panel = await openCog(user);
-    expect(within(panel).getByText("Surfaces")).toBeVisible();
+    expect(within(panel).getByText("Surface")).toBeVisible();
     expect(within(panel).getByText("Accent")).toBeVisible();
     expect(
       [...panel.querySelectorAll("button, a")].map((control) => control.getAttribute("aria-label")),
@@ -136,11 +131,12 @@ describe("AppearanceCog", () => {
       "Switch to Pro visual style",
       "Switch to day mode",
       // The compact Theme Lab entry sits at the end of the binary-control row,
-      // ahead of the swatch rows.
+      // ahead of the slider pairs.
       "Open Theme Lab",
-      ...SURFACES.map((option) => option.label),
-      ...ACCENTS.map((option) => option.label),
     ]);
+    expect(
+      [...panel.querySelectorAll("input")].map((control) => control.getAttribute("aria-label")),
+    ).toEqual([...SLIDER_NAMES]);
     expect(
       within(panel).getByRole("button", { name: "Open Theme Lab" }),
     ).toHaveAccessibleName("Open Theme Lab");
@@ -204,25 +200,24 @@ describe("AppearanceCog", () => {
 
     const panel = await screen.findByRole("dialog", { name: "Appearance" });
     // The panel is portalled, so tab order is no longer "the next sibling in the markup".
-    // Visual order and focus order agree: binary controls with the compact Theme Lab entry,
-    // then each swatch row followed by its saturation slider.
+    // Visual order and focus order agree: the two binary toggles with the compact Theme
+    // Lab entry, then each colour axis's hue slider followed by its saturation slider.
     const reachable = within(panel).getAllByRole("button");
     const sliders = within(panel).getAllByRole("slider");
+    expect(reachable.map((control) => control.getAttribute("aria-label"))).toEqual([
+      "Switch to Pro visual style",
+      "Switch to day mode",
+      "Open Theme Lab",
+    ]);
     expect(sliders.map((slider) => slider.getAttribute("aria-label"))).toEqual([
-      "Surface saturation",
-      "Accent saturation",
+      ...SLIDER_NAMES,
     ]);
 
     await waitFor(() => {
       expect(reachable[0]).toHaveFocus();
     });
 
-    const order = [
-      ...reachable.slice(1, 3 + SURFACES.length),
-      sliders[0]!,
-      ...reachable.slice(3 + SURFACES.length),
-      sliders[1]!,
-    ];
+    const order = [...reachable.slice(1), ...sliders];
     for (const control of order) {
       await user.tab();
       expect(control).toHaveFocus();
@@ -291,36 +286,29 @@ describe("AppearanceCog", () => {
     }
   });
 
-  it("applies an accent pick immediately, with no save step", async () => {
+  it("applies a hue drag immediately, with no save step", async () => {
     const user = userEvent.setup();
     renderCog();
 
     const panel = await openCog(user);
-    const swatches = within(panel).getByRole("group", { name: "Accent" });
+    const accentHue = within(panel).getByRole<HTMLInputElement>("slider", {
+      name: "Accent hue",
+    });
 
-    // One swatch per entry in ACCENTS — the row states no count of its own.
-    expect(
-      within(swatches)
-        .getAllByRole("button")
-        .map((button) => button.getAttribute("aria-label")),
-    ).toEqual(ACCENTS.map((accent) => accent.label));
-
-    const active = within(swatches).getByRole("button", { name: BASE_ACCENT.label });
-    expect(active).toHaveAttribute("aria-pressed", "true");
-    expect(active.dataset.active).toBe("true");
-
-    await user.click(within(swatches).getByRole("button", { name: OTHER_ACCENT.label }));
+    fireEvent.change(accentHue, { target: { value: "249" } });
 
     await waitFor(() => {
-      // setAccent ran and the provider wrote the axis through: no confirm, no save.
-      expect(document.documentElement.dataset.accent).toBe(OTHER_ACCENT.id);
+      // The setter ran with the integer and the provider wrote the axis through — the
+      // painted custom property and the persisted degrees string: no confirm, no save.
+      expect(document.documentElement.style.getPropertyValue(ACCENT_HUE_PROPERTY)).toBe(
+        "249deg",
+      );
+      expect(window.localStorage.getItem(ACCENT_HUE_STORAGE_KEY)).toBe("249");
     });
-    expect(within(swatches).getByRole("button", { name: OTHER_ACCENT.label })).toHaveAttribute(
-      "aria-pressed",
-      "true",
-    );
-    expect(active).toHaveAttribute("aria-pressed", "false");
-    // The panel stays open, so the reader can compare accents without reopening it.
+    expect(accentHue.value).toBe("249");
+    // The untouched axis did not move with it.
+    expect(window.localStorage.getItem(SURFACE_HUE_STORAGE_KEY)).toBeNull();
+    // The panel stays open, so the reader can compare rotations without reopening it.
     expect(screen.getByRole("dialog", { name: "Appearance" })).toBeInTheDocument();
   });
 
@@ -336,7 +324,9 @@ describe("AppearanceCog", () => {
     const panel = await openCog(user);
 
     expect(within(panel).queryByRole("button", { name: /visual style/ })).not.toBeInTheDocument();
+    expect(within(panel).queryByRole("group", { name: "Surface" })).not.toBeInTheDocument();
     expect(within(panel).queryByRole("group", { name: "Accent" })).not.toBeInTheDocument();
+    expect(within(panel).queryByRole("slider")).not.toBeInTheDocument();
     // No link at all, rather than no link with a particular name: the guarantee is that a
     // reader is never handed an editor route, and stating it this way cannot quietly stop
     // meaning anything if the link's name ever changes.
@@ -360,41 +350,39 @@ describe("AppearanceCog", () => {
     expect(screen.queryByRole("button", { name: "Appearance settings" })).not.toBeInTheDocument();
   });
 
-  it("opens with both sliders live and parked on the site-default levels", async () => {
+  it("opens with all four sliders live and parked on the site defaults", async () => {
     const user = userEvent.setup();
     renderCog();
 
     const panel = await openCog(user);
 
-    // A fresh reader's colourway is the chromatic Orchid/Default pair, so neither slider is
-    // faded, and each thumb parks on the effective level — the site default, since nothing
-    // is stored. Only an explicit achromatic pick (Graphite/Neutral) fades a slider.
-    const surfaceSlider = within(panel).getByRole<HTMLInputElement>("slider", {
-      name: "Surface saturation",
-    });
-    const accentSlider = within(panel).getByRole<HTMLInputElement>("slider", {
-      name: "Accent saturation",
-    });
-    expect(surfaceSlider).toBeEnabled();
-    expect(accentSlider).toBeEnabled();
-    expect(surfaceSlider.value).toBe(String(Math.round(DEFAULT_SURFACE_LEVEL * 100)));
-    expect(accentSlider.value).toBe(String(Math.round(DEFAULT_ACCENT_LEVEL * 100)));
+    // A fresh reader wears the authored palette: every slider is live — there are no
+    // achromatic colourways left to fade one; grey is simply saturation 0 — and each
+    // thumb parks on the effective value, the site default, since nothing is stored.
+    const values: Record<(typeof SLIDER_NAMES)[number], string> = {
+      "Surface hue": String(DEFAULT_SURFACE_HUE),
+      "Surface saturation": String(Math.round(DEFAULT_SURFACE_LEVEL * 100)),
+      "Accent hue": String(DEFAULT_ACCENT_HUE),
+      "Accent saturation": String(Math.round(DEFAULT_ACCENT_LEVEL * 100)),
+    };
+    for (const name of SLIDER_NAMES) {
+      const slider = within(panel).getByRole<HTMLInputElement>("slider", { name });
+      expect(slider).toBeEnabled();
+      expect(slider.value).toBe(values[name]);
+    }
 
-    // The fresh default surface is Orchid — the authored base — not Graphite.
-    const orchid = SURFACES.find((option) => option.id === "orchid")!;
-    expect(within(panel).getByRole("button", { name: orchid.label })).toHaveAttribute(
-      "aria-pressed",
-      "true",
+    // Saturation 0 is a position on the axis, not a special mode: the sliders stay live.
+    fireEvent.change(
+      within(panel).getByRole<HTMLInputElement>("slider", { name: "Surface saturation" }),
+      { target: { value: "0" } },
     );
-
-    const graphite = SURFACES.find((option) => option.achromatic)!;
-    await user.click(within(panel).getByRole("button", { name: graphite.label }));
-
     await waitFor(() => {
       expect(
-        within(panel).getByRole("slider", { name: "Surface saturation" }),
-      ).toBeDisabled();
+        within(panel).getByRole<HTMLInputElement>("slider", { name: "Surface saturation" })
+          .value,
+      ).toBe("0");
     });
+    expect(within(panel).getByRole("slider", { name: "Surface hue" })).toBeEnabled();
   });
 
   /**
@@ -427,36 +415,27 @@ describe("AppearanceCog", () => {
       );
 
       const panel = await openCog(user);
-      const surfaceButtons = SURFACES.map((option) =>
-        within(panel).getByRole("button", { name: option.label }),
-      );
 
       expect(panel).toHaveClass("theme-overlay-surface");
       expect(panel.querySelectorAll("[data-appearance-axis]")).toHaveLength(2);
-      expect(panel.querySelectorAll("[data-accent-swatch]")).toHaveLength(ACCENTS.length);
-      expect(surfaceButtons.every((button) => button.hasAttribute("disabled"))).toBe(
-        visualStyle === "pro",
-      );
-      // The two saturation sliders split on Pro: the surface axis has nothing
-      // to move there — Pro's one charcoal family is effectively achromatic,
-      // like Graphite — while the accent axis re-saturates the Pro --ei-* ramp,
-      // so its slider works on both visual styles (the opening accent is the
-      // chromatic default).
+      // The surface pair splits on Pro: that axis has nothing to move there — Pro keeps
+      // its one restrained charcoal family — while the accent pair rotates and
+      // re-saturates the Pro --ei-* ramp, so both its sliders work on either style.
+      expect(
+        within(panel).getByRole("slider", { name: "Surface hue" }).hasAttribute("disabled"),
+      ).toBe(visualStyle === "pro");
       expect(
         within(panel)
           .getByRole("slider", { name: "Surface saturation" })
           .hasAttribute("disabled"),
       ).toBe(visualStyle === "pro");
+      expect(within(panel).getByRole("slider", { name: "Accent hue" })).toBeEnabled();
       expect(within(panel).getByRole("slider", { name: "Accent saturation" })).toBeEnabled();
-      for (const [index, button] of surfaceButtons.entries()) {
-        const option = SURFACES[index]!;
-        // Chromatic swatches preview the effective saturation level — the site default
-        // here, since nothing is stored — while achromatic ones keep their raw tint.
-        expect(button.firstElementChild).toHaveStyle({
-          backgroundColor: option.achromatic
-            ? option.tint[colorScheme]
-            : atLevel(option.tint[colorScheme], DEFAULT_SURFACE_LEVEL),
-        });
+      // The Pro lock is explained, not mute: the surface group names its condition.
+      if (visualStyle === "pro") {
+        expect(within(panel).getByText("Fun only")).toBeVisible();
+      } else {
+        expect(within(panel).queryByText("Fun only")).not.toBeInTheDocument();
       }
       expect(
         within(panel).getByRole("button", { name: "Open Theme Lab" }),
@@ -488,7 +467,7 @@ describe("AppearanceControls", () => {
     expect(within(panel).getByRole("button", { name: /day mode|night mode/ })).toBeInTheDocument();
   });
 
-  it("omits the accent row when the publication locks the accent axis", async () => {
+  it("omits the accent sliders when the publication locks the accent axis", async () => {
     const user = userEvent.setup();
     render(
       <ThemeProvider initialColorScheme="dark" initialVisualStyle="pro" isAccentLocked>
@@ -499,6 +478,7 @@ describe("AppearanceControls", () => {
     const panel = await openCog(user);
 
     expect(within(panel).queryByRole("group", { name: "Accent" })).not.toBeInTheDocument();
+    expect(within(panel).queryByRole("slider", { name: "Accent hue" })).not.toBeInTheDocument();
   });
 
   it("opens the public Theme Lab drawer from a reader's cog", async () => {

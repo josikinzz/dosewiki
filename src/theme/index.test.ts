@@ -3,11 +3,16 @@ import { SITE_FLAVOR_CONFIGS } from "@/config/siteFlavor";
 import {
   APPEARANCE_META_COLORS,
   ACCENT_CHROMA_STORAGE_KEY,
-  BASE_ACCENT,
+  ACCENT_HUE_STORAGE_KEY,
+  ACCENT_STORAGE_KEY,
   COLOR_SCHEME_STORAGE_KEY,
   SURFACE_CHROMA_STORAGE_KEY,
+  SURFACE_HUE_STORAGE_KEY,
+  SURFACE_STORAGE_KEY,
   DEFAULT_COLOR_SCHEME,
   DEFAULT_VISUAL_STYLE,
+  LEGACY_ACCENT_TO_HUE,
+  LEGACY_SURFACE_TO_HUE,
   SUPPORTED_COLOR_SCHEMES,
   SUPPORTED_VISUAL_STYLES,
   THEME_META_ID,
@@ -20,12 +25,18 @@ import {
   isVisualStyle,
 } from "./index";
 import {
+  ACCENT_HUE_PROPERTY,
   ACCENT_LEVEL_PROPERTY,
   CHROMA_STYLESHEET_HREF,
   CHROMA_STYLESHEET_LINK_ID,
+  DEFAULT_ACCENT_HUE,
   DEFAULT_ACCENT_LEVEL,
+  DEFAULT_SURFACE_HUE,
   DEFAULT_SURFACE_LEVEL,
+  SURFACE_HUE_PROPERTY,
   SURFACE_LEVEL_PROPERTY,
+  applyChromaToDocument,
+  parseHueDegrees,
 } from "./appearanceChroma";
 import {
   DEFAULT_THEME_TOKEN_AUDIT_SCAN_ROOTS,
@@ -69,11 +80,13 @@ describe("theme token interface", () => {
     document.documentElement.removeAttribute("data-theme");
     document.documentElement.removeAttribute("data-visual-style");
     document.documentElement.style.colorScheme = "";
-    // The dose.wiki script engages the saturation axis on every run now, so each
-    // test starts from a document that carries none of it.
+    // The dose.wiki script engages the colour axes on every run now, so each
+    // test starts from a document that carries none of them.
     delete document.documentElement.dataset.chroma;
     document.documentElement.style.removeProperty(SURFACE_LEVEL_PROPERTY);
     document.documentElement.style.removeProperty(ACCENT_LEVEL_PROPERTY);
+    document.documentElement.style.removeProperty(SURFACE_HUE_PROPERTY);
+    document.documentElement.style.removeProperty(ACCENT_HUE_PROPERTY);
   });
 
   it("names both appearance axes, their storage keys, and the meta-colour matrix", () => {
@@ -86,11 +99,17 @@ describe("theme token interface", () => {
     // to survive the second axis arriving.
     expect(COLOR_SCHEME_STORAGE_KEY).toBe("dosewiki-theme");
     expect(VISUAL_STYLE_STORAGE_KEY).toBe("dosewiki-visual-style");
-    // The chroma keys avoid "dosewiki-accent"/"dosewiki-surface" as prefixes on
-    // purpose: the locked-flavor tests assert those substrings are absent from
-    // the Effect Index script byte-for-byte.
+    // The chroma keys predate the hue axes and avoid "dosewiki-accent"/"dosewiki-surface"
+    // as prefixes; the hue keys extend the retired colourway keys' names, which is safe
+    // because a locked publication's script carries no colour-axis machinery at all —
+    // asserted below against every one of these keys.
     expect(SURFACE_CHROMA_STORAGE_KEY).toBe("dosewiki-chroma-surface");
     expect(ACCENT_CHROMA_STORAGE_KEY).toBe("dosewiki-chroma-accent");
+    expect(SURFACE_HUE_STORAGE_KEY).toBe("dosewiki-surface-hue");
+    expect(ACCENT_HUE_STORAGE_KEY).toBe("dosewiki-accent-hue");
+    // The retired colourway keys survive as migration inputs only.
+    expect(SURFACE_STORAGE_KEY).toBe("dosewiki-surface");
+    expect(ACCENT_STORAGE_KEY).toBe("dosewiki-accent");
 
     expect(isColorScheme("light")).toBe(true);
     expect(isColorScheme("sepia")).toBe(false);
@@ -233,28 +252,17 @@ describe("theme token interface", () => {
   });
 
   it("opens each publication on its own declared appearance", () => {
-    // dose.wiki opens on the authored Orchid/Default base now — softened by the site-default
-    // saturation levels the bootstrap paints, not by an off-base colourway. Effect Index locks
-    // the axis, and a lock resolves to BASE_ACCENT no matter what the policy declares —
-    // asserted here against a policy that declares the same thing, and again below against one
-    // that does not.
+    // The colourway axes are gone: an initial appearance is just the two attribute axes.
+    // dose.wiki opens on the authored Orchid/Default base, softened by the site-default
+    // saturation levels and hue rotations the bootstrap paints.
     expect(getInitialAppearance(DOSEWIKI)).toEqual({
       colorScheme: "dark",
       visualStyle: "fun",
-      surface: "orchid",
-      accent: "default",
     });
     expect(getInitialAppearance(EFFECT_INDEX)).toEqual({
       colorScheme: "light",
       visualStyle: "pro",
-      surface: "orchid",
-      accent: BASE_ACCENT,
     });
-    // A lock outranks the declared opening accent: the axis wears the publication's identity.
-    expect(
-      getInitialAppearance({ ...EFFECT_INDEX, defaultAccent: "teal", showAccentPicker: false })
-        .accent,
-    ).toBe(BASE_ACCENT);
     // The locked style's light tint is that publication's own manifest colour, so the address
     // bar and the installed app agree instead of flashing the shared lilac-white.
     expect(getAppearanceMetaColor(getInitialAppearance(EFFECT_INDEX))).toBe(
@@ -282,11 +290,17 @@ describe("theme token interface", () => {
     expect(meta.content).toBe(APPEARANCE_META_COLORS.pro.dark);
   });
 
-  it("engages a saved saturation level before paint: attribute, level, stylesheet link", () => {
+  it("engages saved saturation levels and hue rotations before paint: attribute, properties, stylesheet link", () => {
     installMockStorage({
       [SURFACE_CHROMA_STORAGE_KEY]: "0.35",
       [ACCENT_CHROMA_STORAGE_KEY]: "1",
+      [SURFACE_HUE_STORAGE_KEY]: "40",
+      [ACCENT_HUE_STORAGE_KEY]: "300",
+      // Saved hues outrank saved colourway ids: the ids are only a fallback.
+      [SURFACE_STORAGE_KEY]: "abyss",
+      [ACCENT_STORAGE_KEY]: "green",
     });
+    const setItem = vi.spyOn(window.localStorage, "setItem");
     ensureThemeMeta();
 
     try {
@@ -296,25 +310,33 @@ describe("theme token interface", () => {
       expect(root.dataset.chroma).toBe("");
       expect(root.style.getPropertyValue(SURFACE_LEVEL_PROPERTY)).toBe("0.35");
       expect(root.style.getPropertyValue(ACCENT_LEVEL_PROPERTY)).toBe("1");
+      expect(root.style.getPropertyValue(SURFACE_HUE_PROPERTY)).toBe("40deg");
+      expect(root.style.getPropertyValue(ACCENT_HUE_PROPERTY)).toBe("300deg");
       const link = document.getElementById(CHROMA_STYLESHEET_LINK_ID);
       expect(link).toBeInstanceOf(HTMLLinkElement);
       expect((link as HTMLLinkElement).getAttribute("href")).toBe(CHROMA_STYLESHEET_HREF);
+      // Pre-paint is read-only: persistence (and legacy-key removal) is the provider's job.
+      expect(setItem).not.toHaveBeenCalled();
     } finally {
       document.getElementById(CHROMA_STYLESHEET_LINK_ID)?.remove();
-      document.documentElement.style.removeProperty(SURFACE_LEVEL_PROPERTY);
-      document.documentElement.style.removeProperty(ACCENT_LEVEL_PROPERTY);
-      delete document.documentElement.dataset.chroma;
     }
   });
 
-  it("engages the site-default levels for a reader with no saved level, and for garbage levels", () => {
-    // "" and "1.5" and "abc" must all resolve to the defaults: Number("") is 0,
-    // which would otherwise silently pin a level the reader never chose.
-    for (const garbage of [null, "", "1.5", "-0.2", "abc"]) {
+  it("engages the site defaults for a reader with nothing saved, and for garbage values", () => {
+    // "" and "1.5" and "abc" must all resolve to the default level: Number("") is 0,
+    // which would otherwise silently pin a level the reader never chose. The hue
+    // grammar is stricter — an integer degree count in 0..359 — so "1.5", "-20",
+    // "360" and "40px" all fall back to the authored hue.
+    for (const garbage of [null, "", "1.5", "-20", "abc", "360", "40px"]) {
       installMockStorage(
         garbage === null
           ? {}
-          : { [SURFACE_CHROMA_STORAGE_KEY]: garbage, [ACCENT_CHROMA_STORAGE_KEY]: garbage },
+          : {
+              [SURFACE_CHROMA_STORAGE_KEY]: garbage,
+              [ACCENT_CHROMA_STORAGE_KEY]: garbage,
+              [SURFACE_HUE_STORAGE_KEY]: garbage,
+              [ACCENT_HUE_STORAGE_KEY]: garbage,
+            },
       );
       ensureThemeMeta();
       document.getElementById(CHROMA_STYLESHEET_LINK_ID)?.remove();
@@ -329,18 +351,98 @@ describe("theme token interface", () => {
       expect(root.style.getPropertyValue(ACCENT_LEVEL_PROPERTY), String(garbage)).toBe(
         String(DEFAULT_ACCENT_LEVEL),
       );
+      expect(root.style.getPropertyValue(SURFACE_HUE_PROPERTY), String(garbage)).toBe(
+        `${DEFAULT_SURFACE_HUE}deg`,
+      );
+      expect(root.style.getPropertyValue(ACCENT_HUE_PROPERTY), String(garbage)).toBe(
+        `${DEFAULT_ACCENT_HUE}deg`,
+      );
       const link = document.getElementById(CHROMA_STYLESHEET_LINK_ID);
       expect(link, String(garbage)).toBeInstanceOf(HTMLLinkElement);
       expect((link as HTMLLinkElement).getAttribute("href")).toBe(CHROMA_STYLESHEET_HREF);
     }
   });
 
-  it("emits no chroma machinery for a publication with both colour axes locked", () => {
+  it("migrates saved colourway ids onto the hue axes when no hue is saved", () => {
+    installMockStorage({
+      [SURFACE_STORAGE_KEY]: "abyss",
+      [ACCENT_STORAGE_KEY]: "green",
+      // A saved level survives migration to a chromatic colourway untouched.
+      [ACCENT_CHROMA_STORAGE_KEY]: "0.8",
+    });
+    ensureThemeMeta();
+
+    try {
+      Function(buildThemeBootstrapScript(DOSEWIKI))();
+
+      const root = document.documentElement;
+      expect(root.style.getPropertyValue(SURFACE_HUE_PROPERTY)).toBe(
+        `${LEGACY_SURFACE_TO_HUE.abyss.hue}deg`,
+      );
+      expect(root.style.getPropertyValue(ACCENT_HUE_PROPERTY)).toBe(
+        `${LEGACY_ACCENT_TO_HUE.green.hue}deg`,
+      );
+      expect(root.style.getPropertyValue(SURFACE_LEVEL_PROPERTY)).toBe(
+        String(DEFAULT_SURFACE_LEVEL),
+      );
+      expect(root.style.getPropertyValue(ACCENT_LEVEL_PROPERTY)).toBe("0.8");
+    } finally {
+      document.getElementById(CHROMA_STYLESHEET_LINK_ID)?.remove();
+    }
+  });
+
+  it("migrates the achromatic colourways to saturation 0, overriding a saved level", () => {
+    // Graphite/Neutral were never hues: grey is chroma 0 now. A stored level must
+    // not resurrect colour the reader had chosen away.
+    installMockStorage({
+      [SURFACE_STORAGE_KEY]: "graphite",
+      [ACCENT_STORAGE_KEY]: "neutral",
+      [SURFACE_CHROMA_STORAGE_KEY]: "0.6",
+      [ACCENT_CHROMA_STORAGE_KEY]: "0.9",
+    });
+    ensureThemeMeta();
+
+    try {
+      Function(buildThemeBootstrapScript(DOSEWIKI))();
+
+      const root = document.documentElement;
+      expect(root.style.getPropertyValue(SURFACE_LEVEL_PROPERTY)).toBe("0");
+      expect(root.style.getPropertyValue(ACCENT_LEVEL_PROPERTY)).toBe("0");
+      expect(root.style.getPropertyValue(SURFACE_HUE_PROPERTY)).toBe("0deg");
+      expect(root.style.getPropertyValue(ACCENT_HUE_PROPERTY)).toBe("0deg");
+    } finally {
+      document.getElementById(CHROMA_STYLESHEET_LINK_ID)?.remove();
+    }
+  });
+
+  it("retires the colourway attributes: the script removes both, whatever the server rendered", () => {
+    installMockStorage({ [SURFACE_STORAGE_KEY]: "abyss", [ACCENT_STORAGE_KEY]: "green" });
+    ensureThemeMeta();
+    document.documentElement.dataset.surface = "abyss";
+    document.documentElement.dataset.accent = "green";
+
+    try {
+      Function(buildThemeBootstrapScript(DOSEWIKI))();
+
+      expect(document.documentElement.dataset.surface).toBeUndefined();
+      expect(document.documentElement.dataset.accent).toBeUndefined();
+    } finally {
+      document.getElementById(CHROMA_STYLESHEET_LINK_ID)?.remove();
+    }
+  });
+
+  it("emits no colour-axis machinery for a publication with both colour axes locked", () => {
     const script = buildThemeBootstrapScript(EFFECT_INDEX);
 
     expect(script).not.toContain("chroma");
+    expect(script).not.toContain("hue");
     expect(script).not.toContain(SURFACE_CHROMA_STORAGE_KEY);
     expect(script).not.toContain(ACCENT_CHROMA_STORAGE_KEY);
+    expect(script).not.toContain(SURFACE_HUE_STORAGE_KEY);
+    expect(script).not.toContain(ACCENT_HUE_STORAGE_KEY);
+    // The migration inputs are dose.wiki history; a locked script never reads them.
+    expect(script).not.toContain(SURFACE_STORAGE_KEY);
+    expect(script).not.toContain(ACCENT_STORAGE_KEY);
   });
 
   it("lands both root attributes even when the meta lookup throws", () => {
@@ -361,6 +463,56 @@ describe("theme token interface", () => {
     expect(document.documentElement.dataset.visualStyle).toBe("pro");
     expect(document.documentElement.style.colorScheme).toBe("dark");
     expect(meta.content).toBe("");
+  });
+});
+
+describe("colour axis runtime helpers", () => {
+  it("reads a stored hue as an integer degree count in 0..359, null otherwise", () => {
+    // The provider and the bootstrap must agree on this grammar; the bootstrap
+    // inlines it, and the garbage cases above assert the inlined copy.
+    expect(parseHueDegrees("0")).toBe(0);
+    expect(parseHueDegrees("40")).toBe(40);
+    expect(parseHueDegrees("359")).toBe(359);
+    expect(parseHueDegrees("007")).toBe(7);
+    for (const garbage of [null, "", "360", "-20", "1.5", "40px", "abc"]) {
+      expect(parseHueDegrees(garbage), String(garbage)).toBeNull();
+    }
+  });
+
+  it("writes and clears hue properties alongside the levels, disengaging only when all four are locked", () => {
+    const root = document.documentElement;
+    document.head.innerHTML = "";
+
+    try {
+      applyChromaToDocument(0.35, 1, 40, 300);
+      expect(root.dataset.chroma).toBe("");
+      expect(root.style.getPropertyValue(SURFACE_LEVEL_PROPERTY)).toBe("0.35");
+      expect(root.style.getPropertyValue(ACCENT_LEVEL_PROPERTY)).toBe("1");
+      expect(root.style.getPropertyValue(SURFACE_HUE_PROPERTY)).toBe("40deg");
+      expect(root.style.getPropertyValue(ACCENT_HUE_PROPERTY)).toBe("300deg");
+      expect(document.getElementById(CHROMA_STYLESHEET_LINK_ID)).toBeInstanceOf(HTMLLinkElement);
+
+      // One locked axis clears its own properties and leaves the other engaged.
+      applyChromaToDocument(null, 0.8, null, 120);
+      expect(root.dataset.chroma).toBe("");
+      expect(root.style.getPropertyValue(SURFACE_LEVEL_PROPERTY)).toBe("");
+      expect(root.style.getPropertyValue(SURFACE_HUE_PROPERTY)).toBe("");
+      expect(root.style.getPropertyValue(ACCENT_LEVEL_PROPERTY)).toBe("0.8");
+      expect(root.style.getPropertyValue(ACCENT_HUE_PROPERTY)).toBe("120deg");
+
+      // All four locked (Effect Index): the axes disengage entirely.
+      applyChromaToDocument(null, null, null, null);
+      expect(root.dataset.chroma).toBeUndefined();
+      expect(root.style.getPropertyValue(ACCENT_LEVEL_PROPERTY)).toBe("");
+      expect(root.style.getPropertyValue(ACCENT_HUE_PROPERTY)).toBe("");
+    } finally {
+      document.getElementById(CHROMA_STYLESHEET_LINK_ID)?.remove();
+      delete root.dataset.chroma;
+      root.style.removeProperty(SURFACE_LEVEL_PROPERTY);
+      root.style.removeProperty(ACCENT_LEVEL_PROPERTY);
+      root.style.removeProperty(SURFACE_HUE_PROPERTY);
+      root.style.removeProperty(ACCENT_HUE_PROPERTY);
+    }
   });
 });
 

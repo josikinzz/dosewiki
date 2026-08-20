@@ -11,16 +11,18 @@
  * unlayered rules at equal specificity the later sheet wins. Pro is inert until <html> carries
  * data-visual-style="pro", so a Fun reader pays for the bytes and nothing else.
  *
- * Surface before accent, and both after Pro, is specificity arithmetic rather than taste. A
- * surface's Fun block and an accent's Fun block are both (0,2,1) — level with each other and
- * with the Pro palette — so their relative order is what decides who wins: the accent lands
- * later, which is what lets a reader tint the surface they chose instead of having the surface
+ * Surface before accent, and both after Pro, is specificity arithmetic rather than taste. The
+ * base surface's Fun block and the base accent's Fun block are both (0,2,1) — level with each
+ * other and with the Pro palette — so their relative order is what decides who wins: the accent
+ * lands later, which is what lets the accent tint the surface instead of having the surface
  * overwrite the accent. Being after Pro costs neither of them anything, because every Fun block
  * carries `:where(:not([data-visual-style="pro"]))` and so cannot match a Pro root at all, while
- * their Pro blocks are (0,3,1), a step above the Pro palette they re-seat.
+ * the accent's Pro block is (0,3,1), a step above the Pro palette it re-seats. Both sheets emit
+ * only the base Orchid/Default colourway now; every other look is the hue/saturation rotation
+ * the generated chroma stylesheet applies on top.
  *
  * `effectindex.ts` deliberately does NOT import the accent sheet: that publication locks the
- * axis, so `data-accent` is never written there and every byte would be dead.
+ * axis, so dose.wiki's plum Pro seeds would be dead bytes over its authored teal.
  */
 import "../../styles.css";
 import "../../styles/pro-theme.css";

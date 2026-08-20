@@ -10,10 +10,12 @@ import { setThemeLabLook } from "./themeLabStore";
  * every page without loading or opening the editor panel.
  *
  * This is also where the lab learns which look it is editing. It renders inside
- * the one appearance owner (`src/app/layout.tsx`), so the reader's own style,
- * accent and surface choices arrive here as context rather than being re-derived
- * from the document — which is what keeps the lab's edit isolation keyed to the
- * same four axes the reader's controls move.
+ * the one appearance owner (`src/app/layout.tsx`), so the reader's own visual
+ * style arrives here as context rather than being re-derived from the document —
+ * which is what keeps the lab's edit isolation keyed to the same axis the
+ * reader's controls move. Hue and saturation are not part of the key: they are
+ * continuous positions over the one authored palette, and the lab's literal
+ * edits out-rank them wherever the sliders sit.
  *
  * The look is pushed from an effect declared *before* the one that starts the
  * runtime, because effects fire in declaration order: the store therefore knows
@@ -21,11 +23,11 @@ import { setThemeLabLook } from "./themeLabStore";
  * worn look's edits rather than the default look's.
  */
 export function ThemeLabRuntimeMount() {
-  const { visualStyle, accent, surface } = useTheme();
+  const { visualStyle } = useTheme();
 
   useEffect(() => {
-    setThemeLabLook({ visualStyle, accent, surface });
-  }, [visualStyle, accent, surface]);
+    setThemeLabLook({ visualStyle });
+  }, [visualStyle]);
 
   useEffect(() => startThemeLabRuntime(), []);
 

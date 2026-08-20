@@ -2,12 +2,13 @@
  * The shared colourway payloads.
  *
  * A colourway is a named pair of override maps — one per colour scheme — in
- * exactly the shape `html[data-theme="…"] { token: value }`. Seven of them ship,
- * and they are the colour data behind both appearance axes rather than a look a
- * visitor picks: `src/theme/accentStylesheet.ts` compiles each accent's Fun half
- * from these payloads at build time, and `src/theme/surfaces.ts` builds the
- * whole Surfaces axis by calling {@link getPreset}. Nothing renders a payload
- * directly; the two generated stylesheets do.
+ * exactly the shape `html[data-theme="…"] { token: value }`. Seven of them ship
+ * as the Theme Lab's colour data, and as the authored record the legacy hue
+ * tables (`LEGACY_SURFACE_TO_HUE`/`LEGACY_ACCENT_TO_HUE` in `src/theme`) were
+ * measured against: since the hue axis retired the swatch pickers, only Orchid
+ * renders — every other look is a hue/saturation rotation of it — and the axis
+ * tests read these payloads via {@link getPreset} to pin those rotations to the
+ * angles each colourway authored. Nothing renders a payload directly.
  *
  * Authoring model: most of `site-colors.css` derives from the primitive channel
  * seeds (`--c-*`) and OKLCH hue-angle seeds (`--h-*`), so a colourway mostly

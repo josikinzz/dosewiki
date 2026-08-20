@@ -2,9 +2,7 @@ import { act, fireEvent, render, screen, waitFor, within } from "@testing-librar
 import userEvent from "@testing-library/user-event";
 import { beforeEach, afterEach, describe, expect, it, vi } from "vitest";
 import { AppearanceTestProvider } from "@/test/AppearanceTestProvider";
-import { BASE_ACCENT, BASE_SURFACE } from "@/theme";
-import { ACCENTS } from "@/theme/accents";
-import { SURFACES } from "@/theme/surfaces";
+import { ACCENT_HUE_PROPERTY, SURFACE_HUE_PROPERTY } from "@/theme/appearanceChroma";
 import { ThemeLabLazy as ThemeLab } from "./ThemeLabLazy";
 import { THEME_LAB_OVERRIDE_STYLE_ID } from "./themeLabStorage";
 import { setThemeLabOpen } from "./themeLabStore";
@@ -17,20 +15,15 @@ import { clearThemeBaselineCache } from "./presetBaselines";
  * focus ends up.
  *
  * The load-bearing claim is that the lab has no appearance system of its own. Its top
- * section is the same `AppearanceAxes` the header cog renders, so picking an accent or a
- * surface here has to move the site's own `data-accent` / `data-surface` — a lab that
+ * section is the same `AppearanceAxes` the header cog renders, so dragging a hue or
+ * saturation slider here has to move the site's own root properties — a lab that
  * painted its own private copy would pass a rendering assertion and still leave the
- * reader's picker inert.
+ * reader's controls inert.
  */
 
 vi.mock("@/components/common/Icon", () => ({
   Icon: ({ icon }: { icon: string }) => <span data-icon={icon} />,
 }));
-
-/** A named accent and a named surface: both axes key their base value on the *absence* of
- *  the attribute, so only a non-base choice is observable on the root element. */
-const NAMED_ACCENT = ACCENTS.filter((option) => option.id !== BASE_ACCENT)[0];
-const NAMED_SURFACE = SURFACES.filter((option) => option.id !== BASE_SURFACE)[0];
 
 function installMockStorage() {
   const store = new Map<string, string>();
@@ -53,8 +46,8 @@ function injectedCss(): string {
 beforeEach(() => {
   installMockStorage();
   document.documentElement.setAttribute("data-theme", "dark");
-  delete document.documentElement.dataset.accent;
-  delete document.documentElement.dataset.surface;
+  document.documentElement.style.removeProperty(SURFACE_HUE_PROPERTY);
+  document.documentElement.style.removeProperty(ACCENT_HUE_PROPERTY);
   document.getElementById(THEME_LAB_OVERRIDE_STYLE_ID)?.remove();
   clearThemeBaselineCache();
   setThemeLabOpen(false);
@@ -62,8 +55,8 @@ beforeEach(() => {
 
 afterEach(() => {
   vi.restoreAllMocks();
-  delete document.documentElement.dataset.accent;
-  delete document.documentElement.dataset.surface;
+  document.documentElement.style.removeProperty(SURFACE_HUE_PROPERTY);
+  document.documentElement.style.removeProperty(ACCENT_HUE_PROPERTY);
   document.getElementById(THEME_LAB_OVERRIDE_STYLE_ID)?.remove();
 });
 
@@ -74,7 +67,7 @@ async function openPanel() {
     <>
       <button type="button">Elsewhere on the page</button>
       <button type="button">Open Theme Lab</button>
-      <AppearanceTestProvider initialAccent={BASE_ACCENT}>
+      <AppearanceTestProvider>
         <ThemeLab />
       </AppearanceTestProvider>
     </>,
@@ -92,34 +85,34 @@ async function editPageBackground(panel: HTMLElement, hex: string) {
 }
 
 describe("Theme Lab drawer", { timeout: 15_000 }, () => {
-  it("opens on the site's own four appearance axes", async () => {
+  it("opens on the site's own appearance axes", async () => {
     const panel = await openPanel();
 
     // The two binary pills publish their axis to the DOM; one each for style and scheme.
     expect(panel.querySelectorAll("[data-appearance-axis]")).toHaveLength(2);
 
-    const surfaces = within(panel).getByRole("group", { name: "Surfaces" });
-    expect(surfaces.querySelectorAll("[data-surface-swatch]")).toHaveLength(SURFACES.length);
-
-    const accents = within(panel).getByRole("group", { name: "Accent" });
-    expect(accents.querySelectorAll("[data-accent-swatch]")).toHaveLength(ACCENTS.length);
+    // Both colour axes arrive as the site's own hue and saturation sliders.
+    expect(within(panel).getByRole("slider", { name: "Surface hue" })).toBeInTheDocument();
+    expect(within(panel).getByRole("slider", { name: "Surface saturation" })).toBeInTheDocument();
+    expect(within(panel).getByRole("slider", { name: "Accent hue" })).toBeInTheDocument();
+    expect(within(panel).getByRole("slider", { name: "Accent saturation" })).toBeInTheDocument();
   });
 
-  it("drives the site's real accent and surface, not a private copy of them", async () => {
+  it("drives the site's real hue axes, not a private copy of them", async () => {
     const panel = await openPanel();
     const root = document.documentElement;
 
-    await userEvent.click(
-      panel.querySelector(`[data-accent-swatch="${NAMED_ACCENT.id}"]`) as HTMLElement,
-    );
-    expect(root.dataset.accent).toBe(NAMED_ACCENT.id);
+    fireEvent.change(within(panel).getByRole("slider", { name: "Accent hue" }), {
+      target: { value: "120" },
+    });
+    await waitFor(() => expect(root.style.getPropertyValue(ACCENT_HUE_PROPERTY)).toBe("120deg"));
 
-    await userEvent.click(
-      panel.querySelector(`[data-surface-swatch="${NAMED_SURFACE.id}"]`) as HTMLElement,
-    );
-    expect(root.dataset.surface).toBe(NAMED_SURFACE.id);
+    fireEvent.change(within(panel).getByRole("slider", { name: "Surface hue" }), {
+      target: { value: "40" },
+    });
+    await waitFor(() => expect(root.style.getPropertyValue(SURFACE_HUE_PROPERTY)).toBe("40deg"));
 
-    // Choosing an accent is not an edit: the panel still reports a clean look.
+    // Choosing a hue is not an edit: the panel still reports a clean look.
     expect(within(panel).getByText("No changes")).toBeInTheDocument();
   });
 
@@ -149,24 +142,24 @@ describe("Theme Lab drawer", { timeout: 15_000 }, () => {
     expect(within(panel).getByRole("button", { name: /1 changed/ })).toBeInTheDocument();
   });
 
-  it("parks each look's edits under that look, so switching accent is pure navigation", async () => {
+  it("keeps an edit painting across a hue move, because hue is appearance rather than navigation", async () => {
     const panel = await openPanel();
     await editPageBackground(panel, "#123456");
     await waitFor(() => expect(injectedCss()).toContain("--theme-body-bg:#123456"));
 
-    // A different accent is a different look: its own edit map is empty, so the edit made
-    // against the default accent stops painting rather than following the reader over.
-    await userEvent.click(
-      panel.querySelector(`[data-accent-swatch="${NAMED_ACCENT.id}"]`) as HTMLElement,
-    );
-    await waitFor(() => expect(injectedCss()).not.toContain("--theme-body-bg:#123456"));
-    expect(within(panel).getByText("No changes")).toBeInTheDocument();
+    // A hue move is a continuous position over the same palette, not a different
+    // look: the edit is a literal colour that out-ranks the rotated tokens
+    // wherever the slider sits, so it follows the reader rather than parking.
+    // (Style flips *are* navigation; the runtime suite pins that parking.)
+    fireEvent.change(within(panel).getByRole("slider", { name: "Accent hue" }), {
+      target: { value: "200" },
+    });
 
-    // Coming back shows the edit again — nothing was wiped, only parked.
-    await userEvent.click(
-      panel.querySelector(`[data-accent-swatch="${BASE_ACCENT}"]`) as HTMLElement,
+    await waitFor(() =>
+      expect(document.documentElement.style.getPropertyValue(ACCENT_HUE_PROPERTY)).toBe("200deg"),
     );
-    await waitFor(() => expect(injectedCss()).toContain("--theme-body-bg:#123456"));
+    expect(injectedCss()).toContain("--theme-body-bg:#123456");
+    expect(within(panel).getByRole("button", { name: /1 changed/ })).toBeInTheDocument();
   });
 
   it("moves focus into the panel when it opens", async () => {

@@ -1,5 +1,12 @@
 import { describe, expect, it } from "vitest";
-import { atLevel, authoredLevel, isChromaticLiteral, maxChroma, toOklch } from "./chromaMath";
+import {
+  atLevel,
+  authoredLevel,
+  isChromaticLiteral,
+  maxChroma,
+  proAccentRepresentativeSeed,
+  toOklch,
+} from "./chromaMath";
 
 describe("chroma maths", () => {
   it("round-trips a colour through its own authored level", () => {
@@ -34,9 +41,9 @@ describe("chroma maths", () => {
       expect(atLevel(grey, 1)).toBe(grey);
       expect(isChromaticLiteral(grey)).toBe(false);
     }
-    // Graphite's panel #16181d measures C ≈ 0.008 — above the literal
-    // threshold. That non-zero whisper is exactly why the colourway carries a
-    // declared `achromatic` flag instead of trusting a numeric test.
+    // Graphite's old panel #16181d measures C ≈ 0.008 — above the literal
+    // threshold. That non-zero whisper is why grey lives as saturation level 0
+    // on the chroma axis rather than as a threshold-detected special case.
     expect(isChromaticLiteral("#16181d")).toBe(true);
     expect(isChromaticLiteral("#f0abfc")).toBe(true);
     expect(isChromaticLiteral("rgb(165 243 252)")).toBe(true);
@@ -52,6 +59,18 @@ describe("chroma maths", () => {
       const { l, c, h } = toOklch(maxed)!;
       expect(c).toBeLessThanOrEqual(maxChroma(l, h) + 0.01);
     }
+  });
+
+  it("picks --ei-accent as the Pro ramp's representative seed, null when undeclared", () => {
+    // The CSS gain denominator and the slider rail read this one pick, so the
+    // level the slider calls "authored" is the level where the Pro block's
+    // gain resolves to 1.
+    const pro = {
+      dark: { "--ei-accent": "#22aabb", "--ei-accent-strong": "#115566" },
+      light: { "--ei-accent-strong": "#115566" },
+    };
+    expect(proAccentRepresentativeSeed(pro, "dark")).toBe("#22aabb");
+    expect(proAccentRepresentativeSeed(pro, "light")).toBeNull();
   });
 
   it("reads levels the prototype validated: the shipped swatches' own positions", () => {

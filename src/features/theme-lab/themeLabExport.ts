@@ -14,8 +14,8 @@ import type { ThemeDefaults } from "./presetBaselines";
  * Two properties matter:
  *
  * 1. **Stamped.** The payload records the look it was measured against — the
- *    style, accent and surface triple, as a `lookKey` string — so a paste can say
- *    where its numbers came from instead of arriving anonymous.
+ *    visual style, as a `lookKey` string — so a paste can say where its numbers
+ *    came from instead of arriving anonymous.
  * 2. **Idempotent.** Values are stored as the *diff* against what the target
  *    actually renders, so export → import of an untouched look yields zero edits
  *    rather than several hundred redundant ones.
@@ -23,7 +23,8 @@ import type { ThemeDefaults } from "./presetBaselines";
  * The stamp is a record, not an instruction: importing applies the payload to the
  * look the visitor is wearing. Navigating them somewhere else on paste would move
  * the appearance controls under them, and the literal colours in a payload paint
- * the same wherever they land.
+ * the same wherever they land. A pre-hue stamp (`style|accent|surface`) parses
+ * through the same legacy mapping every stored key does.
  */
 
 export type ThemeExportPayload = {

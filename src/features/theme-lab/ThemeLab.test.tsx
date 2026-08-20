@@ -1,12 +1,11 @@
 import { act, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { getInitialAppearance } from "@/theme";
 import { AppearanceTestProvider } from "@/test/AppearanceTestProvider";
 import { ColorField } from "./ColorField";
 import { ThemeLabLazy as ThemeLab } from "./ThemeLabLazy";
 import { setThemeLabOpen } from "./themeLabStore";
-import { lookKey } from "./themeLabLook";
+import { DEFAULT_LOOK, lookKey } from "./themeLabLook";
 import { clearThemeBaselineCache } from "./presetBaselines";
 import styles from "./ThemeLab.module.css";
 
@@ -14,15 +13,10 @@ import styles from "./ThemeLab.module.css";
  *  move readers' persisted data: this literal is the shipped contract. */
 const STORAGE_KEY = "dosewiki-palette-lab";
 
-/** The look `AppearanceTestProvider` opens on: the publication's own opening accent
- *  and surface, with the style pinned to Fun. Edits are keyed by look, so an
- *  assertion about the envelope has to name the look the panel was editing. */
-const OPENING = getInitialAppearance();
-const OPEN_LOOK = lookKey({
-  visualStyle: "fun",
-  accent: OPENING.accent,
-  surface: OPENING.surface,
-});
+/** The look `AppearanceTestProvider` opens on: the style pinned to Fun. Edits are
+ *  keyed by look, so an assertion about the envelope has to name the look the
+ *  panel was editing. */
+const OPEN_LOOK = lookKey(DEFAULT_LOOK);
 
 vi.mock("@/components/common/Icon", () => ({
   Icon: ({ icon }: { icon: string }) => <span data-icon={icon} />,
@@ -443,8 +437,8 @@ describe("ThemeLab", { timeout: 15_000 }, () => {
       await waitFor(() => {
         const raw = window.localStorage.getItem(STORAGE_KEY) ?? "";
         expect(raw).toContain('"version":5');
-        // Not a global overlay: the edit is a statement about this appearance
-        // combination, so switching accent or surface leaves it behind.
+        // Not a global overlay: the edit is a statement about this visual
+        // style, so flipping the style leaves it behind.
         expect(JSON.parse(raw).editsByLook[OPEN_LOOK].dark["--theme-accent"]).toBe("#fedcba");
       });
     });
@@ -465,7 +459,7 @@ describe("ThemeLab", { timeout: 15_000 }, () => {
 
       // Nothing is injected at all: the lab has no base layer of its own to fall
       // back to, so an empty edit map means the page renders exactly what the
-      // surface, accent, style and scheme stylesheets say.
+      // style, scheme and chroma stylesheets say.
       expect(document.getElementById("theme-lab-overrides")?.textContent ?? "").toBe("");
       await waitFor(() => {
         const raw = window.localStorage.getItem(STORAGE_KEY);
