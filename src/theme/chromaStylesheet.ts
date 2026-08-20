@@ -33,12 +33,14 @@ import surfaceFunTokens from "./surfaceFunTokens.generated.json";
  *   --dw-surface-gain: calc(var(--dw-surface-level, <authored>) / <authored>);
  *
  * where `<authored>` is the base colourway's own representative level in that
- * scheme, and its hue slot rewritten to `calc(h + var(--dw-*-hue, 0deg))`.
+ * scheme, and its hue slot rewritten to `calc(h + var(--dw-*-hue, 0))` — the
+ * shift is a bare number because `h` resolves to a `<number>` in `calc()` and
+ * numbers cannot meet an `<angle>`.
  * Hue is periodic in CSS `oklch()`, so plain addition needs no wrap-around;
  * lightness is never touched on either axis. One shared gain and one shared
  * shift per block keep the palette's internal relationships (muted panel vs
  * vivid brand) intact while the whole palette rotates and re-saturates
- * together. Unset properties fall back to the authored denominator and 0deg,
+ * together. Unset properties fall back to the authored denominator and 0,
  * so a matched block with nothing on its axis is inert.
  *
  * Every block requires `data-chroma` on the root. The pre-paint bootstrap sets
@@ -77,7 +79,8 @@ type ColourwayTokens = { dark: SchemeTokens; light: SchemeTokens };
 
 /**
  * Rewrite one token value so every chromatic literal's chroma is multiplied by
- * `var(gainProperty)` and its hue rotated by `var(hueProperty, 0deg)`.
+ * `var(gainProperty)` and its hue rotated by `var(hueProperty, 0)` (a bare
+ * number of degrees — `h` is a `<number>` inside `calc()`).
  * Achromatic literals (greys, black, white, shadow ink) pass through
  * untouched — a grey must not pick up colour under a rotation; a value with
  * nothing chromatic reports `wrapped: 0` and is dropped by the caller.
@@ -93,7 +96,7 @@ export function wrapChromaValue(
 ): { text: string; wrapped: number } {
   if (!/#|rgba?\(|oklch\(|hsla?\(/.test(value)) return { text: value, wrapped: 0 };
   const gain = `var(${gainProperty})`;
-  const shift = `var(${hueProperty}, 0deg)`;
+  const shift = `var(${hueProperty}, 0)`;
   let out = "";
   let index = 0;
   let wrapped = 0;
@@ -182,14 +185,17 @@ function scaleRelativeOklch(inner: string, gain: string, shift: string): string 
 }
 
 /**
- * Rotate one hue component by `shift`. A bare number means degrees in
- * `oklch()` but cannot meet an angle inside `calc()`, so it is given its unit;
- * an existing `calc()` is parenthesised whole, same reason as the chroma slot.
+ * Rotate one hue component by `shift`. In `calc()` the relative-colour `h`
+ * channel and a bare oklch hue both resolve to plain numbers (degrees), and a
+ * number cannot meet an `<angle>` — `calc(310 + 40deg)` is invalid and the
+ * whole declaration falls to transparent. So the shift variable holds a bare
+ * number and any authored `NNdeg` literal is stripped to its number; an
+ * existing `calc()` is parenthesised whole, same reason as the chroma slot.
  */
 function rotateHue(hue: string, shift: string): string {
   if (hue.startsWith("calc(")) return `calc((${hue.slice(5, -1)}) + ${shift})`;
-  const withUnit = /^-?(\d+\.?\d*|\.\d+)$/.test(hue) ? `${hue}deg` : hue;
-  return `calc(${withUnit} + ${shift})`;
+  const unitless = /^(-?(?:\d+\.?\d*|\.\d+))deg$/.exec(hue)?.[1] ?? hue;
+  return `calc(${unitless} + ${shift})`;
 }
 
 /**
@@ -340,10 +346,11 @@ const HEADER = `/* GENERATED FILE — do not edit by hand.
    saved values or the site defaults. Every block requires html[${CHROMA_ATTRIBUTE}]
    and computes one gain, level ÷ authored-level, applied to the chroma of
    every chromatic literal in the base palette's tokens through relative
-   colour syntax, while each literal's hue slot gains + var(--dw-*-hue, 0deg).
+   colour syntax, while each literal's hue slot gains + var(--dw-*-hue, 0) —
+   a bare number of degrees, since the h channel is a number inside calc().
    Lightness is never touched, and hue is periodic in oklch() so plain
    addition needs no wrap-around. Unset properties fall back to the authored
-   denominator and 0deg, so a matched block with nothing on its axis is inert.
+   denominator and 0, so a matched block with nothing on its axis is inert.
 
    The harm-reduction ramp, dose tiers and plateau tiers are structurally
    absent: the Fun blocks' input token maps are filtered by paletteTokenRole,

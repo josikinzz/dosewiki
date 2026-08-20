@@ -25,7 +25,8 @@ import { VisualStyleToggle } from "./VisualStyleToggle";
 function trackGradient(swatch: string, hue: number): string {
   const stops = [0, 0.25, 0.5, 0.75, 1].map((level) => {
     const seated = atLevel(swatch, level);
-    return hue === 0 ? seated : `oklch(from ${seated} l c calc(h + ${hue}deg))`;
+    // `h` is a <number> inside calc(): the shift must be a bare number too.
+    return hue === 0 ? seated : `oklch(from ${seated} l c calc(h + ${hue}))`;
   });
   return `linear-gradient(90deg, ${stops.join(", ")})`;
 }
@@ -38,7 +39,7 @@ function trackGradient(swatch: string, hue: number): string {
  */
 function hueTrackGradient(swatch: string): string {
   const stops = [0, 60, 120, 180, 240, 300, 360].map(
-    (degrees) => `oklch(from ${swatch} l c calc(h + ${degrees}deg))`,
+    (degrees) => `oklch(from ${swatch} l c calc(h + ${degrees}))`,
   );
   return `linear-gradient(90deg, ${stops.join(", ")})`;
 }

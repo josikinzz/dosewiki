@@ -15,7 +15,7 @@ import chromaManifest from "./appearanceChroma.generated.json";
 describe("chroma value wrapping", () => {
   const GAIN = "--g";
   const HUE = "--h";
-  const SHIFT = "calc(h + var(--h, 0deg))";
+  const SHIFT = "calc(h + var(--h, 0))";
 
   it("wraps chromatic literals and leaves achromatic ones alone, across the value grammar", () => {
     const { text, wrapped } = wrapChromaValue(
@@ -30,14 +30,15 @@ describe("chroma value wrapping", () => {
   });
 
   it("rewrites the chroma and hue slots of a bare oklch literal in place", () => {
-    // The bare hue is a number, which cannot meet an angle inside calc(), so
-    // it is given its unit before the shift is added.
+    // The bare hue is a number and must STAY a number: inside calc() the hue
+    // resolves as <number>, and mixing in an <angle> invalidates the whole
+    // declaration at computed-value time (the page paints transparent).
     expect(wrapChromaValue("oklch(14% 0.025 318)", GAIN, HUE).text).toBe(
-      "oklch(14% calc(0.025 * var(--g)) calc(318deg + var(--h, 0deg)))",
+      "oklch(14% calc(0.025 * var(--g)) calc(318 + var(--h, 0)))",
     );
     // Alpha channel rides along untouched.
     expect(wrapChromaValue("oklch(46% 0.12 318 / 0.06)", GAIN, HUE).text).toBe(
-      "oklch(46% calc(0.12 * var(--g)) calc(318deg + var(--h, 0deg)) / 0.06)",
+      "oklch(46% calc(0.12 * var(--g)) calc(318 + var(--h, 0)) / 0.06)",
     );
     // Achromatic oklch stays byte-identical: a grey must not pick up colour
     // under a gain or a rotation.
@@ -57,13 +58,13 @@ describe("chroma value wrapping", () => {
         HUE,
       ).text,
     ).toBe(
-      "oklch(from oklch(15.5% 0.037 318) calc(l + 0.05) calc((c + 0.008) * var(--g)) calc(h + var(--h, 0deg)))",
+      "oklch(from oklch(15.5% 0.037 318) calc(l + 0.05) calc((c + 0.008) * var(--g)) calc(h + var(--h, 0)))",
     );
     // An alpha tail after the hue component survives, and a calc() hue is
     // parenthesised whole before the shift lands.
     expect(
       wrapChromaValue("oklch(from #a5f3fc l c calc(h + 4) / 0.5)", GAIN, HUE).text,
-    ).toBe("oklch(from #a5f3fc l calc(c * var(--g)) calc((h + 4) + var(--h, 0deg)) / 0.5)");
+    ).toBe("oklch(from #a5f3fc l calc(c * var(--g)) calc((h + 4) + var(--h, 0)) / 0.5)");
   });
 
   it("reports zero wraps for values with nothing chromatic, so callers can drop them", () => {
@@ -142,10 +143,21 @@ describe("generated chroma stylesheet", () => {
     expect(blocks.length).toBeGreaterThan(0);
     for (const block of blocks) {
       const axis = block.body.includes("--dw-surface-gain") ? "surface" : "accent";
-      expect(block.body, block.selectors).toContain(`var(--dw-${axis}-hue, 0deg)`);
+      expect(block.body, block.selectors).toContain(`var(--dw-${axis}-hue, 0)`);
       const other = axis === "surface" ? "accent" : "surface";
       expect(block.body, block.selectors).not.toContain(`--dw-${other}-`);
     }
+  });
+
+  it("never mixes an angle unit into a hue calc(): h is a <number> inside calc()", () => {
+    // Regression: hue shifts were once emitted as `40deg`, which made every
+    // wrapped declaration invalid at computed-value time — surfaces painted
+    // transparent and the logo gradient vanished. calc(<number> + <angle>)
+    // is not a valid CSS sum, so no hue slot may carry a deg unit.
+    for (const match of built.matchAll(/calc\(([^)]*(?:\([^)]*\))?[^)]*) \+ var\(--dw-(?:surface|accent)-hue[^)]*\)\)/g)) {
+      expect(match[0], match[0]).not.toContain("deg");
+    }
+    expect(built).not.toMatch(/--dw-(?:surface|accent)-hue, 0deg/);
   });
 
   it("emits a Pro block per scheme for the base accent, keyed to the Pro ramp's own level", () => {

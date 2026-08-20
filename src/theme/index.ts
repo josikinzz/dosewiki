@@ -338,13 +338,13 @@ export function buildThemeBootstrapScript(policy: AppearancePolicy = SITE_FLAVOR
             ? ""
             : `
   root.style.setProperty(${JSON.stringify(SURFACE_LEVEL_PROPERTY)}, "" + chromaSurface);
-  root.style.setProperty(${JSON.stringify(SURFACE_HUE_PROPERTY)}, hueSurface + "deg");`
+  root.style.setProperty(${JSON.stringify(SURFACE_HUE_PROPERTY)}, "" + hueSurface);`
         }${
           accentLocked
             ? ""
             : `
   root.style.setProperty(${JSON.stringify(ACCENT_LEVEL_PROPERTY)}, "" + chromaAccent);
-  root.style.setProperty(${JSON.stringify(ACCENT_HUE_PROPERTY)}, hueAccent + "deg");`
+  root.style.setProperty(${JSON.stringify(ACCENT_HUE_PROPERTY)}, "" + hueAccent);`
         }
   try {
     const link = document.createElement("link");

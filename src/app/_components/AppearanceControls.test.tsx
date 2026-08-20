@@ -300,9 +300,7 @@ describe("AppearanceCog", () => {
     await waitFor(() => {
       // The setter ran with the integer and the provider wrote the axis through — the
       // painted custom property and the persisted degrees string: no confirm, no save.
-      expect(document.documentElement.style.getPropertyValue(ACCENT_HUE_PROPERTY)).toBe(
-        "249deg",
-      );
+      expect(document.documentElement.style.getPropertyValue(ACCENT_HUE_PROPERTY)).toBe("249");
       expect(window.localStorage.getItem(ACCENT_HUE_STORAGE_KEY)).toBe("249");
     });
     expect(accentHue.value).toBe("249");

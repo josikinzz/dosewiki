@@ -105,12 +105,12 @@ describe("Theme Lab drawer", { timeout: 15_000 }, () => {
     fireEvent.change(within(panel).getByRole("slider", { name: "Accent hue" }), {
       target: { value: "120" },
     });
-    await waitFor(() => expect(root.style.getPropertyValue(ACCENT_HUE_PROPERTY)).toBe("120deg"));
+    await waitFor(() => expect(root.style.getPropertyValue(ACCENT_HUE_PROPERTY)).toBe("120"));
 
     fireEvent.change(within(panel).getByRole("slider", { name: "Surface hue" }), {
       target: { value: "40" },
     });
-    await waitFor(() => expect(root.style.getPropertyValue(SURFACE_HUE_PROPERTY)).toBe("40deg"));
+    await waitFor(() => expect(root.style.getPropertyValue(SURFACE_HUE_PROPERTY)).toBe("40"));
 
     // Choosing a hue is not an edit: the panel still reports a clean look.
     expect(within(panel).getByText("No changes")).toBeInTheDocument();
@@ -156,7 +156,7 @@ describe("Theme Lab drawer", { timeout: 15_000 }, () => {
     });
 
     await waitFor(() =>
-      expect(document.documentElement.style.getPropertyValue(ACCENT_HUE_PROPERTY)).toBe("200deg"),
+      expect(document.documentElement.style.getPropertyValue(ACCENT_HUE_PROPERTY)).toBe("200"),
     );
     expect(injectedCss()).toContain("--theme-body-bg:#123456");
     expect(within(panel).getByRole("button", { name: /1 changed/ })).toBeInTheDocument();

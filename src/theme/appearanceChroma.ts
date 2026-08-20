@@ -47,7 +47,7 @@ export const DEFAULT_SURFACE_LEVEL = 0.15;
 export const DEFAULT_ACCENT_LEVEL = 0.65;
 
 /**
- * The site-default hue rotations: 0deg is the authored palette (Orchid
+ * The site-default hue rotations: 0 degrees is the authored palette (Orchid
  * surfaces, the Default plum accent). Same persistence rule as the levels —
  * a default is never written to storage, absence of the key means default.
  */
@@ -114,8 +114,8 @@ export function applyChromaToDocument(
   const properties: readonly [property: string, value: string | null][] = [
     [SURFACE_LEVEL_PROPERTY, surfaceLevel === null ? null : String(surfaceLevel)],
     [ACCENT_LEVEL_PROPERTY, accentLevel === null ? null : String(accentLevel)],
-    [SURFACE_HUE_PROPERTY, surfaceHue === null ? null : `${surfaceHue}deg`],
-    [ACCENT_HUE_PROPERTY, accentHue === null ? null : `${accentHue}deg`],
+    [SURFACE_HUE_PROPERTY, surfaceHue === null ? null : String(surfaceHue)],
+    [ACCENT_HUE_PROPERTY, accentHue === null ? null : String(accentHue)],
   ];
   if (properties.every(([, value]) => value === null)) {
     delete root.dataset.chroma;

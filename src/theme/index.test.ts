@@ -310,8 +310,8 @@ describe("theme token interface", () => {
       expect(root.dataset.chroma).toBe("");
       expect(root.style.getPropertyValue(SURFACE_LEVEL_PROPERTY)).toBe("0.35");
       expect(root.style.getPropertyValue(ACCENT_LEVEL_PROPERTY)).toBe("1");
-      expect(root.style.getPropertyValue(SURFACE_HUE_PROPERTY)).toBe("40deg");
-      expect(root.style.getPropertyValue(ACCENT_HUE_PROPERTY)).toBe("300deg");
+      expect(root.style.getPropertyValue(SURFACE_HUE_PROPERTY)).toBe("40");
+      expect(root.style.getPropertyValue(ACCENT_HUE_PROPERTY)).toBe("300");
       const link = document.getElementById(CHROMA_STYLESHEET_LINK_ID);
       expect(link).toBeInstanceOf(HTMLLinkElement);
       expect((link as HTMLLinkElement).getAttribute("href")).toBe(CHROMA_STYLESHEET_HREF);
@@ -352,10 +352,10 @@ describe("theme token interface", () => {
         String(DEFAULT_ACCENT_LEVEL),
       );
       expect(root.style.getPropertyValue(SURFACE_HUE_PROPERTY), String(garbage)).toBe(
-        `${DEFAULT_SURFACE_HUE}deg`,
+        `${DEFAULT_SURFACE_HUE}`,
       );
       expect(root.style.getPropertyValue(ACCENT_HUE_PROPERTY), String(garbage)).toBe(
-        `${DEFAULT_ACCENT_HUE}deg`,
+        `${DEFAULT_ACCENT_HUE}`,
       );
       const link = document.getElementById(CHROMA_STYLESHEET_LINK_ID);
       expect(link, String(garbage)).toBeInstanceOf(HTMLLinkElement);
@@ -377,10 +377,10 @@ describe("theme token interface", () => {
 
       const root = document.documentElement;
       expect(root.style.getPropertyValue(SURFACE_HUE_PROPERTY)).toBe(
-        `${LEGACY_SURFACE_TO_HUE.abyss.hue}deg`,
+        `${LEGACY_SURFACE_TO_HUE.abyss.hue}`,
       );
       expect(root.style.getPropertyValue(ACCENT_HUE_PROPERTY)).toBe(
-        `${LEGACY_ACCENT_TO_HUE.green.hue}deg`,
+        `${LEGACY_ACCENT_TO_HUE.green.hue}`,
       );
       expect(root.style.getPropertyValue(SURFACE_LEVEL_PROPERTY)).toBe(
         String(DEFAULT_SURFACE_LEVEL),
@@ -408,8 +408,8 @@ describe("theme token interface", () => {
       const root = document.documentElement;
       expect(root.style.getPropertyValue(SURFACE_LEVEL_PROPERTY)).toBe("0");
       expect(root.style.getPropertyValue(ACCENT_LEVEL_PROPERTY)).toBe("0");
-      expect(root.style.getPropertyValue(SURFACE_HUE_PROPERTY)).toBe("0deg");
-      expect(root.style.getPropertyValue(ACCENT_HUE_PROPERTY)).toBe("0deg");
+      expect(root.style.getPropertyValue(SURFACE_HUE_PROPERTY)).toBe("0");
+      expect(root.style.getPropertyValue(ACCENT_HUE_PROPERTY)).toBe("0");
     } finally {
       document.getElementById(CHROMA_STYLESHEET_LINK_ID)?.remove();
     }
@@ -488,8 +488,8 @@ describe("colour axis runtime helpers", () => {
       expect(root.dataset.chroma).toBe("");
       expect(root.style.getPropertyValue(SURFACE_LEVEL_PROPERTY)).toBe("0.35");
       expect(root.style.getPropertyValue(ACCENT_LEVEL_PROPERTY)).toBe("1");
-      expect(root.style.getPropertyValue(SURFACE_HUE_PROPERTY)).toBe("40deg");
-      expect(root.style.getPropertyValue(ACCENT_HUE_PROPERTY)).toBe("300deg");
+      expect(root.style.getPropertyValue(SURFACE_HUE_PROPERTY)).toBe("40");
+      expect(root.style.getPropertyValue(ACCENT_HUE_PROPERTY)).toBe("300");
       expect(document.getElementById(CHROMA_STYLESHEET_LINK_ID)).toBeInstanceOf(HTMLLinkElement);
 
       // One locked axis clears its own properties and leaves the other engaged.
@@ -498,7 +498,7 @@ describe("colour axis runtime helpers", () => {
       expect(root.style.getPropertyValue(SURFACE_LEVEL_PROPERTY)).toBe("");
       expect(root.style.getPropertyValue(SURFACE_HUE_PROPERTY)).toBe("");
       expect(root.style.getPropertyValue(ACCENT_LEVEL_PROPERTY)).toBe("0.8");
-      expect(root.style.getPropertyValue(ACCENT_HUE_PROPERTY)).toBe("120deg");
+      expect(root.style.getPropertyValue(ACCENT_HUE_PROPERTY)).toBe("120");
 
       // All four locked (Effect Index): the axes disengage entirely.
       applyChromaToDocument(null, null, null, null);
