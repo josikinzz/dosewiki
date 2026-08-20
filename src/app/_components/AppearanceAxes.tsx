@@ -10,36 +10,46 @@ import {
   DEFAULT_ACCENT_HUE,
   DEFAULT_SURFACE_HUE,
 } from "@/theme/appearanceChroma";
-import { atLevel, authoredLevel, proAccentRepresentativeSeed } from "@/theme/chromaMath";
+import { authoredLevel, proAccentRepresentativeSeed } from "@/theme/chromaMath";
 import { BASE_SURFACE_ID, BASE_SURFACE_TINT } from "@/theme/surfaces";
 import { ThemeToggle } from "./ThemeToggle";
 import { VisualStyleToggle } from "./VisualStyleToggle";
 
 /**
- * The saturation track's gradient: the axis's base colour at levels 0..1,
- * rotated to the reader's current hue, so the rail shows exactly what the
- * thumb's positions mean under the hue they are wearing. The rotation is CSS
- * relative-colour arithmetic — the browser rotates the actual painted colour
- * at its own lightness, exactly as the generated stylesheet does.
+ * The rails are *legends*, not swatches: they render at a fixed, legible
+ * display lightness and a vivid chroma regardless of how dark or muted the
+ * theme itself currently is. A dark surface at 14% saturation paints an
+ * almost-black canvas — turning the rail that colour makes the control
+ * invisible, and the reader is choosing a *direction* (which hue, how much
+ * saturation), not previewing exact pixels. Only the hue is taken from the
+ * theme, so the rails still point at the palette the reader is wearing.
+ */
+const RAIL_LIGHTNESS = 0.72;
+const RAIL_CHROMA = 0.21;
+
+/**
+ * The saturation track's gradient: grey at the left sweeping to a vivid stop
+ * at the right, under the reader's current hue rotation, at the fixed rail
+ * lightness. The sweep shows what the thumb's positions *mean* — none to
+ * maximum saturation — not the literal painted colour at each level.
  */
 function trackGradient(swatch: string, hue: number): string {
-  const stops = [0, 0.25, 0.5, 0.75, 1].map((level) => {
-    const seated = atLevel(swatch, level);
+  const stops = [0, 0.25, 0.5, 0.75, 1].map(
     // `h` is a <number> inside calc(): the shift must be a bare number too.
-    return hue === 0 ? seated : `oklch(from ${seated} l c calc(h + ${hue}))`;
-  });
+    (t) => `oklch(from ${swatch} ${RAIL_LIGHTNESS} ${(RAIL_CHROMA * t).toFixed(4)} calc(h + ${hue}))`,
+  );
   return `linear-gradient(90deg, ${stops.join(", ")})`;
 }
 
 /**
- * The hue track's gradient: the axis's base colour — at the reader's current
- * saturation level — swept once around the hue circle. Seven stops, 60° apart,
- * with 360° repeating 0° so the rail's right edge meets its left: the axis is
+ * The hue track's gradient: the axis's base hue swept once around the hue
+ * circle at the fixed rail lightness and chroma. Seven stops, 60° apart, with
+ * 360° repeating 0° so the rail's right edge meets its left: the axis is
  * periodic and the rail should look it.
  */
 function hueTrackGradient(swatch: string): string {
   const stops = [0, 60, 120, 180, 240, 300, 360].map(
-    (degrees) => `oklch(from ${swatch} l c calc(h + ${degrees}))`,
+    (degrees) => `oklch(from ${swatch} ${RAIL_LIGHTNESS} ${RAIL_CHROMA} calc(h + ${degrees}))`,
   );
   return `linear-gradient(90deg, ${stops.join(", ")})`;
 }
@@ -290,7 +300,7 @@ export function AppearanceAxes({
           </div>
           <HueSlider
             label="Surface hue"
-            swatch={atLevel(surfaceSwatch, surfaceChroma)}
+            swatch={surfaceSwatch}
             degrees={effectiveSurfaceHue}
             disabled={surfaceDisabled}
             disabledReason="switch to Fun to change surfaces"
@@ -316,7 +326,7 @@ export function AppearanceAxes({
           </span>
           <HueSlider
             label="Accent hue"
-            swatch={atLevel(accentSwatch, accentChroma)}
+            swatch={accentSwatch}
             degrees={effectiveAccentHue}
             disabled={false}
             onChange={setAccentHue}
