@@ -31,6 +31,7 @@ import {
   CHROMA_STYLESHEET_LINK_ID,
   DEFAULT_ACCENT_HUE,
   DEFAULT_ACCENT_LEVEL,
+  DEFAULT_PRO_SURFACE_LEVEL,
   DEFAULT_SURFACE_HUE,
   DEFAULT_SURFACE_LEVEL,
   SURFACE_HUE_PROPERTY,
@@ -360,6 +361,50 @@ describe("theme token interface", () => {
       const link = document.getElementById(CHROMA_STYLESHEET_LINK_ID);
       expect(link, String(garbage)).toBeInstanceOf(HTMLLinkElement);
       expect((link as HTMLLinkElement).getAttribute("href")).toBe(CHROMA_STYLESHEET_HREF);
+    }
+  });
+
+  it("resolves the surface-level default from the style it just painted: Pro rests at 0", () => {
+    // The Pro surface blocks are additive (c + K × level), so level 0 IS the
+    // authored charcoal — Pro's own resting look — while Fun rests on the
+    // softened Orchid tint. One stored decimal still drives both styles; only
+    // the default is per style, picked from the style the script resolved.
+    for (const [style, expected] of [
+      ["pro", DEFAULT_PRO_SURFACE_LEVEL],
+      ["fun", DEFAULT_SURFACE_LEVEL],
+    ] as const) {
+      installMockStorage({ [VISUAL_STYLE_STORAGE_KEY]: style });
+      ensureThemeMeta();
+      document.getElementById(CHROMA_STYLESHEET_LINK_ID)?.remove();
+
+      Function(buildThemeBootstrapScript(DOSEWIKI))();
+
+      const root = document.documentElement;
+      expect(root.dataset.visualStyle, style).toBe(style);
+      expect(root.style.getPropertyValue(SURFACE_LEVEL_PROPERTY), style).toBe(String(expected));
+      // The accent default is style-independent.
+      expect(root.style.getPropertyValue(ACCENT_LEVEL_PROPERTY), style).toBe(
+        String(DEFAULT_ACCENT_LEVEL),
+      );
+    }
+
+    // A saved decimal keeps meaning one knob for both styles: it wins over
+    // the per-style default on Pro exactly as it does on Fun.
+    installMockStorage({
+      [VISUAL_STYLE_STORAGE_KEY]: "pro",
+      [SURFACE_CHROMA_STORAGE_KEY]: "0.35",
+    });
+    ensureThemeMeta();
+    document.getElementById(CHROMA_STYLESHEET_LINK_ID)?.remove();
+
+    try {
+      Function(buildThemeBootstrapScript(DOSEWIKI))();
+
+      expect(document.documentElement.style.getPropertyValue(SURFACE_LEVEL_PROPERTY)).toBe(
+        "0.35",
+      );
+    } finally {
+      document.getElementById(CHROMA_STYLESHEET_LINK_ID)?.remove();
     }
   });
 

@@ -17,12 +17,15 @@
    The harm-reduction ramp, dose tiers and plateau tiers are structurally
    absent: the Fun blocks' input token maps are filtered by paletteTokenRole,
    which routes every semantic family away from the appearance axes, and the
-   Pro accent blocks re-seat only the nine --ei-* accent seeds. Fun blocks
-   carry the same :where() Pro guard as the base sheets; the accent axes also
-   emit Pro blocks, keyed [data-visual-style="pro"], whose gain denominator is
-   the Pro ramp's own --ei-accent level per scheme. The surface axes emit no
-   Pro half: Pro's one charcoal family is effectively achromatic. Only the
-   base colourways exist now — every other look is a (hue, level) point. */
+   Pro blocks re-seat only --ei-* seeds: the nine accent seeds and the eight
+   surface-material seeds. Fun blocks carry the same :where() Pro guard as
+   the base sheets; the Pro blocks are keyed [data-visual-style="pro"]. The
+   Pro accent's gain denominator is the Pro ramp's own --ei-accent level per
+   scheme; the Pro surface family is authored (near-)achromatic — no level to
+   divide by — so its blocks ADD chroma, calc(c + K * var(--dw-surface-level, 0)),
+   and an unset level or Pro's own default level 0 resolves the authored
+   charcoal exactly. Only the base colourways exist now — every other look is
+   a (hue, level) point. */
 
 html[data-chroma]:not([data-surface])[data-theme="dark"]:where(:not([data-visual-style="pro"])) {
   --dw-surface-gain: calc(var(--dw-surface-level, 0.7763) / 0.7763);
@@ -334,6 +337,28 @@ html[data-chroma]:not([data-surface])[data-theme="light"]:where(:not([data-visua
   --theme-construction-banner-text: oklch(56% calc(0.13 * var(--dw-surface-gain)) calc(78 + var(--dw-surface-hue, 0)));
   --theme-home-nav-card-border: oklch(58% calc(0.1 * var(--dw-surface-gain)) calc(326 + var(--dw-surface-hue, 0)) / 0.14);
   --theme-search-overlay-bg: oklch(96% calc(0.032 * var(--dw-surface-gain)) calc(334 + var(--dw-surface-hue, 0)));
+}
+
+html[data-chroma]:not([data-surface])[data-theme="dark"][data-visual-style="pro"] {
+  --ei-paper: oklch(from #131313 l calc(c + 0.0500 * var(--dw-surface-level, 0)) calc(h + var(--dw-surface-hue, 0)));
+  --ei-surface: oklch(from #191919 l calc(c + 0.0500 * var(--dw-surface-level, 0)) calc(h + var(--dw-surface-hue, 0)));
+  --ei-surface-raised: oklch(from #212121 l calc(c + 0.0500 * var(--dw-surface-level, 0)) calc(h + var(--dw-surface-hue, 0)));
+  --ei-surface-sunk: oklch(from #0c0c0c l calc(c + 0.0500 * var(--dw-surface-level, 0)) calc(h + var(--dw-surface-hue, 0)));
+  --ei-surface-deep: oklch(from #070707 l calc(c + 0.0500 * var(--dw-surface-level, 0)) calc(h + var(--dw-surface-hue, 0)));
+  --ei-chrome: oklch(from #191919 l calc(c + 0.0500 * var(--dw-surface-level, 0)) calc(h + var(--dw-surface-hue, 0)));
+  --ei-border: oklch(from #3f3f3f l calc(c + 0.0500 * var(--dw-surface-level, 0)) calc(h + var(--dw-surface-hue, 0)));
+  --ei-fade: oklch(from rgb(19 19 19 / 0.88) l calc(c + 0.0500 * var(--dw-surface-level, 0)) calc(h + var(--dw-surface-hue, 0)));
+}
+
+html[data-chroma]:not([data-surface])[data-theme="light"][data-visual-style="pro"] {
+  --ei-paper: oklch(from #f6f5f1 l calc(c + 0.0600 * var(--dw-surface-level, 0)) calc(h + var(--dw-surface-hue, 0)));
+  --ei-surface: oklch(from #fbfaf8 l calc(c + 0.0600 * var(--dw-surface-level, 0)) calc(h + var(--dw-surface-hue, 0)));
+  --ei-surface-raised: oklch(from #ffffff l calc(c + 0.0600 * var(--dw-surface-level, 0)) calc(h + var(--dw-surface-hue, 0)));
+  --ei-surface-sunk: oklch(from #efeee9 l calc(c + 0.0600 * var(--dw-surface-level, 0)) calc(h + var(--dw-surface-hue, 0)));
+  --ei-surface-deep: oklch(from #e4e2db l calc(c + 0.0600 * var(--dw-surface-level, 0)) calc(h + var(--dw-surface-hue, 0)));
+  --ei-chrome: oklch(from #efeee9 l calc(c + 0.0600 * var(--dw-surface-level, 0)) calc(h + var(--dw-surface-hue, 0)));
+  --ei-border: oklch(from #dcdad3 l calc(c + 0.0600 * var(--dw-surface-level, 0)) calc(h + var(--dw-surface-hue, 0)));
+  --ei-fade: oklch(from rgb(246 245 241 / 0.88) l calc(c + 0.0600 * var(--dw-surface-level, 0)) calc(h + var(--dw-surface-hue, 0)));
 }
 
 html[data-chroma]:not([data-accent])[data-theme="dark"]:where(:not([data-visual-style="pro"])),

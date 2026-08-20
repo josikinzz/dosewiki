@@ -1,6 +1,6 @@
 "use client";
 
-import { useId, type CSSProperties, type ReactNode } from "react";
+import { type CSSProperties, type ReactNode } from "react";
 
 import { Icon } from "@/components/common/Icon";
 import { useTheme } from "@/context/ThemeContext";
@@ -12,7 +12,7 @@ import {
   DEFAULT_SURFACE_HUE,
 } from "@/theme/appearanceChroma";
 import { authoredLevel, proAccentRepresentativeSeed } from "@/theme/chromaMath";
-import { BASE_SURFACE_ID, BASE_SURFACE_TINT } from "@/theme/surfaces";
+import { BASE_SURFACE_ID, BASE_SURFACE_PRO_SEEDS, BASE_SURFACE_TINT } from "@/theme/surfaces";
 import { ThemeToggle } from "./ThemeToggle";
 import { VisualStyleToggle } from "./VisualStyleToggle";
 
@@ -67,26 +67,16 @@ function HueSlider({
   label,
   swatch,
   degrees,
-  disabled,
-  disabledReason,
   onChange,
 }: {
   label: string;
   /** The axis's base colour at the current saturation level; the rail rotates it. */
   swatch: string;
   degrees: number;
-  disabled: boolean;
-  disabledReason?: string;
   onChange: (degrees: number) => void;
 }) {
   return (
-    <div
-      data-appearance-hue=""
-      className={cn(
-        "flex items-center gap-2 px-1 transition-opacity duration-200 motion-reduce:transition-none",
-        disabled && "opacity-40",
-      )}
-    >
+    <div data-appearance-hue="" className="flex items-center gap-2 px-1">
       <div
         className="theme-chroma-track"
         style={{ "--theme-chroma-track-gradient": hueTrackGradient(swatch) } as CSSProperties}
@@ -103,9 +93,8 @@ function HueSlider({
           max={359}
           step={1}
           value={degrees}
-          disabled={disabled}
           aria-label={label}
-          title={disabled && disabledReason ? `${label} · ${disabledReason}` : label}
+          title={label}
           onChange={(event) => onChange(Number(event.currentTarget.value))}
         />
       </div>
@@ -121,9 +110,9 @@ function HueSlider({
  *
  * `level` is the reader's effective level — their saved decimal, or the site
  * default while they never moved this slider — so the thumb parks where the
- * page is actually painted. The tick marks the base palette's authored level.
- * On Pro the surface pair is disabled (Pro keeps its one restrained charcoal
- * family); the accent pair works on both visual styles.
+ * page is actually painted. The tick marks the base palette's authored level:
+ * on Fun the measured Orchid position, on Pro's additive surface axis 0 —
+ * the authored charcoal is what zero added chroma renders.
  */
 function ChromaSlider({
   label,
@@ -131,8 +120,6 @@ function ChromaSlider({
   hue,
   authored,
   level,
-  disabled,
-  disabledReason,
   onChange,
 }: {
   label: string;
@@ -142,19 +129,11 @@ function ChromaSlider({
   /** The base palette's authored level, or null when it has none to mark. */
   authored: number | null;
   level: number;
-  disabled: boolean;
-  disabledReason?: string;
   onChange: (level: number) => void;
 }) {
   const percent = Math.round(level * 100);
   return (
-    <div
-      data-appearance-chroma=""
-      className={cn(
-        "flex items-center gap-2 px-1 transition-opacity duration-200 motion-reduce:transition-none",
-        disabled && "opacity-40",
-      )}
-    >
+    <div data-appearance-chroma="" className="flex items-center gap-2 px-1">
       <div
         className="theme-chroma-track"
         style={
@@ -175,9 +154,8 @@ function ChromaSlider({
           max={100}
           step={1}
           value={percent}
-          disabled={disabled}
           aria-label={label}
-          title={disabled && disabledReason ? `${label} · ${disabledReason}` : label}
+          title={label}
           onChange={(event) => onChange(Number(event.currentTarget.value) / 100)}
         />
       </div>
@@ -216,10 +194,11 @@ export type AppearanceAxesRows = {
  * may choose or what a rail previews. Everything is read from and written to
  * `ThemeContext`; this component holds no appearance state of its own.
  *
- * Pro keeps its restrained fixed materials, so the Surface pair remains visible
- * for context but is disabled and explicitly marked "Fun only". The accent pair
- * works on both styles: the generated stylesheet rotates and re-saturates the
- * Pro `--ei-*` ramp on the same terms as the Fun palette.
+ * Both colour axes work on both visual styles. The accent pair rotates and
+ * re-saturates the Pro `--ei-*` accent ramp on the same terms as the Fun
+ * palette; the surface pair drives the additive Pro surface blocks — the
+ * authored charcoal sits at saturation 0, and the level adds chroma to it —
+ * so no slider is ever rendered disabled here.
  */
 export function AppearanceAxes({
   className,
@@ -248,16 +227,22 @@ export function AppearanceAxes({
     accentHue,
     setAccentHue,
   } = useTheme();
-  const surfaceAvailabilityId = useId();
-  const surfaceDisabled = visualStyle === "pro";
 
   // Null is "never chose": the site default hue, which is the authored palette itself.
   const effectiveSurfaceHue = surfaceHue ?? DEFAULT_SURFACE_HUE;
   const effectiveAccentHue = accentHue ?? DEFAULT_ACCENT_HUE;
 
-  const surfaceSwatch = BASE_SURFACE_TINT[colorScheme];
-  // The accent rails must show the palette the reader is actually wearing: on
-  // Pro that is the ramp's representative seed for the current scheme — the
+  // The rails must show the palette the reader is actually wearing, per axis:
+  // on Pro the surface rail anchors on the authored charcoal canvas seed for
+  // the current scheme — the same literal the additive Pro surface block
+  // wraps — so the rail and the CSS can never disagree about what a
+  // coordinate renders as.
+  const surfaceSwatch =
+    visualStyle === "pro"
+      ? BASE_SURFACE_PRO_SEEDS[colorScheme]["--ei-paper"]!
+      : BASE_SURFACE_TINT[colorScheme];
+  // The accent rail, on the same rule: on Pro it anchors on the ramp's
+  // representative seed for the current scheme — the
   // same pick the emitted gain denominator is computed from (see
   // proAccentRepresentativeSeed), so the rail and the CSS can never disagree
   // about what a coordinate renders as.
@@ -304,41 +289,27 @@ export function AppearanceAxes({
       ) : null}
 
       {showSurface ? (
-        <div
-          role="group"
-          aria-label="Surface"
-          aria-describedby={surfaceDisabled ? surfaceAvailabilityId : undefined}
-          className="flex flex-col gap-1.5"
-        >
-          <div className="flex items-center justify-between gap-3 px-1">
-            <span className="text-[0.6875rem] font-semibold uppercase tracking-[0.12em] text-dose-text-muted">
-              Surface
-            </span>
-            {surfaceDisabled ? (
-              <span
-                id={surfaceAvailabilityId}
-                className="text-[0.625rem] font-medium uppercase tracking-[0.1em] text-dose-text-muted"
-              >
-                Fun only
-              </span>
-            ) : null}
-          </div>
+        <div role="group" aria-label="Surface" className="flex flex-col gap-1.5">
+          <span className="px-1 text-[0.6875rem] font-semibold uppercase tracking-[0.12em] text-dose-text-muted">
+            Surface
+          </span>
           <HueSlider
             label="Surface hue"
             swatch={surfaceSwatch}
             degrees={effectiveSurfaceHue}
-            disabled={surfaceDisabled}
-            disabledReason="switch to Fun to change surfaces"
             onChange={setSurfaceHue}
           />
           <ChromaSlider
             label="Surface saturation"
             swatch={surfaceSwatch}
             hue={effectiveSurfaceHue}
-            authored={CHROMA_LEVELS.surfaces[BASE_SURFACE_ID]?.[colorScheme] ?? null}
+            authored={
+              // Pro's surface axis is additive: the authored charcoal IS level 0.
+              visualStyle === "pro"
+                ? 0
+                : (CHROMA_LEVELS.surfaces[BASE_SURFACE_ID]?.[colorScheme] ?? null)
+            }
             level={surfaceChroma}
-            disabled={surfaceDisabled}
-            disabledReason="switch to Fun to change surfaces"
             onChange={setSurfaceChroma}
           />
         </div>
@@ -353,7 +324,6 @@ export function AppearanceAxes({
             label="Accent hue"
             swatch={accentSwatch}
             degrees={effectiveAccentHue}
-            disabled={false}
             onChange={setAccentHue}
           />
           <ChromaSlider
@@ -368,7 +338,6 @@ export function AppearanceAxes({
                 : (CHROMA_LEVELS.accents[BASE_ACCENT_ID] ?? null)
             }
             level={accentChroma}
-            disabled={false}
             onChange={setAccentChroma}
           />
         </div>

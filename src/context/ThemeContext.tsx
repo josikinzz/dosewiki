@@ -14,6 +14,7 @@ import {
   applyChromaToDocument,
   DEFAULT_ACCENT_HUE,
   DEFAULT_ACCENT_LEVEL,
+  DEFAULT_PRO_SURFACE_LEVEL,
   DEFAULT_SURFACE_HUE,
   DEFAULT_SURFACE_LEVEL,
   parseChromaLevel,
@@ -68,11 +69,13 @@ type ThemeContextValue = {
   setVisualStyle: (value: VisualStyle) => void;
   /**
    * The effective saturation levels — always a decimal in 0..1: the reader's
-   * saved level, or the site default (`DEFAULT_SURFACE_LEVEL` /
-   * `DEFAULT_ACCENT_LEVEL`) while they have never moved that slider. The
-   * setters take null to mean "back to the default level": the storage key is
-   * removed — a default is never written — and the exposed level returns to
-   * the default. Each level rides its parent axis's lock.
+   * saved level, or the site default while they have never moved that slider.
+   * The surface default is per visual style (`DEFAULT_SURFACE_LEVEL` on Fun,
+   * `DEFAULT_PRO_SURFACE_LEVEL` on Pro); the accent default is
+   * `DEFAULT_ACCENT_LEVEL` on both. The setters take null to mean "back to
+   * the default level": the storage key is removed — a default is never
+   * written — and the exposed level returns to the default. Each level rides
+   * its parent axis's lock.
    */
   surfaceChroma: number;
   accentChroma: number;
@@ -278,12 +281,20 @@ export function ThemeProvider({
    * null so a default is never written into storage. The hue is exposed as the
    * null itself — its consumers resolve the default — but persists on exactly
    * the same terms.
+   *
+   * The surface default is per visual style (Fun 0.15, Pro 0 — Pro's additive
+   * blocks make level 0 the authored charcoal), so a reader with nothing saved
+   * follows the style toggle: the effective level is *derived* from
+   * `visualStyle` here, never captured, and the apply effect re-paints it on a
+   * style flip. A saved level stays one knob for both styles.
    */
   const [savedSurfaceChroma, setSurfaceChromaState] = useState<number | null>(null);
   const [savedAccentChroma, setAccentChromaState] = useState<number | null>(null);
   const [savedSurfaceHue, setSurfaceHueState] = useState<number | null>(null);
   const [savedAccentHue, setAccentHueState] = useState<number | null>(null);
-  const surfaceChroma = savedSurfaceChroma ?? DEFAULT_SURFACE_LEVEL;
+  const surfaceChroma =
+    savedSurfaceChroma ??
+    (visualStyle === "pro" ? DEFAULT_PRO_SURFACE_LEVEL : DEFAULT_SURFACE_LEVEL);
   const accentChroma = savedAccentChroma ?? DEFAULT_ACCENT_LEVEL;
   /**
    * Until the mount effect has read back what the bootstrap resolved, this provider is still

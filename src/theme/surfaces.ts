@@ -26,6 +26,60 @@ export const BASE_SURFACE_ID: SurfaceId = "orchid";
  */
 export const BASE_SURFACE_TINT = { dark: "#1f0527", light: "#f6e6f4" } as const;
 
+/** One colour scheme's worth of Pro surface seeds. Keys are `--ei-*` custom property names. */
+export type ProSurfaceSeeds = Readonly<Record<string, string>>;
+
+/**
+ * The Pro surface seeds the surface axis owns, copied from the authored declarations in
+ * `pro-theme.css` (light block :85-92/:193, dark block :563-578/:624) and pinned against
+ * them by `chromaStylesheet.test.ts` — the sheet stays the single source; this map cannot
+ * drift from it silently. `pro-theme.css` itself is never edited for this axis: Effect
+ * Index reads those literals byte for byte.
+ *
+ * The eight names are the page *material*: the canvas, the four surface steps, the content
+ * chrome, the quiet hairline that outlines that material, and `--ei-fade` — the canvas at
+ * 88% alpha (the scrim that fades a collapsed dose table into the page), which must follow
+ * the canvas or the scrim detaches from the paper it fades into.
+ *
+ * Deliberately absent, unlike the Fun surface family (where `paletteTokenRole` routes every
+ * non-accent, non-semantic token here — inks included, because Orchid's ink is authored
+ * plum-tinted):
+ *
+ * - The ink ramps (`--ei-ink*`, `--ei-on-dark*`, `--ei-logo-ink`) and the greyscale
+ *   intensity ramp (`--ei-level-*`): Pro's text is neutral by design, and every step is
+ *   tuned to a WCAG floor that an added chroma would quietly erode.
+ * - `--ei-border-strong`: the control outline, held to SC 1.4.11's 3:1 floor per scheme.
+ * - The chrome rails (`--ei-chrome-dark`/`-darker`/`-sunk`/`-raised`/`-border`): charcoal
+ *   in BOTH schemes — the bracketing is the page shell, not a surface — and their inks are
+ *   excluded above, so tinting the rails alone would strand them.
+ * - The shadows: occlusion, not colour.
+ */
+export const BASE_SURFACE_PRO_SEEDS: {
+  readonly light: ProSurfaceSeeds;
+  readonly dark: ProSurfaceSeeds;
+} = {
+  light: {
+    "--ei-paper": "#f6f5f1",
+    "--ei-surface": "#fbfaf8",
+    "--ei-surface-raised": "#ffffff",
+    "--ei-surface-sunk": "#efeee9",
+    "--ei-surface-deep": "#e4e2db",
+    "--ei-chrome": "#efeee9",
+    "--ei-border": "#dcdad3",
+    "--ei-fade": "rgb(246 245 241 / 0.88)",
+  },
+  dark: {
+    "--ei-paper": "#131313",
+    "--ei-surface": "#191919",
+    "--ei-surface-raised": "#212121",
+    "--ei-surface-sunk": "#0c0c0c",
+    "--ei-surface-deep": "#070707",
+    "--ei-chrome": "#191919",
+    "--ei-border": "#3f3f3f",
+    "--ei-fade": "rgb(19 19 19 / 0.88)",
+  },
+};
+
 export function isSurface(value: string | null | undefined): value is SurfaceId {
   return (
     typeof value === "string" &&

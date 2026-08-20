@@ -8,6 +8,7 @@ import {
   CHROMA_STYLESHEET_LINK_ID,
   DEFAULT_ACCENT_HUE,
   DEFAULT_ACCENT_LEVEL,
+  DEFAULT_PRO_SURFACE_LEVEL,
   DEFAULT_SURFACE_HUE,
   DEFAULT_SURFACE_LEVEL,
   SURFACE_HUE_PROPERTY,
@@ -271,7 +272,13 @@ export function buildThemeBootstrapScript(policy: AppearancePolicy = SITE_FLAVOR
   }: {
     levelVariable: string;
     hueVariable: string;
-    defaultLevel: number;
+    /**
+     * A number, or an emitted JS expression. The surface passes an expression
+     * over the already-resolved `style` variable: its default level is per
+     * visual style (Fun 0.15, Pro 0 — see `DEFAULT_PRO_SURFACE_LEVEL`), while
+     * a *stored* level keeps meaning one knob for both styles.
+     */
+    defaultLevel: number | string;
     defaultHue: number;
     levelKey: string;
     hueKey: string;
@@ -310,7 +317,7 @@ export function buildThemeBootstrapScript(policy: AppearancePolicy = SITE_FLAVOR
       : `\n${chromaRead({
           levelVariable: "chromaSurface",
           hueVariable: "hueSurface",
-          defaultLevel: DEFAULT_SURFACE_LEVEL,
+          defaultLevel: `style === "pro" ? ${DEFAULT_PRO_SURFACE_LEVEL} : ${DEFAULT_SURFACE_LEVEL}`,
           defaultHue: DEFAULT_SURFACE_HUE,
           levelKey: SURFACE_CHROMA_STORAGE_KEY,
           hueKey: SURFACE_HUE_STORAGE_KEY,

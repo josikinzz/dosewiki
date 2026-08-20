@@ -5,6 +5,7 @@ import { SITE_FLAVOR_CONFIG } from "@/config/siteFlavor";
 import { APPEARANCE_META_COLORS, getAppearanceMetaColor } from "@/theme";
 import {
   DEFAULT_ACCENT_LEVEL,
+  DEFAULT_PRO_SURFACE_LEVEL,
   DEFAULT_SURFACE_LEVEL,
 } from "@/theme/appearanceChroma";
 import { LEGACY_ACCENT_TO_HUE } from "@/theme/accents";
@@ -339,6 +340,54 @@ describe("ThemeProvider", () => {
     expect(writtenKeys).not.toContain(ACCENT_HUE_STORAGE_KEY);
     expect(window.localStorage.getItem(SURFACE_HUE_STORAGE_KEY)).toBeNull();
     expect(window.localStorage.getItem(ACCENT_HUE_STORAGE_KEY)).toBeNull();
+  });
+
+  it("recomputes the surface default when the style flips and nothing is saved", async () => {
+    const user = userEvent.setup();
+
+    renderProvider();
+
+    await waitFor(() => expect(document.documentElement.dataset.theme).toBe("dark"));
+    expect(screen.getByTestId("surface-chroma")).toHaveTextContent(String(DEFAULT_SURFACE_LEVEL));
+
+    // The Pro surface blocks are additive (c + K × level), so Pro's resting
+    // look is level 0: the authored charcoal. A reader who never chose a
+    // level follows the style toggle — the effective default is resolved by
+    // style at apply time, not captured at hydration.
+    await user.click(screen.getByRole("button", { name: "Toggle style" }));
+
+    await waitFor(() => {
+      expect(screen.getByTestId("visual-style")).toHaveTextContent("pro");
+      expect(screen.getByTestId("surface-chroma")).toHaveTextContent(
+        String(DEFAULT_PRO_SURFACE_LEVEL),
+      );
+    });
+
+    // And back: the Fun default returns; the accent default never moved.
+    await user.click(screen.getByRole("button", { name: "Toggle style" }));
+
+    await waitFor(() => {
+      expect(screen.getByTestId("visual-style")).toHaveTextContent("fun");
+      expect(screen.getByTestId("surface-chroma")).toHaveTextContent(
+        String(DEFAULT_SURFACE_LEVEL),
+      );
+    });
+    expect(screen.getByTestId("accent-chroma")).toHaveTextContent(String(DEFAULT_ACCENT_LEVEL));
+
+    // Defaults are still never persisted: flipping styles wrote no level key.
+    const writtenKeys = storage.writes.map(([key]) => key);
+    expect(writtenKeys).not.toContain(SURFACE_CHROMA_STORAGE_KEY);
+
+    // A saved decimal is one knob for both styles: it pins the level on Pro
+    // exactly as it does on Fun.
+    await user.click(screen.getByRole("button", { name: "Saturate surface" }));
+    await user.click(screen.getByRole("button", { name: "Toggle style" }));
+
+    await waitFor(() => {
+      expect(screen.getByTestId("visual-style")).toHaveTextContent("pro");
+      expect(screen.getByTestId("surface-chroma")).toHaveTextContent("0.4");
+      expect(window.localStorage.getItem(SURFACE_CHROMA_STORAGE_KEY)).toBe("0.4");
+    });
   });
 
   it("restores a saved level over the default, and null resets to the default", async () => {

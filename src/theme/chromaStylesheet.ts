@@ -7,7 +7,7 @@ import {
   SURFACE_HUE_PROPERTY,
   SURFACE_LEVEL_PROPERTY,
 } from "./appearanceChroma";
-import { BASE_SURFACE_ID, BASE_SURFACE_TINT } from "./surfaces";
+import { BASE_SURFACE_ID, BASE_SURFACE_PRO_SEEDS, BASE_SURFACE_TINT } from "./surfaces";
 import {
   ACHROMATIC_CHROMA,
   authoredLevel,
@@ -57,11 +57,14 @@ import surfaceFunTokens from "./surfaceFunTokens.generated.json";
  * all accent-family by construction (and `paletteTokenRole` classifies every
  * one of them "accent"), so the same invariant holds there.
  *
- * Pro's surface family emits no block — see the note in
- * `buildChromaStylesheetCss` — so the surface axes are Fun-only while the
- * accent axes work on both visual styles. The retired non-base colourways
- * emit nothing at all any more: their looks are (hue, level) points now, and
- * their stored ids migrate through `LEGACY_*_TO_HUE`.
+ * Pro's surface family emits *additive* blocks rather than gained ones — see
+ * the note in `buildChromaStylesheetCss`: the authored charcoal is
+ * (near-)achromatic, so `level ÷ authored` has no denominator, and each seed's
+ * chroma slot instead gains `+ K × var(--dw-surface-level, 0)` (per-scheme K,
+ * see `PRO_SURFACE_CHROMA_DELTA`) while its hue takes the standard shift. Both
+ * colour axes therefore work on both visual styles. The retired non-base
+ * colourways emit nothing at all any more: their looks are (hue, level) points
+ * now, and their stored ids migrate through `LEGACY_*_TO_HUE`.
  */
 
 /** Block-local gains derived from the levels; never written by script. */
@@ -76,6 +79,22 @@ const NOT_PRO = ':where(:not([data-visual-style="pro"]))';
 
 type SchemeTokens = Record<string, string>;
 type ColourwayTokens = { dark: SchemeTokens; light: SchemeTokens };
+
+/**
+ * One block's chroma arithmetic. The gained (Fun and Pro-accent) blocks scale:
+ * a chroma slot becomes `calc(<c> * var(gain))` and achromatic literals pass
+ * through untouched — a grey must not pick up colour under a scale. The Pro
+ * surface blocks add: a chroma slot becomes `calc(<c> + K * var(level, 0))`
+ * and achromatic literals are wrapped too, because giving the authored
+ * charcoal a tint is the whole point of the additive form.
+ */
+type ChromaArithmetic = {
+  /** Rewrite one chroma expression — already parenthesised when it was a calc() body. */
+  readonly chroma: (expression: string) => string;
+  /** The hue shift, a bare number of degrees (`h` is a `<number>` inside `calc()`). */
+  readonly shift: string;
+  readonly wrapsAchromatic: boolean;
+};
 
 /**
  * Rewrite one token value so every chromatic literal's chroma is multiplied by
@@ -94,9 +113,39 @@ export function wrapChromaValue(
   gainProperty: string,
   hueProperty: string,
 ): { text: string; wrapped: number } {
-  if (!/#|rgba?\(|oklch\(|hsla?\(/.test(value)) return { text: value, wrapped: 0 };
   const gain = `var(${gainProperty})`;
-  const shift = `var(${hueProperty}, 0)`;
+  return rewriteChromaValue(value, {
+    chroma: (expression) => `calc(${expression} * ${gain})`,
+    shift: `var(${hueProperty}, 0)`,
+    wrapsAchromatic: false,
+  });
+}
+
+/**
+ * Rewrite one token value so every colour literal's chroma — achromatic ones
+ * included — gains `+ deltaExpression` and its hue rotates by
+ * `var(hueProperty, 0)`, over the same value grammar as {@link wrapChromaValue}.
+ * `deltaExpression` is a calc() term like `0.0500 * var(--dw-surface-level, 0)`,
+ * so an unset or zero level resolves every literal to its authored value.
+ */
+export function wrapAdditiveChromaValue(
+  value: string,
+  deltaExpression: string,
+  hueProperty: string,
+): { text: string; wrapped: number } {
+  return rewriteChromaValue(value, {
+    chroma: (expression) => `calc(${expression} + ${deltaExpression})`,
+    shift: `var(${hueProperty}, 0)`,
+    wrapsAchromatic: true,
+  });
+}
+
+function rewriteChromaValue(
+  value: string,
+  arithmetic: ChromaArithmetic,
+): { text: string; wrapped: number } {
+  if (!/#|rgba?\(|oklch\(|hsla?\(/.test(value)) return { text: value, wrapped: 0 };
+  const { shift } = arithmetic;
   let out = "";
   let index = 0;
   let wrapped = 0;
@@ -106,8 +155,8 @@ export function wrapChromaValue(
 
     const hex = /^#[0-9a-fA-F]{3,8}\b/.exec(rest);
     if (hex) {
-      if (isChromaticLiteral(hex[0])) {
-        out += `oklch(from ${hex[0]} l calc(c * ${gain}) calc(h + ${shift}))`;
+      if (arithmetic.wrapsAchromatic || isChromaticLiteral(hex[0])) {
+        out += `oklch(from ${hex[0]} l ${arithmetic.chroma("c")} calc(h + ${shift}))`;
         wrapped += 1;
       } else {
         out += hex[0];
@@ -129,20 +178,20 @@ export function wrapChromaValue(
     index = close + 1;
 
     if (fn[1] === "oklch" && /^\s*from\s/.test(inner)) {
-      out += scaleRelativeOklch(inner, gain, shift);
+      out += scaleRelativeOklch(inner, arithmetic);
       wrapped += 1;
       continue;
     }
     if (fn[1] === "oklch") {
-      const scaled = scaleBareOklch(whole, inner, gain, shift);
+      const scaled = scaleBareOklch(whole, inner, arithmetic);
       out += scaled ?? whole;
       if (scaled) wrapped += 1;
       continue;
     }
     // rgb()/hsl(): relative colour syntax carries the origin's alpha when the
     // alpha channel is omitted, so plain wrapping preserves translucency.
-    if (fn[1].startsWith("hsl") || isChromaticLiteral(whole)) {
-      out += `oklch(from ${whole} l calc(c * ${gain}) calc(h + ${shift}))`;
+    if (fn[1].startsWith("hsl") || arithmetic.wrapsAchromatic || isChromaticLiteral(whole)) {
+      out += `oklch(from ${whole} l ${arithmetic.chroma("c")} calc(h + ${shift}))`;
       wrapped += 1;
     } else {
       out += whole;
@@ -167,21 +216,20 @@ function matchingParen(text: string, open: number): number {
 
 /**
  * Rewrite the chroma and hue components of an existing `oklch(from …)`
- * expression. `calc(c * 1.35)` becomes `calc((c * 1.35) * gain)` —
- * parenthesised, so a `calc(c + x)` form cannot silently change meaning under
- * the multiplication — and the hue component gains `+ shift` the same way.
+ * expression. Under a gain, `calc(c * 1.35)` becomes `calc((c * 1.35) * gain)`
+ * — parenthesised, so a `calc(c + x)` form cannot silently change meaning
+ * under the multiplication — and the hue component gains `+ shift` the same
+ * way. The additive arithmetic parenthesises identically.
  */
-function scaleRelativeOklch(inner: string, gain: string, shift: string): string {
+function scaleRelativeOklch(inner: string, arithmetic: ChromaArithmetic): string {
   const afterFrom = inner.trim().replace(/^from\s+/, "");
   const parts = splitTopLevel(afterFrom);
   // parts: [origin, L, C, H] with an optional trailing "/ alpha" in parts[4…].
   if (parts.length < 4) throw new Error(`Unrecognised relative oklch: oklch(${inner})`);
   const c = parts[2]!;
-  const scaled = c.startsWith("calc(")
-    ? `calc((${c.slice(5, -1)}) * ${gain})`
-    : `calc(${c} * ${gain})`;
+  const scaled = c.startsWith("calc(") ? arithmetic.chroma(`(${c.slice(5, -1)})`) : arithmetic.chroma(c);
   const tail = parts.length > 4 ? ` ${parts.slice(4).join(" ")}` : "";
-  return `oklch(from ${parts[0]} ${parts[1]} ${scaled} ${rotateHue(parts[3]!, shift)}${tail})`;
+  return `oklch(from ${parts[0]} ${parts[1]} ${scaled} ${rotateHue(parts[3]!, arithmetic.shift)}${tail})`;
 }
 
 /**
@@ -200,19 +248,24 @@ function rotateHue(hue: string, shift: string): string {
 
 /**
  * Rewrite the chroma and hue slots of a bare `oklch(L C H …)` literal in
- * place, or return null to leave achromatic literals untouched: a grey must
- * not pick up colour under a gain or a rotation.
+ * place. Under a gain, achromatic literals return null and stay untouched — a
+ * grey must not pick up colour under a scale or a rotation; the additive
+ * arithmetic wraps them, that being its purpose.
  */
-function scaleBareOklch(whole: string, inner: string, gain: string, shift: string): string | null {
+function scaleBareOklch(
+  whole: string,
+  inner: string,
+  arithmetic: ChromaArithmetic,
+): string | null {
   const parts = splitTopLevel(inner.trim());
   const chroma = Number(parts[1]);
   if (!Number.isFinite(chroma)) {
     // Unparseable chroma slot: wrap the whole literal instead of guessing.
-    return `oklch(from ${whole} l calc(c * ${gain}) calc(h + ${shift}))`;
+    return `oklch(from ${whole} l ${arithmetic.chroma("c")} calc(h + ${arithmetic.shift}))`;
   }
-  if (chroma < ACHROMATIC_CHROMA) return null;
+  if (chroma < ACHROMATIC_CHROMA && !arithmetic.wrapsAchromatic) return null;
   const tail = parts.length > 3 ? ` ${parts.slice(3).join(" ")}` : "";
-  return `oklch(${parts[0]} calc(${parts[1]} * ${gain}) ${rotateHue(parts[2]!, shift)}${tail})`;
+  return `oklch(${parts[0]} ${arithmetic.chroma(parts[1]!)} ${rotateHue(parts[2]!, arithmetic.shift)}${tail})`;
 }
 
 /** Split on top-level whitespace, keeping parenthesised groups whole. */
@@ -276,6 +329,18 @@ function proAccentBlockSelector(theme: string): string {
   return `html[${CHROMA_ATTRIBUTE}]:not([data-accent])[data-theme="${theme}"][data-visual-style="pro"]`;
 }
 
+/**
+ * The surface's Pro block in one scheme. Same shape and the same (0,4,1) as
+ * {@link proAccentBlockSelector} — keyed on the retired surface attribute's
+ * absence, one above `pro-theme.css`'s palette blocks, so the wrapped seeds
+ * win on specificity rather than on where the bundler puts the `<link>`. The
+ * chrome rails are structurally absent from the seed map (see
+ * `BASE_SURFACE_PRO_SEEDS`), so no dark-chrome island is needed here either.
+ */
+function proSurfaceBlockSelector(theme: string): string {
+  return `html[${CHROMA_ATTRIBUTE}]:not([data-surface])[data-theme="${theme}"][data-visual-style="pro"]`;
+}
+
 type AxisProperties = {
   readonly gain: string;
   readonly level: string;
@@ -309,6 +374,58 @@ function chromaBlock(
   const denominator = authored.toFixed(4);
   const gain = `  ${axis.gain}: calc(var(${axis.level}, ${denominator}) / ${denominator});`;
   return `${selectors.join(",\n")} {\n${gain}\n${declarations.join("\n")}\n}\n`;
+}
+
+/**
+ * Per-scheme chroma added to every Pro surface seed at saturation level 1 —
+ * the additive counterpart of the Fun blocks' gain. Pro's authored surfaces
+ * are (near-)achromatic, so the gain grammar `level ÷ authored` has no
+ * denominator to divide by; the Pro surface blocks *add* chroma instead,
+ * `calc(c + K * var(--dw-surface-level, 0))`, which makes the unset state —
+ * and Pro's own default level 0 — resolve the authored charcoal exactly.
+ *
+ * K, tuned through `chromaMath`'s `toOklch`/`maxChroma` against the authored
+ * seeds:
+ *
+ * - **dark 0.05**: at level 1 the dark family (L 0.13–0.25) reaches C 0.05 —
+ *   inside the sRGB ceiling around the plum default (Cmax 0.065–0.117 at hue
+ *   326) and about 70% of Fun's authored dark panel chroma (#1f0527,
+ *   C 0.072): clearly tinted, still Pro-restrained. Cooler hues hold less
+ *   (Cmax 0.024–0.043 at hue 200) and gamut-map down gracefully.
+ * - **light 0.06**: the light family (L 0.89–1.0) holds far less chroma
+ *   (paper #f6f5f1 Cmax 0.027 at hue 326), so 0.06 pins level 1 at each
+ *   seed's own gamut ceiling — the most tint that lightness can carry, on par
+ *   with Fun's authored light tint (#f6e6f4, C 0.025) — while small levels
+ *   stay a paper-warmth-scale cast (level 0.15 adds 0.009). The pure-white
+ *   raised step has no headroom at L 1.0 and correctly stays white.
+ *
+ * Lightness never moves, so no contrast figure recorded in `pro-theme.css`
+ * shifts materially — and the WCAG-floored ink ramps and control outline are
+ * excluded from the seed map entirely.
+ */
+export const PRO_SURFACE_CHROMA_DELTA = { dark: 0.05, light: 0.06 } as const;
+
+/**
+ * A Pro surface block: no block-local gain property — the level variable is
+ * read inline in every chroma slot — and every seed wraps, achromatic or not,
+ * since the additive form exists to give charcoal a tint. A seed that stopped
+ * holding a colour literal would silently drop off the axis, so that throws.
+ */
+function additiveChromaBlock(
+  selectors: readonly string[],
+  tokens: SchemeTokens,
+  axis: AxisProperties,
+  delta: number,
+): string {
+  const deltaExpression = `${delta.toFixed(4)} * var(${axis.level}, 0)`;
+  const declarations = Object.entries(tokens).map(([token, value]) => {
+    const { text, wrapped } = wrapAdditiveChromaValue(value, deltaExpression, axis.hue);
+    if (wrapped === 0) {
+      throw new Error(`Pro surface seed ${token} holds no colour literal: ${value}`);
+    }
+    return `  ${token}: ${text};`;
+  });
+  return `${selectors.join(",\n")} {\n${declarations.join("\n")}\n}\n`;
 }
 
 /**
@@ -355,28 +472,23 @@ const HEADER = `/* GENERATED FILE — do not edit by hand.
    The harm-reduction ramp, dose tiers and plateau tiers are structurally
    absent: the Fun blocks' input token maps are filtered by paletteTokenRole,
    which routes every semantic family away from the appearance axes, and the
-   Pro accent blocks re-seat only the nine --ei-* accent seeds. Fun blocks
-   carry the same :where() Pro guard as the base sheets; the accent axes also
-   emit Pro blocks, keyed [data-visual-style="pro"], whose gain denominator is
-   the Pro ramp's own --ei-accent level per scheme. The surface axes emit no
-   Pro half: Pro's one charcoal family is effectively achromatic. Only the
-   base colourways exist now — every other look is a (hue, level) point. */
+   Pro blocks re-seat only --ei-* seeds: the nine accent seeds and the eight
+   surface-material seeds. Fun blocks carry the same :where() Pro guard as
+   the base sheets; the Pro blocks are keyed [data-visual-style="pro"]. The
+   Pro accent's gain denominator is the Pro ramp's own --ei-accent level per
+   scheme; the Pro surface family is authored (near-)achromatic — no level to
+   divide by — so its blocks ADD chroma, calc(c + K * var(--dw-surface-level, 0)),
+   and an unset level or Pro's own default level 0 resolves the authored
+   charcoal exactly. Only the base colourways exist now — every other look is
+   a (hue, level) point. */
 `;
 
-/** The whole stylesheet. Deterministic: surface then accent then Pro, dark before light. */
+/** The whole stylesheet. Deterministic: each axis Fun then Pro, dark before light. */
 export function buildChromaStylesheetCss(): string {
   const blocks: string[] = [];
 
-  // The surface axes are Fun-only, decided from the authored literals rather
-  // than assumed: Pro ships one charcoal/paper family regardless of surface
-  // (`src/styles/pro-theme.css`), and measured through `chromaMath` its dark
-  // seeds (#131313…#212121, borders #3f3f3f/#808080) are pure grey — C = 0 —
-  // while the light seeds carry only the deliberate trace of warmth, C
-  // 0.003–0.012 straddling ACHROMATIC_CHROMA's 0.005 line (paper #f6f5f1 C
-  // 0.0054, sunk #efeee9 C 0.0067, deep #e4e2db C 0.0097). Ramping or
-  // rotating a whisper would surface noise, so Pro's surface is treated as
-  // achromatic: no Pro surface block, and the panel keeps both surface
-  // sliders disabled on Pro.
+  // The Fun half of the surface axes: the one authored Orchid family, scaled
+  // and rotated through the shared gain grammar.
   const surfaceTokens = (surfaceFunTokens as Record<string, ColourwayTokens>)[BASE_SURFACE_ID];
   if (!surfaceTokens) throw new Error(`No generated tokens for surface "${BASE_SURFACE_ID}"`);
   for (const theme of ["dark", "light"] as const) {
@@ -386,6 +498,26 @@ export function buildChromaStylesheetCss(): string {
         surfaceTokens[theme],
         SURFACE_AXIS,
         authoredLevel(BASE_SURFACE_TINT[theme]),
+      ),
+    );
+  }
+
+  // The Pro half of the surface axes: additive rather than gained, because
+  // the authored family is (near-)achromatic — measured through `chromaMath`,
+  // the dark seeds (#131313…#212121, border #3f3f3f) are pure grey (C = 0)
+  // and the light seeds carry only a deliberate trace of warmth (C
+  // 0.003–0.010 straddling ACHROMATIC_CHROMA's 0.005 line), so `level ÷
+  // authored` has no denominator. Each seed's chroma slot gains
+  // + K × var(--dw-surface-level, 0) (see PRO_SURFACE_CHROMA_DELTA) and its
+  // hue the standard shift, so level 0 — Pro's own site default — and the
+  // unset state both resolve the authored charcoal byte-visually unchanged.
+  for (const theme of ["dark", "light"] as const) {
+    blocks.push(
+      additiveChromaBlock(
+        [proSurfaceBlockSelector(theme)],
+        { ...BASE_SURFACE_PRO_SEEDS[theme] },
+        SURFACE_AXIS,
+        PRO_SURFACE_CHROMA_DELTA[theme],
       ),
     );
   }

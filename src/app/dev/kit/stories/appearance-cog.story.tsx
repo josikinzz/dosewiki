@@ -75,7 +75,7 @@ export const appearanceCogStory: StoryDef = {
       name: "showSurface",
       type: "boolean",
       description:
-        "Renders the Surface hue and saturation sliders. The rows are disabled and marked Fun only while Pro is active.",
+        "Renders the Surface hue and saturation sliders. Live on both visual styles: Pro's additive surface blocks tint the authored charcoal, whose own position is level 0.",
     },
     {
       name: "showAccent",

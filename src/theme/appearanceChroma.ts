@@ -42,8 +42,17 @@ export const CHROMA_STYLESHEET_LINK_ID = "appearance-chroma";
  * The site-default levels, applied wherever a reader has no saved decimal. A
  * default is never *written* to storage: absence of the key is what "default"
  * means, so a future default change reaches every reader who never chose.
+ *
+ * The surface default is per visual style — one stored knob still drives both
+ * styles, but the *resting* look differs: Fun opens on the authored Orchid
+ * tint softened to 0.15, while Pro opens on its authored untinted charcoal,
+ * level 0 — the Pro surface blocks are additive (`c + K × level`), so 0 is
+ * the authored palette itself. The style is resolved at apply time: the
+ * bootstrap picks the default from the style it just resolved, and the
+ * provider recomputes it when the style flips with nothing saved.
  */
 export const DEFAULT_SURFACE_LEVEL = 0.15;
+export const DEFAULT_PRO_SURFACE_LEVEL = 0;
 export const DEFAULT_ACCENT_LEVEL = 0.65;
 
 /**

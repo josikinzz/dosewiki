@@ -420,25 +420,24 @@ describe("AppearanceCog", () => {
 
       expect(panel).toHaveClass("theme-overlay-surface");
       expect(panel.querySelectorAll("[data-appearance-axis]")).toHaveLength(2);
-      // The surface pair splits on Pro: that axis has nothing to move there — Pro keeps
-      // its one restrained charcoal family — while the accent pair rotates and
-      // re-saturates the Pro --ei-* ramp, so both its sliders work on either style.
-      expect(
-        within(panel).getByRole("slider", { name: "Surface hue" }).hasAttribute("disabled"),
-      ).toBe(visualStyle === "pro");
-      expect(
-        within(panel)
-          .getByRole("slider", { name: "Surface saturation" })
-          .hasAttribute("disabled"),
-      ).toBe(visualStyle === "pro");
-      expect(within(panel).getByRole("slider", { name: "Accent hue" })).toBeEnabled();
-      expect(within(panel).getByRole("slider", { name: "Accent saturation" })).toBeEnabled();
-      // The Pro lock is explained, not mute: the surface group names its condition.
-      if (visualStyle === "pro") {
-        expect(within(panel).getByText("Fun only")).toBeVisible();
-      } else {
-        expect(within(panel).queryByText("Fun only")).not.toBeInTheDocument();
+      // Both colour axes work on both visual styles: the accent pair rotates
+      // and re-saturates the Pro --ei-* ramp, and the surface pair drives the
+      // additive Pro surface blocks (c + K × level over the authored
+      // charcoal), so no slider is disabled anywhere in the matrix and the
+      // old "Fun only" lock is gone.
+      for (const name of SLIDER_NAMES) {
+        expect(within(panel).getByRole("slider", { name }), name).toBeEnabled();
       }
+      expect(within(panel).queryByText("Fun only")).not.toBeInTheDocument();
+      // With nothing saved, the surface saturation thumb parks on the
+      // per-style default: Pro's additive axis rests at 0 — the authored
+      // charcoal — while Fun rests on the softened Orchid tint.
+      expect(
+        within(panel).getByRole<HTMLInputElement>("slider", { name: "Surface saturation" })
+          .value,
+      ).toBe(
+        visualStyle === "pro" ? "0" : String(Math.round(DEFAULT_SURFACE_LEVEL * 100)),
+      );
       expect(
         within(panel).getByRole("button", { name: "Open Theme Lab" }),
       ).toHaveAttribute("aria-controls", "theme-lab-panel");
