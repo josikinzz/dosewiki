@@ -10,10 +10,21 @@ import { AppearanceCog } from "./AppearanceCog";
  *
  * `className` lands on the trigger itself because the homepage positions that
  * button directly.
+ *
+ * `allowThemeLab` is the caller's veto over that drawer, not a second policy: the
+ * pre-launch holding page mounts this cog so a visitor can still pick an appearance,
+ * but the Lab authors and shares palettes through routes the construction hosts do
+ * not serve, so there the drawer is withheld.
  */
-export function AppearanceControls({ className }: { className?: string }) {
+export function AppearanceControls({
+  className,
+  allowThemeLab = true,
+}: {
+  className?: string;
+  allowThemeLab?: boolean;
+}) {
   const { isVisualStyleLocked, isSurfaceLocked, isAccentLocked } = useTheme();
-  const hasThemeLab = SITE_FLAVOR_CONFIG.flavor === "dosewiki";
+  const hasThemeLab = allowThemeLab && SITE_FLAVOR_CONFIG.flavor === "dosewiki";
 
   return (
     <AppearanceCog

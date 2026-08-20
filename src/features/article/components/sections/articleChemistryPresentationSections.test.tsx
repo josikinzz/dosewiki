@@ -33,6 +33,9 @@ describe("article chemistry presentation sections", () => {
   const mockedUseReagentData = vi.mocked(useReagentData);
 
   beforeEach(() => {
+    // Earlier renders in this file persist the appearance they open on; the
+    // molecule-asset test pins Neutral and must not inherit that saved accent.
+    window.localStorage.clear();
     mockedUseReagentData.mockReturnValue({
       data: null,
       isLoading: false,
@@ -79,18 +82,23 @@ describe("article chemistry presentation sections", () => {
 
     const chemistryPresentation = buildArticleChemistryPresentation(article);
 
-    renderWithAppearance(
-      <HeroSection
-        article={article}
-        chemistryPresentation={chemistryPresentation}
-        moleculeAsset={{
-          filename: "Display Only.svg",
-          url: "/molecules/Display%20Only.svg",
-          matchedField: "title",
-          matchedValue: "Display Only",
-        }}
-        showPreviewBadge={false}
-      />,
+    // Neutral is pinned because the assertion below is about the neutral→Pro-dark
+    // molecule mapping, not the site's opening accent (now Default, which maps to
+    // the Fun colourway).
+    render(
+      <AppearanceTestProvider initialAccent="neutral">
+        <HeroSection
+          article={article}
+          chemistryPresentation={chemistryPresentation}
+          moleculeAsset={{
+            filename: "Display Only.svg",
+            url: "/molecules/Display%20Only.svg",
+            matchedField: "title",
+            matchedValue: "Display Only",
+          }}
+          showPreviewBadge={false}
+        />
+      </AppearanceTestProvider>,
     );
 
     const moleculeImages = screen.getAllByAltText(chemistryPresentation.molecule.alt);

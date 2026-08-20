@@ -40,6 +40,13 @@ export type Accent = {
   readonly label: string;
   /** The cog's swatch dot. One value for both schemes and both styles. */
   readonly swatch: string;
+  /**
+   * Declared, not detected: an achromatic accent has no saturation to move, so
+   * the saturation slider fades on its selection. Neutral computes to a
+   * non-zero level (its silver carries a whisper of chroma), which is exactly
+   * why no numeric threshold can make this call.
+   */
+  readonly achromatic?: true;
   /** Fun half: the shipped colourway this accent wears. `null` = the authored base palette. */
   readonly funPresetId: PalettePresetId | null;
   /** Pro half: per-scheme `--ei-*` seeds. `null` = the authored teal in `pro-theme.css`. */
@@ -428,6 +435,7 @@ const neutral: Accent = {
   id: "neutral",
   label: "Neutral",
   swatch: "#cdd6e0",
+  achromatic: true,
   funPresetId: "graphite",
   pro: {
     light: {

@@ -115,6 +115,7 @@ export const graphite: PalettePreset = {
   id: "graphite",
   name: "Graphite",
   tagline: "Achromatic moon-silver — safety colors carry all the chroma.",
+  achromatic: true,
   swatch: {
     dark: ["#08090b", "#16181d", "#f4f5f7", "#9aa7b8", "#cdd6e0"],
     light: ["#f7f7f5", "#e9e9e6", "#24272e", "#52616f", "#38424d"],

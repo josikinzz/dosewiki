@@ -10,6 +10,8 @@ import {
   VISUAL_STYLE_STORAGE_KEY,
 } from "@/context/ThemeContext";
 import { ACCENTS, BASE_ACCENT_ID } from "@/theme/accents";
+import { DEFAULT_ACCENT_LEVEL, DEFAULT_SURFACE_LEVEL } from "@/theme/appearanceChroma";
+import { atLevel } from "@/theme/chromaMath";
 import { SURFACES } from "@/theme/surfaces";
 import { getThemeLabOpen, setThemeLabOpen } from "@/features/theme-lab/themeLabStore";
 import { AppearanceCog, type AppearanceCogRows } from "./AppearanceCog";
@@ -81,6 +83,9 @@ describe("AppearanceCog", () => {
     document.documentElement.dataset.theme = "dark";
     document.documentElement.dataset.visualStyle = "fun";
     delete document.documentElement.dataset.accent;
+    // A test that picks a surface paints `data-surface`, which hydration would
+    // otherwise adopt in the next test as a saved choice.
+    delete document.documentElement.dataset.surface;
   });
 
   it("presents one 44px cog and nothing else until it is opened", async () => {
@@ -130,9 +135,11 @@ describe("AppearanceCog", () => {
     ).toEqual([
       "Switch to Pro visual style",
       "Switch to day mode",
+      // The compact Theme Lab entry sits at the end of the binary-control row,
+      // ahead of the swatch rows.
+      "Open Theme Lab",
       ...SURFACES.map((option) => option.label),
       ...ACCENTS.map((option) => option.label),
-      "Open Theme Lab",
     ]);
     expect(
       within(panel).getByRole("button", { name: "Open Theme Lab" }),
@@ -197,15 +204,26 @@ describe("AppearanceCog", () => {
 
     const panel = await screen.findByRole("dialog", { name: "Appearance" });
     // The panel is portalled, so tab order is no longer "the next sibling in the markup".
-    // Visual order and focus order agree: binary controls, both swatch rows, then the
-    // full-width Theme Lab action.
+    // Visual order and focus order agree: binary controls with the compact Theme Lab entry,
+    // then each swatch row followed by its saturation slider.
     const reachable = within(panel).getAllByRole("button");
+    const sliders = within(panel).getAllByRole("slider");
+    expect(sliders.map((slider) => slider.getAttribute("aria-label"))).toEqual([
+      "Surface saturation",
+      "Accent saturation",
+    ]);
 
     await waitFor(() => {
       expect(reachable[0]).toHaveFocus();
     });
 
-    for (const control of reachable.slice(1)) {
+    const order = [
+      ...reachable.slice(1, 3 + SURFACES.length),
+      sliders[0]!,
+      ...reachable.slice(3 + SURFACES.length),
+      sliders[1]!,
+    ];
+    for (const control of order) {
       await user.tab();
       expect(control).toHaveFocus();
     }
@@ -342,6 +360,43 @@ describe("AppearanceCog", () => {
     expect(screen.queryByRole("button", { name: "Appearance settings" })).not.toBeInTheDocument();
   });
 
+  it("opens with both sliders live and parked on the site-default levels", async () => {
+    const user = userEvent.setup();
+    renderCog();
+
+    const panel = await openCog(user);
+
+    // A fresh reader's colourway is the chromatic Orchid/Default pair, so neither slider is
+    // faded, and each thumb parks on the effective level — the site default, since nothing
+    // is stored. Only an explicit achromatic pick (Graphite/Neutral) fades a slider.
+    const surfaceSlider = within(panel).getByRole<HTMLInputElement>("slider", {
+      name: "Surface saturation",
+    });
+    const accentSlider = within(panel).getByRole<HTMLInputElement>("slider", {
+      name: "Accent saturation",
+    });
+    expect(surfaceSlider).toBeEnabled();
+    expect(accentSlider).toBeEnabled();
+    expect(surfaceSlider.value).toBe(String(Math.round(DEFAULT_SURFACE_LEVEL * 100)));
+    expect(accentSlider.value).toBe(String(Math.round(DEFAULT_ACCENT_LEVEL * 100)));
+
+    // The fresh default surface is Orchid — the authored base — not Graphite.
+    const orchid = SURFACES.find((option) => option.id === "orchid")!;
+    expect(within(panel).getByRole("button", { name: orchid.label })).toHaveAttribute(
+      "aria-pressed",
+      "true",
+    );
+
+    const graphite = SURFACES.find((option) => option.achromatic)!;
+    await user.click(within(panel).getByRole("button", { name: graphite.label }));
+
+    await waitFor(() => {
+      expect(
+        within(panel).getByRole("slider", { name: "Surface saturation" }),
+      ).toBeDisabled();
+    });
+  });
+
   /**
    * The `/dev/kit` sweep server-renders every story in all four combinations, but a closed
    * Radix popover renders nothing on the server and its portal returns null before mount —
@@ -382,9 +437,25 @@ describe("AppearanceCog", () => {
       expect(surfaceButtons.every((button) => button.hasAttribute("disabled"))).toBe(
         visualStyle === "pro",
       );
+      // The two saturation sliders split on Pro: the surface axis has nothing
+      // to move there — Pro's one charcoal family is effectively achromatic,
+      // like Graphite — while the accent axis re-saturates the Pro --ei-* ramp,
+      // so its slider works on both visual styles (the opening accent is the
+      // chromatic default).
+      expect(
+        within(panel)
+          .getByRole("slider", { name: "Surface saturation" })
+          .hasAttribute("disabled"),
+      ).toBe(visualStyle === "pro");
+      expect(within(panel).getByRole("slider", { name: "Accent saturation" })).toBeEnabled();
       for (const [index, button] of surfaceButtons.entries()) {
+        const option = SURFACES[index]!;
+        // Chromatic swatches preview the effective saturation level — the site default
+        // here, since nothing is stored — while achromatic ones keep their raw tint.
         expect(button.firstElementChild).toHaveStyle({
-          backgroundColor: SURFACES[index]!.tint[colorScheme],
+          backgroundColor: option.achromatic
+            ? option.tint[colorScheme]
+            : atLevel(option.tint[colorScheme], DEFAULT_SURFACE_LEVEL),
         });
       }
       expect(
@@ -447,6 +518,23 @@ describe("AppearanceControls", () => {
       "aria-expanded",
       "false",
     );
+  });
+
+  it("withholds the Theme Lab when the caller vetoes it, keeping every axis", async () => {
+    const user = userEvent.setup();
+    render(
+      <ThemeProvider initialColorScheme="dark" initialVisualStyle="fun" isVisualStyleLocked={false}>
+        <AppearanceControls allowThemeLab={false} />
+      </ThemeProvider>,
+    );
+
+    const panel = await openCog(user);
+
+    // The pre-launch holding page's cog: a visitor still picks an appearance, but the Lab
+    // authors and shares palettes over routes the construction hosts do not serve.
+    expect(within(panel).queryByRole("button", { name: "Open Theme Lab" })).not.toBeInTheDocument();
+    expect(within(panel).getByRole("button", { name: /day mode|night mode/ })).toBeInTheDocument();
+    expect(within(panel).getByRole("group", { name: "Accent" })).toBeInTheDocument();
   });
 
   it("puts the caller's class on the trigger itself, with no wrapper to take the offset", () => {

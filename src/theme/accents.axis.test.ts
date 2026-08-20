@@ -168,15 +168,15 @@ describe("accent bootstrap", () => {
     const script = buildThemeBootstrapScript(SITE_FLAVOR_CONFIGS.dosewiki);
 
     // No stored preference: a first-time reader gets the publication's opening accent. That is
-    // Neutral on dose.wiki, which owns a real `data-accent` block, so the attribute is WRITTEN.
-    // It used to be absent here, back when opening on the base accent was the only option.
+    // the Default plum-pink base on dose.wiki now, and the base is the ABSENCE of the
+    // attribute — the generated stylesheet names no block for it — so nothing is written.
     Object.defineProperty(window, "localStorage", {
       configurable: true,
       value: { getItem: () => null },
     });
     Function(script)();
-    expect(SITE_FLAVOR_CONFIGS.dosewiki.defaultAccent).toBe("neutral");
-    expect(document.documentElement.dataset.accent).toBe("neutral");
+    expect(SITE_FLAVOR_CONFIGS.dosewiki.defaultAccent).toBe("default");
+    expect(document.documentElement.dataset.accent).toBeUndefined();
 
     Object.defineProperty(window, "localStorage", {
       configurable: true,
@@ -185,9 +185,9 @@ describe("accent bootstrap", () => {
     Function(script)();
     expect(document.documentElement.dataset.accent).toBe("blue");
 
-    // Picking the base accent has to REMOVE the attribute, not set it to the base id, or the
-    // reader ends up matching a block that does not exist. This is the rule the opening accent
-    // no longer exercises, so it is the one that most needs asserting directly.
+    // A reader coming BACK to the base has to see the attribute REMOVED, not set to the base
+    // id, or they end up matching a block that does not exist — the same absence the opening
+    // paints, reached from a saved value rather than from nothing.
     Object.defineProperty(window, "localStorage", {
       configurable: true,
       value: { getItem: (key: string) => (key === ACCENT_STORAGE_KEY ? BASE_ACCENT : null) },

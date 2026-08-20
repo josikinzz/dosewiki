@@ -1,6 +1,14 @@
 import { SITE_FLAVOR_CONFIG } from "@/config/siteFlavor";
 import { isAccent, type AccentId } from "./accents";
 import { isSurface, LEGACY_ACCENT_TO_SURFACE, type SurfaceId } from "./surfaces";
+import {
+  ACCENT_LEVEL_PROPERTY,
+  CHROMA_STYLESHEET_HREF,
+  CHROMA_STYLESHEET_LINK_ID,
+  DEFAULT_ACCENT_LEVEL,
+  DEFAULT_SURFACE_LEVEL,
+  SURFACE_LEVEL_PROPERTY,
+} from "./appearanceChroma";
 import tokenInterface from "./theme-token-interface.json";
 
 export const THEME_TOKEN_INTERFACE = tokenInterface;
@@ -87,6 +95,8 @@ export const VISUAL_STYLE_STORAGE_KEY = THEME_TOKEN_INTERFACE.visualStyleStorage
 export const ACCENT_STORAGE_KEY = THEME_TOKEN_INTERFACE.accentStorageKey;
 export const SURFACE_STORAGE_KEY = THEME_TOKEN_INTERFACE.surfaceStorageKey;
 export const APPEARANCE_STORAGE_KEY = THEME_TOKEN_INTERFACE.appearanceStorageKey;
+export const SURFACE_CHROMA_STORAGE_KEY = THEME_TOKEN_INTERFACE.surfaceChromaStorageKey;
+export const ACCENT_CHROMA_STORAGE_KEY = THEME_TOKEN_INTERFACE.accentChromaStorageKey;
 export const THEME_META_ID = THEME_TOKEN_INTERFACE.metaId;
 
 /**
@@ -326,11 +336,57 @@ export function buildThemeBootstrapScript(policy: AppearancePolicy = SITE_FLAVOR
   } else {
     root.dataset.accent = accent;
   }`;
+  // The saturation axis. Numeric rather than enumerated, so it cannot share
+  // buildAxisResolution's membership test: a stored level is a decimal in 0..1
+  // and anything else — including "" — resolves to the site-default level.
+  // Each axis's read is gated on the same lock as its parent picker, so a
+  // fully locked publication (Effect Index) emits none of this and its script
+  // stays byte-identical. Every other reader — including one who never touched
+  // a slider — gets the attribute, both level properties (stored ?? default),
+  // and the render-blocking <link> to the generated gain stylesheet, all
+  // pre-paint, so neither a saved level nor the default ever flashes the
+  // authored palette. The href's ?v= is the stylesheet's content hash from
+  // appearanceChroma.generated.json.
+  const chromaRead = (variable: string, storageKey: string, defaultLevel: number) => `  let ${variable} = ${defaultLevel};
+  try {
+    const raw = window.localStorage.getItem(${JSON.stringify(storageKey)});
+    const level = raw ? +raw : NaN;
+    if (level >= 0 && level <= 1) ${variable} = level;
+  } catch {}`;
+  const chromaResolution = [
+    surfaceLocked
+      ? ""
+      : `\n${chromaRead("chromaSurface", SURFACE_CHROMA_STORAGE_KEY, DEFAULT_SURFACE_LEVEL)}`,
+    accentLocked
+      ? ""
+      : `\n${chromaRead("chromaAccent", ACCENT_CHROMA_STORAGE_KEY, DEFAULT_ACCENT_LEVEL)}`,
+  ].join("");
+  const chromaWrite =
+    surfaceLocked && accentLocked
+      ? ""
+      : `\n\n  root.dataset.chroma = "";${
+          surfaceLocked
+            ? ""
+            : `
+  root.style.setProperty(${JSON.stringify(SURFACE_LEVEL_PROPERTY)}, "" + chromaSurface);`
+        }${
+          accentLocked
+            ? ""
+            : `
+  root.style.setProperty(${JSON.stringify(ACCENT_LEVEL_PROPERTY)}, "" + chromaAccent);`
+        }
+  try {
+    const link = document.createElement("link");
+    link.id = ${JSON.stringify(CHROMA_STYLESHEET_LINK_ID)};
+    link.rel = "stylesheet";
+    link.href = ${JSON.stringify(CHROMA_STYLESHEET_HREF)};
+    document.head.appendChild(link);
+  } catch {}`;
 
   return `(() => {
   const COLORS = ${JSON.stringify(APPEARANCE_META_COLORS)};${accentValiditySet}
 ${visualStyle}
-${colorScheme}${accent}${surface}
+${colorScheme}${accent}${surface}${chromaResolution}
 
   const root = document.documentElement;
   root.dataset.visualStyle = style;
@@ -339,7 +395,7 @@ ${colorScheme}${accent}${surface}
 
 ${surfaceWrite}
 
-${accentWrite}
+${accentWrite}${chromaWrite}
 
   try {
     const meta = document.getElementById(${JSON.stringify(THEME_META_ID)});

@@ -1,13 +1,99 @@
 "use client";
 
-import { useId } from "react";
+import { useId, type CSSProperties, type ReactNode } from "react";
 
 import { useTheme } from "@/context/ThemeContext";
 import { cn } from "@/lib/utils";
 import { ACCENTS } from "@/theme/accents";
+import { CHROMA_LEVELS } from "@/theme/appearanceChroma";
+import { atLevel, authoredLevel, proAccentRepresentativeSeed } from "@/theme/chromaMath";
 import { SURFACES } from "@/theme/surfaces";
 import { ThemeToggle } from "./ThemeToggle";
 import { VisualStyleToggle } from "./VisualStyleToggle";
+
+/**
+ * The saturation track's gradient: the active colourway's representative swatch
+ * at levels 0..1, so the rail shows exactly what the thumb's positions mean.
+ * An achromatic colourway gets a flat rail: its swatch carries a whisper of
+ * chroma the per-literal test would happily ramp, but the axis declares it
+ * colourless, so the rail must not advertise a range that does not exist.
+ */
+function trackGradient(swatch: string, achromatic: boolean): string {
+  if (achromatic) return `linear-gradient(90deg, ${swatch}, ${swatch})`;
+  const stops = [0, 0.25, 0.5, 0.75, 1].map((level) => atLevel(swatch, level));
+  return `linear-gradient(90deg, ${stops.join(", ")})`;
+}
+
+/**
+ * One axis's saturation slider — the row under the swatches in the cog panel.
+ *
+ * `level` is the reader's effective level — their saved decimal, or the site
+ * default while they never moved this slider — so the thumb parks where the
+ * page is actually painted. The tick still marks the colourway's authored
+ * level. The slider is faded and disabled when the active option is
+ * achromatic (nothing to move) — which on Pro includes the surface axis,
+ * whose one charcoal family the chroma stylesheet treats as achromatic; the
+ * accent axis works on both visual styles.
+ */
+function ChromaSlider({
+  label,
+  swatch,
+  authored,
+  level,
+  disabled,
+  disabledReason,
+  onChange,
+}: {
+  label: string;
+  swatch: string;
+  /** The colourway's authored level, or null when it is achromatic. */
+  authored: number | null;
+  level: number;
+  disabled: boolean;
+  disabledReason?: string;
+  onChange: (level: number) => void;
+}) {
+  const percent = Math.round(level * 100);
+  return (
+    <div
+      data-appearance-chroma=""
+      className={cn(
+        "flex items-center gap-2 px-1 transition-opacity duration-200 motion-reduce:transition-none",
+        disabled && "opacity-40",
+      )}
+    >
+      <div
+        className="theme-chroma-track"
+        style={
+          { "--theme-chroma-track-gradient": trackGradient(swatch, authored === null) } as CSSProperties
+        }
+      >
+        {authored !== null ? (
+          <span
+            aria-hidden="true"
+            className="theme-chroma-tick"
+            style={{ "--theme-chroma-tick": authored } as CSSProperties}
+          />
+        ) : null}
+        <input
+          type="range"
+          className="theme-chroma-slider"
+          min={0}
+          max={100}
+          step={1}
+          value={percent}
+          disabled={disabled}
+          aria-label={label}
+          title={disabled && disabledReason ? `${label} · ${disabledReason}` : label}
+          onChange={(event) => onChange(Number(event.currentTarget.value) / 100)}
+        />
+      </div>
+      <span className="w-8 text-right text-[0.625rem] font-medium tabular-nums text-dose-text-muted">
+        {percent}%
+      </span>
+    </div>
+  );
+}
 
 /**
  * Which rows this instance offers. Passed in rather than read here: the visibility
@@ -45,21 +131,52 @@ export function AppearanceAxes({
   showColorScheme,
   showSurface,
   showAccent,
-}: AppearanceAxesRows & { className?: string }) {
-  const { colorScheme, visualStyle, surface, setSurface, accent, setAccent } = useTheme();
+  endSlot,
+}: AppearanceAxesRows & {
+  className?: string;
+  /**
+   * Rendered at the end of the binary-control row — the cog parks its compact
+   * Theme Lab entry here. The row renders when it has either a toggle or this.
+   */
+  endSlot?: ReactNode;
+}) {
+  const {
+    colorScheme,
+    visualStyle,
+    surface,
+    setSurface,
+    accent,
+    setAccent,
+    surfaceChroma,
+    setSurfaceChroma,
+    accentChroma,
+    setAccentChroma,
+  } = useTheme();
   const surfaceAvailabilityId = useId();
   const surfacesDisabled = visualStyle === "pro";
 
-  // The first row only holds the two compact binary controls.
-  const hasControlRow = showVisualStyle || showColorScheme;
+  const activeSurface = SURFACES.find((option) => option.id === surface) ?? SURFACES[0]!;
+  const activeAccent = ACCENTS.find((option) => option.id === accent) ?? ACCENTS[0]!;
 
+  // The accent slider works on Pro too, so its rail, tick and thumb must show
+  // the palette the reader is actually wearing there: the Pro ramp's
+  // representative seed for the current scheme — the same pick the emitted
+  // gain denominator is computed from (see proAccentRepresentativeSeed), so
+  // the rail and the CSS can never disagree about what a level renders as.
+  // Null on Fun, and for Neutral, whose declared achromatic flag fades the
+  // slider on either style.
+  const proAccentSeed =
+    visualStyle === "pro" ? proAccentRepresentativeSeed(activeAccent, colorScheme) : null;
+
+  // The first row holds the two compact binary controls and the cog's end slot.
+  const hasControlRow = showVisualStyle || showColorScheme || endSlot != null;
   return (
     <div className={cn("flex flex-col gap-3", className)}>
       {hasControlRow ? (
         <div className="flex items-center gap-2">
           {showVisualStyle ? <VisualStyleToggle /> : null}
           {showColorScheme ? <ThemeToggle /> : null}
-
+          {endSlot != null ? <div className="ml-auto">{endSlot}</div> : null}
         </div>
       ) : null}
 
@@ -100,6 +217,10 @@ export function AppearanceAxes({
             {SURFACES.map((option) => {
               const isActive = option.id === surface;
               const swatch = option.tint[colorScheme];
+              // The whole row previews the effective level — including while the
+              // slider is faded — so moving off Graphite never jumps the row.
+              // Only achromatic swatches opt out: no chroma to scale.
+              const shown = option.achromatic ? swatch : atLevel(swatch, surfaceChroma);
               return (
                 <button
                   key={option.id}
@@ -124,12 +245,29 @@ export function AppearanceAxes({
                   <span
                     aria-hidden="true"
                     className="h-5 w-5 rounded-full border border-current/25"
-                    style={{ backgroundColor: swatch }}
+                    style={{ backgroundColor: shown }}
                   />
                 </button>
               );
             })}
           </div>
+          <ChromaSlider
+            label="Surface saturation"
+            swatch={activeSurface.tint[colorScheme]}
+            authored={
+              activeSurface.achromatic
+                ? null
+                : (CHROMA_LEVELS.surfaces[activeSurface.id]?.[colorScheme] ?? null)
+            }
+            level={surfaceChroma}
+            disabled={surfacesDisabled || activeSurface.achromatic === true}
+            disabledReason={
+              surfacesDisabled
+                ? "switch to Fun to change saturation"
+                : "no saturation on this surface"
+            }
+            onChange={setSurfaceChroma}
+          />
         </div>
       ) : null}
 
@@ -174,13 +312,38 @@ export function AppearanceAxes({
                     // The accent's own declared swatch. It is data, measured against
                     // the rendered token in `accents.test.ts`, not a colour choice this
                     // component is allowed to make.
-                    style={{ backgroundColor: option.swatch }}
+                    style={{
+                      backgroundColor: option.achromatic
+                        ? option.swatch
+                        : atLevel(option.swatch, accentChroma),
+                    }}
                   />
                 </span>
               </button>
             );
           })}
           </div>
+          <ChromaSlider
+            label="Accent saturation"
+            swatch={proAccentSeed ?? activeAccent.swatch}
+            authored={
+              visualStyle === "pro"
+                ? proAccentSeed !== null
+                  ? authoredLevel(proAccentSeed)
+                  : null
+                : activeAccent.achromatic
+                  ? null
+                  : (CHROMA_LEVELS.accents[activeAccent.id] ?? null)
+            }
+            level={accentChroma}
+            // The chroma stylesheet emits Pro accent blocks too, so this
+            // slider works on both visual styles; only an achromatic accent
+            // fades it. The surface slider above stays Pro-disabled: Pro's one
+            // charcoal surface family is effectively achromatic.
+            disabled={activeAccent.achromatic === true}
+            disabledReason="no saturation on this accent"
+            onChange={setAccentChroma}
+          />
         </div>
       ) : null}
     </div>

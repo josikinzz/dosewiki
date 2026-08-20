@@ -10,7 +10,7 @@ import { AppearanceAxes, type AppearanceAxesRows } from "./AppearanceAxes";
 
 /**
  * Which rows this instrument offers. The four axes are `AppearanceAxes`' own contract;
- * the cog adds the one row that is not an axis.
+ * the cog adds the one action that is not an axis.
  */
 export type AppearanceCogRows = AppearanceAxesRows & {
   /** The public Theme Lab drawer action. */
@@ -22,7 +22,8 @@ export type AppearanceCogRows = AppearanceAxesRows & {
  *
  * The four axes themselves are `AppearanceAxes`, shared with the Theme Lab drawer so the
  * cog and the drawer offer the reader exactly the same controls. What is the cog's own is
- * the trigger, the popover it opens, and the Theme Lab action at its foot.
+ * the trigger, the popover it opens, and the compact icon-only Theme Lab entry it parks at
+ * the end of the binary-control row through `AppearanceAxes`' end slot.
  *
  * Theme Lab opens the global drawer over the page instead of navigating away.
  */
@@ -101,36 +102,32 @@ export function AppearanceCog({
           }
         }}
       >
-        <div className="flex flex-col gap-3">
-          <AppearanceAxes
-            showVisualStyle={showVisualStyle}
-            showColorScheme={showColorScheme}
-            showSurface={showSurface}
-            showAccent={showAccent}
-          />
-
-          {showMoreSettings ? (
-            <button
-              type="button"
-              aria-label="Open Theme Lab"
-              title="Open Theme Lab"
-              aria-haspopup="dialog"
-              aria-controls="theme-lab-panel"
-              onClick={() => {
-                setPopoverOpen(false);
-                setThemeLabOpen(true, appearanceTriggerRef.current);
-              }}
-              className={cn(
-                "theme-control-pill-quiet inline-flex h-10 w-full items-center justify-center gap-2 rounded-full px-3",
-                "text-xs font-semibold tracking-[0.01em]",
-              )}
-            >
-              <Icon icon="ri:wrench-line" size={15} />
-              <span>Theme Lab</span>
-              <Icon icon="lucide:panel-right-open" size={14} />
-            </button>
-          ) : null}
-        </div>
+        <AppearanceAxes
+          showVisualStyle={showVisualStyle}
+          showColorScheme={showColorScheme}
+          showSurface={showSurface}
+          showAccent={showAccent}
+          endSlot={
+            showMoreSettings ? (
+              <button
+                type="button"
+                // Icon-only, so the accessible name carries what the label used
+                // to: several tests and the workbench address this exact name.
+                aria-label="Open Theme Lab"
+                title="Open Theme Lab"
+                aria-haspopup="dialog"
+                aria-controls="theme-lab-panel"
+                onClick={() => {
+                  setPopoverOpen(false);
+                  setThemeLabOpen(true, appearanceTriggerRef.current);
+                }}
+                className="theme-control-pill-quiet inline-flex h-9 w-9 items-center justify-center rounded-full [@media(pointer:coarse)]:h-11 [@media(pointer:coarse)]:w-11"
+              >
+                <Icon icon="ri:wrench-line" size={15} />
+              </button>
+            ) : undefined
+          }
+        />
       </PopoverContent>
     </Popover>
   );

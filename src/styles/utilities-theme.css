@@ -279,6 +279,85 @@
     outline-offset: 3px;
   }
 
+  /* The saturation slider in the appearance panel. The track's gradient is
+     data — five stops of the active colourway at levels 0..1, painted as an
+     inline background on the wrapper by AppearanceAxes — so the recipe only
+     shapes the rail, the authored-level tick and the thumb. The input itself
+     is transparent and sits over the rail for the full-height hit target. */
+  .theme-chroma-track {
+    position: relative;
+    display: flex;
+    align-items: center;
+    height: 1.125rem;
+    flex: 1;
+  }
+
+  .theme-chroma-track::before {
+    content: "";
+    position: absolute;
+    inset-inline: 0;
+    height: 0.375rem;
+    border-radius: 9999px;
+    background: var(--theme-chroma-track-gradient);
+    box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--theme-text-primary) 14%, transparent);
+  }
+
+  /* Where the authored colour sits. --theme-chroma-tick is unitless 0..1; the
+     7px inset is half a thumb, because a range thumb's centre travels between
+     7px and width-7px rather than 0 and 100%. */
+  .theme-chroma-tick {
+    position: absolute;
+    top: 1px;
+    bottom: 1px;
+    left: calc(7px + var(--theme-chroma-tick, 0) * (100% - 14px));
+    width: 2px;
+    margin-left: -1px;
+    border-radius: 2px;
+    background: color-mix(in srgb, var(--theme-text-primary) 60%, transparent);
+    pointer-events: none;
+  }
+
+  .theme-chroma-slider {
+    position: relative;
+    z-index: 1;
+    flex: 1;
+    appearance: none;
+    -webkit-appearance: none;
+    height: 1.125rem;
+    margin: 0;
+    background: transparent;
+    cursor: pointer;
+  }
+
+  .theme-chroma-slider:disabled {
+    cursor: not-allowed;
+  }
+
+  .theme-chroma-slider:focus-visible {
+    outline: 2px solid var(--theme-accent-strong);
+    outline-offset: 3px;
+  }
+
+  .theme-chroma-slider::-webkit-slider-thumb {
+    appearance: none;
+    -webkit-appearance: none;
+    width: 0.875rem;
+    height: 0.875rem;
+    border-radius: 9999px;
+    background: var(--theme-text-primary);
+    border: 3px solid var(--theme-panel-base);
+    box-shadow: 0 1px 4px rgb(0 0 0 / 0.45);
+  }
+
+  .theme-chroma-slider::-moz-range-thumb {
+    width: 0.875rem;
+    height: 0.875rem;
+    border-radius: 9999px;
+    background: var(--theme-text-primary);
+    border: 3px solid var(--theme-panel-base);
+    box-shadow: 0 1px 4px rgb(0 0 0 / 0.45);
+  }
+
   /* Tertiary inline expander: a faint flat plum wash at rest (no gloss, no
      lift) so it reads at body-copy altitude, then fills with the frosted
      control treatment on hover/focus. Kept out of the frosted control sweep

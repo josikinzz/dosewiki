@@ -414,12 +414,14 @@ const DOSEWIKI_CONFIG: SiteFlavorConfig = {
   showColorSchemeToggle: true,
   defaultVisualStyle: "fun",
   showVisualStyleToggle: true,
-  // dose.wiki opens on Neutral — the graphite monotone grey — rather than on the authored
-  // fuchsia base. The base is still what the stylesheets paint with no `data-accent`, so this
-  // is an opening choice the server and the bootstrap both have to write the attribute for.
-  defaultSurface: "graphite",
+  // dose.wiki opens on Orchid and the Default plum-pink accent — the authored base on both
+  // colour axes, softened by the site-default saturation levels the bootstrap applies
+  // (`DEFAULT_SURFACE_LEVEL` / `DEFAULT_ACCENT_LEVEL` in `src/theme/appearanceChroma.ts`).
+  // Both defaults equal the base ids, so a fresh document carries no `data-surface` or
+  // `data-accent`; a reader's saved Graphite/Neutral choice still restores from storage.
+  defaultSurface: "orchid",
   showSurfacePicker: true,
-  defaultAccent: "neutral",
+  defaultAccent: "default",
   showAccentPicker: true,
   // dose.wiki owns `/blog` too now — its own blog, written in the /dev Blog tab
   // and stored as `kind: "blog"` rows of `effectIndexArticles`. It is a

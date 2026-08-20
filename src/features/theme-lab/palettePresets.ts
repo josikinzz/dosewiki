@@ -61,6 +61,8 @@ export interface PalettePreset {
   id: PalettePresetId;
   name: string;
   tagline: string;
+  /** No chroma to scale: the saturation axis skips this colourway entirely. */
+  achromatic?: true;
   /** Five representative hexes per colour scheme, in order: canvas, panel, text,
    *  brand, accent. Display-only, and the panel hex is load-bearing —
    *  `src/theme/surfaces.ts` reads index 1 as the surface's tint, which is the

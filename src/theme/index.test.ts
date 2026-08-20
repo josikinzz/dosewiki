@@ -2,8 +2,10 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { SITE_FLAVOR_CONFIGS } from "@/config/siteFlavor";
 import {
   APPEARANCE_META_COLORS,
+  ACCENT_CHROMA_STORAGE_KEY,
   BASE_ACCENT,
   COLOR_SCHEME_STORAGE_KEY,
+  SURFACE_CHROMA_STORAGE_KEY,
   DEFAULT_COLOR_SCHEME,
   DEFAULT_VISUAL_STYLE,
   SUPPORTED_COLOR_SCHEMES,
@@ -17,6 +19,14 @@ import {
   isColorScheme,
   isVisualStyle,
 } from "./index";
+import {
+  ACCENT_LEVEL_PROPERTY,
+  CHROMA_STYLESHEET_HREF,
+  CHROMA_STYLESHEET_LINK_ID,
+  DEFAULT_ACCENT_LEVEL,
+  DEFAULT_SURFACE_LEVEL,
+  SURFACE_LEVEL_PROPERTY,
+} from "./appearanceChroma";
 import {
   DEFAULT_THEME_TOKEN_AUDIT_SCAN_ROOTS,
   REVIEWED_THEME_TOKEN_AUDIT_BASELINE,
@@ -59,6 +69,11 @@ describe("theme token interface", () => {
     document.documentElement.removeAttribute("data-theme");
     document.documentElement.removeAttribute("data-visual-style");
     document.documentElement.style.colorScheme = "";
+    // The dose.wiki script engages the saturation axis on every run now, so each
+    // test starts from a document that carries none of it.
+    delete document.documentElement.dataset.chroma;
+    document.documentElement.style.removeProperty(SURFACE_LEVEL_PROPERTY);
+    document.documentElement.style.removeProperty(ACCENT_LEVEL_PROPERTY);
   });
 
   it("names both appearance axes, their storage keys, and the meta-colour matrix", () => {
@@ -71,6 +86,11 @@ describe("theme token interface", () => {
     // to survive the second axis arriving.
     expect(COLOR_SCHEME_STORAGE_KEY).toBe("dosewiki-theme");
     expect(VISUAL_STYLE_STORAGE_KEY).toBe("dosewiki-visual-style");
+    // The chroma keys avoid "dosewiki-accent"/"dosewiki-surface" as prefixes on
+    // purpose: the locked-flavor tests assert those substrings are absent from
+    // the Effect Index script byte-for-byte.
+    expect(SURFACE_CHROMA_STORAGE_KEY).toBe("dosewiki-chroma-surface");
+    expect(ACCENT_CHROMA_STORAGE_KEY).toBe("dosewiki-chroma-accent");
 
     expect(isColorScheme("light")).toBe(true);
     expect(isColorScheme("sepia")).toBe(false);
@@ -213,16 +233,16 @@ describe("theme token interface", () => {
   });
 
   it("opens each publication on its own declared appearance", () => {
-    // The two publications open on different accents now. dose.wiki chose Neutral, which is a
-    // real colourway with a real `data-accent` block, so its opening value is not the base.
-    // Effect Index locks the axis, and a lock resolves to BASE_ACCENT no matter what the
-    // policy declares — asserted here against a policy that declares the same thing, and
-    // again below against one that does not.
+    // dose.wiki opens on the authored Orchid/Default base now — softened by the site-default
+    // saturation levels the bootstrap paints, not by an off-base colourway. Effect Index locks
+    // the axis, and a lock resolves to BASE_ACCENT no matter what the policy declares —
+    // asserted here against a policy that declares the same thing, and again below against one
+    // that does not.
     expect(getInitialAppearance(DOSEWIKI)).toEqual({
       colorScheme: "dark",
       visualStyle: "fun",
-      surface: "graphite",
-      accent: "neutral",
+      surface: "orchid",
+      accent: "default",
     });
     expect(getInitialAppearance(EFFECT_INDEX)).toEqual({
       colorScheme: "light",
@@ -260,6 +280,67 @@ describe("theme token interface", () => {
     // The unlocked axis still restores, so a locked style does not cost night mode.
     expect(document.documentElement.dataset.theme).toBe("dark");
     expect(meta.content).toBe(APPEARANCE_META_COLORS.pro.dark);
+  });
+
+  it("engages a saved saturation level before paint: attribute, level, stylesheet link", () => {
+    installMockStorage({
+      [SURFACE_CHROMA_STORAGE_KEY]: "0.35",
+      [ACCENT_CHROMA_STORAGE_KEY]: "1",
+    });
+    ensureThemeMeta();
+
+    try {
+      Function(buildThemeBootstrapScript(DOSEWIKI))();
+
+      const root = document.documentElement;
+      expect(root.dataset.chroma).toBe("");
+      expect(root.style.getPropertyValue(SURFACE_LEVEL_PROPERTY)).toBe("0.35");
+      expect(root.style.getPropertyValue(ACCENT_LEVEL_PROPERTY)).toBe("1");
+      const link = document.getElementById(CHROMA_STYLESHEET_LINK_ID);
+      expect(link).toBeInstanceOf(HTMLLinkElement);
+      expect((link as HTMLLinkElement).getAttribute("href")).toBe(CHROMA_STYLESHEET_HREF);
+    } finally {
+      document.getElementById(CHROMA_STYLESHEET_LINK_ID)?.remove();
+      document.documentElement.style.removeProperty(SURFACE_LEVEL_PROPERTY);
+      document.documentElement.style.removeProperty(ACCENT_LEVEL_PROPERTY);
+      delete document.documentElement.dataset.chroma;
+    }
+  });
+
+  it("engages the site-default levels for a reader with no saved level, and for garbage levels", () => {
+    // "" and "1.5" and "abc" must all resolve to the defaults: Number("") is 0,
+    // which would otherwise silently pin a level the reader never chose.
+    for (const garbage of [null, "", "1.5", "-0.2", "abc"]) {
+      installMockStorage(
+        garbage === null
+          ? {}
+          : { [SURFACE_CHROMA_STORAGE_KEY]: garbage, [ACCENT_CHROMA_STORAGE_KEY]: garbage },
+      );
+      ensureThemeMeta();
+      document.getElementById(CHROMA_STYLESHEET_LINK_ID)?.remove();
+
+      Function(buildThemeBootstrapScript(DOSEWIKI))();
+
+      const root = document.documentElement;
+      expect(root.dataset.chroma, String(garbage)).toBe("");
+      expect(root.style.getPropertyValue(SURFACE_LEVEL_PROPERTY), String(garbage)).toBe(
+        String(DEFAULT_SURFACE_LEVEL),
+      );
+      expect(root.style.getPropertyValue(ACCENT_LEVEL_PROPERTY), String(garbage)).toBe(
+        String(DEFAULT_ACCENT_LEVEL),
+      );
+      const link = document.getElementById(CHROMA_STYLESHEET_LINK_ID);
+      expect(link, String(garbage)).toBeInstanceOf(HTMLLinkElement);
+      expect((link as HTMLLinkElement).getAttribute("href")).toBe(CHROMA_STYLESHEET_HREF);
+    }
+  });
+
+  it("emits no chroma machinery for a publication with both colour axes locked", () => {
+    const script = buildThemeBootstrapScript(EFFECT_INDEX);
+
+    expect(script).not.toContain("chroma");
+    expect(script).not.toContain(SURFACE_CHROMA_STORAGE_KEY);
+    expect(script).not.toContain(ACCENT_CHROMA_STORAGE_KEY);
   });
 
   it("lands both root attributes even when the meta lookup throws", () => {

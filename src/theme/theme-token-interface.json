@@ -13,6 +13,8 @@
   "baseAccent": "default",
   "supportedAccents": ["default", "blue", "green", "red", "amber", "neutral", "teal"],
   "accentStorageKey": "dosewiki-accent",
+  "surfaceChromaStorageKey": "dosewiki-chroma-surface",
+  "accentChromaStorageKey": "dosewiki-chroma-accent",
   "metaId": "theme-color-meta",
   "metaColors": {
     "fun": {

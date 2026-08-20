@@ -4,8 +4,14 @@ import { beforeEach, describe, expect, it } from "vitest";
 import { SITE_FLAVOR_CONFIG } from "@/config/siteFlavor";
 import { APPEARANCE_META_COLORS, getAppearanceMetaColor } from "@/theme";
 import {
+  DEFAULT_ACCENT_LEVEL,
+  DEFAULT_SURFACE_LEVEL,
+} from "@/theme/appearanceChroma";
+import {
+  ACCENT_CHROMA_STORAGE_KEY,
   ACCENT_STORAGE_KEY,
   COLOR_SCHEME_STORAGE_KEY,
+  SURFACE_CHROMA_STORAGE_KEY,
   THEME_META_ID,
   VISUAL_STYLE_STORAGE_KEY,
   ThemeProvider,
@@ -21,6 +27,9 @@ function AppearanceProbe() {
     visualStyle,
     accent,
     setAccent,
+    surfaceChroma,
+    accentChroma,
+    setSurfaceChroma,
     isVisualStyleLocked,
     isAccentLocked,
     toggleColorScheme,
@@ -34,6 +43,8 @@ function AppearanceProbe() {
       <span data-testid="accent">{accent}</span>
       <span data-testid="style-locked">{String(isVisualStyleLocked)}</span>
       <span data-testid="accent-locked">{String(isAccentLocked)}</span>
+      <span data-testid="surface-chroma">{String(surfaceChroma)}</span>
+      <span data-testid="accent-chroma">{String(accentChroma)}</span>
       <button type="button" onClick={toggleColorScheme}>
         Toggle scheme
       </button>
@@ -45,6 +56,12 @@ function AppearanceProbe() {
       </button>
       <button type="button" onClick={() => setAccent("default")}>
         Wear default
+      </button>
+      <button type="button" onClick={() => setSurfaceChroma(0.4)}>
+        Saturate surface
+      </button>
+      <button type="button" onClick={() => setSurfaceChroma(null)}>
+        Reset surface saturation
       </button>
     </div>
   );
@@ -290,12 +307,11 @@ describe("ThemeProvider", () => {
 
     await waitFor(() => expect(document.documentElement.dataset.theme).toBe("dark"));
 
-    // dose.wiki opens on Neutral, which owns a real block in the generated stylesheet, so the
-    // provider writes the attribute — matching the frame the pre-paint bootstrap already
-    // painted. Only BASE_ACCENT is the ABSENCE of the attribute, and that case is asserted at
-    // the end of this test rather than at the start, where it used to sit.
-    expect(screen.getByTestId("accent")).toHaveTextContent("neutral");
-    expect(document.documentElement.dataset.accent).toBe("neutral");
+    // dose.wiki opens on the Default accent now, and BASE_ACCENT is the ABSENCE of the
+    // attribute: the bootstrap paints nothing for it, and the provider agrees rather than
+    // writing an override that names no block in the generated stylesheet.
+    expect(screen.getByTestId("accent")).toHaveTextContent("default");
+    expect(document.documentElement.dataset.accent).toBeUndefined();
 
     await user.click(screen.getByRole("button", { name: "Wear blue" }));
 
@@ -316,6 +332,56 @@ describe("ThemeProvider", () => {
       // Removed, not set back to the id: this is the transition the bootstrap never sees.
       expect(document.documentElement.dataset.accent).toBeUndefined();
       expect(window.localStorage.getItem(ACCENT_STORAGE_KEY)).toBe("default");
+    });
+  });
+
+  it("hydrates the site-default levels without ever writing them to storage", async () => {
+    renderProvider();
+
+    await waitFor(() => expect(document.documentElement.dataset.theme).toBe("dark"));
+
+    // The effective level is the default, exposed as a number — the sliders park on it —
+    // and the document engages the axis, matching the frame the bootstrap painted.
+    expect(screen.getByTestId("surface-chroma")).toHaveTextContent(String(DEFAULT_SURFACE_LEVEL));
+    expect(screen.getByTestId("accent-chroma")).toHaveTextContent(String(DEFAULT_ACCENT_LEVEL));
+    expect(document.documentElement.dataset.chroma).toBe("");
+
+    // But a default is never persisted: absence of the key IS the default, so a future
+    // default change reaches every reader who never moved a slider.
+    expect(storage.writes.map(([key]) => key)).not.toContain(SURFACE_CHROMA_STORAGE_KEY);
+    expect(storage.writes.map(([key]) => key)).not.toContain(ACCENT_CHROMA_STORAGE_KEY);
+    expect(window.localStorage.getItem(SURFACE_CHROMA_STORAGE_KEY)).toBeNull();
+    expect(window.localStorage.getItem(ACCENT_CHROMA_STORAGE_KEY)).toBeNull();
+  });
+
+  it("restores a saved level over the default, and null resets to the default", async () => {
+    const user = userEvent.setup();
+    window.localStorage.setItem(SURFACE_CHROMA_STORAGE_KEY, "0.4");
+    storage.forgetTraffic();
+
+    renderProvider();
+
+    // The saved decimal wins over the default; the untouched axis stays on its default.
+    await waitFor(() => {
+      expect(screen.getByTestId("surface-chroma")).toHaveTextContent("0.4");
+    });
+    expect(screen.getByTestId("accent-chroma")).toHaveTextContent(String(DEFAULT_ACCENT_LEVEL));
+
+    await user.click(screen.getByRole("button", { name: "Saturate surface" }));
+
+    await waitFor(() => {
+      expect(window.localStorage.getItem(SURFACE_CHROMA_STORAGE_KEY)).toBe("0.4");
+    });
+
+    // Null means "back to the default level": the key is removed, not written as the
+    // default's current value, and the exposed level returns to the default.
+    await user.click(screen.getByRole("button", { name: "Reset surface saturation" }));
+
+    await waitFor(() => {
+      expect(screen.getByTestId("surface-chroma")).toHaveTextContent(
+        String(DEFAULT_SURFACE_LEVEL),
+      );
+      expect(window.localStorage.getItem(SURFACE_CHROMA_STORAGE_KEY)).toBeNull();
     });
   });
 

@@ -7,6 +7,8 @@ export type Surface = {
   readonly label: string;
   readonly overrides: PresetOverrides;
   readonly tint: { readonly dark: string; readonly light: string };
+  /** Mirrors the preset's flag; the saturation slider fades on this surface. */
+  readonly achromatic?: true;
 };
 
 export const BASE_SURFACE_ID: SurfaceId = "orchid";
@@ -18,6 +20,7 @@ export const SURFACES: readonly Surface[] = SURFACE_IDS.map((id) => {
   return {
     id,
     label: preset.name,
+    ...(preset.achromatic ? { achromatic: true as const } : {}),
     tint: {
       dark: preset.swatch.dark[1] ?? preset.swatch.dark[0]!,
       light: preset.swatch.light[1] ?? preset.swatch.light[0]!,

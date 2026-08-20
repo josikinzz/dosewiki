@@ -11,7 +11,15 @@ import {
 } from "react";
 import { SITE_FLAVOR_CONFIG } from "@/config/siteFlavor";
 import {
+  applyChromaToDocument,
+  DEFAULT_ACCENT_LEVEL,
+  DEFAULT_SURFACE_LEVEL,
+  parseChromaLevel,
+} from "@/theme/appearanceChroma";
+import {
   ACCENT_STORAGE_KEY,
+  ACCENT_CHROMA_STORAGE_KEY,
+  SURFACE_CHROMA_STORAGE_KEY,
   SURFACE_STORAGE_KEY,
   BASE_SURFACE,
   COLOR_SCHEME_STORAGE_KEY,
@@ -34,9 +42,11 @@ import {
 
 export type { AccentId, Appearance, ColorScheme, SurfaceId, VisualStyle } from "@/theme";
 export {
+  ACCENT_CHROMA_STORAGE_KEY,
   ACCENT_STORAGE_KEY,
   COLOR_SCHEME_STORAGE_KEY,
   THEME_META_ID,
+  SURFACE_CHROMA_STORAGE_KEY,
   SURFACE_STORAGE_KEY,
   VISUAL_STYLE_STORAGE_KEY,
 } from "@/theme";
@@ -56,6 +66,18 @@ type ThemeContextValue = {
   setVisualStyle: (value: VisualStyle) => void;
   setAccent: (value: AccentId) => void;
   setSurface: (value: SurfaceId) => void;
+  /**
+   * The effective saturation levels — always a decimal in 0..1: the reader's
+   * saved level, or the site default (`DEFAULT_SURFACE_LEVEL` /
+   * `DEFAULT_ACCENT_LEVEL`) while they have never moved that slider. The
+   * setters take null to mean "back to the default level": the storage key is
+   * removed — a default is never written — and the exposed level returns to
+   * the default. Each level rides its parent axis's lock.
+   */
+  surfaceChroma: number;
+  accentChroma: number;
+  setSurfaceChroma: (value: number | null) => void;
+  setAccentChroma: (value: number | null) => void;
   toggleColorScheme: () => void;
   toggleVisualStyle: () => void;
   /**
@@ -122,6 +144,38 @@ function persistPreference(storageKey: string, value: string) {
     window.localStorage.setItem(storageKey, value);
   } catch {
     // Ignore storage failures and keep the in-memory appearance active.
+  }
+}
+
+/**
+ * A level persists as its decimal string, and null removes the key: a missing
+ * key is what "the site default" means to the pre-paint bootstrap, so removal
+ * — not writing the default's current value — is what keeps a reader on the
+ * default as it evolves.
+ */
+function persistChromaLevel(storageKey: string, value: number | null) {
+  if (typeof window === "undefined") return;
+  try {
+    if (value === null) window.localStorage.removeItem(storageKey);
+    else window.localStorage.setItem(storageKey, String(value));
+  } catch {
+    // Ignore storage failures and keep the in-memory level active.
+  }
+}
+
+/**
+ * The reader's saved level, or null when they never saved one. Storage, not
+ * the painted custom property: the bootstrap paints stored ?? default, so the
+ * property alone cannot say whether the reader chose the value it carries —
+ * and adopting a painted default as "saved" would persist it, freezing the
+ * reader on a default they never picked.
+ */
+function resolveStoredChroma(storageKey: string): number | null {
+  if (typeof window === "undefined") return null;
+  try {
+    return parseChromaLevel(window.localStorage.getItem(storageKey));
+  } catch {
+    return null;
   }
 }
 
@@ -195,6 +249,16 @@ export function ThemeProvider({
       (isAccentLocked ? BASE_ACCENT : getInitialAppearance(SITE_FLAVOR_CONFIG).accent),
   );
   /**
+   * The reader's *saved* level, or null while they never saved one. Null is the
+   * persistence state, not the display one: the exposed level resolves
+   * `?? DEFAULT_*_LEVEL`, and the persist effect removes the key on null so a
+   * default is never written into storage.
+   */
+  const [savedSurfaceChroma, setSurfaceChromaState] = useState<number | null>(null);
+  const [savedAccentChroma, setAccentChromaState] = useState<number | null>(null);
+  const surfaceChroma = savedSurfaceChroma ?? DEFAULT_SURFACE_LEVEL;
+  const accentChroma = savedAccentChroma ?? DEFAULT_ACCENT_LEVEL;
+  /**
    * Until the mount effect has read back what the bootstrap resolved, this provider is still
    * holding the server's opening guess. Applying it would be harmless — the document already
    * says so — but *persisting* it would overwrite a saved preference with a default the reader
@@ -246,6 +310,12 @@ export function ThemeProvider({
         setAccentState(paintedAccent);
       }
     }
+    if (!isSurfaceLocked) {
+      setSurfaceChromaState(resolveStoredChroma(SURFACE_CHROMA_STORAGE_KEY));
+    }
+    if (!isAccentLocked) {
+      setAccentChromaState(resolveStoredChroma(ACCENT_CHROMA_STORAGE_KEY));
+    }
 
     setHydrated(true);
   }, [isVisualStyleLocked, isSurfaceLocked, isAccentLocked]);
@@ -256,6 +326,10 @@ export function ThemeProvider({
     }
 
     applyAppearanceToDocument({ colorScheme, visualStyle, surface, accent });
+    applyChromaToDocument(
+      isSurfaceLocked ? null : surfaceChroma,
+      isAccentLocked ? null : accentChroma,
+    );
     persistPreference(COLOR_SCHEME_STORAGE_KEY, colorScheme);
 
     if (!isVisualStyleLocked) {
@@ -264,11 +338,13 @@ export function ThemeProvider({
 
     if (!isSurfaceLocked) {
       persistPreference(SURFACE_STORAGE_KEY, surface);
+      persistChromaLevel(SURFACE_CHROMA_STORAGE_KEY, savedSurfaceChroma);
     }
     if (!isAccentLocked) {
       persistPreference(ACCENT_STORAGE_KEY, accent);
+      persistChromaLevel(ACCENT_CHROMA_STORAGE_KEY, savedAccentChroma);
     }
-  }, [hydrated, colorScheme, visualStyle, surface, accent, isVisualStyleLocked, isSurfaceLocked, isAccentLocked]);
+  }, [hydrated, colorScheme, visualStyle, surface, accent, surfaceChroma, accentChroma, savedSurfaceChroma, savedAccentChroma, isVisualStyleLocked, isSurfaceLocked, isAccentLocked]);
 
   const setVisualStyle = useCallback(
     (value: VisualStyle) => {
@@ -299,6 +375,24 @@ export function ThemeProvider({
     [isAccentLocked],
   );
 
+  const setSurfaceChroma = useCallback(
+    (value: number | null) => {
+      if (!isSurfaceLocked) {
+        setSurfaceChromaState(value === null ? null : Math.min(Math.max(value, 0), 1));
+      }
+    },
+    [isSurfaceLocked],
+  );
+
+  const setAccentChroma = useCallback(
+    (value: number | null) => {
+      if (!isAccentLocked) {
+        setAccentChromaState(value === null ? null : Math.min(Math.max(value, 0), 1));
+      }
+    },
+    [isAccentLocked],
+  );
+
   const toggleColorScheme = useCallback(() => {
     setColorScheme((current) => (current === "dark" ? "light" : "dark"));
   }, []);
@@ -321,6 +415,10 @@ export function ThemeProvider({
       setVisualStyle,
       setAccent,
       setSurface,
+      surfaceChroma,
+      accentChroma,
+      setSurfaceChroma,
+      setAccentChroma,
       toggleColorScheme,
       toggleVisualStyle,
       isVisualStyleLocked,
@@ -335,6 +433,10 @@ export function ThemeProvider({
       setVisualStyle,
       setAccent,
       setSurface,
+      surfaceChroma,
+      accentChroma,
+      setSurfaceChroma,
+      setAccentChroma,
       toggleColorScheme,
       toggleVisualStyle,
       isVisualStyleLocked,
