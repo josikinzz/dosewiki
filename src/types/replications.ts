@@ -126,31 +126,19 @@ export type ReplicationDateConfidence =
   | 'none';
 
 /**
- * Best defensible temporal statement for a replication. `event_type` explains
- * what the value dates; it may be creation, first publication, or only an
- * earliest-known/source-file bound.
+ * Best defensible temporal statement for a replication — when the work was
+ * actually made, as opposed to when it was ingested (`created_at`).
+ * `event_type` explains what the value dates; it may be creation, first
+ * publication, or only an earliest-known/source-file bound. `value` shapes
+ * vary by `kind`: an ISO date ("2014-09-23"), a bare year ("1981"), or prose
+ * like "on or before 2024-04-08T04:45:05Z". Resolve it through `workDateMs`
+ * (src/features/effects/gallery/galleryModel.ts) rather than parsing ad hoc.
  */
 export interface ReplicationDateInfo {
   value?: string;
   kind: ReplicationDateKind;
   event_type?: string;
   confidence: ReplicationDateConfidence;
-  researched_at: string;
-}
-
-/**
- * Researched estimate of when a work was actually made, as opposed to when it
- * was ingested (`created_at`). Written by the date-research pipeline; 851 of
- * 997 prod rows carry one. `value` shapes vary by `kind`: an ISO date
- * ("2014-09-23"), a bare year ("1981"), or prose like
- * "on or before 2024-04-08T04:45:05Z". Resolve it through `workDateMs`
- * (src/features/effects/gallery/galleryModel.ts) rather than parsing ad hoc.
- */
-export interface ReplicationDateInfo {
-  kind: 'exact_date' | 'year' | 'range' | 'upper_bound' | 'inferred' | 'unknown';
-  value: string | null;
-  event_type: string;
-  confidence: string;
   researched_at: string;
 }
 

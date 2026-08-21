@@ -1,5 +1,9 @@
 import { describe, expect, it } from 'vitest';
-import type { GalleryReplication } from '@/types/replications';
+import type {
+  GalleryReplication,
+  ReplicationDateInfo,
+  ReplicationDateKind,
+} from '@/types/replications';
 import {
   ARTIST_VIEW_WITHHELD_EFFECT_SLUGS,
   artistIdentity,
@@ -19,11 +23,14 @@ import {
 } from './galleryModel';
 
 let seq = 0;
-function dateInfo(
-  kind: 'exact_date' | 'year' | 'range' | 'upper_bound' | 'inferred' | 'unknown',
-  value: string | null,
-) {
-  return { kind, value, event_type: 'work_created', confidence: 'high', researched_at: '2026-01-01T00:00:00Z' };
+function dateInfo(kind: ReplicationDateKind, value: string | null): ReplicationDateInfo {
+  return {
+    kind,
+    value: value ?? undefined,
+    event_type: 'work_created',
+    confidence: 'high',
+    researched_at: '2026-01-01T00:00:00Z',
+  };
 }
 
 function rep(overrides: Partial<GalleryReplication> = {}): GalleryReplication {
