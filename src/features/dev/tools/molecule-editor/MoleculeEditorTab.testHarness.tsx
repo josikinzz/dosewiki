@@ -48,6 +48,7 @@ vi.mock("./stereoGuard", () => ({
 vi.mock("./OclEditor", () => ({
   OclEditor: ({
     source,
+    atomLabels,
     fineRotation,
     mirrorDirection,
     snapRequest,
@@ -59,6 +60,7 @@ vi.mock("./OclEditor", () => ({
     onBondPickComplete,
   }: {
     source: string | null;
+    atomLabels?: Record<number, string>;
     fineRotation?: boolean;
     mirrorDirection?: string | null;
     snapRequest?: string | null;
@@ -80,6 +82,7 @@ vi.mock("./OclEditor", () => ({
     <div
       data-testid="ocl-editor"
       data-source={source ?? ""}
+      data-atom-labels={atomLabels ? JSON.stringify(atomLabels) : ""}
       data-fine-rotation={String(fineRotation)}
       data-mirror-direction={mirrorDirection ?? ""}
       data-snap-request={snapRequest ?? ""}

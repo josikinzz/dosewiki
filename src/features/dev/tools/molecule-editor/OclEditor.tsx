@@ -21,6 +21,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Icon } from "@/components/common/Icon";
 import { cn } from "@/lib/utils";
+import { stripOclCustomLabelSgroups } from "./applyRLabelsToMolblock";
 import {
   applyBoldBonds,
   applyBondVertical,
@@ -46,6 +47,12 @@ interface OclEditorProps {
    * has already reset the edit it publishes.
    */
   sourceEpoch?: number;
+  /**
+   * Draw-time atom labels (class-mode R groups: "R2"/"Rα"/"RN"), keyed by atom
+   * index of `source`. Applied on every baseline load; never part of the MOL
+   * block itself (emissions strip OCL's custom-label S-groups).
+   */
+  atomLabels?: Readonly<Record<number, string>>;
   /** Emitted on every user edit as the current depiction's MOL block (coords + wedges). */
   onChange: (molblock: string) => void;
   /** Called once if OpenChemLib fails to load or the canvas editor cannot be created. */
@@ -89,6 +96,7 @@ interface PickHover {
 export function OclEditor({
   source,
   sourceEpoch = 0,
+  atomLabels,
   onChange,
   onError,
   fineRotation = false,
@@ -124,6 +132,8 @@ export function OclEditor({
   onBondPickCompleteRef.current = onBondPickComplete;
   const boldBondsRef = useRef(boldBonds);
   boldBondsRef.current = boldBonds;
+  const atomLabelsRef = useRef(atomLabels);
+  atomLabelsRef.current = atomLabels;
   const onBoldBondsChangeRef = useRef(onBoldBondsChange);
   onBoldBondsChangeRef.current = onBoldBondsChange;
   const onBoldToggleExitRef = useRef(onBoldToggleExit);
@@ -142,6 +152,14 @@ export function OclEditor({
     } catch {
       /* molecule can be transiently invalid mid-edit; ignore */
     }
+  }, []);
+
+  // Every emission funnels through here: OCL's `toMolfile` writes any applied
+  // custom labels as DAT S-groups, which must never reach the parent — they
+  // would break the string-equality dirty check against the unlabeled baseline
+  // and leak into saved molblocks. Identity for label-free molecules.
+  const emitMolfile = useCallback((molecule: { toMolfile(): string }) => {
+    onChangeRef.current(stripOclCustomLabelSgroups(molecule.toMolfile()));
   }, []);
 
   // Create the editor once.
@@ -173,7 +191,7 @@ export function OclEditor({
           if (!event.isUserEvent || event.type !== "molecule") return;
           try {
             const molecule = ed.getMolecule();
-            onChangeRef.current(molecule.toMolfile());
+            emitMolfile(molecule);
             // Structural edits can add, delete, or renumber bonds; the molecule's
             // own flags are the truth, so re-read the bold set alongside.
             onBoldBondsChangeRef.current?.(readBoldBonds(molecule));
@@ -200,7 +218,7 @@ export function OclEditor({
       }
       editorRef.current = null;
     };
-  }, [reportSelectedBonds]);
+  }, [reportSelectedBonds, emitMolfile]);
 
   // Synchronize the session-only interaction preference without touching the
   // molecule or emitting a structural change.
@@ -230,6 +248,18 @@ export function OclEditor({
         // Bold flags aren't part of the MOL block; reapply the persisted list
         // before the load so the canvas draws them from the first paint.
         applyBoldBonds(molecule, boldBondsRef.current);
+        // Class-mode R-group labels are draw-time only: apply them per baseline
+        // load so the canvas shows the same text as the brand preview. Keyed by
+        // source atom index; guarded so a stale map never touches a shorter
+        // molecule.
+        const labels = atomLabelsRef.current;
+        if (labels) {
+          const atomCount = molecule.getAllAtoms();
+          for (const [index, label] of Object.entries(labels)) {
+            const atom = Number(index);
+            if (atom >= 0 && atom < atomCount) molecule.setAtomCustomLabel(atom, label);
+          }
+        }
         ed.setMolecule(molecule);
       } catch (err) {
         const message = err instanceof Error ? err.message : String(err);
@@ -259,12 +289,12 @@ export function OclEditor({
       const molecule = editor.getMolecule();
       if (mirrorMoleculeCoordinates(molecule, mirrorDirection, OCL.Molecule)) {
         editor.setMolecule(molecule);
-        onChangeRef.current(molecule.toMolfile());
+        emitMolfile(molecule);
       }
     } finally {
       onMirrorCompleteRef.current?.();
     }
-  }, [mirrorDirection, ready]);
+  }, [mirrorDirection, ready, emitMolfile]);
 
   // Alignment rotation through OpenChemLib, mirroring the flow above: mutate the
   // molecule's coordinates, reload the canvas, and emit a new MOL block so the parent
@@ -280,14 +310,14 @@ export function OclEditor({
       outcome = applyMoleculeSnap(molecule, snapRequest);
       if (outcome.status === "applied") {
         editor.setMolecule(molecule);
-        onChangeRef.current(molecule.toMolfile());
+        emitMolfile(molecule);
         // Reloading the molecule discards the lasso selection that picked the bond.
         reportSelectedBonds(editor);
       }
     } finally {
       onSnapCompleteRef.current?.(outcome);
     }
-  }, [snapRequest, ready, reportSelectedBonds]);
+  }, [snapRequest, ready, reportSelectedBonds, emitMolfile]);
 
   // --- click-to-pick bond mode ----------------------------------------------
   //
@@ -381,7 +411,7 @@ export function OclEditor({
         outcome = applyBondVertical(hit.molecule, hit.bond);
         if (outcome.status === "applied") {
           editor.setMolecule(hit.molecule);
-          onChangeRef.current(hit.molecule.toMolfile());
+          emitMolfile(hit.molecule);
           reportSelectedBonds(editor);
         }
       } finally {
@@ -389,7 +419,7 @@ export function OclEditor({
         onBondPickCompleteRef.current?.(outcome);
       }
     },
-    [findBondAtPointer, reportSelectedBonds, boldToggleActive],
+    [findBondAtPointer, reportSelectedBonds, boldToggleActive, emitMolfile],
   );
 
   // Escape cancels pick mode from anywhere, including while the canvas has focus.

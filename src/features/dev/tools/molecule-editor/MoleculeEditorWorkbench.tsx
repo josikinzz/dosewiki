@@ -33,6 +33,8 @@ interface MoleculeEditorWorkbenchProps {
   onCanvasError: (error: string | null) => void;
   source: string | null;
   sourceEpoch: number;
+  /** Class-mode R-group display labels for the canvas, atom index -> "R2"/"Rα"/"RN". */
+  atomLabels: Record<number, string> | undefined;
   onEditorChange: (molblock: string) => void;
   fineRotation: boolean;
   onFineRotationChange: (enabled: boolean) => void;
@@ -83,6 +85,7 @@ export function MoleculeEditorWorkbench({
   onCanvasError,
   source,
   sourceEpoch,
+  atomLabels,
   onEditorChange,
   fineRotation,
   onFineRotationChange,
@@ -183,6 +186,7 @@ export function MoleculeEditorWorkbench({
               <OclEditor
                 source={source}
                 sourceEpoch={sourceEpoch}
+                atomLabels={atomLabels}
                 onChange={onEditorChange}
                 onError={onCanvasError}
                 fineRotation={fineRotation}

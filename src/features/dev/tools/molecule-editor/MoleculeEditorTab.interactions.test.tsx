@@ -14,6 +14,7 @@ import {
   useSubstanceLookupMock,
 } from "./MoleculeEditorTab.testHarness";
 import { MoleculeEditorTab } from "./MoleculeEditorTab";
+import { RDKIT_PHENETHYLAMINE } from "./classMolblockFixture";
 
 describe("MoleculeEditorTab canvas and imports", () => {
   installMoleculeEditorTestHarness();
@@ -392,5 +393,57 @@ describe("MoleculeEditorTab canvas and imports", () => {
       slug: "example",
       molblock: "rotated molblock",
     });
+  });
+
+  it("hands the class R-group label map to the canvas and preview without dirtying the baseline", async () => {
+    // Seeded-class flow: no saved override, RDKit generates the Markush molblock.
+    const rdkit = {
+      get_mol: () => ({ get_molblock: () => RDKIT_PHENETHYLAMINE, delete: () => {} }),
+    };
+    useRdkitMock.mockReturnValue({ rdkit, error: null });
+    renderMoleculeSvgMock.mockReturnValue("<svg />");
+    compareCanonicalSmilesMock.mockReturnValue({
+      match: true,
+      inchiOriginal: "smiles",
+      inchiEdited: "smiles",
+    });
+    useQueryMock.mockReturnValue(undefined);
+    vi.spyOn(globalThis, "fetch").mockResolvedValue(
+      new Response(JSON.stringify({ ok: true, override: null }), {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      }),
+    );
+
+    render(<MoleculeEditorTab />);
+    const user = userEvent.setup();
+    await user.click(screen.getByRole("button", { name: "Generic classes" }));
+    await user.click(screen.getByRole("combobox", { name: "Select a class" }));
+    await user.click(await screen.findByText("Phenethylamine"));
+
+    await waitFor(() =>
+      expect(screen.getByTestId("ocl-editor")).toHaveAttribute(
+        "data-source",
+        RDKIT_PHENETHYLAMINE,
+      ),
+    );
+    // The canvas gets the same draw-time map the brand preview uses: all eight
+    // R positions, keyed by source atom index (atom 0 carries map 9 -> RN).
+    const raw = screen.getByTestId("ocl-editor").getAttribute("data-atom-labels");
+    const labels = JSON.parse(raw ?? "{}") as Record<string, string>;
+    expect(labels["0"]).toBe("RN");
+    expect(Object.values(labels).sort()).toEqual(
+      ["R2", "R3", "R4", "R5", "R6", "RN", "Rα", "Rβ"].sort(),
+    );
+    await waitFor(() =>
+      expect(renderMoleculeSvgMock).toHaveBeenLastCalledWith(
+        expect.anything(),
+        RDKIT_PHENETHYLAMINE,
+        labels,
+        [],
+      ),
+    );
+    // Loading a seeded class row must not trip the unsaved-changes flag.
+    expect(screen.queryByText("Unsaved changes")).not.toBeInTheDocument();
   });
 });

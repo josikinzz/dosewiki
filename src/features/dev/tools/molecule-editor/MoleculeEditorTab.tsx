@@ -49,6 +49,7 @@ import {
   classAtomLabels,
   normalizeClassMolblock,
   parseClassDummies,
+  stripOclCustomLabelSgroups,
 } from "./applyRLabelsToMolblock";
 import { CLASS_STRUCTURES, type ClassStructureItem } from "./classStructures";
 import {
@@ -195,9 +196,10 @@ export function MoleculeEditorTab({ initialSlug }: { initialSlug?: string } = {}
   /**
    * Re-express a molblock in the exact textual form the canvas emits: the same
    * OCL parse → `toMolfile` round-trip `OclEditor` performs, followed by the
-   * same dummy-atom chemistry restoration `handleEditorChange` applies (a
-   * no-op for substance molblocks, which have no dummies). Baselines installed
-   * in this form compare string-equal to a zero-edit canvas emission, so
+   * same custom-label S-group strip and dummy-atom chemistry restoration
+   * `OclEditor`/`handleEditorChange` apply (both no-ops for substance
+   * molblocks, which have no labels or dummies). Baselines installed in this
+   * form compare string-equal to a zero-edit canvas emission, so
    * `edited !== source` — the unsaved-changes flag — only trips on a real edit,
    * never on RDKit/Convex vs OCL formatting differences.
    */
@@ -205,7 +207,9 @@ export function MoleculeEditorTab({ initialSlug }: { initialSlug?: string } = {}
     (molblock: string): string => {
       if (!ocl) return molblock;
       try {
-        const roundTripped = ocl.Molecule.fromMolfile(molblock).toMolfile();
+        const roundTripped = stripOclCustomLabelSgroups(
+          ocl.Molecule.fromMolfile(molblock).toMolfile(),
+        );
         return normalizeClassMolblock(roundTripped, molblock, parseClassDummies(molblock));
       } catch {
         return molblock; // unparseable: keep raw; the canvas load surfaces the error
@@ -1233,6 +1237,7 @@ export function MoleculeEditorTab({ initialSlug }: { initialSlug?: string } = {}
         onCanvasError={setCanvasError}
         source={source}
         sourceEpoch={sourceEpoch}
+        atomLabels={classLabels}
         onEditorChange={handleEditorChange}
         fineRotation={fineRotation}
         onFineRotationChange={setFineRotation}
