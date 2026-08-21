@@ -159,11 +159,14 @@ export function ReplicationDetailPage({
             // No caption track: replications are wordless visual recreations and
             // the schema carries no caption asset to point at. Muting the player
             // would satisfy the rule but would misrepresent the work.
+            // Loops because replications are seamless loops; ending on a
+            // freeze-frame misrepresents the work. Controls still allow pause.
             // eslint-disable-next-line jsx-a11y/media-has-caption
             <video
               src={replication.url}
               poster={replication.thumbnail_url}
               controls
+              loop
               playsInline
               preload="metadata"
               className="mx-auto block max-h-[72vh] w-full bg-black/20 object-contain"

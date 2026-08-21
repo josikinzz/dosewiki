@@ -29,6 +29,20 @@ interface GalleryMediaTileProps {
    * hands the ratio to `frameClassName` so a uniform grid stays uniform.
    */
   frameAspect?: 'natural' | 'square';
+  /**
+   * Phones open works in the fullscreen deck instead of navigating, so the
+   * tile takes an optional click interceptor. The handler decides whether to
+   * `preventDefault()`; the tile stays a real anchor either way so every work
+   * remains crawlable and cmd/middle-clickable into a new tab.
+   */
+  onOpen?: (event: React.MouseEvent, replication: PublicGalleryReplicationPreview) => void;
+  /** Omit the creator byline under the title (artist rails already name the artist once, above). */
+  showByline?: boolean;
+  /**
+   * Hide the whole caption below `md`: phone rails and masonry read as pure
+   * media, and the deck (where taps land anyway) carries title and credit.
+   */
+  mobileCompact?: boolean;
 }
 
 /**
@@ -46,6 +60,9 @@ export function GalleryMediaTile({
   className,
   frameClassName,
   frameAspect = 'natural',
+  onOpen,
+  showByline = true,
+  mobileCompact = false,
 }: GalleryMediaTileProps) {
   const { autoplay: autoplayAllowed, hoverPreview: hoverPreviewAllowed } = useMotionAllowed();
   const [hovered, setHovered] = useState(false);
@@ -93,6 +110,7 @@ export function GalleryMediaTile({
       <Link
         ref={frameRef}
         href={publicHref.replication(replication.slug)}
+        onClick={onOpen ? (event) => onOpen(event, replication) : undefined}
         onMouseEnter={() => setHovered(true)}
         onMouseLeave={() => setHovered(false)}
         onFocus={() => setHovered(true)}
@@ -168,11 +186,13 @@ export function GalleryMediaTile({
         ) : null}
       </Link>
 
-      <figcaption className="mt-2 min-w-0 px-0.5">
+      {/* max-md:hidden removes the caption *and* its mt-2 so compact phone
+          tiles pay no spacing cost for a caption they never show. */}
+      <figcaption className={cn('mt-2 min-w-0 px-0.5', mobileCompact && 'max-md:hidden')}>
         <p className="theme-text-secondary truncate text-sm font-medium">
           {replication.title}
         </p>
-        <p className="theme-text-faint truncate text-xs">{byline}</p>
+        {showByline ? <p className="theme-text-faint truncate text-xs">{byline}</p> : null}
       </figcaption>
     </figure>
   );

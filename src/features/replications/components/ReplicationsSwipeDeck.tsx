@@ -16,12 +16,12 @@ import { getCreatorByline } from '@/features/effects/components/replicationCredi
 import { buildGalleryFocusUrl } from '../galleryUrlState';
 
 /**
- * The immersive swipe deck: the replications gallery's default surface on
- * phones. It sits *in the page flow* below the section intro and tabs — the
- * reader swipes down past them, the document's proximity snap frames the deck
- * under the sticky site header, and from there vertical swipes move between
- * artists while horizontal swipes move through one artist's works. Both axes
- * are native scroll-snap, so gestures inherit the platform's physics.
+ * The immersive swipe deck: a fullscreen modal viewer over the replications
+ * gallery. It covers the entire viewport (site header included), locks the
+ * document's scroll for its lifetime, and is dismissed with Escape or the
+ * close chip. Inside it, vertical swipes move between artists while
+ * horizontal swipes move through one artist's works. Both axes are native
+ * scroll-snap, so gestures inherit the platform's physics.
  *
  * Videos stream, autoplay (muted), and loop as soon as their pane approaches
  * the viewport; there is no play button to find. `prefers-reduced-motion`
@@ -40,8 +40,6 @@ const SECTION_MOUNT_MARGIN = '120% 0px';
 const PANE_MOUNT_MARGIN = '0px 120%';
 /** A pane must be this visible to count as the active, playing one. */
 const ACTIVE_THRESHOLD = 0.7;
-/** SSR fallback for the sticky site header's height; measured after mount. */
-const HEADER_HEIGHT_FALLBACK = 57;
 
 /** Round on-media control chip (same optics as the showcase's controls). */
 const deckControlClassName = cn(
@@ -103,29 +101,6 @@ function useInViewport(
   return inView;
 }
 
-/**
- * The sticky `.app-header`'s live height: the deck fills exactly the viewport
- * below it, and the deck's scroll-margin makes the document snap frame the
- * deck under it rather than behind it.
- */
-function useSiteHeaderHeight(): number {
-  const [height, setHeight] = useState(HEADER_HEIGHT_FALLBACK);
-  useLayoutEffect(() => {
-    const header = document.querySelector('.app-header');
-    if (!(header instanceof HTMLElement)) {
-      setHeight(0);
-      return;
-    }
-    const update = () => setHeight(header.offsetHeight);
-    update();
-    if (typeof ResizeObserver === 'undefined') return;
-    const observer = new ResizeObserver(update);
-    observer.observe(header);
-    return () => observer.disconnect();
-  }, []);
-  return height;
-}
-
 interface DeckPaneProps {
   work: PublicGalleryReplicationPreview;
   /** Pane may mount its media (its section is near the viewport). */
@@ -160,6 +135,7 @@ function DeckPane({ work, sectionNearby, muted, reducedMotion, effectName }: Dec
   /** Reader's explicit pause/play verdict; cleared when the pane leaves. */
   const [pausedByUser, setPausedByUser] = useState<boolean | null>(null);
   const [buffering, setBuffering] = useState(false);
+  const [mediaError, setMediaError] = useState(false);
 
   const isVideo = work.type === 'video';
   const mountVideo = isVideo && sectionNearby && nearby;
@@ -170,6 +146,11 @@ function DeckPane({ work, sectionNearby, muted, reducedMotion, effectName }: Dec
   useEffect(() => {
     if (!active) setPausedByUser(null);
   }, [active]);
+
+  /** A fresh media mount is a fresh attempt: clear stale failures. */
+  useEffect(() => {
+    if (!mountVideo) setMediaError(false);
+  }, [mountVideo]);
 
   /**
    * Play/pause + pipeline policy. Only the active pane may hold a media
@@ -233,7 +214,7 @@ function DeckPane({ work, sectionNearby, muted, reducedMotion, effectName }: Dec
   };
 
   const byline = getCreatorByline(work);
-  const showPausedBadge = isVideo && mountVideo && !shouldPlay;
+  const showPausedBadge = isVideo && mountVideo && !shouldPlay && !mediaError;
 
   return (
     <div
@@ -242,7 +223,17 @@ function DeckPane({ work, sectionNearby, muted, reducedMotion, effectName }: Dec
       aria-label={`${work.title}, ${byline}`}
     >
       {/* Media layer */}
-      {mountVideo ? (
+      {mediaError || (everNearbyRef.current && !mountVideo && !showStill) ? (
+        // Broken media: a quiet placeholder instead of an infinite spinner.
+        // No retry control — leaving the mount window and swiping back
+        // remounts the media element, which is a fresh attempt.
+        <div className="absolute inset-0 grid place-items-center">
+          <div className="theme-media-loading-idle grid max-w-[80%] justify-items-center gap-2 text-center">
+            <Icon icon="lucide:image-off" className="size-8" aria-hidden />
+            <span className="max-w-full truncate text-sm">{work.title}</span>
+          </div>
+        </div>
+      ) : mountVideo ? (
         <video
           ref={videoRef}
           src={work.url}
@@ -254,6 +245,10 @@ function DeckPane({ work, sectionNearby, muted, reducedMotion, effectName }: Dec
           onWaiting={() => setBuffering(true)}
           onPlaying={() => setBuffering(false)}
           onCanPlay={() => setBuffering(false)}
+          onError={() => {
+            setBuffering(false);
+            setMediaError(true);
+          }}
           className="absolute inset-0 h-full w-full object-contain"
         />
       ) : showStill ? (
@@ -404,8 +399,11 @@ function DeckSection({ group, index, total, muted, reducedMotion, effectName, on
       </div>
 
       {/* Artist header — scrolls with its section; right padding clears the
-          floating mute/grid chips. */}
-      <div className="pointer-events-none absolute inset-x-0 top-0 z-10 bg-gradient-to-b from-black/75 via-black/35 to-transparent px-4 pb-10 pr-28 pt-3">
+          floating mute/close chips. */}
+      <div
+        className="pointer-events-none absolute inset-x-0 top-0 z-10 bg-gradient-to-b from-black/75 via-black/35 to-transparent px-4 pb-10 pr-28"
+        style={{ paddingTop: 'calc(env(safe-area-inset-top, 0px) + 0.75rem)' }}
+      >
         <Link
           href={artistHref}
           className={cn(
@@ -418,9 +416,6 @@ function DeckSection({ group, index, total, muted, reducedMotion, effectName, on
           <span className="max-w-[15rem] truncate">{group.label}</span>
           <Icon icon="lucide:chevron-right" size={14} className="theme-media-tile-creator opacity-70" aria-hidden />
         </Link>
-        <p className="theme-media-loading-active text-xs tabular-nums" style={onMediaTextShadow}>
-          {workIndex + 1} / {count} · artist {index + 1} of {total}
-        </p>
         {/* Per-artist progress bar */}
         {count > 1 ? (
           <div className="theme-media-progress-track mt-2 h-0.5 w-full overflow-hidden rounded-full">
@@ -442,23 +437,22 @@ export interface ReplicationsSwipeDeckProps {
   effectName: (slug: string | undefined) => string;
   /** Start at this group index (e.g. a /replications/artist/<key> deep link). */
   initialGroupIndex?: number;
-  /** Switch the gallery to the browsable grid (search, filters, masonry). */
-  onShowGrid: () => void;
+  /** Start at this work within the starting group (clamped to its length). */
+  initialWorkIndex?: number;
+  /** Dismiss the fullscreen viewer (Escape or the close chip). */
+  onClose: () => void;
 }
 
 export function ReplicationsSwipeDeck({
   groups,
   effectName,
   initialGroupIndex = 0,
-  onShowGrid,
+  initialWorkIndex = 0,
+  onClose,
 }: ReplicationsSwipeDeckProps) {
-  const rootRef = useRef<HTMLDivElement>(null);
   const scrollerRef = useRef<HTMLDivElement>(null);
   const [muted, setMuted] = useState(true);
-  const [scrollUnlocked, setScrollUnlocked] = useState(false);
-  const unlockScrollRef = useRef(false);
   const reducedMotion = usePrefersReducedMotion();
-  const headerHeight = useSiteHeaderHeight();
   const startIndex = Math.max(0, Math.min(initialGroupIndex, groups.length - 1));
   const activeSectionRef = useRef(startIndex);
   const handleActive = useCallback((index: number) => {
@@ -466,92 +460,55 @@ export function ReplicationsSwipeDeck({
   }, []);
 
   /**
-   * Document-level proximity snap: swiping most of the way past the intro
-   * settles with the deck framed exactly under the sticky header (the deck's
-   * scroll-margin), while shallow scrolls within the intro stay free. The
-   * site footer gets its own snap stop for the same lifetime — the deck's
-   * frame position sits within proximity range of the document's end, so
-   * without one the snap would drag the reader back off the footer and make
-   * it unreachable. Scoped to the deck's lifetime so the grid view keeps
-   * normal document scrolling.
+   * Body scroll lock. The deck is a fullscreen overlay, so the document
+   * behind it must not scroll (iOS would happily rubber-band the page under
+   * the reader's deck swipes). Save and restore the previous inline value so
+   * any outer scroll management survives the round trip.
    */
   useLayoutEffect(() => {
     const root = document.documentElement;
-    const footer = document.querySelector('.app-footer');
-    const previousSnap = root.style.scrollSnapType;
-    const previousFooterAlign = footer instanceof HTMLElement ? footer.style.scrollSnapAlign : '';
-    root.style.scrollSnapType = 'y proximity';
-    if (footer instanceof HTMLElement) footer.style.scrollSnapAlign = 'end';
+    const previousOverflow = root.style.overflow;
+    root.style.overflow = 'hidden';
     return () => {
-      root.style.scrollSnapType = previousSnap;
-      if (footer instanceof HTMLElement) footer.style.scrollSnapAlign = previousFooterAlign;
+      root.style.overflow = previousOverflow;
     };
   }, []);
 
-  /** Land on the deep-linked artist, with the deck framed. */
+  /** Escape closes the viewer no matter where focus has wandered. */
+  useEffect(() => {
+    const handleWindowKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') onClose();
+    };
+    window.addEventListener('keydown', handleWindowKeyDown);
+    return () => window.removeEventListener('keydown', handleWindowKeyDown);
+  }, [onClose]);
+
+  /**
+   * Land on the deep-linked artist and work, and move focus to the scroller
+   * so arrow keys and Escape work immediately without a preliminary tab.
+   * The starting section mounts its panes eagerly (`eagerUpTo`), so the row
+   * has its full width to scroll on first commit.
+   */
   useEffect(() => {
     const scroller = scrollerRef.current;
-    if (!scroller || startIndex === 0) return;
-    scroller.scrollTop = startIndex * scroller.clientHeight;
-    rootRef.current?.scrollIntoView({ block: 'start' });
+    if (!scroller) return;
+    scroller.focus({ preventScroll: true });
+    if (startIndex > 0) scroller.scrollTop = startIndex * scroller.clientHeight;
+    const startGroup = groups[startIndex];
+    const workIndex = Math.max(0, Math.min(initialWorkIndex, (startGroup?.items.length ?? 1) - 1));
+    if (workIndex > 0) {
+      const row = scroller.querySelectorAll<HTMLElement>('[data-deck-row]')[startIndex];
+      if (row) row.scrollLeft = workIndex * row.clientWidth;
+    }
     // Initial position only — deliberately not reactive to later scrolling.
   }, []);
 
-  /**
-   * One-shot vertical-scroll unlock. The deck fills most of the phone screen
-   * on arrival, so the reader's first "swipe into the gallery" would otherwise
-   * land on this scroller and — because it is `snap-mandatory` — skip the
-   * first artist. Until the deck is framed under the header the scroller stays
-   * inert (`overflow: hidden`), routing that first swipe to the document, whose
-   * proximity snap frames the deck. Once framed, unlock for the deck's whole
-   * life so scrolling back up out of it (chaining into the intro) is never
-   * gated.
-   */
-  useEffect(() => {
-    const root = rootRef.current;
-    if (!root) return;
-    const unlock = () => {
-      if (unlockScrollRef.current) return;
-      if (Math.abs(root.getBoundingClientRect().top - headerHeight) < 8) {
-        unlockScrollRef.current = true;
-        setScrollUnlocked(true);
-      }
-    };
-    // Covers an already-framed arrival (a deep link that framed the deck
-    // synchronously) without waiting for a scroll event.
-    unlock();
-    window.addEventListener('scroll', unlock, { passive: true });
-    window.addEventListener('resize', unlock, { passive: true });
-    return () => {
-      window.removeEventListener('scroll', unlock);
-      window.removeEventListener('resize', unlock);
-    };
-  }, [headerHeight]);
-
-  /**
-   * Frame-alignment assist. The document only frames the deck when *page*
-   * scrolling settles near it; interacting with the deck's own scrollers
-   * while it is misframed (parked at the footer, or the intro half-dismissed)
-   * would otherwise leave it cut off indefinitely. Any scroll inside a
-   * misframed deck glides the page back to the framed position. Scroll events
-   * do not bubble, so this arrives via capture on the root; the document's
-   * own scrolling never passes through it, so the assist cannot fight a page
-   * swipe. The cooldown keeps one smooth glide per gesture.
-   */
-  const alignCooldownRef = useRef(false);
-  const handleInnerScrollCapture = () => {
-    const root = rootRef.current;
-    if (!root || alignCooldownRef.current) return;
-    if (Math.abs(root.getBoundingClientRect().top - headerHeight) < 8) return;
-    alignCooldownRef.current = true;
-    window.setTimeout(() => {
-      alignCooldownRef.current = false;
-    }, 700);
-    root.scrollIntoView({ block: 'start', behavior: reducedMotion ? 'auto' : 'smooth' });
-  };
-
-  /** Arrow keys drive both axes when focus is inside the deck. */
+  /** Escape dismisses; arrow keys drive both axes when focus is in the deck. */
   const handleKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
+    if (event.key === 'Escape') {
+      onClose();
+      return;
+    }
     const scroller = scrollerRef.current;
     if (!scroller) return;
     const behavior: ScrollBehavior = reducedMotion ? 'auto' : 'smooth';
@@ -576,27 +533,22 @@ export function ReplicationsSwipeDeck({
   if (groups.length === 0) return null;
 
   return (
+    // The keyboard handler lives on the overlay root so Escape and the arrow
+    // keys work from the chips as well as the scroller region below.
+    // eslint-disable-next-line jsx-a11y/no-static-element-interactions
     <div
-      ref={rootRef}
-      onScrollCapture={handleInnerScrollCapture}
-      className="relative w-full overflow-hidden bg-black"
-      style={{
-        height: `calc(100dvh - ${headerHeight}px)`,
-        scrollSnapAlign: 'start',
-        scrollMarginTop: headerHeight,
-      }}
+      onKeyDown={handleKeyDown}
+      className="fixed inset-0 z-[70] overflow-hidden bg-black"
     >
-      {/* A focusable, keyboard-scrollable region is the documented exception to
-          both rules: without tabIndex a keyboard user cannot reach or scroll
-          the deck at all, and the arrow-key handler mirrors the touch axes. */}
-      {/* eslint-disable-next-line jsx-a11y/no-noninteractive-element-interactions, jsx-a11y/no-noninteractive-tabindex */}
+      {/* A focusable, keyboard-scrollable region is the documented exception:
+          without tabIndex a keyboard user cannot reach or scroll the deck at
+          all, and the root's arrow-key handler mirrors the touch axes. */}
+      {/* eslint-disable-next-line jsx-a11y/no-noninteractive-tabindex */}
       <div ref={scrollerRef} tabIndex={0}
         role="region"
         aria-label={`Replications swipe gallery, ${totalWorks} works by ${groups.length} artists. Swipe up or down to change artist, left or right to browse an artist's works.`}
-        onKeyDown={handleKeyDown}
         className={cn(
-          'h-full snap-y snap-mandatory [scrollbar-width:none] [&::-webkit-scrollbar]:hidden',
-          scrollUnlocked ? 'overflow-y-auto' : 'overflow-y-hidden',
+          'h-full snap-y snap-mandatory overflow-y-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden',
           focusRingClassName,
         )}
       >
@@ -615,8 +567,12 @@ export function ReplicationsSwipeDeck({
         ))}
       </div>
 
-      {/* Floating deck controls: mute + grid view, above every section. */}
-      <div className="pointer-events-none absolute right-3 top-2 z-20 flex items-center gap-2">
+      {/* Floating deck controls: mute + close, above every section; padded
+          past the iOS notch/status bar so the chips stay reachable. */}
+      <div
+        className="pointer-events-none absolute right-3 top-2 z-20 flex items-center gap-2"
+        style={{ paddingTop: 'env(safe-area-inset-top, 0px)' }}
+      >
         <button
           type="button"
           onClick={() => setMuted((value) => !value)}
@@ -627,11 +583,11 @@ export function ReplicationsSwipeDeck({
         </button>
         <button
           type="button"
-          onClick={onShowGrid}
-          aria-label="Show grid view with search and filters"
+          onClick={onClose}
+          aria-label="Close the gallery"
           className={deckControlClassName}
         >
-          <Icon icon="lucide:layout-grid" size={18} />
+          <Icon icon="lucide:x" size={18} />
         </button>
       </div>
     </div>

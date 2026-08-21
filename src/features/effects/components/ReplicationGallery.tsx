@@ -1,6 +1,8 @@
 'use client';
 
+import Link from 'next/link';
 import { memo, useMemo } from 'react';
+import { proseLinkClassName } from '@/components/common/ProseLink';
 import type { ReplicationWithUrl } from '@/types/replications';
 import { GalleryMediaTile } from '../gallery/GalleryMediaTile';
 
@@ -41,14 +43,16 @@ export const ReplicationGallery = memo(function ReplicationGallery({
 
   return (
     <div className="w-full space-y-4">
-      <div className="theme-public-card-subtle rounded-xl border px-4 py-3">
-        <p className="theme-text-secondary text-sm leading-6">
-          <strong className="theme-text-primary">Creator rights:</strong>{" "}
-          replication media is credited to its creator when known. Rights remain
-          with the original creator or rightsholder unless an individual item
-          states another license.
-        </p>
-      </div>
+      {/* One quiet sentence; the full rights matrix lives on the licence page,
+          so repeating the gallery footnote verbatim here only added noise. */}
+      <p className="theme-text-muted text-xs leading-5">
+        Replication media is credited to its creator; rights remain with the
+        rightsholder — see the{" "}
+        <Link href="/docs/license#replication-media-terms" className={proseLinkClassName}>
+          licensing terms
+        </Link>{" "}
+        to correct a credit or request removal.
+      </p>
 
       <div className="grid grid-cols-2 gap-x-3 gap-y-5 sm:grid-cols-3 sm:gap-x-4 md:grid-cols-4">
         {sortedReplications.map((replication) => (

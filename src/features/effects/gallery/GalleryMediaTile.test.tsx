@@ -161,3 +161,47 @@ describe('GalleryMediaTile', () => {
     expect(screen.getByText('1:23')).toBeInTheDocument();
   });
 });
+
+describe('GalleryMediaTile caption contract', () => {
+  it('shows the title and byline by default', () => {
+    render(<GalleryMediaTile replication={VIDEO} />);
+
+    expect(screen.getByText('Geometry Frog')).toBeInTheDocument();
+    expect(screen.getByText('by Symmetric Vision')).toBeInTheDocument();
+  });
+
+  it('drops only the byline when showByline is false', () => {
+    // Artist rails already name the artist in their heading; repeating it
+    // under all fourteen tiles is the same words fourteen times.
+    render(<GalleryMediaTile replication={VIDEO} showByline={false} />);
+
+    expect(screen.getByText('Geometry Frog')).toBeInTheDocument();
+    expect(screen.queryByText('by Symmetric Vision')).toBeNull();
+  });
+
+  it('hides the whole caption below md when mobileCompact', () => {
+    const { container } = render(<GalleryMediaTile replication={VIDEO} mobileCompact />);
+
+    // The class carries the contract: phone tiles are media-only and pay no
+    // mt-2 spacing for a caption they never show.
+    expect(container.querySelector('figcaption')).toHaveClass('max-md:hidden');
+  });
+});
+
+describe('GalleryMediaTile onOpen', () => {
+  it('routes clicks through onOpen while staying a crawlable anchor', async () => {
+    const user = userEvent.setup();
+    const onOpen = vi.fn((event: React.MouseEvent, _work: unknown) => event.preventDefault());
+
+    render(<GalleryMediaTile replication={VIDEO} onOpen={onOpen} />);
+
+    // Still a real link — new-tab and crawling must survive interception.
+    const link = screen.getByRole('link');
+    expect(link).toHaveAttribute('href', `/replications/${VIDEO.slug}`);
+
+    await user.click(link);
+
+    expect(onOpen).toHaveBeenCalledTimes(1);
+    expect(onOpen.mock.calls[0][1]).toEqual(VIDEO);
+  });
+});

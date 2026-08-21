@@ -6,6 +6,7 @@ import { Icon } from '@/components/common/Icon';
 import { Button } from '@/components/ui/button';
 import { focusRingClassName } from '@/components/ui/surface';
 import { cn } from '@/lib/utils';
+import type { PublicGalleryReplicationPreview } from '@/types/replications';
 import { GalleryMediaTile } from './GalleryMediaTile';
 import type { GalleryGroup } from './galleryModel';
 
@@ -21,22 +22,6 @@ const HEADING_LINK_CLASS =
 const EXTERNAL_ICON_CLASS =
   'theme-text-faint h-4 w-4 transition group-hover/heading:text-[var(--theme-accent-strong)]';
 
-/**
- * The rail header already prints the total ("View all N"), so repeating
- * "N works" beside it was the same number twice in one row. The chip now only
- * earns its place when it says something the total cannot: the image/video
- * breakdown of a mixed group.
- */
-function CountChips({ group }: { group: GalleryGroup }) {
-  if (group.imageCount === 0 || group.videoCount === 0) return null;
-  return (
-    <span className="theme-text-faint text-xs tabular-nums">
-      {group.imageCount} image{group.imageCount === 1 ? '' : 's'} ·{' '}
-      {group.videoCount} video{group.videoCount === 1 ? '' : 's'}
-    </span>
-  );
-}
-
 interface MediaRailProps {
   group: GalleryGroup;
   /**
@@ -45,9 +30,21 @@ interface MediaRailProps {
    * is crawlable and cmd-clickable instead of dead client state.
    */
   viewAllHref: string;
+  /** Forwarded to each tile as `showByline`; artist rails already name the artist in the heading. */
+  tileBylines?: boolean;
+  /** Forwarded to each tile: hide captions below `md` so phone rails are media-only. */
+  mobileCompact?: boolean;
+  /** Forwarded to each tile as `onOpen` (phone tap-to-deck interception). */
+  onTileOpen?: (event: React.MouseEvent, replication: PublicGalleryReplicationPreview) => void;
 }
 
-export function MediaRail({ group, viewAllHref }: MediaRailProps) {
+export function MediaRail({
+  group,
+  viewAllHref,
+  tileBylines = true,
+  mobileCompact,
+  onTileOpen,
+}: MediaRailProps) {
   const preview = group.items.slice(0, RAIL_PREVIEW_LIMIT);
   const hasMore = group.count > preview.length;
 
@@ -147,10 +144,7 @@ export function MediaRail({ group, viewAllHref }: MediaRailProps) {
   return (
     <section className="space-y-3" aria-label={group.label}>
       <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1 px-1">
-        <div className="flex min-w-0 flex-col gap-0.5">
-          {heading}
-          <CountChips group={group} />
-        </div>
+        <div className="flex min-w-0 flex-col gap-0.5">{heading}</div>
         {hasMore ? (
           <Link
             href={viewAllHref}
@@ -179,6 +173,9 @@ export function MediaRail({ group, viewAllHref }: MediaRailProps) {
               replication={replication}
               className="shrink-0 snap-start"
               frameClassName="h-44 sm:h-52"
+              showByline={tileBylines}
+              mobileCompact={mobileCompact}
+              onOpen={onTileOpen}
             />
           ))}
           {hasMore ? (

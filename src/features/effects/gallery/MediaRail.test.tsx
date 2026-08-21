@@ -1,7 +1,9 @@
 import { render, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
 import { MediaRail } from './MediaRail';
 import type { GalleryGroup } from './galleryModel';
+import type { GalleryReplication } from '@/types/replications';
 
 vi.mock('@/components/common/AppImage', () => ({
   AppImage: ({ src, alt }: { src: string; alt: string }) => <img src={src} alt={alt} />,
@@ -16,6 +18,22 @@ const group = (overrides: Partial<GalleryGroup> = {}): GalleryGroup => ({
   items: [],
   ...overrides,
 });
+
+const WORK: GalleryReplication = {
+  _id: 'k57geometryfrog',
+  _creationTime: 0,
+  slug: 'geometry-frog-symmetric-vision',
+  title: 'Geometry Frog',
+  artist: 'Symmetric Vision',
+  effect_slug: 'geometry',
+  type: 'image',
+  storage_id: 'kg57geometryfrog',
+  format: 'jpg',
+  created_at: '2024-01-01',
+  url: 'https://example.test/geometry-frog.jpg',
+  width: 1280,
+  height: 720,
+};
 
 describe('MediaRail heading', () => {
   it("sends the artist's name to their profile, not their own site", () => {
@@ -86,5 +104,44 @@ describe('MediaRail view-all affordance', () => {
     for (const link of links) {
       expect(link).toHaveAttribute('href', '/replications/artist/symmetric-vision?type=video');
     }
+  });
+});
+
+describe('MediaRail tile forwarding', () => {
+  it('forwards byline, compact and open handling to its tiles', async () => {
+    const user = userEvent.setup();
+    const onTileOpen = vi.fn((event: React.MouseEvent, _work: unknown) => event.preventDefault());
+
+    const { container } = render(
+      <MediaRail
+        group={group({ count: 1, imageCount: 1, items: [WORK] })}
+        viewAllHref="/replications/artist/symmetric-vision"
+        tileBylines={false}
+        mobileCompact
+        onTileOpen={onTileOpen}
+      />,
+    );
+
+    // showByline={tileBylines}: the heading already names the artist.
+    expect(screen.getByText('Geometry Frog')).toBeInTheDocument();
+    expect(screen.queryByText('by Symmetric Vision')).toBeNull();
+    // mobileCompact reaches the tile's caption.
+    expect(container.querySelector('figcaption')).toHaveClass('max-md:hidden');
+
+    await user.click(screen.getByRole('link', { name: /Geometry Frog/ }));
+    expect(onTileOpen).toHaveBeenCalledTimes(1);
+    expect(onTileOpen.mock.calls[0][1]).toEqual(WORK);
+  });
+
+  it('prints no image/video breakdown beside the heading', () => {
+    // The breakdown chip was redundant with "View all N" and is gone.
+    render(
+      <MediaRail
+        group={group({ count: 255, imageCount: 2, videoCount: 253 })}
+        viewAllHref="/replications/artist/symmetric-vision"
+      />,
+    );
+
+    expect(screen.queryByText(/images? ·/)).toBeNull();
   });
 });

@@ -70,8 +70,13 @@ export interface ReplicationsGalleryExplorerProps {
   focus?: GalleryFocus;
 }
 
-const MASONRY_CLASS = 'columns-2 gap-3 sm:columns-3 lg:columns-4 [column-fill:_balance]';
-const MASONRY_TILE_CLASS = 'mb-3 w-full break-inside-avoid';
+/**
+ * Phones get a denser, media-first masonry (three thin columns, hairline
+ * gutters, captions hidden via `mobileCompact`); from `sm` up the grid
+ * relaxes back to the readable card layout with visible captions.
+ */
+const MASONRY_CLASS = 'columns-3 gap-1.5 sm:columns-3 sm:gap-3 lg:columns-4 [column-fill:_balance]';
+const MASONRY_TILE_CLASS = 'mb-1.5 w-full break-inside-avoid sm:mb-3';
 
 /** Control-bar toggles keep their compact height but honor 44px on touch. */
 const COARSE_TARGET_CLASS = '[@media(pointer:coarse)]:min-h-11';
@@ -79,13 +84,7 @@ const COARSE_TARGET_CLASS = '[@media(pointer:coarse)]:min-h-11';
 /** Debounce for search keystrokes → URL writes (history stays clean). */
 const QUERY_WRITE_DELAY_MS = 250;
 
-/**
- * Session flag remembering that the reader closed the immersive swipe deck;
- * while set, landing on the gallery shows the grid instead of re-opening it.
- */
-const DECK_DISMISSED_KEY = 'replications-deck-dismissed';
-
-/** Phone-shaped touch viewport: where the swipe deck is the default view. */
+/** Phone-shaped touch viewport: where tapping a tile opens the fullscreen deck. */
 const DECK_MEDIA_QUERY = '(max-width: 767px) and (pointer: coarse)';
 
 /**
@@ -136,12 +135,25 @@ function GalleryExplorer({
   const lastWrittenQueryRef = useRef(browse.query);
   const debounceRef = useRef<number | undefined>(undefined);
 
+  /**
+   * True while a typed query sits in the debounce window waiting for its URL
+   * write. Drives a small spinner at the input's right edge — the only
+   * feedback that a keystroke was heard before the results actually move.
+   */
+  const [queryWritePending, setQueryWritePending] = useState(false);
+
+  /** Cancel a scheduled `?q=` write and retire its pending indicator. */
+  const cancelQueryWrite = () => {
+    clearTimeout(debounceRef.current);
+    setQueryWritePending(false);
+  };
+
   useEffect(() => {
     if (browse.query === lastWrittenQueryRef.current) {
       return;
     }
     lastWrittenQueryRef.current = browse.query;
-    clearTimeout(debounceRef.current);
+    cancelQueryWrite();
     if (inputRef.current) {
       inputRef.current.value = browse.query;
     }
@@ -153,13 +165,15 @@ function GalleryExplorer({
   const currentInputQuery = () => inputRef.current?.value ?? browse.query;
 
   const navigate = (url: string, method: 'push' | 'replace') => {
-    clearTimeout(debounceRef.current);
+    cancelQueryWrite();
     router[method](url, { scroll: false });
   };
 
   const updateQuery = (next: string) => {
     clearTimeout(debounceRef.current);
+    setQueryWritePending(true);
     debounceRef.current = window.setTimeout(() => {
+      setQueryWritePending(false);
       lastWrittenQueryRef.current = next;
       // Searching from a focus page returns to the browse view (a focused
       // group and a cross-corpus search cannot both be true), keeping the
@@ -274,51 +288,48 @@ function GalleryExplorer({
     () => groupByArtist(displayable, 'count', contributorDirectory),
     [displayable, contributorDirectory],
   );
-  const deckInitialIndex = useMemo(() => {
-    if (focus?.kind !== 'artist') return 0;
-    const index = deckGroups.findIndex((group) => galleryGroupUrlKey('artist', group) === focus.key);
-    return index < 0 ? 0 : index;
-  }, [focus, deckGroups]);
-
-  const [deckOpen, setDeckOpen] = useState(false);
 
   /**
-   * On phone-shaped touch viewports the deck *is* the default gallery: open it
-   * on arrival unless the reader closed it earlier this session. Decided once
-   * on mount — SSR HTML stays the crawlable grid, and later filter changes in
-   * the grid must not resurrect the deck.
+   * Where the fullscreen deck currently points, or null while it is closed.
+   * The deck renders as an overlay *over* the grid rather than replacing it,
+   * so closing it lands the reader exactly where they left off — same scroll
+   * position, same filters — with no session-storage memory needed.
    */
-  useEffect(() => {
+  const [deckPosition, setDeckPosition] = useState<{ groupIndex: number; workIndex: number } | null>(null);
+
+  /**
+   * Tile-tap handler: on phone-shaped touch viewports a tap opens the
+   * fullscreen deck at exactly that work instead of navigating to its detail
+   * page. The deck's corpus is always the by-artist grouping of everything
+   * displayable (not the grid's current filter/grouping), so the tapped work
+   * is located by `_id` across `deckGroups`. Anywhere the media query fails —
+   * or in the vanishing case of a work missing from the deck corpus — the
+   * handler declines to preventDefault and the tile stays an ordinary link.
+   */
+  const openDeckAt = (event: React.MouseEvent, replication: PublicGalleryReplicationPreview) => {
     if (!window.matchMedia?.(DECK_MEDIA_QUERY).matches) return;
-    let dismissed = false;
-    try {
-      dismissed = window.sessionStorage.getItem(DECK_DISMISSED_KEY) === '1';
-    } catch {
-      // Storage unavailable (privacy mode): treat as not dismissed.
-    }
-    if (!dismissed && mode === 'artist' && !searching) setDeckOpen(true);
-    // Mount-only arrival decision, deliberately not reactive to mode/search.
-  }, []);
-
-  const closeDeck = () => {
-    setDeckOpen(false);
-    try {
-      window.sessionStorage.setItem(DECK_DISMISSED_KEY, '1');
-    } catch {
-      // Best-effort memory; the deck simply reopens next visit.
+    for (let groupIndex = 0; groupIndex < deckGroups.length; groupIndex += 1) {
+      const workIndex = deckGroups[groupIndex].items.findIndex((item) => item._id === replication._id);
+      if (workIndex !== -1) {
+        event.preventDefault();
+        setDeckPosition({ groupIndex, workIndex });
+        return;
+      }
     }
   };
 
-  const openDeck = () => {
-    try {
-      window.sessionStorage.removeItem(DECK_DISMISSED_KEY);
-    } catch {
-      // Ignore: opening still works for this render.
-    }
-    setDeckOpen(true);
-  };
-
-  const renderMasonry = (items: PublicGalleryReplicationPreview[]) => (
+  /**
+   * Byline visibility is the caller's call (artist-scoped views drop it —
+   * every tile would repeat the heading); the deck-open handler is wired
+   * here because *every* masonry tile is a deck entry point on phones.
+   */
+  const renderMasonry = (
+    items: PublicGalleryReplicationPreview[],
+    { showByline = true, onOpen = openDeckAt }: {
+      showByline?: boolean;
+      onOpen?: (event: React.MouseEvent, replication: PublicGalleryReplicationPreview) => void;
+    } = {},
+  ) => (
     <div className={MASONRY_CLASS}>
       {items.map((replication) => (
         <GalleryMediaTile
@@ -326,13 +337,16 @@ function GalleryExplorer({
           replication={replication}
           className={MASONRY_TILE_CLASS}
           frameClassName="w-full"
+          showByline={showByline}
+          mobileCompact
+          onOpen={onOpen}
         />
       ))}
     </div>
   );
 
-  // The card exists whenever the gallery holds media at all — the mode toggle
-  // has to stay reachable even if one mode's own corpus is empty.
+  // The gallery section exists whenever it holds media at all — the mode
+  // toggle has to stay reachable even if one mode's own corpus is empty.
   const hasMedia = displayable.length > 0;
   const browseAllUrl = buildGalleryBrowseUrl({ view: mode, type: typeFilter, sort: artistSort });
 
@@ -343,30 +357,11 @@ function GalleryExplorer({
    */
   const sortActive = mode === 'artist' && !searching && !focus;
 
-  /**
-   * On phones the deck *replaces* the gallery card: it renders as its own
-   * full-bleed, viewport-height section in the page flow (breaking out of the
-   * layout's `px-4` gutter), so the reader swipes down past the intro and
-   * tabs straight into it. `deckOpen` is only ever set on phone viewports,
-   * so desktop always takes the card branch below.
-   */
-  if (deckOpen && deckGroups.length > 0) {
-    return (
-      <section aria-label="Replications gallery" className="-mx-4 mt-4">
-        <ReplicationsSwipeDeck
-          groups={deckGroups}
-          effectName={effectName}
-          initialGroupIndex={deckInitialIndex}
-          onShowGrid={closeDeck}
-        />
-      </section>
-    );
-  }
-
   return (
+    <>
     <section
       aria-label="Replications gallery"
-      className="mx-auto mt-4 w-full max-w-7xl rounded-[2rem] border border-[color:var(--theme-border-subtle)] bg-[var(--theme-page-end)] px-4 py-4 shadow-[var(--theme-elevation-top-highlight)] sm:px-6 sm:py-6"
+      className="mx-auto mt-4 w-full max-w-7xl"
     >
       {!hasMedia ? (
         <SearchEmptyState
@@ -377,22 +372,27 @@ function GalleryExplorer({
         />
       ) : (
         <>
-          {/* Re-entry into the swipe deck, phones only (the deck's own media
-              query); hidden where the grid is the primary surface. */}
+          {/* Entry into the fullscreen deck, phones only — the same viewport
+              where tapping any tile opens it; wider screens browse the grid. */}
           <div className="md:hidden">
             <Button
               type="button"
-              onClick={openDeck}
+              onClick={() => setDeckPosition({ groupIndex: 0, workIndex: 0 })}
               className="w-full min-h-11 gap-2"
-              aria-label="Open the swipe gallery"
+              aria-label="Open the fullscreen gallery"
             >
-              <Icon icon="lucide:gallery-vertical" className="h-4 w-4" aria-hidden />
-              Swipe view
+              <Icon icon="lucide:play" className="h-4 w-4" aria-hidden />
+              Watch
             </Button>
           </div>
 
-          {/* Sticky control bar — the card's header row, full width. */}
-          <div className="sticky top-2 z-20 mt-4 md:mt-0">
+          {/* Sticky control bar — the gallery's only elevated surface now that
+              the card wrapper is gone. Offset: the site header (.app-header,
+              components.css) is itself sticky at top-0/z-50 and measures 68px
+              (py-3 + its 44px controls), so a small offset like top-2 would
+              pin this bar underneath it. 4.75rem = 68px header + 8px gap
+              keeps the bar fully visible below the header while pinned. */}
+          <div className="sticky top-[4.75rem] z-20 mt-4 md:mt-0">
             <div className="flex w-full flex-wrap items-center gap-2 rounded-2xl border border-[color:var(--theme-frosted-control-border)] bg-[var(--theme-frosted-control-bg)] p-2 shadow-[var(--theme-frosted-control-shadow)] backdrop-blur-md sm:gap-3">
               <ToggleGroup
                 type="single"
@@ -419,6 +419,17 @@ function GalleryExplorer({
                   inputMode="search"
                   aria-label="Search replications"
                 />
+                {/* Decorative only (aria-hidden): the debounce is 250ms, and a
+                    live region firing per keystroke would be pure noise. */}
+                {queryWritePending ? (
+                  <span
+                    aria-hidden
+                    data-testid="query-write-pending"
+                    className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2"
+                  >
+                    <Icon icon="svg-spinners:ring-resize" className="theme-text-faint h-4 w-4" />
+                  </span>
+                ) : null}
               </div>
 
               <ToggleGroup
@@ -446,15 +457,12 @@ function GalleryExplorer({
                 <ToggleGroupItem value="count" className={COARSE_TARGET_CLASS}>Most works</ToggleGroupItem>
                 <ToggleGroupItem value="alpha" className={COARSE_TARGET_CLASS}>A–Z</ToggleGroupItem>
               </ToggleGroup>
-
-              <span className="theme-text-faint ml-auto hidden whitespace-nowrap px-1 text-xs tabular-nums md:inline">
-                {counts.total} works · {counts.artists} artists · {counts.effects} effects
-              </span>
             </div>
           </div>
 
-          {/* Compact counts, small screens only — wider screens read them in the bar. */}
-          <p className="theme-text-faint mt-3 px-1 text-xs tabular-nums md:hidden">
+          {/* One quiet corpus summary for every breakpoint — the bar itself
+              stays reserved for controls. */}
+          <p className="theme-text-faint mt-3 px-1 text-xs tabular-nums">
             {counts.total} works · {counts.artists} artists · {counts.effects} effects
           </p>
 
@@ -505,7 +513,10 @@ function GalleryExplorer({
                 </span>
               </div>
               {focusedItems.length > 0 ? (
-                renderMasonry(focusedItems)
+                // An artist focus already names the artist in its heading, so
+                // per-tile bylines would repeat it under every work; effect
+                // focus tiles keep them as the only attribution in sight.
+                renderMasonry(focusedItems, { showByline: focus.kind !== 'artist' })
               ) : (
                 <SearchEmptyState
                   className="mt-8"
@@ -545,6 +556,12 @@ function GalleryExplorer({
                     { kind: mode, key: galleryGroupUrlKey(mode, group) },
                     { type: typeFilter },
                   )}
+                  /* Artist rails carry the artist in their heading, so tile
+                     bylines would echo it fourteen times; effect rails keep
+                     bylines as each work's attribution. */
+                  tileBylines={mode !== 'artist'}
+                  mobileCompact
+                  onTileOpen={openDeckAt}
                 />
               ))}
               {pooledItems.length > 0 ? (
@@ -582,5 +599,20 @@ function GalleryExplorer({
       )}
 
     </section>
+
+    {/* The fullscreen deck overlays the grid (it covers the site header too —
+        see the deck's own fixed positioning); the grid stays mounted behind
+        it so closing restores the exact browsing position. Only ever opened
+        from the Watch button or a phone tile tap. */}
+    {deckPosition && deckGroups.length > 0 ? (
+      <ReplicationsSwipeDeck
+        groups={deckGroups}
+        effectName={effectName}
+        initialGroupIndex={deckPosition.groupIndex}
+        initialWorkIndex={deckPosition.workIndex}
+        onClose={() => setDeckPosition(null)}
+      />
+    ) : null}
+    </>
   );
 }
