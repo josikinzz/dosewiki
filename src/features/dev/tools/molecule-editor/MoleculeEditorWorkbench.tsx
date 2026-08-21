@@ -135,8 +135,13 @@ export function MoleculeEditorWorkbench({
         selected && !noStructure ? (
           <span className="inline-flex items-center gap-1.5">
             <Icon icon="lucide:lasso-select" size={13} className="shrink-0" />
-            Pick the lasso tool near the top of the toolbar to drag atoms — the default bond
-            tool draws new bonds. Wedge / hash stereo tools live in the same toolbar.
+            <span>
+              Pick the lasso tool near the top of the toolbar to drag atoms — the default bond
+              tool draws new bonds. Wedge / hash stereo tools live in the same toolbar.
+              {mode === "classes"
+                ? " To place a labeled R position, pick the ?… atom tool and type R plus the class's map number (e.g. R8 → Rα on phenethylamine)."
+                : null}
+            </span>
           </span>
         ) : undefined
       }

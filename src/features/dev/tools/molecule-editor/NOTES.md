@@ -126,6 +126,15 @@ coordinates (OCL preserves atom order). InChI does not support dummy atoms, so c
 canonical RDKit SMILES between the starting and edited MOL blocks instead. Saved `class:` rows are
 the only drawing source for class structures — there is no static render pipeline to promote into.
 
+New R positions can be typed on the canvas: OCL's `?…` custom-atom dialog accepts `R1`–`R16`
+(Greek can't be typed) and emits each as symbol `R#` + an `M  RGP` (atom, group) pair line.
+After `normalizeClassMolblock`, `convertTypedRGroups` rewrites every `R#` atom whose group
+number is an rLabels key into the canonical `*`+atom-map spelling (pruning its RGP pair);
+the conversion runs after the tail restore so retyping an existing R position can't get its
+old map stamped back. Unknown group numbers stay visible `R#` atoms. The preview labels the
+converted atom from rLabels immediately; the canvas keeps showing the typed `R<n>` until the
+next baseline load (save or reselect), when the normal draw-time label path takes over.
+
 ## Class template mode
 
 Orientation templates are plain scaffold molecules stored in the separate

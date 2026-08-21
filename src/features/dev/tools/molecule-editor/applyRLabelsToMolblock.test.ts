@@ -1,12 +1,17 @@
 import { describe, expect, it } from "vitest";
 import {
   classAtomLabels,
+  convertTypedRGroups,
   normalizeClassMolblock,
   parseClassDummies,
   parseOclCustomLabelSgroups,
   stripOclCustomLabelSgroups,
 } from "./applyRLabelsToMolblock";
-import { RDKIT_PHENETHYLAMINE, R_LABELS } from "./classMolblockFixture";
+import {
+  OCL_TYPED_R_EMISSION_RAW,
+  RDKIT_PHENETHYLAMINE,
+  R_LABELS,
+} from "./classMolblockFixture";
 
 // The exact DAT S-group shape OCL's toMolfile writes per custom label
 // (verified empirically against openchemlib). `atom` is 1-based, as in MDL SAL.
@@ -126,5 +131,48 @@ describe("stripOclCustomLabelSgroups", () => {
 
   it("is the identity for molblocks without custom labels", () => {
     expect(stripOclCustomLabelSgroups(RDKIT_PHENETHYLAMINE)).toBe(RDKIT_PHENETHYLAMINE);
+  });
+});
+
+describe("convertTypedRGroups", () => {
+  // What the seam receives: the raw typed-R emission after the S-group strip.
+  const STRIPPED = stripOclCustomLabelSgroups(OCL_TYPED_R_EMISSION_RAW);
+  const ALLOWED = Object.keys(R_LABELS);
+
+  it("rewrites an allowed typed R group to the canonical dummy and prunes its RGP pair", () => {
+    const { molblock, converted } = convertTypedRGroups(STRIPPED, ALLOWED);
+    expect(converted).toEqual({ 17: "8" });
+    // canonical spelling: `*` symbol, group number in the mmm atom-map field
+    expect(molblock).toContain(
+      "    5.2500   -2.5981    0.0000 *   0  0  0  0  0  0  0  0  0  8  0  0",
+    );
+    // the pipeline's own parser recognizes the converted atom as an R position
+    expect(parseClassDummies(molblock)).toContainEqual({ index: 17, mapNum: "8" });
+    // R12 has no rLabels entry: still a visible typed R group, RGP pair kept
+    expect(molblock).toContain(
+      "    6.7500   -1.2990    0.0000 R#  0  0  0  0  0  0  0  0  0  0  0  0",
+    );
+    expect(molblock).toContain("M  RGP  1  19  12");
+  });
+
+  it("drops the RGP line entirely once every pair converts", () => {
+    const { molblock, converted } = convertTypedRGroups(STRIPPED, [...ALLOWED, "12"]);
+    expect(converted).toEqual({ 17: "8", 18: "12" });
+    expect(molblock).not.toContain("M  RGP");
+    expect(molblock).not.toContain("R#");
+    expect(molblock).toContain(
+      "    6.7500   -1.2990    0.0000 *   0  0  0  0  0  0  0  0  0 12  0  0",
+    );
+  });
+
+  it("is the identity for molblocks without RGP lines", () => {
+    expect(convertTypedRGroups(RDKIT_PHENETHYLAMINE, ALLOWED)).toEqual({
+      molblock: RDKIT_PHENETHYLAMINE,
+      converted: {},
+    });
+  });
+
+  it("is the identity when no map numbers are allowed (substance emissions)", () => {
+    expect(convertTypedRGroups(STRIPPED, [])).toEqual({ molblock: STRIPPED, converted: {} });
   });
 });

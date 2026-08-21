@@ -47,6 +47,7 @@ import { useOcl } from "./useOcl";
 import { useRdkit } from "./useRdkit";
 import {
   classAtomLabels,
+  convertTypedRGroups,
   normalizeClassMolblock,
   parseClassDummies,
   stripOclCustomLabelSgroups,
@@ -442,14 +443,38 @@ export function MoleculeEditorTab({ initialSlug }: { initialSlug?: string } = {}
   const previewAtomLabels = emissionLabels ?? classLabels;
   const handleEditorChange = useCallback(
     (molblock: string, displayedAtomLabels?: Record<number, string>) => {
-      setEmissionLabels(displayedAtomLabels ?? null);
-      setEdited(
-        mode === "classes" && source
-          ? normalizeClassMolblock(molblock, source, classDummies)
-          : molblock,
+      if (mode !== "classes" || !source) {
+        setEmissionLabels(displayedAtomLabels ?? null);
+        setEdited(molblock);
+        return;
+      }
+      // Typed R-group conversion runs AFTER the dummy-tail restore on purpose:
+      // normalize skips `R#` lines (not a dummy symbol), so retyping an existing
+      // R position as R<n> in the ?… dialog can never get its old source tail
+      // stamped back over the new map number.
+      const rLabels = selectedClass?.rLabels ?? {};
+      const { molblock: convertedMolblock, converted } = convertTypedRGroups(
+        normalizeClassMolblock(molblock, source, classDummies),
+        Object.keys(rLabels),
       );
+      const convertedEntries = Object.entries(converted);
+      if (displayedAtomLabels || convertedEntries.length > 0) {
+        // A freshly converted atom carries no OCL custom label yet (the canvas
+        // shows the typed "R<n>" until the next baseline load), so the preview —
+        // the semantic truth — gets the class label stamped on alongside the
+        // labels OCL is displaying.
+        const labels: Record<number, string> = { ...displayedAtomLabels };
+        for (const [index, mapNum] of convertedEntries) {
+          const label = rLabels[mapNum];
+          if (label) labels[Number(index)] = label;
+        }
+        setEmissionLabels(labels);
+      } else {
+        setEmissionLabels(null);
+      }
+      setEdited(convertedMolblock);
     },
-    [mode, source, classDummies],
+    [mode, source, classDummies, selectedClass],
   );
 
   // Use the protected editor route for selected depictions, matching the save

@@ -122,6 +122,80 @@ export function classAtomLabels(
   return labels;
 }
 
+export interface TypedRGroupConversion {
+  /** Molblock with the eligible typed R-group atoms rewritten to canonical dummies. */
+  molblock: string;
+  /** 0-based atom index -> map number, for the atoms converted by this pass. */
+  converted: Record<number, string>;
+}
+
+/**
+ * Convert typed R-group pseudo-atoms into canonical class dummies.
+ *
+ * OCL's "?..." custom-atom dialog accepts `R1`..`R16` (Greek labels like "Rα"
+ * cannot be typed), and `toMolfile` emits each one as symbol `R#` with atom
+ * map 0 plus an `M  RGP` line pairing 1-based atom index -> group number —
+ * verified empirically; several groups share one line
+ * (`M  RGP  2  18   8  19  12`). The class pipeline's canonical spelling is
+ * `*` + V2000 atom map instead, so every `R#` atom whose group number is an
+ * allowed rLabels key is rewritten in place: symbol cols 31-34 become `*`,
+ * the map (mmm) field at cols 60-63 gets the group number, and the pair is
+ * pruned from its RGP line (dropped entirely once no pairs remain).
+ *
+ * Group numbers without an rLabels entry stay untouched — still a visible
+ * `R#` atom with its RGP entry, never silently lost. Identity for molblocks
+ * without RGP lines, i.e. every substance emission.
+ */
+export function convertTypedRGroups(
+  molblock: string,
+  allowedMapNums: readonly string[],
+): TypedRGroupConversion {
+  const converted: Record<number, string> = {};
+  if (allowedMapNums.length === 0 || !molblock.includes("M  RGP")) {
+    return { molblock, converted };
+  }
+  const lines = molblock.split(/\r?\n/);
+  const block = atomBlock(lines);
+  if (!block) return { molblock, converted };
+  const allowed = new Set(allowedMapNums);
+
+  for (let i = 0; i < lines.length; i += 1) {
+    if (!/^M {2}RGP/.test(lines[i])) continue;
+    // "M  RGP  N aaa nnn ..." — pair count, then (1-based atom, group) pairs.
+    const pairs = lines[i].trim().split(/\s+/).slice(3);
+    const kept: string[] = [];
+    for (let p = 0; p + 1 < pairs.length; p += 2) {
+      const atomIndex = Number.parseInt(pairs[p], 10) - 1;
+      const mapNum = pairs[p + 1];
+      const line = lines[block.start + atomIndex];
+      const eligible =
+        allowed.has(mapNum) &&
+        atomIndex >= 0 &&
+        atomIndex < block.count &&
+        !!line &&
+        line.length >= 63 &&
+        line.slice(31, 34).trim() === "R#";
+      if (!eligible) {
+        kept.push(pairs[p], mapNum);
+        continue;
+      }
+      lines[block.start + atomIndex] =
+        line.slice(0, 31) + "*  " + line.slice(34, 60) + mapNum.padStart(3) + line.slice(63);
+      converted[atomIndex] = mapNum;
+    }
+    if (kept.length === 0) {
+      lines.splice(i, 1);
+      i -= 1;
+    } else if (kept.length < pairs.length) {
+      // Rebuild in OCL's own format: %3d count, then " %3d %3d" per pair.
+      let rebuilt = "M  RGP" + String(kept.length / 2).padStart(3);
+      for (const token of kept) rebuilt += " " + token.padStart(3);
+      lines[i] = rebuilt;
+    }
+  }
+  return { molblock: lines.join("\n"), converted };
+}
+
 /** S-group ids owned by OCL's `NOSEARCH_OCL_CUSTOM_LABEL` data name. */
 function oclCustomLabelSgroupIds(lines: string[]): Set<string> {
   const ids = new Set<string>();

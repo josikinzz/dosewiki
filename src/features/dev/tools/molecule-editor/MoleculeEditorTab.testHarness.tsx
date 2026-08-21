@@ -4,7 +4,11 @@ import {
   parseOclCustomLabelSgroups,
   stripOclCustomLabelSgroups,
 } from "./applyRLabelsToMolblock";
-import { OCL_BENZENE, OCL_BENZENE_WITH_SURVIVOR_RAW } from "./classMolblockFixture";
+import {
+  OCL_BENZENE,
+  OCL_BENZENE_WITH_SURVIVOR_RAW,
+  OCL_TYPED_R_EMISSION_RAW,
+} from "./classMolblockFixture";
 
 const mocks = vi.hoisted(() => ({
   useQueryMock: vi.fn(),
@@ -110,6 +114,17 @@ vi.mock("./OclEditor", () => ({
         }
       >
         Emit partial redraw
+      </button>
+      <button
+        type="button"
+        onClick={() =>
+          onChange(
+            stripOclCustomLabelSgroups(OCL_TYPED_R_EMISSION_RAW),
+            parseOclCustomLabelSgroups(OCL_TYPED_R_EMISSION_RAW),
+          )
+        }
+      >
+        Emit typed R groups
       </button>
       <button type="button" onClick={() => onSelectedBondCountChange?.(1)}>Select one bond</button>
       <button type="button" onClick={() => onSelectedBondCountChange?.(2)}>Select two bonds</button>

@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import * as OCL from "openchemlib";
 import {
   classAtomLabels,
+  convertTypedRGroups,
   normalizeClassMolblock,
   parseClassDummies,
   stripOclCustomLabelSgroups,
@@ -48,5 +49,30 @@ describe("class molblock -> OCL editor round-trip", () => {
     expect(labeled).not.toBe(unlabeled);
     expect(labeled).toContain("NOSEARCH_OCL_CUSTOM_LABEL");
     expect(stripOclCustomLabelSgroups(labeled)).toBe(unlabeled);
+  });
+
+  it("converts a dialog-typed R group emission into a canonical dummy the pipeline re-reads", () => {
+    // The ?… dialog path: label text -> R-group pseudo atomicNo -> changeAtom.
+    const molecule = OCL.Molecule.fromMolfile(RDKIT_PHENETHYLAMINE);
+    const atom = molecule.addAtom(6);
+    molecule.addBond(2, atom);
+    const atomicNo = OCL.Molecule.getAtomicNoFromLabel("R8", OCL.Molecule.cPseudoAtomsRGroups);
+    expect(atomicNo).toBeGreaterThan(0);
+    molecule.changeAtom(atom, atomicNo, 0, -1, 0);
+
+    // Probe-verified emission shape: symbol `R#`, atom map 0, one `M  RGP`
+    // line pairing 1-based atom index with the typed group number.
+    const emission = molecule.toMolfile();
+    expect(emission).toContain("R#");
+    expect(emission).toContain("M  RGP  1  18   8");
+
+    const { molblock, converted } = convertTypedRGroups(emission, Object.keys(R_LABELS));
+    expect(converted).toEqual({ 17: "8" });
+    expect(molblock).not.toContain("R#");
+    expect(molblock).not.toContain("M  RGP");
+    // The converted atom is a first-class R position again...
+    expect(parseClassDummies(molblock)).toContainEqual({ index: 17, mapNum: "8" });
+    // ...and OCL itself re-reads the converted block cleanly.
+    expect(OCL.Molecule.fromMolfile(molblock).getAllAtoms()).toBe(18);
   });
 });

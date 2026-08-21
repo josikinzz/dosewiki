@@ -555,4 +555,61 @@ describe("MoleculeEditorTab canvas and imports", () => {
     // The stripped molblock (dirty comparison input) never carries S-groups.
     expect(screen.getByText("Unsaved changes")).toBeInTheDocument();
   });
+
+  it("converts a typed R8 into a canonical labeled dummy while an unknown R12 stays untouched", async () => {
+    const rdkit = {
+      get_mol: () => ({ get_molblock: () => RDKIT_PHENETHYLAMINE, delete: () => {} }),
+    };
+    useRdkitMock.mockReturnValue({ rdkit, error: null });
+    renderMoleculeSvgMock.mockReturnValue("<svg />");
+    compareCanonicalSmilesMock.mockReturnValue({
+      match: false,
+      inchiOriginal: "class",
+      inchiEdited: "class+R",
+    });
+    useQueryMock.mockReturnValue(undefined);
+    vi.spyOn(globalThis, "fetch").mockResolvedValue(
+      new Response(JSON.stringify({ ok: true, override: null }), {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      }),
+    );
+
+    render(<MoleculeEditorTab />);
+    const user = userEvent.setup();
+    await user.click(screen.getByRole("button", { name: "Generic classes" }));
+    await user.click(screen.getByRole("combobox", { name: "Select a class" }));
+    await user.click(await screen.findByText("Phenethylamine"));
+    await waitFor(() =>
+      expect(screen.getByTestId("ocl-editor")).toHaveAttribute(
+        "data-source",
+        RDKIT_PHENETHYLAMINE,
+      ),
+    );
+
+    // The user typed R8 (rLabels has "8" -> Rα) and R12 (no entry) in the ?…
+    // dialog. The seam converts the R8 atom to the canonical `*`+map spelling
+    // and stamps Rα into the preview map alongside the labels OCL displays;
+    // R12 stays a visible typed R group with its RGP entry.
+    await user.click(screen.getByRole("button", { name: "Emit typed R groups" }));
+    await waitFor(() =>
+      expect(renderMoleculeSvgMock).toHaveBeenLastCalledWith(
+        expect.anything(),
+        expect.stringContaining("M  RGP  1  19  12"),
+        { 0: "RN", 3: "Rα", 5: "Rβ", 8: "R2", 10: "R3", 12: "R4", 14: "R5", 16: "R6", 17: "Rα" },
+        [],
+      ),
+    );
+    const edited = renderMoleculeSvgMock.mock.lastCall?.[1] as string;
+    // typed R8 -> canonical dummy at the emission's own atom index (18th atom)
+    expect(edited).toContain(
+      "    5.2500   -2.5981    0.0000 *   0  0  0  0  0  0  0  0  0  8  0  0",
+    );
+    // unknown R12: untouched, never silently dropped
+    expect(edited).toContain(
+      "    6.7500   -1.2990    0.0000 R#  0  0  0  0  0  0  0  0  0  0  0  0",
+    );
+    expect(edited).not.toContain("NOSEARCH_OCL_CUSTOM_LABEL");
+    expect(screen.getByText("Unsaved changes")).toBeInTheDocument();
+  });
 });
