@@ -359,66 +359,27 @@ html[data-theme="light"] .theme-interaction-caution {
     inset 0 1px 0 oklch(99% 0.01 82 / 0.66);
 }
 
+/* Sunk well, mirroring utilities-theme.css and the pharmacology zebra rows:
+   depth from the fill and inner shading, no ring and no tone edge. */
 html[data-theme="light"] .theme-interaction-expanded-card {
-  background: var(--theme-frosted-control-on-panel-bg) !important;
+  border-color: transparent !important;
+  background: var(--theme-field-on-panel-surface-alt) !important;
   box-shadow:
-    0 0 0 1px var(--theme-frosted-control-on-panel-border),
-    0 12px 24px -22px oklch(48% 0.09 318 / 0.14),
-    inset 0 1px 0 oklch(99% 0.01 333 / 0.78) !important;
+    inset 0 2px 3px color-mix(in srgb, var(--theme-shadow-soft) 44%, transparent),
+    inset 0 -1px 0 var(--theme-frosted-panel-highlight) !important;
 }
 
-html[data-theme="light"] .theme-interaction-expanded-card-danger {
-  border-color: oklch(54% 0.12 18 / 0.18) !important;
-}
-
-html[data-theme="light"] .theme-interaction-expanded-card-unsafe {
-  border-color: oklch(58% 0.105 46 / 0.18) !important;
-}
-
-html[data-theme="light"] .theme-interaction-expanded-card-caution {
-  border-color: oklch(64% 0.1 82 / 0.18) !important;
-}
-
-html[data-theme="light"] .theme-interaction-expanded-toggle-danger {
-  background:
-    radial-gradient(circle at 12% 0%, oklch(99% 0.02 18 / 0.5), transparent 38%), linear-gradient(135deg, color-mix(in srgb, oklch(96% 0.026 18) 95%, var(--theme-body-bg)), color-mix(in srgb, oklch(92% 0.046 18) 96%, var(--theme-body-bg))) !important;
-  color: #9f1239 !important;
-  box-shadow:
-    0 0 0 1px oklch(54% 0.12 18 / 0.2),
-    inset 0 1px 0 oklch(99% 0.01 18 / 0.66) !important;
-}
-
-html[data-theme="light"] .theme-interaction-expanded-toggle-unsafe {
-  background:
-    radial-gradient(circle at 12% 0%, oklch(99% 0.02 46 / 0.48), transparent 38%), linear-gradient(135deg, color-mix(in srgb, oklch(96% 0.026 46) 95%, var(--theme-body-bg)), color-mix(in srgb, oklch(92% 0.046 46) 96%, var(--theme-body-bg))) !important;
-  color: #9a3412 !important;
-  box-shadow:
-    0 0 0 1px oklch(58% 0.105 46 / 0.2),
-    inset 0 1px 0 oklch(99% 0.01 46 / 0.66) !important;
-}
-
-html[data-theme="light"] .theme-interaction-expanded-toggle-caution {
-  background:
-    radial-gradient(circle at 12% 0%, oklch(99% 0.02 82 / 0.46), transparent 38%), linear-gradient(135deg, color-mix(in srgb, oklch(97% 0.026 82) 95%, var(--theme-body-bg)), color-mix(in srgb, oklch(93% 0.046 82) 96%, var(--theme-body-bg))) !important;
-  color: #854d0e !important;
-  box-shadow:
-    0 0 0 1px oklch(64% 0.1 82 / 0.2),
-    inset 0 1px 0 oklch(99% 0.01 82 / 0.66) !important;
-}
-
+/* Tone colour only: the on-panel control group below paints the chip. */
 html[data-theme="light"] .theme-interaction-severity-badge-danger {
-  color: #9f1239;
-  background-color: color-mix(in srgb, rgb(255 228 230) 92%, var(--theme-body-bg));
+  color: var(--theme-semantic-danger-badge-text);
 }
 
 html[data-theme="light"] .theme-interaction-severity-badge-unsafe {
-  color: #9a3412;
-  background-color: color-mix(in srgb, rgb(255 237 213) 92%, var(--theme-body-bg));
+  color: var(--theme-semantic-unsafe-badge-text);
 }
 
 html[data-theme="light"] .theme-interaction-severity-badge-caution {
-  color: #854d0e;
-  background-color: color-mix(in srgb, rgb(254 249 195) 86%, var(--theme-body-bg));
+  color: var(--theme-semantic-caution-badge-text);
 }
 
 html[data-theme="light"] .theme-article-subsection-card {
@@ -750,61 +711,16 @@ html[data-theme="light"] :is(
   }
 }
 
-html[data-theme="light"] :is(
-  .theme-interaction-danger,
-  .theme-interaction-unsafe,
-  .theme-interaction-caution
-) .theme-interaction-expanded-card {
-  border-color: transparent !important;
-  background: var(--theme-frosted-control-on-panel-bg) !important;
-}
-
-html[data-theme="light"] .theme-interaction-danger .theme-interaction-expanded-card {
-  box-shadow:
-    0 0 0 1px oklch(54% 0.12 18 / 0.2),
-    0 12px 24px -22px oklch(46% 0.13 18 / 0.16),
-    inset 0 1px 0 oklch(99% 0.01 333 / 0.78) !important;
-}
-
-html[data-theme="light"] .theme-interaction-unsafe .theme-interaction-expanded-card {
-  box-shadow:
-    0 0 0 1px oklch(58% 0.105 46 / 0.2),
-    0 12px 24px -22px oklch(48% 0.12 46 / 0.16),
-    inset 0 1px 0 oklch(99% 0.01 333 / 0.78) !important;
-}
-
-html[data-theme="light"] .theme-interaction-caution .theme-interaction-expanded-card {
-  box-shadow:
-    0 0 0 1px oklch(64% 0.1 82 / 0.2),
-    0 12px 24px -22px oklch(52% 0.11 82 / 0.14),
-    inset 0 1px 0 oklch(99% 0.01 333 / 0.78) !important;
-}
-
 html[data-theme="light"] .theme-interaction-danger .theme-interaction-expanded-toggle {
-  background:
-    radial-gradient(circle at 12% 0%, oklch(99% 0.02 18 / 0.5), transparent 38%), linear-gradient(135deg, color-mix(in srgb, oklch(96% 0.026 18) 95%, var(--theme-body-bg)), color-mix(in srgb, oklch(92% 0.046 18) 96%, var(--theme-body-bg))) !important;
-  color: #9f1239 !important;
-  box-shadow:
-    0 0 0 1px oklch(54% 0.12 18 / 0.2),
-    inset 0 1px 0 oklch(99% 0.01 18 / 0.66) !important;
+  color: var(--theme-semantic-danger-badge-text) !important;
 }
 
 html[data-theme="light"] .theme-interaction-unsafe .theme-interaction-expanded-toggle {
-  background:
-    radial-gradient(circle at 12% 0%, oklch(99% 0.02 46 / 0.48), transparent 38%), linear-gradient(135deg, color-mix(in srgb, oklch(96% 0.026 46) 95%, var(--theme-body-bg)), color-mix(in srgb, oklch(92% 0.046 46) 96%, var(--theme-body-bg))) !important;
-  color: #9a3412 !important;
-  box-shadow:
-    0 0 0 1px oklch(58% 0.105 46 / 0.2),
-    inset 0 1px 0 oklch(99% 0.01 46 / 0.66) !important;
+  color: var(--theme-semantic-unsafe-badge-text) !important;
 }
 
 html[data-theme="light"] .theme-interaction-caution .theme-interaction-expanded-toggle {
-  background:
-    radial-gradient(circle at 12% 0%, oklch(99% 0.02 82 / 0.46), transparent 38%), linear-gradient(135deg, color-mix(in srgb, oklch(97% 0.026 82) 95%, var(--theme-body-bg)), color-mix(in srgb, oklch(93% 0.046 82) 96%, var(--theme-body-bg))) !important;
-  color: #854d0e !important;
-  box-shadow:
-    0 0 0 1px oklch(64% 0.1 82 / 0.2),
-    inset 0 1px 0 oklch(99% 0.01 82 / 0.66) !important;
+  color: var(--theme-semantic-caution-badge-text) !important;
 }
 
 html[data-theme="light"] .theme-selected-control {
@@ -1069,96 +985,6 @@ html[data-theme="light"] .theme-reagent-results-panel {
 html[data-theme="light"] :is(.theme-dose-detail-expanded, .theme-plateau-tier-expanded) {
   background:
     linear-gradient(135deg, color-mix(in srgb, oklch(98% 0.016 334) 76%, var(--theme-body-bg)), color-mix(in srgb, oklch(95% 0.032 319) 78%, var(--theme-body-bg))) !important;
-}
-
-
-html[data-theme="light"] .theme-interaction-severity-badge-danger {
-  border-color: transparent !important;
-  background:
-    radial-gradient(circle at 12% 0%, oklch(99% 0.02 18 / 0.5), transparent 38%), linear-gradient(135deg, color-mix(in srgb, oklch(96% 0.026 18) 95%, var(--theme-body-bg)), color-mix(in srgb, oklch(92% 0.046 18) 96%, var(--theme-body-bg))) !important;
-  box-shadow:
-    0 0 0 1px oklch(54% 0.12 18 / 0.2),
-    inset 0 1px 0 oklch(99% 0.01 18 / 0.66);
-}
-
-html[data-theme="light"] .theme-interaction-severity-badge-unsafe {
-  border-color: transparent !important;
-  background:
-    radial-gradient(circle at 12% 0%, oklch(99% 0.02 46 / 0.48), transparent 38%), linear-gradient(135deg, color-mix(in srgb, oklch(96% 0.026 46) 95%, var(--theme-body-bg)), color-mix(in srgb, oklch(92% 0.046 46) 96%, var(--theme-body-bg))) !important;
-  box-shadow:
-    0 0 0 1px oklch(58% 0.105 46 / 0.2),
-    inset 0 1px 0 oklch(99% 0.01 46 / 0.66);
-}
-
-html[data-theme="light"] .theme-interaction-severity-badge-caution {
-  border-color: transparent !important;
-  background:
-    radial-gradient(circle at 12% 0%, oklch(99% 0.02 82 / 0.46), transparent 38%), linear-gradient(135deg, color-mix(in srgb, oklch(97% 0.026 82) 95%, var(--theme-body-bg)), color-mix(in srgb, oklch(93% 0.046 82) 96%, var(--theme-body-bg))) !important;
-  box-shadow:
-    0 0 0 1px oklch(64% 0.1 82 / 0.2),
-    inset 0 1px 0 oklch(99% 0.01 82 / 0.66);
-}
-
-html[data-theme="light"] .theme-interaction-expanded-card {
-  background: var(--theme-field-on-panel-surface) !important;
-  box-shadow:
-    0 0 0 1px var(--theme-field-on-chrome-border),
-    0 12px 24px -22px oklch(48% 0.09 318 / 0.14),
-    inset 0 1px 0 oklch(99% 0.01 333 / 0.78) !important;
-}
-
-html[data-theme="light"] .theme-interaction-expanded-card-danger {
-  border-color: var(--theme-semantic-danger-card-border) !important;
-}
-
-html[data-theme="light"] .theme-interaction-expanded-card-unsafe {
-  border-color: var(--theme-semantic-unsafe-card-border) !important;
-}
-
-html[data-theme="light"] .theme-interaction-expanded-card-caution {
-  border-color: var(--theme-semantic-caution-card-border) !important;
-}
-
-html[data-theme="light"] .theme-interaction-expanded-toggle-danger {
-  color: var(--theme-semantic-danger-badge-text) !important;
-  background: var(--theme-semantic-danger-badge-bg) !important;
-  box-shadow: 0 0 0 1px var(--theme-semantic-danger-badge-border) !important;
-}
-
-html[data-theme="light"] .theme-interaction-expanded-toggle-unsafe {
-  color: var(--theme-semantic-unsafe-badge-text) !important;
-  background: var(--theme-semantic-unsafe-badge-bg) !important;
-  box-shadow: 0 0 0 1px var(--theme-semantic-unsafe-badge-border) !important;
-}
-
-html[data-theme="light"] .theme-interaction-expanded-toggle-caution {
-  color: var(--theme-semantic-caution-badge-text) !important;
-  background: var(--theme-semantic-caution-badge-bg) !important;
-  box-shadow: 0 0 0 1px var(--theme-semantic-caution-badge-border) !important;
-}
-
-html[data-theme="light"] .theme-interaction-danger .theme-interaction-severity-badge-danger,
-html[data-theme="light"] .theme-interaction-unsafe .theme-interaction-severity-badge-unsafe,
-html[data-theme="light"] .theme-interaction-caution .theme-interaction-severity-badge-caution {
-  background: var(--theme-field-on-panel-surface) !important;
-  box-shadow:
-    0 0 0 1px var(--theme-field-on-chrome-border),
-    inset 0 1px 0 oklch(99% 0.01 333 / 0.78) !important;
-}
-
-html[data-theme="light"] .theme-interaction-danger .theme-interaction-severity-badge-danger {
-  color: var(--theme-semantic-danger-badge-text) !important;
-  border-color: var(--theme-semantic-danger-card-border) !important;
-}
-
-html[data-theme="light"] .theme-interaction-unsafe .theme-interaction-severity-badge-unsafe {
-  color: var(--theme-semantic-unsafe-badge-text) !important;
-  border-color: var(--theme-semantic-unsafe-card-border) !important;
-}
-
-html[data-theme="light"] .theme-interaction-caution .theme-interaction-severity-badge-caution {
-  color: var(--theme-semantic-caution-badge-text) !important;
-  border-color: var(--theme-semantic-caution-card-border) !important;
 }
 
 /* === Dark-mode opaque flatten for legacy text-white/NN utilities ===

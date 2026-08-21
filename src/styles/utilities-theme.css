@@ -3189,6 +3189,11 @@
     box-shadow: var(--theme-semantic-caution-card-shadow);
   }
 
+  /* The severity chip in a card header is a quiet control sitting on a tinted
+     panel, not a second tone block: the on-panel group rule below paints its
+     frosted fill and hairline, and the tone survives as text and icon colour.
+     The retired `background: …-badge-bg` plus `0 0 0 1px …-badge-border` drew
+     a saturated pill that outshouted the heading beside it. */
   .theme-interaction-severity-badge-danger,
   .theme-interaction-severity-badge-unsafe,
   .theme-interaction-severity-badge-caution {
@@ -3197,20 +3202,14 @@
 
   .theme-interaction-severity-badge-danger {
     color: var(--theme-semantic-danger-badge-text);
-    background: var(--theme-semantic-danger-badge-bg);
-    box-shadow: 0 0 0 1px var(--theme-semantic-danger-badge-border);
   }
 
   .theme-interaction-severity-badge-unsafe {
     color: var(--theme-semantic-unsafe-badge-text);
-    background: var(--theme-semantic-unsafe-badge-bg);
-    box-shadow: 0 0 0 1px var(--theme-semantic-unsafe-badge-border);
   }
 
   .theme-interaction-severity-badge-caution {
     color: var(--theme-semantic-caution-badge-text);
-    background: var(--theme-semantic-caution-badge-bg);
-    box-shadow: 0 0 0 1px var(--theme-semantic-caution-badge-border);
   }
 
   .theme-molecule-panel {
@@ -3494,7 +3493,10 @@
     .theme-external-source-pill,
     .theme-control-pill,
     .theme-control-pill-quiet,
-    .theme-icon-button
+    .theme-icon-button,
+    .theme-interaction-severity-badge-danger,
+    .theme-interaction-severity-badge-unsafe,
+    .theme-interaction-severity-badge-caution
   ) {
     border-color: transparent;
     background: var(--theme-frosted-control-on-panel-bg);
@@ -3548,52 +3550,20 @@
     }
   }
 
-  .theme-interaction-danger .theme-interaction-expanded-toggle-danger,
-  .theme-interaction-danger .theme-interaction-expanded-toggle-danger:focus-visible {
+  /* Tone colour only. The toggle is a `.theme-control-pill-quiet`, so its
+     surface comes from the on-panel group above and it reads like the collapse
+     pill in the pharmacology cards. Stated as a descendant pair so the tone
+     also survives the group's hover accent. */
+  .theme-interaction-danger .theme-interaction-expanded-toggle-danger {
     color: var(--theme-semantic-danger-badge-text);
-    background: var(--theme-semantic-danger-badge-bg);
-    box-shadow: 0 0 0 1px var(--theme-semantic-danger-badge-border);
-    --tw-ring-color: var(--theme-semantic-danger-badge-border);
-  }
-  @media (hover: hover) {
-    .theme-interaction-danger .theme-interaction-expanded-toggle-danger:hover {
-      color: var(--theme-semantic-danger-badge-text);
-      background: var(--theme-semantic-danger-badge-bg);
-      box-shadow: 0 0 0 1px var(--theme-semantic-danger-badge-border);
-      --tw-ring-color: var(--theme-semantic-danger-badge-border);
-    }
   }
 
-  .theme-interaction-unsafe .theme-interaction-expanded-toggle-unsafe,
-  .theme-interaction-unsafe .theme-interaction-expanded-toggle-unsafe:focus-visible {
+  .theme-interaction-unsafe .theme-interaction-expanded-toggle-unsafe {
     color: var(--theme-semantic-unsafe-badge-text);
-    background: var(--theme-semantic-unsafe-badge-bg);
-    box-shadow: 0 0 0 1px var(--theme-semantic-unsafe-badge-border);
-    --tw-ring-color: var(--theme-semantic-unsafe-badge-border);
-  }
-  @media (hover: hover) {
-    .theme-interaction-unsafe .theme-interaction-expanded-toggle-unsafe:hover {
-      color: var(--theme-semantic-unsafe-badge-text);
-      background: var(--theme-semantic-unsafe-badge-bg);
-      box-shadow: 0 0 0 1px var(--theme-semantic-unsafe-badge-border);
-      --tw-ring-color: var(--theme-semantic-unsafe-badge-border);
-    }
   }
 
-  .theme-interaction-caution .theme-interaction-expanded-toggle-caution,
-  .theme-interaction-caution .theme-interaction-expanded-toggle-caution:focus-visible {
+  .theme-interaction-caution .theme-interaction-expanded-toggle-caution {
     color: var(--theme-semantic-caution-badge-text);
-    background: var(--theme-semantic-caution-badge-bg);
-    box-shadow: 0 0 0 1px var(--theme-semantic-caution-badge-border);
-    --tw-ring-color: var(--theme-semantic-caution-badge-border);
-  }
-  @media (hover: hover) {
-    .theme-interaction-caution .theme-interaction-expanded-toggle-caution:hover {
-      color: var(--theme-semantic-caution-badge-text);
-      background: var(--theme-semantic-caution-badge-bg);
-      box-shadow: 0 0 0 1px var(--theme-semantic-caution-badge-border);
-      --tw-ring-color: var(--theme-semantic-caution-badge-border);
-    }
   }
 
   .theme-selected-control {
@@ -4183,66 +4153,18 @@
     background: var(--theme-field-on-panel-surface-alt);
   }
 
+  /* The expanded rationale is a well cut into the tone panel, dressed like the
+     pharmacology zebra rows: depth from the sunk fill and inner shading, never
+     an outline. The retired
+     `0 0 0 1px var(--theme-field-on-chrome-border)` drew a 36%-white rectangle
+     — an on-chrome control rim on an inert block — and the per-tone
+     `border-color` stacked a second, saturated edge outside it. */
   .theme-interaction-expanded-card {
-    background: var(--theme-field-on-panel-surface);
+    border-color: transparent;
+    background: var(--theme-field-on-panel-surface-alt);
     box-shadow:
-      0 0 0 1px var(--theme-field-on-chrome-border),
-      0 12px 24px -22px var(--theme-shadow-strong),
-      inset 0 1px 0 color-mix(in srgb, var(--theme-text-primary) 8%, transparent);
-  }
-
-  .theme-interaction-expanded-card-danger {
-    border-color: var(--theme-semantic-danger-card-border);
-  }
-
-  .theme-interaction-expanded-card-unsafe {
-    border-color: var(--theme-semantic-unsafe-card-border);
-  }
-
-  .theme-interaction-expanded-card-caution {
-    border-color: var(--theme-semantic-caution-card-border);
-  }
-
-  .theme-interaction-expanded-toggle-danger {
-    color: var(--theme-semantic-danger-badge-text);
-    background: var(--theme-semantic-danger-badge-bg);
-    box-shadow: 0 0 0 1px var(--theme-semantic-danger-badge-border);
-  }
-
-  .theme-interaction-expanded-toggle-unsafe {
-    color: var(--theme-semantic-unsafe-badge-text);
-    background: var(--theme-semantic-unsafe-badge-bg);
-    box-shadow: 0 0 0 1px var(--theme-semantic-unsafe-badge-border);
-  }
-
-  .theme-interaction-expanded-toggle-caution {
-    color: var(--theme-semantic-caution-badge-text);
-    background: var(--theme-semantic-caution-badge-bg);
-    box-shadow: 0 0 0 1px var(--theme-semantic-caution-badge-border);
-  }
-
-  .theme-interaction-danger .theme-interaction-severity-badge-danger,
-  .theme-interaction-unsafe .theme-interaction-severity-badge-unsafe,
-  .theme-interaction-caution .theme-interaction-severity-badge-caution {
-    background: var(--theme-field-on-panel-surface);
-    box-shadow:
-      0 0 0 1px var(--theme-field-on-chrome-border),
-      inset 0 1px 0 color-mix(in srgb, var(--theme-text-primary) 8%, transparent);
-  }
-
-  .theme-interaction-danger .theme-interaction-severity-badge-danger {
-    color: var(--theme-semantic-danger-badge-text);
-    border-color: var(--theme-semantic-danger-card-border);
-  }
-
-  .theme-interaction-unsafe .theme-interaction-severity-badge-unsafe {
-    color: var(--theme-semantic-unsafe-badge-text);
-    border-color: var(--theme-semantic-unsafe-card-border);
-  }
-
-  .theme-interaction-caution .theme-interaction-severity-badge-caution {
-    color: var(--theme-semantic-caution-badge-text);
-    border-color: var(--theme-semantic-caution-card-border);
+      inset 0 2px 3px color-mix(in srgb, var(--theme-shadow-soft) 44%, transparent),
+      inset 0 -1px 0 var(--theme-frosted-panel-highlight);
   }
 
   .theme-semantic-danger-badge,

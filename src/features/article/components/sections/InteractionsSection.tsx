@@ -134,7 +134,7 @@ const InteractionBadge = memo(function InteractionBadge({
     return (
       <div
         id={panelId}
-        className={`theme-inline-expanded-card theme-interaction-expanded-card theme-interaction-expanded-card-${tone} relative my-1 flex w-full flex-col items-start gap-2 rounded-lg px-4 py-3`}
+        className="theme-inline-expanded-card theme-interaction-expanded-card relative my-1 flex w-full flex-col items-start gap-2 rounded-lg px-4 py-3"
       >
         <ExpandButton
           isExpanded={true}
