@@ -109,6 +109,35 @@ export interface ReplicationRightsMetadata {
   removal_contact?: string;
 }
 
+export type ReplicationDateKind =
+  | 'exact_date'
+  | 'year'
+  | 'range'
+  | 'upper_bound'
+  | 'inferred'
+  | 'unknown';
+
+export type ReplicationDateConfidence =
+  | 'high'
+  | 'medium-high'
+  | 'medium'
+  | 'medium-low'
+  | 'low'
+  | 'none';
+
+/**
+ * Best defensible temporal statement for a replication. `event_type` explains
+ * what the value dates; it may be creation, first publication, or only an
+ * earliest-known/source-file bound.
+ */
+export interface ReplicationDateInfo {
+  value?: string;
+  kind: ReplicationDateKind;
+  event_type?: string;
+  confidence: ReplicationDateConfidence;
+  researched_at: string;
+}
+
 /**
  * Raw replication record from Convex database.
  */
@@ -145,6 +174,8 @@ export interface ReplicationRecord extends ReplicationRightsMetadata {
   file_size?: number;
   duration?: number;
   created_at: string;
+  /** Artwork/source dating; distinct from the database import timestamp. */
+  date_info?: ReplicationDateInfo;
 }
 
 /**

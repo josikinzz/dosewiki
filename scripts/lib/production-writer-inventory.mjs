@@ -19,6 +19,7 @@ export const productionWriterClassifications = Object.freeze({
     "scripts/migrate/migrate-pharmacology-schema.mjs",
     "scripts/remove-contributor.mjs",
     "scripts/replications/apply-artist-license.mjs",
+    "scripts/replications/apply-date-research.mjs",
     "scripts/replications/apply-provenance-corrections.mjs",
     "scripts/replications/apply-psychonautwiki-metadata-corrections.mjs",
     "scripts/replications/apply-slug-aliases.mjs",

@@ -111,6 +111,7 @@
     "convex:doctor": "node scripts/convex/doctor.mjs",
     "replications:audit-provenance": "node scripts/replications/audit-provenance.mjs",
     "replications:apply-provenance": "node scripts/replications/apply-provenance-corrections.mjs",
+    "replications:apply-dates": "node scripts/replications/apply-date-research.mjs",
     "replications:regenerate-thumbnails": "node scripts/replications/regenerate-missing-thumbnails.mjs",
     "convex:check-functions": "node scripts/convex/check-function-drift.mjs",
     "convex:deploy": "node scripts/deploy/convex-deploy.mjs",

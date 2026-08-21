@@ -1,4 +1,5 @@
 import { v } from "convex/values";
+import { replicationDateInfo } from "./replicationDateValidators";
 
 const replicationRightsStatus = v.union(
   v.literal("creator-retained"),
@@ -148,6 +149,13 @@ export const replication = v.object({
   file_size: v.optional(v.number()),   // In bytes
   duration: v.optional(v.number()),    // Video duration in seconds
   created_at: v.string(),              // ISO timestamp
+  /**
+   * Best defensible temporal statement for the work. This is deliberately not
+   * named `created_at`: that existing field is the database/import timestamp.
+   * The full rationale and evidence live in `replicationDateResearch` so public
+   * gallery reads carry only this compact summary.
+   */
+  date_info: v.optional(replicationDateInfo),
   /**
    * Subjective effects this asset also depicts, as effect slugs.
    *

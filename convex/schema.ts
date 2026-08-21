@@ -18,6 +18,7 @@ import {
   subjectiveEffect,
   substanceGallery,
 } from "./lib/effectMediaSchemaValidators";
+import { replicationDateResearch } from "./lib/replicationDateValidators";
 import { reagentTestDocumentValidator } from "./reagentTestContract";
 
 /**
@@ -264,6 +265,12 @@ export default defineSchema({
     .index("by_effect", ["effect_slug"])
     .index("by_slug", ["slug"])
     .index("by_artist", ["artist"]),
+
+  // One full dating/provenance dossier per replication. The compact date_info
+  // summary lives on `replications`; this table keeps the evidence out of hot
+  // gallery reads while remaining available for later editorial/public UI.
+  replicationDateResearch: defineTable(replicationDateResearch)
+    .index("by_replication_id", ["replication_id"]),
 
   // Per-substance Replication Showcase curation; see the validator's note.
   substanceGalleries: defineTable(substanceGallery)
