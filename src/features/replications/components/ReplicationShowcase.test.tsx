@@ -58,6 +58,17 @@ describe("ReplicationShowcase", () => {
     ).toHaveAttribute("href", "/replications/drifting-wood-grain");
   });
 
+  it("scopes the title permalink to the substance's viewer walk when it sits in an article", () => {
+    render(<ReplicationShowcase works={[work()]} substanceSlug="lsd" />);
+
+    // The viewer reads `set=substance:<slug>` to walk this article's gallery
+    // instead of the work's whole effect; without the prop (the Studio
+    // preview) the href above stays the bare canonical permalink.
+    expect(
+      screen.getByRole("link", { name: /Drifting \(wood grain\)/ }),
+    ).toHaveAttribute("href", "/replications/drifting-wood-grain?set=substance:lsd");
+  });
+
   it("moves focus with arrows without activating, and activates on Enter", () => {
     render(<ReplicationShowcase works={[work(), secondWork]} />);
 

@@ -227,7 +227,10 @@ describe("contributor and replication route loaders", () => {
     publicData.getPublicReplicationBySlug.mockResolvedValueOnce(
       buildReplication({ slug: "shared", artist: "Ada" }),
     );
-    publicData.getPublicEffectBySlug.mockResolvedValueOnce({
+    // `mockResolvedValue`, not `Once`: the loader reads the effect again when it
+    // hydrates the walk's items, and the mock layer has no react-cache to
+    // collapse the two reads the way production does.
+    publicData.getPublicEffectBySlug.mockResolvedValue({
       slug: "tracers",
       name: "Tracers",
       summary: "",
@@ -250,9 +253,24 @@ describe("contributor and replication route loaders", () => {
     if (result.kind !== "ok") {
       throw new Error("expected ok result");
     }
-    expect(result.pageProps.neighbors.scope).toBe("artist");
-    expect(result.pageProps.neighbors.scopeLabel).toBe("Ada");
-    expect(result.pageProps.neighbors.next?.slug).toBe("other-tracer");
+    expect(result.pageProps.viewerSet.scope).toBe("artist");
+    expect(result.pageProps.viewerSet.scopeLabel).toBe("Ada");
+    // The whole ordered walk crosses into the page, active item included; the
+    // viewer finds itself by slug instead of receiving a prev/next pair.
+    expect(result.pageProps.viewerSet.items.map((item) => item.replication.slug)).toEqual([
+      "shared",
+      "other-tracer",
+    ]);
+    // Every member arrives hydrated: the filmstrip credits and captions its
+    // tiles without further reads.
+    expect(result.pageProps.viewerSet.items.map((item) => item.effectName)).toEqual([
+      "Tracers",
+      "Tracers",
+    ]);
+    expect(result.pageProps.viewerSet.items.map((item) => item.artistProfileHref)).toEqual([
+      "/contributors/ada",
+      "/contributors/ada",
+    ]);
     expect(result.pageProps.artistProfileHref).toBe("/contributors/ada");
     expect(result.pageProps.effectCategories.map((category) => category.slug)).toEqual([
       "visual-effects",
@@ -308,15 +326,15 @@ describe("contributor and replication route loaders", () => {
     publicData.getPublicReplicationBySlug.mockResolvedValueOnce(
       buildReplication({ slug: "shared", artist: "Unknown" }),
     );
-    publicData.getPublicEffectBySlug.mockResolvedValueOnce({
+    publicData.getPublicEffectBySlug.mockResolvedValue({
       slug: "tracers",
       name: "Tracers",
       summary: "",
       tags: ["visual"],
     } as SubjectiveEffectDetailRecord);
     publicData.getPublicReplicationsByEffect.mockResolvedValueOnce([
-      buildReplication({ slug: "shared", created_at: "2025-02-01T00:00:00.000Z" }),
-      buildReplication({ slug: "sibling", created_at: "2025-01-01T00:00:00.000Z" }),
+      buildReplication({ slug: "shared", artist: "Unknown", created_at: "2025-02-01T00:00:00.000Z" }),
+      buildReplication({ slug: "sibling", artist: "Unknown", created_at: "2025-01-01T00:00:00.000Z" }),
     ]);
 
     const result = await loadReplicationRoute("shared");
@@ -324,13 +342,53 @@ describe("contributor and replication route loaders", () => {
     if (result.kind !== "ok") {
       throw new Error("expected ok result");
     }
-    expect(result.pageProps.neighbors.scope).toBe("effect");
-    expect(result.pageProps.neighbors.scopeLabel).toBe("Tracers");
-    expect(result.pageProps.neighbors.next?.slug).toBe("sibling");
+    expect(result.pageProps.viewerSet.scope).toBe("effect");
+    expect(result.pageProps.viewerSet.scopeLabel).toBe("Tracers");
+    expect(result.pageProps.viewerSet.items.map((item) => item.replication.slug)).toEqual([
+      "shared",
+      "sibling",
+    ]);
     expect(result.pageProps.artistProfileHref).toBeNull();
-    // An unattributed marker can never resolve to a profile, so the lookup is
-    // skipped rather than run and discarded.
+    // Unattributed markers can never resolve to a profile, so with nobody in
+    // the walk to credit either, the lookup is skipped rather than run and
+    // discarded.
     expect(publicData.getPublicContributorProfiles).not.toHaveBeenCalled();
+    expect(publicData.getReplicationsByContributor).not.toHaveBeenCalled();
+  });
+
+  it("still reads profiles for an unattributed row when a sibling in the walk is credited", async () => {
+    publicData.getPublicReplicationBySlug.mockResolvedValueOnce(
+      buildReplication({ slug: "shared", artist: "Unknown" }),
+    );
+    publicData.getPublicEffectBySlug.mockResolvedValue({
+      slug: "tracers",
+      name: "Tracers",
+      summary: "",
+      tags: ["visual"],
+    } as SubjectiveEffectDetailRecord);
+    publicData.getPublicReplicationsByEffect.mockResolvedValueOnce([
+      buildReplication({ slug: "shared", artist: "Unknown", created_at: "2025-02-01T00:00:00.000Z" }),
+      buildReplication({ slug: "by-ada", created_at: "2025-01-01T00:00:00.000Z" }),
+    ]);
+    publicData.getPublicContributorProfiles.mockResolvedValueOnce([
+      buildContributorProfile({ key: "ADA", displayName: "Ada" }),
+    ]);
+
+    const result = await loadReplicationRoute("shared");
+
+    if (result.kind !== "ok") {
+      throw new Error("expected ok result");
+    }
+    // The active row stays uncredited, but its attributed neighbour's tile
+    // still links to its maker — that is what the late profile read buys.
+    expect(result.pageProps.artistProfileHref).toBeNull();
+    expect(result.pageProps.viewerSet.items.map((item) => item.artistProfileHref)).toEqual([
+      null,
+      "/contributors/ada",
+    ]);
+    // The walk itself remains the effect's: profiles inform credits, never
+    // selection, for a row that names no artist.
+    expect(result.pageProps.viewerSet.scope).toBe("effect");
     expect(publicData.getReplicationsByContributor).not.toHaveBeenCalled();
   });
 
@@ -359,7 +417,7 @@ describe("contributor and replication route loaders", () => {
     if (result.kind !== "ok") {
       throw new Error("expected ok result");
     }
-    expect(result.pageProps.neighbors.scope).toBe("effect");
+    expect(result.pageProps.viewerSet.scope).toBe("effect");
     // The byline still resolves: the profile exists, only its works did not load.
     expect(result.pageProps.artistProfileHref).toBe("/contributors/ada");
     expect(warn).toHaveBeenCalled();
@@ -390,7 +448,7 @@ describe("contributor and replication route loaders", () => {
       throw new Error("expected ok result");
     }
     expect(result.pageProps.artistProfileHref).toBeNull();
-    expect(result.pageProps.neighbors.scope).toBe("effect");
+    expect(result.pageProps.viewerSet.scope).toBe("effect");
     // Without a profile there is no name set to join on, so no works are read.
     expect(publicData.getReplicationsByContributor).not.toHaveBeenCalled();
   });

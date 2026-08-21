@@ -84,6 +84,15 @@ interface ReplicationShowcaseProps {
   works: readonly ShowcaseWork[];
   /** The full matched-corpus size; drives the "See all" / "+N" affordances. */
   totalCount?: number;
+  /**
+   * The owning substance article's slug, when the showcase sits in one. It
+   * scopes the title permalink (`?set=substance:<slug>`) so the viewer walks
+   * *this article's* gallery — the works the reader can see queued in the
+   * rail below — rather than the active work's whole effect. Optional because
+   * the Replication Studio preview renders the same stage with no article
+   * behind it.
+   */
+  substanceSlug?: string;
 }
 
 /**
@@ -106,7 +115,7 @@ interface ReplicationShowcaseProps {
  * makes sound on its own. Media is letterboxed with `object-contain`, never
  * cropped: a replication's composition is the content.
  */
-export function ReplicationShowcase({ works, totalCount }: ReplicationShowcaseProps) {
+export function ReplicationShowcase({ works, totalCount, substanceSlug }: ReplicationShowcaseProps) {
   const baseId = useId();
   const [activeIndex, setActiveIndex] = useState(0);
   /**
@@ -256,7 +265,11 @@ export function ReplicationShowcase({ works, totalCount }: ReplicationShowcasePr
         <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-0.5 px-2.5 py-1.5 sm:gap-y-1 sm:px-3 sm:pb-7 sm:pt-2 sm:pointer-events-none sm:absolute sm:inset-x-0 sm:top-0 sm:z-10 sm:bg-gradient-to-b sm:from-black/75 sm:via-black/35 sm:to-transparent">
           <div className="flex min-w-0 flex-wrap items-baseline gap-x-2">
             <Link
-              href={publicHref.replication(active.slug)}
+              href={
+                substanceSlug
+                  ? `${publicHref.replication(active.slug)}?set=substance:${substanceSlug}`
+                  : publicHref.replication(active.slug)
+              }
               className={cn(
                 "theme-media-tile-title pointer-events-auto inline-flex min-w-0 items-center gap-1 text-[13px] font-semibold leading-tight sm:text-sm",
                 "transition-opacity hover:opacity-80",

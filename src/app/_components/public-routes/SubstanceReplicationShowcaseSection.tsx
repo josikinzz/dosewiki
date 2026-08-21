@@ -55,6 +55,7 @@ export async function SubstanceReplicationShowcaseSection({
     <ReplicationShowcase
       works={works.slice(0, SHOWCASE_WORK_CAP)}
       totalCount={works.length}
+      substanceSlug={slug}
     />
   );
 }

@@ -12,11 +12,13 @@ import {
   type ReplicationWithUrl,
 } from "../../src/types/replications";
 import { hasKnownCreator } from "../../src/features/effects/components/replicationCredit";
+import type { NormalizedUserProfile } from "../../src/data/userProfiles";
+import { orderContributorWorksFeaturedFirst } from "../../src/features/effects/gallery/replicationDetailModel";
 import {
-  orderContributorWorksFeaturedFirst,
-  selectReplicationNeighborSet,
-  type ReplicationNeighborSet,
-} from "../../src/features/effects/gallery/replicationDetailModel";
+  selectReplicationViewerSet,
+  type ReplicationViewerItem,
+  type ReplicationViewerSet,
+} from "../../src/features/replications/viewer/viewerModel";
 import { EFFECT_INDEX_FEATURED_REPLICATION_SLUGS } from "./effectIndexHome";
 import {
   resolveEffectCategories,
@@ -41,7 +43,7 @@ export interface ReplicationPageProps {
   /** Profile page of the credited artist, absent when no profile claims them. */
   artistProfileHref: string | null;
   effectCategories: EffectCategoryLink[];
-  neighbors: ReplicationNeighborSet;
+  viewerSet: ReplicationViewerSet;
 }
 
 export type ReplicationRouteResult =
@@ -50,7 +52,7 @@ export type ReplicationRouteResult =
   | NotFoundRouteResult;
 
 /** Rows carry `effect_slug: "unknown"` when nothing real is attached. */
-const hasRealEffect = (effectSlug?: string | null) =>
+const hasRealEffect = (effectSlug?: string | null): effectSlug is string =>
   Boolean(effectSlug && effectSlug !== "unknown");
 
 
@@ -90,14 +92,25 @@ export const loadReplicationRoute = cache(async (slug: string): Promise<Replicat
   const effectSlug = hasRealEffect(replication.effect_slug) ? replication.effect_slug : null;
   const creator = hasKnownCreator(replication.artist) ? replication.artist.trim() : null;
 
-  const [effect, siblings, contributorProfiles] = await Promise.all([
+  const [effect, siblings, profilesForCreator] = await Promise.all([
     effectSlug ? getPublicEffectBySlug(effectSlug) : Promise.resolve(null),
     effectSlug ? getPublicReplicationsByEffect(effectSlug) : Promise.resolve([]),
     // Only a credit that names a person can resolve to a profile; the
     // unattributed markers never match one, so an unattributed row skips the
     // read rather than paying for a lookup that cannot succeed.
-    creator ? getPublicContributorProfiles() : Promise.resolve([]),
+    creator ? getPublicContributorProfiles() : Promise.resolve(null),
   ]);
+
+  // The viewer credits every member of the walk, not just the active row: an
+  // unattributed piece still sits between attributed siblings whose tiles
+  // should link to their makers. So profiles are also read when anyone in the
+  // fallback effect walk is a named person. The read is react-cached, so this
+  // costs nothing when the active creator already triggered it above.
+  const contributorProfiles: NormalizedUserProfile[] =
+    profilesForCreator ??
+    (siblings.some((sibling) => hasKnownCreator(sibling.artist))
+      ? await getPublicContributorProfiles()
+      : []);
 
   const artistProfile = creator
     ? findContributorProfileByAuthorName(contributorProfiles, creator)
@@ -121,7 +134,46 @@ export const loadReplicationRoute = cache(async (slug: string): Promise<Replicat
     : [];
 
   const subject = effect?.name ?? null;
-  const neighbors = selectReplicationNeighborSet({
+
+  // The viewer names each member's own effect, and an artist walk spans
+  // effects. Every distinct slug that could appear in the chosen walk is read
+  // once up front — `getPublicEffectBySlug` is react-cached and the union is at
+  // most the artist's few distinct effects plus the active one — so the walk
+  // selector stays synchronous. Siblings all belong to the active effect, so
+  // the active slug alone covers the effect walk.
+  const walkEffectSlugs = new Set<string>();
+  if (effectSlug) walkEffectSlugs.add(effectSlug);
+  for (const work of artistWorks) {
+    if (hasRealEffect(work.effect_slug)) walkEffectSlugs.add(work.effect_slug);
+  }
+  const walkEffects = new Map(
+    await Promise.all(
+      [...walkEffectSlugs].map(
+        async (walkSlug) => [walkSlug, await getPublicEffectBySlug(walkSlug)] as const,
+      ),
+    ),
+  );
+
+  const toItem = (row: ReplicationWithUrl): ReplicationViewerItem => {
+    const rowEffectSlug = hasRealEffect(row.effect_slug) ? row.effect_slug : null;
+    const rowEffect = rowEffectSlug ? (walkEffects.get(rowEffectSlug) ?? null) : null;
+    const rowCreator = hasKnownCreator(row.artist) ? row.artist.trim() : null;
+    const rowProfile = rowCreator
+      ? findContributorProfileByAuthorName(contributorProfiles, rowCreator)
+      : null;
+
+    return {
+      replication: row,
+      effectName: rowEffect?.name ?? null,
+      effectSlug: rowEffectSlug,
+      effectCategories: rowEffect ? resolveEffectCategories(rowEffect.tags) : [],
+      artistProfileHref: rowProfile
+        ? getPublicRoutePath({ family: "contributor", params: { profileKey: rowProfile.key } })
+        : null,
+    };
+  };
+
+  const viewerSet = selectReplicationViewerSet({
     slug,
     artistWorks,
     artistName: artistProfile?.displayName ?? null,
@@ -129,6 +181,7 @@ export const loadReplicationRoute = cache(async (slug: string): Promise<Replicat
     effectWorks: siblings,
     effectName: subject,
     galleryOrder: effect?.gallery_order,
+    toItem,
   });
 
   return {
@@ -141,7 +194,7 @@ export const loadReplicationRoute = cache(async (slug: string): Promise<Replicat
         ? getPublicRoutePath({ family: "contributor", params: { profileKey: artistProfile.key } })
         : null,
       effectCategories: effect ? resolveEffectCategories(effect.tags) : [],
-      neighbors,
+      viewerSet,
     },
     metadata: toRouteMetadata({
       title: creator ? `${replication.title} by ${creator}` : replication.title,

@@ -1,22 +1,9 @@
-import Link from "next/link";
-
-import { AppImage } from "@/components/common/AppImage";
-import { DefinitionList, DefinitionRow } from "@/components/common/DefinitionList";
-import { Icon } from "@/components/common/Icon";
-import { proseLinkClassName } from "@/components/common/ProseLink";
-import { PublicNameChip, PublicOverline, PublicPill } from "@/components/common/PublicTokens";
-import { PublicContentShell } from "@/components/layout/PublicPagePrimitives";
-import { ContentCard, NestedContentCard, focusRingClassName } from "@/components/ui/surface";
-import { publicHref } from "@/utils/publicHref";
-import type { ReplicationWithUrl } from "@/types/replications";
+import { ReplicationViewer } from "@/features/replications/viewer/ReplicationViewer";
 import {
-  getExternalSourceUrl,
-  getRightsSummary,
-  hasKnownCreator,
-} from "../components/replicationCredit";
-import type { ReplicationNeighborSet } from "../gallery/replicationDetailModel";
-import { ReplicationNeighborKeys } from "./ReplicationNeighborKeys";
-import { buildAttributionLine } from "./replicationAttribution";
+  findViewerIndex,
+  type ReplicationViewerSet,
+} from "@/features/replications/viewer/viewerModel";
+import type { ReplicationWithUrl } from "@/types/replications";
 import type { EffectCategoryLink } from "./replicationSubject";
 
 export interface ReplicationDetailPageProps {
@@ -27,47 +14,19 @@ export interface ReplicationDetailPageProps {
   artistProfileHref: string | null;
   /** Category pages the replicated effect belongs to, broad to specific. */
   effectCategories: EffectCategoryLink[];
-  neighbors: ReplicationNeighborSet;
-}
-
-const FALLBACK_RATIO = 4 / 3;
-
-/** The nav takes its accessible name from the label it already renders. */
-const NEIGHBOR_NAV_LABEL_ID = "replication-neighbors-label";
-
-/**
- * Names the set prev/next moves through. "More by Chelsea Morgan" and "More
- * replications of Tracers" are different claims about where the reader is, so
- * this is built from the set that was actually chosen rather than from whichever
- * subject happens to be on the page.
- */
-function describeNeighborSet(neighbors: ReplicationNeighborSet): string {
-  if (!neighbors.scopeLabel) {
-    return "More replications";
-  }
-
-  return neighbors.scope === "artist"
-    ? `More by ${neighbors.scopeLabel}`
-    : `More replications of ${neighbors.scopeLabel}`;
-}
-
-function formatFileSize(bytes?: number) {
-  if (!bytes || bytes <= 0) return null;
-  const mb = bytes / 1_000_000;
-  return mb >= 1 ? `${mb.toFixed(1)} MB` : `${Math.round(bytes / 1000)} kB`;
-}
-
-function formatDuration(seconds?: number) {
-  if (!seconds || seconds <= 0) return null;
-  const total = Math.round(seconds);
-  return `${Math.floor(total / 60)}:${String(total % 60).padStart(2, "0")}`;
+  /** The full ordered walk the viewer moves through; contains this item. */
+  viewerSet: ReplicationViewerSet;
 }
 
 /**
- * One replication, addressable. The image is the page's subject, so nothing is
- * drawn on top of it — title and credit sit above, provenance and licensing
- * below. That split is what makes the licence legible at the moment someone
- * arrives from a shared link, which is the whole point of the permalink.
+ * One replication, addressable. The media is the page's subject, so nothing is
+ * drawn on top of it — title and credit sit above the stage, provenance and
+ * licensing below. That split is what makes the licence legible at the moment
+ * someone arrives from a shared link, which is the whole point of the
+ * permalink. The page itself is a thin server shell: the stage, the filmstrip,
+ * and the metadata all live in the client viewer, because prev/next moves the
+ * reader between works without a document load and every one of those blocks
+ * has to describe the work actually on the stage.
  */
 export function ReplicationDetailPage({
   replication,
@@ -75,339 +34,28 @@ export function ReplicationDetailPage({
   effectSlug,
   artistProfileHref,
   effectCategories,
-  neighbors,
+  viewerSet,
 }: ReplicationDetailPageProps) {
-  const isVideo = replication.type === "video";
-  const creator = hasKnownCreator(replication.artist) ? replication.artist.trim() : null;
-  const sourceUrl = getExternalSourceUrl(replication);
-  const attribution = buildAttributionLine(replication);
-  const neighborSetLabel = describeNeighborSet(neighbors);
-
-  const width = replication.width ?? 1600;
-  const height = replication.height ?? Math.round(width / FALLBACK_RATIO);
-
-  const fileSize = formatFileSize(replication.file_size);
-  const duration = formatDuration(replication.duration);
-
-  return (
-    <PublicContentShell width="standard" focusTarget>
-      <ReplicationNeighborKeys
-        previousHref={neighbors.previous ? publicHref.replication(neighbors.previous.slug) : null}
-        nextHref={neighbors.next ? publicHref.replication(neighbors.next.slug) : null}
-      />
-
-      {/* Above the image: where you are, what this is, who made it. */}
-      <header className="space-y-3">
-        <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
-          <PublicOverline as={Link} href={publicHref.replications()} className={proseLinkClassName}>
-            Replications
-          </PublicOverline>
-          {effectName && effectSlug ? (
-            <>
-              <span className="theme-text-ghost text-[0.6875rem]" aria-hidden>
-                /
-              </span>
-              <PublicOverline as={Link} href={publicHref.effect(effectSlug)} className={proseLinkClassName}>
-                {effectName}
-              </PublicOverline>
-            </>
-          ) : null}
-        </div>
-
-        <h1 className="theme-accent-heading font-display text-[1.75rem] font-bold tracking-tight sm:text-[2.125rem]">
-          {replication.title}
-        </h1>
-
-        <p className="theme-text-secondary text-sm leading-6">
-          {creator ? (
-            <>
-              by{" "}
-              {artistProfileHref ? (
-                // The credit resolves to a contributor, so the byline goes to
-                // their profile: that is where their other work, their bio, and
-                // now their own website live. Their external site is one link on
-                // that page rather than the destination of every credit.
-                <Link href={artistProfileHref} className={proseLinkClassName}>
-                  {creator}
-                </Link>
-              ) : replication.artist_url ? (
-                // No profile claims this credit. The row's own external link is
-                // then the only destination that exists, so it stays — the
-                // alternative is a byline that links nowhere.
-                <a
-                  href={replication.artist_url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className={proseLinkClassName}
-                >
-                  {creator}
-                </a>
-              ) : (
-                <span className="theme-text-primary font-medium">{creator}</span>
-              )}
-            </>
-          ) : (
-            <span className="theme-text-muted">Creator unknown</span>
-          )}
-        </p>
-      </header>
-
-      {/* The work itself. No overlay, no caption burned into the frame. */}
-      <figure className="mt-6">
-        <div className="overflow-hidden rounded-2xl border border-[color:var(--theme-border-subtle)] bg-[var(--theme-surface-strong)]">
-          {isVideo ? (
-            // No caption track: replications are wordless visual recreations and
-            // the schema carries no caption asset to point at. Muting the player
-            // would satisfy the rule but would misrepresent the work.
-            // Loops because replications are seamless loops; ending on a
-            // freeze-frame misrepresents the work. Controls still allow pause.
-            // eslint-disable-next-line jsx-a11y/media-has-caption
-            <video
-              src={replication.url}
-              poster={replication.thumbnail_url}
-              controls
-              loop
-              playsInline
-              preload="metadata"
-              className="mx-auto block max-h-[72vh] w-full bg-black/20 object-contain"
-            />
-          ) : (
-            <AppImage
-              src={replication.url}
-              alt={replication.title}
-              width={width}
-              height={height}
-              priority
-              sizes="(min-width: 1024px) 56rem, 100vw"
-              className="mx-auto block max-h-[72vh] w-auto max-w-full object-contain"
-            />
-          )}
-        </div>
-
-        <figcaption className="theme-text-faint mt-3 flex flex-wrap items-center gap-x-3 gap-y-2 text-xs">
-          <PublicPill icon={isVideo ? "lucide:video" : "lucide:image"} size="sm">
-            {isVideo ? "Video" : "Image"}
-          </PublicPill>
-          {replication.width && replication.height ? (
-            <span className="tabular-nums">
-              {replication.width} × {replication.height}
-            </span>
-          ) : null}
-          {replication.format ? <span className="uppercase">{replication.format}</span> : null}
-          {duration ? <span className="tabular-nums">{duration}</span> : null}
-          {fileSize ? <span className="tabular-nums">{fileSize}</span> : null}
-          <a
-            href={replication.url}
-            target="_blank"
-            rel="noopener noreferrer"
-            className={`${proseLinkClassName} ml-auto`}
-          >
-            Open full size
-          </a>
-        </figcaption>
-      </figure>
-
-      {/* What the reader is looking at, directly under the work.
-          This used to be a "Replicates" row inside Credit & licence, which
-          answers a different question: that card is about provenance and reuse
-          terms, while the effect is the work's subject and the categories are
-          wayfinding into the taxonomy. Someone who has just looked at the image
-          asks "what is this an effect of, and what else is like it" before they
-          ask who holds the rights, so it belongs against the image rather than
-          buried in a rights table — and it is not repeated in both places. */}
-      {effectName && effectSlug ? (
-        <section className="mt-6" aria-labelledby="replication-subject">
-          <PublicOverline as="h2" id="replication-subject">
-            Replicates
-          </PublicOverline>
-
-          <p className="mt-2">
-            <Link
-              href={publicHref.effect(effectSlug)}
-              className="theme-accent-heading font-display text-xl font-semibold tracking-tight transition-colors hover:text-[var(--theme-accent-strong)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--theme-accent-strong)]"
-            >
-              {effectName}
-            </Link>
-          </p>
-
-          {effectCategories.length > 0 ? (
-            <ul aria-label={`${effectName} categories`} className="mt-3 flex flex-wrap gap-2">
-              {effectCategories.map((category) => (
-                <li key={category.slug}>
-                  <PublicNameChip
-                    as={Link}
-                    href={publicHref.effectCategory(category.slug)}
-                    icon={category.icon}
-                    interactive
-                  >
-                    {category.name}
-                  </PublicNameChip>
-                </li>
-              ))}
-            </ul>
-          ) : null}
-        </section>
-      ) : null}
-
-      {/* Below the image: provenance and the terms you may reuse it under. */}
-      <ContentCard className="mt-8">
-        <h2 className="theme-accent-heading font-display text-lg font-semibold tracking-tight">
-          Credit &amp; licence
-        </h2>
-
-        <DefinitionList className="mt-4 divide-y divide-[color:var(--theme-border-subtle)]">
-          <DefinitionRow
-            semantic
-            term="Creator"
-            termClassName="theme-text-faint text-xs uppercase tracking-[0.18em]"
-            bodyClassName="theme-text-secondary text-sm leading-6"
-          >
-            {creator ?? "Unknown"}
-            {replication.rightsholder && replication.rightsholder !== creator ? (
-              <span className="theme-text-faint"> · rights held by {replication.rightsholder}</span>
-            ) : null}
-          </DefinitionRow>
-
-          <DefinitionRow
-            semantic
-            term="Licence"
-            termClassName="theme-text-faint text-xs uppercase tracking-[0.18em]"
-            bodyClassName="theme-text-secondary text-sm leading-6"
-          >
-            {replication.license_name ? (
-              replication.license_url ? (
-                <a
-                  href={replication.license_url}
-                  target="_blank"
-                  rel="license noopener noreferrer"
-                  className={proseLinkClassName}
-                >
-                  {replication.license_name}
-                </a>
-              ) : (
-                replication.license_name
-              )
-            ) : (
-              getRightsSummary(replication)
-            )}
-            {replication.permission_notes ? (
-              <span className="theme-text-faint block mt-1">{replication.permission_notes}</span>
-            ) : null}
-          </DefinitionRow>
-
-          {sourceUrl ? (
-            <DefinitionRow
-              semantic
-              term="Source"
-              termClassName="theme-text-faint text-xs uppercase tracking-[0.18em]"
-              bodyClassName="text-sm leading-6 break-words"
-            >
-              <a
-                href={sourceUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className={proseLinkClassName}
-              >
-                {sourceUrl}
-              </a>
-            </DefinitionRow>
-          ) : null}
-        </DefinitionList>
-
-        {/* Pre-composed so a reuser can satisfy the attribution requirement by
-            copying one line rather than assembling it from the rows above. */}
-        <NestedContentCard className="mt-5">
-          <p className="theme-text-faint text-xs uppercase tracking-[0.18em]">Attribution</p>
-          <p className="theme-text-secondary mt-2 select-all text-sm leading-6">{attribution}</p>
-        </NestedContentCard>
-
-        <p className="theme-text-faint mt-4 text-xs leading-5">
-          To correct a credit or request removal, see the{" "}
-          <Link href="/docs/license#replication-media-terms" className={proseLinkClassName}>
-            licensing terms
-          </Link>
-          .
-        </p>
-      </ContentCard>
-
-      {neighbors.total > 1 ? (
-        <nav
-          // Labelled by the line it already renders rather than by a duplicate
-          // aria-label, so the name a screen reader announces and the name a
-          // sighted reader sees are the same string by construction.
-          aria-labelledby={NEIGHBOR_NAV_LABEL_ID}
-          className="mt-8 border-t border-[color:var(--theme-border-subtle)] pt-4"
-        >
-          <p
-            id={NEIGHBOR_NAV_LABEL_ID}
-            className="theme-text-faint mb-3 text-center text-[0.6875rem] uppercase tracking-[0.18em]"
-          >
-            {neighborSetLabel}
-          </p>
-
-          <div className="flex items-stretch justify-between gap-3">
-            <NeighborLink neighbor={neighbors.previous} direction="previous" />
-            <p className="theme-text-faint self-center whitespace-nowrap text-xs tabular-nums">
-              {neighbors.position} / {neighbors.total}
-            </p>
-            <NeighborLink neighbor={neighbors.next} direction="next" />
-          </div>
-        </nav>
-      ) : null}
-    </PublicContentShell>
-  );
-}
-
-function NeighborLink({
-  neighbor,
-  direction,
-}: {
-  neighbor: ReplicationNeighborSet["previous"];
-  direction: "previous" | "next";
-}) {
-  const isNext = direction === "next";
-
-  if (!neighbor) {
-    // Hold the column so the counter stays centred at the end of a run.
-    return <span className="min-w-0 flex-1" aria-hidden />;
-  }
+  // The walk selector guarantees the active item is a member of the set it
+  // returns, but this page is the last place able to make that true: a set
+  // that somehow omitted the item it opened on would put some *other* work
+  // under this URL's title and licence metadata. Degrade to a one-item walk
+  // built from the page's own props instead.
+  const set: ReplicationViewerSet =
+    findViewerIndex(viewerSet, replication.slug) >= 0
+      ? viewerSet
+      : {
+          scope: viewerSet.scope,
+          scopeLabel: null,
+          items: [{ replication, effectName, effectSlug, effectCategories, artistProfileHref }],
+        };
 
   return (
-    <Link
-      href={publicHref.replication(neighbor.slug)}
-      rel={isNext ? "next" : "prev"}
-      className={[
-        "group theme-text-muted flex min-w-0 flex-1 items-center gap-3 rounded-xl px-2 py-2 text-sm transition-colors",
-        "hover:text-[var(--theme-accent-strong)] hover:bg-[var(--theme-frosted-control-hover-bg)]",
-        focusRingClassName,
-        isNext ? "flex-row-reverse text-right" : undefined,
-      ]
-        .filter(Boolean)
-        .join(" ")}
-    >
-      <Icon
-        icon={isNext ? "lucide:arrow-right" : "lucide:arrow-left"}
-        className={[
-          "h-4 w-4 shrink-0 transition-transform motion-reduce:transition-none",
-          // Nudge outward in the direction of travel.
-          isNext ? "group-hover:translate-x-0.5" : "group-hover:-translate-x-0.5",
-        ].join(" ")}
-      />
-      {neighbor.thumbnailUrl ? (
-        <AppImage
-          src={neighbor.thumbnailUrl}
-          alt=""
-          width={48}
-          height={48}
-          className="h-10 w-10 shrink-0 rounded-lg border border-[color:var(--theme-border-subtle)] object-cover"
-        />
-      ) : null}
-      <span className="min-w-0">
-        <span className="theme-text-faint block text-[0.6875rem] uppercase tracking-[0.18em]">
-          {isNext ? "Next" : "Previous"}
-        </span>
-        <span className="block truncate">{neighbor.title}</span>
-      </span>
-    </Link>
+    // The stage is full-bleed, so the shell that used to clamp the whole page
+    // to prose width now wraps only the metadata (inside the viewer). This
+    // element keeps the focus target the skip link points at.
+    <main id="main-content" tabIndex={-1} className="min-h-screen w-full pb-20 focus:outline-none">
+      <ReplicationViewer initialSlug={replication.slug} set={set} />
+    </main>
   );
 }
