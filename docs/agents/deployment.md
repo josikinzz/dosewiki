@@ -286,7 +286,7 @@ Importing content into Convex therefore does **not** immediately change the live
 On `effectindex.com`:
 
 - [ ] The homepage leads with the Subjective Effect Index and carries the Effect Index description.
-- [ ] Primary navigation reads Effects, Replications, Reports; About remains secondary and Substances is not advertised.
+- [ ] Primary navigation reads Effects, Replications, Substances, Trip Reports; About remains secondary and the homepage tile grid still omits Substances.
 - [ ] The blog and all four supporting pages resolve: `/donate`, `/contact`, `/discord`, `/copyright-disclaimer`.
 - [ ] A sample effect, substance, report, article and replication page each render.
 - [ ] Page source shows Effect Index in the `<title>`, the Open Graph tags and the JSON-LD structured data.
