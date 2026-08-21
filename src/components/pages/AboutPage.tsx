@@ -47,6 +47,9 @@ const DOC_GRID_COLUMNS =
 /** Eyebrow above the pinned founder card. */
 const FOUNDER_GROUP_LABEL = "Founder";
 
+/** Eyebrow above the pinned staff grid. */
+const STAFF_GROUP_LABEL = "Staff";
+
 /** Eyebrow above the ranked contributor grid. */
 const CONTRIBUTORS_GROUP_LABEL = "Contributors";
 
@@ -58,15 +61,15 @@ function rosterCardHref(entry: ContributorRosterEntry): string {
 }
 
 /**
- * Effect Index's roster panel: the founder in her own labelled region, then everybody else in
- * a directory grid ordered by page credits.
+ * Effect Index's roster panel: the founder in her own labelled region, then the pinned staff
+ * tier, then everybody else in a directory grid ordered by page credits.
  *
- * The founder is a separate region rather than the first grid cell on purpose — a reader has
- * to be able to see *why* she is first, and the position must not depend on her out-ranking
- * everyone on reference count.
+ * The founder and staff are separate regions rather than leading grid cells on purpose — a
+ * reader has to be able to see *why* they come first, and the positions must not depend on
+ * them out-ranking everyone on reference count.
  */
 function ContributorRosterPanel({ roster }: { roster: ContributorRoster }) {
-  const { founder, contributors } = roster;
+  const { founder, staff, contributors } = roster;
 
   return (
     <div className="space-y-8">
@@ -85,6 +88,25 @@ function ContributorRosterPanel({ roster }: { roster: ContributorRoster }) {
             href={rosterCardHref(founder)}
             className="sm:max-w-lg"
           />
+        </div>
+      ) : null}
+
+      {staff.length > 0 ? (
+        <div className="space-y-3">
+          <p className={GROUP_LABEL_CLASSNAME}>{STAFF_GROUP_LABEL}</p>
+          <ul className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+            {staff.map((entry) => (
+              <li key={entry.profile.key}>
+                <ContributorCard
+                  contributor={{
+                    ...entry.profile,
+                    subtitle: formatContributorRosterSubtitle(entry),
+                  }}
+                  href={rosterCardHref(entry)}
+                />
+              </li>
+            ))}
+          </ul>
         </div>
       ) : null}
 
@@ -143,7 +165,9 @@ export const AboutPage = memo(function AboutPage({
   const founders = founderProfiles;
   const hasRosterEntries =
     contributorRoster !== null &&
-    (contributorRoster.founder !== null || contributorRoster.contributors.length > 0);
+    (contributorRoster.founder !== null ||
+      contributorRoster.staff.length > 0 ||
+      contributorRoster.contributors.length > 0);
 
   // One anchor per rendered section, in page order. The ids are the old tab
   // hash ids (`#data` is linked from the About markdown itself), so deep links

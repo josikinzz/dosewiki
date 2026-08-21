@@ -5,6 +5,8 @@ import {
   CURATED_FOUNDERS_SECTION_TITLE,
   EFFECT_INDEX_EXCLUDED_CONTRIBUTOR_KEYS,
   EFFECT_INDEX_FOUNDER_KEY,
+  EFFECT_INDEX_ROLE_OVERRIDES,
+  EFFECT_INDEX_STAFF_KEYS,
   buildContributorRoster,
   collectContributorReferencePages,
   countContributorPageReferences,
@@ -41,7 +43,8 @@ const VISCID = profile("VISCID", "Viscid", { aliases: ["viscid", "mark gillis"] 
 const NERVEWING = profile("NERVEWING", "Nervewing", { aliases: ["nervewing"] });
 const STINGRAYZ = profile("STINGRAYZ", "StingrayZ", { aliases: ["stingrayz"] });
 const RHO = profile("RHO", "Rho", { aliases: ["rho"] });
-const LYREA = profile("LYREA", "Lyrea", { aliases: ["witchy"] });
+// Her stored role says "Founder" because she founded dose.wiki; Effect Index re-badges it.
+const LYREA = profile("LYREA", "Lyrea", { aliases: ["witchy"], role: "Founder" });
 
 const ALL_PROFILES = [JOSIE, KAYTWO, LYREA, NERVEWING, RHO, STINGRAYZ, VISCID];
 
@@ -313,6 +316,55 @@ describe("buildContributorRoster", () => {
     expect(roster.contributors).toHaveLength(ALL_PROFILES.length - 2);
   });
 
+  it("pins staff out of the ranking, between the founder and the contributors", () => {
+    const roster = buildContributorRoster({
+      profiles: ALL_PROFILES,
+      referenceCounts,
+      founderKey: "JOSIE",
+      staffKeys: ["lyrea"],
+    });
+
+    // Matched on the normalized key, like the founder pin.
+    expect(keysOf(roster.staff)).toEqual(["LYREA"]);
+    expect(roster.staff[0]?.referenceCount).toBe(40);
+    // No double-appearance: a staff member leaves the ranked grid entirely, and the
+    // ranking of everybody else is what it was without her.
+    expect(keysOf(roster.contributors)).toEqual([
+      "KAYTWO",
+      "NERVEWING",
+      "STINGRAYZ",
+      "VISCID",
+      "RHO",
+    ]);
+  });
+
+  it("builds an empty staff tier when none is configured", () => {
+    const roster = buildContributorRoster({
+      profiles: ALL_PROFILES,
+      referenceCounts,
+      founderKey: "JOSIE",
+    });
+
+    expect(roster.staff).toEqual([]);
+  });
+
+  it("attaches role overrides as display-only data, leaving the profile untouched", () => {
+    const roster = buildContributorRoster({
+      profiles: ALL_PROFILES,
+      referenceCounts,
+      founderKey: "JOSIE",
+      staffKeys: ["LYREA"],
+      roleOverrides: { lyrea: "Administrator" },
+    });
+
+    expect(roster.staff[0]?.roleOverride).toBe("Administrator");
+    // The very same profile object, stored role and all — nothing was rewritten.
+    expect(roster.staff[0]?.profile).toBe(LYREA);
+    expect(roster.staff[0]?.profile.role).toBe("Founder");
+    // Nobody outside the override map picks one up.
+    expect(roster.contributors.every((entry) => entry.roleOverride === undefined)).toBe(true);
+  });
+
   it("still renders a roster when the pinned founder has no profile", () => {
     const roster = buildContributorRoster({
       profiles: [KAYTWO, RHO],
@@ -346,23 +398,24 @@ describe("selectAboutContributors", () => {
 
     const listed = [
       ...(selection.roster?.founder ? [selection.roster.founder.profile.key] : []),
+      ...(selection.roster?.staff ?? []).map((entry) => entry.profile.key),
       ...(selection.roster?.contributors ?? []).map((entry) => entry.profile.key),
     ];
 
     expect(listed).toEqual([
       "JOSIE",
+      "LYREA",
       "KAYTWO",
       "NERVEWING",
-      "LYREA",
       "STINGRAYZ",
       "VISCID",
       "RHO",
     ]);
-    // Every profile appears, not just the curated founder subset.
+    // Every profile appears exactly once across the three tiers.
     expect(listed).toHaveLength(ALL_PROFILES.length);
   });
 
-  it("lists Lyrea on both publications now that her reviews count as contributions", () => {
+  it("lists Lyrea on both publications: pinned staff here, curated founder on dose.wiki", () => {
     const effectIndex = selectAboutContributors({
       isEffectIndex: true,
       allProfiles: ALL_PROFILES,
@@ -377,13 +430,44 @@ describe("selectAboutContributors", () => {
     });
 
     expect(EFFECT_INDEX_EXCLUDED_CONTRIBUTOR_KEYS).toEqual([]);
+    expect(EFFECT_INDEX_STAFF_KEYS).toEqual(["LYREA"]);
+    // Staff, not contributor: she appears once, in the pinned tier above the ranking.
+    expect((effectIndex.roster?.staff ?? []).map((entry) => entry.profile.key)).toEqual(["LYREA"]);
     expect(
       (effectIndex.roster?.contributors ?? []).map((entry) => entry.profile.key),
-    ).toContain("LYREA");
-    // The founder pin is unaffected: reviews rank her, they do not promote her.
+    ).not.toContain("LYREA");
+    // The founder pin is unaffected: the staff tier sits below her, not in her slot.
     expect(effectIndex.roster?.founder?.profile.key).toBe("JOSIE");
 
     expect(dosewiki.founderProfiles.map((entry) => entry.key)).toContain("LYREA");
+  });
+
+  it("re-badges Lyrea as Administrator on Effect Index without touching her stored role", () => {
+    const effectIndex = selectAboutContributors({
+      isEffectIndex: true,
+      allProfiles: ALL_PROFILES,
+      curatedFounderProfiles,
+      referenceCounts,
+    });
+    const dosewiki = selectAboutContributors({
+      isEffectIndex: false,
+      allProfiles: ALL_PROFILES,
+      curatedFounderProfiles,
+      referenceCounts,
+    });
+
+    expect(EFFECT_INDEX_ROLE_OVERRIDES).toEqual({ LYREA: "Administrator" });
+
+    const staffLyrea = effectIndex.roster?.staff.find((entry) => entry.profile.key === "LYREA");
+    expect(staffLyrea?.roleOverride).toBe("Administrator");
+    // The card's credit line keeps the familiar `role · count` shape.
+    expect(staffLyrea && formatContributorRosterSubtitle(staffLyrea)).toBe(
+      "Administrator · 40 pages",
+    );
+    // She did found dose.wiki: the stored role stays "Founder" and the curated branch
+    // hands the profile through untouched.
+    expect(staffLyrea?.profile.role).toBe("Founder");
+    expect(dosewiki.founderProfiles.find((entry) => entry.key === "LYREA")?.role).toBe("Founder");
   });
 
   it("leaves dose.wiki's curated list, its order and its heading untouched", () => {
@@ -421,7 +505,7 @@ describe("selectAboutContributors", () => {
       curatedFounderProfiles: [],
     });
 
-    expect(selection.roster).toEqual({ founder: null, contributors: [] });
+    expect(selection.roster).toEqual({ founder: null, staff: [], contributors: [] });
   });
 });
 
@@ -446,6 +530,22 @@ describe("contributor credit lines", () => {
     expect(formatContributorRosterSubtitle({ profile: RHO, referenceCount: 12 })).toBe("12 pages");
     // No role, no references: nothing to say, so the card falls back to its `@key` subtitle.
     expect(formatContributorRosterSubtitle({ profile: RHO, referenceCount: 0 })).toBeUndefined();
+  });
+
+  it("prefers the roster's display override over the stored role and any fallback", () => {
+    const overridden: ContributorRosterEntry = {
+      profile: profile("LYREA", "Lyrea", { role: "Founder" }),
+      referenceCount: 141,
+      roleOverride: "Administrator",
+    };
+
+    expect(formatContributorRosterSubtitle(overridden)).toBe("Administrator · 141 pages");
+    expect(formatContributorRosterSubtitle({ ...overridden, referenceCount: 0 })).toBe(
+      "Administrator",
+    );
+    expect(formatContributorRosterSubtitle(overridden, { roleFallback: "Founder" })).toBe(
+      "Administrator · 141 pages",
+    );
   });
 
   it("uses the supplied role fallback only when the profile carries none", () => {

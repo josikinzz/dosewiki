@@ -193,7 +193,8 @@ describe("AboutPage contributor roster", () => {
   const nervewing = contributorProfile("NERVEWING", "Nervewing", { aliases: ["nervewing"] });
   const stingrayz = contributorProfile("STINGRAYZ", "StingrayZ", { aliases: ["stingrayz"] });
   const rho = contributorProfile("RHO", "Rho");
-  const lyrea = contributorProfile("LYREA", "Lyrea", { aliases: ["witchy"] });
+  // Stored role from dose.wiki, which she founded; Effect Index re-badges it in display.
+  const lyrea = contributorProfile("LYREA", "Lyrea", { aliases: ["witchy"], role: "Founder" });
 
   const allProfiles = [josie, kaytwo, lyrea, nervewing, rho, stingrayz];
   // Josie is deliberately *not* the most-referenced profile, so her position can only come
@@ -256,30 +257,50 @@ describe("AboutPage contributor roster", () => {
     expect(within(panel).queryByText(/witchy/i)).not.toBeInTheDocument();
   });
 
-  it("puts the founder in her own labelled region ahead of the ranked grid", () => {
+  it("puts the founder in her own labelled region ahead of the pinned and ranked grids", () => {
     const panel = renderRosterSection();
 
-    // Structural, not a sort result: the founder card sits outside the contributor grid.
-    const grid = within(panel).getByRole("list");
+    // Structural, not a sort result: the founder card sits outside every grid.
+    const grids = within(panel).getAllByRole("list");
     const founderLink = within(panel).getByRole("link", { name: /josie kins/i });
 
-    expect(grid.contains(founderLink)).toBe(false);
+    expect(grids.some((grid) => grid.contains(founderLink))).toBe(false);
     expect(within(panel).getByText("Founder")).toBeInTheDocument();
     expect(within(panel).getAllByRole("link")[0]).toBe(founderLink);
     expect(founderLink).toHaveTextContent("Founder · 3 pages");
   });
 
+  it("puts Lyrea in a Staff region between the founder and the ranked grid, badged Administrator", () => {
+    const panel = renderRosterSection();
+
+    const [staffGrid, rankedGrid] = within(panel).getAllByRole("list");
+    const lyreaLink = within(panel).getByRole("link", { name: /lyrea/i });
+
+    // Staff sits in its own labelled grid above the contributors...
+    expect(within(panel).getByText("Staff")).toBeInTheDocument();
+    expect(staffGrid?.contains(lyreaLink)).toBe(true);
+    // ...and not in the ranked grid, so she never appears twice.
+    expect(rankedGrid?.contains(lyreaLink)).toBe(false);
+    // Region order: the founder card first, then staff, then everybody else.
+    expect(within(panel).getAllByRole("link").indexOf(lyreaLink)).toBe(1);
+    // Flavor-scoped title: her stored role says Founder, this publication prints
+    // Administrator, in the same `role · count` credit-line shape as every card.
+    expect(lyreaLink).toHaveTextContent("Administrator · 40 pages");
+    expect(lyreaLink).not.toHaveTextContent("Founder");
+  });
+
   it("orders the remaining contributors by page references, descending, zeroes last", () => {
     const panel = renderRosterSection();
 
-    const ranked = within(within(panel).getByRole("list"))
+    // The ranked grid is the last list; the staff grid sits above it.
+    const grids = within(panel).getAllByRole("list");
+    const ranked = within(grids[grids.length - 1]!)
       .getAllByRole("link")
       .map((link) => link.getAttribute("href"));
 
     expect(ranked).toEqual([
       "/contributors/kaytwo",
       "/contributors/nervewing",
-      "/contributors/lyrea",
       "/contributors/stingrayz",
       "/contributors/rho",
     ]);
@@ -341,6 +362,8 @@ describe("AboutPage contributor roster", () => {
     expect(within(panel).getByRole("list").className).toBe("grid gap-4 sm:grid-cols-2");
     expect(within(panel).queryByText(/ordered by the number of pages/i)).not.toBeInTheDocument();
     expect(within(panel).queryByText("Founder")).not.toBeInTheDocument();
+    expect(within(panel).queryByText("Staff")).not.toBeInTheDocument();
+    expect(within(panel).queryByText(/administrator/i)).not.toBeInTheDocument();
     expect(within(panel).queryByText(/pages$/)).not.toBeInTheDocument();
   });
 });

@@ -8,8 +8,9 @@
  *   (`siteConfig.founderProfileKeys`). Nothing in this module changes that: the dose.wiki
  *   branch returns those profiles untouched, in the editor's order.
  * - **Effect Index** lists *every* contributor profile, with Josie Kins pinned first as the
- *   site's founder and everybody else ordered by how many pages credit them. `isRosterMember`
- *   is where "every" is decided, and it is the only place.
+ *   site's founder, a pinned Staff tier below her (`EFFECT_INDEX_STAFF_KEYS`), and everybody
+ *   else ordered by how many pages credit them. `isRosterMember` is where "every" is decided,
+ *   and it is the only place.
  *
  * Everything here is pure and takes the flavor as an argument, so both branches are testable
  * in one run without rebuilding the module graph.
@@ -76,6 +77,25 @@ export const EFFECT_INDEX_FOUNDER_ROLE_FALLBACK = "Founder";
  * that premise no longer holds. The mechanism stays for the next editorial exclusion.
  */
 export const EFFECT_INDEX_EXCLUDED_CONTRIBUTOR_KEYS: readonly string[] = [];
+
+/**
+ * Profiles pinned into the Effect Index roster's Staff tier, rendered between the founder
+ * and the ranked contributor grid. Like the founder pin, membership is by profile key: the
+ * key is the stable identity, and being staff is an editorial fact about the publication
+ * rather than something derivable from reference counts.
+ */
+export const EFFECT_INDEX_STAFF_KEYS: readonly string[] = ["LYREA"];
+
+/**
+ * Display-only role overrides for the Effect Index roster, keyed by profile key. The stored
+ * profile `role` is shared by both publications, and Lyrea's says "Founder" because she
+ * founded dose.wiki — a claim that is true there and wrong on Effect Index, which she did
+ * not found. The override changes what one flavor's card prints; the profile itself, and
+ * dose.wiki's rendering of it, are untouched.
+ */
+export const EFFECT_INDEX_ROLE_OVERRIDES: Readonly<Record<string, string>> = {
+  LYREA: "Administrator",
+};
 
 /**
  * Whether one profile belongs on the contributor roster. **This is the whole membership
@@ -332,6 +352,12 @@ export type ContributorRosterEntry = {
   readonly profile: NormalizedUserProfile;
   /** Distinct pages that credit this contributor. `0` is a real, renderable value. */
   readonly referenceCount: number;
+  /**
+   * Publication-scoped display title, when this roster's flavor disagrees with the stored
+   * profile `role`. Takes precedence over `profile.role` in the credit line; the profile
+   * itself is never mutated.
+   */
+  readonly roleOverride?: string;
 };
 
 /**
@@ -341,6 +367,8 @@ export type ContributorRosterEntry = {
  */
 export type ContributorRoster = {
   readonly founder: ContributorRosterEntry | null;
+  /** Pinned staff tier, rendered between the founder and the ranked contributors. */
+  readonly staff: readonly ContributorRosterEntry[];
   readonly contributors: readonly ContributorRosterEntry[];
 };
 
@@ -349,6 +377,10 @@ export type BuildContributorRosterInput = {
   readonly referenceCounts: ReadonlyMap<string, number>;
   /** Profile pinned out of the sort and presented as the founder. */
   readonly founderKey?: string;
+  /** Profiles pinned out of the sort into the Staff tier, above the ranked contributors. */
+  readonly staffKeys?: readonly string[];
+  /** Display-only role titles by profile key, overriding the stored `role` on this roster. */
+  readonly roleOverrides?: Readonly<Record<string, string>>;
   /** Profiles dropped from this publication's roster entirely. */
   readonly excludedKeys?: readonly string[];
 };
@@ -377,12 +409,19 @@ export function buildContributorRoster({
   profiles,
   referenceCounts,
   founderKey,
+  staffKeys = [],
+  roleOverrides = {},
   excludedKeys = [],
 }: BuildContributorRosterInput): ContributorRoster {
   const excluded = new Set(excludedKeys.map((key) => normalizeProfileKey(key)).filter(Boolean));
   const normalizedFounderKey = normalizeProfileKey(founderKey ?? "");
+  const staffKeySet = new Set(staffKeys.map((key) => normalizeProfileKey(key)).filter(Boolean));
+  const overridesByKey = new Map(
+    Object.entries(roleOverrides).map(([key, role]) => [normalizeProfileKey(key), role]),
+  );
 
   let founder: ContributorRosterEntry | null = null;
+  const staff: ContributorRosterEntry[] = [];
   const contributors: ContributorRosterEntry[] = [];
 
   for (const profile of profiles) {
@@ -390,13 +429,22 @@ export function buildContributorRoster({
       continue;
     }
 
+    const roleOverride = overridesByKey.get(profile.key);
     const entry: ContributorRosterEntry = {
       profile,
       referenceCount: referenceCounts.get(profile.key) ?? 0,
+      ...(roleOverride ? { roleOverride } : {}),
     };
 
     if (normalizedFounderKey && profile.key === normalizedFounderKey && !founder) {
       founder = entry;
+      continue;
+    }
+
+    // Pinned like the founder: staff membership is editorial, not count-derived, so it is
+    // decided before the membership policy runs and cannot be narrowed away by it.
+    if (staffKeySet.has(profile.key)) {
+      staff.push(entry);
       continue;
     }
 
@@ -408,7 +456,11 @@ export function buildContributorRoster({
     contributors.push(entry);
   }
 
-  return { founder, contributors: contributors.sort(compareRosterEntries) };
+  return {
+    founder,
+    staff: staff.sort(compareRosterEntries),
+    contributors: contributors.sort(compareRosterEntries),
+  };
 }
 
 /* ------------------------------------------------------------------ flavored selection */
@@ -458,6 +510,8 @@ export function selectAboutContributors({
       profiles: allProfiles,
       referenceCounts,
       founderKey: EFFECT_INDEX_FOUNDER_KEY,
+      staffKeys: EFFECT_INDEX_STAFF_KEYS,
+      roleOverrides: EFFECT_INDEX_ROLE_OVERRIDES,
       excludedKeys: EFFECT_INDEX_EXCLUDED_CONTRIBUTOR_KEYS,
     }),
     sectionTitle: CONTRIBUTOR_ROSTER_SECTION_TITLE,
@@ -479,13 +533,15 @@ export function formatContributorReferenceCount(referenceCount: number): string 
 /**
  * Credit line under a roster card: the contributor's title, their page count, or both.
  * `undefined` when neither exists, which lets `ContributorCard` fall back to its `@key`
- * subtitle rather than rendering an empty separator.
+ * subtitle rather than rendering an empty separator. A roster-scoped `roleOverride`
+ * outranks the stored profile `role`, which outranks the caller's fallback.
  */
 export function formatContributorRosterSubtitle(
   entry: ContributorRosterEntry,
   options: { roleFallback?: string } = {},
 ): string | undefined {
-  const role = entry.profile.role?.trim() || options.roleFallback?.trim() || "";
+  const role =
+    entry.roleOverride?.trim() || entry.profile.role?.trim() || options.roleFallback?.trim() || "";
   const parts = [role, formatContributorReferenceCount(entry.referenceCount) ?? ""].filter(Boolean);
 
   return parts.length > 0 ? parts.join(" · ") : undefined;
