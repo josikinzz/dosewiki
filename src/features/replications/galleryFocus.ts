@@ -1,21 +1,29 @@
 import type { ContributorDirectory } from '@server/contributorDirectory';
+import { findContributorProfileByAuthorName } from '@server/contributorProfileIdentity';
 import type { PublicGalleryReplicationPreview } from '@/types/replications';
+import { hasKnownCreator } from '@/features/effects/components/replicationCredit';
 import {
+  artistIdentity,
+  artistUrlKey,
   effectHrefBuilder,
   effectNameLookup,
   galleryGroupUrlKey,
   groupByArtist,
   groupByEffect,
   isDisplayable,
+  isWithheldFromArtistViews,
+  UNATTRIBUTED_KEY,
+  UNKNOWN_ARTIST_URL_KEY,
   type GalleryGroup,
   type GalleryMode,
 } from '@/features/effects/gallery/galleryModel';
+import { getPublicRoutePath } from '@/utils/publicRouteIdentity';
 import type { GalleryFocus } from './galleryUrlState';
 
 /**
  * A focus URL resolved against the visible gallery corpus. `group.href` is the
- * contributor profile for a known artist and the effect article for an effect
- * — exactly what the group's heading links to in browse mode.
+ * Artist Page for a known artist and the effect article for an effect —
+ * exactly what the group's heading links to in browse mode.
  */
 export interface ResolvedGalleryFocus {
   kind: GalleryMode;
@@ -64,4 +72,142 @@ export function resolveGalleryFocus(
   }
 
   return { kind: focus.kind, key: focus.key, label: group.label, group };
+}
+
+/**
+ * THE ARTIST PAGE ADDRESS DECISION (Replication Surfaces T-4).
+ *
+ * Every credited artist has exactly one public surface, and it lives at
+ * /replications/artist/<key> — the Gallery Focus View address — decorated
+ * with avatar, bio, and links when a Contributor Profile claims the credit
+ * line. /contributors/<profileKey> permanently forwards here whenever the
+ * profile claims a credited artist with displayable works.
+ *
+ * Why this address won:
+ *
+ *  - Key space. The artist key space derives from the works themselves
+ *    (`artistUrlKey`: slugified credit lines plus `unknown` for the
+ *    Unattributed bucket), so it addresses every credited artist — claimed,
+ *    unclaimed, and Unattributed alike. The profile key space can only ever
+ *    address claimed profiles; merging there would strand profile-less
+ *    artists on a second surface, which is the situation being retired.
+ *  - Playlists. Artist playlists mount on the Gallery Focus View addresses
+ *    (spec §4 "Playlists are pages"); killing this address would orphan the
+ *    artist walk that every gallery tile already emits (`?set=artist:<key>`).
+ *  - Inbound links survive either way. Both address families sit in the
+ *    sitemap and both are emitted internally (profile links from bylines and
+ *    credit lines, artist links from rails, decks, and focus URLs). Under a
+ *    permanent redirect neither family breaks — but only this direction
+ *    leaves zero live duplicates, because a work-less contributor's profile
+ *    (a reviewer, an article author) is not an artist surface and simply
+ *    keeps rendering at /contributors/<key>.
+ */
+
+/**
+ * The canonical Artist Page href for one credited work, or `null` when the
+ * work cannot prove such a page exists: an unattributed credit (the bucket
+ * page never claims a byline) or a work withheld from artist views (its
+ * artist may hold nothing else, in which case the route 404s). Callers keep
+ * their contributor-profile fallback for the withheld case — a profile that
+ * survives the merge is exactly one whose artist has no page here.
+ */
+export function artistPageHrefForWork(
+  row: Pick<PublicGalleryReplicationPreview, 'artist' | 'effect_slug'>,
+): string | null {
+  if (!hasKnownCreator(row.artist) || isWithheldFromArtistViews(row)) {
+    return null;
+  }
+  return getPublicRoutePath({
+    family: 'replicationArtist',
+    params: { key: artistUrlKey(row.artist) },
+  });
+}
+
+/**
+ * The profile key that decorates an artist group's page, or `null` for an
+ * unclaimed credit line. The Unattributed bucket never resolves: it is not a
+ * credit line anybody is stored under, and its page carries no identity
+ * claims by design. Matching goes through the shared alias-aware matcher, so
+ * the decoration and the heading link can never disagree about which profile
+ * a credit belongs to.
+ */
+export function resolveArtistPageProfileKey(
+  group: Pick<GalleryGroup, 'key' | 'label'>,
+  contributorDirectory: ContributorDirectory,
+): string | null {
+  if (group.key === UNATTRIBUTED_KEY) {
+    return null;
+  }
+  return findContributorProfileByAuthorName(contributorDirectory, group.label)?.key ?? null;
+}
+
+/**
+ * Which Artist Page each Contributor Profile forwards to: uppercase profile
+ * key → artist URL key, for every profile that claims a credit line with at
+ * least one displayable, non-withheld work. Profiles absent from the map have
+ * no artist surface and keep rendering their contributor page.
+ *
+ * A profile claimed by several distinct credit lines (aliases that do not
+ * fold by case alone) forwards to the largest body of work; ties break on the
+ * artist key so the target survives corpus reorderings.
+ */
+export function mapArtistPageKeysByProfile(
+  // Structural rather than a Pick: the sitemap route plan carries a narrower
+  // row (every field optional) than the gallery preview does.
+  replications: readonly { artist?: string | null; effect_slug?: string; url?: string | null }[],
+  contributorDirectory: ContributorDirectory,
+): Map<string, string> {
+  const groups = new Map<string, { label: string; count: number }>();
+  for (const row of replications) {
+    if (!row.url || isWithheldFromArtistViews(row)) {
+      continue;
+    }
+    const { key, label } = artistIdentity(row.artist);
+    if (key === UNATTRIBUTED_KEY) {
+      continue;
+    }
+    const group = groups.get(key);
+    if (group) {
+      group.count += 1;
+    } else {
+      groups.set(key, { label, count: 1 });
+    }
+  }
+
+  const bestCounts = new Map<string, { artistKey: string; count: number }>();
+  const targets = new Map<string, string>();
+  for (const { label, count } of groups.values()) {
+    const profile = findContributorProfileByAuthorName(contributorDirectory, label);
+    if (!profile) {
+      continue;
+    }
+    const profileKey = profile.key.trim().toUpperCase();
+    const artistKey = artistUrlKey(label);
+    const incumbent = bestCounts.get(profileKey);
+    if (
+      !incumbent ||
+      count > incumbent.count ||
+      (count === incumbent.count && artistKey < incumbent.artistKey)
+    ) {
+      bestCounts.set(profileKey, { artistKey, count });
+      targets.set(profileKey, artistKey);
+    }
+  }
+
+  return targets;
+}
+
+/**
+ * Retired artist URL keys that forward to a live one. The "Anonymous" marker
+ * section folded into the Unattributed bucket (see `hasKnownCreator`), so its
+ * old /replications/artist/anonymous address forwards to the bucket's page.
+ * Consulted only after `resolveGalleryFocus` comes up empty: a live group
+ * always answers its own key, so no real artist's address can be captured.
+ */
+const RETIRED_ARTIST_KEY_ALIASES: Record<string, string> = {
+  anonymous: UNKNOWN_ARTIST_URL_KEY,
+};
+
+export function getRetiredArtistKeyAlias(key: string): string | null {
+  return RETIRED_ARTIST_KEY_ALIASES[key.trim().toLowerCase()] ?? null;
 }

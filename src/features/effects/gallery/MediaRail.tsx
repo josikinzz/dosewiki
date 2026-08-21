@@ -9,6 +9,7 @@ import { cn } from '@/lib/utils';
 import type { PublicGalleryReplicationPreview } from '@/types/replications';
 import { GalleryMediaTile } from './GalleryMediaTile';
 import type { GalleryGroup } from './galleryModel';
+import type { ViewerSetParam } from '@/features/replications/viewer/viewerLogic';
 
 /** Items shown inline in a rail before "View all" takes over. */
 const RAIL_PREVIEW_LIMIT = 14;
@@ -36,6 +37,12 @@ interface MediaRailProps {
   mobileCompact?: boolean;
   /** Forwarded to each tile as `onOpen` (phone tap-to-deck interception). */
   onTileOpen?: (event: React.MouseEvent, replication: PublicGalleryReplicationPreview) => void;
+  /**
+   * Forwarded to each tile as `setParam`: the viewer scope this rail stands
+   * for (an artist rail emits `artist:<key>`), so a tapped work opens walking
+   * this rail's playlist.
+   */
+  tileSetParam?: ViewerSetParam | null;
 }
 
 export function MediaRail({
@@ -44,6 +51,7 @@ export function MediaRail({
   tileBylines = true,
   mobileCompact,
   onTileOpen,
+  tileSetParam = null,
 }: MediaRailProps) {
   const preview = group.items.slice(0, RAIL_PREVIEW_LIMIT);
   const hasMore = group.count > preview.length;
@@ -93,20 +101,22 @@ export function MediaRail({
   /**
    * What the group's name does.
    *
-   * An artist's name belongs to their profile page: that is where their whole
-   * body of work, their bio and their own links live, and it is where every
+   * An artist's name belongs to their Artist Page: every credited artist's one
+   * public surface, where their whole body of work, their bio and their own
+   * links live (decorated by a claimed Contributor Profile), and where every
    * other credit line on the site already points. Their personal site is still
    * worth reaching — it just is not what their *name* means — so when both
    * exist it becomes a separate arrow beside the name rather than disappearing.
    *
    * Dropping the external link entirely was the tempting simplification, since
-   * the profile page renders `links[]`. It is wrong on this data: of the fifty
-   * artists carrying an `artist_url`, nineteen have a URL that is not on their
-   * profile at all, so removing it here would quietly make those unreachable.
+   * a claimed profile renders `links[]` on the page. It is wrong on this data:
+   * of the fifty artists carrying an `artist_url`, nineteen have a URL that is
+   * not on their profile at all, so removing it here would quietly make those
+   * unreachable.
    *
-   * An artist with no profile keeps exactly today's behaviour — external link if
-   * they have a usable one, plain text otherwise. Effect groups only ever have
-   * an `href`, so this whole branch is inert for them.
+   * Only the unattributed bucket has no `href` at all — its heading claims no
+   * identity — so it keeps the external link or plain text. Effect groups only
+   * ever have an `href`, so the fallback branches are inert for them.
    */
   const heading = group.href ? (
     <span className="flex min-w-0 items-center gap-1.5">
@@ -176,6 +186,7 @@ export function MediaRail({
               showByline={tileBylines}
               mobileCompact={mobileCompact}
               onOpen={onTileOpen}
+              setParam={tileSetParam}
             />
           ))}
           {hasMore ? (

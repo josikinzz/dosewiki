@@ -146,6 +146,13 @@ describe("save user profile route operation envelope", () => {
       },
     });
     expect(nextCacheMocks.revalidatePath).toHaveBeenCalledWith("/contributors/editor");
+    // The profile decorates its Artist Page (avatar, bio, links), so a save
+    // must land there too — this is what makes an edit visible on the merged
+    // surface, not only on the (now forwarding) /contributors address.
+    expect(nextCacheMocks.revalidatePath).toHaveBeenCalledWith(
+      "/replications/artist/[key]",
+      "page",
+    );
     expect(nextCacheMocks.revalidatePath).toHaveBeenCalledWith("/about");
     expect(mocks.invalidatePublicDerivedDataCache).toHaveBeenCalledWith({
       source: "save-user-profile",

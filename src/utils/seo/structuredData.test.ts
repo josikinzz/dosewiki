@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import type { SubstanceArticle } from "../../schema";
 import {
   buildItemListSchema,
+  buildReplicationSchema,
   buildSubjectiveEffectSchema,
   buildSubstanceSchema,
   serializeJsonLd,
@@ -295,5 +296,31 @@ describe("structured data under the Effect Index flavor", () => {
       url: "https://effectindex.com/effects",
       description: "Drifting subjective effect entry in Effect Index.",
     });
+  });
+});
+
+describe("replication structured data", () => {
+  const input = {
+    slug: "tree-bark-chelsea-morgan",
+    title: "Tree Bark",
+    type: "image" as const,
+    contentUrl: "https://assets.test/tree-bark.jpg",
+  };
+  const url = "https://dosewiki-admin.vercel.app/replications/tree-bark-chelsea-morgan";
+
+  it("names a known creator as a Person", () => {
+    const schema = buildReplicationSchema({ ...input, artist: "Chelsea Morgan" }, url);
+    expect(schema.creator).toEqual({ "@type": "Person", name: "Chelsea Morgan", url: undefined });
+    expect(schema.copyrightNotice).toBe("Chelsea Morgan");
+  });
+
+  it("asserts no creator for the folded unattributed markers", () => {
+    // "Unknown" and "Anonymous" mark the absence of a creator (T-1); the
+    // JSON-LD must not publish a Person the page itself refuses to name.
+    for (const artist of ["Unknown", "Anonymous"]) {
+      const schema = buildReplicationSchema({ ...input, artist }, url);
+      expect(schema.creator).toBeUndefined();
+      expect(schema.copyrightNotice).toBeUndefined();
+    }
   });
 });

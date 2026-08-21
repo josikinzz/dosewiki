@@ -10,6 +10,7 @@ import type { Reference } from "../../schema/substance/shared";
 import type { SubjectiveEffectArticle } from "../../features/effects/articleSectionModel";
 import { SITE_FLAVOR_CONFIG, type SiteFlavorConfig } from "../../config/siteFlavor";
 import { stripCitationTokens } from "../../lib/citations/citationTokens";
+import { hasKnownCreator } from "../../features/effects/components/replicationCredit";
 
 /**
  * Schema.org Article type for substance profiles.
@@ -492,7 +493,9 @@ export function buildReplicationSchema(
 ): MediaObjectSchema {
   const siteUrl = getSchemaSiteUrl(url, config);
   const creator = cleanText(input.artist);
-  const hasNamedCreator = Boolean(creator && creator.toLowerCase() !== "unknown");
+  // `hasKnownCreator` folds the unattributed markers ("Unknown", "Anonymous"),
+  // so the JSON-LD never asserts a Person that the page itself refuses to name.
+  const hasNamedCreator = hasKnownCreator(creator);
 
   return {
     "@context": "https://schema.org",

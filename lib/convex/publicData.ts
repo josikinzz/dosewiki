@@ -30,7 +30,6 @@ export {
   getOwnedContributorProfile,
   getPublicContributorByKey,
   getPublicContributorDirectory,
-  getPublicContributorKeys,
   getPublicContributorProfiles,
 } from "./publicData.contributors";
 

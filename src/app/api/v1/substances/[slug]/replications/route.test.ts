@@ -9,11 +9,28 @@ const mocks = vi.hoisted(() => ({
   enforceRateLimit: vi.fn(),
 }));
 
+// The route now delegates to `loadSubstanceReplicationWalk`
+// (@server/next/routeLoaders.replications), so the mock module must satisfy
+// every read that loader module binds, and react's `cache` must be identity —
+// its memoization would otherwise leak one test's walk into the next.
+vi.mock("server-only", () => ({}));
+vi.mock("react", async () => {
+  const actual = await vi.importActual<typeof import("react")>("react");
+  return {
+    ...actual,
+    cache: <T extends (...args: never[]) => unknown>(fn: T) => fn,
+  };
+});
 vi.mock("@server/convex/publicData", () => ({
   getPublicReplicationsForSubstance: mocks.getPublicReplicationsForSubstance,
   getPublicSubstanceBySlug: mocks.getPublicSubstanceBySlug,
   getPublicEffectBySlug: mocks.getPublicEffectBySlug,
   getPublicContributorProfiles: mocks.getPublicContributorProfiles,
+  getPublicContributorDirectory: vi.fn(async () => []),
+  getPublicReplications: vi.fn(async () => []),
+  getPublicReplicationBySlug: vi.fn(),
+  getPublicReplicationsByEffect: vi.fn(async () => []),
+  getPublicSubstances: vi.fn(async () => []),
 }));
 vi.mock("@server/http/nextRateLimit", () => ({ enforceRateLimit: mocks.enforceRateLimit }));
 
@@ -89,7 +106,9 @@ describe("substance replication viewer-set API", () => {
       replication: { slug: "tracers-hand-wave" },
       effectName: "Tracers",
       effectSlug: "tracers",
-      artistProfileHref: "/contributors/chelsea",
+      // T-4's cutover: a credited artist's byline resolves to their Artist
+      // Page, not the contributor profile it used to name.
+      artistProfileHref: "/replications/artist/chelsea-morgan",
     });
     expect(body.items[0].effectCategories.length).toBeGreaterThan(0);
     // The fallback slug names a real page even though this deployment's effect

@@ -13,8 +13,22 @@ const RIGHTS_STATUS_LABELS: Record<string, string> = {
   'public-domain': 'Marked as public domain.',
 };
 
+/**
+ * Credit lines that mark the *absence* of an attributable creator rather than
+ * naming one. "Unknown" is the corpus's empty-credit marker; "Anonymous" is
+ * the marker contributor profile whose works fold into the Unattributed
+ * bucket (T-1) — the word must never render as a creator on replication
+ * surfaces. "Various artists" and "Midjourney" are markers too, but there the
+ * marker *is* the credit, so they stay known creators with their own sections.
+ */
+const UNATTRIBUTED_CREDIT_MARKERS: Record<string, true> = {
+  unknown: true,
+  anonymous: true,
+};
+
 export function hasKnownCreator(artist?: string | null) {
-  return Boolean(artist && artist.trim() && artist.trim().toLowerCase() !== 'unknown');
+  const marker = artist?.trim().toLowerCase();
+  return Boolean(marker && !UNATTRIBUTED_CREDIT_MARKERS[marker]);
 }
 
 /**

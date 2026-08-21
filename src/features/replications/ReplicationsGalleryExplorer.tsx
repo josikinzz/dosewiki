@@ -1,6 +1,6 @@
 'use client';
 
-import { Suspense, useEffect, useMemo, useRef, useState } from 'react';
+import { Suspense, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Icon } from '@/components/common/Icon';
@@ -8,6 +8,14 @@ import { Button } from '@/components/ui/button';
 import { proseLinkClassName } from '@/components/common/ProseLink';
 import { SearchEmptyState } from '@/components/common/SearchEmptyState';
 import { Input } from '@/components/ui/input';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { focusRingClassName } from '@/components/ui/surface';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { cn } from '@/lib/utils';
@@ -15,7 +23,10 @@ import type { ContributorDirectory } from '@server/contributorDirectory';
 import type { PublicGalleryReplicationPreview } from '@/types/replications';
 import { GalleryMediaTile } from '@/features/effects/gallery/GalleryMediaTile';
 import { MediaRail } from '@/features/effects/gallery/MediaRail';
+import type { ViewerSetParam } from '@/features/replications/viewer/viewerLogic';
 import {
+  DEFAULT_GALLERY_ARTIST_SORT,
+  artistUrlKey,
   countGallery,
   effectHrefBuilder,
   effectNameLookup,
@@ -54,11 +65,12 @@ export interface ReplicationsGalleryExplorerProps {
   effects: EffectSummary[];
   effectHrefPrefix?: string;
   /**
-   * Read on the server and passed down, so an artist heading can link to their
-   * profile. `lib/contributorDirectory` is deliberately free of `server-only`
-   * imports — it is just the shared matcher plus `publicHref` — so the lookup
-   * itself is safe on this side of the boundary; the *data* is not, which is why
-   * it arrives as a prop rather than a fetch.
+   * Read on the server and passed down for the contributor-curated
+   * `replicationOrder` inside artist groups. `lib/contributorDirectory` is
+   * deliberately free of `server-only` imports — it is just the shared matcher
+   * plus `publicHref` — so the lookup itself is safe on this side of the
+   * boundary; the *data* is not, which is why it arrives as a prop rather
+   * than a fetch.
    */
   contributorDirectory?: ContributorDirectory;
   /**
@@ -68,6 +80,14 @@ export interface ReplicationsGalleryExplorerProps {
    * (see galleryUrlState), so every state of this component is a URL.
    */
   focus?: GalleryFocus;
+  /**
+   * The Artist Page's identity decoration (avatar, role, bio, links), rendered
+   * server-side when a Contributor Profile claims the focused artist's credit
+   * line. Only meaningful with an artist `focus`; absent, the focus header is
+   * the plain name — the same page shape, undecorated. The Unattributed
+   * bucket's route never passes one.
+   */
+  focusIdentity?: ReactNode;
 }
 
 /**
@@ -115,6 +135,7 @@ function GalleryExplorer({
   effectHrefPrefix = '/effects',
   contributorDirectory,
   focus,
+  focusIdentity,
   browse,
 }: ReplicationsGalleryExplorerProps & { browse: GalleryBrowseState }) {
   const router = useRouter();
@@ -160,6 +181,23 @@ function GalleryExplorer({
   }, [browse.query]);
 
   useEffect(() => () => clearTimeout(debounceRef.current), []);
+
+  /**
+   * Mobile-only disclosure state. Below `sm` the bar keeps exactly one row:
+   * the search input lives behind an icon button (the input takes over the
+   * row while open, collapsing on blur/Escape), and the browse-mode toggle
+   * lives behind a Filters chip opening a near-full-bleed popover. Popover
+   * rather than a new Sheet primitive is the kit's standing convention for
+   * phone control sheets (see the review bar's overflow) — the kit has no
+   * Sheet, and inventing one here would be a second convention. From `sm` up
+   * both states are inert: the full control set renders inline.
+   */
+  const [searchExpanded, setSearchExpanded] = useState(false);
+  const [filtersOpen, setFiltersOpen] = useState(false);
+
+  useEffect(() => {
+    if (searchExpanded) inputRef.current?.focus();
+  }, [searchExpanded]);
 
   /** Every toggle writes the *whole* state, flushing any pending search text. */
   const currentInputQuery = () => inputRef.current?.value ?? browse.query;
@@ -285,7 +323,7 @@ function GalleryExplorer({
    * deck is a viewing surface, the grid is the querying surface.
    */
   const deckGroups = useMemo(
-    () => groupByArtist(displayable, 'count', contributorDirectory),
+    () => groupByArtist(displayable, DEFAULT_GALLERY_ARTIST_SORT, contributorDirectory),
     [displayable, contributorDirectory],
   );
 
@@ -322,12 +360,15 @@ function GalleryExplorer({
    * Byline visibility is the caller's call (artist-scoped views drop it —
    * every tile would repeat the heading); the deck-open handler is wired
    * here because *every* masonry tile is a deck entry point on phones.
+   * `setParamFor` names the viewer scope a tile's context stands for, so
+   * artist-context tiles open the viewer walking that artist's works.
    */
   const renderMasonry = (
     items: PublicGalleryReplicationPreview[],
-    { showByline = true, onOpen = openDeckAt }: {
+    { showByline = true, onOpen = openDeckAt, setParamFor }: {
       showByline?: boolean;
       onOpen?: (event: React.MouseEvent, replication: PublicGalleryReplicationPreview) => void;
+      setParamFor?: (replication: PublicGalleryReplicationPreview) => ViewerSetParam | null;
     } = {},
   ) => (
     <div className={MASONRY_CLASS}>
@@ -340,6 +381,7 @@ function GalleryExplorer({
           showByline={showByline}
           mobileCompact
           onOpen={onOpen}
+          setParam={setParamFor ? setParamFor(replication) : null}
         />
       ))}
     </div>
@@ -391,29 +433,53 @@ function GalleryExplorer({
               components.css) is itself sticky at top-0/z-50 and measures 68px
               (py-3 + its 44px controls), so a small offset like top-2 would
               pin this bar underneath it. 4.75rem = 68px header + 8px gap
-              keeps the bar fully visible below the header while pinned. */}
+              keeps the bar fully visible below the header while pinned.
+
+              The row NEVER wraps (flex-nowrap + min-w-0 discipline), so the
+              sticky chrome is always one header row plus this one control row.
+              Below `sm` the browse-mode toggle folds behind the Filters chip,
+              search behind an icon button that swaps the row for the input,
+              and the media-type pills wear glyphs instead of words. From `sm`
+              up every control is inline; the artist sort — three pills since
+              video-first sorting landed — stays a compact menu until `md`,
+              where the row first has room for the full pill set. */}
           <div className="sticky top-[4.75rem] z-20 mt-4 md:mt-0">
-            <div className="flex w-full flex-wrap items-center gap-2 rounded-2xl border border-[color:var(--theme-frosted-control-border)] bg-[var(--theme-frosted-control-bg)] p-2 shadow-[var(--theme-frosted-control-shadow)] backdrop-blur-md sm:gap-3">
+            <div
+              data-testid="gallery-control-bar"
+              className="flex w-full min-w-0 flex-nowrap items-center gap-2 rounded-2xl border border-[color:var(--theme-frosted-control-border)] bg-[var(--theme-frosted-control-bg)] p-2 shadow-[var(--theme-frosted-control-shadow)] backdrop-blur-md sm:gap-3"
+            >
               <ToggleGroup
                 type="single"
                 variant="pill"
                 value={mode}
                 onValueChange={(value) => value && switchMode(value as GalleryMode)}
                 aria-label="Browse by"
+                className="hidden shrink-0 sm:flex"
               >
                 <ToggleGroupItem value="artist" className={COARSE_TARGET_CLASS}>By artist</ToggleGroupItem>
                 <ToggleGroupItem value="effect" className={COARSE_TARGET_CLASS}>By effect</ToggleGroupItem>
               </ToggleGroup>
 
-              <div className="relative min-w-[10rem] flex-1">
+              {/* Always mounted so the tests and the debounce wiring see one
+                  input; below `sm` its visibility is the expand/collapse
+                  state, from `sm` up it is simply the inline search box. */}
+              <div className={cn('relative min-w-0 flex-1', searchExpanded ? 'block' : 'hidden sm:block')}>
                 <Icon
                   icon="lucide:search"
                   className="theme-text-faint pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2"
                 />
                 <Input
                   ref={inputRef}
+                  id="replications-gallery-search"
                   defaultValue={browse.query}
                   onChange={(event) => updateQuery(event.target.value)}
+                  onBlur={() => searchExpanded && setSearchExpanded(false)}
+                  onKeyDown={(event) => {
+                    if (event.key === 'Escape' && searchExpanded) {
+                      event.preventDefault();
+                      setSearchExpanded(false);
+                    }
+                  }}
                   placeholder="Search art, artist, effect"
                   className="h-9 pl-9 [@media(pointer:coarse)]:h-11"
                   inputMode="search"
@@ -438,12 +504,20 @@ function GalleryExplorer({
                 value={typeFilter}
                 onValueChange={(value) => value && setTypeFilter(value as GalleryTypeFilter)}
                 aria-label="Filter by media type"
+                className={cn('shrink-0', searchExpanded && 'hidden sm:flex')}
               >
                 <ToggleGroupItem value="all" className={COARSE_TARGET_CLASS}>All</ToggleGroupItem>
-                <ToggleGroupItem value="image" className={COARSE_TARGET_CLASS}>Images</ToggleGroupItem>
-                <ToggleGroupItem value="video" className={COARSE_TARGET_CLASS}>Videos</ToggleGroupItem>
+                <ToggleGroupItem value="image" aria-label="Images" className={COARSE_TARGET_CLASS}>
+                  <Icon icon="lucide:image" className="sm:hidden" aria-hidden />
+                  <span className="hidden sm:inline">Images</span>
+                </ToggleGroupItem>
+                <ToggleGroupItem value="video" aria-label="Videos" className={COARSE_TARGET_CLASS}>
+                  <Icon icon="lucide:video" className="sm:hidden" aria-hidden />
+                  <span className="hidden sm:inline">Videos</span>
+                </ToggleGroupItem>
               </ToggleGroup>
 
+              {/* Full sort pill set — the row only has room for it from `md`. */}
               <ToggleGroup
                 type="single"
                 variant="pill"
@@ -452,11 +526,119 @@ function GalleryExplorer({
                 aria-label="Sort artists"
                 aria-hidden={!sortActive || undefined}
                 inert={!sortActive}
-                className={cn(!sortActive && 'invisible')}
+                className={cn('hidden shrink-0 md:flex', !sortActive && 'invisible')}
               >
+                <ToggleGroupItem value="video-first" className={COARSE_TARGET_CLASS}>Videos first</ToggleGroupItem>
                 <ToggleGroupItem value="count" className={COARSE_TARGET_CLASS}>Most works</ToggleGroupItem>
                 <ToggleGroupItem value="alpha" className={COARSE_TARGET_CLASS}>A–Z</ToggleGroupItem>
               </ToggleGroup>
+
+              {/* Compact sort — one menu button below `md`. Like the pill set
+                  it stays mounted (inert + invisible) outside the artist
+                  browse view so the row keeps one width across mode switches. */}
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    type="button"
+                    variant="pill"
+                    size="auto"
+                    aria-label="Sort artists"
+                    aria-hidden={!sortActive || undefined}
+                    inert={!sortActive}
+                    className={cn(
+                      'flex h-8 w-8 shrink-0 items-center justify-center p-0 md:hidden [@media(pointer:coarse)]:h-11 [@media(pointer:coarse)]:w-11',
+                      searchExpanded && 'hidden',
+                      !sortActive && 'invisible',
+                    )}
+                  >
+                    <Icon icon="lucide:arrow-down-wide-narrow" className="h-4 w-4" aria-hidden />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuRadioGroup
+                    value={artistSort}
+                    onValueChange={(value) => setArtistSort(value as GalleryArtistSort)}
+                  >
+                    <DropdownMenuRadioItem value="video-first">Videos first</DropdownMenuRadioItem>
+                    <DropdownMenuRadioItem value="count">Most works</DropdownMenuRadioItem>
+                    <DropdownMenuRadioItem value="alpha">A–Z</DropdownMenuRadioItem>
+                  </DropdownMenuRadioGroup>
+                </DropdownMenuContent>
+              </DropdownMenu>
+
+              {/* Phone search reveal — expands into the input above, which
+                  collapses back on blur or Escape. The dot marks a live query
+                  that would otherwise be invisible while collapsed. */}
+              <Button
+                type="button"
+                variant="pill"
+                size="auto"
+                aria-label="Search replications"
+                aria-expanded={searchExpanded}
+                aria-controls="replications-gallery-search"
+                onClick={() => setSearchExpanded(true)}
+                className={cn(
+                  'relative flex h-8 w-8 shrink-0 items-center justify-center p-0 sm:hidden [@media(pointer:coarse)]:h-11 [@media(pointer:coarse)]:w-11',
+                  searchExpanded && 'hidden',
+                )}
+              >
+                <Icon icon="lucide:search" className="h-4 w-4" aria-hidden />
+                {searching ? (
+                  <span
+                    aria-hidden
+                    className="absolute right-1 top-1 h-1.5 w-1.5 rounded-full bg-[var(--theme-accent-strong)]"
+                  />
+                ) : null}
+              </Button>
+
+              {/* Phone home for whatever the one-row bar cannot show inline —
+                  today that is exactly the browse-mode toggle. */}
+              <Popover open={filtersOpen} onOpenChange={setFiltersOpen}>
+                <PopoverTrigger asChild>
+                  <Button
+                    type="button"
+                    variant="pill"
+                    size="pill"
+                    className={cn(
+                      'shrink-0 gap-1.5 sm:hidden',
+                      COARSE_TARGET_CLASS,
+                      searchExpanded && 'hidden',
+                    )}
+                  >
+                    <Icon icon="lucide:sliders-horizontal" className="h-4 w-4" aria-hidden />
+                    Filters
+                  </Button>
+                </PopoverTrigger>
+                {/* Near-full-bleed below `sm` — the same phone-sheet treatment
+                    as the review bar's overflow popover. */}
+                <PopoverContent
+                  align="end"
+                  collisionPadding={8}
+                  className="w-[calc(100vw-1rem)] space-y-2 sm:w-72"
+                >
+                  <p className="theme-text-faint text-xs font-medium uppercase tracking-[0.14em]">
+                    Browse by
+                  </p>
+                  <ToggleGroup
+                    type="single"
+                    variant="pill"
+                    value={mode}
+                    onValueChange={(value) => {
+                      if (!value) return;
+                      setFiltersOpen(false);
+                      switchMode(value as GalleryMode);
+                    }}
+                    aria-label="Browse by"
+                  >
+                    <ToggleGroupItem value="artist" className={cn(COARSE_TARGET_CLASS, 'flex-1')}>
+                      By artist
+                    </ToggleGroupItem>
+                    <ToggleGroupItem value="effect" className={cn(COARSE_TARGET_CLASS, 'flex-1')}>
+                      By effect
+                    </ToggleGroupItem>
+                  </ToggleGroup>
+                </PopoverContent>
+              </Popover>
             </div>
           </div>
 
@@ -481,7 +663,10 @@ function GalleryExplorer({
                   <h2 className="theme-text-primary font-display mt-1 text-2xl font-bold tracking-tight">
                     {focusedGroup.label}
                   </h2>
-                  {focusedGroup.href ? (
+                  {/* An artist focus IS the artist's page now, so the old
+                      "View profile" link would point at itself; only the
+                      effect focus has a second destination worth naming. */}
+                  {mode === 'effect' && focusedGroup.href ? (
                     <Link
                       href={focusedGroup.href}
                       className={cn(
@@ -489,7 +674,7 @@ function GalleryExplorer({
                         focusRingClassName,
                       )}
                     >
-                      {mode === 'artist' ? 'View profile' : 'View effect article'}
+                      View effect article
                       <Icon icon="lucide:arrow-right" className="h-4 w-4 transition group-hover/profile:translate-x-0.5 motion-reduce:transition-none" />
                     </Link>
                   ) : null}
@@ -512,11 +697,19 @@ function GalleryExplorer({
                   {focusedItems.length} works
                 </span>
               </div>
+              {mode === 'artist' ? focusIdentity : null}
               {focusedItems.length > 0 ? (
                 // An artist focus already names the artist in its heading, so
                 // per-tile bylines would repeat it under every work; effect
                 // focus tiles keep them as the only attribution in sight.
-                renderMasonry(focusedItems, { showByline: focus.kind !== 'artist' })
+                // Artist-focus tiles open the viewer walking this artist.
+                renderMasonry(focusedItems, {
+                  showByline: focus.kind !== 'artist',
+                  setParamFor:
+                    focus.kind === 'artist'
+                      ? () => ({ kind: 'artist', slug: focus.key })
+                      : undefined,
+                })
               ) : (
                 <SearchEmptyState
                   className="mt-8"
@@ -554,12 +747,20 @@ function GalleryExplorer({
                   group={group}
                   viewAllHref={buildGalleryFocusUrl(
                     { kind: mode, key: galleryGroupUrlKey(mode, group) },
-                    { type: typeFilter },
+                    /* The effect address is the playlist page now; it reads no
+                       type filter, so only artist focus links carry one. */
+                    mode === 'artist' ? { type: typeFilter } : {},
                   )}
                   /* Artist rails carry the artist in their heading, so tile
                      bylines would echo it fourteen times; effect rails keep
-                     bylines as each work's attribution. */
+                     bylines as each work's attribution. An artist rail's tiles
+                     open the viewer walking that artist's works. */
                   tileBylines={mode !== 'artist'}
+                  tileSetParam={
+                    mode === 'artist'
+                      ? { kind: 'artist', slug: galleryGroupUrlKey('artist', group) }
+                      : null
+                  }
                   mobileCompact
                   onTileOpen={openDeckAt}
                 />
@@ -580,7 +781,14 @@ function GalleryExplorer({
                       </span>
                     </div>
                   ) : null}
-                  {renderMasonry(pooledItems)}
+                  {renderMasonry(pooledItems, {
+                    // The pool under artist rails is still artist context:
+                    // each tile stands in for its maker's whole (thin) group.
+                    setParamFor:
+                      mode === 'artist'
+                        ? (replication) => ({ kind: 'artist', slug: artistUrlKey(replication.artist) })
+                        : undefined,
+                  })}
                 </section>
               ) : null}
             </div>

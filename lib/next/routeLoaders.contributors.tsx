@@ -4,6 +4,8 @@ import { cache, type ReactNode } from "react";
 import {
   getEffectArticlesByContributor,
   getPublicContributorByKey,
+  getPublicContributorDirectory,
+  getPublicGalleryReplications,
   getPublicProfileHistory,
   getReportsByContributor,
   getReviewedArticlesByContributor,
@@ -25,6 +27,7 @@ import type { ChangeLogEntry } from "../../src/data/changelog/changeLog";
 import { buildMetadataDescription } from "./publicRouteViewModels";
 import { getPublicRoutePath, type PublicRouteIdentity } from "./publicSite";
 import type { OkRouteResult, RouteMetadataSource } from "./routeLoaderResults";
+import { mapArtistPageKeysByProfile } from "../../src/features/replications/galleryFocus";
 import { readContributorReplications } from "./routeLoaders.contributorReplications";
 
 const REPORT_HREF_PREFIX = "/reports/";
@@ -76,6 +79,34 @@ export const loadContributorRoute = cache(
       ),
     };
 
+    // The Artist Page merge (Replication Surfaces T-4): a profile that claims
+    // a credited artist with displayable works is no longer a destination —
+    // its one public surface is /replications/artist/<key>, which carries the
+    // profile's avatar, bio, and links as decoration. This branch precedes the
+    // casing redirect so an alias or badly-cased profile link forwards in one
+    // hop. A profile with no such works (a reviewer, an article author, an
+    // artist whose every work artist views withhold) has no rival surface and
+    // keeps rendering here. See the decision record in
+    // src/features/replications/galleryFocus.ts.
+    const [galleryReplications, contributorDirectory] = await Promise.all([
+      getPublicGalleryReplications(),
+      getPublicContributorDirectory(),
+    ]);
+    const artistPageKeys = mapArtistPageKeysByProfile(galleryReplications, contributorDirectory);
+    const artistPageKey = artistPageKeys.get(profile.key.trim().toUpperCase());
+    if (artistPageKey) {
+      const artistRoute: PublicRouteIdentity = {
+        family: "replicationArtist",
+        params: { key: artistPageKey },
+      };
+      return {
+        kind: "redirect",
+        target: getPublicRoutePath(artistRoute),
+        metadata,
+        canonicalRoute: artistRoute,
+      };
+    }
+
     if (profile.key !== normalizedKey) {
       return {
         kind: "redirect",
@@ -103,6 +134,10 @@ export const loadContributorRoute = cache(
         getPublicProfileHistory(profile),
         staffNote ? getPublicContributorByKey("JOSIE") : Promise.resolve(null),
       ]);
+
+    const signerArtistKey = staffNoteSigner
+      ? artistPageKeys.get(staffNoteSigner.key.trim().toUpperCase()) ?? null
+      : null;
 
     return {
       kind: "ok",
@@ -145,11 +180,14 @@ export const loadContributorRoute = cache(
                       .join(" · ")
                   : "Josie Kins"),
               avatarUrl: staffNoteSigner?.avatarUrl ?? null,
+              // The signer's one public surface: her Artist Page when her
+              // profile forwards there (the T-4 merge), else her profile.
               avatarHref: staffNoteSigner
-                ? getPublicRoutePath({
-                    family: "contributor",
-                    params: { profileKey: staffNoteSigner.key },
-                  })
+                ? getPublicRoutePath(
+                    signerArtistKey
+                      ? { family: "replicationArtist", params: { key: signerArtistKey } }
+                      : { family: "contributor", params: { profileKey: staffNoteSigner.key } },
+                  )
                 : null,
             }
           : null,

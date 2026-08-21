@@ -4,11 +4,7 @@ import { DefinitionList, DefinitionRow } from '@/components/common/DefinitionLis
 import { proseLinkClassName } from '@/components/common/ProseLink';
 import { PublicNameChip, PublicOverline, PublicPill } from '@/components/common/PublicTokens';
 import { ContentCard, NestedContentCard } from '@/components/ui/surface';
-import {
-  getExternalSourceUrl,
-  getRightsSummary,
-  hasKnownCreator,
-} from '@/features/effects/components/replicationCredit';
+import { getExternalSourceUrl, getRightsSummary } from '@/features/effects/components/replicationCredit';
 import { buildAttributionLine } from '@/features/effects/pages/replicationAttribution';
 import { publicHref } from '@/utils/publicHref';
 import type { ReplicationViewerItem } from './viewerModel';
@@ -36,7 +32,6 @@ function formatDuration(seconds?: number) {
 export function ViewerMetadata({ item }: { item: ReplicationViewerItem }) {
   const { replication, effectName, effectSlug, effectCategories } = item;
   const isVideo = replication.type === 'video';
-  const creator = hasKnownCreator(replication.artist) ? replication.artist.trim() : null;
   const sourceUrl = getExternalSourceUrl(replication);
   const attribution = buildAttributionLine(replication);
   const fileSize = formatFileSize(replication.file_size);
@@ -116,17 +111,19 @@ export function ViewerMetadata({ item }: { item: ReplicationViewerItem }) {
         </h2>
 
         <DefinitionList className="mt-4 divide-y divide-dose-border">
-          <DefinitionRow
-            semantic
-            term="Creator"
-            termClassName="theme-text-faint text-xs uppercase tracking-[0.18em]"
-            bodyClassName="theme-text-secondary text-sm leading-6"
-          >
-            {creator ?? 'Unknown'}
-            {replication.rightsholder && replication.rightsholder !== creator ? (
-              <span className="theme-text-faint"> · rights held by {replication.rightsholder}</span>
-            ) : null}
-          </DefinitionRow>
+          {/* No Creator row: the compact top line above the fold already names
+              the artist, once. The rights holder is a legal claim rather than
+              a byline, so it keeps its own row when the record carries one. */}
+          {replication.rightsholder ? (
+            <DefinitionRow
+              semantic
+              term="Rights holder"
+              termClassName="theme-text-faint text-xs uppercase tracking-[0.18em]"
+              bodyClassName="theme-text-secondary text-sm leading-6"
+            >
+              {replication.rightsholder}
+            </DefinitionRow>
+          ) : null}
 
           <DefinitionRow
             semantic

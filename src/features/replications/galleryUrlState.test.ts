@@ -19,7 +19,7 @@ describe('parseGalleryBrowseState', () => {
       view: 'artist',
       query: '',
       type: 'all',
-      sort: 'count',
+      sort: 'video-first',
     });
   });
 
@@ -32,7 +32,7 @@ describe('parseGalleryBrowseState', () => {
   it('treats junk values as defaults instead of an unrepresentable state', () => {
     expect(
       parseGalleryBrowseState(new URLSearchParams('view=banana&type=hologram&sort=biggest')),
-    ).toEqual({ view: 'artist', query: '', type: 'all', sort: 'count' });
+    ).toEqual({ view: 'artist', query: '', type: 'all', sort: 'video-first' });
   });
 });
 
@@ -40,7 +40,7 @@ describe('buildGalleryBrowseUrl', () => {
   it('omits defaults so the canonical browse view is the bare path', () => {
     expect(buildGalleryBrowseUrl({})).toBe(REPLICATIONS_PATH);
     expect(
-      buildGalleryBrowseUrl({ view: 'artist', query: '', type: 'all', sort: 'count' }),
+      buildGalleryBrowseUrl({ view: 'artist', query: '', type: 'all', sort: 'video-first' }),
     ).toBe(REPLICATIONS_PATH);
   });
 
@@ -49,13 +49,14 @@ describe('buildGalleryBrowseUrl', () => {
   });
 
   it('keeps the artist sort across a round trip through effect view', () => {
-    const url = buildGalleryBrowseUrl({ view: 'effect', sort: 'alpha' });
-    expect(paramsOf(url).get('sort')).toBe('alpha');
+    const url = buildGalleryBrowseUrl({ view: 'effect', sort: 'count' });
+    expect(paramsOf(url).get('sort')).toBe('count');
   });
 
   it('round-trips every non-default state through parse', () => {
     const states: GalleryBrowseState[] = [
       { view: 'effect', query: '', type: 'all', sort: 'count' },
+      { view: 'artist', query: '', type: 'all', sort: 'count' },
       { view: 'artist', query: 'drifting', type: 'all', sort: 'alpha' },
       { view: 'artist', query: '', type: 'video', sort: 'count' },
       { view: 'effect', query: 'symmetry & light', type: 'image', sort: 'alpha' },

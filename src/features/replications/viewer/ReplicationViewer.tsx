@@ -6,22 +6,20 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { AppImage } from '@/components/common/AppImage';
 import { Icon } from '@/components/common/Icon';
 import { proseLinkClassName } from '@/components/common/ProseLink';
-import { PublicOverline } from '@/components/common/PublicTokens';
 import { PublicContentShell } from '@/components/layout/PublicPagePrimitives';
 import { focusRingClassName } from '@/components/ui/surface';
 import { hasKnownCreator } from '@/features/effects/components/replicationCredit';
 import { cn } from '@/lib/utils';
 import { publicHref } from '@/utils/publicHref';
 import {
-  FIT_MODE_STORAGE_KEY,
+  FALLBACK_IMAGE_RATIO,
   buildViewerPath,
-  computeFillScale,
   parseViewerSetParam,
-  resolveFitMode,
   viewerDocumentTitle,
-  type FitMode,
   type ViewerSetParam,
 } from './viewerLogic';
+import { StageFitToggle } from './StageFitToggle';
+import { useStageFit } from './useStageFit';
 import {
   describeViewerSet,
   findViewerIndex,
@@ -42,13 +40,19 @@ import { ViewerMetadata } from './ViewerMetadata';
 export interface ReplicationViewerProps {
   initialSlug: string;
   set: ReplicationViewerSet;
+  /**
+   * The scope the hosting page stands for, when it is a playlist page whose
+   * address itself names the walk (`/replications/effect/<slug>`,
+   * `/replications/substance/<slug>`). Seeding it keeps the scope in every
+   * URL client-side navigation pushes, so a link copied mid-walk reproduces
+   * the same set. A bare permalink passes nothing and the scope is adopted
+   * from `?set=` after hydration instead.
+   */
+  initialSetParam?: ViewerSetParam | null;
 }
 
 /** The filmstrip nav takes its accessible name from the label it renders. */
 const SET_LABEL_ID = 'replication-viewer-set-label';
-
-const FALLBACK_IMAGE_RATIO = 4 / 3;
-const FALLBACK_VIDEO_RATIO = 16 / 9;
 
 /** Vertical travel that counts as a deliberate swipe rather than a tap. */
 const SWIPE_THRESHOLD_PX = 48;
@@ -106,57 +110,74 @@ function useInViewport(ref: React.RefObject<Element | null>, threshold: number):
   return inView;
 }
 
-/** Byline for the active item — same claims and link policy as the old page. */
+/**
+ * Compact identity for the active item: the claiming profile's avatar (when it
+ * has one) beside the artist's name — same claims and link policy as the old
+ * byline, now the one place above the fold the name appears.
+ */
 function ViewerByline({ item }: { item: ReplicationViewerItem }) {
   const creator = hasKnownCreator(item.replication.artist)
     ? item.replication.artist.trim()
     : null;
 
+  if (!creator) {
+    return (
+      <p className="theme-text-muted min-w-0 flex-1 truncate text-sm leading-6">Creator unknown</p>
+    );
+  }
+
+  // Only a real avatar earns the slot: an initials placeholder would decorate
+  // every unclaimed credit with identity chrome no profile ever provided.
+  const avatar = item.avatarUrl ? (
+    <AppImage
+      src={item.avatarUrl}
+      alt=""
+      width={48}
+      height={48}
+      className="size-6 flex-none rounded-full object-cover"
+    />
+  ) : null;
+  const identityClassName = 'flex min-w-0 items-center gap-2';
+
   return (
-    <p className="theme-text-secondary text-sm leading-6">
-      {creator ? (
-        <>
-          by{' '}
-          {item.artistProfileHref ? (
-            // The credit resolves to a contributor, so the byline goes to
-            // their profile: that is where their other work, their bio, and
-            // now their own website live. Their external site is one link on
-            // that page rather than the destination of every credit.
-            <Link href={item.artistProfileHref} className={proseLinkClassName}>
-              {creator}
-            </Link>
-          ) : item.replication.artist_url ? (
-            // No profile claims this credit. The row's own external link is
-            // then the only destination that exists, so it stays — the
-            // alternative is a byline that links nowhere.
-            <a
-              href={item.replication.artist_url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className={proseLinkClassName}
-            >
-              {creator}
-            </a>
-          ) : (
-            <span className="theme-text-primary font-medium">{creator}</span>
-          )}
-        </>
+    <p className="theme-text-secondary flex min-w-0 flex-1 items-center text-sm leading-6">
+      {item.artistProfileHref ? (
+        // The credit's one destination is the Artist Page: their whole
+        // body of work, and — when a Contributor Profile claims the name —
+        // their bio and their own website. The external site is one link
+        // on that page rather than the destination of every credit.
+        <Link href={item.artistProfileHref} className={cn(proseLinkClassName, identityClassName)}>
+          {avatar}
+          <span className="truncate">{creator}</span>
+        </Link>
+      ) : item.replication.artist_url ? (
+        // No profile claims this credit. The row's own external link is
+        // then the only destination that exists, so it stays — the
+        // alternative is a byline that links nowhere.
+        <a
+          href={item.replication.artist_url}
+          target="_blank"
+          rel="noopener noreferrer"
+          className={cn(proseLinkClassName, identityClassName)}
+        >
+          {avatar}
+          <span className="truncate">{creator}</span>
+        </a>
       ) : (
-        <span className="theme-text-muted">Creator unknown</span>
+        <span className={cn('theme-text-primary font-medium', identityClassName)}>
+          {avatar}
+          <span className="truncate">{creator}</span>
+        </span>
       )}
     </p>
   );
 }
 
-export function ReplicationViewer({ initialSlug, set }: ReplicationViewerProps) {
+export function ReplicationViewer({ initialSlug, set, initialSetParam = null }: ReplicationViewerProps) {
   const [walk, setWalk] = useState(set);
   const [activeSlug, setActiveSlug] = useState(initialSlug);
-  /** Live only while a URL-scoped walk actually replaced the server one. */
-  const [setParam, setSetParam] = useState<ViewerSetParam | null>(null);
-  const [fitOverride, setFitOverride] = useState<FitMode | null>(null);
-  /** Aspect ratios probed from loaded media, for rows missing dimensions. */
-  const [probedAspects, setProbedAspects] = useState<Record<string, number>>({});
-  const [stageAspect, setStageAspect] = useState(FALLBACK_VIDEO_RATIO);
+  /** The scope owning the URL: seeded by a playlist page, or adopted from `?set=`. */
+  const [setParam, setSetParam] = useState<ViewerSetParam | null>(initialSetParam);
   const [userPaused, setUserPaused] = useState(false);
 
   const stageRef = useRef<HTMLElement>(null);
@@ -180,23 +201,51 @@ export function ReplicationViewer({ initialSlug, set }: ReplicationViewerProps) 
   const previous = index > 0 ? walk.items[index - 1] : null;
   const next = index < walk.items.length - 1 ? walk.items[index + 1] : null;
 
+  // The stage/fit machinery is shared with every other immersive surface
+  // (swipe deck, playlist stages) so the same work crops identically on all
+  // of them and one toggle sets the session-wide preference.
+  const { fitMode, scaleStyle, toggleFit, probeAspect } = useStageFit({
+    stageRef,
+    mediaKey: active?.replication.slug ?? '',
+    type: active?.replication.type ?? 'image',
+    width: active?.replication.width,
+    height: active?.replication.height,
+  });
+
   /**
-   * A `?set=substance:<slug>` URL opts into the substance's own gallery walk.
-   * The server cannot build that set (the permalink is statically rendered
-   * for the scope-free URL), so it is fetched here and swapped in only when
-   * it actually contains the item on screen — any failure, absence, or
-   * mismatch silently keeps the server-chosen walk, which is always valid.
+   * A `?set=` URL opts into the walk the entry context named: `effect:` an
+   * effect's gallery, `substance:` a substance's showcase gallery, `artist:`
+   * an artist's works. The server cannot build a scoped set (the permalink is
+   * statically rendered for the scope-free URL), so substance and artist
+   * walks are fetched here and swapped in only when they actually contain the
+   * item on screen — any failure, absence, or mismatch silently keeps the
+   * server-chosen walk, which is always valid. The effect scope needs no
+   * fetch: the server default already *is* the work's own effect walk, so a
+   * param naming that effect is adopted as-is (which keeps it in the URL on
+   * every move), and one naming any other effect is a claim this page cannot
+   * honour and is dropped.
    */
   useEffect(() => {
     const param = parseViewerSetParam(window.location.search);
     if (!param) return;
 
+    if (param.kind === 'effect') {
+      const serverWalk = walkRef.current;
+      const activeItem = serverWalk.items[findViewerIndex(serverWalk, activeSlugRef.current)];
+      if (serverWalk.scope === 'effect' && activeItem?.effectSlug === param.slug) {
+        setSetParam(param);
+      }
+      return;
+    }
+
+    const endpoint =
+      param.kind === 'substance'
+        ? `/api/v1/substances/${param.slug}/replications`
+        : `/api/v1/artists/${param.slug}/replications`;
     const controller = new AbortController();
     void (async () => {
       try {
-        const response = await fetch(`/api/v1/substances/${param.slug}/replications`, {
-          signal: controller.signal,
-        });
+        const response = await fetch(endpoint, { signal: controller.signal });
         if (!response.ok) return;
         const body = (await response.json()) as {
           scopeLabel?: unknown;
@@ -212,7 +261,7 @@ export function ReplicationViewer({ initialSlug, set }: ReplicationViewerProps) 
         // membership check runs against wherever they are *now*.
         if (!items.some((item) => item.replication.slug === activeSlugRef.current)) return;
         setWalk({
-          scope: 'substance',
+          scope: param.kind,
           scopeLabel: typeof body.scopeLabel === 'string' ? body.scopeLabel : null,
           items,
         });
@@ -222,29 +271,6 @@ export function ReplicationViewer({ initialSlug, set }: ReplicationViewerProps) 
       }
     })();
     return () => controller.abort();
-  }, []);
-
-  /** The reader's explicit fit/fill choice outlives navigation for the session. */
-  useEffect(() => {
-    try {
-      const stored = window.sessionStorage.getItem(FIT_MODE_STORAGE_KEY);
-      if (stored === 'fit' || stored === 'fill') setFitOverride(stored);
-    } catch {
-      // Storage may be denied (private mode); the per-type defaults stand.
-    }
-  }, []);
-
-  /** Track the stage's own aspect — the crop is against it, not the viewport. */
-  useEffect(() => {
-    const stage = stageRef.current;
-    if (!stage || typeof ResizeObserver === 'undefined') return;
-    const update = () => {
-      if (stage.clientHeight > 0) setStageAspect(stage.clientWidth / stage.clientHeight);
-    };
-    update();
-    const observer = new ResizeObserver(update);
-    observer.observe(stage);
-    return () => observer.disconnect();
   }, []);
 
   const goTo = useCallback(
@@ -262,10 +288,18 @@ export function ReplicationViewer({ initialSlug, set }: ReplicationViewerProps) 
 
   /** Back/forward re-enter entries this component pushed: restore from the path. */
   useEffect(() => {
+    // A playlist page's own address carries no slug segment naming a walk
+    // member, so remember it: popping back to the entry URL restores the
+    // item the page opened on (its first) rather than ignoring the move.
+    const entryPath = window.location.pathname;
+    const entrySlug = activeSlugRef.current;
     const onPopState = () => {
       const segments = window.location.pathname.split('/').filter(Boolean);
       const slug = decodeURIComponent(segments[segments.length - 1] ?? '');
-      const restoredIndex = findViewerIndex(walkRef.current, slug);
+      const restoredIndex =
+        findViewerIndex(walkRef.current, slug) >= 0 || window.location.pathname !== entryPath
+          ? findViewerIndex(walkRef.current, slug)
+          : findViewerIndex(walkRef.current, entrySlug);
       // Every entry we push names a walk member; an entry that stopped being
       // one (pushed before a substance re-scope swapped the walk) is left to
       // the browser rather than guessed at.
@@ -351,29 +385,9 @@ export function ReplicationViewer({ initialSlug, set }: ReplicationViewerProps) 
   if (!active) return null;
 
   const isVideo = active.replication.type === 'video';
-  const fitMode = resolveFitMode(active.replication.type, fitOverride);
-  const mediaAspect =
-    probedAspects[active.replication.slug] ??
-    (active.replication.width && active.replication.height
-      ? active.replication.width / active.replication.height
-      : isVideo
-        ? FALLBACK_VIDEO_RATIO
-        : FALLBACK_IMAGE_RATIO);
-  const scale = fitMode === 'fill' ? computeFillScale(mediaAspect, stageAspect) : 1;
-  const scaleStyle = scale > 1.001 ? { transform: `scale(${scale.toFixed(3)})` } : undefined;
 
   const width = active.replication.width ?? 1600;
   const height = active.replication.height ?? Math.round(width / FALLBACK_IMAGE_RATIO);
-
-  const toggleFit = () => {
-    const nextMode: FitMode = fitMode === 'fill' ? 'fit' : 'fill';
-    setFitOverride(nextMode);
-    try {
-      window.sessionStorage.setItem(FIT_MODE_STORAGE_KEY, nextMode);
-    } catch {
-      // Session-only preference; losing it costs one extra tap.
-    }
-  };
 
   /** Plain left clicks become client-side moves; modifier clicks keep their meaning. */
   const interceptNavigate = (event: React.MouseEvent, targetIndex: number) => {
@@ -407,35 +421,39 @@ export function ReplicationViewer({ initialSlug, set }: ReplicationViewerProps) 
 
   return (
     <>
-      {/* Above the stage: where you are, what this is, who made it — the same
-          claims the old page opened with, compacted so the work stays the
-          first thing a shared-link arrival actually sees. */}
-      <header className="mx-auto w-full max-w-6xl px-4 pb-4 pt-8 md:px-8">
-        <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
-          <PublicOverline as={Link} href={publicHref.replications()} className={proseLinkClassName}>
-            Replications
-          </PublicOverline>
-          {active.effectName && active.effectSlug ? (
-            <>
-              <span className="theme-text-ghost text-[0.6875rem]" aria-hidden>
-                /
-              </span>
-              <PublicOverline
-                as={Link}
-                href={publicHref.effect(active.effectSlug)}
-                className={proseLinkClassName}
-              >
-                {active.effectName}
-              </PublicOverline>
-            </>
+      {/* Above the stage, one compact line: back, who made it (avatar when
+          their profile has one), where you are in the walk — nothing else, so
+          the work stays the first thing a shared-link arrival actually sees.
+          The subject and its categories live below the stage with the rest of
+          the provenance. */}
+      <header className="mx-auto w-full max-w-6xl px-4 pb-4 pt-6 md:px-8">
+        <div className="flex items-center gap-3">
+          <Link
+            href={publicHref.replications()}
+            aria-label="Back to replications"
+            className={cn(
+              'theme-text-secondary grid size-8 flex-none place-items-center rounded-full',
+              'opacity-80 transition-opacity hover:opacity-100 motion-reduce:transition-none',
+              focusRingClassName,
+            )}
+          >
+            <Icon icon="lucide:arrow-left" className="size-5" />
+          </Link>
+
+          <ViewerByline item={active} />
+
+          {/* A singleton walk advertises no position, matching its missing
+              filmstrip: "1 / 1" would promise paging that doesn't exist. */}
+          {walk.items.length > 1 ? (
+            <p className="theme-text-faint flex-none text-xs tabular-nums">
+              {index + 1} / {walk.items.length}
+            </p>
           ) : null}
         </div>
 
-        <h1 className="theme-accent-heading font-display mt-2 text-xl font-bold tracking-tight sm:text-2xl">
+        <h1 className="theme-accent-heading font-display mt-3 text-xl font-bold tracking-tight sm:text-2xl">
           {active.replication.title}
         </h1>
-
-        <ViewerByline item={active} />
       </header>
 
       {/* The work itself: an edge-to-edge dark stage. No caption burned into
@@ -480,13 +498,7 @@ export function ReplicationViewer({ initialSlug, set }: ReplicationViewerProps) 
             }}
             onLoadedMetadata={(event) => {
               const { videoWidth, videoHeight } = event.currentTarget;
-              if (videoWidth > 0 && videoHeight > 0) {
-                setProbedAspects((prev) =>
-                  prev[active.replication.slug]
-                    ? prev
-                    : { ...prev, [active.replication.slug]: videoWidth / videoHeight },
-                );
-              }
+              probeAspect(videoWidth, videoHeight);
             }}
             className="absolute inset-0 h-full w-full object-contain"
             style={scaleStyle}
@@ -533,15 +545,7 @@ export function ReplicationViewer({ initialSlug, set }: ReplicationViewerProps) 
         ) : null}
 
         {/* Fit/fill: bounded cover-crop versus the whole frame. */}
-        <button
-          type="button"
-          onClick={toggleFit}
-          aria-pressed={fitMode === 'fill'}
-          aria-label={fitMode === 'fill' ? 'Fit the whole frame' : 'Fill the stage (crops the frame)'}
-          className={cn(viewerControlClassName, 'absolute right-3 top-3')}
-        >
-          <Icon icon={fitMode === 'fill' ? 'lucide:shrink' : 'lucide:expand'} className="size-5" />
-        </button>
+        <StageFitToggle fitMode={fitMode} onToggle={toggleFit} className="absolute right-3 top-3" />
       </section>
 
       {/* Warm the next item while the reader looks at this one: arriving on a
@@ -576,17 +580,14 @@ export function ReplicationViewer({ initialSlug, set }: ReplicationViewerProps) 
           show the stage alone. */}
       {walk.items.length > 1 ? (
         <nav aria-labelledby={SET_LABEL_ID} className="mx-auto w-full max-w-6xl px-4 pt-3 md:px-8">
-          <div className="flex items-baseline justify-between gap-3">
-            <p
-              id={SET_LABEL_ID}
-              className="theme-text-faint text-[0.6875rem] uppercase tracking-[0.18em]"
-            >
-              {describeViewerSet(walk)}
-            </p>
-            <p className="theme-text-faint text-xs tabular-nums">
-              {index + 1} / {walk.items.length}
-            </p>
-          </div>
+          {/* The position counter lives in the compact top line; repeating it
+              here would print the same fraction twice on one screen. */}
+          <p
+            id={SET_LABEL_ID}
+            className="theme-text-faint text-[0.6875rem] uppercase tracking-[0.18em]"
+          >
+            {describeViewerSet(walk)}
+          </p>
 
           <ul ref={stripRef} className="mt-2 flex snap-x gap-2 overflow-x-auto pb-2">
             {walk.items.map((item, itemIndex) => {

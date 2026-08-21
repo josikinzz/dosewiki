@@ -48,6 +48,7 @@ describe('artistIdentity', () => {
     expect(artistIdentity('')).toEqual({ key: UNATTRIBUTED_KEY, label: UNATTRIBUTED_LABEL });
     expect(artistIdentity('unknown')).toEqual({ key: UNATTRIBUTED_KEY, label: UNATTRIBUTED_LABEL });
     expect(artistIdentity(undefined)).toEqual({ key: UNATTRIBUTED_KEY, label: UNATTRIBUTED_LABEL });
+    expect(artistIdentity('Anonymous')).toEqual({ key: UNATTRIBUTED_KEY, label: UNATTRIBUTED_LABEL });
   });
 });
 
@@ -81,36 +82,40 @@ describe('groupByArtist', () => {
     { key: 'SYMMETRICVISION', displayName: 'Symmetric Vision', aliases: ['symmetric vision'] },
   ];
 
-  it("links an artist heading to their profile, not their own site", () => {
+  it("links an artist heading to their Artist Page, not their own site", () => {
     const [group] = groupByArtist(
       [rep({ artist: 'Symmetric Vision', artist_url: 'https://sv.test' })],
       'count',
       directory,
     );
 
-    // The internal href is what MediaRail prefers, so the name now goes to the
-    // profile; the personal site survives as a separate affordance.
-    expect(group.href).toBe('/contributors/symmetricvision');
+    // The internal href is what MediaRail prefers, so the name goes to the
+    // artist's one public surface; the personal site survives as a separate
+    // affordance.
+    expect(group.href).toBe('/replications/artist/symmetric-vision');
     expect(group.externalUrl).toBe('https://sv.test');
   });
 
-  it('resolves a credit spelling through the shared alias matcher', () => {
+  it('keys the heading by the credit line itself, not the claiming profile', () => {
+    // "Kaylee" resolves to the Kaytwo profile for curation, but the page is
+    // generated from the credit: /contributors/kaytwo forwards to whichever
+    // artist key holds the larger body of work (see mapArtistPageKeysByProfile).
     const [group] = groupByArtist([rep({ artist: 'Kaylee' })], 'count', directory);
-    expect(group.href).toBe('/contributors/kaytwo');
+    expect(group.href).toBe('/replications/artist/kaylee');
   });
 
-  it('leaves an artist with no profile on their external link', () => {
+  it('gives an artist with no profile the same generated Artist Page link', () => {
     const [group] = groupByArtist(
       [rep({ artist: 'Nobody At All', artist_url: 'https://nobody.test' })],
       'count',
       directory,
     );
 
-    expect(group.href).toBeUndefined();
+    expect(group.href).toBe('/replications/artist/nobody-at-all');
     expect(group.externalUrl).toBe('https://nobody.test');
   });
 
-  it('never links the unattributed bucket to a profile', () => {
+  it('never links the unattributed bucket heading anywhere', () => {
     const [group] = groupByArtist([rep({ artist: 'Unknown' }), rep({ artist: '' })], 'count', [
       // Even a profile that took the bucket's own label as a display name must
       // not collect everything nobody signed.
@@ -184,9 +189,88 @@ describe('groupByArtist', () => {
     expect(groups[0].items.map((item) => item.effect_slug)).toEqual(['geometry']);
   });
 
+  describe('video-first default tier', () => {
+    it('ranks any artist with a video above every image-only artist', () => {
+      const groups = groupByArtist([
+        rep({ artist: 'Prolific Painter' }),
+        rep({ artist: 'Prolific Painter' }),
+        rep({ artist: 'Prolific Painter' }),
+        rep({ artist: 'Motion Maker', type: 'video', format: 'mp4' }),
+      ]);
+      expect(groups.map((g) => g.label)).toEqual(['Motion Maker', 'Prolific Painter']);
+    });
+
+    it('keeps the count-then-alpha order within each tier', () => {
+      const groups = groupByArtist([
+        // Video tier: Zed (two works, one a video) outranks Ann (one video).
+        rep({ artist: 'Zed', type: 'video', format: 'mp4' }),
+        rep({ artist: 'Zed' }),
+        rep({ artist: 'Ann', type: 'video', format: 'mp4' }),
+        // Image tier: equal counts fall back to the alphabetical tiebreak.
+        rep({ artist: 'Yara' }),
+        rep({ artist: 'Beth' }),
+      ]);
+      expect(groups.map((g) => g.label)).toEqual(['Zed', 'Ann', 'Beth', 'Yara']);
+    });
+
+    it('sinks unattributed last even when its bucket holds a video', () => {
+      const groups = groupByArtist([
+        rep({ artist: '', type: 'video', format: 'mp4' }),
+        rep({ artist: 'Still Lifer' }),
+      ]);
+      expect(groups.map((g) => g.label)).toEqual(['Still Lifer', UNATTRIBUTED_LABEL]);
+    });
+
+    it('leaves the selectable sorts untiered', () => {
+      const works = [
+        rep({ artist: 'Zed', type: 'video', format: 'mp4' }),
+        rep({ artist: 'Ann' }),
+        rep({ artist: 'Ann' }),
+      ];
+      // Untiered count: Ann's two works beat Zed's video. Untiered alpha:
+      // Ann leads; a tiered alpha would have hoisted Zed to the front.
+      expect(groupByArtist(works, 'count').map((g) => g.label)).toEqual(['Ann', 'Zed']);
+      expect(groupByArtist(works, 'alpha').map((g) => g.label)).toEqual(['Ann', 'Zed']);
+    });
+  });
+
   it('withholds from the unattributed bucket too', () => {
     const groups = groupByArtist([rep({ artist: '', effect_slug: 'unspeakable-horrors' })]);
     expect(groups).toEqual([]);
+  });
+
+  it('folds Anonymous works into the unattributed bucket, unlinked', () => {
+    // "Anonymous" holds a marker contributor profile, but its works belong to
+    // the Unattributed bucket: no section of its own, no profile link, and the
+    // profile's curation cannot reorder the bucket.
+    const groups = groupByArtist(
+      [
+        rep({ artist: 'Anonymous', slug: 'anon-work', order_index: 2 }),
+        rep({ artist: 'unknown', slug: 'unknown-work', order_index: 1 }),
+        rep({ artist: 'Josie Kins' }),
+      ],
+      'count',
+      [{ key: 'ANONYMOUS', displayName: 'Anonymous', aliases: [], replicationOrder: ['anon-work'] }],
+    );
+
+    expect(groups.map((group) => group.label)).toEqual(['Josie Kins', UNATTRIBUTED_LABEL]);
+    const bucket = groups[1];
+    expect(bucket.key).toBe(UNATTRIBUTED_KEY);
+    expect(bucket.href).toBeUndefined();
+    expect(bucket.items.map((item) => item.slug)).toEqual(['unknown-work', 'anon-work']);
+  });
+
+  it('keeps the "Various artists" and "Midjourney" marker sections', () => {
+    const groups = groupByArtist([
+      rep({ artist: 'Various artists' }),
+      rep({ artist: 'Midjourney' }),
+      rep({ artist: 'Anonymous' }),
+    ]);
+    expect(groups.map((group) => group.label)).toEqual([
+      'Midjourney',
+      'Various artists',
+      UNATTRIBUTED_LABEL,
+    ]);
   });
 });
 
@@ -350,6 +434,7 @@ describe('artistUrlKey', () => {
     expect(artistUrlKey('')).toBe(UNKNOWN_ARTIST_URL_KEY);
     expect(artistUrlKey('unknown')).toBe(UNKNOWN_ARTIST_URL_KEY);
     expect(artistUrlKey(undefined)).toBe(UNKNOWN_ARTIST_URL_KEY);
+    expect(artistUrlKey('Anonymous')).toBe(UNKNOWN_ARTIST_URL_KEY);
   });
 
   it('gives a label with no slug a stable hashed unknown-<key> address', () => {

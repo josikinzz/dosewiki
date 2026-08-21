@@ -124,7 +124,7 @@ describe("mechanism route projection parity", () => {
       galleryReplications: [],
       articles: [],
       reports: [],
-      contributorKeys: [],
+      contributorDirectory: [],
       mechanismRouteInput: articles.map(projectMechanismRouteInput),
     });
     const projectedMechanisms = projectedPlan.families.mechanisms.map(
@@ -187,7 +187,7 @@ describe("mechanism route projection parity", () => {
       galleryReplications: [],
       articles: [],
       reports: [],
-      contributorKeys: [],
+      contributorDirectory: [],
       mechanismRouteInput: [projectMechanismRouteInput(legacyOnlyArticle)],
     });
 
@@ -236,7 +236,7 @@ describe("mechanism route projection parity", () => {
       galleryReplications: [],
       articles: [],
       reports: [],
-      contributorKeys: [],
+      contributorDirectory: [],
       mechanismRouteInput: [staleProjection],
     });
 

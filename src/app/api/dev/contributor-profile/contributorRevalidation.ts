@@ -41,6 +41,13 @@ export function revalidateContributorSurfaces({
     );
   }
 
+  // The contributor's Artist Page (T-4: the profile's one public surface when
+  // they claim credited works) renders the profile's avatar, bio, and links,
+  // so an edit must land there too. The profile→artist-key mapping needs the
+  // gallery corpus, which this write path has no business reading; the family
+  // is small and hourly-cached, so the whole route segment revalidates.
+  revalidatePath("/replications/artist/[key]", "page");
+
   revalidateTag(PUBLIC_CONVEX_CACHE_TAGS.contributors, { expire: 0 });
 
   if (scope === "ordering" || scope === "attribution") {

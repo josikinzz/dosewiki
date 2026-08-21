@@ -139,6 +139,19 @@ describe("ReplicationShowcase", () => {
     expect(screen.getAllByRole("tab")).toHaveLength(2);
   });
 
+  it("points the +N overflow at the substance's playlist page when an article owns it", () => {
+    render(
+      <ReplicationShowcase works={[work(), secondWork]} totalCount={89} substanceSlug="lsd" />,
+    );
+
+    // The playlist page is the real destination for "the rest of this
+    // gallery": it opens the immersive viewer on this exact walk.
+    const overflow = screen.getByRole("link", {
+      name: "87 more replications in this substance's playlist",
+    });
+    expect(overflow).toHaveAttribute("href", "/replications/substance/lsd");
+  });
+
   it("plays on demand and pauses again, with the gate closed", () => {
     const video = work({
       slug: "tracers-loop",
@@ -280,6 +293,31 @@ describe("buildShowcaseWorks", () => {
       "colour enhancement",
     ]);
     expect(works[0].byline).toBe("by Chelsea Morgan");
+  });
+
+  it("links the credit to the Artist Page; a withheld work falls back externally", () => {
+    const works = buildShowcaseWorks(
+      [
+        item({}, "drifting"),
+        item(
+          {
+            slug: "withheld",
+            effect_slug: "unspeakable-horrors",
+            artist_url: "https://chelsea.test",
+          },
+          "unspeakable-horrors",
+        ),
+      ],
+      new Map(),
+    );
+
+    // The work itself proves the Artist Page exists, so no resolver is needed.
+    expect(works[0].artistHref).toBe("/replications/artist/chelsea-morgan");
+    expect(works[0].artistHrefExternal).toBe(false);
+    // A withheld work cannot name that page; with no profile resolver, the
+    // artist's own site is the last honest destination.
+    expect(works[1].artistHref).toBe("https://chelsea.test");
+    expect(works[1].artistHrefExternal).toBe(true);
   });
 
   it("drops rows the stage cannot draw", () => {

@@ -54,7 +54,12 @@ describe('ContributorWorksCarousel', () => {
     );
 
     expect(screen.getByRole('list', { name: 'Replications by Chelsea Morgan' })).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: /a/ })).toHaveAttribute('href', '/replications/a');
+    // Artist context: the tile opens the viewer walking this artist's works,
+    // keyed by the credit line's gallery artist key.
+    expect(screen.getByRole('link', { name: /a/ })).toHaveAttribute(
+      'href',
+      '/replications/a?set=artist:chelsea-morgan',
+    );
     expect(screen.getAllByRole('listitem')).toHaveLength(2);
   });
 

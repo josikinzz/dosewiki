@@ -69,7 +69,14 @@ const createFixturePlan = () =>
       { slug: "dxm", publication_status: "unlisted" },
     ],
     reports: [{ slug: "first-trip" }],
-    contributorKeys: ["Ada Lovelace", "ada@example.com", "Ada Lovelace"],
+    contributorDirectory: [
+      { key: "Ada Lovelace", displayName: "Ada Lovelace", aliases: [] },
+      { key: "ada@example.com", displayName: "Ada", aliases: [] },
+      { key: "Ada Lovelace", displayName: "Ada Lovelace", aliases: [] },
+      // Claims the credited artist below, so her /contributors page forwards
+      // to the Artist Page and leaves the sitemap.
+      { key: "CHELSEA", displayName: "Chelsea Morgan", aliases: [] },
+    ],
     mechanismRouteInput: [
       {
         displayName: "Dopamine example",
@@ -125,7 +132,7 @@ describe("public route plan", () => {
         { slug: "a-blog-post", publication_status: "published", kind: "blog" },
       ],
       reports: [],
-      contributorKeys: [],
+      contributorDirectory: [],
       mechanismRouteInput: [],
     });
 
@@ -139,7 +146,7 @@ describe("public route plan", () => {
   it("data-caches the JSON-safe derived plan", () => {
     expect(routeCacheMocks.unstableCache).toHaveBeenCalledWith(
       expect.any(Function),
-      ["convex-public-route-plan-v3"],
+      ["convex-public-route-plan-v4"],
       expect.objectContaining({
         tags: expect.arrayContaining([
           "convex-public",
@@ -261,11 +268,20 @@ describe("public route plan", () => {
     expect(getPublicRouteParams(plan, "contributors")).toEqual([
       { profileKey: "ada%20lovelace" },
       { profileKey: "ada%40example.com" },
+      { profileKey: "chelsea" },
     ]);
     expect(plan.families.contributors.map((entry) => entry.path)).toEqual([
       "/contributors/ada%20lovelace",
       "/contributors/ada%40example.com",
+      "/contributors/chelsea",
     ]);
+    // Chelsea's profile claims the credited artist, so /contributors/chelsea
+    // permanently forwards to /replications/artist/chelsea-morgan: it still
+    // prerenders (a fast 301) but the sitemap advertises only the Artist Page.
+    const sitemapPaths = getPublicRouteSitemapPaths(plan);
+    expect(sitemapPaths).toContain("/contributors/ada%20lovelace");
+    expect(sitemapPaths).toContain("/replications/artist/chelsea-morgan");
+    expect(sitemapPaths).not.toContain("/contributors/chelsea");
   });
 
   it("keeps mechanism default qualifiers available for static params but out of sitemap paths", () => {

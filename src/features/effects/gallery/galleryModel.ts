@@ -1,8 +1,8 @@
 import {
-  resolveContributorHref,
   resolveContributorReplicationOrder,
   type ContributorDirectory,
 } from '@server/contributorDirectory';
+import { getPublicRoutePath } from '@/utils/publicRouteIdentity';
 import { applyCuratedOrder } from '@server/curatedOrder';
 import type { PublicGalleryReplicationPreview } from '@/types/replications';
 import { hasKnownCreator } from '../components/replicationCredit';
@@ -19,7 +19,15 @@ import { hasKnownCreator } from '../components/replicationCredit';
 
 export type GalleryMode = 'artist' | 'effect';
 export type GalleryTypeFilter = 'all' | 'image' | 'video';
-export type GalleryArtistSort = 'count' | 'alpha';
+export type GalleryArtistSort = 'video-first' | 'count' | 'alpha';
+
+/**
+ * The gallery's default artist order: a hard two-tier sort where any artist
+ * with at least one video ranks above every image-only artist, and the old
+ * count-then-alpha default applies within each tier. Video replications are
+ * far scarcer than images, so their makers lead the page.
+ */
+export const DEFAULT_GALLERY_ARTIST_SORT: GalleryArtistSort = 'video-first';
 
 export const UNATTRIBUTED_KEY = '__unattributed__';
 export const UNATTRIBUTED_LABEL = 'Unattributed';
@@ -29,7 +37,7 @@ export interface GalleryGroup {
   key: string;
   /** Human label for the section header. */
   label: string;
-  /** Optional internal link for the header (effect article). */
+  /** Internal link for the header: the Artist Page or the effect article. Absent only for the unattributed bucket. */
   href?: string;
   /** Optional external link for the header (artist portfolio). */
   externalUrl?: string;
@@ -262,21 +270,23 @@ function toExternalArtistUrl(value: string | undefined): string | undefined {
 }
 
 /**
- * `contributorDirectory` turns each artist heading into a link to their profile
- * page. It is passed in rather than looked up because this model is pure and
- * runs inside a client component; the directory is read on the server and
- * threaded down. Resolution goes through `resolveContributorHref`, which is the
- * shared alias-aware matcher — the gallery adds no name matching of its own.
+ * Every attributed artist heading links to their Artist Page — the one public
+ * surface per credited artist (/replications/artist/<key>, see the decision
+ * record in src/features/replications/galleryFocus.ts). The key derives from
+ * the credit line itself, so no directory lookup decides where a name goes.
  *
- * A credit the directory does not claim simply gets no `href`, and the heading
- * falls back to its external link or to plain text.
+ * `contributorDirectory` still travels here for the contributor's curated
+ * `replicationOrder`: it is passed in rather than looked up because this model
+ * is pure and runs inside a client component; the directory is read on the
+ * server and threaded down. Resolution goes through the shared alias-aware
+ * matcher — the gallery adds no name matching of its own.
  *
- * The marker credits are claimable like any other name. "Various artists",
- * "Midjourney" and "Anonymous" each hold a marker contributor profile, so their
- * sections link to a real page and carry a curatable `replicationOrder`. The
- * unattributed bucket is the one exception below: the rows in it are credited
- * "Unknown" or nothing at all, so there is no name for a profile to claim and
- * no honest page to link a heading reading "Unattributed" to.
+ * The unattributed bucket is the one heading with no `href`: its page exists
+ * (the `unknown` key), but the rows in it are credited "Unknown", "Anonymous"
+ * or nothing at all, and none of those names a creator, so a heading reading
+ * "Unattributed" claims no identity and falls back to plain text. ("Anonymous"
+ * does hold a marker profile, but its works fold into this bucket — see
+ * `hasKnownCreator` — so no section ever carries that name here.)
  *
  * Works of a withheld effect never reach this grouping — see
  * `isWithheldFromArtistViews`. Filtering here rather than at each call site is
@@ -287,7 +297,7 @@ function toExternalArtistUrl(value: string | undefined): string | undefined {
  */
 export function groupByArtist(
   replications: PublicGalleryReplicationPreview[],
-  sort: GalleryArtistSort = 'count',
+  sort: GalleryArtistSort = DEFAULT_GALLERY_ARTIST_SORT,
   contributorDirectory: ContributorDirectory = [],
 ): GalleryGroup[] {
   const buckets = new Map<string, GalleryGroup>();
@@ -305,7 +315,10 @@ export function groupByArtist(
         href:
           key === UNATTRIBUTED_KEY
             ? undefined
-            : resolveContributorHref(label, contributorDirectory) ?? undefined,
+            : getPublicRoutePath({
+                family: 'replicationArtist',
+                params: { key: artistUrlKeyFromIdentity(key, label) },
+              }),
         externalUrl: toExternalArtistUrl(replication.artist_url),
         count: 0,
         imageCount: 0,
@@ -347,6 +360,12 @@ export function groupByArtist(
     if (a.key === UNATTRIBUTED_KEY) return 1;
     if (b.key === UNATTRIBUTED_KEY) return -1;
     if (sort === 'alpha') return a.label.localeCompare(b.label);
+    if (sort === 'video-first') {
+      // Hard tier: video-having artists above image-only artists; the plain
+      // count order decides everything within a tier.
+      const tier = Number(b.videoCount > 0) - Number(a.videoCount > 0);
+      if (tier !== 0) return tier;
+    }
     if (a.count !== b.count) return b.count - a.count;
     return a.label.localeCompare(b.label);
   });

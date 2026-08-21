@@ -1,22 +1,11 @@
 import { NextResponse } from "next/server";
-import {
-  getPublicContributorProfiles,
-  getPublicEffectBySlug,
-  getPublicReplicationsForSubstance,
-  getPublicSubstanceBySlug,
-} from "@server/convex/publicData";
-import { findContributorProfileByAuthorName } from "@server/contributorProfileIdentity";
 import { enforceRateLimit } from "@server/http/nextRateLimit";
+import { loadSubstanceReplicationWalk } from "@server/next/routeLoaders.replications";
 import {
   applyPublicApiCors,
   getPublicApiCorsHeaders,
   getPublicApiResponseHeaders,
 } from "@server/public-api/v1";
-import { hasKnownCreator } from "@/features/effects/components/replicationCredit";
-import { resolveEffectCategories } from "@/features/effects/pages/replicationSubject";
-import { isPublishableReplication } from "@/types/replications";
-import { publicHref } from "@/utils/publicHref";
-import type { ReplicationViewerItem } from "@/features/replications/viewer/viewerModel";
 
 /**
  * The replication viewer's substance walk: the same ordered gallery the
@@ -26,6 +15,10 @@ import type { ReplicationViewerItem } from "@/features/replications/viewer/viewe
  * fetches this after hydration (the permalink page is server-rendered with
  * the effect walk it can compute without knowing where the reader came from)
  * and swaps its set when the active slug is a member.
+ *
+ * The walk itself comes from `loadSubstanceReplicationWalk` — the exact
+ * builder the substance playlist page server-renders — so the set a shared
+ * playlist URL reproduces and the set this route swaps in can never disagree.
  *
  * The body is the viewer's set contract — `{ scope, scopeLabel, items }`,
  * items shaped exactly like the permalink page's server props — rather than
@@ -60,76 +53,19 @@ export async function GET(request: Request, { params }: { params: Promise<{ slug
   }
 
   try {
-    const [gallery, substance] = await Promise.all([
-      getPublicReplicationsForSubstance(slug),
-      // Read the article only for its display name: the scope label under the
-      // viewer's filmstrip should say "LSD", not "lsd".
-      getPublicSubstanceBySlug(slug),
-    ]);
-
-    // The read already applies the publishability gate; the URL check repeats
-    // the permalink loader's defence against a storage id that resolved to
-    // nothing, so the viewer is never handed a slide it cannot draw.
-    const rows = gallery.items.filter(
-      (item) => item.replication.url && isPublishableReplication(item.replication),
-    );
-    if (rows.length === 0) {
+    const walk = await loadSubstanceReplicationWalk(slug);
+    if (!walk) {
       return NextResponse.json(
         { error: "not-found" },
         { status: 404, headers: getPublicApiResponseHeaders({ cache: false }) },
       );
     }
 
-    // Each slide's caption names the work's *own* effect — the same breadcrumb
-    // the permalink page server-renders — so swapping the walk from effect to
-    // substance scope never rewrites the caption under the reader's cursor. A
-    // row with no real effect of its own falls back to the substance-derived
-    // effect that matched it here (`provenance.effectSlug`), which is at least
-    // true of the work rather than blank.
-    const captionEffectSlugOf = (row: (typeof rows)[number]) =>
-      // Rows carry `effect_slug: "unknown"` when nothing real is attached.
-      row.replication.effect_slug && row.replication.effect_slug !== "unknown"
-        ? row.replication.effect_slug
-        : row.provenance.effectSlug;
-
-    const distinctEffectSlugs = [...new Set(rows.map(captionEffectSlugOf))];
-    // Only a credit that names a person can resolve to a profile; a gallery of
-    // unattributed works skips the read rather than paying for a lookup that
-    // cannot succeed — same reasoning as the permalink loader.
-    const anyKnownCreator = rows.some((item) => hasKnownCreator(item.replication.artist));
-    const [effectEntries, contributorProfiles] = await Promise.all([
-      Promise.all(
-        distinctEffectSlugs.map(async (effectSlug) =>
-          [effectSlug, await getPublicEffectBySlug(effectSlug)] as const,
-        ),
-      ),
-      anyKnownCreator ? getPublicContributorProfiles() : Promise.resolve([]),
-    ]);
-    const effectBySlug = new Map(effectEntries);
-
-    const items: ReplicationViewerItem[] = rows.map((row) => {
-      const effectSlug = captionEffectSlugOf(row);
-      const effect = effectSlug ? effectBySlug.get(effectSlug) : null;
-      const creator = hasKnownCreator(row.replication.artist)
-        ? row.replication.artist.trim()
-        : null;
-      const profile = creator
-        ? findContributorProfileByAuthorName(contributorProfiles, creator)
-        : null;
-      return {
-        replication: row.replication,
-        effectName: effect?.name ?? null,
-        effectSlug: effectSlug ?? null,
-        effectCategories: effect ? resolveEffectCategories(effect.tags) : [],
-        artistProfileHref: profile ? publicHref.contributor(profile.key) : null,
-      };
-    });
-
     return NextResponse.json(
       {
         scope: "substance" as const,
-        scopeLabel: substance?.title ?? slug,
-        items,
+        scopeLabel: walk.scopeLabel,
+        items: walk.items,
       },
       { headers: getPublicApiResponseHeaders() },
     );

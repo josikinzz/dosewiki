@@ -1,4 +1,5 @@
 import { ReplicationViewer } from "@/features/replications/viewer/ReplicationViewer";
+import type { ViewerSetParam } from "@/features/replications/viewer/viewerLogic";
 import {
   findViewerIndex,
   type ReplicationViewerSet,
@@ -10,12 +11,19 @@ export interface ReplicationDetailPageProps {
   replication: ReplicationWithUrl;
   effectName: string | null;
   effectSlug: string | null;
-  /** Profile page of the credited artist, absent when no profile claims them. */
+  /** The credited artist's Artist Page (profile fallback for withheld works), null when nobody is named. */
   artistProfileHref: string | null;
+  /** The claiming profile's avatar for the compact byline; null when unclaimed or avatar-less. */
+  avatarUrl: string | null;
   /** Category pages the replicated effect belongs to, broad to specific. */
   effectCategories: EffectCategoryLink[];
   /** The full ordered walk the viewer moves through; contains this item. */
   viewerSet: ReplicationViewerSet;
+  /**
+   * The scope the hosting page's address names, when it is a playlist page.
+   * Rides into the viewer so client-side moves keep the scope in the URL.
+   */
+  setParam?: ViewerSetParam | null;
 }
 
 /**
@@ -33,8 +41,10 @@ export function ReplicationDetailPage({
   effectName,
   effectSlug,
   artistProfileHref,
+  avatarUrl,
   effectCategories,
   viewerSet,
+  setParam = null,
 }: ReplicationDetailPageProps) {
   // The walk selector guarantees the active item is a member of the set it
   // returns, but this page is the last place able to make that true: a set
@@ -47,7 +57,9 @@ export function ReplicationDetailPage({
       : {
           scope: viewerSet.scope,
           scopeLabel: null,
-          items: [{ replication, effectName, effectSlug, effectCategories, artistProfileHref }],
+          items: [
+            { replication, effectName, effectSlug, effectCategories, artistProfileHref, avatarUrl },
+          ],
         };
 
   return (
@@ -55,7 +67,7 @@ export function ReplicationDetailPage({
     // to prose width now wraps only the metadata (inside the viewer). This
     // element keeps the focus target the skip link points at.
     <main id="main-content" tabIndex={-1} className="min-h-screen w-full pb-20 focus:outline-none">
-      <ReplicationViewer initialSlug={replication.slug} set={set} />
+      <ReplicationViewer initialSlug={replication.slug} set={set} initialSetParam={setParam} />
     </main>
   );
 }

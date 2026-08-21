@@ -1,7 +1,8 @@
-import type {
-  GalleryArtistSort,
-  GalleryMode,
-  GalleryTypeFilter,
+import {
+  DEFAULT_GALLERY_ARTIST_SORT,
+  type GalleryArtistSort,
+  type GalleryMode,
+  type GalleryTypeFilter,
 } from '@/features/effects/gallery/galleryModel';
 import { getPublicRoutePath } from '@/utils/publicRouteIdentity';
 
@@ -33,7 +34,7 @@ export const GALLERY_BROWSE_DEFAULTS: GalleryBrowseState = {
   view: 'artist',
   query: '',
   type: 'all',
-  sort: 'count',
+  sort: DEFAULT_GALLERY_ARTIST_SORT,
 };
 
 /** A focused gallery view: one artist's or one effect's works. */
@@ -47,11 +48,12 @@ type ParamsLike = Pick<URLSearchParams, 'get'>;
 
 export function parseGalleryBrowseState(params: ParamsLike): GalleryBrowseState {
   const type = params.get('type');
+  const sort = params.get('sort');
   return {
     view: params.get('view') === 'effect' ? 'effect' : 'artist',
     query: params.get('q') ?? '',
     type: type === 'image' || type === 'video' ? type : 'all',
-    sort: params.get('sort') === 'alpha' ? 'alpha' : 'count',
+    sort: sort === 'alpha' || sort === 'count' ? sort : DEFAULT_GALLERY_ARTIST_SORT,
   };
 }
 
@@ -69,8 +71,8 @@ export function buildGalleryBrowseUrl(state: Partial<GalleryBrowseState> = {}): 
   // `sort` only drives the by-artist grouping, but it survives in the URL
   // across a round trip through effect view so toggling back does not silently
   // lose the reader's ordering.
-  if (state.sort === 'alpha') {
-    params.set('sort', 'alpha');
+  if (state.sort === 'alpha' || state.sort === 'count') {
+    params.set('sort', state.sort);
   }
   const query = params.toString();
   return query ? `${REPLICATIONS_PATH}?${query}` : REPLICATIONS_PATH;

@@ -33,10 +33,6 @@ export const getPublicContributorProfiles = cache(unstable_cache(async (): Promi
   tags: [PUBLIC_CONVEX_CACHE_TAGS.all, PUBLIC_CONVEX_CACHE_TAGS.contributors],
 }));
 
-export const getPublicContributorKeys = cache(async (): Promise<string[]> => {
-  return (await getPublicContributorProfiles()).map((profile) => profile.key);
-});
-
 export const getPublicContributorDirectory = cache(async (): Promise<ContributorDirectory> => {
   const profiles = await getPublicContributorProfiles();
   return profiles.map((profile) => ({

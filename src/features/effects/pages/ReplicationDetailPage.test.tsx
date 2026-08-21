@@ -37,6 +37,7 @@ const activeItem: ReplicationViewerItem = {
     { slug: "visual-distortions", name: "Visual Distortions", icon: "lucide:move" },
   ],
   artistProfileHref: "/contributors/chelsea",
+  avatarUrl: null,
 };
 
 function makeItem(slug: string, title: string): ReplicationViewerItem {
@@ -53,6 +54,7 @@ function makeItem(slug: string, title: string): ReplicationViewerItem {
     effectSlug: "tracers",
     effectCategories: activeItem.effectCategories,
     artistProfileHref: "/contributors/chelsea",
+    avatarUrl: null,
   };
 }
 
@@ -69,6 +71,7 @@ function renderPage(overrides: Partial<ReplicationDetailPageProps> = {}) {
       effectName="Tracers"
       effectSlug="tracers"
       artistProfileHref="/contributors/chelsea"
+      avatarUrl={null}
       effectCategories={activeItem.effectCategories}
       viewerSet={viewerSet}
       {...overrides}
@@ -89,13 +92,57 @@ describe("ReplicationDetailPage", () => {
     expect(screen.getByRole("heading", { level: 1, name: "Tracers" })).toBeInTheDocument();
   });
 
-  it("points the byline at the artist's profile when one claims the credit", () => {
+  it("points the top-line byline at the artist's page when the credit resolves to one", () => {
     renderPage();
 
-    // The byline and the credit card both come from the active walk item.
-    expect(screen.getAllByRole("link", { name: "Chelsea Morgan" })[0]).toHaveAttribute(
+    // The byline comes from the active walk item; it is the name's one home.
+    expect(screen.getByRole("link", { name: "Chelsea Morgan" })).toHaveAttribute(
       "href",
       "/contributors/chelsea",
+    );
+  });
+
+  it("shows the claiming profile's avatar beside the name in the top line", () => {
+    renderPage({
+      viewerSet: {
+        ...viewerSet,
+        items: viewerSet.items.map((item) =>
+          item.replication.slug === replication.slug
+            ? { ...item, avatarUrl: "https://cdn.test/chelsea-avatar.webp" }
+            : item,
+        ),
+      },
+    });
+
+    const byline = screen.getByRole("link", { name: "Chelsea Morgan" });
+    // Decorative beside the visible name: it adds nothing to the accessible
+    // name, so the link still answers to plain "Chelsea Morgan".
+    expect(byline.querySelector("img")).toHaveAttribute(
+      "src",
+      "https://cdn.test/chelsea-avatar.webp",
+    );
+  });
+
+  it("renders no avatar slot when no claiming profile provides one", () => {
+    renderPage();
+
+    expect(screen.getByRole("link", { name: "Chelsea Morgan" }).querySelector("img")).toBeNull();
+  });
+
+  it("renders the display name exactly once above the fold", () => {
+    renderPage();
+
+    // The credit card dropped its standalone name row; the attribution
+    // sentence still contains the name, but only inside the rights text.
+    expect(screen.getAllByText("Chelsea Morgan")).toHaveLength(1);
+  });
+
+  it("offers a back control to the gallery in the compact top line", () => {
+    renderPage();
+
+    expect(screen.getByRole("link", { name: "Back to replications" })).toHaveAttribute(
+      "href",
+      "/replications",
     );
   });
 
@@ -133,8 +180,8 @@ describe("ReplicationDetailPage", () => {
 
     // A dead link is worse than plain text: it promises somewhere to go.
     expect(screen.queryByRole("link", { name: "Chelsea Morgan" })).toBeNull();
-    // Still credited, just as plain text — the credit row keeps naming them too.
-    expect(screen.getAllByText("Chelsea Morgan").length).toBeGreaterThan(0);
+    // Still credited, just as plain text — the top line is the name's one home.
+    expect(screen.getAllByText("Chelsea Morgan")).toHaveLength(1);
   });
 
   it("names the effect and its categories beneath the work", () => {

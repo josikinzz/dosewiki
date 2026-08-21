@@ -9,7 +9,9 @@ import { PublicNameChip } from "@/components/common/PublicTokens";
 import { focusRingClassName } from "@/components/ui/surface";
 import { cn } from "@/lib/utils";
 import { icons } from "@/utils/iconNames";
+import { buildViewerPath } from "@/features/replications/viewer/viewerLogic";
 import { publicHref } from "@/utils/publicHref";
+import { getPublicRoutePath } from "@/utils/publicRouteIdentity";
 import { resolveRouteChromeIcon } from "@/utils/routeChromeIcons";
 import type { ShowcaseWork } from "./showcaseModel";
 
@@ -265,11 +267,10 @@ export function ReplicationShowcase({ works, totalCount, substanceSlug }: Replic
         <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-0.5 px-2.5 py-1.5 sm:gap-y-1 sm:px-3 sm:pb-7 sm:pt-2 sm:pointer-events-none sm:absolute sm:inset-x-0 sm:top-0 sm:z-10 sm:bg-gradient-to-b sm:from-black/75 sm:via-black/35 sm:to-transparent">
           <div className="flex min-w-0 flex-wrap items-baseline gap-x-2">
             <Link
-              href={
-                substanceSlug
-                  ? `${publicHref.replication(active.slug)}?set=substance:${substanceSlug}`
-                  : publicHref.replication(active.slug)
-              }
+              href={buildViewerPath(
+                active.slug,
+                substanceSlug ? { kind: "substance", slug: substanceSlug } : null,
+              )}
               className={cn(
                 "theme-media-tile-title pointer-events-auto inline-flex min-w-0 items-center gap-1 text-[13px] font-semibold leading-tight sm:text-sm",
                 "transition-opacity hover:opacity-80",
@@ -515,9 +516,22 @@ export function ReplicationShowcase({ works, totalCount, substanceSlug }: Replic
                   })}
                 </div>
                 {total > count ? (
+                  // The substance's playlist page is the real "the rest of
+                  // this gallery" destination — it opens the immersive viewer
+                  // on this exact walk. Without an owning article (the studio
+                  // preview) the cross-substance gallery stands in.
                   <Link
-                    href="/replications"
-                    aria-label={`${total - count} more replications in the gallery`}
+                    href={
+                      substanceSlug
+                        ? getPublicRoutePath({
+                            family: "replicationSubstance",
+                            params: { slug: substanceSlug },
+                          })
+                        : "/replications"
+                    }
+                    aria-label={`${total - count} more replications in ${
+                      substanceSlug ? "this substance's playlist" : "the gallery"
+                    }`}
                     className={cn(
                       "grid size-9 flex-none snap-start place-items-center rounded-md pointer-coarse:size-11",
                       "theme-media-tile-title bg-black/60 text-[11px] font-semibold tabular-nums",

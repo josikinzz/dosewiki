@@ -144,6 +144,10 @@ export const POST = protectedRouteOperation<SaveProfileBody, ParsedSaveProfileBo
     for (const key of contributorKeys) {
       revalidatePath(getPublicRoutePath({ family: "contributor", params: { profileKey: key } }));
     }
+    // The saved profile decorates its Artist Page (T-4: avatar, bio, links on
+    // /replications/artist/<key>), so edits must land there too; the small,
+    // hourly-cached family revalidates as one segment.
+    revalidatePath("/replications/artist/[key]", "page");
     revalidatePath("/about");
     invalidatePublicDerivedDataCache({ source: "save-user-profile" });
     revalidateTag(PUBLIC_CONVEX_CACHE_TAGS.all, { expire: 0 });

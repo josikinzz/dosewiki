@@ -5,12 +5,13 @@ import { cache } from "react";
 import { CATEGORY_SLUG_TO_TAGS } from "../../src/data/effectCategoryDefinitions";
 import { deriveMechanismRouteData } from "../../src/data/builders/mechanismRouteDerivation";
 import { artistUrlKey, isWithheldFromArtistViews } from "../../src/features/effects/gallery/galleryModel";
+import { mapArtistPageKeysByProfile } from "../../src/features/replications/galleryFocus";
 import { PSYCHOACTIVE_SUMMARY_DEFINITIONS } from "../../src/features/psychoactive-summaries/summaryDefinitions";
 import {
   PUBLIC_CONVEX_CACHE_REVALIDATE_SECONDS,
   PUBLIC_CONVEX_CACHE_TAGS,
   getPublicCategoryLayout,
-  getPublicContributorKeys,
+  getPublicContributorDirectory,
   getPublicEffectIndexArticles,
   getPublicEffects,
   getPublicMechanismRouteInput,
@@ -41,7 +42,13 @@ export const STATIC_PUBLIC_PATHS = [
  * "effect" host the focused gallery views (/replications/artist/<key>,
  * /replications/effect/<slug>).
  */
-export const RESERVED_REPLICATION_SLUGS = new Set(["audio", "tutorials", "artist", "effect"]);
+export const RESERVED_REPLICATION_SLUGS = new Set([
+  "audio",
+  "tutorials",
+  "artist",
+  "effect",
+  "substance",
+]);
 
 export type PublicRouteFamily =
   | "substances"
@@ -107,7 +114,17 @@ interface PublicRoutePlanInput {
     kind?: "article" | "blog";
   }[];
   reports: readonly { slug: string }[];
-  contributorKeys: readonly string[];
+  /**
+   * The public contributor directory (key, display name, aliases): the
+   * contributors family derives its keys from it, and profiles that claim a
+   * displayable credit line — whose /contributors page permanently forwards
+   * to the Artist Page (T-4) — are kept out of the sitemap.
+   */
+  contributorDirectory: readonly {
+    key: string;
+    displayName: string;
+    aliases: string[];
+  }[];
   mechanismRouteInput: Awaited<
     ReturnType<typeof getPublicMechanismRouteInput>
   >;
@@ -280,20 +297,36 @@ export function buildPublicRoutePlan(input: PublicRoutePlanInput): PublicRoutePl
       reports: entriesFromSlugs(input.reports.map(({ slug }) => slug), "slug", (slug) =>
         getPublicRoutePath({ family: "report", params: { slug } }),
       ),
-      contributors: unique(
-        input.contributorKeys.map((profileKey) => profileKey.trim().toLowerCase()).filter(Boolean),
-      ).map((profileKey) => {
-        const path = getPublicRoutePath({
-          family: "contributor",
-          params: { profileKey },
-        });
-        const encodedProfileKey = path.split("/").pop() ?? "";
+      // Every profile still prerenders (a forwarded profile prerenders its
+      // 301), but a profile that claims a credited artist is no longer a
+      // destination — its Artist Page is already advertised by the
+      // replicationArtists family above — so the sitemap stops naming it.
+      contributors: (() => {
+        const forwardedProfileKeys = mapArtistPageKeysByProfile(
+          input.galleryReplications,
+          input.contributorDirectory,
+        );
+        return unique(
+          input.contributorDirectory
+            .map(({ key }) => key.trim())
+            .filter(Boolean)
+            .map((key) => key.toLowerCase()),
+        ).map((profileKey) => {
+          const path = getPublicRoutePath({
+            family: "contributor",
+            params: { profileKey },
+          });
+          const encodedProfileKey = path.split("/").pop() ?? "";
 
-        return {
-          path,
-          params: { profileKey: encodedProfileKey },
-        };
-      }),
+          return {
+            path,
+            params: { profileKey: encodedProfileKey },
+            includeInSitemap: forwardedProfileKeys.has(profileKey.toUpperCase())
+              ? false
+              : undefined,
+          };
+        });
+      })(),
       mechanisms,
       mechanismQualifiers,
     },
@@ -326,7 +359,7 @@ const getCachedPublicRoutePlan = unstable_cache(async () => {
     galleryReplications,
     articles,
     reports,
-    contributorKeys,
+    contributorDirectory,
     mechanismRouteInput,
   ] = await Promise.all([
     getPublicSubstanceLookup(),
@@ -336,7 +369,7 @@ const getCachedPublicRoutePlan = unstable_cache(async () => {
     getPublicGalleryReplications(),
     getPublicEffectIndexArticles(),
     getPublicReports(),
-    getPublicContributorKeys(),
+    getPublicContributorDirectory(),
     getPublicMechanismRouteInput(),
   ]);
 
@@ -348,10 +381,10 @@ const getCachedPublicRoutePlan = unstable_cache(async () => {
     galleryReplications,
     articles,
     reports,
-    contributorKeys,
+    contributorDirectory,
     mechanismRouteInput,
   });
-}, ["convex-public-route-plan-v3"], {
+}, ["convex-public-route-plan-v4"], {
   revalidate: PUBLIC_CONVEX_CACHE_REVALIDATE_SECONDS,
   tags: [
     PUBLIC_CONVEX_CACHE_TAGS.all,

@@ -2,6 +2,7 @@ import {
   getCreatorByline,
   hasKnownCreator,
 } from "@/features/effects/components/replicationCredit";
+import { artistPageHrefForWork } from "@/features/replications/galleryFocus";
 import {
   resolveVisualEffectSlugs,
   visualEffectNamesOf,
@@ -26,9 +27,10 @@ export type ShowcaseWork = {
   /** Trimmed credited name, null when the credit names nobody. */
   artistName: string | null;
   /**
-   * Where the artist's name links: their contributor profile when one claims
-   * the credit, else their own site (`artist_url`), else nowhere. Same policy
-   * as the permalink page's byline.
+   * Where the artist's name links: their Artist Page when this work proves one
+   * exists, else the `resolveArtistFallbackHref` answer (a claimed contributor
+   * profile — live for exactly the artists with no page), else their own site
+   * (`artist_url`), else nowhere. Same policy as the permalink page's byline.
    */
   artistHref: string | null;
   /** True when `artistHref` leaves the site (the `artist_url` fallback). */
@@ -73,7 +75,7 @@ export const SHOWCASE_WORK_CAP = 12;
 export function buildShowcaseWorks(
   items: readonly SubstanceGalleryItem[],
   effectNameBySlug: ReadonlyMap<string, string>,
-  resolveArtistProfileHref: (artistName: string) => string | null = () => null,
+  resolveArtistFallbackHref: (artistName: string) => string | null = () => null,
 ): ShowcaseWork[] {
   const works: ShowcaseWork[] = [];
   for (const { replication, provenance } of items) {
@@ -81,8 +83,11 @@ export function buildShowcaseWorks(
     const artistName = hasKnownCreator(replication.artist)
       ? replication.artist.trim()
       : null;
-    const profileHref = artistName ? resolveArtistProfileHref(artistName) : null;
-    const artistHref = profileHref ?? (artistName ? replication.artist_url?.trim() || null : null);
+    const internalHref =
+      artistPageHrefForWork(replication) ??
+      (artistName ? resolveArtistFallbackHref(artistName) : null);
+    const artistHref =
+      internalHref ?? (artistName ? replication.artist_url?.trim() || null : null);
     works.push({
       slug: replication.slug,
       title: replication.title,
@@ -92,7 +97,7 @@ export function buildShowcaseWorks(
       byline: getCreatorByline(replication),
       artistName,
       artistHref,
-      artistHrefExternal: artistHref !== null && profileHref === null,
+      artistHrefExternal: artistHref !== null && internalHref === null,
       effectSlug: provenance.effectSlug,
       effectName:
         effectNameBySlug.get(provenance.effectSlug) ??

@@ -51,9 +51,57 @@ export function computeFillScale(
   return Math.min(coverScale, maxScale);
 }
 
-/** A `?set=` scope the URL opted into. Only substance scope exists today. */
+/**
+ * The crop rule every immersive stage shares (permalink viewer, swipe deck,
+ * playlist stages): only landscape media may zoom-crop toward covering the
+ * stage, bounded by {@link FILL_SCALE_LIMIT}. Portrait and square media never
+ * crop — a vertical work shown whole *is* the presentation, and cropping it
+ * to fill a landscape stage would cut the subject, not letterbox bars.
+ */
+export function computeStageScale(
+  mediaAspect: number,
+  stageAspect: number,
+  maxScale: number = FILL_SCALE_LIMIT,
+): number {
+  if (!Number.isFinite(mediaAspect) || mediaAspect <= 1) return 1;
+  return computeFillScale(mediaAspect, stageAspect, maxScale);
+}
+
+/** Aspect assumed for media whose intrinsic size hasn't arrived yet. */
+export const FALLBACK_IMAGE_RATIO = 4 / 3;
+export const FALLBACK_VIDEO_RATIO = 16 / 9;
+
+/**
+ * The aspect the crop math runs against, by trust order: a ratio probed from
+ * the loaded media itself beats the catalogued dimensions (rows imported
+ * before dimensions were recorded lack them, and a few carry stale ones),
+ * which beat the per-type guess. The guess only positions the first paint —
+ * degenerate inputs must resolve to *something* rather than crop on NaN.
+ */
+export function resolveMediaAspect(
+  type: ReplicationType,
+  width: number | null | undefined,
+  height: number | null | undefined,
+  probed?: number,
+): number {
+  if (probed !== undefined && Number.isFinite(probed) && probed > 0) return probed;
+  if (width && height && width > 0 && height > 0) return width / height;
+  return type === 'video' ? FALLBACK_VIDEO_RATIO : FALLBACK_IMAGE_RATIO;
+}
+
+/**
+ * A `?set=` scope the URL opted into. The entry context emits it — an effect
+ * article scopes to that effect, a substance showcase to that substance, an
+ * artist listing to that artist — and the viewer walks the named set instead
+ * of the server default (the work's own effect walk).
+ */
 export interface ViewerSetParam {
-  kind: 'substance';
+  kind: 'effect' | 'substance' | 'artist';
+  /**
+   * URL key of the scope's subject: an effect or substance slug, or the
+   * gallery artist URL key (`artistUrlKey` — same charset, including the
+   * `unknown`/`unknown-<hash>` segments of the Unattributed bucket).
+   */
   slug: string;
 }
 
@@ -63,15 +111,17 @@ export interface ViewerSetParam {
  * else (path traversal, query smuggling, plain typos) parses as "no scope"
  * and the viewer keeps the server-chosen walk.
  */
-const SUBSTANCE_SET_PATTERN = /^substance:([a-z0-9]+(?:-[a-z0-9]+)*)$/;
+const SET_PARAM_PATTERN = /^(effect|substance|artist):([a-z0-9]+(?:-[a-z0-9]+)*)$/;
 
-/** Parse `location.search` for a viewer scope, e.g. `?set=substance:lsd`. */
+/** Parse `location.search` for a viewer scope, e.g. `?set=effect:tracers`. */
 export function parseViewerSetParam(search: string): ViewerSetParam | null {
   const value = new URLSearchParams(search).get('set');
   if (!value) return null;
 
-  const match = SUBSTANCE_SET_PATTERN.exec(value);
-  return match ? { kind: 'substance', slug: match[1] } : null;
+  const match = SET_PARAM_PATTERN.exec(value);
+  return match
+    ? { kind: match[1] as ViewerSetParam['kind'], slug: match[2] }
+    : null;
 }
 
 /**

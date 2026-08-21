@@ -18,6 +18,7 @@ const publicData = vi.hoisted(() => ({
   getPublicCategoryLayout: vi.fn(),
   getPublicContributorByKey: vi.fn(),
   getPublicContributorDirectory: vi.fn(() => Promise.resolve([])),
+  getPublicGalleryReplications: vi.fn(() => Promise.resolve([])),
   getPublicContributorProfiles: vi.fn(() => Promise.resolve([])),
   getPublicProfileHistory: vi.fn(() => Promise.resolve([])),
   getPublicDataOverview: vi.fn(),
@@ -28,6 +29,9 @@ const publicData = vi.hoisted(() => ({
   getPublicReplicationBySlug: vi.fn(),
   getPublicReplications: vi.fn(() => Promise.resolve([])),
   getPublicReplicationsByEffect: vi.fn(() => Promise.resolve([])),
+  getPublicReplicationsForSubstance: vi.fn((_substanceSlug: string) =>
+    Promise.resolve({ items: [], unmatchedEffectNames: [] }),
+  ),
   getPublicReportBySlug: vi.fn(),
   getPublicReportsBySubstanceNames: vi.fn(() => Promise.resolve([])),
   getPublicReports: vi.fn(),

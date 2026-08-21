@@ -8,12 +8,13 @@ import {
 /**
  * The walk the replication viewer moves through and how it is chosen.
  *
- * The viewer deliberately walks a set derived from the item itself rather than
- * whatever the visitor was browsing: the page is server-rendered and shareable,
- * so the sequence has to be identical for someone arriving cold from a pasted
- * link and someone who clicked through from a gallery. The one exception —
- * substance scope — is opted into through the URL (`?set=substance:<slug>`),
- * which keeps that sequence shareable too.
+ * The entry context picks the playlist: a `?set=` param names the walk the
+ * reader opted into (effect article → that effect, substance showcase → that
+ * substance, artist listing → that artist), and a bare permalink — a pasted
+ * link with no context — walks the work's own effect. The page is
+ * server-rendered and shareable, so the scope-free sequence has to be
+ * identical for everyone; scoped walks ride in the URL, which keeps those
+ * sequences shareable too.
  */
 
 /** Which body of work the viewer is walking. */
@@ -24,8 +25,16 @@ export interface ReplicationViewerItem {
   effectName: string | null;
   effectSlug: string | null;
   effectCategories: EffectCategoryLink[];
-  /** Profile page of the credited artist, null when no profile claims them. */
+  /**
+   * The credited artist's Artist Page (their contributor profile only for a
+   * work withheld from artist views), null when the credit names nobody.
+   */
   artistProfileHref: string | null;
+  /**
+   * The claiming Contributor Profile's avatar, rendered beside the compact
+   * byline; null when no profile claims the credit or the profile has none.
+   */
+  avatarUrl: string | null;
 }
 
 export interface ReplicationViewerSet {
@@ -45,19 +54,26 @@ export interface ReplicationViewerSet {
 export interface ReplicationViewerSetInput {
   slug: string;
   /**
-   * The credited artist's other works, already resolved to a contributor
-   * profile. A credit that resolves to no profile arrives here as an empty set,
-   * because a profile is the only thing that turns a credit line into a body of
-   * work — see `contributorMatchNames`.
+   * The walk the caller asks for. A bare permalink asks for nothing and gets
+   * the effect walk — the work's own grouping, true regardless of where the
+   * reader came from. `artist` is opted into explicitly (an `?set=artist:`
+   * URL, an artist playlist page); the old artist-preferred default is
+   * retired.
    */
-  artistWorks: readonly ReplicationWithUrl[];
+  scope?: Extract<ReplicationViewerScope, 'artist' | 'effect'>;
+  /**
+   * The artist's works backing an `artist` scope request. A credit that
+   * resolves to no body of work arrives here as an empty set, and the effect
+   * walk stands in.
+   */
+  artistWorks?: readonly ReplicationWithUrl[];
   /** Display name of that artist, absent when the work is unattributed. */
-  artistName: string | null;
+  artistName?: string | null;
   /**
    * The artist's own curated ordering (`contributorProfiles.replicationOrder`),
-   * which governs the artist set only. The profile rail applies exactly this
-   * list to exactly this set, so a walk that starts at a pinned work moves
-   * through the pinned works in the order the rail shows them.
+   * which governs the artist set only. The artist's listing applies exactly
+   * this list to exactly this set, so a walk that starts at a pinned work
+   * moves through the pinned works in the order that listing shows them.
    */
   artistOrder?: readonly string[];
   effectWorks: readonly ReplicationWithUrl[];
@@ -75,15 +91,12 @@ export interface ReplicationViewerSetInput {
 /**
  * Pick the set the viewer walks and return it whole, in order.
  *
- * An attributed work sits inside its maker's body of work first: someone who
- * arrives at one piece by an artist is far more likely to want the next piece by
- * that artist than the next recreation of the same effect by someone else. An
- * unattributed work has no such body — the "Unknown"/"various artists" markers
- * name no person — so it keeps the effect walk, which is the only grouping it
- * genuinely belongs to.
- *
- * The artist set also has to actually contain this work and have somewhere to
- * go; a lone piece would otherwise replace a usable effect walk with a dead one.
+ * The default is the effect walk: a bare shared link carries no browsing
+ * context, and the work's own effect is the one grouping every replication
+ * genuinely belongs to. An artist walk exists only when asked for (`scope:
+ * 'artist'`), and even then it has to actually contain this work and have
+ * somewhere to go; a lone piece would otherwise replace a usable effect walk
+ * with a dead one.
  *
  * The walk is finite, not circular — wrapping around would make "next" from the
  * last item silently restart the set, which reads as a bug on a permalink.
@@ -92,7 +105,8 @@ export interface ReplicationViewerSetInput {
  */
 export function selectReplicationViewerSet({
   slug,
-  artistWorks,
+  scope = 'effect',
+  artistWorks = [],
   artistName,
   artistOrder,
   effectWorks,
@@ -100,7 +114,7 @@ export function selectReplicationViewerSet({
   galleryOrder,
   toItem,
 }: ReplicationViewerSetInput): ReplicationViewerSet {
-  if (artistName) {
+  if (scope === 'artist' && artistName) {
     const byArtist = orderContributorReplications(artistWorks, artistOrder);
 
     if (byArtist.length > 1 && byArtist.some((work) => work.slug === slug)) {

@@ -1,6 +1,7 @@
 import { ArticleSubsectionCard } from "@/components/common/ArticleSection";
 import type { AudioReplicationMetadata } from "@/types/replications";
 import { AudioReplicationPlayer } from "./AudioReplicationPlayer";
+import { hasKnownCreator } from "./replicationCredit";
 
 const REPLICATION_RIGHTS_LABELS: Record<string, string> = {
   "creator-retained": "Rights remain with the creator or rightsholder.",
@@ -9,10 +10,6 @@ const REPLICATION_RIGHTS_LABELS: Record<string, string> = {
   "permission-granted": "Displayed with permission; reuse still depends on the creator or rightsholder.",
   "public-domain": "Marked as public domain.",
 };
-
-function hasKnownCreator(artist?: string | null) {
-  return Boolean(artist && artist.trim() && artist.trim().toLowerCase() !== "unknown");
-}
 
 export function getAudioCreditLine(audio: AudioReplicationMetadata) {
   if (audio.credit_line) {

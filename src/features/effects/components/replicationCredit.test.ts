@@ -1,6 +1,11 @@
 import { describe, expect, it } from 'vitest';
 import type { ReplicationWithUrl } from '@/types/replications';
-import { getExternalSourceUrl } from './replicationCredit';
+import {
+  getCaptionCredit,
+  getCreatorByline,
+  getExternalSourceUrl,
+  hasKnownCreator,
+} from './replicationCredit';
 
 const base: ReplicationWithUrl = {
   _id: 'id-0',
@@ -19,6 +24,37 @@ const base: ReplicationWithUrl = {
 const make = (overrides: Partial<ReplicationWithUrl> = {}): ReplicationWithUrl => ({
   ...base,
   ...overrides,
+});
+
+describe('hasKnownCreator', () => {
+  it('accepts a real credit line', () => {
+    expect(hasKnownCreator('Chelsea Morgan')).toBe(true);
+  });
+
+  it('rejects blank and "Unknown" credits', () => {
+    expect(hasKnownCreator(undefined)).toBe(false);
+    expect(hasKnownCreator('   ')).toBe(false);
+    expect(hasKnownCreator(' UNKNOWN ')).toBe(false);
+  });
+
+  it('folds the "Anonymous" marker into no-creator, in any casing', () => {
+    // The Anonymous marker profile's works belong to the Unattributed bucket
+    // (T-1); the word must never surface as a creator on replication pages.
+    expect(hasKnownCreator('Anonymous')).toBe(false);
+    expect(hasKnownCreator(' anonymous ')).toBe(false);
+  });
+
+  it('keeps the other marker credits as known creators', () => {
+    expect(hasKnownCreator('Various artists')).toBe(true);
+    expect(hasKnownCreator('Midjourney')).toBe(true);
+  });
+});
+
+describe('creator lines for folded markers', () => {
+  it('bylines an Anonymous work as creator unknown', () => {
+    expect(getCreatorByline(make({ artist: 'Anonymous' }))).toBe('Creator unknown');
+    expect(getCaptionCredit(make({ artist: 'Anonymous' }))).toBe('Creator unknown.');
+  });
 });
 
 describe('getExternalSourceUrl', () => {

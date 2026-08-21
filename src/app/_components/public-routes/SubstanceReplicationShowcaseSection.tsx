@@ -31,6 +31,8 @@ export async function SubstanceReplicationShowcaseSection({
   const gallery = await getPublicReplicationsForSubstance(slug);
   if (gallery.items.length === 0) return null;
 
+  // Bylines link the Artist Page when the work proves one exists; the profile
+  // resolver below is only the fallback for works withheld from artist views.
   // Only a credit that names a person can resolve to a profile; a gallery of
   // unattributed works skips the read rather than paying for a lookup that
   // cannot succeed — same reasoning as the permalink loader.

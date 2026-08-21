@@ -8,7 +8,7 @@ import { focusRingClassName } from '@/components/ui/surface';
 import { cn } from '@/lib/utils';
 import type { GalleryReplication } from '@/types/replications';
 import { GalleryMediaTile } from './GalleryMediaTile';
-import { isWithheldFromArtistViews } from './galleryModel';
+import { artistUrlKey, isWithheldFromArtistViews } from './galleryModel';
 
 /**
  * A contributor's replications, as a rail you can step through.
@@ -120,7 +120,14 @@ export function ContributorWorksCarousel({ works, contributorName }: Contributor
       >
         {shown.map((work) => (
           <li key={work._id} className="shrink-0 snap-start">
-            <GalleryMediaTile replication={work} frameClassName="h-44 sm:h-52" />
+            {/* A profile is an artist's works listing, so a tapped work opens
+                the viewer walking that artist — keyed by the work's own credit
+                line, the same key the gallery's artist grouping answers to. */}
+            <GalleryMediaTile
+              replication={work}
+              frameClassName="h-44 sm:h-52"
+              setParam={{ kind: 'artist', slug: artistUrlKey(work.artist) }}
+            />
           </li>
         ))}
       </ul>

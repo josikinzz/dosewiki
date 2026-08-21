@@ -14,6 +14,8 @@ import type { GalleryGroup } from '@/features/effects/gallery/galleryModel';
 import { galleryGroupUrlKey } from '@/features/effects/gallery/galleryModel';
 import { getCreatorByline } from '@/features/effects/components/replicationCredit';
 import { buildGalleryFocusUrl } from '../galleryUrlState';
+import { StageFitToggle } from '../viewer/StageFitToggle';
+import { useStageFit } from '../viewer/useStageFit';
 
 /**
  * The immersive swipe deck: a fullscreen modal viewer over the replications
@@ -137,6 +139,16 @@ function DeckPane({ work, sectionNearby, muted, reducedMotion, effectName }: Dec
   const [buffering, setBuffering] = useState(false);
   const [mediaError, setMediaError] = useState(false);
 
+  // The same bounded fill-crop and fit toggle as the permalink viewer: one
+  // crop rule on every immersive stage, one session-wide preference.
+  const { fitMode, scaleStyle, toggleFit, probeAspect } = useStageFit({
+    stageRef: paneRef,
+    mediaKey: work.slug,
+    type: work.type,
+    width: work.width,
+    height: work.height,
+  });
+
   const isVideo = work.type === 'video';
   const mountVideo = isVideo && sectionNearby && nearby;
   const showStill = everNearbyRef.current && (!isVideo || (!mountVideo && Boolean(work.thumbnail_url)));
@@ -245,11 +257,16 @@ function DeckPane({ work, sectionNearby, muted, reducedMotion, effectName }: Dec
           onWaiting={() => setBuffering(true)}
           onPlaying={() => setBuffering(false)}
           onCanPlay={() => setBuffering(false)}
+          onLoadedMetadata={(event) => {
+            const { videoWidth, videoHeight } = event.currentTarget;
+            probeAspect(videoWidth, videoHeight);
+          }}
           onError={() => {
             setBuffering(false);
             setMediaError(true);
           }}
           className="absolute inset-0 h-full w-full object-contain"
+          style={scaleStyle}
         />
       ) : showStill ? (
         <AppImage
@@ -258,6 +275,7 @@ function DeckPane({ work, sectionNearby, muted, reducedMotion, effectName }: Dec
           width={work.width ?? 1200}
           height={work.height ?? 1200}
           className="absolute inset-0 h-full w-full object-contain"
+          style={scaleStyle}
         />
       ) : (
         <div className="absolute inset-0 grid place-items-center">
@@ -275,6 +293,14 @@ function DeckPane({ work, sectionNearby, muted, reducedMotion, effectName }: Dec
           className="absolute inset-0 h-full w-full cursor-default focus-visible:outline-none"
         />
       ) : null}
+
+      {/* Fit/fill: bounded cover-crop versus the whole frame. Sits below the
+          deck-level mute/close chips, which occupy the top-right corner. */}
+      <StageFitToggle
+        fitMode={fitMode}
+        onToggle={toggleFit}
+        className="absolute right-3 top-[calc(env(safe-area-inset-top,0px)+3.75rem)] z-10"
+      />
 
       {/* Centered paused / buffering badge */}
       {showPausedBadge ? (

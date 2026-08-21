@@ -9,16 +9,24 @@ import { GalleryMediaTile } from '../gallery/GalleryMediaTile';
 interface ReplicationGalleryProps {
   galleryOrder?: string[];
   replications: ReplicationWithUrl[];
+  /**
+   * The owning effect article's slug. Tiles append `?set=effect:<slug>` so
+   * the viewer walks *this effect's* playlist — the works the reader can see
+   * around the one they tapped. Optional because the article editor's
+   * placeholder preview renders the same gallery with no effect behind it.
+   */
+  effectSlug?: string;
 }
 
 /**
  * The per-effect article gallery. Each tile links to the replication's own page,
- * where the full credit and licence live — the same tile and the same destination
- * as the cross-effect gallery, so a work reads identically wherever it is met.
+ * scoped to this effect's walk — the same tile and the same destination as the
+ * cross-effect gallery, so a work reads identically wherever it is met.
  */
 export const ReplicationGallery = memo(function ReplicationGallery({
   galleryOrder,
   replications,
+  effectSlug,
 }: ReplicationGalleryProps) {
   const sortedReplications = useMemo(() => {
     if (!replications) {
@@ -61,6 +69,7 @@ export const ReplicationGallery = memo(function ReplicationGallery({
             replication={replication}
             frameAspect="square"
             frameClassName="aspect-square w-full"
+            setParam={effectSlug ? { kind: 'effect', slug: effectSlug } : null}
           />
         ))}
       </div>

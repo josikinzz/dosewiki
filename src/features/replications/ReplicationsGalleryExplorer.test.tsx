@@ -1,6 +1,6 @@
-import { act, fireEvent, render, screen } from '@testing-library/react';
+import { act, fireEvent, render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { MouseEvent as ReactMouseEvent } from 'react';
 import type { GalleryReplication } from '@/types/replications';
 import type { GalleryGroup } from '@/features/effects/gallery/galleryModel';
@@ -19,6 +19,22 @@ vi.mock('next/navigation', () => ({
   useRouter: () => ({ push: navMocks.push, replace: navMocks.replace }),
   useSearchParams: () => navMocks.params,
 }));
+
+// Radix popper-positioned overlays (the Filters sheet, the compact sort menu)
+// measure their anchor and manage pointer focus; jsdom has none of that.
+beforeAll(() => {
+  globalThis.ResizeObserver ??= class {
+    observe() {}
+    unobserve() {}
+    disconnect() {}
+  };
+  Object.defineProperties(HTMLElement.prototype, {
+    hasPointerCapture: { configurable: true, value: () => false },
+    setPointerCapture: { configurable: true, value: () => {} },
+    releasePointerCapture: { configurable: true, value: () => {} },
+    scrollIntoView: { configurable: true, value: () => {} },
+  });
+});
 
 // The tiles pull in matchMedia-gated hover video; none of that is under test.
 // The mock surfaces the explorer's prop wiring (byline policy, compact phone
@@ -182,7 +198,8 @@ describe('URL → rendered state', () => {
 
     expect(screen.getByRole('radio', { name: 'By artist' })).toHaveAttribute('data-state', 'on');
     expect(screen.getByRole('radio', { name: 'All' })).toHaveAttribute('data-state', 'on');
-    expect(screen.getByRole('radio', { name: 'Most works' })).toHaveAttribute('data-state', 'on');
+    // Video-first is the default artist order (T-8), so its pill is lit.
+    expect(screen.getByRole('radio', { name: 'Videos first' })).toHaveAttribute('data-state', 'on');
     // The spotlight row is gone: density-first, media starts immediately.
     expect(screen.queryByText('Spotlight')).toBeNull();
   });
@@ -232,10 +249,10 @@ describe('hybrid browse layout', () => {
   it('gives artists with three or more works a rail and pools the rest', () => {
     renderExplorer('');
 
-    // Chelsea (3 works) earns a rail whose heading links to her profile.
+    // Chelsea (3 works) earns a rail whose heading links to her Artist Page.
     expect(screen.getByRole('link', { name: 'Chelsea Morgan' })).toHaveAttribute(
       'href',
-      '/contributors/chelseamorgan',
+      '/replications/artist/chelsea-morgan',
     );
     // Aria (1 work) gets no rail of her own…
     expect(screen.queryByText('Aria')).toBeNull();
@@ -484,18 +501,31 @@ describe('state → URL', () => {
 });
 
 describe('focused views', () => {
-  it('renders an artist focus with a profile link and a back link', () => {
+  it('renders an artist focus as the Artist Page itself: no self profile link', () => {
     renderExplorer('', { focus: { kind: 'artist', key: 'chelsea-morgan' } });
 
     expect(screen.getByRole('heading', { name: 'Chelsea Morgan' })).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: /View profile/ })).toHaveAttribute(
-      'href',
-      '/contributors/chelseamorgan',
-    );
+    // The focus view IS the one artist surface, so nothing here may link to a
+    // rival page — neither the old "View profile" nor a self-reference.
+    expect(screen.queryByRole('link', { name: /View profile/ })).toBeNull();
     expect(screen.getByRole('link', { name: /All artists/ })).toHaveAttribute(
       'href',
       '/replications',
     );
+  });
+
+  it('renders the identity decoration inside an artist focus only', () => {
+    const identity = <div data-testid="artist-identity">bio and links</div>;
+    const { unmount } = renderExplorer('', {
+      focus: { kind: 'artist', key: 'chelsea-morgan' },
+      focusIdentity: identity,
+    });
+    expect(screen.getByTestId('artist-identity')).toBeInTheDocument();
+    unmount();
+
+    // An effect focus never decorates: identity belongs to artists.
+    renderExplorer('', { focus: { kind: 'effect', key: 'drifting' }, focusIdentity: identity });
+    expect(screen.queryByTestId('artist-identity')).toBeNull();
   });
 
   it('renders an unknown artist focus without a profile link', () => {
@@ -526,5 +556,74 @@ describe('focused views', () => {
     // the filter, and the masonry gives way to an explanatory empty state.
     expect(screen.getByRole('heading', { name: 'Aria' })).toBeInTheDocument();
     expect(screen.getByText(/No videos here/)).toBeInTheDocument();
+  });
+});
+
+describe('one-line control bar', () => {
+  it('renders one non-wrapping row with min-width discipline', () => {
+    renderExplorer('');
+
+    const bar = screen.getByTestId('gallery-control-bar');
+    expect(bar.className).toContain('flex-nowrap');
+    expect(bar.className).toContain('min-w-0');
+    expect(bar.className.split(/\s+/)).not.toContain('flex-wrap');
+  });
+
+  it('expands the phone search button into the focused input and collapses on Escape', async () => {
+    const user = userEvent.setup();
+    renderExplorer('');
+    const reveal = screen.getByRole('button', { name: 'Search replications' });
+    expect(reveal).toHaveAttribute('aria-expanded', 'false');
+
+    await user.click(reveal);
+
+    expect(reveal).toHaveAttribute('aria-expanded', 'true');
+    const input = screen.getByRole('textbox', { name: 'Search replications' });
+    expect(input).toHaveFocus();
+
+    await user.keyboard('{Escape}');
+    expect(reveal).toHaveAttribute('aria-expanded', 'false');
+  });
+
+  it('collapses the expanded phone search when the input blurs, keeping the query', async () => {
+    const user = userEvent.setup();
+    renderExplorer('q=drifting');
+    const reveal = screen.getByRole('button', { name: 'Search replications' });
+    const input = screen.getByRole('textbox', { name: 'Search replications' });
+
+    await user.click(reveal);
+    fireEvent.blur(input);
+
+    expect(reveal).toHaveAttribute('aria-expanded', 'false');
+    // Collapse is presentation only — the live query survives it.
+    expect(input).toHaveValue('drifting');
+  });
+
+  it('keeps the browse-mode toggle reachable through the Filters sheet', async () => {
+    const user = userEvent.setup();
+    renderExplorer('');
+
+    await user.click(screen.getByRole('button', { name: /Filters/ }));
+
+    const sheet = screen.getByRole('dialog');
+    await user.click(within(sheet).getByRole('radio', { name: 'By effect' }));
+
+    expect(navMocks.push).toHaveBeenCalledWith('/replications?view=effect', { scroll: false });
+    // Choosing a mode is the sheet's whole job; it closes on selection.
+    expect(screen.queryByRole('dialog')).toBeNull();
+  });
+
+  it('keeps every artist sort reachable through the compact menu', async () => {
+    const user = userEvent.setup();
+    renderExplorer('');
+
+    await user.click(screen.getByRole('button', { name: 'Sort artists' }));
+
+    // All three orders travel with the menu, not a two-state cycle.
+    expect(screen.getByRole('menuitemradio', { name: 'Videos first' })).toBeInTheDocument();
+    expect(screen.getByRole('menuitemradio', { name: 'Most works' })).toBeInTheDocument();
+    await user.click(screen.getByRole('menuitemradio', { name: 'A–Z' }));
+
+    expect(navMocks.push).toHaveBeenCalledWith('/replications?sort=alpha', { scroll: false });
   });
 });

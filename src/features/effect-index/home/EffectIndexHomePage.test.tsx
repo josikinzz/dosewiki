@@ -234,9 +234,10 @@ describe("Effect Index homepage", () => {
     // The label carries the title alone: the creator is rendered as a visible
     // byline just below (asserted separately), so repeating it here duplicated
     // the credit for screen readers.
+    // The stage link carries the entry context (T-2): the effect playlist.
     expect(within(carousel).getByRole("link", { name: /^View Geometry Frog$/ })).toHaveAttribute(
       "href",
-      `/replications/${REPLICATION.slug}`,
+      `/replications/${REPLICATION.slug}?set=effect:geometry`,
     );
     expect(within(carousel).getByRole("link", { name: "Geometry" })).toHaveAttribute(
       "href",

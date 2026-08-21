@@ -6,7 +6,7 @@ import Link from "next/link";
 import { AppImage } from "@/components/common/AppImage";
 import { Icon } from "@/components/common/Icon";
 import { getCreatorByline } from "@/features/effects/components/replicationCredit";
-import { publicHref } from "@/utils/publicHref";
+import { buildViewerPath } from "@/features/replications/viewer/viewerLogic";
 import { getPublicRoutePath } from "@/utils/publicRouteIdentity";
 import { HomePanel } from "./HomePanel";
 import type { HomeFeaturedReplication } from "./homeModel";
@@ -141,7 +141,9 @@ export function FeaturedReplicationsPanel({
         className={`relative h-[250px] w-full overflow-hidden border border-dose-border ${STAGE_BACKGROUND}`}
       >
         <Link
-          href={publicHref.replication(replication.slug)}
+          // The caption names the effect, so that is the context this stage
+          // stands for: opening a featured work walks its effect's playlist.
+          href={buildViewerPath(replication.slug, { kind: "effect", slug: item.effectSlug })}
           onKeyDown={handleArrowKeys}
           aria-label={`View ${replication.title}`}
           className={`absolute inset-0 flex h-full w-full items-center justify-center focus-visible:-outline-offset-2 ${ON_DARK_FOCUS_RING}`}

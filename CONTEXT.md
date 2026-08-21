@@ -263,8 +263,16 @@ The default `/replications` tab, grouping the browsable corpus by artist or effe
 _Avoid_: effects gallery, `/effects#gallery`, unaddressable gallery view
 
 **Gallery Focus View**:
-A single-artist or single-effect Replication Gallery projection with its own path. A known artist's view links to, but never redirects to, the contributor profile.
-_Avoid_: focused key state, client-only drill-down
+A single-artist or single-effect Replication Gallery projection with its own path. The artist projection is the Artist Page; it is one surface, not a sibling of the contributor profile.
+_Avoid_: focused key state, client-only drill-down, profile-vs-gallery split
+
+**Unattributed**:
+The single bucket for replications whose creator is not known. There is exactly one such bucket; "Anonymous" is retired because it implies the creator chose to hide, when in fact nobody knows who they are.
+_Avoid_: Anonymous, Unknown artist, unknown-artist bucket
+
+**Artist Page**:
+The one public surface for a replication artist: their works browsable gallery-style, enriched by bio, avatar, and links when the artist has claimed a Contributor Profile. Every artist has one, auto-generated from their credited works; a Contributor Profile decorates it rather than competing with it, and logged-in contributors keep editing their profile as today.
+_Avoid_: gallery artist view vs. profile split, artist focus page
 
 **Replication Showcase**:
 The curated carousel inside a substance article's Subjective Effects visual group. Its per-substance Convex-backed curation is separate from the Replication Gallery.

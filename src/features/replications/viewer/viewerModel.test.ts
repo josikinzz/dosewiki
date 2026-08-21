@@ -36,6 +36,7 @@ const toItem = (replication: ReplicationWithUrl): ReplicationViewerItem => ({
   effectSlug: null,
   effectCategories: [],
   artistProfileHref: null,
+  avatarUrl: null,
 });
 
 const slugsOf = (set: ReplicationViewerSet) =>
@@ -53,7 +54,10 @@ describe('selectReplicationViewerSet', () => {
     make({ slug: 'effect-b', artist: 'Someone Else' }),
   ];
 
-  it("walks the artist's other works when the credit resolves to a contributor", () => {
+  it('defaults a bare permalink to the effect walk, never the artist', () => {
+    // The artist-preferred default is retired: a pasted link carries no
+    // browsing context, so even a fully usable artist set is ignored unless
+    // the URL asked for it.
     const result = selectReplicationViewerSet({
       slug: 'shared',
       artistWorks,
@@ -61,6 +65,23 @@ describe('selectReplicationViewerSet', () => {
       effectWorks,
       effectName: 'Tracers',
       galleryOrder: ['effect-a', 'shared', 'effect-b'],
+      toItem,
+    });
+
+    expect(result.scope).toBe('effect');
+    expect(result.scopeLabel).toBe('Tracers');
+    expect(slugsOf(result)).toEqual(['effect-a', 'shared', 'effect-b']);
+    expect(findViewerIndex(result, 'shared')).toBe(1);
+  });
+
+  it("walks the artist's works when the artist scope is requested", () => {
+    const result = selectReplicationViewerSet({
+      slug: 'shared',
+      scope: 'artist',
+      artistWorks,
+      artistName: 'Chelsea Morgan',
+      effectWorks,
+      effectName: 'Tracers',
       toItem,
     });
 
@@ -72,11 +93,12 @@ describe('selectReplicationViewerSet', () => {
     expect(findViewerIndex(result, 'shared')).toBe(1);
   });
 
-  it("walks the artist's curated order, so the filmstrip matches the profile rail", () => {
-    // The rail applies the same list to the same set, so a walk entered at a
-    // pinned work moves through the pinned works in the order the rail shows.
+  it("walks the artist's curated order, so the filmstrip matches the artist's listing", () => {
+    // The listing applies the same list to the same set, so a walk entered at
+    // a pinned work moves through the pinned works in the order it shows.
     const result = selectReplicationViewerSet({
       slug: 'shared',
+      scope: 'artist',
       artistWorks,
       artistName: 'Chelsea Morgan',
       artistOrder: ['artist-b', 'shared', 'artist-a'],
@@ -89,10 +111,11 @@ describe('selectReplicationViewerSet', () => {
     expect(slugsOf(result)).toEqual(['artist-b', 'shared', 'artist-a']);
   });
 
-  it('falls back to the effect walk when the work is unattributed', () => {
+  it('answers an artist request for an unattributed work with the effect walk', () => {
     const result = selectReplicationViewerSet({
       slug: 'shared',
-      // An unattributed marker resolves to no profile, so no works arrive.
+      scope: 'artist',
+      // An unattributed marker resolves to no body of work, so none arrives.
       artistWorks: [],
       artistName: null,
       effectWorks,
@@ -106,9 +129,10 @@ describe('selectReplicationViewerSet', () => {
     expect(slugsOf(result)).toEqual(['effect-a', 'shared', 'effect-b']);
   });
 
-  it('keeps the effect walk when the artist has no other work to offer', () => {
+  it('keeps the effect walk when the requested artist has no other work to offer', () => {
     const result = selectReplicationViewerSet({
       slug: 'shared',
+      scope: 'artist',
       artistWorks: [make({ slug: 'shared' })],
       artistName: 'Chelsea Morgan',
       effectWorks,
@@ -121,9 +145,10 @@ describe('selectReplicationViewerSet', () => {
     expect(result.items).toHaveLength(3);
   });
 
-  it('keeps the effect walk when the artist set does not contain this work', () => {
+  it('keeps the effect walk when the requested artist set does not contain this work', () => {
     const result = selectReplicationViewerSet({
       slug: 'shared',
+      scope: 'artist',
       artistWorks: [make({ slug: 'artist-a' }), make({ slug: 'artist-b' })],
       artistName: 'Chelsea Morgan',
       effectWorks,
@@ -135,11 +160,9 @@ describe('selectReplicationViewerSet', () => {
     expect(findViewerIndex(result, 'shared')).toBe(1);
   });
 
-  it('reports no named set when neither the artist nor the effect names one', () => {
+  it('reports no named set when the effect names nothing', () => {
     const result = selectReplicationViewerSet({
       slug: 'shared',
-      artistWorks: [],
-      artistName: null,
       effectWorks,
       effectName: null,
       toItem,
@@ -155,6 +178,7 @@ describe('selectReplicationViewerSet', () => {
     // without a highlighted position" rather than as a broken page.
     const result = selectReplicationViewerSet({
       slug: 'absent',
+      scope: 'artist',
       artistWorks,
       artistName: 'Chelsea Morgan',
       effectWorks,
