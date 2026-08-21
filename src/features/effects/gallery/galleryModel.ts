@@ -191,43 +191,66 @@ export function effectHrefBuilder(
 const WORK_DATE_TOKEN = /\d{4}(?:-\d{2}){0,2}/;
 
 /**
- * Best-estimate work date in epoch ms: the first year / year-month / full-date
- * token in `date_info.value` (year-only parses as Jan 1 UTC, so "on or before
- * 2024-04-08T04:45:05Z" resolves to 2024-04-08). A `kind` of 'unknown', a
- * missing `date_info`, or an unparseable value falls back to the ingest
- * timestamp `created_at`. NaN only when both are unparseable.
+ * Researched work date in epoch ms, or null when the row has none: the first
+ * year / year-month / full-date token in `date_info.value` (year-only parses
+ * as Jan 1 UTC, so "on or before 2024-04-08T04:45:05Z" resolves to
+ * 2024-04-08). A `kind` of 'unknown', a missing `date_info`, or an
+ * unparseable value is null — the sort sinks such rows below every dated one
+ * rather than guessing from the ingest timestamp.
  */
 export function workDateMs(
-  row: Pick<PublicGalleryReplicationPreview, 'created_at' | 'date_info'>,
-): number {
+  row: Pick<PublicGalleryReplicationPreview, 'date_info'>,
+): number | null {
   const info = row.date_info;
-  if (info && info.kind !== 'unknown' && info.value) {
-    const token = WORK_DATE_TOKEN.exec(info.value)?.[0];
-    if (token) {
-      const parsed = Date.parse(token);
-      if (Number.isFinite(parsed)) return parsed;
-    }
-  }
-  return Date.parse(row.created_at ?? '');
+  if (!info || info.kind === 'unknown' || !info.value) return null;
+  const token = WORK_DATE_TOKEN.exec(info.value)?.[0];
+  if (!token) return null;
+  const parsed = Date.parse(token);
+  return Number.isFinite(parsed) ? parsed : null;
 }
 
 /**
- * Sort within a group: curated gallery_order first, then newest work first
- * (`workDateMs`: researched `date_info`, falling back to ingest `created_at`),
- * then title. Generic so full-fidelity callers (the permalink's neighbour
- * ordering) keep their richer row type through the sort.
+ * Presentation tier of a work: videos lead, GIFs trail, every other still sits
+ * between. A GIF is a short loop like a video but renders as a heavy,
+ * low-fidelity image, so it neither belongs with the videos it imitates nor
+ * ahead of the crisp stills it degrades next to.
+ */
+function mediaTier(row: Pick<PublicGalleryReplicationPreview, 'type' | 'format'>): number {
+  if (row.type === 'video') return 0;
+  return row.format?.toLowerCase() === 'gif' ? 2 : 1;
+}
+
+/**
+ * Sort within a group: curated gallery_order first, then videos above stills
+ * above GIFs (`mediaTier`), then newest researched work date (`workDateMs`)
+ * with undated rows sinking below every dated one (newest-ingested first among
+ * themselves), then title. Generic so full-fidelity callers (the permalink's
+ * neighbour ordering) keep their richer row type through the sort.
  */
 export function sortWithinGroup<
-  T extends Pick<PublicGalleryReplicationPreview, 'title' | 'created_at' | 'order_index' | 'date_info'>,
+  T extends Pick<
+    PublicGalleryReplicationPreview,
+    'title' | 'type' | 'format' | 'created_at' | 'order_index' | 'date_info'
+  >,
 >(items: readonly T[]): T[] {
   return [...items].sort((a, b) => {
     const ao = a.order_index ?? Number.POSITIVE_INFINITY;
     const bo = b.order_index ?? Number.POSITIVE_INFINITY;
     if (ao !== bo) return ao - bo;
 
+    const atier = mediaTier(a);
+    const btier = mediaTier(b);
+    if (atier !== btier) return atier - btier;
+
     const at = workDateMs(a);
     const bt = workDateMs(b);
-    if (Number.isFinite(at) && Number.isFinite(bt) && at !== bt) return bt - at;
+    if (at !== null && bt !== null && at !== bt) return bt - at;
+    if ((at === null) !== (bt === null)) return at === null ? 1 : -1;
+    if (at === null && bt === null) {
+      const ac = Date.parse(a.created_at ?? '');
+      const bc = Date.parse(b.created_at ?? '');
+      if (Number.isFinite(ac) && Number.isFinite(bc) && ac !== bc) return bc - ac;
+    }
 
     return a.title.localeCompare(b.title);
   });

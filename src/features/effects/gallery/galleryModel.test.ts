@@ -358,42 +358,59 @@ describe('workDateMs', () => {
     expect(workDateMs(row)).toBe(Date.parse('2024-04-08'));
   });
 
-  it("falls back to created_at when kind is 'unknown', even with a value", () => {
+  it("is null when kind is 'unknown', even with a value", () => {
     const row = rep({
       created_at: '2023-06-15T00:00:00.000Z',
       date_info: dateInfo('unknown', '2001-01-01'),
     });
-    expect(workDateMs(row)).toBe(Date.parse('2023-06-15T00:00:00.000Z'));
+    expect(workDateMs(row)).toBeNull();
   });
 
-  it('falls back to created_at when date_info is missing, null-valued, or dateless', () => {
-    const createdAt = Date.parse('2024-01-01T00:00:00.000Z');
-    expect(workDateMs(rep({ date_info: undefined }))).toBe(createdAt);
-    expect(workDateMs(rep({ date_info: dateInfo('inferred', null) }))).toBe(createdAt);
-    expect(workDateMs(rep({ date_info: dateInfo('inferred', 'sometime long ago') }))).toBe(createdAt);
+  it('is null when date_info is missing, null-valued, or dateless', () => {
+    expect(workDateMs(rep({ date_info: undefined }))).toBeNull();
+    expect(workDateMs(rep({ date_info: dateInfo('inferred', null) }))).toBeNull();
+    expect(workDateMs(rep({ date_info: dateInfo('inferred', 'sometime long ago') }))).toBeNull();
   });
 });
 
 describe('sortWithinGroup', () => {
-  it('prefers curated order_index, then newest created_at', () => {
+  it('prefers curated order_index over everything, then falls through the tiers', () => {
     const items = [
-      rep({ slug: 'a', order_index: undefined, created_at: '2024-01-01T00:00:00.000Z' }),
-      rep({ slug: 'b', order_index: 0 }),
-      rep({ slug: 'c', order_index: 1 }),
-      rep({ slug: 'd', order_index: undefined, created_at: '2024-05-01T00:00:00.000Z' }),
+      rep({ slug: 'a', order_index: undefined, date_info: dateInfo('exact_date', '2024-01-01') }),
+      rep({ slug: 'b', order_index: 0, format: 'gif' }),
+      rep({ slug: 'c', order_index: 1, type: 'video', format: 'mp4' }),
+      rep({ slug: 'd', order_index: undefined, date_info: dateInfo('exact_date', '2024-05-01') }),
     ];
     expect(sortWithinGroup(items).map((item) => item.slug)).toEqual(['b', 'c', 'd', 'a']);
   });
 
-  it('sorts by researched work date over ingest date, newest first', () => {
+  it('ranks videos above stills above GIFs before any date comparison', () => {
+    const items = [
+      rep({ slug: 'gif', format: 'gif', date_info: dateInfo('exact_date', '2025-01-01') }),
+      rep({ slug: 'still', format: 'webp', date_info: dateInfo('exact_date', '2015-01-01') }),
+      rep({ slug: 'video', type: 'video', format: 'mp4', date_info: dateInfo('exact_date', '2005-01-01') }),
+    ];
+    expect(sortWithinGroup(items).map((item) => item.slug)).toEqual(['video', 'still', 'gif']);
+  });
+
+  it('sorts by researched work date, newest first, with undated rows sinking last', () => {
     const items = [
       // Ingested most recently, but the work itself is from 1981.
       rep({ slug: 'vintage', created_at: '2026-01-01T00:00:00.000Z', date_info: dateInfo('year', '1981') }),
-      // No research: ingest date stands in as the work date.
-      rep({ slug: 'undated', created_at: '2020-06-01T00:00:00.000Z' }),
+      // No research: sinks below every dated work regardless of ingest date.
+      rep({ slug: 'undated', created_at: '2026-06-01T00:00:00.000Z' }),
       rep({ slug: 'recent', created_at: '2019-01-01T00:00:00.000Z', date_info: dateInfo('exact_date', '2024-03-05') }),
     ];
-    expect(sortWithinGroup(items).map((item) => item.slug)).toEqual(['recent', 'undated', 'vintage']);
+    expect(sortWithinGroup(items).map((item) => item.slug)).toEqual(['recent', 'vintage', 'undated']);
+  });
+
+  it('orders undated rows among themselves by ingest date, newest first', () => {
+    const items = [
+      rep({ slug: 'older', created_at: '2020-01-01T00:00:00.000Z' }),
+      rep({ slug: 'newer', created_at: '2024-01-01T00:00:00.000Z' }),
+      rep({ slug: 'dated', created_at: '2019-01-01T00:00:00.000Z', date_info: dateInfo('exact_date', '2010-01-01') }),
+    ];
+    expect(sortWithinGroup(items).map((item) => item.slug)).toEqual(['dated', 'newer', 'older']);
   });
 });
 

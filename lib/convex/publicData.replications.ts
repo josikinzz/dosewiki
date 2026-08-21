@@ -162,6 +162,7 @@ export function projectPublicGalleryReplicationPreview(
     artist: replication.artist,
     artist_url: replication.artist_url,
     type: replication.type,
+    format: replication.format,
     effect_slug: replication.effect_slug,
     url: replication.url,
     thumbnail_url: replication.thumbnail_url,

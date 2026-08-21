@@ -240,6 +240,8 @@ export interface PublicGalleryReplicationPreview {
   /** Legacy per-row artist link; sanitized before it renders as an href. */
   artist_url?: string;
   type: ReplicationType;
+  /** Container format ("gif", "mp4", ...); the media-tier sort demotes GIFs by it. */
+  format: string;
   /** Owning effect: drives by-effect grouping, the effect chip, withholding. */
   effect_slug?: string;
   url: string;
@@ -250,7 +252,7 @@ export interface PublicGalleryReplicationPreview {
   height?: number;
   /** Video duration in seconds, shown on the tile's duration badge. */
   duration?: number;
-  /** ISO ingest timestamp; `workDateMs` falls back to it when `date_info` resolves nothing. */
+  /** ISO ingest timestamp; undated rows tiebreak by it after every dated row. */
   created_at: string;
   /** Best-estimate work date; the shared newest-work-first sort reads it. */
   date_info?: ReplicationDateInfo;
