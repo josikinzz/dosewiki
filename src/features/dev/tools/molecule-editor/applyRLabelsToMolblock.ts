@@ -73,6 +73,12 @@ export function parseClassDummies(molblock: string): ClassDummyAtom[] {
  * molblock OpenChemLib emits so `?`-mangled dummies and dropped atom maps never
  * reach the preview, the guard, or a save. Atom order is preserved by OCL
  * (verified), so line positions correspond.
+ *
+ * Restores only lines whose edited symbol still reads as a dummy (`*`/`R`, or
+ * OCL's `?` mangle). A count-preserving redraw can put a real atom (e.g. C) at
+ * a former dummy index; stamping the source tail there would silently convert
+ * the user's atom back into a dummy. Count mismatches bail entirely — that is
+ * a real edit and the guard owns it.
  */
 export function normalizeClassMolblock(
   editedMolblock: string,
@@ -93,6 +99,8 @@ export function normalizeClassMolblock(
     const editedLine = editedLines[editedBlock.start + dummy.index];
     const sourceLine = sourceLines[sourceBlock.start + dummy.index];
     if (!editedLine || !sourceLine || editedLine.length < 34 || sourceLine.length < 34) continue;
+    // The user replaced this atom (count-preserving redraw): leave their line.
+    if (!DUMMY_SYMBOLS.has(editedLine.slice(31, 34).trim())) continue;
     editedLines[editedBlock.start + dummy.index] =
       editedLine.slice(0, 31) + sourceLine.slice(31);
   }
@@ -114,6 +122,49 @@ export function classAtomLabels(
   return labels;
 }
 
+/** S-group ids owned by OCL's `NOSEARCH_OCL_CUSTOM_LABEL` data name. */
+function oclCustomLabelSgroupIds(lines: string[]): Set<string> {
+  const ids = new Set<string>();
+  for (const line of lines) {
+    const match = /^M {2}SDT +(\d+) +NOSEARCH_OCL_CUSTOM_LABEL\b/.exec(line);
+    if (match) ids.add(match[1]);
+  }
+  return ids;
+}
+
+/**
+ * Read the custom labels OCL currently displays from a RAW (pre-strip)
+ * emission: atom index (0-based; `M  SAL` entries are 1-based) -> label text
+ * (`M  SED`). OCL tracks label-atom identity through edits, so this is the
+ * ground truth of what the canvas shows — labels survive on their atoms and
+ * disappear with them, regardless of how indices shifted since load.
+ */
+export function parseOclCustomLabelSgroups(molblock: string): Record<number, string> {
+  const labels: Record<number, string> = {};
+  if (!molblock.includes("NOSEARCH_OCL_CUSTOM_LABEL")) return labels;
+
+  const lines = molblock.split(/\r?\n/);
+  const ids = oclCustomLabelSgroupIds(lines);
+  if (ids.size === 0) return labels;
+
+  const atomById = new Map<string, number>();
+  const textById = new Map<string, string>();
+  for (const line of lines) {
+    const sal = /^M {2}SAL +(\d+) +\d+ +(\d+)/.exec(line);
+    if (sal && ids.has(sal[1])) {
+      atomById.set(sal[1], Number.parseInt(sal[2], 10) - 1);
+      continue;
+    }
+    const sed = /^M {2}SED +(\d+) (.+)$/.exec(line);
+    if (sed && ids.has(sed[1])) textById.set(sed[1], sed[2].trimEnd());
+  }
+  for (const [id, atom] of atomById) {
+    const text = textById.get(id);
+    if (text && atom >= 0) labels[atom] = text;
+  }
+  return labels;
+}
+
 /**
  * Remove the DAT S-groups OCL's `toMolfile` writes for atom custom labels
  * (its `NOSEARCH_OCL_CUSTOM_LABEL` convention). Only S-groups owned by that
@@ -124,11 +175,7 @@ export function stripOclCustomLabelSgroups(molblock: string): string {
   if (!molblock.includes("NOSEARCH_OCL_CUSTOM_LABEL")) return molblock;
 
   const lines = molblock.split(/\r?\n/);
-  const labelSgroups = new Set<string>();
-  for (const line of lines) {
-    const match = /^M {2}SDT +(\d+) +NOSEARCH_OCL_CUSTOM_LABEL\b/.exec(line);
-    if (match) labelSgroups.add(match[1]);
-  }
+  const labelSgroups = oclCustomLabelSgroupIds(lines);
   if (labelSgroups.size === 0) return molblock;
 
   return lines

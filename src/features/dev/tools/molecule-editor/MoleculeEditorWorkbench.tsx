@@ -35,7 +35,8 @@ interface MoleculeEditorWorkbenchProps {
   sourceEpoch: number;
   /** Class-mode R-group display labels for the canvas, atom index -> "R2"/"Rα"/"RN". */
   atomLabels: Record<number, string> | undefined;
-  onEditorChange: (molblock: string) => void;
+  /** Canvas emissions: stripped MOL block + the labels OCL currently displays. */
+  onEditorChange: (molblock: string, displayedAtomLabels?: Record<number, string>) => void;
   fineRotation: boolean;
   onFineRotationChange: (enabled: boolean) => void;
   mirrorDirection: MoleculeMirrorDirection | null;

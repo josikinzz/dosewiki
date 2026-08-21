@@ -141,7 +141,7 @@ describe("OclEditor alignment snap requests", () => {
     // The stub bond runs 45° up-right, so the snap turns everything +45°.
     expect(onSnapComplete.mock.calls[0]![0].degrees).toBeCloseTo(45, 6);
     expect(editor.setMolecule).toHaveBeenCalledWith(molecule);
-    expect(onChange).toHaveBeenCalledWith("snapped molblock");
+    expect(onChange).toHaveBeenCalledWith("snapped molblock", {});
     expect(molecule.getAtomX(0)).toBeCloseTo(molecule.getAtomX(1), 9);
   });
 
@@ -211,7 +211,7 @@ describe("OclEditor bond pick mode", () => {
     // The stub bond runs 45° up-right, so the pick turns everything +45°.
     expect(onBondPickComplete.mock.calls[0]![0].degrees).toBeCloseTo(45, 6);
     expect(editor.setMolecule).toHaveBeenCalledWith(molecule);
-    expect(onChange).toHaveBeenCalledWith("snapped molblock");
+    expect(onChange).toHaveBeenCalledWith("snapped molblock", {});
     expect(molecule.getAtomX(0)).toBeCloseTo(molecule.getAtomX(1), 9);
   });
 

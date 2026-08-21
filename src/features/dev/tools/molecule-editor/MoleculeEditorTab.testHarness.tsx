@@ -1,5 +1,10 @@
 import { cleanup } from "@testing-library/react";
 import { afterEach, beforeEach, vi } from "vitest";
+import {
+  parseOclCustomLabelSgroups,
+  stripOclCustomLabelSgroups,
+} from "./applyRLabelsToMolblock";
+import { OCL_BENZENE, OCL_BENZENE_WITH_SURVIVOR_RAW } from "./classMolblockFixture";
 
 const mocks = vi.hoisted(() => ({
   useQueryMock: vi.fn(),
@@ -65,7 +70,7 @@ vi.mock("./OclEditor", () => ({
     mirrorDirection?: string | null;
     snapRequest?: string | null;
     bondPickActive?: boolean;
-    onChange: (molblock: string) => void;
+    onChange: (molblock: string, displayedAtomLabels?: Record<number, string>) => void;
     onMirrorComplete?: () => void;
     onSnapComplete?: (outcome: {
       kind: "bond-vertical" | "straighten";
@@ -89,7 +94,23 @@ vi.mock("./OclEditor", () => ({
       data-bond-pick={String(!!bondPickActive)}
     >
       <button type="button" onClick={onMirrorComplete}>Complete mirror request</button>
-      <button type="button" onClick={() => onChange("rotated molblock")}>Emit rotation</button>
+      {/* Emissions mirror OclEditor's emitMolfile: stripped molblock + the
+          labels OCL currently displays, parsed off the raw emission. */}
+      <button type="button" onClick={() => onChange("rotated molblock", {})}>Emit rotation</button>
+      <button type="button" onClick={() => onChange(OCL_BENZENE, parseOclCustomLabelSgroups(OCL_BENZENE))}>
+        Emit benzene redraw
+      </button>
+      <button
+        type="button"
+        onClick={() =>
+          onChange(
+            stripOclCustomLabelSgroups(OCL_BENZENE_WITH_SURVIVOR_RAW),
+            parseOclCustomLabelSgroups(OCL_BENZENE_WITH_SURVIVOR_RAW),
+          )
+        }
+      >
+        Emit partial redraw
+      </button>
       <button type="button" onClick={() => onSelectedBondCountChange?.(1)}>Select one bond</button>
       <button type="button" onClick={() => onSelectedBondCountChange?.(2)}>Select two bonds</button>
       <button

@@ -112,6 +112,11 @@ export function MoleculeEditorTab({ initialSlug }: { initialSlug?: string } = {}
   // `edited` is the live MOL block coming OUT of the editor (drives preview + guard + save).
   const [source, setSource] = useState<string | null>(null);
   const [edited, setEdited] = useState<string | null>(null);
+  // Labels reported by the canvas alongside the latest emission — the display
+  // truth of what OCL currently draws, keyed by that emission's atom indices.
+  // null until the first edit after a baseline load (the canvas then shows the
+  // load-time `classLabels` map, so the preview falls back to it).
+  const [emissionLabels, setEmissionLabels] = useState<Record<number, string> | null>(null);
   // Bumped on every baseline load. The canvas is uncontrolled once loaded, so an
   // equal `source` string — which React's setState skips — would not reload it;
   // the epoch is what makes "reset `edited`" and "reload the canvas" one step.
@@ -235,6 +240,7 @@ export function MoleculeEditorTab({ initialSlug }: { initialSlug?: string } = {}
       sourceRef.current = normalized;
       setSource(normalized);
       setEdited(normalized);
+      setEmissionLabels(null);
       // Bold bonds belong to the baseline: a new baseline installs its own set,
       // and the redelivery no-op above keeps unsaved toggles from being reset.
       const bold = options?.boldBonds ?? [];
@@ -412,7 +418,9 @@ export function MoleculeEditorTab({ initialSlug }: { initialSlug?: string } = {}
   // Class mode: R positions are dummy atoms with atom maps in the source
   // molblock. OCL mangles their symbols/maps on every round-trip, so each edit
   // is normalized back against the source (coords kept, chemistry restored)
-  // and display labels are injected at draw time by atom index.
+  // and display labels are injected at draw time by atom index. `classLabels`
+  // is SOURCE-indexed: it feeds the canvas, which applies it once at load to
+  // the source atoms.
   const classDummies = useMemo(
     () => (mode === "classes" && source ? parseClassDummies(source) : []),
     [mode, source],
@@ -424,8 +432,17 @@ export function MoleculeEditorTab({ initialSlug }: { initialSlug?: string } = {}
         : undefined,
     [mode, selectedClass, classDummies],
   );
+  // The preview (and the saved SVG) must show exactly what the canvas displays.
+  // Every emission carries the labels OCL is currently drawing (it tracks
+  // label-atom identity through edits), so once the user has edited, that map
+  // is the display truth: labels persist on surviving dummies, vanish with
+  // deleted ones, and never land on new atoms. Before any emission the canvas
+  // shows the load-time map, so the preview does too. One shared path for all
+  // modes — substance emissions simply carry an empty map.
+  const previewAtomLabels = emissionLabels ?? classLabels;
   const handleEditorChange = useCallback(
-    (molblock: string) => {
+    (molblock: string, displayedAtomLabels?: Record<number, string>) => {
+      setEmissionLabels(displayedAtomLabels ?? null);
       setEdited(
         mode === "classes" && source
           ? normalizeClassMolblock(molblock, source, classDummies)
@@ -893,7 +910,7 @@ export function MoleculeEditorTab({ initialSlug }: { initialSlug?: string } = {}
       return;
     }
     const id = setTimeout(() => {
-      setPreviewSvg(renderMoleculeSvg(ocl, edited, classLabels, boldBonds));
+      setPreviewSvg(renderMoleculeSvg(ocl, edited, previewAtomLabels, boldBonds));
       setGuard(
         !rdkit
           ? null
@@ -907,7 +924,7 @@ export function MoleculeEditorTab({ initialSlug }: { initialSlug?: string } = {}
       );
     }, 120);
     return () => clearTimeout(id);
-  }, [ocl, rdkit, edited, smiles, mode, source, classLabels, boldBonds]);
+  }, [ocl, rdkit, edited, smiles, mode, source, previewAtomLabels, boldBonds]);
 
   // If Convex never resolves, stop showing an indefinite "Loading…".
   useEffect(() => {
@@ -1029,7 +1046,7 @@ export function MoleculeEditorTab({ initialSlug }: { initialSlug?: string } = {}
     setSaveResult(null);
     // Render the published SVG from `edited` right now — the debounced preview can
     // lag the newest edit, and the posted SVG is what the public article serves.
-    const svg = renderMoleculeSvg(ocl, edited, classLabels, boldBonds);
+    const svg = renderMoleculeSvg(ocl, edited, previewAtomLabels, boldBonds);
     if (!svg) {
       setSaving(false);
       setSaveResult({
@@ -1121,7 +1138,7 @@ export function MoleculeEditorTab({ initialSlug }: { initialSlug?: string } = {}
     } finally {
       setSaving(false);
     }
-  }, [selected, edited, ocl, smiles, mode, classLabels, boldBonds]);
+  }, [selected, edited, ocl, smiles, mode, previewAtomLabels, boldBonds]);
 
   const revertToAuto = useCallback(() => {
     const run = () => {

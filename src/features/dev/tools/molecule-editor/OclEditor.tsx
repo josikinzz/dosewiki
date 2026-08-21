@@ -21,7 +21,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Icon } from "@/components/common/Icon";
 import { cn } from "@/lib/utils";
-import { stripOclCustomLabelSgroups } from "./applyRLabelsToMolblock";
+import { parseOclCustomLabelSgroups, stripOclCustomLabelSgroups } from "./applyRLabelsToMolblock";
 import {
   applyBoldBonds,
   applyBondVertical,
@@ -53,8 +53,14 @@ interface OclEditorProps {
    * block itself (emissions strip OCL's custom-label S-groups).
    */
   atomLabels?: Readonly<Record<number, string>>;
-  /** Emitted on every user edit as the current depiction's MOL block (coords + wedges). */
-  onChange: (molblock: string) => void;
+  /**
+   * Emitted on every user edit as the current depiction's MOL block (coords +
+   * wedges), plus the custom labels OCL currently displays, keyed by 0-based
+   * atom index of THIS emission. OCL tracks label-atom identity through edits,
+   * so the map is the canvas's display truth: labels follow surviving atoms and
+   * vanish with deleted ones. Empty for label-free molecules (all substances).
+   */
+  onChange: (molblock: string, displayedAtomLabels: Record<number, string>) => void;
   /** Called once if OpenChemLib fails to load or the canvas editor cannot be created. */
   onError?: (message: string) => void;
   /** Enables continuous pointer rotation below OpenChemLib's legacy dead zone. */
@@ -155,11 +161,14 @@ export function OclEditor({
   }, []);
 
   // Every emission funnels through here: OCL's `toMolfile` writes any applied
-  // custom labels as DAT S-groups, which must never reach the parent — they
-  // would break the string-equality dirty check against the unlabeled baseline
-  // and leak into saved molblocks. Identity for label-free molecules.
+  // custom labels as DAT S-groups, which must never reach the parent's molblock
+  // — they would break the string-equality dirty check against the unlabeled
+  // baseline and leak into saved molblocks. The labels are instead parsed off
+  // the raw emission and handed along the same callback, so the parent can
+  // mirror exactly what the canvas displays. Identity for label-free molecules.
   const emitMolfile = useCallback((molecule: { toMolfile(): string }) => {
-    onChangeRef.current(stripOclCustomLabelSgroups(molecule.toMolfile()));
+    const raw = molecule.toMolfile();
+    onChangeRef.current(stripOclCustomLabelSgroups(raw), parseOclCustomLabelSgroups(raw));
   }, []);
 
   // Create the editor once.
