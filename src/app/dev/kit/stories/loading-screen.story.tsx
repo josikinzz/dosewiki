@@ -8,7 +8,7 @@ export const loadingScreenStory: StoryDef = {
   tier: "common",
   status: "stable",
   summary:
-    "Full-screen public loading state: themed gradient shell, spinning dose.wiki logo, and an animated progress bar shown while public articles bootstrap.",
+    "Full-screen branded loading state: themed shell, breathing dose.wiki logo, a theme-tokened indeterminate bar, and a stalled hint after four seconds.",
   source: "src/components/common/LoadingScreen.tsx",
   importLine: 'import { LoadingScreen } from "@/components/common/LoadingScreen";',
   exports: ["LoadingScreen"],
@@ -26,7 +26,7 @@ export const loadingScreenStory: StoryDef = {
     },
     {
       label: "Compact frame",
-      note: "Same component in a shorter frame — content stays centered and the spinner/progress bar keep animating.",
+      note: "Same component in a shorter frame — content stays centered and the logo/progress bar keep animating.",
       background: "plain",
       full: true,
       render: () => (
@@ -44,15 +44,16 @@ export const loadingScreenStory: StoryDef = {
     },
   ],
   whenToUse: [
-    "Public route-level loading fallback while server-side Convex article data is being fetched.",
-    "Any full-screen, branded \"preparing the library\" hold state on the public site.",
+    "A genuine full-screen, branded boot hold with no page chrome to keep up.",
   ],
   whenNotToUse: [
     "Inline or in-card loading — use a Skeleton or a small spinner, not a full-screen overlay.",
+    "Route or section loads where the shell can stay up — use RouteLoading / PublicSkeletonSurface so the load reads as the page assembling.",
     "Editor/dev surfaces — this carries public-facing copy and branding.",
   ],
   notes: [
     "Renders fixed inset-0 with theme-page-shell, so in real use it covers the entire viewport; the previews wrap it in a relative overflow-hidden frame to scope that positioning.",
-    "Self-contained: it injects its own loading-bar keyframes via an inline <style> and pulls branding from DoseWikiLogo. No props, no providers, no data.",
+    "Announces as role=status aria-live=polite; the stalled hint fades in after 4s via theme-loading-stalled-label. All keyframes live in src/styles/utilities-theme.css and honour prefers-reduced-motion (static logo, half-filled bar).",
+    "Self-contained otherwise: branding from DoseWikiLogo, copy from SITE_FLAVOR_CONFIG.loadingScreen. No props, no providers, no data.",
   ],
 };

@@ -2019,6 +2019,55 @@
     }
   }
 
+  .theme-loading-logo {
+    animation: theme-loading-logo-breathe 2.4s ease-in-out infinite;
+  }
+
+  @keyframes theme-loading-logo-breathe {
+    0%,
+    100% {
+      transform: scale(0.96);
+      opacity: 0.82;
+    }
+    50% {
+      transform: scale(1);
+      opacity: 1;
+    }
+  }
+
+  .theme-loading-bar {
+    height: 100%;
+    width: 50%;
+    border-radius: 9999px;
+    background: linear-gradient(90deg, var(--theme-accent), var(--theme-accent-strong));
+    animation: theme-loading-bar 1.4s ease-in-out infinite;
+  }
+
+  /* The bar is half the track wide, so -100% parks it just off the left edge
+     and 200% (twice its own width = the full track) exits it on the right:
+     one continuous left-to-right sweep, no ping-pong reversal. */
+  @keyframes theme-loading-bar {
+    from {
+      transform: translateX(-100%);
+    }
+    to {
+      transform: translateX(200%);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .theme-loading-logo {
+      animation: none;
+    }
+
+    /* Frozen mid-track: a static half-filled bar instead of an invisible
+       off-screen one. */
+    .theme-loading-bar {
+      animation: none;
+      transform: translateX(50%);
+    }
+  }
+
   @keyframes theme-section-card-enter {
     from {
       opacity: 0;

@@ -5,7 +5,7 @@ import { ConvexProvider as BaseConvexProvider, ConvexReactClient, useQuery } fro
 import { usePathname, useRouter } from "next/navigation";
 import { api } from "../../../../convex/_generated/api";
 import { convex as sharedConvexClient, getConvexUrl } from "@/lib/convex";
-import { LoadingScreen } from "@/components/common/LoadingScreen";
+import { getSectionLoadingModel, RouteLoading } from "@/app/_components/RouteLoading";
 import { StateCard } from "@/components/common/StateCard";
 import { LightweightDataProvider, type SubstanceLookupEntry } from "@/data/LightweightDataProvider";
 import { SubstanceIndexProvider } from "@/data/SubstanceIndexProvider";
@@ -115,7 +115,22 @@ function ReviewDataLoader({ initialSlug }: { initialSlug?: string }) {
   const getCurrentPath = useCallback(() => pathname ?? "/review", [pathname]);
 
   if (categoryLayout === undefined || slugNameMap === undefined || isLoadingLibrary || !library) {
-    return <LoadingScreen />;
+    // Content-shaped skeleton instead of a full-screen splash: the shell stays
+    // up and the load reads as the page assembling rather than the app
+    // rebooting. The branded LoadingScreen stays cataloged in /dev/kit for
+    // genuine full-screen boot holds.
+    return (
+      <div className="theme-page-shell min-h-screen overflow-y-auto px-4 py-10">
+        <RouteLoading
+          model={getSectionLoadingModel({
+            key: "review-workbench",
+            label: "Loading review workbench",
+            variant: "article",
+            density: "normal",
+          })}
+        />
+      </div>
+    );
   }
 
   if (!layout) {
