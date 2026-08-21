@@ -138,50 +138,6 @@ html[data-theme="light"] :is(
   }
 }
 
-html[data-theme="light"] :is(
-  [class~="text-fuchsia-100"],
-  [class~="text-fuchsia-200"],
-  [class~="text-fuchsia-200/90"]
-) {
-  color: var(--theme-accent) !important;
-}
-
-html[data-theme="light"] :is(
-  [class~="text-fuchsia-300"],
-  [class~="text-fuchsia-400"],
-  [class~="text-fuchsia-500"]
-) {
-  color: var(--theme-accent-strong) !important;
-}
-
-html[data-theme="light"] :is(
-  [class~="text-fuchsia-200/70"],
-  [class~="text-fuchsia-200/80"],
-  [class~="text-fuchsia-300/60"],
-  [class~="text-fuchsia-300/70"],
-  [class~="text-fuchsia-300/80"],
-  [class~="text-fuchsia-300/85"],
-  [class~="text-fuchsia-400/50"],
-  [class~="text-fuchsia-400/60"]
-) {
-  color: var(--theme-accent-muted) !important;
-}
-
-@media (hover: hover) {
-  html[data-theme="light"] :is(
-    [class~="hover:text-fuchsia-100"]:hover,
-    [class~="hover:text-fuchsia-200"]:hover,
-    [class~="hover:text-fuchsia-300"]:hover
-  ),
-  html[data-theme="light"] .group:hover :is(
-    [class~="group-hover:text-fuchsia-100"],
-    [class~="group-hover:text-fuchsia-200"],
-    [class~="group-hover:text-fuchsia-300"]
-  ) {
-    color: var(--theme-accent-strong) !important;
-  }
-}
-
 html[data-theme="light"] :is([class~="placeholder:text-white/50"]::placeholder) {
   color: var(--theme-text-muted) !important;
 }
@@ -341,12 +297,6 @@ html[data-theme="light"] .theme-molecule-panel,
 html[data-theme="light"] .theme-molecule-fallback {
   border-color: rgba(93, 56, 123, 0.12);
   background-color: color-mix(in srgb, rgb(255 255 255) 94%, var(--theme-body-bg));
-}
-
-html[data-theme="light"] .theme-molecule-image {
-  --tw-brightness: brightness(0.64);
-  --tw-saturate: saturate(calc(1.75 * var(--theme-molecule-saturate, 1)));
-  --tw-contrast: contrast(1.12);
 }
 
 html[data-theme="light"] .theme-accent-icon,
@@ -1331,52 +1281,5 @@ html:not([data-theme="light"]) [class~="text-white/90"] {
   html:not([data-theme="light"]) [class~="hover:text-white/90"]:hover,
   html:not([data-theme="light"]) .group:hover [class~="group-hover:text-white/90"] {
     color: color-mix(in srgb, rgb(var(--c-white)) 90%, var(--theme-body-bg)) !important;
-  }
-}
-
-/* Dark-mode opaque flatten for legacy text-fuchsia-NNN/MM accent text. */
-html:not([data-theme="light"]) [class~="text-fuchsia-100/75"] {
-  color: color-mix(in srgb, #fae8ff 75%, var(--theme-body-bg)) !important;
-}
-@media (hover: hover) {
-  html:not([data-theme="light"]) [class~="hover:text-fuchsia-100/75"]:hover,
-  html:not([data-theme="light"]) .group:hover [class~="group-hover:text-fuchsia-100/75"] {
-    color: color-mix(in srgb, #fae8ff 75%, var(--theme-body-bg)) !important;
-  }
-}
-html:not([data-theme="light"]) [class~="text-fuchsia-200/70"] {
-  color: color-mix(in srgb, var(--c-fuchsia-200) 70%, var(--theme-body-bg)) !important;
-}
-@media (hover: hover) {
-  html:not([data-theme="light"]) [class~="hover:text-fuchsia-200/70"]:hover,
-  html:not([data-theme="light"]) .group:hover [class~="group-hover:text-fuchsia-200/70"] {
-    color: color-mix(in srgb, var(--c-fuchsia-200) 70%, var(--theme-body-bg)) !important;
-  }
-}
-html:not([data-theme="light"]) [class~="text-fuchsia-200/80"] {
-  color: color-mix(in srgb, var(--c-fuchsia-200) 80%, var(--theme-body-bg)) !important;
-}
-@media (hover: hover) {
-  html:not([data-theme="light"]) [class~="hover:text-fuchsia-200/80"]:hover,
-  html:not([data-theme="light"]) .group:hover [class~="group-hover:text-fuchsia-200/80"] {
-    color: color-mix(in srgb, var(--c-fuchsia-200) 80%, var(--theme-body-bg)) !important;
-  }
-}
-html:not([data-theme="light"]) [class~="text-fuchsia-200/90"] {
-  color: color-mix(in srgb, var(--c-fuchsia-200) 90%, var(--theme-body-bg)) !important;
-}
-@media (hover: hover) {
-  html:not([data-theme="light"]) [class~="hover:text-fuchsia-200/90"]:hover,
-  html:not([data-theme="light"]) .group:hover [class~="group-hover:text-fuchsia-200/90"] {
-    color: color-mix(in srgb, var(--c-fuchsia-200) 90%, var(--theme-body-bg)) !important;
-  }
-}
-html:not([data-theme="light"]) [class~="text-fuchsia-300/70"] {
-  color: color-mix(in srgb, rgb(var(--c-accent)) 70%, var(--theme-body-bg)) !important;
-}
-@media (hover: hover) {
-  html:not([data-theme="light"]) [class~="hover:text-fuchsia-300/70"]:hover,
-  html:not([data-theme="light"]) .group:hover [class~="group-hover:text-fuchsia-300/70"] {
-    color: color-mix(in srgb, rgb(var(--c-accent)) 70%, var(--theme-body-bg)) !important;
   }
 }

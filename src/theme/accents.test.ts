@@ -133,8 +133,8 @@ describe("base accent seeds", () => {
   });
 
   it("declares exactly the Pro seeds the authored palette declares", () => {
-    // Derived from pro-theme.css, not from a wish list: --ei-fade and --ei-logo-ink are paper
-    // and ink rather than accent, so neither half carries them. --ei-accent-on-dark is authored
+    // Derived from pro-theme.css, not from a wish list: --ei-fade is paper rather than accent,
+    // so neither half carries it. --ei-accent-on-dark is authored
     // ONCE (pro-theme.css:134) under a selector list that already includes the dark root, so the
     // authored value is scheme-independent — but the base accent's blocks are per-scheme, so
     // both halves have to restate it or the dark half resolves the authored teal. This also

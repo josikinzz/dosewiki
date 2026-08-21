@@ -56,15 +56,12 @@ describe("palettePresets definitions", () => {
     }
   });
 
-  it("re-seats the brand seeds and pins the light logo stop in every alternate look", () => {
+  it("re-seats the brand seeds in every alternate look", () => {
     for (const preset of PALETTE_PRESETS) {
       if (preset.id === DEFAULT_PRESET_ID) continue;
       expect(preset.overrides.dark["--c-brand"]).toBeTruthy();
       expect(preset.overrides.light["--c-brand"]).toBeTruthy();
       expect(preset.overrides.dark["--c-accent"]).toBeTruthy();
-      // Light logo stop 3 is a hard-coded literal in site-colors.css, so every
-      // alternate palette must pin it or ship a stray purple wordmark stop.
-      expect(preset.overrides.light["--site-logo-stop-3"]).toBeTruthy();
     }
   });
 

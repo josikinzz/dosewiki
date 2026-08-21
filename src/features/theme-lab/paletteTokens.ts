@@ -304,8 +304,6 @@ export const PALETTE_GROUPS: PaletteGroup[] = [
       color("--theme-plateau-tier-fifth", "Plateau bar — fifth (Sigma)"),
       color("--theme-plateau-tier-fade", "Plateau bar — fade"),
       color("--theme-section-heading", "Section heading"),
-      raw("--theme-molecule-hue-rotate", "Molecule drawings — hue rotate", "CSS angle (e.g. -105deg) rotating the magenta molecule depictions toward the palette hue."),
-      raw("--theme-molecule-saturate", "Molecule drawings — saturation", "Multiplier: 1 = normal, 0 = grayscale molecule drawings."),
       color("--theme-avatar-gradient-from", "Avatar gradient — start"),
       color("--theme-avatar-gradient-to", "Avatar gradient — end"),
       color("--theme-index-card-bullet", "Index list bullet"),

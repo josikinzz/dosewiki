@@ -189,8 +189,6 @@ html:not([data-surface])[data-theme="dark"]:where(:not([data-visual-style="pro"]
   );
   --theme-home-glow-top: rgba(126, 34, 206, 0.13);
   --theme-home-glow-bottom: rgba(217, 70, 239, 0.06);
-  --theme-molecule-hue-rotate: 0deg;
-  --theme-molecule-saturate: 1;
   --theme-avatar-gradient-from: color-mix(in srgb, rgb(240 171 252) 20%, #070015);
   --theme-avatar-gradient-to: color-mix(in srgb, rgb(139 92 246) 25%, #070015);
   --theme-construction-banner-text: #fbbf24;
@@ -381,8 +379,6 @@ html:not([data-surface])[data-theme="light"]:where(:not([data-visual-style="pro"
   );
   --theme-home-glow-top: rgba(159, 33, 128, 0.032);
   --theme-home-glow-bottom: rgba(124, 58, 237, 0.022);
-  --theme-molecule-hue-rotate: 0deg;
-  --theme-molecule-saturate: 1;
   --theme-avatar-gradient-from: oklch(89.5% 0.075 334);
   --theme-avatar-gradient-to: oklch(80.5% 0.114 319);
   --theme-construction-banner-text: oklch(56% 0.13 78);

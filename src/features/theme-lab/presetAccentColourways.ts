@@ -45,7 +45,6 @@ export const abyss: PalettePreset = {
       "--h-plum": "235",
       "--h-text": "235",
       "--h-violet": "250",
-      "--theme-molecule-hue-rotate": "-105deg",
       "--c-accent": "165 243 252",
       "--c-violet": "56 189 248",
       "--c-violet-bright": "125 211 252",
@@ -93,7 +92,6 @@ export const abyss: PalettePreset = {
       "--c-brand": "8 145 178",
       "--theme-section-heading": "#0e7490",
       ...scrollThumbOverridesLight(215, 0.14),
-      "--site-logo-stop-3": "#155e75",
       "--theme-search-overlay-bg": "oklch(96% 0.025 220)",
       "--theme-search-highlight-bg": "#d8f6fc",
       "--theme-search-highlight-text": "#083344",
@@ -126,7 +124,6 @@ export const graphite: PalettePreset = {
       "--h-plum": "250",
       "--h-text": "250",
       "--h-violet": "250",
-      "--theme-molecule-saturate": "0.05",
       "--c-accent": "205 214 224",
       "--c-violet": "148 163 184",
       "--c-violet-bright": "203 213 225",
@@ -205,7 +202,6 @@ export const graphite: PalettePreset = {
       "--theme-selection": "oklch(50% 0.03 250 / 0.18)",
       "--theme-section-heading": "#47535f",
       ...scrollThumbOverridesLight(250, 0.02),
-      "--site-logo-stop-3": "#334155",
       "--theme-search-overlay-bg": "oklch(96% 0.006 250)",
       "--theme-search-highlight-bg": "#e4e7ea",
       "--theme-search-highlight-text": "#1e242c",
@@ -240,7 +236,6 @@ export const canopy: PalettePreset = {
       // Selected/info surfaces (active tabs) shift from violet to slate-blue:
       // purple was the lone clashing hue on an otherwise green page.
       "--h-violet": "250",
-      "--theme-molecule-hue-rotate": "-152deg",
       "--c-accent": "187 247 208",
       "--c-plum-deep": "14 37 23",
       "--c-plum-pink": "21 128 61",
@@ -287,7 +282,6 @@ export const canopy: PalettePreset = {
       // accent-tokens.generated.css (the "green" accent), so it fixes both.
       "--theme-section-heading": "#117e3b",
       ...scrollThumbOverridesLight(150, 0.12),
-      "--site-logo-stop-3": "#166534",
       "--theme-search-overlay-bg": "oklch(96% 0.025 150)",
       "--theme-search-highlight-bg": "#d9f5e2",
       "--theme-search-highlight-text": "#14532d",
@@ -331,7 +325,6 @@ export const garnet: PalettePreset = {
       // The other direction is blocked: danger is re-seated to magenta-pink
       // at 350 below, and unsafe orange 48 / caution gold 68 sit just above.
       "--h-violet": "15",
-      "--theme-molecule-hue-rotate": "68deg",
       "--c-accent": "252 165 165",
       "--c-plum-deep": "43 11 18",
       "--c-plum-pink": "185 28 28",
@@ -372,7 +365,6 @@ export const garnet: PalettePreset = {
       "--c-brand": "185 28 28",
       "--theme-section-heading": "#b91c1c",
       ...scrollThumbOverridesLight(25, 0.14),
-      "--site-logo-stop-3": "#991b1b",
       "--theme-search-overlay-bg": "oklch(96% 0.02 25)",
       "--theme-search-highlight-bg": "#f8dfe0",
       "--theme-search-highlight-text": "#47191d",
@@ -410,7 +402,6 @@ export const sunset: PalettePreset = {
       // Orchid's 290 — it is the fourth stop of the sunset wordmark. The
       // coral brand at 45 is 95° away, so a selected tab never blurs into it.
       "--h-violet": "310",
-      "--theme-molecule-hue-rotate": "80deg",
       "--c-accent": "253 195 143",
       "--c-plum-deep": "45 17 48",
       "--c-plum-pink": "184 58 82",
@@ -459,7 +450,6 @@ export const sunset: PalettePreset = {
       "--theme-page-end": "oklch(96.6% 0.015 85)",
       "--theme-panel-base": "oklch(94% 0.03 70)",
       "--theme-control-base": "oklch(93% 0.032 70)",
-      "--site-logo-stop-3": "#8f3a6b",
       "--theme-search-overlay-bg": "oklch(96% 0.025 340)",
       "--theme-search-highlight-bg": "#fbe3d5",
       "--theme-search-highlight-text": "#4a1a2e",

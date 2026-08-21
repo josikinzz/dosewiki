@@ -271,7 +271,7 @@ export const HistoryCultureSection = memo(function HistoryCultureSection({
                   <section key={originalIndex} className="theme-section-group-divider">
                     <div>
                       <h3 className="mb-3 flex items-center gap-2 font-semibold text-dose-text">
-                        <Icon icon={sectionIcon} size={20} className="text-dose-accent-soft" />
+                        <Icon icon={sectionIcon} size={20} className="theme-icon-accent" />
                         {section.heading}
                       </h3>
                       {sectionHasContent && (

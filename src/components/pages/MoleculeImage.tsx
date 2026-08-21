@@ -12,12 +12,12 @@ type MoleculeImageProps = Omit<ComponentProps<typeof AppImage>, "src"> & {
 
 /**
  * Molecule SVGs carry element colours in their bytes, so their URL—not CSS—must
- * follow the reader's appearance. Every public molecule image passes through
- * this client seam and updates immediately when either appearance axis changes.
+ * follow the reader's colour scheme. Every public molecule image passes through
+ * this client seam and updates immediately when the scheme changes.
  */
 export function MoleculeImage({ src, ...props }: MoleculeImageProps) {
-  const { colorScheme, visualStyle, accentChroma } = useTheme();
-  const appearanceSrc = moleculeImageUrlForAppearance(src, visualStyle, colorScheme, accentChroma);
+  const { colorScheme } = useTheme();
+  const appearanceSrc = moleculeImageUrlForAppearance(src, colorScheme);
 
   return <AppImage {...props} src={appearanceSrc} />;
 }

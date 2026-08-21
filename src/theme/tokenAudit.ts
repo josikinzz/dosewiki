@@ -10,7 +10,9 @@ export type ThemeTokenAuditRule =
   | "raw-fuchsia-text"
   | "raw-white-arbitrary-background"
   | "direct-theme-variable"
-  | "negative-letter-spacing";
+  | "negative-letter-spacing"
+  | "raw-accent-utility"
+  | "raw-accent-hex";
 
 export type ThemeTokenAuditFinding = {
   rule: ThemeTokenAuditRule;
@@ -43,6 +45,11 @@ export const THEME_TOKEN_AUDIT_BASELINE =
   themeTokenAuditBaselineJson as ThemeTokenAuditBaseline;
 export const REVIEWED_THEME_TOKEN_AUDIT_BASELINE = THEME_TOKEN_AUDIT_BASELINE.findings;
 
+// Accent hexes owned by the theme palette sources; component class/style text
+// must reach accent through tokens so the hue slider repaints it.
+const RAW_ACCENT_HEX_SOURCE =
+  "#(?:d946ef|8b5cf6|f0abfc|e879f9|a78bfa|c026d3|a21caf|7e22ce|5b21b6)(?![0-9a-f])";
+
 const AUDIT_PATTERNS: readonly ThemeTokenAuditPattern[] = [
   {
     rule: "raw-white-text",
@@ -71,6 +78,20 @@ const AUDIT_PATTERNS: readonly ThemeTokenAuditPattern[] = [
   {
     rule: "negative-letter-spacing",
     pattern: /(?:letter-spacing\s*:\s*-\d*\.?\d+(?:rem|em|px)?|\btracking-\[-[^\]]+])/g,
+  },
+  {
+    rule: "raw-accent-utility",
+    pattern:
+      /\b(?:[\w-]+:)*(?:ring|bg|decoration|from|via|to|outline|border|shadow|marker)-(?:fuchsia|violet)-\d{2,3}(?:\/[\w.]+)?\b/g,
+  },
+  {
+    // Matches accent hexes inside Tailwind arbitrary values (from-[color-mix(...,#d946ef ...)])
+    // or on className/style lines, so palette data tables and CSS sources stay unflagged.
+    rule: "raw-accent-hex",
+    pattern: new RegExp(
+      `\\b[\\w-]+-\\[[^\\]\\n]*${RAW_ACCENT_HEX_SOURCE}[^\\]\\n]*\\]|(?<=(?:className|style)[^\\n]*)${RAW_ACCENT_HEX_SOURCE}`,
+      "gi",
+    ),
   },
 ];
 

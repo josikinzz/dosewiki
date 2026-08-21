@@ -368,7 +368,7 @@ html[data-chroma]:not([data-accent])[data-theme="light"]:where(:not([data-visual
   --theme-accent: oklch(from #f0abfc l calc(c * var(--dw-accent-gain)) calc(h + var(--dw-accent-hue, 0)));
   --theme-accent-soft: oklch(from #f5d0fe l calc(c * var(--dw-accent-gain)) calc(h + var(--dw-accent-hue, 0)));
   --theme-accent-muted: color-mix(in srgb, oklch(from rgb(240 171 252) l calc(c * var(--dw-accent-gain)) calc(h + var(--dw-accent-hue, 0))) 72%, oklch(from #110617 l calc(c * var(--dw-accent-gain)) calc(h + var(--dw-accent-hue, 0))));
-  --theme-logo-fill: linear-gradient(118deg, oklch(from rgb(240 171 252) l calc(c * var(--dw-accent-gain)) calc(h + var(--dw-accent-hue, 0))) 0%, oklch(from #e879f9 l calc(c * var(--dw-accent-gain)) calc(h + var(--dw-accent-hue, 0))) 32%, oklch(from rgb(240 171 252) l calc(c * var(--dw-accent-gain)) calc(h + var(--dw-accent-hue, 0))) 64%, oklch(from rgb(139 92 246) l calc(c * var(--dw-accent-gain)) calc(h + var(--dw-accent-hue, 0))) 100%);
+  --theme-logo-fill: linear-gradient(118deg, oklch(from rgb(240 171 252) l calc(c * var(--dw-accent-gain)) calc(h + var(--dw-accent-hue, 0))) 0%, oklch(from rgb(240 171 252) calc(l - 0.08) calc((c * 1.15) * var(--dw-accent-gain)) calc(h + var(--dw-accent-hue, 0))) 32%, oklch(from rgb(240 171 252) calc(l - 0.16) calc((c * 1.3) * var(--dw-accent-gain)) calc(h + var(--dw-accent-hue, 0))) 64%, oklch(from rgb(240 171 252) calc(l - 0.24) calc((c * 1.4) * var(--dw-accent-gain)) calc(h + var(--dw-accent-hue, 0))) 100%);
   --theme-logo-shadow: oklch(from rgb(240 171 252 / 0.44) l calc(c * var(--dw-accent-gain)) calc(h + var(--dw-accent-hue, 0)));
   --theme-logo-shadow-hover: oklch(from rgb(240 171 252 / 0.5) l calc(c * var(--dw-accent-gain)) calc(h + var(--dw-accent-hue, 0)));
   --theme-selected-control-base: color-mix(in srgb, oklch(from #f0abfc l calc(c * var(--dw-accent-gain)) calc(h + var(--dw-accent-hue, 0))) 24%, oklch(from #220c2a l calc(c * var(--dw-accent-gain)) calc(h + var(--dw-accent-hue, 0))));
@@ -392,7 +392,7 @@ html[data-chroma]:not([data-accent])[data-theme="light"]:where(:not([data-visual
   --theme-inline-reference-hover-text: oklch(from #f5d0fe l calc(c * var(--dw-accent-gain)) calc(h + var(--dw-accent-hue, 0)));
   --theme-inline-reference-focus: oklch(from #f0abfc l calc(c * var(--dw-accent-gain)) calc(h + var(--dw-accent-hue, 0)));
   --theme-selection: oklch(from rgb(240 171 252 / 0.3) l calc(c * var(--dw-accent-gain)) calc(h + var(--dw-accent-hue, 0)));
-  --theme-section-heading: oklch(from rgb(240 171 252) l calc(c * var(--dw-accent-gain)) calc(h + var(--dw-accent-hue, 0)));
+  --theme-section-heading: oklch(from rgb(240 171 252) calc(l - 0.041) calc((c * 1.35) * var(--dw-accent-gain)) calc(h + var(--dw-accent-hue, 0)));
   --theme-search-highlight-bg: color-mix(in srgb, oklch(from #e879f9 l calc(c * var(--dw-accent-gain)) calc(h + var(--dw-accent-hue, 0))) 15%, oklch(from #110617 l calc(c * var(--dw-accent-gain)) calc(h + var(--dw-accent-hue, 0))));
   --theme-search-highlight-text: oklch(from #fae8ff l calc(c * var(--dw-accent-gain)) calc(h + var(--dw-accent-hue, 0)));
 }
@@ -403,7 +403,7 @@ html[data-chroma]:not([data-accent])[data-theme="light"]:where(:not([data-visual
   --theme-accent: oklch(49% calc(0.19 * var(--dw-accent-gain)) calc(326 + var(--dw-accent-hue, 0)));
   --theme-accent-soft: oklch(58% calc(0.155 * var(--dw-accent-gain)) calc(326 + var(--dw-accent-hue, 0)));
   --theme-accent-muted: oklch(46% calc(0.135 * var(--dw-accent-gain)) calc(326 + var(--dw-accent-hue, 0)));
-  --theme-logo-fill: linear-gradient(118deg, oklch(from #c026d3 l calc(c * var(--dw-accent-gain)) calc(h + var(--dw-accent-hue, 0))) 0%, oklch(from #a21caf l calc(c * var(--dw-accent-gain)) calc(h + var(--dw-accent-hue, 0))) 32%, oklch(from #7e22ce l calc(c * var(--dw-accent-gain)) calc(h + var(--dw-accent-hue, 0))) 66%, oklch(from #5b21b6 l calc(c * var(--dw-accent-gain)) calc(h + var(--dw-accent-hue, 0))) 100%);
+  --theme-logo-fill: linear-gradient(118deg, oklch(49% calc(0.19 * var(--dw-accent-gain)) calc(326 + var(--dw-accent-hue, 0))) 0%, oklch(43% calc(0.18 * var(--dw-accent-gain)) calc(326 + var(--dw-accent-hue, 0))) 32%, oklch(37% calc(0.165 * var(--dw-accent-gain)) calc(326 + var(--dw-accent-hue, 0))) 66%, oklch(31% calc(0.145 * var(--dw-accent-gain)) calc(326 + var(--dw-accent-hue, 0))) 100%);
   --theme-logo-shadow: oklch(48% calc(0.14 * var(--dw-accent-gain)) calc(318 + var(--dw-accent-hue, 0)) / 0.2);
   --theme-logo-shadow-hover: oklch(48% calc(0.14 * var(--dw-accent-gain)) calc(318 + var(--dw-accent-hue, 0)) / 0.28);
   --theme-ring-soft: oklch(54% calc(0.08 * var(--dw-accent-gain)) calc(326 + var(--dw-accent-hue, 0)) / 0.16);

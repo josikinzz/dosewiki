@@ -215,11 +215,14 @@ html[data-theme="light"]:where(:not([data-visual-style="pro"])) .theme-chrome-da
   --theme-accent-muted: color-mix(in srgb, rgb(var(--c-accent)) 72%, var(--theme-body-bg));
 
   /* Dark mode actual dose.wiki SVG logo color.
-     The SVG is used as a mask; these stops are the visible logo fill. */
+     The SVG is used as a mask; these stops are the visible logo fill.
+     The ramp runs accent → darker accent: same hue, dropping lightness and
+     gaining chroma, so the mark reads as one brand colour deepening rather
+     than crossing into a second hue (or into white/black). */
   --site-logo-stop-1: rgb(var(--c-accent));
-  --site-logo-stop-2: var(--c-fuchsia-400);
-  --site-logo-stop-3: rgb(var(--c-brand));
-  --site-logo-stop-4: rgb(var(--c-violet));
+  --site-logo-stop-2: oklch(from rgb(var(--c-accent)) calc(l - 0.08) calc(c * 1.15) h);
+  --site-logo-stop-3: oklch(from rgb(var(--c-accent)) calc(l - 0.16) calc(c * 1.3) h);
+  --site-logo-stop-4: oklch(from rgb(var(--c-accent)) calc(l - 0.24) calc(c * 1.4) h);
   --theme-logo-fill:
     linear-gradient(118deg, var(--site-logo-stop-1) 0%, var(--site-logo-stop-2) 32%, var(--site-logo-stop-3) 64%, var(--site-logo-stop-4) 100%);
   --theme-logo-shadow: rgb(var(--c-brand) / 0.44);
@@ -277,12 +280,12 @@ html[data-theme="light"]:where(:not([data-visual-style="pro"])) .theme-chrome-da
   --theme-elevation-danger-hover: 0 18px 46px -25px var(--theme-danger-ring);
   --theme-elevation-control-active: 0 10px 30px -12px oklch(62.7% 0.233 var(--h-violet) / 0.65);
   --theme-elevation-control-primary: 0 18px 40px -24px oklch(59.6% 0.261 var(--h-violet) / 0.6);
-  /* Was `shadow-lg shadow-fuchsia-500/8`. The stop is the icon tile's own
-     gradient `from-` stop (Tailwind fuchsia-500, #d946ef) re-expressed off
-     --h-brand at that literal's own lightness and chroma — not --c-brand,
-     which is #f0abfc here in dark mode and would pale the glow out. The tile
-     still hard-codes #d946ef in PublicContentPrimitives.tsx, so keep the two
-     in step if the tile is ever re-tinted. */
+  /* Was `shadow-lg shadow-fuchsia-500/8`. The glow keeps the old gradient
+     stop's identity (Tailwind fuchsia-500, #d946ef) re-expressed off --h-brand
+     at that literal's own lightness and chroma — not --c-brand, which is
+     #f0abfc here in dark mode and would pale the glow out. The tile itself
+     (PublicContentPrimitives.tsx) now mixes rgb(var(--c-brand)) into its
+     gradient stops, so the two share a hue but diverge in depth by design. */
   --theme-elevation-icon-tile:
     0 10px 15px -3px oklch(66.7% 0.259 var(--h-brand) / 0.08), 0 4px 6px -4px oklch(66.7% 0.259 var(--h-brand) / 0.08);
   /* Insets and hairlines. */
@@ -698,12 +701,6 @@ html[data-theme="light"]:where(:not([data-visual-style="pro"])) .theme-chrome-da
   --theme-home-glow-top: rgba(126, 34, 206, 0.13);
   --theme-home-glow-bottom: rgba(217, 70, 239, 0.06);
 
-  /* Molecule depiction filter: the skeletal SVGs ship with baked magenta
-     strokes, so palette presets recolor them via a CSS hue rotation and a
-     saturation multiplier applied to every .theme-molecule-image. */
-  --theme-molecule-hue-rotate: 0deg;
-  --theme-molecule-saturate: 1;
-
   /* Page-specific element colors (tokenized for the Theme Lab) */
   --theme-dose-tier-threshold: oklch(58% 0.12 165);
   --theme-dose-tier-light: oklch(58% 0.12 235);
@@ -717,7 +714,12 @@ html[data-theme="light"]:where(:not([data-visual-style="pro"])) .theme-chrome-da
   --theme-plateau-tier-fourth: oklch(58% 0.12 54);
   --theme-plateau-tier-fifth: oklch(56% 0.15 16);
   --theme-plateau-tier-fade: var(--theme-dose-tier-fade);
-  --theme-section-heading: rgb(var(--c-accent));
+  /* var(--theme-accent-strong) rather than a fresh literal so section heads
+     ride the accent-strong role in both schemes (the light block does the
+     same). Resolves ≈#ef91ff here — 9.57:1 on the canvas #110617; the
+     previous rgb(var(--c-accent)) #f0abfc read 11.24:1, and both clear the
+     4.5:1 normal-text floor .theme-portal-group-heading needs. */
+  --theme-section-heading: var(--theme-accent-strong);
   --theme-avatar-gradient-from: color-mix(in srgb, rgb(var(--c-brand)) 20%, var(--theme-surface-muted));
   --theme-avatar-gradient-to: color-mix(in srgb, rgb(var(--c-violet)) 25%, var(--theme-surface-muted));
   --theme-index-card-bullet: rgba(255, 255, 255, 0.39);
@@ -779,11 +781,15 @@ html[data-theme="light"] {
   --theme-accent-muted: oklch(46% 0.135 var(--h-brand));
 
   /* Light mode actual dose.wiki SVG logo color.
-     The SVG is used as a mask; these stops are the visible logo fill. */
-  --site-logo-stop-1: var(--c-fuchsia-600);
-  --site-logo-stop-2: var(--c-fuchsia-700);
-  --site-logo-stop-3: #7e22ce;
-  --site-logo-stop-4: var(--c-violet-700);
+     The SVG is used as a mask; these stops are the visible logo fill.
+     Same construction as the dark block: --theme-accent's recipe leading,
+     then the same hue deepening toward a darker accent tail. Chroma tapers
+     as lightness falls so the low stops stay inside sRGB instead of
+     clamping toward grey. */
+  --site-logo-stop-1: oklch(49% 0.19 var(--h-brand));
+  --site-logo-stop-2: oklch(43% 0.18 var(--h-brand));
+  --site-logo-stop-3: oklch(37% 0.165 var(--h-brand));
+  --site-logo-stop-4: oklch(31% 0.145 var(--h-brand));
   --theme-logo-fill:
     linear-gradient(118deg, var(--site-logo-stop-1) 0%, var(--site-logo-stop-2) 32%, var(--site-logo-stop-3) 66%, var(--site-logo-stop-4) 100%);
   --theme-logo-shadow: oklch(48% 0.14 var(--h-plum) / 0.2);
@@ -1169,10 +1175,6 @@ html[data-theme="light"] {
   --theme-home-glow-top: rgba(159, 33, 128, 0.032);
   --theme-home-glow-bottom: rgba(124, 58, 237, 0.022);
 
-  /* Molecule depiction filter (light variant; see the dark block). */
-  --theme-molecule-hue-rotate: 0deg;
-  --theme-molecule-saturate: 1;
-
   /* Page-specific element colors (tokenized for the Theme Lab) */
   --theme-dose-tier-threshold: oklch(78% 0.105 165);
   --theme-dose-tier-light: oklch(80% 0.105 235);
@@ -1194,12 +1196,14 @@ html[data-theme="light"] {
      .theme-portal-group-heading (utilities-theme.css:3966) reads the same
      token at text-xs, so the target is the 4.5:1 normal-text floor, not 3:1.
 
-     The recipe is the light block's own --theme-accent-strong (line 779)
-     inlined, so the heading tracks --h-brand like its neighbours instead of
-     pinning a fresh literal. It is inlined rather than written as
-     var(--theme-accent-strong) on purpose: palettes remap that token to
-     arbitrary values (graphite oklch(36% 0.03 250), mono #6fc4bb), and this
-     heading must depend only on the hue seed, which is swept below.
+     Written as var(--theme-accent-strong) (line 779, oklch(43% 0.205
+     var(--h-brand))) so the heading ink can never diverge from the accent
+     role. That is safe despite palettes remapping accent-strong to arbitrary
+     values (graphite oklch(36% 0.03 250), Pro's mono #6fc4bb): every palette
+     preset pins --theme-section-heading itself (presetAccentColourways.ts,
+     lagoonPreset.ts) and Pro remaps it to --ei-ink, so this declaration only
+     ever paints the hue-slider states, where accent-strong is exactly the
+     recipe swept below.
 
      At the default --h-brand: 326 this resolves to #820088 — 8.98:1 on the
      canvas and 8.85:1 on the card. Hue sweep, worst of chroma-reduced and
@@ -1211,13 +1215,13 @@ html[data-theme="light"] {
      hues, and light-mode chrome is .theme-chrome-dark, which wears the dark
      block instead.
 
-     The dark declaration (line 722) deliberately keeps rgb(var(--c-accent)):
-     it measures 11.24:1 on the dark canvas #110617, and that block is also
-     worn verbatim by .theme-chrome-dark subtrees while the page is in light
-     mode (see the comment at line 153). The two schemes therefore cannot
-     share one value — the same token is painted on a near-white page ground
-     here and on a near-black chrome ground there. */
-  --theme-section-heading: oklch(43% 0.205 var(--h-brand));
+     The dark declaration (line ~728) is var(--theme-accent-strong) too, and
+     the two schemes still cannot share one value: the dark block, worn
+     verbatim by .theme-chrome-dark subtrees while the page is in light mode
+     (see the comment at line 153), derives its own accent-strong from the
+     pale fuchsia --c-accent (≈#ef91ff, 9.57:1 on #110617) for a near-black
+     ground, while this one is inked for a near-white page ground. */
+  --theme-section-heading: var(--theme-accent-strong);
   --theme-avatar-gradient-from: oklch(89.5% 0.075 334);
   --theme-avatar-gradient-to: oklch(80.5% 0.114 319);
   --theme-index-card-bullet: color-mix(in srgb, var(--theme-accent) 28%, oklch(41.6% 0.113 var(--h-plum) / 0.18));

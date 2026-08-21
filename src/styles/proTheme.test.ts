@@ -531,16 +531,6 @@ describe("pro visual style", () => {
     expect(wordmark?.body).toMatch(/font-size:\s*1\.25rem/);
   });
 
-  it("does not run baked Pro molecule colours through Fun palette filters", () => {
-    const molecule = blocks.find(
-      (block) => block.selector === `html${STYLE_SCOPE} .theme-molecule-image`,
-    );
-
-    expect(molecule?.body).toMatch(/--tw-brightness:\s*brightness\(1\)/);
-    expect(molecule?.body).toMatch(/--tw-saturate:\s*saturate\(1\)/);
-    expect(molecule?.body).toMatch(/--tw-hue-rotate:\s*hue-rotate\(0deg\)/);
-  });
-
   it("gives the Pro homepage an academic hierarchy instead of Fun display sizing", () => {
     const wordmark = blocks.find(
       (block) => block.selector === `html${STYLE_SCOPE} .theme-home-wordmark`,

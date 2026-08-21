@@ -1369,12 +1369,16 @@
       0 24px 58px -34px color-mix(in srgb, var(--theme-accent) 88%, transparent);
   }
 
+  /* The light search halo rings pull from the --c-plum-pink seed (exactly the
+     old rgba(159, 33, 128) literal) so palette presets reach them; the
+     desaturated rgba(84, 46, 112) drop shadow is neutral depth, not accent,
+     and stays literal like the other light-mode plum shadows. */
   html[data-theme="light"] .theme-home-search-input {
     border-color: color-mix(in srgb, var(--theme-accent) 34%, var(--theme-border-strong));
     background-color: color-mix(in srgb, rgb(255 251 255) 96%, var(--theme-body-bg));
     box-shadow:
       inset 0 1px 0 rgba(255, 255, 255, 0.92),
-      0 0 0 1px rgba(159, 33, 128, 0.06),
+      0 0 0 1px rgb(var(--c-plum-pink) / 0.06),
       0 24px 52px -34px rgba(84, 46, 112, 0.3);
   }
 
@@ -1411,7 +1415,7 @@
     background-color: #fffaff;
     box-shadow:
       0 0 0 1px var(--theme-accent-strong),
-      0 0 0 5px rgba(159, 33, 128, 0.08),
+      0 0 0 5px rgb(var(--c-plum-pink) / 0.08),
       0 28px 62px -38px rgba(84, 46, 112, 0.34);
   }
 
@@ -2341,7 +2345,13 @@
     box-shadow: var(--theme-elevation-none);
   }
 
-  .theme-accent-heading,
+  /* Accent roles: standalone headings follow --theme-section-heading (which
+     palettes and Pro pin separately), accented emphasis follows
+     --theme-accent-strong. */
+  .theme-accent-heading {
+    color: var(--theme-section-heading);
+  }
+
   .theme-accent-emphasis {
     color: var(--theme-accent-strong);
   }
@@ -2859,6 +2869,19 @@
     border-radius: 9999px;
   }
 
+  /* VCode article links (IntLink/ExtLink): the underline tint follows the
+     accent tokens so the hue slider and Pro's --theme-accent remap reach it
+     (was raw decoration-fuchsia-300/35 + hover:decoration-fuchsia-200/55). */
+  .theme-accent-underline {
+    text-decoration-color: color-mix(in srgb, var(--theme-accent) 35%, transparent);
+  }
+
+  @media (hover: hover) {
+    .theme-accent-underline:hover {
+      text-decoration-color: color-mix(in srgb, var(--theme-accent-soft) 55%, transparent);
+    }
+  }
+
   .theme-control-pill-expander {
     color: var(--theme-accent-muted);
   }
@@ -3197,12 +3220,13 @@
 
   .theme-molecule-image {
     --tw-brightness: brightness(1);
-    --tw-saturate: saturate(var(--theme-molecule-saturate, 1));
+    --tw-saturate: saturate(1);
     --tw-contrast: contrast(1);
-    --tw-hue-rotate: hue-rotate(var(--theme-molecule-hue-rotate, 0deg));
-    /* Explicit chain so every molecule <img> is themable, including the ones
-       without a Tailwind filter utility of their own. The tokens let palette
-       presets rotate/desaturate the baked magenta depictions to their hue. */
+    --tw-hue-rotate: hue-rotate(0deg);
+    /* Explicit chain so authored drop-shadows still compose. The bytes carry
+       the final scheme-keyed element colours (the image routes serve the
+       pro-light/pro-dark colourway per scheme), so CSS never recolors a
+       molecule. */
     filter: var(--tw-blur, ) var(--tw-brightness, ) var(--tw-contrast, ) var(--tw-grayscale, )
       var(--tw-hue-rotate, ) var(--tw-invert, ) var(--tw-saturate, ) var(--tw-sepia, )
       var(--tw-drop-shadow, );

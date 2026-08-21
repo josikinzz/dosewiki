@@ -56,6 +56,26 @@ import { Button, Badge, Surface, ContentCard } from "@/components/ui";
    until they have multiple real consumers and a stable, data-shaped API. The
    promotion criteria live in `docs/ui-system.md`.
 
+## Accent usage rules
+
+Accent color always resolves through theme tokens so the appearance cog's hue
+slider repaints every accented pixel. In shared and feature UI:
+
+- **Section headings** color from `--theme-section-heading` — either
+  `text-[var(--theme-section-heading)]` or the `.theme-accent-heading` utility.
+- **Prose emphasis** (accented `<strong>`) uses `.theme-accent-emphasis`, or
+  `.theme-accent-emphasis-scope` on a containing element.
+- **Accent icons** use `.theme-icon-accent`. Where a Tailwind variant is
+  required (`hover:`, `group-open:`), use `text-dose-accent-strong` variants.
+- **Link underlines** use `.theme-accent-underline`.
+- **Never raw accents.** Raw `fuchsia-*`/`violet-*` utilities and accent hex
+  literals are prohibited in component `className`/`style`. Reach accent
+  through `--theme-*` tokens, the token-backed `dose-*` Tailwind aliases, or
+  `rgb(var(--c-*))` channel seeds for rings, gradients, and color mixes.
+
+The theme token audit (`npm run theme:tokens:check`, rules `raw-accent-utility`
+and `raw-accent-hex`) enforces the last rule.
+
 ## Adding or changing a shared component
 
 Two Vitest checks keep the catalog aligned with the shared barrels:

@@ -51,6 +51,46 @@ describe("theme token audit", () => {
     expect(findings).toEqual([]);
   });
 
+  it("flags raw accent utilities and accent hexes in component class and style text", () => {
+    const findings = auditThemeTokenText(
+      [
+        `className="ring-fuchsia-400/40 hover:decoration-violet-300/35 from-[color-mix(in_srgb,#d946ef_25%,transparent)]"`,
+        `style={{ boxShadow: "0 0 24px #8B5CF6" }}`,
+      ].join("\n"),
+      "src/components/ui/example.tsx",
+    );
+
+    expect(findings.map((finding) => [finding.rule, finding.match])).toEqual([
+      ["raw-accent-utility", "ring-fuchsia-400/40"],
+      ["raw-accent-utility", "hover:decoration-violet-300/35"],
+      ["raw-accent-hex", "from-[color-mix(in_srgb,#d946ef_25%,transparent)]"],
+      ["raw-accent-hex", "#8B5CF6"],
+    ]);
+  });
+
+  it("keeps token-backed accent styling and palette data unflagged", () => {
+    expect(
+      auditThemeTokenText(
+        `className="text-dose-accent-strong ring-[rgb(var(--c-brand)/0.35)] from-[color-mix(in_srgb,rgb(var(--c-brand))_25%,transparent)]"`,
+        "src/components/ui/example.tsx",
+      ),
+    ).toEqual([]);
+
+    expect(
+      auditThemeTokenText(
+        `funDark: ["#110617", "#d946ef", "#f0abfc"],`,
+        "src/features/theme-lab/palettePresets.ts",
+      ),
+    ).toEqual([]);
+
+    expect(
+      auditThemeTokenText(
+        `.accent-seed { color: #d946ef; }`,
+        "src/styles/utilities-theme.css",
+      ),
+    ).toEqual([]);
+  });
+
   it("can scan the shared UI surface in report mode", () => {
     const findings = auditThemeTokenFiles(["src/components/ui/button.tsx"]);
 

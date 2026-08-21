@@ -388,7 +388,7 @@ const DOSEWIKI_CONFIG: SiteFlavorConfig = {
     },
   },
   loadingScreen: {
-    wordmarkClassName: "text-fuchsia-300",
+    wordmarkClassName: "text-dose-accent",
     statusLine: "Indexing dosage, effects, and safety references…",
     captionLine: "Preparing the public library",
   },

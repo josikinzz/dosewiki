@@ -337,7 +337,7 @@ export function CollapsibleStage({
   const rowContent = (
     <>
       {stageIcon && (
-        <Icon icon={stageIcon} size={18} className="shrink-0 text-dose-accent-strong" />
+        <Icon icon={stageIcon} size={18} className="theme-icon-accent shrink-0" />
       )}
       <span className="theme-text-primary min-w-0 flex-1 text-sm font-semibold">{stageLabel}</span>
     </>
@@ -433,7 +433,7 @@ export function SubcategorySection({
           className="theme-text-secondary mb-2.5 flex items-center gap-1.5 text-[0.8125rem] font-semibold leading-5"
         >
           {subcategoryIcon ? (
-            <Icon icon={subcategoryIcon} size={16} className="text-dose-accent-soft" />
+            <Icon icon={subcategoryIcon} size={16} className="theme-icon-accent" />
           ) : (
             <span className="h-1.5 w-1.5 rounded-full bg-dose-accent-muted" />
           )}

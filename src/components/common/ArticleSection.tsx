@@ -229,7 +229,7 @@ const articleInfoCardToneClasses = {
     title: "theme-text-primary",
   },
   accent: {
-    card: "ring-1 ring-fuchsia-400/10",
+    card: "ring-1 ring-[rgb(var(--c-brand)/0.10)]",
     icon: "theme-icon-accent",
     title: "theme-text-primary",
   },

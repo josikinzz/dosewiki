@@ -279,7 +279,7 @@ export const IndexCardSection = memo(function IndexCardSection({
       {title && (
         <p className="theme-index-card-section-label mb-2.5 flex flex-wrap items-center gap-x-2 gap-y-1 text-[0.78rem] font-semibold uppercase tracking-[0.18em]">
           {icon && (
-            <Icon icon={icon} size={16} className="text-dose-accent-soft" />
+            <Icon icon={icon} size={16} className="theme-icon-accent" />
           )}
           {titleHref ? (
             <Link

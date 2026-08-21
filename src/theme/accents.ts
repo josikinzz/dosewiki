@@ -37,10 +37,9 @@ export const BASE_ACCENT_ID: AccentId = "default";
  * `pro-theme.css` rather than assumed: the four-step accent ramp, the on-charcoal step, the
  * three tinted washes, and the ink that sits on a filled accent.
  *
- * `--ei-fade` and `--ei-logo-ink` are deliberately absent. Both sit in the same comment
- * block as the washes and neither is accent: `--ei-fade` is the paper canvas at 88% alpha
- * (the scrim that fades a collapsed dose table into the page) and `--ei-logo-ink` is the
- * wordmark's ink end. Re-tinting either would tint paper or ink, not the accent.
+ * `--ei-fade` is deliberately absent. It sits in the same comment block as the washes but
+ * is not accent: it is the paper canvas at 88% alpha (the scrim that fades a collapsed dose
+ * table into the page). Re-tinting it would tint paper, not the accent.
  *
  * `--ei-accent-on-dark` is declared ONCE in `pro-theme.css` (`:134`), and that one declaration
  * is already scheme-independent: its selector list (`:72-74`) includes

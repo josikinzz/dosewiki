@@ -16,8 +16,8 @@ function Harness({ src }: { src: string }) {
       <button type="button" onClick={() => setVisualStyle("pro")}>Pro</button>
       <button type="button" onClick={() => setVisualStyle("fun")}>Fun</button>
       <button type="button" onClick={() => setColorScheme("dark")}>Dark</button>
+      <button type="button" onClick={() => setColorScheme("light")}>Light</button>
       <button type="button" onClick={() => setAccentChroma(0)}>Grey accent</button>
-      <button type="button" onClick={() => setAccentChroma(null)}>Default accent</button>
       <MoleculeImage src={src} alt="Structure" width={100} height={100} />
     </>
   );
@@ -30,7 +30,7 @@ describe("MoleculeImage", () => {
     localStorage.clear();
   });
 
-  it("changes class structure colorways with both appearance axes", async () => {
+  it("keys the colorway on the color scheme in every visual style", async () => {
     const user = userEvent.setup();
     render(
       <ThemeProvider
@@ -43,7 +43,8 @@ describe("MoleculeImage", () => {
     );
 
     const image = screen.getByRole("img", { name: "Structure" });
-    expect(image).toHaveAttribute("src", "/api/molecules/classes/tryptamine?v=1");
+    // Fun light: scheme-keyed bytes, same as Pro light.
+    expect(image).toHaveAttribute("src", "/api/molecules/classes/tryptamine?v=1&colorway=pro-light");
 
     await user.click(screen.getByRole("button", { name: "Pro" }));
     expect(image).toHaveAttribute("src", "/api/molecules/classes/tryptamine?v=1&colorway=pro-light");
@@ -52,15 +53,14 @@ describe("MoleculeImage", () => {
     expect(image).toHaveAttribute("src", "/api/molecules/classes/tryptamine?v=1&colorway=pro-dark");
 
     await user.click(screen.getByRole("button", { name: "Fun" }));
-    expect(image).toHaveAttribute("src", "/api/molecules/classes/tryptamine?v=1");
+    expect(image).toHaveAttribute("src", "/api/molecules/classes/tryptamine?v=1&colorway=pro-dark");
 
-    // Accent saturation zero is grey — the Fun page borrows Pro Dark's
-    // chemically differentiated bytes rather than flattening the structure.
+    // Accent saturation no longer affects molecule bytes; only the scheme does.
     await user.click(screen.getByRole("button", { name: "Grey accent" }));
     expect(image).toHaveAttribute("src", "/api/molecules/classes/tryptamine?v=1&colorway=pro-dark");
 
-    await user.click(screen.getByRole("button", { name: "Default accent" }));
-    expect(image).toHaveAttribute("src", "/api/molecules/classes/tryptamine?v=1");
+    await user.click(screen.getByRole("button", { name: "Light" }));
+    expect(image).toHaveAttribute("src", "/api/molecules/classes/tryptamine?v=1&colorway=pro-light");
   });
 
   it("changes dynamic route colorways without remounting", async () => {
@@ -76,25 +76,12 @@ describe("MoleculeImage", () => {
     );
 
     const image = screen.getByRole("img", { name: "Structure" });
-    await user.click(screen.getByRole("button", { name: "Pro" }));
-    expect(image).toHaveAttribute(
-      "src",
-      "/api/molecules/lsd?v=published&colorway=pro-light",
-    );
+    expect(image).toHaveAttribute("src", "/api/molecules/lsd?v=published&colorway=pro-light");
 
     await user.click(screen.getByRole("button", { name: "Dark" }));
-    expect(image).toHaveAttribute(
-      "src",
-      "/api/molecules/lsd?v=published&colorway=pro-dark",
-    );
+    expect(image).toHaveAttribute("src", "/api/molecules/lsd?v=published&colorway=pro-dark");
 
-    await user.click(screen.getByRole("button", { name: "Fun" }));
-    expect(image).toHaveAttribute("src", "/api/molecules/lsd?v=published");
-
-    await user.click(screen.getByRole("button", { name: "Grey accent" }));
-    expect(image).toHaveAttribute(
-      "src",
-      "/api/molecules/lsd?v=published&colorway=pro-dark",
-    );
+    await user.click(screen.getByRole("button", { name: "Light" }));
+    expect(image).toHaveAttribute("src", "/api/molecules/lsd?v=published&colorway=pro-light");
   });
 });

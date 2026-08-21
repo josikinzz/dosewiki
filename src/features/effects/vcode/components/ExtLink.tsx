@@ -30,7 +30,7 @@ export function ExtLink({
       href={href}
       target="_blank"
       rel="noopener noreferrer"
-      className="theme-accent-emphasis inline-flex cursor-pointer items-center gap-1 underline decoration-fuchsia-300/35 underline-offset-[0.18em] transition-colors hover:text-dose-accent-soft hover:decoration-fuchsia-200/55"
+      className="theme-accent-emphasis theme-accent-underline inline-flex cursor-pointer items-center gap-1 underline underline-offset-[0.18em] transition-colors hover:text-dose-accent-soft"
     >
       {children}
       <Icon icon="lucide:external-link" size={12} className="opacity-60" />

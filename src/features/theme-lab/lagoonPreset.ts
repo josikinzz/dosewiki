@@ -60,12 +60,6 @@ import {
  * 215 sits 45° from the info blue; teal at 187 is 73° clear, so re-seating it
  * would move the info role for no reason.
  *
- * `--theme-molecule-hue-rotate: -117deg` rotates the baked magenta depictions
- * onto the brand. Measured through the CSS filter matrix in sRGB: `#d946ef`
- * (the authored `--c-brand`, hue 322.1) lands at hue **188.1** at -117°, 1.1°
- * from the seed — tighter than any shipped preset (Abyss's -105° lands at
- * 218.8 for a brand of 215, Canopy's -152° at 145.9 for 150).
- *
  * The scroll-thumb recipes apply, and both take chroma **0.08**. Teal is the
  * lowest-chroma brand hue in the set: the sRGB ceiling at hue 187 measures
  * 0.133 at L 76%, 0.109 at L 62% and 0.081 at L 50%. 0.08 is the largest seed
@@ -130,7 +124,6 @@ export const lagoon: PalettePreset = {
       "--h-plum": "200",
       "--h-text": "200",
       "--h-violet": "222",
-      "--theme-molecule-hue-rotate": "-117deg",
       "--c-accent": "153 246 228",
       "--c-violet": "34 211 238",
       "--c-violet-bright": "103 232 249",
@@ -174,7 +167,6 @@ export const lagoon: PalettePreset = {
       "--c-brand": "13 148 136",
       "--theme-section-heading": "#0f766e",
       ...scrollThumbOverridesLight(187, 0.08),
-      "--site-logo-stop-3": "#115e59",
       "--theme-search-overlay-bg": "oklch(96% 0.025 187)",
       "--theme-search-highlight-bg": "#d3f5ef",
       "--theme-search-highlight-text": "#042f2e",

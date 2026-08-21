@@ -45,8 +45,8 @@ export type ProSurfaceSeeds = Readonly<Record<string, string>>;
  * non-accent, non-semantic token here — inks included, because Orchid's ink is authored
  * plum-tinted):
  *
- * - The ink ramps (`--ei-ink*`, `--ei-on-dark*`, `--ei-logo-ink`) and the greyscale
- *   intensity ramp (`--ei-level-*`): Pro's text is neutral by design, and every step is
+ * - The ink ramps (`--ei-ink*`, `--ei-on-dark*`) and the greyscale intensity
+ *   ramp (`--ei-level-*`): Pro's text is neutral by design, and every step is
  *   tuned to a WCAG floor that an added chroma would quietly erode.
  * - `--ei-border-strong`: the control outline, held to SC 1.4.11's 3:1 floor per scheme.
  * - The chrome rails (`--ei-chrome-dark`/`-darker`/`-sunk`/`-raised`/`-border`): charcoal

@@ -209,7 +209,6 @@ html[data-visual-style="pro"][data-theme="dark"] {
   --ei-highlight: #d7e7e4;
   --ei-fade: rgb(246 245 241 / 0.88);
   --ei-on-accent: #ffffff;
-  --ei-logo-ink: #000000;
 
   /* Intensity ramp for the Levelling System rows: five steps of neutral grey
      running away from the canvas — light→dark here, dark→light in the dark
@@ -277,12 +276,12 @@ html[data-visual-style="pro"][data-theme="dark"] {
   /* Opaque rather than alpha-blended: on paper a translucent wash reads as a
      smudge. Shadow tokens keep their alpha — a shadow colour has to. */
   --theme-selection: var(--ei-selection);
-  /* Static section headings are ink, not accent. On the original site the
-     accent meant "clickable" and nothing else; spending it on structure is what
-     made the reskin read as accent-saturated. Full ink, not the dimmer ink-2 step,
-     so a heading never reads weaker than the body it introduces; the
-     distinction now comes from weight, case and tracking. */
-  --theme-section-heading: var(--ei-ink);
+  /* Section headings follow the base themes' logic: the accent-strong step.
+     Pro used to hold headings to ink ("accent means clickable"), but the site
+     rule is now one logic across dark/light/fun/pro — headings, emphasis and
+     heading icons all paint from the accent ramp, which here resolves to the
+     --ei-* accent seeds per scheme. */
+  --theme-section-heading: var(--theme-accent-strong);
   --theme-ring-soft: var(--ei-ring-soft);
 
   /* Logo. The mark is an alpha mask over --theme-logo-fill, so these stops are
@@ -290,27 +289,25 @@ html[data-visual-style="pro"][data-theme="dark"] {
 
      Pro is a flat skin with exactly one gradient: this mark. Everything else —
      page, cards, chrome, controls — stays flat, and the ramp is what keeps the
-     one piece of brand on the page from reading as a stencil. The old absolute
-     rule (flat black on paper, flat white on a dark canvas, never tinted) is
-     relaxed only at the tail: the mark still LEADS with the scheme's ink and
-     the accent arrives late, so it never becomes an accent-coloured icon.
+     one piece of brand on the page from reading as a stencil. The mark leads
+     with the scheme's accent and deepens toward a darker mix of the same
+     accent, so it stays brand-coloured in both schemes instead of flipping
+     between an ink-led black and white mark.
 
-     Stops 1-2 hold the ink end and stops 3-4 the accent end, so the turn
-     happens past the mark's midpoint. The positions are pulled inside 0-100%
-     on purpose: .theme-dosewiki-logo paints this at `background-size: 140%`
-     (utilities-theme.css), so roughly the outer 15% at each end is cropped and
-     a stop parked at 100% would never be seen.
+     The positions are pulled inside 0-100% on purpose: .theme-dosewiki-logo
+     paints this at `background-size: 140%` (utilities-theme.css), so roughly
+     the outer 15% at each end is cropped and a stop parked at 100% would
+     never be seen.
 
-     Both ends resolve seeds, so the scheme axis stays in the palette: ink
-     flips black/white with the scheme and --ei-accent already flips to its
-     dark-canvas luminance. The mid stop is mixed rather than seeded so it
-     tracks whichever pair is in force. --theme-logo-fill has to stay
+     Both ends resolve seeds: --ei-accent already flips to its dark-canvas
+     luminance, and the tail mixes that seed toward black so it is always the
+     darker end of whichever accent is in force. --theme-logo-fill has to stay
      <image>-typed because it is consumed as a background-image over a mask —
      a bare hex is silently dropped by the CSS parser. */
-  --site-logo-stop-1: var(--ei-logo-ink);
-  --site-logo-stop-2: var(--ei-logo-ink);
-  --site-logo-stop-3: color-mix(in srgb, var(--ei-accent) 45%, var(--ei-logo-ink));
-  --site-logo-stop-4: var(--ei-accent);
+  --site-logo-stop-1: var(--ei-accent);
+  --site-logo-stop-2: var(--ei-accent);
+  --site-logo-stop-3: color-mix(in srgb, var(--ei-accent) 78%, #000000);
+  --site-logo-stop-4: color-mix(in srgb, var(--ei-accent) 58%, #000000);
   --theme-logo-fill: linear-gradient(
     118deg,
     var(--site-logo-stop-1) 0%,
@@ -640,7 +637,6 @@ html[data-visual-style="pro"][data-theme="dark"] {
   --ei-highlight: #33534f;
   --ei-fade: rgb(19 19 19 / 0.88);
   --ei-on-accent: #1b1b1b;
-  --ei-logo-ink: #f2f2f0;
 
   /* The intensity ramp runs the other way: level 1 is the step nearest the
      canvas and level 5 the furthest from it, which on a dark ground means
@@ -929,43 +925,35 @@ html[data-visual-style="pro"] .from-fuchsia-500 {
   background-image: linear-gradient(to right, var(--ei-accent), var(--ei-accent-strong));
 }
 
-/* Prose link underlines. IntLink and ExtLink (the VCode renderers behind
-   every in-article link) pin the underline to a raw fuchsia; on effect
-   pages that is well over a hundred plum underlines per page. The link
-   text itself already follows --theme-accent-* and needs nothing. */
-html[data-visual-style="pro"] .decoration-fuchsia-300\/35 {
-  text-decoration-color: color-mix(in srgb, var(--ei-accent) 45%, transparent);
-}
+/* Prose link underlines need no compat rule any more: IntLink and ExtLink
+   paint them with .theme-accent-underline, which mixes from --theme-accent /
+   --theme-accent-soft — both remapped to the --ei-* accents above. */
 
-@media (hover: hover) {
-  html[data-visual-style="pro"] .hover\:decoration-fuchsia-200\/55:hover {
-    text-decoration-color: var(--ei-accent);
-  }
-}
-
-/* Public-content hero icon tile: a magenta→violet gradient fill over a
+/* Public-content hero icon tile: a brand→violet seed gradient fill over a
    fuchsia drop shadow. The shadow itself is killed by the
    --theme-elevation-icon-tile override in the token block above; what is left
    here is the gradient fill, anchored to the tile's own `from-` stop (the
    element no longer carries a fuchsia shadow utility to hang this on). The
-   `ring-1 ring-fuchsia-400/22` is retinted by the ring block below. */
+   `ring-1 ring-[rgb(var(--c-brand)/0.22)]` is retinted by the ring block
+   below. */
 html[data-visual-style="pro"]
-  .from-\[color-mix\(in_srgb\,\#d946ef_18\%\,var\(--theme-surface-muted\)\)\] {
+  .from-\[color-mix\(in_srgb\,rgb\(var\(--c-brand\)\)_18\%\,var\(--theme-surface-muted\)\)\] {
   background-image: none;
   background-color: var(--ei-surface-sunk);
 }
 
-/* The same magenta→violet tile shows up twice more as an arbitrary
-   `from-[color-mix(in srgb, #hex …)]` gradient stop, which hides a raw hex
-   from the token layer entirely:
+/* The same tile treatment covers three more arbitrary `from-[color-mix(…)]`
+   gradient stops:
      - PublicFeedbackPrimitives.tsx:259, the artwork-less replication media
-       placeholder — this one really does render, on effect pages;
-     - button.tsx:45 and :57, the two gradient button variants.
+       placeholder — still a raw #701a75 hex, and it really does render, on
+       effect pages;
+     - button.tsx:45 and :57, the two gradient button variants, now mixed
+       from the --c-brand seed.
    `bg-gradient-to-*` only sets background-image, so overriding that one
    property supersedes every from-/via-/to- stop at once. */
 html[data-visual-style="pro"] .from-\[color-mix\(in_srgb\,\#701a75_20\%\,var\(--theme-surface-muted\)\)\],
-html[data-visual-style="pro"] .from-\[color-mix\(in_srgb\,\#d946ef_20\%\,var\(--theme-control-base\)\)\],
-html[data-visual-style="pro"] .from-\[color-mix\(in_srgb\,\#d946ef_25\%\,var\(--theme-control-base\)\)\],
+html[data-visual-style="pro"] .from-\[color-mix\(in_srgb\,rgb\(var\(--c-brand\)\)_20\%\,var\(--theme-control-base\)\)\],
+html[data-visual-style="pro"] .from-\[color-mix\(in_srgb\,rgb\(var\(--c-brand\)\)_25\%\,var\(--theme-control-base\)\)\],
 html[data-visual-style="pro"] .from-\[color-mix\(in_srgb\,\#fff_12\%\,var\(--theme-control-base\)\)\] {
   background-image: none;
   background-color: var(--ei-surface-sunk);
@@ -974,14 +962,14 @@ html[data-visual-style="pro"] .from-\[color-mix\(in_srgb\,\#fff_12\%\,var\(--the
 
 /* Resting decorative rings: contributor avatars and the article-section
    card hairline. */
-html[data-visual-style="pro"] .ring-fuchsia-400\/10,
-html[data-visual-style="pro"] .ring-fuchsia-400\/20,
-html[data-visual-style="pro"] .ring-fuchsia-400\/22 {
+html[data-visual-style="pro"] .ring-\[rgb\(var\(--c-brand\)\/0\.10\)\],
+html[data-visual-style="pro"] .ring-\[rgb\(var\(--c-brand\)\/0\.20\)\],
+html[data-visual-style="pro"] .ring-\[rgb\(var\(--c-brand\)\/0\.22\)\] {
   --tw-ring-color: var(--ei-border);
 }
 
 @media (hover: hover) {
-  html[data-visual-style="pro"] .group:hover .group-hover\:ring-fuchsia-400\/50 {
+  html[data-visual-style="pro"] .group:hover .group-hover\:ring-\[rgb\(var\(--c-brand\)\/0\.50\)\] {
     --tw-ring-color: var(--ei-accent-edge);
   }
 }
@@ -1067,7 +1055,7 @@ html[data-visual-style="pro"] .theme-search-highlight-mark {
 
 /* Homepage / focused search field. The light variant fills it with a pinkish
    white (#fffbff, #fffaff on hover and focus) and hangs two plum glows off it,
-   rgba(159, 33, 128) and rgba(84, 46, 112). */
+   rgb(var(--c-plum-pink)) and rgba(84, 46, 112). */
 html[data-visual-style="pro"] .theme-home-search-input {
   border-color: var(--ei-border-strong);
   background-color: var(--ei-surface-raised);
@@ -1186,16 +1174,6 @@ html[data-visual-style="pro"] .theme-article-priority-section {
   border-color: var(--ei-border);
   background: var(--ei-surface);
   box-shadow: none;
-}
-
-/* Pro SVGs carry final CPK colours in their bytes. Fun's light-mode filter
-   would darken and oversaturate them, so neutralise only the colour transforms;
-   any authored drop-shadow remains in the shared filter chain. */
-html[data-visual-style="pro"] .theme-molecule-image {
-  --tw-brightness: brightness(1);
-  --tw-contrast: contrast(1);
-  --tw-hue-rotate: hue-rotate(0deg);
-  --tw-saturate: saturate(1);
 }
 
 html[data-visual-style="pro"] .theme-control-pill,
@@ -1394,18 +1372,19 @@ html[data-visual-style="pro"] .app-header {
   --theme-accent-soft: var(--ei-accent-on-dark);
   --theme-accent-muted: color-mix(in srgb, var(--ei-accent-on-dark) 83%, #000000);
 
-  /* The mark on dark chrome, mirrored. The page mark runs ink → accent; the
-     rail runs the other way, accent → white, so the two marks visible at once
-     read as a pair rather than a repeat. The rail is charcoal in BOTH schemes,
-     so this ramp is scheme-independent and uses the on-dark accent rather than
-     the canvas accent. Positions match the page ramp's inset (the mask paints
-     this at background-size: 140%, which crops the outer ~15% of each end). */
+  /* The mark on dark chrome. Same accent → darker-accent ramp as the page
+     mark, but built on the on-dark accent: the rail is charcoal in BOTH
+     schemes, so this ramp is scheme-independent and cannot use the canvas
+     accent. The tail stays a mix of the same accent toward black — never
+     white — so the rail mark matches the page mark instead of mirroring it.
+     Positions match the page ramp's inset (the mask paints this at
+     background-size: 140%, which crops the outer ~15% of each end). */
   --theme-logo-fill: linear-gradient(
     118deg,
     var(--ei-accent-on-dark) 0%,
     var(--ei-accent-on-dark) 12%,
-    color-mix(in srgb, var(--ei-accent-on-dark) 45%, var(--ei-on-dark)) 52%,
-    var(--ei-on-dark) 90%
+    color-mix(in srgb, var(--ei-accent-on-dark) 78%, #000000) 52%,
+    color-mix(in srgb, var(--ei-accent-on-dark) 58%, #000000) 90%
   );
 
   /* Search field: a lifted charcoal rather than a white cut-out, so the
@@ -1537,17 +1516,17 @@ html[data-visual-style="pro"] .app-footer {
   --theme-accent-soft: var(--ei-accent-on-dark);
   --theme-accent-muted: color-mix(in srgb, var(--ei-accent-on-dark) 83%, #000000);
 
-  /* Same treatment as the header: the rail mark runs accent → white, the
-     mirror of the page mark's ink → accent. It is not dimmed to a grey ramp to
-     keep the footer quieter than the header — the surrounding footer text is
-     already muted, which is what carries the de-emphasis. Scheme-independent,
-     because this rail is charcoal in both schemes. */
+  /* Same treatment as the header: the rail mark runs accent → darker accent
+     on the on-dark seed. It is not dimmed to a grey ramp to keep the footer
+     quieter than the header — the surrounding footer text is already muted,
+     which is what carries the de-emphasis. Scheme-independent, because this
+     rail is charcoal in both schemes. */
   --theme-logo-fill: linear-gradient(
     118deg,
     var(--ei-accent-on-dark) 0%,
     var(--ei-accent-on-dark) 12%,
-    color-mix(in srgb, var(--ei-accent-on-dark) 45%, var(--ei-on-dark)) 52%,
-    var(--ei-on-dark) 90%
+    color-mix(in srgb, var(--ei-accent-on-dark) 78%, #000000) 52%,
+    color-mix(in srgb, var(--ei-accent-on-dark) 58%, #000000) 90%
   );
 
   /* Footer icon buttons. */
@@ -1571,30 +1550,11 @@ html[data-visual-style="pro"] .app-footer .theme-text-primary {
    =====================================================================
    The original expressed hierarchy through weight, case and tracking, not
    colour: #333 h1 at regular weight, #4a4a4a section heads in uppercase
-   with 2px tracking. That vocabulary — not the palette — is the site's
-   real signature, and restoring it is what lets the accent retreat to meaning
-   "link" and nothing else.
+   with 2px tracking. Pro keeps that typographic vocabulary — weight, case,
+   tracking, size — while colour follows the site-wide accent logic: heading
+   and emphasis classes resolve through the shared theme tokens, remapped to
+   the --ei-* accent seeds above.
    --------------------------------------------------------------------- */
-
-/* .theme-accent-heading is a MIXED class: it dresses static headings
-   (article h1, VCode headings, subarticle h3) and genuine links
-   (contributor names) alike. Neutralising it by element type and then
-   restoring it on <a> keeps links accented without touching the components. */
-html[data-visual-style="pro"] :is(h1, h2, h3, h4, h5, h6).theme-accent-heading {
-  color: var(--theme-text-primary);
-}
-
-/* Fun accents fuchsia-prose h1/h2 from the components layer
-   (components.css `.prose.prose-fuchsia :where(h1, h2)`), and VCode headings
-   also carry .theme-accent-heading (utilities layer). Both are layered, so
-   this unlayered rule wins the cascade outright; it exists so in-article
-   headings follow the ink ramp whatever class combination they arrive with.
-   (The light sheet's own `.prose* :where(h1..h4)` accent rule, which this
-   block originally had to out-rank at (0,3,2), was removed: Fun now colours
-   prose headings identically in both schemes.) */
-html[data-visual-style="pro"] .prose.prose-fuchsia :is(h1, h2, h3, h4, h5, h6) {
-  color: var(--theme-text-primary);
-}
 
 /* In-article section heads ("Sub-types", "Levelling System") take the same
    real size step as the standalone ones: semibold, sentence case, a clear
@@ -1609,16 +1569,10 @@ html[data-visual-style="pro"] .prose.prose-fuchsia :is(h1, h2) {
 }
 
 html[data-visual-style="pro"] .prose.prose-fuchsia :is(h3, h4) {
-  color: var(--theme-text-primary);
   font-size: 0.875rem;
   font-weight: 600;
   letter-spacing: 0.16em;
   text-transform: uppercase;
-}
-
-html[data-visual-style="pro"] a.theme-accent-heading,
-html[data-visual-style="pro"] a .theme-accent-heading {
-  color: var(--theme-accent);
 }
 
 /* Article and page titles inherit Fun's responsive scale (`type-page-title`'s
@@ -1629,7 +1583,7 @@ html[data-visual-style="pro"] h1.theme-accent-heading {
 }
 
 /* Section heads (SectionHeader's h2 — "Sub-types", "Levelling System").
-   The colour already resolves to ink via --theme-section-heading; this
+   The colour resolves through --theme-section-heading (accent-strong); this
    supplies the size step: semibold sentence case, matching the in-prose tier. */
 html[data-visual-style="pro"] h2.text-\[var\(--theme-section-heading\)\] {
   font-size: 1.375rem;
@@ -1648,7 +1602,6 @@ html[data-visual-style="pro"] h2.text-\[var\(--theme-section-heading\)\] svg {
 
 /* Subarticle heads ("Morphing", "Breathing", "Melting"). */
 html[data-visual-style="pro"] h3.theme-accent-heading {
-  color: var(--theme-text-primary);
   font-size: 0.875rem;
   font-weight: 600;
   letter-spacing: 0.16em;
@@ -1752,10 +1705,9 @@ html[data-visual-style="pro"] .rounded-\[1\.75rem\] {
 /* =====================================================================
    LINKS
    =====================================================================
-   The original underlined nothing: links were colour-only, which works
-   now that the accent is exclusive to them. An underline is kept on hover as
-   the interaction affordance, so the cue survives for anyone who cannot
-   separate the hues.
+   The original underlined nothing: links were colour-only. An underline is
+   kept on hover as the interaction affordance, so the cue survives for anyone
+   who cannot separate the hues.
    --------------------------------------------------------------------- */
 html[data-visual-style="pro"] .prose :where(a),
 html[data-visual-style="pro"] a.theme-accent-emphasis {
@@ -1767,43 +1719,6 @@ html[data-visual-style="pro"] a.theme-accent-emphasis:hover {
   text-decoration-line: underline;
   text-underline-offset: 0.2em;
   text-decoration-thickness: 1px;
-}
-
-/* .theme-accent-emphasis is mixed the same way .theme-accent-heading is:
-   VCode links use it, but so do the index intro's emphasised phrases and
-   quote attributions. Static uses go to ink; the <a> rule above and the
-   token bridge keep real links accented. */
-html[data-visual-style="pro"] :not(a).theme-accent-emphasis {
-  color: var(--theme-text-primary);
-}
-
-/* =====================================================================
-   AFFORDANCE CLEANUP
-   =====================================================================
-   Two leftovers from inverting the accent ratio: index entries were the one
-   place where links were NOT accented, and heading icons were the one place
-   where static content still was.
-   --------------------------------------------------------------------- */
-
-/* Effect names in the index cards are links and read as the site's main
-   navigation surface — the original ran the whole Subjective Effect Index
-   in teal for exactly this reason. The component ships them as
-   theme-text-secondary, so the accent has to be restored here. */
-html[data-visual-style="pro"] .theme-index-card-link {
-  color: var(--theme-accent);
-}
-
-html[data-visual-style="pro"] .theme-index-card-link:hover,
-html[data-visual-style="pro"] .theme-index-card-link:focus-visible {
-  color: var(--theme-accent-strong);
-}
-
-/* Heading icons are siblings of the heading, not children, so the element
-   rules above never reached them and they stayed accent-coloured beside
-   now-grey titles. They belong to the title, so they follow it to ink —
-   a shade lighter, the way the original set its section marks. */
-html[data-visual-style="pro"] svg.theme-accent-heading {
-  color: var(--ei-ink-3);
 }
 
 /* Standalone section heads (the /contact "Site founder" family) carry
@@ -1821,7 +1736,6 @@ html[data-visual-style="pro"] h2.theme-accent-heading {
 
 html[data-visual-style="pro"] h3.theme-accent-heading,
 html[data-visual-style="pro"] h4.theme-accent-heading {
-  color: var(--theme-text-primary);
   font-size: 0.875rem;
   font-weight: 600;
   letter-spacing: 0.16em;
@@ -1865,22 +1779,9 @@ html[data-visual-style="pro"] .theme-index-card-title-accent {
    0.16em would be a ribbon nobody can read. Tracking is left to inherit: the
    negative values it used to pick up came from --type-tracking-body, rebound
    to 0 in the token block, and from the wordmark's `tracking-tight`, handled
-   by the rule below. Colour is the static-ink rule below this one. */
+   by the rule below. Colour comes from the shared utility (accent-strong). */
 html[data-visual-style="pro"] span.theme-accent-heading {
   font-weight: 400;
-}
-
-/* Static inline runs of .theme-accent-heading go to ink, the same treatment
-   .theme-accent-emphasis's static uses get above: on Pro the accent means
-   "clickable" and nothing else, and these were the last title-ish elements
-   the element-typed rules missed — subarticle/variation titles, comparison
-   drug names, hero-summary lead words, uppercase sub-labels. The :not()
-   carves out the two accent runs that must survive: anything inside a real
-   link (`a .theme-accent-heading` above restores those anyway, but excluding
-   them keeps this rule inert there regardless of order), and the loading
-   screen's brand wordmark, which is chrome rather than content. */
-html[data-visual-style="pro"] :is(span, strong, p).theme-accent-heading:not(:where(a *, .theme-loading-wordmark)) {
-  color: var(--theme-text-primary);
 }
 
 /* The wordmark, both runs. SiteWordmark renders "Effect " + <span>Index</span>,

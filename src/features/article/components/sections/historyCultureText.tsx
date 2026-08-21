@@ -33,7 +33,7 @@ export function renderWithBoldYears(text: string): React.ReactNode {
       parts.push(text.slice(lastIndex, match.index));
     }
     parts.push(
-      <strong key={match.index} className="font-semibold text-dose-accent">
+      <strong key={match.index} className="theme-accent-emphasis font-semibold">
         {match[1]}
       </strong>,
     );
