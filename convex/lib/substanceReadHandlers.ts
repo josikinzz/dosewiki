@@ -4,6 +4,7 @@ import { contributorReviewerEmails, normalizeProfileKey } from "./contributorPro
 import {
   projectEditorArticle,
   projectPublicArticle,
+  projectReviewedArticleCredit,
   projectReviewedArticleForEmails,
 } from "./substanceReadProjections";
 
@@ -84,6 +85,49 @@ export async function getPublicReviewedArticlesPageHandler(
   for (const article of result.page) {
     const reviewed = projectReviewedArticleForEmails(article, reviewerEmails);
     if (reviewed) items.push(reviewed);
+  }
+  return {
+    items,
+    cursor: result.continueCursor,
+    isDone: result.isDone,
+  };
+}
+
+/**
+ * One page of public-safe review credits across the whole corpus: which
+ * contributor profile completed the expert review of which article. This is
+ * the bulk counterpart of `getPublicReviewedArticlesPageHandler` above — one
+ * corpus pass answers "who reviewed what" for *every* profile at once, which
+ * is what the About roster's reference counting needs, where the per-profile
+ * read would cost a full corpus scan per contributor.
+ *
+ * The email→profile index is rebuilt from the (small) profile table on each
+ * page call; a stored email claimed by two profiles goes to the earlier row,
+ * and the counting side re-resolves the returned keys alias-aware anyway, so
+ * a legacy shadow profile converges on the canonical one. Reviewer emails are
+ * matched here and discarded: only slug + profile key leave the deployment.
+ */
+export async function getPublicReviewedArticleCreditsPageHandler(
+  ctx: QueryCtx,
+  args: { cursor?: string; numItems: number },
+) {
+  const profiles = await ctx.db.query("contributorProfiles").collect();
+  const emailToProfileKey = new Map<string, string>();
+  for (const profile of profiles) {
+    for (const email of contributorReviewerEmails(profile)) {
+      if (!emailToProfileKey.has(email)) {
+        emailToProfileKey.set(email, profile.key);
+      }
+    }
+  }
+  const result = await ctx.db.query("substanceIndex").paginate({
+    cursor: args.cursor ?? null,
+    numItems: args.numItems,
+  });
+  const items = [];
+  for (const article of result.page) {
+    const credit = projectReviewedArticleCredit(article, emailToProfileKey);
+    if (credit) items.push(credit);
   }
   return {
     items,

@@ -29,7 +29,7 @@ export function LoadingScreen() {
 
         <div className="flex flex-col items-center gap-2">
           <span
-            className={`text-2xl font-display font-bold tracking-tight ${SITE_FLAVOR_CONFIG.loadingScreen.wordmarkClassName}`}
+            className={`theme-loading-wordmark text-2xl font-display font-bold tracking-tight ${SITE_FLAVOR_CONFIG.loadingScreen.wordmarkClassName}`}
           >
             {SITE_FLAVOR_CONFIG.name}
           </span>

@@ -49,6 +49,7 @@ export {
   getPublicSubstanceLookup,
   getPublicSubstances,
   getRawSubstances,
+  getReviewedArticleCredits,
   getReviewedArticlesByContributor,
   getUncachedCoverageSubstances,
 } from "./publicData.substances";

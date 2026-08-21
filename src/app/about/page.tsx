@@ -59,7 +59,8 @@ export default async function AboutPage() {
   // Effect Index lists every contributor, ranked by how many pages credit them; dose.wiki keeps
   // its editor-curated founder subset. Only the ranking is gated: the profile table is already
   // read by `getPublicAboutData()` on both flavors, but the reference count pulls the effect
-  // corpus, the replication gallery and the report previews, which dose.wiki has no use for here.
+  // corpus, the replication gallery, the report previews and the expert-review credits, which
+  // dose.wiki has no use for here.
   const showContributorRoster = isEffectIndex();
 
   const [

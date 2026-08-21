@@ -9,6 +9,7 @@ import {
   projectPublicArticle,
   projectPublicPreview,
   projectSearchInput,
+  projectReviewedArticleCredit,
   projectReviewedArticleForEmails,
 } from "../convex/lib/substanceReadProjections";
 import { substanceArticleSchema, type SubstanceArticle } from "../src/schema";
@@ -441,6 +442,64 @@ describe("substance read projections", () => {
           reviewerEmails,
         ),
       ).toBeNull();
+    });
+  });
+
+  describe("projectReviewedArticleCredit", () => {
+    const reviewed = {
+      ...article,
+      editorial_review: {
+        status: "completed" as const,
+        notes: "Editor-only notes",
+        reviewed_by: "witchy@local.dose.wiki",
+        reviewed_at: "2026-08-01T00:00:00.000Z",
+      },
+    };
+    const emailToProfileKey = new Map([["witchy@local.dose.wiki", "LYREA"]]);
+
+    it("returns only the slug and the claiming profile key — never the reviewer email", () => {
+      const credit = projectReviewedArticleCredit(reviewed, emailToProfileKey);
+
+      expect(credit).toEqual({ slug: "lsd", profileKey: "LYREA" });
+      // The same privacy contract as the per-contributor projection above.
+      const serialized = JSON.stringify(credit);
+      expect(serialized).not.toContain("witchy");
+      expect(serialized).not.toContain("@");
+      expect(serialized).not.toContain("notes");
+    });
+
+    it("matches the stored stamp case- and whitespace-insensitively", () => {
+      const credit = projectReviewedArticleCredit(
+        {
+          ...reviewed,
+          editorial_review: {
+            ...reviewed.editorial_review,
+            reviewed_by: " Witchy@Local.dose.wiki ",
+          },
+        },
+        emailToProfileKey,
+      );
+
+      expect(credit).toEqual({ slug: "lsd", profileKey: "LYREA" });
+    });
+
+    it("returns null for a stamp no profile claims", () => {
+      expect(
+        projectReviewedArticleCredit(
+          reviewed,
+          new Map([["josie@local.dose.wiki", "JOSIE"]]),
+        ),
+      ).toBeNull();
+    });
+
+    it("returns null when the review is not completed or absent", () => {
+      expect(
+        projectReviewedArticleCredit(
+          { ...reviewed, editorial_review: { ...reviewed.editorial_review, status: "in_progress" as const } },
+          emailToProfileKey,
+        ),
+      ).toBeNull();
+      expect(projectReviewedArticleCredit(article, emailToProfileKey)).toBeNull();
     });
   });
 });

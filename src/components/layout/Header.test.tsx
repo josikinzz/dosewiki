@@ -152,6 +152,7 @@ describe("Header", () => {
       for (const [label, href] of [
         ["Effects", "/effects"],
         ["Replications", "/replications"],
+        ["Substances", "/substances"],
         ["Trip Reports", "/reports"],
         ["Project", "/about"],
       ]) {
@@ -164,11 +165,11 @@ describe("Header", () => {
         // The state lives on the chevron, never on the link.
         expect(screen.getByRole("link", { name: label })).not.toHaveAttribute("aria-expanded");
       }
-      // Trip Reports has nothing to disclose — see below.
+      // Trip Reports and Substances have nothing to disclose — see below.
       expect(screen.queryAllByRole("menu")).toHaveLength(0);
-      // Substances is advertised nowhere in the header.
-      expect(screen.queryByRole("link", { name: "Substances" })).not.toBeInTheDocument();
-      expect(screen.queryByRole("button", { name: /Substances/ })).not.toBeInTheDocument();
+      expect(
+        screen.queryByRole("button", { name: "Show Substances submenu" }),
+      ).not.toBeInTheDocument();
     });
 
     it("gives a submenu that only repeats its parent no chevron at all", () => {
@@ -556,17 +557,21 @@ describe("Header", () => {
         expect(document.getElementById("mobile-nav")).toBeNull();
       });
 
-      it("gives the degenerate submenu no chevron here either", async () => {
+      it("gives the chevronless items no chevron here either", async () => {
         const user = userEvent.setup();
         const sheet = await openSheet(user);
 
-        expect(within(sheet).getByRole("link", { name: "Trip Reports" })).toHaveAttribute(
-          "href",
-          "/reports",
-        );
-        expect(
-          within(sheet).queryByRole("button", { name: "Show Trip Reports submenu" }),
-        ).not.toBeInTheDocument();
+        // Trip Reports' submenu is degenerate and Substances declares none at all; both
+        // render as plain links in the sheet, exactly as they do in the desktop bar.
+        for (const [label, href] of [
+          ["Substances", "/substances"],
+          ["Trip Reports", "/reports"],
+        ]) {
+          expect(within(sheet).getByRole("link", { name: label })).toHaveAttribute("href", href);
+          expect(
+            within(sheet).queryByRole("button", { name: `Show ${label} submenu` }),
+          ).not.toBeInTheDocument();
+        }
       });
 
       it("closes the sheet, and forgets what was expanded, once a child is chosen", async () => {

@@ -10,7 +10,10 @@ import {
   normalizePharmacologySection,
 } from "../../lib/article/normalization.mjs";
 import type { MechanismRouteSubstanceInput } from "../../src/data/builders/mechanismRouteDerivation";
-import type { ContributorReviewedArticle } from "../../src/types/reviewedArticles";
+import type {
+  ContributorReviewedArticle,
+  ReviewedArticleCredit,
+} from "../../src/types/reviewedArticles";
 import {
   isProjectionRecord as isRecord,
   normalizeStoredSubstancePriority,
@@ -452,6 +455,30 @@ export function projectReviewedArticleForEmails(
     slug: resolveSubstanceSlug(article),
     reviewed_at: typeof reviewedAt === "string" ? reviewedAt : null,
   };
+}
+
+/**
+ * Public-safe review credit: which contributor profile completed the expert
+ * review of which article. The stored reviewer email is looked up in the
+ * profile-claimed email index and then discarded — only the slug and the
+ * claiming profile key leave this function, keeping `editorial_review` as
+ * internal as it is everywhere else in this module. Returns null for articles
+ * without a completed review or whose reviewer no profile claims.
+ */
+export function projectReviewedArticleCredit(
+  article: SubstanceArticleRecord,
+  emailToProfileKey: ReadonlyMap<string, string>,
+): ReviewedArticleCredit | null {
+  const review = article.editorial_review;
+  if (!isCompletedEditorialReview(review)) {
+    return null;
+  }
+  const { reviewed_by: reviewedBy } = review as { reviewed_by?: unknown };
+  if (typeof reviewedBy !== "string") {
+    return null;
+  }
+  const profileKey = emailToProfileKey.get(reviewedBy.trim().toLowerCase());
+  return profileKey ? { slug: resolveSubstanceSlug(article), profileKey } : null;
 }
 
 function projectPublicReference(

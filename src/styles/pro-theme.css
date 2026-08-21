@@ -1584,11 +1584,14 @@ html[data-visual-style="pro"] :is(h1, h2, h3, h4, h5, h6).theme-accent-heading {
   color: var(--theme-text-primary);
 }
 
-/* Article bodies carry BOTH prose-invert and prose-fuchsia, which makes
-   theme-light-mode.css:668 match as `.prose.prose-invert :where(h1..h4)`
-   at (0,3,1) — one class ahead of the rule above, so it kept every VCode
-   heading accent-coloured. Naming two classes here restores the ordering at (0,3,2).
-   This is the whole reason in-article headings resisted the ink ramp. */
+/* Fun accents fuchsia-prose h1/h2 from the components layer
+   (components.css `.prose.prose-fuchsia :where(h1, h2)`), and VCode headings
+   also carry .theme-accent-heading (utilities layer). Both are layered, so
+   this unlayered rule wins the cascade outright; it exists so in-article
+   headings follow the ink ramp whatever class combination they arrive with.
+   (The light sheet's own `.prose* :where(h1..h4)` accent rule, which this
+   block originally had to out-rank at (0,3,2), was removed: Fun now colours
+   prose headings identically in both schemes.) */
 html[data-visual-style="pro"] .prose.prose-fuchsia :is(h1, h2, h3, h4, h5, h6) {
   color: var(--theme-text-primary);
 }
@@ -1855,16 +1858,29 @@ html[data-visual-style="pro"] .theme-index-card-title-accent {
    kept `font-bold` / `font-medium` from their call sites — the probe found the
    header wordmark's accent run at 700.
 
-   Weight only. These spans are content titles (article titles in
+   Weight only here. These spans are content titles (article titles in
    ArticlesIndexPage, trip-report titles in TripReportsExplorer and
    TripReportsSection, comparison drug names, replication destinations) rather
    than structural headings, and uppercasing a sentence-length report title at
    0.16em would be a ribbon nobody can read. Tracking is left to inherit: the
    negative values it used to pick up came from --type-tracking-body, rebound
    to 0 in the token block, and from the wordmark's `tracking-tight`, handled
-   by the rule below. */
+   by the rule below. Colour is the static-ink rule below this one. */
 html[data-visual-style="pro"] span.theme-accent-heading {
   font-weight: 400;
+}
+
+/* Static inline runs of .theme-accent-heading go to ink, the same treatment
+   .theme-accent-emphasis's static uses get above: on Pro the accent means
+   "clickable" and nothing else, and these were the last title-ish elements
+   the element-typed rules missed — subarticle/variation titles, comparison
+   drug names, hero-summary lead words, uppercase sub-labels. The :not()
+   carves out the two accent runs that must survive: anything inside a real
+   link (`a .theme-accent-heading` above restores those anyway, but excluding
+   them keeps this rule inert there regardless of order), and the loading
+   screen's brand wordmark, which is chrome rather than content. */
+html[data-visual-style="pro"] :is(span, strong, p).theme-accent-heading:not(:where(a *, .theme-loading-wordmark)) {
+  color: var(--theme-text-primary);
 }
 
 /* The wordmark, both runs. SiteWordmark renders "Effect " + <span>Index</span>,

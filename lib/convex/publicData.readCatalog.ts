@@ -51,6 +51,13 @@ export const publicDataReadCatalog = {
       limit: PUBLIC_SUBSTANCE_PAGE_SIZE,
     }),
   },
+  publicReviewedArticleCredits: {
+    functionName: "substanceIndex:getPublicReviewedArticleCreditsPage",
+    args: (cursor?: string) => ({
+      ...(cursor ? { cursor } : {}),
+      limit: PUBLIC_SUBSTANCE_PAGE_SIZE,
+    }),
+  },
   publicSubstanceFullDocuments: {
     functionName: "substanceIndex:getFullDocumentPage",
     args: (cursor: string | null) => ({

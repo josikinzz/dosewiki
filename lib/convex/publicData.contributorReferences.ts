@@ -9,15 +9,17 @@ import {
 import { getPublicContributorProfiles } from "./publicData.contributors";
 import { getPublicEffectArticles, getPublicReplications } from "./publicData.effects";
 import { getPublicReports } from "./publicData.reports";
+import { getReviewedArticleCredits } from "./publicData.substances";
 
 /**
  * How many distinct public pages credit each contributor, keyed by profile key.
  *
- * Composed entirely from reads that already happen elsewhere in the same build — the effect
+ * Composed from reads that already happen elsewhere in the same build — the effect
  * article corpus (`/effects/*`, `/categories/*`), the replication gallery (`/effects`,
- * `/replications`) and the report previews (`/reports`) — all of which are wrapped in
- * `unstable_cache`. So the About page adds no Convex round-trips of its own on a full build,
- * and React's `cache` collapses repeat calls within a single render.
+ * `/replications`), the report previews (`/reports`) — plus the review-credit aggregate,
+ * which exists for this count alone. All are wrapped in `unstable_cache`, so the About
+ * page adds at most one bounded corpus read of its own on a full build, and React's
+ * `cache` collapses repeat calls within a single render.
  *
  * It lives in its own module rather than in `publicData.contributors` because the report
  * reads already depend on that module; importing them back would close a cycle.
@@ -26,11 +28,12 @@ import { getPublicReports } from "./publicData.reports";
  */
 export const getPublicContributorReferenceCounts = cache(
   async (): Promise<Map<string, number>> => {
-    const [profiles, effects, replications, reports] = await Promise.all([
+    const [profiles, effects, replications, reports, reviewedArticles] = await Promise.all([
       getPublicContributorProfiles(),
       getPublicEffectArticles(),
       getPublicReplications(),
       getPublicReports(),
+      getReviewedArticleCredits(),
     ]);
 
     const input: ContributorReferenceInput = {
@@ -49,6 +52,13 @@ export const getPublicContributorReferenceCounts = cache(
         slug: report.slug,
         author: report.author,
         authorProfileKey: report.authorProfileKey,
+      })),
+      // Expert-reviewing an article is a contribution to the substance page it
+      // gates. The reviewer arrives as a profile key (never an email); the
+      // counting side still runs it through the key-or-alias matcher.
+      reviewedArticles: reviewedArticles.map((credit) => ({
+        slug: credit.slug,
+        reviewerProfileKey: credit.profileKey,
       })),
     };
 

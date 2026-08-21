@@ -565,15 +565,15 @@ const EFFECT_INDEX_CONFIG: SiteFlavorConfig = {
   },
   underConstructionDescription:
     "Effect Index is preparing its public archive of subjective effect documentation.",
-  // The original effectindex.com header, restored from that site's `store/navigation.json`:
-  // Effects · Replications · Trip Reports · Project. It carried no Substances entry, and the
-  // site owner wants it kept that way — `/substances` stays live and reachable, it is simply
-  // not advertised in the header or on the homepage tile grid.
+  // The original effectindex.com header, restored from that site's `store/navigation.json`,
+  // ran Effects · Replications · Trip Reports · Project. Substances has since been added
+  // between Replications and Trip Reports on the owner's instruction, linking the live
+  // `/substances` index; the homepage tile grid still omits it.
   //
   // The original also led with a Home item. It is gone on the owner's instruction: the
   // wordmark and eye mark beside it are already a link to `/` at every width, so a Home entry
   // spent a nav slot on the one destination the chrome can never lose.
-  primaryNavIds: ["effects", "replications", "reports"],
+  primaryNavIds: ["effects", "replications", "substances", "reports"],
   secondaryNavIds: ["about"],
   quickLinkIds: ["effects", "replications", "reports", "about"],
   navMenus: {

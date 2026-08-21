@@ -5,7 +5,10 @@ import { cache } from "react";
 import { PUBLIC_CONVEX_CACHE_REVALIDATE_SECONDS, PUBLIC_CONVEX_CACHE_TAGS } from "./publicData.cache";
 import { getPublicDataReadAdapter, type PublicFullSubstanceDocument } from "./publicData.reads";
 import type { PublicSubstanceArticleRecord } from "./publicData.substanceContract";
-import type { ContributorReviewedArticle } from "../../src/types/reviewedArticles";
+import type {
+  ContributorReviewedArticle,
+  ReviewedArticleCredit,
+} from "../../src/types/reviewedArticles";
 import {
   type PublicCategoryLayout,
   type PublicMechanismRouteInput,
@@ -87,6 +90,29 @@ export const getReviewedArticlesByContributor = cache(unstable_cache(async (
   const reviewed = await getPublicDataReadAdapter().getPublicReviewedArticlesByContributor(profileKey);
   return [...reviewed].sort((left, right) => left.title.localeCompare(right.title));
 }, ["convex-public-reviewed-articles-by-contributor"], {
+  revalidate: PUBLIC_CONVEX_CACHE_REVALIDATE_SECONDS,
+  tags: [
+    PUBLIC_CONVEX_CACHE_TAGS.all,
+    PUBLIC_CONVEX_CACHE_TAGS.substances,
+    PUBLIC_CONVEX_CACHE_TAGS.contributors,
+  ],
+}));
+
+/**
+ * Every completed expert review as a public-safe (slug, profileKey) credit,
+ * for the About roster's page-reference counts. Like the per-contributor read
+ * above, the reviewer-email matching happens inside the Convex deployment; no
+ * email reaches this process. Sorted by slug then key so identical corpora
+ * produce identical payloads between builds.
+ */
+export const getReviewedArticleCredits = cache(unstable_cache(async (): Promise<ReviewedArticleCredit[]> => {
+  const credits = await getPublicDataReadAdapter().getPublicReviewedArticleCredits();
+  return [...credits].sort((left, right) =>
+    left.slug === right.slug
+      ? left.profileKey.localeCompare(right.profileKey)
+      : left.slug.localeCompare(right.slug),
+  );
+}, ["convex-public-reviewed-article-credits"], {
   revalidate: PUBLIC_CONVEX_CACHE_REVALIDATE_SECONDS,
   tags: [
     PUBLIC_CONVEX_CACHE_TAGS.all,

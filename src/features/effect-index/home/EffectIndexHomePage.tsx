@@ -150,7 +150,7 @@ export function EffectIndexHomePage({
           <HomePanel
             title="Substance Summaries"
             description={blurb("substanceSummaries")}
-            icon={icons.flaskRound}
+            icon={resolveRouteChromeIcon("substances")}
             stub={<ArticlesSectionStub />}
           >
             <ul className="theme-text-secondary ml-5 list-disc space-y-2 text-[1.0625rem] marker:text-dose-text-ghost">

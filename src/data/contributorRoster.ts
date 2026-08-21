@@ -24,6 +24,7 @@
  * | ------------------- | ----------------------------------------------------------------- |
  * | `/effects/<slug>`   | `subjectiveEffects.contributors[]`, `audio_replications[].artist`, and the `artist` of every replication whose `effect_slug` is that effect |
  * | `/reports/<slug>`   | `tripReports.subject.name`, and `subject.profile_key` when set     |
+ * | `/substances/<slug>` | the completed `editorial_review`, resolved to a contributor profile key inside Convex (`substanceIndex:getPublicReviewedArticleCreditsPage`) — expert-reviewing an article is a contribution to the page it gates |
  *
  * Deliberately excluded:
  *
@@ -69,12 +70,12 @@ export const EFFECT_INDEX_FOUNDER_KEY = "JOSIE";
 export const EFFECT_INDEX_FOUNDER_ROLE_FALLBACK = "Founder";
 
 /**
- * Lyrea is a dose.wiki contributor, not an Effect Index one: she did not contribute to Effect
- * Index and is not a founder of it, so listing her on that publication's contributor tab
- * would be a false credit. Her profile and her dose.wiki presence are untouched — this is a
- * display-time exclusion on one flavor only.
+ * Profiles dropped from the Effect Index roster. Empty since expert reviews started counting
+ * as contributions: Lyrea used to be excluded here on the grounds that she did not contribute
+ * to Effect Index, but the substance corpus she reviews is served by both publications, so
+ * that premise no longer holds. The mechanism stays for the next editorial exclusion.
  */
-export const EFFECT_INDEX_EXCLUDED_CONTRIBUTOR_KEYS: readonly string[] = ["LYREA"];
+export const EFFECT_INDEX_EXCLUDED_CONTRIBUTOR_KEYS: readonly string[] = [];
 
 /**
  * Whether one profile belongs on the contributor roster. **This is the whole membership
@@ -143,10 +144,21 @@ export type ContributorReferenceReportInput = {
   readonly authorProfileKey?: string;
 };
 
+/**
+ * One expert-reviewed substance article. `reviewerProfileKey` was resolved from the stored
+ * reviewer email inside Convex, so no email reaches this module; the key still goes through
+ * the key-or-alias matcher here, like a report's `authorProfileKey`.
+ */
+export type ContributorReferenceReviewedArticleInput = {
+  readonly slug: string;
+  readonly reviewerProfileKey: string;
+};
+
 export type ContributorReferenceInput = {
   readonly effects?: readonly ContributorReferenceEffectInput[];
   readonly replications?: readonly ContributorReferenceReplicationInput[];
   readonly reports?: readonly ContributorReferenceReportInput[];
+  readonly reviewedArticles?: readonly ContributorReferenceReviewedArticleInput[];
 };
 
 /**
@@ -191,8 +203,8 @@ function addCredit(
 
 /**
  * Fold every attribution source into one credit list per page. Insertion order is stable
- * (effects in read order, then reports), which keeps the resulting counts identical between
- * builds for identical input.
+ * (effects in read order, then reports, then reviewed articles), which keeps the resulting
+ * counts identical between builds for identical input.
  */
 export function collectContributorReferencePages(
   input: ContributorReferenceInput,
@@ -223,6 +235,10 @@ export function collectContributorReferencePages(
       name: report.author,
       profileKey: report.authorProfileKey,
     });
+  }
+
+  for (const reviewed of input.reviewedArticles ?? []) {
+    addCredit(pages, `substance:${reviewed.slug}`, { profileKey: reviewed.reviewerProfileKey });
   }
 
   return Array.from(pages.values(), (page) => ({

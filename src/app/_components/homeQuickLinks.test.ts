@@ -28,8 +28,8 @@ describe("buildHomeQuickLinks", () => {
       "Reports",
       "About",
     ]);
-    // The original site advertised no Substances section, and the site owner wants the tile
-    // grid to match its header. `/substances` itself stays live.
+    // The original site advertised no Substances section; the header has since gained a
+    // Substances link, but the tile grid still omits it. `/substances` itself stays live.
     expect(links.map((link) => link.id)).not.toContain("substances");
     expect(links.map((link) => link.href)).not.toContain("/substances");
     expect(links).toHaveLength(SITE_FLAVOR_CONFIGS.effectindex.quickLinkIds.length);

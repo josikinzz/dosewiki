@@ -2,7 +2,10 @@ import "server-only";
 
 import type { NormalizedUserProfile } from "../../src/data/userProfiles";
 import type { GalleryReplication, ReplicationWithUrl } from "../../src/types/replications";
-import type { ContributorReviewedArticle } from "../../src/types/reviewedArticles";
+import type {
+  ContributorReviewedArticle,
+  ReviewedArticleCredit,
+} from "../../src/types/reviewedArticles";
 import type { PublicSubstanceGallery } from "../../src/data/substanceReplicationGallery";
 import {
   priorityScore,
@@ -76,6 +79,7 @@ export type PublicDataReadAdapter = {
   getPublicSubstancePreviews(): Promise<PublicSubstancePreview[]>;
   getPublicSubstanceBySlug(slug: string): Promise<PublicSubstanceRecord | null>;
   getPublicReviewedArticlesByContributor(profileKey: string): Promise<ContributorReviewedArticle[]>;
+  getPublicReviewedArticleCredits(): Promise<ReviewedArticleCredit[]>;
   getPublicFullSubstanceDocuments(): Promise<PublicFullSubstanceDocument[]>;
   getPublicEffects(): Promise<PublicEffectPreview[]>;
   getPublicEffectBySlug(slug: string): Promise<SubjectiveEffectDetailRecord | null>;
@@ -612,6 +616,25 @@ export function createConvexPublicDataReadAdapter(query: QueryTransport = queryC
         if (isExplicitMissingPublicFunctionError(error)) {
           console.warn(
             "[publicData] substanceIndex:getPublicReviewedArticlesPage is not deployed; contributor reviewed articles degraded to empty.",
+          );
+          return [];
+        }
+        throw error;
+      }
+    },
+    // Bulk counterpart of the read above, for the About roster's reference
+    // counts: every completed review as a (slug, profileKey) credit in one
+    // corpus pass. Same additive degrade, same reason to say so out loud.
+    getPublicReviewedArticleCredits: async () => {
+      try {
+        return await drainPublicCorpusPages<ReviewedArticleCredit>(query, {
+          functionName: publicDataReadCatalog.publicReviewedArticleCredits.functionName,
+          args: (cursor) => publicDataReadCatalog.publicReviewedArticleCredits.args(cursor),
+        });
+      } catch (error) {
+        if (isExplicitMissingPublicFunctionError(error)) {
+          console.warn(
+            "[publicData] substanceIndex:getPublicReviewedArticleCreditsPage is not deployed; review credits degraded to empty.",
           );
           return [];
         }

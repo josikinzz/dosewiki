@@ -119,6 +119,22 @@ describe("countContributorReferences", () => {
     expect(counts.get("LYREA")).toBe(1);
   });
 
+  it("counts an expert review as a contribution to the reviewed article's page", () => {
+    const counts = countContributorReferences(ALL_PROFILES, {
+      reviewedArticles: [
+        { slug: "2c-b", reviewerProfileKey: "LYREA" },
+        { slug: "dmt", reviewerProfileKey: "LYREA" },
+        // An alias in the key position resolves like a report's authorProfileKey.
+        { slug: "lsd", reviewerProfileKey: "witchy" },
+        // Two reviews stamped on the same article count that page once.
+        { slug: "2c-b", reviewerProfileKey: "LYREA" },
+      ],
+    });
+
+    expect(counts.get("LYREA")).toBe(3);
+    expect(counts.get("JOSIE")).toBe(0);
+  });
+
   it("credits nobody for names and keys that match no profile", () => {
     const counts = countContributorReferences(ALL_PROFILES, {
       effects: [{ slug: "one", contributors: ["liv", "Brack", "chemi", ""] }],
@@ -320,7 +336,7 @@ describe("selectAboutContributors", () => {
   ]);
   const curatedFounderProfiles = [LYREA, JOSIE];
 
-  it("lists every Effect Index contributor except the excluded ones", () => {
+  it("lists every Effect Index contributor, reviewers included", () => {
     const selection = selectAboutContributors({
       isEffectIndex: true,
       allProfiles: ALL_PROFILES,
@@ -333,12 +349,20 @@ describe("selectAboutContributors", () => {
       ...(selection.roster?.contributors ?? []).map((entry) => entry.profile.key),
     ];
 
-    expect(listed).toEqual(["JOSIE", "KAYTWO", "NERVEWING", "STINGRAYZ", "VISCID", "RHO"]);
+    expect(listed).toEqual([
+      "JOSIE",
+      "KAYTWO",
+      "NERVEWING",
+      "LYREA",
+      "STINGRAYZ",
+      "VISCID",
+      "RHO",
+    ]);
     // Every profile appears, not just the curated founder subset.
-    expect(listed).toHaveLength(ALL_PROFILES.length - EFFECT_INDEX_EXCLUDED_CONTRIBUTOR_KEYS.length);
+    expect(listed).toHaveLength(ALL_PROFILES.length);
   });
 
-  it("excludes Lyrea on Effect Index but keeps her on dose.wiki", () => {
+  it("lists Lyrea on both publications now that her reviews count as contributions", () => {
     const effectIndex = selectAboutContributors({
       isEffectIndex: true,
       allProfiles: ALL_PROFILES,
@@ -352,11 +376,12 @@ describe("selectAboutContributors", () => {
       referenceCounts,
     });
 
-    expect(EFFECT_INDEX_EXCLUDED_CONTRIBUTOR_KEYS).toContain("LYREA");
-    expect(effectIndex.roster?.founder?.profile.key).not.toBe("LYREA");
+    expect(EFFECT_INDEX_EXCLUDED_CONTRIBUTOR_KEYS).toEqual([]);
     expect(
       (effectIndex.roster?.contributors ?? []).map((entry) => entry.profile.key),
-    ).not.toContain("LYREA");
+    ).toContain("LYREA");
+    // The founder pin is unaffected: reviews rank her, they do not promote her.
+    expect(effectIndex.roster?.founder?.profile.key).toBe("JOSIE");
 
     expect(dosewiki.founderProfiles.map((entry) => entry.key)).toContain("LYREA");
   });
@@ -505,9 +530,11 @@ describe("roster membership policy", () => {
     ]);
   });
 
-  it("keeps the excluded-key gate a per-publication exception, not a growth mechanism", () => {
-    expect(EFFECT_INDEX_EXCLUDED_CONTRIBUTOR_KEYS).toEqual(["LYREA"]);
-    expect(rosterKeys([...LIVE_PROFILES, ...IMPORTED_PROFILES])).not.toContain("LYREA");
+  it("keeps the excluded-key gate an empty per-publication exception, not a growth mechanism", () => {
+    // Emptied when expert reviews started counting as contributions; the gate itself is
+    // pinned by `buildContributorRoster`'s excluded-keys test above.
+    expect(EFFECT_INDEX_EXCLUDED_CONTRIBUTOR_KEYS).toEqual([]);
+    expect(rosterKeys([...LIVE_PROFILES, ...IMPORTED_PROFILES])).toContain("LYREA");
   });
 
   it("decides membership in one place, and narrowing it there is the whole veto", () => {

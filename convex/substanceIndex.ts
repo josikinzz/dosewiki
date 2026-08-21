@@ -17,6 +17,7 @@ import {
 import {
   getEditorSubstanceBySlugHandler,
   getPublicAboutPreviewCandidatesHandler,
+  getPublicReviewedArticleCreditsPageHandler,
   getPublicReviewedArticlesPageHandler,
   getSubstanceByIdHandler,
   getSubstanceByTitleHandler,
@@ -426,6 +427,15 @@ export const getPublicReviewedArticlesPage = query({
   handler: async (ctx, args) =>
     getPublicReviewedArticlesPageHandler(ctx, {
       profileKey: args.profileKey,
+      cursor: args.cursor,
+      numItems: clampPublicCorpusPageSize(args.limit),
+    }),
+});
+
+export const getPublicReviewedArticleCreditsPage = query({
+  args: publicCorpusPageArgs,
+  handler: async (ctx, args) =>
+    getPublicReviewedArticleCreditsPageHandler(ctx, {
       cursor: args.cursor,
       numItems: clampPublicCorpusPageSize(args.limit),
     }),

@@ -47,8 +47,8 @@ const QUICK_LINK_DEFINITIONS: Record<SiteNavId, HomeQuickLink> = {
 /**
  * The homepage quick links, in the order the publication declares — not the order this
  * file happens to list them in. dose.wiki runs Substances, Effects, Replications,
- * Reports, About; Effect Index leads with Effects and omits Substances, which its header
- * does not advertise either (the section itself stays live).
+ * Reports, About; Effect Index leads with Effects and omits Substances from its tile
+ * grid, though its header now links the section.
  */
 export function buildHomeQuickLinks(
   config: SiteFlavorConfig = SITE_FLAVOR_CONFIG,

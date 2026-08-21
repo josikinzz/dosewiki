@@ -10,3 +10,14 @@ export type ContributorReviewedArticle = {
   /** ISO timestamp of the completed review, when the stamp recorded one. */
   reviewed_at: string | null;
 };
+
+/**
+ * One completed expert review as a public-safe credit: which contributor
+ * profile reviewed which article. The stored reviewer email is matched inside
+ * Convex and discarded there — only the article slug and the claiming profile
+ * key leave the deployment. Feeds the About roster's page-reference counts.
+ */
+export type ReviewedArticleCredit = {
+  slug: string;
+  profileKey: string;
+};

@@ -101,7 +101,7 @@ describe("site flavor config", () => {
       defaultVisualStyle: "pro",
       showVisualStyleToggle: false,
     });
-    expect(config.primaryNavIds).toEqual(["effects", "replications", "reports"]);
+    expect(config.primaryNavIds).toEqual(["effects", "replications", "substances", "reports"]);
     expect(config.secondaryNavIds).toEqual(["about"]);
     expect(config.quickLinkIds).toEqual(["effects", "replications", "reports", "about"]);
     expect(config.organization).toEqual({
@@ -148,13 +148,15 @@ describe("site flavor config", () => {
     expect(Object.keys(navMenus)).toEqual(["effects", "replications", "reports", "about"]);
   });
 
-  it("keeps Substances out of the Effect Index header and homepage entirely", () => {
+  it("advertises Substances in the Effect Index header but not on its homepage", () => {
     const config = SITE_FLAVOR_CONFIGS.effectindex;
-    const everyNavId = [...config.primaryNavIds, ...config.secondaryNavIds, ...config.quickLinkIds];
 
-    // The original header had no Substances entry and the site owner wants it kept that way.
-    // The section itself stays live — this is about what the chrome advertises.
-    expect(everyNavId).not.toContain("substances");
+    // Substances sits between Replications and Trip Reports in the header, linking the live
+    // `/substances` index. The homepage tile grid still omits it, and no dropdown names it —
+    // the header entry is a plain link, like the section itself.
+    expect(config.primaryNavIds).toEqual(["effects", "replications", "substances", "reports"]);
+    expect(config.quickLinkIds).not.toContain("substances");
+    expect(config.navMenus).not.toHaveProperty("substances");
     for (const menu of Object.values(config.navMenus)) {
       for (const child of menu?.children ?? []) {
         expect(child.href.startsWith("/substances")).toBe(false);

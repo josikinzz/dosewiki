@@ -325,10 +325,6 @@ html[data-theme="light"] .theme-article-hero-summary {
   );
 }
 
-html[data-theme="light"] .theme-article-hero-summary .theme-accent-heading {
-  color: inherit;
-}
-
 html[data-theme="light"] .theme-article-hero-priority .theme-control-pill-quiet {
   background-color: color-mix(in srgb, rgb(255 255 255) 70%, var(--theme-body-bg)) !important;
   color: var(--theme-text-primary) !important;
@@ -637,12 +633,6 @@ html[data-theme="light"] .theme-external-link-badge-icon {
     color: var(--theme-accent-strong) !important;
     opacity: 1 !important;
   }
-}
-
-html[data-theme="light"] .prose-invert :where(h1, h2, h3, h4),
-html[data-theme="light"] .prose.prose-invert :where(h1, h2, h3, h4),
-html[data-theme="light"] .prose-fuchsia :where(h1, h2, h3, h4) {
-  color: var(--theme-accent-strong);
 }
 
 html[data-theme="light"] .prose-invert :where(strong, b),

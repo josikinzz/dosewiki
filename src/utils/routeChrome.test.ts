@@ -92,6 +92,7 @@ describe("route chrome model", () => {
     expect(model.primaryNavItems.map((item) => [item.id, item.href, item.active])).toEqual([
       ["effects", "/effects", false],
       ["replications", "/replications", true],
+      ["substances", "/substances", false],
       ["reports", "/reports", false],
     ]);
     expect(model.secondaryNavItems.map((item) => [item.id, item.href, item.mobileLabel])).toEqual([
@@ -110,6 +111,7 @@ describe("route chrome model", () => {
     ).toEqual([
       ["effects", "material-symbols:person-play-outline-rounded"],
       ["replications", "hugeicons:camera-ai"],
+      ["substances", "streamline-ultimate:science-molecule-strucutre-bold"],
       ["reports", "hugeicons:content-writing"],
       ["about", "lucide:info"],
     ]);
@@ -144,6 +146,8 @@ describe("route chrome model", () => {
           ["Tutorials", "/replications/tutorials", false],
         ],
       ],
+      // A plain link with no dropdown: the flavor declares no menu for Substances.
+      ["Substances", "/substances", []],
       // The flavor renames this section, and the rename reaches the mobile label too. Its one
       // declared child leads back to /reports, so the model offers no submenu — see below.
       ["Trip Reports", "/reports", []],
@@ -192,17 +196,16 @@ describe("route chrome model", () => {
     expect(elsewhere?.submenu?.map((child) => child.href)).toEqual(["/reports/submit"]);
   });
 
-  it("never offers Substances in Effect Index navigation", () => {
+  it("marks the Substances header entry active on the substance index", () => {
     const model = getRouteChromeModel("/substances", null, EFFECT_INDEX);
-    const items = [...model.primaryNavItems, ...model.secondaryNavItems];
+    const substances = model.primaryNavItems.find((item) => item.id === "substances");
 
-    // The section stays live and still resolves — it is simply not advertised in the chrome.
     expect(model.pageTitle).toBe("Substance Index");
     expect(model.activeGroup).toBe("substances");
-    expect(items.map((item) => item.id)).not.toContain("substances");
-    expect(
-      items.flatMap((item) => (item.submenu ?? []).map((child) => child.href)),
-    ).not.toContain("/substances");
+    // A plain link between Replications and Trip Reports — no dropdown, active here.
+    expect(substances?.href).toBe("/substances");
+    expect(substances?.submenu).toBeUndefined();
+    expect(substances?.active).toBe(true);
   });
 
   it("leaves dose.wiki's items free of submenus so the header renders plain links", () => {

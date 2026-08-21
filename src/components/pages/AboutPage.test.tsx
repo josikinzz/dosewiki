@@ -230,7 +230,7 @@ describe("AboutPage contributor roster", () => {
   it("lists every contributor, not a curated subset", () => {
     const panel = renderRosterSection();
 
-    for (const displayName of ["Josie Kins", "Kaytwo", "Nervewing", "StingrayZ", "Rho"]) {
+    for (const displayName of ["Josie Kins", "Kaytwo", "Lyrea", "Nervewing", "StingrayZ", "Rho"]) {
       expect(within(panel).getByRole("link", { name: new RegExp(displayName, "i") })).toHaveAttribute(
         "href",
         `/contributors/${displayName === "Josie Kins" ? "josie" : displayName.toLowerCase()}`,
@@ -242,13 +242,17 @@ describe("AboutPage contributor roster", () => {
     const profileLinks = within(panel)
       .getAllByRole("link")
       .filter((link) => link.getAttribute("href")?.startsWith("/contributors/"));
-    expect(profileLinks).toHaveLength(allProfiles.length - 1);
+    expect(profileLinks).toHaveLength(allProfiles.length);
   });
 
-  it("excludes Lyrea, who did not contribute to this publication", () => {
+  it("lists Lyrea, whose expert reviews count as contributions, without her internal alias", () => {
     const panel = renderRosterSection();
 
-    expect(within(panel).queryByRole("link", { name: /lyrea/i })).not.toBeInTheDocument();
+    expect(within(panel).getByRole("link", { name: /lyrea/i })).toHaveAttribute(
+      "href",
+      "/contributors/lyrea",
+    );
+    // Aliases stay internal even now that the profile is listed.
     expect(within(panel).queryByText(/witchy/i)).not.toBeInTheDocument();
   });
 
@@ -275,6 +279,7 @@ describe("AboutPage contributor roster", () => {
     expect(ranked).toEqual([
       "/contributors/kaytwo",
       "/contributors/nervewing",
+      "/contributors/lyrea",
       "/contributors/stingrayz",
       "/contributors/rho",
     ]);
