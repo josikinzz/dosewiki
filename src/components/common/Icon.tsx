@@ -1,13 +1,27 @@
 "use client";
 
-import { Icon as IconifyIcon } from "@iconify/react";
+import { Icon as IconifyIcon, addCollection } from "@iconify/react";
+import type { IconifyJSON } from "@iconify/react";
 import { customIcons } from "./customIcons";
+import iconData from "./iconData.generated.json";
 
-// Icons are loaded lazily on demand by @iconify/react (fetched from the Iconify
-// API at runtime and cached client-side). We intentionally do NOT eagerly bundle
-// the full lucide collection here — that shipped ~568KB of icon data into every
-// page's initial load. Lucide now resolves the same way every other collection
-// (tabler, fluent, hugeicons, …) already does: on demand.
+// Every icon name that appears as a literal in the repo is bundled offline in
+// `iconData.generated.json` (built by `npm run generate:icon-data`, which
+// extracts exactly the used names from the `@iconify-json/*` devDependencies —
+// ~150KB raw / ~41KB gzip for the whole site, versus the ~568KB that bundling
+// the full lucide collection alone used to cost). Registering the data at
+// module scope means `getIconData` resolves synchronously on both server and
+// client, so with the `ssr` prop below every bundled glyph is in the
+// server-rendered HTML and never waits on a network request.
+//
+// Names outside the bundle — editor-authored strings stored in Convex (warning
+// banner presets, index-layout `iconKey`s) and /dev picker experiments — keep
+// the old behaviour: `@iconify/react` fetches them from the Iconify API at
+// runtime, rotating in its two backup hosts after 750ms of silence.
+for (const collection of iconData.collections as unknown as IconifyJSON[]) {
+  addCollection(collection);
+}
+
 export type IconName = string; // e.g., "lucide:search", "mdi:home", "custom:benzene"
 
 interface IconProps {
@@ -33,8 +47,13 @@ export function Icon({ icon, className, size = 24 }: IconProps) {
     }
   }
 
+  // `ssr` makes the initial render resolve icon data synchronously instead of
+  // waiting for an effect. Bundled icons therefore paint immediately (and
+  // identically) on server and client; unbundled ones render the same empty
+  // placeholder on both, then load over the network after hydration.
   return (
     <IconifyIcon
+      ssr
       icon={icon}
       className={className}
       width={size}

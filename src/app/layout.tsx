@@ -10,6 +10,16 @@ import {
   getAppearanceMetaColor,
   getInitialAppearance,
 } from "@/theme";
+import {
+  CHROMA_STYLESHEET_HREF,
+  CHROMA_STYLESHEET_LINK_ID,
+} from "@/theme/appearanceChroma";
+import {
+  LIGHT_MODE_STYLESHEET_HREF,
+  LIGHT_MODE_STYLESHEET_LINK_ID,
+  PRO_THEME_STYLESHEET_HREF,
+  PRO_THEME_STYLESHEET_LINK_ID,
+} from "@/theme/appearanceSheets";
 import { ThemeProvider } from "@/context/ThemeContext";
 import { ThemeLabLazy } from "@/features/theme-lab/ThemeLabLazy";
 import { proFont, siteFont } from "./fonts";
@@ -24,6 +34,12 @@ const initialAppearance = getInitialAppearance();
 const initialThemeMetaColor = getAppearanceMetaColor(initialAppearance);
 const themeBootstrap = buildThemeBootstrapScript();
 const isVisualStyleLocked = !SITE_FLAVOR_CONFIG.showVisualStyleToggle;
+// The chroma sheet is inert without html[data-chroma], and only the bootstrap's chromaWrite
+// block — emitted when at least one colour picker is unlocked — ever sets that attribute.
+// Effect Index locks both pickers, so its build skips the <link> rather than shipping 70 KB
+// of CSS no selector can ever match.
+const rendersChromaStylesheet =
+  SITE_FLAVOR_CONFIG.showSurfacePicker || SITE_FLAVOR_CONFIG.showAccentPicker;
 const zodJitlessBootstrap = buildZodJitlessBootstrapScript();
 // Both faces are registered in both builds so the Fun/Pro choice is a style switch, not a
 // reload. `proFont` sets `preload: false`, so a Fun reader downloads none of it.
@@ -79,21 +95,51 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     >
       <head>
         <meta id={THEME_META_ID} name="theme-color" content={initialThemeMetaColor} />
-        {/* Every glyph on the site is fetched from the Iconify API at runtime — nothing is
-            bundled (`src/components/common/Icon.tsx:6-10`) — so the first icon on a cold
-            visit pays a DNS lookup and a TLS handshake before any pixels. That was cosmetic
-            while controls carried text; the appearance panel is now icon-only, so warming
-            the socket in <head> is the difference between a late glyph and a late control.
-            One host, not three: this is `@iconify/react`'s primary resource, and its two
-            redundant APIs are only rotated in when this one stays silent past 750ms, so
-            warming all three would leave two sockets nothing opens.
+        {/* Every icon named as a literal in the repo is bundled offline
+            (`iconData.generated.json`, registered at module scope in
+            `src/components/common/Icon.tsx`) and rendered into the server HTML, so no
+            public chrome waits on the Iconify API anymore. This preconnect stays for
+            the names that cannot be known at build time: editor-authored strings
+            stored in Convex — warning-banner preset icons, index-layout `iconKey`s
+            that `getCategoryIcon` passes through verbatim — and the /dev icon
+            pickers, all of which still fetch from the API at runtime, so a cold visit
+            that hits one shouldn't also pay DNS + TLS.
+            One host, not three: this is `@iconify/react`'s primary resource, and its
+            two redundant APIs are only rotated in when this one stays silent past
+            750ms, so warming all three would leave two sockets nothing opens.
             `connect-src` already lists this exact origin
-            (`lib/next/cspObservationPolicy.ts:19-23,135,144`), so no policy changes with
-            this. `crossOrigin` is required rather than decorative: the icon request is a
-            CORS `fetch`, and an anonymous preconnect is the only one it can reuse. There is
-            no font equivalent to add — `next/font` self-hosts both faces, which is why this
-            is the layout's first preconnect. */}
+            (`lib/next/cspObservationPolicy.ts:19-23,135,144`), so no policy changes
+            with this. `crossOrigin` is required rather than decorative: the icon
+            request is a CORS `fetch`, and an anonymous preconnect is the only one it
+            can reuse. There is no font equivalent to add — `next/font` self-hosts
+            both faces. */}
         <link rel="preconnect" href="https://api.iconify.design" crossOrigin="anonymous" />
+        {/* The attribute-gated appearance sheets, server-rendered only when the flavor's
+            DEFAULT appearance needs them (a saved preference the server cannot see is the
+            bootstrap's job, same guarded link ids). dose.wiki opens fun+dark and renders
+            neither — that is the point of moving them out of the bundled chain — while
+            Effect Index (pro, light) renders both. Order is a cascade contract: light-mode
+            before Pro (pro-theme.css re-overrides equal-specificity light rules by source
+            order alone), both before the chroma sheet that re-tints their tokens. */}
+        {initialAppearance.colorScheme === "light" ? (
+          <link
+            id={LIGHT_MODE_STYLESHEET_LINK_ID}
+            rel="stylesheet"
+            href={LIGHT_MODE_STYLESHEET_HREF}
+          />
+        ) : null}
+        {initialAppearance.visualStyle === "pro" ? (
+          <link id={PRO_THEME_STYLESHEET_LINK_ID} rel="stylesheet" href={PRO_THEME_STYLESHEET_HREF} />
+        ) : null}
+        {/* Server-rendered, and rendered *before* the bootstrap, on purpose: authored HTML
+            is visible to the preload scanner, so the sheet downloads in parallel with the
+            document instead of becoming a serial critical request discovered only when the
+            inline script executes. The bootstrap and provider both check for this id before
+            creating a link, so this is the only copy a reader ever fetches; next.config.ts
+            serves it immutable, keyed on the href's ?v= content hash. */}
+        {rendersChromaStylesheet ? (
+          <link id={CHROMA_STYLESHEET_LINK_ID} rel="stylesheet" href={CHROMA_STYLESHEET_HREF} />
+        ) : null}
         {/* Raw inline, in <head>, on purpose: `next/script`'s beforeInteractive strategy
             compiles to a body-side queue push, which runs after the head has been parsed
             and so cannot be a *pre*-paint restore. This script is the only thing standing

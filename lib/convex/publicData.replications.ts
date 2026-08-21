@@ -6,7 +6,12 @@ import { contributorMatchNames, findContributorProfileByAuthorName } from "../co
 import { PUBLIC_CONVEX_CACHE_REVALIDATE_SECONDS, PUBLIC_CONVEX_CACHE_TAGS } from "./publicData.cache";
 import { getPublicDataReadAdapter } from "./publicData.reads";
 import type { NormalizedUserProfile } from "../../src/data/userProfiles";
-import { isPublishableReplication, type GalleryReplication, type ReplicationWithUrl } from "../../src/types/replications";
+import {
+  isPublishableReplication,
+  type GalleryReplication,
+  type PublicGalleryReplicationPreview,
+  type ReplicationWithUrl,
+} from "../../src/types/replications";
 import { getPublicReplications } from "./publicData.effects";
 import { getPublicContributorProfiles } from "./publicData.contributors";
 import type {
@@ -139,23 +144,59 @@ export function dropGalleryExcludedArtistWorks<T extends { artist: string }>(
 }
 
 /**
+ * Project a raw gallery row down to the fields the gallery surfaces render —
+ * same convention as `projectPublicSubstancePreview` (publicData.reads.ts).
+ * Drops storage IDs, `_creationTime`, `effect_tags`, `format`, `file_size`,
+ * `role`, and the seven rights-metadata fields: none of them are read by the
+ * explorer, the focus views, the swipe deck, or the sitemap's focus families,
+ * and the corpus is serialized wholesale into the /replications RSC payload.
+ * Rights attribution lives on the permalink, which reads the full record.
+ */
+export function projectPublicGalleryReplicationPreview(
+  replication: GalleryReplication,
+): PublicGalleryReplicationPreview {
+  return {
+    _id: replication._id,
+    slug: replication.slug,
+    title: replication.title,
+    artist: replication.artist,
+    artist_url: replication.artist_url,
+    type: replication.type,
+    effect_slug: replication.effect_slug,
+    url: replication.url,
+    thumbnail_url: replication.thumbnail_url,
+    preview_url: replication.preview_url,
+    width: replication.width,
+    height: replication.height,
+    duration: replication.duration,
+    created_at: replication.created_at,
+    order_index: replication.order_index,
+  };
+}
+
+/**
  * The /replications gallery corpus: `getPublicReplications` minus the works of
- * artists excluded via their contributor profile. This feeds ONLY the gallery
+ * artists excluded via their contributor profile, projected down to the slim
+ * `PublicGalleryReplicationPreview` shape. This feeds ONLY the gallery
  * surface — the main explorer, its artist/effect focus views, and the focus
  * families in the sitemap. Effect-article replication sections, substance
  * showcases, contributor profile pages, permalinks, and the public API all stay
- * on the unfiltered reads; the exclusion is a gallery-presentation choice, not
- * an unpublication.
+ * on the unfiltered, full-fidelity reads; the exclusion is a
+ * gallery-presentation choice, not an unpublication, and the projection is a
+ * payload choice, not a data change.
  *
  * Composed from two tagged caches rather than being an `unstable_cache` of its
- * own: the filter is cheap, and this way revalidating either `replications`
- * (corpus changes) or `contributors` (an exclusion toggles) refreshes it.
+ * own: the filter and projection are cheap, and this way revalidating either
+ * `replications` (corpus changes) or `contributors` (an exclusion toggles)
+ * refreshes it.
  */
-export const getPublicGalleryReplications = cache(async (): Promise<GalleryReplication[]> => {
+export const getPublicGalleryReplications = cache(async (): Promise<PublicGalleryReplicationPreview[]> => {
   const [replications, profiles] = await Promise.all([
     getPublicReplications(),
     getPublicContributorProfiles(),
   ]);
 
-  return dropGalleryExcludedArtistWorks(replications, profiles);
+  return dropGalleryExcludedArtistWorks(replications, profiles).map(
+    projectPublicGalleryReplicationPreview,
+  );
 });

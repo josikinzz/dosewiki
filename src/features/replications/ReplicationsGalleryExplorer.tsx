@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { Suspense, useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Icon } from '@/components/common/Icon';
@@ -12,7 +12,7 @@ import { focusRingClassName } from '@/components/ui/surface';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { cn } from '@/lib/utils';
 import type { ContributorDirectory } from '@server/contributorDirectory';
-import type { GalleryReplication } from '@/types/replications';
+import type { PublicGalleryReplicationPreview } from '@/types/replications';
 import { GalleryMediaTile } from '@/features/effects/gallery/GalleryMediaTile';
 import { MediaRail } from '@/features/effects/gallery/MediaRail';
 import {
@@ -37,7 +37,9 @@ import { resolveGalleryFocus } from './galleryFocus';
 import {
   buildGalleryBrowseUrl,
   buildGalleryFocusUrl,
+  GALLERY_BROWSE_DEFAULTS,
   parseGalleryBrowseState,
+  type GalleryBrowseState,
   type GalleryFocus,
 } from './galleryUrlState';
 
@@ -48,7 +50,7 @@ interface EffectSummary {
 }
 
 export interface ReplicationsGalleryExplorerProps {
-  replications: GalleryReplication[];
+  replications: PublicGalleryReplicationPreview[];
   effects: EffectSummary[];
   effectHrefPrefix?: string;
   /**
@@ -86,16 +88,37 @@ const DECK_DISMISSED_KEY = 'replications-deck-dismissed';
 /** Phone-shaped touch viewport: where the swipe deck is the default view. */
 const DECK_MEDIA_QUERY = '(max-width: 767px) and (pointer: coarse)';
 
-export function ReplicationsGalleryExplorer({
+/**
+ * Public entry. The browse state (?view/?q/?type/?sort) is read on the client
+ * so the /replications routes can stay statically rendered; Next requires a
+ * Suspense boundary around `useSearchParams` for that. The fallback renders
+ * the same explorer with the default browse state, so the prerendered HTML is
+ * the full default gallery — crawlable grid included — and a pasted URL's
+ * filters apply as soon as the client render takes over.
+ */
+export function ReplicationsGalleryExplorer(props: ReplicationsGalleryExplorerProps) {
+  return (
+    <Suspense fallback={<GalleryExplorer {...props} browse={GALLERY_BROWSE_DEFAULTS} />}>
+      <UrlStateGalleryExplorer {...props} />
+    </Suspense>
+  );
+}
+
+/** The one component allowed to touch `useSearchParams` — see above. */
+function UrlStateGalleryExplorer(props: ReplicationsGalleryExplorerProps) {
+  const browse = parseGalleryBrowseState(useSearchParams());
+  return <GalleryExplorer {...props} browse={browse} />;
+}
+
+function GalleryExplorer({
   replications,
   effects,
   effectHrefPrefix = '/effects',
   contributorDirectory,
   focus,
-}: ReplicationsGalleryExplorerProps) {
+  browse,
+}: ReplicationsGalleryExplorerProps & { browse: GalleryBrowseState }) {
   const router = useRouter();
-  const searchParams = useSearchParams();
-  const browse = parseGalleryBrowseState(searchParams);
 
   const mode: GalleryMode = focus ? focus.kind : browse.view;
   const typeFilter = browse.type;
@@ -295,7 +318,7 @@ export function ReplicationsGalleryExplorer({
     setDeckOpen(true);
   };
 
-  const renderMasonry = (items: GalleryReplication[]) => (
+  const renderMasonry = (items: PublicGalleryReplicationPreview[]) => (
     <div className={MASONRY_CLASS}>
       {items.map((replication) => (
         <GalleryMediaTile

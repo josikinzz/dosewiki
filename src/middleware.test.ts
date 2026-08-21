@@ -306,3 +306,81 @@ describe("middleware role policy adapter", () => {
     expect(mocks.getToken).not.toHaveBeenCalled();
   });
 });
+
+describe("middleware header memoization", () => {
+  beforeEach(() => {
+    mocks.getToken.mockReset();
+  });
+
+  it("serves identical public security headers across repeated requests to a host", async () => {
+    const { middleware } = await import("../middleware");
+
+    const first = await middleware(makeRequest("/fentanyl"));
+    const second = await middleware(makeRequest("/about"));
+
+    expect(first.headers.get("content-security-policy")).toBeTruthy();
+    expect(second.headers.get("content-security-policy")).toBe(
+      first.headers.get("content-security-policy"),
+    );
+    expect(second.headers.get("x-frame-options")).toBe("DENY");
+    expect(second.headers.get("permissions-policy")).toBe(
+      first.headers.get("permissions-policy"),
+    );
+  });
+
+  it("issues a fresh nonce per /dev request despite the public header cache", async () => {
+    mocks.getToken.mockResolvedValue({ email: "editor@example.com", role: "editor" });
+    const { middleware } = await import("../middleware");
+
+    const first = await middleware(makeRequest("/dev"));
+    const second = await middleware(makeRequest("/dev"));
+    const nonceOf = (response: Response) =>
+      response.headers.get("content-security-policy")?.match(/'nonce-([^']+)'/)?.[1];
+
+    expect(nonceOf(first)).toBeTruthy();
+    expect(nonceOf(second)).toBeTruthy();
+    expect(nonceOf(first)).not.toBe(nonceOf(second));
+    expect(first.headers.get("x-middleware-request-x-nonce")).toBe(nonceOf(first));
+  });
+});
+
+describe("middleware matcher", () => {
+  async function loadMatcher(): Promise<RegExp> {
+    const { config } = await import("../middleware");
+    return new RegExp(`^${config.matcher[0]}$`);
+  }
+
+  it.each([
+    "/",
+    "/fentanyl",
+    "/search/lsd",
+    "/replications/some-slug",
+    "/dev",
+    "/dev/themes",
+    "/api/v1/substances",
+    "/api/molecules/2c-b",
+    // json/txt stay matched on purpose: the construction gate must keep fronting the
+    // open-data dumps on dose.wiki/www until launch.
+    "/robots.txt",
+    "/llms.txt",
+    "/SubstanceIndex.json",
+    "/open-data/SubstanceIndex.json",
+  ])("still routes %s through middleware", async (path) => {
+    expect((await loadMatcher()).test(path)).toBe(true);
+  });
+
+  it.each([
+    "/favicon.ico",
+    "/favicon.svg",
+    "/icon-512.png",
+    "/manifest.webmanifest",
+    "/sitemap.xml",
+    "/appearance-chroma.css",
+    "/fonts/titillium-web/titillium-web-400-normal-latin.woff2",
+    "/flags/us/california.svg",
+    "/supporters/mindstate-design-labs.webp",
+    "/audio/Auditory Hallucinations - DMT Drone.mp3",
+  ])("excludes the static asset %s", async (path) => {
+    expect((await loadMatcher()).test(path)).toBe(false);
+  });
+});

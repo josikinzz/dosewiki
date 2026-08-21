@@ -162,6 +162,37 @@ const nextConfig: NextConfig = {
       })),
     ];
   },
+  async headers() {
+    return [
+      {
+        // The generated chroma sheet lives in public/, which Next otherwise serves with
+        // max-age=0 — a paint-blocking revalidation round-trip on every repeat visit. Its
+        // href always carries a ?v=<content-hash> cache-buster (CHROMA_STYLESHEET_HREF in
+        // src/theme/appearanceChroma.ts), so any change to the sheet changes the URL and
+        // the response itself may be cached forever. Path matching ignores the query, so
+        // this covers the versioned URL and the bare route alike.
+        source: "/appearance-chroma.css",
+        headers: [
+          { key: "Cache-Control", value: "public, max-age=31536000, immutable" },
+        ],
+      },
+      {
+        // The Pro and light-mode appearance sheets moved out of the bundled CSS chain into
+        // public/ with the same contract: hrefs always carry ?v=<content-hash>
+        // (src/theme/appearanceSheets.ts), so both may be cached forever.
+        source: "/pro-theme.css",
+        headers: [
+          { key: "Cache-Control", value: "public, max-age=31536000, immutable" },
+        ],
+      },
+      {
+        source: "/theme-light-mode.css",
+        headers: [
+          { key: "Cache-Control", value: "public, max-age=31536000, immutable" },
+        ],
+      },
+    ];
+  },
 };
 
 export default nextConfig;

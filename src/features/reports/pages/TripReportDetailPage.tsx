@@ -14,7 +14,8 @@ import { TimelineSection } from "../components/TimelineSection";
 import { TextSection } from "../components/TextSection";
 import { ReportHeroSection } from "../components/ReportHeroSection";
 import type { TripReport } from "@/types/tripReport";
-import { type ReportBackTarget } from "../domain/tripReportIndex";
+import { ReportBackLink } from "../components/ReportBackLink";
+import { type SubstanceLookupRecord } from "../domain/tripReportIndex";
 
 /** Section titles + icons defined once so the TOC, the section heading, and
  *  the heading icon never drift apart. */
@@ -30,7 +31,10 @@ const CONCLUSION_SECTION = {
 
 interface TripReportDetailPageProps {
   report: TripReport;
-  backTarget: ReportBackTarget;
+  /** Public substance slug -> name lookup; the client back link resolves the
+   *  `?from=` slug (and the default label) against it. Built by the route
+   *  loader in `page.tsx`. */
+  substanceBySlug: Record<string, SubstanceLookupRecord>;
   /** Map of report substance name -> public article href, for substances that
    *  resolve to a known article. Built by the route loader in `page.tsx`. */
   substanceLinks?: Record<string, string>;
@@ -41,13 +45,13 @@ interface TripReportDetailPageProps {
  */
 export const TripReportDetailPage = memo(function TripReportDetailPage({
   report,
-  backTarget,
+  substanceBySlug,
   substanceLinks,
 }: TripReportDetailPageProps) {
   return (
     <TripReportDetailContent
       report={report}
-      backTarget={backTarget}
+      substanceBySlug={substanceBySlug}
       substanceLinks={substanceLinks}
     />
   );
@@ -55,7 +59,7 @@ export const TripReportDetailPage = memo(function TripReportDetailPage({
 
 const TripReportDetailContent = memo(function TripReportDetailContent({
   report,
-  backTarget,
+  substanceBySlug,
   substanceLinks,
 }: TripReportDetailPageProps) {
   const hasTimeline =
@@ -91,7 +95,7 @@ const TripReportDetailContent = memo(function TripReportDetailContent({
             gutter TOC at >=1200px. */}
         {tocNode ? <PublicTocStrip items={tocItems} /> : null}
 
-        <BackButton backTarget={backTarget} />
+        <ReportBackLink substances={report.substances} substanceBySlug={substanceBySlug} />
 
         <ReportHeroSection
           title={report.title}
@@ -193,20 +197,5 @@ function ReportFooterActions() {
         </Button>
       </div>
     </footer>
-  );
-}
-
-function BackButton({
-  backTarget,
-}: {
-  backTarget: ReportBackTarget;
-}) {
-  return (
-    <Button variant="ghostPill" size="pill" asChild className="w-fit">
-      <Link href={backTarget.href}>
-        <Icon icon="lucide:arrow-left" size={16} />
-        {backTarget.label}
-      </Link>
-    </Button>
   );
 }

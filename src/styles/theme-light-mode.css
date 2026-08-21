@@ -1221,25 +1221,6 @@ html[data-theme="light"] .theme-interaction-caution .theme-interaction-severity-
   border-color: var(--theme-semantic-caution-card-border) !important;
 }
 
-@media (prefers-reduced-motion: reduce) {
-  *,
-  *::before,
-  *::after {
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
-    scroll-behavior: auto !important;
-  }
-}
-
-@media (hover: none) {
-  *,
-  *::before,
-  *::after {
-    transition-duration: 0.01ms !important;
-  }
-}
-
 /* === Dark-mode opaque flatten for legacy text-white/NN utilities ===
    Mirrors the light remap above, but for dark (:not light). Makes legacy
    translucent white text opaque by compositing over the page, preserving the

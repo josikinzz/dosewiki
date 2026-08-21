@@ -2,7 +2,7 @@
  * A browser-local breadcrumb that says "an editor has used this browser" — and nothing else.
  *
  * It exists because the appearance cog most readers meet has never had a session to ask.
- * `src/app/layout.tsx:110` renders `<RouteFooter />` as a *sibling* of `{children}`, and only
+ * `src/app/layout.tsx:145` renders `<RouteFooter />` as a *sibling* of `{children}`, and only
  * `src/app/dev/layout.tsx:4` and `src/app/review/layout.tsx:9` wrap their children in
  * `AppProviders`. So the footer's `useContext(SessionContext)` resolved to `undefined` on every
  * route — `/dev` included — and the Lab entry it gates never appeared there at all. The only

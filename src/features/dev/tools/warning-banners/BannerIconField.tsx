@@ -17,8 +17,8 @@ import { EditorField } from "@/features/dev/components";
 /**
  * `malformed` fails the shared pattern; `unknown` passes it but resolves to no
  * glyph. Both block save, and they are kept apart because the fix differs: one
- * is a shape mistake ("lucide wind"), the other a spelling mistake
- * ("lucide:wnid").
+ * is a shape mistake (lucide wind), the other a spelling mistake
+ * (lucide:wnid).
  */
 type IconResolution = "empty" | "malformed" | "checking" | "valid" | "unknown";
 

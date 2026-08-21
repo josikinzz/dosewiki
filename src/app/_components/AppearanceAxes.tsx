@@ -192,7 +192,11 @@ export type AppearanceAxesRows = {
  * Two places offer them — the header/footer cog and the Theme Lab drawer — and this is
  * the single component both render, so the two can never disagree about what a reader
  * may choose or what a rail previews. Everything is read from and written to
- * `ThemeContext`; this component holds no appearance state of its own.
+ * `ThemeContext`; this component holds no appearance state of its own. The
+ * range inputs write the context per input tick — that is what keeps them
+ * controlled and the thumb, readout, and rail gradients live — and per-tick
+ * writes are safe because the provider rAF-throttles the document paint and
+ * debounces persistence: nothing here needs its own throttle.
  *
  * Both colour axes work on both visual styles. The accent pair rotates and
  * re-saturates the Pro `--ei-*` accent ramp on the same terms as the Fun

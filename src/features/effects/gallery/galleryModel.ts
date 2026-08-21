@@ -4,13 +4,17 @@ import {
   type ContributorDirectory,
 } from '@server/contributorDirectory';
 import { applyCuratedOrder } from '@server/curatedOrder';
-import type { GalleryReplication } from '@/types/replications';
+import type { PublicGalleryReplicationPreview } from '@/types/replications';
 import { hasKnownCreator } from '../components/replicationCredit';
 
 /**
  * Data model for the cross-effect replications gallery: normalization,
  * grouping by artist / effect, intra-group ordering, search, and the
  * rail-versus-pool layout split. Kept framework-free so it stays unit-testable.
+ *
+ * Typed on `PublicGalleryReplicationPreview` — the slim projection the gallery
+ * pages serialize — so a raw `GalleryReplication` (a structural superset)
+ * works everywhere too.
  */
 
 export type GalleryMode = 'artist' | 'effect';
@@ -32,11 +36,11 @@ export interface GalleryGroup {
   count: number;
   imageCount: number;
   videoCount: number;
-  items: GalleryReplication[];
+  items: PublicGalleryReplicationPreview[];
 }
 
 /** Only items we can actually render (resolved URL) belong in the gallery. */
-export function isDisplayable(replication: GalleryReplication): boolean {
+export function isDisplayable(replication: PublicGalleryReplicationPreview): boolean {
   return Boolean(replication.url);
 }
 
@@ -65,11 +69,11 @@ export const ARTIST_VIEW_WITHHELD_EFFECT_SLUGS: ReadonlySet<string> = new Set(['
 /**
  * Whether this work is withheld from artist rails, decks, and profiles.
  *
- * Typed on the owning slug alone rather than on a whole `GalleryReplication`:
+ * Typed on the owning slug alone rather than on a whole preview row:
  * the sitemap's route plan carries a narrower row than the gallery does, and
  * the rule must be stated once, not restated per row shape.
  */
-export function isWithheldFromArtistViews(replication: Pick<GalleryReplication, 'effect_slug'>): boolean {
+export function isWithheldFromArtistViews(replication: Pick<PublicGalleryReplicationPreview, 'effect_slug'>): boolean {
   const slug = replication.effect_slug;
   return slug !== undefined && ARTIST_VIEW_WITHHELD_EFFECT_SLUGS.has(slug);
 }
@@ -175,8 +179,14 @@ export function effectHrefBuilder(
     !linkableEffectSlugs || linkableEffectSlugs.has(slug) ? `${base}/${slug}` : undefined;
 }
 
-/** Sort within a group: curated gallery_order first, then newest, then title. */
-export function sortWithinGroup(items: GalleryReplication[]): GalleryReplication[] {
+/**
+ * Sort within a group: curated gallery_order first, then newest, then title.
+ * Generic so full-fidelity callers (the permalink's neighbour ordering) keep
+ * their richer row type through the sort.
+ */
+export function sortWithinGroup<
+  T extends Pick<PublicGalleryReplicationPreview, 'title' | 'created_at' | 'order_index'>,
+>(items: readonly T[]): T[] {
   return [...items].sort((a, b) => {
     const ao = a.order_index ?? Number.POSITIVE_INFINITY;
     const bo = b.order_index ?? Number.POSITIVE_INFINITY;
@@ -190,7 +200,7 @@ export function sortWithinGroup(items: GalleryReplication[]): GalleryReplication
   });
 }
 
-function tally(items: GalleryReplication[]) {
+function tally(items: PublicGalleryReplicationPreview[]) {
   let imageCount = 0;
   let videoCount = 0;
   for (const item of items) {
@@ -200,13 +210,13 @@ function tally(items: GalleryReplication[]) {
   return { imageCount, videoCount };
 }
 
-export function matchesType(replication: GalleryReplication, filter: GalleryTypeFilter): boolean {
+export function matchesType(replication: PublicGalleryReplicationPreview, filter: GalleryTypeFilter): boolean {
   return filter === 'all' || replication.type === filter;
 }
 
 /** Free-text search across artist, effect name, and title. */
 export function matchesQuery(
-  replication: GalleryReplication,
+  replication: PublicGalleryReplicationPreview,
   query: string,
   effectName: (slug: string) => string,
 ): boolean {
@@ -276,7 +286,7 @@ function toExternalArtistUrl(value: string | undefined): string | undefined {
  * page (`resolveGalleryFocus` finds no group and the route 404s).
  */
 export function groupByArtist(
-  replications: GalleryReplication[],
+  replications: PublicGalleryReplicationPreview[],
   sort: GalleryArtistSort = 'count',
   contributorDirectory: ContributorDirectory = [],
 ): GalleryGroup[] {
@@ -343,7 +353,7 @@ export function groupByArtist(
 }
 
 export function groupByEffect(
-  replications: GalleryReplication[],
+  replications: PublicGalleryReplicationPreview[],
   effectName: (slug: string) => string,
   effectHref: (slug: string) => string | undefined,
 ): GalleryGroup[] {
@@ -419,7 +429,7 @@ export interface GalleryCounts {
   videos: number;
 }
 
-export function countGallery(replications: GalleryReplication[]): GalleryCounts {
+export function countGallery(replications: PublicGalleryReplicationPreview[]): GalleryCounts {
   const artists = new Set<string>();
   const effects = new Set<string>();
   let images = 0;

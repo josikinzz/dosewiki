@@ -24,7 +24,7 @@ const queryClientOptions = {
  * This is the only tree with a session: `/dev` and `/review` mount it, the public tree does not.
  * So it is also the only place that can honestly answer "may this reader open the Theme Lab" —
  * and the appearance cog that most readers meet is rendered by the root layout's footer
- * (`src/app/layout.tsx:110`), a *sibling* of `{children}`, outside this provider on every route.
+ * (`src/app/layout.tsx:145`), a *sibling* of `{children}`, outside this provider on every route.
  * That cog reads the hint instead of asking, which is why it had nothing to show before.
  *
  * Renders nothing. See `src/lib/auth/editorHint.ts` for why a separate flag rather than the session

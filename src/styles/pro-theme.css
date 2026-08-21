@@ -7,8 +7,12 @@
    routes, copy, navigation, wordmark strings, metadata and licensing stay
    behind data-site, and this sheet never reads that attribute.
 
-   Deliberately UNLAYERED, and imported after every other token sheet except
-   the generated accent blocks. Two consequences the whole sheet depends on:
+   Deliberately UNLAYERED, and no longer bundled at all: this sheet ships as
+   a static copy in public/ (npm run generate:appearance-sheets), attached as
+   a <link> AFTER the bundled chain — after theme-light-mode.css's link and
+   before the generated chroma sheet's (src/theme/appearanceSheets.ts pins
+   that order) — for exactly the readers whose visual style is Pro. Two
+   consequences the whole sheet depends on:
 
    1. Unlayered rules beat every layered rule regardless of specificity,
       so these rules win over Tailwind call-site utilities (backdrop-blur-*,
@@ -49,12 +53,12 @@
    with the Fun half of the generated surface sheet,
    surface-tokens.generated.css (the base block of the retired surface axis).
 
-   That sheet lands AFTER this one, so at that tie it would win on source
-   order and repaint a Pro page in the base Fun palette. It cannot, because
-   the Fun block it emits carries
+   That sheet is bundled while this one attaches after the bundle, so at that
+   tie THIS sheet would now win on source order — but the tie never happens,
+   because the Fun block it emits carries
    :where(:not([data-visual-style="pro"])) and so matches no Pro root at all.
    That guard adds nothing to specificity, which is the point: it separates
-   the rungs without moving them.
+   the rungs without moving them, from wherever each sheet loads.
 
    accent-tokens.generated.css is the half that is meant to reach this palette:
    it re-seats the --ei-* seeds below at (0,3,1), one attribute above this block.
@@ -1159,9 +1163,10 @@ html[data-visual-style="pro"] .theme-toc-icon {
   color: var(--ei-accent-strong) !important;
 }
 
-/* theme-light-mode.css:1268 fills the expanded dose-detail and plateau-tier
+/* theme-light-mode.css:1129 fills the expanded dose-detail and plateau-tier
    rows with a lilac two-stop gradient — oklch(95% 0.032 319) — on every
-   substance page. Same (0,2,1) as the source rule, but later in source order. */
+   substance page. Same (0,2,1) as the source rule, but later in source order:
+   the Pro link always attaches after the light-mode link. */
 html[data-visual-style="pro"] :is(.theme-dose-detail-expanded, .theme-plateau-tier-expanded) {
   background: var(--ei-surface-sunk) !important;
 }

@@ -1,4 +1,35 @@
 @import "./theme-status.css";
-@import "./theme-light-mode.css";
+/* theme-light-mode.css is NOT imported here any more. It is inert without
+   html[data-theme="light"], so dark readers (the dose.wiki default) were
+   paying ~56 KB for nothing. It now ships as a static copy in public/
+   (`npm run generate:appearance-sheets`), attached as a <link> — rendered by
+   the server when the flavor's default scheme is light, injected pre-paint by
+   the theme bootstrap for a reader whose saved scheme is light, and ensured
+   on demand by the provider before a scheme toggle flips the attribute. */
+
+/* Global motion-reduction affordances. These universal rules previously sat at
+   the bottom of theme-light-mode.css, which was wrong twice over: they are not
+   gated on the light scheme, and moving that sheet out of the bundle would
+   have cost dark readers their reduced-motion accessibility. They apply to
+   every reader, so they live in the always-shipped chain. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+@media (hover: none) {
+  *,
+  *::before,
+  *::after {
+    transition-duration: 0.01ms !important;
+  }
+}
+
 /* lightbox.css is NOT imported here either — it must stay out of the global
    bundle. It ships in the lazily-imported ReplicationLightbox chunk instead. */

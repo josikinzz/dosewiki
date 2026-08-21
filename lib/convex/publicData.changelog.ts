@@ -24,6 +24,34 @@ import { queryConvex } from "./serverClient";
  */
 export const PUBLIC_PROFILE_HISTORY_LIMIT = 20;
 
+/**
+ * Diff text longer than this is cut at a line boundary and closed with a
+ * `@@ diff truncated … @@` marker line — the profile diff viewer already
+ * styles `@@` lines as hunk info, so the marker needs no UI change.
+ *
+ * The cap is what keeps the cached history inside Next's 2 MB
+ * `unstable_cache` entry limit ("items over 2MB can not be cached"). Bulk
+ * Dev-editor saves write ~500 KB diffs spanning hundreds of articles, and a
+ * run of them once put 4.6 MB of raw rows behind this read, so the cached
+ * loader for /contributors/JOSIE overflowed and every ISR render refetched
+ * from Convex. Bounded, the worst case is 20 rows × (50 KB diff + ~30 KB of
+ * article summaries) ≈ 1.7 MB serialized. Fifty thousand characters is also
+ * ~1,000 rendered diff lines, past the point where the collapsed expander is
+ * a useful way to read a change anyway.
+ */
+export const PUBLIC_PROFILE_DIFF_CHAR_LIMIT = 50_000;
+
+function truncateDiffMarkdown(markdown: string): string {
+  if (markdown.length <= PUBLIC_PROFILE_DIFF_CHAR_LIMIT) {
+    return markdown;
+  }
+  const head = markdown.slice(0, PUBLIC_PROFILE_DIFF_CHAR_LIMIT);
+  const lastLineBreak = head.lastIndexOf("\n");
+  const kept = lastLineBreak > 0 ? head.slice(0, lastLineBreak) : head;
+  const omittedLines = markdown.slice(kept.length).split("\n").length - 1;
+  return `${kept}\n@@ diff truncated: ${omittedLines} more lines @@`;
+}
+
 type ConvexChangelogRow = {
   entryId: string;
   createdAt: string;
@@ -69,7 +97,7 @@ function normalizeConvexRows(rows: unknown): ChangeLogEntry[] {
         message: typeof candidate.message === "string" ? candidate.message : "",
       },
       articles: normalizeArticles(candidate.articles),
-      markdown: typeof candidate.markdown === "string" ? candidate.markdown : "",
+      markdown: truncateDiffMarkdown(typeof candidate.markdown === "string" ? candidate.markdown : ""),
       submittedBy: typeof candidate.submittedBy === "string" ? candidate.submittedBy : null,
     });
   }
@@ -78,10 +106,16 @@ function normalizeConvexRows(rows: unknown): ChangeLogEntry[] {
 
 const readChangelogBySubmitters = cache(
   unstable_cache(
-    async (submitters: string[]): Promise<ConvexChangelogRow[]> => {
-      return await queryConvex<ConvexChangelogRow[], { submitters: string[]; limit: number }>(
-        "changelog:getBySubmitter",
-        { submitters, limit: PUBLIC_PROFILE_HISTORY_LIMIT },
+    // Normalization (and its diff cap) runs *inside* the cache boundary: the
+    // cached value is the projected entries, not the raw Convex rows, so a
+    // contributor's history can never outgrow the 2 MB entry limit no matter
+    // how large the stored diffs are.
+    async (submitters: string[]): Promise<ChangeLogEntry[]> => {
+      return normalizeConvexRows(
+        await queryConvex<ConvexChangelogRow[], { submitters: string[]; limit: number }>(
+          "changelog:getBySubmitter",
+          { submitters, limit: PUBLIC_PROFILE_HISTORY_LIMIT },
+        ),
       );
     },
     ["convex-public-changelog-by-submitter"],
@@ -123,7 +157,7 @@ export const getPublicProfileHistory = cache(
 
     let liveEntries: ChangeLogEntry[] = [];
     try {
-      liveEntries = normalizeConvexRows(await readChangelogBySubmitters(submitters));
+      liveEntries = await readChangelogBySubmitters(submitters);
     } catch (error) {
       console.warn(
         `[publicData] live changelog unavailable for ${profile.key}; falling back to the static snapshot.`,

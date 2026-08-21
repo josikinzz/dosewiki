@@ -7,7 +7,7 @@ import { Icon } from '@/components/common/Icon';
 import { MediaPlaceholder } from '@/components/layout/PublicFeedbackPrimitives';
 import { cn } from '@/lib/utils';
 import { publicHref } from '@/utils/publicHref';
-import type { GalleryReplication } from '@/types/replications';
+import type { PublicGalleryReplicationPreview } from '@/types/replications';
 import { getCreatorByline } from '../components/replicationCredit';
 import { useInView, useMotionAllowed, usePlaybackSlot } from './inViewPlayback';
 
@@ -19,7 +19,7 @@ function formatVideoDuration(seconds: number | undefined): string | null {
 }
 
 interface GalleryMediaTileProps {
-  replication: GalleryReplication;
+  replication: PublicGalleryReplicationPreview;
   /** Layout classes for the whole tile (flow, snap, break-inside). */
   className?: string;
   /** Sizing classes for the media frame itself (height in rails, width in masonry). */

@@ -2,7 +2,6 @@ import { notFound } from "next/navigation";
 import { buildPublicPageMetadata } from "@server/next/publicSite";
 import { loadReportRoute, REPORT_FALLBACK_METADATA } from "@server/next/routeLoaders.reports";
 import { getStaticReportParams } from "@server/next/staticParams";
-import { getReportBackTarget } from "@/features/reports/domain/tripReportIndex";
 import { TripReportDetailPage } from "@/features/reports/pages/TripReportDetailPage";
 import type { TripReportSubstance } from "@/types/tripReport";
 import { publicHref } from "@/utils/publicHref";
@@ -37,9 +36,6 @@ type ReportPageProps = {
   params: Promise<{
     slug: string;
   }>;
-  searchParams: Promise<{
-    from?: string;
-  }>;
 };
 
 export async function generateMetadata({ params }: ReportPageProps) {
@@ -59,31 +55,28 @@ export async function generateMetadata({ params }: ReportPageProps) {
   });
 }
 
-export default async function ReportPage({ params, searchParams }: ReportPageProps) {
+export default async function ReportPage({ params }: ReportPageProps) {
   const { slug } = await params;
-  const { from } = await searchParams;
   const result = await loadReportRoute(slug);
 
   if (result.kind === "not-found") {
     notFound();
   }
 
-  const fromSubstanceSlug = from?.trim() || undefined;
-  const backTarget = getReportBackTarget({
-    report: result.pageProps.report,
-    substanceBySlug: result.substanceBySlug,
-    fromSubstanceSlug,
-  });
-
   const substanceLinks = buildSubstanceLinks(
     result.pageProps.report.substances,
     result.substanceBySlug,
   );
 
+  // `?from=` (the substance page the reader arrived from) is deliberately not
+  // read here: it only retargets the back link, and awaiting `searchParams`
+  // would force this whole prerendered article to render per request. The
+  // client-side ReportBackLink inside TripReportDetailPage resolves it against
+  // `substanceBySlug` instead.
   return (
     <TripReportDetailPage
       {...result.pageProps}
-      backTarget={backTarget}
+      substanceBySlug={result.substanceBySlug}
       substanceLinks={substanceLinks}
     />
   );

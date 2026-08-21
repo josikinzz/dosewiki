@@ -171,6 +171,45 @@ export interface GalleryReplication extends ReplicationWithUrl {
 }
 
 /**
+ * The slim projection of a {@link GalleryReplication} that the public gallery
+ * surfaces (the /replications explorer, its artist/effect focus views, and the
+ * swipe deck) actually render. The gallery corpus loader projects the raw
+ * Convex rows down to this shape (`projectPublicGalleryReplicationPreview` in
+ * lib/convex/publicData.replications.ts) before they cross into page props, so
+ * storage IDs, rights metadata, and other studio-only fields never serialize
+ * into the RSC payload. The replication permalink (/replications/[slug]) stays
+ * on the full-fidelity {@link ReplicationWithUrl} records — its credit block
+ * and lightbox caption need the rights fields this shape drops.
+ *
+ * Every field here exists on {@link GalleryReplication} with the same type, so
+ * a full record is always assignable where a preview is expected.
+ */
+export interface PublicGalleryReplicationPreview {
+  /** Convex row id; the gallery uses it only as a stable React key. */
+  _id: string;
+  slug: string;
+  title: string;
+  artist: string;
+  /** Legacy per-row artist link; sanitized before it renders as an href. */
+  artist_url?: string;
+  type: ReplicationType;
+  /** Owning effect: drives by-effect grouping, the effect chip, withholding. */
+  effect_slug?: string;
+  url: string;
+  thumbnail_url?: string;
+  /** Low-res muted rendition the gallery autoplays in view (video rows). */
+  preview_url?: string;
+  width?: number;
+  height?: number;
+  /** Video duration in seconds, shown on the tile's duration badge. */
+  duration?: number;
+  /** ISO timestamp; the shared newest-first fallback sort reads it. */
+  created_at: string;
+  /** Position within the owning effect's curated `gallery_order`. */
+  order_index?: number;
+}
+
+/**
  * Grouped replications by type.
  */
 export interface GroupedReplications {

@@ -9,7 +9,7 @@ import { focusRingClassName } from '@/components/ui/surface';
 import { cn } from '@/lib/utils';
 import { icons } from '@/utils/iconNames';
 import { publicHref } from '@/utils/publicHref';
-import type { GalleryReplication } from '@/types/replications';
+import type { PublicGalleryReplicationPreview } from '@/types/replications';
 import type { GalleryGroup } from '@/features/effects/gallery/galleryModel';
 import { galleryGroupUrlKey } from '@/features/effects/gallery/galleryModel';
 import { getCreatorByline } from '@/features/effects/components/replicationCredit';
@@ -127,7 +127,7 @@ function useSiteHeaderHeight(): number {
 }
 
 interface DeckPaneProps {
-  work: GalleryReplication;
+  work: PublicGalleryReplicationPreview;
   /** Pane may mount its media (its section is near the viewport). */
   sectionNearby: boolean;
   muted: boolean;

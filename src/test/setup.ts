@@ -35,6 +35,37 @@ if (typeof window !== 'undefined') {
   });
 }
 
+// jsdom never fetches external stylesheets, so a dynamically attached
+// `<link rel="stylesheet">` fires neither `load` nor `error` — ever, and its
+// `sheet` stays null forever. Real browsers always settle one of the two and
+// populate `sheet` on success, and the appearance system relies on both:
+// applyAppearanceToDocument (src/context/ThemeContext.tsx) waits for the
+// Pro/light-mode sheet's `load` before flipping the root attribute it gates,
+// and treats a non-null `sheet` as already-loaded on later flips. Under bare
+// jsdom every toggle-to-pro/light test would therefore hang — the first flip
+// awaiting a `load` that never comes, and every repeat flip re-awaiting a link
+// whose `sheet` never populates. Settle stylesheet links asynchronously on
+// attachment — matching the browser contract of "settles after attach, not
+// synchronously" — with a stub sheet and a `load` event.
+if (typeof window !== 'undefined') {
+  const settleStylesheetLinks = (nodes: NodeList) => {
+    for (const node of nodes) {
+      if (node instanceof HTMLLinkElement && node.rel === 'stylesheet') {
+        queueMicrotask(() => {
+          Object.defineProperty(node, 'sheet', {
+            configurable: true,
+            value: { cssRules: [] } as unknown as CSSStyleSheet,
+          });
+          node.dispatchEvent(new Event('load'));
+        });
+      }
+    }
+  };
+  new MutationObserver((mutations) => {
+    for (const mutation of mutations) settleStylesheetLinks(mutation.addedNodes);
+  }).observe(document.documentElement, { childList: true, subtree: true });
+}
+
 // Mock icon imports (return simple component)
 vi.mock('lucide-react', async () => {
   const actual = await vi.importActual('lucide-react');
@@ -51,9 +82,12 @@ vi.mock('lucide-react', async () => {
   };
 });
 
-// Iconify loads remote icon data asynchronously. In jsdom that callback can
-// outlive test teardown and attempt to update React after `window` is gone.
-// Test the app-owned Icon wrapper without that external loader.
+// Icon.tsx registers its offline bundle via addCollection at module scope and
+// renders bundled glyphs synchronously; unbundled names still start an async
+// remote load whose callback can outlive test teardown in jsdom and attempt to
+// update React after `window` is gone. Suites therefore get a null renderer by
+// default; `Icon.test.tsx` unmocks this to exercise the real offline wrapper.
 vi.mock('@iconify/react', () => ({
   Icon: () => null,
+  addCollection: () => {},
 }));

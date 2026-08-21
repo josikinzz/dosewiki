@@ -14,6 +14,14 @@ import {
   SURFACE_HUE_PROPERTY,
   SURFACE_LEVEL_PROPERTY,
 } from "./appearanceChroma";
+import {
+  LIGHT_MODE_STYLESHEET_ANCHOR_IDS,
+  LIGHT_MODE_STYLESHEET_HREF,
+  LIGHT_MODE_STYLESHEET_LINK_ID,
+  PRO_THEME_STYLESHEET_ANCHOR_IDS,
+  PRO_THEME_STYLESHEET_HREF,
+  PRO_THEME_STYLESHEET_LINK_ID,
+} from "./appearanceSheets";
 import tokenInterface from "./theme-token-interface.json";
 
 export const THEME_TOKEN_INTERFACE = tokenInterface;
@@ -255,11 +263,14 @@ export function buildThemeBootstrapScript(policy: AppearancePolicy = SITE_FLAVOR
   // legacy tables (entries that would be no-ops are filtered out at build time). Each
   // pair's read is gated on the same lock as its parent picker, so a fully locked
   // publication (Effect Index) emits none of this and its script stays byte-identical.
-  // Every other reader — including one who never touched a slider — gets the attribute,
-  // all four custom properties (stored ?? default), and the render-blocking <link> to the
-  // generated stylesheet, all pre-paint, so neither a saved value nor the default ever
-  // flashes the authored palette. The href's ?v= is the stylesheet's content hash from
-  // appearanceChroma.generated.json.
+  // Every other reader — including one who never touched a slider — gets the attribute and
+  // all four custom properties (stored ?? default) pre-paint, so neither a saved value nor
+  // the default ever flashes the authored palette. The stylesheet <link> itself is
+  // server-rendered in the layout head — authored HTML the preload scanner fetches in
+  // parallel with parsing, not a serial request discovered when this script runs — so the
+  // guarded creation below is only a defensive fallback for a document missing that
+  // markup, the same idempotent shape as ensureChromaStylesheet. The href's ?v= is the
+  // stylesheet's content hash from appearanceChroma.generated.json.
   const chromaRead = ({
     levelVariable,
     hueVariable,
@@ -337,6 +348,47 @@ export function buildThemeBootstrapScript(policy: AppearancePolicy = SITE_FLAVOR
           legacyHues: LEGACY_ACCENT_TO_HUE,
         })}`,
   ].join("");
+  // The attribute-gated appearance sheets (Pro presentation, light scheme) left the bundled
+  // chain: each is a static asset the reader only fetches when their appearance needs it.
+  // The server renders the <link> when the flavor DEFAULT needs the sheet, so a branch is
+  // emitted here only for the saved-preference case the server cannot know about: an
+  // unlocked axis whose resolved value can differ from the default toward the sheet. A
+  // locked axis always matches the default, and a default that needs the sheet always has
+  // the server-rendered link — either way the branch would be dead bytes, so Effect Index
+  // (locked pro, default light) emits none of this and its script stays byte-identical.
+  // Insertion is anchored, not appended: the bundled order light-mode → pro → chroma is a
+  // cascade contract (pro-theme.css re-overrides equal-specificity light rules by source
+  // order), and the anchor lists reproduce it whichever links already exist.
+  const lightSheetNeeded = policy.showColorSchemeToggle && policy.defaultColorScheme !== "light";
+  const proSheetNeeded = policy.showVisualStyleToggle && policy.defaultVisualStyle !== "pro";
+  const sheetWrite =
+    !lightSheetNeeded && !proSheetNeeded
+      ? ""
+      : `\n\n  const addSheet = (id, href, anchorIds) => {
+    try {
+      if (document.getElementById(id)) return;
+      const link = document.createElement("link");
+      link.id = id;
+      link.rel = "stylesheet";
+      link.href = href;
+      let anchor = null;
+      for (const anchorId of anchorIds) {
+        anchor = document.getElementById(anchorId);
+        if (anchor) break;
+      }
+      document.head.insertBefore(link, anchor);
+    } catch {}
+  };${
+          lightSheetNeeded
+            ? `
+  if (scheme === "light") addSheet(${JSON.stringify(LIGHT_MODE_STYLESHEET_LINK_ID)}, ${JSON.stringify(LIGHT_MODE_STYLESHEET_HREF)}, ${JSON.stringify(LIGHT_MODE_STYLESHEET_ANCHOR_IDS)});`
+            : ""
+        }${
+          proSheetNeeded
+            ? `
+  if (style === "pro") addSheet(${JSON.stringify(PRO_THEME_STYLESHEET_LINK_ID)}, ${JSON.stringify(PRO_THEME_STYLESHEET_HREF)}, ${JSON.stringify(PRO_THEME_STYLESHEET_ANCHOR_IDS)});`
+            : ""
+        }`;
   const chromaWrite =
     surfaceLocked && accentLocked
       ? ""
@@ -354,11 +406,13 @@ export function buildThemeBootstrapScript(policy: AppearancePolicy = SITE_FLAVOR
   root.style.setProperty(${JSON.stringify(ACCENT_HUE_PROPERTY)}, "" + hueAccent);`
         }
   try {
-    const link = document.createElement("link");
-    link.id = ${JSON.stringify(CHROMA_STYLESHEET_LINK_ID)};
-    link.rel = "stylesheet";
-    link.href = ${JSON.stringify(CHROMA_STYLESHEET_HREF)};
-    document.head.appendChild(link);
+    if (!document.getElementById(${JSON.stringify(CHROMA_STYLESHEET_LINK_ID)})) {
+      const link = document.createElement("link");
+      link.id = ${JSON.stringify(CHROMA_STYLESHEET_LINK_ID)};
+      link.rel = "stylesheet";
+      link.href = ${JSON.stringify(CHROMA_STYLESHEET_HREF)};
+      document.head.appendChild(link);
+    }
   } catch {}`;
 
   return `(() => {
@@ -373,7 +427,7 @@ ${colorScheme}${surface}${chromaResolution}
 
   delete root.dataset.surface;
 
-  delete root.dataset.accent;${chromaWrite}
+  delete root.dataset.accent;${sheetWrite}${chromaWrite}
 
   try {
     const meta = document.getElementById(${JSON.stringify(THEME_META_ID)});

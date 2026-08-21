@@ -10,7 +10,7 @@ describe("getOrganSystemIcon", () => {
     expect(getOrganSystemIcon(" respiratory system ")).toBe("tabler:lungs");
   });
 
-  it("falls back to the generic organ icon for unknown systems", () => {
-    expect(getOrganSystemIcon("Unknown System")).toBe("healthicons:organ-outline");
+  it("falls back to the generic body icon for unknown systems", () => {
+    expect(getOrganSystemIcon("Unknown System")).toBe("healthicons:body-outline");
   });
 });

@@ -384,6 +384,27 @@
       "refreshCommand": "npm run generate:smiles"
     },
     {
+      "id": "offline-icon-bundle",
+      "path": "src/components/common/iconData.generated.json",
+      "role": "derived-code",
+      "producer": "scripts/build/generateIconData.ts",
+      "consumers": [
+        "src/components/common/Icon.tsx"
+      ],
+      "inputs": [
+        "src/**/*.{ts,tsx} and lib/**/*.{ts,tsx} icon-name string literals",
+        "src/data/indexes/chemicalIndexManual.json",
+        "src/data/indexes/psychoactiveIndexManual.json",
+        "@iconify-json/* devDependencies"
+      ],
+      "freshnessRule": "Refresh whenever an icon-name literal is added, removed, or changed anywhere in src/ or lib/, or after updating @iconify-json/* packages.",
+      "sourceDeployment": "local working tree",
+      "targetDeployment": null,
+      "schemaVersion": "IconifyJSON collections keyed by prefix (scripts/build/generateIconData.ts)",
+      "editPolicy": "do-not-edit-by-hand",
+      "refreshCommand": "npm run generate:icon-data"
+    },
+    {
       "id": "data-artifact-lineage-manifest",
       "path": "src/data/artifactLineageManifest.json",
       "role": "provenance-contract",

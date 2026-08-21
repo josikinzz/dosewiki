@@ -1,5 +1,5 @@
 import type { ContributorDirectory } from '@server/contributorDirectory';
-import type { GalleryReplication } from '@/types/replications';
+import type { PublicGalleryReplicationPreview } from '@/types/replications';
 import {
   effectHrefBuilder,
   effectNameLookup,
@@ -41,7 +41,7 @@ export interface GalleryFocusContext {
  */
 export function resolveGalleryFocus(
   focus: GalleryFocus,
-  replications: readonly GalleryReplication[],
+  replications: readonly PublicGalleryReplicationPreview[],
   context: GalleryFocusContext,
 ): ResolvedGalleryFocus | null {
   const displayable = replications.filter(isDisplayable);

@@ -14,9 +14,11 @@ import chromaManifest from "./appearanceChroma.generated.json";
  * A reader who never moved a slider gets the site defaults — the authored hues
  * at {@link DEFAULT_SURFACE_HUE}/{@link DEFAULT_ACCENT_HUE}, Orchid surfaces at
  * {@link DEFAULT_SURFACE_LEVEL} and the Default accent at {@link DEFAULT_ACCENT_LEVEL} —
- * so the axes engage on every dose.wiki page: the bootstrap writes all four
- * properties (stored ?? default) and attaches the stylesheet pre-paint. Only a
- * publication that locks both colour axes (Effect Index) stays inert.
+ * so the axes engage on every dose.wiki page: the layout server-renders the
+ * stylesheet `<link>` (parser-discoverable, fetched in parallel with the HTML)
+ * and the bootstrap writes all four properties (stored ?? default) pre-paint.
+ * Only a publication that locks both colour axes (Effect Index) stays inert —
+ * and skips the `<link>` entirely.
  */
 
 /** Root attribute every chroma block requires. Absent = the axis is inert. */
@@ -30,7 +32,11 @@ export const ACCENT_LEVEL_PROPERTY = "--dw-accent-level";
 export const SURFACE_HUE_PROPERTY = "--dw-surface-hue";
 export const ACCENT_HUE_PROPERTY = "--dw-accent-hue";
 
-/** URL of the generated stylesheet, and its content-hash cache-buster. */
+/**
+ * URL of the generated stylesheet, and its content-hash cache-buster. Because any
+ * change to the sheet changes this URL, `next.config.ts` serves the route with
+ * `Cache-Control: immutable`: repeat visitors never pay a revalidation round-trip.
+ */
 export const CHROMA_STYLESHEET_ROUTE = "/appearance-chroma.css";
 export const CHROMA_STYLESHEET_VERSION: string = chromaManifest.version;
 export const CHROMA_STYLESHEET_HREF = `${CHROMA_STYLESHEET_ROUTE}?v=${CHROMA_STYLESHEET_VERSION}`;
@@ -95,7 +101,11 @@ export function parseHueDegrees(raw: string | null): number | null {
   return value <= 359 ? value : null;
 }
 
-/** Idempotently attach the generated stylesheet; the bootstrap emits the same shape. */
+/**
+ * Defensive idempotence: the root layout server-renders this exact `<link>` and the
+ * bootstrap emits the same guarded shape, so creating one here is only a fallback for a
+ * document somehow missing that markup — the check keeps all three owners duplicate-free.
+ */
 export function ensureChromaStylesheet(): void {
   if (document.getElementById(CHROMA_STYLESHEET_LINK_ID)) return;
   const link = document.createElement("link");
@@ -111,7 +121,8 @@ export function ensureChromaStylesheet(): void {
  * here means "this axis is locked". With all four null (Effect Index) the
  * axes disengage entirely — attribute removed, properties cleared — so the
  * page renders the authored palette. The stylesheet stays attached once
- * fetched; the attribute alone gates it.
+ * fetched; the attribute alone gates it. Synchronous by design — one call is
+ * one write batch; the provider rAF-throttles its calls during a slider drag.
  */
 export function applyChromaToDocument(
   surfaceLevel: number | null,

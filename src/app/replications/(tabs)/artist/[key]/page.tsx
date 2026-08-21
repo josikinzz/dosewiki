@@ -6,7 +6,7 @@ import { ReplicationsGalleryExplorer } from "@/features/replications/Replication
 import { resolveGalleryFocus, type ResolvedGalleryFocus } from "@/features/replications/galleryFocus";
 import { UNATTRIBUTED_KEY } from "@/features/effects/gallery/galleryModel";
 import type { ContributorDirectory } from "@server/contributorDirectory";
-import type { GalleryReplication } from "@/types/replications";
+import type { PublicGalleryReplicationPreview } from "@/types/replications";
 import {
   getPublicContributorDirectory,
   getPublicEffects,
@@ -14,22 +14,31 @@ import {
   type PublicEffectPreview,
 } from "@server/convex/publicData";
 import { buildPublicPageMetadata } from "@server/next/publicSite";
+import { getStaticReplicationArtistParams } from "@server/next/staticParams";
 
 /**
  * Focused gallery view: one artist's works, addressable as
  * /replications/artist/<key> (PRD T7 / prototype P4). The key space derives
  * from the works the gallery shows — slugified credit lines plus `unknown`
  * for the unattributed bucket — so an unrecognized key is a real 404, not an
- * empty page. All reads sit on the shared hourly `unstable_cache` window.
+ * empty page. Prerendered from the same gallery corpus the sitemap advertises
+ * and revalidated hourly; the `?type=` filter is read on the client inside
+ * the explorer's Suspense boundary. All reads sit on the shared hourly
+ * `unstable_cache` window.
  */
+
+export const revalidate = 3600;
+
+export async function generateStaticParams() {
+  return await getStaticReplicationArtistParams();
+}
 
 type ArtistFocusPageProps = {
   params: Promise<{ key: string }>;
-  searchParams: Promise<Record<string, string | string[] | undefined>>;
 };
 
 interface LoadedArtistFocus {
-  replications: GalleryReplication[];
+  replications: PublicGalleryReplicationPreview[];
   effects: PublicEffectPreview[];
   contributorDirectory: ContributorDirectory;
   focus: ResolvedGalleryFocus | null;
@@ -74,11 +83,8 @@ export async function generateMetadata({ params }: ArtistFocusPageProps): Promis
   });
 }
 
-export default async function ReplicationArtistPage({ params, searchParams }: ArtistFocusPageProps) {
+export default async function ReplicationArtistPage({ params }: ArtistFocusPageProps) {
   const { key } = await params;
-  // Awaited so the route renders per request and the explorer's
-  // `useSearchParams` (the `?type=` filter) is already applied in the HTML.
-  await searchParams;
   const { replications, effects, contributorDirectory, focus } = await loadArtistFocus(key);
 
   if (!focus) {

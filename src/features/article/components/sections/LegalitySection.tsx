@@ -467,6 +467,8 @@ function LegalityStateRow({
             alt={`${name} flag`}
             width={24}
             height={16}
+            loading="lazy"
+            decoding="async"
             className="h-4 w-6 shrink-0 overflow-hidden rounded-sm object-cover object-center"
           />
         )}
@@ -575,6 +577,9 @@ function USStatesFooter({
       )}
       <div className="space-y-3">
         {states.map(([stateName, stateInfo]) => (
+          // Mapping values carry the file extension: detailed seal flags are
+          // rasterized to small webp (they render at 24x16); simple geometric
+          // flags stay as tiny svg.
           <LegalityStateRow
             key={stateName}
             article={article}

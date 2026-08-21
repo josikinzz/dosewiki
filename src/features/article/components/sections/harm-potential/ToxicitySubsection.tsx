@@ -19,7 +19,10 @@ interface ToxicitySubsectionProps {
   article: SubstanceArticle;
 }
 
-const DEFAULT_ORGAN_SYSTEM_ICON = "healthicons:organ-outline";
+// The old fallback, healthicons:organ-outline, no longer exists in the
+// collection (the icon was dropped upstream) and so rendered nothing; the
+// generic body outline is the closest surviving "unknown organ system" glyph.
+const DEFAULT_ORGAN_SYSTEM_ICON = "healthicons:body-outline";
 
 // Mapping of organ system names to their icons
 const ORGAN_SYSTEM_ICONS: Record<string, string> = {

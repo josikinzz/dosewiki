@@ -37,6 +37,12 @@ import {
   SURFACE_HUE_PROPERTY,
   SURFACE_LEVEL_PROPERTY,
 } from "./appearanceChroma";
+import {
+  LIGHT_MODE_STYLESHEET_HREF,
+  LIGHT_MODE_STYLESHEET_LINK_ID,
+  PRO_THEME_STYLESHEET_HREF,
+  PRO_THEME_STYLESHEET_LINK_ID,
+} from "./appearanceSheets";
 
 const DOSEWIKI = SITE_FLAVOR_CONFIGS.dosewiki;
 const EFFECT_INDEX = SITE_FLAVOR_CONFIGS.effectindex;
@@ -312,6 +318,34 @@ describe("theme token interface", () => {
     }
   });
 
+  it("adopts a server-rendered stylesheet link instead of appending a duplicate", () => {
+    // The layout renders the <link> in authored HTML now (parser-discoverable, so it
+    // downloads in parallel with the document); the bootstrap's creation is only a
+    // defensive fallback for a document missing that markup. The creation tests around
+    // this one exercise the fallback on a bare head; this asserts the normal path: the
+    // server's element survives untouched and stays the only copy.
+    installMockStorage({});
+    ensureThemeMeta();
+    const server = document.createElement("link");
+    server.id = CHROMA_STYLESHEET_LINK_ID;
+    server.rel = "stylesheet";
+    server.href = CHROMA_STYLESHEET_HREF;
+    document.head.appendChild(server);
+
+    try {
+      Function(buildThemeBootstrapScript(DOSEWIKI))();
+
+      expect(document.getElementById(CHROMA_STYLESHEET_LINK_ID)).toBe(server);
+      expect(
+        document.querySelectorAll(`link#${CHROMA_STYLESHEET_LINK_ID}`),
+      ).toHaveLength(1);
+      // Skipping the link is not skipping the axes: the root still engages.
+      expect(document.documentElement.dataset.chroma).toBe("");
+    } finally {
+      server.remove();
+    }
+  });
+
   it("engages the site defaults for a reader with nothing saved, and for garbage values", () => {
     // "" and "1.5" and "abc" must all resolve to the default level: Number("") is 0,
     // which would otherwise silently pin a level the reader never chose. The hue
@@ -477,6 +511,70 @@ describe("theme token interface", () => {
     // The migration inputs are dose.wiki history; a locked script never reads them.
     expect(script).not.toContain(SURFACE_STORAGE_KEY);
     expect(script).not.toContain(ACCENT_STORAGE_KEY);
+  });
+
+  it("injects the appearance sheets a saved preference needs, ordered light → pro → chroma", () => {
+    installMockStorage({
+      [COLOR_SCHEME_STORAGE_KEY]: "light",
+      [VISUAL_STYLE_STORAGE_KEY]: "pro",
+    });
+    ensureThemeMeta();
+
+    Function(buildThemeBootstrapScript(DOSEWIKI))();
+
+    const light = document.getElementById(LIGHT_MODE_STYLESHEET_LINK_ID);
+    const pro = document.getElementById(PRO_THEME_STYLESHEET_LINK_ID);
+    const chroma = document.getElementById(CHROMA_STYLESHEET_LINK_ID);
+    expect(light).toBeInstanceOf(HTMLLinkElement);
+    expect(pro).toBeInstanceOf(HTMLLinkElement);
+    expect((light as HTMLLinkElement).getAttribute("href")).toBe(LIGHT_MODE_STYLESHEET_HREF);
+    expect((pro as HTMLLinkElement).getAttribute("href")).toBe(PRO_THEME_STYLESHEET_HREF);
+    // The order is a cascade contract: pro-theme.css re-overrides equal-specificity
+    // light-mode rules by source order, and the chroma sheet re-tints tokens both seed.
+    const links = [...document.head.querySelectorAll("link")];
+    expect(links.indexOf(light as HTMLLinkElement)).toBeLessThan(
+      links.indexOf(pro as HTMLLinkElement),
+    );
+    expect(links.indexOf(pro as HTMLLinkElement)).toBeLessThan(
+      links.indexOf(chroma as HTMLLinkElement),
+    );
+  });
+
+  it("injects no appearance sheet for the default fun+dark reader", () => {
+    installMockStorage();
+    ensureThemeMeta();
+
+    Function(buildThemeBootstrapScript(DOSEWIKI))();
+
+    // The whole point of moving the sheets out of the bundle: the default
+    // reader downloads neither.
+    expect(document.getElementById(LIGHT_MODE_STYLESHEET_LINK_ID)).toBeNull();
+    expect(document.getElementById(PRO_THEME_STYLESHEET_LINK_ID)).toBeNull();
+  });
+
+  it("reuses a server-rendered sheet link instead of duplicating it", () => {
+    installMockStorage({ [VISUAL_STYLE_STORAGE_KEY]: "pro" });
+    ensureThemeMeta();
+    const rendered = document.createElement("link");
+    rendered.id = PRO_THEME_STYLESHEET_LINK_ID;
+    rendered.rel = "stylesheet";
+    rendered.href = PRO_THEME_STYLESHEET_HREF;
+    document.head.appendChild(rendered);
+
+    Function(buildThemeBootstrapScript(DOSEWIKI))();
+
+    expect(document.querySelectorAll(`#${PRO_THEME_STYLESHEET_LINK_ID}`)).toHaveLength(1);
+  });
+
+  it("emits no sheet machinery for a publication whose defaults are server-rendered", () => {
+    // Effect Index locks the style to pro and defaults the scheme to light, so both links
+    // are always in the server markup and the script has nothing to inject — which is also
+    // what keeps its pinned CSP hash stable across this mechanism.
+    const script = buildThemeBootstrapScript(EFFECT_INDEX);
+
+    expect(script).not.toContain("addSheet");
+    expect(script).not.toContain(LIGHT_MODE_STYLESHEET_LINK_ID);
+    expect(script).not.toContain(PRO_THEME_STYLESHEET_LINK_ID);
   });
 
   it("lands both root attributes even when the meta lookup throws", () => {

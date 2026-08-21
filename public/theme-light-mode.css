@@ -1,0 +1,1392 @@
+/*
+ * Canonical token migration mapping follows the dark-reference appearance:
+ * /100 => text, /80-90 => text-secondary, /60-78 => text-muted,
+ * /35-58 => text-faint, and <=/30 => text-ghost.
+ */
+html[data-theme="light"] :is(
+  [class~="text-white"],
+  [class~="text-white/95"]
+) {
+  color: var(--theme-text-primary) !important;
+}
+@media (hover: hover) {
+  html[data-theme="light"] :is(
+    [class~="hover:text-white"]:hover,
+    [class~="hover:text-white/95"]:hover
+  ),
+  html[data-theme="light"] .group:hover :is(
+    [class~="group-hover:text-white"],
+    [class~="group-hover:text-white/95"]
+  ) {
+    color: var(--theme-text-primary) !important;
+  }
+}
+
+html[data-theme="light"] :is(
+  [class~="text-white/90"],
+  [class~="text-white/85"],
+  [class~="text-white/82"],
+  [class~="text-white/80"],
+  [class~="text-white/78"]
+) {
+  color: var(--theme-text-secondary) !important;
+}
+@media (hover: hover) {
+  html[data-theme="light"] :is(
+    [class~="hover:text-white/90"]:hover,
+    [class~="hover:text-white/85"]:hover,
+    [class~="hover:text-white/82"]:hover,
+    [class~="hover:text-white/80"]:hover,
+    [class~="hover:text-white/78"]:hover
+  ),
+  html[data-theme="light"] .group:hover :is(
+    [class~="group-hover:text-white/90"],
+    [class~="group-hover:text-white/85"],
+    [class~="group-hover:text-white/82"],
+    [class~="group-hover:text-white/80"],
+    [class~="group-hover:text-white/78"]
+  ) {
+    color: var(--theme-text-secondary) !important;
+  }
+}
+
+html[data-theme="light"] :is(
+  [class~="text-white/75"],
+  [class~="text-white/74"],
+  [class~="text-white/72"],
+  [class~="text-white/70"],
+  [class~="text-white/68"],
+  [class~="text-white/65"],
+  [class~="text-white/60"]
+) {
+  color: var(--theme-text-muted) !important;
+}
+@media (hover: hover) {
+  html[data-theme="light"] :is(
+    [class~="hover:text-white/75"]:hover,
+    [class~="hover:text-white/74"]:hover,
+    [class~="hover:text-white/72"]:hover,
+    [class~="hover:text-white/70"]:hover,
+    [class~="hover:text-white/68"]:hover,
+    [class~="hover:text-white/65"]:hover,
+    [class~="hover:text-white/60"]:hover
+  ),
+  html[data-theme="light"] .group:hover :is(
+    [class~="group-hover:text-white/75"],
+    [class~="group-hover:text-white/74"],
+    [class~="group-hover:text-white/72"],
+    [class~="group-hover:text-white/70"],
+    [class~="group-hover:text-white/68"],
+    [class~="group-hover:text-white/65"],
+    [class~="group-hover:text-white/60"]
+  ) {
+    color: var(--theme-text-muted) !important;
+  }
+}
+
+html[data-theme="light"] :is(
+  [class~="text-white/58"],
+  [class~="text-white/56"],
+  [class~="text-white/55"],
+  [class~="text-white/50"],
+  [class~="text-white/45"],
+  [class~="text-white/40"],
+  [class~="text-white/35"]
+) {
+  color: var(--theme-text-faint) !important;
+}
+@media (hover: hover) {
+  html[data-theme="light"] :is(
+    [class~="hover:text-white/58"]:hover,
+    [class~="hover:text-white/56"]:hover,
+    [class~="hover:text-white/55"]:hover,
+    [class~="hover:text-white/50"]:hover,
+    [class~="hover:text-white/45"]:hover,
+    [class~="hover:text-white/40"]:hover,
+    [class~="hover:text-white/35"]:hover
+  ),
+  html[data-theme="light"] .group:hover :is(
+    [class~="group-hover:text-white/58"],
+    [class~="group-hover:text-white/56"],
+    [class~="group-hover:text-white/55"],
+    [class~="group-hover:text-white/50"],
+    [class~="group-hover:text-white/45"],
+    [class~="group-hover:text-white/40"],
+    [class~="group-hover:text-white/35"]
+  ) {
+    color: var(--theme-text-faint) !important;
+  }
+}
+
+html[data-theme="light"] :is(
+  [class~="text-white/30"],
+  [class~="text-white/25"],
+  [class~="text-white/20"]
+) {
+  color: var(--theme-text-ghost) !important;
+}
+@media (hover: hover) {
+  html[data-theme="light"] :is(
+    [class~="hover:text-white/30"]:hover,
+    [class~="hover:text-white/20"]:hover
+  ),
+  html[data-theme="light"] .group:hover :is(
+    [class~="group-hover:text-white/30"],
+    [class~="group-hover:text-white/20"]
+  ) {
+    color: var(--theme-text-ghost) !important;
+  }
+}
+
+html[data-theme="light"] :is(
+  [class~="text-fuchsia-100"],
+  [class~="text-fuchsia-200"],
+  [class~="text-fuchsia-200/90"]
+) {
+  color: var(--theme-accent) !important;
+}
+
+html[data-theme="light"] :is(
+  [class~="text-fuchsia-300"],
+  [class~="text-fuchsia-400"],
+  [class~="text-fuchsia-500"]
+) {
+  color: var(--theme-accent-strong) !important;
+}
+
+html[data-theme="light"] :is(
+  [class~="text-fuchsia-200/70"],
+  [class~="text-fuchsia-200/80"],
+  [class~="text-fuchsia-300/60"],
+  [class~="text-fuchsia-300/70"],
+  [class~="text-fuchsia-300/80"],
+  [class~="text-fuchsia-300/85"],
+  [class~="text-fuchsia-400/50"],
+  [class~="text-fuchsia-400/60"]
+) {
+  color: var(--theme-accent-muted) !important;
+}
+
+@media (hover: hover) {
+  html[data-theme="light"] :is(
+    [class~="hover:text-fuchsia-100"]:hover,
+    [class~="hover:text-fuchsia-200"]:hover,
+    [class~="hover:text-fuchsia-300"]:hover
+  ),
+  html[data-theme="light"] .group:hover :is(
+    [class~="group-hover:text-fuchsia-100"],
+    [class~="group-hover:text-fuchsia-200"],
+    [class~="group-hover:text-fuchsia-300"]
+  ) {
+    color: var(--theme-accent-strong) !important;
+  }
+}
+
+html[data-theme="light"] :is([class~="placeholder:text-white/50"]::placeholder) {
+  color: var(--theme-text-muted) !important;
+}
+
+html[data-theme="light"] :is(
+  [class~="placeholder:text-white/45"]::placeholder,
+  [class~="placeholder:text-white/40"]::placeholder
+) {
+  color: var(--theme-text-faint) !important;
+}
+
+html[data-theme="light"] .bg-white\/5,
+html[data-theme="light"] .bg-white\/8,
+html[data-theme="light"] .bg-white\/10,
+html[data-theme="light"] .bg-white\/12,
+html[data-theme="light"] .bg-white\/15,
+html[data-theme="light"] .bg-white\/20 {
+  background-color: var(--theme-surface-soft) !important;
+}
+
+html[data-theme="light"] .bg-white\/\[0\.01\],
+html[data-theme="light"] .bg-white\/\[0\.02\],
+html[data-theme="light"] .bg-white\/\[0\.03\],
+html[data-theme="light"] .bg-white\/\[0\.035\],
+html[data-theme="light"] .bg-white\/\[0\.04\],
+html[data-theme="light"] .bg-white\/\[0\.05\],
+html[data-theme="light"] .bg-white\/\[0\.06\],
+html[data-theme="light"] .bg-white\/\[0\.08\],
+html[data-theme="light"] .bg-white\/\[0\.12\],
+html[data-theme="light"] .bg-white\/\[0\.16\],
+html[data-theme="light"] .bg-white\/\[0\.18\] {
+  background-color: var(--theme-surface-soft) !important;
+}
+
+@media (hover: hover) {
+  html[data-theme="light"] .hover\:bg-white\/5:hover,
+  html[data-theme="light"] .hover\:bg-white\/10:hover,
+  html[data-theme="light"] .hover\:bg-white\/\[0\.02\]:hover,
+  html[data-theme="light"] .hover\:bg-white\/\[0\.03\]:hover {
+    background-color: var(--theme-surface-muted) !important;
+  }
+}
+
+html[data-theme="light"] .bg-black\/20 {
+  background-color: var(--theme-surface-deep) !important;
+}
+
+html[data-theme="light"] .divide-white\/5 > :not([hidden]) ~ :not([hidden]),
+html[data-theme="light"] .divide-white\/8 > :not([hidden]) ~ :not([hidden]) {
+  border-color: var(--theme-divider) !important;
+}
+
+html[data-theme="light"] .border-white\/5,
+html[data-theme="light"] .border-white\/8,
+html[data-theme="light"] .border-white\/10,
+html[data-theme="light"] .border-white\/12,
+html[data-theme="light"] .border-white\/15,
+html[data-theme="light"] .border-white\/20,
+html[data-theme="light"] .border-white\/25,
+html[data-theme="light"] .border-white\/40 {
+  border-color: var(--theme-border-subtle) !important;
+}
+
+@media (hover: hover) {
+  html[data-theme="light"] .hover\:border-white\/15:hover,
+  html[data-theme="light"] .hover\:border-white\/40:hover {
+    border-color: var(--theme-border-strong) !important;
+  }
+}
+
+@media (hover: hover) {
+  html[data-theme="light"] .hover\:ring-white\/20:hover,
+  html[data-theme="light"] .hover\:ring-white\/35:hover {
+    --tw-ring-color: var(--theme-border-strong) !important;
+  }
+}
+
+html[data-theme="light"] .ring-white\/5,
+html[data-theme="light"] .ring-white\/10,
+html[data-theme="light"] .ring-white\/15,
+html[data-theme="light"] .ring-white\/20 {
+  --tw-ring-color: var(--theme-ring-soft) !important;
+}
+
+/* `.shadow-black/*` used to be patched here to keep hard black avatar shadows
+   off paper-white light mode. Those two call sites now read
+   --theme-elevation-avatar-inner / -avatar-glow, which site-colors.css
+   restates in its light block, so the utility patch has no consumers left. */
+
+html[data-theme="light"] .bg-slate-950\/60,
+html[data-theme="light"] .bg-slate-950\/50,
+html[data-theme="light"] .bg-slate-950\/45,
+html[data-theme="light"] .bg-slate-950\/40,
+html[data-theme="light"] .bg-slate-950\/70,
+html[data-theme="light"] .bg-slate-950\/80,
+html[data-theme="light"] .bg-slate-900\/95,
+html[data-theme="light"] .bg-slate-900\/60,
+html[data-theme="light"] .bg-fuchsia-950\/20,
+html[data-theme="light"] .bg-fuchsia-950\/30,
+html[data-theme="light"] .bg-fuchsia-950\/40,
+html[data-theme="light"] .bg-violet-950\/20 {
+  background-color: var(--theme-field-surface) !important;
+}
+
+html[data-theme="light"] .bg-\[\#120d27\],
+html[data-theme="light"] .bg-\[\#120d27\]\/40,
+html[data-theme="light"] .bg-\[\#1a1333\]\/95,
+html[data-theme="light"] .bg-\[\#0f0a1f\]\/80 {
+  background-color: var(--theme-menu-surface) !important;
+}
+
+html[data-theme="light"] .bg-gradient-to-b.from-\[\#1a1030\].via-\[\#130e2b\].to-\[\#0f0a1f\],
+html[data-theme="light"] .bg-gradient-to-b.from-\[\#0b0818\].via-\[\#130e2b\].to-\[\#0f0a1f\] {
+  background-image: linear-gradient(to bottom, var(--theme-page-start), var(--theme-page-mid), var(--theme-page-end)) !important;
+}
+
+html[data-theme="light"] .prose-invert,
+html[data-theme="light"] .prose.prose-invert,
+html[data-theme="light"] .prose-fuchsia {
+  color: var(--theme-text-secondary);
+}
+
+html[data-theme="light"] .theme-article-hero {
+  border: 1px solid var(--theme-frosted-panel-border);
+  background: var(--theme-frosted-panel-bg);
+  box-shadow: var(--theme-frosted-panel-shadow) !important;
+  --tw-ring-color: var(--theme-frosted-panel-border);
+}
+
+html[data-theme="light"] .theme-article-hero-summary {
+  background-color: transparent;
+  color: var(--theme-text-primary);
+  --theme-article-hero-summary-divider: linear-gradient(
+    90deg,
+    transparent 0%,
+    oklch(48% 0.085 var(--h-brand) / 0.08) 4%,
+    oklch(48% 0.085 var(--h-brand) / 0.16) 16%,
+    oklch(48% 0.085 var(--h-brand) / 0.16) 84%,
+    oklch(48% 0.085 var(--h-brand) / 0.08) 96%,
+    transparent 100%
+  );
+}
+
+html[data-theme="light"] .theme-article-hero-summary .theme-accent-heading {
+  color: inherit;
+}
+
+html[data-theme="light"] .theme-article-hero-priority .theme-control-pill-quiet {
+  background-color: color-mix(in srgb, rgb(255 255 255) 70%, var(--theme-body-bg)) !important;
+  color: var(--theme-text-primary) !important;
+  box-shadow: 0 10px 22px -20px rgba(84, 46, 112, 0.28);
+}
+
+html[data-theme="light"] .theme-molecule-shell {
+  border-color: rgba(140, 22, 111, 0.14);
+  background:
+    linear-gradient(135deg, rgba(159, 33, 128, 0.08), transparent 55%), color-mix(in srgb, rgb(255 255 255) 80%, var(--theme-body-bg));
+}
+
+html[data-theme="light"] .theme-molecule-panel,
+html[data-theme="light"] .theme-molecule-fallback {
+  border-color: rgba(93, 56, 123, 0.12);
+  background-color: color-mix(in srgb, rgb(255 255 255) 94%, var(--theme-body-bg));
+}
+
+html[data-theme="light"] .theme-molecule-image {
+  --tw-brightness: brightness(0.64);
+  --tw-saturate: saturate(calc(1.75 * var(--theme-molecule-saturate, 1)));
+  --tw-contrast: contrast(1.12);
+}
+
+html[data-theme="light"] .theme-accent-icon,
+html[data-theme="light"] .theme-accent-icon-scope .iconify,
+html[data-theme="light"] .theme-accent-icon-scope svg,
+html[data-theme="light"] .theme-interaction-icon,
+html[data-theme="light"] .theme-interaction-header .iconify,
+html[data-theme="light"] .theme-interaction-header svg {
+  filter: brightness(0.72) saturate(1.45) contrast(1.08);
+}
+
+html[data-theme="light"] .theme-inline-expanded-card {
+  border-color: var(--theme-frosted-panel-border);
+  background: var(--theme-frosted-panel-bg);
+  box-shadow: var(--theme-frosted-panel-shadow);
+  --tw-ring-color: var(--theme-frosted-panel-border);
+}
+
+html[data-theme="light"] .theme-article-priority-section {
+  border-color: rgba(93, 56, 123, 0.14);
+  background:
+    radial-gradient(circle at 12% 0%, rgba(140, 22, 111, 0.06), transparent 34%), color-mix(in srgb, rgb(255 255 255) 52%, var(--theme-body-bg));
+  box-shadow: 0 18px 42px -34px rgba(84, 46, 112, 0.26);
+}
+
+html[data-theme="light"] .theme-safety-priority-heading .iconify,
+html[data-theme="light"] .theme-safety-priority-heading svg {
+  color: #9f1239;
+}
+
+html[data-theme="light"] .theme-evidence-priority-heading .iconify,
+html[data-theme="light"] .theme-evidence-priority-heading svg {
+  color: var(--theme-evidence-text-strong);
+}
+
+html[data-theme="light"] .theme-interaction-danger {
+  border-color: oklch(54% 0.12 18 / 0.18);
+  background:
+    radial-gradient(circle at 12% 0%, oklch(99% 0.02 18 / 0.5), transparent 38%), linear-gradient(135deg, color-mix(in srgb, oklch(96% 0.026 18) 94%, var(--theme-body-bg)), color-mix(in srgb, oklch(92% 0.046 18) 95%, var(--theme-body-bg)));
+  box-shadow:
+    0 16px 32px -28px oklch(46% 0.13 18 / 0.18),
+    inset 0 1px 0 oklch(99% 0.01 18 / 0.66);
+}
+
+html[data-theme="light"] .theme-interaction-unsafe {
+  border-color: oklch(58% 0.105 46 / 0.18);
+  background:
+    radial-gradient(circle at 12% 0%, oklch(99% 0.02 46 / 0.48), transparent 38%), linear-gradient(135deg, color-mix(in srgb, oklch(96% 0.026 46) 94%, var(--theme-body-bg)), color-mix(in srgb, oklch(92% 0.046 46) 95%, var(--theme-body-bg)));
+  box-shadow:
+    0 16px 32px -28px oklch(48% 0.12 46 / 0.18),
+    inset 0 1px 0 oklch(99% 0.01 46 / 0.66);
+}
+
+html[data-theme="light"] .theme-interaction-caution {
+  border-color: oklch(64% 0.1 82 / 0.18);
+  background:
+    radial-gradient(circle at 12% 0%, oklch(99% 0.02 82 / 0.46), transparent 38%), linear-gradient(135deg, color-mix(in srgb, oklch(97% 0.026 82) 94%, var(--theme-body-bg)), color-mix(in srgb, oklch(93% 0.046 82) 95%, var(--theme-body-bg)));
+  box-shadow:
+    0 16px 32px -28px oklch(52% 0.11 82 / 0.16),
+    inset 0 1px 0 oklch(99% 0.01 82 / 0.66);
+}
+
+html[data-theme="light"] .theme-interaction-expanded-card {
+  background: var(--theme-frosted-control-on-panel-bg) !important;
+  box-shadow:
+    0 0 0 1px var(--theme-frosted-control-on-panel-border),
+    0 12px 24px -22px oklch(48% 0.09 318 / 0.14),
+    inset 0 1px 0 oklch(99% 0.01 333 / 0.78) !important;
+}
+
+html[data-theme="light"] .theme-interaction-expanded-card-danger {
+  border-color: oklch(54% 0.12 18 / 0.18) !important;
+}
+
+html[data-theme="light"] .theme-interaction-expanded-card-unsafe {
+  border-color: oklch(58% 0.105 46 / 0.18) !important;
+}
+
+html[data-theme="light"] .theme-interaction-expanded-card-caution {
+  border-color: oklch(64% 0.1 82 / 0.18) !important;
+}
+
+html[data-theme="light"] .theme-interaction-expanded-toggle-danger {
+  background:
+    radial-gradient(circle at 12% 0%, oklch(99% 0.02 18 / 0.5), transparent 38%), linear-gradient(135deg, color-mix(in srgb, oklch(96% 0.026 18) 95%, var(--theme-body-bg)), color-mix(in srgb, oklch(92% 0.046 18) 96%, var(--theme-body-bg))) !important;
+  color: #9f1239 !important;
+  box-shadow:
+    0 0 0 1px oklch(54% 0.12 18 / 0.2),
+    inset 0 1px 0 oklch(99% 0.01 18 / 0.66) !important;
+}
+
+html[data-theme="light"] .theme-interaction-expanded-toggle-unsafe {
+  background:
+    radial-gradient(circle at 12% 0%, oklch(99% 0.02 46 / 0.48), transparent 38%), linear-gradient(135deg, color-mix(in srgb, oklch(96% 0.026 46) 95%, var(--theme-body-bg)), color-mix(in srgb, oklch(92% 0.046 46) 96%, var(--theme-body-bg))) !important;
+  color: #9a3412 !important;
+  box-shadow:
+    0 0 0 1px oklch(58% 0.105 46 / 0.2),
+    inset 0 1px 0 oklch(99% 0.01 46 / 0.66) !important;
+}
+
+html[data-theme="light"] .theme-interaction-expanded-toggle-caution {
+  background:
+    radial-gradient(circle at 12% 0%, oklch(99% 0.02 82 / 0.46), transparent 38%), linear-gradient(135deg, color-mix(in srgb, oklch(97% 0.026 82) 95%, var(--theme-body-bg)), color-mix(in srgb, oklch(93% 0.046 82) 96%, var(--theme-body-bg))) !important;
+  color: #854d0e !important;
+  box-shadow:
+    0 0 0 1px oklch(64% 0.1 82 / 0.2),
+    inset 0 1px 0 oklch(99% 0.01 82 / 0.66) !important;
+}
+
+html[data-theme="light"] .theme-interaction-severity-badge-danger {
+  color: #9f1239;
+  background-color: color-mix(in srgb, rgb(255 228 230) 92%, var(--theme-body-bg));
+}
+
+html[data-theme="light"] .theme-interaction-severity-badge-unsafe {
+  color: #9a3412;
+  background-color: color-mix(in srgb, rgb(255 237 213) 92%, var(--theme-body-bg));
+}
+
+html[data-theme="light"] .theme-interaction-severity-badge-caution {
+  color: #854d0e;
+  background-color: color-mix(in srgb, rgb(254 249 195) 86%, var(--theme-body-bg));
+}
+
+html[data-theme="light"] .theme-article-subsection-card {
+  border-color: var(--theme-frosted-panel-border);
+  background: var(--theme-frosted-panel-bg);
+  box-shadow: var(--theme-frosted-panel-shadow);
+}
+
+html[data-theme="light"] .theme-article-subsection-card-nested {
+  border-color: var(--theme-frosted-panel-border);
+  background: var(--theme-frosted-panel-bg);
+  box-shadow: var(--theme-frosted-panel-shadow);
+}
+
+html[data-theme="light"] .theme-article-subsection-card-interactive {
+  border-color: var(--theme-frosted-panel-border);
+  background: var(--theme-frosted-panel-bg);
+  box-shadow: var(--theme-frosted-panel-shadow);
+}
+
+@media (hover: hover) {
+  html[data-theme="light"] .theme-article-subsection-card-interactive:hover {
+    border-color: var(--theme-frosted-panel-hover-border);
+    background: var(--theme-frosted-panel-hover-bg);
+    box-shadow: var(--theme-frosted-panel-hover-shadow);
+  }
+}
+
+html[data-theme="light"] .theme-external-source-pill {
+  background-color: var(--theme-name-chip-bg);
+  --tw-ring-color: var(--theme-name-chip-ring);
+}
+
+@media (hover: hover) {
+  html[data-theme="light"] .theme-external-source-pill:hover {
+    background-color: var(--theme-name-chip-bg-hover);
+    --tw-ring-color: var(--theme-name-chip-ring-hover);
+  }
+}
+
+html[data-theme="light"] .theme-external-source-pill .theme-text-faint {
+  color: oklch(43% 0.045 316) !important;
+}
+
+html[data-theme="light"] :is(.theme-control-pill, .theme-control-pill-quiet) {
+  border-color: var(--theme-border-subtle) !important;
+  color: var(--theme-text-secondary) !important;
+}
+
+html[data-theme="light"] .theme-control-pill {
+  background-color: color-mix(in srgb, var(--theme-surface-muted) 88%, var(--theme-body-bg)) !important;
+  box-shadow: 0 12px 26px -22px rgba(84, 46, 112, 0.22);
+}
+
+html[data-theme="light"] .theme-control-pill-expander {
+  color: var(--theme-accent-muted) !important;
+}
+
+html[data-theme="light"] :is(.theme-control-pill:focus-visible, .theme-control-pill[data-active="true"], .theme-control-pill-quiet:focus-visible, .theme-control-pill-quiet[data-active="true"]) {
+  border-color: color-mix(in srgb, var(--theme-accent) 24%, var(--theme-border-strong)) !important;
+  background-color: color-mix(in srgb, var(--theme-surface-strong) 92%, var(--theme-accent) 6%) !important;
+  color: var(--theme-text-primary) !important;
+}
+@media (hover: hover) {
+  html[data-theme="light"] :is(.theme-control-pill:hover, .theme-control-pill-quiet:hover) {
+    border-color: color-mix(in srgb, var(--theme-accent) 24%, var(--theme-border-strong)) !important;
+    background-color: color-mix(in srgb, var(--theme-surface-strong) 92%, var(--theme-accent) 6%) !important;
+    color: var(--theme-text-primary) !important;
+  }
+}
+
+html[data-theme="light"] :is(.theme-evidence-accent, .theme-evidence-badge, .theme-evidence-link) {
+  color: var(--theme-evidence-text-strong) !important;
+}
+
+html[data-theme="light"] .theme-evidence-surface {
+  border-color: var(--theme-evidence-border) !important;
+  background-color: color-mix(in srgb, var(--theme-evidence-bg) 78%, var(--theme-surface-strong)) !important;
+  color: var(--theme-evidence-text) !important;
+}
+
+html[data-theme="light"] .theme-evidence-badge {
+  border-color: var(--theme-evidence-border) !important;
+  background-color: color-mix(in srgb, var(--theme-evidence-bg) 76%, var(--theme-surface-muted)) !important;
+}
+
+@media (hover: hover) {
+  html[data-theme="light"] .theme-evidence-link:hover {
+    background-color: color-mix(in srgb, var(--theme-evidence-bg) 72%, rgba(255, 255, 255, 0.86)) !important;
+    box-shadow: 0 0 0 1px var(--theme-evidence-border) !important;
+    color: var(--theme-evidence-text) !important;
+  }
+}
+
+html[data-theme="light"] .theme-toc-icon {
+  color: color-mix(in srgb, rgb(93 56 123) 42%, var(--theme-body-bg)) !important;
+}
+
+html[data-theme="light"] .theme-index-card-bullet {
+  background-color: var(--theme-index-card-bullet) !important;
+}
+
+html[data-theme="light"] .theme-index-card-link:focus-visible {
+  background: var(--theme-frosted-control-on-panel-hover-bg) !important;
+  color: var(--theme-accent-strong) !important;
+  box-shadow: var(--theme-frosted-control-on-panel-hover-shadow) !important;
+  --tw-ring-color: var(--theme-frosted-control-on-panel-hover-border) !important;
+}
+
+@media (hover: hover) {
+  html[data-theme="light"] .theme-index-card-link:hover {
+    background: var(--theme-frosted-control-on-panel-hover-bg) !important;
+    color: var(--theme-accent-strong) !important;
+    box-shadow: var(--theme-frosted-control-on-panel-hover-shadow) !important;
+    --tw-ring-color: var(--theme-frosted-control-on-panel-hover-border) !important;
+  }
+}
+
+html[data-theme="light"] .theme-index-card-icon-glyph {
+  color: var(--theme-accent-strong) !important;
+}
+
+html[data-theme="light"] .theme-index-card-title {
+  color: var(--theme-accent-strong) !important;
+}
+
+html[data-theme="light"] .theme-index-card-title span:first-child {
+  color: var(--theme-accent-strong) !important;
+}
+
+html[data-theme="light"] .theme-index-card-icon {
+  color: var(--theme-accent-strong) !important;
+  border-color: transparent !important;
+  background: #fff !important;
+  box-shadow: var(--theme-frosted-control-on-panel-shadow) !important;
+  --tw-ring-color: var(--theme-frosted-control-on-panel-border) !important;
+}
+
+html[data-theme="light"] .theme-index-card-count,
+html[data-theme="light"] .theme-index-card-count-sm {
+  background-color: oklch(96.5% 0.024 326) !important;
+  background:
+    radial-gradient(circle at 12% 0%, oklch(99% 0.026 333 / 0.94), transparent 36%), linear-gradient(135deg, oklch(97.5% 0.024 326), oklch(93.5% 0.034 326)) !important;
+  box-shadow:
+    inset 0 0 0 1px oklch(54% 0.08 326 / 0.2),
+    inset 0 1px 0 oklch(99% 0.01 333 / 0.9),
+    inset 0 -10px 18px -18px oklch(56% 0.08 326 / 0.32) !important;
+}
+
+html[data-theme="light"] .theme-index-card-toggle {
+  color: color-mix(in srgb, var(--theme-accent-strong) 58%, var(--theme-body-bg)) !important;
+}
+
+html[data-theme="light"] .theme-external-link-badge-icon {
+  color: var(--theme-text-primary) !important;
+  opacity: 0.82 !important;
+}
+
+@media (hover: hover) {
+  html[data-theme="light"] .group:hover .theme-external-link-badge-icon,
+  html[data-theme="light"] .theme-external-link-badge-icon:hover {
+    color: var(--theme-accent-strong) !important;
+    opacity: 1 !important;
+  }
+}
+
+html[data-theme="light"] .prose-invert :where(h1, h2, h3, h4),
+html[data-theme="light"] .prose.prose-invert :where(h1, h2, h3, h4),
+html[data-theme="light"] .prose-fuchsia :where(h1, h2, h3, h4) {
+  color: var(--theme-accent-strong);
+}
+
+html[data-theme="light"] .prose-invert :where(strong, b),
+html[data-theme="light"] .prose.prose-invert :where(strong, b) {
+  color: var(--theme-text-primary);
+}
+
+html[data-theme="light"] .prose-fuchsia :where(strong, b),
+html[data-theme="light"] .prose.prose-fuchsia :where(strong, b) {
+  color: var(--theme-accent-strong);
+}
+
+html[data-theme="light"] .prose-invert :where(a),
+html[data-theme="light"] .prose.prose-invert :where(a),
+html[data-theme="light"] .prose-fuchsia :where(a) {
+  color: var(--theme-accent-strong);
+}
+
+html[data-theme="light"] :is(
+  .theme-public-card,
+  .theme-public-card-subtle,
+  .theme-public-card-hover-quiet,
+  .theme-card-surface,
+  .theme-overlay-surface,
+  .theme-dose-duration-panel,
+  .theme-article-toc-panel
+) {
+  border-width: 1px;
+  border-color: var(--theme-frosted-panel-border) !important;
+  background: var(--theme-frosted-panel-bg) !important;
+  box-shadow: var(--theme-frosted-panel-shadow) !important;
+  --tw-ring-color: var(--theme-frosted-panel-border) !important;
+}
+
+/* The mobile TOC bar mirrors .theme-article-toc-panel's light remap, minus
+   the full border and shadow — attached flush to the header, it keeps only
+   its bottom hairline. */
+html[data-theme="light"] .theme-toc-strip-bar {
+  background: var(--theme-frosted-panel-bg) !important;
+  border-bottom-color: var(--theme-frosted-panel-border) !important;
+}
+
+@media (hover: hover) {
+  html[data-theme="light"] :is(
+    .theme-public-card-interactive:hover,
+    .theme-public-card-hover-quiet:hover
+  ) {
+    border-color: var(--theme-frosted-panel-hover-border) !important;
+    background: var(--theme-frosted-panel-hover-bg) !important;
+    box-shadow: var(--theme-frosted-panel-hover-shadow);
+  }
+}
+
+
+html[data-theme="light"] :is(
+  .theme-badge-surface,
+  .theme-author-avatar-placeholder,
+  .theme-name-chip,
+  .theme-external-source-pill,
+  .theme-control-pill,
+  .theme-control-pill-quiet,
+  .theme-dose-tier-row,
+  .theme-duration-stage-row,
+  .theme-dose-detail-row,
+  .theme-plateau-tier-row,
+  .theme-dosage-mode-tabs
+) {
+  border-color: transparent !important;
+  background: var(--theme-frosted-control-bg) !important;
+  color: var(--theme-text-primary) !important;
+  box-shadow: var(--theme-frosted-control-shadow);
+  --tw-ring-color: var(--theme-frosted-control-border) !important;
+}
+
+html[data-theme="light"] :is(.theme-name-chip-interactive:focus-visible, .theme-control-pill:focus-visible, .theme-control-pill[data-active="true"], .theme-control-pill-quiet:focus-visible, .theme-control-pill-quiet[data-active="true"]) {
+  border-color: transparent !important;
+  background: var(--theme-frosted-control-hover-bg) !important;
+  color: var(--theme-accent-strong) !important;
+  box-shadow: var(--theme-frosted-control-hover-shadow);
+  --tw-ring-color: var(--theme-frosted-control-hover-border) !important;
+}
+@media (hover: hover) {
+  html[data-theme="light"] :is(.theme-name-chip-interactive:hover, .theme-external-source-pill:hover, .theme-control-pill:hover, .theme-control-pill-quiet:hover) {
+    border-color: transparent !important;
+    background: var(--theme-frosted-control-hover-bg) !important;
+    color: var(--theme-accent-strong) !important;
+    box-shadow: var(--theme-frosted-control-hover-shadow);
+    --tw-ring-color: var(--theme-frosted-control-hover-border) !important;
+  }
+}
+
+html[data-theme="light"] :is(
+  .theme-public-card,
+  .theme-public-card-subtle,
+  .theme-public-card-hover-quiet,
+  .theme-card-surface,
+  .theme-overlay-surface,
+  .theme-article-hero,
+  .theme-article-subsection-card,
+  .theme-article-subsection-card-nested,
+  .theme-article-subsection-card-interactive,
+  .theme-inline-expanded-card,
+  .theme-dose-duration-panel,
+  .theme-article-toc-panel,
+  .theme-interaction-danger,
+  .theme-interaction-unsafe,
+  .theme-interaction-caution
+) :is(
+  .theme-badge-surface,
+  .theme-author-avatar-placeholder,
+  .theme-name-chip,
+  .theme-external-source-pill,
+  .theme-control-pill,
+  .theme-control-pill-quiet,
+  .theme-interaction-severity-badge-danger,
+  .theme-interaction-severity-badge-unsafe,
+  .theme-interaction-severity-badge-caution
+) {
+  border-color: transparent !important;
+  background: var(--theme-frosted-control-on-panel-bg) !important;
+  box-shadow: var(--theme-frosted-control-on-panel-shadow) !important;
+  --tw-ring-color: var(--theme-frosted-control-on-panel-border) !important;
+}
+
+html[data-theme="light"] :is(
+  .theme-public-card,
+  .theme-public-card-subtle,
+  .theme-card-surface,
+  .theme-overlay-surface,
+  .theme-article-hero,
+  .theme-article-subsection-card,
+  .theme-article-subsection-card-nested,
+  .theme-article-subsection-card-interactive,
+  .theme-inline-expanded-card,
+  .theme-dose-duration-panel,
+  .theme-article-toc-panel,
+  .theme-interaction-danger,
+  .theme-interaction-unsafe,
+  .theme-interaction-caution
+) :is(.theme-name-chip-interactive:focus-visible, .theme-control-pill:focus-visible, .theme-control-pill[data-active="true"], .theme-control-pill-quiet:focus-visible, .theme-control-pill-quiet[data-active="true"]) {
+  background: var(--theme-frosted-control-on-panel-hover-bg) !important;
+  box-shadow: var(--theme-frosted-control-on-panel-hover-shadow) !important;
+  --tw-ring-color: var(--theme-frosted-control-on-panel-hover-border) !important;
+}
+@media (hover: hover) {
+  html[data-theme="light"] :is(
+    .theme-public-card,
+    .theme-public-card-subtle,
+    .theme-card-surface,
+    .theme-overlay-surface,
+    .theme-article-hero,
+    .theme-article-subsection-card,
+    .theme-article-subsection-card-nested,
+    .theme-article-subsection-card-interactive,
+    .theme-inline-expanded-card,
+    .theme-dose-duration-panel,
+    .theme-article-toc-panel,
+    .theme-interaction-danger,
+    .theme-interaction-unsafe,
+    .theme-interaction-caution
+  ) :is(.theme-name-chip-interactive:hover, .theme-external-source-pill:hover, .theme-control-pill:hover, .theme-control-pill-quiet:hover, .theme-interaction-severity-badge-danger:hover, .theme-interaction-severity-badge-unsafe:hover, .theme-interaction-severity-badge-caution:hover) {
+    background: var(--theme-frosted-control-on-panel-hover-bg) !important;
+    box-shadow: var(--theme-frosted-control-on-panel-hover-shadow) !important;
+    --tw-ring-color: var(--theme-frosted-control-on-panel-hover-border) !important;
+  }
+}
+
+html[data-theme="light"] :is(
+  .theme-interaction-danger,
+  .theme-interaction-unsafe,
+  .theme-interaction-caution
+) .theme-interaction-expanded-card {
+  border-color: transparent !important;
+  background: var(--theme-frosted-control-on-panel-bg) !important;
+}
+
+html[data-theme="light"] .theme-interaction-danger .theme-interaction-expanded-card {
+  box-shadow:
+    0 0 0 1px oklch(54% 0.12 18 / 0.2),
+    0 12px 24px -22px oklch(46% 0.13 18 / 0.16),
+    inset 0 1px 0 oklch(99% 0.01 333 / 0.78) !important;
+}
+
+html[data-theme="light"] .theme-interaction-unsafe .theme-interaction-expanded-card {
+  box-shadow:
+    0 0 0 1px oklch(58% 0.105 46 / 0.2),
+    0 12px 24px -22px oklch(48% 0.12 46 / 0.16),
+    inset 0 1px 0 oklch(99% 0.01 333 / 0.78) !important;
+}
+
+html[data-theme="light"] .theme-interaction-caution .theme-interaction-expanded-card {
+  box-shadow:
+    0 0 0 1px oklch(64% 0.1 82 / 0.2),
+    0 12px 24px -22px oklch(52% 0.11 82 / 0.14),
+    inset 0 1px 0 oklch(99% 0.01 333 / 0.78) !important;
+}
+
+html[data-theme="light"] .theme-interaction-danger .theme-interaction-expanded-toggle {
+  background:
+    radial-gradient(circle at 12% 0%, oklch(99% 0.02 18 / 0.5), transparent 38%), linear-gradient(135deg, color-mix(in srgb, oklch(96% 0.026 18) 95%, var(--theme-body-bg)), color-mix(in srgb, oklch(92% 0.046 18) 96%, var(--theme-body-bg))) !important;
+  color: #9f1239 !important;
+  box-shadow:
+    0 0 0 1px oklch(54% 0.12 18 / 0.2),
+    inset 0 1px 0 oklch(99% 0.01 18 / 0.66) !important;
+}
+
+html[data-theme="light"] .theme-interaction-unsafe .theme-interaction-expanded-toggle {
+  background:
+    radial-gradient(circle at 12% 0%, oklch(99% 0.02 46 / 0.48), transparent 38%), linear-gradient(135deg, color-mix(in srgb, oklch(96% 0.026 46) 95%, var(--theme-body-bg)), color-mix(in srgb, oklch(92% 0.046 46) 96%, var(--theme-body-bg))) !important;
+  color: #9a3412 !important;
+  box-shadow:
+    0 0 0 1px oklch(58% 0.105 46 / 0.2),
+    inset 0 1px 0 oklch(99% 0.01 46 / 0.66) !important;
+}
+
+html[data-theme="light"] .theme-interaction-caution .theme-interaction-expanded-toggle {
+  background:
+    radial-gradient(circle at 12% 0%, oklch(99% 0.02 82 / 0.46), transparent 38%), linear-gradient(135deg, color-mix(in srgb, oklch(97% 0.026 82) 95%, var(--theme-body-bg)), color-mix(in srgb, oklch(93% 0.046 82) 96%, var(--theme-body-bg))) !important;
+  color: #854d0e !important;
+  box-shadow:
+    0 0 0 1px oklch(64% 0.1 82 / 0.2),
+    inset 0 1px 0 oklch(99% 0.01 82 / 0.66) !important;
+}
+
+html[data-theme="light"] .theme-selected-control {
+  border-color: transparent !important;
+  background: transparent !important;
+  color: var(--theme-text-secondary) !important;
+  box-shadow: none !important;
+  --tw-ring-color: transparent !important;
+}
+
+html[data-theme="light"] .theme-route-tabs-list {
+  border-color: transparent !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  --tw-ring-color: transparent !important;
+}
+
+@media (hover: hover) {
+  html[data-theme="light"] .theme-selected-control:hover {
+    border-color: transparent !important;
+    background: transparent !important;
+    color: var(--theme-text-primary) !important;
+    box-shadow: none !important;
+  }
+}
+
+html[data-theme="light"] .theme-selected-control[data-state="active"] {
+  border-color: var(--theme-selected-control-border) !important;
+  background: var(--theme-selected-control-bg) !important;
+  background-clip: border-box !important;
+  background-origin: border-box !important;
+  color: var(--theme-selected-control-text) !important;
+  box-shadow: var(--theme-selected-control-shadow) !important;
+  --tw-ring-color: var(--theme-selected-control-border) !important;
+}
+
+html[data-theme="light"] .theme-article-toc-panel h2 {
+  color: var(--theme-text-muted) !important;
+}
+
+html[data-theme="light"] .theme-article-toc-item {
+  color: var(--theme-text-secondary) !important;
+}
+
+html[data-theme="light"] .theme-article-toc-item:not(:is(:hover, :focus-visible, [data-active="true"])) {
+  background: transparent !important;
+  box-shadow: none;
+}
+
+html[data-theme="light"] .theme-article-toc-item:focus-visible,
+html[data-theme="light"] .theme-article-toc-item[data-active="true"] {
+  border-color: transparent !important;
+  background: color-mix(in srgb, var(--theme-article-neutral-panel-border) 42%, var(--theme-body-bg)) !important;
+  color: var(--theme-text-primary) !important;
+  box-shadow: none;
+}
+@media (hover: hover) {
+  html[data-theme="light"] .theme-article-toc-item:hover {
+    border-color: transparent !important;
+    background: color-mix(in srgb, var(--theme-article-neutral-panel-border) 42%, var(--theme-body-bg)) !important;
+    color: var(--theme-text-primary) !important;
+    box-shadow: none;
+  }
+}
+
+html[data-theme="light"] .theme-selected-control-icon {
+  border-color: transparent !important;
+  background: transparent !important;
+  color: var(--theme-accent-strong) !important;
+  --tw-ring-color: transparent !important;
+  box-shadow: none !important;
+}
+
+html[data-theme="light"] .theme-selected-control:focus-visible .theme-selected-control-icon {
+  background: var(--theme-selected-control-bg) !important;
+  color: var(--theme-selected-control-text) !important;
+  --tw-ring-color: var(--theme-selected-control-border) !important;
+  box-shadow: 0 0 0 1px var(--theme-selected-control-border) !important;
+}
+@media (hover: hover) {
+  html[data-theme="light"] .theme-selected-control:hover .theme-selected-control-icon {
+    background: var(--theme-selected-control-bg) !important;
+    color: var(--theme-selected-control-text) !important;
+    --tw-ring-color: var(--theme-selected-control-border) !important;
+    box-shadow: 0 0 0 1px var(--theme-selected-control-border) !important;
+  }
+}
+
+html[data-theme="light"] .theme-selected-control[data-state="active"] .theme-selected-control-icon {
+  background: var(--theme-selected-control-bg) !important;
+  color: var(--theme-selected-control-text) !important;
+  --tw-ring-color: var(--theme-selected-control-border) !important;
+  box-shadow: 0 0 0 1px var(--theme-selected-control-border) !important;
+}
+
+html[data-theme="light"] .theme-author-avatar-placeholder {
+  border-color: transparent !important;
+  background: var(--theme-frosted-control-on-panel-bg) !important;
+  box-shadow: var(--theme-frosted-control-on-panel-shadow) !important;
+  --tw-ring-color: var(--theme-frosted-control-on-panel-border) !important;
+}
+
+html[data-theme="light"] .theme-chemistry-identifier-code {
+  border-color: transparent !important;
+  background: var(--theme-frosted-control-on-panel-bg) !important;
+  color: var(--theme-text-primary) !important;
+  box-shadow: var(--theme-frosted-control-on-panel-shadow) !important;
+  --tw-ring-color: var(--theme-frosted-control-on-panel-border) !important;
+}
+
+html[data-theme="light"] .theme-dose-tier-row {
+  background: var(--theme-frosted-control-on-panel-bg) !important;
+}
+
+html[data-theme="light"] .theme-dose-tier-row [data-dose-tier] {
+  width: 82%;
+  background-repeat: no-repeat;
+}
+
+html[data-theme="light"] .theme-dose-tier-row [data-dose-tier="threshold"] {
+  background-image: linear-gradient(90deg, oklch(from var(--theme-dose-tier-threshold) l c h / 0.68), var(--theme-dose-tier-fade) 70%, transparent 100%) !important;
+}
+
+html[data-theme="light"] .theme-dose-tier-row [data-dose-tier="light"] {
+  background-image: linear-gradient(90deg, oklch(from var(--theme-dose-tier-light) l c h / 0.68), var(--theme-dose-tier-fade) 70%, transparent 100%) !important;
+}
+
+html[data-theme="light"] .theme-dose-tier-row [data-dose-tier="moderate"] {
+  background-image: linear-gradient(90deg, oklch(from var(--theme-dose-tier-moderate) l c h / 0.68), var(--theme-dose-tier-fade) 70%, transparent 100%) !important;
+}
+
+html[data-theme="light"] .theme-dose-tier-row [data-dose-tier="strong"] {
+  background-image: linear-gradient(90deg, oklch(from var(--theme-dose-tier-strong) l c h / 0.68), var(--theme-dose-tier-fade) 70%, transparent 100%) !important;
+}
+
+html[data-theme="light"] .theme-dose-tier-row [data-dose-tier="heavy"] {
+  background-image: linear-gradient(90deg, oklch(from var(--theme-dose-tier-heavy) l c h / 0.68), var(--theme-dose-tier-fade) 70%, transparent 100%) !important;
+}
+
+html[data-theme="light"] .theme-plateau-tier-row {
+  background: var(--theme-frosted-control-on-panel-bg) !important;
+}
+
+html[data-theme="light"] .theme-plateau-tier-row [data-plateau-tier] {
+  width: 82%;
+  background-repeat: no-repeat;
+}
+
+html[data-theme="light"] .theme-plateau-tier-row [data-plateau-tier="first_plateau"] {
+  background-image: linear-gradient(90deg, oklch(from var(--theme-plateau-tier-first) l c h / 0.68), var(--theme-plateau-tier-fade) 70%, transparent 100%) !important;
+}
+
+html[data-theme="light"] .theme-plateau-tier-row [data-plateau-tier="second_plateau"] {
+  background-image: linear-gradient(90deg, oklch(from var(--theme-plateau-tier-second) l c h / 0.68), var(--theme-plateau-tier-fade) 70%, transparent 100%) !important;
+}
+
+html[data-theme="light"] .theme-plateau-tier-row [data-plateau-tier="third_plateau"] {
+  background-image: linear-gradient(90deg, oklch(from var(--theme-plateau-tier-third) l c h / 0.68), var(--theme-plateau-tier-fade) 70%, transparent 100%) !important;
+}
+
+html[data-theme="light"] .theme-plateau-tier-row [data-plateau-tier="fourth_plateau"] {
+  background-image: linear-gradient(90deg, oklch(from var(--theme-plateau-tier-fourth) l c h / 0.68), var(--theme-plateau-tier-fade) 70%, transparent 100%) !important;
+}
+
+html[data-theme="light"] .theme-plateau-tier-row [data-plateau-tier="fifth_plateau"] {
+  background-image: linear-gradient(90deg, oklch(from var(--theme-plateau-tier-fifth) l c h / 0.76), var(--theme-plateau-tier-fade) 70%, transparent 100%) !important;
+}
+
+html[data-theme="light"] .theme-duration-stage-row:nth-child(odd) {
+  background: var(--theme-frosted-control-on-panel-bg) !important;
+}
+
+html[data-theme="light"] .theme-duration-stage-row:nth-child(even) {
+  background:
+    radial-gradient(circle at 12% 0%, oklch(100% 0 0 / 0.74), transparent 38%), linear-gradient(135deg, color-mix(in srgb, oklch(98.4% 0.006 326) 92%, var(--theme-body-bg)), color-mix(in srgb, oklch(95.5% 0.018 326) 94%, var(--theme-body-bg))) !important;
+}
+
+/* The alt-row well is fully tokenised at utilities-theme.css:3446 and lands
+   correctly in light: the sunk fill sits below the panel and the inner shading
+   uses the light plum shadow. Light used to repaint it with
+   --theme-frosted-control-on-panel-shadow, a raised-control rim, which fought
+   the recessed geometry. Only the badges nested inside still need a light
+   pass. */
+
+html[data-theme="light"] .theme-receptor-qualifier-badge {
+  border-color: transparent !important;
+  background: var(--theme-frosted-control-on-panel-bg) !important;
+  color: var(--theme-accent-strong) !important;
+  box-shadow: var(--theme-frosted-control-on-panel-shadow) !important;
+}
+
+html[data-theme="light"] .theme-pharmacology-table-row-alt .theme-receptor-qualifier-badge {
+  background: var(--theme-frosted-control-bg) !important;
+  box-shadow: var(--theme-frosted-control-shadow) !important;
+}
+
+html[data-theme="light"] .theme-metabolite-status-badge {
+  border-color: transparent !important;
+  background: var(--theme-frosted-control-on-panel-bg) !important;
+  box-shadow: var(--theme-frosted-control-on-panel-shadow) !important;
+}
+
+html[data-theme="light"] .theme-pharmacology-table-row-alt .theme-metabolite-status-badge {
+  background: var(--theme-frosted-control-bg) !important;
+  box-shadow: var(--theme-frosted-control-shadow) !important;
+}
+
+html[data-theme="light"] .theme-metabolite-status-badge-active {
+  color: #047857 !important;
+}
+
+html[data-theme="light"] .theme-metabolite-status-badge-inactive {
+  color: var(--theme-text-muted) !important;
+}
+
+html[data-theme="light"] .theme-ld50-table-panel {
+  border-color: transparent !important;
+  background: var(--theme-frosted-control-on-panel-bg) !important;
+  box-shadow: var(--theme-frosted-control-on-panel-shadow) !important;
+  --tw-ring-color: var(--theme-frosted-control-on-panel-border) !important;
+}
+
+html[data-theme="light"] .theme-ld50-table-head {
+  background:
+    radial-gradient(circle at 12% 0%, oklch(100% 0 0 / 0.76), transparent 38%), linear-gradient(135deg, color-mix(in srgb, oklch(99% 0.004 326) 90%, var(--theme-body-bg)), color-mix(in srgb, oklch(97% 0.01 326) 92%, var(--theme-body-bg))) !important;
+}
+
+html[data-theme="light"] .theme-ld50-table-body {
+  background: transparent !important;
+}
+
+html[data-theme="light"] .theme-ld50-table-row {
+  background: transparent !important;
+}
+
+html[data-theme="light"] .theme-ld50-table-row:nth-child(even) {
+  background:
+    radial-gradient(circle at 12% 0%, oklch(100% 0 0 / 0.56), transparent 38%), linear-gradient(135deg, color-mix(in srgb, oklch(99.4% 0.003 326) 70%, var(--theme-body-bg)), color-mix(in srgb, oklch(96.5% 0.012 326) 72%, var(--theme-body-bg))) !important;
+}
+
+@media (hover: hover) {
+  html[data-theme="light"] .theme-ld50-table-row:hover {
+    background: var(--theme-frosted-control-on-panel-hover-bg) !important;
+  }
+}
+
+html[data-theme="light"] .theme-country-flag-icon {
+  box-shadow:
+    0 0 0 2px oklch(100% 0 0 / 0.72),
+    0 0 0 3px var(--theme-frosted-control-on-panel-border),
+    0 10px 20px -14px oklch(38% 0.08 316 / 0.36),
+    inset 0 1px 0 oklch(100% 0 0 / 0.58) !important;
+  --tw-ring-color: transparent !important;
+}
+
+html[data-theme="light"] .theme-reagent-results-panel {
+  border: 1px solid var(--theme-article-neutral-panel-border);
+  background: var(--theme-article-neutral-panel-bg) !important;
+  box-shadow: var(--theme-article-neutral-panel-shadow) !important;
+}
+
+html[data-theme="light"] :is(.theme-dose-detail-expanded, .theme-plateau-tier-expanded) {
+  background:
+    linear-gradient(135deg, color-mix(in srgb, oklch(98% 0.016 334) 76%, var(--theme-body-bg)), color-mix(in srgb, oklch(95% 0.032 319) 78%, var(--theme-body-bg))) !important;
+}
+
+
+html[data-theme="light"] .theme-interaction-severity-badge-danger {
+  border-color: transparent !important;
+  background:
+    radial-gradient(circle at 12% 0%, oklch(99% 0.02 18 / 0.5), transparent 38%), linear-gradient(135deg, color-mix(in srgb, oklch(96% 0.026 18) 95%, var(--theme-body-bg)), color-mix(in srgb, oklch(92% 0.046 18) 96%, var(--theme-body-bg))) !important;
+  box-shadow:
+    0 0 0 1px oklch(54% 0.12 18 / 0.2),
+    inset 0 1px 0 oklch(99% 0.01 18 / 0.66);
+}
+
+html[data-theme="light"] .theme-interaction-severity-badge-unsafe {
+  border-color: transparent !important;
+  background:
+    radial-gradient(circle at 12% 0%, oklch(99% 0.02 46 / 0.48), transparent 38%), linear-gradient(135deg, color-mix(in srgb, oklch(96% 0.026 46) 95%, var(--theme-body-bg)), color-mix(in srgb, oklch(92% 0.046 46) 96%, var(--theme-body-bg))) !important;
+  box-shadow:
+    0 0 0 1px oklch(58% 0.105 46 / 0.2),
+    inset 0 1px 0 oklch(99% 0.01 46 / 0.66);
+}
+
+html[data-theme="light"] .theme-interaction-severity-badge-caution {
+  border-color: transparent !important;
+  background:
+    radial-gradient(circle at 12% 0%, oklch(99% 0.02 82 / 0.46), transparent 38%), linear-gradient(135deg, color-mix(in srgb, oklch(97% 0.026 82) 95%, var(--theme-body-bg)), color-mix(in srgb, oklch(93% 0.046 82) 96%, var(--theme-body-bg))) !important;
+  box-shadow:
+    0 0 0 1px oklch(64% 0.1 82 / 0.2),
+    inset 0 1px 0 oklch(99% 0.01 82 / 0.66);
+}
+
+html[data-theme="light"] .theme-interaction-expanded-card {
+  background: var(--theme-field-on-panel-surface) !important;
+  box-shadow:
+    0 0 0 1px var(--theme-field-on-chrome-border),
+    0 12px 24px -22px oklch(48% 0.09 318 / 0.14),
+    inset 0 1px 0 oklch(99% 0.01 333 / 0.78) !important;
+}
+
+html[data-theme="light"] .theme-interaction-expanded-card-danger {
+  border-color: var(--theme-semantic-danger-card-border) !important;
+}
+
+html[data-theme="light"] .theme-interaction-expanded-card-unsafe {
+  border-color: var(--theme-semantic-unsafe-card-border) !important;
+}
+
+html[data-theme="light"] .theme-interaction-expanded-card-caution {
+  border-color: var(--theme-semantic-caution-card-border) !important;
+}
+
+html[data-theme="light"] .theme-interaction-expanded-toggle-danger {
+  color: var(--theme-semantic-danger-badge-text) !important;
+  background: var(--theme-semantic-danger-badge-bg) !important;
+  box-shadow: 0 0 0 1px var(--theme-semantic-danger-badge-border) !important;
+}
+
+html[data-theme="light"] .theme-interaction-expanded-toggle-unsafe {
+  color: var(--theme-semantic-unsafe-badge-text) !important;
+  background: var(--theme-semantic-unsafe-badge-bg) !important;
+  box-shadow: 0 0 0 1px var(--theme-semantic-unsafe-badge-border) !important;
+}
+
+html[data-theme="light"] .theme-interaction-expanded-toggle-caution {
+  color: var(--theme-semantic-caution-badge-text) !important;
+  background: var(--theme-semantic-caution-badge-bg) !important;
+  box-shadow: 0 0 0 1px var(--theme-semantic-caution-badge-border) !important;
+}
+
+html[data-theme="light"] .theme-interaction-danger .theme-interaction-severity-badge-danger,
+html[data-theme="light"] .theme-interaction-unsafe .theme-interaction-severity-badge-unsafe,
+html[data-theme="light"] .theme-interaction-caution .theme-interaction-severity-badge-caution {
+  background: var(--theme-field-on-panel-surface) !important;
+  box-shadow:
+    0 0 0 1px var(--theme-field-on-chrome-border),
+    inset 0 1px 0 oklch(99% 0.01 333 / 0.78) !important;
+}
+
+html[data-theme="light"] .theme-interaction-danger .theme-interaction-severity-badge-danger {
+  color: var(--theme-semantic-danger-badge-text) !important;
+  border-color: var(--theme-semantic-danger-card-border) !important;
+}
+
+html[data-theme="light"] .theme-interaction-unsafe .theme-interaction-severity-badge-unsafe {
+  color: var(--theme-semantic-unsafe-badge-text) !important;
+  border-color: var(--theme-semantic-unsafe-card-border) !important;
+}
+
+html[data-theme="light"] .theme-interaction-caution .theme-interaction-severity-badge-caution {
+  color: var(--theme-semantic-caution-badge-text) !important;
+  border-color: var(--theme-semantic-caution-card-border) !important;
+}
+
+/* === Dark-mode opaque flatten for legacy text-white/NN utilities ===
+   Mirrors the light remap above, but for dark (:not light). Makes legacy
+   translucent white text opaque by compositing over the page, preserving the
+   exact shade. Scoped to non-light so the light remap stays authoritative.
+   white seed + body-bg keep these Palette-Lab-editable. */
+html:not([data-theme="light"]) [class~="text-white/20"] {
+  color: color-mix(in srgb, rgb(var(--c-white)) 20%, var(--theme-body-bg)) !important;
+}
+@media (hover: hover) {
+  html:not([data-theme="light"]) [class~="hover:text-white/20"]:hover,
+  html:not([data-theme="light"]) .group:hover [class~="group-hover:text-white/20"] {
+    color: color-mix(in srgb, rgb(var(--c-white)) 20%, var(--theme-body-bg)) !important;
+  }
+}
+html:not([data-theme="light"]) [class~="text-white/30"] {
+  color: color-mix(in srgb, rgb(var(--c-white)) 30%, var(--theme-body-bg)) !important;
+}
+@media (hover: hover) {
+  html:not([data-theme="light"]) [class~="hover:text-white/30"]:hover,
+  html:not([data-theme="light"]) .group:hover [class~="group-hover:text-white/30"] {
+    color: color-mix(in srgb, rgb(var(--c-white)) 30%, var(--theme-body-bg)) !important;
+  }
+}
+html:not([data-theme="light"]) [class~="text-white/40"] {
+  color: color-mix(in srgb, rgb(var(--c-white)) 40%, var(--theme-body-bg)) !important;
+}
+@media (hover: hover) {
+  html:not([data-theme="light"]) [class~="hover:text-white/40"]:hover,
+  html:not([data-theme="light"]) .group:hover [class~="group-hover:text-white/40"] {
+    color: color-mix(in srgb, rgb(var(--c-white)) 40%, var(--theme-body-bg)) !important;
+  }
+}
+html:not([data-theme="light"]) [class~="text-white/45"] {
+  color: color-mix(in srgb, rgb(var(--c-white)) 45%, var(--theme-body-bg)) !important;
+}
+@media (hover: hover) {
+  html:not([data-theme="light"]) [class~="hover:text-white/45"]:hover,
+  html:not([data-theme="light"]) .group:hover [class~="group-hover:text-white/45"] {
+    color: color-mix(in srgb, rgb(var(--c-white)) 45%, var(--theme-body-bg)) !important;
+  }
+}
+html:not([data-theme="light"]) [class~="text-white/50"] {
+  color: color-mix(in srgb, rgb(var(--c-white)) 50%, var(--theme-body-bg)) !important;
+}
+@media (hover: hover) {
+  html:not([data-theme="light"]) [class~="hover:text-white/50"]:hover,
+  html:not([data-theme="light"]) .group:hover [class~="group-hover:text-white/50"] {
+    color: color-mix(in srgb, rgb(var(--c-white)) 50%, var(--theme-body-bg)) !important;
+  }
+}
+html:not([data-theme="light"]) [class~="text-white/55"] {
+  color: color-mix(in srgb, rgb(var(--c-white)) 55%, var(--theme-body-bg)) !important;
+}
+@media (hover: hover) {
+  html:not([data-theme="light"]) [class~="hover:text-white/55"]:hover,
+  html:not([data-theme="light"]) .group:hover [class~="group-hover:text-white/55"] {
+    color: color-mix(in srgb, rgb(var(--c-white)) 55%, var(--theme-body-bg)) !important;
+  }
+}
+html:not([data-theme="light"]) [class~="text-white/60"] {
+  color: color-mix(in srgb, rgb(var(--c-white)) 60%, var(--theme-body-bg)) !important;
+}
+@media (hover: hover) {
+  html:not([data-theme="light"]) [class~="hover:text-white/60"]:hover,
+  html:not([data-theme="light"]) .group:hover [class~="group-hover:text-white/60"] {
+    color: color-mix(in srgb, rgb(var(--c-white)) 60%, var(--theme-body-bg)) !important;
+  }
+}
+html:not([data-theme="light"]) [class~="text-white/65"] {
+  color: color-mix(in srgb, rgb(var(--c-white)) 65%, var(--theme-body-bg)) !important;
+}
+@media (hover: hover) {
+  html:not([data-theme="light"]) [class~="hover:text-white/65"]:hover,
+  html:not([data-theme="light"]) .group:hover [class~="group-hover:text-white/65"] {
+    color: color-mix(in srgb, rgb(var(--c-white)) 65%, var(--theme-body-bg)) !important;
+  }
+}
+html:not([data-theme="light"]) [class~="text-white/70"] {
+  color: color-mix(in srgb, rgb(var(--c-white)) 70%, var(--theme-body-bg)) !important;
+}
+@media (hover: hover) {
+  html:not([data-theme="light"]) [class~="hover:text-white/70"]:hover,
+  html:not([data-theme="light"]) .group:hover [class~="group-hover:text-white/70"] {
+    color: color-mix(in srgb, rgb(var(--c-white)) 70%, var(--theme-body-bg)) !important;
+  }
+}
+html:not([data-theme="light"]) [class~="text-white/75"] {
+  color: color-mix(in srgb, rgb(var(--c-white)) 75%, var(--theme-body-bg)) !important;
+}
+@media (hover: hover) {
+  html:not([data-theme="light"]) [class~="hover:text-white/75"]:hover,
+  html:not([data-theme="light"]) .group:hover [class~="group-hover:text-white/75"] {
+    color: color-mix(in srgb, rgb(var(--c-white)) 75%, var(--theme-body-bg)) !important;
+  }
+}
+html:not([data-theme="light"]) [class~="text-white/80"] {
+  color: color-mix(in srgb, rgb(var(--c-white)) 80%, var(--theme-body-bg)) !important;
+}
+@media (hover: hover) {
+  html:not([data-theme="light"]) [class~="hover:text-white/80"]:hover,
+  html:not([data-theme="light"]) .group:hover [class~="group-hover:text-white/80"] {
+    color: color-mix(in srgb, rgb(var(--c-white)) 80%, var(--theme-body-bg)) !important;
+  }
+}
+html:not([data-theme="light"]) [class~="text-white/85"] {
+  color: color-mix(in srgb, rgb(var(--c-white)) 85%, var(--theme-body-bg)) !important;
+}
+@media (hover: hover) {
+  html:not([data-theme="light"]) [class~="hover:text-white/85"]:hover,
+  html:not([data-theme="light"]) .group:hover [class~="group-hover:text-white/85"] {
+    color: color-mix(in srgb, rgb(var(--c-white)) 85%, var(--theme-body-bg)) !important;
+  }
+}
+html:not([data-theme="light"]) [class~="text-white/90"] {
+  color: color-mix(in srgb, rgb(var(--c-white)) 90%, var(--theme-body-bg)) !important;
+}
+@media (hover: hover) {
+  html:not([data-theme="light"]) [class~="hover:text-white/90"]:hover,
+  html:not([data-theme="light"]) .group:hover [class~="group-hover:text-white/90"] {
+    color: color-mix(in srgb, rgb(var(--c-white)) 90%, var(--theme-body-bg)) !important;
+  }
+}
+
+/* Dark-mode opaque flatten for legacy text-fuchsia-NNN/MM accent text. */
+html:not([data-theme="light"]) [class~="text-fuchsia-100/75"] {
+  color: color-mix(in srgb, #fae8ff 75%, var(--theme-body-bg)) !important;
+}
+@media (hover: hover) {
+  html:not([data-theme="light"]) [class~="hover:text-fuchsia-100/75"]:hover,
+  html:not([data-theme="light"]) .group:hover [class~="group-hover:text-fuchsia-100/75"] {
+    color: color-mix(in srgb, #fae8ff 75%, var(--theme-body-bg)) !important;
+  }
+}
+html:not([data-theme="light"]) [class~="text-fuchsia-200/70"] {
+  color: color-mix(in srgb, var(--c-fuchsia-200) 70%, var(--theme-body-bg)) !important;
+}
+@media (hover: hover) {
+  html:not([data-theme="light"]) [class~="hover:text-fuchsia-200/70"]:hover,
+  html:not([data-theme="light"]) .group:hover [class~="group-hover:text-fuchsia-200/70"] {
+    color: color-mix(in srgb, var(--c-fuchsia-200) 70%, var(--theme-body-bg)) !important;
+  }
+}
+html:not([data-theme="light"]) [class~="text-fuchsia-200/80"] {
+  color: color-mix(in srgb, var(--c-fuchsia-200) 80%, var(--theme-body-bg)) !important;
+}
+@media (hover: hover) {
+  html:not([data-theme="light"]) [class~="hover:text-fuchsia-200/80"]:hover,
+  html:not([data-theme="light"]) .group:hover [class~="group-hover:text-fuchsia-200/80"] {
+    color: color-mix(in srgb, var(--c-fuchsia-200) 80%, var(--theme-body-bg)) !important;
+  }
+}
+html:not([data-theme="light"]) [class~="text-fuchsia-200/90"] {
+  color: color-mix(in srgb, var(--c-fuchsia-200) 90%, var(--theme-body-bg)) !important;
+}
+@media (hover: hover) {
+  html:not([data-theme="light"]) [class~="hover:text-fuchsia-200/90"]:hover,
+  html:not([data-theme="light"]) .group:hover [class~="group-hover:text-fuchsia-200/90"] {
+    color: color-mix(in srgb, var(--c-fuchsia-200) 90%, var(--theme-body-bg)) !important;
+  }
+}
+html:not([data-theme="light"]) [class~="text-fuchsia-300/70"] {
+  color: color-mix(in srgb, rgb(var(--c-accent)) 70%, var(--theme-body-bg)) !important;
+}
+@media (hover: hover) {
+  html:not([data-theme="light"]) [class~="hover:text-fuchsia-300/70"]:hover,
+  html:not([data-theme="light"]) .group:hover [class~="group-hover:text-fuchsia-300/70"] {
+    color: color-mix(in srgb, rgb(var(--c-accent)) 70%, var(--theme-body-bg)) !important;
+  }
+}

@@ -1,28 +1,37 @@
 /**
  * dose.wiki style entry, resolved through the `@site-styles` alias in `next.config.ts`.
  *
- * Order is the contract. Four rungs, each able to re-tint the one before it: the authored Fun
- * tokens in `styles.css`, then Pro, then the surface axis, then the accent axis. The Theme Lab's
- * runtime user layer is a fifth rung, injected rather than imported, and it needs no position in
- * this list because it reaches (0,4,1) by naming `data-theme` four times and so out-ranks every
- * block below it from wherever it lands.
+ * Order is the contract, and it now spans two delivery mechanisms. The bundled rungs here:
+ * the authored Fun tokens in `styles.css`, then the surface axis, then the accent axis.
+ * The Pro presentation (`pro-theme.css`) and the light scheme (`theme-light-mode.css`) are
+ * NOT imported any more: both are attribute-gated (inert without
+ * html[data-visual-style="pro"] / html[data-theme="light"]), so the default fun+dark reader
+ * was paying ~148 KB for rules no selector could match. They ship as static copies in
+ * public/ (`npm run generate:appearance-sheets`), attached as late `<link>`s — light-mode,
+ * then Pro, then the generated chroma sheet — for exactly the readers whose appearance
+ * needs them (`src/theme/appearanceSheets.ts` documents the three attachment paths). The
+ * Theme Lab's runtime user layer needs no position in any of this because it reaches
+ * (0,4,1) by naming `data-theme` four times and so out-ranks every block below it from
+ * wherever it lands.
  *
- * Pro comes second because it is unlayered: unlayered rules beat every layered rule, and among
- * unlayered rules at equal specificity the later sheet wins. Pro is inert until <html> carries
- * data-visual-style="pro", so a Fun reader pays for the bytes and nothing else.
+ * Pro landing AFTER the bundle instead of mid-chain is safe by construction, not by luck.
+ * It is unlayered, so it still beats every layered rule; among unlayered rules it now wins
+ * source-order ties it used to lose to the sheets below, but no such tie exists: every Fun
+ * block in the surface sheet carries `:where(:not([data-visual-style="pro"]))` and cannot
+ * match a Pro root at all, the accent sheet's Pro block is (0,3,1) — a step above the Pro
+ * palette's (0,2,1), decided by specificity rather than order — and `fun-flat-glow.css`
+ * shares no equal-specificity declaration with it (measured, not assumed). What Pro DOES
+ * still win by source order is its deliberate re-overrides of equal-specificity light-mode
+ * rules, which is why the light link must always precede the Pro link.
  *
- * Surface before accent, and both after Pro, is specificity arithmetic rather than taste. The
- * base surface's Fun block and the base accent's Fun block are both (0,2,1) — level with each
- * other and with the Pro palette — so their relative order is what decides who wins: the accent
- * lands later, which is what lets the accent tint the surface instead of having the surface
- * overwrite the accent. Being after Pro costs neither of them anything, because every Fun block
- * carries `:where(:not([data-visual-style="pro"]))` and so cannot match a Pro root at all, while
- * the accent's Pro block is (0,3,1), a step above the Pro palette it re-seats. Both sheets emit
- * only the base Orchid/Default colourway now; every other look is the hue/saturation rotation
+ * Surface before accent is specificity arithmetic rather than taste: both Fun blocks are
+ * (0,2,1) — level with each other — so their relative order is what lets the accent tint
+ * the surface instead of having the surface overwrite the accent. Both sheets emit only
+ * the base Orchid/Default colourway now; every other look is the hue/saturation rotation
  * the generated chroma stylesheet applies on top.
  *
- * `effectindex.ts` deliberately does NOT import the accent sheet: that publication locks the
- * axis, so dose.wiki's plum Pro seeds would be dead bytes over its authored teal.
+ * `effectindex.ts` deliberately does NOT import the accent sheet: that publication locks
+ * the axis, so dose.wiki's plum Pro seeds would be dead bytes over its authored teal.
  *
  * `fun-flat-glow.css` is last and lowest-stakes: it re-seats the accent bloom recipes on
  * `body` for every route except the homepage, so nothing above it has to know the rule
@@ -30,7 +39,6 @@
  * bloom to remove.
  */
 import "../../styles.css";
-import "../../styles/pro-theme.css";
 import "../../styles/surface-tokens.generated.css";
 import "../../styles/accent-tokens.generated.css";
 import "../../styles/fun-flat-glow.css";

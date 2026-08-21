@@ -43,6 +43,9 @@ describe("colour axis runtime helpers", () => {
       expect(root.style.getPropertyValue(SURFACE_HUE_PROPERTY)).toBe("");
       expect(root.style.getPropertyValue(ACCENT_LEVEL_PROPERTY)).toBe("0.8");
       expect(root.style.getPropertyValue(ACCENT_HUE_PROPERTY)).toBe("120");
+      // Idempotence: the first call created the link; re-applying must not duplicate
+      // it — the same guard that keeps the bootstrap off the server-rendered copy.
+      expect(document.querySelectorAll(`link#${CHROMA_STYLESHEET_LINK_ID}`)).toHaveLength(1);
 
       // All four locked (Effect Index): the axes disengage entirely.
       applyChromaToDocument(null, null, null, null);

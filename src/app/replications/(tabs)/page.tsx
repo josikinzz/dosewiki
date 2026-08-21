@@ -11,12 +11,13 @@ import {
 import { buildPublicPageMetadata, buildSiteUrl, getPublicRoutePath } from "@server/next/publicSite";
 import { getCopy } from "@server/next/copyBlocks";
 
-// Reading `searchParams` makes this page render per request: the gallery's
-// filters live in query params (?view/?q/?type/?sort) and a pasted URL must
-// come back with its state already in the HTML. Every data read below sits on
-// the hourly `unstable_cache` window shared by the other index pages, so the
-// per-request work is assembly, not Convex traffic; a Copy Studio save still
-// revalidates the meta description immediately through the shared copy tag.
+// Statically rendered on the hourly ISR window shared by the other index
+// pages. The gallery's filters live in query params (?view/?q/?type/?sort),
+// but those are read on the client inside the explorer's own Suspense
+// boundary — the prerendered HTML is the full default gallery, and a pasted
+// URL applies its filters as soon as the client render takes over. Every data
+// read below sits on the shared `unstable_cache` window, and a Copy Studio
+// save still revalidates the meta description through the shared copy tag.
 export const revalidate = 3600;
 
 const ITEM_LIST_LIMIT = 100;
@@ -35,14 +36,7 @@ export async function generateMetadata(): Promise<Metadata> {
   });
 }
 
-type ReplicationsPageProps = {
-  searchParams: Promise<Record<string, string | string[] | undefined>>;
-};
-
-export default async function ReplicationsPage({ searchParams }: ReplicationsPageProps) {
-  // Awaited before render so the route is request-rendered and the client
-  // explorer's `useSearchParams` is served on the server — see the note above.
-  await searchParams;
+export default async function ReplicationsPage() {
   // The gallery's artist headings resolve to profile pages, and that resolution
   // needs the directory. Reading it here keeps the client gallery from fetching
   // anything itself.

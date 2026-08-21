@@ -251,18 +251,20 @@ describe("pro visual style", () => {
   const skin = read(SKIN_PATH);
   const blocks = blocksOf(skin);
 
-  it("loads the Pro visual style after the shared stylesheet", () => {
+  it("keeps the Pro visual style out of both bundled entries", () => {
     const dosewikiImports = [
       ...read(DOSEWIKI_ENTRY_PATH).matchAll(/import\s+"([^"]+)";/g),
     ].map((match) => match[1]);
 
-    // Pro follows the authored base layer. The independent surface and accent layers follow Pro,
-    // and their Pro selectors have sufficient specificity to apply their restrained seeds. The
-    // off-homepage bloom removal lands last and only re-seats tokens on `body`, so it cannot
-    // reorder anything above it.
+    // pro-theme.css is attribute-gated and no longer travels in either bundle: it ships as
+    // a static copy in public/ (generate:appearance-sheets) attached as a late <link> for
+    // exactly the readers whose style is Pro — appearanceSheets.test.ts pins the copy to
+    // this authored file and the light → Pro → chroma link order. The bundled rungs that
+    // remain: the authored base layer, then the surface and accent sheets whose Pro
+    // selectors have sufficient specificity to re-seed the late-arriving palette, then the
+    // off-homepage bloom removal, which only re-seats tokens on `body`.
     expect(dosewikiImports).toEqual([
       "../../styles.css",
-      "../../styles/pro-theme.css",
       "../../styles/surface-tokens.generated.css",
       "../../styles/accent-tokens.generated.css",
       "../../styles/fun-flat-glow.css",
@@ -272,9 +274,10 @@ describe("pro visual style", () => {
       ...read(EFFECT_INDEX_ENTRY_PATH).matchAll(/import\s+"([^"]+)";/g),
     ].map((match) => match[1]);
 
-    // No colourways and no accents: this publication locks both, so neither attribute is ever
-    // written here and both sheets would be dead bytes on every page.
-    expect(effectIndexImports).toEqual(["../../styles.css", "../../styles/pro-theme.css"]);
+    // No colourways and no accents: this publication locks both, so neither attribute is
+    // ever written here and both sheets would be dead bytes on every page. Its Pro and
+    // light sheets are server-rendered links (the flavor default needs both), not imports.
+    expect(effectIndexImports).toEqual(["../../styles.css"]);
   });
 
   it("preserves the shared cascade and resolves styles by flavor", () => {
@@ -665,18 +668,18 @@ describe("cascade rank ladder", () => {
       expect(compareSpecificity(specificityOf(`html${scheme}`), specificityOf(funSurfaces[0]))).toBe(0);
     }
 
-    // The surface sheet is imported after Pro, so at that tie a Fun block would win on source
-    // order and hand a Pro page the surface's own canvas. The guard is what makes the later
-    // import safe, so both halves of that reasoning are pinned together: the order, and the fact
-    // that every Fun block is unmatchable under Pro.
+    // The tie is now order-independent in BOTH directions. In the bundle the surface sheet
+    // loaded after Pro, so a Fun block would have won on source order; today Pro attaches as
+    // a late <link> after the whole bundle, so the tie would fall the other way — but the
+    // guard, not the order, is what a Pro page's palette rests on, and it must keep holding
+    // from wherever a future mechanism drops either sheet. Both halves stay pinned: Pro is
+    // out of the bundle entirely, and every Fun block is unmatchable under Pro.
     const imports = [...read(DOSEWIKI_ENTRY_PATH).matchAll(/import\s+"([^"]+)";/g)].map(
       (match) => match[1],
     );
 
-    expect(imports.indexOf("../../styles/surface-tokens.generated.css")).toBeGreaterThan(
-      imports.indexOf("../../styles/pro-theme.css"),
-    );
-    expect(imports.indexOf("../../styles/pro-theme.css")).toBeGreaterThan(-1);
+    expect(imports).toContain("../../styles/surface-tokens.generated.css");
+    expect(imports).not.toContain("../../styles/pro-theme.css");
 
     for (const selector of funSurfaces) {
       expect(selector).toContain(`:where(:not(${STYLE_SCOPE}))`);

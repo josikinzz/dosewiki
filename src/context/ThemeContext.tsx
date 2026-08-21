@@ -6,10 +6,16 @@ import {
   useContext,
   useEffect,
   useMemo,
+  useRef,
   useState,
   type ReactNode,
 } from "react";
 import { SITE_FLAVOR_CONFIG } from "@/config/siteFlavor";
+import {
+  ensureColorSchemeStylesheet,
+  ensureVisualStyleStylesheet,
+  whenStylesheetLoaded,
+} from "@/theme/appearanceSheets";
 import {
   applyChromaToDocument,
   DEFAULT_ACCENT_HUE,
@@ -156,6 +162,14 @@ function persistPreference(storageKey: string, value: string) {
 }
 
 /**
+ * How long an axis slider must rest before its value is persisted. A drag
+ * emits dozens of state changes per second and every localStorage write is
+ * synchronous main-thread IO, so storage hears the settled value — the
+ * decision — rather than the path the thumb took to it.
+ */
+const AXIS_PERSIST_DEBOUNCE_MS = 200;
+
+/**
  * A saved axis number — a chroma level's decimal or a hue's integer degrees —
  * persists as its string, and null removes the key: a missing key is what "the
  * site default" means to the pre-paint bootstrap, so removal — not writing the
@@ -232,7 +246,47 @@ function clampHueDegrees(value: number): number {
   return Math.min(Math.max(Math.round(value), 0), 359);
 }
 
+/**
+ * Increments on every apply; an async flip only lands while it is still the
+ * newest one. Without this, toggling pro → fun while the Pro sheet is mid-
+ * download would let the stale flip overwrite the newer appearance when the
+ * fetch settles.
+ */
+let applyAppearanceSequence = 0;
+
 function applyAppearanceToDocument({
+  colorScheme,
+  visualStyle,
+}: Pick<Appearance, "colorScheme" | "visualStyle">) {
+  if (typeof document === "undefined") {
+    return;
+  }
+
+  // The Pro and light-mode sheets are static assets attached on demand, not
+  // bundled CSS. Ensure the one(s) this appearance needs BEFORE flipping the
+  // attributes they key on: flipping first would paint a frame of Pro (or
+  // light) markup with no Pro (or light) rules on the reader's first toggle.
+  // Both ensure calls are idempotent — for a reader whose sheet was server-
+  // rendered or bootstrap-injected, `sheet` is already populated and the flip
+  // below stays synchronous.
+  const sequence = ++applyAppearanceSequence;
+  const pendingSheets = [
+    ensureColorSchemeStylesheet(colorScheme),
+    ensureVisualStyleStylesheet(visualStyle),
+  ].filter((link): link is HTMLLinkElement => link !== null && link.sheet === null);
+  if (pendingSheets.length > 0) {
+    void Promise.all(pendingSheets.map(whenStylesheetLoaded)).then(() => {
+      if (sequence === applyAppearanceSequence) {
+        flipAppearanceAttributes({ colorScheme, visualStyle });
+      }
+    });
+    return;
+  }
+
+  flipAppearanceAttributes({ colorScheme, visualStyle });
+}
+
+function flipAppearanceAttributes({
   colorScheme,
   visualStyle,
 }: Pick<Appearance, "colorScheme" | "visualStyle">) {
@@ -303,6 +357,15 @@ export function ThemeProvider({
    * never chose, so both effects wait for this.
    */
   const [hydrated, setHydrated] = useState(false);
+  /**
+   * The rAF handle for the next chroma paint, and the pending debounced axis
+   * persist. Both exist because a slider drag emits state changes far faster
+   * than either sink wants them: the document restyles at most once per
+   * frame, and storage hears only the settled value. The persist lives in a
+   * ref so the flush effect below can settle a drag its timer never got to.
+   */
+  const chromaFrameRef = useRef<number | null>(null);
+  const pendingAxisPersistRef = useRef<(() => void) | null>(null);
 
   useEffect(() => {
     const paintedColorScheme = resolvePaintedAxis(
@@ -374,37 +437,115 @@ export function ThemeProvider({
     setHydrated(true);
   }, [isVisualStyleLocked, isSurfaceLocked, isAccentLocked]);
 
+  /**
+   * Scheme and style: applied and persisted synchronously per change. These
+   * are toggle paths — one event per reader intention — so there is nothing
+   * to throttle, and a flip must reach storage before any navigation.
+   */
   useEffect(() => {
     if (!hydrated) {
       return;
     }
 
     applyAppearanceToDocument({ colorScheme, visualStyle });
-    // Effective values on unlocked axes — the saved number or the default —
-    // and null under a lock, which is how the runtime knows to leave that
-    // axis's properties off the root (all four null disengages the axis
-    // attribute entirely: Effect Index renders its authored palette).
-    applyChromaToDocument(
-      isSurfaceLocked ? null : surfaceChroma,
-      isAccentLocked ? null : accentChroma,
-      isSurfaceLocked ? null : (savedSurfaceHue ?? DEFAULT_SURFACE_HUE),
-      isAccentLocked ? null : (savedAccentHue ?? DEFAULT_ACCENT_HUE),
-    );
     persistPreference(COLOR_SCHEME_STORAGE_KEY, colorScheme);
 
     if (!isVisualStyleLocked) {
       persistPreference(VISUAL_STYLE_STORAGE_KEY, visualStyle);
     }
+  }, [hydrated, colorScheme, visualStyle, isVisualStyleLocked]);
 
-    if (!isSurfaceLocked) {
-      persistAxisNumber(SURFACE_CHROMA_STORAGE_KEY, savedSurfaceChroma);
-      persistAxisNumber(SURFACE_HUE_STORAGE_KEY, savedSurfaceHue);
+  /**
+   * The colour axes' document paint, throttled to one write batch per
+   * animation frame. The four root properties feed the generated stylesheet's
+   * whole custom-property graph, so an unthrottled drag forces a
+   * full-document style recalculation per input tick; coalescing on rAF caps
+   * that at the display's own rate while React state — and so the sliders'
+   * thumbs and rails — still tracks every tick.
+   *
+   * Painted values are the effective ones on unlocked axes — the saved number
+   * or the default — and null under a lock, which is how the runtime knows to
+   * leave that axis's properties off the root (all four null disengages the
+   * axis attribute entirely: Effect Index renders its authored palette).
+   */
+  useEffect(() => {
+    if (!hydrated) {
+      return;
     }
-    if (!isAccentLocked) {
-      persistAxisNumber(ACCENT_CHROMA_STORAGE_KEY, savedAccentChroma);
-      persistAxisNumber(ACCENT_HUE_STORAGE_KEY, savedAccentHue);
+
+    const paint = () => {
+      chromaFrameRef.current = null;
+      applyChromaToDocument(
+        isSurfaceLocked ? null : surfaceChroma,
+        isAccentLocked ? null : accentChroma,
+        isSurfaceLocked ? null : (savedSurfaceHue ?? DEFAULT_SURFACE_HUE),
+        isAccentLocked ? null : (savedAccentHue ?? DEFAULT_ACCENT_HUE),
+      );
+    };
+
+    if (typeof requestAnimationFrame !== "function") {
+      paint();
+      return;
     }
-  }, [hydrated, colorScheme, visualStyle, surfaceChroma, accentChroma, savedSurfaceChroma, savedAccentChroma, savedSurfaceHue, savedAccentHue, isVisualStyleLocked, isSurfaceLocked, isAccentLocked]);
+
+    chromaFrameRef.current = requestAnimationFrame(paint);
+    return () => {
+      if (chromaFrameRef.current !== null) {
+        cancelAnimationFrame(chromaFrameRef.current);
+        chromaFrameRef.current = null;
+      }
+    };
+  }, [hydrated, surfaceChroma, accentChroma, savedSurfaceHue, savedAccentHue, isSurfaceLocked, isAccentLocked]);
+
+  /**
+   * The colour axes' persistence, debounced past the drag. Null still removes
+   * the key (see the saved-state comment above): the debounce moves *when*
+   * `persistAxisNumber` runs, never what it writes. A fully locked pair
+   * schedules nothing, so a locked publication still never touches these
+   * keys; a single lock skips only its own axis, exactly as before.
+   */
+  useEffect(() => {
+    if (!hydrated || (isSurfaceLocked && isAccentLocked)) {
+      return;
+    }
+
+    const persist = () => {
+      if (pendingAxisPersistRef.current === persist) {
+        pendingAxisPersistRef.current = null;
+      }
+      if (!isSurfaceLocked) {
+        persistAxisNumber(SURFACE_CHROMA_STORAGE_KEY, savedSurfaceChroma);
+        persistAxisNumber(SURFACE_HUE_STORAGE_KEY, savedSurfaceHue);
+      }
+      if (!isAccentLocked) {
+        persistAxisNumber(ACCENT_CHROMA_STORAGE_KEY, savedAccentChroma);
+        persistAxisNumber(ACCENT_HUE_STORAGE_KEY, savedAccentHue);
+      }
+    };
+
+    pendingAxisPersistRef.current = persist;
+    const timer = setTimeout(persist, AXIS_PERSIST_DEBOUNCE_MS);
+    // The timer dies with the change that scheduled it; the ref survives so
+    // the flush below can settle a drag the timer never got to.
+    return () => clearTimeout(timer);
+  }, [hydrated, savedSurfaceChroma, savedAccentChroma, savedSurfaceHue, savedAccentHue, isSurfaceLocked, isAccentLocked]);
+
+  /**
+   * The debounce's safety net: a drag followed by an immediate exit —
+   * provider unmount, or a hard navigation's pagehide (which also covers
+   * entering the bfcache) — flushes the pending persist so the settled value
+   * is never lost to the debounce window.
+   */
+  useEffect(() => {
+    const flush = () => {
+      pendingAxisPersistRef.current?.();
+    };
+    window.addEventListener("pagehide", flush);
+    return () => {
+      window.removeEventListener("pagehide", flush);
+      flush();
+    };
+  }, []);
 
   const setVisualStyle = useCallback(
     (value: VisualStyle) => {

@@ -175,6 +175,7 @@ describe("ThemeProvider", () => {
     storage = installMockStorage();
     document.documentElement.removeAttribute("data-theme");
     document.documentElement.removeAttribute("data-visual-style");
+    document.documentElement.removeAttribute("data-chroma");
     document.documentElement.style.colorScheme = "";
     ensureThemeMeta().content = "";
   });
@@ -329,7 +330,8 @@ describe("ThemeProvider", () => {
     expect(screen.getByTestId("accent-chroma")).toHaveTextContent(String(DEFAULT_ACCENT_LEVEL));
     expect(screen.getByTestId("surface-hue")).toHaveTextContent("null");
     expect(screen.getByTestId("accent-hue")).toHaveTextContent("null");
-    expect(document.documentElement.dataset.chroma).toBe("");
+    // The document paint rides the next animation frame rather than the render.
+    await waitFor(() => expect(document.documentElement.dataset.chroma).toBe(""));
 
     // But a default is never persisted: absence of the key IS the default, so a future
     // default change reaches every reader who never moved a slider.
@@ -552,6 +554,70 @@ describe("ThemeProvider", () => {
     expect(window.localStorage.getItem(SURFACE_HUE_STORAGE_KEY)).toBe("40");
     // Both colour axes null disengages the axis attribute entirely: the page renders
     // the authored palette, exactly what a locked publication wants.
-    expect(document.documentElement.dataset.chroma).toBeUndefined();
+    await waitFor(() => expect(document.documentElement.dataset.chroma).toBeUndefined());
+  });
+
+  it("hears nothing mid-drag and persists the settled coordinates once", async () => {
+    const user = userEvent.setup();
+
+    renderProvider();
+
+    await waitFor(() => expect(document.documentElement.dataset.theme).toBe("dark"));
+    storage.forgetTraffic();
+
+    // Two ticks of a drag, well inside the debounce window.
+    await user.click(screen.getByRole("button", { name: "Rotate surface" }));
+    await user.click(screen.getByRole("button", { name: "Saturate surface" }));
+
+    // Mid-drag the context — and so the sliders — already moved, but storage heard
+    // nothing: localStorage writes are synchronous main-thread IO, and a tick is
+    // not a decision.
+    expect(screen.getByTestId("surface-hue")).toHaveTextContent("120");
+    expect(screen.getByTestId("surface-chroma")).toHaveTextContent("0.4");
+    const midDragKeys = storage.writes.map(([key]) => key);
+    expect(midDragKeys).not.toContain(SURFACE_HUE_STORAGE_KEY);
+    expect(midDragKeys).not.toContain(SURFACE_CHROMA_STORAGE_KEY);
+
+    // Once the drag rests, the settled coordinates persist — exactly once each.
+    await waitFor(() => {
+      expect(window.localStorage.getItem(SURFACE_HUE_STORAGE_KEY)).toBe("120");
+      expect(window.localStorage.getItem(SURFACE_CHROMA_STORAGE_KEY)).toBe("0.4");
+    });
+    expect(storage.writes.filter(([key]) => key === SURFACE_HUE_STORAGE_KEY)).toEqual([
+      [SURFACE_HUE_STORAGE_KEY, "120"],
+    ]);
+    expect(storage.writes.filter(([key]) => key === SURFACE_CHROMA_STORAGE_KEY)).toEqual([
+      [SURFACE_CHROMA_STORAGE_KEY, "0.4"],
+    ]);
+  });
+
+  it("flushes a pending drag persist on unmount", async () => {
+    const user = userEvent.setup();
+
+    const { unmount } = renderProvider();
+
+    await waitFor(() => expect(document.documentElement.dataset.theme).toBe("dark"));
+
+    // A drag followed immediately by leaving the tree: the debounce window must
+    // not swallow the choice.
+    await user.click(screen.getByRole("button", { name: "Rotate surface" }));
+    unmount();
+
+    expect(window.localStorage.getItem(SURFACE_HUE_STORAGE_KEY)).toBe("120");
+  });
+
+  it("flushes a pending drag persist on pagehide", async () => {
+    const user = userEvent.setup();
+
+    renderProvider();
+
+    await waitFor(() => expect(document.documentElement.dataset.theme).toBe("dark"));
+
+    // A drag followed by a hard navigation: React cleanups never run on unload,
+    // so pagehide is what carries the settled value into storage.
+    await user.click(screen.getByRole("button", { name: "Rotate surface" }));
+    window.dispatchEvent(new Event("pagehide"));
+
+    expect(window.localStorage.getItem(SURFACE_HUE_STORAGE_KEY)).toBe("120");
   });
 });

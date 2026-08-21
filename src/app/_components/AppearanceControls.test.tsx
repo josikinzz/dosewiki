@@ -303,7 +303,8 @@ describe("AppearanceCog", () => {
 
     await waitFor(() => {
       // The setter ran with the integer and the provider wrote the axis through — the
-      // painted custom property and the persisted degrees string: no confirm, no save.
+      // custom property painted on the next animation frame, the degrees string
+      // persisted once the drag rested: no confirm, no save step.
       expect(document.documentElement.style.getPropertyValue(ACCENT_HUE_PROPERTY)).toBe("249");
       expect(window.localStorage.getItem(ACCENT_HUE_STORAGE_KEY)).toBe("249");
     });

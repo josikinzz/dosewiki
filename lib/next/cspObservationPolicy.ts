@@ -14,7 +14,7 @@ export interface BrowserSecurityPolicyInput {
   isDevelopment: boolean;
 }
 
-type ResponseHeader = { key: string; value: string };
+export type ResponseHeader = { key: string; value: string };
 
 const ICONIFY_API_SOURCES = [
   "https://api.iconify.design",
@@ -44,13 +44,15 @@ export const ZOD_JITLESS_BOOTSTRAP_CSP_HASH =
  * policy. A locked axis emits no storage key or validity table.
  *
  * dose.wiki resolves four axes plus the two saturation levels from storage, falling back to the
- * site-default levels, and always emits the chroma stylesheet link, whose ?v= content hash
- * changes with the palette. Effect
- * Index locks visual style, surfaces, and accent. The policy test calculates each hash from
+ * site-default levels, and injects the guarded stylesheet links a saved preference needs
+ * pre-paint (light scheme, Pro style — the chroma link is server-rendered, with the same
+ * guarded fallback here). Effect
+ * Index locks visual style, surfaces, and accent, and its light default is server-rendered, so
+ * its script emits none of that machinery. The policy test calculates each hash from
  * the bootstrap builder and reports drift.
  */
 export const THEME_BOOTSTRAP_CSP_HASHES: Readonly<Record<SiteFlavor, string>> = {
-  dosewiki: "'sha256-dm2kTBIzA8G5t66cbcc2EUwBMmGbM318/EYEjhcbMek='",
+  dosewiki: "'sha256-t0xOydKKQYUQEDRuSs9Afj5TFzUDP+7z8wE2vPRwWnw='",
   effectindex: "'sha256-3SzhNzHhUNUTkETme5uNe0eYZEn0Gojm83Wqi7e9EQc='",
 };
 
