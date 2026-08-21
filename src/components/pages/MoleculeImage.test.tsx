@@ -30,7 +30,7 @@ describe("MoleculeImage", () => {
     localStorage.clear();
   });
 
-  it("changes static molecule bytes with both appearance axes", async () => {
+  it("changes class structure colorways with both appearance axes", async () => {
     const user = userEvent.setup();
     render(
       <ThemeProvider
@@ -38,29 +38,29 @@ describe("MoleculeImage", () => {
         initialVisualStyle="fun"
         isVisualStyleLocked={false}
       >
-        <Harness src="/molecules/classes/tryptamine.svg" />
+        <Harness src="/api/molecules/classes/tryptamine?v=1" />
       </ThemeProvider>,
     );
 
     const image = screen.getByRole("img", { name: "Structure" });
-    expect(image).toHaveAttribute("src", "/molecules/classes/tryptamine.svg");
+    expect(image).toHaveAttribute("src", "/api/molecules/classes/tryptamine?v=1");
 
     await user.click(screen.getByRole("button", { name: "Pro" }));
-    expect(image).toHaveAttribute("src", "/molecules-ei/classes/tryptamine.svg");
+    expect(image).toHaveAttribute("src", "/api/molecules/classes/tryptamine?v=1&colorway=pro-light");
 
     await user.click(screen.getByRole("button", { name: "Dark" }));
-    expect(image).toHaveAttribute("src", "/molecules-ei-dark/classes/tryptamine.svg");
+    expect(image).toHaveAttribute("src", "/api/molecules/classes/tryptamine?v=1&colorway=pro-dark");
 
     await user.click(screen.getByRole("button", { name: "Fun" }));
-    expect(image).toHaveAttribute("src", "/molecules/classes/tryptamine.svg");
+    expect(image).toHaveAttribute("src", "/api/molecules/classes/tryptamine?v=1");
 
     // Accent saturation zero is grey — the Fun page borrows Pro Dark's
     // chemically differentiated bytes rather than flattening the structure.
     await user.click(screen.getByRole("button", { name: "Grey accent" }));
-    expect(image).toHaveAttribute("src", "/molecules-ei-dark/classes/tryptamine.svg");
+    expect(image).toHaveAttribute("src", "/api/molecules/classes/tryptamine?v=1&colorway=pro-dark");
 
     await user.click(screen.getByRole("button", { name: "Default accent" }));
-    expect(image).toHaveAttribute("src", "/molecules/classes/tryptamine.svg");
+    expect(image).toHaveAttribute("src", "/api/molecules/classes/tryptamine?v=1");
   });
 
   it("changes dynamic route colorways without remounting", async () => {

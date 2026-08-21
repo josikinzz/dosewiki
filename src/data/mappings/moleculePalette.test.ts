@@ -3,13 +3,9 @@ import { describe, expect, it } from "vitest";
 import { SITE_FLAVOR_CONFIGS } from "@/config/siteFlavor";
 import {
   BRAND_MOLECULE_HEXES,
-  DOSEWIKI_MOLECULE_BASE_PATH,
-  EFFECT_INDEX_DARK_MOLECULE_BASE_PATH,
-  EFFECT_INDEX_MOLECULE_BASE_PATH,
   EFFECT_INDEX_MOLECULE_PALETTES,
   RECOLORABLE_MOLECULE_HEXES,
   applyMoleculeColorway,
-  moleculeColorwayBasePath,
   recolorMoleculeSvgToEffectIndex,
   resolveMoleculeColorway,
 } from "./moleculePalette";
@@ -226,22 +222,5 @@ describe("resolved molecule colorways", () => {
     expect(applyMoleculeColorway(svg, "pro-dark")).toBe(
       recolorMoleculeSvgToEffectIndex(svg, "dark"),
     );
-  });
-});
-
-describe("moleculeColorwayBasePath", () => {
-  it("resolves per flavor", () => {
-    expect(moleculeColorwayBasePath(SITE_FLAVOR_CONFIGS.dosewiki)).toBe(
-      DOSEWIKI_MOLECULE_BASE_PATH,
-    );
-    expect(moleculeColorwayBasePath(SITE_FLAVOR_CONFIGS.effectindex)).toBe(
-      EFFECT_INDEX_MOLECULE_BASE_PATH,
-    );
-  });
-
-  it("keeps dose.wiki on the pipeline's own output directory", () => {
-    expect(DOSEWIKI_MOLECULE_BASE_PATH).toBe("/molecules/");
-    expect(EFFECT_INDEX_MOLECULE_BASE_PATH).toBe("/molecules-ei/");
-    expect(EFFECT_INDEX_DARK_MOLECULE_BASE_PATH).toBe("/molecules-ei-dark/");
   });
 });

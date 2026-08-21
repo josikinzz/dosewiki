@@ -2,8 +2,9 @@
  * Public image endpoint for hand-authored chemical-class Markush depiction overrides.
  *
  * Class overrides share the `moleculeOverrides` table with substances under the
- * namespaced slug `class:<key>`. Non-overridden class structures keep using this
- * build's static `classes/*.svg` colourway assets.
+ * namespaced slug `class:<key>`. Convex is the only source for class drawings —
+ * a class with no stored row simply has no structure image (404 here, and the
+ * class detail page omits the figure).
  *
  * As with the substance route, the shared Convex row stores the dose.wiki brand palette, so
  * the Effect Index colourway is applied at serve time rather than in the data.

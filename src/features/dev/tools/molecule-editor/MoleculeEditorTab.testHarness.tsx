@@ -126,7 +126,15 @@ export function installMoleculeEditorTestHarness() {
       status: "Exhausted",
     });
     useRdkitMock.mockReturnValue({ rdkit: null, error: null });
-    useOclMock.mockReturnValue({ ocl: null, error: null });
+    // A functional identity stub, not null: the tab installs baselines through
+    // `normalizeForComparison` (ocl.Molecule.fromMolfile(m).toMolfile()) and
+    // waits for OCL before resolving any source, so a null default would keep
+    // the canvas in "Computing" forever. Identity keeps molblock fixtures
+    // (e.g. "saved molblock") byte-intact for `data-source` assertions.
+    useOclMock.mockReturnValue({
+      ocl: { Molecule: { fromMolfile: (molblock: string) => ({ toMolfile: () => molblock }) } },
+      error: null,
+    });
     vi.stubGlobal(
       "ResizeObserver",
       class {

@@ -330,18 +330,19 @@
       "consumers": [
         "src/data/indexes/chemicalClassLookup.ts",
         "lib/convex/publicChemicalClassIndex.ts",
-        "chemical-class molecule rendering and editor tooling"
+        "scripts/chemistry/seed-class-molecules.ts",
+        "chemical-class molecule editor tooling"
       ],
       "inputs": [
         "reviewed chemical class definitions, aliases, and structures",
         "article chemical_class values"
       ],
-      "freshnessRule": "Update deliberately when the reviewed chemical-class taxonomy changes, then regenerate class molecule structures.",
+      "freshnessRule": "Update deliberately when the reviewed chemical-class taxonomy changes, then seed Convex class drawings for new classes.",
       "sourceDeployment": "local working tree",
       "targetDeployment": null,
       "schemaVersion": "src/data/builders/chemicalClassTree.ts",
       "editPolicy": "editable-by-chemical-taxonomy-maintainers",
-      "refreshCommand": "npm run molecules:generate-classes"
+      "refreshCommand": "npm run molecules:seed-classes-convex"
     },
     {
       "id": "generated-smiles-overrides",

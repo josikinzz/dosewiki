@@ -123,9 +123,8 @@ R-label violet by their exact text. OCL rewrites dummy symbols to `?` and zeroes
 atom maps on every round-trip, so each editor emit is passed through `normalizeClassMolblock`,
 which restores the dummy atoms' chemistry tails from the source MOL block while keeping the edited
 coordinates (OCL preserves atom order). InChI does not support dummy atoms, so class mode compares
-canonical RDKit SMILES between the starting and edited MOL blocks instead. Static class render
-promotion is manual: copy the saved MOL block to `src/data/molecules/class-overrides/<class-key>.mol`
-before rerunning class SVG generation (the Python side re-applies labels from the atom maps).
+canonical RDKit SMILES between the starting and edited MOL blocks instead. Saved `class:` rows are
+the only drawing source for class structures — there is no static render pipeline to promote into.
 
 ## Class template mode
 

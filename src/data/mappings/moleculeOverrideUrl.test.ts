@@ -5,13 +5,8 @@ import { moleculeImageUrlForAppearance } from "./moleculeOverrideUrl";
 describe("moleculeImageUrlForAppearance", () => {
   it("leaves saturated Fun URLs untouched in either color scheme", () => {
     expect(
-      moleculeImageUrlForAppearance(
-        "/molecules/classes/tryptamine.svg",
-        "fun",
-        "light",
-        0.65,
-      ),
-    ).toBe("/molecules/classes/tryptamine.svg");
+      moleculeImageUrlForAppearance("/api/molecules/classes/tryptamine?v=1", "fun", "light", 0.65),
+    ).toBe("/api/molecules/classes/tryptamine?v=1");
     expect(moleculeImageUrlForAppearance("/api/molecules/lsd?v=1", "fun", "dark", 0.4)).toBe(
       "/api/molecules/lsd?v=1",
     );
@@ -19,24 +14,14 @@ describe("moleculeImageUrlForAppearance", () => {
 
   it("treats null as the site-default level, which is saturated and stays brand", () => {
     expect(
-      moleculeImageUrlForAppearance(
-        "/molecules/classes/tryptamine.svg",
-        "fun",
-        "light",
-        null,
-      ),
-    ).toBe("/molecules/classes/tryptamine.svg");
+      moleculeImageUrlForAppearance("/api/molecules/classes/tryptamine?v=1", "fun", "light", null),
+    ).toBe("/api/molecules/classes/tryptamine?v=1");
   });
 
   it("borrows Pro Dark bytes when the accent is fully desaturated on Fun", () => {
     expect(
-      moleculeImageUrlForAppearance(
-        "/molecules/classes/tryptamine.svg",
-        "fun",
-        "light",
-        0,
-      ),
-    ).toBe("/molecules-ei-dark/classes/tryptamine.svg");
+      moleculeImageUrlForAppearance("/api/molecules/classes/tryptamine?v=1", "fun", "light", 0),
+    ).toBe("/api/molecules/classes/tryptamine?v=1&colorway=pro-dark");
     expect(
       moleculeImageUrlForAppearance("/api/molecules/lsd?v=1", "fun", "dark", 0),
     ).toBe("/api/molecules/lsd?v=1&colorway=pro-dark");
@@ -49,23 +34,13 @@ describe("moleculeImageUrlForAppearance", () => {
     ).toBe("/api/molecules/lsd?v=1");
   });
 
-  it("switches static class structures between the generated Pro directories", () => {
+  it("versions class structure routes onto the requested Pro colorway", () => {
     expect(
-      moleculeImageUrlForAppearance(
-        "/molecules/classes/tryptamine.svg",
-        "pro",
-        "light",
-        null,
-      ),
-    ).toBe("/molecules-ei/classes/tryptamine.svg");
+      moleculeImageUrlForAppearance("/api/molecules/classes/tryptamine?v=1", "pro", "light", null),
+    ).toBe("/api/molecules/classes/tryptamine?v=1&colorway=pro-light");
     expect(
-      moleculeImageUrlForAppearance(
-        "/molecules-ei/classes/tryptamine.svg",
-        "pro",
-        "dark",
-        null,
-      ),
-    ).toBe("/molecules-ei-dark/classes/tryptamine.svg");
+      moleculeImageUrlForAppearance("/api/molecules/classes/tryptamine?v=1", "pro", "dark", null),
+    ).toBe("/api/molecules/classes/tryptamine?v=1&colorway=pro-dark");
   });
 
   it("adds the requested Pro byte colorway to dynamic image routes", () => {

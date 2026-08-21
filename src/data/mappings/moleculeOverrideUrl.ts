@@ -6,11 +6,7 @@
 import type { ColorScheme, VisualStyle } from "@/theme";
 import { DEFAULT_ACCENT_LEVEL } from "@/theme/appearanceChroma";
 
-import {
-  EFFECT_INDEX_DARK_MOLECULE_BASE_PATH,
-  EFFECT_INDEX_MOLECULE_BASE_PATH,
-  type MoleculeColorway,
-} from "./moleculePalette";
+import type { MoleculeColorway } from "./moleculePalette";
 
 function colorwayForAppearance(
   visualStyle: VisualStyle,
@@ -30,9 +26,8 @@ function colorwayForAppearance(
  * `accentChroma` is the effective accent saturation level (0..1), or `null` for the site
  * default. A fully desaturated accent (level 0) deliberately borrows Pro Dark's chemically
  * differentiated atom colours instead of flattening every atom and bond into grey; every
- * other Fun level retains the authored brand colourway. Convex depictions use a query
- * parameter handled by the public image route; static class structures switch between
- * their three generated directories.
+ * other Fun level retains the authored brand colourway. Depictions are served by the
+ * public image routes, which apply the colourway as a query parameter at serve time.
  */
 export function moleculeImageUrlForAppearance(
   source: string,
@@ -40,25 +35,12 @@ export function moleculeImageUrlForAppearance(
   colorScheme: ColorScheme,
   accentChroma: number | null,
 ): string {
-  const colorway = colorwayForAppearance(visualStyle, colorScheme, accentChroma);
-  if (colorway === "brand") {
+  const colorway: MoleculeColorway = colorwayForAppearance(visualStyle, colorScheme, accentChroma);
+  if (colorway === "brand" || !source.startsWith("/api/molecules/")) {
     return source;
   }
 
-  if (source.startsWith("/api/molecules/")) {
-    return `${source}${source.includes("?") ? "&" : "?"}colorway=${colorway}`;
-  }
-
-  const staticMatch = /^\/molecules(?:-ei|-ei-dark)?\/(.+)$/.exec(source);
-  if (!staticMatch) {
-    return source;
-  }
-
-  const basePath =
-    colorway === "pro-dark"
-      ? EFFECT_INDEX_DARK_MOLECULE_BASE_PATH
-      : EFFECT_INDEX_MOLECULE_BASE_PATH;
-  return `${basePath}${staticMatch[1]}`;
+  return `${source}${source.includes("?") ? "&" : "?"}colorway=${colorway}`;
 }
 
 /** The public image-route URL for a slug's override, busted by `updatedAt`. */

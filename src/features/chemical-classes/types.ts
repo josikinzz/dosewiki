@@ -63,6 +63,9 @@ export interface ChemicalClassDetail extends ChemicalClassIndexEntry {
   children: ChemicalClassTreeSummary[];
   /** Secondary parents (this class is a DAG node), for "Also classified under". */
   otherParents: Array<{ key: string; label: string }>;
-  /** `/molecules/classes/<key>.svg` — the generic R-group skeleton, if rendered. */
-  structureUrl?: string;
+  /**
+   * Versioned Convex override image URL (`/api/molecules/classes/<key>?v=…`),
+   * or `null` when the class has no stored drawing yet.
+   */
+  structureUrl: string | null;
 }

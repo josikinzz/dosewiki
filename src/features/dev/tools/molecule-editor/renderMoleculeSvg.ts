@@ -29,7 +29,7 @@ export interface OclModuleLike {
   };
 }
 
-// fuchsia-300 — carbon skeleton / bonds / default (render_molecules.py CARBON).
+// fuchsia-300 — carbon skeleton / bonds / default (retired Python renderer's CARBON).
 export const CARBON_COLOR = "#f0abfc";
 
 /** violet-400 — class-mode R-group labels, matching the legacy class artwork. */
@@ -37,8 +37,9 @@ export const R_LABEL_COLOR = "#c084fc";
 
 /**
  * OpenChemLib hardcodes CPK atom-label colors (AbstractDepictor). Map each
- * emitted `rgb(...)` string to the brand palette from render_molecules.py.
- * Bonds and carbon labels come out `rgb(0,0,0)` and share the carbon color.
+ * emitted `rgb(...)` string to the brand palette decoded from the retired
+ * Python renderer. Bonds and carbon labels come out `rgb(0,0,0)` and share
+ * the carbon color.
  */
 export const OCL_COLOR_TO_BRAND: Record<string, string> = {
   "rgb(0,0,0)": CARBON_COLOR, //     C / bonds / custom labels
@@ -71,10 +72,10 @@ export const OCL_COLOR_TO_STANDARD: Record<string, string> = {
 
 export const BOND_LENGTH = 28;
 export const FLOOR_MULT = 2.0;
-/** viewBox floor so 2–3 atom molecules don't over-zoom (render_molecules.py floor). */
+/** viewBox floor so 2–3 atom molecules don't over-zoom (retired Python renderer's floor). */
 export const VIEWBOX_FLOOR = BOND_LENGTH * FLOOR_MULT; // 56
 
-/** Brand stroke width for standard bonds (render_molecules.py bondLineWidth). */
+/** Brand stroke width for standard bonds (retired Python renderer's bondLineWidth). */
 export const BRAND_STROKE_WIDTH = 1.1;
 /** OCL's own standard line width at our pinned 28 px bond length (AVBL × 0.06). */
 export const OCL_BASE_STROKE_WIDTH = BOND_LENGTH * 0.06; // 1.68

@@ -73,18 +73,25 @@ Options:
 `);
 }
 
-/** Draw-time R-group labels for a class row, or an error string when unresolvable. */
-function classLabelsFor(
-  slug: string,
-  molblock: string,
-): { labels?: Record<number, string>; error?: string } {
-  if (!slug.startsWith("class:")) return {};
+/**
+ * Draw-time R-group labels for a class row. Convex class rows are
+ * self-sufficient: `chemicalIndexManual.json` (via CLASS_STRUCTURES) supplies
+ * the human labels when the class is still in the manual taxonomy; dummies it
+ * does not name fall back to a generic `R<map>` so they never render as raw
+ * `?` pseudoatoms.
+ */
+function classLabelsFor(slug: string, molblock: string): Record<number, string> | undefined {
+  if (!slug.startsWith("class:")) return undefined;
   const key = slug.slice("class:".length);
   const cls = CLASS_STRUCTURES.find((item) => item.key === key);
+  const dummies = parseClassDummies(molblock);
+  const labels = classAtomLabels(dummies, cls?.rLabels ?? {});
   if (!cls) {
-    return { error: `No class structure entry for "${key}"; refusing to render unlabeled dummies.` };
+    for (const dummy of dummies) {
+      labels[dummy.index] ??= `R${dummy.mapNum}`;
+    }
   }
-  return { labels: classAtomLabels(parseClassDummies(molblock), cls.rLabels) };
+  return labels;
 }
 
 async function main() {
@@ -157,11 +164,7 @@ async function main() {
       `${JSON.stringify(row, null, 2)}\n`,
     );
 
-    const { labels, error: labelError } = classLabelsFor(slug, row.molblock);
-    if (labelError) {
-      failures.push({ slug, reason: labelError });
-      continue;
-    }
+    const labels = classLabelsFor(slug, row.molblock);
     const svg = renderMoleculeSvg(OCL, row.molblock, labels, row.boldBonds ?? undefined);
     if (!svg) {
       failures.push({ slug, reason: "OpenChemLib could not render the stored molblock." });

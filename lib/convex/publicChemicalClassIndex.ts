@@ -3,7 +3,6 @@ import "server-only";
 import { cache } from "react";
 
 import chemicalIndexManual from "../../src/data/indexes/chemicalIndexManual.json";
-import { MOLECULE_COLORWAY_BASE_PATH } from "../../src/data/mappings/moleculePalette";
 import { buildChemicalClassTree } from "../../src/data/builders/chemicalClassTree";
 import { getCategoryIcon } from "../../src/data/config/categoryIcons";
 import { normalizeTaxonomyKey, parseQualifiedTaxonomyLabel } from "../../src/data/builders/taxonomy";
@@ -34,16 +33,6 @@ interface ManualChemicalClass {
   bioisosteres?: string[];
   structure?: { smiles: string; rLabels?: Record<string, string> };
 }
-
-/**
- * The generic R-group skeleton URL for a class, if it has a `structure`. The base path is
- * flavored: atom colours are baked into the SVG bytes, so Effect Index serves its own
- * recoloured copy of the same filenames from `/molecules-ei/`.
- */
-const classStructureUrl = (cls: ManualChemicalClass): string | undefined =>
-  cls.structure?.smiles
-    ? `${MOLECULE_COLORWAY_BASE_PATH}classes/${cls.key}.svg`
-    : undefined;
 
 interface ChemicalClassComputation {
   entries: ChemicalClassIndexEntry[];
@@ -328,7 +317,7 @@ export const getPublicChemicalClassDetailPayload = cache(
       ...entry,
       structureUrl: overrideUpdatedAt
         ? classStructureOverrideImageUrl(classKey, overrideUpdatedAt)
-        : classStructureUrl(cls),
+        : null,
       lineage: CHEMICAL_CLASS_TREE.lineageOf(classKey).map((key) => toTreeSummary(key, treePayload.nodes)),
       bioisosteres,
       children: (treePayload.nodes[classKey]?.children ?? []).map((key) =>

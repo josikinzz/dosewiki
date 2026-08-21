@@ -17,7 +17,7 @@
  */
 
 import { spawnSync } from "node:child_process";
-import { mkdirSync, readdirSync, readFileSync, rmSync, utimesSync, writeFileSync } from "node:fs";
+import { mkdirSync, readFileSync, rmSync, utimesSync, writeFileSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import * as OCL from "openchemlib";
@@ -34,7 +34,6 @@ const STAGE_DIR = join(ROOT, "tmp/molecule-pack");
 const MANIFEST_NAME = "dosewiki-molecules.json";
 const MANIFEST_PATH = join(ROOT, "public", MANIFEST_NAME);
 const ZIP_PATH = join(ROOT, "public/dosewiki-molecules.zip");
-const STATIC_CLASS_DIR = join(ROOT, "public/molecules/classes");
 const GENERATED_SMILES_PATH = join(ROOT, "src/data/mappings/generatedSmiles.json");
 const CONCURRENCY = 8;
 /** Fixed mtime for staged files so the zip is byte-deterministic per content. */
@@ -214,21 +213,9 @@ async function main() {
     standardCount += 1;
   }
 
-  const overriddenClassKeys = new Set<string>();
   for (const row of classRows) {
     const key = row.slug.slice("class:".length);
-    overriddenClassKeys.add(key);
     staged.push(stageFile(`molecules/classes/${key}.svg`, row.svg));
-  }
-  let staticClassCount = 0;
-  for (const filename of readdirSync(STATIC_CLASS_DIR)) {
-    if (!filename.endsWith(".svg")) continue;
-    const key = filename.slice(0, -".svg".length);
-    if (overriddenClassKeys.has(key)) continue;
-    staged.push(
-      stageFile(`molecules/classes/${filename}`, readFileSync(join(STATIC_CLASS_DIR, filename), "utf8")),
-    );
-    staticClassCount += 1;
   }
 
   staged.push(stageFile(MANIFEST_NAME, manifestJson));
@@ -247,7 +234,7 @@ async function main() {
 
   console.log(
     `Packed ${substanceRows.length} substances (brand), ${standardCount} standard renders, ` +
-      `${classRows.length} Convex class skeletons + ${staticClassCount} static class skeletons.`,
+      `${classRows.length} class skeletons.`,
   );
   console.log(`Wrote public/${MANIFEST_NAME} (${manifestMolecules.length} molecules) and public/dosewiki-molecules.zip`);
 

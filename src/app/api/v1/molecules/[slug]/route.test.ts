@@ -37,4 +37,12 @@ describe("public molecule SVG API", () => {
     expect(response.status).toBe(400);
     expect(mocks.query).not.toHaveBeenCalled();
   });
+
+  it("returns 404 when no Convex depiction row exists", async () => {
+    mocks.query.mockResolvedValue(null);
+    const response = await GET(new Request("https://dose.wiki/api/v1/molecules/mdma.svg"), {
+      params: Promise.resolve({ slug: "mdma.svg" }),
+    });
+    expect(response.status).toBe(404);
+  });
 });

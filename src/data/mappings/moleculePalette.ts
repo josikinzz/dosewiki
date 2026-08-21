@@ -15,28 +15,12 @@
  *     the charcoal canvas.
  *
  * This module is the single source of truth for both Pro colourways. It is a
- * pure string transform (no DOM) shared by:
- *   * `scripts/data/generateEffectIndexMoleculeColorway.ts`, which bakes both
- *     static class-structure directories.
- *   * `src/app/api/molecules/**`, which recolours Convex molecule overrides at
- *     serve time. Convex stores only the canonical Fun bytes.
+ * pure string transform (no DOM) used by `src/app/api/molecules/**`, which
+ * recolours Convex molecule overrides (substances and `class:` skeletons) at
+ * serve time. Convex stores only the canonical Fun bytes.
  */
 import { SITE_FLAVOR_CONFIG, isEffectIndex, type SiteFlavorConfig } from "../../config/siteFlavor";
 import type { ColorScheme } from "../../theme";
-
-/** Where the dose.wiki (brand) static class-structure colourway is served from. */
-export const DOSEWIKI_MOLECULE_BASE_PATH = "/molecules/";
-
-/** Directory name of the Effect Index colourway under `public/`. */
-export const EFFECT_INDEX_MOLECULE_DIRNAME = "molecules-ei";
-
-/** Where the Effect Index colourway is served from. */
-export const EFFECT_INDEX_MOLECULE_BASE_PATH = `/${EFFECT_INDEX_MOLECULE_DIRNAME}/`;
-
-/** Directory and public base path for the Pro dark static colourway. */
-export const EFFECT_INDEX_DARK_MOLECULE_DIRNAME = "molecules-ei-dark";
-export const EFFECT_INDEX_DARK_MOLECULE_BASE_PATH =
-  `/${EFFECT_INDEX_DARK_MOLECULE_DIRNAME}/`;
 
 /**
  * Effect Index element palettes: restrained CPK hues tuned for each canvas.
@@ -84,10 +68,9 @@ export type MoleculeColorway = "brand" | "pro-light" | "pro-dark";
  * Three source palettes are covered, because a molecule SVG reaching this transform may
  * have come from any of them:
  *
- *   1. **Brand** — what the `/dev` molecule editor saves into Convex and what
- *      `public/molecules/classes/` ships. Decoded from the retired
- *      `scripts/chemistry/render_molecules.py` substance renderer, whose style engine
- *      still draws the class skeletons.
+ *   1. **Brand** — what the `/dev` molecule editor saves into Convex. Decoded from the
+ *      retired `scripts/chemistry/render_molecules.py` substance renderer, whose style
+ *      contract `renderMoleculeSvg.ts` now implements.
  *   2. **RDKit standard** — the textbook colourway the same pipeline rendered with
  *      `--palette standard` (now only reachable via hand-pasted overrides).
  *   3. **Legacy dataset** — the pre-RDKit artwork literals enumerated by
@@ -101,7 +84,7 @@ export type MoleculeColorway = "brand" | "pro-light" | "pro-dark";
  * carry F, 3 carry P).
  */
 const SOURCE_HEX_TO_COLOR_KEY: Readonly<Record<string, EffectIndexMoleculeColorKey>> = {
-  // ---- Brand palette (render_molecules.py PALETTE) ----
+  // ---- Brand palette (the retired Python renderer's PALETTE) ----
   f0abfc: "carbon", // fuchsia-300 — carbon / H / bonds / default
   c4b5fd: "nitrogen", // violet-300
   fda4af: "oxygen", // rose-300
@@ -110,7 +93,7 @@ const SOURCE_HEX_TO_COLOR_KEY: Readonly<Record<string, EffectIndexMoleculeColorK
   "6ee7b7": "chlorine", // emerald-300
   fb7185: "bromine", // rose-400
   e879f9: "iodine", // fuchsia-400
-  c084fc: "rGroup", // purple-400 — Markush R-group labels (render_class_structures.py)
+  c084fc: "rGroup", // purple-400 — Markush R-group labels on class skeletons
   eef2ff: "surface", // indigo-50 — brand stand-in for white
   // Brand targets that only the legacy recolour script ever emitted.
   a5b4fc: "nitrogen", // indigo-300, legacy target for #0000ff
@@ -292,8 +275,7 @@ export function applyMoleculeColorway(svg: string, colorway: MoleculeColorway): 
 
 /**
  * Every colour literal {@link recolorMoleculeSvgToEffectIndex} recognises, lowercase and
- * `#`-prefixed. Exposed so tests and the colourway generator can assert full coverage rather
- * than restating the table.
+ * `#`-prefixed. Exposed so tests can assert full coverage rather than restating the table.
  */
 export const RECOLORABLE_MOLECULE_HEXES: readonly string[] = Object.freeze([
   ...Object.keys(SOURCE_HEX_TO_COLOR_KEY),
@@ -301,8 +283,8 @@ export const RECOLORABLE_MOLECULE_HEXES: readonly string[] = Object.freeze([
 ].map((digits) => `#${digits}`));
 
 /**
- * The dose.wiki brand palette. No Effect Index molecule may contain any of these — the
- * colourway generator fails its own output if one survives.
+ * The dose.wiki brand palette. No Effect Index molecule may contain any of these —
+ * tests assert every brand hex is rewritten.
  */
 export const BRAND_MOLECULE_HEXES: readonly string[] = Object.freeze([
   "#f0abfc",
@@ -321,12 +303,3 @@ export const BRAND_MOLECULE_HEXES: readonly string[] = Object.freeze([
   "#f5d0fe",
 ]);
 
-/** Base path of the running publication's static molecule colourway. */
-export function moleculeColorwayBasePath(
-  config: SiteFlavorConfig = SITE_FLAVOR_CONFIG,
-): string {
-  return isEffectIndex(config) ? EFFECT_INDEX_MOLECULE_BASE_PATH : DOSEWIKI_MOLECULE_BASE_PATH;
-}
-
-/** The ambient (build-time) static molecule base path. */
-export const MOLECULE_COLORWAY_BASE_PATH = moleculeColorwayBasePath();

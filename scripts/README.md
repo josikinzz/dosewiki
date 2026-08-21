@@ -1250,8 +1250,8 @@ replace rather than fill.
 
 A chemical class tag only resolves to a class page when its string matches a
 class label or alias registered in `src/data/indexes/chemicalIndexManual.json`.
-Adding a class there also needs its Markush skeleton rendered via
-`npm run molecules:generate-classes`. Single-member classes are acceptable.
+Adding a class there also needs its Markush skeleton seeded into Convex via
+`npm run molecules:seed-classes-convex`. Single-member classes are acceptable.
 
 `merge-duplicate-article-content.mjs` rescues unique legality countries and
 cross-tolerance entries from a duplicate article into the surviving one before

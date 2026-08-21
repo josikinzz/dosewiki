@@ -91,9 +91,9 @@ describe("article chemistry presentation sections", () => {
           article={article}
           chemistryPresentation={chemistryPresentation}
           moleculeAsset={{
-            filename: "Display Only.svg",
-            url: "/molecules/Display%20Only.svg",
-            matchedField: "title",
+            filename: "display-only.svg",
+            url: "/api/molecules/display-only?v=seeded",
+            matchedField: "convex-molecule",
             matchedValue: "Display Only",
           }}
           showPreviewBadge={false}
@@ -102,7 +102,7 @@ describe("article chemistry presentation sections", () => {
     );
 
     const moleculeImages = screen.getAllByAltText(chemistryPresentation.molecule.alt);
-    expect(moleculeImages[0]).toHaveAttribute("src", "/molecules-ei-dark/Display%20Only.svg");
+    expect(moleculeImages[0]).toHaveAttribute("src", "/api/molecules/display-only?v=seeded&colorway=pro-dark");
   });
 
   it("prioritizes above-the-fold molecule images with responsive sizes", () => {
@@ -117,9 +117,9 @@ describe("article chemistry presentation sections", () => {
         article={article}
         chemistryPresentation={chemistryPresentation}
         moleculeAsset={{
-          filename: "Priority Molecule.svg",
-          url: "/molecules/Priority%20Molecule.svg",
-          matchedField: "title",
+          filename: "priority-molecule.svg",
+          url: "/api/molecules/priority-molecule?v=seeded",
+          matchedField: "convex-molecule",
           matchedValue: "Priority Molecule",
         }}
         showPreviewBadge={false}
@@ -174,9 +174,9 @@ describe("article chemistry presentation sections", () => {
         article={article}
         chemistryPresentation={chemistryPresentation}
         moleculeAsset={{
-          filename: "Legacy Article.svg",
-          url: "/molecules/Legacy%20Article.svg",
-          matchedField: "title",
+          filename: "legacy-article.svg",
+          url: "/api/molecules/legacy-article?v=seeded",
+          matchedField: "convex-molecule",
           matchedValue: "Legacy Article",
         }}
         showPreviewBadge={false}

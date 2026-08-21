@@ -45,6 +45,7 @@ export const productionWriterClassifications = Object.freeze({
   dataOpsBoundary: Object.freeze([
     "scripts/batch/save-quote-doc.mjs",
     "scripts/chemistry/rerender-convex-molecules.ts",
+    "scripts/chemistry/seed-class-molecules.ts",
     "scripts/chemistry/seed-convex-molecules.ts",
     "scripts/convex/copy-molecule-overrides.mjs",
     "scripts/convex/apply-dosage-duration-transcript.mjs",

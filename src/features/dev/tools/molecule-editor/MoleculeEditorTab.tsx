@@ -193,6 +193,28 @@ export function MoleculeEditorTab({ initialSlug }: { initialSlug?: string } = {}
   const sourceRef = useRef<string | null>(null);
 
   /**
+   * Re-express a molblock in the exact textual form the canvas emits: the same
+   * OCL parse → `toMolfile` round-trip `OclEditor` performs, followed by the
+   * same dummy-atom chemistry restoration `handleEditorChange` applies (a
+   * no-op for substance molblocks, which have no dummies). Baselines installed
+   * in this form compare string-equal to a zero-edit canvas emission, so
+   * `edited !== source` — the unsaved-changes flag — only trips on a real edit,
+   * never on RDKit/Convex vs OCL formatting differences.
+   */
+  const normalizeForComparison = useCallback(
+    (molblock: string): string => {
+      if (!ocl) return molblock;
+      try {
+        const roundTripped = ocl.Molecule.fromMolfile(molblock).toMolfile();
+        return normalizeClassMolblock(roundTripped, molblock, parseClassDummies(molblock));
+      } catch {
+        return molblock; // unparseable: keep raw; the canvas load surfaces the error
+      }
+    },
+    [ocl],
+  );
+
+  /**
    * Install a MOL block as the editor's baseline, resetting the live edit with it.
    *
    * `edited` must never be reset without reloading the canvas. The canvas is
@@ -204,10 +226,11 @@ export function MoleculeEditorTab({ initialSlug }: { initialSlug?: string } = {}
    */
   const loadSource = useCallback(
     (molblock: string | null, options?: { force?: boolean; boldBonds?: number[] }) => {
-      if (!options?.force && sourceRef.current === molblock) return;
-      sourceRef.current = molblock;
-      setSource(molblock);
-      setEdited(molblock);
+      const normalized = molblock === null ? null : normalizeForComparison(molblock);
+      if (!options?.force && sourceRef.current === normalized) return;
+      sourceRef.current = normalized;
+      setSource(normalized);
+      setEdited(normalized);
       // Bold bonds belong to the baseline: a new baseline installs its own set,
       // and the redelivery no-op above keeps unsaved toggles from being reset.
       const bold = options?.boldBonds ?? [];
@@ -215,7 +238,7 @@ export function MoleculeEditorTab({ initialSlug }: { initialSlug?: string } = {}
       setBoldBaseline(bold);
       setSourceEpoch((epoch) => epoch + 1);
     },
-    [],
+    [normalizeForComparison],
   );
 
   /** Accept the live edit as the new baseline after a successful save. */
@@ -484,6 +507,13 @@ export function MoleculeEditorTab({ initialSlug }: { initialSlug?: string } = {}
       setComputing(false);
       return;
     }
+    // Every non-null baseline goes through `normalizeForComparison`, which needs
+    // OCL. Waiting here (like the rdkit gate below) keeps a raw baseline from
+    // being installed and then reloaded — wiping the canvas — once OCL arrives.
+    if (!ocl) {
+      setComputing(true);
+      return;
+    }
     // An explicit import wins in every mode, including over a loaded template.
     if (variant === "imported" && importedMolblock) {
       loadSource(importedMolblock);
@@ -574,6 +604,7 @@ export function MoleculeEditorTab({ initialSlug }: { initialSlug?: string } = {}
     articleLoading,
     smiles,
     mode,
+    ocl,
     rdkit,
     selectedClass,
     generateClassMolblock,

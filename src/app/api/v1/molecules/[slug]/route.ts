@@ -1,5 +1,3 @@
-import { readFile } from "node:fs/promises";
-import path from "node:path";
 import { NextResponse } from "next/server";
 import { api } from "../../../../../../convex/_generated/api";
 import {
@@ -50,28 +48,21 @@ export async function GET(request: Request, { params }: { params: Promise<{ slug
   try {
     const override = await getServerConvexReadClient().query(api.moleculeOverrides.getBySlug, { slug });
     svg = override?.svg ?? null;
-  } catch {
-    // Static publication assets are the intentional read fallback.
+  } catch (error) {
+    console.error(`Failed to read DoseWiki public API molecule ${slug}:`, error);
+    return NextResponse.json(publicApiError("service_unavailable", "Molecule data is temporarily unavailable."), {
+      status: 503,
+      headers: getPublicApiResponseHeaders({ cache: false }),
+    });
   }
 
   if (!svg) {
-    const directory =
-      colorway === "brand"
-        ? "molecules"
-        : colorway === "pro-dark"
-          ? "molecules-ei-dark"
-          : "molecules-ei";
-    try {
-      svg = await readFile(path.join(process.cwd(), "public", directory, `${slug}.svg`), "utf8");
-    } catch {
-      return NextResponse.json(publicApiError("not_found", "Molecule depiction not found."), {
-        status: 404,
-        headers: getPublicApiResponseHeaders({ cache: false }),
-      });
-    }
-  } else {
-    svg = applyMoleculeColorway(svg, colorway);
+    return NextResponse.json(publicApiError("not_found", "Molecule depiction not found."), {
+      status: 404,
+      headers: getPublicApiResponseHeaders({ cache: false }),
+    });
   }
+  svg = applyMoleculeColorway(svg, colorway);
 
   const headers = getPublicApiResponseHeaders();
   headers.set("Content-Type", "image/svg+xml; charset=utf-8");

@@ -1,4 +1,4 @@
-# Python deps for the class-structure SVG pipeline (scripts/chemistry/render_class_structures.py).
-# Set up a venv:  python3.13 -m venv .venv-molecules && .venv-molecules/bin/pip install -r scripts/chemistry/requirements.txt
-# Then:           npm run molecules:generate-classes
+# Python deps for scripts/chemistry/validate_smiles.py (RDKit SMILES validation,
+# used by scripts/data/mergeGeneratedSmiles.mjs).
+# Set up a venv:  npm run molecules:setup-venv
 rdkit>=2025.3

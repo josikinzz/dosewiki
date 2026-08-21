@@ -33,8 +33,9 @@ for (const f of files) {
   }
 }
 
-// SMILES were RDKit-validated by the gap-fill subagents and are re-parsed again by the
-// renderer (scripts/chemistry/render_molecules.py), which reports any that fail.
+// SMILES were RDKit-validated by the gap-fill subagents and are re-parsed again when the
+// Convex depictions are seeded (scripts/chemistry/seed-convex-molecules.ts), which reports
+// any that fail.
 const out = {
   __comment:
     'Generated SMILES overrides keyed by substance slug. Produced by subagent gap-fill ' +
