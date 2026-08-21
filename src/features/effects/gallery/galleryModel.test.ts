@@ -12,12 +12,20 @@ import {
   matchesQuery,
   splitRailsAndPool,
   sortWithinGroup,
+  workDateMs,
   UNATTRIBUTED_KEY,
   UNATTRIBUTED_LABEL,
   UNKNOWN_ARTIST_URL_KEY,
 } from './galleryModel';
 
 let seq = 0;
+function dateInfo(
+  kind: 'exact_date' | 'year' | 'range' | 'upper_bound' | 'inferred' | 'unknown',
+  value: string | null,
+) {
+  return { kind, value, event_type: 'work_created', confidence: 'high', researched_at: '2026-01-01T00:00:00Z' };
+}
+
 function rep(overrides: Partial<GalleryReplication> = {}): GalleryReplication {
   seq += 1;
   return {
@@ -334,6 +342,38 @@ describe('isWithheldFromArtistViews', () => {
   });
 });
 
+describe('workDateMs', () => {
+  it('parses an exact date', () => {
+    const row = rep({ date_info: dateInfo('exact_date', '2014-09-23') });
+    expect(workDateMs(row)).toBe(Date.parse('2014-09-23'));
+  });
+
+  it('parses a year-only value as Jan 1 of that year', () => {
+    const row = rep({ date_info: dateInfo('year', '1981') });
+    expect(workDateMs(row)).toBe(Date.UTC(1981, 0, 1));
+  });
+
+  it("extracts the date from an 'on or before' upper bound", () => {
+    const row = rep({ date_info: dateInfo('upper_bound', 'on or before 2024-04-08T04:45:05Z') });
+    expect(workDateMs(row)).toBe(Date.parse('2024-04-08'));
+  });
+
+  it("falls back to created_at when kind is 'unknown', even with a value", () => {
+    const row = rep({
+      created_at: '2023-06-15T00:00:00.000Z',
+      date_info: dateInfo('unknown', '2001-01-01'),
+    });
+    expect(workDateMs(row)).toBe(Date.parse('2023-06-15T00:00:00.000Z'));
+  });
+
+  it('falls back to created_at when date_info is missing, null-valued, or dateless', () => {
+    const createdAt = Date.parse('2024-01-01T00:00:00.000Z');
+    expect(workDateMs(rep({ date_info: undefined }))).toBe(createdAt);
+    expect(workDateMs(rep({ date_info: dateInfo('inferred', null) }))).toBe(createdAt);
+    expect(workDateMs(rep({ date_info: dateInfo('inferred', 'sometime long ago') }))).toBe(createdAt);
+  });
+});
+
 describe('sortWithinGroup', () => {
   it('prefers curated order_index, then newest created_at', () => {
     const items = [
@@ -343,6 +383,17 @@ describe('sortWithinGroup', () => {
       rep({ slug: 'd', order_index: undefined, created_at: '2024-05-01T00:00:00.000Z' }),
     ];
     expect(sortWithinGroup(items).map((item) => item.slug)).toEqual(['b', 'c', 'd', 'a']);
+  });
+
+  it('sorts by researched work date over ingest date, newest first', () => {
+    const items = [
+      // Ingested most recently, but the work itself is from 1981.
+      rep({ slug: 'vintage', created_at: '2026-01-01T00:00:00.000Z', date_info: dateInfo('year', '1981') }),
+      // No research: ingest date stands in as the work date.
+      rep({ slug: 'undated', created_at: '2020-06-01T00:00:00.000Z' }),
+      rep({ slug: 'recent', created_at: '2019-01-01T00:00:00.000Z', date_info: dateInfo('exact_date', '2024-03-05') }),
+    ];
+    expect(sortWithinGroup(items).map((item) => item.slug)).toEqual(['recent', 'undated', 'vintage']);
   });
 });
 

@@ -557,6 +557,21 @@ describe('focused views', () => {
     expect(screen.getByRole('heading', { name: 'Aria' })).toBeInTheDocument();
     expect(screen.getByText(/No videos here/)).toBeInTheDocument();
   });
+
+  it('drops the control bar and corpus stats under focus-only chrome, keeping the focus view', () => {
+    renderExplorer('', { focus: { kind: 'artist', key: 'chelsea-morgan' }, chrome: 'focus-only' });
+
+    // The Artist Page is a profile, not a querying surface: no sticky control
+    // bar (search, browse-mode, media-type, sort) and no corpus summary.
+    expect(screen.queryByTestId('gallery-control-bar')).toBeNull();
+    expect(screen.queryByText(/works · .* artists · .* effects/)).toBeNull();
+
+    // The focus view itself is untouched: back link, heading, works count, tiles.
+    expect(screen.getByRole('link', { name: /All artists/ })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Chelsea Morgan' })).toBeInTheDocument();
+    expect(screen.getByText('3 works')).toBeInTheDocument();
+    expect(screen.getAllByTestId('tile').length).toBe(3);
+  });
 });
 
 describe('one-line control bar', () => {

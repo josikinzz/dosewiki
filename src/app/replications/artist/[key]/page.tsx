@@ -38,6 +38,12 @@ import { getStaticReplicationArtistParams } from "@server/next/staticParams";
  * gallery corpus the sitemap advertises and revalidated hourly; the `?type=`
  * filter is read on the client inside the explorer's Suspense boundary. All
  * reads sit on the shared hourly `unstable_cache` window.
+ *
+ * Like the playlist pages, this sits outside the `(tabs)` group on purpose: a
+ * profile is not a section view, so it gets no "Replications" masthead or tab
+ * bar and brings its own `<main>` (the same measure the tabs layout hosts the
+ * gallery in). The explorer wears `focus-only` chrome to match — no control
+ * bar, no corpus stats, just the artist's own view.
  */
 
 export const revalidate = 3600;
@@ -126,19 +132,26 @@ export default async function ReplicationArtistPage({ params }: ArtistFocusPageP
   const profile = profileKey ? await getPublicContributorByKey(profileKey) : null;
 
   return (
-    <ReplicationsGalleryExplorer
-      replications={replications}
-      effects={effects}
-      contributorDirectory={contributorDirectory}
-      focus={{ kind: "artist", key }}
-      focusIdentity={
-        profile ? (
-          <ArtistFocusIdentity
-            profile={profile}
-            bio={profile.hasCustomBio ? <ProfileBioMarkdown content={profile.bio} /> : null}
-          />
-        ) : null
-      }
-    />
+    <main
+      id="main-content"
+      tabIndex={-1}
+      className="mx-auto w-full px-4 pb-20 pt-4 focus:outline-none 2xl:px-8"
+    >
+      <ReplicationsGalleryExplorer
+        replications={replications}
+        effects={effects}
+        contributorDirectory={contributorDirectory}
+        focus={{ kind: "artist", key }}
+        focusIdentity={
+          profile ? (
+            <ArtistFocusIdentity
+              profile={profile}
+              bio={profile.hasCustomBio ? <ProfileBioMarkdown content={profile.bio} /> : null}
+            />
+          ) : null
+        }
+        chrome="focus-only"
+      />
+    </main>
   );
 }

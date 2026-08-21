@@ -88,6 +88,16 @@ export interface ReplicationsGalleryExplorerProps {
    * bucket's route never passes one.
    */
   focusIdentity?: ReactNode;
+  /**
+   * Which shell the explorer wears. The `(tabs)` gallery keeps `'full'` — the
+   * sticky control bar (browse-mode toggle, search, media-type pills, artist
+   * sort) plus the corpus stats line. The Artist Page passes `'focus-only'`:
+   * it is a profile, not a querying surface, so only the focus view itself
+   * renders (back link, heading, identity, masonry, deck). The `?type=`
+   * filter in a shared URL still applies; there is just no control to change
+   * it here.
+   */
+  chrome?: 'full' | 'focus-only';
 }
 
 /**
@@ -136,6 +146,7 @@ function GalleryExplorer({
   contributorDirectory,
   focus,
   focusIdentity,
+  chrome = 'full',
   browse,
 }: ReplicationsGalleryExplorerProps & { browse: GalleryBrowseState }) {
   const router = useRouter();
@@ -442,211 +453,218 @@ function GalleryExplorer({
               and the media-type pills wear glyphs instead of words. From `sm`
               up every control is inline; the artist sort — three pills since
               video-first sorting landed — stays a compact menu until `md`,
-              where the row first has room for the full pill set. */}
-          <div className="sticky top-[4.75rem] z-20 mt-4 md:mt-0">
-            <div
-              data-testid="gallery-control-bar"
-              className="flex w-full min-w-0 flex-nowrap items-center gap-2 rounded-2xl border border-[color:var(--theme-frosted-control-border)] bg-[var(--theme-frosted-control-bg)] p-2 shadow-[var(--theme-frosted-control-shadow)] backdrop-blur-md sm:gap-3"
-            >
-              <ToggleGroup
-                type="single"
-                variant="pill"
-                value={mode}
-                onValueChange={(value) => value && switchMode(value as GalleryMode)}
-                aria-label="Browse by"
-                className="hidden shrink-0 sm:flex"
+              where the row first has room for the full pill set.
+
+              Under `focus-only` chrome the bar (and the stats line below) is
+              suppressed entirely — see the `chrome` prop. */}
+          {chrome === 'full' ? (
+            <div className="sticky top-[4.75rem] z-20 mt-4 md:mt-0">
+              <div
+                data-testid="gallery-control-bar"
+                className="flex w-full min-w-0 flex-nowrap items-center gap-2 rounded-2xl border border-[color:var(--theme-frosted-control-border)] bg-[var(--theme-frosted-control-bg)] p-2 shadow-[var(--theme-frosted-control-shadow)] backdrop-blur-md sm:gap-3"
               >
-                <ToggleGroupItem value="artist" className={COARSE_TARGET_CLASS}>By artist</ToggleGroupItem>
-                <ToggleGroupItem value="effect" className={COARSE_TARGET_CLASS}>By effect</ToggleGroupItem>
-              </ToggleGroup>
-
-              {/* Always mounted so the tests and the debounce wiring see one
-                  input; below `sm` its visibility is the expand/collapse
-                  state, from `sm` up it is simply the inline search box. */}
-              <div className={cn('relative min-w-0 flex-1', searchExpanded ? 'block' : 'hidden sm:block')}>
-                <Icon
-                  icon="lucide:search"
-                  className="theme-text-faint pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2"
-                />
-                <Input
-                  ref={inputRef}
-                  id="replications-gallery-search"
-                  defaultValue={browse.query}
-                  onChange={(event) => updateQuery(event.target.value)}
-                  onBlur={() => searchExpanded && setSearchExpanded(false)}
-                  onKeyDown={(event) => {
-                    if (event.key === 'Escape' && searchExpanded) {
-                      event.preventDefault();
-                      setSearchExpanded(false);
-                    }
-                  }}
-                  placeholder="Search art, artist, effect"
-                  className="h-9 pl-9 [@media(pointer:coarse)]:h-11"
-                  inputMode="search"
-                  aria-label="Search replications"
-                />
-                {/* Decorative only (aria-hidden): the debounce is 250ms, and a
-                    live region firing per keystroke would be pure noise. */}
-                {queryWritePending ? (
-                  <span
-                    aria-hidden
-                    data-testid="query-write-pending"
-                    className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2"
-                  >
-                    <Icon icon="svg-spinners:ring-resize" className="theme-text-faint h-4 w-4" />
-                  </span>
-                ) : null}
-              </div>
-
-              <ToggleGroup
-                type="single"
-                variant="pill"
-                value={typeFilter}
-                onValueChange={(value) => value && setTypeFilter(value as GalleryTypeFilter)}
-                aria-label="Filter by media type"
-                className={cn('shrink-0', searchExpanded && 'hidden sm:flex')}
-              >
-                <ToggleGroupItem value="all" className={COARSE_TARGET_CLASS}>All</ToggleGroupItem>
-                <ToggleGroupItem value="image" aria-label="Images" className={COARSE_TARGET_CLASS}>
-                  <Icon icon="lucide:image" className="sm:hidden" aria-hidden />
-                  <span className="hidden sm:inline">Images</span>
-                </ToggleGroupItem>
-                <ToggleGroupItem value="video" aria-label="Videos" className={COARSE_TARGET_CLASS}>
-                  <Icon icon="lucide:video" className="sm:hidden" aria-hidden />
-                  <span className="hidden sm:inline">Videos</span>
-                </ToggleGroupItem>
-              </ToggleGroup>
-
-              {/* Full sort pill set — the row only has room for it from `md`. */}
-              <ToggleGroup
-                type="single"
-                variant="pill"
-                value={artistSort}
-                onValueChange={(value) => value && setArtistSort(value as GalleryArtistSort)}
-                aria-label="Sort artists"
-                aria-hidden={!sortActive || undefined}
-                inert={!sortActive}
-                className={cn('hidden shrink-0 md:flex', !sortActive && 'invisible')}
-              >
-                <ToggleGroupItem value="video-first" className={COARSE_TARGET_CLASS}>Videos first</ToggleGroupItem>
-                <ToggleGroupItem value="count" className={COARSE_TARGET_CLASS}>Most works</ToggleGroupItem>
-                <ToggleGroupItem value="alpha" className={COARSE_TARGET_CLASS}>A–Z</ToggleGroupItem>
-              </ToggleGroup>
-
-              {/* Compact sort — one menu button below `md`. Like the pill set
-                  it stays mounted (inert + invisible) outside the artist
-                  browse view so the row keeps one width across mode switches. */}
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button
-                    type="button"
-                    variant="pill"
-                    size="auto"
-                    aria-label="Sort artists"
-                    aria-hidden={!sortActive || undefined}
-                    inert={!sortActive}
-                    className={cn(
-                      'flex h-8 w-8 shrink-0 items-center justify-center p-0 md:hidden [@media(pointer:coarse)]:h-11 [@media(pointer:coarse)]:w-11',
-                      searchExpanded && 'hidden',
-                      !sortActive && 'invisible',
-                    )}
-                  >
-                    <Icon icon="lucide:arrow-down-wide-narrow" className="h-4 w-4" aria-hidden />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                  <DropdownMenuRadioGroup
-                    value={artistSort}
-                    onValueChange={(value) => setArtistSort(value as GalleryArtistSort)}
-                  >
-                    <DropdownMenuRadioItem value="video-first">Videos first</DropdownMenuRadioItem>
-                    <DropdownMenuRadioItem value="count">Most works</DropdownMenuRadioItem>
-                    <DropdownMenuRadioItem value="alpha">A–Z</DropdownMenuRadioItem>
-                  </DropdownMenuRadioGroup>
-                </DropdownMenuContent>
-              </DropdownMenu>
-
-              {/* Phone search reveal — expands into the input above, which
-                  collapses back on blur or Escape. The dot marks a live query
-                  that would otherwise be invisible while collapsed. */}
-              <Button
-                type="button"
-                variant="pill"
-                size="auto"
-                aria-label="Search replications"
-                aria-expanded={searchExpanded}
-                aria-controls="replications-gallery-search"
-                onClick={() => setSearchExpanded(true)}
-                className={cn(
-                  'relative flex h-8 w-8 shrink-0 items-center justify-center p-0 sm:hidden [@media(pointer:coarse)]:h-11 [@media(pointer:coarse)]:w-11',
-                  searchExpanded && 'hidden',
-                )}
-              >
-                <Icon icon="lucide:search" className="h-4 w-4" aria-hidden />
-                {searching ? (
-                  <span
-                    aria-hidden
-                    className="absolute right-1 top-1 h-1.5 w-1.5 rounded-full bg-[var(--theme-accent-strong)]"
-                  />
-                ) : null}
-              </Button>
-
-              {/* Phone home for whatever the one-row bar cannot show inline —
-                  today that is exactly the browse-mode toggle. */}
-              <Popover open={filtersOpen} onOpenChange={setFiltersOpen}>
-                <PopoverTrigger asChild>
-                  <Button
-                    type="button"
-                    variant="pill"
-                    size="pill"
-                    className={cn(
-                      'shrink-0 gap-1.5 sm:hidden',
-                      COARSE_TARGET_CLASS,
-                      searchExpanded && 'hidden',
-                    )}
-                  >
-                    <Icon icon="lucide:sliders-horizontal" className="h-4 w-4" aria-hidden />
-                    Filters
-                  </Button>
-                </PopoverTrigger>
-                {/* Near-full-bleed below `sm` — the same phone-sheet treatment
-                    as the review bar's overflow popover. */}
-                <PopoverContent
-                  align="end"
-                  collisionPadding={8}
-                  className="w-[calc(100vw-1rem)] space-y-2 sm:w-72"
+                <ToggleGroup
+                  type="single"
+                  variant="pill"
+                  value={mode}
+                  onValueChange={(value) => value && switchMode(value as GalleryMode)}
+                  aria-label="Browse by"
+                  className="hidden shrink-0 sm:flex"
                 >
-                  <p className="theme-text-faint text-xs font-medium uppercase tracking-[0.14em]">
-                    Browse by
-                  </p>
-                  <ToggleGroup
-                    type="single"
-                    variant="pill"
-                    value={mode}
-                    onValueChange={(value) => {
-                      if (!value) return;
-                      setFiltersOpen(false);
-                      switchMode(value as GalleryMode);
+                  <ToggleGroupItem value="artist" className={COARSE_TARGET_CLASS}>By artist</ToggleGroupItem>
+                  <ToggleGroupItem value="effect" className={COARSE_TARGET_CLASS}>By effect</ToggleGroupItem>
+                </ToggleGroup>
+
+                {/* Always mounted so the tests and the debounce wiring see one
+                    input; below `sm` its visibility is the expand/collapse
+                    state, from `sm` up it is simply the inline search box. */}
+                <div className={cn('relative min-w-0 flex-1', searchExpanded ? 'block' : 'hidden sm:block')}>
+                  <Icon
+                    icon="lucide:search"
+                    className="theme-text-faint pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2"
+                  />
+                  <Input
+                    ref={inputRef}
+                    id="replications-gallery-search"
+                    defaultValue={browse.query}
+                    onChange={(event) => updateQuery(event.target.value)}
+                    onBlur={() => searchExpanded && setSearchExpanded(false)}
+                    onKeyDown={(event) => {
+                      if (event.key === 'Escape' && searchExpanded) {
+                        event.preventDefault();
+                        setSearchExpanded(false);
+                      }
                     }}
-                    aria-label="Browse by"
+                    placeholder="Search art, artist, effect"
+                    className="h-9 pl-9 [@media(pointer:coarse)]:h-11"
+                    inputMode="search"
+                    aria-label="Search replications"
+                  />
+                  {/* Decorative only (aria-hidden): the debounce is 250ms, and a
+                      live region firing per keystroke would be pure noise. */}
+                  {queryWritePending ? (
+                    <span
+                      aria-hidden
+                      data-testid="query-write-pending"
+                      className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2"
+                    >
+                      <Icon icon="svg-spinners:ring-resize" className="theme-text-faint h-4 w-4" />
+                    </span>
+                  ) : null}
+                </div>
+
+                <ToggleGroup
+                  type="single"
+                  variant="pill"
+                  value={typeFilter}
+                  onValueChange={(value) => value && setTypeFilter(value as GalleryTypeFilter)}
+                  aria-label="Filter by media type"
+                  className={cn('shrink-0', searchExpanded && 'hidden sm:flex')}
+                >
+                  <ToggleGroupItem value="all" className={COARSE_TARGET_CLASS}>All</ToggleGroupItem>
+                  <ToggleGroupItem value="image" aria-label="Images" className={COARSE_TARGET_CLASS}>
+                    <Icon icon="lucide:image" className="sm:hidden" aria-hidden />
+                    <span className="hidden sm:inline">Images</span>
+                  </ToggleGroupItem>
+                  <ToggleGroupItem value="video" aria-label="Videos" className={COARSE_TARGET_CLASS}>
+                    <Icon icon="lucide:video" className="sm:hidden" aria-hidden />
+                    <span className="hidden sm:inline">Videos</span>
+                  </ToggleGroupItem>
+                </ToggleGroup>
+
+                {/* Full sort pill set — the row only has room for it from `md`. */}
+                <ToggleGroup
+                  type="single"
+                  variant="pill"
+                  value={artistSort}
+                  onValueChange={(value) => value && setArtistSort(value as GalleryArtistSort)}
+                  aria-label="Sort artists"
+                  aria-hidden={!sortActive || undefined}
+                  inert={!sortActive}
+                  className={cn('hidden shrink-0 md:flex', !sortActive && 'invisible')}
+                >
+                  <ToggleGroupItem value="video-first" className={COARSE_TARGET_CLASS}>Videos first</ToggleGroupItem>
+                  <ToggleGroupItem value="count" className={COARSE_TARGET_CLASS}>Most works</ToggleGroupItem>
+                  <ToggleGroupItem value="alpha" className={COARSE_TARGET_CLASS}>A–Z</ToggleGroupItem>
+                </ToggleGroup>
+
+                {/* Compact sort — one menu button below `md`. Like the pill set
+                    it stays mounted (inert + invisible) outside the artist
+                    browse view so the row keeps one width across mode switches. */}
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      type="button"
+                      variant="pill"
+                      size="auto"
+                      aria-label="Sort artists"
+                      aria-hidden={!sortActive || undefined}
+                      inert={!sortActive}
+                      className={cn(
+                        'flex h-8 w-8 shrink-0 items-center justify-center p-0 md:hidden [@media(pointer:coarse)]:h-11 [@media(pointer:coarse)]:w-11',
+                        searchExpanded && 'hidden',
+                        !sortActive && 'invisible',
+                      )}
+                    >
+                      <Icon icon="lucide:arrow-down-wide-narrow" className="h-4 w-4" aria-hidden />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuRadioGroup
+                      value={artistSort}
+                      onValueChange={(value) => setArtistSort(value as GalleryArtistSort)}
+                    >
+                      <DropdownMenuRadioItem value="video-first">Videos first</DropdownMenuRadioItem>
+                      <DropdownMenuRadioItem value="count">Most works</DropdownMenuRadioItem>
+                      <DropdownMenuRadioItem value="alpha">A–Z</DropdownMenuRadioItem>
+                    </DropdownMenuRadioGroup>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+
+                {/* Phone search reveal — expands into the input above, which
+                    collapses back on blur or Escape. The dot marks a live query
+                    that would otherwise be invisible while collapsed. */}
+                <Button
+                  type="button"
+                  variant="pill"
+                  size="auto"
+                  aria-label="Search replications"
+                  aria-expanded={searchExpanded}
+                  aria-controls="replications-gallery-search"
+                  onClick={() => setSearchExpanded(true)}
+                  className={cn(
+                    'relative flex h-8 w-8 shrink-0 items-center justify-center p-0 sm:hidden [@media(pointer:coarse)]:h-11 [@media(pointer:coarse)]:w-11',
+                    searchExpanded && 'hidden',
+                  )}
+                >
+                  <Icon icon="lucide:search" className="h-4 w-4" aria-hidden />
+                  {searching ? (
+                    <span
+                      aria-hidden
+                      className="absolute right-1 top-1 h-1.5 w-1.5 rounded-full bg-[var(--theme-accent-strong)]"
+                    />
+                  ) : null}
+                </Button>
+
+                {/* Phone home for whatever the one-row bar cannot show inline —
+                    today that is exactly the browse-mode toggle. */}
+                <Popover open={filtersOpen} onOpenChange={setFiltersOpen}>
+                  <PopoverTrigger asChild>
+                    <Button
+                      type="button"
+                      variant="pill"
+                      size="pill"
+                      className={cn(
+                        'shrink-0 gap-1.5 sm:hidden',
+                        COARSE_TARGET_CLASS,
+                        searchExpanded && 'hidden',
+                      )}
+                    >
+                      <Icon icon="lucide:sliders-horizontal" className="h-4 w-4" aria-hidden />
+                      Filters
+                    </Button>
+                  </PopoverTrigger>
+                  {/* Near-full-bleed below `sm` — the same phone-sheet treatment
+                      as the review bar's overflow popover. */}
+                  <PopoverContent
+                    align="end"
+                    collisionPadding={8}
+                    className="w-[calc(100vw-1rem)] space-y-2 sm:w-72"
                   >
-                    <ToggleGroupItem value="artist" className={cn(COARSE_TARGET_CLASS, 'flex-1')}>
-                      By artist
-                    </ToggleGroupItem>
-                    <ToggleGroupItem value="effect" className={cn(COARSE_TARGET_CLASS, 'flex-1')}>
-                      By effect
-                    </ToggleGroupItem>
-                  </ToggleGroup>
-                </PopoverContent>
-              </Popover>
+                    <p className="theme-text-faint text-xs font-medium uppercase tracking-[0.14em]">
+                      Browse by
+                    </p>
+                    <ToggleGroup
+                      type="single"
+                      variant="pill"
+                      value={mode}
+                      onValueChange={(value) => {
+                        if (!value) return;
+                        setFiltersOpen(false);
+                        switchMode(value as GalleryMode);
+                      }}
+                      aria-label="Browse by"
+                    >
+                      <ToggleGroupItem value="artist" className={cn(COARSE_TARGET_CLASS, 'flex-1')}>
+                        By artist
+                      </ToggleGroupItem>
+                      <ToggleGroupItem value="effect" className={cn(COARSE_TARGET_CLASS, 'flex-1')}>
+                        By effect
+                      </ToggleGroupItem>
+                    </ToggleGroup>
+                  </PopoverContent>
+                </Popover>
+              </div>
             </div>
-          </div>
+          ) : null}
 
           {/* One quiet corpus summary for every breakpoint — the bar itself
               stays reserved for controls. */}
-          <p className="theme-text-faint mt-3 px-1 text-xs tabular-nums">
-            {counts.total} works · {counts.artists} artists · {counts.effects} effects
-          </p>
+          {chrome === 'full' ? (
+            <p className="theme-text-faint mt-3 px-1 text-xs tabular-nums">
+              {counts.total} works · {counts.artists} artists · {counts.effects} effects
+            </p>
+          ) : null}
 
           {/* Focused single-group view (own URL: /replications/artist|effect/<key>) */}
           {focus && focusedGroup ? (

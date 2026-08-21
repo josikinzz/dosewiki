@@ -170,6 +170,7 @@ export function projectPublicGalleryReplicationPreview(
     height: replication.height,
     duration: replication.duration,
     created_at: replication.created_at,
+    date_info: replication.date_info,
     order_index: replication.order_index,
   };
 }

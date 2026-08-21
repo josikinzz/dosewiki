@@ -139,6 +139,22 @@ export interface ReplicationDateInfo {
 }
 
 /**
+ * Researched estimate of when a work was actually made, as opposed to when it
+ * was ingested (`created_at`). Written by the date-research pipeline; 851 of
+ * 997 prod rows carry one. `value` shapes vary by `kind`: an ISO date
+ * ("2014-09-23"), a bare year ("1981"), or prose like
+ * "on or before 2024-04-08T04:45:05Z". Resolve it through `workDateMs`
+ * (src/features/effects/gallery/galleryModel.ts) rather than parsing ad hoc.
+ */
+export interface ReplicationDateInfo {
+  kind: 'exact_date' | 'year' | 'range' | 'upper_bound' | 'inferred' | 'unknown';
+  value: string | null;
+  event_type: string;
+  confidence: string;
+  researched_at: string;
+}
+
+/**
  * Raw replication record from Convex database.
  */
 export interface ReplicationRecord extends ReplicationRightsMetadata {
@@ -174,7 +190,7 @@ export interface ReplicationRecord extends ReplicationRightsMetadata {
   file_size?: number;
   duration?: number;
   created_at: string;
-  /** Artwork/source dating; distinct from the database import timestamp. */
+  /** Best-estimate work date; see {@link ReplicationDateInfo}. */
   date_info?: ReplicationDateInfo;
 }
 
@@ -234,8 +250,10 @@ export interface PublicGalleryReplicationPreview {
   height?: number;
   /** Video duration in seconds, shown on the tile's duration badge. */
   duration?: number;
-  /** ISO timestamp; the shared newest-first fallback sort reads it. */
+  /** ISO ingest timestamp; `workDateMs` falls back to it when `date_info` resolves nothing. */
   created_at: string;
+  /** Best-estimate work date; the shared newest-work-first sort reads it. */
+  date_info?: ReplicationDateInfo;
   /** Position within the owning effect's curated `gallery_order`. */
   order_index?: number;
 }

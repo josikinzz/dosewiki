@@ -46,14 +46,10 @@ export function ReplicationsTabNav({ className }: { className?: string }) {
     >
       <div className="theme-route-tabs-list theme-text-muted flex w-max min-w-full items-center justify-start gap-1.5 md:min-w-0">
         {SECTION_TABS.map((tab) => {
-          // The focused gallery views (/replications/artist/<key>,
-          // /replications/effect/<slug>) are states *of* the Gallery tab, so it
-          // stays lit there; Tutorials and Audio match their exact paths.
-          const isActive =
-            pathname === tab.href ||
-            (tab.href === "/replications" &&
-              (pathname.startsWith("/replications/artist/") ||
-                pathname.startsWith("/replications/effect/")));
+          // Every route that renders this nav is a tab's own exact path — the
+          // focused gallery views (/replications/artist/<key>, /replications/
+          // effect/<slug>) live outside the `(tabs)` group and carry no nav.
+          const isActive = pathname === tab.href;
 
           return (
             <Link

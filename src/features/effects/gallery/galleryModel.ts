@@ -187,21 +187,46 @@ export function effectHrefBuilder(
     !linkableEffectSlugs || linkableEffectSlugs.has(slug) ? `${base}/${slug}` : undefined;
 }
 
+/** First date-ish token in a `date_info.value`: year, year-month, or full date. */
+const WORK_DATE_TOKEN = /\d{4}(?:-\d{2}){0,2}/;
+
 /**
- * Sort within a group: curated gallery_order first, then newest, then title.
- * Generic so full-fidelity callers (the permalink's neighbour ordering) keep
- * their richer row type through the sort.
+ * Best-estimate work date in epoch ms: the first year / year-month / full-date
+ * token in `date_info.value` (year-only parses as Jan 1 UTC, so "on or before
+ * 2024-04-08T04:45:05Z" resolves to 2024-04-08). A `kind` of 'unknown', a
+ * missing `date_info`, or an unparseable value falls back to the ingest
+ * timestamp `created_at`. NaN only when both are unparseable.
+ */
+export function workDateMs(
+  row: Pick<PublicGalleryReplicationPreview, 'created_at' | 'date_info'>,
+): number {
+  const info = row.date_info;
+  if (info && info.kind !== 'unknown' && info.value) {
+    const token = WORK_DATE_TOKEN.exec(info.value)?.[0];
+    if (token) {
+      const parsed = Date.parse(token);
+      if (Number.isFinite(parsed)) return parsed;
+    }
+  }
+  return Date.parse(row.created_at ?? '');
+}
+
+/**
+ * Sort within a group: curated gallery_order first, then newest work first
+ * (`workDateMs`: researched `date_info`, falling back to ingest `created_at`),
+ * then title. Generic so full-fidelity callers (the permalink's neighbour
+ * ordering) keep their richer row type through the sort.
  */
 export function sortWithinGroup<
-  T extends Pick<PublicGalleryReplicationPreview, 'title' | 'created_at' | 'order_index'>,
+  T extends Pick<PublicGalleryReplicationPreview, 'title' | 'created_at' | 'order_index' | 'date_info'>,
 >(items: readonly T[]): T[] {
   return [...items].sort((a, b) => {
     const ao = a.order_index ?? Number.POSITIVE_INFINITY;
     const bo = b.order_index ?? Number.POSITIVE_INFINITY;
     if (ao !== bo) return ao - bo;
 
-    const at = Date.parse(a.created_at ?? '');
-    const bt = Date.parse(b.created_at ?? '');
+    const at = workDateMs(a);
+    const bt = workDateMs(b);
     if (Number.isFinite(at) && Number.isFinite(bt) && at !== bt) return bt - at;
 
     return a.title.localeCompare(b.title);
