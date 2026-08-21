@@ -99,9 +99,26 @@ describe("contributorReviewerEmails", () => {
     });
 
     // The legacy `witchy@local.dose.wiki` review stamps resolve to LYREA
-    // through the alias, without any hardcoded person-specific mapping.
+    // through the alias.
     expect([...emails].sort()).toEqual([
       "lyrea@example.com",
+      "lyrea@local.dose.wiki",
+      "witchy@local.dose.wiki",
+    ]);
+  });
+
+  it("claims a scrubbed legacy-group handle without a stored alias", () => {
+    // Prod scrubbed "witchy" from LYREA's stored aliases (unauthenticated
+    // profile reads ship aliases verbatim), so the claim must come from
+    // LEGACY_CONTRIBUTOR_HANDLE_GROUPS — otherwise the 141 completed reviews
+    // stamped witchy@local.dose.wiki credit nobody on the About roster.
+    const emails = contributorReviewerEmails({
+      key: "LYREA",
+      aliases: ["lyrea"],
+      membershipEmail: undefined,
+    });
+
+    expect([...emails].sort()).toEqual([
       "lyrea@local.dose.wiki",
       "witchy@local.dose.wiki",
     ]);

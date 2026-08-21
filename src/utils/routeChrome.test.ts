@@ -253,4 +253,27 @@ describe("route chrome model", () => {
     expect(activeIds("/contributors/alice")).toEqual([]);
     expect(activeIds("/mantras")).toEqual([]);
   });
+
+  it("keeps every nav item inactive on the homepage, under its public and prerendered names", () => {
+    // Vercel serves a statically prerendered homepage under Next's internal `/index`
+    // canonical name, and prerendered 404s under `/_not-found`; usePathname() replays
+    // those on first load. Regression: parsePath read both as substance slugs, so the
+    // Substances header item lit up on Effect Index's homepage. Neither flavor's
+    // homepage belongs to a section, so nothing may light on either spelling of it.
+    for (const config of [DOSEWIKI, EFFECT_INDEX]) {
+      for (const pathname of ["/", "/index", "/_not-found"]) {
+        const model = getRouteChromeModel(pathname, null, config);
+
+        expect(model.currentView).toEqual({ type: "home" });
+        expect(
+          [...model.primaryNavItems, ...model.secondaryNavItems].filter((item) => item.active),
+        ).toEqual([]);
+      }
+    }
+
+    const substances = getRouteChromeModel("/index", null, EFFECT_INDEX).primaryNavItems.find(
+      (item) => item.id === "substances",
+    );
+    expect(substances?.active).toBe(false);
+  });
 });

@@ -69,6 +69,44 @@ export function normalizeProfileAliases(value: readonly string[] | null | undefi
   );
 }
 
+/**
+ * Retired login handles that belong to the same person as a live profile key.
+ *
+ * These used to live as ordinary profile aliases, but unauthenticated profile
+ * reads (`contributorProfiles:getAll`) ship stored aliases verbatim, and a
+ * retired handle like "witchy" must never leave the deployment — so the alias
+ * was scrubbed from the stored row and the identity fact moved here, where
+ * attribution code can keep matching against it without ever emitting it.
+ * Both the Convex reviewer-email derivation and the changelog submitter
+ * matching expand through these groups.
+ */
+export const LEGACY_CONTRIBUTOR_HANDLE_GROUPS: readonly (readonly string[])[] = [
+  ["LYREA", "WITCHY"],
+];
+
+/**
+ * Normalize the given handles (profile key, aliases, legacy stamps — any
+ * casing) and pull in every legacy-group sibling. Returns uppercase keys,
+ * ready for stamp comparison or lowercasing into legacy credential emails.
+ */
+export function expandLegacyContributorHandles(handles: Iterable<string>): Set<string> {
+  const expanded = new Set<string>();
+  for (const handle of handles) {
+    const normalized = normalizeProfileKey(handle);
+    if (normalized) {
+      expanded.add(normalized);
+    }
+  }
+  for (const group of LEGACY_CONTRIBUTOR_HANDLE_GROUPS) {
+    if (group.some((member) => expanded.has(member))) {
+      for (const member of group) {
+        expanded.add(member);
+      }
+    }
+  }
+  return expanded;
+}
+
 export function toContributorDisplayName(key: string, fallback = "Contributor"): string {
   return (
     key

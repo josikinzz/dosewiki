@@ -91,6 +91,16 @@ export function parsePath(
 
     const [root, slug] = segments;
 
+    // Next.js prerenders the root page under its internal `/index` name and the 404
+    // page under `/_not-found`, and `usePathname()` replays those canonical names on
+    // the first load of a statically prerendered page. Neither is an address a reader
+    // can type (Next normalizes `/index` away and reserves the `_` prefix), so without
+    // this guard the `default:` arm below would read them as substance slugs and light
+    // the Substances nav item on the homepage and on 404s.
+    if ((root === "index" && segments.length === 1) || root.startsWith("_")) {
+      return resolveDefault();
+    }
+
     switch (root) {
       case "substances":
         return { type: "substances" };

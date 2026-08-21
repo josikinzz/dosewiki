@@ -1,3 +1,4 @@
+import { expandLegacyContributorHandles } from "../../../lib/contributorProfileIdentity";
 import activeEntries from "./devChangeLog.json";
 import archivedEntries from "./devChangeLog.archive.json";
 
@@ -109,42 +110,20 @@ export const sortChangeLogEntries = (entries: ChangeLogEntry[]): ChangeLogEntry[
     return b.id.localeCompare(a.id);
   });
 
-/**
- * Legacy submitter stamps that belong to the same person. Any member of a
- * group matches every other member, so WITCHY-stamped rows resolve to the
- * LYREA profile (and an internal WITCHY login still sees the merged history).
- * Public surfaces render the resolved profile, never the raw stamp, so the
- * legacy handle stays internal.
- */
-const SUBMITTER_ALIAS_GROUPS: readonly (readonly string[])[] = [["LYREA", "WITCHY"]];
-
 const normalizeSubmitterKey = (value: string | null | undefined): string =>
   (value ?? "").trim().toUpperCase();
 
 /**
  * Every submitter stamp that should attribute to the given profile: the key
- * itself, its profile aliases, and any legacy alias-group siblings.
+ * itself, its profile aliases, and any legacy handle-group siblings
+ * (`LEGACY_CONTRIBUTOR_HANDLE_GROUPS`), so WITCHY-stamped rows resolve to the
+ * LYREA profile. Public surfaces render the resolved profile, never the raw
+ * stamp, so the legacy handle stays internal.
  */
 export const buildSubmitterKeySet = (
   profileKey: string,
   aliases: readonly string[] = [],
-): Set<string> => {
-  const keys = new Set<string>();
-  for (const candidate of [profileKey, ...aliases]) {
-    const normalized = normalizeSubmitterKey(candidate);
-    if (normalized) {
-      keys.add(normalized);
-    }
-  }
-  for (const group of SUBMITTER_ALIAS_GROUPS) {
-    if (group.some((member) => keys.has(member))) {
-      for (const member of group) {
-        keys.add(member);
-      }
-    }
-  }
-  return keys;
-};
+): Set<string> => expandLegacyContributorHandles([profileKey, ...aliases]);
 
 export const entryMatchesSubmitter = (
   entry: Pick<ChangeLogEntry, "submittedBy">,

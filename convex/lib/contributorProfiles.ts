@@ -1,6 +1,7 @@
 import { v } from "convex/values";
 import {
   deriveProfileKeyFromEmail,
+  expandLegacyContributorHandles,
   findContributorProfileByKeyOrAlias,
   normalizeContributorEmail,
   normalizeProfileAliases,
@@ -209,11 +210,14 @@ const LEGACY_CREDENTIAL_EMAIL_DOMAIN = "@local.dose.wiki";
  * `setEditorialReview` stamps the reviewing actor's email, and legacy
  * credential logins derive that email from the login key
  * (`<key>@local.dose.wiki`). A profile therefore claims its `membershipEmail`
- * plus the legacy credential email of its key and of every alias — so stamps
- * made under a retired login handle (witchy@local.dose.wiki) follow the
- * profile that absorbed the alias (LYREA). Alias-derived emails are confined
- * to the internal legacy domain, so an alias can never claim an external
- * address. Callers must keep the returned set server-side.
+ * plus the legacy credential email of its key, of every alias, and of every
+ * retired handle in its legacy group (`LEGACY_CONTRIBUTOR_HANDLE_GROUPS`) —
+ * so stamps made under a retired login handle (witchy@local.dose.wiki) follow
+ * the profile that absorbed it (LYREA) even though the handle was scrubbed
+ * from the stored aliases, which unauthenticated profile reads ship verbatim.
+ * Alias-derived emails are confined to the internal legacy domain, so an
+ * alias can never claim an external address. Callers must keep the returned
+ * set server-side.
  */
 export function contributorReviewerEmails(
   profile: Pick<StoredProfile, "key" | "aliases" | "membershipEmail">,
@@ -225,11 +229,14 @@ export function contributorReviewerEmails(
       emails.add(email);
     }
   }
-  for (const handle of [profile.key, ...(profile.aliases ?? [])]) {
-    const normalized = handle.trim().toLowerCase();
+  for (const handle of expandLegacyContributorHandles([
+    profile.key,
+    ...(profile.aliases ?? []),
+  ])) {
+    const normalized = handle.toLowerCase();
     // A legacy credential key is a bare handle; anything with whitespace (a
     // display-name alias like "josie kins") never was a login key.
-    if (normalized && !/\s/.test(normalized)) {
+    if (!/\s/.test(normalized)) {
       emails.add(`${normalized}${LEGACY_CREDENTIAL_EMAIL_DOMAIN}`);
     }
   }

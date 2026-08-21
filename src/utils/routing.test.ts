@@ -63,6 +63,16 @@ describe('routing', () => {
       expect(parsePath('/replications/tutorials', null)).toEqual({ type: 'replications' });
     });
 
+    it('resolves Next-internal prerender pathnames to the default view, never a substance', () => {
+      // usePathname() replays a statically prerendered page's canonical name on first
+      // load: `/index` for the root page, `/_not-found` for the 404 page. Regression:
+      // the `default:` arm read them as substance slugs, which lit the Substances nav
+      // item on Effect Index's prerendered homepage and on 404s.
+      expect(parsePath('/index', null, { type: 'home' })).toEqual({ type: 'home' });
+      expect(parsePath('/_not-found', null, { type: 'home' })).toEqual({ type: 'home' });
+      expect(parsePath('/index', null)).toEqual({ type: 'substances' });
+    });
+
     it('parses substance slugs as short URLs', () => {
       expect(parsePath('/lsd', null)).toEqual({ type: 'substance', slug: 'lsd' });
       expect(parsePath('/mdma', null)).toEqual({ type: 'substance', slug: 'mdma' });
