@@ -25,7 +25,7 @@ export type GalleryCandidate = {
 };
 
 export type GalleryMatchProvenance = {
-  matchedVia: "effect_slug" | "effect_tags";
+  matchedVia: "effect_slug" | "effect_tags" | "curated";
   effectSlug: string;
   effectName: string;
 };

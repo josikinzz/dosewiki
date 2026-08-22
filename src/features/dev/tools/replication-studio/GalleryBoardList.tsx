@@ -69,6 +69,7 @@ const CURATED_WASH = "theme-replication-curated-wash";
 export function ProvenanceChip({ match }: { match: GalleryMatch }) {
   const { provenance } = match;
   const viaTags = provenance.matchedVia === "effect_tags";
+  const directlyCurated = provenance.matchedVia === "curated";
   return (
     <Popover>
       <PopoverTrigger asChild>
@@ -86,7 +87,9 @@ export function ProvenanceChip({ match }: { match: GalleryMatch }) {
       <PopoverContent className="w-64 p-3 text-xs" align="start">
         <p className="theme-text-primary font-medium">Matched via {provenance.matchedVia}</p>
         <p className="theme-text-muted mt-1">
-          {viaTags
+          {directlyCurated
+            ? `This row was pinned directly for this substance; its owning effect is ${match.replication.effect_name ?? "none"}.`
+            : viaTags
             ? `This row is tagged with ${provenance.effectSlug} (effect_tags); its owning effect is ${match.replication.effect_name ?? "none"}.`
             : `This row's owning effect (effect_slug) is ${provenance.effectSlug}, one of this substance's visual effects.`}
         </p>

@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   matchSubstanceGalleryReplications,
+  includeDirectlyCuratedRows,
   mergeCuratedGallery,
   normalizeGalleryCuration,
   resolveVisualEffectSlugs,
@@ -287,6 +288,26 @@ describe("mergeCuratedGallery", () => {
   });
 });
 
+describe("includeDirectlyCuratedRows", () => {
+  it("adds a direct pin once while preserving effect-derived provenance", () => {
+    const corpus = [
+      row({ slug: "matched", effect_slug: "drifting" }),
+      row({ slug: "direct", effect_slug: "geometry" }),
+      row({ slug: "uncurated", effect_slug: "geometry" }),
+    ];
+    const derived = matchSubstanceGalleryReplications(corpus, ["Visual drifting"]).matches;
+    const available = includeDirectlyCuratedRows(corpus, derived, {
+      curated_slugs: ["direct", "matched"],
+    });
+    expect(slugsOf(available)).toEqual(["matched", "direct"]);
+    expect(available[0].provenance.matchedVia).toBe("effect_slug");
+    expect(available[1].provenance).toEqual({
+      matchedVia: "curated",
+      effectSlug: "geometry",
+    });
+  });
+});
+
 describe("normalizeGalleryCuration", () => {
   const matchableSlugs = new Set(["a", "b", "c"]);
 
@@ -326,6 +347,22 @@ describe("normalizeGalleryCuration", () => {
       curatedSlugs: ["a", "b"],
       removedSlugs: ["c"],
       prunedCurated: [],
+      prunedRemoved: [],
+    });
+  });
+
+  it("allows a direct curation when a publishable row does not match an article effect", () => {
+    expect(
+      normalizeGalleryCuration({
+        curatedSlugs: ["direct", "deleted"],
+        removedSlugs: ["matched"],
+        matchableSlugs: new Set(["matched"]),
+        curatableSlugs: new Set(["direct", "matched"]),
+      }),
+    ).toEqual({
+      curatedSlugs: ["direct"],
+      removedSlugs: ["matched"],
+      prunedCurated: ["deleted"],
       prunedRemoved: [],
     });
   });

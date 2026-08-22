@@ -37,8 +37,8 @@ const EFFECT_CATEGORY_HREF_PREFIX = "/effects/category/";
 
 /** How one corpus row earned its place in a substance's showcase. */
 export type SubstanceGalleryMatchProvenance = {
-  matchedVia: "effect_slug" | "effect_tags";
-  /** The substance-derived effect slug the row matched on. */
+  matchedVia: "effect_slug" | "effect_tags" | "curated";
+  /** The matched effect slug, or the row's owning effect for a direct curation. */
   effectSlug: string;
 };
 
@@ -248,6 +248,31 @@ export function matchSubstanceGalleryReplications<Row extends SubstanceGalleryMa
   return { matches: [...videos, ...stills], unmatchedEffectNames };
 }
 
+/** Add directly pinned publishable rows that the substance's effect vocabulary does not match. */
+export function includeDirectlyCuratedRows<Row extends SubstanceGalleryMatchableRow>(
+  rows: readonly Row[],
+  matches: readonly SubstanceGalleryMatch<Row>[],
+  curation: SubstanceGalleryCuration | null | undefined,
+): SubstanceGalleryMatch<Row>[] {
+  const matchedSlugs = new Set(matches.map((match) => match.row.slug));
+  const curatedSlugs = new Set(curation?.curated_slugs ?? []);
+  const direct = rows
+    .filter(
+      (row) =>
+        curatedSlugs.has(row.slug)
+        && !matchedSlugs.has(row.slug)
+        && isPublishableReplication(row),
+    )
+    .map((row) => ({
+      row,
+      provenance: {
+        matchedVia: "curated" as const,
+        effectSlug: row.effect_slug ?? "explicit-curation",
+      },
+    }));
+  return [...matches, ...direct];
+}
+
 /**
  * The publish gate. A substance's showcase is exactly the works an editor
  * curated, in stored `curated_slugs` order, and nothing else. No curation row
@@ -298,7 +323,7 @@ export function mergeCuratedGallery<Item>(
 }
 
 export type NormalizedGalleryCuration = {
-  /** Curated list, trimmed, deduplicated, pruned to currently matching slugs. */
+  /** Curated list, trimmed, deduplicated, pruned to publishable corpus slugs. */
   curatedSlugs: string[];
   /** Suppression list, trimmed, deduplicated, pruned to currently matching slugs. */
   removedSlugs: string[];
@@ -330,6 +355,7 @@ export function normalizeGalleryCuration(input: {
   curatedSlugs: readonly string[];
   removedSlugs: readonly string[];
   matchableSlugs: ReadonlySet<string>;
+  curatableSlugs?: ReadonlySet<string>;
 }): NormalizedGalleryCuration {
   const curated = normalizeSlugList(input.curatedSlugs);
   const removed = normalizeSlugList(input.removedSlugs);
@@ -342,17 +368,17 @@ export function normalizeGalleryCuration(input: {
     );
   }
 
-  const keep = (slugs: string[]) => {
+  const keep = (slugs: string[], allowed: ReadonlySet<string>) => {
     const kept: string[] = [];
     const pruned: string[] = [];
     for (const slug of slugs) {
-      (input.matchableSlugs.has(slug) ? kept : pruned).push(slug);
+      (allowed.has(slug) ? kept : pruned).push(slug);
     }
     return { kept, pruned };
   };
 
-  const curatedSplit = keep(curated);
-  const removedSplit = keep(removed);
+  const curatedSplit = keep(curated, input.curatableSlugs ?? input.matchableSlugs);
+  const removedSplit = keep(removed, input.matchableSlugs);
 
   return {
     curatedSlugs: curatedSplit.kept,

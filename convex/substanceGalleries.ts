@@ -4,6 +4,7 @@ import { requireAuth, requireEditorWrite } from "./lib/auth";
 import { memoizedStorageUrls, resolveReplicationUrls } from "./replications";
 import {
   matchSubstanceGalleryReplications,
+  includeDirectlyCuratedRows,
   mergeCuratedGallery,
   normalizeGalleryCuration,
   resolveVisualEffectSlugs,
@@ -77,12 +78,8 @@ export const getPublicReplicationsForSubstance = query({
       return { items: [], unmatchedEffectNames: [] };
     }
 
-    const visualNames = visualEffectNamesOf(substance.subjective_effects);
-    if (visualNames.length === 0) {
-      return { items: [], unmatchedEffectNames: [] };
-    }
-
     const rows = await ctx.db.query("replications").collect();
+    const visualNames = visualEffectNamesOf(substance.subjective_effects);
     const { matches, unmatchedEffectNames } = matchSubstanceGalleryReplications(rows, visualNames);
 
     const gallery = await ctx.db
@@ -90,7 +87,11 @@ export const getPublicReplicationsForSubstance = query({
       .withIndex("by_substance", (q) => q.eq("substance_slug", args.substance_slug))
       .first();
 
-    const merged = mergeCuratedGallery(matches, gallery, (match) => match.row.slug);
+    const merged = mergeCuratedGallery(
+      includeDirectlyCuratedRows(rows, matches, gallery),
+      gallery,
+      (match) => match.row.slug,
+    );
 
     const urls = memoizedStorageUrls(ctx);
     const items = await Promise.all(
@@ -196,6 +197,12 @@ export const getCurationDetail = query({
     const rows = await ctx.db.query("replications").collect();
     const { matches, unmatchedEffectNames } = matchSubstanceGalleryReplications(rows, visualNames);
 
+    const gallery = await ctx.db
+      .query("substanceGalleries")
+      .withIndex("by_substance", (q) => q.eq("substance_slug", args.substance_slug))
+      .first();
+    const available = includeDirectlyCuratedRows(rows, matches, gallery);
+
     const effects = await ctx.db.query("subjectiveEffects").collect();
     const effectNames = new Map(effects.map((effect) => [effect.slug, effect.name ?? effect.slug]));
 
@@ -215,7 +222,7 @@ export const getCurationDetail = query({
 
     const resolvedUrls = memoizedStorageUrls(ctx);
     const resolved = await Promise.all(
-      matches.map(async ({ row, provenance }) => {
+      available.map(async ({ row, provenance }) => {
         const { url, thumbnail_url } = await resolveReplicationUrls(resolvedUrls, row, { preview: false });
         return {
           replication: {
@@ -242,11 +249,6 @@ export const getCurationDetail = query({
         };
       }),
     );
-
-    const gallery = await ctx.db
-      .query("substanceGalleries")
-      .withIndex("by_substance", (q) => q.eq("substance_slug", args.substance_slug))
-      .first();
 
     return {
       substance: { slug: substance.slug, title: substance.title },
@@ -348,6 +350,9 @@ export const upsert = mutation({
       curatedSlugs: args.curated_slugs,
       removedSlugs: args.removed_slugs,
       matchableSlugs: new Set(matches.map((match) => match.row.slug)),
+      curatableSlugs: new Set(
+        rows.filter(isPublishableReplication).map((row) => row.slug),
+      ),
     });
 
     const updated_at = new Date().toISOString();
@@ -455,8 +460,17 @@ export const getReplicationAssociationsPage = query({
     const items: ReplicationAssociation[] = [];
     for (const substance of page.page) {
       const visualNames = visualEffectNamesOf(substance.subjective_effects);
-      const provenance = associationProvenance(replication, visualNames);
-      if (!provenance) continue;
+      const gallery = await ctx.db
+        .query("substanceGalleries")
+        .withIndex("by_substance", (q) => q.eq("substance_slug", substance.slug))
+        .first();
+      const derivedProvenance = associationProvenance(replication, visualNames);
+      const directlyCurated = gallery?.curated_slugs.includes(args.replicationSlug) ?? false;
+      if (!derivedProvenance && !directlyCurated) continue;
+      const provenance = derivedProvenance ?? {
+        matchedVia: "curated" as const,
+        effectSlug: replication.effect_slug ?? "explicit-curation",
+      };
 
       // The article's own wording for the matched effect slug, paired the way
       // `getCurationDetail`'s `effectOptions` pairs it: first name in document
@@ -470,10 +484,6 @@ export const getReplicationAssociationsPage = query({
         }
       }
 
-      const gallery = await ctx.db
-        .query("substanceGalleries")
-        .withIndex("by_substance", (q) => q.eq("substance_slug", substance.slug))
-        .first();
       const curatedIndex = gallery ? gallery.curated_slugs.indexOf(args.replicationSlug) : -1;
 
       items.push({

@@ -106,6 +106,7 @@ function AssociationsSkeleton() {
 const MATCH_LABEL: Record<ReplicationAssociation["matchedVia"], string> = {
   effect_slug: "via owning effect",
   effect_tags: "via effect tag",
+  curated: "via direct curation",
 };
 
 /**
@@ -284,6 +285,11 @@ export function ReplicationAssociationsPanel({ row }: { row: StudioRow }) {
           key: "effect_tags" as const,
           caption: "Matched by effect tag",
           rows: rows.filter((entry) => entry.matchedVia === "effect_tags"),
+        },
+        {
+          key: "curated" as const,
+          caption: "Pinned directly",
+          rows: rows.filter((entry) => entry.matchedVia === "curated"),
         },
       ].filter((group) => group.rows.length > 0),
     [rows],
