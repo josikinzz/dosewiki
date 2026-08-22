@@ -2,7 +2,6 @@ import { renderHook } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import {
   isSelfScrollingRoute,
-  shouldResetScrollForRouteChromeNavigation,
   useResetScrollOnPathnameChange,
 } from "./RouteChrome";
 
@@ -38,12 +37,21 @@ describe("useResetScrollOnPathnameChange", () => {
     expect(windowScrollTo).toHaveBeenCalledWith({ top: 0, left: 0, behavior: "auto" });
     expect(scrollingElementScrollTo).toHaveBeenCalledWith({ top: 0, left: 0, behavior: "auto" });
 
-    const callsAfterInitialReset = windowScrollTo.mock.calls.length;
+    const callsAtCommit = windowScrollTo.mock.calls.length;
 
-    vi.advanceTimersByTime(1000);
+    // Late layout still gets corrected...
+    vi.advanceTimersByTime(150);
 
-    expect(windowScrollTo.mock.calls.length).toBeGreaterThan(callsAfterInitialReset);
-    expect(scrollingElementScrollTo.mock.calls.length).toBeGreaterThan(callsAfterInitialReset);
+    expect(windowScrollTo.mock.calls.length).toBeGreaterThan(callsAtCommit);
+    expect(scrollingElementScrollTo.mock.calls.length).toBeGreaterThan(callsAtCommit);
+
+    // ...but nothing lands a second later, on top of a reader who is by then
+    // several screens into the article.
+    const callsAfterCorrections = windowScrollTo.mock.calls.length;
+
+    vi.advanceTimersByTime(2000);
+
+    expect(windowScrollTo.mock.calls.length).toBe(callsAfterCorrections);
   });
 
   it("leaves hash-target navigations alone", () => {
@@ -83,19 +91,22 @@ describe("useResetScrollOnPathnameChange", () => {
     expect(isSelfScrollingRoute("/substances")).toBe(false);
   });
 
-  it("does not reset scroll for live search query replacements", () => {
-    expect(
-      shouldResetScrollForRouteChromeNavigation(
-        { type: "search", query: "d" },
-        { type: "search", query: "dm" },
-      ),
-    ).toBe(false);
+  it("stands down as soon as the reader scrolls", () => {
+    vi.useFakeTimers();
+    const windowScrollTo = vi.spyOn(window, "scrollTo").mockImplementation(() => {});
 
-    expect(
-      shouldResetScrollForRouteChromeNavigation(
-        { type: "substance", slug: "dmt" },
-        { type: "search", query: "dm" },
-      ),
-    ).toBe(true);
+    const { rerender } = renderHook(
+      ({ pathname }: { pathname: string }) => useResetScrollOnPathnameChange(pathname),
+      { initialProps: { pathname: "/" } },
+    );
+
+    rerender({ pathname: "/substances" });
+
+    const callsAtCommit = windowScrollTo.mock.calls.length;
+
+    window.dispatchEvent(new Event("wheel"));
+    vi.advanceTimersByTime(2000);
+
+    expect(windowScrollTo.mock.calls.length).toBe(callsAtCommit);
   });
 });

@@ -46,21 +46,46 @@ export function resetDocumentScroll() {
   document.scrollingElement?.scrollTo({ top: 0, left: 0, behavior: "auto" });
 }
 
+/** First sign the reader has taken the scroll position over themselves. */
+const READER_TAKEOVER_EVENTS = ["wheel", "touchstart", "keydown", "pointerdown"] as const;
+
+/**
+ * One reset at the route change plus two short corrective passes, because the
+ * new page keeps laying out after its first paint — fonts, images and
+ * client-fetched sections all move the top of the document out from under the
+ * initial reset.
+ *
+ * The corrections stand down the instant the reader scrolls, the same bargain
+ * `AnchorScrollRestore` makes. Without that guard a reader who starts reading
+ * while the route is still settling gets thrown back to the top mid-sentence,
+ * and the old unguarded cascade kept doing it for a full second after the
+ * pathname committed.
+ */
 function schedulePostNavigationScrollReset() {
   resetDocumentScroll();
 
-  const timeoutIds = [0, 50, 150, 300, 600, 1000].map((delay) => window.setTimeout(resetDocumentScroll, delay));
+  const timeoutIds = [0, 50, 150].map((delay) => window.setTimeout(resetDocumentScroll, delay));
   const frameId = window.requestAnimationFrame?.(() => {
     resetDocumentScroll();
   });
 
-  return () => {
+  const stopResetting = () => {
     timeoutIds.forEach((timeoutId) => window.clearTimeout(timeoutId));
 
     if (frameId !== undefined) {
       window.cancelAnimationFrame?.(frameId);
     }
+
+    for (const event of READER_TAKEOVER_EVENTS) {
+      window.removeEventListener(event, stopResetting);
+    }
   };
+
+  for (const event of READER_TAKEOVER_EVENTS) {
+    window.addEventListener(event, stopResetting, { passive: true, once: true });
+  }
+
+  return stopResetting;
 }
 
 function useManualScrollRestoration() {
@@ -82,9 +107,12 @@ function useManualScrollRestoration() {
  * `disabled` still tracks the pathname — it only withholds the scroll reset —
  * so a surface can opt out without the hook losing its place. The review
  * workbench does: it changes the address once per article with the History API
- * and scrolls to the top of the next article itself, so this hook's six forced
- * `scrollTo(0, 0)` calls over the following second would be firing over a
- * reviewer who has already started reading.
+ * and scrolls to the top of the next article itself, so this hook's corrective
+ * passes would be firing over a reviewer who has already started reading.
+ *
+ * This is the only scroll reset a route change gets. Scheduling one at click
+ * time as well used to scroll the *outgoing* page while the reader was still
+ * looking at it, and left two overlapping correction windows on slow routes.
  */
 export function useResetScrollOnPathnameChange(
   pathname: string,
@@ -110,13 +138,6 @@ export function isSelfScrollingRoute(pathname: string): boolean {
   return pathname === "/review" || pathname.startsWith("/review/");
 }
 
-export function shouldResetScrollForRouteChromeNavigation(
-  currentView: Parameters<typeof viewToPath>[0],
-  nextView: Parameters<typeof viewToPath>[0],
-) {
-  return currentView.type !== "search" || nextView.type !== "search";
-}
-
 interface RouteChromeProps {
   homeConstructionMode?: boolean;
 }
@@ -132,7 +153,6 @@ export function RouteChrome({ homeConstructionMode = false }: RouteChromeProps) 
   });
 
   const pushView = (nextView: Parameters<typeof viewToPath>[0]) => {
-    schedulePostNavigationScrollReset();
     if (nextView.type === "search") {
       if (model.currentView.type !== "search") {
         liveSearchOriginViewRef.current = model.currentView;
@@ -145,9 +165,6 @@ export function RouteChrome({ homeConstructionMode = false }: RouteChromeProps) 
   };
 
   const replaceView = (nextView: Parameters<typeof viewToPath>[0]) => {
-    if (shouldResetScrollForRouteChromeNavigation(model.currentView, nextView)) {
-      schedulePostNavigationScrollReset();
-    }
     if (nextView.type === "search") {
       setSearchQuery(nextView.query);
     } else {
