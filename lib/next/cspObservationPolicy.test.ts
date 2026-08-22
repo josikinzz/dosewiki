@@ -149,7 +149,12 @@ describe("browser security response policy", () => {
     expect(directiveValue(publicCsp, "connect-src")).toContain(
       "https://analytics.dose.wiki",
     );
+    expect(directiveValue(publicCsp, "connect-src")).toContain("https://us.i.posthog.com");
+    // PostHog initialises with `disable_external_dependency_loading`, so it never injects a
+    // remote script and must never widen the script policy to reach an asset host.
+    expect(directiveValue(publicCsp, "script-src")).not.toContain("posthog.com");
     expect(lookalikeCsp).not.toContain("analytics.dose.wiki");
+    expect(lookalikeCsp).not.toContain("posthog.com");
   });
 
   it("narrowly derives the HTTP and WebSocket Convex connection origins", () => {

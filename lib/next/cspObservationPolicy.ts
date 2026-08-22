@@ -1,5 +1,5 @@
 import { SITE_FLAVOR, type SiteFlavor } from "../../src/config/siteFlavor";
-import { isApprovedAnalyticsHost } from "./analyticsHostPolicy";
+import { isApprovedAnalyticsHost, POSTHOG_API_HOST } from "./analyticsHostPolicy";
 import { normalizeHost } from "./publicConstructionPolicy";
 
 export const CSP_ENFORCEMENT_HEADER = "Content-Security-Policy";
@@ -138,7 +138,10 @@ export function getBrowserSecurityHeaders({
     ...ICONIFY_API_SOURCES,
     // QuickAddReferenceCard resolves DOI and PMID metadata from these exact APIs.
     ...REFERENCE_METADATA_API_SOURCES,
-    ...(allowsPublicAnalytics ? [analyticsSource] : []),
+    // Umami and PostHog both post events from the approved public hosts only. PostHog runs
+    // with `disable_external_dependency_loading`, so it never injects a remote script and
+    // needs no `script-src` entry — only this ingestion origin.
+    ...(allowsPublicAnalytics ? [analyticsSource, POSTHOG_API_HOST] : []),
   ];
 
   const directives = [
