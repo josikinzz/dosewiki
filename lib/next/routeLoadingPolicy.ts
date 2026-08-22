@@ -25,6 +25,12 @@ export type RouteLoadingLandmark = {
 
 export type RouteLoadingViewModel = {
   family: LoadingRouteFamily;
+  /**
+   * `route` models back a Next.js `loading.tsx` boundary and stand in for the
+   * whole document; `section` models fill one Suspense hole inside a page that
+   * has already rendered. Only the former has to reserve a scrollport.
+   */
+  scope: "route" | "section";
   label: string;
   pendingLabel: string;
   stalledLabel: string;
@@ -135,6 +141,7 @@ const routeLoadingDensity = {
 export function getRouteLoadingModel(family: LoadingRouteFamily): RouteLoadingViewModel {
   return {
     family,
+    scope: "route",
     label: getRouteLoadingLabel(family),
     pendingLabel: routePendingLabels[family],
     stalledLabel: routeStalledLabels[family],
@@ -159,6 +166,7 @@ export function getSectionLoadingModel(input: {
 }): RouteLoadingViewModel {
   return {
     family: "page",
+    scope: "section",
     label: input.label,
     pendingLabel: "Preparing section content",
     stalledLabel: "Still loading. Refresh if this section does not appear.",

@@ -77,6 +77,26 @@ describe("RouteLoading renderer", () => {
     },
   );
 
+  it("reserves a scrollport for route fallbacks but not section fallbacks", () => {
+    // A fallback no taller than the viewport leaves the document unscrollable,
+    // so wheel input during the stream is clamped away and silently lost.
+    const { unmount } = render(<RouteLoading model={getRouteLoadingModel("substance")} />);
+    const route = screen.getByRole("region", { name: "Loading substance route" });
+
+    expect(route).toHaveAttribute("data-loading-scope", "route");
+    expect(route).toHaveClass("min-h-[200vh]");
+
+    unmount();
+
+    render(
+      <RouteLoading model={getSectionLoadingModel({ key: "trip-reports", label: "Loading related reports" })} />,
+    );
+    const section = screen.getByRole("region", { name: "Loading related reports" });
+
+    expect(section).toHaveAttribute("data-loading-scope", "section");
+    expect(section).toHaveClass("min-h-[50vh]");
+  });
+
   it("renders section skeletons without adding a main wrapper", () => {
     const model = getSectionLoadingModel({ key: "trip-reports-index", label: "Loading reports", variant: "list" });
 
