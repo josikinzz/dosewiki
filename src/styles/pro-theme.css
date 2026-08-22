@@ -1353,12 +1353,14 @@ html[data-visual-style="pro"] .app-header {
   --theme-text-faint: var(--ei-on-dark-faint);
   --theme-text-ghost: #7d7d7d;
 
-  /* Nav icons, the wordmark accent and the search magnifier all read
-     --theme-accent-strong; the page-scheme accent disappears on charcoal, so
-     base, strong and soft all flatten onto --ei-accent-on-dark — steps a few
-     percent of luminance apart are indistinguishable on a #2e2e2e bar. Muted
-     keeps a step of its own: a token named "muted" that equals the base is a
-     lie the next reader has to discover.
+  /* Nav icons and the search magnifier read --theme-accent-strong; the
+     wordmark's accent run — SiteWordmark's `.theme-accent-heading` span, the
+     ".wiki" in "dose.wiki" — reads --theme-section-heading. The page-scheme
+     accent disappears on charcoal, so base, strong, soft and the heading
+     token all flatten onto --ei-accent-on-dark — steps a few percent of
+     luminance apart are indistinguishable on a #2e2e2e bar. Muted keeps a
+     step of its own: a token named "muted" that equals the base is a lie the
+     next reader has to discover.
 
      It used to be a hand-tuned teal literal, which is why it was the one
      member of the family no accent could reach. The mix below is a SEMANTIC
@@ -1376,6 +1378,24 @@ html[data-visual-style="pro"] .app-header {
   --theme-accent-strong: var(--ei-accent-on-dark);
   --theme-accent-soft: var(--ei-accent-on-dark);
   --theme-accent-muted: color-mix(in srgb, var(--ei-accent-on-dark) 83%, #000000);
+
+  /* --theme-section-heading has to be RESTATED here, not left to the
+     `var(--theme-accent-strong)` it is declared as at :284. A custom property
+     whose value is a var() reference is substituted at computed-value time on
+     the element that declares it, so the html-level declaration resolves the
+     html-level accent-strong once and inherits that resolved colour into the
+     rail; rebinding accent-strong four lines up never reaches it.
+
+     Measured in the browser at the shipped default axes, before this line
+     existed: the light scheme's page accent-strong resolved #652966 and
+     painted the wordmark's ".wiki" at 1.33:1 on the #2e2e2e bar — a dark plum
+     on charcoal — while the nav icons beside it already carried the on-dark
+     step. The dark scheme hid the bug: its page accent-strong resolves #f2a9f3,
+     light enough to read on the rail (9.22:1), so the wordmark looked right
+     there while sitting a step off the logo mask and the icons around it. On
+     the on-dark seed the run resolves #e68be8 at 5.96:1 light and #e38fe4 at
+     7.31:1 dark, and equals the rail's own accent-strong in both. */
+  --theme-section-heading: var(--ei-accent-on-dark);
 
   /* The mark on dark chrome. Same accent → darker-accent ramp as the page
      mark, but built on the on-dark accent: the rail is charcoal in BOTH
@@ -1508,18 +1528,30 @@ html[data-visual-style="pro"] .app-footer {
   --theme-text-faint: #8a8a8a;
   --theme-text-ghost: #767676;
 
-  /* The header's accent family, all four members, for the same reason: this
-     rail is charcoal in both schemes, so every accent it shows has to come
-     from the scheme-independent on-dark seed. The footer stopped at three,
-     which left --theme-accent-muted resolving the page-scheme
-     --ei-accent-muted — #34837c at 3.68:1 here on paper — for anything that
-     lands in this subtree. Nothing does yet; the AppearanceControls cluster
-     lives here and is the likeliest first. The muted step repeats the
-     header's mix and measures 5.63:1 against this darker rail. */
+  /* The header's accent family, all four members plus the heading token, for
+     the same reason: this rail is charcoal in both schemes, so every accent it
+     shows has to come from the scheme-independent on-dark seed. The footer
+     stopped at three, which left --theme-accent-muted resolving the
+     page-scheme --ei-accent-muted — #34837c at 3.68:1 here on paper — for
+     anything that lands in this subtree. Nothing does yet; the
+     AppearanceControls cluster lives here and is the likeliest first. The
+     muted step repeats the header's mix and measures 5.63:1 against this
+     darker rail. */
   --theme-accent: var(--ei-accent-on-dark);
   --theme-accent-strong: var(--ei-accent-on-dark);
   --theme-accent-soft: var(--ei-accent-on-dark);
   --theme-accent-muted: color-mix(in srgb, var(--ei-accent-on-dark) 83%, #000000);
+
+  /* The heading token, restated for the same computed-value-time reason as the
+     header's at :1398: the html-level
+     `--theme-section-heading: var(--theme-accent-strong)` is resolved on html
+     and inherited already-resolved, so the four lines above cannot reach it.
+     Nothing in this rail carries `.theme-accent-heading` today — the footer
+     dropped its wordmark (Footer.tsx:27) — so this is the same forward
+     provision as the muted step above: a heading landing here would otherwise
+     paint the light scheme's page accent-strong #652966 at 1.62:1 on this
+     rail. */
+  --theme-section-heading: var(--ei-accent-on-dark);
 
   /* Same treatment as the header: the rail mark runs accent → darker accent
      on the on-dark seed. It is not dimmed to a grey ramp to keep the footer

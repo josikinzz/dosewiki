@@ -53,14 +53,20 @@ import {
  * 1. **Descendant selectors.** The resolver in `accentAppearanceGrid.ts` is root-only by design and
  *    rejects any selector with a descendant combinator — see its own header for why: a descendant
  *    block's ground depends on where the element sits in the DOM, which a cascade-only model cannot
- *    know. So the five declarations in `html[data-visual-style="pro"] .app-header` (`pro-theme.css`
- *    ~1294-1298) and `.app-footer` (~1480-1482), which re-point the whole text ramp onto the chrome
- *    rails, are invisible here. They were measured only in a browser; the verified numbers, kept so
- *    a future reader has a baseline rather than a rumour:
+ *    know. So the rail blocks `html[data-visual-style="pro"] .app-header` (`pro-theme.css`
+ *    ~1349-1398) and `.app-footer` (~1526-1554), which re-point the whole text ramp and the accent
+ *    family onto the chrome rails, are invisible here. They were measured only in a browser; the
+ *    verified numbers, kept so a future reader has a baseline rather than a rumour:
  *    footer muted `#a6a6a6` 6.77:1 on the light rail `#1f1f1f` / 7.22:1 on the dark rail `#191919`;
  *    footer faint `#8a8a8a` 4.77:1 / 5.09:1; footer ghost `#767676` 3.63:1 / 3.87:1 against the 3:1
  *    decorative floor; header `--ei-on-dark-faint` `#9a9a9a` 4.83:1 on `#2e2e2e` / 5.86:1 on
- *    `#1f1f1f`; header ghost `#7d7d7d` 3.30:1 / 4.00:1.
+ *    `#1f1f1f`; header ghost `#7d7d7d` 3.30:1 / 4.00:1. `--theme-section-heading` is on the same
+ *    list for the same reason: the rails restate it because the html-level
+ *    `var(--theme-accent-strong)` is substituted on `html` and inherited already-resolved, so
+ *    rebinding accent-strong inside the rail cannot reach it. Before that restatement the header
+ *    wordmark's `.wiki` painted the light scheme's page accent-strong `#652966` at **1.33:1** on
+ *    the `#2e2e2e` bar (dark scheme `#f2a9f3`, 9.22:1, hid it); on the on-dark seed it measures
+ *    `#e68be8` 5.96:1 light and `#e38fe4` 7.31:1 dark, both at the shipped default axes.
  * 2. **Gradients, and alpha over an image.** A ground that is a gradient or a translucent wash over
  *    photography has no single luminance to divide by, so it cannot be composited from tokens
  *    alone: the six Fun `--theme-semantic-*-badge-bg` fills, the frosted panels, and the media
