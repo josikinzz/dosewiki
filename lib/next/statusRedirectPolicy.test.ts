@@ -91,7 +91,16 @@ describe("status and redirect policy", () => {
     const disallow = Array.isArray(rules.disallow) ? rules.disallow : [rules.disallow];
 
     expect(robots.sitemap).toBe("https://dosewiki-admin.vercel.app/sitemap.xml");
-    expect(disallow).toEqual(["/dev", "/review", "/sign-in", "/unauthorized", "/search"]);
+    // `/preview` is not a no-index *route* — it is a second address for every route, so
+    // it is disallowed alongside them rather than through `noIndexRoutePolicies`.
+    expect(disallow).toEqual([
+      "/dev",
+      "/review",
+      "/sign-in",
+      "/unauthorized",
+      "/search",
+      "/preview",
+    ]);
     expect(noIndexRoutePolicies.every((policy) => disallow.includes(policy.robotsDisallow))).toBe(true);
   });
 

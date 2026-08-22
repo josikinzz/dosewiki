@@ -145,44 +145,123 @@ describe("middleware role policy adapter", () => {
     );
   });
 
-  it("redirects public dose.wiki article routes to the construction homepage", async () => {
+  it("bounces public dose.wiki article routes into the preview address space", async () => {
     const { middleware } = await import("../middleware");
 
     const response = await middleware(makePublicRequest("/fentanyl"));
 
     expect(response.status).toBe(307);
-    expect(response.headers.get("location")).toBe("https://dose.wiki/");
+    expect(response.headers.get("location")).toBe("https://dose.wiki/preview/fentanyl");
     expect(mocks.getToken).not.toHaveBeenCalled();
   });
 
-  it("keeps public dose.wiki substance aliases behind the construction homepage", async () => {
+  it("carries the query string into the preview address", async () => {
     const { middleware } = await import("../middleware");
 
-    const response = await middleware(makePublicRequest("/psilocybin"));
+    const response = await middleware(makePublicRequest("/search?q=lsd"));
+
+    expect(response.status).toBe(307);
+    expect(response.headers.get("location")).toBe("https://dose.wiki/preview/search?q=lsd");
+  });
+
+  it("resolves public dose.wiki substance aliases inside the preview prefix", async () => {
+    const { middleware } = await import("../middleware");
+
+    const response = await middleware(makePublicRequest("/preview/psilocybin"));
+
+    expect(response.status).toBe(308);
+    expect(response.headers.get("location")).toBe(
+      "https://dose.wiki/preview/psilocybin-mushrooms",
+    );
+    expect(mocks.getToken).not.toHaveBeenCalled();
+  });
+
+  it("resolves legacy search paths inside the preview prefix", async () => {
+    const { middleware } = await import("../middleware");
+
+    const response = await middleware(makePublicRequest("/preview/search/lsd"));
+
+    expect(response.status).toBe(308);
+    expect(response.headers.get("location")).toBe("https://dose.wiki/preview/search?q=lsd");
+    expect(mocks.getToken).not.toHaveBeenCalled();
+  });
+
+  it("serves the real homepage at the preview home address", async () => {
+    const { middleware } = await import("../middleware");
+
+    const response = await middleware(makePublicRequest("/preview/home"));
+
+    expect(response.status).toBe(200);
+    expect(response.headers.get("location")).toBeNull();
+    expect(response.headers.get("x-middleware-rewrite")).toBe("https://dose.wiki/");
+  });
+
+  it("rewrites a preview section onto the route it mirrors", async () => {
+    const { middleware } = await import("../middleware");
+
+    const response = await middleware(makePublicRequest("/preview/substances?tab=common"));
+
+    expect(response.status).toBe(200);
+    expect(response.headers.get("x-middleware-rewrite")).toBe(
+      "https://dose.wiki/substances?tab=common",
+    );
+  });
+
+  it("keeps the bare construction host on the holding page", async () => {
+    const { middleware } = await import("../middleware");
+
+    const response = await middleware(makePublicRequest("/"));
+
+    expect(response.status).toBe(200);
+    expect(response.headers.get("x-middleware-rewrite")).toBe(
+      "https://dose.wiki/under-construction",
+    );
+  });
+
+  it("keeps the editor behind the gate rather than lifting it into preview", async () => {
+    const { middleware } = await import("../middleware");
+
+    const response = await middleware(makePublicRequest("/dev/articles"));
 
     expect(response.status).toBe(307);
     expect(response.headers.get("location")).toBe("https://dose.wiki/");
     expect(mocks.getToken).not.toHaveBeenCalled();
   });
 
-  it("keeps public dose.wiki legacy search paths behind the construction homepage", async () => {
+  it("refuses a preview address for the editor on any host", async () => {
     const { middleware } = await import("../middleware");
 
-    const response = await middleware(makePublicRequest("/search/lsd"));
+    const response = await middleware(makeRequest("/preview/dev/articles"));
 
     expect(response.status).toBe(307);
-    expect(response.headers.get("location")).toBe("https://dose.wiki/");
+    expect(response.headers.get("location")).toBe(
+      "https://dosewiki-admin.vercel.app/preview/home",
+    );
     expect(mocks.getToken).not.toHaveBeenCalled();
   });
 
-  it("redirects non-public public-host API routes to the construction homepage", async () => {
+  it("bounces public-host client API calls into the preview address space", async () => {
     const { middleware } = await import("../middleware");
 
     const response = await middleware(makePublicRequest("/api/search-suggestions?q=mdma"));
 
     expect(response.status).toBe(307);
-    expect(response.headers.get("location")).toBe("https://dose.wiki/");
+    expect(response.headers.get("location")).toBe(
+      "https://dose.wiki/preview/api/search-suggestions?q=mdma",
+    );
     expect(mocks.getToken).not.toHaveBeenCalled();
+  });
+
+  it("leaves a preview API rewrite without a document CSP", async () => {
+    const { middleware } = await import("../middleware");
+
+    const response = await middleware(makePublicRequest("/preview/api/search-suggestions?q=mdma"));
+
+    expect(response.status).toBe(200);
+    expect(response.headers.get("x-middleware-rewrite")).toBe(
+      "https://dose.wiki/api/search-suggestions?q=mdma",
+    );
+    expect(response.headers.get("content-security-policy")).toBeNull();
   });
 
   it("allows only the versioned public API through the construction gate", async () => {
@@ -380,5 +459,26 @@ describe("middleware matcher", () => {
     "/audio/Auditory Hallucinations - DMT Drone.mp3",
   ])("excludes the static asset %s", async (path) => {
     expect((await loadMatcher()).test(path)).toBe(false);
+  });
+});
+
+describe("preview address space is a dose.wiki gate concept", () => {
+  it("does not open one on the Effect Index build", async () => {
+    vi.stubEnv("NEXT_PUBLIC_SITE_FLAVOR", "effectindex");
+    vi.resetModules();
+
+    try {
+      // The flavor is read at module init, so the import has to follow the stub.
+      const { middleware } = await import("../middleware");
+      const response = await middleware(makeRequest("/preview/substances"));
+
+      // Not rewritten and not redirected: Effect Index is launched, so the prefix is
+      // simply an unknown path that its route tree answers for itself.
+      expect(response.headers.get("x-middleware-rewrite")).toBeNull();
+      expect(response.headers.get("location")).toBeNull();
+    } finally {
+      vi.unstubAllEnvs();
+      vi.resetModules();
+    }
   });
 });

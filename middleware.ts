@@ -3,10 +3,17 @@ import { getToken } from "next-auth/jwt";
 import { getDevRouteDecision } from "@/lib/auth/roles";
 import { authSecret } from "@server/auth/runtimePolicy";
 import {
+  isConstructionPreviewBlockedPath,
   isPublicConstructionAllowedPath,
   isPublicConstructionHost,
   normalizeHost,
 } from "@server/next/publicConstructionPolicy";
+import {
+  PREVIEW_HOME_PATH,
+  stripPreviewPrefix,
+  toPreviewPath,
+} from "@/utils/previewPath";
+import { isEffectIndex } from "@/config/siteFlavor";
 import {
   CSP_ENFORCEMENT_HEADER,
   CSP_NONCE_REQUEST_HEADER,
@@ -74,8 +81,14 @@ function getPublicSecurityHeaderSet(host: string | null): BrowserSecurityHeaderS
   return headerSet;
 }
 
-function getBrowserPolicyContext(request: NextRequest) {
-  const pathname = request.nextUrl.pathname;
+/**
+ * `appPath` is the route the request addresses, which is not `request.nextUrl.pathname`
+ * under the `/preview` prefix. The policy split is by route kind — /dev gets the strict
+ * nonce policy, `/api/*` gets no document CSP at all — so it has to read the resolved
+ * path or `/preview/api/...` would be handed a document policy it is not a document for.
+ */
+function getBrowserPolicyContext(request: NextRequest, appPath: string) {
+  const pathname = appPath;
   const isDevRoute = pathname.startsWith("/dev");
   let nonce: string | undefined;
   let headerSet: BrowserSecurityHeaderSet;
@@ -129,8 +142,8 @@ function getBrowserPolicyContext(request: NextRequest) {
   };
 }
 
-function getSubstanceAliasRedirectUrl(request: NextRequest): URL | null {
-  const slug = request.nextUrl.pathname.replace(/^\/|\/$/g, "");
+function getSubstanceAliasRedirectUrl(request: NextRequest, appPath: string): URL | null {
+  const slug = appPath.replace(/^\/|\/$/g, "");
 
   if (!slug || slug.includes("/")) {
     return null;
@@ -156,8 +169,8 @@ function getSubstanceAliasRedirectUrl(request: NextRequest): URL | null {
  * links we renamed. Middleware answers before routing, the same way substance
  * aliases already do.
  */
-function getReplicationAliasRedirectUrl(request: NextRequest): URL | null {
-  const match = request.nextUrl.pathname.match(/^\/replications\/([^/]+)\/?$/);
+function getReplicationAliasRedirectUrl(request: NextRequest, appPath: string): URL | null {
+  const match = appPath.match(/^\/replications\/([^/]+)\/?$/);
 
   if (!match) {
     return null;
@@ -174,8 +187,8 @@ function getReplicationAliasRedirectUrl(request: NextRequest): URL | null {
   return targetUrl;
 }
 
-function getLegacySearchRedirectUrl(request: NextRequest): URL | null {
-  const match = request.nextUrl.pathname.match(/^\/search\/([^/]+)\/?$/);
+function getLegacySearchRedirectUrl(request: NextRequest, appPath: string): URL | null {
+  const match = appPath.match(/^\/search\/([^/]+)\/?$/);
 
   if (!match) {
     return null;
@@ -202,11 +215,24 @@ function getLegacySearchRedirectUrl(request: NextRequest): URL | null {
 }
 
 export async function middleware(request: NextRequest) {
-  const browserPolicy = getBrowserPolicyContext(request);
+  const requestPath = request.nextUrl.pathname;
+  // `null` for an ordinary address; otherwise the route `/preview/...` mirrors. The
+  // prefix belongs to the dose.wiki construction gate: Effect Index is a launched site
+  // with nothing to hold back, so on that build `/preview/...` is just an unknown path.
+  const previewAppPath = isEffectIndex() ? null : stripPreviewPrefix(requestPath);
+  const isPreviewRequest = previewAppPath !== null;
+  const appPath = previewAppPath ?? requestPath;
+  const browserPolicy = getBrowserPolicyContext(request, appPath);
+  const inPreviewSpace = (targetUrl: URL): URL => {
+    if (isPreviewRequest) {
+      targetUrl.pathname = toPreviewPath(targetUrl.pathname);
+    }
+    return targetUrl;
+  };
 
   // Flavor gate first: a route this publication does not own must answer a real 404, and
   // a prerendered page's own `notFound()` cannot set the status on a static response.
-  if (isFlavorGatedRequestPath(request.nextUrl.pathname)) {
+  if (isFlavorGatedRequestPath(appPath)) {
     return browserPolicy.secure(
       NextResponse.rewrite(new URL(FLAVOR_GATED_NOT_FOUND_PATH, request.url), {
         request: { headers: browserPolicy.requestHeaders },
@@ -214,8 +240,15 @@ export async function middleware(request: NextRequest) {
     );
   }
 
-  if (isPublicConstructionHost(request.headers.get("host"))) {
-    if (request.nextUrl.pathname === "/") {
+  // The editor, the workbench and sign-in have no preview address on any host.
+  if (isPreviewRequest && isConstructionPreviewBlockedPath(appPath)) {
+    return browserPolicy.secure(
+      NextResponse.redirect(new URL(PREVIEW_HOME_PATH, request.url)),
+    );
+  }
+
+  if (isPublicConstructionHost(request.headers.get("host")) && !isPreviewRequest) {
+    if (requestPath === "/") {
       return browserPolicy.secure(
         NextResponse.rewrite(new URL("/under-construction", request.url), {
           request: { headers: browserPolicy.requestHeaders },
@@ -223,27 +256,52 @@ export async function middleware(request: NextRequest) {
       );
     }
 
-    if (!isPublicConstructionAllowedPath(request.nextUrl.pathname)) {
-      return browserPolicy.secure(NextResponse.redirect(new URL("/", request.url)));
+    if (!isPublicConstructionAllowedPath(requestPath)) {
+      // Everything the finished site serves lives under `/preview` on these hosts, so a
+      // bare address is bounced into the prefix rather than back to the landing page.
+      // That is what lets an unprefixed in-page `<Link>` keep working inside preview.
+      // The gated surfaces still land on the holding page, as they always did.
+      const gateTarget = isConstructionPreviewBlockedPath(requestPath)
+        ? new URL("/", request.url)
+        : new URL(`${toPreviewPath(requestPath)}${request.nextUrl.search}`, request.url);
+
+      return browserPolicy.secure(NextResponse.redirect(gateTarget));
     }
   }
 
-  const legacySearchRedirectUrl = getLegacySearchRedirectUrl(request);
+  const legacySearchRedirectUrl = getLegacySearchRedirectUrl(request, appPath);
 
   if (legacySearchRedirectUrl) {
-    return browserPolicy.secure(NextResponse.redirect(legacySearchRedirectUrl, 308));
+    return browserPolicy.secure(
+      NextResponse.redirect(inPreviewSpace(legacySearchRedirectUrl), 308),
+    );
   }
 
-  const substanceAliasRedirectUrl = getSubstanceAliasRedirectUrl(request);
+  const substanceAliasRedirectUrl = getSubstanceAliasRedirectUrl(request, appPath);
 
   if (substanceAliasRedirectUrl) {
-    return browserPolicy.secure(NextResponse.redirect(substanceAliasRedirectUrl, 308));
+    return browserPolicy.secure(
+      NextResponse.redirect(inPreviewSpace(substanceAliasRedirectUrl), 308),
+    );
   }
 
-  const replicationAliasRedirectUrl = getReplicationAliasRedirectUrl(request);
+  const replicationAliasRedirectUrl = getReplicationAliasRedirectUrl(request, appPath);
 
   if (replicationAliasRedirectUrl) {
-    return browserPolicy.secure(NextResponse.redirect(replicationAliasRedirectUrl, 308));
+    return browserPolicy.secure(
+      NextResponse.redirect(inPreviewSpace(replicationAliasRedirectUrl), 308),
+    );
+  }
+
+  // The prefix is an address, not a route tree: the request is rewritten onto the page it
+  // mirrors, so the browser keeps `/preview/...` while Next renders the ordinary route.
+  if (isPreviewRequest) {
+    const rewriteUrl = request.nextUrl.clone();
+    rewriteUrl.pathname = appPath;
+
+    return browserPolicy.secure(
+      NextResponse.rewrite(rewriteUrl, { request: { headers: browserPolicy.requestHeaders } }),
+    );
   }
 
   if (!request.nextUrl.pathname.startsWith("/dev")) {

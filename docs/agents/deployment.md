@@ -19,8 +19,8 @@ This repo is linked to Vercel. Treat this file as the repo-local deployment/acco
 - During `/push`, deploy the full app to `dosewiki-admin`; do not alias that
   deployment to `dose.wiki` or `www.dose.wiki`.
 - If the public domains are attached to this Vercel project, `middleware.ts`
-  must keep the host gate that redirects non-homepage requests on `dose.wiki` /
-  `www.dose.wiki` back to `/`.
+  must keep the host gate that fronts `dose.wiki` / `www.dose.wiki` with the
+  holding page at `/` and the `/preview` address space everywhere else.
 - The construction-host gate passes the read-only `/api/v1` API and its descendants.
 - It also passes `/api/csp-report` because the enforced CSP uses `report-uri`.
 - That endpoint accepts only size-limited, rate-limited, redacted violation reports.
@@ -32,6 +32,19 @@ This repo is linked to Vercel. Treat this file as the repo-local deployment/acco
 - `NEXT_PUBLIC_SITE_FLAVOR` picks the publication identity at build time: unset / unrecognised = dose.wiki, `effectindex` = Effect Index. The `dosewiki-admin` project must leave it unset. A typo silently falls back to dose.wiki, so the build logs a runtime-env warning when the variable is set to an unrecognised value.
 - Remote analytics must remain limited to the exact public host allowlist. PostHog initialises only on `dose.wiki`/`www.dose.wiki`, and only when `NEXT_PUBLIC_POSTHOG_KEY` is set; admin and Vercel preview HTML must not load it. Leave that variable unset on the Effect Index project so the credential-free deployment stays analytics-free.
 - HTML responses must retain the path-split browser policy documented in [browser-security-policy.md](browser-security-policy.md): public documents use the static-compatible `script-src` (`'unsafe-inline'`, no nonce/hash) so ISR stays effective; `/dev` documents keep the strict nonce-plus-hash policy. Plain `'unsafe-eval'` remains forbidden everywhere.
+
+#### Where `dose.wiki` actually points (verified 2026-08-22)
+
+`dose.wiki` and `www.dose.wiki` are **not** served by `dosewiki-admin`. They are
+attached to a separate, abandoned Vercel project named `dosewiki`
+(`prj_KBYpmXeY5PJ2UcntD7w1qcq1J71O`), whose last production deployment is from
+June 2026. Evidence: the chunk set behind `https://dose.wiki/` is identical to
+`https://dosewiki.vercel.app/` and disjoint from `dosewiki-admin`'s, and the
+edge response carries `age: ~6.3e6` seconds.
+
+That is why the public holding page looked nothing like the current one — the
+work was shipped, to a project the domain does not resolve to. Until the
+domains are moved to `dosewiki-admin`, nothing merged here reaches `dose.wiki`.
 
 ## Effect Index (`effectindex.com`)
 
@@ -260,6 +273,48 @@ withheld. It is reached two ways because the gate is:
   for a whole build, on either flavor.
 
 To see it locally, open `/under-construction`; no environment variable needed.
+
+The banner carries a live countdown to the launch floor. The instant is
+`LAUNCH_AT_MS` in [`src/utils/launchCountdown.ts`](../../src/utils/launchCountdown.ts):
+midnight at the *start* of 2026-08-31, America/Los_Angeles. The landing is
+prerendered, so the server renders the date as a label and the clock starts on
+mount; reaching zero stops the clock and unblocks nothing on its own.
+
+### The `/preview` address space
+
+The construction hosts serve the finished site under `/preview`, so the whole
+application is usable on the real domain before launch:
+
+- `dose.wiki/preview/home` is the homepage, `dose.wiki/preview/substances` is
+  the Substance Index, and every other route mirrors the same way. `/preview`
+  alone resolves to the homepage too.
+- The middleware **rewrites** a preview address onto the route it mirrors, so
+  the address bar keeps the prefix while Next renders the ordinary page.
+- On the construction hosts, a **bare** non-allowlisted path is redirected
+  *into* the prefix (`/2c-b` → `/preview/2c-b`). That is what makes an ordinary
+  in-page `<Link href="/2c-b">` work without prefixing a single href, and it
+  keeps `/preview` the canonical address rather than one of two live spellings.
+- `/` is untouched: the bare construction host is still the holding page.
+- The editor, review workbench, sign-in and credentialed APIs have **no**
+  preview address on any host
+  (`isConstructionPreviewBlockedPath`, `lib/next/publicConstructionPolicy.ts`).
+  On the construction hosts they still bounce to `/`.
+- `/preview` is in the robots disallow list, and the construction hosts already
+  disallow everything but `/$`, so the mirror is never the indexed address.
+
+Client code must read route identity through `toAppPath()`
+([`src/utils/previewPath.ts`](../../src/utils/previewPath.ts)) rather than
+`usePathname()` directly, or every pathname branch — chrome shape, active nav,
+page titles — silently falls through under the prefix.
+
+### Caveat: middleware does not run under `next dev`
+
+`next dev` compiles `middleware.ts` and writes it into the dev manifest, but
+never invokes it: no security headers, no construction gate, no `/preview`
+rewrite, no `/search/<q>` redirect. The same request served by `next build &&
+next start` — and by Vercel — runs all of it. Anything host- or
+middleware-shaped must therefore be verified against a production server or a
+preview deployment; a dev-server check will silently pass.
 
 ### dose.wiki project environment
 

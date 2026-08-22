@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 
 import { Icon, type IconName } from "@/components/common/Icon";
 import { cn } from "@/lib/utils";
+import { toAppPath } from "@/utils/previewPath";
 
 interface SectionTab {
   href: string;
@@ -37,7 +38,9 @@ const SUBREDDIT_URL = "https://www.reddit.com/r/replications";
  * 44px minimum height on coarse pointers.
  */
 export function ReplicationsTabNav({ className }: { className?: string }) {
-  const pathname = usePathname();
+  // `/preview/...` addresses the same routes on the gated public domain, so the active
+  // tab is decided on the route the path resolves to, not on the address bar.
+  const pathname = toAppPath(usePathname());
 
   return (
     <nav

@@ -8,6 +8,20 @@ import { RouteAnnouncer } from "@/components/common/RouteAnnouncer";
 import { viewToPath } from "@/utils/routing";
 import { getRouteChromeModel } from "@/utils/routeChrome";
 import { isEffectIndex } from "@/config/siteFlavor";
+import { toAppPath, toPreviewPath, isPreviewPath } from "@/utils/previewPath";
+
+/**
+ * The pathname as the app models routes, with any `/preview` prefix removed.
+ *
+ * On the construction hosts the whole site is addressed under `/preview` (see
+ * `src/utils/previewPath.ts`), and the browser keeps that prefix because the middleware
+ * rewrites rather than redirects. Every chrome decision below — the homepage's collapsed
+ * header, the suppressed home footer, the announced page title — is a pathname
+ * comparison, and each one would fall through on `/preview/home`.
+ */
+function useAppPathname(): string {
+  return toAppPath(usePathname());
+}
 
 function getWindowSearchQuery() {
   if (typeof window === "undefined") {
@@ -18,7 +32,7 @@ function getWindowSearchQuery() {
 }
 
 function useRouteChromeModel() {
-  const pathname = usePathname();
+  const pathname = useAppPathname();
   const [searchQuery, setSearchQuery] = useState("");
 
   useEffect(() => {
@@ -144,13 +158,22 @@ interface RouteChromeProps {
 
 export function RouteChrome({ homeConstructionMode = false }: RouteChromeProps) {
   const router = useRouter();
-  const pathname = usePathname();
+  const requestPathname = usePathname();
+  const pathname = toAppPath(requestPathname);
   const { model, setSearchQuery } = useRouteChromeModel();
   const liveSearchOriginViewRef = useRef<Parameters<typeof viewToPath>[0] | null>(null);
   useManualScrollRestoration();
   useResetScrollOnPathnameChange(pathname, {
     disabled: isSelfScrollingRoute(pathname),
   });
+
+  // Header navigation pushes app paths. Inside the preview address space they have to be
+  // re-prefixed: the middleware would bounce a bare push back under `/preview` anyway, and
+  // routing straight there spares every header click a redirect round trip.
+  const navigationHref = (view: Parameters<typeof viewToPath>[0]) => {
+    const href = viewToPath(view);
+    return isPreviewPath(requestPathname) ? toPreviewPath(href) : href;
+  };
 
   const pushView = (nextView: Parameters<typeof viewToPath>[0]) => {
     if (nextView.type === "search") {
@@ -161,7 +184,7 @@ export function RouteChrome({ homeConstructionMode = false }: RouteChromeProps) 
     } else {
       liveSearchOriginViewRef.current = null;
     }
-    router.push(viewToPath(nextView));
+    router.push(navigationHref(nextView));
   };
 
   const replaceView = (nextView: Parameters<typeof viewToPath>[0]) => {
@@ -170,7 +193,7 @@ export function RouteChrome({ homeConstructionMode = false }: RouteChromeProps) 
     } else {
       liveSearchOriginViewRef.current = null;
     }
-    router.replace(viewToPath(nextView), { scroll: false });
+    router.replace(navigationHref(nextView), { scroll: false });
   };
 
   const pushLiveSearchView = (nextView: Parameters<typeof viewToPath>[0]) => {
@@ -183,7 +206,7 @@ export function RouteChrome({ homeConstructionMode = false }: RouteChromeProps) 
       liveSearchOriginViewRef.current = model.currentView;
     }
     setSearchQuery(nextView.query);
-    router.push(viewToPath(nextView), { scroll: false });
+    router.push(navigationHref(nextView), { scroll: false });
   };
 
   if ((pathname === "/" && homeConstructionMode) || pathname === "/under-construction") {
@@ -217,7 +240,7 @@ export function RouteChrome({ homeConstructionMode = false }: RouteChromeProps) 
 }
 
 export function RouteFooter() {
-  const pathname = usePathname();
+  const pathname = useAppPathname();
   const { model } = useRouteChromeModel();
 
   // "/" is suppressed on dose.wiki because its homepage is a full-viewport

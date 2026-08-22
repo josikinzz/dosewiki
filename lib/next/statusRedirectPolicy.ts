@@ -3,6 +3,7 @@ import { buildPageMetadata } from "./metadata";
 import { buildSiteUrl, PUBLIC_SITE, type PublicSiteIdentity } from "./publicSite";
 import { buildPublicConstructionRobotsPolicy } from "./publicConstructionPolicy";
 import { getPublicHref, type PublicHrefIntent } from "@/utils/publicHref";
+import { PREVIEW_PATH_PREFIX } from "@/utils/previewPath";
 import type { DevRouteDecision } from "@/lib/auth/roles";
 export {
   getRouteLoadingModel,
@@ -130,7 +131,12 @@ export function buildRobotsPolicy(
     rules: {
       userAgent: "*",
       allow: "/",
-      disallow: noIndexRoutePolicies.map((policy) => policy.robotsDisallow),
+      disallow: [
+        ...noIndexRoutePolicies.map((policy) => policy.robotsDisallow),
+        // `/preview/...` mirrors ordinary routes for the gated public domain. It is the
+        // same content at a second address, so it must never be the indexed one.
+        PREVIEW_PATH_PREFIX,
+      ],
     },
     sitemap: buildSiteUrl("/sitemap.xml", options.site ?? PUBLIC_SITE),
   };

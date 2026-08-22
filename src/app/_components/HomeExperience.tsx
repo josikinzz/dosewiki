@@ -11,6 +11,7 @@ import { Input } from "@/components/ui/input";
 import { SITE_FLAVOR_CONFIG } from "@/config/siteFlavor";
 import { partitionQuickLinkRows, type HomeQuickLink } from "./homeQuickLinks";
 import { AppearanceControls } from "./AppearanceControls";
+import { ConstructionCountdown } from "./ConstructionCountdown";
 
 interface HomeExperienceProps {
   quickLinks: readonly HomeQuickLink[];
@@ -298,6 +299,7 @@ export function HomeExperience({
                 <span className="mt-1 text-sm font-semibold italic normal-case tracking-wide sm:text-base">
                   {copy?.constructionSubtitle || "coming soon, August 31st 2026 ;3"}
                 </span>
+                <ConstructionCountdown />
               </span>
               <Icon icon="lucide:triangle-alert" size={24} className="theme-home-construction-icon theme-home-construction-icon-delay" />
             </div>

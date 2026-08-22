@@ -1227,6 +1227,13 @@
     animation-delay: 0.28s;
   }
 
+  /* The clock reads as the banner's quiet second voice: the amber banner text at reduced
+     emphasis, so it sits under the "coming soon" line rather than competing with it. */
+  .theme-home-construction-countdown {
+    color: color-mix(in srgb, var(--theme-construction-banner-text) 78%, transparent);
+    font-variant-numeric: tabular-nums;
+  }
+
   @keyframes theme-home-mock-nudge {
     0% {
       transform: translate3d(0, 0, 0) scale(1);
