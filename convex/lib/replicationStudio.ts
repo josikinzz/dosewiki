@@ -55,6 +55,7 @@ export async function getStudioRowsHandler(
         duration: row.duration ?? null,
         file_size: row.file_size ?? null,
         created_at: row.created_at,
+        showcase_excluded: row.showcase_excluded ?? false,
       };
     }),
   );
@@ -136,6 +137,7 @@ export async function bulkUpdateEditorialFieldsHandler(
     args.effect_slug === undefined
     && artist === undefined
     && args.role === undefined
+    && args.showcase_excluded === undefined
     && addTags.length === 0
   ) {
     throw new Error("A bulk edit needs at least one field to change.");
@@ -156,6 +158,9 @@ export async function bulkUpdateEditorialFieldsHandler(
       ...(args.effect_slug !== undefined ? { effect_slug: args.effect_slug } : {}),
       ...(artist ? { artist } : {}),
       ...(args.role !== undefined ? { role: args.role } : {}),
+      ...(args.showcase_excluded !== undefined
+        ? { showcase_excluded: args.showcase_excluded }
+        : {}),
       ...(addTags.length > 0 ? { effect_tags: nextTags } : {}),
     });
     updatedSlugs.push(row.slug);

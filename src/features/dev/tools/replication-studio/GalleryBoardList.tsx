@@ -14,7 +14,16 @@
  * button or a drag onto the un-curate zone.
  */
 
-import { Fragment, useEffect, useId, useRef, type ReactNode } from "react";
+import {
+  Fragment,
+  useCallback,
+  useEffect,
+  useId,
+  useRef,
+  useState,
+  type KeyboardEvent as ReactKeyboardEvent,
+  type ReactNode,
+} from "react";
 import {
   DndContext,
   type DragEndEvent,
@@ -37,6 +46,20 @@ import { cn } from "@/lib/utils";
 
 import { ReplicationThumb } from "./ReplicationThumb";
 import type { GalleryBoard, GalleryBoardRow, GalleryMatch } from "./substanceGalleryPortalModel";
+import { columnsIn } from "./gridColumns";
+
+/** Candidate rows drawn at once. Bounded on purpose: a big substance matches
+ * hundreds of works, and mounting them all is what made the pool unreadable. */
+const LIST_PAGE_SIZE = 12;
+const TRIAGE_PAGE_SIZE = 24;
+
+type CandidateView = "list" | "triage";
+
+const CANDIDATE_VIEW_KEY = "dosewiki.replicationStudio.candidateView";
+
+/** Marks a candidate tile/row so the band's keyboard verbs can find its slug. */
+const CANDIDATE_ATTR = "data-candidate-slug";
+const CANDIDATE_SELECTOR = `[${CANDIDATE_ATTR}]`;
 
 /**
  * Drop target that takes a curated row off the article: `applyBoardDrag`
@@ -69,7 +92,14 @@ const CURATED_WASH = "theme-replication-curated-wash";
 export function ProvenanceChip({ match }: { match: GalleryMatch }) {
   const { provenance } = match;
   const viaTags = provenance.matchedVia === "effect_tags";
+  const viaTitle = provenance.matchedVia === "title";
   const directlyCurated = provenance.matchedVia === "curated";
+  const label = viaTitle ? "name match" : provenance.effectName;
+  const icon = viaTitle
+    ? "lucide:case-sensitive"
+    : viaTags
+      ? "lucide:tags"
+      : "lucide:link";
   return (
     <Popover>
       <PopoverTrigger asChild>
@@ -77,18 +107,22 @@ export function ProvenanceChip({ match }: { match: GalleryMatch }) {
           type="button"
           variant="ghost"
           size="auto"
-          aria-label={`${provenance.effectName}: matched via ${provenance.matchedVia}`}
+          aria-label={`${label}: matched via ${provenance.matchedVia}`}
           className="inline-flex max-w-full items-center gap-1 rounded-md border border-[color:var(--editor-chip-border)] bg-[var(--editor-chip-bg)] px-1.5 py-0.5 text-xs font-medium text-[var(--editor-chip-text)]"
         >
-          <Icon icon={viaTags ? "lucide:tags" : "lucide:link"} size={11} className="shrink-0" />
-          <span className="min-w-0 truncate">{provenance.effectName}</span>
+          <Icon icon={icon} size={11} className="shrink-0" />
+          <span className="min-w-0 truncate">{label}</span>
         </Button>
       </PopoverTrigger>
       <PopoverContent className="w-64 p-3 text-xs" align="start">
-        <p className="theme-text-primary font-medium">Matched via {provenance.matchedVia}</p>
+        <p className="theme-text-primary font-medium">
+          {viaTitle ? "Matched by name" : `Matched via ${provenance.matchedVia}`}
+        </p>
         <p className="theme-text-muted mt-1">
           {directlyCurated
             ? `This row was pinned directly for this substance; its owning effect is ${match.replication.effect_name ?? "none"}.`
+            : viaTitle
+            ? "The title names this substance, so it is proposed even though its effects do not match."
             : viaTags
             ? `This row is tagged with ${provenance.effectSlug} (effect_tags); its owning effect is ${match.replication.effect_name ?? "none"}.`
             : `This row's owning effect (effect_slug) is ${provenance.effectSlug}, one of this substance's visual effects.`}
@@ -167,14 +201,27 @@ function ExcludeButton({ title, slug, onExclude }: { title: string; slug: string
   );
 }
 
-/** Moves focus to a row's primary action after it changes band, then reports back. */
+/**
+ * Moves focus to a row's primary action after it changes band, then reports back.
+ * Focus must never scroll on its own: an uncurated row lands far down the
+ * candidate pool, and letting the browser chase it throws the viewport away from
+ * the button the editor just clicked. We pull the row into view only when it is
+ * genuinely offscreen, and then by the shortest distance — an unmeasurable box
+ * is not evidence of anything, so it stays put.
+ */
 function useBandFocus(focused: boolean, onFocusHandled: () => void) {
   const ref = useRef<HTMLButtonElement | null>(null);
   useEffect(() => {
-    if (focused) {
-      ref.current?.focus();
-      onFocusHandled();
+    if (!focused) return;
+    const node = ref.current;
+    if (node) {
+      node.focus({ preventScroll: true });
+      const box = node.getBoundingClientRect();
+      const measurable = box.height > 0 || box.width > 0;
+      const offscreen = box.bottom <= 0 || box.top >= window.innerHeight;
+      if (measurable && offscreen) node.scrollIntoView({ block: "nearest" });
     }
+    onFocusHandled();
   }, [focused, onFocusHandled]);
   return ref;
 }
@@ -284,6 +331,30 @@ function CuratedRow({
   );
 }
 
+/** Retires a work from every substance's candidate pool at once. */
+function ExcludeEverywhereButton({
+  title,
+  slug,
+  onExcludeEverywhere,
+}: {
+  title: string;
+  slug: string;
+  onExcludeEverywhere: (slug: string) => void;
+}) {
+  return (
+    <Button
+      variant="ghost"
+      size="icon"
+      className="h-8 w-8"
+      aria-label={`Exclude ${title} from every gallery`}
+      title="Exclude everywhere — junk on every article, not just this one"
+      onClick={() => onExcludeEverywhere(slug)}
+    >
+      <Icon icon="lucide:trash-2" size={14} />
+    </Button>
+  );
+}
+
 /**
  * A pool row: no number and no grip, because it is not on the article and the
  * pool has no order to rearrange. Curate is the only way onto the stage.
@@ -293,12 +364,14 @@ function CandidateRow({
   focused,
   onCurate,
   onExclude,
+  onExcludeEverywhere,
   onFocusHandled,
 }: {
   row: GalleryBoardRow;
   focused: boolean;
   onCurate: (slug: string) => void;
   onExclude: (slug: string) => void;
+  onExcludeEverywhere: (slug: string) => void;
   onFocusHandled: () => void;
 }) {
   const { match } = row;
@@ -306,7 +379,7 @@ function CandidateRow({
   const primaryActionRef = useBandFocus(focused, onFocusHandled);
 
   return (
-    <li className="list-none">
+    <li className="list-none" {...{ [CANDIDATE_ATTR]: slug }}>
       <InteractiveContentCard variant="public" padding="sm" radius="lg" className={cn(MOTION, "opacity-80")}>
         <div className="flex items-center gap-3">
           <GalleryMatchIdentity match={match} />
@@ -315,6 +388,7 @@ function CandidateRow({
               ref={primaryActionRef}
               variant="secondary"
               size="sm"
+              data-candidate-primary
               aria-label={`Curate ${title}`}
               onClick={() => onCurate(slug)}
             >
@@ -322,9 +396,75 @@ function CandidateRow({
               Curate
             </Button>
             <ExcludeButton title={title} slug={slug} onExclude={onExclude} />
+            <ExcludeEverywhereButton
+              title={title}
+              slug={slug}
+              onExcludeEverywhere={onExcludeEverywhere}
+            />
           </div>
         </div>
       </InteractiveContentCard>
+    </li>
+  );
+}
+
+/**
+ * The triage face of the same row. The junk-or-keeper call is made by looking
+ * at the picture, so the picture is the row: a big thumb, the title under it,
+ * and verbs that stay out of the way until the tile is hovered or focused.
+ */
+function TriageTile({
+  row,
+  focused,
+  onCurate,
+  onExclude,
+  onExcludeEverywhere,
+  onFocusHandled,
+}: {
+  row: GalleryBoardRow;
+  focused: boolean;
+  onCurate: (slug: string) => void;
+  onExclude: (slug: string) => void;
+  onExcludeEverywhere: (slug: string) => void;
+  onFocusHandled: () => void;
+}) {
+  const { match } = row;
+  const { title, slug, artist } = match.replication;
+  const primaryActionRef = useBandFocus(focused, onFocusHandled);
+
+  return (
+    <li className="list-none" {...{ [CANDIDATE_ATTR]: slug }}>
+      <div className="group relative overflow-hidden rounded-lg border border-[color:var(--editor-chip-border)]">
+        <ReplicationThumb row={match.replication} className="aspect-square w-full" />
+        <div
+          className={cn(
+            "absolute inset-x-0 bottom-0 flex items-center justify-end gap-1 bg-[var(--editor-panel-bg-subtle)] px-1 py-1",
+            "opacity-0 group-hover:opacity-100 group-focus-within:opacity-100",
+            MOTION,
+          )}
+        >
+          <Button
+            ref={primaryActionRef}
+            variant="secondary"
+            size="sm"
+            data-candidate-primary
+            aria-label={`Curate ${title}`}
+            onClick={() => onCurate(slug)}
+          >
+            <Icon icon="lucide:pin" size={14} />
+            Curate
+          </Button>
+          <ExcludeButton title={title} slug={slug} onExclude={onExclude} />
+          <ExcludeEverywhereButton
+            title={title}
+            slug={slug}
+            onExcludeEverywhere={onExcludeEverywhere}
+          />
+        </div>
+      </div>
+      <p className="theme-text-primary mt-1 truncate text-xs font-medium" title={`${title} · ${artist}`}>
+        {title}
+      </p>
     </li>
   );
 }
@@ -381,6 +521,204 @@ function BandHeading({
   );
 }
 
+/**
+ * The candidate pool.
+ *
+ * Two things make a pool of several hundred works reviewable. It is paged, so
+ * the DOM holds one screenful rather than the whole corpus. And it offers a
+ * triage face — thumbnails with `c`/`x` verbs — because the keep-or-junk
+ * decision is made by looking at pictures, and reading a list to click a small
+ * button is the slowest possible way to express it.
+ */
+function CandidateBand({
+  headingId,
+  rows,
+  focusSlug,
+  onCurate,
+  onExclude,
+  onExcludeEverywhere,
+  onFocusHandled,
+}: {
+  headingId: string;
+  rows: GalleryBoardRow[];
+  focusSlug: string | null;
+  onCurate: (slug: string) => void;
+  onExclude: (slug: string) => void;
+  onExcludeEverywhere: (slug: string) => void;
+  onFocusHandled: () => void;
+}) {
+  const [view, setView] = useState<CandidateView>("list");
+  const [page, setPage] = useState(0);
+  const gridRef = useRef<HTMLUListElement | null>(null);
+
+  useEffect(() => {
+    const stored = window.localStorage.getItem(CANDIDATE_VIEW_KEY);
+    if (stored === "list" || stored === "triage") setView(stored);
+  }, []);
+
+  const chooseView = useCallback((next: CandidateView) => {
+    setView(next);
+    setPage(0);
+    window.localStorage.setItem(CANDIDATE_VIEW_KEY, next);
+  }, []);
+
+  const triage = view === "triage";
+  const pageSize = triage ? TRIAGE_PAGE_SIZE : LIST_PAGE_SIZE;
+  const pageCount = Math.max(1, Math.ceil(rows.length / pageSize));
+  const current = Math.min(page, pageCount - 1);
+  const start = current * pageSize;
+  const visible = rows.slice(start, start + pageSize);
+
+  /**
+   * Band-level verbs. `c` curates and `x` excludes whatever tile holds focus,
+   * `Shift+X` retires it everywhere, and the arrows walk the tiles — measured,
+   * never assumed, because the grid is responsive.
+   */
+  const onKeyDown = useCallback(
+    (event: ReactKeyboardEvent<HTMLElement>) => {
+      const target = event.target as HTMLElement | null;
+      if (!target || event.metaKey || event.ctrlKey || event.altKey) return;
+      if (target.closest("input, textarea, [contenteditable='true']")) return;
+      const tile = target.closest<HTMLElement>(CANDIDATE_SELECTOR);
+      const slug = tile?.dataset.candidateSlug;
+      if (!tile || !slug) return;
+
+      const key = event.key.toLowerCase();
+      if (key === "c") {
+        event.preventDefault();
+        onCurate(slug);
+        return;
+      }
+      if (key === "x") {
+        event.preventDefault();
+        if (event.shiftKey) onExcludeEverywhere(slug);
+        else onExclude(slug);
+        return;
+      }
+      if (!["arrowleft", "arrowright", "arrowup", "arrowdown"].includes(key)) return;
+
+      const tiles = Array.from(
+        (gridRef.current?.querySelectorAll<HTMLElement>(CANDIDATE_SELECTOR) ?? []),
+      );
+      const index = tiles.indexOf(tile);
+      if (index === -1) return;
+      event.preventDefault();
+      const columns = triage ? columnsIn(gridRef.current, CANDIDATE_SELECTOR) : 1;
+      const step =
+        key === "arrowright" ? 1 : key === "arrowleft" ? -1 : key === "arrowdown" ? columns : -columns;
+      const next = tiles[Math.max(0, Math.min(tiles.length - 1, index + step))];
+      next?.querySelector<HTMLElement>("[data-candidate-primary]")?.focus({ preventScroll: true });
+      next?.scrollIntoView?.({ block: "nearest" });
+    },
+    [onCurate, onExclude, onExcludeEverywhere, triage],
+  );
+
+  return (
+    // The band is a container, not a control: this catches keydown bubbling from the tiles
+    // inside it. Every verb it accelerates (`c`, `x`, arrows) is also a labelled button on
+    // each tile.
+    // eslint-disable-next-line jsx-a11y/no-noninteractive-element-interactions
+    <section aria-labelledby={headingId} className="space-y-2" onKeyDown={onKeyDown}>
+      <BandHeading
+        id={headingId}
+        icon="lucide:inbox"
+        aside={
+          <div className="flex items-center gap-1">
+            <Button
+              type="button"
+              variant={triage ? "ghost" : "secondary"}
+              size="sm"
+              aria-pressed={!triage}
+              onClick={() => chooseView("list")}
+            >
+              <Icon icon="lucide:list" size={14} />
+              List
+            </Button>
+            <Button
+              type="button"
+              variant={triage ? "secondary" : "ghost"}
+              size="sm"
+              aria-pressed={triage}
+              onClick={() => chooseView("triage")}
+            >
+              <Icon icon="lucide:layout-grid" size={14} />
+              Triage
+            </Button>
+          </div>
+        }
+      >
+        Candidate pool ({rows.length})
+      </BandHeading>
+      {rows.length > 0 ? (
+        <p className="theme-text-faint text-xs">
+          None of these are on the article. They matched this substance, and stay here — unordered —
+          until you curate one. With a tile focused: <kbd>c</kbd> curates, <kbd>x</kbd> excludes it
+          here, <kbd>Shift</kbd>+<kbd>X</kbd> excludes it everywhere, arrows move.
+        </p>
+      ) : (
+        <p className="theme-text-faint text-xs">Every match is curated or excluded.</p>
+      )}
+      <ul
+        ref={gridRef}
+        className={cn(
+          triage ? "grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4" : "space-y-2",
+        )}
+      >
+        {visible.map((row) =>
+          triage ? (
+            <TriageTile
+              key={row.match.replication.slug}
+              row={row}
+              focused={focusSlug === row.match.replication.slug}
+              onCurate={onCurate}
+              onExclude={onExclude}
+              onExcludeEverywhere={onExcludeEverywhere}
+              onFocusHandled={onFocusHandled}
+            />
+          ) : (
+            <CandidateRow
+              key={row.match.replication.slug}
+              row={row}
+              focused={focusSlug === row.match.replication.slug}
+              onCurate={onCurate}
+              onExclude={onExclude}
+              onExcludeEverywhere={onExcludeEverywhere}
+              onFocusHandled={onFocusHandled}
+            />
+          ),
+        )}
+      </ul>
+      {pageCount > 1 ? (
+        <div className="flex items-center gap-2">
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            disabled={current === 0}
+            onClick={() => setPage(current - 1)}
+          >
+            <Icon icon="lucide:chevron-left" size={14} />
+            Previous
+          </Button>
+          <span className="theme-text-faint text-xs tabular-nums">
+            {start + 1}–{start + visible.length} of {rows.length}
+          </span>
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            disabled={current >= pageCount - 1}
+            onClick={() => setPage(current + 1)}
+          >
+            Next
+            <Icon icon="lucide:chevron-right" size={14} />
+          </Button>
+        </div>
+      ) : null}
+    </section>
+  );
+}
+
 export type GalleryBoardListProps = {
   board: GalleryBoard;
   onMove: (slug: string, direction: "up" | "down") => void;
@@ -388,6 +726,7 @@ export type GalleryBoardListProps = {
   onCurate: (slug: string) => void;
   onUncurate: (slug: string) => void;
   onExclude: (slug: string) => void;
+  onExcludeEverywhere: (slug: string) => void;
   onDragEnd: (event: DragEndEvent) => void;
   /** The row that just changed band; the board moves focus to it, then clears. */
   focusSlug: string | null;
@@ -401,6 +740,7 @@ export function GalleryBoardList({
   onCurate,
   onUncurate,
   onExclude,
+  onExcludeEverywhere,
   onDragEnd,
   focusSlug,
   onFocusHandled,
@@ -510,31 +850,15 @@ export function GalleryBoardList({
           <div className="theme-gradient-divider h-px flex-1" />
         </div>
 
-        <section aria-labelledby={candidateHeadingId} className="space-y-2">
-          <BandHeading id={candidateHeadingId} icon="lucide:inbox">
-            Candidate pool ({board.candidateCount})
-          </BandHeading>
-          {board.candidateCount > 0 ? (
-            <p className="theme-text-faint text-xs">
-              None of these are on the article. They matched this substance's visual effects and stay
-              here, unordered, until you curate one.
-            </p>
-          ) : (
-            <p className="theme-text-faint text-xs">Every match is curated or excluded.</p>
-          )}
-          <ul className="space-y-2">
-            {candidateRows.map((row) => (
-              <CandidateRow
-                key={row.match.replication.slug}
-                row={row}
-                focused={focusSlug === row.match.replication.slug}
-                onCurate={onCurate}
-                onExclude={onExclude}
-                onFocusHandled={onFocusHandled}
-              />
-            ))}
-          </ul>
-        </section>
+        <CandidateBand
+          headingId={candidateHeadingId}
+          rows={candidateRows}
+          focusSlug={focusSlug}
+          onCurate={onCurate}
+          onExclude={onExclude}
+          onExcludeEverywhere={onExcludeEverywhere}
+          onFocusHandled={onFocusHandled}
+        />
       </div>
     </DndContext>
   );

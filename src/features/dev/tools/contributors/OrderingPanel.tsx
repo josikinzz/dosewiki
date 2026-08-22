@@ -48,6 +48,34 @@ export type OrderablePanelItem = {
   meta: string;
 };
 
+/**
+ * What this panel's in/out decision is called.
+ *
+ * The panel is reused for two different decisions — what a surface publishes,
+ * and what a reusable list contains — and calling both of them "curate" makes
+ * the second one read like a publish, which is exactly the confusion a playlist
+ * is meant to remove.
+ */
+export type OrderingPanelVerbs = {
+  add: string;
+  remove: string;
+  addIcon: string;
+  removeIcon: string;
+  /** Labels the line between the chosen head and the rest. */
+  divider: string;
+  /** Shown when nothing is above the line yet. */
+  headEmpty: string;
+};
+
+const CURATION_VERBS: OrderingPanelVerbs = {
+  add: "Curate",
+  remove: "Un-curate",
+  addIcon: "lucide:pin",
+  removeIcon: "lucide:pin-off",
+  divider: "Default order",
+  headEmpty: "Nothing curated yet. Everything below renders in the default order.",
+};
+
 type OrderingPanelProps = {
   icon: string;
   title: string;
@@ -58,6 +86,8 @@ type OrderingPanelProps = {
   savedOrder: readonly string[];
   emptyLabel: string;
   saveState: EditorActionStatusState | "idle";
+  /** Defaults to the curation verbs; a reusable list overrides them with add/remove. */
+  verbs?: OrderingPanelVerbs;
   onOrderChange: (next: string[]) => void;
   onSave: () => void;
   onReset: () => void;
@@ -68,6 +98,7 @@ function SortableRow({
   curated,
   index,
   curatedCount,
+  verbs,
   onMove,
   onToggleCurate,
 }: {
@@ -75,6 +106,7 @@ function SortableRow({
   curated: boolean;
   index: number;
   curatedCount: number;
+  verbs: OrderingPanelVerbs;
   onMove: (slug: string, direction: "up" | "down") => void;
   onToggleCurate: (slug: string) => void;
 }) {
@@ -142,10 +174,11 @@ function SortableRow({
             variant={curated ? "ghost" : "secondary"}
             size="sm"
             className="shrink-0"
+            aria-label={`${curated ? verbs.remove : verbs.add} ${item.title}`}
             onClick={() => onToggleCurate(item.slug)}
           >
-            <Icon icon={curated ? "lucide:pin-off" : "lucide:pin"} size={14} />
-            {curated ? "Un-curate" : "Curate"}
+            <Icon icon={curated ? verbs.removeIcon : verbs.addIcon} size={14} />
+            {curated ? verbs.remove : verbs.add}
           </Button>
         </div>
       </InteractiveContentCard>
@@ -161,7 +194,7 @@ function SortableRow({
  * items first and then falls back to its own sort, so a flat list would
  * misrepresent the stored state — it would imply every position is a decision,
  * when only the ones above the line are. Dragging across the line is therefore
- * the same gesture as the Curate and Un-curate buttons, which exist because a
+ * the same gesture as the two in/out buttons, which exist because a
  * drag is not reachable from a keyboard alone.
  */
 export function OrderingPanel({
@@ -173,6 +206,7 @@ export function OrderingPanel({
   savedOrder,
   emptyLabel,
   saveState,
+  verbs = CURATION_VERBS,
   onOrderChange,
   onSave,
   onReset,
@@ -249,6 +283,7 @@ export function OrderingPanel({
                     curated
                     index={index}
                     curatedCount={split.curated.length}
+                    verbs={verbs}
                     onMove={handleMove}
                     onToggleCurate={handleToggleCurate}
                   />
@@ -258,7 +293,7 @@ export function OrderingPanel({
 
             {split.curated.length === 0 ? (
               <p className="theme-text-faint text-xs">
-                Nothing curated yet. Everything below renders in the default order.
+                {verbs.headEmpty}
               </p>
             ) : null}
 
@@ -270,7 +305,7 @@ export function OrderingPanel({
             >
               <div className="theme-gradient-divider h-px flex-1" />
               <span className="theme-text-faint text-[11px] uppercase tracking-[0.3em]">
-                Default order
+                {verbs.divider}
               </span>
               <div className="theme-gradient-divider h-px flex-1" />
             </div>
@@ -284,6 +319,7 @@ export function OrderingPanel({
                     curated={false}
                     index={0}
                     curatedCount={0}
+                    verbs={verbs}
                     onMove={handleMove}
                     onToggleCurate={handleToggleCurate}
                   />

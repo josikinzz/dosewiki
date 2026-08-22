@@ -244,6 +244,12 @@ export const bulkUpdateEditorialFieldsArgs = v.object({
   artist: v.optional(v.string()),
   role: v.optional(replicationRole),
   addEffectTags: v.optional(v.array(v.string())),
+  /**
+   * Corpus-wide showcase suppression. A toggle rather than an editorial field,
+   * so it rides the bulk path for one row or two hundred and never touches the
+   * single-edit snapshot's optimistic-concurrency check.
+   */
+  showcase_excluded: v.optional(v.boolean()),
 });
 
 export type InsertReplicationArgs = Infer<typeof insertReplicationArgs>;

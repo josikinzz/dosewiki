@@ -1,0 +1,142 @@
+/**
+ * Editor read + create for reusable replication playlists
+ * (`/dev` → Replications → Playlists).
+ *
+ *   GET  /api/dev/replications/playlists                    → { playlists }
+ *   POST /api/dev/replications/playlists  { key, title, … } → create or replace
+ *
+ * The browser holds no admin intent token, so the write is delegated here the
+ * way the featured selection delegates its own: the route checks the editor
+ * session, then calls Convex with the server's token plus the actor's email for
+ * the audit trail.
+ *
+ * A playlist publishes nothing. Applying one edits a substance gallery's draft,
+ * and `substanceGalleries` stays the single publish gate, so there is no public
+ * cache to revalidate here.
+ */
+import { NextResponse } from "next/server";
+import { api } from "../../../../../../convex/_generated/api";
+import { JsonBodyError } from "@/lib/http/readJsonBody";
+import { protectedRouteOperation } from "@/lib/http/protectedRouteOperation";
+import { isValidReplicationSlug } from "@/features/dev/tools/replication-studio/replicationStudioModel";
+
+export const runtime = "nodejs";
+
+const MAX_PAYLOAD_BYTES = 32 * 1024;
+
+/** Matches the ceiling enforced in `convex/replicationPlaylists.ts`. */
+const MAX_PLAYLIST_SLUGS = 250;
+
+const PLAYLIST_KEY = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
+
+export type PlaylistBody = {
+  key?: unknown;
+  title?: unknown;
+  slugs?: unknown;
+  expectedUpdatedAt?: unknown;
+};
+
+export type ParsedPlaylist = {
+  key: string;
+  title: string;
+  slugs: string[];
+  expectedUpdatedAt: string | null | undefined;
+};
+
+export function parsePlaylistBody(raw: PlaylistBody): ParsedPlaylist {
+  if (typeof raw?.key !== "string" || !PLAYLIST_KEY.test(raw.key)) {
+    throw new JsonBodyError(400, "A playlist needs a kebab-case key.");
+  }
+  if (typeof raw?.title !== "string" || raw.title.trim().length === 0) {
+    throw new JsonBodyError(400, "A playlist needs a name.");
+  }
+  if (raw.title.length > 120) {
+    throw new JsonBodyError(400, "A playlist name may run to 120 characters.");
+  }
+  if (!Array.isArray(raw?.slugs)) {
+    throw new JsonBodyError(400, "A playlist needs an array of slugs.");
+  }
+  if (raw.slugs.length > MAX_PLAYLIST_SLUGS) {
+    throw new JsonBodyError(
+      400,
+      `This playlist holds ${raw.slugs.length} works; the limit is ${MAX_PLAYLIST_SLUGS}. Split it into two playlists.`,
+    );
+  }
+
+  const slugs: string[] = [];
+  const seen = new Set<string>();
+  for (const entry of raw.slugs) {
+    if (typeof entry !== "string" || !isValidReplicationSlug(entry)) {
+      throw new JsonBodyError(400, "Every playlist entry must be a replication slug.");
+    }
+    if (seen.has(entry)) continue;
+    seen.add(entry);
+    slugs.push(entry);
+  }
+
+  let expectedUpdatedAt: string | null | undefined;
+  if (raw.expectedUpdatedAt === null) {
+    expectedUpdatedAt = null;
+  } else if (typeof raw.expectedUpdatedAt === "string" && raw.expectedUpdatedAt.length > 0) {
+    expectedUpdatedAt = raw.expectedUpdatedAt;
+  } else if (raw.expectedUpdatedAt !== undefined) {
+    throw new JsonBodyError(
+      400,
+      "expectedUpdatedAt must be the stored updated_at string, null, or omitted.",
+    );
+  }
+
+  return { key: raw.key, title: raw.title.trim(), slugs, expectedUpdatedAt };
+}
+
+export const GET = protectedRouteOperation({
+  auth: "editor",
+  rateLimit: "diagnosticRead",
+  capabilities: [{ type: "convexWrite" }],
+  unexpectedErrorLabel: "Failed to load replication playlists via Next route:",
+  unexpectedErrorMessage: "Unable to load the playlists right now.",
+  operation: async ({ convexWrite }) => {
+    if (!convexWrite) {
+      throw new Error("Convex write capability is required.");
+    }
+
+    const playlists = await convexWrite.client.query(api.replicationPlaylists.list, {
+      apiKey: convexWrite.getAdminIntentToken?.("replicationMaintenance") ?? convexWrite.adminKey,
+    });
+
+    return NextResponse.json({ ok: true, playlists });
+  },
+});
+
+export const POST = protectedRouteOperation<PlaylistBody, ParsedPlaylist>({
+  auth: "editor",
+  rateLimit: "editorSmallWrite",
+  body: { maxBytes: MAX_PAYLOAD_BYTES, parse: parsePlaylistBody },
+  capabilities: [{ type: "convexWrite" }],
+  unexpectedErrorLabel: "Failed to save a replication playlist via Next route:",
+  unexpectedErrorMessage: "Unable to save that playlist right now.",
+  operation: async ({ actorEmail, body, convexWrite }) => {
+    if (!convexWrite) {
+      throw new Error("Convex write capability is required.");
+    }
+
+    const apiKey =
+      convexWrite.getAdminIntentToken?.("editorArticleWrite") ?? convexWrite.adminKey;
+
+    const result = await convexWrite.client.mutation(api.replicationPlaylists.upsert, {
+      apiKey,
+      actorEmail,
+      key: body.key,
+      title: body.title,
+      replication_slugs: body.slugs,
+      updatedBy: actorEmail,
+      expectedUpdatedAt: body.expectedUpdatedAt,
+    });
+
+    if (result.status === "conflict") {
+      return NextResponse.json({ ok: false, conflict: result.server }, { status: 409 });
+    }
+
+    return NextResponse.json({ ok: true, playlist: result });
+  },
+});

@@ -16,7 +16,7 @@
 export type ReplicationAssociation = {
   slug: string;
   title: string;
-  matchedVia: "effect_slug" | "effect_tags" | "curated";
+  matchedVia: "effect_slug" | "effect_tags" | "title" | "curated";
   effectSlug: string;
   effectName: string;
   /** Already in that substance's stored `removed_slugs` — the saved baseline. */

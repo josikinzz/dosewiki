@@ -11,8 +11,10 @@ import {
   visualEffectNamesOf,
   type SubstanceGalleryMatchableRow,
   type SubstanceGalleryMatchProvenance,
+  substanceNamesOf,
+  isShowcaseEligible,
+  GALLERY_CURATION_SLUG_CAP,
 } from "../src/data/substanceReplicationGallery";
-import { isPublishableReplication } from "../src/types/replications";
 import type { ReplicationAssociation } from "../src/features/dev/tools/replication-studio/replicationAssociationModel";
 
 /**
@@ -30,8 +32,8 @@ import type { ReplicationAssociation } from "../src/features/dev/tools/replicati
  * cached under the replications tag.
  */
 
-/** Enough to pin or suppress the whole corpus, small enough to stay one document. */
-const MAX_GALLERY_CURATION_SLUGS = 250;
+/** One shared ceiling with the save route and the portal's exclusion meter. */
+const MAX_GALLERY_CURATION_SLUGS = GALLERY_CURATION_SLUG_CAP;
 
 /**
  * The substance for a slug, or null. Mirrors `substanceIndex:getPublicBySlug`:
@@ -80,7 +82,11 @@ export const getPublicReplicationsForSubstance = query({
 
     const rows = await ctx.db.query("replications").collect();
     const visualNames = visualEffectNamesOf(substance.subjective_effects);
-    const { matches, unmatchedEffectNames } = matchSubstanceGalleryReplications(rows, visualNames);
+    const { matches, unmatchedEffectNames } = matchSubstanceGalleryReplications(
+      rows,
+      visualNames,
+      substanceNamesOf(substance),
+    );
 
     const gallery = await ctx.db
       .query("substanceGalleries")
@@ -139,10 +145,11 @@ export const listCurationCandidatesPage = query({
     const items = await Promise.all(
       page.page.map(async (substance) => {
         const visualNames = visualEffectNamesOf(substance.subjective_effects);
+        const substanceNames = substanceNamesOf(substance);
         const matchCount =
-          visualNames.length === 0
+          visualNames.length === 0 && substanceNames.length === 0
             ? 0
-            : matchSubstanceGalleryReplications(rows, visualNames).matches.length;
+            : matchSubstanceGalleryReplications(rows, visualNames, substanceNames).matches.length;
 
         const gallery = await ctx.db
           .query("substanceGalleries")
@@ -195,7 +202,11 @@ export const getCurationDetail = query({
 
     const visualNames = visualEffectNamesOf(substance.subjective_effects);
     const rows = await ctx.db.query("replications").collect();
-    const { matches, unmatchedEffectNames } = matchSubstanceGalleryReplications(rows, visualNames);
+    const { matches, unmatchedEffectNames } = matchSubstanceGalleryReplications(
+      rows,
+      visualNames,
+      substanceNamesOf(substance),
+    );
 
     const gallery = await ctx.db
       .query("substanceGalleries")
@@ -303,12 +314,14 @@ export const upsert = mutation({
       adminIntent: "editorArticleWrite",
     });
 
-    if (
-      args.curated_slugs.length > MAX_GALLERY_CURATION_SLUGS ||
-      args.removed_slugs.length > MAX_GALLERY_CURATION_SLUGS
-    ) {
+    if (args.curated_slugs.length > MAX_GALLERY_CURATION_SLUGS) {
       throw new Error(
-        `A substance gallery curation may hold at most ${MAX_GALLERY_CURATION_SLUGS} slugs per list.`,
+        `This gallery curates ${args.curated_slugs.length} works; the limit is ${MAX_GALLERY_CURATION_SLUGS}. Uncurate some rows before saving.`,
+      );
+    }
+    if (args.removed_slugs.length > MAX_GALLERY_CURATION_SLUGS) {
+      throw new Error(
+        `This gallery excludes ${args.removed_slugs.length} works; the limit is ${MAX_GALLERY_CURATION_SLUGS}. Restore some from the Excluded shelf, or exclude junk everywhere from the Library instead.`,
       );
     }
 
@@ -344,6 +357,7 @@ export const upsert = mutation({
     const { matches } = matchSubstanceGalleryReplications(
       rows,
       visualEffectNamesOf(substance.subjective_effects),
+      substanceNamesOf(substance),
     );
 
     const normalized = normalizeGalleryCuration({
@@ -351,7 +365,7 @@ export const upsert = mutation({
       removedSlugs: args.removed_slugs,
       matchableSlugs: new Set(matches.map((match) => match.row.slug)),
       curatableSlugs: new Set(
-        rows.filter(isPublishableReplication).map((row) => row.slug),
+        rows.filter(isShowcaseEligible).map((row) => row.slug),
       ),
     });
 
@@ -391,18 +405,23 @@ export const upsert = mutation({
 
 /**
  * How this one replication earns a place on a substance with these visual
- * effect names, or null when it earns none.
+ * effect names and its own names, or null when it earns none.
  *
  * A single-row corpus handed to the shared matcher, so the owning-slug-beats-tag
- * precedence, the tag pick, and the publishable gate cannot drift from what the
- * article and the per-substance portal derive.
+ * precedence, the tag pick, the title fallback, and the eligibility gate cannot
+ * drift from what the article and the per-substance portal derive.
  */
 function associationProvenance(
   replication: SubstanceGalleryMatchableRow,
   visualEffectNames: readonly string[],
+  substanceNames: readonly string[] = [],
 ): SubstanceGalleryMatchProvenance | null {
-  if (visualEffectNames.length === 0) return null;
-  const { matches } = matchSubstanceGalleryReplications([replication], visualEffectNames);
+  if (visualEffectNames.length === 0 && substanceNames.length === 0) return null;
+  const { matches } = matchSubstanceGalleryReplications(
+    [replication],
+    visualEffectNames,
+    substanceNames,
+  );
   return matches.length > 0 ? matches[0].provenance : null;
 }
 
@@ -448,7 +467,7 @@ export const getReplicationAssociationsPage = query({
       .query("replications")
       .withIndex("by_slug", (q) => q.eq("slug", args.replicationSlug))
       .first();
-    if (!replication || !isPublishableReplication(replication)) {
+    if (!replication || !isShowcaseEligible(replication)) {
       return { items: [], cursor: args.cursor ?? "", isDone: true };
     }
 
@@ -464,7 +483,11 @@ export const getReplicationAssociationsPage = query({
         .query("substanceGalleries")
         .withIndex("by_substance", (q) => q.eq("substance_slug", substance.slug))
         .first();
-      const derivedProvenance = associationProvenance(replication, visualNames);
+      const derivedProvenance = associationProvenance(
+        replication,
+        visualNames,
+        substanceNamesOf(substance),
+      );
       const directlyCurated = gallery?.curated_slugs.includes(args.replicationSlug) ?? false;
       if (!derivedProvenance && !directlyCurated) continue;
       const provenance = derivedProvenance ?? {
@@ -594,6 +617,7 @@ export const setReplicationExclusions = mutation({
         const provenance = associationProvenance(
           replication,
           visualEffectNamesOf(substance.subjective_effects),
+          substanceNamesOf(substance),
         );
         if (!provenance) continue;
 

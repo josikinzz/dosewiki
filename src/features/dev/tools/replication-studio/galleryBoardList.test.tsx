@@ -48,6 +48,7 @@ function renderBoard(count: number, curation: GalleryCurationState, overrides: P
     onCurate: vi.fn(),
     onUncurate: vi.fn(),
     onExclude: vi.fn(),
+    onExcludeEverywhere: vi.fn(),
     onDragEnd: vi.fn(),
     focusSlug: null,
     onFocusHandled: vi.fn(),

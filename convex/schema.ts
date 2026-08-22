@@ -16,6 +16,7 @@ import {
 import {
   replication,
   subjectiveEffect,
+  replicationPlaylist,
   substanceGallery,
 } from "./lib/effectMediaSchemaValidators";
 import { replicationDateResearch } from "./lib/replicationDateValidators";
@@ -275,6 +276,11 @@ export default defineSchema({
   // Per-substance Replication Showcase curation; see the validator's note.
   substanceGalleries: defineTable(substanceGallery)
     .index("by_substance", ["substance_slug"]),
+
+  // Reusable named replication playlists, applied into a gallery's draft; see
+  // the validator's note. Nothing here publishes on its own.
+  replicationPlaylists: defineTable(replicationPlaylist)
+    .index("by_key", ["key"]),
 
   memberships: defineTable(membership)
     .index("by_email", ["email"])

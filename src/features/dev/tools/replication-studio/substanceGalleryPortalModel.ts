@@ -25,7 +25,7 @@ export type GalleryCandidate = {
 };
 
 export type GalleryMatchProvenance = {
-  matchedVia: "effect_slug" | "effect_tags" | "curated";
+  matchedVia: "effect_slug" | "effect_tags" | "title" | "curated";
   effectSlug: string;
   effectName: string;
 };
@@ -440,22 +440,24 @@ export type GalleryProvenanceSummary = {
   effectCount: number;
   viaEffectSlug: number;
   viaEffectTags: number;
+  viaName: number;
 };
 
-/** Counts behind "N matched from M visual effects · X via effect_slug · Y via effect_tags". */
+/** Counts behind "N matched from M visual effects · X via effect_slug · Y via effect_tags · Z via name". */
 export function summarizeProvenance(matches: readonly GalleryMatch[]): GalleryProvenanceSummary {
   const effectSlugs = new Set<string>();
   let viaEffectSlug = 0;
+  let viaName = 0;
   for (const match of matches) {
     effectSlugs.add(match.provenance.effectSlug);
-    if (match.provenance.matchedVia === "effect_slug") {
-      viaEffectSlug += 1;
-    }
+    if (match.provenance.matchedVia === "effect_slug") viaEffectSlug += 1;
+    else if (match.provenance.matchedVia === "title") viaName += 1;
   }
   return {
     matched: matches.length,
     effectCount: effectSlugs.size,
     viaEffectSlug,
-    viaEffectTags: matches.length - viaEffectSlug,
+    viaEffectTags: matches.length - viaEffectSlug - viaName,
+    viaName,
   };
 }

@@ -224,6 +224,81 @@ describe("matchSubstanceGalleryReplications", () => {
       unmatchedEffectNames: [],
     });
   });
+
+  it("matches a title that names the substance, as the weakest signal", () => {
+    const { matches } = matchSubstanceGalleryReplications(
+      [row({ slug: "road", title: "2C-B Road" })],
+      ["Visual drifting"],
+      ["2C-B"],
+    );
+    expect(slugsOf(matches)).toEqual(["road"]);
+    expect(matches[0].provenance).toEqual({ matchedVia: "title", effectSlug: "name-match" });
+  });
+
+  it("refuses a longer chemical name that merely contains the substance", () => {
+    const { matches } = matchSubstanceGalleryReplications(
+      [
+        row({ slug: "fly", title: "2C-B-FLY Grid" }),
+        row({ slug: "meo", title: "5-MeO-DMT Tunnel" }),
+      ],
+      [],
+      ["2C-B", "DMT"],
+    );
+    expect(slugsOf(matches)).toEqual([]);
+  });
+
+  it("refuses a substance name buried inside an ordinary word", () => {
+    const { matches } = matchSubstanceGalleryReplications(
+      [row({ slug: "noise", title: "Random static" })],
+      [],
+      ["DOM"],
+    );
+    expect(slugsOf(matches)).toEqual([]);
+  });
+
+  it("reads titles case-insensitively and across punctuation", () => {
+    const { matches } = matchSubstanceGalleryReplications(
+      [
+        row({ slug: "lower", title: "mdma sunrise" }),
+        row({ slug: "dashed", title: "DMT — breakthrough" }),
+      ],
+      [],
+      ["MDMA", "DMT"],
+    );
+    expect(slugsOf(matches)).toEqual(["lower", "dashed"]);
+  });
+
+  it("keeps effect provenance when the title also names the substance", () => {
+    const { matches } = matchSubstanceGalleryReplications(
+      [row({ slug: "drift-a", title: "2C-B drifting", effect_slug: "drifting" })],
+      ["Visual drifting"],
+      ["2C-B"],
+    );
+    expect(matches[0].provenance).toEqual({ matchedVia: "effect_slug", effectSlug: "drifting" });
+  });
+
+  it("ranks every effect match above every name match", () => {
+    const { matches } = matchSubstanceGalleryReplications(
+      [
+        row({ slug: "named-video", type: "video", title: "2C-B reel" }),
+        row({ slug: "effect-still", effect_slug: "drifting" }),
+      ],
+      ["Visual drifting"],
+      ["2C-B"],
+    );
+    expect(slugsOf(matches)).toEqual(["effect-still", "named-video"]);
+  });
+
+  it("drops a row excluded everywhere from the candidate pool", () => {
+    const { matches } = matchSubstanceGalleryReplications(
+      [
+        row({ slug: "junk", effect_slug: "drifting", showcase_excluded: true }),
+        row({ slug: "keeper", effect_slug: "drifting" }),
+      ],
+      ["Visual drifting"],
+    );
+    expect(slugsOf(matches)).toEqual(["keeper"]);
+  });
 });
 
 describe("mergeCuratedGallery", () => {

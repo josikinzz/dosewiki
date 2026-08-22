@@ -32,6 +32,7 @@ import {
   type StudioRow,
 } from "./replicationStudioModel";
 import { useReplicationIncoming } from "./useReplicationIncoming";
+import { columnsIn } from "./gridColumns";
 
 const CORPUS_API = "/api/dev/replications";
 const EDITORIAL_API = "/api/dev/replications/editorial";
@@ -76,7 +77,7 @@ export function useReplicationStudioController(initialSubstanceSlug?: string) {
   const [anchor, setAnchor] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [feedback, setFeedback] = useState<Feedback | null>(null);
-  const [activePanel, setActivePanel] = useState<"featured" | "substances" | null>(
+  const [activePanel, setActivePanel] = useState<"featured" | "playlists" | "substances" | null>(
     initialSubstanceSlug ? "substances" : null,
   );
   const [featuredOrder, setFeaturedOrder] = useState<string[]>([]);
@@ -88,7 +89,9 @@ export function useReplicationStudioController(initialSubstanceSlug?: string) {
   >("idle");
   const [centreView, setCentreView] = useState<ReplicationCentreView>("showcase");
   const [galleryDirty, setGalleryDirty] = useState(false);
-  const [pendingLeave, setPendingLeave] = useState<{ next: "featured" | null } | null>(null);
+  const [pendingLeave, setPendingLeave] = useState<{
+    next: "featured" | "playlists" | null;
+  } | null>(null);
   const [filtersOpen, setFiltersOpen] = useState(false);
   const railInColumn = useRailColumn();
   const searchRef = useRef<HTMLInputElement>(null);
@@ -106,7 +109,7 @@ export function useReplicationStudioController(initialSubstanceSlug?: string) {
   }, [activePanel]);
 
   const leaveSubstances = useCallback(
-    (next: "featured" | null) => {
+    (next: "featured" | "playlists" | null) => {
       setPendingLeave(null);
       setGalleryDirty(false);
       setActivePanel(next);
@@ -116,7 +119,7 @@ export function useReplicationStudioController(initialSubstanceSlug?: string) {
   );
 
   const requestLeaveSubstances = useCallback(
-    (next: "featured" | null) => {
+    (next: "featured" | "playlists" | null) => {
       if (galleryDirty) {
         setPendingLeave({ next });
         return;
@@ -322,7 +325,12 @@ export function useReplicationStudioController(initialSubstanceSlug?: string) {
       }
       if (visibleIds.length === 0) return;
       event.preventDefault();
-      const perRow = 4;
+      // The grid is 2/3/4 columns responsively, so a fixed step moves
+      // diagonally at some widths. Measure the row the anchor actually sits in.
+      const anchorNode = anchor
+        ? document.querySelector<HTMLElement>(`[data-id="${anchor}"]`)
+        : null;
+      const perRow = columnsIn(anchorNode?.parentElement ?? null, "[data-id]");
       const step =
         event.key === "ArrowRight"
           ? 1

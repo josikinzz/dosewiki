@@ -1,5 +1,7 @@
 "use client";
 
+import { useEffect, useRef } from "react";
+
 import { Icon } from "@/components/common/Icon";
 import { SkeletonPulse } from "@/components/layout/PublicFeedbackPrimitives";
 import { Button } from "@/components/ui/button";
@@ -25,6 +27,7 @@ import { SHOWCASE_WORK_CAP } from "@/features/replications/components/showcaseMo
 import { GalleryBoardList, GalleryMatchIdentity } from "./GalleryBoardList";
 import { GalleryLibraryAdd } from "./GalleryLibraryAdd";
 import { GalleryPicker } from "./GalleryPicker";
+import { ApplyPlaylistMenu } from "./ApplyPlaylistMenu";
 import { GalleryStagePreview } from "./GalleryStagePreview";
 import type { StudioRow } from "./replicationStudioModel";
 import type {
@@ -156,9 +159,24 @@ export function SubstanceGalleryPanel({
     provenance,
     matchedSlugs,
     unknownRightsOnStage,
+    exclusionCount,
+    exclusionLimit,
+    overExclusionLimit,
+    shelfFocusToken,
     undoable,
     redoable,
   } = controller;
+
+  /**
+   * Excluding the last row in a band leaves no neighbour to receive focus, so
+   * the controller bumps a token and the shelf toggle — the nearest thing the
+   * action produced — takes it instead of the document body.
+   */
+  const shelfToggleRef = useRef<HTMLButtonElement | null>(null);
+  useEffect(() => {
+    if (shelfFocusToken === 0) return;
+    shelfToggleRef.current?.focus({ preventScroll: true });
+  }, [shelfFocusToken]);
 
   return (
     <EditorSection
@@ -186,8 +204,8 @@ export function SubstanceGalleryPanel({
             <div className="min-w-0">
               <p className="theme-text-muted font-mono text-xs">
                 {provenance.matched} matched from {provenance.effectCount} visual effect
-                {provenance.effectCount === 1 ? "" : "s"} · {provenance.viaEffectSlug} via effect_slug ·{" "}
-                {provenance.viaEffectTags} via effect_tags
+                {provenance.effectCount === 1 ? "" : "s"} · {provenance.viaEffectSlug} by owning
+                effect · {provenance.viaEffectTags} by tag · {provenance.viaName} by name
               </p>
               {detail.unmatchedEffectNames.length > 0 ? (
                 <Button
@@ -214,12 +232,16 @@ export function SubstanceGalleryPanel({
               type="button"
               variant="accent"
               size="sm"
-              disabled={!isDirty || saveState === "saving"}
+              disabled={!isDirty || saveState === "saving" || overExclusionLimit}
               onClick={() => void controller.persist(curation, expectedUpdatedAt)}
             >
               <Icon icon="lucide:save" size={15} />
               Save gallery
             </Button>
+            <ApplyPlaylistMenu
+              matchedSlugs={matchedSlugs}
+              onApply={controller.handleApplyPlaylist}
+            />
             <Button
               type="button"
               variant="glass"
@@ -272,6 +294,14 @@ export function SubstanceGalleryPanel({
             <EditorActionStatus status={saveState} />
           )}
         </EditorToolbar>
+      ) : null}
+
+      {overExclusionLimit ? (
+        <ActionNotice tone="danger">
+          This gallery excludes {exclusionCount} works and the limit is {exclusionLimit}, so it will
+          not save. Restore some from the Excluded shelf, or use Exclude everywhere on the junk so it
+          leaves every gallery at once instead of filling this one.
+        </ActionNotice>
       ) : null}
 
       {feedback ? (
@@ -376,6 +406,7 @@ export function SubstanceGalleryPanel({
             onCurate={controller.handleCurate}
             onUncurate={controller.handleUncurate}
             onExclude={controller.handleExclude}
+            onExcludeEverywhere={controller.handleExcludeEverywhere}
             onDragEnd={controller.handleDragEnd}
             focusSlug={focusSlug}
             onFocusHandled={controller.clearFocus}
@@ -383,16 +414,30 @@ export function SubstanceGalleryPanel({
 
           {board.excluded.length > 0 ? (
             <div className="space-y-2">
-              <Button
-                type="button"
-                variant="ghost"
-                size="sm"
-                aria-expanded={excludedOpen}
-                onClick={() => controller.setExcludedOpen((open) => !open)}
-              >
-                <Icon icon={excludedOpen ? "lucide:chevron-down" : "lucide:chevron-right"} size={14} />
-                Excluded from this gallery ({board.excluded.length})
-              </Button>
+              <div className="flex flex-wrap items-center gap-2">
+                <Button
+                  ref={shelfToggleRef}
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  aria-expanded={excludedOpen}
+                  onClick={() => controller.setExcludedOpen((open) => !open)}
+                >
+                  <Icon icon={excludedOpen ? "lucide:chevron-down" : "lucide:chevron-right"} size={14} />
+                  Excluded from this gallery ({board.excluded.length})
+                </Button>
+                <EditorStatusPill
+                  tone={
+                    overExclusionLimit
+                      ? "danger"
+                      : exclusionCount >= exclusionLimit * 0.8
+                        ? "warning"
+                        : "neutral"
+                  }
+                >
+                  {`${exclusionCount} of ${exclusionLimit} gallery exclusions used`}
+                </EditorStatusPill>
+              </div>
               {excludedOpen ? (
                 <ul className="space-y-2">
                   {board.excluded.map((match) => (

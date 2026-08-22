@@ -66,13 +66,28 @@ const DETAIL = {
   unmatchedEffectNames: [],
 };
 
+const PLAYLISTS = [
+  {
+    key: "geometry-opener",
+    title: "Geometry opener",
+    // work-1 is already curated on LSD; work-2 and work-3 are matched candidates.
+    replication_slugs: ["work-1", "work-3", "work-2"],
+    updated_at: "2026-08-01T10:00:00.000Z",
+    updated_by: "josie",
+  },
+];
+
 type PostHandler = (body: {
   curatedSlugs: string[];
   removedSlugs: string[];
   expectedUpdatedAt?: string | null;
 }) => { status: number; payload: unknown };
 
-function stubFetch(onPost?: PostHandler, detail: unknown = DETAIL) {
+function stubFetch(
+  onPost?: PostHandler,
+  detail: unknown = DETAIL,
+  playlists: unknown = { playlists: PLAYLISTS },
+) {
   const posts: { curatedSlugs: string[]; removedSlugs: string[]; expectedUpdatedAt?: string | null }[] = [];
   const fetchMock = vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
     const url = String(input);
@@ -96,7 +111,11 @@ function stubFetch(onPost?: PostHandler, detail: unknown = DETAIL) {
         headers: { "Content-Type": "application/json" },
       });
     }
-    const payload = url.endsWith("/substances") ? { substances: SUBSTANCES } : detail;
+    const payload = url.includes("/playlists")
+      ? playlists
+      : url.endsWith("/substances")
+        ? { substances: SUBSTANCES }
+        : detail;
     return new Response(JSON.stringify(payload), {
       status: 200,
       headers: { "Content-Type": "application/json" },
@@ -174,6 +193,50 @@ describe("SubstanceGalleryPanel", () => {
 
     await user.click(screen.getByRole("button", { name: /redo the last undone curation change/i }));
     expect(screen.getByText("Unsaved changes")).toBeInTheDocument();
+  });
+
+  it("applies a playlist into the draft without publishing anything", async () => {
+    const user = userEvent.setup();
+    const { posts } = stubFetch();
+    renderPanel();
+
+    await screen.findByText("Work 2");
+    expect(screen.getByText("Gallery saved")).toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: /apply playlist/i }));
+    // 3 of 3 entries match LSD; one of them is already curated.
+    await user.click(await screen.findByRole("button", { name: /geometry opener/i }));
+
+    // The applied works land after the editor's own pin, in playlist order, and
+    // the already-curated work keeps the position it had.
+    expect(screen.getByText("Unsaved changes")).toBeInTheDocument();
+    expect(screen.getByTestId("stage-preview")).toHaveTextContent("work-1,work-3,work-2");
+
+    // Applying is a draft edit: nothing was written until Save is pressed.
+    expect(posts).toHaveLength(0);
+
+    await user.click(screen.getByRole("button", { name: /save gallery/i }));
+    await waitFor(() => expect(posts).toHaveLength(1));
+    expect(posts[0].curatedSlugs).toEqual(["work-1", "work-3", "work-2"]);
+  });
+
+  /**
+   * The state of a deployment that has the app but not the playlist functions
+   * yet: the endpoint answers with something this panel cannot read. Curation
+   * must keep working — one broken side feature may not take the gallery down.
+   */
+  it("keeps curating when the playlists endpoint answers with junk", async () => {
+    const user = userEvent.setup();
+    const { posts } = stubFetch(undefined, DETAIL, { error: "Server Error" });
+    renderPanel();
+
+    await screen.findByText("Work 2");
+    await user.click(screen.getByRole("button", { name: "Curate Work 2" }));
+    expect(screen.getByText("Unsaved changes")).toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: /save gallery/i }));
+    await waitFor(() => expect(posts).toHaveLength(1));
+    expect(posts[0].curatedSlugs).toEqual(["work-1", "work-2"]);
   });
 
   it("posts the loaded updated_at as the expected version and adopts the echo", async () => {

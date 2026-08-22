@@ -24,6 +24,7 @@ import { cn } from "@/lib/utils";
 
 import { IncomingTray } from "./IncomingTray";
 import { ReplicationEditorDrawer } from "./ReplicationEditorDrawer";
+import { PlaylistsPanel } from "./PlaylistsPanel";
 import { ReplicationFacetRail } from "./ReplicationFacetRail";
 import { ReplicationGrid } from "./ReplicationGrid";
 import { SubstanceGalleryPanel } from "./SubstanceGalleryPanel";
@@ -131,6 +132,26 @@ export function ReplicationStudioTab({
         </Button>
         <Button
           type="button"
+          variant={activePanel === "playlists" ? "accent" : "ghost"}
+          size="sm"
+          aria-expanded={activePanel === "playlists"}
+          onClick={() => {
+            if (activePanel === "playlists") {
+              controller.setActivePanel(null);
+              return;
+            }
+            if (activePanel === "substances") {
+              controller.requestLeaveSubstances("playlists");
+              return;
+            }
+            controller.setActivePanel("playlists");
+          }}
+        >
+          <Icon icon="lucide:list-music" size={15} />
+          Playlists
+        </Button>
+        <Button
+          type="button"
           variant={activePanel === "substances" ? "accent" : "ghost"}
           size="sm"
           aria-expanded={activePanel === "substances"}
@@ -214,6 +235,14 @@ export function ReplicationStudioTab({
             ) : (
               <p className="theme-text-muted text-sm">Loading the featured selection…</p>
             )}
+          </EditorPanelBody>
+        </EditorPanel>
+      ) : null}
+
+      {activePanel === "playlists" ? (
+        <EditorPanel>
+          <EditorPanelBody>
+            <PlaylistsPanel items={featuredItems} />
           </EditorPanelBody>
         </EditorPanel>
       ) : null}

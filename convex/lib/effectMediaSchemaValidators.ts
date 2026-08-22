@@ -133,6 +133,16 @@ export const replication = v.object({
    * relaxing `v.string()` to `v.optional(v.string())` changes nothing for them.
    */
   effect_slug: v.optional(v.string()),
+  /**
+   * Retired from every substance showcase candidate pool at once.
+   *
+   * Per-substance `removed_slugs` says "good work, wrong article", which is
+   * rare. Junk is junk everywhere, and sweeping it one substance at a time is
+   * what pushed curations into their slug cap, so this is the corpus-wide
+   * verb. The row stays in the Library and on its effect page; it simply stops
+   * proposing itself for substance galleries.
+   */
+  showcase_excluded: v.optional(v.boolean()),
   thumbnail_storage_id: v.optional(v.string()), // Video thumbnail storage ID
   /**
    * Low-res muted preview rendition for gallery in-view autoplay (video rows
@@ -186,6 +196,20 @@ export const substanceGallery = v.object({
   substance_slug: v.string(),
   curated_slugs: v.array(v.string()),
   removed_slugs: v.array(v.string()),
+  updated_at: v.string(),               // ISO timestamp
+  updated_by: v.optional(v.string()),
+});
+
+// A reusable, named, ordered set of replications an editor can apply to any
+// substance's curation. Nothing here publishes: applying a playlist edits the
+// target gallery's *draft*, and the `substanceGalleries` curation stays the one
+// publish gate. This exists because the same twelve works are the right opener
+// for a whole family of substances, and rebuilding that order by hand for each
+// one is the bulk of the curation work.
+export const replicationPlaylist = v.object({
+  key: v.string(),                      // kebab-case stable id
+  title: v.string(),                    // display name
+  replication_slugs: v.array(v.string()),
   updated_at: v.string(),               // ISO timestamp
   updated_by: v.optional(v.string()),
 });

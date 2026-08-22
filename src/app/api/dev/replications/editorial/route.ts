@@ -45,6 +45,7 @@ type ParsedEditorial =
       artist?: string;
       role?: StudioRole;
       addEffectTags?: string[];
+      showcaseExcluded?: boolean;
     };
 
 function parseTags(value: unknown, field: string): string[] {
@@ -141,12 +142,19 @@ function parseEditorialBody(body: unknown): ParsedEditorial {
         parsed.addEffectTags = tags;
       }
     }
+    if (raw.showcaseExcluded !== undefined && raw.showcaseExcluded !== null) {
+      if (typeof raw.showcaseExcluded !== "boolean") {
+        throw new JsonBodyError(400, "showcaseExcluded must be true or false.");
+      }
+      parsed.showcaseExcluded = raw.showcaseExcluded;
+    }
 
     if (
       parsed.effectSlug === undefined
       && parsed.artist === undefined
       && parsed.role === undefined
       && parsed.addEffectTags === undefined
+      && parsed.showcaseExcluded === undefined
     ) {
       throw new JsonBodyError(400, "A bulk edit needs at least one field to change.");
     }
@@ -193,6 +201,7 @@ export const POST = protectedRouteOperation<unknown, ParsedEditorial>({
       artist: body.artist,
       role: body.role,
       addEffectTags: body.addEffectTags,
+      showcase_excluded: body.showcaseExcluded,
     });
 
     if (body.effectSlug) {

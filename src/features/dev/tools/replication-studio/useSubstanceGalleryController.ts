@@ -8,6 +8,8 @@ import type {
   EditorActionStatusState,
 } from "@/features/dev/components";
 import { SHOWCASE_WORK_CAP } from "@/features/replications/components/showcaseModel";
+import { GALLERY_CURATION_SLUG_CAP } from "@/data/substanceReplicationGallery";
+import { applyPlaylistToCuration } from "./replicationPlaylistModel";
 import {
   fetchGalleryDetail,
   galleryCandidatesUrl,
@@ -41,6 +43,8 @@ import {
   type GalleryDetail,
 } from "./substanceGalleryPortalModel";
 
+
+const EDITORIAL_API = "/api/dev/replications/editorial";
 
 let cachedCandidates: GalleryCandidate[] | null = null;
 
@@ -87,6 +91,7 @@ export function useSubstanceGalleryController({
   const [previewOpen, setPreviewOpen] = useState(true);
   const [pendingSlug, setPendingSlug] = useState<string | null>(null);
   const [focusSlug, setFocusSlug] = useState<string | null>(null);
+  const [shelfFocusToken, setShelfFocusToken] = useState(0);
   const [announcement, setAnnouncement] = useState("");
 
   const curation = history.present;
@@ -217,12 +222,108 @@ export function useSubstanceGalleryController({
     [applyCuration, curation, titleOf],
   );
 
+  /**
+   * Apply a saved playlist into this draft. Nothing publishes: this is the same
+   * edit as pinning each work by hand, so the editor still reviews and saves.
+   * Works this gallery already curates keep the position the editor gave them,
+   * and works excluded here are skipped rather than resurrected — a playlist
+   * knows nothing about this article's exclusions.
+   */
+  const handleApplyPlaylist = useCallback(
+    (playlist: { title: string; replication_slugs: readonly string[] }) => {
+      // A playlist is corpus-wide; only the entries that actually match this
+      // substance can go on its article.
+      const matchable = playlist.replication_slugs.filter((slug) => matchedSlugs.has(slug));
+      const result = applyPlaylistToCuration({
+        curated: curation.curated,
+        removed: curation.removed,
+        playlistSlugs: matchable,
+      });
+
+      if (result.added.length === 0) {
+        setFeedback({
+          tone: "warning",
+          message: `"${playlist.title}" adds nothing here — every entry that matches this substance is already curated or excluded.`,
+        });
+        return;
+      }
+
+      const unmatched = playlist.replication_slugs.length - matchable.length;
+      const notes = [
+        result.skippedExcluded.length > 0
+          ? `${result.skippedExcluded.length} skipped as excluded here`
+          : null,
+        unmatched > 0 ? `${unmatched} do not match this substance` : null,
+      ].filter(Boolean);
+
+      applyCuration(
+        { ...curation, curated: result.curated },
+        `Applied "${playlist.title}": ${result.added.length} pinned${
+          notes.length > 0 ? ` (${notes.join(", ")})` : ""
+        }. Nothing is published until you save.`,
+      );
+    },
+    [applyCuration, curation, matchedSlugs],
+  );
+
   const handleExclude = useCallback(
     (slug: string) => {
       const next = excludeSlug(curation, slug);
+      // The excluded row unmounts. Hand focus to its neighbour so a keyboard
+      // editor keeps their place instead of dropping to <body>; with no
+      // neighbour left, the excluded shelf toggle is the nearest real target.
+      const index = board.rows.findIndex((row) => row.match.replication.slug === slug);
+      const neighbour =
+        board.rows[index + 1]?.match.replication.slug ??
+        board.rows[index - 1]?.match.replication.slug ??
+        null;
+      if (neighbour) setFocusSlug(neighbour);
+      else setShelfFocusToken((token) => token + 1);
       applyCuration(next, `${titleOf(slug)} excluded — ${next.removed.length} on the excluded shelf.`);
     },
-    [applyCuration, curation, titleOf],
+    [applyCuration, board.rows, curation, titleOf],
+  );
+
+  /**
+   * The corpus-wide verb. Junk is junk on every article, so this retires the
+   * work from every candidate pool at once instead of spending one of this
+   * gallery's exclusion slots on it. It writes immediately — there is no draft
+   * to hold a corpus fact in — and reloads the detail so the row leaves the
+   * pool it was just judged in.
+   */
+  const handleExcludeEverywhere = useCallback(
+    async (slug: string) => {
+      const match = matches.find((entry) => entry.replication.slug === slug);
+      if (!match) return;
+      const { title, id } = match.replication;
+      try {
+        const response = await fetch(EDITORIAL_API, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ mode: "bulk", ids: [id], showcaseExcluded: true }),
+        });
+        if (!response.ok) {
+          setFeedback({
+            tone: "danger",
+            message: await readGalleryApiError(
+              response,
+              `Could not exclude ${title} from every gallery.`,
+            ),
+          });
+          return;
+        }
+      } catch {
+        setFeedback({
+          tone: "danger",
+          message: `Could not reach the studio to exclude ${title} everywhere.`,
+        });
+        return;
+      }
+      setAnnouncement(`${title} excluded from every gallery.`);
+      cachedCandidates = null;
+      setDetailToken((token) => token + 1);
+    },
+    [matches],
   );
 
   const handleRestore = useCallback(
@@ -495,6 +596,7 @@ export function useSubstanceGalleryController({
     previewOpen,
     pendingSlug,
     focusSlug,
+    shelfFocusToken,
     announcement,
     matches,
     board,
@@ -502,6 +604,9 @@ export function useSubstanceGalleryController({
     provenance,
     matchedSlugs,
     unknownRightsOnStage,
+    exclusionCount: curation.removed.length,
+    exclusionLimit: GALLERY_CURATION_SLUG_CAP,
+    overExclusionLimit: curation.removed.length > GALLERY_CURATION_SLUG_CAP,
     undoable: canUndo(history),
     redoable: canRedo(history),
     setFeedback,
@@ -512,7 +617,9 @@ export function useSubstanceGalleryController({
     clearFocus,
     handleCurate,
     handleUncurate,
+    handleApplyPlaylist,
     handleExclude,
+    handleExcludeEverywhere,
     handleRestore,
     handleMove,
     handleMoveToEdge,

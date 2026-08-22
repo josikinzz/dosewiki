@@ -27,6 +27,8 @@ export type StudioRow = {
   duration: number | null;
   file_size: number | null;
   created_at: string;
+  /** Retired from every substance showcase candidate pool. */
+  showcase_excluded?: boolean;
 };
 
 export type StudioEffectOption = { slug: string; name: string };

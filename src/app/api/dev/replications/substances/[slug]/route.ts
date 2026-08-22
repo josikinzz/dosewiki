@@ -31,13 +31,14 @@ import { api } from "../../../../../../../convex/_generated/api";
 import { PUBLIC_CONVEX_CACHE_TAGS } from "@server/convex/publicData";
 import { JsonBodyError } from "@/lib/http/readJsonBody";
 import { protectedRouteOperation } from "@/lib/http/protectedRouteOperation";
+import { GALLERY_CURATION_SLUG_CAP } from "@/data/substanceReplicationGallery";
 
 export const runtime = "nodejs";
 
 const MAX_PAYLOAD_BYTES = 32 * 1024;
 
-/** Matches the ceiling enforced in `convex/substanceGalleries.ts`. */
-const MAX_CURATION_SLUGS = 250;
+/** One shared ceiling: the Convex mutation and the portal's meter read the same number. */
+const MAX_CURATION_SLUGS = GALLERY_CURATION_SLUG_CAP;
 
 /** Substance slugs are kebab-case with the occasional dotted segment. */
 const SUBSTANCE_SLUG = /^[a-z0-9]+(?:[-.][a-z0-9]+)*$/;
@@ -74,12 +75,24 @@ type ParsedCurationBody = {
  */
 const REPLICATION_SLUG = /^[a-z0-9][a-z0-9._-]{0,119}$/;
 
+/**
+ * How a full list refuses a save, in an editor's words rather than the
+ * payload's. Hitting the exclusion ceiling used to report a field name, which
+ * told an editor nothing about which of their afternoon's clicks to undo.
+ */
+const SLUG_LIST_OVERFLOW: Record<string, (count: number) => string> = {
+  curatedSlugs: (count) =>
+    `This gallery curates ${count} works; the limit is ${MAX_CURATION_SLUGS}. Uncurate some rows before saving.`,
+  removedSlugs: (count) =>
+    `This gallery excludes ${count} works; the limit is ${MAX_CURATION_SLUGS}. Restore some from the Excluded shelf, or exclude junk everywhere from the Library instead.`,
+};
+
 function parseSlugList(value: unknown, field: string): string[] {
   if (!Array.isArray(value)) {
     throw new JsonBodyError(400, `A curation save needs an array of ${field}.`);
   }
   if (value.length > MAX_CURATION_SLUGS) {
-    throw new JsonBodyError(400, `A curation may hold at most ${MAX_CURATION_SLUGS} ${field}.`);
+    throw new JsonBodyError(400, SLUG_LIST_OVERFLOW[field](value.length));
   }
   const slugs: string[] = [];
   const seen = new Set<string>();

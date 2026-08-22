@@ -106,6 +106,7 @@ function AssociationsSkeleton() {
 const MATCH_LABEL: Record<ReplicationAssociation["matchedVia"], string> = {
   effect_slug: "via owning effect",
   effect_tags: "via effect tag",
+  title: "via name in title",
   curated: "via direct curation",
 };
 

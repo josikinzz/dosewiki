@@ -359,18 +359,35 @@ describe("dirty state across a save round trip", () => {
 });
 
 describe("summarizeProvenance", () => {
-  it("counts matches, distinct effects, and the slug/tag split", () => {
+  it("counts matches, distinct effects, and the slug/tag/name split", () => {
     expect(summarizeProvenance(MATCHES)).toEqual({
       matched: 4,
       effectCount: 3,
       viaEffectSlug: 2,
       viaEffectTags: 2,
+      viaName: 0,
     });
     expect(summarizeProvenance([])).toEqual({
       matched: 0,
       effectCount: 0,
       viaEffectSlug: 0,
       viaEffectTags: 0,
+      viaName: 0,
+    });
+  });
+
+  it("splits a name match out of the tag count", () => {
+    const named = [
+      {
+        replication: MATCHES[0].replication,
+        provenance: { matchedVia: "title" as const, effectSlug: "name-match", effectName: "name-match" },
+      },
+    ];
+    expect(summarizeProvenance(named)).toMatchObject({
+      matched: 1,
+      viaEffectSlug: 0,
+      viaEffectTags: 0,
+      viaName: 1,
     });
   });
 });
