@@ -91,7 +91,7 @@ function LethalDosageCard({ toxicity, article }: { toxicity: NormalizedHarmPoten
       title="Lethal Dosage"
       icon="tabler:grave"
       padding="sm"
-      variant="interactive"
+      variant="nested"
       className="break-inside-avoid"
       contentClassName="space-y-3"
     >
@@ -187,7 +187,7 @@ function OrganToxicityCard({
       title={entry.system}
       icon={systemIcon}
       padding="sm"
-      variant="interactive"
+      variant="nested"
       className={MASONRY_ITEM_CLASS_NAME}
       contentClassName="space-y-3"
     >
@@ -284,7 +284,7 @@ function CarcinogenicityCard({ toxicity, article }: { toxicity: NormalizedHarmPo
       icon="mingcute:cancer-line"
       accessory={<CarcinogenicityLevelBadge level={carcinogenicity.level} />}
       padding="sm"
-      variant="interactive"
+      variant="nested"
       className={MASONRY_ITEM_CLASS_NAME}
       contentClassName="space-y-3"
     >
@@ -374,7 +374,7 @@ function AntibioticFunctionCard({ toxicity, article }: { toxicity: NormalizedHar
         ) : null
       }
       padding="sm"
-      variant="interactive"
+      variant="nested"
       className={MASONRY_ITEM_CLASS_NAME}
     >
       {antibiotic_function.description && (
@@ -440,7 +440,7 @@ export function ToxicitySubsection({ toxicity, article }: ToxicitySubsectionProp
                 title="Organ Toxicity"
                 icon={DEFAULT_ORGAN_SYSTEM_ICON}
                 padding="sm"
-                variant="interactive"
+                variant="nested"
                 className={MASONRY_ITEM_CLASS_NAME}
               >
                 <p><CitedText text={organToxicityString} article={article} /></p>

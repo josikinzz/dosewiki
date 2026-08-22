@@ -362,7 +362,7 @@ function LegalityEntryCard({
     <ArticleSubsectionCard
       padding="xs"
       variant="nested"
-      className="theme-public-card-hover-quiet relative min-w-0"
+      className="relative min-w-0"
     >
       {flagSrc && (
         <AppImage

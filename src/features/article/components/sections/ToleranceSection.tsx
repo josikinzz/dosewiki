@@ -57,6 +57,7 @@ export const ToleranceSection = memo(function ToleranceSection({
               key={key}
               icon={icon}
               padding="sm"
+              variant="nested"
               title={label}
               tone="accent"
             >
@@ -81,6 +82,7 @@ export const ToleranceSection = memo(function ToleranceSection({
           <ArticleInfoCard
             icon="lucide:merge"
             padding="sm"
+            variant="nested"
             title="Cross Tolerance"
             tone="accent"
           >
