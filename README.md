@@ -76,7 +76,7 @@ Public pages live under `src/app/`. Representative route groups are:
 
 Some pages are publication-specific. `src/config/siteFlavor.ts` defines the flavor contract, and `lib/next/flavorGatedRoutes.ts` enforces it. Treat `src/app/**/page.tsx` as the current route map; compatibility redirects and aliases live in `middleware.ts` and `lib/next/publicRouteAliases.ts`.
 
-The public-host launch policy is under [Environment and deployment](#environment-and-deployment). While that gate is active, the full application remains at <https://dosewiki-admin.vercel.app/> and the versioned public API remains available on the gated hosts.
+The public-host launch policy is under [Environment and deployment](#environment-and-deployment). While that gate is active, the routes above are served unprefixed at <https://dosewiki-admin.vercel.app/> and under a `/preview` prefix on the gated hosts (`https://dose.wiki/preview/substances`), whose bare `/` stays the holding page; the versioned public API remains available on all of them.
 
 ### Public read-only API
 
@@ -160,7 +160,7 @@ Production writes use an intent-scoped admin token or the documented `CONVEX_ADM
 
 `NEXT_PUBLIC_SITE_FLAVOR` selects the publication at build time: unset uses dose.wiki; `effectindex` uses Effect Index. Keep `NEXT_PUBLIC_SITE_URL=https://dosewiki-admin.vercel.app` while the public dose.wiki hosts are gated.
 
-The public `dose.wiki` and `www.dose.wiki` hosts stay under construction through 2026-08-31. Passing that date does not launch them: the user must explicitly authorize launch before the gate or canonical URL changes.
+The public `dose.wiki` and `www.dose.wiki` hosts stay gated through 2026-08-31. Passing that date does not launch them: the user must explicitly authorize launch before the gate or canonical URL changes. Both domains are attached to the same Vercel project as `dosewiki-admin`, so one production deploy serves all three hosts and `middleware.ts` is what separates them — the gated hosts answer the holding page at `/`, redirect any other bare path into the `/preview` prefix, and serve the finished site there.
 
 Vercel builds use `bun run build:vercel`. Read [deployment routing](docs/agents/deployment.md) before changing build keys, aliases, domains, or flavor settings.
 

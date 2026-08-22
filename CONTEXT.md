@@ -281,3 +281,21 @@ _Avoid_: substance gallery tab, article replication gallery
 **Balanced Quick-Link Rows**:
 The homepage quick-link wrapping rule: row sizes differ by at most one, wider rows come first, and every row is centered (five icons wrap 3+2; four wrap 2+2).
 _Avoid_: left-aligned wrap, orphan icon row
+
+## Public Host Language
+
+**Construction Hosts**:
+`dose.wiki` and `www.dose.wiki`, the two public domains held behind the launch gate. They are attached to the same Vercel project as `dosewiki-admin.vercel.app` and serve the same build; only `middleware.ts` tells them apart.
+_Avoid_: production domain vs. admin deployment, the gated project
+
+**Holding Page**:
+What the Construction Hosts answer at the bare `/`: the real homepage with every destination blocked, the Theme Lab withheld, and a pill counting down to the launch floor. It is the `/under-construction` route, reached by rewrite, so the address bar still reads the bare origin.
+_Avoid_: splash page, landing card, coming-soon page
+
+**Preview Address Space**:
+The `/preview` prefix under which the Construction Hosts serve the finished site before launch — `/preview/home` is the homepage, `/preview/substances` the Substance Index. It is an address, not a route tree: the middleware rewrites it onto the ordinary page it mirrors, and a bare path on those hosts redirects into it, so no `href` is ever written with the prefix.
+_Avoid_: preview routes, preview mode, staging path, mirror site
+
+**App Path**:
+A pathname as the route tree models it, with any Preview Address Space prefix stripped — what `toAppPath()` returns and what every client route comparison must use.
+_Avoid_: raw pathname, request path
