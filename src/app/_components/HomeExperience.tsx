@@ -180,7 +180,10 @@ export function HomeExperience({
               type="button"
               onClick={() => setIsMenuOpen((current) => !current)}
               data-open={isMenuOpen}
-              className="theme-icon-button theme-mobile-menu-toggle h-11 w-11 rounded-2xl"
+              // The live header's toggle is the `Button` primitive, whose base classes
+              // carry the centring; a bare <button> only inherits `text-align`, which a
+              // block-level SVG ignores - the glyph sat flush against the left edge.
+              className="theme-icon-button theme-mobile-menu-toggle inline-flex h-11 w-11 items-center justify-center rounded-2xl"
               aria-haspopup="true"
               aria-expanded={isMenuOpen}
               aria-controls="mock-mobile-nav"
@@ -297,7 +300,7 @@ export function HomeExperience({
                   {copy?.constructionTitle || "Under construction"}
                 </span>
                 <span className="mt-1 text-sm font-semibold italic normal-case tracking-wide sm:text-base">
-                  {copy?.constructionSubtitle || "coming soon, August 31st 2026 ;3"}
+                  {copy?.constructionSubtitle || "coming soon"}
                 </span>
                 <ConstructionCountdown />
               </span>
