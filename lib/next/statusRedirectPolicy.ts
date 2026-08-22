@@ -121,10 +121,21 @@ export function buildNoIndexPageMetadata(input: {
 }
 
 export function buildRobotsPolicy(
-  options: { publicConstructionHost?: boolean; site?: PublicSiteIdentity } = {},
+  options: {
+    publicConstructionHost?: boolean;
+    editorHost?: boolean;
+    site?: PublicSiteIdentity;
+  } = {},
 ): MetadataRoute.Robots {
   if (options.publicConstructionHost) {
     return buildPublicConstructionRobotsPolicy();
+  }
+
+  // The working deployment answers with the finished site months before it is published,
+  // so it is closed to crawlers outright. The gated public hosts allow their one holding
+  // page; this one has nothing that should rank at all.
+  if (options.editorHost) {
+    return { rules: { userAgent: "*", disallow: "/" } };
   }
 
   return {

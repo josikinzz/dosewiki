@@ -114,6 +114,20 @@ describe("status and redirect policy", () => {
     });
   });
 
+  it("closes the working deployment to crawlers entirely", () => {
+    // It answers with the finished site months before publication, so unlike the gated
+    // public hosts it has no page worth allowing - not even a root.
+    expect(buildRobotsPolicy({ editorHost: true })).toEqual({
+      rules: { userAgent: "*", disallow: "/" },
+    });
+
+    // The gate outranks it: `dose.wiki` is never both, but the precedence is what keeps
+    // the holding page reachable if the sets ever overlap.
+    expect(buildRobotsPolicy({ publicConstructionHost: true, editorHost: true })).toEqual(
+      buildRobotsPolicy({ publicConstructionHost: true }),
+    );
+  });
+
   it("snapshots status recovery link intents", () => {
     expect(
       (["substances", "effects", "reports"] as const).map((key) => getStatusRecoveryLink(key)),

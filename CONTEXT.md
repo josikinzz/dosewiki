@@ -288,6 +288,10 @@ _Avoid_: left-aligned wrap, orphan icon row
 `dose.wiki` and `www.dose.wiki`, the two public domains held behind the launch gate. They are attached to the same Vercel project as `dosewiki-admin.vercel.app` and serve the same build; only `middleware.ts` tells them apart.
 _Avoid_: production domain vs. admin deployment, the gated project
 
+**Editor Hosts**:
+`dev.dose.wiki` and `dosewiki-admin.vercel.app`, which serve the whole app ungated — the finished site plus `/dev`, `/review` and sign-in. `dev.dose.wiki` is the canonical one; a Construction Host redirects editor links there rather than to the holding page. Both are closed to crawlers until launch.
+_Avoid_: admin deployment vs. dev subdomain, the staging site
+
 **Holding Page**:
 What the Construction Hosts answer at the bare `/`: the real homepage with every destination blocked, the Theme Lab withheld, and a pill counting down to the launch floor. It is the `/under-construction` route, reached by rewrite, so the address bar still reads the bare origin.
 _Avoid_: splash page, landing card, coming-soon page

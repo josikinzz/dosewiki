@@ -11,17 +11,26 @@ This repo is linked to Vercel. Treat this file as the repo-local deployment/acco
 
 ### Domain routing invariant
 
-- `dosewiki-admin` at `https://dosewiki-admin.vercel.app/` is the full app/admin
-  deployment.
+- `dosewiki-admin` is the one project. Four hosts are attached to it and one
+  production deploy serves all of them: `dose.wiki` and `www.dose.wiki` (gated),
+  `dev.dose.wiki` and `dosewiki-admin.vercel.app` (ungated).
 - Keep `dose.wiki` and `www.dose.wiki` construction-gated through
   **2026-08-31**. The date is a floor, not an automatic launch: after it passes,
   keep the gate until the user explicitly authorizes the public launch.
-- `dose.wiki` and `www.dose.wiki` are attached to this same project, so a
-  production deploy serves all three hosts at once. What separates them is
-  `middleware.ts`, not the deployment: the host gate fronts the public domains
-  with the holding page at `/` and the `/preview` address space everywhere else,
-  while `dosewiki-admin.vercel.app` serves the site unprefixed. That gate is the
-  only thing holding the launch, so never weaken it to fix a routing bug.
+- What separates the hosts is `middleware.ts`, not the deployment. The gated
+  pair answers the holding page at `/` and the `/preview` address space
+  everywhere else; the ungated pair serves the site unprefixed. That gate is the
+  only thing holding the launch, so fix routing bugs inside it rather than by
+  relaxing it.
+- `dev.dose.wiki` is the editor's address. A gated host redirects `/dev`,
+  `/review`, `/sign-in` and `/unauthorized` there — bare or preview-prefixed —
+  rather than bouncing them to the holding page, so an editor link typed against
+  the public domain still resolves. Credentialed endpoints (`/api/auth`,
+  `/api/dev`, `/api/save-user-profile`) are never handed off: a cross-origin
+  redirect arrives without cookies, and the caller would read that as a
+  signed-out session rather than as the wrong host.
+- Both ungated hosts answer `Disallow: /` and an empty sitemap. They serve the
+  finished site months before publication, so neither may be indexed.
 - The construction-host gate passes the read-only `/api/v1` API and its descendants.
 - It also passes `/api/csp-report` because the enforced CSP uses `report-uri`.
 - That endpoint accepts only size-limited, rate-limited, redacted violation reports.

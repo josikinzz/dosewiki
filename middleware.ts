@@ -3,6 +3,7 @@ import { getToken } from "next-auth/jwt";
 import { getDevRouteDecision } from "@/lib/auth/roles";
 import { authSecret } from "@server/auth/runtimePolicy";
 import {
+  getEditorHandoffUrl,
   isConstructionPreviewBlockedPath,
   isPublicConstructionAllowedPath,
   isPublicConstructionHost,
@@ -240,14 +241,23 @@ export async function middleware(request: NextRequest) {
     );
   }
 
+  const publicConstructionHost = isPublicConstructionHost(request.headers.get("host"));
+  // An editor link typed against a public host still resolves - it crosses to the
+  // deployment that owns the editor instead of dying on the holding page.
+  const editorHandoffUrl = getEditorHandoffUrl(
+    appPath,
+    request.nextUrl.search,
+    publicConstructionHost,
+  );
+
   // The editor, the workbench and sign-in have no preview address on any host.
   if (isPreviewRequest && isConstructionPreviewBlockedPath(appPath)) {
     return browserPolicy.secure(
-      NextResponse.redirect(new URL(PREVIEW_HOME_PATH, request.url)),
+      NextResponse.redirect(editorHandoffUrl ?? new URL(PREVIEW_HOME_PATH, request.url)),
     );
   }
 
-  if (isPublicConstructionHost(request.headers.get("host")) && !isPreviewRequest) {
+  if (publicConstructionHost && !isPreviewRequest) {
     if (requestPath === "/") {
       return browserPolicy.secure(
         NextResponse.rewrite(new URL("/under-construction", request.url), {
@@ -260,10 +270,11 @@ export async function middleware(request: NextRequest) {
       // Everything the finished site serves lives under `/preview` on these hosts, so a
       // bare address is bounced into the prefix rather than back to the landing page.
       // That is what lets an unprefixed in-page `<Link>` keep working inside preview.
-      // The gated surfaces still land on the holding page, as they always did.
-      const gateTarget = isConstructionPreviewBlockedPath(requestPath)
-        ? new URL("/", request.url)
-        : new URL(`${toPreviewPath(requestPath)}${request.nextUrl.search}`, request.url);
+      const gateTarget =
+        editorHandoffUrl ??
+        (isConstructionPreviewBlockedPath(requestPath)
+          ? new URL("/", request.url)
+          : new URL(`${toPreviewPath(requestPath)}${request.nextUrl.search}`, request.url));
 
       return browserPolicy.secure(NextResponse.redirect(gateTarget));
     }

@@ -218,19 +218,43 @@ describe("middleware role policy adapter", () => {
     );
   });
 
-  it("keeps the editor behind the gate rather than lifting it into preview", async () => {
+  it("hands an editor link on the public host to the host that owns the editor", async () => {
     const { middleware } = await import("../middleware");
 
     const response = await middleware(makePublicRequest("/dev/articles"));
 
+    // Not the holding page: the link a person typed still resolves, it just crosses to
+    // the working deployment. Auth is never consulted here - the gate answers first.
     expect(response.status).toBe(307);
-    expect(response.headers.get("location")).toBe("https://dose.wiki/");
+    expect(response.headers.get("location")).toBe("https://dev.dose.wiki/dev/articles");
     expect(mocks.getToken).not.toHaveBeenCalled();
   });
 
-  it("refuses a preview address for the editor on any host", async () => {
+  it("carries the query across the handoff", async () => {
     const { middleware } = await import("../middleware");
 
+    const response = await middleware(makePublicRequest("/sign-in?callbackUrl=%2Fdev"));
+
+    expect(response.headers.get("location")).toBe(
+      "https://dev.dose.wiki/sign-in?callbackUrl=%2Fdev",
+    );
+  });
+
+  it("hands off a preview address for the editor too, dropping the prefix", async () => {
+    const { middleware } = await import("../middleware");
+
+    const response = await middleware(makePublicRequest("/preview/dev/articles"));
+
+    expect(response.status).toBe(307);
+    expect(response.headers.get("location")).toBe("https://dev.dose.wiki/dev/articles");
+    expect(mocks.getToken).not.toHaveBeenCalled();
+  });
+
+  it("keeps the editor out of the preview space on hosts that serve it directly", async () => {
+    const { middleware } = await import("../middleware");
+
+    // On the working deployment there is nothing to hand off to - `/dev` is already here,
+    // so the preview spelling is simply not an address.
     const response = await middleware(makeRequest("/preview/dev/articles"));
 
     expect(response.status).toBe(307);
@@ -238,6 +262,16 @@ describe("middleware role policy adapter", () => {
       "https://dosewiki-admin.vercel.app/preview/home",
     );
     expect(mocks.getToken).not.toHaveBeenCalled();
+  });
+
+  it("never hands off a credentialed endpoint", async () => {
+    const { middleware } = await import("../middleware");
+
+    // A cross-origin redirect arrives without cookies, so an authenticated caller would
+    // read the bounce as a signed-out session rather than as the wrong host.
+    const response = await middleware(makePublicRequest("/api/dev/articles"));
+
+    expect(response.headers.get("location")).toBe("https://dose.wiki/");
   });
 
   it("bounces public-host client API calls into the preview address space", async () => {
