@@ -37,10 +37,11 @@ interface SubstanceArticlePageProps {
    */
   warningBannerIconSize?: number;
   /**
-   * The `dosage-panel-disclaimer` copy block, read by the route loader; absent
-   * renders the checked-in default sentence.
+   * The `dosage-panel-disclaimer` and `tolerance-section-disclaimer` copy
+   * blocks, read by the route loader; absent renders the checked-in defaults.
    */
   dosageDisclaimer?: string;
+  toleranceDisclaimer?: string;
 }
 
 export function SubstanceArticlePage({
@@ -59,6 +60,7 @@ export function SubstanceArticlePage({
   warningBanners,
   warningBannerIconSize,
   dosageDisclaimer,
+  toleranceDisclaimer,
 }: SubstanceArticlePageProps) {
   return (
     <main id="main-content" tabIndex={-1} className="theme-page-shell min-h-screen focus:outline-none">
@@ -78,6 +80,7 @@ export function SubstanceArticlePage({
         warningBanners={warningBanners}
         warningBannerIconSize={warningBannerIconSize}
         dosageDisclaimer={dosageDisclaimer}
+        toleranceDisclaimer={toleranceDisclaimer}
       />
     </main>
   );

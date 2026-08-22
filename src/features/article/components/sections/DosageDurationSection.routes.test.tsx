@@ -14,7 +14,7 @@ import {
   type EditableFieldValue,
 } from "../../editing";
 import { DosageDurationSection } from "./DosageDurationSection";
-import { DOSAGE_PANEL_DISCLAIMER_FALLBACK } from "./dosageDisclaimerCopy";
+import { DOSAGE_PANEL_DISCLAIMER_FALLBACK } from "./articleDisclaimerCopy";
 
 vi.mock("next/link", () => ({
   default: ({ children, href, ...props }: AnchorHTMLAttributes<HTMLAnchorElement>) => (

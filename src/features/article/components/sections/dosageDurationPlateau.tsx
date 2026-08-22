@@ -6,7 +6,8 @@ import { cn } from "@/lib/utils";
 import type { DosageRoute, SubstanceArticle } from "@/schema";
 import { CitationMarker, CitedText } from "../CitedText";
 import { DoseTiersTable } from "./dosageDurationShared";
-import { DOSAGE_PANEL_DISCLAIMER_FALLBACK } from "./dosageDisclaimerCopy";
+import { ArticleDisclaimer } from "./ArticleDisclaimer";
+import { DOSAGE_PANEL_DISCLAIMER_FALLBACK } from "./articleDisclaimerCopy";
 
 const PLATEAU_TIERS: Array<{
   key: string;
@@ -154,12 +155,7 @@ export function DosagePanel({
         </h3>
       </div>
 
-      {disclaimer.trim() ? (
-        <p className="theme-text-muted mb-3 flex items-start gap-2 text-xs leading-relaxed">
-          <Icon icon="cuida:warning-outline" size={14} className="mt-0.5 shrink-0" />
-          <span>{disclaimer}</span>
-        </p>
-      ) : null}
+      <ArticleDisclaimer text={disclaimer} />
 
       {plateauDosing ? (
         <Tabs defaultValue="traditional" className="w-full">

@@ -140,11 +140,12 @@ export interface SubstanceArticleViewModel {
      */
     warningBannerIconSize?: number;
     /**
-     * The `dosage-panel-disclaimer` copy block. Optional for the same reason as
+     * The article's two disclaimer copy blocks. Optional for the same reason as
      * the glyph size: an omitted body renders the checked-in default sentence,
-     * not a bare dose table.
+     * not a bare table.
      */
     dosageDisclaimer?: string;
+    toleranceDisclaimer?: string;
   };
 }
 
@@ -241,11 +242,13 @@ export function buildSubstanceArticleViewModel(input: {
   /** Site-wide glyph size from `getSafetyBannerIconSize`; omitted renders at the default. */
   warningBannerIconSize?: number;
   /**
-   * The `dosage-panel-disclaimer` copy body; omitted renders the checked-in
-   * default. Unlike the banners, a missing one costs the reader nothing an
-   * editor chose — the sentence is the same either way.
+   * The `dosage-panel-disclaimer` and `tolerance-section-disclaimer` bodies;
+   * omitted renders the checked-in defaults. Unlike the banners, a missing one
+   * costs the reader nothing an editor chose — the sentence is the same either
+   * way.
    */
   dosageDisclaimer?: string;
+  toleranceDisclaimer?: string;
 }): SubstanceArticleViewModel {
   const { slug: _resolvedSlug, ...article } = input.substance;
   const publicArticle = article as SubstanceArticle;
@@ -286,6 +289,7 @@ export function buildSubstanceArticleViewModel(input: {
       warningBanners: input.warningBanners,
       warningBannerIconSize: input.warningBannerIconSize,
       dosageDisclaimer: input.dosageDisclaimer,
+      toleranceDisclaimer: input.toleranceDisclaimer,
     },
   };
 }

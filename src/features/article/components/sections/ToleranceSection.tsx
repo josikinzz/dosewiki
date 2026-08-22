@@ -11,6 +11,8 @@ import type { SubstanceArticle } from "@/schema";
 import { EditableSlot, EditableValue, buildFieldPath } from "../../editing";
 import { ArticleText, CitedText } from "../CitedText";
 import { ArticleGapNotice } from "./ArticleGapNotice";
+import { ArticleDisclaimer } from "./ArticleDisclaimer";
+import { TOLERANCE_SECTION_DISCLAIMER_FALLBACK } from "./articleDisclaimerCopy";
 
 const MASONRY_BREAKPOINTS = {
   default: 2,
@@ -19,6 +21,11 @@ const MASONRY_BREAKPOINTS = {
 
 interface ToleranceSectionProps {
   article: SubstanceArticle;
+  /**
+   * The `tolerance-section-disclaimer` copy block, threaded from the route
+   * loader. Absent falls back to the checked-in default.
+   */
+  disclaimer?: string;
 }
 
 const TOLERANCE_ITEMS: Array<{ key: string; label: string; icon: IconName }> = [
@@ -29,6 +36,7 @@ const TOLERANCE_ITEMS: Array<{ key: string; label: string; icon: IconName }> = [
 
 export const ToleranceSection = memo(function ToleranceSection({
   article,
+  disclaimer = TOLERANCE_SECTION_DISCLAIMER_FALLBACK,
 }: ToleranceSectionProps) {
   const { tolerance } = article;
 
@@ -43,6 +51,12 @@ export const ToleranceSection = memo(function ToleranceSection({
 
   return (
     <ArticleSection id="tolerance" icon="lucide:trending-up" heading="Tolerance">
+      {/* Above the grid, and outside the masonry: the caveat qualifies every
+          timing in the section, and Masonry hands its children to columns by
+          index, so anything conditional inside it would move which card lands
+          in which column. */}
+      <ArticleDisclaimer text={disclaimer} />
+
       <Masonry
         breakpointCols={MASONRY_BREAKPOINTS}
         className="flex w-full gap-4"

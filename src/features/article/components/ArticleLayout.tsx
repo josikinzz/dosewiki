@@ -71,12 +71,13 @@ export interface ArticleLayoutProps {
    */
   warningBannerIconSize?: number;
   /**
-   * The `dosage-panel-disclaimer` copy block, resolved by the substance route
-   * loader. Absent renders the checked-in default sentence, so the review
-   * workbench and Generator previews still show the disclaimer they will ship
-   * with.
+   * The `dosage-panel-disclaimer` and `tolerance-section-disclaimer` copy
+   * blocks, resolved by the substance route loader. Absent renders each
+   * checked-in default sentence, so the review workbench and Generator previews
+   * still show the disclaimers they will ship with.
    */
   dosageDisclaimer?: string;
+  toleranceDisclaimer?: string;
 }
 
 interface DeferredSectionProps {
@@ -123,6 +124,7 @@ export function ArticleLayout({
   warningBanners = [],
   warningBannerIconSize = SAFETY_BANNER_ICON_SIZE_DEFAULT,
   dosageDisclaimer,
+  toleranceDisclaimer,
 }: ArticleLayoutProps) {
   // Credit hrefs resolve here rather than in the credit components: those are
   // client components, and handing them the directory would serialize every
@@ -241,7 +243,7 @@ export function ArticleLayout({
               />
             </DeferredSection>
             <DeferredSection>
-              <ToleranceSection article={article} />
+              <ToleranceSection article={article} disclaimer={toleranceDisclaimer} />
             </DeferredSection>
           </div>
 

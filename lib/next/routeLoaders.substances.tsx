@@ -21,7 +21,10 @@ import { getSafetyBannerIconSize, getWarningBannerPresets } from "./warningBanne
 import { getCopy } from "./copyBlocks";
 import { resolveEnabledBanners } from "../../src/data/substanceWarningBanners";
 import { getSubstanceSearchNames, reportMatchesSubstance } from "../../src/features/reports/domain/tripReportIndex";
-import { DOSAGE_PANEL_DISCLAIMER_KEY } from "../../src/features/article/components/sections/dosageDisclaimerCopy";
+import {
+  DOSAGE_PANEL_DISCLAIMER_KEY,
+  TOLERANCE_SECTION_DISCLAIMER_KEY,
+} from "../../src/features/article/components/sections/articleDisclaimerCopy";
 import { SITE_FLAVOR_CONFIG } from "../../src/config/siteFlavor";
 import {
   getPsychoactiveSummaryDefinition,
@@ -148,6 +151,7 @@ export const loadSubstanceRoute = cache(async (slug: string): Promise<SubstanceR
     warningBanners,
     warningBannerIconSize,
     dosageDisclaimer: copy.text(DOSAGE_PANEL_DISCLAIMER_KEY),
+    toleranceDisclaimer: copy.text(TOLERANCE_SECTION_DISCLAIMER_KEY),
   });
 
   return {

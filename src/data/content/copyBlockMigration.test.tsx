@@ -19,7 +19,9 @@ import {
 import {
   DOSAGE_PANEL_DISCLAIMER_FALLBACK,
   DOSAGE_PANEL_DISCLAIMER_KEY,
-} from "@/features/article/components/sections/dosageDisclaimerCopy";
+  TOLERANCE_SECTION_DISCLAIMER_FALLBACK,
+  TOLERANCE_SECTION_DISCLAIMER_KEY,
+} from "@/features/article/components/sections/articleDisclaimerCopy";
 import { SITE_FLAVOR_CONFIGS } from "@/config/siteFlavor";
 
 /**
@@ -109,8 +111,11 @@ describe("copy block defaults", () => {
     );
   });
 
-  it("match the dosage panel disclaimer the panel falls back to", () => {
+  it("match the article disclaimers the sections fall back to", () => {
     expect(bodyOf(DOSAGE_PANEL_DISCLAIMER_KEY)).toBe(DOSAGE_PANEL_DISCLAIMER_FALLBACK);
+    expect(bodyOf(TOLERANCE_SECTION_DISCLAIMER_KEY)).toBe(
+      TOLERANCE_SECTION_DISCLAIMER_FALLBACK,
+    );
   });
 });
 

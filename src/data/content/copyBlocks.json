@@ -327,6 +327,13 @@
     "body": "Doses are population estimates that vary widely between individuals."
   },
   {
+    "key": "tolerance-section-disclaimer",
+    "kind": "plain",
+    "label": "Tolerance section disclaimer",
+    "group": "Substance articles",
+    "body": "Tolerance timelines are rules of thumb, not exact schedules, and vary widely between individuals and use patterns."
+  },
+  {
     "key": "seo-substances-index-description",
     "kind": "plain",
     "label": "Substance Index meta description",
