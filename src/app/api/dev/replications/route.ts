@@ -14,6 +14,8 @@ import { revalidatePath } from "next/cache";
 import { api } from "../../../../../convex/_generated/api";
 import { JsonBodyError } from "@/lib/http/readJsonBody";
 import { protectedRouteOperation } from "@/lib/http/protectedRouteOperation";
+import { diagnoseConvexAdminCredential } from "@/lib/http/convexAdminIntentError";
+import { probeServerConvexAdminCredential } from "@server/convex/serverWriteCapability";
 import {
   isValidReplicationSlug,
   type StudioMediaType,
@@ -134,14 +136,25 @@ export const GET = protectedRouteOperation({
   capabilities: [{ type: "convexWrite" }],
   unexpectedErrorLabel: "Failed to load the replication corpus via Next route:",
   unexpectedErrorMessage: "Unable to load the replication corpus right now.",
-  operation: async ({ convexWrite }) => {
+  operation: async ({ actorEmail, convexWrite }) => {
     if (!convexWrite) {
       throw new Error("Convex write capability is required.");
     }
 
     const apiKey = convexWrite.getAdminIntentToken?.("replicationMaintenance") ?? convexWrite.adminKey;
-    const corpus = await convexWrite.client.query(api.replications.getStudioRows, { apiKey });
-    return NextResponse.json({ ok: true, ...corpus });
+    try {
+      const corpus = await convexWrite.client.query(api.replications.getStudioRows, { apiKey });
+      return NextResponse.json({ ok: true, ...corpus });
+    } catch (error) {
+      // A stale admin token is a configuration fact, not an outage — but Convex
+      // sends the same opaque error either way, so ask the deployment which it is.
+      const diagnosis = await diagnoseConvexAdminCredential({
+        intent: "replicationMaintenance",
+        probe: () => probeServerConvexAdminCredential(actorEmail, apiKey),
+      });
+      if (!diagnosis) throw error;
+      return NextResponse.json({ ok: false, error: diagnosis }, { status: 503 });
+    }
   },
 });
 

@@ -48,6 +48,8 @@ package-lock.json
 .env.production
 .env.production.local
 .env*.local
+# Timestamped copies made while rotating a credential; same secrets, different name
+.env*.bak-*
 !.env.example
 
 # Editor directories

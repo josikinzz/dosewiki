@@ -73,7 +73,19 @@ export function getServerConvexReadUrl(): string | null {
   return getPublicServerReadTarget().selectedUrl;
 }
 
-export async function probeServerConvexAdminCredential(actorEmail: string): Promise<void> {
+/**
+ * Ask the deployment whether a credential is actually accepted.
+ *
+ * Presence is not validity: a rotated key is configured and still rejected, and
+ * Convex reports that as an opaque server error with the reason left in its own
+ * logs. This is the only way a route can tell "your token is stale" from "this
+ * query has a bug". `apiKey` defaults to the legacy admin key; pass the scoped
+ * token a route actually sent to test that one instead.
+ */
+export async function probeServerConvexAdminCredential(
+  actorEmail: string,
+  apiKey?: string,
+): Promise<void> {
   const capability = getServerConvexWriteCapabilityOrThrow();
   const reference = makeFunctionReference<
     "query",
@@ -82,7 +94,7 @@ export async function probeServerConvexAdminCredential(actorEmail: string): Prom
   >("contributorProfiles:getOwnedProfile");
 
   await capability.client.query(reference, {
-    apiKey: capability.adminKey,
+    apiKey: apiKey ?? capability.adminKey,
     email: actorEmail,
   });
 }
