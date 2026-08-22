@@ -102,7 +102,6 @@ export function getBrowserSecurityHeaders({
 }: BrowserSecurityPolicyInput): ResponseHeader[] {
   const normalizedHost = normalizeHost(host);
   const allowsPublicAnalytics = isApprovedAnalyticsHost(host);
-  const analyticsSource = "https://analytics.dose.wiki";
   const isDevRoute = pathname.startsWith("/dev");
   let scriptSources: string[];
 
@@ -118,7 +117,6 @@ export function getBrowserSecurityHeaders({
       THEME_BOOTSTRAP_CSP_HASH,
       // RDKit.js compiles the same-origin molecule editor WASM module in-browser.
       "'wasm-unsafe-eval'",
-      ...(allowsPublicAnalytics ? [analyticsSource] : []),
     ];
   } else {
     scriptSources = [
@@ -126,7 +124,6 @@ export function getBrowserSecurityHeaders({
       "'unsafe-inline'",
       // RDKit.js compiles the same-origin molecule editor WASM module in-browser.
       "'wasm-unsafe-eval'",
-      ...(allowsPublicAnalytics ? [analyticsSource] : []),
       // The /about/feedback Turnstile widget loads its script on public routes only.
       TURNSTILE_SOURCE,
     ];
@@ -138,10 +135,10 @@ export function getBrowserSecurityHeaders({
     ...ICONIFY_API_SOURCES,
     // QuickAddReferenceCard resolves DOI and PMID metadata from these exact APIs.
     ...REFERENCE_METADATA_API_SOURCES,
-    // Umami and PostHog both post events from the approved public hosts only. PostHog runs
-    // with `disable_external_dependency_loading`, so it never injects a remote script and
-    // needs no `script-src` entry — only this ingestion origin.
-    ...(allowsPublicAnalytics ? [analyticsSource, POSTHOG_API_HOST] : []),
+    // PostHog posts events from the approved public hosts only. It runs with
+    // `disable_external_dependency_loading`, so it never injects a remote script and needs no
+    // `script-src` entry — this ingestion origin is the whole of its network surface.
+    ...(allowsPublicAnalytics ? [POSTHOG_API_HOST] : []),
   ];
 
   const directives = [

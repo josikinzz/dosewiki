@@ -30,7 +30,7 @@ This repo is linked to Vercel. Treat this file as the repo-local deployment/acco
   public hosts are gated. Switch it to `https://dose.wiki` only after the launch
   floor has passed and the user has explicitly authorized launch.
 - `NEXT_PUBLIC_SITE_FLAVOR` picks the publication identity at build time: unset / unrecognised = dose.wiki, `effectindex` = Effect Index. The `dosewiki-admin` project must leave it unset. A typo silently falls back to dose.wiki, so the build logs a runtime-env warning when the variable is set to an unrecognised value.
-- Remote analytics must remain limited to the exact public host allowlist. Admin and Vercel preview HTML must not execute `analytics.dose.wiki`.
+- Remote analytics must remain limited to the exact public host allowlist. PostHog initialises only on `dose.wiki`/`www.dose.wiki`, and only when `NEXT_PUBLIC_POSTHOG_KEY` is set; admin and Vercel preview HTML must not load it. Leave that variable unset on the Effect Index project so the credential-free deployment stays analytics-free.
 - HTML responses must retain the path-split browser policy documented in [browser-security-policy.md](browser-security-policy.md): public documents use the static-compatible `script-src` (`'unsafe-inline'`, no nonce/hash) so ISR stays effective; `/dev` documents keep the strict nonce-plus-hash policy. Plain `'unsafe-eval'` remains forbidden everywhere.
 
 ## Effect Index (`effectindex.com`)

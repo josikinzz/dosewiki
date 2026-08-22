@@ -59,7 +59,7 @@ describe("browser security response policy", () => {
     expect(scriptPolicy).toBe(
       "script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval' https://challenges.cloudflare.com",
     );
-    expect(csp).not.toContain("analytics.dose.wiki");
+    expect(csp).not.toContain("posthog");
     expect(scriptPolicy).not.toContain("'nonce-");
     expect(scriptPolicy).not.toContain("'sha256-");
     expect(scriptPolicy).not.toContain("'unsafe-eval'");
@@ -143,18 +143,36 @@ describe("browser security response policy", () => {
       CSP_ENFORCEMENT_HEADER,
     );
 
-    expect(publicCsp).toContain(
-      "script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval' https://analytics.dose.wiki",
-    );
-    expect(directiveValue(publicCsp, "connect-src")).toContain(
-      "https://analytics.dose.wiki",
-    );
     expect(directiveValue(publicCsp, "connect-src")).toContain("https://us.i.posthog.com");
-    // PostHog initialises with `disable_external_dependency_loading`, so it never injects a
-    // remote script and must never widen the script policy to reach an asset host.
-    expect(directiveValue(publicCsp, "script-src")).not.toContain("posthog.com");
-    expect(lookalikeCsp).not.toContain("analytics.dose.wiki");
-    expect(lookalikeCsp).not.toContain("posthog.com");
+    expect(lookalikeCsp).not.toContain("posthog");
+  });
+
+  it("keeps analytics out of the script policy on every host", () => {
+    // PostHog is bundled and runs with `disable_external_dependency_loading`, so it never
+    // injects a remote script. Analytics therefore buys no `script-src` entry anywhere, and
+    // the script policy no longer varies by host at all.
+    const scriptPolicyFor = (host: string) =>
+      directiveValue(
+        headerValue(
+          getBrowserSecurityHeaders({
+            host,
+            pathname: "/",
+            convexUrl: CONVEX_URL,
+            isDevelopment: false,
+          }),
+          CSP_ENFORCEMENT_HEADER,
+        ),
+        "script-src",
+      );
+
+    const approved = scriptPolicyFor("dose.wiki");
+
+    expect(approved).toBe(
+      "script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval' https://challenges.cloudflare.com",
+    );
+    expect(approved).not.toContain("posthog");
+    expect(scriptPolicyFor("dosewiki-admin.vercel.app")).toBe(approved);
+    expect(scriptPolicyFor("dose.wiki.example.com")).toBe(approved);
   });
 
   it("narrowly derives the HTTP and WebSocket Convex connection origins", () => {

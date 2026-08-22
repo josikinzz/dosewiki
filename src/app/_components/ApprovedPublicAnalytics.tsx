@@ -2,7 +2,6 @@
 
 import { useEffect } from "react";
 import {
-  attachApprovedAnalytics,
   isPostHogEnabled,
   POSTHOG_API_HOST,
   POSTHOG_PROJECT_KEY,
@@ -14,17 +13,6 @@ import {
 let postHogStarted = false;
 
 export function ApprovedPublicAnalytics({ host }: { host?: string }) {
-  useEffect(() => {
-    const script = attachApprovedAnalytics({
-      document,
-      host: host ?? window.location.host,
-    });
-
-    return () => {
-      script?.remove();
-    };
-  }, [host]);
-
   useEffect(() => {
     if (postHogStarted || !isPostHogEnabled(host ?? window.location.host)) {
       return;
@@ -51,15 +39,14 @@ export function ApprovedPublicAnalytics({ host }: { host?: string }) {
         capture_pageview: "history_change",
         capture_pageleave: true,
         // Everything below is deliberately off. This is a harm-reduction encyclopedia: which
-        // substance pages a reader opens is health-adjacent, so we keep per-interaction and
-        // per-session detail out of the pipeline and stay close to the cookieless Umami
-        // posture the public site already had.
+        // substance pages a reader opens is health-adjacent, so per-interaction and
+        // per-session detail stays out of the pipeline entirely.
         autocapture: false,
         disable_session_recording: true,
         disable_surveys: true,
         capture_exceptions: false,
-        // Guarantees no remote <script> is injected, which is what lets `script-src` stay
-        // unchanged in `lib/next/cspObservationPolicy.ts`.
+        // Guarantees no remote <script> is injected, which is what keeps analytics out of
+        // `script-src` altogether in `lib/next/cspObservationPolicy.ts`.
         disable_external_dependency_loading: true,
         // No cookies: the visitor id never rides on an HTTP request header.
         persistence: "localStorage",
