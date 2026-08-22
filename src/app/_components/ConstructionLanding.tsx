@@ -29,7 +29,6 @@ export async function ConstructionLanding() {
       isConstructionMode
       copy={{
         tagline: flavoredCopyText(copy, "home-hero-tagline", SITE_FLAVOR_CONFIG.description),
-        constructionTitle: copy.text("home-construction-title"),
         constructionSubtitle: copy.text("home-construction-subtitle"),
       }}
     />

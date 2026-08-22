@@ -1219,14 +1219,6 @@
       0 18px 34px -30px oklch(64% 0.16 78 / 0.38);
   }
 
-  .theme-home-construction-icon {
-    animation: theme-home-construction-bob 1.8s ease-in-out infinite;
-  }
-
-  .theme-home-construction-icon-delay {
-    animation-delay: 0.28s;
-  }
-
   /* The clock reads as the banner's quiet second voice: the amber banner text at reduced
      emphasis, so it sits under the "coming soon" line rather than competing with it. */
   .theme-home-construction-countdown {
@@ -1253,27 +1245,10 @@
     }
   }
 
-  @keyframes theme-home-construction-bob {
-    0%,
-    100% {
-      transform: translate3d(0, 0, 0) rotate(0deg);
-    }
-    42% {
-      transform: translate3d(0, -0.14rem, 0) rotate(-3deg);
-    }
-    68% {
-      transform: translate3d(0, 0.04rem, 0) rotate(2deg);
-    }
-  }
-
   @media (prefers-reduced-motion: reduce) {
     .theme-home-mock-button[data-clicked="true"] .theme-home-nav-icon,
     .theme-home-mock-button[data-clicked="true"].theme-header-nav-link,
     .theme-home-mock-button[data-clicked="true"].theme-mobile-nav-link {
-      animation: none;
-    }
-
-    .theme-home-construction-icon {
       animation: none;
     }
   }

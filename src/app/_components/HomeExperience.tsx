@@ -23,7 +23,6 @@ interface HomeExperienceProps {
    */
   copy?: {
     tagline?: string;
-    constructionTitle?: string;
     constructionSubtitle?: string;
   };
 }
@@ -292,19 +291,15 @@ export function HomeExperience({
             {copy?.tagline || SITE_FLAVOR_CONFIG.description}
           </p>
 
+          {/* Nothing is under construction any more - the site behind this page is built,
+              and reachable under `/preview`. What is left to say is when it opens, so the
+              pill is down to the line that says it and the clock counting to it. */}
           {isConstructionMode && (
-            <div className="theme-home-construction-banner mt-6 inline-flex items-center gap-3 rounded-3xl border px-5 py-3 font-display">
-              <Icon icon="lucide:construction" size={24} className="theme-home-construction-icon" />
-              <span className="flex flex-col items-center leading-none">
-                <span className="text-sm font-semibold uppercase tracking-[0.22em] sm:text-base">
-                  {copy?.constructionTitle || "Under construction"}
-                </span>
-                <span className="mt-1 text-sm font-semibold italic normal-case tracking-wide sm:text-base">
-                  {copy?.constructionSubtitle || "coming soon"}
-                </span>
-                <ConstructionCountdown />
+            <div className="theme-home-construction-banner mt-6 inline-flex flex-col items-center rounded-3xl border px-5 py-3 font-display leading-none">
+              <span className="text-sm font-semibold italic normal-case tracking-wide sm:text-base">
+                {copy?.constructionSubtitle || "coming soon"}
               </span>
-              <Icon icon="lucide:triangle-alert" size={24} className="theme-home-construction-icon theme-home-construction-icon-delay" />
+              <ConstructionCountdown />
             </div>
           )}
 
