@@ -36,7 +36,7 @@ export function ConstructionCountdown() {
   }, []);
 
   return (
-    <span className="theme-home-construction-countdown mt-1.5 text-xs font-semibold uppercase leading-none tracking-[0.24em] tabular-nums sm:text-sm">
+    <span className="theme-home-construction-countdown text-xs font-semibold uppercase leading-none tracking-[0.24em] tabular-nums sm:text-sm">
       <span className="sr-only">Launching {LAUNCH_AT_LABEL}.</span>
       <span aria-hidden="true">{label}</span>
     </span>

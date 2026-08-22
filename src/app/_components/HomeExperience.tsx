@@ -291,18 +291,6 @@ export function HomeExperience({
             {copy?.tagline || SITE_FLAVOR_CONFIG.description}
           </p>
 
-          {/* Nothing is under construction any more - the site behind this page is built,
-              and reachable under `/preview`. What is left to say is when it opens, so the
-              pill is down to the line that says it and the clock counting to it. */}
-          {isConstructionMode && (
-            <div className="theme-home-construction-banner mt-6 inline-flex flex-col items-center rounded-3xl border px-5 py-3 font-display leading-none">
-              <span className="text-sm font-semibold italic normal-case tracking-wide sm:text-base">
-                {copy?.constructionSubtitle || "coming soon"}
-              </span>
-              <ConstructionCountdown />
-            </div>
-          )}
-
           {/* Balanced tile rows: below lg the flavor's quick links split into centred
               rows of at most three (5 → 3+2, 4 → 2+2). Each row is its own flex line
               with a tight content-based gap, so a short last row reads as a centred
@@ -355,6 +343,20 @@ export function HomeExperience({
               </div>
             ))}
           </nav>
+
+          {/* Nothing is under construction any more - the site behind this page is built,
+              and reachable under `/preview`. What is left to say is when it opens, so the
+              pill is one line: the words and the clock counting to them. It sits under
+              the tiles because they are what the page is for; the launch date is a
+              footnote to them, not a warning above them. */}
+          {isConstructionMode && (
+            <div className="theme-home-construction-banner mt-8 inline-flex items-baseline gap-2.5 rounded-full border px-5 py-2.5 font-display leading-none">
+              <span className="text-sm font-semibold italic normal-case tracking-wide sm:text-base">
+                {copy?.constructionSubtitle || "coming soon"}
+              </span>
+              <ConstructionCountdown />
+            </div>
+          )}
         </section>
 
         {/* The dose.wiki homepage suppresses the site footer (see RouteFooter), so the
