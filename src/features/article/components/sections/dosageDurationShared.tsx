@@ -338,8 +338,7 @@ export function DoseTiersTable({
         />
       ) : null}
       {hasNotes || canEdit ? (
-        <div className="mt-3 pt-3">
-          <div className="theme-horizontal-divider mb-3" />
+        <div className="mt-3">
           <p className="theme-text-muted whitespace-pre-line text-xs">
             {routePath ? (
               <EditableValue
