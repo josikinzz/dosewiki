@@ -223,7 +223,26 @@ function toHexDigits(r: number, g: number, b: number): string | null {
 }
 
 /**
- * Rewrite every recognised source colour in a molecule SVG to the Effect Index palette.
+ * Elements whose paint is a coverage channel rather than artwork colour, matched
+ * whole so their contents survive the transform byte-for-byte.
+ *
+ * `renderMoleculeSvg.applyBoldRibbon` wraps every plain bond line in a luminance
+ * `<mask>` — a `white` field with `black` halo shapes — so a bold bond can cut a
+ * genuinely transparent gap where it crosses another bond. Those two literals are
+ * mask arithmetic, not colours: recolouring them sends `white` to the near-black
+ * dark `surface` (`#131313`) and `black` to the near-white dark `carbon`
+ * (`#f2f2f0`), which inverts the mask and drops the whole bond skeleton to a few
+ * percent alpha while wedges and the ribbon (drawn outside the group) stay opaque.
+ * `<clipPath>` children carry paint attributes for the same non-visual reason.
+ *
+ * Gradients and filters stay recolourable: only these two elements are skipped, not
+ * all of `<defs>`.
+ */
+const CHANNEL_ELEMENT_RE = /<(mask|clipPath)\b[\s\S]*?<\/\1\s*>/gi;
+
+/**
+ * Rewrite every recognised source colour in a molecule SVG to the Effect Index palette,
+ * leaving {@link CHANNEL_ELEMENT_RE} regions untouched.
  *
  * Pure string transform: unrecognised colours pass through untouched, and the result is
  * idempotent (no Effect Index output value is itself a source that maps elsewhere).
@@ -232,23 +251,39 @@ export function recolorMoleculeSvgToEffectIndex(
   svg: string,
   colorScheme: ColorScheme = "light",
 ): string {
-  return svg
-    .replace(HEX_TOKEN_RE, (match, digits: string) =>
-      resolveHexDigits(digits, colorScheme) ?? match)
-    .replace(RGB_TOKEN_RE, (match, r: string, g: string, b: string) => {
-      const digits = toHexDigits(Number(r), Number(g), Number(b));
-      if (!digits) {
-        return match;
-      }
-      return resolveHexDigits(digits, colorScheme) ?? match;
-    })
-    .replace(
-      NAMED_COLOR_RE,
-      (match, property: string, separator: string, name: string) => {
-        const key = NAMED_COLOR_TO_COLOR_KEY[name.toLowerCase()];
-        return key ? `${property}${separator}${paletteHex(key, colorScheme)}` : match;
-      },
-    );
+  // Alternating slices: even indices are colourable document text, odd indices are
+  // channel elements copied through verbatim.
+  const slices: string[] = [];
+  let cursor = 0;
+  for (const block of svg.matchAll(CHANNEL_ELEMENT_RE)) {
+    slices.push(svg.slice(cursor, block.index), block[0]);
+    cursor = block.index + block[0].length;
+  }
+  slices.push(svg.slice(cursor));
+
+  return slices
+    .map((slice, index) =>
+      index % 2 === 1
+        ? slice
+        : slice
+            .replace(HEX_TOKEN_RE, (match, digits: string) =>
+              resolveHexDigits(digits, colorScheme) ?? match)
+            .replace(RGB_TOKEN_RE, (match, r: string, g: string, b: string) => {
+              const digits = toHexDigits(Number(r), Number(g), Number(b));
+              if (!digits) {
+                return match;
+              }
+              return resolveHexDigits(digits, colorScheme) ?? match;
+            })
+            .replace(
+              NAMED_COLOR_RE,
+              (match, property: string, separator: string, name: string) => {
+                const key = NAMED_COLOR_TO_COLOR_KEY[name.toLowerCase()];
+                return key ? `${property}${separator}${paletteHex(key, colorScheme)}` : match;
+              },
+            ),
+    )
+    .join("");
 }
 
 /** Resolve an optional image-route request onto a concrete byte colourway. */

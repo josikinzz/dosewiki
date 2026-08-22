@@ -105,6 +105,36 @@ describe("recolorMoleculeSvgToEffectIndex", () => {
     expect(recolorMoleculeSvgToEffectIndex(svg)).toBe(svg);
   });
 
+  it("leaves the bold-ribbon crossing-gap mask as mask arithmetic", () => {
+    // `renderMoleculeSvg.applyBoldRibbon` masks every plain bond line behind a
+    // luminance mask: `white` field, `black` halo shapes. Recolouring those sends
+    // white to the dark `surface` and black to the near-white dark `carbon`, which
+    // inverts the mask and renders the whole skeleton at a few percent alpha.
+    const mask = [
+      '<mask id="mol-1-halo" maskUnits="userSpaceOnUse" x="0" y="0" width="10" height="10">',
+      '<rect x="0" y="0" width="10" height="10" fill="white"/>',
+      '<polygon points="0,0 1,1 2,2" fill="black" stroke="black" stroke-width="6.60"/>',
+      "</mask>",
+    ].join("");
+    const svg = `<svg><defs>${mask}</defs><g mask="url(#mol-1-halo)">${bondPath("#F0ABFC")}</g></svg>`;
+
+    for (const colorScheme of ["light", "dark"] as const) {
+      const recoloured = recolorMoleculeSvgToEffectIndex(svg, colorScheme);
+
+      expect(recoloured, colorScheme).toContain(mask);
+      // The masked artwork outside the channel still recolours.
+      expect(recoloured, colorScheme).toContain(
+        `stroke:${EFFECT_INDEX_MOLECULE_PALETTES[colorScheme].carbon}`,
+      );
+    }
+  });
+
+  it("still recolours gradient stops inside defs", () => {
+    const svg = `<svg><defs><linearGradient id="g"><stop stop-color="#F0ABFC"/></linearGradient></defs></svg>`;
+
+    expect(recolorMoleculeSvgToEffectIndex(svg)).toContain('stop-color="#333333"');
+  });
+
   it.each(["light", "dark"] as const)("is idempotent in %s mode", (colorScheme) => {
     const svg = [
       ...BRAND_MOLECULE_HEXES.map(bondPath),
