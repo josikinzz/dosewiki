@@ -9,6 +9,7 @@ import { viewToPath } from "@/utils/routing";
 import { getRouteChromeModel } from "@/utils/routeChrome";
 import { isEffectIndex } from "@/config/siteFlavor";
 import { toAppPath, toPreviewPath, isPreviewPath } from "@/utils/previewPath";
+import { isPublicConstructionHost } from "@server/next/publicConstructionPolicy";
 
 /**
  * The pathname as the app models routes, with any `/preview` prefix removed.
@@ -152,6 +153,46 @@ export function isSelfScrollingRoute(pathname: string): boolean {
   return pathname === "/review" || pathname.startsWith("/review/");
 }
 
+/**
+ * Whether the site header must stand down for this address.
+ *
+ * Two of the three cases are ordinary route facts. The third is not: the construction
+ * hosts serve the landing at the bare `/` by rewrite, so the document the server rendered
+ * is `/under-construction` and already carries no chrome - but the browser's address
+ * stays `/`, and deciding on the pathname alone would hydrate a second header above the
+ * landing's own. The host is what distinguishes it, and it is only knowable in the
+ * browser; that is sound because the server never sees a host here, so the hydrated tree
+ * still matches the HTML it is hydrating.
+ *
+ * The *request* path is what that case keys on. `/preview/home` models `/` too, and that
+ * address is the real homepage - chrome and all.
+ */
+export function isChromelessAddress(
+  requestPathname: string,
+  appPathname: string,
+  options: { homeConstructionMode?: boolean; host?: string | null } = {},
+): boolean {
+  if (appPathname === "/under-construction") {
+    return true;
+  }
+
+  if (appPathname === "/" && options.homeConstructionMode) {
+    return true;
+  }
+
+  if (requestPathname === "/" && isPublicConstructionHost(options.host)) {
+    return true;
+  }
+
+  // The review workbench is a full-bleed editor surface with its own sticky command bar;
+  // the public site header would just push the article down.
+  return (
+    appPathname === "/mantras" ||
+    appPathname === "/review" ||
+    appPathname.startsWith("/review/")
+  );
+}
+
 interface RouteChromeProps {
   homeConstructionMode?: boolean;
 }
@@ -209,13 +250,12 @@ export function RouteChrome({ homeConstructionMode = false }: RouteChromeProps) 
     router.push(navigationHref(nextView), { scroll: false });
   };
 
-  if ((pathname === "/" && homeConstructionMode) || pathname === "/under-construction") {
-    return <RouteAnnouncer message={model.pageTitle} />;
-  }
-
-  // The review workbench is a full-bleed editor surface with its own sticky
-  // command bar; the public site header would just push the article down.
-  if (pathname === "/mantras" || pathname === "/review" || pathname.startsWith("/review/")) {
+  if (
+    isChromelessAddress(requestPathname, pathname, {
+      homeConstructionMode,
+      host: typeof window === "undefined" ? null : window.location.host,
+    })
+  ) {
     return <RouteAnnouncer message={model.pageTitle} />;
   }
 
