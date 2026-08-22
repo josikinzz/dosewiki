@@ -320,6 +320,13 @@
     "body": "**Depressants** (also known as \"downers\") are a class of psychoactive substances that slow the central nervous system. They produce relaxation, calm, less anxiety, drowsiness, and lower inhibition. Most depressants strengthen GABA, the main inhibitory or \"braking\" system of the brain. The word \"depressant\" means lower nervous-system activity. It does not mean sadness."
   },
   {
+    "key": "dosage-panel-disclaimer",
+    "kind": "plain",
+    "label": "Dosage panel disclaimer",
+    "group": "Substance articles",
+    "body": "Doses are population estimates that vary widely between individuals."
+  },
+  {
     "key": "seo-substances-index-description",
     "kind": "plain",
     "label": "Substance Index meta description",

@@ -14,6 +14,7 @@ import {
   type EditableFieldValue,
 } from "../../editing";
 import { DosageDurationSection } from "./DosageDurationSection";
+import { DOSAGE_PANEL_DISCLAIMER_FALLBACK } from "./dosageDisclaimerCopy";
 
 vi.mock("next/link", () => ({
   default: ({ children, href, ...props }: AnchorHTMLAttributes<HTMLAnchorElement>) => (
@@ -371,6 +372,37 @@ describe("DosageDurationSection public render", () => {
     expect(container.textContent).not.toContain("Half-life");
     expect(container.querySelectorAll("[data-editable-path]")).toHaveLength(0);
     expect(container.textContent).toContain(notes);
+  });
+});
+
+/**
+ * The disclaimer is copy, not chrome: it comes from the `dosage-panel-disclaimer`
+ * block through the route loader, and the checked-in default is what every host
+ * that mounts the article without one must still show.
+ */
+describe("DosagePanel disclaimer", () => {
+  const article = () => articleWithRoutes([dosedRoute("oral")], []);
+
+  it("renders the checked-in default when no copy is threaded", () => {
+    render(<DosageDurationSection article={article()} />);
+
+    expect(screen.getByText(DOSAGE_PANEL_DISCLAIMER_FALLBACK)).toBeInTheDocument();
+  });
+
+  it("renders the edited copy body instead of the default", () => {
+    const edited = "Start low. Every body metabolises differently.";
+    render(<DosageDurationSection article={article()} dosageDisclaimer={edited} />);
+
+    expect(screen.getByText(edited)).toBeInTheDocument();
+    expect(screen.queryByText(DOSAGE_PANEL_DISCLAIMER_FALLBACK)).not.toBeInTheDocument();
+  });
+
+  it("draws no line at all when an editor blanks the block", () => {
+    const { container } = render(
+      <DosageDurationSection article={article()} dosageDisclaimer="  " />,
+    );
+
+    expect(container.textContent).not.toContain("population estimates");
   });
 });
 

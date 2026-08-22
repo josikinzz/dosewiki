@@ -6,6 +6,7 @@ import { cn } from "@/lib/utils";
 import type { DosageRoute, SubstanceArticle } from "@/schema";
 import { CitationMarker, CitedText } from "../CitedText";
 import { DoseTiersTable } from "./dosageDurationShared";
+import { DOSAGE_PANEL_DISCLAIMER_FALLBACK } from "./dosageDisclaimerCopy";
 
 const PLATEAU_TIERS: Array<{
   key: string;
@@ -110,8 +111,7 @@ function PlateauTiersTable({
         })}
       </div>
       {hasNotes && (
-        <div className="mt-3 pt-3">
-          <div className="theme-horizontal-divider mb-3" />
+        <div className="mt-3">
           <p className="theme-text-muted whitespace-pre-line text-xs">
             <CitedText text={plateauDosing.notes} article={article} />
           </p>
@@ -126,6 +126,7 @@ export function DosagePanel({
   route,
   routeIndex,
   plateauDosing,
+  disclaimer = DOSAGE_PANEL_DISCLAIMER_FALLBACK,
 }: {
   article: SubstanceArticle;
   route: DosageRoute;
@@ -135,6 +136,13 @@ export function DosagePanel({
    */
   routeIndex?: number;
   plateauDosing?: SubstanceArticle["dosage"]["plateau_dosing"];
+  /**
+   * The `dosage-panel-disclaimer` copy block, resolved by the route loader.
+   * Hosts that mount the article without one — the review workbench, the
+   * Generator preview — get the checked-in default rather than a bare table,
+   * and an editor who blanks the block silently drops the line.
+   */
+  disclaimer?: string;
 }) {
   return (
     <div className="theme-dose-duration-panel rounded-xl p-4">
@@ -145,6 +153,13 @@ export function DosagePanel({
           <CitationMarker article={article} referenceIds={route.reference_ids} />
         </h3>
       </div>
+
+      {disclaimer.trim() ? (
+        <p className="theme-text-muted mb-3 flex items-start gap-2 text-xs leading-relaxed">
+          <Icon icon="cuida:warning-outline" size={14} className="mt-0.5 shrink-0" />
+          <span>{disclaimer}</span>
+        </p>
+      ) : null}
 
       {plateauDosing ? (
         <Tabs defaultValue="traditional" className="w-full">

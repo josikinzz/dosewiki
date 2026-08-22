@@ -139,6 +139,12 @@ export interface SubstanceArticleViewModel {
      * would silently drop a warning.
      */
     warningBannerIconSize?: number;
+    /**
+     * The `dosage-panel-disclaimer` copy block. Optional for the same reason as
+     * the glyph size: an omitted body renders the checked-in default sentence,
+     * not a bare dose table.
+     */
+    dosageDisclaimer?: string;
   };
 }
 
@@ -234,6 +240,12 @@ export function buildSubstanceArticleViewModel(input: {
   warningBanners: WarningBannerPreset[];
   /** Site-wide glyph size from `getSafetyBannerIconSize`; omitted renders at the default. */
   warningBannerIconSize?: number;
+  /**
+   * The `dosage-panel-disclaimer` copy body; omitted renders the checked-in
+   * default. Unlike the banners, a missing one costs the reader nothing an
+   * editor chose — the sentence is the same either way.
+   */
+  dosageDisclaimer?: string;
 }): SubstanceArticleViewModel {
   const { slug: _resolvedSlug, ...article } = input.substance;
   const publicArticle = article as SubstanceArticle;
@@ -273,6 +285,7 @@ export function buildSubstanceArticleViewModel(input: {
       externalReagentData: input.externalReagentData,
       warningBanners: input.warningBanners,
       warningBannerIconSize: input.warningBannerIconSize,
+      dosageDisclaimer: input.dosageDisclaimer,
     },
   };
 }

@@ -55,6 +55,7 @@
         "@iconify-json/charm": "^1.2.3",
         "@iconify-json/codicon": "^1.2.69",
         "@iconify-json/covid": "^1.2.3",
+        "@iconify-json/cuida": "^1.2.5",
         "@iconify-json/fa-solid": "^1.2.2",
         "@iconify-json/fluent": "^1.2.56",
         "@iconify-json/fluent-emoji-high-contrast": "^1.2.5",
@@ -279,6 +280,8 @@
     "@iconify-json/codicon": ["@iconify-json/codicon@1.2.69", "", { "dependencies": { "@iconify/types": "*" } }, "sha512-l06x4aOhigg+3SfpPxTQbYc1RT/RrtRiiV0HNuOqFqVyPEPonWvqrDvLdLBd7GJe5gC21olVACPQfrvH79MwpA=="],
 
     "@iconify-json/covid": ["@iconify-json/covid@1.2.3", "", { "dependencies": { "@iconify/types": "*" } }, "sha512-yyRZagEUsmpMZ/eGVpbUcO7jNmB5TaTmRjtKFmc0HnjLatoPpTrF5L3gSOFwb0SsWZa2XGLoa/A87qDJ3EL24A=="],
+
+    "@iconify-json/cuida": ["@iconify-json/cuida@1.2.5", "", { "dependencies": { "@iconify/types": "*" } }, "sha512-+LCnHk53WIw9uTcskDT5Kpjwj8wEEI1YLNeX/yLdksQAt8VOOcIeZnRMmW0drnu8GK8SFw6IXu7CZdx7Kqnwqw=="],
 
     "@iconify-json/fa-solid": ["@iconify-json/fa-solid@1.2.2", "", { "dependencies": { "@iconify/types": "*" } }, "sha512-V8TDk62dGswAwbWwoSTnaoiTVEfQyjLCq4/TPmI29evFb9GwPyU0OGX4+BdQMGsDDzk8ByR81RjR618FtELSaw=="],
 

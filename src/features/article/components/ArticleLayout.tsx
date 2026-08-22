@@ -70,6 +70,13 @@ export interface ArticleLayoutProps {
    * all — are completely unaffected.
    */
   warningBannerIconSize?: number;
+  /**
+   * The `dosage-panel-disclaimer` copy block, resolved by the substance route
+   * loader. Absent renders the checked-in default sentence, so the review
+   * workbench and Generator previews still show the disclaimer they will ship
+   * with.
+   */
+  dosageDisclaimer?: string;
 }
 
 interface DeferredSectionProps {
@@ -115,6 +122,7 @@ export function ArticleLayout({
   externalReagentData,
   warningBanners = [],
   warningBannerIconSize = SAFETY_BANNER_ICON_SIZE_DEFAULT,
+  dosageDisclaimer,
 }: ArticleLayoutProps) {
   // Credit hrefs resolve here rather than in the credit components: those are
   // client components, and handing them the directory would serialize every
@@ -205,7 +213,7 @@ export function ArticleLayout({
       <div className={articleMovementsClassName}>
           {/* Movement 1 — Practical use: what to take, what it feels like, how to verify it */}
           <div className={articleMovementClassName}>
-            <DosageDurationSection article={article} />
+            <DosageDurationSection article={article} dosageDisclaimer={dosageDisclaimer} />
             <SubjectiveEffectsSection
               article={article}
               attributionHref={subjectiveEffectsAttributionHref}

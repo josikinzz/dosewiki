@@ -18,8 +18,10 @@ import { getPublicEffectDetail } from "@server/convex/publicLibrary";
 import { getMoleculeUpdatedAt, moleculeOverrideImageUrl } from "@server/convex/publicData.molecules";
 import { getCachedReagentDataForArticle } from "@server/reagentData";
 import { getSafetyBannerIconSize, getWarningBannerPresets } from "./warningBanners";
+import { getCopy } from "./copyBlocks";
 import { resolveEnabledBanners } from "../../src/data/substanceWarningBanners";
 import { getSubstanceSearchNames, reportMatchesSubstance } from "../../src/features/reports/domain/tripReportIndex";
+import { DOSAGE_PANEL_DISCLAIMER_KEY } from "../../src/features/article/components/sections/dosageDisclaimerCopy";
 import { SITE_FLAVOR_CONFIG } from "../../src/config/siteFlavor";
 import {
   getPsychoactiveSummaryDefinition,
@@ -86,6 +88,7 @@ export const loadSubstanceRoute = cache(async (slug: string): Promise<SubstanceR
     relatedTripReports,
     warningBannerPresets,
     warningBannerIconSize,
+    copy,
   ] = await Promise.all([
     getPublicContributorByKey("JOSIE"),
     getPublicContributorByKey("LYREA"),
@@ -104,6 +107,10 @@ export const loadSubstanceRoute = cache(async (slug: string): Promise<SubstanceR
     // default rather than to nothing: a display preference must never be able to
     // suppress a warning.
     getSafetyBannerIconSize(),
+    // Site copy, for the dosage panel's standing disclaimer. Already falls back
+    // to the checked-in default inside the resolver, so an un-seeded deployment
+    // still renders the sentence.
+    getCopy(),
   ]);
 
   const moleculeOverrideUrl = moleculeUpdatedAt
@@ -140,6 +147,7 @@ export const loadSubstanceRoute = cache(async (slug: string): Promise<SubstanceR
     ),
     warningBanners,
     warningBannerIconSize,
+    dosageDisclaimer: copy.text(DOSAGE_PANEL_DISCLAIMER_KEY),
   });
 
   return {

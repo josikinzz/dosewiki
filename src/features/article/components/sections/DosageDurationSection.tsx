@@ -23,6 +23,11 @@ import { ArticleGapNotice } from "./ArticleGapNotice";
 
 interface DosageDurationSectionProps {
   article: SubstanceArticle;
+  /**
+   * The `dosage-panel-disclaimer` copy block, threaded from the route loader.
+   * Absent falls back to the checked-in default inside `DosagePanel`.
+   */
+  dosageDisclaimer?: string;
 }
 
 // A route entry with no name is unrenderable, not a crash: the canonical name
@@ -51,6 +56,7 @@ interface RouteGroup {
 
 export const DosageDurationSection = memo(function DosageDurationSection({
   article,
+  dosageDisclaimer,
 }: DosageDurationSectionProps) {
   const { dosage, duration } = article;
 
@@ -214,6 +220,7 @@ export const DosageDurationSection = memo(function DosageDurationSection({
                   route={dosageForActiveRoute}
                   routeIndex={dosageIndexForActiveRoute}
                   plateauDosing={dosage.plateau_dosing}
+                  disclaimer={dosageDisclaimer}
                 />
               ) : null}
               {durationForActiveRoute ? (

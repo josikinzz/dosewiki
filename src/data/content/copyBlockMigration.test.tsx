@@ -16,6 +16,10 @@ import {
   EFFECT_INDEX_HOME_INTRO_FALLBACK,
   EFFECT_INDEX_HOME_PANEL_BLURB_FALLBACKS,
 } from "@/features/effect-index/home/homeIntroCopy";
+import {
+  DOSAGE_PANEL_DISCLAIMER_FALLBACK,
+  DOSAGE_PANEL_DISCLAIMER_KEY,
+} from "@/features/article/components/sections/dosageDisclaimerCopy";
 import { SITE_FLAVOR_CONFIGS } from "@/config/siteFlavor";
 
 /**
@@ -103,6 +107,10 @@ describe("copy block defaults", () => {
     expect(bodyOf("effects-index-intro-organisation")).toBe(
       SEI_INTRO_COPY_FALLBACK.organisation,
     );
+  });
+
+  it("match the dosage panel disclaimer the panel falls back to", () => {
+    expect(bodyOf(DOSAGE_PANEL_DISCLAIMER_KEY)).toBe(DOSAGE_PANEL_DISCLAIMER_FALLBACK);
   });
 });
 

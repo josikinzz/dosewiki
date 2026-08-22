@@ -89,6 +89,19 @@ vi.mock("@server/convex/publicData.molecules", () => publicMolecules);
 vi.mock("@server/reagentData", () => reagentData);
 vi.mock("./staticParams", () => staticParams);
 vi.mock("./warningBanners", () => warningBanners);
+
+/**
+ * `getCopy` wraps `unstable_cache` for the same reason the banner reads do, so
+ * it throws outside a Next request context. Only the Convex layer is replaced:
+ * the resolver still comes from the real `createCopyResolver`, so every key
+ * answers with its checked-in default — the same thing a deployment with no
+ * `copyBlocks` rows serves.
+ */
+vi.mock("./copyBlocks", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("./copyBlocks")>();
+  return { ...actual, getCopy: vi.fn(async () => actual.createCopyResolver([])) };
+});
+
 export function getRouteLoaderMocks() {
   return { publicData, publicLibrary, publicMolecules, reagentData, staticParams };
 }

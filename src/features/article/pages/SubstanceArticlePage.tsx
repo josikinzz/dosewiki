@@ -36,6 +36,11 @@ interface SubstanceArticlePageProps {
    * travels beside `warningBanners` rather than on any preset.
    */
   warningBannerIconSize?: number;
+  /**
+   * The `dosage-panel-disclaimer` copy block, read by the route loader; absent
+   * renders the checked-in default sentence.
+   */
+  dosageDisclaimer?: string;
 }
 
 export function SubstanceArticlePage({
@@ -53,6 +58,7 @@ export function SubstanceArticlePage({
   externalReagentData,
   warningBanners,
   warningBannerIconSize,
+  dosageDisclaimer,
 }: SubstanceArticlePageProps) {
   return (
     <main id="main-content" tabIndex={-1} className="theme-page-shell min-h-screen focus:outline-none">
@@ -71,6 +77,7 @@ export function SubstanceArticlePage({
         externalReagentData={externalReagentData}
         warningBanners={warningBanners}
         warningBannerIconSize={warningBannerIconSize}
+        dosageDisclaimer={dosageDisclaimer}
       />
     </main>
   );
