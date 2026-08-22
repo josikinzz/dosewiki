@@ -1,0 +1,9 @@
+{
+  "redirects": [
+    {
+      "source": "/(.*)",
+      "destination": "https://us.posthog.com/shared/CJTtxy062nTJNxzPHl9ZTHaLk4RZHg",
+      "permanent": false
+    }
+  ]
+}

@@ -275,6 +275,22 @@ either rule.
 - `www.effectindex.com` is attached as a **redirect to the apex** `effectindex.com`.
 - This is independent of the `dose.wiki` / `www.dose.wiki` construction-host gate described above, which stays on `dosewiki-admin`.
 
+### Analytics domain (`analytics.dose.wiki`)
+
+- `analytics.dose.wiki` is a **307 redirect to a public PostHog shared dashboard**, served by its own minimal Vercel project (`ph-redirect`). It contains no application code.
+- It is deliberately **not** attached to `dosewiki-admin`. `analytics.dose.wiki` is absent from `PUBLIC_CONSTRUCTION_HOSTS`, so routing it through the app would fall past the construction gate and serve the full app — `/dev` included — at a third hostname.
+- The redirect is tracked at `infra/analytics-redirect/vercel.json`. Redeploy it from a directory **outside this repository**, linking to the existing project so a bare deploy does not create a second one:
+
+  ```sh
+  d=$(mktemp -d) && cp infra/analytics-redirect/vercel.json "$d/" && cd "$d"
+  vercel link --project ph-redirect --yes
+  vercel deploy --prod
+  ```
+
+  Deploying from inside the repo instead makes the Vercel CLI walk up, find the root `.vercel` link, and upload the entire repository under the `dosewiki-admin` project.
+- The share token in that file is public by design — the dashboard is world-readable. Rotate it by re-sharing in PostHog and redeploying.
+- The subdomain previously served a self-hosted Umami instance on Railway, which only ever answered on this hostname (`i3voap3t.up.railway.app` itself returns 404). Restore it with `vercel dns add dose.wiki analytics CNAME i3voap3t.up.railway.app`; the `_railway-verify.analytics` TXT record is retained for exactly that.
+
 ### Caveat: content imports do not appear until a redeploy or revalidation
 
 Public routes are prerendered (SSG) or incrementally revalidated. `PUBLIC_CONVEX_CACHE_REVALIDATE_SECONDS` in `lib/convex/publicData.cache.ts` is **900 seconds (15 minutes)**.
