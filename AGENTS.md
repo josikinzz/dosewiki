@@ -10,7 +10,7 @@
 ## Hard Invariants
 
 - dose.wiki and Effect Index use this repository, branch, and production Convex data through two Vercel projects. Publication identity and route availability differ by the build-time flavor in `src/config/siteFlavor.ts`; content and data writes can affect both sites.
-- Keep `dose.wiki` and `www.dose.wiki` construction-gated through 2026-08-31. Launch after that floor only when the user explicitly authorizes it. Until launch, the full app stays at `https://dosewiki-admin.vercel.app/`.
+- Keep `dose.wiki` and `www.dose.wiki` construction-gated through 2026-08-31. Launch after that floor only when the user explicitly authorizes it. Until launch those hosts serve the holding page at `/` and the finished site under the `/preview` prefix (`/preview/home`, `/preview/substances`, …); `https://dosewiki-admin.vercel.app/` serves it unprefixed. The gate lives in `middleware.ts`, not in the deployment: all three hosts come off the same production build.
 - All configured Convex reads and writes—including local, development, preview, and production—target `prod:glad-minnow-656`. The Effect Index deployment remains credential-free and read-only. Never configure active work against retired `enchanted-echidna-791`.
 - Before a Convex write, run `npm run convex:doctor`, read [Convex credentials](docs/agents/convex-credentials.md), set `TARGET_CONVEX_URL` explicitly, and complete the command's confirmation gates.
 

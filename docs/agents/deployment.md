@@ -16,11 +16,12 @@ This repo is linked to Vercel. Treat this file as the repo-local deployment/acco
 - Keep `dose.wiki` and `www.dose.wiki` construction-gated through
   **2026-08-31**. The date is a floor, not an automatic launch: after it passes,
   keep the gate until the user explicitly authorizes the public launch.
-- During `/push`, deploy the full app to `dosewiki-admin`; do not alias that
-  deployment to `dose.wiki` or `www.dose.wiki`.
-- If the public domains are attached to this Vercel project, `middleware.ts`
-  must keep the host gate that fronts `dose.wiki` / `www.dose.wiki` with the
-  holding page at `/` and the `/preview` address space everywhere else.
+- `dose.wiki` and `www.dose.wiki` are attached to this same project, so a
+  production deploy serves all three hosts at once. What separates them is
+  `middleware.ts`, not the deployment: the host gate fronts the public domains
+  with the holding page at `/` and the `/preview` address space everywhere else,
+  while `dosewiki-admin.vercel.app` serves the site unprefixed. That gate is the
+  only thing holding the launch, so never weaken it to fix a routing bug.
 - The construction-host gate passes the read-only `/api/v1` API and its descendants.
 - It also passes `/api/csp-report` because the enforced CSP uses `report-uri`.
 - That endpoint accepts only size-limited, rate-limited, redacted violation reports.
@@ -33,18 +34,26 @@ This repo is linked to Vercel. Treat this file as the repo-local deployment/acco
 - Remote analytics must remain limited to the exact public host allowlist. PostHog initialises only on `dose.wiki`/`www.dose.wiki`, and only when `NEXT_PUBLIC_POSTHOG_KEY` is set; admin and Vercel preview HTML must not load it. Leave that variable unset on the Effect Index project so the credential-free deployment stays analytics-free.
 - HTML responses must retain the path-split browser policy documented in [browser-security-policy.md](browser-security-policy.md): public documents use the static-compatible `script-src` (`'unsafe-inline'`, no nonce/hash) so ISR stays effective; `/dev` documents keep the strict nonce-plus-hash policy. Plain `'unsafe-eval'` remains forbidden everywhere.
 
-#### Where `dose.wiki` actually points (verified 2026-08-22)
+#### The domains were moved to `dosewiki-admin` on 2026-08-22
 
-`dose.wiki` and `www.dose.wiki` are **not** served by `dosewiki-admin`. They are
-attached to a separate, abandoned Vercel project named `dosewiki`
-(`prj_KBYpmXeY5PJ2UcntD7w1qcq1J71O`), whose last production deployment is from
-June 2026. Evidence: the chunk set behind `https://dose.wiki/` is identical to
-`https://dosewiki.vercel.app/` and disjoint from `dosewiki-admin`'s, and the
-edge response carries `age: ~6.3e6` seconds.
+Until that date `dose.wiki` and `www.dose.wiki` were served by a separate,
+abandoned Vercel project named `dosewiki` (`prj_KBYpmXeY5PJ2UcntD7w1qcq1J71O`),
+whose last production deployment was from June 2026 — the edge response carried
+`age: ~6.3e6` seconds, and its chunk set was disjoint from `dosewiki-admin`'s.
+Anything merged here reached `dosewiki-admin.vercel.app` and nothing else, which
+is why the public holding page looked nothing like the one in this repository.
 
-That is why the public holding page looked nothing like the current one — the
-work was shipped, to a project the domain does not resolve to. Until the
-domains are moved to `dosewiki-admin`, nothing merged here reaches `dose.wiki`.
+Both domains now resolve to `dosewiki-admin`, so `main` reaches the public
+hosts. The CLI cannot reassign a domain that is attached elsewhere
+(`vercel domains add --force` still answers `already assigned to another
+project`); it was done against the REST API, deleting
+`/v9/projects/dosewiki/domains/<name>` and posting the name back to
+`/v10/projects/dosewiki-admin/domains`. Nameservers were already Vercel's, so
+neither domain needed re-verification.
+
+The `dosewiki` project still exists and still holds `dosewiki.vercel.app`. It
+serves nothing anyone links to; leave it alone or delete it, but do not deploy
+to it.
 
 ## Effect Index (`effectindex.com`)
 
