@@ -333,7 +333,7 @@ export function ReplicationViewerOverlay({
           </button>
         </header>
 
-        <div className="grid min-h-0 min-w-0 w-full grid-rows-[minmax(0,1fr)_auto] overflow-hidden">
+        <div className="grid min-h-0 min-w-0 w-full grid-cols-[minmax(0,1fr)] grid-rows-[minmax(0,1fr)_auto] overflow-hidden">
           <ReplicationMediaStage
             item={active}
             muted={muted}

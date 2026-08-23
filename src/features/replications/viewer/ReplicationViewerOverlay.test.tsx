@@ -190,6 +190,7 @@ describe("ReplicationViewerOverlay", () => {
     expect(screen.getByTestId("media-stage").parentElement).toHaveClass(
       "min-w-0",
       "w-full",
+      "grid-cols-[minmax(0,1fr)]",
       "overflow-hidden",
     );
     expect(screen.getAllByText("1 of 2")).toHaveLength(2);
