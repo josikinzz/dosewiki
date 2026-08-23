@@ -187,6 +187,11 @@ describe("ReplicationViewerOverlay", () => {
       "data-title",
       "Work One",
     );
+    expect(screen.getByTestId("media-stage").parentElement).toHaveClass(
+      "min-w-0",
+      "w-full",
+      "overflow-hidden",
+    );
     expect(screen.getAllByText("1 of 2")).toHaveLength(2);
 
     fireEvent.click(screen.getByRole("button", { name: "Next: Work Two" }));
