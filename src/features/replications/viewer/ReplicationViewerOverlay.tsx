@@ -289,7 +289,7 @@ export function ReplicationViewerOverlay({
         tabIndex={-1}
         aria-describedby="replication-viewer-description"
         className={cn(
-          "theme-media-tile-title theme-elevation-none left-0 top-0 z-[70] h-[100svh] max-h-none w-screen max-w-none translate-x-0 translate-y-0 gap-0 overflow-hidden border-0 bg-black p-0 duration-150 sm:rounded-none",
+          "theme-media-tile-title theme-elevation-none left-0 top-0 z-[70] h-[100svh] max-h-none w-screen max-w-none translate-x-0 translate-y-0 grid-rows-[auto_minmax(0,1fr)] gap-0 overflow-hidden border-0 bg-black p-0 duration-150 sm:rounded-none",
           immersiveFallback && "fixed inset-0",
         )}
       >

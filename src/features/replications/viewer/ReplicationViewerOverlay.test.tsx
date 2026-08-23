@@ -182,7 +182,7 @@ describe("ReplicationViewerOverlay", () => {
 
     expect(
       screen.getByRole("dialog", { name: "Replications by artist" }),
-    ).toBeInTheDocument();
+    ).toHaveClass("grid-rows-[auto_minmax(0,1fr)]");
     expect(screen.getByTestId("media-stage")).toHaveAttribute(
       "data-title",
       "Work One",
