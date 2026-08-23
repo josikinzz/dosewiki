@@ -15,6 +15,7 @@ interface ReplicationGalleryProps {
   galleryOrder?: string[];
   replications: ReplicationWithUrl[];
   effectSlug?: string;
+  effectName?: string;
 }
 
 /**
@@ -26,6 +27,7 @@ export const ReplicationGallery = memo(function ReplicationGallery({
   galleryOrder,
   replications,
   effectSlug,
+  effectName,
 }: ReplicationGalleryProps) {
   const sortedReplications = useMemo(() => {
     if (galleryOrder && galleryOrder.length > 0) {
@@ -75,10 +77,11 @@ export const ReplicationGallery = memo(function ReplicationGallery({
         artistHref,
         artistHrefExternal: artistHref !== null && internalArtistHref === null,
         effectSlug: resolvedEffectSlug,
-        effectName: resolvedEffectSlug.replace(/-/g, " ") || "Effect",
+        effectName:
+          effectName ?? (resolvedEffectSlug.replace(/-/g, " ") || "Effect"),
       };
     });
-  }, [effectSlug, sortedReplications]);
+  }, [effectName, effectSlug, sortedReplications]);
 
   if (works.length === 0) return null;
 
@@ -89,7 +92,11 @@ export const ReplicationGallery = memo(function ReplicationGallery({
       totalCount={works.length}
       effectSlug={effectSlug}
       collectionLabel={
-        effectSlug ? `${effectSlug.replace(/-/g, " ")} replications` : undefined
+        effectName
+          ? `${effectName} replications`
+          : effectSlug
+            ? `${effectSlug.replace(/-/g, " ")} replications`
+            : undefined
       }
     />
   );

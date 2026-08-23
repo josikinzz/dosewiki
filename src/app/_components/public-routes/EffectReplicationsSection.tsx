@@ -9,9 +9,11 @@ import { getPublicReplicationsByEffect } from "@server/convex/publicData";
 
 export async function EffectReplicationsSection({
   effectSlug,
+  effectName,
   galleryOrder,
 }: {
   effectSlug: string;
+  effectName: string;
   galleryOrder?: string[];
 }) {
   const replications = await getPublicReplicationsByEffect(effectSlug);
@@ -27,6 +29,7 @@ export async function EffectReplicationsSection({
         <ReplicationGallery
           galleryOrder={galleryOrder}
           replications={replications}
+          effectName={effectName}
           effectSlug={effectSlug}
         />
         {replications.length > 0 ? (

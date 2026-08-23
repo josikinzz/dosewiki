@@ -2,12 +2,12 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 
-import { AppImage } from "@/components/common/AppImage";
 import { Icon } from "@/components/common/Icon";
 import { focusRingClassName } from "@/components/ui/surface";
 import { cn } from "@/lib/utils";
 import type { ReplicationViewerMediaItem } from "./viewerModel";
 import { useStageFit } from "./useStageFit";
+import { ReplicationStillStage } from "./ReplicationStillStage";
 import { shouldLoopReplicationMotion } from "./viewerLogic";
 
 const controlClassName = cn(
@@ -121,20 +121,39 @@ export function ReplicationMediaStage({
   );
   const autoplayAllowed = !reducedMotion && !browserRequestsDataSaving();
 
+  const scheduleControlHide = useCallback(() => {
+    window.clearTimeout(hideTimerRef.current);
+    hideTimerRef.current = window.setTimeout(
+      () => setControlsVisible(false),
+      2600,
+    );
+  }, []);
+
   const showControls = useCallback(() => {
     setControlsVisible(true);
-    window.clearTimeout(hideTimerRef.current);
-    if (playing) {
-      hideTimerRef.current = window.setTimeout(
-        () => setControlsVisible(false),
-        2600,
-      );
+    const video = videoRef.current;
+    if (!moving || (video && !video.paused && !video.ended)) {
+      scheduleControlHide();
+    } else {
+      window.clearTimeout(hideTimerRef.current);
     }
-  }, [playing]);
+  }, [moving, scheduleControlHide]);
+
+  const toggleStillControls = useCallback(() => {
+    setControlsVisible((current) => {
+      window.clearTimeout(hideTimerRef.current);
+      if (!current) scheduleControlHide();
+      return !current;
+    });
+  }, [scheduleControlHide]);
 
   useEffect(() => {
     return () => window.clearTimeout(hideTimerRef.current);
   }, []);
+
+  useEffect(() => {
+    if (!moving) showControls();
+  }, [moving, replication.slug, showControls]);
 
   useEffect(() => {
     setEnded(false);
@@ -189,8 +208,12 @@ export function ReplicationMediaStage({
 
   const width = replication.width ?? 1600;
   const height = replication.height ?? Math.round(width / (4 / 3));
-  const transportVisible =
-    controlsVisible || !playing || ended || blocked || error;
+  const transportVisible = moving
+    ? controlsVisible || !playing || ended || blocked || error
+    : controlsVisible;
+  const showWorkNavigation = Boolean(
+    previousHref || nextHref || onPrevious || onNext,
+  );
 
   return (
     <section
@@ -250,14 +273,13 @@ export function ReplicationMediaStage({
         />
       ) : hasSafeGifFallback ? (
         poster ? (
-          <AppImage
+          <ReplicationStillStage
             src={poster}
             alt={replication.title}
             width={width}
             height={height}
-            priority
-            sizes="100vw"
-            className="absolute inset-0 h-full w-full object-contain"
+            controlsVisible={controlsVisible}
+            onToggleControls={toggleStillControls}
           />
         ) : (
           <div className="theme-media-tile-creator absolute inset-0 grid place-items-center px-8 text-center text-sm">
@@ -265,14 +287,13 @@ export function ReplicationMediaStage({
           </div>
         )
       ) : (
-        <AppImage
+        <ReplicationStillStage
           src={replication.url}
           alt={replication.title}
           width={width}
           height={height}
-          priority
-          sizes="100vw"
-          className="absolute inset-0 h-full w-full object-contain"
+          controlsVisible={controlsVisible}
+          onToggleControls={toggleStillControls}
         />
       )}
 
@@ -289,7 +310,9 @@ export function ReplicationMediaStage({
       <div
         className={cn(
           "pointer-events-none absolute inset-0 flex flex-col justify-between p-3 transition-opacity duration-200 motion-reduce:transition-none sm:p-4",
-          transportVisible ? "opacity-100" : "opacity-0",
+          transportVisible
+            ? "opacity-100"
+            : "opacity-0 [&_*]:!pointer-events-none",
         )}
       >
         <div className="flex justify-end gap-2">
@@ -336,46 +359,53 @@ export function ReplicationMediaStage({
           ) : null}
         </div>
 
-        <div className="flex items-center justify-between gap-3">
-          {previousHref && onPrevious ? (
-            <a
-              href={previousHref}
-              rel="prev"
-              aria-label={previousLabel}
-              onClick={(event) => {
-                if (
-                  event.button !== 0 ||
-                  event.metaKey ||
-                  event.ctrlKey ||
-                  event.shiftKey ||
-                  event.altKey
-                ) {
-                  return;
-                }
-                event.preventDefault();
-                onPrevious();
-              }}
-              className={cn(controlClassName, "pointer-events-auto")}
-            >
-              <Icon icon="lucide:chevron-left" className="size-6" />
-            </a>
-          ) : (
-            <button
-              type="button"
-              aria-label={previousLabel}
-              disabled={!onPrevious}
-              onClick={(event) => {
-                event.stopPropagation();
-                onPrevious?.();
-              }}
-              className={cn(
-                controlClassName,
-                "pointer-events-auto disabled:invisible",
-              )}
-            >
-              <Icon icon="lucide:chevron-left" className="size-6" />
-            </button>
+        <div
+          className={cn(
+            "flex items-center gap-3",
+            showWorkNavigation ? "justify-between" : "justify-center",
           )}
+        >
+          {showWorkNavigation ? (
+            previousHref && onPrevious ? (
+              <a
+                href={previousHref}
+                rel="prev"
+                aria-label={previousLabel}
+                onClick={(event) => {
+                  if (
+                    event.button !== 0 ||
+                    event.metaKey ||
+                    event.ctrlKey ||
+                    event.shiftKey ||
+                    event.altKey
+                  ) {
+                    return;
+                  }
+                  event.preventDefault();
+                  onPrevious();
+                }}
+                className={cn(controlClassName, "pointer-events-auto")}
+              >
+                <Icon icon="lucide:chevron-left" className="size-6" />
+              </a>
+            ) : (
+              <button
+                type="button"
+                aria-label={previousLabel}
+                disabled={!onPrevious}
+                onClick={(event) => {
+                  event.stopPropagation();
+                  onPrevious?.();
+                }}
+                className={cn(
+                  controlClassName,
+                  "pointer-events-auto disabled:cursor-not-allowed disabled:opacity-30",
+                )}
+              >
+                <Icon icon="lucide:chevron-left" className="size-6" />
+              </button>
+            )
+          ) : null}
 
           <div className="theme-media-tile-title pointer-events-auto flex items-center gap-2 rounded-full bg-black/65 px-2 py-1.5 backdrop-blur-sm">
             {moving ? (
@@ -444,45 +474,47 @@ export function ReplicationMediaStage({
             )}
           </div>
 
-          {nextHref && onNext ? (
-            <a
-              href={nextHref}
-              rel="next"
-              aria-label={nextLabel}
-              onClick={(event) => {
-                if (
-                  event.button !== 0 ||
-                  event.metaKey ||
-                  event.ctrlKey ||
-                  event.shiftKey ||
-                  event.altKey
-                ) {
-                  return;
-                }
-                event.preventDefault();
-                onNext();
-              }}
-              className={cn(controlClassName, "pointer-events-auto")}
-            >
-              <Icon icon="lucide:chevron-right" className="size-6" />
-            </a>
-          ) : (
-            <button
-              type="button"
-              aria-label={nextLabel}
-              disabled={!onNext}
-              onClick={(event) => {
-                event.stopPropagation();
-                onNext?.();
-              }}
-              className={cn(
-                controlClassName,
-                "pointer-events-auto disabled:invisible",
-              )}
-            >
-              <Icon icon="lucide:chevron-right" className="size-6" />
-            </button>
-          )}
+          {showWorkNavigation ? (
+            nextHref && onNext ? (
+              <a
+                href={nextHref}
+                rel="next"
+                aria-label={nextLabel}
+                onClick={(event) => {
+                  if (
+                    event.button !== 0 ||
+                    event.metaKey ||
+                    event.ctrlKey ||
+                    event.shiftKey ||
+                    event.altKey
+                  ) {
+                    return;
+                  }
+                  event.preventDefault();
+                  onNext();
+                }}
+                className={cn(controlClassName, "pointer-events-auto")}
+              >
+                <Icon icon="lucide:chevron-right" className="size-6" />
+              </a>
+            ) : (
+              <button
+                type="button"
+                aria-label={nextLabel}
+                disabled={!onNext}
+                onClick={(event) => {
+                  event.stopPropagation();
+                  onNext?.();
+                }}
+                className={cn(
+                  controlClassName,
+                  "pointer-events-auto disabled:cursor-not-allowed disabled:opacity-30",
+                )}
+              >
+                <Icon icon="lucide:chevron-right" className="size-6" />
+              </button>
+            )
+          ) : null}
         </div>
       </div>
     </section>

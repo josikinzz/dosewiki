@@ -90,7 +90,7 @@ export function planGifMotionGeneration(rows, { force = false } = {}) {
   return { actions, skipped, gifRowCount: gifRows.length };
 }
 
-/** Preserve timing and frame content; only force browser-decodable even dimensions/pixel format. */
+/** Preserve every source pixel; pad odd edges instead of scaling the composition. */
 export function buildGifMotionFfmpegArgs({
   inputPath,
   outputPath,
@@ -107,7 +107,7 @@ export function buildGifMotionFfmpegArgs({
     "-map",
     "0:v:0",
     "-vf",
-    "scale=trunc(iw/2)*2:trunc(ih/2)*2:flags=lanczos,format=yuv420p",
+    "pad=ceil(iw/2)*2:ceil(ih/2)*2:(ow-iw)/2:(oh-ih)/2:color=black,format=yuv420p",
     "-fps_mode",
     "vfr",
     "-c:v",
@@ -142,8 +142,6 @@ export function buildMotionPosterFfmpegArgs({ inputPath, outputPath }) {
     "0:v:0",
     "-frames:v",
     "1",
-    "-vf",
-    "scale=trunc(iw/2)*2:trunc(ih/2)*2:flags=lanczos",
     "-c:v",
     "png",
     "-f",
@@ -166,6 +164,46 @@ export function isAcceptableGifMotion(probe) {
   if (!(probe.durationSeconds > 0))
     return { ok: false, reason: "motion duration is missing" };
   return { ok: true, reason: "decodable, silent, timed, and faststart" };
+}
+
+export function verifyRenditionDimensions({ source, motion, poster }) {
+  if (
+    !source?.video?.width ||
+    !source?.video?.height ||
+    !motion?.video?.width ||
+    !motion?.video?.height ||
+    !poster?.video?.width ||
+    !poster?.video?.height
+  ) {
+    return {
+      ok: false,
+      reason: "one or more rendition dimensions are missing",
+    };
+  }
+  const expectedMotionWidth = Math.ceil(source.video.width / 2) * 2;
+  const expectedMotionHeight = Math.ceil(source.video.height / 2) * 2;
+  if (
+    motion.video.width !== expectedMotionWidth ||
+    motion.video.height !== expectedMotionHeight
+  ) {
+    return {
+      ok: false,
+      reason: `motion is ${motion.video.width}×${motion.video.height}; expected ${expectedMotionWidth}×${expectedMotionHeight}`,
+    };
+  }
+  if (
+    poster.video.width !== source.video.width ||
+    poster.video.height !== source.video.height
+  ) {
+    return {
+      ok: false,
+      reason: `poster is ${poster.video.width}×${poster.video.height}; source is ${source.video.width}×${source.video.height}`,
+    };
+  }
+  return {
+    ok: true,
+    reason: "source pixels and poster dimensions are preserved",
+  };
 }
 
 export function verifyGifMotionGeneration({ before, after }) {
@@ -297,126 +335,171 @@ async function main() {
     scratchDir,
     `gif-motion-ledger-${Date.now()}.json`,
   );
-  const ledger = [];
+  const ledger = [
+    ...plan.skipped.map((entry) => ({ ...entry, status: "skipped" })),
+    ...actions.map((action) => ({
+      slug: action.slug,
+      rowId: action.rowId,
+      expectedStorageId: action.expectedStorageId,
+      sourceUrl: action.sourceUrl,
+      status: "planned",
+    })),
+  ];
   const writeLedger = () =>
     fs.writeFileSync(
       ledgerPath,
       `${JSON.stringify({ operation: OPERATION, entries: ledger }, null, 2)}\n`,
     );
+  writeLedger();
 
   let generated = 0;
   for (const [batchIndex, batch] of batches.entries()) {
     console.log(`\n--- Batch ${batchIndex + 1}/${batches.length} ---`);
     for (const action of batch) {
-      const live = await fetchResolvedRow(writeClient, apiKey, action.rowId);
-      if (!live)
-        throw new Error(`${action.slug}: row no longer exists. Stopping.`);
-      if (live.storage_id !== action.expectedStorageId) {
-        throw new Error(
-          `${action.slug}: storage_id changed since the reviewed plan. Stopping.`,
-        );
+      const ledgerEntry = ledger.find(
+        (entry) => entry.slug === action.slug && entry.status === "planned",
+      );
+      if (!ledgerEntry) {
+        throw new Error(`${action.slug}: planned ledger entry is missing.`);
       }
-      if (
-        live.motion_storage_id &&
-        live.motion_poster_storage_id &&
-        !force &&
-        !action.hadMotion
-      ) {
+      try {
+        const live = await fetchResolvedRow(writeClient, apiKey, action.rowId);
+        if (!live)
+          throw new Error(`${action.slug}: row no longer exists. Stopping.`);
+        if (live.storage_id !== action.expectedStorageId) {
+          throw new Error(
+            `${action.slug}: storage_id changed since the reviewed plan. Stopping.`,
+          );
+        }
+        if (
+          live.motion_storage_id &&
+          live.motion_poster_storage_id &&
+          !force &&
+          !action.hadMotion
+        ) {
+          console.log(
+            `  ${action.slug}: motion pair appeared since planning — skipping.`,
+          );
+          Object.assign(ledgerEntry, {
+            status: "skipped",
+            reason: "motion pair appeared after planning",
+          });
+          writeLedger();
+          continue;
+        }
+
+        const before = {
+          url: live.url,
+          thumbnail_url: live.thumbnail_url,
+          preview_url: live.preview_url,
+        };
+        const sourcePath = path.join(scratchDir, `${action.slug}.source.gif`);
+        const motionPath = path.join(scratchDir, `${action.slug}.motion.mp4`);
+        const posterPath = path.join(
+          scratchDir,
+          `${action.slug}.motion-poster.png`,
+        );
+        const motionPart = `${motionPath}.part`;
+        const posterPart = `${posterPath}.part`;
+
+        const sourceBytes = await downloadToFile(live.url, sourcePath);
+        const sourceProbe = probeVideo(sourcePath);
+        runFfmpeg(
+          buildGifMotionFfmpegArgs({
+            inputPath: sourcePath,
+            outputPath: motionPart,
+          }),
+        );
+        fs.renameSync(motionPart, motionPath);
+        runFfmpeg(
+          buildMotionPosterFfmpegArgs({
+            inputPath: sourcePath,
+            outputPath: posterPart,
+          }),
+        );
+        fs.renameSync(posterPart, posterPath);
+
+        const motionProbe = probeVideo(motionPath);
+        const verdict = isAcceptableGifMotion(motionProbe);
+        if (!verdict.ok)
+          throw new Error(
+            `${action.slug}: encoded motion rejected — ${verdict.reason}`,
+          );
+        const dimensionVerdict = verifyRenditionDimensions({
+          source: sourceProbe,
+          motion: motionProbe,
+          poster: probeVideo(posterPath),
+        });
+        if (!dimensionVerdict.ok) {
+          throw new Error(
+            `${action.slug}: rendition dimensions rejected — ${dimensionVerdict.reason}`,
+          );
+        }
+
+        const motionStorageId = await uploadFile(
+          writeClient,
+          apiKey,
+          motionPath,
+          "video/mp4",
+        );
+        const motionPosterStorageId = await uploadFile(
+          writeClient,
+          apiKey,
+          posterPath,
+          "image/png",
+        );
+        await writeClient.mutation(api.replications.updateMotionStorageIds, {
+          apiKey,
+          updates: [
+            {
+              id: action.rowId,
+              expectedStorageId: action.expectedStorageId,
+              motionStorageId,
+              motionPosterStorageId,
+            },
+          ],
+        });
+
+        Object.assign(ledgerEntry, {
+          status: "applied",
+          motionStorageId,
+          motionPosterStorageId,
+          sourceBytes,
+          motionBytes: fs.statSync(motionPath).size,
+          posterBytes: fs.statSync(posterPath).size,
+          at: new Date().toISOString(),
+        });
+        writeLedger();
+
+        const after = await fetchResolvedRow(writeClient, apiKey, action.rowId);
+        const verification = verifyGifMotionGeneration({ before, after });
+        if (!verification.ok) {
+          for (const reason of verification.reasons)
+            console.error(`  ${reason}`);
+          throw new Error(
+            `Verification failed after ${action.slug}; write landed. Ledger: ${ledgerPath}`,
+          );
+        }
+
+        fs.rmSync(sourcePath, { force: true });
+        fs.rmSync(motionPath, { force: true });
+        fs.rmSync(posterPath, { force: true });
+        generated += 1;
         console.log(
-          `  ${action.slug}: motion pair appeared since planning — skipping.`,
+          `  ${action.slug}: ${formatBytes(sourceBytes)} -> ${formatBytes(ledgerEntry.motionBytes)} motion + ${formatBytes(ledgerEntry.posterBytes)} poster`,
         );
-        continue;
+      } catch (error) {
+        Object.assign(ledgerEntry, {
+          status:
+            ledgerEntry.status === "applied"
+              ? "verification_failed_after_write"
+              : "failed",
+          reason: error instanceof Error ? error.message : String(error),
+          at: new Date().toISOString(),
+        });
+        writeLedger();
+        throw error;
       }
-
-      const before = {
-        url: live.url,
-        thumbnail_url: live.thumbnail_url,
-        preview_url: live.preview_url,
-      };
-      const sourcePath = path.join(scratchDir, `${action.slug}.source.gif`);
-      const motionPath = path.join(scratchDir, `${action.slug}.motion.mp4`);
-      const posterPath = path.join(
-        scratchDir,
-        `${action.slug}.motion-poster.png`,
-      );
-      const motionPart = `${motionPath}.part`;
-      const posterPart = `${posterPath}.part`;
-
-      const sourceBytes = await downloadToFile(live.url, sourcePath);
-      runFfmpeg(
-        buildGifMotionFfmpegArgs({
-          inputPath: sourcePath,
-          outputPath: motionPart,
-        }),
-      );
-      fs.renameSync(motionPart, motionPath);
-      runFfmpeg(
-        buildMotionPosterFfmpegArgs({
-          inputPath: sourcePath,
-          outputPath: posterPart,
-        }),
-      );
-      fs.renameSync(posterPart, posterPath);
-
-      const verdict = isAcceptableGifMotion(probeVideo(motionPath));
-      if (!verdict.ok)
-        throw new Error(
-          `${action.slug}: encoded motion rejected — ${verdict.reason}`,
-        );
-
-      const motionStorageId = await uploadFile(
-        writeClient,
-        apiKey,
-        motionPath,
-        "video/mp4",
-      );
-      const motionPosterStorageId = await uploadFile(
-        writeClient,
-        apiKey,
-        posterPath,
-        "image/png",
-      );
-      await writeClient.mutation(api.replications.updateMotionStorageIds, {
-        apiKey,
-        updates: [
-          {
-            id: action.rowId,
-            expectedStorageId: action.expectedStorageId,
-            motionStorageId,
-            motionPosterStorageId,
-          },
-        ],
-      });
-
-      ledger.push({
-        slug: action.slug,
-        rowId: action.rowId,
-        expectedStorageId: action.expectedStorageId,
-        motionStorageId,
-        motionPosterStorageId,
-        sourceBytes,
-        motionBytes: fs.statSync(motionPath).size,
-        posterBytes: fs.statSync(posterPath).size,
-        at: new Date().toISOString(),
-      });
-      writeLedger();
-
-      const after = await fetchResolvedRow(writeClient, apiKey, action.rowId);
-      const verification = verifyGifMotionGeneration({ before, after });
-      if (!verification.ok) {
-        for (const reason of verification.reasons) console.error(`  ${reason}`);
-        throw new Error(
-          `Verification failed after ${action.slug}; write landed. Ledger: ${ledgerPath}`,
-        );
-      }
-
-      fs.rmSync(sourcePath, { force: true });
-      fs.rmSync(motionPath, { force: true });
-      fs.rmSync(posterPath, { force: true });
-      generated += 1;
-      console.log(
-        `  ${action.slug}: ${formatBytes(sourceBytes)} -> ${formatBytes(ledger.at(-1).motionBytes)} motion + ${formatBytes(ledger.at(-1).posterBytes)} poster`,
-      );
     }
   }
 

@@ -47,7 +47,9 @@ describe("public API v1 contract helpers", () => {
       molecule: {
         schemes: {
           dosewiki: { url: "/api/v1/molecules/lsd.svg?scheme=dosewiki" },
-          "effect-index": { url: "/api/v1/molecules/lsd.svg?scheme=effect-index" },
+          "effect-index": {
+            url: "/api/v1/molecules/lsd.svg?scheme=effect-index",
+          },
           "effect-index-dark": {
             url: "/api/v1/molecules/lsd.svg?scheme=effect-index-dark",
           },
@@ -71,6 +73,12 @@ describe("public API v1 contract helpers", () => {
       effect_slug: "visual-drifting",
       format: "mp4",
       created_at: "2026-01-01",
+      date_info: {
+        value: "2020",
+        kind: "year",
+        confidence: "high",
+        researched_at: "2026-01-02",
+      },
       url: "https://media.example/drifting.mp4",
       rights_status: "permission-granted",
     });
@@ -79,16 +87,20 @@ describe("public API v1 contract helpers", () => {
     expect(projected).not.toHaveProperty("storage_id");
     expect(JSON.stringify(projected)).not.toContain("private note");
     expect(projected.rights.status).toBe("permission-granted");
+    expect(projected.created_at).toBe("2026-01-01");
+    expect(projected.date_info?.value).toBe("2020");
   });
 
   it("projects the stable substance preview shape", () => {
-    expect(projectPublicApiSubstancePreview({
-      slug: "mdma",
-      title: "MDMA",
-      summary: "Summary",
-      priority: "high",
-      indexCategories: ["entactogen"],
-    })).toEqual({
+    expect(
+      projectPublicApiSubstancePreview({
+        slug: "mdma",
+        title: "MDMA",
+        summary: "Summary",
+        priority: "high",
+        indexCategories: ["entactogen"],
+      }),
+    ).toEqual({
       slug: "mdma",
       title: "MDMA",
       summary: "Summary",

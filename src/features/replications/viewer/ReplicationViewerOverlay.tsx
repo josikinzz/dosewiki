@@ -1,6 +1,13 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useId,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 
 import { AppImage } from "@/components/common/AppImage";
 import { Icon } from "@/components/common/Icon";
@@ -11,6 +18,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { focusRingClassName } from "@/components/ui/surface";
+import { toAppPath } from "@/utils/previewPath";
 import {
   buildReplicationViewerUrl,
   closeReplicationViewerUrl,
@@ -30,15 +38,27 @@ import {
 const SWIPE_THRESHOLD_PX = 48;
 const SCREEN_EDGE_GUARD_PX = 24;
 
+type WebkitFullscreenVideo = HTMLVideoElement & {
+  webkitEnterFullscreen?: () => void;
+};
 interface PublicReplicationDetails {
   slug: string;
   format: string;
+  created_at?: string;
+  date_info?: {
+    value?: string;
+    kind: string;
+    event_type?: string;
+    confidence: string;
+  };
   duration?: number;
   width?: number;
   height?: number;
   rights?: {
     status?: string;
     license_name?: string;
+    license_url?: string;
+    credit_line?: string;
     source_url?: string;
     rightsholder?: string;
   };
@@ -70,11 +90,14 @@ export function ReplicationViewerOverlay({
   const [infoOpen, setInfoOpen] = useState(false);
   const [details, setDetails] = useState<PublicReplicationDetails | null>(null);
   const [immersiveFallback, setImmersiveFallback] = useState(false);
+  const [fullscreenUnavailable, setFullscreenUnavailable] = useState(false);
+  const [fullscreenMessage, setFullscreenMessage] = useState("");
   const rememberedSlugByGroupRef = useRef<Record<string, string>>({});
   const touchStartRef = useRef<{ x: number; y: number } | null>(null);
   const contentRef = useRef<HTMLDivElement>(null);
   const pausedBackgroundVideosRef = useRef<HTMLVideoElement[]>([]);
   const openerRef = useRef<HTMLElement | null>(null);
+  const collectionLabelId = useId();
 
   const group = position ? collection.groups[position.groupIndex] : null;
   const active = group && position ? group.items[position.itemIndex] : null;
@@ -146,7 +169,7 @@ export function ReplicationViewerOverlay({
       setPosition(next);
       setInfoOpen(false);
       setDetails(null);
-      const source = `${window.location.pathname}${window.location.search}${window.location.hash}`;
+      const source = `${toAppPath(window.location.pathname)}${window.location.search}${window.location.hash}`;
       window.history.replaceState(
         window.history.state,
         "",
@@ -240,7 +263,7 @@ export function ReplicationViewerOverlay({
       if (window.history.state?.replicationViewer === true) {
         window.history.back();
       } else {
-        const source = `${window.location.pathname}${window.location.search}${window.location.hash}`;
+        const source = `${toAppPath(window.location.pathname)}${window.location.search}${window.location.hash}`;
         window.history.replaceState(
           window.history.state,
           "",
@@ -257,26 +280,53 @@ export function ReplicationViewerOverlay({
     }
   }, [onOpenChange]);
 
-  const fullscreenSupported =
+  const documentFullscreenSupported =
     typeof document !== "undefined" &&
     Boolean(document.documentElement.requestFullscreen);
   const requestFullscreen = useCallback(() => {
     const content = contentRef.current;
-    if (content?.requestFullscreen) {
-      void content.requestFullscreen().catch(() => setImmersiveFallback(true));
+    const tryWebkitFullscreen = () => {
+      const video =
+        content?.querySelector<WebkitFullscreenVideo>("video") ?? null;
+      if (!video?.webkitEnterFullscreen || fullscreenUnavailable) return false;
+      try {
+        video.webkitEnterFullscreen();
+        return true;
+      } catch {
+        return false;
+      }
+    };
+    const useImmersiveFallback = (fullscreenRejected: boolean) => {
+      setFullscreenUnavailable(true);
+      setImmersiveFallback(true);
+      setFullscreenMessage(
+        fullscreenRejected
+          ? "Fullscreen is unavailable. Immersive view is active."
+          : "Immersive view is active.",
+      );
+    };
+
+    if (content?.requestFullscreen && !fullscreenUnavailable) {
+      void content.requestFullscreen().catch(() => {
+        if (!tryWebkitFullscreen()) useImmersiveFallback(true);
+      });
       return;
     }
-    const video = content?.querySelector("video") as
-      | (HTMLVideoElement & { webkitEnterFullscreen?: () => void })
-      | null;
-    if (video?.webkitEnterFullscreen) {
-      video.webkitEnterFullscreen();
-      return;
-    }
-    setImmersiveFallback(true);
-  }, []);
+    if (!tryWebkitFullscreen()) useImmersiveFallback(false);
+  }, [fullscreenUnavailable]);
 
   if (!active || !position || !group) return null;
+  const movingMedia =
+    active.replication.type === "video" ||
+    (active.replication.format.toLowerCase() === "gif" &&
+      Boolean(active.replication.motion_url));
+  const webkitFullscreenSupported =
+    movingMedia &&
+    typeof HTMLVideoElement !== "undefined" &&
+    "webkitEnterFullscreen" in HTMLVideoElement.prototype;
+  const fullscreenSupported =
+    !fullscreenUnavailable &&
+    (documentFullscreenSupported || webkitFullscreenSupported);
 
   const groupUnit =
     collection.grouping === "artist"
@@ -350,6 +400,7 @@ export function ReplicationViewerOverlay({
           const dx = touch.clientX - start.x;
           const dy = touch.clientY - start.y;
           if (Math.max(Math.abs(dx), Math.abs(dy)) < SWIPE_THRESHOLD_PX) return;
+          event.preventDefault();
           if (Math.abs(dx) >= Math.abs(dy)) {
             navigate(dx > 0 ? previousWork : nextWork);
           } else {
@@ -357,6 +408,7 @@ export function ReplicationViewerOverlay({
           }
         }}
         tabIndex={-1}
+        aria-labelledby={collectionLabelId}
         aria-describedby="replication-viewer-description"
         className={cn(
           "theme-media-tile-title theme-elevation-none left-0 top-0 z-[70] h-[100svh] max-h-none w-screen max-w-none translate-x-0 translate-y-0 grid-rows-[auto_minmax(0,1fr)] gap-0 overflow-hidden border-0 bg-black p-0 duration-150 sm:rounded-none",
@@ -378,22 +430,75 @@ export function ReplicationViewerOverlay({
             </DialogTitle>
             <DialogDescription
               id="replication-viewer-description"
-              className="theme-media-tile-creator flex shrink-0 items-center gap-1.5 whitespace-nowrap text-[11px] tabular-nums sm:text-xs"
+              className="theme-media-tile-creator flex min-w-0 items-center gap-1.5 whitespace-nowrap text-[11px] tabular-nums sm:text-xs"
             >
-              <span className="sr-only">{collection.label}. </span>
-              <span>
+              <span
+                id={collectionLabelId}
+                className="max-w-[9rem] truncate sm:max-w-[16rem]"
+              >
+                {collection.label}
+              </span>
+              <span aria-hidden>·</span>
+              <span className="shrink-0">
                 Work {position.itemIndex + 1}/{group.items.length}
               </span>
               {collection.groups.length > 1 ? (
                 <>
+                  {collection.grouping === "effect" ? (
+                    <>
+                      <span aria-hidden>·</span>
+                      <span
+                        className="max-w-[8rem] truncate sm:max-w-[12rem]"
+                        title={group.label}
+                      >
+                        {group.label}
+                      </span>
+                    </>
+                  ) : null}
                   <span aria-hidden>·</span>
-                  <span>
+                  <span className="shrink-0">
                     {groupUnit} {position.groupIndex + 1}/
                     {collection.groups.length}
                   </span>
                 </>
               ) : null}
             </DialogDescription>
+            {collection.groups.length > 1 ? (
+              <div className="flex flex-none items-center gap-1">
+                <button
+                  type="button"
+                  aria-label={
+                    previousGroup
+                      ? `Previous ${groupUnit.toLowerCase()}: ${collection.groups[previousGroup.groupIndex].label}`
+                      : `First ${groupUnit.toLowerCase()}`
+                  }
+                  disabled={!previousGroup}
+                  onClick={() => navigate(previousGroup)}
+                  className={cn(
+                    "theme-media-control-soft grid size-8 place-items-center rounded-full disabled:cursor-not-allowed disabled:opacity-30",
+                    focusRingClassName,
+                  )}
+                >
+                  <Icon icon="lucide:chevron-up" className="size-4" />
+                </button>
+                <button
+                  type="button"
+                  aria-label={
+                    nextGroup
+                      ? `Next ${groupUnit.toLowerCase()}: ${collection.groups[nextGroup.groupIndex].label}`
+                      : `Final ${groupUnit.toLowerCase()}`
+                  }
+                  disabled={!nextGroup}
+                  onClick={() => navigate(nextGroup)}
+                  className={cn(
+                    "theme-media-control-soft grid size-8 place-items-center rounded-full disabled:cursor-not-allowed disabled:opacity-30",
+                    focusRingClassName,
+                  )}
+                >
+                  <Icon icon="lucide:chevron-down" className="size-4" />
+                </button>
+              </div>
+            ) : null}
           </div>
           <button
             type="button"
@@ -407,6 +512,11 @@ export function ReplicationViewerOverlay({
             <Icon icon="lucide:x" className="size-5" />
           </button>
         </header>
+        {fullscreenMessage ? (
+          <p role="status" className="sr-only">
+            {fullscreenMessage}
+          </p>
+        ) : null}
 
         <div className="grid min-h-0 min-w-0 w-full grid-cols-[minmax(0,1fr)] grid-rows-[minmax(0,1fr)_auto] overflow-hidden">
           <ReplicationMediaStage
@@ -521,11 +631,59 @@ export function ReplicationViewerOverlay({
                   </dd>
                 </>
               ) : null}
+              {details?.date_info?.value || details?.created_at ? (
+                <>
+                  <dt>{details.date_info?.value ? "Work date" : "Added"}</dt>
+                  <dd className="theme-media-tile-title">
+                    <time
+                      dateTime={details.date_info?.value ?? details.created_at}
+                    >
+                      {details.date_info?.value ?? details.created_at}
+                    </time>
+                  </dd>
+                </>
+              ) : null}
+              {active.effectName ? (
+                <>
+                  <dt>Represents</dt>
+                  <dd className="theme-media-tile-title">
+                    {active.effectSlug ? (
+                      <a
+                        href={publicHref.effect(active.effectSlug)}
+                        className="underline underline-offset-2"
+                      >
+                        {active.effectName}
+                      </a>
+                    ) : (
+                      active.effectName
+                    )}
+                  </dd>
+                </>
+              ) : null}
+              {details?.rights?.status ? (
+                <>
+                  <dt>Rights status</dt>
+                  <dd className="theme-media-tile-title capitalize">
+                    {details.rights.status.replace(/[_-]/g, " ")}
+                  </dd>
+                </>
+              ) : null}
               {details?.rights?.license_name ? (
                 <>
                   <dt>Licence</dt>
                   <dd className="theme-media-tile-title">
-                    {details.rights.license_name}
+                    {details.rights.license_url ? (
+                      <a
+                        href={details.rights.license_url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="underline underline-offset-2"
+                      >
+                        {details.rights.license_name}
+                      </a>
+                    ) : (
+                      details.rights.license_name
+                    )}
                   </dd>
                 </>
               ) : null}
@@ -534,6 +692,21 @@ export function ReplicationViewerOverlay({
                   <dt>Rights holder</dt>
                   <dd className="theme-media-tile-title">
                     {details.rights.rightsholder}
+                  </dd>
+                </>
+              ) : null}
+              {details?.rights?.source_url ? (
+                <>
+                  <dt>Source</dt>
+                  <dd className="theme-media-tile-title min-w-0">
+                    <a
+                      href={details.rights.source_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="block truncate underline underline-offset-2"
+                    >
+                      Original source
+                    </a>
                   </dd>
                 </>
               ) : null}

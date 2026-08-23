@@ -5,6 +5,7 @@ import {
   type GalleryTypeFilter,
 } from "@/features/effects/gallery/galleryModel";
 import { getPublicRoutePath } from "@/utils/publicRouteIdentity";
+import { toAppPath } from "@/utils/previewPath";
 
 /**
  * The gallery's URL contract: gallery browse/focus states own their URLs,
@@ -24,7 +25,7 @@ import { getPublicRoutePath } from "@/utils/publicRouteIdentity";
 export const REPLICATIONS_PATH = "/replications";
 export const REPLICATION_VIEWER_PARAM = "viewer";
 
-const REPLICATION_SLUG_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
+const REPLICATION_SLUG_PATTERN = /^[a-z0-9][a-z0-9_-]*$/;
 
 export interface GalleryBrowseState {
   view: GalleryMode;
@@ -70,7 +71,7 @@ export function parseReplicationViewerSlug(params: ParamsLike): string | null {
 }
 
 function relativeUrl(url: URL): string {
-  return `${url.pathname}${url.search}${url.hash}`;
+  return `${toAppPath(url.pathname)}${url.search}${url.hash}`;
 }
 
 /** Add or replace the active viewer work without disturbing source state. */

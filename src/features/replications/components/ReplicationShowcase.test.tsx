@@ -74,16 +74,19 @@ describe("ReplicationShowcase", () => {
     expect(container).toBeEmptyDOMElement();
   });
 
-  it("hides the thumbnail rail entirely when only one work exists", () => {
+  it("hides the one-work rail while keeping count and viewer entry explicit", () => {
     render(<ReplicationShowcase works={[work()]} />);
 
     expect(screen.queryByRole("tablist")).not.toBeInTheDocument();
     expect(screen.queryByRole("tab")).not.toBeInTheDocument();
-    // The stage and caption still stand on their own.
     expect(screen.getByRole("tabpanel")).toBeInTheDocument();
     expect(
       screen.getByRole("link", { name: /Drifting \(wood grain\)/ }),
     ).toHaveAttribute("href", "/replications?viewer=drifting-wood-grain");
+    expect(screen.getByText("1")).toBeInTheDocument();
+    expect(
+      screen.getByRole("link", { name: /Open viewer/ }),
+    ).toBeInTheDocument();
   });
 
   it("links an article work to that article's viewer collection", () => {
@@ -103,6 +106,7 @@ describe("ReplicationShowcase", () => {
         collectionLabel="LSD replications"
       />,
     );
+    expect(screen.getByText("LSD replications")).toBeInTheDocument();
 
     const entry = screen.getByRole("link", {
       name: /Drifting \(wood grain\).*Open/,
@@ -126,6 +130,22 @@ describe("ReplicationShowcase", () => {
     fireEvent.click(screen.getByRole("button", { name: "Close viewer" }));
     expect(screen.queryByTestId("replication-viewer")).toBeNull();
     pushState.mockRestore();
+  });
+
+  it("removes a viewer query that does not belong to the article collection", () => {
+    window.history.replaceState(
+      {},
+      "",
+      "/lsd?smoke=1&viewer=not-in-this-article",
+    );
+
+    render(<ReplicationShowcase works={[work()]} substanceSlug="lsd" />);
+
+    expect(window.location.pathname + window.location.search).toBe(
+      "/lsd?smoke=1",
+    );
+    expect(screen.queryByTestId("replication-viewer")).not.toBeInTheDocument();
+    window.history.replaceState({}, "", "/");
   });
 
   it("reconstructs the complete article collection beyond the compact strip", () => {
@@ -215,39 +235,6 @@ describe("ReplicationShowcase", () => {
     expect(tabs[0]).toHaveAttribute("aria-selected", "true");
   });
 
-  it("swipes horizontally to change the active work, ignoring vertical drags", () => {
-    render(<ReplicationShowcase works={[work(), secondWork]} />);
-    const stage = screen.getByRole("tabpanel");
-
-    fireEvent.touchStart(stage, { touches: [{ clientX: 200, clientY: 100 }] });
-    fireEvent.touchEnd(stage, {
-      changedTouches: [{ clientX: 80, clientY: 105 }],
-    });
-    expect(screen.getAllByRole("tab")[1]).toHaveAttribute(
-      "aria-selected",
-      "true",
-    );
-
-    fireEvent.touchStart(stage, { touches: [{ clientX: 80, clientY: 100 }] });
-    fireEvent.touchEnd(stage, {
-      changedTouches: [{ clientX: 220, clientY: 100 }],
-    });
-    expect(screen.getAllByRole("tab")[0]).toHaveAttribute(
-      "aria-selected",
-      "true",
-    );
-
-    // A mostly-vertical drag is a page scroll, not a swipe.
-    fireEvent.touchStart(stage, { touches: [{ clientX: 200, clientY: 100 }] });
-    fireEvent.touchEnd(stage, {
-      changedTouches: [{ clientX: 140, clientY: 300 }],
-    });
-    expect(screen.getAllByRole("tab")[0]).toHaveAttribute(
-      "aria-selected",
-      "true",
-    );
-  });
-
   it("closes the rail with a +N gallery link when the corpus outgrows the cap", () => {
     render(
       <ReplicationShowcase works={[work(), secondWork]} totalCount={89} />,
@@ -335,38 +322,7 @@ describe("ReplicationShowcase", () => {
     expect(screen.getByText(/by StingrayZ/)).toBeInTheDocument();
   });
 
-  it("wraps around with the overlaid previous/next arrows", () => {
-    render(<ReplicationShowcase works={[work(), secondWork]} />);
-
-    fireEvent.click(screen.getByRole("button", { name: "Next replication" }));
-    expect(screen.getAllByRole("tab")[1]).toHaveAttribute(
-      "aria-selected",
-      "true",
-    );
-
-    fireEvent.click(screen.getByRole("button", { name: "Next replication" }));
-    expect(screen.getAllByRole("tab")[0]).toHaveAttribute(
-      "aria-selected",
-      "true",
-    );
-
-    fireEvent.click(
-      screen.getByRole("button", { name: "Previous replication" }),
-    );
-    expect(screen.getAllByRole("tab")[1]).toHaveAttribute(
-      "aria-selected",
-      "true",
-    );
-  });
-
-  it("hides the arrows when only one work exists", () => {
-    render(<ReplicationShowcase works={[work()]} />);
-    expect(
-      screen.queryByRole("button", { name: "Next replication" }),
-    ).not.toBeInTheDocument();
-  });
-
-  it("starts muted and unmutes only on the reader's gesture", () => {
+  it("keeps inline interactions to selection and muted pause/play", () => {
     const video = work({
       slug: "tracers-loop",
       title: "Tracers loop",
@@ -374,24 +330,62 @@ describe("ReplicationShowcase", () => {
       url: "https://cdn.test/tracers.mp4",
       thumbnailUrl: "https://cdn.test/tracers-poster.webp",
     });
-    const { container } = render(<ReplicationShowcase works={[video]} />);
+    const { container } = render(
+      <ReplicationShowcase works={[video, secondWork]} />,
+    );
+
+    expect(
+      screen.queryByRole("button", { name: "Next replication" }),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: /mute/i }),
+    ).not.toBeInTheDocument();
 
     fireEvent.click(screen.getByRole("button", { name: "Play Tracers loop" }));
     expect((container.querySelector("video") as HTMLVideoElement).muted).toBe(
       true,
     );
+    fireEvent.click(screen.getByRole("button", { name: "Pause Tracers loop" }));
+    expect(container.querySelector("video")).not.toBeInTheDocument();
+  });
+
+  it("opens the shared viewer when the reader clicks the media stage", () => {
+    render(<ReplicationShowcase works={[work(), secondWork]} />);
 
     fireEvent.click(
-      screen.getByRole("button", { name: "Unmute Tracers loop" }),
-    );
-    expect((container.querySelector("video") as HTMLVideoElement).muted).toBe(
-      false,
+      screen.getByRole("button", {
+        name: "Open Drifting (wood grain) in viewer",
+      }),
     );
 
-    fireEvent.click(screen.getByRole("button", { name: "Mute Tracers loop" }));
-    expect((container.querySelector("video") as HTMLVideoElement).muted).toBe(
-      true,
+    expect(screen.getByTestId("replication-viewer")).toHaveAttribute(
+      "data-initial-slug",
+      "drifting-wood-grain",
     );
+  });
+
+  it("plays a GIF through its controllable motion rendition and keeps its poster", () => {
+    const gif = work({
+      slug: "drifting-gif",
+      title: "Drifting GIF",
+      format: "gif",
+      url: "https://cdn.test/original.gif",
+      thumbnailUrl: "https://cdn.test/legacy-thumb.webp",
+      motionUrl: "https://cdn.test/drifting-motion.mp4",
+      motionPosterUrl: "https://cdn.test/drifting-poster.webp",
+    });
+    const { container } = render(<ReplicationShowcase works={[gif]} />);
+
+    expect(screen.getByRole("img", { name: "Drifting GIF" })).toHaveAttribute(
+      "src",
+      "https://cdn.test/drifting-poster.webp",
+    );
+    fireEvent.click(screen.getByRole("button", { name: "Play Drifting GIF" }));
+    expect(container.querySelector("video")).toHaveAttribute(
+      "src",
+      "https://cdn.test/drifting-motion.mp4",
+    );
+    expect(container.querySelector("video")).toHaveAttribute("loop");
   });
 });
 

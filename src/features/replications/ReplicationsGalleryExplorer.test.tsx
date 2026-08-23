@@ -218,6 +218,7 @@ function stubMatchMedia(matches: boolean) {
 beforeEach(() => {
   navMocks.push.mockReset();
   navMocks.replace.mockReset();
+  window.history.replaceState({}, "", "/replications");
 });
 
 afterEach(() => {
@@ -482,6 +483,10 @@ describe("canonical replication viewer", () => {
     expect(viewer).toHaveAttribute("data-initial-slug", "slug-2");
     expect(viewer).toHaveAttribute("data-group-count", "1");
     expect(viewer).toHaveAttribute("data-item-count", "1");
+    expect(viewer).toHaveAttribute(
+      "data-collection-label",
+      "Video replications by effect matching “drifting”",
+    );
     expect(screen.getByText("Work 2").closest("a")).toHaveAttribute(
       "href",
       "/replications?view=effect&q=drifting&type=video&sort=alpha&viewer=slug-2",
@@ -494,6 +499,16 @@ describe("canonical replication viewer", () => {
     expect(screen.queryByTestId("replication-viewer")).toBeNull();
     expect(screen.getByText("Work 2")).toBeInTheDocument();
     expect(screen.queryByText("Work 4")).toBeNull();
+  });
+
+  it("removes a malformed viewer query instead of leaving stale URL state", () => {
+    window.history.replaceState({}, "", "/replications?smoke=1&viewer=%25%24");
+    renderExplorer("smoke=1&viewer=%25%24");
+
+    expect(screen.queryByTestId("replication-viewer")).not.toBeInTheDocument();
+    expect(window.location.pathname + window.location.search).toBe(
+      "/replications?smoke=1",
+    );
   });
 });
 

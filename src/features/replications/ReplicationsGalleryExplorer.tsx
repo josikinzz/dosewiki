@@ -60,6 +60,7 @@ import {
   buildReplicationViewerUrl,
   closeReplicationViewerUrl,
   GALLERY_BROWSE_DEFAULTS,
+  REPLICATION_VIEWER_PARAM,
   parseGalleryBrowseState,
   type GalleryBrowseState,
   parseReplicationViewerSlug,
@@ -143,6 +144,7 @@ export function ReplicationsGalleryExplorer(
         <GalleryExplorer
           {...props}
           browse={GALLERY_BROWSE_DEFAULTS}
+          viewerParamPresent={false}
           viewerSlugParam={null}
         />
       }
@@ -161,6 +163,7 @@ function UrlStateGalleryExplorer(props: ReplicationsGalleryExplorerProps) {
     <GalleryExplorer
       {...props}
       browse={browse}
+      viewerParamPresent={searchParams.has(REPLICATION_VIEWER_PARAM)}
       viewerSlugParam={viewerSlugParam}
     />
   );
@@ -176,9 +179,11 @@ function GalleryExplorer({
   chrome = "full",
   browse,
   viewerSlugParam,
+  viewerParamPresent,
 }: ReplicationsGalleryExplorerProps & {
   browse: GalleryBrowseState;
   viewerSlugParam: string | null;
+  viewerParamPresent: boolean;
 }) {
   const router = useRouter();
 
@@ -445,16 +450,40 @@ function GalleryExplorer({
       viewerSourcePath,
       effectName,
     );
-    if (!focus || !focusedGroup) return collection;
+    const mediaQualifier =
+      typeFilter === "video"
+        ? "Video "
+        : typeFilter === "image"
+          ? "Image "
+          : "";
+    if (focus && focusedGroup) {
+      return {
+        ...collection,
+        label:
+          focus.kind === "artist"
+            ? `${mediaQualifier}works by ${focusedGroup.label}`
+            : `${mediaQualifier}${focusedGroup.label} replications`,
+        grouping: "none" as const,
+      };
+    }
+    const queryQualifier = query.trim() ? ` matching “${query.trim()}”` : "";
+    const baseLabel = mediaQualifier
+      ? collection.label.replace(/^Replications/, "replications")
+      : collection.label;
     return {
       ...collection,
-      label:
-        focus.kind === "artist"
-          ? `Works by ${focusedGroup.label}`
-          : `${focusedGroup.label} replications`,
-      grouping: "none" as const,
+      label: `${mediaQualifier}${baseLabel}${queryQualifier}`,
     };
-  }, [effectName, focus, focusedGroup, mode, viewerGroups, viewerSourcePath]);
+  }, [
+    effectName,
+    focus,
+    focusedGroup,
+    mode,
+    query,
+    typeFilter,
+    viewerGroups,
+    viewerSourcePath,
+  ]);
   const validViewerSlugParam =
     viewerSlugParam &&
     viewerCollection.groups.some((entry) =>
@@ -468,7 +497,7 @@ function GalleryExplorer({
 
   useEffect(() => {
     setViewerSlug(validViewerSlugParam);
-    if (viewerSlugParam && !validViewerSlugParam) {
+    if (viewerParamPresent && !validViewerSlugParam) {
       const source = `${window.location.pathname}${window.location.search}${window.location.hash}`;
       window.history.replaceState(
         window.history.state,
@@ -476,7 +505,7 @@ function GalleryExplorer({
         closeReplicationViewerUrl(source),
       );
     }
-  }, [validViewerSlugParam, viewerSlugParam]);
+  }, [validViewerSlugParam, viewerParamPresent]);
 
   const launchViewer = (slug: string) => {
     if (

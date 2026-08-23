@@ -5,6 +5,7 @@ import {
   buildMotionPosterFfmpegArgs,
   isAcceptableGifMotion,
   planGifMotionGeneration,
+  verifyRenditionDimensions,
   verifyGifMotionGeneration,
 } from "./generate-gif-motion-renditions.mjs";
 
@@ -76,6 +77,10 @@ describe("GIF motion encode contracts", () => {
     expect(args).toContain("-an");
     expect(args).toContain("+faststart");
     expect(args.join(" ")).not.toContain(" -t ");
+    expect(args.join(" ")).toContain(
+      "pad=ceil(iw/2)*2:ceil(ih/2)*2:(ow-iw)/2:(oh-ih)/2",
+    );
+    expect(args.join(" ")).not.toContain("scale=");
     expect(args.slice(-3)).toEqual(["-f", "mp4", "out.mp4.part"]);
   });
 
@@ -93,6 +98,7 @@ describe("GIF motion encode contracts", () => {
       "1",
       "out.png.part",
     ]);
+    expect(args.join(" ")).not.toContain("scale=");
   });
 
   it("accepts only silent, timed, faststart video", () => {
@@ -109,6 +115,26 @@ describe("GIF motion encode contracts", () => {
       false,
     );
     expect(isAcceptableGifMotion({ ...good, faststart: false }).ok).toBe(false);
+  });
+
+  it("preserves poster dimensions and only pads odd video edges", () => {
+    expect(
+      verifyRenditionDimensions({
+        source: { video: { width: 801, height: 599 } },
+        motion: { video: { width: 802, height: 600 } },
+        poster: { video: { width: 801, height: 599 } },
+      }),
+    ).toEqual({
+      ok: true,
+      reason: "source pixels and poster dimensions are preserved",
+    });
+    expect(
+      verifyRenditionDimensions({
+        source: { video: { width: 801, height: 599 } },
+        motion: { video: { width: 800, height: 598 } },
+        poster: { video: { width: 800, height: 598 } },
+      }).ok,
+    ).toBe(false);
   });
 });
 

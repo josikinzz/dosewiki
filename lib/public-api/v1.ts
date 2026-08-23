@@ -1,5 +1,8 @@
 import { z } from "zod";
-import type { PublicSubstancePreview, PublicSubstanceRecord } from "@server/convex/publicData";
+import type {
+  PublicSubstancePreview,
+  PublicSubstanceRecord,
+} from "@server/convex/publicData";
 import type { NormalizedReagentData } from "@/types/reagent";
 import type { GalleryReplication } from "@/types/replications";
 
@@ -7,8 +10,10 @@ export const PUBLIC_API_VERSION = "v1" as const;
 export const PUBLIC_API_BASE_PATH = "/api/v1" as const;
 export const PUBLIC_API_DEFAULT_LIMIT = 25;
 export const PUBLIC_API_MAX_LIMIT = 100;
-export const PUBLIC_API_CACHE_CONTROL = "public, max-age=60, stale-while-revalidate=3600";
-export const PUBLIC_API_CDN_CACHE_CONTROL = "public, s-maxage=300, stale-while-revalidate=3600";
+export const PUBLIC_API_CACHE_CONTROL =
+  "public, max-age=60, stale-while-revalidate=3600";
+export const PUBLIC_API_CDN_CACHE_CONTROL =
+  "public, s-maxage=300, stale-while-revalidate=3600";
 export const PUBLIC_API_DISCLAIMER =
   "DoseWiki content is provided for harm-reduction education and is not medical advice.";
 
@@ -30,11 +35,14 @@ export function getPublicApiCorsHeaders(): Headers {
 }
 
 export function applyPublicApiCors(response: Response): Response {
-  for (const [key, value] of getPublicApiCorsHeaders()) response.headers.set(key, value);
+  for (const [key, value] of getPublicApiCorsHeaders())
+    response.headers.set(key, value);
   return response;
 }
 
-export function getPublicApiResponseHeaders(options: { cache?: boolean } = {}): Headers {
+export function getPublicApiResponseHeaders(
+  options: { cache?: boolean } = {},
+): Headers {
   const headers = getPublicApiCorsHeaders();
   headers.set("X-Content-Type-Options", "nosniff");
   if (options.cache !== false) {
@@ -58,7 +66,9 @@ export function encodePublicApiCursor(offset: number): string {
 export function decodePublicApiCursor(cursor: string | null): number | null {
   if (!cursor) return 0;
   try {
-    const parsed = JSON.parse(Buffer.from(cursor, "base64url").toString("utf8"));
+    const parsed = JSON.parse(
+      Buffer.from(cursor, "base64url").toString("utf8"),
+    );
     const result = cursorSchema.safeParse(parsed);
     return result.success ? result.data.offset : null;
   } catch {
@@ -73,7 +83,9 @@ export function parsePublicApiLimit(value: string | null): number | null {
   return limit >= 1 && limit <= PUBLIC_API_MAX_LIMIT ? limit : null;
 }
 
-export function projectPublicApiSubstancePreview(article: PublicSubstancePreview) {
+export function projectPublicApiSubstancePreview(
+  article: PublicSubstancePreview,
+) {
   return {
     slug: article.slug,
     title: article.title,
@@ -93,7 +105,11 @@ export function projectPublicApiReagentTesting(
     .map(([reagent, description]) => ({ reagent, description }));
 
   if (authoredResults.length > 0) {
-    return { source: "authored" as const, substance: null, results: authoredResults };
+    return {
+      source: "authored" as const,
+      substance: null,
+      results: authoredResults,
+    };
   }
 
   if (!external) {
@@ -103,7 +119,9 @@ export function projectPublicApiReagentTesting(
   return {
     source: "protestkit_snapshot" as const,
     substance: external.substance,
-    results: external.reagents.map(({ key: _key, isKnownReagent: _known, ...result }) => result),
+    results: external.reagents.map(
+      ({ key: _key, isKnownReagent: _known, ...result }) => result,
+    ),
   };
 }
 
@@ -116,23 +134,41 @@ export function projectPublicApiReplication(replication: GalleryReplication) {
     type: replication.type,
     effect_slug: replication.effect_slug,
     url: replication.url,
-    ...(replication.thumbnail_url ? { thumbnail_url: replication.thumbnail_url } : {}),
-    ...(replication.preview_url ? { preview_url: replication.preview_url } : {}),
+    ...(replication.thumbnail_url
+      ? { thumbnail_url: replication.thumbnail_url }
+      : {}),
+    ...(replication.preview_url
+      ? { preview_url: replication.preview_url }
+      : {}),
     ...(replication.motion_url ? { motion_url: replication.motion_url } : {}),
-    ...(replication.motion_poster_url ? { motion_poster_url: replication.motion_poster_url } : {}),
+    ...(replication.motion_poster_url
+      ? { motion_poster_url: replication.motion_poster_url }
+      : {}),
     ...(replication.width ? { width: replication.width } : {}),
     ...(replication.height ? { height: replication.height } : {}),
     format: replication.format,
+    created_at: replication.created_at,
+    ...(replication.date_info ? { date_info: replication.date_info } : {}),
     ...(replication.file_size ? { file_size: replication.file_size } : {}),
     ...(replication.duration ? { duration: replication.duration } : {}),
-    ...(replication.order_index !== undefined ? { order_index: replication.order_index } : {}),
+    ...(replication.order_index !== undefined
+      ? { order_index: replication.order_index }
+      : {}),
     rights: {
       status: replication.rights_status ?? "unknown",
-      ...(replication.license_name ? { license_name: replication.license_name } : {}),
-      ...(replication.license_url ? { license_url: replication.license_url } : {}),
-      ...(replication.credit_line ? { credit_line: replication.credit_line } : {}),
+      ...(replication.license_name
+        ? { license_name: replication.license_name }
+        : {}),
+      ...(replication.license_url
+        ? { license_url: replication.license_url }
+        : {}),
+      ...(replication.credit_line
+        ? { credit_line: replication.credit_line }
+        : {}),
       ...(replication.source_url ? { source_url: replication.source_url } : {}),
-      ...(replication.rightsholder ? { rightsholder: replication.rightsholder } : {}),
+      ...(replication.rightsholder
+        ? { rightsholder: replication.rightsholder }
+        : {}),
     },
   };
 }
@@ -147,7 +183,10 @@ export function projectPublicApiSubstanceDetail(
     ...article,
     pharmacology: {
       ...article.pharmacology,
-      receptor_profile: bindingSites.map(({ target, ...entry }) => ({ receptor: target, ...entry })),
+      receptor_profile: bindingSites.map(({ target, ...entry }) => ({
+        receptor: target,
+        ...entry,
+      })),
     },
     reagent_testing_normalized: projectPublicApiReagentTesting(
       article.reagent_testing,
@@ -160,8 +199,12 @@ export function projectPublicApiSubstanceDetail(
         formula: article.identification.molecular_formula,
       },
       schemes: {
-        dosewiki: { url: `${PUBLIC_API_BASE_PATH}/molecules/${article.slug}.svg?scheme=dosewiki` },
-        "effect-index": { url: `${PUBLIC_API_BASE_PATH}/molecules/${article.slug}.svg?scheme=effect-index` },
+        dosewiki: {
+          url: `${PUBLIC_API_BASE_PATH}/molecules/${article.slug}.svg?scheme=dosewiki`,
+        },
+        "effect-index": {
+          url: `${PUBLIC_API_BASE_PATH}/molecules/${article.slug}.svg?scheme=effect-index`,
+        },
         "effect-index-dark": {
           url: `${PUBLIC_API_BASE_PATH}/molecules/${article.slug}.svg?scheme=effect-index-dark`,
         },

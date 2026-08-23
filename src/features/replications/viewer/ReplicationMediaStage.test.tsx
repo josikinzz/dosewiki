@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from "@testing-library/react";
+import { act, fireEvent, render, screen } from "@testing-library/react";
 import {
   afterEach,
   beforeAll,
@@ -66,6 +66,7 @@ beforeEach(() => {
 
 afterEach(() => {
   vi.unstubAllGlobals();
+  vi.useRealTimers();
 });
 
 describe("ReplicationMediaStage", () => {
@@ -130,6 +131,33 @@ describe("ReplicationMediaStage", () => {
     expect(onFullscreen).toHaveBeenCalledOnce();
   });
 
+  it("auto-hides transport after playback starts without another pointer event", () => {
+    vi.useFakeTimers();
+    const { container } = render(
+      <ReplicationMediaStage
+        item={item()}
+        muted
+        volume={1}
+        fullFrame={false}
+        onMutedChange={vi.fn()}
+        onVolumeChange={vi.fn()}
+        onFullFrameChange={vi.fn()}
+      />,
+    );
+    const stage = screen.getByRole("region", { name: "Tracers loop media" });
+    const video = container.querySelector("video")!;
+    Object.defineProperty(video, "paused", {
+      configurable: true,
+      value: false,
+    });
+
+    fireEvent.play(video);
+    expect(stage).toHaveAttribute("data-controls-visible", "true");
+    act(() => vi.advanceTimersByTime(2601));
+    expect(stage).not.toHaveAttribute("data-controls-visible");
+    vi.useRealTimers();
+  });
+
   it("does not autoplay when reduced motion is requested", () => {
     vi.mocked(HTMLMediaElement.prototype.play).mockClear();
     vi.stubGlobal(
@@ -185,7 +213,82 @@ describe("ReplicationMediaStage", () => {
     const video = container.querySelector("video");
     expect(video).toHaveAttribute("src", "https://cdn.test/motion.mp4");
     expect(video).toHaveAttribute("poster", "https://cdn.test/motion.webp");
-    expect(video).toHaveAttribute("loop");
+    expect(
+      screen.queryByRole("button", { name: "First work" }),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: "Final work" }),
+    ).not.toBeInTheDocument();
+  });
+
+  it("keeps multi-work endpoint controls visible and disabled", () => {
+    render(
+      <ReplicationMediaStage
+        item={item()}
+        muted
+        volume={1}
+        fullFrame={false}
+        onMutedChange={vi.fn()}
+        onVolumeChange={vi.fn()}
+        onFullFrameChange={vi.fn()}
+        onNext={vi.fn()}
+        previousLabel="First work"
+        nextLabel="Next work"
+      />,
+    );
+
+    expect(screen.getByRole("button", { name: "First work" })).toBeDisabled();
+    expect(screen.getByRole("button", { name: "Next work" })).toBeEnabled();
+  });
+
+  it("lets a still image tap hide and restore its controls", () => {
+    render(
+      <ReplicationMediaStage
+        item={item({
+          type: "image",
+          format: "jpg",
+          url: "https://cdn.test/still.jpg",
+        })}
+        muted
+        volume={1}
+        fullFrame={false}
+        onMutedChange={vi.fn()}
+        onVolumeChange={vi.fn()}
+        onFullFrameChange={vi.fn()}
+        onInfo={vi.fn()}
+      />,
+    );
+
+    const stage = screen.getByRole("region", { name: "Tracers loop media" });
+    fireEvent.click(screen.getByRole("button", { name: "Hide controls" }));
+    expect(stage).not.toHaveAttribute("data-controls-visible");
+    fireEvent.click(screen.getByRole("button", { name: "Show controls" }));
+    expect(stage).toHaveAttribute("data-controls-visible", "true");
+  });
+
+  it("auto-hides still-image chrome after inactivity", () => {
+    vi.useFakeTimers();
+    render(
+      <ReplicationMediaStage
+        item={item({
+          type: "image",
+          format: "jpg",
+          url: "https://cdn.test/still.jpg",
+        })}
+        muted
+        volume={1}
+        fullFrame={false}
+        onMutedChange={vi.fn()}
+        onVolumeChange={vi.fn()}
+        onFullFrameChange={vi.fn()}
+      />,
+    );
+    const stage = screen.getByRole("region", { name: "Tracers loop media" });
+
+    expect(stage).toHaveAttribute("data-controls-visible", "true");
+    act(() => vi.advanceTimersByTime(2601));
+    expect(stage).not.toHaveAttribute("data-controls-visible");
+    vi.useRealTimers();
   });
 
   it("keeps long ordinary videos finite", () => {

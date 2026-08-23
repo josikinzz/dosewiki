@@ -43,14 +43,18 @@ export function buildMetadataDescription(text: string): string {
   return stripCitationTokens(text).replace(/\s+([.,;:!?])/g, "$1");
 }
 
-function compactStrings(values: readonly (string | null | undefined)[]): string[] {
+function compactStrings(
+  values: readonly (string | null | undefined)[],
+): string[] {
   return values.flatMap((value) => {
     const cleaned = value?.replace(/\s+/g, " ").trim();
     return cleaned ? [cleaned] : [];
   });
 }
 
-function buildSubstanceMetadataDescription(substance: PublicSubstanceRecord): string {
+function buildSubstanceMetadataDescription(
+  substance: PublicSubstanceRecord,
+): string {
   const summary = buildMetadataDescription(substance.summary ?? "");
 
   if (summary) {
@@ -62,18 +66,26 @@ function buildSubstanceMetadataDescription(substance: PublicSubstanceRecord): st
     ...(substance.classification?.psychoactive_class ?? []),
     ...(substance.classification?.chemical_class ?? []),
   ]);
-  const classPhrase = classifications.length > 0 ? ` in the ${classifications.join(", ")} class` : "";
+  const classPhrase =
+    classifications.length > 0
+      ? ` in the ${classifications.join(", ")} class`
+      : "";
 
   return `${name} substance profile${classPhrase} covering dosage, duration, effects, interactions, tolerance, harm potential, legality, and references.`;
 }
 
 function buildSubstanceMetadataTitle(substance: PublicSubstanceRecord): string {
-  const name = substance.identification?.common_name?.trim() || substance.title.trim() || "Substance";
+  const name =
+    substance.identification?.common_name?.trim() ||
+    substance.title.trim() ||
+    "Substance";
 
   return `${name}: Dosage, Effects & Safety | ${SITE_FLAVOR_CONFIG.name}`;
 }
 
-function buildEffectMetadataDescription(effect: SubjectiveEffectDetailRecord): string {
+function buildEffectMetadataDescription(
+  effect: SubjectiveEffectDetailRecord,
+): string {
   const prose = compactStrings([
     effect.summary,
     effect.description_raw,
@@ -269,20 +281,22 @@ export function buildSubstanceArticleViewModel(input: {
       linkableSubstanceSlugs: input.linkableSubstanceSlugs,
       linkableCategoryKeys: input.linkableCategoryKeys,
       hasRelatedTripReports: input.hasRelatedTripReports,
-      tripReportsSection:
-        input.tripReportsSection ??
-        (
-          <Suspense fallback={<SubstanceTripReportsSectionFallback />}>
-            <SubstanceTripReportsSection article={publicArticle} slug={input.slug} />
-          </Suspense>
-        ),
-      replicationShowcaseSection:
-        input.replicationShowcaseSection ??
-        (
-          <Suspense fallback={null}>
-            <SubstanceReplicationShowcaseSection article={publicArticle} slug={input.slug} />
-          </Suspense>
-        ),
+      tripReportsSection: input.tripReportsSection ?? (
+        <Suspense fallback={<SubstanceTripReportsSectionFallback />}>
+          <SubstanceTripReportsSection
+            article={publicArticle}
+            slug={input.slug}
+          />
+        </Suspense>
+      ),
+      replicationShowcaseSection: input.replicationShowcaseSection ?? (
+        <Suspense fallback={null}>
+          <SubstanceReplicationShowcaseSection
+            article={publicArticle}
+            slug={input.slug}
+          />
+        </Suspense>
+      ),
       contributorAvatars: input.contributorAvatars,
       contributorDirectory: input.contributorDirectory ?? [],
       externalReagentData: input.externalReagentData,
@@ -328,6 +342,7 @@ export function buildEffectArticleViewModel(input: {
           <Suspense fallback={<EffectReplicationsSectionFallback />}>
             <EffectReplicationsSection
               effectSlug={input.effectSlug}
+              effectName={input.effect.name}
               galleryOrder={replicationState.galleryOrder}
             />
           </Suspense>
@@ -337,7 +352,9 @@ export function buildEffectArticleViewModel(input: {
   };
 }
 
-export function toEffectsIndexSummary(effect: PublicEffectPreview): EffectsIndexSummary {
+export function toEffectsIndexSummary(
+  effect: PublicEffectPreview,
+): EffectsIndexSummary {
   return {
     slug: effect.slug,
     name: effect.name,

@@ -10,40 +10,19 @@ import { PublicNameChip } from "@/components/common/PublicTokens";
 import { focusRingClassName } from "@/components/ui/surface";
 import { cn } from "@/lib/utils";
 import { icons } from "@/utils/iconNames";
+import { useMotionAllowed } from "@/features/effects/gallery/inViewPlayback";
 import { shouldLoopReplicationMotion } from "@/features/replications/viewer/viewerLogic";
 import {
   buildReplicationViewerUrl,
+  closeReplicationViewerUrl,
   parseReplicationViewerSlug,
 } from "@/features/replications/galleryUrlState";
 import { ReplicationViewerOverlay } from "@/features/replications/viewer/ReplicationViewerOverlay";
 import type { ReplicationViewerCollection } from "@/features/replications/viewer/viewerModel";
 import { publicHref } from "@/utils/publicHref";
+import { toAppPath } from "@/utils/previewPath";
 import { resolveRouteChromeIcon } from "@/utils/routeChromeIcons";
 import type { ShowcaseWork } from "./showcaseModel";
-
-/**
- * The autoplay gate's device half: a real fine pointer and no reduced-motion
- * preference. Touch readers and motion-sensitive readers get the poster +
- * tap-to-play path instead — same media-query discipline as the gallery
- * tiles' hover preview.
- */
-function useAutoplayGateAllowed(): boolean {
-  const [allowed, setAllowed] = useState(false);
-  useEffect(() => {
-    if (typeof window === "undefined" || !window.matchMedia) return;
-    const pointer = window.matchMedia("(pointer: fine)");
-    const motion = window.matchMedia("(prefers-reduced-motion: reduce)");
-    const update = () => setAllowed(pointer.matches && !motion.matches);
-    update();
-    pointer.addEventListener("change", update);
-    motion.addEventListener("change", update);
-    return () => {
-      pointer.removeEventListener("change", update);
-      motion.removeEventListener("change", update);
-    };
-  }, []);
-  return allowed;
-}
 
 /**
  * The autoplay gate's viewport half. Where IntersectionObserver does not
@@ -116,11 +95,10 @@ export interface ReplicationShowcaseProps {
  *    controls (pause and mute/unmute) on the right.
  *
  * Selection is static — no auto-advance timer; the only motion loop is the
- * active video itself, under the autoplay gate (in viewport ∧ fine pointer ∧
- * motion-ok) unless the reader's own play/pause verdict overrides it. Videos
- * always start muted; unmuting is an explicit gesture, so the article never
- * makes sound on its own. Media is letterboxed with `object-contain`, never
- * cropped: a replication's composition is the content.
+ * active motion itself, under the autoplay gate (in viewport ∧ fine pointer ∧
+ * motion-ok) unless the reader's own play/pause verdict overrides it. Inline
+ * motion is always muted and letterboxed with `object-contain`, never cropped:
+ * a replication's composition is the content.
  */
 export function ReplicationShowcase({
   works,
@@ -140,14 +118,10 @@ export function ReplicationShowcase({
     slug: string;
     playing: boolean;
   } | null>(null);
-  /**
-   * Sound is a showcase-wide verdict rather than a per-work one: a reader who
-   * unmutes wants to hear the next animation too. Autoplay itself is always
-   * muted until this flips.
-   */
-  const [muted, setMuted] = useState(true);
   const [liveMessage, setLiveMessage] = useState("");
-  const autoplayAllowed = useAutoplayGateAllowed();
+  const playbackAllowances = useMotionAllowed();
+  const autoplayAllowed =
+    playbackAllowances.autoplay && playbackAllowances.hoverPreview;
   const { ref: stageRef, inView } = useStageInView();
   const tabRefs = useRef<(HTMLButtonElement | null)[]>([]);
   const [viewerSlug, setViewerSlug] = useState<string | null>(null);
@@ -200,16 +174,23 @@ export function ReplicationShowcase({
   }, [collectionLabel, collectionWorks, effectSlug, substanceSlug]);
 
   useEffect(() => {
-    const slug = parseReplicationViewerSlug(
-      new URLSearchParams(window.location.search),
-    );
-    setViewerSlug(
-      slug && collectionWorks.some((work) => work.slug === slug) ? slug : null,
-    );
+    const params = new URLSearchParams(window.location.search);
+    const slug = parseReplicationViewerSlug(params);
+    const belongsToCollection =
+      slug && collectionWorks.some((work) => work.slug === slug);
+    setViewerSlug(belongsToCollection ? slug : null);
+    if (params.has("viewer") && !belongsToCollection) {
+      const source = `${toAppPath(window.location.pathname)}${window.location.search}${window.location.hash}`;
+      window.history.replaceState(
+        window.history.state,
+        "",
+        closeReplicationViewerUrl(source),
+      );
+    }
   }, [collectionWorks]);
 
   const launchViewer = (slug: string) => {
-    const source = `${window.location.pathname}${window.location.search}${window.location.hash}`;
+    const source = `${toAppPath(window.location.pathname)}${window.location.search}${window.location.hash}`;
     window.history.pushState(
       { ...window.history.state, replicationViewer: true },
       "",
@@ -227,9 +208,11 @@ export function ReplicationShowcase({
   const stageId = `${baseId}-stage`;
   const tabId = `${baseId}-tab`;
   const autoplayGateOpen = autoplayAllowed && inView;
-  const activeIsVideo = active.type === "video";
+  const activeGifLike = active.format?.toLowerCase() === "gif";
+  const activeIsMoving =
+    active.type === "video" || (activeGifLike && Boolean(active.motionUrl));
   const activePlaying =
-    activeIsVideo &&
+    activeIsMoving &&
     (playOverride?.slug === active.slug
       ? playOverride.playing
       : autoplayGateOpen);
@@ -248,30 +231,6 @@ export function ReplicationShowcase({
         ? "auto"
         : "smooth",
     });
-  };
-
-  /**
-   * Horizontal swipe on the stage: left → next work, right → previous.
-   * Recognised only when the gesture is decisively horizontal (1.5× the
-   * vertical travel) and long enough (48px) that vertical page scrolling and
-   * plain taps on the overlaid controls never mis-trigger it.
-   */
-  const swipeStart = useRef<{ x: number; y: number } | null>(null);
-  const handleTouchStart = (event: React.TouchEvent) => {
-    const touch = event.touches[0];
-    swipeStart.current = { x: touch.clientX, y: touch.clientY };
-  };
-  const handleTouchEnd = (event: React.TouchEvent) => {
-    const start = swipeStart.current;
-    swipeStart.current = null;
-    if (!start || count < 2) return;
-    const touch = event.changedTouches[0];
-    const dx = touch.clientX - start.x;
-    const dy = touch.clientY - start.y;
-    if (Math.abs(dx) < 48 || Math.abs(dx) < Math.abs(dy) * 1.5) return;
-    activate(
-      dx < 0 ? (clampedIndex + 1) % count : (clampedIndex - 1 + count) % count,
-    );
   };
 
   /** Manual-activation tablist: arrows/Home/End move focus, Enter/Space activates. */
@@ -296,25 +255,10 @@ export function ReplicationShowcase({
     }
   };
 
-  /**
-   * Pause and mute/unmute for the active video, overlaid on the stage's
-   * bottom-right corner in every context — on phones the info and thumb rows
-   * leave the media, but transport controls belong on the thing they control.
-   */
+  /** Pause remains separate from the preview tap, which always opens the viewer. */
   const videoControls =
-    activeIsVideo && activePlaying ? (
+    activeIsMoving && activePlaying ? (
       <div className="absolute bottom-2 right-2 z-10 flex items-center gap-1.5">
-        <button
-          type="button"
-          aria-label={muted ? `Unmute ${active.title}` : `Mute ${active.title}`}
-          onClick={() => setMuted((value) => !value)}
-          className={cn(mediaControlClassName, "size-8")}
-        >
-          <Icon
-            icon={muted ? "lucide:volume-x" : "lucide:volume-2"}
-            size={15}
-          />
-        </button>
         <button
           type="button"
           aria-label={`Pause ${active.title}`}
@@ -331,9 +275,7 @@ export function ReplicationShowcase({
 
   return (
     <>
-      <section aria-label="Replications" className="space-y-2">
-        {/* No count or "See all" here: the rail's +N tile already says how much
-          more exists and is the gallery link. */}
+      <section aria-label={viewerCollection.label} className="space-y-2">
         <span className="theme-text-secondary inline-flex items-center gap-1.5 text-sm font-semibold">
           <Icon
             icon={resolveRouteChromeIcon("replications")}
@@ -341,7 +283,9 @@ export function ReplicationShowcase({
             className="self-center"
             aria-hidden
           />
-          Replications
+          {viewerCollection.label}
+          <span aria-hidden>·</span>
+          <span>{total}</span>
         </span>
 
         {/* One dark media card. On phones the on-media chrome leaves the
@@ -380,7 +324,7 @@ export function ReplicationShowcase({
               >
                 <span className="truncate">{active.title}</span>
                 <span className="theme-media-tile-creator text-[10px] font-medium uppercase tracking-wide">
-                  Open
+                  Open viewer
                 </span>
                 <Icon
                   icon="lucide:maximize-2"
@@ -447,15 +391,22 @@ export function ReplicationShowcase({
             id={stageId}
             aria-labelledby={count > 1 ? `${tabId}-${clampedIndex}` : undefined}
             aria-label={count > 1 ? undefined : active.title}
-            onTouchStart={handleTouchStart}
-            onTouchEnd={handleTouchEnd}
-            className="relative aspect-video max-h-[380px] w-full touch-pan-y"
+            className="relative aspect-video max-h-[380px] w-full"
           >
             {works.map((work, index) => {
               const isActive = index === clampedIndex;
-              const isVideo = work.type === "video";
-              const posterUrl = isVideo ? work.thumbnailUrl : work.url;
-              const playing = isVideo && isActive && activePlaying;
+              const gifLike = work.format?.toLowerCase() === "gif";
+              const motionSource = gifLike ? work.motionUrl : work.url;
+              const isMoving =
+                work.type === "video" || (gifLike && Boolean(motionSource));
+              const posterUrl = isMoving
+                ? gifLike
+                  ? (work.motionPosterUrl ?? work.thumbnailUrl)
+                  : work.thumbnailUrl
+                : gifLike
+                  ? (work.motionPosterUrl ?? work.thumbnailUrl)
+                  : work.url;
+              const playing = isMoving && isActive && activePlaying;
 
               return (
                 <div
@@ -476,26 +427,20 @@ export function ReplicationShowcase({
                     />
                   ) : (
                     <MediaPlaceholder
-                      icon={isVideo ? "lucide:play" : "lucide:image"}
+                      icon={isMoving ? "lucide:play" : "lucide:image"}
                       title={work.title}
                     />
                   )}
 
                   {playing ? (
-                    // The corpus is abstract visual loops with ambient audio at
-                    // most; no caption tracks exist, and the work's title, effect,
-                    // and credit are all announced through the surrounding overlay.
-                    // eslint-disable-next-line jsx-a11y/media-has-caption
                     <video
-                      src={work.url}
-                      poster={work.thumbnailUrl}
+                      src={motionSource}
+                      poster={posterUrl}
                       ref={(element) => {
-                        // React's `muted` prop does not reliably reach the DOM
-                        // attribute; the property write is what the browser obeys.
-                        if (element) element.muted = muted;
+                        if (element) element.muted = true;
                       }}
                       autoPlay
-                      muted={muted}
+                      muted
                       loop={shouldLoopReplicationMotion(
                         work.format ?? "",
                         work.duration,
@@ -506,8 +451,8 @@ export function ReplicationShowcase({
                     />
                   ) : null}
 
-                  {isVideo && isActive && !playing ? (
-                    <div className="absolute inset-0 grid place-items-center bg-black/40">
+                  {isMoving && isActive && !playing ? (
+                    <div className="absolute inset-0 z-[2] grid place-items-center bg-black/40">
                       <button
                         type="button"
                         aria-label={`Play ${work.title}`}
@@ -534,32 +479,16 @@ export function ReplicationShowcase({
               );
             })}
 
-            {count > 1 ? (
-              <>
-                <button
-                  type="button"
-                  aria-label="Previous replication"
-                  onClick={() => activate((clampedIndex - 1 + count) % count)}
-                  className={cn(
-                    mediaControlClassName,
-                    "absolute left-2 top-1/2 size-8 -translate-y-1/2 max-sm:hidden",
-                  )}
-                >
-                  <Icon icon={icons.chevronLeft} size={18} aria-hidden />
-                </button>
-                <button
-                  type="button"
-                  aria-label="Next replication"
-                  onClick={() => activate((clampedIndex + 1) % count)}
-                  className={cn(
-                    mediaControlClassName,
-                    "absolute right-2 top-1/2 size-8 -translate-y-1/2 max-sm:hidden",
-                  )}
-                >
-                  <Icon icon={icons.chevronRight} size={18} aria-hidden />
-                </button>
-              </>
-            ) : null}
+            <button
+              type="button"
+              aria-label={`Open ${active.title} in viewer`}
+              onClick={() => launchViewer(active.slug)}
+              className={cn(
+                "absolute inset-0 z-[1] cursor-zoom-in",
+                focusRingClassName,
+              )}
+            />
+
             {videoControls}
           </div>
 
@@ -582,8 +511,11 @@ export function ReplicationShowcase({
                 >
                   {works.map((work, index) => {
                     const selected = index === clampedIndex;
+                    const gifLike = work.format?.toLowerCase() === "gif";
                     const thumbUrl =
-                      work.type === "video" ? work.thumbnailUrl : work.url;
+                      work.type === "video" || gifLike
+                        ? (work.motionPosterUrl ?? work.thumbnailUrl)
+                        : work.url;
                     return (
                       <button
                         key={work.slug}

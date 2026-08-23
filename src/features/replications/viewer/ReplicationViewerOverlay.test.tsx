@@ -25,18 +25,30 @@ vi.mock("./ReplicationMediaStage", () => ({
     onNext,
     onInfo,
     onFullscreen,
+    fullscreenLabel,
     previousLabel,
     nextLabel,
   }: {
-    item: { replication: { title: string } };
+    item: { replication: { title: string; type: "image" | "video" } };
     onPrevious?: () => void;
     onNext?: () => void;
     onInfo?: () => void;
     onFullscreen?: () => void;
+    fullscreenLabel: string;
     previousLabel: string;
     nextLabel: string;
   }) => (
     <div data-testid="media-stage" data-title={item.replication.title}>
+      {item.replication.type === "video" ? (
+        <video>
+          <track
+            kind="captions"
+            src="data:text/vtt,WEBVTT"
+            srcLang="en"
+            label="English"
+          />
+        </video>
+      ) : null}
       <button
         type="button"
         aria-label={previousLabel}
@@ -57,7 +69,7 @@ vi.mock("./ReplicationMediaStage", () => ({
         Information
       </button>
       <button type="button" onClick={onFullscreen}>
-        Fullscreen
+        {fullscreenLabel}
       </button>
     </div>
   ),
@@ -157,7 +169,18 @@ beforeEach(() => {
           format: "jpg",
           width: 1600,
           height: 900,
-          rights: { license_name: "CC BY 4.0", rightsholder: "Chelsea Morgan" },
+          date_info: {
+            value: "2020",
+            kind: "year",
+            confidence: "high",
+          },
+          rights: {
+            status: "permission-granted",
+            license_name: "CC BY 4.0",
+            license_url: "https://creativecommons.org/licenses/by/4.0/",
+            source_url: "https://artist.test/work-one",
+            rightsholder: "Chelsea Morgan",
+          },
         },
       }),
     }),
@@ -181,7 +204,7 @@ describe("ReplicationViewerOverlay", () => {
     );
 
     const dialog = screen.getByRole("dialog", {
-      name: /Work One.*Chelsea Morgan/,
+      name: "Replications by artist",
     });
     expect(dialog).toHaveAttribute("aria-modal", "true");
     expect(dialog).toHaveClass("grid-rows-[auto_minmax(0,1fr)]");
@@ -202,6 +225,7 @@ describe("ReplicationViewerOverlay", () => {
     expect(header).toHaveTextContent("Work 1/2");
     expect(header).toHaveTextContent("Artist 1/2");
     expect(header?.textContent?.match(/Chelsea Morgan/g)).toHaveLength(1);
+    expect(header).toHaveTextContent("Replications by artist");
 
     fireEvent.click(screen.getByRole("button", { name: "Next: Work Two" }));
 
@@ -234,6 +258,55 @@ describe("ReplicationViewerOverlay", () => {
     expect(screen.getByText("Artist 2/2")).toBeInTheDocument();
     expect(window.location.search).toContain("viewer=work-three");
   });
+
+  it("keeps the active effect group visibly named", () => {
+    const effectCollection: ReplicationViewerCollection = {
+      ...collection,
+      label: "Replications by effect",
+      grouping: "effect",
+      groups: [
+        { ...collection.groups[0], key: "tracers", label: "Tracers" },
+        { ...collection.groups[1], key: "geometry", label: "Geometry" },
+      ],
+    };
+    render(
+      <ReplicationViewerOverlay
+        collection={effectCollection}
+        initialSlug="work-three"
+        open
+        onOpenChange={vi.fn()}
+      />,
+    );
+
+    const header = screen
+      .getByRole("dialog", { name: "Replications by effect" })
+      .querySelector("header");
+    expect(header).toHaveTextContent("Geometry");
+    expect(header).toHaveTextContent("Effect 2/2");
+  });
+  it("moves between Gallery groups with visible pointer controls", () => {
+    render(
+      <ReplicationViewerOverlay
+        collection={collection}
+        initialSlug="work-two"
+        open
+        onOpenChange={vi.fn()}
+      />,
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: "Next artist: Aria" }));
+    expect(screen.getByTestId("media-stage")).toHaveAttribute(
+      "data-title",
+      "Work Three",
+    );
+    fireEvent.click(
+      screen.getByRole("button", { name: "Previous artist: Chelsea Morgan" }),
+    );
+    expect(screen.getByTestId("media-stage")).toHaveAttribute(
+      "data-title",
+      "Work Two",
+    );
+  });
   it("exits fullscreen before Escape dismisses the viewer", () => {
     const onOpenChange = vi.fn();
     const exitFullscreen = vi.fn().mockResolvedValue(undefined);
@@ -256,7 +329,7 @@ describe("ReplicationViewerOverlay", () => {
     );
 
     fireEvent.keyDown(
-      screen.getByRole("dialog", { name: /Work One.*Chelsea Morgan/ }),
+      screen.getByRole("dialog", { name: "Replications by artist" }),
       { key: "Escape" },
     );
 
@@ -266,6 +339,52 @@ describe("ReplicationViewerOverlay", () => {
       configurable: true,
       value: null,
     });
+  });
+
+  it("relabels a rejected fullscreen action as immersive view", async () => {
+    Object.defineProperty(HTMLElement.prototype, "requestFullscreen", {
+      configurable: true,
+      value: vi.fn().mockRejectedValue(new Error("denied")),
+    });
+    render(
+      <ReplicationViewerOverlay
+        collection={collection}
+        initialSlug="work-one"
+        open
+        onOpenChange={vi.fn()}
+      />,
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: "Fullscreen" }));
+
+    expect(
+      await screen.findByRole("button", { name: "Immersive view" }),
+    ).toBeInTheDocument();
+    expect(await screen.findByRole("status")).toHaveTextContent(
+      "Fullscreen is unavailable",
+    );
+    Reflect.deleteProperty(HTMLElement.prototype, "requestFullscreen");
+  });
+
+  it("uses platform video fullscreen when the document API is unavailable", () => {
+    const webkitEnterFullscreen = vi.fn();
+    Object.defineProperty(HTMLVideoElement.prototype, "webkitEnterFullscreen", {
+      configurable: true,
+      value: webkitEnterFullscreen,
+    });
+    render(
+      <ReplicationViewerOverlay
+        collection={collection}
+        initialSlug="work-two"
+        open
+        onOpenChange={vi.fn()}
+      />,
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: "Fullscreen" }));
+
+    expect(webkitEnterFullscreen).toHaveBeenCalledOnce();
+    Reflect.deleteProperty(HTMLVideoElement.prototype, "webkitEnterFullscreen");
   });
 
   it("pauses source-page video while open and resumes it after close", async () => {
@@ -350,6 +469,19 @@ describe("ReplicationViewerOverlay", () => {
       ),
     );
     expect(await screen.findByText("CC BY 4.0")).toBeInTheDocument();
+    expect(screen.getByText("2020")).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Tracers" })).toHaveAttribute(
+      "href",
+      "/effects/tracers",
+    );
+    expect(screen.getByText("permission granted")).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "CC BY 4.0" })).toHaveAttribute(
+      "href",
+      "https://creativecommons.org/licenses/by/4.0/",
+    );
+    expect(
+      screen.getByRole("link", { name: "Original source" }),
+    ).toHaveAttribute("href", "https://artist.test/work-one");
     expect(
       screen.getByRole("link", { name: "Open full details" }),
     ).toHaveAttribute("href", "/replications/work-one");
