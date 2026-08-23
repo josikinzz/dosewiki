@@ -167,6 +167,8 @@ export function projectPublicGalleryReplicationPreview(
     url: replication.url,
     thumbnail_url: replication.thumbnail_url,
     preview_url: replication.preview_url,
+    motion_url: replication.motion_url,
+    motion_poster_url: replication.motion_poster_url,
     width: replication.width,
     height: replication.height,
     duration: replication.duration,

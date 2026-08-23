@@ -47,7 +47,10 @@ export async function SubstanceReplicationShowcaseSection({
     gallery.items,
     visualEffectNameBySlug(article.subjective_effects),
     (artistName) => {
-      const profile = findContributorProfileByAuthorName(contributorProfiles, artistName);
+      const profile = findContributorProfileByAuthorName(
+        contributorProfiles,
+        artistName,
+      );
       return profile ? publicHref.contributor(profile.key) : null;
     },
   );
@@ -58,6 +61,7 @@ export async function SubstanceReplicationShowcaseSection({
       works={works.slice(0, SHOWCASE_WORK_CAP)}
       totalCount={works.length}
       substanceSlug={slug}
+      collectionLabel={`${article.title} replications`}
     />
   );
 }

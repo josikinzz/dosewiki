@@ -11,6 +11,7 @@ import type {
   GetResolvedByIdArgs,
   MergeUnknownTwinArgs,
   UpdatePreviewStorageIdsArgs,
+  UpdateMotionStorageIdsArgs,
   UpdateRightsMetadataArgs,
 } from "./replicationValidators";
 
@@ -49,6 +50,53 @@ export async function updatePreviewStorageIdsHandler(
 
   for (const entry of validated) {
     await ctx.db.patch(entry.id, { preview_storage_id: entry.previewStorageId });
+  }
+  return { success: true, updated: validated.length };
+}
+
+export async function updateMotionStorageIdsHandler(
+  ctx: MutationCtx,
+  args: UpdateMotionStorageIdsArgs,
+) {
+  await requireAuth(ctx, args.apiKey, "replicationMaintenance");
+  const validated: Array<{
+    id: (typeof args.updates)[number]["id"];
+    motionStorageId: string;
+    motionPosterStorageId: string;
+  }> = [];
+
+  for (const update of args.updates) {
+    if (
+      isPlaceholderStorageId(update.motionStorageId)
+      || !CONVEX_STORAGE_ID_SHAPE.test(update.motionStorageId)
+      || isPlaceholderStorageId(update.motionPosterStorageId)
+      || !CONVEX_STORAGE_ID_SHAPE.test(update.motionPosterStorageId)
+    ) {
+      throw new Error(
+        `Motion rendition storage ids are malformed or placeholders: ${update.motionStorageId}, ${update.motionPosterStorageId}`,
+      );
+    }
+    const replication = await ctx.db.get(update.id);
+    if (!replication) {
+      throw new Error("Motion rendition target row no longer exists.");
+    }
+    if (replication.storage_id !== update.expectedStorageId) {
+      throw new Error(
+        `Motion rendition precondition failed: ${replication.slug} storage_id changed since the plan.`,
+      );
+    }
+    validated.push({
+      id: update.id,
+      motionStorageId: update.motionStorageId,
+      motionPosterStorageId: update.motionPosterStorageId,
+    });
+  }
+
+  for (const entry of validated) {
+    await ctx.db.patch(entry.id, {
+      motion_storage_id: entry.motionStorageId,
+      motion_poster_storage_id: entry.motionPosterStorageId,
+    });
   }
   return { success: true, updated: validated.length };
 }

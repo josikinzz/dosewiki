@@ -191,6 +191,18 @@ export const updatePreviewStorageIdsArgs = v.object({
   ),
 });
 
+export const updateMotionStorageIdsArgs = v.object({
+  apiKey: v.optional(v.string()),
+  updates: v.array(
+    v.object({
+      id: v.id("replications"),
+      motionStorageId: v.string(),
+      motionPosterStorageId: v.string(),
+      expectedStorageId: v.string(),
+    }),
+  ),
+});
+
 export const getResolvedByIdArgs = v.object({
   apiKey: v.optional(v.string()),
   id: v.id("replications"),
@@ -264,6 +276,7 @@ export type UpdateUrlArgs = Infer<typeof updateUrlArgs>;
 export type UpdateDeliveredFileSizeArgs = Infer<typeof updateDeliveredFileSizeArgs>;
 export type UpdateStorageIdsArgs = Infer<typeof updateStorageIdsArgs>;
 export type UpdatePreviewStorageIdsArgs = Infer<typeof updatePreviewStorageIdsArgs>;
+export type UpdateMotionStorageIdsArgs = Infer<typeof updateMotionStorageIdsArgs>;
 export type GetResolvedByIdArgs = Infer<typeof getResolvedByIdArgs>;
 export type ApplySourceRecoveryArgs = Infer<typeof applySourceRecoveryArgs>;
 export type MergeUnknownTwinArgs = Infer<typeof mergeUnknownTwinArgs>;

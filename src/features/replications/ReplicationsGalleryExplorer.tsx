@@ -1,31 +1,41 @@
-'use client';
+"use client";
 
-import { Suspense, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
-import Link from 'next/link';
-import { useRouter, useSearchParams } from 'next/navigation';
-import { Icon } from '@/components/common/Icon';
-import { Button } from '@/components/ui/button';
-import { proseLinkClassName } from '@/components/common/ProseLink';
-import { SearchEmptyState } from '@/components/common/SearchEmptyState';
-import { Input } from '@/components/ui/input';
+import {
+  Suspense,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type ReactNode,
+} from "react";
+import Link from "next/link";
+import { useRouter, useSearchParams } from "next/navigation";
+import { Icon } from "@/components/common/Icon";
+import { Button } from "@/components/ui/button";
+import { proseLinkClassName } from "@/components/common/ProseLink";
+import { SearchEmptyState } from "@/components/common/SearchEmptyState";
+import { Input } from "@/components/ui/input";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuRadioGroup,
   DropdownMenuRadioItem,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { focusRingClassName } from '@/components/ui/surface';
-import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
-import { cn } from '@/lib/utils';
-import type { ContributorDirectory } from '@server/contributorDirectory';
-import type { PublicGalleryReplicationPreview } from '@/types/replications';
-import { GalleryMediaTile } from '@/features/effects/gallery/GalleryMediaTile';
-import { MediaRail } from '@/features/effects/gallery/MediaRail';
-import type { ViewerSetParam } from '@/features/replications/viewer/viewerLogic';
+} from "@/components/ui/dropdown-menu";
 import {
-  DEFAULT_GALLERY_ARTIST_SORT,
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { focusRingClassName } from "@/components/ui/surface";
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
+import { cn } from "@/lib/utils";
+import type { ContributorDirectory } from "@server/contributorDirectory";
+import type { PublicGalleryReplicationPreview } from "@/types/replications";
+import { GalleryMediaTile } from "@/features/effects/gallery/GalleryMediaTile";
+import { MediaRail } from "@/features/effects/gallery/MediaRail";
+import type { ViewerSetParam } from "@/features/replications/viewer/viewerLogic";
+import {
   artistUrlKey,
   countGallery,
   effectHrefBuilder,
@@ -42,17 +52,20 @@ import {
   type GalleryArtistSort,
   type GalleryMode,
   type GalleryTypeFilter,
-} from '@/features/effects/gallery/galleryModel';
-import { ReplicationsSwipeDeck } from './components/ReplicationsSwipeDeck';
-import { resolveGalleryFocus } from './galleryFocus';
+} from "@/features/effects/gallery/galleryModel";
+import { ReplicationViewerOverlay } from "./viewer/ReplicationViewerOverlay";
+import { viewerCollectionFromGalleryGroups } from "./viewer/viewerModel";
+import { resolveGalleryFocus } from "./galleryFocus";
 import {
   buildGalleryBrowseUrl,
   buildGalleryFocusUrl,
+  buildReplicationViewerUrl,
   GALLERY_BROWSE_DEFAULTS,
   parseGalleryBrowseState,
   type GalleryBrowseState,
+  parseReplicationViewerSlug,
   type GalleryFocus,
-} from './galleryUrlState';
+} from "./galleryUrlState";
 
 interface EffectSummary {
   slug: string;
@@ -97,7 +110,7 @@ export interface ReplicationsGalleryExplorerProps {
    * filter in a shared URL still applies; there is just no control to change
    * it here.
    */
-  chrome?: 'full' | 'focus-only';
+  chrome?: "full" | "focus-only";
 }
 
 /**
@@ -105,17 +118,15 @@ export interface ReplicationsGalleryExplorerProps {
  * gutters, captions hidden via `mobileCompact`); from `sm` up the grid
  * relaxes back to the readable card layout with visible captions.
  */
-const MASONRY_CLASS = 'columns-3 gap-1.5 sm:columns-3 sm:gap-3 lg:columns-4 [column-fill:_balance]';
-const MASONRY_TILE_CLASS = 'mb-1.5 w-full break-inside-avoid sm:mb-3';
+const MASONRY_CLASS =
+  "columns-3 gap-1.5 sm:columns-3 sm:gap-3 lg:columns-4 [column-fill:_balance]";
+const MASONRY_TILE_CLASS = "mb-1.5 w-full break-inside-avoid sm:mb-3";
 
 /** Control-bar toggles keep their compact height but honor 44px on touch. */
-const COARSE_TARGET_CLASS = '[@media(pointer:coarse)]:min-h-11';
+const COARSE_TARGET_CLASS = "[@media(pointer:coarse)]:min-h-11";
 
 /** Debounce for search keystrokes → URL writes (history stays clean). */
 const QUERY_WRITE_DELAY_MS = 250;
-
-/** Phone-shaped touch viewport: where tapping a tile opens the fullscreen deck. */
-const DECK_MEDIA_QUERY = '(max-width: 767px) and (pointer: coarse)';
 
 /**
  * Public entry. The browse state (?view/?q/?type/?sort) is read on the client
@@ -125,9 +136,19 @@ const DECK_MEDIA_QUERY = '(max-width: 767px) and (pointer: coarse)';
  * the full default gallery — crawlable grid included — and a pasted URL's
  * filters apply as soon as the client render takes over.
  */
-export function ReplicationsGalleryExplorer(props: ReplicationsGalleryExplorerProps) {
+export function ReplicationsGalleryExplorer(
+  props: ReplicationsGalleryExplorerProps,
+) {
   return (
-    <Suspense fallback={<GalleryExplorer {...props} browse={GALLERY_BROWSE_DEFAULTS} />}>
+    <Suspense
+      fallback={
+        <GalleryExplorer
+          {...props}
+          browse={GALLERY_BROWSE_DEFAULTS}
+          viewerSlugParam={null}
+        />
+      }
+    >
       <UrlStateGalleryExplorer {...props} />
     </Suspense>
   );
@@ -135,20 +156,32 @@ export function ReplicationsGalleryExplorer(props: ReplicationsGalleryExplorerPr
 
 /** The one component allowed to touch `useSearchParams` — see above. */
 function UrlStateGalleryExplorer(props: ReplicationsGalleryExplorerProps) {
-  const browse = parseGalleryBrowseState(useSearchParams());
-  return <GalleryExplorer {...props} browse={browse} />;
+  const searchParams = useSearchParams();
+  const browse = parseGalleryBrowseState(searchParams);
+  const viewerSlugParam = parseReplicationViewerSlug(searchParams);
+  return (
+    <GalleryExplorer
+      {...props}
+      browse={browse}
+      viewerSlugParam={viewerSlugParam}
+    />
+  );
 }
 
 function GalleryExplorer({
   replications,
   effects,
-  effectHrefPrefix = '/effects',
+  effectHrefPrefix = "/effects",
   contributorDirectory,
   focus,
   focusIdentity,
-  chrome = 'full',
+  chrome = "full",
   browse,
-}: ReplicationsGalleryExplorerProps & { browse: GalleryBrowseState }) {
+  viewerSlugParam,
+}: ReplicationsGalleryExplorerProps & {
+  browse: GalleryBrowseState;
+  viewerSlugParam: string | null;
+}) {
   const router = useRouter();
 
   const mode: GalleryMode = focus ? focus.kind : browse.view;
@@ -213,7 +246,7 @@ function GalleryExplorer({
   /** Every toggle writes the *whole* state, flushing any pending search text. */
   const currentInputQuery = () => inputRef.current?.value ?? browse.query;
 
-  const navigate = (url: string, method: 'push' | 'replace') => {
+  const navigate = (url: string, method: "push" | "replace") => {
     cancelQueryWrite();
     router[method](url, { scroll: false });
   };
@@ -227,7 +260,12 @@ function GalleryExplorer({
       // Searching from a focus page returns to the browse view (a focused
       // group and a cross-corpus search cannot both be true), keeping the
       // grouping mode — pushed, so Back lands on the focus page again.
-      const url = buildGalleryBrowseUrl({ view: mode, query: next, type: typeFilter, sort: artistSort });
+      const url = buildGalleryBrowseUrl({
+        view: mode,
+        query: next,
+        type: typeFilter,
+        sort: artistSort,
+      });
       if (focus) {
         router.push(url, { scroll: false });
       } else {
@@ -239,8 +277,13 @@ function GalleryExplorer({
   const switchMode = (next: GalleryMode) => {
     lastWrittenQueryRef.current = currentInputQuery();
     navigate(
-      buildGalleryBrowseUrl({ view: next, query: currentInputQuery(), type: typeFilter, sort: artistSort }),
-      'push',
+      buildGalleryBrowseUrl({
+        view: next,
+        query: currentInputQuery(),
+        type: typeFilter,
+        sort: artistSort,
+      }),
+      "push",
     );
   };
 
@@ -249,20 +292,33 @@ function GalleryExplorer({
     navigate(
       focus
         ? buildGalleryFocusUrl(focus, { type: next })
-        : buildGalleryBrowseUrl({ view: mode, query: currentInputQuery(), type: next, sort: artistSort }),
-      'push',
+        : buildGalleryBrowseUrl({
+            view: mode,
+            query: currentInputQuery(),
+            type: next,
+            sort: artistSort,
+          }),
+      "push",
     );
   };
 
   const setArtistSort = (next: GalleryArtistSort) => {
     lastWrittenQueryRef.current = currentInputQuery();
     navigate(
-      buildGalleryBrowseUrl({ view: mode, query: currentInputQuery(), type: typeFilter, sort: next }),
-      'push',
+      buildGalleryBrowseUrl({
+        view: mode,
+        query: currentInputQuery(),
+        type: typeFilter,
+        sort: next,
+      }),
+      "push",
     );
   };
 
-  const displayable = useMemo(() => replications.filter(isDisplayable), [replications]);
+  const displayable = useMemo(
+    () => replications.filter(isDisplayable),
+    [replications],
+  );
 
   const effectName = useMemo(() => effectNameLookup(effects), [effects]);
   const linkableEffectSlugSet = useMemo(
@@ -274,7 +330,7 @@ function GalleryExplorer({
     [effectHrefPrefix, linkableEffectSlugSet],
   );
 
-  const query = focus ? '' : browse.query;
+  const query = focus ? "" : browse.query;
   const searching = query.trim().length > 0;
 
   /**
@@ -286,7 +342,7 @@ function GalleryExplorer({
    */
   const counted = useMemo(
     () =>
-      mode === 'artist' && !searching
+      mode === "artist" && !searching
         ? displayable.filter((item) => !isWithheldFromArtistViews(item))
         : displayable,
     [mode, searching, displayable],
@@ -294,14 +350,27 @@ function GalleryExplorer({
   const counts = useMemo(() => countGallery(counted), [counted]);
 
   const filtered = useMemo(
-    () => displayable.filter((item) => matchesType(item, typeFilter) && matchesQuery(item, query, effectName)),
+    () =>
+      displayable.filter(
+        (item) =>
+          matchesType(item, typeFilter) &&
+          matchesQuery(item, query, effectName),
+      ),
     [displayable, typeFilter, query, effectName],
   );
 
   const groups = useMemo(() => {
-    if (mode === 'artist') return groupByArtist(filtered, artistSort, contributorDirectory);
+    if (mode === "artist")
+      return groupByArtist(filtered, artistSort, contributorDirectory);
     return groupByEffect(filtered, effectName, effectHref);
-  }, [mode, filtered, artistSort, effectName, effectHref, contributorDirectory]);
+  }, [
+    mode,
+    filtered,
+    artistSort,
+    effectName,
+    effectHref,
+    contributorDirectory,
+  ]);
 
   /**
    * Hybrid browse layout: groups with enough works keep their own rail; the
@@ -309,7 +378,10 @@ function GalleryExplorer({
    * artist costs one tile, not a whole row.
    */
   const { rails, pool } = useMemo(() => splitRailsAndPool(groups), [groups]);
-  const pooledItems = useMemo(() => pool.flatMap((group) => group.items), [pool]);
+  const pooledItems = useMemo(
+    () => pool.flatMap((group) => group.items),
+    [pool],
+  );
 
   /**
    * Focus is resolved against the *unfiltered* corpus — the route validated it
@@ -319,67 +391,114 @@ function GalleryExplorer({
   const focusedGroup = useMemo(
     () =>
       focus
-        ? resolveGalleryFocus(focus, displayable, { effects, contributorDirectory, effectHrefPrefix })?.group ?? null
+        ? (resolveGalleryFocus(focus, displayable, {
+            effects,
+            contributorDirectory,
+            effectHrefPrefix,
+          })?.group ?? null)
         : null,
     [focus, displayable, effects, contributorDirectory, effectHrefPrefix],
   );
   const focusedItems = useMemo(
-    () => (focusedGroup ? focusedGroup.items.filter((item) => matchesType(item, typeFilter)) : []),
+    () =>
+      focusedGroup
+        ? focusedGroup.items.filter((item) => matchesType(item, typeFilter))
+        : [],
     [focusedGroup, typeFilter],
   );
 
-  /**
-   * The immersive swipe deck (phones): always organized by artist over the
-   * whole displayable corpus, regardless of the grid's current filters — the
-   * deck is a viewing surface, the grid is the querying surface.
-   */
-  const deckGroups = useMemo(
-    () => groupByArtist(displayable, DEFAULT_GALLERY_ARTIST_SORT, contributorDirectory),
-    [displayable, contributorDirectory],
-  );
-
-  /**
-   * Where the fullscreen deck currently points, or null while it is closed.
-   * The deck renders as an overlay *over* the grid rather than replacing it,
-   * so closing it lands the reader exactly where they left off — same scroll
-   * position, same filters — with no session-storage memory needed.
-   */
-  const [deckPosition, setDeckPosition] = useState<{ groupIndex: number; workIndex: number } | null>(null);
-
-  /**
-   * Tile-tap handler: on phone-shaped touch viewports a tap opens the
-   * fullscreen deck at exactly that work instead of navigating to its detail
-   * page. The deck's corpus is always the by-artist grouping of everything
-   * displayable (not the grid's current filter/grouping), so the tapped work
-   * is located by `_id` across `deckGroups`. Anywhere the media query fails —
-   * or in the vanishing case of a work missing from the deck corpus — the
-   * handler declines to preventDefault and the tile stays an ordinary link.
-   */
-  const openDeckAt = (event: React.MouseEvent, replication: PublicGalleryReplicationPreview) => {
-    if (!window.matchMedia?.(DECK_MEDIA_QUERY).matches) return;
-    for (let groupIndex = 0; groupIndex < deckGroups.length; groupIndex += 1) {
-      const workIndex = deckGroups[groupIndex].items.findIndex((item) => item._id === replication._id);
-      if (workIndex !== -1) {
-        event.preventDefault();
-        setDeckPosition({ groupIndex, workIndex });
-        return;
-      }
+  const viewerGroups = useMemo(() => {
+    if (focus && focusedGroup) return [focusedGroup];
+    if (mode === "artist") {
+      return groupByArtist(displayable, artistSort, contributorDirectory);
     }
+    return groupByEffect(displayable, effectName, effectHref);
+  }, [
+    artistSort,
+    contributorDirectory,
+    displayable,
+    effectHref,
+    effectName,
+    focus,
+    focusedGroup,
+    mode,
+  ]);
+  const viewerCollection = useMemo(() => {
+    const collection = viewerCollectionFromGalleryGroups(
+      viewerGroups,
+      mode,
+      focus ? `/replications/${focus.kind}/${focus.key}` : "/replications",
+      effectName,
+    );
+    if (!focus || !focusedGroup) return collection;
+    return {
+      ...collection,
+      label:
+        focus.kind === "artist"
+          ? `Works by ${focusedGroup.label}`
+          : `${focusedGroup.label} replications`,
+      grouping: "none" as const,
+    };
+  }, [effectName, focus, focusedGroup, mode, viewerGroups]);
+  const [viewerSlug, setViewerSlug] = useState<string | null>(viewerSlugParam);
+
+  useEffect(() => {
+    setViewerSlug(viewerSlugParam);
+  }, [viewerSlugParam]);
+
+  const launchViewer = (slug: string) => {
+    if (
+      !viewerCollection.groups.some((entry) =>
+        entry.items.some((item) => item.replication.slug === slug),
+      )
+    ) {
+      return;
+    }
+    const source = `${window.location.pathname}${window.location.search}${window.location.hash}`;
+    window.history.pushState(
+      { ...window.history.state, replicationViewer: true },
+      "",
+      buildReplicationViewerUrl(source, slug),
+    );
+    setViewerSlug(slug);
+  };
+
+  const openViewerAt = (
+    event: React.MouseEvent,
+    replication: PublicGalleryReplicationPreview,
+  ) => {
+    if (
+      event.button !== 0 ||
+      event.metaKey ||
+      event.ctrlKey ||
+      event.shiftKey ||
+      event.altKey
+    ) {
+      return;
+    }
+    event.preventDefault();
+    launchViewer(replication.slug);
   };
 
   /**
-   * Byline visibility is the caller's call (artist-scoped views drop it —
-   * every tile would repeat the heading); the deck-open handler is wired
-   * here because *every* masonry tile is a deck entry point on phones.
-   * `setParamFor` names the viewer scope a tile's context stands for, so
-   * artist-context tiles open the viewer walking that artist's works.
+   * Every tile opens the same in-page viewer. The underlying anchor remains a
+   * permanent work link for modified clicks, new tabs, and crawlers.
    */
   const renderMasonry = (
     items: PublicGalleryReplicationPreview[],
-    { showByline = true, onOpen = openDeckAt, setParamFor }: {
+    {
+      showByline = true,
+      onOpen = openViewerAt,
+      setParamFor,
+    }: {
       showByline?: boolean;
-      onOpen?: (event: React.MouseEvent, replication: PublicGalleryReplicationPreview) => void;
-      setParamFor?: (replication: PublicGalleryReplicationPreview) => ViewerSetParam | null;
+      onOpen?: (
+        event: React.MouseEvent,
+        replication: PublicGalleryReplicationPreview,
+      ) => void;
+      setParamFor?: (
+        replication: PublicGalleryReplicationPreview,
+      ) => ViewerSetParam | null;
     } = {},
   ) => (
     <div className={MASONRY_CLASS}>
@@ -401,45 +520,50 @@ function GalleryExplorer({
   // The gallery section exists whenever it holds media at all — the mode
   // toggle has to stay reachable even if one mode's own corpus is empty.
   const hasMedia = displayable.length > 0;
-  const browseAllUrl = buildGalleryBrowseUrl({ view: mode, type: typeFilter, sort: artistSort });
+  const browseAllUrl = buildGalleryBrowseUrl({
+    view: mode,
+    type: typeFilter,
+    sort: artistSort,
+  });
 
   /**
    * The artist-sort toggle only applies to the artist browse view, but it
    * stays mounted (inert + invisible) elsewhere so the control bar keeps one
    * width across mode switches instead of jittering.
    */
-  const sortActive = mode === 'artist' && !searching && !focus;
+  const sortActive = mode === "artist" && !searching && !focus;
 
   return (
     <>
-    <section
-      aria-label="Replications gallery"
-      className="mx-auto mt-4 w-full max-w-7xl"
-    >
-      {!hasMedia ? (
-        <SearchEmptyState
-          className="mt-6"
-          icon="lucide:image-off"
-          title="No replications yet"
-          description="Replication media has not been published yet. Check back soon."
-        />
-      ) : (
-        <>
-          {/* Entry into the fullscreen deck, phones only — the same viewport
-              where tapping any tile opens it; wider screens browse the grid. */}
-          <div className="md:hidden">
-            <Button
-              type="button"
-              onClick={() => setDeckPosition({ groupIndex: 0, workIndex: 0 })}
-              className="w-full min-h-11 gap-2"
-              aria-label="Open the fullscreen gallery"
-            >
-              <Icon icon="lucide:play" className="h-4 w-4" aria-hidden />
-              Watch
-            </Button>
-          </div>
+      <section
+        aria-label="Replications gallery"
+        className="mx-auto mt-4 w-full max-w-7xl"
+      >
+        {!hasMedia ? (
+          <SearchEmptyState
+            className="mt-6"
+            icon="lucide:image-off"
+            title="No replications yet"
+            description="Replication media has not been published yet. Check back soon."
+          />
+        ) : (
+          <>
+            <div className="flex justify-end">
+              <Button
+                type="button"
+                onClick={() => {
+                  const first = viewerCollection.groups[0]?.items[0];
+                  if (first) launchViewer(first.replication.slug);
+                }}
+                className="min-h-11 w-full gap-2 sm:w-auto"
+                aria-label="Open replication viewer"
+              >
+                <Icon icon="lucide:play" className="h-4 w-4" aria-hidden />
+                Open viewer
+              </Button>
+            </div>
 
-          {/* Sticky control bar — the gallery's only elevated surface now that
+            {/* Sticky control bar — the gallery's only elevated surface now that
               the card wrapper is gone. Offset: the site header (.app-header,
               components.css) is itself sticky at top-0/z-50 and measures 68px
               (py-3 + its 44px controls), so a small offset like top-2 would
@@ -457,388 +581,501 @@ function GalleryExplorer({
 
               Under `focus-only` chrome the bar (and the stats line below) is
               suppressed entirely — see the `chrome` prop. */}
-          {chrome === 'full' ? (
-            <div className="sticky top-[4.75rem] z-20 mt-4 md:mt-0">
-              <div
-                data-testid="gallery-control-bar"
-                className="flex w-full min-w-0 flex-nowrap items-center gap-2 rounded-2xl border border-[color:var(--theme-frosted-control-border)] bg-[var(--theme-frosted-control-bg)] p-2 shadow-[var(--theme-frosted-control-shadow)] backdrop-blur-md sm:gap-3"
-              >
-                <ToggleGroup
-                  type="single"
-                  variant="pill"
-                  value={mode}
-                  onValueChange={(value) => value && switchMode(value as GalleryMode)}
-                  aria-label="Browse by"
-                  className="hidden shrink-0 sm:flex"
+            {chrome === "full" ? (
+              <div className="sticky top-[4.75rem] z-20 mt-4 md:mt-0">
+                <div
+                  data-testid="gallery-control-bar"
+                  className="flex w-full min-w-0 flex-nowrap items-center gap-2 rounded-2xl border border-[color:var(--theme-frosted-control-border)] bg-[var(--theme-frosted-control-bg)] p-2 shadow-[var(--theme-frosted-control-shadow)] backdrop-blur-md sm:gap-3"
                 >
-                  <ToggleGroupItem value="artist" className={COARSE_TARGET_CLASS}>By artist</ToggleGroupItem>
-                  <ToggleGroupItem value="effect" className={COARSE_TARGET_CLASS}>By effect</ToggleGroupItem>
-                </ToggleGroup>
+                  <ToggleGroup
+                    type="single"
+                    variant="pill"
+                    value={mode}
+                    onValueChange={(value) =>
+                      value && switchMode(value as GalleryMode)
+                    }
+                    aria-label="Browse by"
+                    className="hidden shrink-0 sm:flex"
+                  >
+                    <ToggleGroupItem
+                      value="artist"
+                      className={COARSE_TARGET_CLASS}
+                    >
+                      By artist
+                    </ToggleGroupItem>
+                    <ToggleGroupItem
+                      value="effect"
+                      className={COARSE_TARGET_CLASS}
+                    >
+                      By effect
+                    </ToggleGroupItem>
+                  </ToggleGroup>
 
-                {/* Always mounted so the tests and the debounce wiring see one
+                  {/* Always mounted so the tests and the debounce wiring see one
                     input; below `sm` its visibility is the expand/collapse
                     state, from `sm` up it is simply the inline search box. */}
-                <div className={cn('relative min-w-0 flex-1', searchExpanded ? 'block' : 'hidden sm:block')}>
-                  <Icon
-                    icon="lucide:search"
-                    className="theme-text-faint pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2"
-                  />
-                  <Input
-                    ref={inputRef}
-                    id="replications-gallery-search"
-                    defaultValue={browse.query}
-                    onChange={(event) => updateQuery(event.target.value)}
-                    onBlur={() => searchExpanded && setSearchExpanded(false)}
-                    onKeyDown={(event) => {
-                      if (event.key === 'Escape' && searchExpanded) {
-                        event.preventDefault();
-                        setSearchExpanded(false);
-                      }
-                    }}
-                    placeholder="Search art, artist, effect"
-                    className="h-9 pl-9 [@media(pointer:coarse)]:h-11"
-                    inputMode="search"
-                    aria-label="Search replications"
-                  />
-                  {/* Decorative only (aria-hidden): the debounce is 250ms, and a
+                  <div
+                    className={cn(
+                      "relative min-w-0 flex-1",
+                      searchExpanded ? "block" : "hidden sm:block",
+                    )}
+                  >
+                    <Icon
+                      icon="lucide:search"
+                      className="theme-text-faint pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2"
+                    />
+                    <Input
+                      ref={inputRef}
+                      id="replications-gallery-search"
+                      defaultValue={browse.query}
+                      onChange={(event) => updateQuery(event.target.value)}
+                      onBlur={() => searchExpanded && setSearchExpanded(false)}
+                      onKeyDown={(event) => {
+                        if (event.key === "Escape" && searchExpanded) {
+                          event.preventDefault();
+                          setSearchExpanded(false);
+                        }
+                      }}
+                      placeholder="Search art, artist, effect"
+                      className="h-9 pl-9 [@media(pointer:coarse)]:h-11"
+                      inputMode="search"
+                      aria-label="Search replications"
+                    />
+                    {/* Decorative only (aria-hidden): the debounce is 250ms, and a
                       live region firing per keystroke would be pure noise. */}
-                  {queryWritePending ? (
-                    <span
-                      aria-hidden
-                      data-testid="query-write-pending"
-                      className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2"
+                    {queryWritePending ? (
+                      <span
+                        aria-hidden
+                        data-testid="query-write-pending"
+                        className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2"
+                      >
+                        <Icon
+                          icon="svg-spinners:ring-resize"
+                          className="theme-text-faint h-4 w-4"
+                        />
+                      </span>
+                    ) : null}
+                  </div>
+
+                  <ToggleGroup
+                    type="single"
+                    variant="pill"
+                    value={typeFilter}
+                    onValueChange={(value) =>
+                      value && setTypeFilter(value as GalleryTypeFilter)
+                    }
+                    aria-label="Filter by media type"
+                    className={cn(
+                      "shrink-0",
+                      searchExpanded && "hidden sm:flex",
+                    )}
+                  >
+                    <ToggleGroupItem
+                      value="all"
+                      className={COARSE_TARGET_CLASS}
                     >
-                      <Icon icon="svg-spinners:ring-resize" className="theme-text-faint h-4 w-4" />
-                    </span>
-                  ) : null}
-                </div>
+                      All
+                    </ToggleGroupItem>
+                    <ToggleGroupItem
+                      value="image"
+                      aria-label="Images"
+                      className={COARSE_TARGET_CLASS}
+                    >
+                      <Icon
+                        icon="lucide:image"
+                        className="sm:hidden"
+                        aria-hidden
+                      />
+                      <span className="hidden sm:inline">Images</span>
+                    </ToggleGroupItem>
+                    <ToggleGroupItem
+                      value="video"
+                      aria-label="Videos"
+                      className={COARSE_TARGET_CLASS}
+                    >
+                      <Icon
+                        icon="lucide:video"
+                        className="sm:hidden"
+                        aria-hidden
+                      />
+                      <span className="hidden sm:inline">Videos</span>
+                    </ToggleGroupItem>
+                  </ToggleGroup>
 
-                <ToggleGroup
-                  type="single"
-                  variant="pill"
-                  value={typeFilter}
-                  onValueChange={(value) => value && setTypeFilter(value as GalleryTypeFilter)}
-                  aria-label="Filter by media type"
-                  className={cn('shrink-0', searchExpanded && 'hidden sm:flex')}
-                >
-                  <ToggleGroupItem value="all" className={COARSE_TARGET_CLASS}>All</ToggleGroupItem>
-                  <ToggleGroupItem value="image" aria-label="Images" className={COARSE_TARGET_CLASS}>
-                    <Icon icon="lucide:image" className="sm:hidden" aria-hidden />
-                    <span className="hidden sm:inline">Images</span>
-                  </ToggleGroupItem>
-                  <ToggleGroupItem value="video" aria-label="Videos" className={COARSE_TARGET_CLASS}>
-                    <Icon icon="lucide:video" className="sm:hidden" aria-hidden />
-                    <span className="hidden sm:inline">Videos</span>
-                  </ToggleGroupItem>
-                </ToggleGroup>
+                  {/* Full sort pill set — the row only has room for it from `md`. */}
+                  <ToggleGroup
+                    type="single"
+                    variant="pill"
+                    value={artistSort}
+                    onValueChange={(value) =>
+                      value && setArtistSort(value as GalleryArtistSort)
+                    }
+                    aria-label="Sort artists"
+                    aria-hidden={!sortActive || undefined}
+                    inert={!sortActive}
+                    className={cn(
+                      "hidden shrink-0 md:flex",
+                      !sortActive && "invisible",
+                    )}
+                  >
+                    <ToggleGroupItem
+                      value="video-first"
+                      className={COARSE_TARGET_CLASS}
+                    >
+                      Videos first
+                    </ToggleGroupItem>
+                    <ToggleGroupItem
+                      value="count"
+                      className={COARSE_TARGET_CLASS}
+                    >
+                      Most works
+                    </ToggleGroupItem>
+                    <ToggleGroupItem
+                      value="alpha"
+                      className={COARSE_TARGET_CLASS}
+                    >
+                      A–Z
+                    </ToggleGroupItem>
+                  </ToggleGroup>
 
-                {/* Full sort pill set — the row only has room for it from `md`. */}
-                <ToggleGroup
-                  type="single"
-                  variant="pill"
-                  value={artistSort}
-                  onValueChange={(value) => value && setArtistSort(value as GalleryArtistSort)}
-                  aria-label="Sort artists"
-                  aria-hidden={!sortActive || undefined}
-                  inert={!sortActive}
-                  className={cn('hidden shrink-0 md:flex', !sortActive && 'invisible')}
-                >
-                  <ToggleGroupItem value="video-first" className={COARSE_TARGET_CLASS}>Videos first</ToggleGroupItem>
-                  <ToggleGroupItem value="count" className={COARSE_TARGET_CLASS}>Most works</ToggleGroupItem>
-                  <ToggleGroupItem value="alpha" className={COARSE_TARGET_CLASS}>A–Z</ToggleGroupItem>
-                </ToggleGroup>
-
-                {/* Compact sort — one menu button below `md`. Like the pill set
+                  {/* Compact sort — one menu button below `md`. Like the pill set
                     it stays mounted (inert + invisible) outside the artist
                     browse view so the row keeps one width across mode switches. */}
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button
-                      type="button"
-                      variant="pill"
-                      size="auto"
-                      aria-label="Sort artists"
-                      aria-hidden={!sortActive || undefined}
-                      inert={!sortActive}
-                      className={cn(
-                        'flex h-8 w-8 shrink-0 items-center justify-center p-0 md:hidden [@media(pointer:coarse)]:h-11 [@media(pointer:coarse)]:w-11',
-                        searchExpanded && 'hidden',
-                        !sortActive && 'invisible',
-                      )}
-                    >
-                      <Icon icon="lucide:arrow-down-wide-narrow" className="h-4 w-4" aria-hidden />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
-                    <DropdownMenuRadioGroup
-                      value={artistSort}
-                      onValueChange={(value) => setArtistSort(value as GalleryArtistSort)}
-                    >
-                      <DropdownMenuRadioItem value="video-first">Videos first</DropdownMenuRadioItem>
-                      <DropdownMenuRadioItem value="count">Most works</DropdownMenuRadioItem>
-                      <DropdownMenuRadioItem value="alpha">A–Z</DropdownMenuRadioItem>
-                    </DropdownMenuRadioGroup>
-                  </DropdownMenuContent>
-                </DropdownMenu>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button
+                        type="button"
+                        variant="pill"
+                        size="auto"
+                        aria-label="Sort artists"
+                        aria-hidden={!sortActive || undefined}
+                        inert={!sortActive}
+                        className={cn(
+                          "flex h-8 w-8 shrink-0 items-center justify-center p-0 md:hidden [@media(pointer:coarse)]:h-11 [@media(pointer:coarse)]:w-11",
+                          searchExpanded && "hidden",
+                          !sortActive && "invisible",
+                        )}
+                      >
+                        <Icon
+                          icon="lucide:arrow-down-wide-narrow"
+                          className="h-4 w-4"
+                          aria-hidden
+                        />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      <DropdownMenuRadioGroup
+                        value={artistSort}
+                        onValueChange={(value) =>
+                          setArtistSort(value as GalleryArtistSort)
+                        }
+                      >
+                        <DropdownMenuRadioItem value="video-first">
+                          Videos first
+                        </DropdownMenuRadioItem>
+                        <DropdownMenuRadioItem value="count">
+                          Most works
+                        </DropdownMenuRadioItem>
+                        <DropdownMenuRadioItem value="alpha">
+                          A–Z
+                        </DropdownMenuRadioItem>
+                      </DropdownMenuRadioGroup>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
 
-                {/* Phone search reveal — expands into the input above, which
+                  {/* Phone search reveal — expands into the input above, which
                     collapses back on blur or Escape. The dot marks a live query
                     that would otherwise be invisible while collapsed. */}
-                <Button
-                  type="button"
-                  variant="pill"
-                  size="auto"
-                  aria-label="Search replications"
-                  aria-expanded={searchExpanded}
-                  aria-controls="replications-gallery-search"
-                  onClick={() => setSearchExpanded(true)}
-                  className={cn(
-                    'relative flex h-8 w-8 shrink-0 items-center justify-center p-0 sm:hidden [@media(pointer:coarse)]:h-11 [@media(pointer:coarse)]:w-11',
-                    searchExpanded && 'hidden',
-                  )}
-                >
-                  <Icon icon="lucide:search" className="h-4 w-4" aria-hidden />
-                  {searching ? (
-                    <span
+                  <Button
+                    type="button"
+                    variant="pill"
+                    size="auto"
+                    aria-label="Search replications"
+                    aria-expanded={searchExpanded}
+                    aria-controls="replications-gallery-search"
+                    onClick={() => setSearchExpanded(true)}
+                    className={cn(
+                      "relative flex h-8 w-8 shrink-0 items-center justify-center p-0 sm:hidden [@media(pointer:coarse)]:h-11 [@media(pointer:coarse)]:w-11",
+                      searchExpanded && "hidden",
+                    )}
+                  >
+                    <Icon
+                      icon="lucide:search"
+                      className="h-4 w-4"
                       aria-hidden
-                      className="absolute right-1 top-1 h-1.5 w-1.5 rounded-full bg-[var(--theme-accent-strong)]"
                     />
-                  ) : null}
-                </Button>
+                    {searching ? (
+                      <span
+                        aria-hidden
+                        className="absolute right-1 top-1 h-1.5 w-1.5 rounded-full bg-[var(--theme-accent-strong)]"
+                      />
+                    ) : null}
+                  </Button>
 
-                {/* Phone home for whatever the one-row bar cannot show inline —
+                  {/* Phone home for whatever the one-row bar cannot show inline —
                     today that is exactly the browse-mode toggle. */}
-                <Popover open={filtersOpen} onOpenChange={setFiltersOpen}>
-                  <PopoverTrigger asChild>
-                    <Button
-                      type="button"
-                      variant="pill"
-                      size="pill"
-                      className={cn(
-                        'shrink-0 gap-1.5 sm:hidden',
-                        COARSE_TARGET_CLASS,
-                        searchExpanded && 'hidden',
-                      )}
-                    >
-                      <Icon icon="lucide:sliders-horizontal" className="h-4 w-4" aria-hidden />
-                      Filters
-                    </Button>
-                  </PopoverTrigger>
-                  {/* Near-full-bleed below `sm` — the same phone-sheet treatment
+                  <Popover open={filtersOpen} onOpenChange={setFiltersOpen}>
+                    <PopoverTrigger asChild>
+                      <Button
+                        type="button"
+                        variant="pill"
+                        size="pill"
+                        className={cn(
+                          "shrink-0 gap-1.5 sm:hidden",
+                          COARSE_TARGET_CLASS,
+                          searchExpanded && "hidden",
+                        )}
+                      >
+                        <Icon
+                          icon="lucide:sliders-horizontal"
+                          className="h-4 w-4"
+                          aria-hidden
+                        />
+                        Filters
+                      </Button>
+                    </PopoverTrigger>
+                    {/* Near-full-bleed below `sm` — the same phone-sheet treatment
                       as the review bar's overflow popover. */}
-                  <PopoverContent
-                    align="end"
-                    collisionPadding={8}
-                    className="w-[calc(100vw-1rem)] space-y-2 sm:w-72"
-                  >
-                    <p className="theme-text-faint text-xs font-medium uppercase tracking-[0.14em]">
-                      Browse by
-                    </p>
-                    <ToggleGroup
-                      type="single"
-                      variant="pill"
-                      value={mode}
-                      onValueChange={(value) => {
-                        if (!value) return;
-                        setFiltersOpen(false);
-                        switchMode(value as GalleryMode);
-                      }}
-                      aria-label="Browse by"
+                    <PopoverContent
+                      align="end"
+                      collisionPadding={8}
+                      className="w-[calc(100vw-1rem)] space-y-2 sm:w-72"
                     >
-                      <ToggleGroupItem value="artist" className={cn(COARSE_TARGET_CLASS, 'flex-1')}>
-                        By artist
-                      </ToggleGroupItem>
-                      <ToggleGroupItem value="effect" className={cn(COARSE_TARGET_CLASS, 'flex-1')}>
-                        By effect
-                      </ToggleGroupItem>
-                    </ToggleGroup>
-                  </PopoverContent>
-                </Popover>
+                      <p className="theme-text-faint text-xs font-medium uppercase tracking-[0.14em]">
+                        Browse by
+                      </p>
+                      <ToggleGroup
+                        type="single"
+                        variant="pill"
+                        value={mode}
+                        onValueChange={(value) => {
+                          if (!value) return;
+                          setFiltersOpen(false);
+                          switchMode(value as GalleryMode);
+                        }}
+                        aria-label="Browse by"
+                      >
+                        <ToggleGroupItem
+                          value="artist"
+                          className={cn(COARSE_TARGET_CLASS, "flex-1")}
+                        >
+                          By artist
+                        </ToggleGroupItem>
+                        <ToggleGroupItem
+                          value="effect"
+                          className={cn(COARSE_TARGET_CLASS, "flex-1")}
+                        >
+                          By effect
+                        </ToggleGroupItem>
+                      </ToggleGroup>
+                    </PopoverContent>
+                  </Popover>
+                </div>
               </div>
-            </div>
-          ) : null}
+            ) : null}
 
-          {/* One quiet corpus summary for every breakpoint — the bar itself
+            {/* One quiet corpus summary for every breakpoint — the bar itself
               stays reserved for controls. */}
-          {chrome === 'full' ? (
-            <p className="theme-text-faint mt-3 px-1 text-xs tabular-nums">
-              {counts.total} works · {counts.artists} artists · {counts.effects} effects
-            </p>
-          ) : null}
+            {chrome === "full" ? (
+              <p className="theme-text-faint mt-3 px-1 text-xs tabular-nums">
+                {counts.total} works · {counts.artists} artists ·{" "}
+                {counts.effects} effects
+              </p>
+            ) : null}
 
-          {/* Focused single-group view (own URL: /replications/artist|effect/<key>) */}
-          {focus && focusedGroup ? (
-            <div className="mt-6 space-y-4">
-              <div className="flex flex-wrap items-baseline justify-between gap-3 px-1">
-                <div className="min-w-0">
-                  <Link
-                    href={browseAllUrl}
-                    className="theme-text-muted group inline-flex min-h-11 items-center gap-1 rounded-full text-sm font-medium transition-colors hover:text-[var(--theme-accent-strong)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--theme-accent-strong)] motion-reduce:transition-none"
-                  >
-                    <Icon icon="lucide:arrow-left" className="h-4 w-4 transition group-hover:-translate-x-0.5 motion-reduce:transition-none" />
-                    All {mode === 'artist' ? 'artists' : 'effects'}
-                  </Link>
-                  <h2 className="theme-text-primary font-display mt-1 text-2xl font-bold tracking-tight">
-                    {focusedGroup.label}
-                  </h2>
-                  {/* An artist focus IS the artist's page now, so the old
+            {/* Focused single-group view (own URL: /replications/artist|effect/<key>) */}
+            {focus && focusedGroup ? (
+              <div className="mt-6 space-y-4">
+                <div className="flex flex-wrap items-baseline justify-between gap-3 px-1">
+                  <div className="min-w-0">
+                    <Link
+                      href={browseAllUrl}
+                      className="theme-text-muted group inline-flex min-h-11 items-center gap-1 rounded-full text-sm font-medium transition-colors hover:text-[var(--theme-accent-strong)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--theme-accent-strong)] motion-reduce:transition-none"
+                    >
+                      <Icon
+                        icon="lucide:arrow-left"
+                        className="h-4 w-4 transition group-hover:-translate-x-0.5 motion-reduce:transition-none"
+                      />
+                      All {mode === "artist" ? "artists" : "effects"}
+                    </Link>
+                    <h2 className="theme-text-primary font-display mt-1 text-2xl font-bold tracking-tight">
+                      {focusedGroup.label}
+                    </h2>
+                    {/* An artist focus IS the artist's page now, so the old
                       "View profile" link would point at itself; only the
                       effect focus has a second destination worth naming. */}
-                  {mode === 'effect' && focusedGroup.href ? (
-                    <Link
-                      href={focusedGroup.href}
-                      className={cn(
-                        'theme-text-muted group/profile mt-1 inline-flex min-h-11 items-center gap-1 text-sm font-medium transition-colors hover:text-[var(--theme-accent-strong)] motion-reduce:transition-none',
-                        focusRingClassName,
-                      )}
-                    >
-                      View effect article
-                      <Icon icon="lucide:arrow-right" className="h-4 w-4 transition group-hover/profile:translate-x-0.5 motion-reduce:transition-none" />
-                    </Link>
-                  ) : null}
-                  {mode === 'artist' && focusedGroup.externalUrl ? (
-                    <a
-                      href={focusedGroup.externalUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className={cn(
-                        'theme-text-faint ml-3 mt-1 inline-flex min-h-11 items-center gap-1 text-sm font-medium transition-colors hover:text-[var(--theme-accent-strong)] motion-reduce:transition-none',
-                        focusRingClassName,
-                      )}
-                    >
-                      Own site
-                      <Icon icon="lucide:arrow-up-right" className="h-4 w-4" />
-                    </a>
-                  ) : null}
+                    {mode === "effect" && focusedGroup.href ? (
+                      <Link
+                        href={focusedGroup.href}
+                        className={cn(
+                          "theme-text-muted group/profile mt-1 inline-flex min-h-11 items-center gap-1 text-sm font-medium transition-colors hover:text-[var(--theme-accent-strong)] motion-reduce:transition-none",
+                          focusRingClassName,
+                        )}
+                      >
+                        View effect article
+                        <Icon
+                          icon="lucide:arrow-right"
+                          className="h-4 w-4 transition group-hover/profile:translate-x-0.5 motion-reduce:transition-none"
+                        />
+                      </Link>
+                    ) : null}
+                    {mode === "artist" && focusedGroup.externalUrl ? (
+                      <a
+                        href={focusedGroup.externalUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className={cn(
+                          "theme-text-faint ml-3 mt-1 inline-flex min-h-11 items-center gap-1 text-sm font-medium transition-colors hover:text-[var(--theme-accent-strong)] motion-reduce:transition-none",
+                          focusRingClassName,
+                        )}
+                      >
+                        Own site
+                        <Icon
+                          icon="lucide:arrow-up-right"
+                          className="h-4 w-4"
+                        />
+                      </a>
+                    ) : null}
+                  </div>
+                  <span className="theme-text-faint text-xs tabular-nums">
+                    {focusedItems.length} works
+                  </span>
                 </div>
-                <span className="theme-text-faint text-xs tabular-nums">
-                  {focusedItems.length} works
-                </span>
+                {mode === "artist" ? focusIdentity : null}
+                {focusedItems.length > 0 ? (
+                  // An artist focus already names the artist in its heading, so
+                  // per-tile bylines would repeat it under every work; effect
+                  // focus tiles keep them as the only attribution in sight.
+                  // Artist-focus tiles open the viewer walking this artist.
+                  renderMasonry(focusedItems, {
+                    showByline: focus.kind !== "artist",
+                    setParamFor:
+                      focus.kind === "artist"
+                        ? () => ({ kind: "artist", slug: focus.key })
+                        : undefined,
+                  })
+                ) : (
+                  <SearchEmptyState
+                    className="mt-8"
+                    icon="lucide:search-x"
+                    title={`No ${typeFilter === "video" ? "videos" : "images"} here`}
+                    description={`${focusedGroup.label} has no ${typeFilter === "video" ? "videos" : "images"}. Switch the media filter to see everything.`}
+                  />
+                )}
               </div>
-              {mode === 'artist' ? focusIdentity : null}
-              {focusedItems.length > 0 ? (
-                // An artist focus already names the artist in its heading, so
-                // per-tile bylines would repeat it under every work; effect
-                // focus tiles keep them as the only attribution in sight.
-                // Artist-focus tiles open the viewer walking this artist.
-                renderMasonry(focusedItems, {
-                  showByline: focus.kind !== 'artist',
-                  setParamFor:
-                    focus.kind === 'artist'
-                      ? () => ({ kind: 'artist', slug: focus.key })
-                      : undefined,
-                })
+            ) : searching ? (
+              /* Search results — flat masonry */
+              filtered.length > 0 ? (
+                <div className="mt-6 space-y-4">
+                  <p className="theme-text-faint px-1 text-xs tabular-nums">
+                    {filtered.length} result{filtered.length === 1 ? "" : "s"}{" "}
+                    for “{query.trim()}”
+                  </p>
+                  {renderMasonry(sortWithinGroup(filtered))}
+                </div>
               ) : (
                 <SearchEmptyState
                   className="mt-8"
                   icon="lucide:search-x"
-                  title={`No ${typeFilter === 'video' ? 'videos' : 'images'} here`}
-                  description={`${focusedGroup.label} has no ${typeFilter === 'video' ? 'videos' : 'images'}. Switch the media filter to see everything.`}
+                  title="No art matches your search"
+                  description={`Nothing found for “${query.trim()}”. Try a different artist, effect, or title.`}
                 />
-              )}
-            </div>
-          ) : searching ? (
-            /* Search results — flat masonry */
-            filtered.length > 0 ? (
-              <div className="mt-6 space-y-4">
-                <p className="theme-text-faint px-1 text-xs tabular-nums">
-                  {filtered.length} result{filtered.length === 1 ? '' : 's'} for “{query.trim()}”
-                </p>
-                {renderMasonry(sortWithinGroup(filtered))}
-              </div>
+              )
             ) : (
-              <SearchEmptyState
-                className="mt-8"
-                icon="lucide:search-x"
-                title="No art matches your search"
-                description={`Nothing found for “${query.trim()}”. Try a different artist, effect, or title.`}
-              />
-            )
-          ) : (
-            /* Browse — rails for groups with enough works ("View all" is a
+              /* Browse — rails for groups with enough works ("View all" is a
                crawlable focus URL); everything thinner pools into one dense
                masonry, where each tile's byline carries the attribution. */
-            <div className="mt-4 space-y-10">
-              {rails.map((group) => (
-                <MediaRail
-                  key={group.key}
-                  group={group}
-                  viewAllHref={buildGalleryFocusUrl(
-                    { kind: mode, key: galleryGroupUrlKey(mode, group) },
-                    /* The effect address is the playlist page now; it reads no
+              <div className="mt-4 space-y-10">
+                {rails.map((group) => (
+                  <MediaRail
+                    key={group.key}
+                    group={group}
+                    viewAllHref={buildGalleryFocusUrl(
+                      { kind: mode, key: galleryGroupUrlKey(mode, group) },
+                      /* The effect address is the playlist page now; it reads no
                        type filter, so only artist focus links carry one. */
-                    mode === 'artist' ? { type: typeFilter } : {},
-                  )}
-                  /* Artist rails carry the artist in their heading, so tile
+                      mode === "artist" ? { type: typeFilter } : {},
+                    )}
+                    /* Artist rails carry the artist in their heading, so tile
                      bylines would echo it fourteen times; effect rails keep
                      bylines as each work's attribution. An artist rail's tiles
                      open the viewer walking that artist's works. */
-                  tileBylines={mode !== 'artist'}
-                  tileSetParam={
-                    mode === 'artist'
-                      ? { kind: 'artist', slug: galleryGroupUrlKey('artist', group) }
-                      : null
-                  }
-                  mobileCompact
-                  onTileOpen={openDeckAt}
-                />
-              ))}
-              {pooledItems.length > 0 ? (
-                <section
-                  aria-label={mode === 'artist' ? 'More artists' : 'More effects'}
-                  className="space-y-3"
-                >
-                  {rails.length > 0 ? (
-                    <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1 px-1">
-                      <h2 className="theme-text-primary font-display text-lg font-semibold tracking-tight">
-                        {mode === 'artist' ? 'More artists' : 'More effects'}
-                      </h2>
-                      <span className="theme-text-faint text-xs tabular-nums">
-                        {pool.length} {mode === 'artist' ? 'artists' : 'effects'} ·{' '}
-                        {pooledItems.length} work{pooledItems.length === 1 ? '' : 's'}
-                      </span>
-                    </div>
-                  ) : null}
-                  {renderMasonry(pooledItems, {
-                    // The pool under artist rails is still artist context:
-                    // each tile stands in for its maker's whole (thin) group.
-                    setParamFor:
-                      mode === 'artist'
-                        ? (replication) => ({ kind: 'artist', slug: artistUrlKey(replication.artist) })
-                        : undefined,
-                  })}
-                </section>
-              ) : null}
-            </div>
-          )}
+                    tileBylines={mode !== "artist"}
+                    tileSetParam={
+                      mode === "artist"
+                        ? {
+                            kind: "artist",
+                            slug: galleryGroupUrlKey("artist", group),
+                          }
+                        : null
+                    }
+                    mobileCompact
+                    onTileOpen={openViewerAt}
+                  />
+                ))}
+                {pooledItems.length > 0 ? (
+                  <section
+                    aria-label={
+                      mode === "artist" ? "More artists" : "More effects"
+                    }
+                    className="space-y-3"
+                  >
+                    {rails.length > 0 ? (
+                      <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1 px-1">
+                        <h2 className="theme-text-primary font-display text-lg font-semibold tracking-tight">
+                          {mode === "artist" ? "More artists" : "More effects"}
+                        </h2>
+                        <span className="theme-text-faint text-xs tabular-nums">
+                          {pool.length}{" "}
+                          {mode === "artist" ? "artists" : "effects"} ·{" "}
+                          {pooledItems.length} work
+                          {pooledItems.length === 1 ? "" : "s"}
+                        </span>
+                      </div>
+                    ) : null}
+                    {renderMasonry(pooledItems, {
+                      // The pool under artist rails is still artist context:
+                      // each tile stands in for its maker's whole (thin) group.
+                      setParamFor:
+                        mode === "artist"
+                          ? (replication) => ({
+                              kind: "artist",
+                              slug: artistUrlKey(replication.artist),
+                            })
+                          : undefined,
+                    })}
+                  </section>
+                ) : null}
+              </div>
+            )}
 
-          {/* Rights footnote */}
-          <p className="theme-text-muted mx-auto mt-10 max-w-3xl px-1 text-center text-xs leading-5">
-            Replication media is credited to its creator when known. Rights remain with the original
-            creator or rightsholder unless an individual item states another license. See the{" "}
-            <Link href="/docs/license#replication-media-terms" className={proseLinkClassName}>
-              licensing terms
-            </Link>{" "}
-            to correct a credit or request removal.
-          </p>
-        </>
-      )}
+            {/* Rights footnote */}
+            <p className="theme-text-muted mx-auto mt-10 max-w-3xl px-1 text-center text-xs leading-5">
+              Replication media is credited to its creator when known. Rights
+              remain with the original creator or rightsholder unless an
+              individual item states another license. See the{" "}
+              <Link
+                href="/docs/license#replication-media-terms"
+                className={proseLinkClassName}
+              >
+                licensing terms
+              </Link>{" "}
+              to correct a credit or request removal.
+            </p>
+          </>
+        )}
+      </section>
 
-    </section>
-
-    {/* The fullscreen deck overlays the grid (it covers the site header too —
-        see the deck's own fixed positioning); the grid stays mounted behind
-        it so closing restores the exact browsing position. Only ever opened
-        from the Watch button or a phone tile tap. */}
-    {deckPosition && deckGroups.length > 0 ? (
-      <ReplicationsSwipeDeck
-        groups={deckGroups}
-        effectName={effectName}
-        initialGroupIndex={deckPosition.groupIndex}
-        initialWorkIndex={deckPosition.workIndex}
-        onClose={() => setDeckPosition(null)}
-      />
-    ) : null}
+      {viewerSlug && viewerCollection.groups.length > 0 ? (
+        <ReplicationViewerOverlay
+          collection={viewerCollection}
+          initialSlug={viewerSlug}
+          open
+          onOpenChange={(nextOpen) => {
+            if (!nextOpen) setViewerSlug(null);
+          }}
+        />
+      ) : null}
     </>
   );
 }

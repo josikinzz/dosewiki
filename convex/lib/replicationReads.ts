@@ -33,6 +33,8 @@ type ResolvableReplication = {
   storage_id: string;
   thumbnail_storage_id?: string;
   preview_storage_id?: string;
+  motion_storage_id?: string;
+  motion_poster_storage_id?: string;
   url?: string;
   thumbnail_url?: string;
 };

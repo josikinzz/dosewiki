@@ -151,6 +151,14 @@ export const replication = v.object({
    * scripts/replications/generate-preview-renditions.mjs.
    */
   preview_storage_id: v.optional(v.string()),
+  /**
+   * Full-viewer silent video rendition for controllable GIF-like motion.
+   * This never replaces the original storage_id or the low-resolution
+   * preview_storage_id used by Gallery tiles.
+   */
+  motion_storage_id: v.optional(v.string()),
+  /** Poster paired with motion_storage_id; original thumbnail stays untouched. */
+  motion_poster_storage_id: v.optional(v.string()),
   url: v.optional(v.string()),         // Direct URL (external Convex storage or CDN)
   thumbnail_url: v.optional(v.string()), // Direct thumbnail URL (for videos)
   width: v.optional(v.number()),       // For responsive display

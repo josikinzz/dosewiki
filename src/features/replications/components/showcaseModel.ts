@@ -22,6 +22,13 @@ export type ShowcaseWork = {
   type: "video" | "image";
   url: string;
   thumbnailUrl?: string;
+  format?: string;
+  duration?: number;
+  width?: number;
+  height?: number;
+  previewUrl?: string;
+  motionUrl?: string;
+  motionPosterUrl?: string;
   /** "by <artist>" or "Creator unknown" — never prepend another "by". */
   byline: string;
   /** Trimmed credited name, null when the credit names nobody. */
@@ -87,13 +94,21 @@ export function buildShowcaseWorks(
       artistPageHrefForWork(replication) ??
       (artistName ? resolveArtistFallbackHref(artistName) : null);
     const artistHref =
-      internalHref ?? (artistName ? replication.artist_url?.trim() || null : null);
+      internalHref ??
+      (artistName ? replication.artist_url?.trim() || null : null);
     works.push({
       slug: replication.slug,
       title: replication.title,
       type: replication.type,
       url: replication.url,
       thumbnailUrl: replication.thumbnail_url,
+      format: replication.format,
+      duration: replication.duration,
+      width: replication.width,
+      height: replication.height,
+      previewUrl: replication.preview_url,
+      motionUrl: replication.motion_url,
+      motionPosterUrl: replication.motion_poster_url,
       byline: getCreatorByline(replication),
       artistName,
       artistHref,

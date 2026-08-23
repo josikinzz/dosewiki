@@ -1,11 +1,11 @@
 import {
   resolveContributorReplicationOrder,
   type ContributorDirectory,
-} from '@server/contributorDirectory';
-import { getPublicRoutePath } from '@/utils/publicRouteIdentity';
-import { applyCuratedOrder } from '@server/curatedOrder';
-import type { PublicGalleryReplicationPreview } from '@/types/replications';
-import { hasKnownCreator } from '../components/replicationCredit';
+} from "@server/contributorDirectory";
+import { getPublicRoutePath } from "@/utils/publicRouteIdentity";
+import { applyCuratedOrder } from "@server/curatedOrder";
+import type { PublicGalleryReplicationPreview } from "@/types/replications";
+import { hasKnownCreator } from "../components/replicationCredit";
 
 /**
  * Data model for the cross-effect replications gallery: normalization,
@@ -17,9 +17,9 @@ import { hasKnownCreator } from '../components/replicationCredit';
  * works everywhere too.
  */
 
-export type GalleryMode = 'artist' | 'effect';
-export type GalleryTypeFilter = 'all' | 'image' | 'video';
-export type GalleryArtistSort = 'video-first' | 'count' | 'alpha';
+export type GalleryMode = "artist" | "effect";
+export type GalleryTypeFilter = "all" | "image" | "video";
+export type GalleryArtistSort = "video-first" | "count" | "alpha";
 
 /**
  * The gallery's default artist order: a hard two-tier sort where any artist
@@ -27,10 +27,10 @@ export type GalleryArtistSort = 'video-first' | 'count' | 'alpha';
  * count-then-alpha default applies within each tier. Video replications are
  * far scarcer than images, so their makers lead the page.
  */
-export const DEFAULT_GALLERY_ARTIST_SORT: GalleryArtistSort = 'video-first';
+export const DEFAULT_GALLERY_ARTIST_SORT: GalleryArtistSort = "video-first";
 
-export const UNATTRIBUTED_KEY = '__unattributed__';
-export const UNATTRIBUTED_LABEL = 'Unattributed';
+export const UNATTRIBUTED_KEY = "__unattributed__";
+export const UNATTRIBUTED_LABEL = "Unattributed";
 
 export interface GalleryGroup {
   /** Stable grouping key (artist key or effect slug). */
@@ -48,7 +48,9 @@ export interface GalleryGroup {
 }
 
 /** Only items we can actually render (resolved URL) belong in the gallery. */
-export function isDisplayable(replication: PublicGalleryReplicationPreview): boolean {
+export function isDisplayable(
+  replication: PublicGalleryReplicationPreview,
+): boolean {
   return Boolean(replication.url);
 }
 
@@ -62,7 +64,7 @@ export function isDisplayable(replication: PublicGalleryReplicationPreview): boo
  * permalink, and in the public API. Nothing here takes anything down.
  *
  * The asymmetry is the point. An artist's body of work is browsed casually:
- * you open a rail, a swipe deck or a profile to see what someone makes, and
+ * you open a rail, the expanded viewer, or a profile to see what someone makes, and
  * you take whatever the next tile happens to be. An effect is sought
  * deliberately: you arrive at "unspeakable horrors" having asked for it by
  * name. Renderings of that effect belong to the reader who went looking, not
@@ -72,7 +74,9 @@ export function isDisplayable(replication: PublicGalleryReplicationPreview): boo
  * side withholds must be exactly what the other side still carries, and
  * effect grouping buckets on `effect_slug`.
  */
-export const ARTIST_VIEW_WITHHELD_EFFECT_SLUGS: ReadonlySet<string> = new Set(['unspeakable-horrors']);
+export const ARTIST_VIEW_WITHHELD_EFFECT_SLUGS: ReadonlySet<string> = new Set([
+  "unspeakable-horrors",
+]);
 
 /**
  * Whether this work is withheld from artist rails, decks, and profiles.
@@ -81,13 +85,18 @@ export const ARTIST_VIEW_WITHHELD_EFFECT_SLUGS: ReadonlySet<string> = new Set(['
  * the sitemap's route plan carries a narrower row than the gallery does, and
  * the rule must be stated once, not restated per row shape.
  */
-export function isWithheldFromArtistViews(replication: Pick<PublicGalleryReplicationPreview, 'effect_slug'>): boolean {
+export function isWithheldFromArtistViews(
+  replication: Pick<PublicGalleryReplicationPreview, "effect_slug">,
+): boolean {
   const slug = replication.effect_slug;
   return slug !== undefined && ARTIST_VIEW_WITHHELD_EFFECT_SLUGS.has(slug);
 }
 
 /** Canonical key + display name for an artist (folds case / whitespace). */
-export function artistIdentity(artist?: string | null): { key: string; label: string } {
+export function artistIdentity(artist?: string | null): {
+  key: string;
+  label: string;
+} {
   if (!hasKnownCreator(artist)) {
     return { key: UNATTRIBUTED_KEY, label: UNATTRIBUTED_LABEL };
   }
@@ -100,7 +109,7 @@ export function artistIdentity(artist?: string | null): { key: string; label: st
  * Distinct from `UNATTRIBUTED_KEY`, which is an in-memory sentinel that never
  * belongs in an address bar.
  */
-export const UNKNOWN_ARTIST_URL_KEY = 'unknown';
+export const UNKNOWN_ARTIST_URL_KEY = "unknown";
 
 /**
  * ASCII slug of an artist label: diacritics folded, anything outside
@@ -109,11 +118,11 @@ export const UNKNOWN_ARTIST_URL_KEY = 'unknown';
  */
 function slugifyArtistLabel(label: string): string {
   return label
-    .normalize('NFKD')
-    .replace(/[\u0300-\u036f]/g, '')
+    .normalize("NFKD")
+    .replace(/[\u0300-\u036f]/g, "")
     .toLowerCase()
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-+|-+$/g, '');
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
 }
 
 /** djb2, base36 — a short stable suffix for labels that do not slugify. */
@@ -157,9 +166,9 @@ export function artistUrlKey(artist?: string | null): string {
  */
 export function galleryGroupUrlKey(
   mode: GalleryMode,
-  group: Pick<GalleryGroup, 'key' | 'label'>,
+  group: Pick<GalleryGroup, "key" | "label">,
 ): string {
-  if (mode === 'effect') {
+  if (mode === "effect") {
     return group.key;
   }
   return artistUrlKeyFromIdentity(group.key, group.label);
@@ -174,17 +183,20 @@ export function effectNameLookup(
   // humanising fallback used to read `.replace` straight off it. The model
   // functions no longer pass a missing slug, but a lookup that throws on one
   // is a trap for the next caller rather than a guard against a bad row.
-  return (slug: string | undefined) => (slug ? map.get(slug) ?? slug.replace(/-/g, ' ') : '');
+  return (slug: string | undefined) =>
+    slug ? (map.get(slug) ?? slug.replace(/-/g, " ")) : "";
 }
 
 /** Effect article href builder, tolerant of a trailing slash on the prefix. */
 export function effectHrefBuilder(
-  prefix = '/effects',
+  prefix = "/effects",
   linkableEffectSlugs?: ReadonlySet<string>,
 ): (slug: string) => string | undefined {
-  const base = (prefix || '/effects').replace(/\/$/, '');
+  const base = (prefix || "/effects").replace(/\/$/, "");
   return (slug: string) =>
-    !linkableEffectSlugs || linkableEffectSlugs.has(slug) ? `${base}/${slug}` : undefined;
+    !linkableEffectSlugs || linkableEffectSlugs.has(slug)
+      ? `${base}/${slug}`
+      : undefined;
 }
 
 /** First date-ish token in a `date_info.value`: year, year-month, or full date. */
@@ -199,10 +211,10 @@ const WORK_DATE_TOKEN = /\d{4}(?:-\d{2}){0,2}/;
  * rather than guessing from the ingest timestamp.
  */
 export function workDateMs(
-  row: Pick<PublicGalleryReplicationPreview, 'date_info'>,
+  row: Pick<PublicGalleryReplicationPreview, "date_info">,
 ): number | null {
   const info = row.date_info;
-  if (!info || info.kind === 'unknown' || !info.value) return null;
+  if (!info || info.kind === "unknown" || !info.value) return null;
   const token = WORK_DATE_TOKEN.exec(info.value)?.[0];
   if (!token) return null;
   const parsed = Date.parse(token);
@@ -215,9 +227,11 @@ export function workDateMs(
  * low-fidelity image, so it neither belongs with the videos it imitates nor
  * ahead of the crisp stills it degrades next to.
  */
-function mediaTier(row: Pick<PublicGalleryReplicationPreview, 'type' | 'format'>): number {
-  if (row.type === 'video') return 0;
-  return row.format?.toLowerCase() === 'gif' ? 2 : 1;
+function mediaTier(
+  row: Pick<PublicGalleryReplicationPreview, "type" | "format">,
+): number {
+  if (row.type === "video") return 0;
+  return row.format?.toLowerCase() === "gif" ? 2 : 1;
 }
 
 /**
@@ -230,7 +244,7 @@ function mediaTier(row: Pick<PublicGalleryReplicationPreview, 'type' | 'format'>
 export function sortWithinGroup<
   T extends Pick<
     PublicGalleryReplicationPreview,
-    'title' | 'type' | 'format' | 'created_at' | 'order_index' | 'date_info'
+    "title" | "type" | "format" | "created_at" | "order_index" | "date_info"
   >,
 >(items: readonly T[]): T[] {
   return [...items].sort((a, b) => {
@@ -247,9 +261,10 @@ export function sortWithinGroup<
     if (at !== null && bt !== null && at !== bt) return bt - at;
     if ((at === null) !== (bt === null)) return at === null ? 1 : -1;
     if (at === null && bt === null) {
-      const ac = Date.parse(a.created_at ?? '');
-      const bc = Date.parse(b.created_at ?? '');
-      if (Number.isFinite(ac) && Number.isFinite(bc) && ac !== bc) return bc - ac;
+      const ac = Date.parse(a.created_at ?? "");
+      const bc = Date.parse(b.created_at ?? "");
+      if (Number.isFinite(ac) && Number.isFinite(bc) && ac !== bc)
+        return bc - ac;
     }
 
     return a.title.localeCompare(b.title);
@@ -260,14 +275,17 @@ function tally(items: PublicGalleryReplicationPreview[]) {
   let imageCount = 0;
   let videoCount = 0;
   for (const item of items) {
-    if (item.type === 'video') videoCount += 1;
+    if (item.type === "video") videoCount += 1;
     else imageCount += 1;
   }
   return { imageCount, videoCount };
 }
 
-export function matchesType(replication: PublicGalleryReplicationPreview, filter: GalleryTypeFilter): boolean {
-  return filter === 'all' || replication.type === filter;
+export function matchesType(
+  replication: PublicGalleryReplicationPreview,
+  filter: GalleryTypeFilter,
+): boolean {
+  return filter === "all" || replication.type === filter;
 }
 
 /** Free-text search across artist, effect name, and title. */
@@ -289,7 +307,7 @@ export function matchesQuery(
     replication.effect_slug,
   ]
     .filter(Boolean)
-    .join(' ')
+    .join(" ")
     .toLowerCase();
   return haystack.includes(needle);
 }
@@ -311,7 +329,9 @@ function toExternalArtistUrl(value: string | undefined): string | undefined {
 
   try {
     const url = new URL(value);
-    return url.protocol === 'http:' || url.protocol === 'https:' ? value : undefined;
+    return url.protocol === "http:" || url.protocol === "https:"
+      ? value
+      : undefined;
   } catch {
     return undefined;
   }
@@ -338,10 +358,10 @@ function toExternalArtistUrl(value: string | undefined): string | undefined {
  *
  * Works of a withheld effect never reach this grouping — see
  * `isWithheldFromArtistViews`. Filtering here rather than at each call site is
- * what keeps the gallery's artist mode, its swipe deck and every
+ * what keeps the gallery's artist mode, expanded viewer, and every
  * `/replications/artist/<key>` page saying the same thing: an artist left
- * holding nothing has no group, so they have no rail, no deck card, and no
- * page (`resolveGalleryFocus` finds no group and the route 404s).
+ * holding nothing has no group, so they have no rail, viewer group, or page
+ * (`resolveGalleryFocus` finds no group and the route 404s).
  */
 export function groupByArtist(
   replications: PublicGalleryReplicationPreview[],
@@ -364,7 +384,7 @@ export function groupByArtist(
           key === UNATTRIBUTED_KEY
             ? undefined
             : getPublicRoutePath({
-                family: 'replicationArtist',
+                family: "replicationArtist",
                 params: { key: artistUrlKeyFromIdentity(key, label) },
               }),
         externalUrl: toExternalArtistUrl(replication.artist_url),
@@ -407,8 +427,8 @@ export function groupByArtist(
     // Unattributed always sinks to the bottom.
     if (a.key === UNATTRIBUTED_KEY) return 1;
     if (b.key === UNATTRIBUTED_KEY) return -1;
-    if (sort === 'alpha') return a.label.localeCompare(b.label);
-    if (sort === 'video-first') {
+    if (sort === "alpha") return a.label.localeCompare(b.label);
+    if (sort === "video-first") {
       // Hard tier: video-having artists above image-only artists; the plain
       // count order decides everything within a tier.
       const tier = Number(b.videoCount > 0) - Number(a.videoCount > 0);
@@ -496,7 +516,9 @@ export interface GalleryCounts {
   videos: number;
 }
 
-export function countGallery(replications: PublicGalleryReplicationPreview[]): GalleryCounts {
+export function countGallery(
+  replications: PublicGalleryReplicationPreview[],
+): GalleryCounts {
   const artists = new Set<string>();
   const effects = new Set<string>();
   let images = 0;
@@ -509,8 +531,14 @@ export function countGallery(replications: PublicGalleryReplicationPreview[]): G
     if (replication.effect_slug) {
       effects.add(replication.effect_slug);
     }
-    if (replication.type === 'video') videos += 1;
+    if (replication.type === "video") videos += 1;
     else images += 1;
   }
-  return { total: replications.length, artists: artists.size, effects: effects.size, images, videos };
+  return {
+    total: replications.length,
+    artists: artists.size,
+    effects: effects.size,
+    images,
+    videos,
+  };
 }

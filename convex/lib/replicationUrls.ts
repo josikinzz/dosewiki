@@ -9,6 +9,8 @@ export async function resolveReplicationUrls(
     storage_id: string;
     thumbnail_storage_id?: string;
     preview_storage_id?: string;
+    motion_storage_id?: string;
+    motion_poster_storage_id?: string;
     url?: string;
     thumbnail_url?: string;
   },
@@ -17,6 +19,8 @@ export async function resolveReplicationUrls(
   let url = null;
   let thumbnail_url = null;
   let preview_url = null;
+  let motion_url = null;
+  let motion_poster_url = null;
 
   if (!isPlaceholderStorageId(rep.storage_id)) {
     try {
@@ -48,7 +52,23 @@ export async function resolveReplicationUrls(
     }
   }
 
-  return { url, thumbnail_url, preview_url };
+  if (!isPlaceholderStorageId(rep.motion_storage_id)) {
+    try {
+      motion_url = await ctx.storage.getUrl(rep.motion_storage_id!);
+    } catch {
+      // Motion renditions deliberately have no direct-URL fallback.
+    }
+  }
+
+  if (!isPlaceholderStorageId(rep.motion_poster_storage_id)) {
+    try {
+      motion_poster_url = await ctx.storage.getUrl(rep.motion_poster_storage_id!);
+    } catch {
+      // Motion posters deliberately have no direct-URL fallback.
+    }
+  }
+
+  return { url, thumbnail_url, preview_url, motion_url, motion_poster_url };
 }
 
 /** Resolve each distinct storage ID at most once during one query invocation. */

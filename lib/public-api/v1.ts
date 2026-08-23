@@ -118,6 +118,8 @@ export function projectPublicApiReplication(replication: GalleryReplication) {
     url: replication.url,
     ...(replication.thumbnail_url ? { thumbnail_url: replication.thumbnail_url } : {}),
     ...(replication.preview_url ? { preview_url: replication.preview_url } : {}),
+    ...(replication.motion_url ? { motion_url: replication.motion_url } : {}),
+    ...(replication.motion_poster_url ? { motion_poster_url: replication.motion_poster_url } : {}),
     ...(replication.width ? { width: replication.width } : {}),
     ...(replication.height ? { height: replication.height } : {}),
     format: replication.format,

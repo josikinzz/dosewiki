@@ -3,8 +3,8 @@ import {
   type GalleryArtistSort,
   type GalleryMode,
   type GalleryTypeFilter,
-} from '@/features/effects/gallery/galleryModel';
-import { getPublicRoutePath } from '@/utils/publicRouteIdentity';
+} from "@/features/effects/gallery/galleryModel";
+import { getPublicRoutePath } from "@/utils/publicRouteIdentity";
 
 /**
  * The gallery's URL contract (PRD T7 / prototype P4): focus is a path, filters
@@ -21,7 +21,10 @@ import { getPublicRoutePath } from '@/utils/publicRouteIdentity';
  * producing an unrepresentable state.
  */
 
-export const REPLICATIONS_PATH = '/replications';
+export const REPLICATIONS_PATH = "/replications";
+export const REPLICATION_VIEWER_PARAM = "viewer";
+
+const REPLICATION_SLUG_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 
 export interface GalleryBrowseState {
   view: GalleryMode;
@@ -31,9 +34,9 @@ export interface GalleryBrowseState {
 }
 
 export const GALLERY_BROWSE_DEFAULTS: GalleryBrowseState = {
-  view: 'artist',
-  query: '',
-  type: 'all',
+  view: "artist",
+  query: "",
+  type: "all",
   sort: DEFAULT_GALLERY_ARTIST_SORT,
 };
 
@@ -44,35 +47,68 @@ export interface GalleryFocus {
   key: string;
 }
 
-type ParamsLike = Pick<URLSearchParams, 'get'>;
+type ParamsLike = Pick<URLSearchParams, "get">;
 
-export function parseGalleryBrowseState(params: ParamsLike): GalleryBrowseState {
-  const type = params.get('type');
-  const sort = params.get('sort');
+export function parseGalleryBrowseState(
+  params: ParamsLike,
+): GalleryBrowseState {
+  const type = params.get("type");
+  const sort = params.get("sort");
   return {
-    view: params.get('view') === 'effect' ? 'effect' : 'artist',
-    query: params.get('q') ?? '',
-    type: type === 'image' || type === 'video' ? type : 'all',
-    sort: sort === 'alpha' || sort === 'count' ? sort : DEFAULT_GALLERY_ARTIST_SORT,
+    view: params.get("view") === "effect" ? "effect" : "artist",
+    query: params.get("q") ?? "",
+    type: type === "image" || type === "video" ? type : "all",
+    sort:
+      sort === "alpha" || sort === "count" ? sort : DEFAULT_GALLERY_ARTIST_SORT,
   };
 }
 
-export function buildGalleryBrowseUrl(state: Partial<GalleryBrowseState> = {}): string {
+/** Parse the active overlay work; invalid values fail closed. */
+export function parseReplicationViewerSlug(params: ParamsLike): string | null {
+  const slug = params.get(REPLICATION_VIEWER_PARAM);
+  return slug && REPLICATION_SLUG_PATTERN.test(slug) ? slug : null;
+}
+
+function relativeUrl(url: URL): string {
+  return `${url.pathname}${url.search}${url.hash}`;
+}
+
+/** Add or replace the active viewer work without disturbing source state. */
+export function buildReplicationViewerUrl(
+  sourceUrl: string,
+  slug: string,
+): string {
+  const url = new URL(sourceUrl, "https://dose.wiki");
+  if (!REPLICATION_SLUG_PATTERN.test(slug)) return relativeUrl(url);
+  url.searchParams.set(REPLICATION_VIEWER_PARAM, slug);
+  return relativeUrl(url);
+}
+
+/** Remove only the overlay work, preserving collection filters and focus. */
+export function closeReplicationViewerUrl(sourceUrl: string): string {
+  const url = new URL(sourceUrl, "https://dose.wiki");
+  url.searchParams.delete(REPLICATION_VIEWER_PARAM);
+  return relativeUrl(url);
+}
+
+export function buildGalleryBrowseUrl(
+  state: Partial<GalleryBrowseState> = {},
+): string {
   const params = new URLSearchParams();
-  if (state.view === 'effect') {
-    params.set('view', 'effect');
+  if (state.view === "effect") {
+    params.set("view", "effect");
   }
   if (state.query && state.query.trim()) {
-    params.set('q', state.query);
+    params.set("q", state.query);
   }
-  if (state.type === 'image' || state.type === 'video') {
-    params.set('type', state.type);
+  if (state.type === "image" || state.type === "video") {
+    params.set("type", state.type);
   }
   // `sort` only drives the by-artist grouping, but it survives in the URL
   // across a round trip through effect view so toggling back does not silently
   // lose the reader's ordering.
-  if (state.sort === 'alpha' || state.sort === 'count') {
-    params.set('sort', state.sort);
+  if (state.sort === "alpha" || state.sort === "count") {
+    params.set("sort", state.sort);
   }
   const query = params.toString();
   return query ? `${REPLICATIONS_PATH}?${query}` : REPLICATIONS_PATH;
@@ -80,15 +116,21 @@ export function buildGalleryBrowseUrl(state: Partial<GalleryBrowseState> = {}): 
 
 export function buildGalleryFocusUrl(
   focus: GalleryFocus,
-  state: Partial<Pick<GalleryBrowseState, 'type'>> = {},
+  state: Partial<Pick<GalleryBrowseState, "type">> = {},
 ): string {
   const base =
-    focus.kind === 'artist'
-      ? getPublicRoutePath({ family: 'replicationArtist', params: { key: focus.key } })
-      : getPublicRoutePath({ family: 'replicationEffect', params: { slug: focus.key } });
+    focus.kind === "artist"
+      ? getPublicRoutePath({
+          family: "replicationArtist",
+          params: { key: focus.key },
+        })
+      : getPublicRoutePath({
+          family: "replicationEffect",
+          params: { slug: focus.key },
+        });
   const params = new URLSearchParams();
-  if (state.type === 'image' || state.type === 'video') {
-    params.set('type', state.type);
+  if (state.type === "image" || state.type === "video") {
+    params.set("type", state.type);
   }
   const query = params.toString();
   return query ? `${base}?${query}` : base;

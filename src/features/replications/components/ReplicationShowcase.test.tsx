@@ -10,7 +10,31 @@ import {
 } from "./showcaseModel";
 
 vi.mock("@/components/common/AppImage", () => ({
-  AppImage: ({ src, alt }: { src: string; alt: string }) => <img src={src} alt={alt} />,
+  AppImage: ({ src, alt }: { src: string; alt: string }) => (
+    <img src={src} alt={alt} />
+  ),
+}));
+
+vi.mock("@/features/replications/viewer/ReplicationViewerOverlay", () => ({
+  ReplicationViewerOverlay: ({
+    collection,
+    initialSlug,
+    onOpenChange,
+  }: {
+    collection: { label: string };
+    initialSlug: string;
+    onOpenChange: (open: boolean) => void;
+  }) => (
+    <div
+      data-testid="replication-viewer"
+      data-collection-label={collection.label}
+      data-initial-slug={initialSlug}
+    >
+      <button type="button" onClick={() => onOpenChange(false)}>
+        Close viewer
+      </button>
+    </div>
+  ),
 }));
 
 const work = (overrides: Partial<ShowcaseWork> = {}): ShowcaseWork => ({
@@ -66,7 +90,72 @@ describe("ReplicationShowcase", () => {
     // preview) the href above stays the bare canonical permalink.
     expect(
       screen.getByRole("link", { name: /Drifting \(wood grain\)/ }),
-    ).toHaveAttribute("href", "/replications/drifting-wood-grain?set=substance:lsd");
+    ).toHaveAttribute(
+      "href",
+      "/replications/drifting-wood-grain?set=substance:lsd",
+    );
+  });
+
+  it("opens the shared viewer over the article and preserves the permanent link", () => {
+    const pushState = vi.spyOn(window.history, "pushState");
+    render(
+      <ReplicationShowcase
+        works={[work(), secondWork]}
+        substanceSlug="lsd"
+        collectionLabel="LSD replications"
+      />,
+    );
+
+    const entry = screen.getByRole("link", {
+      name: /Drifting \(wood grain\).*Open/,
+    });
+    expect(entry).toHaveAttribute(
+      "href",
+      "/replications/drifting-wood-grain?set=substance:lsd",
+    );
+    fireEvent.click(entry);
+
+    expect(screen.getByTestId("replication-viewer")).toHaveAttribute(
+      "data-initial-slug",
+      "drifting-wood-grain",
+    );
+    expect(screen.getByTestId("replication-viewer")).toHaveAttribute(
+      "data-collection-label",
+      "LSD replications",
+    );
+    expect(pushState).toHaveBeenCalledWith(
+      expect.objectContaining({ replicationViewer: true }),
+      "",
+      expect.stringContaining("viewer=drifting-wood-grain"),
+    );
+    fireEvent.click(screen.getByRole("button", { name: "Close viewer" }));
+    expect(screen.queryByTestId("replication-viewer")).toBeNull();
+    pushState.mockRestore();
+  });
+
+  it("scopes effect-article links and overflow to the effect collection", () => {
+    render(
+      <ReplicationShowcase
+        works={[work(), secondWork]}
+        totalCount={5}
+        effectSlug="drifting"
+      />,
+    );
+
+    expect(
+      screen.getByRole("link", { name: /Drifting \(wood grain\).*Open/ }),
+    ).toHaveAttribute(
+      "href",
+      "/replications/drifting-wood-grain?set=effect:drifting",
+    );
+    expect(
+      screen.getByRole("link", {
+        name: "3 more replications in this effect's playlist",
+      }),
+    ).toHaveAttribute(
+      "href",
+      "/replications/effect/drifting?viewer=drifting-wood-grain",
+    );
   });
 
   it("moves focus with arrows without activating, and activates on Enter", () => {
@@ -114,21 +203,38 @@ describe("ReplicationShowcase", () => {
     const stage = screen.getByRole("tabpanel");
 
     fireEvent.touchStart(stage, { touches: [{ clientX: 200, clientY: 100 }] });
-    fireEvent.touchEnd(stage, { changedTouches: [{ clientX: 80, clientY: 105 }] });
-    expect(screen.getAllByRole("tab")[1]).toHaveAttribute("aria-selected", "true");
+    fireEvent.touchEnd(stage, {
+      changedTouches: [{ clientX: 80, clientY: 105 }],
+    });
+    expect(screen.getAllByRole("tab")[1]).toHaveAttribute(
+      "aria-selected",
+      "true",
+    );
 
     fireEvent.touchStart(stage, { touches: [{ clientX: 80, clientY: 100 }] });
-    fireEvent.touchEnd(stage, { changedTouches: [{ clientX: 220, clientY: 100 }] });
-    expect(screen.getAllByRole("tab")[0]).toHaveAttribute("aria-selected", "true");
+    fireEvent.touchEnd(stage, {
+      changedTouches: [{ clientX: 220, clientY: 100 }],
+    });
+    expect(screen.getAllByRole("tab")[0]).toHaveAttribute(
+      "aria-selected",
+      "true",
+    );
 
     // A mostly-vertical drag is a page scroll, not a swipe.
     fireEvent.touchStart(stage, { touches: [{ clientX: 200, clientY: 100 }] });
-    fireEvent.touchEnd(stage, { changedTouches: [{ clientX: 140, clientY: 300 }] });
-    expect(screen.getAllByRole("tab")[0]).toHaveAttribute("aria-selected", "true");
+    fireEvent.touchEnd(stage, {
+      changedTouches: [{ clientX: 140, clientY: 300 }],
+    });
+    expect(screen.getAllByRole("tab")[0]).toHaveAttribute(
+      "aria-selected",
+      "true",
+    );
   });
 
   it("closes the rail with a +N gallery link when the corpus outgrows the cap", () => {
-    render(<ReplicationShowcase works={[work(), secondWork]} totalCount={89} />);
+    render(
+      <ReplicationShowcase works={[work(), secondWork]} totalCount={89} />,
+    );
 
     const overflow = screen.getByRole("link", {
       name: "87 more replications in the gallery",
@@ -141,7 +247,11 @@ describe("ReplicationShowcase", () => {
 
   it("points the +N overflow at the substance's playlist page when an article owns it", () => {
     render(
-      <ReplicationShowcase works={[work(), secondWork]} totalCount={89} substanceSlug="lsd" />,
+      <ReplicationShowcase
+        works={[work(), secondWork]}
+        totalCount={89}
+        substanceSlug="lsd"
+      />,
     );
 
     // The playlist page is the real destination for "the rest of this
@@ -149,7 +259,10 @@ describe("ReplicationShowcase", () => {
     const overflow = screen.getByRole("link", {
       name: "87 more replications in this substance's playlist",
     });
-    expect(overflow).toHaveAttribute("href", "/replications/substance/lsd");
+    expect(overflow).toHaveAttribute(
+      "href",
+      "/replications/substance/lsd?viewer=drifting-wood-grain",
+    );
   });
 
   it("plays on demand and pauses again, with the gate closed", () => {
@@ -178,10 +291,9 @@ describe("ReplicationShowcase", () => {
 
   it("links the artist to their contributor profile, external site as fallback", () => {
     render(<ReplicationShowcase works={[work()]} />);
-    expect(screen.getByRole("link", { name: "Chelsea Morgan" })).toHaveAttribute(
-      "href",
-      "/contributors/chelsea",
-    );
+    expect(
+      screen.getByRole("link", { name: "Chelsea Morgan" }),
+    ).toHaveAttribute("href", "/contributors/chelsea");
   });
 
   it("opens an unclaimed credit's own site in a new tab", () => {
@@ -202,7 +314,9 @@ describe("ReplicationShowcase", () => {
 
   it("renders an unlinkable credit as plain text", () => {
     render(<ReplicationShowcase works={[secondWork]} />);
-    expect(screen.queryByRole("link", { name: "StingrayZ" })).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("link", { name: "StingrayZ" }),
+    ).not.toBeInTheDocument();
     expect(screen.getByText(/by StingrayZ/)).toBeInTheDocument();
   });
 
@@ -210,13 +324,24 @@ describe("ReplicationShowcase", () => {
     render(<ReplicationShowcase works={[work(), secondWork]} />);
 
     fireEvent.click(screen.getByRole("button", { name: "Next replication" }));
-    expect(screen.getAllByRole("tab")[1]).toHaveAttribute("aria-selected", "true");
+    expect(screen.getAllByRole("tab")[1]).toHaveAttribute(
+      "aria-selected",
+      "true",
+    );
 
     fireEvent.click(screen.getByRole("button", { name: "Next replication" }));
-    expect(screen.getAllByRole("tab")[0]).toHaveAttribute("aria-selected", "true");
+    expect(screen.getAllByRole("tab")[0]).toHaveAttribute(
+      "aria-selected",
+      "true",
+    );
 
-    fireEvent.click(screen.getByRole("button", { name: "Previous replication" }));
-    expect(screen.getAllByRole("tab")[1]).toHaveAttribute("aria-selected", "true");
+    fireEvent.click(
+      screen.getByRole("button", { name: "Previous replication" }),
+    );
+    expect(screen.getAllByRole("tab")[1]).toHaveAttribute(
+      "aria-selected",
+      "true",
+    );
   });
 
   it("hides the arrows when only one work exists", () => {
@@ -237,13 +362,21 @@ describe("ReplicationShowcase", () => {
     const { container } = render(<ReplicationShowcase works={[video]} />);
 
     fireEvent.click(screen.getByRole("button", { name: "Play Tracers loop" }));
-    expect((container.querySelector("video") as HTMLVideoElement).muted).toBe(true);
+    expect((container.querySelector("video") as HTMLVideoElement).muted).toBe(
+      true,
+    );
 
-    fireEvent.click(screen.getByRole("button", { name: "Unmute Tracers loop" }));
-    expect((container.querySelector("video") as HTMLVideoElement).muted).toBe(false);
+    fireEvent.click(
+      screen.getByRole("button", { name: "Unmute Tracers loop" }),
+    );
+    expect((container.querySelector("video") as HTMLVideoElement).muted).toBe(
+      false,
+    );
 
     fireEvent.click(screen.getByRole("button", { name: "Mute Tracers loop" }));
-    expect((container.querySelector("video") as HTMLVideoElement).muted).toBe(true);
+    expect((container.querySelector("video") as HTMLVideoElement).muted).toBe(
+      true,
+    );
   });
 });
 

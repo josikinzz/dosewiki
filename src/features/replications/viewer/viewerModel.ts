@@ -1,9 +1,14 @@
-import type { ReplicationWithUrl } from '@/types/replications';
-import type { EffectCategoryLink } from '@/features/effects/pages/replicationSubject';
+import type { ReplicationType, ReplicationWithUrl } from "@/types/replications";
+import type {
+  GalleryGroup,
+  GalleryMode,
+} from "@/features/effects/gallery/galleryModel";
+import { artistPageHrefForWork } from "@/features/replications/galleryFocus";
+import type { EffectCategoryLink } from "@/features/effects/pages/replicationSubject";
 import {
   orderContributorReplications,
   orderEffectReplications,
-} from '@/features/effects/gallery/replicationDetailModel';
+} from "@/features/effects/gallery/replicationDetailModel";
 
 /**
  * The walk the replication viewer moves through and how it is chosen.
@@ -18,7 +23,7 @@ import {
  */
 
 /** Which body of work the viewer is walking. */
-export type ReplicationViewerScope = 'artist' | 'effect' | 'substance';
+export type ReplicationViewerScope = "artist" | "effect" | "substance";
 
 export interface ReplicationViewerItem {
   replication: ReplicationWithUrl;
@@ -37,6 +42,29 @@ export interface ReplicationViewerItem {
   avatarUrl: string | null;
 }
 
+export interface ReplicationViewerMedia {
+  slug: string;
+  title: string;
+  artist: string;
+  type: ReplicationType;
+  format: string;
+  url: string;
+  thumbnail_url?: string;
+  preview_url?: string;
+  motion_url?: string;
+  motion_poster_url?: string;
+  width?: number;
+  height?: number;
+  duration?: number;
+}
+
+export interface ReplicationViewerMediaItem extends Omit<
+  ReplicationViewerItem,
+  "replication"
+> {
+  replication: ReplicationViewerMedia;
+}
+
 export interface ReplicationViewerSet {
   scope: ReplicationViewerScope;
   /**
@@ -51,6 +79,37 @@ export interface ReplicationViewerSet {
   items: ReplicationViewerItem[];
 }
 
+export type ReplicationViewerCollectionKind =
+  | ReplicationViewerScope
+  | "gallery";
+export type ReplicationViewerGrouping = "none" | "artist" | "effect";
+
+export interface ReplicationViewerGroup {
+  key: string;
+  label: string;
+  items: ReplicationViewerMediaItem[];
+}
+
+/**
+ * The reconstructable collection behind the expanded overlay. Named
+ * substance/effect/artist collections have one group; Gallery collections
+ * preserve their active artist/effect grouping.
+ */
+export interface ReplicationViewerCollection {
+  sourcePath: string;
+  label: string;
+  kind: ReplicationViewerCollectionKind;
+  grouping: ReplicationViewerGrouping;
+  groups: ReplicationViewerGroup[];
+}
+
+export interface ReplicationViewerPosition {
+  groupIndex: number;
+  itemIndex: number;
+}
+
+export type ReplicationViewerDirection = -1 | 1;
+
 export interface ReplicationViewerSetInput {
   slug: string;
   /**
@@ -60,7 +119,7 @@ export interface ReplicationViewerSetInput {
    * URL, an artist playlist page); the old artist-preferred default is
    * retired.
    */
-  scope?: Extract<ReplicationViewerScope, 'artist' | 'effect'>;
+  scope?: Extract<ReplicationViewerScope, "artist" | "effect">;
   /**
    * The artist's works backing an `artist` scope request. A credit that
    * resolves to no body of work arrives here as an empty set, and the effect
@@ -105,7 +164,7 @@ export interface ReplicationViewerSetInput {
  */
 export function selectReplicationViewerSet({
   slug,
-  scope = 'effect',
+  scope = "effect",
   artistWorks = [],
   artistName,
   artistOrder,
@@ -114,12 +173,12 @@ export function selectReplicationViewerSet({
   galleryOrder,
   toItem,
 }: ReplicationViewerSetInput): ReplicationViewerSet {
-  if (scope === 'artist' && artistName) {
+  if (scope === "artist" && artistName) {
     const byArtist = orderContributorReplications(artistWorks, artistOrder);
 
     if (byArtist.length > 1 && byArtist.some((work) => work.slug === slug)) {
       return {
-        scope: 'artist',
+        scope: "artist",
         scopeLabel: artistName,
         items: byArtist.map(toItem),
       };
@@ -127,15 +186,135 @@ export function selectReplicationViewerSet({
   }
 
   return {
-    scope: 'effect',
+    scope: "effect",
     scopeLabel: effectName,
     items: orderEffectReplications(effectWorks, galleryOrder).map(toItem),
   };
 }
 
 /** Index of `slug` in the walk, -1 when the active item is not in the set. */
-export function findViewerIndex(set: ReplicationViewerSet, slug: string): number {
+export function findViewerIndex(
+  set: ReplicationViewerSet,
+  slug: string,
+): number {
   return set.items.findIndex((item) => item.replication.slug === slug);
+}
+
+/** Locate a work in a normalized collection. */
+export function findViewerPosition(
+  collection: ReplicationViewerCollection,
+  slug: string,
+): ReplicationViewerPosition | null {
+  for (
+    let groupIndex = 0;
+    groupIndex < collection.groups.length;
+    groupIndex += 1
+  ) {
+    const itemIndex = collection.groups[groupIndex].items.findIndex(
+      (item) => item.replication.slug === slug,
+    );
+    if (itemIndex >= 0) return { groupIndex, itemIndex };
+  }
+  return null;
+}
+
+/** Finite horizontal navigation within the active group. */
+export function moveViewerWork(
+  collection: ReplicationViewerCollection,
+  position: ReplicationViewerPosition,
+  direction: ReplicationViewerDirection,
+): ReplicationViewerPosition | null {
+  const group = collection.groups[position.groupIndex];
+  if (!group) return null;
+  const itemIndex = position.itemIndex + direction;
+  return itemIndex >= 0 && itemIndex < group.items.length
+    ? { groupIndex: position.groupIndex, itemIndex }
+    : null;
+}
+
+/**
+ * Finite vertical navigation between Gallery groups. A remembered slug wins
+ * when it still belongs to the destination group; first visits start at zero.
+ */
+export function moveViewerGroup(
+  collection: ReplicationViewerCollection,
+  position: ReplicationViewerPosition,
+  direction: ReplicationViewerDirection,
+  rememberedSlugByGroup: Readonly<Record<string, string>> = {},
+): ReplicationViewerPosition | null {
+  if (collection.grouping === "none") return null;
+  const groupIndex = position.groupIndex + direction;
+  const group = collection.groups[groupIndex];
+  if (!group || group.items.length === 0) return null;
+  const rememberedSlug = rememberedSlugByGroup[group.key];
+  const rememberedIndex = rememberedSlug
+    ? group.items.findIndex((item) => item.replication.slug === rememberedSlug)
+    : -1;
+  return { groupIndex, itemIndex: rememberedIndex >= 0 ? rememberedIndex : 0 };
+}
+
+/** Normalize the existing server-selected playlist into a single group. */
+export function viewerCollectionFromSet(
+  set: ReplicationViewerSet,
+  sourcePath: string,
+): ReplicationViewerCollection {
+  const label =
+    set.scope === "artist"
+      ? set.scopeLabel
+        ? `Works by ${set.scopeLabel}`
+        : "Unattributed works"
+      : set.scopeLabel
+        ? `${set.scopeLabel} replications`
+        : "Replications";
+  return {
+    sourcePath,
+    label,
+    kind: set.scope,
+    grouping: "none",
+    groups: [
+      {
+        key: `${set.scope}:${set.scopeLabel ?? "replications"}`,
+        label,
+        items: set.items,
+      },
+    ],
+  };
+}
+
+/** Normalize the Gallery's current artist/effect grouping for the overlay. */
+export function viewerCollectionFromGalleryGroups(
+  groups: readonly GalleryGroup[],
+  grouping: GalleryMode,
+  sourcePath: string,
+  effectNameBySlug: (slug: string) => string = (slug) =>
+    slug.replace(/-/g, " "),
+): ReplicationViewerCollection {
+  return {
+    sourcePath,
+    label:
+      grouping === "artist"
+        ? "Replications by artist"
+        : "Replications by effect",
+    kind: "gallery",
+    grouping,
+    groups: groups.map((group) => ({
+      key: group.key,
+      label: group.label,
+      items: group.items.map((replication) => ({
+        replication,
+        effectName: replication.effect_slug
+          ? effectNameBySlug(replication.effect_slug)
+          : null,
+        effectSlug: replication.effect_slug ?? null,
+        effectCategories: [],
+        artistProfileHref:
+          grouping === "artist"
+            ? (group.href ?? null)
+            : artistPageHrefForWork(replication),
+        avatarUrl: null,
+      })),
+    })),
+  };
 }
 
 /**
@@ -146,10 +325,10 @@ export function findViewerIndex(set: ReplicationViewerSet, slug: string): number
  */
 export function describeViewerSet(set: ReplicationViewerSet): string {
   if (!set.scopeLabel) {
-    return 'More replications';
+    return "More replications";
   }
 
-  return set.scope === 'artist'
+  return set.scope === "artist"
     ? `More by ${set.scopeLabel}`
     : `More replications of ${set.scopeLabel}`;
 }

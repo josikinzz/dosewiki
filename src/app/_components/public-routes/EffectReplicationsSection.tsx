@@ -4,6 +4,7 @@ import { proseLinkClassName } from "@/components/common/ProseLink";
 import { MediaPlaceholder } from "@/components/layout/PublicFeedbackPrimitives";
 import { ReplicationGallery } from "@/features/effects/components/ReplicationGallery";
 import { getPublicRoutePath } from "@/utils/publicRouteIdentity";
+import { buildReplicationViewerUrl } from "@/features/replications/galleryUrlState";
 import { getPublicReplicationsByEffect } from "@server/convex/publicData";
 
 export async function EffectReplicationsSection({
@@ -29,14 +30,21 @@ export async function EffectReplicationsSection({
           effectSlug={effectSlug}
         />
         {replications.length > 0 ? (
-          // A real destination, not a viewer mode: the effect's playlist page
-          // opens the immersive viewer at the first work and is shareable.
+          // The collection page remains underneath the deep-linked overlay,
+          // so closing returns to a complete, shareable effect playlist.
           <p className="mt-4 text-sm">
             <Link
-              href={getPublicRoutePath({ family: "replicationEffect", params: { slug: effectSlug } })}
+              href={buildReplicationViewerUrl(
+                getPublicRoutePath({
+                  family: "replicationEffect",
+                  params: { slug: effectSlug },
+                }),
+                replications[0].slug,
+              )}
               className={proseLinkClassName}
             >
-              View all {replications.length} replication{replications.length === 1 ? "" : "s"} in the immersive viewer
+              Browse all {replications.length} replication
+              {replications.length === 1 ? "" : "s"}
             </Link>
           </p>
         ) : null}

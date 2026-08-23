@@ -114,6 +114,11 @@ export const updatePreviewStorageIds = mutation({
   handler: recovery.updatePreviewStorageIdsHandler,
 });
 
+export const updateMotionStorageIds = mutation({
+  args: validators.updateMotionStorageIdsArgs.fields,
+  handler: recovery.updateMotionStorageIdsHandler,
+});
+
 export const getResolvedById = query({
   args: validators.getResolvedByIdArgs.fields,
   handler: recovery.getResolvedByIdHandler,

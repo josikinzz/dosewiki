@@ -1,13 +1,21 @@
-import { act, fireEvent, render, screen, within } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
-import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
-import type { MouseEvent as ReactMouseEvent } from 'react';
-import type { GalleryReplication } from '@/types/replications';
-import type { GalleryGroup } from '@/features/effects/gallery/galleryModel';
+import { act, fireEvent, render, screen, within } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
+import {
+  afterEach,
+  beforeAll,
+  beforeEach,
+  describe,
+  expect,
+  it,
+  vi,
+} from "vitest";
+import type { MouseEvent as ReactMouseEvent } from "react";
+import type { GalleryReplication } from "@/types/replications";
+import type { GalleryGroup } from "@/features/effects/gallery/galleryModel";
 import {
   ReplicationsGalleryExplorer,
   type ReplicationsGalleryExplorerProps,
-} from './ReplicationsGalleryExplorer';
+} from "./ReplicationsGalleryExplorer";
 
 const navMocks = vi.hoisted(() => ({
   push: vi.fn(),
@@ -15,7 +23,7 @@ const navMocks = vi.hoisted(() => ({
   params: new URLSearchParams(),
 }));
 
-vi.mock('next/navigation', () => ({
+vi.mock("next/navigation", () => ({
   useRouter: () => ({ push: navMocks.push, replace: navMocks.replace }),
   useSearchParams: () => navMocks.params,
 }));
@@ -40,7 +48,7 @@ beforeAll(() => {
 // The mock surfaces the explorer's prop wiring (byline policy, compact phone
 // captions, the deck-open handler) and stays an anchor so tap fallthrough to
 // the detail link is observable via defaultPrevented.
-vi.mock('@/features/effects/gallery/GalleryMediaTile', () => ({
+vi.mock("@/features/effects/gallery/GalleryMediaTile", () => ({
   GalleryMediaTile: ({
     replication,
     showByline,
@@ -67,7 +75,7 @@ vi.mock('@/features/effects/gallery/GalleryMediaTile', () => ({
 // The rail's scroll affordances are its own concern; this mock surfaces what
 // the explorer forwards (tileBylines/mobileCompact/onTileOpen) plus the
 // heading link and per-item tiles the layout tests assert against.
-vi.mock('@/features/effects/gallery/MediaRail', () => ({
+vi.mock("@/features/effects/gallery/MediaRail", () => ({
   MediaRail: ({
     group,
     viewAllHref,
@@ -79,7 +87,10 @@ vi.mock('@/features/effects/gallery/MediaRail', () => ({
     viewAllHref: string;
     tileBylines?: boolean;
     mobileCompact?: boolean;
-    onTileOpen?: (event: ReactMouseEvent, replication: GalleryReplication) => void;
+    onTileOpen?: (
+      event: ReactMouseEvent,
+      replication: GalleryReplication,
+    ) => void;
   }) => (
     <section
       data-testid="rail"
@@ -88,7 +99,11 @@ vi.mock('@/features/effects/gallery/MediaRail', () => ({
       data-view-all={viewAllHref}
       aria-label={group.label}
     >
-      {group.href ? <a href={group.href}>{group.label}</a> : <span>{group.label}</span>}
+      {group.href ? (
+        <a href={group.href}>{group.label}</a>
+      ) : (
+        <span>{group.label}</span>
+      )}
       {group.items.map((item) => (
         <a
           key={item._id}
@@ -103,28 +118,26 @@ vi.mock('@/features/effects/gallery/MediaRail', () => ({
   ),
 }));
 
-// The deck's swiping, scroll lock, and Escape handling are its own contract;
-// here only the explorer's open/close wiring and initial position matter.
-vi.mock('./components/ReplicationsSwipeDeck', () => ({
-  ReplicationsSwipeDeck: ({
-    groups,
-    initialGroupIndex,
-    initialWorkIndex,
-    onClose,
+// The viewer's media, dialog focus, and gestures have their own tests; this
+// mock exposes collection identity, initial work, and close wiring.
+vi.mock("./viewer/ReplicationViewerOverlay", () => ({
+  ReplicationViewerOverlay: ({
+    collection,
+    initialSlug,
+    onOpenChange,
   }: {
-    groups: GalleryGroup[];
-    initialGroupIndex?: number;
-    initialWorkIndex?: number;
-    onClose: () => void;
+    collection: { label: string; groups: unknown[] };
+    initialSlug: string;
+    onOpenChange: (open: boolean) => void;
   }) => (
     <div
-      data-testid="swipe-deck"
-      data-group-count={groups.length}
-      data-group-index={String(initialGroupIndex)}
-      data-work-index={String(initialWorkIndex)}
+      data-testid="replication-viewer"
+      data-collection-label={collection.label}
+      data-group-count={collection.groups.length}
+      data-initial-slug={initialSlug}
     >
-      <button type="button" onClick={onClose}>
-        Close deck
+      <button type="button" onClick={() => onOpenChange(false)}>
+        Close viewer
       </button>
     </div>
   ),
@@ -138,34 +151,37 @@ function rep(overrides: Partial<GalleryReplication> = {}): GalleryReplication {
     _creationTime: seq,
     slug: `slug-${seq}`,
     title: `Work ${seq}`,
-    artist: 'Chelsea Morgan',
-    type: 'image',
+    artist: "Chelsea Morgan",
+    type: "image",
     storage_id: `store-${seq}`,
-    effect_slug: 'geometry',
-    format: 'jpg',
-    created_at: '2024-01-01T00:00:00.000Z',
+    effect_slug: "geometry",
+    format: "jpg",
+    created_at: "2024-01-01T00:00:00.000Z",
     url: `https://cdn.test/${seq}.jpg`,
     ...overrides,
   };
 }
 
 const effects = [
-  { slug: 'geometry', name: 'Geometry', tags: [] },
-  { slug: 'drifting', name: 'Drifting', tags: [] },
+  { slug: "geometry", name: "Geometry", tags: [] },
+  { slug: "drifting", name: "Drifting", tags: [] },
 ];
 
 const contributorDirectory = [
-  { key: 'chelseamorgan', displayName: 'Chelsea Morgan', aliases: [] },
+  { key: "chelseamorgan", displayName: "Chelsea Morgan", aliases: [] },
 ];
 
 const corpus = [
-  rep({ artist: 'Chelsea Morgan', type: 'image' }),
-  rep({ artist: 'Chelsea Morgan', type: 'video', effect_slug: 'drifting' }),
-  rep({ artist: 'Chelsea Morgan', type: 'image' }),
-  rep({ artist: 'Aria', type: 'image' }),
+  rep({ artist: "Chelsea Morgan", type: "image" }),
+  rep({ artist: "Chelsea Morgan", type: "video", effect_slug: "drifting" }),
+  rep({ artist: "Chelsea Morgan", type: "image" }),
+  rep({ artist: "Aria", type: "image" }),
 ];
 
-function renderExplorer(params: string, props: Partial<ReplicationsGalleryExplorerProps> = {}) {
+function renderExplorer(
+  params: string,
+  props: Partial<ReplicationsGalleryExplorerProps> = {},
+) {
   navMocks.params = new URLSearchParams(params);
   return render(
     <ReplicationsGalleryExplorer
@@ -179,7 +195,7 @@ function renderExplorer(params: string, props: Partial<ReplicationsGalleryExplor
 
 /** The explorer only reads `matches`, so a stub this thin is faithful. */
 function stubMatchMedia(matches: boolean) {
-  vi.stubGlobal('matchMedia', vi.fn().mockReturnValue({ matches }));
+  vi.stubGlobal("matchMedia", vi.fn().mockReturnValue({ matches }));
 }
 
 beforeEach(() => {
@@ -190,265 +206,333 @@ beforeEach(() => {
 afterEach(() => {
   vi.useRealTimers();
   vi.unstubAllGlobals();
+  vi.restoreAllMocks();
 });
 
-describe('URL → rendered state', () => {
-  it('renders the default browse state from the bare path', () => {
-    renderExplorer('');
+describe("URL → rendered state", () => {
+  it("renders the default browse state from the bare path", () => {
+    renderExplorer("");
 
-    expect(screen.getByRole('radio', { name: 'By artist' })).toHaveAttribute('data-state', 'on');
-    expect(screen.getByRole('radio', { name: 'All' })).toHaveAttribute('data-state', 'on');
+    expect(screen.getByRole("radio", { name: "By artist" })).toHaveAttribute(
+      "data-state",
+      "on",
+    );
+    expect(screen.getByRole("radio", { name: "All" })).toHaveAttribute(
+      "data-state",
+      "on",
+    );
     // Video-first is the default artist order (T-8), so its pill is lit.
-    expect(screen.getByRole('radio', { name: 'Videos first' })).toHaveAttribute('data-state', 'on');
+    expect(screen.getByRole("radio", { name: "Videos first" })).toHaveAttribute(
+      "data-state",
+      "on",
+    );
     // The spotlight row is gone: density-first, media starts immediately.
-    expect(screen.queryByText('Spotlight')).toBeNull();
+    expect(screen.queryByText("Spotlight")).toBeNull();
   });
 
-  it('reproduces a pasted ?view=effect&type=video&sort=alpha state exactly', () => {
-    renderExplorer('view=effect&type=video&sort=alpha');
+  it("reproduces a pasted ?view=effect&type=video&sort=alpha state exactly", () => {
+    renderExplorer("view=effect&type=video&sort=alpha");
 
-    expect(screen.getByRole('radio', { name: 'By effect' })).toHaveAttribute('data-state', 'on');
-    expect(screen.getByRole('radio', { name: 'Videos' })).toHaveAttribute('data-state', 'on');
+    expect(screen.getByRole("radio", { name: "By effect" })).toHaveAttribute(
+      "data-state",
+      "on",
+    );
+    expect(screen.getByRole("radio", { name: "Videos" })).toHaveAttribute(
+      "data-state",
+      "on",
+    );
     // One video total: too thin for a rail, so it pools straight into the
     // masonry — and with no rails above it, the "More effects" heading is
     // dropped rather than describing everything as "more".
-    expect(screen.getByText('Work 2')).toBeInTheDocument();
-    expect(screen.queryByRole('heading', { name: 'More effects' })).toBeNull();
+    expect(screen.getByText("Work 2")).toBeInTheDocument();
+    expect(screen.queryByRole("heading", { name: "More effects" })).toBeNull();
   });
 
-  it('renders ?q= as live search results with the query in the box', () => {
-    renderExplorer('q=drifting');
+  it("renders ?q= as live search results with the query in the box", () => {
+    renderExplorer("q=drifting");
 
-    expect(screen.getByRole('textbox', { name: 'Search replications' })).toHaveValue('drifting');
+    expect(
+      screen.getByRole("textbox", { name: "Search replications" }),
+    ).toHaveValue("drifting");
     expect(screen.getByText(/1 result for/)).toBeInTheDocument();
   });
 });
 
-describe('un-carded gallery chrome', () => {
-  it('renders the section without card chrome, keeping only width and rhythm', () => {
-    renderExplorer('');
+describe("un-carded gallery chrome", () => {
+  it("renders the section without card chrome, keeping only width and rhythm", () => {
+    renderExplorer("");
 
-    const section = screen.getByRole('region', { name: 'Replications gallery' });
-    expect(section.className).toContain('max-w-7xl');
+    const section = screen.getByRole("region", {
+      name: "Replications gallery",
+    });
+    expect(section.className).toContain("max-w-7xl");
     // The frosted control bar is now the only elevated element; the section
     // itself must not read as a card.
     expect(section.className).not.toMatch(/rounded|border|shadow|bg-/);
   });
 
-  it('renders the corpus summary exactly once, visible at every breakpoint', () => {
-    renderExplorer('');
+  it("renders the corpus summary exactly once, visible at every breakpoint", () => {
+    renderExplorer("");
 
     // getByText throws on duplicates, so this also proves the md:hidden twin
     // and the in-bar span are gone.
-    const summary = screen.getByText('4 works · 2 artists · 2 effects');
+    const summary = screen.getByText("4 works · 2 artists · 2 effects");
     expect(summary.className).not.toMatch(/md:hidden|md:inline/);
   });
 });
 
-describe('hybrid browse layout', () => {
-  it('gives artists with three or more works a rail and pools the rest', () => {
-    renderExplorer('');
+describe("hybrid browse layout", () => {
+  it("gives artists with three or more works a rail and pools the rest", () => {
+    renderExplorer("");
 
     // Chelsea (3 works) earns a rail whose heading links to her Artist Page.
-    expect(screen.getByRole('link', { name: 'Chelsea Morgan' })).toHaveAttribute(
-      'href',
-      '/replications/artist/chelsea-morgan',
-    );
+    expect(
+      screen.getByRole("link", { name: "Chelsea Morgan" }),
+    ).toHaveAttribute("href", "/replications/artist/chelsea-morgan");
     // Aria (1 work) gets no rail of her own…
-    expect(screen.queryByText('Aria')).toBeNull();
+    expect(screen.queryByText("Aria")).toBeNull();
     // …her work pools into the "More artists" masonry instead.
-    expect(screen.getByRole('heading', { name: 'More artists' })).toBeInTheDocument();
-    expect(screen.getByText('Work 4')).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", { name: "More artists" }),
+    ).toBeInTheDocument();
+    expect(screen.getByText("Work 4")).toBeInTheDocument();
   });
 
-  it('rails effects with enough works and pools thin effects behind them', () => {
-    renderExplorer('view=effect');
+  it("rails effects with enough works and pools thin effects behind them", () => {
+    renderExplorer("view=effect");
 
     // Geometry (3 works) keeps a rail; Drifting (1 work) pools below it.
-    expect(screen.getByRole('link', { name: 'Geometry' })).toHaveAttribute(
-      'href',
-      '/effects/geometry',
+    expect(screen.getByRole("link", { name: "Geometry" })).toHaveAttribute(
+      "href",
+      "/effects/geometry",
     );
-    expect(screen.getByRole('heading', { name: 'More effects' })).toBeInTheDocument();
-    expect(screen.getByText('Work 2')).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", { name: "More effects" }),
+    ).toBeInTheDocument();
+    expect(screen.getByText("Work 2")).toBeInTheDocument();
   });
 
-  it('keeps the artist-sort control mounted but hidden in effect mode, so the bar cannot jitter', () => {
-    renderExplorer('view=effect');
+  it("keeps the artist-sort control mounted but hidden in effect mode, so the bar cannot jitter", () => {
+    renderExplorer("view=effect");
 
-    expect(screen.getByText('Most works').closest('[aria-hidden="true"]')).not.toBeNull();
+    expect(
+      screen.getByText("Most works").closest('[aria-hidden="true"]'),
+    ).not.toBeNull();
   });
 });
 
-describe('byline and compact wiring', () => {
-  it('drops rail bylines in artist mode but keeps them on pooled tiles', () => {
-    renderExplorer('');
+describe("byline and compact wiring", () => {
+  it("drops rail bylines in artist mode but keeps them on pooled tiles", () => {
+    renderExplorer("");
 
     // The artist rail already names its artist in the heading.
-    const rail = screen.getByTestId('rail');
-    expect(rail).toHaveAttribute('data-tile-bylines', 'false');
-    expect(rail).toHaveAttribute('data-mobile-compact', 'true');
+    const rail = screen.getByTestId("rail");
+    expect(rail).toHaveAttribute("data-tile-bylines", "false");
+    expect(rail).toHaveAttribute("data-mobile-compact", "true");
     // The pooled masonry mixes artists, so each tile keeps its attribution.
-    const pooled = screen.getByTestId('tile');
-    expect(pooled).toHaveAttribute('data-show-byline', 'true');
-    expect(pooled).toHaveAttribute('data-mobile-compact', 'true');
+    const pooled = screen.getByTestId("tile");
+    expect(pooled).toHaveAttribute("data-show-byline", "true");
+    expect(pooled).toHaveAttribute("data-mobile-compact", "true");
   });
 
-  it('keeps rail bylines in effect mode, where the heading names no artist', () => {
-    renderExplorer('view=effect');
+  it("keeps rail bylines in effect mode, where the heading names no artist", () => {
+    renderExplorer("view=effect");
 
-    expect(screen.getByTestId('rail')).toHaveAttribute('data-tile-bylines', 'true');
+    expect(screen.getByTestId("rail")).toHaveAttribute(
+      "data-tile-bylines",
+      "true",
+    );
   });
 
-  it('hides bylines across an artist focus view', () => {
-    renderExplorer('', { focus: { kind: 'artist', key: 'chelsea-morgan' } });
+  it("hides bylines across an artist focus view", () => {
+    renderExplorer("", { focus: { kind: "artist", key: "chelsea-morgan" } });
 
-    const tiles = screen.getAllByTestId('tile');
+    const tiles = screen.getAllByTestId("tile");
     expect(tiles.length).toBeGreaterThan(0);
     for (const tile of tiles) {
-      expect(tile).toHaveAttribute('data-show-byline', 'false');
+      expect(tile).toHaveAttribute("data-show-byline", "false");
     }
   });
 
-  it('keeps bylines in an effect focus view', () => {
-    renderExplorer('', { focus: { kind: 'effect', key: 'geometry' } });
+  it("keeps bylines in an effect focus view", () => {
+    renderExplorer("", { focus: { kind: "effect", key: "geometry" } });
 
-    for (const tile of screen.getAllByTestId('tile')) {
-      expect(tile).toHaveAttribute('data-show-byline', 'true');
+    for (const tile of screen.getAllByTestId("tile")) {
+      expect(tile).toHaveAttribute("data-show-byline", "true");
     }
   });
 
-  it('keeps bylines on search results', () => {
-    renderExplorer('q=drifting');
+  it("keeps bylines on search results", () => {
+    renderExplorer("q=drifting");
 
-    expect(screen.getByTestId('tile')).toHaveAttribute('data-show-byline', 'true');
+    expect(screen.getByTestId("tile")).toHaveAttribute(
+      "data-show-byline",
+      "true",
+    );
   });
 });
 
-describe('fullscreen deck', () => {
-  it('never auto-opens, even on a phone-shaped touch viewport', () => {
+describe("canonical replication viewer", () => {
+  it("does not auto-open on any viewport", () => {
     stubMatchMedia(true);
-    renderExplorer('');
+    renderExplorer("");
 
-    expect(screen.queryByTestId('swipe-deck')).toBeNull();
+    expect(screen.queryByTestId("replication-viewer")).toBeNull();
   });
 
-  it('opens at the first work from the Watch button and closes back to the intact grid', () => {
-    renderExplorer('');
+  it("opens the collection at its first work and closes over the intact gallery", () => {
+    const pushState = vi.spyOn(window.history, "pushState");
+    renderExplorer("");
 
-    const watch = screen.getByRole('button', { name: 'Open the fullscreen gallery' });
-    expect(watch).toHaveTextContent('Watch');
-    fireEvent.click(watch);
+    fireEvent.click(
+      screen.getByRole("button", { name: "Open replication viewer" }),
+    );
 
-    const deck = screen.getByTestId('swipe-deck');
-    expect(deck).toHaveAttribute('data-group-index', '0');
-    expect(deck).toHaveAttribute('data-work-index', '0');
-    // The deck overlays the grid rather than replacing it, so the grid (and
-    // its scroll position) survives a watch session.
-    expect(screen.getByRole('textbox', { name: 'Search replications' })).toBeInTheDocument();
+    const viewer = screen.getByTestId("replication-viewer");
+    expect(viewer).toHaveAttribute("data-initial-slug", "slug-2");
+    expect(viewer).toHaveAttribute(
+      "data-collection-label",
+      "Replications by artist",
+    );
+    expect(pushState).toHaveBeenCalledWith(
+      expect.objectContaining({ replicationViewer: true }),
+      "",
+      expect.stringContaining("viewer=slug-2"),
+    );
+    expect(
+      screen.getByRole("textbox", { name: "Search replications" }),
+    ).toBeInTheDocument();
 
-    fireEvent.click(screen.getByRole('button', { name: 'Close deck' }));
-    expect(screen.queryByTestId('swipe-deck')).toBeNull();
-    expect(screen.getByRole('textbox', { name: 'Search replications' })).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Close viewer" }));
+    expect(screen.queryByTestId("replication-viewer")).toBeNull();
+    expect(
+      screen.getByRole("textbox", { name: "Search replications" }),
+    ).toBeInTheDocument();
   });
 
-  it('opens the deck at the tapped work on a phone viewport instead of navigating', () => {
-    stubMatchMedia(true);
-    renderExplorer('');
-
-    // Work 4 is Aria's only work; the deck orders artists by count, so she is
-    // the second deck group and the work is her first.
-    const navigated = fireEvent.click(screen.getByText('Work 4'));
-
-    expect(navigated).toBe(false); // preventDefault: the tap stays in-page
-    const deck = screen.getByTestId('swipe-deck');
-    expect(deck).toHaveAttribute('data-group-index', '1');
-    expect(deck).toHaveAttribute('data-work-index', '0');
-  });
-
-  it('opens the deck from rail tiles too, at that artist’s group', () => {
-    stubMatchMedia(true);
-    renderExplorer('');
-
-    fireEvent.click(screen.getAllByTestId('rail-tile')[0]);
-
-    expect(screen.getByTestId('swipe-deck')).toHaveAttribute('data-group-index', '0');
-  });
-
-  it('leaves the tile a plain detail-page link off the phone media query', () => {
+  it("opens the tapped work in-page on phone and desktop viewports", () => {
     stubMatchMedia(false);
-    renderExplorer('');
+    renderExplorer("");
 
-    const navigated = fireEvent.click(screen.getByText('Work 4'));
+    const navigated = fireEvent.click(screen.getByText("Work 4"));
 
-    expect(navigated).toBe(true); // no preventDefault: the anchor navigates
-    expect(screen.queryByTestId('swipe-deck')).toBeNull();
+    expect(navigated).toBe(false);
+    expect(screen.getByTestId("replication-viewer")).toHaveAttribute(
+      "data-initial-slug",
+      "slug-4",
+    );
+  });
+
+  it("opens from rail tiles using the same viewer", () => {
+    renderExplorer("");
+
+    fireEvent.click(screen.getAllByTestId("rail-tile")[0]);
+
+    expect(screen.getByTestId("replication-viewer")).toHaveAttribute(
+      "data-initial-slug",
+      "slug-2",
+    );
+  });
+
+  it("preserves modified clicks as permanent detail-page links", () => {
+    renderExplorer("");
+
+    const navigated = fireEvent.click(screen.getByText("Work 4"), {
+      ctrlKey: true,
+    });
+
+    expect(navigated).toBe(true);
+    expect(screen.queryByTestId("replication-viewer")).toBeNull();
+  });
+
+  it("opens a deep-linked work from the viewer query parameter", () => {
+    renderExplorer("viewer=slug-4");
+
+    expect(screen.getByTestId("replication-viewer")).toHaveAttribute(
+      "data-initial-slug",
+      "slug-4",
+    );
   });
 });
 
-describe('effects withheld from artist browsing', () => {
+describe("effects withheld from artist browsing", () => {
   const withCreature = [
     ...corpus,
-    rep({ artist: 'Giger', title: 'Withheld work', effect_slug: 'unspeakable-horrors' }),
+    rep({
+      artist: "Giger",
+      title: "Withheld work",
+      effect_slug: "unspeakable-horrors",
+    }),
   ];
 
-  it('drops the work, its artist, and their share of the header counts', () => {
-    renderExplorer('', { replications: withCreature });
+  it("drops the work, its artist, and their share of the header counts", () => {
+    renderExplorer("", { replications: withCreature });
 
-    expect(screen.queryByText('Withheld work')).toBeNull();
-    expect(screen.queryByText('Giger')).toBeNull();
+    expect(screen.queryByText("Withheld work")).toBeNull();
+    expect(screen.queryByText("Giger")).toBeNull();
     // Four works, not five: the header describes what artist browsing can
     // actually show, or it is claiming a work the grid will never render.
-    expect(screen.getByText('4 works · 2 artists · 2 effects')).toBeInTheDocument();
+    expect(
+      screen.getByText("4 works · 2 artists · 2 effects"),
+    ).toBeInTheDocument();
   });
 
-  it('keeps the work and the whole corpus count under effect browsing', () => {
-    renderExplorer('view=effect', { replications: withCreature });
+  it("keeps the work and the whole corpus count under effect browsing", () => {
+    renderExplorer("view=effect", { replications: withCreature });
 
-    expect(screen.getByText('Withheld work')).toBeInTheDocument();
-    expect(screen.getByText('5 works · 3 artists · 3 effects')).toBeInTheDocument();
+    expect(screen.getByText("Withheld work")).toBeInTheDocument();
+    expect(
+      screen.getByText("5 works · 3 artists · 3 effects"),
+    ).toBeInTheDocument();
   });
 
-  it('searches the whole corpus in either mode, and counts it that way', () => {
+  it("searches the whole corpus in either mode, and counts it that way", () => {
     // A search is a deliberate ask, not idle paging, and it returns the same
     // rows whichever grouping is toggled — so the counts go corpus-wide too.
-    renderExplorer('q=withheld', { replications: withCreature });
+    renderExplorer("q=withheld", { replications: withCreature });
 
-    expect(screen.getByText('Withheld work')).toBeInTheDocument();
-    expect(screen.getByText('5 works · 3 artists · 3 effects')).toBeInTheDocument();
+    expect(screen.getByText("Withheld work")).toBeInTheDocument();
+    expect(
+      screen.getByText("5 works · 3 artists · 3 effects"),
+    ).toBeInTheDocument();
   });
 });
 
-describe('state → URL', () => {
-  it('pushes the mode toggle as navigation between browse URLs', async () => {
+describe("state → URL", () => {
+  it("pushes the mode toggle as navigation between browse URLs", async () => {
     const user = userEvent.setup();
-    renderExplorer('');
+    renderExplorer("");
 
-    await user.click(screen.getByRole('radio', { name: 'By effect' }));
+    await user.click(screen.getByRole("radio", { name: "By effect" }));
 
-    expect(navMocks.push).toHaveBeenCalledWith('/replications?view=effect', { scroll: false });
-  });
-
-  it('pushes the media-type filter into the query string', async () => {
-    const user = userEvent.setup();
-    renderExplorer('view=effect');
-
-    await user.click(screen.getByRole('radio', { name: 'Videos' }));
-
-    expect(navMocks.push).toHaveBeenCalledWith('/replications?view=effect&type=video', {
+    expect(navMocks.push).toHaveBeenCalledWith("/replications?view=effect", {
       scroll: false,
     });
   });
 
-  it('debounces typed search into router.replace, preserving other params', () => {
+  it("pushes the media-type filter into the query string", async () => {
+    const user = userEvent.setup();
+    renderExplorer("view=effect");
+
+    await user.click(screen.getByRole("radio", { name: "Videos" }));
+
+    expect(navMocks.push).toHaveBeenCalledWith(
+      "/replications?view=effect&type=video",
+      {
+        scroll: false,
+      },
+    );
+  });
+
+  it("debounces typed search into router.replace, preserving other params", () => {
     // fireEvent, not userEvent: userEvent's async plumbing deadlocks under
     // fake timers, and per-keystroke change events are exactly what the
     // debounce consumes anyway.
     vi.useFakeTimers();
-    renderExplorer('type=video');
-    const input = screen.getByRole('textbox', { name: 'Search replications' });
+    renderExplorer("type=video");
+    const input = screen.getByRole("textbox", { name: "Search replications" });
 
-    for (const value of ['d', 'dri', 'drift']) {
+    for (const value of ["d", "dri", "drift"]) {
       fireEvent.change(input, { target: { value } });
     }
     expect(navMocks.replace).not.toHaveBeenCalled();
@@ -459,40 +543,43 @@ describe('state → URL', () => {
 
     // One write for three keystrokes, carrying the final text.
     expect(navMocks.replace).toHaveBeenCalledTimes(1);
-    expect(navMocks.replace).toHaveBeenCalledWith('/replications?q=drift&type=video', {
-      scroll: false,
-    });
+    expect(navMocks.replace).toHaveBeenCalledWith(
+      "/replications?q=drift&type=video",
+      {
+        scroll: false,
+      },
+    );
   });
 
-  it('shows a pending spinner only while a query write is in the debounce window', () => {
+  it("shows a pending spinner only while a query write is in the debounce window", () => {
     vi.useFakeTimers();
-    renderExplorer('');
-    const input = screen.getByRole('textbox', { name: 'Search replications' });
+    renderExplorer("");
+    const input = screen.getByRole("textbox", { name: "Search replications" });
 
-    expect(screen.queryByTestId('query-write-pending')).toBeNull();
+    expect(screen.queryByTestId("query-write-pending")).toBeNull();
 
-    fireEvent.change(input, { target: { value: 'drift' } });
-    expect(screen.getByTestId('query-write-pending')).toBeInTheDocument();
+    fireEvent.change(input, { target: { value: "drift" } });
+    expect(screen.getByTestId("query-write-pending")).toBeInTheDocument();
 
     act(() => {
       vi.advanceTimersByTime(300);
     });
-    expect(screen.queryByTestId('query-write-pending')).toBeNull();
+    expect(screen.queryByTestId("query-write-pending")).toBeNull();
     expect(navMocks.replace).toHaveBeenCalledTimes(1);
   });
 
-  it('retires the pending spinner when a toggle cancels the scheduled write', () => {
+  it("retires the pending spinner when a toggle cancels the scheduled write", () => {
     vi.useFakeTimers();
-    renderExplorer('');
-    const input = screen.getByRole('textbox', { name: 'Search replications' });
+    renderExplorer("");
+    const input = screen.getByRole("textbox", { name: "Search replications" });
 
-    fireEvent.change(input, { target: { value: 'drift' } });
-    expect(screen.getByTestId('query-write-pending')).toBeInTheDocument();
+    fireEvent.change(input, { target: { value: "drift" } });
+    expect(screen.getByTestId("query-write-pending")).toBeInTheDocument();
 
     // Toggles flush the whole state immediately, cancelling the pending write.
-    fireEvent.click(screen.getByRole('radio', { name: 'By effect' }));
+    fireEvent.click(screen.getByRole("radio", { name: "By effect" }));
 
-    expect(screen.queryByTestId('query-write-pending')).toBeNull();
+    expect(screen.queryByTestId("query-write-pending")).toBeNull();
     act(() => {
       vi.advanceTimersByTime(300);
     });
@@ -500,145 +587,166 @@ describe('state → URL', () => {
   });
 });
 
-describe('focused views', () => {
-  it('renders an artist focus as the Artist Page itself: no self profile link', () => {
-    renderExplorer('', { focus: { kind: 'artist', key: 'chelsea-morgan' } });
+describe("focused views", () => {
+  it("renders an artist focus as the Artist Page itself: no self profile link", () => {
+    renderExplorer("", { focus: { kind: "artist", key: "chelsea-morgan" } });
 
-    expect(screen.getByRole('heading', { name: 'Chelsea Morgan' })).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", { name: "Chelsea Morgan" }),
+    ).toBeInTheDocument();
     // The focus view IS the one artist surface, so nothing here may link to a
     // rival page — neither the old "View profile" nor a self-reference.
-    expect(screen.queryByRole('link', { name: /View profile/ })).toBeNull();
-    expect(screen.getByRole('link', { name: /All artists/ })).toHaveAttribute(
-      'href',
-      '/replications',
+    expect(screen.queryByRole("link", { name: /View profile/ })).toBeNull();
+    expect(screen.getByRole("link", { name: /All artists/ })).toHaveAttribute(
+      "href",
+      "/replications",
     );
   });
 
-  it('renders the identity decoration inside an artist focus only', () => {
+  it("renders the identity decoration inside an artist focus only", () => {
     const identity = <div data-testid="artist-identity">bio and links</div>;
-    const { unmount } = renderExplorer('', {
-      focus: { kind: 'artist', key: 'chelsea-morgan' },
+    const { unmount } = renderExplorer("", {
+      focus: { kind: "artist", key: "chelsea-morgan" },
       focusIdentity: identity,
     });
-    expect(screen.getByTestId('artist-identity')).toBeInTheDocument();
+    expect(screen.getByTestId("artist-identity")).toBeInTheDocument();
     unmount();
 
     // An effect focus never decorates: identity belongs to artists.
-    renderExplorer('', { focus: { kind: 'effect', key: 'drifting' }, focusIdentity: identity });
-    expect(screen.queryByTestId('artist-identity')).toBeNull();
+    renderExplorer("", {
+      focus: { kind: "effect", key: "drifting" },
+      focusIdentity: identity,
+    });
+    expect(screen.queryByTestId("artist-identity")).toBeNull();
   });
 
-  it('renders an unknown artist focus without a profile link', () => {
-    renderExplorer('', { focus: { kind: 'artist', key: 'aria' } });
+  it("renders an unknown artist focus without a profile link", () => {
+    renderExplorer("", { focus: { kind: "artist", key: "aria" } });
 
-    expect(screen.getByRole('heading', { name: 'Aria' })).toBeInTheDocument();
-    expect(screen.queryByRole('link', { name: /View profile/ })).toBeNull();
+    expect(screen.getByRole("heading", { name: "Aria" })).toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: /View profile/ })).toBeNull();
   });
 
-  it('renders an effect focus linking to the effect article', () => {
-    renderExplorer('', { focus: { kind: 'effect', key: 'drifting' } });
+  it("renders an effect focus linking to the effect article", () => {
+    renderExplorer("", { focus: { kind: "effect", key: "drifting" } });
 
-    expect(screen.getByRole('heading', { name: 'Drifting' })).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: /View effect article/ })).toHaveAttribute(
-      'href',
-      '/effects/drifting',
+    expect(
+      screen.getByRole("heading", { name: "Drifting" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("link", { name: /View effect article/ }),
+    ).toHaveAttribute("href", "/effects/drifting");
+    expect(screen.getByRole("link", { name: /All effects/ })).toHaveAttribute(
+      "href",
+      "/replications?view=effect",
     );
-    expect(screen.getByRole('link', { name: /All effects/ })).toHaveAttribute(
-      'href',
-      '/replications?view=effect',
-    );
   });
 
-  it('keeps the focus header when ?type= filters the group empty', () => {
-    renderExplorer('type=video', { focus: { kind: 'artist', key: 'aria' } });
+  it("keeps the focus header when ?type= filters the group empty", () => {
+    renderExplorer("type=video", { focus: { kind: "artist", key: "aria" } });
 
     // Aria has only images; the header must survive so the reader can escape
     // the filter, and the masonry gives way to an explanatory empty state.
-    expect(screen.getByRole('heading', { name: 'Aria' })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Aria" })).toBeInTheDocument();
     expect(screen.getByText(/No videos here/)).toBeInTheDocument();
   });
 
-  it('drops the control bar and corpus stats under focus-only chrome, keeping the focus view', () => {
-    renderExplorer('', { focus: { kind: 'artist', key: 'chelsea-morgan' }, chrome: 'focus-only' });
+  it("drops the control bar and corpus stats under focus-only chrome, keeping the focus view", () => {
+    renderExplorer("", {
+      focus: { kind: "artist", key: "chelsea-morgan" },
+      chrome: "focus-only",
+    });
 
     // The Artist Page is a profile, not a querying surface: no sticky control
     // bar (search, browse-mode, media-type, sort) and no corpus summary.
-    expect(screen.queryByTestId('gallery-control-bar')).toBeNull();
+    expect(screen.queryByTestId("gallery-control-bar")).toBeNull();
     expect(screen.queryByText(/works · .* artists · .* effects/)).toBeNull();
 
     // The focus view itself is untouched: back link, heading, works count, tiles.
-    expect(screen.getByRole('link', { name: /All artists/ })).toBeInTheDocument();
-    expect(screen.getByRole('heading', { name: 'Chelsea Morgan' })).toBeInTheDocument();
-    expect(screen.getByText('3 works')).toBeInTheDocument();
-    expect(screen.getAllByTestId('tile').length).toBe(3);
+    expect(
+      screen.getByRole("link", { name: /All artists/ }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", { name: "Chelsea Morgan" }),
+    ).toBeInTheDocument();
+    expect(screen.getByText("3 works")).toBeInTheDocument();
+    expect(screen.getAllByTestId("tile").length).toBe(3);
   });
 });
 
-describe('one-line control bar', () => {
-  it('renders one non-wrapping row with min-width discipline', () => {
-    renderExplorer('');
+describe("one-line control bar", () => {
+  it("renders one non-wrapping row with min-width discipline", () => {
+    renderExplorer("");
 
-    const bar = screen.getByTestId('gallery-control-bar');
-    expect(bar.className).toContain('flex-nowrap');
-    expect(bar.className).toContain('min-w-0');
-    expect(bar.className.split(/\s+/)).not.toContain('flex-wrap');
+    const bar = screen.getByTestId("gallery-control-bar");
+    expect(bar.className).toContain("flex-nowrap");
+    expect(bar.className).toContain("min-w-0");
+    expect(bar.className.split(/\s+/)).not.toContain("flex-wrap");
   });
 
-  it('expands the phone search button into the focused input and collapses on Escape', async () => {
+  it("expands the phone search button into the focused input and collapses on Escape", async () => {
     const user = userEvent.setup();
-    renderExplorer('');
-    const reveal = screen.getByRole('button', { name: 'Search replications' });
-    expect(reveal).toHaveAttribute('aria-expanded', 'false');
+    renderExplorer("");
+    const reveal = screen.getByRole("button", { name: "Search replications" });
+    expect(reveal).toHaveAttribute("aria-expanded", "false");
 
     await user.click(reveal);
 
-    expect(reveal).toHaveAttribute('aria-expanded', 'true');
-    const input = screen.getByRole('textbox', { name: 'Search replications' });
+    expect(reveal).toHaveAttribute("aria-expanded", "true");
+    const input = screen.getByRole("textbox", { name: "Search replications" });
     expect(input).toHaveFocus();
 
-    await user.keyboard('{Escape}');
-    expect(reveal).toHaveAttribute('aria-expanded', 'false');
+    await user.keyboard("{Escape}");
+    expect(reveal).toHaveAttribute("aria-expanded", "false");
   });
 
-  it('collapses the expanded phone search when the input blurs, keeping the query', async () => {
+  it("collapses the expanded phone search when the input blurs, keeping the query", async () => {
     const user = userEvent.setup();
-    renderExplorer('q=drifting');
-    const reveal = screen.getByRole('button', { name: 'Search replications' });
-    const input = screen.getByRole('textbox', { name: 'Search replications' });
+    renderExplorer("q=drifting");
+    const reveal = screen.getByRole("button", { name: "Search replications" });
+    const input = screen.getByRole("textbox", { name: "Search replications" });
 
     await user.click(reveal);
     fireEvent.blur(input);
 
-    expect(reveal).toHaveAttribute('aria-expanded', 'false');
+    expect(reveal).toHaveAttribute("aria-expanded", "false");
     // Collapse is presentation only — the live query survives it.
-    expect(input).toHaveValue('drifting');
+    expect(input).toHaveValue("drifting");
   });
 
-  it('keeps the browse-mode toggle reachable through the Filters sheet', async () => {
+  it("keeps the browse-mode toggle reachable through the Filters sheet", async () => {
     const user = userEvent.setup();
-    renderExplorer('');
+    renderExplorer("");
 
-    await user.click(screen.getByRole('button', { name: /Filters/ }));
+    await user.click(screen.getByRole("button", { name: /Filters/ }));
 
-    const sheet = screen.getByRole('dialog');
-    await user.click(within(sheet).getByRole('radio', { name: 'By effect' }));
+    const sheet = screen.getByRole("dialog");
+    await user.click(within(sheet).getByRole("radio", { name: "By effect" }));
 
-    expect(navMocks.push).toHaveBeenCalledWith('/replications?view=effect', { scroll: false });
+    expect(navMocks.push).toHaveBeenCalledWith("/replications?view=effect", {
+      scroll: false,
+    });
     // Choosing a mode is the sheet's whole job; it closes on selection.
-    expect(screen.queryByRole('dialog')).toBeNull();
+    expect(screen.queryByRole("dialog")).toBeNull();
   });
 
-  it('keeps every artist sort reachable through the compact menu', async () => {
+  it("keeps every artist sort reachable through the compact menu", async () => {
     const user = userEvent.setup();
-    renderExplorer('');
+    renderExplorer("");
 
-    await user.click(screen.getByRole('button', { name: 'Sort artists' }));
+    await user.click(screen.getByRole("button", { name: "Sort artists" }));
 
     // All three orders travel with the menu, not a two-state cycle.
-    expect(screen.getByRole('menuitemradio', { name: 'Videos first' })).toBeInTheDocument();
-    expect(screen.getByRole('menuitemradio', { name: 'Most works' })).toBeInTheDocument();
-    await user.click(screen.getByRole('menuitemradio', { name: 'A–Z' }));
+    expect(
+      screen.getByRole("menuitemradio", { name: "Videos first" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("menuitemradio", { name: "Most works" }),
+    ).toBeInTheDocument();
+    await user.click(screen.getByRole("menuitemradio", { name: "A–Z" }));
 
-    expect(navMocks.push).toHaveBeenCalledWith('/replications?sort=alpha', { scroll: false });
+    expect(navMocks.push).toHaveBeenCalledWith("/replications?sort=alpha", {
+      scroll: false,
+    });
   });
 });

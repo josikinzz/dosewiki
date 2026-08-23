@@ -7,7 +7,7 @@
  * needed somewhere to live; widening the union is additive and leaves every
  * existing `'video' | 'image'` comparison meaning what it already meant.
  */
-export type ReplicationType = 'video' | 'image' | 'audio';
+export type ReplicationType = "video" | "image" | "audio";
 
 /**
  * What a stored row *is*, as opposed to what it depicts.
@@ -20,7 +20,7 @@ export type ReplicationType = 'video' | 'image' | 'audio';
  * Bristol stool charts, vertebral-column diagrams, molecule figures. It belongs
  * in the media store so its rights travel with it; it is not a replication.
  */
-export type MediaRole = 'replication' | 'figure';
+export type MediaRole = "replication" | "figure";
 
 /**
  * Read a row's role, applying the stored default.
@@ -31,12 +31,12 @@ export type MediaRole = 'replication' | 'figure';
  * once instead of once per consumer.
  */
 export function mediaRole(row: { role?: MediaRole }): MediaRole {
-  return row.role ?? 'replication';
+  return row.role ?? "replication";
 }
 
 /** Whether a stored row should be counted and shown as a replication. */
 export function isReplicationRow(row: { role?: MediaRole }): boolean {
-  return mediaRole(row) === 'replication';
+  return mediaRole(row) === "replication";
 }
 
 /**
@@ -51,10 +51,8 @@ export function isReplicationRow(row: { role?: MediaRole }): boolean {
  *
  * Widen this set together with those branches, never ahead of them.
  */
-const PRESENTABLE_REPLICATION_TYPES: ReadonlySet<ReplicationType> = new Set<ReplicationType>([
-  'image',
-  'video',
-]);
+const PRESENTABLE_REPLICATION_TYPES: ReadonlySet<ReplicationType> =
+  new Set<ReplicationType>(["image", "video"]);
 
 /**
  * Whether the public replication surfaces may publish a stored row.
@@ -92,11 +90,11 @@ export function isPublishableReplication(row: {
  * CC0 article dataset unless an individual item says otherwise.
  */
 export type ReplicationRightsStatus =
-  | 'creator-retained'
-  | 'explicit-license'
-  | 'unknown'
-  | 'permission-granted'
-  | 'public-domain';
+  | "creator-retained"
+  | "explicit-license"
+  | "unknown"
+  | "permission-granted"
+  | "public-domain";
 
 export interface ReplicationRightsMetadata {
   rights_status?: ReplicationRightsStatus;
@@ -110,20 +108,20 @@ export interface ReplicationRightsMetadata {
 }
 
 export type ReplicationDateKind =
-  | 'exact_date'
-  | 'year'
-  | 'range'
-  | 'upper_bound'
-  | 'inferred'
-  | 'unknown';
+  | "exact_date"
+  | "year"
+  | "range"
+  | "upper_bound"
+  | "inferred"
+  | "unknown";
 
 export type ReplicationDateConfidence =
-  | 'high'
-  | 'medium-high'
-  | 'medium'
-  | 'medium-low'
-  | 'low'
-  | 'none';
+  | "high"
+  | "medium-high"
+  | "medium"
+  | "medium-low"
+  | "low"
+  | "none";
 
 /**
  * Best defensible temporal statement for a replication — when the work was
@@ -172,6 +170,13 @@ export interface ReplicationRecord extends ReplicationRightsMetadata {
    * only). Written by scripts/replications/generate-preview-renditions.mjs.
    */
   preview_storage_id?: string;
+  /**
+   * Full-viewer silent video rendition for controllable GIF-like motion.
+   * The original storage_id remains the rights/provenance source.
+   */
+  motion_storage_id?: string;
+  /** Poster paired with motion_storage_id. */
+  motion_poster_storage_id?: string;
   width?: number;
   height?: number;
   format: string;
@@ -194,6 +199,10 @@ export interface ReplicationWithUrl extends ReplicationRecord {
    * view; absence means hover-to-play of the full `url` instead.
    */
   preview_url?: string;
+  /** Resolved full-viewer motion rendition for animated image rows. */
+  motion_url?: string;
+  /** Resolved poster paired with motion_url. */
+  motion_poster_url?: string;
 }
 
 /**
@@ -208,7 +217,7 @@ export interface GalleryReplication extends ReplicationWithUrl {
 /**
  * The slim projection of a {@link GalleryReplication} that the public gallery
  * surfaces (the /replications explorer, its artist/effect focus views, and the
- * swipe deck) actually render. The gallery corpus loader projects the raw
+ * expanded viewer) actually render. The gallery corpus loader projects the raw
  * Convex rows down to this shape (`projectPublicGalleryReplicationPreview` in
  * lib/convex/publicData.replications.ts) before they cross into page props, so
  * storage IDs, rights metadata, and other studio-only fields never serialize
@@ -236,6 +245,10 @@ export interface PublicGalleryReplicationPreview {
   thumbnail_url?: string;
   /** Low-res muted rendition the gallery autoplays in view (video rows). */
   preview_url?: string;
+  /** Full-viewer controllable motion rendition for animated image rows. */
+  motion_url?: string;
+  /** Poster paired with motion_url. */
+  motion_poster_url?: string;
   width?: number;
   height?: number;
   /** Video duration in seconds, shown on the tile's duration badge. */
@@ -275,7 +288,7 @@ export interface LightGalleryItem {
   src: string;
   thumb: string;
   subHtml: string;
-  type: 'image' | 'video';
+  type: "image" | "video";
   width?: number;
   height?: number;
   duration?: number;

@@ -275,8 +275,12 @@ The one public surface for a replication artist: their works browsable gallery-s
 _Avoid_: gallery artist view vs. profile split, artist focus page
 
 **Replication Showcase**:
-The curated carousel inside a substance article's Subjective Effects visual group. Its per-substance Convex-backed curation is separate from the Replication Gallery.
-_Avoid_: substance gallery tab, article replication gallery
+The shared full-frame preview pattern inside substance and effect articles: one prominent work, a compact work strip or count, and an explicit entry into the Replication Viewer. Substance showcases use per-substance Convex-backed curation; effect showcases use the owning effect's collection.
+_Avoid_: substance gallery tab, article replication gallery, competing inline player
+
+**Replication Viewer**:
+The canonical expanded overlay for replication playback and exploration. It preserves the source collection, active work, and gallery grouping in a shareable URL; Close returns to that collection. Single-collection viewers move horizontally through works. Multi-group Gallery views additionally move vertically between the gallery's active artist or effect groups.
+_Avoid_: separate mobile player, unscoped lightbox, fullscreen gallery
 
 **Balanced Quick-Link Rows**:
 The homepage quick-link wrapping rule: row sizes differ by at most one, wider rows come first, and every row is centered (five icons wrap 3+2; four wrap 2+2).
