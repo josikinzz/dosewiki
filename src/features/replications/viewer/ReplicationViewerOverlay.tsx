@@ -308,9 +308,11 @@ export function ReplicationViewerOverlay({
           contentRef.current?.focus();
         }}
         onEscapeKeyDown={(event) => {
-          // The first Escape belongs to the browser when the media stage is
-          // fullscreen. Keep the collection overlay mounted underneath it.
-          if (document.fullscreenElement) event.preventDefault();
+          // Exit native fullscreen first without dismissing the collection.
+          if (document.fullscreenElement) {
+            event.preventDefault();
+            void document.exitFullscreen();
+          }
         }}
         onCloseAutoFocus={(event) => {
           event.preventDefault();
@@ -361,7 +363,7 @@ export function ReplicationViewerOverlay({
           immersiveFallback && "fixed inset-0",
         )}
       >
-        <header className="theme-media-thumbnail-border relative z-10 flex min-h-16 items-center gap-3 border-b bg-black px-4 py-2 pr-16 sm:px-6">
+        <header className="theme-media-thumbnail-border relative z-10 flex min-h-16 items-center gap-3 border-b bg-black px-4 py-2 pr-20 sm:px-6 sm:pr-20">
           <div className="flex min-w-0 flex-1 flex-col gap-0.5 sm:flex-row sm:items-baseline sm:gap-3">
             <DialogTitle className="flex min-w-0 items-baseline gap-1.5 font-display text-sm font-semibold sm:flex-1 sm:text-base">
               <span className="min-w-0 truncate">

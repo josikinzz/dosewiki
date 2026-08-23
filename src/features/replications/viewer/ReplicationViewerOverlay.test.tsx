@@ -231,6 +231,39 @@ describe("ReplicationViewerOverlay", () => {
     expect(screen.getByText("Artist 2/2")).toBeInTheDocument();
     expect(window.location.search).toContain("viewer=work-three");
   });
+  it("exits fullscreen before Escape dismisses the viewer", () => {
+    const onOpenChange = vi.fn();
+    const exitFullscreen = vi.fn().mockResolvedValue(undefined);
+    Object.defineProperty(document, "fullscreenElement", {
+      configurable: true,
+      value: document.body,
+    });
+    Object.defineProperty(document, "exitFullscreen", {
+      configurable: true,
+      value: exitFullscreen,
+    });
+
+    render(
+      <ReplicationViewerOverlay
+        collection={collection}
+        initialSlug="work-one"
+        open
+        onOpenChange={onOpenChange}
+      />,
+    );
+
+    fireEvent.keyDown(
+      screen.getByRole("dialog", { name: /Work One.*Chelsea Morgan/ }),
+      { key: "Escape" },
+    );
+
+    expect(exitFullscreen).toHaveBeenCalledOnce();
+    expect(onOpenChange).not.toHaveBeenCalled();
+    Object.defineProperty(document, "fullscreenElement", {
+      configurable: true,
+      value: null,
+    });
+  });
 
   it("pauses source-page video while open and resumes it after close", async () => {
     const sourceVideo = document.createElement("video");
