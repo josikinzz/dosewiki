@@ -912,6 +912,10 @@ node scripts/replications/&lt;guarded-script&gt;.mjs \
           <article class="panel"><h3>Video comparison</h3><ul><li>Compare duration and container metadata first.</li><li>Use spread-out frame sequences.</li><li>Check audio streams and full sequence completeness.</li></ul></article>
           <article class="panel"><h3>Keeper decision</h3><ul><li>Prefer the most complete defensible source.</li><li>Keep higher effective detail, not dimensions alone.</li><li>Record the rejected twin and reason.</li></ul></article>
         </div>
+        <div class="alert">
+          <div class="alert-icon">↗</div>
+          <div><strong>Use the dedicated visual tagging field guide.</strong><p><a href="VisualTaggingGuideForAgents.html">Open VisualTaggingGuideForAgents.html</a> for frame sampling, open-eye and closed-eye classification, effect confusion checks, and reviewed examples.</p></div>
+        </div>
         <details open><summary>Video delivery contract</summary><div><p>Use H.264 with <code>yuv420p</code> and <code>+faststart</code>. Keep audited masters outside the delivery copy. Preview renditions are muted, short, and capped at 480px.</p></div></details>
         <details><summary>Storage rules</summary><div><p>Store Convex storage IDs on rows. Resolve URLs during reads. Direct URLs remain fallbacks. A foreign storage ID can silently serve the wrong fallback media.</p></div></details>
         <details><summary>Deletion rules</summary><div><p>Deleting a database row does not authorize storage deletion. Keep media objects unless the user explicitly includes them and a recovery path exists.</p></div></details>
@@ -1092,6 +1096,7 @@ npx vitest run --config scripts/test/vitest.workflow.config.ts \
           <div class="source-item"><strong>Credential routing</strong><span><code>docs/agents/convex-credentials.md</code></span></div>
           <div class="source-item"><strong>Deployment routing</strong><span><code>docs/agents/deployment.md</code></span></div>
           <div class="source-item"><strong>Latest effect batch</strong><span><code>scripts/replications/apply-editorial-review-notes-v3.mjs</code></span></div>
+          <div class="source-item"><strong>Visual tagging handbook</strong><span><code>scripts/replications/VisualTaggingGuideForAgents.html</code></span></div>
           <div class="source-item"><strong>Recent release evidence</strong><span><code>work/replication-editorial-review-v3-plan.json</code> and ledger outside the repo</span></div>
         </div>
       </section>

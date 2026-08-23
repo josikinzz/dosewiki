@@ -1,0 +1,785 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light dark">
+  <title>Dose Wiki Visual Replication Tagging Field Guide</title>
+  <style>
+    :root {
+      --bg: #f2eee3;
+      --surface: #fffdf6;
+      --surface-raised: #f8f5e9;
+      --surface-recessed: #e9e5d8;
+      --border: #aaa58f;
+      --pattern: rgba(52, 74, 55, 0.045);
+      --text: #242820;
+      --text-bright: #10150f;
+      --text-dim: #585d50;
+      --moss: #315b3a;
+      --moss-fill: #d6e2d1;
+      --moss-on-fill: #16301c;
+      --berry: #8b2943;
+      --berry-fill: #ead4da;
+      --berry-on-fill: #421321;
+      --amber: #81520a;
+      --amber-fill: #f0dfae;
+      --amber-on-fill: #382100;
+      --blue: #25536a;
+      --blue-fill: #d1e0e6;
+      --blue-on-fill: #12303d;
+      --shadow: 0 16px 44px rgba(38, 43, 34, 0.09);
+      --radius: 14px;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #171b17;
+        --surface: #202620;
+        --surface-raised: #282f27;
+        --surface-recessed: #151a15;
+        --border: #667264;
+        --pattern: rgba(201, 218, 195, 0.035);
+        --text: #e5eadf;
+        --text-bright: #fbfff5;
+        --text-dim: #bdc7b8;
+        --moss: #a8d39f;
+        --moss-fill: #29452d;
+        --moss-on-fill: #efffea;
+        --berry: #f0a3b6;
+        --berry-fill: #5a2533;
+        --berry-on-fill: #fff2f5;
+        --amber: #f1cc74;
+        --amber-fill: #503b14;
+        --amber-on-fill: #fff5da;
+        --blue: #9bc8dc;
+        --blue-fill: #244351;
+        --blue-on-fill: #effaff;
+        --shadow: 0 18px 56px rgba(0, 0, 0, 0.28);
+      }
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      color: var(--text);
+      background:
+        linear-gradient(var(--pattern) 1px, transparent 1px),
+        linear-gradient(90deg, var(--pattern) 1px, transparent 1px),
+        var(--bg);
+      background-size: 32px 32px;
+      font-family: Georgia, "Times New Roman", serif;
+      font-size: 17px;
+      line-height: 1.62;
+    }
+
+    a { color: var(--moss); text-underline-offset: 3px; }
+    a:hover { color: var(--berry); }
+    button, input { font: inherit; }
+    button:focus-visible, input:focus-visible, a:focus-visible, summary:focus-visible {
+      outline: 3px solid var(--amber);
+      outline-offset: 3px;
+    }
+    code, .mono, .eyebrow, nav, .tag, .source, .step-no, .status {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    }
+    code { font-size: 0.86em; overflow-wrap: anywhere; }
+
+    .layout {
+      width: min(1500px, 100%);
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: 260px minmax(0, 1fr);
+      gap: 30px;
+      padding: 22px;
+    }
+
+    nav {
+      position: sticky;
+      top: 22px;
+      height: calc(100vh - 44px);
+      overflow-y: auto;
+      padding: 18px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      background: var(--surface);
+      box-shadow: var(--shadow);
+      font-size: 12px;
+    }
+    nav .plate {
+      display: block;
+      color: var(--berry);
+      font-weight: 800;
+      letter-spacing: 0.13em;
+      text-transform: uppercase;
+      margin-bottom: 10px;
+    }
+    nav h2 {
+      margin: 0 0 16px;
+      color: var(--text-bright);
+      font: 700 19px/1.2 Georgia, serif;
+    }
+    nav a {
+      display: block;
+      padding: 8px 9px;
+      margin: 2px 0;
+      border-left: 2px solid transparent;
+      color: var(--text);
+      text-decoration: none;
+    }
+    nav a:hover { border-left-color: var(--moss); background: var(--moss-fill); color: var(--moss-on-fill); }
+    nav .scope-note {
+      margin-top: 18px;
+      padding-top: 14px;
+      border-top: 1px solid var(--border);
+      color: var(--text-dim);
+      line-height: 1.45;
+    }
+
+    main { min-width: 0; }
+    section { scroll-margin-top: 24px; margin-bottom: 28px; }
+    .paper {
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      background: var(--surface);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+
+    .hero { padding: clamp(28px, 5vw, 72px); position: relative; }
+    .hero::before {
+      content: "FIELD GUIDE 01";
+      position: absolute;
+      top: 18px;
+      right: 22px;
+      color: var(--moss);
+      font: 800 11px/1 ui-monospace, monospace;
+      letter-spacing: 0.14em;
+    }
+    .eyebrow {
+      color: var(--berry);
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+    }
+    h1, h2, h3 { color: var(--text-bright); }
+    h1 { margin: 16px 0 18px; max-width: 820px; font-size: clamp(42px, 7vw, 88px); line-height: 0.94; letter-spacing: -0.045em; }
+    h2 { margin: 0; font-size: clamp(29px, 4vw, 46px); line-height: 1.06; letter-spacing: -0.025em; }
+    h3 { margin: 0 0 8px; font-size: 21px; line-height: 1.18; }
+    .lede { max-width: 760px; margin: 0; font-size: 21px; color: var(--text-dim); }
+    .hero-rule { display: grid; grid-template-columns: 1.25fr 0.75fr; gap: 16px; margin-top: 32px; }
+    .rule-card { padding: 20px; border: 1px solid var(--border); background: var(--surface-raised); min-width: 0; }
+    .rule-card strong { display: block; color: var(--moss); font-size: 23px; margin-bottom: 5px; }
+    .rule-card p { margin: 0; }
+
+    .section-head { padding: 28px 30px 18px; border-bottom: 1px solid var(--border); }
+    .section-head p { max-width: 760px; margin: 10px 0 0; color: var(--text-dim); }
+    .section-body { padding: 26px 30px 32px; }
+    .section-kicker { color: var(--berry); font: 800 11px/1 ui-monospace, monospace; letter-spacing: 0.14em; text-transform: uppercase; margin-bottom: 10px; }
+
+    .alert {
+      display: grid;
+      grid-template-columns: 32px minmax(0, 1fr);
+      gap: 13px;
+      margin: 20px 0;
+      padding: 16px;
+      border: 1px solid var(--border);
+      background: var(--amber-fill);
+      color: var(--amber-on-fill);
+    }
+    .alert .mark { font: 900 19px/1 ui-monospace, monospace; }
+    .alert strong { color: inherit; }
+    .alert p { margin: 3px 0 0; }
+    .alert.berry { background: var(--berry-fill); color: var(--berry-on-fill); }
+    .alert.moss { background: var(--moss-fill); color: var(--moss-on-fill); }
+
+    .process { display: grid; gap: 12px; }
+    .process-step {
+      display: grid;
+      grid-template-columns: 52px minmax(0, 1fr) minmax(220px, 0.55fr);
+      gap: 16px;
+      align-items: start;
+      padding: 18px;
+      border: 1px solid var(--border);
+      background: var(--surface-raised);
+    }
+    .step-no { color: var(--berry); font-size: 27px; font-weight: 900; line-height: 1; }
+    .process-step p { margin: 0; }
+    .gate { padding-left: 14px; border-left: 3px solid var(--moss); color: var(--text-dim); }
+    .gate strong { color: var(--moss); display: block; font: 800 11px/1.2 ui-monospace, monospace; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 5px; }
+
+    .split-gate { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+    .mode-card { padding: 22px; border: 1px solid var(--border); min-width: 0; }
+    .mode-card.open { border-top: 6px solid var(--blue); }
+    .mode-card.closed { border-top: 6px solid var(--berry); }
+    .mode-card h3 { font-size: 27px; }
+    .mode-card ul { margin: 12px 0 0; padding-left: 21px; }
+    .mode-card li + li { margin-top: 7px; }
+    .mode-card .tag { margin-top: 16px; }
+
+    .storyboard { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; margin: 20px 0; }
+    .frame {
+      aspect-ratio: 16 / 10;
+      display: grid;
+      place-items: center;
+      border: 1px solid var(--border);
+      background:
+        radial-gradient(circle at 65% 35%, color-mix(in srgb, var(--berry) 34%, transparent), transparent 28%),
+        linear-gradient(140deg, var(--surface-recessed), var(--moss-fill));
+      color: var(--text-bright);
+      font: 900 clamp(18px, 3vw, 38px)/1 ui-monospace, monospace;
+      position: relative;
+      overflow: hidden;
+    }
+    .frame::after { content: attr(data-label); position: absolute; bottom: 7px; left: 8px; font-size: 10px; letter-spacing: 0.08em; }
+
+    .check-grid, .confusion-grid, .case-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+    .check-card, .confusion, .case { border: 1px solid var(--border); background: var(--surface-raised); min-width: 0; }
+    .check-card, .confusion { padding: 19px; }
+    .check-card ul, .confusion ul { margin: 10px 0 0; padding-left: 20px; }
+    .check-card li + li, .confusion li + li { margin-top: 6px; }
+    .confusion h3 { display: flex; align-items: center; gap: 8px; }
+    .versus { color: var(--berry); font: 800 10px/1 ui-monospace, monospace; text-transform: uppercase; letter-spacing: 0.1em; }
+    .require { color: var(--moss); }
+    .reject { color: var(--berry); }
+
+    .toolbar { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; margin-bottom: 18px; }
+    .toolbar label { font: 800 11px/1 ui-monospace, monospace; text-transform: uppercase; letter-spacing: 0.08em; }
+    .toolbar input {
+      flex: 1 1 280px;
+      min-width: 0;
+      padding: 10px 12px;
+      color: var(--text);
+      background: var(--surface);
+      border: 1px solid var(--border);
+    }
+    .status { color: var(--text-dim); font-size: 11px; }
+
+    .effect-list { display: grid; gap: 10px; }
+    details.effect { border: 1px solid var(--border); background: var(--surface-raised); }
+    details.effect summary { cursor: pointer; padding: 15px 17px; color: var(--text-bright); font-weight: 800; }
+    details.effect > div { padding: 0 17px 17px; }
+    details.effect p { margin: 5px 0; }
+    details.policy { margin-top: 10px; border: 1px solid var(--border); background: var(--surface-raised); }
+    details.policy summary { cursor: pointer; padding: 14px 16px; color: var(--text-bright); font-weight: 800; }
+    details.policy > div { padding: 0 18px 17px; }
+    details.policy ul { margin: 8px 0; padding-left: 20px; }
+    .effect-rule { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .effect-rule strong { display: block; margin-bottom: 4px; font: 800 11px/1.2 ui-monospace, monospace; text-transform: uppercase; letter-spacing: 0.07em; }
+
+    .case-media { width: 100%; aspect-ratio: 16 / 10; object-fit: contain; display: block; background: #0b0d0b; }
+    .case-copy { padding: 17px; }
+    .case-copy p { margin: 6px 0; }
+    .case-copy h3 { overflow-wrap: break-word; }
+    .source { color: var(--text-dim); font-size: 10px; line-height: 1.5; overflow-wrap: anywhere; }
+    .tags { display: flex; flex-wrap: wrap; gap: 6px; margin: 10px 0; }
+    .tag { display: inline-flex; padding: 4px 7px; border: 1px solid var(--border); color: var(--moss); background: var(--surface); font-size: 10px; line-height: 1.2; }
+    .tag.no { color: var(--berry); }
+    .seek-bar { display: flex; flex-wrap: wrap; gap: 7px; padding: 10px; border-top: 1px solid var(--border); background: var(--surface-recessed); }
+    .seek-bar button, .copy-button {
+      cursor: pointer;
+      border: 1px solid var(--border);
+      color: var(--moss-on-fill);
+      background: var(--moss-fill);
+      padding: 6px 9px;
+      font: 800 10px/1 ui-monospace, monospace;
+    }
+
+    .code-shell { margin-top: 18px; border: 1px solid var(--border); background: var(--surface-recessed); }
+    .code-shell header { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 9px 12px; border-bottom: 1px solid var(--border); font: 800 10px/1 ui-monospace, monospace; text-transform: uppercase; letter-spacing: 0.08em; }
+    pre { margin: 0; padding: 17px; overflow: auto; color: var(--text); font: 12px/1.6 ui-monospace, monospace; white-space: pre-wrap; overflow-wrap: anywhere; }
+
+    .scope-table { width: 100%; border-collapse: collapse; font-size: 15px; }
+    .scope-table th, .scope-table td { padding: 12px; border: 1px solid var(--border); text-align: left; vertical-align: top; }
+    .scope-table th { background: var(--surface-recessed); color: var(--text-bright); font: 800 11px/1.2 ui-monospace, monospace; text-transform: uppercase; letter-spacing: 0.07em; }
+
+    .final-checks { display: grid; gap: 8px; }
+    .final-checks label { display: grid; grid-template-columns: 22px minmax(0, 1fr); gap: 10px; align-items: start; padding: 11px 13px; border: 1px solid var(--border); background: var(--surface-raised); }
+    .final-checks input { margin-top: 5px; accent-color: var(--moss); }
+    .final-checks small { display: block; color: var(--text-dim); }
+
+    footer { padding: 20px 4px 38px; color: var(--text-dim); font-size: 12px; }
+    .toast { position: fixed; right: 18px; bottom: 18px; padding: 10px 13px; color: var(--moss-on-fill); background: var(--moss-fill); border: 1px solid var(--border); opacity: 0; transform: translateY(8px); pointer-events: none; transition: 160ms ease; }
+    .toast.show { opacity: 1; transform: translateY(0); }
+
+    @media (max-width: 920px) {
+      .layout { display: block; padding: 0; }
+      nav { position: sticky; top: 0; z-index: 10; height: auto; display: flex; gap: 4px; overflow-x: auto; border-radius: 0; padding: 9px; white-space: nowrap; }
+      nav .plate, nav h2, nav .scope-note { display: none; }
+      nav a { flex: 0 0 auto; border-left: 0; border-bottom: 2px solid transparent; }
+      main { padding: 14px; }
+      .process-step { grid-template-columns: 42px minmax(0, 1fr); }
+      .process-step .gate { grid-column: 2; }
+      .hero-rule, .split-gate, .check-grid, .confusion-grid, .case-grid, .effect-rule { grid-template-columns: 1fr; }
+    }
+
+    @media (max-width: 560px) {
+      body { font-size: 16px; }
+      main { padding: 8px; }
+      .hero::before { display: none; }
+      .hero, .section-head, .section-body { padding-left: 18px; padding-right: 18px; }
+      .storyboard { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .process-step { grid-template-columns: 1fr; }
+      .process-step .gate { grid-column: 1; }
+      .scope-table { font-size: 13px; }
+      .scope-table th, .scope-table td { padding: 8px; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      html { scroll-behavior: auto; }
+      *, *::before, *::after { transition: none !important; }
+    }
+  </style>
+</head>
+<body>
+  <div class="layout">
+    <nav aria-label="Field guide sections">
+      <span class="plate">Dose Wiki specimen manual</span>
+      <h2>Visual tagging</h2>
+      <a href="#start">Start here</a>
+      <a href="#procedure">Procedure</a>
+      <a href="#mode">Open or closed eye</a>
+      <a href="#video">Video frames and audio</a>
+      <a href="#confusions">Common confusions</a>
+      <a href="#effects">Effect rules</a>
+      <a href="#cases">Reviewed cases</a>
+      <a href="#scope">Artist and substance scope</a>
+      <a href="#output">Output contract</a>
+      <a href="#sources">Sources</a>
+      <div class="scope-note">Repository reference only.<br>No skill is installed.<br>No database action runs here.</div>
+    </nav>
+
+    <main>
+      <section id="start" class="paper hero">
+        <div class="eyebrow">Replication operations · visual evidence</div>
+        <h1>Tag the perceptual mechanism, not the aesthetic.</h1>
+        <p class="lede">This field guide converts Josie’s 247 reviewed notes into a repeatable inspection process for images, GIFs, and videos.</p>
+        <div class="hero-rule">
+          <article class="rule-card">
+            <strong>First gate: viewing mode</strong>
+            <p>Decide whether the work alters a visible external world or depicts an imagined environment.</p>
+          </article>
+          <article class="rule-card">
+            <strong>Second gate: evidence</strong>
+            <p>Add an effect only when the media shows its defining mechanism.</p>
+          </article>
+        </div>
+        <div class="alert berry">
+          <div class="mark">!</div>
+          <div><strong>This is not a skill package.</strong><p>Do not copy it into a skills directory. Do not create a <code>SKILL.md</code> from it without a new user request.</p></div>
+        </div>
+      </section>
+
+      <section id="procedure" class="paper">
+        <div class="section-head">
+          <div class="section-kicker">01 · Deterministic pass</div>
+          <h2>Use the same order for every replication.</h2>
+          <p>The order prevents a vivid style, title, artist, or existing tag from anchoring the decision.</p>
+        </div>
+        <div class="section-body">
+          <div class="process">
+            <article class="process-step"><div class="step-no">01</div><div><h3>Bind the identity</h3><p>Record the stable replication ID, slug, artist, media type, and current tags.</p></div><div class="gate"><strong>Complete when</strong>The ID resolves once and the live slug matches.</div></article>
+            <article class="process-step"><div class="step-no">02</div><div><h3>Inspect without the labels</h3><p>View the image at full resolution. Play the complete video once before seeking.</p></div><div class="gate"><strong>Complete when</strong>You can describe what changes without naming an effect.</div></article>
+            <article class="process-step"><div class="step-no">03</div><div><h3>Choose the viewing mode</h3><p>Classify the work as open-eye, closed-eye, immersive, mixed, or uncertain.</p></div><div class="gate"><strong>Complete when</strong>You can identify the external substrate or explain why none exists.</div></article>
+            <article class="process-step"><div class="step-no">04</div><div><h3>Build a video storyboard</h3><p>Start at 15%, 40%, 60%, and 85%. Add enough frames to represent every phase.</p></div><div class="gate"><strong>Complete when</strong>Every distinct visual phase appears in the evidence.</div></article>
+            <article class="process-step"><div class="step-no">05</div><div><h3>Probe and hear the audio</h3><p>Confirm whether an audio stream exists. Listen before choosing distortion or hallucination.</p></div><div class="gate"><strong>Complete when</strong>You can state whether sound transforms a source or introduces an imagined sound.</div></article>
+            <article class="process-step"><div class="step-no">06</div><div><h3>Test effect candidates</h3><p>For each candidate, record the visible requirement and the closest rejected alternative.</p></div><div class="gate"><strong>Complete when</strong>Every proposed tag survives its confusion check.</div></article>
+            <article class="process-step"><div class="step-no">07</div><div><h3>Separate other edits</h3><p>Keep artist credit, substance showcase, rights, deletion, and dating notes outside effect tags.</p></div><div class="gate"><strong>Complete when</strong>Each proposal targets one database surface.</div></article>
+            <article class="process-step"><div class="step-no">08</div><div><h3>Return an ID-keyed proposal</h3><p>Use additive, removal, or explicit set semantics. Include uncertainty and supporting frames.</p></div><div class="gate"><strong>Complete when</strong>A later agent can recheck every change without guessing.</div></article>
+          </div>
+        </div>
+      </section>
+
+      <section id="mode" class="paper">
+        <div class="section-head">
+          <div class="section-kicker">02 · Primary classification</div>
+          <h2>Open-eye and closed-eye effects use different evidence.</h2>
+          <p>The visual style does not determine the mode. The relationship to an external scene does.</p>
+        </div>
+        <div class="section-body">
+          <div class="split-gate">
+            <article class="mode-card open">
+              <div class="eyebrow">External substrate visible</div>
+              <h3>Open-eye</h3>
+              <ul>
+                <li>A room, road, tree, wall, face, or object remains identifiable.</li>
+                <li>The effect changes that existing substrate.</li>
+                <li>Drifting, environmental patterning, and colour shifting can apply.</li>
+                <li>Transformations require one external object becoming another.</li>
+              </ul>
+              <span class="tag">example: autumn-trees-symmetric-vision</span>
+            </article>
+            <article class="mode-card closed">
+              <div class="eyebrow">Imagined environment</div>
+              <h3>Closed-eye</h3>
+              <ul>
+                <li>The work depicts a self-contained hallucinatory field or environment.</li>
+                <li>Geometry can fill the entire field without an external substrate.</li>
+                <li>Internal hallucination can apply to a complete imagined scene.</li>
+                <li>Do not infer open-eye distortions from animation alone.</li>
+              </ul>
+              <span class="tag">example: infinite-torus-space-symmetric-vision</span>
+            </article>
+          </div>
+          <div class="alert moss">
+            <div class="mark">✓</div>
+            <div><strong>Mixed media needs phase-level evidence.</strong><p>A video can move from an external scene into an imagined environment. Record the transition before combining both families.</p></div>
+          </div>
+        </div>
+      </section>
+
+      <section id="video" class="paper">
+        <div class="section-head">
+          <div class="section-kicker">03 · Temporal inspection</div>
+          <h2>One thumbnail cannot represent a video.</h2>
+          <p>Spread frames across time, inspect transitions, and hear the audio. A title card and a climax frame are not the whole sequence.</p>
+        </div>
+        <div class="section-body">
+          <div class="storyboard" aria-label="Recommended frame positions">
+            <div class="frame" data-label="early state">15%</div>
+            <div class="frame" data-label="first development">40%</div>
+            <div class="frame" data-label="second development">60%</div>
+            <div class="frame" data-label="late state">85%</div>
+          </div>
+          <div class="check-grid">
+            <article class="check-card"><h3>Frame coverage</h3><ul><li>Use 15%, 40%, 60%, and 85% as anchor frames.</li><li>Use at least 12 spread frames for short, changing clips.</li><li>Add scene-cut frames and the first and last meaningful frames.</li><li>Use the full frame. Do not crop away the substrate.</li></ul></article>
+            <article class="check-card"><h3>Temporal threshold</h3><ul><li>Play the full video once at normal speed.</li><li>Replay suspicious intervals slowly with adjacent frames.</li><li>Tag a brief phase only when it is clear and material.</li><li>Record the time range for disputed effects.</li></ul></article>
+            <article class="check-card"><h3>Audio evidence</h3><ul><li>An audio stream is evidence to inspect, not a tag.</li><li>Changed environmental sound supports auditory distortion.</li><li>Imagined or introduced sound supports auditory hallucination.</li><li>Phosform has an explicit reviewer prior. Confirm each file.</li></ul></article>
+            <article class="check-card"><h3>GIFs and loops</h3><ul><li>Inspect one complete loop and its boundary.</li><li>Sample the loop at four evenly spaced points.</li><li>Check whether recursion is real or only the loop itself.</li><li>A looping file does not automatically depict recursion.</li></ul></article>
+          </div>
+          <div class="code-shell">
+            <header><span>frame-strip recipe</span><button class="copy-button" type="button" data-copy-target="frame-recipe">copy</button></header>
+            <pre id="frame-recipe"># 1. Probe duration and audio streams.
+ffprobe -v error -show_entries format=duration -show_streams -of json INPUT.mp4
+
+# 2. Convert the four anchors and any added samples into timestamps.
+# 3. Extract one full-frame image at each timestamp.
+ffmpeg -ss TIMESTAMP -i INPUT.mp4 -frames:v 1 -vf "scale=960:-2" FRAME.jpg
+
+# 4. For a changing short clip, build at least 12 spread frames.
+# 5. Keep frame names tied to the stable replication ID.
+#    &lt;replication-id&gt;--15.jpg, --40.jpg, --60.jpg, --85.jpg</pre>
+          </div>
+        </div>
+      </section>
+
+      <section id="confusions" class="paper">
+        <div class="section-head">
+          <div class="section-kicker">04 · Failure atlas</div>
+          <h2>Most errors occur between neighboring concepts.</h2>
+          <p>Use these comparisons before adding the less common or more specific tag.</p>
+        </div>
+        <div class="section-body">
+          <div class="confusion-grid">
+            <article class="confusion"><span class="versus">Geometry · patterning · repetition</span><h3>Ask what owns the pattern.</h3><ul><li><span class="require">Geometry:</span> independent forms or a field of forms.</li><li><span class="require">Environmental patterning:</span> the original texture becomes geometry.</li><li><span class="require">Symmetrical repetition:</span> one external texture mirrors across itself.</li><li><span class="reject">Reject repetition</span> for static symmetry or closed-eye mandalas.</li></ul></article>
+            <article class="confusion"><span class="versus">Drifting · transformation · twisting</span><h3>Track what changes.</h3><ul><li><span class="require">Drifting:</span> a surface warps, melts, or breathes across itself.</li><li><span class="require">Transformation:</span> an external object becomes another object.</li><li><span class="require">Twisting:</span> the visual field curls around a center.</li><li><span class="reject">Reject transformation</span> for surreal imagery that never morphs.</li></ul></article>
+            <article class="confusion"><span class="versus">Colour family</span><h3>Separate intensity, cycle, loss, and offset.</h3><ul><li><span class="require">Enhancement:</span> colours become brighter or more vivid.</li><li><span class="require">Shifting:</span> an external object cycles through colours.</li><li><span class="require">Suppression:</span> colours become darker or less saturated.</li><li><span class="require">Chromatic aberration:</span> RGB-like layers split spatially.</li></ul></article>
+            <article class="confusion"><span class="versus">Haze · acuity suppression</span><h3>Blur is not smoke.</h3><ul><li><span class="require">Visual haze:</span> the air appears filled with smoke, fog, or haze.</li><li><span class="require">Acuity suppression:</span> detail and edges lose clarity.</li><li><span class="reject">Reject haze</span> for blur without a suspended atmospheric layer.</li><li><span class="source">Notes 219 and 237 remove haze from blurred videos.</span></li></ul></article>
+            <article class="confusion"><span class="versus">Internal scene · entity · setting</span><h3>Do not turn every figure into a being.</h3><ul><li><span class="require">Internal hallucination:</span> an imagined environment or sequence.</li><li><span class="require">Autonomous entity:</span> a being appears sentient or agentic.</li><li><span class="require">Settings:</span> a complete place contains the hallucination.</li><li><span class="reject">Reject entity</span> for a face, figure, or title alone.</li></ul></article>
+            <article class="confusion"><span class="versus">Perspective · magnification</span><h3>Reserve both for actual spatial change.</h3><ul><li><span class="require">Perspective distortion:</span> size or distance relationships change.</li><li><span class="require">Magnification:</span> distant detail appears closer and enlarged.</li><li><span class="reject">Reject perspective</span> for camera motion, zoom, or ordinary warping.</li><li><span class="source">Notes 23, 184, and 188 mark common overuse.</span></li></ul></article>
+            <article class="confusion"><span class="versus">After-images · tracers · recursion</span><h3>Find the persistence mechanism.</h3><ul><li><span class="require">After-images:</span> an image remains after its source disappears.</li><li><span class="require">Tracers:</span> a moving object leaves a continuous trail.</li><li><span class="require">Recursion:</span> a scene repeats inside itself.</li><li><span class="reject">Reject recursion</span> for ordinary looping playback.</li></ul></article>
+            <article class="confusion"><span class="versus">Machinescapes · mechanical motifs</span><h3>Demand a mechanical landscape.</h3><ul><li><span class="require">Machinescapes:</span> a vast hallucinatory mechanical environment.</li><li><span class="reject">Reject it</span> for one machine, circuitry, or biomechanical decoration.</li><li><span class="reject">Reject it</span> when geometry or settings explain the work.</li><li><span class="source">Notes 128, 166, 183, and 230 correct this error.</span></li></ul></article>
+          </div>
+          <div class="alert berry">
+            <div class="mark">!</div>
+            <div><strong>Titles are discovery clues, not effect evidence.</strong><p>“Entity,” “machine,” “face,” “forest,” and “wall” do not establish the matching effects.</p></div>
+          </div>
+        </div>
+      </section>
+
+      <section id="effects" class="paper">
+        <div class="section-head">
+          <div class="section-kicker">05 · Effect reference</div>
+          <h2>Require a visible mechanism for every tag.</h2>
+          <p>The summaries reflect the current production effect vocabulary and Josie’s reviewed corrections.</p>
+        </div>
+        <div class="section-body">
+          <div class="toolbar"><label for="effect-search">Filter effects</label><input id="effect-search" type="search" placeholder="geometry, haze, entity, colour…"><span id="effect-count" class="status"></span></div>
+          <div class="effect-list" id="effect-list">
+            <details class="effect" data-search="geometry patterns forms fractals"><summary><code>geometry</code> · Geometry</summary><div class="effect-rule"><p><strong class="require">Use when</strong>Patterns, form constants, shapes, or fractals materially occupy the visual field.</p><p><strong class="reject">Do not use when</strong>A work is merely ornate, symmetrical, psychedelic, or brightly coloured.</p></div></details>
+            <details class="effect" data-search="drifting melting breathing warping"><summary><code>drifting</code> · Drifting</summary><div class="effect-rule"><p><strong class="require">Use when</strong>An existing object or scene progressively warps, melts, breathes, or morphs across itself.</p><p><strong class="reject">Do not use when</strong>Only the camera moves, the object translates, or an abstract animation changes frames.</p></div></details>
+            <details class="effect" data-search="environmental patterning texture original material"><summary><code>environmental-patterning</code> · Environmental patterning</summary><div class="effect-rule"><p><strong class="require">Use when</strong>Carpet, clouds, foliage, stone, or another visible texture becomes geometry made from its original material.</p><p><strong class="reject">Do not use when</strong>Independent geometry overlays a scene or a closed-eye pattern has no external substrate.</p></div></details>
+            <details class="effect" data-search="symmetrical texture repetition mirrored surface"><summary><code>symmetrical-texture-repetition</code> · Symmetrical texture repetition</summary><div class="effect-rule"><p><strong class="require">Use when</strong>An external texture mirrors repeatedly across its own surface.</p><p><strong class="reject">Do not use when</strong>A static artwork is symmetrical, kaleidoscopic, tiled, or a closed-eye mandala.</p></div></details>
+            <details class="effect" data-search="internal hallucination closed eye imagined environment"><summary><code>internal-hallucination</code> · Internal hallucination</summary><div class="effect-rule"><p><strong class="require">Use when</strong>The work depicts an imagined environment or visual sequence that is not anchored to the external scene.</p><p><strong class="reject">Do not use when</strong>An external scene remains the substrate for the visible changes.</p></div></details>
+            <details class="effect" data-search="immersive hallucination surrounding replacing field"><summary><code>immersive-hallucinations</code> · Immersive hallucinations</summary><div class="effect-rule"><p><strong class="require">Use when</strong>The hallucination appears to surround or replace the viewer’s perceptual field.</p><p><strong class="reject">Do not use when</strong>The work is an ordinary closed-eye illustration without a surrounding viewpoint.</p></div></details>
+            <details class="effect" data-search="autonomous entity sentient being agent"><summary><code>autonomous-entity</code> · Autonomous entity</summary><div class="effect-rule"><p><strong class="require">Use when</strong>A being is presented as sentient, agentic, or encountered. Authorial intent can support borderline visual evidence.</p><p><strong class="reject">Do not use when</strong>The media contains only a face, figure, animal, title, or decorative character.</p></div></details>
+            <details class="effect" data-search="settings sceneries landscapes place environment"><summary><code>settings-sceneries-and-landscapes</code> · Settings, sceneries, and landscapes</summary><div class="effect-rule"><p><strong class="require">Use when</strong>A complete perceived place contains the hallucinatory content.</p><p><strong class="reject">Do not use when</strong>The work contains only a pattern, object, entity portrait, or texture.</p></div></details>
+            <details class="effect" data-search="colour shifting cycle objects external"><summary><code>colour-shifting</code> · Colour shifting</summary><div class="effect-rule"><p><strong class="require">Use when</strong>Objects in an external environment fluidly cycle through colours.</p><p><strong class="reject">Do not use when</strong>A closed-eye animation changes palette or the work is simply colourful.</p></div></details>
+            <details class="effect" data-search="colour enhancement vivid brightness"><summary><code>colour-enhancement</code> · Colour enhancement</summary><div class="effect-rule"><p><strong class="require">Use when</strong>External colours become visibly brighter or more vivid without changing identity.</p><p><strong class="reject">Do not use when</strong>The palette cycles, splits into offsets, or loses saturation.</p></div></details>
+            <details class="effect" data-search="colour suppression dark desaturated reduction impairment"><summary><code>colour-suppression</code> · Colour suppression</summary><div class="effect-rule"><p><strong class="require">Use when</strong>Colours become darker, less saturated, or less distinguishable.</p><p><strong class="reject">Do not use when</strong>The frame is dark because of lighting, grading, or source quality alone.</p></div></details>
+            <details class="effect" data-search="chromatic aberration rgb offset split layers"><summary><code>chromatic-aberration</code> · Chromatic aberration</summary><div class="effect-rule"><p><strong class="require">Use when</strong>Object colours split into overlapping, spatially offset layers.</p><p><strong class="reject">Do not use when</strong>Colours merely shift, intensify, or form a multicoloured edge.</p></div></details>
+            <details class="effect" data-search="visual aura halo glow around external object"><summary><code>visual-auras</code> · Visual auras</summary><div class="effect-rule"><p><strong class="require">Use when</strong>An open-eye halo or aura appears around an external object.</p><p><strong class="reject">Do not use when</strong>A painting uses glow, a luminous background, or closed-eye radiance.</p></div></details>
+            <details class="effect" data-search="transformations metamorphosis object becomes other"><summary><code>transformations</code> · Transformations</summary><div class="effect-rule"><p><strong class="require">Use when</strong>A specific external object visibly becomes another object or identity.</p><p><strong class="reject">Do not use when</strong>A static work is surreal or a closed-eye animation changes abstract form.</p></div></details>
+            <details class="effect" data-search="visual twisting curl spiral field"><summary><code>visual-twisting</code> · Visual twisting</summary><div class="effect-rule"><p><strong class="require">Use when</strong>The external field of view curls or spirals around a common center.</p><p><strong class="reject">Do not use when</strong>The art contains a spiral or a closed-eye pattern rotates.</p></div></details>
+            <details class="effect" data-search="texture liquidation simplified smudged painting cartoon"><summary><code>texture-liquidation</code> · Texture liquidation</summary><div class="effect-rule"><p><strong class="require">Use when</strong>External textures simplify and smudge into a painted or cartoon-like surface.</p><p><strong class="reject">Do not use when</strong>The source was already illustrated or low-detail.</p></div></details>
+            <details class="effect" data-search="visual haze smoke fog air blur"><summary><code>visual-haze</code> · Visual haze</summary><div class="effect-rule"><p><strong class="require">Use when</strong>The surrounding air appears filled with imaginary smoke, fog, or haze.</p><p><strong class="reject">Do not use when</strong>The image is only blurry or soft. Use acuity suppression when detail degrades.</p></div></details>
+            <details class="effect" data-search="visual acuity enhancement suppression sharp blur detail"><summary><code>visual-acuity-enhancement</code> and <code>visual-acuity-suppression</code></summary><div class="effect-rule"><p><strong class="require">Use when</strong>Enhancement sharpens external detail. Suppression degrades external detail into blur or indistinct edges.</p><p><strong class="reject">Do not use when</strong>The editor applies ordinary focus, the source is low quality, or smoke-like haze causes the loss.</p></div></details>
+            <details class="effect" data-search="perspective distortion size distance spatial"><summary><code>perspective-distortion</code> · Perspective distortion</summary><div class="effect-rule"><p><strong class="require">Use when</strong>Perceived size or distance changes for the body, an object, or the environment.</p><p><strong class="reject">Do not use when</strong>The camera zooms, the image warps, or the scene uses unusual perspective.</p></div></details>
+            <details class="effect" data-search="field of view alteration fisheye peripheral lens"><summary><code>field-of-view-alteration</code> · Field of view alteration</summary><div class="effect-rule"><p><strong class="require">Use when</strong>The visible field expands, contracts, or takes on a fisheye-like shape.</p><p><strong class="reject">Do not use when</strong>Distances or object sizes change without a field-boundary change.</p></div></details>
+            <details class="effect" data-search="magnification distant detail closer enlarged"><summary><code>magnification</code> · Magnification</summary><div class="effect-rule"><p><strong class="require">Use when</strong>Distant details appear enlarged and closer than their spatial position supports.</p><p><strong class="reject">Do not use when</strong>The editor applies an ordinary zoom or crop.</p></div></details>
+            <details class="effect" data-search="increased pareidolia face vague stimulus"><summary><code>increased-pareidolia</code> · Increased pareidolia</summary><div class="effect-rule"><p><strong class="require">Use when</strong>A vague external stimulus resolves into a face, creature, or familiar form.</p><p><strong class="reject">Do not use when</strong>The face or figure is explicitly drawn into the source.</p></div></details>
+            <details class="effect" data-search="recursion self similar repeated scene"><summary><code>recursion</code> · Recursion</summary><div class="effect-rule"><p><strong class="require">Use when</strong>A section of the external scene repeats inside itself in a self-similar structure.</p><p><strong class="reject">Do not use when</strong>A clip loops or a motif repeats side by side.</p></div></details>
+            <details class="effect" data-search="tracers trail moving object after images persistence"><summary><code>tracers</code> and <code>after-images</code></summary><div class="effect-rule"><p><strong class="require">Use when</strong>Tracers follow a moving object. After-images persist after the source disappears.</p><p><strong class="reject">Do not use when</strong>Motion blur, echo effects, or a static duplicate lacks temporal persistence.</p></div></details>
+            <details class="effect" data-search="auditory distortion hallucination sound audio"><summary><code>auditory-distortion</code> and <code>auditory-hallucination</code></summary><div class="effect-rule"><p><strong class="require">Use when</strong>Distortion alters a sound source. Hallucination introduces a spontaneous or imagined sound.</p><p><strong class="reject">Do not use when</strong>The file merely contains music or an audio stream.</p></div></details>
+            <details class="effect" data-search="machinescapes mechanical landscape circuitry"><summary><code>machinescapes</code> · Machinescapes</summary><div class="effect-rule"><p><strong class="require">Use when</strong>The experience is a vast, intricate, hallucinatory mechanical landscape.</p><p><strong class="reject">Do not use when</strong>The work contains machinery, circuitry, or biomechanical motifs without a landscape.</p></div></details>
+            <details class="effect" data-search="unspeakable horrors frightening disturbing scary"><summary><code>unspeakable-horrors</code> · Unspeakable horrors</summary><div class="effect-rule"><p><strong class="require">Use when</strong>The hallucinatory scenario is prolonged, disturbing, frightening, and fear-driven.</p><p><strong class="reject">Do not use when</strong>The image is merely dark, grotesque, or unusual without that editorial framing.</p></div></details>
+          </div>
+        </div>
+      </section>
+
+      <section id="cases" class="paper">
+        <div class="section-head">
+          <div class="section-kicker">06 · Reviewed specimens</div>
+          <h2>Positive and negative evidence belong together.</h2>
+          <p>Video controls include four seek points. Compare the early, middle, and late states before reading the verdict.</p>
+        </div>
+        <div class="section-body">
+          <div class="case-grid">
+            <article class="case">
+              <video class="case-media" controls playsinline preload="metadata" src="https://glad-minnow-656.convex.cloud/api/storage/c1373365-8cb9-4367-8e98-bc70560c4252"></video>
+              <div class="seek-bar"><button data-seek="15">15%</button><button data-seek="40">40%</button><button data-seek="60">60%</button><button data-seek="85">85%</button></div>
+              <div class="case-copy"><h3>Autumn Trees · open-eye positive</h3><div class="tags"><span class="tag">drifting</span><span class="tag">geometry</span><span class="tag">colour-shifting</span></div><p>The external trees remain visible while several perceptual mechanisms alter them.</p><p class="source">Note 7 · k573ar72n86xcnsnc4w4cjq08s846pea · autumn-trees-symmetric-vision</p></div>
+            </article>
+            <article class="case">
+              <video class="case-media" controls playsinline preload="metadata" src="https://glad-minnow-656.convex.cloud/api/storage/151bc7f3-4764-492d-abb3-26facf73db13"></video>
+              <div class="seek-bar"><button data-seek="15">15%</button><button data-seek="40">40%</button><button data-seek="60">60%</button><button data-seek="85">85%</button></div>
+              <div class="case-copy"><h3>Infinite Torus Space · closed-eye positive</h3><div class="tags"><span class="tag">geometry</span><span class="tag">internal-hallucination</span><span class="tag no">not open-eye distortions</span></div><p>The pattern occupies an imagined field. Animated colour does not create an external colour-shifting effect.</p><p class="source">Note 37 · k5765bbhd94mshfxveym84t8qd847b9r · infinite-torus-space-symmetric-vision</p></div>
+            </article>
+            <article class="case">
+              <video class="case-media" controls playsinline preload="metadata" src="https://glad-minnow-656.convex.cloud/api/storage/2046f48b-cd02-405c-82a2-b6e6d46c0ef3"></video>
+              <div class="seek-bar"><button data-seek="15">15%</button><button data-seek="40">40%</button><button data-seek="60">60%</button><button data-seek="85">85%</button></div>
+              <div class="case-copy"><h3>Welcome Back · haze negative</h3><div class="tags"><span class="tag">drifting</span><span class="tag no">remove visual-haze</span></div><p>Softness or blur is insufficient. Visual haze requires an active smoke-like atmospheric layer.</p><p class="source">Note 219 · k574k61sg371ky5ckcdsg6qn7s8cng8w · welcome-back-phosform</p></div>
+            </article>
+            <article class="case">
+              <video class="case-media" controls playsinline preload="metadata" src="https://glad-minnow-656.convex.cloud/api/storage/b007fb80-952b-446c-96e4-41da7a01a02b"></video>
+              <div class="seek-bar"><button data-seek="15">15%</button><button data-seek="40">40%</button><button data-seek="60">60%</button><button data-seek="85">85%</button></div>
+              <div class="case-copy"><h3>Chameleon · mechanism correction</h3><div class="tags"><span class="tag">drifting</span><span class="tag">colour-shifting</span><span class="tag no">remove object-alteration</span></div><p>The substrate changes colour and drifts. It does not become a different object.</p><p class="source">Note 247 · k57fd4b9v26hf8agfhz46gddrs8cmkyh · chameleon-symmetric-vision</p></div>
+            </article>
+            <article class="case">
+              <img class="case-media" loading="lazy" src="https://glad-minnow-656.convex.cloud/api/storage/3c56108e-d3bd-4aac-88d1-fbc0ace9afb6" alt="Tower of Faces in Space by Luke Brown">
+              <div class="case-copy"><h3>Tower of Faces · static-art correction</h3><div class="tags"><span class="tag">geometry</span><span class="tag">internal-hallucination</span><span class="tag no">not recursion</span><span class="tag no">not entity</span></div><p>Repeated faces and a figure do not prove recursion or an autonomous entity.</p><p class="source">Note 203 · k57cvqg9qw71pr5v8edhxnpngn8cns4v · tower-of-faces-in-space-luke-brown</p></div>
+            </article>
+            <article class="case">
+              <img class="case-media" loading="lazy" src="https://glad-minnow-656.convex.cloud/api/storage/f6d24927-8c83-408c-ba13-7d0dda2f9bc0" alt="White Winged Threshold by Martina Hoffmann">
+              <div class="case-copy"><h3>White Winged Threshold · entity negative</h3><div class="tags"><span class="tag">geometry</span><span class="tag">internal-hallucination</span><span class="tag no">not autonomous-entity</span><span class="tag no">not visual-auras</span></div><p>A winged figure does not establish sentience. A luminous border does not automatically establish a visual aura.</p><p class="source">Note 206 · k57fptjnmsj5bb6zh4h3ezg3c18cmt2w · white-winged-threshold-martina-hoffmann</p></div>
+            </article>
+            <article class="case">
+              <img class="case-media" loading="lazy" src="https://glad-minnow-656.convex.cloud/api/storage/d2a55915-f019-4c93-8f23-7b76917400a0" alt="Nectar of the Gods by Natural Warp">
+              <div class="case-copy"><h3>Nectar of the Gods · symmetry negative</h3><div class="tags"><span class="tag">geometry</span><span class="tag no">not symmetrical-texture-repetition</span></div><p>Static symmetry is a compositional property. The effect requires an external texture mirroring across itself.</p><p class="source">Note 208 · k5779qt860rnk51whzgfcbmja18cn6w8 · nectar-of-the-gods-natural-warp</p></div>
+            </article>
+            <article class="case">
+              <img class="case-media" loading="lazy" src="https://glad-minnow-656.convex.cloud/api/storage/f9b5465f-e60c-4679-9219-691f702f5e1f" alt="Untitled work by Zdzisław Beksiński">
+              <div class="case-copy"><h3>Beksiński · explicit artist rule</h3><div class="tags"><span class="tag">unspeakable-horrors</span><span class="tag no">exclusive by reviewer rule</span></div><p>This is a corpus-specific artist instruction. Do not infer the rule for other dark or frightening artists.</p><p class="source">Note 3 · k576xg4w4tpsnvrb6ssvrfxnj58475ev · the-armoured-figure-and-the-child-zdzislaw-beksinski</p></div>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <section id="scope" class="paper">
+        <div class="section-head">
+          <div class="section-kicker">07 · Scope boundaries</div>
+          <h2>Keep row evidence, artist rules, and substance curation separate.</h2>
+          <p>A reviewer can state all three in one note. They still target different data and require different checks.</p>
+        </div>
+        <div class="section-body">
+          <table class="scope-table">
+            <thead><tr><th>Instruction type</th><th>Valid scope</th><th>Required evidence</th><th>Do not do</th></tr></thead>
+            <tbody>
+              <tr><td>Row effect correction</td><td>One stable replication ID</td><td>Visible or audible mechanism in that media</td><td>Generalize to the artist</td></tr>
+              <tr><td>Explicit artist-wide rule</td><td>Rows credited to the named artist</td><td>Reviewer says “all,” “anything,” or equivalent</td><td>Infer a rule from one correction</td></tr>
+              <tr><td>Substance showcase</td><td>One substance gallery</td><td>Explicit title, filename, provenance, or reviewer direction</td><td>Encode the substance as an effect</td></tr>
+              <tr><td>Credit or identity</td><td>Artist and credit fields</td><td>Attribution evidence or owner direction</td><td>Change effects because the credit changed</td></tr>
+              <tr><td>Deletion or restriction</td><td>Corpus or gallery visibility</td><td>Explicit user direction and a recovery path</td><td>Treat absence from a gallery as deletion</td></tr>
+            </tbody>
+          </table>
+          <div class="alert">
+            <div class="mark">i</div>
+            <div><strong>Artist-wide rules are exceptions with provenance.</strong><p>Store the source note ID. Match credited identities conservatively. Review collaborations before inheritance.</p></div>
+          </div>
+          <details class="policy">
+            <summary>Exclusive corpus policies</summary>
+            <div><ul>
+              <li><strong>Zdzisław Beksiński:</strong> use only <code>unspeakable-horrors</code>. Sources: notes 3, 4, 9, and 29.</li>
+              <li><strong>H. R. Giger:</strong> use only <code>unspeakable-horrors</code>. Source: note 145.</li>
+              <li><strong>Alex Grey:</strong> the notes request corpus removal. Sources: notes 30 and 86.</li>
+            </ul><p class="source">These are curator policies. They are not general rules for frightening or visionary art.</p></div>
+          </details>
+          <details class="policy">
+            <summary>Closed-eye artist exclusions</summary>
+            <div><ul>
+              <li><strong>Amanda Sage:</strong> remove open-eye visual-distortion tags. Source: note 96.</li>
+              <li><strong>Ayjay Art:</strong> do not use open-eye distortion categories. Source: note 101.</li>
+              <li><strong>bearfromvoid:</strong> no colour shifting or symmetrical texture repetition. Sources: notes 102 and 110.</li>
+              <li><strong>Fabian Jimenez:</strong> no symmetrical texture repetition or visual auras. Sources: notes 141 and 142.</li>
+              <li><strong>Hypnagogist:</strong> no colour shifting. Source: note 148.</li>
+              <li><strong>K Visuals:</strong> remove repetition, transformations, colour shifting, and visual twisting. Sources: notes 171, 172, 176, and 177.</li>
+              <li><strong>Randal Roberts:</strong> no visual twisting. Source: note 220.</li>
+            </ul></div>
+          </details>
+          <details class="policy">
+            <summary>Narrow artist-wide removals</summary>
+            <div><p>Remove <code>symmetrical-texture-repetition</code> only for the exact credited artist:</p><ul>
+              <li>Ben Ridgway · Cristina McAllister · Crypto Geometry · Eloh Projects</li>
+              <li>Image Shaman · Jerry Sullivan · John Speaker · Luis Tamani</li>
+              <li>Luke Brown · Natural Warp · Olivia Curry · Rick Jacobi</li>
+              <li>Robert Steven Connett · Rogdog · Salviadroid solo credit · Sunterry</li>
+            </ul><p class="source">Sources: notes 126, 136, 137, 139, 149, 154–156, 200, 201, 208, 210, 221–224, and 232.</p></div>
+          </details>
+          <details class="policy">
+            <summary>Other explicit artist policies</summary>
+            <div><ul>
+              <li><strong>Ben Ridgway:</strong> remove <code>machinescapes</code>. Sources: notes 120, 123, 124, 127, and 128.</li>
+              <li><strong>Jonathan Solter:</strong> remove pareidolia and machinescapes. Sources: notes 158, 160, and 163.</li>
+              <li><strong>Loka:</strong> remove <code>object-alteration</code>. Source: note 194.</li>
+              <li><strong>Martina Hoffmann:</strong> remove <code>transformations</code>. Source: note 205.</li>
+              <li><strong>Neil Gibson:</strong> remove <code>environmental-cubism</code>. Source: note 209.</li>
+              <li><strong>SalviaDroid &amp; Mifsudvisions:</strong> remove transformations for that composite credit. Source: note 226.</li>
+              <li><strong>Somnio8:</strong> remove <code>machinescapes</code>. Source: note 230.</li>
+            </ul><p class="source">Do not inherit a solo rule into a collaboration unless the source note includes that credit.</p></div>
+          </details>
+          <details class="policy">
+            <summary>Substance showcase evidence</summary>
+            <div><ul>
+              <li>Explicit title evidence supports DMT, 2C-B, 4-HO-MET, ALD-52, and 5-MeO-DMT showcase candidates.</li>
+              <li>Cuckington IV has explicit Salvia showcase direction.</li>
+              <li>Incedigris has row-specific 2C-E and Salvia directions.</li>
+              <li>Shipibo and deliriant title heuristics produce candidates for review. They do not publish automatically.</li>
+            </ul><p class="source">Sources: notes 50, 72, 78, 150–153, 195, 216, 233, and 235.</p></div>
+          </details>
+        </div>
+      </section>
+
+      <section id="output" class="paper">
+        <div class="section-head">
+          <div class="section-kicker">08 · Handoff contract</div>
+          <h2>Return a proposal that another agent can replay safely.</h2>
+          <p>The proposal is review evidence. It is not production authorization by itself.</p>
+        </div>
+        <div class="section-body">
+          <div class="final-checks" data-checklist="tagging-complete">
+            <label><input type="checkbox"><span>Stable ID and slug match.<small>The live row identity was checked.</small></span></label>
+            <label><input type="checkbox"><span>The complete image, loop, or video was inspected.<small>Video evidence covers every distinct phase.</small></span></label>
+            <label><input type="checkbox"><span>The viewing mode is recorded.<small>The external substrate is named or absent.</small></span></label>
+            <label><input type="checkbox"><span>Audio was probed and heard when present.<small>Distortion and hallucination were not inferred from a stream alone.</small></span></label>
+            <label><input type="checkbox"><span>Every effect has positive evidence.<small>The closest rejected effect is also recorded.</small></span></label>
+            <label><input type="checkbox"><span>Artist and substance instructions are separated.<small>Each proposal targets the correct database surface.</small></span></label>
+            <label><input type="checkbox"><span>Uncertainty remains explicit.<small>No ambiguous tag was promoted to fact.</small></span></label>
+          </div>
+          <div class="code-shell">
+            <header><span>ID-keyed proposal template</span><button class="copy-button" type="button" data-copy-target="proposal-template">copy</button></header>
+            <pre id="proposal-template">replicationId: &lt;stable Convex ID&gt;
+slug: &lt;live slug&gt;
+viewingMode: open-eye | closed-eye | immersive | mixed | uncertain
+evidence:
+  inspected: full image | full loop | full video
+  frames: [15%, 40%, 60%, 85%]
+  audio: absent | distortion | hallucination | uncertain
+effects:
+  add: []
+  remove: []
+  set: null
+negativeEvidence:
+  - &lt;closest rejected effect and reason&gt;
+otherInstructions:
+  artist: null
+  substanceGallery: null
+confidence: high | medium | low
+sourceNoteIds: []</pre>
+          </div>
+        </div>
+      </section>
+
+      <section id="sources" class="paper">
+        <div class="section-head">
+          <div class="section-kicker">09 · Provenance</div>
+          <h2>These rules come from reviewed corrections.</h2>
+          <p>Recheck the current effect articles and live rows when the ontology or corpus changes.</p>
+        </div>
+        <div class="section-body">
+          <table class="scope-table">
+            <tbody>
+              <tr><th>Primary review corpus</th><td><code>pasted-text.txt</code> attachment · 247 notes · 116 images · 131 videos</td></tr>
+              <tr><th>Earlier exports</th><td><code>dose-wiki-replication-review (1).json</code> and <code>(2).json</code></td></tr>
+              <tr><th>Applied translators</th><td><code>apply-editorial-review-notes.mjs</code>, <code>-v2.mjs</code>, and <code>-v3.mjs</code></td></tr>
+              <tr><th>Effect definitions</th><td>Production <code>subjectiveEffects</code> rows on <code>glad-minnow-656</code>, read 2026-08-23</td></tr>
+              <tr><th>Operational handoff</th><td><a href="ReadMeForAgents.html">ReadMeForAgents.html</a></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <footer>
+        Generated 2026-08-23 for <code>dosewiki-admin</code> on branch <code>main</code>.<br>
+        Built from 247 cumulative reviewer notes and the production effect vocabulary.<br>
+        This HTML file is repository documentation. It does not install a skill or write to Convex.
+      </footer>
+    </main>
+  </div>
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <script>
+    (() => {
+      const toast = document.getElementById("toast");
+      let toastTimer;
+      function announce(message) {
+        toast.textContent = message;
+        toast.classList.add("show");
+        clearTimeout(toastTimer);
+        toastTimer = setTimeout(() => toast.classList.remove("show"), 1600);
+      }
+
+      document.querySelectorAll("[data-copy-target]").forEach((button) => {
+        button.addEventListener("click", async () => {
+          const target = document.getElementById(button.dataset.copyTarget);
+          try {
+            await navigator.clipboard.writeText(target.textContent);
+            announce("Copied to clipboard");
+          } catch {
+            announce("Clipboard access was unavailable");
+          }
+        });
+      });
+
+      document.querySelectorAll("[data-seek]").forEach((button) => {
+        button.addEventListener("click", () => {
+          const card = button.closest(".case");
+          const video = card?.querySelector("video");
+          const percent = Number(button.dataset.seek);
+          if (!video || !Number.isFinite(video.duration)) {
+            announce("Load the video metadata first");
+            return;
+          }
+          video.currentTime = video.duration * percent / 100;
+          video.pause();
+          announce(`Moved to ${percent}%`);
+        });
+      });
+
+      const search = document.getElementById("effect-search");
+      const effects = [...document.querySelectorAll("details.effect")];
+      const count = document.getElementById("effect-count");
+      function filterEffects() {
+        const query = search.value.trim().toLowerCase();
+        let visible = 0;
+        effects.forEach((effect) => {
+          const haystack = `${effect.textContent} ${effect.dataset.search}`.toLowerCase();
+          const show = !query || haystack.includes(query);
+          effect.hidden = !show;
+          if (show) visible += 1;
+        });
+        count.textContent = `${visible} of ${effects.length}`;
+      }
+      search.addEventListener("input", filterEffects);
+      filterEffects();
+
+      document.querySelectorAll("[data-checklist] input").forEach((checkbox) => {
+        const key = `dosewiki:${checkbox.closest("[data-checklist]").dataset.checklist}:${[...checkbox.closest("[data-checklist]").querySelectorAll("input")].indexOf(checkbox)}`;
+        checkbox.checked = localStorage.getItem(key) === "1";
+        checkbox.addEventListener("change", () => localStorage.setItem(key, checkbox.checked ? "1" : "0"));
+      });
+    })();
+  </script>
+</body>
+</html>
