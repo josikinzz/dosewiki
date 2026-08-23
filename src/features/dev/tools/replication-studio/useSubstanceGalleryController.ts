@@ -8,8 +8,12 @@ import type {
   EditorActionStatusState,
 } from "@/features/dev/components";
 import { SHOWCASE_WORK_CAP } from "@/features/replications/components/showcaseModel";
-import { GALLERY_CURATION_SLUG_CAP } from "@/data/substanceReplicationGallery";
+import {
+  GALLERY_CURATION_SLUG_CAP,
+  isShowcaseEligible,
+} from "@/data/substanceReplicationGallery";
 import { applyPlaylistToCuration } from "./replicationPlaylistModel";
+import type { StudioRow } from "./replicationStudioModel";
 import {
   fetchGalleryDetail,
   galleryCandidatesUrl,
@@ -60,12 +64,14 @@ export type GalleryDetailState =
 type GalleryControllerProps = {
   substanceSlug: string | null;
   onNavigateToSubstance: (slug: string) => void;
+  corpusRows: readonly StudioRow[];
   onDirtyChange: (dirty: boolean) => void;
 };
 
 
 export function useSubstanceGalleryController({
   substanceSlug,
+  corpusRows,
   onNavigateToSubstance,
   onDirtyChange,
 }: GalleryControllerProps) {
@@ -173,7 +179,46 @@ export function useSubstanceGalleryController({
   }, [isDirty, onDirtyChange]);
 
   const detail = detailState.status === "ready" ? detailState.detail : null;
-  const matches = useMemo(() => detail?.matches ?? [], [detail]);
+  const corpusBySlug = useMemo(
+    () => new Map(corpusRows.map((row) => [row.slug, row])),
+    [corpusRows],
+  );
+  const showcaseEligibleSlugs = useMemo(
+    () => new Set(corpusRows.filter(isShowcaseEligible).map((row) => row.slug)),
+    [corpusRows],
+  );
+  const matches = useMemo(() => {
+    const matched = detail?.matches ?? [];
+    const included = new Set(matched.map((match) => match.replication.slug));
+    const direct = curation.curated.flatMap((slug) => {
+      if (included.has(slug)) return [];
+      const row = corpusBySlug.get(slug);
+      if (!row || !isShowcaseEligible(row)) return [];
+      return [{
+        replication: {
+          id: row.id,
+          slug: row.slug,
+          title: row.title,
+          artist: row.artist,
+          type: row.type,
+          effect_slug: row.effect_slug,
+          effect_name: row.effect_name,
+          effect_tags: row.effect_tags,
+          credit_line: row.credit_line,
+          rights_status: row.rights_status ?? null,
+          url: row.url,
+          thumbnail_url: row.thumbnail_url,
+          format: row.format,
+        },
+        provenance: {
+          matchedVia: "curated" as const,
+          effectSlug: row.effect_slug ?? "explicit-curation",
+          effectName: row.effect_name ?? "Direct curation",
+        },
+      }];
+    });
+    return [...matched, ...direct];
+  }, [corpusBySlug, curation.curated, detail]);
   const board = useMemo(
     () => buildGalleryBoard(matches, curation, SHOWCASE_WORK_CAP),
     [matches, curation],
@@ -223,47 +268,53 @@ export function useSubstanceGalleryController({
   );
 
   /**
-   * Apply a saved playlist into this draft. Nothing publishes: this is the same
-   * edit as pinning each work by hand, so the editor still reviews and saves.
-   * Works this gallery already curates keep the position the editor gave them,
-   * and works excluded here are skipped rather than resurrected — a playlist
-   * knows nothing about this article's exclusions.
+   * Apply a saved playlist into this draft. Playlist membership is not an
+   * effect-match claim: every corpus row eligible for a public showcase may be
+   * pinned directly. Existing exclusions still outrank the playlist, and the
+   * editor must explicitly save before the article changes.
    */
   const handleApplyPlaylist = useCallback(
     (playlist: { title: string; replication_slugs: readonly string[] }) => {
-      // A playlist is corpus-wide; only the entries that actually match this
-      // substance can go on its article.
-      const matchable = playlist.replication_slugs.filter((slug) => matchedSlugs.has(slug));
+      const eligibleSlugs = playlist.replication_slugs.filter((slug) =>
+        showcaseEligibleSlugs.has(slug),
+      );
+      const ineligible = playlist.replication_slugs.filter(
+        (slug) => !showcaseEligibleSlugs.has(slug),
+      );
       const result = applyPlaylistToCuration({
         curated: curation.curated,
         removed: curation.removed,
-        playlistSlugs: matchable,
+        playlistSlugs: eligibleSlugs,
       });
+
+      const summary = {
+        added: result.added,
+        alreadyPresent: result.alreadyPresent,
+        excluded: result.skippedExcluded,
+        ineligible,
+      };
+      const counts = [
+        `${summary.added.length} added`,
+        `${summary.alreadyPresent.length} already present`,
+        `${summary.excluded.length} excluded`,
+        `${summary.ineligible.length} ineligible`,
+      ].join(" · ");
 
       if (result.added.length === 0) {
         setFeedback({
           tone: "warning",
-          message: `"${playlist.title}" adds nothing here — every entry that matches this substance is already curated or excluded.`,
+          message: `"${playlist.title}" adds nothing here: ${counts}.`,
         });
-        return;
+        return summary;
       }
-
-      const unmatched = playlist.replication_slugs.length - matchable.length;
-      const notes = [
-        result.skippedExcluded.length > 0
-          ? `${result.skippedExcluded.length} skipped as excluded here`
-          : null,
-        unmatched > 0 ? `${unmatched} do not match this substance` : null,
-      ].filter(Boolean);
 
       applyCuration(
         { ...curation, curated: result.curated },
-        `Applied "${playlist.title}": ${result.added.length} pinned${
-          notes.length > 0 ? ` (${notes.join(", ")})` : ""
-        }. Nothing is published until you save.`,
+        `Applied "${playlist.title}": ${counts}. Nothing is published until you save.`,
       );
+      return summary;
     },
-    [applyCuration, curation, matchedSlugs],
+    [applyCuration, curation, showcaseEligibleSlugs],
   );
 
   const handleExclude = useCallback(

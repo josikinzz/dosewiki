@@ -65,6 +65,47 @@ const DETAIL = {
   effectOptions: [{ slug: "geometry", name: "Geometry" }],
   unmatchedEffectNames: [],
 };
+const CORPUS = [
+  ...[1, 2, 3, 4].map((index) => ({
+    id: `id-${index}`,
+    slug: `work-${index}`,
+    title: `Work ${index}`,
+    artist: "Hypnagogist",
+    artist_url: null,
+    role: "replication" as const,
+    type: "image" as const,
+    effect_slug: index === 4 ? "unmatched-effect" : "geometry",
+    effect_name: index === 4 ? "Unmatched effect" : "Geometry",
+    effect_tags: [],
+    credit_line: null,
+    url: null,
+    thumbnail_url: null,
+    format: "png",
+    duration: null,
+    file_size: null,
+    created_at: "2026-08-01T00:00:00.000Z",
+  })),
+  {
+    id: "id-retired",
+    slug: "retired-work",
+    title: "Retired work",
+    artist: "Hypnagogist",
+    artist_url: null,
+    role: "replication" as const,
+    type: "image" as const,
+    effect_slug: null,
+    effect_name: null,
+    effect_tags: [],
+    credit_line: null,
+    url: null,
+    thumbnail_url: null,
+    format: "png",
+    duration: null,
+    file_size: null,
+    created_at: "2026-08-01T00:00:00.000Z",
+    showcase_excluded: true,
+  },
+];
 
 const PLAYLISTS = [
   {
@@ -132,6 +173,7 @@ function renderPanel(overrides: Partial<SubstanceGalleryPanelProps> = {}) {
     substanceSlug: "lsd",
     onNavigateToSubstance,
     visibleRows: [],
+    corpusRows: CORPUS,
     railNarrowed: false,
     onInspectRow: vi.fn(),
     onOpenLibrary: vi.fn(),
@@ -218,6 +260,43 @@ describe("SubstanceGalleryPanel", () => {
     await user.click(screen.getByRole("button", { name: /save gallery/i }));
     await waitFor(() => expect(posts).toHaveLength(1));
     expect(posts[0].curatedSlugs).toEqual(["work-1", "work-3", "work-2"]);
+  });
+
+  it("directly curates unmatched eligible playlist works without restoring exclusions", async () => {
+    const user = userEvent.setup();
+    const detail = {
+      ...DETAIL,
+      curation: {
+        ...DETAIL.curation,
+        removed_slugs: ["work-3"],
+      },
+    };
+    const playlists = {
+      playlists: [{
+        ...PLAYLISTS[0],
+        title: "Mixed placement",
+        replication_slugs: ["work-1", "work-3", "work-4", "retired-work"],
+      }],
+    };
+    const { posts } = stubFetch(undefined, detail, playlists);
+    renderPanel();
+
+    await screen.findByText("Work 2");
+    await user.click(screen.getByRole("button", { name: /apply playlist/i }));
+    await user.click(await screen.findByRole("button", { name: /mixed placement/i }));
+    expect(
+      await screen.findByText("1 added · 1 already present · 1 excluded · 1 ineligible"),
+    ).toBeInTheDocument();
+    expect(screen.getByTestId("stage-preview")).toHaveTextContent("work-1,work-4");
+    expect(posts).toHaveLength(0);
+
+    await user.click(screen.getByRole("button", { name: /save gallery/i }));
+    await waitFor(() => expect(posts).toHaveLength(1));
+    expect(posts[0]).toEqual({
+      curatedSlugs: ["work-1", "work-4"],
+      removedSlugs: ["work-3"],
+      expectedUpdatedAt: "2026-08-01T10:00:00.000Z",
+    });
   });
 
   /**

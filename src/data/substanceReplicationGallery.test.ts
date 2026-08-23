@@ -1,7 +1,9 @@
 import { describe, expect, it } from "vitest";
 import {
+  directGalleryAssociationProvenance,
+  includeDirectlyAssociatedRows,
+  isShowcaseEligible,
   matchSubstanceGalleryReplications,
-  includeDirectlyCuratedRows,
   mergeCuratedGallery,
   normalizeGalleryCuration,
   resolveVisualEffectSlugs,
@@ -363,23 +365,32 @@ describe("mergeCuratedGallery", () => {
   });
 });
 
-describe("includeDirectlyCuratedRows", () => {
-  it("adds a direct pin once while preserving effect-derived provenance", () => {
+describe("includeDirectlyAssociatedRows", () => {
+  it("adds direct curation and exclusion once while preserving derived provenance", () => {
     const corpus = [
       row({ slug: "matched", effect_slug: "drifting" }),
-      row({ slug: "direct", effect_slug: "geometry" }),
-      row({ slug: "uncurated", effect_slug: "geometry" }),
+      row({ slug: "direct-curated", effect_slug: "geometry" }),
+      row({ slug: "direct-removed", effect_slug: "geometry" }),
+      row({ slug: "unassociated", effect_slug: "geometry" }),
     ];
     const derived = matchSubstanceGalleryReplications(corpus, ["Visual drifting"]).matches;
-    const available = includeDirectlyCuratedRows(corpus, derived, {
-      curated_slugs: ["direct", "matched"],
+    const available = includeDirectlyAssociatedRows(corpus, derived, {
+      curated_slugs: ["direct-curated", "matched"],
+      removed_slugs: ["direct-removed"],
     });
-    expect(slugsOf(available)).toEqual(["matched", "direct"]);
+    expect(slugsOf(available)).toEqual(["matched", "direct-curated", "direct-removed"]);
     expect(available[0].provenance.matchedVia).toBe("effect_slug");
-    expect(available[1].provenance).toEqual({
-      matchedVia: "curated",
-      effectSlug: "geometry",
-    });
+    expect(available.slice(1).map((match) => match.provenance)).toEqual([
+      { matchedVia: "curated", effectSlug: "geometry" },
+      { matchedVia: "curated", effectSlug: "geometry" },
+    ]);
+  });
+
+  it("does not revive a retired direct association", () => {
+    const retired = row({ slug: "retired", showcase_excluded: true });
+    expect(
+      directGalleryAssociationProvenance(retired, { removed_slugs: ["retired"] }),
+    ).toBeNull();
   });
 });
 
@@ -426,19 +437,29 @@ describe("normalizeGalleryCuration", () => {
     });
   });
 
-  it("allows a direct curation when a publishable row does not match an article effect", () => {
+  it("preserves direct associations while pruning deleted, retired, and ineligible rows", () => {
+    const corpus = [
+      row({ slug: "matched" }),
+      row({ slug: "direct-curated" }),
+      row({ slug: "direct-removed" }),
+      row({ slug: "retired", showcase_excluded: true }),
+      row({ slug: "figure", role: "figure" }),
+      row({ slug: "audio", type: "audio" }),
+    ];
     expect(
       normalizeGalleryCuration({
-        curatedSlugs: ["direct", "deleted"],
-        removedSlugs: ["matched"],
+        curatedSlugs: ["direct-curated", "deleted"],
+        removedSlugs: ["matched", "direct-removed", "retired", "figure", "audio"],
         matchableSlugs: new Set(["matched"]),
-        curatableSlugs: new Set(["direct", "matched"]),
+        curatableSlugs: new Set(
+          corpus.filter(isShowcaseEligible).map((replication) => replication.slug),
+        ),
       }),
     ).toEqual({
-      curatedSlugs: ["direct"],
-      removedSlugs: ["matched"],
+      curatedSlugs: ["direct-curated"],
+      removedSlugs: ["matched", "direct-removed"],
       prunedCurated: ["deleted"],
-      prunedRemoved: [],
+      prunedRemoved: ["retired", "figure", "audio"],
     });
   });
 });
@@ -471,5 +492,58 @@ describe("matched → saved → read round trip", () => {
       (match) => match.row.slug,
     );
     expect(slugsOf(merged)).toEqual(["four", "one"]);
+  });
+});
+
+describe("unmatched direct curation → exclusion → later save", () => {
+  it("keeps the exclusion stored and visible as a direct association", () => {
+    const corpus = [
+      row({ slug: "matched", effect_slug: "drifting" }),
+      row({ slug: "direct", effect_slug: "geometry" }),
+      row({ slug: "retired", effect_slug: "geometry", showcase_excluded: true }),
+    ];
+    const { matches } = matchSubstanceGalleryReplications(corpus, ["Visual drifting"]);
+    const matchableSlugs = new Set(matches.map((match) => match.row.slug));
+    const curatableSlugs = new Set(
+      corpus.filter(isShowcaseEligible).map((replication) => replication.slug),
+    );
+
+    const curated = normalizeGalleryCuration({
+      curatedSlugs: ["direct"],
+      removedSlugs: [],
+      matchableSlugs,
+      curatableSlugs,
+    });
+    expect(curated.curatedSlugs).toEqual(["direct"]);
+
+    // `setReplicationExclusions` moves the direct placement between the two
+    // non-overlapping stored lists.
+    const excluded = normalizeGalleryCuration({
+      curatedSlugs: curated.curatedSlugs.filter((slug) => slug !== "direct"),
+      removedSlugs: [...curated.removedSlugs, "direct"],
+      matchableSlugs,
+      curatableSlugs,
+    });
+    expect(excluded).toMatchObject({
+      curatedSlugs: [],
+      removedSlugs: ["direct"],
+      prunedRemoved: [],
+    });
+
+    // A later full gallery upsert normalizes against the same eligible corpus,
+    // so the unmatched exclusion is not mistaken for a phantom derived match.
+    const laterSave = normalizeGalleryCuration({
+      curatedSlugs: ["matched"],
+      removedSlugs: excluded.removedSlugs,
+      matchableSlugs,
+      curatableSlugs,
+    });
+    expect(laterSave.removedSlugs).toEqual(["direct"]);
+    expect(
+      directGalleryAssociationProvenance(corpus[1], {
+        curated_slugs: laterSave.curatedSlugs,
+        removed_slugs: laterSave.removedSlugs,
+      }),
+    ).toEqual({ matchedVia: "curated", effectSlug: "geometry" });
   });
 });

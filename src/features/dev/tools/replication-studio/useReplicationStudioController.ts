@@ -45,7 +45,6 @@ type LoadState =
   | { status: "ready" }
   | { status: "error"; message: string };
 type Feedback = { tone: ActionNoticeTone; message: string };
-export type ReplicationCentreView = "showcase" | "library";
 
 let cachedCorpus: CorpusPayload | null = null;
 
@@ -87,7 +86,6 @@ export function useReplicationStudioController(initialSubstanceSlug?: string) {
   const [featuredSaveState, setFeaturedSaveState] = useState<
     EditorActionStatusState | "idle"
   >("idle");
-  const [centreView, setCentreView] = useState<ReplicationCentreView>("showcase");
   const [galleryDirty, setGalleryDirty] = useState(false);
   const [pendingLeave, setPendingLeave] = useState<{
     next: "featured" | "playlists" | null;
@@ -100,13 +98,9 @@ export function useReplicationStudioController(initialSubstanceSlug?: string) {
   useEffect(() => {
     if (initialSubstanceSlug) {
       setActivePanel("substances");
-      setCentreView("showcase");
     }
   }, [initialSubstanceSlug]);
 
-  useEffect(() => {
-    if (activePanel === "substances") setCentreView("showcase");
-  }, [activePanel]);
 
   const leaveSubstances = useCallback(
     (next: "featured" | "playlists" | null) => {
@@ -465,7 +459,6 @@ export function useReplicationStudioController(initialSubstanceSlug?: string) {
     }
     return entries;
   }, [facets, effectNames]);
-  const openLibrary = useCallback(() => setCentreView("library"), []);
   const navigateToSubstance = useCallback(
     (slug: string) => router.push(`/dev/replications/${slug}`),
     [router],
@@ -493,7 +486,6 @@ export function useReplicationStudioController(initialSubstanceSlug?: string) {
     featuredCurated,
     featuredLoaded,
     featuredSaveState,
-    centreView,
     pendingLeave,
     filtersOpen,
     railInColumn,
@@ -506,7 +498,6 @@ export function useReplicationStudioController(initialSubstanceSlug?: string) {
     selectedRows,
     featuredItems,
     chips,
-    showcaseVisible: activePanel === "substances" && centreView === "showcase",
     filterCount: activeFacetCount(facets) + (query.trim() ? 1 : 0),
     incoming,
     setQuery,
@@ -516,7 +507,6 @@ export function useReplicationStudioController(initialSubstanceSlug?: string) {
     setActivePanel,
     setFeaturedOrder,
     setFeaturedSaveState,
-    setCentreView,
     setGalleryDirty,
     setPendingLeave,
     setFiltersOpen,
@@ -526,7 +516,6 @@ export function useReplicationStudioController(initialSubstanceSlug?: string) {
     saveFeatured,
     clearSelection,
     inspectRow,
-    openLibrary,
     navigateToSubstance,
     onCardActivate,
     saveSingle,

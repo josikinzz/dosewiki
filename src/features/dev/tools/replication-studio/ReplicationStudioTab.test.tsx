@@ -1,5 +1,6 @@
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import type { ReactNode } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const { pushMock } = vi.hoisted(() => ({ pushMock: vi.fn() }));
@@ -14,12 +15,17 @@ vi.mock("next/navigation", () => ({
 vi.mock("./SubstanceGalleryPanel", () => ({
   SubstanceGalleryPanel: (props: {
     substanceSlug: string | null;
+    corpusRows: readonly unknown[];
+    visibleRows: readonly unknown[];
     onInspectRow: (slug: string) => void;
     onOpenLibrary: () => void;
     onDirtyChange: (dirty: boolean) => void;
   }) => (
     <div data-testid="gallery-panel">
       <span>portal:{props.substanceSlug}</span>
+      <span>
+        gallery corpus:{props.corpusRows.length} filtered:{props.visibleRows.length}
+      </span>
       <button type="button" onClick={() => props.onInspectRow("kaleidoscopic-highway-hypnagogist")}>
         inspect row
       </button>
@@ -30,6 +36,49 @@ vi.mock("./SubstanceGalleryPanel", () => ({
         make dirty
       </button>
     </div>
+  ),
+}));
+
+vi.mock("./PlaylistsPanel", () => ({
+  PlaylistsPanel: (props: {
+    allRows: readonly unknown[];
+    filteredRows: readonly unknown[];
+    onDirtyChange?: (dirty: boolean) => void;
+    renderSavedPlaylistAction?: (playlist: {
+      key: string;
+      title: string;
+      replication_slugs: string[];
+      updated_at: string;
+      updated_by: string;
+    }) => ReactNode;
+  }) => (
+    <div data-testid="playlists-workspace">
+      <span>
+        playlist corpus:{props.allRows.length} filtered:{props.filteredRows.length}
+      </span>
+      <button type="button" onClick={() => props.onDirtyChange?.(true)}>
+        make playlist dirty
+      </button>
+      {props.renderSavedPlaylistAction?.({
+        key: "visual-journey",
+        title: "Visual journey",
+        replication_slugs: ["kaleidoscopic-highway-hypnagogist"],
+        updated_at: "2026-08-20T10:00:00.000Z",
+        updated_by: "josie",
+      })}
+    </div>
+  ),
+}));
+
+vi.mock("./ApplyPlaylistToDrugsAction", () => ({
+  ApplyPlaylistToDrugsAction: ({
+    onReviewGallery,
+  }: {
+    onReviewGallery: (substanceSlug: string) => void;
+  }) => (
+    <button type="button" onClick={() => onReviewGallery("applied-lsd")}>
+      Review applied gallery
+    </button>
   ),
 }));
 
@@ -98,6 +147,9 @@ function stubFetch() {
       calls.push({ url, init });
       if (url === "/api/dev/replications" && (!init || init.method === undefined)) {
         return Response.json(CORPUS);
+      }
+      if (url === "/api/dev/replications/featured" && (!init || init.method === undefined)) {
+        return Response.json({ slugs: [], curated: true });
       }
       if (url === "/api/dev/replications/editorial") {
         return Response.json({ ok: true, updated: 1, slugs: ["kaleidoscopic-highway-hypnagogist"] });
@@ -182,37 +234,98 @@ describe("ReplicationStudioTab", () => {
     expect(body).toMatchObject({ mode: "bulk", ids: ["row-1", "row-2"], role: "figure" });
   });
 
-  it("seats the showcase board in the grid's centre column, beside the rail", async () => {
+  it("shows the drug gallery beside its filter rail without mounting the library behind it", async () => {
     stubFetch();
     const { container } = render(<ReplicationStudioTab initialSubstanceSlug="lsd" />);
 
     const board = await screen.findByTestId("gallery-panel");
     const grid = container.querySelector("div.grid");
 
-    // The rail drives the board's add-from-corpus region, so both must be on
-    // screen at once — the whole point of moving the panel into the column.
     expect(grid).toContainElement(screen.getByLabelText("Search replications"));
     expect(grid).toContainElement(board);
     expect(screen.getByText("portal:lsd")).toBeInTheDocument();
-
-    // The corpus library is mounted behind the board rather than replaced.
-    expect(screen.getByText("2 of 2 shown").closest("div.hidden")).not.toBeNull();
+    expect(screen.getByText("gallery corpus:2 filtered:2")).toBeInTheDocument();
+    expect(screen.queryByText("2 of 2 shown")).not.toBeInTheDocument();
+    expect(screen.queryByText("Kaleidoscopic highway")).not.toBeInTheDocument();
   });
 
-  it("swaps the centre column to the library and back with the board still mounted", async () => {
+  it("presents one focused Library, Playlists, or Drug galleries workspace at a time", async () => {
     stubFetch();
     const user = userEvent.setup();
-    render(<ReplicationStudioTab initialSubstanceSlug="lsd" />);
-    await screen.findByTestId("gallery-panel");
+    render(<ReplicationStudioTab />);
+    await screen.findByText("Kaleidoscopic highway");
 
-    await user.click(screen.getByRole("button", { name: "open library" }));
+    await user.click(screen.getByRole("button", { name: "Playlists" }));
+    expect(await screen.findByTestId("playlists-workspace")).toHaveTextContent(
+      "playlist corpus:2 filtered:2",
+    );
+    expect(screen.queryByText("Kaleidoscopic highway")).not.toBeInTheDocument();
+    expect(screen.queryByText("2 of 2 shown")).not.toBeInTheDocument();
 
-    expect(screen.getByTestId("gallery-panel").closest("div.hidden")).not.toBeNull();
-    expect(screen.getByText("2 of 2 shown").closest("div.hidden")).toBeNull();
+    await user.click(screen.getByRole("button", { name: "Drug galleries" }));
+    expect(await screen.findByTestId("gallery-panel")).toBeInTheDocument();
+    expect(screen.queryByTestId("playlists-workspace")).not.toBeInTheDocument();
+    expect(screen.queryByText("Kaleidoscopic highway")).not.toBeInTheDocument();
 
-    await user.click(screen.getByRole("button", { name: "Showcase" }));
+    await user.click(screen.getByRole("button", { name: "Library" }));
+    expect(await screen.findByText("Kaleidoscopic highway")).toBeInTheDocument();
+    expect(screen.queryByTestId("gallery-panel")).not.toBeInTheDocument();
+  });
 
-    expect(screen.getByTestId("gallery-panel").closest("div.hidden")).toBeNull();
+  it("requires explicit discard before leaving a dirty Playlists workspace", async () => {
+    stubFetch();
+    const user = userEvent.setup();
+    render(<ReplicationStudioTab />);
+    await screen.findByText("Kaleidoscopic highway");
+
+    await user.click(screen.getByRole("button", { name: "Playlists" }));
+    await user.click(await screen.findByRole("button", { name: "make playlist dirty" }));
+    await user.click(screen.getByRole("button", { name: "Library" }));
+
+    expect(await screen.findByText("Leave Playlists with unsaved changes?")).toBeInTheDocument();
+    expect(screen.getByTestId("playlists-workspace")).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "Keep editing" }));
+    expect(screen.getByTestId("playlists-workspace")).toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: "Library" }));
+    await user.click(await screen.findByRole("button", { name: "Discard changes" }));
+    expect(await screen.findByText("Kaleidoscopic highway")).toBeInTheDocument();
+    expect(screen.queryByTestId("playlists-workspace")).not.toBeInTheDocument();
+  });
+
+  it("reviews an applied gallery immediately when the playlist workspace is clean", async () => {
+    stubFetch();
+    const user = userEvent.setup();
+    render(<ReplicationStudioTab />);
+    await screen.findByText("Kaleidoscopic highway");
+
+    await user.click(screen.getByRole("button", { name: "Playlists" }));
+    await user.click(await screen.findByRole("button", { name: "Review applied gallery" }));
+
+    expect(pushMock).toHaveBeenCalledOnce();
+    expect(pushMock).toHaveBeenCalledWith("/dev/replications/applied-lsd");
+    expect(
+      screen.queryByText("Leave Playlists with unsaved changes?"),
+    ).not.toBeInTheDocument();
+  });
+
+  it("carries the requested gallery through the dirty playlist discard guard", async () => {
+    stubFetch();
+    const user = userEvent.setup();
+    render(<ReplicationStudioTab />);
+    await screen.findByText("Kaleidoscopic highway");
+
+    await user.click(screen.getByRole("button", { name: "Playlists" }));
+    await user.click(await screen.findByRole("button", { name: "make playlist dirty" }));
+    await user.click(screen.getByRole("button", { name: "Review applied gallery" }));
+
+    expect(await screen.findByText("Leave Playlists with unsaved changes?")).toBeInTheDocument();
+    expect(pushMock).not.toHaveBeenCalled();
+
+    await user.click(screen.getByRole("button", { name: "Discard changes" }));
+
+    expect(pushMock).toHaveBeenCalledOnce();
+    expect(pushMock).toHaveBeenCalledWith("/dev/replications/applied-lsd");
   });
 
   it("opens the editor drawer on the row the board asks to inspect", async () => {
@@ -234,7 +347,7 @@ describe("ReplicationStudioTab", () => {
     await screen.findByTestId("gallery-panel");
 
     await user.click(screen.getByRole("button", { name: "make dirty" }));
-    await user.click(screen.getByRole("button", { name: "Substances" }));
+    await user.click(screen.getByRole("button", { name: "Library" }));
 
     expect(await screen.findByText("Leave the showcase with unsaved changes?")).toBeInTheDocument();
     expect(screen.getByTestId("gallery-panel")).toBeInTheDocument();
@@ -243,7 +356,7 @@ describe("ReplicationStudioTab", () => {
     await user.click(screen.getByRole("button", { name: "Keep editing" }));
     expect(screen.getByTestId("gallery-panel")).toBeInTheDocument();
 
-    await user.click(screen.getByRole("button", { name: "Substances" }));
+    await user.click(screen.getByRole("button", { name: "Library" }));
     await user.click(await screen.findByRole("button", { name: "Discard changes" }));
 
     await waitFor(() => expect(screen.queryByTestId("gallery-panel")).not.toBeInTheDocument());

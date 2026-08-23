@@ -2,17 +2,17 @@
  * Effect matching and the publish gate for the per-substance Replication
  * Showcase (see CONTEXT.md → Replications Surface Language).
  *
- * A substance article never stores replication references. Its candidate pool
- * is *derived*: the visual effect names under
- * `subjective_effects.sensory.visual.subcategories` resolve to effect slugs
- * exactly the way the article's effect chips do, and those slugs select
- * publishable corpus rows by owning `effect_slug` or by `effect_tags`. The
- * derivation only proposes. What an article actually shows is the
- * `substanceGalleries` row's curated list and nothing else
- * (`mergeCuratedGallery`), with a suppression list that outranks it. This
- * module is the single home of both steps so the Convex read, the Convex
- * write-path prune, the article showcase, and the DevTools curation portal
- * cannot disagree about what matches or about what publishes.
+ * A substance article's automatic candidate pool is *derived*: the visual
+ * effect names under `subjective_effects.sensory.visual.subcategories`
+ * resolve to effect slugs exactly the way the article's effect chips do, and
+ * those slugs select publishable corpus rows by owning `effect_slug` or by
+ * `effect_tags`. A gallery may additionally store a direct association when an
+ * editor curates an unmatched work; moving it from `curated_slugs` to
+ * `removed_slugs` preserves that explicit association as an exclusion. What
+ * the article actually shows is still the gallery's curated list and nothing
+ * else (`mergeCuratedGallery`), with suppression outranking curation. This
+ * module is the single home of matching, association, and write normalization
+ * so Convex reads, the article showcase, and the curation portal agree.
  *
  * Everything here is pure. Imports are relative rather than aliased because
  * the Convex bundler consumes this file too (as `convex/substanceGalleries.ts`
@@ -56,7 +56,7 @@ export type SubstanceGalleryMatchableRow = {
   type: ReplicationType;
   role?: MediaRole;
   title?: string;
-  effect_slug?: string;
+  effect_slug?: string | null;
   effect_tags?: string[];
   /** Corpus-wide suppression: junk everywhere, so it proposes nowhere. */
   showcase_excluded?: boolean;
@@ -79,7 +79,10 @@ export type SubstanceGalleryMatchResult<Row extends SubstanceGalleryMatchableRow
   unmatchedEffectNames: string[];
 };
 
-/** The stored curation row's editable fields (`substanceGalleries` in Convex). */
+/**
+ * The stored gallery association fields: ordered published placements and
+ * unordered per-substance exclusions.
+ */
 export type SubstanceGalleryCuration = {
   curated_slugs?: readonly string[];
   removed_slugs?: readonly string[];
@@ -366,28 +369,49 @@ export function matchSubstanceGalleryReplications<Row extends SubstanceGalleryMa
   };
 }
 
-/** Add directly pinned publishable rows that the substance's effect vocabulary does not match. */
-export function includeDirectlyCuratedRows<Row extends SubstanceGalleryMatchableRow>(
+/**
+ * Return the direct-curation provenance for a stored gallery association.
+ *
+ * Exclusion does not erase an unmatched direct placement's association: it
+ * changes the editorial decision from shown to explicitly suppressed. Retired
+ * or otherwise ineligible corpus rows are never associations.
+ */
+export function directGalleryAssociationProvenance(
+  row: SubstanceGalleryMatchableRow,
+  curation: SubstanceGalleryCuration | null | undefined,
+): SubstanceGalleryMatchProvenance | null {
+  if (!isShowcaseEligible(row)) return null;
+  const associated =
+    curation?.curated_slugs?.includes(row.slug) === true
+    || curation?.removed_slugs?.includes(row.slug) === true;
+  if (!associated) return null;
+  return {
+    matchedVia: "curated",
+    effectSlug: row.effect_slug ?? "explicit-curation",
+  };
+}
+
+/**
+ * Add showcase-eligible rows that have a stored association with this
+ * substance even though its effect vocabulary does not match them.
+ *
+ * Direct curation establishes the association; moving that work to
+ * `removed_slugs` preserves it as an explicit "not on this article" decision.
+ * Both states use direct-curation provenance because neither was derived from
+ * an effect or title match.
+ */
+export function includeDirectlyAssociatedRows<Row extends SubstanceGalleryMatchableRow>(
   rows: readonly Row[],
   matches: readonly SubstanceGalleryMatch<Row>[],
   curation: SubstanceGalleryCuration | null | undefined,
 ): SubstanceGalleryMatch<Row>[] {
   const matchedSlugs = new Set(matches.map((match) => match.row.slug));
-  const curatedSlugs = new Set(curation?.curated_slugs ?? []);
-  const direct = rows
-    .filter(
-      (row) =>
-        curatedSlugs.has(row.slug)
-        && !matchedSlugs.has(row.slug)
-        && isShowcaseEligible(row),
-    )
-    .map((row) => ({
-      row,
-      provenance: {
-        matchedVia: "curated" as const,
-        effectSlug: row.effect_slug ?? "explicit-curation",
-      },
-    }));
+  const direct: SubstanceGalleryMatch<Row>[] = [];
+  for (const row of rows) {
+    if (matchedSlugs.has(row.slug)) continue;
+    const provenance = directGalleryAssociationProvenance(row, curation);
+    if (provenance) direct.push({ row, provenance });
+  }
   return [...matches, ...direct];
 }
 
@@ -408,8 +432,8 @@ export function includeDirectlyCuratedRows<Row extends SubstanceGalleryMatchable
  * A removed slug is dropped even if it is also curated: a deliberate
  * suppression outranks a stray promotion, and the invariant must hold at read
  * time rather than resting on the write path's overlap rejection. Curated
- * slugs that match nothing are skipped rather than leaving holes, so a stale
- * curation degrades gracefully; the write path prunes them permanently.
+ * slugs unavailable from the eligible association pool are skipped rather than
+ * leaving holes, so stale curation degrades gracefully; writes prune them.
  */
 export function mergeCuratedGallery<Item>(
   matchedItems: readonly Item[],
@@ -441,9 +465,9 @@ export function mergeCuratedGallery<Item>(
 }
 
 export type NormalizedGalleryCuration = {
-  /** Curated list, trimmed, deduplicated, pruned to publishable corpus slugs. */
+  /** Curated list, trimmed, deduplicated, pruned to showcase-eligible corpus slugs. */
   curatedSlugs: string[];
-  /** Suppression list, trimmed, deduplicated, pruned to currently matching slugs. */
+  /** Suppression list, trimmed, deduplicated, pruned to showcase-eligible corpus slugs. */
   removedSlugs: string[];
   /** What pruning dropped, so the editor can be told rather than left guessing. */
   prunedCurated: string[];
@@ -465,9 +489,11 @@ function normalizeSlugList(slugs: readonly string[]): string[] {
 /**
  * Normalize a curation write: trim and deduplicate both lists, reject any
  * curated∩removed overlap (a slug cannot be pinned and suppressed at once —
- * that is a client bug, not a preference), and prune slugs that no longer
- * match the substance so a deleted or renamed replication cannot survive as a
- * phantom position. Throws on overlap; returns the pruned echo otherwise.
+ * that is a client bug, not a preference), and prune both lists against the
+ * showcase-eligible corpus. Direct curation and direct exclusion therefore
+ * survive without a derived effect match, while deleted, retired, or otherwise
+ * ineligible replications cannot survive as phantom associations. Throws on
+ * overlap; returns the pruned echo otherwise.
  */
 export function normalizeGalleryCuration(input: {
   curatedSlugs: readonly string[];
@@ -495,8 +521,9 @@ export function normalizeGalleryCuration(input: {
     return { kept, pruned };
   };
 
-  const curatedSplit = keep(curated, input.curatableSlugs ?? input.matchableSlugs);
-  const removedSplit = keep(removed, input.matchableSlugs);
+  const associationSlugs = input.curatableSlugs ?? input.matchableSlugs;
+  const curatedSplit = keep(curated, associationSlugs);
+  const removedSplit = keep(removed, associationSlugs);
 
   return {
     curatedSlugs: curatedSplit.kept,

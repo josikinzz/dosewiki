@@ -3,8 +3,9 @@ import { mutation, query, type QueryCtx } from "./_generated/server";
 import { requireAuth, requireEditorWrite } from "./lib/auth";
 import { memoizedStorageUrls, resolveReplicationUrls } from "./replications";
 import {
+  directGalleryAssociationProvenance,
   matchSubstanceGalleryReplications,
-  includeDirectlyCuratedRows,
+  includeDirectlyAssociatedRows,
   mergeCuratedGallery,
   normalizeGalleryCuration,
   resolveVisualEffectSlugs,
@@ -94,7 +95,7 @@ export const getPublicReplicationsForSubstance = query({
       .first();
 
     const merged = mergeCuratedGallery(
-      includeDirectlyCuratedRows(rows, matches, gallery),
+      includeDirectlyAssociatedRows(rows, matches, gallery),
       gallery,
       (match) => match.row.slug,
     );
@@ -173,17 +174,17 @@ export const listCurationCandidatesPage = query({
 
 /**
  * Everything the curation portal's per-substance panel draws in one read:
- * every publishable match in default corpus order with per-item provenance and
- * resolved media URLs, the stored curation row (or null), the substance's
- * matchable visual effects (`effectOptions`, what the portal's tag-to-add
- * control offers), and the unmatched visual-effect names the teaching state
- * lists.
+ * every derived publishable match plus any unmatched showcase-eligible row
+ * carrying a stored direct curation or exclusion, with provenance and resolved
+ * media URLs; the stored curation row (or null); the substance's matchable
+ * visual effects (`effectOptions`, what the portal's tag-to-add control
+ * offers); and unmatched visual-effect names for the teaching state.
  *
- * Unlike the public read this never applies the publish gate: the portal is
- * the one surface that must see the whole candidate pool, curated or not, and
- * it needs the raw match order and the curation separately to draw the three
- * temperatures. So `matches` here is a superset of what the article shows —
- * often a large one, since an uncurated substance publishes nothing.
+ * Unlike the public read this never applies the publish gate: the portal must
+ * see the whole candidate pool and every stored direct association, with raw
+ * match order and curation separately, to draw its three temperatures. Thus
+ * `matches` is a superset of what the article shows — often a large one, since
+ * an uncurated substance publishes nothing.
  *
  * Returns null for a slug naming no (or an ambiguous) substance.
  */
@@ -212,7 +213,7 @@ export const getCurationDetail = query({
       .query("substanceGalleries")
       .withIndex("by_substance", (q) => q.eq("substance_slug", args.substance_slug))
       .first();
-    const available = includeDirectlyCuratedRows(rows, matches, gallery);
+    const available = includeDirectlyAssociatedRows(rows, matches, gallery);
 
     const effects = await ctx.db.query("subjectiveEffects").collect();
     const effectNames = new Map(effects.map((effect) => [effect.slug, effect.name ?? effect.slug]));
@@ -281,12 +282,12 @@ export const getCurationDetail = query({
 /**
  * Replace one substance's curation with the full submitted arrays.
  *
- * Slugs that no longer match the substance are pruned here rather than stored
- * — a deleted, renamed, or retagged replication must not survive as a phantom
- * position — and what was dropped comes back to the caller so the editor can
- * be told rather than left guessing. A curated∩removed overlap is rejected
- * outright: it is a client bug, not a preference. The caller adopts the
- * returned pruned echo as its new state.
+ * Slugs that are no longer showcase-eligible are pruned here rather than
+ * stored — a deleted, retired, or otherwise ineligible replication must not
+ * survive as a phantom association — and what was dropped comes back so the
+ * editor can be told rather than left guessing. A curated∩removed overlap is
+ * rejected outright: it is a client bug, not a preference. The caller adopts
+ * the returned pruned echo as its new state.
  *
  * `expectedUpdatedAt` is the version check, in the spirit of
  * `replications:updateEditorialFields`' `expected` snapshot: omit it to write
@@ -429,20 +430,23 @@ function associationProvenance(
  * The other side of the same derivation: which substance articles one
  * replication is eligible for, and which of those actually show it.
  *
- * Nothing links a replication to a substance — the association is derived on
- * every read from the article's visual-effect names, so there is no join row to
- * list. This walks the article table instead and tests this one replication
- * against each article's derived effect slugs, reusing
- * `matchSubstanceGalleryReplications` with a single-row corpus so the owning
- * slug still beats a tag and the publishable gate still applies. Editorial read
- * over the whole article table, so it takes `replicationMaintenance` and pages
- * exactly like `listCurationCandidatesPage`; the caller drains the cursor.
+ * An association can come from the article's visual-effect/name derivation or
+ * from the gallery's stored curation delta. Directly curating an unmatched
+ * work establishes an explicit association; later moving it to
+ * `removed_slugs` preserves that association as an editorial exclusion. This
+ * walks the article table and tests this one replication against each
+ * article's derived effect slugs, reusing `matchSubstanceGalleryReplications`
+ * with a single-row corpus so owning-slug, tag, title, and publishable rules
+ * cannot drift. Editorial read over the whole article table, so it takes
+ * `replicationMaintenance` and pages exactly like
+ * `listCurationCandidatesPage`; the caller drains the cursor.
  *
  * `excluded` and `curatedPosition` are the stored delta from that substance's
  * `substanceGalleries` row — the saved baseline the editor's draft is diffed
  * against, never anything derived from the request. Since curation is a
  * publish gate, `curatedPosition !== null` is the only field that means the
- * work appears on that article; eligibility alone means it could.
+ * work appears on that article; eligibility or a stored exclusion means it is
+ * associated but not shown.
  *
  * A slug naming no replication, or naming a figure or audio row, is eligible
  * for no article at all: that answers with an empty page rather than an error,
@@ -488,12 +492,9 @@ export const getReplicationAssociationsPage = query({
         visualNames,
         substanceNamesOf(substance),
       );
-      const directlyCurated = gallery?.curated_slugs.includes(args.replicationSlug) ?? false;
-      if (!derivedProvenance && !directlyCurated) continue;
-      const provenance = derivedProvenance ?? {
-        matchedVia: "curated" as const,
-        effectSlug: replication.effect_slug ?? "explicit-curation",
-      };
+      const directProvenance = directGalleryAssociationProvenance(replication, gallery);
+      const provenance = derivedProvenance ?? directProvenance;
+      if (!provenance) continue;
 
       // The article's own wording for the matched effect slug, paired the way
       // `getCurationDetail`'s `effectOptions` pairs it: first name in document
@@ -540,10 +541,10 @@ export const getReplicationAssociationsPage = query({
  * is an editorial judgement about one pairing, so it is stored as one
  * substance's delta.
  *
- * A substance this replication does not match is never written — there would be
- * nothing to suppress, and `upsert` would prune the phantom slug on the next
- * save anyway. Adding an exclusion also strips the slug from that substance's
- * `curated_slugs`, because the two lists may never overlap
+ * An unmatched substance can only be written when its gallery directly
+ * curates this replication: that stored placement is a real association which
+ * exclusion preserves. Adding an exclusion strips the slug from that
+ * substance's `curated_slugs`, because the two lists may never overlap
  * (`normalizeGalleryCuration` rejects it); each pin so dropped comes back in
  * `droppedCuratedPositions` with the 1-based position it held, so the editor is
  * told rather than left to notice. Substances whose row would not change are
@@ -619,7 +620,8 @@ export const setReplicationExclusions = mutation({
           visualEffectNamesOf(substance.subjective_effects),
           substanceNamesOf(substance),
         );
-        if (!provenance) continue;
+        const directProvenance = directGalleryAssociationProvenance(replication, gallery);
+        if (!provenance && !directProvenance) continue;
 
         const removed_slugs = [...(gallery?.removed_slugs ?? []), args.replicationSlug];
         if (removed_slugs.length > MAX_GALLERY_CURATION_SLUGS) {

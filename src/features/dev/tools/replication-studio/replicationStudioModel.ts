@@ -21,6 +21,7 @@ export type StudioRow = {
   effect_name: string | null;
   effect_tags: string[];
   credit_line: string | null;
+  rights_status?: string | null;
   url: string | null;
   thumbnail_url: string | null;
   format: string;

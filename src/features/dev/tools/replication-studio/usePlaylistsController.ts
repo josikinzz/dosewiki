@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import type { EditorActionStatusState } from "@/features/dev/components";
 import {
@@ -12,6 +12,15 @@ import {
 const PLAYLISTS_API = "/api/dev/replications/playlists";
 
 type Feedback = { tone: "success" | "warning" | "danger"; message: string };
+type DraftTransition =
+  | { kind: "close" }
+  | { kind: "new" }
+  | { kind: "open"; playlist: ReplicationPlaylist };
+
+function slugListsEqual(left: readonly string[], right: readonly string[]): boolean {
+  return left.length === right.length && left.every((slug, index) => slug === right[index]);
+}
+
 
 async function readError(response: Response, fallback: string): Promise<string> {
   try {
@@ -29,13 +38,20 @@ async function readError(response: Response, fallback: string): Promise<string> 
  * documents, and the gallery panel needs their names to offer "Apply playlist"
  * without a second round trip when an editor reaches for it.
  */
-export function usePlaylistsController() {
+export function usePlaylistsController({
+  onDirtyChange,
+}: { onDirtyChange?: (dirty: boolean) => void } = {}) {
   const [playlists, setPlaylists] = useState<ReplicationPlaylist[]>([]);
   const [loaded, setLoaded] = useState(false);
   const [token, setToken] = useState(0);
   const [draft, setDraft] = useState<PlaylistDraft | null>(null);
+  const [pendingTransition, setPendingTransition] = useState<DraftTransition | null>(null);
+  const [deletingKeys, setDeletingKeys] = useState<Set<string>>(() => new Set());
   const [saveState, setSaveState] = useState<EditorActionStatusState | "idle">("idle");
   const [feedback, setFeedback] = useState<Feedback | null>(null);
+
+  const deletingKeysRef = useRef(new Set<string>());
+  const savingRef = useRef(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -52,9 +68,6 @@ export function usePlaylistsController() {
           return;
         }
         const payload = (await response.json()) as { playlists?: unknown };
-        // A 200 that is not the shape this hook expects is a broken endpoint,
-        // not a list of zero playlists — and it must not take the panel that
-        // hosts this menu down with it.
         if (!Array.isArray(payload.playlists)) {
           if (!cancelled) {
             setFeedback({
@@ -79,53 +92,127 @@ export function usePlaylistsController() {
     };
   }, [token]);
 
-  const savedSlugs = useMemo(() => {
-    if (!draft) return [];
-    return playlists.find((entry) => entry.key === draft.key)?.replication_slugs ?? [];
+  const savedPlaylist = useMemo(() => {
+    if (!draft || draft.expectedUpdatedAt === null) return null;
+    return playlists.find((entry) => entry.key === draft.key) ?? null;
   }, [draft, playlists]);
+  const savedSlugs = savedPlaylist?.replication_slugs ?? [];
+  const isDirty = useMemo(() => {
+    if (!draft) return false;
+    if (!savedPlaylist) {
+      return draft.title.trim().length > 0 || draft.slugs.length > 0;
+    }
+    return (
+      draft.title !== savedPlaylist.title ||
+      !slugListsEqual(draft.slugs, savedPlaylist.replication_slugs)
+    );
+  }, [draft, savedPlaylist]);
 
-  const openPlaylist = useCallback((playlist: ReplicationPlaylist) => {
-    setDraft({
-      key: playlist.key,
-      title: playlist.title,
-      slugs: [...playlist.replication_slugs],
-      expectedUpdatedAt: playlist.updated_at,
-    });
+  useEffect(() => {
+    onDirtyChange?.(isDirty);
+  }, [isDirty, onDirtyChange]);
+
+  useEffect(() => {
+    if (!isDirty) return;
+    const warn = (event: BeforeUnloadEvent) => {
+      event.preventDefault();
+      event.returnValue = "";
+    };
+    window.addEventListener("beforeunload", warn);
+    return () => window.removeEventListener("beforeunload", warn);
+  }, [isDirty]);
+
+  const applyTransition = useCallback((transition: DraftTransition) => {
+    if (savingRef.current) return;
+    if (transition.kind === "close") {
+      setDraft(null);
+    } else if (transition.kind === "new") {
+      setDraft({ key: "", title: "", slugs: [], expectedUpdatedAt: null });
+    } else {
+      const { playlist } = transition;
+      setDraft({
+        key: playlist.key,
+        title: playlist.title,
+        slugs: [...playlist.replication_slugs],
+        expectedUpdatedAt: playlist.updated_at,
+      });
+    }
     setSaveState("idle");
   }, []);
 
-  const startNewPlaylist = useCallback(() => {
-    setDraft({ key: "", title: "", slugs: [], expectedUpdatedAt: null });
-    setSaveState("idle");
-  }, []);
+  const requestTransition = useCallback(
+    (transition: DraftTransition) => {
+      if (savingRef.current) return;
+      if (isDirty) {
+        setPendingTransition(transition);
+        return;
+      }
+      applyTransition(transition);
+    },
+    [applyTransition, isDirty],
+  );
 
-  const closeDraft = useCallback(() => {
-    setDraft(null);
-    setSaveState("idle");
-  }, []);
+  const openPlaylist = useCallback(
+    (playlist: ReplicationPlaylist) => {
+      if (draft?.key === playlist.key) return;
+      requestTransition({ kind: "open", playlist });
+    },
+    [draft?.key, requestTransition],
+  );
+  const startNewPlaylist = useCallback(
+    () => requestTransition({ kind: "new" }),
+    [requestTransition],
+  );
+  const closeDraft = useCallback(
+    () => requestTransition({ kind: "close" }),
+    [requestTransition],
+  );
+  const discardPendingTransition = useCallback(() => {
+    if (savingRef.current || !pendingTransition) return;
+    applyTransition(pendingTransition);
+    setPendingTransition(null);
+  }, [applyTransition, pendingTransition]);
 
   const setDraftTitle = useCallback((title: string) => {
+    if (savingRef.current) return;
     setDraft((current) => {
-      if (!current) return current;
-      // The key is minted once, on the first save. A rename keeps the address so
-      // a playlist stays the same playlist wherever it has already been used.
+      if (savingRef.current || !current) return current;
       const key = current.expectedUpdatedAt === null ? playlistKeyOf(title) : current.key;
       return { ...current, title, key };
     });
     setSaveState("idle");
   }, []);
+  const resetDraft = useCallback(() => {
+    if (savingRef.current) return;
+    if (savedPlaylist) {
+      setDraft({
+        key: savedPlaylist.key,
+        title: savedPlaylist.title,
+        slugs: [...savedPlaylist.replication_slugs],
+        expectedUpdatedAt: savedPlaylist.updated_at,
+      });
+    } else if (draft) {
+      setDraft({ key: "", title: "", slugs: [], expectedUpdatedAt: null });
+    }
+    setSaveState("idle");
+  }, [draft, savedPlaylist]);
+
 
   const setDraftSlugs = useCallback((slugs: string[]) => {
-    setDraft((current) => (current ? { ...current, slugs } : current));
+    if (savingRef.current) return;
+    setDraft((current) =>
+      savingRef.current || !current ? current : { ...current, slugs },
+    );
     setSaveState("idle");
   }, []);
 
   const save = useCallback(async () => {
-    if (!draft) return;
+    if (savingRef.current || !draft) return;
     if (draft.title.trim().length === 0 || draft.key.length === 0) {
       setFeedback({ tone: "warning", message: "A playlist needs a name before it can be saved." });
       return;
     }
+    savingRef.current = true;
     setSaveState("saving");
     try {
       const response = await fetch(PLAYLISTS_API, {
@@ -155,31 +242,53 @@ export function usePlaylistsController() {
         return;
       }
       const payload = (await response.json()) as {
-        playlist: { pruned: string[]; updated_at: string };
+        playlist: ReplicationPlaylist & { pruned: string[] };
       };
+      const stored = payload.playlist;
+      const saved: ReplicationPlaylist = {
+        key: stored.key,
+        title: stored.title,
+        replication_slugs: stored.replication_slugs,
+        updated_at: stored.updated_at,
+        updated_by: stored.updated_by,
+      };
+      setPlaylists((current) => {
+        const exists = current.some((entry) => entry.key === saved.key);
+        return exists
+          ? current.map((entry) => (entry.key === saved.key ? saved : entry))
+          : [...current, saved].sort((left, right) => left.title.localeCompare(right.title));
+      });
+      setDraft({
+        key: saved.key,
+        title: saved.title,
+        slugs: [...saved.replication_slugs],
+        expectedUpdatedAt: saved.updated_at,
+      });
       setSaveState("saved");
-      setDraft((current) =>
-        current ? { ...current, expectedUpdatedAt: payload.playlist.updated_at } : current,
-      );
       setFeedback(
-        payload.playlist.pruned.length > 0
+        stored.pruned.length > 0
           ? {
               tone: "warning",
-              message: `Saved "${draft.title}". ${payload.playlist.pruned.length} entr${
-                payload.playlist.pruned.length === 1 ? "y" : "ies"
+              message: `Saved "${saved.title}". ${stored.pruned.length} entr${
+                stored.pruned.length === 1 ? "y" : "ies"
               } named a work that no longer exists or is excluded everywhere, and were dropped.`,
             }
-          : { tone: "success", message: `Saved "${draft.title}".` },
+          : { tone: "success", message: `Saved "${saved.title}".` },
       );
-      setToken((value) => value + 1);
     } catch {
       setSaveState("idle");
       setFeedback({ tone: "danger", message: "Could not reach the playlists endpoint." });
+    } finally {
+      savingRef.current = false;
     }
   }, [draft]);
 
   const remove = useCallback(
     async (playlist: ReplicationPlaylist) => {
+      if (savingRef.current) return;
+      if (deletingKeysRef.current.has(playlist.key)) return;
+      deletingKeysRef.current.add(playlist.key);
+      setDeletingKeys((current) => new Set(current).add(playlist.key));
       try {
         const response = await fetch(`${PLAYLISTS_API}/${encodeURIComponent(playlist.key)}`, {
           method: "DELETE",
@@ -192,10 +301,19 @@ export function usePlaylistsController() {
           return;
         }
         setFeedback({ tone: "success", message: `Deleted "${playlist.title}".` });
-        setDraft((current) => (current?.key === playlist.key ? null : current));
-        setToken((value) => value + 1);
+        setPlaylists((current) => current.filter((entry) => entry.key !== playlist.key));
+        setDraft((current) =>
+          savingRef.current || current?.key !== playlist.key ? current : null,
+        );
       } catch {
         setFeedback({ tone: "danger", message: "Could not reach the playlists endpoint." });
+      } finally {
+        deletingKeysRef.current.delete(playlist.key);
+        setDeletingKeys((current) => {
+          const next = new Set(current);
+          next.delete(playlist.key);
+          return next;
+        });
       }
     },
     [],
@@ -206,14 +324,21 @@ export function usePlaylistsController() {
     loaded,
     draft,
     savedSlugs,
+    isDirty,
+    pendingTransition,
+    deletingKeys,
     saveState,
+    isSaving: saveState === "saving",
     feedback,
     setFeedback,
     openPlaylist,
     startNewPlaylist,
     closeDraft,
+    discardPendingTransition,
+    cancelPendingTransition: () => setPendingTransition(null),
     setDraftTitle,
     setDraftSlugs,
+    resetDraft,
     save,
     remove,
     reload: () => setToken((value) => value + 1),

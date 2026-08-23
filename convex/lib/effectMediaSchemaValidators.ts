@@ -185,13 +185,14 @@ export const replication = v.object({
   ...replicationRightsFields,
 });
 
-// Per-substance curation of the article's Replication Showcase. The showcase
-// itself is *derived* — the substance's visual-effect names are matched against
-// `replications` at read time — so this row stores only the editor's deltas:
-// a pinned head (`curated_slugs`, in display order) and a suppression list
-// (`removed_slugs`). Both hold `replications.slug` values, are pruned on write
-// to slugs that still match the substance, and may never overlap. A substance
-// with no row shows the derived set in default order.
+// Per-substance curation of the article's Replication Showcase. Matching
+// proposes candidates, while this row is the publish gate and the stored
+// association delta: `curated_slugs` is the ordered set the article shows and
+// `removed_slugs` is the unordered set explicitly excluded from this article.
+// Either list may preserve a direct association without an effect-derived
+// match. Both hold `replications.slug` values, are pruned on write against the
+// showcase-eligible corpus, and may never overlap. A substance with no row
+// publishes no replication showcase.
 export const substanceGallery = v.object({
   substance_slug: v.string(),
   curated_slugs: v.array(v.string()),

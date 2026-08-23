@@ -70,8 +70,8 @@ type ParsedCurationBody = {
  * What a stored replication slug can actually look like. New uploads mint
  * strict kebab-case, but the legacy import left underscores and dots in the
  * corpus (`grass_photos_v2_x2-unknown`), and those rows are as curatable as
- * any other. This gate only bounces garbage — `substanceGalleries:upsert`
- * prunes anything that names no current match either way.
+ * any other. This gate only bounces garbage; `substanceGalleries:upsert`
+ * separately prunes both lists against the showcase-eligible corpus.
  */
 const REPLICATION_SLUG = /^[a-z0-9][a-z0-9._-]{0,119}$/;
 

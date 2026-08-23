@@ -115,6 +115,7 @@ export type SubstanceGalleryPanelProps = {
   substanceSlug: string | null;
   onNavigateToSubstance: (slug: string) => void;
   visibleRows: readonly StudioRow[];
+  corpusRows: readonly StudioRow[];
   railNarrowed: boolean;
   onInspectRow: (slug: string) => void;
   onOpenLibrary: () => void;
@@ -124,6 +125,7 @@ export type SubstanceGalleryPanelProps = {
 export function SubstanceGalleryPanel({
   substanceSlug,
   onNavigateToSubstance,
+  corpusRows,
   visibleRows,
   railNarrowed,
   onInspectRow,
@@ -132,6 +134,7 @@ export function SubstanceGalleryPanel({
 }: SubstanceGalleryPanelProps) {
   const controller = useSubstanceGalleryController({
     substanceSlug,
+    corpusRows,
     onNavigateToSubstance,
     onDirtyChange,
   });
@@ -239,7 +242,8 @@ export function SubstanceGalleryPanel({
               Save gallery
             </Button>
             <ApplyPlaylistMenu
-              matchedSlugs={matchedSlugs}
+              key={substanceSlug}
+              corpusRows={corpusRows}
               onApply={controller.handleApplyPlaylist}
             />
             <Button

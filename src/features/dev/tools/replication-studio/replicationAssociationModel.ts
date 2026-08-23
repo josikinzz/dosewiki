@@ -2,17 +2,18 @@
  * Pure state logic for the replication → drug association editor
  * (`/dev` → Replications → one replication → its associated drugs).
  *
- * A replication is never linked to a substance directly: the gallery derives
- * the link from the substance's visual effects, so there is nothing on the
- * replication to unlink. The one way to break a single association is that
- * substance's `substanceGalleries.removed_slugs`, and that is what this module
- * edits — the same exclusion data the Substances portal writes, read from the
- * replication's side. One editable set of substance slugs here fans out to one
- * per-substance write at save time; unticking a drug touches that drug only and
- * never the replication's effect tags.
+ * An association can be derived from visual effects/title or stored directly
+ * in a substance gallery. Direct curation establishes the association and
+ * moving it to `removed_slugs` retains it as an exclusion; neither form mutates
+ * effect tags. Unticking a drug touches only that drug, and excluding a direct
+ * placement also removes its curated position because curation and exclusion
+ * cannot overlap.
  */
 
-/** One derived association row: a drug this replication currently matches. */
+/**
+ * One association row: derived by effects/title or retained by stored direct
+ * curation/exclusion.
+ */
 export type ReplicationAssociation = {
   slug: string;
   title: string;

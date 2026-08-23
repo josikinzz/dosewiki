@@ -54,14 +54,18 @@ export function applyPlaylistToCuration({
   curated: readonly string[];
   removed: readonly string[];
   playlistSlugs: readonly string[];
-}): { curated: string[]; added: string[]; skippedExcluded: string[] } {
+}): { curated: string[]; added: string[]; alreadyPresent: string[]; skippedExcluded: string[] } {
   const already = new Set(curated);
   const excluded = new Set(removed);
   const added: string[] = [];
   const skippedExcluded: string[] = [];
+  const alreadyPresent: string[] = [];
 
   for (const slug of playlistSlugs) {
-    if (already.has(slug)) continue;
+    if (already.has(slug)) {
+      alreadyPresent.push(slug);
+      continue;
+    }
     if (excluded.has(slug)) {
       skippedExcluded.push(slug);
       continue;
@@ -70,5 +74,5 @@ export function applyPlaylistToCuration({
     added.push(slug);
   }
 
-  return { curated: [...curated, ...added], added, skippedExcluded };
+  return { curated: [...curated, ...added], added, alreadyPresent, skippedExcluded };
 }

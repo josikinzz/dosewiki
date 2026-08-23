@@ -55,5 +55,6 @@ describe("applyPlaylistToCuration", () => {
     });
     expect(twice.curated).toEqual(["a", "b"]);
     expect(twice.added).toEqual([]);
+    expect(twice.alreadyPresent).toEqual(["a", "b"]);
   });
 });

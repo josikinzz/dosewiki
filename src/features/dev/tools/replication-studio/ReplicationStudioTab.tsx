@@ -1,4 +1,5 @@
 "use client";
+import { useState } from "react";
 
 import { Icon } from "@/components/common/Icon";
 import { Badge } from "@/components/ui/badge";
@@ -16,13 +17,13 @@ import {
   ActionNotice,
   EditorPanel,
   EditorPanelBody,
-  EditorSegmentedControl,
   TagToken,
 } from "@/features/dev/components";
 import { OrderingPanel } from "@/features/dev/tools/contributors/OrderingPanel";
 import { cn } from "@/lib/utils";
 
 import { IncomingTray } from "./IncomingTray";
+import { ApplyPlaylistToDrugsAction } from "./ApplyPlaylistToDrugsAction";
 import { ReplicationEditorDrawer } from "./ReplicationEditorDrawer";
 import { PlaylistsPanel } from "./PlaylistsPanel";
 import { ReplicationFacetRail } from "./ReplicationFacetRail";
@@ -32,10 +33,13 @@ import {
   EMPTY_STUDIO_FACETS,
   activeFacetCount,
 } from "./replicationStudioModel";
-import {
-  useReplicationStudioController,
-  type ReplicationCentreView,
-} from "./useReplicationStudioController";
+import { useReplicationStudioController } from "./useReplicationStudioController";
+
+type StudioWorkspace = "featured" | "playlists" | "substances" | null;
+
+type PendingPlaylistLeave =
+  | { kind: "workspace"; next: StudioWorkspace }
+  | { kind: "review"; substanceSlug: string };
 
 export function ReplicationStudioTab({
   initialSubstanceSlug,
@@ -57,7 +61,6 @@ export function ReplicationStudioTab({
     featuredCurated,
     featuredLoaded,
     featuredSaveState,
-    centreView,
     pendingLeave,
     filtersOpen,
     railInColumn,
@@ -70,10 +73,34 @@ export function ReplicationStudioTab({
     selectedRows,
     featuredItems,
     chips,
-    showcaseVisible,
     filterCount,
     incoming,
   } = controller;
+  const [playlistDirty, setPlaylistDirty] = useState(false);
+  const [pendingPlaylistLeave, setPendingPlaylistLeave] = useState<PendingPlaylistLeave | null>(
+    null,
+  );
+
+  const requestWorkspace = (next: StudioWorkspace) => {
+    if (activePanel === next) return;
+    if (activePanel === "substances") {
+      controller.requestLeaveSubstances(next === "playlists" || next === "featured" ? next : null);
+      return;
+    }
+    if (activePanel === "playlists" && playlistDirty) {
+      setPendingPlaylistLeave({ kind: "workspace", next });
+      return;
+    }
+    setPlaylistDirty(false);
+    controller.setActivePanel(next);
+  };
+  const requestReviewGallery = (substanceSlug: string) => {
+    if (activePanel === "playlists" && playlistDirty) {
+      setPendingPlaylistLeave({ kind: "review", substanceSlug });
+      return;
+    }
+    controller.navigateToSubstance(substanceSlug);
+  };
 
   if (load.status === "loading") {
     return (
@@ -98,93 +125,89 @@ export function ReplicationStudioTab({
 
   return (
     <div className="space-y-4">
-      <header className="flex flex-wrap items-center gap-3">
-        <div className="flex items-baseline gap-2">
-          <h2 className="theme-accent-emphasis font-display text-xl font-semibold">
-            Replication Studio
-          </h2>
-          <span className="theme-text-faint text-xs uppercase tracking-[0.24em]">dev tool</span>
+      <header className="space-y-3">
+        <div className="flex flex-wrap items-baseline gap-3">
+          <div className="flex items-baseline gap-2">
+            <h2 className="theme-accent-emphasis font-display text-xl font-semibold">
+              Replication Studio
+            </h2>
+            <span className="theme-text-faint text-xs uppercase tracking-[0.24em]">dev tool</span>
+          </div>
+          <p className="theme-text-faint font-mono text-xs">
+            {rows.length} rows · {artists.length} artists ·{" "}
+            {new Set(rows.map((row) => row.effect_slug).filter(Boolean)).size} effects
+          </p>
         </div>
-        <p className="theme-text-faint font-mono text-xs">
-          {rows.length} rows · {artists.length} artists ·{" "}
-          {new Set(rows.map((row) => row.effect_slug).filter(Boolean)).size} effects
-        </p>
-        <div className="flex-1" />
-        <Button
-          type="button"
-          variant={activePanel === "featured" ? "accent" : "ghost"}
-          size="sm"
-          aria-expanded={activePanel === "featured"}
-          onClick={() => {
-            if (activePanel === "featured") {
-              controller.setActivePanel(null);
-              return;
-            }
-            if (activePanel === "substances") {
-              controller.requestLeaveSubstances("featured");
-              return;
-            }
-            controller.setActivePanel("featured");
-          }}
-        >
-          <Icon icon="lucide:star" size={15} />
-          Featured
-        </Button>
-        <Button
-          type="button"
-          variant={activePanel === "playlists" ? "accent" : "ghost"}
-          size="sm"
-          aria-expanded={activePanel === "playlists"}
-          onClick={() => {
-            if (activePanel === "playlists") {
-              controller.setActivePanel(null);
-              return;
-            }
-            if (activePanel === "substances") {
-              controller.requestLeaveSubstances("playlists");
-              return;
-            }
-            controller.setActivePanel("playlists");
-          }}
-        >
-          <Icon icon="lucide:list-music" size={15} />
-          Playlists
-        </Button>
-        <Button
-          type="button"
-          variant={activePanel === "substances" ? "accent" : "ghost"}
-          size="sm"
-          aria-expanded={activePanel === "substances"}
-          onClick={() => {
-            if (activePanel === "substances") {
-              controller.requestLeaveSubstances(null);
-              return;
-            }
-            controller.setActivePanel("substances");
-          }}
-        >
-          <Icon icon="lucide:images" size={15} />
-          Substances
-        </Button>
-        <Button
-          type="button"
-          variant="ghost"
-          size="sm"
-          disabled={busy}
-          onClick={() => void controller.loadCorpus()}
-        >
-          <Icon icon="lucide:refresh-cw" size={15} />
-          Reload
-        </Button>
-        <Button
-          type="button"
-          variant="accent"
-          size="sm"
-          onClick={() => incoming.fileInputRef.current?.click()}
-        >
-          <Icon icon="lucide:upload" size={15} />
-          Upload
-        </Button>
+
+        <div className="flex flex-wrap items-center gap-2 border-y border-[color:var(--editor-panel-border)] py-2">
+          <nav aria-label="Replication Studio workspace" className="flex flex-wrap items-center gap-1">
+            <Button
+              type="button"
+              variant={activePanel === null ? "accent" : "ghost"}
+              size="sm"
+              aria-current={activePanel === null ? "page" : undefined}
+              onClick={() => requestWorkspace(null)}
+            >
+              <Icon icon="lucide:library" size={15} />
+              Library
+            </Button>
+            <Button
+              type="button"
+              variant={activePanel === "playlists" ? "accent" : "ghost"}
+              size="sm"
+              aria-current={activePanel === "playlists" ? "page" : undefined}
+              onClick={() => requestWorkspace("playlists")}
+            >
+              <Icon icon="lucide:list-music" size={15} />
+              Playlists
+            </Button>
+            <Button
+              type="button"
+              variant={activePanel === "substances" ? "accent" : "ghost"}
+              size="sm"
+              aria-current={activePanel === "substances" ? "page" : undefined}
+              onClick={() => requestWorkspace("substances")}
+            >
+              <Icon icon="lucide:images" size={15} />
+              Drug galleries
+            </Button>
+          </nav>
+          <div className="h-5 w-px bg-[var(--editor-panel-border)]" aria-hidden="true" />
+          <Button
+            type="button"
+            variant={activePanel === "featured" ? "secondary" : "quiet"}
+            size="sm"
+            aria-current={activePanel === "featured" ? "page" : undefined}
+            onClick={() => requestWorkspace("featured")}
+          >
+            <Icon icon="lucide:star" size={15} />
+            Featured
+          </Button>
+          <div className="flex-1" />
+          {activePanel === null ? (
+            <>
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                disabled={busy}
+                onClick={() => void controller.loadCorpus()}
+              >
+                <Icon icon="lucide:refresh-cw" size={15} />
+                Reload
+              </Button>
+              <Button
+                type="button"
+                variant="accent"
+                size="sm"
+                onClick={() => incoming.fileInputRef.current?.click()}
+              >
+                <Icon icon="lucide:upload" size={15} />
+                Upload
+              </Button>
+            </>
+          ) : null}
+        </div>
         <input
           ref={incoming.fileInputRef}
           type="file"
@@ -204,50 +227,12 @@ export function ReplicationStudioTab({
         </ActionNotice>
       ) : null}
 
-      {activePanel === "featured" ? (
-        <EditorPanel>
-          <EditorPanelBody>
-            {featuredLoaded ? (
-              <OrderingPanel
-                icon="lucide:star"
-                title="Featured on the Effect Index homepage"
-                description={
-                  (featuredCurated
-                    ? "The carousel plays these replications in this order. "
-                    : "Nothing is stored yet, so these are the checked-in defaults the homepage is running on right now; saving records them. ") +
-                  "Everything below the divider is not featured, and follows the studio's current search and filters."
-                }
-                items={featuredItems}
-                order={featuredOrder}
-                savedOrder={savedFeatured}
-                emptyLabel="No replications match the current filters."
-                saveState={featuredSaveState}
-                onOrderChange={(next) => {
-                  controller.setFeaturedOrder(next);
-                  controller.setFeaturedSaveState("idle");
-                }}
-                onSave={() => void controller.saveFeatured()}
-                onReset={() => {
-                  controller.setFeaturedOrder(savedFeatured);
-                  controller.setFeaturedSaveState("idle");
-                }}
-              />
-            ) : (
-              <p className="theme-text-muted text-sm">Loading the featured selection…</p>
-            )}
-          </EditorPanelBody>
-        </EditorPanel>
-      ) : null}
-
-      {activePanel === "playlists" ? (
-        <EditorPanel>
-          <EditorPanelBody>
-            <PlaylistsPanel items={featuredItems} />
-          </EditorPanelBody>
-        </EditorPanel>
-      ) : null}
-
-      <div className="grid gap-4 lg:grid-cols-[16rem_minmax(0,1fr)] xl:grid-cols-[16rem_minmax(0,1fr)_22rem]">
+      <div
+        className={cn(
+          "grid gap-4 lg:grid-cols-[16rem_minmax(0,1fr)]",
+          activePanel === null && "xl:grid-cols-[16rem_minmax(0,1fr)_22rem]",
+        )}
+      >
         {railInColumn ? (
           <ReplicationFacetRail
             rows={rows}
@@ -295,126 +280,203 @@ export function ReplicationStudioTab({
         )}
 
         <main className="min-w-0 space-y-4">
-          {activePanel === "substances" ? (
-            <>
-              <EditorSegmentedControl
-                label="Substances portal view"
-                options={[
-                  { value: "showcase", label: "Showcase", icon: "lucide:images" },
-                  { value: "library", label: "Library", icon: "lucide:library" },
-                ]}
-                value={centreView}
-                onChange={(value) => controller.setCentreView(value as ReplicationCentreView)}
-              />
-              <div className={cn(showcaseVisible ? "space-y-4" : "hidden")}>
-                <SubstanceGalleryPanel
-                  substanceSlug={initialSubstanceSlug ?? null}
-                  onNavigateToSubstance={controller.navigateToSubstance}
-                  visibleRows={visibleRows}
-                  railNarrowed={filterCount > 0}
-                  onInspectRow={controller.inspectRow}
-                  onOpenLibrary={controller.openLibrary}
-                  onDirtyChange={controller.setGalleryDirty}
+          {chips.length > 0 || query.trim() ? (
+            <div className="flex flex-wrap items-center gap-1.5">
+              {chips.map((chip) => (
+                <TagToken
+                  key={`${chip.kind}:${chip.key}`}
+                  variant="compact"
+                  label={chip.label}
+                  removeLabel={`Remove filter ${chip.label}`}
+                  onRemove={() => controller.toggleFacet(chip.kind, chip.key)}
                 />
-              </div>
-            </>
-          ) : null}
-
-          <div className={cn("space-y-4", showcaseVisible && "hidden")}>
-            <IncomingTray
-              items={incoming.incoming}
-              effects={effects}
-              artists={artists}
-              onPatch={incoming.patchIncoming}
-              onDiscard={incoming.discardIncoming}
-              onClear={incoming.clearIncoming}
-              onAdd={(item) => void incoming.addToLibrary(item)}
-            />
-
-            {chips.length > 0 || query.trim() ? (
-              <div className="flex flex-wrap items-center gap-1.5">
-                {chips.map((chip) => (
-                  <TagToken
-                    key={`${chip.kind}:${chip.key}`}
-                    variant="compact"
-                    label={chip.label}
-                    removeLabel={`Remove filter ${chip.label}`}
-                    onRemove={() => controller.toggleFacet(chip.kind, chip.key)}
-                  />
-                ))}
-                {query.trim() ? (
-                  <TagToken
-                    variant="compact"
-                    label={`“${query.trim()}”`}
-                    removeLabel="Clear search"
-                    onRemove={() => controller.setQuery("")}
-                  />
-                ) : null}
-                {activeFacetCount(facets) > 1 ? (
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => {
-                      controller.setFacets(EMPTY_STUDIO_FACETS);
-                      controller.setQuery("");
-                    }}
-                  >
-                    Clear all
-                  </Button>
-                ) : null}
-              </div>
-            ) : null}
-
-            {selection.size > 0 ? (
-              <EditorPanel variant="toolbar" className="flex flex-wrap items-center gap-2 px-3 py-2">
-                <span className="theme-text-primary font-mono text-sm">{selection.size} selected</span>
-                <Badge variant="secondary">bulk</Badge>
-                <div className="flex-1" />
+              ))}
+              {query.trim() ? (
+                <TagToken
+                  variant="compact"
+                  label={`“${query.trim()}”`}
+                  removeLabel="Clear search"
+                  onRemove={() => controller.setQuery("")}
+                />
+              ) : null}
+              {activeFacetCount(facets) > 1 ? (
                 <Button
                   type="button"
-                  variant="glass"
+                  variant="ghost"
                   size="sm"
-                  disabled={busy}
-                  onClick={controller.markSelectionAsFigure}
+                  onClick={() => {
+                    controller.setFacets(EMPTY_STUDIO_FACETS);
+                    controller.setQuery("");
+                  }}
                 >
-                  Mark as figure
+                  Clear all
                 </Button>
-                <Button type="button" variant="ghost" size="sm" onClick={controller.clearSelection}>
-                  Deselect
-                </Button>
-              </EditorPanel>
-            ) : null}
-
-            <div className="flex items-center justify-between">
-              <span className="theme-text-faint font-mono text-xs">
-                {visibleRows.length} of {rows.length} shown
-              </span>
-              <span className="theme-text-faint text-xs">
-                {group === "none" ? "Ungrouped" : `Grouped by ${group} · ${groups.length} groups`}
-              </span>
+              ) : null}
             </div>
+          ) : null}
 
-            <ReplicationGrid
-              groups={groups}
-              selection={selection}
-              onCardActivate={controller.onCardActivate}
+          {activePanel === "featured" ? (
+            featuredLoaded ? (
+              <OrderingPanel
+                icon="lucide:star"
+                title="Featured on the Effect Index homepage"
+                description={
+                  (featuredCurated
+                    ? "The carousel plays these replications in this order. "
+                    : "Nothing is stored yet, so these are the checked-in defaults the homepage is running on right now; saving records them. ") +
+                  "Everything below the divider is not featured, and follows the studio's current search and filters."
+                }
+                items={featuredItems}
+                order={featuredOrder}
+                savedOrder={savedFeatured}
+                emptyLabel="No replications match the current filters."
+                saveState={featuredSaveState}
+                onOrderChange={(next) => {
+                  controller.setFeaturedOrder(next);
+                  controller.setFeaturedSaveState("idle");
+                }}
+                onSave={() => void controller.saveFeatured()}
+                onReset={() => {
+                  controller.setFeaturedOrder(savedFeatured);
+                  controller.setFeaturedSaveState("idle");
+                }}
+              />
+            ) : (
+              <p className="theme-text-muted text-sm">Loading the featured selection…</p>
+            )
+          ) : null}
+
+          {activePanel === "playlists" ? (
+            <PlaylistsPanel
+              allRows={rows}
+              filteredRows={visibleRows}
+              onDirtyChange={setPlaylistDirty}
+              renderSavedPlaylistAction={(playlist) => (
+                <ApplyPlaylistToDrugsAction
+                  playlist={playlist}
+                  onReviewGallery={requestReviewGallery}
+                />
+              )}
             />
-          </div>
+          ) : null}
+
+          {activePanel === "substances" ? (
+            <SubstanceGalleryPanel
+              substanceSlug={initialSubstanceSlug ?? null}
+              onNavigateToSubstance={controller.navigateToSubstance}
+              corpusRows={rows}
+              visibleRows={visibleRows}
+              railNarrowed={filterCount > 0}
+              onInspectRow={(slug) => {
+                controller.inspectRow(slug);
+                controller.requestLeaveSubstances(null);
+              }}
+              onOpenLibrary={() => controller.requestLeaveSubstances(null)}
+              onDirtyChange={controller.setGalleryDirty}
+            />
+          ) : null}
+
+          {activePanel === null ? (
+            <>
+              <IncomingTray
+                items={incoming.incoming}
+                effects={effects}
+                artists={artists}
+                onPatch={incoming.patchIncoming}
+                onDiscard={incoming.discardIncoming}
+                onClear={incoming.clearIncoming}
+                onAdd={(item) => void incoming.addToLibrary(item)}
+              />
+
+              {selection.size > 0 ? (
+                <EditorPanel variant="toolbar" className="flex flex-wrap items-center gap-2 px-3 py-2">
+                  <span className="theme-text-primary font-mono text-sm">{selection.size} selected</span>
+                  <Badge variant="secondary">bulk</Badge>
+                  <div className="flex-1" />
+                  <Button
+                    type="button"
+                    variant="glass"
+                    size="sm"
+                    disabled={busy}
+                    onClick={controller.markSelectionAsFigure}
+                  >
+                    Mark as figure
+                  </Button>
+                  <Button type="button" variant="ghost" size="sm" onClick={controller.clearSelection}>
+                    Deselect
+                  </Button>
+                </EditorPanel>
+              ) : null}
+
+              <div className="flex items-center justify-between">
+                <span className="theme-text-faint font-mono text-xs">
+                  {visibleRows.length} of {rows.length} shown
+                </span>
+                <span className="theme-text-faint text-xs">
+                  {group === "none" ? "Ungrouped" : `Grouped by ${group} · ${groups.length} groups`}
+                </span>
+              </div>
+
+              <ReplicationGrid
+                groups={groups}
+                selection={selection}
+                onCardActivate={controller.onCardActivate}
+              />
+            </>
+          ) : null}
         </main>
 
-        <div ref={drawerRef} className="min-w-0">
-          <ReplicationEditorDrawer
-            selected={selectedRows}
-            effects={effects}
-            artists={artists}
-            busy={busy}
-            onSaveSingle={(row, draft) => void controller.saveSingle(row, draft)}
-            onApplyBulk={(targets, edit) => void controller.applyBulk(targets, edit)}
-            onDeselect={controller.clearSelection}
-          />
-        </div>
+        {activePanel === null ? (
+          <div ref={drawerRef} className="min-w-0">
+            <ReplicationEditorDrawer
+              selected={selectedRows}
+              effects={effects}
+              artists={artists}
+              busy={busy}
+              onSaveSingle={(row, draft) => void controller.saveSingle(row, draft)}
+              onApplyBulk={(targets, edit) => void controller.applyBulk(targets, edit)}
+              onDeselect={controller.clearSelection}
+            />
+          </div>
+        ) : null}
       </div>
+      <Dialog
+        open={pendingPlaylistLeave !== null}
+        onOpenChange={(open) => {
+          if (!open) setPendingPlaylistLeave(null);
+        }}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Leave Playlists with unsaved changes?</DialogTitle>
+            <DialogDescription>
+              The open playlist has changes that were never saved. Leaving this workspace discards
+              them.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button type="button" variant="ghost" onClick={() => setPendingPlaylistLeave(null)}>
+              Keep editing
+            </Button>
+            <Button
+              type="button"
+              variant="destructive"
+              onClick={() => {
+                const pending = pendingPlaylistLeave;
+                setPendingPlaylistLeave(null);
+                setPlaylistDirty(false);
+                if (pending?.kind === "review") {
+                  controller.navigateToSubstance(pending.substanceSlug);
+                } else {
+                  controller.setActivePanel(pending?.next ?? null);
+                }
+              }}
+            >
+              Discard changes
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       <Dialog
         open={pendingLeave !== null}
