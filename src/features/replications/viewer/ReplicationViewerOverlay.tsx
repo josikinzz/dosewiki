@@ -74,6 +74,7 @@ export function ReplicationViewerOverlay({
   const touchStartRef = useRef<{ x: number; y: number } | null>(null);
   const contentRef = useRef<HTMLDivElement>(null);
   const pausedBackgroundVideosRef = useRef<HTMLVideoElement[]>([]);
+  const openerRef = useRef<HTMLElement | null>(null);
 
   const group = position ? collection.groups[position.groupIndex] : null;
   const active = group && position ? group.items[position.itemIndex] : null;
@@ -295,8 +296,32 @@ export function ReplicationViewerOverlay({
         aria-modal="true"
         showClose={false}
         onOpenAutoFocus={(event) => {
+          const activeElement = document.activeElement;
+          openerRef.current =
+            activeElement instanceof HTMLElement &&
+            activeElement !== document.body &&
+            !contentRef.current?.contains(activeElement)
+              ? activeElement
+              : null;
           event.preventDefault();
           contentRef.current?.focus();
+        }}
+        onCloseAutoFocus={(event) => {
+          event.preventDefault();
+          const opener = openerRef.current;
+          openerRef.current = null;
+          if (opener?.isConnected) {
+            opener.focus({ preventScroll: true });
+            return;
+          }
+          const heading = document.querySelector<HTMLElement>(
+            "#replications h2, #replications h3, main h1",
+          );
+          if (!heading) return;
+          if (!heading.hasAttribute("tabindex")) {
+            heading.setAttribute("tabindex", "-1");
+          }
+          heading.focus({ preventScroll: true });
         }}
         onTouchStart={(event) => {
           const touch = event.changedTouches[0];

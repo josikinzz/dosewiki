@@ -266,6 +266,31 @@ describe("ReplicationViewerOverlay", () => {
     sourceVideo.remove();
   });
 
+  it("focuses the source collection heading after closing a direct arrival", async () => {
+    const view = (open: boolean) => (
+      <>
+        <main>
+          <h1>Replications</h1>
+        </main>
+        <ReplicationViewerOverlay
+          collection={collection}
+          initialSlug="work-one"
+          open={open}
+          onOpenChange={vi.fn()}
+        />
+      </>
+    );
+    const { rerender } = render(view(true));
+
+    rerender(view(false));
+
+    await waitFor(() =>
+      expect(
+        screen.getByRole("heading", { level: 1, name: "Replications" }),
+      ).toHaveFocus(),
+    );
+  });
+
   it("loads rights metadata only when the reader opens information", async () => {
     render(
       <ReplicationViewerOverlay
