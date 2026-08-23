@@ -208,6 +208,7 @@ export function ReplicationShowcase({
   const stageId = `${baseId}-stage`;
   const tabId = `${baseId}-tab`;
   const autoplayGateOpen = autoplayAllowed && inView;
+  const collectionHeadingId = `${baseId}-collection-heading`;
   const activeGifLike = active.format?.toLowerCase() === "gif";
   const activeIsMoving =
     active.type === "video" || (activeGifLike && Boolean(active.motionUrl));
@@ -275,8 +276,13 @@ export function ReplicationShowcase({
 
   return (
     <>
-      <section aria-label={viewerCollection.label} className="space-y-2">
-        <span className="theme-text-secondary inline-flex items-center gap-1.5 text-sm font-semibold">
+      <section aria-labelledby={collectionHeadingId} className="space-y-2">
+        <h3
+          id={collectionHeadingId}
+          data-replication-collection-heading
+          tabIndex={-1}
+          className="theme-text-secondary inline-flex items-center gap-1.5 text-sm font-semibold"
+        >
           <Icon
             icon={resolveRouteChromeIcon("replications")}
             size={16}
@@ -286,7 +292,7 @@ export function ReplicationShowcase({
           {viewerCollection.label}
           <span aria-hidden>·</span>
           <span>{total}</span>
-        </span>
+        </h3>
 
         {/* One dark media card. On phones the on-media chrome leaves the
           artwork entirely: the info row sits above the media and the thumb
@@ -495,7 +501,7 @@ export function ReplicationShowcase({
           {/* The thumbnail rail: below the media on phones, a bottom scrim
             overlay from `sm` up. */}
           {count > 1 ? (
-            <div className="flex items-end gap-2 px-2 pb-2 pt-1 sm:pointer-events-none sm:absolute sm:inset-x-0 sm:bottom-0 sm:bg-gradient-to-t sm:from-black/75 sm:via-black/35 sm:to-transparent sm:pt-8">
+            <div className="relative z-[3] flex items-end gap-2 px-2 pb-2 pt-1 sm:pointer-events-none sm:absolute sm:inset-x-0 sm:bottom-0 sm:bg-gradient-to-t sm:from-black/75 sm:via-black/35 sm:to-transparent sm:pt-8">
               <div
                 className={cn(
                   "pointer-events-auto flex min-w-0 flex-1 snap-x snap-mandatory items-center gap-1.5 overflow-x-auto px-0.5 py-0.5",

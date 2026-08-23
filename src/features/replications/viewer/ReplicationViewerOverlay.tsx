@@ -97,6 +97,7 @@ export function ReplicationViewerOverlay({
   const contentRef = useRef<HTMLDivElement>(null);
   const pausedBackgroundVideosRef = useRef<HTMLVideoElement[]>([]);
   const openerRef = useRef<HTMLElement | null>(null);
+  const sourceFocusTargetRef = useRef<HTMLElement | null>(null);
   const collectionLabelId = useId();
 
   const group = position ? collection.groups[position.groupIndex] : null;
@@ -288,7 +289,7 @@ export function ReplicationViewerOverlay({
     const tryWebkitFullscreen = () => {
       const video =
         content?.querySelector<WebkitFullscreenVideo>("video") ?? null;
-      if (!video?.webkitEnterFullscreen || fullscreenUnavailable) return false;
+      if (!video?.webkitEnterFullscreen) return false;
       try {
         video.webkitEnterFullscreen();
         return true;
@@ -297,7 +298,7 @@ export function ReplicationViewerOverlay({
       }
     };
     const useImmersiveFallback = (fullscreenRejected: boolean) => {
-      setFullscreenUnavailable(true);
+      if (fullscreenRejected) setFullscreenUnavailable(true);
       setImmersiveFallback(true);
       setFullscreenMessage(
         fullscreenRejected
@@ -325,8 +326,8 @@ export function ReplicationViewerOverlay({
     typeof HTMLVideoElement !== "undefined" &&
     "webkitEnterFullscreen" in HTMLVideoElement.prototype;
   const fullscreenSupported =
-    !fullscreenUnavailable &&
-    (documentFullscreenSupported || webkitFullscreenSupported);
+    (documentFullscreenSupported && !fullscreenUnavailable) ||
+    webkitFullscreenSupported;
 
   const groupUnit =
     collection.grouping === "artist"
@@ -347,6 +348,13 @@ export function ReplicationViewerOverlay({
         aria-modal="true"
         showClose={false}
         onOpenAutoFocus={(event) => {
+          sourceFocusTargetRef.current =
+            document.querySelector<HTMLElement>(
+              "[data-replication-collection-heading]",
+            ) ??
+            document.querySelector<HTMLElement>(
+              "#replications h2, #replications h3, main h1",
+            );
           const activeElement = document.activeElement;
           openerRef.current =
             activeElement instanceof HTMLElement &&
@@ -372,9 +380,16 @@ export function ReplicationViewerOverlay({
             opener.focus({ preventScroll: true });
             return;
           }
-          const heading = document.querySelector<HTMLElement>(
-            "#replications h2, #replications h3, main h1",
-          );
+          const rememberedTarget = sourceFocusTargetRef.current;
+          sourceFocusTargetRef.current = null;
+          const heading = rememberedTarget?.isConnected
+            ? rememberedTarget
+            : (document.querySelector<HTMLElement>(
+                "[data-replication-collection-heading]",
+              ) ??
+              document.querySelector<HTMLElement>(
+                "#replications h2, #replications h3, main h1",
+              ));
           if (!heading) return;
           if (!heading.hasAttribute("tabindex")) {
             heading.setAttribute("tabindex", "-1");

@@ -442,12 +442,27 @@ async function main() {
           motionPath,
           "video/mp4",
         );
+        Object.assign(ledgerEntry, {
+          status: "motion_uploaded",
+          motionStorageId,
+          sourceBytes,
+          motionBytes: fs.statSync(motionPath).size,
+          at: new Date().toISOString(),
+        });
+        writeLedger();
         const motionPosterStorageId = await uploadFile(
           writeClient,
           apiKey,
           posterPath,
           "image/png",
         );
+        Object.assign(ledgerEntry, {
+          status: "uploaded_pending_association",
+          motionPosterStorageId,
+          posterBytes: fs.statSync(posterPath).size,
+          at: new Date().toISOString(),
+        });
+        writeLedger();
         await writeClient.mutation(api.replications.updateMotionStorageIds, {
           apiKey,
           updates: [

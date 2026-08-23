@@ -387,6 +387,29 @@ describe("ReplicationViewerOverlay", () => {
     Reflect.deleteProperty(HTMLVideoElement.prototype, "webkitEnterFullscreen");
   });
 
+  it("keeps platform fullscreen available after still-image immersive mode", () => {
+    const webkitEnterFullscreen = vi.fn();
+    Object.defineProperty(HTMLVideoElement.prototype, "webkitEnterFullscreen", {
+      configurable: true,
+      value: webkitEnterFullscreen,
+    });
+    render(
+      <ReplicationViewerOverlay
+        collection={collection}
+        initialSlug="work-one"
+        open
+        onOpenChange={vi.fn()}
+      />,
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: "Immersive view" }));
+    fireEvent.click(screen.getByRole("button", { name: "Next: Work Two" }));
+    fireEvent.click(screen.getByRole("button", { name: "Fullscreen" }));
+
+    expect(webkitEnterFullscreen).toHaveBeenCalledOnce();
+    Reflect.deleteProperty(HTMLVideoElement.prototype, "webkitEnterFullscreen");
+  });
+
   it("pauses source-page video while open and resumes it after close", async () => {
     const sourceVideo = document.createElement("video");
     const pause = vi.fn();
@@ -428,7 +451,8 @@ describe("ReplicationViewerOverlay", () => {
     const view = (open: boolean) => (
       <>
         <main>
-          <h1>Replications</h1>
+          <h1>Substance article</h1>
+          <h3 data-replication-collection-heading>Substance replications</h3>
         </main>
         <ReplicationViewerOverlay
           collection={collection}
@@ -439,13 +463,19 @@ describe("ReplicationViewerOverlay", () => {
       </>
     );
     const { rerender } = render(view(true));
+    await screen.findByRole("dialog", { name: "Replications by artist" });
 
     rerender(view(false));
 
-    await waitFor(() =>
-      expect(
-        screen.getByRole("heading", { level: 1, name: "Replications" }),
-      ).toHaveFocus(),
+    await waitFor(
+      () =>
+        expect(
+          screen.getByRole("heading", {
+            level: 3,
+            name: "Substance replications",
+          }),
+        ).toHaveFocus(),
+      { timeout: 500 },
     );
   });
 
