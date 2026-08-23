@@ -104,18 +104,28 @@ export function ReplicationViewerOverlay({
   useEffect(() => {
     if (!open) return;
 
-    const frame = window.requestAnimationFrame(() => {
+    const pauseBackgroundVideo = (video: HTMLVideoElement) => {
       const dialog = contentRef.current;
-      if (!dialog) return;
-      const pausedVideos = Array.from(
-        document.querySelectorAll("video"),
-      ).filter((video) => !dialog.contains(video) && !video.paused);
-      pausedBackgroundVideosRef.current = pausedVideos;
-      pausedVideos.forEach((video) => video.pause());
+      if (!dialog || dialog.contains(video) || video.paused) return;
+      if (!pausedBackgroundVideosRef.current.includes(video)) {
+        pausedBackgroundVideosRef.current.push(video);
+      }
+      video.pause();
+    };
+    const stopBackgroundPlayback = (event: Event) => {
+      if (event.target instanceof HTMLVideoElement) {
+        pauseBackgroundVideo(event.target);
+      }
+    };
+    document.addEventListener("play", stopBackgroundPlayback, true);
+
+    const frame = window.requestAnimationFrame(() => {
+      document.querySelectorAll("video").forEach(pauseBackgroundVideo);
     });
 
     return () => {
       window.cancelAnimationFrame(frame);
+      document.removeEventListener("play", stopBackgroundPlayback, true);
       const videos = pausedBackgroundVideosRef.current;
       pausedBackgroundVideosRef.current = [];
       videos.forEach((video) => {
@@ -282,6 +292,7 @@ export function ReplicationViewerOverlay({
     >
       <DialogContent
         ref={contentRef}
+        aria-modal="true"
         showClose={false}
         onOpenAutoFocus={(event) => {
           event.preventDefault();

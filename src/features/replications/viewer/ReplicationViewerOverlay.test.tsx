@@ -182,6 +182,9 @@ describe("ReplicationViewerOverlay", () => {
 
     expect(
       screen.getByRole("dialog", { name: "Replications by artist" }),
+    ).toHaveAttribute("aria-modal", "true");
+    expect(
+      screen.getByRole("dialog", { name: "Replications by artist" }),
     ).toHaveClass("grid-rows-[auto_minmax(0,1fr)]");
     expect(screen.getByTestId("media-stage")).toHaveAttribute(
       "data-title",
@@ -247,6 +250,8 @@ describe("ReplicationViewerOverlay", () => {
     );
 
     await waitFor(() => expect(pause).toHaveBeenCalledOnce());
+    sourceVideo.dispatchEvent(new Event("play"));
+    expect(pause).toHaveBeenCalledTimes(2);
 
     rerender(
       <ReplicationViewerOverlay
