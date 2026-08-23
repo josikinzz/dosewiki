@@ -6,11 +6,7 @@ import {
   ACCENT_LEVEL_PROPERTY,
   CHROMA_STYLESHEET_HREF,
   CHROMA_STYLESHEET_LINK_ID,
-  DEFAULT_ACCENT_HUE,
-  DEFAULT_ACCENT_LEVEL,
-  DEFAULT_PRO_SURFACE_LEVEL,
-  DEFAULT_SURFACE_HUE,
-  DEFAULT_SURFACE_LEVEL,
+  DEFAULT_APPEARANCE_COLORS,
   SURFACE_HUE_PROPERTY,
   SURFACE_LEVEL_PROPERTY,
 } from "./appearanceChroma";
@@ -256,6 +252,10 @@ export function buildThemeBootstrapScript(policy: AppearancePolicy = SITE_FLAVOR
   // CSP hash covers (lib/next/cspObservationPolicy.ts), and the colourway axis's retirement
   // must not move that publication's locked script by a single byte.
   const surface = surfaceLocked ? `\n  const surface = ${JSON.stringify(BASE_SURFACE_ID)};` : "";
+  const colorDefaults =
+    surfaceLocked && accentLocked
+      ? ""
+      : `\n  const DEFAULTS = ${JSON.stringify(DEFAULT_APPEARANCE_COLORS)};`;
   // The colour axes: numeric rather than enumerated, so they cannot share
   // buildAxisResolution's membership test. A stored level is a decimal in 0..1 and a stored
   // hue an integer 0..359; anything else — including "" — resolves to the site default,
@@ -283,14 +283,9 @@ export function buildThemeBootstrapScript(policy: AppearancePolicy = SITE_FLAVOR
   }: {
     levelVariable: string;
     hueVariable: string;
-    /**
-     * A number, or an emitted JS expression. The surface passes an expression
-     * over the already-resolved `style` variable: its default level is per
-     * visual style (Fun 0.15, Pro 0 — see `DEFAULT_PRO_SURFACE_LEVEL`), while
-     * a *stored* level keeps meaning one knob for both styles.
-     */
-    defaultLevel: number | string;
-    defaultHue: number;
+    /** An emitted lookup into the resolved style-and-scheme default matrix. */
+    defaultLevel: string;
+    defaultHue: string;
     levelKey: string;
     hueKey: string;
     legacyKey: string;
@@ -328,8 +323,8 @@ export function buildThemeBootstrapScript(policy: AppearancePolicy = SITE_FLAVOR
       : `\n${chromaRead({
           levelVariable: "chromaSurface",
           hueVariable: "hueSurface",
-          defaultLevel: `style === "pro" ? ${DEFAULT_PRO_SURFACE_LEVEL} : ${DEFAULT_SURFACE_LEVEL}`,
-          defaultHue: DEFAULT_SURFACE_HUE,
+          defaultLevel: "DEFAULTS[style][scheme].surfaceLevel",
+          defaultHue: "DEFAULTS[style][scheme].surfaceHue",
           levelKey: SURFACE_CHROMA_STORAGE_KEY,
           hueKey: SURFACE_HUE_STORAGE_KEY,
           legacyKey: SURFACE_STORAGE_KEY,
@@ -340,8 +335,8 @@ export function buildThemeBootstrapScript(policy: AppearancePolicy = SITE_FLAVOR
       : `\n${chromaRead({
           levelVariable: "chromaAccent",
           hueVariable: "hueAccent",
-          defaultLevel: DEFAULT_ACCENT_LEVEL,
-          defaultHue: DEFAULT_ACCENT_HUE,
+          defaultLevel: "DEFAULTS[style][scheme].accentLevel",
+          defaultHue: "DEFAULTS[style][scheme].accentHue",
           levelKey: ACCENT_CHROMA_STORAGE_KEY,
           hueKey: ACCENT_HUE_STORAGE_KEY,
           legacyKey: ACCENT_STORAGE_KEY,
@@ -418,7 +413,7 @@ export function buildThemeBootstrapScript(policy: AppearancePolicy = SITE_FLAVOR
   return `(() => {
   const COLORS = ${JSON.stringify(APPEARANCE_META_COLORS)};
 ${visualStyle}
-${colorScheme}${surface}${chromaResolution}
+${colorScheme}${colorDefaults}${surface}${chromaResolution}
 
   const root = document.documentElement;
   root.dataset.visualStyle = style;

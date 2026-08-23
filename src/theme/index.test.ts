@@ -29,11 +29,7 @@ import {
   ACCENT_LEVEL_PROPERTY,
   CHROMA_STYLESHEET_HREF,
   CHROMA_STYLESHEET_LINK_ID,
-  DEFAULT_ACCENT_HUE,
-  DEFAULT_ACCENT_LEVEL,
-  DEFAULT_PRO_SURFACE_LEVEL,
-  DEFAULT_SURFACE_HUE,
-  DEFAULT_SURFACE_LEVEL,
+  DEFAULT_APPEARANCE_COLORS,
   SURFACE_HUE_PROPERTY,
   SURFACE_LEVEL_PROPERTY,
 } from "./appearanceChroma";
@@ -349,8 +345,8 @@ describe("theme token interface", () => {
   it("engages the site defaults for a reader with nothing saved, and for garbage values", () => {
     // "" and "1.5" and "abc" must all resolve to the default level: Number("") is 0,
     // which would otherwise silently pin a level the reader never chose. The hue
-    // grammar is stricter — an integer degree count in 0..359 — so "1.5", "-20",
-    // "360" and "40px" all fall back to the authored hue.
+    // grammar is stricter — an integer degree count in 0..359.
+    const defaults = DEFAULT_APPEARANCE_COLORS.fun.dark;
     for (const garbage of [null, "", "1.5", "-20", "abc", "360", "40px"]) {
       installMockStorage(
         garbage === null
@@ -370,16 +366,16 @@ describe("theme token interface", () => {
       const root = document.documentElement;
       expect(root.dataset.chroma, String(garbage)).toBe("");
       expect(root.style.getPropertyValue(SURFACE_LEVEL_PROPERTY), String(garbage)).toBe(
-        String(DEFAULT_SURFACE_LEVEL),
+        String(defaults.surfaceLevel),
       );
       expect(root.style.getPropertyValue(ACCENT_LEVEL_PROPERTY), String(garbage)).toBe(
-        String(DEFAULT_ACCENT_LEVEL),
+        String(defaults.accentLevel),
       );
       expect(root.style.getPropertyValue(SURFACE_HUE_PROPERTY), String(garbage)).toBe(
-        `${DEFAULT_SURFACE_HUE}`,
+        String(defaults.surfaceHue),
       );
       expect(root.style.getPropertyValue(ACCENT_HUE_PROPERTY), String(garbage)).toBe(
-        `${DEFAULT_ACCENT_HUE}`,
+        String(defaults.accentHue),
       );
       const link = document.getElementById(CHROMA_STYLESHEET_LINK_ID);
       expect(link, String(garbage)).toBeInstanceOf(HTMLLinkElement);
@@ -387,32 +383,38 @@ describe("theme token interface", () => {
     }
   });
 
-  it("resolves the surface-level default from the style it just painted: Pro rests at 0", () => {
-    // The Pro surface blocks are additive (c + K × level), so level 0 IS the
-    // authored charcoal — Pro's own resting look — while Fun rests on the
-    // softened Orchid tint. One stored decimal still drives both styles; only
-    // the default is per style, picked from the style the script resolved.
-    for (const [style, expected] of [
-      ["pro", DEFAULT_PRO_SURFACE_LEVEL],
-      ["fun", DEFAULT_SURFACE_LEVEL],
-    ] as const) {
-      installMockStorage({ [VISUAL_STYLE_STORAGE_KEY]: style });
-      ensureThemeMeta();
-      document.getElementById(CHROMA_STYLESHEET_LINK_ID)?.remove();
+  it("resolves all four palette defaults from the appearance it just painted", () => {
+    for (const style of ["fun", "pro"] as const) {
+      for (const scheme of ["light", "dark"] as const) {
+        installMockStorage({
+          [VISUAL_STYLE_STORAGE_KEY]: style,
+          [COLOR_SCHEME_STORAGE_KEY]: scheme,
+        });
+        ensureThemeMeta();
+        document.getElementById(CHROMA_STYLESHEET_LINK_ID)?.remove();
 
-      Function(buildThemeBootstrapScript(DOSEWIKI))();
+        Function(buildThemeBootstrapScript(DOSEWIKI))();
 
-      const root = document.documentElement;
-      expect(root.dataset.visualStyle, style).toBe(style);
-      expect(root.style.getPropertyValue(SURFACE_LEVEL_PROPERTY), style).toBe(String(expected));
-      // The accent default is style-independent.
-      expect(root.style.getPropertyValue(ACCENT_LEVEL_PROPERTY), style).toBe(
-        String(DEFAULT_ACCENT_LEVEL),
-      );
+        const expected = DEFAULT_APPEARANCE_COLORS[style][scheme];
+        const root = document.documentElement;
+        expect(root.dataset.visualStyle, `${style} ${scheme}`).toBe(style);
+        expect(root.dataset.theme, `${style} ${scheme}`).toBe(scheme);
+        expect(root.style.getPropertyValue(SURFACE_LEVEL_PROPERTY), `${style} ${scheme}`).toBe(
+          String(expected.surfaceLevel),
+        );
+        expect(root.style.getPropertyValue(ACCENT_LEVEL_PROPERTY), `${style} ${scheme}`).toBe(
+          String(expected.accentLevel),
+        );
+        expect(root.style.getPropertyValue(SURFACE_HUE_PROPERTY), `${style} ${scheme}`).toBe(
+          String(expected.surfaceHue),
+        );
+        expect(root.style.getPropertyValue(ACCENT_HUE_PROPERTY), `${style} ${scheme}`).toBe(
+          String(expected.accentHue),
+        );
+      }
     }
 
-    // A saved decimal keeps meaning one knob for both styles: it wins over
-    // the per-style default on Pro exactly as it does on Fun.
+    // A saved decimal keeps meaning one knob for both styles.
     installMockStorage({
       [VISUAL_STYLE_STORAGE_KEY]: "pro",
       [SURFACE_CHROMA_STORAGE_KEY]: "0.35",
@@ -451,7 +453,7 @@ describe("theme token interface", () => {
         `${LEGACY_ACCENT_TO_HUE.green.hue}`,
       );
       expect(root.style.getPropertyValue(SURFACE_LEVEL_PROPERTY)).toBe(
-        String(DEFAULT_SURFACE_LEVEL),
+        String(DEFAULT_APPEARANCE_COLORS.fun.dark.surfaceLevel),
       );
       expect(root.style.getPropertyValue(ACCENT_LEVEL_PROPERTY)).toBe("0.8");
     } finally {

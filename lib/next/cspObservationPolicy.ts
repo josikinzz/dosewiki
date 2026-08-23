@@ -43,16 +43,17 @@ export const ZOD_JITLESS_BOOTSTRAP_CSP_HASH =
  * Each flavor has a separate hash because the appearance bootstrap contains its publication
  * policy. A locked axis emits no storage key or validity table.
  *
- * dose.wiki resolves four axes plus the two saturation levels from storage, falling back to the
- * site-default levels, and injects the guarded stylesheet links a saved preference needs
- * pre-paint (light scheme, Pro style — the chroma link is server-rendered, with the same
- * guarded fallback here). Effect
- * Index locks visual style, surfaces, and accent, and its light default is server-rendered, so
- * its script emits none of that machinery. The policy test calculates each hash from
- * the bootstrap builder and reports drift.
+ * dose.wiki resolves four colour coordinates from storage, falling back to
+ * the current style-and-scheme combination's palette defaults, and injects
+ * the guarded stylesheet links a saved preference needs pre-paint (light
+ * scheme, Pro style — the chroma link is server-rendered, with the same guarded fallback
+ * here). Effect Index locks visual style, surfaces, and accent, and its light
+ * default is server-rendered, so its script emits none of that machinery. The
+ * policy test calculates each hash from the bootstrap builder and reports
+ * drift.
  */
 export const THEME_BOOTSTRAP_CSP_HASHES: Readonly<Record<SiteFlavor, string>> = {
-  dosewiki: "'sha256-AGMvqA8Hg0OozuwEHEHRjpBNaPgyeOrnFCYTto7h9xA='",
+  dosewiki: "'sha256-uLBxnt7aFcpuvCmigNxLy73AJN+16qCwvr0YqB2PaUk='",
   effectindex: "'sha256-3SzhNzHhUNUTkETme5uNe0eYZEn0Gojm83Wqi7e9EQc='",
 };
 

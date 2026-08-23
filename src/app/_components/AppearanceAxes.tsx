@@ -1,16 +1,17 @@
 "use client";
 
-import { type CSSProperties, type ReactNode } from "react";
+import {
+  type CSSProperties,
+  type PointerEvent as ReactPointerEvent,
+  type ReactNode,
+  useRef,
+} from "react";
 
 import { Icon } from "@/components/common/Icon";
 import { useTheme } from "@/context/ThemeContext";
 import { cn } from "@/lib/utils";
 import { BASE_ACCENT_ID, BASE_ACCENT_PRO_SEEDS, BASE_ACCENT_SWATCH } from "@/theme/accents";
-import {
-  CHROMA_LEVELS,
-  DEFAULT_ACCENT_HUE,
-  DEFAULT_SURFACE_HUE,
-} from "@/theme/appearanceChroma";
+import { CHROMA_LEVELS, getDefaultAppearanceColors } from "@/theme/appearanceChroma";
 import { authoredLevel, proAccentRepresentativeSeed } from "@/theme/chromaMath";
 import { BASE_SURFACE_ID, BASE_SURFACE_PRO_SEEDS, BASE_SURFACE_TINT } from "@/theme/surfaces";
 import { ThemeToggle } from "./ThemeToggle";
@@ -56,6 +57,56 @@ function hueTrackGradient(swatch: string): string {
 }
 
 /**
+ * Native range inputs are inconsistent on touch screens: some browsers use
+ * the first contact only to focus or reposition the thumb, then require a
+ * second gesture to drag it. Coarse pointers get direct manipulation instead:
+ * the first contact sets the value, captures that pointer, and every move
+ * continues the same drag. Mouse input stays entirely native.
+ */
+function useDirectTouchRange(max: number, onChange: (value: number) => void) {
+  const activePointerRef = useRef<number | null>(null);
+
+  const updateFromPointer = (event: ReactPointerEvent<HTMLInputElement>) => {
+    const bounds = event.currentTarget.getBoundingClientRect();
+    if (bounds.width <= 0) return;
+
+    const position = Math.min(1, Math.max(0, (event.clientX - bounds.left) / bounds.width));
+    onChange(Math.round(position * max));
+  };
+
+  return {
+    onPointerDown(event: ReactPointerEvent<HTMLInputElement>) {
+      if (event.pointerType === "mouse") return;
+
+      event.preventDefault();
+      activePointerRef.current = event.pointerId;
+      event.currentTarget.setPointerCapture?.(event.pointerId);
+      event.currentTarget.focus({ preventScroll: true });
+      updateFromPointer(event);
+    },
+    onPointerMove(event: ReactPointerEvent<HTMLInputElement>) {
+      if (activePointerRef.current !== event.pointerId) return;
+      updateFromPointer(event);
+    },
+    onPointerUp(event: ReactPointerEvent<HTMLInputElement>) {
+      if (activePointerRef.current !== event.pointerId) return;
+      updateFromPointer(event);
+      activePointerRef.current = null;
+    },
+    onPointerCancel(event: ReactPointerEvent<HTMLInputElement>) {
+      if (activePointerRef.current === event.pointerId) {
+        activePointerRef.current = null;
+      }
+    },
+    onLostPointerCapture(event: ReactPointerEvent<HTMLInputElement>) {
+      if (activePointerRef.current === event.pointerId) {
+        activePointerRef.current = null;
+      }
+    },
+  };
+}
+
+/**
  * One axis's hue slider — the row above its saturation slider in the cog panel.
  *
  * `degrees` is the reader's effective rotation — their saved integer, or the
@@ -75,6 +126,7 @@ function HueSlider({
   degrees: number;
   onChange: (degrees: number) => void;
 }) {
+  const directTouch = useDirectTouchRange(359, onChange);
   return (
     <div data-appearance-hue="" className="flex items-center gap-2 px-1">
       <div
@@ -96,6 +148,7 @@ function HueSlider({
           aria-label={label}
           title={label}
           onChange={(event) => onChange(Number(event.currentTarget.value))}
+          {...directTouch}
         />
       </div>
       <span className="w-8 text-right text-[0.625rem] font-medium tabular-nums text-dose-text-muted">
@@ -131,6 +184,7 @@ function ChromaSlider({
   level: number;
   onChange: (level: number) => void;
 }) {
+  const directTouch = useDirectTouchRange(100, (value) => onChange(value / 100));
   const percent = Math.round(level * 100);
   return (
     <div data-appearance-chroma="" className="flex items-center gap-2 px-1">
@@ -157,6 +211,7 @@ function ChromaSlider({
           aria-label={label}
           title={label}
           onChange={(event) => onChange(Number(event.currentTarget.value) / 100)}
+          {...directTouch}
         />
       </div>
       <span className="w-8 text-right text-[0.625rem] font-medium tabular-nums text-dose-text-muted">
@@ -232,9 +287,10 @@ export function AppearanceAxes({
     setAccentHue,
   } = useTheme();
 
-  // Null is "never chose": the site default hue, which is the authored palette itself.
-  const effectiveSurfaceHue = surfaceHue ?? DEFAULT_SURFACE_HUE;
-  const effectiveAccentHue = accentHue ?? DEFAULT_ACCENT_HUE;
+  // Null is "never chose": resolve the current appearance combination's default hue.
+  const defaultColors = getDefaultAppearanceColors(visualStyle, colorScheme);
+  const effectiveSurfaceHue = surfaceHue ?? defaultColors.surfaceHue;
+  const effectiveAccentHue = accentHue ?? defaultColors.accentHue;
 
   // The rails must show the palette the reader is actually wearing, per axis:
   // on Pro the surface rail anchors on the authored charcoal canvas seed for

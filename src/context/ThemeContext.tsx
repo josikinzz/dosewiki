@@ -18,11 +18,7 @@ import {
 } from "@/theme/appearanceSheets";
 import {
   applyChromaToDocument,
-  DEFAULT_ACCENT_HUE,
-  DEFAULT_ACCENT_LEVEL,
-  DEFAULT_PRO_SURFACE_LEVEL,
-  DEFAULT_SURFACE_HUE,
-  DEFAULT_SURFACE_LEVEL,
+  getDefaultAppearanceColors,
   parseChromaLevel,
   parseHueDegrees,
 } from "@/theme/appearanceChroma";
@@ -75,13 +71,11 @@ type ThemeContextValue = {
   setVisualStyle: (value: VisualStyle) => void;
   /**
    * The effective saturation levels — always a decimal in 0..1: the reader's
-   * saved level, or the site default while they have never moved that slider.
-   * The surface default is per visual style (`DEFAULT_SURFACE_LEVEL` on Fun,
-   * `DEFAULT_PRO_SURFACE_LEVEL` on Pro); the accent default is
-   * `DEFAULT_ACCENT_LEVEL` on both. The setters take null to mean "back to
-   * the default level": the storage key is removed — a default is never
-   * written — and the exposed level returns to the default. Each level rides
-   * its parent axis's lock.
+   * saved level, or the current appearance combination's default while they
+   * have never moved that slider. The setters take null to mean "back to the
+   * default level": the storage key is removed — a default is never written —
+   * and the exposed level returns to the current combination's default. Each
+   * level rides its parent axis's lock.
    */
   surfaceChroma: number;
   accentChroma: number;
@@ -89,10 +83,10 @@ type ThemeContextValue = {
   setAccentChroma: (value: number | null) => void;
   /**
    * The hue axes: the reader's saved rotation in integer degrees 0..359, or
-   * null while they never moved that slider — null IS the site default
-   * (`DEFAULT_SURFACE_HUE` / `DEFAULT_ACCENT_HUE`), exposed as null so a
-   * consumer can tell "chose 0" from "never chose". The setters take null on
-   * the chroma setters' terms: key removed, back to the default.
+   * null while they never moved that slider — null means the current
+   * visual-style and colour-scheme combination's default. Consumers resolve
+   * the effective hue. The setters take null on the chroma setters' terms: key
+   * removed, back to the default.
    */
   surfaceHue: number | null;
   accentHue: number | null;
@@ -330,26 +324,25 @@ export function ThemeProvider({
   const [visualStyle, setVisualStyleState] = useState<VisualStyle>(initialVisualStyle);
   /**
    * The reader's *saved* level and hue per axis, or null while they never
-   * saved one. Null is the persistence state, not the display one: the exposed
-   * level resolves `?? DEFAULT_*`, and the persist effect removes the key on
-   * null so a default is never written into storage. The hue is exposed as the
-   * null itself — its consumers resolve the default — but persists on exactly
-   * the same terms.
+   * saved one. Null is the persistence state, not the display one: effective
+   * values resolve through the appearance-default matrix, and the persist
+   * effect removes the key on null so a default is never written into storage.
+   * Hue remains exposed as null so consumers can distinguish "never chose"
+   * from a saved coordinate.
    *
-   * The surface default is per visual style (Fun 0.15, Pro 0 — Pro's additive
-   * blocks make level 0 the authored charcoal), so a reader with nothing saved
-   * follows the style toggle: the effective level is *derived* from
-   * `visualStyle` here, never captured, and the apply effect re-paints it on a
-   * style flip. A saved level stays one knob for both styles.
+   * All four defaults depend on visual style and colour scheme, so a reader
+   * with nothing saved follows either toggle. Effective values are derived
+   * here, never captured. A saved value stays one knob for every combination.
    */
   const [savedSurfaceChroma, setSurfaceChromaState] = useState<number | null>(null);
   const [savedAccentChroma, setAccentChromaState] = useState<number | null>(null);
   const [savedSurfaceHue, setSurfaceHueState] = useState<number | null>(null);
   const [savedAccentHue, setAccentHueState] = useState<number | null>(null);
-  const surfaceChroma =
-    savedSurfaceChroma ??
-    (visualStyle === "pro" ? DEFAULT_PRO_SURFACE_LEVEL : DEFAULT_SURFACE_LEVEL);
-  const accentChroma = savedAccentChroma ?? DEFAULT_ACCENT_LEVEL;
+  const defaultColors = getDefaultAppearanceColors(visualStyle, colorScheme);
+  const surfaceChroma = savedSurfaceChroma ?? defaultColors.surfaceLevel;
+  const accentChroma = savedAccentChroma ?? defaultColors.accentLevel;
+  const effectiveSurfaceHue = savedSurfaceHue ?? defaultColors.surfaceHue;
+  const effectiveAccentHue = savedAccentHue ?? defaultColors.accentHue;
   /**
    * Until the mount effect has read back what the bootstrap resolved, this provider is still
    * holding the server's opening guess. Applying it would be harmless — the document already
@@ -478,8 +471,8 @@ export function ThemeProvider({
       applyChromaToDocument(
         isSurfaceLocked ? null : surfaceChroma,
         isAccentLocked ? null : accentChroma,
-        isSurfaceLocked ? null : (savedSurfaceHue ?? DEFAULT_SURFACE_HUE),
-        isAccentLocked ? null : (savedAccentHue ?? DEFAULT_ACCENT_HUE),
+        isSurfaceLocked ? null : effectiveSurfaceHue,
+        isAccentLocked ? null : effectiveAccentHue,
       );
     };
 
@@ -495,7 +488,7 @@ export function ThemeProvider({
         chromaFrameRef.current = null;
       }
     };
-  }, [hydrated, surfaceChroma, accentChroma, savedSurfaceHue, savedAccentHue, isSurfaceLocked, isAccentLocked]);
+  }, [hydrated, surfaceChroma, accentChroma, effectiveSurfaceHue, effectiveAccentHue, isSurfaceLocked, isAccentLocked]);
 
   /**
    * The colour axes' persistence, debounced past the drag. Null still removes

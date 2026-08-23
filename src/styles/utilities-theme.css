@@ -224,10 +224,11 @@
      both rails. The track's gradient is data, painted as an inline background
      on the wrapper by AppearanceAxes: five stops of the axis's base colour at
      levels 0..1 for a saturation rail, seven relative-colour rotations across
-     the hue circle for a hue rail. The recipe only shapes the rail, the
-     authored-position tick and the thumb. The input itself is transparent and
-     sits over the rail for the full-height hit target. */
+     the hue circle for a hue rail. The recipe shapes the rail, authored-position
+     tick, thumb, and input hit area. Coarse pointers get a full 44px interaction
+     lane even though the visible rail stays compact. */
   .theme-chroma-track {
+    --theme-chroma-thumb-size: 0.875rem;
     position: relative;
     display: flex;
     align-items: center;
@@ -246,15 +247,14 @@
   }
 
   /* Where the authored colour sits: the authored saturation level as a
-     unitless 0..1 on a saturation rail, and 0 — the left edge — on a hue rail,
-     because the authored palette is always at 0°. The 7px inset is half a
-     thumb, because a range thumb's centre travels between 7px and width-7px
-     rather than 0 and 100%. */
+     unitless 0..1 on a saturation rail, and 0 — the left edge — on a hue rail.
+     The inset follows half the responsive thumb size because a range thumb's
+     centre travels between those insets rather than from 0 to 100%. */
   .theme-chroma-tick {
     position: absolute;
     top: 1px;
     bottom: 1px;
-    left: calc(7px + var(--theme-chroma-tick, 0) * (100% - 14px));
+    left: calc(var(--theme-chroma-thumb-size) / 2 + var(--theme-chroma-tick, 0) * (100% - var(--theme-chroma-thumb-size)));
     width: 2px;
     margin-left: -1px;
     border-radius: 2px;
@@ -268,10 +268,11 @@
     flex: 1;
     appearance: none;
     -webkit-appearance: none;
-    height: 1.125rem;
+    height: 100%;
     margin: 0;
     background: transparent;
     cursor: pointer;
+    touch-action: none;
   }
 
   .theme-chroma-slider:disabled {
@@ -286,8 +287,8 @@
   .theme-chroma-slider::-webkit-slider-thumb {
     appearance: none;
     -webkit-appearance: none;
-    width: 0.875rem;
-    height: 0.875rem;
+    width: var(--theme-chroma-thumb-size);
+    height: var(--theme-chroma-thumb-size);
     border-radius: 9999px;
     background: var(--theme-text-primary);
     border: 3px solid var(--theme-panel-base);
@@ -295,12 +296,33 @@
   }
 
   .theme-chroma-slider::-moz-range-thumb {
-    width: 0.875rem;
-    height: 0.875rem;
+    width: var(--theme-chroma-thumb-size);
+    height: var(--theme-chroma-thumb-size);
     border-radius: 9999px;
     background: var(--theme-text-primary);
     border: 3px solid var(--theme-panel-base);
     box-shadow: 0 1px 4px rgb(0 0 0 / 0.45);
+  }
+
+  @media (pointer: coarse) {
+    .theme-chroma-track {
+      --theme-chroma-thumb-size: 1.5rem;
+      height: 2.75rem;
+    }
+
+    .theme-chroma-track::before {
+      height: 0.5rem;
+    }
+
+    .theme-chroma-slider::-webkit-slider-thumb {
+      border-width: 4px;
+      box-shadow: 0 2px 7px rgb(0 0 0 / 0.4);
+    }
+
+    .theme-chroma-slider::-moz-range-thumb {
+      border-width: 4px;
+      box-shadow: 0 2px 7px rgb(0 0 0 / 0.4);
+    }
   }
 
   /* Tertiary inline expander: a faint flat plum wash at rest (no gloss, no

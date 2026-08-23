@@ -13,10 +13,7 @@ import {
 import { writeEditorHint } from "@/lib/auth/editorHint";
 import {
   ACCENT_HUE_PROPERTY,
-  DEFAULT_ACCENT_HUE,
-  DEFAULT_ACCENT_LEVEL,
-  DEFAULT_SURFACE_HUE,
-  DEFAULT_SURFACE_LEVEL,
+  DEFAULT_APPEARANCE_COLORS,
 } from "@/theme/appearanceChroma";
 import { getThemeLabOpen, setThemeLabOpen } from "@/features/theme-lab/themeLabStore";
 import { AppearanceCog, type AppearanceCogRows } from "./AppearanceCog";
@@ -142,6 +139,50 @@ describe("AppearanceCog", () => {
     expect(
       within(panel).getByRole("button", { name: "Open Theme Lab" }),
     ).toHaveAccessibleName("Open Theme Lab");
+  });
+
+  it("starts a touch drag on first contact anywhere along a slider", async () => {
+    const user = userEvent.setup();
+    renderCog();
+
+    const panel = await openCog(user);
+    const slider = within(panel).getByRole<HTMLInputElement>("slider", {
+      name: "Surface hue",
+    });
+    vi.spyOn(slider, "getBoundingClientRect").mockReturnValue({
+      x: 100,
+      y: 0,
+      left: 100,
+      top: 0,
+      right: 300,
+      bottom: 44,
+      width: 200,
+      height: 44,
+      toJSON: () => ({}),
+    });
+    const setPointerCapture = vi.fn();
+    Object.defineProperty(slider, "setPointerCapture", {
+      configurable: true,
+      value: setPointerCapture,
+    });
+
+    // No priming tap: the initial quarter-track contact updates immediately.
+    fireEvent.pointerDown(slider, {
+      clientX: 150,
+      pointerId: 7,
+      pointerType: "touch",
+    });
+    await waitFor(() => expect(slider.value).toBe("90"));
+    expect(setPointerCapture).toHaveBeenCalledWith(7);
+    expect(slider).toHaveFocus();
+
+    // Pointer capture keeps the same first gesture live as the finger moves.
+    fireEvent.pointerMove(slider, {
+      clientX: 250,
+      pointerId: 7,
+      pointerType: "touch",
+    });
+    await waitFor(() => expect(slider.value).toBe("269"));
   });
 
   it("holds no state of its own: every mounted control reflects one provider", async () => {
@@ -359,14 +400,14 @@ describe("AppearanceCog", () => {
 
     const panel = await openCog(user);
 
-    // A fresh reader wears the authored palette: every slider is live — there are no
-    // achromatic colourways left to fade one; grey is simply saturation 0 — and each
-    // thumb parks on the effective value, the site default, since nothing is stored.
+    // Every slider is live — saturation 0 is a coordinate, not a disabled
+    // state — and a fresh reader parks on the default Fun-dark matrix entry.
+    const defaults = DEFAULT_APPEARANCE_COLORS.fun.dark;
     const values: Record<(typeof SLIDER_NAMES)[number], string> = {
-      "Surface hue": String(DEFAULT_SURFACE_HUE),
-      "Surface saturation": String(Math.round(DEFAULT_SURFACE_LEVEL * 100)),
-      "Accent hue": String(DEFAULT_ACCENT_HUE),
-      "Accent saturation": String(Math.round(DEFAULT_ACCENT_LEVEL * 100)),
+      "Surface hue": String(defaults.surfaceHue),
+      "Surface saturation": String(Math.round(defaults.surfaceLevel * 100)),
+      "Accent hue": String(defaults.accentHue),
+      "Accent saturation": String(Math.round(defaults.accentLevel * 100)),
     };
     for (const name of SLIDER_NAMES) {
       const slider = within(panel).getByRole<HTMLInputElement>("slider", { name });
@@ -430,15 +471,21 @@ describe("AppearanceCog", () => {
         expect(within(panel).getByRole("slider", { name }), name).toBeEnabled();
       }
       expect(within(panel).queryByText("Fun only")).not.toBeInTheDocument();
-      // With nothing saved, the surface saturation thumb parks on the
-      // per-style default: Pro's additive axis rests at 0 — the authored
-      // charcoal — while Fun rests on the softened Orchid tint.
+      // With nothing saved, all four thumbs park on this exact
+      // visual-style and colour-scheme combination's defaults.
+      const expected = DEFAULT_APPEARANCE_COLORS[visualStyle][colorScheme];
       expect(
-        within(panel).getByRole<HTMLInputElement>("slider", { name: "Surface saturation" })
-          .value,
-      ).toBe(
-        visualStyle === "pro" ? "0" : String(Math.round(DEFAULT_SURFACE_LEVEL * 100)),
-      );
+        within(panel).getByRole<HTMLInputElement>("slider", { name: "Surface hue" }).value,
+      ).toBe(String(expected.surfaceHue));
+      expect(
+        within(panel).getByRole<HTMLInputElement>("slider", { name: "Surface saturation" }).value,
+      ).toBe(String(Math.round(expected.surfaceLevel * 100)));
+      expect(
+        within(panel).getByRole<HTMLInputElement>("slider", { name: "Accent hue" }).value,
+      ).toBe(String(expected.accentHue));
+      expect(
+        within(panel).getByRole<HTMLInputElement>("slider", { name: "Accent saturation" }).value,
+      ).toBe(String(Math.round(expected.accentLevel * 100)));
       expect(
         within(panel).getByRole("button", { name: "Open Theme Lab" }),
       ).toHaveAttribute("aria-controls", "theme-lab-panel");

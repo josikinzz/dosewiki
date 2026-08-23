@@ -4,9 +4,9 @@ import { beforeEach, describe, expect, it } from "vitest";
 import { SITE_FLAVOR_CONFIG } from "@/config/siteFlavor";
 import { APPEARANCE_META_COLORS, getAppearanceMetaColor } from "@/theme";
 import {
-  DEFAULT_ACCENT_LEVEL,
-  DEFAULT_PRO_SURFACE_LEVEL,
-  DEFAULT_SURFACE_LEVEL,
+  ACCENT_HUE_PROPERTY,
+  DEFAULT_APPEARANCE_COLORS,
+  SURFACE_HUE_PROPERTY,
 } from "@/theme/appearanceChroma";
 import { LEGACY_ACCENT_TO_HUE } from "@/theme/accents";
 import { LEGACY_SURFACE_TO_HUE } from "@/theme/surfaces";
@@ -323,11 +323,12 @@ describe("ThemeProvider", () => {
 
     await waitFor(() => expect(document.documentElement.dataset.theme).toBe("dark"));
 
-    // The effective level is the default, exposed as a number — the sliders park on it —
-    // and the document engages the axis, matching the frame the bootstrap painted. The
-    // hue is exposed as null itself: "never chose" is part of the hue interface.
-    expect(screen.getByTestId("surface-chroma")).toHaveTextContent(String(DEFAULT_SURFACE_LEVEL));
-    expect(screen.getByTestId("accent-chroma")).toHaveTextContent(String(DEFAULT_ACCENT_LEVEL));
+    // The effective level is the Fun-dark default, exposed as a number — the
+    // sliders park on it — while hue remains null so "never chose" stays
+    // observable through the context.
+    const defaults = DEFAULT_APPEARANCE_COLORS.fun.dark;
+    expect(screen.getByTestId("surface-chroma")).toHaveTextContent(String(defaults.surfaceLevel));
+    expect(screen.getByTestId("accent-chroma")).toHaveTextContent(String(defaults.accentLevel));
     expect(screen.getByTestId("surface-hue")).toHaveTextContent("null");
     expect(screen.getByTestId("accent-hue")).toHaveTextContent("null");
     // The document paint rides the next animation frame rather than the render.
@@ -344,44 +345,50 @@ describe("ThemeProvider", () => {
     expect(window.localStorage.getItem(ACCENT_HUE_STORAGE_KEY)).toBeNull();
   });
 
-  it("recomputes the surface default when the style flips and nothing is saved", async () => {
+  it("recomputes all palette defaults when either appearance axis flips", async () => {
     const user = userEvent.setup();
 
     renderProvider();
 
-    await waitFor(() => expect(document.documentElement.dataset.theme).toBe("dark"));
-    expect(screen.getByTestId("surface-chroma")).toHaveTextContent(String(DEFAULT_SURFACE_LEVEL));
+    const expectDefaults = async (visualStyle: VisualStyle, colorScheme: ColorScheme) => {
+      const defaults = DEFAULT_APPEARANCE_COLORS[visualStyle][colorScheme];
+      await waitFor(() => {
+        expect(screen.getByTestId("visual-style")).toHaveTextContent(visualStyle);
+        expect(screen.getByTestId("color-scheme")).toHaveTextContent(colorScheme);
+        expect(screen.getByTestId("surface-chroma")).toHaveTextContent(
+          String(defaults.surfaceLevel),
+        );
+        expect(screen.getByTestId("accent-chroma")).toHaveTextContent(
+          String(defaults.accentLevel),
+        );
+        expect(document.documentElement.style.getPropertyValue(SURFACE_HUE_PROPERTY)).toBe(
+          String(defaults.surfaceHue),
+        );
+        expect(document.documentElement.style.getPropertyValue(ACCENT_HUE_PROPERTY)).toBe(
+          String(defaults.accentHue),
+        );
+      });
+    };
 
-    // The Pro surface blocks are additive (c + K × level), so Pro's resting
-    // look is level 0: the authored charcoal. A reader who never chose a
-    // level follows the style toggle — the effective default is resolved by
-    // style at apply time, not captured at hydration.
+    await expectDefaults("fun", "dark");
     await user.click(screen.getByRole("button", { name: "Toggle style" }));
-
-    await waitFor(() => {
-      expect(screen.getByTestId("visual-style")).toHaveTextContent("pro");
-      expect(screen.getByTestId("surface-chroma")).toHaveTextContent(
-        String(DEFAULT_PRO_SURFACE_LEVEL),
-      );
-    });
-
-    // And back: the Fun default returns; the accent default never moved.
+    await expectDefaults("pro", "dark");
+    await user.click(screen.getByRole("button", { name: "Toggle scheme" }));
+    await expectDefaults("pro", "light");
     await user.click(screen.getByRole("button", { name: "Toggle style" }));
+    await expectDefaults("fun", "light");
+    await user.click(screen.getByRole("button", { name: "Toggle scheme" }));
+    await expectDefaults("fun", "dark");
 
-    await waitFor(() => {
-      expect(screen.getByTestId("visual-style")).toHaveTextContent("fun");
-      expect(screen.getByTestId("surface-chroma")).toHaveTextContent(
-        String(DEFAULT_SURFACE_LEVEL),
-      );
-    });
-    expect(screen.getByTestId("accent-chroma")).toHaveTextContent(String(DEFAULT_ACCENT_LEVEL));
-
-    // Defaults are still never persisted: flipping styles wrote no level key.
+    // Defaults are still never persisted: flipping either appearance axis
+    // writes no colour-coordinate key.
     const writtenKeys = storage.writes.map(([key]) => key);
     expect(writtenKeys).not.toContain(SURFACE_CHROMA_STORAGE_KEY);
+    expect(writtenKeys).not.toContain(ACCENT_CHROMA_STORAGE_KEY);
+    expect(writtenKeys).not.toContain(SURFACE_HUE_STORAGE_KEY);
+    expect(writtenKeys).not.toContain(ACCENT_HUE_STORAGE_KEY);
 
-    // A saved decimal is one knob for both styles: it pins the level on Pro
-    // exactly as it does on Fun.
+    // A saved decimal remains one knob for every combination.
     await user.click(screen.getByRole("button", { name: "Saturate surface" }));
     await user.click(screen.getByRole("button", { name: "Toggle style" }));
 
@@ -403,7 +410,9 @@ describe("ThemeProvider", () => {
     await waitFor(() => {
       expect(screen.getByTestId("surface-chroma")).toHaveTextContent("0.4");
     });
-    expect(screen.getByTestId("accent-chroma")).toHaveTextContent(String(DEFAULT_ACCENT_LEVEL));
+    expect(screen.getByTestId("accent-chroma")).toHaveTextContent(
+      String(DEFAULT_APPEARANCE_COLORS.fun.dark.accentLevel),
+    );
 
     await user.click(screen.getByRole("button", { name: "Saturate surface" }));
 
@@ -417,7 +426,7 @@ describe("ThemeProvider", () => {
 
     await waitFor(() => {
       expect(screen.getByTestId("surface-chroma")).toHaveTextContent(
-        String(DEFAULT_SURFACE_LEVEL),
+        String(DEFAULT_APPEARANCE_COLORS.fun.dark.surfaceLevel),
       );
       expect(window.localStorage.getItem(SURFACE_CHROMA_STORAGE_KEY)).toBeNull();
     });

@@ -81,7 +81,7 @@ export function AppearanceCog({
         // Sized to its rows rather than the primitive's fixed w-72, so the panel carries no
         // dead width when an axis is locked: with the colour axes as slider pairs, the
         // control row is the widest thing left when both are.
-        className="w-auto p-3 motion-reduce:animate-none"
+        className="w-auto max-w-[calc(100vw-1.5rem)] p-3 motion-reduce:animate-none [@media(pointer:coarse)]:w-[22rem]"
         align="end"
         sideOffset={12}
         collisionPadding={12}

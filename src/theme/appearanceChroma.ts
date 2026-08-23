@@ -11,12 +11,11 @@ import chromaManifest from "./appearanceChroma.generated.json";
  * this module's constants into the pre-paint bootstrap, which ships on every
  * page of both publications.
  *
- * A reader who never moved a slider gets the site defaults — the authored hues
- * at {@link DEFAULT_SURFACE_HUE}/{@link DEFAULT_ACCENT_HUE}, Orchid surfaces at
- * {@link DEFAULT_SURFACE_LEVEL} and the Default accent at {@link DEFAULT_ACCENT_LEVEL} —
- * so the axes engage on every dose.wiki page: the layout server-renders the
- * stylesheet `<link>` (parser-discoverable, fetched in parallel with the HTML)
- * and the bootstrap writes all four properties (stored ?? default) pre-paint.
+ * A reader who never moved a slider gets the current visual-style and
+ * colour-scheme combination's defaults. The axes therefore engage on every
+ * dose.wiki page: the layout server-renders the stylesheet `<link>`
+ * (parser-discoverable, fetched in parallel with the HTML) and the bootstrap
+ * writes all four properties (stored ?? appearance default) pre-paint.
  * Only a publication that locks both colour axes (Effect Index) stays inert —
  * and skips the `<link>` entirely.
  */
@@ -45,29 +44,44 @@ export const CHROMA_STYLESHEET_HREF = `${CHROMA_STYLESHEET_ROUTE}?v=${CHROMA_STY
 export const CHROMA_STYLESHEET_LINK_ID = "appearance-chroma";
 
 /**
- * The site-default levels, applied wherever a reader has no saved decimal. A
- * default is never *written* to storage: absence of the key is what "default"
- * means, so a future default change reaches every reader who never chose.
+ * The site-default coordinates, applied wherever a reader has no saved
+ * number. A default is never *written* to storage: absence of the key is what
+ * "default" means, so a future default change reaches every reader who never
+ * chose.
  *
- * The surface default is per visual style — one stored knob still drives both
- * styles, but the *resting* look differs: Fun opens on the authored Orchid
- * tint softened to 0.15, while Pro opens on its authored untinted charcoal,
- * level 0 — the Pro surface blocks are additive (`c + K × level`), so 0 is
- * the authored palette itself. The style is resolved at apply time: the
- * bootstrap picks the default from the style it just resolved, and the
- * provider recomputes it when the style flips with nothing saved.
+ * Defaults are resolved from both appearance axes. One stored knob still
+ * drives every combination, but each unsaved Fun/Pro × light/dark appearance
+ * has its own resting coordinates. The bootstrap resolves the matrix entry
+ * from the style and scheme it just painted, and the provider recomputes it
+ * whenever either axis flips with nothing saved.
  */
-export const DEFAULT_SURFACE_LEVEL = 0.15;
-export const DEFAULT_PRO_SURFACE_LEVEL = 0;
-export const DEFAULT_ACCENT_LEVEL = 0.65;
+export type AppearanceColorCoordinates = {
+  readonly surfaceHue: number;
+  readonly surfaceLevel: number;
+  readonly accentHue: number;
+  readonly accentLevel: number;
+};
 
-/**
- * The site-default hue rotations: 0 degrees is the authored palette (Orchid
- * surfaces, the Default plum accent). Same persistence rule as the levels —
- * a default is never written to storage, absence of the key means default.
- */
-export const DEFAULT_SURFACE_HUE = 0;
-export const DEFAULT_ACCENT_HUE = 0;
+export const DEFAULT_APPEARANCE_COLORS = {
+  fun: {
+    light: { surfaceHue: 0, surfaceLevel: 0, accentHue: 238, accentLevel: 0.41 },
+    dark: { surfaceHue: 0, surfaceLevel: 0.21, accentHue: 352, accentLevel: 0.96 },
+  },
+  pro: {
+    light: { surfaceHue: 222, surfaceLevel: 0, accentHue: 217, accentLevel: 0.65 },
+    dark: { surfaceHue: 0, surfaceLevel: 0, accentHue: 217, accentLevel: 0.5 },
+  },
+} as const satisfies Record<
+  "fun" | "pro",
+  Record<"light" | "dark", AppearanceColorCoordinates>
+>;
+
+export function getDefaultAppearanceColors(
+  visualStyle: "fun" | "pro",
+  colorScheme: "light" | "dark",
+): AppearanceColorCoordinates {
+  return DEFAULT_APPEARANCE_COLORS[visualStyle][colorScheme];
+}
 
 /**
  * Authored levels of the base colourways — where each slider rests before the
@@ -80,8 +94,8 @@ export const CHROMA_LEVELS: {
 
 /**
  * A stored level is a plain decimal in 0..1; anything else reads as null —
- * "the reader never saved one". Callers resolve null to the `DEFAULT_*` level
- * for display and paint; the null itself is the persistence distinction, which
+ * "the reader never saved one". Callers resolve null through
+ * {@link getDefaultAppearanceColors}; the null itself is the persistence distinction, which
  * is why this does not take a fallback.
  */
 export function parseChromaLevel(raw: string | null): number | null {
