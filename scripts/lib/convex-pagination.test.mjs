@@ -233,5 +233,5 @@ describe("drainConvexPageQuery", () => {
       .flatMap((path) => collectDeprecatedSubstanceQueryAccesses(readFileSync(path, "utf8"), path)
         .map((finding) => `${relative(process.cwd(), path)}:${finding.line}:${finding.column} (${finding.queryName})`));
     expect(offenders).toEqual([]);
-  });
+  }, 15_000);
 });

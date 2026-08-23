@@ -28,6 +28,7 @@ export const productionWriterClassifications = Object.freeze({
     "scripts/replications/apply-psychonautwiki-metadata-corrections.mjs",
     "scripts/replications/apply-slug-aliases.mjs",
     "scripts/replications/backfill-rights-metadata.mjs",
+    "scripts/replications/generate-gif-motion-renditions.mjs",
     "scripts/replications/generate-preview-renditions.mjs",
     "scripts/replications/fix-replication-effect-slugs.mjs",
     "scripts/replications/import-audio-replications.mjs",
