@@ -14,12 +14,17 @@ export const getStaticSubstanceParams = getStaticParamsFor("substances");
 export const getStaticCategoryParams = getStaticParamsFor("categories");
 export const getStaticEffectParams = getStaticParamsFor("effects");
 export const getStaticReplicationParams = getStaticParamsFor("replications");
-export const getStaticReplicationArtistParams = getStaticParamsFor("replicationArtists");
-export const getStaticReplicationEffectParams = getStaticParamsFor("replicationEffects");
-export const getStaticEffectCategoryParams = getStaticParamsFor("effectCategories");
-export const getStaticPsychoactiveSummaryParams = getStaticParamsFor("psychoactiveSummaries");
+export const getStaticReplicationArtistParams =
+  getStaticParamsFor("replicationArtists");
+export const getStaticEffectCategoryParams =
+  getStaticParamsFor("effectCategories");
+export const getStaticPsychoactiveSummaryParams = getStaticParamsFor(
+  "psychoactiveSummaries",
+);
 export const getStaticArticleParams = getStaticParamsFor("articles");
 export const getStaticReportParams = getStaticParamsFor("reports");
 export const getStaticContributorParams = getStaticParamsFor("contributors");
 export const getStaticMechanismParams = getStaticParamsFor("mechanisms");
-export const getStaticMechanismQualifierParams = getStaticParamsFor("mechanismQualifiers");
+export const getStaticMechanismQualifierParams = getStaticParamsFor(
+  "mechanismQualifiers",
+);

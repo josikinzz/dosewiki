@@ -86,10 +86,9 @@ export interface ReplicationsGalleryExplorerProps {
    */
   contributorDirectory?: ContributorDirectory;
   /**
-   * Set by the /replications/artist/<key> and /replications/effect/<slug>
-   * routes, which have already 404'd unresolvable keys server-side. Everything
-   * else — view mode, search, media type, artist sort — lives in query params
-   * (see galleryUrlState), so every state of this component is a URL.
+   * Set by the `/replications/artist/<key>` route after it resolves the key.
+   * Browse mode, search, media type, and artist sort live in query params, so
+   * every public Gallery state still has a stable URL.
    */
   focus?: GalleryFocus;
   /**

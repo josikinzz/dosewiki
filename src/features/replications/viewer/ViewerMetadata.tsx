@@ -1,22 +1,30 @@
-import Link from 'next/link';
+import Link from "next/link";
 
-import { DefinitionList, DefinitionRow } from '@/components/common/DefinitionList';
-import { proseLinkClassName } from '@/components/common/ProseLink';
-import { PublicNameChip, PublicOverline, PublicPill } from '@/components/common/PublicTokens';
-import { ContentCard, NestedContentCard } from '@/components/ui/surface';
-import { getExternalSourceUrl, getRightsSummary } from '@/features/effects/components/replicationCredit';
-import { buildAttributionLine } from '@/features/effects/pages/replicationAttribution';
-import { publicHref } from '@/utils/publicHref';
-import type { ReplicationViewerItem } from './viewerModel';
+import {
+  DefinitionList,
+  DefinitionRow,
+} from "@/components/common/DefinitionList";
+import { proseLinkClassName } from "@/components/common/ProseLink";
+import {
+  PublicNameChip,
+  PublicOverline,
+  PublicPill,
+} from "@/components/common/PublicTokens";
+import { ContentCard, NestedContentCard } from "@/components/ui/surface";
+import {
+  getExternalSourceUrl,
+  getRightsSummary,
+} from "@/features/effects/components/replicationCredit";
+import { buildAttributionLine } from "@/features/effects/pages/replicationAttribution";
+import { publicHref } from "@/utils/publicHref";
+import type { ReplicationViewerItem } from "./viewerModel";
 
 /**
- * Everything below the stage: what the work depicts, who made it, and the
- * terms it may be reused under. Rendered by the client viewer from the active
- * item — not by the server page — because prev/next moves the reader between
- * works without a document load, and a licence describing the *previous* work
- * under the current one would be worse than no licence at all.
- */
+ * Stable provenance and reuse metadata for a single replication. The detail
+ * page renders this below its non-playing preview; the expanded viewer keeps
+ * the same facts in its on-demand information panel.
 
+ */
 function formatFileSize(bytes?: number) {
   if (!bytes || bytes <= 0) return null;
   const mb = bytes / 1_000_000;
@@ -26,12 +34,12 @@ function formatFileSize(bytes?: number) {
 function formatDuration(seconds?: number) {
   if (!seconds || seconds <= 0) return null;
   const total = Math.round(seconds);
-  return `${Math.floor(total / 60)}:${String(total % 60).padStart(2, '0')}`;
+  return `${Math.floor(total / 60)}:${String(total % 60).padStart(2, "0")}`;
 }
 
 export function ViewerMetadata({ item }: { item: ReplicationViewerItem }) {
   const { replication, effectName, effectSlug, effectCategories } = item;
-  const isVideo = replication.type === 'video';
+  const isVideo = replication.type === "video";
   const sourceUrl = getExternalSourceUrl(replication);
   const attribution = buildAttributionLine(replication);
   const fileSize = formatFileSize(replication.file_size);
@@ -41,15 +49,17 @@ export function ViewerMetadata({ item }: { item: ReplicationViewerItem }) {
     <>
       {/* The file's vital signs, kept adjacent to the work they describe. */}
       <div className="theme-text-faint flex flex-wrap items-center gap-x-3 gap-y-2 text-xs">
-        <PublicPill icon={isVideo ? 'lucide:video' : 'lucide:image'} size="sm">
-          {isVideo ? 'Video' : 'Image'}
+        <PublicPill icon={isVideo ? "lucide:video" : "lucide:image"} size="sm">
+          {isVideo ? "Video" : "Image"}
         </PublicPill>
         {replication.width && replication.height ? (
           <span className="tabular-nums">
             {replication.width} × {replication.height}
           </span>
         ) : null}
-        {replication.format ? <span className="uppercase">{replication.format}</span> : null}
+        {replication.format ? (
+          <span className="uppercase">{replication.format}</span>
+        ) : null}
         {duration ? <span className="tabular-nums">{duration}</span> : null}
         {fileSize ? <span className="tabular-nums">{fileSize}</span> : null}
         <a
@@ -86,7 +96,10 @@ export function ViewerMetadata({ item }: { item: ReplicationViewerItem }) {
           </p>
 
           {effectCategories.length > 0 ? (
-            <ul aria-label={`${effectName} categories`} className="mt-3 flex flex-wrap gap-2">
+            <ul
+              aria-label={`${effectName} categories`}
+              className="mt-3 flex flex-wrap gap-2"
+            >
               {effectCategories.map((category) => (
                 <li key={category.slug}>
                   <PublicNameChip
@@ -148,7 +161,9 @@ export function ViewerMetadata({ item }: { item: ReplicationViewerItem }) {
               getRightsSummary(replication)
             )}
             {replication.permission_notes ? (
-              <span className="theme-text-faint block mt-1">{replication.permission_notes}</span>
+              <span className="theme-text-faint block mt-1">
+                {replication.permission_notes}
+              </span>
             ) : null}
           </DefinitionRow>
 
@@ -174,13 +189,20 @@ export function ViewerMetadata({ item }: { item: ReplicationViewerItem }) {
         {/* Pre-composed so a reuser can satisfy the attribution requirement by
             copying one line rather than assembling it from the rows above. */}
         <NestedContentCard className="mt-5">
-          <p className="theme-text-faint text-xs uppercase tracking-[0.18em]">Attribution</p>
-          <p className="theme-text-secondary mt-2 select-all text-sm leading-6">{attribution}</p>
+          <p className="theme-text-faint text-xs uppercase tracking-[0.18em]">
+            Attribution
+          </p>
+          <p className="theme-text-secondary mt-2 select-all text-sm leading-6">
+            {attribution}
+          </p>
         </NestedContentCard>
 
         <p className="theme-text-faint mt-4 text-xs leading-5">
-          To correct a credit or request removal, see the{' '}
-          <Link href="/docs/license#replication-media-terms" className={proseLinkClassName}>
+          To correct a credit or request removal, see the{" "}
+          <Link
+            href="/docs/license#replication-media-terms"
+            className={proseLinkClassName}
+          >
             licensing terms
           </Link>
           .

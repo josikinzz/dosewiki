@@ -6,17 +6,17 @@ import Link from "next/link";
 import { AppImage } from "@/components/common/AppImage";
 import { Icon } from "@/components/common/Icon";
 import { getCreatorByline } from "@/features/effects/components/replicationCredit";
-import { buildViewerPath } from "@/features/replications/viewer/viewerLogic";
-import { getPublicRoutePath } from "@/utils/publicRouteIdentity";
+import { buildReplicationViewerUrl } from "@/features/replications/galleryUrlState";
+import { publicHref } from "@/utils/publicHref";
 import { HomePanel } from "./HomePanel";
 import type { HomeFeaturedReplication } from "./homeModel";
 
 /**
  * The Featured Replications panel, ported from `components/home/FeaturedReplications.vue`.
  *
- * One item at a time with prev/next chevrons, as the original had it. Clicking the stage now
- * opens the replication's own page, which carries the credit and licence that the old theater
- * viewer used to show in a toolbar — and unlike the modal, it can be linked to.
+ * Opening a work uses its effect article's shared replication viewer, preserving
+ * collection context while keeping the permanent detail page available from
+ * the viewer's information panel.
  *
  * The caption band over the stage is retained deliberately: this is a faithful port of the
  * legacy Effect Index carousel, captioned on a fixed dark stage in that flavor's on-dark
@@ -24,7 +24,7 @@ import type { HomeFeaturedReplication } from "./homeModel";
  *
  * Nearly every curated item is a video (the legacy `gfycat` type), so the resting state
  * autoplays a muted loop the way the original's embed did. That is suppressed under
- * `prefers-reduced-motion`, where the first frame stands in and the reader opens the theater
+ * `prefers-reduced-motion`, where the first frame stands in and the reader opens the viewer
  * to play it.
  */
 
@@ -66,7 +66,8 @@ function useReducedMotion(): boolean {
   return reduced;
 }
 
-const DEFAULT_DESCRIPTION = "Artistic representations of specific subjective effects";
+const DEFAULT_DESCRIPTION =
+  "Artistic representations of specific subjective effects";
 
 interface FeaturedReplicationsPanelProps {
   items: readonly HomeFeaturedReplication[];
@@ -141,9 +142,10 @@ export function FeaturedReplicationsPanel({
         className={`relative h-[250px] w-full overflow-hidden border border-dose-border ${STAGE_BACKGROUND}`}
       >
         <Link
-          // The caption names the effect, so that is the context this stage
-          // stands for: opening a featured work walks its effect's playlist.
-          href={buildViewerPath(replication.slug, { kind: "effect", slug: item.effectSlug })}
+          href={buildReplicationViewerUrl(
+            publicHref.effect(item.effectSlug),
+            replication.slug,
+          )}
           onKeyDown={handleArrowKeys}
           aria-label={`View ${replication.title}`}
           className={`absolute inset-0 flex h-full w-full items-center justify-center focus-visible:-outline-offset-2 ${ON_DARK_FOCUS_RING}`}
@@ -204,10 +206,7 @@ export function FeaturedReplicationsPanel({
           <p>
             {item.introduction}
             <Link
-              href={getPublicRoutePath({
-                family: "effect",
-                params: { effectSlug: item.effectSlug },
-              })}
+              href={publicHref.effect(item.effectSlug)}
               className={`${CAPTION_LINK_CLASS} ${ON_DARK_FOCUS_RING}`}
             >
               {item.effectName}
@@ -218,7 +217,6 @@ export function FeaturedReplicationsPanel({
           </p>
         </div>
       </div>
-
     </HomePanel>
   );
 }

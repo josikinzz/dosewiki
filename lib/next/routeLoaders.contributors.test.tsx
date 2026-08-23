@@ -17,7 +17,9 @@ describe("contributor and replication route loaders", () => {
   });
 
   it("returns contributor ok results for the canonical key", async () => {
-    publicData.getPublicContributorByKey.mockResolvedValueOnce(buildContributorProfile());
+    publicData.getPublicContributorByKey.mockResolvedValueOnce(
+      buildContributorProfile(),
+    );
     publicData.getReportsByContributor.mockResolvedValueOnce([]);
     publicData.getReplicationsByContributor.mockResolvedValueOnce([]);
 
@@ -32,7 +34,10 @@ describe("contributor and replication route loaders", () => {
       title: "Ada",
       description: "Browse contributor profile ADA.",
     });
-    expect(result.canonicalRoute).toEqual({ family: "contributor", params: { profileKey: "ADA" } });
+    expect(result.canonicalRoute).toEqual({
+      family: "contributor",
+      params: { profileKey: "ADA" },
+    });
     expect(result.pageProps.profile.key).toBe("ADA");
     expect(result.pageProps.bioContent).toBeNull();
     expect(result.pageProps.reportHrefPrefix).toBe("/reports/");
@@ -41,7 +46,9 @@ describe("contributor and replication route loaders", () => {
   });
 
   it("orders a contributor's replications newest first", async () => {
-    publicData.getPublicContributorByKey.mockResolvedValueOnce(buildContributorProfile());
+    publicData.getPublicContributorByKey.mockResolvedValueOnce(
+      buildContributorProfile(),
+    );
     publicData.getReportsByContributor.mockResolvedValueOnce([]);
     publicData.getReplicationsByContributor.mockResolvedValueOnce([
       buildReplication({ slug: "old", created_at: "2023-01-01T00:00:00.000Z" }),
@@ -53,17 +60,25 @@ describe("contributor and replication route loaders", () => {
     if (result.kind !== "ok") {
       throw new Error("expected ok result");
     }
-    expect(result.pageProps.replications.map((work) => work.slug)).toEqual(["new", "old"]);
+    expect(result.pageProps.replications.map((work) => work.slug)).toEqual([
+      "new",
+      "old",
+    ]);
   });
 
   it("leads a contributor's rail with their curated works", async () => {
-    publicData.getPublicContributorByKey.mockResolvedValueOnce(buildContributorProfile());
+    publicData.getPublicContributorByKey.mockResolvedValueOnce(
+      buildContributorProfile(),
+    );
     publicData.getReportsByContributor.mockResolvedValueOnce([]);
     publicData.getReplicationsByContributor.mockResolvedValueOnce([
       buildReplication({ slug: "new", created_at: "2025-01-01T00:00:00.000Z" }),
       // A real entry from the checked-in curation list, so this test fails if
       // the list is ever repointed without the rail following.
-      buildReplication({ slug: "forest-of-life-loka", created_at: "2019-01-01T00:00:00.000Z" }),
+      buildReplication({
+        slug: "forest-of-life-loka",
+        created_at: "2019-01-01T00:00:00.000Z",
+      }),
     ]);
 
     const result = await loadContributorRoute("ada");
@@ -78,7 +93,9 @@ describe("contributor and replication route loaders", () => {
   });
 
   it("leaves the rail untouched for a contributor with nothing curated", async () => {
-    publicData.getPublicContributorByKey.mockResolvedValueOnce(buildContributorProfile());
+    publicData.getPublicContributorByKey.mockResolvedValueOnce(
+      buildContributorProfile(),
+    );
     publicData.getReportsByContributor.mockResolvedValueOnce([]);
     publicData.getReplicationsByContributor.mockResolvedValueOnce([
       buildReplication({ slug: "old", created_at: "2023-01-01T00:00:00.000Z" }),
@@ -92,7 +109,10 @@ describe("contributor and replication route loaders", () => {
     }
     // Only 36 works are curated corpus-wide, so this is the common case and it
     // must stay a pure no-op.
-    expect(result.pageProps.replications.map((work) => work.slug)).toEqual(["new", "old"]);
+    expect(result.pageProps.replications.map((work) => work.slug)).toEqual([
+      "new",
+      "old",
+    ]);
   });
 
   it("puts the contributor's own curation ahead of the editorial list", async () => {
@@ -105,7 +125,10 @@ describe("contributor and replication route loaders", () => {
       buildReplication({ slug: "old", created_at: "2023-01-01T00:00:00.000Z" }),
       // Editorial curation still floats its pick above the default sort, but
       // below anything the contributor pinned themselves.
-      buildReplication({ slug: "forest-of-life-loka", created_at: "2019-01-01T00:00:00.000Z" }),
+      buildReplication({
+        slug: "forest-of-life-loka",
+        created_at: "2019-01-01T00:00:00.000Z",
+      }),
     ]);
 
     const result = await loadContributorRoute("ada");
@@ -136,11 +159,16 @@ describe("contributor and replication route loaders", () => {
     if (result.kind !== "ok") {
       throw new Error("expected ok result");
     }
-    expect(result.pageProps.tripReports.map((report) => report.slug)).toEqual(["second", "first"]);
+    expect(result.pageProps.tripReports.map((report) => report.slug)).toEqual([
+      "second",
+      "first",
+    ]);
   });
 
   it("hands the profile the effect articles crediting the contributor", async () => {
-    publicData.getPublicContributorByKey.mockResolvedValueOnce(buildContributorProfile());
+    publicData.getPublicContributorByKey.mockResolvedValueOnce(
+      buildContributorProfile(),
+    );
     publicData.getReportsByContributor.mockResolvedValueOnce([]);
     publicData.getReplicationsByContributor.mockResolvedValueOnce([]);
     publicData.getEffectArticlesByContributor.mockResolvedValueOnce([
@@ -155,11 +183,15 @@ describe("contributor and replication route loaders", () => {
     expect(publicData.getEffectArticlesByContributor).toHaveBeenCalledWith(
       expect.objectContaining({ key: "ADA" }),
     );
-    expect(result.pageProps.effectArticles).toEqual([{ slug: "geometry", name: "Geometry" }]);
+    expect(result.pageProps.effectArticles).toEqual([
+      { slug: "geometry", name: "Geometry" },
+    ]);
   });
 
   it("hands the profile its reviewed articles by profile key only", async () => {
-    publicData.getPublicContributorByKey.mockResolvedValueOnce(buildContributorProfile());
+    publicData.getPublicContributorByKey.mockResolvedValueOnce(
+      buildContributorProfile(),
+    );
     publicData.getReportsByContributor.mockResolvedValueOnce([]);
     publicData.getReplicationsByContributor.mockResolvedValueOnce([]);
     publicData.getReviewedArticlesByContributor.mockResolvedValueOnce([
@@ -173,7 +205,9 @@ describe("contributor and replication route loaders", () => {
     }
     // Key-only on purpose: the reviewer-email matching happens inside Convex,
     // so the loader never handles an email it could leak into page props.
-    expect(publicData.getReviewedArticlesByContributor).toHaveBeenCalledWith("ADA");
+    expect(publicData.getReviewedArticlesByContributor).toHaveBeenCalledWith(
+      "ADA",
+    );
     expect(result.pageProps.reviewedArticles).toEqual([
       { slug: "2c-b", title: "2C-B", reviewed_at: "2026-08-01T00:00:00.000Z" },
     ]);
@@ -184,9 +218,13 @@ describe("contributor and replication route loaders", () => {
     // the same opaque Server Error it uses for everything else, so the profile
     // has to degrade to "no works" rather than fail a prerendered route.
     const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
-    publicData.getPublicContributorByKey.mockResolvedValueOnce(buildContributorProfile());
+    publicData.getPublicContributorByKey.mockResolvedValueOnce(
+      buildContributorProfile(),
+    );
     publicData.getReportsByContributor.mockResolvedValueOnce([]);
-    publicData.getReplicationsByContributor.mockRejectedValueOnce(new Error("Server Error"));
+    publicData.getReplicationsByContributor.mockRejectedValueOnce(
+      new Error("Server Error"),
+    );
 
     const result = await loadContributorRoute("ada");
 
@@ -215,7 +253,9 @@ describe("contributor and replication route loaders", () => {
   });
 
   it("permanently forwards a profile that claims a credited artist to the Artist Page", async () => {
-    publicData.getPublicContributorByKey.mockResolvedValueOnce(buildContributorProfile());
+    publicData.getPublicContributorByKey.mockResolvedValueOnce(
+      buildContributorProfile(),
+    );
     publicData.getPublicGalleryReplications.mockResolvedValueOnce([
       buildReplication({ slug: "work-1" }),
       buildReplication({ slug: "work-2" }),
@@ -240,7 +280,9 @@ describe("contributor and replication route loaders", () => {
     publicData.getPublicContributorByKey.mockResolvedValueOnce(
       buildContributorProfile({ aliases: ["OLD-KEY"] }),
     );
-    publicData.getPublicGalleryReplications.mockResolvedValueOnce([buildReplication()]);
+    publicData.getPublicGalleryReplications.mockResolvedValueOnce([
+      buildReplication(),
+    ]);
     publicData.getPublicContributorDirectory.mockResolvedValueOnce([
       { key: "ADA", displayName: "Ada", aliases: [] },
     ]);
@@ -252,7 +294,9 @@ describe("contributor and replication route loaders", () => {
   });
 
   it("keeps a profile whose only credited works artist views withhold", async () => {
-    publicData.getPublicContributorByKey.mockResolvedValueOnce(buildContributorProfile());
+    publicData.getPublicContributorByKey.mockResolvedValueOnce(
+      buildContributorProfile(),
+    );
     publicData.getPublicGalleryReplications.mockResolvedValueOnce([
       buildReplication({ effect_slug: "unspeakable-horrors" }),
     ]);
@@ -264,7 +308,9 @@ describe("contributor and replication route loaders", () => {
 
     // No Artist Page exists for her (withholding removes the group), so the
     // profile is still this artist's one live surface and must render.
-    await expect(loadContributorRoute("ada")).resolves.toMatchObject({ kind: "ok" });
+    await expect(loadContributorRoute("ada")).resolves.toMatchObject({
+      kind: "ok",
+    });
   });
 
   it("returns contributor not-found results with the normalized key", async () => {
@@ -276,7 +322,7 @@ describe("contributor and replication route loaders", () => {
     });
   });
 
-  it("walks an attributed replication's own effect — the artist default is retired", async () => {
+  it("hydrates one permalink without constructing a second playlist", async () => {
     publicData.getPublicReplicationBySlug.mockResolvedValueOnce(
       buildReplication({ slug: "shared", artist: "Ada" }),
     );
@@ -286,14 +332,6 @@ describe("contributor and replication route loaders", () => {
       summary: "",
       tags: ["visual", "distortion"],
     } as SubjectiveEffectDetailRecord);
-    publicData.getPublicReplicationsByEffect.mockResolvedValueOnce([
-      buildReplication({ slug: "shared", created_at: "2025-02-01T00:00:00.000Z" }),
-      buildReplication({
-        slug: "by-someone-else",
-        artist: "Someone Else",
-        created_at: "2025-01-01T00:00:00.000Z",
-      }),
-    ]);
     publicData.getPublicContributorProfiles.mockResolvedValueOnce([
       buildContributorProfile({
         key: "ADA",
@@ -307,42 +345,17 @@ describe("contributor and replication route loaders", () => {
     if (result.kind !== "ok") {
       throw new Error("expected ok result");
     }
-    // A bare permalink carries no browsing context, so it walks the work's
-    // own effect; the artist walk is opted into through `?set=artist:<key>`
-    // and served by its own route, never chosen here.
-    expect(result.pageProps.viewerSet.scope).toBe("effect");
-    expect(result.pageProps.viewerSet.scopeLabel).toBe("Tracers");
-    // The whole ordered walk crosses into the page, active item included; the
-    // viewer finds itself by slug instead of receiving a prev/next pair.
-    expect(result.pageProps.viewerSet.items.map((item) => item.replication.slug)).toEqual([
-      "shared",
-      "by-someone-else",
-    ]);
-    // Every member arrives hydrated: the filmstrip credits and captions its
-    // tiles without further reads.
-    expect(result.pageProps.viewerSet.items.map((item) => item.effectName)).toEqual([
-      "Tracers",
-      "Tracers",
-    ]);
-    // Every credited member's byline names their Artist Page — the profile-less
-    // sibling included, because the page is generated from the credit itself.
-    expect(result.pageProps.viewerSet.items.map((item) => item.artistProfileHref)).toEqual([
-      "/replications/artist/ada",
-      "/replications/artist/someone-else",
-    ]);
-    // The claiming profile's avatar rides on the claimed member only; the
-    // profile-less sibling gets none.
-    expect(result.pageProps.viewerSet.items.map((item) => item.avatarUrl)).toEqual([
-      "https://cdn.test/ada-avatar.webp",
-      null,
-    ]);
-    expect(result.pageProps.artistProfileHref).toBe("/replications/artist/ada");
-    expect(result.pageProps.avatarUrl).toBe("https://cdn.test/ada-avatar.webp");
+    expect(result.pageProps).toMatchObject({
+      effectName: "Tracers",
+      effectSlug: "tracers",
+      artistProfileHref: "/replications/artist/ada",
+      avatarUrl: "https://cdn.test/ada-avatar.webp",
+    });
+    expect(
+      result.pageProps.effectCategories.map((category) => category.slug),
+    ).toEqual(["visual-effects", "visual-distortions"]);
+    expect(publicData.getPublicReplicationsByEffect).not.toHaveBeenCalled();
     expect(publicData.getReplicationsByContributor).not.toHaveBeenCalled();
-    expect(result.pageProps.effectCategories.map((category) => category.slug)).toEqual([
-      "visual-effects",
-      "visual-distortions",
-    ]);
   });
 
   it("gives a figure no permalink, so nothing calls a diagram a replication", async () => {
@@ -356,7 +369,9 @@ describe("contributor and replication route loaders", () => {
       buildReplication({ slug: "vertebral-column-diagram", role: "figure" }),
     );
 
-    await expect(loadReplicationRoute("vertebral-column-diagram")).resolves.toEqual({
+    await expect(
+      loadReplicationRoute("vertebral-column-diagram"),
+    ).resolves.toEqual({
       kind: "not-found",
     });
   });
@@ -369,7 +384,9 @@ describe("contributor and replication route loaders", () => {
       buildReplication({ slug: "a-recording", type: "audio", format: "mp3" }),
     );
 
-    await expect(loadReplicationRoute("a-recording")).resolves.toEqual({ kind: "not-found" });
+    await expect(loadReplicationRoute("a-recording")).resolves.toEqual({
+      kind: "not-found",
+    });
   });
 
   it("still renders an ordinary stored row, which carries no role at all", async () => {
@@ -389,7 +406,7 @@ describe("contributor and replication route loaders", () => {
     expect(result.kind).toBe("ok");
   });
 
-  it("falls back to the effect's works for an unattributed replication", async () => {
+  it("skips profile and playlist reads for an unattributed replication", async () => {
     publicData.getPublicReplicationBySlug.mockResolvedValueOnce(
       buildReplication({ slug: "shared", artist: "Unknown" }),
     );
@@ -399,67 +416,20 @@ describe("contributor and replication route loaders", () => {
       summary: "",
       tags: ["visual"],
     } as SubjectiveEffectDetailRecord);
-    publicData.getPublicReplicationsByEffect.mockResolvedValueOnce([
-      buildReplication({ slug: "shared", artist: "Unknown", created_at: "2025-02-01T00:00:00.000Z" }),
-      buildReplication({ slug: "sibling", artist: "Unknown", created_at: "2025-01-01T00:00:00.000Z" }),
-    ]);
 
     const result = await loadReplicationRoute("shared");
 
     if (result.kind !== "ok") {
       throw new Error("expected ok result");
     }
-    expect(result.pageProps.viewerSet.scope).toBe("effect");
-    expect(result.pageProps.viewerSet.scopeLabel).toBe("Tracers");
-    expect(result.pageProps.viewerSet.items.map((item) => item.replication.slug)).toEqual([
-      "shared",
-      "sibling",
-    ]);
+    expect(result.pageProps.effectName).toBe("Tracers");
     expect(result.pageProps.artistProfileHref).toBeNull();
-    // Unattributed markers can never resolve to a profile, so with nobody in
-    // the walk to credit either, the lookup is skipped rather than run and
-    // discarded.
     expect(publicData.getPublicContributorProfiles).not.toHaveBeenCalled();
+    expect(publicData.getPublicReplicationsByEffect).not.toHaveBeenCalled();
     expect(publicData.getReplicationsByContributor).not.toHaveBeenCalled();
   });
 
-  it("still reads profiles for an unattributed row when a sibling in the walk is credited", async () => {
-    publicData.getPublicReplicationBySlug.mockResolvedValueOnce(
-      buildReplication({ slug: "shared", artist: "Unknown" }),
-    );
-    publicData.getPublicEffectBySlug.mockResolvedValue({
-      slug: "tracers",
-      name: "Tracers",
-      summary: "",
-      tags: ["visual"],
-    } as SubjectiveEffectDetailRecord);
-    publicData.getPublicReplicationsByEffect.mockResolvedValueOnce([
-      buildReplication({ slug: "shared", artist: "Unknown", created_at: "2025-02-01T00:00:00.000Z" }),
-      buildReplication({ slug: "by-ada", created_at: "2025-01-01T00:00:00.000Z" }),
-    ]);
-    publicData.getPublicContributorProfiles.mockResolvedValueOnce([
-      buildContributorProfile({ key: "ADA", displayName: "Ada" }),
-    ]);
-
-    const result = await loadReplicationRoute("shared");
-
-    if (result.kind !== "ok") {
-      throw new Error("expected ok result");
-    }
-    // The active row stays uncredited, but its attributed neighbour's tile
-    // still links to their Artist Page.
-    expect(result.pageProps.artistProfileHref).toBeNull();
-    expect(result.pageProps.viewerSet.items.map((item) => item.artistProfileHref)).toEqual([
-      null,
-      "/replications/artist/ada",
-    ]);
-    // The walk itself remains the effect's: profiles inform credits, never
-    // selection, for a row that names no artist.
-    expect(result.pageProps.viewerSet.scope).toBe("effect");
-    expect(publicData.getReplicationsByContributor).not.toHaveBeenCalled();
-  });
-
-  it("gives a named credit with no profile the effect walk and their generated Artist Page", async () => {
+  it("links a named unclaimed credit to its generated Artist Page", async () => {
     publicData.getPublicReplicationBySlug.mockResolvedValueOnce(
       buildReplication({ slug: "shared", artist: "Unclaimed Artist" }),
     );
@@ -469,10 +439,6 @@ describe("contributor and replication route loaders", () => {
       summary: "",
       tags: ["visual"],
     } as SubjectiveEffectDetailRecord);
-    publicData.getPublicReplicationsByEffect.mockResolvedValueOnce([
-      buildReplication({ slug: "shared" }),
-      buildReplication({ slug: "sibling" }),
-    ]);
     publicData.getPublicContributorProfiles.mockResolvedValueOnce([
       buildContributorProfile({ key: "ADA", displayName: "Ada" }),
     ]);
@@ -482,11 +448,10 @@ describe("contributor and replication route loaders", () => {
     if (result.kind !== "ok") {
       throw new Error("expected ok result");
     }
-    // No profile claims the credit, but the credit itself generates the page:
-    // every credit line leads somewhere real.
-    expect(result.pageProps.artistProfileHref).toBe("/replications/artist/unclaimed-artist");
-    expect(result.pageProps.viewerSet.scope).toBe("effect");
-    // Without a profile there is no name set to join on, so no works are read.
+    expect(result.pageProps.artistProfileHref).toBe(
+      "/replications/artist/unclaimed-artist",
+    );
+    expect(publicData.getPublicReplicationsByEffect).not.toHaveBeenCalled();
     expect(publicData.getReplicationsByContributor).not.toHaveBeenCalled();
   });
 });

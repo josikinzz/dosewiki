@@ -59,9 +59,9 @@ export function isDisplayable(
  *
  * This is a browsing-presentation choice, not an unpublication — the same
  * distinction `dropGalleryExcludedArtistWorks` draws for an opted-out
- * contributor. A withheld work keeps its place under "By effect", on
- * `/replications/effect/<slug>`, in the effect article's own section, on its
- * permalink, and in the public API. Nothing here takes anything down.
+ * contributor. A withheld work keeps its place under "By effect", in the
+ * effect article's own section, on its permalink, and in the public API.
+ * Nothing here takes anything down.
  *
  * The asymmetry is the point. An artist's body of work is browsed casually:
  * you open a rail, the expanded viewer, or a profile to see what someone makes, and

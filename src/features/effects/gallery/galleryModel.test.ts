@@ -315,7 +315,7 @@ describe('groupByEffect', () => {
 
   it('still groups a work that artist browsing withholds', () => {
     // The withholding is a browsing choice, not an unpublication: "By effect"
-    // and /replications/effect/unspeakable-horrors keep every one of them.
+    // and the effect article collection keep every one of them.
     const groups = groupByEffect(
       [
         rep({ artist: 'H. R. Giger', effect_slug: 'unspeakable-horrors' }),

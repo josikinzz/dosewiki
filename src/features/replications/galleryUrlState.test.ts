@@ -136,7 +136,7 @@ describe("buildGalleryBrowseUrl", () => {
 });
 
 describe("buildGalleryFocusUrl", () => {
-  it("addresses artist and effect groups as paths", () => {
+  it("addresses artist groups as focused galleries and effects as articles", () => {
     expect(
       buildGalleryFocusUrl({ kind: "artist", key: "chelsea-morgan" }),
     ).toBe("/replications/artist/chelsea-morgan");
@@ -145,7 +145,7 @@ describe("buildGalleryFocusUrl", () => {
         kind: "effect",
         key: "symmetrical-texture-repetition",
       }),
-    ).toBe("/replications/effect/symmetrical-texture-repetition");
+    ).toBe("/effects/symmetrical-texture-repetition");
   });
 
   it("carries only the media-type filter, and only when non-default", () => {
@@ -161,6 +161,15 @@ describe("buildGalleryFocusUrl", () => {
         { type: "all" },
       ),
     ).toBe("/replications/artist/chelsea-morgan");
+  });
+
+  it("does not carry gallery-only filters onto effect articles", () => {
+    expect(
+      buildGalleryFocusUrl(
+        { kind: "effect", key: "symmetrical-texture-repetition" },
+        { type: "video" },
+      ),
+    ).toBe("/effects/symmetrical-texture-repetition");
   });
 
   it("percent-encodes a hostile key rather than emitting a broken path", () => {

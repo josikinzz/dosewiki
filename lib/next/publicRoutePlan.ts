@@ -4,7 +4,10 @@ import { unstable_cache } from "next/cache";
 import { cache } from "react";
 import { CATEGORY_SLUG_TO_TAGS } from "../../src/data/effectCategoryDefinitions";
 import { deriveMechanismRouteData } from "../../src/data/builders/mechanismRouteDerivation";
-import { artistUrlKey, isWithheldFromArtistViews } from "../../src/features/effects/gallery/galleryModel";
+import {
+  artistUrlKey,
+  isWithheldFromArtistViews,
+} from "../../src/features/effects/gallery/galleryModel";
 import { mapArtistPageKeysByProfile } from "../../src/features/replications/galleryFocus";
 import { PSYCHOACTIVE_SUMMARY_DEFINITIONS } from "../../src/features/psychoactive-summaries/summaryDefinitions";
 import {
@@ -36,11 +39,9 @@ export const STATIC_PUBLIC_PATHS = [
 ] as const;
 
 /**
- * Slugs that would shadow the static pages living under `/replications`. A row
- * carrying one of these is kept out of the route plan (and the sitemap) rather
- * than silently losing to the static segment at request time. "artist" and
- * "effect" host the focused gallery views (/replications/artist/<key>,
- * /replications/effect/<slug>).
+ * Slugs reserved under `/replications` stay out of the route plan and sitemap
+ * rather than silently losing to a static segment at request time. "artist" hosts
+ * focused galleries; "effect" and "substance" remain permanent redirect paths.
  */
 export const RESERVED_REPLICATION_SLUGS = new Set([
   "audio",
@@ -56,7 +57,6 @@ export type PublicRouteFamily =
   | "effects"
   | "replications"
   | "replicationArtists"
-  | "replicationEffects"
   | "effectCategories"
   | "psychoactiveSummaries"
   | "articles"
@@ -81,14 +81,16 @@ export interface PublicRoutePlan {
     effects: PublicRouteEntry<{ effectSlug: string }>[];
     replications: PublicRouteEntry<{ slug: string }>[];
     replicationArtists: PublicRouteEntry<{ key: string }>[];
-    replicationEffects: PublicRouteEntry<{ slug: string }>[];
     effectCategories: PublicRouteEntry<{ categorySlug: string }>[];
     psychoactiveSummaries: PublicRouteEntry<{ summaryPath: string[] }>[];
     articles: PublicRouteEntry<{ slug: string }>[];
     reports: PublicRouteEntry<{ slug: string }>[];
     contributors: PublicRouteEntry<{ profileKey: string }>[];
     mechanisms: PublicRouteEntry<{ mechanismSlug: string }>[];
-    mechanismQualifiers: PublicRouteEntry<{ mechanismSlug: string; qualifierSlug: string }>[];
+    mechanismQualifiers: PublicRouteEntry<{
+      mechanismSlug: string;
+      qualifierSlug: string;
+    }>[];
   };
 }
 
@@ -125,9 +127,7 @@ interface PublicRoutePlanInput {
     displayName: string;
     aliases: string[];
   }[];
-  mechanismRouteInput: Awaited<
-    ReturnType<typeof getPublicMechanismRouteInput>
-  >;
+  mechanismRouteInput: Awaited<ReturnType<typeof getPublicMechanismRouteInput>>;
 }
 
 const unique = <T>(values: readonly T[]) => Array.from(new Set(values));
@@ -208,42 +208,59 @@ function articleEntriesFromRecords(
   return [...entriesBySlug.values()];
 }
 
-export function buildPublicRoutePlan(input: PublicRoutePlanInput): PublicRoutePlan {
+export function buildPublicRoutePlan(
+  input: PublicRoutePlanInput,
+): PublicRoutePlan {
   const mechanismData = deriveMechanismRouteData(
     input.mechanismRouteInput.map((record) => ({ ...record, record })),
   );
-  const mechanisms = mechanismData.mechanismSummaries.map(({ slug: mechanismSlug }) => ({
-    path: getPublicRoutePath({ family: "mechanism", params: { mechanismSlug } }),
-    params: { mechanismSlug },
-  }));
-
-  const mechanismQualifiers = mechanismData.mechanismSummaries.flatMap(({ slug: mechanismSlug }) => {
-    const detail = mechanismData.mechanismMap.get(mechanismSlug);
-
-    if (!detail) {
-      return [];
-    }
-
-    return detail.qualifiers.map(({ key: qualifierSlug }) => ({
+  const mechanisms = mechanismData.mechanismSummaries.map(
+    ({ slug: mechanismSlug }) => ({
       path: getPublicRoutePath({
-        family: "mechanismQualifier",
-        params: { mechanismSlug, qualifierSlug },
+        family: "mechanism",
+        params: { mechanismSlug },
       }),
-      params: { mechanismSlug, qualifierSlug },
-      includeInSitemap: qualifierSlug !== detail.defaultQualifierKey,
-    }));
-  });
+      params: { mechanismSlug },
+    }),
+  );
+
+  const mechanismQualifiers = mechanismData.mechanismSummaries.flatMap(
+    ({ slug: mechanismSlug }) => {
+      const detail = mechanismData.mechanismMap.get(mechanismSlug);
+
+      if (!detail) {
+        return [];
+      }
+
+      return detail.qualifiers.map(({ key: qualifierSlug }) => ({
+        path: getPublicRoutePath({
+          family: "mechanismQualifier",
+          params: { mechanismSlug, qualifierSlug },
+        }),
+        params: { mechanismSlug, qualifierSlug },
+        includeInSitemap: qualifierSlug !== detail.defaultQualifierKey,
+      }));
+    },
+  );
 
   return {
     staticPaths: [...STATIC_PUBLIC_PATHS],
     families: {
       substances: substanceEntriesFromLookup(input.substances),
-      categories: unique(input.categories.map(({ key }) => key)).map((categoryKey) => ({
-        path: getPublicRoutePath({ family: "category", params: { categoryKey } }),
-        params: { categoryKey },
-      })),
-      effects: entriesFromSlugs(input.effects.map(({ slug }) => slug), "effectSlug", (effectSlug) =>
-        getPublicRoutePath({ family: "effect", params: { effectSlug } }),
+      categories: unique(input.categories.map(({ key }) => key)).map(
+        (categoryKey) => ({
+          path: getPublicRoutePath({
+            family: "category",
+            params: { categoryKey },
+          }),
+          params: { categoryKey },
+        }),
+      ),
+      effects: entriesFromSlugs(
+        input.effects.map(({ slug }) => slug),
+        "effectSlug",
+        (effectSlug) =>
+          getPublicRoutePath({ family: "effect", params: { effectSlug } }),
       ),
       // Only rows with a resolved asset get a page — an unrenderable replication
       // would be a permalink to a broken image. Reserved slugs are dropped so they
@@ -254,35 +271,36 @@ export function buildPublicRoutePlan(input: PublicRoutePlanInput): PublicRoutePl
           .map(({ slug }) => slug)
           .filter((slug) => !RESERVED_REPLICATION_SLUGS.has(slug)),
         "slug",
-        (slug) => getPublicRoutePath({ family: "replication", params: { slug } }),
+        (slug) =>
+          getPublicRoutePath({ family: "replication", params: { slug } }),
       ),
-      // Focused gallery views. Their URL space derives from the works the
-      // gallery actually shows (the exclusion-filtered feed with a resolved
-      // asset): the artist key exists iff the by-artist grouping renders that
-      // group, the effect slug iff at least one visible work carries it.
-      // Artist grouping withholds some effects (`isWithheldFromArtistViews`),
-      // so an artist holding nothing else has no group, no page, and must not
-      // be advertised here — the effect family below still carries the work.
+      // Focused artist galleries derive from the exclusion-filtered works the
+      // gallery actually shows. Effects now use their article pages as the
+      // source collection, so the former replicationEffects family is gone.
+      // An artist holding only withheld works has no focused page and is not
+      // advertised here.
       replicationArtists: (() => {
         const displayable = input.galleryReplications.filter(
           (row) => Boolean(row.url) && !isWithheldFromArtistViews(row),
         );
-        return unique(displayable.map(({ artist }) => artistUrlKey(artist))).map((key) => ({
-          path: getPublicRoutePath({ family: "replicationArtist", params: { key } }),
+        return unique(
+          displayable.map(({ artist }) => artistUrlKey(artist)),
+        ).map((key) => ({
+          path: getPublicRoutePath({
+            family: "replicationArtist",
+            params: { key },
+          }),
           params: { key },
         }));
       })(),
-      replicationEffects: entriesFromSlugs(
-        input.galleryReplications
-          .filter(({ url }) => Boolean(url))
-          .map(({ effect_slug }) => effect_slug ?? ""),
-        "slug",
-        (slug) => getPublicRoutePath({ family: "replicationEffect", params: { slug } }),
-      ),
       effectCategories: entriesFromSlugs(
         Object.keys(CATEGORY_SLUG_TO_TAGS),
         "categorySlug",
-        (categorySlug) => getPublicRoutePath({ family: "effectCategory", params: { categorySlug } }),
+        (categorySlug) =>
+          getPublicRoutePath({
+            family: "effectCategory",
+            params: { categorySlug },
+          }),
       ),
       psychoactiveSummaries: PSYCHOACTIVE_SUMMARY_DEFINITIONS.map(
         ({ summaryPath }) => ({
@@ -294,8 +312,10 @@ export function buildPublicRoutePlan(input: PublicRoutePlanInput): PublicRoutePl
         }),
       ),
       articles: articleEntriesFromRecords(input.articles),
-      reports: entriesFromSlugs(input.reports.map(({ slug }) => slug), "slug", (slug) =>
-        getPublicRoutePath({ family: "report", params: { slug } }),
+      reports: entriesFromSlugs(
+        input.reports.map(({ slug }) => slug),
+        "slug",
+        (slug) => getPublicRoutePath({ family: "report", params: { slug } }),
       ),
       // Every profile still prerenders (a forwarded profile prerenders its
       // 301), but a profile that claims a credited artist is no longer a
@@ -350,52 +370,56 @@ export function getPublicRouteSitemapPaths(plan: PublicRoutePlan) {
   return unique([...plan.staticPaths, ...dynamicPaths]);
 }
 
-const getCachedPublicRoutePlan = unstable_cache(async () => {
-  const [
-    substances,
-    categoryLayout,
-    effects,
-    replications,
-    galleryReplications,
-    articles,
-    reports,
-    contributorDirectory,
-    mechanismRouteInput,
-  ] = await Promise.all([
-    getPublicSubstanceLookup(),
-    getPublicCategoryLayout(),
-    getPublicEffects(),
-    getPublicReplications(),
-    getPublicGalleryReplications(),
-    getPublicEffectIndexArticles(),
-    getPublicReports(),
-    getPublicContributorDirectory(),
-    getPublicMechanismRouteInput(),
-  ]);
+const getCachedPublicRoutePlan = unstable_cache(
+  async () => {
+    const [
+      substances,
+      categoryLayout,
+      effects,
+      replications,
+      galleryReplications,
+      articles,
+      reports,
+      contributorDirectory,
+      mechanismRouteInput,
+    ] = await Promise.all([
+      getPublicSubstanceLookup(),
+      getPublicCategoryLayout(),
+      getPublicEffects(),
+      getPublicReplications(),
+      getPublicGalleryReplications(),
+      getPublicEffectIndexArticles(),
+      getPublicReports(),
+      getPublicContributorDirectory(),
+      getPublicMechanismRouteInput(),
+    ]);
 
-  return buildPublicRoutePlan({
-    substances,
-    categories: categoryLayout?.categories ?? [],
-    effects,
-    replications,
-    galleryReplications,
-    articles,
-    reports,
-    contributorDirectory,
-    mechanismRouteInput,
-  });
-}, ["convex-public-route-plan-v4"], {
-  revalidate: PUBLIC_CONVEX_CACHE_REVALIDATE_SECONDS,
-  tags: [
-    PUBLIC_CONVEX_CACHE_TAGS.all,
-    PUBLIC_CONVEX_CACHE_TAGS.substances,
-    PUBLIC_CONVEX_CACHE_TAGS.layouts,
-    PUBLIC_CONVEX_CACHE_TAGS.effects,
-    PUBLIC_CONVEX_CACHE_TAGS.replications,
-    PUBLIC_CONVEX_CACHE_TAGS.articles,
-    PUBLIC_CONVEX_CACHE_TAGS.reports,
-    PUBLIC_CONVEX_CACHE_TAGS.contributors,
-  ],
-});
+    return buildPublicRoutePlan({
+      substances,
+      categories: categoryLayout?.categories ?? [],
+      effects,
+      replications,
+      galleryReplications,
+      articles,
+      reports,
+      contributorDirectory,
+      mechanismRouteInput,
+    });
+  },
+  ["convex-public-route-plan-v4"],
+  {
+    revalidate: PUBLIC_CONVEX_CACHE_REVALIDATE_SECONDS,
+    tags: [
+      PUBLIC_CONVEX_CACHE_TAGS.all,
+      PUBLIC_CONVEX_CACHE_TAGS.substances,
+      PUBLIC_CONVEX_CACHE_TAGS.layouts,
+      PUBLIC_CONVEX_CACHE_TAGS.effects,
+      PUBLIC_CONVEX_CACHE_TAGS.replications,
+      PUBLIC_CONVEX_CACHE_TAGS.articles,
+      PUBLIC_CONVEX_CACHE_TAGS.reports,
+      PUBLIC_CONVEX_CACHE_TAGS.contributors,
+    ],
+  },
+);
 
 export const getPublicRoutePlan = cache(getCachedPublicRoutePlan);

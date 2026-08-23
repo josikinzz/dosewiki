@@ -40,11 +40,20 @@ const createFixturePlan = () =>
         priority: "hide_for_now",
       }),
     ],
-    categories: [{ key: "classic-psychedelics" }, { key: "classic-psychedelics" }],
+    categories: [
+      { key: "classic-psychedelics" },
+      { key: "classic-psychedelics" },
+    ],
     effects: [{ slug: "visual-drifting" }],
     replications: [
-      { slug: "tree-bark-chelsea-morgan", url: "https://example.test/tree-bark.jpg" },
-      { slug: "tree-bark-chelsea-morgan", url: "https://example.test/tree-bark.jpg" },
+      {
+        slug: "tree-bark-chelsea-morgan",
+        url: "https://example.test/tree-bark.jpg",
+      },
+      {
+        slug: "tree-bark-chelsea-morgan",
+        url: "https://example.test/tree-bark.jpg",
+      },
       { slug: "no-asset-yet", url: null },
       { slug: "audio", url: "https://example.test/shadow.jpg" },
     ],
@@ -62,7 +71,11 @@ const createFixturePlan = () =>
       },
       // No resolved asset → the gallery never shows it → no focus URL.
       { url: null, artist: "Ghost", effect_slug: "ghost-effect" },
-      { url: "https://example.test/anon.jpg", artist: "", effect_slug: "visual-drifting" },
+      {
+        url: "https://example.test/anon.jpg",
+        artist: "",
+        effect_slug: "visual-drifting",
+      },
     ],
     articles: [
       { slug: "lucid-dreaming", publication_status: "published" },
@@ -128,7 +141,11 @@ describe("public route plan", () => {
       galleryReplications: [],
       articles: [
         { slug: "legacy-import", publication_status: "published" },
-        { slug: "new-article", publication_status: "published", kind: "article" },
+        {
+          slug: "new-article",
+          publication_status: "published",
+          kind: "article",
+        },
         { slug: "a-blog-post", publication_status: "published", kind: "blog" },
       ],
       reports: [],
@@ -140,7 +157,11 @@ describe("public route plan", () => {
       { slug: "legacy-import" },
       { slug: "new-article" },
     ]);
-    expect(plan.families.articles.some((entry) => entry.path.includes("a-blog-post"))).toBe(false);
+    expect(
+      plan.families.articles.some((entry) =>
+        entry.path.includes("a-blog-post"),
+      ),
+    ).toBe(false);
   });
 
   it("data-caches the JSON-safe derived plan", () => {
@@ -175,11 +196,21 @@ describe("public route plan", () => {
       "/low-detail",
       "/hidden-for-now",
     ]);
-    expect(plan.families.substances.map((entry) => entry.path)).not.toContain("/lean");
-    expect(getPublicRouteParams(plan, "categories")).toEqual([{ categoryKey: "classic-psychedelics" }]);
-    expect(plan.families.categories.map((entry) => entry.path)).toEqual(["/category/classic-psychedelics"]);
-    expect(getPublicRouteParams(plan, "effects")).toEqual([{ effectSlug: "visual-drifting" }]);
-    expect(plan.families.effects.map((entry) => entry.path)).toEqual(["/effects/visual-drifting"]);
+    expect(plan.families.substances.map((entry) => entry.path)).not.toContain(
+      "/lean",
+    );
+    expect(getPublicRouteParams(plan, "categories")).toEqual([
+      { categoryKey: "classic-psychedelics" },
+    ]);
+    expect(plan.families.categories.map((entry) => entry.path)).toEqual([
+      "/category/classic-psychedelics",
+    ]);
+    expect(getPublicRouteParams(plan, "effects")).toEqual([
+      { effectSlug: "visual-drifting" },
+    ]);
+    expect(plan.families.effects.map((entry) => entry.path)).toEqual([
+      "/effects/visual-drifting",
+    ]);
     expect(getPublicRouteParams(plan, "psychoactiveSummaries")).toEqual([
       { summaryPath: ["psychedelic", "visual"] },
       { summaryPath: ["psychedelic", "cognitive"] },
@@ -204,8 +235,12 @@ describe("public route plan", () => {
       "/articles/lucid-dreaming",
       "/articles/dxm",
     ]);
-    expect(getPublicRouteParams(plan, "reports")).toEqual([{ slug: "first-trip" }]);
-    expect(plan.families.reports.map((entry) => entry.path)).toEqual(["/reports/first-trip"]);
+    expect(getPublicRouteParams(plan, "reports")).toEqual([
+      { slug: "first-trip" },
+    ]);
+    expect(plan.families.reports.map((entry) => entry.path)).toEqual([
+      "/reports/first-trip",
+    ]);
   });
 
   it("routes replications with a resolved asset, dropping duplicates and reserved slugs", () => {
@@ -219,43 +254,43 @@ describe("public route plan", () => {
     expect(plan.families.replications.map((entry) => entry.path)).toEqual([
       "/replications/tree-bark-chelsea-morgan",
     ]);
-    expect(getPublicRouteSitemapPaths(plan)).toContain("/replications/tree-bark-chelsea-morgan");
+    expect(getPublicRouteSitemapPaths(plan)).toContain(
+      "/replications/tree-bark-chelsea-morgan",
+    );
   });
 
-  it("derives focus routes from the gallery feed, keyed by artist slug and effect slug", () => {
+  it("derives focused artist routes from the displayable gallery feed", () => {
     const plan = createFixturePlan();
 
-    // The visible corpus has one credited artist (two casings of one credit
-    // line) plus an unattributed row; "Ghost" carries no resolved asset, so
-    // neither its artist key nor its effect slug becomes a URL.
+    // The visible corpus has one credited artist plus an unattributed row;
+    // unresolved assets and former effect playlist paths are not advertised.
     expect(getPublicRouteParams(plan, "replicationArtists")).toEqual([
       { key: "chelsea-morgan" },
       { key: "unknown" },
     ]);
-    expect(plan.families.replicationArtists.map((entry) => entry.path)).toEqual([
-      "/replications/artist/chelsea-morgan",
-      "/replications/artist/unknown",
-    ]);
-    expect(getPublicRouteParams(plan, "replicationEffects")).toEqual([
-      { slug: "tree-bark-texture" },
-      { slug: "visual-drifting" },
-    ]);
+    expect(plan.families.replicationArtists.map((entry) => entry.path)).toEqual(
+      ["/replications/artist/chelsea-morgan", "/replications/artist/unknown"],
+    );
     expect(getPublicRouteSitemapPaths(plan)).toEqual(
       expect.arrayContaining([
         "/replications/artist/chelsea-morgan",
         "/replications/artist/unknown",
-        "/replications/effect/tree-bark-texture",
-        "/replications/effect/visual-drifting",
       ]),
     );
-    expect(getPublicRouteSitemapPaths(plan)).not.toContain("/replications/effect/ghost-effect");
+    expect(getPublicRouteSitemapPaths(plan)).not.toContain(
+      "/replications/effect/tree-bark-texture",
+    );
   });
 
   it("owns effect category routes and contributor key encoding", () => {
     const plan = createFixturePlan();
 
-    expect(getPublicRouteParams(plan, "effectCategories")).toContainEqual({ categorySlug: "visual-effects" });
-    expect(plan.families.effectCategories.map((entry) => entry.path)).toContain("/effects/category/visual-effects");
+    expect(getPublicRouteParams(plan, "effectCategories")).toContainEqual({
+      categorySlug: "visual-effects",
+    });
+    expect(plan.families.effectCategories.map((entry) => entry.path)).toContain(
+      "/effects/category/visual-effects",
+    );
     expect(getPublicRouteSitemapPaths(plan)).toEqual(
       expect.arrayContaining([
         "/psychoactive/psychedelic/visual",
@@ -296,15 +331,23 @@ describe("public route plan", () => {
       { mechanismSlug: "serotonin-5-ht2a", qualifierSlug: "partial-agonist" },
       { mechanismSlug: "serotonin-5-ht2a", qualifierSlug: "primary" },
     ]);
-    expect(getPublicRouteSitemapPaths(plan)).toContain("/mechanism/serotonin-5-ht2a/primary");
-    expect(getPublicRouteSitemapPaths(plan)).not.toContain("/mechanism/serotonin-5-ht2a/partial-agonist");
+    expect(getPublicRouteSitemapPaths(plan)).toContain(
+      "/mechanism/serotonin-5-ht2a/primary",
+    );
+    expect(getPublicRouteSitemapPaths(plan)).not.toContain(
+      "/mechanism/serotonin-5-ht2a/partial-agonist",
+    );
   });
 
   it("keeps direct-URL-only substance routes available but out of the sitemap", () => {
     const plan = createFixturePlan();
 
-    expect(getPublicRouteParams(plan, "substances")).toContainEqual({ slug: "low-detail" });
-    expect(getPublicRouteParams(plan, "substances")).toContainEqual({ slug: "hidden-for-now" });
+    expect(getPublicRouteParams(plan, "substances")).toContainEqual({
+      slug: "low-detail",
+    });
+    expect(getPublicRouteParams(plan, "substances")).toContainEqual({
+      slug: "hidden-for-now",
+    });
     expect(getPublicRouteSitemapPaths(plan)).toContain("/lsd");
     expect(getPublicRouteSitemapPaths(plan)).not.toContain("/low-detail");
     expect(getPublicRouteSitemapPaths(plan)).not.toContain("/hidden-for-now");
@@ -314,8 +357,12 @@ describe("public route plan", () => {
     const plan = createFixturePlan();
 
     expect(plan.staticPaths).toContain("/articles");
-    expect(getPublicRouteParams(plan, "articles")).toContainEqual({ slug: "dxm" });
-    expect(getPublicRouteSitemapPaths(plan)).toContain("/articles/lucid-dreaming");
+    expect(getPublicRouteParams(plan, "articles")).toContainEqual({
+      slug: "dxm",
+    });
+    expect(getPublicRouteSitemapPaths(plan)).toContain(
+      "/articles/lucid-dreaming",
+    );
     expect(getPublicRouteSitemapPaths(plan)).not.toContain("/articles/dxm");
   });
 });

@@ -3,8 +3,8 @@ import { ArticleSection } from "@/components/common/ArticleSection";
 import { proseLinkClassName } from "@/components/common/ProseLink";
 import { MediaPlaceholder } from "@/components/layout/PublicFeedbackPrimitives";
 import { ReplicationGallery } from "@/features/effects/components/ReplicationGallery";
-import { getPublicRoutePath } from "@/utils/publicRouteIdentity";
 import { buildReplicationViewerUrl } from "@/features/replications/galleryUrlState";
+import { publicHref } from "@/utils/publicHref";
 import { getPublicReplicationsByEffect } from "@server/convex/publicData";
 
 export async function EffectReplicationsSection({
@@ -35,10 +35,7 @@ export async function EffectReplicationsSection({
           <p className="mt-4 text-sm">
             <Link
               href={buildReplicationViewerUrl(
-                getPublicRoutePath({
-                  family: "replicationEffect",
-                  params: { slug: effectSlug },
-                }),
+                publicHref.effect(effectSlug),
                 replications[0].slug,
               )}
               className={proseLinkClassName}

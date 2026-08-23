@@ -1,40 +1,30 @@
-import { ReplicationViewer } from "@/features/replications/viewer/ReplicationViewer";
-import type { ViewerSetParam } from "@/features/replications/viewer/viewerLogic";
-import {
-  findViewerIndex,
-  type ReplicationViewerSet,
-} from "@/features/replications/viewer/viewerModel";
+import Link from "next/link";
+
+import { AppImage } from "@/components/common/AppImage";
+import { Icon } from "@/components/common/Icon";
+import { proseLinkClassName } from "@/components/common/ProseLink";
+import { PublicContentShell } from "@/components/layout/PublicPagePrimitives";
+import { MediaPlaceholder } from "@/components/layout/PublicFeedbackPrimitives";
+import { Button } from "@/components/ui/button";
+import { buildReplicationViewerUrl } from "@/features/replications/galleryUrlState";
+import { ViewerMetadata } from "@/features/replications/viewer/ViewerMetadata";
+import type { ReplicationViewerItem } from "@/features/replications/viewer/viewerModel";
 import type { ReplicationWithUrl } from "@/types/replications";
+import { publicHref } from "@/utils/publicHref";
 import type { EffectCategoryLink } from "./replicationSubject";
 
 export interface ReplicationDetailPageProps {
   replication: ReplicationWithUrl;
   effectName: string | null;
   effectSlug: string | null;
-  /** The credited artist's Artist Page (profile fallback for withheld works), null when nobody is named. */
   artistProfileHref: string | null;
-  /** The claiming profile's avatar for the compact byline; null when unclaimed or avatar-less. */
   avatarUrl: string | null;
-  /** Category pages the replicated effect belongs to, broad to specific. */
   effectCategories: EffectCategoryLink[];
-  /** The full ordered walk the viewer moves through; contains this item. */
-  viewerSet: ReplicationViewerSet;
-  /**
-   * The scope the hosting page's address names, when it is a playlist page.
-   * Rides into the viewer so client-side moves keep the scope in the URL.
-   */
-  setParam?: ViewerSetParam | null;
 }
 
 /**
- * One replication, addressable. The media is the page's subject, so nothing is
- * drawn on top of it — title and credit sit above the stage, provenance and
- * licensing below. That split is what makes the licence legible at the moment
- * someone arrives from a shared link, which is the whole point of the
- * permalink. The page itself is a thin server shell: the stage, the filmstrip,
- * and the metadata all live in the client viewer, because prev/next moves the
- * reader between works without a document load and every one of those blocks
- * has to describe the work actually on the stage.
+ * Stable provenance page for one work. Playback and collection exploration
+ * belong exclusively to the canonical overlay on the linked source page.
  */
 export function ReplicationDetailPage({
   replication,
@@ -43,31 +33,89 @@ export function ReplicationDetailPage({
   artistProfileHref,
   avatarUrl,
   effectCategories,
-  viewerSet,
-  setParam = null,
 }: ReplicationDetailPageProps) {
-  // The walk selector guarantees the active item is a member of the set it
-  // returns, but this page is the last place able to make that true: a set
-  // that somehow omitted the item it opened on would put some *other* work
-  // under this URL's title and licence metadata. Degrade to a one-item walk
-  // built from the page's own props instead.
-  const set: ReplicationViewerSet =
-    findViewerIndex(viewerSet, replication.slug) >= 0
-      ? viewerSet
-      : {
-          scope: viewerSet.scope,
-          scopeLabel: null,
-          items: [
-            { replication, effectName, effectSlug, effectCategories, artistProfileHref, avatarUrl },
-          ],
-        };
+  const item: ReplicationViewerItem = {
+    replication,
+    effectName,
+    effectSlug,
+    effectCategories,
+    artistProfileHref,
+    avatarUrl,
+  };
+  const collectionPath = effectSlug
+    ? publicHref.effect(effectSlug)
+    : publicHref.replications();
+  const viewerHref = buildReplicationViewerUrl(
+    collectionPath,
+    replication.slug,
+  );
+  const previewSource =
+    replication.type === "video" ? replication.thumbnail_url : replication.url;
+  const artistName = replication.artist?.trim() || "Unattributed";
 
   return (
-    // The stage is full-bleed, so the shell that used to clamp the whole page
-    // to prose width now wraps only the metadata (inside the viewer). This
-    // element keeps the focus target the skip link points at.
-    <main id="main-content" tabIndex={-1} className="min-h-screen w-full pb-20 focus:outline-none">
-      <ReplicationViewer initialSlug={replication.slug} set={set} initialSetParam={setParam} />
-    </main>
+    <PublicContentShell focusTarget>
+      <Link href={publicHref.replications()} className={proseLinkClassName}>
+        <Icon
+          icon="lucide:arrow-left"
+          className="mr-1 inline-block h-4 w-4"
+          aria-hidden
+        />
+        Replications
+      </Link>
+
+      <header className="mt-6">
+        <h1 className="theme-text-primary font-display text-3xl font-semibold tracking-tight sm:text-4xl">
+          {replication.title}
+        </h1>
+        <p className="theme-text-muted mt-2 text-sm">
+          {artistProfileHref ? (
+            <Link href={artistProfileHref} className={proseLinkClassName}>
+              {artistName}
+            </Link>
+          ) : (
+            artistName
+          )}
+        </p>
+      </header>
+
+      <div className="theme-media-thumbnail-border mt-6 overflow-hidden rounded-2xl border bg-black">
+        {previewSource ? (
+          <AppImage
+            src={previewSource}
+            alt={replication.title}
+            width={replication.width ?? 1600}
+            height={replication.height ?? 900}
+            priority
+            className="max-h-[70vh] w-full object-contain"
+          />
+        ) : (
+          <MediaPlaceholder
+            kind="empty"
+            title="Preview unavailable"
+            description="Open the viewer to load the original media."
+            className="aspect-video"
+          />
+        )}
+      </div>
+
+      <div className="mt-5 flex flex-wrap items-center gap-3">
+        <Button asChild>
+          <Link href={viewerHref}>
+            <Icon icon="lucide:maximize-2" className="h-4 w-4" aria-hidden />
+            Open in {effectName ? `${effectName} replications` : "viewer"}
+          </Link>
+        </Button>
+        {replication.type === "video" ? (
+          <span className="theme-text-muted text-sm">
+            Video playback opens in the shared viewer.
+          </span>
+        ) : null}
+      </div>
+
+      <div className="mt-8">
+        <ViewerMetadata item={item} />
+      </div>
+    </PublicContentShell>
   );
 }

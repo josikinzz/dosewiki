@@ -25,9 +25,8 @@ const EXTERNAL_ICON_CLASS =
 interface MediaRailProps {
   group: GalleryGroup;
   /**
-   * Focused, full-masonry view for this group — a real URL
-   * (/replications/artist/<key> or /replications/effect/<slug>), so "View all"
-   * is crawlable and cmd-clickable instead of dead client state.
+   * Stable source page for this group — an Artist Page or effect article — so
+   * "View all" remains crawlable and cmd-clickable instead of dead client state.
    */
   viewAllHref: string;
   /** Forwarded to each tile as `showByline`; artist rails already name the artist in the heading. */

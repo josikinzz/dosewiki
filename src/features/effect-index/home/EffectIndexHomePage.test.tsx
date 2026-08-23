@@ -101,14 +101,19 @@ describe("Effect Index homepage", () => {
       "Featured Replications",
       "Featured Reports",
     ]) {
-      expect(screen.getByRole("heading", { level: 2, name: title })).toBeInTheDocument();
+      expect(
+        screen.getByRole("heading", { level: 2, name: title }),
+      ).toBeInTheDocument();
     }
   });
 
   it("keeps panel titles mixed case rather than borrowing the uppercase section-head voice", () => {
     render(<EffectIndexHomePage {...FULL_DATA} />);
 
-    const title = screen.getByRole("heading", { level: 2, name: "Substance Summaries" });
+    const title = screen.getByRole("heading", {
+      level: 2,
+      name: "Substance Summaries",
+    });
 
     // The Effect Index skin rewrites `theme-accent-heading` and the
     // `--theme-section-heading` utility into uppercase, tracked-out teal. Naming either on a
@@ -122,7 +127,10 @@ describe("Effect Index homepage", () => {
   it("gives sub-group labels inside a panel the uppercase tracked-out teal voice", () => {
     render(<EffectIndexHomePage {...FULL_DATA} />);
 
-    const label = screen.getByRole("heading", { level: 3, name: "Visual Effects" });
+    const label = screen.getByRole("heading", {
+      level: 3,
+      name: "Visual Effects",
+    });
 
     expect(label.className).toMatch(/\buppercase\b/);
     expect(label.className).toMatch(/tracking-\[0\.16em\]/);
@@ -132,11 +140,16 @@ describe("Effect Index homepage", () => {
   it("quotes the live effect count in the intro and can reveal the rest of the copy", () => {
     render(<EffectIndexHomePage {...FULL_DATA} />);
 
-    expect(screen.getByText(/contains/).textContent).toContain("233 effect descriptions");
+    expect(screen.getByText(/contains/).textContent).toContain(
+      "233 effect descriptions",
+    );
 
     const toggle = screen.getByRole("button", { name: /read more/i });
     expect(toggle).toHaveAttribute("aria-expanded", "false");
-    expect(screen.getByRole("link", { name: "About Us" })).toHaveAttribute("href", "/about");
+    expect(screen.getByRole("link", { name: "About Us" })).toHaveAttribute(
+      "href",
+      "/about",
+    );
   });
 
   it("keeps the collapsed copy out of the accessibility tree until it is revealed", async () => {
@@ -144,7 +157,9 @@ describe("Effect Index homepage", () => {
 
     // The paragraphs stay in the document for crawlers but are `hidden`, so an assistive
     // technology never announces copy the reader has not asked for.
-    expect(screen.queryByRole("link", { name: "consistent writing style" })).toBeNull();
+    expect(
+      screen.queryByRole("link", { name: "consistent writing style" }),
+    ).toBeNull();
 
     await userEvent.click(screen.getByRole("button", { name: /read more/i }));
 
@@ -152,10 +167,9 @@ describe("Effect Index homepage", () => {
       "aria-expanded",
       "true",
     );
-    expect(screen.getByRole("link", { name: "consistent writing style" })).toHaveAttribute(
-      "href",
-      "/documentation-style-guide",
-    );
+    expect(
+      screen.getByRole("link", { name: "consistent writing style" }),
+    ).toHaveAttribute("href", "/documentation-style-guide");
     expect(screen.getByRole("link", { name: "replications" })).toHaveAttribute(
       "href",
       "/replications",
@@ -165,10 +179,9 @@ describe("Effect Index homepage", () => {
   it("links the intro's lead paragraph to the Subjective Effect Index", () => {
     render(<EffectIndexHomePage {...FULL_DATA} />);
 
-    expect(screen.getByRole("link", { name: "Subjective Effect Index" })).toHaveAttribute(
-      "href",
-      "/effects",
-    );
+    expect(
+      screen.getByRole("link", { name: "Subjective Effect Index" }),
+    ).toHaveAttribute("href", "/effects");
   });
 
   it("points the substance summaries at this codebase's singular summary paths", () => {
@@ -191,37 +204,41 @@ describe("Effect Index homepage", () => {
   it("carries every panel's stub line", () => {
     render(<EffectIndexHomePage {...FULL_DATA} />);
 
-    expect(screen.getAllByRole("link", { name: "articles section." })).toHaveLength(2);
-    expect(screen.getByRole("link", { name: "Subjective Effect Index." })).toHaveAttribute(
-      "href",
-      "/effects",
-    );
-    expect(screen.getByRole("link", { name: "replications gallery." })).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "reports section." })).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "Emergence Benefactors" })).toHaveAttribute(
-      "href",
-      "https://ebenefactors.org/",
-    );
+    expect(
+      screen.getAllByRole("link", { name: "articles section." }),
+    ).toHaveLength(2);
+    expect(
+      screen.getByRole("link", { name: "Subjective Effect Index." }),
+    ).toHaveAttribute("href", "/effects");
+    expect(
+      screen.getByRole("link", { name: "replications gallery." }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("link", { name: "reports section." }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("link", { name: "Emergence Benefactors" }),
+    ).toHaveAttribute("href", "https://ebenefactors.org/");
   });
 
   it("renders the featured article's byline, date, read time and description", () => {
     render(<EffectIndexHomePage {...FULL_DATA} />);
 
-    expect(screen.getByRole("link", { name: "Psychedelic Intensity Scale" })).toHaveAttribute(
-      "href",
-      "/articles/psychedelic-intensity-scale",
-    );
+    expect(
+      screen.getByRole("link", { name: "Psychedelic Intensity Scale" }),
+    ).toHaveAttribute("href", "/articles/psychedelic-intensity-scale");
     expect(screen.getByText("by Josie Kins")).toBeInTheDocument();
-    expect(screen.getByText("Tuesday, April 20 2021 · 25 min read")).toBeInTheDocument();
+    expect(
+      screen.getByText("Tuesday, April 20 2021 · 25 min read"),
+    ).toBeInTheDocument();
   });
 
   it("renders a featured report with its substance, dose and route", () => {
     render(<EffectIndexHomePage {...FULL_DATA} />);
 
-    expect(screen.getByRole("link", { name: "Hallucinate everything mode" })).toHaveAttribute(
-      "href",
-      "/reports/hallucinate-everything-mode",
-    );
+    expect(
+      screen.getByRole("link", { name: "Hallucinate everything mode" }),
+    ).toHaveAttribute("href", "/reports/hallucinate-everything-mode");
     expect(screen.getByText("2C-E")).toBeInTheDocument();
     expect(screen.getByText("25mg Oral")).toBeInTheDocument();
   });
@@ -229,24 +246,26 @@ describe("Effect Index homepage", () => {
   it("gives the replication carousel an operable prev/next and a stage linking to the work", () => {
     render(<EffectIndexHomePage {...FULL_DATA} />);
 
-    const carousel = screen.getByRole("group", { name: "Featured replications" });
+    const carousel = screen.getByRole("group", {
+      name: "Featured replications",
+    });
 
     // The label carries the title alone: the creator is rendered as a visible
     // byline just below (asserted separately), so repeating it here duplicated
     // the credit for screen readers.
-    // The stage link carries the entry context (T-2): the effect playlist.
-    expect(within(carousel).getByRole("link", { name: /^View Geometry Frog$/ })).toHaveAttribute(
-      "href",
-      `/replications/${REPLICATION.slug}?set=effect:geometry`,
-    );
-    expect(within(carousel).getByRole("link", { name: "Geometry" })).toHaveAttribute(
-      "href",
-      "/effects/geometry",
-    );
+    // The stage link carries the entry context: the effect article collection.
+    expect(
+      within(carousel).getByRole("link", { name: /^View Geometry Frog$/ }),
+    ).toHaveAttribute("href", `/effects/geometry?viewer=${REPLICATION.slug}`);
+    expect(
+      within(carousel).getByRole("link", { name: "Geometry" }),
+    ).toHaveAttribute("href", "/effects/geometry");
     expect(within(carousel).getByText("by StingrayZ")).toBeInTheDocument();
 
     // A single-item carousel hides the chevrons; there is nowhere to step to.
-    expect(within(carousel).queryByRole("button", { name: "Next replication" })).toBeNull();
+    expect(
+      within(carousel).queryByRole("button", { name: "Next replication" }),
+    ).toBeNull();
   });
 
   it("lets a click on a video stage reach the link underneath it", () => {
@@ -268,7 +287,11 @@ describe("Effect Index homepage", () => {
         featuredReplications={[
           ...FULL_DATA.featuredReplications,
           {
-            replication: { ...REPLICATION, slug: "snek-stingrayz", title: "Snek" },
+            replication: {
+              ...REPLICATION,
+              slug: "snek-stingrayz",
+              title: "Snek",
+            },
             introduction: "A replication of ",
             effectSlug: "drifting",
             effectName: "Drifting",
@@ -277,40 +300,68 @@ describe("Effect Index homepage", () => {
       />,
     );
 
-    const carousel = screen.getByRole("group", { name: "Featured replications" });
-    const next = within(carousel).getByRole("button", { name: "Next replication" });
+    const carousel = screen.getByRole("group", {
+      name: "Featured replications",
+    });
+    const next = within(carousel).getByRole("button", {
+      name: "Next replication",
+    });
 
-    expect(within(carousel).getByRole("link", { name: "Geometry" })).toBeInTheDocument();
+    expect(
+      within(carousel).getByRole("link", { name: "Geometry" }),
+    ).toBeInTheDocument();
 
     await userEvent.click(next);
-    expect(within(carousel).getByRole("link", { name: "Drifting" })).toBeInTheDocument();
+    expect(
+      within(carousel).getByRole("link", { name: "Drifting" }),
+    ).toBeInTheDocument();
 
     // Wraps at the end, as the original's index arithmetic did.
     await userEvent.click(next);
-    expect(within(carousel).getByRole("link", { name: "Geometry" })).toBeInTheDocument();
+    expect(
+      within(carousel).getByRole("link", { name: "Geometry" }),
+    ).toBeInTheDocument();
 
-    await userEvent.click(within(carousel).getByRole("button", { name: "Previous replication" }));
-    expect(within(carousel).getByRole("link", { name: "Drifting" })).toBeInTheDocument();
+    await userEvent.click(
+      within(carousel).getByRole("button", { name: "Previous replication" }),
+    );
+    expect(
+      within(carousel).getByRole("link", { name: "Drifting" }),
+    ).toBeInTheDocument();
 
     // Keyboard operability: arrows work from any control inside the carousel.
     await userEvent.type(
       within(carousel).getByRole("link", { name: /^View Snek$/ }),
       "{ArrowRight}",
     );
-    expect(within(carousel).getByRole("link", { name: "Geometry" })).toBeInTheDocument();
+    expect(
+      within(carousel).getByRole("link", { name: "Geometry" }),
+    ).toBeInTheDocument();
   });
 
   it("drops any panel whose data resolves empty rather than rendering an empty shell", () => {
     render(<EffectIndexHomePage {...EMPTY_DATA} />);
 
-    for (const title of ["Featured Effects", "Featured Article", "Featured Replications", "Featured Reports"]) {
-      expect(screen.queryByRole("heading", { level: 2, name: title })).toBeNull();
+    for (const title of [
+      "Featured Effects",
+      "Featured Article",
+      "Featured Replications",
+      "Featured Reports",
+    ]) {
+      expect(
+        screen.queryByRole("heading", { level: 2, name: title }),
+      ).toBeNull();
     }
 
     // The two panels with no data behind them survive, so the page never renders bare.
     expect(
-      screen.getByRole("heading", { level: 2, name: "Thank you Emergence Benefactors!" }),
+      screen.getByRole("heading", {
+        level: 2,
+        name: "Thank you Emergence Benefactors!",
+      }),
     ).toBeInTheDocument();
-    expect(screen.getByRole("heading", { level: 2, name: "Substance Summaries" })).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", { level: 2, name: "Substance Summaries" }),
+    ).toBeInTheDocument();
   });
 });

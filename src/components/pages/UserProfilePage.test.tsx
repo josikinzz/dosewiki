@@ -39,11 +39,10 @@ describe("UserProfilePage", () => {
     expect(
       screen.getByRole("list", { name: "Replications by Chelsea Morgan" }),
     ).toBeInTheDocument();
-    // A profile's works listing opens the artist playlist (T-2): the permalink
-    // carries the artist set so left/right walks this creator's body of work.
+    // A profile's works listing opens the shared viewer over the artist page.
     expect(screen.getByRole("link", { name: /Tracers/ })).toHaveAttribute(
       "href",
-      "/replications/tracers?set=artist:chelsea-morgan",
+      "/replications/artist/chelsea-morgan?viewer=tracers",
     );
   });
 

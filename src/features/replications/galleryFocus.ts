@@ -91,13 +91,12 @@ export function resolveGalleryFocus(
  *    unclaimed, and Unattributed alike. The profile key space can only ever
  *    address claimed profiles; merging there would strand profile-less
  *    artists on a second surface, which is the situation being retired.
- *  - Playlists. Artist playlists mount on the Gallery Focus View addresses
- *    (spec §4 "Playlists are pages"); killing this address would orphan the
- *    artist walk that every gallery tile already emits (`?set=artist:<key>`).
- *  - Inbound links survive either way. Both address families sit in the
- *    sitemap and both are emitted internally (profile links from bylines and
- *    credit lines, artist links from rails, decks, and focus URLs). Under a
- *    permanent redirect neither family breaks — but only this direction
+ *  - Collections. The Artist Page is the stable source beneath the shared
+ *    viewer, so each work opens with `?viewer=<slug>` and Close returns here.
+ *  - Inbound links survive either way. Both address families are emitted
+ *    internally (profile links from bylines and credit lines, artist links
+ *    from rails and focus URLs). Under a permanent redirect neither family
+ *    breaks — but only this direction
  *    leaves zero live duplicates, because a work-less contributor's profile
  *    (a reviewer, an article author) is not an artist surface and simply
  *    keeps rendering at /contributors/<key>.

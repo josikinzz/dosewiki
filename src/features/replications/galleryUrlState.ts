@@ -7,15 +7,15 @@ import {
 import { getPublicRoutePath } from "@/utils/publicRouteIdentity";
 
 /**
- * The gallery's URL contract (PRD T7 / prototype P4): focus is a path, filters
- * are query params, defaults are omitted so the canonical browse view is the
- * bare `/replications` path.
+ * The gallery's URL contract: gallery browse/focus states own their URLs,
+ * while an effect's article is the canonical source page for that collection.
+ * Defaults are omitted so the canonical browse view is `/replications`.
  *
  *   /replications                       by-artist browse (default)
  *   /replications?view=effect          by-effect browse
  *   /replications?q=…&type=…&sort=…    search / media type / artist sort
  *   /replications/artist/<key>[?type=] one artist's works
- *   /replications/effect/<slug>[?type=] one effect's works
+ *   /effects/<slug>                    one effect's article collection
  *
  * Parsing is tolerant: junk parameter values read as the default rather than
  * producing an unrepresentable state.
@@ -118,16 +118,17 @@ export function buildGalleryFocusUrl(
   focus: GalleryFocus,
   state: Partial<Pick<GalleryBrowseState, "type">> = {},
 ): string {
-  const base =
-    focus.kind === "artist"
-      ? getPublicRoutePath({
-          family: "replicationArtist",
-          params: { key: focus.key },
-        })
-      : getPublicRoutePath({
-          family: "replicationEffect",
-          params: { slug: focus.key },
-        });
+  if (focus.kind === "effect") {
+    return getPublicRoutePath({
+      family: "effect",
+      params: { effectSlug: focus.key },
+    });
+  }
+
+  const base = getPublicRoutePath({
+    family: "replicationArtist",
+    params: { key: focus.key },
+  });
   const params = new URLSearchParams();
   if (state.type === "image" || state.type === "video") {
     params.set("type", state.type);

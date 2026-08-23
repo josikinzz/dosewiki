@@ -11,11 +11,12 @@ describe("public sitemap adapter", () => {
         effects: [],
         replications: [],
         replicationArtists: [],
-        replicationEffects: [],
         articles: [],
         effectCategories: [],
         psychoactiveSummaries: [],
-        reports: [{ path: "/reports/first-trip", params: { slug: "first-trip" } }],
+        reports: [
+          { path: "/reports/first-trip", params: { slug: "first-trip" } },
+        ],
         contributors: [],
         mechanisms: [],
         mechanismQualifiers: [],
@@ -47,7 +48,9 @@ describe("public sitemap adapter", () => {
     // itself is covered by `blogFlavorRoute.test.ts`.
     const dosewikiSite = getPublicSite(SITE_FLAVOR_CONFIGS.dosewiki, {});
 
-    expect(await buildSitemapEntries(dosewikiSite, SITE_FLAVOR_CONFIGS.dosewiki)).toEqual([
+    expect(
+      await buildSitemapEntries(dosewikiSite, SITE_FLAVOR_CONFIGS.dosewiki),
+    ).toEqual([
       {
         url: "https://dosewiki-admin.vercel.app/",
         changeFrequency: "daily",
