@@ -147,7 +147,7 @@ const nextConfig: NextConfig = {
       },
       {
         source: "/replications/substance/:slug",
-        destination: "/substances/:slug",
+        destination: "/:slug",
         permanent: true,
       },
       ...Object.entries(substanceRouteAliases).map(([source, destination]) => ({

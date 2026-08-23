@@ -150,7 +150,7 @@ describe("Effect Index legacy redirects", () => {
         },
         {
           source: "/replications/substance/:slug",
-          destination: "/substances/:slug",
+          destination: "/:slug",
           permanent: true,
         },
       ]),
