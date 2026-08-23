@@ -31,7 +31,9 @@ describe("planGifMotionGeneration", () => {
     ]);
 
     expect(plan.gifRowCount).toBe(1);
-    expect(plan.actions.map((action) => action.slug)).toEqual(["animated-grid"]);
+    expect(plan.actions.map((action) => action.slug)).toEqual([
+      "animated-grid",
+    ]);
   });
 
   it("skips a complete pair unless forced", () => {
@@ -40,12 +42,16 @@ describe("planGifMotionGeneration", () => {
       motion_poster_storage_id: "posterstorage000001",
     });
     expect(planGifMotionGeneration([complete]).actions).toHaveLength(0);
-    expect(planGifMotionGeneration([complete], { force: true }).actions).toHaveLength(1);
+    expect(
+      planGifMotionGeneration([complete], { force: true }).actions,
+    ).toHaveLength(1);
   });
 
   it("regenerates an incomplete pair atomically", () => {
     expect(
-      planGifMotionGeneration([row({ motion_storage_id: "motionstorage000001" })]).actions,
+      planGifMotionGeneration([
+        row({ motion_storage_id: "motionstorage000001" }),
+      ]).actions,
     ).toHaveLength(1);
   });
 
@@ -61,19 +67,26 @@ describe("planGifMotionGeneration", () => {
 
 describe("GIF motion encode contracts", () => {
   it("preserves timing, removes audio, and writes faststart browser video", () => {
-    const args = buildGifMotionFfmpegArgs({ inputPath: "in.gif", outputPath: "out.mp4" });
+    const args = buildGifMotionFfmpegArgs({
+      inputPath: "in.gif",
+      outputPath: "out.mp4.part",
+    });
     expect(args).toContain("vfr");
     expect(args).toContain("libx264");
     expect(args).toContain("-an");
     expect(args).toContain("+faststart");
     expect(args.join(" ")).not.toContain(" -t ");
+    expect(args.slice(-3)).toEqual(["-f", "mp4", "out.mp4.part"]);
   });
 
   it("extracts one WebP poster without resizing away frame content", () => {
-    const args = buildMotionPosterFfmpegArgs({ inputPath: "in.gif", outputPath: "out.webp" });
+    const args = buildMotionPosterFfmpegArgs({
+      inputPath: "in.gif",
+      outputPath: "out.webp.part",
+    });
     expect(args).toContain("1");
     expect(args).toContain("libwebp");
-    expect(args.at(-1)).toBe("out.webp");
+    expect(args.slice(-3)).toEqual(["-f", "webp", "out.webp.part"]);
   });
 
   it("accepts only silent, timed, faststart video", () => {
@@ -86,7 +99,9 @@ describe("GIF motion encode contracts", () => {
     };
     expect(isAcceptableGifMotion(good).ok).toBe(true);
     expect(isAcceptableGifMotion({ ...good, hasAudio: true }).ok).toBe(false);
-    expect(isAcceptableGifMotion({ ...good, durationSeconds: null }).ok).toBe(false);
+    expect(isAcceptableGifMotion({ ...good, durationSeconds: null }).ok).toBe(
+      false,
+    );
     expect(isAcceptableGifMotion({ ...good, faststart: false }).ok).toBe(false);
   });
 });

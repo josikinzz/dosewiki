@@ -30,7 +30,11 @@ import {
   printProductionWriteCommand,
   requireProductionWriteCredential,
 } from "../lib/production-write-command.mjs";
-import { hostOf, isProductionUrl, PRODUCTION_HOST } from "./lib/media-hosts.mjs";
+import {
+  hostOf,
+  isProductionUrl,
+  PRODUCTION_HOST,
+} from "./lib/media-hosts.mjs";
 import { chunk, uploadFile } from "./repoint-renditions.mjs";
 import { assertToolsAvailable, probeVideo } from "./transcode-videos.mjs";
 
@@ -44,9 +48,9 @@ export const GIF_MOTION_SPEC = Object.freeze({
 
 function isGifLike(row) {
   return (
-    row.type === "image"
-    && String(row.format ?? "").toLowerCase() === "gif"
-    && (row.role ?? "replication") === "replication"
+    row.type === "image" &&
+    String(row.format ?? "").toLowerCase() === "gif" &&
+    (row.role ?? "replication") === "replication"
   );
 }
 
@@ -57,7 +61,10 @@ export function planGifMotionGeneration(rows, { force = false } = {}) {
 
   for (const row of gifRows) {
     if (row.motion_storage_id && row.motion_poster_storage_id && !force) {
-      skipped.push({ slug: row.slug, reason: "already has a motion rendition and poster" });
+      skipped.push({
+        slug: row.slug,
+        reason: "already has a motion rendition and poster",
+      });
       continue;
     }
     if (!row.url) {
@@ -85,39 +92,69 @@ export function planGifMotionGeneration(rows, { force = false } = {}) {
 }
 
 /** Preserve timing and frame content; only force browser-decodable even dimensions/pixel format. */
-export function buildGifMotionFfmpegArgs({ inputPath, outputPath, spec = GIF_MOTION_SPEC }) {
+export function buildGifMotionFfmpegArgs({
+  inputPath,
+  outputPath,
+  spec = GIF_MOTION_SPEC,
+}) {
   return [
     "-hide_banner",
-    "-loglevel", "error",
+    "-loglevel",
+    "error",
     "-nostdin",
     "-y",
-    "-i", inputPath,
-    "-map", "0:v:0",
-    "-vf", "scale=trunc(iw/2)*2:trunc(ih/2)*2:flags=lanczos,format=yuv420p",
-    "-fps_mode", "vfr",
-    "-c:v", "libx264",
-    "-preset", spec.preset,
-    "-crf", String(spec.crf),
-    "-profile:v", "high",
-    "-pix_fmt", "yuv420p",
+    "-i",
+    inputPath,
+    "-map",
+    "0:v:0",
+    "-vf",
+    "scale=trunc(iw/2)*2:trunc(ih/2)*2:flags=lanczos,format=yuv420p",
+    "-fps_mode",
+    "vfr",
+    "-c:v",
+    "libx264",
+    "-preset",
+    spec.preset,
+    "-crf",
+    String(spec.crf),
+    "-profile:v",
+    "high",
+    "-pix_fmt",
+    "yuv420p",
     "-an",
-    "-movflags", "+faststart",
+    "-movflags",
+    "+faststart",
+    "-f",
+    "mp4",
     outputPath,
   ];
 }
 
-export function buildMotionPosterFfmpegArgs({ inputPath, outputPath, spec = GIF_MOTION_SPEC }) {
+export function buildMotionPosterFfmpegArgs({
+  inputPath,
+  outputPath,
+  spec = GIF_MOTION_SPEC,
+}) {
   return [
     "-hide_banner",
-    "-loglevel", "error",
+    "-loglevel",
+    "error",
     "-nostdin",
     "-y",
-    "-i", inputPath,
-    "-map", "0:v:0",
-    "-frames:v", "1",
-    "-vf", "scale=trunc(iw/2)*2:trunc(ih/2)*2:flags=lanczos",
-    "-c:v", "libwebp",
-    "-quality", String(spec.posterQuality),
+    "-i",
+    inputPath,
+    "-map",
+    "0:v:0",
+    "-frames:v",
+    "1",
+    "-vf",
+    "scale=trunc(iw/2)*2:trunc(ih/2)*2:flags=lanczos",
+    "-c:v",
+    "libwebp",
+    "-quality",
+    String(spec.posterQuality),
+    "-f",
+    "webp",
     outputPath,
   ];
 }
@@ -127,9 +164,12 @@ export function isAcceptableGifMotion(probe) {
     return { ok: false, reason: "no decodable video stream" };
   }
   if (probe.truncated) return { ok: false, reason: "file is truncated" };
-  if (probe.faststart !== true) return { ok: false, reason: "moov atom is not leading" };
-  if (probe.hasAudio) return { ok: false, reason: "motion rendition carries audio" };
-  if (!(probe.durationSeconds > 0)) return { ok: false, reason: "motion duration is missing" };
+  if (probe.faststart !== true)
+    return { ok: false, reason: "moov atom is not leading" };
+  if (probe.hasAudio)
+    return { ok: false, reason: "motion rendition carries audio" };
+  if (!(probe.durationSeconds > 0))
+    return { ok: false, reason: "motion duration is missing" };
   return { ok: true, reason: "decodable, silent, timed, and faststart" };
 }
 
@@ -145,13 +185,17 @@ export function verifyGifMotionGeneration({ before, after }) {
     if (typeof value !== "string" || value.length === 0) {
       reasons.push(`${field} is null — ${label} write did not resolve`);
     } else if (!isProductionUrl(value)) {
-      reasons.push(`${field} points at ${hostOf(value) ?? "an unknown host"}, not ${PRODUCTION_HOST}`);
+      reasons.push(
+        `${field} points at ${hostOf(value) ?? "an unknown host"}, not ${PRODUCTION_HOST}`,
+      );
     }
   }
 
   for (const field of ["url", "thumbnail_url", "preview_url"]) {
     if ((after[field] ?? null) !== (before?.[field] ?? null)) {
-      reasons.push(`${field} CHANGED — motion generation may only attach derived fields`);
+      reasons.push(
+        `${field} CHANGED — motion generation may only attach derived fields`,
+      );
     }
   }
 
@@ -161,16 +205,26 @@ export function verifyGifMotionGeneration({ before, after }) {
 async function downloadToFile(url, filePath) {
   const response = await fetch(url);
   if (!response.ok || !response.body) {
-    throw new Error(`Download failed: ${response.status} ${response.statusText} for ${url}`);
+    throw new Error(
+      `Download failed: ${response.status} ${response.statusText} for ${url}`,
+    );
   }
-  await pipeline(Readable.fromWeb(response.body), fs.createWriteStream(filePath));
+  await pipeline(
+    Readable.fromWeb(response.body),
+    fs.createWriteStream(filePath),
+  );
   return fs.statSync(filePath).size;
 }
 
 function runFfmpeg(args) {
-  const result = spawnSync("ffmpeg", args, { encoding: "utf8", maxBuffer: 32 * 1024 * 1024 });
+  const result = spawnSync("ffmpeg", args, {
+    encoding: "utf8",
+    maxBuffer: 32 * 1024 * 1024,
+  });
   if (result.error || result.status !== 0) {
-    throw new Error(`ffmpeg failed: ${(result.stderr || result.error?.message || "").trim()}`);
+    throw new Error(
+      `ffmpeg failed: ${(result.stderr || result.error?.message || "").trim()}`,
+    );
   }
 }
 
@@ -194,54 +248,88 @@ async function main() {
   const limit = limitValue ? Number(limitValue) : null;
   const batchSize = Number(getFlagValue(argv, "--batch-size") ?? 5);
   const scratchDir = path.resolve(
-    getFlagValue(argv, "--scratch-dir") ?? path.join(os.tmpdir(), "dosewiki-gif-motion-renditions"),
+    getFlagValue(argv, "--scratch-dir") ??
+      path.join(os.tmpdir(), "dosewiki-gif-motion-renditions"),
   );
 
   assertToolsAvailable();
   const readUrl = command.targetUrl || process.env.CONVEX_PUBLIC_READ_URL;
   if (!readUrl) {
-    throw new Error("Set --target-url/TARGET_CONVEX_URL (or CONVEX_PUBLIC_READ_URL for dry run).");
+    throw new Error(
+      "Set --target-url/TARGET_CONVEX_URL (or CONVEX_PUBLIC_READ_URL for dry run).",
+    );
   }
 
   const readClient = new ConvexHttpClient(readUrl);
-  const rows = await readClient.query(api.replications.getPublicReplications, {});
+  const rows = await readClient.query(
+    api.replications.getPublicReplications,
+    {},
+  );
   const plan = planGifMotionGeneration(rows, { force });
   const actions = limit ? plan.actions.slice(0, limit) : plan.actions;
   const batches = chunk(actions, batchSize);
 
-  console.log(`\nRows read       : ${rows.length} (${plan.gifRowCount} GIF replications)`);
-  console.log(`Motion plan     : ${actions.length} row(s) in ${batches.length} batch(es)`);
+  console.log(
+    `\nRows read       : ${rows.length} (${plan.gifRowCount} GIF replications)`,
+  );
+  console.log(
+    `Motion plan     : ${actions.length} row(s) in ${batches.length} batch(es)`,
+  );
   console.log(`Skipped         : ${plan.skipped.length}`);
   console.log("Fields written  : motion_storage_id + motion_poster_storage_id");
-  console.log(`Encode spec     : full duration/cadence · H.264 High yuv420p · CRF ${GIF_MOTION_SPEC.crf} ${GIF_MOTION_SPEC.preset} · silent · faststart`);
-  for (const entry of plan.skipped) console.log(`  SKIP ${entry.slug}: ${entry.reason}`);
-  for (const action of actions) console.log(`  ${action.slug}: ${action.sourceUrl}`);
+  console.log(
+    `Encode spec     : full duration/cadence · H.264 High yuv420p · CRF ${GIF_MOTION_SPEC.crf} ${GIF_MOTION_SPEC.preset} · silent · faststart`,
+  );
+  for (const entry of plan.skipped)
+    console.log(`  SKIP ${entry.slug}: ${entry.reason}`);
+  for (const action of actions)
+    console.log(`  ${action.slug}: ${action.sourceUrl}`);
 
   if (command.dryRun) {
-    console.log("\nDry run — nothing downloaded, encoded, uploaded, or written.");
+    console.log(
+      "\nDry run — nothing downloaded, encoded, uploaded, or written.",
+    );
     return;
   }
 
   assertProductionWriteAllowed(command);
-  const { token: apiKey } = requireProductionWriteCredential("replicationMaintenance");
+  const { token: apiKey } = requireProductionWriteCredential(
+    "replicationMaintenance",
+  );
   const writeClient = new ConvexHttpClient(command.targetUrl);
   fs.mkdirSync(scratchDir, { recursive: true });
-  const ledgerPath = path.join(scratchDir, `gif-motion-ledger-${Date.now()}.json`);
+  const ledgerPath = path.join(
+    scratchDir,
+    `gif-motion-ledger-${Date.now()}.json`,
+  );
   const ledger = [];
   const writeLedger = () =>
-    fs.writeFileSync(ledgerPath, `${JSON.stringify({ operation: OPERATION, entries: ledger }, null, 2)}\n`);
+    fs.writeFileSync(
+      ledgerPath,
+      `${JSON.stringify({ operation: OPERATION, entries: ledger }, null, 2)}\n`,
+    );
 
   let generated = 0;
   for (const [batchIndex, batch] of batches.entries()) {
     console.log(`\n--- Batch ${batchIndex + 1}/${batches.length} ---`);
     for (const action of batch) {
       const live = await fetchResolvedRow(writeClient, apiKey, action.rowId);
-      if (!live) throw new Error(`${action.slug}: row no longer exists. Stopping.`);
+      if (!live)
+        throw new Error(`${action.slug}: row no longer exists. Stopping.`);
       if (live.storage_id !== action.expectedStorageId) {
-        throw new Error(`${action.slug}: storage_id changed since the reviewed plan. Stopping.`);
+        throw new Error(
+          `${action.slug}: storage_id changed since the reviewed plan. Stopping.`,
+        );
       }
-      if (live.motion_storage_id && live.motion_poster_storage_id && !force && !action.hadMotion) {
-        console.log(`  ${action.slug}: motion pair appeared since planning — skipping.`);
+      if (
+        live.motion_storage_id &&
+        live.motion_poster_storage_id &&
+        !force &&
+        !action.hadMotion
+      ) {
+        console.log(
+          `  ${action.slug}: motion pair appeared since planning — skipping.`,
+        );
         continue;
       }
 
@@ -252,29 +340,57 @@ async function main() {
       };
       const sourcePath = path.join(scratchDir, `${action.slug}.source.gif`);
       const motionPath = path.join(scratchDir, `${action.slug}.motion.mp4`);
-      const posterPath = path.join(scratchDir, `${action.slug}.motion-poster.webp`);
+      const posterPath = path.join(
+        scratchDir,
+        `${action.slug}.motion-poster.webp`,
+      );
       const motionPart = `${motionPath}.part`;
       const posterPart = `${posterPath}.part`;
 
       const sourceBytes = await downloadToFile(live.url, sourcePath);
-      runFfmpeg(buildGifMotionFfmpegArgs({ inputPath: sourcePath, outputPath: motionPart }));
+      runFfmpeg(
+        buildGifMotionFfmpegArgs({
+          inputPath: sourcePath,
+          outputPath: motionPart,
+        }),
+      );
       fs.renameSync(motionPart, motionPath);
-      runFfmpeg(buildMotionPosterFfmpegArgs({ inputPath: sourcePath, outputPath: posterPart }));
+      runFfmpeg(
+        buildMotionPosterFfmpegArgs({
+          inputPath: sourcePath,
+          outputPath: posterPart,
+        }),
+      );
       fs.renameSync(posterPart, posterPath);
 
       const verdict = isAcceptableGifMotion(probeVideo(motionPath));
-      if (!verdict.ok) throw new Error(`${action.slug}: encoded motion rejected — ${verdict.reason}`);
+      if (!verdict.ok)
+        throw new Error(
+          `${action.slug}: encoded motion rejected — ${verdict.reason}`,
+        );
 
-      const motionStorageId = await uploadFile(writeClient, apiKey, motionPath, "video/mp4");
-      const motionPosterStorageId = await uploadFile(writeClient, apiKey, posterPath, "image/webp");
+      const motionStorageId = await uploadFile(
+        writeClient,
+        apiKey,
+        motionPath,
+        "video/mp4",
+      );
+      const motionPosterStorageId = await uploadFile(
+        writeClient,
+        apiKey,
+        posterPath,
+        "image/webp",
+      );
       await writeClient.mutation(api.replications.updateMotionStorageIds, {
         apiKey,
-        updates: [{
-          id: action.rowId,
-          expectedStorageId: action.expectedStorageId,
-          motionStorageId,
-          motionPosterStorageId,
-        }],
+        updates: [
+          {
+            id: action.rowId,
+            expectedStorageId: action.expectedStorageId,
+            motionStorageId,
+            motionPosterStorageId,
+          },
+        ],
       });
 
       ledger.push({
@@ -294,7 +410,9 @@ async function main() {
       const verification = verifyGifMotionGeneration({ before, after });
       if (!verification.ok) {
         for (const reason of verification.reasons) console.error(`  ${reason}`);
-        throw new Error(`Verification failed after ${action.slug}; write landed. Ledger: ${ledgerPath}`);
+        throw new Error(
+          `Verification failed after ${action.slug}; write landed. Ledger: ${ledgerPath}`,
+        );
       }
 
       fs.rmSync(sourcePath, { force: true });
@@ -307,8 +425,12 @@ async function main() {
     }
   }
 
-  console.log(`\nGenerated ${generated} GIF motion rendition pair(s). Ledger: ${ledgerPath}`);
-  console.log('Run revalidateTag("convex-public:replications") to clear public caches.');
+  console.log(
+    `\nGenerated ${generated} GIF motion rendition pair(s). Ledger: ${ledgerPath}`,
+  );
+  console.log(
+    'Run revalidateTag("convex-public:replications") to clear public caches.',
+  );
 }
 
 if (import.meta.url === `file://${process.argv[1]}`) {
