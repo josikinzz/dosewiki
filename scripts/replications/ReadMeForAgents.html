@@ -1,0 +1,1191 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light dark">
+  <title>Dose Wiki Replications — Field Guide for Agents</title>
+  <style>
+    :root {
+      --bg: #f2eee2;
+      --surface: #fffdf6;
+      --surface-raised: #f8f5e9;
+      --surface-recessed: #e9e5d8;
+      --border: #7b7667;
+      --border-soft: #c9c2af;
+      --pattern: rgba(46, 68, 52, 0.045);
+      --text: #27291f;
+      --text-bright: #171911;
+      --text-dim: #57594e;
+      --moss: #315d3d;
+      --moss-dim: #dce7d7;
+      --moss-fill: #315d3d;
+      --moss-on-fill: #ffffff;
+      --berry: #8c2f45;
+      --berry-dim: #f2dce1;
+      --berry-fill: #8c2f45;
+      --berry-on-fill: #ffffff;
+      --amber: #7a4b04;
+      --amber-dim: #f1e3bd;
+      --amber-fill: #e2bd62;
+      --amber-on-fill: #201704;
+      --blue: #1e5064;
+      --blue-dim: #d7e7eb;
+      --blue-fill: #1e5064;
+      --blue-on-fill: #ffffff;
+      --shadow: 0 18px 50px rgba(49, 47, 38, 0.11);
+      --radius: 14px;
+      --serif: Georgia, "Times New Roman", serif;
+      --sans: "Avenir Next", Avenir, "Segoe UI", sans-serif;
+      --mono: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #171b17;
+        --surface: #222820;
+        --surface-raised: #2a3127;
+        --surface-recessed: #171c17;
+        --border: #929b89;
+        --border-soft: #4d584b;
+        --pattern: rgba(198, 219, 191, 0.035);
+        --text: #e7e9df;
+        --text-bright: #ffffff;
+        --text-dim: #bdc4b7;
+        --moss: #a8d69d;
+        --moss-dim: #2d4731;
+        --moss-fill: #446a49;
+        --moss-on-fill: #ffffff;
+        --berry: #f0a9b9;
+        --berry-dim: #56303a;
+        --berry-fill: #7c3344;
+        --berry-on-fill: #ffffff;
+        --amber: #f2ca72;
+        --amber-dim: #4b3c1e;
+        --amber-fill: #d4a849;
+        --amber-on-fill: #171105;
+        --blue: #9bd4e2;
+        --blue-dim: #294651;
+        --blue-fill: #336777;
+        --blue-on-fill: #ffffff;
+        --shadow: 0 22px 60px rgba(0, 0, 0, 0.34);
+      }
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      color: var(--text);
+      background-color: var(--bg);
+      background-image:
+        linear-gradient(var(--pattern) 1px, transparent 1px),
+        linear-gradient(90deg, var(--pattern) 1px, transparent 1px);
+      background-size: 34px 34px;
+      font-family: var(--sans);
+      line-height: 1.58;
+    }
+    button, input { font: inherit; }
+    a { color: inherit; }
+    code, pre, kbd { font-family: var(--mono); }
+    code {
+      padding: 0.12rem 0.32rem;
+      border: 1px solid var(--border-soft);
+      border-radius: 5px;
+      background: var(--surface-recessed);
+      color: var(--text-bright);
+      overflow-wrap: anywhere;
+    }
+    kbd {
+      padding: 0.12rem 0.36rem;
+      border: 1px solid var(--border);
+      border-bottom-width: 2px;
+      border-radius: 5px;
+      background: var(--surface-raised);
+      color: var(--text-bright);
+      font-size: 0.82em;
+    }
+    button:focus-visible, input:focus-visible, a:focus-visible, summary:focus-visible {
+      outline: 3px solid var(--blue);
+      outline-offset: 3px;
+    }
+
+    .page-shell {
+      display: grid;
+      grid-template-columns: 260px minmax(0, 1fr);
+      min-height: 100vh;
+    }
+    .toc {
+      position: sticky;
+      top: 0;
+      align-self: start;
+      height: 100vh;
+      overflow-y: auto;
+      padding: 28px 22px;
+      border-right: 1px solid var(--border-soft);
+      background: color-mix(in srgb, var(--surface) 94%, transparent);
+      backdrop-filter: blur(10px);
+      z-index: 4;
+    }
+    .toc-mark {
+      display: grid;
+      grid-template-columns: 42px 1fr;
+      gap: 11px;
+      align-items: center;
+      margin-bottom: 28px;
+    }
+    .toc-mark svg { width: 42px; height: 42px; color: var(--moss); }
+    .toc-mark strong {
+      display: block;
+      color: var(--text-bright);
+      font-family: var(--serif);
+      font-size: 1rem;
+      line-height: 1.1;
+    }
+    .toc-mark span {
+      color: var(--text-dim);
+      font-family: var(--mono);
+      font-size: 0.67rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+    .toc nav { display: grid; gap: 4px; }
+    .toc a {
+      display: block;
+      padding: 8px 10px;
+      border-left: 2px solid transparent;
+      color: var(--text-dim);
+      text-decoration: none;
+      font-size: 0.86rem;
+    }
+    .toc a:hover, .toc a[aria-current="true"] {
+      border-left-color: var(--moss);
+      color: var(--text-bright);
+      background: var(--moss-dim);
+    }
+    .toc-note {
+      margin-top: 24px;
+      padding: 12px;
+      border: 1px solid var(--border-soft);
+      border-radius: 10px;
+      background: var(--surface-raised);
+      color: var(--text-dim);
+      font-size: 0.76rem;
+    }
+
+    main {
+      min-width: 0;
+      width: 100%;
+      max-width: 1280px;
+      margin: 0 auto;
+      padding: 42px clamp(22px, 5vw, 76px) 84px;
+    }
+    section {
+      scroll-margin-top: 18px;
+      margin-top: 68px;
+    }
+    .hero {
+      position: relative;
+      overflow: hidden;
+      margin-top: 0;
+      padding: clamp(30px, 6vw, 70px);
+      border: 1px solid var(--border);
+      border-radius: 4px 4px var(--radius) var(--radius);
+      background: var(--surface);
+      box-shadow: var(--shadow);
+    }
+    .hero::before, .hero::after {
+      content: "";
+      position: absolute;
+      left: 22px;
+      right: 22px;
+      height: 3px;
+      border-top: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+    }
+    .hero::before { top: 16px; }
+    .hero::after { bottom: 16px; }
+    .eyebrow, .section-kicker, .figure-label {
+      color: var(--moss);
+      font-family: var(--mono);
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: 0.13em;
+      text-transform: uppercase;
+    }
+    h1, h2, h3 {
+      color: var(--text-bright);
+      font-family: var(--serif);
+      line-height: 1.08;
+    }
+    h1 {
+      max-width: 780px;
+      margin: 12px 0 16px;
+      font-size: clamp(2.35rem, 6vw, 5.2rem);
+      font-weight: 600;
+      letter-spacing: -0.035em;
+    }
+    h2 {
+      margin: 7px 0 13px;
+      font-size: clamp(1.85rem, 3.6vw, 3.15rem);
+      font-weight: 600;
+      letter-spacing: -0.025em;
+    }
+    h3 {
+      margin: 0 0 9px;
+      font-size: 1.23rem;
+      font-weight: 600;
+    }
+    .lede {
+      max-width: 70ch;
+      margin: 0;
+      color: var(--text);
+      font-family: var(--serif);
+      font-size: clamp(1.05rem, 1.7vw, 1.3rem);
+    }
+    .hero-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 25px;
+    }
+    .button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 42px;
+      padding: 9px 14px;
+      border: 1px solid var(--moss-fill);
+      border-radius: 7px;
+      background: var(--moss-fill);
+      color: var(--moss-on-fill);
+      cursor: pointer;
+      font-weight: 700;
+      text-decoration: none;
+    }
+    .button.secondary {
+      border-color: var(--border);
+      background: var(--surface-raised);
+      color: var(--text-bright);
+    }
+    .button:hover { filter: brightness(1.08); }
+    .snapshot-strip {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 1px;
+      margin: 34px -1px -1px;
+      border: 1px solid var(--border-soft);
+      background: var(--border-soft);
+    }
+    .snapshot-cell {
+      min-width: 0;
+      padding: 18px;
+      background: var(--surface-raised);
+    }
+    .snapshot-cell strong {
+      display: block;
+      color: var(--text-bright);
+      font-family: var(--serif);
+      font-size: 1.7rem;
+      font-variant-numeric: tabular-nums;
+    }
+    .snapshot-cell span {
+      display: block;
+      color: var(--text-dim);
+      font-family: var(--mono);
+      font-size: 0.7rem;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+    .snapshot-caption {
+      margin: 10px 0 0;
+      color: var(--text-dim);
+      font-size: 0.78rem;
+    }
+
+    .section-head {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(240px, 0.55fr);
+      gap: 26px;
+      align-items: end;
+      padding-bottom: 16px;
+      border-bottom: 1px solid var(--border);
+    }
+    .section-head p {
+      max-width: 58ch;
+      margin: 0;
+      color: var(--text-dim);
+      font-size: 0.94rem;
+    }
+
+    .alert {
+      display: grid;
+      grid-template-columns: 42px minmax(0, 1fr);
+      gap: 14px;
+      margin-top: 20px;
+      padding: 17px;
+      border: 1px solid var(--berry);
+      border-left-width: 5px;
+      border-radius: 8px;
+      background: var(--berry-dim);
+    }
+    .alert.amber {
+      border-color: var(--amber);
+      background: var(--amber-dim);
+    }
+    .alert-icon {
+      display: grid;
+      place-items: center;
+      width: 38px;
+      height: 38px;
+      border-radius: 50%;
+      background: var(--berry-fill);
+      color: var(--berry-on-fill);
+      font-family: var(--serif);
+      font-size: 1.2rem;
+      font-weight: 700;
+    }
+    .alert.amber .alert-icon {
+      background: var(--amber-fill);
+      color: var(--amber-on-fill);
+    }
+    .alert strong { color: var(--text-bright); }
+    .alert p { margin: 3px 0 0; }
+
+    .pipeline {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: 12px;
+      margin-top: 24px;
+      counter-reset: pipeline;
+    }
+    .pipeline-step {
+      position: relative;
+      min-width: 0;
+      padding: 18px 15px 16px;
+      border: 1px solid var(--border-soft);
+      background: var(--surface);
+      counter-increment: pipeline;
+    }
+    .pipeline-step::before {
+      content: "0" counter(pipeline);
+      display: block;
+      margin-bottom: 12px;
+      color: var(--moss);
+      font-family: var(--mono);
+      font-size: 0.75rem;
+      font-weight: 700;
+    }
+    .pipeline-step:not(:last-child)::after {
+      content: "→";
+      position: absolute;
+      right: -11px;
+      top: 44%;
+      z-index: 2;
+      width: 20px;
+      height: 20px;
+      border: 1px solid var(--border-soft);
+      border-radius: 50%;
+      background: var(--surface-raised);
+      color: var(--moss);
+      text-align: center;
+      line-height: 18px;
+    }
+    .pipeline-step h3 { font-size: 1rem; }
+    .pipeline-step p { margin: 0; color: var(--text-dim); font-size: 0.82rem; }
+
+    .two-col, .three-col {
+      display: grid;
+      gap: 18px;
+      margin-top: 24px;
+    }
+    .two-col { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .three-col { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    .panel {
+      min-width: 0;
+      padding: 22px;
+      border: 1px solid var(--border-soft);
+      border-radius: var(--radius);
+      background: var(--surface);
+    }
+    .panel.recessed { background: var(--surface-recessed); }
+    .panel p { margin: 0; }
+    .panel ul, .panel ol { margin: 12px 0 0; padding-left: 1.3rem; }
+    .panel li { margin: 7px 0; }
+    .panel li::marker { color: var(--moss); font-weight: 700; }
+
+    .model-plate {
+      display: grid;
+      grid-template-columns: minmax(0, 1.3fr) minmax(240px, 0.7fr);
+      gap: 0;
+      margin-top: 24px;
+      border: 1px solid var(--border);
+      background: var(--surface);
+    }
+    .model-main { padding: 24px; }
+    .model-legend {
+      padding: 24px;
+      border-left: 1px solid var(--border);
+      background: var(--surface-raised);
+    }
+    .field-group {
+      display: grid;
+      grid-template-columns: 110px minmax(0, 1fr);
+      gap: 12px;
+      padding: 12px 0;
+      border-bottom: 1px solid var(--border-soft);
+    }
+    .field-group:last-child { border-bottom: 0; }
+    .field-group strong {
+      color: var(--moss);
+      font-family: var(--mono);
+      font-size: 0.73rem;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+    .field-group span { min-width: 0; overflow-wrap: break-word; }
+    .model-legend dl { margin: 12px 0 0; }
+    .model-legend dt {
+      margin-top: 14px;
+      color: var(--text-bright);
+      font-family: var(--mono);
+      font-size: 0.8rem;
+      font-weight: 700;
+    }
+    .model-legend dd { margin: 3px 0 0; color: var(--text-dim); font-size: 0.85rem; }
+
+    .route-list {
+      display: grid;
+      gap: 0;
+      margin-top: 24px;
+      border-top: 1px solid var(--border);
+    }
+    .route-item {
+      display: grid;
+      grid-template-columns: minmax(170px, 0.55fr) minmax(0, 1fr) minmax(190px, 0.65fr);
+      gap: 22px;
+      padding: 18px 8px;
+      border-bottom: 1px solid var(--border-soft);
+      align-items: start;
+    }
+    .route-item h3 { font-size: 1.03rem; }
+    .route-item p { margin: 0; }
+    .route-item .route-path { color: var(--text-dim); font-size: 0.82rem; }
+
+    .checklist {
+      display: grid;
+      gap: 8px;
+      margin-top: 18px;
+    }
+    .check-row {
+      display: grid;
+      grid-template-columns: 24px minmax(0, 1fr);
+      gap: 10px;
+      align-items: start;
+      padding: 11px 12px;
+      border: 1px solid var(--border-soft);
+      border-radius: 8px;
+      background: var(--surface);
+      cursor: pointer;
+    }
+    .check-row:hover { border-color: var(--moss); }
+    .check-row input { width: 17px; height: 17px; margin-top: 4px; accent-color: var(--moss-fill); }
+    .check-row span { min-width: 0; }
+    .check-row small { display: block; margin-top: 2px; color: var(--text-dim); }
+
+    .code-shell {
+      position: relative;
+      margin-top: 16px;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      background: var(--surface-recessed);
+      overflow: hidden;
+    }
+    .code-shell header {
+      display: flex;
+      justify-content: space-between;
+      gap: 14px;
+      align-items: center;
+      padding: 9px 12px;
+      border-bottom: 1px solid var(--border-soft);
+      color: var(--text-dim);
+      font-family: var(--mono);
+      font-size: 0.7rem;
+    }
+    .copy-button {
+      border: 1px solid var(--border);
+      border-radius: 5px;
+      background: var(--surface-raised);
+      color: var(--text-bright);
+      cursor: pointer;
+      font-family: var(--mono);
+      font-size: 0.7rem;
+    }
+    .copy-button:hover { border-color: var(--moss); }
+    pre {
+      margin: 0;
+      padding: 16px;
+      color: var(--text-bright);
+      white-space: pre-wrap;
+      overflow-wrap: anywhere;
+      font-size: 0.78rem;
+      line-height: 1.65;
+    }
+
+    .registry-tools {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
+      margin-top: 24px;
+      padding: 14px;
+      border: 1px solid var(--border-soft);
+      background: var(--surface-raised);
+    }
+    .registry-tools input {
+      flex: 1 1 280px;
+      min-width: 0;
+      min-height: 42px;
+      padding: 9px 12px;
+      border: 1px solid var(--border);
+      border-radius: 7px;
+      background: var(--surface);
+      color: var(--text-bright);
+    }
+    .filter-chip {
+      min-height: 34px;
+      padding: 6px 10px;
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      background: var(--surface);
+      color: var(--text-bright);
+      cursor: pointer;
+      font-size: 0.78rem;
+    }
+    .filter-chip.active {
+      border-color: var(--moss-fill);
+      background: var(--moss-fill);
+      color: var(--moss-on-fill);
+    }
+    .table-wrap {
+      overflow-x: auto;
+      margin-top: 12px;
+      border: 1px solid var(--border);
+      background: var(--surface);
+    }
+    table { width: 100%; border-collapse: collapse; min-width: 790px; }
+    th, td {
+      padding: 13px 14px;
+      border-bottom: 1px solid var(--border-soft);
+      text-align: left;
+      vertical-align: top;
+      font-size: 0.82rem;
+    }
+    th {
+      position: sticky;
+      top: 0;
+      z-index: 1;
+      background: var(--surface-raised);
+      color: var(--text-bright);
+      font-family: var(--mono);
+      font-size: 0.7rem;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+    tr:last-child td { border-bottom: 0; }
+    tr[hidden] { display: none; }
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      min-height: 23px;
+      padding: 3px 7px;
+      border-radius: 999px;
+      font-family: var(--mono);
+      font-size: 0.66rem;
+      font-weight: 700;
+      letter-spacing: 0.03em;
+      white-space: nowrap;
+    }
+    .badge.read { background: var(--blue-dim); color: var(--blue); }
+    .badge.local { background: var(--moss-dim); color: var(--moss); }
+    .badge.write { background: var(--berry-dim); color: var(--berry); }
+    .badge.caution { background: var(--amber-dim); color: var(--amber); }
+
+    details {
+      margin-top: 10px;
+      border: 1px solid var(--border-soft);
+      border-radius: 9px;
+      background: var(--surface);
+    }
+    summary {
+      padding: 13px 15px;
+      color: var(--text-bright);
+      cursor: pointer;
+      font-weight: 700;
+    }
+    details > div { padding: 0 15px 15px; }
+    details p { margin: 0; }
+
+    .source-list {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+      margin-top: 20px;
+    }
+    .source-item {
+      min-width: 0;
+      padding: 14px;
+      border-left: 3px solid var(--blue);
+      background: var(--blue-dim);
+    }
+    .source-item strong { display: block; color: var(--text-bright); }
+    .source-item span { color: var(--text-dim); font-size: 0.79rem; overflow-wrap: anywhere; }
+
+    footer {
+      margin-top: 80px;
+      padding-top: 18px;
+      border-top: 3px double var(--border);
+      color: var(--text-dim);
+      font-family: var(--mono);
+      font-size: 0.72rem;
+      line-height: 1.7;
+    }
+    .toast {
+      position: fixed;
+      right: 18px;
+      bottom: 18px;
+      z-index: 10;
+      max-width: 320px;
+      padding: 11px 14px;
+      border: 1px solid var(--moss);
+      border-radius: 8px;
+      background: var(--moss-fill);
+      color: var(--moss-on-fill);
+      box-shadow: var(--shadow);
+      opacity: 0;
+      transform: translateY(12px);
+      pointer-events: none;
+      transition: opacity 160ms ease, transform 160ms ease;
+    }
+    .toast.show { opacity: 1; transform: translateY(0); }
+
+    @media (max-width: 980px) {
+      .page-shell { display: block; }
+      .toc {
+        position: sticky;
+        height: auto;
+        padding: 10px 14px;
+        border-right: 0;
+        border-bottom: 1px solid var(--border-soft);
+        overflow-x: auto;
+      }
+      .toc-mark, .toc-note { display: none; }
+      .toc nav { display: flex; width: max-content; }
+      .toc a { border-left: 0; border-bottom: 2px solid transparent; white-space: nowrap; }
+      .toc a:hover, .toc a[aria-current="true"] { border-bottom-color: var(--moss); }
+      main { padding-top: 24px; }
+      section { scroll-margin-top: 68px; }
+      .pipeline { grid-template-columns: 1fr; }
+      .pipeline-step:not(:last-child)::after { content: "↓"; right: 50%; top: auto; bottom: -17px; }
+      .three-col { grid-template-columns: 1fr; }
+      .route-item { grid-template-columns: 1fr; gap: 8px; }
+    }
+    @media (max-width: 720px) {
+      .section-head, .two-col, .model-plate { grid-template-columns: 1fr; }
+      .model-legend { border-left: 0; border-top: 1px solid var(--border); }
+      .snapshot-strip { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .source-list { grid-template-columns: 1fr; }
+      .field-group { grid-template-columns: 1fr; gap: 4px; }
+    }
+    @media (max-width: 430px) {
+      main { padding-left: 14px; padding-right: 14px; }
+      .hero { padding: 34px 20px; }
+      .snapshot-strip { grid-template-columns: 1fr; }
+      .hero-actions .button { width: 100%; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      html { scroll-behavior: auto; }
+      *, *::before, *::after { transition: none !important; }
+    }
+    @media print {
+      .toc, .hero-actions, .registry-tools, .copy-button, .toast { display: none !important; }
+      .page-shell { display: block; }
+      main { max-width: none; padding: 0; }
+      body { background: white; color: black; }
+      section { break-inside: avoid; }
+    }
+  </style>
+</head>
+<body>
+  <div class="page-shell">
+    <aside class="toc" aria-label="Guide navigation">
+      <div class="toc-mark">
+        <svg viewBox="0 0 64 64" aria-hidden="true">
+          <path fill="none" stroke="currentColor" stroke-width="2" d="M32 5C21 17 12 28 12 40c0 11 9 19 20 19s20-8 20-19C52 28 43 17 32 5Z"/>
+          <path fill="none" stroke="currentColor" stroke-width="2" d="M20 41c8-2 17-8 24-18M25 50c5-7 8-15 9-25"/>
+        </svg>
+        <div><strong>Replication Field Guide</strong><span>Agent edition · v1</span></div>
+      </div>
+      <nav>
+        <a href="#start">Start here</a>
+        <a href="#truth">Source of truth</a>
+        <a href="#model">Data model</a>
+        <a href="#routing">Task routing</a>
+        <a href="#writes">Production writes</a>
+        <a href="#media">Media work</a>
+        <a href="#effects">Effects and showcases</a>
+        <a href="#identity">Identity and dates</a>
+        <a href="#registry">Script registry</a>
+        <a href="#verification">Verification</a>
+        <a href="#sources">Canonical sources</a>
+      </nav>
+      <div class="toc-note">This guide explains the operating system around the folder. The scripts remain the executable source.</div>
+    </aside>
+
+    <main>
+      <section class="hero" id="start">
+        <div class="eyebrow">Dose Wiki · scripts/replications</div>
+        <h1>Handle the corpus like an archive, not a pile of files.</h1>
+        <p class="lede">This folder manages replication media, credits, effects, dates, rights, duplicates, and substance showcases. Production Convex is the runtime truth.</p>
+        <div class="hero-actions">
+          <a class="button" href="#routing">Choose a task</a>
+          <button class="button secondary" type="button" data-copy-target="startup-brief">Copy agent startup brief</button>
+        </div>
+        <div class="snapshot-strip" aria-label="Production snapshot">
+          <div class="snapshot-cell"><strong>978</strong><span>media rows</span></div>
+          <div class="snapshot-cell"><strong>952</strong><span>replications</span></div>
+          <div class="snapshot-cell"><strong>26</strong><span>figures</span></div>
+          <div class="snapshot-cell"><strong>175</strong><span>artist strings</span></div>
+        </div>
+        <p class="snapshot-caption">Read-only production snapshot from <code>glad-minnow-656</code> on 2026-08-22. Re-query before every operation.</p>
+        <div class="code-shell" hidden>
+          <pre id="startup-brief">Work in /Users/josie/Documents/repos/dosewiki-admin. Read AGENTS.md, CONTEXT.md, scripts/replications/ReadMeForAgents.html, docs/agents/convex-credentials.md, and docs/agents/deployment.md. Treat https://glad-minnow-656.convex.cloud as production and runtime truth. Preserve unrelated work. Start read-only. Re-query live rows. Use immutable replication IDs with slug cross-checks. Build a dry-run plan. Freeze source hashes and a payload digest for batches. Use compare-and-set mutations and a resumable ledger. Never infer an unknown artist. Never treat created_at as an artwork date. Verify live records, URLs, showcase curation, and public routes before reporting completion.</pre>
+        </div>
+      </section>
+
+      <section id="truth">
+        <div class="section-head">
+          <div><div class="section-kicker">01 · Operating model</div><h2>Production is canonical.</h2></div>
+          <p>Local JSON, Markdown, reports, and plans are evidence or migration inputs. They do not override newer live records.</p>
+        </div>
+        <div class="alert">
+          <div class="alert-icon">!</div>
+          <div><strong>Every configured Convex target is production.</strong><p>The repository invariant points local, preview, and production work at <code>prod:glad-minnow-656</code>. Effect Index remains read-only.</p></div>
+        </div>
+        <div class="pipeline" aria-label="Safe replication workflow">
+          <article class="pipeline-step"><h3>Inspect</h3><p>Read the live row, schema, current artist, storage IDs, and recent ledger.</p></article>
+          <article class="pipeline-step"><h3>Gather evidence</h3><p>Keep sources, hashes, frame sheets, and ambiguity notes outside the live row.</p></article>
+          <article class="pipeline-step"><h3>Freeze a plan</h3><p>Use stable IDs, slug checks, expected snapshots, and explicit operations.</p></article>
+          <article class="pipeline-step"><h3>Apply with guards</h3><p>Use the exact target, confirmation phrase, scoped credential, and digest.</p></article>
+          <article class="pipeline-step"><h3>Verify live</h3><p>Re-read every changed row, relation, URL, and route. Record a ledger.</p></article>
+        </div>
+        <div class="two-col">
+          <article class="panel">
+            <h3>Read these first</h3>
+            <ol>
+              <li><code>AGENTS.md</code> for repository invariants.</li>
+              <li><code>CONTEXT.md</code> for canonical replication language.</li>
+              <li><code>docs/agents/convex-credentials.md</code> before a write.</li>
+              <li><code>docs/agents/deployment.md</code> before a function deploy.</li>
+              <li>The target script and its tests before execution.</li>
+            </ol>
+          </article>
+          <article class="panel recessed">
+            <h3>Do not trust these without refresh</h3>
+            <ul>
+              <li>Counts in old reports or commit messages.</li>
+              <li>Exported artist names or effect sets.</li>
+              <li>Resolved storage URLs. They can expire.</li>
+              <li>A dry-run plan after another agent edits production.</li>
+              <li>Filename similarity as proof of duplicate identity.</li>
+            </ul>
+          </article>
+        </div>
+      </section>
+
+      <section id="model">
+        <div class="section-head">
+          <div><div class="section-kicker">02 · Record anatomy</div><h2>One row carries five kinds of truth.</h2></div>
+          <p>The schema separates identity, classification, delivery, chronology, and rights. Keep those concepts separate during edits.</p>
+        </div>
+        <figure class="model-plate">
+          <div class="model-main">
+            <div class="figure-label">Fig. 1 — replications row</div>
+            <div class="field-group"><strong>Identity</strong><span><code>_id</code>, <code>slug</code>, <code>title</code>, <code>artist</code>, <code>artist_url</code></span></div>
+            <div class="field-group"><strong>Meaning</strong><span><code>role</code>, <code>effect_slug</code>, <code>effect_tags</code>, <code>type</code></span></div>
+            <div class="field-group"><strong>Delivery</strong><span><code>storage_id</code>, thumbnails, preview, direct URL fallbacks, format, dimensions, size, duration</span></div>
+            <div class="field-group"><strong>Time</strong><span><code>created_at</code> is the import timestamp. <code>date_info</code> is the researched temporal statement.</span></div>
+            <div class="field-group"><strong>Rights</strong><span>Status, license, credit line, source, rightsholder, permission notes, and removal contact</span></div>
+          </div>
+          <figcaption class="model-legend">
+            <h3>Interpretation rules</h3>
+            <dl>
+              <dt>role</dt><dd>Absent means <code>replication</code>. A <code>figure</code> must not enter public replication counts.</dd>
+              <dt>effect_slug</dt><dd>The owning effect. It controls the primary gallery relationship.</dd>
+              <dt>effect_tags</dt><dd>Other visible effects. Absence means untagged, not “depicts nothing.”</dd>
+              <dt>storage_id</dt><dd>The durable object reference. Resolve its URL at read time.</dd>
+              <dt>date_info</dt><dd>A compact statement. The research dossier lives in <code>replicationDateResearch</code>.</dd>
+            </dl>
+          </figcaption>
+        </figure>
+        <div class="three-col">
+          <article class="panel"><h3>Media type</h3><p><code>image</code>, <code>video</code>, and <code>audio</code> are valid. Animated GIFs remain image rows.</p></article>
+          <article class="panel"><h3>URL resolution</h3><p>Native Convex storage wins. Direct row URLs are fallbacks. Preview URLs have no direct fallback.</p></article>
+          <article class="panel"><h3>Audio exception</h3><p>Legacy effect audio can also live in <code>subjectiveEffects.audio_replications</code>. Audit both surfaces.</p></article>
+        </div>
+      </section>
+
+      <section id="routing">
+        <div class="section-head">
+          <div><div class="section-kicker">03 · Task router</div><h2>Start at the narrowest safe surface.</h2></div>
+          <p>Use the Studio for ordinary curation. Use scripts for evidence-bound, repeatable, or media-heavy operations.</p>
+        </div>
+        <div class="route-list">
+          <article class="route-item"><h3>Edit one row</h3><p>Use the Replication Studio. It edits title, artist, role, primary effect, effect tags, and credit with compare-and-set protection.</p><p class="route-path"><code>/dev/replications</code><br><code>src/features/dev/tools/replication-studio/</code></p></article>
+          <article class="route-item"><h3>Apply review notes</h3><p>Diff cumulative exports by replication ID. Interpret only new notes. Freeze expected live snapshots and a payload digest.</p><p class="route-path"><code>apply-editorial-review-notes*.mjs</code></p></article>
+          <article class="route-item"><h3>Curate a substance</h3><p>Use the Studio association panel. Curated and removed slugs are editorial deltas, not effect tags. A reusable playlist may seed a gallery draft, but it publishes nothing by itself.</p><p class="route-path"><code>substanceGalleries.upsert</code><br><code>replicationPlaylists.upsert</code><br><code>expectedUpdatedAt</code></p></article>
+          <article class="route-item"><h3>Research a date</h3><p>Keep event type, confidence, rationale, evidence, rejected dates, and source hashes. Never write the import timestamp as creation.</p><p class="route-path"><code>npm run replications:apply-dates</code></p></article>
+          <article class="route-item"><h3>Correct credit</h3><p>Use row-scoped or normalized-name correction plans. Preserve source evidence and compare the full credit snapshot.</p><p class="route-path"><code>reassign-replication-credits.mjs</code><br><code>plan-artist-name-corrections.mjs</code></p></article>
+          <article class="route-item"><h3>Resolve a duplicate</h3><p>Build visual evidence first. Record the explicit keeper and duplicate IDs. Never merge from filename or dimensions alone.</p><p class="route-path"><code>merge-unknown-twins.mjs</code><br><code>lib/duplicate-merge-plan.mjs</code></p></article>
+          <article class="route-item"><h3>Replace bad media</h3><p>Use a one-row replacement for isolated faults. Use an audited rendition plan for a corpus migration.</p><p class="route-path"><code>replace-media.mjs</code><br><code>repoint-renditions.mjs</code></p></article>
+          <article class="route-item"><h3>Add reviewed media</h3><p>Start with a manifest. Verify hashes, delivery constraints, slug collisions, storage ownership, rights, and thumbnails.</p><p class="route-path"><code>import-reviewed-library.mjs</code><br><code>migrate-article-media.mjs</code></p></article>
+          <article class="route-item"><h3>Audit without writing</h3><p>Use public queries and local reports. State the deployment and capture time. Keep the report separate from production.</p><p class="route-path"><code>audit-provenance.mjs</code><br><code>reconcile-effectindex-dump.mjs</code></p></article>
+        </div>
+      </section>
+
+      <section id="writes">
+        <div class="section-head">
+          <div><div class="section-kicker">04 · Write boundary</div><h2>A production write needs four locks.</h2></div>
+          <p>The shared command ignores browser compatibility URLs. A privileged write must name its exact target.</p>
+        </div>
+        <div class="checklist" data-checklist="write-startup">
+          <label class="check-row"><input type="checkbox"><span>Run <code>npm run convex:doctor</code>.<small>Confirm the deployment, credential intent, and function inventory.</small></span></label>
+          <label class="check-row"><input type="checkbox"><span>Read the target script and its latest ledger.<small>Know its mutation surface, defaults, resume behavior, and stop conditions.</small></span></label>
+          <label class="check-row"><input type="checkbox"><span>Run the dry plan against the explicit production URL.<small>Review IDs, slugs, expected snapshots, counts, hashes, and exclusions.</small></span></label>
+          <label class="check-row"><input type="checkbox"><span>Freeze the plan before the write.<small>Bind the source hashes, target fingerprint, payload digest, and ledger path.</small></span></label>
+          <label class="check-row"><input type="checkbox"><span>Re-read production immediately before mutation.<small>Abort on title, artist, credit, effect, gallery, or storage drift.</small></span></label>
+        </div>
+        <div class="code-shell">
+          <header><span>shared production ceremony</span><button class="copy-button" type="button" data-copy-target="write-template">copy</button></header>
+          <pre id="write-template">TARGET_CONVEX_URL=https://glad-minnow-656.convex.cloud \
+node scripts/replications/&lt;guarded-script&gt;.mjs \
+  --write \
+  --confirm-write=&lt;operation-name&gt; \
+  --expected-deployment=glad-minnow-656 \
+  &lt;operation-specific-confirmation&gt;</pre>
+        </div>
+        <div class="alert amber">
+          <div class="alert-icon">i</div>
+          <div><strong>Never deploy Convex functions with a bare CLI command.</strong><p>Use <code>npm run convex:deploy -- --prod --from-head-worktree --confirm</code>. The wrapper protects concurrent local work and live-only functions.</p></div>
+        </div>
+        <div class="two-col">
+          <article class="panel">
+            <h3>Required batch properties</h3>
+            <ul>
+              <li>Immutable row IDs with slug cross-checks.</li>
+              <li>Full expected snapshots for compare-and-set writes.</li>
+              <li>Atomic, resumable ledger checkpoints.</li>
+              <li>Exact target and source hashes.</li>
+              <li>Post-write reads for every planned outcome.</li>
+            </ul>
+          </article>
+          <article class="panel">
+            <h3>Conflict policy</h3>
+            <ul>
+              <li>Stop when a live row differs from the frozen plan.</li>
+              <li>Do not weaken the expected snapshot.</li>
+              <li>Rebase the plan from the current live row.</li>
+              <li>Review the changed operation again.</li>
+              <li>Resume only with the matching digest and target.</li>
+            </ul>
+          </article>
+        </div>
+      </section>
+
+      <section id="media">
+        <div class="section-head">
+          <div><div class="section-kicker">05 · Media pipeline</div><h2>Preserve masters. Publish renditions.</h2></div>
+          <p>Replication media is the subject matter. Compression, framing, duration, audio, and source completeness affect meaning.</p>
+        </div>
+        <div class="three-col">
+          <article class="panel"><h3>Still-image comparison</h3><ul><li>Use cryptographic hashes for exact files.</li><li>Use pHash, dHash, crops, and color features for candidates.</li><li>Compare native detail, crop, watermark, and provenance.</li></ul></article>
+          <article class="panel"><h3>Video comparison</h3><ul><li>Compare duration and container metadata first.</li><li>Use spread-out frame sequences.</li><li>Check audio streams and full sequence completeness.</li></ul></article>
+          <article class="panel"><h3>Keeper decision</h3><ul><li>Prefer the most complete defensible source.</li><li>Keep higher effective detail, not dimensions alone.</li><li>Record the rejected twin and reason.</li></ul></article>
+        </div>
+        <details open><summary>Video delivery contract</summary><div><p>Use H.264 with <code>yuv420p</code> and <code>+faststart</code>. Keep audited masters outside the delivery copy. Preview renditions are muted, short, and capped at 480px.</p></div></details>
+        <details><summary>Storage rules</summary><div><p>Store Convex storage IDs on rows. Resolve URLs during reads. Direct URLs remain fallbacks. A foreign storage ID can silently serve the wrong fallback media.</p></div></details>
+        <details><summary>Deletion rules</summary><div><p>Deleting a database row does not authorize storage deletion. Keep media objects unless the user explicitly includes them and a recovery path exists.</p></div></details>
+        <div class="alert amber">
+          <div class="alert-icon">i</div>
+          <div><strong>Candidate evidence is not an apply manifest.</strong><p>Contact sheets and fuzzy clusters identify review targets. They do not authorize deletion, archival, or credit changes.</p></div>
+        </div>
+      </section>
+
+      <section id="effects">
+        <div class="section-head">
+          <div><div class="section-kicker">06 · Classification</div><h2>Effects and substances are different relations.</h2></div>
+          <p>An effect describes what appears in a work. A substance showcase records an editorial association for one article.</p>
+        </div>
+        <div class="two-col">
+          <article class="panel">
+            <h3>Effect ownership and tags</h3>
+            <ul>
+              <li><code>effect_slug</code> is the primary owner.</li>
+              <li><code>effect_tags</code> holds additional depicted effects.</li>
+              <li>Validate every planned effect slug.</li>
+              <li>Preserve confirmed audio tags during exact visual edits.</li>
+              <li>Use the current live set as the edit baseline.</li>
+            </ul>
+          </article>
+          <article class="panel">
+            <h3>Substance showcase curation</h3>
+            <ul>
+              <li><code>curated_slugs</code> controls inclusion and order.</li>
+              <li><code>removed_slugs</code> records explicit suppression.</li>
+              <li>The two arrays must not overlap.</li>
+              <li>Use <code>expectedUpdatedAt</code> to protect concurrent edits.</li>
+              <li>A <code>replicationPlaylist</code> is only a named, ordered set of eligible slugs. Applying one edits a gallery draft; <code>substanceGalleries</code> remains the publish gate.</li>
+              <li>Playlist saves also use optimistic concurrency and prune deleted or corpus-retired slugs.</li>
+              <li>Verify the public substance query after the write.</li>
+            </ul>
+          </article>
+        </div>
+        <div class="alert">
+          <div class="alert-icon">!</div>
+          <div><strong>Do not derive substance truth from filenames alone.</strong><p>A title can provide a candidate association. The final gallery pairing is an explicit editorial decision.</p></div>
+        </div>
+      </section>
+
+      <section id="identity">
+        <div class="section-head">
+          <div><div class="section-kicker">07 · Attribution and chronology</div><h2>Uncertainty stays visible.</h2></div>
+          <p>Credit and date research need evidence. Unknown identity is safer than a plausible but unsupported attribution.</p>
+        </div>
+        <div class="two-col">
+          <article class="panel">
+            <h3>Artist identity</h3>
+            <ul>
+              <li>Use exact, normalized aliases only when evidence supports them.</li>
+              <li>Keep row-specific misattributions separate from global name corrections.</li>
+              <li>Update credit lines and rightsholders with the artist plan.</li>
+              <li>Never merge artists because their styles look similar.</li>
+              <li>Preserve source URLs and research notes.</li>
+            </ul>
+          </article>
+          <article class="panel">
+            <h3>Date research</h3>
+            <ul>
+              <li>State whether the date covers creation, publication, export, or source post.</li>
+              <li>Use exact date, year, range, upper bound, inferred, or unknown.</li>
+              <li>Record confidence and limitations.</li>
+              <li>Keep rejected and alternative dates.</li>
+              <li>Hash the source artifact and source record.</li>
+            </ul>
+          </article>
+        </div>
+        <div class="alert amber">
+          <div class="alert-icon">i</div>
+          <div><strong>Production still contains legacy <code>Unknown</code> and <code>Anonymous</code> artist strings.</strong><p>The domain term is <code>Unattributed</code>. Do not collapse or rename those rows without a reviewed migration plan.</p></div>
+        </div>
+      </section>
+
+      <section id="registry">
+        <div class="section-head">
+          <div><div class="section-kicker">08 · Folder map</div><h2>Find the right tool before writing a new one.</h2></div>
+          <p>Search by task or filter by risk. Read the whole target script before use.</p>
+        </div>
+        <div class="registry-tools">
+          <input id="script-search" type="search" placeholder="Search scripts, tasks, or cautions…" aria-label="Search script registry">
+          <button class="filter-chip active" type="button" data-filter="all">All</button>
+          <button class="filter-chip" type="button" data-filter="read">Read-only</button>
+          <button class="filter-chip" type="button" data-filter="local">Local</button>
+          <button class="filter-chip" type="button" data-filter="write">Production write</button>
+          <button class="filter-chip" type="button" data-filter="caution">Inspect first</button>
+        </div>
+        <div class="table-wrap">
+          <table id="script-table">
+            <thead><tr><th>Tool or group</th><th>Risk</th><th>Use it for</th><th>Key caution</th></tr></thead>
+            <tbody>
+              <tr data-kind="read"><td><code>audit-provenance.mjs</code></td><td><span class="badge read">read-only</span></td><td>Audit live credit and rights coverage.</td><td>Report capture time and target.</td></tr>
+              <tr data-kind="read"><td><code>reconcile-effectindex-dump.mjs</code></td><td><span class="badge read">read-only</span></td><td>Compare an Effect Index dump with live rows.</td><td>Its reports are evidence, not import plans.</td></tr>
+              <tr data-kind="read"><td><code>probe-effectindex-media-recovery.mjs</code></td><td><span class="badge read">read-only</span></td><td>Probe unresolved remote media.</td><td>Normal mode writes only a local resumable report.</td></tr>
+              <tr data-kind="local"><td><code>scan-replications.mjs</code> + <code>assign-image-effects.mjs</code></td><td><span class="badge local">local</span></td><td>Generate or enrich local metadata exports.</td><td>Generated JSON is not runtime truth.</td></tr>
+              <tr data-kind="local"><td><code>enrich-rights-metadata.mjs</code></td><td><span class="badge local">local</span></td><td>Enrich generated rights metadata.</td><td>Review sources before a production backfill.</td></tr>
+              <tr data-kind="local"><td><code>archive-replication-masters.mjs</code></td><td><span class="badge local">local</span></td><td>Rescue masters and build archive reports.</td><td>Historical deployment counts in comments can be stale.</td></tr>
+              <tr data-kind="local"><td><code>transcode-videos.mjs</code> + <code>video-*.mjs</code></td><td><span class="badge local">local</span></td><td>Plan, inspect, transcode, and report delivery renditions.</td><td>Transcoding does not publish or repoint a row.</td></tr>
+              <tr data-kind="write"><td><code>apply-editorial-review-notes*.mjs</code></td><td><span class="badge write">write</span></td><td>Apply reviewed effect, artist, deletion, or gallery batches.</td><td>Use ID-keyed deltas. Never reuse positional note numbers.</td></tr>
+              <tr data-kind="write"><td><code>apply-date-research.mjs</code></td><td><span class="badge write">write</span></td><td>Backfill compact dates and full research dossiers.</td><td>Identity snapshots must match the live row.</td></tr>
+              <tr data-kind="write"><td><code>apply-provenance-corrections.mjs</code></td><td><span class="badge write">write</span></td><td>Apply reviewed credit and source corrections.</td><td>Use the reviewed plan and exact digest.</td></tr>
+              <tr data-kind="write"><td><code>apply-artist-license.mjs</code></td><td><span class="badge write">write</span></td><td>Record an explicit license for one artist.</td><td>A license grant is durable. Require real permission.</td></tr>
+              <tr data-kind="write"><td><code>backfill-rights-metadata.mjs</code></td><td><span class="badge write">write</span></td><td>Backfill rights metadata from reviewed exports.</td><td>Do not treat the local export as newer by default.</td></tr>
+              <tr data-kind="write"><td><code>plan-artist-name-corrections.mjs</code></td><td><span class="badge write">write</span></td><td>Apply evidence-backed global artist name corrections.</td><td>Use only strong committed identity corrections.</td></tr>
+              <tr data-kind="write"><td><code>reassign-replication-credits.mjs</code></td><td><span class="badge write">write</span></td><td>Fix row-specific misattributions and stragglers.</td><td>Keep this separate from global name replacement.</td></tr>
+              <tr data-kind="write"><td><code>merge-unknown-twins.mjs</code></td><td><span class="badge write">write</span></td><td>Merge a reviewed keeper and duplicate row.</td><td>Require explicit IDs, storage evidence, and keeper rationale.</td></tr>
+              <tr data-kind="write"><td><code>normalize-slugs.mjs</code> + <code>apply-slug-aliases.mjs</code></td><td><span class="badge write">write</span></td><td>Normalize public slugs and close alias gaps.</td><td>A rename changes a public URL. Verify redirects and routes.</td></tr>
+              <tr data-kind="write"><td><code>create-gallery-order.mjs</code></td><td><span class="badge write">write</span></td><td>Rebuild effect gallery order from metadata.</td><td>Review the full reorder before execution.</td></tr>
+              <tr data-kind="write"><td><code>restrict-deliriant-only-replications.mjs</code></td><td><span class="badge write">write</span></td><td>Suppress deliriant-only works on other substance showcases.</td><td>It is a one-off curation batch, not a standing rule.</td></tr>
+              <tr data-kind="write"><td><code>generate-preview-renditions.mjs</code></td><td><span class="badge write">write</span></td><td>Create and attach short gallery previews.</td><td>It writes storage and preview IDs. It keeps main media.</td></tr>
+              <tr data-kind="write"><td><code>regenerate-missing-thumbnails.mjs</code></td><td><span class="badge write">write</span></td><td>Repair missing video thumbnails.</td><td>Verify image content and row identity before attachment.</td></tr>
+              <tr data-kind="write"><td><code>replace-media.mjs</code></td><td><span class="badge write">write</span></td><td>Replace one row's delivered media.</td><td>Confirm the storage ID and rendered target after the write.</td></tr>
+              <tr data-kind="write"><td><code>repoint-renditions.mjs</code></td><td><span class="badge write">write</span></td><td>Upload audited renditions and repoint a batch.</td><td>Use its ledger. Do not rerun completed uploads blindly.</td></tr>
+              <tr data-kind="write"><td><code>import-reviewed-library.mjs</code></td><td><span class="badge write">write</span></td><td>Import an independently reviewed delivery manifest.</td><td>This file is local and untracked in this checkout. Preserve it.</td></tr>
+              <tr data-kind="write"><td><code>migrate-article-media.mjs</code></td><td><span class="badge write">write</span></td><td>Move reviewed embedded media into the replication store.</td><td>Only strong or owner-ruled assets qualify.</td></tr>
+              <tr data-kind="write"><td><code>import-audio-replications.mjs</code></td><td><span class="badge write">write</span></td><td>Import Effect Index audio metadata with available media.</td><td>Audit both audio storage surfaces after import.</td></tr>
+              <tr data-kind="write"><td><code>import-missing-effectindex-images.mjs</code></td><td><span class="badge write">write</span></td><td>Import reviewed recoverable images.</td><td>The default dry run can still use the network.</td></tr>
+              <tr data-kind="write"><td><code>import-recovered-effectindex-videos.mjs</code></td><td><span class="badge write">write</span></td><td>Import recovered videos through the configured delivery service.</td><td>Review external API behavior and cost before use.</td></tr>
+              <tr data-kind="write"><td><code>seed-featured-replications.mjs</code></td><td><span class="badge write">write</span></td><td>Seed the database-backed featured carousel once.</td><td>Existing curation wins. The script must remain non-destructive.</td></tr>
+              <tr data-kind="caution"><td><code>import-replications-simple.mjs</code></td><td><span class="badge caution">inspect first</span></td><td>Older metadata-only import path.</td><td>Prefer current guarded manifest workflows.</td></tr>
+              <tr data-kind="caution"><td><code>migrate-replications.mjs</code></td><td><span class="badge caution">inspect first</span></td><td>Legacy original-corpus migration.</td><td>Paths and assumptions predate the current production model.</td></tr>
+              <tr data-kind="caution"><td><code>upload-replications.mjs</code></td><td><span class="badge caution">inspect first</span></td><td>Legacy generic storage upload.</td><td>It lacks the richer reviewed-library contract.</td></tr>
+              <tr data-kind="caution"><td><code>import-replications.mjs.bak</code></td><td><span class="badge caution">do not run</span></td><td>Historical backup only.</td><td>A <code>.bak</code> file is not an active workflow.</td></tr>
+              <tr data-kind="local"><td><code>article-media-*.mjs</code></td><td><span class="badge local">library</span></td><td>Plan, inspect, publish, and report article media migration.</td><td>Use through the tested migration entrypoint.</td></tr>
+              <tr data-kind="local"><td><code>lib/*.mjs</code></td><td><span class="badge local">library</span></td><td>Shared reconciliation, workspace, media, and duplicate logic.</td><td>Do not bypass entrypoint guards with direct calls.</td></tr>
+              <tr data-kind="local"><td><code>*.test.mjs</code></td><td><span class="badge local">tests</span></td><td>Protect planning, policy, and command behavior.</td><td>Use the workflow Vitest config for individual files.</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p id="registry-count" class="snapshot-caption" aria-live="polite">Showing all registry entries.</p>
+      </section>
+
+      <section id="verification">
+        <div class="section-head">
+          <div><div class="section-kicker">09 · Completion gate</div><h2>“The mutation passed” is not completion.</h2></div>
+          <p>Verification must cover the database relation, stored media, resolved response, and public route affected by the operation.</p>
+        </div>
+        <div class="three-col">
+          <article class="panel"><h3>Database</h3><ul><li>Exact changed row snapshots.</li><li>Unchanged row count unless planned.</li><li>No forbidden artist-wide tags.</li><li>Complete ledger keys.</li></ul></article>
+          <article class="panel"><h3>Media and API</h3><ul><li>Storage ID resolves.</li><li>Thumbnail and preview resolve.</li><li>Duration, format, and audio match.</li><li>Public query returns the intended row.</li></ul></article>
+          <article class="panel"><h3>Public surface</h3><ul><li>Permalink returns the intended media.</li><li>Artist and effect focus views agree.</li><li>Substance showcase includes or excludes it.</li><li>Renamed routes redirect correctly.</li></ul></article>
+        </div>
+        <div class="code-shell">
+          <header><span>workflow verification</span><button class="copy-button" type="button" data-copy-target="verify-template">copy</button></header>
+          <pre id="verify-template">npm run test:workflow
+npm run lint:scripts
+npm run typecheck:scripts
+npm run typecheck:convex
+
+# For one script test:
+npx vitest run --config scripts/test/vitest.workflow.config.ts \
+  scripts/replications/&lt;name&gt;.test.mjs</pre>
+        </div>
+        <div class="alert amber">
+          <div class="alert-icon">i</div>
+          <div><strong>Static routes can need a new app build after a corpus import.</strong><p>Check route generation before declaring new permalinks live. The current site also shares one repository with Effect Index.</p></div>
+        </div>
+      </section>
+
+      <section id="sources">
+        <div class="section-head">
+          <div><div class="section-kicker">10 · Evidence map</div><h2>Trace every rule to its owner.</h2></div>
+          <p>Paths below are the current evidence behind this guide. Re-read them when the repository changes.</p>
+        </div>
+        <div class="source-list">
+          <div class="source-item"><strong>Repository invariants</strong><span><code>AGENTS.md</code></span></div>
+          <div class="source-item"><strong>Domain language</strong><span><code>CONTEXT.md</code> → Replications Surface Language</span></div>
+          <div class="source-item"><strong>Row schema</strong><span><code>convex/lib/effectMediaSchemaValidators.ts:80–191</code></span></div>
+          <div class="source-item"><strong>Date contract</strong><span><code>convex/lib/replicationDateValidators.ts:3–131</code></span></div>
+          <div class="source-item"><strong>Editorial compare-and-set</strong><span><code>convex/lib/replicationStudio.ts:70–108</code></span></div>
+          <div class="source-item"><strong>Storage resolution</strong><span><code>convex/lib/replicationUrls.ts:1–71</code></span></div>
+          <div class="source-item"><strong>Showcase curation</strong><span><code>convex/substanceGalleries.ts:49–105, 270–385</code></span></div>
+          <div class="source-item"><strong>Reusable gallery playlists</strong><span><code>convex/replicationPlaylists.ts</code></span></div>
+          <div class="source-item"><strong>Production write guard</strong><span><code>scripts/lib/production-write-command.mjs</code></span></div>
+          <div class="source-item"><strong>Credential routing</strong><span><code>docs/agents/convex-credentials.md</code></span></div>
+          <div class="source-item"><strong>Deployment routing</strong><span><code>docs/agents/deployment.md</code></span></div>
+          <div class="source-item"><strong>Latest effect batch</strong><span><code>scripts/replications/apply-editorial-review-notes-v2.mjs</code></span></div>
+          <div class="source-item"><strong>Recent release evidence</strong><span><code>work/replication-editorial-review-v2-plan.json</code> and ledger outside the repo</span></div>
+        </div>
+      </section>
+
+      <footer>
+        Generated 2026-08-22 for branch <code>main</code> from repository commit <code>96d0572c</code>.<br>
+        Live snapshot: <code>glad-minnow-656</code>, 978 rows, 540 images, 438 videos, 833 rows with <code>date_info</code>, and 590 rows with additional effect tags.<br>
+        This file contains no credentials and performs no network or database action.
+      </footer>
+    </main>
+  </div>
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <script>
+    (() => {
+      const toast = document.getElementById("toast");
+      let toastTimer;
+      function announce(message) {
+        toast.textContent = message;
+        toast.classList.add("show");
+        clearTimeout(toastTimer);
+        toastTimer = setTimeout(() => toast.classList.remove("show"), 1800);
+      }
+
+      document.querySelectorAll("[data-copy-target]").forEach((button) => {
+        button.addEventListener("click", async () => {
+          const target = document.getElementById(button.dataset.copyTarget);
+          const text = target?.textContent?.trim() ?? "";
+          try {
+            await navigator.clipboard.writeText(text);
+            announce("Copied to clipboard.");
+          } catch {
+            const area = document.createElement("textarea");
+            area.value = text;
+            document.body.appendChild(area);
+            area.select();
+            document.execCommand("copy");
+            area.remove();
+            announce("Copied to clipboard.");
+          }
+        });
+      });
+
+      const checklist = document.querySelector("[data-checklist]");
+      if (checklist) {
+        const key = "dosewiki-replications-agent-checklist-v1";
+        const boxes = [...checklist.querySelectorAll("input[type=checkbox]")];
+        let saved = [];
+        try { saved = JSON.parse(localStorage.getItem(key) ?? "[]"); } catch { saved = []; }
+        boxes.forEach((box, index) => {
+          box.checked = Boolean(saved[index]);
+          box.addEventListener("change", () => {
+            try { localStorage.setItem(key, JSON.stringify(boxes.map((item) => item.checked))); } catch {}
+          });
+        });
+      }
+
+      const search = document.getElementById("script-search");
+      const rows = [...document.querySelectorAll("#script-table tbody tr")];
+      const chips = [...document.querySelectorAll("[data-filter]")];
+      const count = document.getElementById("registry-count");
+      let activeFilter = "all";
+
+      function applyRegistryFilter() {
+        const term = search.value.trim().toLowerCase();
+        let visible = 0;
+        rows.forEach((row) => {
+          const kindMatch = activeFilter === "all" || row.dataset.kind === activeFilter;
+          const textMatch = !term || row.textContent.toLowerCase().includes(term);
+          row.hidden = !(kindMatch && textMatch);
+          if (!row.hidden) visible += 1;
+        });
+        count.textContent = `Showing ${visible} of ${rows.length} registry entries.`;
+      }
+
+      search.addEventListener("input", applyRegistryFilter);
+      chips.forEach((chip) => {
+        chip.addEventListener("click", () => {
+          activeFilter = chip.dataset.filter;
+          chips.forEach((item) => item.classList.toggle("active", item === chip));
+          applyRegistryFilter();
+        });
+      });
+      applyRegistryFilter();
+
+      const links = [...document.querySelectorAll(".toc a")];
+      const sections = links.map((link) => document.querySelector(link.getAttribute("href"))).filter(Boolean);
+      const observer = new IntersectionObserver((entries) => {
+        const visible = entries.filter((entry) => entry.isIntersecting).sort((a, b) => b.intersectionRatio - a.intersectionRatio)[0];
+        if (!visible) return;
+        links.forEach((link) => link.setAttribute("aria-current", String(link.getAttribute("href") === `#${visible.target.id}`)));
+      }, { rootMargin: "-20% 0px -65% 0px", threshold: [0, 0.1, 0.5] });
+      sections.forEach((section) => observer.observe(section));
+    })();
+  </script>
+</body>
+</html>
