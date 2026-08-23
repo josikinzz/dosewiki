@@ -16,8 +16,16 @@ const controlClassName = cn(
   focusRingClassName,
 );
 
+function reducedMotionRequested(): boolean {
+  return (
+    typeof window !== "undefined" &&
+    Boolean(window.matchMedia) &&
+    window.matchMedia("(prefers-reduced-motion: reduce)").matches
+  );
+}
+
 function useReducedMotion(): boolean {
-  const [reduced, setReduced] = useState(false);
+  const [reduced, setReduced] = useState(reducedMotionRequested);
   useEffect(() => {
     if (typeof window === "undefined" || !window.matchMedia) return;
     const query = window.matchMedia("(prefers-reduced-motion: reduce)");
@@ -146,7 +154,11 @@ export function ReplicationMediaStage({
 
   useEffect(() => {
     const video = videoRef.current;
-    if (!video || !autoplayAllowed) return;
+    if (!video) return;
+    if (!autoplayAllowed) {
+      if (!video.paused) video.pause();
+      return;
+    }
     const attempt = video.play();
     if (attempt) {
       void attempt.catch(() => {

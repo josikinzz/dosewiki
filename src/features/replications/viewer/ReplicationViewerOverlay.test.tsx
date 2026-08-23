@@ -180,12 +180,11 @@ describe("ReplicationViewerOverlay", () => {
       />,
     );
 
-    expect(
-      screen.getByRole("dialog", { name: "Replications by artist" }),
-    ).toHaveAttribute("aria-modal", "true");
-    expect(
-      screen.getByRole("dialog", { name: "Replications by artist" }),
-    ).toHaveClass("grid-rows-[auto_minmax(0,1fr)]");
+    const dialog = screen.getByRole("dialog", {
+      name: /Work One.*Chelsea Morgan/,
+    });
+    expect(dialog).toHaveAttribute("aria-modal", "true");
+    expect(dialog).toHaveClass("grid-rows-[auto_minmax(0,1fr)]");
     expect(screen.getByTestId("media-stage")).toHaveAttribute(
       "data-title",
       "Work One",
@@ -196,7 +195,10 @@ describe("ReplicationViewerOverlay", () => {
       "grid-cols-[minmax(0,1fr)]",
       "overflow-hidden",
     );
-    expect(screen.getAllByText("1 of 2")).toHaveLength(2);
+    const header = dialog.querySelector("header");
+    expect(header).toHaveTextContent("Work 1/2");
+    expect(header).toHaveTextContent("Artist 1/2");
+    expect(header?.textContent?.match(/Chelsea Morgan/g)).toHaveLength(1);
 
     fireEvent.click(screen.getByRole("button", { name: "Next: Work Two" }));
 
@@ -225,7 +227,8 @@ describe("ReplicationViewerOverlay", () => {
       "data-title",
       "Work Three",
     );
-    expect(screen.getAllByText("Aria")).toHaveLength(2);
+    expect(screen.getAllByText("Aria")).toHaveLength(1);
+    expect(screen.getByText("Artist 2/2")).toBeInTheDocument();
     expect(window.location.search).toContain("viewer=work-three");
   });
 

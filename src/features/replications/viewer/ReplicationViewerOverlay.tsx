@@ -278,11 +278,12 @@ export function ReplicationViewerOverlay({
 
   if (!active || !position || !group) return null;
 
-  const workPosition = `${position.itemIndex + 1} of ${group.items.length}`;
-  const groupPosition =
-    collection.groups.length > 1
-      ? `${position.groupIndex + 1} of ${collection.groups.length}`
-      : null;
+  const groupUnit =
+    collection.grouping === "artist"
+      ? "Artist"
+      : collection.grouping === "effect" || collection.kind === "substance"
+        ? "Effect"
+        : "Group";
 
   return (
     <Dialog
@@ -305,6 +306,11 @@ export function ReplicationViewerOverlay({
               : null;
           event.preventDefault();
           contentRef.current?.focus();
+        }}
+        onEscapeKeyDown={(event) => {
+          // The first Escape belongs to the browser when the media stage is
+          // fullscreen. Keep the collection overlay mounted underneath it.
+          if (document.fullscreenElement) event.preventDefault();
         }}
         onCloseAutoFocus={(event) => {
           event.preventDefault();
@@ -355,29 +361,34 @@ export function ReplicationViewerOverlay({
           immersiveFallback && "fixed inset-0",
         )}
       >
-        <header className="theme-media-thumbnail-border relative z-10 flex min-h-20 items-center gap-3 border-b bg-black px-4 py-3 pr-16 sm:px-6">
-          <div className="min-w-0 flex-1">
-            <DialogTitle className="truncate font-display text-base font-semibold sm:text-lg">
-              {collection.label}
+        <header className="theme-media-thumbnail-border relative z-10 flex min-h-16 items-center gap-3 border-b bg-black px-4 py-2 pr-16 sm:px-6">
+          <div className="flex min-w-0 flex-1 flex-col gap-0.5 sm:flex-row sm:items-baseline sm:gap-3">
+            <DialogTitle className="flex min-w-0 items-baseline gap-1.5 font-display text-sm font-semibold sm:flex-1 sm:text-base">
+              <span className="min-w-0 truncate">
+                {active.replication.title}
+              </span>
+              <span aria-hidden className="theme-media-tile-creator">
+                ·
+              </span>
+              <span className="theme-media-tile-creator max-w-[12rem] shrink-0 truncate">
+                {active.replication.artist || "Unattributed"}
+              </span>
             </DialogTitle>
             <DialogDescription
               id="replication-viewer-description"
-              className="theme-media-tile-creator mt-1 flex min-w-0 flex-wrap gap-x-2 text-xs sm:text-sm"
+              className="theme-media-tile-creator flex shrink-0 items-center gap-1.5 whitespace-nowrap text-[11px] tabular-nums sm:text-xs"
             >
-              <span className="theme-media-tile-title truncate">
-                {active.replication.title}
+              <span className="sr-only">{collection.label}. </span>
+              <span>
+                Work {position.itemIndex + 1}/{group.items.length}
               </span>
-              <span aria-hidden>·</span>
-              <span className="truncate">
-                {active.replication.artist || "Unattributed"}
-              </span>
-              <span aria-hidden>·</span>
-              <span className="tabular-nums">{workPosition}</span>
-              {groupPosition ? (
+              {collection.groups.length > 1 ? (
                 <>
                   <span aria-hidden>·</span>
-                  <span className="truncate">{group.label}</span>
-                  <span className="tabular-nums">{groupPosition}</span>
+                  <span>
+                    {groupUnit} {position.groupIndex + 1}/
+                    {collection.groups.length}
+                  </span>
                 </>
               ) : null}
             </DialogDescription>

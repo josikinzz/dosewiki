@@ -130,6 +130,35 @@ describe("ReplicationMediaStage", () => {
     expect(onFullscreen).toHaveBeenCalledOnce();
   });
 
+  it("does not autoplay when reduced motion is requested", () => {
+    vi.mocked(HTMLMediaElement.prototype.play).mockClear();
+    vi.stubGlobal(
+      "matchMedia",
+      vi.fn().mockImplementation((query: string) => ({
+        matches: query.includes("prefers-reduced-motion"),
+        media: query,
+        addEventListener: vi.fn(),
+        removeEventListener: vi.fn(),
+      })),
+    );
+
+    render(
+      <ReplicationMediaStage
+        item={item()}
+        muted
+        volume={1}
+        fullFrame={false}
+        onMutedChange={vi.fn()}
+        onVolumeChange={vi.fn()}
+        onFullFrameChange={vi.fn()}
+      />,
+    );
+
+    expect(HTMLMediaElement.prototype.play).not.toHaveBeenCalled();
+    fireEvent.click(screen.getByRole("button", { name: "Play" }));
+    expect(HTMLMediaElement.prototype.play).toHaveBeenCalledOnce();
+  });
+
   it("uses a controllable motion rendition for GIF rows without losing the poster", () => {
     const { container } = render(
       <ReplicationMediaStage
