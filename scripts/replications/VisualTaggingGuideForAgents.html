@@ -341,7 +341,8 @@
       <a href="#start">Start here</a>
       <a href="#procedure">Procedure</a>
       <a href="#mode">Open or closed eye</a>
-      <a href="#video">Video frames and audio</a>
+      <a href="#video">Video frames</a>
+      <a href="#audio">Audio gate</a>
       <a href="#confusions">Common confusions</a>
       <a href="#effects">Effect rules</a>
       <a href="#cases">Reviewed cases</a>
@@ -384,7 +385,7 @@
             <article class="process-step"><div class="step-no">02</div><div><h3>Inspect without the labels</h3><p>View the image at full resolution. Play the complete video once before seeking.</p></div><div class="gate"><strong>Complete when</strong>You can describe what changes without naming an effect.</div></article>
             <article class="process-step"><div class="step-no">03</div><div><h3>Choose the viewing mode</h3><p>Classify the work as open-eye, closed-eye, immersive, mixed, or uncertain.</p></div><div class="gate"><strong>Complete when</strong>You can identify the external substrate or explain why none exists.</div></article>
             <article class="process-step"><div class="step-no">04</div><div><h3>Build a video storyboard</h3><p>Start at 15%, 40%, 60%, and 85%. Add enough frames to represent every phase.</p></div><div class="gate"><strong>Complete when</strong>Every distinct visual phase appears in the evidence.</div></article>
-            <article class="process-step"><div class="step-no">05</div><div><h3>Probe and hear the audio</h3><p>Confirm whether an audio stream exists. Listen before choosing distortion or hallucination.</p></div><div class="gate"><strong>Complete when</strong>You can state whether sound transforms a source or introduces an imagined sound.</div></article>
+            <article class="process-step"><div class="step-no">05</div><div><h3>Prove <code>hasAudio</code>, then listen</h3><p>Decode the complete track. Record <code>hasAudio</code> before you interpret its content.</p></div><div class="gate"><strong>Complete when</strong>The stream status, maximum level, and listening evidence are recorded.</div></article>
             <article class="process-step"><div class="step-no">06</div><div><h3>Test effect candidates</h3><p>For each candidate, record the visible requirement and the closest rejected alternative.</p></div><div class="gate"><strong>Complete when</strong>Every proposed tag survives its confusion check.</div></article>
             <article class="process-step"><div class="step-no">07</div><div><h3>Separate other edits</h3><p>Keep artist credit, substance showcase, rights, deletion, and dating notes outside effect tags.</p></div><div class="gate"><strong>Complete when</strong>Each proposal targets one database surface.</div></article>
             <article class="process-step"><div class="step-no">08</div><div><h3>Return an ID-keyed proposal</h3><p>Use additive, removal, or explicit set semantics. Include uncertainty and supporting frames.</p></div><div class="gate"><strong>Complete when</strong>A later agent can recheck every change without guessing.</div></article>
@@ -434,7 +435,7 @@
         <div class="section-head">
           <div class="section-kicker">03 · Temporal inspection</div>
           <h2>One thumbnail cannot represent a video.</h2>
-          <p>Spread frames across time, inspect transitions, and hear the audio. A title card and a climax frame are not the whole sequence.</p>
+          <p>Spread frames across time and inspect transitions. A title card and a climax frame are not the whole sequence.</p>
         </div>
         <div class="section-body">
           <div class="storyboard" aria-label="Recommended frame positions">
@@ -446,7 +447,7 @@
           <div class="check-grid">
             <article class="check-card"><h3>Frame coverage</h3><ul><li>Use 15%, 40%, 60%, and 85% as anchor frames.</li><li>Use at least 12 spread frames for short, changing clips.</li><li>Add scene-cut frames and the first and last meaningful frames.</li><li>Use the full frame. Do not crop away the substrate.</li></ul></article>
             <article class="check-card"><h3>Temporal threshold</h3><ul><li>Play the full video once at normal speed.</li><li>Replay suspicious intervals slowly with adjacent frames.</li><li>Tag a brief phase only when it is clear and material.</li><li>Record the time range for disputed effects.</li></ul></article>
-            <article class="check-card"><h3>Audio evidence</h3><ul><li>An audio stream is evidence to inspect, not a tag.</li><li>Changed environmental sound supports auditory distortion.</li><li>Imagined or introduced sound supports auditory hallucination.</li><li>Phosform has an explicit reviewer prior. Confirm each file.</li></ul></article>
+            <article class="check-card"><h3>Audio handoff</h3><ul><li>Run the audio gate in the next section.</li><li>Do not infer sound from the title or artist.</li><li>Record the complete-track result by stable ID.</li><li>Keep the audio evidence beside the frame evidence.</li></ul></article>
             <article class="check-card"><h3>GIFs and loops</h3><ul><li>Inspect one complete loop and its boundary.</li><li>Sample the loop at four evenly spaced points.</li><li>Check whether recursion is real or only the loop itself.</li><li>A looping file does not automatically depict recursion.</li></ul></article>
           </div>
           <div class="code-shell">
@@ -465,9 +466,96 @@ ffmpeg -ss TIMESTAMP -i INPUT.mp4 -frames:v 1 -vf "scale=960:-2" FRAME.jpg
         </div>
       </section>
 
+      <section id="audio" class="paper">
+        <div class="section-head">
+          <div class="section-kicker">04 · Deterministic audio gate</div>
+          <h2>An audio stream does not prove audible content.</h2>
+          <p>Decode the complete track before setting <code>hasAudio</code>. Interpret the soundtrack only after this gate passes.</p>
+        </div>
+        <div class="section-body">
+          <div class="check-grid">
+            <article class="check-card"><h3>1 · No audio stream</h3><ul><li>Probe the current media URL with <code>ffprobe</code>.</li><li>If no audio stream exists, set <code>hasAudio: false</code>.</li><li>Record <code>reason: no_audio_stream</code>.</li><li>Remove every auditory effect tag.</li></ul></article>
+            <article class="check-card"><h3>2 · Digitally silent</h3><ul><li>Decode the complete first audio stream to PCM.</li><li>Measure the complete PCM track with <code>volumedetect</code>.</li><li>If <code>max_volume &lt;= -80 dB</code>, set <code>hasAudio: false</code>.</li><li>Record <code>reason: digitally_silent</code> and the levels.</li></ul></article>
+            <article class="check-card"><h3>3 · Audible candidate</h3><ul><li>If <code>max_volume &gt; -80 dB</code>, set <code>hasAudio: true</code>.</li><li>This result proves signal, not an auditory effect.</li><li>Listen across the complete track before tagging it.</li><li>Record speech, music, ambience, and disputed intervals.</li></ul></article>
+            <article class="check-card"><h3>4 · Effect decision</h3><ul><li>Music and sound design are not automatic effects.</li><li>Distortion requires an identifiable source that becomes perceptually altered.</li><li>Hallucination requires a depicted sound without an external source.</li><li>If the baseline is unclear, record <code>uncertain</code>.</li></ul></article>
+            <article class="check-card"><h3>5 · Failure state</h3><ul><li>A failed probe, download, decode, or measurement proves nothing.</li><li>Record <code>hasAudio: uncertain</code> and the exact error.</li><li>Check that the decoded duration is positive and plausibly complete.</li><li>Never convert missing evidence into <code>false</code>.</li></ul></article>
+          </div>
+          <div class="alert berry">
+            <div class="mark">!</div>
+            <div><strong>Do not use a language model as the silence detector.</strong><p>PCM measurement decides <code>hasAudio</code>. Gemma can only provide provisional descriptions after the deterministic gate passes.</p></div>
+          </div>
+          <div class="code-shell">
+            <header><span>complete-track audio gate</span><button class="copy-button" type="button" data-copy-target="audio-gate-recipe">copy</button></header>
+            <pre id="audio-gate-recipe"># 0. Use the same bundled binaries as the completed audit.
+# Neither command is currently on this Mac's shell PATH.
+FFPROBE_BIN="/Users/josie/Documents/Codex/2026-08-17/continue-this-and-it-seems-it/work/date-research-results/.tools/ffprobe"
+FFMPEG_BIN="/Users/josie/.local/npm-global/lib/node_modules/@ffmpeg-installer/ffmpeg/node_modules/@ffmpeg-installer/darwin-arm64/ffmpeg"
+test -x "$FFPROBE_BIN" &amp;&amp; test -x "$FFMPEG_BIN"
+
+# 1. Probe the current file for an audio stream.
+"$FFPROBE_BIN" -v error -select_streams a:0 -show_entries stream=index,codec_name,channels,sample_rate,duration -of json INPUT.mp4
+
+# 2. If a stream exists, decode the complete first stream.
+"$FFMPEG_BIN" -v error -i INPUT.mp4 -map 0:a:0 -vn -ac 1 -ar 16000 -c:a pcm_s16le OUTPUT.wav
+
+# 3. Measure the complete decoded track.
+"$FFMPEG_BIN" -hide_banner -nostats -i OUTPUT.wav -af volumedetect -f null -
+
+# 4. Classify from max_volume.
+# no stream              =&gt; hasAudio: false · no_audio_stream
+# max_volume &lt;= -80 dB  =&gt; hasAudio: false · digitally_silent
+# max_volume &gt;  -80 dB  =&gt; hasAudio: true  · audible_candidate
+# probe/decode failure   =&gt; hasAudio: uncertain · preserve current tags
+
+# 5. Listen only after hasAudio is true.
+# A soundtrack is not proof of an auditory subjective effect.</pre>
+          </div>
+          <div class="code-shell">
+            <header><span>ID-keyed audio evidence</span><button class="copy-button" type="button" data-copy-target="audio-evidence-template">copy</button></header>
+            <pre id="audio-evidence-template">replicationId: &lt;stable Convex ID&gt;
+sourceUrl: &lt;current resolved media URL&gt;
+hasAudio: true | false | uncertain
+reason: no_audio_stream | digitally_silent | audible_candidate | evidence_failure
+measurement:
+  durationSec: &lt;complete decoded duration&gt;
+  meanDb: &lt;number or null&gt;
+  maxDb: &lt;number or null&gt;
+  error: &lt;exact failure or empty&gt;
+listening:
+  method: human | audio-capable model | none
+  coverage: complete | timestamped intervals | not applicable
+  speech: &lt;verbatim provisional transcript or empty&gt;
+  nonSpeech: &lt;music, ambience, and sound events&gt;
+effectAssessment:
+  auditoryDistortion: true | false | uncertain
+  auditoryHallucination: true | false | uncertain
+  evidence: &lt;source, change, and timestamp&gt;</pre>
+          </div>
+          <details class="policy">
+            <summary>Local Gemma evidence is provisional</summary>
+            <div><ul>
+              <li>The 2026-08-23 pass covered all 511 current videos.</li>
+              <li>It found 258 video-only files and 101 digitally silent tracks.</li>
+              <li>Gemma analyzed 152 audible tracks across 464 timestamped chunks.</li>
+              <li>It repeated one generic hum description on 151 chunks across 86 videos.</li>
+              <li>Do not publish its transcripts or apply its semantic tags without human review.</li>
+            </ul><p class="source">Sources: <code>work/audio-analysis/FULL_RUN_REPORT.md</code> and <code>results-manifest.json</code>.</p></div>
+          </details>
+          <details class="policy">
+            <summary>Removing an invalid auditory primary</summary>
+            <div><ul>
+              <li>Remove auditory tags when the current complete track is absent or digitally silent.</li>
+              <li>If the primary is auditory, promote the strongest supported non-auditory effect.</li>
+              <li>Freeze the expected editorial snapshot before the write.</li>
+              <li>Use the guarded compare-and-swap mutation and verify every stable ID.</li>
+            </ul><p class="source">The 2026-08-23 cleanup removed 135 auditory tag occurrences from 93 silent videos. The ledger verified 93 of 93 writes.</p></div>
+          </details>
+        </div>
+      </section>
+
       <section id="confusions" class="paper">
         <div class="section-head">
-          <div class="section-kicker">04 · Failure atlas</div>
+          <div class="section-kicker">05 · Failure atlas</div>
           <h2>Most errors occur between neighboring concepts.</h2>
           <p>Use these comparisons before adding the less common or more specific tag.</p>
         </div>
@@ -491,7 +579,7 @@ ffmpeg -ss TIMESTAMP -i INPUT.mp4 -frames:v 1 -vf "scale=960:-2" FRAME.jpg
 
       <section id="effects" class="paper">
         <div class="section-head">
-          <div class="section-kicker">05 · Effect reference</div>
+          <div class="section-kicker">06 · Effect reference</div>
           <h2>Require a visible mechanism for every tag.</h2>
           <p>The summaries reflect the current production effect vocabulary and Josie’s reviewed corrections.</p>
         </div>
@@ -523,7 +611,7 @@ ffmpeg -ss TIMESTAMP -i INPUT.mp4 -frames:v 1 -vf "scale=960:-2" FRAME.jpg
             <details class="effect" data-search="increased pareidolia face vague stimulus"><summary><code>increased-pareidolia</code> · Increased pareidolia</summary><div class="effect-rule"><p><strong class="require">Use when</strong>A vague external stimulus resolves into a face, creature, or familiar form.</p><p><strong class="reject">Do not use when</strong>The face or figure is explicitly drawn into the source.</p></div></details>
             <details class="effect" data-search="recursion self similar repeated scene"><summary><code>recursion</code> · Recursion</summary><div class="effect-rule"><p><strong class="require">Use when</strong>A section of the external scene repeats inside itself in a self-similar structure.</p><p><strong class="reject">Do not use when</strong>A clip loops or a motif repeats side by side.</p></div></details>
             <details class="effect" data-search="tracers trail moving object after images persistence"><summary><code>tracers</code> and <code>after-images</code></summary><div class="effect-rule"><p><strong class="require">Use when</strong>Tracers follow a moving object. After-images persist after the source disappears.</p><p><strong class="reject">Do not use when</strong>Motion blur, echo effects, or a static duplicate lacks temporal persistence.</p></div></details>
-            <details class="effect" data-search="auditory distortion hallucination sound audio"><summary><code>auditory-distortion</code> and <code>auditory-hallucination</code></summary><div class="effect-rule"><p><strong class="require">Use when</strong>Distortion alters a sound source. Hallucination introduces a spontaneous or imagined sound.</p><p><strong class="reject">Do not use when</strong>The file merely contains music or an audio stream.</p></div></details>
+            <details class="effect" data-search="auditory distortion hallucination sound audio silence"><summary><code>auditory-distortion</code> and <code>auditory-hallucination</code></summary><div class="effect-rule"><p><strong class="require">Use when</strong><code>hasAudio</code> is true and listening establishes the effect. Distortion alters a source. Hallucination depicts sound without an external source.</p><p><strong class="reject">Do not use when</strong>The file has no audio, is digitally silent, or merely contains music or sound design.</p></div></details>
             <details class="effect" data-search="machinescapes mechanical landscape circuitry"><summary><code>machinescapes</code> · Machinescapes</summary><div class="effect-rule"><p><strong class="require">Use when</strong>The experience is a vast, intricate, hallucinatory mechanical landscape.</p><p><strong class="reject">Do not use when</strong>The work contains machinery, circuitry, or biomechanical motifs without a landscape.</p></div></details>
             <details class="effect" data-search="unspeakable horrors frightening disturbing scary"><summary><code>unspeakable-horrors</code> · Unspeakable horrors</summary><div class="effect-rule"><p><strong class="require">Use when</strong>The hallucinatory scenario is prolonged, disturbing, frightening, and fear-driven.</p><p><strong class="reject">Do not use when</strong>The image is merely dark, grotesque, or unusual without that editorial framing.</p></div></details>
           </div>
@@ -532,7 +620,7 @@ ffmpeg -ss TIMESTAMP -i INPUT.mp4 -frames:v 1 -vf "scale=960:-2" FRAME.jpg
 
       <section id="cases" class="paper">
         <div class="section-head">
-          <div class="section-kicker">06 · Reviewed specimens</div>
+          <div class="section-kicker">07 · Reviewed specimens</div>
           <h2>Positive and negative evidence belong together.</h2>
           <p>Video controls include four seek points. Compare the early, middle, and late states before reading the verdict.</p>
         </div>
@@ -580,7 +668,7 @@ ffmpeg -ss TIMESTAMP -i INPUT.mp4 -frames:v 1 -vf "scale=960:-2" FRAME.jpg
 
       <section id="scope" class="paper">
         <div class="section-head">
-          <div class="section-kicker">07 · Scope boundaries</div>
+          <div class="section-kicker">08 · Scope boundaries</div>
           <h2>Keep row evidence, artist rules, and substance curation separate.</h2>
           <p>A reviewer can state all three in one note. They still target different data and require different checks.</p>
         </div>
@@ -655,7 +743,7 @@ ffmpeg -ss TIMESTAMP -i INPUT.mp4 -frames:v 1 -vf "scale=960:-2" FRAME.jpg
 
       <section id="output" class="paper">
         <div class="section-head">
-          <div class="section-kicker">08 · Handoff contract</div>
+          <div class="section-kicker">09 · Handoff contract</div>
           <h2>Return a proposal that another agent can replay safely.</h2>
           <p>The proposal is review evidence. It is not production authorization by itself.</p>
         </div>
@@ -664,7 +752,8 @@ ffmpeg -ss TIMESTAMP -i INPUT.mp4 -frames:v 1 -vf "scale=960:-2" FRAME.jpg
             <label><input type="checkbox"><span>Stable ID and slug match.<small>The live row identity was checked.</small></span></label>
             <label><input type="checkbox"><span>The complete image, loop, or video was inspected.<small>Video evidence covers every distinct phase.</small></span></label>
             <label><input type="checkbox"><span>The viewing mode is recorded.<small>The external substrate is named or absent.</small></span></label>
-            <label><input type="checkbox"><span>Audio was probed and heard when present.<small>Distortion and hallucination were not inferred from a stream alone.</small></span></label>
+            <label><input type="checkbox"><span><code>hasAudio</code> passed the deterministic gate.<small>The complete PCM track was measured before listening.</small></span></label>
+            <label><input type="checkbox"><span>Every audible track was heard or marked uncertain.<small>A stream, soundtrack, or model description did not become an effect automatically.</small></span></label>
             <label><input type="checkbox"><span>Every effect has positive evidence.<small>The closest rejected effect is also recorded.</small></span></label>
             <label><input type="checkbox"><span>Artist and substance instructions are separated.<small>Each proposal targets the correct database surface.</small></span></label>
             <label><input type="checkbox"><span>Uncertainty remains explicit.<small>No ambiguous tag was promoted to fact.</small></span></label>
@@ -677,7 +766,12 @@ viewingMode: open-eye | closed-eye | immersive | mixed | uncertain
 evidence:
   inspected: full image | full loop | full video
   frames: [15%, 40%, 60%, 85%]
-  audio: absent | distortion | hallucination | uncertain
+  audio:
+    hasAudio: true | false | uncertain
+    reason: no_audio_stream | digitally_silent | audible_candidate | evidence_failure
+    meanDb: null
+    maxDb: null
+    listeningCoverage: complete | timestamped intervals | not applicable
 effects:
   add: []
   remove: []
@@ -695,7 +789,7 @@ sourceNoteIds: []</pre>
 
       <section id="sources" class="paper">
         <div class="section-head">
-          <div class="section-kicker">09 · Provenance</div>
+          <div class="section-kicker">10 · Provenance</div>
           <h2>These rules come from reviewed corrections.</h2>
           <p>Recheck the current effect articles and live rows when the ontology or corpus changes.</p>
         </div>
@@ -707,6 +801,8 @@ sourceNoteIds: []</pre>
               <tr><th>Earlier exports</th><td><code>dose-wiki-replication-review (1).json</code> and <code>(2).json</code></td></tr>
               <tr><th>Applied translators</th><td><code>apply-editorial-review-notes.mjs</code>, <code>-v2.mjs</code>, and <code>-v3.mjs</code></td></tr>
               <tr><th>Effect definitions</th><td>Production <code>subjectiveEffects</code> rows on <code>glad-minnow-656</code>, read 2026-08-23</td></tr>
+              <tr><th>Audio corpus audit</th><td><code>work/audio-analysis/FULL_RUN_REPORT.md</code> · 511 videos · 152 audible tracks · 464 model chunks</td></tr>
+              <tr><th>Silent-tag cleanup</th><td><code>silent-auditory-removal-ledger.json</code> · 93 verified rows · commit <code>1fc7720c</code></td></tr>
               <tr><th>Operational handoff</th><td><a href="ReadMeForAgents.html">ReadMeForAgents.html</a></td></tr>
             </tbody>
           </table>
@@ -715,7 +811,7 @@ sourceNoteIds: []</pre>
 
       <footer>
         Generated 2026-08-23 for <code>dosewiki-admin</code> on branch <code>main</code>.<br>
-        Built from 247 cumulative reviewer notes, 6 remaining-batch calibration notes, and the production effect vocabulary.<br>
+        Built from 247 cumulative notes, 6 calibration notes, the production vocabulary, and the complete-track audio audit.<br>
         This HTML file is repository documentation. It does not install a skill or write to Convex.
       </footer>
     </main>
