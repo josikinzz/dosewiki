@@ -79,14 +79,20 @@ describe("GIF motion encode contracts", () => {
     expect(args.slice(-3)).toEqual(["-f", "mp4", "out.mp4.part"]);
   });
 
-  it("extracts one WebP poster without resizing away frame content", () => {
+  it("extracts one PNG poster without resizing away frame content", () => {
     const args = buildMotionPosterFfmpegArgs({
       inputPath: "in.gif",
-      outputPath: "out.webp.part",
+      outputPath: "out.png.part",
     });
     expect(args).toContain("1");
-    expect(args).toContain("libwebp");
-    expect(args.slice(-3)).toEqual(["-f", "webp", "out.webp.part"]);
+    expect(args).toContain("png");
+    expect(args.slice(-5)).toEqual([
+      "-f",
+      "image2",
+      "-update",
+      "1",
+      "out.png.part",
+    ]);
   });
 
   it("accepts only silent, timed, faststart video", () => {

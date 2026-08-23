@@ -43,7 +43,6 @@ const OPERATION = "generate-gif-motion-renditions";
 export const GIF_MOTION_SPEC = Object.freeze({
   crf: 20,
   preset: "slow",
-  posterQuality: 82,
 });
 
 function isGifLike(row) {
@@ -130,11 +129,7 @@ export function buildGifMotionFfmpegArgs({
   ];
 }
 
-export function buildMotionPosterFfmpegArgs({
-  inputPath,
-  outputPath,
-  spec = GIF_MOTION_SPEC,
-}) {
+export function buildMotionPosterFfmpegArgs({ inputPath, outputPath }) {
   return [
     "-hide_banner",
     "-loglevel",
@@ -150,11 +145,11 @@ export function buildMotionPosterFfmpegArgs({
     "-vf",
     "scale=trunc(iw/2)*2:trunc(ih/2)*2:flags=lanczos",
     "-c:v",
-    "libwebp",
-    "-quality",
-    String(spec.posterQuality),
+    "png",
     "-f",
-    "webp",
+    "image2",
+    "-update",
+    "1",
     outputPath,
   ];
 }
@@ -342,7 +337,7 @@ async function main() {
       const motionPath = path.join(scratchDir, `${action.slug}.motion.mp4`);
       const posterPath = path.join(
         scratchDir,
-        `${action.slug}.motion-poster.webp`,
+        `${action.slug}.motion-poster.png`,
       );
       const motionPart = `${motionPath}.part`;
       const posterPart = `${posterPath}.part`;
@@ -379,7 +374,7 @@ async function main() {
         writeClient,
         apiKey,
         posterPath,
-        "image/webp",
+        "image/png",
       );
       await writeClient.mutation(api.replications.updateMotionStorageIds, {
         apiKey,
