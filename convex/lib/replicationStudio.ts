@@ -29,9 +29,7 @@ export async function getStudioRowsHandler(
   const urls = memoizedStorageUrls(ctx);
   const resolved = await Promise.all(
     rows.map(async (row) => {
-      const { url, thumbnail_url } = await resolveReplicationUrls(urls, row, {
-        preview: false,
-      });
+      const { url, thumbnail_url, preview_url } = await resolveReplicationUrls(urls, row);
       return {
         id: row._id,
         slug: row.slug,
@@ -51,6 +49,7 @@ export async function getStudioRowsHandler(
         rightsholder: row.rightsholder ?? null,
         url,
         thumbnail_url,
+        preview_url,
         format: row.format,
         duration: row.duration ?? null,
         file_size: row.file_size ?? null,

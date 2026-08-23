@@ -24,6 +24,8 @@ export type StudioRow = {
   rights_status?: string | null;
   url: string | null;
   thumbnail_url: string | null;
+  /** Low-resolution muted video rendition used for bounded preview playback. */
+  preview_url?: string | null;
   format: string;
   duration: number | null;
   file_size: number | null;

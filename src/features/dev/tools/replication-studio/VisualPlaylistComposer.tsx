@@ -101,7 +101,7 @@ function SortablePlaylistRow({
       >
         <Icon icon="lucide:grip-vertical" size={15} />
       </Button>
-      <ReplicationThumb row={row} className="aspect-square" />
+      <ReplicationThumb row={row} className="aspect-square" enableVideoPreview />
       <MediaDetails row={row} />
       <div className="flex items-center gap-1">
         <Button
@@ -153,7 +153,7 @@ function CandidateCard({
 }) {
   return (
     <li className="min-w-0 border-b border-[color:var(--editor-panel-border)] pb-3">
-      <ReplicationThumb row={row} className="aspect-[4/3]" />
+      <ReplicationThumb row={row} className="aspect-[4/3]" enableVideoPreview />
       <div className="mt-2 flex items-start gap-2">
         <div className="min-w-0 flex-1">
           <MediaDetails row={row} />

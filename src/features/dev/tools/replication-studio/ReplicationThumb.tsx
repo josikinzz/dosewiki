@@ -1,9 +1,15 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { Icon } from "@/components/common/Icon";
 import { cn } from "@/lib/utils";
+import {
+  createPlaybackSlotPool,
+  useInView,
+  useMotionAllowed,
+  usePlaybackSlot,
+} from "@/features/effects/gallery/inViewPlayback";
 
 import { formatDuration, type StudioMediaType } from "./replicationStudioModel";
 
@@ -12,6 +18,7 @@ type ThumbSubject = {
   title: string;
   type: StudioMediaType;
   thumbnail_url: string | null;
+  preview_url?: string | null;
   /**
    * The asset itself. Stills are their own thumbnail, so an image row with no
    * generated derivative still draws a frame instead of a glyph; video and
@@ -26,6 +33,9 @@ const TYPE_ICON: Record<StudioMediaType, string> = {
   video: "lucide:play",
   audio: "lucide:audio-lines",
 };
+
+/** Playlist previews share a four-decoder budget, independent of public galleries. */
+const PLAYLIST_PREVIEW_SLOTS = createPlaybackSlotPool(4);
 
 /**
  * A deterministic bar pattern for audio rows.
@@ -53,17 +63,49 @@ export function ReplicationThumb({
   row,
   className,
   showGlyph = true,
+  enableVideoPreview = false,
 }: {
   row: ThumbSubject;
   className?: string;
   showGlyph?: boolean;
+  /** Play the compressed preview rendition on hover or while at least half visible. */
+  enableVideoPreview?: boolean;
 }) {
   const [failed, setFailed] = useState(false);
+  const [hovered, setHovered] = useState(false);
+  const [playing, setPlaying] = useState(false);
+  const frameRef = useRef<HTMLDivElement | null>(null);
+  const videoRef = useRef<HTMLVideoElement | null>(null);
+  const { autoplay: autoplayAllowed, hoverPreview: hoverPreviewAllowed } = useMotionAllowed();
   const durationLabel = formatDuration(row.duration ?? null);
   const source = row.thumbnail_url ?? (row.type === "image" ? row.url ?? null : null);
+  const previewEligible =
+    enableVideoPreview && row.type === "video" && Boolean(row.preview_url);
+  const inView = useInView(frameRef, 0.5, previewEligible && autoplayAllowed);
+  const wantsPreview =
+    previewEligible &&
+    ((autoplayAllowed && inView) || (hoverPreviewAllowed && hovered));
+  const previewGranted = usePlaybackSlot(
+    wantsPreview,
+    hovered,
+    PLAYLIST_PREVIEW_SLOTS,
+  );
+  const showPreview = wantsPreview && previewGranted;
+
+  useEffect(() => {
+    if (showPreview && videoRef.current) {
+      videoRef.current.currentTime = 0;
+      void videoRef.current.play().catch(() => {});
+      return;
+    }
+    setPlaying(false);
+  }, [showPreview]);
 
   return (
     <div
+      ref={frameRef}
+      onPointerEnter={() => setHovered(true)}
+      onPointerLeave={() => setHovered(false)}
       className={cn(
         "relative w-full overflow-hidden theme-replication-media-well rounded-lg",
         className,
@@ -97,8 +139,33 @@ export function ReplicationThumb({
         <Placeholder type={row.type} />
       )}
 
+      {showPreview ? (
+        <video
+          ref={videoRef}
+          src={row.preview_url ?? undefined}
+          poster={row.thumbnail_url ?? undefined}
+          muted
+          loop
+          playsInline
+          preload="metadata"
+          aria-hidden="true"
+          onPlaying={() => setPlaying(true)}
+          onPause={() => setPlaying(false)}
+          onError={() => setPlaying(false)}
+          className={cn(
+            "pointer-events-none absolute inset-0 h-full w-full object-cover transition-opacity duration-200 motion-reduce:transition-none",
+            playing ? "opacity-100" : "opacity-0",
+          )}
+        />
+      ) : null}
+
       {showGlyph && row.type !== "image" ? (
-        <span className="absolute bottom-1.5 right-1.5 inline-flex items-center gap-1 theme-replication-media-badge rounded-full px-2 py-0.5 text-[11px]">
+        <span
+          className={cn(
+            "absolute bottom-1.5 right-1.5 inline-flex items-center gap-1 theme-replication-media-badge rounded-full px-2 py-0.5 text-[11px] transition-opacity motion-reduce:transition-none",
+            playing ? "opacity-0" : "opacity-100",
+          )}
+        >
           <Icon icon={TYPE_ICON[row.type]} size={11} />
           {durationLabel ?? row.type}
         </span>
