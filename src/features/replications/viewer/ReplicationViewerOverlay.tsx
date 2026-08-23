@@ -73,6 +73,7 @@ export function ReplicationViewerOverlay({
   const rememberedSlugByGroupRef = useRef<Record<string, string>>({});
   const touchStartRef = useRef<{ x: number; y: number } | null>(null);
   const contentRef = useRef<HTMLDivElement>(null);
+  const pausedBackgroundVideosRef = useRef<HTMLVideoElement[]>([]);
 
   const group = position ? collection.groups[position.groupIndex] : null;
   const active = group && position ? group.items[position.itemIndex] : null;
@@ -98,6 +99,31 @@ export function ReplicationViewerOverlay({
       setImmersiveFallback(false);
       rememberedSlugByGroupRef.current = {};
     }
+  }, [open]);
+
+  useEffect(() => {
+    if (!open) return;
+
+    const frame = window.requestAnimationFrame(() => {
+      const dialog = contentRef.current;
+      if (!dialog) return;
+      const pausedVideos = Array.from(
+        document.querySelectorAll("video"),
+      ).filter((video) => !dialog.contains(video) && !video.paused);
+      pausedBackgroundVideosRef.current = pausedVideos;
+      pausedVideos.forEach((video) => video.pause());
+    });
+
+    return () => {
+      window.cancelAnimationFrame(frame);
+      const videos = pausedBackgroundVideosRef.current;
+      pausedBackgroundVideosRef.current = [];
+      videos.forEach((video) => {
+        if (video.isConnected) {
+          void video.play().catch(() => undefined);
+        }
+      });
+    };
   }, [open]);
 
   const navigate = useCallback(

@@ -226,6 +226,41 @@ describe("ReplicationViewerOverlay", () => {
     expect(window.location.search).toContain("viewer=work-three");
   });
 
+  it("pauses source-page video while open and resumes it after close", async () => {
+    const sourceVideo = document.createElement("video");
+    const pause = vi.fn();
+    const play = vi.fn().mockResolvedValue(undefined);
+    Object.defineProperties(sourceVideo, {
+      paused: { configurable: true, get: () => false },
+      pause: { configurable: true, value: pause },
+      play: { configurable: true, value: play },
+    });
+    document.body.append(sourceVideo);
+
+    const { rerender } = render(
+      <ReplicationViewerOverlay
+        collection={collection}
+        initialSlug="work-one"
+        open
+        onOpenChange={vi.fn()}
+      />,
+    );
+
+    await waitFor(() => expect(pause).toHaveBeenCalledOnce());
+
+    rerender(
+      <ReplicationViewerOverlay
+        collection={collection}
+        initialSlug="work-one"
+        open={false}
+        onOpenChange={vi.fn()}
+      />,
+    );
+
+    await waitFor(() => expect(play).toHaveBeenCalledOnce());
+    sourceVideo.remove();
+  });
+
   it("loads rights metadata only when the reader opens information", async () => {
     render(
       <ReplicationViewerOverlay
