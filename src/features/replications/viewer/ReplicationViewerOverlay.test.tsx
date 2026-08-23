@@ -189,6 +189,9 @@ describe("ReplicationViewerOverlay", () => {
       "data-title",
       "Work One",
     );
+    expect(
+      screen.getByRole("heading", { name: /Work One.*Chelsea Morgan/ }),
+    ).toHaveClass("theme-media-tile-title");
     expect(screen.getByTestId("media-stage").parentElement).toHaveClass(
       "min-w-0",
       "w-full",

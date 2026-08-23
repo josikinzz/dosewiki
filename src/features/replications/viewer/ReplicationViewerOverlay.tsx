@@ -365,7 +365,7 @@ export function ReplicationViewerOverlay({
       >
         <header className="theme-media-thumbnail-border relative z-10 flex min-h-16 items-center gap-3 border-b bg-black px-4 py-2 pr-20 sm:px-6 sm:pr-20">
           <div className="flex min-w-0 flex-1 flex-col gap-0.5 sm:flex-row sm:items-baseline sm:gap-3">
-            <DialogTitle className="flex min-w-0 items-baseline gap-1.5 font-display text-sm font-semibold sm:flex-1 sm:text-base">
+            <DialogTitle className="theme-media-tile-title flex min-w-0 items-baseline gap-1.5 font-display text-sm font-semibold sm:flex-1 sm:text-base">
               <span className="min-w-0 truncate">
                 {active.replication.title}
               </span>
@@ -491,7 +491,7 @@ export function ReplicationViewerOverlay({
         {infoOpen ? (
           <aside className="theme-media-tile-title theme-media-thumbnail-border theme-media-overlay-shadow absolute bottom-0 right-0 top-20 z-20 w-full max-w-md overflow-y-auto border-l bg-black/95 p-5 text-sm sm:w-[26rem]">
             <div className="flex items-center justify-between gap-3">
-              <h2 className="font-display text-lg font-semibold">
+              <h2 className="theme-media-tile-title font-display text-lg font-semibold">
                 Information
               </h2>
               <button
