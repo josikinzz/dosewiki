@@ -25,21 +25,81 @@ describe("Effect Index legacy redirects", () => {
     );
 
     expect(effectIndexRedirects).toEqual([
-      { source: "/effects/external-hallucinations", destination: "/effects/external-hallucination", permanent: true },
-      { source: "/effects/internal-hallucinations", destination: "/effects/internal-hallucination", permanent: true },
-      { source: "/substances/dxm", destination: "/articles/dxm", permanent: true },
-      { source: "/effects/psychedelic-therapy", destination: "/articles/psychedelic-therapy", permanent: true },
-      { source: "/effects/autonomous-entities", destination: "/effects/autonomous-entity", permanent: true },
-      { source: "/effects/psychedlic-intensity-scale", destination: "/articles/psychedelic-intensity-scale", permanent: true },
-      { source: "/effects/time-reversal", destination: "/effects/time-distortion#time-reversal", permanent: true },
-      { source: "/substances/dmt", destination: "/articles/dmt", permanent: true },
-      { source: "/subjectivereport", destination: "https://subjective.report", permanent: true },
-      { source: "/effects/duration-terminology-explanation", destination: "/articles/duration-terminology-explanation", permanent: true },
-      { source: "/effects/time-dilation", destination: "/effects/time-distortion#time-dilation", permanent: true },
-      { source: "/effects/approximate-frequency-of-occurrence-scale", destination: "/articles/approximate-frequency-of-occurrence-scale", permanent: true },
-      { source: "/effects/time-compression", destination: "/effects/time-distortion#time-compression", permanent: true },
-      { source: "/effects/atemporality", destination: "/effects/time-distortion#atemporality", permanent: true },
-      { source: "/discord-chat", destination: "https://discord.gg/VSm5bF7", permanent: true },
+      {
+        source: "/effects/external-hallucinations",
+        destination: "/effects/external-hallucination",
+        permanent: true,
+      },
+      {
+        source: "/effects/internal-hallucinations",
+        destination: "/effects/internal-hallucination",
+        permanent: true,
+      },
+      {
+        source: "/substances/dxm",
+        destination: "/articles/dxm",
+        permanent: true,
+      },
+      {
+        source: "/effects/psychedelic-therapy",
+        destination: "/articles/psychedelic-therapy",
+        permanent: true,
+      },
+      {
+        source: "/effects/autonomous-entities",
+        destination: "/effects/autonomous-entity",
+        permanent: true,
+      },
+      {
+        source: "/effects/psychedlic-intensity-scale",
+        destination: "/articles/psychedelic-intensity-scale",
+        permanent: true,
+      },
+      {
+        source: "/effects/time-reversal",
+        destination: "/effects/time-distortion#time-reversal",
+        permanent: true,
+      },
+      {
+        source: "/substances/dmt",
+        destination: "/articles/dmt",
+        permanent: true,
+      },
+      {
+        source: "/subjectivereport",
+        destination: "https://subjective.report",
+        permanent: true,
+      },
+      {
+        source: "/effects/duration-terminology-explanation",
+        destination: "/articles/duration-terminology-explanation",
+        permanent: true,
+      },
+      {
+        source: "/effects/time-dilation",
+        destination: "/effects/time-distortion#time-dilation",
+        permanent: true,
+      },
+      {
+        source: "/effects/approximate-frequency-of-occurrence-scale",
+        destination: "/articles/approximate-frequency-of-occurrence-scale",
+        permanent: true,
+      },
+      {
+        source: "/effects/time-compression",
+        destination: "/effects/time-distortion#time-compression",
+        permanent: true,
+      },
+      {
+        source: "/effects/atemporality",
+        destination: "/effects/time-distortion#atemporality",
+        permanent: true,
+      },
+      {
+        source: "/discord-chat",
+        destination: "https://discord.gg/VSm5bF7",
+        permanent: true,
+      },
     ]);
   });
 
@@ -52,16 +112,20 @@ describe("Effect Index legacy redirects", () => {
     expect(destinationFor("/effects/acuity-suppression")).toBe(
       "/effects/visual-acuity-suppression",
     );
-    expect(destinationFor("/effects/perceived-exposure-to-inner-mechanics-of-consciousness")).toBe(
-      "/effects/visual-exposure-to-inner-mechanics-of-consciousness",
-    );
+    expect(
+      destinationFor(
+        "/effects/perceived-exposure-to-inner-mechanics-of-consciousness",
+      ),
+    ).toBe("/effects/visual-exposure-to-inner-mechanics-of-consciousness");
     // An article, linked as though it were an effect.
     expect(destinationFor("/effects/dreams")).toBe("/articles/dreams");
     expect(destinationFor("/effects/psychedelic-intensity-scale")).toBe(
       "/articles/psychedelic-intensity-scale",
     );
     // Missing the `/effects` prefix altogether.
-    expect(destinationFor("/auditory-distortion")).toBe("/effects/auditory-distortion");
+    expect(destinationFor("/auditory-distortion")).toBe(
+      "/effects/auditory-distortion",
+    );
     expect(destinationFor("/visual-acuity-enhancement")).toBe(
       "/effects/visual-acuity-enhancement",
     );
@@ -71,6 +135,25 @@ describe("Effect Index legacy redirects", () => {
     );
     expect(destinationFor("/effects/spontaneous-bodily-sensations")).toBe(
       "/effects/spontaneous-tactile-sensations",
+    );
+  });
+
+  it("redirects retired replication playlists before a page can stream", async () => {
+    const redirects = (await nextConfig.redirects?.()) ?? [];
+
+    expect(redirects).toEqual(
+      expect.arrayContaining([
+        {
+          source: "/replications/effect/:slug",
+          destination: "/effects/:slug",
+          permanent: true,
+        },
+        {
+          source: "/replications/substance/:slug",
+          destination: "/substances/:slug",
+          permanent: true,
+        },
+      ]),
     );
   });
 

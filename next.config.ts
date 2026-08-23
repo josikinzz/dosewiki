@@ -140,6 +140,16 @@ const nextConfig: NextConfig = {
   },
   async redirects() {
     return [
+      {
+        source: "/replications/effect/:slug",
+        destination: "/effects/:slug",
+        permanent: true,
+      },
+      {
+        source: "/replications/substance/:slug",
+        destination: "/substances/:slug",
+        permanent: true,
+      },
       ...Object.entries(substanceRouteAliases).map(([source, destination]) => ({
         source: `/${source}`,
         destination: `/${destination}`,
@@ -155,11 +165,13 @@ const nextConfig: NextConfig = {
         destination: `/category/${destination}`,
         permanent: true,
       })),
-      ...Object.entries(effectCategoryRouteAliases).map(([source, destination]) => ({
-        source: `/effects/category/${source}`,
-        destination: `/effects/category/${destination}`,
-        permanent: true,
-      })),
+      ...Object.entries(effectCategoryRouteAliases).map(
+        ([source, destination]) => ({
+          source: `/effects/category/${source}`,
+          destination: `/effects/category/${destination}`,
+          permanent: true,
+        }),
+      ),
     ];
   },
   async headers() {
@@ -173,7 +185,10 @@ const nextConfig: NextConfig = {
         // this covers the versioned URL and the bare route alike.
         source: "/appearance-chroma.css",
         headers: [
-          { key: "Cache-Control", value: "public, max-age=31536000, immutable" },
+          {
+            key: "Cache-Control",
+            value: "public, max-age=31536000, immutable",
+          },
         ],
       },
       {
@@ -182,13 +197,19 @@ const nextConfig: NextConfig = {
         // (src/theme/appearanceSheets.ts), so both may be cached forever.
         source: "/pro-theme.css",
         headers: [
-          { key: "Cache-Control", value: "public, max-age=31536000, immutable" },
+          {
+            key: "Cache-Control",
+            value: "public, max-age=31536000, immutable",
+          },
         ],
       },
       {
         source: "/theme-light-mode.css",
         headers: [
-          { key: "Cache-Control", value: "public, max-age=31536000, immutable" },
+          {
+            key: "Cache-Control",
+            value: "public, max-age=31536000, immutable",
+          },
         ],
       },
     ];
