@@ -85,6 +85,7 @@ export const ReplicationGallery = memo(function ReplicationGallery({
   return (
     <ReplicationShowcase
       works={works.slice(0, SHOWCASE_WORK_CAP)}
+      collectionWorks={works}
       totalCount={works.length}
       effectSlug={effectSlug}
       collectionLabel={

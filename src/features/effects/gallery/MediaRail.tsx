@@ -1,15 +1,14 @@
-'use client';
+"use client";
 
-import { useCallback, useEffect, useRef, useState } from 'react';
-import Link from 'next/link';
-import { Icon } from '@/components/common/Icon';
-import { Button } from '@/components/ui/button';
-import { focusRingClassName } from '@/components/ui/surface';
-import { cn } from '@/lib/utils';
-import type { PublicGalleryReplicationPreview } from '@/types/replications';
-import { GalleryMediaTile } from './GalleryMediaTile';
-import type { GalleryGroup } from './galleryModel';
-import type { ViewerSetParam } from '@/features/replications/viewer/viewerLogic';
+import { useCallback, useEffect, useRef, useState } from "react";
+import Link from "next/link";
+import { Icon } from "@/components/common/Icon";
+import { Button } from "@/components/ui/button";
+import { focusRingClassName } from "@/components/ui/surface";
+import { cn } from "@/lib/utils";
+import type { PublicGalleryReplicationPreview } from "@/types/replications";
+import { GalleryMediaTile } from "./GalleryMediaTile";
+import type { GalleryGroup } from "./galleryModel";
 
 /** Items shown inline in a rail before "View all" takes over. */
 const RAIL_PREVIEW_LIMIT = 14;
@@ -18,10 +17,10 @@ const RAIL_PREVIEW_LIMIT = 14;
 const ARROW_SCROLL_RATIO = 0.8;
 
 const HEADING_LINK_CLASS =
-  'theme-text-primary font-display text-lg font-semibold tracking-tight transition-colors hover:text-[var(--theme-accent-strong)]';
+  "theme-text-primary font-display text-lg font-semibold tracking-tight transition-colors hover:text-[var(--theme-accent-strong)]";
 
 const EXTERNAL_ICON_CLASS =
-  'theme-text-faint h-4 w-4 transition group-hover/heading:text-[var(--theme-accent-strong)]';
+  "theme-text-faint h-4 w-4 transition group-hover/heading:text-[var(--theme-accent-strong)]";
 
 interface MediaRailProps {
   group: GalleryGroup;
@@ -35,14 +34,13 @@ interface MediaRailProps {
   tileBylines?: boolean;
   /** Forwarded to each tile: hide captions below `md` so phone rails are media-only. */
   mobileCompact?: boolean;
-  /** Forwarded to each tile as `onOpen` (phone tap-to-deck interception). */
-  onTileOpen?: (event: React.MouseEvent, replication: PublicGalleryReplicationPreview) => void;
-  /**
-   * Forwarded to each tile as `setParam`: the viewer scope this rail stands
-   * for (an artist rail emits `artist:<key>`), so a tapped work opens walking
-   * this rail's playlist.
-   */
-  tileSetParam?: ViewerSetParam | null;
+  /** Opens the canonical in-page viewer for an ordinary click. */
+  onTileOpen?: (
+    event: React.MouseEvent,
+    replication: PublicGalleryReplicationPreview,
+  ) => void;
+  /** Canonical source-collection viewer URL for each rail work. */
+  viewerHrefFor: (replication: PublicGalleryReplicationPreview) => string;
 }
 
 export function MediaRail({
@@ -51,7 +49,7 @@ export function MediaRail({
   tileBylines = true,
   mobileCompact,
   onTileOpen,
-  tileSetParam = null,
+  viewerHrefFor,
 }: MediaRailProps) {
   const preview = group.items.slice(0, RAIL_PREVIEW_LIMIT);
   const hasMore = group.count > preview.length;
@@ -78,25 +76,25 @@ export function MediaRail({
 
   useEffect(() => {
     updateScrollability();
-    window.addEventListener('resize', updateScrollability);
-    return () => window.removeEventListener('resize', updateScrollability);
+    window.addEventListener("resize", updateScrollability);
+    return () => window.removeEventListener("resize", updateScrollability);
   }, [updateScrollability]);
 
   const scrollByPage = (direction: 1 | -1) => {
     const el = scrollerRef.current;
     if (!el) return;
     const reduceMotion =
-      window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false;
+      window.matchMedia?.("(prefers-reduced-motion: reduce)").matches ?? false;
     el.scrollBy({
       left: direction * el.clientWidth * ARROW_SCROLL_RATIO,
-      behavior: reduceMotion ? 'auto' : 'smooth',
+      behavior: reduceMotion ? "auto" : "smooth",
     });
   };
 
   // `disabled:opacity-0` (not a bare `opacity-0`) so it outranks the base
   // Button's `disabled:opacity-50`; disabled already kills pointer events.
   const arrowClass =
-    'theme-media-rail-arrow absolute top-1/2 z-10 hidden h-9 w-9 -translate-y-1/2 rounded-full disabled:opacity-0 [@media(hover:hover)]:inline-flex';
+    "theme-media-rail-arrow absolute top-1/2 z-10 hidden h-9 w-9 -translate-y-1/2 rounded-full disabled:opacity-0 [@media(hover:hover)]:inline-flex";
 
   /**
    * What the group's name does.
@@ -120,7 +118,10 @@ export function MediaRail({
    */
   const heading = group.href ? (
     <span className="flex min-w-0 items-center gap-1.5">
-      <Link href={group.href} className={cn(HEADING_LINK_CLASS, 'min-w-0 truncate')}>
+      <Link
+        href={group.href}
+        className={cn(HEADING_LINK_CLASS, "min-w-0 truncate")}
+      >
         {group.label}
       </Link>
       {group.externalUrl ? (
@@ -128,10 +129,15 @@ export function MediaRail({
           href={group.externalUrl}
           target="_blank"
           rel="noopener noreferrer"
-          className={cn('group/heading inline-flex shrink-0 items-center rounded-sm', focusRingClassName)}
+          className={cn(
+            "group/heading inline-flex shrink-0 items-center rounded-sm",
+            focusRingClassName,
+          )}
         >
           <Icon icon="lucide:arrow-up-right" className={EXTERNAL_ICON_CLASS} />
-          <span className="sr-only">{group.label}&rsquo;s own site (opens in a new tab)</span>
+          <span className="sr-only">
+            {group.label}&rsquo;s own site (opens in a new tab)
+          </span>
         </a>
       ) : null}
     </span>
@@ -140,7 +146,10 @@ export function MediaRail({
       href={group.externalUrl}
       target="_blank"
       rel="noopener noreferrer"
-      className={cn(HEADING_LINK_CLASS, 'group/heading inline-flex items-center gap-1.5')}
+      className={cn(
+        HEADING_LINK_CLASS,
+        "group/heading inline-flex items-center gap-1.5",
+      )}
     >
       {group.label}
       <Icon icon="lucide:arrow-up-right" className={EXTERNAL_ICON_CLASS} />
@@ -161,7 +170,10 @@ export function MediaRail({
             className="theme-text-muted group/all inline-flex min-h-11 items-center gap-1 rounded-full px-2 py-1 text-sm font-medium transition-colors hover:text-[var(--theme-accent-strong)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--theme-accent-strong)]"
           >
             View all {group.count}
-            <Icon icon="lucide:arrow-right" className="h-4 w-4 transition group-hover/all:translate-x-0.5 motion-reduce:transition-none" />
+            <Icon
+              icon="lucide:arrow-right"
+              className="h-4 w-4 transition group-hover/all:translate-x-0.5 motion-reduce:transition-none"
+            />
           </Link>
         ) : null}
       </div>
@@ -173,8 +185,8 @@ export function MediaRail({
           className={cn(
             // px/scroll-px keep resting tiles off the clipping edge, aligned
             // with the header's own px-1 inset.
-            'flex snap-x snap-mandatory gap-3 overflow-x-auto px-1 pb-2 scroll-px-1',
-            '[scrollbar-width:thin] [-webkit-overflow-scrolling:touch]',
+            "flex snap-x snap-mandatory gap-3 overflow-x-auto px-1 pb-2 scroll-px-1",
+            "[scrollbar-width:thin] [-webkit-overflow-scrolling:touch]",
           )}
         >
           {preview.map((replication) => (
@@ -186,13 +198,13 @@ export function MediaRail({
               showByline={tileBylines}
               mobileCompact={mobileCompact}
               onOpen={onTileOpen}
-              setParam={tileSetParam}
+              viewerHref={viewerHrefFor(replication)}
             />
           ))}
           {hasMore ? (
             <Link
               href={viewAllHref}
-              style={{ aspectRatio: '4 / 5' }}
+              style={{ aspectRatio: "4 / 5" }}
               className="theme-text-muted flex h-44 shrink-0 snap-start self-start flex-col items-center justify-center gap-2 rounded-xl border border-dashed border-[color:var(--theme-border-strong)] bg-[var(--theme-surface-soft)] px-4 text-sm font-medium transition-colors hover:text-[var(--theme-accent-strong)] hover:border-[color:var(--theme-card-border-strong)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--theme-accent-strong)] sm:h-52 motion-reduce:transition-none"
             >
               <Icon icon="lucide:arrow-right" className="h-5 w-5" />
@@ -208,7 +220,7 @@ export function MediaRail({
           onClick={() => scrollByPage(-1)}
           disabled={!canScroll.left}
           aria-label={`Scroll ${group.label} back`}
-          className={cn(arrowClass, 'left-1')}
+          className={cn(arrowClass, "left-1")}
         >
           <Icon icon="lucide:chevron-left" className="h-4 w-4" aria-hidden />
         </Button>
@@ -219,7 +231,7 @@ export function MediaRail({
           onClick={() => scrollByPage(1)}
           disabled={!canScroll.right}
           aria-label={`Scroll ${group.label} forward`}
-          className={cn(arrowClass, 'right-1')}
+          className={cn(arrowClass, "right-1")}
         >
           <Icon icon="lucide:chevron-right" className="h-4 w-4" aria-hidden />
         </Button>

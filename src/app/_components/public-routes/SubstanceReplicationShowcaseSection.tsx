@@ -59,6 +59,7 @@ export async function SubstanceReplicationShowcaseSection({
   return (
     <ReplicationShowcase
       works={works.slice(0, SHOWCASE_WORK_CAP)}
+      collectionWorks={works}
       totalCount={works.length}
       substanceSlug={slug}
       collectionLabel={`${article.title} replications`}

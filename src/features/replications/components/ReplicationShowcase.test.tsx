@@ -21,7 +21,7 @@ vi.mock("@/features/replications/viewer/ReplicationViewerOverlay", () => ({
     initialSlug,
     onOpenChange,
   }: {
-    collection: { label: string };
+    collection: { label: string; groups: { items: unknown[] }[] };
     initialSlug: string;
     onOpenChange: (open: boolean) => void;
   }) => (
@@ -29,6 +29,10 @@ vi.mock("@/features/replications/viewer/ReplicationViewerOverlay", () => ({
       data-testid="replication-viewer"
       data-collection-label={collection.label}
       data-initial-slug={initialSlug}
+      data-item-count={collection.groups.reduce(
+        (count, group) => count + group.items.length,
+        0,
+      )}
     >
       <button type="button" onClick={() => onOpenChange(false)}>
         Close viewer
@@ -79,21 +83,15 @@ describe("ReplicationShowcase", () => {
     expect(screen.getByRole("tabpanel")).toBeInTheDocument();
     expect(
       screen.getByRole("link", { name: /Drifting \(wood grain\)/ }),
-    ).toHaveAttribute("href", "/replications/drifting-wood-grain");
+    ).toHaveAttribute("href", "/replications?viewer=drifting-wood-grain");
   });
 
-  it("scopes the title permalink to the substance's viewer walk when it sits in an article", () => {
+  it("links an article work to that article's viewer collection", () => {
     render(<ReplicationShowcase works={[work()]} substanceSlug="lsd" />);
 
-    // The viewer reads `set=substance:<slug>` to walk this article's gallery
-    // instead of the work's whole effect; without the prop (the Studio
-    // preview) the href above stays the bare canonical permalink.
     expect(
       screen.getByRole("link", { name: /Drifting \(wood grain\)/ }),
-    ).toHaveAttribute(
-      "href",
-      "/replications/drifting-wood-grain?set=substance:lsd",
-    );
+    ).toHaveAttribute("href", "/lsd?viewer=drifting-wood-grain");
   });
 
   it("opens the shared viewer over the article and preserves the permanent link", () => {
@@ -109,10 +107,7 @@ describe("ReplicationShowcase", () => {
     const entry = screen.getByRole("link", {
       name: /Drifting \(wood grain\).*Open/,
     });
-    expect(entry).toHaveAttribute(
-      "href",
-      "/replications/drifting-wood-grain?set=substance:lsd",
-    );
+    expect(entry).toHaveAttribute("href", "/lsd?viewer=drifting-wood-grain");
     fireEvent.click(entry);
 
     expect(screen.getByTestId("replication-viewer")).toHaveAttribute(
@@ -133,6 +128,34 @@ describe("ReplicationShowcase", () => {
     pushState.mockRestore();
   });
 
+  it("reconstructs the complete article collection beyond the compact strip", () => {
+    const hiddenWork = work({
+      slug: "hidden-third-work",
+      title: "Hidden third work",
+    });
+    window.history.replaceState({}, "", "/lsd?viewer=hidden-third-work");
+
+    render(
+      <ReplicationShowcase
+        works={[work()]}
+        collectionWorks={[work(), secondWork, hiddenWork]}
+        totalCount={3}
+        substanceSlug="lsd"
+        collectionLabel="LSD replications"
+      />,
+    );
+
+    expect(screen.getByTestId("replication-viewer")).toHaveAttribute(
+      "data-initial-slug",
+      "hidden-third-work",
+    );
+    expect(screen.getByTestId("replication-viewer")).toHaveAttribute(
+      "data-item-count",
+      "3",
+    );
+    window.history.replaceState({}, "", "/");
+  });
+
   it("scopes effect-article links and overflow to the effect collection", () => {
     render(
       <ReplicationShowcase
@@ -144,18 +167,12 @@ describe("ReplicationShowcase", () => {
 
     expect(
       screen.getByRole("link", { name: /Drifting \(wood grain\).*Open/ }),
-    ).toHaveAttribute(
-      "href",
-      "/replications/drifting-wood-grain?set=effect:drifting",
-    );
+    ).toHaveAttribute("href", "/effects/drifting?viewer=drifting-wood-grain");
     expect(
       screen.getByRole("link", {
         name: "3 more replications in this effect's playlist",
       }),
-    ).toHaveAttribute(
-      "href",
-      "/replications/effect/drifting?viewer=drifting-wood-grain",
-    );
+    ).toHaveAttribute("href", "/effects/drifting?viewer=drifting-wood-grain");
   });
 
   it("moves focus with arrows without activating, and activates on Enter", () => {
@@ -179,7 +196,7 @@ describe("ReplicationShowcase", () => {
     // The caption follows the activated work.
     expect(
       screen.getByRole("link", { name: /Tracers \(hand wave\)/ }),
-    ).toHaveAttribute("href", "/replications/tracers-hand-wave");
+    ).toHaveAttribute("href", "/replications?viewer=tracers-hand-wave");
     expect(
       screen.getByRole("link", { name: "Demonstrates: Tracers" }),
     ).toHaveAttribute("href", "/effects/tracers");
@@ -239,13 +256,16 @@ describe("ReplicationShowcase", () => {
     const overflow = screen.getByRole("link", {
       name: "87 more replications in the gallery",
     });
-    expect(overflow).toHaveAttribute("href", "/replications");
+    expect(overflow).toHaveAttribute(
+      "href",
+      "/replications?viewer=drifting-wood-grain",
+    );
     expect(overflow).toHaveTextContent("+87");
     // The overflow tile is navigation, not a tab.
     expect(screen.getAllByRole("tab")).toHaveLength(2);
   });
 
-  it("points the +N overflow at the substance's playlist page when an article owns it", () => {
+  it("points the +N overflow at the owning substance article", () => {
     render(
       <ReplicationShowcase
         works={[work(), secondWork]}
@@ -254,15 +274,10 @@ describe("ReplicationShowcase", () => {
       />,
     );
 
-    // The playlist page is the real destination for "the rest of this
-    // gallery": it opens the immersive viewer on this exact walk.
     const overflow = screen.getByRole("link", {
       name: "87 more replications in this substance's playlist",
     });
-    expect(overflow).toHaveAttribute(
-      "href",
-      "/replications/substance/lsd?viewer=drifting-wood-grain",
-    );
+    expect(overflow).toHaveAttribute("href", "/lsd?viewer=drifting-wood-grain");
   });
 
   it("plays on demand and pauses again, with the gate closed", () => {

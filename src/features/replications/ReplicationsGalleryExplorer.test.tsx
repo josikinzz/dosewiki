@@ -10,7 +10,10 @@ import {
   vi,
 } from "vitest";
 import type { MouseEvent as ReactMouseEvent } from "react";
-import type { GalleryReplication } from "@/types/replications";
+import type {
+  GalleryReplication,
+  PublicGalleryReplicationPreview,
+} from "@/types/replications";
 import type { GalleryGroup } from "@/features/effects/gallery/galleryModel";
 import {
   ReplicationsGalleryExplorer,
@@ -54,17 +57,22 @@ vi.mock("@/features/effects/gallery/GalleryMediaTile", () => ({
     showByline,
     mobileCompact,
     onOpen,
+    viewerHref,
   }: {
-    replication: GalleryReplication;
+    replication: PublicGalleryReplicationPreview;
     showByline?: boolean;
     mobileCompact?: boolean;
-    onOpen?: (event: ReactMouseEvent, replication: GalleryReplication) => void;
+    onOpen?: (
+      event: ReactMouseEvent,
+      replication: PublicGalleryReplicationPreview,
+    ) => void;
+    viewerHref: string;
   }) => (
     <a
       data-testid="tile"
       data-show-byline={String(showByline ?? true)}
       data-mobile-compact={String(mobileCompact ?? false)}
-      href={`/replications/${replication.slug}`}
+      href={viewerHref}
       onClick={(event) => onOpen?.(event, replication)}
     >
       {replication.title}
@@ -82,6 +90,7 @@ vi.mock("@/features/effects/gallery/MediaRail", () => ({
     tileBylines,
     mobileCompact,
     onTileOpen,
+    viewerHrefFor,
   }: {
     group: GalleryGroup;
     viewAllHref: string;
@@ -89,8 +98,9 @@ vi.mock("@/features/effects/gallery/MediaRail", () => ({
     mobileCompact?: boolean;
     onTileOpen?: (
       event: ReactMouseEvent,
-      replication: GalleryReplication,
+      replication: PublicGalleryReplicationPreview,
     ) => void;
+    viewerHrefFor: (replication: PublicGalleryReplicationPreview) => string;
   }) => (
     <section
       data-testid="rail"
@@ -108,8 +118,8 @@ vi.mock("@/features/effects/gallery/MediaRail", () => ({
         <a
           key={item._id}
           data-testid="rail-tile"
-          href={`/replications/${item.slug}`}
-          onClick={(event) => onTileOpen?.(event, item as GalleryReplication)}
+          href={viewerHrefFor(item)}
+          onClick={(event) => onTileOpen?.(event, item)}
         >
           {item.title}
         </a>
@@ -126,7 +136,10 @@ vi.mock("./viewer/ReplicationViewerOverlay", () => ({
     initialSlug,
     onOpenChange,
   }: {
-    collection: { label: string; groups: unknown[] };
+    collection: {
+      label: string;
+      groups: { items: unknown[] }[];
+    };
     initialSlug: string;
     onOpenChange: (open: boolean) => void;
   }) => (
@@ -135,6 +148,10 @@ vi.mock("./viewer/ReplicationViewerOverlay", () => ({
       data-collection-label={collection.label}
       data-group-count={collection.groups.length}
       data-initial-slug={initialSlug}
+      data-item-count={collection.groups.reduce(
+        (count, group) => count + group.items.length,
+        0,
+      )}
     >
       <button type="button" onClick={() => onOpenChange(false)}>
         Close viewer
@@ -434,10 +451,12 @@ describe("canonical replication viewer", () => {
     );
   });
 
-  it("preserves modified clicks as permanent detail-page links", () => {
+  it("preserves modified clicks as canonical collection-viewer links", () => {
     renderExplorer("");
 
-    const navigated = fireEvent.click(screen.getByText("Work 4"), {
+    const workLink = screen.getByText("Work 4").closest("a");
+    expect(workLink).toHaveAttribute("href", "/replications?viewer=slug-4");
+    const navigated = fireEvent.click(workLink!, {
       ctrlKey: true,
     });
 
@@ -452,6 +471,29 @@ describe("canonical replication viewer", () => {
       "data-initial-slug",
       "slug-4",
     );
+  });
+
+  it("reconstructs only the filtered result collection on a direct link", () => {
+    renderExplorer(
+      "view=effect&q=drifting&type=video&sort=alpha&viewer=slug-2",
+    );
+
+    const viewer = screen.getByTestId("replication-viewer");
+    expect(viewer).toHaveAttribute("data-initial-slug", "slug-2");
+    expect(viewer).toHaveAttribute("data-group-count", "1");
+    expect(viewer).toHaveAttribute("data-item-count", "1");
+    expect(screen.getByText("Work 2").closest("a")).toHaveAttribute(
+      "href",
+      "/replications?view=effect&q=drifting&type=video&sort=alpha&viewer=slug-2",
+    );
+  });
+
+  it("fails closed when the viewer work is outside the filtered collection", () => {
+    renderExplorer("q=drifting&viewer=slug-4");
+
+    expect(screen.queryByTestId("replication-viewer")).toBeNull();
+    expect(screen.getByText("Work 2")).toBeInTheDocument();
+    expect(screen.queryByText("Work 4")).toBeNull();
   });
 });
 

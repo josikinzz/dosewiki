@@ -10,10 +10,7 @@ import { PublicNameChip } from "@/components/common/PublicTokens";
 import { focusRingClassName } from "@/components/ui/surface";
 import { cn } from "@/lib/utils";
 import { icons } from "@/utils/iconNames";
-import {
-  buildViewerPath,
-  shouldLoopReplicationMotion,
-} from "@/features/replications/viewer/viewerLogic";
+import { shouldLoopReplicationMotion } from "@/features/replications/viewer/viewerLogic";
 import {
   buildReplicationViewerUrl,
   parseReplicationViewerSlug,
@@ -21,7 +18,6 @@ import {
 import { ReplicationViewerOverlay } from "@/features/replications/viewer/ReplicationViewerOverlay";
 import type { ReplicationViewerCollection } from "@/features/replications/viewer/viewerModel";
 import { publicHref } from "@/utils/publicHref";
-import { getPublicRoutePath } from "@/utils/publicRouteIdentity";
 import { resolveRouteChromeIcon } from "@/utils/routeChromeIcons";
 import type { ShowcaseWork } from "./showcaseModel";
 
@@ -92,20 +88,15 @@ const mediaControlClassName = cn(
 );
 
 export interface ReplicationShowcaseProps {
-  /** The visible works — the curated head, already capped by the caller. */
+  /** Compact works rendered in the article card. */
   works: readonly ShowcaseWork[];
-  /** The full matched-corpus size; drives the "See all" / "+N" affordances. */
+  /** Complete source collection walked by the expanded viewer. */
+  collectionWorks?: readonly ShowcaseWork[];
+  /** The full matched-corpus size; drives the "+N" affordance. */
   totalCount?: number;
-  /**
-   * The owning substance article's slug, when the showcase sits in one. It
-   * scopes the title permalink (`?set=substance:<slug>`) so the viewer walks
-   * *this article's* gallery — the works the reader can see queued in the
-   * rail below — rather than the active work's whole effect. Optional because
-   * the Replication Studio preview renders the same stage with no article
-   * behind it.
-   */
+  /** The owning substance article's slug. */
   substanceSlug?: string;
-  /** The owning effect article's slug when the same showcase sits there. */
+  /** The owning effect article's slug. */
   effectSlug?: string;
   /** Persistent identity shown by the expanded viewer. */
   collectionLabel?: string;
@@ -133,6 +124,7 @@ export interface ReplicationShowcaseProps {
  */
 export function ReplicationShowcase({
   works,
+  collectionWorks = works,
   totalCount,
   substanceSlug,
   effectSlug,
@@ -180,7 +172,7 @@ export function ReplicationShowcase({
         {
           key: substanceSlug ?? effectSlug ?? "replications",
           label,
-          items: works.map((work) => ({
+          items: collectionWorks.map((work) => ({
             replication: {
               slug: work.slug,
               title: work.title,
@@ -205,16 +197,16 @@ export function ReplicationShowcase({
         },
       ],
     };
-  }, [collectionLabel, effectSlug, substanceSlug, works]);
+  }, [collectionLabel, collectionWorks, effectSlug, substanceSlug]);
 
   useEffect(() => {
     const slug = parseReplicationViewerSlug(
       new URLSearchParams(window.location.search),
     );
     setViewerSlug(
-      slug && works.some((work) => work.slug === slug) ? slug : null,
+      slug && collectionWorks.some((work) => work.slug === slug) ? slug : null,
     );
-  }, [works]);
+  }, [collectionWorks]);
 
   const launchViewer = (slug: string) => {
     const source = `${window.location.pathname}${window.location.search}${window.location.hash}`;
@@ -363,13 +355,9 @@ export function ReplicationShowcase({
           <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-0.5 px-2.5 py-1.5 sm:gap-y-1 sm:px-3 sm:pb-7 sm:pt-2 sm:pointer-events-none sm:absolute sm:inset-x-0 sm:top-0 sm:z-10 sm:bg-gradient-to-b sm:from-black/75 sm:via-black/35 sm:to-transparent">
             <div className="flex min-w-0 flex-wrap items-baseline gap-x-2">
               <Link
-                href={buildViewerPath(
+                href={buildReplicationViewerUrl(
+                  viewerCollection.sourcePath,
                   active.slug,
-                  substanceSlug
-                    ? { kind: "substance", slug: substanceSlug }
-                    : effectSlug
-                      ? { kind: "effect", slug: effectSlug }
-                      : null,
                 )}
                 onClick={(event) => {
                   if (
@@ -654,30 +642,24 @@ export function ReplicationShowcase({
                   })}
                 </div>
                 {total > count ? (
-                  // The substance's playlist page is the real "the rest of
-                  // this gallery" destination — it opens the immersive viewer
-                  // on this exact walk. Without an owning article (the studio
-                  // preview) the cross-substance gallery stands in.
                   <Link
-                    href={
-                      substanceSlug
-                        ? buildReplicationViewerUrl(
-                            getPublicRoutePath({
-                              family: "replicationSubstance",
-                              params: { slug: substanceSlug },
-                            }),
-                            active.slug,
-                          )
-                        : effectSlug
-                          ? buildReplicationViewerUrl(
-                              getPublicRoutePath({
-                                family: "replicationEffect",
-                                params: { slug: effectSlug },
-                              }),
-                              active.slug,
-                            )
-                          : "/replications"
-                    }
+                    href={buildReplicationViewerUrl(
+                      viewerCollection.sourcePath,
+                      active.slug,
+                    )}
+                    onClick={(event) => {
+                      if (
+                        event.button !== 0 ||
+                        event.metaKey ||
+                        event.ctrlKey ||
+                        event.shiftKey ||
+                        event.altKey
+                      ) {
+                        return;
+                      }
+                      event.preventDefault();
+                      launchViewer(active.slug);
+                    }}
                     aria-label={`${total - count} more replications in ${
                       substanceSlug
                         ? "this substance's playlist"

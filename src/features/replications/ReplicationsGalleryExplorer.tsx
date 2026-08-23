@@ -34,9 +34,7 @@ import type { ContributorDirectory } from "@server/contributorDirectory";
 import type { PublicGalleryReplicationPreview } from "@/types/replications";
 import { GalleryMediaTile } from "@/features/effects/gallery/GalleryMediaTile";
 import { MediaRail } from "@/features/effects/gallery/MediaRail";
-import type { ViewerSetParam } from "@/features/replications/viewer/viewerLogic";
 import {
-  artistUrlKey,
   countGallery,
   effectHrefBuilder,
   effectNameLookup,
@@ -60,6 +58,7 @@ import {
   buildGalleryBrowseUrl,
   buildGalleryFocusUrl,
   buildReplicationViewerUrl,
+  closeReplicationViewerUrl,
   GALLERY_BROWSE_DEFAULTS,
   parseGalleryBrowseState,
   type GalleryBrowseState,
@@ -408,26 +407,43 @@ function GalleryExplorer({
   );
 
   const viewerGroups = useMemo(() => {
-    if (focus && focusedGroup) return [focusedGroup];
-    if (mode === "artist") {
-      return groupByArtist(displayable, artistSort, contributorDirectory);
+    if (focus && focusedGroup) {
+      return [
+        {
+          ...focusedGroup,
+          items: focusedItems,
+          count: focusedItems.length,
+        },
+      ];
     }
-    return groupByEffect(displayable, effectName, effectHref);
+    if (mode === "artist") {
+      return groupByArtist(filtered, artistSort, contributorDirectory);
+    }
+    return groupByEffect(filtered, effectName, effectHref);
   }, [
     artistSort,
     contributorDirectory,
-    displayable,
     effectHref,
     effectName,
+    filtered,
     focus,
     focusedGroup,
+    focusedItems,
     mode,
   ]);
+  const viewerSourcePath = focus
+    ? buildGalleryFocusUrl(focus, { type: typeFilter })
+    : buildGalleryBrowseUrl({
+        view: mode,
+        query,
+        type: typeFilter,
+        sort: artistSort,
+      });
   const viewerCollection = useMemo(() => {
     const collection = viewerCollectionFromGalleryGroups(
       viewerGroups,
       mode,
-      focus ? `/replications/${focus.kind}/${focus.key}` : "/replications",
+      viewerSourcePath,
       effectName,
     );
     if (!focus || !focusedGroup) return collection;
@@ -439,12 +455,29 @@ function GalleryExplorer({
           : `${focusedGroup.label} replications`,
       grouping: "none" as const,
     };
-  }, [effectName, focus, focusedGroup, mode, viewerGroups]);
-  const [viewerSlug, setViewerSlug] = useState<string | null>(viewerSlugParam);
+  }, [effectName, focus, focusedGroup, mode, viewerGroups, viewerSourcePath]);
+  const validViewerSlugParam =
+    viewerSlugParam &&
+    viewerCollection.groups.some((entry) =>
+      entry.items.some((item) => item.replication.slug === viewerSlugParam),
+    )
+      ? viewerSlugParam
+      : null;
+  const [viewerSlug, setViewerSlug] = useState<string | null>(
+    validViewerSlugParam,
+  );
 
   useEffect(() => {
-    setViewerSlug(viewerSlugParam);
-  }, [viewerSlugParam]);
+    setViewerSlug(validViewerSlugParam);
+    if (viewerSlugParam && !validViewerSlugParam) {
+      const source = `${window.location.pathname}${window.location.search}${window.location.hash}`;
+      window.history.replaceState(
+        window.history.state,
+        "",
+        closeReplicationViewerUrl(source),
+      );
+    }
+  }, [validViewerSlugParam, viewerSlugParam]);
 
   const launchViewer = (slug: string) => {
     if (
@@ -489,16 +522,12 @@ function GalleryExplorer({
     {
       showByline = true,
       onOpen = openViewerAt,
-      setParamFor,
     }: {
       showByline?: boolean;
       onOpen?: (
         event: React.MouseEvent,
         replication: PublicGalleryReplicationPreview,
       ) => void;
-      setParamFor?: (
-        replication: PublicGalleryReplicationPreview,
-      ) => ViewerSetParam | null;
     } = {},
   ) => (
     <div className={MASONRY_CLASS}>
@@ -511,7 +540,10 @@ function GalleryExplorer({
           showByline={showByline}
           mobileCompact
           onOpen={onOpen}
-          setParam={setParamFor ? setParamFor(replication) : null}
+          viewerHref={buildReplicationViewerUrl(
+            viewerSourcePath,
+            replication.slug,
+          )}
         />
       ))}
     </div>
@@ -949,10 +981,6 @@ function GalleryExplorer({
                   // Artist-focus tiles open the viewer walking this artist.
                   renderMasonry(focusedItems, {
                     showByline: focus.kind !== "artist",
-                    setParamFor:
-                      focus.kind === "artist"
-                        ? () => ({ kind: "artist", slug: focus.key })
-                        : undefined,
                   })
                 ) : (
                   <SearchEmptyState
@@ -1001,13 +1029,11 @@ function GalleryExplorer({
                      bylines as each work's attribution. An artist rail's tiles
                      open the viewer walking that artist's works. */
                     tileBylines={mode !== "artist"}
-                    tileSetParam={
-                      mode === "artist"
-                        ? {
-                            kind: "artist",
-                            slug: galleryGroupUrlKey("artist", group),
-                          }
-                        : null
+                    viewerHrefFor={(replication) =>
+                      buildReplicationViewerUrl(
+                        viewerSourcePath,
+                        replication.slug,
+                      )
                     }
                     mobileCompact
                     onTileOpen={openViewerAt}
@@ -1033,17 +1059,7 @@ function GalleryExplorer({
                         </span>
                       </div>
                     ) : null}
-                    {renderMasonry(pooledItems, {
-                      // The pool under artist rails is still artist context:
-                      // each tile stands in for its maker's whole (thin) group.
-                      setParamFor:
-                        mode === "artist"
-                          ? (replication) => ({
-                              kind: "artist",
-                              slug: artistUrlKey(replication.artist),
-                            })
-                          : undefined,
-                    })}
+                    {renderMasonry(pooledItems)}
                   </section>
                 ) : null}
               </div>

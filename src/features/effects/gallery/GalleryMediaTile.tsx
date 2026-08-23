@@ -6,10 +6,6 @@ import { AppImage } from "@/components/common/AppImage";
 import { Icon } from "@/components/common/Icon";
 import { MediaPlaceholder } from "@/components/layout/PublicFeedbackPrimitives";
 import { cn } from "@/lib/utils";
-import {
-  buildViewerPath,
-  type ViewerSetParam,
-} from "@/features/replications/viewer/viewerLogic";
 import type { PublicGalleryReplicationPreview } from "@/types/replications";
 import { getCreatorByline } from "../components/replicationCredit";
 import { useInView, useMotionAllowed, usePlaybackSlot } from "./inViewPlayback";
@@ -49,13 +45,8 @@ interface GalleryMediaTileProps {
    * expanded viewer for complete title and credit context.
    */
   mobileCompact?: boolean;
-  /**
-   * The viewer scope this tile's context stands for — an effect article emits
-   * `effect:<slug>`, an artist listing `artist:<key>` — appended as `?set=`
-   * so the permalink opens walking *this* surface's playlist. Absent, the
-   * bare permalink walks the work's own effect.
-   */
-  setParam?: ViewerSetParam | null;
+  /** Canonical source-collection URL with this work active in the viewer. */
+  viewerHref: string;
 }
 
 /**
@@ -76,7 +67,7 @@ export function GalleryMediaTile({
   onOpen,
   showByline = true,
   mobileCompact = false,
-  setParam = null,
+  viewerHref,
 }: GalleryMediaTileProps) {
   const { autoplay: autoplayAllowed, hoverPreview: hoverPreviewAllowed } =
     useMotionAllowed();
@@ -130,7 +121,7 @@ export function GalleryMediaTile({
     <figure className={cn("min-w-0", className)}>
       <Link
         ref={frameRef}
-        href={buildViewerPath(replication.slug, setParam)}
+        href={viewerHref}
         onClick={onOpen ? (event) => onOpen(event, replication) : undefined}
         onMouseEnter={() => setHovered(true)}
         onMouseLeave={() => setHovered(false)}

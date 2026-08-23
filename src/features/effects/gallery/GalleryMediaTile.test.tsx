@@ -1,25 +1,27 @@
-import { render, screen } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
-import { afterEach, describe, expect, it, vi } from 'vitest';
-import { GalleryMediaTile } from './GalleryMediaTile';
-import type { GalleryReplication } from '@/types/replications';
+import { render, screen } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
+import { afterEach, describe, expect, it, vi } from "vitest";
+import { GalleryMediaTile } from "./GalleryMediaTile";
+import type { GalleryReplication } from "@/types/replications";
 
 const VIDEO: GalleryReplication = {
-  _id: 'k57geometryfrog',
+  _id: "k57geometryfrog",
   _creationTime: 0,
-  slug: 'geometry-frog-symmetric-vision',
-  title: 'Geometry Frog',
-  artist: 'Symmetric Vision',
-  effect_slug: 'geometry',
-  type: 'video',
-  storage_id: 'kg57geometryfrog',
-  format: 'mp4',
-  created_at: '2024-01-01',
-  url: 'https://example.test/geometry-frog.mp4',
-  thumbnail_url: 'https://example.test/geometry-frog.jpg',
+  slug: "geometry-frog-symmetric-vision",
+  title: "Geometry Frog",
+  artist: "Symmetric Vision",
+  effect_slug: "geometry",
+  type: "video",
+  storage_id: "kg57geometryfrog",
+  format: "mp4",
+  created_at: "2024-01-01",
+  url: "https://example.test/geometry-frog.mp4",
+  thumbnail_url: "https://example.test/geometry-frog.jpg",
   width: 1280,
   height: 720,
 };
+
+const VIEWER_HREF = `/replications?viewer=${VIDEO.slug}`;
 
 /**
  * jsdom ships no matchMedia, and the hover preview is gated on it. Report a
@@ -28,10 +30,10 @@ const VIDEO: GalleryReplication = {
  */
 function stubDesktopPointer() {
   vi.stubGlobal(
-    'matchMedia',
+    "matchMedia",
     (query: string): MediaQueryList =>
       ({
-        matches: query.includes('hover: hover'),
+        matches: query.includes("hover: hover"),
         media: query,
         addEventListener: () => {},
         removeEventListener: () => {},
@@ -44,7 +46,7 @@ function stubDesktopPointer() {
  * component expects the promise every browser returns.
  */
 function stubPlayback() {
-  vi.spyOn(HTMLMediaElement.prototype, 'play').mockResolvedValue(undefined);
+  vi.spyOn(HTMLMediaElement.prototype, "play").mockResolvedValue(undefined);
 }
 
 /**
@@ -53,7 +55,7 @@ function stubPlayback() {
  */
 function stubEverythingInView() {
   vi.stubGlobal(
-    'IntersectionObserver',
+    "IntersectionObserver",
     class {
       constructor(private callback: IntersectionObserverCallback) {}
       observe(target: Element) {
@@ -72,34 +74,36 @@ afterEach(() => {
   vi.restoreAllMocks();
 });
 
-describe('GalleryMediaTile', () => {
-  it('links the whole frame to the work', () => {
-    render(<GalleryMediaTile replication={VIDEO} />);
+describe("GalleryMediaTile", () => {
+  it("links the whole frame to the work", () => {
+    render(<GalleryMediaTile replication={VIDEO} viewerHref={VIEWER_HREF} />);
 
-    expect(screen.getByRole('link')).toHaveAttribute('href', `/replications/${VIDEO.slug}`);
+    expect(screen.getByRole("link")).toHaveAttribute("href", VIEWER_HREF);
   });
 
-  it('lets a click on the hover preview reach the link underneath it', async () => {
+  it("lets a click on the hover preview reach the link underneath it", async () => {
     stubDesktopPointer();
     stubPlayback();
     const user = userEvent.setup();
 
-    const { container } = render(<GalleryMediaTile replication={VIDEO} />);
-    await user.hover(screen.getByRole('link'));
+    const { container } = render(
+      <GalleryMediaTile replication={VIDEO} viewerHref={VIEWER_HREF} />,
+    );
+    await user.hover(screen.getByRole("link"));
 
     // The preview is the anchor's last child at inset-0, so it is the topmost
     // hit target across the entire tile, and a browser does not forward a media
     // element's click to an ancestor anchor the way it does for an image.
     // Without this guard every video tile stops navigating — which is how it
     // shipped once.
-    const video = container.querySelector('video');
+    const video = container.querySelector("video");
     expect(video).not.toBeNull();
-    expect(video).toHaveClass('pointer-events-none');
+    expect(video).toHaveClass("pointer-events-none");
   });
 
-  it('mounts no preview when the pointer is not a hover-capable mouse', async () => {
+  it("mounts no preview when the pointer is not a hover-capable mouse", async () => {
     vi.stubGlobal(
-      'matchMedia',
+      "matchMedia",
       (query: string): MediaQueryList =>
         ({
           matches: false,
@@ -110,94 +114,131 @@ describe('GalleryMediaTile', () => {
     );
     const user = userEvent.setup();
 
-    const { container } = render(<GalleryMediaTile replication={VIDEO} />);
-    await user.hover(screen.getByRole('link'));
+    const { container } = render(
+      <GalleryMediaTile replication={VIDEO} viewerHref={VIEWER_HREF} />,
+    );
+    await user.hover(screen.getByRole("link"));
 
     // A touch device must never autoload video on tap.
-    expect(container.querySelector('video')).toBeNull();
+    expect(container.querySelector("video")).toBeNull();
   });
 
-  it('autoplays the preview rendition, not the full source, once in view', () => {
+  it("autoplays the preview rendition, not the full source, once in view", () => {
     stubDesktopPointer();
     stubPlayback();
     stubEverythingInView();
-    const preview = { ...VIDEO, preview_url: 'https://example.test/geometry-frog-preview.mp4' };
+    const preview = {
+      ...VIDEO,
+      preview_url: "https://example.test/geometry-frog-preview.mp4",
+    };
 
-    const { container } = render(<GalleryMediaTile replication={preview} />);
+    const { container } = render(
+      <GalleryMediaTile replication={preview} viewerHref={VIEWER_HREF} />,
+    );
 
-    const video = container.querySelector('video');
+    const video = container.querySelector("video");
     expect(video).not.toBeNull();
-    expect(video).toHaveAttribute('src', preview.preview_url);
-    expect(video).toHaveAttribute('preload', 'metadata');
-    expect(video).toHaveClass('pointer-events-none');
+    expect(video).toHaveAttribute("src", preview.preview_url);
+    expect(video).toHaveAttribute("preload", "metadata");
+    expect(video).toHaveClass("pointer-events-none");
   });
 
-  it('never autoplays for reduced-motion readers but still labels the tile a video', () => {
+  it("never autoplays for reduced-motion readers but still labels the tile a video", () => {
     // Reduced motion: every media query except none matches... report only
     // the reduced-motion query as matching.
     vi.stubGlobal(
-      'matchMedia',
+      "matchMedia",
       (query: string): MediaQueryList =>
         ({
-          matches: query.includes('prefers-reduced-motion'),
+          matches: query.includes("prefers-reduced-motion"),
           media: query,
           addEventListener: () => {},
           removeEventListener: () => {},
         }) as unknown as MediaQueryList,
     );
     stubEverythingInView();
-    const preview = { ...VIDEO, preview_url: 'https://example.test/geometry-frog-preview.mp4' };
+    const preview = {
+      ...VIDEO,
+      preview_url: "https://example.test/geometry-frog-preview.mp4",
+    };
 
-    const { container } = render(<GalleryMediaTile replication={preview} />);
+    const { container } = render(
+      <GalleryMediaTile replication={preview} viewerHref={VIEWER_HREF} />,
+    );
 
-    expect(container.querySelector('video')).toBeNull();
+    expect(container.querySelector("video")).toBeNull();
     // The chip is their signal that the still is actually a video.
-    expect(screen.getByText('Video')).toBeInTheDocument();
+    expect(screen.getByText("Video")).toBeInTheDocument();
   });
 
-  it('shows a duration chip in m:ss on video tiles', () => {
-    render(<GalleryMediaTile replication={{ ...VIDEO, duration: 83.4 }} />);
+  it("shows a duration chip in m:ss on video tiles", () => {
+    render(
+      <GalleryMediaTile
+        replication={{ ...VIDEO, duration: 83.4 }}
+        viewerHref={VIEWER_HREF}
+      />,
+    );
 
-    expect(screen.getByText('1:23')).toBeInTheDocument();
+    expect(screen.getByText("1:23")).toBeInTheDocument();
   });
 });
 
-describe('GalleryMediaTile caption contract', () => {
-  it('shows the title and byline by default', () => {
-    render(<GalleryMediaTile replication={VIDEO} />);
+describe("GalleryMediaTile caption contract", () => {
+  it("shows the title and byline by default", () => {
+    render(<GalleryMediaTile replication={VIDEO} viewerHref={VIEWER_HREF} />);
 
-    expect(screen.getByText('Geometry Frog')).toBeInTheDocument();
-    expect(screen.getByText('by Symmetric Vision')).toBeInTheDocument();
+    expect(screen.getByText("Geometry Frog")).toBeInTheDocument();
+    expect(screen.getByText("by Symmetric Vision")).toBeInTheDocument();
   });
 
-  it('drops only the byline when showByline is false', () => {
+  it("drops only the byline when showByline is false", () => {
     // Artist rails already name the artist in their heading; repeating it
     // under all fourteen tiles is the same words fourteen times.
-    render(<GalleryMediaTile replication={VIDEO} showByline={false} />);
+    render(
+      <GalleryMediaTile
+        replication={VIDEO}
+        viewerHref={VIEWER_HREF}
+        showByline={false}
+      />,
+    );
 
-    expect(screen.getByText('Geometry Frog')).toBeInTheDocument();
-    expect(screen.queryByText('by Symmetric Vision')).toBeNull();
+    expect(screen.getByText("Geometry Frog")).toBeInTheDocument();
+    expect(screen.queryByText("by Symmetric Vision")).toBeNull();
   });
 
-  it('hides the whole caption below md when mobileCompact', () => {
-    const { container } = render(<GalleryMediaTile replication={VIDEO} mobileCompact />);
+  it("hides the whole caption below md when mobileCompact", () => {
+    const { container } = render(
+      <GalleryMediaTile
+        replication={VIDEO}
+        viewerHref={VIEWER_HREF}
+        mobileCompact
+      />,
+    );
 
     // The class carries the contract: phone tiles are media-only and pay no
     // mt-2 spacing for a caption they never show.
-    expect(container.querySelector('figcaption')).toHaveClass('max-md:hidden');
+    expect(container.querySelector("figcaption")).toHaveClass("max-md:hidden");
   });
 });
 
-describe('GalleryMediaTile onOpen', () => {
-  it('routes clicks through onOpen while staying a crawlable anchor', async () => {
+describe("GalleryMediaTile onOpen", () => {
+  it("routes clicks through onOpen while staying a crawlable anchor", async () => {
     const user = userEvent.setup();
-    const onOpen = vi.fn((event: React.MouseEvent, _work: unknown) => event.preventDefault());
+    const onOpen = vi.fn((event: React.MouseEvent, _work: unknown) =>
+      event.preventDefault(),
+    );
 
-    render(<GalleryMediaTile replication={VIDEO} onOpen={onOpen} />);
+    render(
+      <GalleryMediaTile
+        replication={VIDEO}
+        viewerHref={VIEWER_HREF}
+        onOpen={onOpen}
+      />,
+    );
 
     // Still a real link — new-tab and crawling must survive interception.
-    const link = screen.getByRole('link');
-    expect(link).toHaveAttribute('href', `/replications/${VIDEO.slug}`);
+    const link = screen.getByRole("link");
+    expect(link).toHaveAttribute("href", VIEWER_HREF);
 
     await user.click(link);
 
