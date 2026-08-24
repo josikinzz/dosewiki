@@ -887,27 +887,46 @@ export function ReplicationViewerOverlay({
                 aria-hidden
                 className="pointer-events-none absolute inset-0 z-10 grid place-items-center"
               >
-                <div className="theme-media-tile-title flex flex-col items-center gap-1.5 rounded-2xl bg-black/65 px-6 py-4 backdrop-blur-sm animate-in fade-in-0 zoom-in-95 duration-300 motion-reduce:animate-none">
-                  <div className="flex items-center gap-2">
-                    <Icon
-                      icon="lucide:chevron-left"
-                      className="size-4 opacity-60"
-                    />
-                    <span className="theme-media-hint-track relative h-7 w-16">
-                      <span className="theme-media-hint-dot">
-                        <Icon icon="lucide:pointer" className="size-5" />
+                <div className="theme-media-tile-title flex items-end gap-8 rounded-2xl bg-black/65 px-6 py-4 backdrop-blur-sm animate-in fade-in-0 zoom-in-95 duration-300 motion-reduce:animate-none">
+                  <div className="flex flex-col items-center gap-2">
+                    <div className="flex items-center gap-2">
+                      <Icon
+                        icon="lucide:chevron-left"
+                        className="size-4 opacity-60"
+                      />
+                      <span className="theme-media-hint-track relative h-7 w-14">
+                        <span className="theme-media-hint-dot">
+                          <Icon icon="lucide:pointer" className="size-5" />
+                        </span>
                       </span>
-                    </span>
-                    <Icon
-                      icon="lucide:chevron-right"
-                      className="size-4 opacity-60"
-                    />
+                      <Icon
+                        icon="lucide:chevron-right"
+                        className="size-4 opacity-60"
+                      />
+                    </div>
+                    <p className="text-xs font-semibold">Browse works</p>
                   </div>
-                  <p className="text-xs font-semibold">Swipe to browse works</p>
                   {collection.groups.length > 1 ? (
-                    <p className="theme-media-tile-creator text-[11px]">
-                      Swipe up or down to switch {groupUnit.toLowerCase()}s
-                    </p>
+                    <div className="flex flex-col items-center gap-2">
+                      <div className="flex flex-col items-center gap-1">
+                        <Icon
+                          icon="lucide:chevron-up"
+                          className="size-4 opacity-60"
+                        />
+                        <span className="theme-media-hint-track-y relative h-10 w-7">
+                          <span className="theme-media-hint-dot-y">
+                            <Icon icon="lucide:pointer" className="size-5" />
+                          </span>
+                        </span>
+                        <Icon
+                          icon="lucide:chevron-down"
+                          className="size-4 opacity-60"
+                        />
+                      </div>
+                      <p className="text-xs font-semibold">
+                        Switch {groupUnit.toLowerCase()}s
+                      </p>
+                    </div>
                   ) : null}
                 </div>
               </div>

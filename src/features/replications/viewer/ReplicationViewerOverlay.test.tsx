@@ -288,10 +288,8 @@ describe("ReplicationViewerOverlay", () => {
         onOpenChange={vi.fn()}
       />,
     );
-    expect(screen.getByText("Swipe to browse works")).toBeInTheDocument();
-    expect(
-      screen.getByText("Swipe up or down to switch artists"),
-    ).toBeInTheDocument();
+    expect(screen.getByText("Browse works")).toBeInTheDocument();
+    expect(screen.getByText("Switch artists")).toBeInTheDocument();
 
     first.unmount();
     render(
@@ -302,7 +300,7 @@ describe("ReplicationViewerOverlay", () => {
         onOpenChange={vi.fn()}
       />,
     );
-    expect(screen.queryByText("Swipe to browse works")).not.toBeInTheDocument();
+    expect(screen.queryByText("Browse works")).not.toBeInTheDocument();
   });
 
   it("keeps the swipe hint off fine-pointer devices", () => {
@@ -315,7 +313,7 @@ describe("ReplicationViewerOverlay", () => {
         onOpenChange={vi.fn()}
       />,
     );
-    expect(screen.queryByText("Swipe to browse works")).not.toBeInTheDocument();
+    expect(screen.queryByText("Browse works")).not.toBeInTheDocument();
   });
 
   it("dismisses the swipe hint on first touch", () => {
@@ -328,11 +326,11 @@ describe("ReplicationViewerOverlay", () => {
         onOpenChange={vi.fn()}
       />,
     );
-    expect(screen.getByText("Swipe to browse works")).toBeInTheDocument();
+    expect(screen.getByText("Browse works")).toBeInTheDocument();
     fireEvent.touchStart(screen.getByTestId("media-stage"), {
       changedTouches: [{ clientX: 240, clientY: 300 }],
     });
-    expect(screen.queryByText("Swipe to browse works")).not.toBeInTheDocument();
+    expect(screen.queryByText("Browse works")).not.toBeInTheDocument();
   });
 
   it("links the header artist name to the artist page", () => {
