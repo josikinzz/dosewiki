@@ -5,6 +5,7 @@ import { proseLinkClassName } from "@/components/common/ProseLink";
 import { SectionCard } from "@/components/common/SectionCard";
 import { buildPublicPageMetadata } from "@server/next/publicSite";
 import { SITE_FLAVOR_CONFIG } from "@/config/siteFlavor";
+import { ReplicationsTabNav } from "@/features/replications/components/ReplicationsTabNav";
 
 const TUTORIALS = [
   {
@@ -48,69 +49,76 @@ export const metadata: Metadata = buildPublicPageMetadata({
 
 export default function ReplicationTutorialsPage() {
   return (
-    <div className="mx-auto mt-8 w-full max-w-3xl">
-      <h2 className="sr-only">Tutorials</h2>
+    <>
+      <ReplicationsTabNav />
+      <div className="mx-auto mt-8 w-full max-w-3xl">
+        <h2 className="sr-only">Tutorials</h2>
 
-      <SectionCard>
-        <p className="theme-text-secondary text-[1.0625rem] leading-7">
-          This page serves as a dedicated index for information and resources on replicating
-          specific subjective effects.
-        </p>
+        <SectionCard>
+          <p className="theme-text-secondary text-[1.0625rem] leading-7">
+            This page serves as a dedicated index for information and resources
+            on replicating specific subjective effects.
+          </p>
 
-        <ul className="theme-text-secondary mt-6 space-y-4 text-[1.0625rem] leading-7 marker:text-dose-accent-muted">
-          {TUTORIALS.map((tutorial) => (
-            <li key={tutorial.href}>
-              <a
-                href={tutorial.href}
-                target="_blank"
-                rel="noopener noreferrer"
-                className={proseLinkClassName}
-              >
-                <strong>{tutorial.title}</strong>
-              </a>{" "}
-              by{" "}
-              <a
-                href={tutorial.artistHref}
-                target="_blank"
-                rel="noopener noreferrer"
-                className={proseLinkClassName}
-              >
-                {tutorial.artist}
-              </a>
-            </li>
-          ))}
-        </ul>
+          <ul className="theme-text-secondary mt-6 space-y-4 text-[1.0625rem] leading-7 marker:text-dose-accent-muted">
+            {TUTORIALS.map((tutorial) => (
+              <li key={tutorial.href}>
+                <a
+                  href={tutorial.href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className={proseLinkClassName}
+                >
+                  <strong>{tutorial.title}</strong>
+                </a>{" "}
+                by{" "}
+                <a
+                  href={tutorial.artistHref}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className={proseLinkClassName}
+                >
+                  {tutorial.artist}
+                </a>
+              </li>
+            ))}
+          </ul>
 
-        <p className="theme-text-secondary mt-6 text-[1.0625rem] leading-7">
-          For a collection of high res royalty free nature stock footage that can be used within
-          replication videos, please{" "}
-          <a
-            href="http://mitchmartinez.com/free-4k-red-epic-stock-footage/"
-            target="_blank"
-            rel="noopener noreferrer"
-            className={proseLinkClassName}
-          >
-            click here.
-          </a>
-        </p>
+          <p className="theme-text-secondary mt-6 text-[1.0625rem] leading-7">
+            For a collection of high res royalty free nature stock footage that
+            can be used within replication videos, please{" "}
+            <a
+              href="http://mitchmartinez.com/free-4k-red-epic-stock-footage/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className={proseLinkClassName}
+            >
+              click here.
+            </a>
+          </p>
 
-        <p className="theme-text-secondary mt-6 text-[1.0625rem] leading-7">
-          For audio recreations of what an effect sounds like, see the{" "}
-          <Link href="/replications/audio" className={proseLinkClassName}>
-            audio replications
-          </Link>
-          .
-        </p>
+          <p className="theme-text-secondary mt-6 text-[1.0625rem] leading-7">
+            For audio recreations of what an effect sounds like, see the{" "}
+            <Link href="/replications/audio" className={proseLinkClassName}>
+              audio replications
+            </Link>
+            .
+          </p>
 
-        <p className="theme-text-muted mt-6 text-xs leading-5">
-          Tutorials are linked to their authors and hosted elsewhere; {SITE_FLAVOR_CONFIG.name} does
-          not host or license them. For replication media hosted here, see the{" "}
-          <Link href="/docs/license#replication-media-terms" className={proseLinkClassName}>
-            licensing terms
-          </Link>{" "}
-          to correct a credit or request removal.
-        </p>
-      </SectionCard>
-    </div>
+          <p className="theme-text-muted mt-6 text-xs leading-5">
+            Tutorials are linked to their authors and hosted elsewhere;{" "}
+            {SITE_FLAVOR_CONFIG.name} does not host or license them. For
+            replication media hosted here, see the{" "}
+            <Link
+              href="/docs/license#replication-media-terms"
+              className={proseLinkClassName}
+            >
+              licensing terms
+            </Link>{" "}
+            to correct a credit or request removal.
+          </p>
+        </SectionCard>
+      </div>
+    </>
   );
 }

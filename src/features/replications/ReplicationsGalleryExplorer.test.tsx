@@ -424,13 +424,14 @@ describe("canonical replication viewer", () => {
     expect(screen.queryByTestId("replication-viewer")).toBeNull();
   });
 
-  it("opens the collection at its first work and closes over the intact gallery", () => {
+  it("opens the collection at the clicked work and closes over the intact gallery", () => {
     const pushState = vi.spyOn(window.history, "pushState");
     renderExplorer("");
 
-    fireEvent.click(
-      screen.getByRole("button", { name: "Open replication viewer" }),
-    );
+    // A tile click is the only way in: the gallery has no separate viewer
+    // button, so the collection's first work is reached by clicking it in the
+    // first artist's rail.
+    fireEvent.click(screen.getAllByTestId("rail-tile")[0]);
 
     const viewer = screen.getByTestId("replication-viewer");
     expect(viewer).toHaveAttribute("data-initial-slug", "slug-2");

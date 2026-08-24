@@ -1,12 +1,12 @@
 import type { ReactNode } from "react";
 
 import { PageHeader } from "@/components/layout/PageHeader";
-import { ReplicationsTabNav } from "@/features/replications/components/ReplicationsTabNav";
 import { resolveRouteChromeIcon } from "@/utils/routeChromeIcons";
 import { getCopy } from "@server/next/copyBlocks";
 
-// The header, intro, and tab bar are shared chrome for every tab of the
-// replications section (Gallery, Tutorials, Audio). The intro is editable
+// The header and intro are shared chrome for every tab of the replications
+// section (Gallery, Tutorials, Audio); the tab bar itself belongs to each tab
+// route, so a tab can place standing copy above it. The intro is editable
 // copy — a Convex read — so the segment follows the other index pages onto the
 // hourly ISR window; a Copy Studio save revalidates it immediately through the
 // shared copy cache tag.
@@ -21,8 +21,9 @@ const INTRO =
  * purpose: a single work's page is not a section view and gets no tab bar.
  *
  * The main element is deliberately full width (the same hosting environment
- * the gallery had on /effects); the header, intro, and tabs sit left-aligned
- * on the gallery's own `max-w-7xl` measure so everything shares one edge.
+ * the gallery had on /effects); the header and intro sit left-aligned on the
+ * gallery's own `max-w-7xl` measure, and every tab route renders its own body
+ * on that same measure so everything shares one edge.
  */
 export default async function ReplicationsSectionLayout({
   children,
@@ -32,7 +33,11 @@ export default async function ReplicationsSectionLayout({
   const copy = await getCopy();
 
   return (
-    <main id="main-content" tabIndex={-1} className="mx-auto w-full px-4 pb-20 pt-4 focus:outline-none 2xl:px-8">
+    <main
+      id="main-content"
+      tabIndex={-1}
+      className="mx-auto w-full px-4 pb-20 pt-4 focus:outline-none 2xl:px-8"
+    >
       {/* Left-aligned on the gallery card's own measure, so the title, tabs,
           and card share one edge; the header keeps a deliberately short
           footprint — the media below is the point of the page. */}
@@ -47,7 +52,6 @@ export default async function ReplicationsSectionLayout({
           icon={resolveRouteChromeIcon("replications")}
           prominentMobileIcon
         />
-        <ReplicationsTabNav className="mt-2" />
       </div>
       {children}
     </main>

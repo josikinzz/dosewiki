@@ -36,6 +36,12 @@ const SUBREDDIT_URL = "https://www.reddit.com/r/replications";
  * The row scrolls horizontally on narrow viewports (it bleeds into the page
  * padding so the scroll area reaches the screen edge) and every target keeps a
  * 44px minimum height on coarse pointers.
+ *
+ * Each tab route renders this itself rather than inheriting it from the
+ * section layout, so a tab can place its own standing copy *above* the bar
+ * (the gallery's fair-use notice does). It therefore carries the section
+ * measure and its default top offset, keeping the bar on the same left edge
+ * and at the same height on every tab that has nothing above it.
  */
 export function ReplicationsTabNav({ className }: { className?: string }) {
   // `/preview/...` addresses the same routes on the gated public domain, so the active
@@ -43,52 +49,60 @@ export function ReplicationsTabNav({ className }: { className?: string }) {
   const pathname = toAppPath(usePathname());
 
   return (
-    <nav
-      aria-label="Replications sections"
-      className={cn("-mx-4 overflow-x-auto px-4 [scrollbar-width:thin] md:mx-0 md:px-0", className)}
-    >
-      <div className="theme-route-tabs-list theme-text-muted flex w-max min-w-full items-center justify-start gap-1.5 md:min-w-0">
-        {SECTION_TABS.map((tab) => {
-          // Every route that renders this nav is a tab's own exact path — the
-          // focused gallery views (/replications/artist/<key>, /replications/
-          // effect/<slug>) live outside the `(tabs)` group and carry no nav.
-          const isActive = pathname === tab.href;
+    <div className={cn("mx-auto mt-2 w-full max-w-7xl", className)}>
+      <nav
+        aria-label="Replications sections"
+        className="-mx-4 overflow-x-auto px-4 [scrollbar-width:thin] md:mx-0 md:px-0"
+      >
+        <div className="theme-route-tabs-list theme-text-muted flex w-max min-w-full items-center justify-start gap-1.5 md:min-w-0">
+          {SECTION_TABS.map((tab) => {
+            // Every route that renders this nav is a tab's own exact path — the
+            // focused gallery views (/replications/artist/<key>, /replications/
+            // effect/<slug>) live outside the `(tabs)` group and carry no nav.
+            const isActive = pathname === tab.href;
 
-          return (
-            <Link
-              key={tab.href}
-              href={tab.href}
-              aria-current={isActive ? "page" : undefined}
-              data-state={isActive ? "active" : "inactive"}
-              className={cn(
-                "theme-selected-control group relative isolate flex min-h-8 shrink-0 items-center gap-1.5 overflow-hidden whitespace-nowrap rounded-full border border-transparent px-3 py-1.5 text-sm font-medium transition-[transform,background-color,color,box-shadow,border-color] duration-[260ms] ease-[cubic-bezier(0.25,1,0.5,1)] motion-reduce:transition-none [@media(pointer:coarse)]:min-h-11",
-                "active:scale-[0.99] motion-reduce:active:scale-100",
-              )}
-            >
-              <span
+            return (
+              <Link
+                key={tab.href}
+                href={tab.href}
+                aria-current={isActive ? "page" : undefined}
+                data-state={isActive ? "active" : "inactive"}
                 className={cn(
-                  "theme-selected-control-icon relative flex h-6 w-6 shrink-0 items-center justify-center rounded-full ring-1 transition-[background-color,color,box-shadow,transform] duration-300",
-                  !isActive && "bg-transparent ring-transparent shadow-[var(--theme-elevation-none)]",
+                  "theme-selected-control group relative isolate flex min-h-8 shrink-0 items-center gap-1.5 overflow-hidden whitespace-nowrap rounded-full border border-transparent px-3 py-1.5 text-sm font-medium transition-[transform,background-color,color,box-shadow,border-color] duration-[260ms] ease-[cubic-bezier(0.25,1,0.5,1)] motion-reduce:transition-none [@media(pointer:coarse)]:min-h-11",
+                  "active:scale-[0.99] motion-reduce:active:scale-100",
                 )}
               >
-                <Icon icon={tab.icon} size={17} />
-              </span>
-              {tab.label}
-            </Link>
-          );
-        })}
+                <span
+                  className={cn(
+                    "theme-selected-control-icon relative flex h-6 w-6 shrink-0 items-center justify-center rounded-full ring-1 transition-[background-color,color,box-shadow,transform] duration-300",
+                    !isActive &&
+                      "bg-transparent ring-transparent shadow-[var(--theme-elevation-none)]",
+                  )}
+                >
+                  <Icon icon={tab.icon} size={17} />
+                </span>
+                {tab.label}
+              </Link>
+            );
+          })}
 
-        <a
-          href={SUBREDDIT_URL}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="theme-focus-ring theme-text-faint ml-1.5 flex min-h-8 shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full px-2.5 py-1.5 text-sm font-medium transition-colors hover:text-dose-text-secondary motion-reduce:transition-none [@media(pointer:coarse)]:min-h-11"
-        >
-          <Icon icon="ph:reddit-logo-bold" size={16} />
-          r/replications
-          <Icon icon="lucide:external-link" size={13} aria-hidden="true" className="opacity-70" />
-        </a>
-      </div>
-    </nav>
+          <a
+            href={SUBREDDIT_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="theme-focus-ring theme-text-faint ml-1.5 flex min-h-8 shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full px-2.5 py-1.5 text-sm font-medium transition-colors hover:text-dose-text-secondary motion-reduce:transition-none [@media(pointer:coarse)]:min-h-11"
+          >
+            <Icon icon="ph:reddit-logo-bold" size={16} />
+            r/replications
+            <Icon
+              icon="lucide:external-link"
+              size={13}
+              aria-hidden="true"
+              className="opacity-70"
+            />
+          </a>
+        </div>
+      </nav>
+    </div>
   );
 }

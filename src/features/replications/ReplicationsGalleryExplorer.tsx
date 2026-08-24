@@ -420,7 +420,9 @@ function GalleryExplorer({
     pool: GalleryGroup[];
   }>(
     () =>
-      mode === "artist" ? { rails: groups, pool: [] } : splitRailsAndPool(groups),
+      mode === "artist"
+        ? { rails: groups, pool: [] }
+        : splitRailsAndPool(groups),
     [mode, groups],
   );
   const pooledItems = useMemo(
@@ -684,21 +686,6 @@ function GalleryExplorer({
           />
         ) : (
           <>
-            <div className="flex justify-end">
-              <Button
-                type="button"
-                onClick={() => {
-                  const first = viewerCollection.groups[0]?.items[0];
-                  if (first) launchViewer(first.replication.slug);
-                }}
-                className="min-h-11 w-full gap-2 sm:w-auto"
-                aria-label="Open replication viewer"
-              >
-                <Icon icon="lucide:play" className="h-4 w-4" aria-hidden />
-                Open viewer
-              </Button>
-            </div>
-
             {unavailableViewerSlug ? (
               <Alert role="status" className="mt-3">
                 <AlertDescription>
@@ -1161,9 +1148,7 @@ function GalleryExplorer({
                       variant="pill"
                       size="pill"
                       onClick={() =>
-                        setVisibleRailCount(
-                          (count) => count + ARTIST_RAIL_PAGE,
-                        )
+                        setVisibleRailCount((count) => count + ARTIST_RAIL_PAGE)
                       }
                       className="min-h-11 gap-1.5"
                     >
