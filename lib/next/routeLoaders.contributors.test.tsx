@@ -349,8 +349,9 @@ describe("contributor and replication route loaders", () => {
       effectName: "Tracers",
       effectSlug: "tracers",
       artistProfileHref: "/replications/artist/ada",
-      avatarUrl: "https://cdn.test/ada-avatar.webp",
     });
+    // avatarUrl was cut from ReplicationPageProps: no renderer ever read it.
+    expect(result.pageProps).not.toHaveProperty("avatarUrl");
     expect(
       result.pageProps.effectCategories.map((category) => category.slug),
     ).toEqual(["visual-effects", "visual-distortions"]);

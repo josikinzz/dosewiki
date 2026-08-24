@@ -165,7 +165,6 @@ export function ReplicationViewerOverlay({
   );
   const [muted, setMuted] = useState(true);
   const [volume, setVolume] = useState(1);
-  const [fullFrame, setFullFrame] = useState(false);
   const [infoOpen, setInfoOpen] = useState(false);
   const [details, setDetails] = useState<PublicReplicationDetails | null>(null);
   const [immersiveFallback, setImmersiveFallback] = useState(false);
@@ -213,7 +212,6 @@ export function ReplicationViewerOverlay({
   useEffect(() => {
     if (!open) {
       setVolume(1);
-      setFullFrame(false);
       setInfoOpen(false);
       setSettingsOpen(false);
       setImmersiveFallback(false);
@@ -947,10 +945,8 @@ export function ReplicationViewerOverlay({
                   item={active}
                   muted={muted}
                   volume={volume}
-                  fullFrame={fullFrame}
                   onMutedChange={handleMutedChange}
                   onVolumeChange={setVolume}
-                  onFullFrameChange={setFullFrame}
                   onPrevious={
                     previousWork
                       ? () => navigate(previousWork, "left")
@@ -1052,8 +1048,10 @@ export function ReplicationViewerOverlay({
                 <Link
                   href={artistProfileHref}
                   className={cn(
-                    "theme-media-tile-title pointer-events-auto flex items-center gap-1.5 rounded-full bg-black/65 text-xs font-semibold backdrop-blur-sm transition-opacity hover:opacity-85",
-                    active.avatarUrl ? "py-1 pl-1 pr-2.5" : "px-2.5 py-1.5",
+                    "theme-media-tile-title pointer-events-auto flex items-center gap-2 rounded-full bg-black/65 text-sm font-semibold backdrop-blur-sm transition-opacity hover:opacity-85 sm:gap-2.5 sm:text-base",
+                    active.avatarUrl
+                      ? "py-1 pl-1 pr-3 sm:pr-3.5"
+                      : "px-3.5 py-2 sm:px-4 sm:py-2.5",
                     focusRingClassName,
                   )}
                 >
@@ -1061,19 +1059,19 @@ export function ReplicationViewerOverlay({
                     <AppImage
                       src={active.avatarUrl}
                       alt=""
-                      width={40}
-                      height={40}
+                      width={72}
+                      height={72}
                       unoptimized
-                      className="size-5 shrink-0 rounded-full object-cover"
+                      className="size-7 shrink-0 rounded-full object-cover sm:size-9"
                     />
                   ) : null}
-                  <span className="max-w-[6.5rem] truncate sm:max-w-[12rem]">
+                  <span className="max-w-[8rem] truncate sm:max-w-[16rem]">
                     {artistLabel}
                   </span>
                 </Link>
               ) : (
-                <span className="theme-media-tile-title pointer-events-auto flex items-center rounded-full bg-black/65 px-2.5 py-1.5 text-xs font-semibold backdrop-blur-sm">
-                  <span className="max-w-[6.5rem] truncate sm:max-w-[12rem]">
+                <span className="theme-media-tile-title pointer-events-auto flex items-center rounded-full bg-black/65 px-3.5 py-2 text-sm font-semibold backdrop-blur-sm sm:px-4 sm:py-2.5 sm:text-base">
+                  <span className="max-w-[8rem] truncate sm:max-w-[16rem]">
                     {artistLabel}
                   </span>
                 </span>

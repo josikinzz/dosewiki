@@ -2,15 +2,29 @@ import type { Metadata } from "next";
 import { notFound, permanentRedirect } from "next/navigation";
 
 import { SITE_FLAVOR_CONFIG } from "@/config/siteFlavor";
-import { ArtistFocusIdentity } from "@/features/replications/ArtistFocusIdentity";
-import { ReplicationsGalleryExplorer } from "@/features/replications/ReplicationsGalleryExplorer";
+import { ArtistIdentityHeader } from "@/features/replications/artist/ArtistIdentityHeader";
+import { ArtistShowcase } from "@/features/replications/artist/ArtistShowcase";
+import {
+  buildArtistShowcaseGroup,
+  mergeArtistLinks,
+  showcaseWorkFromPreview,
+} from "@/features/replications/artist/artistPageModel";
+import { SHOWCASE_WORK_CAP } from "@/features/replications/components/showcaseModel";
 import {
   getRetiredArtistKeyAlias,
   resolveArtistPageProfileKey,
   resolveGalleryFocus,
   type ResolvedGalleryFocus,
 } from "@/features/replications/galleryFocus";
-import { UNATTRIBUTED_KEY } from "@/features/effects/gallery/galleryModel";
+import { buildGalleryBrowseUrl } from "@/features/replications/galleryUrlState";
+import {
+  viewerCollectionFromGalleryGroups,
+  type ReplicationViewerCollection,
+} from "@/features/replications/viewer/viewerModel";
+import {
+  effectNameLookup,
+  UNATTRIBUTED_KEY,
+} from "@/features/effects/gallery/galleryModel";
 import { ProfileBioMarkdown } from "@/components/pages/ProfileBioMarkdown";
 import type { ContributorDirectory } from "@server/contributorDirectory";
 import type { PublicGalleryReplicationPreview } from "@/types/replications";
@@ -31,19 +45,20 @@ import { getStaticReplicationArtistParams } from "@server/next/staticParams";
  * src/features/replications/galleryFocus.ts). The key space derives from the
  * works the gallery shows — slugified credit lines plus `unknown` for the
  * unattributed bucket — so an unrecognized key is a real 404, not an empty
- * page. When a Contributor Profile claims the credit line, the focus view is
- * decorated with their avatar, role, bio, and links; /contributors/<key>
- * permanently forwards here for such profiles. The Unattributed bucket gets
- * the same works view but never an identity claim. Prerendered from the same
- * gallery corpus the sitemap advertises and revalidated hourly; the `?type=`
- * filter is read on the client inside the explorer's Suspense boundary. All
- * reads sit on the shared hourly `unstable_cache` window.
+ * page. When a Contributor Profile claims the credit line, the identity
+ * header is decorated with their avatar, role, bio, and links;
+ * /contributors/<key> permanently forwards here for such profiles. The
+ * Unattributed bucket gets the same works view but never an identity claim.
+ * Prerendered from the same gallery corpus the sitemap advertises and
+ * revalidated hourly; all reads sit on the shared hourly `unstable_cache`
+ * window. The `?viewer=` deep link is resolved on the client inside
+ * ArtistShowcase against the artist's whole collection.
  *
  * Like the playlist pages, this sits outside the `(tabs)` group on purpose: a
  * profile is not a section view, so it gets no "Replications" masthead or tab
- * bar and brings its own `<main>` (the same measure the tabs layout hosts the
- * gallery in). The explorer wears `focus-only` chrome to match — no control
- * bar, no corpus stats, just the artist's own view.
+ * bar and brings its own `<main>`. The works render as one showcase stage
+ * over the whole body of work rather than the browse gallery's masonry: a
+ * profile presents a body of work, it is not a querying surface.
  */
 
 export const revalidate = 3600;
@@ -119,7 +134,7 @@ export async function generateMetadata({ params }: ArtistFocusPageProps): Promis
 
 export default async function ReplicationArtistPage({ params }: ArtistFocusPageProps) {
   const { key } = await params;
-  const { replications, effects, contributorDirectory, focus } = await loadArtistFocus(key);
+  const { effects, contributorDirectory, focus } = await loadArtistFocus(key);
 
   if (!focus) {
     forwardRetiredKeyOr404(key);
@@ -127,9 +142,42 @@ export default async function ReplicationArtistPage({ params }: ArtistFocusPageP
 
   // The claimed Contributor Profile decorates the page; the Unattributed
   // bucket never resolves one (resolveArtistPageProfileKey), and an unclaimed
-  // credit renders the same page shape without a card.
+  // credit renders the same page shape without avatar image, role, or links.
   const profileKey = resolveArtistPageProfileKey(focus.group, contributorDirectory);
   const profile = profileKey ? await getPublicContributorByKey(profileKey) : null;
+
+  const attributed = focus.group.key !== UNATTRIBUTED_KEY;
+  const effectName = effectNameLookup(effects);
+  const avatarUrl = profile?.avatarUrl ?? null;
+  const sourcePath = getPublicRoutePath({
+    family: "replicationArtist",
+    params: { key },
+  });
+
+  // The whole body of work as one showcase carousel — and one viewer
+  // collection over all of it, so every `?viewer=` deep link resolves even
+  // when the work sits beyond the filmstrip's cap.
+  const group = buildArtistShowcaseGroup(focus.group.items);
+  const collectionLabel = attributed
+    ? `Works by ${focus.label}`
+    : "Unattributed works";
+  const collection: ReplicationViewerCollection = {
+    ...viewerCollectionFromGalleryGroups(
+      [group],
+      "effect",
+      sourcePath,
+      effectName,
+      () => avatarUrl,
+    ),
+    label: collectionLabel,
+    kind: "artist",
+    grouping: "none",
+  };
+  const works = group.items
+    .slice(0, SHOWCASE_WORK_CAP)
+    .map((item) =>
+      showcaseWorkFromPreview(item, effectName(item.effect_slug), avatarUrl),
+    );
 
   return (
     <main
@@ -137,21 +185,38 @@ export default async function ReplicationArtistPage({ params }: ArtistFocusPageP
       tabIndex={-1}
       className="mx-auto w-full px-4 pb-20 pt-4 focus:outline-none 2xl:px-8"
     >
-      <ReplicationsGalleryExplorer
-        replications={replications}
-        effects={effects}
-        contributorDirectory={contributorDirectory}
-        focus={{ kind: "artist", key }}
-        focusIdentity={
-          profile ? (
-            <ArtistFocusIdentity
-              profile={profile}
-              bio={profile.hasCustomBio ? <ProfileBioMarkdown content={profile.bio} /> : null}
-            />
-          ) : null
-        }
-        chrome="focus-only"
-      />
+      <div className="mx-auto w-full max-w-5xl space-y-8">
+        <ArtistIdentityHeader
+          name={focus.label}
+          browseAllHref={buildGalleryBrowseUrl({ view: "artist" })}
+          attributed={attributed}
+          avatarUrl={avatarUrl}
+          role={profile?.role}
+          bio={
+            profile?.hasCustomBio ? (
+              <ProfileBioMarkdown content={profile.bio} />
+            ) : attributed ? null : (
+              <p>
+                Image and video recreations of subjective effects whose creator
+                is unknown, awaiting attribution.
+              </p>
+            )
+          }
+          links={mergeArtistLinks(profile?.links ?? [], focus.group.externalUrl)}
+          counts={{
+            count: focus.group.count,
+            imageCount: focus.group.imageCount,
+            videoCount: focus.group.videoCount,
+          }}
+        />
+        <ArtistShowcase
+          label={collectionLabel}
+          works={works}
+          totalCount={group.count}
+          collection={collection}
+          sourcePath={sourcePath}
+        />
+      </div>
     </main>
   );
 }

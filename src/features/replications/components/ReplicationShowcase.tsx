@@ -85,6 +85,25 @@ export interface ReplicationShowcaseProps {
   effectSlug?: string;
   /** Persistent identity shown by the expanded viewer. */
   collectionLabel?: string;
+  /**
+   * Show the active work's creator line in the top scrim. The Artist Page
+   * passes false: its identity header already names the artist, and a
+   * per-stage byline would only link the page to itself.
+   */
+  showCreator?: boolean;
+  /**
+   * Page-level viewer ownership. A page that renders several showcases over
+   * one collection (the Artist Page) resolves the `?viewer=` deep link and
+   * mounts the overlay itself; a controlled showcase reports launches through
+   * `onOpenWork` instead of opening its own overlay, renders no deep-link
+   * cover, unavailable notice, or rights footnote, and writes its fallback
+   * hrefs against the controller's `sourcePath`. Callers must keep the object
+   * referentially stable.
+   */
+  controller?: {
+    sourcePath: string;
+    onOpenWork: (slug: string) => void;
+  };
 }
 
 /**
@@ -112,6 +131,8 @@ export function ReplicationShowcase({
   substanceSlug,
   effectSlug,
   collectionLabel,
+  showCreator = true,
+  controller,
 }: ReplicationShowcaseProps) {
   const baseId = useId();
   const [activeIndex, setActiveIndex] = useState(0);
@@ -143,11 +164,13 @@ export function ReplicationShowcase({
           : "Replications");
     return {
       label,
-      sourcePath: substanceSlug
-        ? publicHref.substance(substanceSlug)
-        : effectSlug
-          ? publicHref.effect(effectSlug)
-          : publicHref.replications(),
+      sourcePath:
+        controller?.sourcePath ??
+        (substanceSlug
+          ? publicHref.substance(substanceSlug)
+          : effectSlug
+            ? publicHref.effect(effectSlug)
+            : publicHref.replications()),
       kind: substanceSlug ? "substance" : effectSlug ? "effect" : "gallery",
       grouping: "none",
       groups: [
@@ -185,9 +208,12 @@ export function ReplicationShowcase({
         },
       ],
     };
-  }, [collectionLabel, collectionWorks, effectSlug, substanceSlug]);
+  }, [collectionLabel, collectionWorks, controller?.sourcePath, effectSlug, substanceSlug]);
 
   useEffect(() => {
+    // A controlled showcase never owns the deep link: the page-level
+    // controller resolves `?viewer=` against the whole collection.
+    if (controller) return;
     const params = new URLSearchParams(window.location.search);
     const slug = parseReplicationViewerSlug(params);
     const belongsToCollection =
@@ -208,9 +234,13 @@ export function ReplicationShowcase({
     if (!belongsToCollection) {
       dismissViewerDeepLinkCover();
     }
-  }, [collectionWorks]);
+  }, [collectionWorks, controller]);
 
   const launchViewer = (slug: string) => {
+    if (controller) {
+      controller.onOpenWork(slug);
+      return;
+    }
     const source = `${toAppPath(window.location.pathname)}${window.location.search}${window.location.hash}`;
     setUnavailableViewerSlug(null);
     window.history.pushState(
@@ -311,8 +341,9 @@ export function ReplicationShowcase({
     <>
       {/* Before the article card in document order: a `?viewer=` deep link's
           first paint is black, and the resolution effect above dismisses the
-          cover if the slug is unknown here. */}
-      <ViewerDeepLinkCover />
+          cover if the slug is unknown here. A controlled showcase renders no
+          cover or notice — the page-level controller owns both. */}
+      {controller ? null : <ViewerDeepLinkCover />}
       <section aria-labelledby={collectionHeadingId} className="space-y-2">
         <h3
           id={collectionHeadingId}
@@ -330,7 +361,7 @@ export function ReplicationShowcase({
           <span aria-hidden>·</span>
           <span>{total}</span>
         </h3>
-        {unavailableViewerSlug ? (
+        {!controller && unavailableViewerSlug ? (
           <Alert role="status">
             <AlertDescription>
               The linked replication is no longer available in this collection.
@@ -383,7 +414,7 @@ export function ReplicationShowcase({
                   aria-hidden
                 />
               </Link>
-              {hasKnownCreator(active.artistName) ? (
+              {!showCreator ? null : hasKnownCreator(active.artistName) ? (
                 <span className="theme-media-tile-creator min-w-0 truncate text-[11px] sm:text-xs">
                   by{" "}
                   {active.artistHref ? (
@@ -633,7 +664,9 @@ export function ReplicationShowcase({
                         ? "this substance's playlist"
                         : effectSlug
                           ? "this effect's playlist"
-                          : "the gallery"
+                          : controller
+                            ? "this collection"
+                            : "the gallery"
                     }`}
                     className={cn(
                       "grid size-9 flex-none snap-start place-items-center rounded-md pointer-coarse:size-11",
@@ -649,23 +682,27 @@ export function ReplicationShowcase({
             </div>
           ) : null}
         </div>
-        <p className="theme-text-muted px-1 text-xs leading-5">
-          Replication media is credited to its creator; rights remain with the
-          rightsholder — see the{" "}
-          <Link
-            href="/docs/license#replication-media-terms"
-            className={proseLinkClassName}
-          >
-            licensing terms
-          </Link>{" "}
-          to correct a credit or request removal.
-        </p>
+        {/* A controlled page carries one page-level footnote instead of one
+            per stage. */}
+        {controller ? null : (
+          <p className="theme-text-muted px-1 text-xs leading-5">
+            Replication media is credited to its creator; rights remain with
+            the rightsholder — see the{" "}
+            <Link
+              href="/docs/license#replication-media-terms"
+              className={proseLinkClassName}
+            >
+              licensing terms
+            </Link>{" "}
+            to correct a credit or request removal.
+          </p>
+        )}
 
         <div aria-live="polite" role="status" className="sr-only">
           {liveMessage}
         </div>
       </section>
-      {viewerSlug ? (
+      {!controller && viewerSlug ? (
         <ReplicationViewerOverlay
           collection={viewerCollection}
           initialSlug={viewerSlug}

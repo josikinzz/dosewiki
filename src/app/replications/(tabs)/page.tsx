@@ -2,6 +2,11 @@ import type { Metadata } from "next";
 
 import { SITE_FLAVOR_CONFIG } from "@/config/siteFlavor";
 import { ReplicationsGalleryExplorer } from "@/features/replications/ReplicationsGalleryExplorer";
+import { ReplicationsFairUseNotice } from "@/features/replications/components/ReplicationsFairUseNotice";
+import {
+  REPLICATIONS_FAIR_USE_NOTICE_FALLBACK,
+  REPLICATIONS_FAIR_USE_NOTICE_KEY,
+} from "@/features/replications/replicationsFairUseCopy";
 import { buildItemListSchema, serializeJsonLd } from "@/utils/seo/structuredData";
 import {
   getPublicContributorDirectory,
@@ -39,11 +44,13 @@ export async function generateMetadata(): Promise<Metadata> {
 export default async function ReplicationsPage() {
   // The gallery's artist headings resolve to profile pages, and that resolution
   // needs the directory. Reading it here keeps the client gallery from fetching
-  // anything itself.
-  const [replications, effects, contributorDirectory] = await Promise.all([
+  // anything itself. The copy read resolves the fair-use notice; `getCopy` is
+  // request-cached, so this shares the metadata read above.
+  const [replications, effects, contributorDirectory, copy] = await Promise.all([
     getPublicGalleryReplications(),
     getPublicEffects(),
     getPublicContributorDirectory(),
+    getCopy(),
   ]);
 
   const canonicalUrl = buildSiteUrl(getPublicRoutePath({ family: "replications" }));
@@ -65,10 +72,18 @@ export default async function ReplicationsPage() {
   return (
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: itemListJsonLd }} />
+      {/* The editable notice below carries the page's rights position, so the
+          explorer's own short footnote is switched off here. */}
       <ReplicationsGalleryExplorer
         replications={replications}
         effects={effects}
         contributorDirectory={contributorDirectory}
+        rightsFootnote={false}
+      />
+      <ReplicationsFairUseNotice
+        body={
+          copy.text(REPLICATIONS_FAIR_USE_NOTICE_KEY) || REPLICATIONS_FAIR_USE_NOTICE_FALLBACK
+        }
       />
     </>
   );

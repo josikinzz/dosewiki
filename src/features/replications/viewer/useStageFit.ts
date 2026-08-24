@@ -5,30 +5,43 @@ import { useCallback, useEffect, useState } from "react";
 import type { ReplicationType } from "@/types/replications";
 import { resolveMediaAspect } from "./viewerLogic";
 
-export const PORTRAIT_PHONE_SCALE = 1.15;
-export const PORTRAIT_PHONE_SCALE_LIMIT = 1.2;
+export interface StageRotationInput {
+  /** Portrait-phone layout is active (viewport, not device). */
+  portraitPhone: boolean;
+  /** True for media that plays (video or controllable GIF rendition). */
+  moving: boolean;
+  /** Resolved width/height ratio of the active media. */
+  mediaAspect: number;
+  /** Identity of the active media. */
+  mediaKey: string;
+  /** The media the reader last rotated, or null when upright. */
+  rotatedKey: string | null;
+}
 
-export function portraitPhoneMediaScale({
+export interface StageRotation {
+  /** Offer the rotate-to-fit control. */
+  canRotate: boolean;
+  /** Paint the stage media turned 90°. */
+  rotated: boolean;
+}
+
+/**
+ * The rotate-to-fit decision: only landscape moving media on a portrait
+ * phone benefits from being turned sideways, and a rotation belongs to the
+ * one work it was requested on — advancing to any other work (or to media
+ * that is not landscape) lands upright, because `rotatedKey` no longer
+ * names the active media.
+ */
+export function stageRotation({
+  portraitPhone,
   moving,
   mediaAspect,
-  portraitPhone,
-  fullFrame,
-}: {
-  moving: boolean;
-  mediaAspect: number;
-  portraitPhone: boolean;
-  fullFrame: boolean;
-}): number {
-  if (
-    !moving ||
-    !portraitPhone ||
-    fullFrame ||
-    !Number.isFinite(mediaAspect) ||
-    mediaAspect <= 1
-  ) {
-    return 1;
-  }
-  return Math.min(PORTRAIT_PHONE_SCALE, PORTRAIT_PHONE_SCALE_LIMIT);
+  mediaKey,
+  rotatedKey,
+}: StageRotationInput): StageRotation {
+  const canRotate =
+    moving && portraitPhone && Number.isFinite(mediaAspect) && mediaAspect > 1;
+  return { canRotate, rotated: canRotate && rotatedKey === mediaKey };
 }
 
 export interface StageFitOptions {
@@ -37,20 +50,20 @@ export interface StageFitOptions {
   moving?: boolean;
   width?: number | null;
   height?: number | null;
-  fullFrame?: boolean;
-  onFullFrameChange?: (fullFrame: boolean) => void;
 }
 
 export interface StageFit {
-  canEnlarge: boolean;
-  scaleStyle: React.CSSProperties | undefined;
-  toggleFit: () => void;
+  canRotate: boolean;
+  rotated: boolean;
+  toggleRotate: () => void;
   probeAspect: (mediaWidth: number, mediaHeight: number) => void;
 }
 
 /**
- * The only automatic crop: a small enlargement for wide moving media on a
- * portrait phone. State lives in the open viewer, never browser storage.
+ * Rotate-to-fit for landscape motion on portrait phones: turning the work
+ * sideways (a pure CSS transform on the stage media, never the chrome) fills
+ * the tall screen edge-to-edge the way physically rotating the phone would.
+ * State lives in the open viewer, never browser storage.
  */
 export function useStageFit({
   mediaKey,
@@ -58,15 +71,12 @@ export function useStageFit({
   moving = type === "video",
   width,
   height,
-  fullFrame: controlledFullFrame,
-  onFullFrameChange,
 }: StageFitOptions): StageFit {
-  const [localFullFrame, setLocalFullFrame] = useState(false);
+  const [rotatedKey, setRotatedKey] = useState<string | null>(null);
   const [portraitPhone, setPortraitPhone] = useState(false);
   const [probedAspects, setProbedAspects] = useState<Record<string, number>>(
     {},
   );
-  const fullFrame = controlledFullFrame ?? localFullFrame;
 
   useEffect(() => {
     if (typeof window === "undefined" || !window.matchMedia) return;
@@ -97,25 +107,21 @@ export function useStageFit({
     height,
     probedAspects[mediaKey],
   );
-  const canEnlarge = moving && portraitPhone && mediaAspect > 1;
-  const scale = portraitPhoneMediaScale({
+  const { canRotate, rotated } = stageRotation({
+    portraitPhone,
     moving,
     mediaAspect,
-    portraitPhone,
-    fullFrame,
+    mediaKey,
+    rotatedKey,
   });
-  const scaleStyle =
-    scale > 1.001 ? { transform: `scale(${scale.toFixed(3)})` } : undefined;
-  const toggleFit = useCallback(() => {
-    const next = !fullFrame;
-    if (controlledFullFrame === undefined) setLocalFullFrame(next);
-    onFullFrameChange?.(next);
-  }, [controlledFullFrame, fullFrame, onFullFrameChange]);
+  const toggleRotate = useCallback(() => {
+    setRotatedKey((previous) => (previous === mediaKey ? null : mediaKey));
+  }, [mediaKey]);
 
   return {
-    canEnlarge,
-    scaleStyle,
-    toggleFit,
+    canRotate,
+    rotated,
+    toggleRotate,
     probeAspect,
   };
 }

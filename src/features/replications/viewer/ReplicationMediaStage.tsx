@@ -1,12 +1,19 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  type PointerEvent as ReactPointerEvent,
+} from "react";
 
 import { AppImage } from "@/components/common/AppImage";
 import { Icon } from "@/components/common/Icon";
 import { focusRingClassName } from "@/components/ui/surface";
 import { cn } from "@/lib/utils";
 import type { ReplicationViewerMediaItem } from "./viewerModel";
+import { bufferedRangeContaining, seekRatioFromPointer } from "./viewerLogic";
 import { useStageFit } from "./useStageFit";
 import { ReplicationStillStage } from "./ReplicationStillStage";
 
@@ -76,10 +83,8 @@ export interface ReplicationMediaStageProps {
   item: ReplicationViewerMediaItem;
   muted: boolean;
   volume: number;
-  fullFrame: boolean;
   onMutedChange: (muted: boolean) => void;
   onVolumeChange: (volume: number) => void;
-  onFullFrameChange: (fullFrame: boolean) => void;
   previousHref?: string;
   nextHref?: string;
   onPrevious?: () => void;
@@ -98,10 +103,8 @@ export function ReplicationMediaStage({
   item,
   muted,
   volume,
-  fullFrame,
   onMutedChange,
   onVolumeChange,
-  onFullFrameChange,
   onPrevious,
   onNext,
   previousHref,
@@ -137,12 +140,20 @@ export function ReplicationMediaStage({
   const mutedRef = useRef(muted);
   const volumeRef = useRef(volume);
   const progressFillRef = useRef<HTMLDivElement>(null);
+  const progressBufferedRef = useRef<HTMLDivElement>(null);
+  const progressThumbRef = useRef<HTMLDivElement>(null);
+  const progressSliderRef = useRef<HTMLDivElement>(null);
+  /** True while a pointer owns the playhead; the rAF meter yields to it. */
+  const scrubbingRef = useRef(false);
+  /** Last whole second written to aria-valuenow, deduping per-frame writes. */
+  const ariaSecondRef = useRef(-1);
   const hideTimerRef = useRef<number | undefined>(undefined);
   const reducedMotion = useReducedMotion();
   const [playing, setPlaying] = useState(false);
   const [blocked, setBlocked] = useState(false);
   const [error, setError] = useState(false);
   const [controlsVisible, setControlsVisible] = useState(true);
+  const [scrubbing, setScrubbing] = useState(false);
   /** True once the video has painted real frames; drops the poster underlay. */
   const [framePainted, setFramePainted] = useState(false);
   const ordinaryVideo = replication.type === "video";
@@ -150,15 +161,21 @@ export function ReplicationMediaStage({
   const [audioPresence, setAudioPresence] = useState<AudioPresence>(
     knownAudio === true ? "present" : "unknown",
   );
-  const { canEnlarge, scaleStyle, toggleFit, probeAspect } = useStageFit({
+  const { canRotate, rotated, toggleRotate, probeAspect } = useStageFit({
     mediaKey: replication.slug,
     type: replication.type,
     moving,
     width: replication.width,
     height: replication.height,
-    fullFrame,
-    onFullFrameChange,
   });
+  // Rotate-to-fit geometry: the media element alone turns 90° and swaps its
+  // box to the stage's cross dimensions (container-query units resolved
+  // against the stage section), so a landscape work fills the portrait
+  // screen edge-to-edge while all chrome, gestures, and text stay upright.
+  // A pure transform on the existing element — the <video> keeps playing.
+  const mediaGeometryClassName = rotated
+    ? "left-1/2 top-1/2 h-[100cqw] w-[100cqh] max-w-none -translate-x-1/2 -translate-y-1/2 rotate-90"
+    : "inset-0 h-full w-full";
   // Catalogued waveform evidence beats runtime track probes: a row proven
   // silent hides sound controls outright; a row with audible signal keeps them.
   // GIF-derived motion renditions are generated silent by contract; browser
@@ -210,6 +227,8 @@ export function ReplicationMediaStage({
     setPlaying(false);
     setControlsVisible(true);
     setFramePainted(false);
+    setScrubbing(false);
+    scrubbingRef.current = false;
     // A new work re-asks for the shared sound preference in the autoplay
     // effect below; any refusal re-arms the IOU there, so a stale debt from
     // the previous work never carries over.
@@ -322,28 +341,101 @@ export function ReplicationMediaStage({
     [ordinaryVideo],
   );
 
-  // The compact playback meter: a per-frame scaleX write straight to the DOM
-  // keeps the accent fill glassy-smooth without re-rendering the stage. It
-  // sweeps to the end and restarts as the loop wraps.
+  /**
+   * The catalogued duration stands in until the element reports its own —
+   * seeks issued before metadata arrives still land near the right spot.
+   */
+  const resolveSeekDuration = useCallback(
+    (video: HTMLVideoElement): number => {
+      if (Number.isFinite(video.duration) && video.duration > 0)
+        return video.duration;
+      const catalogued = replication.duration;
+      return typeof catalogued === "number" && catalogued > 0 ? catalogued : 0;
+    },
+    [replication.duration],
+  );
+
+  /** One direct-DOM write moves both the accent fill and its thumb. */
+  const paintPlayhead = useCallback((ratio: number) => {
+    const fill = progressFillRef.current;
+    if (fill) fill.style.transform = `scaleX(${ratio})`;
+    const thumb = progressThumbRef.current;
+    if (thumb) thumb.style.left = `${ratio * 100}%`;
+  }, []);
+
+  /** Seek to the pointer's position on the bar and paint the playhead there. */
+  const seekToPointer = useCallback(
+    (clientX: number) => {
+      const video = videoRef.current;
+      const slider = progressSliderRef.current;
+      if (!video || !slider) return;
+      const duration = resolveSeekDuration(video);
+      if (duration <= 0) return;
+      const rect = slider.getBoundingClientRect();
+      const ratio = seekRatioFromPointer(clientX, rect.left, rect.width);
+      video.currentTime = ratio * duration;
+      paintPlayhead(ratio);
+    },
+    [paintPlayhead, resolveSeekDuration],
+  );
+
+  const endScrub = useCallback(
+    (event: ReactPointerEvent<HTMLDivElement>) => {
+      if (!scrubbingRef.current) return;
+      scrubbingRef.current = false;
+      setScrubbing(false);
+      if (event.currentTarget.hasPointerCapture?.(event.pointerId)) {
+        event.currentTarget.releasePointerCapture(event.pointerId);
+      }
+    },
+    [],
+  );
+
+  // The compact playback meter: per-frame direct-DOM writes keep the accent
+  // fill, its thumb, and the buffered layer glassy-smooth without
+  // re-rendering the stage. It sweeps to the end and restarts as the loop
+  // wraps; while a pointer is scrubbing, the pointer owns the playhead.
   useEffect(() => {
     if (!ordinaryVideo) return;
+    ariaSecondRef.current = -1;
     let frame = 0;
     const tick = () => {
       const video = videoRef.current;
-      const fill = progressFillRef.current;
-      if (video && fill) {
+      if (video) {
         const { duration } = video;
-        const ratio =
-          Number.isFinite(duration) && duration > 0
-            ? Math.min(video.currentTime / duration, 1)
-            : 0;
-        fill.style.transform = `scaleX(${ratio})`;
+        const playable = Number.isFinite(duration) && duration > 0;
+        if (!scrubbingRef.current) {
+          paintPlayhead(
+            playable ? Math.min(video.currentTime / duration, 1) : 0,
+          );
+        }
+        const bufferedFill = progressBufferedRef.current;
+        if (bufferedFill) {
+          const range = playable
+            ? bufferedRangeContaining(video.buffered, video.currentTime)
+            : null;
+          if (range) {
+            bufferedFill.style.left = `${(range.start / duration) * 100}%`;
+            bufferedFill.style.width = `${((range.end - range.start) / duration) * 100}%`;
+          } else {
+            bufferedFill.style.width = "0%";
+          }
+        }
+        const slider = progressSliderRef.current;
+        if (slider && playable) {
+          const second = Math.round(video.currentTime);
+          if (second !== ariaSecondRef.current) {
+            ariaSecondRef.current = second;
+            slider.setAttribute("aria-valuenow", String(second));
+            slider.setAttribute("aria-valuemax", String(Math.round(duration)));
+          }
+        }
       }
       frame = requestAnimationFrame(tick);
     };
     frame = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(frame);
-  }, [ordinaryVideo, replication.slug]);
+  }, [ordinaryVideo, paintPlayhead, replication.slug]);
 
   const width = replication.width ?? 1600;
   const height = replication.height ?? Math.round(width / (4 / 3));
@@ -363,7 +455,7 @@ export function ReplicationMediaStage({
       onPointerMove={showControls}
       onFocusCapture={showControls}
       className={cn(
-        "relative h-full min-h-[22rem] w-full overflow-hidden bg-black",
+        "relative h-full min-h-[22rem] w-full overflow-hidden bg-black [container-type:size]",
         className,
       )}
     >
@@ -417,8 +509,10 @@ export function ReplicationMediaStage({
             setPlaying(false);
             setControlsVisible(true);
           }}
-          className="absolute inset-0 h-full w-full object-contain transition-transform duration-200 motion-reduce:transition-none"
-          style={scaleStyle}
+          className={cn(
+            "absolute object-contain transition-transform duration-200 motion-reduce:transition-none",
+            mediaGeometryClassName,
+          )}
         />
       ) : null}
       {moving && motionSource && poster ? (
@@ -428,10 +522,10 @@ export function ReplicationMediaStage({
         <div
           aria-hidden
           className={cn(
-            "pointer-events-none absolute inset-0 transition-opacity duration-200 motion-reduce:transition-none",
+            "pointer-events-none absolute transition-opacity duration-200 motion-reduce:transition-none",
+            mediaGeometryClassName,
             framePainted ? "opacity-0" : "opacity-100",
           )}
-          style={scaleStyle}
         >
           <AppImage
             src={poster}
@@ -483,40 +577,122 @@ export function ReplicationMediaStage({
       ) : null}
 
       {ordinaryVideo && !error ? (
+        // The YouTube grammar: a hairline meter that is secretly a full
+        // slider. A tall invisible hit area owns the pointer so a scrub can
+        // never read as a stage tap or a swipe; the visible track fattens
+        // under the pointer and while dragging.
         <div
-          aria-hidden
-          className="theme-media-progress-track pointer-events-none absolute inset-x-0 bottom-0 z-10 h-[3px]"
+          ref={progressSliderRef}
+          role="slider"
+          tabIndex={0}
+          aria-label="Seek"
+          aria-valuemin={0}
+          aria-valuemax={Math.round(replication.duration ?? 0)}
+          aria-valuenow={0}
+          data-scrubbing={scrubbing || undefined}
+          onPointerDown={(event) => {
+            event.stopPropagation();
+            if (event.pointerType === "mouse" && event.button !== 0) return;
+            scrubbingRef.current = true;
+            setScrubbing(true);
+            showControls();
+            if (event.currentTarget.setPointerCapture) {
+              event.currentTarget.setPointerCapture(event.pointerId);
+            }
+            seekToPointer(event.clientX);
+          }}
+          onPointerMove={(event) => {
+            if (!scrubbingRef.current) return;
+            event.stopPropagation();
+            showControls();
+            seekToPointer(event.clientX);
+          }}
+          onPointerUp={(event) => {
+            if (!scrubbingRef.current) return;
+            event.stopPropagation();
+            seekToPointer(event.clientX);
+            endScrub(event);
+          }}
+          onPointerCancel={endScrub}
+          onTouchStart={(event) => event.stopPropagation()}
+          onClick={(event) => event.stopPropagation()}
+          onKeyDown={(event) => {
+            if (event.key !== "ArrowLeft" && event.key !== "ArrowRight")
+              return;
+            event.preventDefault();
+            event.stopPropagation();
+            const video = videoRef.current;
+            if (!video) return;
+            const duration = resolveSeekDuration(video);
+            if (duration <= 0) return;
+            const step = event.key === "ArrowLeft" ? -5 : 5;
+            const next = Math.min(
+              Math.max(video.currentTime + step, 0),
+              duration,
+            );
+            video.currentTime = next;
+            paintPlayhead(next / duration);
+            showControls();
+          }}
+          className={cn(
+            "group absolute inset-x-0 bottom-0 z-10 flex h-5 cursor-pointer touch-none flex-col justify-end",
+            focusRingClassName,
+          )}
         >
           <div
-            ref={progressFillRef}
-            className="theme-media-playback-fill h-full w-full origin-left"
-            style={{ transform: "scaleX(0)" }}
-          />
+            className={cn(
+              "theme-media-progress-track relative h-[3px] w-full transition-[height] duration-100 group-hover:h-[5px] group-focus-visible:h-[5px] motion-reduce:transition-none",
+              scrubbing && "h-[5px]",
+            )}
+          >
+            <div
+              ref={progressBufferedRef}
+              aria-hidden
+              className="theme-media-progress-buffered absolute inset-y-0 left-0"
+              style={{ width: "0%" }}
+            />
+            <div
+              ref={progressFillRef}
+              aria-hidden
+              className="theme-media-playback-fill absolute inset-y-0 left-0 w-full origin-left"
+              style={{ transform: "scaleX(0)" }}
+            />
+            <div
+              ref={progressThumbRef}
+              aria-hidden
+              className={cn(
+                "theme-media-playback-thumb absolute top-1/2 size-3 -translate-x-1/2 -translate-y-1/2 rounded-full opacity-0 transition-opacity duration-100 group-hover:opacity-100 group-focus-visible:opacity-100 motion-reduce:transition-none [@media(pointer:coarse)]:opacity-100",
+                scrubbing && "opacity-100",
+              )}
+              style={{ left: "0%" }}
+            />
+          </div>
         </div>
       ) : null}
 
       <div
         className={cn(
-          "pointer-events-none absolute inset-0 flex flex-col justify-between p-3 transition-opacity duration-200 motion-reduce:transition-none sm:p-4",
+          "pointer-events-none absolute inset-0 z-20 flex flex-col justify-between p-3 transition-opacity duration-200 motion-reduce:transition-none sm:p-4",
           transportVisible
             ? "opacity-100"
             : "opacity-0 [&_*]:!pointer-events-none",
         )}
       >
         <div className="flex justify-end gap-2">
-          {canEnlarge ? (
+          {canRotate ? (
             <button
               type="button"
+              aria-label={
+                rotated ? "Rotate back upright" : "Rotate to fill screen"
+              }
+              aria-pressed={rotated}
               onClick={(event) => {
                 event.stopPropagation();
-                toggleFit();
+                toggleRotate();
               }}
-              className={cn(
-                controlClassName,
-                "pointer-events-auto w-auto px-3 text-xs font-semibold",
-              )}
+              className={cn(controlClassName, "pointer-events-auto")}
             >
-              {fullFrame ? "Slightly larger" : "Full frame"}
+              <Icon icon="lucide:rotate-cw" className="size-5" />
             </button>
           ) : null}
           {onInfo ? (

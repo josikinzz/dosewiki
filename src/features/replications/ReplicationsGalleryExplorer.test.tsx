@@ -300,20 +300,40 @@ describe("un-carded gallery chrome", () => {
 });
 
 describe("hybrid browse layout", () => {
-  it("gives artists with three or more works a rail and pools the rest", () => {
+  it("gives every artist their own rail with no pooled masonry", () => {
     renderExplorer("");
 
-    // Chelsea (3 works) earns a rail whose heading links to her Artist Page.
+    // Chelsea (3 works) has a rail whose heading links to her Artist Page.
     expect(
       screen.getByRole("link", { name: "Chelsea Morgan" }),
     ).toHaveAttribute("href", "/replications/artist/chelsea-morgan");
-    // Aria (1 work) gets no rail of her own…
-    expect(screen.queryByText("Aria")).toBeNull();
-    // …her work pools into the "More artists" masonry instead.
+    // Aria (1 work) gets her own rail too, instead of pooling into a
+    // mixed-attribution "More artists" masonry.
+    expect(screen.getByRole("link", { name: "Aria" })).toHaveAttribute(
+      "href",
+      "/replications/artist/aria",
+    );
+    expect(screen.getAllByTestId("rail")).toHaveLength(2);
+    expect(screen.queryByRole("heading", { name: "More artists" })).toBeNull();
+  });
+
+  it("reveals artist rails a page at a time behind Show more artists", () => {
+    const many = Array.from({ length: 20 }, (_, index) =>
+      rep({ artist: `Solo Artist ${String(index).padStart(2, "0")}` }),
+    );
+    renderExplorer("", { replications: many });
+
+    expect(screen.getAllByTestId("rail")).toHaveLength(16);
+    expect(screen.getByText("Showing 16 of 20 artists")).toBeInTheDocument();
+
+    fireEvent.click(
+      screen.getByRole("button", { name: /Show more artists/ }),
+    );
+
+    expect(screen.getAllByTestId("rail")).toHaveLength(20);
     expect(
-      screen.getByRole("heading", { name: "More artists" }),
-    ).toBeInTheDocument();
-    expect(screen.getByText("Work 4")).toBeInTheDocument();
+      screen.queryByRole("button", { name: /Show more artists/ }),
+    ).toBeNull();
   });
 
   it("rails effects with enough works and pools thin effects behind them", () => {
@@ -328,6 +348,10 @@ describe("hybrid browse layout", () => {
       screen.getByRole("heading", { name: "More effects" }),
     ).toBeInTheDocument();
     expect(screen.getByText("Work 2")).toBeInTheDocument();
+    // Effect browsing keeps the hybrid layout: no artist-rail pagination.
+    expect(
+      screen.queryByRole("button", { name: /Show more artists/ }),
+    ).toBeNull();
   });
 
   it("keeps the artist-sort control mounted but hidden in effect mode, so the bar cannot jitter", () => {
@@ -340,26 +364,28 @@ describe("hybrid browse layout", () => {
 });
 
 describe("byline and compact wiring", () => {
-  it("drops rail bylines in artist mode but keeps them on pooled tiles", () => {
+  it("drops rail bylines in artist mode, where each heading names its artist", () => {
     renderExplorer("");
 
-    // The artist rail already names its artist in the heading.
-    const rail = screen.getByTestId("rail");
-    expect(rail).toHaveAttribute("data-tile-bylines", "false");
-    expect(rail).toHaveAttribute("data-mobile-compact", "true");
-    // The pooled masonry mixes artists, so each tile keeps its attribution.
-    const pooled = screen.getByTestId("tile");
-    expect(pooled).toHaveAttribute("data-show-byline", "true");
-    expect(pooled).toHaveAttribute("data-mobile-compact", "true");
+    const rails = screen.getAllByTestId("rail");
+    expect(rails).toHaveLength(2);
+    for (const rail of rails) {
+      expect(rail).toHaveAttribute("data-tile-bylines", "false");
+      expect(rail).toHaveAttribute("data-mobile-compact", "true");
+    }
   });
 
-  it("keeps rail bylines in effect mode, where the heading names no artist", () => {
+  it("keeps rail bylines and pooled-tile bylines in effect mode", () => {
     renderExplorer("view=effect");
 
     expect(screen.getByTestId("rail")).toHaveAttribute(
       "data-tile-bylines",
       "true",
     );
+    // The pooled masonry mixes artists, so each tile keeps its attribution.
+    const pooled = screen.getByTestId("tile");
+    expect(pooled).toHaveAttribute("data-show-byline", "true");
+    expect(pooled).toHaveAttribute("data-mobile-compact", "true");
   });
 
   it("hides bylines across an artist focus view", () => {

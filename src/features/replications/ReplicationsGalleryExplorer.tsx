@@ -49,6 +49,7 @@ import {
   matchesType,
   sortWithinGroup,
   splitRailsAndPool,
+  type GalleryGroup,
   type GalleryArtistSort,
   type GalleryMode,
   type GalleryTypeFilter,
@@ -117,6 +118,14 @@ export interface ReplicationsGalleryExplorerProps {
    * it here.
    */
   chrome?: "full" | "focus-only";
+  /**
+   * The `(tabs)` gallery page renders the fuller fair-use / takedown notice
+   * (the `replications-fair-use-notice` copy block) directly under the
+   * explorer, so it passes `false` here to drop the short in-explorer rights
+   * footnote rather than state the same position twice on one page. Surfaces
+   * without their own notice (the Artist Page) keep the default footnote.
+   */
+  rightsFootnote?: boolean;
 }
 
 /**
@@ -133,6 +142,14 @@ const COARSE_TARGET_CLASS = "[@media(pointer:coarse)]:min-h-11";
 
 /** Debounce for search keystrokes → URL writes (history stays clean). */
 const QUERY_WRITE_DELAY_MS = 250;
+
+/**
+ * Artist browsing gives *every* artist their own rail — no pooled masonry
+ * where attributions jumble together — so the page reveals rails in pages of
+ * this size behind a "Show more artists" button instead of mounting hundreds
+ * of rails at once.
+ */
+const ARTIST_RAIL_PAGE = 16;
 
 /**
  * Public entry. The browse state (?view/?q/?type/?sort) is read on the client
@@ -191,6 +208,7 @@ function GalleryExplorer({
   focus,
   focusIdentity,
   chrome = "full",
+  rightsFootnote = true,
   browse,
   viewerSlugParam,
   viewerParamPresent,
@@ -390,15 +408,33 @@ function GalleryExplorer({
   ]);
 
   /**
-   * Hybrid browse layout: groups with enough works keep their own rail; the
-   * thin tail pools into one dense masonry below the rails so a one-work
-   * artist costs one tile, not a whole row.
+   * Browse layout differs by mode. Artist browsing keeps every artist in
+   * their own rail — pooling thin artists into one masonry jumbled works by
+   * different people under one heading — and reveals rails a page at a time.
+   * Effect browsing keeps the hybrid layout: groups with enough works keep a
+   * rail, the thin tail pools into one dense masonry so a one-work effect
+   * costs one tile, not a whole row.
    */
-  const { rails, pool } = useMemo(() => splitRailsAndPool(groups), [groups]);
+  const { rails, pool } = useMemo<{
+    rails: GalleryGroup[];
+    pool: GalleryGroup[];
+  }>(
+    () =>
+      mode === "artist" ? { rails: groups, pool: [] } : splitRailsAndPool(groups),
+    [mode, groups],
+  );
   const pooledItems = useMemo(
     () => pool.flatMap((group) => group.items),
     [pool],
   );
+
+  const [visibleRailCount, setVisibleRailCount] = useState(ARTIST_RAIL_PAGE);
+  useEffect(() => {
+    setVisibleRailCount(ARTIST_RAIL_PAGE);
+  }, [mode, typeFilter, artistSort]);
+  const visibleRails =
+    mode === "artist" ? rails.slice(0, visibleRailCount) : rails;
+  const hiddenRailCount = rails.length - visibleRails.length;
 
   /**
    * Focus is resolved against the *unfiltered* corpus — the route validated it
@@ -1087,11 +1123,13 @@ function GalleryExplorer({
                 />
               )
             ) : (
-              /* Browse — rails for groups with enough works ("View all" is a
-               crawlable focus URL); everything thinner pools into one dense
-               masonry, where each tile's byline carries the attribution. */
+              /* Browse — every artist keeps their own rail (revealed a page
+               at a time); in effect mode only groups with enough works get a
+               rail and everything thinner pools into one dense masonry,
+               where each tile's byline carries the attribution. "View all"
+               is a crawlable focus URL. */
               <div className="mt-4 space-y-10">
-                {rails.map((group) => (
+                {visibleRails.map((group) => (
                   <MediaRail
                     key={group.key}
                     group={group}
@@ -1116,22 +1154,40 @@ function GalleryExplorer({
                     onTileOpen={openViewerAt}
                   />
                 ))}
+                {hiddenRailCount > 0 ? (
+                  <div className="flex flex-col items-center gap-1.5">
+                    <Button
+                      type="button"
+                      variant="pill"
+                      size="pill"
+                      onClick={() =>
+                        setVisibleRailCount(
+                          (count) => count + ARTIST_RAIL_PAGE,
+                        )
+                      }
+                      className="min-h-11 gap-1.5"
+                    >
+                      Show more artists
+                      <Icon
+                        icon="lucide:chevron-down"
+                        className="h-4 w-4"
+                        aria-hidden
+                      />
+                    </Button>
+                    <span className="theme-text-faint text-xs tabular-nums">
+                      Showing {visibleRails.length} of {rails.length} artists
+                    </span>
+                  </div>
+                ) : null}
                 {pooledItems.length > 0 ? (
-                  <section
-                    aria-label={
-                      mode === "artist" ? "More artists" : "More effects"
-                    }
-                    className="space-y-3"
-                  >
+                  <section aria-label="More effects" className="space-y-3">
                     {rails.length > 0 ? (
                       <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1 px-1">
                         <h2 className="theme-text-primary font-display text-lg font-semibold tracking-tight">
-                          {mode === "artist" ? "More artists" : "More effects"}
+                          More effects
                         </h2>
                         <span className="theme-text-faint text-xs tabular-nums">
-                          {pool.length}{" "}
-                          {mode === "artist" ? "artists" : "effects"} ·{" "}
-                          {pooledItems.length} work
+                          {pool.length} effects · {pooledItems.length} work
                           {pooledItems.length === 1 ? "" : "s"}
                         </span>
                       </div>
@@ -1142,19 +1198,22 @@ function GalleryExplorer({
               </div>
             )}
 
-            {/* Rights footnote */}
-            <p className="theme-text-muted mx-auto mt-10 max-w-3xl px-1 text-center text-xs leading-5">
-              Replication media is credited to its creator when known. Rights
-              remain with the original creator or rightsholder unless an
-              individual item states another license. See the{" "}
-              <Link
-                href="/docs/license#replication-media-terms"
-                className={proseLinkClassName}
-              >
-                licensing terms
-              </Link>{" "}
-              to correct a credit or request removal.
-            </p>
+            {/* Rights footnote — the gallery page replaces it with the
+                editable fair-use notice it renders below the explorer. */}
+            {rightsFootnote ? (
+              <p className="theme-text-muted mx-auto mt-10 max-w-3xl px-1 text-center text-xs leading-5">
+                Replication media is credited to its creator when known. Rights
+                remain with the original creator or rightsholder unless an
+                individual item states another license. See the{" "}
+                <Link
+                  href="/docs/license#replication-media-terms"
+                  className={proseLinkClassName}
+                >
+                  licensing terms
+                </Link>{" "}
+                to correct a credit or request removal.
+              </p>
+            ) : null}
           </>
         )}
       </section>

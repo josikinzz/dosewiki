@@ -82,3 +82,38 @@ export function standbyPosterSource(replication: {
   if (replication.type === "video") return replication.thumbnail_url ?? null;
   return replication.url;
 }
+
+/** The slice of TimeRanges the seek bar reads; matches the DOM interface. */
+export interface PlayableRanges {
+  length: number;
+  start(index: number): number;
+  end(index: number): number;
+}
+
+/**
+ * The buffered stretch the playhead currently rides, or null while nothing
+ * around it is loaded. Only this range is painted on the seek bar — the
+ * YouTube grammar: gray shows how far ahead this playback can reach, not
+ * every disjoint fragment ever fetched.
+ */
+export function bufferedRangeContaining(
+  buffered: PlayableRanges,
+  currentTime: number,
+): { start: number; end: number } | null {
+  for (let index = 0; index < buffered.length; index += 1) {
+    const start = buffered.start(index);
+    const end = buffered.end(index);
+    if (currentTime >= start && currentTime <= end) return { start, end };
+  }
+  return null;
+}
+
+/** Clamp a pointer position over the seek bar to a playable [0, 1] ratio. */
+export function seekRatioFromPointer(
+  clientX: number,
+  trackLeft: number,
+  trackWidth: number,
+): number {
+  if (!Number.isFinite(trackWidth) || trackWidth <= 0) return 0;
+  return Math.min(Math.max((clientX - trackLeft) / trackWidth, 0), 1);
+}

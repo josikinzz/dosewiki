@@ -587,6 +587,13 @@
     "body": "Image, video, and audio recreations of the sensory experiences produced by subjective effects."
   },
   {
+    "key": "replications-fair-use-notice",
+    "kind": "markdown",
+    "label": "Fair-use & takedown notice",
+    "group": "Replications",
+    "body": "**Why this art is here.** Replications are hosted for educational and archival purposes: they document the phenomenology of altered states of consciousness so that people can understand these experiences without having them. We believe this non-commercial, educational use constitutes fair use. Good-faith attempts have been made to credit every artist and to link their pages so you can find and support them. Rights remain with the original creator or rightsholder unless an individual item states another license — see the [licensing terms](/docs/license#replication-media-terms).\n\nIf your art appears here and you want it taken down, email [contact@dose.wiki](mailto:contact@dose.wiki) and we will remove it. Use the same address to correct a misattribution, ask a question, or share more of your work."
+  },
+  {
     "key": "seo-replications-description",
     "kind": "plain",
     "label": "Replications meta description",

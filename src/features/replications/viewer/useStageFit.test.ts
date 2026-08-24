@@ -1,57 +1,88 @@
 import { describe, expect, it } from "vitest";
 
-import {
-  PORTRAIT_PHONE_SCALE,
-  PORTRAIT_PHONE_SCALE_LIMIT,
-  portraitPhoneMediaScale,
-} from "./useStageFit";
+import { stageRotation } from "./useStageFit";
 
-describe("portraitPhoneMediaScale", () => {
-  it("slightly enlarges wide motion on portrait phones within the hard ceiling", () => {
-    const scale = portraitPhoneMediaScale({
-      moving: true,
-      mediaAspect: 16 / 9,
-      portraitPhone: true,
-      fullFrame: false,
-    });
-    expect(scale).toBe(PORTRAIT_PHONE_SCALE);
-    expect(scale).toBeLessThanOrEqual(PORTRAIT_PHONE_SCALE_LIMIT);
-  });
-
-  it("shows the whole frame when the reader requests Full frame", () => {
+describe("stageRotation", () => {
+  it("offers rotate-to-fit for landscape motion on a portrait phone", () => {
     expect(
-      portraitPhoneMediaScale({
+      stageRotation({
+        portraitPhone: true,
         moving: true,
         mediaAspect: 16 / 9,
-        portraitPhone: true,
-        fullFrame: true,
+        mediaKey: "wide-loop",
+        rotatedKey: null,
       }),
-    ).toBe(1);
+    ).toEqual({ canRotate: true, rotated: false });
   });
 
-  it("never enlarges desktop, still, portrait, or square media", () => {
-    const cases = [
-      {
+  it("rotates only while the reader's rotation names the active work", () => {
+    expect(
+      stageRotation({
+        portraitPhone: true,
         moving: true,
         mediaAspect: 16 / 9,
+        mediaKey: "wide-loop",
+        rotatedKey: "wide-loop",
+      }),
+    ).toEqual({ canRotate: true, rotated: true });
+  });
+
+  it("resets rotation when navigating to a different work", () => {
+    expect(
+      stageRotation({
+        portraitPhone: true,
+        moving: true,
+        mediaAspect: 16 / 9,
+        mediaKey: "next-work",
+        rotatedKey: "wide-loop",
+      }),
+    ).toEqual({ canRotate: true, rotated: false });
+  });
+
+  it("hides the control and un-rotates on media that is not landscape", () => {
+    for (const mediaAspect of [9 / 16, 1]) {
+      expect(
+        stageRotation({
+          portraitPhone: true,
+          moving: true,
+          mediaAspect,
+          mediaKey: "tall-loop",
+          rotatedKey: "tall-loop",
+        }),
+      ).toEqual({ canRotate: false, rotated: false });
+    }
+  });
+
+  it("never offers rotation on desktop layouts or for still media", () => {
+    expect(
+      stageRotation({
         portraitPhone: false,
-        fullFrame: false,
-      },
-      {
+        moving: true,
+        mediaAspect: 16 / 9,
+        mediaKey: "wide-loop",
+        rotatedKey: "wide-loop",
+      }),
+    ).toEqual({ canRotate: false, rotated: false });
+    expect(
+      stageRotation({
+        portraitPhone: true,
         moving: false,
         mediaAspect: 16 / 9,
+        mediaKey: "wide-still",
+        rotatedKey: null,
+      }),
+    ).toEqual({ canRotate: false, rotated: false });
+  });
+
+  it("treats a degenerate aspect as not rotatable", () => {
+    expect(
+      stageRotation({
         portraitPhone: true,
-        fullFrame: false,
-      },
-      {
         moving: true,
-        mediaAspect: 9 / 16,
-        portraitPhone: true,
-        fullFrame: false,
-      },
-      { moving: true, mediaAspect: 1, portraitPhone: true, fullFrame: false },
-    ];
-    for (const options of cases)
-      expect(portraitPhoneMediaScale(options)).toBe(1);
+        mediaAspect: Number.NaN,
+        mediaKey: "unsized",
+        rotatedKey: null,
+      }),
+    ).toEqual({ canRotate: false, rotated: false });
   });
 });

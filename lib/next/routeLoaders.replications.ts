@@ -31,7 +31,6 @@ export interface ReplicationPageProps {
   effectName: string | null;
   effectSlug: string | null;
   artistProfileHref: string | null;
-  avatarUrl: string | null;
   effectCategories: EffectCategoryLink[];
 }
 
@@ -101,7 +100,6 @@ export const loadReplicationRoute = cache(
                 params: { profileKey: artistProfile.key },
               })
             : null),
-        avatarUrl: artistProfile?.avatarUrl ?? null,
         effectCategories: effect ? resolveEffectCategories(effect.tags) : [],
       },
       metadata: toRouteMetadata({

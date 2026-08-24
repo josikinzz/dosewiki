@@ -206,6 +206,71 @@ describe("ReplicationShowcase", () => {
     ).toHaveAttribute("href", "/effects/drifting?viewer=drifting-wood-grain");
   });
 
+  it("reports launches to a page-level controller instead of owning the viewer", () => {
+    const pushState = vi.spyOn(window.history, "pushState");
+    const onOpenWork = vi.fn();
+    render(
+      <ReplicationShowcase
+        works={[work(), secondWork]}
+        collectionLabel="Drifting"
+        controller={{
+          sourcePath: "/replications/artist/chelsea-morgan",
+          onOpenWork,
+        }}
+      />,
+    );
+
+    // Fallback hrefs write the viewer param against the controller's page.
+    const entry = screen.getByRole("link", {
+      name: /Drifting \(wood grain\).*Open/,
+    });
+    expect(entry).toHaveAttribute(
+      "href",
+      "/replications/artist/chelsea-morgan?viewer=drifting-wood-grain",
+    );
+
+    fireEvent.click(entry);
+    expect(onOpenWork).toHaveBeenCalledWith("drifting-wood-grain");
+    // The controller owns history and the overlay; the showcase touches neither.
+    expect(pushState).not.toHaveBeenCalled();
+    expect(screen.queryByTestId("replication-viewer")).not.toBeInTheDocument();
+    // …nor the per-stage rights footnote the controlled page renders once.
+    expect(screen.queryByText("licensing terms")).not.toBeInTheDocument();
+    pushState.mockRestore();
+  });
+
+  it("leaves a controller's viewer query alone even when unknown to this stage", () => {
+    window.history.replaceState(
+      {},
+      "",
+      "/replications/artist/chelsea-morgan?viewer=in-another-section",
+    );
+    render(
+      <ReplicationShowcase
+        works={[work()]}
+        controller={{
+          sourcePath: "/replications/artist/chelsea-morgan",
+          onOpenWork: vi.fn(),
+        }}
+      />,
+    );
+
+    expect(window.location.search).toBe("?viewer=in-another-section");
+    expect(
+      screen.queryByText(
+        "The linked replication is no longer available in this collection.",
+      ),
+    ).not.toBeInTheDocument();
+    window.history.replaceState({}, "", "/");
+  });
+
+  it("hides the creator line when the host page already names the artist", () => {
+    render(<ReplicationShowcase works={[work()]} showCreator={false} />);
+
+    expect(screen.queryByText(/by Chelsea Morgan/)).not.toBeInTheDocument();
+    expect(screen.queryByText(/^by$/)).not.toBeInTheDocument();
+  });
+
   it("moves focus with arrows without activating, and activates on Enter", () => {
     render(<ReplicationShowcase works={[work(), secondWork]} />);
 

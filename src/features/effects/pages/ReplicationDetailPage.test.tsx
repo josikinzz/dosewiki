@@ -46,7 +46,6 @@ const props: ReplicationDetailPageProps = {
     },
   ],
   artistProfileHref: "/replications/artist/chelsea-morgan",
-  avatarUrl: null,
 };
 
 describe("ReplicationDetailPage", () => {
@@ -62,11 +61,26 @@ describe("ReplicationDetailPage", () => {
     expect(
       screen.getByRole("link", { name: "Open in Tracers replications" }),
     ).toHaveAttribute("href", "/effects/tracers?viewer=tracers-chelsea-morgan");
-    expect(screen.getByRole("img", { name: "Tracers" })).toHaveAttribute(
+    expect(container.querySelector("img")).toHaveAttribute(
       "src",
       "https://cdn.test/tracers.webp",
     );
     expect(container.querySelector("video")).toBeNull();
+  });
+
+  it("keeps the preview as a sighted-only shortcut without a second accessible route", () => {
+    const { container } = render(<ReplicationDetailPage {...props} />);
+
+    const previewLink = container.querySelector('figure a[aria-hidden="true"]');
+    expect(previewLink).toHaveAttribute(
+      "href",
+      "/effects/tracers?viewer=tracers-chelsea-morgan",
+    );
+    expect(previewLink).toHaveAttribute("tabindex", "-1");
+    // Exactly one accessible viewer entry: the header button.
+    expect(
+      screen.getAllByRole("link", { name: "Open in Tracers replications" }),
+    ).toHaveLength(1);
   });
 
   it("uses a video's poster without creating a second playback surface", () => {
@@ -81,14 +95,15 @@ describe("ReplicationDetailPage", () => {
       <ReplicationDetailPage {...props} replication={video} />,
     );
 
-    expect(screen.getByRole("img", { name: "Tracers" })).toHaveAttribute(
+    expect(container.querySelector("img")).toHaveAttribute(
       "src",
       "https://cdn.test/tracers-poster.webp",
     );
-    expect(
-      screen.getByText("Video playback opens in the shared viewer."),
-    ).toBeInTheDocument();
     expect(container.querySelector("video")).toBeNull();
+    // The play badge replaced the explanatory caption.
+    expect(
+      screen.queryByText("Video playback opens in the shared viewer."),
+    ).toBeNull();
   });
 
   it("falls back to the gallery collection when no effect owns the work", () => {
@@ -99,5 +114,73 @@ describe("ReplicationDetailPage", () => {
     expect(
       screen.getByRole("link", { name: "Open in viewer" }),
     ).toHaveAttribute("href", "/replications?viewer=tracers-chelsea-morgan");
+  });
+
+  it("states the rights posture exactly once when nothing is licensed", () => {
+    render(<ReplicationDetailPage {...props} />);
+
+    expect(
+      screen.getAllByText(/Rights remain with the creator or rightsholder/),
+    ).toHaveLength(1);
+    // No attribution well without a licence to satisfy.
+    expect(screen.queryByText("Attribution")).toBeNull();
+  });
+
+  it("keeps the licence row and the copyable attribution line for licensed works", () => {
+    render(
+      <ReplicationDetailPage
+        {...props}
+        replication={{
+          ...replication,
+          license_name: "CC BY-SA 4.0",
+          license_url: "https://creativecommons.org/licenses/by-sa/4.0/",
+        }}
+      />,
+    );
+
+    expect(screen.getByRole("link", { name: "CC BY-SA 4.0" })).toHaveAttribute(
+      "href",
+      "https://creativecommons.org/licenses/by-sa/4.0/",
+    );
+    // The attribution sentence still names the artist — that is rights text
+    // a reuser copies whole, not a byline.
+    expect(
+      screen.getByText(
+        "Tracers by Chelsea Morgan, licensed under CC BY-SA 4.0 (https://creativecommons.org/licenses/by-sa/4.0/).",
+      ),
+    ).toBeInTheDocument();
+  });
+
+  it("keeps the rights holder as its own row only when the record carries one", () => {
+    const { rerender } = render(<ReplicationDetailPage {...props} />);
+    expect(screen.queryByText("Rights holder")).toBeNull();
+
+    rerender(
+      <ReplicationDetailPage
+        {...props}
+        replication={{ ...replication, rightsholder: "Effect Index" }}
+      />,
+    );
+    expect(screen.getByText("Rights holder")).toBeInTheDocument();
+    expect(screen.getByText("Effect Index")).toBeInTheDocument();
+  });
+
+  it("labels an external source by host while linking the full URL", () => {
+    render(
+      <ReplicationDetailPage
+        {...props}
+        replication={{
+          ...replication,
+          source_url: "https://gallery.example/works/tracers?size=large",
+        }}
+      />,
+    );
+
+    expect(
+      screen.getByRole("link", { name: "gallery.example" }),
+    ).toHaveAttribute(
+      "href",
+      "https://gallery.example/works/tracers?size=large",
+    );
   });
 });

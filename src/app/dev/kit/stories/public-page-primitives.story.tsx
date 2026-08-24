@@ -96,12 +96,13 @@ export const publicPagePrimitivesStory: StoryDef = {
     },
     {
       label: "ContributorAvatar — sizes & initials",
-      note: "Falls back to initials when no image URL is supplied. xs / sm / lg.",
+      note: "Falls back to initials when no image URL is supplied. xs / sm / md / lg.",
       background: "card",
       render: () => (
         <div className="flex items-end gap-4">
           <ContributorAvatar name="Josie Kins" size="xs" />
           <ContributorAvatar name="Ada Lovelace" size="sm" />
+          <ContributorAvatar name="Grace Hopper" size="md" />
           <ContributorAvatar name="Marie Curie" size="lg" lifted />
         </div>
       ),
@@ -285,7 +286,7 @@ export const publicPagePrimitivesStory: StoryDef = {
     },
     {
       name: "ContributorAvatar.size",
-      type: '"xs" | "sm" | "lg"',
+      type: '"xs" | "sm" | "md" | "lg"',
       default: '"sm"',
       description: "Avatar frame size; uses imageUrl or initials from name.",
     },

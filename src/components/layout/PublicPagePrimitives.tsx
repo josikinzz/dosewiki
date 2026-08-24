@@ -140,7 +140,7 @@ export function PublicSectionHeading({
   );
 }
 
-type ContributorAvatarSize = "xs" | "sm" | "lg";
+type ContributorAvatarSize = "xs" | "sm" | "md" | "lg";
 
 interface ContributorAvatarProps {
   imageUrl?: string | null;
@@ -164,6 +164,11 @@ const contributorAvatarSizes: Record<
     frame: "h-14 w-14 border text-lg",
     imageSize: 56,
     text: "text-lg",
+  },
+  md: {
+    frame: "h-20 w-20 border-2 text-2xl sm:h-24 sm:w-24",
+    imageSize: 96,
+    text: "text-2xl",
   },
   lg: {
     frame: "h-32 w-32 border-2 text-4xl",

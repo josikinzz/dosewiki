@@ -22,6 +22,11 @@ import {
   TOLERANCE_SECTION_DISCLAIMER_FALLBACK,
   TOLERANCE_SECTION_DISCLAIMER_KEY,
 } from "@/features/article/components/sections/articleDisclaimerCopy";
+import { ReplicationsFairUseNotice } from "@/features/replications/components/ReplicationsFairUseNotice";
+import {
+  REPLICATIONS_FAIR_USE_NOTICE_FALLBACK,
+  REPLICATIONS_FAIR_USE_NOTICE_KEY,
+} from "@/features/replications/replicationsFairUseCopy";
 import { SITE_FLAVOR_CONFIGS } from "@/config/siteFlavor";
 
 /**
@@ -117,6 +122,18 @@ describe("copy block defaults", () => {
       TOLERANCE_SECTION_DISCLAIMER_FALLBACK,
     );
   });
+
+  it("match the replications fair-use notice the gallery falls back to", () => {
+    expect(bodyOf(REPLICATIONS_FAIR_USE_NOTICE_KEY)).toBe(
+      REPLICATIONS_FAIR_USE_NOTICE_FALLBACK,
+    );
+    // The Copy Studio rail derives its groups from these definitions, so the
+    // notice files under the existing Replications group instead of opening a
+    // new rail section, and edits as markdown.
+    const definition = getCopyBlockDefault(REPLICATIONS_FAIR_USE_NOTICE_KEY);
+    expect(definition?.kind).toBe("markdown");
+    expect(definition?.group).toBe("Replications");
+  });
 });
 
 describe("migrated surfaces render the pre-migration text", () => {
@@ -168,5 +185,20 @@ describe("migrated surfaces render the pre-migration text", () => {
     expect(document.body.textContent).toBe(
       "First-person accounts of substance experiences, consistently formatted and cross-referenced with the Subjective Effect Index.",
     );
+  });
+
+  it("replications fair-use notice renders its takedown and licensing links, not raw markdown", () => {
+    render(
+      <ReplicationsFairUseNotice body={bodyOf(REPLICATIONS_FAIR_USE_NOTICE_KEY)} />,
+    );
+
+    expect(
+      screen.getByRole("link", { name: "contact@dose.wiki" }).getAttribute("href"),
+    ).toBe("mailto:contact@dose.wiki");
+    expect(
+      screen.getByRole("link", { name: "licensing terms" }).getAttribute("href"),
+    ).toBe("/docs/license#replication-media-terms");
+    expect(document.body.textContent).not.toContain("**");
+    expect(document.body.textContent).toContain("Why this art is here.");
   });
 });

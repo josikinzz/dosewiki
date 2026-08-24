@@ -41,23 +41,23 @@ describe('buildAttributionLine', () => {
     );
   });
 
-  it('never implies reuse is permitted when no licence is set', () => {
-    const line = buildAttributionLine(make());
-
-    expect(line).toContain('Tree Bark by Chelsea Morgan');
-    expect(line).toContain('Rights remain with the creator or rightsholder');
-    expect(line).not.toContain('licensed under');
+  it('is absent when no licence grants reuse', () => {
+    // The licence row on the rendering surface is the rights posture's one
+    // home; the copyable line only exists when there is a licence to satisfy.
+    expect(buildAttributionLine(make())).toBeNull();
   });
 
   it('falls back to the rightsholder when the artist is unknown', () => {
-    expect(buildAttributionLine(make({ artist: 'Unknown', rightsholder: 'Chelsea Morgan' }))).toContain(
-      'Tree Bark by Chelsea Morgan',
-    );
+    expect(
+      buildAttributionLine(
+        make({ license_name: 'CC BY 4.0', artist: 'Unknown', rightsholder: 'Chelsea Morgan' }),
+      ),
+    ).toContain('Tree Bark by Chelsea Morgan');
   });
 
   it('marks the work as unattributed when nobody is recorded', () => {
-    expect(buildAttributionLine(make({ artist: 'Unknown', rightsholder: undefined }))).toContain(
-      'Tree Bark (creator unknown)',
-    );
+    expect(
+      buildAttributionLine(make({ license_name: 'CC BY 4.0', artist: 'Unknown', rightsholder: undefined })),
+    ).toContain('Tree Bark (creator unknown)');
   });
 });

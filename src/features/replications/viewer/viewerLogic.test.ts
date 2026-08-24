@@ -2,7 +2,9 @@ import { describe, expect, it } from "vitest";
 import {
   FALLBACK_IMAGE_RATIO,
   FALLBACK_VIDEO_RATIO,
+  bufferedRangeContaining,
   resolveMediaAspect,
+  seekRatioFromPointer,
   shouldLoopReplicationMotion,
   shouldShowGestureHint,
   standbyPosterSource,
@@ -98,5 +100,59 @@ describe("standbyPosterSource", () => {
         url: "https://cdn.test/art.jpg",
       }),
     ).toBe("https://cdn.test/art.jpg");
+  });
+});
+
+describe("bufferedRangeContaining", () => {
+  const ranges = (spans: Array<[number, number]>) => ({
+    length: spans.length,
+    start: (index: number) => spans[index][0],
+    end: (index: number) => spans[index][1],
+  });
+
+  it("returns the buffered stretch the playhead rides", () => {
+    expect(bufferedRangeContaining(ranges([[0, 12]]), 6)).toEqual({
+      start: 0,
+      end: 12,
+    });
+    expect(
+      bufferedRangeContaining(
+        ranges([
+          [0, 4],
+          [10, 20],
+        ]),
+        15,
+      ),
+    ).toEqual({ start: 10, end: 20 });
+  });
+
+  it("returns null in a gap or with nothing buffered", () => {
+    expect(
+      bufferedRangeContaining(
+        ranges([
+          [0, 4],
+          [10, 20],
+        ]),
+        7,
+      ),
+    ).toBeNull();
+    expect(bufferedRangeContaining(ranges([]), 0)).toBeNull();
+  });
+});
+
+describe("seekRatioFromPointer", () => {
+  it("maps the pointer proportionally along the track", () => {
+    expect(seekRatioFromPointer(25, 0, 100)).toBeCloseTo(0.25, 10);
+    expect(seekRatioFromPointer(75, 50, 100)).toBeCloseTo(0.25, 10);
+  });
+
+  it("clamps to the track's ends", () => {
+    expect(seekRatioFromPointer(-10, 0, 100)).toBe(0);
+    expect(seekRatioFromPointer(140, 0, 100)).toBe(1);
+  });
+
+  it("treats a degenerate track as the start", () => {
+    expect(seekRatioFromPointer(40, 0, 0)).toBe(0);
+    expect(seekRatioFromPointer(40, 0, Number.NaN)).toBe(0);
   });
 });

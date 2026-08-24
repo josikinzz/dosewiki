@@ -2769,6 +2769,20 @@ html[data-theme="light"] .theme-footer-surface:not(.theme-chrome-dark) {
   color: var(--theme-text-faint);
 }
 
+/* Quiet back link: muted at rest, accent-strong on hover. The gallery
+   explorer's focused view carries this pair inline (pre-token-audit
+   baseline); new call sites reach it through this class so component text
+   never names a theme variable directly. */
+.theme-back-link {
+  color: var(--theme-text-muted);
+}
+
+@media (hover: hover) {
+  .theme-back-link:hover {
+    color: var(--theme-accent-strong);
+  }
+}
+
 /* Decorative/divider step of the text ramp (3:1 non-text floor, not 4.5:1).
      The class was missing while five call sites already passed it, so those
      nodes silently inherited --theme-text-primary #ffffff instead of dimming. */
@@ -3067,6 +3081,16 @@ html[data-theme="light"] .theme-footer-surface:not(.theme-chrome-dark) {
   );
 }
 
+/* Buffered layer of the seek bar: the subdued neutral stretch between the
+     bare track and the accent playhead fill, read from video.buffered. */
+.theme-media-progress-buffered {
+  background-color: color-mix(
+    in srgb,
+    var(--theme-text-on-media) 40%,
+    transparent
+  );
+}
+
 .theme-media-thumbnail-border {
   border-color: color-mix(in srgb, var(--theme-text-on-media) 20%, transparent);
 }
@@ -3106,6 +3130,13 @@ html[data-theme="light"] .theme-footer-surface:not(.theme-chrome-dark) {
 /* Accent playback meter: the hairline video progress fill at the bottom of
      the expanded stage. The faint glow keeps it visible over bright frames. */
 .theme-media-playback-fill {
+  background-color: var(--theme-accent-strong);
+  box-shadow: 0 0 6px
+    color-mix(in srgb, var(--theme-accent-strong) 55%, transparent);
+}
+
+/* The scrub thumb riding the playhead edge of the seek bar. */
+.theme-media-playback-thumb {
   background-color: var(--theme-accent-strong);
   box-shadow: 0 0 6px
     color-mix(in srgb, var(--theme-accent-strong) 55%, transparent);

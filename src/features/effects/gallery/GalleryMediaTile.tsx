@@ -216,10 +216,17 @@ export function GalleryMediaTile({
 
       {/* Compact phone tiles keep one concise caption row. Artist rails can
           still suppress the repeated byline with `showByline={false}`, while
-          effect and mixed views retain the creator credit. */}
+          effect and mixed views retain the creator credit.
+
+          `w-0 min-w-full`: the caption must never contribute intrinsic width.
+          In rails the figure is a max-content flex item whose width comes from
+          the frame's aspect-ratio × height; a long title would otherwise widen
+          the figure and stretch the frame past the artwork. Zero-width plus
+          min-w-full keeps the caption exactly as wide as the frame, where
+          `truncate` can ellipsize it. */}
       <figcaption
         className={cn(
-          "mt-2 min-w-0 px-0.5",
+          "mt-2 w-0 min-w-full px-0.5",
           mobileCompact && "max-md:mt-1 max-md:px-0",
         )}
       >
