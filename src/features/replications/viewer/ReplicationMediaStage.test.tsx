@@ -194,6 +194,41 @@ describe("ReplicationMediaStage", () => {
     expect(HTMLMediaElement.prototype.play).toHaveBeenCalledOnce();
   });
 
+  it("falls back to muted playback when unmuted autoplay is rejected", async () => {
+    const onMutedChange = vi.fn();
+    const play = vi.mocked(HTMLMediaElement.prototype.play);
+    play.mockClear();
+    play.mockImplementation(function (this: HTMLMediaElement) {
+      return this.muted
+        ? Promise.resolve()
+        : Promise.reject(new DOMException("denied", "NotAllowedError"));
+    });
+
+    const { container } = render(
+      <ReplicationMediaStage
+        item={item()}
+        muted={false}
+        volume={1}
+        fullFrame={false}
+        onMutedChange={onMutedChange}
+        onVolumeChange={vi.fn()}
+        onFullFrameChange={vi.fn()}
+      />,
+    );
+
+    await act(async () => {});
+
+    const video = container.querySelector("video") as HTMLVideoElement;
+    expect(video.muted).toBe(true);
+    expect(onMutedChange).toHaveBeenCalledWith(true);
+    expect(play).toHaveBeenCalledTimes(2);
+    fireEvent.play(video);
+    expect(screen.getByRole("button", { name: "Pause" })).toBeInTheDocument();
+
+    play.mockReset();
+    play.mockResolvedValue(undefined);
+  });
+
   it("uses a controllable motion rendition for GIF rows without losing the poster", () => {
     const { container } = render(
       <ReplicationMediaStage

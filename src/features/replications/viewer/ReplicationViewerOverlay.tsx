@@ -596,14 +596,14 @@ export function ReplicationViewerOverlay({
         tabIndex={-1}
         aria-describedby="replication-viewer-description"
         className={cn(
-          "theme-media-tile-title theme-elevation-none left-0 top-0 z-[70] h-[100svh] max-h-none w-screen max-w-none translate-x-0 translate-y-0 grid-rows-[auto_minmax(0,1fr)] gap-0 overflow-hidden border-0 bg-black p-0 duration-150 sm:rounded-none",
+          "theme-media-tile-title theme-elevation-none left-0 top-0 z-[70] h-[100svh] max-h-none w-screen max-w-none translate-x-0 translate-y-0 grid-cols-[minmax(0,1fr)] grid-rows-[auto_minmax(0,1fr)] gap-0 overflow-hidden border-0 bg-black p-0 duration-150 sm:rounded-none",
           immersiveFallback && "fixed inset-0",
         )}
       >
         <header
           inert={infoOpen || undefined}
           aria-hidden={infoOpen || undefined}
-          className="theme-media-thumbnail-border relative z-10 flex items-center gap-2 border-b bg-black py-1.5 pl-3 pr-2 pt-[max(0.375rem,env(safe-area-inset-top))] sm:min-h-16 sm:gap-3 sm:px-6 sm:py-2"
+          className="theme-media-thumbnail-border relative z-10 flex min-w-0 items-center gap-2 border-b bg-black py-1.5 pl-3 pr-2 pt-[max(0.375rem,env(safe-area-inset-top))] sm:min-h-16 sm:gap-3 sm:px-6 sm:py-2"
         >
           <div className="flex min-w-0 flex-1 flex-col gap-0.5 sm:flex-row sm:items-baseline sm:gap-3">
             <DialogTitle className="theme-media-tile-title flex min-w-0 items-baseline gap-1.5 font-display text-sm font-semibold sm:flex-1 sm:text-base">
@@ -613,13 +613,13 @@ export function ReplicationViewerOverlay({
               <span aria-hidden className="theme-media-tile-creator">
                 ·
               </span>
-              <span className="theme-media-tile-creator max-w-[12rem] shrink-0 truncate">
+              <span className="theme-media-tile-creator max-w-[7rem] shrink-0 truncate sm:max-w-[12rem]">
                 {artistLabel}
               </span>
             </DialogTitle>
             <DialogDescription
               id="replication-viewer-description"
-              className="theme-media-tile-creator flex min-w-0 items-center gap-1.5 whitespace-nowrap text-[11px] tabular-nums sm:text-xs"
+              className="theme-media-tile-creator flex min-w-0 items-center gap-1.5 overflow-hidden whitespace-nowrap text-[11px] tabular-nums sm:text-xs"
             >
               <span className="max-w-[9rem] truncate sm:max-w-[16rem]">
                 {collection.label}

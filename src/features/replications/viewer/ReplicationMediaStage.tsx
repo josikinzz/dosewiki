@@ -170,6 +170,37 @@ export function ReplicationMediaStage({
     video.volume = volume;
   }, [muted, volume, replication.slug]);
 
+  const markBlocked = useCallback(() => {
+    setBlocked(true);
+    setPlaying(false);
+    setControlsVisible(true);
+  }, []);
+
+  /**
+   * Start playback the way phone feeds do: when the browser rejects unmuted
+   * playback (iOS Safari outside a user gesture), retry muted so the work
+   * keeps moving, and only surface the Play affordance when even muted
+   * playback is refused (e.g. Low Power Mode).
+   */
+  const attemptPlay = useCallback(
+    (video: HTMLVideoElement) => {
+      const attempt = video.play();
+      if (!attempt) return;
+      void attempt.catch(() => {
+        if (!video.muted) {
+          video.defaultMuted = true;
+          video.muted = true;
+          onMutedChange(true);
+          const retry = video.play();
+          if (retry) void retry.catch(markBlocked);
+          return;
+        }
+        markBlocked();
+      });
+    },
+    [markBlocked, onMutedChange],
+  );
+
   useEffect(() => {
     const video = videoRef.current;
     if (!video) return;
@@ -177,32 +208,19 @@ export function ReplicationMediaStage({
       if (!video.paused) video.pause();
       return;
     }
-    const attempt = video.play();
-    if (attempt) {
-      void attempt.catch(() => {
-        setBlocked(true);
-        setPlaying(false);
-        setControlsVisible(true);
-      });
-    }
-  }, [autoplayAllowed, replication.slug]);
+    attemptPlay(video);
+  }, [attemptPlay, autoplayAllowed, replication.slug]);
 
   const togglePlayback = useCallback(() => {
     const video = videoRef.current;
     if (!video) return;
     showControls();
     if (video.paused || video.ended) {
-      const attempt = video.play();
-      if (attempt) {
-        void attempt.catch(() => {
-          setBlocked(true);
-          setPlaying(false);
-        });
-      }
+      attemptPlay(video);
     } else {
       video.pause();
     }
-  }, [showControls]);
+  }, [attemptPlay, showControls]);
 
   const width = replication.width ?? 1600;
   const height = replication.height ?? Math.round(width / (4 / 3));
