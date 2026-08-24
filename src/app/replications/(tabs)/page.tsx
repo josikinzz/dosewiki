@@ -72,18 +72,19 @@ export default async function ReplicationsPage() {
   return (
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: itemListJsonLd }} />
-      {/* The editable notice below carries the page's rights position, so the
-          explorer's own short footnote is switched off here. */}
+      {/* The notice states the page's rights position before the art rather
+          than after it, so the explorer's own short footnote is switched off
+          here. */}
+      <ReplicationsFairUseNotice
+        body={
+          copy.text(REPLICATIONS_FAIR_USE_NOTICE_KEY) || REPLICATIONS_FAIR_USE_NOTICE_FALLBACK
+        }
+      />
       <ReplicationsGalleryExplorer
         replications={replications}
         effects={effects}
         contributorDirectory={contributorDirectory}
         rightsFootnote={false}
-      />
-      <ReplicationsFairUseNotice
-        body={
-          copy.text(REPLICATIONS_FAIR_USE_NOTICE_KEY) || REPLICATIONS_FAIR_USE_NOTICE_FALLBACK
-        }
       />
     </>
   );
