@@ -9,6 +9,7 @@ import type {
   InsertMediaAssetArgs,
   InsertReplicationArgs,
   RenameSlugArgs,
+  SetAudioPresenceArgs,
   UpdateDeliveredFileSizeArgs,
   UpdateEffectSlugArgs,
   UpdateGalleryOrderArgs,
@@ -287,6 +288,33 @@ export async function updateDeliveredFileSizeHandler(
   const previous = replication.file_size ?? null;
   await ctx.db.patch(args.id, { file_size: args.file_size });
   return { success: true, slug: replication.slug, previous, current: args.file_size };
+}
+
+const AUDIO_PRESENCE_BATCH_LIMIT = 250;
+
+export async function setAudioPresenceHandler(
+  ctx: MutationCtx,
+  args: SetAudioPresenceArgs,
+) {
+  await requireAuth(ctx, args.apiKey, "replicationMaintenance");
+  if (args.entries.length === 0) {
+    throw new Error("setAudioPresence needs at least one entry.");
+  }
+  if (args.entries.length > AUDIO_PRESENCE_BATCH_LIMIT) {
+    throw new Error(
+      `setAudioPresence may touch at most ${AUDIO_PRESENCE_BATCH_LIMIT} rows `
+        + `per call (got ${args.entries.length}).`,
+    );
+  }
+
+  const updatedSlugs: string[] = [];
+  for (const entry of args.entries) {
+    const row = await ctx.db.get(entry.id);
+    if (!row) throw new Error(`Replication ${entry.id} not found.`);
+    await ctx.db.patch(entry.id, { has_audio: entry.has_audio });
+    updatedSlugs.push(row.slug);
+  }
+  return { success: true, updated: updatedSlugs.length, slugs: updatedSlugs };
 }
 
 export async function updateStorageIdsHandler(

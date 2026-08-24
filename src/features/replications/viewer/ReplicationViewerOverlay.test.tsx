@@ -5,6 +5,7 @@ import {
   screen,
   waitFor,
 } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import {
   afterEach,
   beforeAll,
@@ -333,7 +334,87 @@ describe("ReplicationViewerOverlay", () => {
     expect(screen.queryByText("Browse works")).not.toBeInTheDocument();
   });
 
-  it("links the header artist name to the artist page", () => {
+  it("dismisses the swipe hint with its Got it button", () => {
+    stubCoarsePointer(true);
+    render(
+      <ReplicationViewerOverlay
+        collection={collection}
+        initialSlug="work-one"
+        open
+        onOpenChange={vi.fn()}
+      />,
+    );
+    expect(screen.getByText("Browse works")).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Got it" }));
+    expect(screen.queryByText("Browse works")).not.toBeInTheDocument();
+  });
+
+  it("regroups the walk around the active work from the settings menu", async () => {
+    const user = userEvent.setup();
+    const onRegroup = vi.fn();
+    render(
+      <ReplicationViewerOverlay
+        collection={collection}
+        initialSlug="work-two"
+        open
+        onOpenChange={vi.fn()}
+        onRegroup={onRegroup}
+      />,
+    );
+
+    await user.click(screen.getByRole("button", { name: "Viewer settings" }));
+    await user.click(screen.getByRole("menuitemradio", { name: "Effect" }));
+    expect(onRegroup).toHaveBeenCalledWith("effect", "work-two");
+  });
+
+  it("offers no settings menu without a regroup host", () => {
+    render(
+      <ReplicationViewerOverlay
+        collection={collection}
+        initialSlug="work-one"
+        open
+        onOpenChange={vi.fn()}
+      />,
+    );
+    expect(
+      screen.queryByRole("button", { name: "Viewer settings" }),
+    ).not.toBeInTheDocument();
+  });
+
+  it("shows the claiming profile's avatar on the byline chip", () => {
+    const avatarCollection: ReplicationViewerCollection = {
+      ...collection,
+      groups: [
+        {
+          ...collection.groups[0],
+          items: [
+            {
+              ...collection.groups[0].items[0],
+              avatarUrl: "https://cdn.test/chelsea.webp",
+            },
+            ...collection.groups[0].items.slice(1),
+          ],
+        },
+        ...collection.groups.slice(1),
+      ],
+    };
+    render(
+      <ReplicationViewerOverlay
+        collection={avatarCollection}
+        initialSlug="work-one"
+        open
+        onOpenChange={vi.fn()}
+      />,
+    );
+
+    const chip = screen.getAllByRole("link", { name: "Chelsea Morgan" })[1];
+    expect(chip.querySelector("img")).toHaveAttribute(
+      "src",
+      "https://cdn.test/chelsea.webp",
+    );
+  });
+
+  it("links the artist name in the header and the stage byline chip", () => {
     render(
       <ReplicationViewerOverlay
         collection={collection}
@@ -343,9 +424,14 @@ describe("ReplicationViewerOverlay", () => {
       />,
     );
 
-    expect(
-      screen.getByRole("link", { name: "Chelsea Morgan" }),
-    ).toHaveAttribute("href", "/replications/artist/chelsea-morgan");
+    const links = screen.getAllByRole("link", { name: "Chelsea Morgan" });
+    expect(links).toHaveLength(2);
+    for (const link of links) {
+      expect(link).toHaveAttribute(
+        "href",
+        "/replications/artist/chelsea-morgan",
+      );
+    }
   });
 
   it("does not load a raw GIF into the thumbnail rail", () => {
@@ -558,12 +644,13 @@ describe("ReplicationViewerOverlay", () => {
       "data-title",
       "Work Three",
     );
-    expect(screen.getAllByText("Aria")).toHaveLength(1);
+    // Header credit plus the stage byline chip both name the artist.
+    expect(screen.getAllByText("Aria")).toHaveLength(2);
     expect(screen.getByText("Artist 2/2")).toBeInTheDocument();
     expect(window.location.search).toContain("viewer=work-three");
   });
 
-  it("keeps the active effect group visibly named", () => {
+  it("leads the header with the effect name and keeps the artist on the byline chip", () => {
     const effectCollection: ReplicationViewerCollection = {
       ...collection,
       label: "Sorted by effect",
@@ -583,10 +670,13 @@ describe("ReplicationViewerOverlay", () => {
     );
 
     const header = screen
-      .getByRole("dialog", { name: /Aria.*Work Three/ })
+      .getByRole("dialog", { name: /Geometry.*Work Three/ })
       .querySelector("header");
     expect(header).toHaveTextContent("Geometry");
     expect(header).toHaveTextContent("Effect 2/2");
+    expect(header).not.toHaveTextContent("Aria");
+    // The artist never leaves the stage: the byline chip carries the credit.
+    expect(screen.getByText("Aria")).toBeInTheDocument();
   });
   it("moves between Gallery groups with visible pointer controls", () => {
     render(

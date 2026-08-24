@@ -42,7 +42,9 @@ import {
   resolveContributorProfile,
 } from "./publicData.contributors";
 
-const profile = (overrides: Partial<NormalizedUserProfile>): NormalizedUserProfile => ({
+const profile = (
+  overrides: Partial<NormalizedUserProfile>,
+): NormalizedUserProfile => ({
   key: "EDITOR",
   displayName: "Editor Name",
   aliases: [],
@@ -62,7 +64,9 @@ describe("public contributor profile adapters", () => {
   it("resolves public report authors through materialized profile aliases", () => {
     const profiles = [profile({ aliases: ["old editor", "editor"] })];
 
-    expect(resolveContributorProfile(profiles, "old editor")?.key).toBe("EDITOR");
+    expect(resolveContributorProfile(profiles, "old editor")?.key).toBe(
+      "EDITOR",
+    );
     expect(resolveContributorProfile(profiles, "Editor")?.key).toBe("EDITOR");
   });
 
@@ -72,7 +76,9 @@ describe("public contributor profile adapters", () => {
       profile({ key: "OLD-EDITOR", displayName: "Old Editor" }),
     ];
 
-    expect(collapseContributorProfiles(profiles).map((entry) => entry.key)).toEqual(["EDITOR"]);
+    expect(
+      collapseContributorProfiles(profiles).map((entry) => entry.key),
+    ).toEqual(["EDITOR"]);
   });
 
   it("uses the scoped profile token for owned-profile lookups", async () => {
@@ -81,42 +87,69 @@ describe("public contributor profile adapters", () => {
 
     await getOwnedContributorProfile("editor@example.com");
 
-    expect(mocks.getServerConvexAdminIntentToken).toHaveBeenCalledWith("profileMediaWrite");
-    expect(mocks.queryConvex).toHaveBeenCalledWith("contributorProfiles:getOwnedProfile", {
-      apiKey: "profile-token",
-      email: "editor@example.com",
-    });
+    expect(mocks.getServerConvexAdminIntentToken).toHaveBeenCalledWith(
+      "profileMediaWrite",
+    );
+    expect(mocks.queryConvex).toHaveBeenCalledWith(
+      "contributorProfiles:getOwnedProfile",
+      {
+        apiKey: "profile-token",
+        email: "editor@example.com",
+      },
+    );
   });
 
   it("serves the whole profile table when every row carries a key-shaped alias", async () => {
     // The shape the live table actually has. Collapsing self-aliases here is what emptied the
     // public contributor reads, so this pins the composed read rather than only the helper.
     mocks.getPublicDataReadAdapter.mockReturnValue({
-      getPublicContributorProfiles: vi.fn().mockResolvedValue([
-        profile({ key: "JOSIE", displayName: "Josie Kins", aliases: ["josie", "josikinz"] }),
-        profile({ key: "KAYTWO", displayName: "Kaytwo", aliases: ["kaytwo", "kaylee"] }),
-        profile({ key: "LYREA", displayName: "Lyrea", aliases: ["witchy"] }),
-      ]),
+      getPublicContributorProfiles: vi
+        .fn()
+        .mockResolvedValue([
+          profile({
+            key: "JOSIE",
+            displayName: "Josie Kins",
+            aliases: ["josie", "josikinz"],
+          }),
+          profile({
+            key: "KAYTWO",
+            displayName: "Kaytwo",
+            aliases: ["kaytwo", "kaylee"],
+          }),
+          profile({ key: "LYREA", displayName: "Lyrea", aliases: ["witchy"] }),
+        ]),
     });
 
-    expect((await getPublicContributorProfiles()).map((entry) => entry.key)).toEqual([
-      "JOSIE",
-      "KAYTWO",
-      "LYREA",
-    ]);
+    expect(
+      (await getPublicContributorProfiles()).map((entry) => entry.key),
+    ).toEqual(["JOSIE", "KAYTWO", "LYREA"]);
   });
 
-  it("projects the public contributor directory to key, displayName, and aliases", async () => {
+  it("projects the public contributor directory to key, displayName, aliases, and avatar", async () => {
     mocks.getPublicDataReadAdapter.mockReturnValue({
-      getPublicContributorProfiles: vi.fn().mockResolvedValue([
-        profile({ key: "EDITOR", displayName: "Editor Name", aliases: ["old editor"], bio: "secret bio" }),
-      ]),
+      getPublicContributorProfiles: vi
+        .fn()
+        .mockResolvedValue([
+          profile({
+            key: "EDITOR",
+            displayName: "Editor Name",
+            aliases: ["old editor"],
+            bio: "secret bio",
+            avatarUrl: "https://cdn.test/editor.webp",
+          }),
+        ]),
     });
 
     const directory = await getPublicContributorDirectory();
 
     expect(directory).toEqual([
-      { key: "EDITOR", displayName: "Editor Name", aliases: ["old editor"] },
+      {
+        key: "EDITOR",
+        displayName: "Editor Name",
+        aliases: ["old editor"],
+        replicationOrder: undefined,
+        avatarUrl: "https://cdn.test/editor.webp",
+      },
     ]);
   });
 });

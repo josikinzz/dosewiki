@@ -15,28 +15,35 @@ import {
 } from "@/features/effects/components/replicationCredit";
 import type { ShowcaseWork } from "@/features/replications/components/showcaseModel";
 import type { GalleryMatch } from "./substanceGalleryPortalModel";
+import { sortByMediaRank } from "@/features/replications/mediaRank";
 
 /**
  * Adapt in-memory portal matches to the exact contract the public stage
- * consumes, in the order given — the caller passes the effective public order
- * (curated head, then auto tail), so this never sorts.
+ * consumes: the same audio-first media rank the public builder applies leads,
+ * and the caller's effective order (curated head, then auto tail) survives
+ * within each rank.
  *
  * Parity with `buildShowcaseWorks`: audio drops out because the stage cannot
  * draw it, the byline comes from the shared credit helper, and an effect slug
  * the article names nowhere falls back to the humanised-slug convention.
  *
- * One deliberate divergence: `artistHref` is always null and
- * `artistHrefExternal` always false. The public builder resolves a
+ * Two deliberate divergences. `artistHref` is always null and
+ * `artistHrefExternal` always false: the public builder resolves a
  * contributor profile (or the creator's own `artist_url`) for the byline link,
  * but the portal's match rows carry no `artist_url` and the dev preview has no
  * contributor index to resolve against. A dead byline link in a preview is a
  * smaller lie than a guessed destination, so the name renders as plain text.
+ * And the studio read does not thread `has_audio`, so a sounded video previews
+ * in the silent-motion rank — one rank low, never reordered within a rank.
  */
 export function previewWorksFromMatches(
   matches: readonly GalleryMatch[],
 ): ShowcaseWork[] {
   const works: ShowcaseWork[] = [];
-  for (const { replication, provenance } of matches) {
+  for (const { replication, provenance } of sortByMediaRank(
+    matches,
+    (match) => match.replication,
+  )) {
     if (replication.type !== "video" && replication.type !== "image") continue;
     works.push({
       slug: replication.slug,

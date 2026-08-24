@@ -2,6 +2,7 @@
 
 import {
   Suspense,
+  useCallback,
   useEffect,
   useMemo,
   useRef,
@@ -52,9 +53,14 @@ import {
   type GalleryMode,
   type GalleryTypeFilter,
 } from "@/features/effects/gallery/galleryModel";
+import { findContributorProfileByAuthorName } from "@server/contributorProfileIdentity";
 import { ReplicationViewerOverlay } from "./viewer/ReplicationViewerOverlay";
 import { viewerCollectionFromGalleryGroups } from "./viewer/viewerModel";
 import { resolveGalleryFocus } from "./galleryFocus";
+import {
+  dismissViewerDeepLinkCover,
+  ViewerDeepLinkCover,
+} from "./ViewerDeepLinkCover";
 import {
   buildGalleryBrowseUrl,
   buildGalleryFocusUrl,
@@ -140,18 +146,25 @@ export function ReplicationsGalleryExplorer(
   props: ReplicationsGalleryExplorerProps,
 ) {
   return (
-    <Suspense
-      fallback={
-        <GalleryExplorer
-          {...props}
-          browse={GALLERY_BROWSE_DEFAULTS}
-          viewerParamPresent={false}
-          viewerSlugParam={null}
-        />
-      }
-    >
-      <UrlStateGalleryExplorer {...props} />
-    </Suspense>
+    <>
+      {/* Ahead of the Suspense boundary on purpose: the cover and its reveal
+          script precede every piece of gallery markup in the SSR payload, so
+          a `?viewer=` deep link's first paint is black, never the masonry.
+          `GalleryExplorer` dismisses it once the param resolves. */}
+      <ViewerDeepLinkCover />
+      <Suspense
+        fallback={
+          <GalleryExplorer
+            {...props}
+            browse={GALLERY_BROWSE_DEFAULTS}
+            viewerParamPresent={false}
+            viewerSlugParam={null}
+          />
+        }
+      >
+        <UrlStateGalleryExplorer {...props} />
+      </Suspense>
+    </>
   );
 }
 
@@ -444,12 +457,21 @@ function GalleryExplorer({
         type: typeFilter,
         sort: artistSort,
       });
+  const avatarByArtist = useCallback(
+    (artist: string) =>
+      contributorDirectory?.length
+        ? (findContributorProfileByAuthorName(contributorDirectory, artist)
+            ?.avatarUrl ?? null)
+        : null,
+    [contributorDirectory],
+  );
   const viewerCollection = useMemo(() => {
     const collection = viewerCollectionFromGalleryGroups(
       viewerGroups,
       mode,
       viewerSourcePath,
       effectName,
+      avatarByArtist,
     );
     const mediaQualifier =
       typeFilter === "video"
@@ -476,6 +498,7 @@ function GalleryExplorer({
       label: `${mediaQualifier}${baseLabel}${queryQualifier}`,
     };
   }, [
+    avatarByArtist,
     effectName,
     focus,
     focusedGroup,
@@ -513,6 +536,13 @@ function GalleryExplorer({
         "",
         closeReplicationViewerUrl(source),
       );
+    }
+    // No work to cover: either there never was a viewer param or it resolved
+    // to nothing — drop the deep-link cover so the index (and its
+    // "no longer available" notice) is visible. A valid param keeps the cover
+    // underneath the opaque overlay until the viewer closes.
+    if (!validViewerSlugParam) {
+      dismissViewerDeepLinkCover();
     }
   }, [validViewerSlugParam, viewerParamPresent, viewerSlugParam]);
 
@@ -1135,7 +1165,25 @@ function GalleryExplorer({
           initialSlug={viewerSlug}
           open
           onOpenChange={(nextOpen) => {
-            if (!nextOpen) setViewerSlug(null);
+            if (!nextOpen) {
+              setViewerSlug(null);
+              dismissViewerDeepLinkCover();
+            }
+          }}
+          onRegroup={(grouping, slug) => {
+            lastWrittenQueryRef.current = currentInputQuery();
+            navigate(
+              buildReplicationViewerUrl(
+                buildGalleryBrowseUrl({
+                  view: grouping,
+                  query: currentInputQuery(),
+                  type: typeFilter,
+                  sort: artistSort,
+                }),
+                slug,
+              ),
+              "push",
+            );
           }}
         />
       ) : null}

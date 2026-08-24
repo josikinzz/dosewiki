@@ -172,6 +172,7 @@ export function projectPublicGalleryReplicationPreview(
     width: replication.width,
     height: replication.height,
     duration: replication.duration,
+    has_audio: replication.has_audio,
     created_at: replication.created_at,
     date_info: replication.date_info,
     order_index: replication.order_index,

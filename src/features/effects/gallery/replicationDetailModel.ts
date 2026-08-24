@@ -1,5 +1,6 @@
 import type { ReplicationWithUrl } from '@/types/replications';
 import { applyCuratedOrder } from '@server/curatedOrder';
+import { sortByMediaRank } from '@/features/replications/mediaRank';
 import { sortWithinGroup } from './galleryModel';
 
 /**
@@ -13,9 +14,10 @@ import { sortWithinGroup } from './galleryModel';
  */
 
 /**
- * Order an effect's replications the way its article gallery does: curated
- * `gallery_order` first, then the shared newest/title fallback for anything the
- * curation does not mention.
+ * Order an effect's replications the way its article gallery does: the
+ * audio-first media rank leads (sounded videos, silent motion, stills), then
+ * curated `gallery_order` within each rank, then the shared newest/title
+ * fallback for anything the curation does not mention.
  */
 export function orderEffectReplications(
   replications: readonly ReplicationWithUrl[],
@@ -38,22 +40,29 @@ export function orderEffectReplications(
 
   curated.sort((a, b) => (rank.get(a.slug) ?? 0) - (rank.get(b.slug) ?? 0));
 
-  return [...curated, ...sortWithinGroup(rest)];
+  return sortByMediaRank(
+    [...curated, ...sortWithinGroup(rest)],
+    (replication) => replication,
+  );
 }
 
 /**
  * Order one contributor's works. Their body of work spans effects, so no single
- * effect's curated `gallery_order` governs it — the contributor's own
- * `replicationOrder` leads, and the shared newest-first sort carries the rest.
+ * effect's curated `gallery_order` governs it — the audio-first media rank
+ * leads, the contributor's own `replicationOrder` decides within each rank, and
+ * the shared newest-first sort carries the rest.
  */
 export function orderContributorReplications(
   replications: readonly ReplicationWithUrl[],
   contributorOrder?: readonly string[],
 ): ReplicationWithUrl[] {
-  return applyCuratedOrder(
-    orderEffectReplications(replications),
-    contributorOrder,
-    (replication) => replication.slug,
+  return sortByMediaRank(
+    applyCuratedOrder(
+      orderEffectReplications(replications),
+      contributorOrder,
+      (replication) => replication.slug,
+    ),
+    (replication) => replication,
   );
 }
 

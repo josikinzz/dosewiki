@@ -6,6 +6,10 @@ import { getPublicRoutePath } from "@/utils/publicRouteIdentity";
 import { applyCuratedOrder } from "@server/curatedOrder";
 import type { PublicGalleryReplicationPreview } from "@/types/replications";
 import { hasKnownCreator } from "../components/replicationCredit";
+import {
+  replicationMediaRank,
+  sortByMediaRank,
+} from "@/features/replications/mediaRank";
 
 /**
  * Data model for the cross-effect replications gallery: normalization,
@@ -235,19 +239,25 @@ function mediaTier(
 }
 
 /**
- * Sort within a group: curated gallery_order first, then videos above stills
- * above GIFs (`mediaTier`), then newest researched work date (`workDateMs`)
- * with undated rows sinking below every dated one (newest-ingested first among
- * themselves), then title. Generic so full-fidelity callers (the permalink's
- * neighbour ordering) keep their richer row type through the sort.
+ * Sort within a group: audio-first media rank (`replicationMediaRank`) leads —
+ * videos with a soundtrack, then silent motion, then stills — then curated
+ * gallery_order, then videos above stills above GIFs (`mediaTier`), then
+ * newest researched work date (`workDateMs`) with undated rows sinking below
+ * every dated one (newest-ingested first among themselves), then title.
+ * Generic so full-fidelity callers (the permalink's neighbour ordering) keep
+ * their richer row type through the sort.
  */
 export function sortWithinGroup<
   T extends Pick<
     PublicGalleryReplicationPreview,
     "title" | "type" | "format" | "created_at" | "order_index" | "date_info"
-  >,
+  > & { has_audio?: boolean | null },
 >(items: readonly T[]): T[] {
   return [...items].sort((a, b) => {
+    const arank = replicationMediaRank(a);
+    const brank = replicationMediaRank(b);
+    if (arank !== brank) return arank - brank;
+
     const ao = a.order_index ?? Number.POSITIVE_INFINITY;
     const bo = b.order_index ?? Number.POSITIVE_INFINITY;
     if (ao !== bo) return ao - bo;
@@ -407,17 +417,22 @@ export function groupByArtist(
     // newest/title sort carries everything they did not pin. "By effect" keeps
     // the effect's own `gallery_order` (see `sortWithinGroup`) — that is the
     // effect editor's ordering, not the artist's, and the two never mix.
+    // Either way the audio-first media rank stays primary: the curation
+    // reorders works within a rank, never a still above a sounded video.
     //
     // The unattributed bucket is skipped rather than looked up: it is keyed by a
     // sentinel and labelled "Unattributed", which is not a credit line anybody
     // is stored under, so a lookup could only ever match a profile that had
     // claimed the word itself. Marker credits are *not* skipped — see above.
-    const items = applyCuratedOrder(
-      sortWithinGroup(group.items),
-      group.key === UNATTRIBUTED_KEY
-        ? undefined
-        : resolveContributorReplicationOrder(group.label, contributorDirectory),
-      (replication) => replication.slug,
+    const items = sortByMediaRank(
+      applyCuratedOrder(
+        sortWithinGroup(group.items),
+        group.key === UNATTRIBUTED_KEY
+          ? undefined
+          : resolveContributorReplicationOrder(group.label, contributorDirectory),
+        (replication) => replication.slug,
+      ),
+      (replication) => replication,
     );
     const { imageCount, videoCount } = tally(items);
     return { ...group, items, count: items.length, imageCount, videoCount };

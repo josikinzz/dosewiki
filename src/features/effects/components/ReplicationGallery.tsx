@@ -10,6 +10,7 @@ import {
   type ShowcaseWork,
 } from "@/features/replications/components/showcaseModel";
 import type { ReplicationWithUrl } from "@/types/replications";
+import { sortByMediaRank } from "@/features/replications/mediaRank";
 
 interface ReplicationGalleryProps {
   galleryOrder?: string[];
@@ -30,17 +31,24 @@ export const ReplicationGallery = memo(function ReplicationGallery({
   effectName,
 }: ReplicationGalleryProps) {
   const sortedReplications = useMemo(() => {
-    if (galleryOrder && galleryOrder.length > 0) {
-      const orderMap = new Map(
-        galleryOrder.map((slug, index) => [slug, index]),
-      );
-      return [...replications].sort((a, b) => {
-        const aIndex = orderMap.get(a.slug) ?? Number.POSITIVE_INFINITY;
-        const bIndex = orderMap.get(b.slug) ?? Number.POSITIVE_INFINITY;
-        return aIndex - bIndex;
-      });
-    }
-    return replications;
+    // The effect editor's `gallery_order` decides the order within each media
+    // rank; the audio-first rank itself stays primary (sounded videos, then
+    // silent motion, then stills), and rows the curation does not mention keep
+    // their arrival order at the back of their rank.
+    const editorial =
+      galleryOrder && galleryOrder.length > 0
+        ? (() => {
+            const orderMap = new Map(
+              galleryOrder.map((slug, index) => [slug, index]),
+            );
+            return [...replications].sort((a, b) => {
+              const aIndex = orderMap.get(a.slug) ?? Number.POSITIVE_INFINITY;
+              const bIndex = orderMap.get(b.slug) ?? Number.POSITIVE_INFINITY;
+              return aIndex - bIndex;
+            });
+          })()
+        : replications;
+    return sortByMediaRank(editorial, (replication) => replication);
   }, [galleryOrder, replications]);
 
   const works = useMemo<ShowcaseWork[]>(() => {
@@ -67,6 +75,7 @@ export const ReplicationGallery = memo(function ReplicationGallery({
         thumbnailUrl: replication.thumbnail_url,
         format: replication.format,
         duration: replication.duration,
+        hasAudio: replication.has_audio,
         width: replication.width,
         height: replication.height,
         previewUrl: replication.preview_url,

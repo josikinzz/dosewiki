@@ -11,11 +11,20 @@ export type ContributorDirectoryEntry = {
    * on a profile that has curated nothing, which means "default sort".
    */
   replicationOrder?: string[];
+  /**
+   * The profile's avatar, carried so credit-line surfaces (viewer byline chip,
+   * artist groups) can render the claiming profile's face without reading
+   * profiles themselves. Null when the profile has none.
+   */
+  avatarUrl?: string | null;
 };
 
 export type ContributorDirectory = readonly ContributorDirectoryEntry[];
 
-export function resolveContributorHref(name: string, directory: ContributorDirectory): string | null {
+export function resolveContributorHref(
+  name: string,
+  directory: ContributorDirectory,
+): string | null {
   const profile = findContributorProfileByAuthorName(directory, name);
   if (!profile) {
     return null;
@@ -37,5 +46,7 @@ export function resolveContributorReplicationOrder(
   directory: ContributorDirectory,
 ): string[] | undefined {
   const profile = findContributorProfileByAuthorName(directory, name);
-  return profile?.replicationOrder?.length ? profile.replicationOrder : undefined;
+  return profile?.replicationOrder?.length
+    ? profile.replicationOrder
+    : undefined;
 }

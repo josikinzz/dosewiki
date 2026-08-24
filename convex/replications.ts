@@ -103,6 +103,11 @@ export const updateDeliveredFileSize = mutation({
   handler: writes.updateDeliveredFileSizeHandler,
 });
 
+export const setAudioPresence = mutation({
+  args: validators.setAudioPresenceArgs.fields,
+  handler: writes.setAudioPresenceHandler,
+});
+
 export const updateStorageIds = mutation({
   args: validators.updateStorageIdsArgs.fields,
   handler: writes.updateStorageIdsHandler,

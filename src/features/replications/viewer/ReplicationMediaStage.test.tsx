@@ -194,7 +194,7 @@ describe("ReplicationMediaStage", () => {
     expect(HTMLMediaElement.prototype.play).toHaveBeenCalledOnce();
   });
 
-  it("falls back to muted playback when unmuted autoplay is rejected", async () => {
+  it("retries muted without flipping the shared control, then the next gesture restores sound", async () => {
     const onMutedChange = vi.fn();
     const play = vi.mocked(HTMLMediaElement.prototype.play);
     play.mockClear();
@@ -219,11 +219,18 @@ describe("ReplicationMediaStage", () => {
     await act(async () => {});
 
     const video = container.querySelector("video") as HTMLVideoElement;
+    // The element retried muted so the work keeps moving…
     expect(video.muted).toBe(true);
-    expect(onMutedChange).toHaveBeenCalledWith(true);
     expect(play).toHaveBeenCalledTimes(2);
+    // …but the reader's stated preference is preserved, not overwritten.
+    expect(onMutedChange).not.toHaveBeenCalled();
     fireEvent.play(video);
     expect(screen.getByRole("button", { name: "Pause" })).toBeInTheDocument();
+
+    // The very next gesture repays the sound IOU inside user activation.
+    fireEvent.pointerUp(window);
+    expect(video.muted).toBe(false);
+    expect(video.volume).toBe(1);
 
     play.mockReset();
     play.mockResolvedValue(undefined);

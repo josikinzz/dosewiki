@@ -531,6 +531,46 @@ describe("canonical replication viewer", () => {
   });
 });
 
+describe("viewer deep-link cover", () => {
+  // The reveal script keys off `location.search`, which jsdom does not carry
+  // here, so the cover's pre-paint reveal never fires in these tests. What
+  // they pin down is the dismissal contract: the explorer must force the
+  // cover hidden (`display: none`) in exactly the states where the index
+  // has to be visible, and must leave it alone while a deep-linked viewer
+  // is up.
+  const cover = () =>
+    document.querySelector<HTMLElement>("[data-replication-viewer-cover]");
+
+  it("keeps the SSR cover underneath a deep-linked viewer until it closes", () => {
+    renderExplorer("viewer=slug-4");
+
+    expect(screen.getByTestId("replication-viewer")).toBeInTheDocument();
+    expect(cover()!.style.display).not.toBe("none");
+
+    fireEvent.click(screen.getByRole("button", { name: "Close viewer" }));
+    expect(screen.queryByTestId("replication-viewer")).toBeNull();
+    expect(cover()!.style.display).toBe("none");
+  });
+
+  it("drops the cover when the viewer param resolves to no known work", () => {
+    renderExplorer("viewer=never-existed");
+
+    expect(screen.queryByTestId("replication-viewer")).toBeNull();
+    expect(
+      screen.getByText(
+        "The linked replication is no longer available in this collection.",
+      ),
+    ).toBeInTheDocument();
+    expect(cover()!.style.display).toBe("none");
+  });
+
+  it("drops the cover on a plain visit without a viewer param", () => {
+    renderExplorer("");
+
+    expect(cover()!.style.display).toBe("none");
+  });
+});
+
 describe("effects withheld from artist browsing", () => {
   const withCreature = [
     ...corpus,

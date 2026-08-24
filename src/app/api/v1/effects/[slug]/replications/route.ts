@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { getPublicReplicationsByEffect } from "@server/convex/publicData";
+import { sortByMediaRank } from "@/features/replications/mediaRank";
 import { enforceRateLimit } from "@server/http/nextRateLimit";
 import {
   PUBLIC_API_VERSION,
@@ -29,7 +30,12 @@ export async function GET(request: Request, { params }: { params: Promise<{ slug
   }
 
   try {
-    const replications = await getPublicReplicationsByEffect(slug);
+    // Audio-first media rank leads; the stored read order survives within
+    // each rank, matching the article gallery's default playlist.
+    const replications = sortByMediaRank(
+      await getPublicReplicationsByEffect(slug),
+      (replication) => replication,
+    );
     return NextResponse.json({
       data: replications.map(projectPublicApiReplication),
       meta: { api_version: PUBLIC_API_VERSION, total: replications.length, effect_slug: slug },

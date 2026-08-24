@@ -264,6 +264,16 @@ export const bulkUpdateEditorialFieldsArgs = v.object({
   showcase_excluded: v.optional(v.boolean()),
 });
 
+export const setAudioPresenceArgs = v.object({
+  apiKey: v.optional(v.string()),
+  entries: v.array(
+    v.object({
+      id: v.id("replications"),
+      has_audio: v.boolean(),
+    }),
+  ),
+});
+
 export type InsertReplicationArgs = Infer<typeof insertReplicationArgs>;
 export type InsertMediaAssetArgs = Infer<typeof insertMediaAssetArgs>;
 export type BulkImportArgs = Infer<typeof bulkImportArgs>;
@@ -285,6 +295,7 @@ export type UpdateRightsMetadataArgs = Infer<typeof updateRightsMetadataArgs>;
 export type GetStudioRowsArgs = Infer<typeof getStudioRowsArgs>;
 export type UpdateEditorialFieldsArgs = Infer<typeof updateEditorialFieldsArgs>;
 export type BulkUpdateEditorialFieldsArgs = Infer<typeof bulkUpdateEditorialFieldsArgs>;
+export type SetAudioPresenceArgs = Infer<typeof setAudioPresenceArgs>;
 
 export type ReplicationEditorialSnapshot = Infer<typeof replicationEditorialSnapshot>;
 export type ReplicationRightsPatch = Infer<typeof updateRightsMetadataArgs>["updates"];

@@ -53,6 +53,9 @@ export async function SubstanceReplicationShowcaseSection({
       );
       return profile ? publicHref.contributor(profile.key) : null;
     },
+    (artistName) =>
+      findContributorProfileByAuthorName(contributorProfiles, artistName)
+        ?.avatarUrl ?? null,
   );
   if (works.length === 0) return null;
 

@@ -46,6 +46,8 @@ export interface ReplicationViewerMedia {
   width?: number;
   height?: number;
   duration?: number;
+  /** True = has an audio track, false = proven silent, absent = unprobed. */
+  has_audio?: boolean;
 }
 
 export interface ReplicationViewerMediaItem extends Omit<
@@ -146,6 +148,7 @@ export function viewerCollectionFromGalleryGroups(
   sourcePath: string,
   effectNameBySlug: (slug: string) => string = (slug) =>
     slug.replace(/-/g, " "),
+  avatarByArtist: (artist: string) => string | null = () => null,
 ): ReplicationViewerCollection {
   return {
     sourcePath,
@@ -166,7 +169,7 @@ export function viewerCollectionFromGalleryGroups(
           grouping === "artist"
             ? (group.href ?? null)
             : artistPageHrefForWork(replication),
-        avatarUrl: null,
+        avatarUrl: avatarByArtist(replication.artist ?? ""),
       })),
     })),
   };

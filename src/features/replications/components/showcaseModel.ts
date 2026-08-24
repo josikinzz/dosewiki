@@ -8,6 +8,7 @@ import {
   visualEffectNamesOf,
   type SubstanceGalleryItem,
 } from "@/data/substanceReplicationGallery";
+import { sortByMediaRank } from "@/features/replications/mediaRank";
 
 /**
  * One work of the substance article's Replication Showcase, flattened to the
@@ -24,6 +25,8 @@ export type ShowcaseWork = {
   thumbnailUrl?: string;
   format?: string;
   duration?: number;
+  /** True = has an audio track, false = proven silent, absent = unprobed. */
+  hasAudio?: boolean;
   width?: number;
   height?: number;
   previewUrl?: string;
@@ -42,6 +45,8 @@ export type ShowcaseWork = {
   artistHref: string | null;
   /** True when `artistHref` leaves the site (the `artist_url` fallback). */
   artistHrefExternal: boolean;
+  /** The claiming Contributor Profile's avatar, when one claims the credit. */
+  avatarUrl?: string | null;
   effectSlug: string;
   effectName: string;
 };
@@ -74,18 +79,21 @@ export function visualEffectNameBySlug(
 export const SHOWCASE_WORK_CAP = 12;
 
 /**
- * Flatten the public per-substance read into stage-ready works, in the order
- * the read delivered (curated head, then default tail). Rows the stage cannot
- * draw (audio) drop out; a slug the article names nowhere falls back to the
- * gallery's humanised-slug convention.
+ * Flatten the public per-substance read into stage-ready works: audio-first
+ * media rank leads (sounded videos, then silent motion, then stills), and the
+ * order the read delivered (curated head, then default tail) survives within
+ * each rank. Rows the stage cannot draw (audio) drop out; a slug the article
+ * names nowhere falls back to the gallery's humanised-slug convention.
  */
 export function buildShowcaseWorks(
   items: readonly SubstanceGalleryItem[],
   effectNameBySlug: ReadonlyMap<string, string>,
   resolveArtistFallbackHref: (artistName: string) => string | null = () => null,
+  resolveArtistAvatarUrl: (artistName: string) => string | null = () => null,
 ): ShowcaseWork[] {
   const works: ShowcaseWork[] = [];
-  for (const { replication, provenance } of items) {
+  const ranked = sortByMediaRank(items, (item) => item.replication);
+  for (const { replication, provenance } of ranked) {
     if (replication.type !== "video" && replication.type !== "image") continue;
     const artistName = hasKnownCreator(replication.artist)
       ? replication.artist.trim()
@@ -104,6 +112,7 @@ export function buildShowcaseWorks(
       thumbnailUrl: replication.thumbnail_url,
       format: replication.format,
       duration: replication.duration,
+      hasAudio: replication.has_audio,
       width: replication.width,
       height: replication.height,
       previewUrl: replication.preview_url,
@@ -113,6 +122,7 @@ export function buildShowcaseWorks(
       artistName,
       artistHref,
       artistHrefExternal: artistHref !== null && internalHref === null,
+      avatarUrl: artistName ? resolveArtistAvatarUrl(artistName) : null,
       effectSlug: provenance.effectSlug,
       effectName:
         effectNameBySlug.get(provenance.effectSlug) ??

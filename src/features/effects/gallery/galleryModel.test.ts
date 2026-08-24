@@ -381,7 +381,7 @@ describe('workDateMs', () => {
 });
 
 describe('sortWithinGroup', () => {
-  it('prefers curated order_index over everything, then falls through the tiers', () => {
+  it('prefers curated order_index within a media rank, then falls through the tiers', () => {
     const items = [
       rep({ slug: 'a', order_index: undefined, date_info: dateInfo('exact_date', '2024-01-01') }),
       rep({ slug: 'b', order_index: 0, format: 'gif' }),
@@ -391,13 +391,15 @@ describe('sortWithinGroup', () => {
     expect(sortWithinGroup(items).map((item) => item.slug)).toEqual(['b', 'c', 'd', 'a']);
   });
 
-  it('ranks videos above stills above GIFs before any date comparison', () => {
+  it('ranks sounded videos above silent motion above stills before any date comparison', () => {
     const items = [
       rep({ slug: 'gif', format: 'gif', date_info: dateInfo('exact_date', '2025-01-01') }),
       rep({ slug: 'still', format: 'webp', date_info: dateInfo('exact_date', '2015-01-01') }),
       rep({ slug: 'video', type: 'video', format: 'mp4', date_info: dateInfo('exact_date', '2005-01-01') }),
+      // Oldest work of the lot, but the only one with a confirmed soundtrack.
+      rep({ slug: 'sounded', type: 'video', format: 'mp4', has_audio: true, date_info: dateInfo('exact_date', '1995-01-01') }),
     ];
-    expect(sortWithinGroup(items).map((item) => item.slug)).toEqual(['video', 'still', 'gif']);
+    expect(sortWithinGroup(items).map((item) => item.slug)).toEqual(['sounded', 'video', 'gif', 'still']);
   });
 
   it('sorts by researched work date, newest first, with undated rows sinking last', () => {

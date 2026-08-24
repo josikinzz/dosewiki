@@ -151,6 +151,9 @@ export function projectPublicApiReplication(replication: GalleryReplication) {
     ...(replication.date_info ? { date_info: replication.date_info } : {}),
     ...(replication.file_size ? { file_size: replication.file_size } : {}),
     ...(replication.duration ? { duration: replication.duration } : {}),
+    ...(replication.has_audio !== undefined
+      ? { has_audio: replication.has_audio }
+      : {}),
     ...(replication.order_index !== undefined
       ? { order_index: replication.order_index }
       : {}),

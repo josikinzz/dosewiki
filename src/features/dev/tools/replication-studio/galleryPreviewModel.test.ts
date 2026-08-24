@@ -39,18 +39,20 @@ function match(
 }
 
 describe("previewWorksFromMatches", () => {
-  it("drops what the stage cannot draw and keeps image and video", () => {
+  it("drops what the stage cannot draw and ranks motion above stills", () => {
     const works = previewWorksFromMatches([
       match("a", { type: "image" }),
       match("b", { type: "audio" }),
       match("c", { type: "video" }),
     ]);
 
-    expect(works.map((work) => work.slug)).toEqual(["a", "c"]);
-    expect(works.map((work) => work.type)).toEqual(["image", "video"]);
+    // The audio row drops; the video leads its still exactly as the public
+    // builder's audio-first media rank orders the article.
+    expect(works.map((work) => work.slug)).toEqual(["c", "a"]);
+    expect(works.map((work) => work.type)).toEqual(["video", "image"]);
   });
 
-  it("preserves the caller's effective public order rather than re-sorting", () => {
+  it("preserves the caller's effective public order within a media rank", () => {
     const works = previewWorksFromMatches([
       match("c"),
       match("a"),

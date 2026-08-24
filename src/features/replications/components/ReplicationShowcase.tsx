@@ -24,6 +24,10 @@ import type { ReplicationViewerCollection } from "@/features/replications/viewer
 import { publicHref } from "@/utils/publicHref";
 import { toAppPath } from "@/utils/previewPath";
 import { resolveRouteChromeIcon } from "@/utils/routeChromeIcons";
+import {
+  dismissViewerDeepLinkCover,
+  ViewerDeepLinkCover,
+} from "@/features/replications/ViewerDeepLinkCover";
 import type { ShowcaseWork } from "./showcaseModel";
 
 /**
@@ -167,6 +171,7 @@ export function ReplicationShowcase({
               width: work.width,
               height: work.height,
               duration: work.duration,
+              has_audio: work.hasAudio,
             },
             effectName: work.effectName,
             effectSlug: work.effectSlug,
@@ -175,7 +180,7 @@ export function ReplicationShowcase({
               hasKnownCreator(work.artistName) && !work.artistHrefExternal
                 ? work.artistHref
                 : null,
-            avatarUrl: null,
+            avatarUrl: work.avatarUrl ?? null,
           })),
         },
       ],
@@ -196,6 +201,12 @@ export function ReplicationShowcase({
         "",
         closeReplicationViewerUrl(source),
       );
+    }
+    // Absent or unresolvable viewer param: drop the deep-link cover so the
+    // article (and the unavailable notice) is visible. A valid param keeps
+    // the cover underneath the opaque overlay until the viewer closes.
+    if (!belongsToCollection) {
+      dismissViewerDeepLinkCover();
     }
   }, [collectionWorks]);
 
@@ -298,6 +309,10 @@ export function ReplicationShowcase({
 
   return (
     <>
+      {/* Before the article card in document order: a `?viewer=` deep link's
+          first paint is black, and the resolution effect above dismisses the
+          cover if the slug is unknown here. */}
+      <ViewerDeepLinkCover />
       <section aria-labelledby={collectionHeadingId} className="space-y-2">
         <h3
           id={collectionHeadingId}
@@ -656,7 +671,10 @@ export function ReplicationShowcase({
           initialSlug={viewerSlug}
           open
           onOpenChange={(nextOpen) => {
-            if (!nextOpen) setViewerSlug(null);
+            if (!nextOpen) {
+              setViewerSlug(null);
+              dismissViewerDeepLinkCover();
+            }
           }}
         />
       ) : null}

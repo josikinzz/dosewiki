@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 
+import { AppImage } from "@/components/common/AppImage";
 import { Icon } from "@/components/common/Icon";
 import { focusRingClassName } from "@/components/ui/surface";
 import { cn } from "@/lib/utils";
@@ -48,8 +49,9 @@ type AudioPresence = "unknown" | "present" | "absent";
 
 /**
  * Read audio presence from whichever track API this browser exposes. The
- * decoded-byte counter only proves presence once bytes accumulate, so a zero
- * stays "unknown" until playback has run long enough to conclude "absent".
+ * decoded-byte counter only accumulates while audio is actually rendered, so
+ * a zero on a muted (or never-unmuted) video proves nothing — "absent" is only
+ * concluded from a real track API or from silent *unmuted* playback.
  */
 function probeAudioPresence(video: HTMLVideoElement): AudioPresence {
   const probed = video as HTMLVideoElement & {
@@ -65,7 +67,7 @@ function probeAudioPresence(video: HTMLVideoElement): AudioPresence {
   }
   if (typeof probed.webkitAudioDecodedByteCount === "number") {
     if (probed.webkitAudioDecodedByteCount > 0) return "present";
-    return video.currentTime > 1 ? "absent" : "unknown";
+    return !video.muted && video.currentTime > 1 ? "absent" : "unknown";
   }
   return "unknown";
 }
@@ -129,6 +131,8 @@ export function ReplicationMediaStage({
     : replication.thumbnail_url;
   const stageRef = useRef<HTMLElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
+  /** Sound the reader asked for but the browser refused outside a gesture. */
+  const pendingSoundRef = useRef(false);
   const progressFillRef = useRef<HTMLDivElement>(null);
   const hideTimerRef = useRef<number | undefined>(undefined);
   const reducedMotion = useReducedMotion();
@@ -136,7 +140,13 @@ export function ReplicationMediaStage({
   const [blocked, setBlocked] = useState(false);
   const [error, setError] = useState(false);
   const [controlsVisible, setControlsVisible] = useState(true);
-  const [audioPresence, setAudioPresence] = useState<AudioPresence>("unknown");
+  /** True once the video has painted real frames; drops the poster underlay. */
+  const [framePainted, setFramePainted] = useState(false);
+  const ordinaryVideo = replication.type === "video";
+  const knownAudio = ordinaryVideo ? replication.has_audio : false;
+  const [audioPresence, setAudioPresence] = useState<AudioPresence>(
+    knownAudio === true ? "present" : "unknown",
+  );
   const { canEnlarge, scaleStyle, toggleFit, probeAspect } = useStageFit({
     mediaKey: replication.slug,
     type: replication.type,
@@ -146,11 +156,12 @@ export function ReplicationMediaStage({
     fullFrame,
     onFullFrameChange,
   });
-  const ordinaryVideo = replication.type === "video";
-  // GIF-derived motion renditions are generated silent by contract; sound
-  // controls only exist for ordinary videos, and only until a track probe
-  // proves there is nothing to unmute.
-  const soundAvailable = ordinaryVideo && audioPresence !== "absent";
+  // Catalogued audio metadata beats runtime probes: a row proven silent hides
+  // the sound controls outright, a row with a known track always keeps them.
+  // GIF-derived motion renditions are generated silent by contract; probes
+  // only decide for unprobed legacy rows.
+  const soundAvailable =
+    ordinaryVideo && knownAudio !== false && audioPresence !== "absent";
   // The immersive viewer always loops motion: a work never dead-ends into a
   // stopped final frame while the reader is exploring.
   const autoplayAllowed = !reducedMotion && !browserRequestsDataSaving();
@@ -191,10 +202,15 @@ export function ReplicationMediaStage({
 
   useEffect(() => {
     setBlocked(false);
-    setAudioPresence("unknown");
+    setAudioPresence(knownAudio === true ? "present" : "unknown");
     setError(false);
     setPlaying(false);
     setControlsVisible(true);
+    setFramePainted(false);
+    // A new work starts a new sound conversation; a stale IOU must not
+    // unmute a later video the reader never asked about.
+    pendingSoundRef.current = false;
+    // knownAudio is derived from the same slug change that resets here.
   }, [replication.slug]);
 
   useEffect(() => {
@@ -202,7 +218,32 @@ export function ReplicationMediaStage({
     if (!video) return;
     video.muted = muted;
     video.volume = volume;
+    if (muted) pendingSoundRef.current = false;
   }, [muted, volume, replication.slug]);
+
+  // The browser refused unmuted playback outside a gesture, so the element is
+  // temporarily muted against the reader's wishes. Repair it inside the very
+  // next gesture, where the unmute is allowed — the Reels grammar: your next
+  // tap or swipe brings the sound back.
+  useEffect(() => {
+    const restoreSound = () => {
+      const video = videoRef.current;
+      if (!pendingSoundRef.current || !video) return;
+      pendingSoundRef.current = false;
+      video.muted = false;
+      video.volume = volume;
+      if (video.paused && autoplayAllowed) {
+        const retry = video.play();
+        if (retry) void retry.catch(() => undefined);
+      }
+    };
+    window.addEventListener("pointerup", restoreSound, true);
+    window.addEventListener("touchend", restoreSound, true);
+    return () => {
+      window.removeEventListener("pointerup", restoreSound, true);
+      window.removeEventListener("touchend", restoreSound, true);
+    };
+  }, [autoplayAllowed, volume]);
 
   const markBlocked = useCallback(() => {
     setBlocked(true);
@@ -213,8 +254,10 @@ export function ReplicationMediaStage({
   /**
    * Start playback the way phone feeds do: when the browser rejects unmuted
    * playback (iOS Safari outside a user gesture), retry muted so the work
-   * keeps moving, and only surface the Play affordance when even muted
-   * playback is refused (e.g. Low Power Mode).
+   * keeps moving — but keep the reader's sound intent as an IOU that the
+   * next gesture repays, instead of flipping the shared mute control. Only
+   * surface the Play affordance when even muted playback is refused (e.g.
+   * Low Power Mode).
    */
   const attemptPlay = useCallback(
     (video: HTMLVideoElement) => {
@@ -222,9 +265,8 @@ export function ReplicationMediaStage({
       if (!attempt) return;
       void attempt.catch(() => {
         if (!video.muted) {
-          video.defaultMuted = true;
           video.muted = true;
-          onMutedChange(true);
+          pendingSoundRef.current = true;
           const retry = video.play();
           if (retry) void retry.catch(markBlocked);
           return;
@@ -232,7 +274,7 @@ export function ReplicationMediaStage({
         markBlocked();
       });
     },
-    [markBlocked, onMutedChange],
+    [markBlocked],
   );
 
   useEffect(() => {
@@ -343,7 +385,11 @@ export function ReplicationMediaStage({
             video.muted = muted;
             settleAudioPresence(video);
           }}
-          onTimeUpdate={(event) => settleAudioPresence(event.currentTarget)}
+          onTimeUpdate={(event) => {
+            const video = event.currentTarget;
+            settleAudioPresence(video);
+            if (video.currentTime > 0) setFramePainted(true);
+          }}
           onPlay={() => {
             setPlaying(true);
             setBlocked(false);
@@ -361,31 +407,57 @@ export function ReplicationMediaStage({
           className="absolute inset-0 h-full w-full object-contain transition-transform duration-200 motion-reduce:transition-none"
           style={scaleStyle}
         />
-      ) : hasSafeGifFallback ? (
-        poster ? (
-          <ReplicationStillStage
+      ) : null}
+      {moving && motionSource && poster ? (
+        // The warm poster rides above the remounting <video> until real
+        // frames paint, so a work change never flashes black. Same URL the
+        // standby pane already showed — the swap lands on an identical image.
+        <div
+          aria-hidden
+          className={cn(
+            "pointer-events-none absolute inset-0 transition-opacity duration-200 motion-reduce:transition-none",
+            framePainted ? "opacity-0" : "opacity-100",
+          )}
+          style={scaleStyle}
+        >
+          <AppImage
             src={poster}
+            alt=""
+            width={width}
+            height={height}
+            priority
+            unoptimized
+            className="h-full w-full object-contain"
+          />
+        </div>
+      ) : null}
+      {!(moving && motionSource) ? (
+        hasSafeGifFallback ? (
+          poster ? (
+            <ReplicationStillStage
+              src={poster}
+              alt={replication.title}
+              width={width}
+              height={height}
+              controlsVisible={controlsVisible}
+              onToggleControls={toggleStillControls}
+            />
+          ) : (
+            <div className="theme-media-tile-creator absolute inset-0 grid place-items-center px-8 text-center text-sm">
+              Animation unavailable until its controllable rendition is ready.
+            </div>
+          )
+        ) : (
+          <ReplicationStillStage
+            src={replication.url}
             alt={replication.title}
             width={width}
             height={height}
             controlsVisible={controlsVisible}
             onToggleControls={toggleStillControls}
           />
-        ) : (
-          <div className="theme-media-tile-creator absolute inset-0 grid place-items-center px-8 text-center text-sm">
-            Animation unavailable until its controllable rendition is ready.
-          </div>
         )
-      ) : (
-        <ReplicationStillStage
-          src={replication.url}
-          alt={replication.title}
-          width={width}
-          height={height}
-          controlsVisible={controlsVisible}
-          onToggleControls={toggleStillControls}
-        />
-      )}
+      ) : null}
 
       {error ? (
         <div
@@ -464,59 +536,98 @@ export function ReplicationMediaStage({
           ) : null}
         </div>
 
-        <div
-          className={cn(
-            "flex items-center gap-3",
-            showWorkNavigation
-              ? "justify-between [@media(pointer:coarse)]:justify-center"
-              : "justify-center",
-          )}
-        >
-          {showWorkNavigation ? (
-            previousHref && onPrevious ? (
-              <a
-                href={previousHref}
-                rel="prev"
-                aria-label={previousLabel}
-                onClick={(event) => {
-                  if (
-                    event.button !== 0 ||
-                    event.metaKey ||
-                    event.ctrlKey ||
-                    event.shiftKey ||
-                    event.altKey
-                  ) {
-                    return;
-                  }
-                  event.preventDefault();
-                  onPrevious();
-                }}
-                className={cn(
-                  controlClassName,
-                  "pointer-events-auto [@media(pointer:coarse)]:hidden",
-                )}
-              >
-                <Icon icon="lucide:chevron-left" className="size-6" />
-              </a>
-            ) : (
-              <button
-                type="button"
-                aria-label={previousLabel}
-                disabled={!onPrevious}
-                onClick={(event) => {
-                  event.stopPropagation();
-                  onPrevious?.();
-                }}
-                className={cn(
-                  controlClassName,
-                  "pointer-events-auto disabled:cursor-not-allowed disabled:opacity-30 [@media(pointer:coarse)]:hidden",
-                )}
-              >
-                <Icon icon="lucide:chevron-left" className="size-6" />
-              </button>
-            )
-          ) : null}
-
+        {/* Work navigation sits at the stage's vertical midline (the classic
+            lightbox grammar), leaving the bottom corners to the byline chip
+            and the centered playback controls. Touch readers swipe instead. */}
+        {showWorkNavigation ? (
+          previousHref && onPrevious ? (
+            <a
+              href={previousHref}
+              rel="prev"
+              aria-label={previousLabel}
+              onClick={(event) => {
+                if (
+                  event.button !== 0 ||
+                  event.metaKey ||
+                  event.ctrlKey ||
+                  event.shiftKey ||
+                  event.altKey
+                ) {
+                  return;
+                }
+                event.preventDefault();
+                onPrevious();
+              }}
+              className={cn(
+                controlClassName,
+                "pointer-events-auto absolute left-3 top-1/2 -translate-y-1/2 [@media(pointer:coarse)]:hidden",
+              )}
+            >
+              <Icon icon="lucide:chevron-left" className="size-6" />
+            </a>
+          ) : (
+            <button
+              type="button"
+              aria-label={previousLabel}
+              disabled={!onPrevious}
+              onClick={(event) => {
+                event.stopPropagation();
+                onPrevious?.();
+              }}
+              className={cn(
+                controlClassName,
+                "pointer-events-auto absolute left-3 top-1/2 -translate-y-1/2 disabled:cursor-not-allowed disabled:opacity-30 [@media(pointer:coarse)]:hidden",
+              )}
+            >
+              <Icon icon="lucide:chevron-left" className="size-6" />
+            </button>
+          )
+        ) : null}
+        {showWorkNavigation ? (
+          nextHref && onNext ? (
+            <a
+              href={nextHref}
+              rel="next"
+              aria-label={nextLabel}
+              onClick={(event) => {
+                if (
+                  event.button !== 0 ||
+                  event.metaKey ||
+                  event.ctrlKey ||
+                  event.shiftKey ||
+                  event.altKey
+                ) {
+                  return;
+                }
+                event.preventDefault();
+                onNext();
+              }}
+              className={cn(
+                controlClassName,
+                "pointer-events-auto absolute right-3 top-1/2 -translate-y-1/2 [@media(pointer:coarse)]:hidden",
+              )}
+            >
+              <Icon icon="lucide:chevron-right" className="size-6" />
+            </a>
+          ) : (
+            <button
+              type="button"
+              aria-label={nextLabel}
+              disabled={!onNext}
+              onClick={(event) => {
+                event.stopPropagation();
+                onNext?.();
+              }}
+              className={cn(
+                controlClassName,
+                "pointer-events-auto absolute right-3 top-1/2 -translate-y-1/2 disabled:cursor-not-allowed disabled:opacity-30 [@media(pointer:coarse)]:hidden",
+              )}
+            >
+              <Icon icon="lucide:chevron-right" className="size-6" />
+            </button>
+          )
+        ) : null}
+        <div className="flex items-center justify-center gap-3">
           {moving ? (
             <div className="theme-media-tile-title pointer-events-auto flex items-center gap-2 rounded-full bg-black/65 px-2 py-1.5 backdrop-blur-sm">
               <button
@@ -543,7 +654,21 @@ export function ReplicationMediaStage({
                     aria-label={muted ? "Unmute" : "Mute"}
                     onClick={(event) => {
                       event.stopPropagation();
-                      onMutedChange(!muted);
+                      const next = !muted;
+                      // Flip the element inside the gesture: WebKit only
+                      // honours an unmute (and any needed replay) while the
+                      // user activation is live; the state sync alone would
+                      // land outside it and be refused.
+                      const video = videoRef.current;
+                      if (video) {
+                        video.muted = next;
+                        video.volume = volume;
+                        if (!next && video.paused && autoplayAllowed) {
+                          attemptPlay(video);
+                        }
+                      }
+                      pendingSoundRef.current = false;
+                      onMutedChange(next);
                     }}
                     className={cn(
                       "grid size-9 place-items-center rounded-full",
@@ -576,51 +701,6 @@ export function ReplicationMediaStage({
                 </>
               ) : null}
             </div>
-          ) : null}
-
-          {showWorkNavigation ? (
-            nextHref && onNext ? (
-              <a
-                href={nextHref}
-                rel="next"
-                aria-label={nextLabel}
-                onClick={(event) => {
-                  if (
-                    event.button !== 0 ||
-                    event.metaKey ||
-                    event.ctrlKey ||
-                    event.shiftKey ||
-                    event.altKey
-                  ) {
-                    return;
-                  }
-                  event.preventDefault();
-                  onNext();
-                }}
-                className={cn(
-                  controlClassName,
-                  "pointer-events-auto [@media(pointer:coarse)]:hidden",
-                )}
-              >
-                <Icon icon="lucide:chevron-right" className="size-6" />
-              </a>
-            ) : (
-              <button
-                type="button"
-                aria-label={nextLabel}
-                disabled={!onNext}
-                onClick={(event) => {
-                  event.stopPropagation();
-                  onNext?.();
-                }}
-                className={cn(
-                  controlClassName,
-                  "pointer-events-auto disabled:cursor-not-allowed disabled:opacity-30 [@media(pointer:coarse)]:hidden",
-                )}
-              >
-                <Icon icon="lucide:chevron-right" className="size-6" />
-              </button>
-            )
           ) : null}
         </div>
       </div>

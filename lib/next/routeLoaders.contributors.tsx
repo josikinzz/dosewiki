@@ -19,6 +19,7 @@ import {
   orderContributorReplications,
   orderContributorWorksFeaturedFirst,
 } from "../../src/features/effects/gallery/replicationDetailModel";
+import { sortByMediaRank } from "../../src/features/replications/mediaRank";
 import { EFFECT_INDEX_FEATURED_REPLICATION_SLUGS } from "./effectIndexHome";
 import type { ContributorEffectCredit } from "../../src/types/effectCredits";
 import type { ContributorReviewedArticle } from "../../src/types/reviewedArticles";
@@ -159,13 +160,18 @@ export const loadContributorRoute = cache(
         // list — the replication corpus *is* the Effect Index archive on either
         // flavor, so there is nothing flavor-specific about which pieces it
         // names) still floats its picks ahead of the default newest-first sort.
-        replications: applyCuratedOrder(
-          orderContributorWorksFeaturedFirst(
-            orderContributorReplications(replications),
-            EFFECT_INDEX_FEATURED_REPLICATION_SLUGS,
+        // The audio-first media rank stays primary over all of it: curation
+        // reorders works within a rank, never a still above a sounded video.
+        replications: sortByMediaRank(
+          applyCuratedOrder(
+            orderContributorWorksFeaturedFirst(
+              orderContributorReplications(replications),
+              EFFECT_INDEX_FEATURED_REPLICATION_SLUGS,
+            ),
+            profile.replicationOrder,
+            (replication) => replication.slug,
           ),
-          profile.replicationOrder,
-          (replication) => replication.slug,
+          (replication) => replication,
         ),
         effectArticles,
         reviewedArticles,

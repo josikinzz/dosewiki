@@ -166,6 +166,13 @@ export const replication = v.object({
   format: v.string(),                  // File extension (mp4, jpg, etc.)
   file_size: v.optional(v.number()),   // In bytes
   duration: v.optional(v.number()),    // Video duration in seconds
+  /**
+   * Whether the stored video has an audio track. `true` = audible audio,
+   * `false` = probed and proven silent, absent = never probed. Written by
+   * scripts/replications/backfill-audio-presence.mjs; only meaningful on
+   * `type: "video"` rows.
+   */
+  has_audio: v.optional(v.boolean()),
   created_at: v.string(),              // ISO timestamp
   /**
    * Best defensible temporal statement for the work. This is deliberately not

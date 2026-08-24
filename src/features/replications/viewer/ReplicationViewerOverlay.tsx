@@ -18,6 +18,14 @@ import {
   DialogDescription,
   DialogTitle,
 } from "@/components/ui/dialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuLabel,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { focusRingClassName } from "@/components/ui/surface";
 import { toAppPath } from "@/utils/previewPath";
 import {
@@ -100,6 +108,7 @@ function StandbyPane({
           width={item.replication.width ?? 1600}
           height={item.replication.height ?? 900}
           priority
+          unoptimized
           className="h-full w-full object-contain"
         />
       ) : null}
@@ -138,6 +147,12 @@ export interface ReplicationViewerOverlayProps {
   initialSlug: string;
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  /**
+   * Regroup the walked collection around the work the reader is looking at.
+   * Provided only by hosts whose collection supports both groupings (the
+   * Gallery); named collections have exactly one order and no menu.
+   */
+  onRegroup?: (grouping: "artist" | "effect", currentSlug: string) => void;
 }
 
 export function ReplicationViewerOverlay({
@@ -145,6 +160,7 @@ export function ReplicationViewerOverlay({
   initialSlug,
   open,
   onOpenChange,
+  onRegroup,
 }: ReplicationViewerOverlayProps) {
   const initialPosition = useMemo(
     () => findViewerPosition(collection, initialSlug),
@@ -464,7 +480,7 @@ export function ReplicationViewerOverlay({
       // Best effort: a blocked write only means the hint may show again.
     }
     setGestureHint(true);
-    const timer = window.setTimeout(() => setGestureHint(false), 5500);
+    const timer = window.setTimeout(() => setGestureHint(false), 9000);
     return () => window.clearTimeout(timer);
   }, [open]);
 
@@ -702,9 +718,15 @@ export function ReplicationViewerOverlay({
         >
           <div className="flex min-w-0 flex-1 flex-col gap-0.5 sm:flex-row sm:items-baseline sm:gap-3">
             <DialogTitle className="theme-media-tile-title flex min-w-0 items-baseline gap-1.5 font-display text-sm font-semibold sm:flex-1 sm:text-base">
-              {/* Credit leads: the artist reads brighter and first; the work
+              {/* The group identity leads: the artist when walking artists,
+                  the subjective effect when walking effects — the byline chip
+                  on the stage always carries the artist either way. The work
                   title is the quieter second element. */}
-              {artistProfileHref ? (
+              {collection.grouping === "effect" ? (
+                <span className="max-w-[11rem] shrink-0 truncate sm:max-w-[16rem]">
+                  {group.label}
+                </span>
+              ) : artistProfileHref ? (
                 <Link
                   href={artistProfileHref}
                   className={cn(
@@ -739,17 +761,6 @@ export function ReplicationViewerOverlay({
               </span>
               {collection.groups.length > 1 ? (
                 <>
-                  {collection.grouping === "effect" ? (
-                    <>
-                      <span aria-hidden>·</span>
-                      <span
-                        className="max-w-[8rem] truncate sm:max-w-[12rem]"
-                        title={group.label}
-                      >
-                        {group.label}
-                      </span>
-                    </>
-                  ) : null}
                   <span aria-hidden>·</span>
                   <span className="shrink-0">
                     {groupUnit} {position.groupIndex + 1}/
@@ -794,6 +805,42 @@ export function ReplicationViewerOverlay({
                 <Icon icon="lucide:chevron-down" className="size-4" />
               </button>
             </div>
+          ) : null}
+          {onRegroup && collection.kind === "gallery" ? (
+            <DropdownMenu modal={false}>
+              <DropdownMenuTrigger asChild>
+                <button
+                  type="button"
+                  aria-label="Viewer settings"
+                  className={cn(
+                    "theme-media-tile-title theme-media-control-raised grid size-11 flex-none place-items-center rounded-lg",
+                    focusRingClassName,
+                  )}
+                >
+                  <Icon icon="lucide:sliders-horizontal" className="size-5" />
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="z-[80]">
+                <DropdownMenuLabel>Sort by</DropdownMenuLabel>
+                <DropdownMenuRadioGroup
+                  value={collection.grouping}
+                  onValueChange={(value) => {
+                    if (value === collection.grouping) return;
+                    onRegroup(
+                      value as "artist" | "effect",
+                      active.replication.slug,
+                    );
+                  }}
+                >
+                  <DropdownMenuRadioItem value="artist">
+                    Artist
+                  </DropdownMenuRadioItem>
+                  <DropdownMenuRadioItem value="effect">
+                    Effect
+                  </DropdownMenuRadioItem>
+                </DropdownMenuRadioGroup>
+              </DropdownMenuContent>
+            </DropdownMenu>
           ) : null}
           <button
             type="button"
@@ -883,54 +930,97 @@ export function ReplicationViewerOverlay({
               ) : null}
             </div>
             {gestureHint ? (
-              <div
-                aria-hidden
-                className="pointer-events-none absolute inset-0 z-10 grid place-items-center"
-              >
-                <div className="theme-media-tile-title flex items-end gap-8 rounded-2xl bg-black/65 px-6 py-4 backdrop-blur-sm animate-in fade-in-0 zoom-in-95 duration-300 motion-reduce:animate-none">
-                  <div className="flex flex-col items-center gap-2">
-                    <div className="flex items-center gap-2">
-                      <Icon
-                        icon="lucide:chevron-left"
-                        className="size-4 opacity-60"
-                      />
-                      <span className="theme-media-hint-track relative h-7 w-14">
-                        <span className="theme-media-hint-dot">
-                          <Icon icon="lucide:pointer" className="size-5" />
-                        </span>
-                      </span>
-                      <Icon
-                        icon="lucide:chevron-right"
-                        className="size-4 opacity-60"
-                      />
-                    </div>
-                    <p className="text-xs font-semibold">Browse works</p>
-                  </div>
-                  {collection.groups.length > 1 ? (
+              <div className="pointer-events-none absolute inset-0 z-10 grid place-items-center">
+                <div className="theme-media-tile-title pointer-events-auto flex flex-col items-center gap-3 rounded-2xl bg-black/65 px-6 py-4 backdrop-blur-sm animate-in fade-in-0 zoom-in-95 duration-300 motion-reduce:animate-none">
+                  <div aria-hidden className="flex items-end gap-8">
                     <div className="flex flex-col items-center gap-2">
-                      <div className="flex flex-col items-center gap-1">
+                      <div className="flex items-center gap-2">
                         <Icon
-                          icon="lucide:chevron-up"
+                          icon="lucide:chevron-left"
                           className="size-4 opacity-60"
                         />
-                        <span className="theme-media-hint-track-y relative h-10 w-7">
-                          <span className="theme-media-hint-dot-y">
+                        <span className="theme-media-hint-track relative h-7 w-14">
+                          <span className="theme-media-hint-dot">
                             <Icon icon="lucide:pointer" className="size-5" />
                           </span>
                         </span>
                         <Icon
-                          icon="lucide:chevron-down"
+                          icon="lucide:chevron-right"
                           className="size-4 opacity-60"
                         />
                       </div>
-                      <p className="text-xs font-semibold">
-                        Switch {groupUnit.toLowerCase()}s
-                      </p>
+                      <p className="text-xs font-semibold">Browse works</p>
                     </div>
-                  ) : null}
+                    {collection.groups.length > 1 ? (
+                      <div className="flex flex-col items-center gap-2">
+                        <div className="flex flex-col items-center gap-1">
+                          <Icon
+                            icon="lucide:chevron-up"
+                            className="size-4 opacity-60"
+                          />
+                          <span className="theme-media-hint-track-y relative h-10 w-7">
+                            <span className="theme-media-hint-dot-y">
+                              <Icon icon="lucide:pointer" className="size-5" />
+                            </span>
+                          </span>
+                          <Icon
+                            icon="lucide:chevron-down"
+                            className="size-4 opacity-60"
+                          />
+                        </div>
+                        <p className="text-xs font-semibold">
+                          Switch {groupUnit.toLowerCase()}s
+                        </p>
+                      </div>
+                    ) : null}
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setGestureHint(false)}
+                    className={cn(
+                      "theme-media-control-raised w-full rounded-full px-4 py-2 text-xs font-semibold",
+                      focusRingClassName,
+                    )}
+                  >
+                    Got it
+                  </button>
                 </div>
               </div>
             ) : null}
+            <div className="absolute bottom-2 right-2 z-10 flex justify-end">
+              {/* The byline rides the artwork like a broadcast bug: whatever
+                  the walk is sorted by, the creator stays one tap away. */}
+              {artistProfileHref ? (
+                <Link
+                  href={artistProfileHref}
+                  className={cn(
+                    "theme-media-tile-title pointer-events-auto flex items-center gap-1.5 rounded-full bg-black/65 text-xs font-semibold backdrop-blur-sm transition-opacity hover:opacity-85",
+                    active.avatarUrl ? "py-1 pl-1 pr-2.5" : "px-2.5 py-1.5",
+                    focusRingClassName,
+                  )}
+                >
+                  {active.avatarUrl ? (
+                    <AppImage
+                      src={active.avatarUrl}
+                      alt=""
+                      width={40}
+                      height={40}
+                      unoptimized
+                      className="size-5 shrink-0 rounded-full object-cover"
+                    />
+                  ) : null}
+                  <span className="max-w-[6.5rem] truncate sm:max-w-[12rem]">
+                    {artistLabel}
+                  </span>
+                </Link>
+              ) : (
+                <span className="theme-media-tile-title pointer-events-auto flex items-center rounded-full bg-black/65 px-2.5 py-1.5 text-xs font-semibold backdrop-blur-sm">
+                  <span className="max-w-[6.5rem] truncate sm:max-w-[12rem]">
+                    {artistLabel}
+                  </span>
+                </span>
+              )}
+            </div>
           </div>
 
           {group.items.length > 1 ? (
