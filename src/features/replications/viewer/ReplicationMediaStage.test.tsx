@@ -342,6 +342,141 @@ describe("ReplicationMediaStage", () => {
     expect(stage).toHaveAttribute("data-controls-visible", "true");
   });
 
+  it("renders no badge or sound controls over a still image", () => {
+    render(
+      <ReplicationMediaStage
+        item={item({
+          type: "image",
+          format: "jpg",
+          url: "https://cdn.test/still.jpg",
+        })}
+        muted
+        volume={1}
+        fullFrame={false}
+        onMutedChange={vi.fn()}
+        onVolumeChange={vi.fn()}
+        onFullFrameChange={vi.fn()}
+      />,
+    );
+
+    expect(screen.queryByText("Still image")).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: "Unmute" }),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: "Play" }),
+    ).not.toBeInTheDocument();
+  });
+
+  it("hides sound controls for silent GIF-derived motion", () => {
+    render(
+      <ReplicationMediaStage
+        item={item({
+          type: "image",
+          format: "gif",
+          motion_url: "https://cdn.test/motion.mp4",
+          motion_poster_url: "https://cdn.test/poster.webp",
+        })}
+        muted
+        volume={1}
+        fullFrame={false}
+        onMutedChange={vi.fn()}
+        onVolumeChange={vi.fn()}
+        onFullFrameChange={vi.fn()}
+      />,
+    );
+
+    expect(screen.getByRole("button", { name: "Play" })).toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: "Unmute" }),
+    ).not.toBeInTheDocument();
+    expect(screen.queryByLabelText("Volume")).not.toBeInTheDocument();
+  });
+
+  it("withdraws sound controls once a video probes silent", () => {
+    const { container } = render(
+      <ReplicationMediaStage
+        item={item()}
+        muted
+        volume={1}
+        fullFrame={false}
+        onMutedChange={vi.fn()}
+        onVolumeChange={vi.fn()}
+        onFullFrameChange={vi.fn()}
+      />,
+    );
+
+    expect(screen.getByRole("button", { name: "Unmute" })).toBeInTheDocument();
+    const video = container.querySelector("video") as HTMLVideoElement & {
+      mozHasAudio?: boolean;
+    };
+    video.mozHasAudio = false;
+    fireEvent.loadedMetadata(video);
+    expect(
+      screen.queryByRole("button", { name: "Unmute" }),
+    ).not.toBeInTheDocument();
+  });
+
+  it("keeps sound controls for a video that probes audible", () => {
+    const { container } = render(
+      <ReplicationMediaStage
+        item={item()}
+        muted
+        volume={1}
+        fullFrame={false}
+        onMutedChange={vi.fn()}
+        onVolumeChange={vi.fn()}
+        onFullFrameChange={vi.fn()}
+      />,
+    );
+
+    const video = container.querySelector("video") as HTMLVideoElement & {
+      mozHasAudio?: boolean;
+    };
+    video.mozHasAudio = true;
+    fireEvent.loadedMetadata(video);
+    expect(screen.getByRole("button", { name: "Unmute" })).toBeInTheDocument();
+  });
+
+  it("renders the accent playback meter only for ordinary videos", () => {
+    const { container, rerender } = render(
+      <ReplicationMediaStage
+        item={item()}
+        muted
+        volume={1}
+        fullFrame={false}
+        onMutedChange={vi.fn()}
+        onVolumeChange={vi.fn()}
+        onFullFrameChange={vi.fn()}
+      />,
+    );
+
+    expect(
+      container.querySelector(".theme-media-playback-fill"),
+    ).toBeInTheDocument();
+
+    rerender(
+      <ReplicationMediaStage
+        item={item({
+          type: "image",
+          format: "gif",
+          motion_url: "https://cdn.test/motion.mp4",
+          motion_poster_url: "https://cdn.test/poster.webp",
+        })}
+        muted
+        volume={1}
+        fullFrame={false}
+        onMutedChange={vi.fn()}
+        onVolumeChange={vi.fn()}
+        onFullFrameChange={vi.fn()}
+      />,
+    );
+
+    expect(
+      container.querySelector(".theme-media-playback-fill"),
+    ).not.toBeInTheDocument();
+  });
+
   it("auto-hides still-image chrome after inactivity", () => {
     vi.useFakeTimers();
     render(

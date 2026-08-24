@@ -100,7 +100,7 @@ vi.mock("@/components/common/AppImage", () => ({
 
 const collection: ReplicationViewerCollection = {
   sourcePath: "/replications",
-  label: "Replications by artist",
+  label: "Sorted by artist",
   kind: "gallery",
   grouping: "artist",
   groups: [
@@ -120,7 +120,7 @@ const collection: ReplicationViewerCollection = {
           effectName: "Tracers",
           effectSlug: "tracers",
           effectCategories: [],
-          artistProfileHref: null,
+          artistProfileHref: "/replications/artist/chelsea-morgan",
           avatarUrl: null,
         },
         {
@@ -135,7 +135,7 @@ const collection: ReplicationViewerCollection = {
           effectName: "Drifting",
           effectSlug: "drifting",
           effectCategories: [],
-          artistProfileHref: null,
+          artistProfileHref: "/replications/artist/chelsea-morgan",
           avatarUrl: null,
         },
       ],
@@ -223,7 +223,7 @@ describe("ReplicationViewerOverlay", () => {
     );
 
     const dialog = screen.getByRole("dialog", {
-      name: /Work One.*Chelsea Morgan/,
+      name: /Chelsea Morgan.*Work One/,
     });
     expect(dialog).toHaveAttribute("aria-modal", "true");
     expect(dialog).toHaveClass("grid-rows-[auto_minmax(0,1fr)]");
@@ -232,7 +232,7 @@ describe("ReplicationViewerOverlay", () => {
       "Work One",
     );
     expect(
-      screen.getByRole("heading", { name: /Work One.*Chelsea Morgan/ }),
+      screen.getByRole("heading", { name: /Chelsea Morgan.*Work One/ }),
     ).toHaveClass("theme-media-tile-title");
     expect(
       screen
@@ -248,7 +248,7 @@ describe("ReplicationViewerOverlay", () => {
     expect(header).toHaveTextContent("Work 1/2");
     expect(header).toHaveTextContent("Artist 1/2");
     expect(header?.textContent?.match(/Chelsea Morgan/g)).toHaveLength(1);
-    expect(header).toHaveTextContent("Replications by artist");
+    expect(header).toHaveTextContent("Sorted by artist");
 
     fireEvent.click(screen.getByRole("button", { name: "Next: Work Two" }));
 
@@ -259,6 +259,21 @@ describe("ReplicationViewerOverlay", () => {
     expect(window.location.search).toContain("type=video");
     expect(window.location.search).toContain("viewer=work-two");
     expect(screen.getByRole("button", { name: "Final work" })).toBeDisabled();
+  });
+
+  it("links the header artist name to the artist page", () => {
+    render(
+      <ReplicationViewerOverlay
+        collection={collection}
+        initialSlug="work-one"
+        open
+        onOpenChange={vi.fn()}
+      />,
+    );
+
+    expect(
+      screen.getByRole("link", { name: "Chelsea Morgan" }),
+    ).toHaveAttribute("href", "/replications/artist/chelsea-morgan");
   });
 
   it("does not load a raw GIF into the thumbnail rail", () => {
@@ -455,7 +470,7 @@ describe("ReplicationViewerOverlay", () => {
   it("keeps the active effect group visibly named", () => {
     const effectCollection: ReplicationViewerCollection = {
       ...collection,
-      label: "Replications by effect",
+      label: "Sorted by effect",
       grouping: "effect",
       groups: [
         { ...collection.groups[0], key: "tracers", label: "Tracers" },
@@ -472,7 +487,7 @@ describe("ReplicationViewerOverlay", () => {
     );
 
     const header = screen
-      .getByRole("dialog", { name: /Work Three.*Aria/ })
+      .getByRole("dialog", { name: /Aria.*Work Three/ })
       .querySelector("header");
     expect(header).toHaveTextContent("Geometry");
     expect(header).toHaveTextContent("Effect 2/2");
@@ -522,7 +537,7 @@ describe("ReplicationViewerOverlay", () => {
     );
 
     fireEvent.keyDown(
-      screen.getByRole("dialog", { name: /Work One.*Chelsea Morgan/ }),
+      screen.getByRole("dialog", { name: /Chelsea Morgan.*Work One/ }),
       { key: "Escape" },
     );
 
@@ -656,7 +671,7 @@ describe("ReplicationViewerOverlay", () => {
       </>
     );
     const { rerender } = render(view(true));
-    await screen.findByRole("dialog", { name: /Work One.*Chelsea Morgan/ });
+    await screen.findByRole("dialog", { name: /Chelsea Morgan.*Work One/ });
 
     rerender(view(false));
 

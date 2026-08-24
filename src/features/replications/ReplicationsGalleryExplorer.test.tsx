@@ -410,7 +410,7 @@ describe("canonical replication viewer", () => {
     expect(viewer).toHaveAttribute("data-initial-slug", "slug-2");
     expect(viewer).toHaveAttribute(
       "data-collection-label",
-      "Replications by artist",
+      "Sorted by artist",
     );
     expect(pushState).toHaveBeenCalledWith(
       expect.objectContaining({ replicationViewer: true }),
@@ -485,7 +485,7 @@ describe("canonical replication viewer", () => {
     expect(viewer).toHaveAttribute("data-item-count", "1");
     expect(viewer).toHaveAttribute(
       "data-collection-label",
-      "Video replications by effect matching “drifting”",
+      "Video replications sorted by effect matching “drifting”",
     );
     expect(screen.getByText("Work 2").closest("a")).toHaveAttribute(
       "href",

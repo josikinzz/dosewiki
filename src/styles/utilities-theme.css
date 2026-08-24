@@ -3072,7 +3072,40 @@ html[data-theme="light"] .theme-footer-surface:not(.theme-chrome-dark) {
 }
 
 .theme-media-thumbnail-selected {
-  border-color: var(--theme-text-on-media);
+  border-color: var(--theme-accent-strong);
+}
+
+/* Raised media control: the viewer header's square buttons. A soft top-lit
+     gradient and hairline keep them legible on the black media chrome in
+     both visual styles without borrowing panel materials. */
+.theme-media-control-raised {
+  background-image: linear-gradient(
+    to bottom,
+    color-mix(in srgb, var(--theme-text-on-media) 17%, transparent),
+    color-mix(in srgb, var(--theme-text-on-media) 6%, transparent)
+  );
+  border: 1px solid
+    color-mix(in srgb, var(--theme-text-on-media) 14%, transparent);
+  box-shadow: inset 0 1px 0
+    color-mix(in srgb, var(--theme-text-on-media) 12%, transparent);
+}
+
+/* Accent playback meter: the hairline video progress fill at the bottom of
+     the expanded stage. The faint glow keeps it visible over bright frames. */
+.theme-media-playback-fill {
+  background-color: var(--theme-accent-strong);
+  box-shadow: 0 0 6px
+    color-mix(in srgb, var(--theme-accent-strong) 55%, transparent);
+}
+
+/* The expanded stage owns its playback affordances: suppress WebKit's giant
+     native start-playback glyph so a blocked video shows exactly one Play
+     control (iOS Safari paints it over autoplay-blocked video elements). */
+[data-replication-media-stage] video::-webkit-media-controls,
+[data-replication-media-stage]
+  video::-webkit-media-controls-start-playback-button {
+  display: none !important;
+  -webkit-appearance: none;
 }
 
 .theme-media-control-soft {

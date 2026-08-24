@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import {
   useCallback,
   useEffect,
@@ -406,6 +407,9 @@ export function ReplicationViewerOverlay({
   const artistLabel = hasKnownCreator(active.replication.artist)
     ? active.replication.artist.trim()
     : "Unattributed";
+  const artistProfileHref = hasKnownCreator(active.replication.artist)
+    ? active.artistProfileHref
+    : null;
   const activeGifReady = Boolean(
     active.replication.motion_url && active.replication.motion_poster_url,
   );
@@ -607,14 +611,28 @@ export function ReplicationViewerOverlay({
         >
           <div className="flex min-w-0 flex-1 flex-col gap-0.5 sm:flex-row sm:items-baseline sm:gap-3">
             <DialogTitle className="theme-media-tile-title flex min-w-0 items-baseline gap-1.5 font-display text-sm font-semibold sm:flex-1 sm:text-base">
-              <span className="min-w-0 truncate">
-                {active.replication.title}
-              </span>
+              {/* Credit leads: the artist reads brighter and first; the work
+                  title is the quieter second element. */}
+              {artistProfileHref ? (
+                <Link
+                  href={artistProfileHref}
+                  className={cn(
+                    "max-w-[11rem] shrink-0 truncate underline decoration-current/40 underline-offset-2 transition-opacity hover:opacity-80 sm:max-w-[16rem]",
+                    focusRingClassName,
+                  )}
+                >
+                  {artistLabel}
+                </Link>
+              ) : (
+                <span className="max-w-[11rem] shrink-0 truncate">
+                  {artistLabel}
+                </span>
+              )}
               <span aria-hidden className="theme-media-tile-creator">
                 ·
               </span>
-              <span className="theme-media-tile-creator max-w-[7rem] shrink-0 truncate sm:max-w-[12rem]">
-                {artistLabel}
+              <span className="theme-media-tile-creator min-w-0 truncate text-xs font-normal sm:text-sm">
+                {active.replication.title}
               </span>
             </DialogTitle>
             <DialogDescription
@@ -662,7 +680,7 @@ export function ReplicationViewerOverlay({
                 disabled={!previousGroup}
                 onClick={() => navigate(previousGroup, "top")}
                 className={cn(
-                  "theme-media-control-soft grid size-11 place-items-center rounded-full disabled:cursor-not-allowed disabled:opacity-30 sm:size-8",
+                  "theme-media-control-raised grid size-11 place-items-center rounded-lg disabled:cursor-not-allowed disabled:opacity-30 sm:size-8 sm:rounded-md",
                   focusRingClassName,
                 )}
               >
@@ -678,7 +696,7 @@ export function ReplicationViewerOverlay({
                 disabled={!nextGroup}
                 onClick={() => navigate(nextGroup, "bottom")}
                 className={cn(
-                  "theme-media-control-soft grid size-11 place-items-center rounded-full disabled:cursor-not-allowed disabled:opacity-30 sm:size-8",
+                  "theme-media-control-raised grid size-11 place-items-center rounded-lg disabled:cursor-not-allowed disabled:opacity-30 sm:size-8 sm:rounded-md",
                   focusRingClassName,
                 )}
               >
@@ -691,7 +709,7 @@ export function ReplicationViewerOverlay({
             onClick={close}
             aria-label="Close replication viewer"
             className={cn(
-              "theme-media-tile-title theme-media-control-soft grid size-11 flex-none place-items-center rounded-full",
+              "theme-media-tile-title theme-media-control-raised grid size-11 flex-none place-items-center rounded-lg",
               focusRingClassName,
             )}
           >

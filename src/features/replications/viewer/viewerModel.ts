@@ -149,10 +149,7 @@ export function viewerCollectionFromGalleryGroups(
 ): ReplicationViewerCollection {
   return {
     sourcePath,
-    label:
-      grouping === "artist"
-        ? "Replications by artist"
-        : "Replications by effect",
+    label: grouping === "artist" ? "Sorted by artist" : "Sorted by effect",
     kind: "gallery",
     grouping,
     groups: groups.map((group) => ({

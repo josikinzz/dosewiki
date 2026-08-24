@@ -44,6 +44,32 @@ function browserRequestsDataSaving(): boolean {
   return connection?.saveData === true;
 }
 
+type AudioPresence = "unknown" | "present" | "absent";
+
+/**
+ * Read audio presence from whichever track API this browser exposes. The
+ * decoded-byte counter only proves presence once bytes accumulate, so a zero
+ * stays "unknown" until playback has run long enough to conclude "absent".
+ */
+function probeAudioPresence(video: HTMLVideoElement): AudioPresence {
+  const probed = video as HTMLVideoElement & {
+    mozHasAudio?: boolean;
+    audioTracks?: { length: number };
+    webkitAudioDecodedByteCount?: number;
+  };
+  if (typeof probed.mozHasAudio === "boolean") {
+    return probed.mozHasAudio ? "present" : "absent";
+  }
+  if (probed.audioTracks) {
+    return probed.audioTracks.length > 0 ? "present" : "absent";
+  }
+  if (typeof probed.webkitAudioDecodedByteCount === "number") {
+    if (probed.webkitAudioDecodedByteCount > 0) return "present";
+    return video.currentTime > 1 ? "absent" : "unknown";
+  }
+  return "unknown";
+}
+
 export interface ReplicationMediaStageProps {
   item: ReplicationViewerMediaItem;
   muted: boolean;
@@ -103,12 +129,14 @@ export function ReplicationMediaStage({
     : replication.thumbnail_url;
   const stageRef = useRef<HTMLElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
+  const progressFillRef = useRef<HTMLDivElement>(null);
   const hideTimerRef = useRef<number | undefined>(undefined);
   const reducedMotion = useReducedMotion();
   const [playing, setPlaying] = useState(false);
   const [blocked, setBlocked] = useState(false);
   const [error, setError] = useState(false);
   const [controlsVisible, setControlsVisible] = useState(true);
+  const [audioPresence, setAudioPresence] = useState<AudioPresence>("unknown");
   const { canEnlarge, scaleStyle, toggleFit, probeAspect } = useStageFit({
     mediaKey: replication.slug,
     type: replication.type,
@@ -118,6 +146,11 @@ export function ReplicationMediaStage({
     fullFrame,
     onFullFrameChange,
   });
+  const ordinaryVideo = replication.type === "video";
+  // GIF-derived motion renditions are generated silent by contract; sound
+  // controls only exist for ordinary videos, and only until a track probe
+  // proves there is nothing to unmute.
+  const soundAvailable = ordinaryVideo && audioPresence !== "absent";
   // The immersive viewer always loops motion: a work never dead-ends into a
   // stopped final frame while the reader is exploring.
   const autoplayAllowed = !reducedMotion && !browserRequestsDataSaving();
@@ -158,6 +191,7 @@ export function ReplicationMediaStage({
 
   useEffect(() => {
     setBlocked(false);
+    setAudioPresence("unknown");
     setError(false);
     setPlaying(false);
     setControlsVisible(true);
@@ -222,6 +256,41 @@ export function ReplicationMediaStage({
     }
   }, [attemptPlay, showControls]);
 
+  /** Settle audio presence from track APIs as the media loads and plays. */
+  const settleAudioPresence = useCallback(
+    (video: HTMLVideoElement) => {
+      if (!ordinaryVideo) return;
+      setAudioPresence((current) => {
+        if (current !== "unknown") return current;
+        return probeAudioPresence(video);
+      });
+    },
+    [ordinaryVideo],
+  );
+
+  // The compact playback meter: a per-frame scaleX write straight to the DOM
+  // keeps the accent fill glassy-smooth without re-rendering the stage. It
+  // sweeps to the end and restarts as the loop wraps.
+  useEffect(() => {
+    if (!ordinaryVideo) return;
+    let frame = 0;
+    const tick = () => {
+      const video = videoRef.current;
+      const fill = progressFillRef.current;
+      if (video && fill) {
+        const { duration } = video;
+        const ratio =
+          Number.isFinite(duration) && duration > 0
+            ? Math.min(video.currentTime / duration, 1)
+            : 0;
+        fill.style.transform = `scaleX(${ratio})`;
+      }
+      frame = requestAnimationFrame(tick);
+    };
+    frame = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(frame);
+  }, [ordinaryVideo, replication.slug]);
+
   const width = replication.width ?? 1600;
   const height = replication.height ?? Math.round(width / (4 / 3));
   const transportVisible = moving
@@ -272,7 +341,9 @@ export function ReplicationMediaStage({
             probeAspect(video.videoWidth, video.videoHeight);
             video.volume = volume;
             video.muted = muted;
+            settleAudioPresence(video);
           }}
+          onTimeUpdate={(event) => settleAudioPresence(event.currentTarget)}
           onPlay={() => {
             setPlaying(true);
             setBlocked(false);
@@ -323,6 +394,19 @@ export function ReplicationMediaStage({
         >
           This media could not be loaded. You can still open information or
           continue browsing.
+        </div>
+      ) : null}
+
+      {ordinaryVideo && !error ? (
+        <div
+          aria-hidden
+          className="theme-media-progress-track pointer-events-none absolute inset-x-0 bottom-0 z-10 h-[3px]"
+        >
+          <div
+            ref={progressFillRef}
+            className="theme-media-playback-fill h-full w-full origin-left"
+            style={{ transform: "scaleX(0)" }}
+          />
         </div>
       ) : null}
 
@@ -428,66 +512,66 @@ export function ReplicationMediaStage({
             )
           ) : null}
 
-          <div className="theme-media-tile-title pointer-events-auto flex items-center gap-2 rounded-full bg-black/65 px-2 py-1.5 backdrop-blur-sm">
-            {moving ? (
-              <>
-                <button
-                  type="button"
-                  aria-label={playing ? "Pause" : "Play"}
-                  onClick={(event) => {
-                    event.stopPropagation();
-                    togglePlayback();
-                  }}
-                  className={cn(
-                    "grid size-9 place-items-center rounded-full",
-                    focusRingClassName,
-                  )}
-                >
-                  <Icon
-                    icon={playing ? "lucide:pause" : "lucide:play"}
-                    className="size-5"
-                  />
-                </button>
-                <button
-                  type="button"
-                  aria-label={muted ? "Unmute" : "Mute"}
-                  onClick={(event) => {
-                    event.stopPropagation();
-                    onMutedChange(!muted);
-                  }}
-                  className={cn(
-                    "grid size-9 place-items-center rounded-full",
-                    focusRingClassName,
-                  )}
-                >
-                  <Icon
-                    icon={muted ? "lucide:volume-x" : "lucide:volume-2"}
-                    className="size-5"
-                  />
-                </button>
-                <label
-                  className="sr-only"
-                  htmlFor={`replication-volume-${replication.slug}`}
-                >
-                  Volume
-                </label>
-                <input
-                  id={`replication-volume-${replication.slug}`}
-                  type="range"
-                  min={0}
-                  max={1}
-                  step={0.05}
-                  value={volume}
-                  onChange={(event) =>
-                    onVolumeChange(Number(event.currentTarget.value))
-                  }
-                  className="hidden w-24 accent-white sm:block"
+          {moving ? (
+            <div className="theme-media-tile-title pointer-events-auto flex items-center gap-2 rounded-full bg-black/65 px-2 py-1.5 backdrop-blur-sm">
+              <button
+                type="button"
+                aria-label={playing ? "Pause" : "Play"}
+                onClick={(event) => {
+                  event.stopPropagation();
+                  togglePlayback();
+                }}
+                className={cn(
+                  "grid size-9 place-items-center rounded-full",
+                  focusRingClassName,
+                )}
+              >
+                <Icon
+                  icon={playing ? "lucide:pause" : "lucide:play"}
+                  className="size-5"
                 />
-              </>
-            ) : (
-              <span className="px-2 text-xs font-medium">Still image</span>
-            )}
-          </div>
+              </button>
+              {soundAvailable ? (
+                <>
+                  <button
+                    type="button"
+                    aria-label={muted ? "Unmute" : "Mute"}
+                    onClick={(event) => {
+                      event.stopPropagation();
+                      onMutedChange(!muted);
+                    }}
+                    className={cn(
+                      "grid size-9 place-items-center rounded-full",
+                      focusRingClassName,
+                    )}
+                  >
+                    <Icon
+                      icon={muted ? "lucide:volume-x" : "lucide:volume-2"}
+                      className="size-5"
+                    />
+                  </button>
+                  <label
+                    className="sr-only"
+                    htmlFor={`replication-volume-${replication.slug}`}
+                  >
+                    Volume
+                  </label>
+                  <input
+                    id={`replication-volume-${replication.slug}`}
+                    type="range"
+                    min={0}
+                    max={1}
+                    step={0.05}
+                    value={volume}
+                    onChange={(event) =>
+                      onVolumeChange(Number(event.currentTarget.value))
+                    }
+                    className="hidden w-24 accent-white sm:block"
+                  />
+                </>
+              ) : null}
+            </div>
+          ) : null}
 
           {showWorkNavigation ? (
             nextHref && onNext ? (

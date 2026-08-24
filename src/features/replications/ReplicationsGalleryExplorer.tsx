@@ -469,7 +469,7 @@ function GalleryExplorer({
     }
     const queryQualifier = query.trim() ? ` matching “${query.trim()}”` : "";
     const baseLabel = mediaQualifier
-      ? collection.label.replace(/^Replications/, "replications")
+      ? collection.label.replace(/^Sorted/, "replications sorted")
       : collection.label;
     return {
       ...collection,
