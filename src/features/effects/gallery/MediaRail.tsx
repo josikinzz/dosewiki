@@ -6,6 +6,7 @@ import { Icon } from "@/components/common/Icon";
 import { Button } from "@/components/ui/button";
 import { focusRingClassName } from "@/components/ui/surface";
 import { cn } from "@/lib/utils";
+import { ContributorAvatar } from "@/components/layout/PublicPagePrimitives";
 import type { PublicGalleryReplicationPreview } from "@/types/replications";
 import { GalleryMediaTile } from "./GalleryMediaTile";
 import type { GalleryGroup } from "./galleryModel";
@@ -40,6 +41,16 @@ interface MediaRailProps {
   ) => void;
   /** Canonical source-collection viewer URL for each rail work. */
   viewerHrefFor: (replication: PublicGalleryReplicationPreview) => string;
+  /**
+   * The heading's identity portrait, shown left of the name.
+   *
+   * Absent means the heading names no person — an effect group, or the
+   * unattributed bucket, which must not be handed a face. `null` means a
+   * credited artist with no claimed profile image: their monogram holds the
+   * slot, so every artist name in a browse column starts on the same edge
+   * instead of stepping in and out as claimed profiles come and go.
+   */
+  avatarUrl?: string | null;
 }
 
 export function MediaRail({
@@ -48,6 +59,7 @@ export function MediaRail({
   tileBylines = true,
   mobileCompact,
   onTileOpen,
+  avatarUrl,
   viewerHrefFor,
 }: MediaRailProps) {
   const preview = group.items.slice(0, RAIL_PREVIEW_LIMIT);
@@ -96,6 +108,22 @@ export function MediaRail({
     "theme-media-rail-arrow absolute top-1/2 z-10 hidden h-9 w-9 -translate-y-1/2 rounded-full disabled:opacity-0 [@media(hover:hover)]:inline-flex";
 
   /**
+   * A person's face is the fastest way to recognize their section in a column
+   * of sixteen, so an artist heading leads with their portrait. An artist with
+   * no claimed profile image still gets the frame with their monogram in it:
+   * the alternative — a portrait only where a profile happens to exist — makes
+   * the names step in and out along the left edge as you scroll.
+   */
+  const portrait =
+    avatarUrl === undefined ? null : (
+      // Decorative: the name it leads sits inside the same link, so an
+      // announced portrait would just be a second copy of that name.
+      <span aria-hidden="true" className="flex">
+        <ContributorAvatar imageUrl={avatarUrl} name={group.label} size="xs" />
+      </span>
+    );
+
+  /**
    * What the group's name does.
    *
    * An artist's name belongs to their Artist Page: every credited artist's one
@@ -112,16 +140,22 @@ export function MediaRail({
    * unreachable.
    *
    * Only the unattributed bucket has no `href` at all — its heading claims no
-   * identity — so it keeps the external link or plain text. Effect groups only
-   * ever have an `href`, so the fallback branches are inert for them.
+   * identity — so it keeps the external link or plain text, and it is the one
+   * artist heading with no portrait beside it. Effect groups only ever have an
+   * `href`, so the fallback branches are inert for them.
    */
   const heading = group.href ? (
     <span className="flex min-w-0 items-center gap-1.5">
       <Link
         href={group.href}
-        className={cn(HEADING_LINK_CLASS, "min-w-0 truncate")}
+        className={cn(
+          HEADING_LINK_CLASS,
+          // The unnamed `group` is what the portrait's own hover lift reads.
+          "group flex min-w-0 items-center gap-2.5",
+        )}
       >
-        {group.label}
+        {portrait}
+        <span className="min-w-0 truncate">{group.label}</span>
       </Link>
       {group.externalUrl ? (
         <a
@@ -161,7 +195,14 @@ export function MediaRail({
 
   return (
     <section className="space-y-3" aria-label={group.label}>
-      <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1 px-1">
+      <div
+        className={cn(
+          "flex flex-wrap justify-between gap-x-4 gap-y-1 px-1",
+          // A bare name sits on the baseline with "View all"; a portrait is
+          // taller than the text it leads, so the row centers on it instead.
+          portrait ? "items-center" : "items-baseline",
+        )}
+      >
         <div className="flex min-w-0 flex-col gap-0.5">{heading}</div>
         {hasMore ? (
           <Link

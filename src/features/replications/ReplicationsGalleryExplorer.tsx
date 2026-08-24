@@ -49,6 +49,7 @@ import {
   matchesType,
   sortWithinGroup,
   splitRailsAndPool,
+  UNATTRIBUTED_KEY,
   type GalleryGroup,
   type GalleryArtistSort,
   type GalleryMode,
@@ -1131,6 +1132,14 @@ function GalleryExplorer({
                      bylines as each work's attribution. An artist rail's tiles
                      open the viewer walking that artist's works. */
                     tileBylines={mode !== "artist"}
+                    /* Artist rails lead with the artist's portrait; effect
+                     rails and the unattributed bucket name no person, so they
+                     pass none. `null` still draws the monogram frame. */
+                    avatarUrl={
+                      mode === "artist" && group.key !== UNATTRIBUTED_KEY
+                        ? avatarByArtist(group.label)
+                        : undefined
+                    }
                     viewerHrefFor={(replication) =>
                       buildReplicationViewerUrl(
                         viewerSourcePath,

@@ -90,6 +90,7 @@ vi.mock("@/features/effects/gallery/MediaRail", () => ({
     tileBylines,
     mobileCompact,
     onTileOpen,
+    avatarUrl,
     viewerHrefFor,
   }: {
     group: GalleryGroup;
@@ -100,6 +101,7 @@ vi.mock("@/features/effects/gallery/MediaRail", () => ({
       event: ReactMouseEvent,
       replication: PublicGalleryReplicationPreview,
     ) => void;
+    avatarUrl?: string | null;
     viewerHrefFor: (replication: PublicGalleryReplicationPreview) => string;
   }) => (
     <section
@@ -107,6 +109,7 @@ vi.mock("@/features/effects/gallery/MediaRail", () => ({
       data-tile-bylines={String(tileBylines ?? true)}
       data-mobile-compact={String(mobileCompact ?? false)}
       data-view-all={viewAllHref}
+      data-avatar={avatarUrl === undefined ? "none" : String(avatarUrl)}
       aria-label={group.label}
     >
       {group.href ? (
@@ -185,7 +188,12 @@ const effects = [
 ];
 
 const contributorDirectory = [
-  { key: "chelseamorgan", displayName: "Chelsea Morgan", aliases: [] },
+  {
+    key: "chelseamorgan",
+    displayName: "Chelsea Morgan",
+    aliases: [],
+    avatarUrl: "https://cdn.test/chelsea.webp",
+  },
 ];
 
 const corpus = [
@@ -326,9 +334,7 @@ describe("hybrid browse layout", () => {
     expect(screen.getAllByTestId("rail")).toHaveLength(16);
     expect(screen.getByText("Showing 16 of 20 artists")).toBeInTheDocument();
 
-    fireEvent.click(
-      screen.getByRole("button", { name: /Show more artists/ }),
-    );
+    fireEvent.click(screen.getByRole("button", { name: /Show more artists/ }));
 
     expect(screen.getAllByTestId("rail")).toHaveLength(20);
     expect(
@@ -352,6 +358,27 @@ describe("hybrid browse layout", () => {
     expect(
       screen.queryByRole("button", { name: /Show more artists/ }),
     ).toBeNull();
+  });
+
+  it("hands each artist rail their own portrait", () => {
+    renderExplorer("");
+
+    const rails = screen.getAllByTestId("rail");
+    // Chelsea's claimed profile supplies an image; Aria has no profile, and
+    // `null` is what draws her monogram rather than dropping the frame.
+    expect(rails[0]).toHaveAttribute(
+      "data-avatar",
+      "https://cdn.test/chelsea.webp",
+    );
+    expect(rails[1]).toHaveAttribute("data-avatar", "null");
+  });
+
+  it("hands effect rails no portrait, since an effect names no person", () => {
+    renderExplorer("view=effect");
+
+    for (const rail of screen.getAllByTestId("rail")) {
+      expect(rail).toHaveAttribute("data-avatar", "none");
+    }
   });
 
   it("keeps the artist-sort control mounted but hidden in effect mode, so the bar cannot jitter", () => {

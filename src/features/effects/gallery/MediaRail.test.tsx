@@ -105,6 +105,56 @@ describe("MediaRail heading", () => {
   });
 });
 
+describe("MediaRail identity portrait", () => {
+  it("leads an artist heading with their profile image inside the name link", () => {
+    const { container } = render(
+      <MediaRail
+        group={group({ href: "/replications/artist/symmetric-vision" })}
+        avatarUrl="https://cdn.test/sv.webp"
+        viewAllHref="/replications/artist/symmetric-vision"
+        viewerHrefFor={viewerHrefFor}
+      />,
+    );
+
+    const link = screen.getByRole("link", { name: "Symmetric Vision" });
+    expect(link).toContainElement(
+      container.querySelector('img[src="https://cdn.test/sv.webp"]'),
+    );
+  });
+
+  it("holds the slot with a monogram when no profile claims the credit", () => {
+    // An artist without a claimed profile still gets the frame, so names in a
+    // browse column all start on the same left edge.
+    render(
+      <MediaRail
+        group={group({ href: "/replications/artist/symmetric-vision" })}
+        avatarUrl={null}
+        viewAllHref="/replications/artist/symmetric-vision"
+        viewerHrefFor={viewerHrefFor}
+      />,
+    );
+
+    expect(
+      screen.getByRole("link", { name: "Symmetric Vision" }),
+    ).toContainElement(screen.getByText("SV"));
+  });
+
+  it("gives a heading that names no person no portrait at all", () => {
+    // Effect groups and the unattributed bucket pass nothing; a monogram there
+    // would invent a face for a name that is not a person.
+    const { container } = render(
+      <MediaRail
+        group={group({ label: "Unattributed" })}
+        viewAllHref="/replications/artist/unknown"
+        viewerHrefFor={viewerHrefFor}
+      />,
+    );
+
+    expect(container.querySelector("img")).toBeNull();
+    expect(screen.queryByText("U")).toBeNull();
+  });
+});
+
 describe("MediaRail view-all affordance", () => {
   it('renders "View all" as a real focus URL, not client state', () => {
     // Two works, none inline (an empty preview keeps jsdom clear of the media
