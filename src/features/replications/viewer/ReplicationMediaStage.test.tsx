@@ -332,10 +332,10 @@ describe("ReplicationMediaStage", () => {
     vi.useRealTimers();
   });
 
-  it("keeps long ordinary videos finite", () => {
+  it("loops long ordinary videos so exploration never dead-ends", () => {
     const { container } = render(
       <ReplicationMediaStage
-        item={item({ duration: 60 })}
+        item={item({ duration: 600 })}
         muted
         volume={1}
         fullFrame={false}
@@ -348,6 +348,8 @@ describe("ReplicationMediaStage", () => {
       />,
     );
 
-    expect(container.querySelector("video")).not.toHaveAttribute("loop");
+    const video = container.querySelector("video")!;
+    expect(video).toHaveAttribute("loop");
+    expect(video).toHaveAttribute("autoplay");
   });
 });

@@ -37,7 +37,33 @@ import {
 } from "./viewerModel";
 
 const SWIPE_THRESHOLD_PX = 48;
+/** A fast flick commits a work change well before the full swipe distance. */
+const SWIPE_FLICK_MIN_PX = 20;
+const SWIPE_FLICK_VELOCITY_PX_PER_MS = 0.45;
+/** Movement below this keeps the gesture axis undecided (still a tap). */
+const DRAG_AXIS_LOCK_PX = 8;
 const SCREEN_EDGE_GUARD_PX = 24;
+
+/** The side the incoming work enters from after a navigation. */
+type EntryMotion = "left" | "right" | "top" | "bottom" | "fade";
+
+const ENTRY_MOTION_CLASS: Record<EntryMotion, string> = {
+  left: "motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-from-left-8 motion-safe:duration-200",
+  right:
+    "motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-from-right-8 motion-safe:duration-200",
+  top: "motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-from-top-6 motion-safe:duration-200",
+  bottom:
+    "motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-from-bottom-6 motion-safe:duration-200",
+  fade: "motion-safe:animate-in motion-safe:fade-in motion-safe:duration-200",
+};
+
+function prefersReducedMotion(): boolean {
+  return (
+    typeof window !== "undefined" &&
+    typeof window.matchMedia === "function" &&
+    window.matchMedia("(prefers-reduced-motion: reduce)").matches
+  );
+}
 
 type WebkitFullscreenVideo = HTMLVideoElement & {
   webkitEnterFullscreen?: () => void;
@@ -93,8 +119,14 @@ export function ReplicationViewerOverlay({
   const [immersiveFallback, setImmersiveFallback] = useState(false);
   const [fullscreenUnavailable, setFullscreenUnavailable] = useState(false);
   const [fullscreenMessage, setFullscreenMessage] = useState("");
+  const [entryMotion, setEntryMotion] = useState<EntryMotion | null>(null);
   const rememberedSlugByGroupRef = useRef<Record<string, string>>({});
-  const touchStartRef = useRef<{ x: number; y: number } | null>(null);
+  const touchStartRef = useRef<{ x: number; y: number; t: number } | null>(
+    null,
+  );
+  const dragAxisRef = useRef<"x" | "y" | null>(null);
+  const mediaPaneRef = useRef<HTMLDivElement>(null);
+  const thumbnailRailRef = useRef<HTMLUListElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
   const pausedBackgroundVideosRef = useRef<HTMLVideoElement[]>([]);
   const openerRef = useRef<HTMLElement | null>(null);
@@ -166,12 +198,16 @@ export function ReplicationViewerOverlay({
   }, [open]);
 
   const navigate = useCallback(
-    (next: ReplicationViewerPosition | null) => {
+    (
+      next: ReplicationViewerPosition | null,
+      entry: EntryMotion | null = null,
+    ) => {
       if (!next) return;
       const nextItem =
         collection.groups[next.groupIndex]?.items[next.itemIndex];
       if (!nextItem) return;
       setPosition(next);
+      setEntryMotion(entry);
       setInfoOpen(false);
       setDetails(null);
       const source = `${toAppPath(window.location.pathname)}${window.location.search}${window.location.hash}`;
@@ -237,19 +273,19 @@ export function ReplicationViewerOverlay({
       ) {
         return;
       }
-      const next =
+      const move =
         event.key === "ArrowLeft"
-          ? previousWork
+          ? ([previousWork, "left"] as const)
           : event.key === "ArrowRight"
-            ? nextWork
+            ? ([nextWork, "right"] as const)
             : event.key === "ArrowUp"
-              ? previousGroup
+              ? ([previousGroup, "top"] as const)
               : event.key === "ArrowDown"
-                ? nextGroup
+                ? ([nextGroup, "bottom"] as const)
                 : null;
-      if (!next) return;
+      if (!move || !move[0]) return;
       event.preventDefault();
-      navigate(next);
+      navigate(move[0], move[1]);
     };
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
@@ -262,6 +298,19 @@ export function ReplicationViewerOverlay({
     previousGroup,
     previousWork,
   ]);
+
+  // Keep the active work visible in the thumbnail rail as navigation moves.
+  useEffect(() => {
+    if (!open || !position) return;
+    const selected = thumbnailRailRef.current?.querySelector<HTMLElement>(
+      '[aria-current="true"]',
+    );
+    selected?.scrollIntoView?.({
+      block: "nearest",
+      inline: "nearest",
+      behavior: prefersReducedMotion() ? "auto" : "smooth",
+    });
+  }, [open, position]);
 
   useEffect(() => {
     if (!open) return;
@@ -466,21 +515,82 @@ export function ReplicationViewerOverlay({
             touchStartRef.current = null;
             return;
           }
-          touchStartRef.current = { x: touch.clientX, y: touch.clientY };
+          dragAxisRef.current = null;
+          touchStartRef.current = {
+            x: touch.clientX,
+            y: touch.clientY,
+            t: event.timeStamp,
+          };
         }}
-        onTouchEnd={(event) => {
+        onTouchMove={(event) => {
           const start = touchStartRef.current;
-          touchStartRef.current = null;
           if (!start) return;
           const touch = event.changedTouches[0];
           const dx = touch.clientX - start.x;
           const dy = touch.clientY - start.y;
-          if (Math.max(Math.abs(dx), Math.abs(dy)) < SWIPE_THRESHOLD_PX) return;
+          if (!dragAxisRef.current) {
+            if (Math.max(Math.abs(dx), Math.abs(dy)) < DRAG_AXIS_LOCK_PX)
+              return;
+            dragAxisRef.current = Math.abs(dx) >= Math.abs(dy) ? "x" : "y";
+          }
+          if (dragAxisRef.current !== "x") return;
+          const pane = mediaPaneRef.current;
+          if (!pane) return;
+          // The stage follows the finger; endpoints resist instead of moving.
+          const bounded =
+            (dx > 0 && !previousWork) || (dx < 0 && !nextWork) ? dx / 3 : dx;
+          pane.style.transition = "none";
+          pane.style.transform = `translateX(${bounded}px)`;
+        }}
+        onTouchEnd={(event) => {
+          const start = touchStartRef.current;
+          touchStartRef.current = null;
+          const axis = dragAxisRef.current;
+          dragAxisRef.current = null;
+          if (!start) return;
+          const touch = event.changedTouches[0];
+          const dx = touch.clientX - start.x;
+          const dy = touch.clientY - start.y;
+          const snapBack = () => {
+            const pane = mediaPaneRef.current;
+            if (!pane?.style.transform) return;
+            pane.style.transition = prefersReducedMotion()
+              ? "none"
+              : "transform 200ms cubic-bezier(0.22, 1, 0.36, 1)";
+            pane.style.transform = "";
+          };
+          const horizontal =
+            axis === "x" || (axis === null && Math.abs(dx) >= Math.abs(dy));
+          if (horizontal) {
+            const elapsed = Math.max(1, event.timeStamp - start.t);
+            const flick =
+              Math.abs(dx) >= SWIPE_FLICK_MIN_PX &&
+              Math.abs(dx) / elapsed >= SWIPE_FLICK_VELOCITY_PX_PER_MS;
+            const target = dx > 0 ? previousWork : nextWork;
+            if ((Math.abs(dx) >= SWIPE_THRESHOLD_PX || flick) && target) {
+              event.preventDefault();
+              navigate(target, dx > 0 ? "left" : "right");
+              return;
+            }
+            snapBack();
+            return;
+          }
+          if (Math.abs(dy) < SWIPE_THRESHOLD_PX) return;
           event.preventDefault();
-          if (Math.abs(dx) >= Math.abs(dy)) {
-            navigate(dx > 0 ? previousWork : nextWork);
-          } else {
-            navigate(dy > 0 ? previousGroup : nextGroup);
+          navigate(
+            dy > 0 ? previousGroup : nextGroup,
+            dy > 0 ? "top" : "bottom",
+          );
+        }}
+        onTouchCancel={() => {
+          touchStartRef.current = null;
+          dragAxisRef.current = null;
+          const pane = mediaPaneRef.current;
+          if (pane?.style.transform) {
+            pane.style.transition = prefersReducedMotion()
+              ? "none"
+              : "transform 200ms cubic-bezier(0.22, 1, 0.36, 1)";
+            pane.style.transform = "";
           }
         }}
         tabIndex={-1}
@@ -493,7 +603,7 @@ export function ReplicationViewerOverlay({
         <header
           inert={infoOpen || undefined}
           aria-hidden={infoOpen || undefined}
-          className="theme-media-thumbnail-border relative z-10 flex min-h-16 items-center gap-3 border-b bg-black px-4 py-2 pr-20 sm:px-6 sm:pr-20"
+          className="theme-media-thumbnail-border relative z-10 flex items-center gap-2 border-b bg-black py-1.5 pl-3 pr-2 pt-[max(0.375rem,env(safe-area-inset-top))] sm:min-h-16 sm:gap-3 sm:px-6 sm:py-2"
         >
           <div className="flex min-w-0 flex-1 flex-col gap-0.5 sm:flex-row sm:items-baseline sm:gap-3">
             <DialogTitle className="theme-media-tile-title flex min-w-0 items-baseline gap-1.5 font-display text-sm font-semibold sm:flex-1 sm:text-base">
@@ -539,49 +649,49 @@ export function ReplicationViewerOverlay({
                 </>
               ) : null}
             </DialogDescription>
-            {collection.groups.length > 1 ? (
-              <div className="flex flex-none items-center gap-1">
-                <button
-                  type="button"
-                  aria-label={
-                    previousGroup
-                      ? `Previous ${groupUnit.toLowerCase()}: ${collection.groups[previousGroup.groupIndex].label}`
-                      : `First ${groupUnit.toLowerCase()}`
-                  }
-                  disabled={!previousGroup}
-                  onClick={() => navigate(previousGroup)}
-                  className={cn(
-                    "theme-media-control-soft grid size-11 place-items-center rounded-full disabled:cursor-not-allowed disabled:opacity-30 sm:size-8",
-                    focusRingClassName,
-                  )}
-                >
-                  <Icon icon="lucide:chevron-up" className="size-4" />
-                </button>
-                <button
-                  type="button"
-                  aria-label={
-                    nextGroup
-                      ? `Next ${groupUnit.toLowerCase()}: ${collection.groups[nextGroup.groupIndex].label}`
-                      : `Final ${groupUnit.toLowerCase()}`
-                  }
-                  disabled={!nextGroup}
-                  onClick={() => navigate(nextGroup)}
-                  className={cn(
-                    "theme-media-control-soft grid size-11 place-items-center rounded-full disabled:cursor-not-allowed disabled:opacity-30 sm:size-8",
-                    focusRingClassName,
-                  )}
-                >
-                  <Icon icon="lucide:chevron-down" className="size-4" />
-                </button>
-              </div>
-            ) : null}
           </div>
+          {collection.groups.length > 1 ? (
+            <div className="flex flex-none items-center gap-1">
+              <button
+                type="button"
+                aria-label={
+                  previousGroup
+                    ? `Previous ${groupUnit.toLowerCase()}: ${collection.groups[previousGroup.groupIndex].label}`
+                    : `First ${groupUnit.toLowerCase()}`
+                }
+                disabled={!previousGroup}
+                onClick={() => navigate(previousGroup, "top")}
+                className={cn(
+                  "theme-media-control-soft grid size-11 place-items-center rounded-full disabled:cursor-not-allowed disabled:opacity-30 sm:size-8",
+                  focusRingClassName,
+                )}
+              >
+                <Icon icon="lucide:chevron-up" className="size-4" />
+              </button>
+              <button
+                type="button"
+                aria-label={
+                  nextGroup
+                    ? `Next ${groupUnit.toLowerCase()}: ${collection.groups[nextGroup.groupIndex].label}`
+                    : `Final ${groupUnit.toLowerCase()}`
+                }
+                disabled={!nextGroup}
+                onClick={() => navigate(nextGroup, "bottom")}
+                className={cn(
+                  "theme-media-control-soft grid size-11 place-items-center rounded-full disabled:cursor-not-allowed disabled:opacity-30 sm:size-8",
+                  focusRingClassName,
+                )}
+              >
+                <Icon icon="lucide:chevron-down" className="size-4" />
+              </button>
+            </div>
+          ) : null}
           <button
             type="button"
             onClick={close}
             aria-label="Close replication viewer"
             className={cn(
-              "theme-media-tile-title theme-media-control-soft absolute right-4 top-1/2 grid size-11 -translate-y-1/2 place-items-center rounded-full",
+              "theme-media-tile-title theme-media-control-soft grid size-11 flex-none place-items-center rounded-full",
               focusRingClassName,
             )}
           >
@@ -599,42 +709,62 @@ export function ReplicationViewerOverlay({
           aria-hidden={infoOpen || undefined}
           className="grid min-h-0 min-w-0 w-full grid-cols-[minmax(0,1fr)] grid-rows-[minmax(0,1fr)_auto] overflow-hidden"
         >
-          <ReplicationMediaStage
-            item={active}
-            muted={muted}
-            volume={volume}
-            fullFrame={fullFrame}
-            onMutedChange={setMuted}
-            onVolumeChange={setVolume}
-            onFullFrameChange={setFullFrame}
-            onPrevious={previousWork ? () => navigate(previousWork) : undefined}
-            onNext={nextWork ? () => navigate(nextWork) : undefined}
-            onInfo={openInfo}
-            infoOpen={infoOpen}
-            infoControls={infoPanelId}
-            onFullscreen={requestFullscreen}
-            fullscreenLabel={
-              fullscreenSupported ? "Fullscreen" : "Immersive view"
-            }
-            previousLabel={
-              previousWork
-                ? `Previous: ${group.items[previousWork.itemIndex].replication.title}`
-                : "First work"
-            }
-            nextLabel={
-              nextWork
-                ? `Next: ${group.items[nextWork.itemIndex].replication.title}`
-                : "Final work"
-            }
-            className="min-h-0"
-          />
+          <div className="relative min-h-0 min-w-0 overflow-hidden">
+            <div
+              key={active.replication.slug}
+              ref={mediaPaneRef}
+              className={cn(
+                "h-full w-full",
+                entryMotion && ENTRY_MOTION_CLASS[entryMotion],
+              )}
+            >
+              <ReplicationMediaStage
+                item={active}
+                muted={muted}
+                volume={volume}
+                fullFrame={fullFrame}
+                onMutedChange={setMuted}
+                onVolumeChange={setVolume}
+                onFullFrameChange={setFullFrame}
+                onPrevious={
+                  previousWork
+                    ? () => navigate(previousWork, "left")
+                    : undefined
+                }
+                onNext={
+                  nextWork ? () => navigate(nextWork, "right") : undefined
+                }
+                onInfo={openInfo}
+                infoOpen={infoOpen}
+                infoControls={infoPanelId}
+                onFullscreen={requestFullscreen}
+                fullscreenLabel={
+                  fullscreenSupported ? "Fullscreen" : "Immersive view"
+                }
+                previousLabel={
+                  previousWork
+                    ? `Previous: ${group.items[previousWork.itemIndex].replication.title}`
+                    : "First work"
+                }
+                nextLabel={
+                  nextWork
+                    ? `Next: ${group.items[nextWork.itemIndex].replication.title}`
+                    : "Final work"
+                }
+                className="min-h-0"
+              />
+            </div>
+          </div>
 
           {group.items.length > 1 ? (
             <nav
               aria-label={`${group.label} works`}
-              className="theme-media-thumbnail-border border-t bg-black px-3 py-2 sm:px-5"
+              className="theme-media-thumbnail-border border-t bg-black px-3 pt-1.5 pb-[max(0.375rem,env(safe-area-inset-bottom))] sm:px-5 sm:py-2"
             >
-              <ul className="flex snap-x gap-2 overflow-x-auto">
+              <ul
+                ref={thumbnailRailRef}
+                className="flex snap-x gap-2 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+              >
                 {group.items.map((item, itemIndex) => {
                   const selected = itemIndex === position.itemIndex;
                   const gifLike =
@@ -651,13 +781,16 @@ export function ReplicationViewerOverlay({
                         aria-label={`Show ${item.replication.title}`}
                         aria-current={selected ? "true" : undefined}
                         onClick={() =>
-                          navigate({
-                            groupIndex: position.groupIndex,
-                            itemIndex,
-                          })
+                          navigate(
+                            {
+                              groupIndex: position.groupIndex,
+                              itemIndex,
+                            },
+                            "fade",
+                          )
                         }
                         className={cn(
-                          "relative block size-14 overflow-hidden rounded-md border transition-opacity motion-reduce:transition-none",
+                          "relative block size-12 overflow-hidden rounded-md border transition-opacity motion-reduce:transition-none sm:size-14",
                           selected
                             ? "theme-media-thumbnail-selected opacity-100"
                             : "theme-media-thumbnail-border opacity-65 hover:opacity-100",
@@ -696,7 +829,7 @@ export function ReplicationViewerOverlay({
             role="dialog"
             aria-modal="true"
             aria-labelledby={infoHeadingId}
-            className="theme-media-tile-title theme-media-thumbnail-border theme-media-overlay-shadow absolute bottom-0 right-0 top-20 z-20 w-full max-w-md overflow-y-auto border-l bg-black/95 p-5 text-sm sm:w-[26rem]"
+            className="theme-media-tile-title theme-media-thumbnail-border theme-media-overlay-shadow absolute bottom-0 right-0 top-14 z-20 w-full max-w-md overflow-y-auto border-l bg-black/95 p-5 text-sm sm:top-20 sm:w-[26rem]"
           >
             <div className="flex items-center justify-between gap-3">
               <h2

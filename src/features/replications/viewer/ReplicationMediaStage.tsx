@@ -8,7 +8,6 @@ import { cn } from "@/lib/utils";
 import type { ReplicationViewerMediaItem } from "./viewerModel";
 import { useStageFit } from "./useStageFit";
 import { ReplicationStillStage } from "./ReplicationStillStage";
-import { shouldLoopReplicationMotion } from "./viewerLogic";
 
 const controlClassName = cn(
   "theme-media-tile-title grid size-11 flex-none place-items-center rounded-full bg-black/65 backdrop-blur-sm",
@@ -107,11 +106,9 @@ export function ReplicationMediaStage({
   const hideTimerRef = useRef<number | undefined>(undefined);
   const reducedMotion = useReducedMotion();
   const [playing, setPlaying] = useState(false);
-  const [ended, setEnded] = useState(false);
   const [blocked, setBlocked] = useState(false);
   const [error, setError] = useState(false);
   const [controlsVisible, setControlsVisible] = useState(true);
-  const [measuredDuration, setMeasuredDuration] = useState<number | null>(null);
   const { canEnlarge, scaleStyle, toggleFit, probeAspect } = useStageFit({
     mediaKey: replication.slug,
     type: replication.type,
@@ -121,11 +118,8 @@ export function ReplicationMediaStage({
     fullFrame,
     onFullFrameChange,
   });
-  const knownDuration = replication.duration ?? measuredDuration;
-  const shouldLoop = shouldLoopReplicationMotion(
-    replication.format,
-    knownDuration,
-  );
+  // The immersive viewer always loops motion: a work never dead-ends into a
+  // stopped final frame while the reader is exploring.
   const autoplayAllowed = !reducedMotion && !browserRequestsDataSaving();
 
   const scheduleControlHide = useCallback(() => {
@@ -163,11 +157,9 @@ export function ReplicationMediaStage({
   }, [moving, replication.slug, showControls]);
 
   useEffect(() => {
-    setEnded(false);
     setBlocked(false);
     setError(false);
     setPlaying(false);
-    setMeasuredDuration(null);
     setControlsVisible(true);
   }, [replication.slug]);
 
@@ -200,7 +192,6 @@ export function ReplicationMediaStage({
     if (!video) return;
     showControls();
     if (video.paused || video.ended) {
-      setEnded(false);
       const attempt = video.play();
       if (attempt) {
         void attempt.catch(() => {
@@ -216,7 +207,7 @@ export function ReplicationMediaStage({
   const width = replication.width ?? 1600;
   const height = replication.height ?? Math.round(width / (4 / 3));
   const transportVisible = moving
-    ? controlsVisible || !playing || ended || blocked || error
+    ? controlsVisible || !playing || blocked || error
     : controlsVisible;
   const showWorkNavigation = Boolean(
     previousHref || nextHref || onPrevious || onNext,
@@ -241,19 +232,26 @@ export function ReplicationMediaStage({
         // eslint-disable-next-line jsx-a11y/media-has-caption
         <video
           key={replication.slug}
-          ref={videoRef}
+          ref={(node) => {
+            videoRef.current = node;
+            // Mobile autoplay policies read the muted flag at load time, before
+            // React's post-mount property sync runs.
+            if (node) {
+              node.defaultMuted = muted;
+              node.muted = muted;
+            }
+          }}
           src={motionSource}
           poster={poster}
           muted={muted}
-          loop={shouldLoop}
+          loop
+          autoPlay={autoplayAllowed}
           playsInline
-          preload="metadata"
+          preload={autoplayAllowed ? "auto" : "metadata"}
           onClick={togglePlayback}
           onLoadedMetadata={(event) => {
             const video = event.currentTarget;
             probeAspect(video.videoWidth, video.videoHeight);
-            if (Number.isFinite(video.duration))
-              setMeasuredDuration(video.duration);
             video.volume = volume;
             video.muted = muted;
           }}
@@ -264,11 +262,6 @@ export function ReplicationMediaStage({
           }}
           onPause={() => {
             setPlaying(false);
-            setControlsVisible(true);
-          }}
-          onEnded={() => {
-            setPlaying(false);
-            setEnded(true);
             setControlsVisible(true);
           }}
           onError={() => {
@@ -422,7 +415,7 @@ export function ReplicationMediaStage({
               <>
                 <button
                   type="button"
-                  aria-label={playing ? "Pause" : ended ? "Replay" : "Play"}
+                  aria-label={playing ? "Pause" : "Play"}
                   onClick={(event) => {
                     event.stopPropagation();
                     togglePlayback();
@@ -433,13 +426,7 @@ export function ReplicationMediaStage({
                   )}
                 >
                   <Icon
-                    icon={
-                      playing
-                        ? "lucide:pause"
-                        : ended
-                          ? "lucide:rotate-ccw"
-                          : "lucide:play"
-                    }
+                    icon={playing ? "lucide:pause" : "lucide:play"}
                     className="size-5"
                   />
                 </button>

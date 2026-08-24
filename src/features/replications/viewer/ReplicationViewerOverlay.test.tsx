@@ -234,7 +234,11 @@ describe("ReplicationViewerOverlay", () => {
     expect(
       screen.getByRole("heading", { name: /Work One.*Chelsea Morgan/ }),
     ).toHaveClass("theme-media-tile-title");
-    expect(screen.getByTestId("media-stage").parentElement).toHaveClass(
+    expect(
+      screen
+        .getByTestId("media-stage")
+        .closest(".grid-rows-\\[minmax\\(0\\,1fr\\)_auto\\]"),
+    ).toHaveClass(
       "min-w-0",
       "w-full",
       "grid-cols-[minmax(0,1fr)]",
@@ -332,6 +336,66 @@ describe("ReplicationViewerOverlay", () => {
     );
   });
 
+  it("follows a horizontal drag and snaps back below the commit threshold", () => {
+    render(
+      <ReplicationViewerOverlay
+        collection={collection}
+        initialSlug="work-one"
+        open
+        onOpenChange={vi.fn()}
+      />,
+    );
+
+    const stage = screen.getByRole("button", { name: "Still media surface" });
+    const pane = screen.getByTestId("media-stage").parentElement as HTMLElement;
+
+    fireEvent.touchStart(stage, {
+      changedTouches: [{ clientX: 240, clientY: 300 }],
+    });
+    fireEvent.touchMove(stage, {
+      changedTouches: [{ clientX: 224, clientY: 300 }],
+    });
+    expect(pane.style.transform).toBe("translateX(-16px)");
+
+    fireEvent.touchEnd(stage, {
+      changedTouches: [{ clientX: 224, clientY: 300 }],
+    });
+    expect(pane.style.transform).toBe("");
+    expect(screen.getByTestId("media-stage")).toHaveAttribute(
+      "data-title",
+      "Work One",
+    );
+  });
+
+  it("resists a drag past the final work instead of moving it fully", () => {
+    render(
+      <ReplicationViewerOverlay
+        collection={collection}
+        initialSlug="work-two"
+        open
+        onOpenChange={vi.fn()}
+      />,
+    );
+
+    const stage = screen.getByTestId("media-stage");
+    const pane = stage.parentElement as HTMLElement;
+
+    fireEvent.touchStart(stage, {
+      changedTouches: [{ clientX: 240, clientY: 300 }],
+    });
+    fireEvent.touchMove(stage, {
+      changedTouches: [{ clientX: 210, clientY: 300 }],
+    });
+    expect(pane.style.transform).toBe("translateX(-10px)");
+    fireEvent.touchEnd(stage, {
+      changedTouches: [{ clientX: 210, clientY: 300 }],
+    });
+    expect(screen.getByTestId("media-stage")).toHaveAttribute(
+      "data-title",
+      "Work Two",
+    );
+  });
+
   it("contains information-panel focus and restores its trigger", async () => {
     render(
       <ReplicationViewerOverlay
@@ -354,9 +418,11 @@ describe("ReplicationViewerOverlay", () => {
         screen.getByRole("button", { name: "Close information" }),
       ).toHaveFocus(),
     );
-    expect(screen.getByTestId("media-stage").parentElement).toHaveAttribute(
-      "inert",
-    );
+    expect(
+      screen
+        .getByTestId("media-stage")
+        .closest(".grid-rows-\\[minmax\\(0\\,1fr\\)_auto\\]"),
+    ).toHaveAttribute("inert");
 
     fireEvent.click(screen.getByRole("button", { name: "Close information" }));
     await waitFor(() => expect(trigger).toHaveFocus());
