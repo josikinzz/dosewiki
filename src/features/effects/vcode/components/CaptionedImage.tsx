@@ -1,3 +1,5 @@
+import type { CSSProperties } from "react";
+
 import { AppImage } from "@/components/common/AppImage";
 import { Surface } from "@/components/ui/surface";
 import { cn } from "@/lib/utils";
@@ -63,10 +65,12 @@ export function CaptionedImage({
 
   if (!imageSrc) return null;
 
-  // Wikipedia-style float classes for left/right alignment
+  // Wikipedia-style floats from `sm` up. Below that the figure sits in normal
+  // flow, centered — a float beside a phone-width column strands one word per
+  // line next to the image.
   const containerClass = {
-    left: "float-left mr-8 mb-6 mt-1",
-    right: "float-right ml-8 mb-6 mt-1",
+    left: "clear-both mx-auto my-4 flex w-fit max-w-full flex-col sm:float-left sm:ml-0 sm:mr-8 sm:mt-1 sm:mb-6 sm:max-w-[var(--vcode-float-max)]",
+    right: "clear-both mx-auto my-4 flex w-fit max-w-full flex-col sm:float-right sm:mr-0 sm:ml-8 sm:mt-1 sm:mb-6 sm:max-w-[var(--vcode-float-max)]",
     center: "mx-auto my-4 clear-both flex w-fit max-w-full flex-col items-center",
   }[align];
 
@@ -76,15 +80,15 @@ export function CaptionedImage({
     ? `${width}px`
     : align === "center" ? "min(100%, 48rem)" : "min(350px, 40%)";
 
-  const figureStyle = align === "center"
+  const figureStyle: CSSProperties = align === "center"
     ? {
         maxWidth,
         marginLeft: "auto",
         marginRight: "auto",
       }
-    : {
-        maxWidth,
-      };
+    : // The float cap only binds from `sm` up (via the class above); the base
+      // `max-w-full` governs the collapsed mobile layout.
+      ({ "--vcode-float-max": maxWidth } as CSSProperties);
 
   const hasCaptionContent = caption || artist;
 
