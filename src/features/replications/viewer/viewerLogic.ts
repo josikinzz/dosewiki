@@ -38,3 +38,36 @@ export function shouldLoopReplicationMotion(
       duration < 60)
   );
 }
+
+/** localStorage key remembering that the swipe onboarding hint was shown. */
+export const GESTURE_HINT_STORAGE_KEY = "replication-viewer-gesture-hint";
+
+/**
+ * Show the one-time swipe tutor only where swiping is the input model
+ * (coarse pointers) and only until it has been shown once on this device.
+ */
+export function shouldShowGestureHint(
+  stored: string | null,
+  coarsePointer: boolean,
+): boolean {
+  return coarsePointer && stored === null;
+}
+
+/**
+ * The frame a neighboring work shows while parked beside the stage: exactly
+ * the source its own stage will paint first, so the swap lands on a warm,
+ * identical image. GIFs lead with their motion poster, videos with their
+ * thumbnail, stills with the artwork itself.
+ */
+export function standbyPosterSource(replication: {
+  type: ReplicationType;
+  format: string;
+  url: string;
+  thumbnail_url?: string | null;
+  motion_poster_url?: string | null;
+}): string | null {
+  if (replication.format.toLowerCase() === "gif")
+    return replication.motion_poster_url ?? null;
+  if (replication.type === "video") return replication.thumbnail_url ?? null;
+  return replication.url;
+}

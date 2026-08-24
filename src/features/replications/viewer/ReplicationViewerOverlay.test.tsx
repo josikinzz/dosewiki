@@ -178,6 +178,7 @@ beforeEach(() => {
     "",
     "/replications?type=video&viewer=work-one",
   );
+  window.localStorage.clear();
   vi.stubGlobal(
     "fetch",
     vi.fn().mockResolvedValue({
@@ -210,6 +211,22 @@ afterEach(() => {
   cleanup();
   vi.unstubAllGlobals();
 });
+
+function stubCoarsePointer(coarse: boolean) {
+  vi.stubGlobal(
+    "matchMedia",
+    vi.fn((query: string) => ({
+      matches: coarse && query.includes("pointer: coarse"),
+      media: query,
+      onchange: null,
+      addEventListener: () => {},
+      removeEventListener: () => {},
+      addListener: () => {},
+      removeListener: () => {},
+      dispatchEvent: () => false,
+    })),
+  );
+}
 
 describe("ReplicationViewerOverlay", () => {
   it("renders a named dialog and walks works without losing source query state", () => {
@@ -259,6 +276,63 @@ describe("ReplicationViewerOverlay", () => {
     expect(window.location.search).toContain("type=video");
     expect(window.location.search).toContain("viewer=work-two");
     expect(screen.getByRole("button", { name: "Final work" })).toBeDisabled();
+  });
+
+  it("teaches the swipe grammar once per device on coarse pointers", () => {
+    stubCoarsePointer(true);
+    const first = render(
+      <ReplicationViewerOverlay
+        collection={collection}
+        initialSlug="work-one"
+        open
+        onOpenChange={vi.fn()}
+      />,
+    );
+    expect(screen.getByText("Swipe to browse works")).toBeInTheDocument();
+    expect(
+      screen.getByText("Swipe up or down to switch artists"),
+    ).toBeInTheDocument();
+
+    first.unmount();
+    render(
+      <ReplicationViewerOverlay
+        collection={collection}
+        initialSlug="work-one"
+        open
+        onOpenChange={vi.fn()}
+      />,
+    );
+    expect(screen.queryByText("Swipe to browse works")).not.toBeInTheDocument();
+  });
+
+  it("keeps the swipe hint off fine-pointer devices", () => {
+    stubCoarsePointer(false);
+    render(
+      <ReplicationViewerOverlay
+        collection={collection}
+        initialSlug="work-one"
+        open
+        onOpenChange={vi.fn()}
+      />,
+    );
+    expect(screen.queryByText("Swipe to browse works")).not.toBeInTheDocument();
+  });
+
+  it("dismisses the swipe hint on first touch", () => {
+    stubCoarsePointer(true);
+    render(
+      <ReplicationViewerOverlay
+        collection={collection}
+        initialSlug="work-one"
+        open
+        onOpenChange={vi.fn()}
+      />,
+    );
+    expect(screen.getByText("Swipe to browse works")).toBeInTheDocument();
+    fireEvent.touchStart(screen.getByTestId("media-stage"), {
+      changedTouches: [{ clientX: 240, clientY: 300 }],
+    });
+    expect(screen.queryByText("Swipe to browse works")).not.toBeInTheDocument();
   });
 
   it("links the header artist name to the artist page", () => {
@@ -362,7 +436,9 @@ describe("ReplicationViewerOverlay", () => {
     );
 
     const stage = screen.getByRole("button", { name: "Still media surface" });
-    const pane = screen.getByTestId("media-stage").parentElement as HTMLElement;
+    const pane = document.querySelector(
+      "[data-replication-media-track]",
+    ) as HTMLElement;
 
     fireEvent.touchStart(stage, {
       changedTouches: [{ clientX: 240, clientY: 300 }],
@@ -393,7 +469,9 @@ describe("ReplicationViewerOverlay", () => {
     );
 
     const stage = screen.getByTestId("media-stage");
-    const pane = stage.parentElement as HTMLElement;
+    const pane = document.querySelector(
+      "[data-replication-media-track]",
+    ) as HTMLElement;
 
     fireEvent.touchStart(stage, {
       changedTouches: [{ clientX: 240, clientY: 300 }],
@@ -409,6 +487,26 @@ describe("ReplicationViewerOverlay", () => {
       "data-title",
       "Work Two",
     );
+  });
+
+  it("parks the neighboring work's poster beside the stage for swipe continuity", () => {
+    render(
+      <ReplicationViewerOverlay
+        collection={collection}
+        initialSlug="work-two"
+        open
+        onOpenChange={vi.fn()}
+      />,
+    );
+
+    const track = document.querySelector(
+      "[data-replication-media-track]",
+    ) as HTMLElement;
+    // work-one is a still image: its artwork rides the left standby pane, so
+    // a committed swipe lands on an already-cached frame.
+    expect(
+      track.querySelector('img[src="https://cdn.test/one.jpg"]'),
+    ).toBeInTheDocument();
   });
 
   it("contains information-panel focus and restores its trigger", async () => {

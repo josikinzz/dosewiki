@@ -3098,6 +3098,51 @@ html[data-theme="light"] .theme-footer-surface:not(.theme-chrome-dark) {
     color-mix(in srgb, var(--theme-accent-strong) 55%, transparent);
 }
 
+/* Gesture Hint: the one-time swipe tutor on the immersive stage. The pointer
+     glyph sweeps the track like a finger; reduced motion parks it centered. */
+.theme-media-hint-track::before {
+  content: "";
+  position: absolute;
+  inset-inline: 0.25rem;
+  top: 50%;
+  height: 2px;
+  border-radius: 9999px;
+  background: color-mix(in srgb, currentColor 25%, transparent);
+}
+
+.theme-media-hint-dot {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  display: grid;
+  place-items: center;
+  transform: translate(0, -50%);
+  animation: theme-media-hint-sweep 2.4s cubic-bezier(0.45, 0, 0.55, 1) infinite;
+}
+
+@keyframes theme-media-hint-sweep {
+  0%,
+  8% {
+    transform: translate(0, -50%);
+  }
+  46%,
+  54% {
+    transform: translate(2.75rem, -50%);
+  }
+  92%,
+  100% {
+    transform: translate(0, -50%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .theme-media-hint-dot {
+    animation: none;
+    left: 50%;
+    transform: translate(-50%, -50%);
+  }
+}
+
 /* The expanded stage owns its playback affordances: suppress WebKit's giant
      native start-playback glyph so a blocked video shows exactly one Play
      control (iOS Safari paints it over autoplay-blocked video elements). */

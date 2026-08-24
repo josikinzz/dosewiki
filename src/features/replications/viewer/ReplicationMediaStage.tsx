@@ -467,7 +467,9 @@ export function ReplicationMediaStage({
         <div
           className={cn(
             "flex items-center gap-3",
-            showWorkNavigation ? "justify-between" : "justify-center",
+            showWorkNavigation
+              ? "justify-between [@media(pointer:coarse)]:justify-center"
+              : "justify-center",
           )}
         >
           {showWorkNavigation ? (
@@ -489,7 +491,10 @@ export function ReplicationMediaStage({
                   event.preventDefault();
                   onPrevious();
                 }}
-                className={cn(controlClassName, "pointer-events-auto")}
+                className={cn(
+                  controlClassName,
+                  "pointer-events-auto [@media(pointer:coarse)]:hidden",
+                )}
               >
                 <Icon icon="lucide:chevron-left" className="size-6" />
               </a>
@@ -504,7 +509,7 @@ export function ReplicationMediaStage({
                 }}
                 className={cn(
                   controlClassName,
-                  "pointer-events-auto disabled:cursor-not-allowed disabled:opacity-30",
+                  "pointer-events-auto disabled:cursor-not-allowed disabled:opacity-30 [@media(pointer:coarse)]:hidden",
                 )}
               >
                 <Icon icon="lucide:chevron-left" className="size-6" />
@@ -592,7 +597,10 @@ export function ReplicationMediaStage({
                   event.preventDefault();
                   onNext();
                 }}
-                className={cn(controlClassName, "pointer-events-auto")}
+                className={cn(
+                  controlClassName,
+                  "pointer-events-auto [@media(pointer:coarse)]:hidden",
+                )}
               >
                 <Icon icon="lucide:chevron-right" className="size-6" />
               </a>
@@ -607,7 +615,7 @@ export function ReplicationMediaStage({
                 }}
                 className={cn(
                   controlClassName,
-                  "pointer-events-auto disabled:cursor-not-allowed disabled:opacity-30",
+                  "pointer-events-auto disabled:cursor-not-allowed disabled:opacity-30 [@media(pointer:coarse)]:hidden",
                 )}
               >
                 <Icon icon="lucide:chevron-right" className="size-6" />

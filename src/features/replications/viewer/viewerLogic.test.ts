@@ -4,6 +4,8 @@ import {
   FALLBACK_VIDEO_RATIO,
   resolveMediaAspect,
   shouldLoopReplicationMotion,
+  shouldShowGestureHint,
+  standbyPosterSource,
 } from "./viewerLogic";
 
 describe("resolveMediaAspect", () => {
@@ -53,5 +55,48 @@ describe("shouldLoopReplicationMotion", () => {
     expect(shouldLoopReplicationMotion("mp4", 60)).toBe(false);
     expect(shouldLoopReplicationMotion("mp4", 600)).toBe(false);
     expect(shouldLoopReplicationMotion("mp4", undefined)).toBe(false);
+  });
+});
+
+describe("shouldShowGestureHint", () => {
+  it("shows only on coarse pointers and only until first shown", () => {
+    expect(shouldShowGestureHint(null, true)).toBe(true);
+    expect(shouldShowGestureHint("seen", true)).toBe(false);
+    expect(shouldShowGestureHint(null, false)).toBe(false);
+  });
+});
+
+describe("standbyPosterSource", () => {
+  it("mirrors each stage's first paint", () => {
+    expect(
+      standbyPosterSource({
+        type: "image",
+        format: "gif",
+        url: "https://cdn.test/full.gif",
+        motion_poster_url: "https://cdn.test/poster.webp",
+      }),
+    ).toBe("https://cdn.test/poster.webp");
+    expect(
+      standbyPosterSource({
+        type: "video",
+        format: "mp4",
+        url: "https://cdn.test/clip.mp4",
+        thumbnail_url: "https://cdn.test/thumb.jpg",
+      }),
+    ).toBe("https://cdn.test/thumb.jpg");
+    expect(
+      standbyPosterSource({
+        type: "video",
+        format: "mp4",
+        url: "https://cdn.test/clip.mp4",
+      }),
+    ).toBeNull();
+    expect(
+      standbyPosterSource({
+        type: "image",
+        format: "jpg",
+        url: "https://cdn.test/art.jpg",
+      }),
+    ).toBe("https://cdn.test/art.jpg");
   });
 });

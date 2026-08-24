@@ -34,8 +34,14 @@ import {
   moveViewerGroup,
   moveViewerWork,
   type ReplicationViewerCollection,
+  type ReplicationViewerMediaItem,
   type ReplicationViewerPosition,
 } from "./viewerModel";
+import {
+  GESTURE_HINT_STORAGE_KEY,
+  shouldShowGestureHint,
+  standbyPosterSource,
+} from "./viewerLogic";
 
 const SWIPE_THRESHOLD_PX = 48;
 /** A fast flick commits a work change well before the full swipe distance. */
@@ -63,6 +69,41 @@ function prefersReducedMotion(): boolean {
     typeof window !== "undefined" &&
     typeof window.matchMedia === "function" &&
     window.matchMedia("(prefers-reduced-motion: reduce)").matches
+  );
+}
+
+/**
+ * A poster-only pane parked one viewport beside the stage. During a drag the
+ * track carries it under the finger, so the incoming work is visible before
+ * its real stage mounts — and its poster is warm in cache when it does.
+ */
+function StandbyPane({
+  item,
+  side,
+}: {
+  item: ReplicationViewerMediaItem;
+  side: "left" | "right";
+}) {
+  const poster = standbyPosterSource(item.replication);
+  return (
+    <div
+      aria-hidden
+      className={cn(
+        "pointer-events-none absolute inset-0",
+        side === "left" ? "-translate-x-full" : "translate-x-full",
+      )}
+    >
+      {poster ? (
+        <AppImage
+          src={poster}
+          alt=""
+          width={item.replication.width ?? 1600}
+          height={item.replication.height ?? 900}
+          priority
+          className="h-full w-full object-contain"
+        />
+      ) : null}
+    </div>
   );
 }
 
@@ -121,10 +162,12 @@ export function ReplicationViewerOverlay({
   const [fullscreenUnavailable, setFullscreenUnavailable] = useState(false);
   const [fullscreenMessage, setFullscreenMessage] = useState("");
   const [entryMotion, setEntryMotion] = useState<EntryMotion | null>(null);
+  const [gestureHint, setGestureHint] = useState(false);
   const rememberedSlugByGroupRef = useRef<Record<string, string>>({});
   const touchStartRef = useRef<{ x: number; y: number; t: number } | null>(
     null,
   );
+  const pendingCommitRef = useRef<(() => void) | null>(null);
   const dragAxisRef = useRef<"x" | "y" | null>(null);
   const mediaPaneRef = useRef<HTMLDivElement>(null);
   const thumbnailRailRef = useRef<HTMLUListElement>(null);
@@ -403,6 +446,28 @@ export function ReplicationViewerOverlay({
     if (!tryWebkitFullscreen()) useImmersiveFallback(false);
   }, [fullscreenUnavailable]);
 
+  // First-open gesture onboarding: coarse-pointer readers learn the swipe
+  // grammar once, then the chip never returns on this device.
+  useEffect(() => {
+    if (!open || typeof window.matchMedia !== "function") return;
+    const coarse = window.matchMedia("(pointer: coarse)").matches;
+    let stored: string | null = null;
+    try {
+      stored = window.localStorage.getItem(GESTURE_HINT_STORAGE_KEY);
+    } catch {
+      return; // Storage denied: skip rather than nag on every open.
+    }
+    if (!shouldShowGestureHint(stored, coarse)) return;
+    try {
+      window.localStorage.setItem(GESTURE_HINT_STORAGE_KEY, "seen");
+    } catch {
+      // Best effort: a blocked write only means the hint may show again.
+    }
+    setGestureHint(true);
+    const timer = window.setTimeout(() => setGestureHint(false), 5500);
+    return () => window.clearTimeout(timer);
+  }, [open]);
+
   if (!active || !position || !group) return null;
   const artistLabel = hasKnownCreator(active.replication.artist)
     ? active.replication.artist.trim()
@@ -497,6 +562,8 @@ export function ReplicationViewerOverlay({
           heading.focus({ preventScroll: true });
         }}
         onTouchStart={(event) => {
+          setGestureHint(false);
+          pendingCommitRef.current?.();
           const target = event.target;
           const interactiveTarget =
             target instanceof Element
@@ -573,7 +640,31 @@ export function ReplicationViewerOverlay({
             const target = dx > 0 ? previousWork : nextWork;
             if ((Math.abs(dx) >= SWIPE_THRESHOLD_PX || flick) && target) {
               event.preventDefault();
-              navigate(target, dx > 0 ? "left" : "right");
+              const pane = mediaPaneRef.current;
+              const width = pane?.clientWidth ?? 0;
+              if (!pane || width === 0 || prefersReducedMotion()) {
+                if (pane) {
+                  pane.style.transition = "none";
+                  pane.style.transform = "";
+                }
+                navigate(target, null);
+                return;
+              }
+              // Carry the drag through: the standby pane rides to center,
+              // then the state swap lands on the identical frame.
+              const finish = () => {
+                pendingCommitRef.current = null;
+                pane.style.transition = "none";
+                pane.style.transform = "";
+                navigate(target, null);
+              };
+              pendingCommitRef.current = finish;
+              pane.style.transition =
+                "transform 200ms cubic-bezier(0.22, 1, 0.36, 1)";
+              pane.style.transform = `translateX(${dx > 0 ? width : -width}px)`;
+              window.setTimeout(() => {
+                if (pendingCommitRef.current === finish) finish();
+              }, 210);
               return;
             }
             snapBack();
@@ -669,7 +760,7 @@ export function ReplicationViewerOverlay({
             </DialogDescription>
           </div>
           {collection.groups.length > 1 ? (
-            <div className="flex flex-none items-center gap-1">
+            <div className="flex flex-none items-center gap-1 [@media(pointer:coarse)]:hidden">
               <button
                 type="button"
                 aria-label={
@@ -729,49 +820,98 @@ export function ReplicationViewerOverlay({
         >
           <div className="relative min-h-0 min-w-0 overflow-hidden">
             <div
-              key={active.replication.slug}
               ref={mediaPaneRef}
-              className={cn(
-                "h-full w-full",
-                entryMotion && ENTRY_MOTION_CLASS[entryMotion],
-              )}
+              data-replication-media-track
+              className="relative h-full w-full"
             >
-              <ReplicationMediaStage
-                item={active}
-                muted={muted}
-                volume={volume}
-                fullFrame={fullFrame}
-                onMutedChange={setMuted}
-                onVolumeChange={setVolume}
-                onFullFrameChange={setFullFrame}
-                onPrevious={
-                  previousWork
-                    ? () => navigate(previousWork, "left")
-                    : undefined
-                }
-                onNext={
-                  nextWork ? () => navigate(nextWork, "right") : undefined
-                }
-                onInfo={openInfo}
-                infoOpen={infoOpen}
-                infoControls={infoPanelId}
-                onFullscreen={requestFullscreen}
-                fullscreenLabel={
-                  fullscreenSupported ? "Fullscreen" : "Immersive view"
-                }
-                previousLabel={
-                  previousWork
-                    ? `Previous: ${group.items[previousWork.itemIndex].replication.title}`
-                    : "First work"
-                }
-                nextLabel={
-                  nextWork
-                    ? `Next: ${group.items[nextWork.itemIndex].replication.title}`
-                    : "Final work"
-                }
-                className="min-h-0"
-              />
+              {previousWork ? (
+                <StandbyPane
+                  key={`standby-${group.items[previousWork.itemIndex].replication.slug}`}
+                  item={group.items[previousWork.itemIndex]}
+                  side="left"
+                />
+              ) : null}
+              <div
+                key={active.replication.slug}
+                className={cn(
+                  "h-full w-full",
+                  entryMotion && ENTRY_MOTION_CLASS[entryMotion],
+                )}
+              >
+                <ReplicationMediaStage
+                  item={active}
+                  muted={muted}
+                  volume={volume}
+                  fullFrame={fullFrame}
+                  onMutedChange={setMuted}
+                  onVolumeChange={setVolume}
+                  onFullFrameChange={setFullFrame}
+                  onPrevious={
+                    previousWork
+                      ? () => navigate(previousWork, "left")
+                      : undefined
+                  }
+                  onNext={
+                    nextWork ? () => navigate(nextWork, "right") : undefined
+                  }
+                  onInfo={openInfo}
+                  infoOpen={infoOpen}
+                  infoControls={infoPanelId}
+                  onFullscreen={requestFullscreen}
+                  fullscreenLabel={
+                    fullscreenSupported ? "Fullscreen" : "Immersive view"
+                  }
+                  previousLabel={
+                    previousWork
+                      ? `Previous: ${group.items[previousWork.itemIndex].replication.title}`
+                      : "First work"
+                  }
+                  nextLabel={
+                    nextWork
+                      ? `Next: ${group.items[nextWork.itemIndex].replication.title}`
+                      : "Final work"
+                  }
+                  className="min-h-0"
+                />
+              </div>
+              {nextWork ? (
+                <StandbyPane
+                  key={`standby-${group.items[nextWork.itemIndex].replication.slug}`}
+                  item={group.items[nextWork.itemIndex]}
+                  side="right"
+                />
+              ) : null}
             </div>
+            {gestureHint ? (
+              <div
+                aria-hidden
+                className="pointer-events-none absolute inset-0 z-10 grid place-items-center"
+              >
+                <div className="theme-media-tile-title flex flex-col items-center gap-1.5 rounded-2xl bg-black/65 px-6 py-4 backdrop-blur-sm animate-in fade-in-0 zoom-in-95 duration-300 motion-reduce:animate-none">
+                  <div className="flex items-center gap-2">
+                    <Icon
+                      icon="lucide:chevron-left"
+                      className="size-4 opacity-60"
+                    />
+                    <span className="theme-media-hint-track relative h-7 w-16">
+                      <span className="theme-media-hint-dot">
+                        <Icon icon="lucide:pointer" className="size-5" />
+                      </span>
+                    </span>
+                    <Icon
+                      icon="lucide:chevron-right"
+                      className="size-4 opacity-60"
+                    />
+                  </div>
+                  <p className="text-xs font-semibold">Swipe to browse works</p>
+                  {collection.groups.length > 1 ? (
+                    <p className="theme-media-tile-creator text-[11px]">
+                      Swipe up or down to switch {groupUnit.toLowerCase()}s
+                    </p>
+                  ) : null}
+                </div>
+              </div>
+            ) : null}
           </div>
 
           {group.items.length > 1 ? (
