@@ -494,11 +494,30 @@ describe("canonical replication viewer", () => {
   });
 
   it("fails closed when the viewer work is outside the filtered collection", () => {
-    renderExplorer("q=drifting&viewer=slug-4");
+    const view = renderExplorer("q=drifting&viewer=slug-4");
 
     expect(screen.queryByTestId("replication-viewer")).toBeNull();
     expect(screen.getByText("Work 2")).toBeInTheDocument();
     expect(screen.queryByText("Work 4")).toBeNull();
+    expect(
+      screen.getByText(
+        "The linked replication is no longer available in this collection.",
+      ),
+    ).toBeInTheDocument();
+
+    navMocks.params = new URLSearchParams("q=drifting");
+    view.rerender(
+      <ReplicationsGalleryExplorer
+        replications={corpus}
+        effects={effects}
+        contributorDirectory={contributorDirectory}
+      />,
+    );
+    expect(
+      screen.getByText(
+        "The linked replication is no longer available in this collection.",
+      ),
+    ).toBeInTheDocument();
   });
 
   it("removes a malformed viewer query instead of leaving stale URL state", () => {

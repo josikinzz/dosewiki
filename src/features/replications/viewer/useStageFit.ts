@@ -32,7 +32,6 @@ export function portraitPhoneMediaScale({
 }
 
 export interface StageFitOptions {
-  stageRef: React.RefObject<HTMLElement | null>;
   mediaKey: string;
   type: ReplicationType;
   moving?: boolean;

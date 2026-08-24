@@ -12,6 +12,7 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Icon } from "@/components/common/Icon";
 import { Button } from "@/components/ui/button";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { proseLinkClassName } from "@/components/common/ProseLink";
 import { SearchEmptyState } from "@/components/common/SearchEmptyState";
 import { Input } from "@/components/ui/input";
@@ -494,9 +495,17 @@ function GalleryExplorer({
   const [viewerSlug, setViewerSlug] = useState<string | null>(
     validViewerSlugParam,
   );
+  const [unavailableViewerSlug, setUnavailableViewerSlug] = useState<
+    string | null
+  >(viewerSlugParam && !validViewerSlugParam ? viewerSlugParam : null);
 
   useEffect(() => {
     setViewerSlug(validViewerSlugParam);
+    if (viewerSlugParam && !validViewerSlugParam) {
+      setUnavailableViewerSlug(viewerSlugParam);
+    } else if (validViewerSlugParam) {
+      setUnavailableViewerSlug(null);
+    }
     if (viewerParamPresent && !validViewerSlugParam) {
       const source = `${window.location.pathname}${window.location.search}${window.location.hash}`;
       window.history.replaceState(
@@ -505,9 +514,10 @@ function GalleryExplorer({
         closeReplicationViewerUrl(source),
       );
     }
-  }, [validViewerSlugParam, viewerParamPresent]);
+  }, [validViewerSlugParam, viewerParamPresent, viewerSlugParam]);
 
   const launchViewer = (slug: string) => {
+    setUnavailableViewerSlug(null);
     if (
       !viewerCollection.groups.some((entry) =>
         entry.items.some((item) => item.replication.slug === slug),
@@ -622,6 +632,15 @@ function GalleryExplorer({
                 Open viewer
               </Button>
             </div>
+
+            {unavailableViewerSlug ? (
+              <Alert role="status" className="mt-3">
+                <AlertDescription>
+                  The linked replication is no longer available in this
+                  collection.
+                </AlertDescription>
+              </Alert>
+            ) : null}
 
             {/* Sticky control bar — the gallery's only elevated surface now that
               the card wrapper is gone. Offset: the site header (.app-header,

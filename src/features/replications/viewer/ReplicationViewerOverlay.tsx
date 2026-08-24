@@ -27,6 +27,7 @@ import {
 import { cn } from "@/lib/utils";
 import { publicHref } from "@/utils/publicHref";
 import { ReplicationMediaStage } from "./ReplicationMediaStage";
+import { hasKnownCreator } from "@/features/effects/components/replicationCredit";
 import {
   findViewerPosition,
   moveViewerGroup,
@@ -98,7 +99,10 @@ export function ReplicationViewerOverlay({
   const pausedBackgroundVideosRef = useRef<HTMLVideoElement[]>([]);
   const openerRef = useRef<HTMLElement | null>(null);
   const sourceFocusTargetRef = useRef<HTMLElement | null>(null);
-  const collectionLabelId = useId();
+  const infoOpenerRef = useRef<HTMLElement | null>(null);
+  const infoCloseRef = useRef<HTMLButtonElement | null>(null);
+  const infoPanelId = useId();
+  const infoHeadingId = useId();
 
   const group = position ? collection.groups[position.groupIndex] : null;
   const active = group && position ? group.items[position.itemIndex] : null;
@@ -180,6 +184,30 @@ export function ReplicationViewerOverlay({
     [collection],
   );
 
+  const openInfo = useCallback(() => {
+    const activeElement = document.activeElement;
+    infoOpenerRef.current =
+      activeElement instanceof HTMLElement ? activeElement : null;
+    setInfoOpen(true);
+  }, []);
+
+  const closeInfo = useCallback(() => {
+    setInfoOpen(false);
+    const opener = infoOpenerRef.current;
+    infoOpenerRef.current = null;
+    window.requestAnimationFrame(() => {
+      if (opener?.isConnected) opener.focus({ preventScroll: true });
+    });
+  }, []);
+
+  useEffect(() => {
+    if (!infoOpen) return;
+    const frame = window.requestAnimationFrame(() => {
+      infoCloseRef.current?.focus({ preventScroll: true });
+    });
+    return () => window.cancelAnimationFrame(frame);
+  }, [infoOpen]);
+
   const previousWork = position
     ? moveViewerWork(collection, position, -1)
     : null;
@@ -198,6 +226,7 @@ export function ReplicationViewerOverlay({
 
   useEffect(() => {
     if (!open) return;
+    if (infoOpen) return;
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.altKey || event.ctrlKey || event.metaKey || event.shiftKey)
         return;
@@ -224,7 +253,15 @@ export function ReplicationViewerOverlay({
     };
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
-  }, [navigate, nextGroup, nextWork, open, previousGroup, previousWork]);
+  }, [
+    infoOpen,
+    navigate,
+    nextGroup,
+    nextWork,
+    open,
+    previousGroup,
+    previousWork,
+  ]);
 
   useEffect(() => {
     if (!open) return;
@@ -317,10 +354,15 @@ export function ReplicationViewerOverlay({
   }, [fullscreenUnavailable]);
 
   if (!active || !position || !group) return null;
+  const artistLabel = hasKnownCreator(active.replication.artist)
+    ? active.replication.artist.trim()
+    : "Unattributed";
+  const activeGifReady = Boolean(
+    active.replication.motion_url && active.replication.motion_poster_url,
+  );
   const movingMedia =
     active.replication.type === "video" ||
-    (active.replication.format.toLowerCase() === "gif" &&
-      Boolean(active.replication.motion_url));
+    (active.replication.format.toLowerCase() === "gif" && activeGifReady);
   const webkitFullscreenSupported =
     movingMedia &&
     typeof HTMLVideoElement !== "undefined" &&
@@ -366,6 +408,11 @@ export function ReplicationViewerOverlay({
           contentRef.current?.focus();
         }}
         onEscapeKeyDown={(event) => {
+          if (infoOpen) {
+            event.preventDefault();
+            closeInfo();
+            return;
+          }
           // Exit native fullscreen first without dismissing the collection.
           if (document.fullscreenElement) {
             event.preventDefault();
@@ -397,6 +444,20 @@ export function ReplicationViewerOverlay({
           heading.focus({ preventScroll: true });
         }}
         onTouchStart={(event) => {
+          const target = event.target;
+          const interactiveTarget =
+            target instanceof Element
+              ? target.closest("button, a, input, select, textarea")
+              : null;
+          if (
+            !(target instanceof Element) ||
+            !target.closest("[data-replication-media-stage]") ||
+            (interactiveTarget &&
+              !target.closest("[data-replication-media-surface]"))
+          ) {
+            touchStartRef.current = null;
+            return;
+          }
           const touch = event.changedTouches[0];
           if (
             touch.clientX <= SCREEN_EDGE_GUARD_PX ||
@@ -423,14 +484,17 @@ export function ReplicationViewerOverlay({
           }
         }}
         tabIndex={-1}
-        aria-labelledby={collectionLabelId}
         aria-describedby="replication-viewer-description"
         className={cn(
           "theme-media-tile-title theme-elevation-none left-0 top-0 z-[70] h-[100svh] max-h-none w-screen max-w-none translate-x-0 translate-y-0 grid-rows-[auto_minmax(0,1fr)] gap-0 overflow-hidden border-0 bg-black p-0 duration-150 sm:rounded-none",
           immersiveFallback && "fixed inset-0",
         )}
       >
-        <header className="theme-media-thumbnail-border relative z-10 flex min-h-16 items-center gap-3 border-b bg-black px-4 py-2 pr-20 sm:px-6 sm:pr-20">
+        <header
+          inert={infoOpen || undefined}
+          aria-hidden={infoOpen || undefined}
+          className="theme-media-thumbnail-border relative z-10 flex min-h-16 items-center gap-3 border-b bg-black px-4 py-2 pr-20 sm:px-6 sm:pr-20"
+        >
           <div className="flex min-w-0 flex-1 flex-col gap-0.5 sm:flex-row sm:items-baseline sm:gap-3">
             <DialogTitle className="theme-media-tile-title flex min-w-0 items-baseline gap-1.5 font-display text-sm font-semibold sm:flex-1 sm:text-base">
               <span className="min-w-0 truncate">
@@ -440,17 +504,14 @@ export function ReplicationViewerOverlay({
                 ·
               </span>
               <span className="theme-media-tile-creator max-w-[12rem] shrink-0 truncate">
-                {active.replication.artist || "Unattributed"}
+                {artistLabel}
               </span>
             </DialogTitle>
             <DialogDescription
               id="replication-viewer-description"
               className="theme-media-tile-creator flex min-w-0 items-center gap-1.5 whitespace-nowrap text-[11px] tabular-nums sm:text-xs"
             >
-              <span
-                id={collectionLabelId}
-                className="max-w-[9rem] truncate sm:max-w-[16rem]"
-              >
+              <span className="max-w-[9rem] truncate sm:max-w-[16rem]">
                 {collection.label}
               </span>
               <span aria-hidden>·</span>
@@ -490,7 +551,7 @@ export function ReplicationViewerOverlay({
                   disabled={!previousGroup}
                   onClick={() => navigate(previousGroup)}
                   className={cn(
-                    "theme-media-control-soft grid size-8 place-items-center rounded-full disabled:cursor-not-allowed disabled:opacity-30",
+                    "theme-media-control-soft grid size-11 place-items-center rounded-full disabled:cursor-not-allowed disabled:opacity-30 sm:size-8",
                     focusRingClassName,
                   )}
                 >
@@ -506,7 +567,7 @@ export function ReplicationViewerOverlay({
                   disabled={!nextGroup}
                   onClick={() => navigate(nextGroup)}
                   className={cn(
-                    "theme-media-control-soft grid size-8 place-items-center rounded-full disabled:cursor-not-allowed disabled:opacity-30",
+                    "theme-media-control-soft grid size-11 place-items-center rounded-full disabled:cursor-not-allowed disabled:opacity-30 sm:size-8",
                     focusRingClassName,
                   )}
                 >
@@ -533,7 +594,11 @@ export function ReplicationViewerOverlay({
           </p>
         ) : null}
 
-        <div className="grid min-h-0 min-w-0 w-full grid-cols-[minmax(0,1fr)] grid-rows-[minmax(0,1fr)_auto] overflow-hidden">
+        <div
+          inert={infoOpen || undefined}
+          aria-hidden={infoOpen || undefined}
+          className="grid min-h-0 min-w-0 w-full grid-cols-[minmax(0,1fr)] grid-rows-[minmax(0,1fr)_auto] overflow-hidden"
+        >
           <ReplicationMediaStage
             item={active}
             muted={muted}
@@ -544,7 +609,9 @@ export function ReplicationViewerOverlay({
             onFullFrameChange={setFullFrame}
             onPrevious={previousWork ? () => navigate(previousWork) : undefined}
             onNext={nextWork ? () => navigate(nextWork) : undefined}
-            onInfo={() => setInfoOpen((current) => !current)}
+            onInfo={openInfo}
+            infoOpen={infoOpen}
+            infoControls={infoPanelId}
             onFullscreen={requestFullscreen}
             fullscreenLabel={
               fullscreenSupported ? "Fullscreen" : "Immersive view"
@@ -570,10 +637,13 @@ export function ReplicationViewerOverlay({
               <ul className="flex snap-x gap-2 overflow-x-auto">
                 {group.items.map((item, itemIndex) => {
                   const selected = itemIndex === position.itemIndex;
-                  const thumb =
-                    item.replication.motion_poster_url ??
-                    item.replication.thumbnail_url ??
-                    item.replication.url;
+                  const gifLike =
+                    item.replication.format.toLowerCase() === "gif";
+                  const thumb = gifLike
+                    ? item.replication.motion_poster_url
+                    : (item.replication.motion_poster_url ??
+                      item.replication.thumbnail_url ??
+                      item.replication.url);
                   return (
                     <li key={item.replication.slug} className="snap-start">
                       <button
@@ -594,16 +664,23 @@ export function ReplicationViewerOverlay({
                           focusRingClassName,
                         )}
                       >
-                        <AppImage
-                          src={thumb}
-                          alt=""
-                          width={80}
-                          height={80}
-                          unoptimized={
-                            item.replication.format.toLowerCase() === "gif"
-                          }
-                          className="h-full w-full object-contain"
-                        />
+                        {thumb ? (
+                          <AppImage
+                            src={thumb}
+                            alt=""
+                            width={80}
+                            height={80}
+                            className="h-full w-full object-contain"
+                          />
+                        ) : (
+                          <span className="theme-media-tile-creator grid h-full w-full place-items-center">
+                            <Icon
+                              icon="lucide:image-off"
+                              size={16}
+                              aria-hidden
+                            />
+                          </span>
+                        )}
                       </button>
                     </li>
                   );
@@ -614,17 +691,27 @@ export function ReplicationViewerOverlay({
         </div>
 
         {infoOpen ? (
-          <aside className="theme-media-tile-title theme-media-thumbnail-border theme-media-overlay-shadow absolute bottom-0 right-0 top-20 z-20 w-full max-w-md overflow-y-auto border-l bg-black/95 p-5 text-sm sm:w-[26rem]">
+          <aside
+            id={infoPanelId}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby={infoHeadingId}
+            className="theme-media-tile-title theme-media-thumbnail-border theme-media-overlay-shadow absolute bottom-0 right-0 top-20 z-20 w-full max-w-md overflow-y-auto border-l bg-black/95 p-5 text-sm sm:w-[26rem]"
+          >
             <div className="flex items-center justify-between gap-3">
-              <h2 className="theme-media-tile-title font-display text-lg font-semibold">
+              <h2
+                id={infoHeadingId}
+                className="theme-media-tile-title font-display text-lg font-semibold"
+              >
                 Information
               </h2>
               <button
                 type="button"
+                ref={infoCloseRef}
                 aria-label="Close information"
-                onClick={() => setInfoOpen(false)}
+                onClick={closeInfo}
                 className={cn(
-                  "theme-media-control-soft grid size-10 place-items-center rounded-full",
+                  "theme-media-control-soft grid size-11 place-items-center rounded-full",
                   focusRingClassName,
                 )}
               >

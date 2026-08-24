@@ -181,6 +181,54 @@ describe("GalleryMediaTile", () => {
 
     expect(screen.getByText("1:23")).toBeInTheDocument();
   });
+
+  it("uses the static motion poster for GIF-like work", () => {
+    const { container } = render(
+      <GalleryMediaTile
+        replication={{
+          ...VIDEO,
+          type: "image",
+          format: "gif",
+          url: "https://example.test/original.gif",
+          thumbnail_url: "https://example.test/legacy-thumb.webp",
+          motion_url: "https://example.test/motion.mp4",
+          motion_poster_url: "https://example.test/motion.webp",
+        }}
+        viewerHref={VIEWER_HREF}
+      />,
+    );
+
+    expect(
+      container.querySelector('img[src="https://example.test/motion.webp"]'),
+    ).toBeInTheDocument();
+    expect(
+      container.querySelector('img[src="https://example.test/original.gif"]'),
+    ).not.toBeInTheDocument();
+    expect(screen.getByText("Animation")).toBeInTheDocument();
+  });
+
+  it("never mounts a raw GIF when the motion pair is absent", () => {
+    const { container } = render(
+      <GalleryMediaTile
+        replication={{
+          ...VIDEO,
+          type: "image",
+          format: "gif",
+          url: "https://example.test/original.gif",
+          thumbnail_url: "https://example.test/legacy-thumb.webp",
+          motion_url: "https://example.test/orphaned-motion.mp4",
+          motion_poster_url: undefined,
+        }}
+        viewerHref={VIEWER_HREF}
+      />,
+    );
+
+    expect(
+      container.querySelector('img[src="https://example.test/original.gif"]'),
+    ).not.toBeInTheDocument();
+    expect(container.querySelector("video")).not.toBeInTheDocument();
+    expect(screen.queryByText("Animation")).not.toBeInTheDocument();
+  });
 });
 
 describe("GalleryMediaTile caption contract", () => {
@@ -189,6 +237,18 @@ describe("GalleryMediaTile caption contract", () => {
 
     expect(screen.getByText("Geometry Frog")).toBeInTheDocument();
     expect(screen.getByText("by Symmetric Vision")).toBeInTheDocument();
+  });
+
+  it("normalizes unattributed corpus markers", () => {
+    render(
+      <GalleryMediaTile
+        replication={{ ...VIDEO, artist: "Unknown" }}
+        viewerHref={VIEWER_HREF}
+      />,
+    );
+
+    expect(screen.getByText("Creator unknown")).toBeInTheDocument();
+    expect(screen.queryByText("by Unknown")).not.toBeInTheDocument();
   });
 
   it("drops only the byline when showByline is false", () => {
@@ -206,7 +266,7 @@ describe("GalleryMediaTile caption contract", () => {
     expect(screen.queryByText("by Symmetric Vision")).toBeNull();
   });
 
-  it("hides the whole caption below md when mobileCompact", () => {
+  it("keeps a compact title and creator credit on narrow layouts", () => {
     const { container } = render(
       <GalleryMediaTile
         replication={VIDEO}
@@ -215,9 +275,12 @@ describe("GalleryMediaTile caption contract", () => {
       />,
     );
 
-    // The class carries the contract: phone tiles are media-only and pay no
-    // mt-2 spacing for a caption they never show.
-    expect(container.querySelector("figcaption")).toHaveClass("max-md:hidden");
+    expect(screen.getByText("Geometry Frog")).toBeInTheDocument();
+    expect(screen.getByText("by Symmetric Vision")).toBeInTheDocument();
+    expect(container.querySelector("figcaption")).toHaveClass("max-md:mt-1");
+    expect(container.querySelector("figcaption")).not.toHaveClass(
+      "max-md:hidden",
+    );
   });
 });
 

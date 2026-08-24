@@ -58,6 +58,8 @@ export interface ReplicationMediaStageProps {
   onPrevious?: () => void;
   onNext?: () => void;
   onInfo?: () => void;
+  infoOpen?: boolean;
+  infoControls?: string;
   onFullscreen?: () => void;
   fullscreenLabel?: string;
   previousLabel?: string;
@@ -78,6 +80,8 @@ export function ReplicationMediaStage({
   previousHref,
   nextHref,
   onInfo,
+  infoOpen = false,
+  infoControls,
   onFullscreen,
   fullscreenLabel = "Fullscreen",
   previousLabel = "Previous work",
@@ -86,13 +90,17 @@ export function ReplicationMediaStage({
 }: ReplicationMediaStageProps) {
   const replication = item.replication;
   const gifLike = replication.format.toLowerCase() === "gif";
-  const motionSource = gifLike ? replication.motion_url : replication.url;
-  const moving =
-    replication.type === "video" ||
-    (gifLike && Boolean(replication.motion_url));
-  const hasSafeGifFallback = gifLike && !replication.motion_url;
+  const gifReady =
+    gifLike && Boolean(replication.motion_url && replication.motion_poster_url);
+  const motionSource = gifLike
+    ? gifReady
+      ? replication.motion_url
+      : undefined
+    : replication.url;
+  const moving = replication.type === "video" || gifReady;
+  const hasSafeGifFallback = gifLike && !gifReady;
   const poster = gifLike
-    ? (replication.motion_poster_url ?? replication.thumbnail_url)
+    ? replication.motion_poster_url
     : replication.thumbnail_url;
   const stageRef = useRef<HTMLElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -105,7 +113,6 @@ export function ReplicationMediaStage({
   const [controlsVisible, setControlsVisible] = useState(true);
   const [measuredDuration, setMeasuredDuration] = useState<number | null>(null);
   const { canEnlarge, scaleStyle, toggleFit, probeAspect } = useStageFit({
-    stageRef,
     mediaKey: replication.slug,
     type: replication.type,
     moving,
@@ -219,6 +226,7 @@ export function ReplicationMediaStage({
     <section
       ref={stageRef}
       aria-label={`${replication.title} media`}
+      data-replication-media-stage
       data-controls-visible={transportVisible || undefined}
       onPointerMove={showControls}
       onFocusCapture={showControls}
@@ -335,6 +343,8 @@ export function ReplicationMediaStage({
             <button
               type="button"
               aria-label="Show information"
+              aria-expanded={infoOpen}
+              aria-controls={infoControls}
               onClick={(event) => {
                 event.stopPropagation();
                 onInfo();

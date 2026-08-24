@@ -8,8 +8,10 @@ import { proseLinkClassName } from "@/components/common/ProseLink";
 import { MediaPlaceholder } from "@/components/layout/PublicFeedbackPrimitives";
 import { PublicNameChip } from "@/components/common/PublicTokens";
 import { focusRingClassName } from "@/components/ui/surface";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { cn } from "@/lib/utils";
 import { icons } from "@/utils/iconNames";
+import { hasKnownCreator } from "@/features/effects/components/replicationCredit";
 import { useMotionAllowed } from "@/features/effects/gallery/inViewPlayback";
 import { shouldLoopReplicationMotion } from "@/features/replications/viewer/viewerLogic";
 import {
@@ -90,9 +92,8 @@ export interface ReplicationShowcaseProps {
  * Overlay anatomy — none of it changes the stage's shape or size:
  *  - top scrim: title (→ permalink), artist (→ profile / own site), the
  *    demonstrated effect chip, and the rights glyph;
- *  - mid rails: wrap-around previous/next arrows, far left and right;
- *  - bottom scrim: the manual-activation thumbnail tablist plus the video
- *    controls (pause and mute/unmute) on the right.
+ *  - bottom scrim: the manual-selection thumbnail tablist plus the separate
+ *    inline play/pause control.
  *
  * Selection is static — no auto-advance timer; the only motion loop is the
  * active motion itself, under the autoplay gate (in viewport ∧ fine pointer ∧
@@ -125,6 +126,9 @@ export function ReplicationShowcase({
   const { ref: stageRef, inView } = useStageInView();
   const tabRefs = useRef<(HTMLButtonElement | null)[]>([]);
   const [viewerSlug, setViewerSlug] = useState<string | null>(null);
+  const [unavailableViewerSlug, setUnavailableViewerSlug] = useState<
+    string | null
+  >(null);
   const viewerCollection = useMemo<ReplicationViewerCollection>(() => {
     const label =
       collectionLabel ??
@@ -150,7 +154,9 @@ export function ReplicationShowcase({
             replication: {
               slug: work.slug,
               title: work.title,
-              artist: work.artistName ?? "Unknown",
+              artist: hasKnownCreator(work.artistName)
+                ? work.artistName!.trim()
+                : "Unattributed",
               type: work.type,
               format: work.format ?? (work.type === "video" ? "mp4" : "image"),
               url: work.url,
@@ -165,7 +171,10 @@ export function ReplicationShowcase({
             effectName: work.effectName,
             effectSlug: work.effectSlug,
             effectCategories: [],
-            artistProfileHref: work.artistHrefExternal ? null : work.artistHref,
+            artistProfileHref:
+              hasKnownCreator(work.artistName) && !work.artistHrefExternal
+                ? work.artistHref
+                : null,
             avatarUrl: null,
           })),
         },
@@ -178,6 +187,7 @@ export function ReplicationShowcase({
     const slug = parseReplicationViewerSlug(params);
     const belongsToCollection =
       slug && collectionWorks.some((work) => work.slug === slug);
+    setUnavailableViewerSlug(slug && !belongsToCollection ? slug : null);
     setViewerSlug(belongsToCollection ? slug : null);
     if (params.has("viewer") && !belongsToCollection) {
       const source = `${toAppPath(window.location.pathname)}${window.location.search}${window.location.hash}`;
@@ -191,6 +201,7 @@ export function ReplicationShowcase({
 
   const launchViewer = (slug: string) => {
     const source = `${toAppPath(window.location.pathname)}${window.location.search}${window.location.hash}`;
+    setUnavailableViewerSlug(null);
     window.history.pushState(
       { ...window.history.state, replicationViewer: true },
       "",
@@ -210,8 +221,19 @@ export function ReplicationShowcase({
   const autoplayGateOpen = autoplayAllowed && inView;
   const collectionHeadingId = `${baseId}-collection-heading`;
   const activeGifLike = active.format?.toLowerCase() === "gif";
-  const activeIsMoving =
-    active.type === "video" || (activeGifLike && Boolean(active.motionUrl));
+  const activeGifReady =
+    activeGifLike && Boolean(active.motionUrl && active.motionPosterUrl);
+  const activeIsMoving = active.type === "video" || activeGifReady;
+  const activeMotionSource = activeGifLike
+    ? activeGifReady
+      ? active.motionUrl
+      : undefined
+    : active.url;
+  const activePosterUrl = activeGifLike
+    ? active.motionPosterUrl
+    : activeIsMoving
+      ? active.thumbnailUrl
+      : active.url;
   const activePlaying =
     activeIsMoving &&
     (playOverride?.slug === active.slug
@@ -267,7 +289,7 @@ export function ReplicationShowcase({
             setPlayOverride({ slug: active.slug, playing: false });
             setLiveMessage(`Paused ${active.title}`);
           }}
-          className={cn(mediaControlClassName, "size-8")}
+          className={cn(mediaControlClassName, "size-11 sm:size-8")}
         >
           <Icon icon="lucide:pause" size={15} className="fill-current" />
         </button>
@@ -293,6 +315,13 @@ export function ReplicationShowcase({
           <span aria-hidden>·</span>
           <span>{total}</span>
         </h3>
+        {unavailableViewerSlug ? (
+          <Alert role="status">
+            <AlertDescription>
+              The linked replication is no longer available in this collection.
+            </AlertDescription>
+          </Alert>
+        ) : null}
 
         {/* One dark media card. On phones the on-media chrome leaves the
           artwork entirely: the info row sits above the media and the thumb
@@ -339,7 +368,7 @@ export function ReplicationShowcase({
                   aria-hidden
                 />
               </Link>
-              {active.artistName ? (
+              {hasKnownCreator(active.artistName) ? (
                 <span className="theme-media-tile-creator min-w-0 truncate text-[11px] sm:text-xs">
                   by{" "}
                   {active.artistHref ? (
@@ -374,7 +403,7 @@ export function ReplicationShowcase({
                 </span>
               ) : (
                 <span className="theme-media-tile-creator text-[11px] sm:text-xs">
-                  {active.byline}
+                  Creator unknown
                 </span>
               )}
             </div>
@@ -399,91 +428,74 @@ export function ReplicationShowcase({
             aria-label={count > 1 ? undefined : active.title}
             className="relative aspect-video max-h-[380px] w-full"
           >
-            {works.map((work, index) => {
-              const isActive = index === clampedIndex;
-              const gifLike = work.format?.toLowerCase() === "gif";
-              const motionSource = gifLike ? work.motionUrl : work.url;
-              const isMoving =
-                work.type === "video" || (gifLike && Boolean(motionSource));
-              const posterUrl = isMoving
-                ? gifLike
-                  ? (work.motionPosterUrl ?? work.thumbnailUrl)
-                  : work.thumbnailUrl
-                : gifLike
-                  ? (work.motionPosterUrl ?? work.thumbnailUrl)
-                  : work.url;
-              const playing = isMoving && isActive && activePlaying;
+            <div
+              key={active.slug}
+              className={cn(slideFadeClassName, "opacity-100")}
+            >
+              {activePosterUrl ? (
+                <AppImage
+                  src={activePosterUrl}
+                  alt={active.title}
+                  width={1280}
+                  height={800}
+                  className="absolute inset-0 h-full w-full object-contain"
+                />
+              ) : (
+                <MediaPlaceholder
+                  icon={activeIsMoving ? "lucide:play" : "lucide:image"}
+                  title={active.title}
+                  description={
+                    activeGifLike && !activeGifReady
+                      ? "Animation unavailable until its controllable rendition is ready."
+                      : undefined
+                  }
+                />
+              )}
 
-              return (
-                <div
-                  key={work.slug}
-                  aria-hidden={!isActive}
-                  className={cn(
-                    slideFadeClassName,
-                    isActive ? "opacity-100" : "pointer-events-none opacity-0",
+              {activePlaying ? (
+                <video
+                  src={activeMotionSource}
+                  poster={activePosterUrl}
+                  ref={(element) => {
+                    if (element) element.muted = true;
+                  }}
+                  autoPlay
+                  muted
+                  loop={shouldLoopReplicationMotion(
+                    active.format ?? "",
+                    active.duration,
                   )}
-                >
-                  {posterUrl ? (
-                    <AppImage
-                      src={posterUrl}
-                      alt={work.title}
-                      width={1280}
-                      height={800}
-                      className="absolute inset-0 h-full w-full object-contain"
-                    />
-                  ) : (
-                    <MediaPlaceholder
-                      icon={isMoving ? "lucide:play" : "lucide:image"}
-                      title={work.title}
-                    />
-                  )}
+                  playsInline
+                  preload="none"
+                  className="absolute inset-0 h-full w-full object-contain"
+                />
+              ) : null}
 
-                  {playing ? (
-                    <video
-                      src={motionSource}
-                      poster={posterUrl}
-                      ref={(element) => {
-                        if (element) element.muted = true;
-                      }}
-                      autoPlay
-                      muted
-                      loop={shouldLoopReplicationMotion(
-                        work.format ?? "",
-                        work.duration,
-                      )}
-                      playsInline
-                      preload="none"
-                      className="absolute inset-0 h-full w-full object-contain"
+              {activeIsMoving && !activePlaying ? (
+                <div className="absolute inset-0 z-[2] grid place-items-center bg-black/40">
+                  <button
+                    type="button"
+                    aria-label={`Play ${active.title}`}
+                    onClick={() => {
+                      setPlayOverride({ slug: active.slug, playing: true });
+                      setLiveMessage(`Playing ${active.title}`);
+                    }}
+                    className={cn(
+                      "theme-media-tile-title grid size-14 place-items-center rounded-full bg-black/60",
+                      "backdrop-blur-sm transition-opacity hover:opacity-85",
+                      "motion-reduce:transition-none",
+                      focusRingClassName,
+                    )}
+                  >
+                    <Icon
+                      icon="lucide:play"
+                      size={24}
+                      className="fill-current"
                     />
-                  ) : null}
-
-                  {isMoving && isActive && !playing ? (
-                    <div className="absolute inset-0 z-[2] grid place-items-center bg-black/40">
-                      <button
-                        type="button"
-                        aria-label={`Play ${work.title}`}
-                        onClick={() => {
-                          setPlayOverride({ slug: work.slug, playing: true });
-                          setLiveMessage(`Playing ${work.title}`);
-                        }}
-                        className={cn(
-                          "theme-media-tile-title grid size-14 place-items-center rounded-full bg-black/60",
-                          "backdrop-blur-sm transition-opacity hover:opacity-85",
-                          "motion-reduce:transition-none",
-                          focusRingClassName,
-                        )}
-                      >
-                        <Icon
-                          icon="lucide:play"
-                          size={24}
-                          className="fill-current"
-                        />
-                      </button>
-                    </div>
-                  ) : null}
+                  </button>
                 </div>
-              );
-            })}
+              ) : null}
+            </div>
 
             <button
               type="button"
@@ -518,9 +530,10 @@ export function ReplicationShowcase({
                   {works.map((work, index) => {
                     const selected = index === clampedIndex;
                     const gifLike = work.format?.toLowerCase() === "gif";
-                    const thumbUrl =
-                      work.type === "video" || gifLike
-                        ? (work.motionPosterUrl ?? work.thumbnailUrl)
+                    const thumbUrl = gifLike
+                      ? work.motionPosterUrl
+                      : work.type === "video"
+                        ? work.thumbnailUrl
                         : work.url;
                     return (
                       <button
@@ -533,7 +546,7 @@ export function ReplicationShowcase({
                         id={`${tabId}-${index}`}
                         aria-selected={selected}
                         aria-controls={stageId}
-                        aria-label={`${work.title} — demonstrates ${work.effectName}, ${work.byline}`}
+                        aria-label={`${work.title} — demonstrates ${work.effectName}, ${hasKnownCreator(work.artistName) ? work.byline : "Creator unknown"}`}
                         tabIndex={selected ? 0 : -1}
                         onClick={() => activate(index)}
                         onKeyDown={(event) => handleTabKeyDown(event, index)}
@@ -566,7 +579,9 @@ export function ReplicationShowcase({
                             />
                           </span>
                         )}
-                        {work.type === "video" ? (
+                        {work.type === "video" ||
+                        (gifLike &&
+                          Boolean(work.motionUrl && work.motionPosterUrl)) ? (
                           <span className="theme-media-tile-title absolute bottom-0.5 right-0.5 grid size-3.5 place-items-center rounded-full bg-black/60">
                             <Icon
                               icon="lucide:play"

@@ -91,6 +91,8 @@ describe("ReplicationMediaStage", () => {
         onPrevious={onPrevious}
         onNext={onNext}
         onInfo={onInfo}
+        infoOpen
+        infoControls="replication-info"
         onFullscreen={onFullscreen}
         fullscreenLabel="Fullscreen"
         previousLabel="Previous work"
@@ -104,9 +106,14 @@ describe("ReplicationMediaStage", () => {
     expect(
       screen.getByRole("button", { name: "Full frame" }),
     ).toBeInTheDocument();
-    expect(
-      screen.getByRole("button", { name: "Show information" }),
-    ).toBeInTheDocument();
+    const informationButton = screen.getByRole("button", {
+      name: "Show information",
+    });
+    expect(informationButton).toHaveAttribute("aria-expanded", "true");
+    expect(informationButton).toHaveAttribute(
+      "aria-controls",
+      "replication-info",
+    );
     expect(
       screen.getByRole("button", { name: "Fullscreen" }),
     ).toBeInTheDocument();
@@ -218,6 +225,40 @@ describe("ReplicationMediaStage", () => {
     ).not.toBeInTheDocument();
     expect(
       screen.queryByRole("button", { name: "Final work" }),
+    ).not.toBeInTheDocument();
+  });
+
+  it("does not load a raw GIF when its controllable rendition is absent", () => {
+    const { container } = render(
+      <ReplicationMediaStage
+        item={item({
+          type: "image",
+          format: "gif",
+          url: "https://cdn.test/original.gif",
+          thumbnail_url: "https://cdn.test/legacy-thumb.webp",
+          motion_url: "https://cdn.test/orphaned-motion.mp4",
+          motion_poster_url: undefined,
+        })}
+        muted
+        volume={1}
+        fullFrame={false}
+        onMutedChange={vi.fn()}
+        onVolumeChange={vi.fn()}
+        onFullFrameChange={vi.fn()}
+      />,
+    );
+
+    expect(container.querySelector("video")).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("img", { name: "Tracers loop" }),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.getByText(
+        "Animation unavailable until its controllable rendition is ready.",
+      ),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: "Play" }),
     ).not.toBeInTheDocument();
   });
 

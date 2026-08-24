@@ -150,8 +150,11 @@ describe("MediaRail tile forwarding", () => {
     // showByline={tileBylines}: the heading already names the artist.
     expect(screen.getByText("Geometry Frog")).toBeInTheDocument();
     expect(screen.queryByText("by Symmetric Vision")).toBeNull();
-    // mobileCompact reaches the tile's caption.
-    expect(container.querySelector("figcaption")).toHaveClass("max-md:hidden");
+    // mobileCompact reaches the tile's denser, still-visible caption.
+    expect(container.querySelector("figcaption")).toHaveClass("max-md:mt-1");
+    expect(container.querySelector("figcaption")).not.toHaveClass(
+      "max-md:hidden",
+    );
 
     await user.click(screen.getByRole("link", { name: /Geometry Frog/ }));
     expect(onTileOpen).toHaveBeenCalledTimes(1);

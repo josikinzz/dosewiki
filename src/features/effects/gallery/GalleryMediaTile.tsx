@@ -77,18 +77,30 @@ export function GalleryMediaTile({
   const videoRef = useRef<HTMLVideoElement | null>(null);
 
   const isVideo = replication.type === "video";
-  const thumbnailUrl = isVideo ? replication.thumbnail_url : replication.url;
+  const gifLike = replication.format.toLowerCase() === "gif";
+  const gifReady =
+    gifLike && Boolean(replication.motion_url && replication.motion_poster_url);
+  const motionSource = isVideo
+    ? replication.url
+    : gifReady
+      ? replication.motion_url
+      : undefined;
+  const moving = isVideo || gifReady;
+  const thumbnailUrl = gifLike
+    ? replication.motion_poster_url
+    : isVideo
+      ? replication.thumbnail_url
+      : replication.url;
   const byline = getCreatorByline(replication);
   const ratio =
     replication.width && replication.height
       ? `${replication.width} / ${replication.height}`
       : "4 / 3";
 
-  // Two mutually exclusive playback paths. Rows with a preview rendition
-  // autoplay it while at least half in view (muted, low-res, capped at five
-  // concurrent players); rows without one keep the legacy hover-to-play of
-  // the full source. The autoplay path always wins when a preview exists so
-  // hover and in-view playback never fight over the same <video>.
+  // Gallery preview videos use their low-resolution rendition under the shared
+  // in-view budget. GIF-like works stay on their static motion poster until a
+  // fine-pointer hover explicitly previews the controllable motion rendition;
+  // the raw GIF never bypasses reduced-motion or playback controls.
   const previewUrl = isVideo ? replication.preview_url : undefined;
   const autoplayEligible = Boolean(previewUrl) && autoplayAllowed;
   const inView = useInView(frameRef, 0.5, autoplayEligible);
@@ -98,11 +110,11 @@ export function GalleryMediaTile({
   const showAutoplay = autoplayEligible && inView && slotGranted;
 
   const showHoverPreview =
-    isVideo &&
+    moving &&
     !previewUrl &&
     hoverPreviewAllowed &&
     hovered &&
-    Boolean(replication.url);
+    Boolean(motionSource);
   const showPreview = showAutoplay || showHoverPreview;
 
   useEffect(() => {
@@ -147,7 +159,7 @@ export function GalleryMediaTile({
             width={replication.width ?? 800}
             height={replication.height ?? 800}
             className={cn(
-              "absolute inset-0 h-full w-full object-cover transition duration-500",
+              "absolute inset-0 h-full w-full object-contain transition duration-500",
               "group-hover/frame:scale-[1.03] motion-reduce:transition-none motion-reduce:group-hover/frame:scale-100",
               showPreview ? "opacity-0" : "opacity-100",
             )}
@@ -162,8 +174,8 @@ export function GalleryMediaTile({
         {showPreview ? (
           <video
             ref={videoRef}
-            src={showAutoplay ? previewUrl : replication.url}
-            poster={replication.thumbnail_url}
+            src={showAutoplay ? previewUrl : motionSource}
+            poster={thumbnailUrl}
             muted
             loop
             playsInline
@@ -173,13 +185,13 @@ export function GalleryMediaTile({
             // The preview covers the whole anchor and paints last, so without this
             // it swallows every click on a video tile. Browsers do not forward a
             // media element's click to an ancestor link the way they do for images.
-            className="pointer-events-none absolute inset-0 h-full w-full object-cover"
+            className="pointer-events-none absolute inset-0 h-full w-full object-contain"
           />
         ) : null}
 
-        {isVideo ? (
-          // Always-visible "this is a video" marker: play glyph plus duration
-          // when known. Same on-media optics as the shared viewer's controls.
+        {moving ? (
+          // Always-visible motion marker: play glyph plus duration when known.
+          // Same on-media optics as the shared viewer's controls.
           // Fades out while a preview is actually rendering frames, so it never
           // sits over moving footage.
           <span
@@ -197,15 +209,19 @@ export function GalleryMediaTile({
               aria-hidden
             />
             {durationLabel ? <span>{durationLabel}</span> : null}
-            <span className="sr-only">Video</span>
+            <span className="sr-only">{isVideo ? "Video" : "Animation"}</span>
           </span>
         ) : null}
       </Link>
 
-      {/* max-md:hidden removes the caption *and* its mt-2 so compact phone
-          tiles pay no spacing cost for a caption they never show. */}
+      {/* Compact phone tiles keep one concise caption row. Artist rails can
+          still suppress the repeated byline with `showByline={false}`, while
+          effect and mixed views retain the creator credit. */}
       <figcaption
-        className={cn("mt-2 min-w-0 px-0.5", mobileCompact && "max-md:hidden")}
+        className={cn(
+          "mt-2 min-w-0 px-0.5",
+          mobileCompact && "max-md:mt-1 max-md:px-0",
+        )}
       >
         <p className="theme-text-secondary truncate text-sm font-medium">
           {replication.title}

@@ -25,6 +25,7 @@ export function ReplicationStillStage({
   return (
     <button
       type="button"
+      data-replication-media-surface
       aria-label={controlsVisible ? "Hide controls" : "Show controls"}
       onClick={onToggleControls}
       className={cn("absolute inset-0 h-full w-full", focusRingClassName)}

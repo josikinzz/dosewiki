@@ -24,6 +24,8 @@ vi.mock("./ReplicationMediaStage", () => ({
     onPrevious,
     onNext,
     onInfo,
+    infoOpen,
+    infoControls,
     onFullscreen,
     fullscreenLabel,
     previousLabel,
@@ -33,12 +35,18 @@ vi.mock("./ReplicationMediaStage", () => ({
     onPrevious?: () => void;
     onNext?: () => void;
     onInfo?: () => void;
+    infoOpen?: boolean;
+    infoControls?: string;
     onFullscreen?: () => void;
     fullscreenLabel: string;
     previousLabel: string;
     nextLabel: string;
   }) => (
-    <div data-testid="media-stage" data-title={item.replication.title}>
+    <div
+      data-testid="media-stage"
+      data-replication-media-stage
+      data-title={item.replication.title}
+    >
       {item.replication.type === "video" ? (
         <video>
           <track
@@ -48,7 +56,13 @@ vi.mock("./ReplicationMediaStage", () => ({
             label="English"
           />
         </video>
-      ) : null}
+      ) : (
+        <button
+          type="button"
+          data-replication-media-surface
+          aria-label="Still media surface"
+        />
+      )}
       <button
         type="button"
         aria-label={previousLabel}
@@ -65,7 +79,12 @@ vi.mock("./ReplicationMediaStage", () => ({
       >
         Next
       </button>
-      <button type="button" onClick={onInfo}>
+      <button
+        type="button"
+        aria-expanded={infoOpen}
+        aria-controls={infoControls}
+        onClick={onInfo}
+      >
         Information
       </button>
       <button type="button" onClick={onFullscreen}>
@@ -204,7 +223,7 @@ describe("ReplicationViewerOverlay", () => {
     );
 
     const dialog = screen.getByRole("dialog", {
-      name: "Replications by artist",
+      name: /Work One.*Chelsea Morgan/,
     });
     expect(dialog).toHaveAttribute("aria-modal", "true");
     expect(dialog).toHaveClass("grid-rows-[auto_minmax(0,1fr)]");
@@ -236,6 +255,114 @@ describe("ReplicationViewerOverlay", () => {
     expect(window.location.search).toContain("type=video");
     expect(window.location.search).toContain("viewer=work-two");
     expect(screen.getByRole("button", { name: "Final work" })).toBeDisabled();
+  });
+
+  it("does not load a raw GIF into the thumbnail rail", () => {
+    const gifCollection: ReplicationViewerCollection = {
+      ...collection,
+      groups: [
+        {
+          ...collection.groups[0],
+          items: [
+            {
+              ...collection.groups[0].items[0],
+              replication: {
+                ...collection.groups[0].items[0].replication,
+                format: "gif",
+                url: "https://cdn.test/original.gif",
+                thumbnail_url: "https://cdn.test/legacy-thumb.webp",
+                motion_url: "https://cdn.test/orphaned-motion.mp4",
+                motion_poster_url: undefined,
+              },
+            },
+            collection.groups[0].items[1],
+          ],
+        },
+      ],
+    };
+
+    render(
+      <ReplicationViewerOverlay
+        collection={gifCollection}
+        initialSlug="work-one"
+        open
+        onOpenChange={vi.fn()}
+      />,
+    );
+
+    expect(
+      screen
+        .getByRole("button", { name: "Show Work One" })
+        .querySelector("img"),
+    ).not.toBeInTheDocument();
+  });
+
+  it("scopes swipe navigation to the media stage", () => {
+    render(
+      <ReplicationViewerOverlay
+        collection={collection}
+        initialSlug="work-one"
+        open
+        onOpenChange={vi.fn()}
+      />,
+    );
+
+    const railButton = screen.getByRole("button", { name: "Show Work Two" });
+    fireEvent.touchStart(railButton, {
+      changedTouches: [{ clientX: 240, clientY: 300 }],
+    });
+    fireEvent.touchEnd(railButton, {
+      changedTouches: [{ clientX: 120, clientY: 300 }],
+    });
+    expect(screen.getByTestId("media-stage")).toHaveAttribute(
+      "data-title",
+      "Work One",
+    );
+
+    const stage = screen.getByRole("button", { name: "Still media surface" });
+    fireEvent.touchStart(stage, {
+      changedTouches: [{ clientX: 240, clientY: 300 }],
+    });
+    fireEvent.touchEnd(stage, {
+      changedTouches: [{ clientX: 120, clientY: 300 }],
+    });
+    expect(screen.getByTestId("media-stage")).toHaveAttribute(
+      "data-title",
+      "Work Two",
+    );
+  });
+
+  it("contains information-panel focus and restores its trigger", async () => {
+    render(
+      <ReplicationViewerOverlay
+        collection={collection}
+        initialSlug="work-one"
+        open
+        onOpenChange={vi.fn()}
+      />,
+    );
+
+    const trigger = screen.getByRole("button", { name: "Information" });
+    trigger.focus();
+    fireEvent.click(trigger);
+
+    const panel = screen.getByRole("dialog", { name: "Information" });
+    expect(trigger).toHaveAttribute("aria-expanded", "true");
+    expect(trigger).toHaveAttribute("aria-controls", panel.id);
+    await waitFor(() =>
+      expect(
+        screen.getByRole("button", { name: "Close information" }),
+      ).toHaveFocus(),
+    );
+    expect(screen.getByTestId("media-stage").parentElement).toHaveAttribute(
+      "inert",
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: "Close information" }));
+    await waitFor(() => expect(trigger).toHaveFocus());
+    expect(
+      screen.queryByRole("dialog", { name: "Information" }),
+    ).not.toBeInTheDocument();
   });
 
   it("moves vertically between gallery groups with the arrow keys", () => {
@@ -279,7 +406,7 @@ describe("ReplicationViewerOverlay", () => {
     );
 
     const header = screen
-      .getByRole("dialog", { name: "Replications by effect" })
+      .getByRole("dialog", { name: /Work Three.*Aria/ })
       .querySelector("header");
     expect(header).toHaveTextContent("Geometry");
     expect(header).toHaveTextContent("Effect 2/2");
@@ -329,7 +456,7 @@ describe("ReplicationViewerOverlay", () => {
     );
 
     fireEvent.keyDown(
-      screen.getByRole("dialog", { name: "Replications by artist" }),
+      screen.getByRole("dialog", { name: /Work One.*Chelsea Morgan/ }),
       { key: "Escape" },
     );
 
@@ -463,7 +590,7 @@ describe("ReplicationViewerOverlay", () => {
       </>
     );
     const { rerender } = render(view(true));
-    await screen.findByRole("dialog", { name: "Replications by artist" });
+    await screen.findByRole("dialog", { name: /Work One.*Chelsea Morgan/ });
 
     rerender(view(false));
 

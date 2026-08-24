@@ -21,7 +21,12 @@ vi.mock("@/features/replications/viewer/ReplicationViewerOverlay", () => ({
     initialSlug,
     onOpenChange,
   }: {
-    collection: { label: string; groups: { items: unknown[] }[] };
+    collection: {
+      label: string;
+      groups: {
+        items: { replication: { artist: string } }[];
+      }[];
+    };
     initialSlug: string;
     onOpenChange: (open: boolean) => void;
   }) => (
@@ -33,6 +38,7 @@ vi.mock("@/features/replications/viewer/ReplicationViewerOverlay", () => ({
         (count, group) => count + group.items.length,
         0,
       )}
+      data-active-artist={collection.groups[0]?.items[0]?.replication.artist}
     >
       <button type="button" onClick={() => onOpenChange(false)}>
         Close viewer
@@ -145,6 +151,11 @@ describe("ReplicationShowcase", () => {
       "/lsd?smoke=1",
     );
     expect(screen.queryByTestId("replication-viewer")).not.toBeInTheDocument();
+    expect(
+      screen.getByText(
+        "The linked replication is no longer available in this collection.",
+      ),
+    ).toBeInTheDocument();
     window.history.replaceState({}, "", "/");
   });
 
@@ -386,6 +397,57 @@ describe("ReplicationShowcase", () => {
       "https://cdn.test/drifting-motion.mp4",
     );
     expect(container.querySelector("video")).toHaveAttribute("loop");
+  });
+
+  it("does not mount a raw GIF when no controllable motion rendition exists", () => {
+    const gif = work({
+      slug: "legacy-gif",
+      title: "Legacy GIF",
+      format: "gif",
+      url: "https://cdn.test/legacy.gif",
+      thumbnailUrl: "https://cdn.test/legacy-thumb.webp",
+      motionUrl: "https://cdn.test/orphaned-motion.mp4",
+      motionPosterUrl: undefined,
+    });
+    render(<ReplicationShowcase works={[gif]} />);
+
+    expect(
+      screen.queryByRole("img", { name: "Legacy GIF" }),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.getByText(
+        "Animation unavailable until its controllable rendition is ready.",
+      ),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: "Play Legacy GIF" }),
+    ).not.toBeInTheDocument();
+  });
+
+  it("does not present corpus markers as creator names", () => {
+    render(
+      <ReplicationShowcase
+        works={[
+          work({
+            artistName: "Unknown",
+            artistHref: "/artists/unknown",
+            byline: "by Unknown",
+          }),
+        ]}
+      />,
+    );
+
+    expect(screen.getByText("Creator unknown")).toBeInTheDocument();
+    expect(screen.queryByText("by Unknown")).not.toBeInTheDocument();
+    fireEvent.click(
+      screen.getByRole("button", {
+        name: "Open Drifting (wood grain) in viewer",
+      }),
+    );
+    expect(screen.getByTestId("replication-viewer")).toHaveAttribute(
+      "data-active-artist",
+      "Unattributed",
+    );
   });
 });
 
