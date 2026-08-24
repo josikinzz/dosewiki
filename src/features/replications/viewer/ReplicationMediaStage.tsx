@@ -156,10 +156,10 @@ export function ReplicationMediaStage({
     fullFrame,
     onFullFrameChange,
   });
-  // Catalogued audio metadata beats runtime probes: a row proven silent hides
-  // the sound controls outright, a row with a known track always keeps them.
-  // GIF-derived motion renditions are generated silent by contract; probes
-  // only decide for unprobed legacy rows.
+  // Catalogued waveform evidence beats runtime track probes: a row proven
+  // silent hides sound controls outright; a row with audible signal keeps them.
+  // GIF-derived motion renditions are generated silent by contract; browser
+  // track APIs only decide for unprobed legacy rows.
   const soundAvailable =
     ordinaryVideo && knownAudio !== false && audioPresence !== "absent";
   // The immersive viewer always loops motion: a work never dead-ends into a

@@ -3090,6 +3090,19 @@ html[data-theme="light"] .theme-footer-surface:not(.theme-chrome-dark) {
     color-mix(in srgb, var(--theme-text-on-media) 12%, transparent);
 }
 
+/* The immersive viewer keeps its settings menu in the header's compositor
+   layer. A fully opaque surface and no transform animation prevent iOS Safari
+   from flashing the menu against a playing <video> layer. */
+.theme-media-settings-menu {
+  background-color: var(--theme-surface-strong);
+  border-color: var(--theme-border-subtle);
+  box-shadow: var(--theme-elevation-overlay);
+}
+
+.theme-media-settings-item:is(:hover, :focus-visible) {
+  background-color: var(--theme-frosted-control-on-panel-bg);
+}
+
 /* Accent playback meter: the hairline video progress fill at the bottom of
      the expanded stage. The faint glow keeps it visible over bright frames. */
 .theme-media-playback-fill {

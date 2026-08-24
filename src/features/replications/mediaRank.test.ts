@@ -4,7 +4,7 @@ import { orderEffectReplications } from "@/features/effects/gallery/replicationD
 import { replicationMediaRank, sortByMediaRank } from "./mediaRank";
 
 describe("replicationMediaRank", () => {
-  it("puts a video with a confirmed audio track first", () => {
+  it("puts a video with confirmed audible signal first", () => {
     expect(replicationMediaRank({ type: "video", format: "mp4", has_audio: true })).toBe(0);
   });
 
@@ -97,8 +97,8 @@ describe("orderEffectReplications applies the rank as primary key", () => {
       make({ slug: "silent", type: "video", format: "mp4" }),
     ];
 
-    // The editor pinned the still first; the audio-first rank still wins, and
-    // the curation only orders what shares a rank with it.
+    // The editor pinned the still first; the audible-signal rank still wins,
+    // and curation only orders work sharing a rank.
     expect(orderEffectReplications(items, ["curated-still", "silent"]).map((item) => item.slug)).toEqual([
       "sounded",
       "silent",

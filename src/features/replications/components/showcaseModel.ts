@@ -25,7 +25,7 @@ export type ShowcaseWork = {
   thumbnailUrl?: string;
   format?: string;
   duration?: number;
-  /** True = has an audio track, false = proven silent, absent = unprobed. */
+  /** True = audible signal; false = no signal; absent = unprobed. */
   hasAudio?: boolean;
   width?: number;
   height?: number;

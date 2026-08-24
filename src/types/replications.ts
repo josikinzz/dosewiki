@@ -183,9 +183,9 @@ export interface ReplicationRecord extends ReplicationRightsMetadata {
   file_size?: number;
   duration?: number;
   /**
-   * Whether the stored video has an audio track. `true` = audible audio,
-   * `false` = probed and proven silent, absent = never probed. Only
-   * meaningful on `type: "video"` rows.
+   * Whether the stored video contains audible signal. `true` = decoded peak
+   * above the silence floor; `false` = no audio stream or digitally silent;
+   * absent = never probed. Only meaningful on `type: "video"` rows.
    */
   has_audio?: boolean;
   created_at: string;
@@ -259,7 +259,7 @@ export interface PublicGalleryReplicationPreview {
   height?: number;
   /** Video duration in seconds, shown on the tile's duration badge. */
   duration?: number;
-  /** Whether a video row has an audio track; absent = unprobed. */
+  /** Whether a video contains audible signal; absent = unprobed. */
   has_audio?: boolean;
   /** ISO ingest timestamp; undated rows tiebreak by it after every dated row. */
   created_at: string;

@@ -167,8 +167,9 @@ export const replication = v.object({
   file_size: v.optional(v.number()),   // In bytes
   duration: v.optional(v.number()),    // Video duration in seconds
   /**
-   * Whether the stored video has an audio track. `true` = audible audio,
-   * `false` = probed and proven silent, absent = never probed. Written by
+   * Whether the stored video contains audible signal. `true` = decoded peak
+   * above the silence floor; `false` = no audio stream or digitally silent;
+   * absent = never probed. Written by
    * scripts/replications/backfill-audio-presence.mjs; only meaningful on
    * `type: "video"` rows.
    */

@@ -2,12 +2,12 @@
  * Audio-first media rank for every public replication playlist.
  *
  * The immersive viewer walks whatever order a surface assembled, so the
- * default "playlist" experience is decided here: a video with a soundtrack is
+ * default "playlist" experience is decided here: a video with audible signal is
  * the richest thing a playlist can open on, silent motion (soundless videos
  * and GIF loops) comes next, and stills close the walk. `has_audio` is stored
- * per row (true = probed and has a track, false = proven silent, absent =
- * never probed); an unprobed video is treated as silent rather than promoted
- * on hope.
+ * per row (true = decoded signal above the silence floor, false = no stream or
+ * digitally silent, absent = never probed); an unprobed video is treated as
+ * silent rather than promoted on hope.
  *
  * The rank is deliberately the *primary* key everywhere — it outranks even
  * editor-chosen orders like an effect's `gallery_order` or a contributor's

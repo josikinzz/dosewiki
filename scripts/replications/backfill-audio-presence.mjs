@@ -3,10 +3,10 @@
 /**
  * Backfill `has_audio` on video replications.
  *
- * Reads the public replications API (no credentials), ffprobes each video's
- * delivered URL for an audio stream, and records a {slug, id, has_audio}
- * ledger in this script's work dir. GIF-format rows and images are never
- * probed and never written.
+ * Reads the public replications API (no credentials), detects an audio stream,
+ * then decodes that stream through ffmpeg's `volumedetect`. `has_audio` is true
+ * only when the delivered video contains signal above the conservative -80 dB
+ * silence floor. GIF-format rows and images are never probed or written.
  *
  * Dry run (default) prints the tally and stops. Writing requires the full
  * production-write gate plus an explicit --confirm-production-write flag, and
@@ -37,10 +37,14 @@ import {
 
 const OPERATION = "backfill-audio-presence";
 const FFPROBE = process.env.FFPROBE_BIN ?? "ffprobe";
+const FFMPEG = process.env.FFMPEG_BIN ?? "ffmpeg";
 const DEFAULT_API_BASE = "https://dev.dose.wiki/api/v1";
 const DEFAULT_PAGE_LIMIT = 100;
 const PROBE_CONCURRENCY = 4;
-const PROBE_TIMEOUT_MS = 60_000;
+const STREAM_PROBE_TIMEOUT_MS = 60_000;
+const WAVEFORM_PROBE_TIMEOUT_MS = 10 * 60_000;
+const SILENCE_FLOOR_DB = -80;
+const ANALYSIS_VERSION = "decoded-volume-v1";
 const WRITE_BATCH_SIZE = 100;
 
 const WORK_DIR = path.join(
@@ -83,7 +87,7 @@ async function fetchAllReplications(apiBase, pageLimit, maxItems) {
 }
 
 /** True when the delivered file has at least one audio stream. */
-async function probeHasAudio(url) {
+async function probeHasAudioStream(url) {
   const { stdout } = await execFileAsync(
     FFPROBE,
     [
@@ -97,29 +101,105 @@ async function probeHasAudio(url) {
       "csv=p=0",
       url,
     ],
-    { timeout: PROBE_TIMEOUT_MS },
+    { timeout: STREAM_PROBE_TIMEOUT_MS },
   );
   return stdout.split("\n").some((line) => line.trim() === "audio");
 }
 
-async function probeAll(candidates, knownVerdicts) {
-  const verdicts = new Map();
+function parseVolumeDb(stderr, field) {
+  const match = stderr.match(
+    new RegExp(`${field}:\\s*(-?inf|[-+]?\\d+(?:\\.\\d+)?)\\s*dB`, "i"),
+  );
+  if (!match) return undefined;
+  if (match[1].toLowerCase() === "-inf") return -Infinity;
+  return Number(match[1]);
+}
+
+function isAudiblePeak(maxVolumeDb) {
+  return Number.isFinite(maxVolumeDb) && maxVolumeDb > SILENCE_FLOOR_DB;
+}
+
+/**
+ * Decode the complete first audio stream. A container track is not enough:
+ * only measurable signal above the floor earns `has_audio: true`.
+ */
+async function probeAudioPresence(url) {
+  const audioStream = await probeHasAudioStream(url);
+  if (!audioStream) {
+    return {
+      analysis: ANALYSIS_VERSION,
+      status: "no-audio-stream",
+      audio_stream: false,
+      has_audio: false,
+      mean_volume_db: null,
+      max_volume_db: null,
+    };
+  }
+
+  const { stderr } = await execFileAsync(
+    FFMPEG,
+    [
+      "-nostdin",
+      "-hide_banner",
+      "-loglevel",
+      "info",
+      "-i",
+      url,
+      "-map",
+      "0:a:0",
+      "-vn",
+      "-af",
+      "volumedetect",
+      "-f",
+      "null",
+      "-",
+    ],
+    {
+      timeout: WAVEFORM_PROBE_TIMEOUT_MS,
+      maxBuffer: 8 * 1024 * 1024,
+    },
+  );
+  const meanVolume = parseVolumeDb(stderr, "mean_volume");
+  const maxVolume = parseVolumeDb(stderr, "max_volume");
+  if (maxVolume === undefined) {
+    throw new Error(
+      "ffmpeg decoded the audio stream but reported no peak volume.",
+    );
+  }
+  const hasAudio = isAudiblePeak(maxVolume);
+  return {
+    analysis: ANALYSIS_VERSION,
+    status: hasAudio ? "audible" : "digitally-silent",
+    audio_stream: true,
+    mean_volume_db: Number.isFinite(meanVolume) ? meanVolume : null,
+    max_volume_db: Number.isFinite(maxVolume) ? maxVolume : null,
+  };
+}
+
+function formatProbe(result) {
+  const peak =
+    typeof result.max_volume_db === "number"
+      ? ` (${result.max_volume_db.toFixed(1)} dB peak)`
+      : "";
+  return `${result.status}${peak}`;
+}
+
+async function probeAll(candidates, knownAnalyses) {
+  const analyses = new Map();
   const errors = [];
   const queue = [...candidates];
   async function worker() {
     for (let item = queue.shift(); item; item = queue.shift()) {
-      const known = knownVerdicts.get(item.slug);
-      if (typeof known === "boolean") {
-        verdicts.set(item.slug, known);
-        console.log(
-          `  ${item.slug}: ${known ? "audio" : "silent"} (from ledger)`,
-        );
+      const known = knownAnalyses.get(item.slug);
+      if (known) {
+        analyses.set(item.slug, known);
+        console.log(`  ${item.slug}: ${formatProbe(known)} (from ledger)`);
         continue;
       }
       try {
-        const hasAudio = await probeHasAudio(item.url);
-        verdicts.set(item.slug, hasAudio);
-        console.log(`  ${item.slug}: ${hasAudio ? "audio" : "silent"}`);
+        const result = await probeAudioPresence(item.url);
+        analyses.set(item.slug, result);
+        console.log(`  ${item.slug}: ${formatProbe(result)}`);
       } catch (error) {
         errors.push({
           slug: item.slug,
@@ -130,7 +210,7 @@ async function probeAll(candidates, knownVerdicts) {
     }
   }
   await Promise.all(Array.from({ length: PROBE_CONCURRENCY }, worker));
-  return { verdicts, errors };
+  return { analyses, errors };
 }
 
 async function main() {
@@ -164,17 +244,20 @@ async function main() {
 
   const previousLedger =
     !reprobe && fs.existsSync(ledgerPath) ? loadJson(ledgerPath) : null;
-  const knownVerdicts = new Map(
-    (previousLedger?.entries ?? []).map((entry) => [
-      entry.slug,
-      entry.has_audio,
-    ]),
+  const knownAnalyses = new Map(
+    (previousLedger?.entries ?? [])
+      .filter(
+        (entry) =>
+          entry.analysis === ANALYSIS_VERSION &&
+          typeof entry.has_audio === "boolean",
+      )
+      .map((entry) => [entry.slug, entry]),
   );
 
   console.log(
     `Probing ${candidates.length} videos (${skipped} stills/GIFs skipped)...`,
   );
-  const { verdicts, errors } = await probeAll(candidates, knownVerdicts);
+  const { analyses, errors } = await probeAll(candidates, knownAnalyses);
 
   // Convex row ids for the ledger and the write path. Reads need no
   // credential; without a configured target the dry run leaves ids null.
@@ -186,14 +269,16 @@ async function main() {
   }
 
   const entries = candidates
-    .filter((item) => verdicts.has(item.slug))
+    .filter((item) => analyses.has(item.slug))
     .map((item) => ({
       slug: item.slug,
       id: idsBySlug.get(item.slug)?._id ?? null,
-      has_audio: verdicts.get(item.slug),
+      ...analyses.get(item.slug),
     }));
   writeJsonAtomic(ledgerPath, {
-    schemaVersion: 1,
+    schemaVersion: 2,
+    analysis: ANALYSIS_VERSION,
+    silenceFloorDb: SILENCE_FLOOR_DB,
     generatedAt: new Date().toISOString(),
     apiBase,
     target: command.targetUrl ?? null,
@@ -201,13 +286,22 @@ async function main() {
     errors,
   });
 
-  const withAudio = entries.filter((entry) => entry.has_audio).length;
+  const audible = entries.filter((entry) => entry.status === "audible").length;
+  const digitallySilent = entries.filter(
+    (entry) => entry.status === "digitally-silent",
+  ).length;
+  const noAudioStream = entries.filter(
+    (entry) => entry.status === "no-audio-stream",
+  ).length;
   const tally = {
     mode: command.dryRun ? "dry-run" : "write",
     fetched: rows.length,
     probed: entries.length,
-    withAudio,
-    silent: entries.length - withAudio,
+    audible,
+    digitallySilent,
+    noAudioStream,
+    withAudio: audible,
+    silent: digitallySilent + noAudioStream,
     skippedStillsAndGifs: skipped,
     probeErrors: errors.length,
     ledgerPath,

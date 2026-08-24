@@ -46,7 +46,7 @@ export interface ReplicationViewerMedia {
   width?: number;
   height?: number;
   duration?: number;
-  /** True = has an audio track, false = proven silent, absent = unprobed. */
+  /** True = audible signal; false = no signal; absent = unprobed. */
   has_audio?: boolean;
 }
 

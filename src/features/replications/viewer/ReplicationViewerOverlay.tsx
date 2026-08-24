@@ -18,14 +18,6 @@ import {
   DialogDescription,
   DialogTitle,
 } from "@/components/ui/dialog";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuLabel,
-  DropdownMenuRadioGroup,
-  DropdownMenuRadioItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import { focusRingClassName } from "@/components/ui/surface";
 import { toAppPath } from "@/utils/previewPath";
 import {
@@ -179,6 +171,7 @@ export function ReplicationViewerOverlay({
   const [fullscreenMessage, setFullscreenMessage] = useState("");
   const [entryMotion, setEntryMotion] = useState<EntryMotion | null>(null);
   const [gestureHint, setGestureHint] = useState(false);
+  const [settingsOpen, setSettingsOpen] = useState(false);
   const rememberedSlugByGroupRef = useRef<Record<string, string>>({});
   const touchStartRef = useRef<{ x: number; y: number; t: number } | null>(
     null,
@@ -193,6 +186,8 @@ export function ReplicationViewerOverlay({
   const sourceFocusTargetRef = useRef<HTMLElement | null>(null);
   const infoOpenerRef = useRef<HTMLElement | null>(null);
   const infoCloseRef = useRef<HTMLButtonElement | null>(null);
+  const settingsRef = useRef<HTMLDivElement>(null);
+  const settingsButtonRef = useRef<HTMLButtonElement>(null);
   const infoPanelId = useId();
   const infoHeadingId = useId();
 
@@ -217,10 +212,25 @@ export function ReplicationViewerOverlay({
       setVolume(1);
       setFullFrame(false);
       setInfoOpen(false);
+      setSettingsOpen(false);
       setImmersiveFallback(false);
       rememberedSlugByGroupRef.current = {};
     }
   }, [open]);
+
+  useEffect(() => {
+    if (!settingsOpen) return;
+    const closeFromOutside = (event: PointerEvent) => {
+      if (
+        event.target instanceof Node &&
+        !settingsRef.current?.contains(event.target)
+      ) {
+        setSettingsOpen(false);
+      }
+    };
+    document.addEventListener("pointerdown", closeFromOutside);
+    return () => document.removeEventListener("pointerdown", closeFromOutside);
+  }, [settingsOpen]);
 
   useEffect(() => {
     if (!open) return;
@@ -542,6 +552,12 @@ export function ReplicationViewerOverlay({
           contentRef.current?.focus();
         }}
         onEscapeKeyDown={(event) => {
+          if (settingsOpen) {
+            event.preventDefault();
+            setSettingsOpen(false);
+            settingsButtonRef.current?.focus();
+            return;
+          }
           if (infoOpen) {
             event.preventDefault();
             closeInfo();
@@ -807,40 +823,59 @@ export function ReplicationViewerOverlay({
             </div>
           ) : null}
           {onRegroup && collection.kind === "gallery" ? (
-            <DropdownMenu modal={false}>
-              <DropdownMenuTrigger asChild>
-                <button
-                  type="button"
+            <div ref={settingsRef} className="relative flex-none">
+              <button
+                ref={settingsButtonRef}
+                type="button"
+                aria-label="Viewer settings"
+                aria-haspopup="menu"
+                aria-expanded={settingsOpen}
+                onClick={() => setSettingsOpen((current) => !current)}
+                className={cn(
+                  "theme-media-tile-title theme-media-control-raised grid size-11 place-items-center rounded-lg",
+                  focusRingClassName,
+                )}
+              >
+                <Icon icon="lucide:sliders-horizontal" className="size-5" />
+              </button>
+              {settingsOpen ? (
+                <div
+                  role="menu"
                   aria-label="Viewer settings"
-                  className={cn(
-                    "theme-media-tile-title theme-media-control-raised grid size-11 flex-none place-items-center rounded-lg",
-                    focusRingClassName,
-                  )}
+                  className="theme-media-settings-menu theme-media-tile-title absolute right-0 top-full z-[80] mt-2 min-w-36 overflow-hidden rounded-xl border p-1"
                 >
-                  <Icon icon="lucide:sliders-horizontal" className="size-5" />
-                </button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="z-[80]">
-                <DropdownMenuLabel>Sort by</DropdownMenuLabel>
-                <DropdownMenuRadioGroup
-                  value={collection.grouping}
-                  onValueChange={(value) => {
-                    if (value === collection.grouping) return;
-                    onRegroup(
-                      value as "artist" | "effect",
-                      active.replication.slug,
-                    );
-                  }}
-                >
-                  <DropdownMenuRadioItem value="artist">
-                    Artist
-                  </DropdownMenuRadioItem>
-                  <DropdownMenuRadioItem value="effect">
-                    Effect
-                  </DropdownMenuRadioItem>
-                </DropdownMenuRadioGroup>
-              </DropdownMenuContent>
-            </DropdownMenu>
+                  <p className="px-2 py-1.5 text-xs font-semibold">Sort by</p>
+                  {(["artist", "effect"] as const).map((grouping) => (
+                    <button
+                      key={grouping}
+                      type="button"
+                      role="menuitemradio"
+                      aria-checked={collection.grouping === grouping}
+                      onClick={() => {
+                        setSettingsOpen(false);
+                        if (grouping !== collection.grouping) {
+                          onRegroup(grouping, active.replication.slug);
+                        }
+                      }}
+                      className={cn(
+                        "theme-media-settings-item flex w-full items-center gap-2 rounded-lg px-2 py-2 text-left text-sm focus:outline-none",
+                        focusRingClassName,
+                      )}
+                    >
+                      <span
+                        aria-hidden
+                        className="grid size-2 place-items-center rounded-full border border-current"
+                      >
+                        {collection.grouping === grouping ? (
+                          <span className="size-1 rounded-full bg-current" />
+                        ) : null}
+                      </span>
+                      {grouping === "artist" ? "Artist" : "Effect"}
+                    </button>
+                  ))}
+                </div>
+              ) : null}
+            </div>
           ) : null}
           <button
             type="button"

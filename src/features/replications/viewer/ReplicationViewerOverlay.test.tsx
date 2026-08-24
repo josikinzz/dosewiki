@@ -363,8 +363,10 @@ describe("ReplicationViewerOverlay", () => {
     );
 
     await user.click(screen.getByRole("button", { name: "Viewer settings" }));
+    expect(screen.getByRole("menu").closest("header")).not.toBeNull();
     await user.click(screen.getByRole("menuitemradio", { name: "Effect" }));
     expect(onRegroup).toHaveBeenCalledWith("effect", "work-two");
+    expect(screen.queryByRole("menu")).not.toBeInTheDocument();
   });
 
   it("offers no settings menu without a regroup host", () => {
