@@ -194,7 +194,7 @@ describe("ReplicationMediaStage", () => {
     expect(HTMLMediaElement.prototype.play).toHaveBeenCalledOnce();
   });
 
-  it("retries muted without flipping the shared control, then the next gesture restores sound", async () => {
+  it("retries muted without flipping the shared control, then the next tap restores sound", async () => {
     const onMutedChange = vi.fn();
     const play = vi.mocked(HTMLMediaElement.prototype.play);
     play.mockClear();
@@ -227,13 +227,59 @@ describe("ReplicationMediaStage", () => {
     fireEvent.play(video);
     expect(screen.getByRole("button", { name: "Pause" })).toBeInTheDocument();
 
-    // The very next gesture repays the sound IOU inside user activation.
-    fireEvent.pointerUp(window);
+    // The next tap on the stage runs inside user activation, where the
+    // browser accepts the unmute — it repays the sound IOU instead of
+    // toggling pause, so one tap never needs a second one.
+    const pause = vi.mocked(HTMLMediaElement.prototype.pause);
+    pause.mockClear();
+    play.mockImplementation(() => Promise.resolve());
+    fireEvent.click(video);
+    await act(async () => {});
     expect(video.muted).toBe(false);
     expect(video.volume).toBe(1);
+    expect(pause).not.toHaveBeenCalled();
 
     play.mockReset();
     play.mockResolvedValue(undefined);
+  });
+
+  it("keeps one media element alive across works so its playback blessing survives", async () => {
+    const first = item();
+    const { container, rerender } = render(
+      <ReplicationMediaStage
+        item={first}
+        muted={false}
+        volume={1}
+        fullFrame={false}
+        onMutedChange={vi.fn()}
+        onVolumeChange={vi.fn()}
+        onFullFrameChange={vi.fn()}
+      />,
+    );
+    await act(async () => {});
+    const video = container.querySelector("video") as HTMLVideoElement;
+
+    rerender(
+      <ReplicationMediaStage
+        item={item({
+          slug: "afterimages",
+          title: "Afterimages",
+          url: "https://cdn.test/afterimages.mp4",
+        })}
+        muted={false}
+        volume={1}
+        fullFrame={false}
+        onMutedChange={vi.fn()}
+        onVolumeChange={vi.fn()}
+        onFullFrameChange={vi.fn()}
+      />,
+    );
+    await act(async () => {});
+
+    // Same element, new source: iOS Safari's unmuted-playback blessing is
+    // per-element, so a swipe must swap src instead of remounting.
+    expect(container.querySelector("video")).toBe(video);
+    expect(video).toHaveAttribute("src", "https://cdn.test/afterimages.mp4");
   });
 
   it("uses a controllable motion rendition for GIF rows without losing the poster", () => {

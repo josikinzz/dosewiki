@@ -133,6 +133,9 @@ export function ReplicationMediaStage({
   const videoRef = useRef<HTMLVideoElement>(null);
   /** Sound the reader asked for but the browser refused outside a gesture. */
   const pendingSoundRef = useRef(false);
+  /** Latest shared sound state, readable from per-work effects without re-running them. */
+  const mutedRef = useRef(muted);
+  const volumeRef = useRef(volume);
   const progressFillRef = useRef<HTMLDivElement>(null);
   const hideTimerRef = useRef<number | undefined>(undefined);
   const reducedMotion = useReducedMotion();
@@ -207,43 +210,31 @@ export function ReplicationMediaStage({
     setPlaying(false);
     setControlsVisible(true);
     setFramePainted(false);
-    // A new work starts a new sound conversation; a stale IOU must not
-    // unmute a later video the reader never asked about.
+    // A new work re-asks for the shared sound preference in the autoplay
+    // effect below; any refusal re-arms the IOU there, so a stale debt from
+    // the previous work never carries over.
     pendingSoundRef.current = false;
     // knownAudio is derived from the same slug change that resets here.
   }, [replication.slug]);
 
   useEffect(() => {
+    mutedRef.current = muted;
+    volumeRef.current = volume;
+  });
+
+  useEffect(() => {
     const video = videoRef.current;
     if (!video) return;
-    video.muted = muted;
     video.volume = volume;
-    if (muted) pendingSoundRef.current = false;
-  }, [muted, volume, replication.slug]);
-
-  // The browser refused unmuted playback outside a gesture, so the element is
-  // temporarily muted against the reader's wishes. Repair it inside the very
-  // next gesture, where the unmute is allowed — the Reels grammar: your next
-  // tap or swipe brings the sound back.
-  useEffect(() => {
-    const restoreSound = () => {
-      const video = videoRef.current;
-      if (!pendingSoundRef.current || !video) return;
+    if (muted) {
+      video.muted = true;
       pendingSoundRef.current = false;
+    } else if (!pendingSoundRef.current) {
+      // Never force an unmute while an IOU is outstanding: outside a gesture
+      // WebKit answers it by pausing the video instead.
       video.muted = false;
-      video.volume = volume;
-      if (video.paused && autoplayAllowed) {
-        const retry = video.play();
-        if (retry) void retry.catch(() => undefined);
-      }
-    };
-    window.addEventListener("pointerup", restoreSound, true);
-    window.addEventListener("touchend", restoreSound, true);
-    return () => {
-      window.removeEventListener("pointerup", restoreSound, true);
-      window.removeEventListener("touchend", restoreSound, true);
-    };
-  }, [autoplayAllowed, volume]);
+    }
+  }, [muted, volume]);
 
   const markBlocked = useCallback(() => {
     setBlocked(true);
@@ -277,6 +268,18 @@ export function ReplicationMediaStage({
     [markBlocked],
   );
 
+  /**
+   * Repay a refused unmute inside a live gesture; returns true when a debt
+   * was repaid. Must only run from user-event handlers.
+   */
+  const repaySoundIou = useCallback((video: HTMLVideoElement) => {
+    if (!pendingSoundRef.current) return false;
+    pendingSoundRef.current = false;
+    video.muted = false;
+    video.volume = volumeRef.current;
+    return true;
+  }, []);
+
   useEffect(() => {
     const video = videoRef.current;
     if (!video) return;
@@ -284,6 +287,12 @@ export function ReplicationMediaStage({
       if (!video.paused) video.pause();
       return;
     }
+    // Every work re-asks for the reader's sound preference. An element the
+    // reader has already unmuted inside a gesture keeps that blessing across
+    // src swaps, so it simply plays with sound; an unblessed one is refused
+    // and attemptPlay's muted fallback re-arms the IOU for the next tap.
+    video.muted = mutedRef.current;
+    video.volume = volumeRef.current;
     attemptPlay(video);
   }, [attemptPlay, autoplayAllowed, replication.slug]);
 
@@ -292,11 +301,14 @@ export function ReplicationMediaStage({
     if (!video) return;
     showControls();
     if (video.paused || video.ended) {
+      repaySoundIou(video);
       attemptPlay(video);
-    } else {
+    } else if (!repaySoundIou(video)) {
+      // The reels grammar: a tap while sound is owed brings the sound back;
+      // only a tap with nothing owed toggles pause.
       video.pause();
     }
-  }, [attemptPlay, showControls]);
+  }, [attemptPlay, repaySoundIou, showControls]);
 
   /** Settle audio presence from track APIs as the media loads and plays. */
   const settleAudioPresence = useCallback(
@@ -360,7 +372,10 @@ export function ReplicationMediaStage({
         // and rights context are exposed by the surrounding viewer.
         // eslint-disable-next-line jsx-a11y/media-has-caption
         <video
-          key={replication.slug}
+          // Deliberately unkeyed: iOS Safari's unmuted-playback blessing is
+          // per-element and survives src swaps but not remounts. One element
+          // carried across works is what lets sound continue seamlessly
+          // through a swipe, the way the phone feeds behave.
           ref={(node) => {
             videoRef.current = node;
             // Mobile autoplay policies read the muted flag at load time, before
@@ -372,7 +387,6 @@ export function ReplicationMediaStage({
           }}
           src={motionSource}
           poster={poster}
-          muted={muted}
           loop
           autoPlay={autoplayAllowed}
           playsInline
@@ -382,7 +396,6 @@ export function ReplicationMediaStage({
             const video = event.currentTarget;
             probeAspect(video.videoWidth, video.videoHeight);
             video.volume = volume;
-            video.muted = muted;
             settleAudioPresence(video);
           }}
           onTimeUpdate={(event) => {
@@ -663,7 +676,10 @@ export function ReplicationMediaStage({
                       if (video) {
                         video.muted = next;
                         video.volume = volume;
-                        if (!next && video.paused && autoplayAllowed) {
+                        // An in-gesture play() is what blesses this element
+                        // for future unmuted playback on later works; calling
+                        // it while already playing is a no-op.
+                        if (!next && autoplayAllowed) {
                           attemptPlay(video);
                         }
                       }

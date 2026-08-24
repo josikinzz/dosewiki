@@ -39,6 +39,8 @@ import {
 } from "./viewerModel";
 import {
   GESTURE_HINT_STORAGE_KEY,
+  VIEWER_SOUND_STORAGE_KEY,
+  resolveViewerMuted,
   shouldShowGestureHint,
   standbyPosterSource,
 } from "./viewerLogic";
@@ -206,17 +208,38 @@ export function ReplicationViewerOverlay({
     rememberedSlugByGroupRef.current[group!.key] = active.replication.slug;
   }, [active, group, open]);
 
+  // Sound is a session preference, the way the phone feeds treat it: each
+  // open starts from the stored choice instead of hard-resetting to muted.
   useEffect(() => {
     if (!open) {
-      setMuted(true);
       setVolume(1);
       setFullFrame(false);
       setInfoOpen(false);
       setSettingsOpen(false);
       setImmersiveFallback(false);
       rememberedSlugByGroupRef.current = {};
+      return;
     }
+    let stored: string | null = null;
+    try {
+      stored = window.sessionStorage.getItem(VIEWER_SOUND_STORAGE_KEY);
+    } catch {
+      // Storage denied: fall back to the muted default.
+    }
+    setMuted(resolveViewerMuted(stored));
   }, [open]);
+
+  const handleMutedChange = useCallback((nextMuted: boolean) => {
+    setMuted(nextMuted);
+    try {
+      window.sessionStorage.setItem(
+        VIEWER_SOUND_STORAGE_KEY,
+        nextMuted ? "off" : "on",
+      );
+    } catch {
+      // Best effort: a blocked write only means the choice lasts one open.
+    }
+  }, []);
 
   useEffect(() => {
     if (!settingsOpen) return;
@@ -925,7 +948,7 @@ export function ReplicationViewerOverlay({
                   muted={muted}
                   volume={volume}
                   fullFrame={fullFrame}
-                  onMutedChange={setMuted}
+                  onMutedChange={handleMutedChange}
                   onVolumeChange={setVolume}
                   onFullFrameChange={setFullFrame}
                   onPrevious={

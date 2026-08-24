@@ -22,6 +22,8 @@ import type { ReplicationViewerCollection } from "./viewerModel";
 vi.mock("./ReplicationMediaStage", () => ({
   ReplicationMediaStage: ({
     item,
+    muted,
+    onMutedChange,
     onPrevious,
     onNext,
     onInfo,
@@ -33,6 +35,8 @@ vi.mock("./ReplicationMediaStage", () => ({
     nextLabel,
   }: {
     item: { replication: { title: string; type: "image" | "video" } };
+    muted: boolean;
+    onMutedChange: (muted: boolean) => void;
     onPrevious?: () => void;
     onNext?: () => void;
     onInfo?: () => void;
@@ -64,6 +68,13 @@ vi.mock("./ReplicationMediaStage", () => ({
           aria-label="Still media surface"
         />
       )}
+      <button
+        type="button"
+        aria-label={muted ? "Unmute" : "Mute"}
+        onClick={() => onMutedChange(!muted)}
+      >
+        {muted ? "Unmute" : "Mute"}
+      </button>
       <button
         type="button"
         aria-label={previousLabel}
@@ -180,6 +191,7 @@ beforeEach(() => {
     "/replications?type=video&viewer=work-one",
   );
   window.localStorage.clear();
+  window.sessionStorage.clear();
   vi.stubGlobal(
     "fetch",
     vi.fn().mockResolvedValue({
@@ -911,5 +923,41 @@ describe("ReplicationViewerOverlay", () => {
     expect(
       screen.getByRole("link", { name: "Open full details" }),
     ).toHaveAttribute("href", "/replications/work-one");
+  });
+
+  it("stores an unmute so the whole session keeps sound on", async () => {
+    render(
+      <ReplicationViewerOverlay
+        collection={collection}
+        initialSlug="work-one"
+        open
+        onOpenChange={vi.fn()}
+      />,
+    );
+
+    // The reels default: a fresh session opens muted.
+    fireEvent.click(await screen.findByRole("button", { name: "Unmute" }));
+
+    expect(screen.getByRole("button", { name: "Mute" })).toBeInTheDocument();
+    expect(window.sessionStorage.getItem("replication-viewer-sound")).toBe(
+      "on",
+    );
+  });
+
+  it("reopens with sound on when this session already chose it", async () => {
+    window.sessionStorage.setItem("replication-viewer-sound", "on");
+
+    render(
+      <ReplicationViewerOverlay
+        collection={collection}
+        initialSlug="work-one"
+        open
+        onOpenChange={vi.fn()}
+      />,
+    );
+
+    expect(
+      await screen.findByRole("button", { name: "Mute" }),
+    ).toBeInTheDocument();
   });
 });

@@ -53,6 +53,17 @@ export function shouldShowGestureHint(
   return coarsePointer && stored === null;
 }
 
+/** sessionStorage key remembering the reader's viewer sound choice. */
+export const VIEWER_SOUND_STORAGE_KEY = "replication-viewer-sound";
+
+/**
+ * Muted unless this session explicitly turned sound on — the reels default.
+ * Any unreadable or unrecognised value falls back to muted, never to sound.
+ */
+export function resolveViewerMuted(stored: string | null): boolean {
+  return stored !== "on";
+}
+
 /**
  * The frame a neighboring work shows while parked beside the stage: exactly
  * the source its own stage will paint first, so the swap lands on a warm,
