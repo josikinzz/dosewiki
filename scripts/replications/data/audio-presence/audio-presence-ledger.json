@@ -1,0 +1,2564 @@
+{
+  "schemaVersion": 1,
+  "generatedAt": "2026-08-24T07:24:58.134Z",
+  "apiBase": "https://dev.dose.wiki/api/v1",
+  "target": "https://glad-minnow-656.convex.cloud",
+  "entries": [
+    {
+      "slug": "tourism-zoom",
+      "id": "k57afrsfcywyw9f5xm9g1hzs6s8cnj4z",
+      "has_audio": false
+    },
+    {
+      "slug": "after-images-stingrayz-pepperymedicalafghanhound",
+      "id": "k57f9618d9mcsx36qx9cmb56ah8cnbhr",
+      "has_audio": false
+    },
+    {
+      "slug": "welcome-back-phosform",
+      "id": "k574k61sg371ky5ckcdsg6qn7s8cng8w",
+      "has_audio": true
+    },
+    {
+      "slug": "entity-room-symmetric-vision",
+      "id": "k574asc76w1ztpqv4n372w055h847d0n",
+      "has_audio": true
+    },
+    {
+      "slug": "antechamber-hypnagogist",
+      "id": "k57d51fg741d3ba1trghng3mm58478c7",
+      "has_audio": true
+    },
+    {
+      "slug": "entity2-hypnagogist",
+      "id": "k575q5geztqc6h26hy7z0sr9k98472mm",
+      "has_audio": true
+    },
+    {
+      "slug": "fungal-intelligence-k-visuals",
+      "id": "k57f7ahxweds728ppjsdx4ar4d846n6v",
+      "has_audio": true
+    },
+    {
+      "slug": "jester-alien-symmetric-vision",
+      "id": "k57e166v3y920w4qyx93j6419d8462yr",
+      "has_audio": false
+    },
+    {
+      "slug": "jester-f-u-sunterry-art",
+      "id": "k57bp3wek52mvzzz9q48zc9zpx846hhn",
+      "has_audio": false
+    },
+    {
+      "slug": "keana-k-visuals",
+      "id": "k5769a205mb6fkfvtxqbmdpqgn847j8d",
+      "has_audio": true
+    },
+    {
+      "slug": "mind-malware-sunterry-art",
+      "id": "k573ba5qptpvf72ah2b7f2782h8469we",
+      "has_audio": true
+    },
+    {
+      "slug": "mirror-entity-symmetric-vision",
+      "id": "k57b5p3gstn6x20hf1bvh5h6qn847wzt",
+      "has_audio": false
+    },
+    {
+      "slug": "ophanim-symmetric-vision",
+      "id": "k57evwjekjr95mb90whjfsdwvh8473bp",
+      "has_audio": true
+    },
+    {
+      "slug": "snake-entity-symmetric-vision",
+      "id": "k570gxrk37bwrw7e2rn7sg7b7d847j0c",
+      "has_audio": false
+    },
+    {
+      "slug": "ai-generated-dmt-entities-hypnagogist",
+      "id": "k5770z0rgzw10e5mz3t7xmjwx98cm0j5",
+      "has_audio": true
+    },
+    {
+      "slug": "alien-bee-symmetric-vision",
+      "id": "k575pjhym21xy7f6skrash4kcd8cm2rp",
+      "has_audio": false
+    },
+    {
+      "slug": "another-version-of-yourself-stingrayz",
+      "id": "k578msemfb2w7w36pze6c2y0j98cmwjf",
+      "has_audio": false
+    },
+    {
+      "slug": "arise-visionary-art-visuals-simon-haiduk",
+      "id": "k575e3bkvs22a6ehfgfzthpats8cn1z6",
+      "has_audio": true
+    },
+    {
+      "slug": "avatars-of-atman-keana-sears",
+      "id": "k5743dejcrmtnrkpmtdsfycnjn8cmnea",
+      "has_audio": true
+    },
+    {
+      "slug": "centibeee-symmetric-vision",
+      "id": "k573090g8892a8d49zn3xrfq8n8cmdwf",
+      "has_audio": false
+    },
+    {
+      "slug": "collab-with-bear-symmetric-vision",
+      "id": "k578dtrd0mnn8mkncn6sz8kv1n8cmhd1",
+      "has_audio": false
+    },
+    {
+      "slug": "complex-handy-entity-symmetric-vision",
+      "id": "k57d5nzqa9qcr6zbjg2zxv8jm18cmtbw",
+      "has_audio": false
+    },
+    {
+      "slug": "dick-god-sunterry",
+      "id": "k5715bstfe5hsk4wygsnqptj9h8cn0fc",
+      "has_audio": false
+    },
+    {
+      "slug": "dmt-entity-contact-ulilgick",
+      "id": "k573vy45b55qr0f17d22qg96en8bdbx6",
+      "has_audio": true
+    },
+    {
+      "slug": "dmt-entity-scene-eloh-projects",
+      "id": "k570wsr1a6s2ypan8sqsyvf8218cm416",
+      "has_audio": true
+    },
+    {
+      "slug": "dmt-entity-symmetric-vision",
+      "id": "k57d04rtp8wc66s5svjr6mfg758cn6re",
+      "has_audio": false
+    },
+    {
+      "slug": "dmt-flash-symmetric-vision",
+      "id": "k571tksaxt25by6z7zhd1nttbn8cnd23",
+      "has_audio": false
+    },
+    {
+      "slug": "dmtity-bearfromvoid",
+      "id": "k574ad05eg1yzjqsrpyer8y28s8bcb1q",
+      "has_audio": true
+    },
+    {
+      "slug": "entity-bug-symmetric-vision",
+      "id": "k57avcnzjmd35wj5pdhykn08zh8cm3pn",
+      "has_audio": true
+    },
+    {
+      "slug": "entity-closeup-redo-hypnagogist",
+      "id": "k57b3cwppsjrf394ptxy8pcw9x8cnsz7",
+      "has_audio": false
+    },
+    {
+      "slug": "entity-room-shipibo-symmetric-vision",
+      "id": "k57d19056f9btj82285kvbqkbh8cnqj7",
+      "has_audio": false
+    },
+    {
+      "slug": "entity-soup-symmetric-vision",
+      "id": "k57chdg6g5d1g4pkwj3j5znq758cnp6y",
+      "has_audio": false
+    },
+    {
+      "slug": "figure-at-the-end-of-the-neon-maze-k-visuals",
+      "id": "k572ynm2xryhxk0w30n4adk1th8cmasj",
+      "has_audio": true
+    },
+    {
+      "slug": "flying-entity-symmetric-vision",
+      "id": "k577xe7rtn3mepebxzax0skjjn8cndrh",
+      "has_audio": true
+    },
+    {
+      "slug": "fractal-entity-symmetric-vision",
+      "id": "k57437e79tcntkc8d1c53vzrmx8cmqkr",
+      "has_audio": true
+    },
+    {
+      "slug": "froggo-light-test-symmetric-vision",
+      "id": "k57b7xw6z06sd740z5bhpr4dzn8cmfbb",
+      "has_audio": false
+    },
+    {
+      "slug": "golden-many-armed-figure-k-visuals",
+      "id": "k57407b9bwqhf4q4rvbghysx3h8cnpzq",
+      "has_audio": false
+    },
+    {
+      "slug": "grey-eye-entity-symmetric-vision",
+      "id": "k57c5sfbx37w72vfz7hr35afr18cm22s",
+      "has_audio": false
+    },
+    {
+      "slug": "guantanamoo-sunterry",
+      "id": "k5731bqa2x9twe5n1j1cz9qja58cm51f",
+      "has_audio": true
+    },
+    {
+      "slug": "hiiiiiiii-ive-got-a-lot-to-tell-you-symmetric-vision",
+      "id": "k5791y5wz9htxx0k0czb2b4wd18bcscd",
+      "has_audio": false
+    },
+    {
+      "slug": "hypercamp-sunterry",
+      "id": "k57af8ta1853spas86ervnd5js8cn4nc",
+      "has_audio": false
+    },
+    {
+      "slug": "jester-turntable-hypnagogist",
+      "id": "k5761c47k0zsrpaty5x845e3qn8cmg56",
+      "has_audio": true
+    },
+    {
+      "slug": "ke-visuals-animation-k-visuals",
+      "id": "k57bs88dsgf3119h5r31zdwnqd8cn5ba",
+      "has_audio": true
+    },
+    {
+      "slug": "line-entities-symmetric-vision",
+      "id": "k578db5expp3d9tx1237gsjycs8cns7a",
+      "has_audio": false
+    },
+    {
+      "slug": "luminous-block-headdress-k-visuals",
+      "id": "k57cen0qdc9g395a96w0axrka18cnr5n",
+      "has_audio": true
+    },
+    {
+      "slug": "luminous-tentacled-entity-bearfromvoid",
+      "id": "k5708k7f6smkw5nwzhqten5nh18cn4pf",
+      "has_audio": true
+    },
+    {
+      "slug": "neon-mechanical-entity-bearfromvoid",
+      "id": "k5742pkm3ge4mpe1xembt8rt5x8cmt1q",
+      "has_audio": true
+    },
+    {
+      "slug": "orb-eyed-fractal-entity-bearfromvoid",
+      "id": "k574gnhj4yd7by59vncj03vm4s8cn9rz",
+      "has_audio": false
+    },
+    {
+      "slug": "paradox-engine-entity-v2-symmetric-vision",
+      "id": "k5740e02zfeswx179j0h9709td8cnscj",
+      "has_audio": true
+    },
+    {
+      "slug": "radiant-skeleton-in-the-chamber-of-eyes-k-visuals",
+      "id": "k572dfhrvz5t3nahy6g2hwzy758cmw8k",
+      "has_audio": true
+    },
+    {
+      "slug": "reunion-crypto-geometry",
+      "id": "k57bfzqxwxmg2nm15sex9kmda18cns9p",
+      "has_audio": true
+    },
+    {
+      "slug": "seahorse-mick-symmetric-vision",
+      "id": "k57byxgbs45rgn56376px0wq3s8cm8xs",
+      "has_audio": true
+    },
+    {
+      "slug": "seraph-entity-in-its-room-symmetric-vision",
+      "id": "k574fhm5yr28g4ttgwn9ybvr058cmyqy",
+      "has_audio": true
+    },
+    {
+      "slug": "sirius-rising-crypto-geometry",
+      "id": "k577qnkjrnwaw01c94qmx47r0s8cmbwy",
+      "has_audio": true
+    },
+    {
+      "slug": "sirius-sunset-crypto-geometry",
+      "id": "k577ztesfczpb550j50430dnkh8cmydw",
+      "has_audio": true
+    },
+    {
+      "slug": "tentacle-pulse-entity-symmetric-vision",
+      "id": "k579ts7s25e3gs1tq6kaggyj3s8cmy2y",
+      "has_audio": false
+    },
+    {
+      "slug": "void-geometry-entity-bearfromvoid",
+      "id": "k57fe2txkwd7m9vn3v611w1hy58cmeyw",
+      "has_audio": false
+    },
+    {
+      "slug": "we-have-been-expecting-you-symmetric-vision",
+      "id": "k57ejktrcqypyer5rr25n5g3kn8bdt5x",
+      "has_audio": false
+    },
+    {
+      "slug": "welcome-back-weve-been-expecting-you-symmetric-vision",
+      "id": "k571sjf9x8qjbkdja8va5gk14n8bdtgf",
+      "has_audio": false
+    },
+    {
+      "slug": "yoda-symmetric-vision",
+      "id": "k579ebdrne1a7fb8r5h49f0y6h8cnstx",
+      "has_audio": false
+    },
+    {
+      "slug": "4-ho-met-20-mg-symmetric-vision",
+      "id": "k576eakc79fwtf0jje1cfapzz58cm470",
+      "has_audio": false
+    },
+    {
+      "slug": "app-shots-symmetric-vision",
+      "id": "k577kgsqzsy8njjwdfznvm1kvs8cmhgj",
+      "has_audio": true
+    },
+    {
+      "slug": "elastic-buddha-phosform",
+      "id": "k574xcdge5gcf9aegjtwtw7b4s8cngk2",
+      "has_audio": true
+    },
+    {
+      "slug": "forest-v2-360-1-symmetric-vision",
+      "id": "k573f4ea4wgz3vkhhdhwareyan8cmwm3",
+      "has_audio": false
+    },
+    {
+      "slug": "forest-walkthrough-shipibo-loka",
+      "id": "k572qr30e7e72xtm49q5bs8qd58cmfrc",
+      "has_audio": false
+    },
+    {
+      "slug": "high-dose-cannabis-symmetric-vision",
+      "id": "k57by23h9e60dq756mzxmsbf9d8cmh29",
+      "has_audio": false
+    },
+    {
+      "slug": "high-dose-kitty-symmetric-vision",
+      "id": "k57fxhvkvgr48mzftyz6f0313h8cnh6p",
+      "has_audio": false
+    },
+    {
+      "slug": "orange-table-symmetric-vision",
+      "id": "k572z4jn4th0s24d22phxxd5sn8cmgm0",
+      "has_audio": false
+    },
+    {
+      "slug": "spider-plant-phosform",
+      "id": "k575w8dnb5wd4j2a6f01db40dn8cm353",
+      "has_audio": true
+    },
+    {
+      "slug": "tree-passage-symmetric-vision",
+      "id": "k579t5t549xh7hqsg627fsz8zd8cnbwq",
+      "has_audio": true
+    },
+    {
+      "slug": "bowness-phosform",
+      "id": "k5758sv3y1xth7mg7ra6nesxcx8cmysx",
+      "has_audio": true
+    },
+    {
+      "slug": "peachy-patterns-symmetric-vision",
+      "id": "k579q2pz4begzj9p4dd6a159s18cmte9",
+      "has_audio": false
+    },
+    {
+      "slug": "summer-solstice-phosform",
+      "id": "k57esdqedxrn0rts7964gw6m7d8cnjqb",
+      "has_audio": true
+    },
+    {
+      "slug": "this-beach-is-intense-symmetric-vision",
+      "id": "k57dzahmqbke0b284xsxgk8w718cnh9r",
+      "has_audio": false
+    },
+    {
+      "slug": "acid-creek-symmetric-vision",
+      "id": "k57enq9k1cc1dj7gtd5mykcgss8bdw1e",
+      "has_audio": false
+    },
+    {
+      "slug": "blacklight-flower-mini-coop-symmetric-vision",
+      "id": "k57ek39vnx5rpk0rsb29gbgpzn8cm0g8",
+      "has_audio": false
+    },
+    {
+      "slug": "from-0-to-biiiiuuuuuuu-loka",
+      "id": "k57a4fmr081gwebk9rmspresth8cmp3z",
+      "has_audio": false
+    },
+    {
+      "slug": "heroic-dose-mushrooms-symmetric-vision",
+      "id": "k570hewz1dmm6g179qth4ek1v98cmjkq",
+      "has_audio": false
+    },
+    {
+      "slug": "high-dose-field-symmetric-vision",
+      "id": "k570bk5nbktdymjejwb3m20jvs8cmdez",
+      "has_audio": false
+    },
+    {
+      "slug": "magic-mushie-symmetric-vision",
+      "id": "k57e3zz17v3ggryfkmxekvrsgn8cmkhj",
+      "has_audio": true
+    },
+    {
+      "slug": "psychedelic-lsd-psilocybin-lsa-pov-trip-replication-simulation-graffiti-hd-sta",
+      "id": "k5785j52svn6gzffckjzh1ehrd8d1pcw",
+      "has_audio": true
+    },
+    {
+      "slug": "shifting-peacock-feathers-symmetric-vision",
+      "id": "k57e720xh4br8mzd3w6t979z518bdbfw",
+      "has_audio": false
+    },
+    {
+      "slug": "shifting-pebbles-symmetric-vision",
+      "id": "k579yvfd29snjq8j6sbpx7q6dd8bc7c8",
+      "has_audio": false
+    },
+    {
+      "slug": "snake-pile-v3-symmetric-vision",
+      "id": "k574re0fxx387xty1rmam7jrk18cn3vp",
+      "has_audio": false
+    },
+    {
+      "slug": "snake-pit-symmetric-vision",
+      "id": "k57cqvby23m9vpsqkgszhsnz258cmpvz",
+      "has_audio": false
+    },
+    {
+      "slug": "uv-mandala-symmetric-vision",
+      "id": "k572p5a0k66w6q2t3c5vw06csd8bd1tz",
+      "has_audio": false
+    },
+    {
+      "slug": "wave-crash-symmetric-vision",
+      "id": "k574fj18hx9aajfbt5hvwkphyh8cnxtr",
+      "has_audio": false
+    },
+    {
+      "slug": "triangle-tree-loka",
+      "id": "k5749ktb5fbth0xh6eek71wvk5846x0f",
+      "has_audio": true
+    },
+    {
+      "slug": "breathing-bricks-phosform",
+      "id": "k578h840w93f51gta0f00a78t9846b1h",
+      "has_audio": true
+    },
+    {
+      "slug": "cloud-entity-phosform",
+      "id": "k578k08ryqnat4xsh9yewmywrn847q7z",
+      "has_audio": true
+    },
+    {
+      "slug": "lsd-bonefire-phosform",
+      "id": "k573zcbh82wtj041hvwy3g5ctn8479vw",
+      "has_audio": true
+    },
+    {
+      "slug": "rocks-insaneee-loka",
+      "id": "k572d19kz132mg3v9xyngadjbh847nq5",
+      "has_audio": false
+    },
+    {
+      "slug": "2c-b-road-symmetric-vision",
+      "id": "k57fta58ej4pae30vkas4se8bn8bd094",
+      "has_audio": false
+    },
+    {
+      "slug": "360-degree-acid-snowscape-stingrayz",
+      "id": "k57ab6px1xyatkz80cdfad19h58cn16n",
+      "has_audio": true
+    },
+    {
+      "slug": "6th-stream-feet-changa-cid-symmetric-vision",
+      "id": "k5743e8ndt9axyv6z72fnqdy2n8cn1hv",
+      "has_audio": false
+    },
+    {
+      "slug": "abyss-dxm-replication-song-snowflakes-pandrezz-feetman100",
+      "id": "k573r29yh61dm2r4cw4h2s8yb58d1pv1",
+      "has_audio": true
+    },
+    {
+      "slug": "acidified-woodpile-symmetric-vision",
+      "id": "k57580yyajedjeak81aj4q6y6n8cncfs",
+      "has_audio": true
+    },
+    {
+      "slug": "approaching-entropy-dxm-replication-song-up-all-night-windows-feetman100",
+      "id": "k570bs575pskb1xvpcwv2gqnjx8d0p9b",
+      "has_audio": true
+    },
+    {
+      "slug": "autumn-trees-symmetric-vision",
+      "id": "k573ar72n86xcnsnc4w4cjq08s846pea",
+      "has_audio": false
+    },
+    {
+      "slug": "ayjay-tapestry-symmetric-vision",
+      "id": "k572cn1yf93wwqm0mh1787fmh98cm6sv",
+      "has_audio": false
+    },
+    {
+      "slug": "bathroom-tiles-phosform",
+      "id": "k573jq3c2frwat3zc6s6ce6mt98cm2cz",
+      "has_audio": true
+    },
+    {
+      "slug": "birdie-loka",
+      "id": "k57f5vgyvv99jq6rgp4zgb0xd18cmcsg",
+      "has_audio": false
+    },
+    {
+      "slug": "brandi-s-flower-june-19-2022-loka",
+      "id": "k578pnph6e9dzkchwath243vmh8cn31j",
+      "has_audio": false
+    },
+    {
+      "slug": "breathe-in-the-air-psychedelic-replication-feetman100",
+      "id": "k577pjd5hftt7gjwn2f7vnt8318d1aym",
+      "has_audio": true
+    },
+    {
+      "slug": "breathing-bart-kaylee",
+      "id": "k5717zf259rdvkx24tvda1smkn8bcm20",
+      "has_audio": false
+    },
+    {
+      "slug": "breathing-sky-stingrayz",
+      "id": "k571k2xgs4vj2jcrqr7ana0qfh8cm23v",
+      "has_audio": false
+    },
+    {
+      "slug": "breathing-tapestry-symmetric-vision",
+      "id": "k572pc8x994k50jh0bqyt252f98bc07h",
+      "has_audio": false
+    },
+    {
+      "slug": "chameleon-symmetric-vision",
+      "id": "k57fd4b9v26hf8agfhz46gddrs8cmkyh",
+      "has_audio": false
+    },
+    {
+      "slug": "comparative-and-combination-experience-3-main-hallucinogenic-drug-classes-feet",
+      "id": "k57ax0tq5qxexs4hw886gesx6h8d07wj",
+      "has_audio": true
+    },
+    {
+      "slug": "dmt-house-v1-loka",
+      "id": "k572z74bc2v6e4hzdatwg2nm61846wy6",
+      "has_audio": false
+    },
+    {
+      "slug": "don-t-drive-on-psychedelics-symmetric-vision",
+      "id": "k5731ssjhzkadrztcej2f2g9218cm4zr",
+      "has_audio": false
+    },
+    {
+      "slug": "drying-paint-symmetric-vision",
+      "id": "k57dppa9pew69qsz5h4qd46ben8cm9nd",
+      "has_audio": false
+    },
+    {
+      "slug": "fireplace-symmetric-vision",
+      "id": "k57eta8v7s0h8nrhtxf640cs0s8cms19",
+      "has_audio": true
+    },
+    {
+      "slug": "flashback-from-bicycle-day-symmetric-vision",
+      "id": "k577rgab1v5rskhv4ycczkap2d8cmesc",
+      "has_audio": true
+    },
+    {
+      "slug": "flowing-breathing-kitty-kaylee",
+      "id": "k572arrk8961k192cykxv93phx8bctky",
+      "has_audio": false
+    },
+    {
+      "slug": "forest-of-life-loka",
+      "id": "k57ewm7k7qzcnbqxrngfqatcgn8bctj0",
+      "has_audio": false
+    },
+    {
+      "slug": "forest-path-recursion-symmetric-vision",
+      "id": "k57f8apv36vzqk2sdv7e8m87ed8cnn9s",
+      "has_audio": false
+    },
+    {
+      "slug": "forest-path-symmetric-vision",
+      "id": "k5748f74fb5pfrq8cwtswwt0hd8cmmzm",
+      "has_audio": true
+    },
+    {
+      "slug": "forest-walk-symmetric-vision",
+      "id": "k5743tp2tyqf7dtxv4m8by584x8cnhwp",
+      "has_audio": true
+    },
+    {
+      "slug": "gecko-symmetric-vision",
+      "id": "k5722ke4aca74rjket9xxztehx8bcw16",
+      "has_audio": false
+    },
+    {
+      "slug": "good-morning-ground-symmetric-vision",
+      "id": "k57ftdvbgap81kbk100k49322n8cms32",
+      "has_audio": false
+    },
+    {
+      "slug": "happy-420-symmetric-vision",
+      "id": "k576vd95j04vspzmvx5k1q70kx8bc3bq",
+      "has_audio": false
+    },
+    {
+      "slug": "happy-feet-eyes-loka",
+      "id": "k571h4zbyx5ndekwpvcv2wzjg98cn304",
+      "has_audio": false
+    },
+    {
+      "slug": "high-dose-shrooms-trip-simulation-pov-loka",
+      "id": "k570mkhfek8tk8rgy1wsjcp1mn8cngth",
+      "has_audio": true
+    },
+    {
+      "slug": "keta-leaf-symmetric-vision",
+      "id": "k572netazy9pvd2pqxc7cpcevx8cn325",
+      "has_audio": true
+    },
+    {
+      "slug": "kitteh-symmetric-vision",
+      "id": "k579q9e55xsx3t4yktpza2phah8cmvnp",
+      "has_audio": false
+    },
+    {
+      "slug": "kitty-dream-symmetric-vision",
+      "id": "k57cc9tjb8n8mq53hp9t4dzred8cncef",
+      "has_audio": false
+    },
+    {
+      "slug": "let-s-do-all-the-drugs-symmetric-vision",
+      "id": "k57df26few3q3hrg54j42hjjph8cnksg",
+      "has_audio": true
+    },
+    {
+      "slug": "lsdxm-replication-song-how-much-is-weed-by-dominic-fike-feetman100",
+      "id": "k571vjdc6gkws2xnrge6e81yfx8d0969",
+      "has_audio": true
+    },
+    {
+      "slug": "morphing-doggo-symmetric-vision",
+      "id": "k577mfrgwqtnqjb8dtv2mvdqtd8bcrev",
+      "has_audio": false
+    },
+    {
+      "slug": "old-floor-cactus-juice-symmetric-vision",
+      "id": "k570gmadb2167v57nxcym4sfb98cm1a3",
+      "has_audio": false
+    },
+    {
+      "slug": "one-psychedelic-replication-feetman100",
+      "id": "k57cnra30nqbpgys9fkf79yjes8d0mpb",
+      "has_audio": true
+    },
+    {
+      "slug": "parrot-symmetric-vision",
+      "id": "k579j3mke52mpebs2nc8w504gs8cn1yx",
+      "has_audio": false
+    },
+    {
+      "slug": "peaches-loka",
+      "id": "k571yt7bpkknw3h32j58swtv2d8cma0q",
+      "has_audio": false
+    },
+    {
+      "slug": "peak-psychedelic-replication-feetman100",
+      "id": "k57bb1a0wmf75mk30cekhqye7h8d0v0k",
+      "has_audio": true
+    },
+    {
+      "slug": "popcorn-ceiling-symmetric-vision",
+      "id": "k5776fmepf6qd5cyzjkfqqg1ws8cnjvd",
+      "has_audio": false
+    },
+    {
+      "slug": "psychedelic-trip-lsd-psilocybin-lsa-replication-simulation-rubix-cube-hd-stas",
+      "id": "k57f333yhqerbzfmy0bqgvvkvd8d07nk",
+      "has_audio": true
+    },
+    {
+      "slug": "psychedelic-trip-lsd-psilocybin-mushrooms-pov-simulation-replication-hd-stas-c",
+      "id": "k5776phmjag5c2jpgjcxfcrke58d06sb",
+      "has_audio": true
+    },
+    {
+      "slug": "psychedelic-visuals-through-liquid-glass-2-feetman100",
+      "id": "k574zxqhcj61rrhfwreq34qpvn8d1cs5",
+      "has_audio": true
+    },
+    {
+      "slug": "sentient-path-pattern-recognition-symmetric-vision",
+      "id": "k57ef9wtwkb96hh396ccmyse0n8cme1x",
+      "has_audio": false
+    },
+    {
+      "slug": "signes-tapestry-symmetric-vision",
+      "id": "k573a0769tv0zqw1v5yr2sc2q58cm1g5",
+      "has_audio": false
+    },
+    {
+      "slug": "sitting-froggo-symmetric-vision",
+      "id": "k5742715qfcangh1dc02v0r4918cm2mv",
+      "has_audio": true
+    },
+    {
+      "slug": "snek-symmetric-vision",
+      "id": "k576dk5dwnbrd7hcve760rkezd8bdv6c",
+      "has_audio": false
+    },
+    {
+      "slug": "spring-ice-symmetric-vision",
+      "id": "k57dq82t34hp6xq98s26b2s5c98cnn98",
+      "has_audio": true
+    },
+    {
+      "slug": "staring-at-a-trash-pile-symmetric-vision",
+      "id": "k572e0vqk755ypxmabnfnh036s8cn9g1",
+      "has_audio": false
+    },
+    {
+      "slug": "staring-at-pebbles-symmetric-vision",
+      "id": "k575r9jbrv1ag8kqhes2ctysf98cne2j",
+      "has_audio": false
+    },
+    {
+      "slug": "staring-at-the-beach-symmetric-vision",
+      "id": "k5752k4as68yy6wgqttdbgqs958bcmrx",
+      "has_audio": false
+    },
+    {
+      "slug": "strawberry-fields-hyperactive-filly",
+      "id": "k57154tnt82ce1jp1x9ewawy418bc62b",
+      "has_audio": false
+    },
+    {
+      "slug": "test-all-3-hallucinogenic-drugs-classes-at-once-feedback-appreciated-feetman10",
+      "id": "k571r2r9n0nfx5wfatdef45a458d0qy5",
+      "has_audio": true
+    },
+    {
+      "slug": "this-wall-is-alive-symmetric-vision",
+      "id": "k579byv3b9afs719tt9mj2yqmh8bd1vy",
+      "has_audio": false
+    },
+    {
+      "slug": "through-liquid-glass-lsd-replication-feetman100",
+      "id": "k57dg11wjybqsh2cs73k75ds118d1wmv",
+      "has_audio": true
+    },
+    {
+      "slug": "tree-fantasy-v1-loka",
+      "id": "k57a83hz59980mk5xac58smkcs8cnpg5",
+      "has_audio": false
+    },
+    {
+      "slug": "treetment-phosform",
+      "id": "k574eqrgtyp927y7bjy45g96218cm0p3",
+      "has_audio": true
+    },
+    {
+      "slug": "tryptamine-swamp-symmetric-vision",
+      "id": "k570vdd8jwg4zsc9b00rjgv8wn847jjw",
+      "has_audio": false
+    },
+    {
+      "slug": "van-gogh-psychedelic-replication-feetman100",
+      "id": "k5767ab85abpj10w3mkmj863sd8d0060",
+      "has_audio": true
+    },
+    {
+      "slug": "vibrational-jackdaw-phosform",
+      "id": "k575w5gbef2xr7s0er878330z18cmcbq",
+      "has_audio": true
+    },
+    {
+      "slug": "volcano-symmetric-vision",
+      "id": "k57dxz1kbtwb5bh4zpw2p0zjf5846vwh",
+      "has_audio": false
+    },
+    {
+      "slug": "watch-my-feet-symmetric-vision",
+      "id": "k5714hcystkaagqxh06bb26pv58cnkjm",
+      "has_audio": false
+    },
+    {
+      "slug": "wavy-lizard-symmetric-vision",
+      "id": "k570paa5yt4458t52fq66yttcs8cng93",
+      "has_audio": false
+    },
+    {
+      "slug": "wondering-if-you-should-smoke-a-bowl-akanyan",
+      "id": "k57ajmqg8n0tme4p3h7f5wzj658bcj6x",
+      "has_audio": false
+    },
+    {
+      "slug": "wonky-tree-v2-loka",
+      "id": "k576jpjsknshph4pznkrgz60558cmwtj",
+      "has_audio": true
+    },
+    {
+      "slug": "wood-texture-morph-loka",
+      "id": "k579499t4gmv045theawr194gh8cmmnk",
+      "has_audio": false
+    },
+    {
+      "slug": "woods-walk-phosform",
+      "id": "k57ea7avfbbtgbd8p19wn5f6v98cmkgf",
+      "has_audio": true
+    },
+    {
+      "slug": "cubist-park-stasconstantine",
+      "id": "k576evjyqksxbc1j9wqhpy21ws8bdfkp",
+      "has_audio": false
+    },
+    {
+      "slug": "dissociative-replication-ketamine-dxm-mxe-environmental-cubism-hd-stas-constan",
+      "id": "k57eb54n549pwaak09ech0jar18d1vfg",
+      "has_audio": true
+    },
+    {
+      "slug": "environmental-cubism-v2-dissociative-visuals-attempt-4-feetman100",
+      "id": "k57ahck42mg1prbmj2mrhkspjd8d0gt9",
+      "has_audio": true
+    },
+    {
+      "slug": "squares-dissociative-replication-with-tutorial-workflow-feetman100",
+      "id": "k57bhzxbew8ear0s3n1wwwpfsx8d1372",
+      "has_audio": true
+    },
+    {
+      "slug": "embedded-geometry-test-pole-loka",
+      "id": "k579mdefz13mj2vejgbaygah0d8461s1",
+      "has_audio": false
+    },
+    {
+      "slug": "field-trip-phosform",
+      "id": "k572fbbm4dbbt4g6majrc7nm61847qt3",
+      "has_audio": true
+    },
+    {
+      "slug": "forest-symmetric-vision",
+      "id": "k576bbr4dc19cjbj5ks7deq32s8475x3",
+      "has_audio": false
+    },
+    {
+      "slug": "geometric-carpets-and-wallpaper",
+      "id": "k57d9wmv6wym68dsje69jy1e6s846062",
+      "has_audio": true
+    },
+    {
+      "slug": "glasgow-phosform",
+      "id": "k571fy27qrwh49z4ckj3w84rax846y94",
+      "has_audio": true
+    },
+    {
+      "slug": "grass-critter-phosform",
+      "id": "k574bscep7bdaw37x0enh2e8ms847eaq",
+      "has_audio": true
+    },
+    {
+      "slug": "heaven-on-earth-loka",
+      "id": "k572nrre1vd0w6gt67rab3wxvx84746c",
+      "has_audio": true
+    },
+    {
+      "slug": "ridiculous-loka",
+      "id": "k576amk0b7yzq3kxkew5e8d9c5847gn2",
+      "has_audio": false
+    },
+    {
+      "slug": "singing-trees-loka",
+      "id": "k57fd3fhmfp3wgj6hc183rtxqh846k9j",
+      "has_audio": true
+    },
+    {
+      "slug": "windermere-lake-phosform",
+      "id": "k57bae4shmk9vnywzz6dgq6x598462fn",
+      "has_audio": true
+    },
+    {
+      "slug": "bad-trip-symmetric-vision",
+      "id": "k579dfpwkwgqq33fevbhs4m6898cmagw",
+      "has_audio": false
+    },
+    {
+      "slug": "be-the-potato-symmetric-vision",
+      "id": "k57c0647pcza5gwm927s6sp1wh8cnfsm",
+      "has_audio": false
+    },
+    {
+      "slug": "beach-on-acid-symmetric-vision",
+      "id": "k573m5r23sp0180dj4ywb7pt418cndk9",
+      "has_audio": false
+    },
+    {
+      "slug": "blueberry-patterning-symmetric-vision",
+      "id": "k571wtpnvfzama1jw32xctz9yx8cm0e4",
+      "has_audio": false
+    },
+    {
+      "slug": "breakfast-patterns-loka",
+      "id": "k57408sehk8q942gajheeyvets8cnqtr",
+      "has_audio": false
+    },
+    {
+      "slug": "brick-in-the-wall-on-mescaline-symmetric-vision",
+      "id": "k57bc82z403fh0r9xdgq5k88998cnfbn",
+      "has_audio": false
+    },
+    {
+      "slug": "brick-road-symmetric-vision",
+      "id": "k573mm01zaye2p4psksjxb07q18cmtam",
+      "has_audio": false
+    },
+    {
+      "slug": "bridge-geometry-symmetric-vision",
+      "id": "k575gecq6a5xvaqfvq02prakms8cmzjr",
+      "has_audio": false
+    },
+    {
+      "slug": "cascade-patterns-symmetric-vision",
+      "id": "k57ahkvks8q9qcd9dzxfepajw58cnh7k",
+      "has_audio": false
+    },
+    {
+      "slug": "cat-food-dmt-oevs-symmetric-vision",
+      "id": "k5752c03bmccrecvv3mzfq4g7x8cnzf0",
+      "has_audio": false
+    },
+    {
+      "slug": "changa-breakthrough-v3-symmetric-vision",
+      "id": "k57arenc1qenv7tg0jqsmf9ybn8cnvnq",
+      "has_audio": true
+    },
+    {
+      "slug": "city-in-the-sand-loka",
+      "id": "k575fsfpkjnnajeedmaxk8chv58cmk2x",
+      "has_audio": false
+    },
+    {
+      "slug": "dark-alley-trip-v2-loka",
+      "id": "k575yn7yvk1k2yb0qa4fq2p5998cmcdd",
+      "has_audio": false
+    },
+    {
+      "slug": "dead-man-s-trip-v7-symmetric-vision",
+      "id": "k572phkhpf6c91myekxhp6ey0h8cnktf",
+      "has_audio": true
+    },
+    {
+      "slug": "drawing-on-psychedelics-symmetric-vision",
+      "id": "k573m6fq6nd9wr8h6jtfrnhabh8cnaq7",
+      "has_audio": false
+    },
+    {
+      "slug": "driveway-pebbles-symmetric-vision",
+      "id": "k579wxwcwve2etsxzpzq6dt28s8cm8cs",
+      "has_audio": true
+    },
+    {
+      "slug": "embedded-geometry-waterfall-loka",
+      "id": "k57ftzh0xk0nc1qzzq44830s4x8cnya6",
+      "has_audio": false
+    },
+    {
+      "slug": "embedded-pattern-on-tree-bark-symmetric-vision",
+      "id": "k574rwhc2dfphcm6h3wa4prrdd8cnzfs",
+      "has_audio": false
+    },
+    {
+      "slug": "embedded-rock-in-pink-field-symmetric-vision",
+      "id": "k5776k2wx16d8759f069m2s79n8cn1qd",
+      "has_audio": false
+    },
+    {
+      "slug": "eyed-rocks-symmetric-vision",
+      "id": "k57ddgfe4bb8w6y7knq5ez7a6d8cntcq",
+      "has_audio": false
+    },
+    {
+      "slug": "fallenpine-symmetric-vision",
+      "id": "k57fewh5c4mssqv5z397m3ygr9846nzj",
+      "has_audio": false
+    },
+    {
+      "slug": "feet-symmetric-vision",
+      "id": "k57a2q6wnmxy27tfnxag033a6d8cnfjk",
+      "has_audio": false
+    },
+    {
+      "slug": "for-zenby-symmetric-vision",
+      "id": "k5770x3z2ape6x907cymntsj098cmys9",
+      "has_audio": true
+    },
+    {
+      "slug": "forest-mandala-oracle-emissary",
+      "id": "k57cbpnt1ajvmqkqd7ws3gfppx8cnyfj",
+      "has_audio": true
+    },
+    {
+      "slug": "forest-of-flowing-fractals-jumproper",
+      "id": "k57bx0nxvrngb3meacysayrcgs8bchgf",
+      "has_audio": false
+    },
+    {
+      "slug": "fractalization-experiment-stream-symmetric-vision",
+      "id": "k57ar74hbgmks04qz6t14sjhh18cmc11",
+      "has_audio": false
+    },
+    {
+      "slug": "grass-2-phosform",
+      "id": "k57ce0e3xr2peb1rkb7mf5ee318cmxby",
+      "has_audio": true
+    },
+    {
+      "slug": "ground-tiles-v1-loka",
+      "id": "k57enhy171wap85b88e0pxravx8cmrkk",
+      "has_audio": true
+    },
+    {
+      "slug": "hand-patterns-v3-loka",
+      "id": "k571atah6xqm8b56gga94ydxd58cmnaw",
+      "has_audio": false
+    },
+    {
+      "slug": "happy-feet-floor-planks-symmetric-vision",
+      "id": "k57e1ww2x7a6ar9zy9qf52p0qx8cmwzx",
+      "has_audio": false
+    },
+    {
+      "slug": "hex-pattern-path-symmetric-vision",
+      "id": "k57fn8msfexn47b08xbq4h39098cnyh4",
+      "has_audio": false
+    },
+    {
+      "slug": "high-dose-mushroom-chair-loka",
+      "id": "k572qenfnvn29ctm0nyxrkwptx8cmwqh",
+      "has_audio": true
+    },
+    {
+      "slug": "high-dose-tangerine-symmetric-vision",
+      "id": "k57126yqa7cnm4psnbmxd5embx8cn926",
+      "has_audio": false
+    },
+    {
+      "slug": "holographic-geometry-experiment-symmetric-vision",
+      "id": "k57fh36y1g9nbjg4xyje938tpx8cmyqv",
+      "has_audio": false
+    },
+    {
+      "slug": "homet-concrete-symmetric-vision",
+      "id": "k571z4yvpz2rtpk5vmvhw07kts8cmmfk",
+      "has_audio": false
+    },
+    {
+      "slug": "indoor-ruins-symmetric-vision",
+      "id": "k57ds675d8t6z1s3rkfn70e1xx8cme11",
+      "has_audio": false
+    },
+    {
+      "slug": "ivy-facade-patterning-symmetric-vision",
+      "id": "k5773v6rmx1vzsqsm1pg3a3p3s8cm20t",
+      "has_audio": false
+    },
+    {
+      "slug": "leaf-patterns-symmetric-vision",
+      "id": "k57d6yt7hkn8hv5e450bzcsa4h8cmkxr",
+      "has_audio": true
+    },
+    {
+      "slug": "loka-grass-loka",
+      "id": "k570bye5h6pnexta52k19hrh3s8cntpr",
+      "has_audio": true
+    },
+    {
+      "slug": "lsd-on-a-cloudy-day-jumproper",
+      "id": "k5712m325nn9pe9y83ys0d2fzh8bd99k",
+      "has_audio": false
+    },
+    {
+      "slug": "mayan-v1-composite-loka",
+      "id": "k57bcgbbcjkw0q1hh73fkh2j7h8cmn9m",
+      "has_audio": false
+    },
+    {
+      "slug": "memories-from-metocin-oev-cev-and-audio-test-oracle-emissary",
+      "id": "k57f31jz5x6b3by5qyqkn5fkw98cn29z",
+      "has_audio": true
+    },
+    {
+      "slug": "mescaline-replication-v1-symmetric-vision",
+      "id": "k574hpep86ayt991v3wv7zj1c58cm99p",
+      "has_audio": true
+    },
+    {
+      "slug": "pine-needles-in-snow-symmetric-vision",
+      "id": "k5792k5r689dm3s44nen92qfx18cm7js",
+      "has_audio": false
+    },
+    {
+      "slug": "profile-2020-symmetric-vision",
+      "id": "k573zb39bv9bznas51bnpvbf9d8cmwz3",
+      "has_audio": false
+    },
+    {
+      "slug": "psychedelic-wall-symmetric-vision",
+      "id": "k573m7vetv14yv7jz68pn2g1qn8cmj8c",
+      "has_audio": false
+    },
+    {
+      "slug": "rock-wall-june-12-2022-loka",
+      "id": "k57dek5rkb46r5b7npqk4cmqm98cm7se",
+      "has_audio": false
+    },
+    {
+      "slug": "shipibo-amanita-loka",
+      "id": "k570m90bp0tkftk6jc0drhxdq98cngsr",
+      "has_audio": false
+    },
+    {
+      "slug": "snakey-symmetric-vision",
+      "id": "k572pd81mph6sttq77hq2t1f1d8cn1mn",
+      "has_audio": true
+    },
+    {
+      "slug": "spring-floor-symmetric-vision",
+      "id": "k57bphpz311rh40vg3g1nk5wf18cnt9d",
+      "has_audio": true
+    },
+    {
+      "slug": "staring-at-moss-loka",
+      "id": "k573pndkykwn4cad5k5y3tzmfn8cmd8n",
+      "has_audio": false
+    },
+    {
+      "slug": "staring-at-sand-symmetric-vision",
+      "id": "k57f8zbvhj0byqtys3hp178s3s8cmn40",
+      "has_audio": true
+    },
+    {
+      "slug": "staring-at-some-bottles-symmetric-vision",
+      "id": "k574acs3rapawp2nvve81wh21h8cnfxw",
+      "has_audio": false
+    },
+    {
+      "slug": "stream-patterns-loka",
+      "id": "k57fc80pb115crxtskg1zp1xyn8cm3xx",
+      "has_audio": false
+    },
+    {
+      "slug": "sunflower-space-out-symmetric-vision",
+      "id": "k574w056s25ce7q1g4ptda7jsh8cnhsb",
+      "has_audio": true
+    },
+    {
+      "slug": "tas-serpents-tas-visuals",
+      "id": "k57bayhp8rg8mn9pctwb7zrjqs8cn0ez",
+      "has_audio": true
+    },
+    {
+      "slug": "this-place-is-going-nuts-symmetric-vision",
+      "id": "k57dzmscfmsagrfv67jaga00s18bcatn",
+      "has_audio": false
+    },
+    {
+      "slug": "too-much-acid-symmetric-vision",
+      "id": "k57958xtkgev3qz6b4en9ypg9d8cnzkg",
+      "has_audio": false
+    },
+    {
+      "slug": "tree-bark-nft-symmetric-vision",
+      "id": "k57ded95apddejf2w585grrjp58cnmgf",
+      "has_audio": true
+    },
+    {
+      "slug": "tree-bark-patterning-symmetric-vision",
+      "id": "k57676n8race2zb74me3tadmsx8cnvta",
+      "has_audio": true
+    },
+    {
+      "slug": "trip-pov-simulation-lsd-psilocybin-mushrooms-low-dose-salvia-psychedelic-repli",
+      "id": "k57a8ak0ay46vhkfgjs84rx2t18d0gv4",
+      "has_audio": true
+    },
+    {
+      "slug": "zonked-geometry-loka",
+      "id": "k577pc1wftygefvm98vtwdj1th8cmnxe",
+      "has_audio": true
+    },
+    {
+      "slug": "deliriant-replication-compilation-various-artists",
+      "id": "k57ahs0590gbc8cdxx9a5g6hk9847sc2",
+      "has_audio": true
+    },
+    {
+      "slug": "external-entity-symmetric-vision",
+      "id": "k5722wtc3hg2q682p2gjypx5ys8464pq",
+      "has_audio": false
+    },
+    {
+      "slug": "ambien-1-experiments-with-vfx-for-atypical-deliriants-1-feedback-appreciated-f",
+      "id": "k5707xg9s13qgajbzjmeh7s4m98d1xpw",
+      "has_audio": true
+    },
+    {
+      "slug": "ashes-deliriant-replication-feetman100",
+      "id": "k57c2pdpa0yzw7fw43h4db8rwn8d0vdh",
+      "has_audio": true
+    },
+    {
+      "slug": "auction-on-mars-deliriant-dissociative-replication-feetman100",
+      "id": "k576fma2pf8heb585qa0q97cp98d0fmv",
+      "has_audio": true
+    },
+    {
+      "slug": "audacity-dph-replication-feetman100",
+      "id": "k570xx4fa9g8r80020h32h2ywh8d1qtr",
+      "has_audio": true
+    },
+    {
+      "slug": "bees-in-my-head-deliriant-replication-feetman100",
+      "id": "k575cmpbhycj8a2bvdzp9hcyg58d1ptk",
+      "has_audio": true
+    },
+    {
+      "slug": "benadryl-deliriant-replication-warning-flashing-lights-feetman100",
+      "id": "k578da0g280ym9bnv0gx1ac4kd8d0ve0",
+      "has_audio": true
+    },
+    {
+      "slug": "benzydamine-experiment-feetman100",
+      "id": "k57ftgrspxn53jthn2vn1xm4bn8d0x0p",
+      "has_audio": true
+    },
+    {
+      "slug": "black-hole-deliriant-replication-feetman100",
+      "id": "k57bm4vjypf5m8s4c1zvjz6yy58d0q9r",
+      "has_audio": true
+    },
+    {
+      "slug": "counterflip-dxm-dph-replication-feetman100",
+      "id": "k579a6tvvss2ep432fh0hf25c18d1gkb",
+      "has_audio": true
+    },
+    {
+      "slug": "deliriant-bedroom-an-attempt-at-deliriant-visuals-dph-datura-feetman100",
+      "id": "k5744fhkyr9bzktwq0xjf819m18d0bxm",
+      "has_audio": true
+    },
+    {
+      "slug": "deliriant-dph-benadryl-datura-dramamine-oev-auditory-replication-simulation-hd",
+      "id": "k57f3s15gkevs0zntqegwdmqb98d0z9g",
+      "has_audio": true
+    },
+    {
+      "slug": "deliriant-dph-benadryl-datura-dramamine-replication-stas-constantine-hd-stas-c",
+      "id": "k571skpn818b7s1nwpwqw0v1yx8d16fh",
+      "has_audio": true
+    },
+    {
+      "slug": "deliriant-dph-benadryl-datura-oevs-replication-simulation-stas-constantine-hd",
+      "id": "k57f0261y4sh088snhphhaptzs8d1rc1",
+      "has_audio": true
+    },
+    {
+      "slug": "deliriant-replication-dph-datura-hotel-feetman100",
+      "id": "k574amysmn9erxjbj7a1gafyb98d06ny",
+      "has_audio": true
+    },
+    {
+      "slug": "delirium-attempt-8-dph-datura-concrete-corridor-feetman100",
+      "id": "k57bmv1k5394cc5ffwzs0fw1p18d0fb7",
+      "has_audio": true
+    },
+    {
+      "slug": "delirium-compilation-reupload-feetman100",
+      "id": "k572wh5qx1g0zpdg296qh40byn8d0xsb",
+      "has_audio": true
+    },
+    {
+      "slug": "do-not-the-cat-deliriant-replication-feetman100",
+      "id": "k570nfj62mjfdhzmpf7nmvg1ed8d1fc3",
+      "has_audio": true
+    },
+    {
+      "slug": "doors-deliriant-replication-feetman100",
+      "id": "k574y8e14qkem0675skqthrra98d1dvb",
+      "has_audio": true
+    },
+    {
+      "slug": "dph-image-replication-compilation-scrapped-content-stas-constantine-stas-const",
+      "id": "k57d875bfbdh5gm6znzntbxnqs8d1k5c",
+      "has_audio": true
+    },
+    {
+      "slug": "finale-deliriant-replication-feetman100",
+      "id": "k57bdysz9p9yjh9x2b09jr6jsh8d1aw0",
+      "has_audio": true
+    },
+    {
+      "slug": "hatman-cometh-deliriant-replication-feetman100",
+      "id": "k57f27mmsy9jbq01q9sdcr455d8d082g",
+      "has_audio": true
+    },
+    {
+      "slug": "hell-deliriant-replication-feetman100",
+      "id": "k57fj96zqdxe2b78bcvp3a247x8d0jxm",
+      "has_audio": true
+    },
+    {
+      "slug": "hiking-on-deliriants-for-obvious-reasons-don-t-do-this-feetman100",
+      "id": "k57cwpyqkv392h0darznjpbjz58d1zzc",
+      "has_audio": true
+    },
+    {
+      "slug": "just-another-friday-night-deliriant-replication-feetman100",
+      "id": "k57a2hyxr8dyc1n8rwzdxwddrs8d115c",
+      "has_audio": true
+    },
+    {
+      "slug": "maelstrom-deliriant-replication-feetman100",
+      "id": "k5727kvbabpmb04rv4r9jatn3s8d0g2k",
+      "has_audio": true
+    },
+    {
+      "slug": "mr-hatman-counterflip-replication-dxm-dph-feetman100",
+      "id": "k57ap3qpbq38br7b8x49s7ky498d14jx",
+      "has_audio": true
+    },
+    {
+      "slug": "my-eyes-deceive-me-deliriant-replication-dph-datura-feetman100",
+      "id": "k577t49vbfxj0gdnksg7fc23658d1nbw",
+      "has_audio": true
+    },
+    {
+      "slug": "nightmare-flip-lsd-dph-feetman100",
+      "id": "k571pstbpfjd59gr57e129btks8d0km1",
+      "has_audio": true
+    },
+    {
+      "slug": "noise-deliriant-replication-feetman100",
+      "id": "k57cpjs1yx76rcef1kde8nwqgn8d0b4q",
+      "has_audio": true
+    },
+    {
+      "slug": "obliterating-target-deliriant-replication-feetman100",
+      "id": "k57ev0mns4s98387padewa0zys8d098y",
+      "has_audio": true
+    },
+    {
+      "slug": "plastic-fog-dph-dxm-replication-feetman100",
+      "id": "k57bz0xzc6sxaebmvdna9f7r3h8d0nxb",
+      "has_audio": true
+    },
+    {
+      "slug": "replication-of-the-shadow-people-phenomenon-stas-constantine-stas-constantine",
+      "id": "k574vkn1013r9pg754z28s7pf58d1kew",
+      "has_audio": true
+    },
+    {
+      "slug": "rorschach-counterflip-replication-dxm-dph-feetman100",
+      "id": "k57ebnhta7n5sqwgg2e0ftc7n98d0fta",
+      "has_audio": true
+    },
+    {
+      "slug": "scrambleverse-deliriant-dissociative-replication-feetman100",
+      "id": "k5727yfj514g59e378fn9ncne18d0xx8",
+      "has_audio": true
+    },
+    {
+      "slug": "spiders-delirium-replication-feetman100",
+      "id": "k57cmkhcj9xgyg44c3q6naxfas8d14r4",
+      "has_audio": true
+    },
+    {
+      "slug": "the-fog-deliriant-replication-feetman100",
+      "id": "k57f7rj5fj28g808g3f47rmq458d031x",
+      "has_audio": true
+    },
+    {
+      "slug": "timed-deliriant-comparison-come-up-vs-peak-feetman100",
+      "id": "k57261mjqavj1jvpt8xh92yyzx8d079h",
+      "has_audio": true
+    },
+    {
+      "slug": "unnamed-1-deliriant-replication-feetman100",
+      "id": "k571b2yp193evx70bb86py69y58d0n9v",
+      "has_audio": true
+    },
+    {
+      "slug": "unnamed-2-deliriant-replication-feetman100",
+      "id": "k579kxq61gydb7grfgvbskn5m98d1mp7",
+      "has_audio": true
+    },
+    {
+      "slug": "warning-loud-and-flashing-lights-spaceship-counterflipping-replication-dxm-dph",
+      "id": "k57d1addckk9q5n9atqmm4rt6x8d015g",
+      "has_audio": true
+    },
+    {
+      "slug": "welcome-to-hell-deliriant-replication-feetman100",
+      "id": "k57b1j51f38q7kvy1j2stjm65s8d0n84",
+      "has_audio": true
+    },
+    {
+      "slug": "you-told-me-this-was-going-to-be-fun-delirant-replication-cevs-cognitive-delir",
+      "id": "k57fvskyd4bdhcb859mjv3bkzs8d15m9",
+      "has_audio": true
+    },
+    {
+      "slug": "cushions-phosform",
+      "id": "k57ayg4p2w6eqhea9d5vame6y9847w3x",
+      "has_audio": true
+    },
+    {
+      "slug": "dmtunnel-bearfromvoid",
+      "id": "k5712x1qawjtnxdwm8t1d0vxen846vhp",
+      "has_audio": false
+    },
+    {
+      "slug": "entropy-loka",
+      "id": "k57490jptj16brqq0b3ap033a9846mgs",
+      "has_audio": true
+    },
+    {
+      "slug": "hyperspace-pluralist-visuals",
+      "id": "k57bng8cqkwsay97sr6s43m70d847w64",
+      "has_audio": false
+    },
+    {
+      "slug": "lamp-phosform",
+      "id": "k57bx75r9dxmas3q5d3nc2caqs8472v4",
+      "has_audio": true
+    },
+    {
+      "slug": "lucy-with-mushies-cevs-symmetric-vision",
+      "id": "k57fd02kcmybcbt74ebezk72ts8cngxe",
+      "has_audio": false
+    },
+    {
+      "slug": "moo-phosform",
+      "id": "k577apxnyxha2v3m068j78gd89846zxd",
+      "has_audio": true
+    },
+    {
+      "slug": "petunias-phosform",
+      "id": "k57bp68gknr57gr7ep15vryn8x847pvx",
+      "has_audio": true
+    },
+    {
+      "slug": "polytunnel-loka",
+      "id": "k57f700zk1m1kh7n2aah8x8he18473rx",
+      "has_audio": true
+    },
+    {
+      "slug": "shipibo-knot-symmetric-vision",
+      "id": "k575mkf7fk60am7wdwydmxexqh846d6g",
+      "has_audio": false
+    },
+    {
+      "slug": "shipibo-snake-tunnel-symmetric-vision",
+      "id": "k57eb1cp7zv79jv4tzp6r9r2q9846s7r",
+      "has_audio": false
+    },
+    {
+      "slug": "torustower-bearfromvoid",
+      "id": "k57fwq6wpdpeex5vfnpksnyxvs8477et",
+      "has_audio": false
+    },
+    {
+      "slug": "4a-comet-drawing-symmetric-vision",
+      "id": "k574vtdt9bv422trwxn3ta3kad8cmmdh",
+      "has_audio": false
+    },
+    {
+      "slug": "airborne-geometry-symmetric-vision",
+      "id": "k5706275940pw9yy6rxbs2v7an8476pg",
+      "has_audio": false
+    },
+    {
+      "slug": "ald-52-snow-symmetric-vision",
+      "id": "k5796n49vnc9a320se0t9sw6dn8cmm85",
+      "has_audio": false
+    },
+    {
+      "slug": "animated-neon-maze-crown-k-visuals",
+      "id": "k575jqppeegcabvrn2y8bcpty58cmwsk",
+      "has_audio": true
+    },
+    {
+      "slug": "biuuuuuu-symmetric-vision",
+      "id": "k5731t76d0bzx86295v58kvejn8cmgtt",
+      "has_audio": false
+    },
+    {
+      "slug": "branching-cyan-and-violet-tendrils-k-visuals",
+      "id": "k572gfwknwpk4yxv0jz7bhfgq58cns7f",
+      "has_audio": true
+    },
+    {
+      "slug": "brown-geometry-zoom-ben-ridgway",
+      "id": "k57fm5hq521ty7kde7gjesa24d8cmw7v",
+      "has_audio": true
+    },
+    {
+      "slug": "cellular-circuitry-ben-ridgway",
+      "id": "k575vchzw4gtrtkj8bvqmy9xws8bc519",
+      "has_audio": false
+    },
+    {
+      "slug": "cellular-teardrop-chamber-k-visuals",
+      "id": "k57a817epfc3dcz34zdxxvemjs8cm9br",
+      "has_audio": true
+    },
+    {
+      "slug": "cevs-2-symmetric-vision",
+      "id": "k5724styss4bqpbght5hesp0en8cnk8m",
+      "has_audio": false
+    },
+    {
+      "slug": "changa-cevs-symmetric-vision",
+      "id": "k575v8x84ps1rxg2q5qee5pj7d8cmhcx",
+      "has_audio": true
+    },
+    {
+      "slug": "changa-experiment-symmetric-vision",
+      "id": "k57dqndys7gy17rj08xbkfsmcd8bdrdy",
+      "has_audio": false
+    },
+    {
+      "slug": "checkerboard-aperture-chamber-k-visuals",
+      "id": "k57168ebrea41e96bq8e4kztp58cmzs4",
+      "has_audio": true
+    },
+    {
+      "slug": "circular-neon-mandala-bearfromvoid",
+      "id": "k575tfn36qzxstvb5gwkwdfrsn8cmgkk",
+      "has_audio": false
+    },
+    {
+      "slug": "continuum-infinitum-ben-ridgway",
+      "id": "k579br1typkrtmhgw8g06r08px8bctt1",
+      "has_audio": false
+    },
+    {
+      "slug": "cosmic-flower-unfolding-ben-ridgway",
+      "id": "k57ab8y9rkwajks41t241413958bd90n",
+      "has_audio": false
+    },
+    {
+      "slug": "crystal-formula-symmetric-vision",
+      "id": "k5784tk6tj9re6m6wndbx8d3gd8cn9dz",
+      "has_audio": false
+    },
+    {
+      "slug": "dense-neon-squiggle-pattern-bearfromvoid",
+      "id": "k578rdn76v1hwd2aqt6k9bxh698cm47w",
+      "has_audio": false
+    },
+    {
+      "slug": "dimitri-room-test-symmetric-vision",
+      "id": "k5758g07s69v4qwbc779zkq3ss8cnrbm",
+      "has_audio": false
+    },
+    {
+      "slug": "dmt-breakthrough-in-nature-jumproper",
+      "id": "k575p1h991amd8s5gx4xg9bc3x8cn3g0",
+      "has_audio": false
+    },
+    {
+      "slug": "dmt-breakthrough-symmetric-vision",
+      "id": "k574n878hcdxg128c1mpkk01x5847zpy",
+      "has_audio": false
+    },
+    {
+      "slug": "dmt-cevs-symmetric-vision",
+      "id": "k5710nn5pq5wymxykn57ysr5fn8cnev6",
+      "has_audio": true
+    },
+    {
+      "slug": "dmt-closed-eye-visuals-stingrayz-deliriousoptimalcopperhead",
+      "id": "k578d7v4xd9eashqmm8xk14v6n8cmb30",
+      "has_audio": false
+    },
+    {
+      "slug": "dmt-face-light-1-symmetric-vision",
+      "id": "k57427a1y7gymrt5bs47cet4b98cnydy",
+      "has_audio": false
+    },
+    {
+      "slug": "dmt-in-less-than-15-seconds-symmetric-vision",
+      "id": "k573y1nd1hgs0b8nc5z1n4r1g18bcatp",
+      "has_audio": false
+    },
+    {
+      "slug": "dmt-june-v1-symmetric-vision",
+      "id": "k57feg4kczszxp1xyba84yajex8cngh4",
+      "has_audio": true
+    },
+    {
+      "slug": "dmt-october-symmetric-vision",
+      "id": "k57bv43nfvb51mhph72dshrz5h8468s0",
+      "has_audio": true
+    },
+    {
+      "slug": "dmt-path-symmetric-vision",
+      "id": "k578dd7pt7athheewq0s82mfzx8cns6d",
+      "has_audio": true
+    },
+    {
+      "slug": "dmt-room-light-symmetric-vision",
+      "id": "k575gnvkggc45j3ehxdm2d4gk98cng12",
+      "has_audio": false
+    },
+    {
+      "slug": "dmt-september-2021-symmetric-vision",
+      "id": "k576wg5j0wsvptbzqymqgfrdks8cm25z",
+      "has_audio": true
+    },
+    {
+      "slug": "dmt-snake-tunnel-symmetric-vision",
+      "id": "k57a9a60eehs3ehkmjjyqkz0en8cnye6",
+      "has_audio": true
+    },
+    {
+      "slug": "dmt-symmetry-visuals-bearfromvoid",
+      "id": "k5783kbnzkdaw9w2vms131271x8cntzj",
+      "has_audio": false
+    },
+    {
+      "slug": "dmt-tunnel-hypnagogist",
+      "id": "k57ev65rz8w1pvhcxqqy5017as8bdk5w",
+      "has_audio": true
+    },
+    {
+      "slug": "dmtspace-symmetric-vision",
+      "id": "k57d4tcexvkcg0w9e4wx3vg8kh846y6t",
+      "has_audio": false
+    },
+    {
+      "slug": "dxm-attempt-dissociative-replication-feetman100",
+      "id": "k5705wcvzr0zej1fer364e7hz98d00rf",
+      "has_audio": true
+    },
+    {
+      "slug": "dxm-simulation-replication-lower-second-plat-dissociative-hole-geometry-hd-sta",
+      "id": "k574xedxmk4h3a1j44rbg5mdb18d09wc",
+      "has_audio": true
+    },
+    {
+      "slug": "expanding-circular-labyrinths-k-visuals",
+      "id": "k574rdt99h7xn93fc2a8990r9x8cnp1k",
+      "has_audio": true
+    },
+    {
+      "slug": "eye-snake-tunnel-symmetric-vision",
+      "id": "k576ke5anfc0v2my3cvrtsgsa18cmcj7",
+      "has_audio": false
+    },
+    {
+      "slug": "faberge-egg-sunterry",
+      "id": "k57e6h1yfjhjwrs920xrqg8b1h8cnvcq",
+      "has_audio": true
+    },
+    {
+      "slug": "faceted-jewel-in-the-blue-tessellation-chamber-k-visuals",
+      "id": "k575hkewwxdj4gq7x22znx9gmd8cnfhy",
+      "has_audio": true
+    },
+    {
+      "slug": "fibonacci-loop-symmetric-vision",
+      "id": "k571sdkrxyp7hdhsayy6tmwfm18cmkzh",
+      "has_audio": false
+    },
+    {
+      "slug": "first-real-memory-from-dmt-symmetric-vision",
+      "id": "k57a9pndt4efwe2s2pqtsfrsns8cn7n0",
+      "has_audio": false
+    },
+    {
+      "slug": "flower-of-life-snake-pile-symmetric-vision",
+      "id": "k574mvgre1qrza96fnga8tgbn98cnbjh",
+      "has_audio": false
+    },
+    {
+      "slug": "for-ayjay-symmetric-vision",
+      "id": "k575f5gmmbgqbr6khv72g7mbes8cmm6a",
+      "has_audio": true
+    },
+    {
+      "slug": "formless-form-ben-ridgway",
+      "id": "k577aq5nmrhsr2d0kj6bsrx5tn8cnnjj",
+      "has_audio": true
+    },
+    {
+      "slug": "fountain-sunterry",
+      "id": "k57emsyfpznxstfdj8n7qarrsx8cmfj3",
+      "has_audio": false
+    },
+    {
+      "slug": "fractal-test-symmetric-vision",
+      "id": "k57dzyqdrcvsdrmq1k6qvgawyh8cmdzg",
+      "has_audio": false
+    },
+    {
+      "slug": "geometric-void-tunnel-bearfromvoid",
+      "id": "k574ap3p33at7m55tkac3ygg258cn7df",
+      "has_audio": false
+    },
+    {
+      "slug": "geometry-frog-symmetric-vision",
+      "id": "k57ca1grn77nav2mnvmb7j3zkn8bd2gh",
+      "has_audio": false
+    },
+    {
+      "slug": "getting-lost-in-the-forest-symmetric-vision",
+      "id": "k57cz2eft6d55k3w3870tswqe18bdf3d",
+      "has_audio": false
+    },
+    {
+      "slug": "glass-fractal-symmetric-vision",
+      "id": "k57fe99chy9536c88mfpv9t24x8cnf84",
+      "has_audio": true
+    },
+    {
+      "slug": "glow-pattern-tentacle-zoom-symmetric-vision",
+      "id": "k5767mp695c0rc0ryd1xy3yjb98cmg85",
+      "has_audio": false
+    },
+    {
+      "slug": "gosper-center-symmetric-vision",
+      "id": "k572v4z713bpf7s2khz3eytsss8cn8mb",
+      "has_audio": false
+    },
+    {
+      "slug": "gosper-outer-symmetric-vision",
+      "id": "k57d2fkc6w37ksfqezxccqgzzx8cngaw",
+      "has_audio": false
+    },
+    {
+      "slug": "gosper-tunnel-symmetric-vision",
+      "id": "k57fg87h7e6s33ztz7hkad0sf58cngsc",
+      "has_audio": false
+    },
+    {
+      "slug": "green-and-purple-labyrinth-mask-k-visuals",
+      "id": "k576wkr67vaf99f304qktmkp4d8cnap8",
+      "has_audio": true
+    },
+    {
+      "slug": "green-rosettes-in-a-dark-organic-field-k-visuals",
+      "id": "k57b17166966813afh15frrv0h8cnpks",
+      "has_audio": true
+    },
+    {
+      "slug": "grey-eye-tunnel-symmetric-vision",
+      "id": "k570awt0f8srp67pejfmcz5hrs8cmjsb",
+      "has_audio": false
+    },
+    {
+      "slug": "happy-birthday-neil-symmetric-vision",
+      "id": "k57f4zw2rj6e0a8z4mgav1j7a98cmzd2",
+      "has_audio": false
+    },
+    {
+      "slug": "hilbertwaveportal-uon",
+      "id": "k57621sbghdk2nk3qvpr09yst98cmpgz",
+      "has_audio": false
+    },
+    {
+      "slug": "infinite-cathedral-flythrough-symmetric-vision",
+      "id": "k5763x59mdq8xw9h809bc7fhgs8cmq29",
+      "has_audio": false
+    },
+    {
+      "slug": "infinite-tunnel-symmetric-vision",
+      "id": "k5714363zabsc0bnjw2s8f73618cnzpj",
+      "has_audio": true
+    },
+    {
+      "slug": "interconnected-mushroom-tendril-landscape-k-visuals",
+      "id": "k571dpma3946xhw9ddcs8xh1zx8cn28x",
+      "has_audio": true
+    },
+    {
+      "slug": "inverted-eye-space-symmetric-vision",
+      "id": "k57fqhjsbb7j0a16z6j0f1p8x18bcy6y",
+      "has_audio": false
+    },
+    {
+      "slug": "kaleidoscopic-pattern-tunnel-bearfromvoid",
+      "id": "k57a56ef6a5392nsbt25qn7gdn8cnb5z",
+      "has_audio": false
+    },
+    {
+      "slug": "kaleidoscopic-rings-around-a-floating-form-k-visuals",
+      "id": "k57e01jwj9d62s88qn8tggc0js8cm2ps",
+      "has_audio": true
+    },
+    {
+      "slug": "mandelbulb-test-symmetric-vision",
+      "id": "k57cea9n8vxr22vkxr8ew7gj358cn6ra",
+      "has_audio": false
+    },
+    {
+      "slug": "maze-mask-mandala-k-visuals",
+      "id": "k579v93wvp6zevqdf73bsyk13d8cntzj",
+      "has_audio": true
+    },
+    {
+      "slug": "memory-from-dead-man-s-trip-dmt-visuals-experiment-v11-symmetric-vision",
+      "id": "k5780ta3bc1gpyd25b05m60np58cnmty",
+      "has_audio": true
+    },
+    {
+      "slug": "memory-from-dmt-symmetric-vision",
+      "id": "k5796eqxpd99a9wwaa6ebyearh8cmwhh",
+      "has_audio": true
+    },
+    {
+      "slug": "mescaline-forest-symmetric-vision",
+      "id": "k57easa7t3m0n3tjhh7prn22as8bcn3r",
+      "has_audio": false
+    },
+    {
+      "slug": "modem-flashback-v3-symmetric-vision",
+      "id": "k575488dzj35kj9pz3ey7yszjx8cns4b",
+      "has_audio": true
+    },
+    {
+      "slug": "neon-triangular-mandala-bearfromvoid",
+      "id": "k57cy521rh50f98rvk49zmadps8cm3m4",
+      "has_audio": false
+    },
+    {
+      "slug": "neon-tunnel-and-patterned-sphere-k-visuals",
+      "id": "k577ezf0hw3faryfntvet8b5yx8cmqxa",
+      "has_audio": true
+    },
+    {
+      "slug": "neural-network-footage-glooby-s-world",
+      "id": "k571aaj9ce1yjknjjrr1jteavs8cmj7z",
+      "has_audio": true
+    },
+    {
+      "slug": "neural-network-footage-gloobys-world",
+      "id": "k574vrqdmhkg26bvhbyhesp3jx8bc1ty",
+      "has_audio": false
+    },
+    {
+      "slug": "orbiting-arms-around-a-square-sun-k-visuals",
+      "id": "k5738c75dpghb0pbz5mrtjt55s8cmssd",
+      "has_audio": true
+    },
+    {
+      "slug": "organic-radial-mandala-bearfromvoid",
+      "id": "k574re803dqmxkkv2r01twf9md8cnnyx",
+      "has_audio": false
+    },
+    {
+      "slug": "pastel-lattice-chamber-k-visuals",
+      "id": "k578mdq3wr1955cfqjdkrt1hgh8cnwjg",
+      "has_audio": true
+    },
+    {
+      "slug": "penta-snake-space-symmetric-vision",
+      "id": "k57f2wh850k73cgmvkcj4n0qr18cm4vp",
+      "has_audio": true
+    },
+    {
+      "slug": "pretty-intense-walk-symmetric-vision",
+      "id": "k57d7fpx1neda3x4tfs4mg9xjd8bcv0c",
+      "has_audio": false
+    },
+    {
+      "slug": "pulse-snake-pattern-tunnel-symmetric-vision",
+      "id": "k57e1bn1a978jyncv7zjztgkk18cm6v0",
+      "has_audio": false
+    },
+    {
+      "slug": "quantum-tilt-loka",
+      "id": "k57exmrbg8f4axg1xp95xp9aj984653x",
+      "has_audio": true
+    },
+    {
+      "slug": "receding-sculpture-beneath-orange-arches-k-visuals",
+      "id": "k57dkkx7tn4gj2xcfgdmhbz4w98cn0hn",
+      "has_audio": true
+    },
+    {
+      "slug": "rising-tiled-pyramids-k-visuals",
+      "id": "k574mns8xrhkpb9yvgyqvs47vh8cmqgk",
+      "has_audio": true
+    },
+    {
+      "slug": "rock-a-nore-geometry-kaylee",
+      "id": "k5739t5djj84zvzjg4nc069cg98cmm4a",
+      "has_audio": false
+    },
+    {
+      "slug": "rock-geometry-symmetric-vision",
+      "id": "k579rew9tqpnf0hf1914ma298s8cmy0a",
+      "has_audio": false
+    },
+    {
+      "slug": "rotating-glyphs-and-eyes-k-visuals",
+      "id": "k5700gqm00sdt86cbjbqp65vkh8cm3ze",
+      "has_audio": true
+    },
+    {
+      "slug": "sacred-geometry-crypto-geometry",
+      "id": "k57cxdmdj41fc635hq20ppafc18cmz1x",
+      "has_audio": true
+    },
+    {
+      "slug": "scry-2d-geometry-scry",
+      "id": "k572fv088pyd370crawdxa3vdx8cn05b",
+      "has_audio": false
+    },
+    {
+      "slug": "seated-figure-beyond-the-blue-and-gold-chamber-k-visuals",
+      "id": "k5719ax3nxzn5qajtw98x1jz458cn3vh",
+      "has_audio": true
+    },
+    {
+      "slug": "segmented-curves-in-a-neon-hexagon-field-k-visuals",
+      "id": "k5705qpfa23bx9gse1y8hc1ryh8cmmzd",
+      "has_audio": true
+    },
+    {
+      "slug": "segmented-emblem-over-neon-rosettes-k-visuals",
+      "id": "k57crsqkx5s5n6n99jkmdwwccx8cmf8q",
+      "has_audio": true
+    },
+    {
+      "slug": "shifting-hexagon-and-rosette-mosaic-k-visuals",
+      "id": "k579b2yvgrz42hpzk7qmy4pd4s8cm0g8",
+      "has_audio": true
+    },
+    {
+      "slug": "shifting-portal-maze-room-k-visuals",
+      "id": "k579ydqysjfk25spg6qs6semq18cmwe3",
+      "has_audio": true
+    },
+    {
+      "slug": "shinyhilbertdesignscrollup-uon",
+      "id": "k57d6vnw8zhhjrfdwbnne5tefd8cn4tr",
+      "has_audio": false
+    },
+    {
+      "slug": "shipibo-snake-pile-symmetric-vision",
+      "id": "k573ajyk3z584599vany49jd4n8cnz57",
+      "has_audio": false
+    },
+    {
+      "slug": "singing-bowls-phosform",
+      "id": "k578rna72t7gy6m9mf3ebt20d98cmr79",
+      "has_audio": true
+    },
+    {
+      "slug": "snake-hole-symmetric-vision",
+      "id": "k57dse43b03r73ks9h73b3skes8cm27z",
+      "has_audio": false
+    },
+    {
+      "slug": "snake-overload-symmetric-vision",
+      "id": "k57f4tzegff0egjrgta0g77s4d8cna0g",
+      "has_audio": true
+    },
+    {
+      "slug": "snake-toon-tube-symmetric-vision",
+      "id": "k572ctz3j6e1ehahxfzryv1r9x8cnesj",
+      "has_audio": false
+    },
+    {
+      "slug": "snakey-columns-symmetric-vision",
+      "id": "k57e8mnq71ajh1fw8af3m1s2jx8cnzhj",
+      "has_audio": false
+    },
+    {
+      "slug": "snek-torus-torus-symmetric-vision",
+      "id": "k57ff1sj0qqezvfsn494g8kcan8cmqzf",
+      "has_audio": false
+    },
+    {
+      "slug": "space-snakes-symmetric-vision",
+      "id": "k579j5z4v6t54xhzctn4g7aba58bc9nb",
+      "has_audio": false
+    },
+    {
+      "slug": "spaghetti-hands-dmt-edit-symmetric-vision",
+      "id": "k57985tqpd6c7a79mstpdydff98cnyac",
+      "has_audio": true
+    },
+    {
+      "slug": "spiraling-labyrinth-tunnel-k-visuals",
+      "id": "k576jzzk6m0a1xh63rj8qr8pts8cmswn",
+      "has_audio": true
+    },
+    {
+      "slug": "squarecurvetesselation-uon",
+      "id": "k5722a9k1m5ye2kxgq30panvvd8bc1md",
+      "has_audio": false
+    },
+    {
+      "slug": "squiggle-mandala-9-bearfromvoid",
+      "id": "k572a2w0x16a8rgwgvm82e0tnh8cnx4n",
+      "has_audio": false
+    },
+    {
+      "slug": "squiggly-light-test-symmetric-vision",
+      "id": "k57djtbjdepv1401kh7g7yqdeh8cmnry",
+      "has_audio": true
+    },
+    {
+      "slug": "stillpoint-ben-ridgway",
+      "id": "k57fyafyn7aef9y61b79dpnkvx8bdfmg",
+      "has_audio": false
+    },
+    {
+      "slug": "symmetrical-capsule-hexagon-grid-k-visuals",
+      "id": "k5752q4pwpg5y49fmds8m0amen8cnmdf",
+      "has_audio": true
+    },
+    {
+      "slug": "teal-field-of-coils-and-bubbles-k-visuals",
+      "id": "k570h4x5q7hjydtqh6acvjdtnd8cncnr",
+      "has_audio": true
+    },
+    {
+      "slug": "tentacle-cevs-symmetric-vision",
+      "id": "k57721m5603y54jwcfbpxxkpss8cnsgh",
+      "has_audio": false
+    },
+    {
+      "slug": "tentacle-shipibo-center-symmetric-vision",
+      "id": "k57ejtcp0bq5qa7c80qv26jdtn8cm97g",
+      "has_audio": false
+    },
+    {
+      "slug": "this-painting-is-watching-me-symmetric-vision",
+      "id": "k577m74z20a14rnj4z0bjj9r1x8bd710",
+      "has_audio": false
+    },
+    {
+      "slug": "those-eyes-symmetric-vision",
+      "id": "k5770pjjgks16j96rdega1e9p98cnehx",
+      "has_audio": false
+    },
+    {
+      "slug": "time-trance-ben-ridgway",
+      "id": "k570dy2ngq1epqrc677d36bhvd8cn9jy",
+      "has_audio": true
+    },
+    {
+      "slug": "triqueta-sunterry",
+      "id": "k57eq7ws088q16a1myfmh9vh8s8cmvec",
+      "has_audio": false
+    },
+    {
+      "slug": "tunnel-hypnagogist",
+      "id": "k57ajpvm4050hzvr7jcgfpzsrx8cn6fe",
+      "has_audio": true
+    },
+    {
+      "slug": "under-skin-shipibo-snake-tunnel-symmetric-vision",
+      "id": "k570jsf7djn4nyzdsscba50es18cmrt6",
+      "has_audio": true
+    },
+    {
+      "slug": "untitled-road-journey-loka",
+      "id": "k57epnz1t0jbvwhvebyd52p0qx8cmjx6",
+      "has_audio": true
+    },
+    {
+      "slug": "visionary-art-visuals-forest-meditation-simon-haiduk",
+      "id": "k5707qb65w7xw07h5ckv6rpbex8cnza1",
+      "has_audio": true
+    },
+    {
+      "slug": "weird-conveyor-space-symmetric-vision",
+      "id": "k57595s9d9h48pp0fz6wxkg5g58cnbez",
+      "has_audio": false
+    },
+    {
+      "slug": "wireframe-mushroom-machine-garden-k-visuals",
+      "id": "k5786cadzdft3hqkgs292fq2j58cngq7",
+      "has_audio": true
+    },
+    {
+      "slug": "women-s-day-2020-dmt-symmetric-vision",
+      "id": "k574jvcnqe0rjf0x72r5wmapg58cnp3j",
+      "has_audio": false
+    },
+    {
+      "slug": "wood-table-loka",
+      "id": "k572dckkqngnwwxd10256fkr058cnzmv",
+      "has_audio": true
+    },
+    {
+      "slug": "zero-to-300ug-in-4-seconds-symmetric-vision",
+      "id": "k5707x4whawyx6chnqmevjmy5x8bdx4a",
+      "has_audio": false
+    },
+    {
+      "slug": "desk-pattern-faces-symmetric-vision",
+      "id": "k57b9htrjts94vnbh8km7yjajd8cn4jm",
+      "has_audio": true
+    },
+    {
+      "slug": "evil-carpet-symmetric-vision",
+      "id": "k57bneadpmxvm1hr7rq0r0xwph8cn563",
+      "has_audio": false
+    },
+    {
+      "slug": "eye-forest-pareidolia-symmetric-vision",
+      "id": "k57azsg6np5weearax9vxmy73h8cmjj4",
+      "has_audio": false
+    },
+    {
+      "slug": "eye-in-the-sky-symmetric-vision",
+      "id": "k57597vtf7dj2eh72xqmv9yrms8cmf1j",
+      "has_audio": true
+    },
+    {
+      "slug": "eye-pareidolia-symmetric-vision",
+      "id": "k576p526sgstc3k2d9z522jdf98cnsb6",
+      "has_audio": false
+    },
+    {
+      "slug": "eyes-in-the-grass-symmetric-vision",
+      "id": "k574q2me95j656a85tmwpv3rsn8cn9sn",
+      "has_audio": true
+    },
+    {
+      "slug": "eyes-in-the-socks-symmetric-vision",
+      "id": "k577n33dww5t9b1sh8am06byx18cmkdr",
+      "has_audio": false
+    },
+    {
+      "slug": "face-in-a-tree-symmetric-vision",
+      "id": "k57d633w6crp58nfanxfvt4nt98bcyp4",
+      "has_audio": false
+    },
+    {
+      "slug": "fall-forest-faces-symmetric-vision",
+      "id": "k5756wvdtz3f6cn9hftyvatfd18cmvha",
+      "has_audio": false
+    },
+    {
+      "slug": "forest-path-eyes-symmetric-vision",
+      "id": "k57b7px23bq0nzf42x4pfr3wk98cnra8",
+      "has_audio": true
+    },
+    {
+      "slug": "leaf-eyes-symmetric-vision",
+      "id": "k578kkx7a4p9366x8cxfz7c8qh8cnr2q",
+      "has_audio": false
+    },
+    {
+      "slug": "leafy-eyes-symmetric-vision",
+      "id": "k574jcdy04ejtff3fd8xz9f4nn8cn1fv",
+      "has_audio": false
+    },
+    {
+      "slug": "merch-pile-symmetric-vision",
+      "id": "k577ah8b79wv1at9ydtzww2s0s8cmmh1",
+      "has_audio": false
+    },
+    {
+      "slug": "pareidolia-in-the-rock-oracle-emissary",
+      "id": "k578dq8azp748e0ez1hr83cd9d8cmhsq",
+      "has_audio": true
+    },
+    {
+      "slug": "totoro-loka",
+      "id": "k57aw8q1q60mptkv1evx6rmz2n8cnhwq",
+      "has_audio": true
+    },
+    {
+      "slug": "tree-eyes-symmetric-vision",
+      "id": "k576tmmjhnna6ffty637qk8rkd8cn5c8",
+      "has_audio": true
+    },
+    {
+      "slug": "balance-crypto-geometry",
+      "id": "k5788eq21xw8wwek1bf94f2nt1846kq5",
+      "has_audio": true
+    },
+    {
+      "slug": "ear-snake-symmetric-vision",
+      "id": "k5725d7awpz81ysps6xrdkxydn8474pv",
+      "has_audio": false
+    },
+    {
+      "slug": "sankespace-symmetric-vision",
+      "id": "k57a15hypjvkwc414zs9ryzr5584768c",
+      "has_audio": false
+    },
+    {
+      "slug": "infinite-column-space-symmetric-vision",
+      "id": "k570pxmvwxtkxszne9fz6rn33d847w0d",
+      "has_audio": false
+    },
+    {
+      "slug": "infinite-torus-space-symmetric-vision",
+      "id": "k5765bbhd94mshfxveym84t8qd847b9r",
+      "has_audio": true
+    },
+    {
+      "slug": "chromatic-columns-bearfromvoid",
+      "id": "k57fv47ed871gg6yhn8dxne42n8cn4t2",
+      "has_audio": false
+    },
+    {
+      "slug": "deliriant-diphenhydramine-dph-datura-closed-eye-visual-cev-replication-simulat",
+      "id": "k5716h5mapv5g4csxz0ajfanj98d16zs",
+      "has_audio": true
+    },
+    {
+      "slug": "floral-tentacle-mandala-bearfromvoid",
+      "id": "k57ehtxtd0twmd52mszgs8mse98cnaec",
+      "has_audio": false
+    },
+    {
+      "slug": "heart-restart-phosform",
+      "id": "k574pge158vaa4xeteyts0sn5d8cmcxk",
+      "has_audio": true
+    },
+    {
+      "slug": "rain-dxm-replication-feetman100",
+      "id": "k57b4j4anhedce4gs1nbjrrc818d1jrx",
+      "has_audio": true
+    },
+    {
+      "slug": "symmetric-neon-figure-bearfromvoid",
+      "id": "k5763yf7c11ktyv4htmd36fp8n8cnq1a",
+      "has_audio": false
+    },
+    {
+      "slug": "paradox-engine-symmetric-vision",
+      "id": "k577mpmt1tw14g4xt5266hfx718cm5kr",
+      "has_audio": false
+    },
+    {
+      "slug": "daisy-day-phosform",
+      "id": "k573scv18nyt6x7pf6rd091t0s847xgg",
+      "has_audio": true
+    },
+    {
+      "slug": "foxglove-phosform",
+      "id": "k57evd49yjwtfvf0fwekzvm0xn8cn0hx",
+      "has_audio": true
+    },
+    {
+      "slug": "magnified-flower-symmetric-vision",
+      "id": "k5762wxc8tz4r7aqnwmmxbff9s8bcger",
+      "has_audio": false
+    },
+    {
+      "slug": "magnified-leaf-symmetric-vision",
+      "id": "k57c21a9hc2hcrm9fs05z5ckdn8bcfz7",
+      "has_audio": false
+    },
+    {
+      "slug": "coffee-goes-brrrr-audio-symmetric-vision",
+      "id": "k57b0pasrrg8q9g66fbq3g7kfd8cmae4",
+      "has_audio": true
+    },
+    {
+      "slug": "cookie-void-symmetric-vision",
+      "id": "k571pvjbcrfx72cvegs7qk1ekn8cm2c1",
+      "has_audio": false
+    },
+    {
+      "slug": "grass-perspective-symmetric-vision",
+      "id": "k576r14evwk128e4acgmsbg4k18cm153",
+      "has_audio": false
+    },
+    {
+      "slug": "mountain-patterning-symmetric-vision",
+      "id": "k571thbks7wz23c980s5jzzvpx8cm6re",
+      "has_audio": false
+    },
+    {
+      "slug": "size-distortions",
+      "id": "k5774axq4vdesghnw5henf040x8c89ns",
+      "has_audio": false
+    },
+    {
+      "slug": "mushroom-walk-phosform",
+      "id": "k574ptn7jf138sawqyet6vb0v9847hgr",
+      "has_audio": true
+    },
+    {
+      "slug": "beach-girl-recursion-symmetric-vision",
+      "id": "k572pq511m3hwq00tdzqq4fv0h8cm56v",
+      "has_audio": false
+    },
+    {
+      "slug": "coffee-foam-recursion-symmetric-vision",
+      "id": "k5793y723x3nzw7cmwn7dyprk18bdage",
+      "has_audio": false
+    },
+    {
+      "slug": "foliage-recursion-symmetric-vision",
+      "id": "k575nkypjqhn2gbqmt8xff3dds8cm9gk",
+      "has_audio": false
+    },
+    {
+      "slug": "getting-lost-in-a-hemp-field-symmetric-vision",
+      "id": "k573wy1t4dz3k2fj32n6y4g6998bdhd8",
+      "has_audio": false
+    },
+    {
+      "slug": "recursive-drawing-symmetric-vision",
+      "id": "k57dmsv8j82aawa6wt0g3azn8d8cnszn",
+      "has_audio": true
+    },
+    {
+      "slug": "recursive-flowers-symmetric-vision",
+      "id": "k57037vksnjzj3fgxc84gayjfs8cnyq0",
+      "has_audio": false
+    },
+    {
+      "slug": "recursive-hall-symmetric-vision",
+      "id": "k5758c3ftwpm555pvpprs3yhj98cn31q",
+      "has_audio": false
+    },
+    {
+      "slug": "recursive-logo-symmetric-vision",
+      "id": "k57cefydyfvahy9c9q2s261sx18cmsjk",
+      "has_audio": true
+    },
+    {
+      "slug": "tattoo-modem-symmetric-vision",
+      "id": "k570ybmybqzb943bjk4zx7ypf18cmbje",
+      "has_audio": false
+    },
+    {
+      "slug": "trail-zoom-recursion-symmetric-vision",
+      "id": "k57fhdmfr6fassvaj8d170bvc18cndfr",
+      "has_audio": false
+    },
+    {
+      "slug": "scenery-slicing-symmetric-vision",
+      "id": "k574kxm9r02v2swjwq14ckf9dx8bddg9",
+      "has_audio": false
+    },
+    {
+      "slug": "biomechanical-corridor-to-the-face-door-k-visuals",
+      "id": "k578vtcwgb0dxybtct4cczsj618cmez0",
+      "has_audio": true
+    },
+    {
+      "slug": "kaleidoscopic-highway-hypnagogist",
+      "id": "k5775v2b7jqy47sfvrcndnymqh8bcsc1",
+      "has_audio": true
+    },
+    {
+      "slug": "neon-carnival-hypnagogist",
+      "id": "k5766ngz0npca7sx9002rxz5ps8cnwdt",
+      "has_audio": true
+    },
+    {
+      "slug": "faces-in-the-grass-loka",
+      "id": "k57165msv3z0hgsx5ky0trw2ms847ph1",
+      "has_audio": false
+    },
+    {
+      "slug": "the-mirrored-forest-stream",
+      "id": "k57ccy9kxg7gva2gy6rjbjzgh5847xt2",
+      "has_audio": true
+    },
+    {
+      "slug": "symmetrical-weed-symmetric-vision",
+      "id": "k577a2zzkbpg3sdh908r4hp0yn847vey",
+      "has_audio": false
+    },
+    {
+      "slug": "eyte-star-entity-symmetric-vision",
+      "id": "k5746avfxbst5qy58fqmgsc85s8cn5qm",
+      "has_audio": false
+    },
+    {
+      "slug": "garage-wall-symmetry-symmetric-vision",
+      "id": "k57fmtmvjqb6ctxkvp910t2gv98cm01t",
+      "has_audio": false
+    },
+    {
+      "slug": "greek-curve-entity-symmetric-vision",
+      "id": "k57e7bjyw8tjva0e522dcge3858cnce7",
+      "has_audio": true
+    },
+    {
+      "slug": "low-dose-symmetry-loka",
+      "id": "k578q2exd0ecgam1xb31pntb598cn01x",
+      "has_audio": false
+    },
+    {
+      "slug": "rocky-lucy-river-symmetric-vision",
+      "id": "k57em7xtnr14ep8j3x2vwkx5nx8cntw9",
+      "has_audio": false
+    },
+    {
+      "slug": "snake-circle-symmetric-vision",
+      "id": "k576b12jm2rkfnjx28q4g8n8018cmj8r",
+      "has_audio": true
+    },
+    {
+      "slug": "stream-7-tree-bark-symmetric-vision",
+      "id": "k579wztvvkm26716w9e0fkd6x58cmgxj",
+      "has_audio": false
+    },
+    {
+      "slug": "symmetry-stream-loka",
+      "id": "k57dmjptzhv91gee32jbf5sge18bc9qx",
+      "has_audio": true
+    },
+    {
+      "slug": "albino-bulb-symmetric-vision",
+      "id": "k5728cxh6szfre9mrpabh4eqzd8cn6kk",
+      "has_audio": false
+    },
+    {
+      "slug": "darkroom-symmetric-vision",
+      "id": "k57652abrjye0pw2ycmt7wbj198cn823",
+      "has_audio": false
+    },
+    {
+      "slug": "lost-at-sea-phosform",
+      "id": "k577e641q5yk3wznn5a21m5r4x8cmb3g",
+      "has_audio": true
+    },
+    {
+      "slug": "salvia-leaves-symmetric-vision",
+      "id": "k577bgr1g5eqtkwdevrjt7s9c58cnbhf",
+      "has_audio": false
+    },
+    {
+      "slug": "allseeinghand-symmetric-vision",
+      "id": "k575py76emzbged5agjscdmzqh84676c",
+      "has_audio": false
+    },
+    {
+      "slug": "smeared-walk-through-the-woods-oracle-emissary",
+      "id": "k577r72hfe4x9w62d611x51tr584719q",
+      "has_audio": false
+    },
+    {
+      "slug": "dissociative-visuals-attempt-2-feetman100",
+      "id": "k57a1pxkdwbd4qd5fa1vz4ahs98d1xkn",
+      "has_audio": true
+    },
+    {
+      "slug": "lattice-dissociative-replication-feetman100",
+      "id": "k5768chakx3dynjm27058c01158d1579",
+      "has_audio": true
+    },
+    {
+      "slug": "level-3-tracers-cold-wasabi",
+      "id": "k57d37y5d65573g9svqhwr3gqn8bcssc",
+      "has_audio": true
+    },
+    {
+      "slug": "low-moderate-dose-dissociative-dxm-ketamine-mxe-pcp-n20-oevs-replication-simul",
+      "id": "k57d5r77gf1y6zajfcp1cy4k898d18mc",
+      "has_audio": true
+    },
+    {
+      "slug": "mandelbrot-dissociative-replication-song-hang-em-all-carpenter-brut-feetman100",
+      "id": "k57apkfnsdphy9p67cce311x958d0xam",
+      "has_audio": true
+    },
+    {
+      "slug": "modem-flashback-synesthesia-symmetric-vision",
+      "id": "k57ey8s25tn4s5t9fspaxgrqc98cm3c5",
+      "has_audio": true
+    },
+    {
+      "slug": "trains-dissociative-replication-feetman100",
+      "id": "k57d55yj5kwg8vb5wzcvx7tmsh8d0yh2",
+      "has_audio": true
+    },
+    {
+      "slug": "uneeded-paper-phosform",
+      "id": "k576hhpfhwwqzdpyh5h7f90ge98cmrcy",
+      "has_audio": true
+    },
+    {
+      "slug": "say-hi-to-lucy-symmetric-vision",
+      "id": "k574qnbhmayvpqfhe785nx8tg18cm97j",
+      "has_audio": false
+    },
+    {
+      "slug": "transforming-plushies-symmetric-vision",
+      "id": "k575cz1w5w3jze903wbv71xy198bcwec",
+      "has_audio": true
+    },
+    {
+      "slug": "jaw-shattering-yawns-loka",
+      "id": "k572r767ea3gkytdhak3n0bex1846528",
+      "has_audio": false
+    },
+    {
+      "slug": "acuity-enhancement-on-tree-bark-symmetric-vision",
+      "id": "k57992bc16hfkjxwpc45n66h7s8bcqd1",
+      "has_audio": false
+    },
+    {
+      "slug": "spring-balloon-symmetric-vision",
+      "id": "k575xa6ncpcgm67m4n4njgwzw58cmyn2",
+      "has_audio": true
+    },
+    {
+      "slug": "arrogance-dxm-replication-feetman100",
+      "id": "k57fn1e06kz76qgkbafgt7ssbn8d05sc",
+      "has_audio": true
+    },
+    {
+      "slug": "dxm-closed-eye-visuals-cevs-dissociative-trip-replication-geometric-spaces-by",
+      "id": "k5734ftrmzvp5vckdzrpy31r4x8d12qd",
+      "has_audio": true
+    },
+    {
+      "slug": "spaceship-dissociative-replication-extreme-flashing-lights-warning-feetman100",
+      "id": "k57cv7rg86zvadq1yfht6bf4q58d14n9",
+      "has_audio": true
+    },
+    {
+      "slug": "deliriant-dph-datura-replication-visual-audio-the-700-club-stas-constantine-st",
+      "id": "k578a2ten6ggynzbc2snqj3tbd8d12zg",
+      "has_audio": true
+    },
+    {
+      "slug": "dog-leaping-through-water",
+      "id": "k577dbat1d54xsh7a3e7494aad8bdebp",
+      "has_audio": false
+    },
+    {
+      "slug": "oneness-audio-phosform",
+      "id": "k574kqa8s3pet5bfc4q178xses8cm20y",
+      "has_audio": true
+    },
+    {
+      "slug": "2c-b-handwash-loka",
+      "id": "k57c6syr9d765q8a5jbm7ttwkd8cnkfq",
+      "has_audio": true
+    }
+  ],
+  "errors": []
+}

@@ -32,16 +32,24 @@ import { REPLICATION_VIEWER_PARAM } from "./galleryUrlState";
 /** Kept in lockstep with the literal `data-replication-viewer-cover=""` in the JSX below. */
 const COVER_ATTRIBUTE = "data-replication-viewer-cover";
 
+/**
+ * The reveal flag lives on <html> — the same channel as the theme bootstrap —
+ * because React never renders that attribute, so flipping it pre-paint cannot
+ * create a hydration mismatch the way writing to the cover's own React-managed
+ * `style` attribute would.
+ */
+const REVEAL_FLAG = "data-viewer-deep-link";
+
 const REVEAL_SCRIPT =
   `try{if(new URLSearchParams(location.search).has("${REPLICATION_VIEWER_PARAM}"))` +
-  `{var c=document.querySelectorAll("[${COVER_ATTRIBUTE}]");` +
-  `for(var i=0;i<c.length;i++)c[i].style.display="block"}}catch(e){}`;
+  `document.documentElement.setAttribute("${REVEAL_FLAG}","")}catch(e){}`;
 
 /**
  * display:none elements do not run animations, so the escape-hatch countdown
- * starts only if the reveal script actually showed the cover.
+ * starts only once the reveal flag actually shows the cover.
  */
-const TIMEOUT_KEYFRAMES =
+const COVER_CSS =
+  `html[${REVEAL_FLAG}] [${COVER_ATTRIBUTE}]{display:block}` +
   "@keyframes replication-viewer-cover-timeout{to{visibility:hidden}}";
 
 /**
@@ -52,7 +60,7 @@ const TIMEOUT_KEYFRAMES =
 export function ViewerDeepLinkCover() {
   return (
     <>
-      <style>{TIMEOUT_KEYFRAMES}</style>
+      <style>{COVER_CSS}</style>
       <div
         data-replication-viewer-cover=""
         aria-hidden
@@ -67,15 +75,11 @@ export function ViewerDeepLinkCover() {
 }
 
 /**
- * Drop every cover on the page. Idempotent — safe to call from resolution
- * effects and close handlers alike, whether or not the reveal ever ran. The
- * nodes are hidden rather than detached: React still owns them, and pulling
- * a managed element out from under the reconciler breaks its own unmount.
+ * Drop every cover on the page by clearing the reveal flag. Idempotent — safe
+ * to call from resolution effects and close handlers alike, whether or not the
+ * reveal ever ran. The covers themselves stay in the DOM untouched: React owns
+ * them, and only the CSS reveal rule keyed on the flag ever shows them.
  */
 export function dismissViewerDeepLinkCover() {
-  document
-    .querySelectorAll<HTMLElement>(`[${COVER_ATTRIBUTE}]`)
-    .forEach((node) => {
-      node.style.display = "none";
-    });
+  document.documentElement.removeAttribute(REVEAL_FLAG);
 }
