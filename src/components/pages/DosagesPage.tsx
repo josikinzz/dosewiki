@@ -23,7 +23,6 @@ import { isDirectUrlOnlySubstance } from "@/schema/substance/substanceVisibility
 import { useTabHashSync, writeTabHash } from "@/hooks/useTabHashSync";
 import { slugify } from "@/utils/slug";
 import { scrollIntoViewRespectingMotion } from "@/utils/navigation";
-import { cn } from "@/lib/utils";
 
 const SUBSTANCE_INDEX_ICON = "streamline-ultimate:science-molecule-strucutre-bold" satisfies IconName;
 
@@ -398,33 +397,16 @@ export function DosagesPage({
 
       <CategoryIntro content={activeContent} activeTab={activeTab} />
 
-      <div
-        ref={panelsStartRef}
-        className={cn(
-          "mt-6 scroll-mt-24 sm:mt-10",
-          resolvedGroups.length === 1
-            ? "mx-auto w-full max-w-xl"
-            : resolvedGroups.length === 2
-              ? "mx-auto w-full max-w-4xl"
-              : undefined,
-        )}
-      >
+      <div ref={panelsStartRef} className="mt-6 scroll-mt-24 sm:mt-10">
         <CategoryGrid
           key={activeTab}
           groups={resolvedGroups}
           drugHrefPrefix="/"
           categoryHrefPrefix={isSingleCategoryView ? undefined : "/category/"}
-          maxColumns={isFiltered ? 3 : undefined}
           // Single-class tabs split one category into subsection panels that
           // all share the same category glyph — redundant, so drop the icon.
           // "All" and the super-category tabs (mixed classes) keep theirs.
           hideCardIcons={isSingleCategoryView}
-          getCardTone={
-            isSingleCategoryView
-              ? (group) =>
-                  group.name.toLowerCase() === "common" ? "default" : "dim"
-              : undefined
-          }
         />
       </div>
     </PublicContentShell>

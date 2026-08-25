@@ -40,7 +40,7 @@ export function IndexPanelGrid({ children, columns, padded = true }: IndexPanelG
 
   return (
     <div
-      className={`${spacingClassName(padded)} grid grid-cols-[repeat(var(--index-panel-columns),minmax(min(100%,18.75rem),1fr))] ${INDEX_PANEL_GAP_CLASS_NAME} max-[639px]:grid-cols-1`}
+      className={`${spacingClassName(padded)} grid justify-center grid-cols-[repeat(var(--index-panel-columns),minmax(min(100%,18.75rem),24rem))] ${INDEX_PANEL_GAP_CLASS_NAME} max-[639px]:grid-cols-1`}
       style={style}
     >
       {children}
