@@ -78,6 +78,7 @@ const nextConfig: NextConfig = {
   // without this the files never reach the deployed serverless bundle.
   outputFileTracingIncludes: {
     "/html-docs/[doc]": ["./html-docs/**/*"],
+    "/api/og/molecule/[slug]": ["./public/fonts/Blinker-Regular.ttf"],
   },
   // Native N-API package used by the molecule OG-card route; bundling it breaks
   // the per-platform binding resolution, so it must load from node_modules.

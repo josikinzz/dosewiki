@@ -6,6 +6,7 @@
  * function — Next restricts what a `route.ts` module may export.
  */
 import "server-only";
+import path from "node:path";
 
 import { Resvg } from "@resvg/resvg-js";
 import sharp from "sharp";
@@ -13,6 +14,19 @@ import { MOLECULE_SOCIAL_CARD_SIZE } from "../../src/data/mappings/moleculeOverr
 
 /** The molecule fits centered inside this square, leaving an even card margin. */
 const MOLECULE_BOX = 880;
+
+/** Bundled fallback for SVG atom labels; serverless runtimes have no system fonts. */
+const MOLECULE_FONT_PATH = path.join(
+  process.cwd(),
+  "public/fonts/Blinker-Regular.ttf",
+);
+
+const MOLECULE_FONT = {
+  loadSystemFonts: false,
+  fontFiles: [MOLECULE_FONT_PATH],
+  defaultFontFamily: "Blinker",
+  sansSerifFamily: "Blinker",
+};
 
 const BACKGROUND_SVG = `<svg xmlns="http://www.w3.org/2000/svg" width="${MOLECULE_SOCIAL_CARD_SIZE}" height="${MOLECULE_SOCIAL_CARD_SIZE}">
   <defs>
@@ -35,11 +49,13 @@ export async function renderMoleculeSocialCardPng(moleculeSvg: string): Promise<
   // box width first, and if the result is still too tall, scale to height.
   let molecule = new Resvg(moleculeSvg, {
     background: "rgba(0,0,0,0)",
+    font: MOLECULE_FONT,
     fitTo: { mode: "width", value: MOLECULE_BOX },
   }).render();
   if (molecule.height > MOLECULE_BOX) {
     molecule = new Resvg(moleculeSvg, {
       background: "rgba(0,0,0,0)",
+      font: MOLECULE_FONT,
       fitTo: { mode: "height", value: MOLECULE_BOX },
     }).render();
   }
