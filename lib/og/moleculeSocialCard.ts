@@ -14,7 +14,7 @@ import sharp from "sharp";
 import { getCategoryIcon } from "../../src/data/config/categoryIcons";
 import { SUBSTANCE_SOCIAL_CARD_SIZE } from "../../src/data/mappings/substanceSocialCardUrl";
 
-export const SUBSTANCE_SOCIAL_CARD_RENDER_VERSION = "3";
+export const SUBSTANCE_SOCIAL_CARD_RENDER_VERSION = "4";
 
 const MOLECULE_BOX = 760;
 const CARD_MARGIN = 72;

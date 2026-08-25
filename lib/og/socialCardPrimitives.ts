@@ -7,16 +7,20 @@ export const SOCIAL_CARD_SIZE = 1200;
 
 export const SOCIAL_CARD_COLORS = Object.freeze({
   background: "#000000",
-  accent: "#f0abfc",
-  accentStrong: "#df75f4",
-  accentDark: "#8b0fba",
+  // Resolved default Fun/dark tokens from the deployed site. Main headings and
+  // page icons use accentStrong; selected app tiles use accent.
+  accent: "#e7aeff",
+  accentStrong: "#e494ff",
+  accentMuted: "#a47bb9",
   text: "#ffffff",
   textMuted: "#c9c0cb",
   textFaint: "#938a96",
   surface: "#0d0b0e",
-  surfaceSelected: "#28102f",
+  selectedHighlight: "#5d446e",
+  selectedPrimary: "#4f3361",
+  selectedSecondary: "#2b1c37",
   border: "#332d35",
-  borderSelected: "#9451a4",
+  borderSelected: "#e494ff75",
 });
 
 const FONT_DIR = path.join(process.cwd(), "public/fonts");
@@ -35,8 +39,23 @@ const doseWikiLogoSvg = readFileSync(
   path.join(process.cwd(), "src/assets/dosewiki-logo.svg"),
   "utf8",
 )
-  .replace("#ff00ff", SOCIAL_CARD_COLORS.accent)
-  .replace("#8000ff", SOCIAL_CARD_COLORS.accentDark);
+  // The website paints this silhouette with --theme-logo-fill. Rebuild the
+  // source SVG's old two-stop horizontal gradient as that exact four-stop,
+  // 118-degree default Fun/dark gradient for deterministic raster output.
+  .replace(
+    /<linearGradient\s+inkscape:collect="always"\s+xlink:href="#linearGradient36"[\s\S]*?\/>/,
+    `<linearGradient id="linearGradient93" xlink:href="#linearGradient36" gradientUnits="objectBoundingBox" x1="5.85%" y1="26.55%" x2="94.15%" y2="73.45%"/>`,
+  )
+  .replace(
+    /<linearGradient\s+id="linearGradient36"[\s\S]*?<\/linearGradient>/,
+    `<linearGradient id="linearGradient36">
+      <stop stop-color="#f0abfc" offset="0"/>
+      <stop stop-color="#db8ce8" offset="0.32"/>
+      <stop stop-color="#c56ed5" offset="0.64"/>
+      <stop stop-color="#ae50bf" offset="1"/>
+    </linearGradient>`,
+  )
+  .replace("stroke:url(#radialGradient43-6-72)", "stroke:url(#linearGradient93)");
 
 export const DOSEWIKI_LOGO_DATA_URI = `data:image/svg+xml;base64,${Buffer.from(doseWikiLogoSvg).toString("base64")}`;
 
@@ -131,7 +150,7 @@ export function renderDoseWikiWordmark(
   slash = false,
 ): string {
   const suffix = slash ? ".wiki/" : ".wiki";
-  return `<text x="${centerX}" y="${baselineY}" text-anchor="middle" font-family="Blinker" font-size="${fontSize}" font-weight="600" letter-spacing="-1.5" fill="${SOCIAL_CARD_COLORS.text}">dose<tspan fill="${SOCIAL_CARD_COLORS.accent}">${suffix}</tspan></text>`;
+  return `<text x="${centerX}" y="${baselineY}" text-anchor="middle" font-family="Blinker" font-size="${fontSize}" font-weight="600" letter-spacing="-1.5" fill="${SOCIAL_CARD_COLORS.text}">dose<tspan fill="${SOCIAL_CARD_COLORS.accentStrong}">${suffix}</tspan></text>`;
 }
 
 export function renderSocialCardSvgPng(svg: string): Buffer {
