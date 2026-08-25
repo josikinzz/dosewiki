@@ -105,6 +105,29 @@ describe("the replication publication gate", () => {
     ]);
   });
 
+  it("withholds only explicit non-replications while preserving unresolved rows", async () => {
+    const confirmed = row({ slug: "confirmed", replication_status: "replication" });
+    const nonReplication = row({ slug: "diagram", replication_status: "not-replication" });
+    const unreviewed = row({ slug: "pending", replication_status: "unreviewed" });
+    const unclear = row({ slug: "unclear", replication_status: "unclear" });
+    const legacy = row({ slug: "legacy" });
+
+    const { getPublicReplications } = await loadWithRows([
+      confirmed,
+      nonReplication,
+      unreviewed,
+      unclear,
+      legacy,
+    ]);
+
+    expect((await getPublicReplications()).map((item) => item.slug)).toEqual([
+      "confirmed",
+      "pending",
+      "unclear",
+      "legacy",
+    ]);
+  });
+
   it("passes the stored corpus through untouched", async () => {
     // A read-only audit of production on 2026-08-11 found 247 rows: every one
     // with `role` absent, every one `image` or `video`, every one carrying an

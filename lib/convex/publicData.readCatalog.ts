@@ -95,6 +95,10 @@ export const publicDataReadCatalog = {
     functionName: "replications:getPublicReplications",
     args: () => ({}),
   },
+  publicReplicationArtistsByKeys: {
+    functionName: "replicationTaxonomy:getPublicArtistsByKeys",
+    args: (keys: string[]) => ({ keys }),
+  },
   publicReplicationBySlug: {
     functionName: "replications:getBySlug",
     args: (slug: string) => ({ slug }),

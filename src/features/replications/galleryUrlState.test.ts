@@ -10,6 +10,15 @@ import {
   type GalleryBrowseState,
 } from "./galleryUrlState";
 
+const taxonomyDefaults = {
+  status: "all" as const,
+  viewing: "all" as const,
+  artistType: "all" as const,
+  drug: "all" as const,
+  drugClass: "all" as const,
+  family: "all" as const,
+};
+
 /** Params of a built URL, the way useSearchParams would hand them back. */
 function paramsOf(url: string): URLSearchParams {
   const [, query = ""] = url.split("?");
@@ -23,19 +32,26 @@ describe("parseGalleryBrowseState", () => {
       query: "",
       type: "all",
       sort: "video-first",
+      ...taxonomyDefaults,
     });
   });
 
   it("reads every recognized parameter", () => {
     expect(
       parseGalleryBrowseState(
-        new URLSearchParams("view=effect&q=drifting&type=video&sort=alpha"),
+        new URLSearchParams("view=effect&q=drifting&type=video&sort=alpha&status=replication&viewing=open-eye&artistType=replicator&drug=lsd&drugClass=psychedelics&family=experiential-replication"),
       ),
     ).toEqual({
       view: "effect",
       query: "drifting",
       type: "video",
       sort: "alpha",
+      status: "replication",
+      viewing: "open-eye",
+      artistType: "replicator",
+      drug: "lsd",
+      drugClass: "psychedelics",
+      family: "experiential-replication",
     });
   });
 
@@ -44,7 +60,7 @@ describe("parseGalleryBrowseState", () => {
       parseGalleryBrowseState(
         new URLSearchParams("view=banana&type=hologram&sort=biggest"),
       ),
-    ).toEqual({ view: "artist", query: "", type: "all", sort: "video-first" });
+    ).toEqual({ view: "artist", query: "", type: "all", sort: "video-first", ...taxonomyDefaults });
   });
 });
 
@@ -120,6 +136,7 @@ describe("buildGalleryBrowseUrl", () => {
         query: "",
         type: "all",
         sort: "video-first",
+        ...taxonomyDefaults,
       }),
     ).toBe(REPLICATIONS_PATH);
   });
@@ -135,15 +152,21 @@ describe("buildGalleryBrowseUrl", () => {
 
   it("round-trips every non-default state through parse", () => {
     const states: GalleryBrowseState[] = [
-      { view: "effect", query: "", type: "all", sort: "count" },
-      { view: "artist", query: "", type: "all", sort: "count" },
-      { view: "artist", query: "drifting", type: "all", sort: "alpha" },
-      { view: "artist", query: "", type: "video", sort: "count" },
+      { view: "effect", query: "", type: "all", sort: "count", ...taxonomyDefaults },
+      { view: "artist", query: "", type: "all", sort: "count", ...taxonomyDefaults },
+      { view: "artist", query: "drifting", type: "all", sort: "alpha", ...taxonomyDefaults },
+      { view: "artist", query: "", type: "video", sort: "count", ...taxonomyDefaults },
       {
         view: "effect",
         query: "symmetry & light",
         type: "image",
         sort: "alpha",
+        status: "unreviewed",
+        viewing: "closed-eye",
+        artistType: "traditional-psychedelic-artist",
+        drug: "salvia",
+        drugClass: "other",
+        family: "visionary-psychedelic-art",
       },
     ];
     for (const state of states) {

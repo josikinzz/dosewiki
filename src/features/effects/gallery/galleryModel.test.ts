@@ -14,6 +14,7 @@ import {
   groupByEffect,
   isWithheldFromArtistViews,
   matchesQuery,
+  matchesTaxonomyFilters,
   splitRailsAndPool,
   sortWithinGroup,
   workDateMs,
@@ -442,6 +443,48 @@ describe('matchesQuery', () => {
     expect(matchesQuery(item, 'lattice', effectName)).toBe(true);
     expect(matchesQuery(item, 'unity', effectName)).toBe(true);
     expect(matchesQuery(item, 'geometry', effectName)).toBe(false);
+  });
+});
+
+describe('matchesTaxonomyFilters', () => {
+  const all = {
+    status: 'all' as const,
+    viewing: 'all' as const,
+    artistType: 'all' as const,
+    drug: 'all' as const,
+    drugClass: 'all' as const,
+    family: 'all' as const,
+  };
+
+  it('keeps untagged rows visible under the default filters', () => {
+    expect(matchesTaxonomyFilters(rep(), all)).toBe(true);
+  });
+
+  it('lets mixed viewing modes and mixed artists appear under either tag', () => {
+    const item = rep({
+      viewing_mode: 'mixed',
+      viewing_mode_tags: ['open-eye', 'closed-eye'],
+      artist_primary_type: 'mixed',
+      artist_type_tags: ['replicator', 'traditional-psychedelic-artist'],
+    });
+    expect(matchesTaxonomyFilters(item, { ...all, viewing: 'open-eye' })).toBe(true);
+    expect(matchesTaxonomyFilters(item, { ...all, viewing: 'closed-eye' })).toBe(true);
+    expect(matchesTaxonomyFilters(item, { ...all, artistType: 'replicator' })).toBe(true);
+    expect(matchesTaxonomyFilters(item, { ...all, artistType: 'traditional-psychedelic-artist' })).toBe(true);
+  });
+
+  it('matches drug arrays and exact content families while selected', () => {
+    const item = rep({
+      title_drugs: [{ slug: 'salvia', name: 'Salvia', class: 'other', matched_title_text: 'Salvia' }],
+      drug_classes: ['dissociatives', 'other'],
+      content_family: 'experiential-replication',
+    });
+    expect(matchesTaxonomyFilters(item, { ...all, drug: 'salvia' })).toBe(true);
+    expect(matchesTaxonomyFilters(item, { ...all, drug: 'lsd' })).toBe(false);
+    expect(matchesTaxonomyFilters(item, { ...all, drugClass: 'other' })).toBe(true);
+    expect(matchesTaxonomyFilters(item, { ...all, drugClass: 'psychedelics' })).toBe(false);
+    expect(matchesTaxonomyFilters(item, { ...all, family: 'experiential-replication' })).toBe(true);
+    expect(matchesTaxonomyFilters(rep(), { ...all, viewing: 'open-eye' })).toBe(false);
   });
 });
 

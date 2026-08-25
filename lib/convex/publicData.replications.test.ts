@@ -295,6 +295,9 @@ describe("getPublicGalleryReplications", () => {
       if (functionName === "contributorProfiles:getAll") {
         return profiles;
       }
+      if (functionName === "replicationTaxonomy:getPublicArtistsByKeys") {
+        return [];
+      }
       throw new Error(`Unexpected Convex read: ${functionName}`);
     });
   };
@@ -321,6 +324,47 @@ describe("getPublicGalleryReplications", () => {
 
     const { getPublicGalleryReplications } = await import("./publicData.replications");
 
+    await expect(getPublicGalleryReplications()).resolves.toEqual(corpus);
+  });
+
+  it("joins only slim artist taxonomy metadata into gallery previews", async () => {
+    mocks.queryConvex.mockImplementation(async (functionName: string) => {
+      if (functionName === "replications:getPublicReplications") return corpus;
+      if (functionName === "contributorProfiles:getAll") return [];
+      if (functionName === "replicationTaxonomy:getPublicArtistsByKeys") {
+        return [
+          {
+            key: "josie kins",
+            primary_type: "replicator",
+            artist_type_tags: ["replicator"],
+          },
+        ];
+      }
+      throw new Error(`Unexpected Convex read: ${functionName}`);
+    });
+
+    const { getPublicGalleryReplications } = await import("./publicData.replications");
+    const gallery = await getPublicGalleryReplications();
+
+    expect(gallery.find((item) => item.artist === "Josie Kins")).toMatchObject({
+      artist_primary_type: "replicator",
+      artist_type_tags: ["replicator"],
+    });
+    expect(gallery.find((item) => item.artist === "A Stranger")?.artist_primary_type).toBeUndefined();
+  });
+
+  it("keeps the gallery buildable while the additive artist query is mid-deploy", async () => {
+    vi.spyOn(console, "warn").mockImplementation(() => undefined);
+    mocks.queryConvex.mockImplementation(async (functionName: string) => {
+      if (functionName === "replications:getPublicReplications") return corpus;
+      if (functionName === "contributorProfiles:getAll") return [];
+      if (functionName === "replicationTaxonomy:getPublicArtistsByKeys") {
+        throw new Error("Server Error");
+      }
+      throw new Error(`Unexpected Convex read: ${functionName}`);
+    });
+
+    const { getPublicGalleryReplications } = await import("./publicData.replications");
     await expect(getPublicGalleryReplications()).resolves.toEqual(corpus);
   });
 

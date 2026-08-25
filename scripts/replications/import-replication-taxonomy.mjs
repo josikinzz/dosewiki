@@ -206,6 +206,7 @@ function taxonomyUpdate(proposal, replicationById, sourceDigest, schemaVersion, 
   const hasReplicationDetail = source.replicationStatus === "replication" && detail;
   const taxonomy = {
     source_catalog_id: source.id,
+    taxonomy_record_key: `catalog:${source.id}`,
     replication_status: source.replicationStatus,
     replication_status_confidence: source.confidence,
     replication_status_review_required: source.reviewRequired === true,
@@ -228,6 +229,15 @@ function taxonomyUpdate(proposal, replicationById, sourceDigest, schemaVersion, 
           drug_classes: detail.drugClasses ?? [],
         }
       : {}),
+    content_family:
+      source.replicationStatus === "replication"
+        ? "experiential-replication"
+        : source.replicationStatus === "not-replication"
+          ? "explanatory-figure"
+          : "uncertain",
+    content_tags: [],
+    content_family_confidence: source.confidence,
+    content_family_review_required: source.reviewRequired === true,
     taxonomy_review_required:
       source.reviewRequired === true || detail?.reviewRequired === true,
     taxonomy_version: schemaVersion,
@@ -250,6 +260,10 @@ function taxonomyUpdate(proposal, replicationById, sourceDigest, schemaVersion, 
       ...(detail?.viewingModeRationale
         ? { viewing_mode_rationale: detail.viewingModeRationale }
         : {}),
+      content_family_rationale:
+        source.replicationStatus === "replication"
+          ? "Legacy reviewed replication; the v1 importer maps it to the experiential replication family."
+          : source.rationale,
     },
     mapping_method: proposal.method,
   };
@@ -322,6 +336,7 @@ export function selectCanary(replications, artists) {
     "replicator",
     "traditional-psychedelic-artist",
     "mixed",
+    "other",
     "uncertain",
   ]) {
     const found = artists.find((entry) => entry.primary_type === primaryType);

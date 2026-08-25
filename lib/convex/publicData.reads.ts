@@ -1,7 +1,11 @@
 import "server-only";
 
 import type { NormalizedUserProfile } from "../../src/data/userProfiles";
-import type { GalleryReplication, ReplicationWithUrl } from "../../src/types/replications";
+import type {
+  GalleryReplication,
+  PublicReplicationArtistTaxonomy,
+  ReplicationWithUrl,
+} from "../../src/types/replications";
 import type {
   ContributorReviewedArticle,
   ReviewedArticleCredit,
@@ -92,6 +96,7 @@ export type PublicDataReadAdapter = {
   getPublicEffectIndexPostBySlug(slug: string): Promise<PublicEffectIndexPost | null>;
   getPublicReplicationsByEffect(effectSlug: string): Promise<ReplicationWithUrl[]>;
   getPublicReplications(): Promise<GalleryReplication[]>;
+  getPublicReplicationArtistsByKeys(keys: string[]): Promise<PublicReplicationArtistTaxonomy[]>;
   getPublicReplicationBySlug(slug: string): Promise<ReplicationWithUrl | null>;
   getPublicReplicationsByArtistNames(artistNames: string[]): Promise<ReplicationWithUrl[]>;
   getPublicReplicationsForSubstance(substanceSlug: string): Promise<PublicSubstanceGallery>;
@@ -344,6 +349,26 @@ function isExplicitMissingPublicFunctionError(error: unknown): boolean {
     error instanceof Error &&
     error.message.toLowerCase().includes("could not find public function")
   );
+}
+
+let hasWarnedAboutReplicationArtistTaxonomy = false;
+
+function reportDegradedReplicationArtistTaxonomyRead(error: unknown): boolean {
+  if (!(error instanceof Error)) return false;
+  const message = error.message.toLowerCase();
+  if (
+    !message.includes("could not find public function") &&
+    !message.includes("server error")
+  ) {
+    return false;
+  }
+  if (!hasWarnedAboutReplicationArtistTaxonomy) {
+    hasWarnedAboutReplicationArtistTaxonomy = true;
+    console.warn(
+      "[publicData] replication artist taxonomy read failed and degraded to untagged; this is expected while backend functions deploy before the frontend.",
+    );
+  }
+  return true;
 }
 
 /**
@@ -738,6 +763,20 @@ export function createConvexPublicDataReadAdapter(query: QueryTransport = queryC
         return await query<GalleryReplication[]>(publicDataReadCatalog.publicReplications.functionName, {});
       } catch (error) {
         if (isExplicitMissingPublicFunctionError(error)) {
+          return [];
+        }
+        throw error;
+      }
+    },
+    getPublicReplicationArtistsByKeys: async (keys) => {
+      if (keys.length === 0) return [];
+      try {
+        return await query<PublicReplicationArtistTaxonomy[], { keys: string[] }>(
+          publicDataReadCatalog.publicReplicationArtistsByKeys.functionName,
+          publicDataReadCatalog.publicReplicationArtistsByKeys.args(keys),
+        );
+      } catch (error) {
+        if (reportDegradedReplicationArtistTaxonomyRead(error)) {
           return [];
         }
         throw error;

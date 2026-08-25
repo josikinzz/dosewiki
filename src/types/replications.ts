@@ -22,6 +22,57 @@ export type ReplicationType = "video" | "image" | "audio";
  */
 export type MediaRole = "replication" | "figure";
 
+export type ReplicationStatus =
+  | "replication"
+  | "not-replication"
+  | "unclear"
+  | "unreviewed"
+  | "source-corrupt";
+
+export type ReplicationViewingMode =
+  | "open-eye"
+  | "closed-eye"
+  | "mixed"
+  | "uncertain";
+
+export type ReplicationViewingModeTag = "open-eye" | "closed-eye";
+export type ReplicationDrugClass =
+  | "psychedelics"
+  | "dissociatives"
+  | "deliriants"
+  | "other";
+export interface ReplicationTitleDrug {
+  slug: string;
+  name: string;
+  class: ReplicationDrugClass;
+  matched_title_text: string;
+}
+export type ReplicationContentFamily =
+  | "experiential-replication"
+  | "visionary-psychedelic-art"
+  | "traditional-cultural-art"
+  | "dark-surrealism"
+  | "optical-perceptual-art"
+  | "generative-abstract-art"
+  | "effect-illustration"
+  | "explanatory-figure"
+  | "uncertain";
+export type ReplicationArtistPrimaryType =
+  | "replicator"
+  | "traditional-psychedelic-artist"
+  | "mixed"
+  | "other"
+  | "uncertain";
+export type ReplicationArtistTypeTag =
+  | "replicator"
+  | "traditional-psychedelic-artist";
+
+export interface PublicReplicationArtistTaxonomy {
+  key: string;
+  primary_type: ReplicationArtistPrimaryType;
+  artist_type_tags: ReplicationArtistTypeTag[];
+}
+
 /**
  * Read a row's role, applying the stored default.
  *
@@ -81,8 +132,13 @@ const PRESENTABLE_REPLICATION_TYPES: ReadonlySet<ReplicationType> =
 export function isPublishableReplication(row: {
   role?: MediaRole;
   type: ReplicationType;
+  replication_status?: ReplicationStatus;
 }): boolean {
-  return isReplicationRow(row) && PRESENTABLE_REPLICATION_TYPES.has(row.type);
+  return (
+    isReplicationRow(row) &&
+    row.replication_status !== "not-replication" &&
+    PRESENTABLE_REPLICATION_TYPES.has(row.type)
+  );
 }
 
 /**
@@ -164,6 +220,16 @@ export interface ReplicationRecord extends ReplicationRightsMetadata {
    * written from the `/dev` Replication Studio, read by nothing public yet.
    */
   effect_tags?: string[];
+  replication_status?: ReplicationStatus;
+  viewing_mode?: ReplicationViewingMode;
+  viewing_mode_tags?: ReplicationViewingModeTag[];
+  title_drugs?: ReplicationTitleDrug[];
+  drug_classes?: ReplicationDrugClass[];
+  content_family?: ReplicationContentFamily;
+  content_tags?: string[];
+  /** Joined from the artist taxonomy table for gallery filtering. */
+  artist_primary_type?: ReplicationArtistPrimaryType;
+  artist_type_tags?: ReplicationArtistTypeTag[];
   thumbnail_storage_id?: string;
   /**
    * Low-res muted preview rendition for gallery in-view autoplay (video rows
@@ -247,6 +313,15 @@ export interface PublicGalleryReplicationPreview {
   format: string;
   /** Owning effect: drives by-effect grouping, the effect chip, withholding. */
   effect_slug?: string;
+  replication_status?: ReplicationStatus;
+  viewing_mode?: ReplicationViewingMode;
+  viewing_mode_tags?: ReplicationViewingModeTag[];
+  title_drugs?: ReplicationTitleDrug[];
+  drug_classes?: ReplicationDrugClass[];
+  content_family?: ReplicationContentFamily;
+  content_tags?: string[];
+  artist_primary_type?: ReplicationArtistPrimaryType;
+  artist_type_tags?: ReplicationArtistTypeTag[];
   url: string;
   thumbnail_url?: string;
   /** Low-res muted rendition the gallery autoplays in view (video rows). */

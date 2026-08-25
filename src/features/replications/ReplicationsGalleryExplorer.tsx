@@ -24,11 +24,6 @@ import {
   DropdownMenuRadioItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
 import { focusRingClassName } from "@/components/ui/surface";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { cn } from "@/lib/utils";
@@ -38,6 +33,7 @@ import { GalleryMediaTile } from "@/features/effects/gallery/GalleryMediaTile";
 import { MediaRail } from "@/features/effects/gallery/MediaRail";
 import {
   countGallery,
+  DEFAULT_GALLERY_TAXONOMY_FILTERS,
   effectHrefBuilder,
   effectNameLookup,
   galleryGroupUrlKey,
@@ -46,6 +42,7 @@ import {
   isDisplayable,
   isWithheldFromArtistViews,
   matchesQuery,
+  matchesTaxonomyFilters,
   matchesType,
   sortWithinGroup,
   splitRailsAndPool,
@@ -54,6 +51,7 @@ import {
   type GalleryArtistSort,
   type GalleryMode,
   type GalleryTypeFilter,
+  type GalleryTaxonomyFilterState,
 } from "@/features/effects/gallery/galleryModel";
 import { findContributorProfileByAuthorName } from "@server/contributorProfileIdentity";
 import { ReplicationViewerOverlay } from "./viewer/ReplicationViewerOverlay";
@@ -63,6 +61,7 @@ import {
   dismissViewerDeepLinkCover,
   ViewerDeepLinkCover,
 } from "./ViewerDeepLinkCover";
+import { ReplicationTaxonomyFilters } from "./components/ReplicationTaxonomyFilters";
 import {
   buildGalleryBrowseUrl,
   buildGalleryFocusUrl,
@@ -273,7 +272,6 @@ function GalleryExplorer({
    * both states are inert: the full control set renders inline.
    */
   const [searchExpanded, setSearchExpanded] = useState(false);
-  const [filtersOpen, setFiltersOpen] = useState(false);
 
   useEffect(() => {
     if (searchExpanded) inputRef.current?.focus();
@@ -297,10 +295,9 @@ function GalleryExplorer({
       // group and a cross-corpus search cannot both be true), keeping the
       // grouping mode — pushed, so Back lands on the focus page again.
       const url = buildGalleryBrowseUrl({
+        ...browse,
         view: mode,
         query: next,
-        type: typeFilter,
-        sort: artistSort,
       });
       if (focus) {
         router.push(url, { scroll: false });
@@ -314,10 +311,9 @@ function GalleryExplorer({
     lastWrittenQueryRef.current = currentInputQuery();
     navigate(
       buildGalleryBrowseUrl({
+        ...browse,
         view: next,
         query: currentInputQuery(),
-        type: typeFilter,
-        sort: artistSort,
       }),
       "push",
     );
@@ -329,10 +325,10 @@ function GalleryExplorer({
       focus
         ? buildGalleryFocusUrl(focus, { type: next })
         : buildGalleryBrowseUrl({
+            ...browse,
             view: mode,
             query: currentInputQuery(),
             type: next,
-            sort: artistSort,
           }),
       "push",
     );
@@ -342,9 +338,9 @@ function GalleryExplorer({
     lastWrittenQueryRef.current = currentInputQuery();
     navigate(
       buildGalleryBrowseUrl({
+        ...browse,
         view: mode,
         query: currentInputQuery(),
-        type: typeFilter,
         sort: next,
       }),
       "push",
@@ -354,6 +350,61 @@ function GalleryExplorer({
   const displayable = useMemo(
     () => replications.filter(isDisplayable),
     [replications],
+  );
+
+  const taxonomyFilters = useMemo<GalleryTaxonomyFilterState>(
+    () => ({
+      status: browse.status,
+      viewing: browse.viewing,
+      artistType: browse.artistType,
+      drug: browse.drug,
+      drugClass: browse.drugClass,
+      family: browse.family,
+    }),
+    [
+      browse.status,
+      browse.viewing,
+      browse.artistType,
+      browse.drug,
+      browse.drugClass,
+      browse.family,
+    ],
+  );
+  const taxonomyFilterKey = Object.values(taxonomyFilters).join(":");
+  const hasActiveTaxonomyFilters = Object.values(taxonomyFilters).some(
+    (value) => value !== "all",
+  );
+  const drugOptions = useMemo(
+    () =>
+      [...new Map(
+        displayable.flatMap((item) =>
+          (item.title_drugs ?? []).map((drug) => [drug.slug, drug.name] as const),
+        ),
+      )]
+        .map(([value, label]) => ({ value, label }))
+        .sort((left, right) => left.label.localeCompare(right.label)),
+    [displayable],
+  );
+
+  const setTaxonomyFilters = (next: GalleryTaxonomyFilterState) => {
+    lastWrittenQueryRef.current = currentInputQuery();
+    navigate(
+      buildGalleryBrowseUrl({
+        ...browse,
+        ...next,
+        view: mode,
+        query: currentInputQuery(),
+      }),
+      "push",
+    );
+  };
+
+  const taxonomyDisplayable = useMemo(
+    () =>
+      displayable.filter((item) =>
+        matchesTaxonomyFilters(item, taxonomyFilters),
+      ),
+    [displayable, taxonomyFilters],
   );
 
   const effectName = useMemo(() => effectNameLookup(effects), [effects]);
@@ -379,20 +430,20 @@ function GalleryExplorer({
   const counted = useMemo(
     () =>
       mode === "artist" && !searching
-        ? displayable.filter((item) => !isWithheldFromArtistViews(item))
-        : displayable,
-    [mode, searching, displayable],
+        ? taxonomyDisplayable.filter((item) => !isWithheldFromArtistViews(item))
+        : taxonomyDisplayable,
+    [mode, searching, taxonomyDisplayable],
   );
   const counts = useMemo(() => countGallery(counted), [counted]);
 
   const filtered = useMemo(
     () =>
-      displayable.filter(
+      taxonomyDisplayable.filter(
         (item) =>
           matchesType(item, typeFilter) &&
           matchesQuery(item, query, effectName),
       ),
-    [displayable, typeFilter, query, effectName],
+    [taxonomyDisplayable, typeFilter, query, effectName],
   );
 
   const groups = useMemo(() => {
@@ -434,7 +485,7 @@ function GalleryExplorer({
   const [visibleRailCount, setVisibleRailCount] = useState(ARTIST_RAIL_PAGE);
   useEffect(() => {
     setVisibleRailCount(ARTIST_RAIL_PAGE);
-  }, [mode, typeFilter, artistSort]);
+  }, [mode, typeFilter, artistSort, taxonomyFilterKey]);
   const visibleRails =
     mode === "artist" ? rails.slice(0, visibleRailCount) : rails;
   const hiddenRailCount = rails.length - visibleRails.length;
@@ -491,10 +542,9 @@ function GalleryExplorer({
   const viewerSourcePath = focus
     ? buildGalleryFocusUrl(focus, { type: typeFilter })
     : buildGalleryBrowseUrl({
+        ...browse,
         view: mode,
         query,
-        type: typeFilter,
-        sort: artistSort,
       });
   const avatarByArtist = useCallback(
     (artist: string) =>
@@ -660,6 +710,7 @@ function GalleryExplorer({
   // toggle has to stay reachable even if one mode's own corpus is empty.
   const hasMedia = displayable.length > 0;
   const browseAllUrl = buildGalleryBrowseUrl({
+    ...browse,
     view: mode,
     type: typeFilter,
     sort: artistSort,
@@ -945,64 +996,20 @@ function GalleryExplorer({
                     ) : null}
                   </Button>
 
-                  {/* Phone home for whatever the one-row bar cannot show inline —
-                    today that is exactly the browse-mode toggle. */}
-                  <Popover open={filtersOpen} onOpenChange={setFiltersOpen}>
-                    <PopoverTrigger asChild>
-                      <Button
-                        type="button"
-                        variant="pill"
-                        size="pill"
-                        className={cn(
-                          "shrink-0 gap-1.5 sm:hidden",
-                          COARSE_TARGET_CLASS,
-                          searchExpanded && "hidden",
-                        )}
-                      >
-                        <Icon
-                          icon="lucide:sliders-horizontal"
-                          className="h-4 w-4"
-                          aria-hidden
-                        />
-                        Filters
-                      </Button>
-                    </PopoverTrigger>
-                    {/* Near-full-bleed below `sm` — the same phone-sheet treatment
-                      as the review bar's overflow popover. */}
-                    <PopoverContent
-                      align="end"
-                      collisionPadding={8}
-                      className="w-[calc(100vw-1rem)] space-y-2 sm:w-72"
-                    >
-                      <p className="theme-text-faint text-xs font-medium uppercase tracking-[0.14em]">
-                        Browse by
-                      </p>
-                      <ToggleGroup
-                        type="single"
-                        variant="pill"
-                        value={mode}
-                        onValueChange={(value) => {
-                          if (!value) return;
-                          setFiltersOpen(false);
-                          switchMode(value as GalleryMode);
-                        }}
-                        aria-label="Browse by"
-                      >
-                        <ToggleGroupItem
-                          value="artist"
-                          className={cn(COARSE_TARGET_CLASS, "flex-1")}
-                        >
-                          By artist
-                        </ToggleGroupItem>
-                        <ToggleGroupItem
-                          value="effect"
-                          className={cn(COARSE_TARGET_CLASS, "flex-1")}
-                        >
-                          By effect
-                        </ToggleGroupItem>
-                      </ToggleGroup>
-                    </PopoverContent>
-                  </Popover>
+                  <ReplicationTaxonomyFilters
+                    filters={taxonomyFilters}
+                    mode={mode}
+                    onModeChange={switchMode}
+                    onChange={setTaxonomyFilters}
+                    drugOptions={drugOptions}
+                    onClear={() =>
+                      setTaxonomyFilters(DEFAULT_GALLERY_TAXONOMY_FILTERS)
+                    }
+                    className={cn(
+                      COARSE_TARGET_CLASS,
+                      searchExpanded && "hidden sm:flex",
+                    )}
+                  />
                 </div>
               </div>
             ) : null}
@@ -1110,6 +1117,24 @@ function GalleryExplorer({
                   description={`Nothing found for “${query.trim()}”. Try a different artist, effect, or title.`}
                 />
               )
+            ) : filtered.length === 0 && hasActiveTaxonomyFilters ? (
+              <div className="mt-8 flex flex-col items-center">
+                <SearchEmptyState
+                  icon="lucide:list-filter"
+                  title="No works match these filters"
+                  description="Clear one or more taxonomy filters to widen the gallery."
+                />
+                <Button
+                  type="button"
+                  variant="pill"
+                  size="pill"
+                  onClick={() =>
+                    setTaxonomyFilters(DEFAULT_GALLERY_TAXONOMY_FILTERS)
+                  }
+                >
+                  Clear filters
+                </Button>
+              </div>
             ) : (
               /* Browse — every artist keeps their own rail (revealed a page
                at a time); in effect mode only groups with enough works get a
@@ -1228,10 +1253,9 @@ function GalleryExplorer({
             navigate(
               buildReplicationViewerUrl(
                 buildGalleryBrowseUrl({
+                  ...browse,
                   view: grouping,
                   query: currentInputQuery(),
-                  type: typeFilter,
-                  sort: artistSort,
                 }),
                 slug,
               ),

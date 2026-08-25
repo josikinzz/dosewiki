@@ -271,6 +271,7 @@ export default defineSchema({
     .index("by_slug", ["slug"])
     .index("by_artist", ["artist"])
     .index("by_source_catalog_id", ["source_catalog_id"])
+    .index("by_taxonomy_record_key", ["taxonomy_record_key"])
     .index("by_replication_status", ["replication_status"]),
 
   // One full dating/provenance dossier per replication. The compact date_info
@@ -279,11 +280,14 @@ export default defineSchema({
   replicationDateResearch: defineTable(replicationDateResearch)
     .index("by_replication_id", ["replication_id"]),
 
-  // Full editorial rationales stay out of the hot gallery documents. One row
-  // per tagged replication, replaced atomically with its compact projection.
+  // Full editorial rationales stay out of the hot gallery documents. Evidence
+  // is retained per campaign digest so a later classification does not erase
+  // the review trail that preceded it.
   replicationTaxonomyEvidence: defineTable(replicationTaxonomyEvidence)
     .index("by_replication_id", ["replication_id"])
-    .index("by_source_catalog_id", ["source_catalog_id"]),
+    .index("by_replication_digest", ["replication_id", "taxonomy_source_digest"])
+    .index("by_source_catalog_id", ["source_catalog_id"])
+    .index("by_taxonomy_record_key", ["taxonomy_record_key"]),
 
   // Artist Pages derive from credited artist labels rather than Contributor
   // Profile ownership. This table therefore keys the classification to the

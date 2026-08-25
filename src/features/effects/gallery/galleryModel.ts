@@ -4,7 +4,14 @@ import {
 } from "@server/contributorDirectory";
 import { getPublicRoutePath } from "@/utils/publicRouteIdentity";
 import { applyCuratedOrder } from "@server/curatedOrder";
-import type { PublicGalleryReplicationPreview } from "@/types/replications";
+import type {
+  PublicGalleryReplicationPreview,
+  ReplicationArtistTypeTag,
+  ReplicationContentFamily,
+  ReplicationDrugClass,
+  ReplicationStatus,
+  ReplicationViewingModeTag,
+} from "@/types/replications";
 import { hasKnownCreator } from "../components/replicationCredit";
 import {
   replicationMediaRank,
@@ -24,6 +31,30 @@ import {
 export type GalleryMode = "artist" | "effect";
 export type GalleryTypeFilter = "all" | "image" | "video";
 export type GalleryArtistSort = "video-first" | "count" | "alpha";
+export type GalleryStatusFilter = "all" | Exclude<ReplicationStatus, "not-replication">;
+export type GalleryViewingFilter = "all" | ReplicationViewingModeTag;
+export type GalleryArtistTypeFilter = "all" | ReplicationArtistTypeTag;
+export type GalleryDrugFilter = "all" | string;
+export type GalleryDrugClassFilter = "all" | ReplicationDrugClass;
+export type GalleryContentFamilyFilter = "all" | ReplicationContentFamily;
+
+export interface GalleryTaxonomyFilterState {
+  status: GalleryStatusFilter;
+  viewing: GalleryViewingFilter;
+  artistType: GalleryArtistTypeFilter;
+  drug: GalleryDrugFilter;
+  drugClass: GalleryDrugClassFilter;
+  family: GalleryContentFamilyFilter;
+}
+
+export const DEFAULT_GALLERY_TAXONOMY_FILTERS: GalleryTaxonomyFilterState = {
+  status: "all",
+  viewing: "all",
+  artistType: "all",
+  drug: "all",
+  drugClass: "all",
+  family: "all",
+};
 
 /**
  * The gallery's default artist order: a hard two-tier sort where any artist
@@ -296,6 +327,24 @@ export function matchesType(
   filter: GalleryTypeFilter,
 ): boolean {
   return filter === "all" || replication.type === filter;
+}
+
+export function matchesTaxonomyFilters(
+  replication: PublicGalleryReplicationPreview,
+  filters: GalleryTaxonomyFilterState,
+): boolean {
+  return (
+    (filters.status === "all" || replication.replication_status === filters.status) &&
+    (filters.viewing === "all" || replication.viewing_mode_tags?.includes(filters.viewing) === true) &&
+    (filters.artistType === "all" || replication.artist_type_tags?.includes(filters.artistType) === true) &&
+    (filters.drug === "all" || replication.title_drugs?.some((drug) => drug.slug === filters.drug) === true) &&
+    (filters.drugClass === "all" || replication.drug_classes?.includes(filters.drugClass) === true) &&
+    (filters.family === "all" || replication.content_family === filters.family)
+  );
+}
+
+export function countActiveTaxonomyFilters(filters: GalleryTaxonomyFilterState): number {
+  return Object.values(filters).filter((value) => value !== "all").length;
 }
 
 /** Free-text search across artist, effect name, and title. */

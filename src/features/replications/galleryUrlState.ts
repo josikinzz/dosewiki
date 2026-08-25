@@ -1,8 +1,15 @@
 import {
   DEFAULT_GALLERY_ARTIST_SORT,
+  DEFAULT_GALLERY_TAXONOMY_FILTERS,
+  type GalleryArtistTypeFilter,
   type GalleryArtistSort,
+  type GalleryContentFamilyFilter,
+  type GalleryDrugFilter,
+  type GalleryDrugClassFilter,
   type GalleryMode,
+  type GalleryStatusFilter,
   type GalleryTypeFilter,
+  type GalleryViewingFilter,
 } from "@/features/effects/gallery/galleryModel";
 import { getPublicRoutePath } from "@/utils/publicRouteIdentity";
 import { toAppPath } from "@/utils/previewPath";
@@ -32,6 +39,12 @@ export interface GalleryBrowseState {
   query: string;
   type: GalleryTypeFilter;
   sort: GalleryArtistSort;
+  status: GalleryStatusFilter;
+  viewing: GalleryViewingFilter;
+  artistType: GalleryArtistTypeFilter;
+  drug: GalleryDrugFilter;
+  drugClass: GalleryDrugClassFilter;
+  family: GalleryContentFamilyFilter;
 }
 
 export const GALLERY_BROWSE_DEFAULTS: GalleryBrowseState = {
@@ -39,6 +52,7 @@ export const GALLERY_BROWSE_DEFAULTS: GalleryBrowseState = {
   query: "",
   type: "all",
   sort: DEFAULT_GALLERY_ARTIST_SORT,
+  ...DEFAULT_GALLERY_TAXONOMY_FILTERS,
 };
 
 /** A focused gallery view: one artist's or one effect's works. */
@@ -55,12 +69,44 @@ export function parseGalleryBrowseState(
 ): GalleryBrowseState {
   const type = params.get("type");
   const sort = params.get("sort");
+  const status = params.get("status");
+  const viewing = params.get("viewing");
+  const artistType = params.get("artistType");
+  const drug = params.get("drug");
+  const drugClass = params.get("drugClass");
+  const family = params.get("family");
   return {
     view: params.get("view") === "effect" ? "effect" : "artist",
     query: params.get("q") ?? "",
     type: type === "image" || type === "video" ? type : "all",
     sort:
       sort === "alpha" || sort === "count" ? sort : DEFAULT_GALLERY_ARTIST_SORT,
+    status:
+      status === "replication" || status === "unclear" || status === "unreviewed" || status === "source-corrupt"
+        ? status
+        : "all",
+    viewing: viewing === "open-eye" || viewing === "closed-eye" ? viewing : "all",
+    artistType:
+      artistType === "replicator" || artistType === "traditional-psychedelic-artist"
+        ? artistType
+        : "all",
+    drug: drug && /^[a-z0-9]+(?:-[a-z0-9]+)*$/u.test(drug) ? drug : "all",
+    drugClass:
+      drugClass === "psychedelics" || drugClass === "dissociatives" || drugClass === "deliriants" || drugClass === "other"
+        ? drugClass
+        : "all",
+    family:
+      family === "experiential-replication" ||
+      family === "visionary-psychedelic-art" ||
+      family === "traditional-cultural-art" ||
+      family === "dark-surrealism" ||
+      family === "optical-perceptual-art" ||
+      family === "generative-abstract-art" ||
+      family === "effect-illustration" ||
+      family === "explanatory-figure" ||
+      family === "uncertain"
+        ? family
+        : "all",
   };
 }
 
@@ -111,6 +157,12 @@ export function buildGalleryBrowseUrl(
   if (state.sort === "alpha" || state.sort === "count") {
     params.set("sort", state.sort);
   }
+  if (state.status && state.status !== "all") params.set("status", state.status);
+  if (state.viewing && state.viewing !== "all") params.set("viewing", state.viewing);
+  if (state.artistType && state.artistType !== "all") params.set("artistType", state.artistType);
+  if (state.drug && state.drug !== "all") params.set("drug", state.drug);
+  if (state.drugClass && state.drugClass !== "all") params.set("drugClass", state.drugClass);
+  if (state.family && state.family !== "all") params.set("family", state.family);
   const query = params.toString();
   return query ? `${REPLICATIONS_PATH}?${query}` : REPLICATIONS_PATH;
 }

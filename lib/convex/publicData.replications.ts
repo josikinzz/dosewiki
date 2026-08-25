@@ -22,6 +22,16 @@ import type {
 
 export type { PublicSubstanceGallery, SubstanceGalleryItem, SubstanceGalleryMatchProvenance };
 
+const PUBLIC_ARTIST_TAXONOMY_BATCH_SIZE = 175;
+
+function batches<T>(items: readonly T[], size: number): T[][] {
+  const result: T[][] = [];
+  for (let index = 0; index < items.length; index += size) {
+    result.push(items.slice(index, index + size));
+  }
+  return result;
+}
+
 /**
  * Every replication credited to one contributor.
  *
@@ -164,6 +174,15 @@ export function projectPublicGalleryReplicationPreview(
     type: replication.type,
     format: replication.format,
     effect_slug: replication.effect_slug,
+    replication_status: replication.replication_status,
+    viewing_mode: replication.viewing_mode,
+    viewing_mode_tags: replication.viewing_mode_tags,
+    title_drugs: replication.title_drugs,
+    drug_classes: replication.drug_classes,
+    content_family: replication.content_family,
+    content_tags: replication.content_tags,
+    artist_primary_type: replication.artist_primary_type,
+    artist_type_tags: replication.artist_type_tags,
     url: replication.url,
     thumbnail_url: replication.thumbnail_url,
     preview_url: replication.preview_url,
@@ -201,7 +220,27 @@ export const getPublicGalleryReplications = cache(async (): Promise<PublicGaller
     getPublicContributorProfiles(),
   ]);
 
-  return dropGalleryExcludedArtistWorks(replications, profiles).map(
-    projectPublicGalleryReplicationPreview,
-  );
+  const visible = dropGalleryExcludedArtistWorks(replications, profiles);
+  const artistKeys = [...new Set(visible.map((row) => row.artist.trim().toLowerCase()).filter(Boolean))];
+  const artistTaxonomy = (
+    await Promise.all(
+      batches(artistKeys, PUBLIC_ARTIST_TAXONOMY_BATCH_SIZE).map((keys) =>
+        getPublicDataReadAdapter().getPublicReplicationArtistsByKeys(keys),
+      ),
+    )
+  ).flat();
+  const artistByKey = new Map(artistTaxonomy.map((row) => [row.key, row]));
+
+  return visible.map((replication) => {
+    const artist = artistByKey.get(replication.artist.trim().toLowerCase());
+    return projectPublicGalleryReplicationPreview({
+      ...replication,
+      ...(artist
+        ? {
+            artist_primary_type: artist.primary_type,
+            artist_type_tags: artist.artist_type_tags,
+          }
+        : {}),
+    });
+  });
 });

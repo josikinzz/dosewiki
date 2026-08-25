@@ -256,6 +256,25 @@ describe("URL → rendered state", () => {
     expect(screen.queryByText("Spotlight")).toBeNull();
   });
 
+  it("applies URL-addressable taxonomy filters and marks their active count", () => {
+    const open = rep({ title: "Open room", viewing_mode_tags: ["open-eye"] });
+    const closed = rep({ title: "Closed geometry", viewing_mode_tags: ["closed-eye"] });
+
+    renderExplorer("viewing=open-eye", { replications: [open, closed] });
+
+    expect(screen.getByRole("button", { name: "Filters, 1 active" })).toBeInTheDocument();
+    expect(screen.getByText("Open room")).toBeInTheDocument();
+    expect(screen.queryByText("Closed geometry")).toBeNull();
+  });
+
+  it("offers a clear action when selected taxonomy filters match nothing", async () => {
+    renderExplorer("drugClass=deliriants");
+
+    expect(screen.getByText("No works match these filters")).toBeInTheDocument();
+    await userEvent.click(screen.getByRole("button", { name: "Clear filters" }));
+    expect(navMocks.push).toHaveBeenCalledWith("/replications", { scroll: false });
+  });
+
   it("reproduces a pasted ?view=effect&type=video&sort=alpha state exactly", () => {
     renderExplorer("view=effect&type=video&sort=alpha");
 

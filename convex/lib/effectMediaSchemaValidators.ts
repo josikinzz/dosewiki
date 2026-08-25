@@ -1,6 +1,7 @@
 import { v } from "convex/values";
 import { replicationDateInfo } from "./replicationDateValidators";
 import {
+  contentFamilyValidator,
   drugClassValidator,
   replicationStatusValidator,
   taxonomyConfidenceValidator,
@@ -209,6 +210,8 @@ export const replication = v.object({
   effect_tags: v.optional(v.array(v.string())),
   /** Stable ID of the reviewed local catalog row that supplied this taxonomy. */
   source_catalog_id: v.optional(v.string()),
+  /** Stable campaign-neutral identity for catalog and live-only taxonomy records. */
+  taxonomy_record_key: v.optional(v.string()),
   /** Editorial judgment used by replication publication and gallery filters. */
   replication_status: v.optional(replicationStatusValidator),
   replication_status_confidence: v.optional(taxonomyConfidenceValidator),
@@ -222,6 +225,11 @@ export const replication = v.object({
   title_drugs: v.optional(v.array(titleDrugValidator)),
   title_class_mentions: v.optional(v.array(titleClassMentionValidator)),
   drug_classes: v.optional(v.array(drugClassValidator)),
+  /** Broad content theme, separate from whether a work is a replication. */
+  content_family: v.optional(contentFamilyValidator),
+  content_tags: v.optional(v.array(v.string())),
+  content_family_confidence: v.optional(taxonomyConfidenceValidator),
+  content_family_review_required: v.optional(v.boolean()),
   taxonomy_review_required: v.optional(v.boolean()),
   taxonomy_version: v.optional(v.number()),
   taxonomy_source_digest: v.optional(v.string()),

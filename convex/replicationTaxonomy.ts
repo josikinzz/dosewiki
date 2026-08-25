@@ -5,6 +5,7 @@ import { requireAuth } from "./lib/auth";
 import {
   artistPrimaryTypeValidator,
   artistTypeTagValidator,
+  contentFamilyValidator,
   drugClassValidator,
   replicationArtistTaxonomyUpdateValidator,
   replicationStatusValidator,
@@ -32,12 +33,15 @@ const taxonomyProjectionValidator = v.object({
   type: mediaTypeValidator,
   storage_id: v.string(),
   source_catalog_id: nullableString,
+  taxonomy_record_key: nullableString,
   replication_status: v.union(replicationStatusValidator, v.null()),
   viewing_mode: v.union(viewingModeValidator, v.null()),
   viewing_mode_tags: v.array(viewingModeTagValidator),
   title_drugs: v.array(titleDrugValidator),
   title_class_mentions: v.array(titleClassMentionValidator),
   drug_classes: v.array(drugClassValidator),
+  content_family: v.union(contentFamilyValidator, v.null()),
+  content_tags: v.array(v.string()),
   taxonomy_version: v.union(v.number(), v.null()),
   taxonomy_source_digest: nullableString,
 });
@@ -62,12 +66,15 @@ function projectReplication(row: Doc<"replications">) {
     type: row.type,
     storage_id: row.storage_id,
     source_catalog_id: row.source_catalog_id ?? null,
+    taxonomy_record_key: row.taxonomy_record_key ?? null,
     replication_status: row.replication_status ?? null,
     viewing_mode: row.viewing_mode ?? null,
     viewing_mode_tags: row.viewing_mode_tags ?? [],
     title_drugs: row.title_drugs ?? [],
     title_class_mentions: row.title_class_mentions ?? [],
     drug_classes: row.drug_classes ?? [],
+    content_family: row.content_family ?? null,
+    content_tags: row.content_tags ?? [],
     taxonomy_version: row.taxonomy_version ?? null,
     taxonomy_source_digest: row.taxonomy_source_digest ?? null,
   };
@@ -132,7 +139,7 @@ export const getArtistsByKeys = query({
   returns: v.array(artistProjectionValidator),
   handler: async (ctx, args) => {
     await requireAuth(ctx, args.apiKey, "replicationMaintenance");
-    if (args.keys.length > 150) throw new Error("Artist taxonomy read-back is limited to 150 rows.");
+    if (args.keys.length > 200) throw new Error("Artist taxonomy read-back is limited to 200 rows.");
     const rows = [];
     for (const rawKey of args.keys) {
       const key = rawKey.trim().toLowerCase();
@@ -151,6 +158,40 @@ export const getArtistsByKeys = query({
           review_required: row.review_required,
           taxonomy_version: row.taxonomy_version,
           taxonomy_source_digest: row.taxonomy_source_digest,
+        });
+      }
+    }
+    return rows;
+  },
+});
+
+/** Public gallery metadata only; rationales and review evidence stay private. */
+export const getPublicArtistsByKeys = query({
+  args: { keys: v.array(v.string()) },
+  returns: v.array(
+    v.object({
+      key: v.string(),
+      primary_type: artistPrimaryTypeValidator,
+      artist_type_tags: v.array(artistTypeTagValidator),
+    }),
+  ),
+  handler: async (ctx, args) => {
+    if (args.keys.length > 200) {
+      throw new Error("Public artist taxonomy reads are limited to 200 keys.");
+    }
+    const rows = [];
+    for (const rawKey of new Set(args.keys)) {
+      const key = rawKey.trim().toLowerCase();
+      if (!key) continue;
+      const row = await ctx.db
+        .query("replicationArtistTaxonomy")
+        .withIndex("by_key", (q) => q.eq("key", key))
+        .unique();
+      if (row) {
+        rows.push({
+          key: row.key,
+          primary_type: row.primary_type,
+          artist_type_tags: row.artist_type_tags,
         });
       }
     }
@@ -196,15 +237,29 @@ export const applyBatch = mutation({
         throw new Error(`Replication ${row.slug} changed after taxonomy preflight.`);
       }
 
-      const claimed = await ctx.db
+      if (update.taxonomy.source_catalog_id) {
+        const claimed = await ctx.db
+          .query("replications")
+          .withIndex("by_source_catalog_id", (q) =>
+            q.eq("source_catalog_id", update.taxonomy.source_catalog_id),
+          )
+          .unique();
+        if (claimed && claimed._id !== update.id) {
+          throw new Error(
+            `Catalog ID ${update.taxonomy.source_catalog_id} is already attached to ${claimed.slug}.`,
+          );
+        }
+      }
+
+      const claimedRecordKey = await ctx.db
         .query("replications")
-        .withIndex("by_source_catalog_id", (q) =>
-          q.eq("source_catalog_id", update.taxonomy.source_catalog_id),
+        .withIndex("by_taxonomy_record_key", (q) =>
+          q.eq("taxonomy_record_key", update.taxonomy.taxonomy_record_key),
         )
         .unique();
-      if (claimed && claimed._id !== update.id) {
+      if (claimedRecordKey && claimedRecordKey._id !== update.id) {
         throw new Error(
-          `Catalog ID ${update.taxonomy.source_catalog_id} is already attached to ${claimed.slug}.`,
+          `Taxonomy record key ${update.taxonomy.taxonomy_record_key} is already attached to ${claimedRecordKey.slug}.`,
         );
       }
 
@@ -218,11 +273,19 @@ export const applyBatch = mutation({
         title_drugs: update.taxonomy.title_drugs ?? undefined,
         title_class_mentions: update.taxonomy.title_class_mentions ?? undefined,
         drug_classes: update.taxonomy.drug_classes ?? undefined,
+        content_family: update.taxonomy.content_family,
+        content_tags: update.taxonomy.content_tags,
+        content_family_confidence: update.taxonomy.content_family_confidence,
+        content_family_review_required:
+          update.taxonomy.content_family_review_required,
       });
 
       const evidence = {
         replication_id: update.id,
-        source_catalog_id: update.taxonomy.source_catalog_id,
+        ...(update.taxonomy.source_catalog_id
+          ? { source_catalog_id: update.taxonomy.source_catalog_id }
+          : {}),
+        taxonomy_record_key: update.taxonomy.taxonomy_record_key,
         replication_status: update.taxonomy.replication_status,
         replication_status_confidence: update.taxonomy.replication_status_confidence,
         replication_status_rationale: update.evidence.replication_status_rationale,
@@ -235,6 +298,10 @@ export const applyBatch = mutation({
         ...(update.evidence.viewing_mode_rationale
           ? { viewing_mode_rationale: update.evidence.viewing_mode_rationale }
           : {}),
+        content_family: update.taxonomy.content_family,
+        content_tags: update.taxonomy.content_tags,
+        content_family_confidence: update.taxonomy.content_family_confidence,
+        content_family_rationale: update.evidence.content_family_rationale,
         review_required: update.taxonomy.taxonomy_review_required,
         taxonomy_version: update.taxonomy.taxonomy_version,
         taxonomy_source_digest: update.taxonomy.taxonomy_source_digest,
@@ -243,7 +310,11 @@ export const applyBatch = mutation({
       };
       const existingEvidence = await ctx.db
         .query("replicationTaxonomyEvidence")
-        .withIndex("by_replication_id", (q) => q.eq("replication_id", update.id))
+        .withIndex("by_replication_digest", (q) =>
+          q
+            .eq("replication_id", update.id)
+            .eq("taxonomy_source_digest", update.taxonomy.taxonomy_source_digest),
+        )
         .unique();
       if (existingEvidence) await ctx.db.replace(existingEvidence._id, evidence);
       else await ctx.db.insert("replicationTaxonomyEvidence", evidence);

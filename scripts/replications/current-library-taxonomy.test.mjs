@@ -1,0 +1,149 @@
+import { mkdtempSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
+
+import { describe, expect, it } from "vitest";
+
+import {
+  detectTitleClassMentions,
+  detectTitleDrugs,
+  figureContentTags,
+  inferViewingMode,
+} from "./build-current-library-taxonomy.mjs";
+import { selectCanary } from "./import-current-library-taxonomy.mjs";
+import { mergeReviewResults } from "./merge-current-library-review-results.mjs";
+
+describe("current library taxonomy", () => {
+  it("keeps the longest explicit drug match without double-tagging DMT", () => {
+    expect(detectTitleDrugs("5-MeO-DMT breakthrough")).toEqual([
+      {
+        slug: "5-meo-dmt",
+        name: "5-MeO-DMT",
+        class: "psychedelics",
+        matched_title_text: "5-MeO-DMT",
+      },
+    ]);
+  });
+
+  it("derives only explicit title drugs and generic classes", () => {
+    expect(detectTitleDrugs("Benadryl spiders and MXE tunnel").map((drug) => drug.slug)).toEqual([
+      "diphenhydramine",
+      "methoxetamine",
+    ]);
+    expect(detectTitleClassMentions("Delirium replication")).toEqual([
+      { class: "deliriants", matched_title_text: "Delirium" },
+    ]);
+    expect(detectTitleDrugs("A purple forest")).toEqual([]);
+  });
+
+  it("prefers explicit viewing labels and review-flags rationale inferences", () => {
+    expect(inferViewingMode({ title: "DPH CEVs" }).mode).toBe("closed-eye");
+    expect(
+      inferViewingMode({
+        title: "Bedroom spiders",
+        rationale: "The bedroom wall remains visible behind external spiders.",
+      }),
+    ).toMatchObject({ mode: "open-eye", confidence: "medium", reviewRequired: true });
+  });
+
+  it("assigns controlled explanatory figure subtypes", () => {
+    expect(figureContentTags({ title: "EEG spike-and-wave" })).toEqual(["medical-trace"]);
+    expect(figureContentTags({ title: "Dissociative Hole" })).toEqual(["teaching-slide"]);
+  });
+
+  it("selects diverse, de-duplicated row and artist canaries", () => {
+    const row = (id, taxonomy) => ({ id, taxonomy });
+    const selected = selectCanary(
+      [
+        row("figure", { replication_status: "not-replication", content_family: "explanatory-figure", drug_classes: [] }),
+        row("open", { replication_status: "replication", viewing_mode: "open-eye", content_family: "experiential-replication", drug_classes: ["psychedelics"] }),
+        row("unknown", { replication_status: "unclear", content_family: "uncertain", drug_classes: [] }),
+      ],
+      [
+        { key: "rep", primary_type: "replicator" },
+        { key: "other", primary_type: "other" },
+      ],
+    );
+    expect(new Set(selected.rows.map((item) => item.id)).size).toBe(selected.rows.length);
+    expect(selected.rows.map((item) => item.id)).toEqual(expect.arrayContaining(["figure", "open", "unknown"]));
+    expect(selected.artists.map((item) => item.key)).toEqual(["rep", "other"]);
+  });
+
+  it("merges an exact visual-review campaign and eliminates unreviewed rows", () => {
+    const root = mkdtempSync(join(tmpdir(), "dosewiki-taxonomy-review-"));
+    const assignmentPath = join(root, "assignment.json");
+    const completedPath = join(root, "completed.json");
+    const indexPath = join(root, "index.json");
+    const manifestPath = join(root, "manifest.json");
+    const row = {
+      productionId: "row-1",
+      expected: { slug: "one" },
+      replicationStatus: "unreviewed",
+      titleDrugs: [],
+      drugClasses: [],
+      contentFamily: "uncertain",
+      taxonomyReviewRequired: true,
+    };
+    writeFileSync(
+      manifestPath,
+      JSON.stringify({
+        snapshotDigest: "snapshot",
+        sources: {},
+        policy: { precedence: [] },
+        artists: [{ primaryType: "uncertain" }],
+        rows: [row],
+      }),
+    );
+    writeFileSync(
+      assignmentPath,
+      JSON.stringify({
+        assignmentId: "review-1",
+        outputPath: completedPath,
+        items: [{ productionId: "row-1" }],
+      }),
+    );
+    writeFileSync(
+      completedPath,
+      JSON.stringify({
+        schemaVersion: 1,
+        assignmentId: "review-1",
+        items: [{
+          productionId: "row-1",
+          replicationStatus: "replication",
+          replicationStatusConfidence: "high",
+          replicationStatusRationale: "A photographed room remains visible beneath drifting overlays.",
+          viewingMode: "open-eye",
+          viewingModeConfidence: "high",
+          viewingModeRationale: "The room is the persistent external-world substrate.",
+          contentFamily: "experiential-replication",
+          contentTags: ["environmental-distortion"],
+          contentFamilyConfidence: "high",
+          contentFamilyRationale: "It directly recreates an altered external visual field.",
+          reviewRequired: false,
+          evidenceInspected: ["image"],
+        }],
+      }),
+    );
+    writeFileSync(
+      indexPath,
+      JSON.stringify({
+        snapshotDigest: "snapshot",
+        scope: { unreviewedRows: 1 },
+        assignments: ["assignment.json"],
+      }),
+    );
+
+    const merged = mergeReviewResults({
+      baseManifestPath: manifestPath,
+      assignmentIndexPath: indexPath,
+    });
+    expect(merged.summary.replicationStatus).toEqual({ replication: 1 });
+    expect(merged.rows[0]).toMatchObject({
+      replicationStatus: "replication",
+      viewingMode: "open-eye",
+      viewingModeTags: ["open-eye"],
+      decisionBasis: "current-item-visual-review",
+      taxonomyReviewRequired: false,
+    });
+  });
+});

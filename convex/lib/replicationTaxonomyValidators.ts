@@ -33,6 +33,18 @@ export const drugClassValidator = v.union(
   v.literal("other"),
 );
 
+export const contentFamilyValidator = v.union(
+  v.literal("experiential-replication"),
+  v.literal("visionary-psychedelic-art"),
+  v.literal("traditional-cultural-art"),
+  v.literal("dark-surrealism"),
+  v.literal("optical-perceptual-art"),
+  v.literal("generative-abstract-art"),
+  v.literal("effect-illustration"),
+  v.literal("explanatory-figure"),
+  v.literal("uncertain"),
+);
+
 export const titleDrugValidator = v.object({
   slug: v.string(),
   name: v.string(),
@@ -49,6 +61,7 @@ export const artistPrimaryTypeValidator = v.union(
   v.literal("replicator"),
   v.literal("traditional-psychedelic-artist"),
   v.literal("mixed"),
+  v.literal("other"),
   v.literal("uncertain"),
 );
 
@@ -58,7 +71,8 @@ export const artistTypeTagValidator = v.union(
 );
 
 export const replicationTaxonomyPatchValidator = v.object({
-  source_catalog_id: v.string(),
+  source_catalog_id: v.optional(v.string()),
+  taxonomy_record_key: v.string(),
   replication_status: replicationStatusValidator,
   replication_status_confidence: taxonomyConfidenceValidator,
   replication_status_review_required: v.boolean(),
@@ -69,6 +83,10 @@ export const replicationTaxonomyPatchValidator = v.object({
   title_drugs: v.optional(v.array(titleDrugValidator)),
   title_class_mentions: v.optional(v.array(titleClassMentionValidator)),
   drug_classes: v.optional(v.array(drugClassValidator)),
+  content_family: contentFamilyValidator,
+  content_tags: v.array(v.string()),
+  content_family_confidence: taxonomyConfidenceValidator,
+  content_family_review_required: v.boolean(),
   taxonomy_review_required: v.boolean(),
   taxonomy_version: v.number(),
   taxonomy_source_digest: v.string(),
@@ -77,13 +95,18 @@ export const replicationTaxonomyPatchValidator = v.object({
 
 export const replicationTaxonomyEvidence = v.object({
   replication_id: v.id("replications"),
-  source_catalog_id: v.string(),
+  source_catalog_id: v.optional(v.string()),
+  taxonomy_record_key: v.optional(v.string()),
   replication_status: replicationStatusValidator,
   replication_status_confidence: taxonomyConfidenceValidator,
   replication_status_rationale: v.string(),
   viewing_mode: v.optional(viewingModeValidator),
   viewing_mode_confidence: v.optional(taxonomyConfidenceValidator),
   viewing_mode_rationale: v.optional(v.string()),
+  content_family: v.optional(contentFamilyValidator),
+  content_tags: v.optional(v.array(v.string())),
+  content_family_confidence: v.optional(taxonomyConfidenceValidator),
+  content_family_rationale: v.optional(v.string()),
   review_required: v.boolean(),
   taxonomy_version: v.number(),
   taxonomy_source_digest: v.string(),
@@ -124,6 +147,7 @@ export const replicationTaxonomyUpdateValidator = v.object({
   evidence: v.object({
     replication_status_rationale: v.string(),
     viewing_mode_rationale: v.optional(v.string()),
+    content_family_rationale: v.string(),
   }),
 });
 
