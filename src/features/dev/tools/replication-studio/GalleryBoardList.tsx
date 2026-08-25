@@ -89,16 +89,21 @@ export function ProvenanceChip({ match }: { match: GalleryMatch }) {
   const { provenance } = match;
   const specific = provenance.matchedVia === "specific_drug";
   const classPlacement = provenance.matchedVia === "drug_class";
+  const visualFallback = provenance.matchedVia === "visual_disconnection";
   const label = specific
     ? "specific drug"
     : classPlacement
       ? provenance.drugClass
-      : "manual association";
+      : visualFallback
+        ? "visual disconnection"
+        : "manual association";
   const explanation = specific
     ? "The replication names exactly this drug and no combination, so it appears only on this article."
     : classPlacement
       ? `The replication names ${provenance.drugClass} generally and no specific drug, so it appears on every article in that class.`
-      : "An editor associated this row directly. Manual associations follow all automatic placement tiers.";
+      : visualFallback
+        ? "An eligible Visual Disconnection still appears on every dissociative article, after every other placement."
+        : "An editor associated this row directly. Manual associations follow the exact-drug and class-general tiers.";
   return (
     <Popover>
       <PopoverTrigger asChild>
@@ -110,7 +115,15 @@ export function ProvenanceChip({ match }: { match: GalleryMatch }) {
           className="inline-flex max-w-full items-center gap-1 rounded-md border border-[color:var(--editor-chip-border)] bg-[var(--editor-chip-bg)] px-1.5 py-0.5 text-xs font-medium text-[var(--editor-chip-text)]"
         >
           <Icon
-            icon={specific ? "lucide:pill" : classPlacement ? "lucide:shapes" : "lucide:link"}
+            icon={
+              specific
+                ? "lucide:pill"
+                : classPlacement
+                  ? "lucide:shapes"
+                  : visualFallback
+                    ? "lucide:image"
+                    : "lucide:link"
+            }
             size={11}
             className="shrink-0"
           />

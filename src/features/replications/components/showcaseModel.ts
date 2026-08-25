@@ -32,10 +32,10 @@ export function visualEffectNameBySlug(
 }
 
 /**
- * Flatten the public per-substance read into stage-ready works: audio-first
- * media rank leads (sounded videos, then silent motion, then stills), and the
- * order the read delivered (curated head, then default tail) survives within
- * each rank. Rows the stage cannot draw (audio) drop out; a slug the article
+ * Flatten the public per-substance read into stage-ready works. Audio-first
+ * media rank leads within the policy collection, but Visual Disconnection
+ * fallback stills remain a final band even when one uses a motion-capable GIF
+ * container. Rows the stage cannot draw (audio) drop out; a slug the article
  * names nowhere falls back to the gallery's humanised-slug convention.
  */
 export function buildShowcaseWorks(
@@ -45,7 +45,12 @@ export function buildShowcaseWorks(
   resolveArtistAvatarUrl: (artistName: string) => string | null = () => null,
 ): ShowcaseWork[] {
   const works: ShowcaseWork[] = [];
-  const ranked = sortByMediaRank(items, (item) => item.replication);
+  const primary = items.filter((item) => item.provenance.matchedVia !== "visual_disconnection");
+  const fallback = items.filter((item) => item.provenance.matchedVia === "visual_disconnection");
+  const ranked = [
+    ...sortByMediaRank(primary, (item) => item.replication),
+    ...sortByMediaRank(fallback, (item) => item.replication),
+  ];
   for (const { replication, provenance } of ranked) {
     if (replication.type !== "video" && replication.type !== "image") continue;
     const artistName = hasKnownCreator(replication.artist)

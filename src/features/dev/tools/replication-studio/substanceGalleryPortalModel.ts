@@ -33,6 +33,12 @@ export type GalleryMatchProvenance =
       drugClass: "dissociatives" | "deliriants";
     }
   | {
+      matchedVia: "visual_disconnection";
+      effectSlug: "visual-disconnection";
+      effectName: string;
+      drugClass: "dissociatives";
+    }
+  | {
       matchedVia: "curated";
       effectSlug: string;
       effectName: string;
@@ -270,6 +276,7 @@ export type GalleryBoard = {
 };
 
 function galleryTier(match: GalleryMatch): number {
+  if (match.provenance.matchedVia === "visual_disconnection") return 5;
   if (match.provenance.matchedVia === "curated") return 4;
   if (match.provenance.matchedVia === "specific_drug") {
     return match.replication.type === "video" ? 0 : 1;
@@ -279,9 +286,9 @@ function galleryTier(match: GalleryMatch): number {
 
 /**
  * Apply the public ordering contract: specific videos, specific images,
- * permitted class videos, permitted class images, then direct associations.
- * Stored order only breaks ties inside a tier; newly tagged rows append to that
- * tier without jumping behind unrelated manual associations.
+ * permitted class videos, permitted class images, direct associations, then
+ * Visual Disconnection still-image fallbacks. Stored order only breaks ties
+ * inside a tier.
  */
 function orderGallery(
   matches: readonly GalleryMatch[],
@@ -432,18 +439,27 @@ export type GalleryProvenanceSummary = {
   matched: number;
   specificDrug: number;
   generalClass: number;
+  visualDisconnection: number;
   manual: number;
 };
 
-/** Counts automatic exact-drug, inherited class, and direct manual placements. */
+/** Count each automatic provenance tier and direct manual placements. */
 export function summarizeProvenance(matches: readonly GalleryMatch[]): GalleryProvenanceSummary {
   let specificDrug = 0;
   let generalClass = 0;
+  let visualDisconnection = 0;
   let manual = 0;
   for (const match of matches) {
     if (match.provenance.matchedVia === "specific_drug") specificDrug += 1;
     else if (match.provenance.matchedVia === "drug_class") generalClass += 1;
+    else if (match.provenance.matchedVia === "visual_disconnection") visualDisconnection += 1;
     else manual += 1;
   }
-  return { matched: matches.length, specificDrug, generalClass, manual };
+  return {
+    matched: matches.length,
+    specificDrug,
+    generalClass,
+    visualDisconnection,
+    manual,
+  };
 }

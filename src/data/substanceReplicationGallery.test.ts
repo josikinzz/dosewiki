@@ -77,6 +77,31 @@ describe("title drug identity", () => {
     expect(canonicalTitleDrugRoute("ketamine")).toBe("ketamine");
   });
 
+  it("routes reviewed dissociative aliases even when stored taxonomy is stale", () => {
+    expect(titleDrugRoutesOf(row({ slug: "dxm", title: "DXM tunnel" }))).toEqual([
+      "dextromethorphan",
+    ]);
+    expect(titleDrugRoutesOf(row({ slug: "ketamine", title: "The K-Hole" }))).toEqual([
+      "ketamine",
+    ]);
+    expect(
+      titleDrugRoutesOf(row({ slug: "three-meo", title: "3-MeO-PCP replication" })),
+    ).toEqual(["3-meo-pcp"]);
+    expect(titleDrugRoutesOf(row({ slug: "unrelated", title: "Kitty dream" }))).toEqual([]);
+  });
+
+  it("uses reviewed aliases to detect combinations in stale taxonomy", () => {
+    const combination = row({
+      slug: "ketamine-dxm",
+      title: "Ketamine + DXM replication",
+    });
+    expect(titleDrugRoutesOf(combination)).toEqual([
+      "ketamine",
+      "dextromethorphan",
+    ]);
+    expect(isCombinationReplication(combination)).toBe(true);
+  });
+
   it("deduplicates repeated names for the same substance", () => {
     const dmt = row({
       slug: "dmt",
@@ -156,6 +181,63 @@ describe("matchSubstanceGalleryReplications", () => {
       substanceSlug: "dextromethorphan",
     });
     expect(ketamine.matches).toEqual([]);
+  });
+
+  it("adds every eligible Visual Disconnection still to dissociatives as a final fallback", () => {
+    const visualStill = row({
+      slug: "dxm-visual-still",
+      title_drugs: [drug("dxm", "dissociatives")],
+      effect_slug: "visual-disconnection",
+    });
+    const dextromethorphan = matchSubstanceGalleryReplications(
+      [visualStill],
+      target("dextromethorphan", ["Dissociative"]),
+    ).matches;
+    const ketamine = matchSubstanceGalleryReplications(
+      [visualStill],
+      target("ketamine", ["Dissociative"]),
+    ).matches;
+
+    expect(dextromethorphan[0].provenance.matchedVia).toBe("specific_drug");
+    expect(ketamine[0].provenance).toEqual({
+      matchedVia: "visual_disconnection",
+      effectSlug: "visual-disconnection",
+      drugClass: "dissociatives",
+    });
+    expect(
+      matchSubstanceGalleryReplications(
+        [visualStill],
+        target("datura", ["Deliriant"]),
+      ).matches,
+    ).toEqual([]);
+    expect(
+      matchSubstanceGalleryReplications(
+        [visualStill],
+        target("lsd", ["Psychedelic"]),
+      ).matches,
+    ).toEqual([]);
+  });
+
+  it("does not use Visual Disconnection videos or combinations as fallback", () => {
+    const video = row({
+      slug: "visual-video",
+      type: "video",
+      effect_slug: "visual-disconnection",
+    });
+    const combination = row({
+      slug: "visual-combination",
+      effect_slug: "visual-disconnection",
+      title_drugs: [
+        drug("dxm", "dissociatives"),
+        drug("diphenhydramine", "deliriants"),
+      ],
+    });
+    expect(
+      matchSubstanceGalleryReplications(
+        [video, combination],
+        target("ketamine", ["Dissociative"]),
+      ).matches,
+    ).toEqual([]);
   });
 
   it("spreads a general dissociative across dissociative articles only", () => {
@@ -282,8 +364,12 @@ describe("matchSubstanceGalleryReplications", () => {
     ).toEqual([]);
   });
 
-  it("orders specific videos, specific images, class videos, then class images", () => {
+  it("orders specific, class-general, then Visual Disconnection fallback media", () => {
     const corpus = [
+      row({
+        slug: "visual-fallback",
+        effect_slug: "visual-disconnection",
+      }),
       row({
         slug: "class-image",
         title_class_mentions: [classMention("dissociatives")],
@@ -312,6 +398,7 @@ describe("matchSubstanceGalleryReplications", () => {
       "specific-image",
       "class-video",
       "class-image",
+      "visual-fallback",
     ]);
   });
 });
@@ -362,6 +449,30 @@ describe("mergeCuratedGallery", () => {
       "specific-new",
       "specific-image",
       "manual-tail",
+    ]);
+  });
+
+  it("keeps the visual fallback behind unmatched manual associations", () => {
+    const visualFallback = row({
+      slug: "visual-fallback",
+      effect_slug: "visual-disconnection",
+    });
+    const automatic = matchSubstanceGalleryReplications(
+      [...corpus, visualFallback],
+      target("dextromethorphan", ["Dissociative"]),
+    ).matches;
+    const curation = {
+      curated_slugs: ["manual-tail"],
+      removed_slugs: [],
+    };
+    const available = includeDirectlyAssociatedRows(
+      [...corpus, visualFallback],
+      automatic,
+      curation,
+    );
+    expect(slugsOf(mergeCuratedGallery(available, curation))).toEqual([
+      "manual-tail",
+      "visual-fallback",
     ]);
   });
 

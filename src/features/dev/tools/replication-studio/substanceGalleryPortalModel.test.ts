@@ -282,6 +282,42 @@ describe("buildGalleryBoard", () => {
       "c",
     ]);
   });
+
+  it("places Visual Disconnection fallback rows after direct associations", () => {
+    const fallback: GalleryMatch = {
+      replication: {
+        ...MATCHES[0].replication,
+        id: "id-visual-fallback",
+        slug: "visual-fallback",
+        effect_slug: "visual-disconnection",
+        effect_name: "Visual Disconnection",
+      },
+      provenance: {
+        matchedVia: "visual_disconnection",
+        effectSlug: "visual-disconnection",
+        effectName: "Visual Disconnection",
+        drugClass: "dissociatives",
+      },
+    };
+    const manual: GalleryMatch = {
+      replication: {
+        ...MATCHES[0].replication,
+        id: "id-manual",
+        slug: "manual",
+      },
+      provenance: {
+        matchedVia: "curated",
+        effectSlug: "drifting",
+        effectName: "Drifting",
+      },
+    };
+    expect(
+      effectiveGalleryOrder(
+        [...MATCHES, fallback, manual],
+        { curated: ["manual"], removed: [] },
+      ).map((entry) => entry.replication.slug),
+    ).toEqual(["a", "c", "b", "d", "manual", "visual-fallback"]);
+  });
 });
 
 describe("curation history", () => {
@@ -364,17 +400,19 @@ describe("dirty state across a save round trip", () => {
 });
 
 describe("summarizeProvenance", () => {
-  it("counts exact-drug, general-class, and manual placements", () => {
+  it("counts exact-drug, general-class, visual-fallback, and manual placements", () => {
     expect(summarizeProvenance(MATCHES)).toEqual({
       matched: 4,
       specificDrug: 2,
       generalClass: 2,
+      visualDisconnection: 0,
       manual: 0,
     });
     expect(summarizeProvenance([])).toEqual({
       matched: 0,
       specificDrug: 0,
       generalClass: 0,
+      visualDisconnection: 0,
       manual: 0,
     });
   });
@@ -394,7 +432,29 @@ describe("summarizeProvenance", () => {
       matched: 1,
       specificDrug: 0,
       generalClass: 0,
+      visualDisconnection: 0,
       manual: 1,
+    });
+  });
+
+  it("counts a Visual Disconnection fallback separately", () => {
+    const fallback: GalleryMatch[] = [
+      {
+        replication: MATCHES[0].replication,
+        provenance: {
+          matchedVia: "visual_disconnection",
+          effectSlug: "visual-disconnection",
+          effectName: "Visual Disconnection",
+          drugClass: "dissociatives",
+        },
+      },
+    ];
+    expect(summarizeProvenance(fallback)).toEqual({
+      matched: 1,
+      specificDrug: 0,
+      generalClass: 0,
+      visualDisconnection: 1,
+      manual: 0,
     });
   });
 });

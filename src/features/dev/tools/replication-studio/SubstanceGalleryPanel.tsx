@@ -185,7 +185,7 @@ export function SubstanceGalleryPanel({
       headingLevel="h3"
       icon="lucide:images"
       title="Substance Replication Showcases"
-      description={`Exact-drug and permitted class replications appear automatically. Stored curation controls priority, direct standalone associations, and per-article exclusions. The article shows the first ${SHOWCASE_WORK_CAP} works in the effective policy order.`}
+      description={`Exact-drug, permitted class, and final Visual Disconnection stills appear automatically. Stored curation controls priority, direct standalone associations, and per-article exclusions. The article shows the first ${SHOWCASE_WORK_CAP} works in the effective policy order.`}
     >
       <div aria-live="polite" className="sr-only">
         {announcement}
@@ -206,7 +206,7 @@ export function SubstanceGalleryPanel({
             <div className="min-w-0">
               <p className="theme-text-muted font-mono text-xs">
                 {provenance.specificDrug} specific drug · {provenance.generalClass} general class ·{" "}
-                {provenance.manual} manual
+                {provenance.visualDisconnection} visual fallback · {provenance.manual} manual
               </p>
             </div>
           </>

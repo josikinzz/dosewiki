@@ -40,6 +40,25 @@ describe("current library taxonomy", () => {
     expect(detectTitleDrugs("A purple forest")).toEqual([]);
   });
 
+  it("recognizes reviewed common dissociative names without single-letter guesses", () => {
+    const aliases = [
+      ["Dextromethorphan tunnel", "dxm"],
+      ["DXM tunnel", "dxm"],
+      ["Robitussin tunnel", "dxm"],
+      ["Delsym tunnel", "dxm"],
+      ["Robo-tripping tunnel", "dxm"],
+      ["The K-Hole", "ketamine"],
+      ["Special K replication", "ketamine"],
+      ["Laughing gas replication", "nitrous-oxide"],
+      ["Whippets replication", "nitrous-oxide"],
+      ["Angel Dust replication", "pcp"],
+    ];
+    for (const [title, expectedSlug] of aliases) {
+      expect(detectTitleDrugs(title).map((drug) => drug.slug)).toEqual([expectedSlug]);
+    }
+    expect(detectTitleDrugs("Kitty dream and special knowledge")).toEqual([]);
+  });
+
   it("expands the reviewed LSDXM portmanteau into both combination drugs", () => {
     expect(
       detectTitleDrugs("LSDXM Replication (Song: How much is weed)").map((drug) => drug.slug),

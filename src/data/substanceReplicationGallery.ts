@@ -2,9 +2,11 @@
  * Drug-association policy and editorial ordering for the per-substance
  * Replication Showcase (see CONTEXT.md → Replications Surface Language).
  *
- * Automatic placement is deliberately narrower than visual-effect matching:
- * a standalone drug mention belongs only to that drug, while a general
- * dissociative or deliriant work belongs to every article in that class.
+ * Automatic placement is deliberately narrower than general visual-effect
+ * matching: a standalone drug mention belongs only to that drug, while a
+ * general dissociative or deliriant work belongs to every article in that
+ * class. Dissociative articles additionally inherit eligible still images
+ * owned by Visual Disconnection, after every higher-priority placement.
  * General psychedelic work is never spread across psychedelic articles, and
  * combinations are never proposed for a single-substance showcase.
  *
@@ -16,6 +18,7 @@
  * Everything here is pure. Imports are relative because the Convex bundler
  * consumes this file through `convex/substanceGalleries.ts`.
  */
+import { DISSOCIATIVE_TITLE_DRUG_RULES } from "./replicationTitleDrugAliases";
 
 import { z } from "zod";
 import {
@@ -47,7 +50,12 @@ const GENERAL_CLASS_ARTICLE_LABEL: Readonly<
   deliriants: "Deliriant",
 });
 
-export type AutomaticSubstanceMatchKind = "specific_drug" | "drug_class";
+const VISUAL_DISCONNECTION_EFFECT_SLUG = "visual-disconnection";
+
+export type AutomaticSubstanceMatchKind =
+  | "specific_drug"
+  | "drug_class"
+  | "visual_disconnection";
 
 /** How one corpus row earned its place in a substance's showcase. */
 export type SubstanceGalleryMatchProvenance = {
@@ -56,7 +64,7 @@ export type SubstanceGalleryMatchProvenance = {
   effectSlug: string;
   /** Present for a standalone title-drug placement. */
   substanceSlug?: string;
-  /** Present for a permitted general-class placement. */
+  /** Present for a permitted general-class or dissociative-effect placement. */
   drugClass?: "dissociatives" | "deliriants";
 };
 
@@ -90,7 +98,7 @@ export type SubstanceGalleryMatch<Row extends SubstanceGalleryMatchableRow> = {
 };
 
 export type SubstanceGalleryMatchResult<Row extends SubstanceGalleryMatchableRow> = {
-  /** Automatic candidates in specific-video, specific-image, class-video, class-image order. */
+  /** Automatic candidates in specific, class-general, then visual-fallback order. */
   matches: SubstanceGalleryMatch<Row>[];
 };
 
@@ -139,13 +147,52 @@ export function canonicalTitleDrugRoute(slug: string): string {
   return TITLE_DRUG_ROUTE_ALIASES[slug] ?? slug;
 }
 
-/** Distinct article routes named by a row, preserving first-title-mention order. */
+/** Reviewed dissociative names found directly in a title, longest match first. */
+export function reviewedDissociativeTitleDrugRoutesOf(title: string): string[] {
+  const candidates: { route: string; start: number; end: number }[] = [];
+  for (const [slug, _name, _drugClass, pattern] of DISSOCIATIVE_TITLE_DRUG_RULES) {
+    pattern.lastIndex = 0;
+    for (const match of title.matchAll(pattern)) {
+      candidates.push({
+        route: canonicalTitleDrugRoute(slug),
+        start: match.index,
+        end: match.index + match[0].length,
+      });
+    }
+  }
+  candidates.sort(
+    (left, right) =>
+      (right.end - right.start) - (left.end - left.start)
+      || left.start - right.start,
+  );
+  const accepted: typeof candidates = [];
+  for (const candidate of candidates) {
+    if (
+      accepted.some(
+        (existing) =>
+          candidate.start >= existing.start && candidate.end <= existing.end,
+      )
+    ) {
+      continue;
+    }
+    accepted.push(candidate);
+  }
+  accepted.sort((left, right) => left.start - right.start);
+  return [...new Set(accepted.map((candidate) => candidate.route))];
+}
+
+/** Distinct article routes named by taxonomy or a reviewed title alias. */
 export function titleDrugRoutesOf(row: SubstanceGalleryMatchableRow): string[] {
   const routes: string[] = [];
   const seen = new Set<string>();
   for (const drug of row.title_drugs ?? []) {
     const route = canonicalTitleDrugRoute(drug.slug);
     if (!route || seen.has(route)) continue;
+    seen.add(route);
+    routes.push(route);
+  }
+  for (const route of reviewedDissociativeTitleDrugRoutesOf(row.title)) {
+    if (seen.has(route)) continue;
     seen.add(route);
     routes.push(route);
   }
@@ -197,8 +244,7 @@ function automaticProvenance(
   if (!isShowcaseEligible(row)) return null;
 
   const routes = titleDrugRoutesOf(row);
-  if (routes.length === 1) {
-    if (routes[0] !== target.slug) return null;
+  if (routes.length === 1 && routes[0] === target.slug) {
     return {
       matchedVia: "specific_drug",
       effectSlug: row.effect_slug ?? "specific-drug",
@@ -207,21 +253,41 @@ function automaticProvenance(
   }
 
   const classes = titleDrugClassesOf(row);
-  if (classes.length !== 1) return null;
-  const drugClass = classes[0];
-  if (drugClass !== "dissociatives" && drugClass !== "deliriants") return null;
-  const articleClass = GENERAL_CLASS_ARTICLE_LABEL[drugClass];
-  if (!articleClass || !target.psychoactiveClasses.includes(articleClass)) return null;
-  return {
-    matchedVia: "drug_class",
-    effectSlug: drugClass,
-    drugClass,
-  };
+  if (routes.length === 0 && classes.length === 1) {
+    const drugClass = classes[0];
+    const articleClass = GENERAL_CLASS_ARTICLE_LABEL[drugClass];
+    if (
+      (drugClass === "dissociatives" || drugClass === "deliriants")
+      && articleClass
+      && target.psychoactiveClasses.includes(articleClass)
+    ) {
+      return {
+        matchedVia: "drug_class",
+        effectSlug: drugClass,
+        drugClass,
+      };
+    }
+  }
+
+  if (
+    row.type === "image"
+    && row.effect_slug === VISUAL_DISCONNECTION_EFFECT_SLUG
+    && target.psychoactiveClasses.includes("Dissociative")
+  ) {
+    return {
+      matchedVia: "visual_disconnection",
+      effectSlug: VISUAL_DISCONNECTION_EFFECT_SLUG,
+      drugClass: "dissociatives",
+    };
+  }
+
+  return null;
 }
 
 /**
- * Derive the automatic pool. Exact substance work always precedes the
- * permitted class-general pool; videos precede images inside both tiers.
+ * Derive the automatic pool. Exact substance work precedes class-general
+ * work; eligible Visual Disconnection stills close the automatic pool.
+ * Videos precede images inside the specific and class-general tiers.
  */
 export function matchSubstanceGalleryReplications<Row extends SubstanceGalleryMatchableRow>(
   rows: readonly Row[],
@@ -231,6 +297,7 @@ export function matchSubstanceGalleryReplications<Row extends SubstanceGalleryMa
   const specificImages: SubstanceGalleryMatch<Row>[] = [];
   const classVideos: SubstanceGalleryMatch<Row>[] = [];
   const classImages: SubstanceGalleryMatch<Row>[] = [];
+  const visualDisconnectionImages: SubstanceGalleryMatch<Row>[] = [];
 
   for (const row of rows) {
     const provenance = automaticProvenance(row, target);
@@ -238,8 +305,10 @@ export function matchSubstanceGalleryReplications<Row extends SubstanceGalleryMa
     const match = { row, provenance };
     if (provenance.matchedVia === "specific_drug") {
       (row.type === "video" ? specificVideos : specificImages).push(match);
-    } else {
+    } else if (provenance.matchedVia === "drug_class") {
       (row.type === "video" ? classVideos : classImages).push(match);
+    } else {
+      visualDisconnectionImages.push(match);
     }
   }
 
@@ -249,6 +318,7 @@ export function matchSubstanceGalleryReplications<Row extends SubstanceGalleryMa
       ...specificImages,
       ...classVideos,
       ...classImages,
+      ...visualDisconnectionImages,
     ],
   };
 }
@@ -291,6 +361,7 @@ export function includeDirectlyAssociatedRows<Row extends SubstanceGalleryMatcha
 function automaticTier<Row extends SubstanceGalleryMatchableRow>(
   match: SubstanceGalleryMatch<Row>,
 ): number {
+  if (match.provenance.matchedVia === "visual_disconnection") return 5;
   if (match.provenance.matchedVia === "curated") return 4;
   if (match.provenance.matchedVia === "specific_drug") {
     return match.row.type === "video" ? 0 : 1;
@@ -306,6 +377,7 @@ function automaticTier<Row extends SubstanceGalleryMatchableRow>(
  *  3. permitted class-general videos
  *  4. permitted class-general images
  *  5. unmatched manual associations
+ *  6. Visual Disconnection still-image fallback
  *
  * Existing curation orders rows within each tier. Newly tagged rows follow in
  * stable corpus order, so they appear automatically without destroying prior

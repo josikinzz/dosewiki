@@ -119,6 +119,7 @@ function AssociationsSkeleton() {
 const MATCH_LABEL: Record<ReplicationAssociation["matchedVia"], string> = {
   specific_drug: "exact drug",
   drug_class: "general class",
+  visual_disconnection: "visual fallback",
   curated: "direct association",
 };
 
@@ -433,6 +434,11 @@ export function ReplicationAssociationsPanel({ row }: { row: StudioRow }) {
           key: "drug_class" as const,
           caption: "General class placements",
           rows: rows.filter((entry) => entry.matchedVia === "drug_class"),
+        },
+        {
+          key: "visual_disconnection" as const,
+          caption: "Visual Disconnection fallback",
+          rows: rows.filter((entry) => entry.matchedVia === "visual_disconnection"),
         },
         {
           key: "curated" as const,

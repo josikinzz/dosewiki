@@ -18,13 +18,15 @@ import {
 import type { ReplicationAssociation } from "../src/features/dev/tools/replication-studio/replicationAssociationModel";
 
 /**
- * Per-substance Replication Showcase: automatic drug/class placement behind
- * stored editorial ordering and exclusion deltas.
+ * Per-substance Replication Showcase: automatic drug/class placement and the
+ * low-priority Visual Disconnection still-image fallback behind stored
+ * editorial ordering and exclusion deltas.
  *
  * Exact drug work belongs only to that drug. General dissociative and
  * deliriant work belongs to every article carrying that psychoactive class.
- * General psychedelic work and combinations are never automatic. Stored
- * `curated_slugs` order rows within those tiers and retain unmatched direct
+ * Eligible Visual Disconnection stills close every dissociative collection.
+ * General psychedelic work and combinations are never broadly automatic.
+ * Stored `curated_slugs` order rows within tiers and retain unmatched direct
  * placements; `removed_slugs` suppresses every source.
  *
  * The pure policy lives in `src/data/substanceReplicationGallery` so public
@@ -61,7 +63,8 @@ export const getBySubstance = query({
 /**
  * The published Replication Showcase for one substance: automatic placements
  * in policy order, with stored curation ordering within tiers, direct manual
- * associations last, and stored suppression applied to every source.
+ * associations after exact/class placement, Visual Disconnection stills last,
+ * and stored suppression applied to every source.
  */
 export const getPublicReplicationsForSubstance = query({
   args: { substance_slug: v.string() },
@@ -438,7 +441,9 @@ export const getReplicationAssociationsPage = query({
           ? substance.title
           : provenance.matchedVia === "drug_class"
             ? provenance.drugClass
-            : provenance.effectSlug;
+            : provenance.matchedVia === "visual_disconnection"
+              ? "Visual Disconnection"
+              : provenance.effectSlug;
 
       const curatedIndex = gallery ? gallery.curated_slugs.indexOf(args.replicationSlug) : -1;
 

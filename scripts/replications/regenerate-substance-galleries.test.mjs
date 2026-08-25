@@ -46,6 +46,7 @@ const REPlications = [
   row("dmt-video", { type: "video", title_drugs: [DMT] }),
   row("general-dissociative", { title_class_mentions: [classMention("dissociatives")] }),
   row("general-deliriant", { title_class_mentions: [classMention("deliriants")] }),
+  row("visual-disconnection-still", { effect_slug: "visual-disconnection" }),
   row("dph-image", { title_drugs: [DPH] }),
   row("salvia-image", { title_drugs: [SALVIA] }),
   row("salvia-video", { type: "video", title_drugs: [SALVIA] }),
@@ -88,11 +89,24 @@ describe("planGalleryRegeneration", () => {
       removed_slugs: [],
     });
     expect(bySlug.get("ketamine").next.curated_slugs).toEqual([]);
-    expect(bySlug.get("ketamine").automatic).toEqual({ specific: 0, general_class: 1 });
+    expect(bySlug.get("ketamine").automatic).toEqual({
+      specific: 0,
+      general_class: 1,
+      visual_disconnection: 1,
+    });
+    expect(bySlug.get("ketamine").next.curated_slugs).not.toContain("visual-disconnection-still");
     expect(bySlug.get("datura").next.curated_slugs).toEqual([]);
-    expect(bySlug.get("datura").automatic).toEqual({ specific: 0, general_class: 1 });
+    expect(bySlug.get("datura").automatic).toEqual({
+      specific: 0,
+      general_class: 1,
+      visual_disconnection: 0,
+    });
     expect(bySlug.get("diphenhydramine").next.curated_slugs).toEqual(["dph-image"]);
-    expect(bySlug.get("diphenhydramine").automatic).toEqual({ specific: 1, general_class: 1 });
+    expect(bySlug.get("diphenhydramine").automatic).toEqual({
+      specific: 1,
+      general_class: 1,
+      visual_disconnection: 0,
+    });
     expect(bySlug.get("lsd").next.curated_slugs).toEqual(["lsd-image"]);
     expect(bySlug.get("lsd").automatic.general_class).toBe(0);
   });

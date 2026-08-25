@@ -5,6 +5,7 @@ import { readFileSync, writeFileSync } from "node:fs";
 import { ConvexHttpClient } from "convex/browser";
 
 import { api } from "../../convex/_generated/api.js";
+import { DISSOCIATIVE_TITLE_DRUG_RULES } from "../../src/data/replicationTitleDrugAliases.ts";
 
 export const TARGET = "https://glad-minnow-656.convex.cloud";
 export const OUTPUT_PATH =
@@ -23,7 +24,6 @@ const PATHS = {
 const DRUG_RULES = [
   ["5-meo-dmt", "5-MeO-DMT", "psychedelics", /\b5[- ]?meo[- ]?dmt\b/giu],
   ["4-ho-met", "4-HO-MET", "psychedelics", /\b4[- ]?ho[- ]?met\b|\bhomet\b/giu],
-  ["3-meo-pcp", "3-MeO-PCP", "dissociatives", /\b3[- ]?meo[- ]?pcp\b/giu],
   ["ald-52", "ALD-52", "psychedelics", /\bald[- ]?52\b/giu],
   ["eth-lad", "ETH-LAD", "psychedelics", /\beth[- ]?lad\b/giu],
   ["1p-lsd", "1P-LSD", "psychedelics", /\b1p[- ]?lsd\b/giu],
@@ -41,11 +41,7 @@ const DRUG_RULES = [
     "psychedelics",
     /\bpsilocybin\b|\bpsilocybe\b|\bmagic mush(?:room|rooms|ie|ies)\b|\bshrooms?\b|\bmushies\b|\bheroic dose mushrooms?\b|\bhigh[- ]dose mushroom\b/giu,
   ],
-  ["dxm", "DXM", "dissociatives", /\bdxm\b|\bdextromethorphan\b/giu],
-  ["ketamine", "Ketamine", "dissociatives", /\bketamine\b|\bketa\b/giu],
-  ["methoxetamine", "Methoxetamine", "dissociatives", /\bmxe\b|\bmethoxetamine\b/giu],
-  ["nitrous-oxide", "Nitrous oxide", "dissociatives", /\bnitrous(?: oxide)?\b|\bn2[0o]\b/giu],
-  ["pcp", "PCP", "dissociatives", /\bpcp\b/giu],
+  ...DISSOCIATIVE_TITLE_DRUG_RULES,
   ["diphenhydramine", "Diphenhydramine", "deliriants", /\bdiphenhydramine\b|\bdph\b|\bbenadryl\b/giu],
   ["dimenhydrinate", "Dimenhydrinate", "deliriants", /\bdimenhydrinate\b|\bdramamine\b/giu],
   ["datura", "Datura", "deliriants", /\bdatura\b/giu],

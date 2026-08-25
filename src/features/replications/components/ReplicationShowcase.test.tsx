@@ -629,9 +629,13 @@ describe("buildShowcaseWorks", () => {
   const item = (
     overrides: Partial<ReplicationWithUrl>,
     effectSlug: string,
+    provenance: SubstanceGalleryItem["provenance"] = {
+      matchedVia: "specific_drug",
+      effectSlug,
+    },
   ): SubstanceGalleryItem => ({
     replication: replication(overrides),
-    provenance: { matchedVia: "specific_drug", effectSlug },
+    provenance,
   });
 
   it("names effects from the article's chip vocabulary, humanising unknown slugs", () => {
@@ -689,5 +693,33 @@ describe("buildShowcaseWorks", () => {
     );
 
     expect(works.map((entry) => entry.slug)).toEqual(["kept"]);
+  });
+
+  it("keeps Visual Disconnection fallback images last even when a GIF ranks as motion", () => {
+    const works = buildShowcaseWorks(
+      [
+        item({ slug: "specific-still" }, "drifting"),
+        item(
+          { slug: "visual-fallback-gif", format: "gif" },
+          "visual-disconnection",
+          {
+            matchedVia: "visual_disconnection",
+            effectSlug: "visual-disconnection",
+            drugClass: "dissociatives",
+          },
+        ),
+        item(
+          { slug: "specific-video", type: "video", format: "mp4" },
+          "geometry",
+        ),
+      ],
+      new Map(),
+    );
+
+    expect(works.map((entry) => entry.slug)).toEqual([
+      "specific-video",
+      "specific-still",
+      "visual-fallback-gif",
+    ]);
   });
 });

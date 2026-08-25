@@ -99,9 +99,9 @@ function namedRow(row) {
 /**
  * Build one clean-cutover plan. Stored priorities become the complete reviewed
  * exact-drug tier (videos, then images) plus the two audited Salvia direct
- * associations. General dissociative/deliriant rows remain automatic and are
- * therefore never frozen into a stored list. Existing per-article exclusions
- * survive only while their row remains showcase-eligible.
+ * associations. General class and Visual Disconnection fallback rows remain
+ * automatic and are therefore never frozen into a stored list. Existing
+ * per-article exclusions survive only while their row remains eligible.
  */
 export function planGalleryRegeneration({ replications, substances, galleriesBySubstance }) {
   const rowBySlug = new Map(replications.map((row) => [row.slug, row]));
@@ -122,6 +122,10 @@ export function planGalleryRegeneration({ replications, substances, galleriesByS
     const currentRemoved = current?.removed_slugs ?? [];
     const automatic = matchSubstanceGalleryReplications(replications, target).matches;
     const specific = automatic.filter((match) => match.provenance.matchedVia === "specific_drug");
+    const generalClass = automatic.filter((match) => match.provenance.matchedVia === "drug_class");
+    const visualDisconnection = automatic.filter(
+      (match) => match.provenance.matchedVia === "visual_disconnection",
+    );
     const specificVideos = priorityOrder(
       specific.filter((match) => match.row.type === "video"),
       currentCurated,
@@ -182,7 +186,8 @@ export function planGalleryRegeneration({ replications, substances, galleriesByS
       next: { curated_slugs: curatedSlugs, removed_slugs: removedSlugs },
       automatic: {
         specific: specific.length,
-        general_class: automatic.length - specific.length,
+        general_class: generalClass.length,
+        visual_disconnection: visualDisconnection.length,
       },
       added_priorities: curatedSlugs.filter((slug) => !currentSet.has(slug)).map((slug) => namedRow(rowBySlug.get(slug))),
       dropped_priorities: currentCurated.filter((slug) => !nextSet.has(slug)).map((slug) => {
