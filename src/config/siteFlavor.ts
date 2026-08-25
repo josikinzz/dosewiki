@@ -101,8 +101,6 @@ export type SiteLogoIdentity = {
   readonly alt: string;
   /** Accessible label for the oversized homepage hero mark. */
   readonly heroAlt: string;
-  /** Accessible label for the button that animates the homepage hero mark. */
-  readonly heroAnimateLabel: string;
 };
 
 /**
@@ -216,8 +214,9 @@ export type SiteAboutConfig = {
 /**
  * Everything that differs between the two publications, including their {@link
  * AppearancePolicy}: `defaultColorScheme`, `showColorSchemeToggle`, `defaultVisualStyle`,
- * `showVisualStyleToggle`, `showSurfacePicker` and `showAccentPicker` are contributed by that
- * type rather than redeclared here, so the axis vocabulary has exactly one owner.
+ * `showVisualStyleToggle`, `showSurfacePicker`, `showAccentPicker` and `showFontToggle` are
+ * contributed by that type rather than redeclared here, so the axis vocabulary has exactly
+ * one owner.
  */
 export type SiteFlavorConfig = AppearancePolicy & {
   /** The flavor this config describes. */
@@ -242,6 +241,12 @@ export type SiteFlavorConfig = AppearancePolicy & {
   readonly faviconPath: string;
   /** iOS home-screen icon served from `public/`, rendered as `<link rel="apple-touch-icon">`. */
   readonly appleTouchIconPath: string;
+  /**
+   * Browser-tab title suffix appended by `buildPublicPageMetadata` — the single owner of
+   * the " - <suffix>" convention every public route's title ends with. The homepage is
+   * the one route whose title is the suffix alone.
+   */
+  readonly titleSuffix: string;
   /** Homepage title. */
   readonly homeTitle: string;
   /** About page title, used for both the metadata title and the page heading. */
@@ -314,7 +319,6 @@ const DOSEWIKI_CONFIG: SiteFlavorConfig = {
     markPath: null,
     alt: "dose.wiki logo",
     heroAlt: "dose.wiki molecule logo",
-    heroAnimateLabel: "Animate dose.wiki logo",
   },
   defaultSiteUrl: "https://dosewiki-admin.vercel.app",
   launchSiteUrl: "https://dose.wiki",
@@ -323,6 +327,7 @@ const DOSEWIKI_CONFIG: SiteFlavorConfig = {
   socialCard: { path: "/icon-512.png", width: 512, height: 512 },
   faviconPath: "/favicon.svg",
   appleTouchIconPath: "/apple-touch-icon.png",
+  titleSuffix: "dose.wiki",
   homeTitle: "dose.wiki",
   aboutTitle: "About dose.wiki",
   about: {
@@ -413,6 +418,9 @@ const DOSEWIKI_CONFIG: SiteFlavorConfig = {
   // `src/theme/surfaces.ts` / `src/theme/accents.ts`.
   showSurfacePicker: true,
   showAccentPicker: true,
+  // The dyslexic-type toggle (Lexend) is a reader preference on the same terms as the
+  // Fun/Pro choice, so this publication offers it.
+  showFontToggle: true,
   // dose.wiki owns `/blog` too now — its own blog, written in the /dev Blog tab
   // and stored as `kind: "blog"` rows of `effectIndexArticles`. It is a
   // different publication from the frozen Effect Index archive that the same
@@ -421,7 +429,7 @@ const DOSEWIKI_CONFIG: SiteFlavorConfig = {
   // (`isFlavorGatedRequestPath`) from 404ing it before it renders.
   flavorGatedRoutes: ["blog"],
   rootMetadata: {
-    title: "dose.wiki - Substance Information Database",
+    title: "dose.wiki",
     description:
       "dose.wiki is a harm reduction database providing dosage, duration, effects, and safety information for psychoactive substances.",
     openGraphDescription:
@@ -481,7 +489,6 @@ const EFFECT_INDEX_CONFIG: SiteFlavorConfig = {
     markPath: "/effectindex/logo.svg",
     alt: "An eye, the Effect Index logo",
     heroAlt: "An eye, the Effect Index logo",
-    heroAnimateLabel: "Animate Effect Index logo",
   },
   defaultSiteUrl: "https://effectindex.com",
   launchSiteUrl: "https://effectindex.com",
@@ -492,6 +499,7 @@ const EFFECT_INDEX_CONFIG: SiteFlavorConfig = {
   // full 512px PNG remains the home-screen icon, where the extra detail matters.
   faviconPath: "/effectindex/favicon.png",
   appleTouchIconPath: "/effectindex/icon.png",
+  titleSuffix: "Effect Index",
   homeTitle: "Effect Index",
   aboutTitle: "About Effect Index",
   about: {
@@ -629,6 +637,10 @@ const EFFECT_INDEX_CONFIG: SiteFlavorConfig = {
   showVisualStyleToggle: false,
   showSurfacePicker: false,
   showAccentPicker: false,
+  // The type axis is locked for the identity reason the style is: this archive is set in
+  // Titillium, and a lock keeps its key out of the emitted bootstrap so the pinned CSP
+  // hash — and a dose.wiki reader's saved preference — stay untouched here.
+  showFontToggle: false,
   flavorGatedRoutes: ["blog", "donate", "contact", "discord", "copyrightDisclaimer"],
   rootMetadata: {
     title: "Effect Index",

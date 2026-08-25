@@ -12,10 +12,9 @@ import {
   collectAudioReplications,
   countAudioReplicationArtists,
 } from "@/features/effects/audioReplicationIndex";
-import { SITE_FLAVOR_CONFIG } from "@/config/siteFlavor";
 
 export const metadata: Metadata = buildPublicPageMetadata({
-  title: `Audio Replications | ${SITE_FLAVOR_CONFIG.name}`,
+  title: "Audio Replications",
   description:
     "Audio recreations of subjective effects, credited to the artists who made them and preserved from the Effect Index archive.",
   route: { family: "replicationAudio" },

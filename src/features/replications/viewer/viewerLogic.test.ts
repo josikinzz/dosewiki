@@ -7,6 +7,7 @@ import {
   seekRatioFromPointer,
   shouldLoopReplicationMotion,
   shouldShowGestureHint,
+  standbyMotionSource,
   standbyPosterSource,
 } from "./viewerLogic";
 
@@ -100,6 +101,43 @@ describe("standbyPosterSource", () => {
         url: "https://cdn.test/art.jpg",
       }),
     ).toBe("https://cdn.test/art.jpg");
+  });
+});
+
+describe("standbyMotionSource", () => {
+  it("warms exactly the file each stage will play", () => {
+    expect(
+      standbyMotionSource({
+        type: "video",
+        format: "mp4",
+        url: "https://cdn.test/clip.mp4",
+      }),
+    ).toBe("https://cdn.test/clip.mp4");
+    expect(
+      standbyMotionSource({
+        type: "image",
+        format: "gif",
+        url: "https://cdn.test/full.gif",
+        motion_url: "https://cdn.test/motion.mp4",
+        motion_poster_url: "https://cdn.test/poster.webp",
+      }),
+    ).toBe("https://cdn.test/motion.mp4");
+    // A GIF missing either motion asset falls back to a non-moving stage.
+    expect(
+      standbyMotionSource({
+        type: "image",
+        format: "gif",
+        url: "https://cdn.test/full.gif",
+        motion_url: "https://cdn.test/motion.mp4",
+      }),
+    ).toBeNull();
+    expect(
+      standbyMotionSource({
+        type: "image",
+        format: "jpg",
+        url: "https://cdn.test/art.jpg",
+      }),
+    ).toBeNull();
   });
 });
 

@@ -37,11 +37,14 @@ export type GalleryArtistTypeFilter = "all" | ReplicationArtistTypeTag;
 export type GalleryDrugFilter = "all" | string;
 export type GalleryDrugClassFilter = "all" | ReplicationDrugClass;
 export type GalleryContentFamilyFilter = "all" | ReplicationContentFamily;
+/** Effect slug the work must depict (owning `effect_slug` or an `effect_tags` entry). */
+export type GalleryEffectFilter = "all" | string;
 
 export interface GalleryTaxonomyFilterState {
   status: GalleryStatusFilter;
   viewing: GalleryViewingFilter;
   artistType: GalleryArtistTypeFilter;
+  effect: GalleryEffectFilter;
   drug: GalleryDrugFilter;
   drugClass: GalleryDrugClassFilter;
   family: GalleryContentFamilyFilter;
@@ -51,6 +54,7 @@ export const DEFAULT_GALLERY_TAXONOMY_FILTERS: GalleryTaxonomyFilterState = {
   status: "all",
   viewing: "all",
   artistType: "all",
+  effect: "all",
   drug: "all",
   drugClass: "all",
   family: "all",
@@ -337,6 +341,9 @@ export function matchesTaxonomyFilters(
     (filters.status === "all" || replication.replication_status === filters.status) &&
     (filters.viewing === "all" || replication.viewing_mode_tags?.includes(filters.viewing) === true) &&
     (filters.artistType === "all" || replication.artist_type_tags?.includes(filters.artistType) === true) &&
+    (filters.effect === "all" ||
+      replication.effect_slug === filters.effect ||
+      replication.effect_tags?.includes(filters.effect) === true) &&
     (filters.drug === "all" || replication.title_drugs?.some((drug) => drug.slug === filters.drug) === true) &&
     (filters.drugClass === "all" || replication.drug_classes?.includes(filters.drugClass) === true) &&
     (filters.family === "all" || replication.content_family === filters.family)

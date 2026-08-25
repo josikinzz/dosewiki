@@ -41,6 +41,17 @@ export type ColorScheme = "light" | "dark";
 export type VisualStyle = "fun" | "pro";
 
 /**
+ * The type axis: which family pair the two `--font-family-*` tokens resolve to.
+ * `"default"` is each visual style's own face (Blinker on Fun, Titillium on Pro) and is
+ * carried as *no* root attribute at all; `"dyslexic"` re-seats both tokens to Lexend via
+ * `data-font="dyslexic"` on the document root (`src/styles/dyslexic-type.css`), on both
+ * visual styles and both colour schemes. A binary reader preference, not a face list —
+ * dose.wiki offers the toggle, Effect Index locks the axis and never carries the
+ * attribute or reads the storage key.
+ */
+export type FontPreference = "default" | "dyslexic";
+
+/**
  * The colour axes: continuous hue rotations and saturation levels over the one authored
  * palette (Orchid surfaces, the Default plum accent), carried as the `--dw-*-hue` and
  * `--dw-*-level` custom properties the generated chroma stylesheet composes into every
@@ -82,6 +93,12 @@ export const DEFAULT_VISUAL_STYLE = THEME_TOKEN_INTERFACE.defaultVisualStyle as 
 
 export const COLOR_SCHEME_STORAGE_KEY = THEME_TOKEN_INTERFACE.colorSchemeStorageKey;
 export const VISUAL_STYLE_STORAGE_KEY = THEME_TOKEN_INTERFACE.visualStyleStorageKey;
+/**
+ * The type axis's key. Only ever holds `"dyslexic"`: the default is expressed by
+ * *removing* the key (and the root attribute), so a reader who never toggled — or who
+ * toggled back — stores nothing, exactly like the colour axes' never-write-a-default rule.
+ */
+export const FONT_STORAGE_KEY = THEME_TOKEN_INTERFACE.fontStorageKey;
 /**
  * The retired colourway keys. Never written any more: the bootstrap and the provider read
  * them only to migrate a saved colourway onto the hue axes, and the provider removes them
@@ -129,6 +146,10 @@ export function isVisualStyle(value: string | null | undefined): value is Visual
   return SUPPORTED_VISUAL_STYLES.includes(value as VisualStyle);
 }
 
+export function isFontPreference(value: string | null | undefined): value is FontPreference {
+  return value === "default" || value === "dyslexic";
+}
+
 /**
  * A publication's appearance policy: where it opens on each axis, and which axes its readers
  * may change. Declared here because this module owns the axis vocabulary, and composed into
@@ -150,6 +171,11 @@ export type AppearancePolicy = {
   readonly showVisualStyleToggle: boolean;
   readonly showSurfacePicker: boolean;
   readonly showAccentPicker: boolean;
+  /**
+   * The type axis carries no `default*` either: every publication opens on its visual
+   * style's own face, and a lock simply never carries `data-font` or reads its key.
+   */
+  readonly showFontToggle: boolean;
 };
 
 /**
@@ -409,6 +435,19 @@ export function buildThemeBootstrapScript(policy: AppearancePolicy = SITE_FLAVOR
       document.head.appendChild(link);
     }
   } catch {}`;
+  // The type axis. Emitted only where the toggle is offered, on the locked-axis rule the
+  // other axes follow — a locked publication's script carries neither the storage key nor
+  // the attribute write, so Effect Index's pinned bootstrap stays byte-identical. No
+  // validity table and no fallback constant: the key either holds exactly "dyslexic" or
+  // the axis is at its default, which is the *absence* of `data-font` (the server never
+  // renders the attribute, so there is nothing to remove).
+  const fontWrite = !policy.showFontToggle
+    ? ""
+    : `\n\n  try {
+    if (window.localStorage.getItem(${JSON.stringify(FONT_STORAGE_KEY)}) === "dyslexic") {
+      root.dataset.font = "dyslexic";
+    }
+  } catch {}`;
 
   return `(() => {
   const COLORS = ${JSON.stringify(APPEARANCE_META_COLORS)};
@@ -422,7 +461,7 @@ ${colorScheme}${colorDefaults}${surface}${chromaResolution}
 
   delete root.dataset.surface;
 
-  delete root.dataset.accent;${sheetWrite}${chromaWrite}
+  delete root.dataset.accent;${fontWrite}${sheetWrite}${chromaWrite}
 
   try {
     const meta = document.getElementById(${JSON.stringify(THEME_META_ID)});

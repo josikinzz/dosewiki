@@ -1,8 +1,10 @@
 /**
- * The two faces a build can paint: `siteFont`, bound to `--font-display`, is the face the
+ * The faces a build can paint: `siteFont`, bound to `--font-display`, is the face the
  * publication renders by default; `proFont`, bound to `--font-pro`, is the face the Pro
- * visual style is set in. The root layout puts both variables on `<html>`, and
- * `src/styles/pro-theme.css` decides which one Pro reads.
+ * visual style is set in; `dyslexicFont`, bound to `--font-dyslexic`, is the optional
+ * Lexend face behind dose.wiki's dyslexic-type toggle (null on Effect Index, which offers
+ * no such toggle). The root layout puts the variables on `<html>`, and
+ * `src/styles/pro-theme.css` / `src/styles/dyslexic-type.css` decide what each mode reads.
  *
  * `@site-font` is a build-time alias resolved in `next.config.ts` to `./_fonts/dosewiki`
  * or `./_fonts/effectindex` from `NEXT_PUBLIC_SITE_FLAVOR`. Selecting the module (rather
@@ -13,6 +15,6 @@
  * its own face.
  *
  * `tsconfig.json` maps `@site-font` to the dose.wiki module so `tsc` and editors have a
- * shape to check against; both modules export the same two faces.
+ * shape to check against; both modules export the same names.
  */
-export { proFont, siteFont } from "@site-font";
+export { dyslexicFont, proFont, siteFont } from "@site-font";

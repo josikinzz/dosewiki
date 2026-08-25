@@ -111,10 +111,31 @@ describe("site font selection", () => {
     expect(read("src/styles/pro-theme.css")).toContain("var(--font-pro, var(--font-display))");
   });
 
+  it("registers the dyslexic face lazily, and only where the toggle exists", () => {
+    const source = stripComments(read(FLAVOR_MODULES.dosewiki));
+    const dyslexicRegistration = source.slice(source.indexOf("export const dyslexicFont"));
+
+    // The whole deal: zero Lexend bytes for an untoggled reader. No preload link, swap
+    // display, and the one committed variable-font subset covering 400/600/700.
+    expect(dyslexicRegistration).toContain('variable: "--font-dyslexic"');
+    expect(dyslexicRegistration).toContain("preload: false");
+    expect(dyslexicRegistration).toContain('display: "swap"');
+    expect(dyslexicRegistration).toContain('weight: "100 900"');
+    const face = "public/fonts/lexend/lexend-variable-normal-latin.woff2";
+    expect(dyslexicRegistration).toContain(face.replace("public/", "../../../public/"));
+    expect(fs.existsSync(path.join(REPO_ROOT, face))).toBe(true);
+
+    // Effect Index locks the axis (showFontToggle: false), so that build must not even
+    // emit the @font-face block — the export is a null, not a registration.
+    const effectindex = stripComments(read(FLAVOR_MODULES.effectindex));
+    expect(effectindex).toContain("export const dyslexicFont = null;");
+    expect(effectindex.toLowerCase()).not.toContain("lexend");
+  });
+
   it("selects the module through the @site-font alias rather than in JavaScript", () => {
     const entry = stripComments(read("src/app/fonts.ts"));
 
-    expect(entry).toContain('export { proFont, siteFont } from "@site-font"');
+    expect(entry).toContain('export { dyslexicFont, proFont, siteFont } from "@site-font"');
     expect(entry).not.toContain("next/font");
     expect(entry).not.toContain("siteFlavor");
   });

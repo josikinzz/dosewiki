@@ -45,7 +45,7 @@ export async function generateMetadata() {
   const about = await getPublicAboutData();
 
   return buildPublicPageMetadata({
-    title: SITE_FLAVOR_CONFIG.aboutTitle,
+    title: "About",
     description:
       resolveAboutSubtitle(about.subtitle) ||
       `Learn about the ${SITE_FLAVOR_CONFIG.name} project.`,

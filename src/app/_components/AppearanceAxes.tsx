@@ -10,10 +10,11 @@ import {
 import { Icon } from "@/components/common/Icon";
 import { useTheme } from "@/context/ThemeContext";
 import { cn } from "@/lib/utils";
-import { BASE_ACCENT_ID, BASE_ACCENT_PRO_SEEDS, BASE_ACCENT_SWATCH } from "@/theme/accents";
-import { CHROMA_LEVELS, getDefaultAppearanceColors } from "@/theme/appearanceChroma";
-import { authoredLevel, proAccentRepresentativeSeed } from "@/theme/chromaMath";
-import { BASE_SURFACE_ID, BASE_SURFACE_PRO_SEEDS, BASE_SURFACE_TINT } from "@/theme/surfaces";
+import { BASE_ACCENT_PRO_SEEDS, BASE_ACCENT_SWATCH } from "@/theme/accents";
+import { getDefaultAppearanceColors } from "@/theme/appearanceChroma";
+import { proAccentRepresentativeSeed } from "@/theme/chromaMath";
+import { BASE_SURFACE_PRO_SEEDS, BASE_SURFACE_TINT } from "@/theme/surfaces";
+import { FontToggle } from "./FontToggle";
 import { ThemeToggle } from "./ThemeToggle";
 import { VisualStyleToggle } from "./VisualStyleToggle";
 
@@ -110,20 +111,23 @@ function useDirectTouchRange(max: number, onChange: (value: number) => void) {
  * One axis's hue slider — the row above its saturation slider in the cog panel.
  *
  * `degrees` is the reader's effective rotation — their saved integer, or the
- * site default 0 while they never moved this slider. The tick sits at 0°, the
- * left edge: that is where the authored palette lives, and unlike the
- * saturation axis it is the same place for every reader.
+ * site default while they never moved this slider. `tick` is that default:
+ * the exact rotation Reset restores for the active style/scheme variant, so
+ * the mark moves when the reader switches Fun/Pro or light/dark.
  */
 function HueSlider({
   label,
   swatch,
   degrees,
+  tick,
   onChange,
 }: {
   label: string;
   /** The axis's base colour at the current saturation level; the rail rotates it. */
   swatch: string;
   degrees: number;
+  /** The active variant's default rotation in degrees — where Reset returns. */
+  tick: number;
   onChange: (degrees: number) => void;
 }) {
   const directTouch = useDirectTouchRange(359, onChange);
@@ -136,7 +140,7 @@ function HueSlider({
         <span
           aria-hidden="true"
           className="theme-chroma-tick"
-          style={{ "--theme-chroma-tick": 0 } as CSSProperties}
+          style={{ "--theme-chroma-tick": tick / 359 } as CSSProperties}
         />
         <input
           type="range"
@@ -163,15 +167,15 @@ function HueSlider({
  *
  * `level` is the reader's effective level — their saved decimal, or the site
  * default while they never moved this slider — so the thumb parks where the
- * page is actually painted. The tick marks the base palette's authored level:
- * on Fun the measured Orchid position, on Pro's additive surface axis 0 —
- * the authored charcoal is what zero added chroma renders.
+ * page is actually painted. `tick` is that default: the exact level Reset
+ * restores for the active style/scheme variant, so the mark moves when the
+ * reader switches Fun/Pro or light/dark.
  */
 function ChromaSlider({
   label,
   swatch,
   hue,
-  authored,
+  tick,
   level,
   onChange,
 }: {
@@ -179,8 +183,8 @@ function ChromaSlider({
   swatch: string;
   /** The reader's effective hue rotation; the rail previews levels under it. */
   hue: number;
-  /** The base palette's authored level, or null when it has none to mark. */
-  authored: number | null;
+  /** The active variant's default level in 0..1 — where Reset returns. */
+  tick: number;
   level: number;
   onChange: (level: number) => void;
 }) {
@@ -194,13 +198,11 @@ function ChromaSlider({
           { "--theme-chroma-track-gradient": trackGradient(swatch, hue) } as CSSProperties
         }
       >
-        {authored !== null ? (
-          <span
-            aria-hidden="true"
-            className="theme-chroma-tick"
-            style={{ "--theme-chroma-tick": authored } as CSSProperties}
-          />
-        ) : null}
+        <span
+          aria-hidden="true"
+          className="theme-chroma-tick"
+          style={{ "--theme-chroma-tick": tick } as CSSProperties}
+        />
         <input
           type="range"
           className="theme-chroma-slider"
@@ -235,6 +237,8 @@ export type AppearanceAxesRows = {
   /** The surface colour pair: hue and saturation. */
   showSurface: boolean;
   showAccent: boolean;
+  /** Dyslexic-friendly type (Lexend). Absent where the publication locks the axis. */
+  showFont: boolean;
 };
 
 /**
@@ -265,6 +269,7 @@ export function AppearanceAxes({
   showColorScheme,
   showSurface,
   showAccent,
+  showFont,
   endSlot,
 }: AppearanceAxesRows & {
   className?: string;
@@ -315,13 +320,14 @@ export function AppearanceAxes({
   // The first row holds the two compact binary controls, the colour reset, and
   // the cog's end slot.
   const showReset = showSurface || showAccent;
-  const hasControlRow = showVisualStyle || showColorScheme || showReset || endSlot != null;
+  const hasControlRow = showVisualStyle || showColorScheme || showFont || showReset || endSlot != null;
   return (
     <div className={cn("flex flex-col gap-3", className)}>
       {hasControlRow ? (
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           {showVisualStyle ? <VisualStyleToggle /> : null}
           {showColorScheme ? <ThemeToggle /> : null}
+          {showFont ? <FontToggle /> : null}
           {showReset || endSlot != null ? (
             <div className="ml-auto flex items-center gap-2">
               {showReset ? (
@@ -357,18 +363,14 @@ export function AppearanceAxes({
             label="Surface hue"
             swatch={surfaceSwatch}
             degrees={effectiveSurfaceHue}
+            tick={defaultColors.surfaceHue}
             onChange={setSurfaceHue}
           />
           <ChromaSlider
             label="Surface saturation"
             swatch={surfaceSwatch}
             hue={effectiveSurfaceHue}
-            authored={
-              // Pro's surface axis is additive: the authored charcoal IS level 0.
-              visualStyle === "pro"
-                ? 0
-                : (CHROMA_LEVELS.surfaces[BASE_SURFACE_ID]?.[colorScheme] ?? null)
-            }
+            tick={defaultColors.surfaceLevel}
             level={surfaceChroma}
             onChange={setSurfaceChroma}
           />
@@ -384,19 +386,14 @@ export function AppearanceAxes({
             label="Accent hue"
             swatch={accentSwatch}
             degrees={effectiveAccentHue}
+            tick={defaultColors.accentHue}
             onChange={setAccentHue}
           />
           <ChromaSlider
             label="Accent saturation"
             swatch={accentSwatch}
             hue={effectiveAccentHue}
-            authored={
-              visualStyle === "pro"
-                ? proAccentSeed !== null
-                  ? authoredLevel(proAccentSeed)
-                  : null
-                : (CHROMA_LEVELS.accents[BASE_ACCENT_ID] ?? null)
-            }
+            tick={defaultColors.accentLevel}
             level={accentChroma}
             onChange={setAccentChroma}
           />

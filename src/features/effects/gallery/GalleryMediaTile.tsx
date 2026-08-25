@@ -8,7 +8,7 @@ import { MediaPlaceholder } from "@/components/layout/PublicFeedbackPrimitives";
 import { cn } from "@/lib/utils";
 import type { PublicGalleryReplicationPreview } from "@/types/replications";
 import { getCreatorByline } from "../components/replicationCredit";
-import { useInView, useMotionAllowed, usePlaybackSlot } from "./inViewPlayback";
+import { useMotionAllowed } from "./inViewPlayback";
 
 /** `duration` in seconds as `m:ss`, or null when unusable. */
 function formatVideoDuration(seconds: number | undefined): string | null {
@@ -69,11 +69,9 @@ export function GalleryMediaTile({
   mobileCompact = false,
   viewerHref,
 }: GalleryMediaTileProps) {
-  const { autoplay: autoplayAllowed, hoverPreview: hoverPreviewAllowed } =
-    useMotionAllowed();
+  const { hoverPreview: hoverPreviewAllowed } = useMotionAllowed();
   const [hovered, setHovered] = useState(false);
   const [playing, setPlaying] = useState(false);
-  const frameRef = useRef<HTMLAnchorElement | null>(null);
   const videoRef = useRef<HTMLVideoElement | null>(null);
 
   const isVideo = replication.type === "video";
@@ -97,25 +95,16 @@ export function GalleryMediaTile({
       ? `${replication.width} / ${replication.height}`
       : "4 / 3";
 
-  // Gallery preview videos use their low-resolution rendition under the shared
-  // in-view budget. GIF-like works stay on their static motion poster until a
-  // fine-pointer hover explicitly previews the controllable motion rendition;
-  // the raw GIF never bypasses reduced-motion or playback controls.
-  const previewUrl = isVideo ? replication.preview_url : undefined;
-  const autoplayEligible = Boolean(previewUrl) && autoplayAllowed;
-  const inView = useInView(frameRef, 0.5, autoplayEligible);
-  // Hover refreshes the claim, so the tile under the pointer wins a slot back
-  // even after being revoked by five fresher tiles.
-  const slotGranted = usePlaybackSlot(autoplayEligible && inView, hovered);
-  const showAutoplay = autoplayEligible && inView && slotGranted;
-
-  const showHoverPreview =
-    moving &&
-    !previewUrl &&
-    hoverPreviewAllowed &&
-    hovered &&
-    Boolean(motionSource);
-  const showPreview = showAutoplay || showHoverPreview;
+  // Playback is strictly hover-gated: a hover-capable fine pointer starts the
+  // low-resolution preview rendition (or the full source for legacy rows with
+  // no rendition; the controllable motion rendition for GIF-like works), and
+  // mouse-out stops it. Touch devices and reduced-motion readers get fully
+  // static tiles — the poster plus the motion chip — so nothing decodes at
+  // rest. The raw GIF never bypasses reduced-motion or playback controls.
+  const previewSource = isVideo
+    ? (replication.preview_url ?? motionSource)
+    : motionSource;
+  const showPreview = hoverPreviewAllowed && hovered && Boolean(previewSource);
 
   useEffect(() => {
     if (showPreview && videoRef.current) {
@@ -132,7 +121,6 @@ export function GalleryMediaTile({
   return (
     <figure className={cn("min-w-0", className)}>
       <Link
-        ref={frameRef}
         href={viewerHref}
         onClick={onOpen ? (event) => onOpen(event, replication) : undefined}
         onMouseEnter={() => setHovered(true)}
@@ -159,7 +147,7 @@ export function GalleryMediaTile({
             width={replication.width ?? 800}
             height={replication.height ?? 800}
             className={cn(
-              "absolute inset-0 h-full w-full object-contain transition duration-500",
+              "absolute inset-0 h-full w-full object-cover transition duration-500",
               "group-hover/frame:scale-[1.03] motion-reduce:transition-none motion-reduce:group-hover/frame:scale-100",
               showPreview ? "opacity-0" : "opacity-100",
             )}
@@ -174,18 +162,18 @@ export function GalleryMediaTile({
         {showPreview ? (
           <video
             ref={videoRef}
-            src={showAutoplay ? previewUrl : motionSource}
+            src={previewSource}
             poster={thumbnailUrl}
             muted
             loop
             playsInline
-            preload={showAutoplay ? "metadata" : "none"}
+            preload="metadata"
             onPlaying={() => setPlaying(true)}
             onPause={() => setPlaying(false)}
             // The preview covers the whole anchor and paints last, so without this
             // it swallows every click on a video tile. Browsers do not forward a
             // media element's click to an ancestor link the way they do for images.
-            className="pointer-events-none absolute inset-0 h-full w-full object-contain"
+            className="pointer-events-none absolute inset-0 h-full w-full object-cover"
           />
         ) : null}
 

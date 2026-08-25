@@ -45,6 +45,7 @@ const ALL_ROWS: AppearanceCogRows = {
   showColorScheme: true,
   showSurface: true,
   showAccent: true,
+  showFont: true,
   showMoreSettings: true,
 };
 
@@ -101,14 +102,14 @@ describe("AppearanceCog", () => {
     expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
 
     const panel = await openCog(user);
-    // The two binary axes, in order — and no swatches anywhere: the colour axes are
+    // The three binary axes, in order — and no swatches anywhere: the colour axes are
     // sliders now, asserted below in the same visual order.
     expect(
       within(panel)
         .getAllByRole("button")
         .map((control) => control.dataset.appearanceAxis)
         .filter(Boolean),
-    ).toEqual(["visual-style", "color-scheme"]);
+    ).toEqual(["visual-style", "color-scheme", "font"]);
     expect(
       within(panel)
         .getAllByRole("slider")
@@ -128,6 +129,7 @@ describe("AppearanceCog", () => {
     ).toEqual([
       "Switch to Pro visual style",
       "Switch to day mode",
+      "Switch to dyslexic-friendly type",
       // The colour reset and the compact Theme Lab entry sit at the end of the
       // binary-control row, ahead of the slider pairs.
       "Reset colors to default",
@@ -243,7 +245,7 @@ describe("AppearanceCog", () => {
 
     const panel = await screen.findByRole("dialog", { name: "Appearance" });
     // The panel is portalled, so tab order is no longer "the next sibling in the markup".
-    // Visual order and focus order agree: the two binary toggles, the colour
+    // Visual order and focus order agree: the three binary toggles, the colour
     // reset, the compact Theme Lab entry, then each colour axis's hue slider
     // followed by its saturation slider.
     const reachable = within(panel).getAllByRole("button");
@@ -251,6 +253,7 @@ describe("AppearanceCog", () => {
     expect(reachable.map((control) => control.getAttribute("aria-label"))).toEqual([
       "Switch to Pro visual style",
       "Switch to day mode",
+      "Switch to dyslexic-friendly type",
       "Reset colors to default",
       "Open Theme Lab",
     ]);
@@ -362,6 +365,7 @@ describe("AppearanceCog", () => {
       showVisualStyle: false,
       showSurface: false,
       showAccent: false,
+      showFont: false,
       showMoreSettings: false,
     });
 
@@ -388,6 +392,7 @@ describe("AppearanceCog", () => {
       showColorScheme: false,
       showSurface: false,
       showAccent: false,
+      showFont: false,
       showMoreSettings: false,
     });
 
@@ -461,7 +466,7 @@ describe("AppearanceCog", () => {
       const panel = await openCog(user);
 
       expect(panel).toHaveClass("theme-overlay-surface");
-      expect(panel.querySelectorAll("[data-appearance-axis]")).toHaveLength(2);
+      expect(panel.querySelectorAll("[data-appearance-axis]")).toHaveLength(3);
       // Both colour axes work on both visual styles: the accent pair rotates
       // and re-saturates the Pro --ei-* ramp, and the surface pair drives the
       // additive Pro surface blocks (c + K × level over the authored

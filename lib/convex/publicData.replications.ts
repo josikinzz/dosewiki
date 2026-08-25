@@ -156,11 +156,13 @@ export function dropGalleryExcludedArtistWorks<T extends { artist: string }>(
 /**
  * Project a raw gallery row down to the fields the gallery surfaces render —
  * same convention as `projectPublicSubstancePreview` (publicData.reads.ts).
- * Drops storage IDs, `_creationTime`, `effect_tags`, `format`, `file_size`,
- * `role`, and the seven rights-metadata fields: none of them are read by the
- * explorer, the focus views, the swipe deck, or the sitemap's focus families,
- * and the corpus is serialized wholesale into the /replications RSC payload.
- * Rights attribution lives on the permalink, which reads the full record.
+ * Drops storage IDs, `_creationTime`, `file_size`, `role`, and the seven
+ * rights-metadata fields: none of them are read by the explorer, the focus
+ * views, the swipe deck, or the sitemap's focus families, and the corpus is
+ * serialized wholesale into the /replications RSC payload. `effect_tags`
+ * stays: the explorer's depicted-effect filter matches on it alongside the
+ * owning `effect_slug`. Rights attribution lives on the permalink, which
+ * reads the full record.
  */
 export function projectPublicGalleryReplicationPreview(
   replication: GalleryReplication,
@@ -174,6 +176,7 @@ export function projectPublicGalleryReplicationPreview(
     type: replication.type,
     format: replication.format,
     effect_slug: replication.effect_slug,
+    effect_tags: replication.effect_tags,
     replication_status: replication.replication_status,
     viewing_mode: replication.viewing_mode,
     viewing_mode_tags: replication.viewing_mode_tags,

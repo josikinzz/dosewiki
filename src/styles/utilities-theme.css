@@ -1229,36 +1229,6 @@ html[data-theme="light"]
   }
 }
 
-/* Click delight: a steady full spin with a complete RGB-style hue cycle.
-     The -a / -b pair are identical keyframes under different names so each
-     click restarts the animation; --logo-charge adds spins/color cycles as
-     clicks escalate. Linear timing keeps the spin smooth (no jerk). */
-.theme-home-logo-charge-a,
-.theme-home-logo-charge-b {
-  --logo-rainbow: conic-gradient(
-    from 0deg at 50% 50%,
-    #ff2d55,
-    #ff9500,
-    #ffd60a,
-    #34c759,
-    #00c7be,
-    #30b0ff,
-    #5e5ce6,
-    #bf5af2,
-    #ff2d55
-  );
-  animation-duration: 1800ms;
-  animation-timing-function: linear;
-}
-
-.theme-home-logo-charge-a {
-  animation-name: theme-home-logo-charge-a;
-}
-
-.theme-home-logo-charge-b {
-  animation-name: theme-home-logo-charge-b;
-}
-
 html[data-theme="light"] .theme-home-logo {
   filter: drop-shadow(0 18px 28px rgba(84, 46, 112, 0.16))
     drop-shadow(0 0 20px var(--theme-logo-shadow));
@@ -1288,24 +1258,6 @@ html[data-theme="light"] .theme-home-logo {
     .theme-home-logo-frame:hover .theme-home-logo-main {
       transform: none;
     }
-  }
-
-  /* Click delight stays a gentle, quick pulse — no hue spin or large motion. */
-  .theme-home-logo-charge-a,
-  .theme-home-logo-charge-b {
-    animation-name: theme-home-logo-charge-reduced;
-    animation-duration: 240ms;
-    animation-timing-function: ease-out;
-  }
-}
-
-@keyframes theme-home-logo-charge-reduced {
-  0% {
-    transform: scale(0.98) translateZ(0);
-  }
-
-  100% {
-    transform: scale(1) translateZ(0);
   }
 }
 
@@ -2567,87 +2519,6 @@ html[data-theme="light"] .theme-search-highlight-mark {
   }
 }
 
-/* During the click delight the fill becomes a full-spectrum conic rainbow
-     (every hue around the molecule at once), then the element spins and the
-     filter hue-rotates so the whole wheel travels. Same conic at every stop so
-     the gradient stays constant (no interpolation glitch); rotation+hue sit at
-     constant per-second rate across the 10/90% stops for an even spin. The
-     rainbow lives only in these keyframes, so the brand pink/blue returns when
-     the animation ends (animation-fill-mode: none). clamp() caps escalation. */
-@keyframes theme-home-logo-charge-a {
-  0% {
-    background-image: var(--logo-rainbow);
-    transform: rotate(0deg) scale(0.94) translateZ(0);
-    filter: hue-rotate(0deg) saturate(1.05)
-      drop-shadow(0 0 30px var(--theme-logo-shadow))
-      drop-shadow(0 18px 30px rgba(0, 0, 0, 0));
-  }
-
-  10% {
-    background-image: var(--logo-rainbow);
-    transform: rotate(calc(36deg * clamp(1, var(--logo-charge, 1), 4)))
-      scale(1.06) translateZ(0);
-    filter: hue-rotate(calc(36deg * clamp(1, var(--logo-charge, 1), 4)))
-      saturate(1.05) drop-shadow(0 0 46px var(--theme-logo-shadow-hover))
-      drop-shadow(0 18px 30px rgba(0, 0, 0, 0.18));
-  }
-
-  90% {
-    background-image: var(--logo-rainbow);
-    transform: rotate(calc(324deg * clamp(1, var(--logo-charge, 1), 4)))
-      scale(1.01) translateZ(0);
-    filter: hue-rotate(calc(324deg * clamp(1, var(--logo-charge, 1), 4)))
-      saturate(1.05) drop-shadow(0 0 40px var(--theme-logo-shadow-hover))
-      drop-shadow(0 18px 30px rgba(0, 0, 0, 0.14));
-  }
-
-  100% {
-    background-image: var(--logo-rainbow);
-    transform: rotate(calc(360deg * clamp(1, var(--logo-charge, 1), 4)))
-      scale(1) translateZ(0);
-    filter: hue-rotate(calc(360deg * clamp(1, var(--logo-charge, 1), 4)))
-      saturate(1.05) drop-shadow(0 0 30px var(--theme-logo-shadow))
-      drop-shadow(0 18px 30px rgba(0, 0, 0, 0));
-  }
-}
-
-@keyframes theme-home-logo-charge-b {
-  0% {
-    background-image: var(--logo-rainbow);
-    transform: rotate(0deg) scale(0.94) translateZ(0);
-    filter: hue-rotate(0deg) saturate(1.05)
-      drop-shadow(0 0 30px var(--theme-logo-shadow))
-      drop-shadow(0 18px 30px rgba(0, 0, 0, 0));
-  }
-
-  10% {
-    background-image: var(--logo-rainbow);
-    transform: rotate(calc(36deg * clamp(1, var(--logo-charge, 1), 4)))
-      scale(1.06) translateZ(0);
-    filter: hue-rotate(calc(36deg * clamp(1, var(--logo-charge, 1), 4)))
-      saturate(1.05) drop-shadow(0 0 46px var(--theme-logo-shadow-hover))
-      drop-shadow(0 18px 30px rgba(0, 0, 0, 0.18));
-  }
-
-  90% {
-    background-image: var(--logo-rainbow);
-    transform: rotate(calc(324deg * clamp(1, var(--logo-charge, 1), 4)))
-      scale(1.01) translateZ(0);
-    filter: hue-rotate(calc(324deg * clamp(1, var(--logo-charge, 1), 4)))
-      saturate(1.05) drop-shadow(0 0 40px var(--theme-logo-shadow-hover))
-      drop-shadow(0 18px 30px rgba(0, 0, 0, 0.14));
-  }
-
-  100% {
-    background-image: var(--logo-rainbow);
-    transform: rotate(calc(360deg * clamp(1, var(--logo-charge, 1), 4)))
-      scale(1) translateZ(0);
-    filter: hue-rotate(calc(360deg * clamp(1, var(--logo-charge, 1), 4)))
-      saturate(1.05) drop-shadow(0 0 30px var(--theme-logo-shadow))
-      drop-shadow(0 18px 30px rgba(0, 0, 0, 0));
-  }
-}
-
 .theme-header-surface {
   border-color: var(--theme-frosted-panel-border);
   background: var(--theme-chrome-rail-bg);
@@ -3114,6 +2985,20 @@ html[data-theme="light"] .theme-footer-surface:not(.theme-chrome-dark) {
     color-mix(in srgb, var(--theme-text-on-media) 12%, transparent);
 }
 
+/* Pressed media control: a sticky toggle held "on" (the viewer's rotate
+   mode). A translucent on-media wash layered over the control's dark pill,
+   plus an inset ring of the same ink, reads as held-down on the black media
+   chrome in both visual styles. background-image keeps the pill's own
+   background-color underneath, mirroring the raised control's approach. */
+.theme-media-control-pressed {
+  background-image: linear-gradient(
+    color-mix(in srgb, var(--theme-text-on-media) 30%, transparent),
+    color-mix(in srgb, var(--theme-text-on-media) 30%, transparent)
+  );
+  box-shadow: inset 0 0 0 1px
+    color-mix(in srgb, var(--theme-text-on-media) 70%, transparent);
+}
+
 /* The immersive viewer keeps its settings menu in the header's compositor
    layer. A fully opaque surface and no transform animation prevent iOS Safari
    from flashing the menu against a playing <video> layer. */
@@ -3273,6 +3158,25 @@ html[data-theme="light"] .theme-footer-surface:not(.theme-chrome-dark) {
   border-right: 1px solid var(--theme-border-subtle);
   border-bottom: 1px solid var(--theme-border-subtle);
   background: var(--theme-frosted-control-on-panel-bg);
+}
+
+/* Tail clip, shared by both speech-bubble tails (Personal Commentary and the
+     profile editor's note). The square's fill is the panel token resampled
+     into a 14px box, so the half overlapping the panel never quite matches
+     the panel behind it and reads as a faint triangle above the point. In
+     local (pre-rotation) coordinates the panel edge runs along the ↗
+     diagonal; keep only the bottom-right half plus a 3px inset band (≈2px
+     perpendicular) past it — enough to keep notching the panel's 1px bottom
+     border while the mismatched interior collapses to an invisible sliver. */
+.theme-aside-panel-tail,
+.theme-profile-markdown-quote-tail {
+  clip-path: polygon(
+    calc(100% - 3px) 0,
+    100% 0,
+    100% 100%,
+    0 100%,
+    0 calc(100% - 3px)
+  );
 }
 
 .theme-report-dossier-substance {

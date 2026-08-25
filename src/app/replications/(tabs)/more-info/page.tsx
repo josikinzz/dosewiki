@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 
-import { SITE_FLAVOR_CONFIG } from "@/config/siteFlavor";
 import { ReplicationsFairUseNotice } from "@/features/replications/components/ReplicationsFairUseNotice";
 import { ReplicationsTabNav } from "@/features/replications/components/ReplicationsTabNav";
 import {
@@ -20,7 +19,7 @@ import { getCopy } from "@server/next/copyBlocks";
 export const revalidate = 3600;
 
 export const metadata: Metadata = buildPublicPageMetadata({
-  title: `About Replications | ${SITE_FLAVOR_CONFIG.name}`,
+  title: "About Replications",
   description:
     "What replications are, why this art is hosted here, and how artists are credited.",
   route: { family: "replicationInfo" },

@@ -58,3 +58,12 @@ export const siteFont = localFont({
  * fetched. The alias keeps the two-name contract every consumer of `@site-font` relies on.
  */
 export const proFont = siteFont;
+
+/**
+ * Effect Index offers no dyslexic type toggle (`showFontToggle: false`), so this build
+ * registers no Lexend face at all: a `localFont` call here would emit an `@font-face`
+ * block and fallback metrics no selector on this publication can ever resolve. The
+ * dose.wiki module exports a real registration under the same name; the root layout
+ * only appends the variable when this is non-null.
+ */
+export const dyslexicFont = null;

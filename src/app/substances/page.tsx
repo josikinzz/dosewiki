@@ -19,7 +19,7 @@ export async function generateMetadata() {
     `Browse {{substanceCount}} substance records in {{siteName}}.`;
 
   return buildPublicPageMetadata({
-    title: `Substances · ${overview.substanceCount} records`,
+    title: "Substance Index",
     description: applyPlaceholders(template, {
       substanceCount: overview.substanceCount,
       siteName: SITE_FLAVOR_CONFIG.name,

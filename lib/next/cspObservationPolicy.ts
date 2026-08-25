@@ -44,16 +44,17 @@ export const ZOD_JITLESS_BOOTSTRAP_CSP_HASH =
  * policy. A locked axis emits no storage key or validity table.
  *
  * dose.wiki resolves four colour coordinates from storage, falling back to
- * the current style-and-scheme combination's palette defaults, and injects
+ * the current style-and-scheme combination's palette defaults, restores the
+ * dyslexic-type attribute its font toggle may have saved, and injects
  * the guarded stylesheet links a saved preference needs pre-paint (light
  * scheme, Pro style — the chroma link is server-rendered, with the same guarded fallback
- * here). Effect Index locks visual style, surfaces, and accent, and its light
- * default is server-rendered, so its script emits none of that machinery. The
- * policy test calculates each hash from the bootstrap builder and reports
- * drift.
+ * here). Effect Index locks visual style, surfaces, accent, and the font
+ * axis, and its light default is server-rendered, so its script emits none
+ * of that machinery. The policy test calculates each hash from the bootstrap
+ * builder and reports drift.
  */
 export const THEME_BOOTSTRAP_CSP_HASHES: Readonly<Record<SiteFlavor, string>> = {
-  dosewiki: "'sha256-uLBxnt7aFcpuvCmigNxLy73AJN+16qCwvr0YqB2PaUk='",
+  dosewiki: "'sha256-81KeEts/zW+VlyDT7zl7aWWDxlr9zmJG3tcNO6nSCPQ='",
   effectindex: "'sha256-3SzhNzHhUNUTkETme5uNe0eYZEn0Gojm83Wqi7e9EQc='",
 };
 

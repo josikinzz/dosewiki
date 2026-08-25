@@ -38,7 +38,7 @@ export async function generateMetadata(): Promise<Metadata> {
   const copy = await getCopy();
 
   return buildPublicPageMetadata({
-    title: `Replications | ${SITE_FLAVOR_CONFIG.name}`,
+    title: "Replications",
     description:
       copy.text("seo-replications-description") || DESCRIPTION_FALLBACK,
     route: { family: "replications" },

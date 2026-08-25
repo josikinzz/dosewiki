@@ -216,8 +216,8 @@ export interface ReplicationRecord extends ReplicationRightsMetadata {
    */
   effect_slug?: string;
   /**
-   * Effects this asset also depicts, as effect slugs. Editorial metadata only:
-   * written from the `/dev` Replication Studio, read by nothing public yet.
+   * Effects this asset also depicts, as effect slugs. Written from the `/dev`
+   * Replication Studio; the gallery's depicted-effect filter reads it.
    */
   effect_tags?: string[];
   replication_status?: ReplicationStatus;
@@ -313,6 +313,8 @@ export interface PublicGalleryReplicationPreview {
   format: string;
   /** Owning effect: drives by-effect grouping, the effect chip, withholding. */
   effect_slug?: string;
+  /** Other effects the work also depicts; the depicted-effect filter reads it. */
+  effect_tags?: string[];
   replication_status?: ReplicationStatus;
   viewing_mode?: ReplicationViewingMode;
   viewing_mode_tags?: ReplicationViewingModeTag[];

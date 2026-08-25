@@ -657,6 +657,7 @@ export function ThemeLab() {
         showColorScheme
         showSurface
         showAccent
+        showFont
       />
 
       <div className={styles.changedRow}>

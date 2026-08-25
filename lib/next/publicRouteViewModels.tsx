@@ -74,13 +74,13 @@ function buildSubstanceMetadataDescription(
   return `${name} substance profile${classPhrase} covering dosage, duration, effects, interactions, tolerance, harm potential, legality, and references.`;
 }
 
+/** Bare page name only — buildPublicPageMetadata owns the " - <suffix>" tail. */
 function buildSubstanceMetadataTitle(substance: PublicSubstanceRecord): string {
-  const name =
+  return (
     substance.identification?.common_name?.trim() ||
     substance.title.trim() ||
-    "Substance";
-
-  return `${name}: Dosage, Effects & Safety | ${SITE_FLAVOR_CONFIG.name}`;
+    "Substance"
+  );
 }
 
 function buildEffectMetadataDescription(
@@ -181,7 +181,7 @@ export function buildReportsIndexViewModel(input: {
 }): ReportsIndexViewModel {
   return {
     metadata: {
-      title: `Reports · ${input.reportCount} entries`,
+      title: "Experience Reports Index",
       description: `Browse ${input.reportCount} trip reports in ${SITE_FLAVOR_CONFIG.name}.`,
     },
     pageProps: {
@@ -197,7 +197,7 @@ export function buildEffectsIndexViewModel(input: {
 }): EffectsIndexViewModel {
   return {
     metadata: {
-      title: `Effects · ${input.effectCount} records`,
+      title: "Subjective Effect Index",
       description: `Browse ${input.effectCount} subjective effect entries in ${SITE_FLAVOR_CONFIG.name}.`,
     },
     pageProps: {
@@ -326,7 +326,7 @@ export function buildEffectArticleViewModel(input: {
 
   return {
     metadata: {
-      title: `${input.effect.name}: Subjective Effect | ${SITE_FLAVOR_CONFIG.name}`,
+      title: input.effect.name,
       description: buildEffectMetadataDescription(input.effect),
     },
     pageProps: {

@@ -1,6 +1,6 @@
 "use client";
 
-import { type CSSProperties, useEffect, useId, useRef, useState } from "react";
+import { useId, useState } from "react";
 import Link from "next/link";
 import { Search } from "lucide-react";
 import { DoseWikiLogo } from "@/components/common/DoseWikiLogo";
@@ -35,11 +35,6 @@ export function HomeExperience({
   const searchInputId = useId();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [clickedItem, setClickedItem] = useState<string | null>(null);
-  // Logo click delight: "charge & bloom" pop + hue sweep, escalating on rapid clicks.
-  const [logoChargeTick, setLogoChargeTick] = useState(0);
-  const [logoChargeLevel, setLogoChargeLevel] = useState(0);
-  const logoChargeLevelRef = useRef(0);
-  const logoChargeResetRef = useRef<number | null>(null);
 
   // The construction-mode mock header shows primary sections then the utility section.
   // It used to hardcode `slice(0, 3)` plus a lookup for the literal label "About", which
@@ -50,30 +45,6 @@ export function HomeExperience({
   );
   const secondaryItems = quickLinks.filter((item) =>
     SITE_FLAVOR_CONFIG.secondaryNavIds.includes(item.id),
-  );
-
-  const chargeLogo = () => {
-    const nextLevel = Math.min(logoChargeLevelRef.current + 1, 6);
-    logoChargeLevelRef.current = nextLevel;
-    setLogoChargeLevel(nextLevel);
-    // Bump the tick so the alternating animation class restarts the keyframes.
-    setLogoChargeTick((tick) => tick + 1);
-    if (logoChargeResetRef.current !== null) {
-      window.clearTimeout(logoChargeResetRef.current);
-    }
-    logoChargeResetRef.current = window.setTimeout(() => {
-      logoChargeLevelRef.current = 0;
-      setLogoChargeLevel(0);
-    }, 1400);
-  };
-
-  useEffect(
-    () => () => {
-      if (logoChargeResetRef.current !== null) {
-        window.clearTimeout(logoChargeResetRef.current);
-      }
-    },
-    [],
   );
 
   const showComingSoon = (label: string) => {
@@ -259,29 +230,14 @@ export function HomeExperience({
 
         <section className="theme-home-stage mx-auto flex w-full max-w-5xl flex-col items-center transition-[max-width,padding,transform] duration-300 ease-out">
           <div className="theme-home-brand-lockup flex flex-col items-center justify-center gap-3 transition-[gap,opacity,transform] duration-300 ease-out sm:gap-4">
-            <button
-              type="button"
-              aria-label={SITE_FLAVOR_CONFIG.logo.heroAnimateLabel}
-              className="theme-home-logo-frame inline-flex cursor-pointer items-center justify-center border-0 bg-transparent p-0"
-              onClick={chargeLogo}
-              style={{ "--logo-charge": logoChargeLevel } as CSSProperties}
-            >
+            <span className="theme-home-logo-frame inline-flex items-center justify-center">
               <DoseWikiLogo
                 alt={SITE_FLAVOR_CONFIG.logo.heroAlt}
                 width={204}
                 height={195}
-                className={[
-                  "theme-home-logo theme-home-logo-main h-32 w-32 transition-[height,width,filter,transform] duration-300 ease-out sm:h-36 sm:w-36 md:h-44 md:w-44",
-                  logoChargeTick === 0
-                    ? ""
-                    : logoChargeTick % 2 === 1
-                      ? "theme-home-logo-charge-a"
-                      : "theme-home-logo-charge-b",
-                ]
-                  .filter(Boolean)
-                  .join(" ")}
+                className="theme-home-logo theme-home-logo-main h-32 w-32 transition-[height,width,filter,transform] duration-300 ease-out sm:h-36 sm:w-36 md:h-44 md:w-44"
               />
-            </button>
+            </span>
             <h1 className="theme-home-wordmark theme-text-primary font-display text-[clamp(3.15rem,7vw,5.75rem)] font-semibold leading-none tracking-normal transition-[opacity,transform] duration-200">
               <SiteWordmark />
             </h1>

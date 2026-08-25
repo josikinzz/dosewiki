@@ -41,7 +41,7 @@ describe("public route view models", () => {
 
     expect(buildReportsIndexViewModel({ reportCount: 1, reports: [report] })).toEqual({
       metadata: {
-        title: "Reports · 1 entries",
+        title: "Experience Reports Index",
         description: `Browse 1 trip reports in ${SITE_FLAVOR_CONFIG.name}.`,
       },
       pageProps: {
@@ -75,7 +75,7 @@ describe("public route view models", () => {
 
     expect(buildEffectsIndexViewModel({ effectCount: 1, effects: [effect] })).toEqual({
       metadata: {
-        title: "Effects · 1 records",
+        title: "Subjective Effect Index",
         description: `Browse 1 subjective effect entries in ${SITE_FLAVOR_CONFIG.name}.`,
       },
       pageProps: {
@@ -116,7 +116,7 @@ describe("public route view models", () => {
     });
 
     expect(viewModel.metadata).toEqual({
-      title: "LSD: Dosage, Effects & Safety | dose.wiki",
+      title: "LSD",
       description: "A lysergamide.",
     });
     expect(viewModel.pageProps.fromSubstanceSlug).toBe("lsd");
@@ -152,7 +152,7 @@ describe("public route view models", () => {
     });
 
     expect(viewModel.metadata).toEqual({
-      title: "DMT: Dosage, Effects & Safety | dose.wiki",
+      title: "DMT",
       description:
         "DMT substance profile in the Psychedelic, Tryptamine class covering dosage, duration, effects, interactions, tolerance, harm potential, legality, and references.",
     });
@@ -214,7 +214,7 @@ describe("public route view models", () => {
     });
 
     expect(viewModel.metadata).toEqual({
-      title: "Visual drifting: Subjective Effect | dose.wiki",
+      title: "Visual drifting",
       description: "Objects appear to drift.",
     });
     expect(viewModel.pageProps.drugHrefPrefix).toBe("/");
@@ -250,7 +250,7 @@ describe("public route view models", () => {
     });
 
     expect(viewModel.metadata).toEqual({
-      title: "Serotonin syndrome: Subjective Effect | dose.wiki",
+      title: "Serotonin syndrome",
       description:
         "Serotonin syndrome subjective effect profile covering description, analysis, replications, related substances, and citations.",
     });

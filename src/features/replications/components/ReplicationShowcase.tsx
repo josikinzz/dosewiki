@@ -13,7 +13,11 @@ import { cn } from "@/lib/utils";
 import { icons } from "@/utils/iconNames";
 import { hasKnownCreator } from "@/features/effects/components/replicationCredit";
 import { useMotionAllowed } from "@/features/effects/gallery/inViewPlayback";
-import { shouldLoopReplicationMotion } from "@/features/replications/viewer/viewerLogic";
+import {
+  resolveViewerMuted,
+  shouldLoopReplicationMotion,
+  VIEWER_SOUND_STORAGE_KEY,
+} from "@/features/replications/viewer/viewerLogic";
 import {
   buildReplicationViewerUrl,
   closeReplicationViewerUrl,
@@ -71,6 +75,17 @@ const mediaControlClassName = cn(
   "motion-reduce:transition-none",
   focusRingClassName,
 );
+
+/** The stored session sound choice, muted when storage is denied or unset. */
+function readStoredViewerMuted(): boolean {
+  try {
+    return resolveViewerMuted(
+      window.sessionStorage.getItem(VIEWER_SOUND_STORAGE_KEY),
+    );
+  } catch {
+    return true;
+  }
+}
 
 export interface ReplicationShowcaseProps {
   /** Compact works rendered in the article card. */
@@ -154,6 +169,13 @@ export function ReplicationShowcase({
   const [unavailableViewerSlug, setUnavailableViewerSlug] = useState<
     string | null
   >(null);
+  /**
+   * The inline stage's mute state, shared with the fullscreen viewer through
+   * its session sound preference. Muted until the mount effect below reads
+   * storage, keeping the server and first client render identical.
+   */
+  const [inlineMuted, setInlineMuted] = useState(true);
+  const videoRef = useRef<HTMLVideoElement | null>(null);
   const viewerCollection = useMemo<ReplicationViewerCollection>(() => {
     const label =
       collectionLabel ??
@@ -236,6 +258,10 @@ export function ReplicationShowcase({
     }
   }, [collectionWorks, controller]);
 
+  useEffect(() => {
+    setInlineMuted(readStoredViewerMuted());
+  }, []);
+
   const launchViewer = (slug: string) => {
     if (controller) {
       controller.onOpenWork(slug);
@@ -251,6 +277,22 @@ export function ReplicationShowcase({
     setViewerSlug(slug);
   };
 
+  /** Plain left-clicks launch the overlay; modified clicks keep the href. */
+  const handleViewerLinkClick =
+    (slug: string) => (event: React.MouseEvent<HTMLAnchorElement>) => {
+      if (
+        event.button !== 0 ||
+        event.metaKey ||
+        event.ctrlKey ||
+        event.shiftKey ||
+        event.altKey
+      ) {
+        return;
+      }
+      event.preventDefault();
+      launchViewer(slug);
+    };
+
   if (works.length === 0) return null;
 
   const count = works.length;
@@ -265,6 +307,7 @@ export function ReplicationShowcase({
   const activeGifReady =
     activeGifLike && Boolean(active.motionUrl && active.motionPosterUrl);
   const activeIsMoving = active.type === "video" || activeGifReady;
+  const activeHasAudio = active.type === "video" && active.hasAudio !== false;
   const activeMotionSource = activeGifLike
     ? activeGifReady
       ? active.motionUrl
@@ -323,6 +366,39 @@ export function ReplicationShowcase({
   const videoControls =
     activeIsMoving && activePlaying ? (
       <div className="absolute bottom-2 right-2 z-10 flex items-center gap-1.5">
+        {activeHasAudio ? (
+          <button
+            type="button"
+            aria-label={
+              inlineMuted ? `Unmute ${active.title}` : `Mute ${active.title}`
+            }
+            onClick={() => {
+              const nextMuted = !inlineMuted;
+              // Flip the live element inside the gesture: browsers only
+              // honor an unmute that happens during user activation.
+              if (videoRef.current) videoRef.current.muted = nextMuted;
+              setInlineMuted(nextMuted);
+              try {
+                window.sessionStorage.setItem(
+                  VIEWER_SOUND_STORAGE_KEY,
+                  nextMuted ? "off" : "on",
+                );
+              } catch {
+                // Best effort: a blocked write only means the choice
+                // lasts until this stage unmounts.
+              }
+              setLiveMessage(
+                nextMuted ? `Muted ${active.title}` : `Unmuted ${active.title}`,
+              );
+            }}
+            className={cn(mediaControlClassName, "size-11 sm:size-8")}
+          >
+            <Icon
+              icon={inlineMuted ? "lucide:volume-x" : "lucide:volume-2"}
+              size={15}
+            />
+          </button>
+        ) : null}
         <button
           type="button"
           aria-label={`Pause ${active.title}`}
@@ -384,19 +460,7 @@ export function ReplicationShowcase({
                   viewerCollection.sourcePath,
                   active.slug,
                 )}
-                onClick={(event) => {
-                  if (
-                    event.button !== 0 ||
-                    event.metaKey ||
-                    event.ctrlKey ||
-                    event.shiftKey ||
-                    event.altKey
-                  ) {
-                    return;
-                  }
-                  event.preventDefault();
-                  launchViewer(active.slug);
-                }}
+                onClick={handleViewerLinkClick(active.slug)}
                 className={cn(
                   "theme-media-tile-title pointer-events-auto inline-flex min-w-0 items-center gap-1 text-[13px] font-semibold leading-tight sm:text-sm",
                   "transition-opacity hover:opacity-80",
@@ -404,15 +468,6 @@ export function ReplicationShowcase({
                 )}
               >
                 <span className="truncate">{active.title}</span>
-                <span className="theme-media-tile-creator text-[10px] font-medium uppercase tracking-wide">
-                  Open viewer
-                </span>
-                <Icon
-                  icon="lucide:maximize-2"
-                  size={12}
-                  className="theme-media-tile-creator shrink-0"
-                  aria-hidden
-                />
               </Link>
               {!showCreator ? null : hasKnownCreator(active.artistName) ? (
                 <span className="theme-media-tile-creator min-w-0 truncate text-[11px] sm:text-xs">
@@ -499,14 +554,23 @@ export function ReplicationShowcase({
               )}
 
               {activePlaying ? (
+                // Replications are non-verbal visual media: there is no
+                // dialogue to caption, and title, artist and rights context
+                // are exposed by the surrounding showcase chrome (same
+                // grounds as the fullscreen viewer's stage video).
+                // eslint-disable-next-line jsx-a11y/media-has-caption
                 <video
                   src={activeMotionSource}
                   poster={activePosterUrl}
                   ref={(element) => {
-                    if (element) element.muted = true;
+                    videoRef.current = element;
+                    // Applied by ref as well as prop: React has been
+                    // unreliable about reflecting `muted` onto the element.
+                    if (element)
+                      element.muted = activeHasAudio ? inlineMuted : true;
                   }}
                   autoPlay
-                  muted
+                  muted={activeHasAudio ? inlineMuted : true}
                   loop={shouldLoopReplicationMotion(
                     active.format ?? "",
                     active.duration,
@@ -552,6 +616,27 @@ export function ReplicationShowcase({
                 focusRingClassName,
               )}
             />
+
+            <Link
+              href={buildReplicationViewerUrl(
+                viewerCollection.sourcePath,
+                active.slug,
+              )}
+              onClick={handleViewerLinkClick(active.slug)}
+              aria-label="Open viewer"
+              className={cn(
+                mediaControlClassName,
+                "absolute bottom-2 left-2 z-10 flex size-11 items-center justify-center",
+                "gap-1.5 sm:h-8 sm:w-auto sm:px-3",
+                // Clear the thumbnail rail where it overlays the stage.
+                count > 1 ? "sm:bottom-14" : undefined,
+              )}
+            >
+              <Icon icon="lucide:maximize-2" size={15} aria-hidden />
+              <span className="hidden text-[11px] font-semibold sm:inline">
+                Open viewer
+              </span>
+            </Link>
 
             {videoControls}
           </div>
@@ -646,19 +731,7 @@ export function ReplicationShowcase({
                       viewerCollection.sourcePath,
                       active.slug,
                     )}
-                    onClick={(event) => {
-                      if (
-                        event.button !== 0 ||
-                        event.metaKey ||
-                        event.ctrlKey ||
-                        event.shiftKey ||
-                        event.altKey
-                      ) {
-                        return;
-                      }
-                      event.preventDefault();
-                      launchViewer(active.slug);
-                    }}
+                    onClick={handleViewerLinkClick(active.slug)}
                     aria-label={`${total - count} more replications in ${
                       substanceSlug
                         ? "this substance's playlist"
@@ -710,6 +783,8 @@ export function ReplicationShowcase({
           onOpenChange={(nextOpen) => {
             if (!nextOpen) {
               setViewerSlug(null);
+              // The viewer may have flipped the session sound choice.
+              setInlineMuted(readStoredViewerMuted());
               dismissViewerDeepLinkCover();
             }
           }}

@@ -3,73 +3,52 @@ import { describe, expect, it } from "vitest";
 import { stageRotation } from "./useStageFit";
 
 describe("stageRotation", () => {
-  it("offers rotate-to-fit for landscape motion on a portrait phone", () => {
+  it("offers the rotate-mode toggle on every portrait-phone layout", () => {
     expect(
       stageRotation({
         portraitPhone: true,
-        moving: true,
+        rotateMode: false,
         mediaAspect: 16 / 9,
-        mediaKey: "wide-loop",
-        rotatedKey: null,
       }),
     ).toEqual({ canRotate: true, rotated: false });
-  });
-
-  it("rotates only while the reader's rotation names the active work", () => {
+    // Even on an upright work: the sticky mode must stay reachable.
     expect(
       stageRotation({
         portraitPhone: true,
-        moving: true,
+        rotateMode: true,
+        mediaAspect: 9 / 16,
+      }).canRotate,
+    ).toBe(true);
+  });
+
+  it("rotates landscape works while rotate mode is on", () => {
+    expect(
+      stageRotation({
+        portraitPhone: true,
+        rotateMode: true,
         mediaAspect: 16 / 9,
-        mediaKey: "wide-loop",
-        rotatedKey: "wide-loop",
       }),
     ).toEqual({ canRotate: true, rotated: true });
   });
 
-  it("resets rotation when navigating to a different work", () => {
-    expect(
-      stageRotation({
-        portraitPhone: true,
-        moving: true,
-        mediaAspect: 16 / 9,
-        mediaKey: "next-work",
-        rotatedKey: "wide-loop",
-      }),
-    ).toEqual({ canRotate: true, rotated: false });
-  });
-
-  it("hides the control and un-rotates on media that is not landscape", () => {
+  it("lands portrait and square works upright while the mode holds", () => {
     for (const mediaAspect of [9 / 16, 1]) {
       expect(
         stageRotation({
           portraitPhone: true,
-          moving: true,
+          rotateMode: true,
           mediaAspect,
-          mediaKey: "tall-loop",
-          rotatedKey: "tall-loop",
         }),
-      ).toEqual({ canRotate: false, rotated: false });
+      ).toEqual({ canRotate: true, rotated: false });
     }
   });
 
-  it("never offers rotation on desktop layouts or for still media", () => {
+  it("never rotates or offers the toggle outside the portrait phone layout", () => {
     expect(
       stageRotation({
         portraitPhone: false,
-        moving: true,
+        rotateMode: true,
         mediaAspect: 16 / 9,
-        mediaKey: "wide-loop",
-        rotatedKey: "wide-loop",
-      }),
-    ).toEqual({ canRotate: false, rotated: false });
-    expect(
-      stageRotation({
-        portraitPhone: true,
-        moving: false,
-        mediaAspect: 16 / 9,
-        mediaKey: "wide-still",
-        rotatedKey: null,
       }),
     ).toEqual({ canRotate: false, rotated: false });
   });
@@ -78,11 +57,9 @@ describe("stageRotation", () => {
     expect(
       stageRotation({
         portraitPhone: true,
-        moving: true,
+        rotateMode: true,
         mediaAspect: Number.NaN,
-        mediaKey: "unsized",
-        rotatedKey: null,
       }),
-    ).toEqual({ canRotate: false, rotated: false });
+    ).toEqual({ canRotate: true, rotated: false });
   });
 });

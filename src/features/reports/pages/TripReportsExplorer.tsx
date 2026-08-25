@@ -3,9 +3,16 @@
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import { Icon, type IconName } from "@/components/common/Icon";
+import { SearchEmptyState } from "@/components/common/SearchEmptyState";
 import { StateCard } from "@/components/common/StateCard";
 import { PublicSegmentedTabs } from "@/components/layout/PublicSegmentedTabs";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import type { ReportCardModel, ReportViewMode } from "@/types/tripReport";
 import type { PublicRouteEmptyState } from "@server/next/publicRouteOutcomes";
 import { publicHref } from "@/utils/publicHref";
@@ -36,10 +43,42 @@ export function TripReportsExplorer({
   const [viewMode, setViewMode] = useState<ReportViewMode>("substance");
   const [sortKey, setSortKey] = useState<ReportSortKey>("alphabetical");
   const [sortDirection, setSortDirection] = useState<ReportSortDirection>("asc");
+  const [substanceFilter, setSubstanceFilter] = useState<string | null>(null);
+
+  // The distinct substance list is derived from the shipped corpus, so the
+  // picker can only ever offer substances that have at least one report.
+  const substanceOptions = useMemo(() => {
+    const counts = new Map<string, number>();
+    for (const report of reports) {
+      const seen = new Set<string>();
+      for (const substance of report.substances) {
+        const name = substance.name.trim();
+        if (!name || seen.has(name)) continue;
+        seen.add(name);
+        counts.set(name, (counts.get(name) ?? 0) + 1);
+      }
+    }
+    return [...counts.entries()]
+      .map(([name, count]) => ({ name, count }))
+      .sort((a, b) => a.name.localeCompare(b.name, undefined, { sensitivity: "base" }));
+  }, [reports]);
+
+  // Narrow the corpus before grouping so the filter applies uniformly to the
+  // substance, title, and author views. Combination reports stay visible when
+  // they include the selected substance.
+  const visibleReports = useMemo(
+    () =>
+      substanceFilter
+        ? reports.filter((report) =>
+            report.substances.some((substance) => substance.name.trim() === substanceFilter),
+          )
+        : reports,
+    [reports, substanceFilter],
+  );
 
   const groupedReports = useMemo(
-    () => groupTripReports(reports, viewMode, sortDirection, sortKey),
-    [reports, viewMode, sortDirection, sortKey],
+    () => groupTripReports(visibleReports, viewMode, sortDirection, sortKey),
+    [visibleReports, viewMode, sortDirection, sortKey],
   );
 
   const handleViewModeClick = (mode: ReportViewMode) => {
@@ -76,32 +115,42 @@ export function TripReportsExplorer({
           ariaLabel="Trip report grouping"
         />
 
-        <div
-          className="mb-10 flex flex-wrap items-center justify-center gap-1.5"
-          role="group"
-          aria-label="Sort order"
-        >
-          <span className="theme-text-faint mr-0.5 text-xs">Sort by</span>
-          <SortControl
-            active={sortKey === "alphabetical"}
-            direction={sortDirection}
-            label={viewMode === "title" ? "Title" : "Name"}
-            ascIcon="lucide:arrow-down-a-z"
-            descIcon="lucide:arrow-up-z-a"
-            ascLabel="A to Z"
-            descLabel="Z to A"
-            onClick={() => handleSortClick("alphabetical")}
-          />
-          {viewMode !== "title" ? (
+        <div className="mb-10 flex flex-wrap items-center justify-center gap-x-4 gap-y-2">
+          <div
+            className="flex flex-wrap items-center justify-center gap-1.5"
+            role="group"
+            aria-label="Sort order"
+          >
+            <span className="theme-text-faint mr-0.5 text-xs">Sort by</span>
             <SortControl
-              active={sortKey === "count"}
+              active={sortKey === "alphabetical"}
               direction={sortDirection}
-              label="Report count"
-              ascIcon="lucide:arrow-up-narrow-wide"
-              descIcon="lucide:arrow-down-wide-narrow"
-              ascLabel="fewest first"
-              descLabel="most first"
-              onClick={() => handleSortClick("count")}
+              label={viewMode === "title" ? "Title" : "Name"}
+              ascIcon="lucide:arrow-down-a-z"
+              descIcon="lucide:arrow-up-z-a"
+              ascLabel="A to Z"
+              descLabel="Z to A"
+              onClick={() => handleSortClick("alphabetical")}
+            />
+            {viewMode !== "title" ? (
+              <SortControl
+                active={sortKey === "count"}
+                direction={sortDirection}
+                label="Report count"
+                ascIcon="lucide:arrow-up-narrow-wide"
+                descIcon="lucide:arrow-down-wide-narrow"
+                ascLabel="fewest first"
+                descLabel="most first"
+                onClick={() => handleSortClick("count")}
+              />
+            ) : null}
+          </div>
+          {substanceOptions.length > 0 ? (
+            <SubstanceFilterControl
+              options={substanceOptions}
+              active={substanceFilter}
+              onSelect={setSubstanceFilter}
+              onClear={() => setSubstanceFilter(null)}
             />
           ) : null}
         </div>
@@ -131,6 +180,25 @@ export function TripReportsExplorer({
           </div>
         ))}
       </div>
+
+      {substanceFilter !== null && visibleReports.length === 0 && (
+        <div className="mt-12 flex flex-col items-center">
+          <SearchEmptyState
+            icon="lucide:list-filter"
+            title={`No reports for ${substanceFilter}`}
+            description="This substance has no published reports right now. Clear the filter to browse the full index."
+          />
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            className="mt-4"
+            onClick={() => setSubstanceFilter(null)}
+          >
+            Clear filter
+          </Button>
+        </div>
+      )}
 
       {reports.length === 0 && (
         <div className="mt-12">
@@ -265,5 +333,114 @@ function ReportIndexRow({
         ) : null}
       </Link>
     </li>
+  );
+}
+
+/**
+ * Single-substance filter: a pill chip opening a searchable picker popover.
+ * Popover rather than a sheet is the kit's standing convention for control
+ * overlays (see the replication gallery's Filters chip). The option list is
+ * derived client-side from the shipped reports, so every entry is guaranteed
+ * at least one report; while a substance is active the chip wears its name
+ * and a sibling clear pill drops the filter in one click.
+ */
+function SubstanceFilterControl({
+  options,
+  active,
+  onSelect,
+  onClear,
+}: {
+  options: { name: string; count: number }[];
+  active: string | null;
+  onSelect: (name: string) => void;
+  onClear: () => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const [query, setQuery] = useState("");
+
+  const normalizedQuery = query.trim().toLowerCase();
+  const visibleOptions = normalizedQuery
+    ? options.filter((option) => option.name.toLowerCase().includes(normalizedQuery))
+    : options;
+
+  const handleOpenChange = (next: boolean) => {
+    setOpen(next);
+    if (!next) {
+      setQuery("");
+    }
+  };
+
+  return (
+    <div className="flex items-center gap-1">
+      <Popover open={open} onOpenChange={handleOpenChange}>
+        <PopoverTrigger asChild>
+          <Button
+            type="button"
+            variant={active !== null ? "pillActive" : "pill"}
+            size="pill"
+            className="shrink-0 gap-1.5"
+            aria-label={
+              active !== null
+                ? `Substance filter, ${active} active`
+                : "Filter by substance"
+            }
+          >
+            <Icon icon="lucide:flask-conical" className="h-4 w-4" aria-hidden />
+            {active ?? "Substance"}
+          </Button>
+        </PopoverTrigger>
+        <PopoverContent
+          align="center"
+          collisionPadding={8}
+          className="w-[calc(100vw-1rem)] p-3 sm:w-72"
+        >
+          <Input
+            type="search"
+            inputSize="sm"
+            value={query}
+            onChange={(event) => setQuery(event.target.value)}
+            placeholder="Search substances"
+            aria-label="Search substances"
+          />
+          <ul className="mt-2 max-h-[min(50vh,18rem)] overflow-y-auto">
+            {visibleOptions.map((option) => (
+              <li key={option.name}>
+                <button
+                  type="button"
+                  aria-pressed={option.name === active}
+                  onClick={() => {
+                    onSelect(option.name);
+                    handleOpenChange(false);
+                  }}
+                  className={`flex w-full items-center justify-between gap-3 rounded-lg px-2.5 py-2 text-left text-sm transition hover:bg-dose-surface-muted ${
+                    option.name === active
+                      ? "text-dose-accent-strong font-semibold"
+                      : "theme-text-secondary hover:text-dose-text"
+                  }`}
+                >
+                  <span className="truncate">{option.name}</span>
+                  <span className="theme-text-faint shrink-0 text-xs">{option.count}</span>
+                </button>
+              </li>
+            ))}
+          </ul>
+          {visibleOptions.length === 0 ? (
+            <p className="theme-text-faint px-1 py-2 text-sm">No substances match.</p>
+          ) : null}
+        </PopoverContent>
+      </Popover>
+      {active !== null ? (
+        <Button
+          type="button"
+          variant="pill"
+          size="pill"
+          className="shrink-0 px-2"
+          aria-label={`Clear substance filter, ${active}`}
+          onClick={onClear}
+        >
+          <Icon icon="lucide:x" className="h-3.5 w-3.5" aria-hidden />
+        </Button>
+      ) : null}
+    </div>
   );
 }

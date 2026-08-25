@@ -451,6 +451,7 @@ describe('matchesTaxonomyFilters', () => {
     status: 'all' as const,
     viewing: 'all' as const,
     artistType: 'all' as const,
+    effect: 'all' as const,
     drug: 'all' as const,
     drugClass: 'all' as const,
     family: 'all' as const,
@@ -485,6 +486,14 @@ describe('matchesTaxonomyFilters', () => {
     expect(matchesTaxonomyFilters(item, { ...all, drugClass: 'psychedelics' })).toBe(false);
     expect(matchesTaxonomyFilters(item, { ...all, family: 'experiential-replication' })).toBe(true);
     expect(matchesTaxonomyFilters(rep(), { ...all, viewing: 'open-eye' })).toBe(false);
+  });
+
+  it('matches a depicted effect by owning slug or effect tag', () => {
+    const item = rep({ effect_slug: 'geometry', effect_tags: ['drifting'] });
+    expect(matchesTaxonomyFilters(item, { ...all, effect: 'geometry' })).toBe(true);
+    expect(matchesTaxonomyFilters(item, { ...all, effect: 'drifting' })).toBe(true);
+    expect(matchesTaxonomyFilters(item, { ...all, effect: 'tracers' })).toBe(false);
+    expect(matchesTaxonomyFilters(rep({ effect_slug: undefined }), { ...all, effect: 'drifting' })).toBe(false);
   });
 });
 

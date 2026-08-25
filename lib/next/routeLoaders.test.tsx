@@ -48,7 +48,7 @@ describe("substance, effect, publication, and report route loaders", () => {
       throw new Error("expected ok result");
     }
     expect(result.metadata).toEqual({
-      title: "LSD: Dosage, Effects & Safety | dose.wiki",
+      title: "LSD",
       description: "A lysergamide.",
     });
     expect(result.canonicalRoute).toEqual({ family: "substance", params: { slug: "lsd" } });
@@ -115,7 +115,7 @@ describe("substance, effect, publication, and report route loaders", () => {
       throw new Error("expected ok result");
     }
     expect(result.metadata).toEqual({
-      title: "Visual drifting: Subjective Effect | dose.wiki",
+      title: "Visual drifting",
       description: "Objects appear to drift.",
     });
     expect(result.canonicalRoute).toEqual({
@@ -331,7 +331,7 @@ describe("substance, effect, publication, and report route loaders", () => {
     await expect(loadArticlesIndexRoute()).resolves.toMatchObject({
       kind: "ok",
       canonicalRoute: { family: "articles" },
-      metadata: { title: "Articles · 1 entries" },
+      metadata: { title: "Articles" },
       pageProps: {
         articles: [{ slug: "lucid-dreaming", title: "Lucid dreaming" }],
         emptyState: undefined,
@@ -348,7 +348,7 @@ describe("substance, effect, publication, and report route loaders", () => {
     await expect(loadEffectsIndexRoute()).resolves.toMatchObject({
       kind: "ok",
       canonicalRoute: { family: "effects" },
-      metadata: { title: "Effects · 1 records" },
+      metadata: { title: "Subjective Effect Index" },
       pageProps: {
         effects: [{ slug: "visuals", name: "Visuals", tags: ["sensory"] }],
         emptyState: undefined,
@@ -387,7 +387,7 @@ describe("substance, effect, publication, and report route loaders", () => {
     await expect(loadReportsIndexRoute()).resolves.toMatchObject({
       kind: "ok",
       canonicalRoute: { family: "reports" },
-      metadata: { title: "Reports · 1 entries" },
+      metadata: { title: "Experience Reports Index" },
       pageProps: {
         reports: [{ slug: "first-trip", title: "First trip" }],
         emptyState: undefined,

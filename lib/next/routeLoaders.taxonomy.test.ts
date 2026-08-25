@@ -149,7 +149,7 @@ describe("taxonomy route loaders", () => {
       kind: "ok",
       detail: [],
       metadata: {
-        title: "Effect category · visual-effects",
+        title: "Visual Effects",
         description: "Browse 0 effects in the visual-effects category.",
       },
       canonicalRoute: { family: "effectCategory", params: { categorySlug: "visual-effects" } },
@@ -200,7 +200,7 @@ describe("taxonomy route loaders", () => {
         }),
       ],
       metadata: {
-        title: "Effect category · visual-amplifications",
+        title: "Visual Amplifications",
         description: "Browse 1 effects in the visual-amplifications category.",
       },
     });
@@ -217,7 +217,7 @@ describe("taxonomy route loaders", () => {
       kind: "ok",
       detail: { mechanism, qualifier: mechanism.qualifiers[0] },
       metadata: {
-        title: "Serotonin · Agonist",
+        title: "Serotonin Agonist",
         description: "Browse 3 substances in the Agonist qualifier.",
       },
       canonicalRoute: {

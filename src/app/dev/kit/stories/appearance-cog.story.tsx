@@ -21,7 +21,14 @@ export const appearanceCogStory: StoryDef = {
       note: "The shipped DoseWiki panel: both binary controls, both slider rows, and the Theme Lab action at the end.",
       background: "plain",
       render: () => (
-        <AppearanceCog showVisualStyle showColorScheme showSurface showAccent showMoreSettings />
+        <AppearanceCog
+          showVisualStyle
+          showColorScheme
+          showSurface
+          showAccent
+          showFont
+          showMoreSettings
+        />
       ),
     },
     {
@@ -34,6 +41,7 @@ export const appearanceCogStory: StoryDef = {
           showColorScheme
           showSurface
           showAccent
+          showFont
           showMoreSettings={false}
         />
       ),
@@ -48,6 +56,7 @@ export const appearanceCogStory: StoryDef = {
           showColorScheme
           showSurface={false}
           showAccent={false}
+          showFont={false}
           showMoreSettings={false}
         />
       ),
@@ -82,6 +91,12 @@ export const appearanceCogStory: StoryDef = {
       type: "boolean",
       description:
         "Renders the Accent hue and saturation sliders. AppearanceControls passes !isAccentLocked.",
+    },
+    {
+      name: "showFont",
+      type: "boolean",
+      description:
+        "Renders the dyslexic-friendly type pill (Lexend). AppearanceControls passes !isFontLocked; Effect Index locks the axis.",
     },
     {
       name: "showMoreSettings",

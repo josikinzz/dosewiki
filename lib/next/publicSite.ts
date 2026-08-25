@@ -51,6 +51,8 @@ export function getPublicSiteUrl(
 export type PublicSiteIdentity = {
   flavor: SiteFlavor;
   name: string;
+  /** Browser-tab title suffix; `buildPublicPageMetadata` appends " - <suffix>" once. */
+  titleSuffix: string;
   url: string;
   description: string;
   logoPath: string;
@@ -64,6 +66,7 @@ export function getPublicSite(
   return {
     flavor: config.flavor,
     name: config.name,
+    titleSuffix: config.titleSuffix,
     url: getPublicSiteUrl(env, config),
     description: config.description,
     logoPath: config.logoPath,
@@ -80,12 +83,25 @@ function buildShortDescriptionSuffix(siteName: string): string {
   return ` Explore related ${siteName} records, sources, and route context.`;
 }
 
+/**
+ * A per-page Open Graph image override (e.g. the substance molecule card).
+ * `path` is a site-relative asset or route path; the builder makes it absolute.
+ */
+export type PublicPageSocialImage = {
+  path: string;
+  width: number;
+  height: number;
+  alt: string;
+};
+
 export type PublicPageMetadataInput = {
   title: string;
   description: string;
   route?: PublicRouteIdentity;
   pathname?: string;
   noIndex?: boolean;
+  /** Overrides the flavor-wide social card for this page only. */
+  socialImage?: PublicPageSocialImage;
 };
 
 export function buildSiteUrl(pathname = "/", site: PublicSiteIdentity = PUBLIC_SITE): string {
@@ -114,23 +130,40 @@ function buildMetaDescription(description: string, siteName: string): string {
   return `${snippet.trimEnd()}...`;
 }
 
+/**
+ * The one owner of the title-suffix convention: routes pass a bare page name and this
+ * composes `<name> - <suffix>`. An empty name yields the suffix alone — the homepage's
+ * form, which is why it is the only tab title without the trailing " - <suffix>".
+ */
+function composePageTitle(title: string, site: PublicSiteIdentity): string {
+  const pageName = title.trim();
+  return pageName ? `${pageName} - ${site.titleSuffix}` : site.titleSuffix;
+}
+
 export function buildPublicPageMetadata(
-  { title, description, route, pathname, noIndex = false }: PublicPageMetadataInput,
+  { title, description, route, pathname, noIndex = false, socialImage }: PublicPageMetadataInput,
   site: PublicSiteIdentity = PUBLIC_SITE,
 ): Metadata {
   const canonicalPath = buildCanonicalPath(pathname ?? (route ? getPublicRoutePath(route) : "/"));
   const absoluteUrl = buildSiteUrl(canonicalPath, site);
-  const socialCardUrl = buildSiteAssetUrl(site.socialCard.path, site);
+  const socialCard = socialImage ?? {
+    path: site.socialCard.path,
+    width: site.socialCard.width,
+    height: site.socialCard.height,
+    alt: `${site.name} logo`,
+  };
+  const socialCardUrl = buildSiteAssetUrl(socialCard.path, site);
   const metaDescription = buildMetaDescription(description, site.name);
+  const pageTitle = composePageTitle(title, site);
 
   return {
-    title,
+    title: pageTitle,
     description: metaDescription,
     alternates: {
       canonical: absoluteUrl,
     },
     openGraph: {
-      title,
+      title: pageTitle,
       description: metaDescription,
       url: absoluteUrl,
       siteName: site.name,
@@ -138,15 +171,15 @@ export function buildPublicPageMetadata(
       images: [
         {
           url: socialCardUrl,
-          width: site.socialCard.width,
-          height: site.socialCard.height,
-          alt: `${site.name} logo`,
+          width: socialCard.width,
+          height: socialCard.height,
+          alt: socialCard.alt,
         },
       ],
     },
     twitter: {
       card: "summary",
-      title,
+      title: pageTitle,
       description: metaDescription,
       images: [socialCardUrl],
     },

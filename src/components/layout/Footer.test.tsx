@@ -29,13 +29,17 @@ const DOSEWIKI = SITE_FLAVOR_CONFIGS.dosewiki;
  */
 function renderFooter(
   config: SiteFlavorConfig = SITE_FLAVOR_CONFIG,
-  { isVisualStyleLocked = false }: { isVisualStyleLocked?: boolean } = {},
+  {
+    isVisualStyleLocked = false,
+    isFontLocked,
+  }: { isVisualStyleLocked?: boolean; isFontLocked?: boolean } = {},
 ) {
   return render(
     <ThemeProvider
       initialColorScheme="dark"
       initialVisualStyle="fun"
       isVisualStyleLocked={isVisualStyleLocked}
+      isFontLocked={isFontLocked}
     >
       <Footer model={getRouteChromeModel("/dev/profile", null, config)} />
     </ThemeProvider>,
@@ -171,7 +175,12 @@ describe("Footer appearance controls", () => {
 
   it("drops the style row, and only that row, when the publication locks its style", async () => {
     const user = userEvent.setup();
-    renderFooter(SITE_FLAVOR_CONFIGS.effectindex, { isVisualStyleLocked: true });
+    // The real Effect Index build also locks the type axis (showFontToggle: false);
+    // the ambient test flavor is dosewiki, so pass the lock explicitly.
+    renderFooter(SITE_FLAVOR_CONFIGS.effectindex, {
+      isVisualStyleLocked: true,
+      isFontLocked: true,
+    });
 
     const panel = await openFooterCog(user);
 

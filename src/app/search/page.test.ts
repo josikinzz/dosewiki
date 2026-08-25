@@ -13,7 +13,7 @@ describe("search page metadata", () => {
       searchParams: Promise.resolve({ q: "lsd" }),
     });
 
-    expect(metadata.title).toBe("Search · lsd");
+    expect(metadata.title).toBe(`Search Results for "lsd" - ${SITE_FLAVOR_CONFIG.titleSuffix}`);
     expect(metadata.description).toBe(
       `Search ${SITE_FLAVOR_CONFIG.name} for substances, effects, reports, and profiles matching lsd.`,
     );

@@ -4,6 +4,7 @@ import {
   type GalleryArtistTypeFilter,
   type GalleryArtistSort,
   type GalleryContentFamilyFilter,
+  type GalleryEffectFilter,
   type GalleryDrugFilter,
   type GalleryDrugClassFilter,
   type GalleryMode,
@@ -42,6 +43,7 @@ export interface GalleryBrowseState {
   status: GalleryStatusFilter;
   viewing: GalleryViewingFilter;
   artistType: GalleryArtistTypeFilter;
+  effect: GalleryEffectFilter;
   drug: GalleryDrugFilter;
   drugClass: GalleryDrugClassFilter;
   family: GalleryContentFamilyFilter;
@@ -72,6 +74,7 @@ export function parseGalleryBrowseState(
   const status = params.get("status");
   const viewing = params.get("viewing");
   const artistType = params.get("artistType");
+  const effect = params.get("effect");
   const drug = params.get("drug");
   const drugClass = params.get("drugClass");
   const family = params.get("family");
@@ -90,6 +93,7 @@ export function parseGalleryBrowseState(
       artistType === "replicator" || artistType === "traditional-psychedelic-artist"
         ? artistType
         : "all",
+    effect: effect && /^[a-z0-9]+(?:-[a-z0-9]+)*$/u.test(effect) ? effect : "all",
     drug: drug && /^[a-z0-9]+(?:-[a-z0-9]+)*$/u.test(drug) ? drug : "all",
     drugClass:
       drugClass === "psychedelics" || drugClass === "dissociatives" || drugClass === "deliriants" || drugClass === "other"
@@ -160,6 +164,7 @@ export function buildGalleryBrowseUrl(
   if (state.status && state.status !== "all") params.set("status", state.status);
   if (state.viewing && state.viewing !== "all") params.set("viewing", state.viewing);
   if (state.artistType && state.artistType !== "all") params.set("artistType", state.artistType);
+  if (state.effect && state.effect !== "all") params.set("effect", state.effect);
   if (state.drug && state.drug !== "all") params.set("drug", state.drug);
   if (state.drugClass && state.drugClass !== "all") params.set("drugClass", state.drugClass);
   if (state.family && state.family !== "all") params.set("family", state.family);

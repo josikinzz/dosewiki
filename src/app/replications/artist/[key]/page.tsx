@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import { notFound, permanentRedirect } from "next/navigation";
 
-import { SITE_FLAVOR_CONFIG } from "@/config/siteFlavor";
 import { ArtistIdentityHeader } from "@/features/replications/artist/ArtistIdentityHeader";
 import { ArtistShowcase } from "@/features/replications/artist/ArtistShowcase";
 import {
@@ -124,7 +123,7 @@ export async function generateMetadata({ params }: ArtistFocusPageProps): Promis
 
   const attributed = focus.group.key !== UNATTRIBUTED_KEY;
   return buildPublicPageMetadata({
-    title: `${focus.label} — Replications | ${SITE_FLAVOR_CONFIG.name}`,
+    title: `${focus.label} Replications`,
     description: attributed
       ? `${focus.group.count} replication ${focus.group.count === 1 ? "work" : "works"} by ${focus.label}: image and video recreations of subjective effects.`
       : "Replication works whose creator is unknown: image and video recreations of subjective effects awaiting attribution.",

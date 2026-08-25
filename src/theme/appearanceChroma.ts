@@ -65,7 +65,7 @@ export type AppearanceColorCoordinates = {
 export const DEFAULT_APPEARANCE_COLORS = {
   fun: {
     light: { surfaceHue: 0, surfaceLevel: 0, accentHue: 238, accentLevel: 0.41 },
-    dark: { surfaceHue: 0, surfaceLevel: 0.21, accentHue: 352, accentLevel: 0.96 },
+    dark: { surfaceHue: 0, surfaceLevel: 0, accentHue: 352, accentLevel: 0.96 },
   },
   pro: {
     light: { surfaceHue: 222, surfaceLevel: 0, accentHue: 217, accentLevel: 0.65 },

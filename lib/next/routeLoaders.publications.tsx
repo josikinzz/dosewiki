@@ -117,7 +117,7 @@ export const loadArticlesIndexRoute = cache(
           articles.length === 0 ? articlesIndexEmptyState : undefined,
       },
       metadata: {
-        title: `Articles · ${articles.length} entries`,
+        title: "Articles",
         description: `Browse ${articles.length} published Effect Index articles in ${SITE_FLAVOR_CONFIG.name}.`,
       },
       canonicalRoute: { family: "articles" },

@@ -8,6 +8,7 @@ import {
   visualEffectNameBySlug,
   type ShowcaseWork,
 } from "./showcaseModel";
+import { VIEWER_SOUND_STORAGE_KEY } from "@/features/replications/viewer/viewerLogic";
 
 vi.mock("@/components/common/AppImage", () => ({
   AppImage: ({ src, alt }: { src: string; alt: string }) => (
@@ -115,7 +116,7 @@ describe("ReplicationShowcase", () => {
     expect(screen.getByText("LSD replications")).toBeInTheDocument();
 
     const entry = screen.getByRole("link", {
-      name: /Drifting \(wood grain\).*Open/,
+      name: "Drifting (wood grain)",
     });
     expect(entry).toHaveAttribute("href", "/lsd?viewer=drifting-wood-grain");
     fireEvent.click(entry);
@@ -197,7 +198,7 @@ describe("ReplicationShowcase", () => {
     );
 
     expect(
-      screen.getByRole("link", { name: /Drifting \(wood grain\).*Open/ }),
+      screen.getByRole("link", { name: "Drifting (wood grain)" }),
     ).toHaveAttribute("href", "/effects/drifting?viewer=drifting-wood-grain");
     expect(
       screen.getByRole("link", {
@@ -222,7 +223,7 @@ describe("ReplicationShowcase", () => {
 
     // Fallback hrefs write the viewer param against the controller's page.
     const entry = screen.getByRole("link", {
-      name: /Drifting \(wood grain\).*Open/,
+      name: "Drifting (wood grain)",
     });
     expect(entry).toHaveAttribute(
       "href",
@@ -398,7 +399,7 @@ describe("ReplicationShowcase", () => {
     expect(screen.getByText(/by StingrayZ/)).toBeInTheDocument();
   });
 
-  it("keeps inline interactions to selection and muted pause/play", () => {
+  it("keeps inline interactions to selection, pause/play, and mute", () => {
     const video = work({
       slug: "tracers-loop",
       title: "Tracers loop",
@@ -421,8 +422,100 @@ describe("ReplicationShowcase", () => {
     expect((container.querySelector("video") as HTMLVideoElement).muted).toBe(
       true,
     );
+    // Unprobed audio is treated as audible: the mute chip renders.
+    expect(
+      screen.getByRole("button", { name: "Unmute Tracers loop" }),
+    ).toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: "Pause Tracers loop" }));
     expect(container.querySelector("video")).not.toBeInTheDocument();
+  });
+
+  it("keeps the title line plain and moves Open viewer into the corner chip", () => {
+    render(<ReplicationShowcase works={[work()]} substanceSlug="lsd" />);
+
+    const title = screen.getByRole("link", { name: "Drifting (wood grain)" });
+    expect(title).toHaveTextContent(/^Drifting \(wood grain\)$/);
+    expect(title).not.toHaveTextContent(/Open viewer/i);
+
+    const chip = screen.getByRole("link", { name: "Open viewer" });
+    expect(chip).toHaveAttribute("href", "/lsd?viewer=drifting-wood-grain");
+    fireEvent.click(chip);
+    expect(screen.getByTestId("replication-viewer")).toHaveAttribute(
+      "data-initial-slug",
+      "drifting-wood-grain",
+    );
+  });
+
+  it("offers no mute toggle for a video probed silent", () => {
+    const silent = work({
+      slug: "silent-loop",
+      title: "Silent loop",
+      type: "video",
+      url: "https://cdn.test/silent.mp4",
+      thumbnailUrl: "https://cdn.test/silent-poster.webp",
+      hasAudio: false,
+    });
+    render(<ReplicationShowcase works={[silent]} />);
+
+    fireEvent.click(screen.getByRole("button", { name: "Play Silent loop" }));
+    expect(
+      screen.getByRole("button", { name: "Pause Silent loop" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: /mute/i }),
+    ).not.toBeInTheDocument();
+  });
+
+  it("unmutes in-gesture and round-trips the viewer sound preference", () => {
+    window.sessionStorage.clear();
+    const audible = work({
+      slug: "audible-loop",
+      title: "Audible loop",
+      type: "video",
+      url: "https://cdn.test/audible.mp4",
+      thumbnailUrl: "https://cdn.test/audible-poster.webp",
+      hasAudio: true,
+    });
+    const { container } = render(<ReplicationShowcase works={[audible]} />);
+
+    fireEvent.click(screen.getByRole("button", { name: "Play Audible loop" }));
+    const video = container.querySelector("video") as HTMLVideoElement;
+    expect(video.muted).toBe(true);
+
+    fireEvent.click(
+      screen.getByRole("button", { name: "Unmute Audible loop" }),
+    );
+    expect(video.muted).toBe(false);
+    expect(window.sessionStorage.getItem(VIEWER_SOUND_STORAGE_KEY)).toBe("on");
+
+    fireEvent.click(screen.getByRole("button", { name: "Mute Audible loop" }));
+    expect(video.muted).toBe(true);
+    expect(window.sessionStorage.getItem(VIEWER_SOUND_STORAGE_KEY)).toBe(
+      "off",
+    );
+    window.sessionStorage.clear();
+  });
+
+  it("starts unmuted when the viewer already turned sound on this session", () => {
+    window.sessionStorage.setItem(VIEWER_SOUND_STORAGE_KEY, "on");
+    const audible = work({
+      slug: "audible-loop",
+      title: "Audible loop",
+      type: "video",
+      url: "https://cdn.test/audible.mp4",
+      thumbnailUrl: "https://cdn.test/audible-poster.webp",
+      hasAudio: true,
+    });
+    const { container } = render(<ReplicationShowcase works={[audible]} />);
+
+    fireEvent.click(screen.getByRole("button", { name: "Play Audible loop" }));
+    expect((container.querySelector("video") as HTMLVideoElement).muted).toBe(
+      false,
+    );
+    expect(
+      screen.getByRole("button", { name: "Mute Audible loop" }),
+    ).toBeInTheDocument();
+    window.sessionStorage.clear();
   });
 
   it("opens the shared viewer when the reader clicks the media stage", () => {

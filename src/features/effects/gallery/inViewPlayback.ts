@@ -1,13 +1,14 @@
 import { useEffect, useRef, useState } from 'react';
 
 /**
- * Shared playback budget for in-view gallery previews.
+ * Shared playback budget for in-view video previews.
  *
- * A wall of autoplaying videos is a decode/battery problem, so the gallery
- * caps how many previews run at once. The pool is most-recent-wins: a new
- * request always succeeds, and when the pool is over capacity the holder
- * whose claim is stalest gets revoked. A revoked tile stays paused until it
- * re-requests (by leaving and re-entering the viewport, or by being hovered).
+ * A wall of autoplaying videos is a decode/battery problem, so surfaces that
+ * autoplay several previews (currently the replication studio's playlist)
+ * cap how many run at once. The pool is most-recent-wins: a new request
+ * always succeeds, and when the pool is over capacity the holder whose claim
+ * is stalest gets revoked. A revoked tile stays paused until it re-requests
+ * (by leaving and re-entering the viewport, or by being hovered).
  */
 export interface PlaybackSlotPool {
   /**
@@ -44,9 +45,6 @@ export function createPlaybackSlotPool(capacity: number): PlaybackSlotPool {
   };
 }
 
-/** The one pool every gallery tile shares. */
-export const galleryPlaybackSlots = createPlaybackSlotPool(5);
-
 /**
  * Hold a slot in `pool` while `active`; returns whether the slot is currently
  * granted. Changing `refresh` re-requests the slot, which bumps this holder's
@@ -55,8 +53,8 @@ export const galleryPlaybackSlots = createPlaybackSlotPool(5);
  */
 export function usePlaybackSlot(
   active: boolean,
-  refresh?: unknown,
-  pool: PlaybackSlotPool = galleryPlaybackSlots,
+  refresh: unknown,
+  pool: PlaybackSlotPool,
 ): boolean {
   // One stable identity per component instance; the pool keys on it.
   const keyRef = useRef<object>({});
@@ -82,9 +80,9 @@ export interface PlaybackAllowances {
    */
   autoplay: boolean;
   /**
-   * Hover-to-play of the full-resolution source (the legacy path for rows
-   * with no preview rendition). Same gate as before this hook existed: a
-   * hover-capable fine pointer and no reduced-motion preference.
+   * Hover-to-play previews: a hover-capable fine pointer and no
+   * reduced-motion preference. Gallery tiles gate all playback on this,
+   * so touch devices and reduced-motion readers get fully static tiles.
    */
   hoverPreview: boolean;
 }

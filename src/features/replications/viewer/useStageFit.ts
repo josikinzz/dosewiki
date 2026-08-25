@@ -8,46 +8,47 @@ import { resolveMediaAspect } from "./viewerLogic";
 export interface StageRotationInput {
   /** Portrait-phone layout is active (viewport, not device). */
   portraitPhone: boolean;
-  /** True for media that plays (video or controllable GIF rendition). */
-  moving: boolean;
+  /** The session's sticky rotate-mode preference. */
+  rotateMode: boolean;
   /** Resolved width/height ratio of the active media. */
   mediaAspect: number;
-  /** Identity of the active media. */
-  mediaKey: string;
-  /** The media the reader last rotated, or null when upright. */
-  rotatedKey: string | null;
 }
 
 export interface StageRotation {
-  /** Offer the rotate-to-fit control. */
+  /** Offer the rotate-mode toggle. */
   canRotate: boolean;
   /** Paint the stage media turned 90°. */
   rotated: boolean;
 }
 
 /**
- * The rotate-to-fit decision: only landscape moving media on a portrait
- * phone benefits from being turned sideways, and a rotation belongs to the
- * one work it was requested on — advancing to any other work (or to media
- * that is not landscape) lands upright, because `rotatedKey` no longer
- * names the active media.
+ * The rotate-to-fit decision: rotate mode is the reader's sticky choice, and
+ * while it is on every landscape work turns sideways to fill the portrait
+ * screen — portrait and square works land upright, and the next landscape
+ * work turns again without being re-asked. The toggle is offered on every
+ * portrait-phone layout so the mode can be entered or left from any work;
+ * desktop and landscape viewports never rotate and never see it.
  */
 export function stageRotation({
   portraitPhone,
-  moving,
+  rotateMode,
   mediaAspect,
-  mediaKey,
-  rotatedKey,
 }: StageRotationInput): StageRotation {
-  const canRotate =
-    moving && portraitPhone && Number.isFinite(mediaAspect) && mediaAspect > 1;
-  return { canRotate, rotated: canRotate && rotatedKey === mediaKey };
+  return {
+    canRotate: portraitPhone,
+    rotated:
+      portraitPhone &&
+      rotateMode &&
+      Number.isFinite(mediaAspect) &&
+      mediaAspect > 1,
+  };
 }
 
 export interface StageFitOptions {
   mediaKey: string;
   type: ReplicationType;
-  moving?: boolean;
+  /** The session's sticky rotate-mode preference (owned by the overlay). */
+  rotateMode: boolean;
   width?: number | null;
   height?: number | null;
 }
@@ -55,24 +56,25 @@ export interface StageFitOptions {
 export interface StageFit {
   canRotate: boolean;
   rotated: boolean;
-  toggleRotate: () => void;
   probeAspect: (mediaWidth: number, mediaHeight: number) => void;
+  /** Resolved width/height ratio of the active media (probed > catalogued > guess). */
+  mediaAspect: number;
 }
 
 /**
- * Rotate-to-fit for landscape motion on portrait phones: turning the work
+ * Rotate-to-fit for landscape works on portrait phones: turning the work
  * sideways (a pure CSS transform on the stage media, never the chrome) fills
  * the tall screen edge-to-edge the way physically rotating the phone would.
- * State lives in the open viewer, never browser storage.
+ * The mode itself lives in the overlay, persisted per-session beside the
+ * sound preference; this hook derives whether the active media turns.
  */
 export function useStageFit({
   mediaKey,
   type,
-  moving = type === "video",
+  rotateMode,
   width,
   height,
 }: StageFitOptions): StageFit {
-  const [rotatedKey, setRotatedKey] = useState<string | null>(null);
   const [portraitPhone, setPortraitPhone] = useState(false);
   const [probedAspects, setProbedAspects] = useState<Record<string, number>>(
     {},
@@ -109,19 +111,14 @@ export function useStageFit({
   );
   const { canRotate, rotated } = stageRotation({
     portraitPhone,
-    moving,
+    rotateMode,
     mediaAspect,
-    mediaKey,
-    rotatedKey,
   });
-  const toggleRotate = useCallback(() => {
-    setRotatedKey((previous) => (previous === mediaKey ? null : mediaKey));
-  }, [mediaKey]);
 
   return {
     canRotate,
     rotated,
-    toggleRotate,
     probeAspect,
+    mediaAspect,
   };
 }

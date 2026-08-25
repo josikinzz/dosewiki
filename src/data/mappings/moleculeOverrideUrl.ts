@@ -33,6 +33,14 @@ export function moleculeOverrideImageUrl(slug: string, updatedAt: string): strin
   return `/api/molecules/${slug}?v=${encodeURIComponent(updatedAt)}`;
 }
 
+/** Square substance OG card edge, kept in sync with `/api/og/molecule/[slug]`. */
+export const MOLECULE_SOCIAL_CARD_SIZE = 1200;
+
+/** The square molecule OG-card URL for a slug, busted by `updatedAt`. */
+export function moleculeSocialCardUrl(slug: string, updatedAt: string): string {
+  return `/api/og/molecule/${slug}?v=${encodeURIComponent(updatedAt)}`;
+}
+
 /** The public image-route URL for a chemical class override, busted by `updatedAt`. */
 export function classStructureOverrideImageUrl(key: string, updatedAt: string): string {
   return `/api/molecules/classes/${key}?v=${encodeURIComponent(updatedAt)}`;

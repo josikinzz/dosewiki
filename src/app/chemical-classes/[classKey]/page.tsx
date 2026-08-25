@@ -47,7 +47,7 @@ export async function generateMetadata({ params }: ChemicalClassPageProps) {
   }
 
   return buildPublicPageMetadata({
-    title: `${detail.label} · chemical class`,
+    title: detail.label,
     description:
       truncateDescription(detail.description) ??
       `Explore ${detail.label} lineage, subclasses, molecules, and published substances on ${SITE_FLAVOR_CONFIG.name}.`,

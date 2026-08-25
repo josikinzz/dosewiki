@@ -14,6 +14,7 @@ const taxonomyDefaults = {
   status: "all" as const,
   viewing: "all" as const,
   artistType: "all" as const,
+  effect: "all" as const,
   drug: "all" as const,
   drugClass: "all" as const,
   family: "all" as const,
@@ -39,7 +40,7 @@ describe("parseGalleryBrowseState", () => {
   it("reads every recognized parameter", () => {
     expect(
       parseGalleryBrowseState(
-        new URLSearchParams("view=effect&q=drifting&type=video&sort=alpha&status=replication&viewing=open-eye&artistType=replicator&drug=lsd&drugClass=psychedelics&family=experiential-replication"),
+        new URLSearchParams("view=effect&q=drifting&type=video&sort=alpha&status=replication&viewing=open-eye&artistType=replicator&effect=tracers&drug=lsd&drugClass=psychedelics&family=experiential-replication"),
       ),
     ).toEqual({
       view: "effect",
@@ -49,6 +50,7 @@ describe("parseGalleryBrowseState", () => {
       status: "replication",
       viewing: "open-eye",
       artistType: "replicator",
+      effect: "tracers",
       drug: "lsd",
       drugClass: "psychedelics",
       family: "experiential-replication",
@@ -164,6 +166,7 @@ describe("buildGalleryBrowseUrl", () => {
         status: "unreviewed",
         viewing: "closed-eye",
         artistType: "traditional-psychedelic-artist",
+        effect: "internal-hallucination",
         drug: "salvia",
         drugClass: "other",
         family: "visionary-psychedelic-art",

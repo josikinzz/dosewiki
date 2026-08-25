@@ -50,6 +50,7 @@ const OPTIONS: Record<
       label: "Traditional psychedelic artists",
     },
   ],
+  effect: [{ value: "all", label: "Any depicted effect" }],
   drug: [{ value: "all", label: "Any explicitly named drug" }],
   drugClass: [
     { value: "all", label: "Any named drug class" },
@@ -76,6 +77,7 @@ const LABELS: Record<FilterKey, string> = {
   status: "Review status",
   viewing: "Viewing mode",
   artistType: "Artist practice",
+  effect: "Depicted effect",
   drug: "Drug named in title",
   drugClass: "Drug class in title",
   family: "Content family",
@@ -88,6 +90,7 @@ export interface ReplicationTaxonomyFiltersProps {
   onChange: (filters: GalleryTaxonomyFilterState) => void;
   onClear: () => void;
   drugOptions: ReadonlyArray<FilterOption>;
+  effectOptions: ReadonlyArray<FilterOption>;
   className?: string;
 }
 
@@ -98,6 +101,7 @@ export function ReplicationTaxonomyFilters({
   onChange,
   onClear,
   drugOptions,
+  effectOptions,
   className,
 }: ReplicationTaxonomyFiltersProps) {
   const [open, setOpen] = useState(false);
@@ -171,6 +175,8 @@ export function ReplicationTaxonomyFilters({
               <SelectContent>
                 {(key === "drug"
                   ? [...OPTIONS.drug, ...drugOptions]
+                  : key === "effect"
+                  ? [...OPTIONS.effect, ...effectOptions]
                   : OPTIONS[key]
                 ).map((option) => (
                   <SelectItem key={option.value} value={option.value}>
@@ -198,5 +204,73 @@ export function ReplicationTaxonomyFilters({
         </div>
       </PopoverContent>
     </Popover>
+  );
+}
+
+export interface ReplicationActiveFilterChipsProps {
+  filters: GalleryTaxonomyFilterState;
+  onChange: (filters: GalleryTaxonomyFilterState) => void;
+  drugOptions: ReadonlyArray<FilterOption>;
+  effectOptions: ReadonlyArray<FilterOption>;
+  className?: string;
+}
+
+/**
+ * Slim row of removable chips, one per active taxonomy filter — the visible
+ * counterpart of the popover's count badge. Shares the popover's option
+ * labels and the same whole-state `onChange`, so removing a chip is exactly
+ * a select flipping back to "all" (URL params and corpus update together).
+ * Renders nothing while every filter is at its default.
+ */
+export function ReplicationActiveFilterChips({
+  filters,
+  onChange,
+  drugOptions,
+  effectOptions,
+  className,
+}: ReplicationActiveFilterChipsProps) {
+  const active = (Object.keys(OPTIONS) as FilterKey[]).filter(
+    (key) => filters[key] !== "all",
+  );
+  if (active.length === 0) return null;
+
+  // Corpus-derived facets (drug, effect) label from their live option lists;
+  // a URL-typed value missing from the corpus falls back to its raw slug.
+  const valueLabel = (key: FilterKey): string => {
+    const value = filters[key];
+    const pool =
+      key === "drug"
+        ? drugOptions
+        : key === "effect"
+        ? effectOptions
+        : OPTIONS[key];
+    return pool.find((option) => option.value === value)?.label ?? value;
+  };
+
+  return (
+    <ul className={cn("flex flex-wrap items-center gap-1.5", className)}>
+      {active.map((key) => (
+        <li key={key}>
+          <Button
+            type="button"
+            variant="pill"
+            size="pill"
+            aria-label={`Remove ${LABELS[key]} filter: ${valueLabel(key)}`}
+            onClick={() =>
+              onChange({ ...filters, [key]: "all" } as GalleryTaxonomyFilterState)
+            }
+            className="gap-1.5 px-3 py-1 text-xs [@media(pointer:coarse)]:min-h-11"
+          >
+            <span className="theme-text-faint" aria-hidden>
+              {LABELS[key]}:
+            </span>
+            <span className="font-medium" aria-hidden>
+              {valueLabel(key)}
+            </span>
+            <Icon icon="lucide:x" className="h-3 w-3" aria-hidden />
+          </Button>
+        </li>
+      ))}
+    </ul>
   );
 }

@@ -79,6 +79,9 @@ const nextConfig: NextConfig = {
   outputFileTracingIncludes: {
     "/html-docs/[doc]": ["./html-docs/**/*"],
   },
+  // Native N-API package used by the molecule OG-card route; bundling it breaks
+  // the per-platform binding resolution, so it must load from node_modules.
+  serverExternalPackages: ["@resvg/resvg-js"],
   experimental: {
     optimizePackageImports: [
       "@dnd-kit/core",

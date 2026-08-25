@@ -33,6 +33,7 @@ export function AppearanceCog({
   showColorScheme,
   showAccent,
   showSurface,
+  showFont,
   showMoreSettings,
 }: AppearanceCogRows & { className?: string }) {
   const appearanceTriggerRef = useRef<HTMLButtonElement>(null);
@@ -41,7 +42,14 @@ export function AppearanceCog({
   // A cog that opens an empty panel is worse than no cog. Effect Index with its style locked
   // and its accent locked still has day/night, so this is reached only by a build that offers
   // a reader nothing at all.
-  if (!showVisualStyle && !showColorScheme && !showSurface && !showAccent && !showMoreSettings) {
+  if (
+    !showVisualStyle &&
+    !showColorScheme &&
+    !showSurface &&
+    !showAccent &&
+    !showFont &&
+    !showMoreSettings
+  ) {
     return null;
   }
 
@@ -107,6 +115,7 @@ export function AppearanceCog({
           showColorScheme={showColorScheme}
           showSurface={showSurface}
           showAccent={showAccent}
+          showFont={showFont}
           endSlot={
             showMoreSettings ? (
               <button

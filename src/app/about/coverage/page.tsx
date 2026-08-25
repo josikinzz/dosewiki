@@ -25,7 +25,7 @@ export const revalidate = 3600;
  * sitemap, and nothing links to it — including the About page it sits under.
  */
 export const metadata: Metadata = buildPublicPageMetadata({
-  title: `Coverage | ${SITE_FLAVOR_CONFIG.name}`,
+  title: "Coverage",
   description:
     `Per-section content and citation coverage across every ${SITE_FLAVOR_CONFIG.name} substance article.`,
   pathname: "/about/coverage",

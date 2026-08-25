@@ -49,26 +49,6 @@ function stubPlayback() {
   vi.spyOn(HTMLMediaElement.prototype, "play").mockResolvedValue(undefined);
 }
 
-/**
- * jsdom ships no IntersectionObserver; report every observed element as
- * immediately, fully in view so the autoplay path can engage.
- */
-function stubEverythingInView() {
-  vi.stubGlobal(
-    "IntersectionObserver",
-    class {
-      constructor(private callback: IntersectionObserverCallback) {}
-      observe(target: Element) {
-        this.callback(
-          [{ isIntersecting: true, target } as IntersectionObserverEntry],
-          this as unknown as IntersectionObserver,
-        );
-      }
-      disconnect() {}
-    },
-  );
-}
-
 afterEach(() => {
   vi.unstubAllGlobals();
   vi.restoreAllMocks();
@@ -123,10 +103,8 @@ describe("GalleryMediaTile", () => {
     expect(container.querySelector("video")).toBeNull();
   });
 
-  it("autoplays the preview rendition, not the full source, once in view", () => {
+  it("plays nothing at rest, even on a desktop pointer", () => {
     stubDesktopPointer();
-    stubPlayback();
-    stubEverythingInView();
     const preview = {
       ...VIDEO,
       preview_url: "https://example.test/geometry-frog-preview.mp4",
@@ -136,16 +114,37 @@ describe("GalleryMediaTile", () => {
       <GalleryMediaTile replication={preview} viewerHref={VIEWER_HREF} />,
     );
 
+    // Playback is hover-gated; an unhovered tile never mounts a video.
+    expect(container.querySelector("video")).toBeNull();
+  });
+
+  it("hover plays the preview rendition, not the full source", async () => {
+    stubDesktopPointer();
+    stubPlayback();
+    const user = userEvent.setup();
+    const preview = {
+      ...VIDEO,
+      preview_url: "https://example.test/geometry-frog-preview.mp4",
+    };
+
+    const { container } = render(
+      <GalleryMediaTile replication={preview} viewerHref={VIEWER_HREF} />,
+    );
+    await user.hover(screen.getByRole("link"));
+
     const video = container.querySelector("video");
     expect(video).not.toBeNull();
     expect(video).toHaveAttribute("src", preview.preview_url);
-    expect(video).toHaveAttribute("preload", "metadata");
     expect(video).toHaveClass("pointer-events-none");
+
+    // Mouse-out unmounts the preview again.
+    await user.unhover(screen.getByRole("link"));
+    expect(container.querySelector("video")).toBeNull();
   });
 
-  it("never autoplays for reduced-motion readers but still labels the tile a video", () => {
-    // Reduced motion: every media query except none matches... report only
-    // the reduced-motion query as matching.
+  it("stays static for reduced-motion readers but still labels the tile a video", async () => {
+    // Report only the reduced-motion query as matching: the hover gate closes
+    // even though the pointer could be a fine mouse.
     vi.stubGlobal(
       "matchMedia",
       (query: string): MediaQueryList =>
@@ -156,7 +155,7 @@ describe("GalleryMediaTile", () => {
           removeEventListener: () => {},
         }) as unknown as MediaQueryList,
     );
-    stubEverythingInView();
+    const user = userEvent.setup();
     const preview = {
       ...VIDEO,
       preview_url: "https://example.test/geometry-frog-preview.mp4",
@@ -165,6 +164,7 @@ describe("GalleryMediaTile", () => {
     const { container } = render(
       <GalleryMediaTile replication={preview} viewerHref={VIEWER_HREF} />,
     );
+    await user.hover(screen.getByRole("link"));
 
     expect(container.querySelector("video")).toBeNull();
     // The chip is their signal that the still is actually a video.

@@ -8,7 +8,7 @@ import { SiteFeedbackForm } from "@/features/site-feedback/components/SiteFeedba
 import { SITE_FLAVOR_CONFIG } from "@/config/siteFlavor";
 
 export const metadata: Metadata = buildPublicPageMetadata({
-  title: `General feedback | ${SITE_FLAVOR_CONFIG.name}`,
+  title: "General feedback",
   description: `Send the ${SITE_FLAVOR_CONFIG.name} editors private feedback about the site — an article request, a technical issue, design, performance, or accessibility.`,
   pathname: "/about/feedback",
 });

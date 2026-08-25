@@ -1,16 +1,18 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 
+import { buildPageMetadata } from "@server/next/metadata";
 import { Icon } from "@/components/common/Icon";
 import { PublicContentShell } from "@/components/layout/PublicPagePrimitives";
 import { Button } from "@/components/ui/button";
 import { ContentCard, NestedContentCard } from "@/components/ui/surface";
 
-export const metadata: Metadata = {
-  title: "Public API | DoseWiki",
+export const metadata: Metadata = buildPageMetadata({
+  title: "Public API",
   description:
-    "Documentation and examples for the read-only DoseWiki substance API.",
-};
+    "Documentation and examples for the read-only dose.wiki substance API.",
+  pathname: "/api/v1",
+});
 
 const endpoints = [
   {

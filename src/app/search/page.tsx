@@ -21,7 +21,7 @@ export async function generateMetadata({ searchParams }: SearchIndexPageProps) {
   const query = getSearchQuery(resolvedSearchParams?.q);
 
   return buildPageMetadata({
-    title: query ? `Search · ${query}` : "Search",
+    title: query ? `Search Results for "${query}"` : "Search",
     description: query
       ? `Search ${SITE_FLAVOR_CONFIG.name} for substances, effects, reports, and profiles matching ${query}.`
       : `Search ${SITE_FLAVOR_CONFIG.name} for substances, effects, reports, and profiles.`,

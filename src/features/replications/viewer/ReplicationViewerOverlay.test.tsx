@@ -24,6 +24,9 @@ vi.mock("./ReplicationMediaStage", () => ({
     item,
     muted,
     onMutedChange,
+    rotateMode,
+    onRotateModeChange,
+    onRotatedChange,
     onPrevious,
     onNext,
     onInfo,
@@ -37,6 +40,9 @@ vi.mock("./ReplicationMediaStage", () => ({
     item: { replication: { title: string; type: "image" | "video" } };
     muted: boolean;
     onMutedChange: (muted: boolean) => void;
+    rotateMode?: boolean;
+    onRotateModeChange?: (rotateMode: boolean) => void;
+    onRotatedChange?: (rotated: boolean) => void;
     onPrevious?: () => void;
     onNext?: () => void;
     onInfo?: () => void;
@@ -98,6 +104,17 @@ vi.mock("./ReplicationMediaStage", () => ({
         onClick={onInfo}
       >
         Information
+      </button>
+      <button
+        type="button"
+        aria-pressed={rotateMode}
+        aria-label={rotateMode ? "Rotate back upright" : "Rotate to fill screen"}
+        onClick={() => onRotateModeChange?.(!rotateMode)}
+      >
+        Rotate
+      </button>
+      <button type="button" onClick={() => onRotatedChange?.(true)}>
+        Report rotated
       </button>
       <button type="button" onClick={onFullscreen}>
         {fullscreenLabel}
@@ -607,6 +624,29 @@ describe("ReplicationViewerOverlay", () => {
     ).toBeInTheDocument();
   });
 
+  it("preloads a parked video neighbor so landing finds its first frame decodable", () => {
+    render(
+      <ReplicationViewerOverlay
+        collection={collection}
+        initialSlug="work-one"
+        open
+        onOpenChange={vi.fn()}
+      />,
+    );
+
+    const track = document.querySelector(
+      "[data-replication-media-track]",
+    ) as HTMLElement;
+    // work-two, the only adjacent work, is a video: its file warms in a
+    // hidden standby preloader while the reader views work-one.
+    const preloader = track.querySelector(
+      'video[src="https://cdn.test/two.mp4"]',
+    );
+    expect(preloader).toHaveAttribute("preload", "auto");
+    // Preloading is capped at the parked neighbors — nothing else fetches.
+    expect(track.querySelectorAll("video[preload]")).toHaveLength(1);
+  });
+
   it("contains information-panel focus and restores its trigger", async () => {
     render(
       <ReplicationViewerOverlay
@@ -959,5 +999,81 @@ describe("ReplicationViewerOverlay", () => {
     expect(
       await screen.findByRole("button", { name: "Mute" }),
     ).toBeInTheDocument();
+  });
+
+  it("stores rotate mode and keeps it sticky while swiping across works", async () => {
+    render(
+      <ReplicationViewerOverlay
+        collection={collection}
+        initialSlug="work-one"
+        open
+        onOpenChange={vi.fn()}
+      />,
+    );
+
+    fireEvent.click(
+      await screen.findByRole("button", { name: "Rotate to fill screen" }),
+    );
+
+    expect(
+      screen.getByRole("button", { name: "Rotate back upright" }),
+    ).toHaveAttribute("aria-pressed", "true");
+    expect(window.sessionStorage.getItem("replication-viewer-rotate")).toBe(
+      "on",
+    );
+
+    // Advancing to the next work never resets the reader's mode.
+    fireEvent.click(screen.getByRole("button", { name: "Next: Work Two" }));
+    expect(screen.getByTestId("media-stage")).toHaveAttribute(
+      "data-title",
+      "Work Two",
+    );
+    expect(
+      screen.getByRole("button", { name: "Rotate back upright" }),
+    ).toHaveAttribute("aria-pressed", "true");
+  });
+
+  it("reopens with rotate mode on when this session already chose it", async () => {
+    window.sessionStorage.setItem("replication-viewer-rotate", "on");
+
+    render(
+      <ReplicationViewerOverlay
+        collection={collection}
+        initialSlug="work-one"
+        open
+        onOpenChange={vi.fn()}
+      />,
+    );
+
+    expect(
+      await screen.findByRole("button", { name: "Rotate back upright" }),
+    ).toHaveAttribute("aria-pressed", "true");
+  });
+
+  it("leans settings and thumbnail icons while the stage reports a rotated work", async () => {
+    render(
+      <ReplicationViewerOverlay
+        collection={collection}
+        initialSlug="work-one"
+        open
+        onOpenChange={vi.fn()}
+      />,
+    );
+
+    const rail = screen.getByRole("navigation", {
+      name: "Chelsea Morgan works",
+    });
+    const wrappers = rail.querySelectorAll("[data-rotating-icon]");
+    expect(wrappers.length).toBeGreaterThan(0);
+    wrappers.forEach((wrapper) =>
+      expect(wrapper.className).not.toContain("rotate-90"),
+    );
+
+    fireEvent.click(
+      await screen.findByRole("button", { name: "Report rotated" }),
+    );
+    rail
+      .querySelectorAll("[data-rotating-icon]")
+      .forEach((wrapper) => expect(wrapper.className).toContain("rotate-90"));
   });
 });

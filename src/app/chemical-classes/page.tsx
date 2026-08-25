@@ -10,7 +10,7 @@ export async function generateMetadata() {
   const classCount = Object.keys(payload.nodes).length;
 
   return buildPublicPageMetadata({
-    title: `Chemical classes · ${classCount} classes`,
+    title: "Chemical Classes",
     description: `Browse the chemical class tree - ${classCount} classes organized by structural lineage on ${SITE_FLAVOR_CONFIG.name}.`,
     route: { family: "chemicalClasses" },
   });

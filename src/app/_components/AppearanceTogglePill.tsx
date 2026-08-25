@@ -4,7 +4,7 @@ import type { ReactNode } from "react";
 import { cn } from "@/lib/utils";
 
 /** The appearance axis a pill owns. Mirrored to the DOM for tests and skin hooks. */
-type AppearanceAxis = "color-scheme" | "visual-style";
+type AppearanceAxis = "color-scheme" | "visual-style" | "font";
 
 /**
  * `w-1/2` rather than a stated pixel width: two halves of the pill's content box

@@ -17,6 +17,7 @@
   "accentChromaStorageKey": "dosewiki-chroma-accent",
   "surfaceHueStorageKey": "dosewiki-surface-hue",
   "accentHueStorageKey": "dosewiki-accent-hue",
+  "fontStorageKey": "dosewiki-font",
   "metaId": "theme-color-meta",
   "metaColors": {
     "fun": {

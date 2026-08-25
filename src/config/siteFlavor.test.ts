@@ -54,6 +54,7 @@ describe("site flavor config", () => {
       socialCard: { path: "/icon-512.png", width: 512, height: 512 },
       faviconPath: "/favicon.svg",
       appleTouchIconPath: "/apple-touch-icon.png",
+      titleSuffix: "dose.wiki",
       homeTitle: "dose.wiki",
       aboutTitle: "About dose.wiki",
       defaultColorScheme: "dark",
@@ -92,6 +93,7 @@ describe("site flavor config", () => {
       logoPath: "/effectindex/icon.png",
       faviconPath: "/effectindex/favicon.png",
       appleTouchIconPath: "/effectindex/icon.png",
+      titleSuffix: "Effect Index",
       homeTitle: "Effect Index",
       aboutTitle: "About Effect Index",
       defaultColorScheme: "light",
@@ -206,7 +208,6 @@ describe("site flavor config", () => {
       markPath: null,
       alt: "dose.wiki logo",
       heroAlt: "dose.wiki molecule logo",
-      heroAnimateLabel: "Animate dose.wiki logo",
     });
     expect(dosewiki.footer).toEqual({
       tagline: "Community harm-reduction information. Not medical advice.",

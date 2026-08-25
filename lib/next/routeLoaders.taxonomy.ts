@@ -178,7 +178,8 @@ export const effectCategoryRouteDescriptor: TaxonomyRouteDescriptor<
   },
   getDetail: ({ categorySlug }) => getEffectCategoryDetail(categorySlug),
   getMetadata: ({ params, detail }) => ({
-    title: `Effect category · ${params.categorySlug}`,
+    // Bare page name; buildPublicPageMetadata appends the flavored " - <suffix>" tail.
+    title: getEffectCategoryDefinition(params.categorySlug)?.name ?? "Effect category",
     description: `Browse ${detail ? detail.length : 0} effects in the ${params.categorySlug} category.`,
   }),
 };
@@ -237,7 +238,7 @@ export const mechanismQualifierRouteDescriptor: TaxonomyRouteDescriptor<
   getDetail: getMechanismQualifierDetail,
   getMetadata: ({ detail }) => ({
     title: detail
-      ? `${detail.mechanism.definition.name} · ${detail.qualifier.label}`
+      ? `${detail.mechanism.definition.name} ${detail.qualifier.label}`
       : "Mechanism qualifier",
     description: detail
       ? `Browse ${detail.qualifier.total} substances in the ${detail.qualifier.label} qualifier.`

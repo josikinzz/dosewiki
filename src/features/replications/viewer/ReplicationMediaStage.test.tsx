@@ -76,12 +76,15 @@ describe("ReplicationMediaStage", () => {
     const onPrevious = vi.fn();
     const onNext = vi.fn();
     const onInfo = vi.fn();
+    const onRotateModeChange = vi.fn();
     const onFullscreen = vi.fn();
 
     const { container } = render(
       <ReplicationMediaStage
         item={item()}
         muted
+        rotateMode={false}
+        onRotateModeChange={onRotateModeChange}
         volume={0.6}
         onMutedChange={onMutedChange}
         onVolumeChange={onVolumeChange}
@@ -128,9 +131,10 @@ describe("ReplicationMediaStage", () => {
 
     expect(onMutedChange).toHaveBeenCalledWith(false);
     expect(onVolumeChange).toHaveBeenCalledWith(0.25);
+    expect(onRotateModeChange).toHaveBeenCalledWith(true);
     expect(
-      screen.getByRole("button", { name: "Rotate back upright" }),
-    ).toHaveAttribute("aria-pressed", "true");
+      screen.getByRole("button", { name: "Rotate to fill screen" }),
+    ).toHaveAttribute("aria-pressed", "false");
     expect(onPrevious).toHaveBeenCalledOnce();
     expect(onNext).toHaveBeenCalledOnce();
     expect(onInfo).toHaveBeenCalledOnce();
@@ -303,6 +307,33 @@ describe("ReplicationMediaStage", () => {
     ).not.toBeInTheDocument();
   });
 
+  it("fades the poster underlay once a frame is decodable, not on playback progress", () => {
+    const { container } = render(
+      <ReplicationMediaStage
+        item={item()}
+        muted
+        volume={1}
+        onMutedChange={vi.fn()}
+        onVolumeChange={vi.fn()}
+      />,
+    );
+
+    const video = container.querySelector("video") as HTMLVideoElement;
+    const underlay = container.querySelector(
+      'img[src="https://cdn.test/tracers.webp"]',
+    )?.parentElement as HTMLElement;
+    expect(underlay.className).toContain("opacity-100");
+
+    // Playback progress alone no longer gates the fade…
+    fireEvent.timeUpdate(video);
+    expect(underlay.className).toContain("opacity-100");
+
+    // …a decodable first frame does. canplay is the fallback signal where
+    // requestVideoFrameCallback is unavailable, as in jsdom.
+    fireEvent.canPlay(video);
+    expect(underlay.className).toContain("opacity-0");
+  });
+
   it("does not load a raw GIF when its controllable rendition is absent", () => {
     const { container } = render(
       <ReplicationMediaStage
@@ -374,6 +405,125 @@ describe("ReplicationMediaStage", () => {
     expect(stage).not.toHaveAttribute("data-controls-visible");
     fireEvent.click(screen.getByRole("button", { name: "Show controls" }));
     expect(stage).toHaveAttribute("data-controls-visible", "true");
+  });
+
+  it("keeps a playing video playing on tap and toggles the chrome instead", () => {
+    const play = vi.mocked(HTMLMediaElement.prototype.play);
+    const pause = vi.mocked(HTMLMediaElement.prototype.pause);
+    const { container } = render(
+      <ReplicationMediaStage
+        item={item()}
+        muted
+        volume={1}
+        onMutedChange={vi.fn()}
+        onVolumeChange={vi.fn()}
+      />,
+    );
+
+    const stage = screen.getByRole("region", { name: "Tracers loop media" });
+    const video = container.querySelector("video") as HTMLVideoElement;
+    Object.defineProperty(video, "paused", {
+      configurable: true,
+      value: false,
+    });
+    fireEvent.play(video);
+    pause.mockClear();
+    const playCallsBeforeTaps = play.mock.calls.length;
+
+    // Tap = reveal/dismiss chrome, never pause (the still-stage grammar).
+    expect(stage).toHaveAttribute("data-controls-visible", "true");
+    fireEvent.click(video);
+    expect(stage).not.toHaveAttribute("data-controls-visible");
+    fireEvent.click(video);
+    expect(stage).toHaveAttribute("data-controls-visible", "true");
+    expect(pause).not.toHaveBeenCalled();
+    expect(play.mock.calls.length).toBe(playCallsBeforeTaps);
+
+    // Pause lives exclusively on the play button.
+    fireEvent.click(screen.getByRole("button", { name: "Pause" }));
+    expect(pause).toHaveBeenCalledOnce();
+  });
+
+  it("anchors the playback cluster to the media box's bottom-left corner", () => {
+
+    // Landscape 16:9 — spare space sits above/below; left hugs the stage.
+    const { rerender } = render(
+      <ReplicationMediaStage
+        item={item()}
+        muted
+        volume={1}
+        onMutedChange={vi.fn()}
+        onVolumeChange={vi.fn()}
+      />,
+    );
+    // The pill node survives rerenders: React keeps the DOM element while
+    // only its style/class props change, so one capture observes every step.
+    const pill = screen
+      .getByRole("button", { name: "Play" })
+      .closest("div") as HTMLElement;
+    expect(pill.className).toContain("left-[var(--media-box-left)]");
+    expect(pill.className).toContain("bottom-[var(--media-box-bottom)]");
+    expect(pill.style.getPropertyValue("--media-box-left")).toBe(
+      `calc((100cqw - min(100cqw, 100cqh * ${16 / 9})) / 2 + 0.75rem)`,
+    );
+    expect(pill.style.getPropertyValue("--media-box-bottom")).toBe(
+      `calc((100cqh - min(100cqh, 100cqw / ${16 / 9})) / 2 + 0.75rem)`,
+    );
+
+    // Rotate mode turns the landscape media box sideways: it presents the
+    // inverted aspect, and the cluster follows the turned box's corner.
+    rerender(
+      <ReplicationMediaStage
+        item={item()}
+        muted
+        volume={1}
+        rotateMode
+        onMutedChange={vi.fn()}
+        onVolumeChange={vi.fn()}
+      />,
+    );
+    expect(pill.style.getPropertyValue("--media-box-left")).toBe(
+      `calc((100cqw - min(100cqw, 100cqh * ${9 / 16})) / 2 + 0.75rem)`,
+    );
+    expect(pill.style.getPropertyValue("--media-box-bottom")).toBe(
+      `calc((100cqh - min(100cqh, 100cqw / ${9 / 16})) / 2 + 0.75rem)`,
+    );
+
+    // Portrait 9:16 stays upright even while the mode holds.
+    rerender(
+      <ReplicationMediaStage
+        item={item({ slug: "tall-loop", width: 900, height: 1600 })}
+        muted
+        volume={1}
+        rotateMode
+        onMutedChange={vi.fn()}
+        onVolumeChange={vi.fn()}
+      />,
+    );
+    expect(pill.style.getPropertyValue("--media-box-left")).toBe(
+      `calc((100cqw - min(100cqw, 100cqh * ${9 / 16})) / 2 + 0.75rem)`,
+    );
+    expect(pill.style.getPropertyValue("--media-box-bottom")).toBe(
+      `calc((100cqh - min(100cqh, 100cqw / ${9 / 16})) / 2 + 0.75rem)`,
+    );
+
+    // Square.
+    rerender(
+      <ReplicationMediaStage
+        item={item({ slug: "square-loop", width: 1200, height: 1200 })}
+        muted
+        volume={1}
+        rotateMode
+        onMutedChange={vi.fn()}
+        onVolumeChange={vi.fn()}
+      />,
+    );
+    expect(pill.style.getPropertyValue("--media-box-left")).toBe(
+      "calc((100cqw - min(100cqw, 100cqh * 1)) / 2 + 0.75rem)",
+    );
+    expect(pill.style.getPropertyValue("--media-box-bottom")).toBe(
+      "calc((100cqh - min(100cqh, 100cqw / 1)) / 2 + 0.75rem)",
+    );
   });
 
   it("renders no badge or sound controls over a still image", () => {
@@ -714,65 +864,65 @@ describe("ReplicationMediaStage", () => {
     expect(video).toHaveAttribute("loop");
     expect(video).toHaveAttribute("autoplay");
   });
-  it("rotates only the stage media and un-rotates when the next work is not landscape", () => {
+  it("rotates only the stage media and stays sticky across landscape works", () => {
     const { container, rerender } = render(
       <ReplicationMediaStage
         item={item()}
         muted
         volume={1}
+        rotateMode
+        onRotateModeChange={vi.fn()}
         onMutedChange={vi.fn()}
         onVolumeChange={vi.fn()}
       />,
     );
 
-    fireEvent.click(
-      screen.getByRole("button", { name: "Rotate to fill screen" }),
-    );
     const video = container.querySelector("video")!;
     expect(video.className).toContain("rotate-90");
     // Chrome stays upright: the stage section itself never transforms.
     expect(
       screen.getByRole("region", { name: "Tracers loop media" }).className,
     ).not.toContain("rotate-90");
-
-    // Advancing to a portrait work drops the control and paints upright.
-    rerender(
-      <ReplicationMediaStage
-        item={item({ slug: "tall-loop", width: 900, height: 1600 })}
-        muted
-        volume={1}
-        onMutedChange={vi.fn()}
-        onVolumeChange={vi.fn()}
-      />,
-    );
     expect(
-      screen.queryByRole("button", { name: /Rotate/ }),
-    ).not.toBeInTheDocument();
-    expect(container.querySelector("video")!.className).not.toContain(
-      "rotate-90",
-    );
-  });
+      screen.getByRole("button", { name: "Rotate back upright" }),
+    ).toHaveAttribute("aria-pressed", "true");
 
-  it("keeps a rotation from leaking onto the next landscape work", () => {
-    const { container, rerender } = render(
-      <ReplicationMediaStage
-        item={item()}
-        muted
-        volume={1}
-        onMutedChange={vi.fn()}
-        onVolumeChange={vi.fn()}
-      />,
-    );
-    fireEvent.click(
-      screen.getByRole("button", { name: "Rotate to fill screen" }),
-    );
-    expect(container.querySelector("video")!.className).toContain("rotate-90");
-
+    // The mode survives advancing: the next landscape work turns unasked.
     rerender(
       <ReplicationMediaStage
         item={item({ slug: "wide-two", title: "Second wide" })}
         muted
         volume={1}
+        rotateMode
+        onRotateModeChange={vi.fn()}
+        onMutedChange={vi.fn()}
+        onVolumeChange={vi.fn()}
+      />,
+    );
+    expect(container.querySelector("video")!.className).toContain("rotate-90");
+  });
+
+  it("lands portrait works upright while the pressed toggle keeps the mode", () => {
+    const { container, rerender } = render(
+      <ReplicationMediaStage
+        item={item()}
+        muted
+        volume={1}
+        rotateMode
+        onRotateModeChange={vi.fn()}
+        onMutedChange={vi.fn()}
+        onVolumeChange={vi.fn()}
+      />,
+    );
+    expect(container.querySelector("video")!.className).toContain("rotate-90");
+
+    rerender(
+      <ReplicationMediaStage
+        item={item({ slug: "tall-loop", width: 900, height: 1600 })}
+        muted
+        volume={1}
+        rotateMode
+        onRotateModeChange={vi.fn()}
         onMutedChange={vi.fn()}
         onVolumeChange={vi.fn()}
       />,
@@ -781,11 +931,52 @@ describe("ReplicationMediaStage", () => {
       "rotate-90",
     );
     expect(
-      screen.getByRole("button", { name: "Rotate to fill screen" }),
-    ).toBeInTheDocument();
+      screen.getByRole("button", { name: "Rotate back upright" }),
+    ).toHaveAttribute("aria-pressed", "true");
   });
 
-  it("offers no rotate control outside the portrait phone layout", () => {
+  it("leans control icons with the rotated work and eases them back upright", () => {
+    const onRotatedChange = vi.fn();
+    const { rerender } = render(
+      <ReplicationMediaStage
+        item={item()}
+        muted
+        volume={1}
+        rotateMode
+        onRotateModeChange={vi.fn()}
+        onRotatedChange={onRotatedChange}
+        onMutedChange={vi.fn()}
+        onVolumeChange={vi.fn()}
+      />,
+    );
+    const playIcon = screen
+      .getByRole("button", { name: "Play" })
+      .querySelector("[data-rotating-icon]")!;
+    expect(playIcon.className).toContain("rotate-90");
+    expect(onRotatedChange).toHaveBeenLastCalledWith(true);
+
+    rerender(
+      <ReplicationMediaStage
+        item={item({ slug: "tall-loop", width: 900, height: 1600 })}
+        muted
+        volume={1}
+        rotateMode
+        onRotateModeChange={vi.fn()}
+        onRotatedChange={onRotatedChange}
+        onMutedChange={vi.fn()}
+        onVolumeChange={vi.fn()}
+      />,
+    );
+    expect(
+      screen
+        .getByRole("button", { name: "Play" })
+        .querySelector("[data-rotating-icon]")!
+        .className,
+    ).not.toContain("rotate-90");
+    expect(onRotatedChange).toHaveBeenLastCalledWith(false);
+  });
+
+  it("offers no rotate control and never rotates outside the portrait phone layout", () => {
     vi.stubGlobal(
       "matchMedia",
       vi.fn().mockImplementation((query: string) => ({
@@ -795,11 +986,13 @@ describe("ReplicationMediaStage", () => {
         removeEventListener: vi.fn(),
       })),
     );
-    render(
+    const { container } = render(
       <ReplicationMediaStage
         item={item()}
         muted
         volume={1}
+        rotateMode
+        onRotateModeChange={vi.fn()}
         onMutedChange={vi.fn()}
         onVolumeChange={vi.fn()}
       />,
@@ -807,5 +1000,8 @@ describe("ReplicationMediaStage", () => {
     expect(
       screen.queryByRole("button", { name: /Rotate/ }),
     ).not.toBeInTheDocument();
+    expect(container.querySelector("video")!.className).not.toContain(
+      "rotate-90",
+    );
   });
 });

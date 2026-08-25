@@ -267,6 +267,32 @@ describe("URL → rendered state", () => {
     expect(screen.queryByText("Closed geometry")).toBeNull();
   });
 
+  it("filters by depicted effect across owning slug and effect tags", () => {
+    const owned = rep({ title: "Owned drift", effect_slug: "drifting" });
+    const tagged = rep({ title: "Tagged drift", effect_slug: "geometry", effect_tags: ["drifting"] });
+    const other = rep({ title: "Plain geometry", effect_slug: "geometry" });
+
+    renderExplorer("effect=drifting", { replications: [owned, tagged, other] });
+
+    expect(screen.getByRole("button", { name: "Filters, 1 active" })).toBeInTheDocument();
+    expect(screen.getByText("Owned drift")).toBeInTheDocument();
+    expect(screen.getByText("Tagged drift")).toBeInTheDocument();
+    expect(screen.queryByText("Plain geometry")).toBeNull();
+    // The counts line describes the filtered set, not the whole corpus.
+    expect(screen.getByText("2 works · 1 artists · 2 effects")).toBeInTheDocument();
+  });
+
+  it("composes the depicted-effect filter with the other taxonomy filters", () => {
+    const both = rep({ title: "Drift open", effect_slug: "drifting", viewing_mode_tags: ["open-eye"] });
+    const effectOnly = rep({ title: "Drift closed", effect_slug: "drifting", viewing_mode_tags: ["closed-eye"] });
+
+    renderExplorer("effect=drifting&viewing=open-eye", { replications: [both, effectOnly] });
+
+    expect(screen.getByRole("button", { name: "Filters, 2 active" })).toBeInTheDocument();
+    expect(screen.getByText("Drift open")).toBeInTheDocument();
+    expect(screen.queryByText("Drift closed")).toBeNull();
+  });
+
   it("offers a clear action when selected taxonomy filters match nothing", async () => {
     renderExplorer("drugClass=deliriants");
 
@@ -300,6 +326,38 @@ describe("URL → rendered state", () => {
       screen.getByRole("textbox", { name: "Search replications" }),
     ).toHaveValue("drifting");
     expect(screen.getByText(/1 result for/)).toBeInTheDocument();
+  });
+});
+
+describe("active filter chips", () => {
+  it("labels one removable chip per active filter", () => {
+    renderExplorer("viewing=open-eye&effect=drifting");
+
+    expect(
+      screen.getByRole("button", { name: "Remove Viewing mode filter: Open-eye" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "Remove Depicted effect filter: Drifting" }),
+    ).toBeInTheDocument();
+  });
+
+  it("removes only its own filter and pushes the narrowed URL", async () => {
+    const user = userEvent.setup();
+    renderExplorer("viewing=open-eye&effect=drifting");
+
+    await user.click(
+      screen.getByRole("button", { name: "Remove Viewing mode filter: Open-eye" }),
+    );
+
+    expect(navMocks.push).toHaveBeenCalledWith("/replications?effect=drifting", {
+      scroll: false,
+    });
+  });
+
+  it("renders no chip row while every filter sits at its default", () => {
+    renderExplorer("");
+
+    expect(screen.queryByRole("button", { name: /^Remove .* filter:/ })).toBeNull();
   });
 });
 

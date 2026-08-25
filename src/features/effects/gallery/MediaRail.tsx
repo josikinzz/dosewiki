@@ -39,6 +39,13 @@ interface MediaRailProps {
     event: React.MouseEvent,
     replication: PublicGalleryReplicationPreview,
   ) => void;
+  /**
+   * Intercepts a plain click on either "View all" affordance (header link and
+   * rail-end tile) to open the in-page viewer on this group instead of
+   * navigating. The anchor keeps `viewAllHref` so modified clicks, new tabs,
+   * and crawlers still reach the group's own page.
+   */
+  onViewAllOpen?: (event: React.MouseEvent) => void;
   /** Canonical source-collection viewer URL for each rail work. */
   viewerHrefFor: (replication: PublicGalleryReplicationPreview) => string;
   /**
@@ -59,6 +66,7 @@ export function MediaRail({
   tileBylines = true,
   mobileCompact,
   onTileOpen,
+  onViewAllOpen,
   avatarUrl,
   viewerHrefFor,
 }: MediaRailProps) {
@@ -207,6 +215,7 @@ export function MediaRail({
         {hasMore ? (
           <Link
             href={viewAllHref}
+            onClick={onViewAllOpen}
             className="theme-text-muted group/all inline-flex min-h-11 items-center gap-1 rounded-full px-2 py-1 text-sm font-medium transition-colors hover:text-[var(--theme-accent-strong)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--theme-accent-strong)]"
           >
             View all {group.count}
@@ -244,6 +253,7 @@ export function MediaRail({
           {hasMore ? (
             <Link
               href={viewAllHref}
+              onClick={onViewAllOpen}
               style={{ aspectRatio: "4 / 5" }}
               className="theme-text-muted flex h-44 shrink-0 snap-start self-start flex-col items-center justify-center gap-2 rounded-xl border border-dashed border-[color:var(--theme-border-strong)] bg-[var(--theme-surface-soft)] px-4 text-sm font-medium transition-colors hover:text-[var(--theme-accent-strong)] hover:border-[color:var(--theme-card-border-strong)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--theme-accent-strong)] sm:h-52 motion-reduce:transition-none"
             >

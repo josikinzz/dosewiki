@@ -15,6 +15,7 @@ import {
   ACCENT_HUE_STORAGE_KEY,
   ACCENT_STORAGE_KEY,
   COLOR_SCHEME_STORAGE_KEY,
+  FONT_STORAGE_KEY,
   SURFACE_CHROMA_STORAGE_KEY,
   SURFACE_HUE_STORAGE_KEY,
   SURFACE_STORAGE_KEY,
@@ -30,6 +31,7 @@ function AppearanceProbe() {
   const {
     colorScheme,
     visualStyle,
+    fontPreference,
     surfaceChroma,
     accentChroma,
     setSurfaceChroma,
@@ -39,16 +41,20 @@ function AppearanceProbe() {
     setAccentHue,
     isVisualStyleLocked,
     isAccentLocked,
+    isFontLocked,
     toggleColorScheme,
     toggleVisualStyle,
+    toggleFontPreference,
   } = useTheme();
 
   return (
     <div>
       <span data-testid="color-scheme">{colorScheme}</span>
       <span data-testid="visual-style">{visualStyle}</span>
+      <span data-testid="font-preference">{fontPreference}</span>
       <span data-testid="style-locked">{String(isVisualStyleLocked)}</span>
       <span data-testid="accent-locked">{String(isAccentLocked)}</span>
+      <span data-testid="font-locked">{String(isFontLocked)}</span>
       <span data-testid="surface-chroma">{String(surfaceChroma)}</span>
       <span data-testid="accent-chroma">{String(accentChroma)}</span>
       <span data-testid="surface-hue">{String(surfaceHue)}</span>
@@ -58,6 +64,9 @@ function AppearanceProbe() {
       </button>
       <button type="button" onClick={toggleVisualStyle}>
         Toggle style
+      </button>
+      <button type="button" onClick={toggleFontPreference}>
+        Toggle type
       </button>
       <button type="button" onClick={() => setSurfaceChroma(0.4)}>
         Saturate surface
@@ -154,6 +163,7 @@ function renderProvider(
     isVisualStyleLocked?: boolean;
     isAccentLocked?: boolean;
     isSurfaceLocked?: boolean;
+    isFontLocked?: boolean;
   } = {},
 ) {
   return render(
@@ -163,6 +173,7 @@ function renderProvider(
       isVisualStyleLocked={false}
       isAccentLocked={false}
       isSurfaceLocked={false}
+      isFontLocked={false}
       {...overrides}
     >
       <AppearanceProbe />
@@ -176,6 +187,7 @@ describe("ThemeProvider", () => {
     document.documentElement.removeAttribute("data-theme");
     document.documentElement.removeAttribute("data-visual-style");
     document.documentElement.removeAttribute("data-chroma");
+    document.documentElement.removeAttribute("data-font");
     document.documentElement.style.colorScheme = "";
     ensureThemeMeta().content = "";
   });
@@ -316,6 +328,68 @@ describe("ThemeProvider", () => {
     expect(document.documentElement.dataset.visualStyle).toBe("pro");
     expect(document.documentElement.dataset.theme).toBe("dark");
     expect(ensureThemeMeta().content).toBe(APPEARANCE_META_COLORS.pro.dark);
+  });
+
+  it("toggles the type axis: dyslexic writes the key, default removes it and the attribute", async () => {
+    const user = userEvent.setup();
+
+    renderProvider();
+
+    await waitFor(() => expect(document.documentElement.dataset.theme).toBe("dark"));
+
+    await user.click(screen.getByRole("button", { name: "Toggle type" }));
+
+    await waitFor(() => {
+      expect(screen.getByTestId("font-preference")).toHaveTextContent("dyslexic");
+      expect(document.documentElement.dataset.font).toBe("dyslexic");
+      expect(window.localStorage.getItem(FONT_STORAGE_KEY)).toBe("dyslexic");
+    });
+
+    await user.click(screen.getByRole("button", { name: "Toggle type" }));
+
+    await waitFor(() => {
+      expect(screen.getByTestId("font-preference")).toHaveTextContent("default");
+      // The default is the ABSENT state: no attribute, no stored value — the document
+      // and storage look exactly as if the reader never toggled.
+      expect(document.documentElement.dataset.font).toBeUndefined();
+      expect(window.localStorage.getItem(FONT_STORAGE_KEY)).toBeNull();
+      expect(storage.removals).toContain(FONT_STORAGE_KEY);
+    });
+  });
+
+  it("adopts the painted dyslexic type the bootstrap restored", async () => {
+    // Exactly the state the pre-paint script leaves for a reader who saved the toggle.
+    window.localStorage.setItem(FONT_STORAGE_KEY, "dyslexic");
+    document.documentElement.dataset.font = "dyslexic";
+    storage.forgetTraffic();
+
+    renderProvider();
+
+    await waitFor(() => {
+      expect(screen.getByTestId("font-preference")).toHaveTextContent("dyslexic");
+      expect(document.documentElement.dataset.font).toBe("dyslexic");
+    });
+  });
+
+  it("never reads or writes the font key while the type axis is locked", async () => {
+    const user = userEvent.setup();
+    // A preference saved on the other publication must not be consumed or clobbered here.
+    window.localStorage.setItem(FONT_STORAGE_KEY, "dyslexic");
+    storage.forgetTraffic();
+
+    renderProvider({ isFontLocked: true });
+
+    await waitFor(() => expect(document.documentElement.dataset.theme).toBe("dark"));
+
+    await user.click(screen.getByRole("button", { name: "Toggle type" }));
+
+    expect(screen.getByTestId("font-locked")).toHaveTextContent("true");
+    expect(screen.getByTestId("font-preference")).toHaveTextContent("default");
+    expect(document.documentElement.dataset.font).toBeUndefined();
+    expect(storage.reads).not.toContain(FONT_STORAGE_KEY);
+    expect(storage.writes.map(([key]) => key)).not.toContain(FONT_STORAGE_KEY);
+    expect(storage.removals).not.toContain(FONT_STORAGE_KEY);
+    expect(window.localStorage.getItem(FONT_STORAGE_KEY)).toBe("dyslexic");
   });
 
   it("hydrates the site-default levels and hues without ever writing them to storage", async () => {

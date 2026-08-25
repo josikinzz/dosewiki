@@ -5,6 +5,7 @@ import {
   useEffect,
   useRef,
   useState,
+  type CSSProperties,
   type PointerEvent as ReactPointerEvent,
 } from "react";
 
@@ -15,6 +16,7 @@ import { cn } from "@/lib/utils";
 import type { ReplicationViewerMediaItem } from "./viewerModel";
 import { bufferedRangeContaining, seekRatioFromPointer } from "./viewerLogic";
 import { useStageFit } from "./useStageFit";
+import { RotatingIcon } from "./RotatingIcon";
 import { ReplicationStillStage } from "./ReplicationStillStage";
 
 const controlClassName = cn(
@@ -92,6 +94,11 @@ export interface ReplicationMediaStageProps {
   onInfo?: () => void;
   infoOpen?: boolean;
   infoControls?: string;
+  /** The session's sticky rotate-mode preference (owned by the overlay). */
+  rotateMode?: boolean;
+  onRotateModeChange?: (rotateMode: boolean) => void;
+  /** Reports the derived per-item rotation so overlay chrome can lean too. */
+  onRotatedChange?: (rotated: boolean) => void;
   onFullscreen?: () => void;
   fullscreenLabel?: string;
   previousLabel?: string;
@@ -111,6 +118,9 @@ export function ReplicationMediaStage({
   nextHref,
   onInfo,
   infoOpen = false,
+  rotateMode = false,
+  onRotateModeChange,
+  onRotatedChange,
   infoControls,
   onFullscreen,
   fullscreenLabel = "Fullscreen",
@@ -161,10 +171,10 @@ export function ReplicationMediaStage({
   const [audioPresence, setAudioPresence] = useState<AudioPresence>(
     knownAudio === true ? "present" : "unknown",
   );
-  const { canRotate, rotated, toggleRotate, probeAspect } = useStageFit({
+  const { canRotate, rotated, probeAspect, mediaAspect } = useStageFit({
     mediaKey: replication.slug,
     type: replication.type,
-    moving,
+    rotateMode,
     width: replication.width,
     height: replication.height,
   });
@@ -176,6 +186,11 @@ export function ReplicationMediaStage({
   const mediaGeometryClassName = rotated
     ? "left-1/2 top-1/2 h-[100cqw] w-[100cqh] max-w-none -translate-x-1/2 -translate-y-1/2 rotate-90"
     : "inset-0 h-full w-full";
+  // The overlay leans its own chrome (settings menu, thumbnail rail) with
+  // the stage, so it learns each work's derived rotation as it settles.
+  useEffect(() => {
+    onRotatedChange?.(rotated);
+  }, [onRotatedChange, rotated]);
   // Catalogued waveform evidence beats runtime track probes: a row proven
   // silent hides sound controls outright; a row with audible signal keeps them.
   // GIF-derived motion renditions are generated silent by contract; browser
@@ -204,7 +219,7 @@ export function ReplicationMediaStage({
     }
   }, [moving, scheduleControlHide]);
 
-  const toggleStillControls = useCallback(() => {
+  const toggleControls = useCallback(() => {
     setControlsVisible((current) => {
       window.clearTimeout(hideTimerRef.current);
       if (!current) scheduleControlHide();
@@ -235,6 +250,30 @@ export function ReplicationMediaStage({
     pendingSoundRef.current = false;
     // knownAudio is derived from the same slug change that resets here.
   }, [replication.slug]);
+
+  // The poster underlay drops the moment a real frame is decodable, not on
+  // the first timeupdate — that gate waited for playback to advance, so
+  // every swipe visibly snapped from the low-res poster to the sharper
+  // first frame. The decoded-frame callback is the truth where supported;
+  // canplay stands in elsewhere. A video the standby preloader already
+  // warmed satisfies either instantly, and one it never touched simply
+  // shows the poster until its first frame arrives — today's behavior.
+  useEffect(() => {
+    if (!moving || !motionSource) return;
+    const video = videoRef.current;
+    if (!video) return;
+    const markPainted = () => setFramePainted(true);
+    if (typeof video.requestVideoFrameCallback === "function") {
+      const handle = video.requestVideoFrameCallback(markPainted);
+      return () => video.cancelVideoFrameCallback(handle);
+    }
+    if (video.readyState >= HTMLMediaElement.HAVE_CURRENT_DATA) {
+      markPainted();
+      return;
+    }
+    video.addEventListener("canplay", markPainted);
+    return () => video.removeEventListener("canplay", markPainted);
+  }, [moving, motionSource, replication.slug]);
 
   useEffect(() => {
     mutedRef.current = muted;
@@ -322,12 +361,26 @@ export function ReplicationMediaStage({
     if (video.paused || video.ended) {
       repaySoundIou(video);
       attemptPlay(video);
-    } else if (!repaySoundIou(video)) {
-      // The reels grammar: a tap while sound is owed brings the sound back;
-      // only a tap with nothing owed toggles pause.
+    } else {
       video.pause();
     }
   }, [attemptPlay, repaySoundIou, showControls]);
+
+  /**
+   * A tap on the video adopts the still-stage grammar: it only reveals or
+   * dismisses the chrome; pause lives exclusively on the play button. But a
+   * tap is also the live gesture that can repay a refused unmute, so an
+   * outstanding sound IOU is settled first — that tap reads as "bring the
+   * sound back", never as "hide the controls".
+   */
+  const handleVideoTap = useCallback(() => {
+    const video = videoRef.current;
+    if (video && repaySoundIou(video)) {
+      showControls();
+      return;
+    }
+    toggleControls();
+  }, [repaySoundIou, showControls, toggleControls]);
 
   /** Settle audio presence from track APIs as the media loads and plays. */
   const settleAudioPresence = useCallback(
@@ -442,6 +495,17 @@ export function ReplicationMediaStage({
   const transportVisible = moving
     ? controlsVisible || !playing || blocked || error
     : controlsVisible;
+  // Anchor the playback cluster to the letterboxed media box, not the stage:
+  // object-contain centers the media, so each axis's spare space is half of
+  // (stage minus contained size). Container-query units resolve against the
+  // stage section ([container-type:size]), so the corner tracks live resizes
+  // without measuring; a rotated media box presents its inverted aspect. The
+  // 0.75rem inset keeps the pill just inside the media's bottom-left corner.
+  const anchorAspect = rotated ? 1 / mediaAspect : mediaAspect;
+  const mediaBoxAnchorStyle = {
+    "--media-box-left": `calc((100cqw - min(100cqw, 100cqh * ${anchorAspect})) / 2 + 0.75rem)`,
+    "--media-box-bottom": `calc((100cqh - min(100cqh, 100cqw / ${anchorAspect})) / 2 + 0.75rem)`,
+  } as CSSProperties;
   const showWorkNavigation = Boolean(
     previousHref || nextHref || onPrevious || onNext,
   );
@@ -483,18 +547,14 @@ export function ReplicationMediaStage({
           autoPlay={autoplayAllowed}
           playsInline
           preload={autoplayAllowed ? "auto" : "metadata"}
-          onClick={togglePlayback}
+          onClick={handleVideoTap}
           onLoadedMetadata={(event) => {
             const video = event.currentTarget;
             probeAspect(video.videoWidth, video.videoHeight);
             video.volume = volume;
             settleAudioPresence(video);
           }}
-          onTimeUpdate={(event) => {
-            const video = event.currentTarget;
-            settleAudioPresence(video);
-            if (video.currentTime > 0) setFramePainted(true);
-          }}
+          onTimeUpdate={(event) => settleAudioPresence(event.currentTarget)}
           onPlay={() => {
             setPlaying(true);
             setBlocked(false);
@@ -547,7 +607,8 @@ export function ReplicationMediaStage({
               width={width}
               height={height}
               controlsVisible={controlsVisible}
-              onToggleControls={toggleStillControls}
+              onToggleControls={toggleControls}
+              mediaClassName={cn(rotated && "absolute", mediaGeometryClassName)}
             />
           ) : (
             <div className="theme-media-tile-creator absolute inset-0 grid place-items-center px-8 text-center text-sm">
@@ -561,7 +622,8 @@ export function ReplicationMediaStage({
             width={width}
             height={height}
             controlsVisible={controlsVisible}
-            onToggleControls={toggleStillControls}
+            onToggleControls={toggleControls}
+            mediaClassName={cn(rotated && "absolute", mediaGeometryClassName)}
           />
         )
       ) : null}
@@ -679,20 +741,26 @@ export function ReplicationMediaStage({
         )}
       >
         <div className="flex justify-end gap-2">
-          {canRotate ? (
+          {canRotate && onRotateModeChange ? (
             <button
               type="button"
               aria-label={
-                rotated ? "Rotate back upright" : "Rotate to fill screen"
+                rotateMode ? "Rotate back upright" : "Rotate to fill screen"
               }
-              aria-pressed={rotated}
+              aria-pressed={rotateMode}
               onClick={(event) => {
                 event.stopPropagation();
-                toggleRotate();
+                onRotateModeChange(!rotateMode);
               }}
-              className={cn(controlClassName, "pointer-events-auto")}
+              className={cn(
+                controlClassName,
+                "pointer-events-auto",
+                rotateMode && "theme-media-control-pressed",
+              )}
             >
-              <Icon icon="lucide:rotate-cw" className="size-5" />
+              <RotatingIcon rotated={rotated}>
+                <Icon icon="lucide:rotate-cw" className="size-5" />
+              </RotatingIcon>
             </button>
           ) : null}
           {onInfo ? (
@@ -707,7 +775,9 @@ export function ReplicationMediaStage({
               }}
               className={cn(controlClassName, "pointer-events-auto")}
             >
-              <Icon icon="lucide:info" className="size-5" />
+              <RotatingIcon rotated={rotated}>
+                <Icon icon="lucide:info" className="size-5" />
+              </RotatingIcon>
             </button>
           ) : null}
           {onFullscreen ? (
@@ -720,14 +790,17 @@ export function ReplicationMediaStage({
               }}
               className={cn(controlClassName, "pointer-events-auto")}
             >
-              <Icon icon="lucide:maximize" className="size-5" />
+              <RotatingIcon rotated={rotated}>
+                <Icon icon="lucide:maximize" className="size-5" />
+              </RotatingIcon>
             </button>
           ) : null}
         </div>
 
         {/* Work navigation sits at the stage's vertical midline (the classic
-            lightbox grammar), leaving the bottom corners to the byline chip
-            and the centered playback controls. Touch readers swipe instead. */}
+            lightbox grammar), leaving the bottom edge to the byline chip and
+            the playback cluster anchored at the media box's bottom-left
+            corner. Touch readers swipe instead. */}
         {showWorkNavigation ? (
           previousHref && onPrevious ? (
             <a
@@ -752,7 +825,9 @@ export function ReplicationMediaStage({
                 "pointer-events-auto absolute left-3 top-1/2 -translate-y-1/2 [@media(pointer:coarse)]:hidden",
               )}
             >
-              <Icon icon="lucide:chevron-left" className="size-6" />
+              <RotatingIcon rotated={rotated}>
+                <Icon icon="lucide:chevron-left" className="size-6" />
+              </RotatingIcon>
             </a>
           ) : (
             <button
@@ -768,7 +843,9 @@ export function ReplicationMediaStage({
                 "pointer-events-auto absolute left-3 top-1/2 -translate-y-1/2 disabled:cursor-not-allowed disabled:opacity-30 [@media(pointer:coarse)]:hidden",
               )}
             >
-              <Icon icon="lucide:chevron-left" className="size-6" />
+              <RotatingIcon rotated={rotated}>
+                <Icon icon="lucide:chevron-left" className="size-6" />
+              </RotatingIcon>
             </button>
           )
         ) : null}
@@ -796,7 +873,9 @@ export function ReplicationMediaStage({
                 "pointer-events-auto absolute right-3 top-1/2 -translate-y-1/2 [@media(pointer:coarse)]:hidden",
               )}
             >
-              <Icon icon="lucide:chevron-right" className="size-6" />
+              <RotatingIcon rotated={rotated}>
+                <Icon icon="lucide:chevron-right" className="size-6" />
+              </RotatingIcon>
             </a>
           ) : (
             <button
@@ -812,13 +891,17 @@ export function ReplicationMediaStage({
                 "pointer-events-auto absolute right-3 top-1/2 -translate-y-1/2 disabled:cursor-not-allowed disabled:opacity-30 [@media(pointer:coarse)]:hidden",
               )}
             >
-              <Icon icon="lucide:chevron-right" className="size-6" />
+              <RotatingIcon rotated={rotated}>
+                <Icon icon="lucide:chevron-right" className="size-6" />
+              </RotatingIcon>
             </button>
           )
         ) : null}
-        <div className="flex items-center justify-center gap-3">
-          {moving ? (
-            <div className="theme-media-tile-title pointer-events-auto flex items-center gap-2 rounded-full bg-black/65 px-2 py-1.5 backdrop-blur-sm">
+        {moving ? (
+          <div
+            style={mediaBoxAnchorStyle}
+            className="theme-media-tile-title pointer-events-auto absolute bottom-[var(--media-box-bottom)] left-[var(--media-box-left)] flex items-center gap-2 rounded-full bg-black/65 px-2 py-1.5 backdrop-blur-sm"
+          >
               <button
                 type="button"
                 aria-label={playing ? "Pause" : "Play"}
@@ -831,10 +914,12 @@ export function ReplicationMediaStage({
                   focusRingClassName,
                 )}
               >
-                <Icon
-                  icon={playing ? "lucide:pause" : "lucide:play"}
-                  className="size-5"
-                />
+                <RotatingIcon rotated={rotated}>
+                  <Icon
+                    icon={playing ? "lucide:pause" : "lucide:play"}
+                    className="size-5"
+                  />
+                </RotatingIcon>
               </button>
               {soundAvailable ? (
                 <>
@@ -867,10 +952,12 @@ export function ReplicationMediaStage({
                       focusRingClassName,
                     )}
                   >
-                    <Icon
-                      icon={muted ? "lucide:volume-x" : "lucide:volume-2"}
-                      className="size-5"
-                    />
+                    <RotatingIcon rotated={rotated}>
+                      <Icon
+                        icon={muted ? "lucide:volume-x" : "lucide:volume-2"}
+                        className="size-5"
+                      />
+                    </RotatingIcon>
                   </button>
                   <label
                     className="sr-only"
@@ -892,9 +979,8 @@ export function ReplicationMediaStage({
                   />
                 </>
               ) : null}
-            </div>
-          ) : null}
-        </div>
+          </div>
+        ) : null}
       </div>
     </section>
   );

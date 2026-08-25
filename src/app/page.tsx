@@ -16,13 +16,14 @@ import { flavoredCopyText, getCopy, type CopyResolver } from "@server/next/copyB
 
 // The homepage deliberately does not route through buildPublicPageMetadata: its Open
 // Graph card is inherited from the root layout's flavored metadata block. Only the title
-// and description are overridden here, and both come from the site flavor config.
+// and description are overridden here. The title is the flavor's bare title suffix — the
+// homepage is the one route whose tab title carries no " - <suffix>" tail.
 export async function generateMetadata(): Promise<Metadata> {
   const isConstructionMode = env.NEXT_PUBLIC_HOME_CONSTRUCTION_MODE === "true";
   const copy = await getCopy();
 
   return {
-    title: SITE_FLAVOR_CONFIG.homeTitle,
+    title: SITE_FLAVOR_CONFIG.titleSuffix,
     description: flavoredCopyText(
       copy,
       "home-hero-tagline",

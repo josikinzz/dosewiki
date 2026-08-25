@@ -61,7 +61,10 @@ import {
   dismissViewerDeepLinkCover,
   ViewerDeepLinkCover,
 } from "./ViewerDeepLinkCover";
-import { ReplicationTaxonomyFilters } from "./components/ReplicationTaxonomyFilters";
+import {
+  ReplicationActiveFilterChips,
+  ReplicationTaxonomyFilters,
+} from "./components/ReplicationTaxonomyFilters";
 import {
   buildGalleryBrowseUrl,
   buildGalleryFocusUrl,
@@ -357,6 +360,7 @@ function GalleryExplorer({
       status: browse.status,
       viewing: browse.viewing,
       artistType: browse.artistType,
+      effect: browse.effect,
       drug: browse.drug,
       drugClass: browse.drugClass,
       family: browse.family,
@@ -365,6 +369,7 @@ function GalleryExplorer({
       browse.status,
       browse.viewing,
       browse.artistType,
+      browse.effect,
       browse.drug,
       browse.drugClass,
       browse.family,
@@ -416,6 +421,22 @@ function GalleryExplorer({
     () => effectHrefBuilder(effectHrefPrefix, linkableEffectSlugSet),
     [effectHrefPrefix, linkableEffectSlugSet],
   );
+
+  /**
+   * Depicted-effect options come from the corpus itself — every owning
+   * `effect_slug` plus every `effect_tags` entry a displayable work carries —
+   * so the select never offers an effect that would empty the grid outright.
+   */
+  const effectOptions = useMemo(() => {
+    const slugs = new Set<string>();
+    for (const item of displayable) {
+      if (item.effect_slug) slugs.add(item.effect_slug);
+      for (const tag of item.effect_tags ?? []) slugs.add(tag);
+    }
+    return [...slugs]
+      .map((slug) => ({ value: slug, label: effectName(slug) }))
+      .sort((left, right) => left.label.localeCompare(right.label));
+  }, [displayable, effectName]);
 
   const query = focus ? "" : browse.query;
   const searching = query.trim().length > 0;
@@ -1002,6 +1023,7 @@ function GalleryExplorer({
                     onModeChange={switchMode}
                     onChange={setTaxonomyFilters}
                     drugOptions={drugOptions}
+                    effectOptions={effectOptions}
                     onClear={() =>
                       setTaxonomyFilters(DEFAULT_GALLERY_TAXONOMY_FILTERS)
                     }
@@ -1012,6 +1034,18 @@ function GalleryExplorer({
                   />
                 </div>
               </div>
+            ) : null}
+
+            {/* Active taxonomy filters, made visible: one removable chip per
+              filter under the control bar, sharing the popover's state. */}
+            {chrome === "full" && hasActiveTaxonomyFilters ? (
+              <ReplicationActiveFilterChips
+                filters={taxonomyFilters}
+                onChange={setTaxonomyFilters}
+                drugOptions={drugOptions}
+                effectOptions={effectOptions}
+                className="mt-3 px-1"
+              />
             ) : null}
 
             {/* One quiet corpus summary for every breakpoint — the bar itself
@@ -1173,6 +1207,20 @@ function GalleryExplorer({
                     }
                     mobileCompact
                     onTileOpen={openViewerAt}
+                    /* "View all" on an artist rail opens the viewer on that
+                     artist's first work — the viewer collection already holds
+                     every artist group — while the anchor keeps the Artist
+                     Page href for modified clicks, new tabs, and crawlers.
+                     Effect rails keep navigating: their "View all" is the
+                     effect's playlist page, not a viewer entry point. */
+                    onViewAllOpen={
+                      mode === "artist"
+                        ? (event) => {
+                            const first = group.items[0];
+                            if (first) openViewerAt(event, first);
+                          }
+                        : undefined
+                    }
                   />
                 ))}
                 {hiddenRailCount > 0 ? (

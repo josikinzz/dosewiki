@@ -80,3 +80,31 @@ export const proFont = localFont({
     },
   ],
 });
+
+/**
+ * Dyslexic-friendly face — Lexend, offered as a reader preference behind the
+ * appearance popout's type toggle (`data-font="dyslexic"`, see
+ * `src/styles/dyslexic-type.css`). Registered on the Pro face's terms:
+ * `preload: false` plus `display: "swap"` means an untoggled reader pays only the
+ * `@font-face` block — a woff2 is fetched the first time a rendered element
+ * actually resolves to the family, which cannot happen until the toggle sets the
+ * root attribute.
+ *
+ * One source, not four: Google serves Lexend as a single variable font (wght
+ * 100–900), so the committed latin subset covers every weight the sheets ask
+ * for — 400/600/700 under `font-synthesis: none` — in ~39 KB. Lexend has no
+ * italic; with synthesis off, italic runs render upright in the same face,
+ * which suits the toggle's whole purpose. See `public/fonts/lexend/README.md`.
+ */
+export const dyslexicFont = localFont({
+  variable: "--font-dyslexic",
+  display: "swap",
+  preload: false,
+  src: [
+    {
+      path: "../../../public/fonts/lexend/lexend-variable-normal-latin.woff2",
+      weight: "100 900",
+      style: "normal",
+    },
+  ],
+});

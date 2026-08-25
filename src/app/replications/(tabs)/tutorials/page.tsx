@@ -41,7 +41,7 @@ const TUTORIALS = [
 ] as const;
 
 export const metadata: Metadata = buildPublicPageMetadata({
-  title: `Replication Tutorials | ${SITE_FLAVOR_CONFIG.name}`,
+  title: "Replication Tutorials",
   description:
     "Tutorials and resources for replicating specific subjective effects, preserved from the Effect Index archive.",
   route: { family: "replicationTutorials" },

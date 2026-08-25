@@ -459,15 +459,17 @@ bitrate, codec, rendition list, or master reference. A migration that records a
 transcoded rendition and its archived master needs new fields; both scripts'
 manifests already carry that information.
 
-## 8. Preview renditions for gallery in-view autoplay
+## 8. Preview renditions for gallery hover playback
 
-Added 2026-08-15 for the /replications gallery redesign: video tiles autoplay a
-muted low-res preview while in view instead of pulling the full rendition on
-hover.
+Added 2026-08-15 for the /replications gallery redesign: video tiles play a
+muted low-res preview instead of pulling the full rendition on hover.
+(Originally the preview autoplayed while in view under a shared slot budget;
+since 2026-08-25 playback is hover-gated on a fine pointer, and touch or
+reduced-motion readers get fully static tiles.)
 
 - **Field**: `preview_storage_id` is optional beside `thumbnail_storage_id` at
   `convex/lib/effectMediaSchemaValidators.ts:135-143`. It applies to video rows
-  only. A row without it keeps hover-to-play of the full `url`.
+  only. A row without it falls back to hover-playing the full `url`.
 - **Resolver**: `convex/lib/replicationUrls.ts:43-49` resolves it to
   `preview_url` through `ctx.storage.getUrl`, with no string-field fallback.
   `convex/lib/replicationReads.ts:40-50,57-132` threads it through the public

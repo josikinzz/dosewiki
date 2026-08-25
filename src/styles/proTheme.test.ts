@@ -262,12 +262,14 @@ describe("pro visual style", () => {
     // this authored file and the light → Pro → chroma link order. The bundled rungs that
     // remain: the authored base layer, then the surface and accent sheets whose Pro
     // selectors have sufficient specificity to re-seed the late-arriving palette, then the
-    // off-homepage bloom removal, which only re-seats tokens on `body`.
+    // off-homepage bloom removal, which only re-seats tokens on `body`, and the dyslexic
+    // type re-seat, whose triple-attribute selector out-specifies the Pro palette's.
     expect(dosewikiImports).toEqual([
       "../../styles.css",
       "../../styles/surface-tokens.generated.css",
       "../../styles/accent-tokens.generated.css",
       "../../styles/fun-flat-glow.css",
+      "../../styles/dyslexic-type.css",
     ]);
 
     const effectIndexImports = [

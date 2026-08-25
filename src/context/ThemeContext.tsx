@@ -29,6 +29,7 @@ import {
   ACCENT_HUE_STORAGE_KEY,
   ACCENT_STORAGE_KEY,
   COLOR_SCHEME_STORAGE_KEY,
+  FONT_STORAGE_KEY,
   SURFACE_CHROMA_STORAGE_KEY,
   SURFACE_HUE_STORAGE_KEY,
   SURFACE_STORAGE_KEY,
@@ -36,13 +37,15 @@ import {
   VISUAL_STYLE_STORAGE_KEY,
   getAppearanceMetaColor,
   isColorScheme,
+  isFontPreference,
   isVisualStyle,
   type Appearance,
   type ColorScheme,
+  type FontPreference,
   type VisualStyle,
 } from "@/theme";
 
-export type { Appearance, ColorScheme, VisualStyle } from "@/theme";
+export type { Appearance, ColorScheme, FontPreference, VisualStyle } from "@/theme";
 export {
   ACCENT_CHROMA_STORAGE_KEY,
   ACCENT_HUE_STORAGE_KEY,
@@ -51,6 +54,7 @@ export {
   // write them again.
   ACCENT_STORAGE_KEY,
   COLOR_SCHEME_STORAGE_KEY,
+  FONT_STORAGE_KEY,
   THEME_META_ID,
   SURFACE_CHROMA_STORAGE_KEY,
   SURFACE_HUE_STORAGE_KEY,
@@ -92,8 +96,17 @@ type ThemeContextValue = {
   accentHue: number | null;
   setSurfaceHue: (value: number | null) => void;
   setAccentHue: (value: number | null) => void;
+  /**
+   * The type axis: "default" is the current visual style's own face, "dyslexic" re-seats
+   * both family tokens to Lexend (`data-font="dyslexic"` on the root). "default" is
+   * expressed by *removing* the attribute and the storage key, so an untoggled reader
+   * stores nothing and fetches no Lexend bytes.
+   */
+  fontPreference: FontPreference;
+  setFontPreference: (value: FontPreference) => void;
   toggleColorScheme: () => void;
   toggleVisualStyle: () => void;
+  toggleFontPreference: () => void;
   /**
    * Whether this build pins the visual style. Part of the interface because it changes what
    * the setters do: under a lock `setVisualStyle` and `toggleVisualStyle` are no-ops and the
@@ -104,6 +117,8 @@ type ThemeContextValue = {
   /** Same contract for the accent axes: under a lock the hue and chroma setters are no-ops. */
   isAccentLocked: boolean;
   isSurfaceLocked: boolean;
+  /** Same contract for the type axis: under a lock the font setters are no-ops. */
+  isFontLocked: boolean;
 };
 
 const ThemeContext = createContext<ThemeContextValue | null>(null);
@@ -119,7 +134,7 @@ type AppearanceGuard<T extends string> = (value: string | null | undefined) => v
  * document carrying no valid attribute — a nested provider, or a bare test render.
  */
 function resolvePaintedAxis<T extends string>(
-  datasetKey: "theme" | "visualStyle",
+  datasetKey: "theme" | "visualStyle" | "font",
   storageKey: string,
   isSupported: AppearanceGuard<T>,
 ): T | null {
@@ -309,6 +324,7 @@ export function ThemeProvider({
   isVisualStyleLocked = !SITE_FLAVOR_CONFIG.showVisualStyleToggle,
   isAccentLocked = !SITE_FLAVOR_CONFIG.showAccentPicker,
   isSurfaceLocked = !SITE_FLAVOR_CONFIG.showSurfacePicker,
+  isFontLocked = !SITE_FLAVOR_CONFIG.showFontToggle,
 }: {
   children: ReactNode;
   /** What the server rendered, so the first client render matches the painted markup. */
@@ -319,9 +335,12 @@ export function ThemeProvider({
   /** Pins the accent hue and saturation axes, on the same terms. */
   isAccentLocked?: boolean;
   isSurfaceLocked?: boolean;
+  /** Pins the type axis: the font setters become no-ops and its key is never read or written. */
+  isFontLocked?: boolean;
 }) {
   const [colorScheme, setColorScheme] = useState<ColorScheme>(initialColorScheme);
   const [visualStyle, setVisualStyleState] = useState<VisualStyle>(initialVisualStyle);
+  const [fontPreference, setFontPreferenceState] = useState<FontPreference>("default");
   /**
    * The reader's *saved* level and hue per axis, or null while they never
    * saved one. Null is the persistence state, not the display one: effective
@@ -386,6 +405,16 @@ export function ThemeProvider({
       }
     }
 
+    // The type axis, on the style lock's exact terms. The bootstrap painted
+    // `data-font="dyslexic"` (or nothing) from storage pre-paint; adopt what it resolved.
+    if (!isFontLocked) {
+      const paintedFont = resolvePaintedAxis("font", FONT_STORAGE_KEY, isFontPreference);
+
+      if (paintedFont) {
+        setFontPreferenceState(paintedFont);
+      }
+    }
+
     /**
      * Hue and chroma per colour axis, plus the one-time migration off the
      * discrete-swatch era. A reader who last chose a colourway id has it in the
@@ -428,7 +457,7 @@ export function ThemeProvider({
     }
 
     setHydrated(true);
-  }, [isVisualStyleLocked, isSurfaceLocked, isAccentLocked]);
+  }, [isVisualStyleLocked, isSurfaceLocked, isAccentLocked, isFontLocked]);
 
   /**
    * Scheme and style: applied and persisted synchronously per change. These
@@ -447,6 +476,28 @@ export function ThemeProvider({
       persistPreference(VISUAL_STYLE_STORAGE_KEY, visualStyle);
     }
   }, [hydrated, colorScheme, visualStyle, isVisualStyleLocked]);
+
+  /**
+   * The type axis: applied and persisted synchronously per change, like scheme and style.
+   * "default" removes both the attribute and the key — the absent state, never a stored
+   * value — so an untoggled reader's document and storage look exactly as if the axis did
+   * not exist, and no Lexend `@font-face` ever matches a rendered element.
+   */
+  useEffect(() => {
+    if (!hydrated || isFontLocked) {
+      return;
+    }
+
+    const root = document.documentElement;
+
+    if (fontPreference === "dyslexic") {
+      root.dataset.font = "dyslexic";
+      persistPreference(FONT_STORAGE_KEY, "dyslexic");
+    } else {
+      delete root.dataset.font;
+      removeStoredKey(FONT_STORAGE_KEY);
+    }
+  }, [hydrated, fontPreference, isFontLocked]);
 
   /**
    * The colour axes' document paint, throttled to one write batch per
@@ -551,6 +602,17 @@ export function ThemeProvider({
     [isVisualStyleLocked],
   );
 
+  const setFontPreference = useCallback(
+    (value: FontPreference) => {
+      if (isFontLocked) {
+        return;
+      }
+
+      setFontPreferenceState(value);
+    },
+    [isFontLocked],
+  );
+
   const setSurfaceChroma = useCallback(
     (value: number | null) => {
       if (!isSurfaceLocked) {
@@ -599,12 +661,22 @@ export function ThemeProvider({
     setVisualStyleState((current) => (current === "pro" ? "fun" : "pro"));
   }, [isVisualStyleLocked]);
 
+  const toggleFontPreference = useCallback(() => {
+    if (isFontLocked) {
+      return;
+    }
+
+    setFontPreferenceState((current) => (current === "dyslexic" ? "default" : "dyslexic"));
+  }, [isFontLocked]);
+
   const value = useMemo(
     () => ({
       colorScheme,
       visualStyle,
+      fontPreference,
       setColorScheme,
       setVisualStyle,
+      setFontPreference,
       surfaceChroma,
       accentChroma,
       setSurfaceChroma,
@@ -615,14 +687,18 @@ export function ThemeProvider({
       setAccentHue,
       toggleColorScheme,
       toggleVisualStyle,
+      toggleFontPreference,
       isVisualStyleLocked,
       isAccentLocked,
       isSurfaceLocked,
+      isFontLocked,
     }),
     [
       colorScheme,
       visualStyle,
+      fontPreference,
       setVisualStyle,
+      setFontPreference,
       surfaceChroma,
       accentChroma,
       setSurfaceChroma,
@@ -633,9 +709,11 @@ export function ThemeProvider({
       setAccentHue,
       toggleColorScheme,
       toggleVisualStyle,
+      toggleFontPreference,
       isVisualStyleLocked,
       isSurfaceLocked,
       isAccentLocked,
+      isFontLocked,
     ],
   );
 

@@ -22,7 +22,7 @@ import {
 } from "@/theme/appearanceSheets";
 import { ThemeProvider } from "@/context/ThemeContext";
 import { ThemeLabLazy } from "@/features/theme-lab/ThemeLabLazy";
-import { proFont, siteFont } from "./fonts";
+import { dyslexicFont, proFont, siteFont } from "./fonts";
 import { RouteChrome, RouteFooter } from "./_components/RouteChrome";
 import { ApprovedPublicAnalytics } from "./_components/ApprovedPublicAnalytics";
 import "@site-styles";
@@ -42,8 +42,12 @@ const rendersChromaStylesheet =
   SITE_FLAVOR_CONFIG.showSurfacePicker || SITE_FLAVOR_CONFIG.showAccentPicker;
 const zodJitlessBootstrap = buildZodJitlessBootstrapScript();
 // Both faces are registered in both builds so the Fun/Pro choice is a style switch, not a
-// reload. `proFont` sets `preload: false`, so a Fun reader downloads none of it.
-const rootFontClassName = `${siteFont.variable} ${proFont.variable}`;
+// reload. `proFont` sets `preload: false`, so a Fun reader downloads none of it. The
+// dyslexic face rides the same mechanism where the flavor offers the toggle (null where it
+// does not): `preload: false` again, so an untoggled reader downloads none of Lexend either.
+const rootFontClassName = dyslexicFont
+  ? `${siteFont.variable} ${proFont.variable} ${dyslexicFont.variable}`
+  : `${siteFont.variable} ${proFont.variable}`;
 const homeConstructionMode = env.NEXT_PUBLIC_HOME_CONSTRUCTION_MODE === "true";
 
 export const metadata: Metadata = {

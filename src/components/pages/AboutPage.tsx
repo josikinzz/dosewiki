@@ -231,7 +231,10 @@ export const AboutPage = memo(function AboutPage({
         </div>
 
         <section id="mission" className="space-y-6">
-          <PublicSectionHeading icon="lucide:compass" title="Project Mission" />
+          {/* The mission prose flows straight from the hero subtitle; keep an
+              sr-only h2 so the landmark keeps its accessible name and the
+              heading outline has no gap. */}
+          <h2 className="sr-only">Mission</h2>
 
           <div className="px-0 py-2">{missionContent}</div>
         </section>

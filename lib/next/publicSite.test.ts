@@ -91,6 +91,9 @@ describe("public site identity", () => {
       noIndex: true,
     }, DOSEWIKI_SITE);
 
+    expect(metadata.title).toBe("Visual drifting - dose.wiki");
+    expect(metadata.openGraph?.title).toBe("Visual drifting - dose.wiki");
+    expect(metadata.twitter?.title).toBe("Visual drifting - dose.wiki");
     expect(metadata.alternates?.canonical).toBe("https://dosewiki-admin.vercel.app/effects/visual-drifting");
     expect(metadata.openGraph?.url).toBe("https://dosewiki-admin.vercel.app/effects/visual-drifting");
     expect(metadata.openGraph?.images).toEqual([
@@ -103,6 +106,44 @@ describe("public site identity", () => {
     ]);
     expect(metadata.twitter?.images).toEqual(["https://dosewiki-admin.vercel.app/icon-512.png"]);
     expect(metadata.robots).toEqual({ index: false, follow: false });
+  });
+
+  it("swaps in a per-page social image while keeping twitter.card as summary", () => {
+    const metadata = buildPublicPageMetadata({
+      title: "LSD",
+      description: "LSD substance profile covering dosage, duration, and subjective effects.",
+      route: { family: "substance", params: { slug: "lsd" } },
+      socialImage: {
+        path: "/api/og/molecule/lsd?v=2026-01-01T00%3A00%3A00.000Z",
+        width: 1200,
+        height: 1200,
+        alt: "LSD molecule structure",
+      },
+    }, DOSEWIKI_SITE);
+
+    expect(metadata.openGraph?.images).toEqual([
+      {
+        url: "https://dosewiki-admin.vercel.app/api/og/molecule/lsd?v=2026-01-01T00%3A00%3A00.000Z",
+        width: 1200,
+        height: 1200,
+        alt: "LSD molecule structure",
+      },
+    ]);
+    expect(metadata.twitter?.images).toEqual([
+      "https://dosewiki-admin.vercel.app/api/og/molecule/lsd?v=2026-01-01T00%3A00%3A00.000Z",
+    ]);
+    expect(metadata.twitter).toMatchObject({ card: "summary" });
+  });
+
+  it("emits the bare suffix as the whole title for the homepage's empty page name", () => {
+    const metadata = buildPublicPageMetadata(
+      { title: "", description: "Homepage.", pathname: "/" },
+      DOSEWIKI_SITE,
+    );
+
+    expect(metadata.title).toBe("dose.wiki");
+    expect(metadata.openGraph?.title).toBe("dose.wiki");
+    expect(metadata.twitter?.title).toBe("dose.wiki");
   });
 
   it("keeps metadata descriptions within snippet-friendly bounds across surfaces", () => {
@@ -148,6 +189,7 @@ describe("public site identity under the Effect Index flavor", () => {
     expect(EFFECT_INDEX_SITE).toEqual({
       flavor: "effectindex",
       name: "Effect Index",
+      titleSuffix: "Effect Index",
       url: "https://effectindex.com",
       description:
         "A resource dedicated to establishing the field of formalised subjective effect documentation.",
@@ -177,6 +219,9 @@ describe("public site identity under the Effect Index flavor", () => {
       EFFECT_INDEX_SITE,
     );
 
+    expect(metadata.title).toBe("Visual drifting - Effect Index");
+    expect(metadata.openGraph?.title).toBe("Visual drifting - Effect Index");
+    expect(metadata.twitter?.title).toBe("Visual drifting - Effect Index");
     expect(metadata.alternates?.canonical).toBe("https://effectindex.com/effects/visual-drifting");
     expect(metadata.openGraph?.url).toBe("https://effectindex.com/effects/visual-drifting");
     expect(metadata.openGraph && "siteName" in metadata.openGraph ? metadata.openGraph.siteName : null).toBe(

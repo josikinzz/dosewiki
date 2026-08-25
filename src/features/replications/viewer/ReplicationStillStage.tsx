@@ -11,6 +11,8 @@ interface ReplicationStillStageProps {
   height: number;
   controlsVisible: boolean;
   onToggleControls: () => void;
+  /** Positioning/rotation box for the image; upright full-bleed by default. */
+  mediaClassName?: string;
 }
 
 /** A still owns one tap meaning: reveal or dismiss the viewer transport. */
@@ -21,6 +23,7 @@ export function ReplicationStillStage({
   height,
   controlsVisible,
   onToggleControls,
+  mediaClassName = "h-full w-full",
 }: ReplicationStillStageProps) {
   return (
     <button
@@ -37,7 +40,10 @@ export function ReplicationStillStage({
         height={height}
         priority
         sizes="100vw"
-        className="h-full w-full object-contain"
+        className={cn(
+          "object-contain transition-transform duration-200 motion-reduce:transition-none",
+          mediaClassName,
+        )}
       />
     </button>
   );

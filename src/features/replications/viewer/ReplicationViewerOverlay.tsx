@@ -28,6 +28,7 @@ import {
 import { cn } from "@/lib/utils";
 import { publicHref } from "@/utils/publicHref";
 import { ReplicationMediaStage } from "./ReplicationMediaStage";
+import { RotatingIcon } from "./RotatingIcon";
 import { hasKnownCreator } from "@/features/effects/components/replicationCredit";
 import {
   findViewerPosition,
@@ -39,9 +40,12 @@ import {
 } from "./viewerModel";
 import {
   GESTURE_HINT_STORAGE_KEY,
+  VIEWER_ROTATE_STORAGE_KEY,
   VIEWER_SOUND_STORAGE_KEY,
   resolveViewerMuted,
+  resolveViewerRotateMode,
   shouldShowGestureHint,
+  standbyMotionSource,
   standbyPosterSource,
 } from "./viewerLogic";
 
@@ -75,9 +79,14 @@ function prefersReducedMotion(): boolean {
 }
 
 /**
- * A poster-only pane parked one viewport beside the stage. During a drag the
+ * A poster pane parked one viewport beside the stage. During a drag the
  * track carries it under the finger, so the incoming work is visible before
- * its real stage mounts — and its poster is warm in cache when it does.
+ * its real stage mounts — and its poster is warm in cache when it does. A
+ * moving neighbor also warms its video file through a hidden preloader, so
+ * landing on it finds the first frame already decodable instead of showing
+ * the low-res poster snap to the sharper frame. Only the two panes that
+ * exist — the immediate neighbors — ever preload; a fast fling past them
+ * simply falls back to the poster-then-fade path.
  */
 function StandbyPane({
   item,
@@ -87,6 +96,7 @@ function StandbyPane({
   side: "left" | "right";
 }) {
   const poster = standbyPosterSource(item.replication);
+  const motion = standbyMotionSource(item.replication);
   return (
     <div
       aria-hidden
@@ -104,6 +114,16 @@ function StandbyPane({
           priority
           unoptimized
           className="h-full w-full object-contain"
+        />
+      ) : null}
+      {motion ? (
+        <video
+          src={motion}
+          preload="auto"
+          muted
+          playsInline
+          tabIndex={-1}
+          className="hidden"
         />
       ) : null}
     </div>
@@ -167,12 +187,16 @@ export function ReplicationViewerOverlay({
   const [volume, setVolume] = useState(1);
   const [infoOpen, setInfoOpen] = useState(false);
   const [details, setDetails] = useState<PublicReplicationDetails | null>(null);
-  const [immersiveFallback, setImmersiveFallback] = useState(false);
   const [fullscreenUnavailable, setFullscreenUnavailable] = useState(false);
   const [fullscreenMessage, setFullscreenMessage] = useState("");
   const [entryMotion, setEntryMotion] = useState<EntryMotion | null>(null);
   const [gestureHint, setGestureHint] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
+  // Rotate mode is the reader's sticky choice for this session; the active
+  // stage reports back whether the current work actually turns, so the
+  // overlay's own iconography (settings, thumbnails) can lean with it.
+  const [rotateMode, setRotateMode] = useState(false);
+  const [stageRotated, setStageRotated] = useState(false);
   const rememberedSlugByGroupRef = useRef<Record<string, string>>({});
   const touchStartRef = useRef<{ x: number; y: number; t: number } | null>(
     null,
@@ -207,24 +231,28 @@ export function ReplicationViewerOverlay({
     rememberedSlugByGroupRef.current[group!.key] = active.replication.slug;
   }, [active, group, open]);
 
-  // Sound is a session preference, the way the phone feeds treat it: each
-  // open starts from the stored choice instead of hard-resetting to muted.
+  // Sound and rotate mode are session preferences, the way the phone feeds
+  // treat them: each open starts from the stored choices instead of
+  // hard-resetting to the defaults.
   useEffect(() => {
     if (!open) {
       setVolume(1);
       setInfoOpen(false);
       setSettingsOpen(false);
-      setImmersiveFallback(false);
+      setStageRotated(false);
       rememberedSlugByGroupRef.current = {};
       return;
     }
-    let stored: string | null = null;
+    let storedSound: string | null = null;
+    let storedRotate: string | null = null;
     try {
-      stored = window.sessionStorage.getItem(VIEWER_SOUND_STORAGE_KEY);
+      storedSound = window.sessionStorage.getItem(VIEWER_SOUND_STORAGE_KEY);
+      storedRotate = window.sessionStorage.getItem(VIEWER_ROTATE_STORAGE_KEY);
     } catch {
-      // Storage denied: fall back to the muted default.
+      // Storage denied: fall back to the muted, upright defaults.
     }
-    setMuted(resolveViewerMuted(stored));
+    setMuted(resolveViewerMuted(storedSound));
+    setRotateMode(resolveViewerRotateMode(storedRotate));
   }, [open]);
 
   const handleMutedChange = useCallback((nextMuted: boolean) => {
@@ -233,6 +261,18 @@ export function ReplicationViewerOverlay({
       window.sessionStorage.setItem(
         VIEWER_SOUND_STORAGE_KEY,
         nextMuted ? "off" : "on",
+      );
+    } catch {
+      // Best effort: a blocked write only means the choice lasts one open.
+    }
+  }, []);
+
+  const handleRotateModeChange = useCallback((nextRotateMode: boolean) => {
+    setRotateMode(nextRotateMode);
+    try {
+      window.sessionStorage.setItem(
+        VIEWER_ROTATE_STORAGE_KEY,
+        nextRotateMode ? "on" : "off",
       );
     } catch {
       // Best effort: a blocked write only means the choice lasts one open.
@@ -464,8 +504,12 @@ export function ReplicationViewerOverlay({
   const requestFullscreen = useCallback(() => {
     const content = contentRef.current;
     const tryWebkitFullscreen = () => {
+      // Only the active stage's video may own platform fullscreen — the
+      // standby panes park hidden preloading videos in the same dialog.
       const video =
-        content?.querySelector<WebkitFullscreenVideo>("video") ?? null;
+        content?.querySelector<WebkitFullscreenVideo>(
+          "[data-replication-media-stage] video",
+        ) ?? null;
       if (!video?.webkitEnterFullscreen) return false;
       try {
         video.webkitEnterFullscreen();
@@ -476,7 +520,6 @@ export function ReplicationViewerOverlay({
     };
     const useImmersiveFallback = (fullscreenRejected: boolean) => {
       if (fullscreenRejected) setFullscreenUnavailable(true);
-      setImmersiveFallback(true);
       setFullscreenMessage(
         fullscreenRejected
           ? "Fullscreen is unavailable. Immersive view is active."
@@ -743,10 +786,7 @@ export function ReplicationViewerOverlay({
         }}
         tabIndex={-1}
         aria-describedby="replication-viewer-description"
-        className={cn(
-          "theme-media-tile-title theme-elevation-none left-0 top-0 z-[70] h-[100svh] max-h-none w-screen max-w-none translate-x-0 translate-y-0 grid-cols-[minmax(0,1fr)] grid-rows-[auto_minmax(0,1fr)] gap-0 overflow-hidden border-0 bg-black p-0 duration-150 sm:rounded-none",
-          immersiveFallback && "fixed inset-0",
-        )}
+        className="theme-media-tile-title theme-elevation-none fixed inset-0 z-[70] max-h-none max-w-none translate-x-0 translate-y-0 grid-cols-[minmax(0,1fr)] grid-rows-[auto_minmax(0,1fr)] gap-0 overflow-hidden border-0 bg-black p-0 duration-150 sm:rounded-none"
       >
         <header
           inert={infoOpen || undefined}
@@ -857,7 +897,9 @@ export function ReplicationViewerOverlay({
                   focusRingClassName,
                 )}
               >
-                <Icon icon="lucide:sliders-horizontal" className="size-5" />
+                <RotatingIcon rotated={stageRotated}>
+                  <Icon icon="lucide:sliders-horizontal" className="size-5" />
+                </RotatingIcon>
               </button>
               {settingsOpen ? (
                 <div
@@ -883,14 +925,16 @@ export function ReplicationViewerOverlay({
                         focusRingClassName,
                       )}
                     >
-                      <span
-                        aria-hidden
-                        className="grid size-2 place-items-center rounded-full border border-current"
-                      >
-                        {collection.grouping === grouping ? (
-                          <span className="size-1 rounded-full bg-current" />
-                        ) : null}
-                      </span>
+                      <RotatingIcon rotated={stageRotated}>
+                        <span
+                          aria-hidden
+                          className="grid size-2 place-items-center rounded-full border border-current"
+                        >
+                          {collection.grouping === grouping ? (
+                            <span className="size-1 rounded-full bg-current" />
+                          ) : null}
+                        </span>
+                      </RotatingIcon>
                       {grouping === "artist" ? "Artist" : "Effect"}
                     </button>
                   ))}
@@ -955,6 +999,9 @@ export function ReplicationViewerOverlay({
                   onNext={
                     nextWork ? () => navigate(nextWork, "right") : undefined
                   }
+                  rotateMode={rotateMode}
+                  onRotateModeChange={handleRotateModeChange}
+                  onRotatedChange={setStageRotated}
                   onInfo={openInfo}
                   infoOpen={infoOpen}
                   infoControls={infoPanelId}
@@ -1121,20 +1168,23 @@ export function ReplicationViewerOverlay({
                         )}
                       >
                         {thumb ? (
-                          <AppImage
-                            src={thumb}
-                            alt=""
-                            width={80}
-                            height={80}
-                            className="h-full w-full object-contain"
-                          />
+                          <RotatingIcon
+                            rotated={stageRotated}
+                            className="h-full w-full"
+                          >
+                            <AppImage
+                              src={thumb}
+                              alt=""
+                              width={80}
+                              height={80}
+                              className="h-full w-full object-contain"
+                            />
+                          </RotatingIcon>
                         ) : (
                           <span className="theme-media-tile-creator grid h-full w-full place-items-center">
-                            <Icon
-                              icon="lucide:image-off"
-                              size={16}
-                              aria-hidden
-                            />
+                            <RotatingIcon rotated={stageRotated}>
+                              <Icon icon="lucide:image-off" size={16} aria-hidden />
+                            </RotatingIcon>
                           </span>
                         )}
                       </button>

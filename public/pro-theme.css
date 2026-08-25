@@ -1267,15 +1267,6 @@ html[data-visual-style="pro"] :is(.app-header, .app-footer) .theme-toggle-icon-m
   color: var(--ei-on-dark-muted);
 }
 
-/* The homepage logo "charge" keyframes animate a hardcoded conic rainbow
-   (--logo-rainbow) that has nothing to do with the token layer. Retinting
-   it is meaningless on a printed-reference skin; the mark just holds still. */
-html[data-visual-style="pro"] .theme-home-logo-charge-a,
-html[data-visual-style="pro"] .theme-home-logo-charge-b {
-  animation-name: none;
-  background-image: none;
-}
-
 /* ---------------------------------------------------------------------
    Replication lightbox. lightbox.css keeps an always-dark plum theatre in
    both themes; on this flavor it becomes a plain neutral backdrop. The

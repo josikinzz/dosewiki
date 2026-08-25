@@ -143,7 +143,7 @@ describe("dose.wiki homepage", () => {
         .getAllByRole("button")
         .map((control) => control.dataset.appearanceAxis)
         .filter(Boolean),
-    ).toEqual(["visual-style", "color-scheme"]);
+    ).toEqual(["visual-style", "color-scheme", "font"]);
     expect(
       within(panel).getByRole("button", { name: "Open Theme Lab" }),
     ).toHaveAttribute("aria-controls", "theme-lab-panel");
@@ -214,7 +214,7 @@ describe("dose.wiki pre-launch holding page", () => {
         .getAllByRole("button")
         .map((control) => control.dataset.appearanceAxis)
         .filter(Boolean),
-    ).toEqual(["visual-style", "color-scheme"]);
+    ).toEqual(["visual-style", "color-scheme", "font"]);
     // The Lab authors and shares palettes over routes the construction hosts do not serve.
     expect(within(panel).queryByRole("button", { name: "Open Theme Lab" })).not.toBeInTheDocument();
   });

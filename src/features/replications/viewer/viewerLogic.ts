@@ -64,6 +64,17 @@ export function resolveViewerMuted(stored: string | null): boolean {
   return stored !== "on";
 }
 
+/** sessionStorage key remembering the reader's sticky rotate-mode choice. */
+export const VIEWER_ROTATE_STORAGE_KEY = "replication-viewer-rotate";
+
+/**
+ * Rotate mode is off unless this session explicitly turned it on — the same
+ * contract as sound. Any unreadable or unrecognised value lands upright.
+ */
+export function resolveViewerRotateMode(stored: string | null): boolean {
+  return stored === "on";
+}
+
 /**
  * The frame a neighboring work shows while parked beside the stage: exactly
  * the source its own stage will paint first, so the swap lands on a warm,
@@ -81,6 +92,28 @@ export function standbyPosterSource(replication: {
     return replication.motion_poster_url ?? null;
   if (replication.type === "video") return replication.thumbnail_url ?? null;
   return replication.url;
+}
+
+/**
+ * The motion file a neighboring work's stage will play, for warming while it
+ * is still parked beside the stage: mirrors the stage's source choice — GIFs
+ * play their controllable rendition only once both motion assets exist,
+ * videos play their catalogued file, stills play nothing.
+ */
+export function standbyMotionSource(replication: {
+  type: ReplicationType;
+  format: string;
+  url: string;
+  motion_url?: string | null;
+  motion_poster_url?: string | null;
+}): string | null {
+  if (replication.format.toLowerCase() === "gif") {
+    return replication.motion_url && replication.motion_poster_url
+      ? replication.motion_url
+      : null;
+  }
+  if (replication.type === "video") return replication.url;
+  return null;
 }
 
 /** The slice of TimeRanges the seek bar reads; matches the DOM interface. */

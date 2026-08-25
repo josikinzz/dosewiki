@@ -88,8 +88,8 @@ describe("Theme Lab drawer", { timeout: 15_000 }, () => {
   it("opens on the site's own appearance axes", async () => {
     const panel = await openPanel();
 
-    // The two binary pills publish their axis to the DOM; one each for style and scheme.
-    expect(panel.querySelectorAll("[data-appearance-axis]")).toHaveLength(2);
+    // The three binary pills publish their axis to the DOM; style, scheme, and font.
+    expect(panel.querySelectorAll("[data-appearance-axis]")).toHaveLength(3);
 
     // Both colour axes arrive as the site's own hue and saturation sliders.
     expect(within(panel).getByRole("slider", { name: "Surface hue" })).toBeInTheDocument();

@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { SITE_FLAVOR_CONFIGS } from "@/config/siteFlavor";
 import {
   APPEARANCE_META_COLORS,
+  FONT_STORAGE_KEY,
   ACCENT_CHROMA_STORAGE_KEY,
   ACCENT_HUE_STORAGE_KEY,
   ACCENT_STORAGE_KEY,
@@ -22,6 +23,7 @@ import {
   getAppearanceMetaColor,
   getInitialAppearance,
   isColorScheme,
+  isFontPreference,
   isVisualStyle,
 } from "./index";
 import {
@@ -79,6 +81,7 @@ describe("theme token interface", () => {
     document.documentElement.style.removeProperty(ACCENT_LEVEL_PROPERTY);
     document.documentElement.style.removeProperty(SURFACE_HUE_PROPERTY);
     document.documentElement.style.removeProperty(ACCENT_HUE_PROPERTY);
+    delete document.documentElement.dataset.font;
   });
 
   it("names both appearance axes, their storage keys, and the meta-colour matrix", () => {
@@ -102,6 +105,8 @@ describe("theme token interface", () => {
     // The retired colourway keys survive as migration inputs only.
     expect(SURFACE_STORAGE_KEY).toBe("dosewiki-surface");
     expect(ACCENT_STORAGE_KEY).toBe("dosewiki-accent");
+    // The type axis's key. Only ever holds "dyslexic"; the default stores nothing.
+    expect(FONT_STORAGE_KEY).toBe("dosewiki-font");
 
     expect(isColorScheme("light")).toBe(true);
     expect(isColorScheme("sepia")).toBe(false);
@@ -110,6 +115,9 @@ describe("theme token interface", () => {
     // The axes are not interchangeable: a scheme value is not a style value.
     expect(isVisualStyle("dark")).toBe(false);
     expect(isColorScheme("pro")).toBe(false);
+    expect(isFontPreference("dyslexic")).toBe(true);
+    expect(isFontPreference("default")).toBe(true);
+    expect(isFontPreference("pro")).toBe(false);
 
     // A complete matrix, because the pre-paint script uses it as the validity set for both
     // stored preferences — a missing row would make a supported value look unsupported.
@@ -513,6 +521,34 @@ describe("theme token interface", () => {
     // The migration inputs are dose.wiki history; a locked script never reads them.
     expect(script).not.toContain(SURFACE_STORAGE_KEY);
     expect(script).not.toContain(ACCENT_STORAGE_KEY);
+  });
+
+  it("restores the saved dyslexic type pre-paint, and treats anything else as the default", () => {
+    installMockStorage({ [FONT_STORAGE_KEY]: "dyslexic" });
+    ensureThemeMeta();
+
+    Function(buildThemeBootstrapScript(DOSEWIKI))();
+
+    expect(document.documentElement.dataset.font).toBe("dyslexic");
+
+    // The default is the ABSENCE of the attribute — the key either holds exactly
+    // "dyslexic" or the axis contributes nothing to the painted frame.
+    delete document.documentElement.dataset.font;
+    installMockStorage({ [FONT_STORAGE_KEY]: "papyrus" });
+
+    Function(buildThemeBootstrapScript(DOSEWIKI))();
+
+    expect(document.documentElement.dataset.font).toBeUndefined();
+  });
+
+  it("emits no font-axis machinery for a publication that locks the type axis", () => {
+    // The pinned Effect Index CSP hash (lib/next/cspObservationPolicy.ts) holds the
+    // byte-identity line; this states the same contract in the script's own terms.
+    const script = buildThemeBootstrapScript(EFFECT_INDEX);
+
+    expect(script).not.toContain(FONT_STORAGE_KEY);
+    expect(script).not.toContain("dataset.font");
+    expect(script).not.toContain("dyslexic");
   });
 
   it("injects the appearance sheets a saved preference needs, ordered light → pro → chroma", () => {
