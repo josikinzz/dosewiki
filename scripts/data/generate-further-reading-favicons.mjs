@@ -25,7 +25,7 @@ const MAX_HTML_BYTES = 500_000;
 const BASE_SOURCE_CONFIGS = [
   {
     id: "psychonautwiki",
-    patterns: ["psychonautwiki.org", "psychonautwiki.net"],
+    patterns: ["psychonautwiki.org", "psychonautwiki.net", "psychonautwiki.rip"],
     favicon: "/favicons/psychonautwiki.png",
   },
   {

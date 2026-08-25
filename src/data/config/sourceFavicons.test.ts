@@ -2,6 +2,12 @@ import { describe, expect, it } from "vitest";
 import { getFaviconForUrl } from "./sourceFavicons";
 
 describe("source favicon lookup", () => {
+  it("uses the PsychonautWiki favicon for historical archive URLs", () => {
+    expect(getFaviconForUrl("https://psychonautwiki.rip/wiki/2C-B/")).toBe(
+      "/favicons/psychonautwiki.png",
+    );
+  });
+
   it("covers further-reading URLs that are not source-page domains", () => {
     expect(getFaviconForUrl("https://doi.org/10.3389/fphar.2018.00206")).toBe("/favicons/doi-org.png");
     expect(getFaviconForUrl("Front Pharmacol. 2023;14:1120419. https://doi.org/10.3389/fphar.2023.1120419")).toBe("/favicons/doi-org.png");

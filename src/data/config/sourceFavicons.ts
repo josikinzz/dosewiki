@@ -12,7 +12,7 @@ export interface SourceConfig {
 export const sourceConfigs: SourceConfig[] = [
   {
     id: "psychonautwiki",
-    patterns: ["psychonautwiki.org","psychonautwiki.net"],
+    patterns: ["psychonautwiki.org","psychonautwiki.net","psychonautwiki.rip"],
     favicon: "/favicons/psychonautwiki.png",
   },
   {
