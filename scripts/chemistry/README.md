@@ -54,6 +54,12 @@ identifiers, mixtures, preparations, salts, and representative active compounds
 remain explicit coverage/review cases; the audit does not turn them into single
 chemical entities or write generated names back to articles.
 
+Approved corrections use the dedicated `substanceIndex:setIupacName` mutation
+through `scripts/admin/convex-admin.mjs`. The caller must provide the currently
+stored name as `expected`; the mutation patches only
+`identification.iupac_name` and refuses a concurrent change. Chemical
+identifiers remain excluded from the review portal's generic inline editor.
+
 ## Seed the canonical Convex set
 
 Dry-run is the default. It reads the configured Convex target, never overwrites an existing row,
