@@ -111,6 +111,22 @@ function loadLedger(path, sourceDigest) {
   return ledger;
 }
 
+function loadPreviousLedger(path) {
+  if (!path) return null;
+  required(existsSync(path), `Previous ledger does not exist: ${path}.`);
+  const ledger = readJson(path);
+  required(ledger.operation === OPERATION, `Unexpected previous ledger operation in ${path}.`);
+  required(ledger.target === EXPECTED_TARGET, `Unexpected previous ledger target in ${path}.`);
+  required(ledger.taxonomySourceDigest, `Previous ledger has no taxonomy source digest: ${path}.`);
+  return ledger;
+}
+
+export function priorLedgerOwnsRow(priorLedger, source, liveDigest) {
+  if (!priorLedger || priorLedger.taxonomySourceDigest !== liveDigest) return false;
+  const ledgerRow = priorLedger.rows?.[source.taxonomyRecordKey];
+  return ledgerRow?.verified === true && ledgerRow.productionId === source.productionId;
+}
+
 function validateManifest(manifest) {
   required(manifest.schemaVersion === 2, "Current library taxonomy must use schemaVersion 2.");
   required(manifest.target === EXPECTED_TARGET, "Taxonomy manifest targets the wrong deployment.");
@@ -132,7 +148,7 @@ function validateManifest(manifest) {
   }
 }
 
-function reconcileRows(manifest, liveRows, ledger, sourceDigest, importedAt) {
+function reconcileRows(manifest, liveRows, ledger, previousLedger, sourceDigest, importedAt) {
   const liveById = new Map(liveRows.map((row) => [row.id, row]));
   const updates = [];
   for (const source of manifest.rows) {
@@ -151,8 +167,9 @@ function reconcileRows(manifest, liveRows, ledger, sourceDigest, importedAt) {
     const expectedPreviousDigest = source.expected.taxonomySourceDigest ?? null;
     const liveDigest = live.taxonomy_source_digest ?? null;
     const alreadyVerified = ledgerRow?.verified === true && liveDigest === sourceDigest;
+    const verifiedByPreviousCampaign = priorLedgerOwnsRow(previousLedger, source, liveDigest);
     required(
-      alreadyVerified || liveDigest === expectedPreviousDigest,
+      alreadyVerified || verifiedByPreviousCampaign || liveDigest === expectedPreviousDigest,
       `Taxonomy changed after snapshot for ${source.expected.slug}.`,
     );
     updates.push({
@@ -317,10 +334,13 @@ async function main(argv = process.argv.slice(2)) {
   const taxonomyPath = resolve(flagValue(argv, "--taxonomy-path", DEFAULT_TAXONOMY_PATH));
   const planPath = resolve(flagValue(argv, "--plan-path", DEFAULT_PLAN_PATH));
   const ledgerPath = resolve(flagValue(argv, "--ledger-path", DEFAULT_LEDGER_PATH));
+  const previousLedgerValue = flagValue(argv, "--previous-ledger-path", null);
+  const previousLedgerPath = previousLedgerValue ? resolve(previousLedgerValue) : null;
   const sourceDigest = sha256File(taxonomyPath);
   const manifest = readJson(taxonomyPath);
   validateManifest(manifest);
   const ledger = loadLedger(ledgerPath, sourceDigest);
+  const previousLedger = loadPreviousLedger(previousLedgerPath);
 
   const { token: apiKey } = requireProductionWriteCredential("replicationMaintenance");
   const client = new ConvexHttpClient(command.targetUrl);
@@ -330,7 +350,7 @@ async function main(argv = process.argv.slice(2)) {
     keys: manifest.artists.map((artist) => artist.key),
   });
   const importedAt = Date.now();
-  const rows = reconcileRows(manifest, liveRows, ledger, sourceDigest, importedAt);
+  const rows = reconcileRows(manifest, liveRows, ledger, previousLedger, sourceDigest, importedAt);
   const artists = artistUpdates(manifest, existingArtists, sourceDigest, importedAt);
   const plan = {
     schemaVersion: 1,
@@ -339,6 +359,12 @@ async function main(argv = process.argv.slice(2)) {
     target: command.targetUrl,
     taxonomyPath,
     taxonomySourceDigest: sourceDigest,
+    ...(previousLedgerPath
+      ? {
+          previousLedgerPath,
+          previousTaxonomySourceDigest: previousLedger.taxonomySourceDigest,
+        }
+      : {}),
     sourceSnapshotDigest: manifest.snapshotDigest,
     taxonomyVersion: manifest.schemaVersion,
     counts: {

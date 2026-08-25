@@ -10,8 +10,12 @@ import {
   figureContentTags,
   inferViewingMode,
 } from "./build-current-library-taxonomy.mjs";
-import { selectCanary } from "./import-current-library-taxonomy.mjs";
+import {
+  priorLedgerOwnsRow,
+  selectCanary,
+} from "./import-current-library-taxonomy.mjs";
 import { mergeReviewResults } from "./merge-current-library-review-results.mjs";
+import { applySourceReplicationContext } from "./reconcile-current-library-context.mjs";
 
 describe("current library taxonomy", () => {
   it("keeps the longest explicit drug match without double-tagging DMT", () => {
@@ -51,6 +55,63 @@ describe("current library taxonomy", () => {
     expect(figureContentTags({ title: "Dissociative Hole" })).toEqual(["teaching-slide"]);
   });
 
+  it("keeps contextual effect examples and psychedelic art in the replication gallery", () => {
+    const illustrative = applySourceReplicationContext(
+      {
+        replicationStatus: "not-replication",
+        replicationStatusRationale: "It looks like an ordinary photograph in isolation.",
+        contentFamily: "effect-illustration",
+        contentTags: ["pareidolia-example"],
+        decisionBasis: "current-item-visual-review",
+      },
+      { role: "replication", effect_slug: "increased-pareidolia" },
+    );
+    expect(illustrative).toMatchObject({
+      replicationStatus: "replication",
+      viewingMode: "open-eye",
+      viewingModeTags: ["open-eye"],
+      decisionBasis: "source-replication-context",
+      taxonomyReviewRequired: false,
+      contextReconciliation: {
+        previousReplicationStatus: "not-replication",
+        sourceRole: "replication",
+        sourceEffectSlug: "increased-pareidolia",
+      },
+    });
+
+    const visionary = applySourceReplicationContext(
+      {
+        replicationStatus: "unclear",
+        replicationStatusRationale: "The work may be standalone visionary art.",
+        contentFamily: "visionary-psychedelic-art",
+        contentTags: ["visionary-art"],
+        contentFamilyReviewRequired: true,
+        decisionBasis: "current-item-tertiary-adjudication",
+      },
+      { effect_slug: "autonomous-entity" },
+    );
+    expect(visionary).toMatchObject({
+      replicationStatus: "replication",
+      viewingMode: "closed-eye",
+      viewingModeTags: ["closed-eye"],
+      taxonomyReviewRequired: true,
+    });
+  });
+
+  it("does not turn explicit figures into replications merely because they have effect context", () => {
+    const row = {
+      replicationStatus: "not-replication",
+      contentFamily: "explanatory-figure",
+      decisionBasis: "explicit-figure-role",
+    };
+    expect(
+      applySourceReplicationContext(row, {
+        role: "figure",
+        effect_slug: "increased-heart-rate",
+      }),
+    ).toBe(row);
+  });
+
   it("selects diverse, de-duplicated row and artist canaries", () => {
     const row = (id, taxonomy) => ({ id, taxonomy });
     const selected = selectCanary(
@@ -67,6 +128,31 @@ describe("current library taxonomy", () => {
     expect(new Set(selected.rows.map((item) => item.id)).size).toBe(selected.rows.length);
     expect(selected.rows.map((item) => item.id)).toEqual(expect.arrayContaining(["figure", "open", "unknown"]));
     expect(selected.artists.map((item) => item.key)).toEqual(["rep", "other"]);
+  });
+
+  it("accepts a live taxonomy digest only when the previous campaign ledger verified that exact row", () => {
+    const priorLedger = {
+      taxonomySourceDigest: "prior-digest",
+      rows: {
+        "catalog:one": {
+          productionId: "row-1",
+          verified: true,
+        },
+      },
+    };
+    const source = { productionId: "row-1", taxonomyRecordKey: "catalog:one" };
+    expect(priorLedgerOwnsRow(priorLedger, source, "prior-digest")).toBe(true);
+    expect(priorLedgerOwnsRow(priorLedger, source, "foreign-digest")).toBe(false);
+    expect(
+      priorLedgerOwnsRow(
+        {
+          ...priorLedger,
+          rows: { "catalog:one": { productionId: "row-1", verified: false } },
+        },
+        source,
+        "prior-digest",
+      ),
+    ).toBe(false);
   });
 
   it("merges an exact visual-review campaign and eliminates unreviewed rows", () => {

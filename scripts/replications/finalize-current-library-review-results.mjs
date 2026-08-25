@@ -5,6 +5,7 @@ import { readFileSync, renameSync, writeFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 
 import { validateReview } from "./merge-current-library-review-results.mjs";
+import { reconcileSourceReplicationContext } from "./reconcile-current-library-context.mjs";
 
 const MANIFEST_PATH =
   "/Users/josie/Documents/Dose Wiki Media Review/Data/current-library-taxonomy-reviewed.json";
@@ -13,6 +14,8 @@ const CAMPAIGN_ROOT =
 const PRIMARY_INDEX_PATH = resolve(CAMPAIGN_ROOT, "assignment-index.json");
 const SECONDARY_INDEX_PATH = resolve(CAMPAIGN_ROOT, "second-review/assignment-index.json");
 const TERTIARY_INDEX_PATH = resolve(CAMPAIGN_ROOT, "third-review/assignment-index.json");
+const SOURCE_SNAPSHOT_PATH =
+  "/Users/josie/Documents/Dose Wiki Media Review/Data/Channel Candidates 2026-08-23/live-production-snapshot.json";
 
 function readJson(path) {
   return JSON.parse(readFileSync(path, "utf8"));
@@ -175,7 +178,7 @@ function main() {
     throw new Error("Tertiary disagreement scope drifted from the current review files.");
   }
 
-  const rows = manifest.rows.map((row) => {
+  const reviewedRows = manifest.rows.map((row) => {
     const secondaryReview = secondary.reviews.get(row.productionId);
     if (!secondaryReview) return row;
     const primaryReview = primary.reviews.get(row.productionId);
@@ -201,6 +204,8 @@ function main() {
       "current-item-tertiary-adjudication",
     );
   });
+  const sourceSnapshot = readJson(SOURCE_SNAPSHOT_PATH);
+  const rows = reconcileSourceReplicationContext(reviewedRows, sourceSnapshot.replications);
 
   const confirmed = rows.filter((row) => row.replicationStatus === "replication");
   if (rows.some((row) => row.replicationStatus === "unreviewed")) {
@@ -216,18 +221,26 @@ function main() {
       ...manifest.sources,
       currentItemSecondaryReviewCampaign: sourceDescriptor(SECONDARY_INDEX_PATH, secondary),
       currentItemTertiaryReviewCampaign: sourceDescriptor(TERTIARY_INDEX_PATH, tertiary),
+      sourceReplicationContext: {
+        path: SOURCE_SNAPSHOT_PATH,
+        sha256: sha256File(SOURCE_SNAPSHOT_PATH),
+      },
     },
     policy: {
       ...manifest.policy,
       precedence: [
+        "source-replication-context",
         "current-item-tertiary-adjudication",
         "current-item-independent-review",
         ...manifest.policy.precedence.filter(
           (value) =>
+            value !== "source-replication-context" &&
             value !== "current-item-tertiary-adjudication" &&
             value !== "current-item-independent-review",
         ),
       ],
+      statusRule:
+        "An explicit replication role or effect assignment is item-level replication context. Illustrative effect examples and traditional psychedelic artwork remain replications; only explicit figures or concrete item-specific exclusions are not-replications.",
     },
     summary: {
       rows: rows.length,
