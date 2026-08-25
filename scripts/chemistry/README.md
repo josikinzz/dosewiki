@@ -150,22 +150,26 @@ bytes, defined once in `src/data/mappings/moleculePalette.ts` and applied at ser
 to Convex `moleculeOverrides` rows by `src/app/api/molecules/**`. They need no Python
 env, and no recoloured static copies exist.
 
-## Pre-rendered substance social cards
+## Pre-rendered social cards
 
-`npm run generate:social-cards` reads every production substance plus its optional
-`moleculeOverrides` row and writes immutable 1200×1200 PNGs under
-`public/images/social/substances/`. The generator uses the dark textbook molecule
-colourway on a flat black background, then composites the logo, title, and classification
-badges above the molecule. Substances without molecule artwork still receive a branded
-title card.
+`npm run generate:social-cards` builds two immutable 1200×1200 PNG sets:
 
-`predev` and `prebuild` run the generator for dose.wiki; Effect Index builds skip it and
+- Every production substance under `public/images/social/substances/`, using its optional
+  `moleculeOverrides` row. The dark textbook molecule sits on a flat black background below
+  the logo, title, and classification badges. A substance without molecule artwork still
+  receives a branded title card.
+- Tailored home, Substance Index, Subjective Effect Index, Replications, Chemical Class
+  Index, and About cards under `public/images/social/pages/`. These mirror the public
+  pages' mobile app-icon navigation and brand hierarchy.
+
+`predev` and `prebuild` run both generators for dose.wiki; Effect Index builds skip them and
 retain their publication-wide social card. Generated PNGs are ignored because every
-deployment recreates them. The tracked
-`src/data/substanceSocialCardManifest.generated.json` maps each slug to a digest-named
-asset, so article/classification edits, molecule revisions, and renderer-version changes
-produce a new crawler URL. A Convex editor save therefore reaches the social image on the
-next dose.wiki deployment rather than through request-time rasterization.
+deployment recreates them. The tracked `src/data/substanceSocialCardManifest.generated.json`
+and `src/data/pageSocialCardManifest.generated.json` files map metadata identities to
+digest-named assets. Substance card digests include article and molecule revisions; fixed
+page card digests include their renderer sources and bundled visual assets. Any visual or
+data revision therefore produces a new crawler URL on the next dose.wiki deployment rather
+than relying on request-time rasterization.
 
 ## Editing a published depiction
 

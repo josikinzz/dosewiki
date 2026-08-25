@@ -220,8 +220,8 @@ const nextConfig: NextConfig = {
         ],
       },
       {
-        // Filenames carry a digest of article, molecule, and renderer inputs.
-        source: "/images/social/substances/:card*.png",
+        // Filenames carry a digest of their page/data, artwork, and renderer inputs.
+        source: "/images/social/:collection/:card*.png",
         headers: [
           {
             key: "Cache-Control",

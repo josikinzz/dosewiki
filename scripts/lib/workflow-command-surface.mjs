@@ -101,7 +101,7 @@ export const stableWorkflowCommands = [
   }),
   command({
     name: 'generate:social-cards',
-    purpose: 'Pre-render immutable dose.wiki substance social cards from production Convex.',
+    purpose: 'Pre-render immutable dose.wiki substance and fixed-page social cards.',
     env: ['CONVEX_PUBLIC_READ_URL or CONVEX_URL or VITE_CONVEX_URL or NEXT_PUBLIC_CONVEX_URL'],
     scriptPath: 'scripts/build/generateSubstanceSocialCards.ts',
     reads: [workflowAccessTargets.convexSource, workflowAccessTargets.localArtifacts],

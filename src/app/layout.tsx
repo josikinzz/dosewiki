@@ -3,7 +3,6 @@ import { env } from "node:process";
 import Script from "next/script";
 import { PUBLIC_SITE, buildSiteAssetUrl, buildSiteUrl } from "@server/next/publicSite";
 import { SITE_FLAVOR, SITE_FLAVOR_CONFIG } from "@/config/siteFlavor";
-import { pageSocialCardImage } from "@/data/mappings/pageSocialCardUrl";
 import { buildZodJitlessBootstrapScript } from "@server/next/zodBrowserPolicy";
 import {
   THEME_META_ID,
@@ -50,13 +49,6 @@ const rootFontClassName = dyslexicFont
   ? `${siteFont.variable} ${proFont.variable} ${dyslexicFont.variable}`
   : `${siteFont.variable} ${proFont.variable}`;
 const homeConstructionMode = env.NEXT_PUBLIC_HOME_CONSTRUCTION_MODE === "true";
-const homeSocialCard =
-  pageSocialCardImage("home", "dose.wiki home") ?? {
-    path: PUBLIC_SITE.socialCard.path,
-    width: PUBLIC_SITE.socialCard.width,
-    height: PUBLIC_SITE.socialCard.height,
-    alt: `${PUBLIC_SITE.name} logo`,
-  };
 
 export const metadata: Metadata = {
   title: SITE_FLAVOR_CONFIG.rootMetadata.title,
@@ -75,10 +67,10 @@ export const metadata: Metadata = {
     url: buildSiteUrl("/"),
     images: [
       {
-        url: buildSiteAssetUrl(homeSocialCard.path),
-        width: homeSocialCard.width,
-        height: homeSocialCard.height,
-        alt: homeSocialCard.alt,
+        url: buildSiteAssetUrl(PUBLIC_SITE.socialCard.path),
+        width: PUBLIC_SITE.socialCard.width,
+        height: PUBLIC_SITE.socialCard.height,
+        alt: `${PUBLIC_SITE.name} logo`,
       },
     ],
   },
@@ -86,7 +78,7 @@ export const metadata: Metadata = {
     card: "summary",
     title: SITE_FLAVOR_CONFIG.rootMetadata.title,
     description: SITE_FLAVOR_CONFIG.rootMetadata.twitterDescription,
-    images: [buildSiteAssetUrl(homeSocialCard.path)],
+    images: [buildSiteAssetUrl(PUBLIC_SITE.socialCard.path)],
   },
   icons: {
     icon: SITE_FLAVOR_CONFIG.faviconPath,

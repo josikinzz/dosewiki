@@ -13,28 +13,56 @@ import { ConstructionLanding } from "./_components/ConstructionLanding";
 import { HomeExperience } from "./_components/HomeExperience";
 import { buildHomeQuickLinks } from "./_components/homeQuickLinks";
 import { flavoredCopyText, getCopy, type CopyResolver } from "@server/next/copyBlocks";
+import { PUBLIC_SITE, buildSiteAssetUrl, buildSiteUrl } from "@server/next/publicSite";
+import { pageSocialCardImage } from "@/data/mappings/pageSocialCardUrl";
 
-// The homepage deliberately does not route through buildPublicPageMetadata: its Open
-// Graph card is inherited from the root layout's flavored metadata block. Only the title
-// and description are overridden here. The title is the flavor's bare title suffix — the
-// homepage is the one route whose tab title carries no " - <suffix>" tail.
+// The homepage keeps its bare title suffix rather than the public metadata builder's
+// `<page> - <suffix>` convention. Its tailored dose.wiki card is overlaid here so other
+// routes without their own card continue to inherit the publication-wide root asset.
 export async function generateMetadata(): Promise<Metadata> {
   const isConstructionMode = env.NEXT_PUBLIC_HOME_CONSTRUCTION_MODE === "true";
   const copy = await getCopy();
+  const description = flavoredCopyText(
+    copy,
+    "home-hero-tagline",
+    SITE_FLAVOR_CONFIG.description,
+  );
+  const socialImage = pageSocialCardImage("home", "dose.wiki home");
 
   return {
     title: SITE_FLAVOR_CONFIG.titleSuffix,
-    description: flavoredCopyText(
-      copy,
-      "home-hero-tagline",
-      SITE_FLAVOR_CONFIG.description,
-    ),
+    description,
     robots: isConstructionMode
       ? {
           index: false,
           follow: false,
         }
       : undefined,
+    ...(socialImage
+      ? {
+          openGraph: {
+            type: "website" as const,
+            siteName: PUBLIC_SITE.name,
+            title: SITE_FLAVOR_CONFIG.rootMetadata.title,
+            description: SITE_FLAVOR_CONFIG.rootMetadata.openGraphDescription,
+            url: buildSiteUrl("/"),
+            images: [
+              {
+                url: buildSiteAssetUrl(socialImage.path),
+                width: socialImage.width,
+                height: socialImage.height,
+                alt: socialImage.alt,
+              },
+            ],
+          },
+          twitter: {
+            card: "summary" as const,
+            title: SITE_FLAVOR_CONFIG.rootMetadata.title,
+            description: SITE_FLAVOR_CONFIG.rootMetadata.twitterDescription,
+            images: [buildSiteAssetUrl(socialImage.path)],
+          },
+        }
+      : {}),
   };
 }
 

@@ -473,6 +473,61 @@
       "refreshCommand": "npm run generate:social-cards"
     },
     {
+      "id": "page-social-card-manifest",
+      "path": "src/data/pageSocialCardManifest.generated.json",
+      "role": "derived-manifest",
+      "producer": "scripts/build/generatePageSocialCards.ts",
+      "consumers": [
+        "src/data/mappings/pageSocialCardUrl.ts",
+        "src/app/page.tsx",
+        "src/app/substances/page.tsx",
+        "src/app/effects/page.tsx",
+        "src/app/replications/(tabs)/page.tsx",
+        "src/app/chemical-classes/page.tsx",
+        "src/app/about/page.tsx"
+      ],
+      "inputs": [
+        "lib/og/pageSocialCard.ts",
+        "lib/og/socialCardPrimitives.ts",
+        "src/assets/dosewiki-logo.svg",
+        "public/profile-avatars/josie/avatar.webp",
+        "public/fonts/Blinker-Regular.ttf",
+        "public/fonts/Blinker-SemiBold.ttf",
+        "@iconify-json/* devDependencies"
+      ],
+      "freshnessRule": "Regenerate before dose.wiki development and production builds; each path includes a digest of the page key, renderer sources, and bundled visual assets.",
+      "sourceDeployment": "local working tree",
+      "targetDeployment": null,
+      "schemaVersion": "scripts/build/generatePageSocialCards.ts",
+      "editPolicy": "do-not-edit-by-hand",
+      "refreshCommand": "npm run generate:social-cards"
+    },
+    {
+      "id": "page-social-card-images",
+      "path": "public/images/social/pages/*.png",
+      "role": "build-generated-static-assets",
+      "producer": "scripts/build/generatePageSocialCards.ts",
+      "consumers": [
+        "home and public index Open Graph and Twitter metadata"
+      ],
+      "inputs": [
+        "src/data/pageSocialCardManifest.generated.json",
+        "lib/og/pageSocialCard.ts",
+        "lib/og/socialCardPrimitives.ts",
+        "src/assets/dosewiki-logo.svg",
+        "public/profile-avatars/josie/avatar.webp",
+        "public/fonts/Blinker-Regular.ttf",
+        "public/fonts/Blinker-SemiBold.ttf",
+        "@iconify-json/* devDependencies"
+      ],
+      "freshnessRule": "Generated before each dose.wiki development or production build; stale digest-named PNGs are removed only after a complete successful render.",
+      "sourceDeployment": "local working tree",
+      "targetDeployment": null,
+      "schemaVersion": "scripts/build/generatePageSocialCards.ts",
+      "editPolicy": "do-not-edit-by-hand",
+      "refreshCommand": "npm run generate:social-cards"
+    },
+    {
       "id": "data-artifact-lineage-manifest",
       "path": "src/data/artifactLineageManifest.json",
       "role": "provenance-contract",
