@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   applyEditableFieldWrite,
+  applyIupacNameWrite,
   EDITABLE_ARTICLE_FIELD_MAX_LENGTH,
   EDITABLE_ARTICLE_FIELD_TEMPLATES,
   encodeArticleFieldPathKey,
@@ -40,7 +41,11 @@ function documentFixture() {
     },
     title: "Example",
     summary: "An example substance.",
-    identification: { common_name: "Example", botanical_name: "" },
+    identification: {
+      common_name: "Example",
+      botanical_name: "",
+      iupac_name: "Old systematic name",
+    },
     legality: {
       international: ["Not scheduled under the 1971 Convention."],
       countries: {
@@ -341,6 +346,36 @@ describe("single-segment writes", () => {
       ok: false,
       reason: 'Field "title" is not a text field.',
     });
+  });
+});
+
+describe("applyIupacNameWrite", () => {
+  it("updates only the cloned identification section", () => {
+    const document = documentFixture();
+    const before = document.identification;
+    const result = applyIupacNameWrite(
+      document,
+      "New systematic name",
+      "Old systematic name",
+    );
+
+    expect(result).toMatchObject({
+      ok: true,
+      topLevelKey: "identification",
+      topLevelValue: {
+        common_name: "Example",
+        botanical_name: "",
+        iupac_name: "New systematic name",
+      },
+    });
+    expect(document.identification).toBe(before);
+    expect(before).toMatchObject({ iupac_name: "Old systematic name" });
+  });
+
+  it("refuses a stale expected name", () => {
+    expect(
+      applyIupacNameWrite(documentFixture(), "New systematic name", "Stale name"),
+    ).toMatchObject({ ok: false, conflict: true });
   });
 });
 

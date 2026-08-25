@@ -40,6 +40,7 @@ import {
   saveSubstanceHandler,
   saveSubstancesHandler,
   setArticleFieldHandler,
+  setIupacNameHandler,
 } from "./lib/substanceWriteHandlers";
 
 const RETIRED_CORPUS_OPERATION_MESSAGE =
@@ -572,6 +573,17 @@ export const setArticleField = mutation({
     expected: v.optional(editableFieldValueValidator),
   },
   handler: setArticleFieldHandler,
+});
+
+export const setIupacName = mutation({
+  args: {
+    apiKey: v.optional(v.string()),
+    actorEmail: v.optional(v.string()),
+    slug: v.string(),
+    value: v.string(),
+    expected: v.string(),
+  },
+  handler: setIupacNameHandler,
 });
 
 export const appendArticleReference = mutation({

@@ -165,6 +165,10 @@ export const productionWriterClassifications = Object.freeze({
   ]),
   detectorExemption: Object.freeze([
     {
+      path: "scripts/chemistry/iupacNameProviders.ts",
+      reason: "POST requests are read-only PubChem structure lookups.",
+    },
+    {
       path: "scripts/lib/scry-client.mjs",
       reason: "POST is a read-only SQL query against the Scry public corpus API.",
     },

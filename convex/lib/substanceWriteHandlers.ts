@@ -3,6 +3,7 @@ import type { MutationCtx } from "../_generated/server";
 import { requireEditorWrite } from "./auth";
 import {
   applyEditableFieldWrite,
+  applyIupacNameWrite,
   EDITABLE_ARTICLE_FIELD_MAX_LENGTH,
   isEditableArticleFieldPath,
 } from "./articleFieldWrites";
@@ -113,6 +114,54 @@ export async function setArticleFieldHandler(
     value: result.value,
     topLevelKey: result.topLevelKey,
     topLevelValue: result.topLevelValue,
+    id: article.id,
+    title: article.title,
+  };
+}
+
+export async function setIupacNameHandler(
+  ctx: MutationCtx,
+  args: EditorArgs & {
+    slug: string;
+    value: string;
+    expected: string;
+  },
+) {
+  await requireEditorWrite(ctx, {
+    apiKey: args.apiKey,
+    actorEmail: args.actorEmail,
+    adminIntent: "editorArticleWrite",
+  });
+  const article = await ctx.db
+    .query("substanceIndex")
+    .withIndex("by_slug", (query) => query.eq("slug", args.slug))
+    .first();
+  if (!article) {
+    throw new ConvexError({
+      code: "ARTICLE_NOT_FOUND",
+      message: `No substance found for slug "${args.slug}".`,
+    });
+  }
+
+  const result = applyIupacNameWrite(
+    article as unknown as Record<string, unknown>,
+    args.value,
+    args.expected,
+  );
+  if (result.ok === false) {
+    throw new ConvexError({
+      code: result.conflict === true ? "FIELD_CONFLICT" : "FIELD_WRITE_REJECTED",
+      message: result.reason,
+    });
+  }
+
+  await ctx.db.patch(article._id, {
+    identification: result.topLevelValue,
+  });
+  return {
+    slug: args.slug,
+    path: "identification.iupac_name",
+    value: result.value,
     id: article.id,
     title: article.title,
   };

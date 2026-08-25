@@ -31,6 +31,29 @@ compare that live row set with the live substance corpus, run
 `npm run molecules:seed-convex -- --dry-run` and inspect
 `tmp/molecule-seed/report.json`.
 
+## Audit IUPAC names against live SMILES
+
+`npm run audit:iupac-names` performs a read-only audit of the live production
+`substanceIndex`. It converts stored SMILES to standard InChI with the project's
+RDKit build, converts stored names through OPSIN and RDKit, and compares the
+structures rather than the name strings. PubChem `IUPACName` values are retained
+only as review candidates, and a candidate is recommended only when an
+OPSIN → RDKit round trip reproduces the stored-SMILES InChI exactly.
+
+The command never calls a Convex mutation. It writes its report and a 30-day
+provider cache under `tmp/iupac-audit/`:
+
+```bash
+npm run audit:iupac-names
+npm run audit:iupac-names -- --slug lsd --refresh
+```
+
+Use `--convex-url`, `--report`, or `--cache` to override those defaults.
+`--fail-on-review` makes a non-empty review queue fail for automation. Missing
+identifiers, mixtures, preparations, salts, and representative active compounds
+remain explicit coverage/review cases; the audit does not turn them into single
+chemical entities or write generated names back to articles.
+
 ## Seed the canonical Convex set
 
 Dry-run is the default. It reads the configured Convex target, never overwrites an existing row,

@@ -544,3 +544,45 @@ export function applyEditableFieldWrite(
 
   return { ok: true, topLevelKey, topLevelValue: clone, value };
 }
+
+/**
+ * Applies a compare-and-set update to the stored IUPAC name without making
+ * chemical identifiers available to the review portal's generic inline editor.
+ */
+export function applyIupacNameWrite(
+  document: Record<string, unknown>,
+  value: string,
+  expected: string,
+): EditableFieldWriteResult {
+  if (value.length > EDITABLE_ARTICLE_FIELD_MAX_LENGTH) {
+    return { ok: false, reason: "IUPAC name is too long." };
+  }
+
+  const original = document.identification;
+  if (!isRecord(original)) {
+    return { ok: false, reason: 'Article has no "identification" section to edit.' };
+  }
+
+  let identification: Record<string, unknown>;
+  try {
+    identification = JSON.parse(JSON.stringify(original)) as Record<string, unknown>;
+  } catch {
+    return { ok: false, reason: 'Unable to read "identification" for editing.' };
+  }
+
+  const existing = identification.iupac_name;
+  if (existing !== undefined && existing !== null && typeof existing !== "string") {
+    return { ok: false, reason: 'Field "identification.iupac_name" is not a text field.' };
+  }
+  if ((typeof existing === "string" ? existing : "") !== expected) {
+    return { ok: false, reason: EDITABLE_FIELD_CONFLICT_REASON, conflict: true };
+  }
+
+  identification.iupac_name = value;
+  return {
+    ok: true,
+    topLevelKey: "identification",
+    topLevelValue: identification,
+    value,
+  };
+}
