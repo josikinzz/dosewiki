@@ -419,31 +419,36 @@ export function EffectsIndexExplorer({
         }
 
         return (
-          <IndexPanelGrid columns={nonEmptyColumns.length}>
-            {nonEmptyColumns.map((column) => (
-              <div key={column.index} className={INDEX_PANEL_STACK_CLASS_NAME}>
-                {column.categories.map((category) => (
-                  <ParentCategoryCard
-                    key={category.key}
-                    title={category.displayTitle ?? category.title}
-                    icon={category.icon}
-                    subcategories={category.subcategories}
-                    parentRouteSlug={category.routeSlug}
-                    effects={effects}
-                    effectHrefPrefix={effectHrefPrefix}
-                    expanded={expanded[category.key] ?? true}
-                    onExpandedChange={() => handleToggle(category.key)}
-                    contentId={`${category.key}-list`}
-                    titleHref={getCategoryHref(category.routeSlug)}
-                    onIconClick={() => void handleCopyParentCategory(category)}
-                    iconActionLabel={`Copy ${category.title} list to clipboard`}
-                    iconActiveState={copiedKey === category.key}
-                    toggleLabel={`${(expanded[category.key] ?? true) ? "Collapse" : "Expand"} ${category.title} category`}
-                  />
-                ))}
-              </div>
-            ))}
-          </IndexPanelGrid>
+          // With no standing intro on this tab, the grid supplies its own
+          // offset from the tab strip — the same one the Substance Index
+          // panels use — instead of hugging the pills.
+          <div className="mt-6 sm:mt-10">
+            <IndexPanelGrid columns={nonEmptyColumns.length}>
+              {nonEmptyColumns.map((column) => (
+                <div key={column.index} className={INDEX_PANEL_STACK_CLASS_NAME}>
+                  {column.categories.map((category) => (
+                    <ParentCategoryCard
+                      key={category.key}
+                      title={category.displayTitle ?? category.title}
+                      icon={category.icon}
+                      subcategories={category.subcategories}
+                      parentRouteSlug={category.routeSlug}
+                      effects={effects}
+                      effectHrefPrefix={effectHrefPrefix}
+                      expanded={expanded[category.key] ?? true}
+                      onExpandedChange={() => handleToggle(category.key)}
+                      contentId={`${category.key}-list`}
+                      titleHref={getCategoryHref(category.routeSlug)}
+                      onIconClick={() => void handleCopyParentCategory(category)}
+                      iconActionLabel={`Copy ${category.title} list to clipboard`}
+                      iconActiveState={copiedKey === category.key}
+                      toggleLabel={`${(expanded[category.key] ?? true) ? "Collapse" : "Expand"} ${category.title} category`}
+                    />
+                  ))}
+                </div>
+              ))}
+            </IndexPanelGrid>
+          </div>
         );
       })()}
 
