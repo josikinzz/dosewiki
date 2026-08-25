@@ -185,6 +185,37 @@ describe("pilot section public citations", () => {
     expect(legacyBadge).toHaveAttribute("data-badge-tone", "red");
   });
 
+  it("renders canonical and legacy unscheduled statuses as neutral badges", () => {
+    const article = {
+      ...createEmptyArticle(),
+      legality: {
+        international: [],
+        countries: {
+          Canada: {
+            status: "Not scheduled",
+            notes: "No affirmative legality determination.",
+          },
+          France: {
+            status: "Unscheduled (grey area)",
+            canonicalStatus: "unscheduled",
+            notes: "No affirmative legality determination.",
+          },
+        },
+      },
+    } as SubstanceArticle;
+
+    render(<LegalitySection article={article} />);
+
+    for (const badge of screen.getAllByText("Not scheduled")) {
+      expect(badge).toHaveAttribute("data-badge-tone", "gray");
+      expect(badge).toHaveClass(
+        "theme-article-subsection-card-nested",
+        "theme-text-muted",
+      );
+      expect(badge).not.toHaveClass("theme-evidence-surface");
+    }
+  });
+
   it("omits the canonical citation line when the designation contains the full instrument", () => {
     const article = {
       ...createEmptyArticle(),

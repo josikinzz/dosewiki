@@ -48,7 +48,7 @@ const CANONICAL_STATUS_DISPLAY: Record<
   prescription_only: { label: "Prescription only", color: "blue" },
   decriminalized: { label: "Decriminalized", color: "green" },
   legal_regulated: { label: "Legal (regulated)", color: "green" },
-  unscheduled: { label: "Not scheduled", color: "green" },
+  unscheduled: { label: "Not scheduled", color: "gray" },
   restricted_other: { label: "Restricted", color: "yellow" },
 };
 
@@ -101,13 +101,15 @@ const STATUS_COLOR_MAP: Record<string, StatusColor> = {
   Regulated: "blue",
   Restricted: "blue",
 
-  // Green - Legal/Uncontrolled
+  // Green - Affirmatively legal/uncontrolled
   Legal: "green",
-  Unscheduled: "green",
   Uncontrolled: "green",
   "Not controlled": "green",
-  "Not scheduled": "green",
   Decriminalized: "green",
+
+  // Gray - Unscheduled status does not imply legality
+  Unscheduled: "gray",
+  "Not scheduled": "gray",
 };
 
 // Pattern fallbacks for variations (checked in order)
@@ -122,9 +124,12 @@ const STATUS_PATTERNS: [RegExp, StatusColor][] = [
   [/\bprescription\b|\bmedical\s*use\b/i, "blue"],
   [/\brestricted\b|\bregulated\b/i, "blue"],
 
-  // Green patterns - legal/uncontrolled
-  [/\blegal\b|\bunscheduled\b|\buncontrolled\b|\bdecriminalized\b/i, "green"],
-  [/\bnot\s*(controlled|scheduled)\b/i, "green"],
+  // Gray patterns - unscheduled status does not imply legality
+  [/\bunscheduled\b|\bnot\s*scheduled\b/i, "gray"],
+
+  // Green patterns - affirmatively legal/uncontrolled
+  [/\blegal\b|\buncontrolled\b|\bdecriminalized\b/i, "green"],
+  [/\bnot\s*controlled\b/i, "green"],
 
   // Yellow patterns - catch-all for controlled substances (checked last)
   [/\bcontrolled\b|\bschedule\b|\bscheduled\b/i, "yellow"],
