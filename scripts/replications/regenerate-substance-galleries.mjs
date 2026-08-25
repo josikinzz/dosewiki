@@ -292,7 +292,13 @@ async function main() {
   if (mismatches.length > 0) {
     throw new Error(`Gallery verification failed: ${mismatches.map((plan) => plan.substance_slug).join(", ")}`);
   }
-  console.log(JSON.stringify({ verified: changed.length, mismatches: [] }, null, 2));
+  const verification = { verified: changed.length, mismatches: [] };
+  writeJsonAtomic(REPORT_PATH, {
+    ...report,
+    applied_at: new Date().toISOString(),
+    verification,
+  });
+  console.log(JSON.stringify(verification, null, 2));
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(path.resolve(process.argv[1])).href) {

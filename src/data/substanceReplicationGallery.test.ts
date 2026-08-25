@@ -17,6 +17,7 @@ import {
 const row = (
   overrides: Partial<SubstanceGalleryMatchableRow> & { slug: string },
 ): SubstanceGalleryMatchableRow => ({
+  title: overrides.slug,
   type: "image",
   title_drugs: [],
   title_class_mentions: [],

@@ -2,6 +2,7 @@ import { buildPublicPageMetadata } from "@server/next/publicSite";
 import { getPublicChemicalClassTreePayload } from "@server/convex/publicChemicalClassIndex";
 import { ChemicalClassTreePage } from "@/features/chemical-classes/pages/ChemicalClassTreePage";
 import { SITE_FLAVOR_CONFIG } from "@/config/siteFlavor";
+import { pageSocialCardImage } from "@/data/mappings/pageSocialCardUrl";
 
 export const revalidate = 3600;
 
@@ -13,6 +14,7 @@ export async function generateMetadata() {
     title: "Chemical Classes",
     description: `Browse the chemical class tree - ${classCount} classes organized by structural lineage on ${SITE_FLAVOR_CONFIG.name}.`,
     route: { family: "chemicalClasses" },
+    socialImage: pageSocialCardImage("chemical-classes", "dose.wiki Chemical Class Index"),
   });
 }
 

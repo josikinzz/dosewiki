@@ -7,6 +7,7 @@ import { getCopy } from "@server/next/copyBlocks";
 import { resolveEmptyStateCopy } from "@server/next/emptyStateCopy";
 import { SEI_INTRO_COPY_FALLBACK } from "@/features/effects/components/seiIntroCopy";
 import { applyPlaceholders } from "@/data/content/about";
+import { pageSocialCardImage } from "@/data/mappings/pageSocialCardUrl";
 
 export const revalidate = 3600;
 const ITEM_LIST_LIMIT = 100;
@@ -25,6 +26,7 @@ export async function generateMetadata() {
       siteName: SITE_FLAVOR_CONFIG.name,
     }),
     route: result.canonicalRoute,
+    socialImage: pageSocialCardImage("effects", "dose.wiki Subjective Effect Index"),
   });
 }
 

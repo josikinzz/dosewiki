@@ -17,6 +17,7 @@ import { AboutPage as AboutContentPage } from "@/components/pages/AboutPage";
 import { buildAboutPreviewSnapshots } from "@/components/pages/aboutArchiveSnapshot";
 import type { SubstanceArticle } from "@/schema";
 import { SITE_FLAVOR_CONFIG, isEffectIndex } from "@/config/siteFlavor";
+import { pageSocialCardImage } from "@/data/mappings/pageSocialCardUrl";
 
 export const revalidate = 3600;
 
@@ -50,6 +51,7 @@ export async function generateMetadata() {
       resolveAboutSubtitle(about.subtitle) ||
       `Learn about the ${SITE_FLAVOR_CONFIG.name} project.`,
     route: { family: "about" },
+    socialImage: pageSocialCardImage("about", "About dose.wiki"),
   });
 }
 

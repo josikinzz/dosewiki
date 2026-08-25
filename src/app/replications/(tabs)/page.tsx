@@ -23,6 +23,7 @@ import {
   getPublicRoutePath,
 } from "@server/next/publicSite";
 import { getCopy } from "@server/next/copyBlocks";
+import { pageSocialCardImage } from "@/data/mappings/pageSocialCardUrl";
 
 // Statically rendered on the hourly ISR window shared by the other index
 // pages. The gallery's filters live in query params (?view/?q/?type/?sort),
@@ -48,6 +49,7 @@ export async function generateMetadata(): Promise<Metadata> {
     description:
       copy.text("seo-replications-description") || DESCRIPTION_FALLBACK,
     route: { family: "replications" },
+    socialImage: pageSocialCardImage("replications", "dose.wiki Replications"),
   });
 }
 

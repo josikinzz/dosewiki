@@ -68,6 +68,7 @@ export type SubstanceGalleryTitleClassMention = {
 /** The minimum a corpus row must carry to be matchable. */
 export type SubstanceGalleryMatchableRow = {
   slug: string;
+  title: string;
   type: ReplicationType;
   role?: MediaRole;
   effect_slug?: string | null;

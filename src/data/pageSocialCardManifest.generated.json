@@ -1,0 +1,12 @@
+{
+  "version": 1,
+  "rendererVersion": "1",
+  "cards": {
+    "home": "/images/social/pages/home.b9f7c668f0ddb6f8.png",
+    "substances": "/images/social/pages/substances.b18d46092c1be8ad.png",
+    "effects": "/images/social/pages/effects.a2d42eaa94ab1671.png",
+    "replications": "/images/social/pages/replications.8772937e65506618.png",
+    "chemical-classes": "/images/social/pages/chemical-classes.fca10659f6b0b1f1.png",
+    "about": "/images/social/pages/about.2e1fa9b46e80b2b9.png"
+  }
+}

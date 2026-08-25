@@ -7,6 +7,7 @@ import { applyPlaceholders } from "@/data/content/about";
 import { buildItemListSchema, serializeJsonLd } from "@/utils/seo/structuredData";
 import { DosagesPage } from "@/components/pages/DosagesPage";
 import { SITE_FLAVOR_CONFIG } from "@/config/siteFlavor";
+import { pageSocialCardImage } from "@/data/mappings/pageSocialCardUrl";
 
 export const revalidate = 3600;
 const ITEM_LIST_LIMIT = 100;
@@ -25,6 +26,7 @@ export async function generateMetadata() {
       siteName: SITE_FLAVOR_CONFIG.name,
     }),
     route: { family: "substances" },
+    socialImage: pageSocialCardImage("substances", "dose.wiki Substance Index"),
   });
 }
 
