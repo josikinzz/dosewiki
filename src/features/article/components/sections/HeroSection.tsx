@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { memo, useState } from "react";
+import { memo, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { MoleculeImage } from "@/components/pages/MoleculeImage";
 import { ExpandButton } from "@/components/common/ExpandButton";
 import { Icon } from "@/components/common/Icon";
@@ -33,6 +33,43 @@ function getIconKeyFromClass(className: string): string {
 function getClassificationHref(type: "psychoactive" | "chemical", label: string) {
   return publicHref.classification(type, label);
 }
+const TITLE_MOLECULE_GAP_PX = 16;
+const useIsomorphicLayoutEffect =
+  typeof window === "undefined" ? useEffect : useLayoutEffect;
+
+interface DesktopMoleculeImageProps {
+  alt: string;
+  placement: "top" | "below-title";
+  src: string;
+}
+
+function DesktopMoleculeImage({
+  alt,
+  placement,
+  src,
+}: DesktopMoleculeImageProps) {
+  return (
+    <div
+      data-hero-molecule-layout={placement}
+      className={`mb-3 hidden w-48 md:float-right md:block md:w-64${
+        placement === "below-title" ? " md:mt-4" : ""
+      }`}
+    >
+      <MoleculeImage
+        src={src}
+        alt={alt}
+        width={256}
+        height={256}
+        priority
+        unoptimized
+        sizes="(min-width: 768px) 16rem, 0px"
+        className="theme-molecule-image h-48 w-48 object-contain drop-shadow-[0_8px_16px_color-mix(in_srgb,var(--theme-accent)_30%,transparent)] md:h-64 md:w-64"
+      />
+    </div>
+  );
+}
+
+
 
 interface HeroSectionProps {
   article: SubstanceArticle;
@@ -64,9 +101,12 @@ export const HeroSection = memo(function HeroSection({
 
   const [isExpanded, setIsExpanded] = useState(false);
   const [namesExpanded, setNamesExpanded] = useState(false);
+  const [moleculeBelowTitle, setMoleculeBelowTitle] = useState(false);
   const alternativeNamesPanelId = "hero-alternative-names";
   const chemistryDetailsPanelId = "hero-chemistry-details";
   const resolvedMoleculeAsset = moleculeAsset ?? moleculeAssets?.[0];
+  const heroRef = useRef<HTMLDivElement>(null);
+  const titleRef = useRef<HTMLHeadingElement>(null);
   const moleculeUrl = resolvedMoleculeAsset?.url ?? null;
 
   const hasTitle = title.trim().length > 0;
@@ -83,12 +123,77 @@ export const HeroSection = memo(function HeroSection({
 
   const hasExpandableDetails = chemistryPresentation.hasIdentifiers;
 
+  useIsomorphicLayoutEffect(() => {
+    const heroElement = heroRef.current;
+    const titleElement = titleRef.current;
+
+    if (!heroElement || !titleElement || !moleculeUrl) {
+      return;
+    }
+
+    const updatePlacement = () => {
+      const heroRect = heroElement.getBoundingClientRect();
+      if (heroRect.width === 0) {
+        return;
+      }
+
+      const heroStyle = getComputedStyle(heroElement);
+      const borderRightWidth =
+        Number.parseFloat(heroStyle.borderRightWidth) || 0;
+      const paddingRight = Number.parseFloat(heroStyle.paddingRight) || 0;
+      const moleculeLeft =
+        heroRect.right - borderRightWidth - paddingRight - 256;
+      const titleRange = document.createRange();
+      titleRange.selectNodeContents(titleElement);
+      const titleContentRight = titleRange.getBoundingClientRect().right;
+      setMoleculeBelowTitle(
+        titleContentRight > moleculeLeft - TITLE_MOLECULE_GAP_PX,
+      );
+    };
+
+    updatePlacement();
+
+    const resizeObserver =
+      typeof ResizeObserver === "undefined"
+        ? null
+        : new ResizeObserver(() => updatePlacement());
+    resizeObserver?.observe(heroElement);
+    resizeObserver?.observe(titleElement);
+
+    const appearanceObserver =
+      typeof MutationObserver === "undefined"
+        ? null
+        : new MutationObserver(() => updatePlacement());
+    appearanceObserver?.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ["data-font", "data-visual-style"],
+    });
+
+    window.addEventListener("resize", updatePlacement);
+    document.fonts?.addEventListener("loadingdone", updatePlacement);
+
+    let active = true;
+    void document.fonts?.ready.then(() => {
+      if (active) {
+        updatePlacement();
+      }
+    });
+
+    return () => {
+      active = false;
+      resizeObserver?.disconnect();
+      appearanceObserver?.disconnect();
+      window.removeEventListener("resize", updatePlacement);
+      document.fonts?.removeEventListener("loadingdone", updatePlacement);
+    };
+  }, [moleculeUrl, title]);
+
   if (!hasTitle && !hasIdentification && !hasClassification && !hasSummary) {
     return null;
   }
 
   return (
-    <div className="theme-article-hero relative overflow-hidden rounded-2xl p-6 shadow-[var(--theme-elevation-2xl)] sm:p-8">
+    <div ref={heroRef} className="theme-article-hero relative overflow-hidden rounded-2xl p-6 shadow-[var(--theme-elevation-2xl)] sm:p-8">
       {/* Preview badge indicator (only shown in dev context) */}
       {showPreviewBadge && (
         <div className="type-chip-label theme-badge-surface absolute right-4 top-4 flex items-center gap-1.5 rounded-full px-2.5 py-1">
@@ -96,24 +201,18 @@ export const HeroSection = memo(function HeroSection({
           Preview
         </div>
       )}
-
-      {/* Molecule SVG - floated right on md+, hidden on mobile (shown below title instead) */}
-      {moleculeUrl && (
-        <MoleculeImage
+      {/* Molecule SVG - floated right on md+, moved below a title that needs its row */}
+      {moleculeUrl && (!hasTitle || !moleculeBelowTitle) && (
+        <DesktopMoleculeImage
           src={moleculeUrl}
           alt={chemistryPresentation.molecule.alt}
-          width={256}
-          height={256}
-          priority
-          unoptimized
-          sizes="(min-width: 768px) 16rem, 0px"
-          className="theme-molecule-image hidden md:block md:float-right mb-3 h-48 w-48 object-contain drop-shadow-[0_8px_16px_color-mix(in_srgb,var(--theme-accent)_30%,transparent)] md:h-64 md:w-64"
+          placement="top"
         />
       )}
 
       {/* Title */}
       {hasTitle && (
-        <h1 className="type-page-title theme-accent-heading max-w-[12ch] text-4xl sm:text-5xl md:text-6xl">
+        <h1 ref={titleRef} className="type-page-title theme-accent-heading max-w-[12ch] text-4xl sm:text-5xl md:text-6xl">
           <EditableValue label="Title" path="title" value={title}>
             {title}
           </EditableValue>
@@ -127,6 +226,15 @@ export const HeroSection = memo(function HeroSection({
           value={title ?? ""}
         />
       )}
+      {moleculeUrl && hasTitle && moleculeBelowTitle && (
+        <DesktopMoleculeImage
+          src={moleculeUrl}
+          alt={chemistryPresentation.molecule.alt}
+          placement="below-title"
+        />
+      )}
+
+
 
       {/* Stub status qualifies the whole article, so it sits with the title
           rather than below the hero. */}
