@@ -2,18 +2,12 @@ import type { ReactNode } from "react";
 
 import { PageHeader } from "@/components/layout/PageHeader";
 import { resolveRouteChromeIcon } from "@/utils/routeChromeIcons";
-import { getCopy } from "@server/next/copyBlocks";
 
-// The header and intro are shared chrome for every tab of the replications
-// section (Gallery, Tutorials, Audio); the tab bar itself belongs to each tab
-// route, so a tab can place standing copy above it. The intro is editable
-// copy — a Convex read — so the segment follows the other index pages onto the
-// hourly ISR window; a Copy Studio save revalidates it immediately through the
-// shared copy cache tag.
+// The header is shared chrome for every tab of the replications section
+// (Gallery, Tutorials, Audio, More Info); the tab bar itself belongs to each
+// tab route, so a tab can place standing copy above it. The section's
+// description and fair-use notice live on the More Info tab.
 export const revalidate = 3600;
-
-const INTRO =
-  "Image, video, and audio recreations of the sensory experiences produced by subjective effects.";
 
 /**
  * Shared shell for the replications section's tab routes. The replication
@@ -21,17 +15,15 @@ const INTRO =
  * purpose: a single work's page is not a section view and gets no tab bar.
  *
  * The main element is deliberately full width (the same hosting environment
- * the gallery had on /effects); the header and intro sit left-aligned on the
- * gallery's own `max-w-7xl` measure, and every tab route renders its own body
- * on that same measure so everything shares one edge.
+ * the gallery had on /effects); the header sits left-aligned on the gallery's
+ * own `max-w-7xl` measure, and every tab route renders its own body on that
+ * same measure so everything shares one edge.
  */
-export default async function ReplicationsSectionLayout({
+export default function ReplicationsSectionLayout({
   children,
 }: {
   children: ReactNode;
 }) {
-  const copy = await getCopy();
-
   return (
     <main
       id="main-content"
@@ -47,8 +39,6 @@ export default async function ReplicationsSectionLayout({
           className="mb-4 gap-2"
           titleClassName="[--type-size-title:2.25rem] md:[--type-size-title:3rem]"
           title="Replications"
-          description={copy.text("replications-intro") || INTRO}
-          descriptionClassName="theme-text-secondary max-w-3xl text-base"
           icon={resolveRouteChromeIcon("replications")}
           prominentMobileIcon
         />

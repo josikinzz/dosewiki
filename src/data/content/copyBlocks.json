@@ -151,20 +151,6 @@
     ]
   },
   {
-    "key": "substances-index-intro",
-    "kind": "markdown",
-    "label": "Substance Index intro",
-    "group": "Index pages",
-    "body": "Browse **{{substanceCount}} substance articles** focused on education and harm reduction, organized across **{{categoryCount}} psychoactive classes**. Open any page below to explore detailed information including *dosage & duration, subjective effects, reagent testing, pharmacology, interactions, harm potential, history & culture, legality, and further reading.*"
-  },
-  {
-    "key": "reports-index-intro",
-    "kind": "markdown",
-    "label": "Trip Reports index intro",
-    "group": "Index pages",
-    "body": "First-person accounts of substance experiences, consistently formatted and cross-referenced with the [Subjective Effect Index](/effects)."
-  },
-  {
     "key": "effects-index-credit",
     "kind": "plain",
     "label": "Subjective Effect Index credit line",
@@ -582,7 +568,7 @@
   {
     "key": "replications-intro",
     "kind": "plain",
-    "label": "Replications intro",
+    "label": "Replications description (More Info tab)",
     "group": "Replications",
     "body": "Image, video, and audio recreations of the sensory experiences produced by subjective effects."
   },

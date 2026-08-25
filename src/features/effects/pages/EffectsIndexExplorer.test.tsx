@@ -113,6 +113,36 @@ describe("EffectsIndexExplorer", () => {
     );
   });
 
+  it("keeps the thesis off the All tab and shows it in full on More Info", async () => {
+    const user = userEvent.setup();
+
+    render(
+      <EffectsIndexExplorer
+        effects={visualAmplificationEffects}
+        effectHrefPrefix="/effects/"
+      />,
+    );
+
+    // The All tab opens straight into the category grid.
+    expect(
+      screen.queryByText(/is a comprehensive catalogue of/i),
+    ).not.toBeInTheDocument();
+
+    await user.click(screen.getByRole("tab", { name: "More Info" }));
+
+    // The full three-paragraph thesis, with no expander, and no grid below.
+    expect(
+      screen.getByText(/is a comprehensive catalogue of 4 subjective effects/i),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText(/universal terminology for communicating experiences/i),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText(/organised into categories based on the senses/i),
+    ).toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: "Visual Alpha" })).not.toBeInTheDocument();
+  });
+
   it("keeps tab filtering usable with full panels", async () => {
     const user = userEvent.setup();
 

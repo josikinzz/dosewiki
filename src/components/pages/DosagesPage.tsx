@@ -21,15 +21,11 @@ import type { CategoryLayout } from "../../hooks/useCategoryLayout";
 // helper itself has no runtime dependencies.
 import { isDirectUrlOnlySubstance } from "@/schema/substance/substanceVisibilityPolicy";
 import { useTabHashSync, writeTabHash } from "@/hooks/useTabHashSync";
-import { applyPlaceholders } from "@/data/content/about";
 import { slugify } from "@/utils/slug";
 import { scrollIntoViewRespectingMotion } from "@/utils/navigation";
 import { cn } from "@/lib/utils";
 
 const SUBSTANCE_INDEX_ICON = "streamline-ultimate:science-molecule-strucutre-bold" satisfies IconName;
-
-const formatLabel = (count: number, singular: string, plural: string) =>
-  `${count} ${count === 1 ? singular : plural}`;
 
 interface DosagesPageProps {
   layout: CategoryLayout;
@@ -40,12 +36,6 @@ interface DosagesPageProps {
    * their own content inline in `SUPER_CATEGORY_TABS`.
    */
   definitions?: Record<string, CategoryTabContent>;
-  /**
-   * Editable Markdown for the "All" tab intro, carrying `{{substanceCount}}` and
-   * `{{categoryCount}}` placeholders. Server-supplied; when absent the component
-   * falls back to the string this page shipped before the copy CMS existed.
-   */
-  introTemplate?: string;
 }
 
 /**
@@ -238,7 +228,6 @@ export function DosagesPage({
   layout,
   substances,
   definitions,
-  introTemplate,
 }: DosagesPageProps) {
   const [activeTab, setActiveTab] = useState("all");
   const panelsStartRef = useRef<HTMLDivElement | null>(null);
@@ -250,14 +239,11 @@ export function DosagesPage({
       ),
     [substances],
   );
-  const substanceCount = substances.filter((substance) => !isDirectUrlOnlySubstance(substance.priority)).length;
 
   const psychoactiveGroups = useMemo(
     () => buildGroupsFromLayout(layout, lookup),
     [layout, lookup],
   );
-
-  const psychoactiveClassCount = psychoactiveGroups.length;
 
   const groupsByKey = useMemo(
     () => new Map(psychoactiveGroups.map((group) => [group.key, group])),
@@ -371,36 +357,18 @@ export function DosagesPage({
   const isFiltered = activeTab !== "all";
   const isSingleCategoryView = isFiltered && groupsByKey.has(activeTab);
 
-  // The two counts are computed here, from the props, rather than server-side:
-  // `substanceCount` applies the direct-URL-only filter and `psychoactiveClassCount`
-  // counts the non-empty groups, neither of which matches the overview totals. So
-  // the editable copy carries `{{substanceCount}}`/`{{categoryCount}}` placeholders
-  // and the live numbers are interpolated at render time.
-  const substanceIndexIntro = useMemo<CategoryTabContent>(
-    () => ({
-      definition: introTemplate
-        ? applyPlaceholders(introTemplate, {
-            substanceCount,
-            categoryCount: psychoactiveClassCount,
-          })
-        : `Browse **${formatLabel(substanceCount, "substance article", "substance articles")}** focused on education and harm reduction, organized across **${formatLabel(psychoactiveClassCount, "psychoactive class", "psychoactive classes")}**. Open any page below to explore detailed information including *dosage & duration, subjective effects, reagent testing, pharmacology, interactions, harm potential, history & culture, legality, and further reading.*`,
-      warning: "",
-    }),
-    [introTemplate, psychoactiveClassCount, substanceCount],
-  );
-
-  // Intro content for the active tab: the "All" tab carries the substance-index
-  // intro, umbrella tabs carry their own copy, and per-category tabs read from
-  // the server-provided definitions map.
+  // Intro content for the active tab: the "All" tab deliberately carries no
+  // intro — the grid speaks for itself — while umbrella tabs carry their own
+  // copy and per-category tabs read from the server-provided definitions map.
   const activeContent = useMemo<CategoryTabContent | undefined>(() => {
-    if (activeTab === "all") return substanceIndexIntro;
+    if (activeTab === "all") return undefined;
     // The umbrella tabs are not categories in the manual index, so the server
     // contributes their prose under their tab id when the copy layer knows it.
     // The inline `tab.content` stays as the fallback.
     const superTab = SUPER_CATEGORY_TABS.find((tab) => tab.id === activeTab);
     if (superTab) return definitions?.[superTab.id] ?? superTab.content;
     return definitions?.[activeTab];
-  }, [activeTab, definitions, substanceIndexIntro]);
+  }, [activeTab, definitions]);
 
   return (
     <PublicContentShell width="wide" focusTarget className="max-w-none 2xl:px-8">

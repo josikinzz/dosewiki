@@ -55,7 +55,7 @@ export function getRouteChromePageTitle(
     case "contributor":
       return "Contributor Profile";
     case "reports":
-      return "Trip Reports";
+      return "Experience Reports";
     case "report-submit":
       return "Submit a Trip Report";
     case "report":

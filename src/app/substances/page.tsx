@@ -64,7 +64,6 @@ export default async function SubstancesPage() {
         layout={outcome.layout}
         substances={outcome.substances}
         definitions={getCategoryDefinitions(copy)}
-        introTemplate={copy.text("substances-index-intro")}
       />
     </>
   );

@@ -1,5 +1,4 @@
-import { Fragment, useState, memo } from "react";
-import { ExpandButton } from "@/components/common/ExpandButton";
+import { Fragment, memo } from "react";
 import { applyPlaceholders } from "@/data/content/about";
 import {
   SEI_INTRO_COPY_FALLBACK,
@@ -46,29 +45,24 @@ const introParagraphClass =
   "theme-text-secondary text-pretty text-[0.96875rem] leading-[1.62] sm:text-base sm:leading-[1.66]";
 
 /**
- * Intro section for the Subjective Effect Index with expandable content.
+ * Intro section for the Subjective Effect Index.
  *
- * Contains the main description paragraph always visible, with additional
- * context shown on toggle. Tab-specific intro blobs can be passed for
- * Sensory/Cognitive/Physical tabs.
+ * Rendered on the category tabs (Sensory/Cognitive/Physical) as a single
+ * tab-specific blob, and on the "More Info" tab as the index's full
+ * three-paragraph thesis. The "All Effects" tab renders nothing — the grid
+ * opens straight into the categories.
  *
  * Visual treatment is unified with the Substance Index intro (CategoryIntro):
  * a centered ~70ch column, left-aligned prose, and the shared gradient hairline
- * rule above. The first-sentence + see-more pill is kept here because the
- * "All Effects" intro runs to three paragraphs; the single-paragraph tab blobs
- * — like the Substance Index definitions — show in full.
+ * rule above.
  */
 export const SEIIntroSection = memo(function SEIIntroSection({
   effectCount,
   tabBlob,
   copy = SEI_INTRO_COPY_FALLBACK,
 }: SEIIntroSectionProps) {
-  const [expanded, setExpanded] = useState(false);
-
-  // On the "All Effects" tab no tab-specific blob is provided, so the generic
-  // Subjective Effect Index intro shows. On the other tabs we swap it out for
-  // just that tab's blob, mirroring how the Substance Index swaps its intro
-  // copy per category tab.
+  // On the category tabs a tab-specific blob replaces the general intro,
+  // mirroring how the Substance Index swaps its intro copy per category tab.
   if (tabBlob) {
     return (
       <div className={introColumnClass}>
@@ -94,36 +88,13 @@ export const SEIIntroSection = memo(function SEIIntroSection({
       {/* Main intro paragraph */}
       <p className={`mt-4 ${introParagraphClass}`}>
         {renderAccentEmphasis(applyPlaceholders(copy.lead, { effectCount }))}
-        {!expanded && (
-          <span className="ml-2 inline-flex align-middle">
-            <ExpandButton
-              isExpanded={false}
-              onToggle={() => setExpanded(true)}
-              variant="faint"
-              ariaLabel="Expand Subjective Effect Index introduction"
-            />
-          </span>
-        )}
       </p>
 
-      {/* Expandable content */}
-      {expanded && (
-        <div className="mt-4 space-y-4">
-          <p className={introParagraphClass}>{copy.method}</p>
+      <div className="mt-4 space-y-4">
+        <p className={introParagraphClass}>{copy.method}</p>
 
-          <p className={introParagraphClass}>
-            {copy.organisation}
-            <span className="ml-2 inline-flex align-middle">
-              <ExpandButton
-                isExpanded={true}
-                onToggle={() => setExpanded(false)}
-                variant="faint"
-                ariaLabel="Collapse Subjective Effect Index introduction"
-              />
-            </span>
-          </p>
-        </div>
-      )}
+        <p className={introParagraphClass}>{copy.organisation}</p>
+      </div>
     </div>
   );
 });

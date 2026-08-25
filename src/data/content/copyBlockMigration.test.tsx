@@ -2,7 +2,6 @@ import { describe, expect, it } from "vitest";
 import { render, screen } from "@testing-library/react";
 
 import { COPY_BLOCK_DEFAULTS, getCopyBlockDefault } from "./copyBlocks";
-import { applyPlaceholders } from "./about";
 import { EFFECT_CATEGORY_DEFINITIONS } from "../effectCategoryDefinitions";
 import psychoactiveIndexManual from "../indexes/psychoactiveIndexManual.json";
 import { TABS } from "@/features/effects/pages/effectsIndexConfig";
@@ -10,7 +9,6 @@ import {
   SEIIntroSection,
   SEI_INTRO_COPY_FALLBACK,
 } from "@/features/effects/components/SEIIntroSection";
-import { renderInlineCopy } from "@/components/common/InlineCopy";
 import { HomeIntro } from "@/features/effect-index/home/HomeIntro";
 import {
   EFFECT_INDEX_HOME_INTRO_FALLBACK,
@@ -27,6 +25,10 @@ import {
   REPLICATIONS_FAIR_USE_NOTICE_FALLBACK,
   REPLICATIONS_FAIR_USE_NOTICE_KEY,
 } from "@/features/replications/replicationsFairUseCopy";
+import {
+  REPLICATIONS_INTRO_FALLBACK,
+  REPLICATIONS_INTRO_KEY,
+} from "@/features/replications/replicationsInfoCopy";
 import { SITE_FLAVOR_CONFIGS } from "@/config/siteFlavor";
 
 /**
@@ -123,6 +125,10 @@ describe("copy block defaults", () => {
     );
   });
 
+  it("match the replications More Info description the tab falls back to", () => {
+    expect(bodyOf(REPLICATIONS_INTRO_KEY)).toBe(REPLICATIONS_INTRO_FALLBACK);
+  });
+
   it("match the replications fair-use notice the gallery falls back to", () => {
     expect(bodyOf(REPLICATIONS_FAIR_USE_NOTICE_KEY)).toBe(
       REPLICATIONS_FAIR_USE_NOTICE_FALLBACK,
@@ -137,20 +143,6 @@ describe("copy block defaults", () => {
 });
 
 describe("migrated surfaces render the pre-migration text", () => {
-  it("substance index intro reads as it did before the copy CMS", () => {
-    // The pre-migration string, built by the page's own `formatLabel` helper.
-    const substanceCount = 412;
-    const categoryCount = 11;
-    const before = `Browse **${substanceCount} substance articles** focused on education and harm reduction, organized across **${categoryCount} psychoactive classes**. Open any page below to explore detailed information including *dosage & duration, subjective effects, reagent testing, pharmacology, interactions, harm potential, history & culture, legality, and further reading.*`;
-
-    expect(
-      applyPlaceholders(bodyOf("substances-index-intro"), {
-        substanceCount,
-        categoryCount,
-      }),
-    ).toBe(before);
-  });
-
   it("SEI intro lead renders the same sentence, with the accent phrase intact", () => {
     render(<SEIIntroSection effectCount={397} />);
 
@@ -175,16 +167,6 @@ describe("migrated surfaces render the pre-migration text", () => {
       "Effect Index, is a resource dedicated to establishing the field of formalised subjective effect documentation.",
     );
     expect(document.body.textContent).toContain("which contains 233 effect descriptions");
-  });
-
-  it("reports index intro renders its inline link rather than raw markdown", () => {
-    render(<p>{renderInlineCopy(bodyOf("reports-index-intro"))}</p>);
-
-    const link = screen.getByRole("link", { name: "Subjective Effect Index" });
-    expect(link.getAttribute("href")).toBe("/effects");
-    expect(document.body.textContent).toBe(
-      "First-person accounts of substance experiences, consistently formatted and cross-referenced with the Subjective Effect Index.",
-    );
   });
 
   it("replications fair-use notice renders its takedown and licensing links, not raw markdown", () => {

@@ -2,12 +2,7 @@ import type { Metadata } from "next";
 
 import { SITE_FLAVOR_CONFIG } from "@/config/siteFlavor";
 import { ReplicationsGalleryExplorer } from "@/features/replications/ReplicationsGalleryExplorer";
-import { ReplicationsFairUseNotice } from "@/features/replications/components/ReplicationsFairUseNotice";
 import { ReplicationsTabNav } from "@/features/replications/components/ReplicationsTabNav";
-import {
-  REPLICATIONS_FAIR_USE_NOTICE_FALLBACK,
-  REPLICATIONS_FAIR_USE_NOTICE_KEY,
-} from "@/features/replications/replicationsFairUseCopy";
 import {
   buildItemListSchema,
   serializeJsonLd,
@@ -53,16 +48,12 @@ export async function generateMetadata(): Promise<Metadata> {
 export default async function ReplicationsPage() {
   // The gallery's artist headings resolve to profile pages, and that resolution
   // needs the directory. Reading it here keeps the client gallery from fetching
-  // anything itself. The copy read resolves the fair-use notice; `getCopy` is
-  // request-cached, so this shares the metadata read above.
-  const [replications, effects, contributorDirectory, copy] = await Promise.all(
-    [
-      getPublicGalleryReplications(),
-      getPublicEffects(),
-      getPublicContributorDirectory(),
-      getCopy(),
-    ],
-  );
+  // anything itself.
+  const [replications, effects, contributorDirectory] = await Promise.all([
+    getPublicGalleryReplications(),
+    getPublicEffects(),
+    getPublicContributorDirectory(),
+  ]);
 
   const canonicalUrl = buildSiteUrl(
     getPublicRoutePath({ family: "replications" }),
@@ -90,16 +81,6 @@ export default async function ReplicationsPage() {
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: itemListJsonLd }}
-      />
-      {/* The notice sits above the tab bar: it is the section's standing
-          rights statement for the art below, and stating it before the tabs
-          keeps it out of the gallery's own body. The explorer's short footnote
-          is switched off because this says the same thing once. */}
-      <ReplicationsFairUseNotice
-        body={
-          copy.text(REPLICATIONS_FAIR_USE_NOTICE_KEY) ||
-          REPLICATIONS_FAIR_USE_NOTICE_FALLBACK
-        }
       />
       <ReplicationsTabNav />
       <ReplicationsGalleryExplorer

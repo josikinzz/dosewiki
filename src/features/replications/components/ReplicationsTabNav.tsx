@@ -23,6 +23,7 @@ const SECTION_TABS: SectionTab[] = [
   { href: "/replications", label: "Gallery", icon: "hugeicons:ai-image" },
   { href: "/replications/tutorials", label: "Tutorials", icon: "lucide:list" },
   { href: "/replications/audio", label: "Audio", icon: "lucide:audio-lines" },
+  { href: "/replications/more-info", label: "More Info", icon: "lucide:info" },
 ];
 
 const SUBREDDIT_URL = "https://www.reddit.com/r/replications";

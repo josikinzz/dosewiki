@@ -396,15 +396,17 @@ export function EffectsIndexExplorer({
           />
         </div>
 
-        <SEIIntroSection
-          effectCount={effects.length}
-          copy={introCopy}
-          tabBlob={
-            activeTab !== "all"
-              ? (tabBlobs?.[activeTab] ?? activeTabConfig?.blob)
-              : undefined
-          }
-        />
+        {/* "All Effects" opens straight into the grid. The full thesis lives
+            on the More Info tab; category tabs keep their one-paragraph blob. */}
+        {activeTab === "info" ? (
+          <SEIIntroSection effectCount={effects.length} copy={introCopy} />
+        ) : activeTab !== "all" ? (
+          <SEIIntroSection
+            effectCount={effects.length}
+            copy={introCopy}
+            tabBlob={tabBlobs?.[activeTab] ?? activeTabConfig?.blob}
+          />
+        ) : null}
       </div>
 
       {activeTab === "all" && (() => {

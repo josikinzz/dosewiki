@@ -24,7 +24,8 @@ describe("route chrome model", () => {
     // modelled as the substance "replications", highlighting Substances in the header.
     ["/replications/audio", "replications", "Replications", "replications"],
     ["/replications/tutorials", "replications", "Replications", "replications"],
-    ["/reports", "reports", "Trip Reports", "reports"],
+    ["/replications/more-info", "replications", "Replications", "replications"],
+    ["/reports", "reports", "Experience Reports", "reports"],
     ["/reports/example-report", "report", "Trip Report", "reports"],
     ["/about", "about", "About dose.wiki", "about"],
     ["/contributors/alice", "contributor", "Contributor Profile", "none"],

@@ -32,6 +32,7 @@ export const STATIC_PUBLIC_PATHS = [
   getPublicRoutePath({ family: "replications" }),
   getPublicRoutePath({ family: "replicationTutorials" }),
   getPublicRoutePath({ family: "replicationAudio" }),
+  getPublicRoutePath({ family: "replicationInfo" }),
   getPublicRoutePath({ family: "effects" }),
   getPublicRoutePath({ family: "articles" }),
   getPublicRoutePath({ family: "reports" }),
@@ -46,6 +47,7 @@ export const STATIC_PUBLIC_PATHS = [
 export const RESERVED_REPLICATION_SLUGS = new Set([
   "audio",
   "tutorials",
+  "more-info",
   "artist",
   "effect",
   "substance",

@@ -7,6 +7,7 @@ export type PublicRouteIdentity =
   | { family: "replications"; params?: Record<string, never> }
   | { family: "replicationTutorials"; params?: Record<string, never> }
   | { family: "replicationAudio"; params?: Record<string, never> }
+  | { family: "replicationInfo"; params?: Record<string, never> }
   | { family: "replicationArtist"; params: { key: string } }
   | { family: "replication"; params: { slug: string } }
   | { family: "substance"; params: { slug: string } }
@@ -77,6 +78,8 @@ export function getPublicRoutePath(route: PublicRouteIdentity): string {
       return "/replications/tutorials";
     case "replicationAudio":
       return "/replications/audio";
+    case "replicationInfo":
+      return "/replications/more-info";
     // Focused artist gallery. The reserved segment cannot be claimed by a
     // single-work permalink; former effect/substance playlist routes redirect
     // at their route modules and are not part of the canonical path contract.

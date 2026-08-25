@@ -51,7 +51,6 @@ export default async function ReportsPage() {
       <TripReportsPage
         {...result.pageProps}
         emptyState={resolveEmptyStateCopy(copy, "reports", result.pageProps.emptyState)}
-        intro={copy.text("reports-index-intro")}
       />
     </>
   );

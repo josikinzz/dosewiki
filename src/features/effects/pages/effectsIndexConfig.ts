@@ -1,7 +1,7 @@
 import type { IconName } from "@/components/common/Icon";
 import { icons } from "@/utils/iconNames";
 
-export type TabId = "all" | "sensory" | "cognitive" | "physical";
+export type TabId = "all" | "sensory" | "cognitive" | "physical" | "info";
 
 export interface TabConfig {
   id: TabId;
@@ -60,6 +60,10 @@ export const TABS: TabConfig[] = [
     filterTags: ["physical", "uncomfortable"],
     blob: "Physical effects are subjective effects that directly affect part of a person's physical body.",
   },
+  // The index's thesis lives here rather than above the grid: the "All
+  // Effects" view opens straight into the categories, and this tab carries
+  // the full three-paragraph introduction for anyone who wants it.
+  { id: "info", label: "More Info", icon: "lucide:info", filterTags: [] },
 ];
 
 export const PARENT_CATEGORIES: ParentCategoryConfig[] = [

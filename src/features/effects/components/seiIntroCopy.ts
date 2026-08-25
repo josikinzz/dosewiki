@@ -9,9 +9,9 @@
 export interface SEIIntroCopy {
   /** Lead paragraph. Carries `{{effectCount}}` and one `**accented**` phrase. */
   lead: string;
-  /** Second paragraph, revealed on expand. */
+  /** Second paragraph of the More Info tab's thesis. */
   method: string;
-  /** Third paragraph, revealed on expand. */
+  /** Third paragraph of the More Info tab's thesis. */
   organisation: string;
 }
 
