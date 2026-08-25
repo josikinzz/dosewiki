@@ -1,15 +1,10 @@
 /**
- * Pure state logic for the Substance Galleries curation portal
- * (`/dev` → Replications → Substances).
+ * Pure state logic for the Substance Galleries ordering and exclusion portal.
  *
- * The portal edits one substance's curation as two slug lists — the curated
- * list, in its exact published order, and the excluded shelf — against the
- * server-derived match list. Curation is a publish gate: a match that is
- * neither curated nor excluded is a *candidate*, visible here and nowhere
- * else. Every transition mirrors the P3 prototype's verdict: exclude is only
- * meaningful for matches, curated∩removed is impossible by construction, and
- * a save submits both full arrays and adopts the server's pruned echo
- * verbatim.
+ * Automatic drug/class assignments publish without an editor gate. The stored
+ * lists are deltas: `curated_slugs` orders priority rows within their placement
+ * tier, while `removed_slugs` suppresses a row on one article. Direct manual
+ * associations remain possible through `curated_slugs`.
  */
 
 import type { StudioMediaType } from "./replicationStudioModel";
@@ -24,11 +19,24 @@ export type GalleryCandidate = {
   removed_count: number;
 };
 
-export type GalleryMatchProvenance = {
-  matchedVia: "effect_slug" | "effect_tags" | "title" | "curated";
-  effectSlug: string;
-  effectName: string;
-};
+export type GalleryMatchProvenance =
+  | {
+      matchedVia: "specific_drug";
+      effectSlug: string;
+      effectName: string;
+      substanceSlug: string;
+    }
+  | {
+      matchedVia: "drug_class";
+      effectSlug: string;
+      effectName: string;
+      drugClass: "dissociatives" | "deliriants";
+    }
+  | {
+      matchedVia: "curated";
+      effectSlug: string;
+      effectName: string;
+    };
 
 /** The media fields the panel rows draw, resolved server-side. */
 export type GalleryMatchReplication = {
@@ -64,15 +72,9 @@ export type GalleryDetail = {
   substance: { slug: string; title: string };
   matches: GalleryMatch[];
   curation: GalleryCurationRow | null;
-  unmatchedEffectNames: string[];
-  /**
-   * The article's visual effects, for tagging an untagged corpus row into the
-   * match set: the only `effect_slug` values that can make a row match here.
-   */
-  effectOptions: { slug: string; name: string }[];
 };
 
-/** The editable state: the two lists `substanceGalleries:upsert` stores. */
+/** The editable ordering and per-article exclusion delta. */
 export type GalleryCurationState = {
   curated: string[];
   removed: string[];
@@ -94,10 +96,7 @@ export function curationStatesEqual(a: GalleryCurationState, b: GalleryCurationS
   );
 }
 
-/**
- * Publish a candidate: append it to the end of the curated list. Also lifts it
- * off the excluded shelf, since a slug can never sit in both lists.
- */
+/** Prioritize a row within its automatic tier, or add a direct association. */
 export function curateSlug(state: GalleryCurationState, slug: string): GalleryCurationState {
   if (state.curated.includes(slug)) {
     return state;
@@ -108,7 +107,7 @@ export function curateSlug(state: GalleryCurationState, slug: string): GalleryCu
   };
 }
 
-/** Unpublish a curated match: it drops back into the candidate pool. */
+/** Remove stored priority; an automatic match remains published in its tier. */
 export function uncurateSlug(state: GalleryCurationState, slug: string): GalleryCurationState {
   if (!state.curated.includes(slug)) {
     return state;
@@ -116,10 +115,7 @@ export function uncurateSlug(state: GalleryCurationState, slug: string): Gallery
   return { ...state, curated: state.curated.filter((entry) => entry !== slug) };
 }
 
-/**
- * Suppress a match onto the excluded shelf. Also un-curates it: exclusion and
- * a published position cannot coexist.
- */
+/** Suppress a row on this article. Also removes stored priority. */
 export function excludeSlug(state: GalleryCurationState, slug: string): GalleryCurationState {
   if (state.removed.includes(slug)) {
     return state;
@@ -130,7 +126,7 @@ export function excludeSlug(state: GalleryCurationState, slug: string): GalleryC
   };
 }
 
-/** Lift a match off the excluded shelf, back into the candidate pool. */
+/** Lift a row off the excluded shelf and back into automatic placement. */
 export function restoreSlug(state: GalleryCurationState, slug: string): GalleryCurationState {
   if (!state.removed.includes(slug)) {
     return state;
@@ -246,114 +242,111 @@ export function applyBoardDrag(
   return { curated, removed: state.removed.filter((slug) => slug !== activeSlug) };
 }
 
-/** Which band a board row sits in: on the article, or in the candidate pool. */
+/** Which ordering band a row occupies: stored priority or automatic placement. */
 export type GalleryBand = "curated" | "auto";
 
 export type GalleryBoardRow = {
   match: GalleryMatch;
-  /**
-   * 1-based position on the article. Null for a candidate: it is not
-   * published, so it has no position to claim.
-   */
-  position: number | null;
-  /** True when the row is curated and its position is within the stage cap. */
+  /** 1-based position in the effective article collection. */
+  position: number;
+  /** True when the effective position is within the inline stage cap. */
   onStage: boolean;
   band: GalleryBand;
 };
 
 export type GalleryBoard = {
-  /** Curated rows first, numbered from 1; then the unordered candidate pool. */
+  /** Priority and automatic rows, each retaining effective article order. */
   rows: GalleryBoardRow[];
   excluded: GalleryMatch[];
-  /** min(curatedCount, cap) — how many of the cap public slots are filled. */
   filledSlots: number;
-  /** max(0, cap - curatedCount) — rendered as ghost frames. */
   emptySlots: number;
-  /** Rows the article publishes (before the cap). */
+  /** Rows carrying a stored priority/direct-association entry. */
   curatedCount: number;
-  /** Matched works that are neither curated nor excluded: the candidate pool. */
+  /** Automatically placed rows without a stored priority entry. */
   candidateCount: number;
+  /** Every non-excluded row in effective article order. */
+  publishedCount: number;
   cap: number;
 };
 
+function galleryTier(match: GalleryMatch): number {
+  if (match.provenance.matchedVia === "curated") return 4;
+  if (match.provenance.matchedVia === "specific_drug") {
+    return match.replication.type === "video" ? 0 : 1;
+  }
+  return match.replication.type === "video" ? 2 : 3;
+}
+
 /**
- * Split the matches three ways: what the article publishes (the curated list
- * in stored order, minus exclusions), the candidate pool the matcher proposes,
- * and the excluded shelf. Curated or removed slugs that match nothing simply
- * vanish — the same read-time tolerance as the public merge, so numbering
- * never leaves a hole; the save prunes them permanently and the echo makes the
- * pruning visible.
+ * Apply the public ordering contract: specific videos, specific images,
+ * permitted class videos, permitted class images, then direct associations.
+ * Stored order only breaks ties inside a tier; newly tagged rows append to that
+ * tier without jumping behind unrelated manual associations.
  */
 function orderGallery(
   matches: readonly GalleryMatch[],
   state: GalleryCurationState,
-): { curated: GalleryMatch[]; auto: GalleryMatch[]; excluded: GalleryMatch[] } {
-  const bySlug = new Map(matches.map((match) => [match.replication.slug, match]));
+): { published: GalleryMatch[]; curated: GalleryMatch[]; auto: GalleryMatch[]; excluded: GalleryMatch[] } {
   const removed = new Set(state.removed);
-  const curated = state.curated
-    .map((slug) => (removed.has(slug) ? undefined : bySlug.get(slug)))
-    .filter((match): match is GalleryMatch => match !== undefined);
-
-  const pinned = new Set(curated.map((match) => match.replication.slug));
-  const auto: GalleryMatch[] = [];
-  const excluded: GalleryMatch[] = [];
-  for (const match of matches) {
-    const slug = match.replication.slug;
-    if (removed.has(slug)) {
-      excluded.push(match);
-    } else if (!pinned.has(slug)) {
-      auto.push(match);
+  const curatedOrder = new Map(state.curated.map((slug, index) => [slug, index]));
+  const published = matches.filter((match) => !removed.has(match.replication.slug));
+  published.sort((left, right) => {
+    const tierDifference = galleryTier(left) - galleryTier(right);
+    if (tierDifference !== 0) return tierDifference;
+    const leftOrder = curatedOrder.get(left.replication.slug);
+    const rightOrder = curatedOrder.get(right.replication.slug);
+    if (leftOrder === undefined && rightOrder !== undefined) return 1;
+    if (leftOrder !== undefined && rightOrder === undefined) return -1;
+    if (leftOrder !== undefined && rightOrder !== undefined) {
+      return leftOrder - rightOrder;
     }
-  }
+    return 0;
+  });
 
-  return { curated, auto, excluded };
+  const curated: GalleryMatch[] = [];
+  const auto: GalleryMatch[] = [];
+  for (const match of published) {
+    (curatedOrder.has(match.replication.slug) ? curated : auto).push(match);
+  }
+  const excluded = matches.filter((match) => removed.has(match.replication.slug));
+  return { published, curated, auto, excluded };
 }
 
-/**
- * The board the portal draws: the curated rows the article publishes, numbered
- * against the stage cap, followed by the candidate pool the matcher proposes.
- * Candidates carry no number because they appear nowhere — the slot arithmetic
- * counts the curated rows alone, which is what makes "3 of 12 curated" an
- * honest progress signal instead of a promise the article does not keep.
- */
+/** Build the priority editor bands while preserving each row's true article position. */
 export function buildGalleryBoard(
   matches: readonly GalleryMatch[],
   state: GalleryCurationState,
   cap: number,
 ): GalleryBoard {
-  const { curated, auto, excluded } = orderGallery(matches, state);
-  const rows: GalleryBoardRow[] = curated.map((match, index) => ({
-    match,
-    position: index + 1,
-    onStage: index + 1 <= cap,
-    band: "curated",
-  }));
-  for (const match of auto) {
-    rows.push({ match, position: null, onStage: false, band: "auto" });
-  }
+  const { published, curated, auto, excluded } = orderGallery(matches, state);
+  const positionBySlug = new Map(
+    published.map((match, index) => [match.replication.slug, index + 1]),
+  );
+  const toBoardRow = (match: GalleryMatch, band: GalleryBand): GalleryBoardRow => {
+    const position = positionBySlug.get(match.replication.slug) ?? published.length + 1;
+    return { match, position, onStage: position <= cap, band };
+  };
   return {
-    rows,
+    rows: [
+      ...curated.map((match) => toBoardRow(match, "curated")),
+      ...auto.map((match) => toBoardRow(match, "auto")),
+    ],
     excluded,
-    filledSlots: Math.min(curated.length, cap),
-    emptySlots: Math.max(0, cap - curated.length),
+    filledSlots: Math.min(published.length, cap),
+    emptySlots: Math.max(0, cap - published.length),
     curatedCount: curated.length,
     candidateCount: auto.length,
+    publishedCount: published.length,
     cap,
   };
 }
 
-/**
- * What the article publishes: the curated works in stored order, exclusions
- * dropped, and nothing else. This feeds the portal's article preview, so it
- * must stay in lockstep with `mergeCuratedGallery` in
- * `src/data/substanceReplicationGallery` — the public gate. Any divergence is
- * a preview that lies about what a reader will see.
- */
+/** The exact collection the article and the portal preview publish. */
 export function effectiveGalleryOrder(
   matches: readonly GalleryMatch[],
   state: GalleryCurationState,
 ): GalleryMatch[] {
-  return orderGallery(matches, state).curated;
+  return orderGallery(matches, state).published;
 }
 
 /**
@@ -437,27 +430,20 @@ export type GalleryConflict = {
 
 export type GalleryProvenanceSummary = {
   matched: number;
-  effectCount: number;
-  viaEffectSlug: number;
-  viaEffectTags: number;
-  viaName: number;
+  specificDrug: number;
+  generalClass: number;
+  manual: number;
 };
 
-/** Counts behind "N matched from M visual effects · X via effect_slug · Y via effect_tags · Z via name". */
+/** Counts automatic exact-drug, inherited class, and direct manual placements. */
 export function summarizeProvenance(matches: readonly GalleryMatch[]): GalleryProvenanceSummary {
-  const effectSlugs = new Set<string>();
-  let viaEffectSlug = 0;
-  let viaName = 0;
+  let specificDrug = 0;
+  let generalClass = 0;
+  let manual = 0;
   for (const match of matches) {
-    effectSlugs.add(match.provenance.effectSlug);
-    if (match.provenance.matchedVia === "effect_slug") viaEffectSlug += 1;
-    else if (match.provenance.matchedVia === "title") viaName += 1;
+    if (match.provenance.matchedVia === "specific_drug") specificDrug += 1;
+    else if (match.provenance.matchedVia === "drug_class") generalClass += 1;
+    else manual += 1;
   }
-  return {
-    matched: matches.length,
-    effectCount: effectSlugs.size,
-    viaEffectSlug,
-    viaEffectTags: matches.length - viaEffectSlug - viaName,
-    viaName,
-  };
+  return { matched: matches.length, specificDrug, generalClass, manual };
 }

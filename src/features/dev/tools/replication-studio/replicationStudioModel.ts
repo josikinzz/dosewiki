@@ -20,6 +20,16 @@ export type StudioRow = {
   effect_slug: string | null;
   effect_name: string | null;
   effect_tags: string[];
+  title_drugs?: {
+    slug: string;
+    name: string;
+    class: "psychedelics" | "dissociatives" | "deliriants" | "other";
+    matched_title_text: string;
+  }[];
+  title_class_mentions?: {
+    class: "psychedelics" | "dissociatives" | "deliriants" | "other";
+    matched_title_text: string;
+  }[];
   credit_line: string | null;
   rights_status?: string | null;
   url: string | null;

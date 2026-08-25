@@ -70,22 +70,20 @@ export const getReplicationsByContributor = cache(unstable_cache(async (
 }));
 
 /**
- * The substance article's Replication Showcase: the substance's visual-effect
- * names matched against the corpus, ordered and filtered by its
- * `substanceGalleries` curation row. Matching, merge, and provenance rules
- * live in `src/data/substanceReplicationGallery`; Convex applies them so the
- * curated order and the write-path prune can never disagree.
+ * The substance article's Replication Showcase: exact-drug and permitted
+ * general-class placements, plus stored editorial ordering, direct
+ * associations, and per-article exclusions. Placement and merge rules live in
+ * `src/data/substanceReplicationGallery`; Convex applies them so public reads
+ * and editorial writes cannot drift.
  *
- * Zero matches are an empty gallery, never an error — an unmatched substance
- * renders today's page unchanged.
+ * Zero matches are an empty gallery, never an error.
  *
  * The publishability gate is re-applied here like the other public replication
- * list reads (see the long note in `publicData.effects`): the Convex matcher
- * already refuses figures and audio, but this layer's filter ships with the
- * build that defines publishability rather than waiting on a Convex deploy.
+ * list reads: the Convex matcher already refuses figures and audio, but this
+ * layer's filter ships with the build that defines publishability rather than
+ * waiting on a Convex deploy.
  *
- * Tagged `replications` (curation saves revalidate it) and `substances`
- * (editing an article's visual effects changes what matches).
+ * Tagged `replications` and `substances`.
  */
 export const getPublicReplicationsForSubstance = cache(unstable_cache(async (
   substanceSlug: string,

@@ -19,6 +19,8 @@ src/data/.lineage/
 # Vendored RDKit.js runtime, copied from node_modules by scripts/build/copyRdkitAssets.mjs
 # on predev/prebuild — reproducible, so not committed.
 public/rdkit/
+# Build-generated immutable substance social cards.
+public/images/social/substances/*.png
 output/
 outputs/
 

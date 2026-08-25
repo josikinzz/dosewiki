@@ -124,8 +124,8 @@ compare-and-swap workflow instead.
 
 Stable package commands not shown in the examples below: `npm run merge:articles`,
 `npm run generate:manifest`, `npm run generate:schema`,
-`npm run parse:sources:verbose`, `npm run cleanup:metrics`,
-`npm run features:reachability`, `npm run hygiene:check`,
+`npm run generate:social-cards`, `npm run parse:sources:verbose`,
+`npm run cleanup:metrics`, `npm run features:reachability`, `npm run hygiene:check`,
 `npm run hygiene:clean`, `npm run openchemlib:verify`, `npm run prompts:compare`, and `npm run scry:query`.
 
 ### Article Review Run export

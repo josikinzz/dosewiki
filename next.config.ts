@@ -78,11 +78,7 @@ const nextConfig: NextConfig = {
   // without this the files never reach the deployed serverless bundle.
   outputFileTracingIncludes: {
     "/html-docs/[doc]": ["./html-docs/**/*"],
-    "/api/og/molecule/[slug]": ["./public/fonts/Blinker-Regular.ttf"],
   },
-  // Native N-API package used by the molecule OG-card route; bundling it breaks
-  // the per-platform binding resolution, so it must load from node_modules.
-  serverExternalPackages: ["@resvg/resvg-js"],
   experimental: {
     optimizePackageImports: [
       "@dnd-kit/core",
@@ -216,6 +212,16 @@ const nextConfig: NextConfig = {
       },
       {
         source: "/theme-light-mode.css",
+        headers: [
+          {
+            key: "Cache-Control",
+            value: "public, max-age=31536000, immutable",
+          },
+        ],
+      },
+      {
+        // Filenames carry a digest of article, molecule, and renderer inputs.
+        source: "/images/social/substances/:card*.png",
         headers: [
           {
             key: "Cache-Control",

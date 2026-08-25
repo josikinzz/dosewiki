@@ -3,11 +3,11 @@ import {
   hasKnownCreator,
 } from "@/features/effects/components/replicationCredit";
 import { artistPageHrefForWork } from "@/features/replications/galleryFocus";
+import type { SubstanceGalleryItem } from "@/data/substanceReplicationGallery";
 import {
   resolveVisualEffectSlugs,
   visualEffectNamesOf,
-  type SubstanceGalleryItem,
-} from "@/data/substanceReplicationGallery";
+} from "@/data/substanceVisualEffects";
 import { sortByMediaRank } from "@/features/replications/mediaRank";
 
 import type { ShowcaseWork } from "./showcaseWork";

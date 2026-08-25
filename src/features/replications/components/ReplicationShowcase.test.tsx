@@ -631,7 +631,7 @@ describe("buildShowcaseWorks", () => {
     effectSlug: string,
   ): SubstanceGalleryItem => ({
     replication: replication(overrides),
-    provenance: { matchedVia: "effect_slug", effectSlug },
+    provenance: { matchedVia: "specific_drug", effectSlug },
   });
 
   it("names effects from the article's chip vocabulary, humanising unknown slugs", () => {

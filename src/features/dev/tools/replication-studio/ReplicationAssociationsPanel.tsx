@@ -117,23 +117,16 @@ function AssociationsSkeleton() {
 }
 
 const MATCH_LABEL: Record<ReplicationAssociation["matchedVia"], string> = {
-  effect_slug: "via owning effect",
-  effect_tags: "via effect tag",
-  title: "via name in title",
-  curated: "via direct curation",
+  specific_drug: "exact drug",
+  drug_class: "general class",
+  curated: "direct association",
 };
 
-/**
- * What one row means on the drug it names. A tick is only eligibility: the drug
- * is allowed to show this replication, and shows it once curated there. So the
- * draft's exclusion decides first, and curation decides whether the remainder
- * is actually on the article.
- */
-type RowState = "published" | "eligible" | "excluded";
+/** What one row means on its drug article after the draft exclusion. */
+type RowState = "published" | "excluded";
 
-const ROW_STATE_TONE: Record<RowState, "success" | "neutral" | "danger"> = {
+const ROW_STATE_TONE: Record<RowState, "success" | "danger"> = {
   published: "success",
-  eligible: "neutral",
   excluded: "danger",
 };
 
@@ -150,12 +143,7 @@ function AssociationRow({
   disabled: boolean;
   onToggle: () => void;
 }) {
-  // Exclusion decides first; curation decides whether the remainder is on the article.
-  const state: RowState = !checked
-    ? "excluded"
-    : row.curatedPosition === null
-      ? "eligible"
-      : "published";
+  const state: RowState = checked ? "published" : "excluded";
 
   return (
     <li className="list-none">
@@ -190,10 +178,10 @@ function AssociationRow({
             data-testid={`association-state-${row.slug}`}
           >
             {state === "published"
-              ? `Showing · position ${row.curatedPosition}`
-              : state === "eligible"
-                ? "Eligible · not curated"
-                : "Excluded"}
+              ? row.curatedPosition === null
+                ? "Showing · automatic"
+                : `Showing · priority ${row.curatedPosition}`
+              : "Excluded"}
           </EditorStatusPill>
         </div>
         {atRisk ? (
@@ -203,18 +191,7 @@ function AssociationRow({
           >
             <Icon icon="lucide:triangle-alert" size={13} className="mt-0.5 shrink-0" />
             <span>
-              curated at position {row.curatedPosition} — unticking drops that position
-            </span>
-          </p>
-        ) : null}
-        {state === "eligible" ? (
-          <p
-            className="theme-text-faint mt-1.5 flex items-start gap-1.5 pl-[1.625rem] text-xs leading-5"
-            data-testid={`eligible-note-${row.slug}`}
-          >
-            <Icon icon="lucide:eye-off" size={13} className="mt-0.5 shrink-0" />
-            <span>
-              nothing shows on this drug yet — unticking only forbids a future curation
+              priority {row.curatedPosition} — unticking removes that position and excludes the work
             </span>
           </p>
         ) : null}
@@ -448,23 +425,18 @@ export function ReplicationAssociationsPanel({ row }: { row: StudioRow }) {
     () =>
       [
         {
-          key: "effect_slug" as const,
-          caption: "Matched by owning effect",
-          rows: rows.filter((entry) => entry.matchedVia === "effect_slug"),
+          key: "specific_drug" as const,
+          caption: "Exact-drug placements",
+          rows: rows.filter((entry) => entry.matchedVia === "specific_drug"),
         },
         {
-          key: "effect_tags" as const,
-          caption: "Matched by effect tag",
-          rows: rows.filter((entry) => entry.matchedVia === "effect_tags"),
-        },
-        {
-          key: "title" as const,
-          caption: "Matched by drug name in title",
-          rows: rows.filter((entry) => entry.matchedVia === "title"),
+          key: "drug_class" as const,
+          caption: "General class placements",
+          rows: rows.filter((entry) => entry.matchedVia === "drug_class"),
         },
         {
           key: "curated" as const,
-          caption: "Pinned directly",
+          caption: "Direct associations",
           rows: rows.filter((entry) => entry.matchedVia === "curated"),
         },
       ].filter((group) => group.rows.length > 0),
@@ -551,8 +523,6 @@ export function ReplicationAssociationsPanel({ row }: { row: StudioRow }) {
     }
   }, [draft, rows, slug]);
 
-  // The heading counts actual curated placements; eligibility is reported
-  // separately and never described as publication.
   const heading = `Showing on ${summary.published} of ${rows.length} drug ${plural(rows.length, "article", "articles")}`;
 
   return (
@@ -560,11 +530,11 @@ export function ReplicationAssociationsPanel({ row }: { row: StudioRow }) {
       headingLevel="h3"
       icon="lucide:link"
       title={load.status === "ready" ? heading : "Drug articles"}
-      description="Place this work directly on drug galleries, or manage its existing derived eligibility below. Direct placement and exclusions never change the replication's effect tags. A checked association means allowed, not published."
+      description="Reviewed title taxonomy assigns exact-drug and permitted general-class placements automatically. A checked association is published; untick it to add a per-article exclusion. Direct associations do not mutate effect tags."
       actions={
         load.status === "ready" && rows.length > 0 ? (
           <EditorStatusPill tone={summary.excluded > 0 ? "info" : "neutral"}>
-            {`${summary.showing} eligible · ${summary.excluded} excluded`}
+            {`${summary.showing} showing · ${summary.excluded} excluded`}
           </EditorStatusPill>
         ) : null
       }

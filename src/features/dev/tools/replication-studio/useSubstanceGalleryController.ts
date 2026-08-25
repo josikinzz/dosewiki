@@ -93,7 +93,6 @@ export function useSubstanceGalleryController({
   const [saveState, setSaveState] = useState<EditorActionStatusState | "idle">("idle");
   const [feedback, setFeedback] = useState<Feedback | null>(null);
   const [excludedOpen, setExcludedOpen] = useState(false);
-  const [unmatchedOpen, setUnmatchedOpen] = useState(false);
   const [previewOpen, setPreviewOpen] = useState(true);
   const [pendingSlug, setPendingSlug] = useState<string | null>(null);
   const [focusSlug, setFocusSlug] = useState<string | null>(null);
@@ -153,7 +152,6 @@ export function useSubstanceGalleryController({
     setFeedback(null);
     setConflict(null);
     setExcludedOpen(false);
-    setUnmatchedOpen(false);
     void (async () => {
       const result = await fetchGalleryDetail(substanceSlug);
       if (cancelled) return;
@@ -589,31 +587,6 @@ export function useSubstanceGalleryController({
     setAnnouncement("Changes discarded.");
   }, [savedCuration]);
 
-  const handleTagged = useCallback(
-    async (replicationSlug: string) => {
-      if (!substanceSlug) return;
-      const result = await fetchGalleryDetail(substanceSlug);
-      if (result.status === "error") {
-        setFeedback({ tone: "danger", message: result.message });
-        return;
-      }
-      setDetailState({ status: "ready", detail: result.detail });
-      const match = result.detail.matches.find(
-        (entry) => entry.replication.slug === replicationSlug,
-      );
-      if (!match) {
-        setFeedback({
-          tone: "warning",
-          message: `Tagged, but ${replicationSlug} still does not match any of this substance's visual effects.`,
-        });
-        return;
-      }
-      const next = curateSlug(historyRef.current.present, replicationSlug);
-      setFocusSlug(replicationSlug);
-      applyCuration(next, `${match.replication.title} tagged and pinned to position ${next.curated.length}.`);
-    },
-    [applyCuration, substanceSlug],
-  );
 
   const retry = useCallback(() => {
     cachedCandidates = null;
@@ -643,7 +616,6 @@ export function useSubstanceGalleryController({
     saveState,
     feedback,
     excludedOpen,
-    unmatchedOpen,
     previewOpen,
     pendingSlug,
     focusSlug,
@@ -662,7 +634,6 @@ export function useSubstanceGalleryController({
     redoable: canRedo(history),
     setFeedback,
     setExcludedOpen,
-    setUnmatchedOpen,
     setPreviewOpen,
     setPendingSlug,
     clearFocus,
@@ -682,7 +653,6 @@ export function useSubstanceGalleryController({
     handleKeepMine,
     handleTakeTheirs,
     handleDiscard,
-    handleTagged,
     retry,
     discardAndSwitch,
   };

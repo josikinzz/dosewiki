@@ -114,23 +114,23 @@ describe("public site identity", () => {
       description: "LSD substance profile covering dosage, duration, and subjective effects.",
       route: { family: "substance", params: { slug: "lsd" } },
       socialImage: {
-        path: "/api/og/molecule/lsd?v=2026-01-01T00%3A00%3A00.000Z",
+        path: "/images/social/substances/lsd.0123456789abcdef.png",
         width: 1200,
         height: 1200,
-        alt: "LSD molecule structure",
+        alt: "LSD substance guide",
       },
     }, DOSEWIKI_SITE);
 
     expect(metadata.openGraph?.images).toEqual([
       {
-        url: "https://dosewiki-admin.vercel.app/api/og/molecule/lsd?v=2026-01-01T00%3A00%3A00.000Z",
+        url: "https://dosewiki-admin.vercel.app/images/social/substances/lsd.0123456789abcdef.png",
         width: 1200,
         height: 1200,
-        alt: "LSD molecule structure",
+        alt: "LSD substance guide",
       },
     ]);
     expect(metadata.twitter?.images).toEqual([
-      "https://dosewiki-admin.vercel.app/api/og/molecule/lsd?v=2026-01-01T00%3A00%3A00.000Z",
+      "https://dosewiki-admin.vercel.app/images/social/substances/lsd.0123456789abcdef.png",
     ]);
     expect(metadata.twitter).toMatchObject({ card: "summary" });
   });

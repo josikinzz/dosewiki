@@ -58,6 +58,21 @@ const DRUG_RULES = [
   ["zolpidem", "Zolpidem", "other", /\bzolpidem\b|\bambien\b/giu],
 ];
 
+/**
+ * Reviewed compact combination labels whose shared characters defeat ordinary
+ * word-boundary extraction. Each member carries its own span so the longest-
+ * match suppression below does not collapse two drugs into one.
+ */
+const COMPACT_TITLE_DRUG_RULES = [
+  {
+    pattern: /\blsdxm\b/giu,
+    members: [
+      { slug: "lsd", name: "LSD", class: "psychedelics", start: 0, end: 3 },
+      { slug: "dxm", name: "DXM", class: "dissociatives", start: 3, end: 6 },
+    ],
+  },
+];
+
 const CLASS_RULES = [
   ["psychedelics", /\bpsychedelics?\b/iu],
   ["dissociatives", /\bdissociatives?\b/iu],
@@ -178,6 +193,21 @@ export function detectTitleDrugs(title) {
         start: match.index,
         end: match.index + match[0].length,
       });
+    }
+  }
+  for (const rule of COMPACT_TITLE_DRUG_RULES) {
+    rule.pattern.lastIndex = 0;
+    for (const match of title.matchAll(rule.pattern)) {
+      for (const member of rule.members) {
+        candidates.push({
+          slug: member.slug,
+          name: member.name,
+          class: member.class,
+          matched_title_text: match[0],
+          start: match.index + member.start,
+          end: match.index + member.end,
+        });
+      }
     }
   }
   candidates.sort((a, b) => (b.end - b.start) - (a.end - a.start) || a.start - b.start);

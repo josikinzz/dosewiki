@@ -28,7 +28,12 @@ function match(index: number): GalleryMatch {
       thumbnail_url: null,
       format: "png",
     },
-    provenance: { matchedVia: "effect_slug", effectSlug: "geometry", effectName: "Geometry" },
+    provenance: {
+      matchedVia: "specific_drug",
+      effectSlug: "geometry",
+      effectName: "Geometry",
+      substanceSlug: "lsd",
+    },
   };
 }
 
@@ -57,70 +62,70 @@ function renderBoard(count: number, curation: GalleryCurationState, overrides: P
   return { ...render(<GalleryBoardList {...props} />), props };
 }
 
-const articleBand = () => screen.getByRole("region", { name: /on the article/i });
-const poolBand = () => screen.getByRole("region", { name: /candidate pool/i });
+const priorityBand = () => screen.getByRole("region", { name: /priority overrides/i });
+const automaticBand = () => screen.getByRole("region", { name: /automatic placements/i });
 
-/** The position badge of a named row, or null when the row carries none. */
+/** The effective article position badge of a named row. */
 function positionOf(title: string) {
   const row = screen.getByText(title).closest("li") as HTMLElement;
-  return within(row).queryByTestId("board-position")?.textContent ?? null;
+  return within(row).getByTestId("board-position").textContent;
 }
 
 describe("GalleryBoardList", () => {
-  it("numbers the curated list from 1 and leaves the candidate pool unnumbered", () => {
+  it("numbers priority and automatic rows by effective article order", () => {
     renderBoard(5, { curated: ["work-4", "work-2"], removed: [] });
 
-    expect(within(articleBand()).getByText("Work 4")).toBeInTheDocument();
+    expect(within(priorityBand()).getByText("Work 4")).toBeInTheDocument();
     expect(positionOf("Work 4")).toBe("1");
     expect(positionOf("Work 2")).toBe("2");
 
-    const pool = poolBand();
+    const automatic = automaticBand();
     for (const title of ["Work 1", "Work 3", "Work 5"]) {
-      expect(within(pool).getByText(title)).toBeInTheDocument();
+      expect(within(automatic).getByText(title)).toBeInTheDocument();
     }
-    // A work that is not published has no position, so it is shown without one.
-    expect(within(pool).queryAllByTestId("board-position")).toHaveLength(0);
+    expect(within(automatic).getAllByTestId("board-position").map((node) => node.textContent)).toEqual([
+      "3", "4", "5",
+    ]);
   });
 
-  it("offers no drag handle on candidate rows — there is no pool order to change", () => {
+  it("offers drag handles only for stored priority rows", () => {
     renderBoard(4, { curated: ["work-1"], removed: [] });
 
-    expect(within(articleBand()).getByRole("button", { name: "Drag Work 1 to reorder it" })).toBeInTheDocument();
-    expect(within(poolBand()).queryAllByRole("button", { name: /^Drag / })).toHaveLength(0);
+    expect(within(priorityBand()).getByRole("button", { name: "Drag Work 1 to reorder its priority" })).toBeInTheDocument();
+    expect(within(automaticBand()).queryAllByRole("button", { name: /^Drag / })).toHaveLength(0);
   });
 
-  it("says the article shows nothing while nothing is curated", () => {
+  it("states that automatic placements publish without stored priority", () => {
     renderBoard(3, { curated: [], removed: [] });
 
     expect(
-      screen.getByText(/nothing is curated, so this article shows no replication showcase at all/i),
+      screen.getByText(/no stored priority overrides.*still publishes every automatic placement/i),
     ).toBeInTheDocument();
-    // Every slot is empty, because the pool below publishes nothing.
-    expect(screen.getByText(/12 of the article's 12 slots are empty — 0 filled/i)).toBeInTheDocument();
-    expect(screen.getAllByText(/empty slot/i)).toHaveLength(12);
-    expect(within(poolBand()).queryAllByTestId("board-position")).toHaveLength(0);
+    expect(screen.getByText(/9 of the article's 12 slots are empty — 3 filled/i)).toBeInTheDocument();
+    expect(screen.getAllByText(/empty slot/i)).toHaveLength(9);
+    expect(within(automaticBand()).getAllByTestId("board-position")).toHaveLength(3);
   });
 
-  it("labels the pool as off-article and counts only uncurated matches", () => {
+  it("labels automatic placements and counts exclusions separately", () => {
     renderBoard(5, { curated: ["work-1"], removed: ["work-2"] });
 
-    expect(screen.getByRole("heading", { name: /candidate pool \(3\)/i })).toBeInTheDocument();
-    expect(screen.getByText(/none of these are on the article/i)).toBeInTheDocument();
-    expect(screen.getByRole("heading", { name: /on the article \(1\)/i })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: /automatic placements \(3\)/i })).toBeInTheDocument();
+    expect(screen.getByText(/already on the article in policy order/i)).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: /priority overrides \(1\)/i })).toBeInTheDocument();
   });
 
-  it("draws no fold while the curated list is inside the cap, however many candidates there are", () => {
+  it("draws the fold in automatic placements when the effective order exceeds the cap", () => {
     renderBoard(20, { curated: ["work-1"], removed: [] });
 
-    expect(screen.queryByText(/the article stops here/i)).not.toBeInTheDocument();
-    expect(screen.getByText(/11 of the article's 12 slots are empty — 1 filled/i)).toBeInTheDocument();
+    expect(screen.getByText(/the article stops here — positions 13\+ reach \/replications only/i)).toBeInTheDocument();
+    expect(screen.queryByText(/article slots are empty/i)).not.toBeInTheDocument();
   });
 
   it("draws the fold inside the curated list when it overruns the cap and dims what falls below", () => {
     const curated = Array.from({ length: 14 }, (_, index) => `work-${index + 1}`);
     renderBoard(14, { curated, removed: [] });
 
-    const band = articleBand();
+    const band = priorityBand();
     const fold = within(band).getByText(/the article stops here — positions 13\+ reach \/replications only/i);
     const items = within(band).getAllByRole("listitem");
     const foldIndex = items.findIndex((item) => item.contains(fold));
@@ -129,57 +134,56 @@ describe("GalleryBoardList", () => {
     expect(items[foldIndex + 1]).toHaveTextContent("Work 13");
     expect(screen.getByText("Work 12").closest("li")?.innerHTML).not.toContain("opacity-55");
     expect(screen.getByText("Work 13").closest("li")?.innerHTML).toContain("opacity-55");
-    expect(screen.getByText(/every match is curated or excluded/i)).toBeInTheDocument();
+    expect(screen.getByText(/every published row has stored priority or is excluded/i)).toBeInTheDocument();
   });
 
-  it("renders ghost slots numbered after the last curated row", () => {
+  it("renders ghost slots after every effective placement", () => {
     renderBoard(6, { curated: ["work-3", "work-5"], removed: [] });
 
-    expect(screen.getByText(/10 of the article's 12 slots are empty — 2 filled/i)).toBeInTheDocument();
+    expect(screen.getByText(/6 of the article's 12 slots are empty — 6 filled/i)).toBeInTheDocument();
 
     const ghosts = screen.getAllByText(/empty slot/i);
-    expect(ghosts).toHaveLength(10);
-    expect(within(ghosts[0].closest("li") as HTMLElement).getByTestId("board-position")).toHaveTextContent("3");
-    expect(within(ghosts[9].closest("li") as HTMLElement).getByTestId("board-position")).toHaveTextContent("12");
+    expect(ghosts).toHaveLength(6);
+    expect(within(ghosts[0].closest("li") as HTMLElement).getByTestId("board-position")).toHaveTextContent("7");
+    expect(within(ghosts[5].closest("li") as HTMLElement).getByTestId("board-position")).toHaveTextContent("12");
   });
 
-  it("labels the un-curate drop zone and promotes a candidate with its Curate button", async () => {
+  it("labels the remove-priority drop zone and prioritizes an automatic row", async () => {
     const user = userEvent.setup();
     const { props } = renderBoard(3, { curated: [], removed: [] });
 
     expect(
-      screen.getByRole("group", { name: /drop a curated row here to take it off the article/i }),
+      screen.getByRole("group", { name: /drop a priority row here to restore automatic ordering/i }),
     ).toBeInTheDocument();
 
-    await user.click(screen.getByRole("button", { name: "Curate Work 2" }));
+    await user.click(screen.getByRole("button", { name: "Prioritize Work 2" }));
     expect(props.onCurate).toHaveBeenCalledWith("work-2");
   });
 
-  it("offers reorder, move-to-top and un-curate on curated rows only", async () => {
+  it("offers reorder and remove-priority controls only on priority rows", async () => {
     const user = userEvent.setup();
     const { props } = renderBoard(3, { curated: ["work-1", "work-3"], removed: [] });
 
-    expect(screen.getByRole("button", { name: "Move Work 1 up" })).toBeDisabled();
-    await user.click(screen.getByRole("button", { name: "Move Work 1 down" }));
+    expect(screen.getByRole("button", { name: "Move Work 1 up in priority" })).toBeDisabled();
+    await user.click(screen.getByRole("button", { name: "Move Work 1 down in priority" }));
     expect(props.onMove).toHaveBeenCalledWith("work-1", "down");
 
-    await user.click(screen.getByRole("button", { name: "Move Work 3 to position 1" }));
+    await user.click(screen.getByRole("button", { name: "Move Work 3 to first priority" }));
     expect(props.onMoveToEdge).toHaveBeenCalledWith("work-3", "top");
 
-    await user.click(screen.getByRole("button", { name: "Un-curate Work 3" }));
+    await user.click(screen.getByRole("button", { name: "Remove priority from Work 3" }));
     expect(props.onUncurate).toHaveBeenCalledWith("work-3");
 
-    expect(screen.queryByRole("button", { name: "Move Work 2 up" })).not.toBeInTheDocument();
-    // Exclusion stays reachable from the pool.
+    expect(screen.queryByRole("button", { name: "Move Work 2 up in priority" })).not.toBeInTheDocument();
     await user.click(screen.getByRole("button", { name: "Exclude Work 2 from this gallery" }));
     expect(props.onExclude).toHaveBeenCalledWith("work-2");
   });
 
-  it("moves focus onto the row that just changed band, then reports it handled", () => {
+  it("moves focus onto the automatic row that just changed band, then reports it handled", () => {
     const onFocusHandled = vi.fn();
     renderBoard(3, { curated: [], removed: [] }, { focusSlug: "work-2", onFocusHandled });
 
-    expect(screen.getByRole("button", { name: "Curate Work 2" })).toHaveFocus();
+    expect(screen.getByRole("button", { name: "Prioritize Work 2" })).toHaveFocus();
     expect(onFocusHandled).toHaveBeenCalled();
   });
 });

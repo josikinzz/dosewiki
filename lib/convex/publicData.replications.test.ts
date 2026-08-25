@@ -191,13 +191,12 @@ describe("getPublicReplicationsForSubstance", () => {
 
   const item = (slug: string, overrides: Record<string, unknown> = {}) => ({
     replication: { slug, artist: "Josie Kins", type: "image", url: `https://x/${slug}`, ...overrides },
-    provenance: { matchedVia: "effect_slug", effectSlug: "drifting" },
+    provenance: { matchedVia: "specific_drug", effectSlug: "lsd" },
   });
 
-  it("asks Convex for the substance's showcase and returns it ordered as served", async () => {
+  it("asks Convex for the substance's automatically ordered showcase", async () => {
     mocks.queryConvex.mockResolvedValueOnce({
-      items: [item("curated-head"), item("default-tail")],
-      unmatchedEffectNames: ["Environmental orbism"],
+      items: [item("specific-video"), item("specific-image")],
     });
 
     const { getPublicReplicationsForSubstance } = await import("./publicData.replications");
@@ -209,16 +208,14 @@ describe("getPublicReplicationsForSubstance", () => {
       { substance_slug: "lsd" },
     );
     expect(gallery.items.map((entry) => entry.replication.slug)).toEqual([
-      "curated-head",
-      "default-tail",
+      "specific-video",
+      "specific-image",
     ]);
-    expect(gallery.unmatchedEffectNames).toEqual(["Environmental orbism"]);
   });
 
   it("re-applies the publishability gate at this layer like every list read", async () => {
     mocks.queryConvex.mockResolvedValueOnce({
       items: [item("a-work"), item("a-figure", { role: "figure" }), item("a-track", { type: "audio" })],
-      unmatchedEffectNames: [],
     });
 
     const { getPublicReplicationsForSubstance } = await import("./publicData.replications");
@@ -228,13 +225,12 @@ describe("getPublicReplicationsForSubstance", () => {
   });
 
   it("returns an empty gallery for a zero-match substance, not an error", async () => {
-    mocks.queryConvex.mockResolvedValueOnce({ items: [], unmatchedEffectNames: [] });
+    mocks.queryConvex.mockResolvedValueOnce({ items: [] });
 
     const { getPublicReplicationsForSubstance } = await import("./publicData.replications");
 
     await expect(getPublicReplicationsForSubstance("aspirin")).resolves.toEqual({
       items: [],
-      unmatchedEffectNames: [],
     });
   });
 
@@ -250,7 +246,6 @@ describe("getPublicReplicationsForSubstance", () => {
 
     await expect(getPublicReplicationsForSubstance("lsd")).resolves.toEqual({
       items: [],
-      unmatchedEffectNames: [],
     });
     expect(warn).toHaveBeenCalled();
     warn.mockRestore();

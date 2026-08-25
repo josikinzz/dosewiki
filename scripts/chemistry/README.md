@@ -150,6 +150,23 @@ bytes, defined once in `src/data/mappings/moleculePalette.ts` and applied at ser
 to Convex `moleculeOverrides` rows by `src/app/api/molecules/**`. They need no Python
 env, and no recoloured static copies exist.
 
+## Pre-rendered substance social cards
+
+`npm run generate:social-cards` reads every production substance plus its optional
+`moleculeOverrides` row and writes immutable 1200×1200 PNGs under
+`public/images/social/substances/`. The generator uses the dark textbook molecule
+colourway on a flat black background, then composites the logo, title, and classification
+badges above the molecule. Substances without molecule artwork still receive a branded
+title card.
+
+`predev` and `prebuild` run the generator for dose.wiki; Effect Index builds skip it and
+retain their publication-wide social card. Generated PNGs are ignored because every
+deployment recreates them. The tracked
+`src/data/substanceSocialCardManifest.generated.json` maps each slug to a digest-named
+asset, so article/classification edits, molecule revisions, and renderer-version changes
+produce a new crawler URL. A Convex editor save therefore reaches the social image on the
+next dose.wiki deployment rather than through request-time rasterization.
+
 ## Editing a published depiction
 
 Automatic layout sometimes draws **wedge/hash stereo bonds** badly (overlapping, pointing into

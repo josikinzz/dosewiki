@@ -427,6 +427,52 @@
       "refreshCommand": "npm run generate:icon-data"
     },
     {
+      "id": "substance-social-card-manifest",
+      "path": "src/data/substanceSocialCardManifest.generated.json",
+      "role": "derived-manifest",
+      "producer": "scripts/build/generateSubstanceSocialCards.ts",
+      "consumers": [
+        "src/data/mappings/substanceSocialCardUrl.ts",
+        "src/app/[slug]/page.tsx"
+      ],
+      "inputs": [
+        "production Convex substanceIndex documents",
+        "production Convex moleculeOverrides revisions",
+        "lib/og/moleculeSocialCard.ts"
+      ],
+      "freshnessRule": "Regenerate before dose.wiki development and production builds; each path includes a digest of the article, molecule revision, and renderer version.",
+      "sourceDeployment": "https://glad-minnow-656.convex.cloud",
+      "targetDeployment": null,
+      "schemaVersion": "scripts/build/generateSubstanceSocialCards.ts",
+      "editPolicy": "do-not-edit-by-hand",
+      "refreshCommand": "npm run generate:social-cards"
+    },
+    {
+      "id": "substance-social-card-images",
+      "path": "public/images/social/substances/*.png",
+      "role": "build-generated-static-assets",
+      "producer": "scripts/build/generateSubstanceSocialCards.ts",
+      "consumers": [
+        "substance Open Graph and Twitter metadata"
+      ],
+      "inputs": [
+        "src/data/substanceSocialCardManifest.generated.json",
+        "production Convex substanceIndex documents",
+        "production Convex moleculeOverrides SVGs",
+        "lib/og/moleculeSocialCard.ts",
+        "src/assets/dosewiki-logo.svg",
+        "public/fonts/Blinker-Regular.ttf",
+        "public/fonts/Blinker-SemiBold.ttf",
+        "@iconify-json/* devDependencies"
+      ],
+      "freshnessRule": "Generated before each dose.wiki development or production build; stale digest-named PNGs are removed only after a complete successful render.",
+      "sourceDeployment": "https://glad-minnow-656.convex.cloud",
+      "targetDeployment": null,
+      "schemaVersion": "scripts/build/generateSubstanceSocialCards.ts",
+      "editPolicy": "do-not-edit-by-hand",
+      "refreshCommand": "npm run generate:social-cards"
+    },
+    {
       "id": "data-artifact-lineage-manifest",
       "path": "src/data/artifactLineageManifest.json",
       "role": "provenance-contract",

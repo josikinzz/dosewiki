@@ -15,8 +15,6 @@ const DETAIL: GalleryDetail = {
     updated_at: "2026-08-20T10:00:00.000Z",
     updated_by: "editor@example.com",
   },
-  effectOptions: [],
-  unmatchedEffectNames: [],
 };
 
 describe("replication placement service", () => {

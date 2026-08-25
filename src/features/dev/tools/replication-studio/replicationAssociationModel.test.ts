@@ -17,7 +17,7 @@ function association(
   return {
     slug,
     title: slug.toUpperCase(),
-    matchedVia: "effect_slug",
+    matchedVia: "specific_drug",
     effectSlug: "drifting",
     effectName: "Drifting",
     excluded: false,
@@ -28,7 +28,7 @@ function association(
 
 const ROWS = [
   association("lsd"),
-  association("psilocybin", { matchedVia: "effect_tags", effectSlug: "tracers", excluded: true }),
+  association("psilocybin", { matchedVia: "drug_class", effectSlug: "tracers", excluded: true }),
   association("dmt", { curatedPosition: 1 }),
   association("mescaline", { curatedPosition: 2, excluded: true }),
 ];
@@ -141,40 +141,39 @@ describe("setAllAssociations", () => {
 });
 
 describe("summarizeAssociations", () => {
-  it("counts the saved baseline as showing minus excluded, publishing only curated rows", () => {
+  it("counts every non-excluded automatic association as published", () => {
     expect(summarizeAssociations(ROWS, associationStateOf(ROWS))).toEqual({
       total: 4,
       showing: 2,
       excluded: 2,
-      // LSD is eligible but uncurated; only DMT survives both gates.
-      published: 1,
-      curatedAtRisk: [],
-    });
-  });
-
-  it("separates eligible from published: every drug eligible, only the curated ones showing", () => {
-    expect(summarizeAssociations(ROWS, EMPTY)).toEqual({
-      total: 4,
-      showing: 4,
-      excluded: 0,
       published: 2,
       curatedAtRisk: [],
     });
   });
 
-  it("publishes nothing when no row is curated, however many are eligible", () => {
-    const rows = [association("lsd"), association("dmt", { matchedVia: "effect_tags" })];
+  it("publishes every automatic association when none are excluded", () => {
+    expect(summarizeAssociations(ROWS, EMPTY)).toEqual({
+      total: 4,
+      showing: 4,
+      excluded: 0,
+      published: 4,
+      curatedAtRisk: [],
+    });
+  });
+
+  it("publishes exact-drug and general-class rows without stored priority", () => {
+    const rows = [association("lsd"), association("dmt", { matchedVia: "drug_class" })];
     const summary = summarizeAssociations(rows, EMPTY);
 
     expect(summary.showing).toBe(2);
-    expect(summary.published).toBe(0);
+    expect(summary.published).toBe(2);
   });
 
   it("drops a publication as soon as its drug is excluded", () => {
     const summary = summarizeAssociations(ROWS, toggleAssociation(EMPTY, "dmt"));
 
     expect(summary.showing).toBe(3);
-    expect(summary.published).toBe(1);
+    expect(summary.published).toBe(3);
   });
 
   it("counts zero for no rows at all", () => {

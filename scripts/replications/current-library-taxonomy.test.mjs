@@ -40,6 +40,12 @@ describe("current library taxonomy", () => {
     expect(detectTitleDrugs("A purple forest")).toEqual([]);
   });
 
+  it("expands the reviewed LSDXM portmanteau into both combination drugs", () => {
+    expect(
+      detectTitleDrugs("LSDXM Replication (Song: How much is weed)").map((drug) => drug.slug),
+    ).toEqual(["lsd", "dxm", "cannabis"]);
+  });
+
   it("prefers explicit viewing labels and review-flags rationale inferences", () => {
     expect(inferViewingMode({ title: "DPH CEVs" }).mode).toBe("closed-eye");
     expect(

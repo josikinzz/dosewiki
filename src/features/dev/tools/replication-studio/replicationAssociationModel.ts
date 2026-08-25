@@ -2,22 +2,17 @@
  * Pure state logic for the replication → drug association editor
  * (`/dev` → Replications → one replication → its associated drugs).
  *
- * An association can be derived from visual effects/title or stored directly
- * in a substance gallery. Direct curation establishes the association and
- * moving it to `removed_slugs` retains it as an exclusion; neither form mutates
- * effect tags. Unticking a drug touches only that drug, and excluding a direct
- * placement also removes its curated position because curation and exclusion
- * cannot overlap.
+ * Associations are automatic exact-drug/class placements or stored direct
+ * associations. Unticking one writes a per-article exclusion. Excluding a
+ * priority/direct placement also removes its stored position because curation
+ * and exclusion cannot overlap.
  */
 
-/**
- * One association row: derived by effects/title or retained by stored direct
- * curation/exclusion.
- */
+/** One automatic or stored association row. */
 export type ReplicationAssociation = {
   slug: string;
   title: string;
-  matchedVia: "effect_slug" | "effect_tags" | "title" | "curated";
+  matchedVia: "specific_drug" | "drug_class" | "curated";
   effectSlug: string;
   effectName: string;
   /** Already in that substance's stored `removed_slugs` — the saved baseline. */
@@ -83,31 +78,21 @@ export function setAllAssociations(
 }
 
 /**
- * Counts behind the panel's header. Two of them are deliberately different
- * numbers: under the publish gate a drug shows this replication only once it is
- * curated on that drug's board, so *eligible* (`showing`) means the article MAY
- * show it, while *published* means it does.
+ * Counts behind the panel header. Every automatic or direct association is
+ * published unless the draft excludes it; a stored position controls ordering,
+ * not publication.
  */
 export type AssociationSummary = {
-  /** Matched drug articles — every row in this editor. */
   total: number;
-  /**
-   * Rows this draft does NOT exclude: eligible, not published. An eligible drug
-   * is allowed to show this replication; it only does once curated there.
-   */
   showing: number;
   excluded: number;
-  /** Rows actually published: curated on that drug AND not excluded here. */
   published: number;
   curatedAtRisk: ReplicationAssociation[];
 };
 
 /**
- * Counts behind "N showing · M eligible · K excluded", plus the rows that need
- * an inline warning: dropping a drug that pinned this replication is allowed,
- * but it also un-curates it, so it can never be silent. Rows excluded on the
- * server already are the saved state rather than a new loss, so only rows this
- * draft newly excludes count as at risk.
+ * Count effective publication and rows whose stored position would be removed
+ * by a newly added exclusion.
  */
 export function summarizeAssociations(
   rows: readonly ReplicationAssociation[],
@@ -116,12 +101,8 @@ export function summarizeAssociations(
   const excludedSlugs = new Set(state.excluded);
   const curatedAtRisk: ReplicationAssociation[] = [];
   let excluded = 0;
-  let published = 0;
   for (const row of rows) {
     if (!excludedSlugs.has(row.slug)) {
-      if (row.curatedPosition !== null) {
-        published += 1;
-      }
       continue;
     }
     excluded += 1;
@@ -129,11 +110,12 @@ export function summarizeAssociations(
       curatedAtRisk.push(row);
     }
   }
+  const showing = rows.length - excluded;
   return {
     total: rows.length,
-    showing: rows.length - excluded,
+    showing,
     excluded,
-    published,
+    published: showing,
     curatedAtRisk,
   };
 }

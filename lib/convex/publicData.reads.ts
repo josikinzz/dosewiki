@@ -789,10 +789,7 @@ export function createConvexPublicDataReadAdapter(query: QueryTransport = queryC
         publicDataReadCatalog.publicReplicationBySlug.functionName,
         publicDataReadCatalog.publicReplicationBySlug.args(slug),
       ),
-    // Contributor-scoped replication read. Additive like getPublicReplications,
-    // so a deployment that predates the query degrades to "no works" instead of
-    // failing the contributor page — but says so, because an empty portfolio and
-    // a missing function look identical on the rendered page.
+    // Contributor replication read degrades explicitly when an older deployment lacks it.
     getPublicReplicationsByArtistNames: async (artistNames) => {
       try {
         return await query<ReplicationWithUrl[], { artistNames: string[] }>(
@@ -809,9 +806,7 @@ export function createConvexPublicDataReadAdapter(query: QueryTransport = queryC
         throw error;
       }
     },
-    // Substance-derived Replication Showcase read. Additive like the two reads
-    // above it, so a deployment that predates `substanceGalleries` degrades to
-    // an empty showcase — which renders as no section at all — but says so.
+    // Substance showcase read also degrades explicitly across function rollout.
     getPublicReplicationsForSubstance: async (substanceSlug) => {
       try {
         return await query<PublicSubstanceGallery, { substance_slug: string }>(
@@ -823,7 +818,7 @@ export function createConvexPublicDataReadAdapter(query: QueryTransport = queryC
           console.warn(
             "[publicData] substanceGalleries:getPublicReplicationsForSubstance is not deployed; substance showcases degraded to empty.",
           );
-          return { items: [], unmatchedEffectNames: [] };
+          return { items: [] };
         }
         throw error;
       }

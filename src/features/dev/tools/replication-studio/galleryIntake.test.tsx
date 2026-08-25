@@ -1,6 +1,6 @@
-import { render, screen, waitFor } from "@testing-library/react";
+import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { afterEach, beforeAll, describe, expect, it, vi } from "vitest";
+import { beforeAll, describe, expect, it, vi } from "vitest";
 
 // cmdk measures its list and scrolls the active item into view; jsdom has
 // neither ResizeObserver nor scrollIntoView.
@@ -50,14 +50,6 @@ const ROWS: StudioRow[] = [
   studioRow({ id: "row-figure", slug: "figure-row", title: "Figure row", role: "figure" }),
 ];
 
-const EFFECTS = [
-  { slug: "geometry", name: "Geometry" },
-  { slug: "drifting", name: "Drifting" },
-];
-
-afterEach(() => {
-  vi.unstubAllGlobals();
-});
 
 describe("GalleryPicker", () => {
   it("disables the trigger while loading instead of rendering nothing", () => {
@@ -83,7 +75,7 @@ describe("GalleryPicker", () => {
 });
 
 describe("GalleryLibraryAdd", () => {
-  it("curates a matched row and skips figures", async () => {
+  it("prioritizes an automatic row and skips figures", async () => {
     const user = userEvent.setup();
     const onCurate = vi.fn();
     render(
@@ -93,31 +85,20 @@ describe("GalleryLibraryAdd", () => {
         matchedSlugs={new Set(["matched-row"])}
         curatedSlugs={[]}
         removedSlugs={["matched-row"]}
-        effectOptions={EFFECTS}
         onCurate={onCurate}
-        onTagged={() => {}}
         onInspectRow={() => {}}
         onOpenLibrary={() => {}}
       />,
     );
 
     expect(screen.queryByText("Figure row")).not.toBeInTheDocument();
-    await user.click(screen.getByRole("button", { name: /restore and curate matched row/i }));
+    await user.click(screen.getByRole("button", { name: /restore & prioritize matched row/i }));
     expect(onCurate).toHaveBeenCalledWith("matched-row");
   });
 
-  it("tags an unmatched row through the bulk editorial endpoint, then hands it back", async () => {
+  it("adds an unmatched standalone row as a direct association", async () => {
     const user = userEvent.setup();
-    const calls: { url: string; body: unknown }[] = [];
-    vi.stubGlobal(
-      "fetch",
-      vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
-        calls.push({ url: String(input), body: JSON.parse(String(init?.body)) });
-        return Response.json({ ok: true, updated: 1, slugs: ["unmatched-row"] });
-      }),
-    );
-    const onTagged = vi.fn();
-
+    const onCurate = vi.fn();
     render(
       <GalleryLibraryAdd
         rows={ROWS}
@@ -125,50 +106,51 @@ describe("GalleryLibraryAdd", () => {
         matchedSlugs={new Set(["matched-row"])}
         curatedSlugs={[]}
         removedSlugs={[]}
-        effectOptions={EFFECTS}
-        onCurate={() => {}}
-        onTagged={onTagged}
+        onCurate={onCurate}
         onInspectRow={() => {}}
         onOpenLibrary={() => {}}
       />,
     );
 
-    await user.selectOptions(screen.getByLabelText(/effect to tag unmatched row with/i), "drifting");
-    await user.click(screen.getByRole("button", { name: /tag unmatched row with drifting/i }));
-
-    await waitFor(() => expect(onTagged).toHaveBeenCalledWith("unmatched-row"));
-    expect(calls).toEqual([
-      {
-        url: "/api/dev/replications/editorial",
-        body: { mode: "bulk", ids: ["row-unmatched"], addEffectTags: ["drifting"] },
-      },
-    ]);
+    await user.click(
+      screen.getByRole("button", { name: /associate & prioritize unmatched row/i }),
+    );
+    expect(onCurate).toHaveBeenCalledWith("unmatched-row");
   });
 
-  it("surfaces a failed tag instead of silently doing nothing", async () => {
-    const user = userEvent.setup();
-    vi.stubGlobal(
-      "fetch",
-      vi.fn(async () => Response.json({ error: "Convex refused that write." }, { status: 500 })),
-    );
-
+  it("does not offer combinations for direct association", () => {
+    const combination = studioRow({
+      id: "combo",
+      slug: "combo",
+      title: "DXM + DPH",
+      title_drugs: [
+        {
+          slug: "dxm",
+          name: "DXM",
+          class: "dissociatives",
+          matched_title_text: "DXM",
+        },
+        {
+          slug: "diphenhydramine",
+          name: "Diphenhydramine",
+          class: "deliriants",
+          matched_title_text: "DPH",
+        },
+      ],
+    });
     render(
       <GalleryLibraryAdd
-        rows={[ROWS[1]]}
+        rows={[combination]}
         railNarrowed
         matchedSlugs={new Set<string>()}
         curatedSlugs={[]}
         removedSlugs={[]}
-        effectOptions={EFFECTS}
         onCurate={() => {}}
-        onTagged={() => {}}
         onInspectRow={() => {}}
         onOpenLibrary={() => {}}
       />,
     );
-
-    await user.click(screen.getByRole("button", { name: /tag unmatched row with geometry/i }));
-    expect(await screen.findByRole("alert")).toHaveTextContent("Convex refused that write.");
+    expect(screen.queryByText("DXM + DPH")).not.toBeInTheDocument();
   });
 
   it("pages past the initial cap and states the count honestly", async () => {
@@ -184,9 +166,7 @@ describe("GalleryLibraryAdd", () => {
         matchedSlugs={new Set(many.map((row) => row.slug))}
         curatedSlugs={[]}
         removedSlugs={[]}
-        effectOptions={EFFECTS}
         onCurate={() => {}}
-        onTagged={() => {}}
         onInspectRow={() => {}}
         onOpenLibrary={() => {}}
       />,
@@ -207,9 +187,7 @@ describe("GalleryLibraryAdd", () => {
         matchedSlugs={new Set(["matched-row"])}
         curatedSlugs={[]}
         removedSlugs={[]}
-        effectOptions={EFFECTS}
         onCurate={() => {}}
-        onTagged={() => {}}
         onInspectRow={() => {}}
         onOpenLibrary={onOpenLibrary}
       />,

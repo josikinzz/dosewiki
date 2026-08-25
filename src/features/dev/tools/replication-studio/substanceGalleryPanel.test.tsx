@@ -46,7 +46,7 @@ function match(index: number) {
       format: "png",
     },
     provenance: {
-      matchedVia: "effect_slug" as const,
+      matchedVia: "specific_drug" as const,
       effectSlug: "geometry",
       effectName: "Geometry",
     },
@@ -189,32 +189,29 @@ afterEach(() => {
 });
 
 describe("SubstanceGalleryPanel", () => {
-  it("counts article slots and uncurated candidates separately", async () => {
+  it("counts effective article slots and automatic placements", async () => {
     stubFetch();
     renderPanel();
 
-    // One curated of three matched: the other two are candidates, not published.
-    expect(await screen.findByText("1 of 12 article slots filled · 2 matched, not curated")).toBeInTheDocument();
-    // The unknown-rights row is curated at position 1, so the advisory fires.
+    expect(
+      await screen.findByText("3 of 12 article slots filled · 3 published · 2 automatic"),
+    ).toBeInTheDocument();
     expect(await screen.findByText(/unknown reuse terms/i)).toBeInTheDocument();
   });
 
-  it("states that an uncurated substance publishes nothing, and previews nothing", async () => {
+  it("publishes and previews automatic placements without stored curation", async () => {
     stubFetch(undefined, { ...DETAIL, curation: null });
     renderPanel();
 
     await screen.findByText("Work 2");
-    expect(screen.getByText("0 of 12 article slots filled · 3 matched, not curated")).toBeInTheDocument();
     expect(
-      screen.getByText(/never curated — this article has never shown a replication showcase/i),
+      screen.getByText("3 of 12 article slots filled · 3 published · 3 automatic"),
     ).toBeInTheDocument();
     expect(
-      screen.getByText(/nothing is curated, so this article shows no replication showcase at all/i),
+      screen.getByText(/no stored priority overrides.*still publishes every automatic placement/i),
     ).toBeInTheDocument();
-    // Curated-only publishing means the preview is honestly empty, not broken.
-    expect(screen.getByTestId("stage-preview")).toBeEmptyDOMElement();
-    // A matched but uncurated work never fires the rights advisory.
-    expect(screen.queryByText(/unknown reuse terms/i)).not.toBeInTheDocument();
+    expect(screen.getByTestId("stage-preview")).toHaveTextContent("work-1,work-2,work-3");
+    expect(screen.getByText(/unknown reuse terms/i)).toBeInTheDocument();
   });
 
   it("reports dirtiness to the host and undoes a curation with the toolbar", async () => {
@@ -225,7 +222,7 @@ describe("SubstanceGalleryPanel", () => {
     await screen.findByText("Work 2");
     expect(screen.getByText("Gallery saved")).toBeInTheDocument();
 
-    await user.click(screen.getByRole("button", { name: "Curate Work 2" }));
+    await user.click(screen.getByRole("button", { name: "Prioritize Work 2" }));
     expect(screen.getByText("Unsaved changes")).toBeInTheDocument();
     await waitFor(() => expect(props.onDirtyChange).toHaveBeenLastCalledWith(true));
 
@@ -262,7 +259,7 @@ describe("SubstanceGalleryPanel", () => {
     expect(posts[0].curatedSlugs).toEqual(["work-1", "work-3", "work-2"]);
   });
 
-  it("directly curates unmatched eligible playlist works without restoring exclusions", async () => {
+  it("directly prioritizes unmatched eligible playlist works without restoring exclusions", async () => {
     const user = userEvent.setup();
     const detail = {
       ...DETAIL,
@@ -287,7 +284,7 @@ describe("SubstanceGalleryPanel", () => {
     expect(
       await screen.findByText("1 added · 1 already present · 1 excluded · 1 ineligible"),
     ).toBeInTheDocument();
-    expect(screen.getByTestId("stage-preview")).toHaveTextContent("work-1,work-4");
+    expect(screen.getByTestId("stage-preview")).toHaveTextContent("work-1,work-2,work-4");
     expect(posts).toHaveLength(0);
 
     await user.click(screen.getByRole("button", { name: /save gallery/i }));
@@ -310,7 +307,7 @@ describe("SubstanceGalleryPanel", () => {
     renderPanel();
 
     await screen.findByText("Work 2");
-    await user.click(screen.getByRole("button", { name: "Curate Work 2" }));
+    await user.click(screen.getByRole("button", { name: "Prioritize Work 2" }));
     expect(screen.getByText("Unsaved changes")).toBeInTheDocument();
 
     await user.click(screen.getByRole("button", { name: /save gallery/i }));
@@ -324,7 +321,7 @@ describe("SubstanceGalleryPanel", () => {
     renderPanel();
 
     await screen.findByText("Work 2");
-    await user.click(screen.getByRole("button", { name: "Curate Work 2" }));
+    await user.click(screen.getByRole("button", { name: "Prioritize Work 2" }));
     await user.click(screen.getByRole("button", { name: /save gallery/i }));
 
     await waitFor(() => expect(posts).toHaveLength(1));
@@ -373,7 +370,7 @@ describe("SubstanceGalleryPanel", () => {
     renderPanel();
 
     await screen.findByText("Work 2");
-    await user.click(screen.getByRole("button", { name: "Curate Work 2" }));
+    await user.click(screen.getByRole("button", { name: "Prioritize Work 2" }));
     await user.click(screen.getByRole("button", { name: /save gallery/i }));
 
     await screen.findByText(/This gallery changed on the server/i);
@@ -411,16 +408,16 @@ describe("SubstanceGalleryPanel", () => {
     renderPanel();
 
     await screen.findByText("Work 2");
-    await user.click(screen.getByRole("button", { name: "Curate Work 2" }));
+    await user.click(screen.getByRole("button", { name: "Prioritize Work 2" }));
     await user.click(screen.getByRole("button", { name: /save gallery/i }));
     await screen.findByText(/This gallery changed on the server/i);
 
     await user.click(screen.getByRole("button", { name: /take theirs/i }));
     expect(screen.getByText("Gallery saved")).toBeInTheDocument();
     expect(screen.getByText(/Last saved 2026-08-03 by someone-else/i)).toBeInTheDocument();
-    // work-3 is now the only curated row, at position 1.
-    const curatedBand = screen.getByRole("region", { name: /on the article/i });
-    expect(within(curatedBand).getByText("Work 3")).toBeInTheDocument();
+    // work-3 is now the only stored priority row.
+    const priorityBand = screen.getByRole("region", { name: /priority overrides/i });
+    expect(within(priorityBand).getByText("Work 3")).toBeInTheDocument();
   });
 
   it("guards a dirty substance switch with a dialog instead of window.confirm", async () => {
@@ -429,7 +426,7 @@ describe("SubstanceGalleryPanel", () => {
     const props = renderPanel();
 
     await screen.findByText("Work 2");
-    await user.click(screen.getByRole("button", { name: "Curate Work 2" }));
+    await user.click(screen.getByRole("button", { name: "Prioritize Work 2" }));
 
     await user.click(screen.getByRole("combobox"));
     await user.click(await screen.findByText("DMT"));
@@ -462,16 +459,15 @@ describe("SubstanceGalleryPanel", () => {
     expect(await screen.findByText("Work 2")).toBeInTheDocument();
   });
 
-  it("feeds the stage preview the curated order and nothing else", async () => {
+  it("feeds the stage preview the full effective article order", async () => {
     const user = userEvent.setup();
     stubFetch();
     renderPanel();
 
     await screen.findByText("Work 2");
-    // work-2 and work-3 match but are not curated, so the article never sees them.
-    expect(screen.getByTestId("stage-preview")).toHaveTextContent("work-1");
+    expect(screen.getByTestId("stage-preview")).toHaveTextContent("work-1,work-2,work-3");
 
-    await user.click(screen.getByRole("button", { name: "Curate Work 3" }));
-    expect(screen.getByTestId("stage-preview")).toHaveTextContent("work-1,work-3");
+    await user.click(screen.getByRole("button", { name: "Prioritize Work 3" }));
+    expect(screen.getByTestId("stage-preview")).toHaveTextContent("work-1,work-3,work-2");
   });
 });

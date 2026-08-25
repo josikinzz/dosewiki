@@ -39,7 +39,7 @@ const ASSOCIATIONS: ReplicationAssociation[] = [
   {
     slug: "lsd",
     title: "LSD",
-    matchedVia: "effect_slug",
+    matchedVia: "specific_drug",
     effectSlug: "geometry",
     effectName: "Geometry",
     excluded: false,
@@ -48,7 +48,7 @@ const ASSOCIATIONS: ReplicationAssociation[] = [
   {
     slug: "dmt",
     title: "DMT",
-    matchedVia: "effect_slug",
+    matchedVia: "specific_drug",
     effectSlug: "geometry",
     effectName: "Geometry",
     excluded: false,
@@ -57,7 +57,7 @@ const ASSOCIATIONS: ReplicationAssociation[] = [
   {
     slug: "psilocybin",
     title: "Psilocybin mushrooms",
-    matchedVia: "effect_tags",
+    matchedVia: "drug_class",
     effectSlug: "drifting",
     effectName: "Drifting",
     excluded: false,
@@ -190,99 +190,81 @@ afterEach(() => {
 });
 
 describe("ReplicationAssociationsPanel", () => {
-  it("shows a skeleton first, then the drug articles with their match provenance", async () => {
+  it("shows a skeleton first, then automatic drug placements with provenance", async () => {
     stubFetch();
     const { container } = render(<ReplicationAssociationsPanel row={ROW} />);
 
-    // Loading is row-shaped, not bare text.
     expect(container.querySelectorAll(".theme-skeleton-pulse").length).toBeGreaterThan(0);
 
-    // Only LSD is curated, so only LSD is actually on an article.
-    expect(await screen.findByText("Showing on 1 of 3 drug articles")).toBeInTheDocument();
-    expect(screen.getByText("3 eligible · 0 excluded")).toBeInTheDocument();
+    expect(await screen.findByText("Showing on 3 of 3 drug articles")).toBeInTheDocument();
+    expect(screen.getByText("3 showing · 0 excluded")).toBeInTheDocument();
     expect(screen.getByText("Associations saved")).toBeInTheDocument();
 
-    // Owning-effect matches are grouped apart from tag matches.
-    const owning = within(screen.getByRole("list", { name: "Matched by owning effect" }));
-    expect(owning.getByRole("checkbox", { name: "LSD" })).toBeChecked();
-    expect(owning.getByRole("checkbox", { name: "DMT" })).toBeChecked();
-    expect(owning.getAllByText("via owning effect")).toHaveLength(2);
+    const exact = within(screen.getByRole("list", { name: "Exact-drug placements" }));
+    expect(exact.getByRole("checkbox", { name: "LSD" })).toBeChecked();
+    expect(exact.getByRole("checkbox", { name: "DMT" })).toBeChecked();
+    expect(exact.getAllByText("exact drug")).toHaveLength(2);
 
-    const tagged = within(screen.getByRole("list", { name: "Matched by effect tag" }));
-    expect(tagged.getByRole("checkbox", { name: "Psilocybin mushrooms" })).toBeChecked();
-    expect(tagged.getByText("via effect tag")).toBeInTheDocument();
-    expect(tagged.getByText("Drifting")).toBeInTheDocument();
+    const general = within(screen.getByRole("list", { name: "General class placements" }));
+    expect(general.getByRole("checkbox", { name: "Psilocybin mushrooms" })).toBeChecked();
+    expect(general.getByText("general class")).toBeInTheDocument();
+    expect(general.getByText("Drifting")).toBeInTheDocument();
   });
 
-  it("labels every row showing, eligible-but-uncurated, or excluded", async () => {
+  it("labels every checked automatic row as published and every unchecked row excluded", async () => {
     const user = userEvent.setup();
     stubFetch();
     render(<ReplicationAssociationsPanel row={ROW} />);
 
-    await screen.findByText("Showing on 1 of 3 drug articles");
+    await screen.findByText("Showing on 3 of 3 drug articles");
 
-    // Curated and not excluded: on the article, at its stored position.
     expect(screen.getByTestId("association-state-lsd")).toHaveTextContent(
-      "Showing · position 2",
+      "Showing · priority 2",
     );
-    expect(screen.queryByTestId("eligible-note-lsd")).not.toBeInTheDocument();
-
-    // Ticked but never curated: allowed, yet nothing shows there.
     expect(screen.getByTestId("association-state-dmt")).toHaveTextContent(
-      "Eligible · not curated",
-    );
-    expect(screen.getByTestId("eligible-note-dmt")).toHaveTextContent(
-      "nothing shows on this drug yet — unticking only forbids a future curation",
+      "Showing · automatic",
     );
 
-    // Unticking swaps the eligible row to excluded, and drops the note with it.
     await user.click(screen.getByRole("checkbox", { name: "DMT" }));
     expect(screen.getByTestId("association-state-dmt")).toHaveTextContent("Excluded");
-    expect(screen.queryByTestId("eligible-note-dmt")).not.toBeInTheDocument();
+    expect(screen.getByText("Showing on 2 of 3 drug articles")).toBeInTheDocument();
   });
 
-  it("never claims an uncurated replication appears anywhere", async () => {
+  it("publishes all automatic associations without stored priority", async () => {
     stubFetch({
       associations: ASSOCIATIONS.map((entry) => ({ ...entry, curatedPosition: null })),
     });
     render(<ReplicationAssociationsPanel row={ROW} />);
 
-    expect(await screen.findByText("Showing on 0 of 3 drug articles")).toBeInTheDocument();
-    expect(screen.queryByText(/^Appears on/)).not.toBeInTheDocument();
-
-    // Eligible everywhere, published nowhere — and every row says so.
-    expect(screen.getByText("3 eligible · 0 excluded")).toBeInTheDocument();
-    expect(screen.getAllByText("Eligible · not curated")).toHaveLength(3);
+    expect(await screen.findByText("Showing on 3 of 3 drug articles")).toBeInTheDocument();
+    expect(screen.getByText("3 showing · 0 excluded")).toBeInTheDocument();
+    expect(screen.getAllByText("Showing · automatic")).toHaveLength(3);
   });
 
-  it("warns inline and in the save summary when unticking a curated drug", async () => {
+  it("warns when excluding a row that carries stored priority", async () => {
     const user = userEvent.setup();
     stubFetch();
     render(<ReplicationAssociationsPanel row={ROW} />);
 
-    await screen.findByText("Showing on 1 of 3 drug articles");
+    await screen.findByText("Showing on 3 of 3 drug articles");
     expect(screen.queryByTestId("curated-warning-lsd")).not.toBeInTheDocument();
 
-    // DMT is not curated: unticking it must not raise a curated warning.
     await user.click(screen.getByRole("checkbox", { name: "DMT" }));
     expect(screen.getByText("Unsaved changes")).toBeInTheDocument();
     expect(screen.queryByTestId("curated-warning-dmt")).not.toBeInTheDocument();
     expect(screen.queryByText(/Saving will drop/)).not.toBeInTheDocument();
     expect(screen.getByTestId("association-state-dmt")).toHaveTextContent("Excluded");
-    // DMT published nothing, so the publication count is unmoved.
-    expect(screen.getByText("Showing on 1 of 3 drug articles")).toBeInTheDocument();
+    expect(screen.getByText("Showing on 2 of 3 drug articles")).toBeInTheDocument();
 
-    // LSD pinned it at position 2, so the row and the save summary both say so.
     await user.click(screen.getByRole("checkbox", { name: "LSD" }));
     expect(screen.getByTestId("curated-warning-lsd")).toHaveTextContent(
-      "curated at position 2 — unticking drops that position",
+      "priority 2 — unticking removes that position and excludes the work",
     );
     expect(
       screen.getByText(/Saving will drop 1 curated position: LSD \(position 2\)\./),
     ).toBeInTheDocument();
-    expect(screen.getByText("1 eligible · 2 excluded")).toBeInTheDocument();
-    // Excluding the one curated drug takes the last publication with it.
-    expect(screen.getByText("Showing on 0 of 3 drug articles")).toBeInTheDocument();
+    expect(screen.getByText("1 showing · 2 excluded")).toBeInTheDocument();
+    expect(screen.getByText("Showing on 1 of 3 drug articles")).toBeInTheDocument();
   });
 
   it("posts the full excluded set and reports the dropped curated positions", async () => {
@@ -299,7 +281,7 @@ describe("ReplicationAssociationsPanel", () => {
     });
     render(<ReplicationAssociationsPanel row={ROW} />);
 
-    await screen.findByText("Showing on 1 of 3 drug articles");
+    await screen.findByText("Showing on 3 of 3 drug articles");
     await user.click(screen.getByRole("checkbox", { name: "LSD" }));
     await user.click(screen.getByRole("button", { name: "Save eligibility" }));
 
@@ -317,7 +299,7 @@ describe("ReplicationAssociationsPanel", () => {
     expect(screen.getByRole("button", { name: "Save eligibility" })).toBeDisabled();
     expect(screen.queryByTestId("curated-warning-lsd")).not.toBeInTheDocument();
     expect(screen.queryByText(/Saving will drop/)).not.toBeInTheDocument();
-    expect(screen.getByText("Showing on 0 of 3 drug articles")).toBeInTheDocument();
+    expect(screen.getByText("Showing on 2 of 3 drug articles")).toBeInTheDocument();
     expect(screen.getByTestId("association-state-lsd")).toHaveTextContent("Excluded");
   });
 
@@ -326,9 +308,9 @@ describe("ReplicationAssociationsPanel", () => {
     const { posts } = stubFetch();
     render(<ReplicationAssociationsPanel row={ROW} />);
 
-    await screen.findByText("Showing on 1 of 3 drug articles");
+    await screen.findByText("Showing on 3 of 3 drug articles");
     await user.click(screen.getByRole("button", { name: "Exclude all shown" }));
-    expect(screen.getByText("0 eligible · 3 excluded")).toBeInTheDocument();
+    expect(screen.getByText("0 showing · 3 excluded")).toBeInTheDocument();
     expect(screen.getByText("Showing on 0 of 3 drug articles")).toBeInTheDocument();
 
     await user.click(screen.getByRole("button", { name: "Save eligibility" }));
@@ -337,15 +319,15 @@ describe("ReplicationAssociationsPanel", () => {
   });
 
 
-  it("renders title matches and names bulk controls by their consequences", async () => {
+  it("renders exact-drug placement and names bulk controls by their consequences", async () => {
     stubFetch({
       associations: [
         {
           slug: "ketamine",
           title: "Ketamine",
-          matchedVia: "title",
-          effectSlug: "dissociation",
-          effectName: "Dissociation",
+          matchedVia: "specific_drug",
+          effectSlug: "ketamine",
+          effectName: "Ketamine",
           excluded: false,
           curatedPosition: null,
         },
@@ -353,12 +335,12 @@ describe("ReplicationAssociationsPanel", () => {
     });
     render(<ReplicationAssociationsPanel row={ROW} />);
 
-    expect(await screen.findByText("Showing on 0 of 1 drug article")).toBeInTheDocument();
-    const titleMatches = within(
-      screen.getByRole("list", { name: "Matched by drug name in title" }),
+    expect(await screen.findByText("Showing on 1 of 1 drug article")).toBeInTheDocument();
+    const exactMatches = within(
+      screen.getByRole("list", { name: "Exact-drug placements" }),
     );
-    expect(titleMatches.getByRole("checkbox", { name: "Ketamine" })).toBeChecked();
-    expect(titleMatches.getByText("via name in title")).toBeInTheDocument();
+    expect(exactMatches.getByRole("checkbox", { name: "Ketamine" })).toBeChecked();
+    expect(exactMatches.getByText("exact drug")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Allow all shown" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Exclude all shown" })).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Select all" })).not.toBeInTheDocument();
@@ -395,7 +377,7 @@ describe("ReplicationAssociationsPanel", () => {
     const { associationGets, associationPosts, galleryPosts } = stubPlacementFetch(ASSOCIATIONS);
     render(<ReplicationAssociationsPanel row={ROW} />);
 
-    expect(await screen.findByText("Showing on 1 of 3 drug articles")).toBeInTheDocument();
+    expect(await screen.findByText("Showing on 3 of 3 drug articles")).toBeInTheDocument();
     await user.click(
       screen.getByRole("combobox", {
         name: "Drugs to add this replication to. 0 selected",
@@ -487,7 +469,7 @@ describe("ReplicationAssociationsPanel", () => {
     expect(await screen.findByText("Convex is unreachable.")).toBeInTheDocument();
     await user.click(screen.getByRole("button", { name: /retry/i }));
 
-    expect(await screen.findByText("Showing on 1 of 3 drug articles")).toBeInTheDocument();
+    expect(await screen.findByText("Showing on 3 of 3 drug articles")).toBeInTheDocument();
     expect(fetchMock).toHaveBeenCalledTimes(2);
   });
 
@@ -498,7 +480,7 @@ describe("ReplicationAssociationsPanel", () => {
     });
     render(<ReplicationAssociationsPanel row={ROW} />);
 
-    await screen.findByText("Showing on 1 of 3 drug articles");
+    await screen.findByText("Showing on 3 of 3 drug articles");
     await user.click(screen.getByRole("checkbox", { name: "DMT" }));
     await user.click(screen.getByRole("button", { name: "Save eligibility" }));
 

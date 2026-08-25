@@ -33,20 +33,6 @@ export function moleculeOverrideImageUrl(slug: string, updatedAt: string): strin
   return `/api/molecules/${slug}?v=${encodeURIComponent(updatedAt)}`;
 }
 
-/** Square substance OG card edge, kept in sync with `/api/og/molecule/[slug]`. */
-export const MOLECULE_SOCIAL_CARD_SIZE = 1200;
-
-/**
- * Increment when renderer changes must invalidate already-frozen CDN and
- * social-crawler copies without mutating the canonical molecule row.
- */
-const MOLECULE_SOCIAL_CARD_RENDER_VERSION = "2";
-
-/** The square molecule OG-card URL, busted by molecule and renderer revisions. */
-export function moleculeSocialCardUrl(slug: string, updatedAt: string): string {
-  const version = `${updatedAt}-${MOLECULE_SOCIAL_CARD_RENDER_VERSION}`;
-  return `/api/og/molecule/${slug}?v=${encodeURIComponent(version)}`;
-}
 
 /** The public image-route URL for a chemical class override, busted by `updatedAt`. */
 export function classStructureOverrideImageUrl(key: string, updatedAt: string): string {

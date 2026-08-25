@@ -100,6 +100,16 @@ export const stableWorkflowCommands = [
     dryRun: workflowDryRunPolicies.none,
   }),
   command({
+    name: 'generate:social-cards',
+    purpose: 'Pre-render immutable dose.wiki substance social cards from production Convex.',
+    env: ['CONVEX_PUBLIC_READ_URL or CONVEX_URL or VITE_CONVEX_URL or NEXT_PUBLIC_CONVEX_URL'],
+    scriptPath: 'scripts/build/generateSubstanceSocialCards.ts',
+    reads: [workflowAccessTargets.convexSource, workflowAccessTargets.localArtifacts],
+    writes: [workflowAccessTargets.localGeneratedArtifacts],
+    dryRun: workflowDryRunPolicies.none,
+    convexUrlPolicy: workflowConvexUrlPolicies.optionalSource,
+  }),
+  command({
     name: 'generate:schema',
     purpose: 'Regenerate schema helper modules after article schema changes.',
     scriptPath: 'scripts/generate/generateSchemaUtils.ts',

@@ -144,6 +144,7 @@ npm run dev
 | `npm run verify:app` | Verify app code |
 | `npm run verify:workflow` | Verify scripts and data workflows |
 | `npm run generate:schema` | Regenerate article-schema helpers |
+| `npm run generate:social-cards` | Pre-render immutable substance social cards from production Convex |
 | `npm run provenance:check` | Check generated-data lineage |
 
 ### Environment and deployment

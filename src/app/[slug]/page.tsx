@@ -5,11 +5,11 @@ import { getStaticSubstanceParams } from "@server/next/staticParams";
 import { SubstanceArticlePage } from "@/features/article/pages/SubstanceArticlePage";
 import { buildSiteUrl, getPublicRoutePath } from "@server/next/publicSite";
 import { buildSubstanceSchema, serializeJsonLd } from "@/utils/seo/structuredData";
-import { getMoleculeUpdatedAt } from "@server/convex/publicData.molecules";
+import { isEffectIndex } from "@/config/siteFlavor";
 import {
-  MOLECULE_SOCIAL_CARD_SIZE,
-  moleculeSocialCardUrl,
-} from "@/data/mappings/moleculeOverrideUrl";
+  SUBSTANCE_SOCIAL_CARD_SIZE,
+  substanceSocialCardUrl,
+} from "@/data/mappings/substanceSocialCardUrl";
 
 export const revalidate = 3600;
 export const dynamicParams = false;
@@ -32,21 +32,20 @@ export async function generateMetadata({ params }: SubstancePageProps) {
     notFound();
   }
 
-  // Substances with a stored molecule get a square molecule card instead of
-  // the flavor-wide one; `?v=<updatedAt>` rolls the URL on every editor save.
-  // (`getMoleculeUpdatedAt` is request-cached, so the page render reuses it.)
-  // Alias redirects keep the flavor card — only canonical pages own a molecule.
-  const moleculeUpdatedAt = result.kind === "ok" ? await getMoleculeUpdatedAt(slug) : null;
+  // dose.wiki substance pages use immutable build-generated cards. Effect
+  // Index keeps its own publication-wide social identity.
+  const socialCardPath =
+    result.kind === "ok" && !isEffectIndex() ? substanceSocialCardUrl(slug) : null;
 
   return buildPublicPageMetadata({
     ...result.metadata,
     route: result.canonicalRoute,
-    socialImage: moleculeUpdatedAt
+    socialImage: socialCardPath
       ? {
-          path: moleculeSocialCardUrl(slug, moleculeUpdatedAt),
-          width: MOLECULE_SOCIAL_CARD_SIZE,
-          height: MOLECULE_SOCIAL_CARD_SIZE,
-          alt: `${result.metadata.title} molecule structure`,
+          path: socialCardPath,
+          width: SUBSTANCE_SOCIAL_CARD_SIZE,
+          height: SUBSTANCE_SOCIAL_CARD_SIZE,
+          alt: `${result.metadata.title} substance guide`,
         }
       : undefined,
   });

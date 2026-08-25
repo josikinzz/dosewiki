@@ -23,6 +23,8 @@ const mediaTypeValidator = v.union(
   v.literal("audio"),
 );
 
+const mediaRoleValidator = v.union(v.literal("replication"), v.literal("figure"));
+
 const nullableString = v.union(v.string(), v.null());
 
 const taxonomyProjectionValidator = v.object({
@@ -31,6 +33,10 @@ const taxonomyProjectionValidator = v.object({
   title: v.string(),
   artist: v.string(),
   type: mediaTypeValidator,
+  role: v.union(mediaRoleValidator, v.null()),
+  effect_slug: nullableString,
+  showcase_excluded: v.boolean(),
+  created_at: nullableString,
   storage_id: v.string(),
   source_catalog_id: nullableString,
   taxonomy_record_key: nullableString,
@@ -64,6 +70,10 @@ function projectReplication(row: Doc<"replications">) {
     title: row.title,
     artist: row.artist,
     type: row.type,
+    role: row.role ?? null,
+    effect_slug: row.effect_slug ?? null,
+    showcase_excluded: row.showcase_excluded ?? false,
+    created_at: row.created_at ?? null,
     storage_id: row.storage_id,
     source_catalog_id: row.source_catalog_id ?? null,
     taxonomy_record_key: row.taxonomy_record_key ?? null,

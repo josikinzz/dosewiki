@@ -151,7 +151,6 @@ export function SubstanceGalleryPanel({
     saveState,
     feedback,
     excludedOpen,
-    unmatchedOpen,
     previewOpen,
     pendingSlug,
     focusSlug,
@@ -186,7 +185,7 @@ export function SubstanceGalleryPanel({
       headingLevel="h3"
       icon="lucide:images"
       title="Substance Replication Showcases"
-      description={`Each substance article's Visual group ends with its curated replications — and only those. A matched work stays in this portal until you curate it; nothing reaches the article on its own. The article draws the first ${SHOWCASE_WORK_CAP} curated works in this exact order, and excluded rows never surface there at all.`}
+      description={`Exact-drug and permitted class replications appear automatically. Stored curation controls priority, direct standalone associations, and per-article exclusions. The article shows the first ${SHOWCASE_WORK_CAP} works in the effective policy order.`}
     >
       <div aria-live="polite" className="sr-only">
         {announcement}
@@ -202,27 +201,13 @@ export function SubstanceGalleryPanel({
         {detail ? (
           <>
             <EditorStatusPill tone={board.filledSlots > 0 ? "info" : "neutral"}>
-              {`${board.filledSlots} of ${board.cap} article slots filled · ${board.candidateCount} matched, not curated`}
+              {`${board.filledSlots} of ${board.cap} article slots filled · ${board.publishedCount} published · ${board.candidateCount} automatic`}
             </EditorStatusPill>
             <div className="min-w-0">
               <p className="theme-text-muted font-mono text-xs">
-                {provenance.matched} matched from {provenance.effectCount} visual effect
-                {provenance.effectCount === 1 ? "" : "s"} · {provenance.viaEffectSlug} by owning
-                effect · {provenance.viaEffectTags} by tag · {provenance.viaName} by name
+                {provenance.specificDrug} specific drug · {provenance.generalClass} general class ·{" "}
+                {provenance.manual} manual
               </p>
-              {detail.unmatchedEffectNames.length > 0 ? (
-                <Button
-                  type="button"
-                  variant="textLink"
-                  size="auto"
-                  className="text-xs"
-                  aria-expanded={unmatchedOpen}
-                  onClick={() => controller.setUnmatchedOpen((open) => !open)}
-                >
-                  {detail.unmatchedEffectNames.length} visual effect
-                  {detail.unmatchedEffectNames.length === 1 ? "" : "s"} with nothing to show
-                </Button>
-              ) : null}
             </div>
           </>
         ) : null}
@@ -286,7 +271,7 @@ export function SubstanceGalleryPanel({
               </span>
             ) : (
               <span className="theme-text-faint text-xs">
-                Never curated — this article has never shown a replication showcase.
+                No stored ordering or exclusion delta yet. Automatic placements still publish.
               </span>
             )}
           </div>
@@ -348,23 +333,11 @@ export function SubstanceGalleryPanel({
         </ActionNotice>
       ) : null}
 
-      {detail && unmatchedOpen ? (
-        <EmptyStateSurface padding="sm" radius="lg" className="space-y-1.5 text-sm">
-          <p className="theme-text-primary font-medium">
-            No publishable replication matches these visual effects yet:
-          </p>
-          <p className="theme-text-muted">{detail.unmatchedEffectNames.join(" · ")}</p>
-          <p className="theme-text-faint text-xs">
-            Tag a corpus row with the effect below — or set it as the row's owning effect — and it will
-            join this substance's candidate pool, ready to curate onto the article.
-          </p>
-        </EmptyStateSurface>
-      ) : null}
 
       {!substanceSlug ? (
         <EmptyStateSurface padding="sm" radius="lg" className="theme-text-muted text-sm">
-          Pick a substance to curate its Replication Showcase. The dot marks substances with a stored
-          curation; the count is how many corpus rows currently match.
+          Pick a substance to inspect its automatic Replication Showcase. The dot marks a stored
+          ordering/exclusion delta; the count is the current association total.
         </EmptyStateSurface>
       ) : detailState.status === "loading" ? (
         <BoardSkeleton />
@@ -379,23 +352,12 @@ export function SubstanceGalleryPanel({
       ) : detail && matches.length === 0 ? (
         <EmptyStateSurface padding="sm" radius="lg" className="space-y-1.5 text-sm">
           <p className="theme-text-primary font-medium">
-            Nothing in the corpus matches {detail.substance.title} yet.
+            No automatic or manual replication is associated with {detail.substance.title} yet.
           </p>
-          {detail.unmatchedEffectNames.length > 0 ? (
-            <>
-              <p className="theme-text-muted">
-                Its visual effects: {detail.unmatchedEffectNames.join(" · ")}
-              </p>
-              <p className="theme-text-faint text-xs">
-                Tag a corpus row with one of these effects — or set it as the row's owning effect — and
-                it will join this substance's candidate pool, ready to curate onto the article.
-              </p>
-            </>
-          ) : (
-            <p className="theme-text-muted">
-              The article lists no visual effects, so its showcase stays empty.
-            </p>
-          )}
+          <p className="theme-text-muted">
+            Standalone work can be associated directly from the library. Review missing or incorrect
+            title taxonomy in the replication editor rather than adding an unrelated effect tag.
+          </p>
           <Button type="button" variant="secondary" size="sm" onClick={onOpenLibrary}>
             <Icon icon="lucide:library" size={14} />
             Open the corpus library
@@ -465,7 +427,7 @@ export function SubstanceGalleryPanel({
               onClick={() => controller.setPreviewOpen((open) => !open)}
             >
               <Icon icon={previewOpen ? "lucide:chevron-down" : "lucide:chevron-right"} size={14} />
-              Article preview — the real stage, showing only what is curated
+              Article preview — effective automatic and editorial order
             </Button>
             {previewOpen ? <GalleryStagePreview matches={effectiveOrder} /> : null}
           </div>
@@ -476,9 +438,7 @@ export function SubstanceGalleryPanel({
             matchedSlugs={matchedSlugs}
             curatedSlugs={curation.curated}
             removedSlugs={curation.removed}
-            effectOptions={detail.effectOptions}
             onCurate={controller.handleCurate}
-            onTagged={controller.handleTagged}
             onInspectRow={onInspectRow}
             onOpenLibrary={onOpenLibrary}
           />

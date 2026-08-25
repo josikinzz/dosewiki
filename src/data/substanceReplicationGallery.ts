@@ -1,53 +1,68 @@
 /**
- * Effect matching and the publish gate for the per-substance Replication
- * Showcase (see CONTEXT.md → Replications Surface Language).
+ * Drug-association policy and editorial ordering for the per-substance
+ * Replication Showcase (see CONTEXT.md → Replications Surface Language).
  *
- * A substance article's automatic candidate pool is *derived*: the visual
- * effect names under `subjective_effects.sensory.visual.subcategories`
- * resolve to effect slugs exactly the way the article's effect chips do, and
- * those slugs select publishable corpus rows by owning `effect_slug` or by
- * `effect_tags`. A gallery may additionally store a direct association when an
- * editor curates an unmatched work; moving it from `curated_slugs` to
- * `removed_slugs` preserves that explicit association as an exclusion. What
- * the article actually shows is still the gallery's curated list and nothing
- * else (`mergeCuratedGallery`), with suppression outranking curation. This
- * module is the single home of matching, association, and write normalization
- * so Convex reads, the article showcase, and the curation portal agree.
+ * Automatic placement is deliberately narrower than visual-effect matching:
+ * a standalone drug mention belongs only to that drug, while a general
+ * dissociative or deliriant work belongs to every article in that class.
+ * General psychedelic work is never spread across psychedelic articles, and
+ * combinations are never proposed for a single-substance showcase.
  *
- * Everything here is pure. Imports are relative rather than aliased because
- * the Convex bundler consumes this file too (as `convex/substanceGalleries.ts`
- * does `../src/data/substanceReplicationGallery`).
+ * Stored `curated_slugs` are an ordering/direct-association delta rather than a
+ * publish gate. Automatic tiers lead; curation orders rows within a tier and
+ * preserves unmatched editorial associations as the final tier.
+ * `removed_slugs` always wins.
+ *
+ * Everything here is pure. Imports are relative because the Convex bundler
+ * consumes this file through `convex/substanceGalleries.ts`.
  */
 
 import { z } from "zod";
-import { resolveEffectNameAlias, type EffectLocation } from "./effectNameAliases";
-import { slugify } from "../utils/slug";
 import {
   isPublishableReplication,
   type MediaRole,
+  type ReplicationDrugClass,
+  type ReplicationTitleDrug,
   type ReplicationType,
   type ReplicationWithUrl,
 } from "../types/replications";
 
-/** The alias-lookup location of every chip in the article's visual group. */
-const VISUAL_EFFECT_LOCATION: EffectLocation = "sensory.visual";
-
-const EFFECT_HREF_PREFIX = "/effects/";
-const EFFECT_CATEGORY_HREF_PREFIX = "/effects/category/";
-
 /**
  * The ceiling on either stored curation list. One home for a number the Convex
  * mutation, the DevTools save route, and the portal's exclusion meter all have
- * to agree on — enough to order or suppress a whole showcase, small enough to
- * stay one document.
+ * to agree on.
  */
 export const GALLERY_CURATION_SLUG_CAP = 250;
 
+const TITLE_DRUG_ROUTE_ALIASES: Readonly<Record<string, string>> = Object.freeze({
+  dxm: "dextromethorphan",
+  metocin: "4-ho-met",
+  "nitrous-oxide": "nitrous",
+});
+
+const GENERAL_CLASS_ARTICLE_LABEL: Readonly<
+  Partial<Record<ReplicationDrugClass, string>>
+> = Object.freeze({
+  dissociatives: "Dissociative",
+  deliriants: "Deliriant",
+});
+
+export type AutomaticSubstanceMatchKind = "specific_drug" | "drug_class";
+
 /** How one corpus row earned its place in a substance's showcase. */
 export type SubstanceGalleryMatchProvenance = {
-  matchedVia: "effect_slug" | "effect_tags" | "title" | "curated";
-  /** The matched effect slug, or the row's owning effect for a direct curation. */
+  matchedVia: AutomaticSubstanceMatchKind | "curated";
+  /** The owning effect remains the chip shown beside the work. */
   effectSlug: string;
+  /** Present for a standalone title-drug placement. */
+  substanceSlug?: string;
+  /** Present for a permitted general-class placement. */
+  drugClass?: "dissociatives" | "deliriants";
+};
+
+export type SubstanceGalleryTitleClassMention = {
+  class: ReplicationDrugClass;
+  matched_title_text: string;
 };
 
 /** The minimum a corpus row must carry to be matchable. */
@@ -55,11 +70,17 @@ export type SubstanceGalleryMatchableRow = {
   slug: string;
   type: ReplicationType;
   role?: MediaRole;
-  title?: string;
   effect_slug?: string | null;
-  effect_tags?: string[];
-  /** Corpus-wide suppression: junk everywhere, so it proposes nowhere. */
+  title_drugs?: ReplicationTitleDrug[];
+  title_class_mentions?: SubstanceGalleryTitleClassMention[];
+  /** Corpus-wide suppression: junk or a combination belongs on no drug article. */
   showcase_excluded?: boolean;
+  replication_status?: "replication" | "not-replication" | "unclear" | "unreviewed" | "source-corrupt";
+};
+
+export type SubstanceGalleryTarget = {
+  slug: string;
+  psychoactiveClasses: readonly string[];
 };
 
 export type SubstanceGalleryMatch<Row extends SubstanceGalleryMatchableRow> = {
@@ -68,20 +89,13 @@ export type SubstanceGalleryMatch<Row extends SubstanceGalleryMatchableRow> = {
 };
 
 export type SubstanceGalleryMatchResult<Row extends SubstanceGalleryMatchableRow> = {
-  /** Matchable candidates, in the order the corpus rows arrived. Publishing is a separate, curated decision. */
+  /** Automatic candidates in specific-video, specific-image, class-video, class-image order. */
   matches: SubstanceGalleryMatch<Row>[];
-  /**
-   * Visual-effect display names that put nothing in the candidate pool: names
-   * with no effect page to match through (unlinked or umbrella terms) and
-   * names whose effect has no publishable replication. The curation portal
-   * teaches from this list ("tag a replication with these to surface it here").
-   */
-  unmatchedEffectNames: string[];
 };
 
 /**
- * The stored gallery association fields: ordered published placements and
- * unordered per-substance exclusions.
+ * The stored gallery association fields: ordered manual priority/direct
+ * placements and unordered per-substance exclusions.
  */
 export type SubstanceGalleryCuration = {
   curated_slugs?: readonly string[];
@@ -97,284 +111,147 @@ export type SubstanceGalleryItem = {
 /** The public `getPublicReplicationsForSubstance` payload. */
 export type PublicSubstanceGallery = {
   items: SubstanceGalleryItem[];
-  unmatchedEffectNames: string[];
 };
 
-/**
- * The one path this module reads out of a stored substance article. Stored as
- * `v.any()` in Convex, so the shape is proven here at the boundary, leniently:
- * only the fields consumed are named, junk entries drop out individually, and
- * a document without the path yields no names rather than an error.
- */
-const visualEffectEntry = z.object({ name: z.string() });
-
-const visualEffectNamesSource = z.object({
-  sensory: z.object({
-    visual: z.object({
-      subcategories: z.record(
-        z.string(),
-        z.object({ effects: z.array(z.unknown()).catch([]) }),
-      ),
-    }),
-  }),
-});
-
-/**
- * The visual-effect display names of one substance article, in document order,
- * deduplicated by slugified name (the same name under two subcategories is one
- * chip vocabulary entry, not two).
- *
- * Takes `unknown` because `subjective_effects` is stored as `v.any()` in
- * Convex; anything malformed simply contributes no names.
- */
-export function visualEffectNamesOf(subjectiveEffects: unknown): string[] {
-  const parsed = visualEffectNamesSource.safeParse(subjectiveEffects);
-  if (!parsed.success) return [];
-
-  const names: string[] = [];
-  const seen = new Set<string>();
-  for (const subcategory of Object.values(parsed.data.sensory.visual.subcategories)) {
-    for (const raw of subcategory.effects) {
-      const entry = visualEffectEntry.safeParse(raw);
-      if (!entry.success) continue;
-      const name = entry.data.name.trim();
-      const key = slugify(name);
-      if (!key || seen.has(key)) continue;
-      seen.add(key);
-      names.push(name);
-    }
-  }
-  return names;
-}
-
-/** The identification fields that carry a name a replication title might use. */
-const substanceNameSource = z.object({
-  title: z.string().catch(""),
-  identification: z
+const substanceGalleryTargetSource = z.object({
+  slug: z.string(),
+  classification: z
     .object({
-      common_name: z.string().catch(""),
-      substitutive_name: z.string().catch(""),
+      psychoactive_class: z.array(z.string()).catch([]),
     })
     .partial()
     .catch({}),
 });
 
-/**
- * Every name a replication title could plausibly use for one substance: the
- * article title plus its identification names, which often arrive as a list
- * ("Ecstasy, Molly") and are split so each name matches on its own.
- *
- * Deduplicated case-insensitively, and single characters are dropped — a name
- * that short would match half the corpus by accident.
- */
-export function substanceNamesOf(article: unknown): string[] {
-  const parsed = substanceNameSource.safeParse(article);
-  if (!parsed.success) return [];
-  const raw = [
-    parsed.data.title,
-    parsed.data.identification?.common_name ?? "",
-    parsed.data.identification?.substitutive_name ?? "",
-  ];
-
-  const names: string[] = [];
-  const seen = new Set<string>();
-  for (const entry of raw) {
-    for (const piece of entry.split(/[,;/]/)) {
-      const name = piece.trim();
-      const key = name.toLowerCase();
-      if (name.length < 2 || seen.has(key)) continue;
-      seen.add(key);
-      names.push(name);
-    }
-  }
-  return names;
-}
-
-export type VisualEffectSlugResolution = {
-  /** Ordered, deduplicated effect slugs the names resolve to. */
-  slugs: string[];
-  /** Display name → resolved effect slug, for names that resolved. */
-  slugByName: ReadonlyMap<string, string>;
-  /**
-   * Display names that resolve to no single effect page: deliberately unlinked
-   * names, and umbrella terms whose chip points at a category index — a
-   * category names a family, so there is no effect slug to match a
-   * replication against.
-   */
-  unlinkableNames: string[];
-};
-
-/**
- * Resolve visual-effect display names to effect slugs exactly as the substance
- * article's effect chips do: `slugify(name)` looked up through
- * `resolveEffectNameAlias(…, "sensory.visual")`, falling back to the slugified
- * name itself when no alias table knows the name (the chips' own
- * `publicHref.effectFromName` derivation).
- */
-export function resolveVisualEffectSlugs(names: readonly string[]): VisualEffectSlugResolution {
-  const slugs: string[] = [];
-  const seen = new Set<string>();
-  const slugByName = new Map<string, string>();
-  const unlinkableNames: string[] = [];
-
-  for (const name of names) {
-    const nameSlug = slugify(name);
-    if (!nameSlug) {
-      unlinkableNames.push(name);
-      continue;
-    }
-    const alias = resolveEffectNameAlias(nameSlug, VISUAL_EFFECT_LOCATION);
-    let slug: string | null;
-    if (alias === undefined) {
-      slug = nameSlug;
-    } else if (alias === null || alias.startsWith(EFFECT_CATEGORY_HREF_PREFIX)) {
-      slug = null;
-    } else {
-      slug = alias.slice(EFFECT_HREF_PREFIX.length);
-    }
-
-    if (slug === null) {
-      unlinkableNames.push(name);
-      continue;
-    }
-    slugByName.set(name, slug);
-    if (!seen.has(slug)) {
-      seen.add(slug);
-      slugs.push(slug);
-    }
-  }
-
-  return { slugs, slugByName, unlinkableNames };
-}
-
-/**
- * Corpus-wide eligibility: publishable *and* not suppressed everywhere.
- *
- * Per-substance `removed_slugs` answers "good work, wrong article", which is
- * rare. Junk is junk on every article, and sweeping it per substance is what
- * drove curations into the slug cap, so `showcase_excluded` retires a row from
- * every candidate pool at once. This is the single gate: matching, direct
- * curation, and therefore the article and the portal all read it.
- */
-export function isShowcaseEligible(row: SubstanceGalleryMatchableRow): boolean {
-  return isPublishableReplication(row) && row.showcase_excluded !== true;
-}
-
-/** Characters that continue a substance token, so a match inside one is no match. */
-const NAME_CHARACTER = /[a-z0-9_-]/;
-
-/**
- * Does `title` name this substance?
- *
- * Chemical names live inside longer chemical names, so a bare substring test
- * would hand every 2C-B-FLY rendition to 2C-B and read "DOM" inside "random".
- * A hyphen continues a token rather than ending one, which is what separates
- * "2C-B Road" (a match) from "2C-B-FLY Grid" (not one), and "DMT" from
- * "5-MeO-DMT".
- */
-function titleNamesSubstance(title: string, name: string): boolean {
-  const haystack = title.toLowerCase();
-  const needle = name.trim().toLowerCase();
-  if (needle.length === 0) return false;
-  for (let from = 0; from <= haystack.length - needle.length; ) {
-    const at = haystack.indexOf(needle, from);
-    if (at === -1) return false;
-    const before = at === 0 ? "" : haystack[at - 1];
-    const after = haystack[at + needle.length] ?? "";
-    if (!NAME_CHARACTER.test(before) && !NAME_CHARACTER.test(after)) return true;
-    from = at + 1;
-  }
-  return false;
-}
-
-/**
- * Match a substance's visual-effect names against the replication corpus.
- *
- * A row matches when it is showcase-eligible (a replication row of a
- * renderable media kind, not suppressed corpus-wide — figures and audio never
- * surface here) and any resolved slug is its owning `effect_slug` or appears in
- * its `effect_tags`. Provenance prefers the owning slug; a tag match reports
- * the first resolved slug (in the substance's own name order) found among the
- * tags. A row the effect vocabulary misses still matches when its title names
- * the substance outright, which is the weakest of the three signals and so
- * reports last.
- *
- * Matches lead with videos: an animated rendition is the closest thing the
- * corpus has to the experience itself, so the candidate pool an editor reads
- * top-down puts every video before every image. Within each kind the incoming
- * corpus order holds. Name matches form a second tier below the effect matches
- * rather than interleaving with them, because an editor scanning the pool
- * should meet the vocabulary's own proposals first. This orders the *pool*, not
- * the article — nothing here publishes anything; only `mergeCuratedGallery`
- * does.
- */
-export function matchSubstanceGalleryReplications<Row extends SubstanceGalleryMatchableRow>(
-  rows: readonly Row[],
-  visualEffectNames: readonly string[],
-  substanceNames: readonly string[] = [],
-): SubstanceGalleryMatchResult<Row> {
-  const { slugs, slugByName, unlinkableNames } = resolveVisualEffectSlugs(visualEffectNames);
-  const slugSet = new Set(slugs);
-  const names = substanceNames.map((name) => name.trim()).filter((name) => name.length > 0);
-
-  const matches: SubstanceGalleryMatch<Row>[] = [];
-  const named: SubstanceGalleryMatch<Row>[] = [];
-  // Effect slugs with at least one publishable row — via ownership *or* tag —
-  // so a name whose only presence is a tag on an already-owned row still
-  // counts as represented rather than being taught as unmatched.
-  const representedSlugs = new Set<string>();
-
-  for (const row of rows) {
-    if (!isShowcaseEligible(row)) continue;
-
-    const ownedSlug = row.effect_slug && slugSet.has(row.effect_slug) ? row.effect_slug : null;
-    const tags = row.effect_tags ?? [];
-    const taggedSlugs = slugs.filter((slug) => tags.includes(slug));
-
-    if (ownedSlug) representedSlugs.add(ownedSlug);
-    for (const slug of taggedSlugs) representedSlugs.add(slug);
-
-    if (ownedSlug) {
-      matches.push({ row, provenance: { matchedVia: "effect_slug", effectSlug: ownedSlug } });
-      continue;
-    }
-    if (taggedSlugs.length > 0) {
-      matches.push({ row, provenance: { matchedVia: "effect_tags", effectSlug: taggedSlugs[0] } });
-      continue;
-    }
-    const title = row.title ?? "";
-    if (title && names.some((name) => titleNamesSubstance(title, name))) {
-      named.push({
-        row,
-        provenance: { matchedVia: "title", effectSlug: row.effect_slug ?? "name-match" },
-      });
-    }
-  }
-
-  const unlinkable = new Set(unlinkableNames);
-  const unmatchedEffectNames = visualEffectNames.filter((name) => {
-    if (unlinkable.has(name)) return true;
-    const slug = slugByName.get(name);
-    return slug !== undefined && !representedSlugs.has(slug);
-  });
-
-  const videosFirst = (tier: readonly SubstanceGalleryMatch<Row>[]) => [
-    ...tier.filter((match) => match.row.type === "video"),
-    ...tier.filter((match) => match.row.type !== "video"),
-  ];
-
+/** Parse the two article fields that own automatic replication placement. */
+export function substanceGalleryTargetOf(article: unknown): SubstanceGalleryTarget | null {
+  const parsed = substanceGalleryTargetSource.safeParse(article);
+  if (!parsed.success) return null;
   return {
-    matches: [...videosFirst(matches), ...videosFirst(named)],
-    unmatchedEffectNames,
+    slug: parsed.data.slug,
+    psychoactiveClasses: parsed.data.classification?.psychoactive_class ?? [],
+  };
+}
+
+/** Convert title-taxonomy identity into the article route it addresses. */
+export function canonicalTitleDrugRoute(slug: string): string {
+  return TITLE_DRUG_ROUTE_ALIASES[slug] ?? slug;
+}
+
+/** Distinct article routes named by a row, preserving first-title-mention order. */
+export function titleDrugRoutesOf(row: SubstanceGalleryMatchableRow): string[] {
+  const routes: string[] = [];
+  const seen = new Set<string>();
+  for (const drug of row.title_drugs ?? []) {
+    const route = canonicalTitleDrugRoute(drug.slug);
+    if (!route || seen.has(route)) continue;
+    seen.add(route);
+    routes.push(route);
+  }
+  return routes;
+}
+
+/** Distinct broad classes explicitly named by a row, preserving source order. */
+export function titleDrugClassesOf(row: SubstanceGalleryMatchableRow): ReplicationDrugClass[] {
+  const classes: ReplicationDrugClass[] = [];
+  const seen = new Set<ReplicationDrugClass>();
+  for (const mention of row.title_class_mentions ?? []) {
+    if (seen.has(mention.class)) continue;
+    seen.add(mention.class);
+    classes.push(mention.class);
+  }
+  return classes;
+}
+
+/**
+ * A combination is either multiple distinct specific drugs or, when no drug is
+ * named, multiple broad classes. Repeated aliases for one route (DPH/Benadryl,
+ * DMT/dimethyltryptamine) remain one substance.
+ *
+ * `showcase_excluded` is a second, editorially reviewed guard for combinations
+ * whose compact or credit-bearing titles defeated title extraction.
+ */
+export function isCombinationReplication(row: SubstanceGalleryMatchableRow): boolean {
+  const routes = titleDrugRoutesOf(row);
+  if (routes.length > 1) return true;
+  return routes.length === 0 && titleDrugClassesOf(row).length > 1;
+}
+
+/** Corpus-wide eligibility shared by automatic and direct placement. */
+export function isShowcaseEligible(row: SubstanceGalleryMatchableRow): boolean {
+  return (
+    isPublishableReplication(row)
+    && row.showcase_excluded !== true
+    && !isCombinationReplication(row)
+  );
+}
+
+function automaticProvenance(
+  row: SubstanceGalleryMatchableRow,
+  target: SubstanceGalleryTarget,
+): SubstanceGalleryMatchProvenance | null {
+  if (!isShowcaseEligible(row)) return null;
+
+  const routes = titleDrugRoutesOf(row);
+  if (routes.length === 1) {
+    if (routes[0] !== target.slug) return null;
+    return {
+      matchedVia: "specific_drug",
+      effectSlug: row.effect_slug ?? "specific-drug",
+      substanceSlug: target.slug,
+    };
+  }
+
+  const classes = titleDrugClassesOf(row);
+  if (classes.length !== 1) return null;
+  const drugClass = classes[0];
+  if (drugClass !== "dissociatives" && drugClass !== "deliriants") return null;
+  const articleClass = GENERAL_CLASS_ARTICLE_LABEL[drugClass];
+  if (!articleClass || !target.psychoactiveClasses.includes(articleClass)) return null;
+  return {
+    matchedVia: "drug_class",
+    effectSlug: drugClass,
+    drugClass,
   };
 }
 
 /**
- * Return the direct-curation provenance for a stored gallery association.
- *
- * Exclusion does not erase an unmatched direct placement's association: it
- * changes the editorial decision from shown to explicitly suppressed. Retired
- * or otherwise ineligible corpus rows are never associations.
+ * Derive the automatic pool. Exact substance work always precedes the
+ * permitted class-general pool; videos precede images inside both tiers.
+ */
+export function matchSubstanceGalleryReplications<Row extends SubstanceGalleryMatchableRow>(
+  rows: readonly Row[],
+  target: SubstanceGalleryTarget,
+): SubstanceGalleryMatchResult<Row> {
+  const specificVideos: SubstanceGalleryMatch<Row>[] = [];
+  const specificImages: SubstanceGalleryMatch<Row>[] = [];
+  const classVideos: SubstanceGalleryMatch<Row>[] = [];
+  const classImages: SubstanceGalleryMatch<Row>[] = [];
+
+  for (const row of rows) {
+    const provenance = automaticProvenance(row, target);
+    if (!provenance) continue;
+    const match = { row, provenance };
+    if (provenance.matchedVia === "specific_drug") {
+      (row.type === "video" ? specificVideos : specificImages).push(match);
+    } else {
+      (row.type === "video" ? classVideos : classImages).push(match);
+    }
+  }
+
+  return {
+    matches: [
+      ...specificVideos,
+      ...specificImages,
+      ...classVideos,
+      ...classImages,
+    ],
+  };
+}
+
+/**
+ * Return direct-curation provenance for a stored manual association. Exclusion
+ * preserves an association so editors can restore it later.
  */
 export function directGalleryAssociationProvenance(
   row: SubstanceGalleryMatchableRow,
@@ -391,15 +268,7 @@ export function directGalleryAssociationProvenance(
   };
 }
 
-/**
- * Add showcase-eligible rows that have a stored association with this
- * substance even though its effect vocabulary does not match them.
- *
- * Direct curation establishes the association; moving that work to
- * `removed_slugs` preserves it as an explicit "not on this article" decision.
- * Both states use direct-curation provenance because neither was derived from
- * an effect or title match.
- */
+/** Add unmatched rows retained by a stored manual placement or exclusion. */
 export function includeDirectlyAssociatedRows<Row extends SubstanceGalleryMatchableRow>(
   rows: readonly Row[],
   matches: readonly SubstanceGalleryMatch<Row>[],
@@ -415,53 +284,55 @@ export function includeDirectlyAssociatedRows<Row extends SubstanceGalleryMatcha
   return [...matches, ...direct];
 }
 
+function automaticTier<Row extends SubstanceGalleryMatchableRow>(
+  match: SubstanceGalleryMatch<Row>,
+): number {
+  if (match.provenance.matchedVia === "curated") return 4;
+  if (match.provenance.matchedVia === "specific_drug") {
+    return match.row.type === "video" ? 0 : 1;
+  }
+  return match.row.type === "video" ? 2 : 3;
+}
+
 /**
- * The publish gate. A substance's showcase is exactly the works an editor
- * curated, in stored `curated_slugs` order, and nothing else. No curation row
- * — or a row whose curated list is empty — publishes nothing at all.
+ * Build the effective public order:
  *
- * This used to be "curated head, then every remaining match in default order",
- * which meant an article nobody had ever reviewed still shipped whatever the
- * effect matcher happened to pile up, and every newly uploaded replication
- * auto-appeared on every substance sharing its effect. The matcher now only
- * *proposes*: it fills the curation portal's candidate pool, and a work
- * reaches an article only once an editor puts it there. That also keeps
- * `removed_slugs` meaning "deliberately never show this here" rather than
- * doubling as "not reviewed yet".
+ *  1. specific videos
+ *  2. specific images
+ *  3. permitted class-general videos
+ *  4. permitted class-general images
+ *  5. unmatched manual associations
  *
- * A removed slug is dropped even if it is also curated: a deliberate
- * suppression outranks a stray promotion, and the invariant must hold at read
- * time rather than resting on the write path's overlap rejection. Curated
- * slugs unavailable from the eligible association pool are skipped rather than
- * leaving holes, so stale curation degrades gracefully; writes prune them.
+ * Existing curation orders rows within each tier. Newly tagged rows follow in
+ * stable corpus order, so they appear automatically without destroying prior
+ * editorial ordering. Suppression wins over every source.
  */
-export function mergeCuratedGallery<Item>(
-  matchedItems: readonly Item[],
+export function mergeCuratedGallery<Row extends SubstanceGalleryMatchableRow>(
+  matchedItems: readonly SubstanceGalleryMatch<Row>[],
   curation: SubstanceGalleryCuration | null | undefined,
-  slugOf: (item: Item) => string,
-): Item[] {
-  const curatedSlugs = curation?.curated_slugs;
-  if (!curatedSlugs?.length) {
-    return [];
-  }
-
-  const bySlug = new Map<string, Item>();
-  for (const item of matchedItems) {
-    const slug = slugOf(item);
-    if (!bySlug.has(slug)) bySlug.set(slug, item);
-  }
-
+): SubstanceGalleryMatch<Row>[] {
   const removed = new Set(curation?.removed_slugs ?? []);
-  const published: Item[] = [];
-  for (const slug of curatedSlugs) {
-    if (removed.has(slug)) continue;
-    const item = bySlug.get(slug);
-    if (item === undefined) continue;
-    // A duplicate mention places its item once, at its first position.
-    bySlug.delete(slug);
-    published.push(item);
+  const bySlug = new Map<string, SubstanceGalleryMatch<Row>>();
+  for (const item of matchedItems) {
+    if (removed.has(item.row.slug) || bySlug.has(item.row.slug)) continue;
+    bySlug.set(item.row.slug, item);
   }
-  return published;
+
+  const curatedOrder = new Map(
+    (curation?.curated_slugs ?? []).map((slug, index) => [slug, index]),
+  );
+  return [...bySlug.values()].sort((left, right) => {
+    const tierDelta = automaticTier(left) - automaticTier(right);
+    if (tierDelta !== 0) return tierDelta;
+    const leftOrder = curatedOrder.get(left.row.slug);
+    const rightOrder = curatedOrder.get(right.row.slug);
+    if (leftOrder !== undefined || rightOrder !== undefined) {
+      if (leftOrder === undefined) return 1;
+      if (rightOrder === undefined) return -1;
+      return leftOrder - rightOrder;
+    }
+    return 0;
+  });
 }
 
 export type NormalizedGalleryCuration = {

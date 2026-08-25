@@ -10,7 +10,7 @@ import type {
 function match(
   slug: string,
   overrides: Partial<GalleryMatchReplication> = {},
-  provenance: Partial<GalleryMatch["provenance"]> = {},
+  provenance: Partial<Extract<GalleryMatch["provenance"], { matchedVia: "specific_drug" }>> = {},
 ): GalleryMatch {
   return {
     replication: {
@@ -30,9 +30,10 @@ function match(
       ...overrides,
     },
     provenance: {
-      matchedVia: "effect_slug",
+      matchedVia: "specific_drug",
       effectSlug: "drifting",
       effectName: "Drifting",
+      substanceSlug: slug,
       ...provenance,
     },
   };

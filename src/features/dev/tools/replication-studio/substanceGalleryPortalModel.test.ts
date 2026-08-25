@@ -26,7 +26,7 @@ import {
   type GalleryMatch,
 } from "./substanceGalleryPortalModel";
 
-function match(slug: string, matchedVia: "effect_slug" | "effect_tags" = "effect_slug", effectSlug = "drifting"): GalleryMatch {
+function match(slug: string, matchedVia: "specific_drug" | "drug_class" = "specific_drug", effectSlug = "drifting"): GalleryMatch {
   return {
     replication: {
       id: `id-${slug}`,
@@ -43,15 +43,23 @@ function match(slug: string, matchedVia: "effect_slug" | "effect_tags" = "effect
       thumbnail_url: null,
       format: "png",
     },
-    provenance: { matchedVia, effectSlug, effectName: effectSlug },
+    provenance:
+      matchedVia === "specific_drug"
+        ? { matchedVia, effectSlug, effectName: effectSlug, substanceSlug: "lsd" }
+        : {
+            matchedVia,
+            effectSlug,
+            effectName: effectSlug,
+            drugClass: "dissociatives",
+          },
   };
 }
 
 const MATCHES = [
-  match("a", "effect_slug", "drifting"),
-  match("b", "effect_tags", "tracers"),
-  match("c", "effect_slug", "tracers"),
-  match("d", "effect_tags", "visual-haze"),
+  match("a", "specific_drug", "drifting"),
+  match("b", "drug_class", "tracers"),
+  match("c", "specific_drug", "tracers"),
+  match("d", "drug_class", "visual-haze"),
 ];
 
 /** `count` matches named r1…rN, for exercising the cap boundary. */
@@ -78,13 +86,13 @@ describe("substanceGalleryPortalModel transitions", () => {
     expect(state.removed).toEqual(["a"]);
   });
 
-  it("restore returns to the default order, not to the head", () => {
+  it("restore returns to automatic policy order, not stored priority", () => {
     const state = restoreSlug(excludeSlug(EMPTY, "b"), "b");
 
     expect(state).toEqual({ curated: [], removed: [] });
     const board = buildGalleryBoard(MATCHES, state, CAP);
     expect(board.rows.map((row) => row.band)).toEqual(["auto", "auto", "auto", "auto"]);
-    expect(board.rows.map((row) => row.match.replication.slug)).toEqual(["a", "b", "c", "d"]);
+    expect(board.rows.map((row) => row.match.replication.slug)).toEqual(["a", "c", "b", "d"]);
   });
 
   it("moves within the head and refuses to move past the edges", () => {
@@ -163,7 +171,7 @@ describe("applyBoardDrag", () => {
     const state: GalleryCurationState = { curated: ["a", "b", "c"], removed: [] };
 
     expect(drag(state, "c", "a").curated).toEqual(["c", "a", "b"]);
-    expect(drag(state, "a", "c").curated).toEqual(["b", "c", "a"]);
+    expect(drag(state, "a", "c").curated).toEqual(["c", "a", "b"]);
   });
 
   it("un-curates when the drop id is not a curated row", () => {
@@ -183,7 +191,7 @@ describe("applyBoardDrag", () => {
 });
 
 describe("buildGalleryBoard", () => {
-  it("numbers the curated rows and leaves candidates unnumbered", () => {
+  it("numbers every published row and identifies stored priorities", () => {
     const state: GalleryCurationState = { curated: ["c", "a"], removed: [] };
     const board = buildGalleryBoard(MATCHES, state, CAP);
 
@@ -192,8 +200,8 @@ describe("buildGalleryBoard", () => {
     ).toEqual([
       ["c", 1, "curated", true],
       ["a", 2, "curated", true],
-      ["b", null, "auto", false],
-      ["d", null, "auto", false],
+      ["b", 3, "auto", true],
+      ["d", 4, "auto", true],
     ]);
     expect(board.curatedCount).toBe(2);
     expect(board.candidateCount).toBe(2);
@@ -201,26 +209,24 @@ describe("buildGalleryBoard", () => {
     expect(effectiveGalleryOrder(MATCHES, state).map((entry) => entry.replication.slug)).toEqual([
       "c",
       "a",
+      "b",
+      "d",
     ]);
   });
 
-  it("publishes nothing at all before anything is curated", () => {
+  it("publishes automatic placements without stored curation", () => {
     const board = buildGalleryBoard(MATCHES, EMPTY, CAP);
 
-    expect(board.rows.every((row) => row.position === null && !row.onStage)).toBe(true);
+    expect(board.rows.every((row) => row.position !== null && row.onStage)).toBe(true);
     expect(board.curatedCount).toBe(0);
     expect(board.candidateCount).toBe(4);
-    expect(board.filledSlots).toBe(0);
-    expect(board.emptySlots).toBe(CAP);
-    expect(effectiveGalleryOrder(MATCHES, EMPTY)).toEqual([]);
+    expect(board.filledSlots).toBe(4);
+    expect(board.emptySlots).toBe(CAP - 4);
+    expect(effectiveGalleryOrder(MATCHES, EMPTY)).toHaveLength(4);
   });
 
-  it("puts the onStage boundary exactly at the cap of the curated list", () => {
-    for (const [curatedTotal, expectedOnStage] of [
-      [11, 11],
-      [12, 12],
-      [13, 12],
-    ] as const) {
+  it("puts the onStage boundary exactly at the showcase cap", () => {
+    for (const curatedTotal of [11, 12, 13] as const) {
       const matches = manyMatches(curatedTotal + 2);
       const state: GalleryCurationState = {
         curated: Array.from({ length: curatedTotal }, (_, index) => `r${index + 1}`),
@@ -229,34 +235,32 @@ describe("buildGalleryBoard", () => {
       const board = buildGalleryBoard(matches, state, CAP);
 
       expect(board.rows).toHaveLength(curatedTotal + 2);
-      expect(board.rows.filter((row) => row.onStage)).toHaveLength(expectedOnStage);
-      // The last on-stage row is exactly the cap-th, and nothing past it stays on.
-      expect(board.rows[expectedOnStage - 1].onStage).toBe(true);
-      expect(board.rows.slice(CAP).some((row) => row.onStage)).toBe(false);
-      expect(board.filledSlots).toBe(expectedOnStage);
-      expect(board.emptySlots).toBe(Math.max(0, CAP - curatedTotal));
+      expect(board.rows.filter((row) => row.onStage)).toHaveLength(CAP);
+      expect(board.rows.find((row) => row.position === CAP)?.onStage).toBe(true);
+      expect(board.rows.filter((row) => row.position > CAP).some((row) => row.onStage)).toBe(false);
+      expect(board.filledSlots).toBe(CAP);
+      expect(board.emptySlots).toBe(0);
     }
   });
 
-  it("counts empty slots against the curated list, not the row count", () => {
-    // Four matched rows, one curated: eleven slots still stand empty.
+  it("counts empty slots against every automatic and priority placement", () => {
     const board = buildGalleryBoard(MATCHES, { curated: ["b"], removed: [] }, CAP);
 
     expect(board.rows).toHaveLength(4);
-    expect(board.filledSlots).toBe(1);
-    expect(board.emptySlots).toBe(CAP - 1);
+    expect(board.filledSlots).toBe(4);
+    expect(board.emptySlots).toBe(CAP - 4);
     expect(buildGalleryBoard([], EMPTY, CAP).emptySlots).toBe(CAP);
   });
 
-  it("drops curated slugs that match nothing without leaving a numbering hole", () => {
+  it("drops priority slugs that match nothing without leaving a numbering hole", () => {
     const state: GalleryCurationState = { curated: ["ghost", "b", "phantom"], removed: [] };
     const board = buildGalleryBoard(MATCHES, state, CAP);
 
     expect(board.rows.map((row) => [row.match.replication.slug, row.position])).toEqual([
-      ["b", 1],
-      ["a", null],
-      ["c", null],
-      ["d", null],
+      ["b", 3],
+      ["a", 1],
+      ["c", 2],
+      ["d", 4],
     ]);
     expect(board.curatedCount).toBe(1);
     expect(board.candidateCount).toBe(3);
@@ -268,13 +272,14 @@ describe("buildGalleryBoard", () => {
 
     expect(board.rows.map((row) => [row.match.replication.slug, row.position, row.band])).toEqual([
       ["a", 1, "curated"],
-      ["c", null, "auto"],
+      ["c", 2, "auto"],
     ]);
     expect(board.excluded.map((entry) => entry.replication.slug)).toEqual(["b", "d"]);
-    expect(board.filledSlots).toBe(1);
-    expect(board.emptySlots).toBe(CAP - 1);
+    expect(board.filledSlots).toBe(2);
+    expect(board.emptySlots).toBe(CAP - 2);
     expect(effectiveGalleryOrder(MATCHES, state).map((entry) => entry.replication.slug)).toEqual([
       "a",
+      "c",
     ]);
   });
 });
@@ -359,35 +364,37 @@ describe("dirty state across a save round trip", () => {
 });
 
 describe("summarizeProvenance", () => {
-  it("counts matches, distinct effects, and the slug/tag/name split", () => {
+  it("counts exact-drug, general-class, and manual placements", () => {
     expect(summarizeProvenance(MATCHES)).toEqual({
       matched: 4,
-      effectCount: 3,
-      viaEffectSlug: 2,
-      viaEffectTags: 2,
-      viaName: 0,
+      specificDrug: 2,
+      generalClass: 2,
+      manual: 0,
     });
     expect(summarizeProvenance([])).toEqual({
       matched: 0,
-      effectCount: 0,
-      viaEffectSlug: 0,
-      viaEffectTags: 0,
-      viaName: 0,
+      specificDrug: 0,
+      generalClass: 0,
+      manual: 0,
     });
   });
 
-  it("splits a name match out of the tag count", () => {
-    const named = [
+  it("counts a direct association separately", () => {
+    const manual: GalleryMatch[] = [
       {
         replication: MATCHES[0].replication,
-        provenance: { matchedVia: "title" as const, effectSlug: "name-match", effectName: "name-match" },
+        provenance: {
+          matchedVia: "curated",
+          effectSlug: "explicit-curation",
+          effectName: "manual",
+        },
       },
     ];
-    expect(summarizeProvenance(named)).toMatchObject({
+    expect(summarizeProvenance(manual)).toEqual({
       matched: 1,
-      viaEffectSlug: 0,
-      viaEffectTags: 0,
-      viaName: 1,
+      specificDrug: 0,
+      generalClass: 0,
+      manual: 1,
     });
   });
 });

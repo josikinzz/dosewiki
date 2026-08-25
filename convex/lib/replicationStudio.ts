@@ -43,6 +43,8 @@ export async function getStudioRowsHandler(
           ? effectNames.get(row.effect_slug) ?? row.effect_slug
           : null,
         effect_tags: row.effect_tags ?? [],
+        title_drugs: row.title_drugs ?? [],
+        title_class_mentions: row.title_class_mentions ?? [],
         credit_line: row.credit_line ?? null,
         rights_status: row.rights_status ?? null,
         source_url: row.source_url ?? null,

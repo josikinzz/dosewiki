@@ -47,7 +47,7 @@ export const productionWriterClassifications = Object.freeze({
     "scripts/replications/replace-feetman-quality-renditions.mjs",
     "scripts/replications/replace-media.mjs",
     "scripts/replications/replace-reviewed-video-quality-renditions.mjs",
-    "scripts/replications/restrict-deliriant-only-replications.mjs",
+    "scripts/replications/regenerate-substance-galleries.mjs",
     "scripts/replications/regenerate-missing-thumbnails.mjs",
     "scripts/replications/repoint-renditions.mjs",
     "scripts/replications/upload-replications.mjs",
