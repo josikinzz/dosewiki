@@ -184,6 +184,7 @@ export function EffectBadge({
           ) : (
             <Link
               href={href}
+              prefetch={false}
               onClick={
                 onSelectEffect
                   ? (event) => {

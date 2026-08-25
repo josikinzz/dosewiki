@@ -156,6 +156,7 @@ export function MediaRail({
     <span className="flex min-w-0 items-center gap-1.5">
       <Link
         href={group.href}
+        prefetch={false}
         className={cn(
           HEADING_LINK_CLASS,
           // The unnamed `group` is what the portrait's own hover lift reads.
@@ -215,6 +216,7 @@ export function MediaRail({
         {hasMore ? (
           <Link
             href={viewAllHref}
+            prefetch={false}
             onClick={onViewAllOpen}
             className="theme-text-muted group/all inline-flex min-h-11 items-center gap-1 rounded-full px-2 py-1 text-sm font-medium transition-colors hover:text-[var(--theme-accent-strong)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--theme-accent-strong)]"
           >
@@ -253,6 +255,7 @@ export function MediaRail({
           {hasMore ? (
             <Link
               href={viewAllHref}
+              prefetch={false}
               onClick={onViewAllOpen}
               style={{ aspectRatio: "4 / 5" }}
               className="theme-text-muted flex h-44 shrink-0 snap-start self-start flex-col items-center justify-center gap-2 rounded-xl border border-dashed border-[color:var(--theme-border-strong)] bg-[var(--theme-surface-soft)] px-4 text-sm font-medium transition-colors hover:text-[var(--theme-accent-strong)] hover:border-[color:var(--theme-card-border-strong)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--theme-accent-strong)] sm:h-52 motion-reduce:transition-none"

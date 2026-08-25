@@ -22,7 +22,7 @@ import {
   EditorStatusPill,
   EditorToolbar,
 } from "@/features/dev/components";
-import { SHOWCASE_WORK_CAP } from "@/features/replications/components/showcaseModel";
+import { SHOWCASE_WORK_CAP } from "@/features/replications/components/showcaseWork";
 
 import { GalleryBoardList, GalleryMatchIdentity } from "./GalleryBoardList";
 import { GalleryLibraryAdd } from "./GalleryLibraryAdd";

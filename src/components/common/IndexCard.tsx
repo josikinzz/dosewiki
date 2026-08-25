@@ -184,6 +184,7 @@ export const IndexCard = memo(function IndexCard({
             {titleHref ? (
               <Link
                 href={titleHref}
+                prefetch={false}
                 className="theme-focus-ring block min-w-0 text-left transition-opacity hover:opacity-80"
               >
                 {titleElement}
@@ -284,6 +285,7 @@ export const IndexCardSection = memo(function IndexCardSection({
           {titleHref ? (
             <Link
               href={titleHref}
+              prefetch={false}
               className="theme-focus-ring rounded-sm transition-opacity hover:opacity-80"
             >
               {title}
@@ -391,7 +393,7 @@ export const IndexCardListItem = memo(function IndexCardListItem({
   if (href) {
     return (
       <li id={id} className={id ? "scroll-mt-24" : undefined}>
-        <Link href={href} className={className}>
+        <Link href={href} prefetch={false} className={className}>
           {content}
         </Link>
       </li>

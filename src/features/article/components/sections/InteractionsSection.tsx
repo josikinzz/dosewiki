@@ -148,6 +148,7 @@ const InteractionBadge = memo(function InteractionBadge({
         {href ? (
           <Link
             href={href}
+            prefetch={false}
             onClick={linkClickHandler}
             className={`${expandedNameClassName} theme-focus-ring hover:opacity-90`}
           >
@@ -169,6 +170,7 @@ const InteractionBadge = memo(function InteractionBadge({
       {href ? (
         <Link
           href={href}
+          prefetch={false}
           onClick={linkClickHandler}
           className={collapsedNameClassName}
         >

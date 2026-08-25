@@ -35,6 +35,7 @@ function TreeLink({
     <div className="flex min-h-8 items-center">
       <Link
         href={`/chemical-classes/${node.key}`}
+        prefetch={false}
         className={cn(
           "theme-focus-ring inline-flex items-center rounded-sm leading-6 transition-colors hover:opacity-85",
           isRoot ? "text-base font-semibold sm:text-lg" : "text-sm sm:text-[0.9375rem]",

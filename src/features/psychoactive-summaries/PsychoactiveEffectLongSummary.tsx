@@ -29,6 +29,7 @@ export function PsychoactiveEffectLongSummary({
       <h3 className="text-xl font-semibold tracking-tight">
         <Link
           href={href}
+          prefetch={false}
           className="group/effect theme-accent-heading theme-focus-ring inline-flex items-center gap-2 transition-opacity hover:opacity-85"
         >
           <span className="min-w-0 break-words">{effect.name}</span>
@@ -41,7 +42,7 @@ export function PsychoactiveEffectLongSummary({
 
       <p className="theme-text-muted mt-1 text-sm italic">
         Full article:{" "}
-        <Link href={href} className={proseLinkClassName}>
+        <Link href={href} prefetch={false} className={proseLinkClassName}>
           {effect.name}
         </Link>
       </p>

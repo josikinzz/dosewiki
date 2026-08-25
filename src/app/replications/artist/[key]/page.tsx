@@ -8,7 +8,7 @@ import {
   mergeArtistLinks,
   showcaseWorkFromPreview,
 } from "@/features/replications/artist/artistPageModel";
-import { SHOWCASE_WORK_CAP } from "@/features/replications/components/showcaseModel";
+import { SHOWCASE_WORK_CAP } from "@/features/replications/components/showcaseWork";
 import {
   getRetiredArtistKeyAlias,
   resolveArtistPageProfileKey,

@@ -40,6 +40,7 @@ function StructureRow({
     <li>
       <Link
         href={`/${slug}`}
+        prefetch={false}
         className="group flex min-h-14 items-center justify-between gap-4 rounded-xl px-3 py-1.5 transition-[background-color] duration-200 hover:bg-dose-surface-muted focus-visible:outline focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-dose-accent-strong"
       >
         <span className="theme-text-secondary min-w-0 text-[0.9375rem] font-medium leading-snug transition-colors duration-200 group-hover:text-dose-text">

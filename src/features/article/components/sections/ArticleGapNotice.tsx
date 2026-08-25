@@ -40,6 +40,7 @@ function NeighbourChips({ neighbours }: { neighbours: SectionGapNeighbour[] }) {
         <Link
           key={neighbour.slug}
           href={`/${neighbour.slug}`}
+          prefetch={false}
           title={neighbour.note}
           className="focus-visible:outline-none"
         >

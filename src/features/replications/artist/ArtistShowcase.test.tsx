@@ -1,6 +1,6 @@
 import { fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import type { ShowcaseWork } from "../components/showcaseModel";
+import type { ShowcaseWork } from "../components/showcaseWork";
 import type {
   ReplicationViewerCollection,
   ReplicationViewerMediaItem,

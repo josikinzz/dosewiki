@@ -287,6 +287,30 @@ export interface GalleryReplication extends ReplicationWithUrl {
 }
 
 /**
+ * The {@link ReplicationTitleDrug} fields the gallery actually reads: the
+ * drug filter matches on `slug` and the filter options label on `name`.
+ * `class` and `matched_title_text` never render on a gallery surface, so
+ * they stay off the serialized corpus. A full entry remains assignable here.
+ */
+export interface PublicGalleryTitleDrug {
+  slug: string;
+  name: string;
+}
+
+/**
+ * The {@link ReplicationDateInfo} fields the gallery's newest-work-first sort
+ * reads (`workDateMs` looks at `kind` and `value` only). Research provenance
+ * (`event_type`, `confidence`, `researched_at`) renders nowhere in the
+ * gallery — the expanded viewer fetches the full record for its details
+ * pane — so it stays off the serialized corpus. A full record's `date_info`
+ * remains assignable here.
+ */
+export interface PublicGalleryDateInfo {
+  value?: string;
+  kind: ReplicationDateKind;
+}
+
+/**
  * The slim projection of a {@link GalleryReplication} that the public gallery
  * surfaces (the /replications explorer, its artist/effect focus views, and the
  * expanded viewer) actually render. The gallery corpus loader projects the raw
@@ -297,8 +321,10 @@ export interface GalleryReplication extends ReplicationWithUrl {
  * on the full-fidelity {@link ReplicationWithUrl} records — its credit block
  * and lightbox caption need the rights fields this shape drops.
  *
- * Every field here exists on {@link GalleryReplication} with the same type, so
- * a full record is always assignable where a preview is expected.
+ * Every field here also exists on {@link GalleryReplication} with an
+ * assignable type (`title_drugs` and `date_info` narrow to the sub-fields the
+ * gallery reads), so a full record is always assignable where a preview is
+ * expected.
  */
 export interface PublicGalleryReplicationPreview {
   /** Convex row id; the gallery uses it only as a stable React key. */
@@ -315,14 +341,10 @@ export interface PublicGalleryReplicationPreview {
   effect_slug?: string;
   /** Other effects the work also depicts; the depicted-effect filter reads it. */
   effect_tags?: string[];
-  replication_status?: ReplicationStatus;
-  viewing_mode?: ReplicationViewingMode;
   viewing_mode_tags?: ReplicationViewingModeTag[];
-  title_drugs?: ReplicationTitleDrug[];
+  title_drugs?: PublicGalleryTitleDrug[];
   drug_classes?: ReplicationDrugClass[];
   content_family?: ReplicationContentFamily;
-  content_tags?: string[];
-  artist_primary_type?: ReplicationArtistPrimaryType;
   artist_type_tags?: ReplicationArtistTypeTag[];
   url: string;
   thumbnail_url?: string;
@@ -341,7 +363,7 @@ export interface PublicGalleryReplicationPreview {
   /** ISO ingest timestamp; undated rows tiebreak by it after every dated row. */
   created_at: string;
   /** Best-estimate work date; the shared newest-work-first sort reads it. */
-  date_info?: ReplicationDateInfo;
+  date_info?: PublicGalleryDateInfo;
   /** Position within the owning effect's curated `gallery_order`. */
   order_index?: number;
 }

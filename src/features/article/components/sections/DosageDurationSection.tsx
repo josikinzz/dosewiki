@@ -5,12 +5,16 @@ import { Icon } from "@/components/common/Icon";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { cn } from "@/lib/utils";
 import type { DosageRoute, DurationRoute, SubstanceArticle } from "@/schema";
+// Deep-import the pure presence predicates instead of the `@/schema` barrel:
+// the barrel `export *`s the Zod-heavy substance schema, which would otherwise
+// drag the entire Zod graph (~109 KB gz) into this client component's bundle.
+// The predicates themselves have no runtime dependencies.
 import {
   hasDosageContent,
   hasDurationContent,
   routeHasDosageContent,
   routeHasDurationContent,
-} from "@/schema";
+} from "@/schema/substance/dosageDurationPresence";
 import { ArticleSection } from "@/components/common/ArticleSection";
 import { SUBSTANCE_SECTION_ICONS } from "@/schema/substance/sectionManifest";
 import { normalizeRouteName } from "../../../../../lib/article/normalization.mjs";

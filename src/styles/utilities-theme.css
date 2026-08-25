@@ -2928,14 +2928,6 @@ html[data-theme="light"] .theme-footer-surface:not(.theme-chrome-dark) {
   color: var(--theme-text-on-media-muted);
 }
 
-.theme-media-loading-idle {
-  color: color-mix(in srgb, var(--theme-text-on-media) 40%, transparent);
-}
-
-.theme-media-loading-active {
-  color: color-mix(in srgb, var(--theme-text-on-media) 60%, transparent);
-}
-
 .theme-media-progress-track {
   background-color: color-mix(
     in srgb,
@@ -2944,13 +2936,9 @@ html[data-theme="light"] .theme-footer-surface:not(.theme-chrome-dark) {
   );
 }
 
-.theme-media-progress-fill {
-  background-color: color-mix(
-    in srgb,
-    var(--theme-text-on-media) 80%,
-    transparent
-  );
-}
+/* .theme-media-progress-fill was removed 2026-08: the seek bar's playhead is
+   .theme-media-playback-fill (ReplicationMediaStage.tsx); no markup ever
+   rendered the -progress-fill spelling. */
 
 /* Buffered layer of the seek bar: the subdued neutral stretch between the
      bare track and the accent playhead fill, read from video.buffered. */
@@ -5284,7 +5272,7 @@ html[data-theme="light"]:not([data-visual-style="pro"])
 /* Header search fields should sit into the chrome rather than float above it.
      Their quiet rim reuses the same panel hairline as the homepage icon tiles;
      depth comes from the sunk fill and inner shading, not a brighter outline. */
-.theme-header-surface :is(.theme-global-search-input, .theme-home-mock-search) {
+.theme-header-surface .theme-global-search-input {
   color: var(--theme-text-secondary);
   border-color: var(--theme-frosted-panel-border);
   background: color-mix(
@@ -5300,8 +5288,7 @@ html[data-theme="light"]:not([data-visual-style="pro"])
 }
 
 @media (hover: hover) {
-  .theme-header-surface
-    :is(.theme-global-search-input, .theme-home-mock-search):hover {
+  .theme-header-surface .theme-global-search-input:hover {
     border-color: color-mix(
       in srgb,
       var(--theme-accent) 16%,

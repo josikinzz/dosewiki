@@ -6,8 +6,8 @@ import { ReplicationShowcase } from "./ReplicationShowcase";
 import {
   buildShowcaseWorks,
   visualEffectNameBySlug,
-  type ShowcaseWork,
 } from "./showcaseModel";
+import type { ShowcaseWork } from "./showcaseWork";
 import { VIEWER_SOUND_STORAGE_KEY } from "@/features/replications/viewer/viewerLogic";
 
 vi.mock("@/components/common/AppImage", () => ({

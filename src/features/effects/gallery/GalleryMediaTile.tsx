@@ -47,6 +47,12 @@ interface GalleryMediaTileProps {
   mobileCompact?: boolean;
   /** Canonical source-collection URL with this work active in the viewer. */
   viewerHref: string;
+  /**
+   * Responsive `sizes` hint for the poster image. The default fits the rail
+   * tiles (height-locked frames whose width tops out around 16:9 × h-52).
+   * The masonry passes its own column-width hint.
+   */
+  sizes?: string;
 }
 
 /**
@@ -68,6 +74,7 @@ export function GalleryMediaTile({
   showByline = true,
   mobileCompact = false,
   viewerHref,
+  sizes = "(max-width: 640px) 60vw, 400px",
 }: GalleryMediaTileProps) {
   const { hoverPreview: hoverPreviewAllowed } = useMotionAllowed();
   const [hovered, setHovered] = useState(false);
@@ -122,6 +129,7 @@ export function GalleryMediaTile({
     <figure className={cn("min-w-0", className)}>
       <Link
         href={viewerHref}
+        prefetch={false}
         onClick={onOpen ? (event) => onOpen(event, replication) : undefined}
         onMouseEnter={() => setHovered(true)}
         onMouseLeave={() => setHovered(false)}
@@ -146,6 +154,7 @@ export function GalleryMediaTile({
             alt={replication.title}
             width={replication.width ?? 800}
             height={replication.height ?? 800}
+            sizes={sizes}
             className={cn(
               "absolute inset-0 h-full w-full object-cover transition duration-500",
               "group-hover/frame:scale-[1.03] motion-reduce:transition-none motion-reduce:group-hover/frame:scale-100",

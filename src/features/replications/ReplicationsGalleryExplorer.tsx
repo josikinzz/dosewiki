@@ -78,15 +78,141 @@ import {
   type GalleryFocus,
 } from "./galleryUrlState";
 
+/**
+ * The two effect fields the gallery reads: `name` for lookups/labels and
+ * `slug` for linkability and filter options. The pages project the full
+ * effect previews down to this before the corpus crosses into client props —
+ * summaries and tag lists have no reader here and would only pad the RSC
+ * payload.
+ */
 interface EffectSummary {
   slug: string;
   name: string;
-  tags: string[];
 }
 
+
+type GalleryCorpusLoadState = "idle" | "loading" | "loaded" | "error";
+
+function mergeReplicationPreviews(
+  current: readonly PublicGalleryReplicationPreview[],
+  incoming: readonly PublicGalleryReplicationPreview[],
+): PublicGalleryReplicationPreview[] {
+  const byId = new Map(current.map((item) => [item._id, item]));
+  for (const item of incoming) byId.set(item._id, item);
+  return [...byId.values()];
+}
+
+function browseNeedsCompleteCorpus(browse: GalleryBrowseState): boolean {
+  return (Object.keys(GALLERY_BROWSE_DEFAULTS) as (keyof GalleryBrowseState)[])
+    .some((key) => browse[key] !== GALLERY_BROWSE_DEFAULTS[key]);
+}
+
+function isGalleryReplicationPreview(
+  value: unknown,
+): value is PublicGalleryReplicationPreview {
+  if (!value || typeof value !== "object") return false;
+
+  return (
+    "_id" in value &&
+    typeof value._id === "string" &&
+    "slug" in value &&
+    typeof value.slug === "string" &&
+    "title" in value &&
+    typeof value.title === "string" &&
+    "artist" in value &&
+    typeof value.artist === "string" &&
+    (!("artist_url" in value) || typeof value.artist_url === "string") &&
+    "type" in value &&
+    (value.type === "image" || value.type === "video") &&
+    "format" in value &&
+    typeof value.format === "string" &&
+    (!("effect_slug" in value) || typeof value.effect_slug === "string") &&
+    (!("effect_tags" in value) ||
+      (Array.isArray(value.effect_tags) &&
+        value.effect_tags.every((item) => typeof item === "string"))) &&
+    (!("viewing_mode_tags" in value) ||
+      (Array.isArray(value.viewing_mode_tags) &&
+        value.viewing_mode_tags.every(
+          (item) => item === "open-eye" || item === "closed-eye",
+        ))) &&
+    (!("title_drugs" in value) ||
+      (Array.isArray(value.title_drugs) &&
+        value.title_drugs.every(
+          (item) =>
+            item !== null &&
+            typeof item === "object" &&
+            "slug" in item &&
+            typeof item.slug === "string" &&
+            "name" in item &&
+            typeof item.name === "string",
+        ))) &&
+    (!("drug_classes" in value) ||
+      (Array.isArray(value.drug_classes) &&
+        value.drug_classes.every(
+          (item) =>
+            item === "psychedelics" ||
+            item === "dissociatives" ||
+            item === "deliriants" ||
+            item === "other",
+        ))) &&
+    (!("content_family" in value) ||
+      value.content_family === "experiential-replication" ||
+      value.content_family === "visionary-psychedelic-art" ||
+      value.content_family === "traditional-cultural-art" ||
+      value.content_family === "dark-surrealism" ||
+      value.content_family === "optical-perceptual-art" ||
+      value.content_family === "generative-abstract-art" ||
+      value.content_family === "effect-illustration" ||
+      value.content_family === "explanatory-figure" ||
+      value.content_family === "uncertain") &&
+    (!("artist_type_tags" in value) ||
+      (Array.isArray(value.artist_type_tags) &&
+        value.artist_type_tags.every(
+          (item) =>
+            item === "replicator" ||
+            item === "traditional-psychedelic-artist",
+        ))) &&
+    "url" in value &&
+    typeof value.url === "string" &&
+    (!("thumbnail_url" in value) || typeof value.thumbnail_url === "string") &&
+    (!("preview_url" in value) || typeof value.preview_url === "string") &&
+    (!("motion_url" in value) || typeof value.motion_url === "string") &&
+    (!("motion_poster_url" in value) ||
+      typeof value.motion_poster_url === "string") &&
+    (!("width" in value) || typeof value.width === "number") &&
+    (!("height" in value) || typeof value.height === "number") &&
+    (!("duration" in value) || typeof value.duration === "number") &&
+    (!("has_audio" in value) || typeof value.has_audio === "boolean") &&
+    "created_at" in value &&
+    typeof value.created_at === "string" &&
+    (!("date_info" in value) ||
+      (value.date_info !== null &&
+        typeof value.date_info === "object" &&
+        "kind" in value.date_info &&
+        (value.date_info.kind === "exact_date" ||
+          value.date_info.kind === "year" ||
+          value.date_info.kind === "range" ||
+          value.date_info.kind === "upper_bound" ||
+          value.date_info.kind === "inferred" ||
+          value.date_info.kind === "unknown") &&
+        (!("value" in value.date_info) ||
+          typeof value.date_info.value === "string"))) &&
+    (!("order_index" in value) || typeof value.order_index === "number")
+  );
+}
 export interface ReplicationsGalleryExplorerProps {
   replications: PublicGalleryReplicationPreview[];
   effects: EffectSummary[];
+  /**
+   * Optional cacheable continuation used by the main index. Artist pages omit
+   * it because their already-focused corpus is intentionally complete.
+   */
+  deferredReplicationsUrl?: string;
+  /** Exact totals for the initially selected artist rails. */
+  initialArtistGroupStats?: Record<
+    string,
+    Pick<GalleryGroup, "count" | "imageCount" | "videoCount">
+  >;
   effectHrefPrefix?: string;
   /**
    * Read on the server and passed down for the contributor-curated
@@ -155,12 +281,19 @@ const QUERY_WRITE_DELAY_MS = 250;
 const ARTIST_RAIL_PAGE = 16;
 
 /**
+ * Masonry grids (search results, the pooled effect tail, focused groups)
+ * mount tiles in pages of this size. Once the complete preview continuation
+ * arrives, the in-view sentinel extends the grid as the reader approaches its
+ * end, with a "Show more" button as the fallback affordance.
+ */
+const MASONRY_PAGE = 60;
+
+/**
  * Public entry. The browse state (?view/?q/?type/?sort) is read on the client
  * so the /replications routes can stay statically rendered; Next requires a
  * Suspense boundary around `useSearchParams` for that. The fallback renders
- * the same explorer with the default browse state, so the prerendered HTML is
- * the full default gallery — crawlable grid included — and a pasted URL's
- * filters apply as soon as the client render takes over.
+ * the default initial gallery window, preserving useful crawlable SSR HTML
+ * without serializing the complete catalog into the RSC payload.
  */
 export function ReplicationsGalleryExplorer(
   props: ReplicationsGalleryExplorerProps,
@@ -205,6 +338,8 @@ function UrlStateGalleryExplorer(props: ReplicationsGalleryExplorerProps) {
 
 function GalleryExplorer({
   replications,
+  deferredReplicationsUrl,
+  initialArtistGroupStats,
   effects,
   effectHrefPrefix = "/effects",
   contributorDirectory,
@@ -221,6 +356,149 @@ function GalleryExplorer({
   viewerParamPresent: boolean;
 }) {
   const router = useRouter();
+  const [galleryReplications, setGalleryReplications] = useState(replications);
+  const initialCompleteCorpusNeeded =
+    Boolean(deferredReplicationsUrl) &&
+    (viewerParamPresent || browseNeedsCompleteCorpus(browse));
+  const [corpusLoadState, setCorpusLoadState] =
+    useState<GalleryCorpusLoadState>(
+      deferredReplicationsUrl ? "idle" : "loaded",
+    );
+  const [fullCorpusRequested, setFullCorpusRequested] = useState(
+    initialCompleteCorpusNeeded,
+  );
+  const corpusLoadStateRef = useRef(corpusLoadState);
+  const corpusRequestRef = useRef<Promise<boolean> | null>(null);
+  const corpusAbortRef = useRef<AbortController | null>(null);
+  const pendingCorpusActionRef = useRef<(() => void) | null>(null);
+
+  const updateCorpusLoadState = useCallback(
+    (next: GalleryCorpusLoadState) => {
+      corpusLoadStateRef.current = next;
+      setCorpusLoadState(next);
+    },
+    [],
+  );
+
+  const loadCompleteCorpus = useCallback(
+    (userInitiated = false): Promise<boolean> => {
+      if (!deferredReplicationsUrl) return Promise.resolve(true);
+      if (userInitiated) setFullCorpusRequested(true);
+      if (corpusLoadStateRef.current === "loaded") {
+        return Promise.resolve(true);
+      }
+      if (corpusRequestRef.current) return corpusRequestRef.current;
+
+      const controller = new AbortController();
+      corpusAbortRef.current = controller;
+      updateCorpusLoadState("loading");
+
+      const request = (async () => {
+        try {
+          const response = await fetch(deferredReplicationsUrl, {
+            signal: controller.signal,
+            headers: { Accept: "application/json" },
+          });
+          if (!response.ok) {
+            throw new Error(`Gallery request failed: ${response.status}`);
+          }
+          const payload: unknown = await response.json();
+          if (
+            !payload ||
+            typeof payload !== "object" ||
+            !("data" in payload) ||
+            !Array.isArray(payload.data) ||
+            !payload.data.every(isGalleryReplicationPreview)
+          ) {
+            throw new Error("Gallery response was malformed");
+          }
+          const replications = payload.data;
+
+          setGalleryReplications((current) =>
+            mergeReplicationPreviews(current, replications),
+          );
+          updateCorpusLoadState("loaded");
+          return true;
+        } catch {
+          if (controller.signal.aborted) {
+            corpusLoadStateRef.current = "idle";
+            return false;
+          }
+          updateCorpusLoadState("error");
+          return false;
+        } finally {
+          if (corpusAbortRef.current === controller) {
+            corpusAbortRef.current = null;
+          }
+          corpusRequestRef.current = null;
+        }
+      })();
+
+      corpusRequestRef.current = request;
+      return request;
+    },
+    [deferredReplicationsUrl, updateCorpusLoadState],
+  );
+
+  const runWithCompleteCorpus = useCallback(
+    (action: () => void, retryAfterFailure = true) => {
+      // Routes with a complete initial corpus must retain ordinary synchronous
+      // control semantics. Awaiting Promise.resolve(true) here delayed every
+      // toggle and pagination action by a microtask even though no request was
+      // needed.
+      if (
+        !deferredReplicationsUrl ||
+        corpusLoadStateRef.current === "loaded"
+      ) {
+        pendingCorpusActionRef.current = null;
+        setFullCorpusRequested(false);
+        action();
+        return;
+      }
+
+      pendingCorpusActionRef.current = action;
+      // Search starts its request on the first keystroke. If that request
+      // fails inside the debounce window, recording the pending URL action
+      // must not secretly issue a second request; the visible Retry owns it.
+      if (!retryAfterFailure && corpusLoadStateRef.current === "error") return;
+      void loadCompleteCorpus(true).then((loaded) => {
+        if (!loaded || pendingCorpusActionRef.current !== action) return;
+        pendingCorpusActionRef.current = null;
+        setFullCorpusRequested(false);
+        action();
+      });
+    },
+    [deferredReplicationsUrl, loadCompleteCorpus],
+  );
+
+  useEffect(() => {
+    if (!deferredReplicationsUrl || corpusLoadStateRef.current === "loaded") {
+      return;
+    }
+    if (initialCompleteCorpusNeeded) {
+      void loadCompleteCorpus();
+      return;
+    }
+
+    const start = () => void loadCompleteCorpus();
+    if (typeof window.requestIdleCallback === "function") {
+      const idleId = window.requestIdleCallback(start, { timeout: 1_500 });
+      return () => window.cancelIdleCallback(idleId);
+    }
+    const timeoutId = window.setTimeout(start, 0);
+    return () => window.clearTimeout(timeoutId);
+  }, [
+    deferredReplicationsUrl,
+    initialCompleteCorpusNeeded,
+    loadCompleteCorpus,
+  ]);
+
+  useEffect(
+    () => () => {
+      corpusAbortRef.current?.abort();
+    },
+    [],
+  );
 
   const mode: GalleryMode = focus ? focus.kind : browse.view;
   const typeFilter = browse.type;
@@ -291,68 +569,76 @@ function GalleryExplorer({
   const updateQuery = (next: string) => {
     clearTimeout(debounceRef.current);
     setQueryWritePending(true);
+    // Start the continuation on the first keystroke, not after the URL
+    // debounce. Results never switch to the query until this resolves.
+    void loadCompleteCorpus(true);
     debounceRef.current = window.setTimeout(() => {
       setQueryWritePending(false);
-      lastWrittenQueryRef.current = next;
-      // Searching from a focus page returns to the browse view (a focused
-      // group and a cross-corpus search cannot both be true), keeping the
-      // grouping mode — pushed, so Back lands on the focus page again.
-      const url = buildGalleryBrowseUrl({
-        ...browse,
-        view: mode,
-        query: next,
-      });
-      if (focus) {
-        router.push(url, { scroll: false });
-      } else {
-        router.replace(url, { scroll: false });
-      }
+      const action = () => {
+        lastWrittenQueryRef.current = next;
+        const url = buildGalleryBrowseUrl({
+          ...browse,
+          view: mode,
+          query: next,
+        });
+        if (focus) {
+          router.push(url, { scroll: false });
+        } else {
+          router.replace(url, { scroll: false });
+        }
+      };
+      void runWithCompleteCorpus(action, false);
     }, QUERY_WRITE_DELAY_MS);
   };
 
   const switchMode = (next: GalleryMode) => {
-    lastWrittenQueryRef.current = currentInputQuery();
-    navigate(
-      buildGalleryBrowseUrl({
-        ...browse,
-        view: next,
-        query: currentInputQuery(),
-      }),
-      "push",
-    );
+    const query = currentInputQuery();
+    void runWithCompleteCorpus(() => {
+      lastWrittenQueryRef.current = query;
+      navigate(
+        buildGalleryBrowseUrl({ ...browse, view: next, query }),
+        "push",
+      );
+    });
   };
 
   const setTypeFilter = (next: GalleryTypeFilter) => {
-    lastWrittenQueryRef.current = currentInputQuery();
-    navigate(
-      focus
-        ? buildGalleryFocusUrl(focus, { type: next })
-        : buildGalleryBrowseUrl({
-            ...browse,
-            view: mode,
-            query: currentInputQuery(),
-            type: next,
-          }),
-      "push",
-    );
+    const query = currentInputQuery();
+    void runWithCompleteCorpus(() => {
+      lastWrittenQueryRef.current = query;
+      navigate(
+        focus
+          ? buildGalleryFocusUrl(focus, { type: next })
+          : buildGalleryBrowseUrl({
+              ...browse,
+              view: mode,
+              query,
+              type: next,
+            }),
+        "push",
+      );
+    });
   };
 
   const setArtistSort = (next: GalleryArtistSort) => {
-    lastWrittenQueryRef.current = currentInputQuery();
-    navigate(
-      buildGalleryBrowseUrl({
-        ...browse,
-        view: mode,
-        query: currentInputQuery(),
-        sort: next,
-      }),
-      "push",
-    );
+    const query = currentInputQuery();
+    void runWithCompleteCorpus(() => {
+      lastWrittenQueryRef.current = query;
+      navigate(
+        buildGalleryBrowseUrl({
+          ...browse,
+          view: mode,
+          query,
+          sort: next,
+        }),
+        "push",
+      );
+    });
   };
 
   const displayable = useMemo(
-    () => replications.filter(isDisplayable),
-    [replications],
+    () => galleryReplications.filter(isDisplayable),
+    [galleryReplications],
   );
 
   const taxonomyFilters = useMemo<GalleryTaxonomyFilterState>(
@@ -390,16 +676,19 @@ function GalleryExplorer({
   );
 
   const setTaxonomyFilters = (next: GalleryTaxonomyFilterState) => {
-    lastWrittenQueryRef.current = currentInputQuery();
-    navigate(
-      buildGalleryBrowseUrl({
-        ...browse,
-        ...next,
-        view: mode,
-        query: currentInputQuery(),
-      }),
-      "push",
-    );
+    const query = currentInputQuery();
+    void runWithCompleteCorpus(() => {
+      lastWrittenQueryRef.current = query;
+      navigate(
+        buildGalleryBrowseUrl({
+          ...browse,
+          ...next,
+          view: mode,
+          query,
+        }),
+        "push",
+      );
+    });
   };
 
   const taxonomyDisplayable = useMemo(
@@ -465,17 +754,48 @@ function GalleryExplorer({
     [taxonomyDisplayable, typeFilter, query, effectName],
   );
 
+  /**
+   * The flat search-results grid, memoized so the incremental masonry's
+   * paging state survives unrelated re-renders — a fresh array identity here
+   * would read as a new result set and rewind the grid to its first page.
+   */
+  const searchResults = useMemo(() => sortWithinGroup(filtered), [filtered]);
+
   const groups = useMemo(() => {
-    if (mode === "artist")
-      return groupByArtist(filtered, artistSort, contributorDirectory);
-    return groupByEffect(filtered, effectName, effectHref);
+    if (mode !== "artist") {
+      return groupByEffect(filtered, effectName, effectHref);
+    }
+    const artistGroups = groupByArtist(
+      filtered,
+      artistSort,
+      contributorDirectory,
+    );
+    if (
+      !deferredReplicationsUrl ||
+      corpusLoadState === "loaded" ||
+      searching ||
+      typeFilter !== "all" ||
+      hasActiveTaxonomyFilters
+    ) {
+      return artistGroups;
+    }
+    return artistGroups.map((group) => {
+      const stats = initialArtistGroupStats?.[group.key];
+      return stats ? { ...group, ...stats } : group;
+    });
   }, [
-    mode,
-    filtered,
     artistSort,
-    effectName,
-    effectHref,
     contributorDirectory,
+    corpusLoadState,
+    deferredReplicationsUrl,
+    effectHref,
+    effectName,
+    filtered,
+    hasActiveTaxonomyFilters,
+    initialArtistGroupStats,
+    mode,
+    searching,
+    typeFilter,
   ]);
 
   /**
@@ -616,7 +936,12 @@ function GalleryExplorer({
     viewerGroups,
     viewerSourcePath,
   ]);
+  const completeCorpusReady =
+    !deferredReplicationsUrl || corpusLoadState === "loaded";
+  const viewerResolutionPending =
+    viewerParamPresent && !completeCorpusReady;
   const validViewerSlugParam =
+    completeCorpusReady &&
     viewerSlugParam &&
     viewerCollection.groups.some((entry) =>
       entry.items.some((item) => item.replication.slug === viewerSlugParam),
@@ -628,31 +953,67 @@ function GalleryExplorer({
   );
   const [unavailableViewerSlug, setUnavailableViewerSlug] = useState<
     string | null
-  >(viewerSlugParam && !validViewerSlugParam ? viewerSlugParam : null);
+  >(
+    viewerSlugParam && completeCorpusReady && !validViewerSlugParam
+      ? viewerSlugParam
+      : null,
+  );
+
+  const viewerParamWasPresentRef = useRef(viewerParamPresent);
 
   useEffect(() => {
+    // A locally launched viewer writes history and viewerSlug directly. An
+    // unrelated render (notably the deferred corpus becoming ready) must not
+    // close it merely because the search-param snapshot still represents the
+    // pre-launch URL. Only a real transition from a viewer URL to a URL
+    // without the parameter (for example Back) closes that local state.
+    if (!viewerParamPresent) {
+      if (viewerParamWasPresentRef.current) {
+        setViewerSlug(null);
+      }
+      viewerParamWasPresentRef.current = false;
+      dismissViewerDeepLinkCover();
+      return;
+    }
+    viewerParamWasPresentRef.current = true;
+
+    if (viewerResolutionPending) {
+      setViewerSlug(null);
+      setUnavailableViewerSlug(null);
+      if (corpusLoadState === "error") {
+        const source = `${window.location.pathname}${window.location.search}${window.location.hash}`;
+        window.history.replaceState(
+          window.history.state,
+          "",
+          closeReplicationViewerUrl(source),
+        );
+        dismissViewerDeepLinkCover();
+      }
+      return;
+    }
+
     setViewerSlug(validViewerSlugParam);
     if (viewerSlugParam && !validViewerSlugParam) {
       setUnavailableViewerSlug(viewerSlugParam);
     } else if (validViewerSlugParam) {
       setUnavailableViewerSlug(null);
     }
-    if (viewerParamPresent && !validViewerSlugParam) {
+    if (!validViewerSlugParam) {
       const source = `${window.location.pathname}${window.location.search}${window.location.hash}`;
       window.history.replaceState(
         window.history.state,
         "",
         closeReplicationViewerUrl(source),
       );
-    }
-    // No work to cover: either there never was a viewer param or it resolved
-    // to nothing — drop the deep-link cover so the index (and its
-    // "no longer available" notice) is visible. A valid param keeps the cover
-    // underneath the opaque overlay until the viewer closes.
-    if (!validViewerSlugParam) {
       dismissViewerDeepLinkCover();
     }
-  }, [validViewerSlugParam, viewerParamPresent, viewerSlugParam]);
+  }, [
+    corpusLoadState,
+    validViewerSlugParam,
+    viewerParamPresent,
+    viewerResolutionPending,
+    viewerSlugParam,
+  ]);
 
   const launchViewer = (slug: string) => {
     setUnavailableViewerSlug(null);
@@ -689,45 +1050,19 @@ function GalleryExplorer({
     launchViewer(replication.slug);
   };
 
-  /**
-   * Every tile opens the same in-page viewer. The underlying anchor remains a
-   * permanent work link for modified clicks, new tabs, and crawlers.
-   */
-  const renderMasonry = (
-    items: PublicGalleryReplicationPreview[],
-    {
-      showByline = true,
-      onOpen = openViewerAt,
-    }: {
-      showByline?: boolean;
-      onOpen?: (
-        event: React.MouseEvent,
-        replication: PublicGalleryReplicationPreview,
-      ) => void;
-    } = {},
-  ) => (
-    <div className={MASONRY_CLASS}>
-      {items.map((replication) => (
-        <GalleryMediaTile
-          key={replication._id}
-          replication={replication}
-          className={MASONRY_TILE_CLASS}
-          frameClassName="w-full"
-          showByline={showByline}
-          mobileCompact
-          onOpen={onOpen}
-          viewerHref={buildReplicationViewerUrl(
-            viewerSourcePath,
-            replication.slug,
-          )}
-        />
-      ))}
-    </div>
-  );
-
   // The gallery section exists whenever it holds media at all — the mode
   // toggle has to stay reachable even if one mode's own corpus is empty.
   const hasMedia = displayable.length > 0;
+  const completeCorpusBlocked =
+    Boolean(deferredReplicationsUrl) &&
+    fullCorpusRequested &&
+    corpusLoadState !== "loaded";
+  // A pasted non-default URL already describes a full-corpus operation. Do
+  // not render partial matches beneath the pending notice. For a control
+  // clicked from the default page, navigation waits, so its initial SSR rails
+  // remain visible while the continuation loads or retries.
+  const hideIncompleteResults =
+    completeCorpusBlocked && browseNeedsCompleteCorpus(browse);
   const browseAllUrl = buildGalleryBrowseUrl({
     ...browse,
     view: mode,
@@ -1046,9 +1381,49 @@ function GalleryExplorer({
               />
             ) : null}
 
+            {completeCorpusBlocked ? (
+              corpusLoadState === "error" ? (
+                <Alert variant="destructive" role="alert" className="mt-4">
+                  <AlertDescription className="flex flex-wrap items-center justify-between gap-3">
+                    <span>
+                      The complete gallery could not be loaded. The initial
+                      gallery is still available; retry before searching or
+                      changing the collection.
+                    </span>
+                    <Button
+                      type="button"
+                      variant="pill"
+                      size="pill"
+                      onClick={() => {
+                        const action = pendingCorpusActionRef.current;
+                        if (action) {
+                          void runWithCompleteCorpus(action);
+                        } else {
+                          void loadCompleteCorpus(true);
+                        }
+                      }}
+                    >
+                      Retry
+                    </Button>
+                  </AlertDescription>
+                </Alert>
+              ) : (
+                <Alert role="status" aria-live="polite" className="mt-4">
+                  <AlertDescription className="flex items-center gap-2">
+                    <Icon
+                      icon="svg-spinners:ring-resize"
+                      className="h-4 w-4 shrink-0"
+                      aria-hidden
+                    />
+                    Loading the complete gallery…
+                  </AlertDescription>
+                </Alert>
+              )
+            ) : null}
+
             {/* One quiet corpus summary for every breakpoint — the bar itself
               stays reserved for controls. */}
-            {chrome === "full" ? (
+            {chrome === "full" && !completeCorpusBlocked ? (
               <p className="theme-text-faint mt-3 px-1 text-xs tabular-nums">
                 {counts.total} works · {counts.artists} artists ·{" "}
                 {counts.effects} effects
@@ -1056,7 +1431,7 @@ function GalleryExplorer({
             ) : null}
 
             {/* Focused single-group view (own URL: /replications/artist|effect/<key>) */}
-            {focus && focusedGroup ? (
+            {hideIncompleteResults ? null : focus && focusedGroup ? (
               <div className="mt-6 space-y-4">
                 <div className="flex flex-wrap items-baseline justify-between gap-3 px-1">
                   <div className="min-w-0">
@@ -1119,9 +1494,12 @@ function GalleryExplorer({
                   // per-tile bylines would repeat it under every work; effect
                   // focus tiles keep them as the only attribution in sight.
                   // Artist-focus tiles open the viewer walking this artist.
-                  renderMasonry(focusedItems, {
-                    showByline: focus.kind !== "artist",
-                  })
+                  <IncrementalMasonry
+                    items={focusedItems}
+                    showByline={focus.kind !== "artist"}
+                    onOpen={openViewerAt}
+                    viewerSourcePath={viewerSourcePath}
+                  />
                 ) : (
                   <SearchEmptyState
                     className="mt-8"
@@ -1139,7 +1517,11 @@ function GalleryExplorer({
                     {filtered.length} result{filtered.length === 1 ? "" : "s"}{" "}
                     for “{query.trim()}”
                   </p>
-                  {renderMasonry(sortWithinGroup(filtered))}
+                  <IncrementalMasonry
+                    items={searchResults}
+                    onOpen={openViewerAt}
+                    viewerSourcePath={viewerSourcePath}
+                  />
                 </div>
               ) : (
                 <SearchEmptyState
@@ -1211,14 +1593,30 @@ function GalleryExplorer({
                      Page href for modified clicks, new tabs, and crawlers.
                      Effect rails keep navigating: their "View all" is the
                      effect's playlist page, not a viewer entry point. */
-                    onViewAllOpen={
-                      mode === "artist"
-                        ? (event) => {
-                            const first = group.items[0];
-                            if (first) openViewerAt(event, first);
-                          }
-                        : undefined
-                    }
+                    onViewAllOpen={(event) => {
+                      if (
+                        event.button !== 0 ||
+                        event.metaKey ||
+                        event.ctrlKey ||
+                        event.shiftKey ||
+                        event.altKey
+                      ) {
+                        return;
+                      }
+                      event.preventDefault();
+                      const target = buildGalleryFocusUrl(
+                        { kind: mode, key: galleryGroupUrlKey(mode, group) },
+                        mode === "artist" ? { type: typeFilter } : {},
+                      );
+                      void runWithCompleteCorpus(() => {
+                        const first = group.items[0];
+                        if (mode === "artist" && first) {
+                          launchViewer(first.slug);
+                        } else {
+                          router.push(target);
+                        }
+                      });
+                    }}
                   />
                 ))}
                 {hiddenRailCount > 0 ? (
@@ -1228,7 +1626,11 @@ function GalleryExplorer({
                       variant="pill"
                       size="pill"
                       onClick={() =>
-                        setVisibleRailCount((count) => count + ARTIST_RAIL_PAGE)
+                        void runWithCompleteCorpus(() =>
+                          setVisibleRailCount(
+                            (count) => count + ARTIST_RAIL_PAGE,
+                          ),
+                        )
                       }
                       className="min-h-11 gap-1.5"
                     >
@@ -1257,7 +1659,11 @@ function GalleryExplorer({
                         </span>
                       </div>
                     ) : null}
-                    {renderMasonry(pooledItems)}
+                    <IncrementalMasonry
+                      items={pooledItems}
+                      onOpen={openViewerAt}
+                      viewerSourcePath={viewerSourcePath}
+                    />
                   </section>
                 ) : null}
               </div>
@@ -1309,6 +1715,111 @@ function GalleryExplorer({
             );
           }}
         />
+      ) : null}
+    </>
+  );
+}
+
+/**
+ * A masonry grid that mounts its tiles in pages of `MASONRY_PAGE`. Every
+ * item is already on the client — growth is pure rendering, no fetch — but
+ * mounting a thousand-tile grid at once is what used to balloon the DOM and
+ * client heap on broad searches and the effect view's pooled tail. A
+ * sentinel below the grid extends it as the reader approaches its end; the
+ * "Show more" button is the same affordance for keyboards, screen readers,
+ * and environments without IntersectionObserver. Every tile opens the same
+ * in-page viewer; the underlying anchor remains a permanent work link for
+ * modified clicks, new tabs, and crawlers.
+ */
+function IncrementalMasonry({
+  items,
+  showByline = true,
+  onOpen,
+  viewerSourcePath,
+}: {
+  items: PublicGalleryReplicationPreview[];
+  showByline?: boolean;
+  onOpen: (
+    event: React.MouseEvent,
+    replication: PublicGalleryReplicationPreview,
+  ) => void;
+  /** Canonical source-collection URL each tile's viewer href derives from. */
+  viewerSourcePath: string;
+}) {
+  const [visibleCount, setVisibleCount] = useState(MASONRY_PAGE);
+  const sentinelRef = useRef<HTMLDivElement | null>(null);
+
+  // A new result set (typed query, toggled filter, mode switch) restarts at
+  // the first page; the parent memoizes each grid's array so mere re-renders
+  // never rewind it.
+  useEffect(() => {
+    setVisibleCount(MASONRY_PAGE);
+  }, [items]);
+
+  const visible = items.length > visibleCount ? items.slice(0, visibleCount) : items;
+  const exhausted = visible.length === items.length;
+
+  // Recreated after every growth step: a fresh observer reports the
+  // sentinel's *current* intersection, so a viewport tall enough to still
+  // reach it keeps growing without waiting for a scroll event.
+  useEffect(() => {
+    if (exhausted) return;
+    const node = sentinelRef.current;
+    if (!node || typeof IntersectionObserver === "undefined") return;
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries.some((entry) => entry.isIntersecting)) {
+          setVisibleCount((count) => count + MASONRY_PAGE);
+        }
+      },
+      // Mount the next page well before the grid's end scrolls into view.
+      { rootMargin: "1200px 0px" },
+    );
+    observer.observe(node);
+    return () => observer.disconnect();
+  }, [exhausted, visibleCount, items]);
+
+  return (
+    <>
+      <div className={MASONRY_CLASS}>
+        {visible.map((replication) => (
+          <GalleryMediaTile
+            key={replication._id}
+            replication={replication}
+            className={MASONRY_TILE_CLASS}
+            frameClassName="w-full"
+            /* Masonry columns: 3 across until lg, then 4 across the max-w-7xl
+               measure — a column never exceeds ~320px. */
+            sizes="(max-width: 1024px) 33vw, 320px"
+            showByline={showByline}
+            mobileCompact
+            onOpen={onOpen}
+            viewerHref={buildReplicationViewerUrl(
+              viewerSourcePath,
+              replication.slug,
+            )}
+          />
+        ))}
+      </div>
+      {!exhausted ? (
+        <div
+          ref={sentinelRef}
+          className="flex flex-col items-center gap-1.5 pt-2"
+        >
+          <Button
+            type="button"
+            variant="pill"
+            size="pill"
+            onClick={() => setVisibleCount((count) => count + MASONRY_PAGE)}
+            className="min-h-11 gap-1.5"
+          >
+            Show more works
+            <Icon icon="lucide:chevron-down" className="h-4 w-4" aria-hidden />
+          </Button>
+          <span className="theme-text-faint text-xs tabular-nums">
+            Showing {visible.length} of {items.length} works
+          </span>
+        </div>
       ) : null}
     </>
   );

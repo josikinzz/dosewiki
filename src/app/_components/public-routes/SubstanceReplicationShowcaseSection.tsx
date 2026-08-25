@@ -2,9 +2,9 @@ import { hasKnownCreator } from "@/features/effects/components/replicationCredit
 import { ReplicationShowcase } from "@/features/replications/components/ReplicationShowcase";
 import {
   buildShowcaseWorks,
-  SHOWCASE_WORK_CAP,
   visualEffectNameBySlug,
 } from "@/features/replications/components/showcaseModel";
+import { SHOWCASE_WORK_CAP } from "@/features/replications/components/showcaseWork";
 import type { SubstanceArticle } from "@/schema";
 import { publicHref } from "@/utils/publicHref";
 import { findContributorProfileByAuthorName } from "@server/contributorProfileIdentity";

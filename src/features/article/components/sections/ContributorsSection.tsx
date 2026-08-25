@@ -51,7 +51,7 @@ const creditTextClassName = "theme-text-secondary font-semibold";
 
 function CreditLink({ href, children }: { href?: string | null; children: ReactNode }) {
   return href ? (
-    <Link href={href} className={creditLinkClassName}>
+    <Link href={href} prefetch={false} className={creditLinkClassName}>
       {children}
     </Link>
   ) : (
@@ -81,6 +81,7 @@ function ContributorCredit({
       {profileHref ? (
         <Link
           href={profileHref}
+          prefetch={false}
           aria-label={`View ${name}'s contributor profile`}
           className="theme-focus-ring group mt-0.5 shrink-0 rounded-full sm:mt-0"
         >

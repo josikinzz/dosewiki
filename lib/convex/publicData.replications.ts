@@ -156,13 +156,18 @@ export function dropGalleryExcludedArtistWorks<T extends { artist: string }>(
 /**
  * Project a raw gallery row down to the fields the gallery surfaces render —
  * same convention as `projectPublicSubstancePreview` (publicData.reads.ts).
- * Drops storage IDs, `_creationTime`, `file_size`, `role`, and the seven
- * rights-metadata fields: none of them are read by the explorer, the focus
+ * Drops storage IDs, `_creationTime`, `file_size`, `role`, the seven
+ * rights-metadata fields, and the studio-only classification fields
+ * (`replication_status`, `viewing_mode`, `content_tags`,
+ * `artist_primary_type`): none of them are read by the explorer, the focus
  * views, the swipe deck, or the sitemap's focus families, and the corpus is
- * serialized wholesale into the /replications RSC payload. `effect_tags`
- * stays: the explorer's depicted-effect filter matches on it alongside the
- * owning `effect_slug`. Rights attribution lives on the permalink, which
- * reads the full record.
+ * serialized wholesale into the /replications RSC payload. The taxonomy
+ * filters match on the tag arrays (`viewing_mode_tags`, `artist_type_tags`),
+ * never the scalar summaries. `effect_tags` stays: the explorer's
+ * depicted-effect filter matches on it alongside the owning `effect_slug`.
+ * `title_drugs` narrows to the `{slug, name}` pair the drug filter reads and
+ * `date_info` to the `{kind, value}` pair `workDateMs` parses. Rights
+ * attribution lives on the permalink, which reads the full record.
  */
 export function projectPublicGalleryReplicationPreview(
   replication: GalleryReplication,
@@ -177,14 +182,13 @@ export function projectPublicGalleryReplicationPreview(
     format: replication.format,
     effect_slug: replication.effect_slug,
     effect_tags: replication.effect_tags,
-    replication_status: replication.replication_status,
-    viewing_mode: replication.viewing_mode,
     viewing_mode_tags: replication.viewing_mode_tags,
-    title_drugs: replication.title_drugs,
+    title_drugs: replication.title_drugs?.map(({ slug, name }) => ({
+      slug,
+      name,
+    })),
     drug_classes: replication.drug_classes,
     content_family: replication.content_family,
-    content_tags: replication.content_tags,
-    artist_primary_type: replication.artist_primary_type,
     artist_type_tags: replication.artist_type_tags,
     url: replication.url,
     thumbnail_url: replication.thumbnail_url,
@@ -196,7 +200,9 @@ export function projectPublicGalleryReplicationPreview(
     duration: replication.duration,
     has_audio: replication.has_audio,
     created_at: replication.created_at,
-    date_info: replication.date_info,
+    date_info: replication.date_info
+      ? { value: replication.date_info.value, kind: replication.date_info.kind }
+      : undefined,
     order_index: replication.order_index,
   };
 }
@@ -238,12 +244,9 @@ export const getPublicGalleryReplications = cache(async (): Promise<PublicGaller
     const artist = artistByKey.get(replication.artist.trim().toLowerCase());
     return projectPublicGalleryReplicationPreview({
       ...replication,
-      ...(artist
-        ? {
-            artist_primary_type: artist.primary_type,
-            artist_type_tags: artist.artist_type_tags,
-          }
-        : {}),
+      // Only the tag array joins in: the taxonomy filter matches on
+      // `artist_type_tags`, and the scalar `primary_type` renders nowhere.
+      ...(artist ? { artist_type_tags: artist.artist_type_tags } : {}),
     });
   });
 });

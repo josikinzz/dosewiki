@@ -369,6 +369,7 @@ export const PharmacologySection = memo(function PharmacologySection({
                         mechanismLink ? (
                           <Link
                             href={mechanismLink.href}
+                            prefetch={false}
                             className={labelClassName}
                             onClick={(event) => {
                               if (

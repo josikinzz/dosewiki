@@ -588,6 +588,7 @@ export function CoverageTable({ columns, rows }: CoverageTableProps) {
                         <span className="flex min-w-0 items-baseline gap-1.5">
                           <Link
                             href={`/${row.slug}`}
+                            prefetch={false}
                             className="theme-text-primary truncate rounded-sm text-sm hover:text-dose-accent-strong hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-dose-accent-strong"
                           >
                             {row.name}

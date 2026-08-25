@@ -110,6 +110,13 @@ const nextConfig: NextConfig = {
       { pathname: "/api/molecules/**" },
       { pathname: "/**", search: "" },
     ],
+    // Convex file storage (replication artwork, posters, thumbnails). Derived from
+    // the same browser deployment URL the client bundle reads, so AppImage's
+    // decision to send a storage URL through the optimizer always agrees with
+    // this allowlist (see isConvexStorageImage in src/components/common/AppImage.tsx).
+    remotePatterns: publicBrowserConfig.convexUrl
+      ? [new URL("/api/storage/**", publicBrowserConfig.convexUrl)]
+      : [],
   },
   env: {
     NEXT_PUBLIC_CONVEX_URL: publicBrowserConfig.convexUrl,

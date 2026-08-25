@@ -5,7 +5,7 @@ import {
 } from "@/features/effects/components/replicationCredit";
 import type { GalleryGroup } from "@/features/effects/gallery/galleryModel";
 import type { PublicGalleryReplicationPreview } from "@/types/replications";
-import type { ShowcaseWork } from "../components/showcaseModel";
+import type { ShowcaseWork } from "../components/showcaseWork";
 
 /**
  * The Artist Page's works model: the artist's whole body of work as one

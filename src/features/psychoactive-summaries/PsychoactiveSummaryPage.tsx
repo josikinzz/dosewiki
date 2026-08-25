@@ -98,7 +98,7 @@ export function PsychoactiveSummaryPage({
           <ul className="theme-text-secondary list-disc space-y-2 pl-5 marker:text-dose-accent-muted">
             {definition.seeAlso.map((item) => (
               <li key={item.href}>
-                <Link href={item.href} className={proseLinkClassName}>
+                <Link href={item.href} prefetch={false} className={proseLinkClassName}>
                   {item.label}
                 </Link>
               </li>

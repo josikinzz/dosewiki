@@ -1,4 +1,11 @@
-import { act, fireEvent, render, screen, within } from "@testing-library/react";
+import {
+  act,
+  cleanup,
+  fireEvent,
+  render,
+  screen,
+  within,
+} from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import {
   afterEach,
@@ -91,6 +98,7 @@ vi.mock("@/features/effects/gallery/MediaRail", () => ({
     mobileCompact,
     onTileOpen,
     avatarUrl,
+    onViewAllOpen,
     viewerHrefFor,
   }: {
     group: GalleryGroup;
@@ -103,6 +111,7 @@ vi.mock("@/features/effects/gallery/MediaRail", () => ({
     ) => void;
     avatarUrl?: string | null;
     viewerHrefFor: (replication: PublicGalleryReplicationPreview) => string;
+    onViewAllOpen?: (event: ReactMouseEvent) => void;
   }) => (
     <section
       data-testid="rail"
@@ -117,6 +126,11 @@ vi.mock("@/features/effects/gallery/MediaRail", () => ({
       ) : (
         <span>{group.label}</span>
       )}
+      {group.count > Math.min(group.items.length, 14) ? (
+        <a href={viewAllHref} onClick={onViewAllOpen}>
+          View all {group.count}
+        </a>
+      ) : null}
       {group.items.map((item) => (
         <a
           key={item._id}
@@ -183,8 +197,8 @@ function rep(overrides: Partial<GalleryReplication> = {}): GalleryReplication {
 }
 
 const effects = [
-  { slug: "geometry", name: "Geometry", tags: [] },
-  { slug: "drifting", name: "Drifting", tags: [] },
+  { slug: "geometry", name: "Geometry" },
+  { slug: "drifting", name: "Drifting" },
 ];
 
 const contributorDirectory = [
@@ -230,6 +244,10 @@ beforeEach(() => {
 });
 
 afterEach(() => {
+  // Unmount while idle-callback stubs still exist so effect cleanup cannot
+  // observe a half-restored browser API, and no scheduled continuation leaks
+  // into the next case.
+  cleanup();
   vi.useRealTimers();
   vi.unstubAllGlobals();
   vi.restoreAllMocks();
@@ -1034,5 +1052,190 @@ describe("one-line control bar", () => {
     expect(navMocks.push).toHaveBeenCalledWith("/replications?sort=alpha", {
       scroll: false,
     });
+  });
+});
+
+const QUERY_WRITE_DELAY_MS_FOR_TEST = 250;
+
+describe("deferred complete gallery", () => {
+  it("merges and deduplicates the complete corpus after the browser becomes idle", async () => {
+    const initial = rep({ title: "Initial work" });
+    const deferred = rep({ title: "Deferred work" });
+    let idleCallback: IdleRequestCallback | undefined;
+    vi.stubGlobal(
+      "requestIdleCallback",
+      vi.fn((callback: IdleRequestCallback) => {
+        idleCallback = callback;
+        return 1;
+      }),
+    );
+    vi.stubGlobal("cancelIdleCallback", vi.fn());
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue({
+        ok: true,
+        status: 200,
+        json: async () => ({ data: [initial, deferred] }),
+      }),
+    );
+
+    renderExplorer("", {
+      replications: [initial],
+      deferredReplicationsUrl: "/api/replications/gallery",
+    });
+    expect(screen.getByText("1 works · 1 artists · 1 effects")).toBeInTheDocument();
+
+    await act(async () => {
+      idleCallback?.({ didTimeout: false, timeRemaining: () => 50 });
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+
+    expect(screen.getByText("Deferred work")).toBeInTheDocument();
+    expect(screen.getByText("2 works · 1 artists · 1 effects")).toBeInTheDocument();
+  });
+
+  it("keeps a full-corpus control pending until the continuation resolves", async () => {
+    vi.useFakeTimers();
+    const initial = rep({ title: "Initial work" });
+    const deferred = rep({ title: "Deferred result" });
+    type DeferredResponse = {
+      ok: boolean;
+      status: number;
+      json: () => Promise<{ data: GalleryReplication[] }>;
+    };
+    let resolveFetch: (response: DeferredResponse) => void = () => {};
+    // Executor form because this project compiles against the ES2020 lib,
+    // where Promise.withResolvers is unavailable.
+    const fetchPromise = new Promise<DeferredResponse>((resolve) => {
+      resolveFetch = resolve;
+    });
+    vi.stubGlobal("requestIdleCallback", vi.fn(() => 1));
+    vi.stubGlobal("cancelIdleCallback", vi.fn());
+    vi.stubGlobal("fetch", vi.fn(() => fetchPromise));
+
+    renderExplorer("", {
+      replications: [initial],
+      deferredReplicationsUrl: "/api/replications/gallery",
+    });
+    fireEvent.change(
+      screen.getByRole("textbox", { name: "Search replications" }),
+      { target: { value: "deferred" } },
+    );
+    act(() => vi.advanceTimersByTime(QUERY_WRITE_DELAY_MS_FOR_TEST));
+
+    expect(screen.getByText("Loading the complete gallery…")).toBeInTheDocument();
+    expect(navMocks.replace).not.toHaveBeenCalled();
+    expect(screen.getByText("Initial work")).toBeInTheDocument();
+
+    await act(async () => {
+      resolveFetch({
+        ok: true,
+        status: 200,
+        json: async () => ({ data: [initial, deferred] }),
+      });
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+
+    expect(navMocks.replace).toHaveBeenCalledWith(
+      "/replications?q=deferred",
+      { scroll: false },
+    );
+    expect(screen.queryByText("Loading the complete gallery…")).toBeNull();
+  });
+  it("loads the complete artist collection before opening View all", async () => {
+    const initial = Array.from({ length: 15 }, (_, index) =>
+      rep({ title: `Initial work ${index + 1}` }),
+    );
+    const deferred = rep({ title: "Deferred artist work" });
+    type DeferredResponse = {
+      ok: boolean;
+      status: number;
+      json: () => Promise<{ data: GalleryReplication[] }>;
+    };
+    let resolveFetch: (response: DeferredResponse) => void = () => {};
+    // Executor form because this project compiles against the ES2020 lib.
+    const fetchPromise = new Promise<DeferredResponse>((resolve) => {
+      resolveFetch = resolve;
+    });
+    vi.stubGlobal("requestIdleCallback", vi.fn(() => 1));
+    vi.stubGlobal("cancelIdleCallback", vi.fn());
+    vi.stubGlobal("fetch", vi.fn(() => fetchPromise));
+
+    renderExplorer("", {
+      replications: initial,
+      deferredReplicationsUrl: "/api/replications/gallery",
+    });
+    fireEvent.click(screen.getByRole("link", { name: "View all 15" }));
+
+    expect(screen.getByText("Loading the complete gallery…")).toBeInTheDocument();
+    expect(screen.queryByTestId("replication-viewer")).toBeNull();
+
+    await act(async () => {
+      resolveFetch({
+        ok: true,
+        status: 200,
+        json: async () => ({ data: [...initial, deferred] }),
+      });
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+
+    expect(screen.getByTestId("replication-viewer")).toHaveAttribute(
+      "data-item-count",
+      "16",
+    );
+  });
+
+
+  it("preserves the initial gallery and retries a failed full-corpus action", async () => {
+    vi.useFakeTimers();
+    const initial = rep({ title: "Initial work" });
+    const deferred = rep({ title: "Deferred result" });
+    vi.stubGlobal("requestIdleCallback", vi.fn(() => 1));
+    vi.stubGlobal("cancelIdleCallback", vi.fn());
+    vi.stubGlobal(
+      "fetch",
+      vi
+        .fn()
+        .mockResolvedValueOnce({ ok: false, status: 503 })
+        .mockResolvedValueOnce({
+          ok: true,
+          status: 200,
+          json: async () => ({ data: [initial, deferred] }),
+        }),
+    );
+
+    renderExplorer("", {
+      replications: [initial],
+      deferredReplicationsUrl: "/api/replications/gallery",
+    });
+    fireEvent.change(
+      screen.getByRole("textbox", { name: "Search replications" }),
+      { target: { value: "deferred" } },
+    );
+    act(() => vi.advanceTimersByTime(QUERY_WRITE_DELAY_MS_FOR_TEST));
+    await act(async () => {
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+
+    expect(
+      screen.getByText(/complete gallery could not be loaded/i),
+    ).toBeInTheDocument();
+    expect(screen.getByText("Initial work")).toBeInTheDocument();
+    expect(navMocks.replace).not.toHaveBeenCalled();
+
+    await act(async () => {
+      fireEvent.click(screen.getByRole("button", { name: "Retry" }));
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+
+    expect(navMocks.replace).toHaveBeenCalledWith(
+      "/replications?q=deferred",
+      { scroll: false },
+    );
   });
 });

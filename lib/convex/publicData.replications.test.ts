@@ -346,11 +346,14 @@ describe("getPublicGalleryReplications", () => {
     const { getPublicGalleryReplications } = await import("./publicData.replications");
     const gallery = await getPublicGalleryReplications();
 
-    expect(gallery.find((item) => item.artist === "Josie Kins")).toMatchObject({
-      artist_primary_type: "replicator",
-      artist_type_tags: ["replicator"],
-    });
-    expect(gallery.find((item) => item.artist === "A Stranger")?.artist_primary_type).toBeUndefined();
+    const joined = gallery.find((item) => item.artist === "Josie Kins");
+    expect(joined).toMatchObject({ artist_type_tags: ["replicator"] });
+    // The scalar `primary_type` renders nowhere in the gallery, so the
+    // projection keeps it off the serialized corpus entirely.
+    expect(joined).not.toHaveProperty("artist_primary_type");
+    expect(
+      gallery.find((item) => item.artist === "A Stranger")?.artist_type_tags,
+    ).toBeUndefined();
   });
 
   it("keeps the gallery buildable while the additive artist query is mid-deploy", async () => {

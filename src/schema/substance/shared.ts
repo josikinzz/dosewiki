@@ -1,5 +1,7 @@
 import { z } from "zod";
 
+import { CANONICAL_LEGAL_STATUSES } from "./legalStatuses";
+
 /** Dose range with min/max/unit */
 export const doseRangeSchema = z.object({
   min: z.number().nullable(),
@@ -87,17 +89,8 @@ export const referenceSchema = z.object({
   metadataProvenance: z.array(referenceMetadataProvenanceEntrySchema).max(32).optional(),
 });
 
-/** Country legality entry */
-export const CANONICAL_LEGAL_STATUSES = [
-  "prohibited",
-  "analog_covered",
-  "precursor_controlled",
-  "prescription_only",
-  "decriminalized",
-  "legal_regulated",
-  "unscheduled",
-  "restricted_other",
-] as const;
+/** Country legality entry — canonical statuses live in the Zod-free `legalStatuses.ts`. */
+export { CANONICAL_LEGAL_STATUSES, type CanonicalLegalStatus } from "./legalStatuses";
 
 export const countryLegalitySchema = z.object({
   status: z.string(),

@@ -15,7 +15,7 @@ import {
   ViewerDeepLinkCover,
 } from "../ViewerDeepLinkCover";
 import { ReplicationShowcase } from "../components/ReplicationShowcase";
-import type { ShowcaseWork } from "../components/showcaseModel";
+import type { ShowcaseWork } from "../components/showcaseWork";
 import { ReplicationViewerOverlay } from "../viewer/ReplicationViewerOverlay";
 import type { ReplicationViewerCollection } from "../viewer/viewerModel";
 

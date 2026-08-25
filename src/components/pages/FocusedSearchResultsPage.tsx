@@ -137,6 +137,7 @@ export function FocusedSearchResultsPage({
                       ) : null}
                       <Link
                         href={getMatchHref(match)}
+                        prefetch={false}
                         className="theme-search-suggestion flex h-auto w-full flex-col items-stretch justify-start gap-2.5 whitespace-normal rounded-xl border border-transparent bg-transparent px-4 py-4 text-left text-sm transition-[background-color,border-color,box-shadow,color] duration-200 focus-visible:outline-none focus-visible:ring-2 sm:px-5"
                         data-highlighted={isBestMatch}
                       >

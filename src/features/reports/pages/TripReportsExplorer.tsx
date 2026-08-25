@@ -296,6 +296,7 @@ function ReportIndexRow({
     <li className="theme-report-index-row">
       <Link
         href={href}
+        prefetch={false}
         className="theme-report-index-link group flex items-center gap-3 rounded-lg px-3 py-2.5"
       >
         {report.subject.avatar_url ? (

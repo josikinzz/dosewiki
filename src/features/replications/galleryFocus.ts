@@ -141,6 +141,39 @@ export function resolveArtistPageProfileKey(
 }
 
 /**
+ * The subset of the contributor directory the gallery can actually resolve:
+ * entries claimed — through the same alias-aware matcher every gallery
+ * lookup uses — by at least one credit line in the corpus. The /replications
+ * page serializes the directory into client props wholesale, so entries no
+ * credit line matches (article writers, editors) are dead payload there.
+ * Every gallery-side lookup keys on a corpus credit line, so pruning the
+ * rest can never change what resolves.
+ */
+export function galleryContributorDirectory(
+  replications: readonly Pick<PublicGalleryReplicationPreview, 'artist'>[],
+  contributorDirectory: ContributorDirectory,
+): ContributorDirectory {
+  if (contributorDirectory.length === 0) {
+    return contributorDirectory;
+  }
+  const creditLines = new Set<string>();
+  for (const { artist } of replications) {
+    const credit = artist?.trim();
+    if (credit) {
+      creditLines.add(credit);
+    }
+  }
+  const claimedKeys = new Set<string>();
+  for (const credit of creditLines) {
+    const profile = findContributorProfileByAuthorName(contributorDirectory, credit);
+    if (profile) {
+      claimedKeys.add(profile.key);
+    }
+  }
+  return contributorDirectory.filter((entry) => claimedKeys.has(entry.key));
+}
+
+/**
  * Which Artist Page each Contributor Profile forwards to: uppercase profile
  * key → artist URL key, for every profile that claims a credit line with at
  * least one displayable, non-withheld work. Profiles absent from the map have

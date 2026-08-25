@@ -69,6 +69,7 @@ function BlogIndexRow({ post }: { post: BlogPostViewModel }) {
     <li className="theme-index-row">
       <Link
         href={getPublicRoutePath({ family: "blogPost", params: { slug: post.slug } })}
+        prefetch={false}
         className="theme-index-row-link group block rounded-xl px-3 py-4"
       >
         <h2 className="theme-accent-heading text-lg font-semibold leading-snug transition group-hover:opacity-90">

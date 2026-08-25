@@ -7,7 +7,7 @@ import type {
   ActionNoticeTone,
   EditorActionStatusState,
 } from "@/features/dev/components";
-import { SHOWCASE_WORK_CAP } from "@/features/replications/components/showcaseModel";
+import { SHOWCASE_WORK_CAP } from "@/features/replications/components/showcaseWork";
 import {
   GALLERY_CURATION_SLUG_CAP,
   isShowcaseEligible,

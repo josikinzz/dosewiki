@@ -33,6 +33,7 @@ export const AuthorLink = memo(function AuthorLink({
   return (
     <Link
       href={profileUrl}
+      prefetch={false}
       className={`theme-accent-heading transition-colors hover:opacity-90 hover:underline ${className}`}
     >
       {authorName}

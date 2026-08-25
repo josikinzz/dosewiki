@@ -1,5 +1,6 @@
 import Image, { type StaticImageData } from "next/image";
 import type { CSSProperties, ImgHTMLAttributes } from "react";
+import { publicConvexUrl } from "../../../lib/runtime/publicEnv";
 
 type AppImageProps = {
   src: string | StaticImageData;
@@ -21,6 +22,31 @@ function isLocalImage(src: string | StaticImageData) {
   return typeof src !== "string" || src.startsWith("/");
 }
 
+const convexStorageOrigin = (() => {
+  if (!publicConvexUrl) return null;
+  try {
+    return new URL(publicConvexUrl).origin;
+  } catch {
+    return null;
+  }
+})();
+
+/**
+ * Convex file-storage URLs on this build's own deployment (replication artwork,
+ * posters, thumbnails). These are the one class of remote URL the optimizer is
+ * configured to accept: next.config.ts derives its `images.remotePatterns`
+ * entry from the same browser Convex URL, so routing exactly these through
+ * next/image can never 400. Every other remote host (editor-entered covers,
+ * artist favicons, …) stays on the plain <img> branch below.
+ */
+function isConvexStorageImage(src: string | StaticImageData) {
+  return (
+    typeof src === "string" &&
+    convexStorageOrigin !== null &&
+    src.startsWith(`${convexStorageOrigin}/api/storage/`)
+  );
+}
+
 export function AppImage({
   src,
   alt,
@@ -35,7 +61,7 @@ export function AppImage({
   style,
   title,
 }: AppImageProps) {
-  if (isLocalImage(src)) {
+  if (isLocalImage(src) || isConvexStorageImage(src)) {
     return (
       <Image
         src={src}
@@ -43,6 +69,7 @@ export function AppImage({
         width={width}
         height={height}
         sizes={sizes}
+        loading={priority ? undefined : loading}
         priority={priority}
         unoptimized={unoptimized}
         className={className}

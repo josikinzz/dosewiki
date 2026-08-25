@@ -75,7 +75,7 @@ function WritingBlogCard({ post }: { post: WritingBlogPost }) {
 
   return (
     <InteractiveContentCard asChild padding="none" className="overflow-hidden">
-      <Link href={href} className="group block">
+      <Link href={href} prefetch={false} className="group block">
         {post.coverImageUrl ? (
           // Deliberately a plain <img>: cover URLs are editor-entered and can
           // point at any host, which `next/image` would need configured up front.

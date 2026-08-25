@@ -19,7 +19,7 @@ export const appImageStory: StoryDef = {
   tier: "common",
   status: "stable",
   summary:
-    "Source-aware image wrapper. Routes local paths / StaticImageData through next/image and remote URLs through a plain <img>, so callers never pick the right element themselves.",
+    "Source-aware image wrapper. Routes local paths / StaticImageData — plus Convex file-storage URLs on this deployment — through next/image, and every other remote URL through a plain <img>, so callers never pick the right element themselves.",
   source: "src/components/common/AppImage.tsx",
   importLine: 'import { AppImage } from "@/components/common/AppImage";',
   exports: ["AppImage"],
@@ -40,7 +40,7 @@ export const appImageStory: StoryDef = {
     },
     {
       label: "Remote source (plain img)",
-      note: "An absolute http(s) URL falls back to a native <img> with lazy loading and async decoding.",
+      note: "An absolute http(s) URL on any other host falls back to a native <img> with lazy loading and async decoding.",
       background: "card",
       render: () => (
         <AppImage
@@ -146,8 +146,8 @@ export const appImageStory: StoryDef = {
     "Decorative CSS backgrounds — use a background-image utility instead.",
   ],
   notes: [
-    "Locality is decided by isLocalImage: StaticImageData or a string starting with '/' is local; everything else is remote.",
-    "next/image optimisation only applies to the local branch; the remote branch is a plain <img> with decoding=\"async\" and a forwarded sizes attribute.",
+    "Locality is decided by isLocalImage: StaticImageData or a string starting with '/' is local. Convex file-storage URLs on this build's own deployment (isConvexStorageImage) also optimise via next/image — next.config.ts allowlists exactly that origin in images.remotePatterns.",
+    "Every other remote host is a plain <img> with decoding=\"async\" and a forwarded sizes attribute.",
     "priority makes the remote branch eager: loading=\"eager\" plus fetchPriority=\"high\" (otherwise it stays lazy).",
   ],
 };

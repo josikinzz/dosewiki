@@ -97,7 +97,7 @@ export const TripReportCard = memo(function TripReportCard({
 
   if (href) {
     return (
-      <Link href={href} className={cardClassName}>
+      <Link href={href} prefetch={false} className={cardClassName}>
         {content}
       </Link>
     );

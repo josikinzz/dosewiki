@@ -12,7 +12,9 @@ import { Icon } from "@/components/common/Icon";
 import { cn } from "@/lib/utils";
 import { stripCitationTokens } from "@/lib/citations/citationTokens";
 import usStateFlagMappings from "@/data/mappings/usStateFlagMappings.json";
-import { CANONICAL_LEGAL_STATUSES } from "@/schema/substance/shared";
+// Deep-import the Zod-free status type instead of `@/schema/substance/shared`,
+// which would drag the Zod graph into this client component's bundle.
+import type { CanonicalLegalStatus } from "@/schema/substance/legalStatuses";
 import { SUBSTANCE_SECTION_ICONS } from "@/schema/substance/sectionManifest";
 import { getCountryCode } from "@/utils/data/countryCodes";
 import type { CountryLegality, SubstanceArticle, USStateLegality } from "@/schema";
@@ -25,7 +27,6 @@ import { ArticleGapNotice } from "./ArticleGapNotice";
 // ============================================================================
 
 type StatusColor = "red" | "yellow" | "blue" | "green" | "gray";
-type CanonicalLegalStatus = (typeof CANONICAL_LEGAL_STATUSES)[number];
 
 const COLOR_CLASSES: Record<
   StatusColor,

@@ -92,6 +92,7 @@ function ArticleIndexRowItem({ article }: { article: ArticleIndexRow }) {
       <li className="theme-index-row">
         <Link
           href={href}
+          prefetch={false}
           className="theme-index-row-link group flex flex-wrap items-baseline gap-x-3 gap-y-1 rounded-xl px-3 py-2.5"
         >
           <span className="theme-accent-heading shrink-0 text-[0.9375rem] font-medium transition group-hover:opacity-90">
@@ -111,6 +112,7 @@ function ArticleIndexRowItem({ article }: { article: ArticleIndexRow }) {
     <li className="theme-index-row">
       <Link
         href={href}
+        prefetch={false}
         className="theme-index-row-link group block rounded-xl px-3 py-3"
       >
         <h3 className="theme-accent-heading text-lg font-semibold leading-snug transition group-hover:opacity-90">

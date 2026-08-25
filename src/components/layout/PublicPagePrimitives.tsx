@@ -243,6 +243,7 @@ export function ContributorCard({
   return (
     <Link
       href={href}
+      prefetch={false}
       className={cn(
         "theme-public-card theme-public-card-interactive group relative flex items-center gap-4 overflow-hidden rounded-2xl border p-4 theme-focus-ring",
         className,
@@ -378,7 +379,7 @@ export function TaxonomyGroupSection({
               {group.items.map((item) => (
                 <li key={item.id}>
                   <Button variant="listItem" size="listItem" asChild>
-                    <Link href={item.href} className="min-w-0">
+                    <Link href={item.href} prefetch={false} className="min-w-0">
                       <span className="theme-taxonomy-link-label min-w-0 break-words">
                         {item.label}
                       </span>
@@ -477,7 +478,7 @@ export function SearchResultCard({
         className,
       )}
     >
-      <Link href={result.href} className="min-w-0 max-w-full overflow-hidden">
+      <Link href={result.href} prefetch={false} className="min-w-0 max-w-full overflow-hidden">
         <div className="flex min-w-0 max-w-full flex-col gap-2 overflow-hidden">
           <div className="flex flex-wrap items-center gap-2">
             <PublicOverline>{result.typeLabel}</PublicOverline>

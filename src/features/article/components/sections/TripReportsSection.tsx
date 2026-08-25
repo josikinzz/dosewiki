@@ -151,6 +151,7 @@ const CompactReportRow = memo(function CompactReportRow({
     <li className="theme-report-index-row">
       <Link
         href={href}
+        prefetch={false}
         onClick={(event) => {
           if (!onSelectReport || !isPlainLeftClick(event)) {
             return;

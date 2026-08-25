@@ -204,6 +204,7 @@ export function EffectIndexHomePage({
                             family: "effect",
                             params: { effectSlug: effect.slug },
                           })}
+                          prefetch={false}
                           className={homePanelLinkClassName}
                         >
                           {effect.name}
@@ -299,6 +300,7 @@ export function EffectIndexHomePage({
                           family: "report",
                           params: { slug: report.slug },
                         })}
+                        prefetch={false}
                         className={homePanelLinkClassName}
                       >
                         {report.title}

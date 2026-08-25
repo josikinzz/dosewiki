@@ -244,6 +244,7 @@ export function PublicAttributionSection({
         {avatar && avatarHref ? (
           <Link
             href={avatarHref}
+            prefetch={false}
             className="theme-focus-ring relative z-20 shrink-0 rounded-full"
           >
             {avatar}

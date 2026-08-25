@@ -340,6 +340,7 @@ export function IntLink({
   return (
     <Link
       href={href}
+      prefetch={false}
       className="theme-accent-emphasis theme-accent-underline cursor-pointer underline underline-offset-[0.18em] transition-colors hover:text-dose-accent-soft"
     >
       {children}

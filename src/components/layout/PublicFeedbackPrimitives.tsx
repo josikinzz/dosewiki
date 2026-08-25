@@ -443,7 +443,7 @@ export function ArticleContributorAttribution({
       {author}
     </a>
   ) : (
-    <Link href={authorHref} className={authorLinkClassName}>
+    <Link href={authorHref} prefetch={false} className={authorLinkClassName}>
       {author}
     </Link>
   );

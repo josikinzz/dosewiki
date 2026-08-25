@@ -13,7 +13,7 @@ import {
   getCreatorByline,
   hasKnownCreator,
 } from "@/features/effects/components/replicationCredit";
-import type { ShowcaseWork } from "@/features/replications/components/showcaseModel";
+import type { ShowcaseWork } from "@/features/replications/components/showcaseWork";
 import type { GalleryMatch } from "./substanceGalleryPortalModel";
 import { sortByMediaRank } from "@/features/replications/mediaRank";
 

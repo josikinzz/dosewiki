@@ -66,6 +66,7 @@ function EffectLongSummary({ effect }: { effect: CategoryEffect }) {
       <h3 className="text-xl font-semibold tracking-tight">
         <Link
           href={publicHref.effect(effect.slug)}
+          prefetch={false}
           className="group/effect theme-accent-heading theme-focus-ring inline-flex items-center gap-2 transition-opacity hover:opacity-85"
         >
           <span className="min-w-0 break-words">{effect.name}</span>

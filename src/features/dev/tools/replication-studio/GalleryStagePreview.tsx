@@ -19,7 +19,7 @@ import { Button } from "@/components/ui/button";
 import { EmptyStateSurface } from "@/components/ui/surface";
 import { EditorSection, EditorStatusPill } from "@/features/dev/components";
 import { ReplicationShowcase } from "@/features/replications/components/ReplicationShowcase";
-import { SHOWCASE_WORK_CAP } from "@/features/replications/components/showcaseModel";
+import { SHOWCASE_WORK_CAP } from "@/features/replications/components/showcaseWork";
 import { previewWorksFromMatches } from "./galleryPreviewModel";
 import type { GalleryMatch } from "./substanceGalleryPortalModel";
 

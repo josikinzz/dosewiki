@@ -61,6 +61,7 @@ export default async function ReplicationAudioPage() {
                   contextLabel={
                     <Link
                       href={`/effects/${entry.effectSlug}`}
+                      prefetch={false}
                       className="theme-accent-heading theme-focus-ring text-xs font-medium transition hover:opacity-90"
                     >
                       {entry.effectName}

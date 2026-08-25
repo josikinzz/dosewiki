@@ -32,7 +32,7 @@ import {
   dismissViewerDeepLinkCover,
   ViewerDeepLinkCover,
 } from "@/features/replications/ViewerDeepLinkCover";
-import type { ShowcaseWork } from "./showcaseModel";
+import type { ShowcaseWork } from "./showcaseWork";
 
 /**
  * The autoplay gate's viewport half. Where IntersectionObserver does not
@@ -539,6 +539,9 @@ export function ReplicationShowcase({
                   alt={active.title}
                   width={1280}
                   height={800}
+                  /* The stage is aspect-video capped at 380px tall, so the
+                     poster never paints wider than ~676px. */
+                  sizes="(max-width: 768px) 100vw, 680px"
                   className="absolute inset-0 h-full w-full object-contain"
                 />
               ) : (

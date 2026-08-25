@@ -8,7 +8,7 @@ import { ReplicationShowcase } from "@/features/replications/components/Replicat
 import {
   SHOWCASE_WORK_CAP,
   type ShowcaseWork,
-} from "@/features/replications/components/showcaseModel";
+} from "@/features/replications/components/showcaseWork";
 import type { ReplicationWithUrl } from "@/types/replications";
 import { sortByMediaRank } from "@/features/replications/mediaRank";
 
