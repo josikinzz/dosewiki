@@ -42,7 +42,7 @@ const REPORT_PATH = path.join(
 );
 const READ_CONCURRENCY = 12;
 const AUDITED_DIRECT_ASSOCIATIONS = new Map([
-  ["salvia", ["bend-like-us-salviadroid", "seers-portal-salviadroid"]],
+  ["salvia", ["the-clockwork-suburb-salviadroid", "seers-portal-salviadroid"]],
 ]);
 
 function stableObject(value) {

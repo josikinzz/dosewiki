@@ -163,15 +163,18 @@ export function titleDrugClassesOf(row: SubstanceGalleryMatchableRow): Replicati
   return classes;
 }
 
+const COMPACT_COMBINATION_TITLE_PATTERNS = [/\blsdxm\b/iu];
+
 /**
- * A combination is either multiple distinct specific drugs or, when no drug is
- * named, multiple broad classes. Repeated aliases for one route (DPH/Benadryl,
- * DMT/dimethyltryptamine) remain one substance.
+ * A combination is multiple distinct specific drugs, a class-only cross-class
+ * work, or one of the reviewed compact labels that can predate corrected title
+ * taxonomy. Repeated aliases for one route remain one substance.
  *
- * `showcase_excluded` is a second, editorially reviewed guard for combinations
- * whose compact or credit-bearing titles defeated title extraction.
+ * `showcase_excluded` is the editorial guard for other titles that defeat
+ * deterministic extraction.
  */
 export function isCombinationReplication(row: SubstanceGalleryMatchableRow): boolean {
+  if (COMPACT_COMBINATION_TITLE_PATTERNS.some((pattern) => pattern.test(row.title))) return true;
   const routes = titleDrugRoutesOf(row);
   if (routes.length > 1) return true;
   return routes.length === 0 && titleDrugClassesOf(row).length > 1;

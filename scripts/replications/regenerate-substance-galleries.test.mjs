@@ -49,7 +49,7 @@ const REPlications = [
   row("dph-image", { title_drugs: [DPH] }),
   row("salvia-image", { title_drugs: [SALVIA] }),
   row("salvia-video", { type: "video", title_drugs: [SALVIA] }),
-  row("bend-like-us-salviadroid", { artist: "Salviadroid" }),
+  row("the-clockwork-suburb-salviadroid", { artist: "Salviadroid" }),
   row("seers-portal-salviadroid", { artist: "Salviadroid" }),
   row("untagged-salviadroid", { artist: "Salviadroid" }),
   row("lsd-image", { title_drugs: [LSD] }),
@@ -104,7 +104,7 @@ describe("planGalleryRegeneration", () => {
       galleriesBySubstance: new Map([
         ["salvia", gallery([
           "salvia-image",
-          "bend-like-us-salviadroid",
+          "the-clockwork-suburb-salviadroid",
           "seers-portal-salviadroid",
           "untagged-salviadroid",
         ])],
@@ -114,7 +114,7 @@ describe("planGalleryRegeneration", () => {
     expect(plan.next.curated_slugs).toEqual([
       "salvia-video",
       "salvia-image",
-      "bend-like-us-salviadroid",
+      "the-clockwork-suburb-salviadroid",
       "seers-portal-salviadroid",
     ]);
     expect(plan.dropped_priorities.map((entry) => entry.slug)).toEqual(["untagged-salviadroid"]);

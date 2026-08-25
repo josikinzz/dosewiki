@@ -103,6 +103,16 @@ describe("title drug identity", () => {
     expect(isCombinationReplication(counterflip)).toBe(true);
   });
 
+  it("recognizes the reviewed LSDXM portmanteau even before taxonomy repair", () => {
+    const compact = row({
+      slug: "lsdxm",
+      title: "LSDXM Replication (Song: How much is weed)",
+      title_drugs: [drug("cannabis", "other")],
+    });
+    expect(isCombinationReplication(compact)).toBe(true);
+    expect(isShowcaseEligible(compact)).toBe(false);
+  });
+
   it("treats a class-only cross-class work as a combination", () => {
     expect(
       isCombinationReplication(
