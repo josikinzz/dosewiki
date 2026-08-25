@@ -1,5 +1,14 @@
 import { v } from "convex/values";
 import { replicationDateInfo } from "./replicationDateValidators";
+import {
+  drugClassValidator,
+  replicationStatusValidator,
+  taxonomyConfidenceValidator,
+  titleClassMentionValidator,
+  titleDrugValidator,
+  viewingModeTagValidator,
+  viewingModeValidator,
+} from "./replicationTaxonomyValidators";
 
 const replicationRightsStatus = v.union(
   v.literal("creator-retained"),
@@ -198,6 +207,25 @@ export const replication = v.object({
    * on top of the tags.
    */
   effect_tags: v.optional(v.array(v.string())),
+  /** Stable ID of the reviewed local catalog row that supplied this taxonomy. */
+  source_catalog_id: v.optional(v.string()),
+  /** Editorial judgment used by replication publication and gallery filters. */
+  replication_status: v.optional(replicationStatusValidator),
+  replication_status_confidence: v.optional(taxonomyConfidenceValidator),
+  replication_status_review_required: v.optional(v.boolean()),
+  /** Open-eye and closed-eye are both present when viewing_mode is mixed. */
+  viewing_mode: v.optional(viewingModeValidator),
+  viewing_mode_tags: v.optional(v.array(viewingModeTagValidator)),
+  viewing_mode_confidence: v.optional(taxonomyConfidenceValidator),
+  viewing_mode_review_required: v.optional(v.boolean()),
+  /** Drug associations are title-only; no visual inference is stored here. */
+  title_drugs: v.optional(v.array(titleDrugValidator)),
+  title_class_mentions: v.optional(v.array(titleClassMentionValidator)),
+  drug_classes: v.optional(v.array(drugClassValidator)),
+  taxonomy_review_required: v.optional(v.boolean()),
+  taxonomy_version: v.optional(v.number()),
+  taxonomy_source_digest: v.optional(v.string()),
+  taxonomy_updated_at: v.optional(v.number()),
   ...replicationRightsFields,
 });
 
