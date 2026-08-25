@@ -11,6 +11,7 @@ import {
 } from "@/lib/citations/citationTokens";
 import { cn } from "@/lib/utils";
 import type { SubstanceArticle } from "@/schema";
+import { SUBSTANCE_SECTION_ICONS } from "@/schema/substance/sectionManifest";
 import { isPlainLeftClick } from "@/utils/navigation";
 import { publicHref } from "@/utils/publicHref";
 import { EditableSlot, EditableValue } from "../../editing";
@@ -248,7 +249,7 @@ export const PharmacologySection = memo(function PharmacologySection({
   return (
     <ArticleSection
       id="pharmacology"
-      icon="mingcute:settings-6-line"
+      icon={SUBSTANCE_SECTION_ICONS["pharmacology"]}
       heading="Pharmacology"
     >
       {hasPharmacodynamics && (

@@ -6,6 +6,7 @@ import { ExpandButton } from "@/components/common/ExpandButton";
 import { Icon, type IconName } from "@/components/common/Icon";
 import { PublicNameChip } from "@/components/common/PublicTokens";
 import type { SubstanceArticle } from "@/schema";
+import { SUBSTANCE_SECTION_ICONS } from "@/schema/substance/sectionManifest";
 import { isPlainLeftClick } from "@/utils/navigation";
 import { slugify } from "@/utils/slug";
 import { CitedText } from "../CitedText";
@@ -254,7 +255,7 @@ export const InteractionsSection = memo(function InteractionsSection({
   return (
     <ArticleSection
       id="interactions"
-      icon="lucide:blend"
+      icon={SUBSTANCE_SECTION_ICONS["interactions"]}
       heading="Interactions"
       headerClassName="theme-accent-icon-scope"
     >

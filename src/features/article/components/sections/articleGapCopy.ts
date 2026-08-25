@@ -1,6 +1,6 @@
-import type { IconName } from "@/components/common/Icon";
 import type { SectionGapNeighbour, SectionGapReason, SubstanceArticle } from "@/schema";
 import type { ArticleStubVerdict } from "@/schema/substance/articleStubPolicy";
+import type { SubstanceSectionId } from "@/schema/substance/sectionManifest";
 
 /**
  * Wording and policy for sections that have no published content.
@@ -21,12 +21,15 @@ import type { ArticleStubVerdict } from "@/schema/substance/articleStubPolicy";
 export type NeighbourStyle = "hedge" | "pointer" | "none";
 
 export interface ArticleGapPolicy {
-  /** Section id, matching the public renderer and the TOC anchor. */
-  id: string;
+  /**
+   * Section id, matching the public renderer and the TOC anchor. The notice
+   * heading takes its glyph from the catalog entry under this id, so an empty
+   * section and a filled one show the same icon.
+   */
+  id: SubstanceSectionId;
   /** Key under `section_gaps.sections`, matching the quote-section ids. */
   gapKey: string;
   label: string;
-  icon: IconName;
   /** Lowercase noun used mid-sentence. */
   topic: string;
   /** Whether `topic` takes a plural verb — "subjective effects are", "tolerance is". */
@@ -47,7 +50,6 @@ export const ARTICLE_GAP_POLICIES = {
     id: "dosage-duration",
     gapKey: "dosage_duration",
     label: "Dosage & Duration",
-    icon: "lucide:chart-no-axes-combined",
     topic: "dosage or duration",
     neighbourStyle: "pointer",
     caution: "Dose ranges do not transfer between analogues. Do not infer one from these.",
@@ -56,7 +58,6 @@ export const ARTICLE_GAP_POLICIES = {
     id: "subjective-effects",
     gapKey: "subjective_effects",
     label: "Subjective Effects",
-    icon: "lucide:sparkles",
     topic: "subjective effects",
     pluralTopic: true,
     neighbourStyle: "hedge",
@@ -65,7 +66,6 @@ export const ARTICLE_GAP_POLICIES = {
     id: "pharmacology",
     gapKey: "pharmacology",
     label: "Pharmacology",
-    icon: "mingcute:settings-6-line",
     topic: "pharmacology",
     neighbourStyle: "hedge",
   },
@@ -73,7 +73,6 @@ export const ARTICLE_GAP_POLICIES = {
     id: "interactions",
     gapKey: "interactions",
     label: "Interactions",
-    icon: "lucide:blend",
     topic: "interaction",
     // Combination risk is a property of the pair, not of the chemical class, so
     // a neighbour's combo chart says nothing about this one. The absence is the
@@ -86,7 +85,6 @@ export const ARTICLE_GAP_POLICIES = {
     id: "tolerance",
     gapKey: "tolerance",
     label: "Tolerance",
-    icon: "lucide:trending-up",
     topic: "tolerance",
     neighbourStyle: "hedge",
   },
@@ -94,7 +92,6 @@ export const ARTICLE_GAP_POLICIES = {
     id: "harm-potential",
     gapKey: "harm_potential",
     label: "Harm Potential",
-    icon: "lucide:ambulance",
     topic: "harm potential",
     neighbourStyle: "pointer",
     caution: "An absence of harm data is not evidence of safety.",
@@ -103,7 +100,6 @@ export const ARTICLE_GAP_POLICIES = {
     id: "history-culture",
     gapKey: "history_culture",
     label: "History & Culture",
-    icon: "lucide:book-open",
     topic: "history",
     neighbourStyle: "none",
   },
@@ -111,7 +107,6 @@ export const ARTICLE_GAP_POLICIES = {
     id: "legality",
     gapKey: "legality",
     label: "Legality",
-    icon: "lucide:scale",
     topic: "legal status",
     neighbourStyle: "pointer",
     caution: "Legal status is jurisdictional and is not predicted by chemical class.",

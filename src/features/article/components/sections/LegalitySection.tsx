@@ -13,6 +13,7 @@ import { cn } from "@/lib/utils";
 import { stripCitationTokens } from "@/lib/citations/citationTokens";
 import usStateFlagMappings from "@/data/mappings/usStateFlagMappings.json";
 import { CANONICAL_LEGAL_STATUSES } from "@/schema/substance/shared";
+import { SUBSTANCE_SECTION_ICONS } from "@/schema/substance/sectionManifest";
 import { getCountryCode } from "@/utils/data/countryCodes";
 import type { CountryLegality, SubstanceArticle, USStateLegality } from "@/schema";
 import { buildFieldPath, EditableSlot, EditableValue } from "../../editing";
@@ -614,7 +615,7 @@ export const LegalitySection = memo(function LegalitySection({
   return (
     <ArticleSection
       id="legality"
-      icon="lucide:scale"
+      icon={SUBSTANCE_SECTION_ICONS["legality"]}
       heading="Legality"
     >
       {/* International */}

@@ -2,6 +2,7 @@
 
 import { memo } from "react";
 import type { SubstanceArticle } from "@/schema";
+import { SUBSTANCE_SECTION_ICONS } from "@/schema/substance/sectionManifest";
 import {
   ArticleSection,
 } from "@/components/common/ArticleSection";
@@ -59,7 +60,7 @@ export const HarmPotentialSection = memo(function HarmPotentialSection({
   return (
     <ArticleSection
       id="harm-potential"
-      icon="lucide:ambulance"
+      icon={SUBSTANCE_SECTION_ICONS["harm-potential"]}
       heading="Harm Potential"
     >
       {harmPotentialSummary && (

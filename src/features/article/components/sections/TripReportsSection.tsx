@@ -12,7 +12,7 @@ import {
   type PreparedSubstanceTripReports,
 } from "@/features/reports/domain/tripReportIndex";
 import type { TripReport } from "@/types/tripReport";
-import { icons } from "@/utils/iconNames";
+import { SUBSTANCE_SECTION_ICONS } from "@/schema/substance/sectionManifest";
 import { isPlainLeftClick } from "@/utils/navigation";
 import { publicHref } from "@/utils/publicHref";
 
@@ -55,7 +55,7 @@ export const TripReportsSection = memo(function TripReportsSection({
   return (
     <ArticleSection
       id="trip-reports"
-      icon={icons.fileSignature}
+      icon={SUBSTANCE_SECTION_ICONS["trip-reports"]}
       heading="Trip Reports"
     >
       <ExpandableList

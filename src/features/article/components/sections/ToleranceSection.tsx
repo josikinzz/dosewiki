@@ -8,6 +8,7 @@ import {
 } from "@/components/common/ArticleSection";
 import type { IconName } from "@/components/common/Icon";
 import type { SubstanceArticle } from "@/schema";
+import { SUBSTANCE_SECTION_ICONS } from "@/schema/substance/sectionManifest";
 import { EditableSlot, EditableValue, buildFieldPath } from "../../editing";
 import { ArticleText, CitedText } from "../CitedText";
 import { ArticleGapNotice } from "./ArticleGapNotice";
@@ -50,7 +51,7 @@ export const ToleranceSection = memo(function ToleranceSection({
   }
 
   return (
-    <ArticleSection id="tolerance" icon="lucide:trending-up" heading="Tolerance">
+    <ArticleSection id="tolerance" icon={SUBSTANCE_SECTION_ICONS["tolerance"]} heading="Tolerance">
       {/* Above the grid, and outside the masonry: the caveat qualifies every
           timing in the section, and Masonry hands its children to columns by
           index, so anything conditional inside it would move which card lands

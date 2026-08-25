@@ -4,6 +4,7 @@ import { Fragment, memo, useState, type ReactNode } from "react";
 import { ExpandButton } from "@/components/common/ExpandButton";
 import { Icon } from "@/components/common/Icon";
 import type { SubstanceArticle } from "@/schema";
+import { SUBSTANCE_SECTION_ICONS } from "@/schema/substance/sectionManifest";
 import { ArticleSection, ArticleSubsectionCard } from "@/components/common/ArticleSection";
 import { articleSectionAdornmentClassName } from "@/components/common/articleSectionLayout";
 import { cn } from "@/lib/utils";
@@ -180,7 +181,7 @@ export const HistoryCultureSection = memo(function HistoryCultureSection({
   return (
     <ArticleSection
       id="history-culture"
-      icon="lucide:book-open"
+      icon={SUBSTANCE_SECTION_ICONS["history-culture"]}
       heading="History & Culture"
     >
       {hasContent && sections.length > 0 && (

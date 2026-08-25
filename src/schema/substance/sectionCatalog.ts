@@ -1,6 +1,7 @@
 import type { IconName } from "@/components/common/Icon";
 import type { SectionMeta as SchemaSectionMeta } from "@/data/schema/types";
 import { hasProjectedSubstanceCitations } from "@/lib/citations/substanceCitationCompatibility";
+import { icons } from "@/utils/iconNames";
 import { hasDosageDurationContent } from "./dosageDurationPresence";
 import {
   hasHarmPotentialContent,
@@ -308,7 +309,9 @@ export const ARTICLE_SECTION_CATALOG = [
   {
     id: "subjective-effects",
     label: "Subjective Effects",
-    icon: "lucide:sparkles",
+    // Same glyph the Effects nav item uses (`routeChromeIcons`), so the TOC,
+    // the header and the section heading all show one icon for this subject.
+    icon: icons.subjectiveEffectIndex,
     articleFields: ["subjective_effects", "comparisons"],
     editor: { visible: true, adapter: "SubjectiveEffectsFieldsRHF", order: 5 },
     public: {
@@ -595,7 +598,7 @@ export const ARTICLE_SECTION_CATALOG = [
   {
     id: "trip-reports",
     label: "Trip Reports",
-    icon: "hugeicons:content-writing",
+    icon: icons.fileSignature,
     articleFields: [],
     editor: { visible: false },
     public: {
@@ -654,7 +657,8 @@ export const ARTICLE_SECTION_CATALOG = [
   {
     id: "sources",
     label: "Sources",
-    icon: "lucide:library",
+    // The rendered heading is "References", numbered — not a shelf of sources.
+    icon: icons.listOrdered,
     articleFields: ["references", "source_citations", "citations"],
     editor: { visible: true, adapter: "SourceCitationsFieldsRHF", order: 13 },
     public: {

@@ -4,7 +4,7 @@ import { memo, useState, type ReactNode } from "react";
 import { ArticleContributorAttribution } from "@/components/layout/PublicFeedbackPrimitives";
 import { Icon } from "@/components/common/Icon";
 import type { SubstanceArticle } from "@/schema";
-import { icons } from "@/utils/iconNames";
+import { SUBSTANCE_SECTION_ICONS } from "@/schema/substance/sectionManifest";
 import {
   ArticleSection,
   ArticleSectionGroup,
@@ -132,7 +132,7 @@ export const SubjectiveEffectsSection = memo(function SubjectiveEffectsSection({
   return (
     <ArticleSection
       id="subjective-effects"
-      icon={icons.subjectiveEffectIndex}
+      icon={SUBSTANCE_SECTION_ICONS["subjective-effects"]}
       heading="Subjective Effects"
     >
       {/* The stub notice qualifies everything below it, so it leads the section

@@ -12,6 +12,7 @@ import {
   routeHasDurationContent,
 } from "@/schema";
 import { ArticleSection } from "@/components/common/ArticleSection";
+import { SUBSTANCE_SECTION_ICONS } from "@/schema/substance/sectionManifest";
 import { normalizeRouteName } from "../../../../../lib/article/normalization.mjs";
 import { DosagePanel } from "./dosageDurationPlateau";
 import {
@@ -175,7 +176,7 @@ export const DosageDurationSection = memo(function DosageDurationSection({
   return (
     <ArticleSection
       id="dosage-duration"
-      icon="lucide:chart-no-axes-combined"
+      icon={SUBSTANCE_SECTION_ICONS["dosage-duration"]}
       heading="Dosage & Duration"
     >
       <Tabs value={activeRoute} onValueChange={setActiveRoute} className="w-full">

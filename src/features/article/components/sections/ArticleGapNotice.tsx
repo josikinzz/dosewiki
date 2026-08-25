@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import type { SectionGapNeighbour, SubstanceArticle } from "@/schema";
 import { getArticleStubVerdict } from "@/schema/substance/articleStubPolicy";
+import { SUBSTANCE_SECTION_ICONS } from "@/schema/substance/sectionManifest";
 import {
   ARTICLE_GAP_ORDER,
   ARTICLE_GAP_POLICIES,
@@ -80,7 +81,11 @@ export const ArticleGapNotice = memo(function ArticleGapNotice({
   const closingNote = [copy.caution, copy.lookElsewhere].filter(Boolean).join(" ");
 
   return (
-    <ArticleSection id={policy.id} icon={policy.icon} heading={policy.label}>
+    <ArticleSection
+      id={policy.id}
+      icon={SUBSTANCE_SECTION_ICONS[policy.id]}
+      heading={policy.label}
+    >
       <div className="theme-article-subsection-card rounded-2xl border px-4 py-3">
         <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
           <span className="flex min-w-0 items-center gap-3">

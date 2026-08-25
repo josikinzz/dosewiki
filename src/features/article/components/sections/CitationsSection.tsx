@@ -8,6 +8,7 @@ import {
   type CitationBacklink,
 } from "@/components/common/ReferenceList";
 import type { SubstanceArticle } from "@/schema";
+import { SUBSTANCE_SECTION_ICONS } from "@/schema/substance/sectionManifest";
 import { CITE_TOKEN_PATTERN } from "@/lib/citations/citationTokens";
 import {
   projectSubstanceCitations,
@@ -236,7 +237,7 @@ export const CitationsSection = memo(function CitationsSection({
   return (
     <ArticleSection
       id="sources"
-      icon="lucide:list-ordered"
+      icon={SUBSTANCE_SECTION_ICONS["sources"]}
       heading="References"
     >
       {groups.map(({ group, icon, key }) => (

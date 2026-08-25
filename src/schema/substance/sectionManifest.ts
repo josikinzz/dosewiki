@@ -12,13 +12,25 @@ export {
   type SubstanceSectionPresenceContext,
 } from "./sectionCatalog";
 
+import type { IconName } from "@/components/common/Icon";
+
 import {
   getSubstanceSectionManifestEntries,
+  type SubstanceSectionId,
   type SubstanceSectionManifestEntry,
 } from "./sectionCatalog";
 
 export const SUBSTANCE_SECTION_MANIFEST: readonly SubstanceSectionManifestEntry[] =
   getSubstanceSectionManifestEntries();
+
+/**
+ * Section id → heading glyph. The table of contents reads its icons from the
+ * same entries (`getPublicTocSectionEntries`), so a renderer that takes its
+ * heading icon from here cannot drift out of sync with its own TOC row.
+ */
+export const SUBSTANCE_SECTION_ICONS = Object.fromEntries(
+  SUBSTANCE_SECTION_MANIFEST.map((entry) => [entry.id, entry.icon]),
+) as Record<SubstanceSectionId, IconName>;
 
 /**
  * Sections that render a gap notice rather than disappearing when they have no

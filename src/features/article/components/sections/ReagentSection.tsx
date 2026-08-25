@@ -7,6 +7,7 @@ import { useReagentData } from "@/hooks/useReagentData";
 import { buildArticleChemistryPresentation } from "@/data/builders/articleChemistryPresentation";
 import type { ArticleChemistryPresentation } from "@/data/builders/articleChemistryPresentation";
 import { ArticleSection } from "@/components/common/ArticleSection";
+import { SUBSTANCE_SECTION_ICONS } from "@/schema/substance/sectionManifest";
 import { ArticleText } from "../CitedText";
 import {
   reagentDataToDisplayEntries,
@@ -142,7 +143,7 @@ export const ReagentSection = memo(function ReagentSection({
     return (
       <ArticleSection
         id="reagent-testing"
-        icon="lucide:pipette"
+        icon={SUBSTANCE_SECTION_ICONS["reagent-testing"]}
         heading="Reagent Testing"
       >
         <ArticleSection.State
@@ -164,7 +165,7 @@ export const ReagentSection = memo(function ReagentSection({
   return (
     <ArticleSection
       id="reagent-testing"
-      icon="lucide:pipette"
+      icon={SUBSTANCE_SECTION_ICONS["reagent-testing"]}
       heading="Reagent Testing"
     >
       <ArticleText cited={false} tone="muted">
