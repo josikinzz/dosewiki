@@ -262,6 +262,27 @@
       "refreshCommand": "No routine refresh; generated only by a confirmed bun scripts/contributors/generate-avatars-from-replications.ts --write run"
     },
     {
+      "id": "contributor-avatar-wild-sources",
+      "path": "src/data/config/contributorAvatarWildSources.json",
+      "role": "generated-provenance-manifest",
+      "producer": "scripts/contributors/import-avatars-from-the-wild.ts",
+      "consumers": [
+        "avatar provenance review",
+        "artist takedown and misattribution response"
+      ],
+      "inputs": [
+        "production contributorProfiles and replication artist credit lines",
+        "researched per-artist findings file (account, avatar URL, identity evidence)",
+        "the artist's own published profile image bytes"
+      ],
+      "freshnessRule": "Point-in-time provenance emitted with the installed avatar files. Preserve it with those files; every avatar taken from an artist's own account must keep its account, evidence and license record here so a removal request can be honoured.",
+      "sourceDeployment": "TARGET_CONVEX_URL or CONVEX_PUBLIC_READ_URL (production read required by the workflow)",
+      "targetDeployment": "TARGET_CONVEX_URL selected by the guarded avatar import command",
+      "schemaVersion": "scripts/contributors/import-avatars-from-the-wild.ts",
+      "editPolicy": "do-not-edit-by-hand",
+      "refreshCommand": "No routine refresh; generated only by a confirmed bun scripts/contributors/import-avatars-from-the-wild.ts --write run"
+    },
+    {
       "id": "contributor-identity-corrections",
       "path": "src/data/config/contributorIdentityCorrections.json",
       "role": "reviewed-identity-decisions",

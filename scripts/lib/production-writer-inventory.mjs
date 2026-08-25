@@ -8,6 +8,7 @@ export const productionWriterClassifications = Object.freeze({
     "scripts/convex/copy-prodrug-subjective-effects.mjs",
     "scripts/contributors/backfill-article-author-profile-keys.mjs",
     "scripts/contributors/generate-avatars-from-replications.ts",
+    "scripts/contributors/import-avatars-from-the-wild.ts",
     "scripts/contributors/repair-loka-attribution.mjs",
     "scripts/contributors/seed-marker-contributor-profiles.mjs",
     "scripts/contributors/seed-credited-identities.mjs",
