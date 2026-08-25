@@ -1266,37 +1266,6 @@
       "fetchedAt": "2026-08-24T23:48:57.803Z"
     },
     {
-      "profileKey": "JOSIE",
-      "displayName": "Josie Kins",
-      "avatarUrl": "/profile-avatars/josie/avatar.webp",
-      "source": {
-        "platform": "own site",
-        "sourcePage": "https://www.josiekins.xyz/",
-        "imageUrl": "https://josiekins.xyz/images/shared/avatar.webp",
-        "evidence": "Her own linked site josiekins.xyz serves this file as its og:image and the path is literally /images/shared/avatar.webp; it is her illustrated self-portrait (cat ears, glasses, eye-pattern background). Unsigned/permanent.",
-        "license": null,
-        "confidence": "high",
-        "sourceWidth": 500,
-        "sourceHeight": 500
-      },
-      "replaced": "other-image",
-      "creditLines": [
-        "Josie Kins",
-        "Josikins"
-      ],
-      "aliasesAdded": [
-        "josikins"
-      ],
-      "output": {
-        "width": 256,
-        "height": 256,
-        "format": "webp",
-        "crop": "centre-square",
-        "bytes": 17130
-      },
-      "fetchedAt": "2026-08-24T23:48:57.803Z"
-    },
-    {
       "profileKey": "KVISUALS",
       "displayName": "k visuals",
       "avatarUrl": "/profile-avatars/kvisuals/avatar.webp",

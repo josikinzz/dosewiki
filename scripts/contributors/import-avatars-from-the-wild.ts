@@ -62,6 +62,10 @@
  *   bun scripts/contributors/import-avatars-from-the-wild.ts --findings=/tmp/findings.json \
  *     --preview-dir=/tmp/wild-avatars
  *
+ * A profile whose avatar was chosen deliberately (neither an artwork crop nor
+ * absent) is left alone and reported. Add `--replace-chosen-avatars` only when
+ * you mean to overrule somebody's pick.
+ *
  * Apply (repo files, manifests, and the production profile rows):
  *   TARGET_CONVEX_URL=https://glad-minnow-656.convex.cloud \
  *   bun scripts/contributors/import-avatars-from-the-wild.ts --findings=/tmp/findings.json \
@@ -222,12 +226,49 @@ async function main() {
     ),
   );
 
-  const { plan, skipped } = buildWildAvatarPlan({
+  // Avatars this producer installed on an earlier run are ours to refresh; the
+  // guard below is about pictures somebody else picked.
+  const wildKeys = new Set<string>(
+    fs.existsSync(WILD_MANIFEST_PATH)
+      ? (
+          JSON.parse(fs.readFileSync(WILD_MANIFEST_PATH, "utf8")).avatars ?? []
+        ).map((entry: { profileKey: string }) =>
+          normalizeProfileKey(entry.profileKey),
+        )
+      : [],
+  );
+
+  const { plan: resolved, skipped } = buildWildAvatarPlan({
     findings,
     profiles,
     replications,
     artworkKeys,
     mergeGroups,
+  });
+
+  /**
+   * An avatar somebody already chose is not a stand-in.
+   *
+   * This script exists to replace the squares a script cut out of artists'
+   * artwork, and profiles with no avatar at all. A profile carrying anything
+   * else had its picture picked deliberately, and replacing that is a judgement
+   * call rather than a migration: Josie Kins' portrait was overwritten that way
+   * once, which is why this gate exists. Those are reported and left alone
+   * unless the run explicitly asks for them.
+   *
+   * An avatar this producer installed is not somebody else's pick, so a re-run
+   * still refreshes its own work without the flag.
+   */
+  const replacesChosen = argv.includes("--replace-chosen-avatars");
+  const plan = resolved.filter((entry) => {
+    const foreign =
+      entry.replaces === "other-image" && !wildKeys.has(entry.key);
+    if (!foreign || replacesChosen) return true;
+    skipped.push({
+      finding: entry.finding,
+      reason: `${entry.key} already has a chosen avatar (${entry.profile?.avatarUrl}); pass --replace-chosen-avatars to override`,
+    });
+    return false;
   });
 
   log();
