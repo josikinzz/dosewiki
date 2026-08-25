@@ -357,7 +357,6 @@ function GalleryExplorer({
 
   const taxonomyFilters = useMemo<GalleryTaxonomyFilterState>(
     () => ({
-      status: browse.status,
       viewing: browse.viewing,
       artistType: browse.artistType,
       effect: browse.effect,
@@ -366,7 +365,6 @@ function GalleryExplorer({
       family: browse.family,
     }),
     [
-      browse.status,
       browse.viewing,
       browse.artistType,
       browse.effect,

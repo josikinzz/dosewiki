@@ -1103,14 +1103,16 @@ export function ReplicationViewerOverlay({
                   )}
                 >
                   {active.avatarUrl ? (
-                    <AppImage
-                      src={active.avatarUrl}
-                      alt=""
-                      width={72}
-                      height={72}
-                      unoptimized
-                      className="size-7 shrink-0 rounded-full object-cover sm:size-9"
-                    />
+                    <RotatingIcon rotated={stageRotated} className="shrink-0">
+                      <AppImage
+                        src={active.avatarUrl}
+                        alt=""
+                        width={72}
+                        height={72}
+                        unoptimized
+                        className="size-7 rounded-full object-cover sm:size-9"
+                      />
+                    </RotatingIcon>
                   ) : null}
                   <span className="max-w-[8rem] truncate sm:max-w-[16rem]">
                     {artistLabel}

@@ -171,13 +171,14 @@ export function ReplicationMediaStage({
   const [audioPresence, setAudioPresence] = useState<AudioPresence>(
     knownAudio === true ? "present" : "unknown",
   );
-  const { canRotate, rotated, probeAspect, mediaAspect } = useStageFit({
-    mediaKey: replication.slug,
-    type: replication.type,
-    rotateMode,
-    width: replication.width,
-    height: replication.height,
-  });
+  const { canRotate, rotated, probeAspect, mediaAspect, aspectSettled } =
+    useStageFit({
+      mediaKey: replication.slug,
+      type: replication.type,
+      rotateMode,
+      width: replication.width,
+      height: replication.height,
+    });
   // Rotate-to-fit geometry: the media element alone turns 90° and swaps its
   // box to the stage's cross dimensions (container-query units resolved
   // against the stage section), so a landscape work fills the portrait
@@ -186,6 +187,13 @@ export function ReplicationMediaStage({
   const mediaGeometryClassName = rotated
     ? "left-1/2 top-1/2 h-[100cqw] w-[100cqh] max-w-none -translate-x-1/2 -translate-y-1/2 rotate-90"
     : "inset-0 h-full w-full";
+  // A work with no catalogued dimensions starts on a guessed aspect, so its
+  // rotation decision may still flip when the runtime probe lands. Painting
+  // that guess would flash the wrong orientation: hold the media invisible —
+  // opacity only, decode and autoplay keep running — and reveal it in its
+  // settled orientation. The reveal is instant (no opacity transition), so
+  // reduced motion needs no special casing.
+  const orientationPending = canRotate && rotateMode && !aspectSettled;
   // The overlay leans its own chrome (settings menu, thumbnail rail) with
   // the stage, so it learns each work's derived rotation as it settles.
   useEffect(() => {
@@ -338,6 +346,25 @@ export function ReplicationMediaStage({
     return true;
   }, []);
 
+  /**
+   * Attach the stage's media element and stamp the shared sound choice
+   * before its load task runs — mobile autoplay policies read the muted
+   * flag at load time, ahead of React's post-mount property sync.
+   * Deliberately identity-stable and reading through the ref: an inline
+   * callback re-runs on every re-render and would force `muted` back onto
+   * the element, answering an outstanding sound IOU with an out-of-gesture
+   * unmute — which WebKit punishes by pausing playback. After mount, the
+   * element's muted flag belongs to the guarded sync effect and the
+   * gesture handlers alone.
+   */
+  const attachVideo = useCallback((node: HTMLVideoElement | null) => {
+    videoRef.current = node;
+    if (node) {
+      node.defaultMuted = mutedRef.current;
+      node.muted = mutedRef.current;
+    }
+  }, []);
+
   useEffect(() => {
     const video = videoRef.current;
     if (!video) return;
@@ -408,28 +435,55 @@ export function ReplicationMediaStage({
     [replication.duration],
   );
 
-  /** One direct-DOM write moves both the accent fill and its thumb. */
-  const paintPlayhead = useCallback((ratio: number) => {
-    const fill = progressFillRef.current;
-    if (fill) fill.style.transform = `scaleX(${ratio})`;
-    const thumb = progressThumbRef.current;
-    if (thumb) thumb.style.left = `${ratio * 100}%`;
-  }, []);
+  /**
+   * One direct-DOM write moves both the accent fill and its thumb. While
+   * the media is rotated the bar runs vertically down the left screen edge,
+   * so progress fills top-to-bottom — the same turn the media box makes.
+   * Axis swaps clear the other axis's inline styles so an orientation flip
+   * mid-playback never leaves a stale offset behind.
+   */
+  const paintPlayhead = useCallback(
+    (ratio: number) => {
+      const fill = progressFillRef.current;
+      if (fill) {
+        fill.style.transform = rotated
+          ? `scaleY(${ratio})`
+          : `scaleX(${ratio})`;
+      }
+      const thumb = progressThumbRef.current;
+      if (thumb) {
+        if (rotated) {
+          thumb.style.left = "";
+          thumb.style.top = `${ratio * 100}%`;
+        } else {
+          thumb.style.top = "";
+          thumb.style.left = `${ratio * 100}%`;
+        }
+      }
+    },
+    [rotated],
+  );
 
-  /** Seek to the pointer's position on the bar and paint the playhead there. */
+  /**
+   * Seek to the pointer's position on the bar and paint the playhead there.
+   * The rotated vertical bar reads the pointer's Y against the track's top
+   * and height; the upright bar reads X against left and width.
+   */
   const seekToPointer = useCallback(
-    (clientX: number) => {
+    (clientX: number, clientY: number) => {
       const video = videoRef.current;
       const slider = progressSliderRef.current;
       if (!video || !slider) return;
       const duration = resolveSeekDuration(video);
       if (duration <= 0) return;
       const rect = slider.getBoundingClientRect();
-      const ratio = seekRatioFromPointer(clientX, rect.left, rect.width);
+      const ratio = rotated
+        ? seekRatioFromPointer(clientY, rect.top, rect.height)
+        : seekRatioFromPointer(clientX, rect.left, rect.width);
       video.currentTime = ratio * duration;
       paintPlayhead(ratio);
     },
-    [paintPlayhead, resolveSeekDuration],
+    [paintPlayhead, resolveSeekDuration, rotated],
   );
 
   const endScrub = useCallback(
@@ -467,11 +521,24 @@ export function ReplicationMediaStage({
           const range = playable
             ? bufferedRangeContaining(video.buffered, video.currentTime)
             : null;
-          if (range) {
-            bufferedFill.style.left = `${(range.start / duration) * 100}%`;
-            bufferedFill.style.width = `${((range.end - range.start) / duration) * 100}%`;
+          if (rotated) {
+            bufferedFill.style.left = "";
+            bufferedFill.style.width = "";
+            bufferedFill.style.top = range
+              ? `${(range.start / duration) * 100}%`
+              : "0%";
+            bufferedFill.style.height = range
+              ? `${((range.end - range.start) / duration) * 100}%`
+              : "0%";
           } else {
-            bufferedFill.style.width = "0%";
+            bufferedFill.style.top = "";
+            bufferedFill.style.height = "";
+            bufferedFill.style.left = range
+              ? `${(range.start / duration) * 100}%`
+              : "0%";
+            bufferedFill.style.width = range
+              ? `${((range.end - range.start) / duration) * 100}%`
+              : "0%";
           }
         }
         const slider = progressSliderRef.current;
@@ -488,7 +555,7 @@ export function ReplicationMediaStage({
     };
     frame = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(frame);
-  }, [ordinaryVideo, paintPlayhead, replication.slug]);
+  }, [ordinaryVideo, paintPlayhead, rotated, replication.slug]);
 
   const width = replication.width ?? 1600;
   const height = replication.height ?? Math.round(width / (4 / 3));
@@ -532,15 +599,7 @@ export function ReplicationMediaStage({
           // per-element and survives src swaps but not remounts. One element
           // carried across works is what lets sound continue seamlessly
           // through a swipe, the way the phone feeds behave.
-          ref={(node) => {
-            videoRef.current = node;
-            // Mobile autoplay policies read the muted flag at load time, before
-            // React's post-mount property sync runs.
-            if (node) {
-              node.defaultMuted = muted;
-              node.muted = muted;
-            }
-          }}
+          ref={attachVideo}
           src={motionSource}
           poster={poster}
           loop
@@ -572,6 +631,7 @@ export function ReplicationMediaStage({
           className={cn(
             "absolute object-contain transition-transform duration-200 motion-reduce:transition-none",
             mediaGeometryClassName,
+            orientationPending && "opacity-0",
           )}
         />
       ) : null}
@@ -584,7 +644,7 @@ export function ReplicationMediaStage({
           className={cn(
             "pointer-events-none absolute transition-opacity duration-200 motion-reduce:transition-none",
             mediaGeometryClassName,
-            framePainted ? "opacity-0" : "opacity-100",
+            orientationPending || framePainted ? "opacity-0" : "opacity-100",
           )}
         >
           <AppImage
@@ -608,7 +668,12 @@ export function ReplicationMediaStage({
               height={height}
               controlsVisible={controlsVisible}
               onToggleControls={toggleControls}
-              mediaClassName={cn(rotated && "absolute", mediaGeometryClassName)}
+              mediaClassName={cn(
+                rotated && "absolute",
+                mediaGeometryClassName,
+                orientationPending && "opacity-0",
+              )}
+              onProbeAspect={probeAspect}
             />
           ) : (
             <div className="theme-media-tile-creator absolute inset-0 grid place-items-center px-8 text-center text-sm">
@@ -623,7 +688,12 @@ export function ReplicationMediaStage({
             height={height}
             controlsVisible={controlsVisible}
             onToggleControls={toggleControls}
-            mediaClassName={cn(rotated && "absolute", mediaGeometryClassName)}
+            mediaClassName={cn(
+              rotated && "absolute",
+              mediaGeometryClassName,
+              orientationPending && "opacity-0",
+            )}
+            onProbeAspect={probeAspect}
           />
         )
       ) : null}
@@ -642,7 +712,11 @@ export function ReplicationMediaStage({
         // The YouTube grammar: a hairline meter that is secretly a full
         // slider. A tall invisible hit area owns the pointer so a scrub can
         // never read as a stage tap or a swipe; the visible track fattens
-        // under the pointer and while dragging.
+        // under the pointer and while dragging. While the media is rotated
+        // the same bar stands up along the left screen edge and its progress
+        // runs top-to-bottom, turning with the media box; the playback
+        // cluster's 0.75rem media-box inset keeps the pill clear of the
+        // hairline at the edge.
         <div
           ref={progressSliderRef}
           role="slider"
@@ -651,6 +725,7 @@ export function ReplicationMediaStage({
           aria-valuemin={0}
           aria-valuemax={Math.round(replication.duration ?? 0)}
           aria-valuenow={0}
+          aria-orientation={rotated ? "vertical" : undefined}
           data-scrubbing={scrubbing || undefined}
           onPointerDown={(event) => {
             event.stopPropagation();
@@ -661,33 +736,41 @@ export function ReplicationMediaStage({
             if (event.currentTarget.setPointerCapture) {
               event.currentTarget.setPointerCapture(event.pointerId);
             }
-            seekToPointer(event.clientX);
+            seekToPointer(event.clientX, event.clientY);
           }}
           onPointerMove={(event) => {
             if (!scrubbingRef.current) return;
             event.stopPropagation();
             showControls();
-            seekToPointer(event.clientX);
+            seekToPointer(event.clientX, event.clientY);
           }}
           onPointerUp={(event) => {
             if (!scrubbingRef.current) return;
             event.stopPropagation();
-            seekToPointer(event.clientX);
+            seekToPointer(event.clientX, event.clientY);
             endScrub(event);
           }}
           onPointerCancel={endScrub}
           onTouchStart={(event) => event.stopPropagation()}
           onClick={(event) => event.stopPropagation()}
           onKeyDown={(event) => {
-            if (event.key !== "ArrowLeft" && event.key !== "ArrowRight")
-              return;
+            const step =
+              event.key === "ArrowLeft"
+                ? -5
+                : event.key === "ArrowRight"
+                  ? 5
+                  : rotated && event.key === "ArrowUp"
+                    ? -5
+                    : rotated && event.key === "ArrowDown"
+                      ? 5
+                      : null;
+            if (step === null) return;
             event.preventDefault();
             event.stopPropagation();
             const video = videoRef.current;
             if (!video) return;
             const duration = resolveSeekDuration(video);
             if (duration <= 0) return;
-            const step = event.key === "ArrowLeft" ? -5 : 5;
             const next = Math.min(
               Math.max(video.currentTime + step, 0),
               duration,
@@ -697,36 +780,51 @@ export function ReplicationMediaStage({
             showControls();
           }}
           className={cn(
-            "group absolute inset-x-0 bottom-0 z-10 flex h-5 cursor-pointer touch-none flex-col justify-end",
+            "group absolute z-10 flex cursor-pointer touch-none",
+            rotated
+              ? "inset-y-0 left-0 w-5 flex-row justify-start"
+              : "inset-x-0 bottom-0 h-5 flex-col justify-end",
             focusRingClassName,
           )}
         >
           <div
             className={cn(
-              "theme-media-progress-track relative h-[3px] w-full transition-[height] duration-100 group-hover:h-[5px] group-focus-visible:h-[5px] motion-reduce:transition-none",
-              scrubbing && "h-[5px]",
+              "theme-media-progress-track relative duration-100 motion-reduce:transition-none",
+              rotated
+                ? "h-full w-[3px] transition-[width] group-hover:w-[5px] group-focus-visible:w-[5px]"
+                : "h-[3px] w-full transition-[height] group-hover:h-[5px] group-focus-visible:h-[5px]",
+              scrubbing && (rotated ? "w-[5px]" : "h-[5px]"),
             )}
           >
             <div
               ref={progressBufferedRef}
               aria-hidden
-              className="theme-media-progress-buffered absolute inset-y-0 left-0"
-              style={{ width: "0%" }}
+              className={cn(
+                "theme-media-progress-buffered absolute",
+                rotated ? "inset-x-0 top-0" : "inset-y-0 left-0",
+              )}
+              style={rotated ? { height: "0%" } : { width: "0%" }}
             />
             <div
               ref={progressFillRef}
               aria-hidden
-              className="theme-media-playback-fill absolute inset-y-0 left-0 w-full origin-left"
-              style={{ transform: "scaleX(0)" }}
+              className={cn(
+                "theme-media-playback-fill absolute",
+                rotated
+                  ? "inset-x-0 top-0 h-full origin-top"
+                  : "inset-y-0 left-0 w-full origin-left",
+              )}
+              style={{ transform: rotated ? "scaleY(0)" : "scaleX(0)" }}
             />
             <div
               ref={progressThumbRef}
               aria-hidden
               className={cn(
-                "theme-media-playback-thumb absolute top-1/2 size-3 -translate-x-1/2 -translate-y-1/2 rounded-full opacity-0 transition-opacity duration-100 group-hover:opacity-100 group-focus-visible:opacity-100 motion-reduce:transition-none [@media(pointer:coarse)]:opacity-100",
+                "theme-media-playback-thumb absolute size-3 -translate-x-1/2 -translate-y-1/2 rounded-full opacity-0 transition-opacity duration-100 group-hover:opacity-100 group-focus-visible:opacity-100 motion-reduce:transition-none [@media(pointer:coarse)]:opacity-100",
+                rotated ? "left-1/2" : "top-1/2",
                 scrubbing && "opacity-100",
               )}
-              style={{ left: "0%" }}
+              style={rotated ? { top: "0%" } : { left: "0%" }}
             />
           </div>
         </div>

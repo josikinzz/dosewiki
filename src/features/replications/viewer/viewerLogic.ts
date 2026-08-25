@@ -141,12 +141,19 @@ export function bufferedRangeContaining(
   return null;
 }
 
-/** Clamp a pointer position over the seek bar to a playable [0, 1] ratio. */
+/**
+ * Clamp a pointer position over the seek bar to a playable [0, 1] ratio.
+ * Axis-agnostic: the upright bar feeds clientX/left/width, the rotated
+ * vertical bar feeds clientY/top/height — progress runs from trackStart.
+ */
 export function seekRatioFromPointer(
-  clientX: number,
-  trackLeft: number,
-  trackWidth: number,
+  pointerPosition: number,
+  trackStart: number,
+  trackExtent: number,
 ): number {
-  if (!Number.isFinite(trackWidth) || trackWidth <= 0) return 0;
-  return Math.min(Math.max((clientX - trackLeft) / trackWidth, 0), 1);
+  if (!Number.isFinite(trackExtent) || trackExtent <= 0) return 0;
+  return Math.min(
+    Math.max((pointerPosition - trackStart) / trackExtent, 0),
+    1,
+  );
 }

@@ -11,7 +11,6 @@ import {
 } from "./galleryUrlState";
 
 const taxonomyDefaults = {
-  status: "all" as const,
   viewing: "all" as const,
   artistType: "all" as const,
   effect: "all" as const,
@@ -40,14 +39,13 @@ describe("parseGalleryBrowseState", () => {
   it("reads every recognized parameter", () => {
     expect(
       parseGalleryBrowseState(
-        new URLSearchParams("view=effect&q=drifting&type=video&sort=alpha&status=replication&viewing=open-eye&artistType=replicator&effect=tracers&drug=lsd&drugClass=psychedelics&family=experiential-replication"),
+        new URLSearchParams("view=effect&q=drifting&type=video&sort=alpha&viewing=open-eye&artistType=replicator&effect=tracers&drug=lsd&drugClass=psychedelics&family=experiential-replication"),
       ),
     ).toEqual({
       view: "effect",
       query: "drifting",
       type: "video",
       sort: "alpha",
-      status: "replication",
       viewing: "open-eye",
       artistType: "replicator",
       effect: "tracers",
@@ -58,9 +56,11 @@ describe("parseGalleryBrowseState", () => {
   });
 
   it("treats junk values as defaults instead of an unrepresentable state", () => {
+    // `status=` covers the retired review-status axis: old bookmarked URLs
+    // still parse, the unknown param is simply ignored.
     expect(
       parseGalleryBrowseState(
-        new URLSearchParams("view=banana&type=hologram&sort=biggest"),
+        new URLSearchParams("view=banana&type=hologram&sort=biggest&status=replication"),
       ),
     ).toEqual({ view: "artist", query: "", type: "all", sort: "video-first", ...taxonomyDefaults });
   });
@@ -163,7 +163,6 @@ describe("buildGalleryBrowseUrl", () => {
         query: "symmetry & light",
         type: "image",
         sort: "alpha",
-        status: "unreviewed",
         viewing: "closed-eye",
         artistType: "traditional-psychedelic-artist",
         effect: "internal-hallucination",

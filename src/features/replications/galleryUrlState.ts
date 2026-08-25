@@ -8,7 +8,6 @@ import {
   type GalleryDrugFilter,
   type GalleryDrugClassFilter,
   type GalleryMode,
-  type GalleryStatusFilter,
   type GalleryTypeFilter,
   type GalleryViewingFilter,
 } from "@/features/effects/gallery/galleryModel";
@@ -40,7 +39,6 @@ export interface GalleryBrowseState {
   query: string;
   type: GalleryTypeFilter;
   sort: GalleryArtistSort;
-  status: GalleryStatusFilter;
   viewing: GalleryViewingFilter;
   artistType: GalleryArtistTypeFilter;
   effect: GalleryEffectFilter;
@@ -71,7 +69,6 @@ export function parseGalleryBrowseState(
 ): GalleryBrowseState {
   const type = params.get("type");
   const sort = params.get("sort");
-  const status = params.get("status");
   const viewing = params.get("viewing");
   const artistType = params.get("artistType");
   const effect = params.get("effect");
@@ -84,10 +81,6 @@ export function parseGalleryBrowseState(
     type: type === "image" || type === "video" ? type : "all",
     sort:
       sort === "alpha" || sort === "count" ? sort : DEFAULT_GALLERY_ARTIST_SORT,
-    status:
-      status === "replication" || status === "unclear" || status === "unreviewed" || status === "source-corrupt"
-        ? status
-        : "all",
     viewing: viewing === "open-eye" || viewing === "closed-eye" ? viewing : "all",
     artistType:
       artistType === "replicator" || artistType === "traditional-psychedelic-artist"
@@ -161,7 +154,6 @@ export function buildGalleryBrowseUrl(
   if (state.sort === "alpha" || state.sort === "count") {
     params.set("sort", state.sort);
   }
-  if (state.status && state.status !== "all") params.set("status", state.status);
   if (state.viewing && state.viewing !== "all") params.set("viewing", state.viewing);
   if (state.artistType && state.artistType !== "all") params.set("artistType", state.artistType);
   if (state.effect && state.effect !== "all") params.set("effect", state.effect);

@@ -448,7 +448,6 @@ describe('matchesQuery', () => {
 
 describe('matchesTaxonomyFilters', () => {
   const all = {
-    status: 'all' as const,
     viewing: 'all' as const,
     artistType: 'all' as const,
     effect: 'all' as const,

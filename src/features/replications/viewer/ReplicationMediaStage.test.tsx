@@ -13,9 +13,15 @@ import { ReplicationMediaStage } from "./ReplicationMediaStage";
 import type { ReplicationViewerMediaItem } from "./viewerModel";
 
 vi.mock("@/components/common/AppImage", () => ({
-  AppImage: ({ src, alt }: { src: string; alt: string }) => (
-    <img src={src} alt={alt} />
-  ),
+  AppImage: ({
+    src,
+    alt,
+    className,
+  }: {
+    src: string;
+    alt: string;
+    className?: string;
+  }) => <img src={src} alt={alt} className={className} />,
 }));
 
 const item = (
@@ -1003,5 +1009,231 @@ describe("ReplicationMediaStage", () => {
     expect(container.querySelector("video")!.className).not.toContain(
       "rotate-90",
     );
+  });
+
+  it("never re-forces the shared sound choice onto the element while a sound IOU is outstanding", async () => {
+    // The autoplay regression: the video ref callback used to be inline, so
+    // every re-render re-ran it and stamped `muted={false}` back onto the
+    // element after attemptPlay's muted retry had armed the IOU. Outside a
+    // gesture WebKit answers that forced unmute by pausing the video — a
+    // swipe-arrival landed paused. The rotate work guaranteed such arrival
+    // re-renders (portrait seed, onRotatedChange report), surfacing it on
+    // every navigation for sound-on sessions.
+    const play = vi.mocked(HTMLMediaElement.prototype.play);
+    play.mockImplementation(function (this: HTMLMediaElement) {
+      return this.muted
+        ? Promise.resolve()
+        : Promise.reject(new DOMException("denied", "NotAllowedError"));
+    });
+
+    const { container, rerender } = render(
+      <ReplicationMediaStage
+        item={item()}
+        muted={false}
+        volume={1}
+        onMutedChange={vi.fn()}
+        onVolumeChange={vi.fn()}
+      />,
+    );
+    await act(async () => {});
+
+    const video = container.querySelector("video") as HTMLVideoElement;
+    expect(video.muted).toBe(true); // IOU armed: element retried muted
+
+    // An internal state re-render (playback starting)…
+    fireEvent.play(video);
+    expect(video.muted).toBe(true);
+
+    // …and an external prop-identical re-render both leave the element
+    // muted; only a live gesture may repay the IOU.
+    rerender(
+      <ReplicationMediaStage
+        item={item()}
+        muted={false}
+        volume={1}
+        onMutedChange={vi.fn()}
+        onVolumeChange={vi.fn()}
+      />,
+    );
+    expect(video.muted).toBe(true);
+
+    play.mockReset();
+    play.mockResolvedValue(undefined);
+  });
+
+  it("holds a dimensionless work invisible until its aspect settles, then reveals it in the settled orientation", () => {
+    const { container } = render(
+      <ReplicationMediaStage
+        item={item({ width: null, height: null })}
+        muted
+        volume={1}
+        rotateMode
+        onRotateModeChange={vi.fn()}
+        onMutedChange={vi.fn()}
+        onVolumeChange={vi.fn()}
+      />,
+    );
+
+    // The 16:9 guess would paint rotated; nothing may show until the probe.
+    const video = container.querySelector("video") as HTMLVideoElement;
+    expect(video.className).toContain("opacity-0");
+    const underlay = container.querySelector(
+      'img[src="https://cdn.test/tracers.webp"]',
+    )?.parentElement as HTMLElement;
+    expect(underlay.className).toContain("opacity-0");
+
+    // The probe lands portrait: reveal upright, no rotate flash ever shown.
+    Object.defineProperty(video, "videoWidth", {
+      configurable: true,
+      value: 900,
+    });
+    Object.defineProperty(video, "videoHeight", {
+      configurable: true,
+      value: 1600,
+    });
+    fireEvent.loadedMetadata(video);
+    expect(video.className).not.toContain("opacity-0");
+    expect(video.className).not.toContain("rotate-90");
+    expect(underlay.className).toContain("opacity-100");
+  });
+
+  it("settles a dimensionless still through its decoded image instead of holding it invisible forever", () => {
+    const { container } = render(
+      <ReplicationMediaStage
+        item={item({
+          type: "image",
+          format: "jpg",
+          url: "https://cdn.test/still.jpg",
+          width: null,
+          height: null,
+        })}
+        muted
+        volume={1}
+        rotateMode
+        onRotateModeChange={vi.fn()}
+        onMutedChange={vi.fn()}
+        onVolumeChange={vi.fn()}
+      />,
+    );
+
+    const image = container.querySelector(
+      'img[src="https://cdn.test/still.jpg"]',
+    ) as HTMLImageElement;
+    expect(image.className).toContain("opacity-0");
+
+    Object.defineProperty(image, "naturalWidth", {
+      configurable: true,
+      value: 1600,
+    });
+    Object.defineProperty(image, "naturalHeight", {
+      configurable: true,
+      value: 900,
+    });
+    fireEvent.load(image);
+    expect(image.className).not.toContain("opacity-0");
+    expect(image.className).toContain("rotate-90");
+  });
+
+  it("paints catalogued landscape work rotated and visible from the start", () => {
+    const { container } = render(
+      <ReplicationMediaStage
+        item={item()}
+        muted
+        volume={1}
+        rotateMode
+        onRotateModeChange={vi.fn()}
+        onMutedChange={vi.fn()}
+        onVolumeChange={vi.fn()}
+      />,
+    );
+    const video = container.querySelector("video") as HTMLVideoElement;
+    expect(video.className).toContain("rotate-90");
+    expect(video.className).not.toContain("opacity-0");
+  });
+
+  it("stands the seek bar up along the left edge while rotated and maps pointer Y to the timeline", () => {
+    const { container } = render(
+      <ReplicationMediaStage
+        item={item()}
+        muted
+        volume={1}
+        rotateMode
+        onRotateModeChange={vi.fn()}
+        onMutedChange={vi.fn()}
+        onVolumeChange={vi.fn()}
+      />,
+    );
+
+    const video = container.querySelector("video") as HTMLVideoElement;
+    Object.defineProperty(video, "currentTime", {
+      configurable: true,
+      writable: true,
+      value: 0,
+    });
+    const slider = screen.getByRole("slider", { name: "Seek" });
+    // The same bar, turned with the media: vertical, flush left.
+    expect(slider).toHaveAttribute("aria-orientation", "vertical");
+    expect(slider.className).toContain("inset-y-0");
+    expect(slider.className).toContain("left-0");
+    expect(slider.className).not.toContain("bottom-0");
+    vi.spyOn(slider, "getBoundingClientRect").mockReturnValue({
+      left: 0,
+      width: 20,
+      top: 0,
+      bottom: 100,
+      height: 100,
+      right: 20,
+      x: 0,
+      y: 0,
+      toJSON: () => ({}),
+    } as DOMRect);
+
+    // Progress runs top-to-bottom, so the pointer's Y drives the seek; its
+    // X (here far right of the track) must be ignored.
+    fireEvent.pointerDown(slider, {
+      clientX: 300,
+      clientY: 25,
+      button: 0,
+      pointerId: 1,
+    });
+    expect(video.currentTime).toBeCloseTo(7.5, 5);
+    fireEvent.pointerMove(slider, { clientX: 5, clientY: 50, pointerId: 1 });
+    expect(video.currentTime).toBeCloseTo(15, 5);
+    fireEvent.pointerUp(slider, { clientX: 0, clientY: 80, pointerId: 1 });
+    expect(video.currentTime).toBeCloseTo(24, 5);
+
+    // The accent fill grows downward and the thumb rides the vertical axis.
+    const fill = container.querySelector(
+      ".theme-media-playback-fill",
+    ) as HTMLElement;
+    expect(fill.style.transform).toBe("scaleY(0.8)");
+    expect(fill.className).toContain("origin-top");
+    const thumb = container.querySelector(
+      ".theme-media-playback-thumb",
+    ) as HTMLElement;
+    expect(thumb.style.top).toBe("80%");
+    expect(thumb.style.left).toBe("");
+
+    // Down/Up seek along the turned timeline.
+    fireEvent.keyDown(slider, { key: "ArrowDown" });
+    expect(video.currentTime).toBe(29);
+    fireEvent.keyDown(slider, { key: "ArrowUp" });
+    expect(video.currentTime).toBe(24);
+  });
+
+  it("keeps the upright seek bar horizontal along the bottom edge", () => {
+    render(
+      <ReplicationMediaStage
+        item={item()}
+        muted
+        volume={1}
+        onMutedChange={vi.fn()}
+        onVolumeChange={vi.fn()}
+      />,
+    );
+    const slider = screen.getByRole("slider", { name: "Seek" });
+    expect(slider).not.toHaveAttribute("aria-orientation");
+    expect(slider.className).toContain("inset-x-0");
+    expect(slider.className).toContain("bottom-0");
   });
 });

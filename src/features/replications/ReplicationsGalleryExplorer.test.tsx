@@ -977,6 +977,45 @@ describe("one-line control bar", () => {
     expect(screen.queryByRole("dialog")).toBeNull();
   });
 
+  it("orders the filter selects with the named-in-the-title group last and closes on Done", async () => {
+    const user = userEvent.setup();
+    renderExplorer("");
+
+    await user.click(screen.getByRole("button", { name: /Filters/ }));
+
+    const sheet = screen.getByRole("dialog");
+    // The two title-scoped axes live under one heading that carries the
+    // "named in the title" meaning, so their own labels stay short.
+    expect(
+      within(sheet).getByRole("group", { name: "Named in the title" }),
+    ).toBeInTheDocument();
+    expect(
+      within(sheet)
+        .getAllByRole("combobox")
+        .map((trigger) => trigger.getAttribute("aria-label")),
+    ).toEqual([
+      "Depicted effect",
+      "Viewing mode",
+      "Content family",
+      "Artist practice",
+      "Drug in title",
+      "Drug class in title",
+    ]);
+    // Every axis idles on the neutral "Any", and the misleading untagged-works
+    // footnote is gone in favor of what filtering actually does.
+    expect(
+      within(sheet).getByRole("combobox", { name: "Depicted effect" }),
+    ).toHaveTextContent("Any");
+    expect(
+      within(sheet).getByText("Filtering by a tag hides works nobody has tagged yet."),
+    ).toBeInTheDocument();
+
+    // Done is the explicit mobile-reachable dismissal; it changes nothing.
+    await user.click(within(sheet).getByRole("button", { name: "Done" }));
+    expect(screen.queryByRole("dialog")).toBeNull();
+    expect(navMocks.push).not.toHaveBeenCalled();
+  });
+
   it("keeps every artist sort reachable through the compact menu", async () => {
     const user = userEvent.setup();
     renderExplorer("");

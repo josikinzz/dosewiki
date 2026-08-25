@@ -1076,4 +1076,45 @@ describe("ReplicationViewerOverlay", () => {
       .querySelectorAll("[data-rotating-icon]")
       .forEach((wrapper) => expect(wrapper.className).toContain("rotate-90"));
   });
+
+  it("leans the byline avatar while the stage reports a rotated work", async () => {
+    const avatarCollection: ReplicationViewerCollection = {
+      ...collection,
+      groups: [
+        {
+          ...collection.groups[0],
+          items: [
+            {
+              ...collection.groups[0].items[0],
+              avatarUrl: "https://cdn.test/chelsea.webp",
+            },
+            ...collection.groups[0].items.slice(1),
+          ],
+        },
+        ...collection.groups.slice(1),
+      ],
+    };
+    render(
+      <ReplicationViewerOverlay
+        collection={avatarCollection}
+        initialSlug="work-one"
+        open
+        onOpenChange={vi.fn()}
+      />,
+    );
+
+    const chip = screen.getAllByRole("link", { name: "Chelsea Morgan" })[1];
+    const avatarWrapper = chip.querySelector("[data-rotating-icon]");
+    expect(avatarWrapper).not.toBeNull();
+    expect(avatarWrapper?.querySelector("img")).toHaveAttribute(
+      "src",
+      "https://cdn.test/chelsea.webp",
+    );
+    expect(avatarWrapper?.className).not.toContain("rotate-90");
+
+    fireEvent.click(
+      await screen.findByRole("button", { name: "Report rotated" }),
+    );
+    expect(avatarWrapper?.className).toContain("rotate-90");
+  });
 });

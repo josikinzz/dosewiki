@@ -26,41 +26,19 @@ import { cn } from "@/lib/utils";
 type FilterKey = keyof GalleryTaxonomyFilterState;
 type FilterOption = { value: string; label: string };
 
+// Key order is the render order: popover selects, then active-filter chips.
 const OPTIONS: Record<
   FilterKey,
   ReadonlyArray<FilterOption>
 > = {
-  status: [
-    { value: "all", label: "All review states" },
-    { value: "replication", label: "Confirmed replication" },
-    { value: "unclear", label: "Unclear" },
-    { value: "unreviewed", label: "Unreviewed" },
-    { value: "source-corrupt", label: "Source unavailable" },
-  ],
+  effect: [{ value: "all", label: "Any" }],
   viewing: [
-    { value: "all", label: "Open or closed eye" },
+    { value: "all", label: "Any" },
     { value: "open-eye", label: "Open-eye" },
     { value: "closed-eye", label: "Closed-eye" },
   ],
-  artistType: [
-    { value: "all", label: "All artist practices" },
-    { value: "replicator", label: "Replicators" },
-    {
-      value: "traditional-psychedelic-artist",
-      label: "Traditional psychedelic artists",
-    },
-  ],
-  effect: [{ value: "all", label: "Any depicted effect" }],
-  drug: [{ value: "all", label: "Any explicitly named drug" }],
-  drugClass: [
-    { value: "all", label: "Any named drug class" },
-    { value: "psychedelics", label: "Psychedelics" },
-    { value: "dissociatives", label: "Dissociatives" },
-    { value: "deliriants", label: "Deliriants" },
-    { value: "other", label: "Other" },
-  ],
   family: [
-    { value: "all", label: "All content families" },
+    { value: "all", label: "Any" },
     { value: "experiential-replication", label: "Experiential replications" },
     { value: "visionary-psychedelic-art", label: "Visionary psychedelic art" },
     { value: "traditional-cultural-art", label: "Traditional cultural art" },
@@ -71,16 +49,44 @@ const OPTIONS: Record<
     { value: "explanatory-figure", label: "Explanatory figures" },
     { value: "uncertain", label: "Unclassified content" },
   ],
+  artistType: [
+    { value: "all", label: "Any" },
+    { value: "replicator", label: "Replicators" },
+    {
+      value: "traditional-psychedelic-artist",
+      label: "Traditional psychedelic artists",
+    },
+  ],
+  drug: [{ value: "all", label: "Any" }],
+  drugClass: [
+    { value: "all", label: "Any" },
+    { value: "psychedelics", label: "Psychedelics" },
+    { value: "dissociatives", label: "Dissociatives" },
+    { value: "deliriants", label: "Deliriants" },
+    { value: "other", label: "Other" },
+  ],
 };
 
+// Selects rendered as a flat list, then the "Named in the title" sub-group.
+const GENERAL_KEYS = ["effect", "viewing", "family", "artistType"] as const;
+const TITLE_KEYS = ["drug", "drugClass"] as const;
+
 const LABELS: Record<FilterKey, string> = {
-  status: "Review status",
   viewing: "Viewing mode",
   artistType: "Artist practice",
   effect: "Depicted effect",
-  drug: "Drug named in title",
-  drugClass: "Drug class in title",
+  drug: "Drug",
+  drugClass: "Drug class",
   family: "Content family",
+};
+
+/** Chip prefixes stay self-contained: a bare "Drug class: Psychedelics" must
+ *  not read as a depicted-effect chip once the popover's group heading (which
+ *  carries the "named in the title" meaning) is out of sight. */
+const CHIP_LABELS: Record<FilterKey, string> = {
+  ...LABELS,
+  drug: "Drug in title",
+  drugClass: "Drug class in title",
 };
 
 export interface ReplicationTaxonomyFiltersProps {
@@ -111,6 +117,35 @@ export function ReplicationTaxonomyFilters({
     onChange({ ...filters, [key]: value } as GalleryTaxonomyFilterState);
   };
 
+  const renderSelect = (key: FilterKey) => (
+    <label key={key} className="block space-y-1.5">
+      <span className="theme-text-faint text-xs font-medium uppercase tracking-[0.14em]">
+        {LABELS[key]}
+      </span>
+      <Select value={filters[key]} onValueChange={(value) => update(key, value)}>
+        <SelectTrigger
+          selectSize="sm"
+          aria-label={CHIP_LABELS[key]}
+          className="min-h-11 sm:min-h-0"
+        >
+          <SelectValue />
+        </SelectTrigger>
+        <SelectContent>
+          {(key === "drug"
+            ? [...OPTIONS.drug, ...drugOptions]
+            : key === "effect"
+            ? [...OPTIONS.effect, ...effectOptions]
+            : OPTIONS[key]
+          ).map((option) => (
+            <SelectItem key={option.value} value={option.value}>
+              {option.label}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+    </label>
+  );
+
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
@@ -137,7 +172,7 @@ export function ReplicationTaxonomyFilters({
       <PopoverContent
         align="end"
         collisionPadding={8}
-        className="max-h-[min(80vh,38rem)] w-[calc(100vw-1rem)] space-y-4 overflow-y-auto sm:w-80"
+        className="max-h-[min(var(--radix-popover-content-available-height),38rem)] w-[calc(100vw-1rem)] space-y-4 overflow-y-auto sm:w-80"
       >
         <div className="sm:hidden">
           <p className="theme-text-faint mb-2 text-xs font-medium uppercase tracking-[0.14em]">
@@ -163,43 +198,41 @@ export function ReplicationTaxonomyFilters({
           </ToggleGroup>
         </div>
 
-        {(Object.keys(OPTIONS) as FilterKey[]).map((key) => (
-          <label key={key} className="block space-y-1.5">
-            <span className="theme-text-faint text-xs font-medium uppercase tracking-[0.14em]">
-              {LABELS[key]}
-            </span>
-            <Select value={filters[key]} onValueChange={(value) => update(key, value)}>
-              <SelectTrigger selectSize="sm" aria-label={LABELS[key]}>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {(key === "drug"
-                  ? [...OPTIONS.drug, ...drugOptions]
-                  : key === "effect"
-                  ? [...OPTIONS.effect, ...effectOptions]
-                  : OPTIONS[key]
-                ).map((option) => (
-                  <SelectItem key={option.value} value={option.value}>
-                    {option.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </label>
-        ))}
+        {GENERAL_KEYS.map(renderSelect)}
 
-        <div className="flex items-center justify-between border-t border-dose-divider pt-3">
-          <p className="theme-text-faint text-xs">
-            Untagged works stay visible under All.
+        <fieldset className="space-y-4 rounded-xl border border-dose-divider p-3">
+          <legend className="theme-text-faint px-1 text-xs font-semibold uppercase tracking-[0.14em]">
+            Named in the title
+          </legend>
+          {TITLE_KEYS.map(renderSelect)}
+        </fieldset>
+
+        {/* Sticky so Clear/Done stay reachable while the list scrolls; the
+            negative margins let the row own the popover's bottom padding, and
+            theme-overlay-surface repaints the popover's own opaque material
+            (all four appearance matrix points restyle that class together). */}
+        <div className="theme-overlay-surface sticky bottom-0 z-10 -mx-4 -mb-4 flex items-center justify-between gap-3 border-t px-4 py-3">
+          <p className="theme-text-faint flex-1 text-xs">
+            Filtering by a tag hides works nobody has tagged yet.
           </p>
           <Button
             type="button"
             variant="ghost"
             size="sm"
+            className="min-h-11 sm:min-h-0"
             disabled={activeCount === 0}
             onClick={onClear}
           >
             Clear
+          </Button>
+          <Button
+            type="button"
+            variant="accent"
+            size="sm"
+            className="min-h-11 sm:min-h-0"
+            onClick={() => setOpen(false)}
+          >
+            Done
           </Button>
         </div>
       </PopoverContent>
@@ -255,14 +288,14 @@ export function ReplicationActiveFilterChips({
             type="button"
             variant="pill"
             size="pill"
-            aria-label={`Remove ${LABELS[key]} filter: ${valueLabel(key)}`}
+            aria-label={`Remove ${CHIP_LABELS[key]} filter: ${valueLabel(key)}`}
             onClick={() =>
               onChange({ ...filters, [key]: "all" } as GalleryTaxonomyFilterState)
             }
             className="gap-1.5 px-3 py-1 text-xs [@media(pointer:coarse)]:min-h-11"
           >
             <span className="theme-text-faint" aria-hidden>
-              {LABELS[key]}:
+              {CHIP_LABELS[key]}:
             </span>
             <span className="font-medium" aria-hidden>
               {valueLabel(key)}

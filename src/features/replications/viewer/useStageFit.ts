@@ -44,6 +44,8 @@ export function stageRotation({
   };
 }
 
+const PORTRAIT_PHONE_QUERY = "(max-width: 767px) and (orientation: portrait)";
+
 export interface StageFitOptions {
   mediaKey: string;
   type: ReplicationType;
@@ -59,6 +61,12 @@ export interface StageFit {
   probeAspect: (mediaWidth: number, mediaHeight: number) => void;
   /** Resolved width/height ratio of the active media (probed > catalogued > guess). */
   mediaAspect: number;
+  /**
+   * True once mediaAspect is real evidence (probed or catalogued) rather
+   * than the per-type guess — until then the rotation decision may still
+   * change when the runtime probe lands.
+   */
+  aspectSettled: boolean;
 }
 
 /**
@@ -75,16 +83,22 @@ export function useStageFit({
   width,
   height,
 }: StageFitOptions): StageFit {
-  const [portraitPhone, setPortraitPhone] = useState(false);
+  // Seeded synchronously so the first paint of a freshly mounted stage
+  // already knows the layout: reading it lazily in an effect made every
+  // work paint upright once and snap to rotated a frame later.
+  const [portraitPhone, setPortraitPhone] = useState(
+    () =>
+      typeof window !== "undefined" &&
+      Boolean(window.matchMedia) &&
+      window.matchMedia(PORTRAIT_PHONE_QUERY).matches,
+  );
   const [probedAspects, setProbedAspects] = useState<Record<string, number>>(
     {},
   );
 
   useEffect(() => {
     if (typeof window === "undefined" || !window.matchMedia) return;
-    const query = window.matchMedia(
-      "(max-width: 767px) and (orientation: portrait)",
-    );
+    const query = window.matchMedia(PORTRAIT_PHONE_QUERY);
     const update = () => setPortraitPhone(query.matches);
     update();
     query.addEventListener("change", update);
@@ -103,12 +117,11 @@ export function useStageFit({
     [mediaKey],
   );
 
-  const mediaAspect = resolveMediaAspect(
-    type,
-    width,
-    height,
-    probedAspects[mediaKey],
-  );
+  const probed = probedAspects[mediaKey];
+  const mediaAspect = resolveMediaAspect(type, width, height, probed);
+  const aspectSettled =
+    probed !== undefined ||
+    Boolean(width && height && width > 0 && height > 0);
   const { canRotate, rotated } = stageRotation({
     portraitPhone,
     rotateMode,
@@ -120,5 +133,6 @@ export function useStageFit({
     rotated,
     probeAspect,
     mediaAspect,
+    aspectSettled,
   };
 }

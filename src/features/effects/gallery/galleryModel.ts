@@ -9,7 +9,6 @@ import type {
   ReplicationArtistTypeTag,
   ReplicationContentFamily,
   ReplicationDrugClass,
-  ReplicationStatus,
   ReplicationViewingModeTag,
 } from "@/types/replications";
 import { hasKnownCreator } from "../components/replicationCredit";
@@ -31,7 +30,6 @@ import {
 export type GalleryMode = "artist" | "effect";
 export type GalleryTypeFilter = "all" | "image" | "video";
 export type GalleryArtistSort = "video-first" | "count" | "alpha";
-export type GalleryStatusFilter = "all" | Exclude<ReplicationStatus, "not-replication">;
 export type GalleryViewingFilter = "all" | ReplicationViewingModeTag;
 export type GalleryArtistTypeFilter = "all" | ReplicationArtistTypeTag;
 export type GalleryDrugFilter = "all" | string;
@@ -41,7 +39,6 @@ export type GalleryContentFamilyFilter = "all" | ReplicationContentFamily;
 export type GalleryEffectFilter = "all" | string;
 
 export interface GalleryTaxonomyFilterState {
-  status: GalleryStatusFilter;
   viewing: GalleryViewingFilter;
   artistType: GalleryArtistTypeFilter;
   effect: GalleryEffectFilter;
@@ -51,7 +48,6 @@ export interface GalleryTaxonomyFilterState {
 }
 
 export const DEFAULT_GALLERY_TAXONOMY_FILTERS: GalleryTaxonomyFilterState = {
-  status: "all",
   viewing: "all",
   artistType: "all",
   effect: "all",
@@ -338,7 +334,6 @@ export function matchesTaxonomyFilters(
   filters: GalleryTaxonomyFilterState,
 ): boolean {
   return (
-    (filters.status === "all" || replication.replication_status === filters.status) &&
     (filters.viewing === "all" || replication.viewing_mode_tags?.includes(filters.viewing) === true) &&
     (filters.artistType === "all" || replication.artist_type_tags?.includes(filters.artistType) === true) &&
     (filters.effect === "all" ||
