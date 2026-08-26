@@ -128,25 +128,25 @@ export function AppearanceCog({
             showFont={showFont}
             discloseColorGroups
             surfaceLabel="Background"
+            footerAction={
+              showMoreSettings ? (
+                <button
+                  type="button"
+                  aria-label="Open Theme Lab"
+                  aria-haspopup="dialog"
+                  aria-controls="theme-lab-panel"
+                  onClick={() => {
+                    setPopoverOpen(false);
+                    setThemeLabOpen(true, appearanceTriggerRef.current);
+                  }}
+                  className="theme-focus-ring inline-flex h-9 items-center gap-2 rounded-lg px-3 text-xs font-medium text-dose-text-muted transition-colors hover:bg-dose-surface-muted hover:text-dose-text-secondary [@media(pointer:coarse)]:h-11"
+                >
+                  <Icon icon="ri:wrench-line" size={14} />
+                  <span>Theme Lab</span>
+                </button>
+              ) : null
+            }
           />
-          {showMoreSettings ? (
-            <div className="mt-3 border-t border-dose-border pt-3">
-              <button
-                type="button"
-                aria-label="Open Theme Lab"
-                aria-haspopup="dialog"
-                aria-controls="theme-lab-panel"
-                onClick={() => {
-                  setPopoverOpen(false);
-                  setThemeLabOpen(true, appearanceTriggerRef.current);
-                }}
-                className="theme-focus-ring inline-flex h-9 w-full items-center justify-center gap-2 rounded-lg px-3 text-xs font-medium text-dose-text-muted transition-colors hover:bg-dose-surface-muted hover:text-dose-text-secondary [@media(pointer:coarse)]:h-11"
-              >
-                <Icon icon="ri:wrench-line" size={14} />
-                <span>Theme Lab</span>
-              </button>
-            </div>
-          ) : null}
         </div>
       </PopoverContent>
     </Popover>

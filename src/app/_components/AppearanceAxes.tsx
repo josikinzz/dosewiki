@@ -426,12 +426,18 @@ export function AppearanceAxes({
   showFont,
   discloseColorGroups = false,
   surfaceLabel = "Surface",
+  footerAction,
 }: AppearanceAxesRows & {
   className?: string;
   /** Collapse the colour axes behind summary rows (the reader's compact panel). */
   discloseColorGroups?: boolean;
   /** Reader-facing surface-axis name: "Background" for readers, "Surface" for authors. */
   surfaceLabel?: string;
+  /**
+   * A caller-owned action that shares the footer row with Reset — the cog's dev-only
+   * Theme Lab entry. Rendered right-aligned so the two never claim a row each.
+   */
+  footerAction?: ReactNode;
 }) {
   const {
     colorScheme,
@@ -444,6 +450,7 @@ export function AppearanceAxes({
     setSurfaceHue,
     accentHue,
     setAccentHue,
+    hasCustomColors,
   } = useTheme();
 
   // Null is "never chose": resolve the current appearance combination's default hue.
@@ -474,7 +481,10 @@ export function AppearanceAxes({
   // Dark/Light leads: it is the choice a reader makes first and changes most, and it
   // reads without any category label. Style and type follow; colors last, as named,
   // independently resettable axes.
-  const showReset = showSurface || showAccent;
+  const showColorAxes = showSurface || showAccent;
+  // Reset belongs to the colour axes, so it needs both a saved coordinate and an axis
+  // on screen to undo.
+  const showReset = showColorAxes && hasCustomColors;
   const hasPreferenceControls = showVisualStyle || showColorScheme || showFont;
   return (
     <div className={cn("flex flex-col gap-3", className)}>
@@ -486,7 +496,7 @@ export function AppearanceAxes({
         </div>
       ) : null}
 
-      {showReset ? (
+      {showColorAxes ? (
         <>
           {discloseColorGroups ? (
             <div className="flex flex-col gap-2">
@@ -585,26 +595,36 @@ export function AppearanceAxes({
               ) : null}
             </>
           )}
-
-          <button
-            type="button"
-            onClick={() => {
-              // Null is the setters' "back to the site default": the storage
-              // keys are removed, and every color axis returns to the authored look.
-              setSurfaceHue(null);
-              setSurfaceChroma(null);
-              setAccentHue(null);
-              setAccentChroma(null);
-            }}
-            // Quiet text, not a second pill: the panel already spends its button
-            // weight on the segmented axes, and this is the one action a reader
-            // reaches for only after a tuning mistake.
-            className="theme-focus-ring inline-flex h-9 self-start items-center gap-2 rounded-lg px-3 text-xs font-medium text-dose-text-muted transition-colors hover:bg-dose-surface-muted hover:text-dose-text-secondary [@media(pointer:coarse)]:h-11"
-          >
-            <Icon icon="fluent:arrow-reset-24-filled" size={14} />
-            <span>Reset colors</span>
-          </button>
         </>
+      ) : null}
+
+      {/* Reset is gone until there is something to reset: an untouched panel is a row
+          shorter, and the action cannot promise a change it would not make. It shares
+          this row with the dev-only Theme Lab entry so neither costs its own. */}
+      {showReset || footerAction ? (
+        <div className="flex items-center gap-2">
+          {showReset ? (
+            <button
+              type="button"
+              onClick={() => {
+                // Null is the setters' "back to the site default": the storage
+                // keys are removed, and every color axis returns to the authored look.
+                setSurfaceHue(null);
+                setSurfaceChroma(null);
+                setAccentHue(null);
+                setAccentChroma(null);
+              }}
+              // Quiet text, not a second pill: the panel already spends its button
+              // weight on the segmented axes, and this is the one action a reader
+              // reaches for only after a tuning mistake.
+              className="theme-focus-ring inline-flex h-9 items-center gap-2 rounded-lg px-3 text-xs font-medium text-dose-text-muted transition-colors hover:bg-dose-surface-muted hover:text-dose-text-secondary [@media(pointer:coarse)]:h-11"
+            >
+              <Icon icon="fluent:arrow-reset-24-filled" size={14} />
+              <span>Reset colors</span>
+            </button>
+          ) : null}
+          {footerAction ? <div className="ml-auto">{footerAction}</div> : null}
+        </div>
       ) : null}
     </div>
   );

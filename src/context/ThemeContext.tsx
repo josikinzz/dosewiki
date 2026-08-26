@@ -97,6 +97,14 @@ type ThemeContextValue = {
   setSurfaceHue: (value: number | null) => void;
   setAccentHue: (value: number | null) => void;
   /**
+   * Whether any colour axis is currently carrying a saved value rather than the
+   * appearance combination's default. Derived here because the hues are exposed
+   * as saved but the levels are exposed resolved, so a consumer cannot tell the
+   * two apart: it is what lets the reader's panel offer a reset only once there
+   * is something to reset.
+   */
+  hasCustomColors: boolean;
+  /**
    * The type axis: "default" is the current visual style's own face, "dyslexic" re-seats
    * both family tokens to Lexend (`data-font="dyslexic"` on the root). "default" is
    * expressed by *removing* the attribute and the storage key, so an untoggled reader
@@ -362,6 +370,13 @@ export function ThemeProvider({
   const accentChroma = savedAccentChroma ?? defaultColors.accentLevel;
   const effectiveSurfaceHue = savedSurfaceHue ?? defaultColors.surfaceHue;
   const effectiveAccentHue = savedAccentHue ?? defaultColors.accentHue;
+  // A locked axis stores nothing, so its saved slots stay null and it never
+  // claims a customization the reader could not have made.
+  const hasCustomColors =
+    savedSurfaceChroma !== null ||
+    savedAccentChroma !== null ||
+    savedSurfaceHue !== null ||
+    savedAccentHue !== null;
   /**
    * Until the mount effect has read back what the bootstrap resolved, this provider is still
    * holding the server's opening guess. Applying it would be harmless — the document already
@@ -685,6 +700,7 @@ export function ThemeProvider({
       accentHue: savedAccentHue,
       setSurfaceHue,
       setAccentHue,
+      hasCustomColors,
       toggleColorScheme,
       toggleVisualStyle,
       toggleFontPreference,
@@ -707,6 +723,7 @@ export function ThemeProvider({
       savedAccentHue,
       setSurfaceHue,
       setAccentHue,
+      hasCustomColors,
       toggleColorScheme,
       toggleVisualStyle,
       toggleFontPreference,

@@ -199,11 +199,9 @@ describe("AppearanceCog", () => {
       "theme-font-preview-dyslexic",
     );
 
+    // Reset earns its row only once a colour axis carries a saved coordinate.
     expect(
-      within(panel).getByRole("button", { name: "Reset colors" }),
-    ).toBeVisible();
-    expect(
-      within(panel).queryByText("Restores Surface and Accent defaults."),
+      within(panel).queryByRole("button", { name: "Reset colors" }),
     ).not.toBeInTheDocument();
     expect(
       within(panel).getByRole("button", { name: "Open Theme Lab" }),
@@ -240,6 +238,35 @@ describe("AppearanceCog", () => {
     expect(
       within(panel).queryByText(/is the page color/),
     ).not.toBeInTheDocument();
+  });
+
+  it("offers Reset only while a colour axis carries a saved coordinate", async () => {
+    const user = userEvent.setup();
+    renderCog();
+
+    const panel = await openCog(user);
+    expect(
+      within(panel).queryByRole("button", { name: "Reset colors" }),
+    ).not.toBeInTheDocument();
+
+    await expandColorAxis(user, panel, "Accent");
+    fireEvent.change(within(panel).getByRole("slider", { name: "Accent hue" }), {
+      target: { value: "120" },
+    });
+
+    await waitFor(() => {
+      expect(
+        within(panel).getByRole("button", { name: "Reset colors" }),
+      ).toBeVisible();
+    });
+
+    // Resetting removes the saved coordinate, so the action retires with it.
+    await user.click(within(panel).getByRole("button", { name: "Reset colors" }));
+    await waitFor(() => {
+      expect(
+        within(panel).queryByRole("button", { name: "Reset colors" }),
+      ).not.toBeInTheDocument();
+    });
   });
 
   it("selects the named font option and follows arrow-key radio behavior", async () => {
@@ -406,14 +433,14 @@ describe("AppearanceCog", () => {
       name: "Appearance settings",
     });
     // Each segmented choice is one tab stop, entered on its checked radio. The two
-    // collapsed colour summaries, scoped reset, and dev-only Theme Lab action follow.
+    // collapsed colour summaries follow, then the dev-only Theme Lab action — no Reset,
+    // because this reader has tuned nothing.
     const focusSequence = [
       within(panel).getByRole("radio", { name: "Dark" }),
       within(panel).getByRole("radio", { name: "Vivid" }),
       within(panel).getByRole("radio", { name: "Standard" }),
       within(panel).getByRole("button", { name: "Background colors" }),
       within(panel).getByRole("button", { name: "Accent colors" }),
-      within(panel).getByRole("button", { name: "Reset colors" }),
       within(panel).getByRole("button", { name: "Open Theme Lab" }),
     ];
 
