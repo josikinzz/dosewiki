@@ -129,7 +129,7 @@ describe("AppearanceCog", () => {
       [...panel.querySelectorAll("[data-appearance-axis]")].map((control) =>
         control.getAttribute("data-appearance-axis"),
       ),
-    ).toEqual(["visual-style", "color-scheme", "font"]);
+    ).toEqual(["color-scheme", "visual-style", "font"]);
     expect(within(panel).queryAllByRole("slider")).toHaveLength(0);
     expect(
       within(panel).getByRole("button", { name: "Background colors" }),
@@ -165,11 +165,11 @@ describe("AppearanceCog", () => {
     const style = within(panel).getByRole("radiogroup", {
       name: "Style",
     });
-    expect(within(style).getByRole("radio", { name: "Fun" })).toHaveAttribute(
+    expect(within(style).getByRole("radio", { name: "Vivid" })).toHaveAttribute(
       "aria-checked",
       "true",
     );
-    expect(within(style).getByRole("radio", { name: "Pro" })).toHaveAttribute(
+    expect(within(style).getByRole("radio", { name: "Clinical" })).toHaveAttribute(
       "aria-checked",
       "false",
     );
@@ -236,12 +236,10 @@ describe("AppearanceCog", () => {
     expect(within(panel).getAllByText("Saturation")).toHaveLength(2);
     expect(within(panel).getAllByRole("slider")).toHaveLength(4);
 
-    // The explanatory line is only shown while a reader can compare both axes.
+    // The named swatch rows carry the axes' meaning; no explanatory caption restates them.
     expect(
-      within(panel).getByText(
-        "Background is the page color; Accent is the highlighted color.",
-      ),
-    ).toBeInTheDocument();
+      within(panel).queryByText(/is the page color/),
+    ).not.toBeInTheDocument();
   });
 
   it("selects the named font option and follows arrow-key radio behavior", async () => {
@@ -281,7 +279,7 @@ describe("AppearanceCog", () => {
     const mode = within(panel).getByRole("radiogroup", { name: "Mode" });
     const font = within(panel).getByRole("radiogroup", { name: "Font" });
 
-    await user.click(within(style).getByRole("radio", { name: "Fun" }));
+    await user.click(within(style).getByRole("radio", { name: "Vivid" }));
     await waitFor(() => {
       expect(document.documentElement.dataset.visualStyle).toBe("pro");
     });
@@ -367,7 +365,7 @@ describe("AppearanceCog", () => {
       ).toEqual(["true", "true"]);
     });
 
-    await user.click(within(panel).getByRole("radio", { name: "Pro" }));
+    await user.click(within(panel).getByRole("radio", { name: "Clinical" }));
 
     await waitFor(() => {
       const styleGroups = screen.getAllByRole("radiogroup", {
@@ -385,7 +383,7 @@ describe("AppearanceCog", () => {
     renderCog();
 
     await openCog(user);
-    await user.click(screen.getByRole("radio", { name: "Pro" }));
+    await user.click(screen.getByRole("radio", { name: "Clinical" }));
     await user.click(screen.getByRole("radio", { name: "Light" }));
 
     await waitFor(() => {
@@ -410,8 +408,8 @@ describe("AppearanceCog", () => {
     // Each segmented choice is one tab stop, entered on its checked radio. The two
     // collapsed colour summaries, scoped reset, and dev-only Theme Lab action follow.
     const focusSequence = [
-      within(panel).getByRole("radio", { name: "Fun" }),
       within(panel).getByRole("radio", { name: "Dark" }),
+      within(panel).getByRole("radio", { name: "Vivid" }),
       within(panel).getByRole("radio", { name: "Standard" }),
       within(panel).getByRole("button", { name: "Background colors" }),
       within(panel).getByRole("button", { name: "Accent colors" }),
@@ -435,12 +433,14 @@ describe("AppearanceCog", () => {
     expect(cog).toHaveFocus();
 
     await user.keyboard(" ");
+    // Reopening seats focus on the first row's checked radio, so one tab reaches the
+    // style row; arrowing there selects the other face.
     await user.tab();
-    expect(screen.getByRole("radio", { name: "Dark" })).toHaveFocus();
+    expect(screen.getByRole("radio", { name: "Vivid" })).toHaveFocus();
     await user.keyboard("{ArrowRight}");
 
     await waitFor(() => {
-      expect(screen.getByRole("radio", { name: "Light" })).toHaveAttribute(
+      expect(screen.getByRole("radio", { name: "Clinical" })).toHaveAttribute(
         "aria-checked",
         "true",
       );
@@ -530,7 +530,7 @@ describe("AppearanceCog", () => {
       name: "Accent hue",
     });
     fireEvent.change(accentHue, { target: { value: "249" } });
-    await user.click(within(panel).getByRole("radio", { name: "Pro" }));
+    await user.click(within(panel).getByRole("radio", { name: "Clinical" }));
     await user.click(within(panel).getByRole("radio", { name: "Light" }));
     await user.click(
       within(panel).getByRole("radio", { name: "Dyslexic" }),

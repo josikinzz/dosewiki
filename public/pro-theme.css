@@ -1477,6 +1477,24 @@ html[data-visual-style="pro"] .theme-appearance-popover {
   --theme-toggle-pill-bg: var(--ei-chrome-sunk) !important;
 }
 
+/* The segmented appearance toggles are the one control in this island whose whole
+   track reacts to hover, and only half of it is ever the thing being pointed at.
+   The shared on-panel hover step (#454545 over the #0c0c0c sunk track, plus a
+   #5c5c5c ring) therefore read as the pill lighting up rather than acknowledging
+   the pointer. Clinical gets a single step along the same charcoal ladder and keeps
+   its hairline, so the moving thumb stays the loudest thing in the panel. */
+html[data-visual-style="pro"] .theme-appearance-popover .theme-toggle-pill:focus-visible {
+  background: var(--ei-chrome-dark);
+  box-shadow: 0 0 0 1px var(--ei-chrome-border);
+}
+
+@media (hover: hover) {
+  html[data-visual-style="pro"] .theme-appearance-popover .theme-toggle-pill:hover {
+    background: var(--ei-chrome-dark);
+    box-shadow: 0 0 0 1px var(--ei-chrome-border);
+  }
+}
+
 /* The wordmark's lead word sits at --theme-text-primary, which the block
    above dims to nav-link grey. The brand should be brighter than the nav
    around it. */

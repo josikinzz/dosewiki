@@ -134,7 +134,6 @@ export function AppearanceCog({
               <button
                 type="button"
                 aria-label="Open Theme Lab"
-                title="Open Theme Lab"
                 aria-haspopup="dialog"
                 aria-controls="theme-lab-panel"
                 onClick={() => {

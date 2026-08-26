@@ -471,15 +471,17 @@ export function AppearanceAxes({
       : null;
   const accentSwatch = proAccentSeed ?? BASE_ACCENT_SWATCH;
 
-  // General reading preferences lead; colors follow as named, independently resettable axes.
+  // Dark/Light leads: it is the choice a reader makes first and changes most, and it
+  // reads without any category label. Style and type follow; colors last, as named,
+  // independently resettable axes.
   const showReset = showSurface || showAccent;
   const hasPreferenceControls = showVisualStyle || showColorScheme || showFont;
   return (
-    <div className={cn("flex flex-col gap-4", className)}>
+    <div className={cn("flex flex-col gap-3", className)}>
       {hasPreferenceControls ? (
-        <div className="flex flex-col gap-2.5">
-          {showVisualStyle ? <VisualStyleToggle /> : null}
+        <div className="flex flex-col gap-2">
           {showColorScheme ? <ThemeToggle /> : null}
+          {showVisualStyle ? <VisualStyleToggle /> : null}
           {showFont ? <FontPicker /> : null}
         </div>
       ) : null}
@@ -487,61 +489,53 @@ export function AppearanceAxes({
       {showReset ? (
         <>
           {discloseColorGroups ? (
-            <div className="flex flex-col gap-3">
-              <div className="flex flex-col gap-2">
-                {showSurface ? (
-                  <ColorAxisDisclosure
-                    axisName={surfaceLabel}
-                    dotColor={axisDot(
-                      surfaceSwatch,
-                      effectiveSurfaceHue,
-                      surfaceChroma,
-                    )}
+            <div className="flex flex-col gap-2">
+              {showSurface ? (
+                <ColorAxisDisclosure
+                  axisName={surfaceLabel}
+                  dotColor={axisDot(
+                    surfaceSwatch,
+                    effectiveSurfaceHue,
+                    surfaceChroma,
+                  )}
+                  degrees={effectiveSurfaceHue}
+                  percent={Math.round(surfaceChroma * 100)}
+                >
+                  <ColorAxisSliders
+                    name={surfaceLabel}
+                    swatch={surfaceSwatch}
                     degrees={effectiveSurfaceHue}
-                    percent={Math.round(surfaceChroma * 100)}
-                  >
-                    <ColorAxisSliders
-                      name={surfaceLabel}
-                      swatch={surfaceSwatch}
-                      degrees={effectiveSurfaceHue}
-                      level={surfaceChroma}
-                      tickDegrees={defaultColors.surfaceHue}
-                      tickLevel={defaultColors.surfaceLevel}
-                      onHue={setSurfaceHue}
-                      onChroma={setSurfaceChroma}
-                    />
-                  </ColorAxisDisclosure>
-                ) : null}
+                    level={surfaceChroma}
+                    tickDegrees={defaultColors.surfaceHue}
+                    tickLevel={defaultColors.surfaceLevel}
+                    onHue={setSurfaceHue}
+                    onChroma={setSurfaceChroma}
+                  />
+                </ColorAxisDisclosure>
+              ) : null}
 
-                {showAccent ? (
-                  <ColorAxisDisclosure
-                    axisName="Accent"
-                    dotColor={axisDot(
-                      accentSwatch,
-                      effectiveAccentHue,
-                      accentChroma,
-                    )}
+              {showAccent ? (
+                <ColorAxisDisclosure
+                  axisName="Accent"
+                  dotColor={axisDot(
+                    accentSwatch,
+                    effectiveAccentHue,
+                    accentChroma,
+                  )}
+                  degrees={effectiveAccentHue}
+                  percent={Math.round(accentChroma * 100)}
+                >
+                  <ColorAxisSliders
+                    name="Accent"
+                    swatch={accentSwatch}
                     degrees={effectiveAccentHue}
-                    percent={Math.round(accentChroma * 100)}
-                  >
-                    <ColorAxisSliders
-                      name="Accent"
-                      swatch={accentSwatch}
-                      degrees={effectiveAccentHue}
-                      level={accentChroma}
-                      tickDegrees={defaultColors.accentHue}
-                      tickLevel={defaultColors.accentLevel}
-                      onHue={setAccentHue}
-                      onChroma={setAccentChroma}
-                    />
-                  </ColorAxisDisclosure>
-                ) : null}
-              </div>
-
-              {showSurface && showAccent ? (
-                <p className="px-1 text-[0.6875rem] text-dose-text-muted">
-                  Background is the page color; Accent is the highlighted color.
-                </p>
+                    level={accentChroma}
+                    tickDegrees={defaultColors.accentHue}
+                    tickLevel={defaultColors.accentLevel}
+                    onHue={setAccentHue}
+                    onChroma={setAccentChroma}
+                  />
+                </ColorAxisDisclosure>
               ) : null}
             </div>
           ) : (
@@ -594,7 +588,6 @@ export function AppearanceAxes({
 
           <button
             type="button"
-            title="Reset colors to default"
             onClick={() => {
               // Null is the setters' "back to the site default": the storage
               // keys are removed, and every color axis returns to the authored look.
@@ -603,9 +596,12 @@ export function AppearanceAxes({
               setAccentHue(null);
               setAccentChroma(null);
             }}
-            className="theme-control-pill-quiet inline-flex h-10 self-start items-center justify-center gap-2 rounded-full px-3 text-xs font-semibold [@media(pointer:coarse)]:h-11"
+            // Quiet text, not a second pill: the panel already spends its button
+            // weight on the segmented axes, and this is the one action a reader
+            // reaches for only after a tuning mistake.
+            className="theme-focus-ring inline-flex h-9 self-start items-center gap-2 rounded-lg px-3 text-xs font-medium text-dose-text-muted transition-colors hover:bg-dose-surface-muted hover:text-dose-text-secondary [@media(pointer:coarse)]:h-11"
           >
-            <Icon icon="fluent:arrow-reset-24-filled" size={15} />
+            <Icon icon="fluent:arrow-reset-24-filled" size={14} />
             <span>Reset colors</span>
           </button>
         </>

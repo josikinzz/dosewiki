@@ -1,6 +1,6 @@
 "use client";
 
-import { useId, useRef, type KeyboardEvent as ReactKeyboardEvent } from "react";
+import { useRef, type KeyboardEvent as ReactKeyboardEvent } from "react";
 
 import { useTheme } from "@/context/ThemeContext";
 import type { FontPreference } from "@/context/ThemeContext";
@@ -50,7 +50,6 @@ const FONT_OPTIONS: readonly {
 export function FontPicker() {
   const { fontPreference, setFontPreference } = useTheme();
   const optionRefs = useRef<(HTMLButtonElement | null)[]>([]);
-  const labelId = useId();
 
   const select = (value: FontPreference, moveFocus: boolean) => {
     setFontPreference(value);
@@ -99,45 +98,37 @@ export function FontPicker() {
   };
 
   return (
-    <div className="theme-appearance-field grid grid-cols-[minmax(0,5.75rem)_minmax(0,1fr)] items-center gap-3 max-[340px]:grid-cols-1 max-[340px]:gap-1.5">
-      <span
-        id={labelId}
-        className="text-[0.6875rem] font-semibold uppercase tracking-[0.12em] text-dose-text-muted"
-      >
-        Font
-      </span>
-      <div
-        role="radiogroup"
-        aria-labelledby={labelId}
-        data-appearance-axis="font"
-        data-appearance-value={fontPreference}
-        className="theme-toggle-pill grid h-11 min-w-0 grid-cols-2 items-center gap-0.5 rounded-full p-1 transition-[border-color,background-color] duration-300 motion-reduce:transition-none [@media(pointer:coarse)]:h-13"
-      >
-        {FONT_OPTIONS.map((option, index) => {
-          const checked = fontPreference === option.value;
+    <div
+      role="radiogroup"
+      aria-label="Font"
+      data-appearance-axis="font"
+      data-appearance-value={fontPreference}
+      className="theme-toggle-pill grid h-11 min-w-0 grid-cols-2 items-center gap-0.5 rounded-full p-1 transition-[border-color,background-color] duration-300 motion-reduce:transition-none [@media(pointer:coarse)]:h-13"
+    >
+      {FONT_OPTIONS.map((option, index) => {
+        const checked = fontPreference === option.value;
 
-          return (
-            <button
-              key={option.value}
-              ref={(element) => {
-                optionRefs.current[index] = element;
-              }}
-              type="button"
-              role="radio"
-              aria-checked={checked}
-              tabIndex={checked ? 0 : -1}
-              onClick={() => activate(option.value)}
-              onKeyDown={handleKeyDown}
-              className={cn(
-                "theme-focus-ring inline-flex h-9 min-w-0 items-center justify-center rounded-full px-2.5 text-xs font-semibold whitespace-nowrap transition-[background-color,color,border-color,box-shadow] duration-300 motion-reduce:transition-none [@media(pointer:coarse)]:h-11",
-                checked ? "theme-toggle-thumb" : "theme-toggle-icon-muted",
-              )}
-            >
-              <span className={option.previewClassName}>{option.label}</span>
-            </button>
-          );
-        })}
-      </div>
+        return (
+          <button
+            key={option.value}
+            ref={(element) => {
+              optionRefs.current[index] = element;
+            }}
+            type="button"
+            role="radio"
+            aria-checked={checked}
+            tabIndex={checked ? 0 : -1}
+            onClick={() => activate(option.value)}
+            onKeyDown={handleKeyDown}
+            className={cn(
+              "theme-focus-ring inline-flex h-9 min-w-0 items-center justify-center rounded-full px-2.5 text-xs font-semibold whitespace-nowrap transition-[background-color,color,border-color,box-shadow] duration-300 motion-reduce:transition-none [@media(pointer:coarse)]:h-11",
+              checked ? "theme-toggle-thumb" : "theme-toggle-icon-muted",
+            )}
+          >
+            <span className={option.previewClassName}>{option.label}</span>
+          </button>
+        );
+      })}
     </div>
   );
 }

@@ -193,7 +193,7 @@ describe("dose.wiki pre-launch holding page", () => {
       [...panel.querySelectorAll("[data-appearance-axis]")].map((control) =>
         control.getAttribute("data-appearance-axis"),
       ),
-    ).toEqual(["visual-style", "color-scheme", "font"]);
+    ).toEqual(["color-scheme", "visual-style", "font"]);
     // The Lab authors and shares palettes over routes the construction hosts do not serve.
     expect(within(panel).queryByRole("button", { name: "Open Theme Lab" })).not.toBeInTheDocument();
   });

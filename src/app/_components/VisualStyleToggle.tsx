@@ -5,11 +5,12 @@ import { useTheme } from "@/context/ThemeContext";
 import { AppearanceTogglePill } from "./AppearanceTogglePill";
 
 /**
- * Fun/Pro control for the visual-style axis.
+ * Vivid/Clinical control for the visual-style axis.
  *
- * The two faces are named plainly — "Fun" and "Pro" — so a reader maps the
- * option to the published style without decoding an index; the hat and
- * mortarboard remain the visual landmarks for the two underlying modes.
+ * Both halves name the look rather than the audience: "Vivid" for the colored,
+ * illustrated reader theme and "Clinical" for the flat, dense Effect Index face.
+ * The stored values stay `fun`/`pro` — that identity is baked into
+ * `data-visual-style`, the Pro stylesheet, and the Theme Lab token tables.
  */
 export function VisualStyleToggle() {
   const { visualStyle, toggleVisualStyle } = useTheme();
@@ -22,15 +23,13 @@ export function VisualStyleToggle() {
       options={[
         {
           value: "fun",
-          label: "Fun",
+          label: "Vivid",
           icon: <Icon icon="mingcute:magic-hat-line" size={18} />,
         },
         {
           value: "pro",
-          label: "Pro",
-          icon: (
-            <Icon icon="material-symbols:school-outline-rounded" size={18} />
-          ),
+          label: "Clinical",
+          icon: <Icon icon="ph:flask-bold" size={18} />,
         },
       ]}
       onChange={(nextStyle) => {

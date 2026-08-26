@@ -147,7 +147,7 @@ describe("Header", () => {
         [...panel.querySelectorAll("[data-appearance-axis]")].map((control) =>
           control.getAttribute("data-appearance-axis"),
         ),
-      ).toEqual(["visual-style", "color-scheme", "font"]);
+      ).toEqual(["color-scheme", "visual-style", "font"]);
       expect(within(panel).getByRole("radiogroup", { name: "Font" })).toBeInTheDocument();
 
       await user.click(screen.getAllByRole("button", { name: "Appearance settings" })[0]!);

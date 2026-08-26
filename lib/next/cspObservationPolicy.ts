@@ -54,7 +54,7 @@ export const ZOD_JITLESS_BOOTSTRAP_CSP_HASH =
  * builder and reports drift.
  */
 export const THEME_BOOTSTRAP_CSP_HASHES: Readonly<Record<SiteFlavor, string>> = {
-  dosewiki: "'sha256-CobHZ3Vfo9oGD4BF7Hh3wvO6Q7x2asd669yEjrOgLHw='",
+  dosewiki: "'sha256-iscNSmS/HXardEsmpb/JvEe5dexaMdHhJWimxErE/KI='",
   effectindex: "'sha256-3SzhNzHhUNUTkETme5uNe0eYZEn0Gojm83Wqi7e9EQc='",
 };
 
