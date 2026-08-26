@@ -118,6 +118,9 @@ describe("carousel order PATCH", () => {
     expect(cacheMocks.revalidatePath).toHaveBeenCalledWith("/effects/tracers");
   });
   it("fails closed on a public host before Convex", async () => {
+    authMocks.requireEditorSession.mockRejectedValue(
+      new Error("Effect Index has no editor auth configuration."),
+    );
     const { PATCH } = await import("./route");
     const response = await PATCH(
       new Request("https://dose.wiki/api/dev/replications/carousel-order", {

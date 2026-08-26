@@ -40,7 +40,7 @@ import { api } from "../../../../../../../convex/_generated/api";
 import { PUBLIC_CONVEX_CACHE_TAGS } from "@server/convex/publicData";
 import { JsonBodyError } from "@/lib/http/readJsonBody";
 import { protectedRouteOperation } from "@/lib/http/protectedRouteOperation";
-import { requireReplicationViewerEditorHost } from "@server/next/replicationViewerEditorPolicy";
+import { replicationViewerEditorRoute } from "@server/next/replicationViewerEditorPolicy";
 import type { ReplicationAssociation } from "@/features/dev/tools/replication-studio/replicationAssociationModel";
 
 export const runtime = "nodejs";
@@ -183,7 +183,7 @@ export const GET = protectedRouteOperation({
   },
 });
 
-export const PATCH = protectedRouteOperation<
+export const PATCH = replicationViewerEditorRoute(protectedRouteOperation<
   DirectAssociationBody,
   ReturnType<typeof parseDirectAssociationBody>
 >({
@@ -198,7 +198,6 @@ export const PATCH = protectedRouteOperation<
       throw new Error("Convex write capability is required.");
     }
     const slug = replicationSlugOf(request);
-    requireReplicationViewerEditorHost(request);
     const result = await convexWrite.client.mutation(
       api.substanceGalleries.setReplicationDirectAssociation,
       {
@@ -215,7 +214,7 @@ export const PATCH = protectedRouteOperation<
     revalidatePath(`/${body.substanceSlug}`);
     return NextResponse.json({ ok: true, association: result.association });
   },
-});
+}));
 
 export const POST = protectedRouteOperation<ExclusionBody, ParsedExclusionBody>({
   auth: "editor",

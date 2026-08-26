@@ -12,7 +12,7 @@ import { api } from "../../../../../../../convex/_generated/api";
 import { JsonBodyError } from "@/lib/http/readJsonBody";
 import { protectedRouteOperation } from "@/lib/http/protectedRouteOperation";
 import { isValidReplicationSlug } from "@/features/dev/tools/replication-studio/replicationStudioModel";
-import { requireReplicationViewerEditorHost } from "@server/next/replicationViewerEditorPolicy";
+import { replicationViewerEditorRoute } from "@server/next/replicationViewerEditorPolicy";
 
 export const runtime = "nodejs";
 
@@ -67,7 +67,7 @@ export const GET = protectedRouteOperation({
   },
 });
 
-export const PATCH = protectedRouteOperation<
+export const PATCH = replicationViewerEditorRoute(protectedRouteOperation<
   MembershipBody,
   ReturnType<typeof parseMembershipBody>
 >({
@@ -78,7 +78,6 @@ export const PATCH = protectedRouteOperation<
   unexpectedErrorLabel: "Failed to update playlist membership via Next route:",
   unexpectedErrorMessage: "Unable to update that playlist right now.",
   operation: async ({ request, actorEmail, body, convexWrite }) => {
-    requireReplicationViewerEditorHost(request);
     if (!convexWrite) {
       throw new Error("Convex write capability is required.");
     }
@@ -96,7 +95,7 @@ export const PATCH = protectedRouteOperation<
     );
     return NextResponse.json({ ok: true, playlist: result });
   },
-});
+}));
 
 export const DELETE = protectedRouteOperation({
   auth: "editor",

@@ -6,7 +6,7 @@ import { isValidReplicationSlug } from "@/features/dev/tools/replication-studio/
 import { JsonBodyError } from "@/lib/http/readJsonBody";
 import { protectedRouteOperation } from "@/lib/http/protectedRouteOperation";
 import { PUBLIC_CONVEX_CACHE_TAGS } from "@server/convex/publicData";
-import { requireReplicationViewerEditorHost } from "@server/next/replicationViewerEditorPolicy";
+import { replicationViewerEditorRoute } from "@server/next/replicationViewerEditorPolicy";
 
 export const runtime = "nodejs";
 
@@ -104,14 +104,13 @@ export function parseCarouselTargetRequest(request: Request): {
   };
 }
 
-export const GET = protectedRouteOperation({
+export const GET = replicationViewerEditorRoute(protectedRouteOperation({
   auth: "editor",
   rateLimit: "diagnosticRead",
   capabilities: [{ type: "convexWrite" }],
   unexpectedErrorLabel: "Failed to load a replication carousel order:",
   unexpectedErrorMessage: "Unable to load that carousel order right now.",
   operation: async ({ request, convexWrite }) => {
-    requireReplicationViewerEditorHost(request);
     if (!convexWrite) throw new Error("Convex write capability is required.");
     const target = parseCarouselTargetRequest(request);
 
@@ -155,9 +154,9 @@ export const GET = protectedRouteOperation({
       },
     });
   },
-});
+}));
 
-export const PATCH = protectedRouteOperation<
+export const PATCH = replicationViewerEditorRoute(protectedRouteOperation<
   CarouselOrderBody,
   ParsedCarouselOrder
 >({
@@ -167,8 +166,7 @@ export const PATCH = protectedRouteOperation<
   capabilities: [{ type: "convexWrite" }],
   unexpectedErrorLabel: "Failed to save a replication carousel order:",
   unexpectedErrorMessage: "Unable to save that carousel order right now.",
-  operation: async ({ request, actorEmail, body, convexWrite }) => {
-    requireReplicationViewerEditorHost(request);
+  operation: async ({ actorEmail, body, convexWrite }) => {
     if (!convexWrite) throw new Error("Convex write capability is required.");
     const apiKey =
       convexWrite.getAdminIntentToken?.("editorArticleWrite") ??
@@ -218,4 +216,4 @@ export const PATCH = protectedRouteOperation<
     revalidateTag(PUBLIC_CONVEX_CACHE_TAGS.replications, { expire: 0 });
     return NextResponse.json({ ok: true, result });
   },
-});
+}));
