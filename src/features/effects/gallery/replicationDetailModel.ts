@@ -1,6 +1,5 @@
 import type { ReplicationWithUrl } from '@/types/replications';
 import { applyCuratedOrder } from '@server/curatedOrder';
-import { sortByMediaRank } from '@/features/replications/mediaRank';
 import { sortWithinGroup } from './galleryModel';
 
 /**
@@ -14,55 +13,36 @@ import { sortWithinGroup } from './galleryModel';
  */
 
 /**
- * Order an effect's replications the way its article gallery does: the
- * audio-first media rank leads (sounded videos, silent motion, stills), then
- * curated `gallery_order` within each rank, then the shared newest/title
- * fallback for anything the curation does not mention.
+ * Order an effect's replications the way its article gallery does: every slug
+ * named by `gallery_order` is an exact leading prefix, even across media ranks.
+ * Unlisted works retain the shared audio-first, newest/title fallback.
  */
 export function orderEffectReplications(
   replications: readonly ReplicationWithUrl[],
   galleryOrder?: readonly string[],
 ): ReplicationWithUrl[] {
-  const displayable = replications.filter((replication) => Boolean(replication.url));
-
-  if (!galleryOrder?.length) {
-    return sortWithinGroup(displayable);
-  }
-
-  const rank = new Map(galleryOrder.map((slug, index) => [slug, index]));
-  const curated: ReplicationWithUrl[] = [];
-  const rest: ReplicationWithUrl[] = [];
-
-  for (const replication of displayable) {
-    if (rank.has(replication.slug)) curated.push(replication);
-    else rest.push(replication);
-  }
-
-  curated.sort((a, b) => (rank.get(a.slug) ?? 0) - (rank.get(b.slug) ?? 0));
-
-  return sortByMediaRank(
-    [...curated, ...sortWithinGroup(rest)],
-    (replication) => replication,
+  const automatic = sortWithinGroup(
+    replications.filter((replication) => Boolean(replication.url)),
+  );
+  return applyCuratedOrder(
+    automatic,
+    galleryOrder,
+    (replication) => replication.slug,
   );
 }
 
 /**
- * Order one contributor's works. Their body of work spans effects, so no single
- * effect's curated `gallery_order` governs it — the audio-first media rank
- * leads, the contributor's own `replicationOrder` decides within each rank, and
- * the shared newest-first sort carries the rest.
+ * Order one contributor's works. Their explicit `replicationOrder` is the
+ * authoritative prefix; the shared automatic order carries every unlisted work.
  */
 export function orderContributorReplications(
   replications: readonly ReplicationWithUrl[],
   contributorOrder?: readonly string[],
 ): ReplicationWithUrl[] {
-  return sortByMediaRank(
-    applyCuratedOrder(
-      orderEffectReplications(replications),
-      contributorOrder,
-      (replication) => replication.slug,
-    ),
-    (replication) => replication,
+  return applyCuratedOrder(
+    orderEffectReplications(replications),
+    contributorOrder,
+    (replication) => replication.slug,
   );
 }
 

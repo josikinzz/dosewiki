@@ -7,6 +7,7 @@ import {
   isShowcaseEligible,
   matchSubstanceGalleryReplications,
   mergeCuratedGallery,
+  normalizeGalleryCarouselOrder,
   normalizeGalleryCuration,
   substanceGalleryTargetOf,
   titleDrugRoutesOf,
@@ -452,6 +453,31 @@ describe("mergeCuratedGallery", () => {
     ]);
   });
 
+  it("uses carousel_order as the exact prefix across automatic tiers", () => {
+    const visualFallback = row({
+      slug: "visual-fallback",
+      effect_slug: "visual-disconnection",
+    });
+    const automatic = matchSubstanceGalleryReplications(
+      [...corpus, visualFallback],
+      target("dextromethorphan", ["Dissociative"]),
+    ).matches;
+    const curation = {
+      curated_slugs: ["manual-tail"],
+      removed_slugs: [],
+      carousel_order: ["visual-fallback", "manual-tail"],
+    };
+    const available = includeDirectlyAssociatedRows(
+      [...corpus, visualFallback],
+      automatic,
+      curation,
+    );
+    expect(slugsOf(mergeCuratedGallery(available, curation))).toEqual([
+      "visual-fallback",
+      "manual-tail",
+    ]);
+  });
+
   it("keeps the visual fallback behind unmatched manual associations", () => {
     const visualFallback = row({
       slug: "visual-fallback",
@@ -487,6 +513,17 @@ describe("mergeCuratedGallery", () => {
       "specific-new",
       "specific-image",
     ]);
+  });
+});
+
+describe("normalizeGalleryCarouselOrder", () => {
+  it("deduplicates and prunes slugs outside the visible collection", () => {
+    expect(
+      normalizeGalleryCarouselOrder(
+        [" b ", "missing", "a", "b"],
+        new Set(["a", "b"]),
+      ),
+    ).toEqual({ order: ["b", "a"], pruned: ["missing"] });
   });
 });
 

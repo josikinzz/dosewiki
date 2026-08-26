@@ -19,7 +19,6 @@ import {
   orderContributorReplications,
   orderContributorWorksFeaturedFirst,
 } from "../../src/features/effects/gallery/replicationDetailModel";
-import { sortByMediaRank } from "../../src/features/replications/mediaRank";
 import { EFFECT_INDEX_FEATURED_REPLICATION_SLUGS } from "./effectIndexHome";
 import type { ContributorEffectCredit } from "../../src/types/effectCredits";
 import type { ContributorReviewedArticle } from "../../src/types/reviewedArticles";
@@ -155,23 +154,16 @@ export const loadContributorRoute = cache(
           profile.reportOrder,
           (report) => report.slug,
         ),
-        // Curated works lead the rail. The contributor's own `replicationOrder`
-        // comes first; beneath it, Effect Index editorial curation (a checked-in
-        // list — the replication corpus *is* the Effect Index archive on either
-        // flavor, so there is nothing flavor-specific about which pieces it
-        // names) still floats its picks ahead of the default newest-first sort.
-        // The audio-first media rank stays primary over all of it: curation
-        // reorders works within a rank, never a still above a sounded video.
-        replications: sortByMediaRank(
-          applyCuratedOrder(
-            orderContributorWorksFeaturedFirst(
-              orderContributorReplications(replications),
-              EFFECT_INDEX_FEATURED_REPLICATION_SLUGS,
-            ),
-            profile.replicationOrder,
-            (replication) => replication.slug,
+        // The contributor's own `replicationOrder` is the exact leading prefix.
+        // Effect Index editorial picks lead only within the unlisted tail; the
+        // remaining works keep the shared automatic order.
+        replications: applyCuratedOrder(
+          orderContributorWorksFeaturedFirst(
+            orderContributorReplications(replications),
+            EFFECT_INDEX_FEATURED_REPLICATION_SLUGS,
           ),
-          (replication) => replication,
+          profile.replicationOrder,
+          (replication) => replication.slug,
         ),
         effectArticles,
         reviewedArticles,

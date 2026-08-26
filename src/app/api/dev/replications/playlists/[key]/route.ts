@@ -2,8 +2,8 @@
  * One reusable replication playlist.
  *
  *   GET    /api/dev/replications/playlists/<key> → the playlist, or 404
+ *   PATCH  /api/dev/replications/playlists/<key> → add/remove one work
  *   DELETE /api/dev/replications/playlists/<key> → drop it
- *
  * Updates go through the collection route's POST, which is already an upsert
  * keyed by `key`; there is no second write shape to maintain here.
  */
@@ -11,6 +11,8 @@ import { NextResponse } from "next/server";
 import { api } from "../../../../../../../convex/_generated/api";
 import { JsonBodyError } from "@/lib/http/readJsonBody";
 import { protectedRouteOperation } from "@/lib/http/protectedRouteOperation";
+import { isValidReplicationSlug } from "@/features/dev/tools/replication-studio/replicationStudioModel";
+import { requireReplicationViewerEditorHost } from "@server/next/replicationViewerEditorPolicy";
 
 export const runtime = "nodejs";
 
@@ -24,6 +26,21 @@ function playlistKeyOf(request: Request): string {
     throw new JsonBodyError(404, "No playlist found for that address.");
   }
   return key;
+}
+
+type MembershipBody = { slug?: unknown; included?: unknown };
+
+function parseMembershipBody(raw: MembershipBody): {
+  slug: string;
+  included: boolean;
+} {
+  if (typeof raw.slug !== "string" || !isValidReplicationSlug(raw.slug)) {
+    throw new JsonBodyError(400, "A valid replication slug is required.");
+  }
+  if (typeof raw.included !== "boolean") {
+    throw new JsonBodyError(400, "included must be true or false.");
+  }
+  return { slug: raw.slug, included: raw.included };
 }
 
 export const GET = protectedRouteOperation({
@@ -47,6 +64,37 @@ export const GET = protectedRouteOperation({
     }
 
     return NextResponse.json({ ok: true, playlist });
+  },
+});
+
+export const PATCH = protectedRouteOperation<
+  MembershipBody,
+  ReturnType<typeof parseMembershipBody>
+>({
+  auth: "editor",
+  rateLimit: "editorSmallWrite",
+  body: { maxBytes: 4 * 1024, parse: parseMembershipBody },
+  capabilities: [{ type: "convexWrite" }],
+  unexpectedErrorLabel: "Failed to update playlist membership via Next route:",
+  unexpectedErrorMessage: "Unable to update that playlist right now.",
+  operation: async ({ request, actorEmail, body, convexWrite }) => {
+    requireReplicationViewerEditorHost(request);
+    if (!convexWrite) {
+      throw new Error("Convex write capability is required.");
+    }
+    const result = await convexWrite.client.mutation(
+      api.replicationPlaylists.setMembership,
+      {
+        apiKey:
+          convexWrite.getAdminIntentToken?.("editorArticleWrite") ??
+          convexWrite.adminKey,
+        actorEmail,
+        key: playlistKeyOf(request),
+        replicationSlug: body.slug,
+        included: body.included,
+      },
+    );
+    return NextResponse.json({ ok: true, playlist: result });
   },
 });
 

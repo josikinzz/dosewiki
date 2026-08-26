@@ -8,6 +8,8 @@ vi.mock("../../../../../../../convex/_generated/api", () => ({
     substanceGalleries: {
       getReplicationAssociationsPage: "substanceGalleries.getReplicationAssociationsPage",
       setReplicationExclusions: "substanceGalleries.setReplicationExclusions",
+      setReplicationDirectAssociation:
+        "substanceGalleries.setReplicationDirectAssociation",
     },
   },
 }));
@@ -81,6 +83,17 @@ function saveRequest(body: unknown, slug = "tracers-hand") {
   });
 }
 
+function patchRequest(body: unknown, slug = "tracers-hand") {
+  return new Request(
+    `https://dosewiki-admin.vercel.app/api/dev/replications/associations/${slug}`,
+    {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    },
+  );
+}
+
 beforeEach(() => {
   vi.resetModules();
   vi.clearAllMocks();
@@ -106,12 +119,16 @@ describe("replication associations route auth", () => {
       ok: false,
       response: NextResponse.json({ error: "Editor session required." }, { status: 401 }),
     });
-    const { GET, POST } = await import("./route");
+    const { GET, PATCH, POST } = await import("./route");
 
     const read = await GET(readRequest());
+    const patch = await PATCH(
+      patchRequest({ substanceSlug: "lsd", assigned: true }),
+    );
     const write = await POST(saveRequest({ excludedSubstanceSlugs: [] }));
 
     expect(read.status).toBe(401);
+    expect(patch.status).toBe(401);
     expect(write.status).toBe(401);
     expect(convexMocks.query).not.toHaveBeenCalled();
     expect(convexMocks.mutation).not.toHaveBeenCalled();
@@ -175,6 +192,53 @@ describe("replication associations GET", () => {
 
     expect(response.status).toBe(404);
     expect(convexMocks.query).not.toHaveBeenCalled();
+  });
+});
+
+describe("replication associations PATCH", () => {
+  it("assigns one replication directly and revalidates its article", async () => {
+    const association = {
+      slug: "ketamine",
+      title: "Ketamine",
+      matchedVia: "curated",
+      effectSlug: "",
+      effectName: "Ketamine",
+      excluded: false,
+      curatedPosition: 2,
+    };
+    convexMocks.mutation.mockResolvedValue({ association });
+    const { PATCH } = await import("./route");
+
+    const response = await PATCH(
+      patchRequest({ substanceSlug: "ketamine", assigned: true }),
+    );
+
+    expect(response.status).toBe(200);
+    expect(await response.json()).toEqual({ ok: true, association });
+    expect(convexMocks.mutation).toHaveBeenCalledWith(
+      "substanceGalleries.setReplicationDirectAssociation",
+      {
+        apiKey: "admin-key",
+        actorEmail: "editor@example.com",
+        replicationSlug: "tracers-hand",
+        substanceSlug: "ketamine",
+        assigned: true,
+      },
+    );
+    expect(cacheMocks.revalidateTag).toHaveBeenCalledWith(
+      "public-replications",
+      { expire: 0 },
+    );
+    expect(cacheMocks.revalidatePath).toHaveBeenCalledWith("/ketamine");
+  });
+
+  it("rejects a malformed direct-association payload before Convex", async () => {
+    const { PATCH } = await import("./route");
+    const response = await PATCH(
+      patchRequest({ substanceSlug: "Ketamine", assigned: "yes" }),
+    );
+    expect(response.status).toBe(400);
+    expect(convexMocks.mutation).not.toHaveBeenCalled();
   });
 });
 

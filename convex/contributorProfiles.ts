@@ -254,6 +254,7 @@ export const setContributorOrdering = mutation({
     actorEmail: v.optional(v.string()),
     key: v.string(),
     replicationOrder: v.optional(v.array(v.string())),
+    expectedReplicationOrder: v.optional(v.array(v.string())),
     reportOrder: v.optional(v.array(v.string())),
   },
   handler: setContributorOrderingHandler,

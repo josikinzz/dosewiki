@@ -195,6 +195,11 @@ export function ReplicationShowcase({
             : publicHref.replications()),
       kind: substanceSlug ? "substance" : effectSlug ? "effect" : "gallery",
       grouping: "none",
+      editorTarget: substanceSlug
+        ? { kind: "substance", key: substanceSlug, label }
+        : effectSlug
+          ? { kind: "effect", key: effectSlug, label }
+          : undefined,
       groups: [
         {
           key: substanceSlug ?? effectSlug ?? "replications",

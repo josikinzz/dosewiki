@@ -18,6 +18,7 @@ import {
 
 import { ReplicationViewerOverlay } from "./ReplicationViewerOverlay";
 import type { ReplicationViewerCollection } from "./viewerModel";
+import { EDITOR_HINT_STORAGE_KEY } from "@/lib/auth/editorHint";
 
 vi.mock("./ReplicationMediaStage", () => ({
   ReplicationMediaStage: ({
@@ -259,6 +260,79 @@ function stubCoarsePointer(coarse: boolean) {
 }
 
 describe("ReplicationViewerOverlay", () => {
+  it("reveals the carousel editor only after a fresh editor hint on a fine-pointer client", async () => {
+    const editable: ReplicationViewerCollection = {
+      ...collection,
+      kind: "effect",
+      grouping: "none",
+      groups: [collection.groups[0]],
+      editorTarget: {
+        kind: "effect",
+        key: "tracers",
+        label: "Tracers replications",
+      },
+    };
+    vi.stubGlobal(
+      "matchMedia",
+      vi.fn((query: string) => ({
+        matches: query.includes("pointer: fine"),
+        media: query,
+        onchange: null,
+        addEventListener: () => {},
+        removeEventListener: () => {},
+        addListener: () => {},
+        removeListener: () => {},
+        dispatchEvent: () => false,
+      })),
+    );
+
+    const { rerender } = render(
+      <ReplicationViewerOverlay
+        collection={editable}
+        initialSlug="work-one"
+        open
+        onOpenChange={vi.fn()}
+      />,
+    );
+    expect(screen.queryByRole("button", { name: "Edit carousel" })).toBeNull();
+
+    window.localStorage.setItem(EDITOR_HINT_STORAGE_KEY, String(Date.now()));
+    window.dispatchEvent(new StorageEvent("storage"));
+    rerender(
+      <ReplicationViewerOverlay
+        collection={editable}
+        initialSlug="work-one"
+        open
+        onOpenChange={vi.fn()}
+      />,
+    );
+
+    const editButton = await screen.findByRole("button", {
+      name: "Edit carousel",
+    });
+    expect(editButton).toBeVisible();
+    expect(fetch).not.toHaveBeenCalled();
+    vi.mocked(fetch).mockImplementation(async (input) => {
+      const url = String(input);
+      const payload = url.endsWith("/playlists")
+        ? { ok: true, playlists: [] }
+        : url.endsWith("/substances")
+          ? { ok: true, substances: [] }
+          : { ok: true, associations: [] };
+      return { ok: true, json: async () => payload } as Response;
+    });
+
+    await userEvent.click(editButton);
+    const closeEditor = await screen.findByRole("button", {
+      name: "Close carousel editor",
+    });
+    expect(
+      screen.getByRole("complementary", { name: "Carousel editor" }),
+    ).toBeVisible();
+    await userEvent.click(closeEditor);
+    await waitFor(() => expect(editButton).toHaveFocus());
+  });
+
   it("renders a named dialog and walks works without losing source query state", () => {
     render(
       <ReplicationViewerOverlay

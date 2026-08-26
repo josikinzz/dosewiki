@@ -153,9 +153,19 @@ export async function updateGalleryOrderHandler(
     .withIndex("by_slug", (q) => q.eq("slug", args.effect_slug))
     .first();
   if (!effect) throw new Error(`Effect not found: ${args.effect_slug}`);
+  if (
+    args.expected_replication_slugs !== undefined &&
+    JSON.stringify(effect.gallery_order ?? []) !==
+      JSON.stringify(args.expected_replication_slugs)
+  ) {
+    return {
+      status: "conflict" as const,
+      server: effect.gallery_order ?? [],
+    };
+  }
 
   await ctx.db.patch(effect._id, { gallery_order: args.replication_slugs });
-  return { success: true };
+  return { status: "ok" as const };
 }
 
 export async function renameSlugHandler(ctx: MutationCtx, args: RenameSlugArgs) {

@@ -34,6 +34,7 @@ export async function setContributorOrderingHandler(
     actorEmail?: string;
     key: string;
     replicationOrder?: string[];
+    expectedReplicationOrder?: string[];
     reportOrder?: string[];
   },
 ) {
@@ -46,6 +47,16 @@ export async function setContributorOrderingHandler(
   if (!key) throw new Error("Profile key is required.");
   const existing = await getStoredContributorProfile(ctx, key);
   if (!existing) throw new Error(`Profile "${key}" not found.`);
+  if (
+    args.expectedReplicationOrder !== undefined &&
+    JSON.stringify(normalizeOrderSlugs(existing.replicationOrder)) !==
+      JSON.stringify(normalizeOrderSlugs(args.expectedReplicationOrder))
+  ) {
+    return {
+      status: "conflict" as const,
+      server: normalizeOrderSlugs(existing.replicationOrder),
+    };
+  }
 
   const patch: Record<string, unknown> = {
     updatedAt: new Date().toISOString(),
@@ -72,6 +83,7 @@ export async function setContributorOrderingHandler(
   await ctx.db.patch(existing._id, patch);
   const updated = (await getStoredContributorProfile(ctx, key)) as StoredProfile | null;
   return {
+    status: "ok" as const,
     key,
     replicationOrder: normalizeOrderSlugs(updated?.replicationOrder),
     reportOrder: normalizeOrderSlugs(updated?.reportOrder),

@@ -249,6 +249,7 @@ export const substanceGallery = v.object({
   substance_slug: v.string(),
   curated_slugs: v.array(v.string()),
   removed_slugs: v.array(v.string()),
+  carousel_order: v.optional(v.array(v.string())),
   updated_at: v.string(),               // ISO timestamp
   updated_by: v.optional(v.string()),
 });

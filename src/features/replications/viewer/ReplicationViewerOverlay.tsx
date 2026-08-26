@@ -30,6 +30,7 @@ import { publicHref } from "@/utils/publicHref";
 import { ReplicationMediaStage } from "./ReplicationMediaStage";
 import { RotatingIcon } from "./RotatingIcon";
 import { hasKnownCreator } from "@/features/effects/components/replicationCredit";
+import { ReplicationViewerEditorGate } from "./editor/ReplicationViewerEditorGate";
 import {
   findViewerPosition,
   moveViewerGroup,
@@ -170,12 +171,14 @@ export interface ReplicationViewerOverlayProps {
 }
 
 export function ReplicationViewerOverlay({
-  collection,
+  collection: sourceCollection,
   initialSlug,
   open,
   onOpenChange,
   onRegroup,
 }: ReplicationViewerOverlayProps) {
+  const [collection, setCollection] = useState(sourceCollection);
+  useEffect(() => setCollection(sourceCollection), [sourceCollection]);
   const initialPosition = useMemo(
     () => findViewerPosition(collection, initialSlug),
     [collection, initialSlug],
@@ -192,6 +195,10 @@ export function ReplicationViewerOverlay({
   const [entryMotion, setEntryMotion] = useState<EntryMotion | null>(null);
   const [gestureHint, setGestureHint] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [editorOpen, setEditorOpen] = useState(false);
+  const [reorderMode, setReorderMode] = useState(false);
+  const [editorPanelHost, setEditorPanelHost] = useState<HTMLElement | null>(null);
+  const [editorRailHost, setEditorRailHost] = useState<HTMLElement | null>(null);
   // Rotate mode is the reader's sticky choice for this session; the active
   // stage reports back whether the current work actually turns, so the
   // overlay's own iconography (settings, thumbnails) can lean with it.
@@ -240,6 +247,8 @@ export function ReplicationViewerOverlay({
       setInfoOpen(false);
       setSettingsOpen(false);
       setStageRotated(false);
+      setEditorOpen(false);
+      setReorderMode(false);
       rememberedSlugByGroupRef.current = {};
       return;
     }
@@ -349,6 +358,45 @@ export function ReplicationViewerOverlay({
       );
     },
     [collection],
+  );
+
+  const activateEditorSlug = useCallback(
+    (slug: string) => {
+      navigate(findViewerPosition(collection, slug), "fade");
+    },
+    [collection, navigate],
+  );
+
+  const applyEditorOrder = useCallback(
+    (slugs: readonly string[]) => {
+      if (!position || !active) return;
+      const currentGroup = collection.groups[position.groupIndex];
+      if (!currentGroup) return;
+      const bySlug = new Map(
+        currentGroup.items.map((item) => [item.replication.slug, item]),
+      );
+      const ordered = slugs.flatMap((slug) => {
+        const item = bySlug.get(slug);
+        if (!item) return [];
+        bySlug.delete(slug);
+        return [item];
+      });
+      ordered.push(...bySlug.values());
+      const nextCollection = {
+        ...collection,
+        groups: collection.groups.map((group, index) =>
+          index === position.groupIndex ? { ...group, items: ordered } : group,
+        ),
+      };
+      setCollection(nextCollection);
+      setPosition({
+        groupIndex: position.groupIndex,
+        itemIndex: ordered.findIndex(
+          (item) => item.replication.slug === active.replication.slug,
+        ),
+      });
+    },
+    [active, collection, position],
   );
 
   const openInfo = useCallback(() => {
@@ -942,6 +990,17 @@ export function ReplicationViewerOverlay({
               ) : null}
             </div>
           ) : null}
+          <ReplicationViewerEditorGate
+            collection={collection}
+            activeSlug={active.replication.slug}
+            panelHost={editorPanelHost}
+            railHost={editorRailHost}
+            open={editorOpen}
+            onOpenChange={setEditorOpen}
+            onReorderModeChange={setReorderMode}
+            onActivateSlug={activateEditorSlug}
+            onOrderChange={applyEditorOrder}
+          />
           <button
             type="button"
             onClick={close}
@@ -960,6 +1019,14 @@ export function ReplicationViewerOverlay({
           </p>
         ) : null}
 
+        <div
+          className={cn(
+            "grid min-h-0 min-w-0 overflow-hidden transition-[grid-template-columns] duration-200 motion-reduce:transition-none",
+            editorOpen
+              ? "grid-cols-[minmax(0,1fr)_22rem]"
+              : "grid-cols-[minmax(0,1fr)]",
+          )}
+        >
         <div
           inert={infoOpen || undefined}
           aria-hidden={infoOpen || undefined}
@@ -1126,9 +1193,10 @@ export function ReplicationViewerOverlay({
                 </span>
               )}
             </div>
+            <div ref={setEditorRailHost} />
           </div>
 
-          {group.items.length > 1 ? (
+          {group.items.length > 1 && !reorderMode ? (
             <nav
               aria-label={`${group.label} works`}
               className="theme-media-thumbnail-border border-t bg-black px-3 pt-1.5 pb-[max(0.375rem,env(safe-area-inset-bottom))] sm:px-5 sm:py-2"
@@ -1195,6 +1263,14 @@ export function ReplicationViewerOverlay({
                 })}
               </ul>
             </nav>
+          ) : null}
+        </div>
+          {editorOpen ? (
+            <aside
+              ref={setEditorPanelHost}
+              className="theme-media-thumbnail-border min-h-0 min-w-0 overflow-hidden border-l bg-black"
+              aria-label="Carousel editor"
+            />
           ) : null}
         </div>
 

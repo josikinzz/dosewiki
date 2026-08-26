@@ -62,6 +62,14 @@ export type ReplicationViewerCollectionKind =
   | "gallery";
 export type ReplicationViewerGrouping = "none" | "artist" | "effect";
 
+export interface ReplicationViewerEditableTarget {
+  kind: ReplicationViewerScope;
+  key: string;
+  label: string;
+  /** Substance rows use this version for optimistic concurrency. */
+  updatedAt?: string | null;
+}
+
 export interface ReplicationViewerGroup {
   key: string;
   label: string;
@@ -79,6 +87,8 @@ export interface ReplicationViewerCollection {
   kind: ReplicationViewerCollectionKind;
   grouping: ReplicationViewerGrouping;
   groups: ReplicationViewerGroup[];
+  /** Present only when the visible collection is safe to reorder in full. */
+  editorTarget?: ReplicationViewerEditableTarget;
 }
 
 export interface ReplicationViewerPosition {

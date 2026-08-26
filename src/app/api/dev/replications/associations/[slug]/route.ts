@@ -2,12 +2,14 @@
  * Editor read + write for one replication's drug associations
  * (`/dev` → Replications → Studio → associations panel).
  *
- *   GET  /api/dev/replications/associations/<slug>
+ *   GET   /api/dev/replications/associations/<slug>
  *     → { ok, associations }
- *   POST /api/dev/replications/associations/<slug>
+ *   PATCH /api/dev/replications/associations/<slug>
+ *          { substanceSlug, assigned }
+ *     → { ok, association }
+ *   POST  /api/dev/replications/associations/<slug>
  *          { excludedSubstanceSlugs }
  *     → { ok, updated, droppedCuratedPositions }
- *
  * The association is derived, never stored: a substance article surfaces this
  * replication when one of its visual-effect names resolves to the row's owning
  * `effect_slug` or to one of its `effect_tags`. So there is no join table to
@@ -38,6 +40,7 @@ import { api } from "../../../../../../../convex/_generated/api";
 import { PUBLIC_CONVEX_CACHE_TAGS } from "@server/convex/publicData";
 import { JsonBodyError } from "@/lib/http/readJsonBody";
 import { protectedRouteOperation } from "@/lib/http/protectedRouteOperation";
+import { requireReplicationViewerEditorHost } from "@server/next/replicationViewerEditorPolicy";
 import type { ReplicationAssociation } from "@/features/dev/tools/replication-studio/replicationAssociationModel";
 
 export const runtime = "nodejs";
@@ -115,6 +118,27 @@ function parseExclusionBody(raw: ExclusionBody): ParsedExclusionBody {
   return { excludedSubstanceSlugs: slugs };
 }
 
+type DirectAssociationBody = {
+  substanceSlug?: unknown;
+  assigned?: unknown;
+};
+
+function parseDirectAssociationBody(raw: DirectAssociationBody): {
+  substanceSlug: string;
+  assigned: boolean;
+} {
+  if (
+    typeof raw.substanceSlug !== "string" ||
+    !SUBSTANCE_SLUG.test(raw.substanceSlug)
+  ) {
+    throw new JsonBodyError(400, "A valid lowercase substance slug is required.");
+  }
+  if (typeof raw.assigned !== "boolean") {
+    throw new JsonBodyError(400, "assigned must be true or false.");
+  }
+  return { substanceSlug: raw.substanceSlug, assigned: raw.assigned };
+}
+
 export const GET = protectedRouteOperation({
   auth: "editor",
   rateLimit: "diagnosticRead",
@@ -156,6 +180,40 @@ export const GET = protectedRouteOperation({
       .sort((a, b) => a.title.localeCompare(b.title));
 
     return NextResponse.json({ ok: true, associations });
+  },
+});
+
+export const PATCH = protectedRouteOperation<
+  DirectAssociationBody,
+  ReturnType<typeof parseDirectAssociationBody>
+>({
+  auth: "editor",
+  rateLimit: "editorSmallWrite",
+  body: { maxBytes: 4 * 1024, parse: parseDirectAssociationBody },
+  capabilities: [{ type: "convexWrite" }],
+  unexpectedErrorLabel: "Failed to update a replication's drug association:",
+  unexpectedErrorMessage: "Unable to update that drug assignment right now.",
+  operation: async ({ request, actorEmail, body, convexWrite }) => {
+    if (!convexWrite) {
+      throw new Error("Convex write capability is required.");
+    }
+    const slug = replicationSlugOf(request);
+    requireReplicationViewerEditorHost(request);
+    const result = await convexWrite.client.mutation(
+      api.substanceGalleries.setReplicationDirectAssociation,
+      {
+        apiKey:
+          convexWrite.getAdminIntentToken?.("editorArticleWrite") ??
+          convexWrite.adminKey,
+        actorEmail,
+        replicationSlug: slug,
+        substanceSlug: body.substanceSlug,
+        assigned: body.assigned,
+      },
+    );
+    revalidateTag(PUBLIC_CONVEX_CACHE_TAGS.replications, { expire: 0 });
+    revalidatePath(`/${body.substanceSlug}`);
+    return NextResponse.json({ ok: true, association: result.association });
   },
 });
 

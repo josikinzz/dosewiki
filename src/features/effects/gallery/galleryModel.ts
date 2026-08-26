@@ -12,10 +12,7 @@ import type {
   ReplicationViewingModeTag,
 } from "@/types/replications";
 import { hasKnownCreator } from "../components/replicationCredit";
-import {
-  replicationMediaRank,
-  sortByMediaRank,
-} from "@/features/replications/mediaRank";
+import { replicationMediaRank } from "@/features/replications/mediaRank";
 
 /**
  * Data model for the cross-effect replications gallery: normalization,
@@ -463,27 +460,19 @@ export function groupByArtist(
   }
 
   const groups = Array.from(buckets.values()).map((group) => {
-    // A contributor curates their own body of work, so the curation applies to
-    // the artist grouping only: it leads their section and the shared
-    // newest/title sort carries everything they did not pin. "By effect" keeps
-    // the effect's own `gallery_order` (see `sortWithinGroup`) — that is the
-    // effect editor's ordering, not the artist's, and the two never mix.
-    // Either way the audio-first media rank stays primary: the curation
-    // reorders works within a rank, never a still above a sounded video.
-    //
-    // The unattributed bucket is skipped rather than looked up: it is keyed by a
-    // sentinel and labelled "Unattributed", which is not a credit line anybody
-    // is stored under, so a lookup could only ever match a profile that had
-    // claimed the word itself. Marker credits are *not* skipped — see above.
-    const items = sortByMediaRank(
-      applyCuratedOrder(
-        sortWithinGroup(group.items),
-        group.key === UNATTRIBUTED_KEY
-          ? undefined
-          : resolveContributorReplicationOrder(group.label, contributorDirectory),
-        (replication) => replication.slug,
-      ),
-      (replication) => replication,
+    // A claimed contributor's explicit order is authoritative across media
+    // ranks. Everything unlisted keeps the automatic audio/newest/title order.
+    // The unattributed bucket has no contributor owner and therefore no stored
+    // order.
+    const items = applyCuratedOrder(
+      sortWithinGroup(group.items),
+      group.key === UNATTRIBUTED_KEY
+        ? undefined
+        : resolveContributorReplicationOrder(
+            group.label,
+            contributorDirectory,
+          ),
+      (replication) => replication.slug,
     );
     const { imageCount, videoCount } = tally(items);
     return { ...group, items, count: items.length, imageCount, videoCount };

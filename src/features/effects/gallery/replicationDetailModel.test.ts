@@ -39,6 +39,20 @@ describe('orderEffectReplications', () => {
     expect(ordered.map((item) => item.slug)).toEqual(['b', 'a', 'c', 'z']);
   });
 
+  it('treats gallery_order as an exact prefix across media ranks', () => {
+    const items = [
+      make({ slug: 'sounded', type: 'video', format: 'mp4', has_audio: true }),
+      make({ slug: 'still', type: 'image', format: 'webp' }),
+      make({ slug: 'motion', type: 'video', format: 'mp4', has_audio: false }),
+    ];
+
+    expect(orderEffectReplications(items, ['still', 'motion']).map((item) => item.slug)).toEqual([
+      'still',
+      'motion',
+      'sounded',
+    ]);
+  });
+
   it('drops rows with no resolved asset so the walk never reaches a dead page', () => {
     const items = [
       make({ slug: 'a' }),
@@ -83,6 +97,18 @@ describe('orderContributorReplications', () => {
       'old',
       'new',
       'mid',
+    ]);
+  });
+
+  it('treats replicationOrder as an exact prefix across media ranks', () => {
+    const works = [
+      make({ slug: 'sounded', type: 'video', format: 'mp4', has_audio: true }),
+      make({ slug: 'still', type: 'image', format: 'webp' }),
+    ];
+
+    expect(orderContributorReplications(works, ['still']).map((work) => work.slug)).toEqual([
+      'still',
+      'sounded',
     ]);
   });
 });

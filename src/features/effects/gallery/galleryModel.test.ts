@@ -155,6 +155,32 @@ describe('groupByArtist', () => {
     expect(group.items.map((item) => item.slug)).toEqual(['third', 'first', 'second']);
   });
 
+  it("keeps an artist's explicit prefix authoritative across media ranks", () => {
+    const sounded = rep({
+      artist: 'Kaytwo',
+      slug: 'sounded',
+      type: 'video',
+      format: 'mp4',
+      has_audio: true,
+    });
+    const still = rep({
+      artist: 'Kaytwo',
+      slug: 'still',
+      type: 'image',
+      format: 'webp',
+    });
+    const [group] = groupByArtist([sounded, still], 'count', [
+      {
+        key: 'KAYTWO',
+        displayName: 'Kaytwo',
+        aliases: [],
+        replicationOrder: ['still'],
+      },
+    ]);
+
+    expect(group.items.map((item) => item.slug)).toEqual(['still', 'sounded']);
+  });
+
   it('ignores curated slugs the artist no longer has, and leaves an uncurated artist alone', () => {
     const curated = groupByArtist(
       [rep({ artist: 'Kaytwo', slug: 'a', order_index: 1 }), rep({ artist: 'Kaytwo', slug: 'b', order_index: 2 })],

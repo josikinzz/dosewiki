@@ -183,6 +183,13 @@ export default async function ReplicationArtistPage({ params }: ArtistFocusPageP
     label: collectionLabel,
     kind: "artist",
     grouping: "none",
+    editorTarget: attributed
+      ? {
+          kind: "artist",
+          key: profile?.key ?? key,
+          label: collectionLabel,
+        }
+      : undefined,
   };
   const works = group.items
     .slice(0, SHOWCASE_WORK_CAP)

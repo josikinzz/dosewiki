@@ -169,6 +169,66 @@ export const upsert = mutation({
   },
 });
 
+/** Idempotently add or remove one replication without replacing the playlist. */
+export const setMembership = mutation({
+  args: {
+    apiKey: v.optional(v.string()),
+    actorEmail: v.optional(v.string()),
+    key: v.string(),
+    replicationSlug: v.string(),
+    included: v.boolean(),
+  },
+  handler: async (ctx, args) => {
+    const actor = await requireEditorWrite(ctx, {
+      apiKey: args.apiKey,
+      actorEmail: args.actorEmail,
+      adminIntent: "editorArticleWrite",
+    });
+    const existing = await ctx.db
+      .query("replicationPlaylists")
+      .withIndex("by_key", (q) => q.eq("key", args.key))
+      .first();
+    if (!existing) {
+      throw new Error(`Playlist "${args.key}" not found.`);
+    }
+    const replication = await ctx.db
+      .query("replications")
+      .withIndex("by_slug", (q) => q.eq("slug", args.replicationSlug))
+      .first();
+    if (!replication || !isShowcaseEligible(replication)) {
+      throw new Error(
+        `Replication "${args.replicationSlug}" is not playlist-eligible.`,
+      );
+    }
+    const slugs = args.included
+      ? existing.replication_slugs.includes(args.replicationSlug)
+        ? existing.replication_slugs
+        : [...existing.replication_slugs, args.replicationSlug]
+      : existing.replication_slugs.filter(
+          (slug) => slug !== args.replicationSlug,
+        );
+    if (slugs.length > MAX_PLAYLIST_SLUGS) {
+      throw new Error(
+        `This playlist holds more than ${MAX_PLAYLIST_SLUGS} works.`,
+      );
+    }
+    const updated_at = new Date().toISOString();
+    await ctx.db.patch(existing._id, {
+      replication_slugs: slugs,
+      updated_at,
+      updated_by: actor.email,
+    });
+    return {
+      status: "ok" as const,
+      key: existing.key,
+      title: existing.title,
+      replication_slugs: slugs,
+      updated_at,
+      updated_by: actor.email,
+    };
+  },
+});
+
 export const remove = mutation({
   args: {
     apiKey: v.optional(v.string()),

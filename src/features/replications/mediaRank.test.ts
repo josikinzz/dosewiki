@@ -90,20 +90,20 @@ describe("orderEffectReplications applies the rank as primary key", () => {
     ...overrides,
   });
 
-  it("floats a sounded video above the curated gallery_order head", () => {
+  it("keeps an explicit gallery_order ahead of automatic media ranks", () => {
     const items = [
       make({ slug: "curated-still" }),
       make({ slug: "sounded", type: "video", format: "mp4", has_audio: true }),
       make({ slug: "silent", type: "video", format: "mp4" }),
     ];
 
-    // The editor pinned the still first; the audible-signal rank still wins,
-    // and curation only orders work sharing a rank.
-    expect(orderEffectReplications(items, ["curated-still", "silent"]).map((item) => item.slug)).toEqual([
-      "sounded",
-      "silent",
-      "curated-still",
-    ]);
+    // The editor's exact prefix is authoritative. Automatic media rank only
+    // determines where the unlisted sounded work lands after that prefix.
+    expect(
+      orderEffectReplications(items, ["curated-still", "silent"]).map(
+        (item) => item.slug,
+      ),
+    ).toEqual(["curated-still", "silent", "sounded"]);
   });
 
   it("keeps the curated order within a rank", () => {

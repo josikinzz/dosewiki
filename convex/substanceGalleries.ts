@@ -8,6 +8,7 @@ import {
   matchSubstanceGalleryReplications,
   includeDirectlyAssociatedRows,
   mergeCuratedGallery,
+  normalizeGalleryCarouselOrder,
   normalizeGalleryCuration,
   substanceGalleryTargetOf,
   type SubstanceGalleryMatchableRow,
@@ -26,8 +27,9 @@ import type { ReplicationAssociation } from "../src/features/dev/tools/replicati
  * deliriant work belongs to every article carrying that psychoactive class.
  * Eligible Visual Disconnection stills close every dissociative collection.
  * General psychedelic work and combinations are never broadly automatic.
- * Stored `curated_slugs` order rows within tiers and retain unmatched direct
- * placements; `removed_slugs` suppresses every source.
+ * Stored `curated_slugs` retain unmatched direct placements.
+ * `carousel_order` is the exact cross-tier presentation prefix, while
+ * `removed_slugs` suppresses every source.
  *
  * The pure policy lives in `src/data/substanceReplicationGallery` so public
  * reads, editor reads, association inspection, and writes cannot drift.
@@ -240,6 +242,7 @@ export const getCurationDetail = query({
         ? {
             curated_slugs: gallery.curated_slugs,
             removed_slugs: gallery.removed_slugs,
+            carousel_order: gallery.carousel_order ?? [],
             updated_at: gallery.updated_at,
             updated_by: gallery.updated_by,
           }
@@ -317,6 +320,7 @@ export const upsert = mutation({
         server: {
           curated_slugs: existing?.curated_slugs ?? [],
           removed_slugs: existing?.removed_slugs ?? [],
+          carousel_order: existing?.carousel_order ?? [],
           updated_at: existing?.updated_at ?? "",
           updated_by: existing?.updated_by ?? null,
         },
@@ -355,6 +359,7 @@ export const upsert = mutation({
         substance_slug: args.substance_slug,
         curated_slugs: normalized.curatedSlugs,
         removed_slugs: normalized.removedSlugs,
+        carousel_order: [],
         updated_at,
         updated_by,
       });
@@ -370,6 +375,98 @@ export const upsert = mutation({
       pruned_removed: normalized.prunedRemoved,
       updated_at,
       updated_by,
+    };
+  },
+});
+
+/** Replace the exact presentation order for one substance's current showcase. */
+export const setCarouselOrder = mutation({
+  args: {
+    apiKey: v.optional(v.string()),
+    actorEmail: v.optional(v.string()),
+    substance_slug: v.string(),
+    carousel_order: v.array(v.string()),
+    expectedUpdatedAt: v.optional(v.union(v.string(), v.null())),
+    expectedCarouselOrder: v.optional(v.array(v.string())),
+  },
+  handler: async (ctx, args) => {
+    const actor = await requireEditorWrite(ctx, {
+      apiKey: args.apiKey,
+      actorEmail: args.actorEmail,
+      adminIntent: "editorArticleWrite",
+    });
+    if (args.carousel_order.length > MAX_GALLERY_CURATION_SLUGS) {
+      throw new Error(
+        `This carousel orders ${args.carousel_order.length} works; the limit is ${MAX_GALLERY_CURATION_SLUGS}.`,
+      );
+    }
+
+    const substance = await uniqueSubstanceBySlug(ctx, args.substance_slug);
+    if (!substance) {
+      throw new Error(`No substance found for slug "${args.substance_slug}".`);
+    }
+    const existing = await ctx.db
+      .query("substanceGalleries")
+      .withIndex("by_substance", (q) => q.eq("substance_slug", args.substance_slug))
+      .first();
+    const expected = args.expectedUpdatedAt;
+    const staleTimestamp =
+      expected !== undefined &&
+      (expected === null ? existing !== null : existing?.updated_at !== expected);
+    const staleOrder =
+      args.expectedCarouselOrder !== undefined &&
+      JSON.stringify(existing?.carousel_order ?? []) !==
+        JSON.stringify(args.expectedCarouselOrder);
+    if (staleTimestamp || staleOrder) {
+      return {
+        status: "conflict" as const,
+        server: {
+          carousel_order: existing?.carousel_order ?? [],
+          updated_at: existing?.updated_at ?? "",
+          updated_by: existing?.updated_by ?? null,
+        },
+      };
+    }
+
+    const rows = await ctx.db.query("replications").collect();
+    const target = substanceGalleryTargetOf(substance);
+    const matches = target
+      ? matchSubstanceGalleryReplications(rows, target).matches
+      : [];
+    const included = mergeCuratedGallery(
+      includeDirectlyAssociatedRows(rows, matches, existing),
+      existing,
+    );
+    const normalized = normalizeGalleryCarouselOrder(
+      args.carousel_order,
+      new Set(included.map((item) => item.row.slug)),
+    );
+    const updated_at = new Date().toISOString();
+
+    if (existing) {
+      await ctx.db.patch(existing._id, {
+        carousel_order: normalized.order,
+        updated_at,
+        updated_by: actor.email,
+      });
+    } else {
+      await ctx.db.insert("substanceGalleries", {
+        substance_slug: args.substance_slug,
+        curated_slugs: [],
+        removed_slugs: [],
+        carousel_order: normalized.order,
+        updated_at,
+        updated_by: actor.email,
+      });
+    }
+
+    return {
+      status: "ok" as const,
+      substance_slug: args.substance_slug,
+      carousel_order: normalized.order,
+      pruned: normalized.pruned,
+      updated_at,
+      updated_by: actor.email,
     };
   },
 });
@@ -459,6 +556,99 @@ export const getReplicationAssociationsPage = query({
     }
 
     return { items, cursor: page.continueCursor, isDone: page.isDone };
+  },
+});
+
+/** Add or remove one explicit replication-to-substance association atomically. */
+export const setReplicationDirectAssociation = mutation({
+  args: {
+    apiKey: v.optional(v.string()),
+    actorEmail: v.optional(v.string()),
+    replicationSlug: v.string(),
+    substanceSlug: v.string(),
+    assigned: v.boolean(),
+  },
+  handler: async (ctx, args) => {
+    const actor = await requireEditorWrite(ctx, {
+      apiKey: args.apiKey,
+      actorEmail: args.actorEmail,
+      adminIntent: "editorArticleWrite",
+    });
+    const replication = await ctx.db
+      .query("replications")
+      .withIndex("by_slug", (q) => q.eq("slug", args.replicationSlug))
+      .first();
+    if (
+      !replication ||
+      !isShowcaseEligible(replication) ||
+      isCombinationReplication(replication)
+    ) {
+      throw new Error(
+        `Replication "${args.replicationSlug}" cannot be assigned to a single-substance showcase.`,
+      );
+    }
+    const substance = await uniqueSubstanceBySlug(ctx, args.substanceSlug);
+    if (!substance) {
+      throw new Error(`No substance found for slug "${args.substanceSlug}".`);
+    }
+    const existing = await ctx.db
+      .query("substanceGalleries")
+      .withIndex("by_substance", (q) => q.eq("substance_slug", args.substanceSlug))
+      .first();
+    const current = existing?.curated_slugs ?? [];
+    const curated_slugs = args.assigned
+      ? current.includes(args.replicationSlug)
+        ? current
+        : [...current, args.replicationSlug]
+      : current.filter((slug) => slug !== args.replicationSlug);
+    if (curated_slugs.length > MAX_GALLERY_CURATION_SLUGS) {
+      throw new Error(
+        `This gallery curates more than ${MAX_GALLERY_CURATION_SLUGS} works.`,
+      );
+    }
+    const removed_slugs = (existing?.removed_slugs ?? []).filter(
+      (slug) => slug !== args.replicationSlug,
+    );
+    const updated_at = new Date().toISOString();
+    if (existing) {
+      await ctx.db.patch(existing._id, {
+        curated_slugs,
+        removed_slugs,
+        updated_at,
+        updated_by: actor.email,
+      });
+    } else if (args.assigned) {
+      await ctx.db.insert("substanceGalleries", {
+        substance_slug: args.substanceSlug,
+        curated_slugs,
+        removed_slugs,
+        carousel_order: [],
+        updated_at,
+        updated_by: actor.email,
+      });
+    }
+    const automatic = associationProvenance(replication, substance);
+    return {
+      status: "ok" as const,
+      association:
+        args.assigned || automatic
+          ? {
+              slug: substance.slug,
+              title: substance.title,
+              matchedVia: automatic?.matchedVia ?? "curated",
+              effectSlug: automatic?.effectSlug ?? "",
+              effectName:
+                automatic?.matchedVia === "specific_drug"
+                  ? substance.title
+                  : automatic?.effectSlug ?? substance.title,
+              excluded: false,
+              curatedPosition: args.assigned
+                ? curated_slugs.indexOf(args.replicationSlug) + 1
+                : null,
+            }
+          : null,
+      updated_at,
+    };
   },
 });
 

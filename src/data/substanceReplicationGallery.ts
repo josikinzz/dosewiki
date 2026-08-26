@@ -10,9 +10,9 @@
  * General psychedelic work is never spread across psychedelic articles, and
  * combinations are never proposed for a single-substance showcase.
  *
- * Stored `curated_slugs` are an ordering/direct-association delta rather than a
- * publish gate. Automatic tiers lead; curation orders rows within a tier and
- * preserves unmatched editorial associations as the final tier.
+ * Stored `curated_slugs` are a direct-association delta and a legacy priority
+ * list within automatic tiers. `carousel_order` is the exact editorial prefix
+ * across all tiers; every unlisted work keeps the automatic order.
  * `removed_slugs` always wins.
  *
  * Everything here is pure. Imports are relative because the Convex bundler
@@ -21,6 +21,7 @@
 import { DISSOCIATIVE_TITLE_DRUG_RULES } from "./replicationTitleDrugAliases";
 
 import { z } from "zod";
+import { applyCuratedOrder } from "../../lib/curatedOrder";
 import {
   isPublishableReplication,
   type MediaRole,
@@ -103,12 +104,13 @@ export type SubstanceGalleryMatchResult<Row extends SubstanceGalleryMatchableRow
 };
 
 /**
- * The stored gallery association fields: ordered manual priority/direct
- * placements and unordered per-substance exclusions.
+ * Stored association and presentation fields. `curated_slugs` can also create a
+ * direct association; `carousel_order` only sequences already-included works.
  */
 export type SubstanceGalleryCuration = {
   curated_slugs?: readonly string[];
   removed_slugs?: readonly string[];
+  carousel_order?: readonly string[];
 };
 
 /** One item of the public per-substance read, URL-resolved for rendering. */
@@ -397,7 +399,7 @@ export function mergeCuratedGallery<Row extends SubstanceGalleryMatchableRow>(
   const curatedOrder = new Map(
     (curation?.curated_slugs ?? []).map((slug, index) => [slug, index]),
   );
-  return [...bySlug.values()].sort((left, right) => {
+  const automatic = [...bySlug.values()].sort((left, right) => {
     const tierDelta = automaticTier(left) - automaticTier(right);
     if (tierDelta !== 0) return tierDelta;
     const leftOrder = curatedOrder.get(left.row.slug);
@@ -409,6 +411,11 @@ export function mergeCuratedGallery<Row extends SubstanceGalleryMatchableRow>(
     }
     return 0;
   });
+  return applyCuratedOrder(
+    automatic,
+    curation?.carousel_order,
+    (item) => item.row.slug,
+  );
 }
 
 export type NormalizedGalleryCuration = {
@@ -431,6 +438,17 @@ function normalizeSlugList(slugs: readonly string[]): string[] {
     normalized.push(slug);
   }
   return normalized;
+}
+
+export function normalizeGalleryCarouselOrder(
+  slugs: readonly string[],
+  includedSlugs: ReadonlySet<string>,
+): { order: string[]; pruned: string[] } {
+  const normalized = normalizeSlugList(slugs);
+  return {
+    order: normalized.filter((slug) => includedSlugs.has(slug)),
+    pruned: normalized.filter((slug) => !includedSlugs.has(slug)),
+  };
 }
 
 /**
