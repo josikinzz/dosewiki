@@ -1,7 +1,12 @@
 import { Settings2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import {
+  Popover,
+  PopoverArrow,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 
 import type { StoryDef } from "../registry/types";
 
@@ -14,8 +19,8 @@ export const popoverStory: StoryDef = {
     "A Radix popover with the themed overlay surface preset — a floating panel anchored to a trigger for menus, filters, or small forms.",
   source: "src/components/ui/popover.tsx",
   importLine:
-    'import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";',
-  exports: ["Popover", "PopoverTrigger", "PopoverContent"],
+    'import { Popover, PopoverArrow, PopoverTrigger, PopoverContent } from "@/components/ui/popover";',
+  exports: ["Popover", "PopoverArrow", "PopoverTrigger", "PopoverContent"],
   examples: [
     {
       label: "Basic popover",
@@ -27,6 +32,7 @@ export const popoverStory: StoryDef = {
             <Button variant="outline">Open popover</Button>
           </PopoverTrigger>
           <PopoverContent>
+            <PopoverArrow aria-hidden="true" className="theme-popover-arrow" />
             <div className="flex flex-col gap-1">
               <span className="text-sm font-medium text-[var(--theme-text-primary)]">
                 Anchored panel
