@@ -108,7 +108,7 @@ describe("ReplicationMediaStage", () => {
 
     expect(screen.getByRole("button", { name: "Play" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Unmute" })).toBeInTheDocument();
-    expect(screen.getByRole("slider", { name: "Volume" })).toHaveValue("0.6");
+    expect(screen.getByRole("slider", { name: "Volume" })).toHaveValue("0");
     expect(
       screen.getByRole("button", { name: "Rotate to fill screen" }),
     ).toBeInTheDocument();
@@ -170,6 +170,97 @@ describe("ReplicationMediaStage", () => {
     act(() => vi.advanceTimersByTime(2601));
     expect(stage).not.toHaveAttribute("data-controls-visible");
     vi.useRealTimers();
+  });
+
+  it("shows the loading icon immediately but delays and stabilizes the copy", () => {
+    vi.useFakeTimers();
+    const { container } = render(
+      <ReplicationMediaStage
+        item={item()}
+        muted
+        volume={1}
+        onMutedChange={vi.fn()}
+        onVolumeChange={vi.fn()}
+      />,
+    );
+    const video = container.querySelector("video") as HTMLVideoElement;
+    Object.defineProperty(video, "paused", {
+      configurable: true,
+      value: false,
+    });
+
+    fireEvent.play(video);
+    fireEvent.waiting(video);
+    expect(
+      screen.getByRole("img", { name: "Buffering" }),
+    ).toBeInTheDocument();
+    expect(screen.queryByRole("status")).not.toBeInTheDocument();
+
+    act(() => vi.advanceTimersByTime(1999));
+    expect(screen.queryByRole("status")).not.toBeInTheDocument();
+    act(() => vi.advanceTimersByTime(1));
+    expect(screen.getByRole("status")).toHaveTextContent(
+      "Oops, we plan to use a faster video host soon! :(",
+    );
+
+    fireEvent.playing(video);
+    expect(
+      screen.queryByRole("img", { name: "Buffering" }),
+    ).not.toBeInTheDocument();
+    expect(screen.getByRole("status")).toBeInTheDocument();
+    act(() => vi.advanceTimersByTime(1499));
+    expect(screen.getByRole("status")).toBeInTheDocument();
+    act(() => vi.advanceTimersByTime(1));
+    expect(screen.queryByRole("status")).not.toBeInTheDocument();
+  });
+
+  it("bridges brief recovery events without flashing the buffering copy", () => {
+    vi.useFakeTimers();
+    const { container } = render(
+      <ReplicationMediaStage
+        item={item()}
+        muted
+        volume={1}
+        onMutedChange={vi.fn()}
+        onVolumeChange={vi.fn()}
+      />,
+    );
+    const video = container.querySelector("video") as HTMLVideoElement;
+    Object.defineProperty(video, "paused", {
+      configurable: true,
+      value: false,
+    });
+
+    fireEvent.waiting(video);
+    act(() => vi.advanceTimersByTime(1200));
+    fireEvent.playing(video);
+    expect(screen.queryByRole("status")).not.toBeInTheDocument();
+
+    fireEvent.stalled(video);
+    act(() => vi.advanceTimersByTime(2000));
+    expect(screen.getByRole("status")).toBeInTheDocument();
+    act(() => vi.advanceTimersByTime(1500));
+
+    fireEvent.playing(video);
+    act(() => vi.advanceTimersByTime(500));
+    fireEvent.waiting(video);
+    expect(screen.getByRole("status")).toBeInTheDocument();
+
+    fireEvent.playing(video);
+    act(() => vi.advanceTimersByTime(749));
+    expect(screen.getByRole("status")).toBeInTheDocument();
+    act(() => vi.advanceTimersByTime(1));
+    expect(screen.queryByRole("status")).not.toBeInTheDocument();
+
+    Object.defineProperty(video, "paused", {
+      configurable: true,
+      value: true,
+    });
+    fireEvent.pause(video);
+    fireEvent.waiting(video);
+    expect(
+      screen.queryByRole("img", { name: "Buffering" }),
+    ).not.toBeInTheDocument();
   });
 
   it("does not autoplay when reduced motion is requested", () => {

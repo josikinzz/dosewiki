@@ -25,6 +25,10 @@ const controlClassName = cn(
   focusRingClassName,
 );
 
+const BUFFERING_COPY_DELAY_MS = 2000;
+const BUFFERING_COPY_MIN_VISIBLE_MS = 1500;
+const BUFFERING_COPY_RECOVERY_GRACE_MS = 750;
+
 function reducedMotionRequested(): boolean {
   return (
     typeof window !== "undefined" &&
@@ -158,10 +162,16 @@ export function ReplicationMediaStage({
   /** Last whole second written to aria-valuenow, deduping per-frame writes. */
   const ariaSecondRef = useRef(-1);
   const hideTimerRef = useRef<number | undefined>(undefined);
+  const bufferingRef = useRef(false);
+  const bufferingCopyShownAtRef = useRef<number | null>(null);
+  const bufferingCopyShowTimerRef = useRef<number | undefined>(undefined);
+  const bufferingCopyHideTimerRef = useRef<number | undefined>(undefined);
   const reducedMotion = useReducedMotion();
   const [playing, setPlaying] = useState(false);
   const [blocked, setBlocked] = useState(false);
   const [error, setError] = useState(false);
+  const [buffering, setBuffering] = useState(false);
+  const [bufferingCopyVisible, setBufferingCopyVisible] = useState(false);
   const [controlsVisible, setControlsVisible] = useState(true);
   const [scrubbing, setScrubbing] = useState(false);
   /** True once the video has painted real frames; drops the poster underlay. */
@@ -236,7 +246,11 @@ export function ReplicationMediaStage({
   }, [scheduleControlHide]);
 
   useEffect(() => {
-    return () => window.clearTimeout(hideTimerRef.current);
+    return () => {
+      window.clearTimeout(hideTimerRef.current);
+      window.clearTimeout(bufferingCopyShowTimerRef.current);
+      window.clearTimeout(bufferingCopyHideTimerRef.current);
+    };
   }, []);
 
   useEffect(() => {
@@ -258,6 +272,7 @@ export function ReplicationMediaStage({
     pendingSoundRef.current = false;
     // knownAudio is derived from the same slug change that resets here.
   }, [replication.slug]);
+
 
   // The poster underlay drops the moment a real frame is decodable, not on
   // the first timeupdate — that gate waited for playback to advance, so
@@ -302,11 +317,92 @@ export function ReplicationMediaStage({
     }
   }, [muted, volume]);
 
+  const hideBufferingCopy = useCallback(() => {
+    window.clearTimeout(bufferingCopyShowTimerRef.current);
+    window.clearTimeout(bufferingCopyHideTimerRef.current);
+    bufferingCopyShowTimerRef.current = undefined;
+    bufferingCopyHideTimerRef.current = undefined;
+    bufferingCopyShownAtRef.current = null;
+    setBufferingCopyVisible(false);
+  }, []);
+
+  const resetBuffering = useCallback(() => {
+    bufferingRef.current = false;
+    setBuffering(false);
+    hideBufferingCopy();
+  }, [hideBufferingCopy]);
+
+  const settleBuffering = useCallback(() => {
+    bufferingRef.current = false;
+    setBuffering(false);
+    window.clearTimeout(bufferingCopyShowTimerRef.current);
+    bufferingCopyShowTimerRef.current = undefined;
+
+    const shownAt = bufferingCopyShownAtRef.current;
+    if (shownAt === null) return;
+
+    const visibleFor = Date.now() - shownAt;
+    const hideDelay = Math.max(
+      BUFFERING_COPY_RECOVERY_GRACE_MS,
+      BUFFERING_COPY_MIN_VISIBLE_MS - visibleFor,
+    );
+    window.clearTimeout(bufferingCopyHideTimerRef.current);
+    bufferingCopyHideTimerRef.current = window.setTimeout(() => {
+      bufferingCopyHideTimerRef.current = undefined;
+      if (bufferingRef.current) return;
+      bufferingCopyShownAtRef.current = null;
+      setBufferingCopyVisible(false);
+    }, hideDelay);
+  }, []);
+
   const markBlocked = useCallback(() => {
+    resetBuffering();
     setBlocked(true);
     setPlaying(false);
     setControlsVisible(true);
+  }, [resetBuffering]);
+
+  /**
+   * `waiting` always means playback ran out of media; `stalled` only becomes
+   * user-visible when the element has also run out of future frames. Native
+   * paused/ended/error state is the source of truth for playback intent, so a
+   * user pause or a terminal state can never be mislabeled as buffering.
+   *
+   * The icon follows the native event immediately. Copy waits for a sustained
+   * interruption, then gets a minimum dwell and a short recovery grace so
+   * unstable network events cannot make the sentence flash on and off.
+   */
+  const markBuffering = useCallback((video: HTMLVideoElement) => {
+    if (
+      video.paused ||
+      video.ended ||
+      video.error ||
+      video.readyState >= HTMLMediaElement.HAVE_FUTURE_DATA
+    ) {
+      return;
+    }
+
+    bufferingRef.current = true;
+    setBuffering(true);
+    window.clearTimeout(bufferingCopyHideTimerRef.current);
+    bufferingCopyHideTimerRef.current = undefined;
+
+    if (
+      bufferingCopyShownAtRef.current === null &&
+      bufferingCopyShowTimerRef.current === undefined
+    ) {
+      bufferingCopyShowTimerRef.current = window.setTimeout(() => {
+        bufferingCopyShowTimerRef.current = undefined;
+        if (!bufferingRef.current) return;
+        bufferingCopyShownAtRef.current = Date.now();
+        setBufferingCopyVisible(true);
+      }, BUFFERING_COPY_DELAY_MS);
+    }
   }, []);
+
+  useEffect(() => {
+    resetBuffering();
+  }, [motionSource, replication.slug, resetBuffering]);
 
   /**
    * Start playback the way phone feeds do: when the browser rejects unmuted
@@ -614,16 +710,23 @@ export function ReplicationMediaStage({
             settleAudioPresence(video);
           }}
           onTimeUpdate={(event) => settleAudioPresence(event.currentTarget)}
+          onCanPlay={settleBuffering}
           onPlay={() => {
             setPlaying(true);
             setBlocked(false);
             showControls();
           }}
+          onPlaying={settleBuffering}
+          onWaiting={(event) => markBuffering(event.currentTarget)}
+          onStalled={(event) => markBuffering(event.currentTarget)}
           onPause={() => {
+            resetBuffering();
             setPlaying(false);
             setControlsVisible(true);
           }}
+          onEnded={resetBuffering}
           onError={() => {
+            resetBuffering();
             setError(true);
             setPlaying(false);
             setControlsVisible(true);
@@ -705,6 +808,30 @@ export function ReplicationMediaStage({
         >
           This media could not be loaded. You can still open information or
           continue browsing.
+        </div>
+      ) : null}
+
+      {(buffering || bufferingCopyVisible) && !error ? (
+        <div className="pointer-events-none absolute inset-x-3 top-16 z-20 flex justify-center">
+          <div
+            role={bufferingCopyVisible ? "status" : undefined}
+            aria-live={bufferingCopyVisible ? "polite" : undefined}
+            aria-atomic={bufferingCopyVisible ? "true" : undefined}
+            className="theme-media-tile-title flex min-h-8 max-w-md items-center justify-center gap-2 rounded-full bg-black/65 px-2.5 py-2 text-center text-xs font-medium leading-snug backdrop-blur-sm"
+          >
+            {buffering ? (
+              <span
+                role="img"
+                aria-label="Buffering"
+                className="grid size-4 shrink-0 place-items-center"
+              >
+                <Icon icon="eos-icons:loading" className="size-4" />
+              </span>
+            ) : null}
+            {bufferingCopyVisible ? (
+              <span>Oops, we plan to use a faster video host soon! :(</span>
+            ) : null}
+          </div>
         </div>
       ) : null}
 
@@ -1069,10 +1196,22 @@ export function ReplicationMediaStage({
                     min={0}
                     max={1}
                     step={0.05}
-                    value={volume}
-                    onChange={(event) =>
-                      onVolumeChange(Number(event.currentTarget.value))
-                    }
+                    value={muted ? 0 : volume}
+                    onChange={(event) => {
+                      const nextVolume = Number(event.currentTarget.value);
+                      const nextMuted = nextVolume === 0;
+                      const video = videoRef.current;
+                      if (video) {
+                        video.muted = nextMuted;
+                        if (!nextMuted) {
+                          video.volume = nextVolume;
+                          if (autoplayAllowed) attemptPlay(video);
+                        }
+                      }
+                      pendingSoundRef.current = false;
+                      if (!nextMuted) onVolumeChange(nextVolume);
+                      if (nextMuted !== muted) onMutedChange(nextMuted);
+                    }}
                     className="hidden w-24 accent-white sm:block"
                   />
                 </>

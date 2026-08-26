@@ -322,6 +322,36 @@ describe("getPublicGalleryReplications", () => {
     await expect(getPublicGalleryReplications()).resolves.toEqual(corpus);
   });
 
+  it("omits nullable media URLs from the serialized preview contract", async () => {
+    mocks.queryConvex.mockImplementation(async (functionName: string) => {
+      if (functionName === "replications:getPublicReplications") {
+        return [
+          {
+            ...work("nullable-renditions", "A Stranger"),
+            thumbnail_url: null,
+            preview_url: null,
+            motion_url: null,
+            motion_poster_url: null,
+          },
+        ];
+      }
+      if (functionName === "contributorProfiles:getAll") return [];
+      if (functionName === "replicationTaxonomy:getPublicArtistsByKeys") return [];
+      throw new Error(`Unexpected Convex read: ${functionName}`);
+    });
+
+    const { getPublicGalleryReplications } = await import(
+      "./publicData.replications"
+    );
+    const [preview] = await getPublicGalleryReplications();
+    const serialized = JSON.parse(JSON.stringify(preview));
+
+    expect(serialized).not.toHaveProperty("thumbnail_url");
+    expect(serialized).not.toHaveProperty("preview_url");
+    expect(serialized).not.toHaveProperty("motion_url");
+    expect(serialized).not.toHaveProperty("motion_poster_url");
+  });
+
   it("joins only slim artist taxonomy metadata into gallery previews", async () => {
     mocks.queryConvex.mockImplementation(async (functionName: string) => {
       if (functionName === "replications:getPublicReplications") return corpus;

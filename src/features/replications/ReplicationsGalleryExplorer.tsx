@@ -4,6 +4,7 @@ import {
   Suspense,
   useCallback,
   useEffect,
+  useLayoutEffect,
   useMemo,
   useRef,
   useState,
@@ -12,6 +13,10 @@ import {
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Icon } from "@/components/common/Icon";
+import {
+  dismissPrePaintRouteStateCover,
+  PrePaintRouteStateCover,
+} from "@/components/common/PrePaintRouteStateCover";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { proseLinkClassName } from "@/components/common/ProseLink";
@@ -71,6 +76,8 @@ import {
   buildReplicationViewerUrl,
   closeReplicationViewerUrl,
   GALLERY_BROWSE_DEFAULTS,
+  GALLERY_BROWSE_COVER_ID,
+  GALLERY_BROWSE_QUERY_KEYS,
   REPLICATION_VIEWER_PARAM,
   parseGalleryBrowseState,
   type GalleryBrowseState,
@@ -300,6 +307,10 @@ export function ReplicationsGalleryExplorer(
 ) {
   return (
     <>
+      <PrePaintRouteStateCover
+        id={GALLERY_BROWSE_COVER_ID}
+        queryKeys={GALLERY_BROWSE_QUERY_KEYS}
+      />
       {/* Ahead of the Suspense boundary on purpose: the cover and its reveal
           script precede every piece of gallery markup in the SSR payload, so
           a `?viewer=` deep link's first paint is black, never the masonry.
@@ -324,6 +335,9 @@ export function ReplicationsGalleryExplorer(
 /** The one component allowed to touch `useSearchParams` — see above. */
 function UrlStateGalleryExplorer(props: ReplicationsGalleryExplorerProps) {
   const searchParams = useSearchParams();
+  useLayoutEffect(() => {
+    dismissPrePaintRouteStateCover(GALLERY_BROWSE_COVER_ID);
+  }, []);
   const browse = parseGalleryBrowseState(searchParams);
   const viewerSlugParam = parseReplicationViewerSlug(searchParams);
   return (

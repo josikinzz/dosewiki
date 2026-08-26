@@ -31,6 +31,19 @@ import { toAppPath } from "@/utils/previewPath";
 
 export const REPLICATIONS_PATH = "/replications";
 export const REPLICATION_VIEWER_PARAM = "viewer";
+export const GALLERY_BROWSE_COVER_ID = "replications-gallery-browse";
+export const GALLERY_BROWSE_QUERY_KEYS = [
+  "view",
+  "q",
+  "type",
+  "sort",
+  "viewing",
+  "artistType",
+  "effect",
+  "drug",
+  "drugClass",
+  "family",
+] as const;
 
 const REPLICATION_SLUG_PATTERN = /^[a-z0-9][a-z0-9_-]*$/;
 

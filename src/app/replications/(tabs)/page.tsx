@@ -23,15 +23,18 @@ import {
   getPublicRoutePath,
 } from "@server/next/publicSite";
 import { getCopy } from "@server/next/copyBlocks";
+import {
+  replicationViewerSocialCardImage,
+} from "@/data/mappings/entitySocialCardUrl";
 import { pageSocialCardImage } from "@/data/mappings/pageSocialCardUrl";
 
-// Statically rendered on the hourly ISR window shared by the other index
-// pages. The gallery's filters live in query params (?view/?q/?type/?sort),
-// but those are read on the client inside the explorer's own Suspense
-// boundary. The prerendered HTML contains the initial default gallery window;
-// a cached same-origin continuation supplies complete search/filter data after
-// hydration. Every server read below sits on the shared cache window, and a
-// Copy Studio save still revalidates the meta description through its tag.
+// The gallery data remains on the hourly cache window shared by the other
+// index pages. Its filters live in query params (?view/?q/?type/?sort) and are
+// read on the client inside the explorer's own Suspense boundary. `?viewer=`
+// is the exception: metadata reads that value on the server so a shared
+// immersive-view URL receives the active replication's social card. The
+// prerendered body still contains the initial default gallery window; a cached
+// same-origin continuation supplies complete search/filter data after hydration.
 export const revalidate = 3600;
 
 const ITEM_LIST_LIMIT = 100;
@@ -41,15 +44,26 @@ const DESCRIPTION_FALLBACK =
   "Browse the replication gallery: image and video recreations of the sensory experiences " +
   "produced by subjective effects, grouped by artist and effect.";
 
-export async function generateMetadata(): Promise<Metadata> {
-  const copy = await getCopy();
+type ReplicationsPageProps = {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+};
+
+export async function generateMetadata({
+  searchParams,
+}: ReplicationsPageProps): Promise<Metadata> {
+  const [copy, resolvedSearchParams] = await Promise.all([
+    getCopy(),
+    searchParams,
+  ]);
 
   return buildPublicPageMetadata({
     title: "Replications",
     description:
       copy.text("seo-replications-description") || DESCRIPTION_FALLBACK,
     route: { family: "replications" },
-    socialImage: pageSocialCardImage("replications", "dose.wiki Replications"),
+    socialImage:
+      replicationViewerSocialCardImage(resolvedSearchParams) ??
+      pageSocialCardImage("replications", "dose.wiki Replications"),
   });
 }
 
