@@ -254,6 +254,20 @@ _Avoid_: Lyria, treating Lyrea and Witchy as two people
 
 ## Replications Surface Language
 
+The [replication classification field guide](docs/agents/replication-classification-guide.html) is the canonical intake and taxonomy procedure. It keeps gallery admission, viewing mode, effect evidence, title-only drug tags, and artist practice as separate decisions.
+
+**Replication Context**:
+Attributable item-level evidence that a source treats media as a replication, including an explicit replication role or an assigned subjective-effect slug. This context establishes gallery admission unless the item is an explicit figure or has a concrete item-specific exclusion.
+_Avoid_: pixels-only admission test, synthetic-overlay requirement
+
+**Not-Replication**:
+A narrow exclusion for an explicit explanatory figure or a concrete item-specific non-replication. Illustrative effect examples, ordinary-looking media, and traditional psychedelic artwork are not excluded merely because their mechanism needs source context.
+_Avoid_: illustrative, visually subtle, not obviously simulated
+
+**Viewing Mode**:
+How a replication depicts experience: `open-eye` when a recognizable external-world substrate persists, `closed-eye` when a self-contained imagined field replaces it, and `mixed` only when both materially occur.
+_Avoid_: artist category, realism score, gallery-admission status
+
 **Replications Section**:
 The public `/replications` destination. It opens directly into the Replication Gallery with Tutorials and Audio tabs plus an external r/replications link.
 _Avoid_: replications landing page, gallery tab, SEI gallery
