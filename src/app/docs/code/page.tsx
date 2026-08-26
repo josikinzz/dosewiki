@@ -1,5 +1,6 @@
 import { Children, type ReactNode } from "react";
 import { buildPublicPageMetadata } from "@server/next/publicSite";
+import { getCopy } from "@server/next/copyBlocks";
 import { DefinitionList, DefinitionRow } from "@/components/common/DefinitionList";
 import { DisclosureCard } from "@/components/common/DisclosureCard";
 import { Icon } from "@/components/common/Icon";
@@ -12,10 +13,13 @@ import { Badge } from "@/components/ui/badge";
 import { ContentCard } from "@/components/ui/surface";
 import { Mermaid } from "../_components/Mermaid";
 
-export function generateMetadata() {
+export async function generateMetadata() {
+  const copy = await getCopy();
+
   return buildPublicPageMetadata({
     title: "How dose.wiki is built",
     description:
+      copy.text("seo-docs-code-description") ||
       "An educational tour of the dose.wiki codebase: its architecture, data pipeline, and the systems that power the public site.",
     pathname: "/docs/code",
   });

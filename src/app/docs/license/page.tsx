@@ -1,4 +1,5 @@
 import { buildPublicPageMetadata } from "@server/next/publicSite";
+import { getCopy } from "@server/next/copyBlocks";
 import { DisclosureCard } from "@/components/common/DisclosureCard";
 import { proseLinkClassName } from "@/components/common/ProseLink";
 import { PublicTableOfContents } from "@/components/common/PublicTableOfContents";
@@ -9,10 +10,13 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { ContentCard, Surface } from "@/components/ui/surface";
 import subjectiveEffectsProvenance from "@/data/generated/subjectiveEffectsProvenance.json";
 
-export function generateMetadata() {
+export async function generateMetadata() {
+  const copy = await getCopy();
+
   return buildPublicPageMetadata({
     title: "Licensing and reuse",
     description:
+      copy.text("seo-docs-license-description") ||
       "Reuse terms for dose.wiki content, dataset, molecule SVG pack, replication media, source code, trip reports, interaction ratings, and reagent-test data.",
     pathname: "/docs/license",
   });

@@ -1,4 +1,3 @@
-import type { Metadata } from "next";
 import Link from "next/link";
 
 import { proseLinkClassName } from "@/components/common/ProseLink";
@@ -6,6 +5,7 @@ import { SearchEmptyState } from "@/components/common/SearchEmptyState";
 import { SectionCard } from "@/components/common/SectionCard";
 import { getPublicEffectArticles } from "@server/convex/publicData";
 import { buildPublicPageMetadata } from "@server/next/publicSite";
+import { getCopy } from "@server/next/copyBlocks";
 import { AudioReplicationCard } from "@/features/effects/components/AudioReplicationCard";
 import { ReplicationsTabNav } from "@/features/replications/components/ReplicationsTabNav";
 import {
@@ -13,12 +13,17 @@ import {
   countAudioReplicationArtists,
 } from "@/features/effects/audioReplicationIndex";
 
-export const metadata: Metadata = buildPublicPageMetadata({
-  title: "Audio Replications",
-  description:
-    "Audio recreations of subjective effects, credited to the artists who made them and preserved from the Effect Index archive.",
-  route: { family: "replicationAudio" },
-});
+export async function generateMetadata() {
+  const copy = await getCopy();
+
+  return buildPublicPageMetadata({
+    title: "Audio Replications",
+    description:
+      copy.text("seo-replications-audio-description") ||
+      "Audio recreations of subjective effects, credited to the artists who made them and preserved from the Effect Index archive.",
+    route: { family: "replicationAudio" },
+  });
+}
 
 export default async function ReplicationAudioPage() {
   const effects = await getPublicEffectArticles();

@@ -44,7 +44,7 @@ export async function generateMetadata(): Promise<Metadata> {
             type: "website" as const,
             siteName: PUBLIC_SITE.name,
             title: SITE_FLAVOR_CONFIG.rootMetadata.title,
-            description: SITE_FLAVOR_CONFIG.rootMetadata.openGraphDescription,
+            description,
             url: buildSiteUrl("/"),
             images: [
               {
@@ -58,7 +58,7 @@ export async function generateMetadata(): Promise<Metadata> {
           twitter: {
             card: "summary" as const,
             title: SITE_FLAVOR_CONFIG.rootMetadata.title,
-            description: SITE_FLAVOR_CONFIG.rootMetadata.twitterDescription,
+            description,
             images: [buildSiteAssetUrl(socialImage.path)],
           },
         }

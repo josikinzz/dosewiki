@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import { buildPublicPageMetadata } from "@server/next/publicSite";
+import { getCopy } from "@server/next/copyBlocks";
 // Source of truth for every prompt shown on this page. Published straight from the
 // files the pipeline reads, so the page and the pipeline cannot disagree.
 import blockSelectionContract from "../../../../scripts/prompts/block-selection-contract.md?raw";
@@ -28,10 +29,13 @@ import { Button } from "@/components/ui/button";
 import { ContentCard } from "@/components/ui/surface";
 import { Mermaid } from "../_components/Mermaid";
 
-export function generateMetadata() {
+export async function generateMetadata() {
+  const copy = await getCopy();
+
   return buildPublicPageMetadata({
     title: "How dose.wiki articles are made",
     description:
+      copy.text("seo-docs-how-description") ||
       "An honest, detailed walkthrough of the dose.wiki content pipeline: scraping, quote extraction, AI synthesis, citations, and human expert review.",
     pathname: "/docs/how",
   });

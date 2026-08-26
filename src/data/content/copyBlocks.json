@@ -765,5 +765,96 @@
     "label": "Copyright disclaimer meta description",
     "group": "SEO",
     "body": "The licence covering Effect Index material, and how to request that artwork be removed or reattributed to its original creator."
+  },
+  {
+    "key": "seo-docs-code-description",
+    "kind": "plain",
+    "label": "How dose.wiki is built meta description",
+    "group": "SEO",
+    "body": "An educational tour of the dose.wiki codebase: its architecture, data pipeline, and the systems that power the public site."
+  },
+  {
+    "key": "seo-docs-how-description",
+    "kind": "plain",
+    "label": "How articles are made meta description",
+    "group": "SEO",
+    "body": "An honest, detailed walkthrough of the dose.wiki content pipeline: scraping, quote extraction, AI synthesis, citations, and human expert review."
+  },
+  {
+    "key": "seo-docs-license-description",
+    "kind": "plain",
+    "label": "Licensing and reuse meta description",
+    "group": "SEO",
+    "body": "Reuse terms for dose.wiki content, dataset, molecule SVG pack, replication media, source code, trip reports, interaction ratings, and reagent-test data."
+  },
+  {
+    "key": "seo-about-coverage-description",
+    "kind": "plain",
+    "label": "Coverage meta description",
+    "group": "SEO",
+    "body": "Per-section content and citation coverage across every dose.wiki substance article."
+  },
+  {
+    "key": "seo-about-feedback-description",
+    "kind": "plain",
+    "label": "General feedback meta description",
+    "group": "SEO",
+    "body": "Send the dose.wiki editors private feedback about the site — an article request, a technical issue, design, performance, or accessibility."
+  },
+  {
+    "key": "seo-replications-audio-description",
+    "kind": "plain",
+    "label": "Audio replications meta description",
+    "group": "SEO",
+    "body": "Audio recreations of subjective effects, credited to the artists who made them and preserved from the Effect Index archive."
+  },
+  {
+    "key": "seo-replications-tutorials-description",
+    "kind": "plain",
+    "label": "Replication tutorials meta description",
+    "group": "SEO",
+    "body": "Tutorials and resources for replicating specific subjective effects, preserved from the Effect Index archive."
+  },
+  {
+    "key": "seo-replications-more-info-description",
+    "kind": "plain",
+    "label": "About replications meta description",
+    "group": "SEO",
+    "body": "What replications are, why this art is hosted here, and how artists are credited."
+  },
+  {
+    "key": "seo-reports-submit-description",
+    "kind": "plain",
+    "label": "Submit a trip report meta description",
+    "group": "SEO",
+    "body": "Submit a structured trip report for private editor review on dose.wiki."
+  },
+  {
+    "key": "seo-api-v1-description",
+    "kind": "plain",
+    "label": "Public API meta description",
+    "group": "SEO",
+    "body": "Documentation and examples for the read-only dose.wiki substance API."
+  },
+  {
+    "key": "seo-documentation-style-guide-description",
+    "kind": "plain",
+    "label": "Documentation style guide meta description",
+    "group": "SEO",
+    "body": "The house style the Subjective Effect Index is written in: how subjective effects are described, how levels of intensity are introduced, and which words are preferred."
+  },
+  {
+    "key": "seo-mantras-description",
+    "kind": "plain",
+    "label": "Mantra Vision meta description",
+    "group": "SEO",
+    "body": "A full-screen contemplative field of source-attributed Buddhist liberation-upon-seeing mantra forms rendered in Tibetan script with custom visualizations."
+  },
+  {
+    "key": "seo-chemical-classes-description",
+    "kind": "plain",
+    "label": "Chemical classes meta description",
+    "group": "SEO",
+    "body": "Browse the chemical class tree organized by structural lineage on dose.wiki."
   }
 ]

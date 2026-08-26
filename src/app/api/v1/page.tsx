@@ -1,18 +1,23 @@
-import type { Metadata } from "next";
 import Link from "next/link";
 
 import { buildPageMetadata } from "@server/next/metadata";
+import { getCopy } from "@server/next/copyBlocks";
 import { Icon } from "@/components/common/Icon";
 import { PublicContentShell } from "@/components/layout/PublicPagePrimitives";
 import { Button } from "@/components/ui/button";
 import { ContentCard, NestedContentCard } from "@/components/ui/surface";
 
-export const metadata: Metadata = buildPageMetadata({
-  title: "Public API",
-  description:
-    "Documentation and examples for the read-only dose.wiki substance API.",
-  pathname: "/api/v1",
-});
+export async function generateMetadata() {
+  const copy = await getCopy();
+
+  return buildPageMetadata({
+    title: "Public API",
+    description:
+      copy.text("seo-api-v1-description") ||
+      "Documentation and examples for the read-only dose.wiki substance API.",
+    pathname: "/api/v1",
+  });
+}
 
 const endpoints = [
   {

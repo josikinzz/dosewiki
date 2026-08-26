@@ -1,5 +1,6 @@
 import { buildPublicPageMetadata } from "@server/next/publicSite";
 import { requireEffectIndexFlavor } from "@/config/siteFlavor";
+import { getCopy } from "@server/next/copyBlocks";
 import { DocumentationStyleGuidePage } from "@/features/effect-index/pages/DocumentationStyleGuidePage";
 
 const METADATA = {
@@ -11,8 +12,14 @@ const METADATA = {
 
 export async function generateMetadata() {
   requireEffectIndexFlavor();
+  const copy = await getCopy();
 
-  return buildPublicPageMetadata(METADATA);
+  return buildPublicPageMetadata({
+    ...METADATA,
+    description:
+      copy.text("seo-documentation-style-guide-description") ||
+      METADATA.description,
+  });
 }
 
 export default function DocumentationStyleGuideRoute() {

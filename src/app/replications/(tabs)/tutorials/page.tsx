@@ -1,9 +1,9 @@
-import type { Metadata } from "next";
 import Link from "next/link";
 
 import { proseLinkClassName } from "@/components/common/ProseLink";
 import { SectionCard } from "@/components/common/SectionCard";
 import { buildPublicPageMetadata } from "@server/next/publicSite";
+import { getCopy } from "@server/next/copyBlocks";
 import { SITE_FLAVOR_CONFIG } from "@/config/siteFlavor";
 import { ReplicationsTabNav } from "@/features/replications/components/ReplicationsTabNav";
 
@@ -40,12 +40,17 @@ const TUTORIALS = [
   },
 ] as const;
 
-export const metadata: Metadata = buildPublicPageMetadata({
-  title: "Replication Tutorials",
-  description:
-    "Tutorials and resources for replicating specific subjective effects, preserved from the Effect Index archive.",
-  route: { family: "replicationTutorials" },
-});
+export async function generateMetadata() {
+  const copy = await getCopy();
+
+  return buildPublicPageMetadata({
+    title: "Replication Tutorials",
+    description:
+      copy.text("seo-replications-tutorials-description") ||
+      "Tutorials and resources for replicating specific subjective effects, preserved from the Effect Index archive.",
+    route: { family: "replicationTutorials" },
+  });
+}
 
 export default function ReplicationTutorialsPage() {
   return (

@@ -1,5 +1,3 @@
-import type { Metadata } from "next";
-
 import { ReplicationsFairUseNotice } from "@/features/replications/components/ReplicationsFairUseNotice";
 import { ReplicationsTabNav } from "@/features/replications/components/ReplicationsTabNav";
 import {
@@ -18,12 +16,17 @@ import { getCopy } from "@server/next/copyBlocks";
 // save revalidates it immediately through the shared copy cache tag.
 export const revalidate = 3600;
 
-export const metadata: Metadata = buildPublicPageMetadata({
-  title: "About Replications",
-  description:
-    "What replications are, why this art is hosted here, and how artists are credited.",
-  route: { family: "replicationInfo" },
-});
+export async function generateMetadata() {
+  const copy = await getCopy();
+
+  return buildPublicPageMetadata({
+    title: "About Replications",
+    description:
+      copy.text("seo-replications-more-info-description") ||
+      "What replications are, why this art is hosted here, and how artists are credited.",
+    route: { family: "replicationInfo" },
+  });
+}
 
 /**
  * The section's standing prose, moved off the Gallery so the media leads:

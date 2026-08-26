@@ -1,7 +1,6 @@
-import type { Metadata } from "next";
-
 import { getUncachedCoverageSubstances } from "@server/convex/publicData";
 import { buildPublicPageMetadata } from "@server/next/publicSite";
+import { flavoredCopyText, getCopy } from "@server/next/copyBlocks";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { PublicContentShell } from "@/components/layout/PublicPagePrimitives";
 import { Surface } from "@/components/ui/surface";
@@ -24,13 +23,20 @@ export const revalidate = 3600;
  * `noIndex`, is absent from `STATIC_PUBLIC_PATHS` so it never enters the
  * sitemap, and nothing links to it — including the About page it sits under.
  */
-export const metadata: Metadata = buildPublicPageMetadata({
-  title: "Coverage",
-  description:
-    `Per-section content and citation coverage across every ${SITE_FLAVOR_CONFIG.name} substance article.`,
-  pathname: "/about/coverage",
-  noIndex: true,
-});
+export async function generateMetadata() {
+  const copy = await getCopy();
+
+  return buildPublicPageMetadata({
+    title: "Coverage",
+    description: flavoredCopyText(
+      copy,
+      "seo-about-coverage-description",
+      `Per-section content and citation coverage across every ${SITE_FLAVOR_CONFIG.name} substance article.`,
+    ),
+    pathname: "/about/coverage",
+    noIndex: true,
+  });
+}
 
 export default async function CoveragePage() {
   // Explicit full-corpus exemption: this noIndex internal surface must run the
