@@ -1,6 +1,10 @@
 import { slugify } from "./slug";
 import { getPublicRoutePath } from "./publicRouteIdentity";
 import { resolveChemicalClassKey } from "@/data/indexes/chemicalClassLookup";
+import {
+  parseLegacySubstanceIndexHash,
+  substanceIndexViewPath,
+} from "./indexViewRoutes";
 
 export type PublicClassificationType = "chemical" | "psychoactive";
 
@@ -94,11 +98,10 @@ export const publicHref = {
 
     const base = slugOrLabel.replace(/\s*\([^)]*\)\s*$/, "");
     const slug = slugify(base);
-    if (slug.length === 0) {
-      return "/substances";
-    }
-    const tabId = PSYCHOACTIVE_TAB_ALIASES[slug] ?? slug;
-    return `/substances#${tabId}`;
+    const view = parseLegacySubstanceIndexHash(
+      PSYCHOACTIVE_TAB_ALIASES[slug] ?? slug,
+    );
+    return view ? substanceIndexViewPath(view) : "/substances";
   },
   reports: () => "/reports",
   reportSubmission: () => "/reports/submit",

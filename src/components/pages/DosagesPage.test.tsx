@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, within } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -45,6 +45,39 @@ describe("DosagesPage", () => {
   beforeEach(() => {
     window.history.replaceState(null, "", "/substances");
     Element.prototype.scrollIntoView = vi.fn();
+  });
+
+  it("renders a routed class as the first selected view", () => {
+    render(
+      <DosagesPage
+        layout={layout}
+        substances={substances}
+        initialView="stimulant"
+      />,
+    );
+
+    expect(screen.getByRole("tab", { name: "Stimulant" })).toHaveAttribute(
+      "aria-selected",
+      "true",
+    );
+    expect(screen.getByRole("link", { name: "Stimulant sample" })).toBeInTheDocument();
+    expect(
+      screen.queryByRole("link", { name: "Psychedelic sample" }),
+    ).not.toBeInTheDocument();
+  });
+
+  it("migrates a legacy class fragment to its routed view", async () => {
+    window.history.replaceState(null, "", "/substances#opioid");
+    render(<DosagesPage layout={layout} substances={substances} />);
+
+    await waitFor(() =>
+      expect(screen.getByRole("tab", { name: "Opioid" })).toHaveAttribute(
+        "aria-selected",
+        "true",
+      ),
+    );
+    expect(window.location.pathname).toBe("/substances/group/opioid");
+    expect(window.location.hash).toBe("");
   });
 
   it("shows no intro on the All tab and the category definition on a class tab", () => {

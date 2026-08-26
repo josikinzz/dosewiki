@@ -6,6 +6,10 @@ import { icons } from "@/utils/iconNames";
 import { EffectsIndexExplorer } from "./EffectsIndexExplorer";
 import type { SEIIntroCopy } from "../components/seiIntroCopy";
 import type { TabId } from "./effectsIndexConfig";
+import {
+  EFFECT_INDEX_DEFAULT_VIEW,
+  type EffectIndexView,
+} from "@/utils/indexViewRoutes";
 
 interface EffectSummary {
   slug: string;
@@ -21,6 +25,8 @@ interface EffectsIndexPageProps {
   introCopy?: SEIIntroCopy;
   /** Editable per-tab intro blobs, resolved on the server. */
   tabBlobs?: Partial<Record<TabId, string>>;
+  /** Server-resolved URL state for the first rendered explorer view. */
+  initialView?: EffectIndexView;
 }
 
 /**
@@ -36,6 +42,7 @@ export function EffectsIndexPage({
   emptyState,
   introCopy,
   tabBlobs,
+  initialView = EFFECT_INDEX_DEFAULT_VIEW,
 }: EffectsIndexPageProps) {
   return (
     <main id="main-content" tabIndex={-1} className="mx-auto w-full px-4 pb-20 pt-12 2xl:px-8">
@@ -70,6 +77,8 @@ export function EffectsIndexPage({
       </div>
 
       <EffectsIndexExplorer
+        key={initialView}
+        initialView={initialView}
         effects={effects}
         effectHrefPrefix={effectHrefPrefix}
         emptyState={emptyState}

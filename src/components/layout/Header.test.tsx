@@ -2,7 +2,7 @@ import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { forwardRef } from "react";
 import type { AnchorHTMLAttributes, ComponentType, ReactNode } from "react";
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { SITE_FLAVOR_CONFIG, SITE_FLAVOR_CONFIGS } from "@/config/siteFlavor";
 import { getRouteChromeModel } from "@/utils/routeChrome";
 import { ThemeProvider } from "../../context/ThemeContext";
@@ -294,9 +294,9 @@ describe("Header", () => {
           .map((item) => [item.textContent, item.getAttribute("href")]),
       ).toEqual([
         ["Index", "/effects"],
-        ["Sensory", "/effects#sensory"],
-        ["Cognitive", "/effects#cognitive"],
-        ["Physical", "/effects#physical"],
+        ["Sensory", "/effects/group/sensory"],
+        ["Cognitive", "/effects/group/cognitive"],
+        ["Physical", "/effects/group/physical"],
       ]);
 
       await user.click(chevron);
@@ -437,126 +437,6 @@ describe("Header", () => {
       expect(chevron).toHaveAttribute("aria-expanded", "false");
     });
 
-    describe("fragment children", () => {
-      // Next resolves a hash-only navigation inside its router state (pushState, no event), so
-      // a fragment link followed from the page it points into would change the URL and notify
-      // nothing. These clicks are handed to the browser instead.
-      const clickCapturingDefault = async (
-        user: ReturnType<typeof userEvent.setup>,
-        element: HTMLElement,
-      ) => {
-        let defaultPrevented: boolean | null = null;
-        const listener = (event: MouseEvent) => {
-          defaultPrevented = event.defaultPrevented;
-        };
-
-        document.addEventListener("click", listener);
-        await user.click(element);
-        document.removeEventListener("click", listener);
-
-        return defaultPrevented;
-      };
-
-      afterEach(() => {
-        window.history.replaceState(null, "", "/");
-      });
-
-      it("performs a native fragment navigation when already on the target page", async () => {
-        const user = userEvent.setup();
-        window.history.replaceState(null, "", "/effects");
-        renderEffectIndex("/effects");
-
-        await user.click(chevronFor("Effects"));
-        const prevented = await clickCapturingDefault(
-          user,
-          screen.getByRole("menuitem", { name: "Sensory" }),
-        );
-
-        expect(prevented).toBe(true);
-        expect(window.location.pathname).toBe("/effects");
-        expect(window.location.hash).toBe("#sensory");
-      });
-
-      it("announces the fragment the URL already carries so the click is never dead", async () => {
-        const user = userEvent.setup();
-        window.history.replaceState(null, "", "/effects#sensory");
-        renderEffectIndex("/effects");
-        const announced: string[] = [];
-        const listener = () => announced.push(window.location.hash);
-        window.addEventListener("hashchange", listener);
-
-        try {
-          await user.click(chevronFor("Effects"));
-          await user.click(screen.getByRole("menuitem", { name: "Sensory" }));
-        } finally {
-          window.removeEventListener("hashchange", listener);
-        }
-
-        expect(announced).toEqual(["#sensory"]);
-        expect(window.location.hash).toBe("#sensory");
-      });
-
-      it("leaves cross-page fragment links to the router", async () => {
-        const user = userEvent.setup();
-        window.history.replaceState(null, "", "/reports");
-        renderEffectIndex("/reports");
-
-        await user.click(chevronFor("Effects"));
-        const prevented = await clickCapturingDefault(
-          user,
-          screen.getByRole("menuitem", { name: "Cognitive" }),
-        );
-
-        // The router navigates and the effects page reads the fragment as it mounts.
-        expect(prevented).toBe(false);
-        expect(window.location.hash).toBe("");
-      });
-
-      it("leaves fragmentless children to the router", async () => {
-        const user = userEvent.setup();
-        window.history.replaceState(null, "", "/effects");
-        renderEffectIndex("/effects");
-
-        await user.click(chevronFor("Effects"));
-        const prevented = await clickCapturingDefault(
-          user,
-          screen.getByRole("menuitem", { name: "Index" }),
-        );
-
-        expect(prevented).toBe(false);
-        expect(window.location.hash).toBe("");
-      });
-
-      it("lets the browser handle a modified click", async () => {
-        const user = userEvent.setup();
-        window.history.replaceState(null, "", "/effects");
-        renderEffectIndex("/effects");
-
-        await user.click(chevronFor("Effects"));
-        const prevented = await clickCapturingDefault(
-          user,
-          screen.getByRole("menuitem", { name: "Physical" }),
-        );
-        window.history.replaceState(null, "", "/effects");
-
-        // Sanity check on the helper before the modified-click assertion below.
-        expect(prevented).toBe(true);
-
-        let modifiedPrevented: boolean | null = null;
-        const listener = (event: MouseEvent) => {
-          modifiedPrevented = event.defaultPrevented;
-        };
-        document.addEventListener("click", listener);
-        await user.keyboard("[MetaLeft>]");
-        await user.click(chevronFor("Effects"));
-        await user.click(screen.getByRole("menuitem", { name: "Physical" }));
-        await user.keyboard("[/MetaLeft]");
-        document.removeEventListener("click", listener);
-
-        // Cmd-click must open a tab, not hijack the current one.
-        expect(modifiedPrevented).toBe(false);
-      });
-    });
 
     it("marks the section the reader is in on the link that goes there", () => {
       renderEffectIndex("/replications/audio");

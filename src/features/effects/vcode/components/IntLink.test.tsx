@@ -14,10 +14,10 @@ describe("IntLink", () => {
     ["/effectsgeometry", "/effects/geometry"],
     ["/effectsinternal-hallucination", "/effects/internal-hallucination"],
     ["/categories/geometric-patterns", "/effects/category/geometric-patterns"],
-    // Legacy per-class routes now point at the routed index/detail pages.
-    ["/psychoactive/psychedelic", "/substances#psychedelic"],
-    ["/psychoactive/stimulant", "/substances#stimulant"],
-    ["/summaries/psychedelics", "/substances#psychedelic"],
+    // Legacy per-class routes now point at server-routed index/detail pages.
+    ["/psychoactive/psychedelic", "/substances/group/psychedelic"],
+    ["/psychoactive/stimulant", "/substances/group/stimulant"],
+    ["/summaries/psychedelics", "/substances/group/psychedelic"],
     ["/chemical/tryptamine", "/chemical-classes/tryptamine"],
     ["effectsgeometry", "/effects/geometry"],
     // Doubled prefix, as the dissociative intensity scale authors five of its links.

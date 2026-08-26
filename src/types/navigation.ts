@@ -59,9 +59,9 @@ export type RouteChromeIcon =
  * One entry in a top-level nav item's dropdown.
  *
  * Children are deliberately addressed by `href` rather than by {@link AppView}: a flavor may
- * point one at a query string, a fragment (`/effects#sensory`) or another site, none of
- * which the in-app view union models. They therefore carry no active state either — the
- * chrome only knows which *section* the reader is in, not which tab within it.
+ * point one at a routed subsection, query string, or another site, none of which the in-app
+ * view union models. They therefore carry no active state either — the chrome only knows
+ * which section the reader is in, not which view within it.
  */
 export interface RouteChromeNavChild {
   id: string;

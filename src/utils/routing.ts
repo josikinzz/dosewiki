@@ -112,6 +112,9 @@ export function parsePath(
       case "replications":
         return { type: "replications" };
       case "reports":
+        if (slug === "group" && segments[2]) {
+          return { type: "reports" };
+        }
         if (slug === "submit") {
           return { type: "report-submit" };
         }
@@ -138,6 +141,9 @@ export function parsePath(
         }
         return { type: "effects" };
       case "effects":
+        if (slug === "group" && segments[2]) {
+          return { type: "effects" };
+        }
         if (slug === "category" && segments[2]) {
           // /effects/category/{categorySlug}
           return { type: "effect-category", categorySlug: segments[2] };

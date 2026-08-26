@@ -16,6 +16,12 @@ import {
 import type { ReportCardModel, ReportViewMode } from "@/types/tripReport";
 import type { PublicRouteEmptyState } from "@server/next/publicRouteOutcomes";
 import { publicHref } from "@/utils/publicHref";
+import {
+  REPORTS_INDEX_DEFAULT_VIEW,
+  replaceCurrentIndexViewPath,
+  reportsIndexViewPath,
+  type ReportsIndexView,
+} from "@/utils/indexViewRoutes";
 import { AuthorAvatar } from "../components/AuthorAvatar";
 import {
   groupTripReports,
@@ -27,6 +33,8 @@ interface TripReportsExplorerProps {
   reports: ReportCardModel[];
   reportHrefPrefix?: string;
   emptyState?: PublicRouteEmptyState;
+  /** Server-resolved URL state; must match the first rendered grouping. */
+  initialView?: ReportsIndexView;
 }
 
 const VIEW_MODES: { key: ReportViewMode; label: string; icon: IconName }[] = [
@@ -39,8 +47,9 @@ export function TripReportsExplorer({
   reports,
   reportHrefPrefix,
   emptyState,
+  initialView = REPORTS_INDEX_DEFAULT_VIEW,
 }: TripReportsExplorerProps) {
-  const [viewMode, setViewMode] = useState<ReportViewMode>("substance");
+  const [viewMode, setViewMode] = useState<ReportViewMode>(initialView);
   const [sortKey, setSortKey] = useState<ReportSortKey>("alphabetical");
   const [sortDirection, setSortDirection] = useState<ReportSortDirection>("asc");
   const [substanceFilter, setSubstanceFilter] = useState<string | null>(null);
@@ -88,6 +97,7 @@ export function TripReportsExplorer({
     setViewMode(mode);
     setSortKey("alphabetical");
     setSortDirection("asc");
+    replaceCurrentIndexViewPath(reportsIndexViewPath(mode));
   };
 
   const handleSortClick = (key: ReportSortKey) => {

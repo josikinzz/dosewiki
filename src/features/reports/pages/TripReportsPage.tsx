@@ -8,11 +8,17 @@ import { icons } from "@/utils/iconNames";
 import { publicHref } from "@/utils/publicHref";
 import type { PublicRouteEmptyState } from "@server/next/publicRouteOutcomes";
 import { TripReportsExplorer } from "./TripReportsExplorer";
+import {
+  REPORTS_INDEX_DEFAULT_VIEW,
+  type ReportsIndexView,
+} from "@/utils/indexViewRoutes";
 
 interface TripReportsPageProps {
   reports: ReportCardModel[];
   reportHrefPrefix?: string;
   emptyState?: PublicRouteEmptyState;
+  /** Server-resolved URL state for the first rendered grouping. */
+  initialView?: ReportsIndexView;
 }
 
 /**
@@ -22,6 +28,7 @@ export function TripReportsPage({
   reports,
   reportHrefPrefix,
   emptyState,
+  initialView = REPORTS_INDEX_DEFAULT_VIEW,
 }: TripReportsPageProps) {
   return (
     <main id="main-content" tabIndex={-1} className="mx-auto w-full max-w-4xl px-4 pb-20 pt-10 focus:outline-none">
@@ -42,6 +49,8 @@ export function TripReportsPage({
       </div>
 
       <TripReportsExplorer
+        key={initialView}
+        initialView={initialView}
         reports={reports}
         reportHrefPrefix={reportHrefPrefix}
         emptyState={emptyState}

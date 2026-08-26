@@ -15,6 +15,7 @@ import { notFound } from "next/navigation";
 // Type-only, so it is erased at compile time: `@/theme` imports this module's ambient config
 // as a value, and a value import in this direction would close that into a runtime cycle.
 import type { AppearancePolicy } from "@/theme";
+import { effectIndexViewPath } from "@/utils/indexViewRoutes";
 
 export const SITE_FLAVORS = ["dosewiki", "effectindex"] as const;
 
@@ -37,8 +38,8 @@ export type SiteNavId = "substances" | "effects" | "replications" | "reports" | 
  * One entry in a top-level nav item's dropdown.
  *
  * Addressed by raw `href` rather than by nav id, because submenu destinations are not
- * sections: they are tabs (`/effects#sensory`), sub-pages (`/replications/audio`) and other
- * sites. Anything the nav-item registry already models belongs in the id lists instead.
+ * sections: they are routed index views, sub-pages, and other sites. Anything the
+ * nav-item registry already models belongs in the id lists instead.
  */
 export type SiteNavChild = {
   readonly label: string;
@@ -588,13 +589,11 @@ const EFFECT_INDEX_CONFIG: SiteFlavorConfig = {
     effects: {
       children: [
         { label: "Index", href: "/effects" },
-        // The original addressed the three effect groupings as `/effects?type=Sensory`. This
-        // codebase's index reads its tab from the fragment instead (`parseTabIdFromHash`,
-        // the same address `/replications` already links the gallery by), so the query form
-        // would land on the unfiltered index. Same three destinations, working links.
-        { label: "Sensory", href: "/effects#sensory" },
-        { label: "Cognitive", href: "/effects#cognitive" },
-        { label: "Physical", href: "/effects#physical" },
+        // Group routes let the server emit the selected Effect Index projection
+        // in the first response; fragments are reserved for real page anchors.
+        { label: "Sensory", href: effectIndexViewPath("sensory") },
+        { label: "Cognitive", href: effectIndexViewPath("cognitive") },
+        { label: "Physical", href: effectIndexViewPath("physical") },
       ],
     },
     replications: {

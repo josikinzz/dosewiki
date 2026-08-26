@@ -1,0 +1,69 @@
+import { SITE_FLAVOR_CONFIG } from "@/config/siteFlavor";
+import { applyPlaceholders } from "@/data/content/about";
+import { TripReportsPage } from "@/features/reports/pages/TripReportsPage";
+import type { ReportsIndexView } from "@/utils/indexViewRoutes";
+import { buildItemListSchema, serializeJsonLd } from "@/utils/seo/structuredData";
+import { getCopy } from "@server/next/copyBlocks";
+import { resolveEmptyStateCopy } from "@server/next/emptyStateCopy";
+import {
+  buildPublicPageMetadata,
+  buildSiteUrl,
+  getPublicRoutePath,
+} from "@server/next/publicSite";
+import { loadReportsIndexRoute } from "@server/next/routeLoaders.reports";
+
+const ITEM_LIST_LIMIT = 100;
+
+export async function getReportsIndexMetadata(pathname: string) {
+  const [result, copy] = await Promise.all([loadReportsIndexRoute(), getCopy()]);
+  const template =
+    copy.text("seo-reports-index-description") ||
+    "Browse {{reportCount}} trip reports in {{siteName}}.";
+
+  return buildPublicPageMetadata({
+    ...result.metadata,
+    description: applyPlaceholders(template, {
+      reportCount: result.pageProps.reports.length,
+      siteName: SITE_FLAVOR_CONFIG.name,
+    }),
+    pathname,
+  });
+}
+
+export async function ReportsIndexRoute({
+  initialView,
+  pathname,
+}: {
+  initialView: ReportsIndexView;
+  pathname: string;
+}) {
+  const [result, copy] = await Promise.all([loadReportsIndexRoute(), getCopy()]);
+  const canonicalUrl = buildSiteUrl(pathname);
+  const itemListJsonLd = serializeJsonLd(
+    buildItemListSchema({
+      url: canonicalUrl,
+      name: `${SITE_FLAVOR_CONFIG.name} Trip Reports`,
+      description: `Browse first-person ${SITE_FLAVOR_CONFIG.name} trip reports by substance, title, and author.`,
+      items: result.pageProps.reports.slice(0, ITEM_LIST_LIMIT).map((report) => ({
+        name: report.title,
+        url: buildSiteUrl(
+          getPublicRoutePath({ family: "report", params: { slug: report.slug } }),
+        ),
+      })),
+    }),
+  );
+
+  return (
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: itemListJsonLd }}
+      />
+      <TripReportsPage
+        {...result.pageProps}
+        initialView={initialView}
+        emptyState={resolveEmptyStateCopy(copy, "reports", result.pageProps.emptyState)}
+      />
+    </>
+  );
+}

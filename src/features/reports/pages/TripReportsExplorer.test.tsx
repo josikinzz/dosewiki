@@ -1,6 +1,6 @@
 import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { beforeAll, describe, expect, it } from "vitest";
+import { beforeAll, beforeEach, describe, expect, it } from "vitest";
 
 import type { ReportCardModel } from "@/types/tripReport";
 import { TripReportsExplorer } from "./TripReportsExplorer";
@@ -36,7 +36,26 @@ beforeAll(() => {
   });
 });
 
+beforeEach(() => {
+  window.history.replaceState({}, "", "/reports");
+});
+
 describe("TripReportsExplorer", () => {
+  it("renders a routed grouping as the first selected view", () => {
+    render(
+      <TripReportsExplorer
+        reports={[reportCard(1), reportCard(2)]}
+        initialView="author"
+      />,
+    );
+
+    expect(screen.getByRole("tab", { name: "Author" })).toHaveAttribute(
+      "aria-selected",
+      "true",
+    );
+    expect(screen.getByRole("heading", { name: "Author 1" })).toBeInTheDocument();
+  });
+
   it("renders every report without progressive pagination", () => {
     const reports = Array.from({ length: 30 }, (_, index) => reportCard(index + 1));
 
@@ -60,6 +79,7 @@ describe("TripReportsExplorer", () => {
     render(<TripReportsExplorer reports={reports} />);
 
     await user.click(screen.getByRole("tab", { name: /title/i }));
+    expect(window.location.pathname).toBe("/reports/group/title");
 
     expect(screen.getAllByRole("link")).toHaveLength(30);
     expect(screen.getByRole("link", { name: /report 30/i })).toBeInTheDocument();

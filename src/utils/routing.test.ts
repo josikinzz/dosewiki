@@ -55,6 +55,18 @@ describe('routing', () => {
       expect(parsePath('/reports/submit', null)).toEqual({ type: 'report-submit' });
     });
 
+    it("keeps routed index groups inside their owning section", () => {
+      expect(parsePath("/substances/group/stimulant", null)).toEqual({
+        type: "substances",
+      });
+      expect(parsePath("/effects/group/cognitive", null)).toEqual({
+        type: "effects",
+      });
+      expect(parsePath("/reports/group/author", null)).toEqual({
+        type: "reports",
+      });
+    });
+
     it('keeps every replications sub-page inside the replications section', () => {
       // Regression: before /replications had a case, the `default:` arm read these as
       // substance slugs (`{ type: 'substance', slug: 'replications' }`), which put the

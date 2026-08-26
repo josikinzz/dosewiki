@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useRef, useState } from "react";
+import { useCallback, useMemo, useRef, useState } from "react";
 import { PageHeader } from "@/components/layout/PageHeader";
 import type { IconName } from "@/components/common/Icon";
 import { PublicContentShell } from "@/components/layout/PublicPagePrimitives";
@@ -15,14 +15,22 @@ import type { SubstanceLookupEntry } from "../../data/LightweightDataProvider";
 import type { CategoryTabContent } from "../../data/categoryTabContent";
 import { getCategoryIcon } from "../../data/config/categoryIcons";
 import type { CategoryLayout } from "../../hooks/useCategoryLayout";
+import { useLegacyIndexHashRoute } from "@/hooks/useLegacyIndexHashRoute";
 // Deep-import the pure visibility helper instead of the `@/schema` barrel: the
 // barrel `export *`s the Zod-heavy substance schema, which would otherwise drag
 // the entire Zod graph (~109 KB gz) into this client component's bundle. The
 // helper itself has no runtime dependencies.
 import { isDirectUrlOnlySubstance } from "@/schema/substance/substanceVisibilityPolicy";
-import { useTabHashSync, writeTabHash } from "@/hooks/useTabHashSync";
 import { slugify } from "@/utils/slug";
 import { scrollIntoViewRespectingMotion } from "@/utils/navigation";
+import {
+  SUBSTANCE_INDEX_DEFAULT_VIEW,
+  SUBSTANCE_INDEX_LEGACY_COVER_ID,
+  parseLegacySubstanceIndexHash,
+  replaceCurrentIndexViewPath,
+  substanceIndexViewPath,
+  type SubstanceIndexView,
+} from "@/utils/indexViewRoutes";
 
 const SUBSTANCE_INDEX_ICON = "streamline-ultimate:science-molecule-strucutre-bold" satisfies IconName;
 
@@ -35,6 +43,8 @@ interface DosagesPageProps {
    * their own content inline in `SUPER_CATEGORY_TABS`.
    */
   definitions?: Record<string, CategoryTabContent>;
+  /** Server-resolved URL state; must match the first rendered panel set. */
+  initialView?: SubstanceIndexView;
 }
 
 /**
@@ -227,9 +237,20 @@ export function DosagesPage({
   layout,
   substances,
   definitions,
+  initialView = SUBSTANCE_INDEX_DEFAULT_VIEW,
 }: DosagesPageProps) {
-  const [activeTab, setActiveTab] = useState("all");
+  const [activeTab, setActiveTab] = useState<SubstanceIndexView>(initialView);
   const panelsStartRef = useRef<HTMLDivElement | null>(null);
+  const resolveLegacyHash = useCallback((hash: string) => {
+    const view = parseLegacySubstanceIndexHash(hash);
+    return view ? { view, pathname: substanceIndexViewPath(view) } : null;
+  }, []);
+  useLegacyIndexHashRoute<SubstanceIndexView>({
+    value: activeTab,
+    setValue: setActiveTab,
+    resolve: resolveLegacyHash,
+    coverId: SUBSTANCE_INDEX_LEGACY_COVER_ID,
+  });
 
   const lookup = useMemo(
     () =>
@@ -291,15 +312,10 @@ export function DosagesPage({
     return items;
   }, [superTabs, groupsByKey]);
 
-  const tabIds = useMemo(() => new Set(tabItems.map((tab) => tab.id)), [tabItems]);
-
-  // Deep-link the active class to the URL hash (e.g. `/substances#stimulant`)
-  // so psychoactive-class badges can open straight to a category tab.
-  useTabHashSync({ setValue: setActiveTab, isValid: (value) => tabIds.has(value) });
-
   const handleTabChange = (value: string) => {
-    setActiveTab(value);
-    writeTabHash(value);
+    const nextView = value as SubstanceIndexView;
+    setActiveTab(nextView);
+    replaceCurrentIndexViewPath(substanceIndexViewPath(nextView));
   };
 
   // Only scroll down to the panels when the user re-clicks the tab they are

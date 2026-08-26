@@ -132,9 +132,9 @@ describe("route chrome model", () => {
         "/effects",
         [
           ["Index", "/effects", false],
-          ["Sensory", "/effects#sensory", false],
-          ["Cognitive", "/effects#cognitive", false],
-          ["Physical", "/effects#physical", false],
+          ["Sensory", "/effects/group/sensory", false],
+          ["Cognitive", "/effects/group/cognitive", false],
+          ["Physical", "/effects/group/physical", false],
         ],
       ],
       [

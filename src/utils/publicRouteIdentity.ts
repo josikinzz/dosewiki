@@ -1,6 +1,7 @@
 export type PublicRouteIdentity =
   | { family: "home"; params?: Record<string, never> }
   | { family: "substances"; params?: Record<string, never> }
+  | { family: "substancesGroup"; params: { groupSlug: string } }
   | { family: "chemicalClasses"; params?: Record<string, never> }
   | { family: "chemicalClass"; params: { classKey: string } }
   | { family: "mantras"; params?: Record<string, never> }
@@ -12,6 +13,7 @@ export type PublicRouteIdentity =
   | { family: "replication"; params: { slug: string } }
   | { family: "substance"; params: { slug: string } }
   | { family: "effects"; params?: Record<string, never> }
+  | { family: "effectsGroup"; params: { groupSlug: string } }
   | { family: "effect"; params: { effectSlug: string } }
   | { family: "effectCategory"; params: { categorySlug: string } }
   | { family: "psychoactiveSummary"; params: { summaryPath: string[] } }
@@ -28,6 +30,7 @@ export type PublicRouteIdentity =
   | { family: "copyrightDisclaimer"; params?: Record<string, never> }
   | { family: "documentationStyleGuide"; params?: Record<string, never> }
   | { family: "reports"; params?: Record<string, never> }
+  | { family: "reportsGroup"; params: { groupSlug: string } }
   | { family: "report"; params: { slug: string } }
   | { family: "about"; params?: Record<string, never> }
   | { family: "category"; params: { categoryKey: string } }
@@ -66,6 +69,8 @@ export function getPublicRoutePath(route: PublicRouteIdentity): string {
       return "/";
     case "substances":
       return "/substances";
+    case "substancesGroup":
+      return `/substances/group/${encodePublicRouteSegment(route.params.groupSlug)}`;
     case "chemicalClasses":
       return "/chemical-classes";
     case "chemicalClass":
@@ -94,6 +99,8 @@ export function getPublicRoutePath(route: PublicRouteIdentity): string {
       return `/${encodePublicRouteSegment(route.params.slug)}`;
     case "effects":
       return "/effects";
+    case "effectsGroup":
+      return `/effects/group/${encodePublicRouteSegment(route.params.groupSlug)}`;
     case "effect":
       return `/effects/${encodePublicRouteSegment(route.params.effectSlug)}`;
     case "effectCategory":
@@ -122,6 +129,8 @@ export function getPublicRoutePath(route: PublicRouteIdentity): string {
       return "/documentation-style-guide";
     case "reports":
       return "/reports";
+    case "reportsGroup":
+      return `/reports/group/${encodePublicRouteSegment(route.params.groupSlug)}`;
     case "report":
       return `/reports/${encodePublicRouteSegment(route.params.slug)}`;
     case "about":

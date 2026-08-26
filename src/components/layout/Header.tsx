@@ -1,14 +1,11 @@
 import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
-import type {
-  KeyboardEvent as ReactKeyboardEvent,
-  MouseEvent as ReactMouseEvent,
-} from "react";
-import { AppearanceControls } from "@/app/_components/AppearanceControls";
+import type { KeyboardEvent as ReactKeyboardEvent } from "react";
 import { DoseWikiLogo } from "../common/DoseWikiLogo";
 import { Icon } from "../common/Icon";
 import { SiteWordmark } from "../common/SiteWordmark";
+import { AppearanceControls } from "@/app/_components/AppearanceControls";
 import type {
   AppView,
   RouteChromeModel,
@@ -19,44 +16,13 @@ import { Button } from "@/components/ui/button";
 import { icons } from "@/utils/iconNames";
 import { resolveRouteChromeIcon } from "@/utils/routeChromeIcons";
 
-/**
- * The fragment of a child href that points at a place in the page the reader is already on,
- * or `null` when it points elsewhere.
- *
- * Fragment children are tab addresses (`/effects#sensory`), and the page reads them from
- * `hashchange`. Next resolves a hash-only navigation inside its own router state — it
- * rewrites the URL with `history.pushState`, which fires no event — so routing such a click
- * would change the URL and nothing else. Handing it to the browser instead performs a real
- * fragment navigation: one history entry, one `hashchange`, page notified.
- */
-function sameDocumentFragment(href: string): string | null {
-  const hashIndex = href.indexOf("#");
-
-  if (hashIndex < 0) {
-    return null;
-  }
-
-  const path = href.slice(0, hashIndex);
-  const fragment = href.slice(hashIndex + 1);
-
-  if (fragment.length === 0 || (path.length > 0 && path !== window.location.pathname)) {
-    return null;
-  }
-
-  return fragment;
-}
-
-/** A click the browser should be left to handle its own way (new tab, new window, download). */
-function isModifiedClick(event: ReactMouseEvent<HTMLAnchorElement>): boolean {
-  return event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey;
-}
 
 /**
  * One link inside a nav dropdown or mobile accordion.
  *
- * Children are addressed by href, not by view, so they may be fragments, query strings or
- * other sites; the external ones get a real `target="_blank"` anchor and say so to screen
- * readers rather than relying on the icon alone.
+ * Children are addressed by href, not by view, so they may be routed subsections,
+ * query strings, or other sites; external links open in a new tab and say so to
+ * screen readers rather than relying on the icon alone.
  */
 function NavChildLink({
   child,
@@ -103,34 +69,6 @@ function NavChildLink({
     );
   }
 
-  const handleClick = (event: ReactMouseEvent<HTMLAnchorElement>) => {
-    onSelect();
-
-    if (isModifiedClick(event)) {
-      return;
-    }
-
-    const fragment = sameDocumentFragment(child.href);
-
-    if (fragment === null) {
-      // A different page: let the router navigate, and the page will read the fragment as it
-      // mounts.
-      return;
-    }
-
-    event.preventDefault();
-
-    if (window.location.hash === `#${fragment}`) {
-      // Already the fragment in the URL, so there is nothing for the browser to navigate to
-      // — but the reader has asked for this tab, and the page may have been moved off it by
-      // its own controls since. Announce it rather than letting the click look dead.
-      window.dispatchEvent(new HashChangeEvent("hashchange"));
-
-      return;
-    }
-
-    window.location.hash = fragment;
-  };
 
   return (
     <Link
@@ -138,7 +76,7 @@ function NavChildLink({
       role={role}
       tabIndex={tabIndex}
       className={className}
-      onClick={handleClick}
+      onClick={onSelect}
     >
       {body}
     </Link>
@@ -721,13 +659,7 @@ export function Header({
           <AppearanceControls iconSize={22} />
         </div>
 
-        <div
-          className={
-            forceMobileNav
-              ? "ml-auto flex flex-shrink-0 items-center gap-2"
-              : "ml-auto flex flex-shrink-0 items-center gap-2 lg:hidden"
-          }
-        >
+        <div className={forceMobileNav ? "ml-auto flex flex-shrink-0 items-center gap-2" : "ml-auto flex flex-shrink-0 items-center gap-2 lg:hidden"}>
           {/* Appearance settings stays left of the mobile menu so the familiar hamburger
               owns the top-right corner. This mount keeps the larger touch-context glyph. */}
           <AppearanceControls />
@@ -751,42 +683,43 @@ export function Header({
               <span className="sr-only">Toggle navigation</span>
             </Button>
 
-            {isMenuOpen && (
-              <div
-                ref={menuPanelRef}
-                id="mobile-nav"
-                className="theme-overlay-surface theme-mobile-nav-panel absolute right-0 top-[calc(100%+0.5rem)] w-64 origin-top-right rounded-2xl border p-2.5 shadow-[var(--theme-elevation-xl)] ring-1 ring-dose-divider backdrop-blur-sm"
-              >
-                <nav className="flex flex-col gap-1">
-                  {model.primaryNavItems.map((item) => (
-                    <MobileNavItem
-                      key={item.id}
-                      item={item}
-                      iconSize={24}
-                      showActiveIndicator
-                      isExpanded={expandedMobileIds.includes(item.id)}
-                      onToggle={toggleMobileGroup}
-                      onNavigate={() => setIsMenuOpen(false)}
-                      className="theme-header-nav-link theme-focus-ring theme-mobile-nav-link flex min-h-11 items-center gap-3.5 rounded-xl border border-transparent px-3 py-2.5 text-sm font-semibold"
-                    />
-                  ))}
-                </nav>
-
-                <div className="theme-gradient-divider my-2 h-px" />
-
-                {aboutItem && (
+          {isMenuOpen && (
+            <div
+              ref={menuPanelRef}
+              id="mobile-nav"
+              className="theme-overlay-surface theme-mobile-nav-panel absolute right-0 top-[calc(100%+0.5rem)] w-64 origin-top-right rounded-2xl border p-2.5 shadow-[var(--theme-elevation-xl)] ring-1 ring-dose-divider backdrop-blur-sm"
+            >
+              <nav className="flex flex-col gap-1">
+                {model.primaryNavItems.map((item) => (
                   <MobileNavItem
-                    item={aboutItem}
+                    key={item.id}
+                    item={item}
                     iconSize={24}
-                    isExpanded={expandedMobileIds.includes(aboutItem.id)}
+                    showActiveIndicator
+                    isExpanded={expandedMobileIds.includes(item.id)}
                     onToggle={toggleMobileGroup}
                     onNavigate={() => setIsMenuOpen(false)}
                     className="theme-header-nav-link theme-focus-ring theme-mobile-nav-link flex min-h-11 items-center gap-3.5 rounded-xl border border-transparent px-3 py-2.5 text-sm font-semibold"
                   />
-                )}
-              </div>
-            )}
+                ))}
+              </nav>
+
+              <div className="theme-gradient-divider my-2 h-px" />
+
+              {aboutItem && (
+                <MobileNavItem
+                  item={aboutItem}
+                  iconSize={24}
+                  isExpanded={expandedMobileIds.includes(aboutItem.id)}
+                  onToggle={toggleMobileGroup}
+                  onNavigate={() => setIsMenuOpen(false)}
+                  className="theme-header-nav-link theme-focus-ring theme-mobile-nav-link flex min-h-11 items-center gap-3.5 rounded-xl border border-transparent px-3 py-2.5 text-sm font-semibold"
+                />
+              )}
+            </div>
+          )}
           </div>
+
         </div>
       </div>
     </header>

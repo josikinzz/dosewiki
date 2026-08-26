@@ -184,15 +184,3 @@ export const FLAT_CATEGORIES: FlatCategoryConfig[] = [
   { key: "cardiovascular", routeSlug: "cardiovascular-effects", title: "Cardiovascular Effects", icon: "lucide:heart-pulse", tags: ["uncomfortable", "cardiovascular"], tab: "physical" },
   { key: "neurological", routeSlug: "neurological-effects", title: "Neurological Effects", icon: "fluent:thinking-24-regular", tags: ["uncomfortable", "neurological"], tab: "physical" },
 ];
-
-/**
- * The index's tabs are addressed by URL fragment — the Effect Index header's
- * Effects dropdown links #sensory / #cognitive / #physical this way. Returns
- * `null` for an absent or unrecognised fragment so the caller keeps its
- * default tab.
- */
-export function parseTabIdFromHash(hash: string | null | undefined): TabId | null {
-  const candidate = (hash ?? "").replace(/^#/, "").trim().toLowerCase();
-
-  return TABS.some((tab) => tab.id === candidate) ? (candidate as TabId) : null;
-}

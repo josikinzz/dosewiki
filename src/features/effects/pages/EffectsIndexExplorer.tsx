@@ -11,6 +11,7 @@ import { IndexPanelGrid, INDEX_PANEL_STACK_CLASS_NAME } from "@/components/commo
 import { StateCard } from "@/components/common/StateCard";
 import { PublicSegmentedTabs } from "@/components/layout/PublicSegmentedTabs";
 import { useResponsiveColumnCount } from "@/hooks/useResponsiveColumnCount";
+import { useLegacyIndexHashRoute } from "@/hooks/useLegacyIndexHashRoute";
 import type { PublicRouteEmptyState } from "@server/next/publicRouteOutcomes";
 import { EffectCategoryCard } from "../components/EffectCategoryCard";
 import { ParentCategoryCard } from "../components/ParentCategoryCard";
@@ -20,10 +21,17 @@ import {
   FLAT_CATEGORIES,
   PARENT_CATEGORIES,
   TABS,
-  parseTabIdFromHash,
   type ParentCategoryConfig,
   type TabId,
 } from "./effectsIndexConfig";
+import {
+  EFFECT_INDEX_DEFAULT_VIEW,
+  EFFECT_INDEX_LEGACY_COVER_ID,
+  effectIndexViewPath,
+  parseLegacyEffectIndexHash,
+  replaceCurrentIndexViewPath,
+  type EffectIndexView,
+} from "@/utils/indexViewRoutes";
 
 interface EffectSummary {
   slug: string;
@@ -39,6 +47,8 @@ interface EffectsIndexExplorerProps {
   introCopy?: SEIIntroCopy;
   /** Editable per-tab intro blobs, keyed by tab id; falls back to TABS config. */
   tabBlobs?: Partial<Record<TabId, string>>;
+  /** Server-resolved URL state; must match the first rendered panel set. */
+  initialView?: EffectIndexView;
 }
 
 type EffectWithLowerTags = EffectSummary & {
@@ -57,8 +67,6 @@ function matchesTags(effect: EffectWithLowerTags, tags: string[]) {
   return tags.every((tag) => effect.lowerTags.has(tag.toLowerCase()));
 }
 
-/** The tab shown with no fragment in the URL, and the one an emptied fragment returns to. */
-const DEFAULT_TAB: TabId = "all";
 
 export function EffectsIndexExplorer({
   effects,
@@ -66,58 +74,29 @@ export function EffectsIndexExplorer({
   emptyState,
   introCopy,
   tabBlobs,
+  initialView = EFFECT_INDEX_DEFAULT_VIEW,
 }: EffectsIndexExplorerProps) {
   const router = useRouter();
-  const [activeTab, setActiveTab] = useState<TabId>(DEFAULT_TAB);
+  const [activeTab, setActiveTab] = useState<TabId>(initialView);
 
-  // The fragment is this page's tab address: the Effect Index header's Effects
-  // dropdown links #sensory / #cognitive / #physical this way.
-  //
-  // Listening matters as much as the initial read. A fragment link followed while this page
-  // is already mounted does not remount it, and Next resolves hash-only navigations inside
-  // its own router state — it rewrites the URL with `history.pushState`, which by
-  // specification fires neither `hashchange` nor `popstate`, and it dispatches no event of
-  // its own. So the signals worth listening for are the browser's: `hashchange` for a native
-  // fragment navigation (what the header's fragment links perform when they are already on
-  // this page), and `popstate` for back/forward between fragments.
-  //
-  // Seeded after mount rather than in the initial state so the prerendered markup and the
-  // first client render still agree.
-  useEffect(() => {
-    const syncTabFromHash = () => {
-      // The gallery is no longer a tab here — it moved to its own top-level
-      // /replications section — but its old fragment address is in circulation
-      // (the former replications landing page linked it), so it must keep
-      // resolving. Redirect rather than blank the view.
-      if (window.location.hash.replace(/^#/, "").trim().toLowerCase() === "gallery") {
-        router.replace("/replications");
-        return;
-      }
-
-      const tabFromHash = parseTabIdFromHash(window.location.hash);
-
-      if (tabFromHash) {
-        setActiveTab(tabFromHash);
-        return;
-      }
-
-      // Back to an entry with no fragment: return to the default tab, which is what that
-      // entry rendered. Any *other* unrecognised fragment (a deep link to an effect anchor,
-      // say) leaves the current tab alone rather than blanking the view.
-      if (window.location.hash.replace(/^#/, "").trim() === "") {
-        setActiveTab(DEFAULT_TAB);
-      }
-    };
-
-    syncTabFromHash();
-    window.addEventListener("hashchange", syncTabFromHash);
-    window.addEventListener("popstate", syncTabFromHash);
-
-    return () => {
-      window.removeEventListener("hashchange", syncTabFromHash);
-      window.removeEventListener("popstate", syncTabFromHash);
-    };
-  }, [router]);
+  const resolveLegacyHash = useCallback((hash: string) => {
+    if (hash.replace(/^#/, "").trim().toLowerCase() === "gallery") {
+      return { redirect: "/replications" } as const;
+    }
+    const view = parseLegacyEffectIndexHash(hash);
+    return view ? { view, pathname: effectIndexViewPath(view) } : null;
+  }, []);
+  const redirectLegacyHash = useCallback(
+    (pathname: string) => router.replace(pathname),
+    [router],
+  );
+  useLegacyIndexHashRoute<EffectIndexView>({
+    value: activeTab,
+    setValue: setActiveTab,
+    resolve: resolveLegacyHash,
+    coverId: EFFECT_INDEX_LEGACY_COVER_ID,
+    redirect: redirectLegacyHash,
+  });
 
   const columnCount = useResponsiveColumnCount();
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
@@ -377,13 +356,19 @@ export function EffectsIndexExplorer({
     [],
   );
 
+  const handleTabChange = (value: string) => {
+    const nextView = value as EffectIndexView;
+    setActiveTab(nextView);
+    replaceCurrentIndexViewPath(effectIndexViewPath(nextView));
+  };
+
   return (
     <>
       <div className="mx-auto max-w-3xl md:max-w-4xl">
         <div data-nosnippet>
           <PublicSegmentedTabs
             value={activeTab}
-            onValueChange={(value) => setActiveTab(value)}
+            onValueChange={handleTabChange}
             items={TABS.map((tab) => ({
               id: tab.id,
               icon: tab.icon,

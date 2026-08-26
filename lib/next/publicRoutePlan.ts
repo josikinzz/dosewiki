@@ -53,6 +53,16 @@ export const RESERVED_REPLICATION_SLUGS = new Set([
   "substance",
 ]);
 
+/** Static index routes under dynamic article/report namespaces. */
+export const RESERVED_EFFECT_SLUGS: Record<string, true> = {
+  category: true,
+  group: true,
+};
+export const RESERVED_REPORT_SLUGS: Record<string, true> = {
+  submit: true,
+  group: true,
+};
+
 export type PublicRouteFamily =
   | "substances"
   | "categories"
@@ -259,7 +269,9 @@ export function buildPublicRoutePlan(
         }),
       ),
       effects: entriesFromSlugs(
-        input.effects.map(({ slug }) => slug),
+        input.effects
+          .map(({ slug }) => slug)
+          .filter((slug) => RESERVED_EFFECT_SLUGS[slug] !== true),
         "effectSlug",
         (effectSlug) =>
           getPublicRoutePath({ family: "effect", params: { effectSlug } }),
@@ -315,7 +327,9 @@ export function buildPublicRoutePlan(
       ),
       articles: articleEntriesFromRecords(input.articles),
       reports: entriesFromSlugs(
-        input.reports.map(({ slug }) => slug),
+        input.reports
+          .map(({ slug }) => slug)
+          .filter((slug) => RESERVED_REPORT_SLUGS[slug] !== true),
         "slug",
         (slug) => getPublicRoutePath({ family: "report", params: { slug } }),
       ),

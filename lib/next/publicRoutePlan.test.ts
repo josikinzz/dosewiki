@@ -44,7 +44,11 @@ const createFixturePlan = () =>
       { key: "classic-psychedelics" },
       { key: "classic-psychedelics" },
     ],
-    effects: [{ slug: "visual-drifting" }],
+    effects: [
+      { slug: "visual-drifting" },
+      { slug: "category" },
+      { slug: "group" },
+    ],
     replications: [
       {
         slug: "tree-bark-chelsea-morgan",
@@ -81,7 +85,11 @@ const createFixturePlan = () =>
       { slug: "lucid-dreaming", publication_status: "published" },
       { slug: "dxm", publication_status: "unlisted" },
     ],
-    reports: [{ slug: "first-trip" }],
+    reports: [
+      { slug: "first-trip" },
+      { slug: "submit" },
+      { slug: "group" },
+    ],
     contributorDirectory: [
       { key: "Ada Lovelace", displayName: "Ada Lovelace", aliases: [] },
       { key: "ada@example.com", displayName: "Ada", aliases: [] },

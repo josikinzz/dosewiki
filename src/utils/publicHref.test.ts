@@ -30,24 +30,44 @@ describe("publicHref", () => {
     expect(publicHref.classification("chemical", "Not A Real Class")).toBe("/chemical-classes");
   });
 
-  it("deep-links psychoactive classifications to the substance index tab hash", () => {
-    expect(publicHref.classification("psychoactive", "Psychedelic")).toBe("/substances#psychedelic");
-    expect(publicHref.classification("psychoactive", "Stimulant")).toBe("/substances#stimulant");
-    expect(publicHref.classification("psychoactive", "Opioid")).toBe("/substances#opioid");
-    expect(publicHref.classification("psychoactive", "entactogen")).toBe("/substances#entactogen");
+  it("deep-links psychoactive classifications to routed Substance Index views", () => {
+    expect(publicHref.classification("psychoactive", "Psychedelic")).toBe(
+      "/substances/group/psychedelic",
+    );
+    expect(publicHref.classification("psychoactive", "Stimulant")).toBe(
+      "/substances/group/stimulant",
+    );
+    expect(publicHref.classification("psychoactive", "Opioid")).toBe(
+      "/substances/group/opioid",
+    );
+    expect(publicHref.classification("psychoactive", "entactogen")).toBe(
+      "/substances/group/entactogen",
+    );
     expect(publicHref.classification("psychoactive", "Classic Psychedelic")).toBe(
-      "/substances#classic-psychedelic",
+      "/substances",
     );
     expect(publicHref.classification("psychoactive", "")).toBe("/substances");
   });
 
-  it("maps psychoactive super-tab and alias labels to their canonical index hash", () => {
-    expect(publicHref.classification("psychoactive", "Depressant")).toBe("/substances#super:depressants");
-    expect(publicHref.classification("psychoactive", "Sedative")).toBe("/substances#super:depressants");
-    expect(publicHref.classification("psychoactive", "Hallucinogen")).toBe("/substances#super:hallucinogens");
-    expect(publicHref.classification("psychoactive", "Eugeroic")).toBe("/substances#stimulant");
-    expect(publicHref.classification("psychoactive", "Entheogen")).toBe("/substances#psychedelic");
-    expect(publicHref.classification("psychoactive", "Empathogen")).toBe("/substances#entactogen");
+  it("maps psychoactive aliases to their canonical routed view", () => {
+    expect(publicHref.classification("psychoactive", "Depressant")).toBe(
+      "/substances/group/depressants",
+    );
+    expect(publicHref.classification("psychoactive", "Sedative")).toBe(
+      "/substances/group/depressants",
+    );
+    expect(publicHref.classification("psychoactive", "Hallucinogen")).toBe(
+      "/substances/group/hallucinogens",
+    );
+    expect(publicHref.classification("psychoactive", "Eugeroic")).toBe(
+      "/substances/group/stimulant",
+    );
+    expect(publicHref.classification("psychoactive", "Entheogen")).toBe(
+      "/substances/group/psychedelic",
+    );
+    expect(publicHref.classification("psychoactive", "Empathogen")).toBe(
+      "/substances/group/entactogen",
+    );
   });
 
   it("generates report hrefs with optional source context", () => {

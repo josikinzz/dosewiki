@@ -121,9 +121,9 @@ describe("site flavor config", () => {
     // codebase's index reads its tab from the fragment.
     expect(navMenus.effects?.children).toEqual([
       { label: "Index", href: "/effects" },
-      { label: "Sensory", href: "/effects#sensory" },
-      { label: "Cognitive", href: "/effects#cognitive" },
-      { label: "Physical", href: "/effects#physical" },
+      { label: "Sensory", href: "/effects/group/sensory" },
+      { label: "Cognitive", href: "/effects/group/cognitive" },
+      { label: "Physical", href: "/effects/group/physical" },
     ]);
     expect(navMenus.replications?.children).toEqual([
       { label: "Gallery", href: "/replications" },
