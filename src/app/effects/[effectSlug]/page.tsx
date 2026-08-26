@@ -5,6 +5,7 @@ import { getStaticEffectParams } from "@server/next/staticParams";
 import { EffectArticlePage } from "@/features/effects/pages/EffectArticlePage";
 import { buildSubjectiveEffectSchema, serializeJsonLd } from "@/utils/seo/structuredData";
 import { SITE_FLAVOR_CONFIG } from "@/config/siteFlavor";
+import { entitySocialCardImage } from "@/data/mappings/entitySocialCardUrl";
 
 export const revalidate = 3600;
 export const dynamicParams = false;
@@ -34,6 +35,11 @@ export async function generateMetadata({ params }: EffectPageProps) {
   return buildPublicPageMetadata({
     ...result.metadata,
     route: result.canonicalRoute,
+    socialImage: entitySocialCardImage(
+      "effects",
+      effectSlug,
+      `${result.metadata.title} subjective effect card`,
+    ),
   });
 }
 

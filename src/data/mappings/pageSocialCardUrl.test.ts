@@ -2,7 +2,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 // Dynamic imports are intentional: each flavor mock must exist before this build-time
 // configuration module is evaluated.
 
-const CARD_PATH_RE = /^\/images\/social\/pages\/[a-z-]+\.[a-f0-9]{16}\.png$/;
+const CARD_PATH_RE = /^\/images\/social\/pages\/[a-z-]+\.[a-f0-9]{16}\.jpg$/;
 
 afterEach(() => {
   vi.doUnmock("@/config/siteFlavor");

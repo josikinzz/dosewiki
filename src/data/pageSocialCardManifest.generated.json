@@ -1,12 +1,12 @@
 {
   "version": 1,
-  "rendererVersion": "1",
+  "rendererVersion": "6",
   "cards": {
-    "home": "/images/social/pages/home.7584b81aee4f9a3f.png",
-    "substances": "/images/social/pages/substances.d7385c61512f6366.png",
-    "effects": "/images/social/pages/effects.d937df28d43c2f75.png",
-    "replications": "/images/social/pages/replications.d80f21b32e304aae.png",
-    "chemical-classes": "/images/social/pages/chemical-classes.423360dd953483ea.png",
-    "about": "/images/social/pages/about.849da26424b5688f.png"
+    "home": "/images/social/pages/home.717e65352a685c3c.jpg",
+    "substances": "/images/social/pages/substances.f1523c26c9516c2c.jpg",
+    "effects": "/images/social/pages/effects.a12f5f126cc995ea.jpg",
+    "replications": "/images/social/pages/replications.8a47c87f4989b5cb.jpg",
+    "chemical-classes": "/images/social/pages/chemical-classes.46c14b26f3fb3f39.jpg",
+    "about": "/images/social/pages/about.a6f0e81cbcf000d3.jpg"
   }
 }

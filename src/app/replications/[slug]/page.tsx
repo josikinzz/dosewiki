@@ -5,6 +5,7 @@ import { getStaticReplicationParams } from "@server/next/staticParams";
 import { SITE_FLAVOR_CONFIG } from "@/config/siteFlavor";
 import { ReplicationDetailPage } from "@/features/effects/pages/ReplicationDetailPage";
 import { buildReplicationSchema, serializeJsonLd } from "@/utils/seo/structuredData";
+import { entitySocialCardImage } from "@/data/mappings/entitySocialCardUrl";
 
 export const revalidate = 3600;
 // `false` for the reason documented on /blog/[slug]: with `dynamicParams = true`
@@ -45,6 +46,11 @@ export async function generateMetadata({ params }: ReplicationPageProps) {
   return buildPublicPageMetadata({
     ...result.metadata,
     route: result.canonicalRoute,
+    socialImage: entitySocialCardImage(
+      "replications",
+      result.pageProps.replication.slug,
+      `${result.pageProps.replication.title} replication card`,
+    ),
   });
 }
 

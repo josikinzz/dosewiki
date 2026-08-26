@@ -3,6 +3,7 @@ import { buildPublicPageMetadata } from "@server/next/publicSite";
 import { loadContributorRoute } from "@server/next/routeLoaders.contributors";
 import { getStaticContributorParams } from "@server/next/staticParams";
 import { UserProfilePage } from "@/components/pages/UserProfilePage";
+import { entitySocialCardImage } from "@/data/mappings/entitySocialCardUrl";
 
 export const revalidate = 3600;
 
@@ -31,6 +32,11 @@ export async function generateMetadata({ params }: ContributorPageProps) {
   return buildPublicPageMetadata({
     ...result.metadata,
     route: result.canonicalRoute,
+    socialImage: entitySocialCardImage(
+      "contributors",
+      profileKey,
+      `${result.metadata.title} contributor profile card`,
+    ),
   });
 }
 

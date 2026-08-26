@@ -40,6 +40,26 @@ describe("renderMoleculeSocialCardPng", () => {
     expect(accentPixels).toBeGreaterThan(4_000);
   });
 
+  it("renders the dose.wiki wordmark without a trailing slash", async () => {
+    const png = await renderMoleculeSocialCardPng(CARD_INPUT);
+    const { data, info } = await sharp(png)
+      .extract({ left: 310, top: 65, width: 20, height: 50 })
+      .raw()
+      .toBuffer({ resolveWithObject: true });
+    let trailingAccentPixels = 0;
+
+    for (let offset = 0; offset < data.length; offset += info.channels) {
+      const red = data[offset];
+      const green = data[offset + 1];
+      const blue = data[offset + 2];
+      if (red > 170 && blue > 180 && blue > green + 20) {
+        trailingAccentPixels += 1;
+      }
+    }
+
+    expect(trailingAccentPixels).toBeLessThan(10);
+  });
+
   it("renders a complete card for substances without molecule artwork", async () => {
     const png = await renderMoleculeSocialCardPng({
       ...CARD_INPUT,

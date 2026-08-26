@@ -36,6 +36,7 @@ import {
 } from "@server/convex/publicData";
 import { buildPublicPageMetadata, getPublicRoutePath } from "@server/next/publicSite";
 import { getStaticReplicationArtistParams } from "@server/next/staticParams";
+import { entitySocialCardImage } from "@/data/mappings/entitySocialCardUrl";
 
 /**
  * The Artist Page: one artist's works, addressable as
@@ -112,7 +113,7 @@ function forwardRetiredKeyOr404(key: string): never {
 
 export async function generateMetadata({ params }: ArtistFocusPageProps): Promise<Metadata> {
   const { key } = await params;
-  const { focus } = await loadArtistFocus(key);
+  const { focus, contributorDirectory } = await loadArtistFocus(key);
 
   // Thrown here, not just in the page body: metadata resolves before the
   // response starts streaming, so this is what turns a bogus key into a real
@@ -122,12 +123,23 @@ export async function generateMetadata({ params }: ArtistFocusPageProps): Promis
   }
 
   const attributed = focus.group.key !== UNATTRIBUTED_KEY;
+  const profileKey = resolveArtistPageProfileKey(
+    focus.group,
+    contributorDirectory,
+  );
   return buildPublicPageMetadata({
     title: `${focus.label} Replications`,
     description: attributed
       ? `${focus.group.count} replication ${focus.group.count === 1 ? "work" : "works"} by ${focus.label}: image and video recreations of subjective effects.`
       : "Replication works whose creator is unknown: image and video recreations of subjective effects awaiting attribution.",
     route: { family: "replicationArtist", params: { key } },
+    socialImage: profileKey
+      ? entitySocialCardImage(
+          "contributors",
+          profileKey,
+          `${focus.label} contributor profile card`,
+        )
+      : undefined,
   });
 }
 

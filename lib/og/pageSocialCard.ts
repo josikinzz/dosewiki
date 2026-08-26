@@ -18,7 +18,7 @@ import {
   renderSocialCardSvgPng,
 } from "./socialCardPrimitives";
 
-export const PAGE_SOCIAL_CARD_RENDER_VERSION = "2";
+export const PAGE_SOCIAL_CARD_RENDER_VERSION = "6";
 
 type TileSpec = {
   labelLines: readonly string[];
@@ -78,31 +78,24 @@ function renderTile(
   spec: TileSpec,
   x: number,
   y: number,
-  width: number,
-  height: number,
+  size: number,
   labelSize: number,
 ): string {
-  // Tile geometry owns icon scale: sparse cards receive materially larger
-  // glyphs, while dense grids retain enough room for their labels.
+  // Match an app icon: a square art surface with its caption outside.
   const iconSize = Math.round(
-    Math.min(width, height) * (spec.labelLines.length > 1 ? 0.43 : 0.48),
+    size * (spec.labelLines.length > 1 ? 0.52 : 0.58),
   );
-  const iconX = x + (width - iconSize) / 2;
-  const iconY =
-    y +
-    Math.max(
-      24,
-      (height - iconSize - spec.labelLines.length * labelSize * 1.08) / 2 - 3,
-    );
-  const labelStartY =
-    y + height - 26 - (spec.labelLines.length - 1) * labelSize * 1.08;
+  const iconX = x + (size - iconSize) / 2;
+  const iconY = y + (size - iconSize) / 2;
+  const labelStartY = y + size + labelSize + 12;
   const stroke = spec.selected
     ? SOCIAL_CARD_COLORS.borderSelected
-    : SOCIAL_CARD_COLORS.border;
+    : SOCIAL_CARD_COLORS.controlBorder;
   const surface = spec.selected
-    ? `<rect x="${x}" y="${y}" width="${width}" height="${height}" rx="28" fill="url(#page-selected-base)" stroke="${stroke}" stroke-width="2"/>
-       <rect x="${x}" y="${y}" width="${width}" height="${height}" rx="28" fill="url(#page-selected-highlight)"/>`
-    : `<rect x="${x}" y="${y}" width="${width}" height="${height}" rx="28" fill="${SOCIAL_CARD_COLORS.surface}" stroke="${stroke}" stroke-width="2"/>`;
+    ? `<rect x="${x}" y="${y}" width="${size}" height="${size}" rx="28" fill="url(#page-selected-base)" stroke="${stroke}" stroke-width="2"/>
+       <rect x="${x}" y="${y}" width="${size}" height="${size}" rx="28" fill="url(#page-selected-highlight)"/>`
+    : `<rect x="${x}" y="${y}" width="${size}" height="${size}" rx="28" fill="url(#page-control-base)" stroke="${stroke}" stroke-width="2"/>
+       <rect x="${x}" y="${y}" width="${size}" height="${size}" rx="28" fill="url(#page-control-highlight)"/>`;
 
   return `<g>
     ${surface}
@@ -116,7 +109,7 @@ function renderTile(
     ${spec.labelLines
       .map(
         (line, index) =>
-          `<text x="${x + width / 2}" y="${labelStartY + index * labelSize * 1.08}" text-anchor="middle" font-family="Blinker" font-size="${labelSize}" font-weight="${spec.selected ? 600 : 400}" fill="${spec.selected ? SOCIAL_CARD_COLORS.text : SOCIAL_CARD_COLORS.textMuted}">${escapeSocialCardXml(line)}</text>`,
+          `<text x="${x + size / 2}" y="${labelStartY + index * labelSize * 1.08}" text-anchor="middle" font-family="Blinker" font-size="${labelSize}" font-weight="600" fill="${spec.selected ? SOCIAL_CARD_COLORS.text : SOCIAL_CARD_COLORS.tileLabelMuted}">${escapeSocialCardXml(line)}</text>`,
       )
       .join("\n")}
   </g>`;
@@ -144,7 +137,6 @@ function renderTileRows(
           left + columnIndex * (options.tileWidth + options.columnGap),
           options.top + rowIndex * (options.tileHeight + options.rowGap),
           options.tileWidth,
-          options.tileHeight,
           options.labelSize,
         ),
       );
@@ -152,14 +144,6 @@ function renderTileRows(
     .join("\n");
 }
 
-function renderPageTitle(
-  title: string,
-  baselineY: number,
-  preferredSize = 94,
-): string {
-  const fontSize = fitSocialCardText(title, preferredSize, 58, 1060, 600);
-  return `<text x="600" y="${baselineY}" text-anchor="middle" font-family="Blinker" font-size="${fontSize}" font-weight="600" letter-spacing="-1.5" fill="${SOCIAL_CARD_COLORS.accentStrong}">${escapeSocialCardXml(title)}</text>`;
-}
 
 function renderIconTitleRow(
   title: string,
@@ -185,6 +169,25 @@ function renderIconTitleRow(
   <text x="${left + iconSize + gap}" y="${baselineY}" font-family="Blinker" font-size="${titleSize}" font-weight="600" letter-spacing="-1.5" fill="${SOCIAL_CARD_COLORS.accentStrong}">${escapeSocialCardXml(title)}</text>`;
 }
 
+function renderPageBrandLockup(): string {
+  const wordmarkSize = 40;
+  const wordmarkLeft = 126;
+  const wordmarkWidth = measureSocialCardText(
+    "dose.wiki",
+    wordmarkSize,
+    600,
+  );
+
+  return `<g>
+    <image href="${DOSEWIKI_LOGO_DATA_URI}" x="54" y="45" width="58" height="58"/>
+    ${renderDoseWikiWordmark(
+      wordmarkLeft + wordmarkWidth / 2,
+      91,
+      wordmarkSize,
+    )}
+  </g>`;
+}
+
 function cardSvg(body: string): string {
   return `<svg xmlns="http://www.w3.org/2000/svg" width="${PAGE_SOCIAL_CARD_SIZE}" height="${PAGE_SOCIAL_CARD_SIZE}" viewBox="0 0 ${PAGE_SOCIAL_CARD_SIZE} ${PAGE_SOCIAL_CARD_SIZE}">
     <defs>
@@ -196,9 +199,18 @@ function cardSvg(body: string): string {
         <stop offset="0" stop-color="${SOCIAL_CARD_COLORS.selectedHighlight}"/>
         <stop offset="42%" stop-color="${SOCIAL_CARD_COLORS.selectedHighlight}" stop-opacity="0"/>
       </radialGradient>
+      <linearGradient id="page-control-base" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0" stop-color="${SOCIAL_CARD_COLORS.controlSurface}"/>
+        <stop offset="1" stop-color="${SOCIAL_CARD_COLORS.controlSecondary}"/>
+      </linearGradient>
+      <radialGradient id="page-control-highlight" cx="12%" cy="0%" r="72%">
+        <stop offset="0" stop-color="${SOCIAL_CARD_COLORS.controlHighlight}"/>
+        <stop offset="36%" stop-color="${SOCIAL_CARD_COLORS.controlHighlight}" stop-opacity="0"/>
+      </radialGradient>
     </defs>
     <rect width="100%" height="100%" fill="${SOCIAL_CARD_COLORS.background}"/>
     ${body}
+    ${renderPageBrandLockup()}
   </svg>`;
 }
 
@@ -209,11 +221,11 @@ function renderHomeCard(): Buffer {
       ${renderDoseWikiWordmark(600, 410, 112)}
       <text x="600" y="480" text-anchor="middle" font-family="Blinker" font-size="34" font-style="italic" fill="${SOCIAL_CARD_COLORS.textMuted}">An open encyclopedic database for the study of psychopharmacology</text>
       ${renderTileRows([HOME_TILES.slice(0, 3), HOME_TILES.slice(3)], {
-        top: 570,
-        tileWidth: 226,
-        tileHeight: 230,
+        top: 550,
+        tileWidth: 210,
+        tileHeight: 252,
         columnGap: 42,
-        rowGap: 38,
+        rowGap: 34,
         labelSize: 30,
       })}
     `),
@@ -227,27 +239,46 @@ async function renderEffectsCard(): Promise<Buffer> {
     .png()
     .toBuffer();
   const avatarDataUri = `data:image/png;base64,${avatar.toString("base64")}`;
+  const creatorFontSize = 28;
+  const creatorAvatarSize = 48;
+  const creatorGap = 18;
+  const creatorPaddingX = 18;
+  const creatorTextWidth =
+    measureSocialCardText("created by ", creatorFontSize) +
+    measureSocialCardText("Josie Kins", creatorFontSize, 600) +
+    measureSocialCardText(", 2011", creatorFontSize);
+  const creatorBadgeWidth = Math.ceil(
+    creatorPaddingX * 2 +
+      creatorAvatarSize +
+      creatorGap +
+      creatorTextWidth,
+  );
+  const creatorBadgeLeft =
+    (PAGE_SOCIAL_CARD_SIZE - creatorBadgeWidth) / 2;
+  const creatorAvatarLeft = creatorBadgeLeft + creatorPaddingX;
+  const creatorTextLeft =
+    creatorAvatarLeft + creatorAvatarSize + creatorGap;
 
   return renderSocialCardSvgPng(
     cardSvg(`
-      <defs><clipPath id="creator-avatar"><circle cx="491" cy="298" r="24"/></clipPath></defs>
+      <defs><clipPath id="creator-avatar"><circle cx="${creatorAvatarLeft + creatorAvatarSize / 2}" cy="330" r="${creatorAvatarSize / 2}"/></clipPath></defs>
       ${renderIconTitleRow(
         "Subjective Effect Index",
         "material-symbols:person-play-outline-rounded",
-        86,
+        142,
         88,
       )}
       <g>
-        <rect x="390" y="260" width="420" height="76" rx="38" fill="${SOCIAL_CARD_COLORS.surface}" stroke="${SOCIAL_CARD_COLORS.border}" stroke-width="2"/>
-        <image href="${avatarDataUri}" x="467" y="274" width="48" height="48" clip-path="url(#creator-avatar)" preserveAspectRatio="xMidYMid slice"/>
-        <text x="535" y="308" font-family="Blinker" font-size="28" fill="${SOCIAL_CARD_COLORS.textMuted}">created by <tspan fill="${SOCIAL_CARD_COLORS.text}" font-weight="600">Josie Kins</tspan><tspan fill="${SOCIAL_CARD_COLORS.textFaint}">, 2011</tspan></text>
+        <rect x="${creatorBadgeLeft}" y="292" width="${creatorBadgeWidth}" height="76" rx="38" fill="${SOCIAL_CARD_COLORS.surface}" stroke="${SOCIAL_CARD_COLORS.border}" stroke-width="2"/>
+        <image href="${avatarDataUri}" x="${creatorAvatarLeft}" y="306" width="${creatorAvatarSize}" height="${creatorAvatarSize}" clip-path="url(#creator-avatar)" preserveAspectRatio="xMidYMid slice"/>
+        <text x="${creatorTextLeft}" y="340" font-family="Blinker" font-size="${creatorFontSize}" fill="${SOCIAL_CARD_COLORS.textMuted}">created by <tspan fill="${SOCIAL_CARD_COLORS.text}" font-weight="600">Josie Kins</tspan><tspan fill="${SOCIAL_CARD_COLORS.textFaint}">, 2011</tspan></text>
       </g>
       ${renderTileRows([EFFECT_TILES.slice(0, 3), EFFECT_TILES.slice(3)], {
-        top: 485,
-        tileWidth: 240,
-        tileHeight: 250,
+        top: 460,
+        tileWidth: 230,
+        tileHeight: 280,
         columnGap: 42,
-        rowGap: 42,
+        rowGap: 70,
         labelSize: 31,
       })}
     `),
@@ -260,7 +291,7 @@ function renderSubstancesCard(): Buffer {
       ${renderIconTitleRow(
         "Substance Index",
         "streamline-ultimate:science-molecule-strucutre-bold",
-        82,
+        142,
       )}
       ${renderTileRows(
         [
@@ -269,11 +300,11 @@ function renderSubstancesCard(): Buffer {
           SUBSTANCE_TILES.slice(10),
         ],
         {
-          top: 330,
-          tileWidth: 190,
-          tileHeight: 230,
-          columnGap: 28,
-          rowGap: 32,
+          top: 300,
+          tileWidth: 170,
+          tileHeight: 220,
+          columnGap: 34,
+          rowGap: 40,
           labelSize: 26,
         },
       )}
@@ -281,29 +312,52 @@ function renderSubstancesCard(): Buffer {
   );
 }
 
-function renderReplicationsCard(): Buffer {
+async function renderReplicationsCard(): Promise<Buffer> {
+  const artwork = await sharp(
+    path.join(
+      process.cwd(),
+      "src/assets/replications-after-images-chelsea-morgan.webp",
+    ),
+  )
+    .png()
+    .toBuffer();
+  const artworkDataUri = `data:image/png;base64,${artwork.toString("base64")}`;
+
   return renderSocialCardSvgPng(
     cardSvg(`
-      ${renderSocialCardIcon(
+      <defs>
+        <clipPath id="featured-replication">
+          <rect x="108" y="308" width="984" height="553" rx="20"/>
+        </clipPath>
+      </defs>
+      ${renderIconTitleRow(
+        "Replications",
         "hugeicons:camera-ai",
-        505,
-        78,
-        190,
-        SOCIAL_CARD_COLORS.accentStrong,
+        56,
+        92,
       )}
-      ${renderPageTitle("Replications", 382)}
-      <text x="600" y="458" text-anchor="middle" font-family="Blinker" font-size="32" fill="${SOCIAL_CARD_COLORS.textMuted}">Image, video, and audio recreations of subjective effects</text>
-      ${renderTileRows(
-        [REPLICATION_TILES.slice(0, 2), REPLICATION_TILES.slice(2)],
-        {
-          top: 570,
-          tileWidth: 250,
-          tileHeight: 240,
-          columnGap: 42,
-          rowGap: 38,
-          labelSize: 31,
-        },
-      )}
+      <text x="600" y="248" text-anchor="middle" font-family="Blinker" font-size="32" fill="${SOCIAL_CARD_COLORS.textMuted}">Image, video, and audio recreations of subjective effects</text>
+      <g>
+        <rect x="90" y="290" width="1020" height="640" rx="28" fill="${SOCIAL_CARD_COLORS.surface}" stroke="${SOCIAL_CARD_COLORS.border}" stroke-width="2"/>
+        <image href="${artworkDataUri}" x="108" y="308" width="984" height="553" clip-path="url(#featured-replication)" preserveAspectRatio="xMidYMid slice"/>
+        ${renderSocialCardIcon(
+          "hugeicons:ai-image",
+          120,
+          879,
+          28,
+          SOCIAL_CARD_COLORS.accentStrong,
+        )}
+        <text x="162" y="903" font-family="Blinker" font-size="28" font-weight="600" fill="${SOCIAL_CARD_COLORS.text}">After images</text>
+        <text x="326" y="903" font-family="Blinker" font-size="27" fill="${SOCIAL_CARD_COLORS.textFaint}">by Chelsea Morgan</text>
+      </g>
+      ${renderTileRows([REPLICATION_TILES], {
+        top: 958,
+        tileWidth: 116,
+        tileHeight: 156,
+        columnGap: 56,
+        rowGap: 0,
+        labelSize: 24,
+      })}
     `),
   );
 }
@@ -311,26 +365,41 @@ function renderReplicationsCard(): Buffer {
 function renderChemicalClassesCard(): Buffer {
   return renderSocialCardSvgPng(
     cardSvg(`
-      ${renderSocialCardIcon(
+      ${renderIconTitleRow(
+        "Chemical Class Index",
         "solar:benzene-ring-linear",
-        500,
-        62,
-        200,
-        SOCIAL_CARD_COLORS.accentStrong,
+        124,
+        88,
       )}
-      ${renderPageTitle("Chemical Class Index", 360, 88)}
-      <text x="600" y="438" text-anchor="middle" font-family="Blinker" font-size="31" fill="${SOCIAL_CARD_COLORS.textMuted}">Structural lineages from broad scaffolds to specific families</text>
+      <text x="600" y="318" text-anchor="middle" font-family="Blinker" font-size="31" fill="${SOCIAL_CARD_COLORS.textMuted}">Structural lineages from broad scaffolds to specific families</text>
       <g>
-        <rect x="94" y="526" width="1012" height="584" rx="28" fill="${SOCIAL_CARD_COLORS.surface}" stroke="${SOCIAL_CARD_COLORS.border}" stroke-width="2"/>
-        <path d="M160 624V1035 M160 690H232V1035 M232 758H304V1035 M304 826H376V1035" fill="none" stroke="#4a424d" stroke-width="2"/>
+        <rect x="94" y="370" width="1012" height="740" rx="28" fill="${SOCIAL_CARD_COLORS.surface}" stroke="${SOCIAL_CARD_COLORS.border}" stroke-width="2"/>
+        <path
+          d="M146 462V548H218 M230 560V646H302 M314 658V744H386 M398 756V1038 M398 842H470 M398 940H470 M398 1038H470"
+          fill="none"
+          stroke="${SOCIAL_CARD_COLORS.accentMuted}"
+          stroke-opacity="0.72"
+          stroke-width="3"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        />
+        <g fill="${SOCIAL_CARD_COLORS.surface}" stroke="${SOCIAL_CARD_COLORS.accentStrong}" stroke-width="3">
+          <circle cx="146" cy="450" r="10"/>
+          <circle cx="230" cy="548" r="10"/>
+          <circle cx="314" cy="646" r="10"/>
+          <circle cx="398" cy="744" r="10"/>
+          <circle cx="482" cy="842" r="10"/>
+          <circle cx="482" cy="940" r="10"/>
+          <circle cx="482" cy="1038" r="10"/>
+        </g>
         <g font-family="Blinker" font-weight="500" fill="${SOCIAL_CARD_COLORS.accentStrong}">
-          <text x="130" y="618" font-size="38">Amine <tspan fill="${SOCIAL_CARD_COLORS.textFaint}" font-size="30">· 204</tspan></text>
-          <text x="202" y="686" font-size="36">Arylalkylamine <tspan fill="${SOCIAL_CARD_COLORS.textFaint}" font-size="29">· 133</tspan></text>
-          <text x="274" y="754" font-size="35">Phenethylamine <tspan fill="${SOCIAL_CARD_COLORS.textFaint}" font-size="28">· 76</tspan></text>
-          <text x="346" y="822" font-size="33">Alpha-methylphenethylamine <tspan fill="${SOCIAL_CARD_COLORS.textFaint}" font-size="27">· 49</tspan></text>
-          <text x="418" y="904" font-size="31">Beta-ketoamphetamine <tspan fill="${SOCIAL_CARD_COLORS.textFaint}" font-size="26">· 18</tspan></text>
-          <text x="418" y="974" font-size="31">2,5-Dimethoxyamphetamine <tspan fill="${SOCIAL_CARD_COLORS.textFaint}" font-size="26">· 10</tspan></text>
-          <text x="418" y="1044" font-size="31">1,2-Diarylethylamine <tspan fill="${SOCIAL_CARD_COLORS.textFaint}" font-size="26">· 3</tspan></text>
+          <text x="170" y="463" font-size="36">Amine <tspan fill="${SOCIAL_CARD_COLORS.textFaint}" font-size="27">· 204</tspan></text>
+          <text x="254" y="561" font-size="35">Arylalkylamine <tspan fill="${SOCIAL_CARD_COLORS.textFaint}" font-size="26">· 133</tspan></text>
+          <text x="338" y="659" font-size="34">Phenethylamine <tspan fill="${SOCIAL_CARD_COLORS.textFaint}" font-size="26">· 76</tspan></text>
+          <text x="422" y="757" font-size="32">Alpha-methylphenethylamine <tspan fill="${SOCIAL_CARD_COLORS.textFaint}" font-size="25">· 49</tspan></text>
+          <text x="506" y="855" font-size="30">Beta-ketoamphetamine <tspan fill="${SOCIAL_CARD_COLORS.textFaint}" font-size="24">· 18</tspan></text>
+          <text x="506" y="953" font-size="30">2,5-Dimethoxyamphetamine <tspan fill="${SOCIAL_CARD_COLORS.textFaint}" font-size="24">· 10</tspan></text>
+          <text x="506" y="1051" font-size="30">1,2-Diarylethylamine <tspan fill="${SOCIAL_CARD_COLORS.textFaint}" font-size="24">· 3</tspan></text>
         </g>
       </g>
     `),
@@ -345,11 +414,11 @@ function renderAboutCard(): Buffer {
       <text x="600" y="482" text-anchor="middle" font-family="Blinker" font-size="34" fill="${SOCIAL_CARD_COLORS.textMuted}">An open encyclopedic database for the study of</text>
       <text x="600" y="526" text-anchor="middle" font-family="Blinker" font-size="34" fill="${SOCIAL_CARD_COLORS.textMuted}">psychopharmacology</text>
       ${renderTileRows([ABOUT_TILES.slice(0, 3), ABOUT_TILES.slice(3)], {
-        top: 600,
-        tileWidth: 230,
-        tileHeight: 230,
+        top: 570,
+        tileWidth: 210,
+        tileHeight: 250,
         columnGap: 42,
-        rowGap: 38,
+        rowGap: 30,
         labelSize: 28,
       })}
     `),
@@ -365,7 +434,7 @@ export async function renderPageSocialCardPng(key: PageSocialCardKey): Promise<B
     case "effects":
       return await renderEffectsCard();
     case "replications":
-      return renderReplicationsCard();
+      return await renderReplicationsCard();
     case "chemical-classes":
       return renderChemicalClassesCard();
     case "about":

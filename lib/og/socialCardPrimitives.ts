@@ -6,21 +6,29 @@ import { Resvg } from "@resvg/resvg-js";
 export const SOCIAL_CARD_SIZE = 1200;
 
 export const SOCIAL_CARD_COLORS = Object.freeze({
+  // Resolved CSS tokens from the default Fun/dark theme. The card canvas stays
+  // pure black by design; every foreground and Surface value mirrors the site.
   background: "#000000",
-  // Resolved default Fun/dark tokens from the deployed site. Main headings and
-  // page icons use accentStrong; selected app tiles use accent.
   accent: "#e7aeff",
   accentStrong: "#e494ff",
   accentMuted: "#a47bb9",
   text: "#ffffff",
-  textMuted: "#c9c0cb",
-  textFaint: "#938a96",
-  surface: "#0d0b0e",
+  textSecondary: "#dcdcdc",
+  textMuted: "#bbbbbb",
+  textFaint: "#949494",
+  tileLabelMuted: "#9b9b9b",
+  surface: "#131313",
+  surfaceHighlight: "#1a1a1a",
+  surfaceSecondary: "#060606",
+  controlSurface: "#171717",
+  controlHighlight: "#1e1e1e",
+  controlSecondary: "#0c0c0c",
   selectedHighlight: "#5d446e",
   selectedPrimary: "#4f3361",
   selectedSecondary: "#2b1c37",
-  border: "#332d35",
-  borderSelected: "#e494ff75",
+  border: "#c7c7c729",
+  controlBorder: "#c8c8c82e",
+  borderSelected: "#e594ff75",
 });
 
 const FONT_DIR = path.join(process.cwd(), "public/fonts");
@@ -39,20 +47,21 @@ const doseWikiLogoSvg = readFileSync(
   path.join(process.cwd(), "src/assets/dosewiki-logo.svg"),
   "utf8",
 )
-  // The website paints this silhouette with --theme-logo-fill. Rebuild the
-  // source SVG's old two-stop horizontal gradient as that exact four-stop,
-  // 118-degree default Fun/dark gradient for deterministic raster output.
+  // The website paints this silhouette with --theme-logo-fill at 140% size
+  // and 48% 50% position. SVG objectBoundingBox gradients resolve against the
+  // tighter path box, so this calibrated vector reproduces the same visible
+  // stop range rather than merely copying the CSS percentages.
   .replace(
     /<linearGradient\s+inkscape:collect="always"\s+xlink:href="#linearGradient36"[\s\S]*?\/>/,
-    `<linearGradient id="linearGradient93" xlink:href="#linearGradient36" gradientUnits="objectBoundingBox" x1="5.85%" y1="26.55%" x2="94.15%" y2="73.45%"/>`,
+    `<linearGradient id="linearGradient93" xlink:href="#linearGradient36" gradientUnits="objectBoundingBox" x1="-27.87%" y1="7.79%" x2="131.07%" y2="92.21%"/>`,
   )
   .replace(
     /<linearGradient\s+id="linearGradient36"[\s\S]*?<\/linearGradient>/,
     `<linearGradient id="linearGradient36">
-      <stop stop-color="#f0abfc" offset="0"/>
-      <stop stop-color="#db8ce8" offset="0.32"/>
-      <stop stop-color="#c56ed5" offset="0.64"/>
-      <stop stop-color="#ae50bf" offset="1"/>
+      <stop stop-color="#e7aeff" offset="0"/>
+      <stop stop-color="#d28ff3" offset="0.32"/>
+      <stop stop-color="#bb71e1" offset="0.64"/>
+      <stop stop-color="#a553cc" offset="1"/>
     </linearGradient>`,
   )
   .replace("stroke:url(#radialGradient43-6-72)", "stroke:url(#linearGradient93)");
@@ -101,7 +110,7 @@ export function renderSocialCardIcon(
   x: number,
   y: number,
   size: number,
-  color = SOCIAL_CARD_COLORS.accent,
+  color: string = SOCIAL_CARD_COLORS.accent,
 ): string {
   const separator = iconName.indexOf(":");
   if (separator <= 0) throw new Error(`Invalid Iconify name: ${iconName}`);
@@ -151,6 +160,24 @@ export function renderDoseWikiWordmark(
 ): string {
   const suffix = slash ? ".wiki/" : ".wiki";
   return `<text x="${centerX}" y="${baselineY}" text-anchor="middle" font-family="Blinker" font-size="${fontSize}" font-weight="600" letter-spacing="-1.5" fill="${SOCIAL_CARD_COLORS.text}">dose<tspan fill="${SOCIAL_CARD_COLORS.accentStrong}">${suffix}</tspan></text>`;
+}
+
+export function renderSocialCardTypeLockup(
+  label: string,
+  iconName: string,
+): string {
+  const fontSize = 30;
+  const fontWeight = 600;
+  const iconSize = 34;
+  const gap = 12;
+  const right = SOCIAL_CARD_SIZE - 54;
+  const labelWidth = measureSocialCardText(label, fontSize, fontWeight);
+  const iconLeft = right - labelWidth - gap - iconSize;
+
+  return `<g>
+    ${renderSocialCardIcon(iconName, iconLeft, 56, iconSize, SOCIAL_CARD_COLORS.accentMuted)}
+    <text x="${right}" y="88" text-anchor="end" font-family="Blinker" font-size="${fontSize}" font-weight="${fontWeight}" fill="${SOCIAL_CARD_COLORS.textSecondary}">${escapeSocialCardXml(label)}</text>
+  </g>`;
 }
 
 export function renderSocialCardSvgPng(svg: string): Buffer {

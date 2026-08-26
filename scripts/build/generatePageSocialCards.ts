@@ -3,6 +3,7 @@
 import { createHash } from "node:crypto";
 import { access, mkdir, readFile, readdir, rename, rm, writeFile } from "node:fs/promises";
 import path from "node:path";
+import sharp from "sharp";
 
 import {
   PAGE_SOCIAL_CARD_RENDER_VERSION,
@@ -21,6 +22,7 @@ const RENDER_INPUT_PATHS = [
   "lib/og/pageSocialCard.ts",
   "lib/og/socialCardPrimitives.ts",
   "src/assets/dosewiki-logo.svg",
+  "src/assets/replications-after-images-chelsea-morgan.webp",
   "public/profile-avatars/josie/avatar.webp",
   "public/fonts/Blinker-Regular.ttf",
   "public/fonts/Blinker-SemiBold.ttf",
@@ -76,7 +78,7 @@ async function main(): Promise<void> {
 
   for (const key of PAGE_SOCIAL_CARD_KEYS) {
     const digest = await rendererDigest(key);
-    const filename = `${key}.${digest}.png`;
+    const filename = `${key}.${digest}.jpg`;
     const outputPath = path.join(OUTPUT_DIR, filename);
     cards[key] = `${MANIFEST_PUBLIC_PREFIX}/${filename}`;
     expectedFiles.add(filename);
@@ -86,13 +88,18 @@ async function main(): Promise<void> {
       continue;
     }
 
-    await writeAtomic(outputPath, await renderPageSocialCardPng(key));
+    const png = await renderPageSocialCardPng(key);
+    const jpeg = await sharp(png)
+      .jpeg({ quality: 90, chromaSubsampling: "4:4:4" })
+      .toBuffer();
+    await writeAtomic(outputPath, jpeg);
     rendered += 1;
   }
 
   const currentFiles = await readdir(OUTPUT_DIR);
   const staleFiles = currentFiles.filter(
-    (filename) => filename.endsWith(".png") && !expectedFiles.has(filename),
+    (filename) =>
+      /\.(?:jpe?g|png|webp)$/i.test(filename) && !expectedFiles.has(filename),
   );
   await Promise.all(staleFiles.map((filename) => rm(path.join(OUTPUT_DIR, filename))));
 

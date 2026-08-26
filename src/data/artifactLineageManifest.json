@@ -449,7 +449,7 @@
     },
     {
       "id": "substance-social-card-images",
-      "path": "public/images/social/substances/*.png",
+      "path": "public/images/social/substances/*.jpg",
       "role": "build-generated-static-assets",
       "producer": "scripts/build/generateSubstanceSocialCards.ts",
       "consumers": [
@@ -465,7 +465,7 @@
         "public/fonts/Blinker-SemiBold.ttf",
         "@iconify-json/* devDependencies"
       ],
-      "freshnessRule": "Generated before each dose.wiki development or production build; stale digest-named PNGs are removed only after a complete successful render.",
+      "freshnessRule": "Generated before each dose.wiki development or production build; stale digest-named JPEGs are removed only after a complete successful render.",
       "sourceDeployment": "https://glad-minnow-656.convex.cloud",
       "targetDeployment": null,
       "schemaVersion": "scripts/build/generateSubstanceSocialCards.ts",
@@ -490,6 +490,7 @@
         "lib/og/pageSocialCard.ts",
         "lib/og/socialCardPrimitives.ts",
         "src/assets/dosewiki-logo.svg",
+        "src/assets/replications-after-images-chelsea-morgan.webp",
         "public/profile-avatars/josie/avatar.webp",
         "public/fonts/Blinker-Regular.ttf",
         "public/fonts/Blinker-SemiBold.ttf",
@@ -504,7 +505,7 @@
     },
     {
       "id": "page-social-card-images",
-      "path": "public/images/social/pages/*.png",
+      "path": "public/images/social/pages/*.jpg",
       "role": "build-generated-static-assets",
       "producer": "scripts/build/generatePageSocialCards.ts",
       "consumers": [
@@ -515,15 +516,69 @@
         "lib/og/pageSocialCard.ts",
         "lib/og/socialCardPrimitives.ts",
         "src/assets/dosewiki-logo.svg",
+        "src/assets/replications-after-images-chelsea-morgan.webp",
         "public/profile-avatars/josie/avatar.webp",
         "public/fonts/Blinker-Regular.ttf",
         "public/fonts/Blinker-SemiBold.ttf",
         "@iconify-json/* devDependencies"
       ],
-      "freshnessRule": "Generated before each dose.wiki development or production build; stale digest-named PNGs are removed only after a complete successful render.",
+      "freshnessRule": "Generated before each dose.wiki development or production build; stale digest-named JPEGs are removed only after a complete successful render.",
       "sourceDeployment": "local working tree",
       "targetDeployment": null,
       "schemaVersion": "scripts/build/generatePageSocialCards.ts",
+      "editPolicy": "do-not-edit-by-hand",
+      "refreshCommand": "npm run generate:social-cards"
+    },
+    {
+      "id": "entity-social-card-manifest",
+      "path": "src/data/entitySocialCardManifest.generated.json",
+      "role": "derived-manifest",
+      "producer": "scripts/build/generateEntitySocialCards.ts",
+      "consumers": [
+        "src/data/mappings/entitySocialCardUrl.ts",
+        "subjective-effect, replication, experience-report, contributor, and replication-artist metadata"
+      ],
+      "inputs": [
+        "production Convex subjectiveEffects records",
+        "production Convex replications records",
+        "production Convex tripReports records",
+        "production Convex contributorProfiles records",
+        "lib/og/prototypes/subjectiveEffectSocialCard.ts",
+        "lib/og/prototypes/replicationSocialCard.ts",
+        "lib/og/prototypes/tripReportSocialCard.ts",
+        "lib/og/prototypes/userProfileSocialCard.ts"
+      ],
+      "freshnessRule": "Regenerate before dose.wiki development and production builds; each path includes a digest of the source record, selected media, renderer sources, and bundled visual assets.",
+      "sourceDeployment": "https://glad-minnow-656.convex.cloud",
+      "targetDeployment": null,
+      "schemaVersion": "scripts/build/generateEntitySocialCards.ts",
+      "editPolicy": "do-not-edit-by-hand",
+      "refreshCommand": "npm run generate:social-cards"
+    },
+    {
+      "id": "entity-social-card-images",
+      "path": "public/images/social/entities/**/*.jpg",
+      "role": "build-generated-static-assets",
+      "producer": "scripts/build/generateEntitySocialCards.ts",
+      "consumers": [
+        "subjective-effect, replication, experience-report, contributor, and replication-artist Open Graph and Twitter metadata"
+      ],
+      "inputs": [
+        "src/data/entitySocialCardManifest.generated.json",
+        "production Convex public entity records",
+        "production Convex replication media",
+        "public/profile-avatars/**/*",
+        "lib/og/prototypes/*SocialCard.ts",
+        "lib/og/socialCardPrimitives.ts",
+        "src/assets/dosewiki-logo.svg",
+        "public/fonts/Blinker-Regular.ttf",
+        "public/fonts/Blinker-SemiBold.ttf",
+        "@iconify-json/* devDependencies"
+      ],
+      "freshnessRule": "Generated before each dose.wiki development or production build; stale digest-named JPEGs are removed only after a complete successful render.",
+      "sourceDeployment": "https://glad-minnow-656.convex.cloud",
+      "targetDeployment": null,
+      "schemaVersion": "scripts/build/generateEntitySocialCards.ts",
       "editPolicy": "do-not-edit-by-hand",
       "refreshCommand": "npm run generate:social-cards"
     },

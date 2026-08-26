@@ -6,6 +6,7 @@ import { availableParallelism } from "node:os";
 import path from "node:path";
 
 import { ConvexHttpClient } from "convex/browser";
+import sharp from "sharp";
 
 import { api } from "../../convex/_generated/api";
 import { getPublicServerReadTarget } from "../../lib/convex/runtimeTargets";
@@ -149,7 +150,7 @@ async function main(): Promise<void> {
         psychoactiveClasses,
         chemicalClasses,
       });
-      const filename = `${article.slug}.${digest}.png`;
+      const filename = `${article.slug}.${digest}.jpg`;
       const outputPath = path.join(OUTPUT_DIR, filename);
       cards.set(article.slug, `${MANIFEST_PUBLIC_PREFIX}/${filename}`);
       expectedFiles.add(filename);
@@ -176,7 +177,10 @@ async function main(): Promise<void> {
           psychoactiveClasses,
           chemicalClasses,
         });
-        await writeAtomic(outputPath, png);
+        const jpeg = await sharp(png)
+          .jpeg({ quality: 90, chromaSubsampling: "4:4:4" })
+          .toBuffer();
+        await writeAtomic(outputPath, jpeg);
         rendered += 1;
         if ((rendered + reused) % 25 === 0) {
           console.log(
@@ -198,7 +202,8 @@ async function main(): Promise<void> {
 
   const currentFiles = await readdir(OUTPUT_DIR);
   const staleFiles = currentFiles.filter(
-    (filename) => filename.endsWith(".png") && !expectedFiles.has(filename),
+    (filename) =>
+      /\.(?:jpe?g|png|webp)$/i.test(filename) && !expectedFiles.has(filename),
   );
   await Promise.all(staleFiles.map((filename) => rm(path.join(OUTPUT_DIR, filename))));
 

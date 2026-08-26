@@ -259,6 +259,13 @@ export const CLEANUP_METRIC_BUDGET_EXCEPTIONS: CleanupMetricBudgetException[] = 
     reviewDate: "2026-06-12",
   },
   {
+    file: "scripts/build/generateEntitySocialCards.ts",
+    maxLoc: 825,
+    owner: "build-systems-maintainers",
+    reason: "Entity social-card reads, media fallback, digesting, and atomic manifest publication remain colocated while the four generated card families stabilize.",
+    reviewDate: "2026-08-25",
+  },
+  {
     file: "scripts/review/build-review-plan.ts",
     maxLoc: 625,
     owner: "data-ops-maintainers",

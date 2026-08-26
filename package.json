@@ -14,7 +14,7 @@
     "openchemlib:verify": "node scripts/chemistry/verify-openchemlib-fork.mjs",
     "predev": "node tools/copyRdkitAssets.mjs && npm run generate:social-cards",
     "prebuild": "node tools/copyRdkitAssets.mjs && npm run generate:social-cards",
-    "generate:social-cards": "bun scripts/build/generateSubstanceSocialCards.ts && bun scripts/build/generatePageSocialCards.ts",
+    "generate:social-cards": "bun scripts/build/generateSubstanceSocialCards.ts && bun scripts/build/generatePageSocialCards.ts && bun scripts/build/generateEntitySocialCards.ts",
     "start": "next start",
     "next:start": "next start",
     "generate:smiles": "bun scripts/data/generateSmilesMap.mjs",

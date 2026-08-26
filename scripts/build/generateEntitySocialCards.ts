@@ -1,0 +1,839 @@
+#!/usr/bin/env bun
+
+import { createHash } from "node:crypto";
+import {
+  access,
+  mkdir,
+  mkdtemp,
+  readFile,
+  readdir,
+  rename,
+  rm,
+  writeFile,
+} from "node:fs/promises";
+import { tmpdir } from "node:os";
+import path from "node:path";
+
+import { ConvexHttpClient } from "convex/browser";
+import sharp from "sharp";
+
+import { api } from "../../convex/_generated/api";
+import {
+  findContributorProfileByAuthorName,
+  type MaterializedContributorProfile,
+} from "../../lib/contributorProfileIdentity";
+import { getPublicServerReadTarget } from "../../lib/convex/runtimeTargets";
+import {
+  renderReplicationSocialCardPng,
+  REPLICATION_SOCIAL_CARD_RENDERER_VERSION,
+  type ReplicationSocialCardInput,
+} from "../../lib/og/prototypes/replicationSocialCard";
+import {
+  renderSubjectiveEffectSocialCardPng,
+  SUBJECTIVE_EFFECT_SOCIAL_CARD_RENDERER_VERSION,
+  type SubjectiveEffectSocialCardInput,
+} from "../../lib/og/prototypes/subjectiveEffectSocialCard";
+import {
+  renderTripReportSocialCardPng,
+  TRIP_REPORT_SOCIAL_CARD_RENDERER_VERSION,
+  type TripReportSocialCardInput,
+} from "../../lib/og/prototypes/tripReportSocialCard";
+import {
+  renderUserProfileSocialCardPng,
+  USER_PROFILE_SOCIAL_CARD_RENDERER_VERSION,
+  type UserProfileSocialCardInput,
+} from "../../lib/og/prototypes/userProfileSocialCard";
+
+const DEFAULT_PUBLIC_CONVEX_URL = "https://glad-minnow-656.convex.cloud";
+const OUTPUT_ROOT = path.join(process.cwd(), "public/images/social/entities");
+const MANIFEST_PATH = path.join(
+  process.cwd(),
+  "src/data/entitySocialCardManifest.generated.json",
+);
+const MANIFEST_PUBLIC_PREFIX = "/images/social/entities";
+const SLUG_RE = /^[a-z0-9][a-z0-9-]*$/;
+const EFFECT_ICON = "material-symbols:person-play-outline-rounded";
+const RENDER_CONCURRENCY = 4;
+
+type EntityKind = "effects" | "replications" | "reports" | "contributors";
+
+type EffectRow = {
+  slug: string;
+  name: string;
+  summary?: string | null;
+  tags?: string[] | null;
+  gallery_order?: string[] | null;
+};
+
+type ReplicationRow = {
+  _id?: string;
+  slug: string;
+  title: string;
+  artist?: string | null;
+  rightsholder?: string | null;
+  effect_slug?: string | null;
+  type?: string | null;
+  format?: string | null;
+  url?: string | null;
+  thumbnail_url?: string | null;
+  preview_url?: string | null;
+  motion_poster_url?: string | null;
+  width?: number | null;
+  height?: number | null;
+  source_url?: string | null;
+  license_name?: string | null;
+  license_url?: string | null;
+  rights_status?: string | null;
+};
+
+type TimelineEntry = {
+  time?: string | null;
+  description?: string | null;
+};
+
+type ReportRow = {
+  slug: string;
+  title: string;
+  introduction?: string | null;
+  conclusion?: string | null;
+  onset?: TimelineEntry[] | null;
+  peak?: TimelineEntry[] | null;
+  offset?: TimelineEntry[] | null;
+  subject?: {
+    name?: string | null;
+    trip_date?: string | null;
+    avatar_url?: string | null;
+  } | null;
+  substances?: Array<{
+    name?: string | null;
+    dose?: string | null;
+    roa?: string | null;
+  }> | null;
+  tags?: string[] | null;
+};
+
+type ProfileRow = MaterializedContributorProfile & {
+  avatarUrl?: string | null;
+  replicationOrder?: string[] | null;
+  reportOrder?: string[] | null;
+};
+
+type EntitySocialCardManifest = {
+  version: 1;
+  sourceDeployment: string;
+  rendererVersions: Record<EntityKind, string>;
+  cards: Record<EntityKind, Record<string, string>>;
+};
+
+type RenderJob = {
+  kind: EntityKind;
+  slug: string;
+  digestSource: unknown;
+  assetSources: string[];
+  render: () => Promise<Buffer>;
+};
+
+const rendererVersions: Record<EntityKind, string> = {
+  effects: SUBJECTIVE_EFFECT_SOCIAL_CARD_RENDERER_VERSION,
+  replications: REPLICATION_SOCIAL_CARD_RENDERER_VERSION,
+  reports: TRIP_REPORT_SOCIAL_CARD_RENDERER_VERSION,
+  contributors: USER_PROFILE_SOCIAL_CARD_RENDERER_VERSION,
+};
+
+const rendererInputPaths: Record<EntityKind, readonly string[]> = {
+  effects: [
+    "lib/og/prototypes/subjectiveEffectSocialCard.ts",
+    "lib/og/socialCardPrimitives.ts",
+  ],
+  replications: [
+    "lib/og/prototypes/replicationSocialCard.ts",
+    "lib/og/socialCardPrimitives.ts",
+  ],
+  reports: [
+    "lib/og/prototypes/tripReportSocialCard.ts",
+    "lib/og/socialCardPrimitives.ts",
+  ],
+  contributors: [
+    "lib/og/prototypes/userProfileSocialCard.ts",
+    "lib/og/socialCardPrimitives.ts",
+  ],
+};
+
+function text(value: unknown): string {
+  return typeof value === "string" ? value.trim() : "";
+}
+
+function strings(value: unknown): string[] {
+  return Array.isArray(value)
+    ? value.map(text).filter((item) => item.length > 0)
+    : [];
+}
+
+function titleCase(value: string): string {
+  return value
+    .split(/[\s_-]+/)
+    .filter(Boolean)
+    .map((part) => `${part.charAt(0).toUpperCase()}${part.slice(1)}`)
+    .join(" ");
+}
+
+function assertSlug(slug: string, kind: EntityKind): string {
+  const normalized = slug.trim().toLowerCase();
+  if (!SLUG_RE.test(normalized)) {
+    throw new Error(`Invalid ${kind} social-card slug: ${JSON.stringify(slug)}`);
+  }
+  return normalized;
+}
+
+function mediaSource(replication: ReplicationRow): string | null {
+  const isMoving = replication.type === "video" || replication.type === "audio";
+  const candidates = isMoving
+    ? [
+        replication.motion_poster_url,
+        replication.thumbnail_url,
+        replication.preview_url,
+      ]
+    : [replication.url, replication.thumbnail_url, replication.preview_url];
+  return candidates.map(text).find(Boolean) ?? null;
+}
+
+function localPublicPath(source: string): string | null {
+  if (!source.startsWith("/")) return null;
+  return path.join(process.cwd(), "public", source.replace(/^\/+/, ""));
+}
+
+async function pathExists(targetPath: string): Promise<boolean> {
+  try {
+    await access(targetPath);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+async function writeAtomic(targetPath: string, content: string | Buffer): Promise<void> {
+  const temporaryPath = `${targetPath}.${process.pid}.tmp`;
+  await writeFile(temporaryPath, content);
+  await rename(temporaryPath, targetPath);
+}
+
+class MediaCache {
+  private readonly pending = new Map<string, Promise<string>>();
+
+  constructor(private readonly directory: string) {}
+
+  resolve(source: string): Promise<string> {
+    const existing = this.pending.get(source);
+    if (existing) return existing;
+
+    const pending = this.resolveUncached(source);
+    this.pending.set(source, pending);
+    return pending;
+  }
+
+  private async resolveUncached(source: string): Promise<string> {
+    const localPath = localPublicPath(source);
+    if (localPath) {
+      if (!(await pathExists(localPath))) {
+        throw new Error(`Missing public social-card asset: ${source}`);
+      }
+      return localPath;
+    }
+
+    const url = new URL(source);
+    if (url.protocol !== "https:") {
+      throw new Error(`Social-card media must use HTTPS: ${source}`);
+    }
+    const response = await fetch(url, { signal: AbortSignal.timeout(60_000) });
+    if (!response.ok) {
+      throw new Error(`Failed to download ${source}: HTTP ${response.status}`);
+    }
+    const outputPath = path.join(
+      this.directory,
+      createHash("sha256").update(source).digest("hex"),
+    );
+    await writeFile(outputPath, Buffer.from(await response.arrayBuffer()));
+    return outputPath;
+  }
+}
+
+async function isLandscape(
+  replication: ReplicationRow,
+  mediaCache: MediaCache,
+): Promise<boolean> {
+  const width = Number(replication.width);
+  const height = Number(replication.height);
+  if (Number.isFinite(width) && Number.isFinite(height) && height > 0) {
+    return width > height;
+  }
+
+  const source = mediaSource(replication);
+  if (!source) return false;
+  const metadata = await sharp(await mediaCache.resolve(source)).metadata();
+  return Boolean(metadata.width && metadata.height && metadata.width > metadata.height);
+}
+
+async function firstLandscape(
+  replications: readonly ReplicationRow[],
+  mediaCache: MediaCache,
+): Promise<ReplicationRow | null> {
+  for (const replication of replications) {
+    if (!mediaSource(replication)) continue;
+    try {
+      if (await isLandscape(replication, mediaCache)) return replication;
+    } catch (error) {
+      console.warn(
+        `[entity-social-cards] Skipping unavailable media for ${replication.slug}: ${error instanceof Error ? error.message : String(error)}`,
+      );
+    }
+  }
+  return null;
+}
+
+async function firstAvailable(
+  replications: readonly ReplicationRow[],
+  mediaCache: MediaCache,
+): Promise<ReplicationRow | null> {
+  for (const replication of replications) {
+    const source = mediaSource(replication);
+    if (!source) continue;
+    try {
+      await mediaCache.resolve(source);
+      return replication;
+    } catch {
+      // The landscape pass already reports unavailable candidates.
+    }
+  }
+  return null;
+}
+
+function orderEffectReplications(
+  effect: EffectRow,
+  allReplications: readonly ReplicationRow[],
+  bySlug: ReadonlyMap<string, ReplicationRow>,
+): ReplicationRow[] {
+  const matching = allReplications.filter(
+    (replication) => text(replication.effect_slug) === effect.slug,
+  );
+  const ordered: ReplicationRow[] = [];
+  const seen = new Set<string>();
+  for (const slug of strings(effect.gallery_order)) {
+    const replication = bySlug.get(slug);
+    if (replication && text(replication.effect_slug) === effect.slug) {
+      ordered.push(replication);
+      seen.add(replication.slug);
+    }
+  }
+  for (const replication of matching) {
+    if (!seen.has(replication.slug)) ordered.push(replication);
+  }
+  return ordered;
+}
+
+function findProfile(
+  profiles: readonly ProfileRow[],
+  creator: string,
+): ProfileRow | null {
+  return findContributorProfileByAuthorName(profiles, creator);
+}
+
+async function optionalMediaPath(
+  source: string | null | undefined,
+  mediaCache: MediaCache,
+): Promise<string | undefined> {
+  const normalized = text(source);
+  if (!normalized) return undefined;
+  try {
+    return await mediaCache.resolve(normalized);
+  } catch (error) {
+    console.warn(
+      `[entity-social-cards] Optional asset unavailable: ${normalized} (${error instanceof Error ? error.message : String(error)})`,
+    );
+    return undefined;
+  }
+}
+
+function replicationRights(
+  replication: ReplicationRow,
+): ReplicationSocialCardInput["rights"] {
+  const licenseName = text(replication.license_name);
+  if (licenseName) {
+    return {
+      licenseName,
+      licenseUrl: text(replication.license_url) || undefined,
+      rightsholder: text(replication.rightsholder) || undefined,
+    };
+  }
+
+  const rightsStatus = text(replication.rights_status).toLowerCase();
+  return {
+    licenseName: rightsStatus.includes("public")
+      ? "Public domain"
+      : "Rights remain with original creator",
+    rightsholder:
+      text(replication.rightsholder) || text(replication.artist) || undefined,
+  };
+}
+
+function reportExcerpt(report: ReportRow): {
+  excerpt: string;
+  context?: string;
+} {
+  const phases: Array<[string, TimelineEntry[] | null | undefined]> = [
+    ["Peak", report.peak],
+    ["Onset", report.onset],
+    ["Offset", report.offset],
+  ];
+  for (const [phase, entries] of phases) {
+    const first = entries?.find((entry) => text(entry.description));
+    if (first) {
+      const time = text(first.time);
+      return {
+        excerpt: text(first.description),
+        context: time ? `${time} · ${phase}` : phase,
+      };
+    }
+  }
+  return {
+    excerpt: text(report.introduction) || text(report.conclusion) || report.title,
+  };
+}
+
+async function rendererSourceDigests(): Promise<Record<EntityKind, string>> {
+  const entries = await Promise.all(
+    (Object.keys(rendererInputPaths) as EntityKind[]).map(async (kind) => {
+      const hash = createHash("sha256").update(rendererVersions[kind]);
+      for (const inputPath of [
+        ...rendererInputPaths[kind],
+        "src/assets/dosewiki-logo.svg",
+        "public/fonts/Blinker-Regular.ttf",
+        "public/fonts/Blinker-SemiBold.ttf",
+      ]) {
+        hash.update("\0").update(inputPath).update("\0");
+        hash.update(await readFile(path.join(process.cwd(), inputPath)));
+      }
+      return [kind, hash.digest("hex")] as const;
+    }),
+  );
+  return Object.fromEntries(entries) as Record<EntityKind, string>;
+}
+
+async function assetRevision(source: string): Promise<string> {
+  const localPath = localPublicPath(source);
+  if (!localPath) return source;
+  return createHash("sha256").update(await readFile(localPath)).digest("hex");
+}
+
+async function jobDigest(
+  job: RenderJob,
+  sourceDigests: Record<EntityKind, string>,
+): Promise<string> {
+  const assets = await Promise.all(
+    [...new Set(job.assetSources.filter(Boolean))].map(assetRevision),
+  );
+  return createHash("sha256")
+    .update(
+      JSON.stringify({
+        rendererVersion: rendererVersions[job.kind],
+        rendererSourceDigest: sourceDigests[job.kind],
+        source: job.digestSource,
+        assets,
+      }),
+    )
+    .digest("hex")
+    .slice(0, 16);
+}
+
+async function buildEffectJobs(
+  effects: readonly EffectRow[],
+  replications: readonly ReplicationRow[],
+  profiles: readonly ProfileRow[],
+  mediaCache: MediaCache,
+): Promise<RenderJob[]> {
+  const bySlug = new Map(replications.map((replication) => [replication.slug, replication]));
+  const jobs: RenderJob[] = [];
+
+  for (const effect of effects) {
+    const slug = assertSlug(effect.slug, "effects");
+    const ordered = orderEffectReplications(effect, replications, bySlug);
+    const featured = await firstLandscape(ordered, mediaCache);
+    const artworkSource = featured ? mediaSource(featured) : null;
+    const creator = featured
+      ? text(featured.artist) || text(featured.rightsholder) || "Original creator"
+      : "";
+    const creatorProfile = creator ? findProfile(profiles, creator) : null;
+    const avatarSource = text(creatorProfile?.avatarUrl) || null;
+    const artworkPath = await optionalMediaPath(artworkSource, mediaCache);
+    const resolvedArtworkSource = artworkPath ? artworkSource : null;
+    const avatarPath = await optionalMediaPath(avatarSource, mediaCache);
+    const resolvedAvatarSource = avatarPath ? avatarSource : null;
+    const taxonomy = strings(effect.tags).map(titleCase);
+    const input: SubjectiveEffectSocialCardInput = {
+      name: text(effect.name) || titleCase(slug),
+      slug,
+      iconName: EFFECT_ICON,
+      summary: text(effect.summary) || `${text(effect.name) || titleCase(slug)} is a documented subjective effect.`,
+      taxonomy: (taxonomy.length > 0 ? taxonomy : ["Subjective effect"]) as [
+        string,
+        ...string[],
+      ],
+      context:
+        ordered.length > 0
+          ? [
+              {
+                label: `${ordered.length} indexed replication${ordered.length === 1 ? "" : "s"}`,
+                iconName: "hugeicons:camera-ai",
+              },
+            ]
+          : undefined,
+      landscapeReplication:
+        featured && artworkPath
+          ? {
+              slug: featured.slug,
+              title: text(featured.title) || titleCase(featured.slug),
+              creatorLabel: creator,
+              media: { filePath: artworkPath },
+              creatorAvatar: avatarPath ? { filePath: avatarPath } : undefined,
+            }
+          : undefined,
+    };
+    jobs.push({
+      kind: "effects",
+      slug,
+      digestSource: {
+        effect,
+        featuredReplicationSlug: artworkPath ? (featured?.slug ?? null) : null,
+        artworkSource: resolvedArtworkSource,
+        avatarSource: resolvedAvatarSource,
+      },
+      assetSources: [resolvedArtworkSource ?? "", resolvedAvatarSource ?? ""],
+      render: () => renderSubjectiveEffectSocialCardPng(input),
+    });
+  }
+  return jobs;
+}
+
+async function buildReplicationJobs(
+  replications: readonly ReplicationRow[],
+  effectsBySlug: ReadonlyMap<string, EffectRow>,
+  profiles: readonly ProfileRow[],
+  mediaCache: MediaCache,
+): Promise<RenderJob[]> {
+  const jobs: RenderJob[] = [];
+  for (const replication of replications) {
+    const slug = assertSlug(replication.slug, "replications");
+    const artworkSource = mediaSource(replication);
+    const artworkPath = await optionalMediaPath(artworkSource, mediaCache);
+    const resolvedArtworkSource = artworkPath ? artworkSource : null;
+    const creator =
+      text(replication.artist) ||
+      text(replication.rightsholder) ||
+      "Original creator";
+    const profile = findProfile(profiles, creator);
+    const avatarSource = text(profile?.avatarUrl) || null;
+    const creatorAvatarPath = await optionalMediaPath(avatarSource, mediaCache);
+    const resolvedAvatarSource = creatorAvatarPath ? avatarSource : null;
+    const effectSlug = text(replication.effect_slug);
+    const effect = effectsBySlug.get(effectSlug);
+    const input: ReplicationSocialCardInput = {
+      slug,
+      recordId: text(replication._id) || slug,
+      title: text(replication.title) || titleCase(slug),
+      creator,
+      effect: {
+        slug: effectSlug || "effects",
+        name: text(effect?.name) || titleCase(effectSlug || "Subjective effect"),
+      },
+      mediaType:
+        replication.type === "video" || replication.type === "audio"
+          ? replication.type
+          : "image",
+      format: text(replication.format) || undefined,
+      artworkPath,
+      creatorAvatarPath,
+      sourceUrl:
+        text(replication.source_url) ||
+        artworkSource ||
+        `/replications/${slug}`,
+      rights: replicationRights(replication),
+    };
+    jobs.push({
+      kind: "replications",
+      slug,
+      digestSource: {
+        replication,
+        artworkSource: resolvedArtworkSource,
+        avatarSource: resolvedAvatarSource,
+      },
+      assetSources: [
+        resolvedArtworkSource ?? "",
+        resolvedAvatarSource ?? "",
+      ],
+      render: () => renderReplicationSocialCardPng(input),
+    });
+  }
+  return jobs;
+}
+
+async function buildReportJobs(
+  reports: readonly ReportRow[],
+  profiles: readonly ProfileRow[],
+  mediaCache: MediaCache,
+): Promise<RenderJob[]> {
+  const jobs: RenderJob[] = [];
+  for (const report of reports) {
+    const slug = assertSlug(report.slug, "reports");
+    const author = text(report.subject?.name) || "Anonymous";
+    const profile = findProfile(profiles, author);
+    const avatarSource =
+      text(report.subject?.avatar_url) || text(profile?.avatarUrl) || null;
+    const avatarPath = await optionalMediaPath(avatarSource, mediaCache);
+    const resolvedAvatarSource = avatarPath ? avatarSource : null;
+    const excerpt = reportExcerpt(report);
+    const input: TripReportSocialCardInput = {
+      title: text(report.title) || titleCase(slug),
+      author,
+      avatar: avatarPath ? { filePath: avatarPath } : undefined,
+      substances: (report.substances ?? [])
+        .map((substance) => ({
+          name: text(substance.name),
+          dose: text(substance.dose) || undefined,
+          roa: text(substance.roa) || undefined,
+        }))
+        .filter((substance) => substance.name.length > 0),
+      excerpt: excerpt.excerpt,
+      excerptContext: excerpt.context,
+      date: text(report.subject?.trip_date) || undefined,
+      tags: strings(report.tags),
+    };
+    jobs.push({
+      kind: "reports",
+      slug,
+      digestSource: { report, avatarSource: resolvedAvatarSource },
+      assetSources: [resolvedAvatarSource ?? ""],
+      render: () => renderTripReportSocialCardPng(input),
+    });
+  }
+  return jobs;
+}
+
+async function buildProfileJobs(
+  profiles: readonly ProfileRow[],
+  replicationsBySlug: ReadonlyMap<string, ReplicationRow>,
+  mediaCache: MediaCache,
+): Promise<RenderJob[]> {
+  const jobs: RenderJob[] = [];
+  for (const profile of profiles) {
+    const slug = assertSlug(profile.key.toLowerCase(), "contributors");
+    const orderedReplications = strings(profile.replicationOrder)
+      .map((replicationSlug) => replicationsBySlug.get(replicationSlug))
+      .filter((replication): replication is ReplicationRow => Boolean(replication));
+    const featured =
+      (await firstLandscape(orderedReplications, mediaCache)) ??
+      (await firstAvailable(orderedReplications, mediaCache));
+    const artworkSource = featured ? mediaSource(featured) : null;
+    const avatarSource = text(profile.avatarUrl) || null;
+    const avatarPath = await optionalMediaPath(avatarSource, mediaCache);
+    const resolvedAvatarSource = avatarPath ? avatarSource : null;
+    const artworkPath = await optionalMediaPath(artworkSource, mediaCache);
+    const resolvedArtworkSource = artworkPath ? artworkSource : null;
+    const input: UserProfileSocialCardInput = {
+      displayName: text(profile.displayName) || titleCase(slug),
+      bioExcerpt: text(profile.bio),
+      roles: [text(profile.role) || "Contributor"],
+      avatar: avatarPath ? { filePath: avatarPath } : undefined,
+      featuredReplication:
+        featured && artworkPath
+          ? {
+              slug: featured.slug,
+              title: text(featured.title) || titleCase(featured.slug),
+              creatorLabel:
+                text(featured.artist) || text(featured.rightsholder) || profile.displayName,
+              media: { filePath: artworkPath },
+            }
+          : undefined,
+    };
+    jobs.push({
+      kind: "contributors",
+      slug,
+      digestSource: {
+        profile,
+        featuredReplicationSlug: artworkPath ? (featured?.slug ?? null) : null,
+        artworkSource: resolvedArtworkSource,
+        avatarSource: resolvedAvatarSource,
+      },
+      assetSources: [resolvedArtworkSource ?? "", resolvedAvatarSource ?? ""],
+      render: () => renderUserProfileSocialCardPng(input),
+    });
+  }
+  return jobs;
+}
+
+async function renderJobs(
+  jobs: readonly RenderJob[],
+  sourceDigests: Record<EntityKind, string>,
+): Promise<Record<EntityKind, Record<string, string>>> {
+  const cards: Record<EntityKind, Map<string, string>> = {
+    effects: new Map(),
+    replications: new Map(),
+    reports: new Map(),
+    contributors: new Map(),
+  };
+  const expectedFiles: Record<EntityKind, Set<string>> = {
+    effects: new Set(),
+    replications: new Set(),
+    reports: new Set(),
+    contributors: new Set(),
+  };
+  let cursor = 0;
+  let rendered = 0;
+  let reused = 0;
+  const failures: string[] = [];
+
+  const workers = Array.from({ length: RENDER_CONCURRENCY }, async () => {
+    while (true) {
+      const index = cursor;
+      cursor += 1;
+      const job = jobs[index];
+      if (!job) return;
+
+      try {
+        const digest = await jobDigest(job, sourceDigests);
+        const filename = `${job.slug}.${digest}.jpg`;
+        const kindDirectory = path.join(OUTPUT_ROOT, job.kind);
+        const outputPath = path.join(kindDirectory, filename);
+        cards[job.kind].set(
+          job.slug,
+          `${MANIFEST_PUBLIC_PREFIX}/${job.kind}/${filename}`,
+        );
+        expectedFiles[job.kind].add(filename);
+        if (await pathExists(outputPath)) {
+          reused += 1;
+        } else {
+          const png = await job.render();
+          const jpeg = await sharp(png)
+            .jpeg({ quality: 90, chromaSubsampling: "4:4:4" })
+            .toBuffer();
+          await writeAtomic(outputPath, jpeg);
+          rendered += 1;
+        }
+        if ((rendered + reused) % 25 === 0) {
+          console.log(
+            `[entity-social-cards] ${rendered + reused}/${jobs.length} complete (${rendered} rendered, ${reused} reused)`,
+          );
+        }
+      } catch (error) {
+        failures.push(
+          `${job.kind}/${job.slug}: ${error instanceof Error ? error.message : String(error)}`,
+        );
+      }
+    }
+  });
+  await Promise.all(workers);
+  if (failures.length > 0) {
+    throw new Error(
+      `Failed to generate ${failures.length} entity social card(s):\n${failures.join("\n")}`,
+    );
+  }
+
+  let staleCount = 0;
+  for (const kind of Object.keys(cards) as EntityKind[]) {
+    const directory = path.join(OUTPUT_ROOT, kind);
+    const staleFiles = (await readdir(directory)).filter(
+      (filename) =>
+        /\.(?:jpe?g|png|webp)$/i.test(filename) &&
+        !expectedFiles[kind].has(filename),
+    );
+    await Promise.all(staleFiles.map((filename) => rm(path.join(directory, filename))));
+    staleCount += staleFiles.length;
+  }
+
+  console.log(
+    `[entity-social-cards] Complete: ${jobs.length} cards (${rendered} rendered, ${reused} reused, ${staleCount} stale removed).`,
+  );
+  return Object.fromEntries(
+    (Object.keys(cards) as EntityKind[]).map((kind) => [
+      kind,
+      Object.fromEntries(
+        [...cards[kind].entries()].sort(([left], [right]) =>
+          left.localeCompare(right),
+        ),
+      ),
+    ]),
+  ) as Record<EntityKind, Record<string, string>>;
+}
+
+async function main(): Promise<void> {
+  if (process.env.NEXT_PUBLIC_SITE_FLAVOR?.trim().toLowerCase() === "effectindex") {
+    console.log(
+      "[entity-social-cards] Effect Index build: dose.wiki entity cards are not referenced; skipping generation.",
+    );
+    return;
+  }
+
+  const runtimeTarget = getPublicServerReadTarget(process.env);
+  const convexUrl = runtimeTarget.selectedUrl ?? DEFAULT_PUBLIC_CONVEX_URL;
+  const deploymentName = new URL(convexUrl).hostname.split(".")[0];
+  if (deploymentName !== "glad-minnow-656") {
+    throw new Error(
+      `Entity social cards must use production Convex glad-minnow-656; resolved ${deploymentName}.`,
+    );
+  }
+
+  console.log(`[entity-social-cards] Reading public entities from ${convexUrl}...`);
+  const client = new ConvexHttpClient(convexUrl);
+  const [rawEffects, rawReplications, rawReports, rawProfiles] = await Promise.all([
+    client.query(api.subjectiveEffects.getPublicPreviews, {}),
+    client.query(api.replications.getPublicReplications, {}),
+    client.query(api.tripReports.getAll, {}),
+    client.query(api.contributorProfiles.getAll, {}),
+  ]);
+  const effects = (rawEffects as EffectRow[]).sort((left, right) =>
+    left.slug.localeCompare(right.slug),
+  );
+  const replications = (rawReplications as ReplicationRow[]).sort((left, right) =>
+    left.slug.localeCompare(right.slug),
+  );
+  const reports = (rawReports as ReportRow[]).sort((left, right) =>
+    left.slug.localeCompare(right.slug),
+  );
+  const profiles = (rawProfiles as ProfileRow[]).sort((left, right) =>
+    left.key.localeCompare(right.key),
+  );
+
+  for (const kind of ["effects", "replications", "reports", "contributors"] as const) {
+    await mkdir(path.join(OUTPUT_ROOT, kind), { recursive: true });
+  }
+  const temporaryDirectory = await mkdtemp(path.join(tmpdir(), "dosewiki-social-cards-"));
+  const mediaCache = new MediaCache(temporaryDirectory);
+
+  try {
+    const effectsBySlug = new Map(effects.map((effect) => [effect.slug, effect]));
+    const replicationsBySlug = new Map(
+      replications.map((replication) => [replication.slug, replication]),
+    );
+    const [effectJobs, replicationJobs, reportJobs, profileJobs, sourceDigests] =
+      await Promise.all([
+        buildEffectJobs(effects, replications, profiles, mediaCache),
+        buildReplicationJobs(replications, effectsBySlug, profiles, mediaCache),
+        buildReportJobs(reports, profiles, mediaCache),
+        buildProfileJobs(profiles, replicationsBySlug, mediaCache),
+        rendererSourceDigests(),
+      ]);
+    const cards = await renderJobs(
+      [...effectJobs, ...replicationJobs, ...reportJobs, ...profileJobs],
+      sourceDigests,
+    );
+    const manifest: EntitySocialCardManifest = {
+      version: 1,
+      sourceDeployment: deploymentName,
+      rendererVersions,
+      cards,
+    };
+    await writeAtomic(MANIFEST_PATH, `${JSON.stringify(manifest, null, 2)}\n`);
+  } finally {
+    await rm(temporaryDirectory, { recursive: true, force: true });
+  }
+}
+
+await main();

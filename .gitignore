@@ -20,8 +20,9 @@ src/data/.lineage/
 # on predev/prebuild — reproducible, so not committed.
 public/rdkit/
 # Build-generated immutable social cards; tracked manifests own their URLs.
-public/images/social/substances/*.png
-public/images/social/pages/*.png
+public/images/social/substances/*.jpg
+public/images/social/pages/*.jpg
+public/images/social/entities/**/*.jpg
 output/
 outputs/
 

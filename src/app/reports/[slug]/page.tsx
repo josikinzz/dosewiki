@@ -6,6 +6,7 @@ import { TripReportDetailPage } from "@/features/reports/pages/TripReportDetailP
 import type { TripReportSubstance } from "@/types/tripReport";
 import { publicHref } from "@/utils/publicHref";
 import { slugify } from "@/utils/slug";
+import { entitySocialCardImage } from "@/data/mappings/entitySocialCardUrl";
 
 /**
  * Resolve report substance names to public article hrefs using the substance
@@ -52,6 +53,11 @@ export async function generateMetadata({ params }: ReportPageProps) {
   return buildPublicPageMetadata({
     ...result.metadata,
     route: result.canonicalRoute,
+    socialImage: entitySocialCardImage(
+      "reports",
+      result.pageProps.report.slug,
+      `${result.pageProps.report.title} experience report card`,
+    ),
   });
 }
 

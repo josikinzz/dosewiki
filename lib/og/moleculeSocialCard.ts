@@ -14,7 +14,7 @@ import sharp from "sharp";
 import { getCategoryIcon } from "../../src/data/config/categoryIcons";
 import { SUBSTANCE_SOCIAL_CARD_SIZE } from "../../src/data/mappings/substanceSocialCardUrl";
 
-export const SUBSTANCE_SOCIAL_CARD_RENDER_VERSION = "4";
+export const SUBSTANCE_SOCIAL_CARD_RENDER_VERSION = "7";
 
 const MOLECULE_BOX = 760;
 const CARD_MARGIN = 72;
@@ -256,7 +256,7 @@ export async function renderMoleculeSocialCardPng({
   const backgroundSvg = `<svg xmlns="http://www.w3.org/2000/svg" width="${SUBSTANCE_SOCIAL_CARD_SIZE}" height="${SUBSTANCE_SOCIAL_CARD_SIZE}"><rect width="100%" height="100%" fill="#000000"/></svg>`;
   const overlaySvg = `<svg xmlns="http://www.w3.org/2000/svg" width="${SUBSTANCE_SOCIAL_CARD_SIZE}" height="${SUBSTANCE_SOCIAL_CARD_SIZE}">
     <image href="${LOGO_DATA_URI}" x="72" y="62" width="56" height="54"/>
-    <text x="146" y="105" font-family="Blinker" font-size="43" font-weight="600" fill="#ffffff">dose<tspan fill="#f0abfc">.wiki/</tspan></text>
+    <text x="146" y="105" font-family="Blinker" font-size="43" font-weight="600" fill="#ffffff">dose<tspan fill="#f0abfc">.wiki</tspan></text>
     <text x="72" y="238" font-family="Blinker" font-size="${titleSize}" font-weight="600" letter-spacing="-1" fill="#f0abfc">${escapeXml(title)}</text>
     ${psychoactiveBadges.length > 0 ? renderIcon("lucide:brain-cog", 72, PSYCHOACTIVE_ROW_Y + 9, 36, "#f0abfc") : ""}
     ${renderBadgeRow(psychoactiveBadges, PSYCHOACTIVE_ROW_Y)}
