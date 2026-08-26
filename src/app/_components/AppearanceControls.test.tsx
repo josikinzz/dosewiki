@@ -1,4 +1,10 @@
-import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
+import {
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+  within,
+} from "@testing-library/react";
 import userEvent, { type UserEvent } from "@testing-library/user-event";
 import type { ReactNode } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
@@ -15,7 +21,10 @@ import {
   ACCENT_HUE_PROPERTY,
   DEFAULT_APPEARANCE_COLORS,
 } from "@/theme/appearanceChroma";
-import { getThemeLabOpen, setThemeLabOpen } from "@/features/theme-lab/themeLabStore";
+import {
+  getThemeLabOpen,
+  setThemeLabOpen,
+} from "@/features/theme-lab/themeLabStore";
 import { AppearanceCog, type AppearanceCogRows } from "./AppearanceCog";
 import { AppearanceControls } from "./AppearanceControls";
 import { ThemeToggle } from "./ThemeToggle";
@@ -33,8 +42,8 @@ vi.mock("@/components/common/Icon", () => ({
 
 /** The four sliders' accessible names, in visual and focus order. */
 const SLIDER_NAMES = [
-  "Surface hue",
-  "Surface saturation",
+  "Background hue",
+  "Background saturation",
   "Accent hue",
   "Accent saturation",
 ] as const;
@@ -73,6 +82,17 @@ async function openCog(user: UserEvent) {
   return screen.findByRole("dialog", { name: "Appearance settings" });
 }
 
+/** Expand one colour axis's summary row to reveal its Hue/Saturation sliders. */
+async function expandColorAxis(
+  user: UserEvent,
+  panel: HTMLElement,
+  axis: "Background" | "Accent",
+) {
+  await user.click(
+    within(panel).getByRole("button", { name: `${axis} colors` }),
+  );
+}
+
 describe("AppearanceCog", () => {
   // Pin the starting appearance in both places the provider can restore it from, so the
   // checked Fun and Dark radio options mean the same thing under every publication flavor.
@@ -102,20 +122,21 @@ describe("AppearanceCog", () => {
     expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
 
     const panel = await openCog(user);
-    // The three axes, in order — and no swatches anywhere: the colour axes are
-    // sliders now, asserted below in the same visual order. The font axis carries
-    // its `data-appearance-axis` on the typeface radiogroup, the two binary axes
-    // on their pills.
+    // The three axes, in order. The colour axes are collapsed behind summary rows
+    // at first — no slider is in the DOM until a group is expanded; their names are
+    // asserted once expanded by the four-way matrix below.
     expect(
       [...panel.querySelectorAll("[data-appearance-axis]")].map((control) =>
         control.getAttribute("data-appearance-axis"),
       ),
     ).toEqual(["visual-style", "color-scheme", "font"]);
+    expect(within(panel).queryAllByRole("slider")).toHaveLength(0);
     expect(
-      within(panel)
-        .getAllByRole("slider")
-        .map((slider) => slider.getAttribute("aria-label")),
-    ).toEqual([...SLIDER_NAMES]);
+      within(panel).getByRole("button", { name: "Background colors" }),
+    ).toHaveAttribute("aria-expanded", "false");
+    expect(
+      within(panel).getByRole("button", { name: "Accent colors" }),
+    ).toHaveAttribute("aria-expanded", "false");
   });
 
   it("visibly labels every appearance axis and states the color-reset scope", async () => {
@@ -124,54 +145,103 @@ describe("AppearanceCog", () => {
 
     const panel = await openCog(user);
     expect(within(panel).queryByRole("heading")).not.toBeInTheDocument();
-    expect(within(panel).getByRole("radiogroup", { name: "Theme style" })).toBeVisible();
-    expect(within(panel).getByRole("radiogroup", { name: "Darkness" })).toBeVisible();
-    expect(within(panel).getByRole("radiogroup", { name: "Font" })).toBeVisible();
-    expect(within(panel).getByText("Surface")).toBeVisible();
-    expect(within(panel).getByText("Accent")).toBeVisible();
-    expect(within(panel).getAllByText("Hue")).toHaveLength(2);
-    expect(within(panel).getAllByText("Saturation")).toHaveLength(2);
+    expect(
+      within(panel).getByRole("radiogroup", { name: "Style" }),
+    ).toBeVisible();
+    expect(
+      within(panel).getByRole("radiogroup", { name: "Mode" }),
+    ).toBeVisible();
+    expect(
+      within(panel).getByRole("radiogroup", { name: "Font" }),
+    ).toBeVisible();
+    // The colour axes present as collapsed summary rows until expanded.
+    expect(
+      within(panel).getByRole("button", { name: "Background colors" }),
+    ).toBeVisible();
+    expect(
+      within(panel).getByRole("button", { name: "Accent colors" }),
+    ).toBeVisible();
 
-    const style = within(panel).getByRole("radiogroup", { name: "Theme style" });
-    expect(within(style).getByRole("radio", { name: "1" })).toHaveAttribute(
+    const style = within(panel).getByRole("radiogroup", {
+      name: "Style",
+    });
+    expect(within(style).getByRole("radio", { name: "Fun" })).toHaveAttribute(
       "aria-checked",
       "true",
     );
-    expect(within(style).getByRole("radio", { name: "2" })).toHaveAttribute(
+    expect(within(style).getByRole("radio", { name: "Pro" })).toHaveAttribute(
       "aria-checked",
       "false",
     );
 
-    const darkness = within(panel).getByRole("radiogroup", { name: "Darkness" });
-    expect(within(darkness).getByRole("radio", { name: "Dark" })).toHaveAttribute(
+    const mode = within(panel).getByRole("radiogroup", { name: "Mode" });
+    expect(within(mode).getByRole("radio", { name: "Dark" })).toHaveAttribute(
       "aria-checked",
       "true",
     );
-    expect(within(darkness).getByRole("radio", { name: "Light" })).toHaveAttribute(
+    expect(within(mode).getByRole("radio", { name: "Light" })).toHaveAttribute(
       "aria-checked",
       "false",
     );
 
     const font = within(panel).getByRole("radiogroup", { name: "Font" });
-    expect(within(font).getByRole("radio", { name: "Standard" })).toHaveAttribute(
-      "aria-checked",
-      "true",
-    );
-    expect(within(font).getByRole("radio", { name: "Dyslexic-friendly" })).toHaveAttribute(
-      "aria-checked",
-      "false",
-    );
+    expect(
+      within(font).getByRole("radio", { name: "Standard" }),
+    ).toHaveAttribute("aria-checked", "true");
+    expect(
+      within(font).getByRole("radio", { name: "Dyslexic" }),
+    ).toHaveAttribute("aria-checked", "false");
 
-    expect(within(font).getByText("Standard")).toHaveClass("theme-font-preview-standard");
-    expect(within(font).getByText("Dyslexic-friendly")).toHaveClass(
+    expect(within(font).getByText("Standard")).toHaveClass(
+      "theme-font-preview-standard",
+    );
+    expect(within(font).getByText("Dyslexic")).toHaveClass(
       "theme-font-preview-dyslexic",
     );
 
-    expect(within(panel).getByRole("button", { name: "Reset colors" })).toBeVisible();
-    expect(within(panel).queryByText("Restores Surface and Accent defaults.")).not.toBeInTheDocument();
+    expect(
+      within(panel).getByRole("button", { name: "Reset colors" }),
+    ).toBeVisible();
+    expect(
+      within(panel).queryByText("Restores Surface and Accent defaults."),
+    ).not.toBeInTheDocument();
     expect(
       within(panel).getByRole("button", { name: "Open Theme Lab" }),
     ).toHaveAccessibleName("Open Theme Lab");
+  });
+
+  it("collapses the colour axes and reveals each slider pair in place", async () => {
+    const user = userEvent.setup();
+    renderCog();
+
+    const panel = await openCog(user);
+    // Collapsed: no slider rows, and the sliders' Hue/Saturation labels are gone too.
+    expect(within(panel).queryAllByRole("slider")).toHaveLength(0);
+    expect(within(panel).queryAllByText("Hue")).toHaveLength(0);
+    expect(within(panel).queryAllByText("Saturation")).toHaveLength(0);
+
+    await expandColorAxis(user, panel, "Background");
+    expect(
+      within(panel).getByRole("group", { name: "Background" }),
+    ).toBeInTheDocument();
+    expect(
+      within(panel).getByRole("slider", { name: "Background hue" }),
+    ).toBeInTheDocument();
+    expect(
+      within(panel).getByRole("slider", { name: "Background saturation" }),
+    ).toBeInTheDocument();
+
+    await expandColorAxis(user, panel, "Accent");
+    expect(within(panel).getAllByText("Hue")).toHaveLength(2);
+    expect(within(panel).getAllByText("Saturation")).toHaveLength(2);
+    expect(within(panel).getAllByRole("slider")).toHaveLength(4);
+
+    // The explanatory line is only shown while a reader can compare both axes.
+    expect(
+      within(panel).getByText(
+        "Background is the page color; Accent is the highlighted color.",
+      ),
+    ).toBeInTheDocument();
   });
 
   it("selects the named font option and follows arrow-key radio behavior", async () => {
@@ -181,7 +251,9 @@ describe("AppearanceCog", () => {
     const panel = await openCog(user);
     const font = within(panel).getByRole("radiogroup", { name: "Font" });
     const standard = within(font).getByRole("radio", { name: "Standard" });
-    const dyslexic = within(font).getByRole("radio", { name: "Dyslexic-friendly" });
+    const dyslexic = within(font).getByRole("radio", {
+      name: "Dyslexic",
+    });
 
     await user.click(dyslexic);
     await waitFor(() => {
@@ -203,16 +275,18 @@ describe("AppearanceCog", () => {
     renderCog();
 
     const panel = await openCog(user);
-    const style = within(panel).getByRole("radiogroup", { name: "Theme style" });
-    const darkness = within(panel).getByRole("radiogroup", { name: "Darkness" });
+    const style = within(panel).getByRole("radiogroup", {
+      name: "Style",
+    });
+    const mode = within(panel).getByRole("radiogroup", { name: "Mode" });
     const font = within(panel).getByRole("radiogroup", { name: "Font" });
 
-    await user.click(within(style).getByRole("radio", { name: "1" }));
+    await user.click(within(style).getByRole("radio", { name: "Fun" }));
     await waitFor(() => {
       expect(document.documentElement.dataset.visualStyle).toBe("pro");
     });
 
-    await user.click(within(darkness).getByRole("radio", { name: "Dark" }));
+    await user.click(within(mode).getByRole("radio", { name: "Dark" }));
     await waitFor(() => {
       expect(document.documentElement.dataset.theme).toBe("light");
     });
@@ -228,8 +302,9 @@ describe("AppearanceCog", () => {
     renderCog();
 
     const panel = await openCog(user);
+    await expandColorAxis(user, panel, "Background");
     const slider = within(panel).getByRole<HTMLInputElement>("slider", {
-      name: "Surface hue",
+      name: "Background hue",
     });
     vi.spyOn(slider, "getBoundingClientRect").mockReturnValue({
       x: 100,
@@ -287,21 +362,21 @@ describe("AppearanceCog", () => {
     await waitFor(() => {
       const lightOptions = screen.getAllByRole("radio", { name: "Light" });
       expect(lightOptions).toHaveLength(2);
-      expect(lightOptions.map((option) => option.getAttribute("aria-checked"))).toEqual([
-        "true",
-        "true",
-      ]);
+      expect(
+        lightOptions.map((option) => option.getAttribute("aria-checked")),
+      ).toEqual(["true", "true"]);
     });
 
-    await user.click(within(panel).getByRole("radio", { name: "2" }));
+    await user.click(within(panel).getByRole("radio", { name: "Pro" }));
 
     await waitFor(() => {
-      const styleGroups = screen.getAllByRole("radiogroup", { name: "Theme style" });
+      const styleGroups = screen.getAllByRole("radiogroup", {
+        name: "Style",
+      });
       expect(styleGroups).toHaveLength(2);
-      expect(styleGroups.map((group) => group.getAttribute("data-appearance-value"))).toEqual([
-        "pro",
-        "pro",
-      ]);
+      expect(
+        styleGroups.map((group) => group.getAttribute("data-appearance-value")),
+      ).toEqual(["pro", "pro"]);
     });
   });
 
@@ -310,7 +385,7 @@ describe("AppearanceCog", () => {
     renderCog();
 
     await openCog(user);
-    await user.click(screen.getByRole("radio", { name: "2" }));
+    await user.click(screen.getByRole("radio", { name: "Pro" }));
     await user.click(screen.getByRole("radio", { name: "Light" }));
 
     await waitFor(() => {
@@ -329,14 +404,17 @@ describe("AppearanceCog", () => {
     expect(cog).toHaveFocus();
     await user.keyboard("{Enter}");
 
-    const panel = await screen.findByRole("dialog", { name: "Appearance settings" });
-    // Each segmented choice is one tab stop, entered on its checked radio. The sliders,
-    // scoped color reset, and dev-only Theme Lab action follow in their visual sections.
+    const panel = await screen.findByRole("dialog", {
+      name: "Appearance settings",
+    });
+    // Each segmented choice is one tab stop, entered on its checked radio. The two
+    // collapsed colour summaries, scoped reset, and dev-only Theme Lab action follow.
     const focusSequence = [
-      within(panel).getByRole("radio", { name: "1" }),
+      within(panel).getByRole("radio", { name: "Fun" }),
       within(panel).getByRole("radio", { name: "Dark" }),
       within(panel).getByRole("radio", { name: "Standard" }),
-      ...within(panel).getAllByRole("slider"),
+      within(panel).getByRole("button", { name: "Background colors" }),
+      within(panel).getByRole("button", { name: "Accent colors" }),
       within(panel).getByRole("button", { name: "Reset colors" }),
       within(panel).getByRole("button", { name: "Open Theme Lab" }),
     ];
@@ -417,6 +495,7 @@ describe("AppearanceCog", () => {
     renderCog();
 
     const panel = await openCog(user);
+    await expandColorAxis(user, panel, "Accent");
     const accentHue = within(panel).getByRole<HTMLInputElement>("slider", {
       name: "Accent hue",
     });
@@ -427,14 +506,18 @@ describe("AppearanceCog", () => {
       // The setter ran with the integer and the provider wrote the axis through — the
       // custom property painted on the next animation frame, the degrees string
       // persisted once the drag rested: no confirm, no save step.
-      expect(document.documentElement.style.getPropertyValue(ACCENT_HUE_PROPERTY)).toBe("249");
+      expect(
+        document.documentElement.style.getPropertyValue(ACCENT_HUE_PROPERTY),
+      ).toBe("249");
       expect(window.localStorage.getItem(ACCENT_HUE_STORAGE_KEY)).toBe("249");
     });
     expect(accentHue.value).toBe("249");
     // The untouched axis did not move with it.
     expect(window.localStorage.getItem(SURFACE_HUE_STORAGE_KEY)).toBeNull();
     // The panel stays open, so the reader can compare rotations without reopening it.
-    expect(screen.getByRole("dialog", { name: "Appearance settings" })).toBeInTheDocument();
+    expect(
+      screen.getByRole("dialog", { name: "Appearance settings" }),
+    ).toBeInTheDocument();
   });
 
   it("resets only Surface and Accent while preserving the other appearance choices", async () => {
@@ -442,18 +525,25 @@ describe("AppearanceCog", () => {
     renderCog();
 
     const panel = await openCog(user);
+    await expandColorAxis(user, panel, "Accent");
     const accentHue = within(panel).getByRole<HTMLInputElement>("slider", {
       name: "Accent hue",
     });
     fireEvent.change(accentHue, { target: { value: "249" } });
-    await user.click(within(panel).getByRole("radio", { name: "2" }));
+    await user.click(within(panel).getByRole("radio", { name: "Pro" }));
     await user.click(within(panel).getByRole("radio", { name: "Light" }));
-    await user.click(within(panel).getByRole("radio", { name: "Dyslexic-friendly" }));
-    await user.click(within(panel).getByRole("button", { name: "Reset colors" }));
+    await user.click(
+      within(panel).getByRole("radio", { name: "Dyslexic" }),
+    );
+    await user.click(
+      within(panel).getByRole("button", { name: "Reset colors" }),
+    );
 
     await waitFor(() => {
       expect(window.localStorage.getItem(ACCENT_HUE_STORAGE_KEY)).toBeNull();
-      expect(accentHue.value).toBe(String(DEFAULT_APPEARANCE_COLORS.pro.light.accentHue));
+      expect(accentHue.value).toBe(
+        String(DEFAULT_APPEARANCE_COLORS.pro.light.accentHue),
+      );
       expect(document.documentElement.dataset.visualStyle).toBe("pro");
       expect(document.documentElement.dataset.theme).toBe("light");
       expect(document.documentElement.dataset.font).toBe("dyslexic");
@@ -473,10 +563,14 @@ describe("AppearanceCog", () => {
     const panel = await openCog(user);
 
     expect(
-      within(panel).queryByRole("radiogroup", { name: "Theme style" }),
+      within(panel).queryByRole("radiogroup", { name: "Style" }),
     ).not.toBeInTheDocument();
-    expect(within(panel).queryByRole("group", { name: "Surface" })).not.toBeInTheDocument();
-    expect(within(panel).queryByRole("group", { name: "Accent" })).not.toBeInTheDocument();
+    expect(
+      within(panel).queryByRole("button", { name: "Background colors" }),
+    ).not.toBeInTheDocument();
+    expect(
+      within(panel).queryByRole("button", { name: "Accent colors" }),
+    ).not.toBeInTheDocument();
     expect(within(panel).queryByRole("slider")).not.toBeInTheDocument();
     // No link at all, rather than no link with a particular name: the guarantee is that a
     // reader is never handed an editor route, and stating it this way cannot quietly stop
@@ -499,7 +593,9 @@ describe("AppearanceCog", () => {
       showMoreSettings: false,
     });
 
-    expect(screen.queryByRole("button", { name: "Appearance settings" })).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: "Appearance settings" }),
+    ).not.toBeInTheDocument();
   });
 
   it("opens with all four sliders live and parked on the site defaults", async () => {
@@ -507,34 +603,43 @@ describe("AppearanceCog", () => {
     renderCog();
 
     const panel = await openCog(user);
+    await expandColorAxis(user, panel, "Background");
+    await expandColorAxis(user, panel, "Accent");
 
     // Every slider is live — saturation 0 is a coordinate, not a disabled
     // state — and a fresh reader parks on the default Fun-dark matrix entry.
     const defaults = DEFAULT_APPEARANCE_COLORS.fun.dark;
     const values: Record<(typeof SLIDER_NAMES)[number], string> = {
-      "Surface hue": String(defaults.surfaceHue),
-      "Surface saturation": String(Math.round(defaults.surfaceLevel * 100)),
+      "Background hue": String(defaults.surfaceHue),
+      "Background saturation": String(Math.round(defaults.surfaceLevel * 100)),
       "Accent hue": String(defaults.accentHue),
       "Accent saturation": String(Math.round(defaults.accentLevel * 100)),
     };
     for (const name of SLIDER_NAMES) {
-      const slider = within(panel).getByRole<HTMLInputElement>("slider", { name });
+      const slider = within(panel).getByRole<HTMLInputElement>("slider", {
+        name,
+      });
       expect(slider).toBeEnabled();
       expect(slider.value).toBe(values[name]);
     }
 
     // Saturation 0 is a position on the axis, not a special mode: the sliders stay live.
     fireEvent.change(
-      within(panel).getByRole<HTMLInputElement>("slider", { name: "Surface saturation" }),
+      within(panel).getByRole<HTMLInputElement>("slider", {
+        name: "Background saturation",
+      }),
       { target: { value: "0" } },
     );
     await waitFor(() => {
       expect(
-        within(panel).getByRole<HTMLInputElement>("slider", { name: "Surface saturation" })
-          .value,
+        within(panel).getByRole<HTMLInputElement>("slider", {
+          name: "Background saturation",
+        }).value,
       ).toBe("0");
     });
-    expect(within(panel).getByRole("slider", { name: "Surface hue" })).toBeEnabled();
+    expect(
+      within(panel).getByRole("slider", { name: "Background hue" }),
+    ).toBeEnabled();
   });
 
   /**
@@ -567,6 +672,8 @@ describe("AppearanceCog", () => {
       );
 
       const panel = await openCog(user);
+      await expandColorAxis(user, panel, "Background");
+      await expandColorAxis(user, panel, "Accent");
 
       expect(panel).toHaveClass("theme-overlay-surface");
       expect(panel.querySelectorAll("[data-appearance-axis]")).toHaveLength(3);
@@ -583,16 +690,24 @@ describe("AppearanceCog", () => {
       // visual-style and colour-scheme combination's defaults.
       const expected = DEFAULT_APPEARANCE_COLORS[visualStyle][colorScheme];
       expect(
-        within(panel).getByRole<HTMLInputElement>("slider", { name: "Surface hue" }).value,
+        within(panel).getByRole<HTMLInputElement>("slider", {
+          name: "Background hue",
+        }).value,
       ).toBe(String(expected.surfaceHue));
       expect(
-        within(panel).getByRole<HTMLInputElement>("slider", { name: "Surface saturation" }).value,
+        within(panel).getByRole<HTMLInputElement>("slider", {
+          name: "Background saturation",
+        }).value,
       ).toBe(String(Math.round(expected.surfaceLevel * 100)));
       expect(
-        within(panel).getByRole<HTMLInputElement>("slider", { name: "Accent hue" }).value,
+        within(panel).getByRole<HTMLInputElement>("slider", {
+          name: "Accent hue",
+        }).value,
       ).toBe(String(expected.accentHue));
       expect(
-        within(panel).getByRole<HTMLInputElement>("slider", { name: "Accent saturation" }).value,
+        within(panel).getByRole<HTMLInputElement>("slider", {
+          name: "Accent saturation",
+        }).value,
       ).toBe(String(Math.round(expected.accentLevel * 100)));
       expect(
         within(panel).getByRole("button", { name: "Open Theme Lab" }),
@@ -611,7 +726,11 @@ describe("AppearanceControls", () => {
   it("omits the style row when the provider says the axis is not writable", async () => {
     const user = userEvent.setup();
     render(
-      <ThemeProvider initialColorScheme="light" initialVisualStyle="pro" isVisualStyleLocked>
+      <ThemeProvider
+        initialColorScheme="light"
+        initialVisualStyle="pro"
+        isVisualStyleLocked
+      >
         <AppearanceControls />
       </ThemeProvider>,
     );
@@ -621,23 +740,33 @@ describe("AppearanceControls", () => {
     // The lock is read from the provider, the only thing that knows whether setVisualStyle
     // does anything, rather than re-derived from the flavor config.
     expect(
-      within(panel).queryByRole("radiogroup", { name: "Theme style" }),
+      within(panel).queryByRole("radiogroup", { name: "Style" }),
     ).not.toBeInTheDocument();
-    expect(within(panel).getByRole("radiogroup", { name: "Darkness" })).toBeInTheDocument();
+    expect(
+      within(panel).getByRole("radiogroup", { name: "Mode" }),
+    ).toBeInTheDocument();
   });
 
   it("omits the accent sliders when the publication locks the accent axis", async () => {
     const user = userEvent.setup();
     render(
-      <ThemeProvider initialColorScheme="dark" initialVisualStyle="pro" isAccentLocked>
+      <ThemeProvider
+        initialColorScheme="dark"
+        initialVisualStyle="pro"
+        isAccentLocked
+      >
         <AppearanceControls />
       </ThemeProvider>,
     );
 
     const panel = await openCog(user);
 
-    expect(within(panel).queryByRole("group", { name: "Accent" })).not.toBeInTheDocument();
-    expect(within(panel).queryByRole("slider", { name: "Accent hue" })).not.toBeInTheDocument();
+    expect(
+      within(panel).queryByRole("button", { name: "Accent colors" }),
+    ).not.toBeInTheDocument();
+    expect(
+      within(panel).queryByRole("slider", { name: "Accent hue" }),
+    ).not.toBeInTheDocument();
   });
 
   it("opens the Theme Lab drawer from a dev's cog", async () => {
@@ -645,26 +774,37 @@ describe("AppearanceControls", () => {
     writeEditorHint();
     const user = userEvent.setup();
     render(
-      <ThemeProvider initialColorScheme="dark" initialVisualStyle="fun" isVisualStyleLocked={false}>
+      <ThemeProvider
+        initialColorScheme="dark"
+        initialVisualStyle="fun"
+        isVisualStyleLocked={false}
+      >
         <AppearanceControls />
       </ThemeProvider>,
     );
 
     const panel = await openCog(user);
-    await user.click(within(panel).getByRole("button", { name: "Open Theme Lab" }));
+    await user.click(
+      within(panel).getByRole("button", { name: "Open Theme Lab" }),
+    );
 
     expect(getThemeLabOpen()).toBe(true);
-    expect(screen.queryByRole("dialog", { name: "Appearance settings" })).not.toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Appearance settings" })).toHaveAttribute(
-      "aria-expanded",
-      "false",
-    );
+    expect(
+      screen.queryByRole("dialog", { name: "Appearance settings" }),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "Appearance settings" }),
+    ).toHaveAttribute("aria-expanded", "false");
   });
 
   it("withholds the Theme Lab when the caller vetoes it, keeping every axis", async () => {
     const user = userEvent.setup();
     render(
-      <ThemeProvider initialColorScheme="dark" initialVisualStyle="fun" isVisualStyleLocked={false}>
+      <ThemeProvider
+        initialColorScheme="dark"
+        initialVisualStyle="fun"
+        isVisualStyleLocked={false}
+      >
         <AppearanceControls allowThemeLab={false} />
       </ThemeProvider>,
     );
@@ -673,20 +813,30 @@ describe("AppearanceControls", () => {
 
     // The pre-launch holding page's cog: a visitor still picks an appearance, but the Lab
     // authors and shares palettes over routes the construction hosts do not serve.
-    expect(within(panel).queryByRole("button", { name: "Open Theme Lab" })).not.toBeInTheDocument();
-    expect(within(panel).getByRole("radiogroup", { name: "Darkness" })).toBeInTheDocument();
-    expect(within(panel).getByRole("group", { name: "Accent" })).toBeInTheDocument();
+    expect(
+      within(panel).queryByRole("button", { name: "Open Theme Lab" }),
+    ).not.toBeInTheDocument();
+    expect(
+      within(panel).getByRole("radiogroup", { name: "Mode" }),
+    ).toBeInTheDocument();
+    expect(
+      within(panel).getByRole("button", { name: "Accent colors" }),
+    ).toBeInTheDocument();
   });
 
   it("puts the caller's class on the trigger itself, with no wrapper to take the offset", () => {
     render(
-      <ThemeProvider initialColorScheme="dark" initialVisualStyle="fun" isVisualStyleLocked={false}>
+      <ThemeProvider
+        initialColorScheme="dark"
+        initialVisualStyle="fun"
+        isVisualStyleLocked={false}
+      >
         <AppearanceControls className="caller-positioning-hook" />
       </ThemeProvider>,
     );
 
-    expect(screen.getByRole("button", { name: "Appearance settings" }).className).toMatch(
-      /caller-positioning-hook/,
-    );
+    expect(
+      screen.getByRole("button", { name: "Appearance settings" }).className,
+    ).toMatch(/caller-positioning-hook/);
   });
 });

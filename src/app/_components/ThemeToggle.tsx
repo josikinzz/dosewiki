@@ -5,7 +5,7 @@ import { useTheme } from "@/context/ThemeContext";
 import { AppearanceTogglePill } from "./AppearanceTogglePill";
 
 /**
- * Dark/Light control for the colour-scheme axis only. The visible "Darkness" label
+ * Dark/Light control for the colour-scheme axis only. The visible "Mode" label
  * names the setting while both endpoints state exactly what the page will use.
  */
 export function ThemeToggle() {
@@ -14,7 +14,7 @@ export function ThemeToggle() {
   return (
     <AppearanceTogglePill
       axis="color-scheme"
-      label="Darkness"
+      label="Mode"
       value={colorScheme}
       options={[
         {

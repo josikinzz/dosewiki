@@ -1,9 +1,18 @@
 "use client";
 
-import { useRef, useState, type KeyboardEvent as ReactKeyboardEvent } from "react";
+import {
+  useRef,
+  useState,
+  type KeyboardEvent as ReactKeyboardEvent,
+} from "react";
 
 import { Icon } from "@/components/common/Icon";
-import { Popover, PopoverArrow, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import {
+  Popover,
+  PopoverArrow,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import { setThemeLabOpen } from "@/features/theme-lab/themeLabStore";
 import { cn } from "@/lib/utils";
 import { AppearanceAxes, type AppearanceAxesRows } from "./AppearanceAxes";
@@ -104,7 +113,12 @@ export function AppearanceCog({
         }}
       >
         {/* The stem uses the same dark chrome fill as the panel. */}
-        <PopoverArrow aria-hidden="true" width={16} height={8} className="theme-popover-arrow" />
+        <PopoverArrow
+          aria-hidden="true"
+          width={16}
+          height={8}
+          className="theme-popover-arrow"
+        />
         <div className="max-h-[calc(100vh-5.5rem)] overflow-y-auto overscroll-contain p-3">
           <AppearanceAxes
             showVisualStyle={showVisualStyle}
@@ -112,23 +126,27 @@ export function AppearanceCog({
             showSurface={showSurface}
             showAccent={showAccent}
             showFont={showFont}
+            discloseColorGroups
+            surfaceLabel="Background"
           />
           {showMoreSettings ? (
-            <button
-              type="button"
-              aria-label="Open Theme Lab"
-              title="Open Theme Lab"
-              aria-haspopup="dialog"
-              aria-controls="theme-lab-panel"
-              onClick={() => {
-                setPopoverOpen(false);
-                setThemeLabOpen(true, appearanceTriggerRef.current);
-              }}
-              className="theme-control-pill-quiet mt-3 inline-flex h-10 items-center justify-center gap-2 rounded-full px-3 text-xs font-semibold [@media(pointer:coarse)]:h-11"
-            >
-              <Icon icon="ri:wrench-line" size={15} />
-              <span>Theme Lab</span>
-            </button>
+            <div className="mt-3 border-t border-dose-border pt-3">
+              <button
+                type="button"
+                aria-label="Open Theme Lab"
+                title="Open Theme Lab"
+                aria-haspopup="dialog"
+                aria-controls="theme-lab-panel"
+                onClick={() => {
+                  setPopoverOpen(false);
+                  setThemeLabOpen(true, appearanceTriggerRef.current);
+                }}
+                className="theme-focus-ring inline-flex h-9 w-full items-center justify-center gap-2 rounded-lg px-3 text-xs font-medium text-dose-text-muted transition-colors hover:bg-dose-surface-muted hover:text-dose-text-secondary [@media(pointer:coarse)]:h-11"
+              >
+                <Icon icon="ri:wrench-line" size={14} />
+                <span>Theme Lab</span>
+              </button>
+            </div>
           ) : null}
         </div>
       </PopoverContent>

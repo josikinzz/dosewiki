@@ -8,9 +8,10 @@ export const appearanceCogStory: StoryDef = {
   tier: "layout",
   status: "stable",
   summary:
-    "The reader's single appearance control: a 44px settings gear opens a narrow, permanently dark panel with named Theme style, Darkness, and Font selectors; labeled Surface and Accent hue/saturation sliders; a scoped color reset; and an explicit Theme Lab action.",
+    "The reader's single appearance control: a 44px settings gear opens a narrow, permanently dark panel with named Style, Mode, and Font selectors; Background and Accent colour axes collapsed behind summary rows that expand to hue/saturation sliders; a scoped color reset; and an explicit Theme Lab action.",
   source: "src/app/_components/AppearanceCog.tsx",
-  importLine: 'import { AppearanceControls } from "@/app/_components/AppearanceControls";',
+  importLine:
+    'import { AppearanceControls } from "@/app/_components/AppearanceControls";',
   // The symbol lives in src/app/_components, not in a shared ui/common/layout barrel, so the
   // completeness gate neither requires nor accepts it here. The entry exists for the four-way
   // appearance sweep and for the catalog itself.
@@ -73,12 +74,13 @@ export const appearanceCogStory: StoryDef = {
       name: "showVisualStyle",
       type: "boolean",
       description:
-        "Renders the labeled Theme style selector with stable Fun and Pro radio options. A locked axis is omitted rather than disabled.",
+        "Renders the labeled Style selector with stable Fun and Pro radio options. A locked axis is omitted rather than disabled.",
     },
     {
       name: "showColorScheme",
       type: "boolean",
-      description: "Renders the labeled Darkness selector with stable Dark and Light options.",
+      description:
+        "Renders the labeled Darkness selector with stable Dark and Light options.",
     },
     {
       name: "showSurface",
@@ -96,7 +98,7 @@ export const appearanceCogStory: StoryDef = {
       name: "showFont",
       type: "boolean",
       description:
-        "Renders the labeled Font selector: Standard / Dyslexic-friendly as named radio options, the latter set in a 14-glyph Lexend label subset so the preview costs nobody the full face.",
+        "Renders the labeled Font selector: Standard / Dyslexic as named radio options, the latter set in an 8-glyph Lexend label subset so the preview costs nobody the full face.",
     },
     {
       name: "showMoreSettings",
@@ -115,7 +117,7 @@ export const appearanceCogStory: StoryDef = {
   notes: [
     "Mount AppearanceControls, not AppearanceCog: the row props are publication policy, not a caller decision.",
     "The panel uses the sticky header's dark chrome palette in both page schemes and a drop shadow, never a modal backdrop.",
-    "Every color choice is a labeled (hue, saturation) pair over the authored palette. Reset colors restores only Surface and Accent defaults, and says so beneath the action.",
+    "Each colour axis is a labelled (hue, saturation) pair over the authored palette, collapsed behind a summary row in the reader panel (the Theme Lab authoring surface keeps them open). Reset colors restores only Background and Accent defaults.",
     "Escape closes the panel and is stopped inside it, so it cannot also reach a page-level Escape handler above the portal. Closing returns focus to the cog.",
   ],
 };

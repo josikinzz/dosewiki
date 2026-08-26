@@ -7,13 +7,13 @@ this committed WOFF2 through `next/font/local` as the non-preloaded `dyslexicFon
 picker and registers nothing from here. No build-time or runtime Google Fonts request is
 required.
 
-`lexend-dyslexic-label-preview.woff2` is a 14-glyph subset carrying exactly the
-"Dyslexic-friendly" option label, registered as `dyslexicPreviewFont`
+`lexend-dyslexic-label-preview.woff2` is an 8-glyph subset carrying exactly the
+"Dyslexic" option label, registered as `dyslexicPreviewFont`
 (`--font-dyslexic-preview`) so the appearance panel's picker can set that label in the
 face it selects without anyone downloading the full face for a preview. Regenerate with:
 
 ```
-pyftsubset lexend-variable-normal-latin.woff2 --text="Dyslexic-friendly" \
+pyftsubset lexend-variable-normal-latin.woff2 --text="Dyslexic" \
   --flavor=woff2 --output-file=lexend-dyslexic-label-preview.woff2 \
   --layout-features='kern' --no-hinting --desubroutinize
 ```

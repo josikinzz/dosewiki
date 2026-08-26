@@ -20,7 +20,7 @@ export type AppearanceToggleOption<Value extends string> = {
 
 interface AppearanceTogglePillProps<Value extends string> {
   axis: AppearanceAxis;
-  /** Visible category label, e.g. "Theme style" or "Darkness". */
+  /** Visible category label, e.g. "Style" or "Mode". */
   label: string;
   value: Value;
   options: readonly [AppearanceToggleOption<Value>, AppearanceToggleOption<Value>];

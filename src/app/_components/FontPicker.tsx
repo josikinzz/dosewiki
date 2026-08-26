@@ -17,16 +17,20 @@ const FONT_OPTIONS: readonly {
   /** Keep each sample in the face it selects, independent of the active preference. */
   previewClassName: string;
 }[] = [
-  { value: "default", label: "Standard", previewClassName: "theme-font-preview-standard" },
+  {
+    value: "default",
+    label: "Standard",
+    previewClassName: "theme-font-preview-standard",
+  },
   {
     value: "dyslexic",
-    label: "Dyslexic-friendly",
+    label: "Dyslexic",
     previewClassName: "theme-font-preview-dyslexic",
   },
 ];
 
 /**
- * Dyslexic-friendly type control for the font axis: a two-option segmented toggle.
+ * Dyslexic type control for the font axis: a two-option segmented toggle.
  *
  * State lives in `ThemeProvider` on the other controls' terms: this picker holds
  * nothing, and a publication that locks the axis (Effect Index) renders no such
@@ -38,7 +42,7 @@ const FONT_OPTIONS: readonly {
  * either half flips to the other value, and only the checked option sits in the tab order.
  *
  * Both option labels are stable previews. "Standard" resolves the standard body face for
- * the active Fun/Pro style even while the document is wearing Lexend. "Dyslexic-friendly"
+ * the active Fun/Pro style even while the document is wearing Lexend. "Dyslexic"
  * uses a ~2 KB Lexend subset carrying exactly that label's glyphs
  * (`--font-dyslexic-preview`, see `src/app/_fonts/dosewiki.ts`), so a reader who never
  * opens the panel never fetches even the subset.
@@ -66,7 +70,9 @@ export function FontPicker() {
   };
 
   const handleKeyDown = (event: ReactKeyboardEvent<HTMLButtonElement>) => {
-    const index = FONT_OPTIONS.findIndex((option) => option.value === fontPreference);
+    const index = FONT_OPTIONS.findIndex(
+      (option) => option.value === fontPreference,
+    );
     let next = -1;
 
     switch (event.key) {
@@ -105,7 +111,7 @@ export function FontPicker() {
         aria-labelledby={labelId}
         data-appearance-axis="font"
         data-appearance-value={fontPreference}
-        className="theme-toggle-pill grid h-11 min-w-0 grid-cols-[auto_minmax(0,1fr)] items-center gap-0.5 rounded-full p-1 transition-[border-color,background-color] duration-300 motion-reduce:transition-none [@media(pointer:coarse)]:h-13"
+        className="theme-toggle-pill grid h-11 min-w-0 grid-cols-2 items-center gap-0.5 rounded-full p-1 transition-[border-color,background-color] duration-300 motion-reduce:transition-none [@media(pointer:coarse)]:h-13"
       >
         {FONT_OPTIONS.map((option, index) => {
           const checked = fontPreference === option.value;
@@ -123,7 +129,7 @@ export function FontPicker() {
               onClick={() => activate(option.value)}
               onKeyDown={handleKeyDown}
               className={cn(
-                "theme-focus-ring inline-flex h-9 min-w-0 items-center justify-center rounded-full px-2.5 text-[0.8125rem] font-semibold whitespace-nowrap transition-[background-color,color,border-color,box-shadow] duration-300 motion-reduce:transition-none [@media(pointer:coarse)]:h-11",
+                "theme-focus-ring inline-flex h-9 min-w-0 items-center justify-center rounded-full px-2.5 text-xs font-semibold whitespace-nowrap transition-[background-color,color,border-color,box-shadow] duration-300 motion-reduce:transition-none [@media(pointer:coarse)]:h-11",
                 checked ? "theme-toggle-thumb" : "theme-toggle-icon-muted",
               )}
             >

@@ -3,7 +3,10 @@
 import {
   type CSSProperties,
   type PointerEvent as ReactPointerEvent,
+  type ReactNode,
+  useId,
   useRef,
+  useState,
 } from "react";
 
 import { Icon } from "@/components/common/Icon";
@@ -38,7 +41,8 @@ const RAIL_CHROMA = 0.21;
 function trackGradient(swatch: string, hue: number): string {
   const stops = [0, 0.25, 0.5, 0.75, 1].map(
     // `h` is a <number> inside calc(): the shift must be a bare number too.
-    (t) => `oklch(from ${swatch} ${RAIL_LIGHTNESS} ${(RAIL_CHROMA * t).toFixed(4)} calc(h + ${hue}))`,
+    (t) =>
+      `oklch(from ${swatch} ${RAIL_LIGHTNESS} ${(RAIL_CHROMA * t).toFixed(4)} calc(h + ${hue}))`,
   );
   return `linear-gradient(90deg, ${stops.join(", ")})`;
 }
@@ -51,7 +55,8 @@ function trackGradient(swatch: string, hue: number): string {
  */
 function hueTrackGradient(swatch: string): string {
   const stops = [0, 60, 120, 180, 240, 300, 360].map(
-    (degrees) => `oklch(from ${swatch} ${RAIL_LIGHTNESS} ${RAIL_CHROMA} calc(h + ${degrees}))`,
+    (degrees) =>
+      `oklch(from ${swatch} ${RAIL_LIGHTNESS} ${RAIL_CHROMA} calc(h + ${degrees}))`,
   );
   return `linear-gradient(90deg, ${stops.join(", ")})`;
 }
@@ -70,7 +75,10 @@ function useDirectTouchRange(max: number, onChange: (value: number) => void) {
     const bounds = event.currentTarget.getBoundingClientRect();
     if (bounds.width <= 0) return;
 
-    const position = Math.min(1, Math.max(0, (event.clientX - bounds.left) / bounds.width));
+    const position = Math.min(
+      1,
+      Math.max(0, (event.clientX - bounds.left) / bounds.width),
+    );
     onChange(Math.round(position * max));
   };
 
@@ -133,7 +141,9 @@ function HueSlider({
   return (
     <div data-appearance-hue="" className="flex flex-col gap-1">
       <div className="flex items-center justify-between gap-3 px-1">
-        <span className="text-[0.6875rem] font-medium text-dose-text-muted">Hue</span>
+        <span className="text-[0.6875rem] font-medium text-dose-text-muted">
+          Hue
+        </span>
         <span className="text-[0.6875rem] font-medium tabular-nums text-dose-text-muted">
           {degrees}°
         </span>
@@ -141,7 +151,11 @@ function HueSlider({
       <div className="px-1">
         <div
           className="theme-chroma-track"
-          style={{ "--theme-chroma-track-gradient": hueTrackGradient(swatch) } as CSSProperties}
+          style={
+            {
+              "--theme-chroma-track-gradient": hueTrackGradient(swatch),
+            } as CSSProperties
+          }
         >
           <span
             aria-hidden="true"
@@ -192,12 +206,16 @@ function ChromaSlider({
   level: number;
   onChange: (level: number) => void;
 }) {
-  const directTouch = useDirectTouchRange(100, (value) => onChange(value / 100));
+  const directTouch = useDirectTouchRange(100, (value) =>
+    onChange(value / 100),
+  );
   const percent = Math.round(level * 100);
   return (
     <div data-appearance-chroma="" className="flex flex-col gap-1">
       <div className="flex items-center justify-between gap-3 px-1">
-        <span className="text-[0.6875rem] font-medium text-dose-text-muted">Saturation</span>
+        <span className="text-[0.6875rem] font-medium text-dose-text-muted">
+          Saturation
+        </span>
         <span className="text-[0.6875rem] font-medium tabular-nums text-dose-text-muted">
           {percent}%
         </span>
@@ -206,7 +224,9 @@ function ChromaSlider({
         <div
           className="theme-chroma-track"
           style={
-            { "--theme-chroma-track-gradient": trackGradient(swatch, hue) } as CSSProperties
+            {
+              "--theme-chroma-track-gradient": trackGradient(swatch, hue),
+            } as CSSProperties
           }
         >
           <span
@@ -223,12 +243,137 @@ function ChromaSlider({
             value={percent}
             aria-label={label}
             title={label}
-            onChange={(event) => onChange(Number(event.currentTarget.value) / 100)}
+            onChange={(event) =>
+              onChange(Number(event.currentTarget.value) / 100)
+            }
             {...directTouch}
           />
         </div>
       </div>
     </div>
+  );
+}
+
+/**
+ * A small legend dot for a collapsed axis, drawn on the same fixed-legibility
+ * terms as the sliders' rails: the reader's hue and saturation level over the
+ * axis's base swatch. Saturation 0 paints a neutral grey — the honest signal
+ * that the palette is currently unmuted.
+ */
+function axisDot(swatch: string, hue: number, level: number): string {
+  return `oklch(from ${swatch} ${RAIL_LIGHTNESS} ${(RAIL_CHROMA * level).toFixed(4)} calc(h + ${hue}))`;
+}
+
+/**
+ * A collapsed colour axis. The summary row — swatch dot, plain-language name,
+ * and the live (degrees · percent) coordinate — is a button carrying
+ * `aria-expanded` + `aria-controls`; tapping it reveals the Hue/Saturation
+ * slider pair in place. Collapsed by default so the panel opens on the three
+ * quick toggles and the sliders — the choice a reader reaches for least — stay
+ * one tap away instead of four always-on rails. The expanded children sit
+ * under the `role="group"` name the axis always carried, so its accessible
+ * grouping is unchanged.
+ */
+function ColorAxisDisclosure({
+  axisName,
+  dotColor,
+  degrees,
+  percent,
+  children,
+}: {
+  axisName: string;
+  dotColor: string;
+  degrees: number;
+  percent: number;
+  children: ReactNode;
+}) {
+  const [isOpen, setIsOpen] = useState(false);
+  const contentId = useId();
+
+  return (
+    <div>
+      <button
+        type="button"
+        aria-expanded={isOpen}
+        aria-controls={contentId}
+        aria-label={`${axisName} colors`}
+        onClick={() => setIsOpen((open) => !open)}
+        className="theme-focus-ring flex h-11 w-full items-center gap-2.5 rounded-xl px-3 text-left transition-colors hover:bg-dose-surface-muted [@media(pointer:coarse)]:h-12"
+      >
+        <span
+          aria-hidden="true"
+          className="h-3.5 w-3.5 shrink-0 rounded-full ring-1 ring-inset ring-white/20"
+          style={{ backgroundColor: dotColor }}
+        />
+        <span className="text-[0.8125rem] font-semibold">{axisName}</span>
+        <span className="ml-auto tabular-nums text-[0.6875rem] font-medium text-dose-text-muted">
+          {degrees}° · {percent}%
+        </span>
+        <Icon
+          aria-hidden="true"
+          icon="lucide:chevron-down"
+          size={15}
+          className={cn(
+            "text-dose-text-muted transition-transform duration-200",
+            isOpen && "rotate-180",
+          )}
+        />
+      </button>
+      {isOpen ? (
+        <div
+          id={contentId}
+          role="group"
+          aria-label={axisName}
+          className="mt-2.5 flex flex-col gap-2.5"
+        >
+          {children}
+        </div>
+      ) : null}
+    </div>
+  );
+}
+/**
+ * The Hue/Saturation slider pair for one colour axis, shared verbatim by the
+ * reader's collapsed disclosure and the Theme Lab's always-open group, so the
+ * two surfaces can never offer different tuning controls.
+ */
+function ColorAxisSliders({
+  name,
+  swatch,
+  degrees,
+  level,
+  tickDegrees,
+  tickLevel,
+  onHue,
+  onChroma,
+}: {
+  name: string;
+  swatch: string;
+  degrees: number;
+  level: number;
+  tickDegrees: number;
+  tickLevel: number;
+  onHue: (degrees: number) => void;
+  onChroma: (level: number) => void;
+}) {
+  return (
+    <>
+      <HueSlider
+        label={`${name} hue`}
+        swatch={swatch}
+        degrees={degrees}
+        tick={tickDegrees}
+        onChange={onHue}
+      />
+      <ChromaSlider
+        label={`${name} saturation`}
+        swatch={swatch}
+        hue={degrees}
+        tick={tickLevel}
+        level={level}
+        onChange={onChroma}
+      />
+    </>
   );
 }
 
@@ -279,8 +424,14 @@ export function AppearanceAxes({
   showSurface,
   showAccent,
   showFont,
+  discloseColorGroups = false,
+  surfaceLabel = "Surface",
 }: AppearanceAxesRows & {
   className?: string;
+  /** Collapse the colour axes behind summary rows (the reader's compact panel). */
+  discloseColorGroups?: boolean;
+  /** Reader-facing surface-axis name: "Background" for readers, "Surface" for authors. */
+  surfaceLabel?: string;
 }) {
   const {
     colorScheme,
@@ -333,68 +484,131 @@ export function AppearanceAxes({
         </div>
       ) : null}
 
-      {showSurface ? (
-        <div role="group" aria-label="Surface" className="flex flex-col gap-2.5">
-          <span className="px-1 text-[0.6875rem] font-semibold uppercase tracking-[0.12em] text-dose-text-muted">
-            Surface
-          </span>
-          <HueSlider
-            label="Surface hue"
-            swatch={surfaceSwatch}
-            degrees={effectiveSurfaceHue}
-            tick={defaultColors.surfaceHue}
-            onChange={setSurfaceHue}
-          />
-          <ChromaSlider
-            label="Surface saturation"
-            swatch={surfaceSwatch}
-            hue={effectiveSurfaceHue}
-            tick={defaultColors.surfaceLevel}
-            level={surfaceChroma}
-            onChange={setSurfaceChroma}
-          />
-        </div>
-      ) : null}
-
-      {showAccent ? (
-        <div role="group" aria-label="Accent" className="flex flex-col gap-2.5">
-          <span className="px-1 text-[0.6875rem] font-semibold uppercase tracking-[0.12em] text-dose-text-muted">
-            Accent
-          </span>
-          <HueSlider
-            label="Accent hue"
-            swatch={accentSwatch}
-            degrees={effectiveAccentHue}
-            tick={defaultColors.accentHue}
-            onChange={setAccentHue}
-          />
-          <ChromaSlider
-            label="Accent saturation"
-            swatch={accentSwatch}
-            hue={effectiveAccentHue}
-            tick={defaultColors.accentLevel}
-            level={accentChroma}
-            onChange={setAccentChroma}
-          />
-        </div>
-      ) : null}
       {showReset ? (
-        <button
-          type="button"
-          title="Reset colors to default"
-          onClick={() => {
-            // Null is the setters' "back to the site default": the storage
-            // keys are removed, and every color axis returns to the authored look.
-            setSurfaceHue(null);
-            setSurfaceChroma(null);
-            setAccentHue(null);
-            setAccentChroma(null);
-          }}
-          className="theme-control-pill-quiet inline-flex h-10 self-start items-center justify-center gap-2 rounded-full px-3 text-xs font-semibold [@media(pointer:coarse)]:h-11"
-        >
-          <Icon icon="fluent:arrow-reset-24-filled" size={15} />
-          <span>Reset colors</span>
-        </button>
+        <>
+          {discloseColorGroups ? (
+            <div className="flex flex-col gap-3">
+              <div className="flex flex-col gap-2">
+                {showSurface ? (
+                  <ColorAxisDisclosure
+                    axisName={surfaceLabel}
+                    dotColor={axisDot(
+                      surfaceSwatch,
+                      effectiveSurfaceHue,
+                      surfaceChroma,
+                    )}
+                    degrees={effectiveSurfaceHue}
+                    percent={Math.round(surfaceChroma * 100)}
+                  >
+                    <ColorAxisSliders
+                      name={surfaceLabel}
+                      swatch={surfaceSwatch}
+                      degrees={effectiveSurfaceHue}
+                      level={surfaceChroma}
+                      tickDegrees={defaultColors.surfaceHue}
+                      tickLevel={defaultColors.surfaceLevel}
+                      onHue={setSurfaceHue}
+                      onChroma={setSurfaceChroma}
+                    />
+                  </ColorAxisDisclosure>
+                ) : null}
+
+                {showAccent ? (
+                  <ColorAxisDisclosure
+                    axisName="Accent"
+                    dotColor={axisDot(
+                      accentSwatch,
+                      effectiveAccentHue,
+                      accentChroma,
+                    )}
+                    degrees={effectiveAccentHue}
+                    percent={Math.round(accentChroma * 100)}
+                  >
+                    <ColorAxisSliders
+                      name="Accent"
+                      swatch={accentSwatch}
+                      degrees={effectiveAccentHue}
+                      level={accentChroma}
+                      tickDegrees={defaultColors.accentHue}
+                      tickLevel={defaultColors.accentLevel}
+                      onHue={setAccentHue}
+                      onChroma={setAccentChroma}
+                    />
+                  </ColorAxisDisclosure>
+                ) : null}
+              </div>
+
+              {showSurface && showAccent ? (
+                <p className="px-1 text-[0.6875rem] text-dose-text-muted">
+                  Background is the page color; Accent is the highlighted color.
+                </p>
+              ) : null}
+            </div>
+          ) : (
+            <>
+              {showSurface ? (
+                <div
+                  role="group"
+                  aria-label={surfaceLabel}
+                  className="flex flex-col gap-2.5"
+                >
+                  <span className="px-1 text-[0.6875rem] font-semibold uppercase tracking-[0.12em] text-dose-text-muted">
+                    {surfaceLabel}
+                  </span>
+                  <ColorAxisSliders
+                    name={surfaceLabel}
+                    swatch={surfaceSwatch}
+                    degrees={effectiveSurfaceHue}
+                    level={surfaceChroma}
+                    tickDegrees={defaultColors.surfaceHue}
+                    tickLevel={defaultColors.surfaceLevel}
+                    onHue={setSurfaceHue}
+                    onChroma={setSurfaceChroma}
+                  />
+                </div>
+              ) : null}
+
+              {showAccent ? (
+                <div
+                  role="group"
+                  aria-label="Accent"
+                  className="flex flex-col gap-2.5"
+                >
+                  <span className="px-1 text-[0.6875rem] font-semibold uppercase tracking-[0.12em] text-dose-text-muted">
+                    Accent
+                  </span>
+                  <ColorAxisSliders
+                    name="Accent"
+                    swatch={accentSwatch}
+                    degrees={effectiveAccentHue}
+                    level={accentChroma}
+                    tickDegrees={defaultColors.accentHue}
+                    tickLevel={defaultColors.accentLevel}
+                    onHue={setAccentHue}
+                    onChroma={setAccentChroma}
+                  />
+                </div>
+              ) : null}
+            </>
+          )}
+
+          <button
+            type="button"
+            title="Reset colors to default"
+            onClick={() => {
+              // Null is the setters' "back to the site default": the storage
+              // keys are removed, and every color axis returns to the authored look.
+              setSurfaceHue(null);
+              setSurfaceChroma(null);
+              setAccentHue(null);
+              setAccentChroma(null);
+            }}
+            className="theme-control-pill-quiet inline-flex h-10 self-start items-center justify-center gap-2 rounded-full px-3 text-xs font-semibold [@media(pointer:coarse)]:h-11"
+          >
+            <Icon icon="fluent:arrow-reset-24-filled" size={15} />
+            <span>Reset colors</span>
+          </button>
+        </>
       ) : null}
     </div>
   );

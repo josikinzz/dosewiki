@@ -149,7 +149,7 @@ describe("site font selection", () => {
     // changes, the subset (public/fonts/lexend/README.md has the command) must change
     // with it or the label falls back to the body face.
     const pickerSource = stripComments(read("src/app/_components/FontPicker.tsx"));
-    expect(pickerSource).toContain('label: "Dyslexic-friendly"');
+    expect(pickerSource).toContain('label: "Dyslexic"');
     expect(pickerSource).toContain('previewClassName: "theme-font-preview-dyslexic"');
 
     // Effect Index has no picker, so no preview registration either.
