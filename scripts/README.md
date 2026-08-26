@@ -893,6 +893,8 @@ repository, the manifest or Convex.
 
 ### Replications
 
+Before intake, classification, taxonomy migration, or gallery-visibility work, read the [replication classification field guide](../docs/agents/replication-classification-guide.html). Use [`VisualTaggingGuideForAgents.html`](replications/VisualTaggingGuideForAgents.html) afterward for subjective-effect mechanism tags.
+
 ```bash
 # Scan and import workflow
 node scripts/replications/scan-replications.mjs
