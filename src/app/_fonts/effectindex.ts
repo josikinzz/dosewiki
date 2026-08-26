@@ -67,3 +67,10 @@ export const proFont = siteFont;
  * only appends the variable when this is non-null.
  */
 export const dyslexicFont = null;
+
+/**
+ * The label-preview subset is gated on the same axis: with no picker on this
+ * publication there is no label to preview, so no registration either. The dose.wiki
+ * module exports a real registration under the same name.
+ */
+export const dyslexicPreviewFont = null;

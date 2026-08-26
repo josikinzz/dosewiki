@@ -3,39 +3,37 @@
 import { useRef, useState, type KeyboardEvent as ReactKeyboardEvent } from "react";
 
 import { Icon } from "@/components/common/Icon";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Popover, PopoverArrow, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { setThemeLabOpen } from "@/features/theme-lab/themeLabStore";
 import { cn } from "@/lib/utils";
 import { AppearanceAxes, type AppearanceAxesRows } from "./AppearanceAxes";
 
 /**
- * Which rows this instrument offers. The four axes are `AppearanceAxes`' own contract;
- * the cog adds the one action that is not an axis.
+ * Which controls this instrument offers. AppearanceAxes owns reader preferences;
+ * the cog adds the dev-only Theme Lab action that is not an appearance axis.
  */
 export type AppearanceCogRows = AppearanceAxesRows & {
-  /** The public Theme Lab drawer action. */
+  /** Opens the protected Theme Lab drawer when publication policy permits it. */
   showMoreSettings: boolean;
 };
 
 /**
  * One 44px trigger for every reader-facing appearance choice.
  *
- * The four axes themselves are `AppearanceAxes`, shared with the Theme Lab drawer so the
- * cog and the drawer offer the reader exactly the same controls. What is the cog's own is
- * the trigger, the popover it opens, and the compact icon-only Theme Lab entry it parks at
- * the end of the binary-control row through `AppearanceAxes`' end slot.
- *
- * Theme Lab opens the global drawer over the page instead of navigating away.
+ * The popover owns its compact, permanently dark shell. `AppearanceAxes` supplies the
+ * same named controls used by Theme Lab; the optional dev-only Theme Lab action follows
+ * those reader preferences rather than competing with them.
  */
 export function AppearanceCog({
   className,
+  iconSize = 28,
   showVisualStyle,
   showColorScheme,
   showAccent,
   showSurface,
   showFont,
   showMoreSettings,
-}: AppearanceCogRows & { className?: string }) {
+}: AppearanceCogRows & { className?: string; iconSize?: number }) {
   const appearanceTriggerRef = useRef<HTMLButtonElement>(null);
   const [popoverOpen, setPopoverOpen] = useState(false);
 
@@ -64,36 +62,31 @@ export function AppearanceCog({
           aria-label="Appearance settings"
           title="Appearance settings"
           data-appearance-cog=""
-          // The wheel IS the button: no pill chrome around it. The 44px box is
-          // the hit target (invisible), and the glyph fills most of it.
+          // The transparent 44px box preserves the touch target without drawing a
+          // button around the glyph. Open turns the gear a quarter-turn — a state
+          // cue that does not depend on colour, which matters here because the panel
+          // this opens exists to change colour.
           className={cn(
-            "group inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full",
+            "group theme-header-icon-button theme-focus-ring inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-xl transition-colors",
             className,
           )}
         >
-          <span
-            aria-hidden="true"
-            // The brand wheel, shared as a global utility so the same glyph can sit on this
-            // button and anywhere else without either copy owning the gradient. Open swells it
-            // 10% rather than rotating it: the ring's outline is radially symmetric, so a
-            // rotation would only sweep hues, and the swell is a cue that does not depend on
-            // colour — which matters here because the panel this opens exists to change colour.
-            className={cn(
-              "theme-color-wheel h-8 w-8",
-              "transition-transform duration-300 ease-out group-hover:scale-105 group-data-[state=open]:scale-110 motion-reduce:transition-none",
-            )}
+          <Icon
+            icon="carbon:settings"
+            size={iconSize}
+            className="transition-transform duration-300 ease-out group-hover:rotate-45 group-data-[state=open]:rotate-90 motion-reduce:transition-none"
           />
         </button>
       </PopoverTrigger>
       <PopoverContent
-        // Sized to its rows rather than the primitive's fixed w-72, so the panel carries no
-        // dead width when an axis is locked: with the colour axes as slider pairs, the
-        // control row is the widest thing left when both are.
-        className="w-auto max-w-[calc(100vw-1.5rem)] p-3 motion-reduce:animate-none [@media(pointer:coarse)]:w-[22rem]"
+        // The same 22rem composition serves pointer and touch layouts. Desktop no longer
+        // expands into a toolbar, while the viewport clamp keeps a 320px phone on-screen.
+        // `theme-chrome-dark` pins the dark control palette even when the page is light.
+        className="theme-chrome-dark theme-appearance-popover w-[min(22rem,calc(100vw-1.5rem))] max-w-none p-0 motion-reduce:animate-none"
         align="end"
-        sideOffset={12}
+        sideOffset={8}
         collisionPadding={12}
-        aria-label="Appearance"
+        aria-label="Appearance settings"
         /**
          * Escape belongs to this panel and stops here. Radix closes it from its own
          * capture-phase listener before this runs, so the dismissal is unaffected; stopping
@@ -110,33 +103,34 @@ export function AppearanceCog({
           }
         }}
       >
-        <AppearanceAxes
-          showVisualStyle={showVisualStyle}
-          showColorScheme={showColorScheme}
-          showSurface={showSurface}
-          showAccent={showAccent}
-          showFont={showFont}
-          endSlot={
-            showMoreSettings ? (
-              <button
-                type="button"
-                // Icon-only, so the accessible name carries what the label used
-                // to: several tests and the workbench address this exact name.
-                aria-label="Open Theme Lab"
-                title="Open Theme Lab"
-                aria-haspopup="dialog"
-                aria-controls="theme-lab-panel"
-                onClick={() => {
-                  setPopoverOpen(false);
-                  setThemeLabOpen(true, appearanceTriggerRef.current);
-                }}
-                className="theme-control-pill-quiet inline-flex h-9 w-9 items-center justify-center rounded-full [@media(pointer:coarse)]:h-11 [@media(pointer:coarse)]:w-11"
-              >
-                <Icon icon="ri:wrench-line" size={15} />
-              </button>
-            ) : undefined
-          }
-        />
+        {/* The stem uses the same dark chrome fill as the panel. */}
+        <PopoverArrow aria-hidden="true" width={16} height={8} className="theme-popover-arrow" />
+        <div className="max-h-[calc(100vh-5.5rem)] overflow-y-auto overscroll-contain p-3">
+          <AppearanceAxes
+            showVisualStyle={showVisualStyle}
+            showColorScheme={showColorScheme}
+            showSurface={showSurface}
+            showAccent={showAccent}
+            showFont={showFont}
+          />
+          {showMoreSettings ? (
+            <button
+              type="button"
+              aria-label="Open Theme Lab"
+              title="Open Theme Lab"
+              aria-haspopup="dialog"
+              aria-controls="theme-lab-panel"
+              onClick={() => {
+                setPopoverOpen(false);
+                setThemeLabOpen(true, appearanceTriggerRef.current);
+              }}
+              className="theme-control-pill-quiet mt-3 inline-flex h-10 items-center justify-center gap-2 rounded-full px-3 text-xs font-semibold [@media(pointer:coarse)]:h-11"
+            >
+              <Icon icon="ri:wrench-line" size={15} />
+              <span>Theme Lab</span>
+            </button>
+          ) : null}
+        </div>
       </PopoverContent>
     </Popover>
   );

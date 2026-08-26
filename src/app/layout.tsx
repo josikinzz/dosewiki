@@ -22,7 +22,7 @@ import {
 } from "@/theme/appearanceSheets";
 import { ThemeProvider } from "@/context/ThemeContext";
 import { ThemeLabLazy } from "@/features/theme-lab/ThemeLabLazy";
-import { dyslexicFont, proFont, siteFont } from "./fonts";
+import { dyslexicFont, dyslexicPreviewFont, proFont, siteFont } from "./fonts";
 import { RouteChrome, RouteFooter } from "./_components/RouteChrome";
 import { ApprovedPublicAnalytics } from "./_components/ApprovedPublicAnalytics";
 import "@site-styles";
@@ -45,9 +45,10 @@ const zodJitlessBootstrap = buildZodJitlessBootstrapScript();
 // reload. `proFont` sets `preload: false`, so a Fun reader downloads none of it. The
 // dyslexic face rides the same mechanism where the flavor offers the toggle (null where it
 // does not): `preload: false` again, so an untoggled reader downloads none of Lexend either.
-const rootFontClassName = dyslexicFont
-  ? `${siteFont.variable} ${proFont.variable} ${dyslexicFont.variable}`
-  : `${siteFont.variable} ${proFont.variable}`;
+const rootFontClassName =
+  dyslexicFont && dyslexicPreviewFont
+    ? `${siteFont.variable} ${proFont.variable} ${dyslexicFont.variable} ${dyslexicPreviewFont.variable}`
+    : `${siteFont.variable} ${proFont.variable}`;
 const homeConstructionMode = env.NEXT_PUBLIC_HOME_CONSTRUCTION_MODE === "true";
 
 export const metadata: Metadata = {

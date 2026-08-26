@@ -3,7 +3,6 @@
 import {
   type CSSProperties,
   type PointerEvent as ReactPointerEvent,
-  type ReactNode,
   useRef,
 } from "react";
 
@@ -14,7 +13,7 @@ import { BASE_ACCENT_PRO_SEEDS, BASE_ACCENT_SWATCH } from "@/theme/accents";
 import { getDefaultAppearanceColors } from "@/theme/appearanceChroma";
 import { proAccentRepresentativeSeed } from "@/theme/chromaMath";
 import { BASE_SURFACE_PRO_SEEDS, BASE_SURFACE_TINT } from "@/theme/surfaces";
-import { FontToggle } from "./FontToggle";
+import { FontPicker } from "./FontPicker";
 import { ThemeToggle } from "./ThemeToggle";
 import { VisualStyleToggle } from "./VisualStyleToggle";
 
@@ -132,32 +131,37 @@ function HueSlider({
 }) {
   const directTouch = useDirectTouchRange(359, onChange);
   return (
-    <div data-appearance-hue="" className="flex items-center gap-2 px-1">
-      <div
-        className="theme-chroma-track"
-        style={{ "--theme-chroma-track-gradient": hueTrackGradient(swatch) } as CSSProperties}
-      >
-        <span
-          aria-hidden="true"
-          className="theme-chroma-tick"
-          style={{ "--theme-chroma-tick": tick / 359 } as CSSProperties}
-        />
-        <input
-          type="range"
-          className="theme-chroma-slider"
-          min={0}
-          max={359}
-          step={1}
-          value={degrees}
-          aria-label={label}
-          title={label}
-          onChange={(event) => onChange(Number(event.currentTarget.value))}
-          {...directTouch}
-        />
+    <div data-appearance-hue="" className="flex flex-col gap-1">
+      <div className="flex items-center justify-between gap-3 px-1">
+        <span className="text-[0.6875rem] font-medium text-dose-text-muted">Hue</span>
+        <span className="text-[0.6875rem] font-medium tabular-nums text-dose-text-muted">
+          {degrees}°
+        </span>
       </div>
-      <span className="w-8 text-right text-[0.625rem] font-medium tabular-nums text-dose-text-muted">
-        {degrees}°
-      </span>
+      <div className="px-1">
+        <div
+          className="theme-chroma-track"
+          style={{ "--theme-chroma-track-gradient": hueTrackGradient(swatch) } as CSSProperties}
+        >
+          <span
+            aria-hidden="true"
+            className="theme-chroma-tick"
+            style={{ "--theme-chroma-tick": tick / 359 } as CSSProperties}
+          />
+          <input
+            type="range"
+            className="theme-chroma-slider"
+            min={0}
+            max={359}
+            step={1}
+            value={degrees}
+            aria-label={label}
+            title={label}
+            onChange={(event) => onChange(Number(event.currentTarget.value))}
+            {...directTouch}
+          />
+        </div>
+      </div>
     </div>
   );
 }
@@ -191,34 +195,39 @@ function ChromaSlider({
   const directTouch = useDirectTouchRange(100, (value) => onChange(value / 100));
   const percent = Math.round(level * 100);
   return (
-    <div data-appearance-chroma="" className="flex items-center gap-2 px-1">
-      <div
-        className="theme-chroma-track"
-        style={
-          { "--theme-chroma-track-gradient": trackGradient(swatch, hue) } as CSSProperties
-        }
-      >
-        <span
-          aria-hidden="true"
-          className="theme-chroma-tick"
-          style={{ "--theme-chroma-tick": tick } as CSSProperties}
-        />
-        <input
-          type="range"
-          className="theme-chroma-slider"
-          min={0}
-          max={100}
-          step={1}
-          value={percent}
-          aria-label={label}
-          title={label}
-          onChange={(event) => onChange(Number(event.currentTarget.value) / 100)}
-          {...directTouch}
-        />
+    <div data-appearance-chroma="" className="flex flex-col gap-1">
+      <div className="flex items-center justify-between gap-3 px-1">
+        <span className="text-[0.6875rem] font-medium text-dose-text-muted">Saturation</span>
+        <span className="text-[0.6875rem] font-medium tabular-nums text-dose-text-muted">
+          {percent}%
+        </span>
       </div>
-      <span className="w-8 text-right text-[0.625rem] font-medium tabular-nums text-dose-text-muted">
-        {percent}%
-      </span>
+      <div className="px-1">
+        <div
+          className="theme-chroma-track"
+          style={
+            { "--theme-chroma-track-gradient": trackGradient(swatch, hue) } as CSSProperties
+          }
+        >
+          <span
+            aria-hidden="true"
+            className="theme-chroma-tick"
+            style={{ "--theme-chroma-tick": tick } as CSSProperties}
+          />
+          <input
+            type="range"
+            className="theme-chroma-slider"
+            min={0}
+            max={100}
+            step={1}
+            value={percent}
+            aria-label={label}
+            title={label}
+            onChange={(event) => onChange(Number(event.currentTarget.value) / 100)}
+            {...directTouch}
+          />
+        </div>
+      </div>
     </div>
   );
 }
@@ -232,7 +241,7 @@ function ChromaSlider({
 export type AppearanceAxesRows = {
   /** Fun/Pro. Absent — never inert — where the publication's identity *is* one style. */
   showVisualStyle: boolean;
-  /** Day/Night. */
+  /** Dark/Light page scheme. */
   showColorScheme: boolean;
   /** The surface colour pair: hue and saturation. */
   showSurface: boolean;
@@ -248,7 +257,7 @@ export type AppearanceAxesRows = {
  * the only authored ones, and every other look is a (hue, saturation)
  * coordinate over them; grey is simply saturation 0.
  *
- * Two places offer them — the header/footer cog and the Theme Lab drawer — and this is
+ * Two places offer them — the header's settings button and the Theme Lab drawer — and this is
  * the single component both render, so the two can never disagree about what a reader
  * may choose or what a rail previews. Everything is read from and written to
  * `ThemeContext`; this component holds no appearance state of its own. The
@@ -270,14 +279,8 @@ export function AppearanceAxes({
   showSurface,
   showAccent,
   showFont,
-  endSlot,
 }: AppearanceAxesRows & {
   className?: string;
-  /**
-   * Rendered at the end of the binary-control row — the cog parks its compact
-   * Theme Lab entry here. The row renders when it has either a toggle or this.
-   */
-  endSlot?: ReactNode;
 }) {
   const {
     colorScheme,
@@ -317,45 +320,21 @@ export function AppearanceAxes({
       : null;
   const accentSwatch = proAccentSeed ?? BASE_ACCENT_SWATCH;
 
-  // The first row holds the two compact binary controls, the colour reset, and
-  // the cog's end slot.
+  // General reading preferences lead; colors follow as named, independently resettable axes.
   const showReset = showSurface || showAccent;
-  const hasControlRow = showVisualStyle || showColorScheme || showFont || showReset || endSlot != null;
+  const hasPreferenceControls = showVisualStyle || showColorScheme || showFont;
   return (
-    <div className={cn("flex flex-col gap-3", className)}>
-      {hasControlRow ? (
-        <div className="flex flex-wrap items-center gap-2">
+    <div className={cn("flex flex-col gap-4", className)}>
+      {hasPreferenceControls ? (
+        <div className="flex flex-col gap-2.5">
           {showVisualStyle ? <VisualStyleToggle /> : null}
           {showColorScheme ? <ThemeToggle /> : null}
-          {showFont ? <FontToggle /> : null}
-          {showReset || endSlot != null ? (
-            <div className="ml-auto flex items-center gap-2">
-              {showReset ? (
-                <button
-                  type="button"
-                  aria-label="Reset colors to default"
-                  title="Reset colors to default"
-                  onClick={() => {
-                    // Null is the setters' "back to the site default": the storage
-                    // keys are removed, and every axis returns to the authored look.
-                    setSurfaceHue(null);
-                    setSurfaceChroma(null);
-                    setAccentHue(null);
-                    setAccentChroma(null);
-                  }}
-                  className="theme-control-pill-quiet inline-flex h-9 w-9 items-center justify-center rounded-full [@media(pointer:coarse)]:h-11 [@media(pointer:coarse)]:w-11"
-                >
-                  <Icon icon="fluent:arrow-reset-24-filled" size={15} />
-                </button>
-              ) : null}
-              {endSlot}
-            </div>
-          ) : null}
+          {showFont ? <FontPicker /> : null}
         </div>
       ) : null}
 
       {showSurface ? (
-        <div role="group" aria-label="Surface" className="flex flex-col gap-1.5">
+        <div role="group" aria-label="Surface" className="flex flex-col gap-2.5">
           <span className="px-1 text-[0.6875rem] font-semibold uppercase tracking-[0.12em] text-dose-text-muted">
             Surface
           </span>
@@ -378,7 +357,7 @@ export function AppearanceAxes({
       ) : null}
 
       {showAccent ? (
-        <div role="group" aria-label="Accent" className="flex flex-col gap-1.5">
+        <div role="group" aria-label="Accent" className="flex flex-col gap-2.5">
           <span className="px-1 text-[0.6875rem] font-semibold uppercase tracking-[0.12em] text-dose-text-muted">
             Accent
           </span>
@@ -398,6 +377,24 @@ export function AppearanceAxes({
             onChange={setAccentChroma}
           />
         </div>
+      ) : null}
+      {showReset ? (
+        <button
+          type="button"
+          title="Reset colors to default"
+          onClick={() => {
+            // Null is the setters' "back to the site default": the storage
+            // keys are removed, and every color axis returns to the authored look.
+            setSurfaceHue(null);
+            setSurfaceChroma(null);
+            setAccentHue(null);
+            setAccentChroma(null);
+          }}
+          className="theme-control-pill-quiet inline-flex h-10 self-start items-center justify-center gap-2 rounded-full px-3 text-xs font-semibold [@media(pointer:coarse)]:h-11"
+        >
+          <Icon icon="fluent:arrow-reset-24-filled" size={15} />
+          <span>Reset colors</span>
+        </button>
       ) : null}
     </div>
   );

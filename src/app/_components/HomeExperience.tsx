@@ -76,9 +76,10 @@ export function HomeExperience({
     <>
       {/* The blocked landing's header. The live site's header is `RouteChrome`'s own
           `Header`, which this deliberately mirrors at its dose.wiki-home shape — brand,
-          full-width search, hamburger, no desktop nav bar — down to the classes, so the
-          holding page shows the chrome a visitor will actually get. What differs is that
-          nothing here navigates: each control answers with the SOON badge instead. */}
+          full-width search, the appearance settings button, hamburger, no desktop nav
+          bar — down to the classes, so the holding page shows the chrome a visitor will
+          actually get. What differs is that nothing here navigates: each control answers
+          with the SOON badge instead. */}
       {isConstructionMode && (
       <header className="app-header theme-chrome-dark theme-header-surface backdrop-blur-sm backdrop-safe">
         <div className="flex w-full items-center gap-3 px-4 py-3 min-[1600px]:px-6 gap-fallback-row-4">
@@ -145,15 +146,21 @@ export function HomeExperience({
             </form>
           </div>
 
-          <div className="relative ml-auto flex-shrink-0">
+          <div className="ml-auto flex flex-shrink-0 items-center gap-2">
+            {/* The mock mirrors the live mobile order: appearance settings left of the
+                hamburger. The axes stay — a visitor may as well see the site in the
+                appearance they prefer — but the Theme Lab is withheld because its
+                authoring routes are absent from the construction host. */}
+            <AppearanceControls allowThemeLab={false} />
+            <div className="relative">
             <button
               type="button"
               onClick={() => setIsMenuOpen((current) => !current)}
               data-open={isMenuOpen}
               // The live header's toggle is the `Button` primitive, whose base classes
-              // carry the centring; a bare <button> only inherits `text-align`, which a
-              // block-level SVG ignores - the glyph sat flush against the left edge.
-              className="theme-icon-button theme-mobile-menu-toggle inline-flex h-11 w-11 items-center justify-center rounded-2xl"
+              // carry the centring; this bare button supplies it explicitly while keeping
+              // the 44px touch target visually transparent.
+              className="theme-header-icon-button theme-focus-ring inline-flex h-11 w-11 items-center justify-center rounded-xl transition-colors"
               aria-haspopup="true"
               aria-expanded={isMenuOpen}
               aria-controls="mock-mobile-nav"
@@ -201,6 +208,8 @@ export function HomeExperience({
                 ))}
               </div>
             )}
+            </div>
+
           </div>
         </div>
       </header>
@@ -214,18 +223,6 @@ export function HomeExperience({
         <div
           aria-hidden="true"
           className="theme-home-ambient absolute inset-0 -z-20"
-        />
-        {/* The positioning lives on the cog's own trigger: `theme-home-theme-toggle` is the
-            hook the search-mode rules reposition, so any wrapper between this class and the
-            button would take the offset and leave the control where it was.
-
-            The blocked landing keeps the four appearance axes — a visitor may as well see
-            the site in the appearance they prefer — but withholds the Theme Lab. The Lab
-            authors and shares custom palettes through routes the construction hosts do not
-            serve, so its drawer would open onto a surface that cannot answer. */}
-        <AppearanceControls
-          className="theme-home-theme-toggle fixed bottom-4 right-4 z-30 sm:bottom-6 sm:right-6"
-          allowThemeLab={!isConstructionMode}
         />
 
         <section className="theme-home-stage mx-auto flex w-full max-w-5xl flex-col items-center transition-[max-width,padding,transform] duration-300 ease-out">

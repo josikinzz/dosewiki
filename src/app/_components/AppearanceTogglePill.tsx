@@ -1,128 +1,144 @@
 "use client";
 
-import type { ReactNode } from "react";
+import {
+  useId,
+  useRef,
+  type KeyboardEvent as ReactKeyboardEvent,
+  type ReactNode,
+} from "react";
+
 import { cn } from "@/lib/utils";
 
-/** The appearance axis a pill owns. Mirrored to the DOM for tests and skin hooks. */
-type AppearanceAxis = "color-scheme" | "visual-style" | "font";
+/** The appearance axis a segmented picker owns. Mirrored to the DOM for tests and skins. */
+type AppearanceAxis = "color-scheme" | "visual-style";
 
-/**
- * `w-1/2` rather than a stated pixel width: two halves of the pill's content box
- * always fit it exactly, so the slot pitch is a property of the box instead of an
- * accident of flex-shrink. See the geometry contract below.
- */
-const SLOT_CLASS =
-  "relative z-10 inline-flex h-9 w-1/2 items-center justify-center transition-colors duration-300 motion-reduce:transition-none";
-const ACTIVE_SLOT_CLASS = "theme-toggle-icon-accent";
-const INACTIVE_SLOT_CLASS = "theme-toggle-icon-muted";
-
-interface AppearanceTogglePillProps {
-  axis: AppearanceAxis;
-  /** Active value on this axis, mirrored to the DOM. */
-  value: string;
-  /** Slot the thumb rests under: the left option or the right one. */
-  side: "start" | "end";
-  /**
-   * Pressed state for this axis alone. Both appearance pills sit in the cog's panel and
-   * must never mirror each other, so each publishes its own state.
-   */
-  pressed: boolean;
-  /** Action-shaped accessible name, e.g. "Switch to day mode". Also the tooltip. */
+export type AppearanceToggleOption<Value extends string> = {
+  value: Value;
   label: string;
-  onToggle: () => void;
-  start: ReactNode;
-  end: ReactNode;
+  icon: ReactNode;
+};
+
+interface AppearanceTogglePillProps<Value extends string> {
+  axis: AppearanceAxis;
+  /** Visible category label, e.g. "Theme style" or "Darkness". */
+  label: string;
+  value: Value;
+  options: readonly [AppearanceToggleOption<Value>, AppearanceToggleOption<Value>];
+  onChange: (value: Value) => void;
 }
 
 /**
- * The shared two-state appearance switch: an 80x44px pill whose thumb slides between
- * two half-width slots.
+ * A named two-option appearance picker.
  *
- * Day/Night and Fun/Pro are geometric twins on purpose — identical size, thumb
- * travel and colour recipe — so the pair reads as two independent switches on one
- * instrument rather than as one four-state control. It reuses the existing
- * `theme-toggle-*` recipe, so every style and scheme already dresses both pills.
- *
- * Geometry contract: every box here is derived, never asserted. The thumb is
- * inset-positioned (`inset-y-1 left-1 right-1/2`) and travels by `translate-x-full`;
- * the slots take `w-1/2`. For a pill of border-box width W with border b and padding
- * p, the thumb spans (W - 2b)/2 - p and a slot spans (W - 2b - 2p)/2 — algebraically
- * the same number, both offset b + p from the left edge. The travel is 100% of the
- * thumb's own width, so thumb pitch equals slot pitch by construction at any pill
- * width and any border thickness, and the thumb shares a centre with the active slot
- * in both states. Insets also centre vertically for free: they resolve symmetrically
- * inside the padding box, which a symmetric border leaves centred in the border box.
- *
- * That identity is the fix for a measured defect. The previous `left-1 top-1 h-9 w-9`
- * plus `translate-x-9` asserted 36px over a box that could not grant it — the 80px pill
- * less its 1px border (`utilities-theme.css:3024`) and `px-1` leaves a 70px content box,
- * so two 36px slots shrank to 35px while the absolutely positioned thumb, not being a
- * flex item, kept 36px. Measured by `getBoundingClientRect()` in the running app: the
- * thumb sat 0.5px right of its slot at rest and 1.5px right at the far end, because 36px
- * of travel crossed a 35px pitch; and vertically it was not so much 1px low as 2px
- * lopsided, 5px of pill above it against 3px below, because `top-1` resolves against the
- * padding box that the border had already inset. The glyphs were centred in their slots
- * to 0.0px in both states, so what read as an off-centre icon was the puck having moved:
- * nudging a glyph would have squared one state and broken the other. Nothing here is
- * glyph-specific.
- *
- * `inset-y-1` deliberately matches the pill's `px-1`, and the match is the point — the
- * thumb then clears the border box by b + p = 5px on all four sides, so a round thumb is
- * concentric with the round pill and the ring around it is a constant 5px. Read the puck
- * going 36px -> 34px together with that and never on its own: it is 2px smaller and, for
- * the first time, evenly ringed, where before it was 5px clear above and 3px below. The
- * fatter `inset-y-0.5` puck was rejected for the opposite trade — 38px tall but ringed
- * 3px vertically against 5px at the caps, and a ring that changes width around a
- * full-round cap reads as a squashed puck, which is the complaint this change answers.
- * The `box-shadow` those `.theme-toggle-thumb` rules carry survives the smaller radius,
- * measured rather than assumed: Pro's is `0 0 #0000`, and Fun's `0 16px 32px -28px` drop
- * term (`site-colors.css:393`) contracts its shadow rect by 28px a side, which a 35px
- * puck cannot survive at any height — rendered side by side, 35x34 and 35x36 are
- * pixel-identical with that term and without it. What paints is `inset 0 1px 0`, a
- * hairline whose 1px thickness no height can change.
+ * Each choice is exposed as a radio so the visible labels, checked state, screen-reader
+ * output, and arrow-key behavior stay aligned. Pointer/Enter/Space activation keeps the
+ * toggle contract: pressing either half always flips to the other value, including when
+ * the pressed half is already checked. The moving seat preserves the compact control
+ * language shared with the font picker without asking a reader to decode icons alone.
  */
-export function AppearanceTogglePill({
+export function AppearanceTogglePill<Value extends string>({
   axis,
-  value,
-  side,
-  pressed,
   label,
-  onToggle,
-  start,
-  end,
-}: AppearanceTogglePillProps) {
-  const startActive = side === "start";
+  value,
+  options,
+  onChange,
+}: AppearanceTogglePillProps<Value>) {
+  const labelId = useId();
+  const optionRefs = useRef<(HTMLButtonElement | null)[]>([]);
+  const selectedIndex = Math.max(
+    0,
+    options.findIndex((option) => option.value === value),
+  );
+
+  const select = (index: number, moveFocus: boolean) => {
+    const option = options[index];
+    if (option == null) return;
+    if (option.value !== value) onChange(option.value);
+    if (moveFocus) optionRefs.current[index]?.focus();
+  };
+
+  const activate = (index: number) => {
+    const option = options[index];
+    if (option == null) return;
+    const nextIndex = option.value === value ? (index + 1) % options.length : index;
+    select(nextIndex, false);
+  };
+
+  const handleKeyDown = (event: ReactKeyboardEvent<HTMLButtonElement>) => {
+    let next = -1;
+
+    switch (event.key) {
+      case "ArrowRight":
+      case "ArrowDown":
+        next = (selectedIndex + 1) % options.length;
+        break;
+      case "ArrowLeft":
+      case "ArrowUp":
+        next = (selectedIndex - 1 + options.length) % options.length;
+        break;
+      case "Home":
+        next = 0;
+        break;
+      case "End":
+        next = options.length - 1;
+        break;
+      default:
+        return;
+    }
+
+    event.preventDefault();
+    select(next, true);
+  };
 
   return (
-    <button
-      type="button"
-      onClick={onToggle}
-      aria-pressed={pressed}
-      aria-label={label}
-      title={label}
-      data-appearance-axis={axis}
-      data-appearance-value={value}
-      className="theme-toggle-pill relative inline-flex h-11 w-20 shrink-0 items-center rounded-full px-1 transition-[border-color,background-color] duration-300 motion-reduce:transition-none"
-    >
+    <div className="theme-appearance-field grid grid-cols-[minmax(0,5.75rem)_minmax(0,1fr)] items-center gap-3 max-[340px]:grid-cols-1 max-[340px]:gap-1.5">
       <span
-        aria-hidden="true"
-        className={cn(
-          "theme-toggle-thumb pointer-events-none absolute inset-y-1 left-1 right-1/2 rounded-full border transition-transform duration-300 motion-reduce:transition-none",
-          startActive ? "translate-x-0" : "translate-x-full",
-        )}
-      />
-      <span
-        aria-hidden="true"
-        className={cn(SLOT_CLASS, startActive ? ACTIVE_SLOT_CLASS : INACTIVE_SLOT_CLASS)}
+        id={labelId}
+        className="text-[0.6875rem] font-semibold uppercase tracking-[0.12em] text-dose-text-muted"
       >
-        {start}
+        {label}
       </span>
-      <span
-        aria-hidden="true"
-        className={cn(SLOT_CLASS, startActive ? INACTIVE_SLOT_CLASS : ACTIVE_SLOT_CLASS)}
+      <div
+        role="radiogroup"
+        aria-labelledby={labelId}
+        data-appearance-axis={axis}
+        data-appearance-value={value}
+        className="theme-toggle-pill relative grid h-11 min-w-0 grid-cols-2 items-center rounded-full px-1 transition-[border-color,background-color] duration-300 motion-reduce:transition-none [@media(pointer:coarse)]:h-13"
       >
-        {end}
-      </span>
-    </button>
+        <span
+          aria-hidden="true"
+          className={cn(
+            "theme-toggle-thumb pointer-events-none absolute inset-y-1 left-1 right-1/2 rounded-full border transition-transform duration-300 motion-reduce:transition-none",
+            selectedIndex === 0 ? "translate-x-0" : "translate-x-full",
+          )}
+        />
+        {options.map((option, index) => {
+          const checked = option.value === value;
+          return (
+            <button
+              key={option.value}
+              ref={(element) => {
+                optionRefs.current[index] = element;
+              }}
+              type="button"
+              role="radio"
+              aria-checked={checked}
+              tabIndex={checked ? 0 : -1}
+              onClick={() => activate(index)}
+              onKeyDown={handleKeyDown}
+              className={cn(
+                "theme-focus-ring relative z-10 inline-flex h-9 min-w-0 items-center justify-center gap-1.5 rounded-full px-2 text-xs font-semibold whitespace-nowrap transition-colors duration-300 motion-reduce:transition-none [@media(pointer:coarse)]:h-11",
+                checked ? "theme-toggle-icon-accent" : "theme-toggle-icon-muted",
+              )}
+            >
+              <span aria-hidden="true" className="shrink-0">
+                {option.icon}
+              </span>
+              <span>{option.label}</span>
+            </button>
+          );
+        })}
+      </div>
+    </div>
   );
 }

@@ -1,10 +1,11 @@
-import { render, screen, within } from "@testing-library/react";
+import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { forwardRef } from "react";
 import type { AnchorHTMLAttributes, ComponentType, ReactNode } from "react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { SITE_FLAVOR_CONFIG, SITE_FLAVOR_CONFIGS } from "@/config/siteFlavor";
 import { getRouteChromeModel } from "@/utils/routeChrome";
+import { ThemeProvider } from "../../context/ThemeContext";
 import { Header } from "./Header";
 
 vi.mock("next/link", () => ({
@@ -58,13 +59,26 @@ vi.mock("@/components/ui/button", () => ({
 const DOSEWIKI = SITE_FLAVOR_CONFIGS.dosewiki;
 const EFFECT_INDEX = SITE_FLAVOR_CONFIGS.effectindex;
 
+/**
+ * The header mounts the appearance settings button, which reads the theme context, so
+ * every render here mounts the provider it needs. Values pinned rather than inherited,
+ * on the same reasoning as the flavor pins above.
+ */
+function renderHeader(ui: ReactNode) {
+  return render(
+    <ThemeProvider initialColorScheme="dark" initialVisualStyle="fun" isVisualStyleLocked={false}>
+      {ui}
+    </ThemeProvider>,
+  );
+}
+
 describe("Header", () => {
   it("renders supplied model hrefs and active grouping", () => {
     // Pinned to dose.wiki rather than the ambient flavor. This case asserts
     // dose.wiki's nav shape — Substances/Effects/Reports — which the Effect Index
     // flavor does not have, so inheriting the environment made the whole file fail
     // under `NEXT_PUBLIC_SITE_FLAVOR=effectindex` even though nothing was broken.
-    render(
+    renderHeader(
       <Header model={getRouteChromeModel("/mechanism/5-ht2a-agonist", null, DOSEWIKI)} onNavigate={vi.fn()} />,
     );
 
@@ -84,7 +98,7 @@ describe("Header", () => {
   });
 
   it("keeps dose.wiki's nav flat: every top-level item is a link, no disclosure buttons", () => {
-    render(<Header model={getRouteChromeModel("/", null, DOSEWIKI)} onNavigate={vi.fn()} />);
+    renderHeader(<Header model={getRouteChromeModel("/", null, DOSEWIKI)} onNavigate={vi.fn()} />);
 
     for (const label of ["Substances", "Effects", "Reports", "About"]) {
       expect(screen.getByRole("link", { name: label })).toBeInTheDocument();
@@ -92,8 +106,55 @@ describe("Header", () => {
     }
     // The submenu path stays inert: nothing to expand, nothing to pop over.
     expect(screen.queryAllByRole("menu")).toHaveLength(0);
-    expect(document.querySelectorAll("[aria-expanded]")).toHaveLength(1); // the hamburger only
+    // The hamburger plus the two appearance settings mounts (desktop bar and mobile
+    // cluster) — Radix puts aria-expanded on each popover trigger.
+    expect(document.querySelectorAll("[aria-expanded]")).toHaveLength(3);
     expect(screen.queryByRole("link", { name: "Home" })).not.toBeInTheDocument();
+  });
+
+  describe("appearance settings button", () => {
+    it("separates settings after About on desktop and keeps it left of the mobile hamburger", () => {
+      renderHeader(<Header model={getRouteChromeModel("/", null, DOSEWIKI)} onNavigate={vi.fn()} />);
+
+      // Two mounts of one popover: the desktop bar's and the mobile cluster's. Only one
+      // is ever visible — the bars trade places at lg — but jsdom runs no media queries,
+      // so both are in the tree, in that order.
+      const cogs = screen.getAllByRole("button", { name: "Appearance settings" });
+      expect(cogs).toHaveLength(2);
+
+      // Desktop: About, then the utility divider, then the flat settings icon.
+      const about = screen.getByRole("link", { name: "About" });
+      const divider = document.querySelector<HTMLElement>(".theme-divider");
+      expect(divider).not.toBeNull();
+      expect(about.compareDocumentPosition(divider!)).toBe(Node.DOCUMENT_POSITION_FOLLOWING);
+      expect(divider!.compareDocumentPosition(cogs[0]!)).toBe(Node.DOCUMENT_POSITION_FOLLOWING);
+      expect(cogs[0]!.parentElement).not.toBeNull();
+      expect(cogs[0]!.parentElement!).toContainElement(about);
+
+      // Mobile: settings precedes the hamburger so navigation owns the top-right corner.
+      const hamburger = screen.getByRole("button", { name: "Toggle navigation" });
+      expect(cogs[1]!.compareDocumentPosition(hamburger)).toBe(Node.DOCUMENT_POSITION_FOLLOWING);
+    });
+
+    it("opens the panel the footer cog and homepage FAB used to open, and closes on a second press", async () => {
+      const user = userEvent.setup();
+      renderHeader(<Header model={getRouteChromeModel("/", null, DOSEWIKI)} onNavigate={vi.fn()} />);
+
+      await user.click(screen.getAllByRole("button", { name: "Appearance settings" })[0]!);
+      const panel = await screen.findByRole("dialog", { name: "Appearance settings" });
+
+      expect(
+        [...panel.querySelectorAll("[data-appearance-axis]")].map((control) =>
+          control.getAttribute("data-appearance-axis"),
+        ),
+      ).toEqual(["visual-style", "color-scheme", "font"]);
+      expect(within(panel).getByRole("radiogroup", { name: "Font" })).toBeInTheDocument();
+
+      await user.click(screen.getAllByRole("button", { name: "Appearance settings" })[0]!);
+      await waitFor(() => {
+        expect(screen.queryByRole("dialog", { name: "Appearance settings" })).not.toBeInTheDocument();
+      });
+    });
   });
 
   describe("Effect Index dropdowns", () => {
@@ -107,7 +168,7 @@ describe("Header", () => {
     };
 
     const renderEffectIndex = (pathname = "/") =>
-      render(
+      renderHeader(
         <Header model={getRouteChromeModel(pathname, null, EFFECT_INDEX)} onNavigate={vi.fn()} />,
       );
 
@@ -512,7 +573,7 @@ describe("Header", () => {
 
     describe("mobile sheet", () => {
       const openSheet = async (user: ReturnType<typeof userEvent.setup>, pathname = "/") => {
-        render(
+        renderHeader(
           <Header
             model={getRouteChromeModel(pathname, null, EFFECT_INDEX)}
             onNavigate={vi.fn()}

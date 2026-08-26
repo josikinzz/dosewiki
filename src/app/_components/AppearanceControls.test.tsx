@@ -70,13 +70,12 @@ function renderCog(
 async function openCog(user: UserEvent) {
   await user.click(screen.getByRole("button", { name: "Appearance settings" }));
 
-  return screen.findByRole("dialog", { name: "Appearance" });
+  return screen.findByRole("dialog", { name: "Appearance settings" });
 }
 
 describe("AppearanceCog", () => {
   // Pin the starting appearance in both places the provider can restore it from, so the
-  // "Switch to day mode" / "Switch to Pro visual style" queries below mean the same thing
-  // whichever publication flavor the suite runs under.
+  // checked Fun and Dark radio options mean the same thing under every publication flavor.
   beforeEach(() => {
     window.localStorage.clear();
     window.localStorage.setItem(COLOR_SCHEME_STORAGE_KEY, "dark");
@@ -84,6 +83,7 @@ describe("AppearanceCog", () => {
     setThemeLabOpen(false);
     document.documentElement.dataset.theme = "dark";
     document.documentElement.dataset.visualStyle = "fun";
+    delete document.documentElement.dataset.font;
   });
 
   it("presents one 44px cog and nothing else until it is opened", async () => {
@@ -102,13 +102,14 @@ describe("AppearanceCog", () => {
     expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
 
     const panel = await openCog(user);
-    // The three binary axes, in order — and no swatches anywhere: the colour axes are
-    // sliders now, asserted below in the same visual order.
+    // The three axes, in order — and no swatches anywhere: the colour axes are
+    // sliders now, asserted below in the same visual order. The font axis carries
+    // its `data-appearance-axis` on the typeface radiogroup, the two binary axes
+    // on their pills.
     expect(
-      within(panel)
-        .getAllByRole("button")
-        .map((control) => control.dataset.appearanceAxis)
-        .filter(Boolean),
+      [...panel.querySelectorAll("[data-appearance-axis]")].map((control) =>
+        control.getAttribute("data-appearance-axis"),
+      ),
     ).toEqual(["visual-style", "color-scheme", "font"]);
     expect(
       within(panel)
@@ -117,30 +118,109 @@ describe("AppearanceCog", () => {
     ).toEqual([...SLIDER_NAMES]);
   });
 
-  it("visibly labels both colour axes while every slider keeps its own name", async () => {
+  it("visibly labels every appearance axis and states the color-reset scope", async () => {
     const user = userEvent.setup();
     renderCog();
 
     const panel = await openCog(user);
+    expect(within(panel).queryByRole("heading")).not.toBeInTheDocument();
+    expect(within(panel).getByRole("radiogroup", { name: "Theme style" })).toBeVisible();
+    expect(within(panel).getByRole("radiogroup", { name: "Darkness" })).toBeVisible();
+    expect(within(panel).getByRole("radiogroup", { name: "Font" })).toBeVisible();
     expect(within(panel).getByText("Surface")).toBeVisible();
     expect(within(panel).getByText("Accent")).toBeVisible();
-    expect(
-      [...panel.querySelectorAll("button, a")].map((control) => control.getAttribute("aria-label")),
-    ).toEqual([
-      "Switch to Pro visual style",
-      "Switch to day mode",
-      "Switch to dyslexic-friendly type",
-      // The colour reset and the compact Theme Lab entry sit at the end of the
-      // binary-control row, ahead of the slider pairs.
-      "Reset colors to default",
-      "Open Theme Lab",
-    ]);
-    expect(
-      [...panel.querySelectorAll("input")].map((control) => control.getAttribute("aria-label")),
-    ).toEqual([...SLIDER_NAMES]);
+    expect(within(panel).getAllByText("Hue")).toHaveLength(2);
+    expect(within(panel).getAllByText("Saturation")).toHaveLength(2);
+
+    const style = within(panel).getByRole("radiogroup", { name: "Theme style" });
+    expect(within(style).getByRole("radio", { name: "1" })).toHaveAttribute(
+      "aria-checked",
+      "true",
+    );
+    expect(within(style).getByRole("radio", { name: "2" })).toHaveAttribute(
+      "aria-checked",
+      "false",
+    );
+
+    const darkness = within(panel).getByRole("radiogroup", { name: "Darkness" });
+    expect(within(darkness).getByRole("radio", { name: "Dark" })).toHaveAttribute(
+      "aria-checked",
+      "true",
+    );
+    expect(within(darkness).getByRole("radio", { name: "Light" })).toHaveAttribute(
+      "aria-checked",
+      "false",
+    );
+
+    const font = within(panel).getByRole("radiogroup", { name: "Font" });
+    expect(within(font).getByRole("radio", { name: "Standard" })).toHaveAttribute(
+      "aria-checked",
+      "true",
+    );
+    expect(within(font).getByRole("radio", { name: "Dyslexic-friendly" })).toHaveAttribute(
+      "aria-checked",
+      "false",
+    );
+
+    expect(within(font).getByText("Standard")).toHaveClass("theme-font-preview-standard");
+    expect(within(font).getByText("Dyslexic-friendly")).toHaveClass(
+      "theme-font-preview-dyslexic",
+    );
+
+    expect(within(panel).getByRole("button", { name: "Reset colors" })).toBeVisible();
+    expect(within(panel).queryByText("Restores Surface and Accent defaults.")).not.toBeInTheDocument();
     expect(
       within(panel).getByRole("button", { name: "Open Theme Lab" }),
     ).toHaveAccessibleName("Open Theme Lab");
+  });
+
+  it("selects the named font option and follows arrow-key radio behavior", async () => {
+    const user = userEvent.setup();
+    renderCog();
+
+    const panel = await openCog(user);
+    const font = within(panel).getByRole("radiogroup", { name: "Font" });
+    const standard = within(font).getByRole("radio", { name: "Standard" });
+    const dyslexic = within(font).getByRole("radio", { name: "Dyslexic-friendly" });
+
+    await user.click(dyslexic);
+    await waitFor(() => {
+      expect(document.documentElement.dataset.font).toBe("dyslexic");
+      expect(dyslexic).toHaveAttribute("aria-checked", "true");
+      expect(standard).toHaveAttribute("aria-checked", "false");
+    });
+
+    await user.keyboard("{ArrowLeft}");
+    await waitFor(() => {
+      expect(document.documentElement).not.toHaveAttribute("data-font");
+      expect(standard).toHaveAttribute("aria-checked", "true");
+      expect(standard).toHaveFocus();
+    });
+  });
+
+  it("flips every binary axis when its checked half is activated", async () => {
+    const user = userEvent.setup();
+    renderCog();
+
+    const panel = await openCog(user);
+    const style = within(panel).getByRole("radiogroup", { name: "Theme style" });
+    const darkness = within(panel).getByRole("radiogroup", { name: "Darkness" });
+    const font = within(panel).getByRole("radiogroup", { name: "Font" });
+
+    await user.click(within(style).getByRole("radio", { name: "1" }));
+    await waitFor(() => {
+      expect(document.documentElement.dataset.visualStyle).toBe("pro");
+    });
+
+    await user.click(within(darkness).getByRole("radio", { name: "Dark" }));
+    await waitFor(() => {
+      expect(document.documentElement.dataset.theme).toBe("light");
+    });
+
+    await user.click(within(font).getByRole("radio", { name: "Standard" }));
+    await waitFor(() => {
+      expect(document.documentElement.dataset.font).toBe("dyslexic");
+    });
   });
 
   it("starts a touch drag on first contact anywhere along a slider", async () => {
@@ -192,7 +272,7 @@ describe("AppearanceCog", () => {
     renderCog(
       {},
       // A second, independently mounted pair. Were the controls holding local state, these
-      // would disagree with the cog's panel after the first click.
+      // would disagree with the cog's panel after the first selection.
       <>
         <ThemeToggle />
         <VisualStyleToggle />
@@ -200,22 +280,28 @@ describe("AppearanceCog", () => {
     );
 
     const panel = await openCog(user);
-    // Driven from inside the panel: clicking the loose pair instead would be an outside
+    // Driven from inside the panel: selecting the loose pair instead would be an outside
     // click and dismiss the popover before the second half of the assertion.
-    await user.click(within(panel).getByRole("button", { name: "Switch to day mode" }));
+    await user.click(within(panel).getByRole("radio", { name: "Light" }));
 
     await waitFor(() => {
-      const dayNight = screen.getAllByRole("button", { name: "Switch to night mode" });
-      expect(dayNight).toHaveLength(2);
-      expect(dayNight.map((pill) => pill.getAttribute("aria-pressed"))).toEqual(["true", "true"]);
+      const lightOptions = screen.getAllByRole("radio", { name: "Light" });
+      expect(lightOptions).toHaveLength(2);
+      expect(lightOptions.map((option) => option.getAttribute("aria-checked"))).toEqual([
+        "true",
+        "true",
+      ]);
     });
 
-    await user.click(within(panel).getByRole("button", { name: "Switch to Pro visual style" }));
+    await user.click(within(panel).getByRole("radio", { name: "2" }));
 
     await waitFor(() => {
-      const funPro = screen.getAllByRole("button", { name: "Switch to Fun visual style" });
-      expect(funPro).toHaveLength(2);
-      expect(funPro.map((pill) => pill.dataset.appearanceValue)).toEqual(["pro", "pro"]);
+      const styleGroups = screen.getAllByRole("radiogroup", { name: "Theme style" });
+      expect(styleGroups).toHaveLength(2);
+      expect(styleGroups.map((group) => group.getAttribute("data-appearance-value"))).toEqual([
+        "pro",
+        "pro",
+      ]);
     });
   });
 
@@ -224,8 +310,8 @@ describe("AppearanceCog", () => {
     renderCog();
 
     await openCog(user);
-    await user.click(screen.getByRole("button", { name: "Switch to Pro visual style" }));
-    await user.click(screen.getByRole("button", { name: "Switch to day mode" }));
+    await user.click(screen.getByRole("radio", { name: "2" }));
+    await user.click(screen.getByRole("radio", { name: "Light" }));
 
     await waitFor(() => {
       expect(document.documentElement.dataset.visualStyle).toBe("pro");
@@ -243,35 +329,27 @@ describe("AppearanceCog", () => {
     expect(cog).toHaveFocus();
     await user.keyboard("{Enter}");
 
-    const panel = await screen.findByRole("dialog", { name: "Appearance" });
-    // The panel is portalled, so tab order is no longer "the next sibling in the markup".
-    // Visual order and focus order agree: the three binary toggles, the colour
-    // reset, the compact Theme Lab entry, then each colour axis's hue slider
-    // followed by its saturation slider.
-    const reachable = within(panel).getAllByRole("button");
-    const sliders = within(panel).getAllByRole("slider");
-    expect(reachable.map((control) => control.getAttribute("aria-label"))).toEqual([
-      "Switch to Pro visual style",
-      "Switch to day mode",
-      "Switch to dyslexic-friendly type",
-      "Reset colors to default",
-      "Open Theme Lab",
-    ]);
-    expect(sliders.map((slider) => slider.getAttribute("aria-label"))).toEqual([
-      ...SLIDER_NAMES,
-    ]);
+    const panel = await screen.findByRole("dialog", { name: "Appearance settings" });
+    // Each segmented choice is one tab stop, entered on its checked radio. The sliders,
+    // scoped color reset, and dev-only Theme Lab action follow in their visual sections.
+    const focusSequence = [
+      within(panel).getByRole("radio", { name: "1" }),
+      within(panel).getByRole("radio", { name: "Dark" }),
+      within(panel).getByRole("radio", { name: "Standard" }),
+      ...within(panel).getAllByRole("slider"),
+      within(panel).getByRole("button", { name: "Reset colors" }),
+      within(panel).getByRole("button", { name: "Open Theme Lab" }),
+    ];
 
     await waitFor(() => {
-      expect(reachable[0]).toHaveFocus();
+      expect(focusSequence[0]).toHaveFocus();
     });
 
-    const order = [...reachable.slice(1), ...sliders];
-    for (const control of order) {
+    for (const control of focusSequence.slice(1)) {
       await user.tab();
       expect(control).toHaveFocus();
     }
 
-    // Every axis is operable once reached, not merely focusable.
     await user.keyboard("{Escape}");
     await waitFor(() => {
       expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
@@ -280,12 +358,12 @@ describe("AppearanceCog", () => {
 
     await user.keyboard(" ");
     await user.tab();
-    expect(screen.getByRole("button", { name: "Switch to day mode" })).toHaveFocus();
-    await user.keyboard("{Enter}");
+    expect(screen.getByRole("radio", { name: "Dark" })).toHaveFocus();
+    await user.keyboard("{ArrowRight}");
 
     await waitFor(() => {
-      expect(screen.getByRole("button", { name: "Switch to night mode" })).toHaveAttribute(
-        "aria-pressed",
+      expect(screen.getByRole("radio", { name: "Light" })).toHaveAttribute(
+        "aria-checked",
         "true",
       );
     });
@@ -356,7 +434,30 @@ describe("AppearanceCog", () => {
     // The untouched axis did not move with it.
     expect(window.localStorage.getItem(SURFACE_HUE_STORAGE_KEY)).toBeNull();
     // The panel stays open, so the reader can compare rotations without reopening it.
-    expect(screen.getByRole("dialog", { name: "Appearance" })).toBeInTheDocument();
+    expect(screen.getByRole("dialog", { name: "Appearance settings" })).toBeInTheDocument();
+  });
+
+  it("resets only Surface and Accent while preserving the other appearance choices", async () => {
+    const user = userEvent.setup();
+    renderCog();
+
+    const panel = await openCog(user);
+    const accentHue = within(panel).getByRole<HTMLInputElement>("slider", {
+      name: "Accent hue",
+    });
+    fireEvent.change(accentHue, { target: { value: "249" } });
+    await user.click(within(panel).getByRole("radio", { name: "2" }));
+    await user.click(within(panel).getByRole("radio", { name: "Light" }));
+    await user.click(within(panel).getByRole("radio", { name: "Dyslexic-friendly" }));
+    await user.click(within(panel).getByRole("button", { name: "Reset colors" }));
+
+    await waitFor(() => {
+      expect(window.localStorage.getItem(ACCENT_HUE_STORAGE_KEY)).toBeNull();
+      expect(accentHue.value).toBe(String(DEFAULT_APPEARANCE_COLORS.pro.light.accentHue));
+      expect(document.documentElement.dataset.visualStyle).toBe("pro");
+      expect(document.documentElement.dataset.theme).toBe("light");
+      expect(document.documentElement.dataset.font).toBe("dyslexic");
+    });
   });
 
   it("drops a locked row rather than rendering it inert", async () => {
@@ -371,7 +472,9 @@ describe("AppearanceCog", () => {
 
     const panel = await openCog(user);
 
-    expect(within(panel).queryByRole("button", { name: /visual style/ })).not.toBeInTheDocument();
+    expect(
+      within(panel).queryByRole("radiogroup", { name: "Theme style" }),
+    ).not.toBeInTheDocument();
     expect(within(panel).queryByRole("group", { name: "Surface" })).not.toBeInTheDocument();
     expect(within(panel).queryByRole("group", { name: "Accent" })).not.toBeInTheDocument();
     expect(within(panel).queryByRole("slider")).not.toBeInTheDocument();
@@ -380,9 +483,9 @@ describe("AppearanceCog", () => {
     // meaning anything if the link's name ever changes.
     expect(within(panel).queryByRole("link")).not.toBeInTheDocument();
     expect(
-      within(panel)
-        .getAllByRole("button")
-        .map((control) => control.dataset.appearanceAxis),
+      [...panel.querySelectorAll("[data-appearance-axis]")].map((control) =>
+        control.getAttribute("data-appearance-axis"),
+      ),
     ).toEqual(["color-scheme"]);
   });
 
@@ -517,8 +620,10 @@ describe("AppearanceControls", () => {
 
     // The lock is read from the provider, the only thing that knows whether setVisualStyle
     // does anything, rather than re-derived from the flavor config.
-    expect(within(panel).queryByRole("button", { name: /visual style/ })).not.toBeInTheDocument();
-    expect(within(panel).getByRole("button", { name: /day mode|night mode/ })).toBeInTheDocument();
+    expect(
+      within(panel).queryByRole("radiogroup", { name: "Theme style" }),
+    ).not.toBeInTheDocument();
+    expect(within(panel).getByRole("radiogroup", { name: "Darkness" })).toBeInTheDocument();
   });
 
   it("omits the accent sliders when the publication locks the accent axis", async () => {
@@ -549,7 +654,7 @@ describe("AppearanceControls", () => {
     await user.click(within(panel).getByRole("button", { name: "Open Theme Lab" }));
 
     expect(getThemeLabOpen()).toBe(true);
-    expect(screen.queryByRole("dialog", { name: "Appearance" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("dialog", { name: "Appearance settings" })).not.toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Appearance settings" })).toHaveAttribute(
       "aria-expanded",
       "false",
@@ -569,19 +674,19 @@ describe("AppearanceControls", () => {
     // The pre-launch holding page's cog: a visitor still picks an appearance, but the Lab
     // authors and shares palettes over routes the construction hosts do not serve.
     expect(within(panel).queryByRole("button", { name: "Open Theme Lab" })).not.toBeInTheDocument();
-    expect(within(panel).getByRole("button", { name: /day mode|night mode/ })).toBeInTheDocument();
+    expect(within(panel).getByRole("radiogroup", { name: "Darkness" })).toBeInTheDocument();
     expect(within(panel).getByRole("group", { name: "Accent" })).toBeInTheDocument();
   });
 
   it("puts the caller's class on the trigger itself, with no wrapper to take the offset", () => {
     render(
       <ThemeProvider initialColorScheme="dark" initialVisualStyle="fun" isVisualStyleLocked={false}>
-        <AppearanceControls className="theme-home-theme-toggle fixed bottom-4 right-4" />
+        <AppearanceControls className="caller-positioning-hook" />
       </ThemeProvider>,
     );
 
     expect(screen.getByRole("button", { name: "Appearance settings" }).className).toMatch(
-      /theme-home-theme-toggle/,
+      /caller-positioning-hook/,
     );
   });
 });

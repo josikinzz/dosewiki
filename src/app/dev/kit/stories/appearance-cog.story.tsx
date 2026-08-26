@@ -8,7 +8,7 @@ export const appearanceCogStory: StoryDef = {
   tier: "layout",
   status: "stable",
   summary:
-    "The reader's single appearance control: a 44px cog opens the Fun/Pro and Day/Night controls, Surface and Accent hue/saturation sliders, and an explicit Theme Lab action. Pro keeps the Surface rows visible but disabled because its materials are fixed.",
+    "The reader's single appearance control: a 44px settings gear opens a narrow, permanently dark panel with named Theme style, Darkness, and Font selectors; labeled Surface and Accent hue/saturation sliders; a scoped color reset; and an explicit Theme Lab action.",
   source: "src/app/_components/AppearanceCog.tsx",
   importLine: 'import { AppearanceControls } from "@/app/_components/AppearanceControls";',
   // The symbol lives in src/app/_components, not in a shared ui/common/layout barrel, so the
@@ -18,7 +18,7 @@ export const appearanceCogStory: StoryDef = {
   examples: [
     {
       label: "DoseWiki",
-      note: "The shipped DoseWiki panel: both binary controls, both slider rows, and the Theme Lab action at the end.",
+      note: "The shipped DoseWiki panel: three labeled preference rows, both labeled color axes, a scoped color reset, and the Theme Lab action.",
       background: "plain",
       render: () => (
         <AppearanceCog
@@ -48,7 +48,7 @@ export const appearanceCogStory: StoryDef = {
     },
     {
       label: "Style and accent locked",
-      note: "Effect Index: its identity is Pro and it ships no colour sliders, so neither control is present — never present and inert. Day/night remains, alone on row one.",
+      note: "Effect Index: its identity and accent are locked, so only its available Darkness control remains — omitted axes are never rendered inert.",
       background: "plain",
       render: () => (
         <AppearanceCog
@@ -67,18 +67,18 @@ export const appearanceCogStory: StoryDef = {
       name: "className",
       type: "string",
       description:
-        "Lands on the trigger button, with no wrapper in between. The homepage passes its fixed-position class here because search-mode CSS repositions that class.",
+        "Lands on the trigger button, with no wrapper in between, so a caller positioning the control directly can do so without an intermediate box taking the offset.",
     },
     {
       name: "showVisualStyle",
       type: "boolean",
       description:
-        "Renders the Fun/Pro pill. AppearanceControls passes !isVisualStyleLocked — a locked axis has no writable setter, so the control is omitted rather than disabled.",
+        "Renders the labeled Theme style selector with stable Fun and Pro radio options. A locked axis is omitted rather than disabled.",
     },
     {
       name: "showColorScheme",
       type: "boolean",
-      description: "Renders the Day/Night pill. Follows SITE_FLAVOR_CONFIG.showColorSchemeToggle.",
+      description: "Renders the labeled Darkness selector with stable Dark and Light options.",
     },
     {
       name: "showSurface",
@@ -96,7 +96,7 @@ export const appearanceCogStory: StoryDef = {
       name: "showFont",
       type: "boolean",
       description:
-        "Renders the dyslexic-friendly type pill (Lexend). AppearanceControls passes !isFontLocked; Effect Index locks the axis.",
+        "Renders the labeled Font selector: Standard / Dyslexic-friendly as named radio options, the latter set in a 14-glyph Lexend label subset so the preview costs nobody the full face.",
     },
     {
       name: "showMoreSettings",
@@ -114,8 +114,8 @@ export const appearanceCogStory: StoryDef = {
   ],
   notes: [
     "Mount AppearanceControls, not AppearanceCog: the row props are publication policy, not a caller decision.",
-    "The Surface sliders preview the effective material. Pro keeps its fixed restrained materials, so the Surface controls become disabled without discarding the stored levels.",
-    "Every colour choice is a (hue, saturation) pair over the one authored palette; there are no swatch registries left to enumerate.",
+    "The panel uses the sticky header's dark chrome palette in both page schemes and a drop shadow, never a modal backdrop.",
+    "Every color choice is a labeled (hue, saturation) pair over the authored palette. Reset colors restores only Surface and Accent defaults, and says so beneath the action.",
     "Escape closes the panel and is stopped inside it, so it cannot also reach a page-level Escape handler above the portal. Closing returns focus to the cog.",
   ],
 };

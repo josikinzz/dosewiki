@@ -108,3 +108,28 @@ export const dyslexicFont = localFont({
     },
   ],
 });
+
+/**
+ * The picker's preview face — a 14-glyph subset of the face above carrying exactly
+ * the "Dyslexic-friendly" option label (`--text="Dyslexic-friendly"`, regeneration
+ * command in `public/fonts/lexend/README.md`). It exists so the appearance panel can
+ * set that one label in the face the option selects: ~4 KB fetched only when the panel
+ * first renders the picker, versus ~40 KB for the full face. Same registration terms —
+ * `preload: false`, `display: "swap"` — so a reader who never opens the panel pays
+ * nothing but the `@font-face` block.
+ *
+ * The subset is a label preview, not a second font axis: selecting the option still
+ * loads the full face through `--font-dyslexic` on the root attribute's terms.
+ */
+export const dyslexicPreviewFont = localFont({
+  variable: "--font-dyslexic-preview",
+  display: "swap",
+  preload: false,
+  src: [
+    {
+      path: "../../../public/fonts/lexend/lexend-dyslexic-label-preview.woff2",
+      weight: "100 900",
+      style: "normal",
+    },
+  ],
+});

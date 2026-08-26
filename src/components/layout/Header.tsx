@@ -5,6 +5,7 @@ import type {
   KeyboardEvent as ReactKeyboardEvent,
   MouseEvent as ReactMouseEvent,
 } from "react";
+import { AppearanceControls } from "@/app/_components/AppearanceControls";
 import { DoseWikiLogo } from "../common/DoseWikiLogo";
 import { Icon } from "../common/Icon";
 import { SiteWordmark } from "../common/SiteWordmark";
@@ -701,8 +702,6 @@ export function Header({
             ))}
           </nav>
 
-          <div className="theme-divider mx-2 h-6 w-px" />
-
           {aboutItem && (
             <DesktopNavItem
               item={aboutItem}
@@ -714,63 +713,80 @@ export function Header({
               className="theme-header-nav-link theme-focus-ring flex min-h-11 items-center gap-2.5 rounded-full border border-transparent px-4 py-2 text-sm font-medium"
             />
           )}
+
+          <div className="theme-divider mx-2 h-6 w-px" />
+
+          {/* Desktop settings is a flat 22px glyph, matching the adjacent navigation
+              icons; the divider alone marks the boundary after About. */}
+          <AppearanceControls iconSize={22} />
         </div>
 
-        <div className={forceMobileNav ? "relative ml-auto flex-shrink-0" : "relative ml-auto flex-shrink-0 lg:hidden"}>
-          <Button
-            ref={menuButtonRef}
-            variant="ghost"
-            size="icon"
-            onClick={() => setIsMenuOpen((prev) => !prev)}
-            data-open={isMenuOpen}
-            className="theme-icon-button theme-mobile-menu-toggle h-11 w-11 rounded-2xl"
-            aria-haspopup="true"
-            aria-expanded={isMenuOpen}
-            aria-controls="mobile-nav"
-          >
-            <Icon
-              icon={isMenuOpen ? "lucide:x" : "lucide:menu"}
-              size={28}
-              className="!h-7 !w-7"
-            />
-            <span className="sr-only">Toggle navigation</span>
-          </Button>
-
-          {isMenuOpen && (
-            <div
-              ref={menuPanelRef}
-              id="mobile-nav"
-              className="theme-overlay-surface theme-mobile-nav-panel absolute right-0 top-[calc(100%+0.5rem)] w-64 origin-top-right rounded-2xl border p-2.5 shadow-[var(--theme-elevation-xl)] ring-1 ring-dose-divider backdrop-blur-sm"
+        <div
+          className={
+            forceMobileNav
+              ? "ml-auto flex flex-shrink-0 items-center gap-2"
+              : "ml-auto flex flex-shrink-0 items-center gap-2 lg:hidden"
+          }
+        >
+          {/* Appearance settings stays left of the mobile menu so the familiar hamburger
+              owns the top-right corner. This mount keeps the larger touch-context glyph. */}
+          <AppearanceControls />
+          <div className="relative">
+            <Button
+              ref={menuButtonRef}
+              variant="quiet"
+              size="icon"
+              onClick={() => setIsMenuOpen((prev) => !prev)}
+              data-open={isMenuOpen}
+              className="theme-header-icon-button h-11 w-11 rounded-xl"
+              aria-haspopup="true"
+              aria-expanded={isMenuOpen}
+              aria-controls="mobile-nav"
             >
-              <nav className="flex flex-col gap-1">
-                {model.primaryNavItems.map((item) => (
+              <Icon
+                icon={isMenuOpen ? "lucide:x" : "lucide:menu"}
+                size={28}
+                className="!h-7 !w-7"
+              />
+              <span className="sr-only">Toggle navigation</span>
+            </Button>
+
+            {isMenuOpen && (
+              <div
+                ref={menuPanelRef}
+                id="mobile-nav"
+                className="theme-overlay-surface theme-mobile-nav-panel absolute right-0 top-[calc(100%+0.5rem)] w-64 origin-top-right rounded-2xl border p-2.5 shadow-[var(--theme-elevation-xl)] ring-1 ring-dose-divider backdrop-blur-sm"
+              >
+                <nav className="flex flex-col gap-1">
+                  {model.primaryNavItems.map((item) => (
+                    <MobileNavItem
+                      key={item.id}
+                      item={item}
+                      iconSize={24}
+                      showActiveIndicator
+                      isExpanded={expandedMobileIds.includes(item.id)}
+                      onToggle={toggleMobileGroup}
+                      onNavigate={() => setIsMenuOpen(false)}
+                      className="theme-header-nav-link theme-focus-ring theme-mobile-nav-link flex min-h-11 items-center gap-3.5 rounded-xl border border-transparent px-3 py-2.5 text-sm font-semibold"
+                    />
+                  ))}
+                </nav>
+
+                <div className="theme-gradient-divider my-2 h-px" />
+
+                {aboutItem && (
                   <MobileNavItem
-                    key={item.id}
-                    item={item}
+                    item={aboutItem}
                     iconSize={24}
-                    showActiveIndicator
-                    isExpanded={expandedMobileIds.includes(item.id)}
+                    isExpanded={expandedMobileIds.includes(aboutItem.id)}
                     onToggle={toggleMobileGroup}
                     onNavigate={() => setIsMenuOpen(false)}
                     className="theme-header-nav-link theme-focus-ring theme-mobile-nav-link flex min-h-11 items-center gap-3.5 rounded-xl border border-transparent px-3 py-2.5 text-sm font-semibold"
                   />
-                ))}
-              </nav>
-              
-              <div className="theme-gradient-divider my-2 h-px" />
-              
-              {aboutItem && (
-                <MobileNavItem
-                  item={aboutItem}
-                  iconSize={24}
-                  isExpanded={expandedMobileIds.includes(aboutItem.id)}
-                  onToggle={toggleMobileGroup}
-                  onNavigate={() => setIsMenuOpen(false)}
-                  className="theme-header-nav-link theme-focus-ring theme-mobile-nav-link flex min-h-11 items-center gap-3.5 rounded-xl border border-transparent px-3 py-2.5 text-sm font-semibold"
-                />
-              )}
-            </div>
-          )}
+                )}
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </header>

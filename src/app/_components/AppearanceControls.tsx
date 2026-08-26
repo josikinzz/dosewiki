@@ -23,19 +23,22 @@ import { AppearanceCog } from "./AppearanceCog";
  * presentation, not a security boundary — the Lab's own routes stay gated
  * server-side.
  *
- * `className` lands on the trigger itself because the homepage positions that
- * button directly.
+ * `className` lands on the trigger itself, with no wrapper, so a caller positioning the
+ * button directly never fights an intermediate box for the offset.
+ * `iconSize` changes only the glyph; the trigger keeps its 44px hit target.
  *
  * `allowThemeLab` is the caller's veto over that drawer, not a second policy: the
- * pre-launch holding page mounts this cog so a visitor can still pick an appearance,
+ * pre-launch holding page mounts this control so a visitor can still pick an appearance,
  * but the Lab authors and shares palettes through routes the construction hosts do
  * not serve, so there the drawer is withheld.
  */
 export function AppearanceControls({
   className,
+  iconSize,
   allowThemeLab = true,
 }: {
   className?: string;
+  iconSize?: number;
   allowThemeLab?: boolean;
 }) {
   const { isVisualStyleLocked, isSurfaceLocked, isAccentLocked, isFontLocked } = useTheme();
@@ -55,6 +58,7 @@ export function AppearanceControls({
   return (
     <AppearanceCog
       className={className}
+      iconSize={iconSize}
       showVisualStyle={!isVisualStyleLocked}
       showColorScheme={SITE_FLAVOR_CONFIG.showColorSchemeToggle}
       showSurface={!isSurfaceLocked}

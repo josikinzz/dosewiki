@@ -525,13 +525,16 @@ html[data-visual-style="pro"][data-theme="dark"] {
      the face that build has already fetched instead of registering the same
      four woff2 files a second time.
 
-     Both families have to be named. base.css binds --font-family-display to
+     All three families have to be named. base.css binds --font-family-display to
      var(--font-display), which is Blinker on dose.wiki, so Pro states its own
-     display face rather than inheriting the build's. Each next/font variable
-     already expands to the face plus its metric-matched fallback, so the swap
-     changes letterforms and not line boxes. */
-  --font-family-body: var(--font-pro, var(--font-display)), "Titillium Web", Inter,
+     display face rather than inheriting the build's. The stable standard-body
+     token lets the font picker preview Pro while the document itself is wearing
+     the Dyslexic-friendly face. Each next/font variable already expands to the
+     face plus its metric-matched fallback, so the swap changes letterforms and
+     not line boxes. */
+  --font-family-standard-body: var(--font-pro, var(--font-display)), "Titillium Web", Inter,
     system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --font-family-body: var(--font-family-standard-body);
   --font-family-display: var(--font-pro, var(--font-display)), "Titillium Web", Inter,
     system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
 
@@ -1258,12 +1261,12 @@ html[data-visual-style="pro"] .theme-toggle-icon-muted {
   color: var(--ei-ink-3);
 }
 
-html[data-visual-style="pro"] :is(.app-header, .app-footer) .theme-toggle-thumb {
+html[data-visual-style="pro"] :is(.app-header, .app-footer, .theme-appearance-popover) .theme-toggle-thumb {
   border-color: var(--ei-chrome-border);
   background: var(--ei-chrome-raised);
 }
 
-html[data-visual-style="pro"] :is(.app-header, .app-footer) .theme-toggle-icon-muted {
+html[data-visual-style="pro"] :is(.app-header, .app-footer, .theme-appearance-popover) .theme-toggle-icon-muted {
   color: var(--ei-on-dark-muted);
 }
 
@@ -1411,12 +1414,9 @@ html[data-visual-style="pro"] .app-header {
   --theme-field-on-chrome-surface: var(--ei-chrome-raised);
   --theme-field-on-chrome-border: var(--ei-chrome-border);
 
-  /* Hamburger + active nav pill. Both families are needed: the hamburger is a
-     .theme-icon-button, and the group rule at utilities-theme.css:3411 comes
-     after .theme-mobile-menu-toggle (:2946) in the same layer, so the PLAIN
-     frosted-control family is what actually paints it. Leaving it unbound left
-     a white paper button on the charcoal bar. Mirrors .app-footer below, which
-     pins the same family for its icon buttons. */
+  /* Active navigation, footer controls, and settings-panel controls share these
+     frosted-control families. Re-seat them on the charcoal rail so a Pro reader
+     never gets a white paper control on dark chrome. */
   --theme-frosted-control-bg: var(--ei-chrome-raised);
   --theme-frosted-control-border: var(--ei-chrome-border);
   --theme-frosted-control-shadow: 0 0 0 1px var(--ei-chrome-border);
@@ -1439,6 +1439,42 @@ html[data-visual-style="pro"] .app-header {
   /* Appearance toggles ride the bar; their track has to recess against it
      rather than borrow the paper-scheme page value. */
   --theme-toggle-pill-bg: var(--ei-chrome-sunk);
+}
+
+/* Appearance is portalled outside `.app-header`, so it carries the header's charcoal
+   palette explicitly. The page may be light; every control in this island still resolves
+   the same on-dark ink, accent, and recessed control steps as the sticky rail. */
+html[data-visual-style="pro"] .theme-appearance-popover {
+  /* Important locally because generated reader palettes are injected after the static
+     sheets; this component boundary must stay chrome-dark even when those page tokens win. */
+  --theme-chrome-rail-bg: var(--ei-chrome-dark) !important;
+  --theme-chrome-rail-primary: var(--ei-chrome-dark) !important;
+  --theme-chrome-rail-secondary: var(--ei-chrome-dark) !important;
+  --theme-surface-strong: var(--ei-chrome-raised) !important;
+  --theme-text-primary: var(--ei-on-dark-muted) !important;
+  --theme-text-secondary: var(--ei-on-dark-muted) !important;
+  --theme-text-muted: var(--ei-on-dark-muted) !important;
+  --theme-text-faint: var(--ei-on-dark-faint) !important;
+  --theme-accent: var(--ei-accent-on-dark) !important;
+  --theme-accent-strong: var(--ei-accent-on-dark) !important;
+  --theme-accent-soft: var(--ei-accent-on-dark) !important;
+  --theme-frosted-control-bg: var(--ei-chrome-raised) !important;
+  --theme-frosted-control-border: var(--ei-chrome-border) !important;
+  --theme-frosted-control-shadow: 0 0 0 1px var(--ei-chrome-border) !important;
+  --theme-frosted-control-hover-bg: #454545 !important;
+  --theme-frosted-control-hover-border: #5c5c5c !important;
+  --theme-frosted-control-hover-shadow: 0 0 0 1px #5c5c5c !important;
+  --theme-frosted-control-on-panel-bg: var(--ei-chrome-raised) !important;
+  --theme-frosted-control-on-panel-border: var(--ei-chrome-border) !important;
+  --theme-frosted-control-on-panel-shadow: 0 0 0 1px var(--ei-chrome-border) !important;
+  --theme-frosted-control-on-panel-hover-bg: #454545 !important;
+  --theme-frosted-control-on-panel-hover-border: #5c5c5c !important;
+  --theme-frosted-control-on-panel-hover-shadow: 0 0 0 1px #5c5c5c !important;
+  --theme-frosted-panel-bg: var(--ei-chrome-raised) !important;
+  --theme-frosted-panel-border: var(--ei-chrome-border) !important;
+  --theme-divider: var(--ei-chrome-border) !important;
+  --theme-border-subtle: var(--ei-chrome-border) !important;
+  --theme-toggle-pill-bg: var(--ei-chrome-sunk) !important;
 }
 
 /* The wordmark's lead word sits at --theme-text-primary, which the block

@@ -46,3 +46,20 @@ html[data-font="dyslexic"][data-font][data-font] {
 html[data-font="dyslexic"][data-font][data-font] .font-sans {
   font-family: var(--font-family-body);
 }
+
+/* Each font-picker label stays in the face it offers instead of inheriting whichever
+   preference is active. --font-family-standard-body follows Fun/Pro but is deliberately
+   not re-seated by data-font="dyslexic"; the Dyslexic-friendly sample uses the committed
+   label-only subset below. */
+.theme-font-preview-standard {
+  font-family: var(--font-family-standard-body);
+}
+
+/* --font-dyslexic-preview is a 14-glyph subset registered only for this label
+   (src/app/_fonts/dosewiki.ts), so the panel previews Lexend without making every
+   reader fetch the full face. The full-face variable follows in the stack so the
+   label keeps rendering if the subset is ever missing. */
+.theme-font-preview-dyslexic {
+  font-family: var(--font-dyslexic-preview), var(--font-dyslexic), Lexend, Inter,
+    system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}

@@ -132,10 +132,37 @@ describe("site font selection", () => {
     expect(effectindex.toLowerCase()).not.toContain("lexend");
   });
 
+  it("registers the label-preview subset on the same terms as the full face", () => {
+    const source = stripComments(read(FLAVOR_MODULES.dosewiki));
+    const previewRegistration = source.slice(source.indexOf("export const dyslexicPreviewFont"));
+
+    // Same deal as the full face: zero preview bytes for a reader who never opens the
+    // panel — no preload link, swap display, the committed 14-glyph subset.
+    expect(previewRegistration).toContain('variable: "--font-dyslexic-preview"');
+    expect(previewRegistration).toContain("preload: false");
+    expect(previewRegistration).toContain('display: "swap"');
+    const preview = "public/fonts/lexend/lexend-dyslexic-label-preview.woff2";
+    expect(previewRegistration).toContain(preview.replace("public/", "../../../public/"));
+    expect(fs.existsSync(path.join(REPO_ROOT, preview))).toBe(true);
+
+    // The subset was generated with --text pinned to this label; if the picker's copy
+    // changes, the subset (public/fonts/lexend/README.md has the command) must change
+    // with it or the label falls back to the body face.
+    const pickerSource = stripComments(read("src/app/_components/FontPicker.tsx"));
+    expect(pickerSource).toContain('label: "Dyslexic-friendly"');
+    expect(pickerSource).toContain('previewClassName: "theme-font-preview-dyslexic"');
+
+    // Effect Index has no picker, so no preview registration either.
+    const effectindex = stripComments(read(FLAVOR_MODULES.effectindex));
+    expect(effectindex).toContain("export const dyslexicPreviewFont = null;");
+  });
+
   it("selects the module through the @site-font alias rather than in JavaScript", () => {
     const entry = stripComments(read("src/app/fonts.ts"));
 
-    expect(entry).toContain('export { dyslexicFont, proFont, siteFont } from "@site-font"');
+    expect(entry).toContain(
+      'export { dyslexicFont, dyslexicPreviewFont, proFont, siteFont } from "@site-font"',
+    );
     expect(entry).not.toContain("next/font");
     expect(entry).not.toContain("siteFlavor");
   });

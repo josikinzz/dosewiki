@@ -367,14 +367,16 @@ describe("pro visual style", () => {
   it("keeps literal colour in the palette, the rails and the theatre", () => {
     // The scheme axis lives in the seeds. A literal below the palette is a
     // value one scheme cannot reach — which is exactly how a sheet written for
-    // one scheme rots when a second one arrives. The two exemptions are
-    // scheme-independent by nature: the chrome rails are charcoal in BOTH
-    // schemes, and the lightbox is a darkened room in both.
+    // one scheme rots when a second one arrives. These exemptions are
+    // scheme-independent by nature: the chrome rails and their portalled
+    // Appearance panel are charcoal in BOTH schemes, and the lightbox is a
+    // darkened room in both.
     const exempt = [
       LIGHT_SCHEME_SCOPE,
       DARK_SCHEME_SCOPE,
       ".app-header",
       ".app-footer",
+      ".theme-appearance-popover",
       ".yarl__root",
     ];
     const offenders = blocks
@@ -456,13 +458,19 @@ describe("pro visual style", () => {
     }
   });
 
-  it("sets Pro type from the Pro face, not from the build's own face", () => {
+  it("keeps the style's standard body face available while Dyslexic-friendly is active", () => {
     // Effect Index ships Titillium as --font-display and defines no --font-pro;
     // dose.wiki registers it lazily as --font-pro and keeps Blinker on
     // --font-display. The fallback is what lets one declaration serve both.
-    for (const token of ["--font-family-body", "--font-family-display"]) {
-      expect(skin).toContain(`${token}: var(--font-pro, var(--font-display))`);
-    }
+    expect(skin).toContain(
+      "--font-family-standard-body: var(--font-pro, var(--font-display))",
+    );
+    expect(skin).toContain("--font-family-body: var(--font-family-standard-body)");
+    expect(skin).toContain("--font-family-display: var(--font-pro, var(--font-display))");
+
+    const base = read(path.join(REPO_ROOT, "src", "styles", "base.css"));
+    expect(base).toContain("--font-family-standard-body: Inter");
+    expect(base).toContain("--font-family-body: var(--font-family-standard-body)");
   });
 
   it("keeps both image-typed tokens image-typed when flattened", () => {

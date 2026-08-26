@@ -2,6 +2,18 @@ import '@testing-library/jest-dom/vitest';
 import { configure } from '@testing-library/react';
 import { vi } from 'vitest';
 
+// jsdom has no ResizeObserver, which Radix's popover Arrow requires (it measures the
+// trigger through @radix-ui/react-use-size to centre itself). No layout exists in
+// jsdom for the measurement to matter, so a settling-but-inert stub is the whole
+// contract the tests need.
+if (typeof window !== 'undefined' && typeof globalThis.ResizeObserver === 'undefined') {
+  globalThis.ResizeObserver = class ResizeObserver {
+    observe() {}
+    unobserve() {}
+    disconnect() {}
+  };
+}
+
 // `findBy*` and `waitFor` default to a one-second ceiling. That is generous for a
 // state update and far too tight for the first render of a `next/dynamic` chunk
 // while four hundred test files share the machine — the Theme Lab's editor is

@@ -5,7 +5,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { SITE_FLAVOR_CONFIGS } from "@/config/siteFlavor";
 import type * as SiteFlavorModule from "@/config/siteFlavor";
 import { ThemeProvider } from "@/context/ThemeContext";
-import { clearEditorHint, writeEditorHint } from "@/lib/auth/editorHint";
+import { clearEditorHint } from "@/lib/auth/editorHint";
 import { LAUNCH_AT_LABEL } from "@/utils/launchCountdown";
 import { HomeExperience } from "./HomeExperience";
 import { buildHomeQuickLinks } from "./homeQuickLinks";
@@ -114,39 +114,13 @@ describe("dose.wiki homepage", () => {
     }
   });
 
-  it("floats the same appearance cog the footer uses, and nothing else", async () => {
-    // The Theme Lab entry is dev-gated; this browser carries the editor hint.
-    writeEditorHint();
-    const user = userEvent.setup();
+  it("mounts no appearance cog of its own: the sticky header owns it", () => {
     renderHome();
 
-    const cog = screen.getByRole("button", { name: "Appearance settings" });
-
-    // Positioning lives on the control itself: `theme-home-theme-toggle` is the hook the
-    // search-mode rules reposition, so any wrapper between the class and the button would
-    // take the offset and leave the cog where it was.
-    expect(cog.className).toMatch(/theme-home-theme-toggle/);
-    expect(cog.className).toMatch(/(?:^|\s)fixed(?:\s|$)/);
-    // One floating control over the hero, not a cluster.
-    expect(
-      screen
-        .getAllByRole("button")
-        .filter((button) => button.className.includes("theme-home-theme-toggle")),
-    ).toHaveLength(1);
-
-    // Appearance axes and the public Theme Lab drawer action live inside the cog.
-    await user.click(cog);
-    const panel = await screen.findByRole("dialog", { name: "Appearance" });
-
-    expect(
-      within(panel)
-        .getAllByRole("button")
-        .map((control) => control.dataset.appearanceAxis)
-        .filter(Boolean),
-    ).toEqual(["visual-style", "color-scheme", "font"]);
-    expect(
-      within(panel).getByRole("button", { name: "Open Theme Lab" }),
-    ).toHaveAttribute("aria-controls", "theme-lab-panel");
+    // The homepage used to float the cog bottom-right because its header collapses to a
+    // hamburger. The settings button now lives in the header itself (next to that
+    // hamburger, mounted by RouteChrome), so the splash carries no second mount.
+    expect(screen.queryByRole("button", { name: "Appearance settings" })).not.toBeInTheDocument();
   });
 });
 
@@ -197,7 +171,7 @@ describe("dose.wiki pre-launch holding page", () => {
     expect(controls[0]!.dataset.clicked).toBe("true");
 
     // The mock header mirrors the live one at its dose.wiki-home shape: brand, search,
-    // hamburger — and its search field cannot be typed into either.
+    // settings button, hamburger — and its search field cannot be typed into either.
     expect(screen.getByRole("searchbox", { name: "Search mockup" })).toHaveAttribute("readonly");
     expect(screen.getByRole("button", { name: "Toggle navigation" })).toBeInTheDocument();
   });
@@ -206,14 +180,19 @@ describe("dose.wiki pre-launch holding page", () => {
     const user = userEvent.setup();
     renderBlocked();
 
-    await user.click(screen.getByRole("button", { name: "Appearance settings" }));
-    const panel = await screen.findByRole("dialog", { name: "Appearance" });
+    // Settings precedes the hamburger here just as it does in the live mobile cluster;
+    // the FAB it replaced is gone.
+    const banner = screen.getByRole("banner");
+    const settings = within(banner).getByRole("button", { name: "Appearance settings" });
+    const hamburger = within(banner).getByRole("button", { name: "Toggle navigation" });
+    expect(settings.compareDocumentPosition(hamburger)).toBe(Node.DOCUMENT_POSITION_FOLLOWING);
+    await user.click(settings);
+    const panel = await screen.findByRole("dialog", { name: "Appearance settings" });
 
     expect(
-      within(panel)
-        .getAllByRole("button")
-        .map((control) => control.dataset.appearanceAxis)
-        .filter(Boolean),
+      [...panel.querySelectorAll("[data-appearance-axis]")].map((control) =>
+        control.getAttribute("data-appearance-axis"),
+      ),
     ).toEqual(["visual-style", "color-scheme", "font"]);
     // The Lab authors and shares palettes over routes the construction hosts do not serve.
     expect(within(panel).queryByRole("button", { name: "Open Theme Lab" })).not.toBeInTheDocument();

@@ -3,7 +3,6 @@ import { Icon } from "../common/Icon";
 import { SiteLicenceNotice } from "../common/SiteLicenceNotice";
 import { SiteSupporter } from "../common/SiteSupporter";
 import { SITE_FLAVOR_CONFIG } from "@/config/siteFlavor";
-import { AppearanceControls } from "@/app/_components/AppearanceControls";
 import type { RouteChromeModel } from "@/types/navigation";
 import { getRouteChromeModel } from "@/utils/routeChrome";
 import { resolveRouteChromeIcon } from "@/utils/routeChromeIcons";
@@ -70,11 +69,6 @@ export function Footer({ model = getRouteChromeModel("/") }: FooterProps) {
                 </a>
               );
             })}
-            {/* Which appearance rows are offered is publication and role policy, resolved
-                inside the control — the route chrome model has no say in it. One 44px cog,
-                the same width as the icon links beside it, so this nav column keeps the
-                width it had at every breakpoint. */}
-            <AppearanceControls />
           </nav>
         </div>
       </div>
