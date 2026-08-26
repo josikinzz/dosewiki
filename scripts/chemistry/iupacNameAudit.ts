@@ -1,5 +1,6 @@
 export type AuditStatus =
   | "exact_match"
+  | "source_verified_match"
   | "structure_mismatch"
   | "name_unparsed"
   | "smiles_invalid"
@@ -59,6 +60,16 @@ export interface InchiComparison {
   exact: boolean;
 }
 
+export interface IupacNameAuditReviewDecision {
+  slug: string;
+  iupacName: string;
+  inchiKey: string;
+  sourceName: string;
+  sourceUrl: string;
+  reviewedAt: string;
+  rationale: string;
+}
+
 export interface ClassifiedAuditRow extends ChemistryAuditRow {
   status: AuditStatus;
   comparison: InchiComparison | null;
@@ -78,6 +89,7 @@ export interface ClassifiedAuditRow extends ChemistryAuditRow {
   storedInchiKeyMatches: boolean | null;
   recommendedCandidate: string | null;
   reviewReasons: string[];
+  reviewDecision: IupacNameAuditReviewDecision | null;
 }
 
 interface ClassifyAuditRowInput {
@@ -94,6 +106,46 @@ function cleanString(value: unknown): string | null {
   if (typeof value !== "string") return null;
   const normalized = value.trim();
   return normalized || null;
+}
+
+const IUPAC_NAME_AUDIT_REVIEW_DECISIONS: readonly IupacNameAuditReviewDecision[] = [
+  {
+    slug: "nicomorphine",
+    iupacName:
+      "[(4R,4aR,7S,7aR,12bS)-3-methyl-9-(pyridine-3-carbonyloxy)-2,4,4a,7,7a,13-hexahydro-1H-4,12-methanobenzofuro[3,2-e]isoquinolin-7-yl] pyridine-3-carboxylate",
+    inchiKey: "HNDXBGYRMHRUFN-CIVUWBIHSA-N",
+    sourceName: "PubChem CID 5362460",
+    sourceUrl: "https://pubchem.ncbi.nlm.nih.gov/compound/5362460",
+    reviewedAt: "2026-08-25",
+    rationale:
+      "PubChem publishes this name, stored SMILES, and exact InChIKey together; OPSIN rejects the name because of a hydrogen-locant parser limitation.",
+  },
+  {
+    slug: "scopolamine",
+    iupacName:
+      "(1R,2R,4S,5S,7S)-9-methyl-3-oxa-9-azatricyclo[3.3.1.0^{2,4}]nonan-7-yl (2S)-3-hydroxy-2-phenylpropanoate",
+    inchiKey: "STECJAGHUSJQJN-FWXGHANASA-N",
+    sourceName: "FDA Global Substance Registration System UNII DL48G20X8X",
+    sourceUrl: "https://precision.fda.gov/uniisearch/srs/unii/dl48g20x8x",
+    reviewedAt: "2026-08-25",
+    rationale:
+      "FDA GSRS publishes this fully stereospecified name and exact InChIKey together; OPSIN drops the 7-position stereochemistry.",
+  },
+];
+
+function findReviewDecision(
+  row: ChemistryAuditRow,
+  source: StructureResolution,
+): IupacNameAuditReviewDecision | null {
+  if (!row.iupacName || source.status !== "success" || !source.inchiKey) return null;
+  return (
+    IUPAC_NAME_AUDIT_REVIEW_DECISIONS.find(
+      (decision) =>
+        decision.slug === row.slug &&
+        decision.iupacName === row.iupacName &&
+        decision.inchiKey === source.inchiKey,
+    ) ?? null
+  );
 }
 
 
@@ -176,12 +228,14 @@ function determineStatus(
   source: StructureResolution,
   currentNameOpsin: OpsinResolution,
   currentNameComparison: InchiComparison | null,
+  reviewDecision: IupacNameAuditReviewDecision | null,
 ): AuditStatus {
   if (!row.smiles && !row.iupacName) return "missing_both";
   if (!row.smiles) return "missing_smiles";
   if (!row.iupacName) return "missing_iupac";
   if (source.status === "invalid") return "smiles_invalid";
   if (source.status !== "success") return "audit_error";
+  if (reviewDecision) return "source_verified_match";
   if (["unparsed", "error"].includes(currentNameOpsin.status)) return "name_unparsed";
   if (!currentNameComparison) return "audit_error";
   return currentNameComparison.exact ? "exact_match" : "structure_mismatch";
@@ -199,7 +253,8 @@ export function classifyAuditRow(input: ClassifyAuditRowInput): ClassifiedAuditR
   } = input;
   const comparison = compareResolvedStructures(sourceStructure, currentNameStructure);
   const candidateComparison = compareResolvedStructures(sourceStructure, candidateStructure);
-  const status = determineStatus(row, sourceStructure, currentNameOpsin, comparison);
+  const reviewDecision = findReviewDecision(row, sourceStructure);
+  const status = determineStatus(row, sourceStructure, currentNameOpsin, comparison, reviewDecision);
   const storedInchiKeyMatches =
     row.storedInchiKey && sourceStructure.inchiKey
       ? row.storedInchiKey === sourceStructure.inchiKey
@@ -245,6 +300,7 @@ export function classifyAuditRow(input: ClassifyAuditRowInput): ClassifiedAuditR
     storedInchiKeyMatches,
     recommendedCandidate,
     reviewReasons,
+    reviewDecision,
   };
 }
 
@@ -282,6 +338,7 @@ export interface ChemistryAuditReport {
 
 const AUDIT_STATUSES: AuditStatus[] = [
   "exact_match",
+  "source_verified_match",
   "structure_mismatch",
   "name_unparsed",
   "smiles_invalid",
@@ -330,8 +387,10 @@ export function buildChemistryAuditReport({
       pubchemEndpoint,
     },
     semantics: {
-      passCondition: "The stored SMILES and stored IUPAC name independently produce identical standard InChI strings.",
-      candidatePolicy: "A PubChem IUPACName is recommended only when OPSIN parses it and RDKit reproduces the stored-SMILES standard InChI exactly.",
+      passCondition:
+        "The stored SMILES and stored IUPAC name either independently produce identical standard InChI strings or match a reviewed source decision bound to the exact stored-SMILES InChIKey.",
+      candidatePolicy:
+        "A PubChem IUPACName is recommended only when OPSIN parses it and RDKit reproduces the stored-SMILES standard InChI exactly. Source-verified exceptions require an exact slug, stored name, and computed InChIKey match.",
       nonGoals: [
         "Selecting a unique preferred IUPAC name from multiple valid systematic names.",
         "Inferring that a plant, preparation, mixture, salt, or representative active compound is a single chemical entity.",

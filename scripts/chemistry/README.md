@@ -39,6 +39,10 @@ RDKit build, converts stored names through OPSIN and RDKit, and compares the
 structures rather than the name strings. PubChem `IUPACName` values are retained
 only as review candidates, and a candidate is recommended only when an
 OPSIN → RDKit round trip reproduces the stored-SMILES InChI exactly.
+Two reviewed parser exceptions are source-verified instead: nicomorphine against
+PubChem CID 5362460 and scopolamine against FDA GSRS UNII DL48G20X8X. Each
+decision is accepted only while the slug, stored name, and RDKit-computed
+stored-SMILES InChIKey all remain exact; any change returns the row to review.
 
 The command never calls a Convex mutation. It writes its report and a 30-day
 provider cache under `tmp/iupac-audit/`:

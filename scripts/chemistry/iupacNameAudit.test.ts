@@ -102,6 +102,42 @@ describe("IUPAC name audit", () => {
     expect(row.recommendedCandidate).toBeNull();
   });
 
+  it("accepts a reviewed source decision only for its exact stored name and structure key", () => {
+    const scopolamineName =
+      "(1R,2R,4S,5S,7S)-9-methyl-3-oxa-9-azatricyclo[3.3.1.0^{2,4}]nonan-7-yl (2S)-3-hydroxy-2-phenylpropanoate";
+    const input = {
+      row: {
+        slug: "scopolamine",
+        title: "Scopolamine",
+        smiles: "stored",
+        iupacName: scopolamineName,
+        storedInchiKey: null,
+      },
+      currentNameOpsin: parsedName(),
+      currentNameStructure: resolvedStructure(`${LSD_INCHI}/t20+`),
+      pubchem: pubchemCandidate("candidate with incomplete stereochemistry"),
+      candidateOpsin: parsedName(),
+      candidateStructure: resolvedStructure(`${LSD_INCHI}/t20+`),
+    };
+
+    const accepted = classifyAuditRow({
+      ...input,
+      sourceStructure: resolvedStructure(LSD_INCHI, "STECJAGHUSJQJN-FWXGHANASA-N"),
+    });
+    const changedStructure = classifyAuditRow({
+      ...input,
+      sourceStructure: resolvedStructure(LSD_INCHI, "CHANGED-STRUCTURE-KEY"),
+    });
+
+    expect(accepted.status).toBe("source_verified_match");
+    expect(accepted.reviewReasons).toEqual([]);
+    expect(accepted.reviewDecision?.sourceName).toBe(
+      "FDA Global Substance Registration System UNII DL48G20X8X",
+    );
+    expect(changedStructure.status).toBe("structure_mismatch");
+    expect(changedStructure.reviewDecision).toBeNull();
+  });
+
   it("recommends a generated name only after an exact round trip", () => {
     const sourceInchi = "InChI=1S/C11H13NO3/c1-2/h1H";
     const wrongNameInchi = "InChI=1S/C11H15NO2/c1-3/h1H";
