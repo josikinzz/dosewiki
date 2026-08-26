@@ -18,6 +18,7 @@ const substances: SubstanceInfo[] = [{ slug: "lsd", name: "LSD", reviewStatus: "
 
 function stubFormHandle(
   outcome: { valid: true } | { valid: false; errors: Record<string, { message: string }> },
+  setFocus = vi.fn(),
 ): UseArticleFormReturn {
   return {
     methods: {
@@ -34,6 +35,7 @@ function stubFormHandle(
           onInvalid?.(outcome.errors);
         },
       getValues: () => article,
+      setFocus,
     },
   } as unknown as UseArticleFormReturn;
 }
@@ -53,15 +55,16 @@ function setup() {
 }
 
 describe("useSubstanceEditorDraftController apply gate", () => {
-  it("blocks the apply and names the failing sections", async () => {
+  it("blocks the apply, names the fields and focuses the first failure", async () => {
     const { result, applyArticlesTransform } = setup();
+    const setFocus = vi.fn();
     await waitFor(() => expect(result.current.streamedOutput).not.toBe(""));
 
     act(() => {
       result.current.formRef.current = stubFormHandle({
         valid: false,
         errors: { dosage: { message: "Required" }, legality: { message: "Required" } },
-      });
+      }, setFocus);
       result.current.handleFormMutate();
     });
 
@@ -71,8 +74,9 @@ describe("useSubstanceEditorDraftController apply gate", () => {
 
     expect(applyArticlesTransform).not.toHaveBeenCalled();
     expect(result.current.validationError).toBe(
-      "Fix the highlighted fields in Dosage & Duration and Legality before applying this draft.",
+      "Fix the highlighted fields in Dosage & Duration and Legality before applying this draft. Dosage & Duration: Required; Legality: Required.",
     );
+    await waitFor(() => expect(setFocus).toHaveBeenCalledWith("dosage"));
     expect(result.current.formDirty).toBe(true);
     expect(result.current.saveSuccess).toBe(false);
   });

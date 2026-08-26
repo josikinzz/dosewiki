@@ -7,8 +7,10 @@ import {
   upsertGeneratedArticle,
 } from "./substanceEditorDraftUtils";
 import {
+  describeInvalidFields,
   describeInvalidSections,
   formatInvalidSectionsMessage,
+  type InvalidArticleField,
 } from "../../forms/articleFormSections";
 import type { UseArticleFormReturn } from "@/hooks/useArticleForm";
 import type { SubstanceArticle } from "@/schema";
@@ -161,15 +163,30 @@ export function useSubstanceEditorDraftController({
           // `handleSubmit` is what runs the Zod resolver; the applied article
           // still comes from the raw values so the editor-only keys the schema
           // strips (slug above all) survive the round trip.
-          const invalidSections = await new Promise<string[] | null>((resolve) => {
+          const invalidResult = await new Promise<{
+            fields: InvalidArticleField[];
+            sections: string[];
+          } | null>((resolve) => {
             void methods.handleSubmit(
               () => resolve(null),
-              (errors) => resolve(describeInvalidSections(errors)),
+              (errors) => {
+                const fields = describeInvalidFields(errors);
+                const firstInvalidPath = fields[0]?.path;
+                if (firstInvalidPath) {
+                  window.setTimeout(() => methods.setFocus(firstInvalidPath), 0);
+                }
+                resolve({
+                  fields,
+                  sections: describeInvalidSections(errors),
+                });
+              },
             )();
           });
 
-          if (invalidSections) {
-            setValidationError(formatInvalidSectionsMessage(invalidSections));
+          if (invalidResult) {
+            setValidationError(
+              formatInvalidSectionsMessage(invalidResult.sections, invalidResult.fields),
+            );
             return;
           }
 

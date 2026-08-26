@@ -1,5 +1,5 @@
 import { createRef } from "react";
-import { fireEvent, render, screen } from "@testing-library/react";
+import { act, fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import { createEmptyArticle } from "@/data/schema";
 import type { UseArticleFormReturn } from "@/hooks/useArticleForm";
@@ -74,5 +74,39 @@ describe("ArticleDraftFormFieldsRHF", () => {
 
     expect(screen.getByRole("button", { name: "Add route" })).toBeInTheDocument();
     expect(screen.getByLabelText("Administration route")).toBeInTheDocument();
+  });
+
+  it("keeps an absent optional attribution valid when Subjective Effects opens", async () => {
+    const formRef = createRef<UseArticleFormReturn | null>() as React.RefObject<
+      UseArticleFormReturn | null
+    >;
+    let validationErrors: unknown = null;
+
+    render(
+      <ArticleDraftFormFieldsRHF
+        idPrefix="article-form"
+        article={article}
+        formRef={formRef}
+      />,
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: /Subjective Effects/ }));
+    expect(screen.getByRole("button", { name: /Attribution/ })).toHaveAttribute(
+      "aria-expanded",
+      "false",
+    );
+    expect(screen.queryByLabelText("Author")).not.toBeInTheDocument();
+    expect(formRef.current?.methods.getValues("subjective_effects.attribution")).toBeUndefined();
+
+    await act(async () => {
+      await formRef.current?.methods.handleSubmit(
+        () => undefined,
+        (errors) => {
+          validationErrors = errors;
+        },
+      )();
+    });
+
+    expect(validationErrors).toBeNull();
   });
 });

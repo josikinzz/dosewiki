@@ -1,4 +1,5 @@
 import {
+  useEffect,
   useId,
   useState,
   type ReactNode,
@@ -21,6 +22,8 @@ export interface CollapsibleEditorCardProps extends PropsWithChildren {
   badge?: ReactNode;
   /** Start expanded. Defaults to collapsed. */
   defaultExpanded?: boolean;
+  /** Mark and reveal the section when it contains resolver errors. */
+  hasError?: boolean;
   /** Smaller header/body spacing for nested subsections. */
   density?: "default" | "compact";
   /**
@@ -50,6 +53,7 @@ export function CollapsibleEditorCard({
   description,
   count,
   badge,
+  hasError = false,
   defaultExpanded = false,
   density = "default",
   headingLevel: Heading = "h3",
@@ -60,6 +64,13 @@ export function CollapsibleEditorCard({
   const baseId = useId();
   const triggerId = `${baseId}-trigger`;
   const panelId = `${baseId}-panel`;
+
+  useEffect(() => {
+    if (hasError) {
+      setIsExpanded(true);
+    }
+  }, [hasError]);
+  const visiblyExpanded = isExpanded || hasError;
 
   const isCompact = density === "compact";
   const titleSize = isCompact ? "text-sm" : "text-lg";
@@ -72,8 +83,9 @@ export function CollapsibleEditorCard({
           type="button"
           id={triggerId}
           onClick={() => setIsExpanded((value) => !value)}
-          aria-expanded={isExpanded}
+          aria-expanded={visiblyExpanded}
           aria-controls={panelId}
+          data-invalid={hasError || undefined}
           className={cn(
             "theme-editor-disclosure-trigger",
             "-mx-2 flex w-[calc(100%+1rem)] items-center gap-3 rounded-lg px-2 text-left",
@@ -82,16 +94,36 @@ export function CollapsibleEditorCard({
         >
           <span className="flex min-w-0 items-center gap-2.5">
             {icon ? (
-              <span className="theme-icon-accent shrink-0">{icon}</span>
+              <span
+                className={cn(
+                  "shrink-0",
+                  hasError ? "theme-danger-text" : "theme-icon-accent",
+                )}
+              >
+                {icon}
+              </span>
             ) : null}
             <span
-              className={cn("theme-accent-heading truncate font-semibold", titleSize)}
+              className={cn(
+                "truncate font-semibold",
+                titleSize,
+                hasError ? "theme-danger-text" : "theme-accent-heading",
+              )}
             >
               {title}
             </span>
             {typeof count === "number" ? (
               <EditorStatusPill tone="neutral" className="shrink-0">
                 {count}
+              </EditorStatusPill>
+            ) : null}
+            {hasError ? (
+              <EditorStatusPill
+                tone="danger"
+                icon="lucide:circle-alert"
+                className="shrink-0"
+              >
+                Needs attention
               </EditorStatusPill>
             ) : null}
             {badge ? <span className="shrink-0">{badge}</span> : null}
@@ -101,13 +133,13 @@ export function CollapsibleEditorCard({
             className="h-px min-w-6 flex-1 bg-[image:var(--theme-horizontal-divider-image)]"
           />
           <Icon
-            icon={isExpanded ? "lucide:chevron-down" : "lucide:chevron-right"}
+            icon={visiblyExpanded ? "lucide:chevron-down" : "lucide:chevron-right"}
             size={chevronSize}
             className="theme-icon-muted shrink-0"
           />
         </button>
       </Heading>
-      {isExpanded ? (
+      {visiblyExpanded ? (
         <div
           id={panelId}
           role="region"
