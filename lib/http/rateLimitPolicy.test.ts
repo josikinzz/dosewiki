@@ -12,6 +12,7 @@ const expectedPolicies: Record<RateLimitPolicyName, { windowMs: number; max: num
   diagnosticRead: { windowMs: 60_000, max: 30 },
   publicSearchRead: { windowMs: 60_000, max: 30 },
   publicContentApiRead: { windowMs: 60_000, max: 120 },
+  authCredentialAttempt: { windowMs: 600_000, max: 10 },
 };
 
 describe("rate limit policies", () => {

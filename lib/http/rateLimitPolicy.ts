@@ -8,7 +8,8 @@ export type RateLimitPolicyName =
   | "publicProxyRead"
   | "diagnosticRead"
   | "publicSearchRead"
-  | "publicContentApiRead";
+  | "publicContentApiRead"
+  | "authCredentialAttempt";
 
 export type RateLimitKeyStrategy = "ip";
 export type RateLimitFallbackMode = "inMemory";
@@ -102,6 +103,14 @@ export const rateLimitPolicies = {
     name: "publicContentApiRead",
     windowMs: ONE_MINUTE_MS,
     max: 120,
+    keyStrategy: "ip",
+    fallbackMode: "inMemory",
+    responseShape: "jsonError",
+  },
+  authCredentialAttempt: {
+    name: "authCredentialAttempt",
+    windowMs: 10 * ONE_MINUTE_MS,
+    max: 10,
     keyStrategy: "ip",
     fallbackMode: "inMemory",
     responseShape: "jsonError",

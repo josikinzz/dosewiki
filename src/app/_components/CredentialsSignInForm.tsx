@@ -42,6 +42,12 @@ export function CredentialsSignInForm({ callbackUrl, alternative }: CredentialsS
 
     setIsSubmitting(false);
 
+    if (result?.error === "RateLimited") {
+      setStatusMessage(null);
+      setError("Too many sign-in attempts from this network. Wait a few minutes and try again.");
+      return;
+    }
+
     if (!result || result.error) {
       setStatusMessage(null);
       setError("Username or password didn't match. Check for typos, or confirm the credentials configured for this deployment.");
