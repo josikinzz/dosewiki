@@ -5596,3 +5596,42 @@ html[data-theme="light"]:not([data-visual-style="pro"])
     background: var(--theme-frosted-control-hover-bg);
   }
 }
+
+/* ---------------------------------------------------------------------
+   About page · Partners & Community (AboutCommunitySection.tsx)
+   The shared logo tile, its lineage-node hover, and the timeline rails.
+   Rail and hover colors mix through theme tokens so palette presets and
+   the hue slider repaint them like every other accented surface.
+   --------------------------------------------------------------------- */
+.theme-community-tile {
+  background: linear-gradient(
+    135deg,
+    var(--theme-avatar-gradient-from),
+    var(--theme-avatar-gradient-to)
+  );
+}
+
+@media (hover: hover) {
+  .theme-community-node:hover .theme-community-tile {
+    border-color: var(--theme-card-border-strong);
+    box-shadow: var(--theme-elevation-accent-lift);
+  }
+}
+
+.theme-community-node:focus-visible .theme-community-tile {
+  border-color: var(--theme-card-border-strong);
+}
+
+.theme-community-rail-x {
+  background-image: var(--theme-horizontal-divider-image);
+}
+
+.theme-community-rail-y {
+  background-image: linear-gradient(
+    180deg,
+    transparent,
+    color-mix(in srgb, var(--theme-accent) 24%, transparent) 12%,
+    color-mix(in srgb, var(--theme-accent) 24%, transparent) 88%,
+    transparent
+  );
+}

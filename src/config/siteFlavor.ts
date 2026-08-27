@@ -201,6 +201,12 @@ export type SiteAboutConfig = {
    * to that publication only; Effect Index has no equivalent downloads to offer yet.
    */
   readonly showOpenData: boolean;
+  /**
+   * Whether the Partners & Community section is shown. Its lineage timeline and partner
+   * roster tell dose.wiki's own story (and list effectindex.com as an ancestor), so it
+   * belongs to that publication only.
+   */
+  readonly showCommunity: boolean;
   /** Heading for the final About tab's panel and its cards. */
   readonly docsTitle: string;
   readonly docLinks: readonly SiteAboutDocLink[];
@@ -344,6 +350,7 @@ const DOSEWIKI_CONFIG: SiteFlavorConfig = {
     // dose.wiki's About prose is editor-managed in Convex.
     missionMarkdown: null,
     showOpenData: true,
+    showCommunity: true,
     docsTitle: "Documentation",
     docLinks: [
       {
@@ -520,6 +527,8 @@ const EFFECT_INDEX_CONFIG: SiteFlavorConfig = {
     // The Open Data tab's exports are dose.wiki's own (molecule pack, SubstanceIndex.json,
     // the dose.wiki repository). Effect Index has none of them to offer.
     showOpenData: false,
+    // Partners & Community is dose.wiki's story; its lineage lists Effect Index itself.
+    showCommunity: false,
     docsTitle: "Licensing & Contact",
     docLinks: [
       {

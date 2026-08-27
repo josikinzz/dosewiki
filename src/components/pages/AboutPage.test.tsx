@@ -8,6 +8,8 @@ import {
   selectAboutContributors,
 } from "@/data/contributorRoster";
 import type { NormalizedUserProfile } from "@/data/userProfiles";
+import { ABOUT_COMMUNITY_COPY_KEYS } from "@/data/content/aboutCommunity";
+import { getCopyBlockDefault } from "@/data/content/copyBlocks";
 import { AppearanceTestProvider } from "@/test/AppearanceTestProvider";
 import { AboutPage } from "./AboutPage";
 
@@ -437,3 +439,80 @@ describe("AboutPage cross-publication content", () => {
     expect(SITE_FLAVOR_CONFIG.about.docLinks.length % Math.max(...columns)).toBe(0);
   });
 });
+
+/**
+ * Partners & Community is dose.wiki's section (its lineage lists effectindex.com),
+ * so its assertions run only where `about.showCommunity` is set; the other flavor
+ * asserts its absence. The route resolves blurbs from the copy CMS; these tests
+ * resolve the same registered defaults, so a key that drifts between
+ * aboutCommunity.ts and copyBlocks.json fails here.
+ */
+const showCommunity = SITE_FLAVOR_CONFIG.about.showCommunity;
+const describeCommunity = showCommunity ? describe : describe.skip;
+
+const communityBlurbFixture = Object.fromEntries(
+  ABOUT_COMMUNITY_COPY_KEYS.map((key) => [key, getCopyBlockDefault(key)?.body ?? ""]),
+);
+
+describeCommunity("AboutPage community section", () => {
+  it("registers a non-empty default copy block for every community blurb key", () => {
+    for (const key of ABOUT_COMMUNITY_COPY_KEYS) {
+      expect(getCopyBlockDefault(key)?.body, key).toBeTruthy();
+    }
+  });
+
+  it("renders the section, its TOC anchors, and all four tiers when blurbs are supplied", () => {
+    renderAboutPage({ communityBlurbs: communityBlurbFixture });
+
+    expect(
+      screen.getByRole("heading", { name: "Partners & Community" }),
+    ).toBeInTheDocument();
+    expect(sectionById("community").tagName).toBe("SECTION");
+    expect(document.querySelectorAll('a[href="#community"]')).toHaveLength(2);
+
+    const section = sectionById("community");
+    for (const label of ["Lineage", "Sister projects", "Data partners", "Friends & community"]) {
+      expect(within(section).getByText(label)).toBeInTheDocument();
+    }
+  });
+
+  it("links every partner externally with a safe rel, and the lineage to the archived mirror", () => {
+    renderAboutPage({ communityBlurbs: communityBlurbFixture });
+
+    const section = sectionById("community");
+    const links = [...section.querySelectorAll("a[href^='https://']")];
+    expect(links.length).toBeGreaterThan(0);
+    for (const link of links) {
+      expect(link.getAttribute("target")).toBe("_blank");
+      expect(link.getAttribute("rel")).toBe("noopener noreferrer");
+    }
+
+    // The PsychonautWiki node deliberately points at the archived mirror of
+    // Josie's tenure, never the present-day site.
+    expect(
+      section.querySelector('a[href="https://psychonautwiki.rip"]'),
+    ).not.toBeNull();
+    expect(section.querySelector('a[href*="psychonautwiki.org"]')).toBeNull();
+
+    // The terminal dose.wiki node is where you already are, not a link.
+    expect(within(section).getByText("you are here")).toBeInTheDocument();
+  });
+
+  it("omits the section and its anchor when the route supplies no blurbs", () => {
+    renderAboutPage();
+
+    expect(document.getElementById("community")).toBeNull();
+    expect(document.querySelector('a[href="#community"]')).toBeNull();
+  });
+});
+
+if (!showCommunity) {
+  describe("AboutPage community section (flavor without it)", () => {
+    it("never renders the section, even when blurbs are supplied", () => {
+      renderAboutPage({ communityBlurbs: communityBlurbFixture });
+
+      expect(document.getElementById("community")).toBeNull();
+      expect(document.querySelector('a[href="#community"]')).toBeNull();
+    });
+  });
+}

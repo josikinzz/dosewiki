@@ -33,6 +33,11 @@ import { cn } from "@/lib/utils";
 import { publicHref } from "@/utils/publicHref";
 import { AboutArchivePreview } from "./AboutArchivePreview";
 import { MoleculeDownloadPack } from "./MoleculeDownloadPack";
+import {
+  AboutCommunitySection,
+  GROUP_LABEL_CLASSNAME,
+  type AboutCommunityBlurbs,
+} from "./AboutCommunitySection";
 
 const DEFAULT_TAGLINE = SITE_FLAVOR_CONFIG.description;
 const ABOUT_CONFIG = SITE_FLAVOR_CONFIG.about;
@@ -53,8 +58,7 @@ const STAFF_GROUP_LABEL = "Staff";
 /** Eyebrow above the ranked contributor grid. */
 const CONTRIBUTORS_GROUP_LABEL = "Contributors";
 
-const GROUP_LABEL_CLASSNAME =
-  "theme-text-faint text-xs font-bold uppercase tracking-[0.15em]";
+// The shared eyebrow class lives beside the community tiers that also use it.
 
 function rosterCardHref(entry: ContributorRosterEntry): string {
   return publicHref.contributor(entry.profile.key);
@@ -151,6 +155,13 @@ interface AboutPageProps {
   /** Editor-managed tagline from Convex siteConfig; falls back to the canonical line. */
   subtitle?: string;
   moleculeCount: number;
+  /**
+   * Blurbs for the Partners & Community section, keyed by copy-block key.
+   * `null` omits the section; the route only builds them on a flavor whose
+   * `about.showCommunity` is set (the lineage lists effectindex.com, so the
+   * section is dose.wiki's story alone).
+   */
+  communityBlurbs?: AboutCommunityBlurbs | null;
 }
 
 export const AboutPage = memo(function AboutPage({
@@ -161,6 +172,7 @@ export const AboutPage = memo(function AboutPage({
   missionContent,
   subtitle,
   moleculeCount,
+  communityBlurbs = null,
 }: AboutPageProps) {
   const founders = founderProfiles;
   const hasRosterEntries =
@@ -179,6 +191,15 @@ export const AboutPage = memo(function AboutPage({
       ? [{ id: "data", label: "Downloads", icon: "lucide:download" } satisfies PublicTableOfContentsItem]
       : []),
     { id: "contributors", label: contributorsSectionTitle, icon: "lucide:users" },
+    ...(ABOUT_CONFIG.showCommunity && communityBlurbs
+      ? [
+          {
+            id: "community",
+            label: "Partners & Community",
+            icon: "lucide:handshake",
+          } satisfies PublicTableOfContentsItem,
+        ]
+      : []),
     ...(ABOUT_CONFIG.contact
       ? [
           {
@@ -325,6 +346,17 @@ export const AboutPage = memo(function AboutPage({
             <SiteSupporter align="center" markHeightRem={2.25} />
           </div>
         </section>
+
+        {/* Partners & Community: the project lineage plus sister projects, data
+            partners and neighbouring communities. dose.wiki only — the lineage
+            lists effectindex.com, so Effect Index never renders it (see
+            `about.showCommunity` and the route's blurb gate). */}
+        {ABOUT_CONFIG.showCommunity && communityBlurbs ? (
+          <section id="community" className="space-y-6">
+            <PublicSectionHeading icon="lucide:handshake" title="Partners & Community" />
+            <AboutCommunitySection blurbs={communityBlurbs} />
+          </section>
+        ) : null}
 
         {/* Contact & Feedback: the published inbox plus the general feedback form.
             Flavored via `about.contact` — Effect Index publishes no dose.wiki address
