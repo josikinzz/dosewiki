@@ -81,17 +81,18 @@ export function AppearanceCog({
           )}
         >
           <Icon
-            icon="carbon:settings"
+            icon="lucide:cog"
             size={iconSize}
             className="transition-transform duration-300 ease-out group-hover:rotate-45 group-data-[state=open]:rotate-90 motion-reduce:transition-none"
           />
         </button>
       </PopoverTrigger>
       <PopoverContent
-        // The same 22rem composition serves pointer and touch layouts. Desktop no longer
-        // expands into a toolbar, while the viewport clamp keeps a 320px phone on-screen.
+        // The same 18rem composition serves pointer and touch layouts. Every row inside is
+        // fluid and nowrap, so the panel keeps its height at this width, while the viewport
+        // clamp keeps a 320px phone on-screen.
         // `theme-chrome-dark` pins the dark control palette even when the page is light.
-        className="theme-chrome-dark theme-appearance-popover w-[min(22rem,calc(100vw-1.5rem))] max-w-none p-0 motion-reduce:animate-none"
+        className="theme-chrome-dark theme-appearance-popover w-[min(18rem,calc(100vw-1.5rem))] max-w-none p-0 motion-reduce:animate-none"
         align="end"
         sideOffset={8}
         collisionPadding={12}
