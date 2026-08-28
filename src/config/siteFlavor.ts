@@ -202,9 +202,8 @@ export type SiteAboutConfig = {
    */
   readonly showOpenData: boolean;
   /**
-   * Whether the Partners & Community roster is shown. It names dose.wiki's
-   * sister projects, data partners, and neighbouring communities, so it belongs
-   * to that publication only.
+   * Whether the Partners & Community roster is shown. It names dose.wiki's data
+   * partners and neighbouring communities, so it belongs to that publication only.
    */
   readonly showCommunity: boolean;
   /** Heading for the final About tab's panel and its cards. */

@@ -2,8 +2,8 @@
  * Structural data for the About page's Partners & Community section
  * (dose.wiki flavor only — see `SiteAboutConfig.showCommunity`).
  *
- * This module owns the structure: names, links, logos, and tiers. The one-line
- * blurbs are editable copy blocks (group "About" in
+ * This module owns the roster structure: names, links, logos, and tiers. The
+ * roster's one-line blurbs are editable copy blocks (group "About" in
  * src/data/content/copyBlocks.json, keys `about-community-*`), resolved
  * server-side by the About route and passed down as plain strings.
  *
@@ -38,7 +38,6 @@ export type CommunityLink = {
   copyKey: string;
 };
 
-
 export type CommunityDataPartner = CommunityLink & {
   /** Short badge naming the data this partner ships on the site. */
   dataTag: string;
@@ -46,25 +45,6 @@ export type CommunityDataPartner = CommunityLink & {
 
 const LOGO_BASE = "/about/community";
 
-
-export const ABOUT_COMMUNITY_SISTERS: readonly CommunityLink[] = [
-  {
-    key: "replications",
-    name: "r/replications",
-    href: "https://reddit.com/r/replications",
-    domain: "reddit.com",
-    logo: { kind: "monogram", text: "r/" },
-    copyKey: "about-community-replications",
-  },
-  {
-    key: "consciousness-library",
-    name: "Consciousness Library",
-    href: "https://consciousnesslibrary.org",
-    domain: "consciousnesslibrary.org",
-    logo: { kind: "image", src: `${LOGO_BASE}/consciousness-library.svg` },
-    copyKey: "about-community-consciousness-library",
-  },
-];
 
 export const ABOUT_COMMUNITY_DATA_PARTNERS: readonly CommunityDataPartner[] = [
   {
@@ -84,6 +64,15 @@ export const ABOUT_COMMUNITY_DATA_PARTNERS: readonly CommunityDataPartner[] = [
     logo: { kind: "image", src: `${LOGO_BASE}/protestkit.webp` },
     copyKey: "about-community-protestkit",
     dataTag: "Reagent data",
+  },
+  {
+    key: "consciousness-library",
+    name: "Consciousness Library",
+    href: "https://consciousnesslibrary.org",
+    domain: "consciousnesslibrary.org",
+    logo: { kind: "image", src: `${LOGO_BASE}/consciousness-library.svg` },
+    copyKey: "about-community-consciousness-library",
+    dataTag: "dose.wiki API",
   },
 ];
 
@@ -106,9 +95,8 @@ export const ABOUT_COMMUNITY_FRIENDS: readonly CommunityLink[] = [
   },
 ];
 
-/** Every copy-block key the section reads, for the route's blurb resolution. */
+/** Every copy-block key the community roster reads. */
 export const ABOUT_COMMUNITY_COPY_KEYS: readonly string[] = [
-  ...ABOUT_COMMUNITY_SISTERS.map((entry) => entry.copyKey),
   ...ABOUT_COMMUNITY_DATA_PARTNERS.map((entry) => entry.copyKey),
   ...ABOUT_COMMUNITY_FRIENDS.map((entry) => entry.copyKey),
 ];

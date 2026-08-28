@@ -257,6 +257,7 @@ export const AboutPage = memo(function AboutPage({
           <h2 className="sr-only">Mission</h2>
 
           <div className="px-0 py-2">{missionContent}</div>
+
         </section>
 
         <section id="docs" className="space-y-6">
@@ -346,9 +347,9 @@ export const AboutPage = memo(function AboutPage({
           </div>
         </section>
 
-        {/* Partners & Community: sister projects, data partners, and neighbouring
-            communities. dose.wiki only; Effect Index never renders the roster
-            (see `about.showCommunity` and the route's blurb gate). */}
+        {/* Partners & Community: data partners and neighbouring communities.
+            dose.wiki only; Effect Index never renders the roster (see
+            `about.showCommunity` and the route's blurb gate). */}
         {ABOUT_CONFIG.showCommunity && communityBlurbs ? (
           <section id="community" className="space-y-6">
             <PublicSectionHeading icon="lucide:handshake" title="Partners & Community" />

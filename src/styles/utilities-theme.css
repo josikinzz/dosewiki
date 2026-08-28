@@ -5599,8 +5599,8 @@ html[data-theme="light"]:not([data-visual-style="pro"])
 
 /* ---------------------------------------------------------------------
    About page · Partners & Community (AboutCommunitySection.tsx)
-   Shared logo tiles use theme tokens so palette presets and the hue slider
-   repaint them like every other accented surface.
+   Shared logo-tile and row-hover colors use theme tokens so palette presets
+   and the hue slider repaint them like every other accented surface.
    --------------------------------------------------------------------- */
 .theme-community-tile {
   background: linear-gradient(
@@ -5608,5 +5608,16 @@ html[data-theme="light"]:not([data-visual-style="pro"])
     var(--theme-avatar-gradient-from),
     var(--theme-avatar-gradient-to)
   );
+}
+
+@media (hover: hover) {
+  .theme-community-node:hover .theme-community-tile {
+    border-color: var(--theme-card-border-strong);
+    box-shadow: var(--theme-elevation-accent-lift);
+  }
+}
+
+.theme-community-node:focus-visible .theme-community-tile {
+  border-color: var(--theme-card-border-strong);
 }
 

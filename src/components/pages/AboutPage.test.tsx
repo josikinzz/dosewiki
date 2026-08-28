@@ -461,7 +461,7 @@ describeCommunity("AboutPage community section", () => {
     }
   });
 
-  it("renders the section, its TOC anchors, and all three tiers when blurbs are supplied", () => {
+  it("renders the section, its TOC anchors, and both tiers when blurbs are supplied", () => {
     renderAboutPage({ communityBlurbs: communityBlurbFixture });
 
     expect(
@@ -471,17 +471,31 @@ describeCommunity("AboutPage community section", () => {
     expect(document.querySelectorAll('a[href="#community"]')).toHaveLength(2);
 
     const section = sectionById("community");
-    for (const label of ["Sister projects", "Data partners", "Friends & community"]) {
+    for (const label of ["Data partners", "Friends & community"]) {
       expect(within(section).getByText(label)).toBeInTheDocument();
     }
-    expect(within(section).queryByText("Lineage")).toBeNull();
+    // The removed lineage flowchart stays absent from both the partner roster
+    // and the Mission section even when community content is enabled.
+    expect(within(section).queryByText("Sister projects")).toBeNull();
+    expect(within(sectionById("mission")).queryByText("Lineage")).toBeNull();
+  });
+
+
+  it("places the Consciousness Library under data partners with the API tag", () => {
+    renderAboutPage({ communityBlurbs: communityBlurbFixture });
+
+    const section = sectionById("community");
+    const row = within(section)
+      .getByText("Consciousness Library")
+      .closest("a");
+    expect(row).not.toBeNull();
+    expect(within(row as HTMLElement).getByText("dose.wiki API")).toBeInTheDocument();
   });
 
   it("links every partner externally with a safe rel", () => {
     renderAboutPage({ communityBlurbs: communityBlurbFixture });
 
-    const section = sectionById("community");
-    const links = [...section.querySelectorAll("a[href^='https://']")];
+    const links = sectionById("community").querySelectorAll("a[href^='https://']");
     expect(links.length).toBeGreaterThan(0);
     for (const link of links) {
       expect(link.getAttribute("target")).toBe("_blank");
@@ -489,7 +503,7 @@ describeCommunity("AboutPage community section", () => {
     }
   });
 
-  it("omits the section and its anchor when the route supplies no blurbs", () => {
+  it("omits the section and anchor when the route supplies no blurbs", () => {
     renderAboutPage();
 
     expect(document.getElementById("community")).toBeNull();
