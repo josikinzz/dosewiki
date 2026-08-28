@@ -145,9 +145,9 @@ export default async function AboutPage() {
     referenceCounts,
   });
 
-  // Partners & Community blurbs are editable copy blocks; the section itself is
-  // dose.wiki's (its lineage lists effectindex.com), so a flavor without it
-  // never resolves the keys and AboutPage omits section and TOC entry alike.
+  // Partners & Community blurbs are editable copy blocks. The roster is
+  // dose.wiki's, so a flavor without it never resolves the keys and AboutPage
+  // omits the section and TOC entry alike.
   const communityBlurbs = SITE_FLAVOR_CONFIG.about.showCommunity
     ? Object.fromEntries(ABOUT_COMMUNITY_COPY_KEYS.map((key) => [key, copy.text(key)]))
     : null;

@@ -1,13 +1,10 @@
-import { DoseWikiLogo } from "../common/DoseWikiLogo";
 import { Icon } from "../common/Icon";
 import { AppImage } from "../common/AppImage";
 import { PublicPill } from "@/components/common/PublicTokens";
 import { InteractiveContentCard } from "@/components/ui/surface";
 import {
   ABOUT_COMMUNITY_DATA_PARTNERS,
-  ABOUT_COMMUNITY_DOSE_WIKI,
   ABOUT_COMMUNITY_FRIENDS,
-  ABOUT_COMMUNITY_LINEAGE,
   ABOUT_COMMUNITY_SISTERS,
   type CommunityLink,
   type CommunityLogo,
@@ -64,42 +61,6 @@ function LogoTile({ logo, className }: { logo: CommunityLogo; className?: string
   );
 }
 
-/** One ancestor node on the lineage timeline. */
-function LineageNode({
-  entry,
-  blurb,
-}: {
-  entry: (typeof ABOUT_COMMUNITY_LINEAGE)[number];
-  blurb: string;
-}) {
-  return (
-    <li className="relative">
-      <a
-        href={entry.href}
-        target="_blank"
-        rel="noopener noreferrer"
-        className="theme-focus-ring theme-community-node group flex gap-3.5 rounded-xl sm:flex-col sm:gap-2.5"
-      >
-        <LogoTile
-          logo={entry.logo}
-          className="transition-[box-shadow,border-color] duration-300"
-        />
-        <span className="min-w-0">
-          <span className="theme-text-ghost block text-[0.7rem] font-semibold tracking-[0.1em]">
-            {entry.year}
-          </span>
-          <span className="theme-text-primary block text-sm font-semibold transition-colors group-hover:text-dose-accent">
-            {entry.name}
-          </span>
-          <span className="theme-text-ghost block truncate text-xs">{entry.domain}</span>
-          <span className="theme-text-faint mt-1 block text-[0.8rem] leading-relaxed">
-            {blurb}
-          </span>
-        </span>
-      </a>
-    </li>
-  );
-}
 
 /** A partner card; the whole surface is the external link. */
 function CommunityCard({
@@ -143,56 +104,16 @@ function CommunityCard({
 }
 
 /**
- * Partners & Community section body (dose.wiki only): the project lineage as a
- * timeline, then sister projects, data partners, and community neighbours as
- * equal-weight cards. Structure lives in `src/data/content/aboutCommunity.ts`;
- * blurbs are `about-community-*` copy blocks.
+ * Partners & Community section body (dose.wiki only): sister projects, data
+ * partners, and community neighbours as equal-weight cards. Structure lives in
+ * `src/data/content/aboutCommunity.ts`; blurbs are `about-community-*` copy
+ * blocks.
  */
 export function AboutCommunitySection({ blurbs }: AboutCommunitySectionProps) {
   const blurb = (key: string) => blurbs[key] ?? "";
 
   return (
     <div className="space-y-8">
-      <div className="space-y-4">
-        <span className={GROUP_LABEL_CLASSNAME}>Lineage</span>
-        <ol
-          aria-label="Project lineage, oldest first"
-          className="relative grid gap-6 sm:grid-cols-4 sm:gap-5"
-        >
-          {/* Connector rails: vertical through the tiles on mobile, horizontal at >=sm.
-              Both mix the accent through theme tokens so palette presets repaint them. */}
-          <div
-            aria-hidden
-            className="theme-community-rail-y absolute bottom-3 left-[1.375rem] top-3 w-px sm:hidden"
-          />
-          <div
-            aria-hidden
-            className="theme-community-rail-x absolute inset-x-6 top-[1.375rem] hidden h-px sm:block"
-          />
-          {ABOUT_COMMUNITY_LINEAGE.map((entry) => (
-            <LineageNode key={entry.key} entry={entry} blurb={blurb(entry.copyKey)} />
-          ))}
-          <li className="relative">
-            <span className="flex gap-3.5 sm:flex-col sm:gap-2.5">
-              <span className="theme-community-tile flex h-11 w-11 shrink-0 items-center justify-center rounded-[0.65rem] border border-dose-card-border-strong">
-                <DoseWikiLogo width={28} height={28} className="h-7 w-7" draggable={false} />
-              </span>
-              <span className="min-w-0">
-                <span className="theme-text-ghost block text-[0.7rem] font-semibold tracking-[0.1em]">
-                  {ABOUT_COMMUNITY_DOSE_WIKI.year}
-                </span>
-                <span className="theme-accent-heading block text-sm font-semibold">
-                  dose.wiki
-                </span>
-                <span className="theme-text-ghost block text-xs">you are here</span>
-                <span className="theme-text-faint mt-1 block text-[0.8rem] leading-relaxed">
-                  {blurb(ABOUT_COMMUNITY_DOSE_WIKI.copyKey)}
-                </span>
-              </span>
-            </span>
-          </li>
-        </ol>
-      </div>
 
       <div className="space-y-3">
         <span className={GROUP_LABEL_CLASSNAME}>Sister projects</span>

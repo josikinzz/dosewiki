@@ -2,15 +2,14 @@
  * Structural data for the About page's Partners & Community section
  * (dose.wiki flavor only — see `SiteAboutConfig.showCommunity`).
  *
- * This module owns the structure: names, links, logos, tiers, and lineage
- * years. The one-line blurbs are editable copy blocks (group "About" in
+ * This module owns the structure: names, links, logos, and tiers. The one-line
+ * blurbs are editable copy blocks (group "About" in
  * src/data/content/copyBlocks.json, keys `about-community-*`), resolved
  * server-side by the About route and passed down as plain strings.
  *
- * Logo provenance: deis/psychonautwiki/effectindex/consciousness-library from
- * josiekins.xyz/images/shared/, tripsit from tripsit.me, protestkit from
- * protestkit.eu. Subreddits render an `r/` monogram tile: Reddit serves no
- * stable anonymous icon endpoint.
+ * Logo provenance: consciousness-library from josiekins.xyz/images/shared/,
+ * tripsit from tripsit.me, protestkit from protestkit.eu. Subreddits render an
+ * `r/` monogram tile: Reddit serves no stable anonymous icon endpoint.
  */
 
 /** How a partner's tile is filled. */
@@ -39,10 +38,6 @@ export type CommunityLink = {
   copyKey: string;
 };
 
-export type CommunityLineageEntry = CommunityLink & {
-  /** Founding year shown on the timeline node. */
-  year: string;
-};
 
 export type CommunityDataPartner = CommunityLink & {
   /** Short badge naming the data this partner ships on the site. */
@@ -51,47 +46,6 @@ export type CommunityDataPartner = CommunityLink & {
 
 const LOGO_BASE = "/about/community";
 
-/**
- * Ancestors, oldest first. The timeline's terminal dose.wiki node is rendered
- * by the section component itself (it is not a link and uses the site mark).
- * Years per josiekins.xyz. The PsychonautWiki link deliberately points at the
- * archived mirror from Josie's 2013-2017 tenure, not the present-day site.
- */
-export const ABOUT_COMMUNITY_LINEAGE: readonly CommunityLineageEntry[] = [
-  {
-    key: "deis",
-    name: "Disregard Everything I Say",
-    href: "https://disregardeverythingisay.com",
-    domain: "disregardeverythingisay.com",
-    logo: { kind: "image", src: `${LOGO_BASE}/deis.webp`, fit: "cover" },
-    copyKey: "about-community-deis",
-    year: "2011",
-  },
-  {
-    key: "psychonautwiki",
-    name: "PsychonautWiki",
-    href: "https://psychonautwiki.rip",
-    domain: "psychonautwiki.rip",
-    logo: { kind: "image", src: `${LOGO_BASE}/psychonautwiki.webp` },
-    copyKey: "about-community-psychonautwiki",
-    year: "2013",
-  },
-  {
-    key: "effect-index",
-    name: "Effect Index",
-    href: "https://effectindex.com",
-    domain: "effectindex.com",
-    logo: { kind: "image", src: `${LOGO_BASE}/effectindex.webp`, fit: "cover" },
-    copyKey: "about-community-effect-index",
-    year: "2017",
-  },
-];
-
-/** The terminal timeline node's copy-block key and year. */
-export const ABOUT_COMMUNITY_DOSE_WIKI = {
-  copyKey: "about-community-dose-wiki",
-  year: "2026",
-} as const;
 
 export const ABOUT_COMMUNITY_SISTERS: readonly CommunityLink[] = [
   {
@@ -154,8 +108,6 @@ export const ABOUT_COMMUNITY_FRIENDS: readonly CommunityLink[] = [
 
 /** Every copy-block key the section reads, for the route's blurb resolution. */
 export const ABOUT_COMMUNITY_COPY_KEYS: readonly string[] = [
-  ...ABOUT_COMMUNITY_LINEAGE.map((entry) => entry.copyKey),
-  ABOUT_COMMUNITY_DOSE_WIKI.copyKey,
   ...ABOUT_COMMUNITY_SISTERS.map((entry) => entry.copyKey),
   ...ABOUT_COMMUNITY_DATA_PARTNERS.map((entry) => entry.copyKey),
   ...ABOUT_COMMUNITY_FRIENDS.map((entry) => entry.copyKey),

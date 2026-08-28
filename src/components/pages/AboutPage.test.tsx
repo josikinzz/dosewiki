@@ -441,11 +441,11 @@ describe("AboutPage cross-publication content", () => {
 });
 
 /**
- * Partners & Community is dose.wiki's section (its lineage lists effectindex.com),
- * so its assertions run only where `about.showCommunity` is set; the other flavor
- * asserts its absence. The route resolves blurbs from the copy CMS; these tests
- * resolve the same registered defaults, so a key that drifts between
- * aboutCommunity.ts and copyBlocks.json fails here.
+ * Partners & Community is dose.wiki's section, so its assertions run only
+ * where `about.showCommunity` is set; the other flavor asserts its absence.
+ * The route resolves blurbs from the copy CMS; these tests resolve the same
+ * registered defaults, so a key that drifts between aboutCommunity.ts and
+ * copyBlocks.json fails here.
  */
 const showCommunity = SITE_FLAVOR_CONFIG.about.showCommunity;
 const describeCommunity = showCommunity ? describe : describe.skip;
@@ -461,7 +461,7 @@ describeCommunity("AboutPage community section", () => {
     }
   });
 
-  it("renders the section, its TOC anchors, and all four tiers when blurbs are supplied", () => {
+  it("renders the section, its TOC anchors, and all three tiers when blurbs are supplied", () => {
     renderAboutPage({ communityBlurbs: communityBlurbFixture });
 
     expect(
@@ -471,12 +471,13 @@ describeCommunity("AboutPage community section", () => {
     expect(document.querySelectorAll('a[href="#community"]')).toHaveLength(2);
 
     const section = sectionById("community");
-    for (const label of ["Lineage", "Sister projects", "Data partners", "Friends & community"]) {
+    for (const label of ["Sister projects", "Data partners", "Friends & community"]) {
       expect(within(section).getByText(label)).toBeInTheDocument();
     }
+    expect(within(section).queryByText("Lineage")).toBeNull();
   });
 
-  it("links every partner externally with a safe rel, and the lineage to the archived mirror", () => {
+  it("links every partner externally with a safe rel", () => {
     renderAboutPage({ communityBlurbs: communityBlurbFixture });
 
     const section = sectionById("community");
@@ -486,16 +487,6 @@ describeCommunity("AboutPage community section", () => {
       expect(link.getAttribute("target")).toBe("_blank");
       expect(link.getAttribute("rel")).toBe("noopener noreferrer");
     }
-
-    // The PsychonautWiki node deliberately points at the archived mirror of
-    // Josie's tenure, never the present-day site.
-    expect(
-      section.querySelector('a[href="https://psychonautwiki.rip"]'),
-    ).not.toBeNull();
-    expect(section.querySelector('a[href*="psychonautwiki.org"]')).toBeNull();
-
-    // The terminal dose.wiki node is where you already are, not a link.
-    expect(within(section).getByText("you are here")).toBeInTheDocument();
   });
 
   it("omits the section and its anchor when the route supplies no blurbs", () => {

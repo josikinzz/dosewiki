@@ -202,9 +202,9 @@ export type SiteAboutConfig = {
    */
   readonly showOpenData: boolean;
   /**
-   * Whether the Partners & Community section is shown. Its lineage timeline and partner
-   * roster tell dose.wiki's own story (and list effectindex.com as an ancestor), so it
-   * belongs to that publication only.
+   * Whether the Partners & Community roster is shown. It names dose.wiki's
+   * sister projects, data partners, and neighbouring communities, so it belongs
+   * to that publication only.
    */
   readonly showCommunity: boolean;
   /** Heading for the final About tab's panel and its cards. */
@@ -527,7 +527,7 @@ const EFFECT_INDEX_CONFIG: SiteFlavorConfig = {
     // The Open Data tab's exports are dose.wiki's own (molecule pack, SubstanceIndex.json,
     // the dose.wiki repository). Effect Index has none of them to offer.
     showOpenData: false,
-    // Partners & Community is dose.wiki's story; its lineage lists Effect Index itself.
+    // Partners & Community is dose.wiki's partner and community roster.
     showCommunity: false,
     docsTitle: "Licensing & Contact",
     docLinks: [

@@ -158,8 +158,7 @@ interface AboutPageProps {
   /**
    * Blurbs for the Partners & Community section, keyed by copy-block key.
    * `null` omits the section; the route only builds them on a flavor whose
-   * `about.showCommunity` is set (the lineage lists effectindex.com, so the
-   * section is dose.wiki's story alone).
+   * `about.showCommunity` is set because this roster is dose.wiki's story.
    */
   communityBlurbs?: AboutCommunityBlurbs | null;
 }
@@ -347,10 +346,9 @@ export const AboutPage = memo(function AboutPage({
           </div>
         </section>
 
-        {/* Partners & Community: the project lineage plus sister projects, data
-            partners and neighbouring communities. dose.wiki only — the lineage
-            lists effectindex.com, so Effect Index never renders it (see
-            `about.showCommunity` and the route's blurb gate). */}
+        {/* Partners & Community: sister projects, data partners, and neighbouring
+            communities. dose.wiki only; Effect Index never renders the roster
+            (see `about.showCommunity` and the route's blurb gate). */}
         {ABOUT_CONFIG.showCommunity && communityBlurbs ? (
           <section id="community" className="space-y-6">
             <PublicSectionHeading icon="lucide:handshake" title="Partners & Community" />
