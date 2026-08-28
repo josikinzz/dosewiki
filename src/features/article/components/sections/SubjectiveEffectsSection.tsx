@@ -31,8 +31,8 @@ interface SubjectiveEffectsSectionProps {
   /** Profile href for the attribution author, resolved server-side; null when unmapped. */
   attributionHref?: string | null;
   /**
-   * Streamed Replication Showcase (a server-rendered slot), drawn as the last
-   * child of the Visual group. Absent — the usual case — nothing changes.
+   * Streamed Replication Showcase (a server-rendered slot), drawn as the final
+   * content in Subjective Effects. Absent — the usual case — nothing changes.
    */
   replicationShowcaseSection?: ReactNode;
 }
@@ -346,9 +346,6 @@ export const SubjectiveEffectsSection = memo(function SubjectiveEffectsSection({
                 onToggleEffect={toggleEffect}
                 onSelectEffect={onSelectEffect}
               />
-              {key === "visual" && replicationShowcaseSection
-                ? replicationShowcaseSection
-                : null}
             </ArticleSectionGroup>
           );
         })}
@@ -406,6 +403,7 @@ export const SubjectiveEffectsSection = memo(function SubjectiveEffectsSection({
             />
           );
         })()}
+      {replicationShowcaseSection ?? null}
     </ArticleSection>
   );
 });

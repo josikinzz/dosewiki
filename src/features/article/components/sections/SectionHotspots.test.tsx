@@ -396,6 +396,65 @@ describe("article section cleanup characterization", () => {
     ).toHaveAttribute("href", sourceUrl);
   });
 
+  it("renders the replication showcase after every subjective effects subsection", () => {
+    const defaults = createEmptyArticle();
+    const article = {
+      ...defaults,
+      title: "Showcase placement test",
+      comparisons: [
+        {
+          drug: "Comparator",
+          comparison: "Reference comparison.",
+        },
+      ],
+      subjective_effects: {
+        ...defaults.subjective_effects,
+        notes: {
+          ...defaults.subjective_effects.notes,
+          overview: "Subjective effects overview.",
+        },
+        sensory: {
+          ...defaults.subjective_effects.sensory,
+          visual: {
+            ...defaults.subjective_effects.sensory.visual,
+            subcategories: {
+              Geometry: {
+                note: "",
+                effects: effectChips("Geometry"),
+              },
+            },
+          },
+        },
+        attribution: {
+          author: "Test Contributor",
+          text: "Test contributor attribution.",
+          url: "https://example.com/source",
+        },
+      },
+    };
+
+    render(
+      <SubjectiveEffectsSection
+        article={article}
+        attributionHref="/contributors/test-contributor"
+        replicationShowcaseSection={
+          <div data-testid="replication-showcase">Replication slideshow</div>
+        }
+      />,
+    );
+
+    const showcase = screen.getByTestId("replication-showcase");
+    const comparison = screen.getByText("Reference comparison.");
+    const attribution = screen.getByRole("link", { name: "Test Contributor" });
+
+    expect(
+      comparison.compareDocumentPosition(showcase) & Node.DOCUMENT_POSITION_FOLLOWING,
+    ).not.toBe(0);
+    expect(
+      attribution.compareDocumentPosition(showcase) & Node.DOCUMENT_POSITION_FOLLOWING,
+    ).not.toBe(0);
+  });
+
   it("renders dosage route tabs and expands note details", () => {
     const article = {
       ...createEmptyArticle(),

@@ -14,8 +14,8 @@ import {
 } from "@server/convex/publicData";
 
 /**
- * The substance article's Replication Showcase, streamed as an async server
- * section into the Subjective Effects visual group.
+ * The substance article's Replication Showcase, streamed as the final content
+ * in the Subjective Effects section.
  *
  * A substance with no matched works renders nothing at all — the Suspense
  * fallback around this section is null for the same reason — so an unmatched

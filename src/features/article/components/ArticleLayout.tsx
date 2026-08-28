@@ -50,7 +50,7 @@ export interface ArticleLayoutProps {
    * `relatedTripReports` for hosts that pass reports directly.
    */
   hasRelatedTripReports?: boolean;
-  /** Streamed Replication Showcase, rendered inside the Subjective Effects visual group. */
+  /** Streamed Replication Showcase, rendered at the end of Subjective Effects. */
   replicationShowcaseSection?: ReactNode;
   contributorAvatars?: ContributorAvatarMap;
   contributorDirectory?: ContributorDirectory;
