@@ -32,6 +32,37 @@ rollback path (section 5).
 The rest of this document records the decisions behind the completed operation
 and the requirements for a rerun.
 
+## Superseded: media origin moves to Cloudflare R2 (2026-08-27 decision)
+
+This document's 2026-08-16 decision to keep Convex as the media origin was
+superseded by the owner's explicit 2026-08-27 instruction: metadata stays in
+Convex, media bytes move to the existing Cloudflare R2 archive
+(`docs/agents/convex-to-cloudflare-r2-media-handoff.md`). The dual-read seam
+is live in code:
+
+- Schema: five optional keys — `r2_key`, `thumbnail_r2_key`, `preview_r2_key`,
+  `motion_r2_key`, `motion_poster_r2_key`
+  (`convex/lib/effectMediaSchemaValidators.ts`). Storage IDs, `url`, and
+  `thumbnail_url` stay populated as the rollback source.
+- Resolution: `resolveReplicationUrls` prefers a valid content-addressed key
+  (`media/sha256/<first-two-hex>/<sha256>.<ext>`) joined to the Convex
+  deployment variable `REPLICATION_MEDIA_BASE_URL`, then Convex Storage, then
+  the row's direct-URL fallback. Unset the variable to disable R2-first
+  resolution everywhere at once — that is the rollback switch.
+- Writes: `replications.updateR2Keys`, compare-and-swap per variant — every
+  key travels with the storage ID it was derived from and the batch fails if
+  the row was repointed since the plan.
+- Tooling: `scripts/replications/build-r2-media-ledger.mjs` (read-only SHA-256
+  reconciliation ledger; identity is the digest, never filename or size) and
+  `scripts/replications/backfill-r2-keys.mjs` (dry-run default, canary via
+  `--slugs`, gated by the standard production-write flags).
+
+Note for reruns of the repoint procedure below: on a row whose `r2_key` is set
+while `REPLICATION_MEDIA_BASE_URL` is configured, repointing `storage_id` no
+longer changes what the browser sees (`fieldThatWins()` in
+`repoint-renditions.mjs` predates the R2 tier). During an R2 rollback the
+variable is unset, so the documented rerun behaviour still holds exactly.
+
 ## Corrections to earlier readings of this corpus
 
 - **`notes-and-plans/reports/replication-provenance/audit-latest.json` is stale

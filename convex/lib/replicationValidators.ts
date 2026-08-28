@@ -204,6 +204,31 @@ export const updateMotionStorageIdsArgs = v.object({
   ),
 });
 
+/**
+ * Compare-and-swap batch for the R2 media migration. Every entry names the
+ * row's current `storage_id`; a variant key may only be set alongside the
+ * matching expected variant storage ID, so a repoint that raced this batch
+ * fails the whole mutation instead of pinning stale bytes.
+ */
+export const updateR2KeysArgs = v.object({
+  apiKey: v.optional(v.string()),
+  updates: v.array(
+    v.object({
+      id: v.id("replications"),
+      expectedStorageId: v.string(),
+      r2_key: v.optional(v.string()),
+      thumbnail_r2_key: v.optional(v.string()),
+      expectedThumbnailStorageId: v.optional(v.string()),
+      preview_r2_key: v.optional(v.string()),
+      expectedPreviewStorageId: v.optional(v.string()),
+      motion_r2_key: v.optional(v.string()),
+      expectedMotionStorageId: v.optional(v.string()),
+      motion_poster_r2_key: v.optional(v.string()),
+      expectedMotionPosterStorageId: v.optional(v.string()),
+    }),
+  ),
+});
+
 export const getResolvedByIdArgs = v.object({
   apiKey: v.optional(v.string()),
   id: v.id("replications"),
@@ -288,6 +313,7 @@ export type UpdateDeliveredFileSizeArgs = Infer<typeof updateDeliveredFileSizeAr
 export type UpdateStorageIdsArgs = Infer<typeof updateStorageIdsArgs>;
 export type UpdatePreviewStorageIdsArgs = Infer<typeof updatePreviewStorageIdsArgs>;
 export type UpdateMotionStorageIdsArgs = Infer<typeof updateMotionStorageIdsArgs>;
+export type UpdateR2KeysArgs = Infer<typeof updateR2KeysArgs>;
 export type GetResolvedByIdArgs = Infer<typeof getResolvedByIdArgs>;
 export type ApplySourceRecoveryArgs = Infer<typeof applySourceRecoveryArgs>;
 export type MergeUnknownTwinArgs = Infer<typeof mergeUnknownTwinArgs>;

@@ -124,6 +124,11 @@ export const updateMotionStorageIds = mutation({
   handler: recovery.updateMotionStorageIdsHandler,
 });
 
+export const updateR2Keys = mutation({
+  args: validators.updateR2KeysArgs.fields,
+  handler: recovery.updateR2KeysHandler,
+});
+
 export const getResolvedById = query({
   args: validators.getResolvedByIdArgs.fields,
   handler: recovery.getResolvedByIdHandler,

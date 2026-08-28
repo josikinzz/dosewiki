@@ -97,6 +97,7 @@
     "citations:audit-subsections": "node scripts/citations/audit-subsection-citations.mjs",
     "citations:seed-subsection-tracker": "node scripts/citations/seed-subsection-rollout-tracker.mjs",
     "citations:update-subsection-status": "node scripts/citations/update-subsection-rollout-status.mjs",
+    "legality:audit-subsections": "node scripts/legality/audit-subsection-citations.mjs",
     "legality:export": "node scripts/legality/export-run-packet.mjs",
     "legality:validate": "bun scripts/legality/validate-draft.ts",
     "legality:apply": "node scripts/legality/apply-draft.mjs",

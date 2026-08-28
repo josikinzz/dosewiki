@@ -243,6 +243,17 @@ export interface ReplicationRecord extends ReplicationRightsMetadata {
   motion_storage_id?: string;
   /** Poster paired with motion_storage_id. */
   motion_poster_storage_id?: string;
+  /**
+   * Cloudflare R2 archive keys (`media/sha256/<first-two-hex>/<sha256>.<ext>`),
+   * one per media variant. Optional and additive: the Convex storage IDs stay
+   * populated as the rollback source during the R2 migration. Clients never
+   * build URLs from these — `resolveReplicationUrls` does, server-side.
+   */
+  r2_key?: string;
+  thumbnail_r2_key?: string;
+  preview_r2_key?: string;
+  motion_r2_key?: string;
+  motion_poster_r2_key?: string;
   width?: number;
   height?: number;
   format: string;

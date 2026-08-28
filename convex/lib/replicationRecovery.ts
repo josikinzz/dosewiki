@@ -3,6 +3,7 @@ import { requireAuth } from "./auth";
 import { definedReplicationRightsPatch } from "./replicationPolicy";
 import {
   isPlaceholderStorageId,
+  isValidR2Key,
   resolveReplicationUrls,
 } from "./replicationUrls";
 import type {
@@ -12,6 +13,7 @@ import type {
   MergeUnknownTwinArgs,
   UpdatePreviewStorageIdsArgs,
   UpdateMotionStorageIdsArgs,
+  UpdateR2KeysArgs,
   UpdateRightsMetadataArgs,
 } from "./replicationValidators";
 
@@ -97,6 +99,101 @@ export async function updateMotionStorageIdsHandler(
       motion_storage_id: entry.motionStorageId,
       motion_poster_storage_id: entry.motionPosterStorageId,
     });
+  }
+  return { success: true, updated: validated.length };
+}
+
+const R2_KEYS_BATCH_LIMIT = 250;
+
+type R2KeyPatch = {
+  r2_key?: string;
+  thumbnail_r2_key?: string;
+  preview_r2_key?: string;
+  motion_r2_key?: string;
+  motion_poster_r2_key?: string;
+};
+
+const R2_KEY_ROLES = [
+  { keyField: "r2_key", storageField: "storage_id", expectedField: "expectedStorageId" },
+  { keyField: "thumbnail_r2_key", storageField: "thumbnail_storage_id", expectedField: "expectedThumbnailStorageId" },
+  { keyField: "preview_r2_key", storageField: "preview_storage_id", expectedField: "expectedPreviewStorageId" },
+  { keyField: "motion_r2_key", storageField: "motion_storage_id", expectedField: "expectedMotionStorageId" },
+  { keyField: "motion_poster_r2_key", storageField: "motion_poster_storage_id", expectedField: "expectedMotionPosterStorageId" },
+] as const;
+
+/**
+ * Pure compare-and-swap check for one R2 key batch entry. Returns the patch to
+ * apply, or throws. Rules, per variant whose `*_r2_key` is present:
+ *
+ * 1. The key must be a canonical `media/sha256/` content-addressed key.
+ * 2. The caller must state the storage ID it derived that key from
+ *    (`expected*StorageId`), and the row must still carry exactly that ID —
+ *    so a repoint racing the batch fails loudly instead of pinning old bytes.
+ *
+ * `expectedStorageId` is additionally checked unconditionally: it is the row
+ * identity anchor for every entry, whichever variants the entry patches.
+ */
+export function validateR2KeyUpdate(
+  row: {
+    slug: string;
+    storage_id: string;
+    thumbnail_storage_id?: string;
+    preview_storage_id?: string;
+    motion_storage_id?: string;
+    motion_poster_storage_id?: string;
+  },
+  update: UpdateR2KeysArgs["updates"][number],
+): R2KeyPatch {
+  if (row.storage_id !== update.expectedStorageId) {
+    throw new Error(
+      `R2 key precondition failed: ${row.slug} storage_id changed since the plan.`,
+    );
+  }
+  const patch: R2KeyPatch = {};
+  for (const { keyField, storageField, expectedField } of R2_KEY_ROLES) {
+    const key = update[keyField];
+    if (key === undefined) continue;
+    if (!isValidR2Key(key)) {
+      throw new Error(`R2 key is not a canonical media/sha256/ key: ${key}`);
+    }
+    const currentStorageId = row[storageField];
+    const expectedStorageId = update[expectedField];
+    if (isPlaceholderStorageId(currentStorageId)) {
+      throw new Error(
+        `R2 key precondition failed: ${row.slug} has no native ${storageField} to derive ${keyField} from.`,
+      );
+    }
+    if (currentStorageId !== expectedStorageId) {
+      throw new Error(
+        `R2 key precondition failed: ${row.slug} ${storageField} changed since the plan.`,
+      );
+    }
+    patch[keyField] = key;
+  }
+  if (Object.keys(patch).length === 0) {
+    throw new Error(`R2 key update for ${row.slug} sets no keys.`);
+  }
+  return patch;
+}
+
+export async function updateR2KeysHandler(ctx: MutationCtx, args: UpdateR2KeysArgs) {
+  await requireAuth(ctx, args.apiKey, "replicationMaintenance");
+  if (args.updates.length === 0 || args.updates.length > R2_KEYS_BATCH_LIMIT) {
+    throw new Error(`R2 key batches must contain 1-${R2_KEYS_BATCH_LIMIT} updates.`);
+  }
+  const validated: Array<{
+    id: (typeof args.updates)[number]["id"];
+    patch: R2KeyPatch;
+  }> = [];
+  for (const update of args.updates) {
+    const replication = await ctx.db.get(update.id);
+    if (!replication) {
+      throw new Error("R2 key target row no longer exists.");
+    }
+    validated.push({ id: update.id, patch: validateR2KeyUpdate(replication, update) });
+  }
+  for (const entry of validated) {
+    await ctx.db.patch(entry.id, entry.patch);
   }
   return { success: true, updated: validated.length };
 }

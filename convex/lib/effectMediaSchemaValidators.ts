@@ -169,6 +169,19 @@ export const replication = v.object({
   motion_storage_id: v.optional(v.string()),
   /** Poster paired with motion_storage_id; original thumbnail stays untouched. */
   motion_poster_storage_id: v.optional(v.string()),
+  /**
+   * Cloudflare R2 archive keys, one per media variant. Content-addressed
+   * (`media/sha256/<first-two-hex>/<sha256>.<ext>`) and immutable. Optional
+   * and additive: the Convex storage IDs above stay populated as the rollback
+   * source during the R2 migration. `resolveReplicationUrls` prefers a valid
+   * R2 key whenever REPLICATION_MEDIA_BASE_URL is configured on the
+   * deployment. Written only by the CAS mutation `replications.updateR2Keys`.
+   */
+  r2_key: v.optional(v.string()),
+  thumbnail_r2_key: v.optional(v.string()),
+  preview_r2_key: v.optional(v.string()),
+  motion_r2_key: v.optional(v.string()),
+  motion_poster_r2_key: v.optional(v.string()),
   url: v.optional(v.string()),         // Direct URL (external Convex storage or CDN)
   thumbnail_url: v.optional(v.string()), // Direct thumbnail URL (for videos)
   width: v.optional(v.number()),       // For responsive display
