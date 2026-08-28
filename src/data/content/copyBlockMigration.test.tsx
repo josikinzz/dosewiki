@@ -127,6 +127,7 @@ describe("copy block defaults", () => {
 
   it("match the replications More Info description the tab falls back to", () => {
     expect(bodyOf(REPLICATIONS_INTRO_KEY)).toBe(REPLICATIONS_INTRO_FALLBACK);
+    expect(getCopyBlockDefault(REPLICATIONS_INTRO_KEY)?.kind).toBe("markdown");
   });
 
   it("match the replications fair-use notice the gallery falls back to", () => {
@@ -180,7 +181,26 @@ describe("migrated surfaces render the pre-migration text", () => {
     expect(
       screen.getByRole("link", { name: "licensing terms" }).getAttribute("href"),
     ).toBe("/docs/license#replication-media-terms");
+    expect(screen.getByRole("link", { name: "licensing terms" })).toHaveClass(
+      "theme-accent-underline",
+      "decoration-dotted",
+    );
     expect(document.body.textContent).not.toContain("**");
     expect(document.body.textContent).toContain("Why this art is here.");
+  });
+
+  it("drops unsupported underline tags without leaking them into replication copy", () => {
+    render(
+      <ReplicationsFairUseNotice
+        body="Read the <u>[licensing terms](/docs/license#replication-media-terms)</u>."
+      />,
+    );
+
+    expect(screen.getByRole("link", { name: "licensing terms" })).toHaveClass(
+      "theme-accent-underline",
+      "decoration-dotted",
+    );
+    expect(document.body.textContent).not.toContain("<u>");
+    expect(document.body.textContent).not.toContain("</u>");
   });
 });

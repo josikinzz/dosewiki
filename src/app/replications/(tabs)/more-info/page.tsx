@@ -1,3 +1,8 @@
+import ReactMarkdown from "react-markdown";
+import remarkBreaks from "remark-breaks";
+import remarkGfm from "remark-gfm";
+
+import { publicMarkdownComponents } from "@/components/pages/PublicMarkdownBody";
 import { ReplicationsFairUseNotice } from "@/features/replications/components/ReplicationsFairUseNotice";
 import { ReplicationsTabNav } from "@/features/replications/components/ReplicationsTabNav";
 import {
@@ -15,6 +20,13 @@ import { getCopy } from "@server/next/copyBlocks";
 // follows the other index pages onto the hourly ISR window; a Copy Studio
 // save revalidates it immediately through the shared copy cache tag.
 export const revalidate = 3600;
+
+const introMarkdownComponents = {
+  ...publicMarkdownComponents,
+  p: ({ node: _node, ...props }: { node?: unknown }) => (
+    <p className="theme-text-secondary max-w-3xl text-base" {...props} />
+  ),
+};
 
 export async function generateMetadata() {
   const copy = await getCopy();
@@ -43,9 +55,13 @@ export default async function ReplicationsInfoPage() {
       <div className="mx-auto mt-8 w-full max-w-7xl">
         <h2 className="sr-only">More Info</h2>
 
-        <p className="theme-text-secondary max-w-3xl text-base">
+        <ReactMarkdown
+          skipHtml
+          remarkPlugins={[remarkGfm, remarkBreaks]}
+          components={introMarkdownComponents}
+        >
           {copy.text(REPLICATIONS_INTRO_KEY) || REPLICATIONS_INTRO_FALLBACK}
-        </p>
+        </ReactMarkdown>
 
         <ReplicationsFairUseNotice
           body={

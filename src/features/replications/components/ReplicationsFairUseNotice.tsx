@@ -38,6 +38,7 @@ export function ReplicationsFairUseNotice({ body }: { body: string }) {
     >
       <div className="max-w-3xl">
         <ReactMarkdown
+          skipHtml
           remarkPlugins={[remarkGfm, remarkBreaks]}
           components={noticeMarkdownComponents}
         >

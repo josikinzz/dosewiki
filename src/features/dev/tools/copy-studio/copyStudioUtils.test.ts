@@ -13,7 +13,7 @@ import {
   type CopyBlockRow,
 } from "./copyStudioUtils";
 
-const defaultBlock = COPY_BLOCK_DEFAULTS.find((entry) => entry.kind !== "list")!;
+const defaultBlock = COPY_BLOCK_DEFAULTS.find((entry) => entry.kind === "markdown")!;
 
 function findBlock(key: string, rows: CopyBlockRow[] = []) {
   return buildCopyStudioBlocks(rows).find((block) => block.key === key)!;
@@ -42,6 +42,7 @@ describe("copy studio block reconciliation", () => {
     expect(block.source).toBe("convex");
     expect(block.current.body).toBe("Stored wording");
     expect(block.fallback?.body).toBe(defaultBlock.body);
+    expect(block.kind).toBe("markdown");
   });
 
   it("keeps a Convex-only block editable but gives it no reset target", () => {

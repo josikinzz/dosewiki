@@ -92,7 +92,10 @@ export function buildCopyStudioBlocks(rows: readonly CopyBlockRow[]): CopyStudio
     byKey.set(row.key, {
       key: row.key,
       flavor: row.flavor ?? definition?.flavor,
-      kind: row.kind,
+      // The checked-in definition owns the renderer contract. A stored row
+      // contributes content, but cannot pin a block to an obsolete kind after
+      // code migrates it from plain text to Markdown.
+      kind: definition?.kind ?? row.kind,
       label: row.label,
       group: row.group,
       current: payloadOf(row),

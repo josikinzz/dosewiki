@@ -15,7 +15,7 @@ import { cn } from "@/lib/utils";
  * is auto-guarded under @media (hover: hover).
  */
 export const proseLinkClassName =
-  "theme-accent-emphasis font-medium underline decoration-dotted underline-offset-2 transition-colors hover:decoration-solid focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-dose-accent-strong";
+  "theme-accent-emphasis theme-accent-underline font-medium underline decoration-dotted underline-offset-2 transition-colors hover:decoration-solid focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-dose-accent-strong";
 
 export type ProseLinkProps = React.AnchorHTMLAttributes<HTMLAnchorElement>;
 

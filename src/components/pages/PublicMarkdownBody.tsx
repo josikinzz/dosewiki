@@ -3,6 +3,8 @@ import ReactMarkdown from "react-markdown";
 import remarkBreaks from "remark-breaks";
 import remarkGfm from "remark-gfm";
 
+import { proseLinkClassName } from "@/components/common/ProseLink";
+
 import { createVCodeHeadingIdAssigner } from "@/features/effects/vcode/headings";
 
 /** Plain text of a rendered heading, so a heading wrapping a link still slugs. */
@@ -47,7 +49,7 @@ export const publicMarkdownComponents = {
     const isExternal = typeof href === "string" && /^https?:\/\//i.test(href);
     return (
       <a
-        className="theme-link-muted font-medium transition hover:underline hover:decoration-dose-accent-muted hover:underline-offset-2"
+        className={proseLinkClassName}
         href={href}
         target={isExternal ? "_blank" : undefined}
         rel={isExternal ? "noopener noreferrer" : undefined}
@@ -127,7 +129,11 @@ export function PublicMarkdownBody({
 
   return (
     <div className={className}>
-      <ReactMarkdown remarkPlugins={[remarkGfm, remarkBreaks]} components={components}>
+      <ReactMarkdown
+        skipHtml
+        remarkPlugins={[remarkGfm, remarkBreaks]}
+        components={components}
+      >
         {content}
       </ReactMarkdown>
     </div>
