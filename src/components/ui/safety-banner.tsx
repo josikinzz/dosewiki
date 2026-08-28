@@ -193,8 +193,9 @@ const POINT_TEXT_CLASS = "text-[13px] leading-relaxed text-dose-text-secondary";
  *
  * The list marker is a `bg-current` dot on a `list-none` list, never a
  * `border-left` accent stripe, which the brief bans outright (§9). The dot
- * inherits the root's tone ink while the sentence overrides to prose colour;
- * 76ch is the brief's measure for the only real prose in the banner.
+ * inherits the root's tone ink while the sentence overrides to prose colour.
+ * The prose runs the full card width — no measure cap — so the banner text
+ * wraps only where the card itself does.
  */
 function SafetyBannerPoints({ points, className }: SafetyBannerPointsProps) {
   const blocks = toWarningBannerBlocks(points);
@@ -203,7 +204,7 @@ function SafetyBannerPoints({ points, className }: SafetyBannerPointsProps) {
   }
 
   return (
-    <div className={cn("flex max-w-[76ch] flex-col gap-2", className)}>
+    <div className={cn("flex w-full flex-col gap-2", className)}>
       {blocks.map((block, index) =>
         block.kind === "paragraph" ? (
           <p key={`p-${index}`} className={POINT_TEXT_CLASS}>
