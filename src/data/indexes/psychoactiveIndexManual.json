@@ -96,6 +96,7 @@
           "drugs": [
             "allylescaline",
             "escaline",
+            "methallylescaline",
             "proscaline"
           ],
           "key": "scaline",
@@ -163,6 +164,7 @@
         },
         {
           "drugs": [
+            "2-fluorodeschloroketamine",
             "3-cl-pcp",
             "3-ho-pce",
             "3-ho-pcp",
@@ -310,6 +312,7 @@
             "2-fa",
             "2-fea",
             "2-fma",
+            "3-fa",
             "3-fea",
             "4-fa",
             "4-fma",
@@ -362,6 +365,8 @@
         },
         {
           "drugs": [
+            "desoxypipradrol",
+            "dexmethylphenidate",
             "methiopropamine",
             "nm-2-ai",
             "phenethylamine",
@@ -496,6 +501,7 @@
           "drugs": [
             "buprenorphine",
             "desomorphine",
+            "dihydrocodeine",
             "ethylmorphine",
             "hydrocodone",
             "hydromorphone",
@@ -516,6 +522,7 @@
         {
           "drugs": [
             "lean",
+            "o-desmethyltramadol",
             "tapentadol",
             "tianeptine",
             "u-47700"
@@ -660,6 +667,7 @@
           "drugs": [
             "1-4-butanediol",
             "baclofen",
+            "f-phenibut",
             "gabapentin",
             "gbl",
             "pregabalin"
