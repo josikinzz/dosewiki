@@ -2,101 +2,79 @@
  * Structural data for the About page's Partners & Community section
  * (dose.wiki flavor only — see `SiteAboutConfig.showCommunity`).
  *
- * This module owns the roster structure: names, links, logos, and tiers. The
- * roster's one-line blurbs are editable copy blocks (group "About" in
- * src/data/content/copyBlocks.json, keys `about-community-*`), resolved
- * server-side by the About route and passed down as plain strings.
+ * One flat roster in no particular order: names, links, and logo artwork.
+ * Descriptive copy was deliberately removed pending a rewrite; when it
+ * returns it should come back as editable copy blocks like the rest of the
+ * About page, not as literals here.
  *
- * Logo provenance: consciousness-library from josiekins.xyz/images/shared/,
- * tripsit from tripsit.me, protestkit from protestkit.eu. Subreddits render an
- * `r/` monogram tile: Reddit serves no stable anonymous icon endpoint.
+ * Logo provenance: consciousness-library and effectindex from
+ * josiekins.xyz/images/shared/, tripsit from tripsit.me, protestkit from
+ * protestkit.eu; the r-* tiles are each subreddit's Reddit community avatar.
  */
 
-/** How a partner's tile is filled. */
-export type CommunityLogo =
-  | {
-      kind: "image";
-      src: string;
-      /**
-       * `contain` letterboxes inside the tile (default). `cover` bleeds the
-       * artwork to the tile edges — for square app-icon marks that carry
-       * their own background. `wide` fits a wordmark by width.
-       */
-      fit?: "contain" | "cover" | "wide";
-    }
-  | { kind: "monogram"; text: string };
+/** How an entry's tile artwork is fitted. */
+export type CommunityLogo = {
+  src: string;
+  /**
+   * `contain` letterboxes inside the tile (default). `cover` bleeds the
+   * artwork to the tile edges — for square avatar marks that carry their
+   * own background. `wide` fits a wordmark by width.
+   */
+  fit?: "contain" | "cover" | "wide";
+};
 
 export type CommunityLink = {
-  /** Stable id; also the tail of the entry's copy-block key. */
+  /** Stable id. */
   key: string;
   name: string;
   href: string;
-  /** Display domain under the name. */
-  domain: string;
   logo: CommunityLogo;
-  /** Copy-block key for the one-line blurb. */
-  copyKey: string;
-};
-
-export type CommunityDataPartner = CommunityLink & {
-  /** Short badge naming the data this partner ships on the site. */
-  dataTag: string;
 };
 
 const LOGO_BASE = "/about/community";
 
-
-export const ABOUT_COMMUNITY_DATA_PARTNERS: readonly CommunityDataPartner[] = [
+/** The combined partner and community roster. */
+export const ABOUT_COMMUNITY_LINKS: readonly CommunityLink[] = [
   {
     key: "tripsit",
     name: "TripSit",
     href: "https://tripsit.me",
-    domain: "tripsit.me",
-    logo: { kind: "image", src: `${LOGO_BASE}/tripsit.webp`, fit: "wide" },
-    copyKey: "about-community-tripsit",
-    dataTag: "Interaction data",
+    logo: { src: `${LOGO_BASE}/tripsit.webp`, fit: "wide" },
   },
   {
     key: "protestkit",
     name: "PRO Test Kit",
     href: "https://protestkit.eu",
-    domain: "protestkit.eu",
-    logo: { kind: "image", src: `${LOGO_BASE}/protestkit.webp` },
-    copyKey: "about-community-protestkit",
-    dataTag: "Reagent data",
+    logo: { src: `${LOGO_BASE}/protestkit.webp` },
   },
   {
     key: "consciousness-library",
     name: "Consciousness Library",
     href: "https://consciousnesslibrary.org",
-    domain: "consciousnesslibrary.org",
-    logo: { kind: "image", src: `${LOGO_BASE}/consciousness-library.svg` },
-    copyKey: "about-community-consciousness-library",
-    dataTag: "dose.wiki API",
+    logo: { src: `${LOGO_BASE}/consciousness-library.svg` },
   },
-];
-
-export const ABOUT_COMMUNITY_FRIENDS: readonly CommunityLink[] = [
   {
     key: "r-drugs",
     name: "r/drugs",
     href: "https://reddit.com/r/drugs",
-    domain: "reddit.com",
-    logo: { kind: "monogram", text: "r/" },
-    copyKey: "about-community-r-drugs",
+    logo: { src: `${LOGO_BASE}/r-drugs.webp`, fit: "cover" },
   },
   {
     key: "r-researchchemicals",
     name: "r/researchchemicals",
     href: "https://reddit.com/r/researchchemicals",
-    domain: "reddit.com",
-    logo: { kind: "monogram", text: "r/" },
-    copyKey: "about-community-r-researchchemicals",
+    logo: { src: `${LOGO_BASE}/r-researchchemicals.webp`, fit: "cover" },
   },
-];
-
-/** Every copy-block key the community roster reads. */
-export const ABOUT_COMMUNITY_COPY_KEYS: readonly string[] = [
-  ...ABOUT_COMMUNITY_DATA_PARTNERS.map((entry) => entry.copyKey),
-  ...ABOUT_COMMUNITY_FRIENDS.map((entry) => entry.copyKey),
+  {
+    key: "r-replications",
+    name: "r/replications",
+    href: "https://reddit.com/r/replications",
+    logo: { src: `${LOGO_BASE}/r-replications.webp`, fit: "cover" },
+  },
+  {
+    key: "effect-index",
+    name: "Effect Index",
+    href: "https://effectindex.com",
+    logo: { src: `${LOGO_BASE}/effectindex.webp`, fit: "cover" },
+  },
 ];

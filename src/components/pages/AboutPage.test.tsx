@@ -8,8 +8,7 @@ import {
   selectAboutContributors,
 } from "@/data/contributorRoster";
 import type { NormalizedUserProfile } from "@/data/userProfiles";
-import { ABOUT_COMMUNITY_COPY_KEYS } from "@/data/content/aboutCommunity";
-import { getCopyBlockDefault } from "@/data/content/copyBlocks";
+import { ABOUT_COMMUNITY_LINKS } from "@/data/content/aboutCommunity";
 import { AppearanceTestProvider } from "@/test/AppearanceTestProvider";
 import { AboutPage } from "./AboutPage";
 
@@ -443,26 +442,15 @@ describe("AboutPage cross-publication content", () => {
 /**
  * Partners & Community is dose.wiki's section, so its assertions run only
  * where `about.showCommunity` is set; the other flavor asserts its absence.
- * The route resolves blurbs from the copy CMS; these tests resolve the same
- * registered defaults, so a key that drifts between aboutCommunity.ts and
- * copyBlocks.json fails here.
+ * The roster is one flat compact list with no descriptive copy, gated purely
+ * on the flavor config.
  */
 const showCommunity = SITE_FLAVOR_CONFIG.about.showCommunity;
 const describeCommunity = showCommunity ? describe : describe.skip;
 
-const communityBlurbFixture = Object.fromEntries(
-  ABOUT_COMMUNITY_COPY_KEYS.map((key) => [key, getCopyBlockDefault(key)?.body ?? ""]),
-);
-
 describeCommunity("AboutPage community section", () => {
-  it("registers a non-empty default copy block for every community blurb key", () => {
-    for (const key of ABOUT_COMMUNITY_COPY_KEYS) {
-      expect(getCopyBlockDefault(key)?.body, key).toBeTruthy();
-    }
-  });
-
-  it("renders the section, its TOC anchors, and both tiers when blurbs are supplied", () => {
-    renderAboutPage({ communityBlurbs: communityBlurbFixture });
+  it("renders the section, its TOC anchors, and every roster entry", () => {
+    renderAboutPage();
 
     expect(
       screen.getByRole("heading", { name: "Partners & Community" }),
@@ -471,50 +459,47 @@ describeCommunity("AboutPage community section", () => {
     expect(document.querySelectorAll('a[href="#community"]')).toHaveLength(2);
 
     const section = sectionById("community");
-    for (const label of ["Data partners", "Friends & community"]) {
-      expect(within(section).getByText(label)).toBeInTheDocument();
+    for (const entry of ABOUT_COMMUNITY_LINKS) {
+      expect(within(section).getByText(entry.name)).toBeInTheDocument();
     }
-    // The removed lineage flowchart stays absent from both the partner roster
-    // and the Mission section even when community content is enabled.
-    expect(within(section).queryByText("Sister projects")).toBeNull();
-    expect(within(sectionById("mission")).queryByText("Lineage")).toBeNull();
   });
 
-
-  it("places the Consciousness Library under data partners with the API tag", () => {
-    renderAboutPage({ communityBlurbs: communityBlurbFixture });
+  it("renders one flat list without tier labels or descriptive copy", () => {
+    renderAboutPage();
 
     const section = sectionById("community");
-    const row = within(section)
-      .getByText("Consciousness Library")
-      .closest("a");
-    expect(row).not.toBeNull();
-    expect(within(row as HTMLElement).getByText("dose.wiki API")).toBeInTheDocument();
+    expect(section.querySelectorAll("ul")).toHaveLength(1);
+    for (const label of [
+      "Data partners",
+      "Friends & community",
+      "Sister projects",
+      "Lineage",
+    ]) {
+      expect(within(section).queryByText(label)).toBeNull();
+    }
+    // The retired blurbs and data tags stay gone until copy is rewritten.
+    expect(within(section).queryByText("dose.wiki API")).toBeNull();
+    expect(
+      within(section).queryByText(/combination-safety data/i),
+    ).toBeNull();
   });
 
-  it("links every partner externally with a safe rel", () => {
-    renderAboutPage({ communityBlurbs: communityBlurbFixture });
+  it("links every roster entry externally with a safe rel", () => {
+    renderAboutPage();
 
     const links = sectionById("community").querySelectorAll("a[href^='https://']");
-    expect(links.length).toBeGreaterThan(0);
+    expect(links.length).toBe(ABOUT_COMMUNITY_LINKS.length);
     for (const link of links) {
       expect(link.getAttribute("target")).toBe("_blank");
       expect(link.getAttribute("rel")).toBe("noopener noreferrer");
     }
   });
-
-  it("omits the section and anchor when the route supplies no blurbs", () => {
-    renderAboutPage();
-
-    expect(document.getElementById("community")).toBeNull();
-    expect(document.querySelector('a[href="#community"]')).toBeNull();
-  });
 });
 
 if (!showCommunity) {
   describe("AboutPage community section (flavor without it)", () => {
-    it("never renders the section, even when blurbs are supplied", () => {
-      renderAboutPage({ communityBlurbs: communityBlurbFixture });
+    it("never renders the section or its anchor", () => {
+      renderAboutPage();
 
       expect(document.getElementById("community")).toBeNull();
       expect(document.querySelector('a[href="#community"]')).toBeNull();

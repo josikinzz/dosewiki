@@ -36,7 +36,6 @@ import { MoleculeDownloadPack } from "./MoleculeDownloadPack";
 import {
   AboutCommunitySection,
   GROUP_LABEL_CLASSNAME,
-  type AboutCommunityBlurbs,
 } from "./AboutCommunitySection";
 
 const DEFAULT_TAGLINE = SITE_FLAVOR_CONFIG.description;
@@ -155,12 +154,6 @@ interface AboutPageProps {
   /** Editor-managed tagline from Convex siteConfig; falls back to the canonical line. */
   subtitle?: string;
   moleculeCount: number;
-  /**
-   * Blurbs for the Partners & Community section, keyed by copy-block key.
-   * `null` omits the section; the route only builds them on a flavor whose
-   * `about.showCommunity` is set because this roster is dose.wiki's story.
-   */
-  communityBlurbs?: AboutCommunityBlurbs | null;
 }
 
 export const AboutPage = memo(function AboutPage({
@@ -171,7 +164,6 @@ export const AboutPage = memo(function AboutPage({
   missionContent,
   subtitle,
   moleculeCount,
-  communityBlurbs = null,
 }: AboutPageProps) {
   const founders = founderProfiles;
   const hasRosterEntries =
@@ -190,7 +182,7 @@ export const AboutPage = memo(function AboutPage({
       ? [{ id: "data", label: "Downloads", icon: "lucide:download" } satisfies PublicTableOfContentsItem]
       : []),
     { id: "contributors", label: contributorsSectionTitle, icon: "lucide:users" },
-    ...(ABOUT_CONFIG.showCommunity && communityBlurbs
+    ...(ABOUT_CONFIG.showCommunity
       ? [
           {
             id: "community",
@@ -347,13 +339,13 @@ export const AboutPage = memo(function AboutPage({
           </div>
         </section>
 
-        {/* Partners & Community: data partners and neighbouring communities.
-            dose.wiki only; Effect Index never renders the roster (see
-            `about.showCommunity` and the route's blurb gate). */}
-        {ABOUT_CONFIG.showCommunity && communityBlurbs ? (
+        {/* Partners & Community: one compact roster of data partners and
+            neighbouring communities. dose.wiki only; Effect Index never
+            renders it (see `about.showCommunity`). */}
+        {ABOUT_CONFIG.showCommunity ? (
           <section id="community" className="space-y-6">
             <PublicSectionHeading icon="lucide:handshake" title="Partners & Community" />
-            <AboutCommunitySection blurbs={communityBlurbs} />
+            <AboutCommunitySection />
           </section>
         ) : null}
 

@@ -10,7 +10,6 @@ import { getPublicContributorReferenceCounts } from "@server/convex/publicData.c
 import { buildPublicPageMetadata } from "@server/next/publicSite";
 import { flavoredCopyText, getCopy } from "@server/next/copyBlocks";
 import { applyPlaceholders } from "@/data/content/about";
-import { ABOUT_COMMUNITY_COPY_KEYS } from "@/data/content/aboutCommunity";
 import { selectAboutContributors } from "@/data/contributorRoster";
 import { getMoleculeOverrideIndex } from "@server/convex/publicData.molecules";
 import { AboutMissionMarkdown } from "@/components/pages/AboutMissionMarkdown";
@@ -145,12 +144,6 @@ export default async function AboutPage() {
     referenceCounts,
   });
 
-  // Partners & Community blurbs are editable copy blocks. The roster is
-  // dose.wiki's, so a flavor without it never resolves the keys and AboutPage
-  // omits the section and TOC entry alike.
-  const communityBlurbs = SITE_FLAVOR_CONFIG.about.showCommunity
-    ? Object.fromEntries(ABOUT_COMMUNITY_COPY_KEYS.map((key) => [key, copy.text(key)]))
-    : null;
 
   return (
     <AboutContentPage
@@ -161,7 +154,6 @@ export default async function AboutPage() {
       missionContent={<AboutMissionMarkdown content={aboutMarkdown} />}
       subtitle={resolveAboutSubtitle(about.subtitle)}
       moleculeCount={moleculeCount}
-      communityBlurbs={communityBlurbs}
     />
   );
 }

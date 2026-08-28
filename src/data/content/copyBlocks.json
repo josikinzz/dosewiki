@@ -113,41 +113,6 @@
     "body": "Effect Index serves as the platform for the [Subjective Effect Index (SEI)](/effects), a resource containing formalised documentation of the vast number of distinct subjective states that may occur under the influence of hallucinogens. We strive to comprehensively document and describe the wide variety of potential hallucinogenic experiences. The SEI is presented in an easily readable format that contains not only descriptions, but also image, video, and audio [replications](/replications) of these effects.\n\nWe believe that in pioneering formalised subjective effect documentation, we may demystify the psychedelic experience. This has the potential to allow hallucinogen usage to become more culturally acceptable, better understood, and create a platform on top of which these substances may be more easily studied.\n\nEffect Index was initially founded as a side project on 30 June, 2017 by [Josie Kins](/contributors/josie), the founder of [PsychonautWiki](https://psychonautwiki.org) and [DisregardEverythingISay](https://disregardeverythingisay.com/). It serves as a platform for content that has been in constant development for the previous six years on these sites. However, the aforementioned content is now hosted on its own dedicated platform with the hope of further spreading the documentation and creating a universal terminology set that gives people the vernacular to fully describe experiences that were previously considered ineffable.\n\nIf you find this project interesting, we encourage you to join our active communities within both our [subreddit](https://reddit.com/r/replications) and our [Discord](/discord)."
   },
   {
-    "key": "about-community-consciousness-library",
-    "kind": "plain",
-    "label": "Community: Consciousness Library blurb",
-    "group": "About",
-    "body": "Non-profit library of published academic papers on psychedelic science. Runs on the dose.wiki API, in collaboration with the site's founders."
-  },
-  {
-    "key": "about-community-tripsit",
-    "kind": "plain",
-    "label": "Community: TripSit blurb",
-    "group": "About",
-    "body": "The combination-safety data on substance pages ships from TripSit's dataset, under TripSit's own terms."
-  },
-  {
-    "key": "about-community-protestkit",
-    "kind": "plain",
-    "label": "Community: PRO Test Kit blurb",
-    "group": "About",
-    "body": "Reagent reaction data referenced across substance articles comes from PRO Test Kit's testing work."
-  },
-  {
-    "key": "about-community-r-drugs",
-    "kind": "plain",
-    "label": "Community: r/drugs blurb",
-    "group": "About",
-    "body": "General drug discussion and harm reduction, and one of the communities dose.wiki is written for."
-  },
-  {
-    "key": "about-community-r-researchchemicals",
-    "kind": "plain",
-    "label": "Community: r/researchchemicals blurb",
-    "group": "About",
-    "body": "The research chemical community. A lot of what this site documents is discussed there daily."
-  },
-  {
     "key": "effect-index-home-intro-lead",
     "flavor": "effect-index",
     "kind": "markdown",
