@@ -13,10 +13,10 @@ import { HomePanel } from "./HomePanel";
 
 /**
  * The Effect Index mailing-list panel: the same panel shape as its neighbours, holding
- * a one-line prompt and an inline email signup. It writes to the `effectindex` list —
- * this publication's own, never dose.wiki's — through the shared portal endpoint.
- * The form is the panel's whole content, so success replaces it with one line rather
- * than stacking a notice above an emptied form.
+ * an inline email signup. It writes to the `effectindex` list — this publication's own,
+ * never dose.wiki's — through the shared portal endpoint. The form is the panel's whole
+ * content, so success replaces it with one line rather than stacking a notice above an
+ * emptied form.
  */
 export function MailingListPanel() {
   const fieldId = useId();
@@ -26,7 +26,7 @@ export function MailingListPanel() {
   return (
     <HomePanel
       title="Mailing List"
-      description="Occasional updates from the Effect Index team"
+      description="Sign up for the Effect Index list"
       icon={icons.mail}
     >
       {status === "success" ? (
@@ -35,15 +35,11 @@ export function MailingListPanel() {
           aria-live="polite"
         >
           <Icon icon="lucide:check" size={18} className="text-dose-accent shrink-0" />
-          You&rsquo;re on the Effect Index list — thanks for subscribing!
+          You&rsquo;re on the list.
         </p>
       ) : (
         <form onSubmit={submit}>
-          <p className="theme-text-secondary text-[1.0625rem] leading-7">
-            Join the Effect Index mailing list to hear when new documentation and
-            replications go up.
-          </p>
-          <div className="mt-3 flex gap-2">
+          <div className="flex gap-2">
             <label htmlFor={`${fieldId}-email`} className="sr-only">
               Email address
             </label>

@@ -311,12 +311,6 @@ export function HomeExperience({
               <ConstructionCountdown />
             </div>
           )}
-
-          {/* Quieter still than the countdown pill: a plain text line, because the
-              mailing list is an aside to the page, not a call to action. The signup
-              itself lives in the dialog this opens, keeping the phone-height stage
-              (see .theme-home-shell's fixed mobile viewport) to one added text line. */}
-          <MailingListInvite className="mt-5" />
         </section>
 
         {/* The dose.wiki homepage suppresses the site footer (see RouteFooter), so the
@@ -330,6 +324,12 @@ export function HomeExperience({
           markHeightRem={1.75}
           className="fixed bottom-4 left-4 z-20 sm:bottom-6 sm:left-6"
         />
+
+        {/* The mailing-list pill takes the remaining free corner, bottom-right,
+            opposite the supporter credit. Like `SiteSupporter` it sits outside
+            <section> because the hero stage animates `transform`, and a transformed
+            ancestor would become the containing block for a fixed child. */}
+        <MailingListInvite className="fixed bottom-4 right-4 z-20 sm:bottom-6 sm:right-6" />
       </main>
     </>
   );

@@ -13,9 +13,9 @@ export type MailingList = "dosewiki" | "effectindex";
 
 export type MailingListSignupResult = { ok: true } | { ok: false; message: string };
 
-const RATE_LIMIT_MESSAGE = "A few too many tries just now — give it a minute and try again.";
-const INVALID_MESSAGE = "That doesn't look like an email address — check it and try again.";
-const NETWORK_MESSAGE = "Couldn't reach the signup service — please try again in a moment.";
+const RATE_LIMIT_MESSAGE = "Too many tries just now. Give it a minute.";
+const INVALID_MESSAGE = "That doesn't look like an email address.";
+const NETWORK_MESSAGE = "Couldn't reach the signup service. Try again in a moment.";
 
 /**
  * POST one signup. The endpoint answers 200 for accepted *and* already-subscribed
