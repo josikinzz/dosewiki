@@ -120,7 +120,7 @@ function StandbyPane({
       {motion ? (
         <video
           src={motion}
-          preload="auto"
+          preload="metadata"
           muted
           playsInline
           tabIndex={-1}
@@ -197,8 +197,12 @@ export function ReplicationViewerOverlay({
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [editorOpen, setEditorOpen] = useState(false);
   const [reorderMode, setReorderMode] = useState(false);
-  const [editorPanelHost, setEditorPanelHost] = useState<HTMLElement | null>(null);
-  const [editorRailHost, setEditorRailHost] = useState<HTMLElement | null>(null);
+  const [editorPanelHost, setEditorPanelHost] = useState<HTMLElement | null>(
+    null,
+  );
+  const [editorRailHost, setEditorRailHost] = useState<HTMLElement | null>(
+    null,
+  );
   // Rotate mode is the reader's sticky choice for this session; the active
   // stage reports back whether the current work actually turns, so the
   // overlay's own iconography (settings, thumbnails) can lean with it.
@@ -1027,244 +1031,251 @@ export function ReplicationViewerOverlay({
               : "grid-cols-[minmax(0,1fr)]",
           )}
         >
-        <div
-          inert={infoOpen || undefined}
-          aria-hidden={infoOpen || undefined}
-          className="grid min-h-0 min-w-0 w-full grid-cols-[minmax(0,1fr)] grid-rows-[minmax(0,1fr)_auto] overflow-hidden"
-        >
-          <div className="relative min-h-0 min-w-0 overflow-hidden">
-            <div
-              ref={mediaPaneRef}
-              data-replication-media-track
-              className="relative h-full w-full"
-            >
-              {previousWork ? (
-                <StandbyPane
-                  key={`standby-${group.items[previousWork.itemIndex].replication.slug}`}
-                  item={group.items[previousWork.itemIndex]}
-                  side="left"
-                />
-              ) : null}
+          <div
+            inert={infoOpen || undefined}
+            aria-hidden={infoOpen || undefined}
+            className="grid min-h-0 min-w-0 w-full grid-cols-[minmax(0,1fr)] grid-rows-[minmax(0,1fr)_auto] overflow-hidden"
+          >
+            <div className="relative min-h-0 min-w-0 overflow-hidden">
               <div
-                key={active.replication.slug}
-                className={cn(
-                  "h-full w-full",
-                  entryMotion && ENTRY_MOTION_CLASS[entryMotion],
-                )}
+                ref={mediaPaneRef}
+                data-replication-media-track
+                className="relative h-full w-full"
               >
-                <ReplicationMediaStage
-                  item={active}
-                  muted={muted}
-                  volume={volume}
-                  onMutedChange={handleMutedChange}
-                  onVolumeChange={setVolume}
-                  onPrevious={
-                    previousWork
-                      ? () => navigate(previousWork, "left")
-                      : undefined
-                  }
-                  onNext={
-                    nextWork ? () => navigate(nextWork, "right") : undefined
-                  }
-                  rotateMode={rotateMode}
-                  onRotateModeChange={handleRotateModeChange}
-                  onRotatedChange={setStageRotated}
-                  onInfo={openInfo}
-                  infoOpen={infoOpen}
-                  infoControls={infoPanelId}
-                  onFullscreen={requestFullscreen}
-                  fullscreenLabel={
-                    fullscreenSupported ? "Fullscreen" : "Immersive view"
-                  }
-                  previousLabel={
-                    previousWork
-                      ? `Previous: ${group.items[previousWork.itemIndex].replication.title}`
-                      : "First work"
-                  }
-                  nextLabel={
-                    nextWork
-                      ? `Next: ${group.items[nextWork.itemIndex].replication.title}`
-                      : "Final work"
-                  }
-                  className="min-h-0"
-                />
+                {previousWork ? (
+                  <StandbyPane
+                    key={`standby-${group.items[previousWork.itemIndex].replication.slug}`}
+                    item={group.items[previousWork.itemIndex]}
+                    side="left"
+                  />
+                ) : null}
+                <div
+                  key={active.replication.slug}
+                  className={cn(
+                    "h-full w-full",
+                    entryMotion && ENTRY_MOTION_CLASS[entryMotion],
+                  )}
+                >
+                  <ReplicationMediaStage
+                    item={active}
+                    muted={muted}
+                    volume={volume}
+                    onMutedChange={handleMutedChange}
+                    onVolumeChange={setVolume}
+                    onPrevious={
+                      previousWork
+                        ? () => navigate(previousWork, "left")
+                        : undefined
+                    }
+                    onNext={
+                      nextWork ? () => navigate(nextWork, "right") : undefined
+                    }
+                    rotateMode={rotateMode}
+                    onRotateModeChange={handleRotateModeChange}
+                    onRotatedChange={setStageRotated}
+                    onInfo={openInfo}
+                    infoOpen={infoOpen}
+                    infoControls={infoPanelId}
+                    onFullscreen={requestFullscreen}
+                    fullscreenLabel={
+                      fullscreenSupported ? "Fullscreen" : "Immersive view"
+                    }
+                    previousLabel={
+                      previousWork
+                        ? `Previous: ${group.items[previousWork.itemIndex].replication.title}`
+                        : "First work"
+                    }
+                    nextLabel={
+                      nextWork
+                        ? `Next: ${group.items[nextWork.itemIndex].replication.title}`
+                        : "Final work"
+                    }
+                    className="min-h-0"
+                  />
+                </div>
+                {nextWork ? (
+                  <StandbyPane
+                    key={`standby-${group.items[nextWork.itemIndex].replication.slug}`}
+                    item={group.items[nextWork.itemIndex]}
+                    side="right"
+                  />
+                ) : null}
               </div>
-              {nextWork ? (
-                <StandbyPane
-                  key={`standby-${group.items[nextWork.itemIndex].replication.slug}`}
-                  item={group.items[nextWork.itemIndex]}
-                  side="right"
-                />
-              ) : null}
-            </div>
-            {gestureHint ? (
-              <div className="pointer-events-none absolute inset-0 z-10 grid place-items-center">
-                <div className="theme-media-tile-title pointer-events-auto flex flex-col items-center gap-3 rounded-2xl bg-black/65 px-6 py-4 backdrop-blur-sm animate-in fade-in-0 zoom-in-95 duration-300 motion-reduce:animate-none">
-                  <div aria-hidden className="flex items-end gap-8">
-                    <div className="flex flex-col items-center gap-2">
-                      <div className="flex items-center gap-2">
-                        <Icon
-                          icon="lucide:chevron-left"
-                          className="size-4 opacity-60"
-                        />
-                        <span className="theme-media-hint-track relative h-7 w-14">
-                          <span className="theme-media-hint-dot">
-                            <Icon icon="lucide:pointer" className="size-5" />
-                          </span>
-                        </span>
-                        <Icon
-                          icon="lucide:chevron-right"
-                          className="size-4 opacity-60"
-                        />
-                      </div>
-                      <p className="text-xs font-semibold">Browse works</p>
-                    </div>
-                    {collection.groups.length > 1 ? (
+              {gestureHint ? (
+                <div className="pointer-events-none absolute inset-0 z-10 grid place-items-center">
+                  <div className="theme-media-tile-title pointer-events-auto flex flex-col items-center gap-3 rounded-2xl bg-black/65 px-6 py-4 backdrop-blur-sm animate-in fade-in-0 zoom-in-95 duration-300 motion-reduce:animate-none">
+                    <div aria-hidden className="flex items-end gap-8">
                       <div className="flex flex-col items-center gap-2">
-                        <div className="flex flex-col items-center gap-1">
+                        <div className="flex items-center gap-2">
                           <Icon
-                            icon="lucide:chevron-up"
+                            icon="lucide:chevron-left"
                             className="size-4 opacity-60"
                           />
-                          <span className="theme-media-hint-track-y relative h-10 w-7">
-                            <span className="theme-media-hint-dot-y">
+                          <span className="theme-media-hint-track relative h-7 w-14">
+                            <span className="theme-media-hint-dot">
                               <Icon icon="lucide:pointer" className="size-5" />
                             </span>
                           </span>
                           <Icon
-                            icon="lucide:chevron-down"
+                            icon="lucide:chevron-right"
                             className="size-4 opacity-60"
                           />
                         </div>
-                        <p className="text-xs font-semibold">
-                          Switch {groupUnit.toLowerCase()}s
-                        </p>
+                        <p className="text-xs font-semibold">Browse works</p>
                       </div>
-                    ) : null}
+                      {collection.groups.length > 1 ? (
+                        <div className="flex flex-col items-center gap-2">
+                          <div className="flex flex-col items-center gap-1">
+                            <Icon
+                              icon="lucide:chevron-up"
+                              className="size-4 opacity-60"
+                            />
+                            <span className="theme-media-hint-track-y relative h-10 w-7">
+                              <span className="theme-media-hint-dot-y">
+                                <Icon
+                                  icon="lucide:pointer"
+                                  className="size-5"
+                                />
+                              </span>
+                            </span>
+                            <Icon
+                              icon="lucide:chevron-down"
+                              className="size-4 opacity-60"
+                            />
+                          </div>
+                          <p className="text-xs font-semibold">
+                            Switch {groupUnit.toLowerCase()}s
+                          </p>
+                        </div>
+                      ) : null}
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setGestureHint(false)}
+                      className={cn(
+                        "theme-media-control-raised w-full rounded-full px-4 py-2 text-xs font-semibold",
+                        focusRingClassName,
+                      )}
+                    >
+                      Got it
+                    </button>
                   </div>
-                  <button
-                    type="button"
-                    onClick={() => setGestureHint(false)}
+                </div>
+              ) : null}
+              <div className="absolute bottom-2 right-2 z-10 flex justify-end">
+                {/* The byline rides the artwork like a broadcast bug: whatever
+                  the walk is sorted by, the creator stays one tap away. */}
+                {artistProfileHref ? (
+                  <Link
+                    href={artistProfileHref}
                     className={cn(
-                      "theme-media-control-raised w-full rounded-full px-4 py-2 text-xs font-semibold",
+                      "theme-media-tile-title pointer-events-auto flex items-center gap-2 rounded-full bg-black/65 text-sm font-semibold backdrop-blur-sm transition-opacity hover:opacity-85 sm:gap-2.5 sm:text-base",
+                      active.avatarUrl
+                        ? "py-1 pl-1 pr-3 sm:pr-3.5"
+                        : "px-3.5 py-2 sm:px-4 sm:py-2.5",
                       focusRingClassName,
                     )}
                   >
-                    Got it
-                  </button>
-                </div>
+                    {active.avatarUrl ? (
+                      <RotatingIcon rotated={stageRotated} className="shrink-0">
+                        <AppImage
+                          src={active.avatarUrl}
+                          alt=""
+                          width={72}
+                          height={72}
+                          unoptimized
+                          className="size-7 rounded-full object-cover sm:size-9"
+                        />
+                      </RotatingIcon>
+                    ) : null}
+                    <span className="max-w-[8rem] truncate sm:max-w-[16rem]">
+                      {artistLabel}
+                    </span>
+                  </Link>
+                ) : (
+                  <span className="theme-media-tile-title pointer-events-auto flex items-center rounded-full bg-black/65 px-3.5 py-2 text-sm font-semibold backdrop-blur-sm sm:px-4 sm:py-2.5 sm:text-base">
+                    <span className="max-w-[8rem] truncate sm:max-w-[16rem]">
+                      {artistLabel}
+                    </span>
+                  </span>
+                )}
               </div>
-            ) : null}
-            <div className="absolute bottom-2 right-2 z-10 flex justify-end">
-              {/* The byline rides the artwork like a broadcast bug: whatever
-                  the walk is sorted by, the creator stays one tap away. */}
-              {artistProfileHref ? (
-                <Link
-                  href={artistProfileHref}
-                  className={cn(
-                    "theme-media-tile-title pointer-events-auto flex items-center gap-2 rounded-full bg-black/65 text-sm font-semibold backdrop-blur-sm transition-opacity hover:opacity-85 sm:gap-2.5 sm:text-base",
-                    active.avatarUrl
-                      ? "py-1 pl-1 pr-3 sm:pr-3.5"
-                      : "px-3.5 py-2 sm:px-4 sm:py-2.5",
-                    focusRingClassName,
-                  )}
-                >
-                  {active.avatarUrl ? (
-                    <RotatingIcon rotated={stageRotated} className="shrink-0">
-                      <AppImage
-                        src={active.avatarUrl}
-                        alt=""
-                        width={72}
-                        height={72}
-                        unoptimized
-                        className="size-7 rounded-full object-cover sm:size-9"
-                      />
-                    </RotatingIcon>
-                  ) : null}
-                  <span className="max-w-[8rem] truncate sm:max-w-[16rem]">
-                    {artistLabel}
-                  </span>
-                </Link>
-              ) : (
-                <span className="theme-media-tile-title pointer-events-auto flex items-center rounded-full bg-black/65 px-3.5 py-2 text-sm font-semibold backdrop-blur-sm sm:px-4 sm:py-2.5 sm:text-base">
-                  <span className="max-w-[8rem] truncate sm:max-w-[16rem]">
-                    {artistLabel}
-                  </span>
-                </span>
-              )}
+              <div ref={setEditorRailHost} />
             </div>
-            <div ref={setEditorRailHost} />
-          </div>
 
-          {group.items.length > 1 && !reorderMode ? (
-            <nav
-              aria-label={`${group.label} works`}
-              className="theme-media-thumbnail-border border-t bg-black px-3 pt-1.5 pb-[max(0.375rem,env(safe-area-inset-bottom))] sm:px-5 sm:py-2"
-            >
-              <ul
-                ref={thumbnailRailRef}
-                className="flex snap-x gap-2 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+            {group.items.length > 1 && !reorderMode ? (
+              <nav
+                aria-label={`${group.label} works`}
+                className="theme-media-thumbnail-border border-t bg-black px-3 pt-1.5 pb-[max(0.375rem,env(safe-area-inset-bottom))] sm:px-5 sm:py-2"
               >
-                {group.items.map((item, itemIndex) => {
-                  const selected = itemIndex === position.itemIndex;
-                  const gifLike =
-                    item.replication.format.toLowerCase() === "gif";
-                  const thumb = gifLike
-                    ? item.replication.motion_poster_url
-                    : (item.replication.motion_poster_url ??
-                      item.replication.thumbnail_url ??
-                      item.replication.url);
-                  return (
-                    <li key={item.replication.slug} className="snap-start">
-                      <button
-                        type="button"
-                        aria-label={`Show ${item.replication.title}`}
-                        aria-current={selected ? "true" : undefined}
-                        onClick={() =>
-                          navigate(
-                            {
-                              groupIndex: position.groupIndex,
-                              itemIndex,
-                            },
-                            "fade",
-                          )
-                        }
-                        className={cn(
-                          "relative block size-12 overflow-hidden rounded-md border transition-opacity motion-reduce:transition-none sm:size-14",
-                          selected
-                            ? "theme-media-thumbnail-selected opacity-100"
-                            : "theme-media-thumbnail-border opacity-65 hover:opacity-100",
-                          focusRingClassName,
-                        )}
-                      >
-                        {thumb ? (
-                          <RotatingIcon
-                            rotated={stageRotated}
-                            className="h-full w-full"
-                          >
-                            <AppImage
-                              src={thumb}
-                              alt=""
-                              width={80}
-                              height={80}
-                              className="h-full w-full object-contain"
-                            />
-                          </RotatingIcon>
-                        ) : (
-                          <span className="theme-media-tile-creator grid h-full w-full place-items-center">
-                            <RotatingIcon rotated={stageRotated}>
-                              <Icon icon="lucide:image-off" size={16} aria-hidden />
+                <ul
+                  ref={thumbnailRailRef}
+                  className="flex snap-x gap-2 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+                >
+                  {group.items.map((item, itemIndex) => {
+                    const selected = itemIndex === position.itemIndex;
+                    const gifLike =
+                      item.replication.format.toLowerCase() === "gif";
+                    const thumb = gifLike
+                      ? item.replication.motion_poster_url
+                      : (item.replication.motion_poster_url ??
+                        item.replication.thumbnail_url ??
+                        item.replication.url);
+                    return (
+                      <li key={item.replication.slug} className="snap-start">
+                        <button
+                          type="button"
+                          aria-label={`Show ${item.replication.title}`}
+                          aria-current={selected ? "true" : undefined}
+                          onClick={() =>
+                            navigate(
+                              {
+                                groupIndex: position.groupIndex,
+                                itemIndex,
+                              },
+                              "fade",
+                            )
+                          }
+                          className={cn(
+                            "relative block size-12 overflow-hidden rounded-md border transition-opacity motion-reduce:transition-none sm:size-14",
+                            selected
+                              ? "theme-media-thumbnail-selected opacity-100"
+                              : "theme-media-thumbnail-border opacity-65 hover:opacity-100",
+                            focusRingClassName,
+                          )}
+                        >
+                          {thumb ? (
+                            <RotatingIcon
+                              rotated={stageRotated}
+                              className="h-full w-full"
+                            >
+                              <AppImage
+                                src={thumb}
+                                alt=""
+                                width={80}
+                                height={80}
+                                className="h-full w-full object-contain"
+                              />
                             </RotatingIcon>
-                          </span>
-                        )}
-                      </button>
-                    </li>
-                  );
-                })}
-              </ul>
-            </nav>
-          ) : null}
-        </div>
+                          ) : (
+                            <span className="theme-media-tile-creator grid h-full w-full place-items-center">
+                              <RotatingIcon rotated={stageRotated}>
+                                <Icon
+                                  icon="lucide:image-off"
+                                  size={16}
+                                  aria-hidden
+                                />
+                              </RotatingIcon>
+                            </span>
+                          )}
+                        </button>
+                      </li>
+                    );
+                  })}
+                </ul>
+              </nav>
+            ) : null}
+          </div>
           {editorOpen ? (
             <aside
               ref={setEditorPanelHost}

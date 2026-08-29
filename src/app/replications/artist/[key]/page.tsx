@@ -10,11 +10,11 @@ import {
 } from "@/features/replications/artist/artistPageModel";
 import { SHOWCASE_WORK_CAP } from "@/features/replications/components/showcaseWork";
 import {
-  getRetiredArtistKeyAlias,
   resolveArtistPageProfileKey,
   resolveGalleryFocus,
   type ResolvedGalleryFocus,
 } from "@/features/replications/galleryFocus";
+import { getReplicationArtistRouteAlias } from "@server/next/publicRouteAliases";
 import { buildGalleryBrowseUrl } from "@/features/replications/galleryUrlState";
 import {
   viewerCollectionFromGalleryGroups,
@@ -34,7 +34,10 @@ import {
   getPublicGalleryReplications,
   type PublicEffectPreview,
 } from "@server/convex/publicData";
-import { buildPublicPageMetadata, getPublicRoutePath } from "@server/next/publicSite";
+import {
+  buildPublicPageMetadata,
+  getPublicRoutePath,
+} from "@server/next/publicSite";
 import { getStaticReplicationArtistParams } from "@server/next/staticParams";
 import { entitySocialCardImage } from "@/data/mappings/entitySocialCardUrl";
 
@@ -102,16 +105,21 @@ async function loadArtistFocus(key: string): Promise<LoadedArtistFocus> {
  * page that now holds its works.
  */
 function forwardRetiredKeyOr404(key: string): never {
-  const aliasTarget = getRetiredArtistKeyAlias(key);
+  const aliasTarget = getReplicationArtistRouteAlias(key);
   if (aliasTarget) {
     permanentRedirect(
-      getPublicRoutePath({ family: "replicationArtist", params: { key: aliasTarget } }),
+      getPublicRoutePath({
+        family: "replicationArtist",
+        params: { key: aliasTarget },
+      }),
     );
   }
   notFound();
 }
 
-export async function generateMetadata({ params }: ArtistFocusPageProps): Promise<Metadata> {
+export async function generateMetadata({
+  params,
+}: ArtistFocusPageProps): Promise<Metadata> {
   const { key } = await params;
   const { focus, contributorDirectory } = await loadArtistFocus(key);
 
@@ -143,7 +151,9 @@ export async function generateMetadata({ params }: ArtistFocusPageProps): Promis
   });
 }
 
-export default async function ReplicationArtistPage({ params }: ArtistFocusPageProps) {
+export default async function ReplicationArtistPage({
+  params,
+}: ArtistFocusPageProps) {
   const { key } = await params;
   const { effects, contributorDirectory, focus } = await loadArtistFocus(key);
 
@@ -154,8 +164,13 @@ export default async function ReplicationArtistPage({ params }: ArtistFocusPageP
   // The claimed Contributor Profile decorates the page; the Unattributed
   // bucket never resolves one (resolveArtistPageProfileKey), and an unclaimed
   // credit renders the same page shape without avatar image, role, or links.
-  const profileKey = resolveArtistPageProfileKey(focus.group, contributorDirectory);
-  const profile = profileKey ? await getPublicContributorByKey(profileKey) : null;
+  const profileKey = resolveArtistPageProfileKey(
+    focus.group,
+    contributorDirectory,
+  );
+  const profile = profileKey
+    ? await getPublicContributorByKey(profileKey)
+    : null;
 
   const attributed = focus.group.key !== UNATTRIBUTED_KEY;
   const effectName = effectNameLookup(effects);
@@ -220,7 +235,10 @@ export default async function ReplicationArtistPage({ params }: ArtistFocusPageP
               </p>
             )
           }
-          links={mergeArtistLinks(profile?.links ?? [], focus.group.externalUrl)}
+          links={mergeArtistLinks(
+            profile?.links ?? [],
+            focus.group.externalUrl,
+          )}
           counts={{
             count: focus.group.count,
             imageCount: focus.group.imageCount,

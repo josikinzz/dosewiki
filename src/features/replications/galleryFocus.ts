@@ -1,7 +1,7 @@
-import type { ContributorDirectory } from '@server/contributorDirectory';
-import { findContributorProfileByAuthorName } from '@server/contributorProfileIdentity';
-import type { PublicGalleryReplicationPreview } from '@/types/replications';
-import { hasKnownCreator } from '@/features/effects/components/replicationCredit';
+import type { ContributorDirectory } from "@server/contributorDirectory";
+import { findContributorProfileByAuthorName } from "@server/contributorProfileIdentity";
+import type { PublicGalleryReplicationPreview } from "@/types/replications";
+import { hasKnownCreator } from "@/features/effects/components/replicationCredit";
 import {
   artistIdentity,
   artistUrlKey,
@@ -13,12 +13,11 @@ import {
   isDisplayable,
   isWithheldFromArtistViews,
   UNATTRIBUTED_KEY,
-  UNKNOWN_ARTIST_URL_KEY,
   type GalleryGroup,
   type GalleryMode,
-} from '@/features/effects/gallery/galleryModel';
-import { getPublicRoutePath } from '@/utils/publicRouteIdentity';
-import type { GalleryFocus } from './galleryUrlState';
+} from "@/features/effects/gallery/galleryModel";
+import { getPublicRoutePath } from "@/utils/publicRouteIdentity";
+import type { GalleryFocus } from "./galleryUrlState";
 
 /**
  * A focus URL resolved against the visible gallery corpus. `group.href` is the
@@ -55,8 +54,8 @@ export function resolveGalleryFocus(
   const displayable = replications.filter(isDisplayable);
 
   const groups =
-    focus.kind === 'artist'
-      ? groupByArtist(displayable, 'count', context.contributorDirectory ?? [])
+    focus.kind === "artist"
+      ? groupByArtist(displayable, "count", context.contributorDirectory ?? [])
       : groupByEffect(
           displayable,
           effectNameLookup(context.effects),
@@ -66,7 +65,9 @@ export function resolveGalleryFocus(
           ),
         );
 
-  const group = groups.find((candidate) => galleryGroupUrlKey(focus.kind, candidate) === focus.key);
+  const group = groups.find(
+    (candidate) => galleryGroupUrlKey(focus.kind, candidate) === focus.key,
+  );
   if (!group) {
     return null;
   }
@@ -111,13 +112,13 @@ export function resolveGalleryFocus(
  * survives the merge is exactly one whose artist has no page here.
  */
 export function artistPageHrefForWork(
-  row: Pick<PublicGalleryReplicationPreview, 'artist' | 'effect_slug'>,
+  row: Pick<PublicGalleryReplicationPreview, "artist" | "effect_slug">,
 ): string | null {
   if (!hasKnownCreator(row.artist) || isWithheldFromArtistViews(row)) {
     return null;
   }
   return getPublicRoutePath({
-    family: 'replicationArtist',
+    family: "replicationArtist",
     params: { key: artistUrlKey(row.artist) },
   });
 }
@@ -131,13 +132,16 @@ export function artistPageHrefForWork(
  * a credit belongs to.
  */
 export function resolveArtistPageProfileKey(
-  group: Pick<GalleryGroup, 'key' | 'label'>,
+  group: Pick<GalleryGroup, "key" | "label">,
   contributorDirectory: ContributorDirectory,
 ): string | null {
   if (group.key === UNATTRIBUTED_KEY) {
     return null;
   }
-  return findContributorProfileByAuthorName(contributorDirectory, group.label)?.key ?? null;
+  return (
+    findContributorProfileByAuthorName(contributorDirectory, group.label)
+      ?.key ?? null
+  );
 }
 
 /**
@@ -150,7 +154,7 @@ export function resolveArtistPageProfileKey(
  * rest can never change what resolves.
  */
 export function galleryContributorDirectory(
-  replications: readonly Pick<PublicGalleryReplicationPreview, 'artist'>[],
+  replications: readonly Pick<PublicGalleryReplicationPreview, "artist">[],
   contributorDirectory: ContributorDirectory,
 ): ContributorDirectory {
   if (contributorDirectory.length === 0) {
@@ -165,7 +169,10 @@ export function galleryContributorDirectory(
   }
   const claimedKeys = new Set<string>();
   for (const credit of creditLines) {
-    const profile = findContributorProfileByAuthorName(contributorDirectory, credit);
+    const profile = findContributorProfileByAuthorName(
+      contributorDirectory,
+      credit,
+    );
     if (profile) {
       claimedKeys.add(profile.key);
     }
@@ -186,7 +193,11 @@ export function galleryContributorDirectory(
 export function mapArtistPageKeysByProfile(
   // Structural rather than a Pick: the sitemap route plan carries a narrower
   // row (every field optional) than the gallery preview does.
-  replications: readonly { artist?: string | null; effect_slug?: string; url?: string | null }[],
+  replications: readonly {
+    artist?: string | null;
+    effect_slug?: string;
+    url?: string | null;
+  }[],
   contributorDirectory: ContributorDirectory,
 ): Map<string, string> {
   const groups = new Map<string, { label: string; count: number }>();
@@ -209,7 +220,10 @@ export function mapArtistPageKeysByProfile(
   const bestCounts = new Map<string, { artistKey: string; count: number }>();
   const targets = new Map<string, string>();
   for (const { label, count } of groups.values()) {
-    const profile = findContributorProfileByAuthorName(contributorDirectory, label);
+    const profile = findContributorProfileByAuthorName(
+      contributorDirectory,
+      label,
+    );
     if (!profile) {
       continue;
     }
@@ -227,19 +241,4 @@ export function mapArtistPageKeysByProfile(
   }
 
   return targets;
-}
-
-/**
- * Retired artist URL keys that forward to a live one. The "Anonymous" marker
- * section folded into the Unattributed bucket (see `hasKnownCreator`), so its
- * old /replications/artist/anonymous address forwards to the bucket's page.
- * Consulted only after `resolveGalleryFocus` comes up empty: a live group
- * always answers its own key, so no real artist's address can be captured.
- */
-const RETIRED_ARTIST_KEY_ALIASES: Record<string, string> = {
-  anonymous: UNKNOWN_ARTIST_URL_KEY,
-};
-
-export function getRetiredArtistKeyAlias(key: string): string | null {
-  return RETIRED_ARTIST_KEY_ALIASES[key.trim().toLowerCase()] ?? null;
 }

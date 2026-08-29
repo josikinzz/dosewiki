@@ -26,12 +26,16 @@ import {
   FLAVOR_GATED_NOT_FOUND_PATH,
   isFlavorGatedRequestPath,
 } from "@server/next/flavorGatedRoutes";
-import { getReplicationRouteAlias } from "@server/next/publicRouteAliases";
+import {
+  getReplicationArtistRouteAlias,
+  getReplicationRouteAlias,
+} from "@server/next/publicRouteAliases";
 import { getSubstanceRouteAlias } from "@server/next/substanceRouteAliases";
 
 // Both are build-time constants (Next inlines `process.env` reads in Edge middleware), so
 // they are resolved once here instead of per request.
-const CONVEX_URL = process.env.NEXT_PUBLIC_CONVEX_URL ?? process.env.VITE_CONVEX_URL;
+const CONVEX_URL =
+  process.env.NEXT_PUBLIC_CONVEX_URL ?? process.env.VITE_CONVEX_URL;
 const IS_DEVELOPMENT = process.env.NODE_ENV !== "production";
 
 type BrowserSecurityHeaderSet = {
@@ -51,7 +55,9 @@ type BrowserSecurityHeaderSet = {
 const publicHeadersByHost = new Map<string, BrowserSecurityHeaderSet>();
 const PUBLIC_HEADER_CACHE_LIMIT = 16;
 
-function getPublicSecurityHeaderSet(host: string | null): BrowserSecurityHeaderSet {
+function getPublicSecurityHeaderSet(
+  host: string | null,
+): BrowserSecurityHeaderSet {
   const cacheKey = normalizeHost(host);
   const cached = publicHeadersByHost.get(cacheKey);
 
@@ -67,10 +73,14 @@ function getPublicSecurityHeaderSet(host: string | null): BrowserSecurityHeaderS
     convexUrl: CONVEX_URL,
     isDevelopment: IS_DEVELOPMENT,
   });
-  const csp = responseHeaders.find((header) => header.key === CSP_ENFORCEMENT_HEADER)?.value;
+  const csp = responseHeaders.find(
+    (header) => header.key === CSP_ENFORCEMENT_HEADER,
+  )?.value;
 
   if (!csp) {
-    throw new Error("Browser security policy did not produce an enforced CSP header.");
+    throw new Error(
+      "Browser security policy did not produce an enforced CSP header.",
+    );
   }
 
   const headerSet: BrowserSecurityHeaderSet = { responseHeaders, csp };
@@ -109,7 +119,9 @@ function getBrowserPolicyContext(request: NextRequest, appPath: string) {
     )?.value;
 
     if (!csp) {
-      throw new Error("Browser security policy did not produce an enforced CSP header.");
+      throw new Error(
+        "Browser security policy did not produce an enforced CSP header.",
+      );
     }
 
     headerSet = { responseHeaders, csp };
@@ -143,7 +155,10 @@ function getBrowserPolicyContext(request: NextRequest, appPath: string) {
   };
 }
 
-function getSubstanceAliasRedirectUrl(request: NextRequest, appPath: string): URL | null {
+function getSubstanceAliasRedirectUrl(
+  request: NextRequest,
+  appPath: string,
+): URL | null {
   const slug = appPath.replace(/^\/|\/$/g, "");
 
   if (!slug || slug.includes("/")) {
@@ -170,7 +185,10 @@ function getSubstanceAliasRedirectUrl(request: NextRequest, appPath: string): UR
  * links we renamed. Middleware answers before routing, the same way substance
  * aliases already do.
  */
-function getReplicationAliasRedirectUrl(request: NextRequest, appPath: string): URL | null {
+function getReplicationAliasRedirectUrl(
+  request: NextRequest,
+  appPath: string,
+): URL | null {
   const match = appPath.match(/^\/replications\/([^/]+)\/?$/);
 
   if (!match) {
@@ -188,7 +206,33 @@ function getReplicationAliasRedirectUrl(request: NextRequest, appPath: string): 
   return targetUrl;
 }
 
-function getLegacySearchRedirectUrl(request: NextRequest, appPath: string): URL | null {
+function getReplicationArtistAliasRedirectUrl(
+  request: NextRequest,
+  appPath: string,
+): URL | null {
+  const match = appPath.match(/^\/replications\/artist\/([^/]+)\/?$/);
+
+  if (!match) {
+    return null;
+  }
+
+  const aliasTarget = getReplicationArtistRouteAlias(
+    decodeURIComponent(match[1]),
+  );
+
+  if (!aliasTarget) {
+    return null;
+  }
+
+  const targetUrl = request.nextUrl.clone();
+  targetUrl.pathname = `/replications/artist/${aliasTarget}`;
+  return targetUrl;
+}
+
+function getLegacySearchRedirectUrl(
+  request: NextRequest,
+  appPath: string,
+): URL | null {
   const match = appPath.match(/^\/search\/([^/]+)\/?$/);
 
   if (!match) {
@@ -220,7 +264,9 @@ export async function middleware(request: NextRequest) {
   // `null` for an ordinary address; otherwise the route `/preview/...` mirrors. The
   // prefix belongs to the dose.wiki construction gate: Effect Index is a launched site
   // with nothing to hold back, so on that build `/preview/...` is just an unknown path.
-  const previewAppPath = isEffectIndex() ? null : stripPreviewPrefix(requestPath);
+  const previewAppPath = isEffectIndex()
+    ? null
+    : stripPreviewPrefix(requestPath);
   const isPreviewRequest = previewAppPath !== null;
   const appPath = previewAppPath ?? requestPath;
   const browserPolicy = getBrowserPolicyContext(request, appPath);
@@ -241,7 +287,9 @@ export async function middleware(request: NextRequest) {
     );
   }
 
-  const publicConstructionHost = isPublicConstructionHost(request.headers.get("host"));
+  const publicConstructionHost = isPublicConstructionHost(
+    request.headers.get("host"),
+  );
   // An editor link typed against a public host still resolves - it crosses to the
   // deployment that owns the editor instead of dying on the holding page.
   const editorHandoffUrl = getEditorHandoffUrl(
@@ -253,7 +301,9 @@ export async function middleware(request: NextRequest) {
   // The editor, the workbench and sign-in have no preview address on any host.
   if (isPreviewRequest && isConstructionPreviewBlockedPath(appPath)) {
     return browserPolicy.secure(
-      NextResponse.redirect(editorHandoffUrl ?? new URL(PREVIEW_HOME_PATH, request.url)),
+      NextResponse.redirect(
+        editorHandoffUrl ?? new URL(PREVIEW_HOME_PATH, request.url),
+      ),
     );
   }
 
@@ -274,7 +324,10 @@ export async function middleware(request: NextRequest) {
         editorHandoffUrl ??
         (isConstructionPreviewBlockedPath(requestPath)
           ? new URL("/", request.url)
-          : new URL(`${toPreviewPath(requestPath)}${request.nextUrl.search}`, request.url));
+          : new URL(
+              `${toPreviewPath(requestPath)}${request.nextUrl.search}`,
+              request.url,
+            ));
 
       return browserPolicy.secure(NextResponse.redirect(gateTarget));
     }
@@ -288,7 +341,10 @@ export async function middleware(request: NextRequest) {
     );
   }
 
-  const substanceAliasRedirectUrl = getSubstanceAliasRedirectUrl(request, appPath);
+  const substanceAliasRedirectUrl = getSubstanceAliasRedirectUrl(
+    request,
+    appPath,
+  );
 
   if (substanceAliasRedirectUrl) {
     return browserPolicy.secure(
@@ -296,11 +352,26 @@ export async function middleware(request: NextRequest) {
     );
   }
 
-  const replicationAliasRedirectUrl = getReplicationAliasRedirectUrl(request, appPath);
+  const replicationAliasRedirectUrl = getReplicationAliasRedirectUrl(
+    request,
+    appPath,
+  );
 
   if (replicationAliasRedirectUrl) {
     return browserPolicy.secure(
       NextResponse.redirect(inPreviewSpace(replicationAliasRedirectUrl), 308),
+    );
+  }
+
+  const replicationArtistAliasRedirectUrl =
+    getReplicationArtistAliasRedirectUrl(request, appPath);
+
+  if (replicationArtistAliasRedirectUrl) {
+    return browserPolicy.secure(
+      NextResponse.redirect(
+        inPreviewSpace(replicationArtistAliasRedirectUrl),
+        301,
+      ),
     );
   }
 
@@ -311,7 +382,9 @@ export async function middleware(request: NextRequest) {
     rewriteUrl.pathname = appPath;
 
     return browserPolicy.secure(
-      NextResponse.rewrite(rewriteUrl, { request: { headers: browserPolicy.requestHeaders } }),
+      NextResponse.rewrite(rewriteUrl, {
+        request: { headers: browserPolicy.requestHeaders },
+      }),
     );
   }
 
@@ -320,7 +393,6 @@ export async function middleware(request: NextRequest) {
       NextResponse.next({ request: { headers: browserPolicy.requestHeaders } }),
     );
   }
-
 
   const token = await getToken({
     req: request,

@@ -109,7 +109,9 @@ vi.mock("./ReplicationMediaStage", () => ({
       <button
         type="button"
         aria-pressed={rotateMode}
-        aria-label={rotateMode ? "Rotate back upright" : "Rotate to fill screen"}
+        aria-label={
+          rotateMode ? "Rotate back upright" : "Rotate to fill screen"
+        }
         onClick={() => onRotateModeChange?.(!rotateMode)}
       >
         Rotate
@@ -711,12 +713,13 @@ describe("ReplicationViewerOverlay", () => {
     const track = document.querySelector(
       "[data-replication-media-track]",
     ) as HTMLElement;
-    // work-two, the only adjacent work, is a video: its file warms in a
-    // hidden standby preloader while the reader views work-one.
+    // work-two, the only adjacent work, warms only its metadata. Fetching the
+    // full file here duplicates the active element's range transfer after a
+    // turn and multiplies bandwidth across a long browsing session.
     const preloader = track.querySelector(
       'video[src="https://cdn.test/two.mp4"]',
     );
-    expect(preloader).toHaveAttribute("preload", "auto");
+    expect(preloader).toHaveAttribute("preload", "metadata");
     // Preloading is capped at the parked neighbors — nothing else fetches.
     expect(track.querySelectorAll("video[preload]")).toHaveLength(1);
   });

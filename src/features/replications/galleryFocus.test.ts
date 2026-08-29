@@ -1,13 +1,16 @@
-import { describe, expect, it } from 'vitest';
-import type { GalleryReplication } from '@/types/replications';
-import { UNATTRIBUTED_KEY, UNATTRIBUTED_LABEL } from '@/features/effects/gallery/galleryModel';
+import { describe, expect, it } from "vitest";
+import type { GalleryReplication } from "@/types/replications";
+import {
+  UNATTRIBUTED_KEY,
+  UNATTRIBUTED_LABEL,
+} from "@/features/effects/gallery/galleryModel";
 import {
   artistPageHrefForWork,
-  getRetiredArtistKeyAlias,
   mapArtistPageKeysByProfile,
   resolveArtistPageProfileKey,
   resolveGalleryFocus,
-} from './galleryFocus';
+} from "./galleryFocus";
+import { getReplicationArtistRouteAlias } from "@server/next/publicRouteAliases";
 
 let seq = 0;
 function rep(overrides: Partial<GalleryReplication> = {}): GalleryReplication {
@@ -17,47 +20,55 @@ function rep(overrides: Partial<GalleryReplication> = {}): GalleryReplication {
     _creationTime: seq,
     slug: `slug-${seq}`,
     title: `Work ${seq}`,
-    artist: 'Chelsea Morgan',
-    type: 'image',
+    artist: "Chelsea Morgan",
+    type: "image",
     storage_id: `store-${seq}`,
-    effect_slug: 'geometry',
-    format: 'jpg',
-    created_at: '2024-01-01T00:00:00.000Z',
+    effect_slug: "geometry",
+    format: "jpg",
+    created_at: "2024-01-01T00:00:00.000Z",
     url: `https://cdn.test/${seq}.jpg`,
     ...overrides,
   };
 }
 
 const corpus = [
-  rep({ artist: 'Chelsea Morgan' }),
-  rep({ artist: 'chelsea morgan', effect_slug: 'drifting' }),
-  rep({ artist: '' }),
-  rep({ artist: 'unknown' }),
-  rep({ artist: 'Solo', url: undefined }),
+  rep({ artist: "Chelsea Morgan" }),
+  rep({ artist: "chelsea morgan", effect_slug: "drifting" }),
+  rep({ artist: "" }),
+  rep({ artist: "unknown" }),
+  rep({ artist: "Solo", url: undefined }),
 ];
 
 const context = {
   effects: [
-    { slug: 'geometry', name: 'Geometry' },
-    { slug: 'drifting', name: 'Drifting' },
+    { slug: "geometry", name: "Geometry" },
+    { slug: "drifting", name: "Drifting" },
   ],
   contributorDirectory: [
-    { key: 'chelseamorgan', displayName: 'Chelsea Morgan', aliases: [] },
+    { key: "chelseamorgan", displayName: "Chelsea Morgan", aliases: [] },
   ],
 };
 
-describe('resolveGalleryFocus', () => {
-  it('resolves a known artist key to their group, Artist Page link included', () => {
-    const focus = resolveGalleryFocus({ kind: 'artist', key: 'chelsea-morgan' }, corpus, context);
+describe("resolveGalleryFocus", () => {
+  it("resolves a known artist key to their group, Artist Page link included", () => {
+    const focus = resolveGalleryFocus(
+      { kind: "artist", key: "chelsea-morgan" },
+      corpus,
+      context,
+    );
 
-    expect(focus?.label).toBe('Chelsea Morgan');
+    expect(focus?.label).toBe("Chelsea Morgan");
     expect(focus?.group.count).toBe(2);
     // The heading names the group's own page — one artist, one address.
-    expect(focus?.group.href).toBe('/replications/artist/chelsea-morgan');
+    expect(focus?.group.href).toBe("/replications/artist/chelsea-morgan");
   });
 
-  it('resolves the unattributed bucket at the stable `unknown` key', () => {
-    const focus = resolveGalleryFocus({ kind: 'artist', key: 'unknown' }, corpus, context);
+  it("resolves the unattributed bucket at the stable `unknown` key", () => {
+    const focus = resolveGalleryFocus(
+      { kind: "artist", key: "unknown" },
+      corpus,
+      context,
+    );
 
     expect(focus?.label).toBe(UNATTRIBUTED_LABEL);
     // The empty credit and the literal "unknown" marker fold together.
@@ -65,187 +76,263 @@ describe('resolveGalleryFocus', () => {
     expect(focus?.group.href).toBeUndefined();
   });
 
-  it('folds Anonymous-credited works into the unattributed bucket, retiring their old key', () => {
-    const withAnon = [...corpus, rep({ artist: 'Anonymous' })];
+  it("folds Anonymous-credited works into the unattributed bucket, retiring their old key", () => {
+    const withAnon = [...corpus, rep({ artist: "Anonymous" })];
 
     // No group answers to the marker's old key any more…
-    expect(resolveGalleryFocus({ kind: 'artist', key: 'anonymous' }, withAnon, context)).toBeNull();
+    expect(
+      resolveGalleryFocus(
+        { kind: "artist", key: "anonymous" },
+        withAnon,
+        context,
+      ),
+    ).toBeNull();
     // …its works count into the bucket instead.
-    const focus = resolveGalleryFocus({ kind: 'artist', key: 'unknown' }, withAnon, context);
+    const focus = resolveGalleryFocus(
+      { kind: "artist", key: "unknown" },
+      withAnon,
+      context,
+    );
     expect(focus?.label).toBe(UNATTRIBUTED_LABEL);
     expect(focus?.group.count).toBe(3);
   });
 
-  it('resolves an effect slug to its group, article link included', () => {
-    const focus = resolveGalleryFocus({ kind: 'effect', key: 'drifting' }, corpus, context);
+  it("resolves an effect slug to its group, article link included", () => {
+    const focus = resolveGalleryFocus(
+      { kind: "effect", key: "drifting" },
+      corpus,
+      context,
+    );
 
-    expect(focus?.label).toBe('Drifting');
+    expect(focus?.label).toBe("Drifting");
     expect(focus?.group.count).toBe(1);
-    expect(focus?.group.href).toBe('/effects/drifting');
+    expect(focus?.group.href).toBe("/effects/drifting");
   });
 
-  it('keeps a replication-only effect group but omits its nonexistent article link', () => {
-    const orphanCorpus = [...corpus, rep({ effect_slug: 'orphan-effect' })];
+  it("keeps a replication-only effect group but omits its nonexistent article link", () => {
+    const orphanCorpus = [...corpus, rep({ effect_slug: "orphan-effect" })];
     const focus = resolveGalleryFocus(
-      { kind: 'effect', key: 'orphan-effect' },
+      { kind: "effect", key: "orphan-effect" },
       orphanCorpus,
       context,
     );
 
-    expect(focus?.label).toBe('orphan effect');
+    expect(focus?.label).toBe("orphan effect");
     expect(focus?.group.href).toBeUndefined();
   });
 
-  it('returns null for a bogus key, in either kind', () => {
-    expect(resolveGalleryFocus({ kind: 'artist', key: 'nobody-here' }, corpus, context)).toBeNull();
-    expect(resolveGalleryFocus({ kind: 'effect', key: 'not-an-effect' }, corpus, context)).toBeNull();
+  it("returns null for a bogus key, in either kind", () => {
+    expect(
+      resolveGalleryFocus(
+        { kind: "artist", key: "nobody-here" },
+        corpus,
+        context,
+      ),
+    ).toBeNull();
+    expect(
+      resolveGalleryFocus(
+        { kind: "effect", key: "not-an-effect" },
+        corpus,
+        context,
+      ),
+    ).toBeNull();
   });
 
-  it('does not resolve a key whose only works are undisplayable', () => {
+  it("does not resolve a key whose only works are undisplayable", () => {
     // "Solo" exists in the corpus but carries no resolved asset, so the
     // gallery never shows the group and the URL space must not include it.
-    expect(resolveGalleryFocus({ kind: 'artist', key: 'solo' }, corpus, context)).toBeNull();
+    expect(
+      resolveGalleryFocus({ kind: "artist", key: "solo" }, corpus, context),
+    ).toBeNull();
   });
 
-  it('does not resolve an artist whose only works artist views withhold', () => {
+  it("does not resolve an artist whose only works artist views withhold", () => {
     // Withholding removes the group, so the key never enters the URL space:
     // /replications/artist/giger resolves to null and the route 404s, rather
     // than throwing or rendering an empty page. The same work still answers
     // on the effect side, which is the whole point of the asymmetry.
-    const withCreature = [...corpus, rep({ artist: 'Giger', effect_slug: 'unspeakable-horrors' })];
+    const withCreature = [
+      ...corpus,
+      rep({ artist: "Giger", effect_slug: "unspeakable-horrors" }),
+    ];
     const withEffect = {
       ...context,
-      effects: [...context.effects, { slug: 'unspeakable-horrors', name: 'Unspeakable horrors' }],
+      effects: [
+        ...context.effects,
+        { slug: "unspeakable-horrors", name: "Unspeakable horrors" },
+      ],
     };
 
-    expect(resolveGalleryFocus({ kind: 'artist', key: 'giger' }, withCreature, withEffect)).toBeNull();
     expect(
-      resolveGalleryFocus({ kind: 'effect', key: 'unspeakable-horrors' }, withCreature, withEffect)?.group.count,
+      resolveGalleryFocus(
+        { kind: "artist", key: "giger" },
+        withCreature,
+        withEffect,
+      ),
+    ).toBeNull();
+    expect(
+      resolveGalleryFocus(
+        { kind: "effect", key: "unspeakable-horrors" },
+        withCreature,
+        withEffect,
+      )?.group.count,
     ).toBe(1);
   });
 });
 
-describe('resolveArtistPageProfileKey', () => {
-  it('resolves the profile that claims the credit line, for decoration', () => {
-    const focus = resolveGalleryFocus({ kind: 'artist', key: 'chelsea-morgan' }, corpus, context);
-    if (!focus) throw new Error('expected a resolved focus');
-
-    expect(resolveArtistPageProfileKey(focus.group, context.contributorDirectory)).toBe(
-      'chelseamorgan',
+describe("resolveArtistPageProfileKey", () => {
+  it("resolves the profile that claims the credit line, for decoration", () => {
+    const focus = resolveGalleryFocus(
+      { kind: "artist", key: "chelsea-morgan" },
+      corpus,
+      context,
     );
+    if (!focus) throw new Error("expected a resolved focus");
+
+    expect(
+      resolveArtistPageProfileKey(focus.group, context.contributorDirectory),
+    ).toBe("chelseamorgan");
   });
 
-  it('resolves a claim made through an alias', () => {
-    const directory = [{ key: 'CM', displayName: 'C. M.', aliases: ['Chelsea Morgan'] }];
-    const focus = resolveGalleryFocus({ kind: 'artist', key: 'chelsea-morgan' }, corpus, {
-      ...context,
-      contributorDirectory: directory,
-    });
-    if (!focus) throw new Error('expected a resolved focus');
+  it("resolves a claim made through an alias", () => {
+    const directory = [
+      { key: "CM", displayName: "C. M.", aliases: ["Chelsea Morgan"] },
+    ];
+    const focus = resolveGalleryFocus(
+      { kind: "artist", key: "chelsea-morgan" },
+      corpus,
+      {
+        ...context,
+        contributorDirectory: directory,
+      },
+    );
+    if (!focus) throw new Error("expected a resolved focus");
 
-    expect(resolveArtistPageProfileKey(focus.group, directory)).toBe('CM');
+    expect(resolveArtistPageProfileKey(focus.group, directory)).toBe("CM");
   });
 
-  it('leaves an unclaimed credit line undecorated', () => {
-    const withLoner = [...corpus, rep({ artist: 'Loner' })];
-    const focus = resolveGalleryFocus({ kind: 'artist', key: 'loner' }, withLoner, context);
-    if (!focus) throw new Error('expected a resolved focus');
+  it("leaves an unclaimed credit line undecorated", () => {
+    const withLoner = [...corpus, rep({ artist: "Loner" })];
+    const focus = resolveGalleryFocus(
+      { kind: "artist", key: "loner" },
+      withLoner,
+      context,
+    );
+    if (!focus) throw new Error("expected a resolved focus");
 
-    expect(resolveArtistPageProfileKey(focus.group, context.contributorDirectory)).toBeNull();
+    expect(
+      resolveArtistPageProfileKey(focus.group, context.contributorDirectory),
+    ).toBeNull();
   });
 
-  it('never decorates the Unattributed bucket, even when a profile claims the label', () => {
-    const focus = resolveGalleryFocus({ kind: 'artist', key: 'unknown' }, corpus, context);
-    if (!focus) throw new Error('expected a resolved focus');
+  it("never decorates the Unattributed bucket, even when a profile claims the label", () => {
+    const focus = resolveGalleryFocus(
+      { kind: "artist", key: "unknown" },
+      corpus,
+      context,
+    );
+    if (!focus) throw new Error("expected a resolved focus");
     expect(focus.group.key).toBe(UNATTRIBUTED_KEY);
 
-    const grabby = [{ key: 'GRABBY', displayName: UNATTRIBUTED_LABEL, aliases: ['unknown'] }];
+    const grabby = [
+      { key: "GRABBY", displayName: UNATTRIBUTED_LABEL, aliases: ["unknown"] },
+    ];
     expect(resolveArtistPageProfileKey(focus.group, grabby)).toBeNull();
   });
 });
 
-describe('artistPageHrefForWork', () => {
-  it('links a credited, displayable work to its Artist Page', () => {
-    expect(artistPageHrefForWork(rep({ artist: 'Chelsea Morgan' }))).toBe(
-      '/replications/artist/chelsea-morgan',
+describe("artistPageHrefForWork", () => {
+  it("links a credited, displayable work to its Artist Page", () => {
+    expect(artistPageHrefForWork(rep({ artist: "Chelsea Morgan" }))).toBe(
+      "/replications/artist/chelsea-morgan",
     );
   });
 
-  it('never links an unattributed credit', () => {
-    expect(artistPageHrefForWork(rep({ artist: '' }))).toBeNull();
-    expect(artistPageHrefForWork(rep({ artist: 'unknown' }))).toBeNull();
-    expect(artistPageHrefForWork(rep({ artist: 'Anonymous' }))).toBeNull();
+  it("never links an unattributed credit", () => {
+    expect(artistPageHrefForWork(rep({ artist: "" }))).toBeNull();
+    expect(artistPageHrefForWork(rep({ artist: "unknown" }))).toBeNull();
+    expect(artistPageHrefForWork(rep({ artist: "Anonymous" }))).toBeNull();
   });
 
-  it('never links a work withheld from artist views', () => {
+  it("never links a work withheld from artist views", () => {
     // Giger's page may not exist at all (withholding removes groups), so the
     // byline must not name it; callers fall back to a claimed profile.
     expect(
-      artistPageHrefForWork(rep({ artist: 'Giger', effect_slug: 'unspeakable-horrors' })),
+      artistPageHrefForWork(
+        rep({ artist: "Giger", effect_slug: "unspeakable-horrors" }),
+      ),
     ).toBeNull();
   });
 });
 
-describe('mapArtistPageKeysByProfile', () => {
+describe("mapArtistPageKeysByProfile", () => {
   const directory = [
-    { key: 'chelseamorgan', displayName: 'Chelsea Morgan', aliases: [] },
-    { key: 'LYREA', displayName: 'Lyrea', aliases: [] },
+    { key: "chelseamorgan", displayName: "Chelsea Morgan", aliases: [] },
+    { key: "LYREA", displayName: "Lyrea", aliases: [] },
   ];
 
-  it('forwards a profile that claims a displayable credit line', () => {
+  it("forwards a profile that claims a displayable credit line", () => {
     const map = mapArtistPageKeysByProfile(corpus, directory);
 
-    expect(map.get('CHELSEAMORGAN')).toBe('chelsea-morgan');
+    expect(map.get("CHELSEAMORGAN")).toBe("chelsea-morgan");
   });
 
-  it('leaves a profile with no credited works alone', () => {
+  it("leaves a profile with no credited works alone", () => {
     // Lyrea reviews articles; she is not an artist surface and keeps her page.
-    expect(mapArtistPageKeysByProfile(corpus, directory).has('LYREA')).toBe(false);
+    expect(mapArtistPageKeysByProfile(corpus, directory).has("LYREA")).toBe(
+      false,
+    );
   });
 
-  it('ignores undisplayable and withheld works when deciding', () => {
+  it("ignores undisplayable and withheld works when deciding", () => {
     const withGiger = [
       ...corpus,
-      rep({ artist: 'Giger', effect_slug: 'unspeakable-horrors' }),
-      rep({ artist: 'Solo', url: undefined }),
+      rep({ artist: "Giger", effect_slug: "unspeakable-horrors" }),
+      rep({ artist: "Solo", url: undefined }),
     ];
     const claimingDirectory = [
       ...directory,
-      { key: 'GIGER', displayName: 'Giger', aliases: [] },
-      { key: 'SOLO', displayName: 'Solo', aliases: [] },
+      { key: "GIGER", displayName: "Giger", aliases: [] },
+      { key: "SOLO", displayName: "Solo", aliases: [] },
     ];
     const map = mapArtistPageKeysByProfile(withGiger, claimingDirectory);
 
     // Neither has an Artist Page, so neither profile may forward to a 404.
-    expect(map.has('GIGER')).toBe(false);
-    expect(map.has('SOLO')).toBe(false);
+    expect(map.has("GIGER")).toBe(false);
+    expect(map.has("SOLO")).toBe(false);
   });
 
-  it('never maps the Unattributed bucket to anybody', () => {
-    const grabby = [{ key: 'GRABBY', displayName: 'Unknown', aliases: ['anonymous'] }];
+  it("never maps the Unattributed bucket to anybody", () => {
+    const grabby = [
+      { key: "GRABBY", displayName: "Unknown", aliases: ["anonymous"] },
+    ];
     expect(mapArtistPageKeysByProfile(corpus, grabby).size).toBe(0);
   });
 
-  it('sends a profile claiming two credit lines to the larger body of work', () => {
+  it("sends a profile claiming two credit lines to the larger body of work", () => {
     const twoNames = [
-      rep({ artist: 'Kaylee' }),
-      rep({ artist: 'Kaytwo' }),
-      rep({ artist: 'Kaytwo' }),
+      rep({ artist: "Kaylee" }),
+      rep({ artist: "Kaytwo" }),
+      rep({ artist: "Kaytwo" }),
     ];
-    const kaytwo = [{ key: 'KAYTWO', displayName: 'Kaytwo', aliases: ['Kaylee'] }];
+    const kaytwo = [
+      { key: "KAYTWO", displayName: "Kaytwo", aliases: ["Kaylee"] },
+    ];
 
-    expect(mapArtistPageKeysByProfile(twoNames, kaytwo).get('KAYTWO')).toBe('kaytwo');
+    expect(mapArtistPageKeysByProfile(twoNames, kaytwo).get("KAYTWO")).toBe(
+      "kaytwo",
+    );
   });
 });
 
-describe('getRetiredArtistKeyAlias', () => {
-  it('forwards the retired Anonymous key to the unattributed segment', () => {
-    expect(getRetiredArtistKeyAlias('anonymous')).toBe('unknown');
-    expect(getRetiredArtistKeyAlias(' ANONYMOUS ')).toBe('unknown');
+describe("getReplicationArtistRouteAlias", () => {
+  it("forwards the retired Anonymous key to the unattributed segment", () => {
+    expect(getReplicationArtistRouteAlias("anonymous")).toBe("unknown");
+    expect(getReplicationArtistRouteAlias(" ANONYMOUS ")).toBe("unknown");
   });
 
-  it('knows nothing about live or bogus keys', () => {
-    expect(getRetiredArtistKeyAlias('chelsea-morgan')).toBeNull();
-    expect(getRetiredArtistKeyAlias('unknown')).toBeNull();
+  it("knows nothing about live or bogus keys", () => {
+    expect(getReplicationArtistRouteAlias("chelsea-morgan")).toBeNull();
+    expect(getReplicationArtistRouteAlias("unknown")).toBeNull();
   });
 });

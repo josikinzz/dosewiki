@@ -25,6 +25,7 @@ const REPLICATION: GalleryReplication = {
   format: "mp4",
   created_at: "2026-01-01T00:00:00.000Z",
   url: "https://example.test/geometry-frog.mp4",
+  thumbnail_url: "https://example.test/geometry-frog.webp",
 };
 
 const FULL_DATA: EffectIndexHomeData = {
@@ -268,16 +269,18 @@ describe("Effect Index homepage", () => {
     ).toBeNull();
   });
 
-  it("lets a click on a video stage reach the link underneath it", () => {
+  it("keeps the carousel static until motion and viewport gates open", () => {
     const { container } = render(<EffectIndexHomePage {...FULL_DATA} />);
 
-    // The stage video fills its anchor and paints above it, and a browser does
-    // not forward a media element's click to an ancestor link the way it does
-    // for an image. Without this guard the whole carousel stops navigating —
-    // which is exactly how it shipped once.
-    const video = container.querySelector("video");
-    expect(video).not.toBeNull();
-    expect(video).toHaveClass("pointer-events-none");
+    // jsdom supplies neither matchMedia nor IntersectionObserver. The
+    // conservative path must issue no video request and retain the thumbnail
+    // inside the same work link.
+    expect(container.querySelector("video")).not.toBeInTheDocument();
+    expect(
+      container.querySelector(
+        'img[src="https://example.test/geometry-frog.webp"]',
+      ),
+    ).toBeInTheDocument();
   });
 
   it("steps between replications with the chevrons and with the arrow keys", async () => {

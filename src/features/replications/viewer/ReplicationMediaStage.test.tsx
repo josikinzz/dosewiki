@@ -106,8 +106,13 @@ describe("ReplicationMediaStage", () => {
       />,
     );
 
-    expect(screen.getByRole("button", { name: "Play" })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Unmute" })).toBeInTheDocument();
+    const playButton = screen.getByRole("button", { name: "Play" });
+    const unmuteButton = screen.getByRole("button", { name: "Unmute" });
+    expect(playButton).toBeInTheDocument();
+    expect(unmuteButton).toBeInTheDocument();
+    // Tailwind's size-11 utility makes both coarse-pointer hit boxes 44 CSS px square.
+    expect(playButton).toHaveClass("[@media(pointer:coarse)]:size-11");
+    expect(unmuteButton).toHaveClass("[@media(pointer:coarse)]:size-11");
     expect(screen.getByRole("slider", { name: "Volume" })).toHaveValue("0");
     expect(
       screen.getByRole("button", { name: "Rotate to fill screen" }),
@@ -129,7 +134,9 @@ describe("ReplicationMediaStage", () => {
     fireEvent.change(screen.getByRole("slider", { name: "Volume" }), {
       target: { value: "0.25" },
     });
-    fireEvent.click(screen.getByRole("button", { name: "Rotate to fill screen" }));
+    fireEvent.click(
+      screen.getByRole("button", { name: "Rotate to fill screen" }),
+    );
     fireEvent.click(screen.getByRole("button", { name: "Previous work" }));
     fireEvent.click(screen.getByRole("button", { name: "Next work" }));
     fireEvent.click(screen.getByRole("button", { name: "Show information" }));
@@ -191,16 +198,14 @@ describe("ReplicationMediaStage", () => {
 
     fireEvent.play(video);
     fireEvent.waiting(video);
-    expect(
-      screen.getByRole("img", { name: "Buffering" }),
-    ).toBeInTheDocument();
+    expect(screen.getByRole("img", { name: "Buffering" })).toBeInTheDocument();
     expect(screen.queryByRole("status")).not.toBeInTheDocument();
 
     act(() => vi.advanceTimersByTime(1999));
     expect(screen.queryByRole("status")).not.toBeInTheDocument();
     act(() => vi.advanceTimersByTime(1));
     expect(screen.getByRole("status")).toHaveTextContent(
-      "Oops, we plan to use a faster video host soon! :(",
+      "Playback is taking longer than expected.",
     );
 
     fireEvent.playing(video);
@@ -404,10 +409,16 @@ describe("ReplicationMediaStage", () => {
     ).not.toBeInTheDocument();
   });
 
-  it("fades the poster underlay once a frame is decodable, not on playback progress", () => {
+  it("fades a GIF rendition poster once a frame is decodable, not on playback progress", () => {
     const { container } = render(
       <ReplicationMediaStage
-        item={item()}
+        item={item({
+          type: "image",
+          format: "gif",
+          url: "https://cdn.test/tracers.gif",
+          motion_url: "https://cdn.test/tracers.mp4",
+          motion_poster_url: "https://cdn.test/tracers-poster.webp",
+        })}
         muted
         volume={1}
         onMutedChange={vi.fn()}
@@ -417,7 +428,7 @@ describe("ReplicationMediaStage", () => {
 
     const video = container.querySelector("video") as HTMLVideoElement;
     const underlay = container.querySelector(
-      'img[src="https://cdn.test/tracers.webp"]',
+      'img[src="https://cdn.test/tracers-poster.webp"]',
     )?.parentElement as HTMLElement;
     expect(underlay.className).toContain("opacity-100");
 
@@ -429,6 +440,39 @@ describe("ReplicationMediaStage", () => {
     // requestVideoFrameCallback is unavailable, as in jsdom.
     fireEvent.canPlay(video);
     expect(underlay.className).toContain("opacity-0");
+  });
+
+  it("does not present an editorial video thumbnail as its first frame", () => {
+    const { container } = render(
+      <ReplicationMediaStage
+        item={item()}
+        muted
+        volume={1}
+        onMutedChange={vi.fn()}
+        onVolumeChange={vi.fn()}
+      />,
+    );
+
+    expect(container.querySelector("video")).not.toHaveAttribute("poster");
+    expect(
+      container.querySelector('img[src="https://cdn.test/tracers.webp"]'),
+    ).not.toBeInTheDocument();
+  });
+
+  it("lets media-stage taps pass through the transport pill gaps", () => {
+    render(
+      <ReplicationMediaStage
+        item={item()}
+        muted
+        volume={1}
+        onMutedChange={vi.fn()}
+        onVolumeChange={vi.fn()}
+      />,
+    );
+
+    const play = screen.getByRole("button", { name: "Play" });
+    expect(play.parentElement).toHaveClass("pointer-events-none");
+    expect(play).toHaveClass("pointer-events-auto");
   });
 
   it("does not load a raw GIF when its controllable rendition is absent", () => {
@@ -542,7 +586,6 @@ describe("ReplicationMediaStage", () => {
   });
 
   it("anchors the playback cluster to the media box's bottom-left corner", () => {
-
     // Landscape 16:9 — spare space sits above/below; left hugs the stage.
     const { rerender } = render(
       <ReplicationMediaStage
@@ -1067,8 +1110,7 @@ describe("ReplicationMediaStage", () => {
     expect(
       screen
         .getByRole("button", { name: "Play" })
-        .querySelector("[data-rotating-icon]")!
-        .className,
+        .querySelector("[data-rotating-icon]")!.className,
     ).not.toContain("rotate-90");
     expect(onRotatedChange).toHaveBeenLastCalledWith(false);
   });
@@ -1168,10 +1210,9 @@ describe("ReplicationMediaStage", () => {
     // The 16:9 guess would paint rotated; nothing may show until the probe.
     const video = container.querySelector("video") as HTMLVideoElement;
     expect(video.className).toContain("opacity-0");
-    const underlay = container.querySelector(
-      'img[src="https://cdn.test/tracers.webp"]',
-    )?.parentElement as HTMLElement;
-    expect(underlay.className).toContain("opacity-0");
+    expect(
+      container.querySelector('img[src="https://cdn.test/tracers.webp"]'),
+    ).not.toBeInTheDocument();
 
     // The probe lands portrait: reveal upright, no rotate flash ever shown.
     Object.defineProperty(video, "videoWidth", {
@@ -1185,7 +1226,6 @@ describe("ReplicationMediaStage", () => {
     fireEvent.loadedMetadata(video);
     expect(video.className).not.toContain("opacity-0");
     expect(video.className).not.toContain("rotate-90");
-    expect(underlay.className).toContain("opacity-100");
   });
 
   it("settles a dimensionless still through its decoded image instead of holding it invisible forever", () => {

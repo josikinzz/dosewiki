@@ -302,27 +302,25 @@ describe("browser security response policy", () => {
     expect(csp).not.toMatch(/script-src[^;]*'unsafe-inline'/);
   });
 
-  it("does not upgrade localhost requests while enforcing the remaining policy", () => {
-    const localCsp = headerValue(
-      getBrowserSecurityHeaders({
-        host: "localhost:3000",
-        pathname: "/2c-b",
-        convexUrl: CONVEX_URL,
-        isDevelopment: false,
-      }),
-      CSP_ENFORCEMENT_HEADER,
-    );
-    const deployedCsp = headerValue(
-      getBrowserSecurityHeaders({
-        host: "dosewiki-admin.vercel.app",
-        pathname: "/2c-b",
-        convexUrl: CONVEX_URL,
-        isDevelopment: false,
-      }),
-      CSP_ENFORCEMENT_HEADER,
-    );
+  it("keeps plain-HTTP local QA hosts usable without weakening deployed hosts", () => {
+    const cspForHost = (host: string) =>
+      headerValue(
+        getBrowserSecurityHeaders({
+          host,
+          pathname: "/2c-b",
+          convexUrl: CONVEX_URL,
+          isDevelopment: false,
+        }),
+        CSP_ENFORCEMENT_HEADER,
+      );
 
-    expect(localCsp).not.toContain("upgrade-insecure-requests");
-    expect(deployedCsp).toContain("upgrade-insecure-requests");
+    expect(cspForHost("localhost:3000")).not.toContain("upgrade-insecure-requests");
+    expect(cspForHost("10.0.0.15:4823")).not.toContain("upgrade-insecure-requests");
+    expect(cspForHost("172.31.4.8:4823")).not.toContain("upgrade-insecure-requests");
+    expect(cspForHost("192.168.1.20:4823")).not.toContain("upgrade-insecure-requests");
+    expect(cspForHost("8.8.8.8:4823")).toContain("upgrade-insecure-requests");
+    expect(cspForHost("dosewiki-admin.vercel.app")).toContain(
+      "upgrade-insecure-requests",
+    );
   });
 });

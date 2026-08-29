@@ -143,9 +143,10 @@ export function ReplicationMediaStage({
     : replication.url;
   const moving = replication.type === "video" || gifReady;
   const hasSafeGifFallback = gifLike && !gifReady;
-  const poster = gifLike
-    ? replication.motion_poster_url
-    : replication.thumbnail_url;
+  // Ordinary-video thumbnails are editorial crops, not guaranteed video
+  // frames. Showing one as a playback poster creates a false warm handoff.
+  // GIF motion renditions own purpose-built posters and may use them.
+  const poster = gifLike ? replication.motion_poster_url : undefined;
   const stageRef = useRef<HTMLElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
   /** Sound the reader asked for but the browser refused outside a gesture. */
@@ -272,7 +273,6 @@ export function ReplicationMediaStage({
     pendingSoundRef.current = false;
     // knownAudio is derived from the same slug change that resets here.
   }, [replication.slug]);
-
 
   // The poster underlay drops the moment a real frame is decodable, not on
   // the first timeupdate — that gate waited for playback to advance, so
@@ -582,17 +582,14 @@ export function ReplicationMediaStage({
     [paintPlayhead, resolveSeekDuration, rotated],
   );
 
-  const endScrub = useCallback(
-    (event: ReactPointerEvent<HTMLDivElement>) => {
-      if (!scrubbingRef.current) return;
-      scrubbingRef.current = false;
-      setScrubbing(false);
-      if (event.currentTarget.hasPointerCapture?.(event.pointerId)) {
-        event.currentTarget.releasePointerCapture(event.pointerId);
-      }
-    },
-    [],
-  );
+  const endScrub = useCallback((event: ReactPointerEvent<HTMLDivElement>) => {
+    if (!scrubbingRef.current) return;
+    scrubbingRef.current = false;
+    setScrubbing(false);
+    if (event.currentTarget.hasPointerCapture?.(event.pointerId)) {
+      event.currentTarget.releasePointerCapture(event.pointerId);
+    }
+  }, []);
 
   // The compact playback meter: per-frame direct-DOM writes keep the accent
   // fill, its thumb, and the buffered layer glassy-smooth without
@@ -829,7 +826,7 @@ export function ReplicationMediaStage({
               </span>
             ) : null}
             {bufferingCopyVisible ? (
-              <span>Oops, we plan to use a faster video host soon! :(</span>
+              <span>Playback is taking longer than expected.</span>
             ) : null}
           </div>
         </div>
@@ -1125,97 +1122,97 @@ export function ReplicationMediaStage({
         {moving ? (
           <div
             style={mediaBoxAnchorStyle}
-            className="theme-media-tile-title pointer-events-auto absolute bottom-[var(--media-box-bottom)] left-[var(--media-box-left)] flex items-center gap-2 rounded-full bg-black/65 px-2 py-1.5 backdrop-blur-sm"
+            className="theme-media-tile-title pointer-events-none absolute bottom-[var(--media-box-bottom)] left-[var(--media-box-left)] flex items-center gap-2 rounded-full bg-black/65 px-2 py-1.5 backdrop-blur-sm"
           >
-              <button
-                type="button"
-                aria-label={playing ? "Pause" : "Play"}
-                onClick={(event) => {
-                  event.stopPropagation();
-                  togglePlayback();
-                }}
-                className={cn(
-                  "grid size-9 place-items-center rounded-full",
-                  focusRingClassName,
-                )}
-              >
-                <RotatingIcon rotated={rotated}>
-                  <Icon
-                    icon={playing ? "lucide:pause" : "lucide:play"}
-                    className="size-5"
-                  />
-                </RotatingIcon>
-              </button>
-              {soundAvailable ? (
-                <>
-                  <button
-                    type="button"
-                    aria-label={muted ? "Unmute" : "Mute"}
-                    onClick={(event) => {
-                      event.stopPropagation();
-                      const next = !muted;
-                      // Flip the element inside the gesture: WebKit only
-                      // honours an unmute (and any needed replay) while the
-                      // user activation is live; the state sync alone would
-                      // land outside it and be refused.
-                      const video = videoRef.current;
-                      if (video) {
-                        video.muted = next;
-                        video.volume = volume;
-                        // An in-gesture play() is what blesses this element
-                        // for future unmuted playback on later works; calling
-                        // it while already playing is a no-op.
-                        if (!next && autoplayAllowed) {
-                          attemptPlay(video);
-                        }
+            <button
+              type="button"
+              aria-label={playing ? "Pause" : "Play"}
+              onClick={(event) => {
+                event.stopPropagation();
+                togglePlayback();
+              }}
+              className={cn(
+                "pointer-events-auto grid size-9 place-items-center rounded-full [@media(pointer:coarse)]:size-11",
+                focusRingClassName,
+              )}
+            >
+              <RotatingIcon rotated={rotated}>
+                <Icon
+                  icon={playing ? "lucide:pause" : "lucide:play"}
+                  className="size-5"
+                />
+              </RotatingIcon>
+            </button>
+            {soundAvailable ? (
+              <>
+                <button
+                  type="button"
+                  aria-label={muted ? "Unmute" : "Mute"}
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    const next = !muted;
+                    // Flip the element inside the gesture: WebKit only
+                    // honours an unmute (and any needed replay) while the
+                    // user activation is live; the state sync alone would
+                    // land outside it and be refused.
+                    const video = videoRef.current;
+                    if (video) {
+                      video.muted = next;
+                      video.volume = volume;
+                      // An in-gesture play() is what blesses this element
+                      // for future unmuted playback on later works; calling
+                      // it while already playing is a no-op.
+                      if (!next && autoplayAllowed) {
+                        attemptPlay(video);
                       }
-                      pendingSoundRef.current = false;
-                      onMutedChange(next);
-                    }}
-                    className={cn(
-                      "grid size-9 place-items-center rounded-full",
-                      focusRingClassName,
-                    )}
-                  >
-                    <RotatingIcon rotated={rotated}>
-                      <Icon
-                        icon={muted ? "lucide:volume-x" : "lucide:volume-2"}
-                        className="size-5"
-                      />
-                    </RotatingIcon>
-                  </button>
-                  <label
-                    className="sr-only"
-                    htmlFor={`replication-volume-${replication.slug}`}
-                  >
-                    Volume
-                  </label>
-                  <input
-                    id={`replication-volume-${replication.slug}`}
-                    type="range"
-                    min={0}
-                    max={1}
-                    step={0.05}
-                    value={muted ? 0 : volume}
-                    onChange={(event) => {
-                      const nextVolume = Number(event.currentTarget.value);
-                      const nextMuted = nextVolume === 0;
-                      const video = videoRef.current;
-                      if (video) {
-                        video.muted = nextMuted;
-                        if (!nextMuted) {
-                          video.volume = nextVolume;
-                          if (autoplayAllowed) attemptPlay(video);
-                        }
+                    }
+                    pendingSoundRef.current = false;
+                    onMutedChange(next);
+                  }}
+                  className={cn(
+                    "pointer-events-auto grid size-9 place-items-center rounded-full [@media(pointer:coarse)]:size-11",
+                    focusRingClassName,
+                  )}
+                >
+                  <RotatingIcon rotated={rotated}>
+                    <Icon
+                      icon={muted ? "lucide:volume-x" : "lucide:volume-2"}
+                      className="size-5"
+                    />
+                  </RotatingIcon>
+                </button>
+                <label
+                  className="sr-only"
+                  htmlFor={`replication-volume-${replication.slug}`}
+                >
+                  Volume
+                </label>
+                <input
+                  id={`replication-volume-${replication.slug}`}
+                  type="range"
+                  min={0}
+                  max={1}
+                  step={0.05}
+                  value={muted ? 0 : volume}
+                  onChange={(event) => {
+                    const nextVolume = Number(event.currentTarget.value);
+                    const nextMuted = nextVolume === 0;
+                    const video = videoRef.current;
+                    if (video) {
+                      video.muted = nextMuted;
+                      if (!nextMuted) {
+                        video.volume = nextVolume;
+                        if (autoplayAllowed) attemptPlay(video);
                       }
-                      pendingSoundRef.current = false;
-                      if (!nextMuted) onVolumeChange(nextVolume);
-                      if (nextMuted !== muted) onMutedChange(nextMuted);
-                    }}
-                    className="hidden w-24 accent-white sm:block"
-                  />
-                </>
-              ) : null}
+                    }
+                    pendingSoundRef.current = false;
+                    if (!nextMuted) onVolumeChange(nextVolume);
+                    if (nextMuted !== muted) onMutedChange(nextMuted);
+                  }}
+                  className="pointer-events-auto hidden w-24 accent-white sm:block"
+                />
+              </>
+            ) : null}
           </div>
         ) : null}
       </div>

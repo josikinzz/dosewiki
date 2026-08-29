@@ -70,7 +70,9 @@ describe("middleware role policy adapter", () => {
     expect(csp).not.toMatch(/script-src[^;]*'unsafe-eval'/);
     expect(response.headers.get("x-frame-options")).toBe("DENY");
     expect(response.headers.get("x-content-type-options")).toBe("nosniff");
-    expect(response.headers.get("referrer-policy")).toBe("strict-origin-when-cross-origin");
+    expect(response.headers.get("referrer-policy")).toBe(
+      "strict-origin-when-cross-origin",
+    );
     expect(response.headers.get("permissions-policy")).toContain("camera=()");
     expect(response.headers.get("x-nonce")).toBeNull();
   });
@@ -81,7 +83,9 @@ describe("middleware role policy adapter", () => {
     const response = await middleware(makeRequest("/fentanyl"));
     const csp = response.headers.get("content-security-policy") ?? "";
 
-    expect(csp).toContain("script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval'");
+    expect(csp).toContain(
+      "script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval'",
+    );
     expect(csp).not.toMatch(/script-src[^;]*'nonce-/);
     expect(csp).not.toMatch(/script-src[^;]*'sha256-/);
     expect(response.headers.get("x-middleware-request-x-nonce")).toBeNull();
@@ -101,7 +105,10 @@ describe("middleware role policy adapter", () => {
   });
 
   it("allows authenticated viewers into /dev/profile", async () => {
-    mocks.getToken.mockResolvedValue({ email: "viewer@example.com", role: "viewer" });
+    mocks.getToken.mockResolvedValue({
+      email: "viewer@example.com",
+      role: "viewer",
+    });
     const { middleware } = await import("../middleware");
 
     const response = await middleware(makeRequest("/dev/profile"));
@@ -111,7 +118,10 @@ describe("middleware role policy adapter", () => {
   });
 
   it("allows authenticated viewers into /dev/profiles", async () => {
-    mocks.getToken.mockResolvedValue({ email: "viewer@example.com", role: "viewer" });
+    mocks.getToken.mockResolvedValue({
+      email: "viewer@example.com",
+      role: "viewer",
+    });
     const { middleware } = await import("../middleware");
 
     const response = await middleware(makeRequest("/dev/profiles"));
@@ -121,7 +131,10 @@ describe("middleware role policy adapter", () => {
   });
 
   it("redirects viewers away from the editor shell without editor privileges", async () => {
-    mocks.getToken.mockResolvedValue({ email: "viewer@example.com", role: "viewer" });
+    mocks.getToken.mockResolvedValue({
+      email: "viewer@example.com",
+      role: "viewer",
+    });
     const { middleware } = await import("../middleware");
 
     const response = await middleware(makeRequest("/dev"));
@@ -133,7 +146,10 @@ describe("middleware role policy adapter", () => {
   });
 
   it("allows editors into the editor shell", async () => {
-    mocks.getToken.mockResolvedValue({ email: "editor@example.com", role: "editor" });
+    mocks.getToken.mockResolvedValue({
+      email: "editor@example.com",
+      role: "editor",
+    });
     const { middleware } = await import("../middleware");
 
     const response = await middleware(makeRequest("/dev"));
@@ -151,7 +167,9 @@ describe("middleware role policy adapter", () => {
     const response = await middleware(makePublicRequest("/fentanyl"));
 
     expect(response.status).toBe(307);
-    expect(response.headers.get("location")).toBe("https://dose.wiki/preview/fentanyl");
+    expect(response.headers.get("location")).toBe(
+      "https://dose.wiki/preview/fentanyl",
+    );
     expect(mocks.getToken).not.toHaveBeenCalled();
   });
 
@@ -161,7 +179,9 @@ describe("middleware role policy adapter", () => {
     const response = await middleware(makePublicRequest("/search?q=lsd"));
 
     expect(response.status).toBe(307);
-    expect(response.headers.get("location")).toBe("https://dose.wiki/preview/search?q=lsd");
+    expect(response.headers.get("location")).toBe(
+      "https://dose.wiki/preview/search?q=lsd",
+    );
   });
 
   it("resolves public dose.wiki substance aliases inside the preview prefix", async () => {
@@ -182,7 +202,9 @@ describe("middleware role policy adapter", () => {
     const response = await middleware(makePublicRequest("/preview/search/lsd"));
 
     expect(response.status).toBe(308);
-    expect(response.headers.get("location")).toBe("https://dose.wiki/preview/search?q=lsd");
+    expect(response.headers.get("location")).toBe(
+      "https://dose.wiki/preview/search?q=lsd",
+    );
     expect(mocks.getToken).not.toHaveBeenCalled();
   });
 
@@ -193,13 +215,17 @@ describe("middleware role policy adapter", () => {
 
     expect(response.status).toBe(200);
     expect(response.headers.get("location")).toBeNull();
-    expect(response.headers.get("x-middleware-rewrite")).toBe("https://dose.wiki/");
+    expect(response.headers.get("x-middleware-rewrite")).toBe(
+      "https://dose.wiki/",
+    );
   });
 
   it("rewrites a preview section onto the route it mirrors", async () => {
     const { middleware } = await import("../middleware");
 
-    const response = await middleware(makePublicRequest("/preview/substances?tab=common"));
+    const response = await middleware(
+      makePublicRequest("/preview/substances?tab=common"),
+    );
 
     expect(response.status).toBe(200);
     expect(response.headers.get("x-middleware-rewrite")).toBe(
@@ -226,14 +252,18 @@ describe("middleware role policy adapter", () => {
     // Not the holding page: the link a person typed still resolves, it just crosses to
     // the working deployment. Auth is never consulted here - the gate answers first.
     expect(response.status).toBe(307);
-    expect(response.headers.get("location")).toBe("https://dev.dose.wiki/dev/articles");
+    expect(response.headers.get("location")).toBe(
+      "https://dev.dose.wiki/dev/articles",
+    );
     expect(mocks.getToken).not.toHaveBeenCalled();
   });
 
   it("carries the query across the handoff", async () => {
     const { middleware } = await import("../middleware");
 
-    const response = await middleware(makePublicRequest("/sign-in?callbackUrl=%2Fdev"));
+    const response = await middleware(
+      makePublicRequest("/sign-in?callbackUrl=%2Fdev"),
+    );
 
     expect(response.headers.get("location")).toBe(
       "https://dev.dose.wiki/sign-in?callbackUrl=%2Fdev",
@@ -243,10 +273,14 @@ describe("middleware role policy adapter", () => {
   it("hands off a preview address for the editor too, dropping the prefix", async () => {
     const { middleware } = await import("../middleware");
 
-    const response = await middleware(makePublicRequest("/preview/dev/articles"));
+    const response = await middleware(
+      makePublicRequest("/preview/dev/articles"),
+    );
 
     expect(response.status).toBe(307);
-    expect(response.headers.get("location")).toBe("https://dev.dose.wiki/dev/articles");
+    expect(response.headers.get("location")).toBe(
+      "https://dev.dose.wiki/dev/articles",
+    );
     expect(mocks.getToken).not.toHaveBeenCalled();
   });
 
@@ -277,7 +311,9 @@ describe("middleware role policy adapter", () => {
   it("bounces public-host client API calls into the preview address space", async () => {
     const { middleware } = await import("../middleware");
 
-    const response = await middleware(makePublicRequest("/api/search-suggestions?q=mdma"));
+    const response = await middleware(
+      makePublicRequest("/api/search-suggestions?q=mdma"),
+    );
 
     expect(response.status).toBe(307);
     expect(response.headers.get("location")).toBe(
@@ -289,7 +325,9 @@ describe("middleware role policy adapter", () => {
   it("leaves a preview API rewrite without a document CSP", async () => {
     const { middleware } = await import("../middleware");
 
-    const response = await middleware(makePublicRequest("/preview/api/search-suggestions?q=mdma"));
+    const response = await middleware(
+      makePublicRequest("/preview/api/search-suggestions?q=mdma"),
+    );
 
     expect(response.status).toBe(200);
     expect(response.headers.get("x-middleware-rewrite")).toBe(
@@ -301,7 +339,9 @@ describe("middleware role policy adapter", () => {
   it("allows only the versioned public API through the construction gate", async () => {
     const { middleware } = await import("../middleware");
 
-    const response = await middleware(makePublicRequest("/api/v1/substances?limit=25"));
+    const response = await middleware(
+      makePublicRequest("/api/v1/substances?limit=25"),
+    );
 
     expect(response.status).toBe(200);
     expect(response.headers.get("location")).toBeNull();
@@ -346,7 +386,9 @@ describe("middleware role policy adapter", () => {
     expect(publicResponse.headers.get("content-security-policy")).toContain(
       "https://us.i.posthog.com",
     );
-    expect(adminResponse.headers.get("content-security-policy")).not.toContain("posthog");
+    expect(adminResponse.headers.get("content-security-policy")).not.toContain(
+      "posthog",
+    );
   });
 
   it("allows public dose.wiki static assets for the construction homepage", async () => {
@@ -403,7 +445,23 @@ describe("middleware role policy adapter", () => {
     const response = await middleware(makeRequest("/psilocybin"));
 
     expect(response.status).toBe(308);
-    expect(response.headers.get("location")).toBe("https://dosewiki-admin.vercel.app/psilocybin-mushrooms");
+    expect(response.headers.get("location")).toBe(
+      "https://dosewiki-admin.vercel.app/psilocybin-mushrooms",
+    );
+    expect(mocks.getToken).not.toHaveBeenCalled();
+  });
+
+  it("emits a real 301 for retired Artist Page keys", async () => {
+    const { middleware } = await import("../middleware");
+
+    const response = await middleware(
+      makeRequest("/replications/artist/anonymous"),
+    );
+
+    expect(response.status).toBe(301);
+    expect(response.headers.get("location")).toBe(
+      "https://dosewiki-admin.vercel.app/replications/artist/unknown",
+    );
     expect(mocks.getToken).not.toHaveBeenCalled();
   });
 
@@ -413,7 +471,9 @@ describe("middleware role policy adapter", () => {
     const response = await middleware(makeRequest("/search/lsd%20dosage"));
 
     expect(response.status).toBe(308);
-    expect(response.headers.get("location")).toBe("https://dosewiki-admin.vercel.app/search?q=lsd+dosage");
+    expect(response.headers.get("location")).toBe(
+      "https://dosewiki-admin.vercel.app/search?q=lsd+dosage",
+    );
     expect(mocks.getToken).not.toHaveBeenCalled();
   });
 });
@@ -440,18 +500,25 @@ describe("middleware header memoization", () => {
   });
 
   it("issues a fresh nonce per /dev request despite the public header cache", async () => {
-    mocks.getToken.mockResolvedValue({ email: "editor@example.com", role: "editor" });
+    mocks.getToken.mockResolvedValue({
+      email: "editor@example.com",
+      role: "editor",
+    });
     const { middleware } = await import("../middleware");
 
     const first = await middleware(makeRequest("/dev"));
     const second = await middleware(makeRequest("/dev"));
     const nonceOf = (response: Response) =>
-      response.headers.get("content-security-policy")?.match(/'nonce-([^']+)'/)?.[1];
+      response.headers
+        .get("content-security-policy")
+        ?.match(/'nonce-([^']+)'/)?.[1];
 
     expect(nonceOf(first)).toBeTruthy();
     expect(nonceOf(second)).toBeTruthy();
     expect(nonceOf(first)).not.toBe(nonceOf(second));
-    expect(first.headers.get("x-middleware-request-x-nonce")).toBe(nonceOf(first));
+    expect(first.headers.get("x-middleware-request-x-nonce")).toBe(
+      nonceOf(first),
+    );
   });
 });
 

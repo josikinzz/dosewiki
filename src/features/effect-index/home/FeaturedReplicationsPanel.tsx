@@ -1,11 +1,15 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import Link from "next/link";
 
 import { AppImage } from "@/components/common/AppImage";
 import { Icon } from "@/components/common/Icon";
 import { getCreatorByline } from "@/features/effects/components/replicationCredit";
+import {
+  useInView,
+  useMotionAllowed,
+} from "@/features/effects/gallery/inViewPlayback";
 import { buildReplicationViewerUrl } from "@/features/replications/galleryUrlState";
 import { publicHref } from "@/utils/publicHref";
 import { HomePanel } from "./HomePanel";
@@ -46,26 +50,6 @@ const CONTROL_CLASS =
 const CAPTION_LINK_CLASS =
   "pointer-events-auto text-[color:var(--ei-accent-on-dark,#6fc4bb)] transition-colors hover:underline hover:decoration-1 hover:underline-offset-2 focus-visible:outline-offset-2";
 
-function useReducedMotion(): boolean {
-  const [reduced, setReduced] = useState(false);
-
-  useEffect(() => {
-    if (typeof window === "undefined" || !window.matchMedia) {
-      return;
-    }
-
-    const query = window.matchMedia("(prefers-reduced-motion: reduce)");
-    const update = () => setReduced(query.matches);
-
-    update();
-    query.addEventListener("change", update);
-
-    return () => query.removeEventListener("change", update);
-  }, []);
-
-  return reduced;
-}
-
 const DEFAULT_DESCRIPTION =
   "Artistic representations of specific subjective effects";
 
@@ -82,7 +66,9 @@ export function FeaturedReplicationsPanel({
   description = DEFAULT_DESCRIPTION,
 }: FeaturedReplicationsPanelProps) {
   const [index, setIndex] = useState(0);
-  const reducedMotion = useReducedMotion();
+  const stageRef = useRef<HTMLDivElement>(null);
+  const autoplayAllowed = useMotionAllowed().autoplay;
+  const inView = useInView(stageRef, 0.25, autoplayAllowed);
 
   const count = items.length;
 
@@ -126,6 +112,9 @@ export function FeaturedReplicationsPanel({
   const { replication } = item;
   const byline = getCreatorByline(replication);
   const isVideo = replication.type === "video";
+  const staticImageSource = isVideo
+    ? replication.thumbnail_url
+    : replication.url;
 
   return (
     <HomePanel
@@ -136,6 +125,7 @@ export function FeaturedReplicationsPanel({
       contentClassName="p-3"
     >
       <div
+        ref={stageRef}
         role="group"
         aria-roledescription="carousel"
         aria-label="Featured replications"
@@ -150,7 +140,7 @@ export function FeaturedReplicationsPanel({
           aria-label={`View ${replication.title}`}
           className={`absolute inset-0 flex h-full w-full items-center justify-center focus-visible:-outline-offset-2 ${ON_DARK_FOCUS_RING}`}
         >
-          {isVideo ? (
+          {isVideo && autoplayAllowed && inView ? (
             <video
               key={replication.slug}
               src={replication.url}
@@ -158,21 +148,28 @@ export function FeaturedReplicationsPanel({
               muted
               loop
               playsInline
-              autoPlay={!reducedMotion}
-              preload="metadata"
+              autoPlay
+              preload="auto"
               // Fills the link and paints above it, so without this every click on
               // a video stage lands on the media element and never reaches the
               // anchor. The caption band below uses the same guard.
               className="pointer-events-none h-full w-full object-contain"
             />
-          ) : (
+          ) : staticImageSource ? (
             <AppImage
-              src={replication.url}
+              src={staticImageSource}
               alt={replication.title}
               width={replication.width ?? 800}
               height={replication.height ?? 600}
               className="h-full w-full object-contain"
             />
+          ) : (
+            <span
+              aria-hidden
+              className="grid h-full w-full place-items-center text-[color:var(--ei-on-dark-muted,#cccccc)]"
+            >
+              <Icon icon="lucide:video" size={36} />
+            </span>
           )}
         </Link>
 

@@ -48,16 +48,23 @@ const explicitEffectCategoryAliases = {
 export { getSubstanceRouteAlias } from "./substanceRouteAliases";
 
 export function getCategoryRouteAliasParams(): { categoryKey: string }[] {
-  return Object.keys(explicitCategoryAliases).map((categoryKey) => ({ categoryKey }));
+  return Object.keys(explicitCategoryAliases).map((categoryKey) => ({
+    categoryKey,
+  }));
 }
 
-export function getEffectCategoryRouteAliasParams(): { categorySlug: string }[] {
-  return Object.keys(explicitEffectCategoryAliases).map((categorySlug) => ({ categorySlug }));
+export function getEffectCategoryRouteAliasParams(): {
+  categorySlug: string;
+}[] {
+  return Object.keys(explicitEffectCategoryAliases).map((categorySlug) => ({
+    categorySlug,
+  }));
 }
 
 export function getCategoryRouteAlias(categoryKey: string): string | null {
   const normalized = categoryKey.trim().toLowerCase();
-  const explicit = explicitCategoryAliases[normalized as keyof typeof explicitCategoryAliases];
+  const explicit =
+    explicitCategoryAliases[normalized as keyof typeof explicitCategoryAliases];
 
   if (explicit && manualCategoryKeys.has(explicit)) {
     return explicit;
@@ -73,9 +80,14 @@ export function getCategoryRouteAlias(categoryKey: string): string | null {
   return null;
 }
 
-export function getEffectCategoryRouteAlias(categorySlug: string): string | null {
+export function getEffectCategoryRouteAlias(
+  categorySlug: string,
+): string | null {
   const normalized = categorySlug.trim().toLowerCase();
-  const explicit = explicitEffectCategoryAliases[normalized as keyof typeof explicitEffectCategoryAliases];
+  const explicit =
+    explicitEffectCategoryAliases[
+      normalized as keyof typeof explicitEffectCategoryAliases
+    ];
 
   if (explicit && effectCategorySlugs.has(explicit)) {
     return explicit;
@@ -96,6 +108,24 @@ export function getReplicationRouteAlias(slug: string): string | null {
 
   // A self-referential entry would redirect the canonical URL to itself.
   return target && target !== normalized ? target : null;
+}
+
+const replicationArtistAliases = {
+  anonymous: "unknown",
+} as const satisfies Record<string, string>;
+
+/**
+ * Retired Artist Page keys whose works now live under another stable group.
+ * Middleware consumes this before the statically rendered page so the old
+ * address emits a real permanent redirect instead of a 200 soft redirect.
+ */
+export function getReplicationArtistRouteAlias(key: string): string | null {
+  const normalized = key.trim().toLowerCase();
+  return (
+    replicationArtistAliases[
+      normalized as keyof typeof replicationArtistAliases
+    ] ?? null
+  );
 }
 
 export function getReplicationRouteAliasParams(): { slug: string }[] {
