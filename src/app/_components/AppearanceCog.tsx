@@ -94,7 +94,10 @@ export function AppearanceCog({
         // `theme-chrome-dark` pins the dark control palette even when the page is light.
         className="theme-chrome-dark theme-appearance-popover w-[min(18rem,calc(100vw-1.5rem))] max-w-none p-0 motion-reduce:animate-none"
         align="end"
-        sideOffset={8}
+        // Radix places the panel `sideOffset + arrow height` from the trigger, so 0 here
+        // plus the 8px stem below lands the visible edge 8px under the cog — the same
+        // gap the mobile nav panel keeps (`top-[calc(100%+0.5rem)]` in Header.tsx).
+        sideOffset={0}
         collisionPadding={12}
         aria-label="Appearance settings"
         /**

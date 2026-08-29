@@ -9,12 +9,14 @@ import {
 import { cn } from "@/lib/utils";
 
 /** The appearance axis a segmented picker owns. Mirrored to the DOM for tests and skins. */
-type AppearanceAxis = "color-scheme" | "visual-style";
+type AppearanceAxis = "color-scheme" | "visual-style" | "font";
 
 export type AppearanceToggleOption<Value extends string> = {
   value: Value;
   label: string;
-  icon: ReactNode;
+  icon?: ReactNode;
+  /** Extra class on the label span, e.g. a font-face preview for the font axis. */
+  labelClassName?: string;
 };
 
 interface AppearanceTogglePillProps<Value extends string> {
@@ -126,10 +128,12 @@ export function AppearanceTogglePill<Value extends string>({
               checked ? "theme-toggle-icon-accent" : "theme-toggle-icon-muted",
             )}
           >
-            <span aria-hidden="true" className="shrink-0">
-              {option.icon}
-            </span>
-            <span>{option.label}</span>
+            {option.icon != null ? (
+              <span aria-hidden="true" className="shrink-0">
+                {option.icon}
+              </span>
+            ) : null}
+            <span className={option.labelClassName}>{option.label}</span>
           </button>
         );
       })}
