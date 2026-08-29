@@ -2,7 +2,7 @@
   "schemaVersion": 2,
   "analysis": "decoded-volume-v1",
   "silenceFloorDb": -80,
-  "generatedAt": "2026-08-24T08:00:18.238Z",
+  "generatedAt": "2026-08-29T01:14:29.926Z",
   "apiBase": "https://dev.dose.wiki/api/v1",
   "target": "https://glad-minnow-656.convex.cloud",
   "entries": [
@@ -27,26 +27,6 @@
       "max_volume_db": -3.3
     },
     {
-      "slug": "antechamber-hypnagogist",
-      "id": "k57d51fg741d3ba1trghng3mm58478c7",
-      "analysis": "decoded-volume-v1",
-      "status": "digitally-silent",
-      "audio_stream": true,
-      "has_audio": false,
-      "mean_volume_db": -91,
-      "max_volume_db": -91
-    },
-    {
-      "slug": "entity2-hypnagogist",
-      "id": "k575q5geztqc6h26hy7z0sr9k98472mm",
-      "analysis": "decoded-volume-v1",
-      "status": "digitally-silent",
-      "audio_stream": true,
-      "has_audio": false,
-      "mean_volume_db": -91,
-      "max_volume_db": -91
-    },
-    {
       "slug": "fungal-intelligence-k-visuals",
       "id": "k57f7ahxweds728ppjsdx4ar4d846n6v",
       "analysis": "decoded-volume-v1",
@@ -55,46 +35,6 @@
       "has_audio": true,
       "mean_volume_db": -19.1,
       "max_volume_db": -0.7
-    },
-    {
-      "slug": "keana-k-visuals",
-      "id": "k5769a205mb6fkfvtxqbmdpqgn847j8d",
-      "analysis": "decoded-volume-v1",
-      "status": "digitally-silent",
-      "audio_stream": true,
-      "has_audio": false,
-      "mean_volume_db": -91,
-      "max_volume_db": -91
-    },
-    {
-      "slug": "mind-malware-sunterry-art",
-      "id": "k573ba5qptpvf72ah2b7f2782h8469we",
-      "analysis": "decoded-volume-v1",
-      "status": "digitally-silent",
-      "audio_stream": true,
-      "has_audio": false,
-      "mean_volume_db": -91,
-      "max_volume_db": -91
-    },
-    {
-      "slug": "ophanim-symmetric-vision",
-      "id": "k57evwjekjr95mb90whjfsdwvh8473bp",
-      "analysis": "decoded-volume-v1",
-      "status": "digitally-silent",
-      "audio_stream": true,
-      "has_audio": false,
-      "mean_volume_db": -91,
-      "max_volume_db": -91
-    },
-    {
-      "slug": "ai-generated-dmt-entities-hypnagogist",
-      "id": "k5770z0rgzw10e5mz3t7xmjwx98cm0j5",
-      "analysis": "decoded-volume-v1",
-      "status": "digitally-silent",
-      "audio_stream": true,
-      "has_audio": false,
-      "mean_volume_db": -91,
-      "max_volume_db": -91
     },
     {
       "slug": "arise-visionary-art-visuals-simon-haiduk",
@@ -107,26 +47,6 @@
       "max_volume_db": -4.5
     },
     {
-      "slug": "avatars-of-atman-keana-sears",
-      "id": "k5743dejcrmtnrkpmtdsfycnjn8cmnea",
-      "analysis": "decoded-volume-v1",
-      "status": "digitally-silent",
-      "audio_stream": true,
-      "has_audio": false,
-      "mean_volume_db": -91,
-      "max_volume_db": -91
-    },
-    {
-      "slug": "dmt-entity-contact-ulilgick",
-      "id": "k573vy45b55qr0f17d22qg96en8bdbx6",
-      "analysis": "decoded-volume-v1",
-      "status": "digitally-silent",
-      "audio_stream": true,
-      "has_audio": false,
-      "mean_volume_db": -91,
-      "max_volume_db": -91
-    },
-    {
       "slug": "dmt-entity-scene-eloh-projects",
       "id": "k570wsr1a6s2ypan8sqsyvf8218cm416",
       "analysis": "decoded-volume-v1",
@@ -135,56 +55,6 @@
       "has_audio": true,
       "mean_volume_db": -17.1,
       "max_volume_db": 0
-    },
-    {
-      "slug": "dmtity-bearfromvoid",
-      "id": "k574ad05eg1yzjqsrpyer8y28s8bcb1q",
-      "analysis": "decoded-volume-v1",
-      "status": "digitally-silent",
-      "audio_stream": true,
-      "has_audio": false,
-      "mean_volume_db": -91,
-      "max_volume_db": -91
-    },
-    {
-      "slug": "entity-bug-symmetric-vision",
-      "id": "k57avcnzjmd35wj5pdhykn08zh8cm3pn",
-      "analysis": "decoded-volume-v1",
-      "status": "digitally-silent",
-      "audio_stream": true,
-      "has_audio": false,
-      "mean_volume_db": -91,
-      "max_volume_db": -91
-    },
-    {
-      "slug": "figure-at-the-end-of-the-neon-maze-k-visuals",
-      "id": "k572ynm2xryhxk0w30n4adk1th8cmasj",
-      "analysis": "decoded-volume-v1",
-      "status": "digitally-silent",
-      "audio_stream": true,
-      "has_audio": false,
-      "mean_volume_db": -91,
-      "max_volume_db": -91
-    },
-    {
-      "slug": "flying-entity-symmetric-vision",
-      "id": "k577xe7rtn3mepebxzax0skjjn8cndrh",
-      "analysis": "decoded-volume-v1",
-      "status": "digitally-silent",
-      "audio_stream": true,
-      "has_audio": false,
-      "mean_volume_db": -91,
-      "max_volume_db": -91
-    },
-    {
-      "slug": "fractal-entity-symmetric-vision",
-      "id": "k57437e79tcntkc8d1c53vzrmx8cmqkr",
-      "analysis": "decoded-volume-v1",
-      "status": "digitally-silent",
-      "audio_stream": true,
-      "has_audio": false,
-      "mean_volume_db": -91,
-      "max_volume_db": -91
     },
     {
       "slug": "guantanamoo-sunterry",
@@ -197,16 +67,6 @@
       "max_volume_db": 0
     },
     {
-      "slug": "jester-turntable-hypnagogist",
-      "id": "k5761c47k0zsrpaty5x845e3qn8cmg56",
-      "analysis": "decoded-volume-v1",
-      "status": "digitally-silent",
-      "audio_stream": true,
-      "has_audio": false,
-      "mean_volume_db": -91,
-      "max_volume_db": -91
-    },
-    {
       "slug": "ke-visuals-animation-k-visuals",
       "id": "k57bs88dsgf3119h5r31zdwnqd8cn5ba",
       "analysis": "decoded-volume-v1",
@@ -217,56 +77,6 @@
       "max_volume_db": 0
     },
     {
-      "slug": "luminous-block-headdress-k-visuals",
-      "id": "k57cen0qdc9g395a96w0axrka18cnr5n",
-      "analysis": "decoded-volume-v1",
-      "status": "digitally-silent",
-      "audio_stream": true,
-      "has_audio": false,
-      "mean_volume_db": -91,
-      "max_volume_db": -91
-    },
-    {
-      "slug": "luminous-tentacled-entity-bearfromvoid",
-      "id": "k5708k7f6smkw5nwzhqten5nh18cn4pf",
-      "analysis": "decoded-volume-v1",
-      "status": "digitally-silent",
-      "audio_stream": true,
-      "has_audio": false,
-      "mean_volume_db": -91,
-      "max_volume_db": -91
-    },
-    {
-      "slug": "neon-mechanical-entity-bearfromvoid",
-      "id": "k5742pkm3ge4mpe1xembt8rt5x8cmt1q",
-      "analysis": "decoded-volume-v1",
-      "status": "digitally-silent",
-      "audio_stream": true,
-      "has_audio": false,
-      "mean_volume_db": -91,
-      "max_volume_db": -91
-    },
-    {
-      "slug": "paradox-engine-entity-v2-symmetric-vision",
-      "id": "k5740e02zfeswx179j0h9709td8cnscj",
-      "analysis": "decoded-volume-v1",
-      "status": "digitally-silent",
-      "audio_stream": true,
-      "has_audio": false,
-      "mean_volume_db": -91,
-      "max_volume_db": -91
-    },
-    {
-      "slug": "radiant-skeleton-in-the-chamber-of-eyes-k-visuals",
-      "id": "k572dfhrvz5t3nahy6g2hwzy758cmw8k",
-      "analysis": "decoded-volume-v1",
-      "status": "digitally-silent",
-      "audio_stream": true,
-      "has_audio": false,
-      "mean_volume_db": -91,
-      "max_volume_db": -91
-    },
-    {
       "slug": "reunion-crypto-geometry",
       "id": "k57bfzqxwxmg2nm15sex9kmda18cns9p",
       "analysis": "decoded-volume-v1",
@@ -275,26 +85,6 @@
       "has_audio": true,
       "mean_volume_db": -12.9,
       "max_volume_db": 0
-    },
-    {
-      "slug": "seahorse-mick-symmetric-vision",
-      "id": "k57byxgbs45rgn56376px0wq3s8cm8xs",
-      "analysis": "decoded-volume-v1",
-      "status": "digitally-silent",
-      "audio_stream": true,
-      "has_audio": false,
-      "mean_volume_db": -91,
-      "max_volume_db": -91
-    },
-    {
-      "slug": "seraph-entity-in-its-room-symmetric-vision",
-      "id": "k574fhm5yr28g4ttgwn9ybvr058cmyqy",
-      "analysis": "decoded-volume-v1",
-      "status": "digitally-silent",
-      "audio_stream": true,
-      "has_audio": false,
-      "mean_volume_db": -91,
-      "max_volume_db": -91
     },
     {
       "slug": "sirius-rising-crypto-geometry",
@@ -315,16 +105,6 @@
       "has_audio": true,
       "mean_volume_db": -9.6,
       "max_volume_db": 0
-    },
-    {
-      "slug": "app-shots-symmetric-vision",
-      "id": "k577kgsqzsy8njjwdfznvm1kvs8cmhgj",
-      "analysis": "decoded-volume-v1",
-      "status": "digitally-silent",
-      "audio_stream": true,
-      "has_audio": false,
-      "mean_volume_db": -91,
-      "max_volume_db": -91
     },
     {
       "slug": "elastic-buddha-phosform",
@@ -377,36 +157,6 @@
       "max_volume_db": -7.7
     },
     {
-      "slug": "magic-mushie-symmetric-vision",
-      "id": "k57e3zz17v3ggryfkmxekvrsgn8cmkhj",
-      "analysis": "decoded-volume-v1",
-      "status": "digitally-silent",
-      "audio_stream": true,
-      "has_audio": false,
-      "mean_volume_db": -91,
-      "max_volume_db": -91
-    },
-    {
-      "slug": "psychedelic-lsd-psilocybin-lsa-pov-trip-replication-simulation-graffiti-hd-sta",
-      "id": "k5785j52svn6gzffckjzh1ehrd8d1pcw",
-      "analysis": "decoded-volume-v1",
-      "status": "digitally-silent",
-      "audio_stream": true,
-      "has_audio": false,
-      "mean_volume_db": -91,
-      "max_volume_db": -91
-    },
-    {
-      "slug": "triangle-tree-loka",
-      "id": "k5749ktb5fbth0xh6eek71wvk5846x0f",
-      "analysis": "decoded-volume-v1",
-      "status": "digitally-silent",
-      "audio_stream": true,
-      "has_audio": false,
-      "mean_volume_db": -91,
-      "max_volume_db": -91
-    },
-    {
       "slug": "breathing-bricks-phosform",
       "id": "k578h840w93f51gta0f00a78t9846b1h",
       "analysis": "decoded-volume-v1",
@@ -435,16 +185,6 @@
       "has_audio": true,
       "mean_volume_db": -33.8,
       "max_volume_db": -12.6
-    },
-    {
-      "slug": "360-degree-acid-snowscape-stingrayz",
-      "id": "k57ab6px1xyatkz80cdfad19h58cn16n",
-      "analysis": "decoded-volume-v1",
-      "status": "digitally-silent",
-      "audio_stream": true,
-      "has_audio": false,
-      "mean_volume_db": -91,
-      "max_volume_db": -91
     },
     {
       "slug": "abyss-dxm-replication-song-snowflakes-pandrezz-feetman100",
@@ -507,16 +247,6 @@
       "max_volume_db": -29.2
     },
     {
-      "slug": "fireplace-symmetric-vision",
-      "id": "k57eta8v7s0h8nrhtxf640cs0s8cms19",
-      "analysis": "decoded-volume-v1",
-      "status": "digitally-silent",
-      "audio_stream": true,
-      "has_audio": false,
-      "mean_volume_db": -91,
-      "max_volume_db": -91
-    },
-    {
       "slug": "flashback-from-bicycle-day-symmetric-vision",
       "id": "k577rgab1v5rskhv4ycczkap2d8cmesc",
       "analysis": "decoded-volume-v1",
@@ -525,26 +255,6 @@
       "has_audio": true,
       "mean_volume_db": -46.8,
       "max_volume_db": -20.8
-    },
-    {
-      "slug": "forest-path-symmetric-vision",
-      "id": "k5748f74fb5pfrq8cwtswwt0hd8cmmzm",
-      "analysis": "decoded-volume-v1",
-      "status": "digitally-silent",
-      "audio_stream": true,
-      "has_audio": false,
-      "mean_volume_db": -91,
-      "max_volume_db": -91
-    },
-    {
-      "slug": "forest-walk-symmetric-vision",
-      "id": "k5743tp2tyqf7dtxv4m8by584x8cnhwp",
-      "analysis": "decoded-volume-v1",
-      "status": "digitally-silent",
-      "audio_stream": true,
-      "has_audio": false,
-      "mean_volume_db": -91,
-      "max_volume_db": -91
     },
     {
       "slug": "high-dose-shrooms-trip-simulation-pov-loka",
@@ -607,26 +317,6 @@
       "max_volume_db": -4.6
     },
     {
-      "slug": "psychedelic-trip-lsd-psilocybin-lsa-replication-simulation-rubix-cube-hd-stas",
-      "id": "k57f333yhqerbzfmy0bqgvvkvd8d07nk",
-      "analysis": "decoded-volume-v1",
-      "status": "digitally-silent",
-      "audio_stream": true,
-      "has_audio": false,
-      "mean_volume_db": -91,
-      "max_volume_db": -91
-    },
-    {
-      "slug": "psychedelic-trip-lsd-psilocybin-mushrooms-pov-simulation-replication-hd-stas-c",
-      "id": "k5776phmjag5c2jpgjcxfcrke58d06sb",
-      "analysis": "decoded-volume-v1",
-      "status": "digitally-silent",
-      "audio_stream": true,
-      "has_audio": false,
-      "mean_volume_db": -91,
-      "max_volume_db": -91
-    },
-    {
       "slug": "psychedelic-visuals-through-liquid-glass-2-feetman100",
       "id": "k574zxqhcj61rrhfwreq34qpvn8d1cs5",
       "analysis": "decoded-volume-v1",
@@ -635,16 +325,6 @@
       "has_audio": true,
       "mean_volume_db": -13.7,
       "max_volume_db": -0.3
-    },
-    {
-      "slug": "sitting-froggo-symmetric-vision",
-      "id": "k5742715qfcangh1dc02v0r4918cm2mv",
-      "analysis": "decoded-volume-v1",
-      "status": "digitally-silent",
-      "audio_stream": true,
-      "has_audio": false,
-      "mean_volume_db": -91,
-      "max_volume_db": -91
     },
     {
       "slug": "spring-ice-symmetric-vision",
@@ -705,16 +385,6 @@
       "has_audio": true,
       "mean_volume_db": -18.2,
       "max_volume_db": -0.4
-    },
-    {
-      "slug": "wonky-tree-v2-loka",
-      "id": "k576jpjsknshph4pznkrgz60558cmwtj",
-      "analysis": "decoded-volume-v1",
-      "status": "digitally-silent",
-      "audio_stream": true,
-      "has_audio": false,
-      "mean_volume_db": -91,
-      "max_volume_db": -91
     },
     {
       "slug": "woods-walk-phosform",
@@ -857,16 +527,6 @@
       "max_volume_db": -21
     },
     {
-      "slug": "for-zenby-symmetric-vision",
-      "id": "k5770x3z2ape6x907cymntsj098cmys9",
-      "analysis": "decoded-volume-v1",
-      "status": "digitally-silent",
-      "audio_stream": true,
-      "has_audio": false,
-      "mean_volume_db": -91,
-      "max_volume_db": -91
-    },
-    {
       "slug": "forest-mandala-oracle-emissary",
       "id": "k57cbpnt1ajvmqkqd7ws3gfppx8cnyfj",
       "analysis": "decoded-volume-v1",
@@ -897,36 +557,6 @@
       "max_volume_db": 0
     },
     {
-      "slug": "high-dose-mushroom-chair-loka",
-      "id": "k572qenfnvn29ctm0nyxrkwptx8cmwqh",
-      "analysis": "decoded-volume-v1",
-      "status": "digitally-silent",
-      "audio_stream": true,
-      "has_audio": false,
-      "mean_volume_db": -91,
-      "max_volume_db": -91
-    },
-    {
-      "slug": "leaf-patterns-symmetric-vision",
-      "id": "k57d6yt7hkn8hv5e450bzcsa4h8cmkxr",
-      "analysis": "decoded-volume-v1",
-      "status": "digitally-silent",
-      "audio_stream": true,
-      "has_audio": false,
-      "mean_volume_db": -91,
-      "max_volume_db": -91
-    },
-    {
-      "slug": "loka-grass-loka",
-      "id": "k570bye5h6pnexta52k19hrh3s8cntpr",
-      "analysis": "decoded-volume-v1",
-      "status": "digitally-silent",
-      "audio_stream": true,
-      "has_audio": false,
-      "mean_volume_db": -91,
-      "max_volume_db": -91
-    },
-    {
       "slug": "memories-from-metocin-oev-cev-and-audio-test-oracle-emissary",
       "id": "k57f31jz5x6b3by5qyqkn5fkw98cn29z",
       "analysis": "decoded-volume-v1",
@@ -947,16 +577,6 @@
       "max_volume_db": -18.9
     },
     {
-      "slug": "snakey-symmetric-vision",
-      "id": "k572pd81mph6sttq77hq2t1f1d8cn1mn",
-      "analysis": "decoded-volume-v1",
-      "status": "digitally-silent",
-      "audio_stream": true,
-      "has_audio": false,
-      "mean_volume_db": -91,
-      "max_volume_db": -91
-    },
-    {
       "slug": "spring-floor-symmetric-vision",
       "id": "k57bphpz311rh40vg3g1nk5wf18cnt9d",
       "analysis": "decoded-volume-v1",
@@ -965,26 +585,6 @@
       "has_audio": true,
       "mean_volume_db": -42.9,
       "max_volume_db": -17.6
-    },
-    {
-      "slug": "staring-at-sand-symmetric-vision",
-      "id": "k57f8zbvhj0byqtys3hp178s3s8cmn40",
-      "analysis": "decoded-volume-v1",
-      "status": "digitally-silent",
-      "audio_stream": true,
-      "has_audio": false,
-      "mean_volume_db": -91,
-      "max_volume_db": -91
-    },
-    {
-      "slug": "sunflower-space-out-symmetric-vision",
-      "id": "k574w056s25ce7q1g4ptda7jsh8cnhsb",
-      "analysis": "decoded-volume-v1",
-      "status": "digitally-silent",
-      "audio_stream": true,
-      "has_audio": false,
-      "mean_volume_db": -91,
-      "max_volume_db": -91
     },
     {
       "slug": "tas-serpents-tas-visuals",
@@ -1007,26 +607,6 @@
       "max_volume_db": -36.1
     },
     {
-      "slug": "tree-bark-patterning-symmetric-vision",
-      "id": "k57676n8race2zb74me3tadmsx8cnvta",
-      "analysis": "decoded-volume-v1",
-      "status": "digitally-silent",
-      "audio_stream": true,
-      "has_audio": false,
-      "mean_volume_db": -91,
-      "max_volume_db": -91
-    },
-    {
-      "slug": "trip-pov-simulation-lsd-psilocybin-mushrooms-low-dose-salvia-psychedelic-repli",
-      "id": "k57a8ak0ay46vhkfgjs84rx2t18d0gv4",
-      "analysis": "decoded-volume-v1",
-      "status": "digitally-silent",
-      "audio_stream": true,
-      "has_audio": false,
-      "mean_volume_db": -91,
-      "max_volume_db": -91
-    },
-    {
       "slug": "zonked-geometry-loka",
       "id": "k577pc1wftygefvm98vtwdj1th8cmnxe",
       "analysis": "decoded-volume-v1",
@@ -1035,16 +615,6 @@
       "has_audio": true,
       "mean_volume_db": -37.6,
       "max_volume_db": -16.2
-    },
-    {
-      "slug": "deliriant-replication-compilation-various-artists",
-      "id": "k57ahs0590gbc8cdxx9a5g6hk9847sc2",
-      "analysis": "decoded-volume-v1",
-      "status": "audible",
-      "audio_stream": true,
-      "has_audio": true,
-      "mean_volume_db": -19.2,
-      "max_volume_db": -1.9
     },
     {
       "slug": "ambien-1-experiments-with-vfx-for-atypical-deliriants-1-feedback-appreciated-f",
@@ -1357,16 +927,6 @@
       "max_volume_db": -46
     },
     {
-      "slug": "replication-of-the-shadow-people-phenomenon-stas-constantine-stas-constantine",
-      "id": "k574vkn1013r9pg754z28s7pf58d1kew",
-      "analysis": "decoded-volume-v1",
-      "status": "digitally-silent",
-      "audio_stream": true,
-      "has_audio": false,
-      "mean_volume_db": -91,
-      "max_volume_db": -91
-    },
-    {
       "slug": "rorschach-counterflip-replication-dxm-dph-feetman100",
       "id": "k57ebnhta7n5sqwgg2e0ftc7n98d0fta",
       "analysis": "decoded-volume-v1",
@@ -1517,36 +1077,6 @@
       "max_volume_db": -14.3
     },
     {
-      "slug": "polytunnel-loka",
-      "id": "k57f700zk1m1kh7n2aah8x8he18473rx",
-      "analysis": "decoded-volume-v1",
-      "status": "digitally-silent",
-      "audio_stream": true,
-      "has_audio": false,
-      "mean_volume_db": -91,
-      "max_volume_db": -91
-    },
-    {
-      "slug": "animated-neon-maze-crown-k-visuals",
-      "id": "k575jqppeegcabvrn2y8bcpty58cmwsk",
-      "analysis": "decoded-volume-v1",
-      "status": "digitally-silent",
-      "audio_stream": true,
-      "has_audio": false,
-      "mean_volume_db": -91,
-      "max_volume_db": -91
-    },
-    {
-      "slug": "branching-cyan-and-violet-tendrils-k-visuals",
-      "id": "k572gfwknwpk4yxv0jz7bhfgq58cns7f",
-      "analysis": "decoded-volume-v1",
-      "status": "digitally-silent",
-      "audio_stream": true,
-      "has_audio": false,
-      "mean_volume_db": -91,
-      "max_volume_db": -91
-    },
-    {
       "slug": "brown-geometry-zoom-ben-ridgway",
       "id": "k57fm5hq521ty7kde7gjesa24d8cmw7v",
       "analysis": "decoded-volume-v1",
@@ -1555,46 +1085,6 @@
       "has_audio": true,
       "mean_volume_db": -16.9,
       "max_volume_db": -2.7
-    },
-    {
-      "slug": "cellular-teardrop-chamber-k-visuals",
-      "id": "k57a817epfc3dcz34zdxxvemjs8cm9br",
-      "analysis": "decoded-volume-v1",
-      "status": "digitally-silent",
-      "audio_stream": true,
-      "has_audio": false,
-      "mean_volume_db": -91,
-      "max_volume_db": -91
-    },
-    {
-      "slug": "changa-cevs-symmetric-vision",
-      "id": "k575v8x84ps1rxg2q5qee5pj7d8cmhcx",
-      "analysis": "decoded-volume-v1",
-      "status": "digitally-silent",
-      "audio_stream": true,
-      "has_audio": false,
-      "mean_volume_db": -91,
-      "max_volume_db": -91
-    },
-    {
-      "slug": "checkerboard-aperture-chamber-k-visuals",
-      "id": "k57168ebrea41e96bq8e4kztp58cmzs4",
-      "analysis": "decoded-volume-v1",
-      "status": "digitally-silent",
-      "audio_stream": true,
-      "has_audio": false,
-      "mean_volume_db": -91,
-      "max_volume_db": -91
-    },
-    {
-      "slug": "dmt-cevs-symmetric-vision",
-      "id": "k5710nn5pq5wymxykn57ysr5fn8cnev6",
-      "analysis": "decoded-volume-v1",
-      "status": "digitally-silent",
-      "audio_stream": true,
-      "has_audio": false,
-      "mean_volume_db": -91,
-      "max_volume_db": -91
     },
     {
       "slug": "dmt-june-v1-symmetric-vision",
@@ -1637,16 +1127,6 @@
       "max_volume_db": -0.1
     },
     {
-      "slug": "dmt-snake-tunnel-symmetric-vision",
-      "id": "k57a9a60eehs3ehkmjjyqkz0en8cnye6",
-      "analysis": "decoded-volume-v1",
-      "status": "digitally-silent",
-      "audio_stream": true,
-      "has_audio": false,
-      "mean_volume_db": -91,
-      "max_volume_db": -91
-    },
-    {
       "slug": "dmt-tunnel-hypnagogist",
       "id": "k57ev65rz8w1pvhcxqqy5017as8bdk5w",
       "analysis": "decoded-volume-v1",
@@ -1667,26 +1147,6 @@
       "max_volume_db": 0
     },
     {
-      "slug": "dxm-simulation-replication-lower-second-plat-dissociative-hole-geometry-hd-sta",
-      "id": "k574xedxmk4h3a1j44rbg5mdb18d09wc",
-      "analysis": "decoded-volume-v1",
-      "status": "digitally-silent",
-      "audio_stream": true,
-      "has_audio": false,
-      "mean_volume_db": -91,
-      "max_volume_db": -91
-    },
-    {
-      "slug": "expanding-circular-labyrinths-k-visuals",
-      "id": "k574rdt99h7xn93fc2a8990r9x8cnp1k",
-      "analysis": "decoded-volume-v1",
-      "status": "digitally-silent",
-      "audio_stream": true,
-      "has_audio": false,
-      "mean_volume_db": -91,
-      "max_volume_db": -91
-    },
-    {
       "slug": "faberge-egg-sunterry",
       "id": "k57e6h1yfjhjwrs920xrqg8b1h8cnvcq",
       "analysis": "decoded-volume-v1",
@@ -1697,26 +1157,6 @@
       "max_volume_db": -3.7
     },
     {
-      "slug": "faceted-jewel-in-the-blue-tessellation-chamber-k-visuals",
-      "id": "k575hkewwxdj4gq7x22znx9gmd8cnfhy",
-      "analysis": "decoded-volume-v1",
-      "status": "digitally-silent",
-      "audio_stream": true,
-      "has_audio": false,
-      "mean_volume_db": -91,
-      "max_volume_db": -91
-    },
-    {
-      "slug": "for-ayjay-symmetric-vision",
-      "id": "k575f5gmmbgqbr6khv72g7mbes8cmm6a",
-      "analysis": "decoded-volume-v1",
-      "status": "digitally-silent",
-      "audio_stream": true,
-      "has_audio": false,
-      "mean_volume_db": -91,
-      "max_volume_db": -91
-    },
-    {
       "slug": "formless-form-ben-ridgway",
       "id": "k577aq5nmrhsr2d0kj6bsrx5tn8cnnjj",
       "analysis": "decoded-volume-v1",
@@ -1725,76 +1165,6 @@
       "has_audio": true,
       "mean_volume_db": -21.1,
       "max_volume_db": -3.8
-    },
-    {
-      "slug": "glass-fractal-symmetric-vision",
-      "id": "k57fe99chy9536c88mfpv9t24x8cnf84",
-      "analysis": "decoded-volume-v1",
-      "status": "digitally-silent",
-      "audio_stream": true,
-      "has_audio": false,
-      "mean_volume_db": -91,
-      "max_volume_db": -91
-    },
-    {
-      "slug": "green-and-purple-labyrinth-mask-k-visuals",
-      "id": "k576wkr67vaf99f304qktmkp4d8cnap8",
-      "analysis": "decoded-volume-v1",
-      "status": "digitally-silent",
-      "audio_stream": true,
-      "has_audio": false,
-      "mean_volume_db": -91,
-      "max_volume_db": -91
-    },
-    {
-      "slug": "green-rosettes-in-a-dark-organic-field-k-visuals",
-      "id": "k57b17166966813afh15frrv0h8cnpks",
-      "analysis": "decoded-volume-v1",
-      "status": "digitally-silent",
-      "audio_stream": true,
-      "has_audio": false,
-      "mean_volume_db": -91,
-      "max_volume_db": -91
-    },
-    {
-      "slug": "infinite-tunnel-symmetric-vision",
-      "id": "k5714363zabsc0bnjw2s8f73618cnzpj",
-      "analysis": "decoded-volume-v1",
-      "status": "digitally-silent",
-      "audio_stream": true,
-      "has_audio": false,
-      "mean_volume_db": -91,
-      "max_volume_db": -91
-    },
-    {
-      "slug": "interconnected-mushroom-tendril-landscape-k-visuals",
-      "id": "k571dpma3946xhw9ddcs8xh1zx8cn28x",
-      "analysis": "decoded-volume-v1",
-      "status": "digitally-silent",
-      "audio_stream": true,
-      "has_audio": false,
-      "mean_volume_db": -91,
-      "max_volume_db": -91
-    },
-    {
-      "slug": "kaleidoscopic-rings-around-a-floating-form-k-visuals",
-      "id": "k57e01jwj9d62s88qn8tggc0js8cm2ps",
-      "analysis": "decoded-volume-v1",
-      "status": "digitally-silent",
-      "audio_stream": true,
-      "has_audio": false,
-      "mean_volume_db": -91,
-      "max_volume_db": -91
-    },
-    {
-      "slug": "maze-mask-mandala-k-visuals",
-      "id": "k579v93wvp6zevqdf73bsyk13d8cntzj",
-      "analysis": "decoded-volume-v1",
-      "status": "digitally-silent",
-      "audio_stream": true,
-      "has_audio": false,
-      "mean_volume_db": -91,
-      "max_volume_db": -91
     },
     {
       "slug": "memory-from-dead-man-s-trip-dmt-visuals-experiment-v11-symmetric-vision",
@@ -1837,16 +1207,6 @@
       "max_volume_db": -1.7
     },
     {
-      "slug": "neural-network-footage-glooby-s-world",
-      "id": "k571aaj9ce1yjknjjrr1jteavs8cmj7z",
-      "analysis": "decoded-volume-v1",
-      "status": "digitally-silent",
-      "audio_stream": true,
-      "has_audio": false,
-      "mean_volume_db": -91,
-      "max_volume_db": -91
-    },
-    {
       "slug": "orbiting-arms-around-a-square-sun-k-visuals",
       "id": "k5738c75dpghb0pbz5mrtjt55s8cmssd",
       "analysis": "decoded-volume-v1",
@@ -1867,16 +1227,6 @@
       "max_volume_db": -7.7
     },
     {
-      "slug": "penta-snake-space-symmetric-vision",
-      "id": "k57f2wh850k73cgmvkcj4n0qr18cm4vp",
-      "analysis": "decoded-volume-v1",
-      "status": "digitally-silent",
-      "audio_stream": true,
-      "has_audio": false,
-      "mean_volume_db": -91,
-      "max_volume_db": -91
-    },
-    {
       "slug": "quantum-tilt-loka",
       "id": "k57exmrbg8f4axg1xp95xp9aj984653x",
       "analysis": "decoded-volume-v1",
@@ -1887,36 +1237,6 @@
       "max_volume_db": 0
     },
     {
-      "slug": "receding-sculpture-beneath-orange-arches-k-visuals",
-      "id": "k57dkkx7tn4gj2xcfgdmhbz4w98cn0hn",
-      "analysis": "decoded-volume-v1",
-      "status": "digitally-silent",
-      "audio_stream": true,
-      "has_audio": false,
-      "mean_volume_db": -91,
-      "max_volume_db": -91
-    },
-    {
-      "slug": "rising-tiled-pyramids-k-visuals",
-      "id": "k574mns8xrhkpb9yvgyqvs47vh8cmqgk",
-      "analysis": "decoded-volume-v1",
-      "status": "digitally-silent",
-      "audio_stream": true,
-      "has_audio": false,
-      "mean_volume_db": -91,
-      "max_volume_db": -91
-    },
-    {
-      "slug": "rotating-glyphs-and-eyes-k-visuals",
-      "id": "k5700gqm00sdt86cbjbqp65vkh8cm3ze",
-      "analysis": "decoded-volume-v1",
-      "status": "digitally-silent",
-      "audio_stream": true,
-      "has_audio": false,
-      "mean_volume_db": -91,
-      "max_volume_db": -91
-    },
-    {
       "slug": "sacred-geometry-crypto-geometry",
       "id": "k57cxdmdj41fc635hq20ppafc18cmz1x",
       "analysis": "decoded-volume-v1",
@@ -1925,46 +1245,6 @@
       "has_audio": true,
       "mean_volume_db": -27.9,
       "max_volume_db": -12.1
-    },
-    {
-      "slug": "seated-figure-beyond-the-blue-and-gold-chamber-k-visuals",
-      "id": "k5719ax3nxzn5qajtw98x1jz458cn3vh",
-      "analysis": "decoded-volume-v1",
-      "status": "digitally-silent",
-      "audio_stream": true,
-      "has_audio": false,
-      "mean_volume_db": -91,
-      "max_volume_db": -91
-    },
-    {
-      "slug": "segmented-curves-in-a-neon-hexagon-field-k-visuals",
-      "id": "k5705qpfa23bx9gse1y8hc1ryh8cmmzd",
-      "analysis": "decoded-volume-v1",
-      "status": "digitally-silent",
-      "audio_stream": true,
-      "has_audio": false,
-      "mean_volume_db": -91,
-      "max_volume_db": -91
-    },
-    {
-      "slug": "segmented-emblem-over-neon-rosettes-k-visuals",
-      "id": "k57crsqkx5s5n6n99jkmdwwccx8cmf8q",
-      "analysis": "decoded-volume-v1",
-      "status": "digitally-silent",
-      "audio_stream": true,
-      "has_audio": false,
-      "mean_volume_db": -91,
-      "max_volume_db": -91
-    },
-    {
-      "slug": "shifting-hexagon-and-rosette-mosaic-k-visuals",
-      "id": "k579b2yvgrz42hpzk7qmy4pd4s8cm0g8",
-      "analysis": "decoded-volume-v1",
-      "status": "digitally-silent",
-      "audio_stream": true,
-      "has_audio": false,
-      "mean_volume_db": -91,
-      "max_volume_db": -91
     },
     {
       "slug": "shifting-portal-maze-room-k-visuals",
@@ -1987,66 +1267,6 @@
       "max_volume_db": -16.4
     },
     {
-      "slug": "snake-overload-symmetric-vision",
-      "id": "k57f4tzegff0egjrgta0g77s4d8cna0g",
-      "analysis": "decoded-volume-v1",
-      "status": "digitally-silent",
-      "audio_stream": true,
-      "has_audio": false,
-      "mean_volume_db": -91,
-      "max_volume_db": -91
-    },
-    {
-      "slug": "spaghetti-hands-dmt-edit-symmetric-vision",
-      "id": "k57985tqpd6c7a79mstpdydff98cnyac",
-      "analysis": "decoded-volume-v1",
-      "status": "digitally-silent",
-      "audio_stream": true,
-      "has_audio": false,
-      "mean_volume_db": -91,
-      "max_volume_db": -91
-    },
-    {
-      "slug": "spiraling-labyrinth-tunnel-k-visuals",
-      "id": "k576jzzk6m0a1xh63rj8qr8pts8cmswn",
-      "analysis": "decoded-volume-v1",
-      "status": "digitally-silent",
-      "audio_stream": true,
-      "has_audio": false,
-      "mean_volume_db": -91,
-      "max_volume_db": -91
-    },
-    {
-      "slug": "squiggly-light-test-symmetric-vision",
-      "id": "k57djtbjdepv1401kh7g7yqdeh8cmnry",
-      "analysis": "decoded-volume-v1",
-      "status": "digitally-silent",
-      "audio_stream": true,
-      "has_audio": false,
-      "mean_volume_db": -91,
-      "max_volume_db": -91
-    },
-    {
-      "slug": "symmetrical-capsule-hexagon-grid-k-visuals",
-      "id": "k5752q4pwpg5y49fmds8m0amen8cnmdf",
-      "analysis": "decoded-volume-v1",
-      "status": "digitally-silent",
-      "audio_stream": true,
-      "has_audio": false,
-      "mean_volume_db": -91,
-      "max_volume_db": -91
-    },
-    {
-      "slug": "teal-field-of-coils-and-bubbles-k-visuals",
-      "id": "k570h4x5q7hjydtqh6acvjdtnd8cncnr",
-      "analysis": "decoded-volume-v1",
-      "status": "digitally-silent",
-      "audio_stream": true,
-      "has_audio": false,
-      "mean_volume_db": -91,
-      "max_volume_db": -91
-    },
-    {
       "slug": "time-trance-ben-ridgway",
       "id": "k570dy2ngq1epqrc677d36bhvd8cn9jy",
       "analysis": "decoded-volume-v1",
@@ -2055,26 +1275,6 @@
       "has_audio": true,
       "mean_volume_db": -15.2,
       "max_volume_db": -0.5
-    },
-    {
-      "slug": "tunnel-hypnagogist",
-      "id": "k57ajpvm4050hzvr7jcgfpzsrx8cn6fe",
-      "analysis": "decoded-volume-v1",
-      "status": "digitally-silent",
-      "audio_stream": true,
-      "has_audio": false,
-      "mean_volume_db": -91,
-      "max_volume_db": -91
-    },
-    {
-      "slug": "under-skin-shipibo-snake-tunnel-symmetric-vision",
-      "id": "k570jsf7djn4nyzdsscba50es18cmrt6",
-      "analysis": "decoded-volume-v1",
-      "status": "digitally-silent",
-      "audio_stream": true,
-      "has_audio": false,
-      "mean_volume_db": -91,
-      "max_volume_db": -91
     },
     {
       "slug": "untitled-road-journey-loka",
@@ -2097,36 +1297,6 @@
       "max_volume_db": -9.3
     },
     {
-      "slug": "wireframe-mushroom-machine-garden-k-visuals",
-      "id": "k5786cadzdft3hqkgs292fq2j58cngq7",
-      "analysis": "decoded-volume-v1",
-      "status": "digitally-silent",
-      "audio_stream": true,
-      "has_audio": false,
-      "mean_volume_db": -91,
-      "max_volume_db": -91
-    },
-    {
-      "slug": "wood-table-loka",
-      "id": "k572dckkqngnwwxd10256fkr058cnzmv",
-      "analysis": "decoded-volume-v1",
-      "status": "digitally-silent",
-      "audio_stream": true,
-      "has_audio": false,
-      "mean_volume_db": -91,
-      "max_volume_db": -91
-    },
-    {
-      "slug": "desk-pattern-faces-symmetric-vision",
-      "id": "k57b9htrjts94vnbh8km7yjajd8cn4jm",
-      "analysis": "decoded-volume-v1",
-      "status": "digitally-silent",
-      "audio_stream": true,
-      "has_audio": false,
-      "mean_volume_db": -91,
-      "max_volume_db": -91
-    },
-    {
       "slug": "eye-in-the-sky-symmetric-vision",
       "id": "k57597vtf7dj2eh72xqmv9yrms8cmf1j",
       "analysis": "decoded-volume-v1",
@@ -2147,56 +1317,6 @@
       "max_volume_db": -32.2
     },
     {
-      "slug": "forest-path-eyes-symmetric-vision",
-      "id": "k57b7px23bq0nzf42x4pfr3wk98cnra8",
-      "analysis": "decoded-volume-v1",
-      "status": "digitally-silent",
-      "audio_stream": true,
-      "has_audio": false,
-      "mean_volume_db": -91,
-      "max_volume_db": -91
-    },
-    {
-      "slug": "pareidolia-in-the-rock-oracle-emissary",
-      "id": "k578dq8azp748e0ez1hr83cd9d8cmhsq",
-      "analysis": "decoded-volume-v1",
-      "status": "digitally-silent",
-      "audio_stream": true,
-      "has_audio": false,
-      "mean_volume_db": -91,
-      "max_volume_db": -91
-    },
-    {
-      "slug": "totoro-loka",
-      "id": "k57aw8q1q60mptkv1evx6rmz2n8cnhwq",
-      "analysis": "decoded-volume-v1",
-      "status": "digitally-silent",
-      "audio_stream": true,
-      "has_audio": false,
-      "mean_volume_db": -91,
-      "max_volume_db": -91
-    },
-    {
-      "slug": "tree-eyes-symmetric-vision",
-      "id": "k576tmmjhnna6ffty637qk8rkd8cn5c8",
-      "analysis": "decoded-volume-v1",
-      "status": "digitally-silent",
-      "audio_stream": true,
-      "has_audio": false,
-      "mean_volume_db": -91,
-      "max_volume_db": -91
-    },
-    {
-      "slug": "balance-crypto-geometry",
-      "id": "k5788eq21xw8wwek1bf94f2nt1846kq5",
-      "analysis": "decoded-volume-v1",
-      "status": "digitally-silent",
-      "audio_stream": true,
-      "has_audio": false,
-      "mean_volume_db": -91,
-      "max_volume_db": -91
-    },
-    {
       "slug": "infinite-torus-space-symmetric-vision",
       "id": "k5765bbhd94mshfxveym84t8qd847b9r",
       "analysis": "decoded-volume-v1",
@@ -2205,16 +1325,6 @@
       "has_audio": true,
       "mean_volume_db": -23.6,
       "max_volume_db": -8.2
-    },
-    {
-      "slug": "deliriant-diphenhydramine-dph-datura-closed-eye-visual-cev-replication-simulat",
-      "id": "k5716h5mapv5g4csxz0ajfanj98d16zs",
-      "analysis": "decoded-volume-v1",
-      "status": "digitally-silent",
-      "audio_stream": true,
-      "has_audio": false,
-      "mean_volume_db": -91,
-      "max_volume_db": -91
     },
     {
       "slug": "heart-restart-phosform",
@@ -2275,96 +1385,6 @@
       "has_audio": true,
       "mean_volume_db": -36.2,
       "max_volume_db": -12.4
-    },
-    {
-      "slug": "recursive-drawing-symmetric-vision",
-      "id": "k57dmsv8j82aawa6wt0g3azn8d8cnszn",
-      "analysis": "decoded-volume-v1",
-      "status": "digitally-silent",
-      "audio_stream": true,
-      "has_audio": false,
-      "mean_volume_db": -91,
-      "max_volume_db": -91
-    },
-    {
-      "slug": "recursive-logo-symmetric-vision",
-      "id": "k57cefydyfvahy9c9q2s261sx18cmsjk",
-      "analysis": "decoded-volume-v1",
-      "status": "digitally-silent",
-      "audio_stream": true,
-      "has_audio": false,
-      "mean_volume_db": -91,
-      "max_volume_db": -91
-    },
-    {
-      "slug": "biomechanical-corridor-to-the-face-door-k-visuals",
-      "id": "k578vtcwgb0dxybtct4cczsj618cmez0",
-      "analysis": "decoded-volume-v1",
-      "status": "digitally-silent",
-      "audio_stream": true,
-      "has_audio": false,
-      "mean_volume_db": -91,
-      "max_volume_db": -91
-    },
-    {
-      "slug": "kaleidoscopic-highway-hypnagogist",
-      "id": "k5775v2b7jqy47sfvrcndnymqh8bcsc1",
-      "analysis": "decoded-volume-v1",
-      "status": "digitally-silent",
-      "audio_stream": true,
-      "has_audio": false,
-      "mean_volume_db": -91,
-      "max_volume_db": -91
-    },
-    {
-      "slug": "neon-carnival-hypnagogist",
-      "id": "k5766ngz0npca7sx9002rxz5ps8cnwdt",
-      "analysis": "decoded-volume-v1",
-      "status": "digitally-silent",
-      "audio_stream": true,
-      "has_audio": false,
-      "mean_volume_db": -91,
-      "max_volume_db": -91
-    },
-    {
-      "slug": "the-mirrored-forest-stream",
-      "id": "k57ccy9kxg7gva2gy6rjbjzgh5847xt2",
-      "analysis": "decoded-volume-v1",
-      "status": "digitally-silent",
-      "audio_stream": true,
-      "has_audio": false,
-      "mean_volume_db": -91,
-      "max_volume_db": -91
-    },
-    {
-      "slug": "greek-curve-entity-symmetric-vision",
-      "id": "k57e7bjyw8tjva0e522dcge3858cnce7",
-      "analysis": "decoded-volume-v1",
-      "status": "digitally-silent",
-      "audio_stream": true,
-      "has_audio": false,
-      "mean_volume_db": -91,
-      "max_volume_db": -91
-    },
-    {
-      "slug": "snake-circle-symmetric-vision",
-      "id": "k576b12jm2rkfnjx28q4g8n8018cmj8r",
-      "analysis": "decoded-volume-v1",
-      "status": "digitally-silent",
-      "audio_stream": true,
-      "has_audio": false,
-      "mean_volume_db": -91,
-      "max_volume_db": -91
-    },
-    {
-      "slug": "symmetry-stream-loka",
-      "id": "k57dmjptzhv91gee32jbf5sge18bc9qx",
-      "analysis": "decoded-volume-v1",
-      "status": "digitally-silent",
-      "audio_stream": true,
-      "has_audio": false,
-      "mean_volume_db": -91,
-      "max_volume_db": -91
     },
     {
       "slug": "lost-at-sea-phosform",
@@ -2457,16 +1477,6 @@
       "max_volume_db": -5.7
     },
     {
-      "slug": "transforming-plushies-symmetric-vision",
-      "id": "k575cz1w5w3jze903wbv71xy198bcwec",
-      "analysis": "decoded-volume-v1",
-      "status": "digitally-silent",
-      "audio_stream": true,
-      "has_audio": false,
-      "mean_volume_db": -91,
-      "max_volume_db": -91
-    },
-    {
       "slug": "spring-balloon-symmetric-vision",
       "id": "k575xa6ncpcgm67m4n4njgwzw58cmyn2",
       "analysis": "decoded-volume-v1",
@@ -2487,16 +1497,6 @@
       "max_volume_db": -0.6
     },
     {
-      "slug": "dxm-closed-eye-visuals-cevs-dissociative-trip-replication-geometric-spaces-by",
-      "id": "k5734ftrmzvp5vckdzrpy31r4x8d12qd",
-      "analysis": "decoded-volume-v1",
-      "status": "digitally-silent",
-      "audio_stream": true,
-      "has_audio": false,
-      "mean_volume_db": -91,
-      "max_volume_db": -91
-    },
-    {
       "slug": "spaceship-dissociative-replication-extreme-flashing-lights-warning-feetman100",
       "id": "k57cv7rg86zvadq1yfht6bf4q58d14n9",
       "analysis": "decoded-volume-v1",
@@ -2507,16 +1507,6 @@
       "max_volume_db": 0
     },
     {
-      "slug": "deliriant-dph-datura-replication-visual-audio-the-700-club-stas-constantine-st",
-      "id": "k578a2ten6ggynzbc2snqj3tbd8d12zg",
-      "analysis": "decoded-volume-v1",
-      "status": "digitally-silent",
-      "audio_stream": true,
-      "has_audio": false,
-      "mean_volume_db": -91,
-      "max_volume_db": -91
-    },
-    {
       "slug": "oneness-audio-phosform",
       "id": "k574kqa8s3pet5bfc4q178xses8cm20y",
       "analysis": "decoded-volume-v1",
@@ -2525,16 +1515,6 @@
       "has_audio": true,
       "mean_volume_db": -32.1,
       "max_volume_db": -7.2
-    },
-    {
-      "slug": "2c-b-handwash-loka",
-      "id": "k57c6syr9d765q8a5jbm7ttwkd8cnkfq",
-      "analysis": "decoded-volume-v1",
-      "status": "digitally-silent",
-      "audio_stream": true,
-      "has_audio": false,
-      "mean_volume_db": -91,
-      "max_volume_db": -91
     },
     {
       "slug": "tourism-zoom",
@@ -2557,6 +1537,26 @@
       "max_volume_db": null
     },
     {
+      "slug": "antechamber-hypnagogist",
+      "id": "k57d51fg741d3ba1trghng3mm58478c7",
+      "analysis": "decoded-volume-v1",
+      "status": "digitally-silent",
+      "audio_stream": true,
+      "has_audio": false,
+      "mean_volume_db": -91,
+      "max_volume_db": -91
+    },
+    {
+      "slug": "entity2-hypnagogist",
+      "id": "k575q5geztqc6h26hy7z0sr9k98472mm",
+      "analysis": "decoded-volume-v1",
+      "status": "digitally-silent",
+      "audio_stream": true,
+      "has_audio": false,
+      "mean_volume_db": -91,
+      "max_volume_db": -91
+    },
+    {
       "slug": "jester-alien-symmetric-vision",
       "id": "k57e166v3y920w4qyx93j6419d8462yr",
       "analysis": "decoded-volume-v1",
@@ -2577,6 +1577,26 @@
       "max_volume_db": null
     },
     {
+      "slug": "keana-k-visuals",
+      "id": "k5769a205mb6fkfvtxqbmdpqgn847j8d",
+      "analysis": "decoded-volume-v1",
+      "status": "digitally-silent",
+      "audio_stream": true,
+      "has_audio": false,
+      "mean_volume_db": -91,
+      "max_volume_db": -91
+    },
+    {
+      "slug": "mind-malware-sunterry-art",
+      "id": "k573ba5qptpvf72ah2b7f2782h8469we",
+      "analysis": "decoded-volume-v1",
+      "status": "digitally-silent",
+      "audio_stream": true,
+      "has_audio": false,
+      "mean_volume_db": -91,
+      "max_volume_db": -91
+    },
+    {
       "slug": "mirror-entity-symmetric-vision",
       "id": "k57b5p3gstn6x20hf1bvh5h6qn847wzt",
       "analysis": "decoded-volume-v1",
@@ -2587,6 +1607,16 @@
       "max_volume_db": null
     },
     {
+      "slug": "ophanim-symmetric-vision",
+      "id": "k57evwjekjr95mb90whjfsdwvh8473bp",
+      "analysis": "decoded-volume-v1",
+      "status": "digitally-silent",
+      "audio_stream": true,
+      "has_audio": false,
+      "mean_volume_db": -91,
+      "max_volume_db": -91
+    },
+    {
       "slug": "snake-entity-symmetric-vision",
       "id": "k570gxrk37bwrw7e2rn7sg7b7d847j0c",
       "analysis": "decoded-volume-v1",
@@ -2595,6 +1625,16 @@
       "has_audio": false,
       "mean_volume_db": null,
       "max_volume_db": null
+    },
+    {
+      "slug": "ai-generated-dmt-entities-hypnagogist",
+      "id": "k5770z0rgzw10e5mz3t7xmjwx98cm0j5",
+      "analysis": "decoded-volume-v1",
+      "status": "digitally-silent",
+      "audio_stream": true,
+      "has_audio": false,
+      "mean_volume_db": -91,
+      "max_volume_db": -91
     },
     {
       "slug": "alien-bee-symmetric-vision",
@@ -2615,6 +1655,16 @@
       "has_audio": false,
       "mean_volume_db": null,
       "max_volume_db": null
+    },
+    {
+      "slug": "avatars-of-atman-keana-sears",
+      "id": "k5743dejcrmtnrkpmtdsfycnjn8cmnea",
+      "analysis": "decoded-volume-v1",
+      "status": "digitally-silent",
+      "audio_stream": true,
+      "has_audio": false,
+      "mean_volume_db": -91,
+      "max_volume_db": -91
     },
     {
       "slug": "centibeee-symmetric-vision",
@@ -2657,6 +1707,16 @@
       "max_volume_db": null
     },
     {
+      "slug": "dmt-entity-contact-ulilgick",
+      "id": "k573vy45b55qr0f17d22qg96en8bdbx6",
+      "analysis": "decoded-volume-v1",
+      "status": "digitally-silent",
+      "audio_stream": true,
+      "has_audio": false,
+      "mean_volume_db": -91,
+      "max_volume_db": -91
+    },
+    {
       "slug": "dmt-entity-symmetric-vision",
       "id": "k57d04rtp8wc66s5svjr6mfg758cn6re",
       "analysis": "decoded-volume-v1",
@@ -2675,6 +1735,26 @@
       "has_audio": false,
       "mean_volume_db": null,
       "max_volume_db": null
+    },
+    {
+      "slug": "dmtity-bearfromvoid",
+      "id": "k574ad05eg1yzjqsrpyer8y28s8bcb1q",
+      "analysis": "decoded-volume-v1",
+      "status": "digitally-silent",
+      "audio_stream": true,
+      "has_audio": false,
+      "mean_volume_db": -91,
+      "max_volume_db": -91
+    },
+    {
+      "slug": "entity-bug-symmetric-vision",
+      "id": "k57avcnzjmd35wj5pdhykn08zh8cm3pn",
+      "analysis": "decoded-volume-v1",
+      "status": "digitally-silent",
+      "audio_stream": true,
+      "has_audio": false,
+      "mean_volume_db": -91,
+      "max_volume_db": -91
     },
     {
       "slug": "entity-closeup-redo-hypnagogist",
@@ -2705,6 +1785,36 @@
       "has_audio": false,
       "mean_volume_db": null,
       "max_volume_db": null
+    },
+    {
+      "slug": "figure-at-the-end-of-the-neon-maze-k-visuals",
+      "id": "k572ynm2xryhxk0w30n4adk1th8cmasj",
+      "analysis": "decoded-volume-v1",
+      "status": "digitally-silent",
+      "audio_stream": true,
+      "has_audio": false,
+      "mean_volume_db": -91,
+      "max_volume_db": -91
+    },
+    {
+      "slug": "flying-entity-symmetric-vision",
+      "id": "k577xe7rtn3mepebxzax0skjjn8cndrh",
+      "analysis": "decoded-volume-v1",
+      "status": "digitally-silent",
+      "audio_stream": true,
+      "has_audio": false,
+      "mean_volume_db": -91,
+      "max_volume_db": -91
+    },
+    {
+      "slug": "fractal-entity-symmetric-vision",
+      "id": "k57437e79tcntkc8d1c53vzrmx8cmqkr",
+      "analysis": "decoded-volume-v1",
+      "status": "digitally-silent",
+      "audio_stream": true,
+      "has_audio": false,
+      "mean_volume_db": -91,
+      "max_volume_db": -91
     },
     {
       "slug": "froggo-light-test-symmetric-vision",
@@ -2757,6 +1867,16 @@
       "max_volume_db": null
     },
     {
+      "slug": "jester-turntable-hypnagogist",
+      "id": "k5761c47k0zsrpaty5x845e3qn8cmg56",
+      "analysis": "decoded-volume-v1",
+      "status": "digitally-silent",
+      "audio_stream": true,
+      "has_audio": false,
+      "mean_volume_db": -91,
+      "max_volume_db": -91
+    },
+    {
       "slug": "line-entities-symmetric-vision",
       "id": "k578db5expp3d9tx1237gsjycs8cns7a",
       "analysis": "decoded-volume-v1",
@@ -2767,6 +1887,36 @@
       "max_volume_db": null
     },
     {
+      "slug": "luminous-block-headdress-k-visuals",
+      "id": "k57cen0qdc9g395a96w0axrka18cnr5n",
+      "analysis": "decoded-volume-v1",
+      "status": "digitally-silent",
+      "audio_stream": true,
+      "has_audio": false,
+      "mean_volume_db": -91,
+      "max_volume_db": -91
+    },
+    {
+      "slug": "luminous-tentacled-entity-bearfromvoid",
+      "id": "k5708k7f6smkw5nwzhqten5nh18cn4pf",
+      "analysis": "decoded-volume-v1",
+      "status": "digitally-silent",
+      "audio_stream": true,
+      "has_audio": false,
+      "mean_volume_db": -91,
+      "max_volume_db": -91
+    },
+    {
+      "slug": "neon-mechanical-entity-bearfromvoid",
+      "id": "k5742pkm3ge4mpe1xembt8rt5x8cmt1q",
+      "analysis": "decoded-volume-v1",
+      "status": "digitally-silent",
+      "audio_stream": true,
+      "has_audio": false,
+      "mean_volume_db": -91,
+      "max_volume_db": -91
+    },
+    {
       "slug": "orb-eyed-fractal-entity-bearfromvoid",
       "id": "k574gnhj4yd7by59vncj03vm4s8cn9rz",
       "analysis": "decoded-volume-v1",
@@ -2775,6 +1925,55 @@
       "has_audio": false,
       "mean_volume_db": null,
       "max_volume_db": null
+    },
+    {
+      "slug": "paradox-engine-entity-v2-symmetric-vision",
+      "id": "k5740e02zfeswx179j0h9709td8cnscj",
+      "analysis": "decoded-volume-v1",
+      "status": "digitally-silent",
+      "audio_stream": true,
+      "has_audio": false,
+      "mean_volume_db": -91,
+      "max_volume_db": -91
+    },
+    {
+      "slug": "radiant-skeleton-in-the-chamber-of-eyes-k-visuals",
+      "id": "k572dfhrvz5t3nahy6g2hwzy758cmw8k",
+      "analysis": "decoded-volume-v1",
+      "status": "digitally-silent",
+      "audio_stream": true,
+      "has_audio": false,
+      "mean_volume_db": -91,
+      "max_volume_db": -91
+    },
+    {
+      "slug": "seahorse-mick-symmetric-vision",
+      "id": "k57byxgbs45rgn56376px0wq3s8cm8xs",
+      "analysis": "decoded-volume-v1",
+      "status": "digitally-silent",
+      "audio_stream": true,
+      "has_audio": false,
+      "mean_volume_db": -91,
+      "max_volume_db": -91
+    },
+    {
+      "slug": "seraph-entity-in-its-room-symmetric-vision",
+      "id": "k574fhm5yr28g4ttgwn9ybvr058cmyqy",
+      "analysis": "decoded-volume-v1",
+      "status": "digitally-silent",
+      "audio_stream": true,
+      "has_audio": false,
+      "mean_volume_db": -91,
+      "max_volume_db": -91
+    },
+    {
+      "slug": "some-blurry-entity-memory-symmetric-vision",
+      "id": "k57axcvcj1jsen26cp1vk6gchd8d3kek",
+      "analysis": "decoded-volume-v1",
+      "status": "digitally-silent",
+      "audio_stream": true,
+      "mean_volume_db": -91,
+      "max_volume_db": -91
     },
     {
       "slug": "tentacle-pulse-entity-symmetric-vision",
@@ -2837,6 +2036,16 @@
       "max_volume_db": null
     },
     {
+      "slug": "app-shots-symmetric-vision",
+      "id": "k577kgsqzsy8njjwdfznvm1kvs8cmhgj",
+      "analysis": "decoded-volume-v1",
+      "status": "digitally-silent",
+      "audio_stream": true,
+      "has_audio": false,
+      "mean_volume_db": -91,
+      "max_volume_db": -91
+    },
+    {
       "slug": "forest-v2-360-1-symmetric-vision",
       "id": "k573f4ea4wgz3vkhhdhwareyan8cmwm3",
       "analysis": "decoded-volume-v1",
@@ -2857,6 +2066,15 @@
       "max_volume_db": null
     },
     {
+      "slug": "fractalization-and-sound-test-psychedelic-replication-symmetric-vision",
+      "id": "k57aw7mkzq9e37ebwyjhs1v5ax8d2tjd",
+      "analysis": "decoded-volume-v1",
+      "status": "audible",
+      "audio_stream": true,
+      "mean_volume_db": -24.9,
+      "max_volume_db": -2.4
+    },
+    {
       "slug": "high-dose-cannabis-symmetric-vision",
       "id": "k57by23h9e60dq756mzxmsbf9d8cmh29",
       "analysis": "decoded-volume-v1",
@@ -2875,6 +2093,15 @@
       "has_audio": false,
       "mean_volume_db": null,
       "max_volume_db": null
+    },
+    {
+      "slug": "mushies-in-the-winter-symmetric-vision",
+      "id": "k57esd4v206qx7f0tj5skcr4698d2f17",
+      "analysis": "decoded-volume-v1",
+      "status": "audible",
+      "audio_stream": true,
+      "mean_volume_db": -51.2,
+      "max_volume_db": -18.3
     },
     {
       "slug": "orange-table-symmetric-vision",
@@ -2957,6 +2184,26 @@
       "max_volume_db": null
     },
     {
+      "slug": "magic-mushie-symmetric-vision",
+      "id": "k57e3zz17v3ggryfkmxekvrsgn8cmkhj",
+      "analysis": "decoded-volume-v1",
+      "status": "digitally-silent",
+      "audio_stream": true,
+      "has_audio": false,
+      "mean_volume_db": -91,
+      "max_volume_db": -91
+    },
+    {
+      "slug": "psychedelic-lsd-psilocybin-lsa-pov-trip-replication-simulation-graffiti-hd-sta",
+      "id": "k5785j52svn6gzffckjzh1ehrd8d1pcw",
+      "analysis": "decoded-volume-v1",
+      "status": "digitally-silent",
+      "audio_stream": true,
+      "has_audio": false,
+      "mean_volume_db": -91,
+      "max_volume_db": -91
+    },
+    {
       "slug": "shifting-peacock-feathers-symmetric-vision",
       "id": "k57e720xh4br8mzd3w6t979z518bdbfw",
       "analysis": "decoded-volume-v1",
@@ -2975,6 +2222,15 @@
       "has_audio": false,
       "mean_volume_db": null,
       "max_volume_db": null
+    },
+    {
+      "slug": "smellsliketyres-symmetric-vision",
+      "id": "k5793rzbezy98ase70g5zx8ryn8d307x",
+      "analysis": "decoded-volume-v1",
+      "status": "digitally-silent",
+      "audio_stream": true,
+      "mean_volume_db": -91,
+      "max_volume_db": -91
     },
     {
       "slug": "snake-pile-v3-symmetric-vision",
@@ -2997,6 +2253,15 @@
       "max_volume_db": null
     },
     {
+      "slug": "staring-at-this-picture-on-mda-shorts-symmetric-vision",
+      "id": "k571nhewyaqhpppce76frtm8bs8d2bhv",
+      "analysis": "decoded-volume-v1",
+      "status": "digitally-silent",
+      "audio_stream": true,
+      "mean_volume_db": -91,
+      "max_volume_db": -91
+    },
+    {
       "slug": "uv-mandala-symmetric-vision",
       "id": "k572p5a0k66w6q2t3c5vw06csd8bd1tz",
       "analysis": "decoded-volume-v1",
@@ -3017,6 +2282,16 @@
       "max_volume_db": null
     },
     {
+      "slug": "triangle-tree-loka",
+      "id": "k5749ktb5fbth0xh6eek71wvk5846x0f",
+      "analysis": "decoded-volume-v1",
+      "status": "digitally-silent",
+      "audio_stream": true,
+      "has_audio": false,
+      "mean_volume_db": -91,
+      "max_volume_db": -91
+    },
+    {
       "slug": "rocks-insaneee-loka",
       "id": "k572d19kz132mg3v9xyngadjbh847nq5",
       "analysis": "decoded-volume-v1",
@@ -3035,6 +2310,16 @@
       "has_audio": false,
       "mean_volume_db": null,
       "max_volume_db": null
+    },
+    {
+      "slug": "360-degree-acid-snowscape-stingrayz",
+      "id": "k57ab6px1xyatkz80cdfad19h58cn16n",
+      "analysis": "decoded-volume-v1",
+      "status": "digitally-silent",
+      "audio_stream": true,
+      "has_audio": false,
+      "mean_volume_db": -91,
+      "max_volume_db": -91
     },
     {
       "slug": "6th-stream-feet-changa-cid-symmetric-vision",
@@ -3065,6 +2350,15 @@
       "has_audio": false,
       "mean_volume_db": null,
       "max_volume_db": null
+    },
+    {
+      "slug": "been-spacing-out-at-these-clouds-on-acid-for-a-good-while-now-symmetric-vision",
+      "id": "k57e02dbgc5ffek7a35r4yn6nn8d3azv",
+      "analysis": "decoded-volume-v1",
+      "status": "digitally-silent",
+      "audio_stream": true,
+      "mean_volume_db": -91,
+      "max_volume_db": -91
     },
     {
       "slug": "birdie-loka",
@@ -3127,6 +2421,15 @@
       "max_volume_db": null
     },
     {
+      "slug": "coming-up-on-mushies-at-the-top-of-an-active-volcano-symmetric-vision",
+      "id": "k576yzz3gtkz824w959z9v1sxd8d2fmw",
+      "analysis": "decoded-volume-v1",
+      "status": "digitally-silent",
+      "audio_stream": true,
+      "mean_volume_db": -91,
+      "max_volume_db": -91
+    },
+    {
       "slug": "dmt-house-v1-loka",
       "id": "k572z74bc2v6e4hzdatwg2nm61846wy6",
       "analysis": "decoded-volume-v1",
@@ -3147,6 +2450,15 @@
       "max_volume_db": null
     },
     {
+      "slug": "drink-cactus-juice-it-will-quench-ya-symmetric-vision",
+      "id": "k574sgj647crecxapg7y2wk7cd8d36hz",
+      "analysis": "decoded-volume-v1",
+      "status": "digitally-silent",
+      "audio_stream": true,
+      "mean_volume_db": -91,
+      "max_volume_db": -91
+    },
+    {
       "slug": "drying-paint-symmetric-vision",
       "id": "k57dppa9pew69qsz5h4qd46ben8cm9nd",
       "analysis": "decoded-volume-v1",
@@ -3155,6 +2467,34 @@
       "has_audio": false,
       "mean_volume_db": null,
       "max_volume_db": null
+    },
+    {
+      "slug": "expand-loka",
+      "id": "k57e72v0pkvd96aprvqskfmxv18d3h5z",
+      "analysis": "decoded-volume-v1",
+      "status": "audible",
+      "audio_stream": true,
+      "mean_volume_db": -20.9,
+      "max_volume_db": -0.5
+    },
+    {
+      "slug": "fireplace-symmetric-vision",
+      "id": "k57eta8v7s0h8nrhtxf640cs0s8cms19",
+      "analysis": "decoded-volume-v1",
+      "status": "digitally-silent",
+      "audio_stream": true,
+      "has_audio": false,
+      "mean_volume_db": -91,
+      "max_volume_db": -91
+    },
+    {
+      "slug": "flora-loka",
+      "id": "k572pxv4st1af8v0jcksz3d5vx8d2wjg",
+      "analysis": "decoded-volume-v1",
+      "status": "audible",
+      "audio_stream": true,
+      "mean_volume_db": -25.4,
+      "max_volume_db": -5.8
     },
     {
       "slug": "flowing-breathing-kitty-kaylee",
@@ -3185,6 +2525,26 @@
       "has_audio": false,
       "mean_volume_db": null,
       "max_volume_db": null
+    },
+    {
+      "slug": "forest-path-symmetric-vision",
+      "id": "k5748f74fb5pfrq8cwtswwt0hd8cmmzm",
+      "analysis": "decoded-volume-v1",
+      "status": "digitally-silent",
+      "audio_stream": true,
+      "has_audio": false,
+      "mean_volume_db": -91,
+      "max_volume_db": -91
+    },
+    {
+      "slug": "forest-walk-symmetric-vision",
+      "id": "k5743tp2tyqf7dtxv4m8by584x8cnhwp",
+      "analysis": "decoded-volume-v1",
+      "status": "digitally-silent",
+      "audio_stream": true,
+      "has_audio": false,
+      "mean_volume_db": -91,
+      "max_volume_db": -91
     },
     {
       "slug": "gecko-symmetric-vision",
@@ -3227,6 +2587,42 @@
       "max_volume_db": null
     },
     {
+      "slug": "i-ve-been-staring-at-this-chair-for-way-too-long-symmetric-vision",
+      "id": "k579f52q7gvxnpctejqsfgkr958d31ws",
+      "analysis": "decoded-volume-v1",
+      "status": "digitally-silent",
+      "audio_stream": true,
+      "mean_volume_db": -91,
+      "max_volume_db": -91
+    },
+    {
+      "slug": "it-s-taking-forever-to-fold-this-blanket-on-acid-symmetric-vision",
+      "id": "k578bpy7ztmkg73yk8d96007jn8d32zv",
+      "analysis": "decoded-volume-v1",
+      "status": "digitally-silent",
+      "audio_stream": true,
+      "mean_volume_db": -91,
+      "max_volume_db": -91
+    },
+    {
+      "slug": "it-seems-that-this-patch-of-grass-is-trying-to-tell-me-something-psychedelic-visuals-symmetric-vision",
+      "id": "k57b5nfewneg7c2k3rrtvncyrd8d3xs8",
+      "analysis": "decoded-volume-v1",
+      "status": "digitally-silent",
+      "audio_stream": true,
+      "mean_volume_db": -91,
+      "max_volume_db": -91
+    },
+    {
+      "slug": "joe-rogan-talks-about-psychedelics-on-psychedelics-psychedelic-visuals-symmetric-vision",
+      "id": "k575g592000y2hv6j6y831z8h18d3twr",
+      "analysis": "decoded-volume-v1",
+      "status": "audible",
+      "audio_stream": true,
+      "mean_volume_db": -28.2,
+      "max_volume_db": -8.6
+    },
+    {
       "slug": "kitteh-symmetric-vision",
       "id": "k579q9e55xsx3t4yktpza2phah8cmvnp",
       "analysis": "decoded-volume-v1",
@@ -3247,6 +2643,15 @@
       "max_volume_db": null
     },
     {
+      "slug": "limbic-loka",
+      "id": "k576zkd28tnj0qfrvx2awtctzd8d26ya",
+      "analysis": "decoded-volume-v1",
+      "status": "audible",
+      "audio_stream": true,
+      "mean_volume_db": -26.4,
+      "max_volume_db": -10.9
+    },
+    {
       "slug": "morphing-doggo-symmetric-vision",
       "id": "k577mfrgwqtnqjb8dtv2mvdqtd8bcrev",
       "analysis": "decoded-volume-v1",
@@ -3257,6 +2662,15 @@
       "max_volume_db": null
     },
     {
+      "slug": "multisensory-memory-from-that-synesthetic-hike-symmetric-vision",
+      "id": "k574r3rhm8npcvcp6ghgcw3tz58d3tpm",
+      "analysis": "decoded-volume-v1",
+      "status": "audible",
+      "audio_stream": true,
+      "mean_volume_db": -33.7,
+      "max_volume_db": -12.4
+    },
+    {
       "slug": "old-floor-cactus-juice-symmetric-vision",
       "id": "k570gmadb2167v57nxcym4sfb98cm1a3",
       "analysis": "decoded-volume-v1",
@@ -3265,6 +2679,15 @@
       "has_audio": false,
       "mean_volume_db": null,
       "max_volume_db": null
+    },
+    {
+      "slug": "outdoor-trip-collaboration-project-with-avi-lsd-symmetric-vision",
+      "id": "k578m2vkx65ykrnmhrf3qwtvcs8d37kn",
+      "analysis": "decoded-volume-v1",
+      "status": "audible",
+      "audio_stream": true,
+      "mean_volume_db": -34.2,
+      "max_volume_db": -15.9
     },
     {
       "slug": "parrot-symmetric-vision",
@@ -3297,6 +2720,53 @@
       "max_volume_db": null
     },
     {
+      "slug": "psy-fi-festival-2017-alternative-stage-symmetric-vision",
+      "id": "k574mr7htyw6z9f0gq1jwsb7tx8d2frw",
+      "analysis": "decoded-volume-v1",
+      "status": "audible",
+      "audio_stream": true,
+      "mean_volume_db": -11.8,
+      "max_volume_db": -0.3
+    },
+    {
+      "slug": "psychedelic-trip-lsd-psilocybin-lsa-replication-simulation-rubix-cube-hd-stas",
+      "id": "k57f333yhqerbzfmy0bqgvvkvd8d07nk",
+      "analysis": "decoded-volume-v1",
+      "status": "digitally-silent",
+      "audio_stream": true,
+      "has_audio": false,
+      "mean_volume_db": -91,
+      "max_volume_db": -91
+    },
+    {
+      "slug": "psychedelic-trip-lsd-psilocybin-mushrooms-pov-simulation-replication-hd-stas-c",
+      "id": "k5776phmjag5c2jpgjcxfcrke58d06sb",
+      "analysis": "decoded-volume-v1",
+      "status": "digitally-silent",
+      "audio_stream": true,
+      "has_audio": false,
+      "mean_volume_db": -91,
+      "max_volume_db": -91
+    },
+    {
+      "slug": "resurrection-loka",
+      "id": "k571hv7sc4caka1tm0qp33fbj18d2gf9",
+      "analysis": "decoded-volume-v1",
+      "status": "audible",
+      "audio_stream": true,
+      "mean_volume_db": -13.9,
+      "max_volume_db": -0.3
+    },
+    {
+      "slug": "rip-tibet-loka",
+      "id": "k5793r2q8brr9akcc7wyddpgw58d2h61",
+      "analysis": "decoded-volume-v1",
+      "status": "audible",
+      "audio_stream": true,
+      "mean_volume_db": -21.2,
+      "max_volume_db": -1
+    },
+    {
       "slug": "sentient-path-pattern-recognition-symmetric-vision",
       "id": "k57ef9wtwkb96hh396ccmyse0n8cme1x",
       "analysis": "decoded-volume-v1",
@@ -3317,6 +2787,16 @@
       "max_volume_db": null
     },
     {
+      "slug": "sitting-froggo-symmetric-vision",
+      "id": "k5742715qfcangh1dc02v0r4918cm2mv",
+      "analysis": "decoded-volume-v1",
+      "status": "digitally-silent",
+      "audio_stream": true,
+      "has_audio": false,
+      "mean_volume_db": -91,
+      "max_volume_db": -91
+    },
+    {
       "slug": "snek-symmetric-vision",
       "id": "k576dk5dwnbrd7hcve760rkezd8bdv6c",
       "analysis": "decoded-volume-v1",
@@ -3325,6 +2805,15 @@
       "has_audio": false,
       "mean_volume_db": null,
       "max_volume_db": null
+    },
+    {
+      "slug": "someone-dropped-too-much-acid-on-this-rug-shorts-symmetric-vision",
+      "id": "k576r7ejb6n4kkyt0fx85p9fg58d2r16",
+      "analysis": "decoded-volume-v1",
+      "status": "digitally-silent",
+      "audio_stream": true,
+      "mean_volume_db": -91,
+      "max_volume_db": -91
     },
     {
       "slug": "staring-at-a-trash-pile-symmetric-vision",
@@ -3357,6 +2846,15 @@
       "max_volume_db": null
     },
     {
+      "slug": "staring-at-this-rock-for-so-long-it-s-starting-to-stare-back-at-me-on-psychedelics-symmetric-vision",
+      "id": "k576mgrb43bx3w38m91jeabb998d3jk5",
+      "analysis": "decoded-volume-v1",
+      "status": "audible",
+      "audio_stream": true,
+      "mean_volume_db": -25,
+      "max_volume_db": -7.7
+    },
+    {
       "slug": "strawberry-fields-hyperactive-filly",
       "id": "k57154tnt82ce1jp1x9ewawy418bc62b",
       "analysis": "decoded-volume-v1",
@@ -3365,6 +2863,87 @@
       "has_audio": false,
       "mean_volume_db": null,
       "max_volume_db": null
+    },
+    {
+      "slug": "streetside-v2-psychedelic-trip-replication-symmetric-vision",
+      "id": "k57e7j628k7gyxtbarxb05bs2x8d2fqk",
+      "analysis": "decoded-volume-v1",
+      "status": "audible",
+      "audio_stream": true,
+      "mean_volume_db": -14.5,
+      "max_volume_db": 0
+    },
+    {
+      "slug": "symmetric-vision-app-v1-0-available-on-google-play-symmetric-vision",
+      "id": "k57cvkjze5vwxxax72q8fecn858d21pq",
+      "analysis": "decoded-volume-v1",
+      "status": "digitally-silent",
+      "audio_stream": true,
+      "mean_volume_db": -91,
+      "max_volume_db": -91
+    },
+    {
+      "slug": "synesthetic-forest-walk-psychedelic-replication-symmetric-vision",
+      "id": "k57b85w39fg6zwaadr5egszqqn8d39kr",
+      "analysis": "decoded-volume-v1",
+      "status": "audible",
+      "audio_stream": true,
+      "mean_volume_db": -26.3,
+      "max_volume_db": -3.2
+    },
+    {
+      "slug": "taking-the-next-step-on-this-path-is-getting-really-tricky-shorts-symmetric-vision",
+      "id": "k577awwepb33bb8bvrncb15dx98d3jxa",
+      "analysis": "decoded-volume-v1",
+      "status": "digitally-silent",
+      "audio_stream": true,
+      "mean_volume_db": -91,
+      "max_volume_db": -91
+    },
+    {
+      "slug": "that-moment-when-nature-starts-staring-back-at-you-on-acid-symmetric-vision",
+      "id": "k57ezvdb5wszgteqbwwmf6hnqx8d35qa",
+      "analysis": "decoded-volume-v1",
+      "status": "audible",
+      "audio_stream": true,
+      "mean_volume_db": -48.3,
+      "max_volume_db": -24.4
+    },
+    {
+      "slug": "these-spoons-are-messing-me-up-man-symmetric-vision",
+      "id": "k57ctj9cg7ree06khp5zc953858d32r1",
+      "analysis": "decoded-volume-v1",
+      "status": "digitally-silent",
+      "audio_stream": true,
+      "mean_volume_db": -91,
+      "max_volume_db": -91
+    },
+    {
+      "slug": "this-mossy-patch-is-showing-signs-of-sentience-symmetric-vision",
+      "id": "k57ex2srj55kdbfryp8kgm2tkx8d2xz7",
+      "analysis": "decoded-volume-v1",
+      "status": "digitally-silent",
+      "audio_stream": true,
+      "mean_volume_db": -91,
+      "max_volume_db": -91
+    },
+    {
+      "slug": "this-pathway-seems-to-be-merging-some-dimensions-shorts-symmetric-vision",
+      "id": "k5704z39qt04w0f7rrt0x0f67n8d23vg",
+      "analysis": "decoded-volume-v1",
+      "status": "digitally-silent",
+      "audio_stream": true,
+      "mean_volume_db": -91,
+      "max_volume_db": -91
+    },
+    {
+      "slug": "this-pile-of-ribbon-is-going-brrrrrr-shorts-symmetric-vision",
+      "id": "k57943f33vqgqwp425h6kpky118d351q",
+      "analysis": "decoded-volume-v1",
+      "status": "digitally-silent",
+      "audio_stream": true,
+      "mean_volume_db": -91,
+      "max_volume_db": -91
     },
     {
       "slug": "this-wall-is-alive-symmetric-vision",
@@ -3377,6 +2956,15 @@
       "max_volume_db": null
     },
     {
+      "slug": "to-all-you-trippy-ladies-out-there-happy-women-s-day-symmetric-vision",
+      "id": "k571zrebxcw7ac2dzc8bwkz9en8d2qgf",
+      "analysis": "decoded-volume-v1",
+      "status": "digitally-silent",
+      "audio_stream": true,
+      "mean_volume_db": -91,
+      "max_volume_db": -91
+    },
+    {
       "slug": "tree-fantasy-v1-loka",
       "id": "k57a83hz59980mk5xac58smkcs8cnpg5",
       "analysis": "decoded-volume-v1",
@@ -3385,6 +2973,15 @@
       "has_audio": false,
       "mean_volume_db": null,
       "max_volume_db": null
+    },
+    {
+      "slug": "trying-not-to-get-lost-on-this-rocky-road-on-psychedelics-symmetric-vision",
+      "id": "k57d9jmsam9r6z6ssz9gc6eykn8d3eth",
+      "analysis": "decoded-volume-v1",
+      "status": "digitally-silent",
+      "audio_stream": true,
+      "mean_volume_db": -91,
+      "max_volume_db": -91
     },
     {
       "slug": "tryptamine-swamp-symmetric-vision",
@@ -3405,6 +3002,15 @@
       "has_audio": false,
       "mean_volume_db": null,
       "max_volume_db": null
+    },
+    {
+      "slug": "walk-around-the-forest-psychedelic-replication-symmetric-vision",
+      "id": "k573kchwcdr0zrehxknvf3z8118d3m2g",
+      "analysis": "decoded-volume-v1",
+      "status": "audible",
+      "audio_stream": true,
+      "mean_volume_db": -39.9,
+      "max_volume_db": -11.4
     },
     {
       "slug": "watch-my-feet-symmetric-vision",
@@ -3435,6 +3041,16 @@
       "has_audio": false,
       "mean_volume_db": null,
       "max_volume_db": null
+    },
+    {
+      "slug": "wonky-tree-v2-loka",
+      "id": "k576jpjsknshph4pznkrgz60558cmwtj",
+      "analysis": "decoded-volume-v1",
+      "status": "digitally-silent",
+      "audio_stream": true,
+      "has_audio": false,
+      "mean_volume_db": -91,
+      "max_volume_db": -91
     },
     {
       "slug": "wood-texture-morph-loka",
@@ -3517,6 +3133,15 @@
       "max_volume_db": null
     },
     {
+      "slug": "bleach-loka",
+      "id": "k579aks1tfb1np8sf9gb3d8g5d8d2f9r",
+      "analysis": "decoded-volume-v1",
+      "status": "audible",
+      "audio_stream": true,
+      "mean_volume_db": -29.9,
+      "max_volume_db": -13.5
+    },
+    {
       "slug": "blueberry-patterning-symmetric-vision",
       "id": "k571wtpnvfzama1jw32xctz9yx8cm0e4",
       "analysis": "decoded-volume-v1",
@@ -3565,6 +3190,15 @@
       "has_audio": false,
       "mean_volume_db": null,
       "max_volume_db": null
+    },
+    {
+      "slug": "cant-wait-to-try-this-acidified-tea-symmetric-vision",
+      "id": "k5727fz2v1h9ptem6mdskxzmkh8d2kjq",
+      "analysis": "decoded-volume-v1",
+      "status": "audible",
+      "audio_stream": true,
+      "mean_volume_db": -54.5,
+      "max_volume_db": -27.4
     },
     {
       "slug": "cascade-patterns-symmetric-vision",
@@ -3647,6 +3281,15 @@
       "max_volume_db": null
     },
     {
+      "slug": "experimenting-with-holographic-geometry-experienced-on-various-psycheddelics-symmetric-vision",
+      "id": "k57d67v1jrsw09g2kgqmwt4jw18d3zvd",
+      "analysis": "decoded-volume-v1",
+      "status": "digitally-silent",
+      "audio_stream": true,
+      "mean_volume_db": -91,
+      "max_volume_db": -91
+    },
+    {
       "slug": "eyed-rocks-symmetric-vision",
       "id": "k57ddgfe4bb8w6y7knq5ez7a6d8cntcq",
       "analysis": "decoded-volume-v1",
@@ -3677,6 +3320,16 @@
       "max_volume_db": null
     },
     {
+      "slug": "for-zenby-symmetric-vision",
+      "id": "k5770x3z2ape6x907cymntsj098cmys9",
+      "analysis": "decoded-volume-v1",
+      "status": "digitally-silent",
+      "audio_stream": true,
+      "has_audio": false,
+      "mean_volume_db": -91,
+      "max_volume_db": -91
+    },
+    {
       "slug": "forest-of-flowing-fractals-jumproper",
       "id": "k57bx0nxvrngb3meacysayrcgs8bchgf",
       "analysis": "decoded-volume-v1",
@@ -3695,6 +3348,15 @@
       "has_audio": false,
       "mean_volume_db": null,
       "max_volume_db": null
+    },
+    {
+      "slug": "fractalization-test-symmetric-vision",
+      "id": "k57fn9h4c3wp19eh81sreymd2n8d2mae",
+      "analysis": "decoded-volume-v1",
+      "status": "digitally-silent",
+      "audio_stream": true,
+      "mean_volume_db": -91,
+      "max_volume_db": -91
     },
     {
       "slug": "hand-patterns-v3-loka",
@@ -3725,6 +3387,16 @@
       "has_audio": false,
       "mean_volume_db": null,
       "max_volume_db": null
+    },
+    {
+      "slug": "high-dose-mushroom-chair-loka",
+      "id": "k572qenfnvn29ctm0nyxrkwptx8cmwqh",
+      "analysis": "decoded-volume-v1",
+      "status": "digitally-silent",
+      "audio_stream": true,
+      "has_audio": false,
+      "mean_volume_db": -91,
+      "max_volume_db": -91
     },
     {
       "slug": "high-dose-tangerine-symmetric-vision",
@@ -3767,6 +3439,15 @@
       "max_volume_db": null
     },
     {
+      "slug": "indoor-trip-collaboration-project-with-avi-lsd-symmetric-vision",
+      "id": "k5727pz2p104hbzd1qh1qqfar18d2kb6",
+      "analysis": "decoded-volume-v1",
+      "status": "audible",
+      "audio_stream": true,
+      "mean_volume_db": -36.6,
+      "max_volume_db": -22.1
+    },
+    {
       "slug": "ivy-facade-patterning-symmetric-vision",
       "id": "k5773v6rmx1vzsqsm1pg3a3p3s8cm20t",
       "analysis": "decoded-volume-v1",
@@ -3775,6 +3456,35 @@
       "has_audio": false,
       "mean_volume_db": null,
       "max_volume_db": null
+    },
+    {
+      "slug": "leaf-patterns-symmetric-vision",
+      "id": "k57d6yt7hkn8hv5e450bzcsa4h8cmkxr",
+      "analysis": "decoded-volume-v1",
+      "status": "digitally-silent",
+      "audio_stream": true,
+      "has_audio": false,
+      "mean_volume_db": -91,
+      "max_volume_db": -91
+    },
+    {
+      "slug": "loka-grass-loka",
+      "id": "k570bye5h6pnexta52k19hrh3s8cntpr",
+      "analysis": "decoded-volume-v1",
+      "status": "digitally-silent",
+      "audio_stream": true,
+      "has_audio": false,
+      "mean_volume_db": -91,
+      "max_volume_db": -91
+    },
+    {
+      "slug": "long-time-no-see-brother-metocin-4-ho-met-open-eye-visuals-symmetric-vision",
+      "id": "k57ayxw1ac3qqmc8yzervts8bs8d3bw0",
+      "analysis": "decoded-volume-v1",
+      "status": "digitally-silent",
+      "audio_stream": true,
+      "mean_volume_db": -91,
+      "max_volume_db": -91
     },
     {
       "slug": "lsd-on-a-cloudy-day-jumproper",
@@ -3847,6 +3557,16 @@
       "max_volume_db": null
     },
     {
+      "slug": "snakey-symmetric-vision",
+      "id": "k572pd81mph6sttq77hq2t1f1d8cn1mn",
+      "analysis": "decoded-volume-v1",
+      "status": "digitally-silent",
+      "audio_stream": true,
+      "has_audio": false,
+      "mean_volume_db": -91,
+      "max_volume_db": -91
+    },
+    {
       "slug": "staring-at-moss-loka",
       "id": "k573pndkykwn4cad5k5y3tzmfn8cmd8n",
       "analysis": "decoded-volume-v1",
@@ -3855,6 +3575,16 @@
       "has_audio": false,
       "mean_volume_db": null,
       "max_volume_db": null
+    },
+    {
+      "slug": "staring-at-sand-symmetric-vision",
+      "id": "k57f8zbvhj0byqtys3hp178s3s8cmn40",
+      "analysis": "decoded-volume-v1",
+      "status": "digitally-silent",
+      "audio_stream": true,
+      "has_audio": false,
+      "mean_volume_db": -91,
+      "max_volume_db": -91
     },
     {
       "slug": "staring-at-some-bottles-symmetric-vision",
@@ -3877,6 +3607,34 @@
       "max_volume_db": null
     },
     {
+      "slug": "streetside-psychedelic-replication-symmetric-vision",
+      "id": "k572g260mz9wzz0vvv33cb1bn98d2crc",
+      "analysis": "decoded-volume-v1",
+      "status": "audible",
+      "audio_stream": true,
+      "mean_volume_db": -17.9,
+      "max_volume_db": -0.3
+    },
+    {
+      "slug": "sunflower-space-out-symmetric-vision",
+      "id": "k574w056s25ce7q1g4ptda7jsh8cnhsb",
+      "analysis": "decoded-volume-v1",
+      "status": "digitally-silent",
+      "audio_stream": true,
+      "has_audio": false,
+      "mean_volume_db": -91,
+      "max_volume_db": -91
+    },
+    {
+      "slug": "this-place-is-going-disso-delic-symmetric-vision",
+      "id": "k57fgtndd90fpa17mgeqg0az0x8d3azr",
+      "analysis": "decoded-volume-v1",
+      "status": "audible",
+      "audio_stream": true,
+      "mean_volume_db": -41.1,
+      "max_volume_db": -13.5
+    },
+    {
       "slug": "this-place-is-going-nuts-symmetric-vision",
       "id": "k57dzmscfmsagrfv67jaga00s18bcatn",
       "analysis": "decoded-volume-v1",
@@ -3897,6 +3655,26 @@
       "max_volume_db": null
     },
     {
+      "slug": "tree-bark-patterning-symmetric-vision",
+      "id": "k57676n8race2zb74me3tadmsx8cnvta",
+      "analysis": "decoded-volume-v1",
+      "status": "digitally-silent",
+      "audio_stream": true,
+      "has_audio": false,
+      "mean_volume_db": -91,
+      "max_volume_db": -91
+    },
+    {
+      "slug": "trip-pov-simulation-lsd-psilocybin-mushrooms-low-dose-salvia-psychedelic-repli",
+      "id": "k57a8ak0ay46vhkfgjs84rx2t18d0gv4",
+      "analysis": "decoded-volume-v1",
+      "status": "digitally-silent",
+      "audio_stream": true,
+      "has_audio": false,
+      "mean_volume_db": -91,
+      "max_volume_db": -91
+    },
+    {
       "slug": "external-entity-symmetric-vision",
       "id": "k5722wtc3hg2q682p2gjypx5ys8464pq",
       "analysis": "decoded-volume-v1",
@@ -3905,6 +3683,16 @@
       "has_audio": false,
       "mean_volume_db": null,
       "max_volume_db": null
+    },
+    {
+      "slug": "replication-of-the-shadow-people-phenomenon-stas-constantine-stas-constantine",
+      "id": "k574vkn1013r9pg754z28s7pf58d1kew",
+      "analysis": "decoded-volume-v1",
+      "status": "digitally-silent",
+      "audio_stream": true,
+      "has_audio": false,
+      "mean_volume_db": -91,
+      "max_volume_db": -91
     },
     {
       "slug": "dmtunnel-bearfromvoid",
@@ -3935,6 +3723,16 @@
       "has_audio": false,
       "mean_volume_db": null,
       "max_volume_db": null
+    },
+    {
+      "slug": "polytunnel-loka",
+      "id": "k57f700zk1m1kh7n2aah8x8he18473rx",
+      "analysis": "decoded-volume-v1",
+      "status": "digitally-silent",
+      "audio_stream": true,
+      "has_audio": false,
+      "mean_volume_db": -91,
+      "max_volume_db": -91
     },
     {
       "slug": "shipibo-knot-symmetric-vision",
@@ -3977,6 +3775,15 @@
       "max_volume_db": null
     },
     {
+      "slug": "a-quick-flashback-from-dmt-hyperspace-loop-symmetric-vision",
+      "id": "k57fsx42y6jn70pwn3gazkxaad8d3h09",
+      "analysis": "decoded-volume-v1",
+      "status": "audible",
+      "audio_stream": true,
+      "mean_volume_db": -23.6,
+      "max_volume_db": -8
+    },
+    {
       "slug": "airborne-geometry-symmetric-vision",
       "id": "k5706275940pw9yy6rxbs2v7an8476pg",
       "analysis": "decoded-volume-v1",
@@ -3997,6 +3804,25 @@
       "max_volume_db": null
     },
     {
+      "slug": "animated-neon-maze-crown-k-visuals",
+      "id": "k575jqppeegcabvrn2y8bcpty58cmwsk",
+      "analysis": "decoded-volume-v1",
+      "status": "digitally-silent",
+      "audio_stream": true,
+      "has_audio": false,
+      "mean_volume_db": -91,
+      "max_volume_db": -91
+    },
+    {
+      "slug": "another-quick-memory-from-dmt-shorts-symmetric-vision",
+      "id": "k572rzwcq9t1xtr96st3as567n8d39a2",
+      "analysis": "decoded-volume-v1",
+      "status": "digitally-silent",
+      "audio_stream": true,
+      "mean_volume_db": -91,
+      "max_volume_db": -91
+    },
+    {
       "slug": "biuuuuuu-symmetric-vision",
       "id": "k5731t76d0bzx86295v58kvejn8cmgtt",
       "analysis": "decoded-volume-v1",
@@ -4005,6 +3831,25 @@
       "has_audio": false,
       "mean_volume_db": null,
       "max_volume_db": null
+    },
+    {
+      "slug": "branching-cyan-and-violet-tendrils-k-visuals",
+      "id": "k572gfwknwpk4yxv0jz7bhfgq58cns7f",
+      "analysis": "decoded-volume-v1",
+      "status": "digitally-silent",
+      "audio_stream": true,
+      "has_audio": false,
+      "mean_volume_db": -91,
+      "max_volume_db": -91
+    },
+    {
+      "slug": "brief-memory-from-dead-mans-trip-dmt-visuals-experiment-v6-seizure-warning-symmetric-vision",
+      "id": "k5737th85cdx7cgv4jb1cxe0598d2rk7",
+      "analysis": "decoded-volume-v1",
+      "status": "audible",
+      "audio_stream": true,
+      "mean_volume_db": -22.2,
+      "max_volume_db": -3.9
     },
     {
       "slug": "cellular-circuitry-ben-ridgway",
@@ -4017,6 +3862,16 @@
       "max_volume_db": null
     },
     {
+      "slug": "cellular-teardrop-chamber-k-visuals",
+      "id": "k57a817epfc3dcz34zdxxvemjs8cm9br",
+      "analysis": "decoded-volume-v1",
+      "status": "digitally-silent",
+      "audio_stream": true,
+      "has_audio": false,
+      "mean_volume_db": -91,
+      "max_volume_db": -91
+    },
+    {
       "slug": "cevs-2-symmetric-vision",
       "id": "k5724styss4bqpbght5hesp0en8cnk8m",
       "analysis": "decoded-volume-v1",
@@ -4027,6 +3882,16 @@
       "max_volume_db": null
     },
     {
+      "slug": "changa-cevs-symmetric-vision",
+      "id": "k575v8x84ps1rxg2q5qee5pj7d8cmhcx",
+      "analysis": "decoded-volume-v1",
+      "status": "digitally-silent",
+      "audio_stream": true,
+      "has_audio": false,
+      "mean_volume_db": -91,
+      "max_volume_db": -91
+    },
+    {
       "slug": "changa-experiment-symmetric-vision",
       "id": "k57dqndys7gy17rj08xbkfsmcd8bdrdy",
       "analysis": "decoded-volume-v1",
@@ -4035,6 +3900,16 @@
       "has_audio": false,
       "mean_volume_db": null,
       "max_volume_db": null
+    },
+    {
+      "slug": "checkerboard-aperture-chamber-k-visuals",
+      "id": "k57168ebrea41e96bq8e4kztp58cmzs4",
+      "analysis": "decoded-volume-v1",
+      "status": "digitally-silent",
+      "audio_stream": true,
+      "has_audio": false,
+      "mean_volume_db": -91,
+      "max_volume_db": -91
     },
     {
       "slug": "circular-neon-mandala-bearfromvoid",
@@ -4117,6 +3992,16 @@
       "max_volume_db": null
     },
     {
+      "slug": "dmt-cevs-symmetric-vision",
+      "id": "k5710nn5pq5wymxykn57ysr5fn8cnev6",
+      "analysis": "decoded-volume-v1",
+      "status": "digitally-silent",
+      "audio_stream": true,
+      "has_audio": false,
+      "mean_volume_db": -91,
+      "max_volume_db": -91
+    },
+    {
       "slug": "dmt-closed-eye-visuals-stingrayz-deliriousoptimalcopperhead",
       "id": "k578d7v4xd9eashqmm8xk14v6n8cmb30",
       "analysis": "decoded-volume-v1",
@@ -4157,6 +4042,16 @@
       "max_volume_db": null
     },
     {
+      "slug": "dmt-snake-tunnel-symmetric-vision",
+      "id": "k57a9a60eehs3ehkmjjyqkz0en8cnye6",
+      "analysis": "decoded-volume-v1",
+      "status": "digitally-silent",
+      "audio_stream": true,
+      "has_audio": false,
+      "mean_volume_db": -91,
+      "max_volume_db": -91
+    },
+    {
       "slug": "dmt-symmetry-visuals-bearfromvoid",
       "id": "k5783kbnzkdaw9w2vms131271x8cntzj",
       "analysis": "decoded-volume-v1",
@@ -4177,6 +4072,26 @@
       "max_volume_db": null
     },
     {
+      "slug": "dxm-simulation-replication-lower-second-plat-dissociative-hole-geometry-hd-sta",
+      "id": "k574xedxmk4h3a1j44rbg5mdb18d09wc",
+      "analysis": "decoded-volume-v1",
+      "status": "digitally-silent",
+      "audio_stream": true,
+      "has_audio": false,
+      "mean_volume_db": -91,
+      "max_volume_db": -91
+    },
+    {
+      "slug": "expanding-circular-labyrinths-k-visuals",
+      "id": "k574rdt99h7xn93fc2a8990r9x8cnp1k",
+      "analysis": "decoded-volume-v1",
+      "status": "digitally-silent",
+      "audio_stream": true,
+      "has_audio": false,
+      "mean_volume_db": -91,
+      "max_volume_db": -91
+    },
+    {
       "slug": "eye-snake-tunnel-symmetric-vision",
       "id": "k576ke5anfc0v2my3cvrtsgsa18cmcj7",
       "analysis": "decoded-volume-v1",
@@ -4185,6 +4100,16 @@
       "has_audio": false,
       "mean_volume_db": null,
       "max_volume_db": null
+    },
+    {
+      "slug": "faceted-jewel-in-the-blue-tessellation-chamber-k-visuals",
+      "id": "k575hkewwxdj4gq7x22znx9gmd8cnfhy",
+      "analysis": "decoded-volume-v1",
+      "status": "digitally-silent",
+      "audio_stream": true,
+      "has_audio": false,
+      "mean_volume_db": -91,
+      "max_volume_db": -91
     },
     {
       "slug": "fibonacci-loop-symmetric-vision",
@@ -4215,6 +4140,16 @@
       "has_audio": false,
       "mean_volume_db": null,
       "max_volume_db": null
+    },
+    {
+      "slug": "for-ayjay-symmetric-vision",
+      "id": "k575f5gmmbgqbr6khv72g7mbes8cmm6a",
+      "analysis": "decoded-volume-v1",
+      "status": "digitally-silent",
+      "audio_stream": true,
+      "has_audio": false,
+      "mean_volume_db": -91,
+      "max_volume_db": -91
     },
     {
       "slug": "fountain-sunterry",
@@ -4267,6 +4202,16 @@
       "max_volume_db": null
     },
     {
+      "slug": "glass-fractal-symmetric-vision",
+      "id": "k57fe99chy9536c88mfpv9t24x8cnf84",
+      "analysis": "decoded-volume-v1",
+      "status": "digitally-silent",
+      "audio_stream": true,
+      "has_audio": false,
+      "mean_volume_db": -91,
+      "max_volume_db": -91
+    },
+    {
       "slug": "glow-pattern-tentacle-zoom-symmetric-vision",
       "id": "k5767mp695c0rc0ryd1xy3yjb98cmg85",
       "analysis": "decoded-volume-v1",
@@ -4307,6 +4252,35 @@
       "max_volume_db": null
     },
     {
+      "slug": "green-and-purple-labyrinth-mask-k-visuals",
+      "id": "k576wkr67vaf99f304qktmkp4d8cnap8",
+      "analysis": "decoded-volume-v1",
+      "status": "digitally-silent",
+      "audio_stream": true,
+      "has_audio": false,
+      "mean_volume_db": -91,
+      "max_volume_db": -91
+    },
+    {
+      "slug": "green-rosettes-in-a-dark-organic-field-k-visuals",
+      "id": "k57b17166966813afh15frrv0h8cnpks",
+      "analysis": "decoded-volume-v1",
+      "status": "digitally-silent",
+      "audio_stream": true,
+      "has_audio": false,
+      "mean_volume_db": -91,
+      "max_volume_db": -91
+    },
+    {
+      "slug": "greetings-from-sister-changa-shorts-symmetric-vision",
+      "id": "k57358a99qqy2rgzj631fabep18d3dvj",
+      "analysis": "decoded-volume-v1",
+      "status": "digitally-silent",
+      "audio_stream": true,
+      "mean_volume_db": -91,
+      "max_volume_db": -91
+    },
+    {
       "slug": "grey-eye-tunnel-symmetric-vision",
       "id": "k570awt0f8srp67pejfmcz5hrs8cmjsb",
       "analysis": "decoded-volume-v1",
@@ -4325,6 +4299,15 @@
       "has_audio": false,
       "mean_volume_db": null,
       "max_volume_db": null
+    },
+    {
+      "slug": "having-a-little-chat-with-yourself-on-changa-symmetric-vision",
+      "id": "k57365nwpww206t21dthmyxwds8d3e4p",
+      "analysis": "decoded-volume-v1",
+      "status": "audible",
+      "audio_stream": true,
+      "mean_volume_db": -26.6,
+      "max_volume_db": -5.1
     },
     {
       "slug": "hilbertwaveportal-uon",
@@ -4347,6 +4330,26 @@
       "max_volume_db": null
     },
     {
+      "slug": "infinite-tunnel-symmetric-vision",
+      "id": "k5714363zabsc0bnjw2s8f73618cnzpj",
+      "analysis": "decoded-volume-v1",
+      "status": "digitally-silent",
+      "audio_stream": true,
+      "has_audio": false,
+      "mean_volume_db": -91,
+      "max_volume_db": -91
+    },
+    {
+      "slug": "interconnected-mushroom-tendril-landscape-k-visuals",
+      "id": "k571dpma3946xhw9ddcs8xh1zx8cn28x",
+      "analysis": "decoded-volume-v1",
+      "status": "digitally-silent",
+      "audio_stream": true,
+      "has_audio": false,
+      "mean_volume_db": -91,
+      "max_volume_db": -91
+    },
+    {
       "slug": "inverted-eye-space-symmetric-vision",
       "id": "k57fqhjsbb7j0a16z6j0f1p8x18bcy6y",
       "analysis": "decoded-volume-v1",
@@ -4355,6 +4358,15 @@
       "has_audio": false,
       "mean_volume_db": null,
       "max_volume_db": null
+    },
+    {
+      "slug": "it-s-time-for-a-little-chat-with-sister-changa-shorts-symmetric-vision",
+      "id": "k573g99q1kbyv5s15bme23tp9n8d3jbm",
+      "analysis": "decoded-volume-v1",
+      "status": "audible",
+      "audio_stream": true,
+      "mean_volume_db": -20.4,
+      "max_volume_db": -2.4
     },
     {
       "slug": "kaleidoscopic-pattern-tunnel-bearfromvoid",
@@ -4367,6 +4379,16 @@
       "max_volume_db": null
     },
     {
+      "slug": "kaleidoscopic-rings-around-a-floating-form-k-visuals",
+      "id": "k57e01jwj9d62s88qn8tggc0js8cm2ps",
+      "analysis": "decoded-volume-v1",
+      "status": "digitally-silent",
+      "audio_stream": true,
+      "has_audio": false,
+      "mean_volume_db": -91,
+      "max_volume_db": -91
+    },
+    {
       "slug": "mandelbulb-test-symmetric-vision",
       "id": "k57cea9n8vxr22vkxr8ew7gj358cn6ra",
       "analysis": "decoded-volume-v1",
@@ -4375,6 +4397,34 @@
       "has_audio": false,
       "mean_volume_db": null,
       "max_volume_db": null
+    },
+    {
+      "slug": "maze-mask-mandala-k-visuals",
+      "id": "k579v93wvp6zevqdf73bsyk13d8cntzj",
+      "analysis": "decoded-volume-v1",
+      "status": "digitally-silent",
+      "audio_stream": true,
+      "has_audio": false,
+      "mean_volume_db": -91,
+      "max_volume_db": -91
+    },
+    {
+      "slug": "memory-from-dead-mans-trip-dmt-visuals-experiment-v10-epilepsy-warning-symmetric-vision",
+      "id": "k570706aqqvayxejmb5ny5b2vh8d278k",
+      "analysis": "decoded-volume-v1",
+      "status": "audible",
+      "audio_stream": true,
+      "mean_volume_db": -17.7,
+      "max_volume_db": 0
+    },
+    {
+      "slug": "memory-from-dead-mans-trip-dmt-visuals-experiment-v8-seizure-warning-symmetric-vision",
+      "id": "k576x39b9ft9rgm47xfc0k87sx8d2krx",
+      "analysis": "decoded-volume-v1",
+      "status": "audible",
+      "audio_stream": true,
+      "mean_volume_db": -16.8,
+      "max_volume_db": 0
     },
     {
       "slug": "mescaline-forest-symmetric-vision",
@@ -4397,6 +4447,16 @@
       "max_volume_db": null
     },
     {
+      "slug": "neural-network-footage-glooby-s-world",
+      "id": "k571aaj9ce1yjknjjrr1jteavs8cmj7z",
+      "analysis": "decoded-volume-v1",
+      "status": "digitally-silent",
+      "audio_stream": true,
+      "has_audio": false,
+      "mean_volume_db": -91,
+      "max_volume_db": -91
+    },
+    {
       "slug": "neural-network-footage-gloobys-world",
       "id": "k574vrqdmhkg26bvhbyhesp3jx8bc1ty",
       "analysis": "decoded-volume-v1",
@@ -4405,6 +4465,24 @@
       "has_audio": false,
       "mean_volume_db": null,
       "max_volume_db": null
+    },
+    {
+      "slug": "noove-enter-the-illusion-visuals-by-symmetric-vision-4k-symmetric-vision",
+      "id": "k57a1mqbsf4xh0cbwv4vqfd2p58d2nyp",
+      "analysis": "decoded-volume-v1",
+      "status": "audible",
+      "audio_stream": true,
+      "mean_volume_db": -27.6,
+      "max_volume_db": -6.4
+    },
+    {
+      "slug": "ok-honey-i-finally-finished-repainting-that-old-kitchen-floor-on-acid-symmetric-vision",
+      "id": "k5782m54g9h0pax88z9n2yq9918d2n8v",
+      "analysis": "decoded-volume-v1",
+      "status": "audible",
+      "audio_stream": true,
+      "mean_volume_db": -77.1,
+      "max_volume_db": -33.9
     },
     {
       "slug": "organic-radial-mandala-bearfromvoid",
@@ -4417,6 +4495,16 @@
       "max_volume_db": null
     },
     {
+      "slug": "penta-snake-space-symmetric-vision",
+      "id": "k57f2wh850k73cgmvkcj4n0qr18cm4vp",
+      "analysis": "decoded-volume-v1",
+      "status": "digitally-silent",
+      "audio_stream": true,
+      "has_audio": false,
+      "mean_volume_db": -91,
+      "max_volume_db": -91
+    },
+    {
       "slug": "pretty-intense-walk-symmetric-vision",
       "id": "k57d7fpx1neda3x4tfs4mg9xjd8bcv0c",
       "analysis": "decoded-volume-v1",
@@ -4427,6 +4515,15 @@
       "max_volume_db": null
     },
     {
+      "slug": "psychedelic-cryptography-experiment-v1-qri-contest-submission-symmetric-vision",
+      "id": "k5760vfkpq1dz5t1vph7cwecw58d229x",
+      "analysis": "decoded-volume-v1",
+      "status": "digitally-silent",
+      "audio_stream": true,
+      "mean_volume_db": -91,
+      "max_volume_db": -91
+    },
+    {
       "slug": "pulse-snake-pattern-tunnel-symmetric-vision",
       "id": "k57e1bn1a978jyncv7zjztgkk18cm6v0",
       "analysis": "decoded-volume-v1",
@@ -4435,6 +4532,35 @@
       "has_audio": false,
       "mean_volume_db": null,
       "max_volume_db": null
+    },
+    {
+      "slug": "receding-sculpture-beneath-orange-arches-k-visuals",
+      "id": "k57dkkx7tn4gj2xcfgdmhbz4w98cn0hn",
+      "analysis": "decoded-volume-v1",
+      "status": "digitally-silent",
+      "audio_stream": true,
+      "has_audio": false,
+      "mean_volume_db": -91,
+      "max_volume_db": -91
+    },
+    {
+      "slug": "revisited-the-memory-of-staring-back-into-my-own-eyes-with-a-little-bit-of-help-from-deems-shorts-symmetric-vision",
+      "id": "k5730xv2rt73a002r55h8dry898d2mx3",
+      "analysis": "decoded-volume-v1",
+      "status": "digitally-silent",
+      "audio_stream": true,
+      "mean_volume_db": -91,
+      "max_volume_db": -91
+    },
+    {
+      "slug": "rising-tiled-pyramids-k-visuals",
+      "id": "k574mns8xrhkpb9yvgyqvs47vh8cmqgk",
+      "analysis": "decoded-volume-v1",
+      "status": "digitally-silent",
+      "audio_stream": true,
+      "has_audio": false,
+      "mean_volume_db": -91,
+      "max_volume_db": -91
     },
     {
       "slug": "rock-a-nore-geometry-kaylee",
@@ -4457,6 +4583,16 @@
       "max_volume_db": null
     },
     {
+      "slug": "rotating-glyphs-and-eyes-k-visuals",
+      "id": "k5700gqm00sdt86cbjbqp65vkh8cm3ze",
+      "analysis": "decoded-volume-v1",
+      "status": "digitally-silent",
+      "audio_stream": true,
+      "has_audio": false,
+      "mean_volume_db": -91,
+      "max_volume_db": -91
+    },
+    {
       "slug": "scry-2d-geometry-scry",
       "id": "k572fv088pyd370crawdxa3vdx8cn05b",
       "analysis": "decoded-volume-v1",
@@ -4465,6 +4601,46 @@
       "has_audio": false,
       "mean_volume_db": null,
       "max_volume_db": null
+    },
+    {
+      "slug": "seated-figure-beyond-the-blue-and-gold-chamber-k-visuals",
+      "id": "k5719ax3nxzn5qajtw98x1jz458cn3vh",
+      "analysis": "decoded-volume-v1",
+      "status": "digitally-silent",
+      "audio_stream": true,
+      "has_audio": false,
+      "mean_volume_db": -91,
+      "max_volume_db": -91
+    },
+    {
+      "slug": "segmented-curves-in-a-neon-hexagon-field-k-visuals",
+      "id": "k5705qpfa23bx9gse1y8hc1ryh8cmmzd",
+      "analysis": "decoded-volume-v1",
+      "status": "digitally-silent",
+      "audio_stream": true,
+      "has_audio": false,
+      "mean_volume_db": -91,
+      "max_volume_db": -91
+    },
+    {
+      "slug": "segmented-emblem-over-neon-rosettes-k-visuals",
+      "id": "k57crsqkx5s5n6n99jkmdwwccx8cmf8q",
+      "analysis": "decoded-volume-v1",
+      "status": "digitally-silent",
+      "audio_stream": true,
+      "has_audio": false,
+      "mean_volume_db": -91,
+      "max_volume_db": -91
+    },
+    {
+      "slug": "shifting-hexagon-and-rosette-mosaic-k-visuals",
+      "id": "k579b2yvgrz42hpzk7qmy4pd4s8cm0g8",
+      "analysis": "decoded-volume-v1",
+      "status": "digitally-silent",
+      "audio_stream": true,
+      "has_audio": false,
+      "mean_volume_db": -91,
+      "max_volume_db": -91
     },
     {
       "slug": "shinyhilbertdesignscrollup-uon",
@@ -4495,6 +4671,16 @@
       "has_audio": false,
       "mean_volume_db": null,
       "max_volume_db": null
+    },
+    {
+      "slug": "snake-overload-symmetric-vision",
+      "id": "k57f4tzegff0egjrgta0g77s4d8cna0g",
+      "analysis": "decoded-volume-v1",
+      "status": "digitally-silent",
+      "audio_stream": true,
+      "has_audio": false,
+      "mean_volume_db": -91,
+      "max_volume_db": -91
     },
     {
       "slug": "snake-toon-tube-symmetric-vision",
@@ -4537,6 +4723,26 @@
       "max_volume_db": null
     },
     {
+      "slug": "spaghetti-hands-dmt-edit-symmetric-vision",
+      "id": "k57985tqpd6c7a79mstpdydff98cnyac",
+      "analysis": "decoded-volume-v1",
+      "status": "digitally-silent",
+      "audio_stream": true,
+      "has_audio": false,
+      "mean_volume_db": -91,
+      "max_volume_db": -91
+    },
+    {
+      "slug": "spiraling-labyrinth-tunnel-k-visuals",
+      "id": "k576jzzk6m0a1xh63rj8qr8pts8cmswn",
+      "analysis": "decoded-volume-v1",
+      "status": "digitally-silent",
+      "audio_stream": true,
+      "has_audio": false,
+      "mean_volume_db": -91,
+      "max_volume_db": -91
+    },
+    {
       "slug": "squarecurvetesselation-uon",
       "id": "k5722a9k1m5ye2kxgq30panvvd8bc1md",
       "analysis": "decoded-volume-v1",
@@ -4557,6 +4763,16 @@
       "max_volume_db": null
     },
     {
+      "slug": "squiggly-light-test-symmetric-vision",
+      "id": "k57djtbjdepv1401kh7g7yqdeh8cmnry",
+      "analysis": "decoded-volume-v1",
+      "status": "digitally-silent",
+      "audio_stream": true,
+      "has_audio": false,
+      "mean_volume_db": -91,
+      "max_volume_db": -91
+    },
+    {
       "slug": "stillpoint-ben-ridgway",
       "id": "k57fyafyn7aef9y61b79dpnkvx8bdfmg",
       "analysis": "decoded-volume-v1",
@@ -4565,6 +4781,26 @@
       "has_audio": false,
       "mean_volume_db": null,
       "max_volume_db": null
+    },
+    {
+      "slug": "symmetrical-capsule-hexagon-grid-k-visuals",
+      "id": "k5752q4pwpg5y49fmds8m0amen8cnmdf",
+      "analysis": "decoded-volume-v1",
+      "status": "digitally-silent",
+      "audio_stream": true,
+      "has_audio": false,
+      "mean_volume_db": -91,
+      "max_volume_db": -91
+    },
+    {
+      "slug": "teal-field-of-coils-and-bubbles-k-visuals",
+      "id": "k570h4x5q7hjydtqh6acvjdtnd8cncnr",
+      "analysis": "decoded-volume-v1",
+      "status": "digitally-silent",
+      "audio_stream": true,
+      "has_audio": false,
+      "mean_volume_db": -91,
+      "max_volume_db": -91
     },
     {
       "slug": "tentacle-cevs-symmetric-vision",
@@ -4617,6 +4853,26 @@
       "max_volume_db": null
     },
     {
+      "slug": "tunnel-hypnagogist",
+      "id": "k57ajpvm4050hzvr7jcgfpzsrx8cn6fe",
+      "analysis": "decoded-volume-v1",
+      "status": "digitally-silent",
+      "audio_stream": true,
+      "has_audio": false,
+      "mean_volume_db": -91,
+      "max_volume_db": -91
+    },
+    {
+      "slug": "under-skin-shipibo-snake-tunnel-symmetric-vision",
+      "id": "k570jsf7djn4nyzdsscba50es18cmrt6",
+      "analysis": "decoded-volume-v1",
+      "status": "digitally-silent",
+      "audio_stream": true,
+      "has_audio": false,
+      "mean_volume_db": -91,
+      "max_volume_db": -91
+    },
+    {
       "slug": "weird-conveyor-space-symmetric-vision",
       "id": "k57595s9d9h48pp0fz6wxkg5g58cnbez",
       "analysis": "decoded-volume-v1",
@@ -4625,6 +4881,16 @@
       "has_audio": false,
       "mean_volume_db": null,
       "max_volume_db": null
+    },
+    {
+      "slug": "wireframe-mushroom-machine-garden-k-visuals",
+      "id": "k5786cadzdft3hqkgs292fq2j58cngq7",
+      "analysis": "decoded-volume-v1",
+      "status": "digitally-silent",
+      "audio_stream": true,
+      "has_audio": false,
+      "mean_volume_db": -91,
+      "max_volume_db": -91
     },
     {
       "slug": "women-s-day-2020-dmt-symmetric-vision",
@@ -4637,6 +4903,16 @@
       "max_volume_db": null
     },
     {
+      "slug": "wood-table-loka",
+      "id": "k572dckkqngnwwxd10256fkr058cnzmv",
+      "analysis": "decoded-volume-v1",
+      "status": "digitally-silent",
+      "audio_stream": true,
+      "has_audio": false,
+      "mean_volume_db": -91,
+      "max_volume_db": -91
+    },
+    {
       "slug": "zero-to-300ug-in-4-seconds-symmetric-vision",
       "id": "k5707x4whawyx6chnqmevjmy5x8bdx4a",
       "analysis": "decoded-volume-v1",
@@ -4645,6 +4921,16 @@
       "has_audio": false,
       "mean_volume_db": null,
       "max_volume_db": null
+    },
+    {
+      "slug": "desk-pattern-faces-symmetric-vision",
+      "id": "k57b9htrjts94vnbh8km7yjajd8cn4jm",
+      "analysis": "decoded-volume-v1",
+      "status": "digitally-silent",
+      "audio_stream": true,
+      "has_audio": false,
+      "mean_volume_db": -91,
+      "max_volume_db": -91
     },
     {
       "slug": "evil-carpet-symmetric-vision",
@@ -4707,6 +4993,25 @@
       "max_volume_db": null
     },
     {
+      "slug": "forest-path-eyes-symmetric-vision",
+      "id": "k57b7px23bq0nzf42x4pfr3wk98cnra8",
+      "analysis": "decoded-volume-v1",
+      "status": "digitally-silent",
+      "audio_stream": true,
+      "has_audio": false,
+      "mean_volume_db": -91,
+      "max_volume_db": -91
+    },
+    {
+      "slug": "just-a-bunch-of-pebbles-staring-back-at-you-pareidolia-experiment-symmetric-vision",
+      "id": "k57e8ss2zmrgmvce1zhgsq5nsx8d21pv",
+      "analysis": "decoded-volume-v1",
+      "status": "digitally-silent",
+      "audio_stream": true,
+      "mean_volume_db": -91,
+      "max_volume_db": -91
+    },
+    {
       "slug": "leaf-eyes-symmetric-vision",
       "id": "k578kkx7a4p9366x8cxfz7c8qh8cnr2q",
       "analysis": "decoded-volume-v1",
@@ -4735,6 +5040,100 @@
       "has_audio": false,
       "mean_volume_db": null,
       "max_volume_db": null
+    },
+    {
+      "slug": "pareidolia-in-the-rock-oracle-emissary",
+      "id": "k578dq8azp748e0ez1hr83cd9d8cmhsq",
+      "analysis": "decoded-volume-v1",
+      "status": "digitally-silent",
+      "audio_stream": true,
+      "has_audio": false,
+      "mean_volume_db": -91,
+      "max_volume_db": -91
+    },
+    {
+      "slug": "something-is-very-eerie-about-these-rocks-symmetric-vision",
+      "id": "k576gbdjmtd1hx9sk3t3a8yea58d3p05",
+      "analysis": "decoded-volume-v1",
+      "status": "digitally-silent",
+      "audio_stream": true,
+      "mean_volume_db": -91,
+      "max_volume_db": -91
+    },
+    {
+      "slug": "sometimes-you-just-have-to-face-that-tree-pareidolia-experiment-symmetric-vision",
+      "id": "k57ada65vsw606pcvqn8h4mf618d2nxs",
+      "analysis": "decoded-volume-v1",
+      "status": "digitally-silent",
+      "audio_stream": true,
+      "mean_volume_db": -91,
+      "max_volume_db": -91
+    },
+    {
+      "slug": "the-way-this-desert-is-staring-at-me-psychedelic-replication-symmetric-vision",
+      "id": "k57fdj8q2q7yvq5jekcdhgzk798d2mbs",
+      "analysis": "decoded-volume-v1",
+      "status": "audible",
+      "audio_stream": true,
+      "mean_volume_db": -36.6,
+      "max_volume_db": -17.9
+    },
+    {
+      "slug": "these-guys-got-so-stoned-they-turned-into-a-rock-wall-pareidolia-experiment-symmetric-vision",
+      "id": "k57fr79n2317knn69a7fx13t2h8d21f5",
+      "analysis": "decoded-volume-v1",
+      "status": "digitally-silent",
+      "audio_stream": true,
+      "mean_volume_db": -91,
+      "max_volume_db": -91
+    },
+    {
+      "slug": "this-chimney-wall-is-growing-faces-made-from-faces-made-out-of-faces-psychedelic-visuals-symmetric-vision",
+      "id": "k5728bfk70c38sj0cd0hqzb2sn8d2raz",
+      "analysis": "decoded-volume-v1",
+      "status": "digitally-silent",
+      "audio_stream": true,
+      "mean_volume_db": -91,
+      "max_volume_db": -91
+    },
+    {
+      "slug": "this-patch-of-moss-does-have-personality-shorts-symmetric-vision",
+      "id": "k57avc2dvmx74wjtnen79r6y2h8d38qp",
+      "analysis": "decoded-volume-v1",
+      "status": "digitally-silent",
+      "audio_stream": true,
+      "mean_volume_db": -91,
+      "max_volume_db": -91
+    },
+    {
+      "slug": "totoro-loka",
+      "id": "k57aw8q1q60mptkv1evx6rmz2n8cnhwq",
+      "analysis": "decoded-volume-v1",
+      "status": "digitally-silent",
+      "audio_stream": true,
+      "has_audio": false,
+      "mean_volume_db": -91,
+      "max_volume_db": -91
+    },
+    {
+      "slug": "tree-eyes-symmetric-vision",
+      "id": "k576tmmjhnna6ffty637qk8rkd8cn5c8",
+      "analysis": "decoded-volume-v1",
+      "status": "digitally-silent",
+      "audio_stream": true,
+      "has_audio": false,
+      "mean_volume_db": -91,
+      "max_volume_db": -91
+    },
+    {
+      "slug": "balance-crypto-geometry",
+      "id": "k5788eq21xw8wwek1bf94f2nt1846kq5",
+      "analysis": "decoded-volume-v1",
+      "status": "digitally-silent",
+      "audio_stream": true,
+      "has_audio": false,
+      "mean_volume_db": -91,
+      "max_volume_db": -91
     },
     {
       "slug": "ear-snake-symmetric-vision",
@@ -4777,6 +5176,16 @@
       "max_volume_db": null
     },
     {
+      "slug": "deliriant-diphenhydramine-dph-datura-closed-eye-visual-cev-replication-simulat",
+      "id": "k5716h5mapv5g4csxz0ajfanj98d16zs",
+      "analysis": "decoded-volume-v1",
+      "status": "digitally-silent",
+      "audio_stream": true,
+      "has_audio": false,
+      "mean_volume_db": -91,
+      "max_volume_db": -91
+    },
+    {
       "slug": "floral-tentacle-mandala-bearfromvoid",
       "id": "k57ehtxtd0twmd52mszgs8mse98cnaec",
       "analysis": "decoded-volume-v1",
@@ -4785,6 +5194,24 @@
       "has_audio": false,
       "mean_volume_db": null,
       "max_volume_db": null
+    },
+    {
+      "slug": "having-a-little-chat-with-this-dmt-entity-symmetric-vision",
+      "id": "k5768cbnf2ys42ycp6atb3frws8d21m6",
+      "analysis": "decoded-volume-v1",
+      "status": "audible",
+      "audio_stream": true,
+      "mean_volume_db": -23.4,
+      "max_volume_db": -6.4
+    },
+    {
+      "slug": "having-a-little-chat-with-this-hyperspace-entity-symmetric-vision",
+      "id": "k576wcpb0391zg1he7cramtw198d3qbh",
+      "analysis": "decoded-volume-v1",
+      "status": "audible",
+      "audio_stream": true,
+      "mean_volume_db": -23,
+      "max_volume_db": -4.5
     },
     {
       "slug": "symmetric-neon-figure-bearfromvoid",
@@ -4907,6 +5334,16 @@
       "max_volume_db": null
     },
     {
+      "slug": "recursive-drawing-symmetric-vision",
+      "id": "k57dmsv8j82aawa6wt0g3azn8d8cnszn",
+      "analysis": "decoded-volume-v1",
+      "status": "digitally-silent",
+      "audio_stream": true,
+      "has_audio": false,
+      "mean_volume_db": -91,
+      "max_volume_db": -91
+    },
+    {
       "slug": "recursive-flowers-symmetric-vision",
       "id": "k57037vksnjzj3fgxc84gayjfs8cnyq0",
       "analysis": "decoded-volume-v1",
@@ -4925,6 +5362,16 @@
       "has_audio": false,
       "mean_volume_db": null,
       "max_volume_db": null
+    },
+    {
+      "slug": "recursive-logo-symmetric-vision",
+      "id": "k57cefydyfvahy9c9q2s261sx18cmsjk",
+      "analysis": "decoded-volume-v1",
+      "status": "digitally-silent",
+      "audio_stream": true,
+      "has_audio": false,
+      "mean_volume_db": -91,
+      "max_volume_db": -91
     },
     {
       "slug": "tattoo-modem-symmetric-vision",
@@ -4957,6 +5404,36 @@
       "max_volume_db": null
     },
     {
+      "slug": "biomechanical-corridor-to-the-face-door-k-visuals",
+      "id": "k578vtcwgb0dxybtct4cczsj618cmez0",
+      "analysis": "decoded-volume-v1",
+      "status": "digitally-silent",
+      "audio_stream": true,
+      "has_audio": false,
+      "mean_volume_db": -91,
+      "max_volume_db": -91
+    },
+    {
+      "slug": "kaleidoscopic-highway-hypnagogist",
+      "id": "k5775v2b7jqy47sfvrcndnymqh8bcsc1",
+      "analysis": "decoded-volume-v1",
+      "status": "digitally-silent",
+      "audio_stream": true,
+      "has_audio": false,
+      "mean_volume_db": -91,
+      "max_volume_db": -91
+    },
+    {
+      "slug": "neon-carnival-hypnagogist",
+      "id": "k5766ngz0npca7sx9002rxz5ps8cnwdt",
+      "analysis": "decoded-volume-v1",
+      "status": "digitally-silent",
+      "audio_stream": true,
+      "has_audio": false,
+      "mean_volume_db": -91,
+      "max_volume_db": -91
+    },
+    {
       "slug": "faces-in-the-grass-loka",
       "id": "k57165msv3z0hgsx5ky0trw2ms847ph1",
       "analysis": "decoded-volume-v1",
@@ -4965,6 +5442,16 @@
       "has_audio": false,
       "mean_volume_db": null,
       "max_volume_db": null
+    },
+    {
+      "slug": "the-mirrored-forest-stream",
+      "id": "k57ccy9kxg7gva2gy6rjbjzgh5847xt2",
+      "analysis": "decoded-volume-v1",
+      "status": "digitally-silent",
+      "audio_stream": true,
+      "has_audio": false,
+      "mean_volume_db": -91,
+      "max_volume_db": -91
     },
     {
       "slug": "symmetrical-weed-symmetric-vision",
@@ -4997,6 +5484,16 @@
       "max_volume_db": null
     },
     {
+      "slug": "greek-curve-entity-symmetric-vision",
+      "id": "k57e7bjyw8tjva0e522dcge3858cnce7",
+      "analysis": "decoded-volume-v1",
+      "status": "digitally-silent",
+      "audio_stream": true,
+      "has_audio": false,
+      "mean_volume_db": -91,
+      "max_volume_db": -91
+    },
+    {
       "slug": "low-dose-symmetry-loka",
       "id": "k578q2exd0ecgam1xb31pntb598cn01x",
       "analysis": "decoded-volume-v1",
@@ -5017,6 +5514,16 @@
       "max_volume_db": null
     },
     {
+      "slug": "snake-circle-symmetric-vision",
+      "id": "k576b12jm2rkfnjx28q4g8n8018cmj8r",
+      "analysis": "decoded-volume-v1",
+      "status": "digitally-silent",
+      "audio_stream": true,
+      "has_audio": false,
+      "mean_volume_db": -91,
+      "max_volume_db": -91
+    },
+    {
       "slug": "stream-7-tree-bark-symmetric-vision",
       "id": "k579wztvvkm26716w9e0fkd6x58cmgxj",
       "analysis": "decoded-volume-v1",
@@ -5025,6 +5532,34 @@
       "has_audio": false,
       "mean_volume_db": null,
       "max_volume_db": null
+    },
+    {
+      "slug": "symmetry-stream-loka",
+      "id": "k57dmjptzhv91gee32jbf5sge18bc9qx",
+      "analysis": "decoded-volume-v1",
+      "status": "digitally-silent",
+      "audio_stream": true,
+      "has_audio": false,
+      "mean_volume_db": -91,
+      "max_volume_db": -91
+    },
+    {
+      "slug": "these-rocks-are-going-all-symmetrical-on-me-symmetrical-texture-repetition-experiment-symmetric-vision",
+      "id": "k570gddm1x8f0gmhwetwm24jp98d3jd1",
+      "analysis": "decoded-volume-v1",
+      "status": "digitally-silent",
+      "audio_stream": true,
+      "mean_volume_db": -91,
+      "max_volume_db": -91
+    },
+    {
+      "slug": "this-lichen-is-going-brrr-symmetric-vision",
+      "id": "k57awzc0n1pdvhsr4qfag2xg3x8d2a77",
+      "analysis": "decoded-volume-v1",
+      "status": "digitally-silent",
+      "audio_stream": true,
+      "mean_volume_db": -91,
+      "max_volume_db": -91
     },
     {
       "slug": "albino-bulb-symmetric-vision",
@@ -5045,6 +5580,15 @@
       "has_audio": false,
       "mean_volume_db": null,
       "max_volume_db": null
+    },
+    {
+      "slug": "reducing-the-detail-of-reality-while-chewing-some-salvia-leaves-shorts-symmetric-vision",
+      "id": "k57cxmr9rcsetgabandjjbs9w18d2c81",
+      "analysis": "decoded-volume-v1",
+      "status": "digitally-silent",
+      "audio_stream": true,
+      "mean_volume_db": -91,
+      "max_volume_db": -91
     },
     {
       "slug": "salvia-leaves-symmetric-vision",
@@ -5077,6 +5621,15 @@
       "max_volume_db": null
     },
     {
+      "slug": "i-can-t-tell-if-this-toy-is-turning-alive-or-not-shorts-symmetric-vision",
+      "id": "k57cm2fb7xv122h7b5n9vva0918d34kg",
+      "analysis": "decoded-volume-v1",
+      "status": "digitally-silent",
+      "audio_stream": true,
+      "mean_volume_db": -91,
+      "max_volume_db": -91
+    },
+    {
       "slug": "say-hi-to-lucy-symmetric-vision",
       "id": "k574qnbhmayvpqfhe785nx8tg18cm97j",
       "analysis": "decoded-volume-v1",
@@ -5085,6 +5638,16 @@
       "has_audio": false,
       "mean_volume_db": null,
       "max_volume_db": null
+    },
+    {
+      "slug": "transforming-plushies-symmetric-vision",
+      "id": "k575cz1w5w3jze903wbv71xy198bcwec",
+      "analysis": "decoded-volume-v1",
+      "status": "digitally-silent",
+      "audio_stream": true,
+      "has_audio": false,
+      "mean_volume_db": -91,
+      "max_volume_db": -91
     },
     {
       "slug": "jaw-shattering-yawns-loka",
@@ -5107,6 +5670,35 @@
       "max_volume_db": null
     },
     {
+      "slug": "reducing-the-detail-of-vision-with-a-help-from-some-dissociatives-symmetric-vision",
+      "id": "k574r4zt4e2k6a65qrtqr8ve298d2ew3",
+      "analysis": "decoded-volume-v1",
+      "status": "digitally-silent",
+      "audio_stream": true,
+      "mean_volume_db": -91,
+      "max_volume_db": -91
+    },
+    {
+      "slug": "dxm-closed-eye-visuals-cevs-dissociative-trip-replication-geometric-spaces-by",
+      "id": "k5734ftrmzvp5vckdzrpy31r4x8d12qd",
+      "analysis": "decoded-volume-v1",
+      "status": "digitally-silent",
+      "audio_stream": true,
+      "has_audio": false,
+      "mean_volume_db": -91,
+      "max_volume_db": -91
+    },
+    {
+      "slug": "deliriant-dph-datura-replication-visual-audio-the-700-club-stas-constantine-st",
+      "id": "k578a2ten6ggynzbc2snqj3tbd8d12zg",
+      "analysis": "decoded-volume-v1",
+      "status": "digitally-silent",
+      "audio_stream": true,
+      "has_audio": false,
+      "mean_volume_db": -91,
+      "max_volume_db": -91
+    },
+    {
       "slug": "dog-leaping-through-water",
       "id": "k577dbat1d54xsh7a3e7494aad8bdebp",
       "analysis": "decoded-volume-v1",
@@ -5115,6 +5707,16 @@
       "has_audio": false,
       "mean_volume_db": null,
       "max_volume_db": null
+    },
+    {
+      "slug": "2c-b-handwash-loka",
+      "id": "k57c6syr9d765q8a5jbm7ttwkd8cnkfq",
+      "analysis": "decoded-volume-v1",
+      "status": "digitally-silent",
+      "audio_stream": true,
+      "has_audio": false,
+      "mean_volume_db": -91,
+      "max_volume_db": -91
     }
   ],
   "errors": []
