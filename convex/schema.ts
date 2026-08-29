@@ -247,6 +247,30 @@ export default defineSchema({
     .index("by_created_at", ["created_at"])
     .index("by_public_id", ["id"]),
 
+  // Private mailing-list signup intake shared by the four public sites
+  // (josiekins.xyz, dose.wiki, effectindex.com, mindstate.design). Rows are
+  // written only through the public /subscribe HTTP endpoint; editor-only reads.
+  mailingListSubscribers: defineTable({
+    email: v.string(),
+    list: v.union(
+      v.literal("josiekins"),
+      v.literal("dosewiki"),
+      v.literal("effectindex"),
+      v.literal("mindstate"),
+    ),
+    status: v.union(
+      v.literal("subscribed"),
+      v.literal("spam"),
+      v.literal("unsubscribed"),
+    ),
+    created_at: v.number(),
+    ip_hash: v.optional(v.string()),
+    user_agent: v.optional(v.string()),
+    honeypot_triggered: v.boolean(),
+  })
+    .index("by_email_list", ["email", "list"])
+    .index("by_list_status", ["list", "status"]),
+
   // Subjective effect articles - imported from EffectIndex
   subjectiveEffects: defineTable(subjectiveEffect)
     .index("by_slug", ["slug"])

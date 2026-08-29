@@ -11,6 +11,7 @@ import { Input } from "@/components/ui/input";
 import { SITE_FLAVOR_CONFIG } from "@/config/siteFlavor";
 import { partitionQuickLinkRows, type HomeQuickLink } from "./homeQuickLinks";
 import { AppearanceControls } from "./AppearanceControls";
+import { MailingListInvite } from "./MailingListInvite";
 import { ConstructionCountdown } from "./ConstructionCountdown";
 
 interface HomeExperienceProps {
@@ -310,6 +311,12 @@ export function HomeExperience({
               <ConstructionCountdown />
             </div>
           )}
+
+          {/* Quieter still than the countdown pill: a plain text line, because the
+              mailing list is an aside to the page, not a call to action. The signup
+              itself lives in the dialog this opens, keeping the phone-height stage
+              (see .theme-home-shell's fixed mobile viewport) to one added text line. */}
+          <MailingListInvite className="mt-5" />
         </section>
 
         {/* The dose.wiki homepage suppresses the site footer (see RouteFooter), so the

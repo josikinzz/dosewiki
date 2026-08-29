@@ -19,6 +19,7 @@ import type * as contributorProfiles from "../contributorProfiles.js";
 import type * as copyBlocks from "../copyBlocks.js";
 import type * as effectIndexArchive from "../effectIndexArchive.js";
 import type * as effectIndexArticles from "../effectIndexArticles.js";
+import type * as http from "../http.js";
 import type * as indexLayouts from "../indexLayouts.js";
 import type * as lib_adminIntentTokens from "../lib/adminIntentTokens.js";
 import type * as lib_articleFieldWrites from "../lib/articleFieldWrites.js";
@@ -61,6 +62,7 @@ import type * as lib_substanceWriteHandlers from "../lib/substanceWriteHandlers.
 import type * as lib_tripReportAttribution from "../lib/tripReportAttribution.js";
 import type * as lib_tripReportEditing from "../lib/tripReportEditing.js";
 import type * as lib_validators from "../lib/validators.js";
+import type * as mailingList from "../mailingList.js";
 import type * as memberships from "../memberships.js";
 import type * as moleculeClassTemplates from "../moleculeClassTemplates.js";
 import type * as moleculeOverrides from "../moleculeOverrides.js";
@@ -100,6 +102,7 @@ declare const fullApi: ApiFromModules<{
   copyBlocks: typeof copyBlocks;
   effectIndexArchive: typeof effectIndexArchive;
   effectIndexArticles: typeof effectIndexArticles;
+  http: typeof http;
   indexLayouts: typeof indexLayouts;
   "lib/adminIntentTokens": typeof lib_adminIntentTokens;
   "lib/articleFieldWrites": typeof lib_articleFieldWrites;
@@ -142,6 +145,7 @@ declare const fullApi: ApiFromModules<{
   "lib/tripReportAttribution": typeof lib_tripReportAttribution;
   "lib/tripReportEditing": typeof lib_tripReportEditing;
   "lib/validators": typeof lib_validators;
+  mailingList: typeof mailingList;
   memberships: typeof memberships;
   moleculeClassTemplates: typeof moleculeClassTemplates;
   moleculeOverrides: typeof moleculeOverrides;
@@ -190,4 +194,6 @@ export declare const internal: FilterApi<
   FunctionReference<any, "internal">
 >;
 
-export declare const components: {};
+export declare const components: {
+  rateLimiter: import("@convex-dev/rate-limiter/_generated/component.js").ComponentApi<"rateLimiter">;
+};

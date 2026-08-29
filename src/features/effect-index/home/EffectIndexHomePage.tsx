@@ -10,6 +10,7 @@ import { icons } from "@/utils/iconNames";
 import { resolveRouteChromeIcon } from "@/utils/routeChromeIcons";
 import { FeaturedReplicationsPanel } from "./FeaturedReplicationsPanel";
 import { HomeIntro } from "./HomeIntro";
+import { MailingListPanel } from "./MailingListPanel";
 import {
   effectIndexHomePanelBlurb,
   type EffectIndexHomeCopy,
@@ -146,6 +147,8 @@ export function EffectIndexHomePage({
               />
             </a>
           </HomePanel>
+
+          <MailingListPanel />
 
           <HomePanel
             title="Substance Summaries"
