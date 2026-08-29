@@ -71,6 +71,8 @@ notes-and-plans/exports/
 # Data ops audit logs and backups (contain sensitive operation data)
 scripts/data/audit-logs/
 scripts/data/backups/
+# Regenerable R2 bucket inventory; retain migration ledgers, not the object manifest.
+/scripts/replications/data/r2-ledger/r2-manifest-after-copy.jsonl
 
 # Quote files (Convex-only, not bundled)
 quotes/
