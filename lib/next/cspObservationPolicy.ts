@@ -1,4 +1,5 @@
 import { SITE_FLAVOR, type SiteFlavor } from "../../src/config/siteFlavor";
+import { MAILING_LIST_API_ORIGIN } from "../../src/features/mailing-list/subscribe";
 import { isApprovedAnalyticsHost, POSTHOG_API_HOST } from "./analyticsHostPolicy";
 import { normalizeHost } from "./publicConstructionPolicy";
 
@@ -160,6 +161,12 @@ export function getBrowserSecurityHeaders({
     ...ICONIFY_API_SOURCES,
     // QuickAddReferenceCard resolves DOI and PMID metadata from these exact APIs.
     ...REFERENCE_METADATA_API_SOURCES,
+    // Both homepages' mailing-list signup posts to the deployment's Convex
+    // HTTP-actions origin (`.convex.site`, distinct from the `.convex.cloud`
+    // client origin above). Listed statically because the Effect Index
+    // deployment intentionally configures no Convex URL yet still hosts the
+    // signup form.
+    MAILING_LIST_API_ORIGIN,
     // PostHog posts events from the approved public hosts only. It runs with
     // `disable_external_dependency_loading`, so it never injects a remote script and needs no
     // `script-src` entry — this ingestion origin is the whole of its network surface.

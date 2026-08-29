@@ -143,8 +143,8 @@ describe("browser security response policy", () => {
       CSP_ENFORCEMENT_HEADER,
     );
 
-    expect(directiveValue(publicCsp, "connect-src")).toContain("https://us.i.posthog.com");
-    expect(lookalikeCsp).not.toContain("posthog");
+    expect(directiveValue(publicCsp, "connect-src")).toContain("/ingest");
+    expect(lookalikeCsp).not.toContain("/ingest");
   });
 
   it("keeps analytics out of the script policy on every host", () => {
@@ -191,6 +191,26 @@ describe("browser security response policy", () => {
     );
     expect(csp).not.toContain("*.convex.cloud");
     expect(csp).not.toContain("https://*");
+  });
+
+  it("always allows the mailing-list subscribe origin, even without a Convex URL", () => {
+    // The Effect Index deployment configures no Convex URL but hosts the
+    // signup form, so the HTTP-actions origin must not depend on it.
+    for (const convexUrl of [CONVEX_URL, null]) {
+      const csp = headerValue(
+        getBrowserSecurityHeaders({
+          host: "effectindex.com",
+          pathname: "/",
+          convexUrl,
+          isDevelopment: false,
+        }),
+        CSP_ENFORCEMENT_HEADER,
+      );
+
+      expect(directiveValue(csp, "connect-src")).toContain(
+        "https://glad-minnow-656.convex.site",
+      );
+    }
   });
 
   it("allows only the observed Iconify API redundancy endpoints", () => {

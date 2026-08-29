@@ -4,7 +4,9 @@
  * in the portal; the `list` value keeps each publication's signups on its own list, so
  * dose.wiki and Effect Index each hardcode their own value at their call site.
  */
-export const MAILING_LIST_SUBSCRIBE_URL = "https://glad-minnow-656.convex.site/subscribe";
+export const MAILING_LIST_API_ORIGIN = "https://glad-minnow-656.convex.site";
+
+export const MAILING_LIST_SUBSCRIBE_URL = `${MAILING_LIST_API_ORIGIN}/subscribe`;
 
 /** The two lists this repository's publications write to. */
 export type MailingList = "dosewiki" | "effectindex";
