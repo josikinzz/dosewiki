@@ -648,11 +648,13 @@ slug-level workbench queue status. It tags the first subsection-rollout cohort
 
 `citations:seed-subsection-tracker` merges that ledger into the dedicated
 subsection rollout tracker (default
-`~/.codex/dosewiki-citation-workbench/trackers/subsection-rollout.json`), with
-one row per viable uncited cohort `slug + section`. Rows carry frozen
-`originalContentHash` values for drift detection; reseeds preserve row
-statuses, flag live drift, and report rows that are no longer gaps without
-rewriting them. The slug-level citation queue is never modified.
+`~/.codex/dosewiki-citation-workbench/trackers/subsection-rollout.json`).
+By default it seeds the tagged first cohort; pass `--scope=public` to seed one
+row for every viable public `slug + section` gap across the six citable
+sections. Rows carry frozen `originalContentHash` values for drift detection;
+reseeds preserve row statuses, flag live drift, and report rows that are no
+longer gaps without rewriting them. The slug-level citation queue is never
+modified.
 
 `citations:update-subsection-status` transitions one tracker row
 (`--slug`/`--section`/`--status`, optional `--run-id`) through the rollout
@@ -670,17 +672,19 @@ linked-rerun guidance, and marker/gap coverage from immutable `pi-run-manifest.j
 and `citation-draft.json` files. It never starts workers, calls OpenRouter,
 modifies artifacts, applies a draft, writes Convex, or publishes content. Run
 manifests record resolved worker models but not requested tiers, so model-pin
-mismatches block a report while tier fidelity remains an explicit operator check.
-
+model-pin mismatches block a report while tier fidelity remains an explicit
+operator check.
 `citations:run-local-campaign` is the official sequential execution driver for an
 approved local-only subsection scope. It requires an explicit read-only
 `--source-url`, strips `TARGET_CONVEX_URL` and `VITE_CONVEX_URL` from child
 processes, rejects apply/write/confirmation arguments, and never imports the
-promotion adapter. It considers a run successful only when its immutable Pi
-manifest is finalized at `needs_review`; process exit code alone is never success.
-Existing partial runs are inspected stage-by-stage, accepted hash-matching section
-artifacts are preserved, and only the first incomplete reconciliation,
-article-wide, downstream, or finalization stage is resumed. `--dry-run` records a
+promotion adapter. Use `--tracker=<path>` with a custom public tracker and
+`--run-suffix=<unique-suffix>` when a fresh run namespace is required. It
+considers a run successful only when its immutable Pi manifest is finalized at
+`needs_review`; process exit code alone is never success. Existing partial runs
+are inspected stage-by-stage, accepted hash-matching section artifacts are
+preserved, and only the first incomplete reconciliation, article-wide,
+downstream, or finalization stage is resumed. With `--dry-run`, it records a
 plan without launching Pi or changing tracker state. Pass
 `--second-pass-plan=outputs/citation-second-pass-research-plan.json` to seed and
 use the independent `second-pass-rollout.json` tracker, protected

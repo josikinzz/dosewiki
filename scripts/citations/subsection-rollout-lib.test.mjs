@@ -222,6 +222,21 @@ describe("seedSubsectionTracker", () => {
     expect(skipKeys).toContain("2c-b:tolerance:skipped_empty");
     expect(report.added).toBe(3);
   });
+  it("can seed every public gap instead of only the tagged cohort", () => {
+    const { tracker, report } = seedSubsectionTracker({
+      audit: cohortAudit,
+      seededAt: "2026-07-19T01:00:00.000Z",
+      scope: "public",
+    });
+
+    const keys = tracker.items.map((item) => `${item.slug}:${item.section}`);
+    expect(keys).toEqual([
+      "4-aco-dipt:summary",
+      "4-aco-dipt:tolerance",
+      "2c-b:pharmacology",
+    ]);
+    expect(report.added).toBe(3);
+  });
 
   it("preserves existing row statuses on reseed and flags live drift", () => {
     const { tracker: first } = seedSubsectionTracker({

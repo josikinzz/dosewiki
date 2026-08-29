@@ -284,23 +284,33 @@ export function selectedSectionsFromTracker(tracker, slug) {
   return normalizeSectionList(rows.map((row) => row.section));
 }
 
-export function seedSubsectionTracker({ audit, existingTracker = null, seededAt }) {
+export function seedSubsectionTracker({
+  audit,
+  existingTracker = null,
+  seededAt,
+  scope = "cohort",
+}) {
   if (audit?.schemaVersion !== SUBSECTION_AUDIT_SCHEMA) {
     throw new Error("seedSubsectionTracker requires a subsection citation audit ledger.");
   }
   if (existingTracker && existingTracker.schemaVersion !== SUBSECTION_TRACKER_SCHEMA) {
     throw new Error(`Existing tracker has unsupported schema: ${existingTracker.schemaVersion}`);
   }
+  if (!["cohort", "public"].includes(scope)) {
+    throw new Error(`Unsupported subsection tracker scope "${scope}".`);
+  }
 
   const existingItems = new Map(
     (existingTracker?.items ?? []).map((item) => [`${item.slug}:${item.section}`, item]),
   );
-  const cohortArticles = audit.articles.filter((article) => article.inCohort);
+  const scopedArticles = scope === "public"
+    ? audit.articles
+    : audit.articles.filter((article) => article.inCohort);
   const gapKeys = new Set();
   const items = [];
   const skipped = [];
 
-  for (const article of cohortArticles) {
+  for (const article of scopedArticles) {
     for (const section of CITABLE_SECTIONS) {
       const entry = article.sections[section];
       const key = `${article.slug}:${section}`;

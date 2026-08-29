@@ -33,6 +33,7 @@ function parseOptions(argv) {
     dryRun: argv.includes("--dry-run"),
     audit: getFlagValue(argv, "--audit") ?? DEFAULT_AUDIT,
     tracker: getFlagValue(argv, "--tracker") ?? DEFAULT_TRACKER,
+    scope: getFlagValue(argv, "--scope") ?? "cohort",
   };
 }
 
@@ -41,14 +42,17 @@ function printHelp() {
 Seed the subsection citation rollout tracker from a refreshed audit ledger.
 
 Usage:
-  node scripts/citations/seed-subsection-rollout-tracker.mjs [--dry-run]
+  node scripts/citations/seed-subsection-rollout-tracker.mjs [--scope=cohort|public] [--dry-run]
 
 Options:
   --audit=<path>     Audit ledger from audit-subsection-citations.mjs
                      (default: ${DEFAULT_AUDIT})
   --tracker=<path>   Tracker output path (default: ${DEFAULT_TRACKER})
+  --scope=cohort|public
+                     Seed the tagged first cohort or every public gap
+                     (default: cohort)
   --dry-run          Print the merge report without writing the tracker
-  --help, -h         Show this help message
+  --help, -h         Show this message
 `);
 }
 
@@ -86,10 +90,14 @@ function main() {
     : null;
 
   const seededAt = new Date().toISOString();
+  if (!["cohort", "public"].includes(options.scope)) {
+    throw new Error(`Unsupported tracker scope "${options.scope}". Use cohort or public.`);
+  }
   const { tracker, report } = seedSubsectionTracker({
     audit,
     existingTracker,
     seededAt,
+    scope: options.scope,
   });
   tracker.sourceAudit.path = options.audit;
 

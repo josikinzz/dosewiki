@@ -210,9 +210,9 @@ function printHelp() {
     `Usage:\n` +
     `  npm run citations:run-local-campaign -- --slug=<slug> --source-url=https://<deployment>.convex.cloud\n` +
     `  npm run citations:run-local-campaign -- --all-ready --source-url=https://<deployment>.convex.cloud\n` +
-    `  npm run citations:run-local-campaign -- --all-ready --source-url=https://<deployment>.convex.cloud \\\n    --second-pass-plan=outputs/citation-second-pass-research-plan.json --second-pass-max-wave=3\n\n` +
-    `Second-pass mode seeds an independent tracker, freezes researchBrief scope into each task, and preserves confirmed negative outcomes. ` +
-    `The command never imports or invokes the citation apply path. Existing partial runs are resumed stage-by-stage.\n`);
+    `  npm run citations:run-local-campaign -- --all-ready --source-url=https://<deployment>.convex.cloud \\\n    --tracker=<path> --run-suffix=<unique-suffix>\n\n` +
+    `--run-suffix reserves fresh run IDs as <slug>-<unique-suffix>. ` +
+    `The campaign never imports or invokes the citation apply path. Existing partial runs are resumed stage-by-stage.\n`);
 }
 
 export function runLocalCampaign(argv = process.argv.slice(2)) {
@@ -288,7 +288,9 @@ export function runLocalCampaign(argv = process.argv.slice(2)) {
       workbench,
       slug,
       rows,
-      preferredRunId: secondPassScope?.researchBrief?.recommendedRunId ?? null,
+      preferredRunId: options.runSuffix
+        ? `${slug}-${options.runSuffix}`
+        : secondPassScope?.researchBrief?.recommendedRunId ?? null,
     });
     const runPath = resolve(workbench, "runs", runId);
     const logPath = resolve(logDir, `${runId}.log`);
@@ -311,7 +313,7 @@ export function runLocalCampaign(argv = process.argv.slice(2)) {
           try {
             const exportScopeArgs = secondPassPlanPath
               ? [`--second-pass-plan=${secondPassPlanPath}`, `--second-pass-max-wave=${secondPassMaxWave}`]
-              : ["--tracker-scope"];
+              : ["--tracker-scope", `--tracker=${trackerPath}`];
             runCommand("npm", ["run", "citations:export-workbench-task", "--", `--slug=${slug}`, ...exportScopeArgs, "--overwrite"], { cwd: repo, env, logPath });
             const exportedTask = readJson(resolve(workbench, "inputs", `${slug}-full.json`));
             if (JSON.stringify(exportedTask.selectedSections) !== JSON.stringify(selectedSections)) {
