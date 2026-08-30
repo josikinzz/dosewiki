@@ -17,20 +17,22 @@ describe("psychoactive index manual", () => {
     });
 
     const members = category?.sections.flatMap(({ drugs }) => drugs) ?? [];
-    expect(members).toHaveLength(44);
+    expect(members).toHaveLength(45);
     expect(members).toContain("pregabalin");
     expect(members).not.toContain("morphine");
   });
 
-  it("places requested high-priority substances in their intended sections", () => {
+  it("places every requested index substance in its intended section", () => {
     const expectedSections = {
       "2-fluorodeschloroketamine": ["dissociative", "arylcyclohexylamine"],
       "3-fa": ["stimulant", "amphetamine"],
-      clonazepam: ["gabaergic", "benzodiazepines"],
+      "4-aco-met": ["psychedelic", "tryptamine"],
+      clonazolam: ["gabaergic", "benzodiazepines"],
       desoxypipradrol: ["stimulant", "other-stimulants"],
       dexmethylphenidate: ["stimulant", "other-stimulants"],
       dihydrocodeine: ["opioid", "morphinan"],
       "f-phenibut": ["gabaergic", "gaba-analogues"],
+      mephedrone: ["stimulant", "cathinone"],
       methallylescaline: ["psychedelic", "scaline"],
       "o-desmethyltramadol": ["opioid", "other-opioids"],
     } as const;
