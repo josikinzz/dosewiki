@@ -390,7 +390,10 @@ export const SubjectiveEffectsSection = memo(function SubjectiveEffectsSection({
 
           return (
             <ArticleContributorAttribution
-              className="mt-4"
+              // The adornment's -mb-8 pulls the next sibling up into the pill's
+              // row; with the Replication Showcase streaming in below, that
+              // collides the pill with the showcase card, so cancel the pull.
+              className={replicationShowcaseSection ? "mt-4 mb-0" : "mt-4"}
               author={author}
               authorHref={contributorPath}
               avatarSrc={

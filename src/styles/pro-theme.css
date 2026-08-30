@@ -1474,6 +1474,10 @@ html[data-visual-style="pro"] .theme-appearance-popover {
   --theme-frosted-panel-border: var(--ei-chrome-border) !important;
   --theme-divider: var(--ei-chrome-border) !important;
   --theme-border-subtle: var(--ei-chrome-border) !important;
+  /* `hover:bg-dose-surface-muted` rows (colour-axis disclosures, Reset, Theme
+     Lab) hover inside this dark island; without this the light scheme's paper
+     value paints a near-white bar under on-dark ink. */
+  --theme-surface-muted: var(--ei-chrome-sunk) !important;
   --theme-toggle-pill-bg: var(--ei-chrome-sunk) !important;
 }
 

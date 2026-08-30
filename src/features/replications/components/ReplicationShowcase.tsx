@@ -584,6 +584,12 @@ export function ReplicationShowcase({
                     active.duration,
                   )}
                   playsInline
+                  // A non-looping work (no recorded duration, or 60s+) ends on
+                  // whatever its last frame is — often black. Drop back to the
+                  // poster + play state instead of sitting on the dead frame.
+                  onEnded={() => {
+                    setPlayOverride({ slug: active.slug, playing: false });
+                  }}
                   preload="none"
                   className="absolute inset-0 h-full w-full object-contain"
                 />
