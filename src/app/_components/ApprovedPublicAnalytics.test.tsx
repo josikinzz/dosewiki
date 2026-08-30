@@ -57,7 +57,7 @@ describe("ApprovedPublicAnalytics", () => {
       const [key, config] = init.mock.calls[0] as [string, Record<string, unknown>];
       expect(key).toBe("phc_test_key");
       expect(config).toMatchObject({
-        api_host: "https://us.i.posthog.com",
+        api_host: "/ingest",
         capture_pageview: "history_change",
         capture_pageleave: true,
         // A regression here would start collecting per-interaction or per-session detail

@@ -383,12 +383,8 @@ describe("middleware role policy adapter", () => {
     const publicResponse = await middleware(makePublicRequest("/"));
     const adminResponse = await middleware(makeRequest("/fentanyl"));
 
-    expect(publicResponse.headers.get("content-security-policy")).toContain(
-      "https://us.i.posthog.com",
-    );
-    expect(adminResponse.headers.get("content-security-policy")).not.toContain(
-      "posthog",
-    );
+    expect(publicResponse.headers.get("content-security-policy")).toContain("/ingest");
+    expect(adminResponse.headers.get("content-security-policy")).not.toContain("/ingest");
   });
 
   it("allows public dose.wiki static assets for the construction homepage", async () => {

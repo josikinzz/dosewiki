@@ -9,7 +9,7 @@ const APPROVED_ANALYTICS_HOSTS: Record<string, true> = {
 // so the editorial `/dev` surface, the admin host and Vercel previews stay free of analytics.
 // The project key is deployment-scoped rather than committed, which also keeps the
 // credential-free Effect Index deployment PostHog-free.
-export const POSTHOG_API_HOST = "https://us.i.posthog.com";
+export const POSTHOG_API_HOST = "/ingest";
 export const POSTHOG_UI_HOST = "https://us.posthog.com";
 
 /**
