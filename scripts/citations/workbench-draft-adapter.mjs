@@ -251,7 +251,7 @@ export function normalizeWorkbenchReference(reference) {
   };
 }
 
-function mergeReferences(existingReferences = [], draftReferences = []) {
+export function mergeReferences(existingReferences = [], draftReferences = []) {
   return mergeReferenceCollections(
     existingReferences,
     draftReferences.map(normalizeWorkbenchReference),

@@ -6,6 +6,7 @@ import { resolve } from "node:path";
 import {
   assertLocalOnlyCampaignArguments,
   buildStageAwareResumePrompt,
+  buildOmpCoordinatorArgs,
   chooseCampaignRunId,
   inspectRunStage,
 } from "./local-subsection-campaign.mjs";
@@ -55,6 +56,21 @@ describe("local subsection campaign hardening", () => {
     expect(prompt).toContain("docs/agents/pi-citation-run-contract.md");
     expect(prompt).toContain("preserve every accepted artifact");
     expect(prompt).toContain("Never apply a draft");
+    expect(prompt).toContain("named project agents citation-section-worker and citation-article-wide-worker directly");
+    expect(prompt).toContain("Coordinate exactly this one slug and run (example, example-repair)");
+    expect(prompt).toContain("do not invoke /opt/homebrew/bin/pi");
+    expect(prompt).toContain("finalized at needs_review");
+  });
+
+  it("invokes the authenticated OMP compatibility configuration noninteractively", () => {
+    expect(buildOmpCoordinatorArgs("coordinate one slug")).toEqual([
+      "--model", "openai-codex/gpt-5.6-terra",
+      "--thinking", "high",
+      "--approval-mode", "yolo",
+      "--max-time", "1h",
+      "-p",
+      "coordinate one slug",
+    ]);
   });
 
   it("keeps immutable research lanes explicit during second-pass recovery", () => {

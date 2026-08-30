@@ -2,20 +2,20 @@
 
 ## Scope
 
-- The active citation path is the repo-local Pi contract in `docs/agents/pi-citation-run-contract.md`, implemented under `tools/pi-citation-workflow/`.
+- The active citation path is the repo-local OMP-coordinated contract in `docs/agents/pi-citation-run-contract.md`, implemented under the compatibility-named `tools/pi-citation-workflow/`.
 - `/Users/josie/.codex/dosewiki-citation-workbench` stores run inputs, artifacts, and validation output. This repository owns export, adaptation, review, apply, and public rendering.
 - Use the external Claude workbench transport only when the user explicitly asks for that transport or for its queue orchestration.
 
 ## Start here
 
-- Read [the Pi citation run contract](pi-citation-run-contract.md) and [workflow guide](pi-citation-workflow.md).
+- Read [the OMP-coordinated citation run contract](pi-citation-run-contract.md) and [workflow guide](pi-citation-workflow.md).
 - Read [docs/citation-workbench-tracker.md](../citation-workbench-tracker.md) for project state and integration notes.
 - Use [scripts/README.md](../../scripts/README.md), especially "Formal citations," for script details.
 - The completed citation-author repair and provenance records are historical evidence. They live in [Historical citation-author repair evidence](#historical-citation-author-repair-evidence), outside the run sequence.
 
 ## Current project paths
 
-- Pi workflow implementation and agents: `tools/pi-citation-workflow/` and `.pi/agents/`
+- OMP-coordinated workflow implementation and named project agents: `tools/pi-citation-workflow/` and `.pi/agents/`
 - Workbench apply script and adapter: `scripts/citations/apply-workbench-draft.mjs` and `scripts/citations/workbench-draft-adapter.mjs`
 - Citation workflow scripts and tests: `scripts/citations/`
 - Citation reference identity helpers: `lib/citations/referenceIdentity.mjs`
@@ -26,11 +26,11 @@
 
 - Record a friction point only when a short instruction change could prevent it.
 - For the optional external Claude branch, record per-substance friction in [docs/citation-claude-friction-log.md](../citation-claude-friction-log.md). Keep this Codex-only file in this repository.
-- The Computer Use → ttyd transport and `terminal:claude` script are retired. Pi runs launch headlessly from this repository. External queue orchestration stays in the workbench `.codex/skills/cite` skill.
+- The Computer Use → ttyd transport, `terminal:claude` script, and standalone Pi executable are retired. Authenticated OMP runs launch headlessly from this repository and coordinate the named project agents directly. External queue orchestration stays in the workbench `.codex/skills/cite` skill.
 
 ## Transport branches
 
-- **Active Pi path:** Use this for an explicit substance slug or immutable local proposal unless the user explicitly chooses the external Claude branch. Invoke Pi with an explicit prompt to follow `docs/agents/pi-citation-run-contract.md` and `docs/agents/pi-citation-workflow.md`. It writes and validates artifacts in the external workbench without changing repository content or Convex.
+- **Active OMP path:** Use this for an explicit substance slug or immutable local proposal unless the user explicitly chooses the external Claude branch. Invoke authenticated `omp` noninteractively with the model/runtime flags and explicit coordinator prompt in `docs/agents/pi-citation-workflow.md`. OMP must use `citation-section-worker` and `citation-article-wide-worker` directly and must not shell out to `/opt/homebrew/bin/pi`. It writes and validates artifacts in the external workbench without changing repository content or Convex, and stops only at a finalized `needs_review` candidate.
 - **Optional external Claude branch:** Use this only when the user explicitly asks for the external Claude `/cite` transport or its queue orchestration. Read `/Users/josie/.codex/dosewiki-citation-workbench/CLAUDE.md` and the workbench `.codex/skills/cite` skill. Keep Claude inside the workbench; scaffold any outside data before launch. Keep repository orchestration, apply, deploy, and handoff details out of Claude-visible instructions.
 - **Apply branch:** Enter this only after a reviewed, apply-bound live-task draft exists and the user explicitly asks to write it. Local-proposal drafts can never enter this branch.
 
@@ -51,10 +51,10 @@
 - Writes use the shared data-ops confirmation flow and require `--write --confirm-citation-write`.
 - Leave generated files in `convex/_generated/` and `src/data/schema/*.generated.ts` to their generators.
 
-## Pi workflow contract
+## OMP-coordinated workflow contract
 
 - `docs/agents/pi-citation-run-contract.md`, `tools/pi-citation-workflow/`, and the named agents in `.pi/agents/` own the active workflow. Follow the contract instead of copying its internal gates into this file.
-- Pi workers signal completion with a schema-validated handoff. `check-section`, `article_wide_check`, and `scripts/artifact-contract.mjs` decide whether an artifact is accepted.
+- OMP-launched workers signal completion with a schema-validated handoff. `check-section`, `article_wide_check`, and `scripts/artifact-contract.mjs` decide whether an artifact is accepted.
 - `pi-run-manifest.mjs run-sequence` owns reconciliation. A corrective finalized attempt uses `rerun --reuse-sections`; only accepted artifacts with matching recorded hashes carry forward.
 - Discovery history may appear only at top-level `metadata.discoveryProvenance` in JSON and in one exact `## Discovery provenance` report section. Public marked prose, references, evidence, and patches remain fail-closed.
 
@@ -90,7 +90,7 @@ Run every repository command from the DoseWiki repository root. Use one slug per
    npm --prefix /Users/josie/.codex/dosewiki-citation-workbench run cache:psychonautwiki:local
    ```
 
-   For an immutable local proposal, skip export and `fresh-run`; prepare it with `tools/pi-citation-workflow/prepare-local-proposal-run.mjs`, then invoke Pi with an explicit prompt naming the returned run and the Pi citation run contract. That draft remains permanently local and review-only.
+   For an immutable local proposal, skip export and `fresh-run`; prepare it with `tools/pi-citation-workflow/prepare-local-proposal-run.mjs`, then invoke OMP with an explicit prompt naming the returned run and the OMP-coordinated citation contract. That draft remains permanently local and review-only.
 
    For an approved second pass, use the immutable plan:
 
@@ -107,15 +107,15 @@ Run every repository command from the DoseWiki repository root. Use one slug per
    The task's `researchBrief` controls source order and negative-search completion. Tolerance and Deschloroketamine remain excluded; a second pass does not permit analogue inference or automatic production apply.
 
 2. Choose one transport:
-   - Active Pi path:
+   - Active OMP path:
 
      ```bash
-     command /opt/homebrew/bin/pi -p "Run the Pi citation workflow for <drug-slug>. Follow docs/agents/pi-citation-run-contract.md and docs/agents/pi-citation-workflow.md." </dev/null
+     command omp --model openai-codex/gpt-5.6-terra --thinking high --approval-mode yolo --max-time 1h -p "Act as the authenticated Oh My Pi coordinator for exactly one citation target: <drug-slug>. Follow docs/agents/pi-citation-run-contract.md and docs/agents/pi-citation-workflow.md. Use the named project agents citation-section-worker and citation-article-wide-worker directly; do not invoke /opt/homebrew/bin/pi or any standalone Pi subprocess. Produce only a finalized needs_review workbench candidate; never apply, deploy, or write Convex." </dev/null
      ```
 
-   - Optional external Claude branch: enter only for an explicit request for the external Claude `/cite` transport or its queue orchestration. Run it inside `/Users/josie/.codex/dosewiki-citation-workbench` under its `CLAUDE.md` and `.codex/skills/cite` instructions. Do not run Pi and Claude against the same attempt.
+   - Optional external Claude branch: enter only for an explicit request for the external Claude `/cite` transport or its queue orchestration. Run it inside `/Users/josie/.codex/dosewiki-citation-workbench` under its `CLAUDE.md` and `.codex/skills/cite` instructions. Do not run OMP and Claude against the same attempt.
 
-3. Verify the selected transport completed the same artifact contract. `runs/<drug-slug>/citation-draft.json` and `citation-report.md` must exist; both workbench validators must pass; a Pi run must also have a finalized `pi-run-manifest.json` with outcome `needs_review`:
+3. Verify the selected transport completed the same artifact contract. `runs/<drug-slug>/citation-draft.json` and `citation-report.md` must exist; both workbench validators must pass; an OMP-coordinated run must also have a finalized `pi-run-manifest.json` with outcome `needs_review`:
 
    ```bash
    npm --prefix /Users/josie/.codex/dosewiki-citation-workbench run validate -- --run runs/<drug-slug>

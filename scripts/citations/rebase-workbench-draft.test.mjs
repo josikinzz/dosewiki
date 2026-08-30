@@ -180,6 +180,54 @@ test("scoped rebase transplants unchanged selected fields and keeps live edits",
   assert.deepEqual(rebasedDraft.references.map((reference) => reference.id), ["ref-a"]);
 });
 
+test("rebase excludes markers from canonical legality statuses", () => {
+  const draft = {
+    citationMode: "marker_only",
+    markedSections: {
+      legality: {
+        countries: {
+          Canada: {
+            canonicalStatus: "prescription_only[cite:ref-a]",
+            notes: "Prescription medicine.[cite:ref-b]",
+          },
+        },
+      },
+    },
+    evidence: [
+      { status: "supported", fieldPath: "legality.countries.Canada.canonicalStatus", referenceIds: ["ref-a"] },
+      { status: "supported", fieldPath: "legality.countries.Canada.notes", referenceIds: ["ref-b"] },
+    ],
+    references: [{ id: "ref-a" }, { id: "ref-b" }],
+    sources: [],
+  };
+  const article = {
+    legality: {
+      countries: {
+        Canada: {
+          canonicalStatus: "prescription_only",
+          notes: "Prescription medicine.",
+        },
+      },
+    },
+  };
+
+  const { rebasedDraft, report } = rebaseWorkbenchDraft({ draft, article });
+
+  assert.equal(rebasedDraft.markedSections.legality.countries.Canada.canonicalStatus, "prescription_only");
+  assert.equal(rebasedDraft.markedSections.legality.countries.Canada.notes, "Prescription medicine.[cite:ref-b]");
+  assert.deepEqual(
+    rebasedDraft.evidence.filter((row) => row.status === "supported").map((row) => row.fieldPath),
+    ["legality.countries.Canada.notes"],
+  );
+  assert.deepEqual(rebasedDraft.references.map((reference) => reference.id), ["ref-b"]);
+  assert.deepEqual(report.dropped, [{
+    section: "legality",
+    fieldPath: "legality.countries.Canada.canonicalStatus",
+    markerIds: ["ref-a"],
+    reason: "non_markerable_field",
+  }]);
+});
+
 test("scoped rebase rejects marked sections outside selectedSections", () => {
   const draft = {
     citationMode: "marker_only",
@@ -197,4 +245,26 @@ test("scoped rebase rejects marked sections outside selectedSections", () => {
     () => rebaseWorkbenchDraft({ draft, article }),
     /not in selectedSections/,
   );
+});
+
+test("rebase preserves live markers without adding an equivalent draft marker", () => {
+  const draft = {
+    citationMode: "marker_only",
+    markedSections: {
+      summary: "A drug.[cite:draft-ref]",
+    },
+    evidence: [],
+    references: [{ id: "draft-ref", url: "https://example.test/reference" }],
+    sources: [],
+  };
+  const article = {
+    summary: "A drug.[cite:live-ref]",
+    references: [{ id: "live-ref", url: "https://example.test/reference" }],
+  };
+
+  const { rebasedDraft, report } = rebaseWorkbenchDraft({ draft, article });
+
+  assert.equal(rebasedDraft.markedSections.summary, "A drug.[cite:live-ref]");
+  assert.equal(report.preservedExistingMarkerCount, 1);
+  assert.equal(report.transplantedMarkerCount, 0);
 });

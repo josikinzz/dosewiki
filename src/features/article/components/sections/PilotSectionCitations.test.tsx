@@ -150,6 +150,17 @@ describe("pilot section public citations", () => {
   it("renders an explicit legality designation badge while preserving legacy badges", () => {
     const article = {
       ...createEmptyArticle(),
+      references: [
+        {
+          id: "designation-ref",
+          type: "webpage" as const,
+          title: "Designation Ref",
+          authors: [],
+          url: "https://example.test/designation",
+          sourceType: "unknown" as const,
+          quality: "fallback" as const,
+        },
+      ],
       legality: {
         international: [],
         countries: {
@@ -157,7 +168,7 @@ describe("pilot section public citations", () => {
             status: "Schedule III",
             canonicalStatus: "prohibited",
             instrument: "Controlled Drugs and Substances Act (CDSA), Schedule III",
-            designation: "Schedule III (CDSA)",
+            designation: "Schedule III (CDSA)[cite:designation-ref]",
             notes: "Prohibited under national law.",
           },
           "United States": {
@@ -176,6 +187,8 @@ describe("pilot section public citations", () => {
     const designationBadge = screen.getByText("Schedule III (CDSA)");
     expect(designationBadge).toHaveAttribute("data-badge-tone", "gray");
     expect(designationBadge).toHaveClass("font-mono");
+    expect(within(designationBadge).getByRole("link", { name: "Citation 1" })).toBeInTheDocument();
+    expect(designationBadge).not.toHaveTextContent("[cite:");
     expect(screen.getByTestId("legality-instrument-citation")).toHaveTextContent(
       "Controlled Drugs and Substances Act (CDSA), Schedule III",
     );

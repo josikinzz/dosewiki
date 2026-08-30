@@ -1,19 +1,21 @@
-# Pi-native citation workflow
+# OMP-coordinated citation workflow
 
 ## Purpose
 
-The repository-owned Pi citation contract replaces the previous Codex Browser → Claude Code transport. It supports one explicit substance slug or one immutable local section proposal through `--proposal`. Both modes create a marker-only citation draft in the existing external workbench and stop at `needs_review`.
+The repository-owned citation contract replaces the previous Codex Browser → Claude Code transport. Authenticated Oh My Pi (`omp`) coordinates one explicit substance slug or one immutable local section proposal through `--proposal`. Both modes create a marker-only citation draft in the existing external workbench and stop at `needs_review`.
 
 It does not apply a draft to Convex, deploy, select a queue item, or continue to another drug.
 
 ## Entry point
 
 ```bash
-/opt/homebrew/bin/pi -p "Run the Pi citation workflow for 2c-b. Follow docs/agents/pi-citation-run-contract.md and docs/agents/pi-citation-workflow.md."
-/opt/homebrew/bin/pi -p "Run the Pi citation workflow for --proposal notes-and-plans/exports/batch-proposals/<slug>/<section>/<artifact>/proposal.json. Follow docs/agents/pi-citation-run-contract.md and docs/agents/pi-citation-workflow.md."
+omp --model openai-codex/gpt-5.6-terra --thinking high --approval-mode yolo --max-time 1h -p "Act as the authenticated Oh My Pi coordinator for exactly one citation target: 2c-b. Follow docs/agents/pi-citation-run-contract.md and docs/agents/pi-citation-workflow.md. Use the named project agents citation-section-worker and citation-article-wide-worker directly; do not invoke /opt/homebrew/bin/pi or any standalone Pi subprocess. Produce only a finalized needs_review workbench candidate; never apply, deploy, or write Convex."
+omp --model openai-codex/gpt-5.6-terra --thinking high --approval-mode yolo --max-time 1h -p "Act as the authenticated Oh My Pi coordinator for exactly one citation target: --proposal notes-and-plans/exports/batch-proposals/<slug>/<section>/<artifact>/proposal.json. Follow docs/agents/pi-citation-run-contract.md and docs/agents/pi-citation-workflow.md. Use the named project agents citation-section-worker and citation-article-wide-worker directly; do not invoke /opt/homebrew/bin/pi or any standalone Pi subprocess. Produce only a finalized needs_review workbench candidate; never apply, deploy, or write Convex."
 ```
 
 Exactly one slug or proposal path is mandatory and is the sole target for that invocation. The workflow never infers a target from queue order, prior messages, or a run directory.
+
+Run `omp` from the DoseWiki repository root so it discovers the project-owned agent definitions. The authenticated OMP process is the sole coordinator: it launches `citation-section-worker` and `citation-article-wide-worker` through OMP's agent runtime and must not shell out to the obsolete standalone Pi executable. The model, thinking, approval, and time-limit flags above are the compatibility settings proven by the finalized mephedrone run.
 
 The run-manifest, campaign, proposal-preparation, and handoff-schema implementation lives at:
 
@@ -54,9 +56,9 @@ The migration changes the orchestrator, not the citation-data contract:
 - Existing deterministic workbench checks remain authoritative.
 - A human may separately promote an apply-bound live-task draft through the normal main-repo dry-run/write procedure; local-proposal drafts are never eligible.
 
-## Pi-specific audit trail
+## OMP coordination audit trail
 
-The Pi coordinator creates `runs/<run-id>/pi-run-manifest.json`. It records:
+The OMP coordinator creates the compatibility-named `runs/<run-id>/pi-run-manifest.json`. It records:
 
 - separate run ID and article slug, task digest, and task provenance;
 - local proposal binding and proposal-input hashes at every gate when applicable;
@@ -68,7 +70,7 @@ The Pi coordinator creates `runs/<run-id>/pi-run-manifest.json`. It records:
 
 The manifest does not contain article content and does not replace workbench artifacts. It replaces the old requirement to inspect Claude Code UI worker labels with a reviewable file-level audit trail. Its `check-section` and `run-gate` commands execute the existing workbench checks, store their run-local transcripts, and invalidate downstream gates when their scoped artifacts change; they do not accept a model's claimed pass result.
 
-`allowLiveWebResearch` comes from the task packet and is recorded in the manifest. When false, Pi workers must not browse for sources and must preserve unsupported claims as internal gaps. Article-wide sanitization strips structured discovery-only/wiki metadata (including prior-work records). The helper then fails closed if any final local review surface — `article-wide.json`, assembled `citation-draft.json`, or human-facing `citation-report.md` — contains Wikipedia, PsychonautWiki, TripSit, or other forbidden discovery/wiki residue in metadata, audit/research notes, or report prose. Corrective diagnostics remain in run-local `pi-gates` logs rather than final artifacts. Once finalized, the helper's mutation commands reject the run.
+`allowLiveWebResearch` comes from the task packet and is recorded in the manifest. When false, OMP-launched workers must not browse for sources and must preserve unsupported claims as internal gaps. Article-wide sanitization strips structured discovery-only/wiki metadata (including prior-work records). The helper then fails closed if any final local review surface — `article-wide.json`, assembled `citation-draft.json`, or human-facing `citation-report.md` — contains Wikipedia, PsychonautWiki, TripSit, or other forbidden discovery/wiki residue in metadata, audit/research notes, or report prose. Corrective diagnostics remain in run-local `pi-gates` logs rather than final artifacts. Once finalized, the helper's mutation commands reject the run.
 
 Run its helper directly only when coordinating a citation run:
 
@@ -90,11 +92,11 @@ node "$MANIFEST" rerun --run "$RUN" --workbench "$WORKBENCH" \
 
 The new atomically reserved `--correction-<uuid>` run records the superseded run, immutable parent task/manifest digests, finalization time, and reason in its own manifest; the original run is preserved unchanged.
 
-See [the Pi citation run contract](pi-citation-run-contract.md) for the required execution order and all gates.
+See [the OMP-coordinated citation run contract](pi-citation-run-contract.md) for the required execution order and all gates.
 
 ## Read-only campaign manifest
 
-For a human-approved set of slug/section targets, use the project-local campaign CLI to lock scope and the requested model/tier, then derive a deterministic report from existing immutable Pi run manifests:
+For a human-approved set of slug/section targets, use the project-local campaign CLI to lock scope and the requested model/tier, then derive a deterministic report from existing immutable, compatibility-named OMP run manifests:
 
 ```bash
 npm run citations:campaign -- init \
@@ -109,4 +111,4 @@ npm run citations:campaign -- status \
   --campaign notes-and-plans/citation-campaigns/pilot.json --format json
 ```
 
-The campaign file is create-once: its approved slug/section scope, workbench path, model, and tier cannot be overwritten by the CLI. `status` is read-only and reports `pending`, `running`, `needs_review`, `blocked`, and `superseded` attempts; marker/gap coverage; immutable attempt IDs; and safe resume/retry guidance. It counts coverage only when `citation-draft.json` matches the finalized manifest's final-review hash; missing or mismatched drafts are blocked and contribute zero. It never runs Pi workers, uses OpenRouter, invokes `fresh-run`, writes Convex, applies a draft, or publishes content. Existing run manifests record resolved worker models but not the requested tier, so the report checks the model pin and labels tier fidelity as an operator-attested limitation.
+The campaign file is create-once: its approved slug/section scope, workbench path, model, and tier cannot be overwritten by the CLI. `status` is read-only and reports `pending`, `running`, `needs_review`, `blocked`, and `superseded` attempts; marker/gap coverage; immutable attempt IDs; and safe resume/retry guidance. It counts coverage only when `citation-draft.json` matches the finalized manifest's final-review hash; missing or mismatched drafts are blocked and contribute zero. It never launches OMP-coordinated workers, uses OpenRouter, invokes `fresh-run`, writes Convex, applies a draft, or publishes content. Existing run manifests record resolved worker models but not the requested tier, so the report checks the model pin and labels tier fidelity as an operator-attested limitation.

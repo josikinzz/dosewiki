@@ -27,6 +27,13 @@ const TERMINAL_SECTION_STATUSES = new Set([
 ]);
 const FINAL_GATES = ["article_wide_check", "assemble_draft", "validate", "validate_patches", "final_review_surface_scan"];
 const FORBIDDEN_ARGUMENTS = /(?:^|:|-)apply|--write|confirm-citation-write|confirm-write/i;
+const OMP_COORDINATOR_ARGS = [
+  "--model", "openai-codex/gpt-5.6-terra",
+  "--thinking", "high",
+  "--approval-mode", "yolo",
+  "--max-time", "1h",
+  "-p",
+];
 
 function now() {
   return new Date().toISOString();
@@ -93,8 +100,10 @@ export function inspectRunStage({ manifest = null, runFiles = {} } = {}) {
 
 export function buildStageAwareResumePrompt({ slug, runId, stage, researchPass = null }) {
   const common = [
-    `Resume the Pi citation workflow for ${slug} using existing run ${runId}. Follow docs/agents/pi-citation-run-contract.md and docs/agents/pi-citation-workflow.md.`,
-    "Execute synchronously with the named Pi citation agents; do not launch functions.workflow or an asynchronous/resumable wrapper.",
+    `Resume the OMP-coordinated citation workflow for ${slug} using existing run ${runId}. Follow docs/agents/pi-citation-run-contract.md and docs/agents/pi-citation-workflow.md.`,
+    `Coordinate exactly this one slug and run (${slug}, ${runId}); do not select or continue to any other slug.`,
+    "Act as the authenticated Oh My Pi coordinator. Use the named project agents citation-section-worker and citation-article-wide-worker directly; do not invoke /opt/homebrew/bin/pi or any standalone Pi subprocess.",
+    "Execute synchronously; do not launch functions.workflow or an asynchronous/resumable wrapper.",
     "Treat pi-run-manifest.json as authoritative, preserve every accepted artifact whose recorded SHA-256 still matches, and never repeat completed research.",
     ...(researchPass === "second" ? ["This is a second-pass task: follow the immutable researchBrief lanes in citation-task.json, log exact query/source outcomes, and accept confirmed_needs_source only after every prescribed lane is exhausted."] : []),
     "Continue only until the manifest is finalized at needs_review or one deterministic blocker is recorded.",
@@ -110,6 +119,10 @@ export function buildStageAwareResumePrompt({ slug, runId, stage, researchPass =
     finalize: "All deterministic gates passed. Verify current snapshots and finalize without modifying artifacts.",
   }[stage.stage] ?? "Resume from the first incomplete manifest stage.";
   return [...common, stageInstruction].join(" ");
+}
+
+export function buildOmpCoordinatorArgs(prompt) {
+  return [...OMP_COORDINATOR_ARGS, prompt];
 }
 
 function runCommand(command, args, { cwd, env, logPath = null, check = true } = {}) {
@@ -212,7 +225,7 @@ function printHelp() {
     `  npm run citations:run-local-campaign -- --all-ready --source-url=https://<deployment>.convex.cloud\n` +
     `  npm run citations:run-local-campaign -- --all-ready --source-url=https://<deployment>.convex.cloud \\\n    --tracker=<path> --run-suffix=<unique-suffix>\n\n` +
     `--run-suffix reserves fresh run IDs as <slug>-<unique-suffix>. ` +
-    `The campaign never imports or invokes the citation apply path. Existing partial runs are resumed stage-by-stage.\n`);
+    `The campaign invokes authenticated OMP as the coordinator and never imports or invokes the citation apply path. Existing partial runs are resumed stage-by-stage.\n`);
 }
 
 export function runLocalCampaign(argv = process.argv.slice(2)) {
@@ -236,7 +249,7 @@ export function runLocalCampaign(argv = process.argv.slice(2)) {
   const logDir = options.logDir
     ? resolve(options.logDir)
     : resolve(workbench, secondPassPlan ? "campaigns/second-pass-logs" : "campaigns/local-subsection-logs");
-  const pi = options.pi ?? "/opt/homebrew/bin/pi";
+  const omp = options.omp ?? "omp";
   const maxAttempts = Math.max(1, Number(options.maxAttempts ?? 1));
   const preparationAttempts = Math.max(1, Number(options.preparationAttempts ?? 3));
   const preparationBackoffSeconds = Math.max(0, Number(options.preparationBackoffSeconds ?? 60));
@@ -367,7 +380,7 @@ export function runLocalCampaign(argv = process.argv.slice(2)) {
           stage: currentStage,
           researchPass: secondPassPlan ? "second" : null,
         });
-        runCommand(pi, ["-p", prompt], { cwd: repo, env, logPath, check: false });
+        runCommand(omp, buildOmpCoordinatorArgs(prompt), { cwd: repo, env, logPath, check: false });
         const after = manifestAndFiles(runPath);
         finalized = inspectRunStage({ manifest: after.manifest, runFiles: after.files }).stage === "finalized";
         if (finalized) break;

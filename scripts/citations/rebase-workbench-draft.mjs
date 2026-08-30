@@ -16,7 +16,7 @@ import { readFileSync, writeFileSync } from "node:fs";
 import { ConvexHttpClient } from "convex/browser";
 import { api } from "../../convex/_generated/api.js";
 import { stripCitationMarkers } from "./citation-only-validator.mjs";
-import { normalizeSelectedSections } from "./workbench-draft-adapter.mjs";
+import { mergeReferences, normalizeSelectedSections } from "./workbench-draft-adapter.mjs";
 import {
   createDataOpsRunContext,
   getFlagValue,
@@ -102,11 +102,12 @@ function markerPlacements(text) {
   });
 }
 
-function markerPlacementIdentity(placement) {
-  return `${placement.anchorIndex}\u0000${placement.marker}`;
+function markerPlacementIdentity(placement, referenceAliases = new Map()) {
+  const [referenceId] = markerIds(placement.marker);
+  return `${placement.anchorIndex}\u0000${referenceAliases.get(referenceId) ?? referenceId}`;
 }
 
-export function mergeCitationMarkers(liveText, draftText) {
+export function mergeCitationMarkers(liveText, draftText, referenceAliases = new Map()) {
   const plainText = stripCitationMarkers(liveText);
   if (plainText !== stripCitationMarkers(draftText)) {
     throw new Error("Cannot merge citation markers when live and draft prose differ.");
@@ -116,14 +117,14 @@ export function mergeCitationMarkers(liveText, draftText) {
   const mergedPlacements = [...livePlacements];
   const liveCounts = new Map();
   for (const placement of livePlacements) {
-    const identity = markerPlacementIdentity(placement);
+    const identity = markerPlacementIdentity(placement, referenceAliases);
     liveCounts.set(identity, (liveCounts.get(identity) ?? 0) + 1);
   }
 
   const seenDraftCounts = new Map();
   let transplantedMarkerCount = 0;
   for (const placement of markerPlacements(draftText)) {
-    const identity = markerPlacementIdentity(placement);
+    const identity = markerPlacementIdentity(placement, referenceAliases);
     const draftCount = (seenDraftCounts.get(identity) ?? 0) + 1;
     seenDraftCounts.set(identity, draftCount);
     if (draftCount <= (liveCounts.get(identity) ?? 0)) continue;
@@ -161,6 +162,12 @@ const clone = (value) => (value === undefined ? undefined : JSON.parse(JSON.stri
 // volume/issue/pages. Any code path that writes references into a draft the
 // apply step will consume must run them through this first.
 const ALLOWED_TEMPLATES = new Set(["cite_journal", "cite_book", "cite_web", "cite_report", "cite_database", "unknown"]);
+// Canonical status is a schema enum, not reader-facing prose. Citation markers
+// would change its stored value and make the entire article fail ingestion.
+function isMarkerWritableField(sectionKey, path) {
+  return !(sectionKey === "legality" && /(^|\.)countries\.[^.]+\.canonicalStatus$/.test(path));
+}
+
 export function sanitizeReference(reference) {
   const sanitized = { ...reference };
   if (sanitized.template != null && !ALLOWED_TEMPLATES.has(sanitized.template)) {
@@ -177,6 +184,7 @@ export function rebaseWorkbenchDraft({ draft, article }) {
     throw new Error("Rebase supports marker_only drafts with markedSections only.");
   }
   const selected = normalizeSelectedSections(draft);
+  const referenceAliases = mergeReferences(article?.references ?? [], draft.references ?? []).remap;
 
   const rebasedSections = {};
   const transplanted = [];
@@ -207,11 +215,19 @@ export function rebaseWorkbenchDraft({ draft, article }) {
     let kept = 0;
     for (const { path, text } of candidates) {
       const liveValue = path === "" ? liveSection : getAtPath(liveSection, parsePath(path));
-      if (
+      const fieldPath = path ? `${sectionKey}.${path}` : sectionKey;
+      if (!isMarkerWritableField(sectionKey, path)) {
+        dropped.push({
+          section: sectionKey,
+          fieldPath,
+          markerIds: markerIds(text),
+          reason: "non_markerable_field",
+        });
+      } else if (
         typeof liveValue === "string"
         && stripCitationMarkers(text) === stripCitationMarkers(liveValue)
       ) {
-        const merged = mergeCitationMarkers(liveValue, text);
+        const merged = mergeCitationMarkers(liveValue, text, referenceAliases);
         if (path === "") {
           rebased = merged.text;
         } else {
@@ -220,14 +236,14 @@ export function rebaseWorkbenchDraft({ draft, article }) {
         kept += 1;
         transplanted.push({
           section: sectionKey,
-          fieldPath: path ? `${sectionKey}.${path}` : sectionKey,
+          fieldPath,
           markerCount: merged.transplantedMarkerCount,
           preservedExistingMarkerCount: merged.preservedExistingMarkerCount,
         });
       } else {
         dropped.push({
           section: sectionKey,
-          fieldPath: path ? `${sectionKey}.${path}` : sectionKey,
+          fieldPath,
           markerIds: markerIds(text),
           reason: typeof liveValue === "string" ? "live_text_changed" : "live_field_missing",
         });

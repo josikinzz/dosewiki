@@ -326,9 +326,9 @@ function LegalityBadges({
         <span
           className={cn(BADGE_BASE, sizeClasses.designation)}
           data-badge-tone="gray"
-          title={designation}
+          title={stripCitationTokens(designation)}
         >
-          {designation}
+          <CitedText text={designation} article={article} />
         </span>
       )}
       {info.citationNeeded && (
