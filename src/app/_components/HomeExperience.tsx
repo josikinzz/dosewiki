@@ -300,11 +300,11 @@ export function HomeExperience({
 
           {/* Nothing is under construction any more - the site behind this page is built,
               and reachable under `/preview`. What is left to say is when it opens, so the
-              pill is one line: the words and the clock counting to them. It sits under
-              the tiles because they are what the page is for; the launch date is a
-              footnote to them, not a warning above them. */}
+              line free-floats: the words and the clock counting to them, no pill around
+              them. It sits under the tiles because they are what the page is for; the
+              launch date is a footnote to them, not a warning above them. */}
           {isConstructionMode && (
-            <div className="theme-home-construction-banner mt-8 inline-flex items-baseline gap-2.5 rounded-full border px-5 py-2.5 font-display leading-none">
+            <div className="theme-home-construction-banner mt-8 inline-flex items-baseline gap-2.5 font-display leading-none">
               <span className="text-sm font-semibold italic normal-case tracking-wide sm:text-base">
                 {copy?.constructionSubtitle || "coming soon"}
               </span>

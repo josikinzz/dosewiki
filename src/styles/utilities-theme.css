@@ -1435,35 +1435,10 @@ html[data-theme="light"] .theme-home-nav-icon {
   white-space: nowrap;
 }
 
+/* Free-floating: the line is amber text alone, no pill chrome. The theme-aware
+     text color is the class's whole job now. */
 .theme-home-construction-banner {
   color: var(--theme-construction-banner-text);
-  border-color: rgba(251, 191, 36, 0.26);
-  background:
-    radial-gradient(
-      circle at 18% 0%,
-      rgba(251, 191, 36, 0.14),
-      transparent 42%
-    ),
-    color-mix(in srgb, var(--theme-surface-strong) 78%, var(--theme-body-bg));
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.08),
-    0 18px 34px -30px rgba(251, 191, 36, 0.45);
-  backdrop-filter: blur(14px);
-}
-
-html[data-theme="light"] .theme-home-construction-banner {
-  color: var(--theme-construction-banner-text);
-  border-color: oklch(76% 0.14 82 / 0.28);
-  background:
-    radial-gradient(
-      circle at 18% 0%,
-      oklch(88% 0.14 88 / 0.22),
-      transparent 42%
-    ),
-    rgba(255, 255, 255, 0.78);
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.92),
-    0 18px 34px -30px oklch(64% 0.16 78 / 0.38);
 }
 
 /* The clock reads as the banner's quiet second voice: the amber banner text at reduced
@@ -2532,14 +2507,11 @@ html[data-theme="light"] .theme-search-highlight-mark {
 
 .theme-header-nav-link {
   color: var(--theme-text-muted);
-  transition:
-    background-color 180ms ease,
-    color 180ms ease;
+  transition: color 180ms ease;
 }
 
 @media (hover: hover) {
   .theme-header-nav-link:hover {
-    background-color: var(--theme-field-on-chrome-surface);
     color: var(--theme-text-primary);
   }
 }
