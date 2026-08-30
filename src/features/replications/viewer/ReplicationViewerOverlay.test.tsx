@@ -20,6 +20,11 @@ import { ReplicationViewerOverlay } from "./ReplicationViewerOverlay";
 import type { ReplicationViewerCollection } from "./viewerModel";
 import { EDITOR_HINT_STORAGE_KEY } from "@/lib/auth/editorHint";
 
+const transportVerbs = vi.hoisted(() => ({
+  togglePlayback: vi.fn(),
+  toggleMuted: vi.fn(),
+}));
+
 vi.mock("./ReplicationMediaStage", () => ({
   ReplicationMediaStage: ({
     item,
@@ -37,6 +42,7 @@ vi.mock("./ReplicationMediaStage", () => ({
     fullscreenLabel,
     previousLabel,
     nextLabel,
+    onTransportHandle,
   }: {
     item: { replication: { title: string; type: "image" | "video" } };
     muted: boolean;
@@ -53,77 +59,90 @@ vi.mock("./ReplicationMediaStage", () => ({
     fullscreenLabel: string;
     previousLabel: string;
     nextLabel: string;
-  }) => (
-    <div
-      data-testid="media-stage"
-      data-replication-media-stage
-      data-title={item.replication.title}
-    >
-      {item.replication.type === "video" ? (
-        <video>
-          <track
-            kind="captions"
-            src="data:text/vtt,WEBVTT"
-            srcLang="en"
-            label="English"
+    onTransportHandle?: (
+      handle: {
+        togglePlayback: () => void;
+        toggleMuted: () => void;
+      } | null,
+    ) => void;
+  }) => {
+    // Render-time registration mirrors the real stage's effect closely
+    // enough for shortcut plumbing tests: video works get verbs, stills none.
+    onTransportHandle?.(
+      item.replication.type === "video" ? transportVerbs : null,
+    );
+    return (
+      <div
+        data-testid="media-stage"
+        data-replication-media-stage
+        data-title={item.replication.title}
+      >
+        {item.replication.type === "video" ? (
+          <video>
+            <track
+              kind="captions"
+              src="data:text/vtt,WEBVTT"
+              srcLang="en"
+              label="English"
+            />
+          </video>
+        ) : (
+          <button
+            type="button"
+            data-replication-media-surface
+            aria-label="Still media surface"
           />
-        </video>
-      ) : (
+        )}
         <button
           type="button"
-          data-replication-media-surface
-          aria-label="Still media surface"
-        />
-      )}
-      <button
-        type="button"
-        aria-label={muted ? "Unmute" : "Mute"}
-        onClick={() => onMutedChange(!muted)}
-      >
-        {muted ? "Unmute" : "Mute"}
-      </button>
-      <button
-        type="button"
-        aria-label={previousLabel}
-        disabled={!onPrevious}
-        onClick={onPrevious}
-      >
-        Previous
-      </button>
-      <button
-        type="button"
-        aria-label={nextLabel}
-        disabled={!onNext}
-        onClick={onNext}
-      >
-        Next
-      </button>
-      <button
-        type="button"
-        aria-expanded={infoOpen}
-        aria-controls={infoControls}
-        onClick={onInfo}
-      >
-        Information
-      </button>
-      <button
-        type="button"
-        aria-pressed={rotateMode}
-        aria-label={
-          rotateMode ? "Rotate back upright" : "Rotate to fill screen"
-        }
-        onClick={() => onRotateModeChange?.(!rotateMode)}
-      >
-        Rotate
-      </button>
-      <button type="button" onClick={() => onRotatedChange?.(true)}>
-        Report rotated
-      </button>
-      <button type="button" onClick={onFullscreen}>
-        {fullscreenLabel}
-      </button>
-    </div>
-  ),
+          aria-label={muted ? "Unmute" : "Mute"}
+          onClick={() => onMutedChange(!muted)}
+        >
+          {muted ? "Unmute" : "Mute"}
+        </button>
+        <button
+          type="button"
+          aria-label={previousLabel}
+          disabled={!onPrevious}
+          onClick={onPrevious}
+        >
+          Previous
+        </button>
+        <button
+          type="button"
+          aria-label={nextLabel}
+          disabled={!onNext}
+          onClick={onNext}
+        >
+          Next
+        </button>
+        <button
+          type="button"
+          aria-expanded={infoOpen}
+          aria-controls={infoControls}
+          onClick={onInfo}
+        >
+          Information
+        </button>
+        <button
+          type="button"
+          aria-pressed={rotateMode}
+          aria-label={
+            rotateMode ? "Rotate back upright" : "Rotate to fill screen"
+          }
+          onClick={() => onRotateModeChange?.(!rotateMode)}
+        >
+          Rotate
+        </button>
+        <button type="button" onClick={() => onRotatedChange?.(true)}>
+          Report rotated
+        </button>
+        <button type="button" onClick={onFullscreen}>
+          {fullscreenLabel}
+        </button>
+      </div>
+    );
+  },
 }));
 
 vi.mock("@/components/common/AppImage", () => ({
@@ -779,6 +798,70 @@ describe("ReplicationViewerOverlay", () => {
     expect(screen.getAllByText("Aria")).toHaveLength(2);
     expect(screen.getByText("Artist 2/2")).toBeInTheDocument();
     expect(window.location.search).toContain("viewer=work-three");
+  });
+
+  it("drives playback with Space, K, and M while Space keeps its meaning on controls", () => {
+    transportVerbs.togglePlayback.mockClear();
+    transportVerbs.toggleMuted.mockClear();
+    render(
+      <ReplicationViewerOverlay
+        collection={collection}
+        initialSlug="work-two"
+        open
+        onOpenChange={vi.fn()}
+      />,
+    );
+
+    fireEvent.keyDown(window, { key: "k" });
+    expect(transportVerbs.togglePlayback).toHaveBeenCalledTimes(1);
+    fireEvent.keyDown(window, { key: " " });
+    expect(transportVerbs.togglePlayback).toHaveBeenCalledTimes(2);
+    fireEvent.keyDown(window, { key: "M" });
+    expect(transportVerbs.toggleMuted).toHaveBeenCalledTimes(1);
+
+    // Space on a focused control activates the control, never playback.
+    const nextButton = screen.getByRole("button", { name: "Final work" });
+    nextButton.focus();
+    fireEvent.keyDown(nextButton, { key: " " });
+    expect(transportVerbs.togglePlayback).toHaveBeenCalledTimes(2);
+  });
+
+  it("enters the fullscreen path from the F key", () => {
+    render(
+      <ReplicationViewerOverlay
+        collection={collection}
+        initialSlug="work-two"
+        open
+        onOpenChange={vi.fn()}
+      />,
+    );
+
+    fireEvent.keyDown(window, { key: "f" });
+    // jsdom offers no fullscreen API, so the immersive fallback reports.
+    expect(screen.getByRole("status")).toHaveTextContent(
+      "Immersive view is active.",
+    );
+  });
+
+  it("announces work changes to screen readers, skipping the opening work", () => {
+    render(
+      <ReplicationViewerOverlay
+        collection={collection}
+        initialSlug="work-one"
+        open
+        onOpenChange={vi.fn()}
+      />,
+    );
+
+    const liveRegion = document.querySelector(
+      'p[aria-live="polite"]',
+    ) as HTMLElement;
+    expect(liveRegion).toHaveTextContent("");
+
+    fireEvent.keyDown(window, { key: "ArrowRight" });
+    expect(liveRegion).toHaveTextContent(
+      "Work Two, work 2 of 2, Chelsea Morgan",
+    );
   });
 
   it("leads the header with the effect name and keeps the artist on the byline chip", () => {

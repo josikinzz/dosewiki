@@ -26,8 +26,12 @@ import {
   parseReplicationViewerSlug,
 } from "@/features/replications/galleryUrlState";
 import { cn } from "@/lib/utils";
+import { formatArchiveDate } from "@/utils/archiveDate";
 import { publicHref } from "@/utils/publicHref";
-import { ReplicationMediaStage } from "./ReplicationMediaStage";
+import {
+  ReplicationMediaStage,
+  type ReplicationStageTransportHandle,
+} from "./ReplicationMediaStage";
 import { RotatingIcon } from "./RotatingIcon";
 import { hasKnownCreator } from "@/features/effects/components/replicationCredit";
 import { ReplicationViewerEditorGate } from "./editor/ReplicationViewerEditorGate";
@@ -57,6 +61,17 @@ const SWIPE_FLICK_VELOCITY_PX_PER_MS = 0.45;
 /** Movement below this keeps the gesture axis undecided (still a tap). */
 const DRAG_AXIS_LOCK_PX = 8;
 const SCREEN_EDGE_GUARD_PX = 24;
+
+/**
+ * The viewer's full-screen dialog surface. The `!` trio is load-bearing:
+ * light mode paints `.theme-overlay-surface` with a frosted 1px border,
+ * background, and inset-highlight shadow (`!important`, higher specificity),
+ * and unlayered theme CSS beats layered utilities — only layered important
+ * utilities keep this surface borderless, shadowless, pure black in every
+ * theme. `--theme-elevation-none` is the audited flat-shadow token.
+ */
+const VIEWER_DIALOG_CLASS =
+  "theme-media-tile-title fixed inset-0 z-[70] max-h-none max-w-none translate-x-0 translate-y-0 grid-cols-[minmax(0,1fr)] grid-rows-[auto_minmax(0,1fr)] gap-0 overflow-hidden !border-0 !bg-black p-0 !shadow-[var(--theme-elevation-none)] duration-150 sm:rounded-none";
 
 /** The side the incoming work enters from after a navigation. */
 type EntryMotion = "left" | "right" | "top" | "bottom" | "fade";
@@ -192,6 +207,15 @@ export function ReplicationViewerOverlay({
   const [details, setDetails] = useState<PublicReplicationDetails | null>(null);
   const [fullscreenUnavailable, setFullscreenUnavailable] = useState(false);
   const [fullscreenMessage, setFullscreenMessage] = useState("");
+  /** Spoken on work changes so non-visual readers don't navigate blind. */
+  const [workAnnouncement, setWorkAnnouncement] = useState("");
+  const announcedSlugRef = useRef<string | null>(null);
+  /** Mirrors the stage transport so header, rail, and byline fade in step. */
+  const [chromeVisible, setChromeVisible] = useState(true);
+  /** Gesture-safe playback verbs registered by the active stage. */
+  const transportHandleRef = useRef<ReplicationStageTransportHandle | null>(
+    null,
+  );
   const [entryMotion, setEntryMotion] = useState<EntryMotion | null>(null);
   const [gestureHint, setGestureHint] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
@@ -292,6 +316,13 @@ export function ReplicationViewerOverlay({
     }
   }, []);
 
+  const handleTransportHandle = useCallback(
+    (handle: ReplicationStageTransportHandle | null) => {
+      transportHandleRef.current = handle;
+    },
+    [],
+  );
+
   useEffect(() => {
     if (!settingsOpen) return;
     const closeFromOutside = (event: PointerEvent) => {
@@ -363,6 +394,30 @@ export function ReplicationViewerOverlay({
     },
     [collection],
   );
+
+  // Announce arrival at a work after the reader moves (swipe, arrows, rail,
+  // group jump). The initial work is skipped: the dialog title already
+  // introduces it when focus lands on open.
+  useEffect(() => {
+    if (!open) {
+      announcedSlugRef.current = null;
+      setWorkAnnouncement("");
+      return;
+    }
+    if (!active || !group || !position) return;
+    const slug = active.replication.slug;
+    if (announcedSlugRef.current === null) {
+      announcedSlugRef.current = slug;
+      return;
+    }
+    if (announcedSlugRef.current === slug) return;
+    announcedSlugRef.current = slug;
+    setWorkAnnouncement(
+      `${active.replication.title}, work ${position.itemIndex + 1} of ${group.items.length}${
+        collection.groups.length > 1 ? `, ${group.label}` : ""
+      }`,
+    );
+  }, [open, active, group, position, collection.groups.length]);
 
   const activateEditorSlug = useCallback(
     (slug: string) => {
@@ -442,45 +497,6 @@ export function ReplicationViewerOverlay({
   const nextGroup = position
     ? moveViewerGroup(collection, position, 1, rememberedSlugByGroupRef.current)
     : null;
-
-  useEffect(() => {
-    if (!open) return;
-    if (infoOpen) return;
-    const onKeyDown = (event: KeyboardEvent) => {
-      if (event.altKey || event.ctrlKey || event.metaKey || event.shiftKey)
-        return;
-      const target = event.target as HTMLElement | null;
-      if (
-        target?.isContentEditable ||
-        (target && /^(INPUT|TEXTAREA|SELECT|VIDEO|AUDIO)$/.test(target.tagName))
-      ) {
-        return;
-      }
-      const move =
-        event.key === "ArrowLeft"
-          ? ([previousWork, "left"] as const)
-          : event.key === "ArrowRight"
-            ? ([nextWork, "right"] as const)
-            : event.key === "ArrowUp"
-              ? ([previousGroup, "top"] as const)
-              : event.key === "ArrowDown"
-                ? ([nextGroup, "bottom"] as const)
-                : null;
-      if (!move || !move[0]) return;
-      event.preventDefault();
-      navigate(move[0], move[1]);
-    };
-    window.addEventListener("keydown", onKeyDown);
-    return () => window.removeEventListener("keydown", onKeyDown);
-  }, [
-    infoOpen,
-    navigate,
-    nextGroup,
-    nextWork,
-    open,
-    previousGroup,
-    previousWork,
-  ]);
 
   // Keep the active work visible in the thumbnail rail as navigation moves.
   useEffect(() => {
@@ -588,6 +604,75 @@ export function ReplicationViewerOverlay({
     if (!tryWebkitFullscreen()) useImmersiveFallback(false);
   }, [fullscreenUnavailable]);
 
+  useEffect(() => {
+    if (!open) return;
+    if (infoOpen) return;
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.altKey || event.ctrlKey || event.metaKey || event.shiftKey)
+        return;
+      // Keydown targets the focused element or body — but never assume:
+      // a non-element target (window in tests) simply has no guard to hit.
+      const target = event.target instanceof HTMLElement ? event.target : null;
+      if (
+        target?.isContentEditable ||
+        (target && /^(INPUT|TEXTAREA|SELECT|VIDEO|AUDIO)$/.test(target.tagName))
+      ) {
+        return;
+      }
+      // Playback shortcuts, the video-player lingua franca: Space/K toggle
+      // playback, M toggles sound, F enters fullscreen. Space keeps its
+      // native meaning on focused controls; K/M/F act from anywhere outside
+      // a text field (guarded above).
+      const key = event.key.toLowerCase();
+      if (key === " " || key === "k" || key === "m" || key === "f") {
+        if (
+          key === " " &&
+          target?.closest("button, a, [role='slider'], [role='menu']")
+        ) {
+          return;
+        }
+        const handle = transportHandleRef.current;
+        if (key === "f") {
+          event.preventDefault();
+          requestFullscreen();
+          return;
+        }
+        if (!handle) return;
+        event.preventDefault();
+        if (key === "m") {
+          handle.toggleMuted();
+        } else {
+          handle.togglePlayback();
+        }
+        return;
+      }
+      const move =
+        event.key === "ArrowLeft"
+          ? ([previousWork, "left"] as const)
+          : event.key === "ArrowRight"
+            ? ([nextWork, "right"] as const)
+            : event.key === "ArrowUp"
+              ? ([previousGroup, "top"] as const)
+              : event.key === "ArrowDown"
+                ? ([nextGroup, "bottom"] as const)
+                : null;
+      if (!move || !move[0]) return;
+      event.preventDefault();
+      navigate(move[0], move[1]);
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [
+    infoOpen,
+    navigate,
+    nextGroup,
+    nextWork,
+    open,
+    previousGroup,
+    previousWork,
+    requestFullscreen,
+  ]);
+
   // First-open gesture onboarding: coarse-pointer readers learn the swipe
   // grammar once, then the chip never returns on this device.
   useEffect(() => {
@@ -637,6 +722,13 @@ export function ReplicationViewerOverlay({
       : collection.grouping === "effect" || collection.kind === "substance"
         ? "Effect"
         : "Group";
+
+  // True immersive state: when the stage's transport idles away, the whole
+  // frame follows — header, thumbnail rail, and byline fade with it. Any
+  // open panel (settings, info, editor, reorder) pins the chrome: those
+  // surfaces are being used, not watched through.
+  const chromeHidden =
+    !chromeVisible && !settingsOpen && !infoOpen && !editorOpen && !reorderMode;
 
   return (
     <Dialog
@@ -838,12 +930,15 @@ export function ReplicationViewerOverlay({
         }}
         tabIndex={-1}
         aria-describedby="replication-viewer-description"
-        className="theme-media-tile-title theme-elevation-none fixed inset-0 z-[70] max-h-none max-w-none translate-x-0 translate-y-0 grid-cols-[minmax(0,1fr)] grid-rows-[auto_minmax(0,1fr)] gap-0 overflow-hidden border-0 bg-black p-0 duration-150 sm:rounded-none"
+        className={VIEWER_DIALOG_CLASS}
       >
         <header
-          inert={infoOpen || undefined}
-          aria-hidden={infoOpen || undefined}
-          className="theme-media-thumbnail-border relative z-10 flex min-w-0 items-center gap-2 border-b bg-black py-1.5 pl-3 pr-2 pt-[max(0.375rem,env(safe-area-inset-top))] sm:min-h-16 sm:gap-3 sm:px-6 sm:py-2"
+          inert={infoOpen || chromeHidden || undefined}
+          aria-hidden={infoOpen || chromeHidden || undefined}
+          className={cn(
+            "theme-media-thumbnail-border relative z-10 flex min-w-0 items-center gap-2 border-b bg-black py-1.5 pl-3 pr-2 pt-[max(0.375rem,env(safe-area-inset-top))] transition-opacity duration-200 motion-reduce:transition-none sm:min-h-16 sm:gap-3 sm:px-6 sm:py-2",
+            chromeHidden && "opacity-0",
+          )}
         >
           <div className="flex min-w-0 flex-1 flex-col gap-0.5 sm:flex-row sm:items-baseline sm:gap-3">
             <DialogTitle className="theme-media-tile-title flex min-w-0 items-baseline gap-1.5 font-display text-sm font-semibold sm:flex-1 sm:text-base">
@@ -1022,6 +1117,9 @@ export function ReplicationViewerOverlay({
             {fullscreenMessage}
           </p>
         ) : null}
+        <p aria-live="polite" aria-atomic="true" className="sr-only">
+          {workAnnouncement}
+        </p>
 
         <div
           className={cn(
@@ -1073,6 +1171,8 @@ export function ReplicationViewerOverlay({
                     rotateMode={rotateMode}
                     onRotateModeChange={handleRotateModeChange}
                     onRotatedChange={setStageRotated}
+                    onTransportVisibleChange={setChromeVisible}
+                    onTransportHandle={handleTransportHandle}
                     onInfo={openInfo}
                     infoOpen={infoOpen}
                     infoControls={infoPanelId}
@@ -1102,7 +1202,7 @@ export function ReplicationViewerOverlay({
                 ) : null}
               </div>
               {gestureHint ? (
-                <div className="pointer-events-none absolute inset-0 z-10 grid place-items-center">
+                <div className="pointer-events-none absolute inset-0 z-30 grid place-items-center">
                   <div className="theme-media-tile-title pointer-events-auto flex flex-col items-center gap-3 rounded-2xl bg-black/65 px-6 py-4 backdrop-blur-sm animate-in fade-in-0 zoom-in-95 duration-300 motion-reduce:animate-none">
                     <div aria-hidden className="flex items-end gap-8">
                       <div className="flex flex-col items-center gap-2">
@@ -1162,7 +1262,14 @@ export function ReplicationViewerOverlay({
                   </div>
                 </div>
               ) : null}
-              <div className="absolute bottom-2 right-2 z-10 flex justify-end">
+              <div
+                inert={chromeHidden || undefined}
+                aria-hidden={chromeHidden || undefined}
+                className={cn(
+                  "absolute bottom-2 right-2 z-10 flex justify-end transition-opacity duration-200 motion-reduce:transition-none",
+                  chromeHidden && "opacity-0",
+                )}
+              >
                 {/* The byline rides the artwork like a broadcast bug: whatever
                   the walk is sorted by, the creator stays one tap away. */}
                 {artistProfileHref ? (
@@ -1206,7 +1313,15 @@ export function ReplicationViewerOverlay({
             {group.items.length > 1 && !reorderMode ? (
               <nav
                 aria-label={`${group.label} works`}
-                className="theme-media-thumbnail-border border-t bg-black px-3 pt-1.5 pb-[max(0.375rem,env(safe-area-inset-bottom))] sm:px-5 sm:py-2"
+                inert={chromeHidden || undefined}
+                aria-hidden={chromeHidden || undefined}
+                className={cn(
+                  // Landscape phones surrender too much height to a browse
+                  // strip the swipe grammar already covers: the rail stands
+                  // down and the work keeps the screen.
+                  "theme-media-thumbnail-border border-t bg-black px-3 pt-1.5 pb-[max(0.375rem,env(safe-area-inset-bottom))] transition-opacity duration-200 motion-reduce:transition-none sm:px-5 sm:py-2 [@media(max-height:500px)]:hidden",
+                  chromeHidden && "opacity-0",
+                )}
               >
                 <ul
                   ref={thumbnailRailRef}
@@ -1335,7 +1450,9 @@ export function ReplicationViewerOverlay({
                     <time
                       dateTime={details.date_info?.value ?? details.created_at}
                     >
-                      {details.date_info?.value ?? details.created_at}
+                      {details.date_info?.value ??
+                        formatArchiveDate(details.created_at) ??
+                        details.created_at}
                     </time>
                   </dd>
                 </>

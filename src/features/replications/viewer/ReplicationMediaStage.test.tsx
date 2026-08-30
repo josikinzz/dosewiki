@@ -7,9 +7,13 @@ import {
   expect,
   it,
   vi,
+  type Mock,
 } from "vitest";
 
-import { ReplicationMediaStage } from "./ReplicationMediaStage";
+import {
+  ReplicationMediaStage,
+  type ReplicationStageTransportHandle,
+} from "./ReplicationMediaStage";
 import type { ReplicationViewerMediaItem } from "./viewerModel";
 
 vi.mock("@/components/common/AppImage", () => ({
@@ -611,7 +615,8 @@ describe("ReplicationMediaStage", () => {
     );
 
     // Rotate mode turns the landscape media box sideways: it presents the
-    // inverted aspect, and the cluster follows the turned box's corner.
+    // inverted aspect, the cluster follows the turned box's corner, and the
+    // left inset widens to clear the vertical seek bar's 20px hit zone.
     rerender(
       <ReplicationMediaStage
         item={item()}
@@ -623,7 +628,7 @@ describe("ReplicationMediaStage", () => {
       />,
     );
     expect(pill.style.getPropertyValue("--media-box-left")).toBe(
-      `calc((100cqw - min(100cqw, 100cqh * ${9 / 16})) / 2 + 0.75rem)`,
+      `calc((100cqw - min(100cqw, 100cqh * ${9 / 16})) / 2 + 1.75rem)`,
     );
     expect(pill.style.getPropertyValue("--media-box-bottom")).toBe(
       `calc((100cqh - min(100cqh, 100cqw / ${9 / 16})) / 2 + 0.75rem)`,
@@ -1366,5 +1371,99 @@ describe("ReplicationMediaStage", () => {
     expect(slider).not.toHaveAttribute("aria-orientation");
     expect(slider.className).toContain("inset-x-0");
     expect(slider.className).toContain("bottom-0");
+  });
+
+  it("shows the buffering icon when a cold load paints nothing within 300ms", () => {
+    vi.useFakeTimers();
+    const { container } = render(
+      <ReplicationMediaStage
+        item={item()}
+        muted
+        volume={1}
+        onMutedChange={vi.fn()}
+        onVolumeChange={vi.fn()}
+      />,
+    );
+    const video = container.querySelector("video") as HTMLVideoElement;
+    // jsdom's readyState 0 models a cold network load: nothing decodable.
+    expect(
+      screen.queryByRole("img", { name: "Buffering" }),
+    ).not.toBeInTheDocument();
+    act(() => vi.advanceTimersByTime(300));
+    expect(screen.getByRole("img", { name: "Buffering" })).toBeInTheDocument();
+
+    // First decodable data settles it through the ordinary buffering path.
+    fireEvent.canPlay(video);
+    expect(
+      screen.queryByRole("img", { name: "Buffering" }),
+    ).not.toBeInTheDocument();
+    vi.useRealTimers();
+  });
+
+  it("skips the cold-load icon when frames arrive before the delay", () => {
+    vi.useFakeTimers();
+    const { container } = render(
+      <ReplicationMediaStage
+        item={item()}
+        muted
+        volume={1}
+        onMutedChange={vi.fn()}
+        onVolumeChange={vi.fn()}
+      />,
+    );
+    const video = container.querySelector("video") as HTMLVideoElement;
+    Object.defineProperty(video, "readyState", {
+      configurable: true,
+      value: HTMLMediaElement.HAVE_CURRENT_DATA,
+    });
+    act(() => vi.advanceTimersByTime(300));
+    expect(
+      screen.queryByRole("img", { name: "Buffering" }),
+    ).not.toBeInTheDocument();
+    vi.useRealTimers();
+  });
+
+  it("registers gesture-safe transport verbs and reports transport visibility", () => {
+    vi.useFakeTimers();
+    const onMutedChange = vi.fn();
+    const onTransportVisibleChange = vi.fn();
+    let handle: ReplicationStageTransportHandle | null = null;
+    const { container } = render(
+      <ReplicationMediaStage
+        item={item()}
+        muted
+        volume={0.6}
+        onMutedChange={onMutedChange}
+        onVolumeChange={vi.fn()}
+        onTransportVisibleChange={onTransportVisibleChange}
+        onTransportHandle={(next) => {
+          handle = next;
+        }}
+      />,
+    );
+    expect(handle).not.toBeNull();
+    expect(onTransportVisibleChange).toHaveBeenLastCalledWith(true);
+
+    const video = container.querySelector("video") as HTMLVideoElement;
+    const play = video.play as Mock;
+    const playCallsBefore = play.mock.calls.length;
+    // Paused element: the playback verb asks it to play.
+    act(() => handle!.togglePlayback());
+    expect(play.mock.calls.length).toBe(playCallsBefore + 1);
+
+    // The sound verb flips the element inside the gesture and reports out.
+    act(() => handle!.toggleMuted());
+    expect(video.muted).toBe(false);
+    expect(onMutedChange).toHaveBeenCalledWith(false);
+
+    // Once playback runs unattended, the idle hide reaches the overlay too.
+    Object.defineProperty(video, "paused", {
+      configurable: true,
+      value: false,
+    });
+    fireEvent.play(video);
+    act(() => vi.advanceTimersByTime(2601));
+    expect(onTransportVisibleChange).toHaveBeenLastCalledWith(false);
+    vi.useRealTimers();
   });
 });

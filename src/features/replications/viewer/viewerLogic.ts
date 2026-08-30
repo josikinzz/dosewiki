@@ -152,8 +152,46 @@ export function seekRatioFromPointer(
   trackExtent: number,
 ): number {
   if (!Number.isFinite(trackExtent) || trackExtent <= 0) return 0;
-  return Math.min(
-    Math.max((pointerPosition - trackStart) / trackExtent, 0),
-    1,
-  );
+  return Math.min(Math.max((pointerPosition - trackStart) / trackExtent, 0), 1);
+}
+
+/** One duration in words, for spoken seek positions: "2 minutes 5 seconds". */
+function describeSeconds(totalSeconds: number): string {
+  const whole = Math.max(0, Math.round(totalSeconds));
+  const minutes = Math.floor(whole / 60);
+  const seconds = whole % 60;
+  const parts: string[] = [];
+  if (minutes > 0) {
+    parts.push(`${minutes} minute${minutes === 1 ? "" : "s"}`);
+  }
+  if (seconds > 0 || minutes === 0) {
+    parts.push(`${seconds} second${seconds === 1 ? "" : "s"}`);
+  }
+  return parts.join(" ");
+}
+
+/**
+ * The seek slider's spoken position. Bare `aria-valuenow` seconds read as
+ * meaningless numbers; this names both position and total.
+ */
+export function describeSeekPosition(
+  currentSeconds: number,
+  totalSeconds: number,
+): string {
+  return `${describeSeconds(currentSeconds)} of ${describeSeconds(totalSeconds)}`;
+}
+
+/**
+ * A compact visual playback clock: `0:07`, `1:42`, `1:02:03`. Fractional
+ * seconds floor — the clock never reads ahead of the frame on screen.
+ */
+export function formatPlaybackClock(totalSeconds: number): string {
+  const whole = Math.max(0, Math.floor(totalSeconds));
+  const hours = Math.floor(whole / 3600);
+  const minutes = Math.floor((whole % 3600) / 60);
+  const seconds = whole % 60;
+  const pad = (value: number) => String(value).padStart(2, "0");
+  return hours > 0
+    ? `${hours}:${pad(minutes)}:${pad(seconds)}`
+    : `${minutes}:${pad(seconds)}`;
 }

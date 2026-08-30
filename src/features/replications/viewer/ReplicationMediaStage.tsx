@@ -14,7 +14,12 @@ import { Icon } from "@/components/common/Icon";
 import { focusRingClassName } from "@/components/ui/surface";
 import { cn } from "@/lib/utils";
 import type { ReplicationViewerMediaItem } from "./viewerModel";
-import { bufferedRangeContaining, seekRatioFromPointer } from "./viewerLogic";
+import {
+  bufferedRangeContaining,
+  describeSeekPosition,
+  formatPlaybackClock,
+  seekRatioFromPointer,
+} from "./viewerLogic";
 import { useStageFit } from "./useStageFit";
 import { RotatingIcon } from "./RotatingIcon";
 import { ReplicationStillStage } from "./ReplicationStillStage";
@@ -85,6 +90,12 @@ function probeAudioPresence(video: HTMLVideoElement): AudioPresence {
   return "unknown";
 }
 
+/** Gesture-safe playback verbs the overlay may drive from keyboard shortcuts. */
+export interface ReplicationStageTransportHandle {
+  togglePlayback: () => void;
+  toggleMuted: () => void;
+}
+
 export interface ReplicationMediaStageProps {
   item: ReplicationViewerMediaItem;
   muted: boolean;
@@ -103,6 +114,13 @@ export interface ReplicationMediaStageProps {
   onRotateModeChange?: (rotateMode: boolean) => void;
   /** Reports the derived per-item rotation so overlay chrome can lean too. */
   onRotatedChange?: (rotated: boolean) => void;
+  /**
+   * Reports whether the transport chrome is currently presented, so the
+   * overlay can fade its own chrome in step for a true immersive state.
+   */
+  onTransportVisibleChange?: (visible: boolean) => void;
+  /** Receives gesture-safe playback verbs; called with null on unmount. */
+  onTransportHandle?: (handle: ReplicationStageTransportHandle | null) => void;
   onFullscreen?: () => void;
   fullscreenLabel?: string;
   previousLabel?: string;
@@ -125,6 +143,8 @@ export function ReplicationMediaStage({
   rotateMode = false,
   onRotateModeChange,
   onRotatedChange,
+  onTransportVisibleChange,
+  onTransportHandle,
   infoControls,
   onFullscreen,
   fullscreenLabel = "Fullscreen",
@@ -158,6 +178,8 @@ export function ReplicationMediaStage({
   const progressBufferedRef = useRef<HTMLDivElement>(null);
   const progressThumbRef = useRef<HTMLDivElement>(null);
   const progressSliderRef = useRef<HTMLDivElement>(null);
+  /** Scrub-time clock node; written per-frame like the playhead. */
+  const timeReadoutRef = useRef<HTMLSpanElement>(null);
   /** True while a pointer owns the playhead; the rAF meter yields to it. */
   const scrubbingRef = useRef(false);
   /** Last whole second written to aria-valuenow, deduping per-frame writes. */
@@ -490,6 +512,41 @@ export function ReplicationMediaStage({
   }, [attemptPlay, repaySoundIou, showControls]);
 
   /**
+   * The mute button's whole gesture, shared with the keyboard shortcut: flip
+   * the element inside the live user activation — WebKit only honours an
+   * unmute (and any needed replay) there; a state-sync alone would land
+   * outside it and be refused.
+   */
+  const toggleMuted = useCallback(() => {
+    const next = !mutedRef.current;
+    const video = videoRef.current;
+    if (video) {
+      video.muted = next;
+      video.volume = volumeRef.current;
+      // An in-gesture play() is what blesses this element for future
+      // unmuted playback on later works; calling it while already playing
+      // is a no-op.
+      if (!next && autoplayAllowed) {
+        attemptPlay(video);
+      }
+    }
+    pendingSoundRef.current = false;
+    showControls();
+    onMutedChange(next);
+  }, [attemptPlay, autoplayAllowed, onMutedChange, showControls]);
+
+  // Hand the overlay gesture-safe playback verbs for keyboard shortcuts.
+  useEffect(() => {
+    if (!onTransportHandle) return;
+    if (!moving) {
+      onTransportHandle(null);
+      return;
+    }
+    onTransportHandle({ togglePlayback, toggleMuted });
+    return () => onTransportHandle(null);
+  }, [moving, onTransportHandle, togglePlayback, toggleMuted]);
+
+  /**
    * A tap on the video adopts the still-stage grammar: it only reveals or
    * dismisses the chrome; pause lives exclusively on the play button. But a
    * tap is also the live gesture that can repay a refused unmute, so an
@@ -641,7 +698,17 @@ export function ReplicationMediaStage({
             ariaSecondRef.current = second;
             slider.setAttribute("aria-valuenow", String(second));
             slider.setAttribute("aria-valuemax", String(Math.round(duration)));
+            slider.setAttribute(
+              "aria-valuetext",
+              describeSeekPosition(video.currentTime, duration),
+            );
           }
+        }
+        const readout = timeReadoutRef.current;
+        if (readout) {
+          readout.textContent = playable
+            ? `${formatPlaybackClock(video.currentTime)} / ${formatPlaybackClock(duration)}`
+            : "";
         }
       }
       frame = requestAnimationFrame(tick);
@@ -655,15 +722,41 @@ export function ReplicationMediaStage({
   const transportVisible = moving
     ? controlsVisible || !playing || blocked || error
     : controlsVisible;
+  // The overlay fades its own chrome (header, rail, byline) in step with
+  // the transport, so hidden chrome means the whole screen belongs to the
+  // work — not just the stage's corner controls.
+  useEffect(() => {
+    onTransportVisibleChange?.(transportVisible);
+  }, [onTransportVisibleChange, transportVisible]);
+  // Cold-load reassurance: a motion work that hasn't painted a frame within
+  // 300ms shows the buffering icon, so a cold deep link reads as loading —
+  // never as a dead black screen. Warm swaps paint before the timer fires.
+  // canplay/playing settle it through the ordinary buffering path.
+  useEffect(() => {
+    if (!moving || !motionSource || !autoplayAllowed || framePainted) return;
+    const timer = window.setTimeout(() => {
+      const video = videoRef.current;
+      if (!video || video.readyState >= HTMLMediaElement.HAVE_CURRENT_DATA) {
+        return;
+      }
+      bufferingRef.current = true;
+      setBuffering(true);
+    }, 300);
+    return () => window.clearTimeout(timer);
+  }, [autoplayAllowed, framePainted, moving, motionSource, replication.slug]);
   // Anchor the playback cluster to the letterboxed media box, not the stage:
   // object-contain centers the media, so each axis's spare space is half of
   // (stage minus contained size). Container-query units resolve against the
   // stage section ([container-type:size]), so the corner tracks live resizes
   // without measuring; a rotated media box presents its inverted aspect. The
-  // 0.75rem inset keeps the pill just inside the media's bottom-left corner.
+  // 0.75rem inset keeps the pill just inside the media's bottom-left corner;
+  // while the media is rotated the vertical seek bar owns the leftmost 20px
+  // of the screen, so the pill steps right past its hit zone instead of
+  // parking the Play button on top of it.
   const anchorAspect = rotated ? 1 / mediaAspect : mediaAspect;
+  const anchorLeftInset = rotated ? "1.75rem" : "0.75rem";
   const mediaBoxAnchorStyle = {
-    "--media-box-left": `calc((100cqw - min(100cqw, 100cqh * ${anchorAspect})) / 2 + 0.75rem)`,
+    "--media-box-left": `calc((100cqw - min(100cqw, 100cqh * ${anchorAspect})) / 2 + ${anchorLeftInset})`,
     "--media-box-bottom": `calc((100cqh - min(100cqh, 100cqw / ${anchorAspect})) / 2 + 0.75rem)`,
   } as CSSProperties;
   const showWorkNavigation = Boolean(
@@ -839,8 +932,8 @@ export function ReplicationMediaStage({
         // under the pointer and while dragging. While the media is rotated
         // the same bar stands up along the left screen edge and its progress
         // runs top-to-bottom, turning with the media box; the playback
-        // cluster's 0.75rem media-box inset keeps the pill clear of the
-        // hairline at the edge.
+        // cluster steps right past this bar's 20px hit zone while rotated,
+        // so the Play button never parks on top of the seek target.
         <div
           ref={progressSliderRef}
           role="slider"
@@ -849,6 +942,7 @@ export function ReplicationMediaStage({
           aria-valuemin={0}
           aria-valuemax={Math.round(replication.duration ?? 0)}
           aria-valuenow={0}
+          aria-valuetext={describeSeekPosition(0, replication.duration ?? 0)}
           aria-orientation={rotated ? "vertical" : undefined}
           data-scrubbing={scrubbing || undefined}
           onPointerDown={(event) => {
@@ -951,6 +1045,27 @@ export function ReplicationMediaStage({
               style={rotated ? { top: "0%" } : { left: "0%" }}
             />
           </div>
+        </div>
+      ) : null}
+
+      {ordinaryVideo && !error && scrubbing ? (
+        // The scrub clock: elapsed / total rides just clear of the bar while
+        // a pointer owns the playhead — beside the vertical bar when the
+        // media is rotated, above the horizontal bar otherwise. Values are
+        // written per-frame by the rAF meter; text stays upright either way.
+        <div
+          aria-hidden
+          className={cn(
+            "pointer-events-none absolute z-10 flex",
+            rotated
+              ? "left-8 top-1/2 -translate-y-1/2"
+              : "inset-x-0 bottom-9 justify-center",
+          )}
+        >
+          <span
+            ref={timeReadoutRef}
+            className="theme-media-tile-title rounded-full bg-black/65 px-2.5 py-1 text-xs font-medium tabular-nums backdrop-blur-sm"
+          />
         </div>
       ) : null}
 
@@ -1150,24 +1265,7 @@ export function ReplicationMediaStage({
                   aria-label={muted ? "Unmute" : "Mute"}
                   onClick={(event) => {
                     event.stopPropagation();
-                    const next = !muted;
-                    // Flip the element inside the gesture: WebKit only
-                    // honours an unmute (and any needed replay) while the
-                    // user activation is live; the state sync alone would
-                    // land outside it and be refused.
-                    const video = videoRef.current;
-                    if (video) {
-                      video.muted = next;
-                      video.volume = volume;
-                      // An in-gesture play() is what blesses this element
-                      // for future unmuted playback on later works; calling
-                      // it while already playing is a no-op.
-                      if (!next && autoplayAllowed) {
-                        attemptPlay(video);
-                      }
-                    }
-                    pendingSoundRef.current = false;
-                    onMutedChange(next);
+                    toggleMuted();
                   }}
                   className={cn(
                     "pointer-events-auto grid size-9 place-items-center rounded-full [@media(pointer:coarse)]:size-11",

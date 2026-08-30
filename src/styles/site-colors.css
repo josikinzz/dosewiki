@@ -332,13 +332,14 @@ html[data-theme="light"]:where(:not([data-visual-style="pro"])) .theme-chrome-da
      row, and it is the border that carries the identity. */
   --theme-field-border: rgb(var(--c-white) / 0.36);
   /* Raised, not recessed. Controls sitting on the chrome rail (the header
-     search field and the nav hover pill) must read as lifted off it — the rail
-     is L15.5%, so this sits ~9 points above at a 1.19 luminance ratio, matching
-     what Effect Index gets from #2e2e2e bar / #3a3a3a field. It was L13.2%, i.e.
+     search field) must read as lifted off it — the rail is L15.5%, so this
+     sits ~9 points above at a 1.19 luminance ratio, matching what Effect
+     Index gets from #2e2e2e bar / #3a3a3a field. It was L13.2%, i.e.
      *below* the rail at a ratio of 1.026, which is invisible: equal OKLCH
      lightness steps stop reading as equal down at the near-black end, where a
      small luminance delta is swamped by screen flare. Header-only token: the
-     search field and nav hover are its only consumers. */
+     search field is its only consumer (nav hover dropped its pill fill and
+     now recolors text/icon only). */
   --theme-field-on-chrome-surface: oklch(24.5% 0.045 var(--h-plum));
   /* Same 1.4.11 floor as --theme-field-border, and the same alpha even though
      this fill is 4 points lighter: 0.1 painted #3f3043 on L24.5% for 1.34:1, and
