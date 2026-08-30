@@ -8,6 +8,7 @@ import { cn } from "@/lib/utils";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
@@ -56,16 +57,23 @@ export function MailingListInvite({ className }: { className?: string }) {
           <Icon icon="f7:envelope-badge" size={26} />
         </Button>
       </DialogTrigger>
-      <DialogContent
-        aria-describedby={undefined}
-        className="top-16 w-[calc(100%-2rem)] max-w-sm translate-y-0 gap-3 rounded-2xl sm:top-[50%] sm:translate-y-[-50%]"
-      >
+      <DialogContent className="top-16 w-[calc(100%-2rem)] max-w-sm translate-y-0 gap-3 rounded-2xl sm:top-[50%] sm:translate-y-[-50%]">
         <DialogHeader>
           <DialogTitle className="theme-text-primary">Mailing list</DialogTitle>
+          <DialogDescription className="theme-text-secondary text-sm">
+            An occasional note when something new lands on dose.wiki. Unsubscribe
+            anytime.
+          </DialogDescription>
         </DialogHeader>
         {status === "success" ? (
-          <p className="theme-text-secondary flex items-center gap-2 text-sm" aria-live="polite">
-            <Icon icon="lucide:check" size={16} className="text-dose-success shrink-0" />
+          // The one authored moment: the confirmation materializes with the
+          // dialog's own entrance vocabulary, and the envelope motif resolves —
+          // trigger badge → submit mail → success mail-check.
+          <p
+            className="theme-text-primary flex items-center gap-2 text-sm font-medium animate-in fade-in-0 zoom-in-95 duration-300 motion-reduce:animate-none"
+            aria-live="polite"
+          >
+            <Icon icon="lucide:mail-check" size={16} className="text-dose-success shrink-0" />
             You&rsquo;re on the list.
           </p>
         ) : (
@@ -79,6 +87,7 @@ export function MailingListInvite({ className }: { className?: string }) {
               required
               value={email}
               autoComplete="email"
+              name="email"
               placeholder="you@example.com"
               onChange={(event) => setEmail(event.target.value)}
             />
@@ -102,7 +111,7 @@ export function MailingListInvite({ className }: { className?: string }) {
               ) : (
                 <Icon icon="lucide:mail" size={16} />
               )}
-              {status === "pending" ? "Subscribing" : "Subscribe"}
+              {status === "pending" ? "Subscribing\u2026" : "Subscribe"}
             </Button>
           </form>
         )}
