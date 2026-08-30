@@ -4,6 +4,7 @@ import { useId } from "react";
 
 import { Icon } from "@/components/common/Icon";
 import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 import {
   Dialog,
   DialogContent,
@@ -36,9 +37,18 @@ export function MailingListInvite({ className }: { className?: string }) {
   return (
     <Dialog>
       <DialogTrigger asChild>
-        <Button variant="ghostPill" size="sm" className={className}>
-          <Icon icon="f7:envelope-badge" size={14} />
-          Mailing list
+        <Button
+          variant="ghostPill"
+          size="sm"
+          className={cn("gap-1.5 pl-3.5 pr-2 [&_svg]:size-[22px]", className)}
+        >
+          {/* Two stacked micro-rows, right-aligned against the icon; the icon
+              spans both rows and tucks into the pill's right corner. */}
+          <span className="flex flex-col items-end text-[0.6rem] font-semibold uppercase leading-[1.15] tracking-[0.16em]">
+            <span>Mailing</span>
+            <span>List</span>
+          </span>
+          <Icon icon="f7:envelope-badge" size={22} />
         </Button>
       </DialogTrigger>
       <DialogContent
