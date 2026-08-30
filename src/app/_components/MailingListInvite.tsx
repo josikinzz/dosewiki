@@ -19,9 +19,10 @@ import {
 } from "@/features/mailing-list/useMailingListSignup";
 
 /**
- * The homepage's mailing-list entry point: a compact pill pinned to the home
- * viewport's bottom-right corner (its `className` carries the positioning, mirroring
- * `SiteSupporter` in the opposite corner) that opens a minimal signup dialog. The
+ * The homepage's mailing-list entry point: a free-floating text-and-icon lockup
+ * pinned to the home viewport's bottom-right corner (its `className` carries the
+ * positioning), set in the same tracked-uppercase register as `SiteSupporter`'s
+ * "Supported by" label in the opposite corner. It opens a minimal signup dialog. The
  * dialog (Radix underneath `Dialog`) brings the focus trap, Escape/backdrop close,
  * and body scroll lock with it. Under `sm` the panel anchors near the top of the
  * viewport instead of centering, so the on-screen keyboard a focused email field
@@ -38,17 +39,21 @@ export function MailingListInvite({ className }: { className?: string }) {
     <Dialog>
       <DialogTrigger asChild>
         <Button
-          variant="ghostPill"
-          size="sm"
-          className={cn("gap-1.5 pl-3.5 pr-2 [&_svg]:size-[22px]", className)}
+          variant="quiet"
+          size="auto"
+          className={cn(
+            "-m-1.5 gap-2 p-1.5 text-[0.6875rem] uppercase leading-none tracking-[0.14em] [&_svg]:size-[26px]",
+            className,
+          )}
         >
-          {/* Two stacked micro-rows, right-aligned against the icon; the icon
-              spans both rows and tucks into the pill's right corner. */}
-          <span className="flex flex-col items-end text-[0.6rem] font-semibold uppercase leading-[1.15] tracking-[0.16em]">
+          {/* Two stacked rows, right-aligned against the icon; the icon spans both
+              rows. The invisible p-1.5/-m-1.5 pair widens the hit area without
+              moving the visual corner inset. */}
+          <span className="flex flex-col items-end gap-1">
             <span>Mailing</span>
             <span>List</span>
           </span>
-          <Icon icon="f7:envelope-badge" size={22} />
+          <Icon icon="f7:envelope-badge" size={26} />
         </Button>
       </DialogTrigger>
       <DialogContent
