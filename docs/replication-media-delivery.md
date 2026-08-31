@@ -1,6 +1,6 @@
 # Replication Media Delivery — Transcode, Archive, and Repoint
 
-Last verified: 2026-08-16
+Last verified: 2026-08-30
 
 The replication corpus contains 247 rows: 125 raw, never-transcoded video
 masters totalling 44.62 GB and 122 images totalling 235 MB. Video playback was
@@ -32,13 +32,13 @@ rollback path (section 5).
 The rest of this document records the decisions behind the completed operation
 and the requirements for a rerun.
 
-## Superseded: media origin moves to Cloudflare R2 (2026-08-27 decision)
+## Current media origin: Cloudflare R2
 
-This document's 2026-08-16 decision to keep Convex as the media origin was
-superseded by the owner's explicit 2026-08-27 instruction: metadata stays in
-Convex, media bytes move to the existing Cloudflare R2 archive
-(`docs/agents/convex-to-cloudflare-r2-media-handoff.md`). The dual-read seam
-is live in code:
+The migration completed on 2026-08-30. Metadata stays in Convex and media bytes
+are backed by the existing Cloudflare R2 archive. The implementation and
+acceptance record is
+`docs/agents/convex-to-cloudflare-r2-media-handoff.md`. The dual-read seam is
+live in code:
 
 - Schema: five optional keys — `r2_key`, `thumbnail_r2_key`, `preview_r2_key`,
   `motion_r2_key`, `motion_poster_r2_key`
@@ -56,6 +56,13 @@ is live in code:
   reconciliation ledger; identity is the digest, never filename or size) and
   `scripts/replications/backfill-r2-keys.mjs` (dry-run default, canary via
   `--slugs`, gated by the standard production-write flags).
+
+The checked-in ledger reconciles 2,804 populated replication media fields with
+zero missing, ambiguous, or error results. Its R2 copy verification covers
+1,194 distinct Convex-origin objects, including byte-range delivery. The larger
+unified archive remains independently verified at 10,150 objects and
+215,107,472,061 bytes. Convex Storage IDs and direct URLs remain populated as
+rollback sources; deleting those objects was not part of this migration.
 
 Note for reruns of the repoint procedure below: on a row whose `r2_key` is set
 while `REPLICATION_MEDIA_BASE_URL` is configured, repointing `storage_id` no
@@ -100,10 +107,11 @@ client components fed by a server read; no client `useQuery` reads replications.
 
 ### The resolver is the integration surface
 
-`convex/lib/replicationUrls.ts:21-28`:
+The current resolver is R2-first and falls back safely:
 
 ```ts
-if (!isPlaceholderStorageId(rep.storage_id)) {
+url = fromR2(rep.r2_key);
+if (!url && !isPlaceholderStorageId(rep.storage_id)) {
   try {
     url = await ctx.storage.getUrl(rep.storage_id);
   } catch {
@@ -113,9 +121,11 @@ if (!isPlaceholderStorageId(rep.storage_id)) {
 if (!url && rep.url) url = rep.url;
 ```
 
-The resolver comment and implementation agree: `storage_id` wins, and the
-stored `url` string is used only when storage lookup yields nothing. Section 5
-explains why this precedence determines the migration.
+The resolver comment and implementation agree: a valid content-addressed R2 key
+wins when `REPLICATION_MEDIA_BASE_URL` is configured, followed by the old
+`storage_id`, then the stored `url`. Unsetting the deployment variable restores
+the previous Convex-first behavior globally. Section 5 explains why this
+precedence determines recovery and reruns.
 
 ### Consequences
 
@@ -135,11 +145,12 @@ explains why this precedence determines the migration.
   treats only local paths as optimizable, so remote posters render through a
   plain `<img>`. The absent `images.remotePatterns` has never broken them.
 
-## 2. Decision: no CDN. Convex stays the origin.
+## 2. Historical decision: Convex was the origin
 
-The owner was offered Cloudflare R2, Bunny.net, and Vercel Blob, and declined
-all three: *"convex??? its been working well enough"*. That decision is recorded
-here as final for now, along with what it does and does not buy.
+This section records the superseded 2026-08-16 operating state so earlier
+performance measurements remain interpretable. The owner later selected
+Cloudflare R2, and the R2 migration completed on 2026-08-30. The limitations
+below describe the rollback origin, not current R2 delivery.
 
 ### What the transcode fixes
 
@@ -170,12 +181,12 @@ here as final for now, along with what it does and does not buy.
 - **Bandwidth cost scales with *distinct* viewers**, with no shared cache to
   amortise it across them.
 
-In summary, transcoding removes roughly 90% of the bytes and nearly all of the
-startup stall. Each visitor's first view still comes from the origin at full
-rendition size. That is acceptable at current traffic; revisit the origin when
-traffic grows or Convex exposes public cache control.
+Historically, transcoding removed roughly 90% of the bytes and nearly all of the
+startup stall, but each visitor's first view still came from Convex Storage at
+full rendition size. R2 delivery replaced that operating model; these details
+remain relevant only when the rollback switch is used.
 
-### Reference, if that decision is ever revisited
+### Historical requirements carried into R2 delivery
 
 Kept deliberately, so a future reader does not have to re-derive it. A CDN would
 need the origin to return:
