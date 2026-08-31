@@ -100,9 +100,11 @@ describe("getReplicationsByContributor", () => {
   });
 
   it("asks Convex for the contributor's own works by normalized match name", async () => {
-    mocks.queryConvex.mockResolvedValueOnce([
-      { slug: "drifting", artist: "Josie Kins", type: "video", url: "https://x/1" },
-    ]);
+    mocks.queryConvex.mockResolvedValueOnce({
+      items: [{ slug: "drifting", artist: "Josie Kins", type: "video", url: "https://x/1" }],
+      cursor: "done",
+      isDone: true,
+    });
 
     const { getReplicationsByContributor } = await import("./publicData.replications");
     const replications = await getReplicationsByContributor(
@@ -110,8 +112,9 @@ describe("getReplicationsByContributor", () => {
     );
 
     expect(mocks.queryConvex).toHaveBeenCalledTimes(1);
-    expect(mocks.queryConvex).toHaveBeenCalledWith("replications:getByArtistNames", {
+    expect(mocks.queryConvex).toHaveBeenCalledWith("replications:getByArtistNamesPage", {
       artistNames: ["josie kins", "josie"],
+      limit: 64,
     });
     expect(replications).toEqual([
       { slug: "drifting", artist: "Josie Kins", type: "video", url: "https://x/1" },
@@ -122,11 +125,11 @@ describe("getReplicationsByContributor", () => {
     // The rail is headed "Replications" and prints its own count beside that
     // heading, and the permalink walks the same set — so a diagram credited to
     // this person would be presented as one of their works three times over.
-    mocks.queryConvex.mockResolvedValueOnce([
+    mocks.queryConvex.mockResolvedValueOnce({ items: [
       { slug: "drifting", artist: "Josie Kins", type: "video", url: "https://x/1" },
       { slug: "ecg-trace", artist: "Josie Kins", type: "image", role: "figure", url: "https://x/2" },
       { slug: "a-recording", artist: "Josie Kins", type: "audio", url: "https://x/3.mp3" },
-    ]);
+    ], cursor: "done", isDone: true });
 
     const { getReplicationsByContributor } = await import("./publicData.replications");
     const works = await getReplicationsByContributor(
@@ -137,7 +140,7 @@ describe("getReplicationsByContributor", () => {
   });
 
   it("returns an empty list for a contributor with no works", async () => {
-    mocks.queryConvex.mockResolvedValueOnce([]);
+    mocks.queryConvex.mockResolvedValueOnce({ items: [], cursor: "done", isDone: true });
 
     const { getReplicationsByContributor } = await import("./publicData.replications");
 
@@ -158,7 +161,7 @@ describe("getReplicationsByContributor", () => {
   it("degrades to no works when the additive Convex query is not deployed", async () => {
     const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
     mocks.queryConvex.mockRejectedValueOnce(
-      new Error("[CONVEX Q(replications:getByArtistNames)] Could not find public function"),
+      new Error("[CONVEX Q(replications:getByArtistNamesPage)] Could not find public function"),
     );
 
     const { getReplicationsByContributor } = await import("./publicData.replications");
@@ -172,7 +175,7 @@ describe("getReplicationsByContributor", () => {
 
   it("surfaces any other Convex failure instead of pretending the portfolio is empty", async () => {
     mocks.queryConvex.mockRejectedValueOnce(
-      new Error("[CONVEX Q(replications:getByArtistNames)] Server Error"),
+      new Error("[CONVEX Q(replications:getByArtistNamesPage)] Server Error"),
     );
 
     const { getReplicationsByContributor } = await import("./publicData.replications");
@@ -193,11 +196,17 @@ describe("getPublicReplicationsForSubstance", () => {
     replication: { slug, artist: "Josie Kins", type: "image", url: `https://x/${slug}`, ...overrides },
     provenance: { matchedVia: "specific_drug", effectSlug: "lsd" },
   });
+  const page = (items: ReturnType<typeof item>[]) => ({
+    items,
+    curation: null,
+    cursor: "done",
+    isDone: true,
+  });
 
   it("asks Convex for the substance's automatically ordered showcase", async () => {
-    mocks.queryConvex.mockResolvedValueOnce({
-      items: [item("specific-video"), item("specific-image")],
-    });
+    mocks.queryConvex.mockResolvedValueOnce(
+      page([item("specific-video"), item("specific-image")]),
+    );
 
     const { getPublicReplicationsForSubstance } = await import("./publicData.replications");
     const gallery = await getPublicReplicationsForSubstance("lsd");
@@ -205,7 +214,7 @@ describe("getPublicReplicationsForSubstance", () => {
     expect(mocks.queryConvex).toHaveBeenCalledTimes(1);
     expect(mocks.queryConvex).toHaveBeenCalledWith(
       "substanceGalleries:getPublicReplicationsForSubstance",
-      { substance_slug: "lsd" },
+      { substance_slug: "lsd", limit: 64 },
     );
     expect(gallery.items.map((entry) => entry.replication.slug)).toEqual([
       "specific-video",
@@ -214,9 +223,9 @@ describe("getPublicReplicationsForSubstance", () => {
   });
 
   it("re-applies the publishability gate at this layer like every list read", async () => {
-    mocks.queryConvex.mockResolvedValueOnce({
-      items: [item("a-work"), item("a-figure", { role: "figure" }), item("a-track", { type: "audio" })],
-    });
+    mocks.queryConvex.mockResolvedValueOnce(
+      page([item("a-work"), item("a-figure", { role: "figure" }), item("a-track", { type: "audio" })]),
+    );
 
     const { getPublicReplicationsForSubstance } = await import("./publicData.replications");
     const gallery = await getPublicReplicationsForSubstance("lsd");
@@ -225,7 +234,7 @@ describe("getPublicReplicationsForSubstance", () => {
   });
 
   it("returns an empty gallery for a zero-match substance, not an error", async () => {
-    mocks.queryConvex.mockResolvedValueOnce({ items: [] });
+    mocks.queryConvex.mockResolvedValueOnce(page([]));
 
     const { getPublicReplicationsForSubstance } = await import("./publicData.replications");
 
@@ -284,8 +293,8 @@ describe("getPublicGalleryReplications", () => {
 
   const stubConvex = (profiles: NormalizedUserProfile[]) => {
     mocks.queryConvex.mockImplementation(async (functionName: string) => {
-      if (functionName === "replications:getPublicReplications") {
-        return corpus;
+      if (functionName === "replications:getPublicGalleryPage") {
+        return { items: corpus, cursor: "done", isDone: true };
       }
       if (functionName === "contributorProfiles:getAll") {
         return profiles;
@@ -324,8 +333,8 @@ describe("getPublicGalleryReplications", () => {
 
   it("omits nullable media URLs from the serialized preview contract", async () => {
     mocks.queryConvex.mockImplementation(async (functionName: string) => {
-      if (functionName === "replications:getPublicReplications") {
-        return [
+      if (functionName === "replications:getPublicGalleryPage") {
+        return { items: [
           {
             ...work("nullable-renditions", "A Stranger"),
             thumbnail_url: null,
@@ -333,7 +342,7 @@ describe("getPublicGalleryReplications", () => {
             motion_url: null,
             motion_poster_url: null,
           },
-        ];
+        ], cursor: "done", isDone: true };
       }
       if (functionName === "contributorProfiles:getAll") return [];
       if (functionName === "replicationTaxonomy:getPublicArtistsByKeys") return [];
@@ -354,7 +363,9 @@ describe("getPublicGalleryReplications", () => {
 
   it("joins only slim artist taxonomy metadata into gallery previews", async () => {
     mocks.queryConvex.mockImplementation(async (functionName: string) => {
-      if (functionName === "replications:getPublicReplications") return corpus;
+      if (functionName === "replications:getPublicGalleryPage") {
+        return { items: corpus, cursor: "done", isDone: true };
+      }
       if (functionName === "contributorProfiles:getAll") return [];
       if (functionName === "replicationTaxonomy:getPublicArtistsByKeys") {
         return [
@@ -384,7 +395,9 @@ describe("getPublicGalleryReplications", () => {
   it("keeps the gallery buildable while the additive artist query is mid-deploy", async () => {
     vi.spyOn(console, "warn").mockImplementation(() => undefined);
     mocks.queryConvex.mockImplementation(async (functionName: string) => {
-      if (functionName === "replications:getPublicReplications") return corpus;
+      if (functionName === "replications:getPublicGalleryPage") {
+        return { items: corpus, cursor: "done", isDone: true };
+      }
       if (functionName === "contributorProfiles:getAll") return [];
       if (functionName === "replicationTaxonomy:getPublicArtistsByKeys") {
         throw new Error("Server Error");
@@ -516,5 +529,35 @@ describe("getPublicGalleryReplicationPage", () => {
       slug: "later-work",
       artist: "Deferred Artist",
     });
+  });
+});
+
+describe("getPublicReplicationsBySlugs", () => {
+  beforeEach(() => {
+    vi.resetModules();
+    mocks.queryConvex.mockReset();
+  });
+
+  it("partitions large curated selections into indexed batches of at most 100", async () => {
+    mocks.queryConvex.mockImplementation(
+      async (functionName: string, args: { slugs: string[] }) => {
+        expect(functionName).toBe("replications:getBySlugs");
+        return args.slugs.map((slug) => ({
+          slug,
+          artist: "Artist",
+          type: "image",
+          url: `https://x/${slug}`,
+        }));
+      },
+    );
+    const slugs = Array.from({ length: 205 }, (_, index) => `work-${index}`);
+    const { getPublicReplicationsBySlugs } = await import(
+      "./publicData.replications"
+    );
+
+    await expect(getPublicReplicationsBySlugs(slugs)).resolves.toHaveLength(205);
+    expect(
+      mocks.queryConvex.mock.calls.map(([, args]) => args.slugs.length),
+    ).toEqual([100, 100, 5]);
   });
 });

@@ -1,5 +1,8 @@
 import { NextResponse } from "next/server";
-import { getPublicReplications } from "@server/convex/publicData";
+import {
+  getPublicReplications,
+  getPublicReplicationsBySlugs,
+} from "@server/convex/publicData";
 import { replicationMediaRank } from "@/features/replications/mediaRank";
 import { enforceRateLimit } from "@server/http/nextRateLimit";
 import {
@@ -57,8 +60,16 @@ export async function GET(request: Request) {
       });
     }
 
-    const page = all.slice(offset, offset + limit);
-    const nextOffset = offset + page.length;
+    const pageIndex = all.slice(offset, offset + limit);
+    const details = await getPublicReplicationsBySlugs(
+      pageIndex.map(({ slug }) => slug),
+    );
+    const detailsBySlug = new Map(details.map((item) => [item.slug, item]));
+    const page = pageIndex.flatMap((item) => {
+      const detail = detailsBySlug.get(item.slug);
+      return detail ? [detail] : [];
+    });
+    const nextOffset = offset + pageIndex.length;
     return NextResponse.json({
       data: page.map(projectPublicApiReplication),
       pagination: {

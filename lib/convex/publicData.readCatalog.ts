@@ -92,10 +92,6 @@ export const publicDataReadCatalog = {
     functionName: "replications:getReplicationsByEffect",
     args: (effectSlug: string) => ({ effect_slug: effectSlug }),
   },
-  publicReplications: {
-    functionName: "replications:getPublicReplications",
-    args: () => ({}),
-  },
   publicReplicationGalleryPage: {
     functionName: "replications:getPublicGalleryPage",
     args: (cursor?: string, limit = PUBLIC_REPLICATION_GALLERY_PAGE_SIZE) => ({
@@ -111,13 +107,29 @@ export const publicDataReadCatalog = {
     functionName: "replications:getBySlug",
     args: (slug: string) => ({ slug }),
   },
+  publicReplicationsBySlugs: {
+    functionName: "replications:getBySlugs",
+    args: (slugs: string[]) => ({ slugs }),
+  },
   publicReplicationsByArtistNames: {
     functionName: "replications:getByArtistNames",
     args: (artistNames: string[]) => ({ artistNames }),
   },
+  publicReplicationsByArtistNamesPage: {
+    functionName: "replications:getByArtistNamesPage",
+    args: (artistNames: string[], cursor?: string) => ({
+      artistNames,
+      ...(cursor ? { cursor } : {}),
+      limit: PUBLIC_REPLICATION_GALLERY_PAGE_SIZE,
+    }),
+  },
   publicReplicationsForSubstance: {
     functionName: "substanceGalleries:getPublicReplicationsForSubstance",
-    args: (substanceSlug: string) => ({ substance_slug: substanceSlug }),
+    args: (substanceSlug: string, cursor?: string) => ({
+      substance_slug: substanceSlug,
+      ...(cursor ? { cursor } : {}),
+      limit: PUBLIC_REPLICATION_GALLERY_PAGE_SIZE,
+    }),
   },
   publicTripReportRecords: { functionName: "tripReports:getAll", args: () => ({}) },
   publicTripReportBySlug: { functionName: "tripReports:getBySlug", args: (slug: string) => ({ slug }) },

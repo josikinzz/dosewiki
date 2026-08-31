@@ -52,6 +52,57 @@ async function resolveRows<Row extends ResolvableReplication>(
   );
 }
 
+const PUBLIC_SLUG_BATCH_LIMIT = 100;
+
+/**
+ * Resolve a small, caller-ordered replication shortlist through the `by_slug`
+ * index. This is the detail companion to the slim paginated gallery feed: a
+ * public surface can choose at most one API page or one curated carousel from
+ * the slim catalog, then hydrate only those rows that it will actually render.
+ */
+export async function getBySlugsHandler(
+  ctx: QueryCtx,
+  args: { slugs: string[] },
+) {
+  const slugs = [...new Set(args.slugs)];
+  if (slugs.length > PUBLIC_SLUG_BATCH_LIMIT) {
+    throw new Error(`getBySlugs accepts at most ${PUBLIC_SLUG_BATCH_LIMIT} slugs`);
+  }
+
+  const rows = (
+    await Promise.all(
+      slugs.map((slug) =>
+        ctx.db
+          .query("replications")
+          .withIndex("by_slug", (query) => query.eq("slug", slug))
+          .first(),
+      ),
+    )
+  ).filter((row) => row !== null);
+  const resolved = await resolveRows(ctx, rows);
+
+  return resolved.flatMap((row) => {
+    if (!row.url) return [];
+    const {
+      thumbnail_url,
+      preview_url,
+      motion_url,
+      motion_poster_url,
+      ...stored
+    } = row;
+    return [
+      {
+        ...stored,
+        url: row.url,
+        ...(thumbnail_url ? { thumbnail_url } : {}),
+        ...(preview_url ? { preview_url } : {}),
+        ...(motion_url ? { motion_url } : {}),
+        ...(motion_poster_url ? { motion_poster_url } : {}),
+      },
+    ];
+  });
+}
+
 export async function getAllHandler(ctx: QueryCtx) {
   return await ctx.db.query("replications").collect();
 }
@@ -96,6 +147,48 @@ export async function getByArtistNamesHandler(
   const rows = await ctx.db.query("replications").collect();
   const matched = rows.filter((row) => replicationMatchesArtistNames(row, matchNames));
   return await resolveRows(ctx, matched);
+}
+
+const PUBLIC_CONTRIBUTOR_REPLICATION_SCAN_LIMIT = 64;
+
+function clampContributorReplicationScanLimit(requested?: number): number {
+  const normalized = typeof requested === "number" && Number.isFinite(requested)
+    ? Math.floor(requested)
+    : PUBLIC_CONTRIBUTOR_REPLICATION_SCAN_LIMIT;
+  return Math.min(
+    Math.max(normalized, 1),
+    PUBLIC_CONTRIBUTOR_REPLICATION_SCAN_LIMIT,
+  );
+}
+
+/**
+ * Scan one bounded storage-ordered page and return only rows credited to the
+ * contributor. Filtering can make a page sparse, so callers must follow the
+ * returned opaque cursor until `isDone` rather than treating an empty `items`
+ * array as the end of the contributor's works.
+ */
+export async function getByArtistNamesPageHandler(
+  ctx: QueryCtx,
+  args: { artistNames: string[]; cursor?: string; limit?: number },
+) {
+  const matchNames = contributorArtistMatchSet(args.artistNames);
+  if (matchNames.size === 0) {
+    return { items: [], cursor: "", isDone: true };
+  }
+
+  const result = await ctx.db.query("replications").paginate({
+    cursor: args.cursor ?? null,
+    numItems: clampContributorReplicationScanLimit(args.limit),
+  });
+  const matched = result.page.filter((row) =>
+    replicationMatchesArtistNames(row, matchNames),
+  );
+
+  return {
+    items: await resolveRows(ctx, matched),
+    cursor: result.continueCursor,
+    isDone: result.isDone,
+  };
 }
 
 export async function getPublicReplicationsHandler(ctx: QueryCtx) {

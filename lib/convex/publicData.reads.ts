@@ -11,7 +11,12 @@ import type {
   ContributorReviewedArticle,
   ReviewedArticleCredit,
 } from "../../src/types/reviewedArticles";
-import type { PublicSubstanceGallery } from "../../src/data/substanceReplicationGallery";
+import {
+  mergeCuratedGallery,
+  type PublicSubstanceGallery,
+  type SubstanceGalleryCuration,
+  type SubstanceGalleryItem,
+} from "../../src/data/substanceReplicationGallery";
 import {
   priorityScore,
   trimExcerpt,
@@ -106,6 +111,7 @@ export type PublicDataReadAdapter = {
   getPublicGalleryReplicationPage(cursor?: string, limit?: number): Promise<PublicGalleryReplicationPage>;
   getPublicReplicationArtistsByKeys(keys: string[]): Promise<PublicReplicationArtistTaxonomy[]>;
   getPublicReplicationBySlug(slug: string): Promise<ReplicationWithUrl | null>;
+  getPublicReplicationsBySlugs(slugs: string[]): Promise<ReplicationWithUrl[]>;
   getPublicReplicationsByArtistNames(artistNames: string[]): Promise<ReplicationWithUrl[]>;
   getPublicReplicationsForSubstance(substanceSlug: string): Promise<PublicSubstanceGallery>;
   getPublicTripReportRecords(): Promise<TripReportRecord[]>;
@@ -553,6 +559,77 @@ async function drainConvexPaginationPages<Item>(
   );
 }
 
+type PublicSubstanceGalleryPage = {
+  items: SubstanceGalleryItem[];
+  curation: SubstanceGalleryCuration | null;
+  cursor: string;
+  isDone: boolean;
+};
+
+async function drainPublicSubstanceGallery(
+  query: QueryTransport,
+  substanceSlug: string,
+): Promise<PublicSubstanceGallery> {
+  const items: SubstanceGalleryItem[] = [];
+  const seenCursors = new Set<string>();
+  let cursor: string | undefined;
+  let curation: SubstanceGalleryCuration | null = null;
+  let completed = false;
+
+  for (let pageNumber = 1; pageNumber <= PUBLIC_CORPUS_MAX_PAGES; pageNumber += 1) {
+    const result = await query<
+      PublicSubstanceGalleryPage,
+      { substance_slug: string; cursor?: string; limit: number }
+    >(
+      publicDataReadCatalog.publicReplicationsForSubstance.functionName,
+      publicDataReadCatalog.publicReplicationsForSubstance.args(
+        substanceSlug,
+        cursor,
+      ),
+    );
+    if (
+      !Array.isArray(result.items) ||
+      typeof result.isDone !== "boolean" ||
+      typeof result.cursor !== "string"
+    ) {
+      throw new Error("Public substance gallery pagination returned an invalid payload.");
+    }
+    items.push(...result.items);
+    if (items.length > PUBLIC_CORPUS_MAX_ROWS) {
+      throw new Error(
+        `Public substance gallery pagination exceeded maxRows (${PUBLIC_CORPUS_MAX_ROWS}).`,
+      );
+    }
+    curation = result.curation;
+    if (result.isDone) {
+      completed = true;
+      break;
+    }
+    if (!result.cursor || result.cursor === cursor || seenCursors.has(result.cursor)) {
+      throw new Error("Public substance gallery pagination did not advance.");
+    }
+    seenCursors.add(result.cursor);
+    cursor = result.cursor;
+  }
+
+  if (!completed) {
+    throw new Error(
+      `Public substance gallery pagination exceeded maxPages (${PUBLIC_CORPUS_MAX_PAGES}).`,
+    );
+  }
+
+  const merged = mergeCuratedGallery(
+    items.map(({ replication, provenance }) => ({ row: replication, provenance })),
+    curation,
+  );
+  return {
+    items: merged.map(({ row: replication, provenance }) => ({
+      replication,
+      provenance,
+    })),
+  };
+}
+
 async function queryPaginatedPublicProjectionRead<RawItem, PublicResult>(
   query: QueryTransport,
   source: PublicCorpusPageSource,
@@ -763,19 +840,15 @@ export function createConvexPublicDataReadAdapter(query: QueryTransport = queryC
         publicDataReadCatalog.publicReplicationsByEffect.functionName,
         publicDataReadCatalog.publicReplicationsByEffect.args(effectSlug),
       ),
-    getPublicReplications: async () => {
-      // The cross-effect gallery query is additive; tolerate a deployment that
-      // predates it by degrading to an empty gallery rather than failing the
-      // public /effects render.
-      try {
-        return await query<GalleryReplication[]>(publicDataReadCatalog.publicReplications.functionName, {});
-      } catch (error) {
-        if (isExplicitMissingPublicFunctionError(error)) {
-          return [];
-        }
-        throw error;
-      }
-    },
+    getPublicReplications: async () =>
+      // This compatibility-shaped catalog is intentionally reconstructed from
+      // slim, bounded gallery pages. Public callers that only need routing,
+      // counts, artist/effect grouping, or a shortlist must never invoke the
+      // legacy whole-table resolver.
+      drainPublicCorpusPages<GalleryReplication>(
+        query,
+        publicDataReadCatalog.publicReplicationGalleryPage,
+      ),
     getPublicGalleryReplicationPage: (cursor, limit = 64) =>
       query<PublicGalleryReplicationPage, { cursor?: string; limit: number }>(
         publicDataReadCatalog.publicReplicationGalleryPage.functionName,
@@ -802,17 +875,29 @@ export function createConvexPublicDataReadAdapter(query: QueryTransport = queryC
         publicDataReadCatalog.publicReplicationBySlug.functionName,
         publicDataReadCatalog.publicReplicationBySlug.args(slug),
       ),
+    getPublicReplicationsBySlugs: (slugs) => {
+      if (slugs.length === 0) return Promise.resolve([]);
+      return query<ReplicationWithUrl[], { slugs: string[] }>(
+        publicDataReadCatalog.publicReplicationsBySlugs.functionName,
+        publicDataReadCatalog.publicReplicationsBySlugs.args(slugs),
+      );
+    },
     // Contributor replication read degrades explicitly when an older deployment lacks it.
     getPublicReplicationsByArtistNames: async (artistNames) => {
       try {
-        return await query<ReplicationWithUrl[], { artistNames: string[] }>(
-          publicDataReadCatalog.publicReplicationsByArtistNames.functionName,
-          publicDataReadCatalog.publicReplicationsByArtistNames.args(artistNames),
-        );
+        return await drainPublicCorpusPages<ReplicationWithUrl>(query, {
+          functionName:
+            publicDataReadCatalog.publicReplicationsByArtistNamesPage.functionName,
+          args: (cursor) =>
+            publicDataReadCatalog.publicReplicationsByArtistNamesPage.args(
+              artistNames,
+              cursor,
+            ),
+        });
       } catch (error) {
         if (isExplicitMissingPublicFunctionError(error)) {
           console.warn(
-            "[publicData] replications:getByArtistNames is not deployed; contributor replication credits degraded to empty.",
+            "[publicData] replications:getByArtistNamesPage is not deployed; contributor replication credits degraded to empty.",
           );
           return [];
         }
@@ -822,10 +907,7 @@ export function createConvexPublicDataReadAdapter(query: QueryTransport = queryC
     // Substance showcase read also degrades explicitly across function rollout.
     getPublicReplicationsForSubstance: async (substanceSlug) => {
       try {
-        return await query<PublicSubstanceGallery, { substance_slug: string }>(
-          publicDataReadCatalog.publicReplicationsForSubstance.functionName,
-          publicDataReadCatalog.publicReplicationsForSubstance.args(substanceSlug),
-        );
+        return await drainPublicSubstanceGallery(query, substanceSlug);
       } catch (error) {
         if (isExplicitMissingPublicFunctionError(error)) {
           console.warn(

@@ -1,7 +1,14 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-const mocks = vi.hoisted(() => ({ getPublicReplications: vi.fn(), enforceRateLimit: vi.fn() }));
-vi.mock("@server/convex/publicData", () => ({ getPublicReplications: mocks.getPublicReplications }));
+const mocks = vi.hoisted(() => ({
+  getPublicReplications: vi.fn(),
+  getPublicReplicationsBySlugs: vi.fn(),
+  enforceRateLimit: vi.fn(),
+}));
+vi.mock("@server/convex/publicData", () => ({
+  getPublicReplications: mocks.getPublicReplications,
+  getPublicReplicationsBySlugs: mocks.getPublicReplicationsBySlugs,
+}));
 vi.mock("@server/http/nextRateLimit", () => ({ enforceRateLimit: mocks.enforceRateLimit }));
 
 const replication = {
@@ -14,6 +21,7 @@ const replication = {
 describe("public replications API", () => {
   beforeEach(() => {
     mocks.getPublicReplications.mockReset().mockResolvedValue([replication]);
+    mocks.getPublicReplicationsBySlugs.mockReset().mockResolvedValue([replication]);
     mocks.enforceRateLimit.mockReset().mockResolvedValue(null);
   });
 
@@ -25,6 +33,7 @@ describe("public replications API", () => {
     expect(body.data[0]).toMatchObject({ slug: "drifting", rights: { status: "permission-granted" } });
     expect(JSON.stringify(body)).not.toContain("private-storage");
     expect(JSON.stringify(body)).not.toContain("private@example.com");
+    expect(mocks.getPublicReplicationsBySlugs).toHaveBeenCalledWith(["drifting"]);
   });
 
   it("serves the whole corpus when one row has no owning effect", async () => {
@@ -34,6 +43,10 @@ describe("public replications API", () => {
     mocks.getPublicReplications.mockResolvedValue([
       replication,
       { ...replication, slug: "page-hero", effect_slug: undefined },
+    ]);
+    mocks.getPublicReplicationsBySlugs.mockResolvedValue([
+      { ...replication, slug: "page-hero", effect_slug: undefined },
+      replication,
     ]);
 
     const { GET } = await import("./route");
@@ -53,5 +66,43 @@ describe("public replications API", () => {
     const response = await GET(new Request("https://dose.wiki/api/v1/replications?type=audio"));
     expect(response.status).toBe(400);
     expect(mocks.getPublicReplications).not.toHaveBeenCalled();
+  });
+
+  it("traverses 6,733 rows in stable 100-row partitions without omissions", async () => {
+    const corpus = Array.from({ length: 6_733 }, (_, index) => ({
+      ...replication,
+      _id: `id-${index}`,
+      slug: `work-${String(index).padStart(4, "0")}`,
+      title: `Work ${index}`,
+      type: index % 2 === 0 ? ("video" as const) : ("image" as const),
+    }));
+    const bySlug = new Map(corpus.map((item) => [item.slug, item]));
+    mocks.getPublicReplications.mockResolvedValue(corpus);
+    mocks.getPublicReplicationsBySlugs.mockImplementation(async (slugs: string[]) =>
+      slugs.flatMap((slug) => {
+        const item = bySlug.get(slug);
+        return item ? [item] : [];
+      }),
+    );
+    const { GET } = await import("./route");
+    const seen: string[] = [];
+    const pageSizes: number[] = [];
+    let cursor: string | null = null;
+
+    do {
+      const url = new URL("https://dose.wiki/api/v1/replications");
+      url.searchParams.set("limit", "100");
+      if (cursor) url.searchParams.set("cursor", cursor);
+      const response = await GET(new Request(url));
+      const body = await response.json();
+      pageSizes.push(body.data.length);
+      seen.push(...body.data.map((item: { slug: string }) => item.slug));
+      cursor = body.pagination.next_cursor;
+    } while (cursor);
+
+    expect(pageSizes).toEqual([...Array(67).fill(100), 33]);
+    expect(seen).toHaveLength(6_733);
+    expect(new Set(seen).size).toBe(6_733);
+    expect(mocks.getPublicReplicationsBySlugs).toHaveBeenCalledTimes(68);
   });
 });

@@ -1,4 +1,5 @@
 import { type Infer, v } from "convex/values";
+import { replication } from "./effectMediaSchemaValidators";
 import { replicationTaxonomyPatchValidator } from "./replicationTaxonomyValidators";
 
 export const replicationRightsStatus = v.union(
@@ -58,8 +59,54 @@ export const getBySlugArgs = v.object({ slug: v.string() });
 export const getReplicationsByEffectArgs = v.object({ effect_slug: v.string() });
 export const getByArtistArgs = v.object({ artist: v.string() });
 export const getByArtistNamesArgs = v.object({ artistNames: v.array(v.string()) });
+export const getByArtistNamesPageArgs = v.object({
+  artistNames: v.array(v.string()),
+  cursor: v.optional(v.string()),
+  limit: v.optional(v.number()),
+});
+export const getBySlugsArgs = v.object({ slugs: v.array(v.string()) });
 export const resolveStorageUrlsArgs = v.object({ storageIds: v.array(v.string()) });
 export const generateUploadUrlArgs = v.object({ apiKey: v.optional(v.string()) });
+
+/** Full public detail row after media locators have been resolved. */
+export const resolvedReplication = v.object({
+  _id: v.id("replications"),
+  _creationTime: v.number(),
+  ...replication.fields,
+  url: v.string(),
+  thumbnail_url: v.optional(v.string()),
+  preview_url: v.optional(v.string()),
+  motion_url: v.optional(v.string()),
+  motion_poster_url: v.optional(v.string()),
+});
+
+export const storedReplication = v.object({
+  _id: v.id("replications"),
+  _creationTime: v.number(),
+  ...replication.fields,
+});
+
+export const resolvedReplicationWithNullableUrls = v.object({
+  _id: v.id("replications"),
+  _creationTime: v.number(),
+  ...replication.fields,
+  url: v.union(v.string(), v.null()),
+  thumbnail_url: v.union(v.string(), v.null()),
+  preview_url: v.union(v.string(), v.null()),
+  motion_url: v.union(v.string(), v.null()),
+  motion_poster_url: v.union(v.string(), v.null()),
+});
+
+export const resolvedGalleryReplication = v.object({
+  ...resolvedReplicationWithNullableUrls.fields,
+  order_index: v.optional(v.number()),
+});
+
+export const resolvedReplicationPage = v.object({
+  items: v.array(resolvedReplicationWithNullableUrls),
+  cursor: v.string(),
+  isDone: v.boolean(),
+});
 
 export const insertReplicationArgs = v.object({
   apiKey: v.optional(v.string()),

@@ -5,7 +5,7 @@ import { cache } from "react";
 import {
   getPublicEffects,
   getPublicFeaturedReplicationSlugs,
-  getPublicReplications,
+  getPublicReplicationsBySlugs,
   getPublicReports,
   getPublishedEffectIndexArticles,
 } from "@server/convex/publicData";
@@ -78,12 +78,15 @@ function createDisplaySeed(): number {
 
 export const loadEffectIndexHomeData = cache(
   async (seed: number = createDisplaySeed()): Promise<EffectIndexHomeData> => {
+    const featuredSlugsPromise = getPublicFeaturedReplicationSlugs().then(
+      (stored) => [...resolveFeaturedReplicationSlugs(stored)],
+    );
     const [effects, articles, reports, replications, featuredSlugs] = await Promise.all([
       getPublicEffects(),
       getPublishedEffectIndexArticles(),
       getPublicReports(),
-      getPublicReplications(),
-      getPublicFeaturedReplicationSlugs(),
+      featuredSlugsPromise.then((slugs) => getPublicReplicationsBySlugs(slugs)),
+      featuredSlugsPromise,
     ]);
 
     const effectNamesBySlug = new Map(effects.map((effect) => [effect.slug, effect.name]));
@@ -94,7 +97,7 @@ export const loadEffectIndexHomeData = cache(
       featuredArticle: selectFeaturedArticle(articles, seed, formatArticleLengthLabel),
       featuredReports: selectFeaturedReports(reports, seed),
       featuredReplications: resolveFeaturedReplications(
-        resolveFeaturedReplicationSlugs(featuredSlugs),
+        featuredSlugs,
         replications,
         effectNamesBySlug,
         seed,

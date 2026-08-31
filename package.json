@@ -134,6 +134,7 @@
     "test:coverage": "vitest run --coverage",
     "theme:tokens:check": "bun src/theme/tokenAudit.ts --check",
     "knip": "knip",
+    "perf:replications": "node tests/perf/replications.mjs",
     "typecheck": "tsc --noEmit",
     "typecheck:scripts": "tsc --noEmit -p tsconfig.scripts.json",
     "typecheck:convex": "tsc --noEmit -p tsconfig.convex.json",

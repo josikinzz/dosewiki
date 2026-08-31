@@ -20,31 +20,49 @@ export { selectReplicationsByArtistNames } from "./lib/replicationReads";
 /** Public and maintenance replication reads. */
 export const getAll = query({
   args: {},
+  returns: v.array(validators.storedReplication),
   handler: reads.getAllHandler,
 });
 
 export const getBySlug = query({
   args: validators.getBySlugArgs.fields,
+  returns: v.union(validators.resolvedReplicationWithNullableUrls, v.null()),
   handler: reads.getBySlugHandler,
+});
+
+export const getBySlugs = query({
+  args: validators.getBySlugsArgs.fields,
+  returns: v.array(validators.resolvedReplication),
+  handler: reads.getBySlugsHandler,
 });
 
 export const getReplicationsByEffect = query({
   args: validators.getReplicationsByEffectArgs.fields,
+  returns: v.array(validators.resolvedReplicationWithNullableUrls),
   handler: reads.getReplicationsByEffectHandler,
 });
 
 export const getByArtist = query({
   args: validators.getByArtistArgs.fields,
+  returns: v.array(validators.resolvedReplicationWithNullableUrls),
   handler: reads.getByArtistHandler,
 });
 
 export const getByArtistNames = query({
   args: validators.getByArtistNamesArgs.fields,
+  returns: v.array(validators.resolvedReplicationWithNullableUrls),
   handler: reads.getByArtistNamesHandler,
+});
+
+export const getByArtistNamesPage = query({
+  args: validators.getByArtistNamesPageArgs.fields,
+  returns: validators.resolvedReplicationPage,
+  handler: reads.getByArtistNamesPageHandler,
 });
 
 export const getPublicReplications = query({
   args: {},
+  returns: v.array(validators.resolvedGalleryReplication),
   handler: reads.getPublicReplicationsHandler,
 });
 
@@ -56,6 +74,7 @@ export const getPublicGalleryPage = query({
 
 export const resolveStorageUrls = query({
   args: validators.resolveStorageUrlsArgs.fields,
+  returns: v.array(v.union(v.string(), v.null())),
   handler: reads.resolveStorageUrlsHandler,
 });
 

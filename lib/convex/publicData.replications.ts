@@ -321,3 +321,19 @@ export const getPublicGalleryReplicationBySlug = cache(async (
     ...(artist ? { artist_type_tags: artist.artist_type_tags } : {}),
   });
 });
+
+/** Resolve only the detail rows selected from a slim catalog page. */
+export const getPublicReplicationsBySlugs = cache(async (
+  slugs: string[],
+): Promise<ReplicationWithUrl[]> => {
+  const uniqueSlugs = [...new Set(slugs)];
+  if (uniqueSlugs.length === 0) return [];
+  const rows = (
+    await Promise.all(
+      batches(uniqueSlugs, 100).map((batch) =>
+        getPublicDataReadAdapter().getPublicReplicationsBySlugs(batch),
+      ),
+    )
+  ).flat();
+  return rows.filter(isPublishableReplication);
+});

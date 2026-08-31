@@ -17,15 +17,16 @@ const FILTER_BUDGET_MS = 250;
 const VIEWER_MODEL_BUDGET_MS = 250;
 const COMPLETE_TRAVERSAL_BUDGET_MS = 500;
 
-function fastestOf(runs: number, operation: () => void): number {
+function medianOf(runs: number, operation: () => void): number {
   operation();
-  let fastest = Number.POSITIVE_INFINITY;
+  const elapsed: number[] = [];
   for (let run = 0; run < runs; run += 1) {
     const startedAt = performance.now();
     operation();
-    fastest = Math.min(fastest, performance.now() - startedAt);
+    elapsed.push(performance.now() - startedAt);
   }
-  return fastest;
+  elapsed.sort((left, right) => left - right);
+  return elapsed[Math.floor(elapsed.length / 2)];
 }
 
 describe("Replication Index performance budgets", () => {
@@ -49,7 +50,7 @@ describe("Replication Index performance budgets", () => {
 
   it("filters a production-shaped corpus within the interaction budget", () => {
     let resultCount = 0;
-    const elapsed = fastestOf(5, () => {
+    const elapsed = medianOf(7, () => {
       resultCount = corpus.filter((row) =>
         matchesQuery(row, "artist 42", (slug) => slug),
       ).length;
@@ -62,7 +63,7 @@ describe("Replication Index performance budgets", () => {
   it("builds the viewer collection within the open-latency budget", () => {
     const groups = groupByArtist(corpus);
     let itemCount = 0;
-    const elapsed = fastestOf(5, () => {
+    const elapsed = medianOf(7, () => {
       const collection = viewerCollectionFromGalleryGroups(
         groups,
         "artist",

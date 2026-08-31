@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
-import { getPublicReplications } from "@server/convex/publicData";
+import { getPublicReplicationBySlug } from "@server/convex/publicData";
+import { isPublishableReplication } from "@/types/replications";
 import { enforceRateLimit } from "@server/http/nextRateLimit";
 import {
   PUBLIC_API_VERSION,
@@ -33,8 +34,8 @@ export async function GET(request: Request, { params }: { params: Promise<{ slug
   }
 
   try {
-    const replication = (await getPublicReplications()).find((item) => item.slug === slug);
-    if (!replication) {
+    const replication = await getPublicReplicationBySlug(slug);
+    if (!replication || !isPublishableReplication(replication) || !replication.url) {
       return NextResponse.json(publicApiError("not_found", "Replication not found."), {
         status: 404,
         headers: getPublicApiResponseHeaders({ cache: false }),

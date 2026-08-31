@@ -83,6 +83,7 @@ export {
   getPublicGalleryReplicationPage,
   getPublicGalleryReplications,
   getPublicReplicationsForSubstance,
+  getPublicReplicationsBySlugs,
   getReplicationsByContributor,
   type PublicSubstanceGallery,
   type SubstanceGalleryItem,

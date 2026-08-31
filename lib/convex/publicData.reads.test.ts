@@ -173,6 +173,42 @@ describe("public data read adapter", () => {
     ]);
   });
 
+  it("drains the public replication catalog through bounded gallery pages", async () => {
+    const queryCalls: Array<[string, Record<string, unknown>]> = [];
+    const query = async <Result, Args extends Record<string, unknown>>(
+      name: string,
+      args: Args,
+    ): Promise<Result> => {
+      queryCalls.push([name, args]);
+      if (args.cursor === "replication-next") {
+        return {
+          items: [{ _id: "2", slug: "second", artist: "B", type: "image", format: "webp", url: "https://x/2", created_at: "2026" }],
+          cursor: "done",
+          isDone: true,
+        } as Result;
+      }
+      return {
+        items: [{ _id: "1", slug: "first", artist: "A", type: "image", format: "webp", url: "https://x/1", created_at: "2026" }],
+        cursor: "replication-next",
+        isDone: false,
+      } as Result;
+    };
+
+    await expect(
+      createConvexPublicDataReadAdapter(query).getPublicReplications(),
+    ).resolves.toEqual([
+      expect.objectContaining({ slug: "first" }),
+      expect.objectContaining({ slug: "second" }),
+    ]);
+    expect(queryCalls).toEqual([
+      ["replications:getPublicGalleryPage", { limit: 64 }],
+      ["replications:getPublicGalleryPage", { cursor: "replication-next", limit: 64 }],
+    ]);
+    expect(
+      queryCalls.some(([name]) => name === "replications:getPublicReplications"),
+    ).toBe(false);
+  });
+
   it("fails closed when a required public page returns a malformed payload", async () => {
     const calls: string[] = [];
     const query = async <Result>(name: string): Promise<Result> => {
@@ -439,7 +475,10 @@ describe("public data read adapter", () => {
   });
 
   it("contains no active calls to legacy whole-corpus public projections", () => {
-    const source = readFileSync("lib/convex/publicData.reads.ts", "utf8");
+    const source = [
+      readFileSync("lib/convex/publicData.reads.ts", "utf8"),
+      readFileSync("lib/convex/publicData.readCatalog.ts", "utf8"),
+    ].join("\n");
     const forbiddenFunctionNames = [
       "substanceIndex:getPublicLibraryInput",
       "substanceIndex:getPublicCoverageInput",
@@ -452,6 +491,7 @@ describe("public data read adapter", () => {
       "subjectiveEffects:getAll",
       "subjectiveEffects:getBySlug",
       "subjectiveEffects:getByCategory",
+      "replications:getPublicReplications",
     ];
 
     for (const functionName of forbiddenFunctionNames) {
