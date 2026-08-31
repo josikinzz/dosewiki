@@ -112,6 +112,7 @@ export type StoredProfile = {
   displayName: string;
   aliases: string[];
   avatarStorageId?: string;
+  avatarR2Key?: string;
   avatarUrl?: string;
   bio: string;
   role?: string;
@@ -337,16 +338,20 @@ export function buildStoredProfile(
     input.role === undefined ? existing?.role : sanitizeRole(input.role) || undefined;
 
   let avatarStorageId = existing?.avatarStorageId;
+  let avatarR2Key = existing?.avatarR2Key;
   let avatarUrl = existing?.avatarUrl;
 
   if (input.avatarStorageId) {
     avatarStorageId = input.avatarStorageId;
+    avatarR2Key = undefined;
     avatarUrl = undefined;
   } else if (input.avatarUrl === null) {
     avatarStorageId = undefined;
+    avatarR2Key = undefined;
     avatarUrl = undefined;
   } else if (input.avatarUrl !== undefined) {
     avatarStorageId = undefined;
+    avatarR2Key = undefined;
     avatarUrl = sanitizeAvatarUrl(input.avatarUrl) ?? undefined;
   }
 
@@ -369,6 +374,7 @@ export function buildStoredProfile(
     displayName,
     aliases: existing?.aliases ?? [],
     avatarStorageId,
+    avatarR2Key,
     avatarUrl,
     bio,
     role,

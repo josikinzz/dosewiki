@@ -9,6 +9,7 @@ import {
   type StoredProfile,
 } from "./contributorProfiles";
 import { getStoredContributorProfile } from "./contributorProfilePersistence";
+import { isValidR2Key, replicationMediaBaseUrl } from "./replicationUrls";
 
 export async function getAllContributorProfilesHandler(ctx: QueryCtx) {
   const profiles = await ctx.db.query("contributorProfiles").collect();
@@ -65,9 +66,12 @@ export async function getEditorContributorProfileHandler(
   if (!existing) return null;
 
   const stored = existing as StoredProfile;
-  const storedAvatarUrl = stored.avatarStorageId
-    ? await ctx.storage.getUrl(stored.avatarStorageId)
-    : null;
+  const r2BaseUrl = replicationMediaBaseUrl();
+  const storedAvatarUrl = r2BaseUrl && isValidR2Key(stored.avatarR2Key)
+    ? `${r2BaseUrl}/${stored.avatarR2Key}`
+    : stored.avatarStorageId
+      ? await ctx.storage.getUrl(stored.avatarStorageId)
+      : null;
   return {
     key: normalizeProfileKey(stored.key),
     displayName: stored.displayName,
@@ -78,6 +82,7 @@ export async function getEditorContributorProfileHandler(
     membershipEmail: stored.membershipEmail ?? null,
     avatarUrl: stored.avatarUrl ?? null,
     avatarStorageId: stored.avatarStorageId ?? null,
+    avatarR2Key: stored.avatarR2Key ?? null,
     storedAvatarUrl,
     replicationOrder: normalizeOrderSlugs(stored.replicationOrder),
     reportOrder: normalizeOrderSlugs(stored.reportOrder),

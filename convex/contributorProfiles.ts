@@ -32,6 +32,11 @@ import {
   saveContributorProfileAsEditorHandler,
   saveContributorProfileHandler,
 } from "./lib/contributorProfileWriteHandlers";
+import {
+  importReviewedProfilePlanHandler,
+  reviewedProfileImportArgs,
+  reviewedProfileImportResult,
+} from "./lib/contributorProfileImports";
 
 async function patchReportsForContributorKey(
   ctx: MutationCtx,
@@ -141,6 +146,10 @@ export const bulkImport = mutation({
           displayName: data.displayName,
           aliases: data.aliases,
           avatarStorageId: data.avatarStorageId,
+          // Legacy bulk import is a full replacement and cannot introduce an
+          // unverified R2 key. Clear any older R2 avatar so a Storage/URL
+          // replacement is not shadowed by R2 read precedence.
+          avatarR2Key: undefined,
           avatarUrl: data.avatarUrl,
           bio: data.bio,
           role: data.role,
@@ -157,6 +166,13 @@ export const bulkImport = mutation({
     }
     return { created, updated };
   },
+});
+
+/** Guarded, idempotent intake for reviewed Replication Index profile outcomes. */
+export const importReviewedProfilePlan = mutation({
+  args: reviewedProfileImportArgs.fields,
+  returns: reviewedProfileImportResult,
+  handler: importReviewedProfilePlanHandler,
 });
 
 export const renameKey = mutation({

@@ -89,6 +89,7 @@ const contributorProfile = v.object({
   displayName: v.string(),
   aliases: v.array(v.string()),
   avatarStorageId: v.optional(v.string()),
+  avatarR2Key: v.optional(v.string()),
   avatarUrl: v.optional(v.string()),
   bio: v.string(),
   // Free-text contributor title shown on the public profile ("Founder",
@@ -336,6 +337,7 @@ export default defineSchema({
 
   contributorProfiles: defineTable(contributorProfile)
     .index("by_key", ["key"])
+    .index("by_display_name", ["displayName"])
     .index("by_membership_email", ["membershipEmail"]),
 
   // Category layout - stores the manually curated psychoactive index structure

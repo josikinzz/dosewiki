@@ -148,7 +148,7 @@ export async function mergeContributorProfileHandler(
   const target = targetDoc as StoredProfile;
   const carriedContent = [
     source.bio?.trim() ? "bio" : "",
-    source.avatarStorageId || source.avatarUrl ? "avatar" : "",
+    source.avatarStorageId || source.avatarR2Key || source.avatarUrl ? "avatar" : "",
     source.links?.length ? "links" : "",
   ].filter(Boolean);
   if (carriedContent.length > 0 && !args.discardSourceContent) {

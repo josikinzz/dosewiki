@@ -184,6 +184,31 @@ describe("Convex contributor profile role field", () => {
     expect((await materializeProfile(storage, imported as StoredProfile)).role).toBeUndefined();
   });
 
+  it("materializes a canonical R2 avatar reference through the configured media base", async () => {
+    const previous = process.env.REPLICATION_MEDIA_BASE_URL;
+    process.env.REPLICATION_MEDIA_BASE_URL = "https://media.dose.wiki/";
+    try {
+      const key = "media/sha256/ab/ab00000000000000000000000000000000000000000000000000000000000000.webp";
+      const imported: StoredProfile = {
+        key: "R2ARTIST",
+        displayName: "R2 Artist",
+        aliases: [],
+        bio: "",
+        links: [],
+        avatarR2Key: key,
+        createdAt: "2026-08-31T00:00:00.000Z",
+        updatedAt: "2026-08-31T00:00:00.000Z",
+      };
+
+      await expect(materializeProfile(storage, imported)).resolves.toMatchObject({
+        avatarUrl: `https://media.dose.wiki/${key}`,
+      });
+    } finally {
+      if (previous === undefined) delete process.env.REPLICATION_MEDIA_BASE_URL;
+      else process.env.REPLICATION_MEDIA_BASE_URL = previous;
+    }
+  });
+
   it("keeps a stored role when the self-serve editor saves without one", () => {
     const existing: StoredProfile = { ...baseProfile, key: "JOSIE", role: "Founder" };
 
@@ -222,6 +247,11 @@ describe("Convex contributor profile role field", () => {
   it("patches the role in bulkImport so merged rows control the stored title", () => {
     const source = readFileSync(join(process.cwd(), "convex/contributorProfiles.ts"), "utf8");
     expect(source).toContain("role: data.role,");
+  });
+
+  it("clears a prior R2 avatar when bulkImport replaces profile media", () => {
+    const source = readFileSync(join(process.cwd(), "convex/contributorProfiles.ts"), "utf8");
+    expect(source).toContain("avatarR2Key: undefined,");
   });
 });
 

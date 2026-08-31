@@ -91,18 +91,24 @@ export function buildEditorProfilePatch(
     typeof input.avatarStorageId === "string"
       ? input.avatarStorageId.trim()
       : input.avatarStorageId;
-
   if (typeof requestedStorageId === "string" && requestedStorageId) {
     patch.avatarStorageId = requestedStorageId;
+    patch.avatarR2Key = undefined;
     patch.avatarUrl = undefined;
   } else if (input.avatarUrl === null) {
     patch.avatarStorageId = undefined;
+    patch.avatarR2Key = undefined;
     patch.avatarUrl = undefined;
   } else if (input.avatarUrl !== undefined) {
     patch.avatarStorageId = undefined;
+    patch.avatarR2Key = undefined;
     patch.avatarUrl = sanitizeContributorAvatarUrl(input.avatarUrl) ?? undefined;
-  } else if (requestedStorageId === null || requestedStorageId === "") {
+  } else if (
+    requestedStorageId === null
+    || requestedStorageId === ""
+  ) {
     patch.avatarStorageId = undefined;
+    patch.avatarR2Key = undefined;
     patch.avatarUrl = undefined;
   }
 

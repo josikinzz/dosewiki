@@ -4,6 +4,7 @@ import {
 } from "../../lib/contributorProfileIdentity";
 import { normalizeOrderSlugs } from "./contributorProfileOrdering";
 import type { PublicProfile, StoredProfile } from "./contributorProfiles";
+import { isValidR2Key, replicationMediaBaseUrl } from "./replicationUrls";
 
 type StorageCtx = {
   storage: {
@@ -17,7 +18,10 @@ export async function materializeProfile(
 ): Promise<PublicProfile> {
   let resolvedAvatarUrl = sanitizeContributorAvatarUrl(profile.avatarUrl);
 
-  if (profile.avatarStorageId) {
+  const r2BaseUrl = replicationMediaBaseUrl();
+  if (r2BaseUrl && isValidR2Key(profile.avatarR2Key)) {
+    resolvedAvatarUrl = `${r2BaseUrl}/${profile.avatarR2Key}`;
+  } else if (profile.avatarStorageId) {
     resolvedAvatarUrl = (await ctx.storage.getUrl(profile.avatarStorageId)) ?? resolvedAvatarUrl;
   }
 
