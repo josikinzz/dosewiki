@@ -1,7 +1,8 @@
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
 import type { MutationCtx } from "../../convex/_generated/server";
 import {
+  generateUploadUrlHandler,
   insertMediaAssetHandler,
   insertReplicationHandler,
 } from "../../convex/lib/replicationWrites";
@@ -9,6 +10,11 @@ import type { InsertMediaAssetArgs } from "../../convex/lib/replicationValidator
 
 const SHA = "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef";
 const R2_KEY = `media/sha256/01/${SHA}.webp`;
+const r2Key = (extension: string) => `media/sha256/01/${SHA}.${extension}`;
+
+afterEach(() => {
+  delete process.env.CONVEX_ADMIN_TOKEN_REPLICATION_MAINTENANCE;
+});
 
 function taxonomy(overrides: Record<string, unknown> = {}) {
   return {
@@ -109,6 +115,7 @@ function mutationContext(options: {
       }),
     },
     db: { insert, query },
+    storage: { generateUploadUrl: vi.fn(async () => "https://upload.example.test/") },
   } as unknown as MutationCtx;
 
   return { ctx, insert, query };
@@ -119,9 +126,6 @@ describe("insertMediaAssetHandler", () => {
     const { ctx, insert } = mutationContext();
     const input = args({
       thumbnail_r2_key: R2_KEY,
-      preview_r2_key: R2_KEY,
-      motion_r2_key: R2_KEY,
-      motion_poster_r2_key: R2_KEY,
     });
 
     await expect(insertMediaAssetHandler(ctx, input)).resolves.toMatchObject({
@@ -133,9 +137,6 @@ describe("insertMediaAssetHandler", () => {
     expect(inserted).toMatchObject({
       r2_key: R2_KEY,
       thumbnail_r2_key: R2_KEY,
-      preview_r2_key: R2_KEY,
-      motion_r2_key: R2_KEY,
-      motion_poster_r2_key: R2_KEY,
     });
     expect(inserted).not.toHaveProperty("storage_id");
     expect(inserted).not.toHaveProperty("expected_absent");
@@ -176,6 +177,70 @@ describe("insertMediaAssetHandler", () => {
       /invalid thumbnail_r2_key/,
     );
     expect(insert).not.toHaveBeenCalled();
+  });
+
+  it.each([
+    ["image preview", args({ preview_r2_key: r2Key("mp4") }), /preview_r2_key is only valid for video/],
+    ["video motion", args({
+      type: "video",
+      format: "mp4",
+      r2_key: r2Key("mp4"),
+      motion_r2_key: r2Key("mp4"),
+      motion_poster_r2_key: r2Key("webp"),
+    }), /motion R2 keys are only valid for GIF images/],
+    ["static image motion", args({
+      motion_r2_key: r2Key("mp4"),
+      motion_poster_r2_key: r2Key("webp"),
+    }), /motion R2 keys are only valid for GIF images/],
+    ["video thumbnail extension", args({
+      type: "video",
+      format: "mp4",
+      r2_key: r2Key("mp4"),
+      thumbnail_r2_key: r2Key("mp4"),
+    }), /thumbnail_r2_key must use an image extension/],
+    ["image preview extension", args({
+      type: "video",
+      format: "mp4",
+      r2_key: r2Key("mp4"),
+      preview_r2_key: r2Key("webp"),
+    }), /preview_r2_key must use a video extension/],
+    ["GIF motion extension", args({
+      format: "gif",
+      r2_key: r2Key("gif"),
+      motion_r2_key: r2Key("webp"),
+      motion_poster_r2_key: r2Key("webp"),
+    }), /motion_r2_key must use a video extension/],
+    ["GIF poster extension", args({
+      format: "gif",
+      r2_key: r2Key("gif"),
+      motion_r2_key: r2Key("mp4"),
+      motion_poster_r2_key: r2Key("mp4"),
+    }), /motion_poster_r2_key must use an image extension/],
+  ])("rejects a nonsensical %s derivative", async (_label, input, message) => {
+    const { ctx, insert } = mutationContext();
+
+    await expect(insertMediaAssetHandler(ctx, input)).rejects.toThrow(message);
+    expect(insert).not.toHaveBeenCalled();
+  });
+
+  it("accepts a video preview and a complete GIF motion pair", async () => {
+    const videoContext = mutationContext();
+    await expect(insertMediaAssetHandler(videoContext.ctx, args({
+      type: "video",
+      format: "mp4",
+      r2_key: r2Key("mp4"),
+      preview_r2_key: r2Key("mp4"),
+      thumbnail_r2_key: r2Key("webp"),
+    }))).resolves.toMatchObject({ inserted: true });
+
+    const gifContext = mutationContext();
+    await expect(insertMediaAssetHandler(gifContext.ctx, args({
+      slug: "animated-gif",
+      format: "gif",
+      r2_key: r2Key("gif"),
+      motion_r2_key: r2Key("mp4"),
+      motion_poster_r2_key: r2Key("webp"),
+    }))).resolves.toMatchObject({ inserted: true });
   });
 
   it("treats an exact retry as idempotent", async () => {
@@ -356,5 +421,24 @@ describe("insertMediaAssetHandler", () => {
       /Editor access required/,
     );
     expect(insert).not.toHaveBeenCalled();
+  });
+
+  it("rejects a viewer requesting an upload URL", async () => {
+    const { ctx } = mutationContext({ identityRole: "viewer" });
+
+    await expect(generateUploadUrlHandler(ctx, {})).rejects.toThrow(
+      /Editor access required/,
+    );
+    expect(ctx.storage.generateUploadUrl).not.toHaveBeenCalled();
+  });
+
+  it("allows the scoped replication-maintenance token to request an upload URL", async () => {
+    process.env.CONVEX_ADMIN_TOKEN_REPLICATION_MAINTENANCE = "replication-secret";
+    const { ctx } = mutationContext({ identityRole: "viewer" });
+
+    await expect(generateUploadUrlHandler(ctx, {
+      apiKey: "replication-secret",
+    })).resolves.toBe("https://upload.example.test/");
+    expect(ctx.storage.generateUploadUrl).toHaveBeenCalledOnce();
   });
 });

@@ -87,6 +87,12 @@ function insertMediaAssetRowsAgree(
 }
 
 const SHA256 = /^[0-9a-f]{64}$/;
+const IMAGE_R2_EXTENSIONS = new Set(["jpg", "jpeg", "png", "webp", "gif"]);
+const VIDEO_R2_EXTENSIONS = new Set(["mp4", "webm", "mov", "m4v"]);
+
+function r2Extension(key: string) {
+  return key.slice(key.lastIndexOf(".") + 1);
+}
 
 function sameStrings(actual: readonly string[] | undefined, expected: readonly string[]) {
   const normalized = [...new Set(actual ?? [])].sort();
@@ -310,7 +316,10 @@ export async function generateUploadUrlHandler(
   ctx: MutationCtx,
   args: { apiKey?: string },
 ) {
-  await requireAuth(ctx, args.apiKey, "replicationMaintenance");
+  await requireEditorWrite(ctx, {
+    apiKey: args.apiKey,
+    adminIntent: "replicationMaintenance",
+  });
   return await ctx.storage.generateUploadUrl();
 }
 
@@ -370,6 +379,27 @@ export async function insertMediaAssetHandler(
   }
   if ((row.motion_r2_key === undefined) !== (row.motion_poster_r2_key === undefined)) {
     throw new Error(`Media asset ${row.slug} needs motion and motion-poster R2 keys together.`);
+  }
+  if (row.preview_r2_key !== undefined && row.type !== "video") {
+    throw new Error(`Media asset ${row.slug} preview_r2_key is only valid for video.`);
+  }
+  if (
+    (row.motion_r2_key !== undefined || row.motion_poster_r2_key !== undefined)
+    && (row.type !== "image" || row.format !== "gif")
+  ) {
+    throw new Error(`Media asset ${row.slug} motion R2 keys are only valid for GIF images.`);
+  }
+  for (const field of ["thumbnail_r2_key", "motion_poster_r2_key"] as const) {
+    const key = row[field];
+    if (key !== undefined && !IMAGE_R2_EXTENSIONS.has(r2Extension(key))) {
+      throw new Error(`Media asset ${row.slug} ${field} must use an image extension.`);
+    }
+  }
+  for (const field of ["preview_r2_key", "motion_r2_key"] as const) {
+    const key = row[field];
+    if (key !== undefined && !VIDEO_R2_EXTENSIONS.has(r2Extension(key))) {
+      throw new Error(`Media asset ${row.slug} ${field} must use a video extension.`);
+    }
   }
   if (row.url !== undefined && !hasDirectUrl) {
     throw new Error(`Media asset ${row.slug} has an invalid direct url: ${row.url}`);

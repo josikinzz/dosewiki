@@ -62,6 +62,7 @@ export const resolveStorageUrls = query({
 /** Authenticated maintenance writes and migration-only internal writes. */
 export const generateUploadUrl = mutation({
   args: validators.generateUploadUrlArgs.fields,
+  returns: v.string(),
   handler: writes.generateUploadUrlHandler,
 });
 
