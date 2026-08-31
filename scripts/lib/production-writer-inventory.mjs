@@ -13,6 +13,7 @@ export const productionWriterClassifications = Object.freeze({
     "scripts/contributors/repair-loka-attribution.mjs",
     "scripts/contributors/seed-marker-contributor-profiles.mjs",
     "scripts/contributors/seed-credited-identities.mjs",
+    "scripts/contributors/upload-replication-index-profile-avatars.ts",
     "scripts/convex/merge-duplicate-article-content.mjs",
     "scripts/effects/repair-legacy-article-media.mjs",
     "scripts/effects/upgrade-article-media.mjs",
