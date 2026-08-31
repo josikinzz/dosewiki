@@ -367,6 +367,51 @@ export const bulkUpdateEditorialFieldsArgs = v.object({
   showcase_excluded: v.optional(v.boolean()),
 });
 
+const nullableString = v.union(v.string(), v.null());
+const nullableNumber = v.union(v.number(), v.null());
+
+export const compareAndSetEffectTaxonomyArgs = v.object({
+  apiKey: v.string(),
+  id: v.id("replications"),
+  expected: v.object({
+    identity: v.object({
+      _id: v.id("replications"),
+      slug: v.string(),
+      title: v.string(),
+      artist: v.string(),
+      type: replicationMediaType,
+      storage_id: nullableString,
+      r2_key: nullableString,
+    }),
+    value: v.object({
+      effect_slug: nullableString,
+      effect_tags: v.array(v.string()),
+      replication_status: v.literal("replication"),
+      taxonomy_record_key: nullableString,
+      taxonomy_source_digest: nullableString,
+      taxonomy_version: nullableNumber,
+      taxonomy_updated_at: nullableNumber,
+    }),
+  }),
+  intended: v.object({
+    effect_slug: v.string(),
+    effect_tags: v.array(v.string()),
+  }),
+});
+
+export const getStoredForTaxonomyCasArgs = v.object({
+  apiKey: v.string(),
+  id: v.id("replications"),
+});
+
+export const compareAndSetEffectTaxonomyResult = v.object({
+  success: v.literal(true),
+  id: v.id("replications"),
+  slug: v.string(),
+  effect_slug: v.string(),
+  effect_tags: v.array(v.string()),
+});
+
 export const setAudioPresenceArgs = v.object({
   apiKey: v.optional(v.string()),
   entries: v.array(
@@ -399,6 +444,7 @@ export type UpdateRightsMetadataArgs = Infer<typeof updateRightsMetadataArgs>;
 export type GetStudioRowsArgs = Infer<typeof getStudioRowsArgs>;
 export type UpdateEditorialFieldsArgs = Infer<typeof updateEditorialFieldsArgs>;
 export type BulkUpdateEditorialFieldsArgs = Infer<typeof bulkUpdateEditorialFieldsArgs>;
+export type CompareAndSetEffectTaxonomyArgs = Infer<typeof compareAndSetEffectTaxonomyArgs>;
 export type SetAudioPresenceArgs = Infer<typeof setAudioPresenceArgs>;
 
 export type ReplicationEditorialSnapshot = Infer<typeof replicationEditorialSnapshot>;

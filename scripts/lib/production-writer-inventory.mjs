@@ -24,6 +24,7 @@ export const productionWriterClassifications = Object.freeze({
     "scripts/replications/apply-artist-license.mjs",
     "scripts/replications/apply-approved-tag-proposals.mjs",
     "scripts/replications/apply-date-research.mjs",
+    "scripts/replications/apply-live-taxonomy-cas-repair-plan.mjs",
     "scripts/replications/apply-editorial-review-notes-v2.mjs",
     "scripts/replications/apply-editorial-review-notes-v3.mjs",
     "scripts/replications/apply-editorial-review-notes.mjs",

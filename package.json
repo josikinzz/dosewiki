@@ -118,6 +118,7 @@
     "replications:audit-provenance": "node scripts/replications/audit-provenance.mjs",
     "replications:apply-provenance": "node scripts/replications/apply-provenance-corrections.mjs",
     "replications:apply-dates": "node scripts/replications/apply-date-research.mjs",
+    "replications:apply-live-taxonomy-cas-repair": "node scripts/replications/apply-live-taxonomy-cas-repair-plan.mjs",
     "replications:regenerate-substance-galleries": "node scripts/replications/regenerate-substance-galleries.mjs",
     "replications:regenerate-thumbnails": "node scripts/replications/regenerate-missing-thumbnails.mjs",
     "replications:generate-gif-motion": "node scripts/replications/generate-gif-motion-renditions.mjs",

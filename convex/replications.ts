@@ -8,6 +8,7 @@ import {
 } from "./lib/replicationGalleryReads";
 import * as recovery from "./lib/replicationRecovery";
 import * as studio from "./lib/replicationStudio";
+import * as taxonomyCas from "./lib/replicationTaxonomyCas";
 import * as validators from "./lib/replicationValidators";
 import * as writes from "./lib/replicationWrites";
 
@@ -202,6 +203,18 @@ export const updateEditorialFields = mutation({
 export const bulkUpdateEditorialFields = mutation({
   args: validators.bulkUpdateEditorialFieldsArgs.fields,
   handler: studio.bulkUpdateEditorialFieldsHandler,
+});
+
+export const getStoredForTaxonomyCas = query({
+  args: validators.getStoredForTaxonomyCasArgs.fields,
+  returns: v.union(validators.storedReplication, v.null()),
+  handler: taxonomyCas.getStoredForTaxonomyCasHandler,
+});
+
+export const compareAndSetEffectTaxonomy = mutation({
+  args: validators.compareAndSetEffectTaxonomyArgs.fields,
+  returns: validators.compareAndSetEffectTaxonomyResult,
+  handler: taxonomyCas.compareAndSetEffectTaxonomyHandler,
 });
 
 export const deleteAll = internalMutation({

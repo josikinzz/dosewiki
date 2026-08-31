@@ -917,6 +917,41 @@ node scripts/replications/create-gallery-order.mjs \
 
 Replication media scan, reconciliation, gallery-order planning, and Convex write adapters live in `scripts/replications/lib/workspace.mjs`. Keep script CLIs thin and move shared media rules there before adding new one-off replication operations.
 
+#### Superseding live-taxonomy CAS repair
+
+`replications:apply-live-taxonomy-cas-repair` is pinned to the reviewed
+superseding plan dated 2026-08-31, its exact file and declared digests, and the
+`glad-minnow-656` production deployment. It defaults to a zero-network dry run.
+The first write phase contains one deterministic canary; the separate
+`remaining` phase refuses to start until that canary is `verified` in the
+atomic ledger. An uncertain mutation or readback stops the run and is never
+retried automatically.
+
+The executor requires the scoped
+`CONVEX_ADMIN_TOKEN_REPLICATION_MAINTENANCE` credential and deliberately rejects
+the legacy admin-key fallback. The `replications.compareAndSetEffectTaxonomy`
+function must be deployed before any future write run. This repository change
+does not deploy it or execute the plan.
+
+```bash
+# Default: validates the pinned plan and prints the one-row canary; no network.
+npm run replications:apply-live-taxonomy-cas-repair
+
+# Future supervised canary, only after convex:doctor and function deployment.
+TARGET_CONVEX_URL=https://glad-minnow-656.convex.cloud \
+  npm run replications:apply-live-taxonomy-cas-repair -- \
+  --write --phase=canary \
+  --confirm-write=apply-live-taxonomy-cas-repair \
+  --expected-deployment=glad-minnow-656
+
+# Separate future phase; requires a verified canary in the pinned ledger.
+TARGET_CONVEX_URL=https://glad-minnow-656.convex.cloud \
+  npm run replications:apply-live-taxonomy-cas-repair -- \
+  --write --phase=remaining \
+  --confirm-write=apply-live-taxonomy-cas-repair \
+  --expected-deployment=glad-minnow-656
+```
+
 #### Artist name corrections
 
 ```bash
