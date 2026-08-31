@@ -86,7 +86,25 @@ function snapshotsAgree(
   current: ReturnType<typeof currentSnapshot>,
   expected: CompareAndSetEffectTaxonomyArgs["expected"],
 ) {
-  return JSON.stringify(current) === JSON.stringify(expected);
+  const currentIdentity = current.identity;
+  const expectedIdentity = expected.identity;
+  const currentValue = current.value;
+  const expectedValue = expected.value;
+  return currentIdentity._id === expectedIdentity._id
+    && currentIdentity.slug === expectedIdentity.slug
+    && currentIdentity.title === expectedIdentity.title
+    && currentIdentity.artist === expectedIdentity.artist
+    && currentIdentity.type === expectedIdentity.type
+    && currentIdentity.storage_id === expectedIdentity.storage_id
+    && currentIdentity.r2_key === expectedIdentity.r2_key
+    && currentValue.effect_slug === expectedValue.effect_slug
+    && currentValue.effect_tags.length === expectedValue.effect_tags.length
+    && currentValue.effect_tags.every((tag, index) => tag === expectedValue.effect_tags[index])
+    && currentValue.replication_status === expectedValue.replication_status
+    && currentValue.taxonomy_record_key === expectedValue.taxonomy_record_key
+    && currentValue.taxonomy_source_digest === expectedValue.taxonomy_source_digest
+    && currentValue.taxonomy_version === expectedValue.taxonomy_version
+    && currentValue.taxonomy_updated_at === expectedValue.taxonomy_updated_at;
 }
 
 async function requireScopedMaintenance(apiKey: string) {
