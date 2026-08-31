@@ -1,8 +1,18 @@
 import { v } from "convex/values";
 import { mutation, query, type QueryCtx } from "./_generated/server";
+import type { Doc } from "./_generated/dataModel";
 import { requireAuth, requireEditorWrite } from "./lib/auth";
 import { memoizedStorageUrls, resolveReplicationUrls } from "./replications";
-import { storedReplication } from "./lib/replicationValidators";
+import {
+  replicationMediaType,
+  replicationRole,
+  storedReplication,
+} from "./lib/replicationValidators";
+import {
+  replicationStatusValidator,
+  titleClassMentionValidator,
+  titleDrugValidator,
+} from "./lib/replicationTaxonomyValidators";
 import {
   directGalleryAssociationProvenance,
   isCombinationReplication,
@@ -175,6 +185,9 @@ export async function getPublicReplicationsForSubstancePageHandler(
   };
 }
 
+// Retained for the previous build and scripts: the currently live site build
+// still drains this URL-resolving per-substance scan. Superseded by the slim
+// `getPublicMatchableReplicationsPage` corpus read below.
 export const getPublicReplicationsForSubstance = query({
   args: {
     substance_slug: v.string(),
@@ -183,6 +196,99 @@ export const getPublicReplicationsForSubstance = query({
   },
   returns: publicSubstanceGalleryPageResult,
   handler: getPublicReplicationsForSubstancePageHandler,
+});
+
+/**
+ * The slim matchable projection of one `replications` row: exactly the fields
+ * the shared placement policy reads (`SubstanceGalleryMatchableRow` in
+ * `src/data/substanceReplicationGallery`) — no storage locators, no rights
+ * metadata, no URL resolution.
+ */
+const publicMatchableReplicationRow = v.object({
+  slug: v.string(),
+  title: v.string(),
+  type: replicationMediaType,
+  role: v.optional(replicationRole),
+  effect_slug: v.optional(v.string()),
+  title_drugs: v.optional(v.array(titleDrugValidator)),
+  title_class_mentions: v.optional(v.array(titleClassMentionValidator)),
+  showcase_excluded: v.optional(v.boolean()),
+  replication_status: v.optional(replicationStatusValidator),
+});
+
+/**
+ * The matchable scan resolves no storage URLs, so a page reads only the row
+ * documents themselves. That keeps a 256-row page comfortably below Convex's
+ * read ceiling where the URL-resolving scan above must stop at 64.
+ */
+const PUBLIC_MATCHABLE_REPLICATIONS_PAGE_SIZE = 256;
+
+/** Clamp caller input so no public invocation scans more than 256 raw rows. */
+function clampPublicMatchableReplicationsPageSize(requested?: number): number {
+  const normalized =
+    requested !== undefined && Number.isFinite(requested)
+      ? Math.floor(requested)
+      : PUBLIC_MATCHABLE_REPLICATIONS_PAGE_SIZE;
+  return Math.min(Math.max(normalized, 1), PUBLIC_MATCHABLE_REPLICATIONS_PAGE_SIZE);
+}
+
+function projectPublicMatchableReplicationRow(row: Doc<"replications">) {
+  return {
+    slug: row.slug,
+    title: row.title,
+    type: row.type,
+    ...(row.role !== undefined ? { role: row.role } : {}),
+    ...(row.effect_slug !== undefined ? { effect_slug: row.effect_slug } : {}),
+    ...(row.title_drugs !== undefined ? { title_drugs: row.title_drugs } : {}),
+    ...(row.title_class_mentions !== undefined
+      ? { title_class_mentions: row.title_class_mentions }
+      : {}),
+    ...(row.showcase_excluded !== undefined
+      ? { showcase_excluded: row.showcase_excluded }
+      : {}),
+    ...(row.replication_status !== undefined
+      ? { replication_status: row.replication_status }
+      : {}),
+  };
+}
+
+/**
+ * One storage-ordered page of the shared matchable corpus: every replication
+ * row projected down to the placement-policy fields, matched by nobody here.
+ *
+ * This is the slim half of the substance showcase read. The Next side drains
+ * these pages once, caches them per page across every substance article, runs
+ * `matchSubstanceGalleryReplications` / `includeDirectlyAssociatedRows` /
+ * `mergeCuratedGallery` itself, and resolves only the merged winners through
+ * the indexed `replications:getBySlugs`. The per-substance whole-table scan in
+ * `getPublicReplicationsForSubstance` above becomes one shared corpus read.
+ */
+export async function getPublicMatchableReplicationsPageHandler(
+  ctx: QueryCtx,
+  args: { cursor?: string; limit?: number },
+) {
+  const page = await ctx.db.query("replications").paginate({
+    cursor: args.cursor ?? null,
+    numItems: clampPublicMatchableReplicationsPageSize(args.limit),
+  });
+  return {
+    items: page.page.map(projectPublicMatchableReplicationRow),
+    cursor: page.continueCursor,
+    isDone: page.isDone,
+  };
+}
+
+export const getPublicMatchableReplicationsPage = query({
+  args: {
+    cursor: v.optional(v.string()),
+    limit: v.optional(v.number()),
+  },
+  returns: v.object({
+    items: v.array(publicMatchableReplicationRow),
+    cursor: v.string(),
+    isDone: v.boolean(),
+  }),
+  handler: getPublicMatchableReplicationsPageHandler,
 });
 
 /** How the curation portal's batched picker read pages the substance index. */

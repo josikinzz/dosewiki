@@ -12,7 +12,6 @@ import { EffectCitationsSection } from "../components/EffectCitationsSection";
 import { AudioReplicationCard } from "../components/AudioReplicationCard";
 import { EffectContributorsSection } from "../components/EffectContributorsSection";
 import { RelatedSubstancesSection } from "../components/RelatedSubstancesSection";
-import { ReplicationGallery } from "../components/ReplicationGallery";
 import type { VCodeContent } from "../vcode/types";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
@@ -156,9 +155,11 @@ export function EffectArticlePage({
                   heading={section.title}
                   spacing="effect"
                 >
-                  <div className="mt-6">
-                    <ReplicationGallery galleryOrder={section.state.galleryOrder} replications={[]} />
-                  </div>
+                  {/* The streamed server section normally replaces this whole
+                      branch. Without it the section keeps its heading and
+                      spacing but stages nothing — the same footprint the
+                      empty client gallery used to leave. */}
+                  <div className="mt-6" />
                 </ArticleSection>
               );
 

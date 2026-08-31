@@ -19,6 +19,14 @@ vi.mock("./serverClient", () => ({
   queryConvex: mocks.queryConvex,
 }));
 
+const substanceMocks = vi.hoisted(() => ({
+  getPublicSubstanceBySlug: vi.fn(),
+}));
+
+vi.mock("./publicData.substances", () => ({
+  getPublicSubstanceBySlug: substanceMocks.getPublicSubstanceBySlug,
+}));
+
 const contributor = (
   overrides: { key: string; displayName: string; aliases?: string[] },
 ): NormalizedUserProfile => ({
@@ -190,66 +198,139 @@ describe("getPublicReplicationsForSubstance", () => {
   beforeEach(() => {
     vi.resetModules();
     mocks.queryConvex.mockReset();
+    substanceMocks.getPublicSubstanceBySlug.mockReset();
   });
 
-  const item = (slug: string, overrides: Record<string, unknown> = {}) => ({
-    replication: { slug, artist: "Josie Kins", type: "image", url: `https://x/${slug}`, ...overrides },
-    provenance: { matchedVia: "specific_drug", effectSlug: "lsd" },
+  const substanceRecord = {
+    slug: "lsd",
+    title: "LSD",
+    classification: { psychoactive_class: ["Psychedelic"] },
+  };
+  const matchable = (slug: string, overrides: Record<string, unknown> = {}) => ({
+    slug,
+    title: slug,
+    type: "image",
+    effect_slug: "geometry",
+    title_drugs: [{ slug: "lsd", name: "LSD", class: "psychedelics" }],
+    ...overrides,
   });
-  const page = (items: ReturnType<typeof item>[]) => ({
-    items,
-    curation: null,
-    cursor: "done",
-    isDone: true,
+  const resolved = (slug: string, overrides: Record<string, unknown> = {}) => ({
+    slug,
+    title: slug,
+    artist: "Josie Kins",
+    type: "image",
+    format: "jpg",
+    url: `https://x/${slug}`,
+    ...overrides,
   });
+  const respond = (handlers: Record<string, (args: Record<string, unknown>) => unknown>) => {
+    mocks.queryConvex.mockImplementation(async (name: string, args: Record<string, unknown>) => {
+      const handler = handlers[name];
+      if (!handler) throw new Error(`Unexpected Convex query ${name}`);
+      return handler(args);
+    });
+  };
 
-  it("asks Convex for the substance's automatically ordered showcase", async () => {
-    mocks.queryConvex.mockResolvedValueOnce(
-      page([item("specific-video"), item("specific-image")]),
-    );
+  it("assembles the showcase from the shared corpus, curation, and one indexed resolution", async () => {
+    substanceMocks.getPublicSubstanceBySlug.mockResolvedValue(substanceRecord);
+    const bySlugsCalls: unknown[] = [];
+    respond({
+      "substanceGalleries:getPublicMatchableReplicationsPage": (args) => {
+        expect(args).toEqual({ limit: 256 });
+        return {
+          items: [
+            matchable("specific-image"),
+            matchable("specific-video", { type: "video" }),
+            matchable("hand-picked", { title_drugs: [] }),
+            matchable("banned-work"),
+          ],
+          cursor: "done",
+          isDone: true,
+        };
+      },
+      "substanceGalleries:getBySubstance": (args) => {
+        expect(args).toEqual({ substance_slug: "lsd" });
+        return {
+          substance_slug: "lsd",
+          curated_slugs: ["hand-picked"],
+          removed_slugs: ["banned-work"],
+          carousel_order: [],
+        };
+      },
+      "replications:getBySlugs": (args) => {
+        bySlugsCalls.push(args);
+        return (args.slugs as string[]).map((slug) => resolved(slug)).reverse();
+      },
+    });
 
     const { getPublicReplicationsForSubstance } = await import("./publicData.replications");
     const gallery = await getPublicReplicationsForSubstance("lsd");
 
-    expect(mocks.queryConvex).toHaveBeenCalledTimes(1);
-    expect(mocks.queryConvex).toHaveBeenCalledWith(
-      "substanceGalleries:getPublicReplicationsForSubstance",
-      { substance_slug: "lsd", limit: 64 },
-    );
+    // Merged order survives an out-of-order indexed resolution: specific
+    // videos, then specific images, then the unmatched manual placement.
     expect(gallery.items.map((entry) => entry.replication.slug)).toEqual([
       "specific-video",
       "specific-image",
+      "hand-picked",
     ]);
+    expect(gallery.items.map((entry) => entry.provenance.matchedVia)).toEqual([
+      "specific_drug",
+      "specific_drug",
+      "curated",
+    ]);
+    // The suppressed slug never reaches URL resolution.
+    expect(bySlugsCalls).toEqual([
+      { slugs: ["specific-video", "specific-image", "hand-picked"] },
+    ]);
+    // The retired per-substance whole-table scan is never invoked from Next.
+    expect(
+      mocks.queryConvex.mock.calls.map(([name]) => name),
+    ).not.toContain("substanceGalleries:getPublicReplicationsForSubstance");
   });
 
-  it("re-applies the publishability gate at this layer like every list read", async () => {
-    mocks.queryConvex.mockResolvedValueOnce(
-      page([item("a-work"), item("a-figure", { role: "figure" }), item("a-track", { type: "audio" })]),
-    );
+  it("drops slugs the indexed resolution does not return and re-applies the publishability gate", async () => {
+    substanceMocks.getPublicSubstanceBySlug.mockResolvedValue(substanceRecord);
+    respond({
+      "substanceGalleries:getPublicMatchableReplicationsPage": () => ({
+        items: [matchable("kept"), matchable("vanishing"), matchable("demoted")],
+        cursor: "done",
+        isDone: true,
+      }),
+      "substanceGalleries:getBySubstance": () => null,
+      "replications:getBySlugs": () => [
+        resolved("kept"),
+        resolved("demoted", { replication_status: "not-replication" }),
+      ],
+    });
 
     const { getPublicReplicationsForSubstance } = await import("./publicData.replications");
     const gallery = await getPublicReplicationsForSubstance("lsd");
 
-    expect(gallery.items.map((entry) => entry.replication.slug)).toEqual(["a-work"]);
+    expect(gallery.items.map((entry) => entry.replication.slug)).toEqual(["kept"]);
   });
 
-  it("returns an empty gallery for a zero-match substance, not an error", async () => {
-    mocks.queryConvex.mockResolvedValueOnce(page([]));
+  it("returns an empty gallery for a missing substance without touching the corpus", async () => {
+    substanceMocks.getPublicSubstanceBySlug.mockResolvedValue(null);
 
     const { getPublicReplicationsForSubstance } = await import("./publicData.replications");
 
     await expect(getPublicReplicationsForSubstance("aspirin")).resolves.toEqual({
       items: [],
     });
+    expect(mocks.queryConvex).not.toHaveBeenCalled();
   });
 
-  it("degrades to an empty showcase when the additive Convex query is not deployed", async () => {
+  it("degrades to an empty showcase when the additive corpus query is not deployed", async () => {
     const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
-    mocks.queryConvex.mockRejectedValueOnce(
-      new Error(
-        "[CONVEX Q(substanceGalleries:getPublicReplicationsForSubstance)] Could not find public function",
-      ),
-    );
+    substanceMocks.getPublicSubstanceBySlug.mockResolvedValue(substanceRecord);
+    respond({
+      "substanceGalleries:getPublicMatchableReplicationsPage": () => {
+        throw new Error(
+          "[CONVEX Q(substanceGalleries:getPublicMatchableReplicationsPage)] Could not find public function",
+        );
+      },
+      "substanceGalleries:getBySubstance": () => null,
+    });
 
     const { getPublicReplicationsForSubstance } = await import("./publicData.replications");
 
@@ -261,9 +342,15 @@ describe("getPublicReplicationsForSubstance", () => {
   });
 
   it("surfaces any other Convex failure instead of pretending the showcase is empty", async () => {
-    mocks.queryConvex.mockRejectedValueOnce(
-      new Error("[CONVEX Q(substanceGalleries:getPublicReplicationsForSubstance)] Server Error"),
-    );
+    substanceMocks.getPublicSubstanceBySlug.mockResolvedValue(substanceRecord);
+    respond({
+      "substanceGalleries:getPublicMatchableReplicationsPage": () => {
+        throw new Error(
+          "[CONVEX Q(substanceGalleries:getPublicMatchableReplicationsPage)] Server Error",
+        );
+      },
+      "substanceGalleries:getBySubstance": () => null,
+    });
 
     const { getPublicReplicationsForSubstance } = await import("./publicData.replications");
 

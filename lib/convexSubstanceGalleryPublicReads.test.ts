@@ -4,6 +4,7 @@ import type { Doc } from "../convex/_generated/dataModel";
 import type { QueryCtx } from "../convex/_generated/server";
 import {
   clampPublicSubstanceGalleryPageSize,
+  getPublicMatchableReplicationsPageHandler,
   getPublicReplicationsForSubstancePageHandler,
 } from "../convex/substanceGalleries";
 import { mergeCuratedGallery } from "../src/data/substanceReplicationGallery";
@@ -44,7 +45,7 @@ function galleryContext(options: {
   const collect = vi.fn(() => {
     throw new Error("public substance gallery must not collect the corpus");
   });
-  const paginate = vi.fn(async ({ cursor }: { cursor: string | null }) => {
+  const paginate = vi.fn(async ({ cursor }: { cursor: string | null; numItems: number }) => {
     const page = options.pages.get(cursor);
     if (!page) throw new Error(`No test page for cursor ${String(cursor)}`);
     return page;
@@ -278,5 +279,77 @@ describe("public substance gallery pagination", () => {
     );
     expect(implementation).not.toContain(".collect(");
     expect(implementation).toContain(".paginate(");
+  });
+});
+
+describe("public matchable replication corpus pagination", () => {
+  it("projects each page to exactly the placement-policy fields", async () => {
+    const full = replication("full", {
+      artist_url: "https://artist.example",
+      role: "figure",
+      effect_slug: "visual-disconnection",
+      storage_id: "storage-full",
+      thumbnail_storage_id: "thumb-full",
+      width: 1920,
+      height: 1080,
+      file_size: 123456,
+      title_drugs: [
+        { slug: "lsd", name: "LSD", class: "psychedelics", matched_title_text: "LSD" },
+      ],
+      title_class_mentions: [
+        { class: "dissociatives", matched_title_text: "Dissociative" },
+      ],
+      showcase_excluded: true,
+      replication_status: "unreviewed",
+    });
+    const bare = replication("bare");
+    const test = galleryContext({
+      pages: new Map([
+        [null, { page: [full, bare], continueCursor: "cursor-2", isDone: false }],
+      ]),
+    });
+
+    const page = await getPublicMatchableReplicationsPageHandler(test.ctx, {});
+
+    // `toEqual` is exact: no storage locators, rights metadata, URLs, or
+    // Convex internals may leak into the slim shared corpus.
+    expect(page.items).toEqual([
+      {
+        slug: "full",
+        title: "full",
+        type: "image",
+        role: "figure",
+        effect_slug: "visual-disconnection",
+        title_drugs: [
+          { slug: "lsd", name: "LSD", class: "psychedelics", matched_title_text: "LSD" },
+        ],
+        title_class_mentions: [
+          { class: "dissociatives", matched_title_text: "Dissociative" },
+        ],
+        showcase_excluded: true,
+        replication_status: "unreviewed",
+      },
+      { slug: "bare", title: "bare", type: "image" },
+    ]);
+    expect(page.cursor).toBe("cursor-2");
+    expect(page.isDone).toBe(false);
+    expect(test.collect).not.toHaveBeenCalled();
+  });
+
+  it("clamps every raw page to the URL-free 256-row ceiling", async () => {
+    const emptyPage = { page: [], continueCursor: "", isDone: true };
+    const test = galleryContext({ pages: new Map([[null, emptyPage]]) });
+
+    await getPublicMatchableReplicationsPageHandler(test.ctx, {});
+    await getPublicMatchableReplicationsPageHandler(test.ctx, { limit: 5000 });
+    await getPublicMatchableReplicationsPageHandler(test.ctx, { limit: -3 });
+    await getPublicMatchableReplicationsPageHandler(test.ctx, { limit: 17.9 });
+
+    expect(test.paginate.mock.calls.map(([opts]) => opts.numItems)).toEqual([
+      256,
+      256,
+      1,
+      17,
+    ]);
   });
 });

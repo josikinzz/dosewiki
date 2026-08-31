@@ -3,6 +3,7 @@ import type { IndexLayoutType } from "./publicData.shared";
 const ABOUT_PREVIEW_CANDIDATE_PAGE_SIZE = 64;
 const PUBLIC_SUBSTANCE_PAGE_SIZE = 32;
 const PUBLIC_REPLICATION_GALLERY_PAGE_SIZE = 64;
+const PUBLIC_MATCHABLE_REPLICATION_PAGE_SIZE = 256;
 
 const publicSubstancePageArgs = (cursor?: string) => ({
   ...(cursor ? { cursor } : {}),
@@ -123,13 +124,16 @@ export const publicDataReadCatalog = {
       limit: PUBLIC_REPLICATION_GALLERY_PAGE_SIZE,
     }),
   },
-  publicReplicationsForSubstance: {
-    functionName: "substanceGalleries:getPublicReplicationsForSubstance",
-    args: (substanceSlug: string, cursor?: string) => ({
-      substance_slug: substanceSlug,
+  publicMatchableReplicationsPage: {
+    functionName: "substanceGalleries:getPublicMatchableReplicationsPage",
+    args: (cursor?: string) => ({
       ...(cursor ? { cursor } : {}),
-      limit: PUBLIC_REPLICATION_GALLERY_PAGE_SIZE,
+      limit: PUBLIC_MATCHABLE_REPLICATION_PAGE_SIZE,
     }),
+  },
+  publicSubstanceGalleryCuration: {
+    functionName: "substanceGalleries:getBySubstance",
+    args: (substanceSlug: string) => ({ substance_slug: substanceSlug }),
   },
   publicTripReportRecords: { functionName: "tripReports:getAll", args: () => ({}) },
   publicTripReportBySlug: { functionName: "tripReports:getBySlug", args: (slug: string) => ({ slug }) },

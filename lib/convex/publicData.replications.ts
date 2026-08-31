@@ -14,16 +14,26 @@ import {
 } from "../../src/types/replications";
 import { getPublicReplicationBySlug, getPublicReplications } from "./publicData.effects";
 import { getPublicContributorProfiles } from "./publicData.contributors";
-import type {
-  PublicSubstanceGallery,
-  SubstanceGalleryItem,
-  SubstanceGalleryMatchProvenance,
+import {
+  includeDirectlyAssociatedRows,
+  matchSubstanceGalleryReplications,
+  mergeCuratedGallery,
+  substanceGalleryTargetOf,
+  type PublicSubstanceGallery,
+  type SubstanceGalleryItem,
+  type SubstanceGalleryMatchProvenance,
+  type SubstanceGalleryMatchableRow,
 } from "../../src/data/substanceReplicationGallery";
+import { getPublicSubstanceBySlug } from "./publicData.substances";
 import type { PublicGalleryReplicationPage } from "./publicData.reads";
 
 export type { PublicSubstanceGallery, SubstanceGalleryItem, SubstanceGalleryMatchProvenance };
 
 const PUBLIC_ARTIST_TAXONOMY_BATCH_SIZE = 175;
+
+/** Same runaway-pagination guards as the gallery corpus in `publicData.effects`. */
+const PUBLIC_MATCHABLE_CORPUS_MAX_PAGES = 512;
+const PUBLIC_MATCHABLE_CORPUS_MAX_ROWS = 20_000;
 
 function batches<T>(items: readonly T[], size: number): T[][] {
   const result: T[][] = [];
@@ -71,29 +81,124 @@ export const getReplicationsByContributor = cache(unstable_cache(async (
 }));
 
 /**
+ * Cache bounded matchable-corpus pages, never the assembled corpus.
+ *
+ * Same doctrine as `getPublicReplicationCorpusPage` in `publicData.effects`:
+ * an assembled aggregate would court Next's 2 MB data-cache entry limit and
+ * turn every miss into a full re-drain. One 256-row slim page (nine
+ * placement-policy fields, no URLs) stays a few tens of kilobytes, remains
+ * individually cacheable, and is shared by every substance article; React's
+ * request cache deduplicates the in-memory assembly per render.
+ */
+const getPublicMatchableReplicationCorpusPage = cache(unstable_cache(async (
+  cursor?: string,
+) => {
+  return await getPublicDataReadAdapter().getPublicMatchableReplicationPage(cursor);
+}, ["convex-public-matchable-replication-corpus-page-v1"], {
+  revalidate: PUBLIC_CONVEX_CACHE_REVALIDATE_SECONDS,
+  tags: [PUBLIC_CONVEX_CACHE_TAGS.all, PUBLIC_CONVEX_CACHE_TAGS.replications],
+}));
+
+const getPublicMatchableReplicationCorpus = cache(async (): Promise<SubstanceGalleryMatchableRow[]> => {
+  const rows: SubstanceGalleryMatchableRow[] = [];
+  const seenCursors = new Set<string>();
+  let cursor: string | undefined;
+
+  for (
+    let pageNumber = 1;
+    pageNumber <= PUBLIC_MATCHABLE_CORPUS_MAX_PAGES;
+    pageNumber += 1
+  ) {
+    const page = await getPublicMatchableReplicationCorpusPage(cursor);
+    rows.push(...page.items);
+    if (rows.length > PUBLIC_MATCHABLE_CORPUS_MAX_ROWS) {
+      throw new Error(
+        `Public matchable replication corpus exceeded maxRows (${PUBLIC_MATCHABLE_CORPUS_MAX_ROWS}).`,
+      );
+    }
+    if (page.isDone) {
+      return rows;
+    }
+    if (
+      typeof page.cursor !== "string" ||
+      page.cursor.length === 0 ||
+      seenCursors.has(page.cursor)
+    ) {
+      throw new Error("Public matchable replication corpus pagination did not advance.");
+    }
+    seenCursors.add(page.cursor);
+    cursor = page.cursor;
+  }
+
+  throw new Error(
+    `Public matchable replication corpus exceeded maxPages (${PUBLIC_MATCHABLE_CORPUS_MAX_PAGES}).`,
+  );
+});
+
+/**
  * The substance article's Replication Showcase: exact-drug and permitted
  * general-class placements, plus stored editorial ordering, direct
  * associations, and per-article exclusions. Placement and merge rules live in
- * `src/data/substanceReplicationGallery`; Convex applies them so public reads
- * and editorial writes cannot drift.
+ * `src/data/substanceReplicationGallery`, shared with the Convex curation
+ * portal so public reads and editorial writes cannot drift.
  *
- * Zero matches are an empty gallery, never an error.
+ * PERF: this used to drain a per-substance Convex scan of the whole
+ * replications table (with per-row storage-URL resolution) for every article.
+ * It is now assembled here from a shared cached slim corpus plus two small
+ * reads and one indexed batch:
+ *
+ *   1. the matchable corpus pages above, cached once for all substances;
+ *   2. the substance record (already cached by `getPublicSubstanceBySlug`;
+ *      it retains `slug` and `classification.psychoactive_class`, which is
+ *      everything `substanceGalleryTargetOf` reads);
+ *   3. the stored curation row (`substanceGalleries:getBySubstance`);
+ *   4. `replications:getBySlugs` URL-resolution for only the merged winners.
+ *
+ * A missing substance is an empty gallery — exactly the retired Convex
+ * handler's semantics — and zero matches are an empty gallery, never an
+ * error. Merged order is preserved; slugs the indexed resolution does not
+ * return are dropped.
  *
  * The publishability gate is re-applied here like the other public replication
- * list reads: the Convex matcher already refuses figures and audio, but this
- * layer's filter ships with the build that defines publishability rather than
- * waiting on a Convex deploy.
+ * list reads: the matcher already refuses figures and audio, but this layer's
+ * filter ships with the build that defines publishability rather than waiting
+ * on a Convex deploy.
  *
  * Tagged `replications` and `substances`.
  */
 export const getPublicReplicationsForSubstance = cache(unstable_cache(async (
   substanceSlug: string,
 ): Promise<PublicSubstanceGallery> => {
-  const gallery = await getPublicDataReadAdapter().getPublicReplicationsForSubstance(substanceSlug);
-  return {
-    ...gallery,
-    items: gallery.items.filter((item) => isPublishableReplication(item.replication)),
-  };
+  const substance = await getPublicSubstanceBySlug(substanceSlug);
+  if (!substance) {
+    return { items: [] };
+  }
+
+  const [corpus, curation] = await Promise.all([
+    getPublicMatchableReplicationCorpus(),
+    getPublicDataReadAdapter().getPublicSubstanceGalleryCuration(substanceSlug),
+  ]);
+
+  const target = substanceGalleryTargetOf(substance);
+  const matches = target
+    ? matchSubstanceGalleryReplications(corpus, target).matches
+    : [];
+  const available = includeDirectlyAssociatedRows(corpus, matches, curation);
+  const merged = mergeCuratedGallery(available, curation);
+  if (merged.length === 0) {
+    return { items: [] };
+  }
+
+  const resolved = await getPublicReplicationsBySlugs(merged.map(({ row }) => row.slug));
+  const resolvedBySlug = new Map(resolved.map((row) => [row.slug, row]));
+  const items: SubstanceGalleryItem[] = [];
+  for (const { row, provenance } of merged) {
+    const replication = resolvedBySlug.get(row.slug);
+    if (replication && isPublishableReplication(replication)) {
+      items.push({ replication, provenance });
+    }
+  }
+  return { items };
 }, ["convex-public-replications-for-substance"], {
   revalidate: PUBLIC_CONVEX_CACHE_REVALIDATE_SECONDS,
   tags: [

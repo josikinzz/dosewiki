@@ -291,10 +291,7 @@ export function buildSubstanceArticleViewModel(input: {
       ),
       replicationShowcaseSection: input.replicationShowcaseSection ?? (
         <Suspense fallback={null}>
-          <SubstanceReplicationShowcaseSection
-            article={publicArticle}
-            slug={input.slug}
-          />
+          <SubstanceReplicationShowcaseSection slug={input.slug} />
         </Suspense>
       ),
       contributorAvatars: input.contributorAvatars,
@@ -340,11 +337,7 @@ export function buildEffectArticleViewModel(input: {
         input.replicationsSection ??
         (replicationState.kind === "server" ? (
           <Suspense fallback={<EffectReplicationsSectionFallback />}>
-            <EffectReplicationsSection
-              effectSlug={input.effectSlug}
-              effectName={input.effect.name}
-              galleryOrder={replicationState.galleryOrder}
-            />
+            <EffectReplicationsSection effectSlug={input.effectSlug} />
           </Suspense>
         ) : undefined),
       contributorDirectory: input.contributorDirectory ?? [],

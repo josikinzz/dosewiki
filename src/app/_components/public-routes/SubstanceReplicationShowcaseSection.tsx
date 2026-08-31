@@ -1,17 +1,6 @@
-import { hasKnownCreator } from "@/features/effects/components/replicationCredit";
 import { ReplicationShowcase } from "@/features/replications/components/ReplicationShowcase";
-import {
-  buildShowcaseWorks,
-  visualEffectNameBySlug,
-} from "@/features/replications/components/showcaseModel";
 import { SHOWCASE_WORK_CAP } from "@/features/replications/components/showcaseWork";
-import type { SubstanceArticle } from "@/schema";
-import { publicHref } from "@/utils/publicHref";
-import { findContributorProfileByAuthorName } from "@server/contributorProfileIdentity";
-import {
-  getPublicContributorProfiles,
-  getPublicReplicationsForSubstance,
-} from "@server/convex/publicData";
+import { getSubstanceShowcaseWorks } from "./showcaseCollections";
 
 /**
  * The substance article's Replication Showcase, streamed as the final content
@@ -20,52 +9,27 @@ import {
  * A substance with no matched works renders nothing at all — the Suspense
  * fallback around this section is null for the same reason — so an unmatched
  * article's layout is byte-identical to one that never had the section.
+ *
+ * Only the compact strip is serialized into the RSC payload; the expanded
+ * viewer's long tail is fetched on demand through `collectionSource`, walking
+ * the same `getSubstanceShowcaseWorks` path so both agree on ordering.
  */
 export async function SubstanceReplicationShowcaseSection({
-  article,
   slug,
 }: {
-  article: SubstanceArticle;
   slug: string;
 }) {
-  const gallery = await getPublicReplicationsForSubstance(slug);
-  if (gallery.items.length === 0) return null;
-
-  // Bylines link the Artist Page when the work proves one exists; the profile
-  // resolver below is only the fallback for works withheld from artist views.
-  // Only a credit that names a person can resolve to a profile; a gallery of
-  // unattributed works skips the read rather than paying for a lookup that
-  // cannot succeed — same reasoning as the permalink loader.
-  const anyKnownCreator = gallery.items.some((item) =>
-    hasKnownCreator(item.replication.artist),
-  );
-  const contributorProfiles = anyKnownCreator
-    ? await getPublicContributorProfiles()
-    : [];
-
-  const works = buildShowcaseWorks(
-    gallery.items,
-    visualEffectNameBySlug(article.subjective_effects),
-    (artistName) => {
-      const profile = findContributorProfileByAuthorName(
-        contributorProfiles,
-        artistName,
-      );
-      return profile ? publicHref.contributor(profile.key) : null;
-    },
-    (artistName) =>
-      findContributorProfileByAuthorName(contributorProfiles, artistName)
-        ?.avatarUrl ?? null,
-  );
-  if (works.length === 0) return null;
+  const collection = await getSubstanceShowcaseWorks(slug);
+  if (!collection || collection.works.length === 0) return null;
+  const { works, collectionLabel } = collection;
 
   return (
     <ReplicationShowcase
       works={works.slice(0, SHOWCASE_WORK_CAP)}
-      collectionWorks={works}
       totalCount={works.length}
       substanceSlug={slug}
-      collectionLabel={`${article.title} replications`}
+      collectionLabel={collectionLabel}
+      collectionSource={{ kind: "substance", slug }}
     />
   );
 }

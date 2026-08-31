@@ -1,5 +1,5 @@
-import { fireEvent, render, screen } from "@testing-library/react";
-import { describe, expect, it, vi } from "vitest";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import type { ReplicationWithUrl } from "@/types/replications";
 import type { SubstanceGalleryItem } from "@/data/substanceReplicationGallery";
 import { ReplicationShowcase } from "./ReplicationShowcase";
@@ -75,6 +75,10 @@ const secondWork = work({
 });
 
 describe("ReplicationShowcase", () => {
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
   it("renders nothing at all for a substance with no matched works", () => {
     const { container } = render(<ReplicationShowcase works={[]} />);
 
@@ -184,6 +188,130 @@ describe("ReplicationShowcase", () => {
     expect(screen.getByTestId("replication-viewer")).toHaveAttribute(
       "data-item-count",
       "3",
+    );
+    window.history.replaceState({}, "", "/");
+  });
+
+  it("defers an out-of-strip deep link until the lazy collection arrives", async () => {
+    const longTail = work({
+      slug: "long-tail-work",
+      title: "Long tail work",
+    });
+    window.history.replaceState({}, "", "/lsd?viewer=long-tail-work");
+    let resolveFetch!: (response: Response) => void;
+    const fetchMock = vi.fn(
+      () => new Promise<Response>((resolve) => (resolveFetch = resolve)),
+    );
+    vi.stubGlobal("fetch", fetchMock);
+
+    render(
+      <ReplicationShowcase
+        works={[work()]}
+        totalCount={2}
+        substanceSlug="lsd"
+        collectionLabel="LSD replications"
+        collectionSource={{ kind: "substance", slug: "lsd" }}
+      />,
+    );
+
+    // Unsettled fetch: the param survives untouched, nothing resolves yet —
+    // neither the viewer nor the unavailable notice.
+    expect(fetchMock).toHaveBeenCalledWith(
+      "/api/replications/showcase?substance=lsd",
+    );
+    expect(window.location.search).toBe("?viewer=long-tail-work");
+    expect(screen.queryByTestId("replication-viewer")).not.toBeInTheDocument();
+    expect(
+      screen.queryByText(
+        "The linked replication is no longer available in this collection.",
+      ),
+    ).not.toBeInTheDocument();
+
+    resolveFetch({
+      ok: true,
+      json: async () => ({ works: [work(), longTail] }),
+    } as Response);
+
+    const viewer = await screen.findByTestId("replication-viewer");
+    expect(viewer).toHaveAttribute("data-initial-slug", "long-tail-work");
+    expect(viewer).toHaveAttribute("data-item-count", "2");
+    expect(window.location.search).toBe("?viewer=long-tail-work");
+    window.history.replaceState({}, "", "/");
+  });
+
+  it("strips an unresolvable deep link only after the lazy fetch settles", async () => {
+    window.history.replaceState({}, "", "/lsd?viewer=nowhere-to-be-found");
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(() => Promise.reject(new Error("network down"))),
+    );
+
+    render(
+      <ReplicationShowcase
+        works={[work()]}
+        substanceSlug="lsd"
+        collectionSource={{ kind: "substance", slug: "lsd" }}
+      />,
+    );
+
+    // Degrades exactly as an unknown slug does today, once the fetch fails.
+    await waitFor(() =>
+      expect(window.location.pathname + window.location.search).toBe("/lsd"),
+    );
+    expect(screen.queryByTestId("replication-viewer")).not.toBeInTheDocument();
+    expect(
+      screen.getByText(
+        "The linked replication is no longer available in this collection.",
+      ),
+    ).toBeInTheDocument();
+    window.history.replaceState({}, "", "/");
+  });
+
+  it("extends an open viewer's playlist when the fetched collection lands", async () => {
+    const longTail = work({
+      slug: "long-tail-work",
+      title: "Long tail work",
+    });
+    let resolveFetch!: (response: Response) => void;
+    const fetchMock = vi.fn(
+      () => new Promise<Response>((resolve) => (resolveFetch = resolve)),
+    );
+    vi.stubGlobal("fetch", fetchMock);
+
+    render(
+      <ReplicationShowcase
+        works={[work(), secondWork]}
+        totalCount={3}
+        effectSlug="drifting"
+        collectionSource={{ kind: "effect", slug: "drifting" }}
+      />,
+    );
+
+    fireEvent.click(
+      screen.getByRole("button", {
+        name: "Open Drifting (wood grain) in viewer",
+      }),
+    );
+
+    // The launch fires the fetch and opens over the bundled strip at once.
+    expect(fetchMock).toHaveBeenCalledWith(
+      "/api/replications/showcase?effect=drifting",
+    );
+    expect(screen.getByTestId("replication-viewer")).toHaveAttribute(
+      "data-item-count",
+      "2",
+    );
+
+    resolveFetch({
+      ok: true,
+      json: async () => ({ works: [work(), secondWork, longTail] }),
+    } as Response);
+
+    await waitFor(() =>
+      expect(screen.getByTestId("replication-viewer")).toHaveAttribute(
+        "data-item-count",
+        "3",
+      ),
     );
     window.history.replaceState({}, "", "/");
   });

@@ -9,6 +9,8 @@ import {
   visualEffectNamesOf,
 } from "@/data/substanceVisualEffects";
 import { sortByMediaRank } from "@/features/replications/mediaRank";
+import type { ReplicationWithUrl } from "@/types/replications";
+import { applyCuratedOrder } from "@server/curatedOrder";
 
 import type { ShowcaseWork } from "./showcaseWork";
 
@@ -88,4 +90,68 @@ export function buildShowcaseWorks(
     });
   }
   return works;
+}
+
+/**
+ * Flatten an effect's public replication rows into stage-ready works, in the
+ * order the effect article has always shown them: the editor's curated order
+ * over the audio-first media rank, with rows the stage cannot draw (audio)
+ * dropped afterwards so curation indexes stay aligned with the full corpus.
+ * The effect path deliberately performs no contributor-profile fallback or
+ * avatar lookup — parity with the client gallery it replaced: a byline links
+ * the Artist Page when the work proves one exists, else the credit's own
+ * site, else nowhere.
+ */
+export function buildEffectShowcaseWorks(
+  replications: readonly ReplicationWithUrl[],
+  opts: {
+    effectSlug?: string;
+    effectName?: string;
+    galleryOrder?: readonly string[];
+  } = {},
+): ShowcaseWork[] {
+  const { effectSlug, effectName, galleryOrder } = opts;
+  const ordered = applyCuratedOrder(
+    sortByMediaRank(replications, (replication) => replication),
+    galleryOrder,
+    (replication) => replication.slug,
+  );
+  const drawable = ordered.filter(
+    (
+      replication,
+    ): replication is ReplicationWithUrl & { type: "image" | "video" } =>
+      replication.type === "image" || replication.type === "video",
+  );
+  return drawable.map((replication) => {
+    const artistName = hasKnownCreator(replication.artist)
+      ? replication.artist.trim()
+      : null;
+    const internalArtistHref = artistPageHrefForWork(replication);
+    const artistHref =
+      internalArtistHref ??
+      (artistName ? replication.artist_url?.trim() || null : null);
+    const resolvedEffectSlug = effectSlug ?? replication.effect_slug ?? "";
+    return {
+      slug: replication.slug,
+      title: replication.title,
+      type: replication.type,
+      url: replication.url,
+      thumbnailUrl: replication.thumbnail_url,
+      format: replication.format,
+      duration: replication.duration,
+      hasAudio: replication.has_audio,
+      width: replication.width,
+      height: replication.height,
+      previewUrl: replication.preview_url,
+      motionUrl: replication.motion_url,
+      motionPosterUrl: replication.motion_poster_url,
+      byline: getCreatorByline(replication),
+      artistName,
+      artistHref,
+      artistHrefExternal: artistHref !== null && internalArtistHref === null,
+      effectSlug: resolvedEffectSlug,
+      effectName:
+        effectName ?? (resolvedEffectSlug.replace(/-/g, " ") || "Effect"),
+    };
+  });
 }

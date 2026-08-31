@@ -1,9 +1,10 @@
 /**
  * The client-facing Replication Showcase contract, kept free of runtime
- * dependencies so client stages (`ReplicationShowcase`, `ReplicationGallery`,
- * `ArtistShowcase`) can import it without dragging `showcaseModel`'s
- * Zod-backed matcher (`substanceReplicationGallery`) into their bundles.
- * `showcaseModel.buildShowcaseWorks` produces these on the server.
+ * dependencies so client stages (`ReplicationShowcase`, `ArtistShowcase`)
+ * can import it without dragging `showcaseModel`'s Zod-backed matcher
+ * (`substanceReplicationGallery`) into their bundles.
+ * `showcaseModel.buildShowcaseWorks` and `buildEffectShowcaseWorks` produce
+ * these on the server.
  */
 
 /**

@@ -101,6 +101,14 @@ export interface ReplicationShowcaseProps {
   collectionWorks?: readonly ShowcaseWork[];
   /** The full matched-corpus size; drives the "+N" affordance. */
   totalCount?: number;
+  /**
+   * Where the complete collection can be lazily fetched
+   * (`/api/replications/showcase`). When set, the server serializes only the
+   * compact `works` strip; the expanded viewer's long tail — and `?viewer=`
+   * deep links to works beyond the strip — resolve against the fetched
+   * collection, degrading to the bundled works when the fetch fails.
+   */
+  collectionSource?: { kind: "substance" | "effect"; slug: string };
   /** The owning substance article's slug. */
   substanceSlug?: string;
   /** The owning effect article's slug. */
@@ -149,6 +157,7 @@ export interface ReplicationShowcaseProps {
 export function ReplicationShowcase({
   works,
   collectionWorks = works,
+  collectionSource,
   totalCount,
   substanceSlug,
   effectSlug,
@@ -177,6 +186,19 @@ export function ReplicationShowcase({
     string | null
   >(null);
   /**
+   * The lazily fetched complete collection. The server serializes only the
+   * compact strip; the first viewer intent (a launch, the "+N" affordance, or
+   * a `?viewer=` deep link) fetches the long tail once. `null` means not yet
+   * arrived; the failed flag makes the degradation terminal — the bundled
+   * works stay authoritative and a pending deep link cannot wait forever.
+   */
+  const [remoteCollection, setRemoteCollection] = useState<
+    ShowcaseWork[] | null
+  >(null);
+  const [remoteCollectionFailed, setRemoteCollectionFailed] = useState(false);
+  /** One request per mounted stage, however many intents race it. */
+  const remoteCollectionRequestedRef = useRef(false);
+  /**
    * The inline stage's mute state, shared with the fullscreen viewer through
    * its session sound preference. Muted until the mount effect below reads
    * storage, keeping the server and first client render identical.
@@ -202,6 +224,44 @@ export function ReplicationShowcase({
     videoRef.current = null;
     if (previous) releaseVideoElement(previous);
   }, []);
+  const collectionSourceKind = collectionSource?.kind;
+  const collectionSourceSlug = collectionSource?.slug;
+  /**
+   * Fire-and-forget, at most once. Callers never await it: the overlay opens
+   * over the bundled works and its playlist extends in place when the full
+   * collection arrives; the deep-link effect below re-runs on either outcome.
+   */
+  const fetchRemoteCollection = useCallback(() => {
+    if (
+      !collectionSourceKind ||
+      !collectionSourceSlug ||
+      remoteCollectionRequestedRef.current
+    ) {
+      return;
+    }
+    remoteCollectionRequestedRef.current = true;
+    void fetch(
+      `/api/replications/showcase?${collectionSourceKind}=${encodeURIComponent(collectionSourceSlug)}`,
+    )
+      .then(async (response) => {
+        if (!response.ok) {
+          throw new Error(
+            `Showcase collection read failed: ${response.status}`,
+          );
+        }
+        const payload = (await response.json()) as { works?: unknown };
+        if (!Array.isArray(payload.works)) {
+          throw new Error("Malformed showcase collection payload.");
+        }
+        setRemoteCollection(payload.works as ShowcaseWork[]);
+      })
+      .catch(() => {
+        // Terminal degradation to the bundled works: the strip and the
+        // viewer still work, only the long tail beyond the cap is missing.
+        setRemoteCollectionFailed(true);
+      });
+  }, [collectionSourceKind, collectionSourceSlug]);
+  const effectiveCollection = remoteCollection ?? collectionWorks;
   const viewerCollection = useMemo<ReplicationViewerCollection>(() => {
     const label =
       collectionLabel ??
@@ -230,7 +290,7 @@ export function ReplicationShowcase({
         {
           key: substanceSlug ?? effectSlug ?? "replications",
           label,
-          items: collectionWorks.map((work) => ({
+          items: effectiveCollection.map((work) => ({
             replication: {
               slug: work.slug,
               title: work.title,
@@ -261,7 +321,7 @@ export function ReplicationShowcase({
         },
       ],
     };
-  }, [collectionLabel, collectionWorks, controller?.sourcePath, effectSlug, substanceSlug]);
+  }, [collectionLabel, effectiveCollection, controller?.sourcePath, effectSlug, substanceSlug]);
 
   useEffect(() => {
     // A controlled showcase never owns the deep link: the page-level
@@ -269,8 +329,22 @@ export function ReplicationShowcase({
     if (controller) return;
     const params = new URLSearchParams(window.location.search);
     const slug = parseReplicationViewerSlug(params);
+    // A deep link may name a work beyond the serialized strip. While the
+    // full collection is lazily fetchable and unsettled, start the fetch and
+    // resolve nothing: the param and the deep-link cover both survive until
+    // the long tail arrives — or the fetch fails and the bundled works are
+    // all there will be — and this effect re-runs on either outcome.
+    if (
+      slug &&
+      collectionSourceKind &&
+      remoteCollection === null &&
+      !remoteCollectionFailed
+    ) {
+      fetchRemoteCollection();
+      return;
+    }
     const belongsToCollection =
-      slug && collectionWorks.some((work) => work.slug === slug);
+      slug && effectiveCollection.some((work) => work.slug === slug);
     setUnavailableViewerSlug(slug && !belongsToCollection ? slug : null);
     setViewerSlug(belongsToCollection ? slug : null);
     if (params.has("viewer") && !belongsToCollection) {
@@ -287,7 +361,14 @@ export function ReplicationShowcase({
     if (!belongsToCollection) {
       dismissViewerDeepLinkCover();
     }
-  }, [collectionWorks, controller]);
+  }, [
+    controller,
+    collectionSourceKind,
+    effectiveCollection,
+    fetchRemoteCollection,
+    remoteCollection,
+    remoteCollectionFailed,
+  ]);
 
   useEffect(() => {
     setInlineMuted(readStoredViewerMuted());
@@ -298,6 +379,9 @@ export function ReplicationShowcase({
       controller.onOpenWork(slug);
       return;
     }
+    // Fire the collection fetch alongside the launch: the overlay opens over
+    // the bundled works and extends when the long tail arrives.
+    fetchRemoteCollection();
     const source = `${window.location.pathname}${window.location.search}${window.location.hash}`;
     setUnavailableViewerSlug(null);
     window.history.pushState(

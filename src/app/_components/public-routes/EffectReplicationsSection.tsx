@@ -2,21 +2,29 @@ import Link from "next/link";
 import { ArticleSection } from "@/components/common/ArticleSection";
 import { proseLinkClassName } from "@/components/common/ProseLink";
 import { MediaPlaceholder } from "@/components/layout/PublicFeedbackPrimitives";
-import { ReplicationGallery } from "@/features/effects/components/ReplicationGallery";
+import { ReplicationShowcase } from "@/features/replications/components/ReplicationShowcase";
+import { SHOWCASE_WORK_CAP } from "@/features/replications/components/showcaseWork";
 import { buildReplicationViewerUrl } from "@/features/replications/galleryUrlState";
 import { publicHref } from "@/utils/publicHref";
-import { getPublicReplicationsByEffect } from "@server/convex/publicData";
+import { getEffectShowcaseWorks } from "./showcaseCollections";
 
+/**
+ * Effect articles use the same compact showcase and expanded viewer as
+ * substance articles. The owning effect controls the playlist identity; the
+ * work permalink remains available through modified clicks and new tabs.
+ *
+ * The works are built server-side and only the compact strip is serialized;
+ * the expanded viewer's long tail is fetched on demand through
+ * `collectionSource`, walking the same `getEffectShowcaseWorks` path.
+ */
 export async function EffectReplicationsSection({
   effectSlug,
-  effectName,
-  galleryOrder,
 }: {
   effectSlug: string;
-  effectName: string;
-  galleryOrder?: string[];
 }) {
-  const replications = await getPublicReplicationsByEffect(effectSlug);
+  const collection = await getEffectShowcaseWorks(effectSlug);
+  const works = collection?.works ?? [];
+  const effectName = collection?.effectName;
 
   return (
     <ArticleSection
@@ -26,27 +34,34 @@ export async function EffectReplicationsSection({
       spacing="effect"
     >
       <div className="mt-6">
-        <ReplicationGallery
-          galleryOrder={galleryOrder}
-          replications={replications}
-          effectName={effectName}
-          effectSlug={effectSlug}
-        />
-        {replications.length > 0 ? (
-          // The collection page remains underneath the deep-linked overlay,
-          // so closing returns to a complete, shareable effect playlist.
-          <p className="mt-4 text-sm">
-            <Link
-              href={buildReplicationViewerUrl(
-                publicHref.effect(effectSlug),
-                replications[0].slug,
-              )}
-              className={proseLinkClassName}
-            >
-              Browse all {replications.length} replication
-              {replications.length === 1 ? "" : "s"}
-            </Link>
-          </p>
+        {works.length > 0 ? (
+          <>
+            <ReplicationShowcase
+              works={works.slice(0, SHOWCASE_WORK_CAP)}
+              totalCount={works.length}
+              effectSlug={effectSlug}
+              collectionLabel={
+                effectName
+                  ? `${effectName} replications`
+                  : `${effectSlug.replace(/-/g, " ")} replications`
+              }
+              collectionSource={{ kind: "effect", slug: effectSlug }}
+            />
+            {/* The collection page remains underneath the deep-linked overlay,
+                so closing returns to a complete, shareable effect playlist. */}
+            <p className="mt-4 text-sm">
+              <Link
+                href={buildReplicationViewerUrl(
+                  publicHref.effect(effectSlug),
+                  works[0].slug,
+                )}
+                className={proseLinkClassName}
+              >
+                Browse all {works.length} replication
+                {works.length === 1 ? "" : "s"}
+              </Link>
+            </p>
+          </>
         ) : null}
       </div>
     </ArticleSection>
