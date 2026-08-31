@@ -246,6 +246,14 @@ function assertReadBack(row, result, stored) {
   }
 }
 
+function safeErrorMessage(error, secrets = []) {
+  let message = error instanceof Error ? error.message : String(error);
+  for (const secret of secrets) {
+    if (secret) message = message.split(secret).join("[redacted]");
+  }
+  return message.slice(0, 2000);
+}
+
 export async function runProductionImport({
   argv = process.argv.slice(2),
   env = process.env,
@@ -317,9 +325,13 @@ export async function runProductionImport({
       ledger.updatedAt = state.verifiedAt;
       atomicJson(ledgerPath, ledger);
       verified += 1;
-    } catch {
+    } catch (error) {
       state.status = "uncertain";
-      state.error = { code: "uncertain-outcome", message: "Mutation dispatch began but exact read-back was not verified; manual reconciliation is required." };
+      state.error = {
+        code: "uncertain-outcome",
+        message: "Mutation dispatch began but exact read-back was not verified; manual reconciliation is required.",
+        diagnostic: safeErrorMessage(error, [apiKey]),
+      };
       ledger.updatedAt = now();
       atomicJson(ledgerPath, ledger);
       throw new Error(`${row.sha256}: uncertain production outcome; stopped without retry.`);

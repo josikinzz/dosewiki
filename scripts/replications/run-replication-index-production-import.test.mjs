@@ -197,7 +197,10 @@ describe("replication index production import runner", () => {
     const args = argvFor(files, ["--write", "--phase", "canary", "--target-url", plan.target, "--expected-deployment", "glad-minnow-656", "--confirm-write", "replication-index-production-import", "--expected-plan-digest", plan.planDigestSha256, "--expected-application-commit", TEST_COMMIT]);
     const clientFactory = () => ({ mutation: vi.fn().mockRejectedValue(new Error("timeout")), query: vi.fn() });
     await expect(runProductionImport({ argv: args, env: { CONVEX_ADMIN_TOKEN_REPLICATION_MAINTENANCE: "secret" }, gitCommit: TEST_COMMIT, clientFactory, logger: { log() {} } })).rejects.toThrow(/uncertain/i);
-    expect(JSON.parse(readFileSync(files.ledger, "utf8")).items[SHA].status).toBe("uncertain");
+    const uncertain = JSON.parse(readFileSync(files.ledger, "utf8")).items[SHA];
+    expect(uncertain.status).toBe("uncertain");
+    expect(uncertain.error.diagnostic).toBe("timeout");
+    expect(JSON.stringify(uncertain)).not.toContain("secret");
     await expect(runProductionImport({ argv: args, env: { CONVEX_ADMIN_TOKEN_REPLICATION_MAINTENANCE: "secret" }, gitCommit: TEST_COMMIT, clientFactory, logger: { log() {} } })).rejects.toThrow(/uncertain/i);
   });
 
