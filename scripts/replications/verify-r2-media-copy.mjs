@@ -54,6 +54,29 @@ async function hashBody(response) {
   return { sha256: hash.digest("hex"), size };
 }
 
+export function validateDeliveryHeaders(headers, object, label) {
+  const contentType = headers.get("content-type")?.split(";")[0]?.trim().toLowerCase();
+  if (!object.contentType || contentType !== object.contentType.toLowerCase()) {
+    throw new Error(`${label} content type mismatch for ${object.key}: expected ${object.contentType}, got ${contentType}`);
+  }
+  const cacheControl = headers.get("cache-control") ?? "";
+  if (!/\bpublic\b/i.test(cacheControl) || !/\bimmutable\b/i.test(cacheControl) || !/\bmax-age=31536000\b/i.test(cacheControl)) {
+    throw new Error(`${label} cache policy mismatch for ${object.key}`);
+  }
+  const contentDisposition = headers.get("content-disposition") ?? "";
+  if (!/^inline(?:;|$)/i.test(contentDisposition.trim())) {
+    throw new Error(`${label} is not inline for ${object.key}`);
+  }
+  const acceptRanges = headers.get("accept-ranges");
+  if (acceptRanges !== "bytes") throw new Error(`${label} lacks byte ranges for ${object.key}`);
+  return {
+    content_type: contentType,
+    cache_control: cacheControl,
+    content_disposition: contentDisposition,
+    accept_ranges: acceptRanges,
+  };
+}
+
 async function verifyObject(baseUrl, object) {
   const url = `${baseUrl.replace(/\/+$/, "")}/${object.key}`;
   const [head, full] = await Promise.all([
@@ -64,12 +87,11 @@ async function verifyObject(baseUrl, object) {
   if (Number(head.headers.get("content-length")) !== object.size) {
     throw new Error(`HEAD size mismatch for ${object.key}`);
   }
-  if (head.headers.get("accept-ranges") !== "bytes") {
-    throw new Error(`HEAD lacks Accept-Ranges for ${object.key}`);
-  }
+  const deliveryHeaders = validateDeliveryHeaders(head.headers, object, "HEAD");
   if (full.status !== 200 && full.status !== 206) {
     throw new Error(`GET ${object.key}: ${full.status}`);
   }
+  validateDeliveryHeaders(full.headers, object, "Full GET");
   if (full.status === 206 && full.headers.get("content-range") !== `bytes 0-${object.size - 1}/${object.size}`) {
     throw new Error(`Unexpected full GET Content-Range for ${object.key}`);
   }
@@ -84,15 +106,13 @@ async function verifyObject(baseUrl, object) {
     cache: "no-store",
   });
   if (range.status !== 206) throw new Error(`Range GET ${object.key}: ${range.status}`);
-  if (range.headers.get("accept-ranges") !== "bytes") {
-    throw new Error(`Range GET lacks Accept-Ranges for ${object.key}`);
-  }
+  validateDeliveryHeaders(range.headers, object, "Range GET");
   if (range.headers.get("content-range") !== `bytes 0-${rangeLength - 1}/${object.size}`) {
     throw new Error(`Range Content-Range mismatch for ${object.key}`);
   }
   const rangeBytes = Buffer.from(await range.arrayBuffer());
   if (rangeBytes.length !== rangeLength) throw new Error(`Range length mismatch for ${object.key}`);
-  return { full_status: full.status, range_status: range.status };
+  return { full_status: full.status, range_status: range.status, delivery_headers: deliveryHeaders };
 }
 
 async function main() {
