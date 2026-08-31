@@ -21,6 +21,7 @@
  */
 import {
   findEquivalentReference,
+  hasUnsafeReferenceMarkup,
   haveCompatibleReferenceIdentity,
   mergeReferenceMetadata,
   referenceIdentitiesOverlap,
@@ -105,6 +106,15 @@ export function normalizeIncomingReference(
     return {
       ok: false,
       reason: `A source title must be ${ARTICLE_REFERENCE_TITLE_MAX_LENGTH} characters or fewer.`,
+    };
+  }
+  if (
+    hasUnsafeReferenceMarkup(title)
+    || hasUnsafeReferenceMarkup(reference.apaText)
+  ) {
+    return {
+      ok: false,
+      reason: "Source titles and citation text cannot contain raw MediaWiki or <ref> markup.",
     };
   }
   if ((reference.url?.length ?? 0) > ARTICLE_REFERENCE_URL_MAX_LENGTH) {

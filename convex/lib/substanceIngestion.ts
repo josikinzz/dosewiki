@@ -199,9 +199,11 @@ export function mergeArticleReferenceMetadataForReplacement(
 ) {
   const incomingReferences = (Array.isArray(article.references) ? article.references : []) as Reference[];
   // Replacement writes keep deletion semantics: omitted stored references are
-  // deleted. Stored entries only enrich identity-compatible incoming records
-  // and retain their canonical marker ids.
+  // deleted. Stored entries retain canonical marker ids and enrich incoming
+  // records, while explicit fetched/inspected provenance may replace lower-rank
+  // scalar metadata.
   const merged = mergeReferenceCollections(storedReferences, incomingReferences, {
+    allowTrustedScalarOverride: true,
     retainExistingUnmatched: false,
   });
   const remappedArticle = remapReferenceIds(article, merged.remap) as Record<string, unknown>;

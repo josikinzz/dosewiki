@@ -1,6 +1,7 @@
 import {
   deterministicReferenceId,
   normalizeReferenceMetadataProvenance,
+  stripReferenceHtmlMarkup,
 } from "../../lib/citations/referenceIdentity.mjs";
 import {
   classifyQuality,
@@ -354,7 +355,7 @@ export function sanitizeAllowedReferenceForArticle(reference) {
   return {
     id: normalized.id,
     type: normalized.type,
-    title: normalized.title,
+    title: stripReferenceHtmlMarkup(normalized.title),
     authors: normalized.authors,
     siteName: normalized.siteName,
     url: normalized.url,

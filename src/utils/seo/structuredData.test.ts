@@ -85,6 +85,25 @@ describe("substance structured data", () => {
     });
   });
 
+  it("keeps raw MediaWiki reference markup out of citation JSON-LD", () => {
+    const schema = buildSubstanceSchema(
+      {
+        ...baseArticle,
+        references: [{
+          ...baseArticle.references[0],
+          title: '<ref name="pmid24648790" /> [[NMDA receptor]] {{abbrlink|PCP|phencyclidine}}',
+          doi: "10.2147/SAR.S36761",
+          url: "https://doi.org/10.2147/SAR.S36761",
+        }],
+      } as unknown as SubstanceArticle,
+      "https://dose.wiki/dextromethorphan",
+    );
+
+    expect(schema.citation?.[0]?.name).toBe("DOI 10.2147/sar.s36761");
+    expect(JSON.stringify(schema.citation)).not.toContain("<ref");
+    expect(JSON.stringify(schema.citation)).not.toContain("[[");
+  });
+
   it("strips inline citation tokens from every structured-data text field", () => {
     const schema = buildSubstanceSchema(
       {

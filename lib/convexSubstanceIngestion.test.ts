@@ -161,6 +161,44 @@ describe("substance ingestion", () => {
     expect(docs[0].references.some(({ id }) => id === "stored-only-reference")).toBe(false);
   });
 
+  it("applies explicitly inspected scalar metadata during whole-document replacement", () => {
+    const stored = article({ id: 7, title: "Example", slug: "example" });
+    stored.references = [{
+      id: "doi-example",
+      type: "journal_article",
+      title: "{{cite journal|title=Broken}}",
+      authors: [],
+      doi: "10.1000/example",
+      sourceType: "unknown",
+      quality: "fallback",
+      metadataProvenance: [{
+        kind: "fetched",
+        source: "legacy-import",
+        fields: ["title"],
+      }],
+    }];
+    const incoming = structuredClone(stored);
+    incoming.references[0] = {
+      ...incoming.references[0],
+      title: "Verified title",
+      metadataProvenance: [{
+        kind: "inspected",
+        source: "metadata-repair",
+        fields: ["title"],
+      }],
+    };
+
+    const replacement = prepareSubstanceReplacementArticles({
+      articles: [incoming],
+      existing: [{ ...stored, _id: "stored-7" }],
+    });
+
+    expect(replacement.prepared[0].references[0]).toMatchObject({
+      id: "doi-example",
+      title: "Verified title",
+    });
+  });
+
   it("prepares bulk replacements with rich canonical metadata while retaining article and reference deletion semantics", () => {
     const stored = article({ id: 7, title: "Methylphenidate", slug: "methylphenidate" });
     stored.references = [{

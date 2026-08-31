@@ -11,6 +11,7 @@ import type { SubjectiveEffectArticle } from "../../features/effects/articleSect
 import { SITE_FLAVOR_CONFIG, type SiteFlavorConfig } from "../../config/siteFlavor";
 import { stripCitationTokens } from "../../lib/citations/citationTokens";
 import { hasKnownCreator } from "../../features/effects/components/replicationCredit";
+import { getReferenceDisplayTitle } from "../../lib/citations/referenceModel";
 
 /**
  * Schema.org Article type for substance profiles.
@@ -243,7 +244,7 @@ function referencePublisher(reference: Reference): CitationSchema["publisher"] |
 }
 
 function buildCitationSchema(reference: Reference): CitationSchema | null {
-  const name = cleanText(reference.title);
+  const name = getReferenceDisplayTitle(reference);
 
   if (!name) {
     return null;

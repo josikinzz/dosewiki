@@ -16,6 +16,7 @@ import { readFileSync, writeFileSync } from "node:fs";
 import { ConvexHttpClient } from "convex/browser";
 import { api } from "../../convex/_generated/api.js";
 import { stripCitationMarkers } from "./citation-only-validator.mjs";
+import { hasUnsafeReferenceMarkup } from "../../lib/citations/referenceIdentity.mjs";
 import { mergeReferences, normalizeSelectedSections } from "./workbench-draft-adapter.mjs";
 import {
   createDataOpsRunContext,
@@ -170,6 +171,14 @@ function isMarkerWritableField(sectionKey, path) {
 
 export function sanitizeReference(reference) {
   const sanitized = { ...reference };
+  if (
+    hasUnsafeReferenceMarkup(sanitized.title)
+    || hasUnsafeReferenceMarkup(sanitized.apaText)
+  ) {
+    throw new Error(
+      `Reference ${sanitized.id ?? "(unknown)"} contains raw MediaWiki or <ref> markup.`,
+    );
+  }
   if (sanitized.template != null && !ALLOWED_TEMPLATES.has(sanitized.template)) {
     sanitized.template = "unknown";
   }

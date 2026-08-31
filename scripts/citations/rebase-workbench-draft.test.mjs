@@ -1,6 +1,11 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { normalizeFieldPath, parsePath, rebaseWorkbenchDraft } from "./rebase-workbench-draft.mjs";
+import {
+  normalizeFieldPath,
+  parsePath,
+  rebaseWorkbenchDraft,
+  sanitizeReference,
+} from "./rebase-workbench-draft.mjs";
 
 const baseDraft = () => ({
   citationMode: "marker_only",
@@ -42,6 +47,16 @@ test("parsePath handles dots and array indices", () => {
 test("normalizeFieldPath converts dotted indices to brackets", () => {
   assert.equal(normalizeFieldPath("history_culture.sections.0.content"), "history_culture.sections[0].content");
   assert.equal(normalizeFieldPath("history_culture.sections[1].content"), "history_culture.sections[1].content");
+});
+
+test("sanitizeReference rejects raw MediaWiki citation markup", () => {
+  assert.throws(
+    () => sanitizeReference({
+      id: "doi-10-2147-sar-s36761",
+      title: '<ref name="pmid24648790" /> [[NMDA receptor]]',
+    }),
+    /contains raw MediaWiki or <ref> markup/,
+  );
 });
 
 test("rebase transplants unchanged fields, drops changed ones, prunes evidence and references", () => {

@@ -1,9 +1,22 @@
 import { describe, expect, it } from "vitest";
 import {
   haveCompatibleReferenceIdentity,
+  hasUnsafeReferenceMarkup,
   mergeReferenceCollections,
   mergeReferenceMetadata,
+  stripReferenceHtmlMarkup,
 } from "../../lib/citations/referenceIdentity.mjs";
+
+it("detects raw MediaWiki and ref markup in bibliographic text", () => {
+  expect(hasUnsafeReferenceMarkup("Antitussives and substance abuse")).toBe(false);
+  expect(hasUnsafeReferenceMarkup('<ref name="paper" />')).toBe(true);
+  expect(hasUnsafeReferenceMarkup("[[NMDA receptor]]")).toBe(true);
+  expect(hasUnsafeReferenceMarkup("{{cite journal|title=Paper}}")).toBe(true);
+  expect(hasUnsafeReferenceMarkup("5-HT<sub>2A</sub> receptor")).toBe(true);
+  expect(stripReferenceHtmlMarkup("5-HT<sub>2A</sub> &amp; D<sup>2</sup>")).toBe(
+    "5-HT2A & D2",
+  );
+});
 
 describe("reference identity compatibility", () => {
   it("rejects an overlapping PMID when both DOI values conflict", () => {

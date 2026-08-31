@@ -84,6 +84,7 @@
     "citations:validate-metadata-repair-tracker": "node scripts/citations/build-citation-metadata-repair-tracker.mjs",
     "citations:plan-provenance-backfill": "node scripts/citations/plan-reference-metadata-provenance-backfill.mjs",
     "citations:apply-provenance-backfill": "node scripts/citations/apply-reference-metadata-provenance-backfill.mjs",
+    "citations:repair-malformed-references": "node scripts/citations/repair-malformed-reference-metadata.mjs",
     "citations:apply-workbench": "node scripts/citations/apply-workbench-draft.mjs",
     "citations:rebase-workbench": "node scripts/citations/rebase-workbench-draft.mjs",
     "citations:export-workbench-task": "node scripts/citations/export-workbench-task-from-convex.mjs",

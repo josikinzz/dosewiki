@@ -14,6 +14,8 @@ export function normalizeDoi(value: unknown): string;
 export function normalizePmid(value: unknown): string;
 export function normalizeIsbn(value: unknown): string;
 export function canonicalizeReferenceUrl(value: unknown): string;
+export function hasUnsafeReferenceMarkup(value: unknown): boolean;
+export function stripReferenceHtmlMarkup(value: unknown): string;
 export function getReferenceIdentityKeys(input: ReferenceIdentityInput): string[];
 export function referenceDedupeKey(input: ReferenceIdentityInput): string;
 export function findEquivalentReference<T extends ReferenceIdentityInput>(

@@ -4,6 +4,7 @@ export const productionWriterClassifications = Object.freeze({
     "scripts/batch/apply-dosage-duration-rewrite-results.mjs",
     "scripts/citations/apply-reference-author-repairs.mjs",
     "scripts/citations/apply-reference-metadata-provenance-backfill.mjs",
+    "scripts/citations/repair-malformed-reference-metadata.mjs",
     "scripts/convex/apply-2026-07-23-targeted-updates.mjs",
     "scripts/convex/copy-prodrug-subjective-effects.mjs",
     "scripts/contributors/backfill-article-author-profile-keys.mjs",

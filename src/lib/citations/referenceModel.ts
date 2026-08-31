@@ -6,7 +6,10 @@ import {
 import {
   dedupeReferences as dedupeSharedReferences,
   deterministicReferenceId as deterministicSharedReferenceId,
+  hasUnsafeReferenceMarkup,
   normalizeDoi,
+  normalizeIsbn,
+  normalizePmid,
   referenceDedupeKey as sharedReferenceDedupeKey,
 } from "../../../lib/citations/referenceIdentity.mjs";
 import {
@@ -98,13 +101,35 @@ function isDateFirstApaText(text: string) {
   return /^\(\s*(?:n\.?\s*d\.?|[^)]*\b(?:18|19|20|21)\d{2}[a-z]?\b[^)]*)\)/i.test(text);
 }
 
+export function getReferenceDisplayTitle(reference: Reference): string {
+  const title = reference.title.trim();
+  if (title && !hasUnsafeReferenceMarkup(title)) return title;
+
+  const doi = normalizeDoi(reference.doi) || normalizeDoi(reference.url);
+  if (doi) return `DOI ${doi}`;
+
+  const pmid = normalizePmid(reference.pmid) || normalizePmid(reference.url);
+  if (pmid) return `PMID ${pmid}`;
+
+  const isbn = normalizeIsbn(reference.isbn);
+  if (isbn) return `ISBN ${isbn}`;
+
+  return "Untitled reference";
+}
+
 export function formatApaReference(reference: Reference): string {
   const storedApaText = reference.apaText?.trim() ?? "";
   const authors = joinAuthors(reference.authors ?? []);
-  if (storedApaText && (authors || !isDateFirstApaText(storedApaText))) return storedApaText;
+  if (
+    storedApaText
+    && !hasUnsafeReferenceMarkup(storedApaText)
+    && (authors || !isDateFirstApaText(storedApaText))
+  ) {
+    return storedApaText;
+  }
 
   const date = reference.date?.trim() || (reference.year ? String(reference.year) : "n.d.");
-  const title = reference.title.trim() || "Untitled reference";
+  const title = getReferenceDisplayTitle(reference);
   const container = reference.containerTitle?.trim() || reference.siteName?.trim() || "";
   const publisher = reference.publisher?.trim() || "";
   const volumeIssue = [reference.volume, reference.issue ? `(${reference.issue})` : ""].filter(Boolean).join("");
@@ -139,9 +164,8 @@ function joinWikipediaAuthors(authors: string[]) {
   return authors.map((author) => author.trim()).filter(Boolean).join("; ");
 }
 
-function quotedTitle(title: string) {
-  const cleaned = title.trim() || "Untitled reference";
-  return `"${cleaned}"`;
+function quotedTitle(reference: Reference) {
+  return `"${getReferenceDisplayTitle(reference)}"`;
 }
 
 function referenceDate(reference: Reference) {
@@ -158,7 +182,7 @@ export function formatWikipediaStyleReference(reference: Reference): string {
   const parts: string[] = [];
   const authors = joinWikipediaAuthors(reference.authors ?? []);
   const date = referenceDate(reference);
-  const title = quotedTitle(reference.title);
+  const title = quotedTitle(reference);
   let authorlessDatePending = !authors && Boolean(date);
 
   const lead = [authors, authors ? date : ""].filter(Boolean).join(" ");

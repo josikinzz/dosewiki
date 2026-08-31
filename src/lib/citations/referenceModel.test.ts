@@ -6,6 +6,7 @@ import {
   dedupeReferences,
   deterministicReferenceId,
   formatApaReference,
+  getReferenceDisplayTitle,
   formatWikipediaStyleReference,
   renderCitationTokenText,
 } from "./referenceModel";
@@ -241,6 +242,28 @@ describe("reference model", () => {
       quality: "high",
     })).toBe(
       "The psychostimulant d-threo-(R,R)-methylphenidate binds as an agonist to the 5HT(1A) receptor. Die Pharmazie, 64(2), 123–125 (February 2009). https://pubmed.ncbi.nlm.nih.gov/19322953/",
+    );
+  });
+
+  it("replaces raw MediaWiki reference markup with a stable identifier label", () => {
+    const reference = {
+      id: "doi-10-2147-sar-s36761",
+      type: "unknown" as const,
+      title: '<ref name="pmid24648790" /> * [[Uncompetitive inhibitor|Uncompetitive antagonist]] of the [[NMDA receptor]] via the {{abbrlink|PCP|phencyclidine}} site<ref n',
+      authors: [],
+      doi: "10.2147/SAR.S36761",
+      pmid: "24648790",
+      url: "https://doi.org/10.2147/SAR.S36761",
+      sourceType: "unknown" as const,
+      quality: "fallback" as const,
+    };
+
+    expect(getReferenceDisplayTitle(reference)).toBe("DOI 10.2147/sar.s36761");
+    expect(formatApaReference(reference)).toBe(
+      "DOI 10.2147/sar.s36761. (n.d.). https://doi.org/10.2147/sar.s36761",
+    );
+    expect(formatWikipediaStyleReference(reference)).toBe(
+      '"DOI 10.2147/sar.s36761". doi:10.2147/sar.s36761.',
     );
   });
 
