@@ -28,7 +28,7 @@ function desired(slug = "safe-item", sha = SHA) {
     height: 900,
     format: "webp",
     file_size: 1234,
-    effect_tags: ["geometry"],
+    effect_tags: [],
     source_sha256: sha,
     taxonomy: {
       taxonomy_record_key: `replication:${sha}`,
@@ -176,7 +176,9 @@ describe("replication index production import runner", () => {
     const root = mkdtempSync(path.join(tmpdir(), "replication-import-"));
     const { files, plan, insert } = artifacts(root);
     const mutation = vi.fn().mockResolvedValue({ inserted: true, id: "row1", slug: insert.slug, role: "replication" });
-    const query = vi.fn().mockResolvedValue({ _id: "row1", _creationTime: 1, ...insert, ...insert.taxonomy });
+    const stored = { _id: "row1", _creationTime: 1, ...insert, ...insert.taxonomy };
+    delete stored.effect_tags;
+    const query = vi.fn().mockResolvedValue(stored);
     const argv = argvFor(files, ["--write", "--phase", "canary", "--target-url", plan.target, "--expected-deployment", "glad-minnow-656", "--confirm-write", "replication-index-production-import", "--expected-plan-digest", plan.planDigestSha256, "--expected-application-commit", TEST_COMMIT]);
     const result = await runProductionImport({ argv, env: { CONVEX_ADMIN_TOKEN_REPLICATION_MAINTENANCE: "secret" }, gitCommit: TEST_COMMIT, clientFactory: () => ({ mutation, query }), logger: { log() {} } });
     expect(result).toMatchObject({ mode: "write", verified: 1 });

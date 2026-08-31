@@ -236,9 +236,13 @@ function assertReadBack(row, result, stored) {
   required(stored.slug === expected.slug && stored.source_sha256 === expected.source_sha256, `${row.sha256}: read-back source_sha256/slug mismatch.`);
   for (const field of R2_FIELDS) required(stored[field] === expected[field], `${row.sha256}: read-back ${field} drift.`);
   for (const field of RIGHTS_FIELDS) required(stored[field] === expected[field], `${row.sha256}: read-back ${field} drift.`);
-  for (const [field, value] of Object.entries(expected.taxonomy)) required(stable(stored[field]) === stable(value), `${row.sha256}: read-back taxonomy.${field} drift.`);
+  for (const [field, value] of Object.entries(expected.taxonomy)) {
+    const storedValue = Array.isArray(value) && stored[field] === undefined ? [] : stored[field];
+    required(stable(storedValue) === stable(value), `${row.sha256}: read-back taxonomy.${field} drift.`);
+  }
   for (const field of ["title", "artist", "artist_url", "role", "type", "effect_slug", "width", "height", "format", "file_size", "duration", "has_audio", "effect_tags"]) {
-    required(stable(stored[field]) === stable(expected[field]), `${row.sha256}: read-back ${field} drift.`);
+    const storedValue = Array.isArray(expected[field]) && stored[field] === undefined ? [] : stored[field];
+    required(stable(storedValue) === stable(expected[field]), `${row.sha256}: read-back ${field} drift.`);
   }
 }
 
