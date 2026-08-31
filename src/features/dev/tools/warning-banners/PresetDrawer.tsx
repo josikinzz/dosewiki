@@ -313,6 +313,24 @@ export function PresetDrawer({
           onChange={(event) => onDraftChange({ ...draft, enabled: event.target.checked })}
         />
 
+        <EditorCheckbox
+          checked={draft.allSubstances}
+          label="All substance articles"
+          description="Sitewide scope includes every current article and automatically includes articles published later."
+          onChange={(event) =>
+            onDraftChange({ ...draft, allSubstances: event.target.checked })
+          }
+        />
+
+        {draft.allSubstances ? (
+          <Surface variant="subtle" padding="sm" radius="lg">
+            <p className="theme-text-secondary text-sm">
+              This preset applies to every substance article. The individual list below is retained
+              for later use but does not limit sitewide scope.
+            </p>
+          </Surface>
+        ) : null}
+
         {/* One box for both jobs. Typing a drug name finds that drug; typing a
             class finds everything carrying it, and the helper ranks names
             first, so a specific substance is one search and one click. */}
@@ -324,6 +342,7 @@ export function PresetDrawer({
               inputSize="sm"
               type="search"
               placeholder="diazepam, or opioid"
+              disabled={draft.allSubstances}
               onChange={(event) => setQuery(event.target.value)}
             />
           )}
@@ -402,7 +421,7 @@ export function PresetDrawer({
             type="button"
             variant="accent"
             size="sm"
-            disabled={stagedSlugs.length === 0 || !canWrite}
+            disabled={draft.allSubstances || stagedSlugs.length === 0 || !canWrite}
             onClick={() =>
               commit(
                 [...draft.enabledSlugs, ...stagedSlugs],
@@ -419,7 +438,7 @@ export function PresetDrawer({
             type="button"
             variant="secondary"
             size="sm"
-            disabled={pending.length === 0 || !canWrite}
+            disabled={draft.allSubstances || pending.length === 0 || !canWrite}
             onClick={() =>
               commit(
                 [...draft.enabledSlugs, ...pending.map((result) => result.slug)],
@@ -435,7 +454,9 @@ export function PresetDrawer({
 
         <div className="space-y-2">
           <p className="theme-text-faint text-[11px] font-semibold uppercase tracking-[0.16em]">
-            {`Enabled on ${draft.enabledSlugs.length} substance${draft.enabledSlugs.length === 1 ? "" : "s"}`}
+            {draft.allSubstances
+              ? "Sitewide · all substance articles"
+              : `Enabled on ${draft.enabledSlugs.length} substance${draft.enabledSlugs.length === 1 ? "" : "s"}`}
           </p>
           {draft.enabledSlugs.length === 0 ? (
             <p className="theme-text-secondary text-sm">

@@ -145,16 +145,14 @@ const effectIndexArchiveRecord = v.object({
   importedAt: v.number(),
 });
 
-// Drug-class safety banner presets. One document per preset; the shared pure
-// rules live in `src/data/substanceWarningBanners.ts` and are imported by both
-// `convex/warningBanners.ts` and the /dev Banner Studio.
+// Substance-article safety banner presets. One document per preset; the shared
+// pure rules live in `src/data/substanceWarningBanners.ts` and are imported by
+// both `convex/warningBanners.ts` and the /dev Banner Studio.
 //
-// `enabled` and `enabledSlugs` are the ONLY render inputs: a preset shows on an
-// article iff `enabled === true` and `enabledSlugs` contains that slug. Nothing
-// is derived from a substance's classification — free-text class strings are
-// too noisy to assign safety copy (cocaine's `"Alkaloid (tropane)"` matches a
-// deliriant rule; DXM's `"Morphinan (substituted)"` matches an opioid rule),
-// so the opt-in is explicit and per-slug.
+// Render scope is editorially explicit: `enabled` plus either `allSubstances`
+// or an `enabledSlugs` entry. Nothing is derived from free-text classification
+// strings. `allSubstances` is optional only so rows written before sitewide
+// scope was introduced remain readable; every new write stores it.
 //
 // Four columns were dropped and must not come back. `label` was a third name
 // for a banner beside `key` and `headline`, and three names for one thing was
@@ -175,6 +173,7 @@ const warningBannerPreset = v.object({
   headline: v.string(),
   points: v.array(v.string()),
   enabled: v.boolean(),
+  allSubstances: v.optional(v.boolean()),
   enabledSlugs: v.array(v.string()),
   updatedAt: v.string(),
   updatedBy: v.optional(v.string()),
@@ -411,8 +410,8 @@ export default defineSchema({
     .index("by_key", ["key"])
     .index("by_group", ["group"]),
 
-  // Drug-class safety banner presets; see the validator's note. Opt-in only:
-  // `enabled` plus an explicit `enabledSlugs` entry is the whole render rule.
+  // Substance-article safety banner presets; see the validator's note. Scope is
+  // explicit: a slug list or the deliberate `allSubstances` switch.
   warningBannerPresets: defineTable(warningBannerPreset).index("by_key", ["key"]),
 
   // Canonical molecule depictions for public substance/class pages and the /dev

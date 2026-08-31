@@ -1,3 +1,4 @@
+import { citationEvidenceGateErrors } from "../lib/citations/citationSafety.mjs";
 import { v } from "convex/values";
 import { mutation, query, type MutationCtx } from "./_generated/server";
 import { requireEditorWrite, type AuthorizedActor } from "./lib/auth";
@@ -28,6 +29,37 @@ const supportProofInput = v.object({
   endOffset: v.union(v.number(), v.null()),
 });
 
+const entailmentVerdictInput = v.union(
+  v.literal("entails"),
+  v.literal("partial"),
+  v.literal("does_not_entail"),
+  v.literal("uncertain"),
+);
+
+const strictReviewEvidenceInput = v.object({
+  decision: v.literal("approved"),
+  reviewedBy: v.string(),
+  reviewedAt: v.string(),
+  claimKey: v.string(),
+  fieldPath: v.string(),
+  claimText: v.string(),
+  referenceIds: v.array(v.string()),
+  rationale: v.string(),
+});
+
+type CitationEntailmentVerdict = "entails" | "partial" | "does_not_entail" | "uncertain";
+
+type StrictCitationReviewEvidence = {
+  decision: "approved";
+  reviewedBy: string;
+  reviewedAt: string;
+  claimKey: string;
+  fieldPath: string;
+  claimText: string;
+  referenceIds: string[];
+  rationale: string;
+};
+
 const supportInput = v.object({
   sourceId: v.string(),
   sourceName: v.string(),
@@ -51,6 +83,8 @@ const evidenceInput = v.object({
   claimKey: v.string(),
   claimText: v.optional(v.string()),
   fieldPath: v.optional(v.string()),
+  entailmentVerdict: v.optional(entailmentVerdictInput),
+  strictReviewEvidence: v.optional(strictReviewEvidenceInput),
   referenceIds: v.array(v.string()),
   sourceName: v.optional(v.string()),
   sourceType: v.optional(v.string()),
@@ -242,6 +276,8 @@ function validateEvidenceRow(row: {
   claimKey: string;
   claimText?: string;
   fieldPath?: string;
+  entailmentVerdict?: CitationEntailmentVerdict;
+  strictReviewEvidence?: StrictCitationReviewEvidence;
   referenceIds: string[];
   sourceName?: string;
   sourceType?: string;
@@ -333,6 +369,10 @@ function validateEvidenceRow(row: {
     }
   }
 
+  if (row.status === "approved") {
+    assertEvidenceCanPublish(row);
+  }
+
   return {
     ...row,
     referenceIds,
@@ -343,6 +383,21 @@ function validateEvidenceRow(row: {
     supportingSnippet: supports.length === 1 ? supports[0].supportingQuote : undefined,
     supportRationale: supports.length === 1 ? supports[0].rationale : undefined,
   };
+}
+
+function assertEvidenceCanPublish(row: {
+  claimKey: string;
+  claimText?: string;
+  fieldPath?: string;
+  referenceIds: string[];
+  entailmentVerdict?: CitationEntailmentVerdict;
+  strictReviewEvidence?: StrictCitationReviewEvidence;
+}) {
+  const errors = citationEvidenceGateErrors(row);
+  invariant(
+    errors.length === 0,
+    `Evidence row ${row.claimKey} cannot be approved or applied: ${errors.join("; ")}.`,
+  );
 }
 
 export const getBySlug = query({
@@ -509,6 +564,8 @@ async function applyEvidenceWrite({
     claimKey: string;
     claimText?: string;
     fieldPath?: string;
+    entailmentVerdict?: CitationEntailmentVerdict;
+    strictReviewEvidence?: StrictCitationReviewEvidence;
     referenceIds: string[];
     sourceName?: string;
     sourceType?: string;
@@ -671,6 +728,16 @@ export const applyDraft = mutation({
       );
     }
 
+    // Validate every evidence row and every publishable entailment before the
+    // article patch. A failed citation gate must leave article and evidence
+    // storage untouched.
+    for (const row of args.evidence) {
+      const normalizedRow = validateEvidenceRow(row);
+      if (normalizedRow.status === "supported" || normalizedRow.status === "approved") {
+        assertEvidenceCanPublish(normalizedRow);
+      }
+    }
+
     const articleResult = await applyCitationArticlePatch({
       ctx,
       slug: args.slug,
@@ -717,6 +784,8 @@ function normalizeExistingEvidenceRow(existing: {
   claimKey: string;
   claimText?: string;
   fieldPath?: string;
+  entailmentVerdict?: CitationEntailmentVerdict;
+  strictReviewEvidence?: StrictCitationReviewEvidence;
   referenceIds: string[];
   sourceName?: string;
   sourceType?: string;
@@ -755,6 +824,8 @@ function normalizeExistingEvidenceRow(existing: {
     claimKey: existing.claimKey,
     claimText: existing.claimText,
     fieldPath: existing.fieldPath,
+    entailmentVerdict: existing.entailmentVerdict,
+    strictReviewEvidence: existing.strictReviewEvidence,
     referenceIds: existing.referenceIds,
     sourceName: existing.sourceName,
     sourceType: existing.sourceType,

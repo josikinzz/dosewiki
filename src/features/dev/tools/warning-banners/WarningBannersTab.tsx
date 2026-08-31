@@ -74,6 +74,7 @@ type WarningBannerPresetDoc = {
   headline: string;
   points: string[];
   enabled: boolean;
+  allSubstances?: boolean;
   enabledSlugs: string[];
 };
 
@@ -100,6 +101,7 @@ const BLANK_PRESET: WarningBannerPreset = {
   // Both opt-in gates start shut, so a half-written preset cannot reach a
   // reader between its first Save and the editor finishing the copy.
   enabled: false,
+  allSubstances: false,
   enabledSlugs: [],
 };
 
@@ -135,6 +137,7 @@ function WarningBannersStudio({ initialSubstanceSlug }: WarningBannersTabProps) 
       headline: row.headline,
       points: row.points,
       enabled: row.enabled,
+      allSubstances: row.allSubstances === true,
       enabledSlugs: row.enabledSlugs,
     }));
     return mapped.sort(compareWarningBanners);
@@ -217,12 +220,18 @@ function WarningBannersStudio({ initialSubstanceSlug }: WarningBannersTabProps) 
       if (!preset.enabled) {
         continue;
       }
+      if (preset.allSubstances) {
+        for (const target of targets) {
+          slugs.add(target.slug);
+        }
+        continue;
+      }
       for (const slug of preset.enabledSlugs) {
         slugs.add(slug);
       }
     }
     return slugs;
-  }, [presets]);
+  }, [presets, targets]);
 
   /**
    * One POST is every write in this tool: authoring copy, enabling a class of
@@ -248,6 +257,7 @@ function WarningBannersStudio({ initialSubstanceSlug }: WarningBannersTabProps) 
             headline: preset.headline.trim(),
             points: preset.points.map((point) => point.trim()).filter(Boolean),
             enabled: preset.enabled,
+            allSubstances: preset.allSubstances,
             enabledSlugs: submitted,
           }),
         });

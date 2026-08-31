@@ -297,12 +297,14 @@ export function PresetsView({
                       <td className="px-3 py-2.5">
                         <EditorStatusPill tone={STATE_PILL_TONE[state]}>
                           {state === "live"
-                            ? `live · ${preset.enabledSlugs.length}`
+                            ? preset.allSubstances
+                              ? "live · all"
+                              : `live · ${preset.enabledSlugs.length}`
                             : STATE_LABEL[state]}
                         </EditorStatusPill>
                       </td>
                       <td className="theme-text-secondary px-3 py-2.5 text-sm tabular-nums">
-                        {preset.enabledSlugs.length}
+                        {preset.allSubstances ? "All" : preset.enabledSlugs.length}
                       </td>
                     </tr>
                     {open && draft ? (

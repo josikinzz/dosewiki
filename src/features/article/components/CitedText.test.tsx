@@ -109,3 +109,54 @@ describe("CitedText", () => {
     expect(secondMarker).toHaveClass("theme-citation-marker");
   });
 });
+
+describe("CitedText citation-needed badge", () => {
+  it("renders the [citation-needed] token as a caution badge, not text or a link", () => {
+    const text = "Unsupported claim [citation-needed]. Next sentence.";
+    const article = makeArticle(text, []);
+    const { container } = render(<CitedText text={text} article={article} />);
+
+    const badge = screen.getByText("citation needed");
+    expect(badge).toHaveAttribute("data-badge-tone", "yellow");
+    expect(badge).toHaveClass("theme-semantic-caution-badge");
+    expect(container.textContent).not.toContain("[citation-needed]");
+    expect(screen.queryByRole("link")).not.toBeInTheDocument();
+    expect(container.querySelector("sup")).not.toBeInTheDocument();
+  });
+
+  it("renders badge and reference link when both tokens share a sentence", () => {
+    const text = "Mixed claim [cite:first] with a gap [citation-needed].";
+    const article = makeArticle(text, ["first"]);
+    const { container } = render(<CitedText text={text} article={article} />);
+
+    expect(screen.getByRole("link", { name: "Citation 1" })).toHaveAttribute(
+      "href",
+      "#ref-first",
+    );
+    expect(screen.getByText("citation needed")).toBeInTheDocument();
+    expect(container.textContent).not.toContain("[cite:");
+    expect(container.textContent).not.toContain("[citation-needed]");
+  });
+
+  it("keeps the badge out of citation numbering when tokens are adjacent", () => {
+    const text = "Adjacent [cite:first][citation-needed][cite:second].";
+    const article = makeArticle(text, ["first", "second"]);
+    const { container } = render(<CitedText text={text} article={article} />);
+
+    expect(screen.getByRole("link", { name: "Citation 1" })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Citation 2" })).toBeInTheDocument();
+    expect(screen.getAllByRole("link")).toHaveLength(2);
+    expect(screen.getByText("citation needed")).toBeInTheDocument();
+    expect(container.textContent).not.toContain("[");
+  });
+
+  it("leaves text without tokens untouched", () => {
+    const text = "Plain prose with no markers. Second sentence.";
+    const article = makeArticle(text, []);
+    const { container } = render(<CitedText text={text} article={article} />);
+
+    expect(container.textContent).toBe(text);
+    expect(container.querySelector("span")).not.toBeInTheDocument();
+    expect(container.querySelector("sup")).not.toBeInTheDocument();
+  });
+});

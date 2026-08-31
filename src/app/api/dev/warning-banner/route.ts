@@ -3,7 +3,8 @@
  * Banner Studio).
  *
  *   POST   /api/dev/warning-banner   { key, tone, icon, severityLabel,
- *                                      headline, points, enabled, enabledSlugs }
+ *                                      headline, points, enabled, allSubstances,
+ *                                      enabledSlugs }
  *   DELETE /api/dev/warning-banner   { key }
  *
  * The browser holds no admin intent token, so the write is delegated here: the
@@ -41,6 +42,7 @@ type WarningBannerBody = {
   headline?: unknown;
   points?: unknown;
   enabled?: unknown;
+  allSubstances?: unknown;
   enabledSlugs?: unknown;
 };
 
@@ -52,6 +54,7 @@ type ParsedWarningBanner = {
   headline: string;
   points: string[];
   enabled: boolean;
+  allSubstances: boolean;
   enabledSlugs: string[];
 };
 
@@ -138,7 +141,7 @@ function requireStringList(
 function parseWarningBannerBody(raw: WarningBannerBody): ParsedWarningBanner {
   const key = requireKey(raw.key);
 
-  const { tone, enabled } = raw;
+  const { tone, enabled, allSubstances } = raw;
   if (!isWarningBannerTone(tone)) {
     throw new JsonBodyError(
       400,
@@ -160,6 +163,13 @@ function parseWarningBannerBody(raw: WarningBannerBody): ParsedWarningBanner {
       "The enabled switch must be true or false. Banners are opt-in, so an absent switch cannot be read as on.",
     );
   }
+  if (typeof allSubstances !== "boolean") {
+    throw new JsonBodyError(
+      400,
+      "The all-substances switch must be true or false. Sitewide scope must be an explicit editorial choice.",
+    );
+  }
+
 
   const enabledSlugs = requireStringList(
     raw.enabledSlugs,
@@ -185,6 +195,7 @@ function parseWarningBannerBody(raw: WarningBannerBody): ParsedWarningBanner {
       WARNING_BANNER_LIMITS.pointMaxLength,
     ),
     enabled,
+    allSubstances,
     enabledSlugs: normalizeEnabledSlugs(enabledSlugs),
   };
 }
@@ -207,6 +218,14 @@ export const POST = protectedRouteOperation<WarningBannerBody, ParsedWarningBann
     const apiKey =
       convexWrite.getAdminIntentToken?.("editorArticleWrite") ?? convexWrite.adminKey;
 
+    const previousPresets = (await convexWrite.client.query(
+      api.warningBanners.listPresets,
+      {},
+    )) as { key?: unknown; allSubstances?: unknown }[];
+    const previousWasSitewide = previousPresets.some(
+      (preset) => preset.key === body.key && preset.allSubstances === true,
+    );
+
     const result = await convexWrite.client.mutation(api.warningBanners.upsertPreset, {
       apiKey,
       actorEmail,
@@ -217,28 +236,31 @@ export const POST = protectedRouteOperation<WarningBannerBody, ParsedWarningBann
       headline: body.headline,
       points: body.points,
       enabled: body.enabled,
+      allSubstances: body.allSubstances,
       enabledSlugs: body.enabledSlugs,
       updatedBy: actorEmail,
     });
 
     revalidateTag(PUBLIC_CONVEX_CACHE_TAGS.banners, { expire: 0 });
 
-    // The union of what was submitted and what the server echoed back, not just
-    // the echo. Convex prunes the list (unknown or over-cap slugs are dropped)
-    // and an edit that *removes* a slug leaves it out of both the new row and
-    // the echo — yet that article is exactly the one still serving a banner
-    // from its ISR entry. Revalidating only the echo would make switching a
-    // banner on instant and switching it off take the full 15-minute window,
-    // which is the wrong way round for a safety warning.
-    const touched = new Set([...body.enabledSlugs, ...result.enabledSlugs]);
-    for (const slug of touched) {
-      revalidatePath(`/${slug}`);
+    // A sitewide scope transition invalidates every substance article, including
+    // future paths absent from any stored slug list. The layout invalidation is
+    // intentionally reserved for that rare operation; ordinary edits retain
+    // narrow per-article invalidation.
+    if (body.allSubstances || previousWasSitewide) {
+      revalidatePath("/", "layout");
+    } else {
+      const touched = new Set([...body.enabledSlugs, ...result.enabledSlugs]);
+      for (const slug of touched) {
+        revalidatePath(`/${slug}`);
+      }
     }
 
     return NextResponse.json({
       ok: true,
       key: result.key,
       updated: result.updated,
+      allSubstances: result.allSubstances,
       enabledSlugs: result.enabledSlugs,
     });
   },
@@ -268,11 +290,11 @@ export const DELETE = protectedRouteOperation<{ key?: unknown }, string>({
     // list, but each article page has its own ISR entry that would keep
     // painting the warning until the 15-minute window expired.
     const presets = (await convexWrite.client.query(api.warningBanners.listPresets, {})) as
-      | { key?: unknown; enabledSlugs?: unknown }[]
+      | { key?: unknown; allSubstances?: unknown; enabledSlugs?: unknown }[]
       | null;
     const covered = (Array.isArray(presets) ? presets : []).find((preset) => preset.key === key);
     const coveredSlugs: unknown[] = Array.isArray(covered?.enabledSlugs)
-      ? (covered?.enabledSlugs as unknown[])
+      ? (covered.enabledSlugs as unknown[])
       : [];
 
     const result = await convexWrite.client.mutation(api.warningBanners.removePreset, {
@@ -282,9 +304,13 @@ export const DELETE = protectedRouteOperation<{ key?: unknown }, string>({
     });
 
     revalidateTag(PUBLIC_CONVEX_CACHE_TAGS.banners, { expire: 0 });
-    for (const slug of coveredSlugs) {
-      if (typeof slug === "string" && slug.length > 0) {
-        revalidatePath(`/${slug}`);
+    if (covered?.allSubstances === true) {
+      revalidatePath("/", "layout");
+    } else {
+      for (const slug of coveredSlugs) {
+        if (typeof slug === "string" && slug.length > 0) {
+          revalidatePath(`/${slug}`);
+        }
       }
     }
 

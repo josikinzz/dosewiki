@@ -12,6 +12,7 @@ import {
   REVIEWED_ARTIFACT_DIGEST_VERSION,
   sha256Text,
 } from "../../../lib/generatedPublication/canonical.mjs";
+import { citationEvidenceGateErrors } from "../../../lib/citations/citationSafety.mjs";
 import { publicationFieldsForProfile } from "../../../lib/generatedPublication/profiles.mjs";
 import {
   assertDataOpsWriteAllowed,
@@ -193,10 +194,14 @@ export function loadAndVerifyPublicationArtifact({ proposalPath, repoRoot }) {
     throw new Error("Target manifest deployment fingerprint does not match the proposal.");
   }
 
-  const rawResponsePath = requireArtifactPath(repoRoot, proposal.artifactPaths?.rawResponse, "artifactPaths.rawResponse");
-  const rawResponse = readFileSync(rawResponsePath, "utf8");
-  if (sha256Text(rawResponse) !== proposal.rawResponseHash) {
-    throw new Error("Proposal rawResponseHash does not match the immutable OpenRouter response artifact.");
+  const sourceArtifactPath = requireArtifactPath(
+    repoRoot,
+    proposal.artifactPaths?.source ?? proposal.artifactPaths?.rawResponse,
+    "artifactPaths.source",
+  );
+  const sourceArtifact = readFileSync(sourceArtifactPath, "utf8");
+  if (sha256Text(sourceArtifact) !== proposal.rawResponseHash) {
+    throw new Error("Proposal rawResponseHash does not match the immutable source artifact.");
   }
 
   return {
@@ -204,7 +209,7 @@ export function loadAndVerifyPublicationArtifact({ proposalPath, repoRoot }) {
     artifactDigest,
     proposalPath: resolvedProposalPath,
     manifestPath,
-    rawResponsePath,
+    rawResponsePath: sourceArtifactPath,
   };
 }
 
@@ -224,6 +229,10 @@ export function buildReviewedPublicationEnvelope({ proposal, artifactDigest, rev
     targetDeploymentFingerprint: proposal.targetDeploymentFingerprint,
     artifactDigestVersion: proposal.artifactDigestVersion,
     artifactDigest,
+    ...(proposal.sourceArtifactKind ? { sourceArtifactKind: proposal.sourceArtifactKind } : {}),
+    ...(proposal.correctionAudit ? { correctionAudit: proposal.correctionAudit } : {}),
+    ...(proposal.markerChanges ? { markerChanges: proposal.markerChanges } : {}),
+    ...(proposal.claimEvidence ? { claimEvidence: proposal.claimEvidence } : {}),
     review: {
       status: "approved",
       reviewedBy: reviewedBy.trim(),
@@ -283,6 +292,19 @@ function publicationCasState(liveArticle, proposal) {
   return "conflict";
 }
 
+export function reviewedPublicationTrustGate(proposal) {
+  if (proposal.sourceArtifactKind !== "reviewed_content_correction") {
+    return { accepted: true, errors: [] };
+  }
+  if (!Array.isArray(proposal.claimEvidence)) {
+    return { accepted: false, errors: ["claimEvidence is required for reviewed content corrections"] };
+  }
+  const errors = proposal.claimEvidence.flatMap((row, index) => (
+    citationEvidenceGateErrors(row).map((error) => `claimEvidence[${index}] ${error}`)
+  ));
+  return { accepted: errors.length === 0, errors };
+}
+
 export async function publishReviewedPublication({
   argv = process.argv.slice(2),
   env = process.env,
@@ -315,6 +337,7 @@ export async function publishReviewedPublication({
   }
 
   const casState = publicationCasState(liveArticle, verified.proposal);
+  const trustGate = reviewedPublicationTrustGate(verified.proposal);
   const reviewReady = options.write;
   let reviewedProposal = null;
   if (reviewReady) {
@@ -339,6 +362,8 @@ export async function publishReviewedPublication({
   logger.log(`Slug / profile: ${verified.proposal.slug} / ${verified.proposal.profile}`);
   logger.log(`Approved paths: ${verified.proposal.approvedPaths.join(", ")}`);
   logger.log(`Owned-section CAS state: ${casState}`);
+  logger.log(`Citation trust gate: ${trustGate.accepted ? "passed" : "blocked"}`);
+  for (const error of trustGate.errors) logger.log(`  - ${error}`);
   logger.log(`Live target already matches proposal: ${matchesApprovedContent(liveArticle, verified.proposal) ? "yes" : "no"}`);
 
   if (!options.write) {
@@ -349,9 +374,13 @@ export async function publishReviewedPublication({
       proposalId: proposalIdForArtifact(verified.artifactDigest),
       liveTargetMatchesProposal: matchesApprovedContent(liveArticle, verified.proposal),
       casState,
+      trustGate,
     };
   }
 
+  if (!trustGate.accepted) {
+    throw new Error(`Publication citation trust gate failed: ${trustGate.errors.join("; ")}`);
+  }
   if (casState === "conflict") {
     throw new Error("Publication is stale: a profile-owned target field changed after review. Regenerate and re-review the proposal.");
   }

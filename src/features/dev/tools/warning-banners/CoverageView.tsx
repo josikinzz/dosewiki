@@ -23,6 +23,7 @@ import {
 } from "@/components/ui/safety-banner";
 import { Surface } from "@/components/ui/surface";
 import {
+  presetAppliesToSlug,
   resolveEnabledBanners,
   resolveSuppressedBanners,
   searchWarningBannerTargets,
@@ -103,7 +104,7 @@ export function CoverageView({
   const rendered = activeSlug ? resolveEnabledBanners(presets, activeSlug) : [];
   const suppressed = activeSlug ? resolveSuppressedBanners(presets, activeSlug) : [];
   const notApplied = activeSlug
-    ? presets.filter((preset) => !preset.enabledSlugs.includes(activeSlug))
+    ? presets.filter((preset) => !presetAppliesToSlug(preset, activeSlug))
     : [];
 
   return (
@@ -144,8 +145,8 @@ export function CoverageView({
             <p className="theme-text-faint p-2 text-sm">No substance matches that search.</p>
           ) : (
             filtered.map((entry) => {
-              const count = presets.filter(
-                (preset) => preset.enabled && preset.enabledSlugs.includes(entry.slug),
+              const count = presets.filter((preset) =>
+                presetAppliesToSlug(preset, entry.slug),
               ).length;
               return (
                 <EditorListItem
@@ -237,23 +238,27 @@ export function CoverageView({
 
                       <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
                         <span className="theme-text-faint font-mono text-xs">
-                          {`${preset.key} · enabled on ${preset.enabledSlugs.length} substances`}
+                          {preset.allSubstances
+                            ? `${preset.key} · all substance articles`
+                            : `${preset.key} · enabled on ${preset.enabledSlugs.length} substances`}
                         </span>
-                        <Button
-                          type="button"
-                          variant="ghostDestructive"
-                          size="sm"
-                          disabled={saveState === "saving"}
-                          onClick={() =>
-                            onCommitEnabledSlugs(
-                              preset,
-                              preset.enabledSlugs.filter((slug) => slug !== activeSlug),
-                              `Disabled ${preset.key} on ${activeSlug}.`,
-                            )
-                          }
-                        >
-                          {`Disable on ${activeSlug}`}
-                        </Button>
+                        {!preset.allSubstances ? (
+                          <Button
+                            type="button"
+                            variant="ghostDestructive"
+                            size="sm"
+                            disabled={saveState === "saving"}
+                            onClick={() =>
+                              onCommitEnabledSlugs(
+                                preset,
+                                preset.enabledSlugs.filter((slug) => slug !== activeSlug),
+                                `Disabled ${preset.key} on ${activeSlug}.`,
+                              )
+                            }
+                          >
+                            {`Disable on ${activeSlug}`}
+                          </Button>
+                        ) : null}
                         <Button
                           type="button"
                           variant="textLink"
@@ -359,7 +364,9 @@ export function CoverageView({
                       {preset.key}
                     </span>
                     <span className="theme-text-secondary text-sm tabular-nums">
-                      {`${preset.enabledSlugs.length} enabled`}
+                      {preset.allSubstances
+                        ? "all articles"
+                        : `${preset.enabledSlugs.length} enabled`}
                     </span>
                     <EditorStatusPill tone={STATE_PILL_TONE[state]}>
                       {STATE_LABEL[state]}

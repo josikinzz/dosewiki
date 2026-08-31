@@ -59,6 +59,14 @@ describe("resolveEnabledBanners", () => {
     expect(resolveEnabledBanners(presets, "alprazolam")).toEqual([]);
   });
 
+  it("renders an explicitly sitewide preset on every non-blank substance slug", () => {
+    const presets = [preset({ enabled: true, allSubstances: true })];
+
+    expect(resolveEnabledBanners(presets, "diazepam")).toHaveLength(1);
+    expect(resolveEnabledBanners(presets, "newly-published-substance")).toHaveLength(1);
+    expect(resolveEnabledBanners(presets, "   ")).toEqual([]);
+  });
+
   it("compares slugs case-insensitively so a capitalised article cannot slip through unbannered", () => {
     const presets = [preset({ enabled: true, enabledSlugs: ["mdma"] })];
     expect(resolveEnabledBanners(presets, "MDMA")).toHaveLength(1);
@@ -151,6 +159,9 @@ describe("warningBannerPresetState", () => {
     expect(warningBannerPresetState({ enabled: false, enabledSlugs: ["diazepam"] })).toBe("off");
     expect(warningBannerPresetState({ enabled: true, enabledSlugs: [] })).toBe("dormant");
     expect(warningBannerPresetState({ enabled: true, enabledSlugs: ["diazepam"] })).toBe("live");
+    expect(
+      warningBannerPresetState({ enabled: true, allSubstances: true, enabledSlugs: [] }),
+    ).toBe("live");
   });
 });
 

@@ -106,7 +106,7 @@ export function WarningBannersStudioView({
       <EditorSection
         icon="lucide:triangle-alert"
         title="Banner Studio"
-        description="Safety banners for a drug class. A preset renders on a substance only when it is enabled and that substance is on its list — never because of how the article is classified."
+        description="Warnings at the top of substance articles. Each enabled preset targets an explicit substance list or, by deliberate choice, every substance article — never a classification rule."
         actions={
           <EditorStatusPill tone="neutral">
             {`${presets.length} preset${presets.length === 1 ? "" : "s"}`}

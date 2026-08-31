@@ -1,6 +1,6 @@
 import type { ComponentPropsWithoutRef, MouseEvent, ReactNode } from "react";
 import type { SubstanceArticle } from "@/schema";
-import { CITE_TOKEN_PATTERN } from "@/lib/citations/citationTokens";
+import { CITATION_MARKER_PATTERN } from "@/lib/citations/citationTokens";
 import { buildCitationNumbering } from "@/lib/citations/referenceModel";
 import { cn } from "@/lib/utils";
 
@@ -61,6 +61,23 @@ function renderCitationSup(citations: CitationLink[], key: string) {
 }
 
 /**
+ * Inline caution badge for the `[citation-needed]` sentinel the citation
+ * campaign leaves behind when a claim's marker is stripped. Mirrors the
+ * legality `citationNeeded` badge treatment (caution tone, rounded pill) at a
+ * prose-relative size, and never participates in reference numbering.
+ */
+export function CitationNeededBadge() {
+  return (
+    <span
+      className="theme-status-badge theme-semantic-caution-badge mx-1 inline-block whitespace-nowrap rounded-full px-[0.55em] py-[0.08em] align-[0.12em] text-[0.62em] font-medium leading-[1.3]"
+      data-badge-tone="yellow"
+    >
+      citation needed
+    </span>
+  );
+}
+
+/**
  * Unresolvable markers — a `[cite:x]` whose id matches no reference, or one
  * sitting in a field the public render-order walk never numbers — render
  * nothing at all. A reader-facing "?" is editorial laundry on the front end;
@@ -83,11 +100,19 @@ export function renderCitedText(text: string, article: SubstanceArticle): ReactN
     adjacent.length = 0;
   };
 
-  for (const match of text.matchAll(CITE_TOKEN_PATTERN)) {
+  for (const match of text.matchAll(CITATION_MARKER_PATTERN)) {
     const index = match.index ?? 0;
     if (index > cursor) {
       flushAdjacent();
       nodes.push(text.slice(cursor, index).replace(/\s+$/, ""));
+    }
+    if (match[1] === undefined) {
+      // `[citation-needed]` sentinel: flush any pending superscript group and
+      // drop a badge in its place; it never joins the numbering.
+      flushAdjacent();
+      nodes.push(<CitationNeededBadge key={`citation-needed-${nodes.length}`} />);
+      cursor = index + match[0].length;
+      continue;
     }
     const number = numbering.numbersById.get(match[1]);
     const reference = number

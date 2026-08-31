@@ -1,19 +1,10 @@
 /**
- * Drug-class safety banners: the pure rules, shared by the Convex module, the
- * `/dev` Banner Studio, and the public article.
+ * Substance-article safety banners: pure rules shared by Convex, the Banner
+ * Studio, and public article rendering.
  *
- * The one invariant this file exists to enforce: **a banner is opt-in.** It
- * renders on a substance if and only if an editor switched its preset on and
- * named that substance. `resolveEnabledBanners` therefore takes a slug and
- * nothing else — it has no access to a substance's classification, so no
- * amount of future editing can quietly turn class matching back into an
- * assignment rule.
- *
- * Class strings survive only inside `searchWarningBannerTargets`, which is how
- * the Studio *finds* substances for an editor to tick. They are useful for
- * search and useless for assignment: cocaine carries
- * `chemical_class: "Alkaloid (tropane)"` and would match a deliriant rule; DXM
- * is a `"Morphinan (substituted)"` and would match an opioid rule.
+ * Every banner is editorially opt-in. A preset can target an explicit slug
+ * list or, when `allSubstances` is deliberately enabled, every substance
+ * article. Classification strings remain search-only and never assign copy.
  *
  * Keep this module free of server-only imports: the Studio imports it in the
  * browser and `convex/warningBanners.ts` imports it on the server.
@@ -50,6 +41,8 @@ export type WarningBannerPreset = {
   points: string[];
   /** Master switch. False means this preset renders nowhere. */
   enabled: boolean;
+  /** Explicit editorial sitewide scope. Optional for pre-feature stored rows. */
+  allSubstances?: boolean;
   /** Explicit opt-in. Empty means this preset renders nowhere. */
   enabledSlugs: string[];
 };
@@ -280,6 +273,18 @@ export function compareWarningBanners(a: WarningBannerPreset, b: WarningBannerPr
  * Returns at most `MAX_BANNERS_PER_ARTICLE`; use `resolveSuppressedBanners` for
  * what the cap dropped.
  */
+export function presetAppliesToSlug(
+  preset: Pick<WarningBannerPreset, "enabled" | "allSubstances" | "enabledSlugs">,
+  slug: string,
+): boolean {
+  const target = slug.trim().toLowerCase();
+  return Boolean(
+    target &&
+      preset.enabled &&
+      (preset.allSubstances || preset.enabledSlugs.includes(target)),
+  );
+}
+
 export function resolveEnabledBanners(
   presets: readonly WarningBannerPreset[],
   slug: string,
@@ -299,25 +304,19 @@ function matchingPresets(
   presets: readonly WarningBannerPreset[],
   slug: string,
 ): WarningBannerPreset[] {
-  const target = slug.trim().toLowerCase();
-  if (!target) {
-    return [];
-  }
-  return presets
-    .filter((preset) => preset.enabled && preset.enabledSlugs.includes(target))
-    .sort(compareWarningBanners);
+  return presets.filter((preset) => presetAppliesToSlug(preset, slug)).sort(compareWarningBanners);
 }
 
 /** `live` only when a reader can actually reach it. */
 export type WarningBannerPresetState = "live" | "dormant" | "off";
 
 export function warningBannerPresetState(
-  preset: Pick<WarningBannerPreset, "enabled" | "enabledSlugs">,
+  preset: Pick<WarningBannerPreset, "enabled" | "allSubstances" | "enabledSlugs">,
 ): WarningBannerPresetState {
   if (!preset.enabled) {
     return "off";
   }
-  return preset.enabledSlugs.length > 0 ? "live" : "dormant";
+  return preset.allSubstances || preset.enabledSlugs.length > 0 ? "live" : "dormant";
 }
 
 /**

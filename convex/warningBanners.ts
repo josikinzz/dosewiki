@@ -49,6 +49,7 @@ const warningBannerPresetDocValidator = v.object({
   headline: v.string(),
   points: v.array(v.string()),
   enabled: v.boolean(),
+  allSubstances: v.optional(v.boolean()),
   enabledSlugs: v.array(v.string()),
   updatedAt: v.string(),
   updatedBy: v.optional(v.string()),
@@ -165,12 +166,14 @@ export const upsertPreset = mutation({
     headline: v.string(),
     points: v.array(v.string()),
     enabled: v.boolean(),
+    allSubstances: v.boolean(),
     enabledSlugs: v.array(v.string()),
     updatedBy: v.optional(v.string()),
   },
   returns: v.object({
     updated: v.boolean(),
     key: v.string(),
+    allSubstances: v.boolean(),
     enabledSlugs: v.array(v.string()),
   }),
   handler: async (ctx, args) => {
@@ -273,6 +276,7 @@ export const upsertPreset = mutation({
       headline,
       points,
       enabled: args.enabled,
+      allSubstances: args.allSubstances,
       enabledSlugs,
       updatedAt: new Date().toISOString(),
       updatedBy: args.updatedBy ?? actor.email,
@@ -280,11 +284,11 @@ export const upsertPreset = mutation({
 
     if (existing) {
       await ctx.db.patch(existing._id, document);
-      return { updated: true, key, enabledSlugs };
+      return { updated: true, key, allSubstances: args.allSubstances, enabledSlugs };
     }
 
     await ctx.db.insert("warningBannerPresets", document);
-    return { updated: false, key, enabledSlugs };
+    return { updated: false, key, allSubstances: args.allSubstances, enabledSlugs };
   },
 });
 

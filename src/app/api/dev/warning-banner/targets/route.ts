@@ -7,9 +7,9 @@
  * One response feeds both views: every substance slug with its title and its
  * classification strings, which `searchWarningBannerTargets` matches so one
  * input finds a single drug by name and a whole class by class string. Finding
- * is not enabling — `resolveEnabledBanners` in
- * `src/data/substanceWarningBanners.ts` reads `enabledSlugs` and nothing else —
- * so this endpoint stays a Studio input.
+ * is not enabling: `resolveEnabledBanners` reads only the preset's explicit
+ * slug list or its deliberate sitewide scope. This endpoint remains search and
+ * coverage input; classification never assigns a banner.
  *
  * The Convex side pages the article table (`listSubstanceTargetsPage`) to stay
  * under its read limits; this route drains the cursor so the browser makes

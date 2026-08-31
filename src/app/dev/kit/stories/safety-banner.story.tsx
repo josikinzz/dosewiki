@@ -185,7 +185,7 @@ export const safetyBannerStory: StoryDef = {
     "Form, save, or inline feedback in the editor — use Alert.",
   ],
   notes: [
-    "The component never decides whether it appears. Enablement is editorial: a preset renders on a substance only when `enabled` is true and the slug is in `enabledSlugs`, resolved by `resolveEnabledBanners` in src/data/substanceWarningBanners.ts and managed at /dev/banners. Nothing derives a banner from a substance's classification.",
+    "The component never decides whether it appears. Enablement is editorial: a preset must be enabled and target either an explicit slug list or all substance articles. `resolveEnabledBanners` owns that rule; classification never assigns a banner.",
     "SafetyBannerTitle is a <p>, not a heading — the banner sits above the article <h1> and must not enter the document outline or a screen reader's heading list.",
     "Bullets are a consequence, not a requirement. SafetyBannerPoints renders a single point as a paragraph, so an editor with one thing to say never ships a list of one.",
     "There is no divider between the glyph and the body. The tone surface already groups them; the hairline the first cut drew only chopped the card in half.",

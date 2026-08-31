@@ -145,7 +145,6 @@ npm run dev
 | `npm run verify:workflow` | Verify scripts and data workflows |
 | `npm run generate:schema` | Regenerate article-schema helpers |
 | `npm run generate:social-cards` | Refresh public-route availability and pre-render shared social cards from production Convex |
-| `npm run generate:social-cards:replications` | Explicit offline rebuild of all per-replication social cards |
 | `npm run provenance:check` | Check generated-data lineage |
 
 ### Environment and deployment

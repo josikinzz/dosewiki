@@ -12,10 +12,9 @@ import { cn } from "@/lib/utils";
  * The safety banner that sits above a substance article's <h1>.
  *
  * Deliberately dumb: it renders the strings it is handed and decides nothing.
- * Whether a banner appears at all is an editorial act recorded in
- * `warningBannerPresets.enabledSlugs` and resolved by `resolveEnabledBanners`
- * in `src/data/substanceWarningBanners.ts`. There is no path from a substance's
- * classification to this component, by construction.
+ * Whether a banner appears is an editorial act recorded as an explicit slug
+ * list or the sitewide `allSubstances` scope, then resolved by
+ * `resolveEnabledBanners`. Classification never reaches this component.
  *
  * Two cells and no rule between them. The vertical hairline the first cut drew
  * between the glyph and the body was rejected outright: the tone surface
