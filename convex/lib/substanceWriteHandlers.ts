@@ -7,7 +7,7 @@ import {
   EDITABLE_ARTICLE_FIELD_MAX_LENGTH,
   isEditableArticleFieldPath,
 } from "./articleFieldWrites";
-import { appendArticleReference } from "./articleReferenceWrites";
+import { appendArticleReference, removeArticleReference } from "./articleReferenceWrites";
 import { ingestSubstanceArticle, ingestSubstanceArticles } from "./substanceIngestion";
 
 type EditorArgs = { apiKey?: string; actorEmail?: string };
@@ -202,6 +202,57 @@ export async function appendArticleReferenceHandler(
     reference: result.reference,
     id: article.id,
     title: article.title,
+  };
+}
+
+export async function removeArticleReferenceHandler(
+  ctx: MutationCtx,
+  args: EditorArgs & { slug: string; referenceId: string },
+) {
+  await requireEditorWrite(ctx, {
+    apiKey: args.apiKey,
+    actorEmail: args.actorEmail,
+    adminIntent: "editorArticleWrite",
+  });
+  const article = await ctx.db
+    .query("substanceIndex")
+    .withIndex("by_slug", (query) => query.eq("slug", args.slug))
+    .first();
+  if (!article) {
+    throw new ConvexError({
+      code: "ARTICLE_NOT_FOUND",
+      message: `No substance found for slug "${args.slug}".`,
+    });
+  }
+  const result = removeArticleReference(
+    article as unknown as Record<string, unknown>,
+    args.referenceId,
+  );
+  if (result.ok === false) {
+    throw new ConvexError({ code: "REFERENCE_WRITE_REJECTED", message: result.error });
+  }
+  if (result.removed === false) {
+    return {
+      ok: true as const,
+      slug: args.slug,
+      title: article.title,
+      id: article.id,
+      removed: false,
+      markersStripped: 0,
+      routeIdsStripped: 0,
+      referenceTitle: null,
+    };
+  }
+  await ctx.db.patch(article._id, result.patch as Partial<typeof article>);
+  return {
+    ok: true as const,
+    slug: args.slug,
+    title: article.title,
+    id: article.id,
+    removed: true,
+    markersStripped: result.markersStripped,
+    routeIdsStripped: result.routeIdsStripped,
+    referenceTitle: result.title,
   };
 }
 

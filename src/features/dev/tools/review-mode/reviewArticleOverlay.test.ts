@@ -58,4 +58,19 @@ describe("applyReviewArticleOverlay", () => {
     expect(numbering.unknownIds).not.toContain(reference.id);
     expect(numbering.numbersById.get(reference.id)).toBe(1);
   });
+
+  it("masks a removed reference and refuses to resurrect it from the saved overlay", () => {
+    const article: SubstanceArticle = {
+      ...createEmptyArticle(),
+      references: [reference],
+    };
+
+    // A stale savedReferences entry for the same id must not undo the delete.
+    const overlaid = applyReviewArticleOverlay(article, {
+      savedReferences: [reference],
+      removedReferenceIds: [reference.id],
+    });
+
+    expect(overlaid.references).toEqual([]);
+  });
 });

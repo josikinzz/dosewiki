@@ -4,6 +4,7 @@ import {
   useFormContext,
   useWatch,
   type Control,
+  type FieldPath,
 } from "react-hook-form";
 
 import { Icon } from "@/components/common/Icon";
@@ -12,6 +13,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { EditorFieldRow, EditorSelect } from "@/features/dev/components";
 import type { SubstanceArticle } from "@/schema";
+import { collectCitationTextEntries } from "@/lib/citations/editorReferenceDiagnostics";
 
 import { useArticleFormContext } from "./ArticleFormContext";
 import { FormEditorField } from "./FormEditorField";
@@ -391,26 +393,68 @@ function ReferenceEntryCard({
 }
 
 export function ReferencesFieldsRHF() {
-  const { control } = useFormContext<SubstanceArticle>();
+  const { control, getValues, setValue } = useFormContext<SubstanceArticle>();
   const { references, addReference, removeReference } = useArticleFormContext();
   const [copiedReferenceId, setCopiedReferenceId] = useState<string | null>(null);
 
   /**
    * A reference is the resolution target for every `[cite:id]` token and route
    * `reference_ids` entry in the article, so removal is not a leaf edit and
-   * there is no undo to fall back on.
+   * there is no undo to fall back on. Accepting the confirm therefore also
+   * strips the reference's inline markers and route reference IDs from form
+   * state (dirtied, saved with the whole article), and the confirm message
+   * states exactly how much is about to be deleted.
    */
   const confirmRemoveReference = (index: number, id: string) => {
-    const label = id.trim() ? `"${id.trim()}"` : `reference ${index + 1}`;
-    if (
-      typeof window !== "undefined"
-      && !window.confirm(
-        `Remove ${label}? Inline [cite:...] tokens and route reference IDs pointing at it will stop resolving.`,
-      )
-    ) {
+    const trimmedId = id.trim();
+    const label = trimmedId ? `"${trimmedId}"` : `reference ${index + 1}`;
+    const escapedId = trimmedId.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    const markerPattern = trimmedId ? new RegExp(`\\[cite:${escapedId}\\]`, "g") : null;
+
+    const pendingEdits: Array<{ path: FieldPath<SubstanceArticle>; value: string | string[] }> = [];
+    let markerCount = 0;
+    let routeIdCount = 0;
+
+    if (markerPattern) {
+      for (const { path, value } of collectCitationTextEntries(getValues())) {
+        const matches = value.match(markerPattern);
+        if (!matches) continue;
+        markerCount += matches.length;
+        pendingEdits.push({
+          path: path.replace(/\[(\d+)\]/g, ".$1") as FieldPath<SubstanceArticle>,
+          value: value.replace(markerPattern, "").replace(/ {2,}/g, " ").trim(),
+        });
+      }
+
+      const collectRouteEdits = (
+        routes: Array<{ reference_ids?: string[] }> | undefined,
+        pathPrefix: "dosage.routes" | "duration.routes",
+      ) => {
+        routes?.forEach((route, routeIndex) => {
+          const ids = route.reference_ids;
+          if (!ids?.includes(trimmedId)) return;
+          routeIdCount += ids.filter((entry) => entry === trimmedId).length;
+          pendingEdits.push({
+            path: `${pathPrefix}.${routeIndex}.reference_ids` as FieldPath<SubstanceArticle>,
+            value: ids.filter((entry) => entry !== trimmedId),
+          });
+        });
+      };
+      collectRouteEdits(getValues("dosage.routes"), "dosage.routes");
+      collectRouteEdits(getValues("duration.routes"), "duration.routes");
+    }
+
+    const consequence = markerCount === 0 && routeIdCount === 0
+      ? "Nothing in the article cites it."
+      : `This also deletes ${markerCount} inline [cite:...] marker(s) and ${routeIdCount} route reference(s).`;
+    if (typeof window !== "undefined" && !window.confirm(`Remove ${label}? ${consequence}`)) {
       return;
     }
+
     removeReference(index);
+    for (const edit of pendingEdits) {
+      setValue(edit.path, edit.value as never, { shouldDirty: true });
+    }
   };
 
   const copyReferenceTag = (id: string) => {

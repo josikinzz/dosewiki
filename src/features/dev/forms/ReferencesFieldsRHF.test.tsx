@@ -1,8 +1,8 @@
 import { fireEvent, render, screen } from "@testing-library/react";
 import { FormProvider } from "react-hook-form";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { createEmptyArticle } from "@/data/schema";
-import { useArticleForm } from "@/hooks/useArticleForm";
+import { createEmptyArticle, createEmptyDosageRoute } from "@/data/schema";
+import { useArticleForm, type ArticleFormMethods } from "@/hooks/useArticleForm";
 import type { SubstanceArticle } from "@/schema";
 
 import { ArticleFormProvider } from "./ArticleFormContext";
@@ -53,8 +53,26 @@ const article: SubstanceArticle = {
   ] as SubstanceArticle["references"],
 };
 
-function Harness() {
-  const articleForm = useArticleForm({ article });
+const citedArticle: SubstanceArticle = {
+  ...article,
+  summary: "Intro text [cite:ref-one] continues.",
+  dosage: {
+    ...createEmptyArticle().dosage,
+    routes: [
+      {
+        ...createEmptyDosageRoute(),
+        route: "oral",
+        reference_ids: ["ref-one"],
+      },
+    ],
+  },
+};
+
+let lastFormMethods: ArticleFormMethods | null = null;
+
+function Harness({ article: seededArticle = article }: { article?: SubstanceArticle }) {
+  const articleForm = useArticleForm({ article: seededArticle });
+  lastFormMethods = articleForm.methods;
 
   return (
     <FormProvider {...articleForm.methods}>
@@ -107,13 +125,46 @@ describe("ReferencesFieldsRHF", () => {
 
   it("removes the reference once the confirm is accepted", () => {
     renderCounts.clear();
-    vi.spyOn(window, "confirm").mockReturnValue(true);
+    const confirmSpy = vi.spyOn(window, "confirm").mockReturnValue(true);
     render(<Harness />);
 
     fireEvent.click(screen.getByLabelText("Remove reference 1"));
 
+    expect(confirmSpy).toHaveBeenCalledWith(expect.stringContaining("Nothing in the article cites it."));
     const remaining = screen.getAllByLabelText("Stable ID");
     expect(remaining).toHaveLength(1);
     expect(remaining[0]).toHaveValue("ref-two");
+  });
+
+  it("strips inline markers and route reference IDs when removal is accepted", () => {
+    renderCounts.clear();
+    const confirmSpy = vi.spyOn(window, "confirm").mockReturnValue(true);
+    render(<Harness article={citedArticle} />);
+
+    fireEvent.click(screen.getByLabelText("Remove reference 1"));
+
+    // The form hook pairs routes by name, so the seeded dosage route gains a
+    // duration twin that inherits its reference_ids — two route references.
+    expect(confirmSpy).toHaveBeenCalledWith(
+      'Remove "ref-one"? This also deletes 1 inline [cite:...] marker(s) and 2 route reference(s).',
+    );
+    expect(lastFormMethods?.getValues("summary")).toBe("Intro text continues.");
+    expect(lastFormMethods?.getValues("dosage.routes.0.reference_ids")).toEqual([]);
+    expect(lastFormMethods?.getValues("duration.routes.0.reference_ids")).toEqual([]);
+    expect(screen.getAllByLabelText("Stable ID")).toHaveLength(1);
+  });
+
+  it("leaves markers and route references intact when removal is declined", () => {
+    renderCounts.clear();
+    const confirmSpy = vi.spyOn(window, "confirm").mockReturnValue(false);
+    render(<Harness article={citedArticle} />);
+
+    fireEvent.click(screen.getByLabelText("Remove reference 1"));
+
+    expect(confirmSpy).toHaveBeenCalledWith(expect.stringContaining("2 route reference(s)"));
+    expect(lastFormMethods?.getValues("summary")).toBe("Intro text [cite:ref-one] continues.");
+    expect(lastFormMethods?.getValues("dosage.routes.0.reference_ids")).toEqual(["ref-one"]);
+    expect(lastFormMethods?.getValues("duration.routes.0.reference_ids")).toEqual(["ref-one"]);
+    expect(screen.getAllByLabelText("Stable ID")).toHaveLength(2);
   });
 });

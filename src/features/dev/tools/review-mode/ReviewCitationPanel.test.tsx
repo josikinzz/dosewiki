@@ -1,4 +1,4 @@
-import { render, screen, within } from "@testing-library/react";
+import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { useState } from "react";
 import { afterEach, describe, expect, it, vi } from "vitest";
@@ -37,9 +37,11 @@ function makeArticle(): SubstanceArticle {
 function CitationPanelHarness({
   article,
   onClose,
+  onReferenceRemoved,
 }: {
   article: SubstanceArticle;
   onClose: () => void;
+  onReferenceRemoved?: (referenceId: string) => void;
 }) {
   const [articleForView, setArticleForView] = useState(article);
 
@@ -59,12 +61,32 @@ function CitationPanelHarness({
           ],
         }));
       }}
+      onReferenceRemoved={(referenceId) => {
+        onReferenceRemoved?.(referenceId);
+        // Mirrors the workbench overlay: the deleted source stops being listed.
+        setArticleForView((previous) => ({
+          ...previous,
+          references: (previous.references ?? []).filter(
+            (saved) => saved.id !== referenceId,
+          ),
+        }));
+      }}
     />
   );
 }
 
-function renderPanel(onClose = vi.fn(), article = makeArticle()) {
-  render(<CitationPanelHarness article={article} onClose={onClose} />);
+function renderPanel(
+  onClose = vi.fn(),
+  article = makeArticle(),
+  onReferenceRemoved?: (referenceId: string) => void,
+) {
+  render(
+    <CitationPanelHarness
+      article={article}
+      onClose={onClose}
+      onReferenceRemoved={onReferenceRemoved}
+    />,
+  );
   return onClose;
 }
 
@@ -163,6 +185,7 @@ describe("ReviewCitationPanel", () => {
         slug="testium"
         onClose={vi.fn()}
         onReferenceSaved={vi.fn()}
+        onReferenceRemoved={vi.fn()}
       />,
     );
     expect(
@@ -180,6 +203,7 @@ describe("ReviewCitationPanel", () => {
         id="review-citation-panel"
         onClose={vi.fn()}
         onReferenceSaved={vi.fn()}
+        onReferenceRemoved={vi.fn()}
       />,
     );
     expect(screen.queryByRole("button", { name: "Add a source" })).toBeNull();
@@ -317,5 +341,74 @@ describe("ReviewCitationPanel", () => {
     ).toBeInTheDocument();
     // Nothing was added, so the palette must not pretend otherwise.
     expect(screen.queryByText(/^Added /)).toBeNull();
+  });
+
+  it("offers a remove button on numbered and uncited rows", () => {
+    renderPanel();
+
+    expect(screen.getByRole("button", { name: "Remove cited" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Remove orphan" })).toBeInTheDocument();
+  });
+
+  it("does nothing when the remove confirm is declined", async () => {
+    const user = userEvent.setup();
+    const fetchMock = stubNetwork({ body: { ok: true, removed: true } });
+    const confirmMock = vi.fn(() => false);
+    vi.stubGlobal("confirm", confirmMock);
+    renderPanel();
+
+    await user.click(screen.getByRole("button", { name: "Remove orphan" }));
+
+    // An uncited source is safe to name as such — nothing else goes with it.
+    expect(confirmMock).toHaveBeenCalledWith("Remove orphan? Nothing cites it.");
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it("deletes an accepted removal over HTTP and reconciles the overlay", async () => {
+    const user = userEvent.setup();
+    const fetchMock = stubNetwork({
+      body: { ok: true, removed: true, markersStripped: 1, routeIdsStripped: 0 },
+    });
+    const confirmMock = vi.fn(() => true);
+    vi.stubGlobal("confirm", confirmMock);
+    const onReferenceRemoved = vi.fn();
+    renderPanel(vi.fn(), makeArticle(), onReferenceRemoved);
+
+    await user.click(screen.getByRole("button", { name: "Remove cited" }));
+
+    // The dialog counts what the delete takes with it, from the article on screen.
+    expect(confirmMock).toHaveBeenCalledWith(
+      "Remove cited? This also deletes 1 inline marker(s) and 0 route reference(s).",
+    );
+
+    const deleteCall = fetchMock.mock.calls.find(
+      ([, init]) => (init as RequestInit | undefined)?.method === "DELETE",
+    );
+    expect(deleteCall).toBeDefined();
+    expect(String(deleteCall?.[0])).toBe("/api/dev/article-reference");
+    expect(JSON.parse(String((deleteCall?.[1] as RequestInit).body))).toEqual({
+      slug: "testium",
+      referenceId: "cited",
+    });
+
+    await waitFor(() => expect(onReferenceRemoved).toHaveBeenCalledWith("cited"));
+    // The harness dropped it like the workbench overlay does, so the row goes.
+    expect(screen.queryByText(/Cited source/)).toBeNull();
+  });
+
+  it("keeps a delete failure on screen and leaves the listing untouched", async () => {
+    const user = userEvent.setup();
+    stubNetwork({ status: 500, body: { error: "That source could not be deleted." } });
+    vi.stubGlobal("confirm", vi.fn(() => true));
+    const onReferenceRemoved = vi.fn();
+    renderPanel(vi.fn(), makeArticle(), onReferenceRemoved);
+
+    await user.click(screen.getByRole("button", { name: "Remove orphan" }));
+
+    expect(
+      await screen.findByText("That source could not be deleted."),
+    ).toBeInTheDocument();
+    expect(onReferenceRemoved).not.toHaveBeenCalled();
+    expect(screen.getByText(/Uncited source/)).toBeInTheDocument();
   });
 });

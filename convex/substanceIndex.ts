@@ -37,6 +37,7 @@ import {
 import {
   appendArticleReferenceHandler,
   deleteSubstanceHandler,
+  removeArticleReferenceHandler,
   saveSubstanceHandler,
   saveSubstancesHandler,
   setArticleFieldHandler,
@@ -594,6 +595,16 @@ export const appendArticleReference = mutation({
     reference: v.any(),
   },
   handler: appendArticleReferenceHandler,
+});
+
+export const removeArticleReference = mutation({
+  args: {
+    apiKey: v.optional(v.string()),
+    actorEmail: v.optional(v.string()),
+    slug: v.string(),
+    referenceId: v.string(),
+  },
+  handler: removeArticleReferenceHandler,
 });
 
 export const getArticleReferenceProvenanceRepairSnapshot = query({

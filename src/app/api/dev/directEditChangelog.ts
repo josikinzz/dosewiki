@@ -57,13 +57,14 @@ function diffLine(marker: "+" | "-", value: string | null): string | null {
  * The changelog markdown for a single before → after value change.
  *
  * `before` is null when nothing was replaced (a first write, an append), which
- * renders as an addition with no removal line.
+ * renders as an addition with no removal line; `after` is null for a deletion,
+ * which renders as a removal line alone.
  */
 export function buildDirectEditDiff(
   title: string,
   heading: string,
   before: string | null,
-  after: string,
+  after: string | null,
 ): string {
   return [`# ${title}`, "", `@@ ${heading} @@`, diffLine("-", before), diffLine("+", after)]
     .filter((line): line is string => line !== null)

@@ -497,11 +497,40 @@ export const ReviewExperience = memo(function ReviewExperience({
   const [savedReferences, setSavedReferences] = useState<
     Record<string, Reference[]>
   >({});
+  // Reference deletes are the same kind of direct write: the working set still
+  // lists the source, so the overlay has to mask it until a reload catches up.
+  const [removedReferenceIds, setRemovedReferenceIds] = useState<
+    Record<string, string[]>
+  >({});
   const rememberSavedReference = useCallback((slug: string, reference: Reference) => {
     setSavedReferences((previous) => {
       const savedForArticle = previous[slug] ?? [];
       if (savedForArticle.some((saved) => saved.id === reference.id)) return previous;
       return { ...previous, [slug]: [...savedForArticle, reference] };
+    });
+    // Saving again resurrects a source removed earlier in the session.
+    setRemovedReferenceIds((previous) => {
+      const removedForArticle = previous[slug];
+      if (!removedForArticle?.includes(reference.id)) return previous;
+      return {
+        ...previous,
+        [slug]: removedForArticle.filter((id) => id !== reference.id),
+      };
+    });
+  }, []);
+  const rememberRemovedReference = useCallback((slug: string, referenceId: string) => {
+    setSavedReferences((previous) => {
+      const savedForArticle = previous[slug];
+      if (!savedForArticle?.some((saved) => saved.id === referenceId)) return previous;
+      return {
+        ...previous,
+        [slug]: savedForArticle.filter((saved) => saved.id !== referenceId),
+      };
+    });
+    setRemovedReferenceIds((previous) => {
+      const removedForArticle = previous[slug] ?? [];
+      if (removedForArticle.includes(referenceId)) return previous;
+      return { ...previous, [slug]: [...removedForArticle, referenceId] };
     });
   }, []);
   const [currentSlug, setCurrentSlug] = useState<string | null>(
@@ -736,16 +765,18 @@ export const ReviewExperience = memo(function ReviewExperience({
   // preview, citation diagnostics, and editor form all see the same state.
   const currentFieldEdits = current ? fieldEdits[current.slug] : undefined;
   const currentSavedReferences = current ? savedReferences[current.slug] : undefined;
+  const currentRemovedReferenceIds = current ? removedReferenceIds[current.slug] : undefined;
   const currentOverride = current ? overrides[current.slug] : undefined;
   const articleForView = useMemo(
     () => article
       ? applyReviewArticleOverlay(article, {
           fieldEdits: currentFieldEdits,
           savedReferences: currentSavedReferences,
+          removedReferenceIds: currentRemovedReferenceIds,
           editorialReview: resolveOverriddenEditorialReview(article, currentOverride),
         })
       : article,
-    [article, currentFieldEdits, currentOverride, currentSavedReferences],
+    [article, currentFieldEdits, currentOverride, currentSavedReferences, currentRemovedReferenceIds],
   );
 
   // The public route resolves the Convex depiction server-side; this surface is
@@ -2080,6 +2111,9 @@ export const ReviewExperience = memo(function ReviewExperience({
             onClose={() => setCitationPanelOpen(false)}
             onReferenceSaved={(reference) =>
               rememberSavedReference(current.slug, reference)
+            }
+            onReferenceRemoved={(referenceId) =>
+              rememberRemovedReference(current.slug, referenceId)
             }
           />
         </div>

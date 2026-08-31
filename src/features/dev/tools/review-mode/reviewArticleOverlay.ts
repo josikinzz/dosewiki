@@ -8,6 +8,8 @@ import {
 type ReviewArticleOverlay = {
   fieldEdits?: InlineFieldEdits;
   savedReferences?: readonly Reference[];
+  /** References deleted through the citation panel that the article copy still lists. */
+  removedReferenceIds?: readonly string[];
   /**
    * The `editorial_review` record the review tick wrote, when the working set
    * still predates it. Null once the working set has caught up.
@@ -25,18 +27,31 @@ type ReviewArticleOverlay = {
  */
 export function applyReviewArticleOverlay(
   article: SubstanceArticle,
-  { fieldEdits, savedReferences = [], editorialReview = null }: ReviewArticleOverlay,
+  {
+    fieldEdits,
+    savedReferences = [],
+    removedReferenceIds = [],
+    editorialReview = null,
+  }: ReviewArticleOverlay,
 ): SubstanceArticle {
-  const knownIds = new Set((article.references ?? []).map((reference) => reference.id));
+  const removedIds = new Set(removedReferenceIds);
+  const keptReferences = (article.references ?? []).filter(
+    (reference) => !removedIds.has(reference.id),
+  );
+  const knownIds = new Set(keptReferences.map((reference) => reference.id));
   const missingReferences = savedReferences.filter((reference) => {
+    if (removedIds.has(reference.id)) return false;
     if (knownIds.has(reference.id)) return false;
     knownIds.add(reference.id);
     return true;
   });
-  const articleWithReferences = missingReferences.length > 0
+  const referencesChanged =
+    missingReferences.length > 0 ||
+    keptReferences.length !== (article.references ?? []).length;
+  const articleWithReferences = referencesChanged
     ? {
         ...article,
-        references: [...(article.references ?? []), ...missingReferences],
+        references: [...keptReferences, ...missingReferences],
       }
     : article;
   const articleWithReview = editorialReview

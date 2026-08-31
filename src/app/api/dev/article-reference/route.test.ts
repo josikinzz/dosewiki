@@ -5,7 +5,10 @@ vi.mock("server-only", () => ({}));
 
 vi.mock("../../../../../convex/_generated/api", () => ({
   api: {
-    substanceIndex: { appendArticleReference: "substanceIndex.appendArticleReference" },
+    substanceIndex: {
+      appendArticleReference: "substanceIndex.appendArticleReference",
+      removeArticleReference: "substanceIndex.removeArticleReference",
+    },
     changelog: { addEntry: "changelog.addEntry" },
   },
 }));
@@ -52,6 +55,14 @@ function forwarded(data: unknown) {
 function addRequest(body: Record<string, unknown>) {
   return new Request("https://dose.wiki/api/dev/article-reference", {
     method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  });
+}
+
+function removeRequest(body: Record<string, unknown>) {
+  return new Request("https://dose.wiki/api/dev/article-reference", {
+    method: "DELETE",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(body),
   });
@@ -263,5 +274,159 @@ describe("article reference route", () => {
       error: "A title is required for this source.",
     });
     expect(mocks.mutation).not.toHaveBeenCalled();
+  });
+
+  describe("DELETE", () => {
+    function removedResult(overrides: Record<string, unknown> = {}) {
+      return {
+        ok: true,
+        slug: "2c-b",
+        title: "2C-B",
+        id: 42,
+        removed: true,
+        markersStripped: 2,
+        routeIdsStripped: 1,
+        referenceTitle: "An example study",
+        ...overrides,
+      };
+    }
+
+    it("removes the reference and reports what was stripped", async () => {
+      mocks.mutation.mockResolvedValue(removedResult());
+      const { DELETE } = await import("./route");
+
+      const response = await DELETE(
+        removeRequest({ slug: "2c-b", referenceId: "doi-10-1000-example" }),
+      );
+
+      expect(response.status).toBe(200);
+      expect(await response.json()).toEqual({
+        ok: true,
+        slug: "2c-b",
+        removed: true,
+        markersStripped: 2,
+        routeIdsStripped: 1,
+      });
+      const call = mocks.mutation.mock.calls.find(
+        ([name]) => name === "substanceIndex.removeArticleReference",
+      );
+      expect(call?.[1]).toMatchObject({
+        slug: "2c-b",
+        referenceId: "doi-10-1000-example",
+        actorEmail: "editor@example.com",
+      });
+    });
+
+    it("invalidates the public cache on every removal, unlike the created-only add", async () => {
+      mocks.mutation.mockResolvedValue(removedResult());
+      const { DELETE } = await import("./route");
+      const { revalidatePath, revalidateTag } = await import("next/cache");
+
+      await DELETE(removeRequest({ slug: "2c-b", referenceId: "doi-10-1000-example" }));
+
+      expect(revalidatePath).toHaveBeenCalledWith("/2c-b");
+      expect(revalidateTag).toHaveBeenCalled();
+    });
+
+    it("stamps the removal onto the editor's contribution history", async () => {
+      mocks.mutation.mockImplementation(async (name: string) => {
+        if (name === "substanceIndex.removeArticleReference") {
+          return removedResult();
+        }
+        return { created: true, id: "entry-id" };
+      });
+      const { DELETE } = await import("./route");
+
+      await DELETE(removeRequest({ slug: "2c-b", referenceId: "doi-10-1000-example" }));
+
+      const entry = mocks.mutation.mock.calls.find(
+        ([name]) => name === "changelog.addEntry",
+      )?.[1] as {
+        message: string;
+        markdown: string;
+        articles: Array<{ id: number; title: string; slug: string }>;
+      };
+
+      expect(entry.articles).toEqual([{ id: 42, title: "2C-B", slug: "2c-b" }]);
+      expect(entry.message).toBe("Removed a source — An example study");
+      expect(entry.markdown).toContain("- An example study");
+      expect(entry.markdown).not.toContain("+ An example study");
+    });
+
+    it("falls back to the reference id when the removed source had no title", async () => {
+      mocks.mutation.mockImplementation(async (name: string) => {
+        if (name === "substanceIndex.removeArticleReference") {
+          return removedResult({ referenceTitle: null });
+        }
+        return { created: true, id: "entry-id" };
+      });
+      const { DELETE } = await import("./route");
+
+      await DELETE(removeRequest({ slug: "2c-b", referenceId: "doi-10-1000-example" }));
+
+      const entry = mocks.mutation.mock.calls.find(
+        ([name]) => name === "changelog.addEntry",
+      )?.[1] as { message: string };
+      expect(entry.message).toBe("Removed a source — doi-10-1000-example");
+    });
+
+    it("stays silent for an idempotent re-delete", async () => {
+      mocks.mutation.mockResolvedValue(
+        removedResult({ removed: false, markersStripped: 0, routeIdsStripped: 0, referenceTitle: null }),
+      );
+      const { DELETE } = await import("./route");
+      const { revalidateTag } = await import("next/cache");
+
+      const response = await DELETE(
+        removeRequest({ slug: "2c-b", referenceId: "doi-10-1000-example" }),
+      );
+
+      expect(await response.json()).toMatchObject({ removed: false });
+      expect(revalidateTag).not.toHaveBeenCalled();
+      expect(
+        mocks.mutation.mock.calls.some(([name]) => name === "changelog.addEntry"),
+      ).toBe(false);
+    });
+
+    it("rejects a malformed removal before reaching Convex", async () => {
+      const { DELETE } = await import("./route");
+
+      const badSlug = await DELETE(
+        removeRequest({ slug: "Not A Slug", referenceId: "doi-10-1000-example" }),
+      );
+      expect(badSlug.status).toBe(400);
+
+      const missingId = await DELETE(removeRequest({ slug: "2c-b" }));
+      expect(missingId.status).toBe(400);
+
+      const badId = await DELETE(
+        removeRequest({ slug: "2c-b", referenceId: "-starts-with-dash" }),
+      );
+      expect(badId.status).toBe(400);
+
+      const oversizedId = await DELETE(
+        removeRequest({ slug: "2c-b", referenceId: "a".repeat(200) }),
+      );
+      expect(oversizedId.status).toBe(400);
+
+      expect(mocks.mutation).not.toHaveBeenCalled();
+    });
+
+    it("forwards a deliberate Convex refusal verbatim", async () => {
+      mocks.mutation.mockRejectedValue(
+        forwarded({ code: "ARTICLE_NOT_FOUND", message: 'No substance found for slug "2c-b".' }),
+      );
+      const { DELETE } = await import("./route");
+
+      const response = await DELETE(
+        removeRequest({ slug: "2c-b", referenceId: "doi-10-1000-example" }),
+      );
+
+      expect(response.status).toBe(404);
+      expect(await response.json()).toEqual({
+        error: 'No substance found for slug "2c-b".',
+        code: "ARTICLE_NOT_FOUND",
+      });
+    });
   });
 });

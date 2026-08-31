@@ -69,6 +69,17 @@ function collectCitationTextFields(
   });
 }
 
+/**
+ * Every string leaf in the article that contains a `[cite:` marker, paired
+ * with the field path it lives at. Shared by the diagnostics panel and the
+ * reference editor's removal cleanup so both walk the document identically.
+ */
+export function collectCitationTextEntries(root: unknown): Array<{ path: string; value: string }> {
+  const entries: Array<{ path: string; value: string }> = [];
+  collectCitationTextFields(root, "", entries, new WeakSet());
+  return entries;
+}
+
 function collectDuplicateAdjacentIds(tokens: CitationToken[]): string[] {
   const duplicates: string[] = [];
   for (let index = 1; index < tokens.length; index += 1) {
@@ -88,8 +99,7 @@ function unique(values: string[]): string[] {
 
 export function buildEditorReferenceDiagnostics(article: SubstanceArticle): EditorReferenceDiagnostics {
   const numbering = buildCitationNumbering(article.references ?? [], article);
-  const textEntries: Array<{ path: string; value: string }> = [];
-  collectCitationTextFields(article, "", textEntries, new WeakSet());
+  const textEntries = collectCitationTextEntries(article);
 
   const prosePreviews = textEntries.map(({ path, value }) => {
     const tokens = extractCitationTokens(value);

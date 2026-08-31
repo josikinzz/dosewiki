@@ -7,7 +7,8 @@
  * carry this — it writes scalars by construction — so the append has its own
  * mutation, `substanceIndex.appendArticleReference`.
  *
- *   POST /api/dev/article-reference   { slug, source, title?, ... }  → 1 source
+ *   POST   /api/dev/article-reference   { slug, source, title?, ... }  → 1 source
+ *   DELETE /api/dev/article-reference   { slug, referenceId }          ← 1 source
  *
  * The client sends what a person typed, never an assembled reference: detection
  * and assembly run here, so the id, type, source type, and identifier fields are
@@ -179,6 +180,95 @@ export const POST = protectedRouteOperation<AddReferenceBody, ParsedAddReference
       slug: result.slug,
       created: result.created,
       reference: result.reference,
+    });
+  },
+});
+
+type RemoveReferenceBody = {
+  slug?: unknown;
+  referenceId?: unknown;
+};
+
+type ParsedRemoveReference = {
+  slug: string;
+  referenceId: string;
+};
+
+/** Mirrors the Convex-side reference-id validation, so a bad id fails here. */
+const REFERENCE_ID_RE = /^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$/;
+const REFERENCE_ID_MAX_LENGTH = 128;
+
+function parseRemoveReferenceBody(body: RemoveReferenceBody): ParsedRemoveReference {
+  const slug = typeof body.slug === "string" ? body.slug.trim() : "";
+  if (!SLUG_RE.test(slug)) {
+    throw new JsonBodyError(400, "A valid substance slug is required.");
+  }
+
+  const referenceId = requireText(
+    body.referenceId,
+    REFERENCE_ID_MAX_LENGTH,
+    "The reference id",
+  );
+  if (!REFERENCE_ID_RE.test(referenceId)) {
+    throw new JsonBodyError(400, "A valid reference id is required.");
+  }
+
+  return { slug, referenceId };
+}
+
+export const DELETE = protectedRouteOperation<RemoveReferenceBody, ParsedRemoveReference>({
+  auth: "editor",
+  rateLimit: "editorSmallWrite",
+  body: {
+    maxBytes: 4 * 1024,
+    parse: parseRemoveReferenceBody,
+  },
+  capabilities: [{ type: "convexWrite" }],
+  unexpectedErrorLabel: "Failed to remove an article reference via Next route:",
+  unexpectedErrorMessage: "Unable to remove that source right now.",
+  operation: async ({ actorEmail, auth, body, convexWrite }) => {
+    if (!convexWrite) {
+      throw new Error("Convex write capability is required.");
+    }
+
+    const apiKey =
+      convexWrite.getAdminIntentToken?.("editorArticleWrite") ?? convexWrite.adminKey;
+
+    const result = await convexWrite.client.mutation(
+      api.substanceIndex.removeArticleReference,
+      {
+        apiKey,
+        actorEmail,
+        slug: body.slug,
+        referenceId: body.referenceId,
+      },
+    );
+
+    // The inverse of the append's created-only gate above: removal also strips
+    // this id's `[cite:id]` markers and route reference ids, so cited prose and
+    // footnotes render differently for readers the moment the write lands.
+    // Every removal therefore invalidates, not just the ones the cache asked
+    // about. An idempotent re-delete changed nothing and stays silent.
+    if (result.removed) {
+      const referenceLabel = result.referenceTitle ?? body.referenceId;
+      await recordDirectEditChangelog({
+        convexWrite,
+        actorEmail,
+        session: auth.session,
+        article: { id: result.id ?? 0, title: result.title, slug: result.slug },
+        message: `Removed a source — ${referenceLabel}`,
+        markdown: buildDirectEditDiff(result.title, "references", referenceLabel, null),
+      });
+      revalidatePath(`/${body.slug}`);
+      revalidateTag(PUBLIC_CONVEX_CACHE_TAGS.substances, { expire: 0 });
+    }
+
+    return NextResponse.json({
+      ok: true,
+      slug: result.slug,
+      removed: result.removed,
+      markersStripped: result.markersStripped,
+      routeIdsStripped: result.routeIdsStripped,
     });
   },
 });

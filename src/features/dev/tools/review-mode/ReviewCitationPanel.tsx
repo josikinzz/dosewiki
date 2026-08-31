@@ -12,6 +12,7 @@ import {
   hasReferenceMetadataLookup,
   type ReferenceMetadata,
 } from "@/lib/citations/referenceIntake";
+import { buildEditorReferenceDiagnostics } from "@/lib/citations/editorReferenceDiagnostics";
 import {
   buildCitationNumbering,
   formatWikipediaStyleReference,
@@ -30,6 +31,8 @@ export interface ReviewCitationPanelProps {
   onClose: () => void;
   /** Reconcile the persisted source into the review article without a reload. */
   onReferenceSaved: (reference: Reference) => void;
+  /** Reconcile a deleted source out of the review article without a reload. */
+  onReferenceRemoved: (referenceId: string) => void;
   /** Must match the toggle button's `aria-controls`. */
   id: string;
   /**
@@ -75,6 +78,7 @@ export function ReviewCitationPanel({
   name,
   onClose,
   onReferenceSaved,
+  onReferenceRemoved,
   id,
   slug,
   className,
@@ -132,6 +136,82 @@ export function ReviewCitationPanel({
       {copiedId === referenceId ? "Copied" : "Copy marker"}
     </Button>
   );
+
+  // The confirm dialog names what the delete will take with it, counted from
+  // the same article the panel is rendering — the server recounts on its own
+  // copy, but the reviewer decides on the numbers in front of them.
+  const diagnostics = useMemo(() => buildEditorReferenceDiagnostics(article), [article]);
+
+  const [removingId, setRemovingId] = useState<string | null>(null);
+  const [removeError, setRemoveError] = useState<string | null>(null);
+
+  const removeReference = async (referenceId: string) => {
+    if (!articleSlug || removingId) return;
+
+    const markerCount = diagnostics.prosePreviews.reduce(
+      (count, preview) =>
+        count + preview.tokenIds.filter((tokenId) => tokenId === referenceId).length,
+      0,
+    );
+    const routeCount = diagnostics.routePreviews.reduce(
+      (count, preview) =>
+        count + preview.referenceIds.filter((routeId) => routeId === referenceId).length,
+      0,
+    );
+    const confirmed = window.confirm(
+      markerCount + routeCount > 0
+        ? `Remove ${referenceId}? This also deletes ${markerCount} inline marker(s) and ${routeCount} route reference(s).`
+        : `Remove ${referenceId}? Nothing cites it.`,
+    );
+    if (!confirmed) return;
+
+    setRemovingId(referenceId);
+    setRemoveError(null);
+    try {
+      const response = await fetch("/api/dev/article-reference", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ slug: articleSlug, referenceId }),
+      });
+      const payload = (await response.json().catch(() => null)) as {
+        error?: unknown;
+        removed?: unknown;
+      } | null;
+
+      if (!response.ok) {
+        setRemoveError(
+          typeof payload?.error === "string"
+            ? payload.error
+            : "That source could not be removed.",
+        );
+        return;
+      }
+
+      if (payload?.removed === true) onReferenceRemoved(referenceId);
+    } catch {
+      // Sticky for the same reason the save failure is: "your source is still
+      // there" must not vanish on a timer.
+      setRemoveError("That source could not be removed. Check the connection and try again.");
+    } finally {
+      setRemovingId(null);
+    }
+  };
+
+  const removeButton = (referenceId: string) =>
+    articleSlug ? (
+      <Button
+        variant="destructivePill"
+        size="pill"
+        className="shrink-0 gap-1.5"
+        onClick={() => void removeReference(referenceId)}
+        disabled={removingId !== null}
+        title={`Remove ${referenceId}, its inline markers, and its route references`}
+        aria-label={`Remove ${referenceId}`}
+      >
+        <Icon icon="lucide:trash-2" size={13} />
+        {removingId === referenceId ? "Removing…" : "Remove"}
+      </Button>
+    ) : null;
 
   const referenceText = (reference: Reference) =>
     formatWikipediaStyleReference(reference);
@@ -433,6 +513,12 @@ export function ReviewCitationPanel({
             </p>
           ) : null}
 
+          {removeError ? (
+            <Alert variant="destructive" className="p-3 text-xs">
+              {removeError}
+            </Alert>
+          ) : null}
+
           {numberedReferences.length > 0 ? (
             <ul className="space-y-2">
               {numberedReferences.map((reference) => (
@@ -447,6 +533,7 @@ export function ReviewCitationPanel({
                     {reference.referenceTextResolved}
                   </span>
                   {copyButton(reference.id)}
+                  {removeButton(reference.id)}
                 </li>
               ))}
             </ul>
@@ -470,6 +557,7 @@ export function ReviewCitationPanel({
                       {referenceText(reference)}
                     </span>
                     {copyButton(reference.id)}
+                    {removeButton(reference.id)}
                   </li>
                 ))}
               </ul>

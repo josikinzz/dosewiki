@@ -207,3 +207,185 @@ export function appendArticleReference(
     references: [...current, normalized.reference],
   };
 }
+
+export type RemoveArticleReferenceResult =
+  | {
+      ok: true;
+      removed: true;
+      /** The removed reference's bibliographic title, for changelog messages. */
+      title: string | null;
+      markersStripped: number;
+      routeIdsStripped: number;
+      /** Replacement values for every top-level key the removal changed. */
+      patch: Record<string, unknown>;
+    }
+  | { ok: true; removed: false }
+  | { ok: false; error: string };
+
+/**
+ * Keys whose subtrees hold citation metadata rather than prose, mirroring the
+ * skip set in `collectCitationTextFields` (editorReferenceDiagnostics.ts).
+ * A `[cite:...]` string under these keys is data about citations, not a marker.
+ */
+const MARKER_TRAVERSAL_SKIP_KEYS: Record<string, true> = {
+  references: true,
+  source_citations: true,
+  citations: true,
+  editorial_review: true,
+};
+
+function escapeRegExp(value: string): string {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+/**
+ * Removes every `[cite:<id>]` marker for one id from a prose string, cleaning
+ * the whitespace the marker occupied: no doubled spaces, no stray space left
+ * before punctuation, no leading/trailing gap.
+ */
+function stripMarkersFromText(
+  value: string,
+  marker: RegExp,
+): { value: string; count: number } {
+  const matches = value.match(marker);
+  if (!matches) return { value, count: 0 };
+  const stripped = value
+    .replace(marker, "")
+    .replace(/[ \t]{2,}/g, " ")
+    .replace(/[ \t]+([.,;:!?])/g, "$1")
+    .trim();
+  return { value: stripped, count: matches.length };
+}
+
+/**
+ * Walks every string leaf of the document (same generic traversal as
+ * `collectCitationTextFields`) and strips the marker wherever it appears.
+ * Untouched subtrees keep their identity so the caller can patch only the
+ * top-level keys that actually changed.
+ */
+function stripMarkersDeep(
+  value: unknown,
+  marker: RegExp,
+  seen: WeakSet<object>,
+  counter: { count: number },
+): unknown {
+  if (typeof value === "string") {
+    const stripped = stripMarkersFromText(value, marker);
+    counter.count += stripped.count;
+    return stripped.count > 0 ? stripped.value : value;
+  }
+
+  if (!value || typeof value !== "object") return value;
+  if (seen.has(value)) return value;
+  seen.add(value);
+
+  if (Array.isArray(value)) {
+    let changed = false;
+    const next = value.map((item) => {
+      const result = stripMarkersDeep(item, marker, seen, counter);
+      if (result !== item) changed = true;
+      return result;
+    });
+    return changed ? next : value;
+  }
+
+  let changed = false;
+  const next: Record<string, unknown> = {};
+  for (const [key, child] of Object.entries(value)) {
+    if (MARKER_TRAVERSAL_SKIP_KEYS[key] === true) {
+      next[key] = child;
+      continue;
+    }
+    const result = stripMarkersDeep(child, marker, seen, counter);
+    if (result !== child) changed = true;
+    next[key] = result;
+  }
+  return changed ? next : value;
+}
+
+/**
+ * Filters one reference id out of every `routes[*].reference_ids` array in a
+ * dosage or duration section, preserving identity when nothing matched.
+ */
+function stripRouteReferenceIds(
+  section: unknown,
+  referenceId: string,
+): { value: unknown; removed: number } {
+  if (!section || typeof section !== "object" || Array.isArray(section)) {
+    return { value: section, removed: 0 };
+  }
+  const routes = (section as Record<string, unknown>).routes;
+  if (!Array.isArray(routes)) return { value: section, removed: 0 };
+
+  let removed = 0;
+  let changed = false;
+  const nextRoutes = routes.map((route) => {
+    if (!route || typeof route !== "object" || Array.isArray(route)) return route;
+    const ids = (route as Record<string, unknown>).reference_ids;
+    if (!Array.isArray(ids)) return route;
+    const nextIds = ids.filter((id) => id !== referenceId);
+    if (nextIds.length === ids.length) return route;
+    removed += ids.length - nextIds.length;
+    changed = true;
+    return { ...(route as Record<string, unknown>), reference_ids: nextIds };
+  });
+  if (!changed) return { value: section, removed: 0 };
+  return { value: { ...(section as Record<string, unknown>), routes: nextRoutes }, removed };
+}
+
+/**
+ * Removes one reference from a stored article document atomically with its
+ * usages: every inline `[cite:<id>]` marker in prose and every
+ * `routes[*].reference_ids` entry in dosage and duration. Idempotent — an
+ * absent id reports `removed: false` and touches nothing.
+ *
+ * `patch` carries only the top-level keys the removal changed, so the mutation
+ * never writes an untouched section back over a concurrent edit.
+ */
+export function removeArticleReference(
+  document: Record<string, unknown>,
+  referenceId: string,
+): RemoveArticleReferenceResult {
+  if (!REFERENCE_ID_PATTERN.test(referenceId)) {
+    return { ok: false, error: "That is not a usable citation id." };
+  }
+
+  const current = existingReferences(document);
+  if (current === null) {
+    return { ok: false, error: "This article's reference list is not a list." };
+  }
+
+  const target = current.find((reference) => reference?.id === referenceId);
+  if (!target) return { ok: true, removed: false };
+
+  const patch: Record<string, unknown> = {
+    references: current.filter((reference) => reference !== target),
+  };
+
+  const marker = new RegExp(`[ \\t]*\\[cite:${escapeRegExp(referenceId)}\\]`, "g");
+  const counter = { count: 0 };
+  const seen = new WeakSet<object>();
+  let routeIdsStripped = 0;
+
+  for (const [key, child] of Object.entries(document)) {
+    if (key === "_id" || key === "_creationTime" || MARKER_TRAVERSAL_SKIP_KEYS[key] === true) {
+      continue;
+    }
+    let next = stripMarkersDeep(child, marker, seen, counter);
+    if (key === "dosage" || key === "duration") {
+      const routeResult = stripRouteReferenceIds(next, referenceId);
+      routeIdsStripped += routeResult.removed;
+      next = routeResult.value;
+    }
+    if (next !== child) patch[key] = next;
+  }
+
+  return {
+    ok: true,
+    removed: true,
+    title: typeof target.title === "string" && target.title.length > 0 ? target.title : null,
+    markersStripped: counter.count,
+    routeIdsStripped,
+    patch,
+  };
+}
