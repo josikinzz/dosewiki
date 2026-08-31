@@ -98,7 +98,7 @@ interface EffectSummary {
 }
 
 
-type GalleryCorpusLoadState = "idle" | "loading" | "loaded" | "error";
+type GalleryPageLoadState = "idle" | "loading" | "error";
 
 function mergeReplicationPreviews(
   current: readonly PublicGalleryReplicationPreview[],
@@ -107,11 +107,6 @@ function mergeReplicationPreviews(
   const byId = new Map(current.map((item) => [item._id, item]));
   for (const item of incoming) byId.set(item._id, item);
   return [...byId.values()];
-}
-
-function browseNeedsCompleteCorpus(browse: GalleryBrowseState): boolean {
-  return (Object.keys(GALLERY_BROWSE_DEFAULTS) as (keyof GalleryBrowseState)[])
-    .some((key) => browse[key] !== GALLERY_BROWSE_DEFAULTS[key]);
 }
 
 function isGalleryReplicationPreview(
@@ -215,11 +210,10 @@ export interface ReplicationsGalleryExplorerProps {
    * it because their already-focused corpus is intentionally complete.
    */
   deferredReplicationsUrl?: string;
-  /** Exact totals for the initially selected artist rails. */
-  initialArtistGroupStats?: Record<
-    string,
-    Pick<GalleryGroup, "count" | "imageCount" | "videoCount">
-  >;
+  /** Opaque Convex cursor after the server-rendered first page. */
+  continuationCursor?: string;
+  /** Whether another bounded page is available. */
+  hasMoreReplications?: boolean;
   effectHrefPrefix?: string;
   /**
    * Read on the server and passed down for the contributor-curated
@@ -353,7 +347,8 @@ function UrlStateGalleryExplorer(props: ReplicationsGalleryExplorerProps) {
 function GalleryExplorer({
   replications,
   deferredReplicationsUrl,
-  initialArtistGroupStats,
+  continuationCursor,
+  hasMoreReplications = false,
   effects,
   effectHrefPrefix = "/effects",
   contributorDirectory,
@@ -371,145 +366,83 @@ function GalleryExplorer({
 }) {
   const router = useRouter();
   const [galleryReplications, setGalleryReplications] = useState(replications);
-  const initialCompleteCorpusNeeded =
-    Boolean(deferredReplicationsUrl) &&
-    (viewerParamPresent || browseNeedsCompleteCorpus(browse));
-  const [corpusLoadState, setCorpusLoadState] =
-    useState<GalleryCorpusLoadState>(
-      deferredReplicationsUrl ? "idle" : "loaded",
-    );
-  const [fullCorpusRequested, setFullCorpusRequested] = useState(
-    initialCompleteCorpusNeeded,
+  const [nextCursor, setNextCursor] = useState<string | null>(
+    continuationCursor ?? null,
   );
-  const corpusLoadStateRef = useRef(corpusLoadState);
-  const corpusRequestRef = useRef<Promise<boolean> | null>(null);
-  const corpusAbortRef = useRef<AbortController | null>(null);
-  const pendingCorpusActionRef = useRef<(() => void) | null>(null);
-
-  const updateCorpusLoadState = useCallback(
-    (next: GalleryCorpusLoadState) => {
-      corpusLoadStateRef.current = next;
-      setCorpusLoadState(next);
-    },
-    [],
+  const [hasMore, setHasMore] = useState(
+    Boolean(deferredReplicationsUrl && hasMoreReplications),
   );
+  const [pageLoadState, setPageLoadState] =
+    useState<GalleryPageLoadState>("idle");
+  const pageRequestRef = useRef<Promise<void> | null>(null);
+  const pageAbortRef = useRef<AbortController | null>(null);
 
-  const loadCompleteCorpus = useCallback(
-    (userInitiated = false): Promise<boolean> => {
-      if (!deferredReplicationsUrl) return Promise.resolve(true);
-      if (userInitiated) setFullCorpusRequested(true);
-      if (corpusLoadStateRef.current === "loaded") {
-        return Promise.resolve(true);
-      }
-      if (corpusRequestRef.current) return corpusRequestRef.current;
+  const loadNextPage = useCallback((): Promise<void> => {
+    if (
+      !deferredReplicationsUrl ||
+      !hasMore ||
+      !nextCursor ||
+      pageRequestRef.current
+    ) {
+      return pageRequestRef.current ?? Promise.resolve();
+    }
 
-      const controller = new AbortController();
-      corpusAbortRef.current = controller;
-      updateCorpusLoadState("loading");
+    const controller = new AbortController();
+    pageAbortRef.current = controller;
+    setPageLoadState("loading");
+    const separator = deferredReplicationsUrl.includes("?") ? "&" : "?";
+    const url = `${deferredReplicationsUrl}${separator}cursor=${encodeURIComponent(nextCursor)}&limit=64`;
 
-      const request = (async () => {
-        try {
-          const response = await fetch(deferredReplicationsUrl, {
-            signal: controller.signal,
-            headers: { Accept: "application/json" },
-          });
-          if (!response.ok) {
-            throw new Error(`Gallery request failed: ${response.status}`);
-          }
-          const payload: unknown = await response.json();
-          if (
-            !payload ||
-            typeof payload !== "object" ||
-            !("data" in payload) ||
-            !Array.isArray(payload.data) ||
-            !payload.data.every(isGalleryReplicationPreview)
-          ) {
-            throw new Error("Gallery response was malformed");
-          }
-          const replications = payload.data;
-
-          setGalleryReplications((current) =>
-            mergeReplicationPreviews(current, replications),
-          );
-          updateCorpusLoadState("loaded");
-          return true;
-        } catch {
-          if (controller.signal.aborted) {
-            corpusLoadStateRef.current = "idle";
-            return false;
-          }
-          updateCorpusLoadState("error");
-          return false;
-        } finally {
-          if (corpusAbortRef.current === controller) {
-            corpusAbortRef.current = null;
-          }
-          corpusRequestRef.current = null;
+    const request = (async () => {
+      try {
+        const response = await fetch(url, {
+          signal: controller.signal,
+          headers: { Accept: "application/json" },
+        });
+        if (!response.ok) {
+          throw new Error(`Gallery request failed: ${response.status}`);
         }
-      })();
+        const payload: unknown = await response.json();
+        if (
+          !payload ||
+          typeof payload !== "object" ||
+          !("data" in payload) ||
+          !Array.isArray(payload.data) ||
+          !payload.data.every(isGalleryReplicationPreview) ||
+          !("hasMore" in payload) ||
+          typeof payload.hasMore !== "boolean" ||
+          !("nextCursor" in payload) ||
+          !(
+            payload.nextCursor === null ||
+            typeof payload.nextCursor === "string"
+          )
+        ) {
+          throw new Error("Gallery response was malformed");
+        }
+        const incoming = payload.data as PublicGalleryReplicationPreview[];
+        const returnedCursor = payload.nextCursor as string | null;
 
-      corpusRequestRef.current = request;
-      return request;
-    },
-    [deferredReplicationsUrl, updateCorpusLoadState],
-  );
-
-  const runWithCompleteCorpus = useCallback(
-    (action: () => void, retryAfterFailure = true) => {
-      // Routes with a complete initial corpus must retain ordinary synchronous
-      // control semantics. Awaiting Promise.resolve(true) here delayed every
-      // toggle and pagination action by a microtask even though no request was
-      // needed.
-      if (
-        !deferredReplicationsUrl ||
-        corpusLoadStateRef.current === "loaded"
-      ) {
-        pendingCorpusActionRef.current = null;
-        setFullCorpusRequested(false);
-        action();
-        return;
+        setGalleryReplications((current) =>
+          mergeReplicationPreviews(current, incoming),
+        );
+        setNextCursor(returnedCursor);
+        setHasMore(payload.hasMore);
+        setPageLoadState("idle");
+      } catch {
+        if (!controller.signal.aborted) setPageLoadState("error");
+      } finally {
+        if (pageAbortRef.current === controller) pageAbortRef.current = null;
+        pageRequestRef.current = null;
       }
+    })();
 
-      pendingCorpusActionRef.current = action;
-      // Search starts its request on the first keystroke. If that request
-      // fails inside the debounce window, recording the pending URL action
-      // must not secretly issue a second request; the visible Retry owns it.
-      if (!retryAfterFailure && corpusLoadStateRef.current === "error") return;
-      void loadCompleteCorpus(true).then((loaded) => {
-        if (!loaded || pendingCorpusActionRef.current !== action) return;
-        pendingCorpusActionRef.current = null;
-        setFullCorpusRequested(false);
-        action();
-      });
-    },
-    [deferredReplicationsUrl, loadCompleteCorpus],
-  );
-
-  useEffect(() => {
-    if (!deferredReplicationsUrl || corpusLoadStateRef.current === "loaded") {
-      return;
-    }
-    if (initialCompleteCorpusNeeded) {
-      void loadCompleteCorpus();
-      return;
-    }
-
-    const start = () => void loadCompleteCorpus();
-    if (typeof window.requestIdleCallback === "function") {
-      const idleId = window.requestIdleCallback(start, { timeout: 1_500 });
-      return () => window.cancelIdleCallback(idleId);
-    }
-    const timeoutId = window.setTimeout(start, 0);
-    return () => window.clearTimeout(timeoutId);
-  }, [
-    deferredReplicationsUrl,
-    initialCompleteCorpusNeeded,
-    loadCompleteCorpus,
-  ]);
+    pageRequestRef.current = request;
+    return request;
+  }, [deferredReplicationsUrl, hasMore, nextCursor]);
 
   useEffect(
     () => () => {
-      corpusAbortRef.current?.abort();
+      pageAbortRef.current?.abort();
     },
     [],
   );
@@ -583,71 +516,59 @@ function GalleryExplorer({
   const updateQuery = (next: string) => {
     clearTimeout(debounceRef.current);
     setQueryWritePending(true);
-    // Start the continuation on the first keystroke, not after the URL
-    // debounce. Results never switch to the query until this resolves.
-    void loadCompleteCorpus(true);
     debounceRef.current = window.setTimeout(() => {
       setQueryWritePending(false);
-      const action = () => {
-        lastWrittenQueryRef.current = next;
-        const url = buildGalleryBrowseUrl({
-          ...browse,
-          view: mode,
-          query: next,
-        });
-        if (focus) {
-          router.push(url, { scroll: false });
-        } else {
-          router.replace(url, { scroll: false });
-        }
-      };
-      void runWithCompleteCorpus(action, false);
+      lastWrittenQueryRef.current = next;
+      const url = buildGalleryBrowseUrl({
+        ...browse,
+        view: mode,
+        query: next,
+      });
+      if (focus) {
+        router.push(url, { scroll: false });
+      } else {
+        router.replace(url, { scroll: false });
+      }
     }, QUERY_WRITE_DELAY_MS);
   };
 
   const switchMode = (next: GalleryMode) => {
     const query = currentInputQuery();
-    void runWithCompleteCorpus(() => {
-      lastWrittenQueryRef.current = query;
-      navigate(
-        buildGalleryBrowseUrl({ ...browse, view: next, query }),
-        "push",
-      );
-    });
+    lastWrittenQueryRef.current = query;
+    navigate(
+      buildGalleryBrowseUrl({ ...browse, view: next, query }),
+      "push",
+    );
   };
 
   const setTypeFilter = (next: GalleryTypeFilter) => {
     const query = currentInputQuery();
-    void runWithCompleteCorpus(() => {
-      lastWrittenQueryRef.current = query;
-      navigate(
-        focus
-          ? buildGalleryFocusUrl(focus, { type: next })
-          : buildGalleryBrowseUrl({
-              ...browse,
-              view: mode,
-              query,
-              type: next,
-            }),
-        "push",
-      );
-    });
+    lastWrittenQueryRef.current = query;
+    navigate(
+      focus
+        ? buildGalleryFocusUrl(focus, { type: next })
+        : buildGalleryBrowseUrl({
+            ...browse,
+            view: mode,
+            query,
+            type: next,
+          }),
+      "push",
+    );
   };
 
   const setArtistSort = (next: GalleryArtistSort) => {
     const query = currentInputQuery();
-    void runWithCompleteCorpus(() => {
-      lastWrittenQueryRef.current = query;
-      navigate(
-        buildGalleryBrowseUrl({
-          ...browse,
-          view: mode,
-          query,
-          sort: next,
-        }),
-        "push",
-      );
-    });
+    lastWrittenQueryRef.current = query;
+    navigate(
+      buildGalleryBrowseUrl({
+        ...browse,
+        view: mode,
+        query,
+        sort: next,
+      }),
+      "push",
+    );
   };
 
   const displayable = useMemo(
@@ -691,18 +612,16 @@ function GalleryExplorer({
 
   const setTaxonomyFilters = (next: GalleryTaxonomyFilterState) => {
     const query = currentInputQuery();
-    void runWithCompleteCorpus(() => {
-      lastWrittenQueryRef.current = query;
-      navigate(
-        buildGalleryBrowseUrl({
-          ...browse,
-          ...next,
-          view: mode,
-          query,
-        }),
-        "push",
-      );
-    });
+    lastWrittenQueryRef.current = query;
+    navigate(
+      buildGalleryBrowseUrl({
+        ...browse,
+        ...next,
+        view: mode,
+        query,
+      }),
+      "push",
+    );
   };
 
   const taxonomyDisplayable = useMemo(
@@ -784,32 +703,14 @@ function GalleryExplorer({
       artistSort,
       contributorDirectory,
     );
-    if (
-      !deferredReplicationsUrl ||
-      corpusLoadState === "loaded" ||
-      searching ||
-      typeFilter !== "all" ||
-      hasActiveTaxonomyFilters
-    ) {
-      return artistGroups;
-    }
-    return artistGroups.map((group) => {
-      const stats = initialArtistGroupStats?.[group.key];
-      return stats ? { ...group, ...stats } : group;
-    });
+    return artistGroups;
   }, [
     artistSort,
     contributorDirectory,
-    corpusLoadState,
-    deferredReplicationsUrl,
     effectHref,
     effectName,
     filtered,
-    hasActiveTaxonomyFilters,
-    initialArtistGroupStats,
     mode,
-    searching,
-    typeFilter,
   ]);
 
   /**
@@ -950,12 +851,7 @@ function GalleryExplorer({
     viewerGroups,
     viewerSourcePath,
   ]);
-  const completeCorpusReady =
-    !deferredReplicationsUrl || corpusLoadState === "loaded";
-  const viewerResolutionPending =
-    viewerParamPresent && !completeCorpusReady;
   const validViewerSlugParam =
-    completeCorpusReady &&
     viewerSlugParam &&
     viewerCollection.groups.some((entry) =>
       entry.items.some((item) => item.replication.slug === viewerSlugParam),
@@ -968,7 +864,7 @@ function GalleryExplorer({
   const [unavailableViewerSlug, setUnavailableViewerSlug] = useState<
     string | null
   >(
-    viewerSlugParam && completeCorpusReady && !validViewerSlugParam
+    viewerSlugParam && !validViewerSlugParam
       ? viewerSlugParam
       : null,
   );
@@ -991,21 +887,6 @@ function GalleryExplorer({
     }
     viewerParamWasPresentRef.current = true;
 
-    if (viewerResolutionPending) {
-      setViewerSlug(null);
-      setUnavailableViewerSlug(null);
-      if (corpusLoadState === "error") {
-        const source = `${window.location.pathname}${window.location.search}${window.location.hash}`;
-        window.history.replaceState(
-          window.history.state,
-          "",
-          closeReplicationViewerUrl(source),
-        );
-        dismissViewerDeepLinkCover();
-      }
-      return;
-    }
-
     setViewerSlug(validViewerSlugParam);
     if (viewerSlugParam && !validViewerSlugParam) {
       setUnavailableViewerSlug(viewerSlugParam);
@@ -1022,10 +903,8 @@ function GalleryExplorer({
       dismissViewerDeepLinkCover();
     }
   }, [
-    corpusLoadState,
     validViewerSlugParam,
     viewerParamPresent,
-    viewerResolutionPending,
     viewerSlugParam,
   ]);
 
@@ -1067,16 +946,6 @@ function GalleryExplorer({
   // The gallery section exists whenever it holds media at all — the mode
   // toggle has to stay reachable even if one mode's own corpus is empty.
   const hasMedia = displayable.length > 0;
-  const completeCorpusBlocked =
-    Boolean(deferredReplicationsUrl) &&
-    fullCorpusRequested &&
-    corpusLoadState !== "loaded";
-  // A pasted non-default URL already describes a full-corpus operation. Do
-  // not render partial matches beneath the pending notice. For a control
-  // clicked from the default page, navigation waits, so its initial SSR rails
-  // remain visible while the continuation loads or retries.
-  const hideIncompleteResults =
-    completeCorpusBlocked && browseNeedsCompleteCorpus(browse);
   const browseAllUrl = buildGalleryBrowseUrl({
     ...browse,
     view: mode,
@@ -1395,57 +1264,60 @@ function GalleryExplorer({
               />
             ) : null}
 
-            {completeCorpusBlocked ? (
-              corpusLoadState === "error" ? (
-                <Alert variant="destructive" role="alert" className="mt-4">
-                  <AlertDescription className="flex flex-wrap items-center justify-between gap-3">
-                    <span>
-                      The complete gallery could not be loaded. The initial
-                      gallery is still available; retry before searching or
-                      changing the collection.
-                    </span>
-                    <Button
-                      type="button"
-                      variant="pill"
-                      size="pill"
-                      onClick={() => {
-                        const action = pendingCorpusActionRef.current;
-                        if (action) {
-                          void runWithCompleteCorpus(action);
-                        } else {
-                          void loadCompleteCorpus(true);
-                        }
-                      }}
-                    >
-                      Retry
-                    </Button>
-                  </AlertDescription>
-                </Alert>
-              ) : (
-                <Alert role="status" aria-live="polite" className="mt-4">
-                  <AlertDescription className="flex items-center gap-2">
-                    <Icon
-                      icon="svg-spinners:ring-resize"
-                      className="h-4 w-4 shrink-0"
-                      aria-hidden
-                    />
-                    Loading the complete gallery…
-                  </AlertDescription>
-                </Alert>
-              )
+            {pageLoadState === "error" ? (
+              <Alert variant="destructive" role="alert" className="mt-4">
+                <AlertDescription className="flex flex-wrap items-center justify-between gap-3">
+                  <span>
+                    The next gallery page could not be loaded. Everything
+                    already shown remains available.
+                  </span>
+                  <Button
+                    type="button"
+                    variant="pill"
+                    size="pill"
+                    onClick={() => void loadNextPage()}
+                  >
+                    Retry
+                  </Button>
+                </AlertDescription>
+              </Alert>
             ) : null}
 
             {/* One quiet corpus summary for every breakpoint — the bar itself
               stays reserved for controls. */}
-            {chrome === "full" && !completeCorpusBlocked ? (
+            {chrome === "full" ? (
               <p className="theme-text-faint mt-3 px-1 text-xs tabular-nums">
-                {counts.total} works · {counts.artists} artists ·{" "}
-                {counts.effects} effects
+                {counts.total} {deferredReplicationsUrl ? "loaded " : ""}
+                {counts.total === 1 ? "work" : "works"} · {counts.artists}{" "}
+                artists · {counts.effects} effects
+                {hasMore ? " · more available" : ""}
               </p>
             ) : null}
 
+            {deferredReplicationsUrl && hasMore ? (
+              <div className="mt-3 flex justify-center">
+                <Button
+                  type="button"
+                  variant="pill"
+                  size="pill"
+                  disabled={pageLoadState === "loading"}
+                  onClick={() => void loadNextPage()}
+                  className="min-h-11 gap-1.5"
+                >
+                  {pageLoadState === "loading" ? (
+                    <Icon
+                      icon="svg-spinners:ring-resize"
+                      className="h-4 w-4"
+                      aria-hidden
+                    />
+                  ) : null}
+                  {pageLoadState === "loading" ? "Loading…" : "Load more works"}
+                </Button>
+              </div>
+            ) : null}
+
             {/* Focused single-group view (own URL: /replications/artist|effect/<key>) */}
-            {hideIncompleteResults ? null : focus && focusedGroup ? (
+            {focus && focusedGroup ? (
               <div className="mt-6 space-y-4">
                 <div className="flex flex-wrap items-baseline justify-between gap-3 px-1">
                   <div className="min-w-0">
@@ -1622,14 +1494,12 @@ function GalleryExplorer({
                         { kind: mode, key: galleryGroupUrlKey(mode, group) },
                         mode === "artist" ? { type: typeFilter } : {},
                       );
-                      void runWithCompleteCorpus(() => {
-                        const first = group.items[0];
-                        if (mode === "artist" && first) {
-                          launchViewer(first.slug);
-                        } else {
-                          router.push(target);
-                        }
-                      });
+                      const first = group.items[0];
+                      if (mode === "artist" && first) {
+                        launchViewer(first.slug);
+                      } else {
+                        router.push(target);
+                      }
                     }}
                   />
                 ))}
@@ -1640,10 +1510,8 @@ function GalleryExplorer({
                       variant="pill"
                       size="pill"
                       onClick={() =>
-                        void runWithCompleteCorpus(() =>
-                          setVisibleRailCount(
-                            (count) => count + ARTIST_RAIL_PAGE,
-                          ),
+                        setVisibleRailCount(
+                          (count) => count + ARTIST_RAIL_PAGE,
                         )
                       }
                       className="min-h-11 gap-1.5"

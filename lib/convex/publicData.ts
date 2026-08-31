@@ -79,6 +79,7 @@ export {
 export {
   dropGalleryExcludedArtistWorks,
   getPublicFeaturedReplicationSlugs,
+  getPublicGalleryReplicationPage,
   getPublicGalleryReplications,
   getPublicReplicationsForSubstance,
   getReplicationsByContributor,

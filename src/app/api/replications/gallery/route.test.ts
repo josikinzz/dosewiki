@@ -3,11 +3,11 @@ import { GET } from "./route";
 
 const mocks = vi.hoisted(() => ({
   enforceRateLimit: vi.fn(),
-  getPublicGalleryReplications: vi.fn(),
+  getPublicGalleryReplicationPage: vi.fn(),
 }));
 
 vi.mock("@server/convex/publicData", () => ({
-  getPublicGalleryReplications: mocks.getPublicGalleryReplications,
+  getPublicGalleryReplicationPage: mocks.getPublicGalleryReplicationPage,
 }));
 vi.mock("@server/http/nextRateLimit", () => ({
   enforceRateLimit: mocks.enforceRateLimit,
@@ -28,19 +28,33 @@ const preview = {
 describe("replication gallery continuation", () => {
   beforeEach(() => {
     mocks.enforceRateLimit.mockReset().mockResolvedValue(null);
-    mocks.getPublicGalleryReplications.mockReset().mockResolvedValue([preview]);
+    mocks.getPublicGalleryReplicationPage.mockReset().mockResolvedValue({
+      items: [preview],
+      cursor: "opaque-next",
+      isDone: false,
+    });
   });
 
-  it("returns the cached slim gallery projection without changing the v1 contract", async () => {
+  it("returns one cached slim page with an opaque continuation cursor", async () => {
     const response = await GET(
-      new Request("https://dose.wiki/api/replications/gallery"),
+      new Request(
+        "https://dose.wiki/api/replications/gallery?cursor=opaque-current&limit=32",
+      ),
     );
 
     expect(response.status).toBe(200);
     expect(response.headers.get("Cache-Control")).toBe(
       "public, max-age=300, s-maxage=3600, stale-while-revalidate=86400",
     );
-    await expect(response.json()).resolves.toEqual({ data: [preview] });
+    await expect(response.json()).resolves.toEqual({
+      data: [preview],
+      nextCursor: "opaque-next",
+      hasMore: true,
+    });
+    expect(mocks.getPublicGalleryReplicationPage).toHaveBeenCalledWith(
+      "opaque-current",
+      32,
+    );
   });
 
   it("enforces the public content read limit before loading gallery data", async () => {
@@ -56,12 +70,22 @@ describe("replication gallery continuation", () => {
       request,
       "publicContentApiRead",
     );
-    expect(mocks.getPublicGalleryReplications).not.toHaveBeenCalled();
+    expect(mocks.getPublicGalleryReplicationPage).not.toHaveBeenCalled();
     expect(response).toBe(rateLimited);
   });
 
+  it("rejects page sizes above the gallery hard cap", async () => {
+    const response = await GET(
+      new Request("https://dose.wiki/api/replications/gallery?limit=65"),
+    );
+
+    expect(response.status).toBe(400);
+    expect(response.headers.get("Cache-Control")).toBe("private, no-store");
+    expect(mocks.getPublicGalleryReplicationPage).not.toHaveBeenCalled();
+  });
+
   it("does not cache a failed gallery read", async () => {
-    mocks.getPublicGalleryReplications.mockRejectedValueOnce(
+    mocks.getPublicGalleryReplicationPage.mockRejectedValueOnce(
       new Error("unavailable"),
     );
     vi.spyOn(console, "error").mockImplementation(() => {});

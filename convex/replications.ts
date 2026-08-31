@@ -1,6 +1,11 @@
 import { v } from "convex/values";
 import { internalMutation, mutation, query } from "./_generated/server";
 import * as reads from "./lib/replicationReads";
+import {
+  getPublicGalleryPageHandler,
+  publicGalleryPageArgs,
+  publicGalleryPageResult,
+} from "./lib/replicationGalleryReads";
 import * as recovery from "./lib/replicationRecovery";
 import * as studio from "./lib/replicationStudio";
 import * as validators from "./lib/replicationValidators";
@@ -41,6 +46,12 @@ export const getByArtistNames = query({
 export const getPublicReplications = query({
   args: {},
   handler: reads.getPublicReplicationsHandler,
+});
+
+export const getPublicGalleryPage = query({
+  args: publicGalleryPageArgs,
+  returns: publicGalleryPageResult,
+  handler: getPublicGalleryPageHandler,
 });
 
 export const resolveStorageUrls = query({

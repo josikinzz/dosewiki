@@ -418,3 +418,65 @@ describe("getPublicGalleryReplications", () => {
     ]);
   });
 });
+
+describe("getPublicGalleryReplicationPage", () => {
+  beforeEach(() => {
+    vi.resetModules();
+    mocks.queryConvex.mockReset();
+  });
+
+  it("keeps the Convex cursor while applying gallery-only artist metadata", async () => {
+    mocks.queryConvex.mockImplementation(
+      async (functionName: string, args: Record<string, unknown>) => {
+        if (functionName === "replications:getPublicGalleryPage") {
+          expect(args).toEqual({ cursor: "opaque-current", limit: 32 });
+          return {
+            items: [
+              {
+                _id: "work-id",
+                slug: "work",
+                title: "Work",
+                artist: "Artist",
+                type: "image",
+                format: "webp",
+                url: "https://x/work",
+                created_at: "2026-01-01",
+              },
+            ],
+            cursor: "opaque-next",
+            isDone: false,
+          };
+        }
+        if (functionName === "contributorProfiles:getAll") return [];
+        if (functionName === "replicationTaxonomy:getPublicArtistsByKeys") {
+          expect(args).toEqual({ keys: ["artist"] });
+          return [
+            {
+              key: "artist",
+              primary_type: "replicator",
+              artist_type_tags: ["replicator"],
+            },
+          ];
+        }
+        throw new Error(`Unexpected Convex read: ${functionName}`);
+      },
+    );
+
+    const { getPublicGalleryReplicationPage } = await import(
+      "./publicData.replications"
+    );
+
+    await expect(
+      getPublicGalleryReplicationPage("opaque-current", 32),
+    ).resolves.toEqual({
+      items: [
+        expect.objectContaining({
+          slug: "work",
+          artist_type_tags: ["replicator"],
+        }),
+      ],
+      cursor: "opaque-next",
+      isDone: false,
+    });
+  });
+});

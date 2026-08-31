@@ -1,6 +1,13 @@
 import { PUBLIC_SITE } from "@server/next/publicSite";
 import { describe, expect, it, vi } from "vitest";
 
+const pageMocks = vi.hoisted(() => ({
+  explorer: vi.fn(() => null),
+  getPublicGalleryReplicationPage: vi.fn(),
+  getPublicEffects: vi.fn(),
+  getPublicContributorDirectory: vi.fn(),
+}));
+
 vi.mock("@server/next/copyBlocks", () => ({
   getCopy: async () => ({
     text: () => "Replication gallery description.",
@@ -30,13 +37,18 @@ vi.mock("@/data/entitySocialCardManifest.generated.json", () => ({
 }));
 
 vi.mock("@/features/replications/ReplicationsGalleryExplorer", () => ({
-  ReplicationsGalleryExplorer: () => null,
+  ReplicationsGalleryExplorer: pageMocks.explorer,
 }));
 vi.mock("@/features/replications/components/ReplicationsTabNav", () => ({
   ReplicationsTabNav: () => null,
 }));
+vi.mock("@server/convex/publicData", () => ({
+  getPublicGalleryReplicationPage: pageMocks.getPublicGalleryReplicationPage,
+  getPublicEffects: pageMocks.getPublicEffects,
+  getPublicContributorDirectory: pageMocks.getPublicContributorDirectory,
+}));
 
-import { generateMetadata } from "./page";
+import ReplicationsPage, { generateMetadata } from "./page";
 
 describe("replications playlist metadata", () => {
   it("uses the active immersive-view replication card", async () => {
@@ -57,5 +69,44 @@ describe("replications playlist metadata", () => {
     ]);
     expect(metadata.twitter?.images).toEqual([cardUrl]);
     expect(metadata.alternates?.canonical).toBe(`${PUBLIC_SITE.url}/replications`);
+  });
+});
+
+describe("replications first page", () => {
+  it("server-renders one bounded page and forwards its continuation", async () => {
+    const preview = {
+      _id: "work-id",
+      slug: "work",
+      title: "Work",
+      artist: "Artist",
+      type: "image",
+      format: "webp",
+      effect_slug: "geometry",
+      url: "https://media.example/work.webp",
+      created_at: "2026-01-01",
+    };
+    pageMocks.getPublicGalleryReplicationPage.mockResolvedValueOnce({
+      items: [preview],
+      cursor: "opaque-next",
+      isDone: false,
+    });
+    pageMocks.getPublicEffects.mockResolvedValueOnce([
+      { slug: "geometry", name: "Geometry" },
+    ]);
+    pageMocks.getPublicContributorDirectory.mockResolvedValueOnce([]);
+
+    const page = await ReplicationsPage();
+    const explorer = page.props.children[2];
+
+    expect(pageMocks.getPublicGalleryReplicationPage).toHaveBeenCalledWith(
+      undefined,
+      64,
+    );
+    expect(explorer.props).toMatchObject({
+      replications: [preview],
+      continuationCursor: "opaque-next",
+      hasMoreReplications: true,
+      deferredReplicationsUrl: "/api/replications/gallery",
+    });
   });
 });

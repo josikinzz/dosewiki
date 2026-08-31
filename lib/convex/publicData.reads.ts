@@ -4,6 +4,7 @@ import type { NormalizedUserProfile } from "../../src/data/userProfiles";
 import type {
   GalleryReplication,
   PublicReplicationArtistTaxonomy,
+  PublicGalleryReplicationPreview,
   ReplicationWithUrl,
 } from "../../src/types/replications";
 import type {
@@ -73,6 +74,12 @@ const ABOUT_PREVIEW_MAX_ROWS = 8_192;
  */
 export type PublicFullSubstanceDocument = Record<string, unknown>;
 
+export type PublicGalleryReplicationPage = {
+  items: PublicGalleryReplicationPreview[];
+  cursor: string;
+  isDone: boolean;
+};
+
 export type PublicDataReadAdapter = {
   getRawSubstances(): Promise<PublicSubstanceLibraryRecord[]>;
   getPublicCoverageSubstances(): Promise<PublicSubstanceArticleRecord[]>;
@@ -96,6 +103,7 @@ export type PublicDataReadAdapter = {
   getPublicEffectIndexPostBySlug(slug: string): Promise<PublicEffectIndexPost | null>;
   getPublicReplicationsByEffect(effectSlug: string): Promise<ReplicationWithUrl[]>;
   getPublicReplications(): Promise<GalleryReplication[]>;
+  getPublicGalleryReplicationPage(cursor?: string, limit?: number): Promise<PublicGalleryReplicationPage>;
   getPublicReplicationArtistsByKeys(keys: string[]): Promise<PublicReplicationArtistTaxonomy[]>;
   getPublicReplicationBySlug(slug: string): Promise<ReplicationWithUrl | null>;
   getPublicReplicationsByArtistNames(artistNames: string[]): Promise<ReplicationWithUrl[]>;
@@ -768,6 +776,11 @@ export function createConvexPublicDataReadAdapter(query: QueryTransport = queryC
         throw error;
       }
     },
+    getPublicGalleryReplicationPage: (cursor, limit = 64) =>
+      query<PublicGalleryReplicationPage, { cursor?: string; limit: number }>(
+        publicDataReadCatalog.publicReplicationGalleryPage.functionName,
+        publicDataReadCatalog.publicReplicationGalleryPage.args(cursor, limit),
+      ),
     getPublicReplicationArtistsByKeys: async (keys) => {
       if (keys.length === 0) return [];
       try {

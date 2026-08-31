@@ -45,6 +45,7 @@ describe("public data read adapter", () => {
     await adapter.getPublicAboutPreviewSubstances();
     await adapter.getPublicTripReportsByContributor("AUTHOR", ["Author", "Alias"]);
     await adapter.getPublicReplicationsByEffect("visual-drifting");
+    await adapter.getPublicGalleryReplicationPage("opaque-cursor", 48);
     await adapter.getPublicIndexLayoutByType("psychoactive");
 
     expect(queryCalls[0]).toEqual(["substanceIndex:getPublicBySlug", { slug: "lsd" }]);
@@ -63,7 +64,11 @@ describe("public data read adapter", () => {
     expect(queryCalls[4]).toEqual(["replications:getReplicationsByEffect", {
       effect_slug: "visual-drifting",
     }]);
-    expect(queryCalls[5]).toEqual(["indexLayouts:getByType", { type: "psychoactive" }]);
+    expect(queryCalls[5]).toEqual([
+      "replications:getPublicGalleryPage",
+      { cursor: "opaque-cursor", limit: 48 },
+    ]);
+    expect(queryCalls[6]).toEqual(["indexLayouts:getByType", { type: "psychoactive" }]);
   });
 
   it("owns public effect preview projection and ordering", () => {

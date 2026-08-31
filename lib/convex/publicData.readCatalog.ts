@@ -2,6 +2,7 @@ import type { IndexLayoutType } from "./publicData.shared";
 
 const ABOUT_PREVIEW_CANDIDATE_PAGE_SIZE = 64;
 const PUBLIC_SUBSTANCE_PAGE_SIZE = 32;
+const PUBLIC_REPLICATION_GALLERY_PAGE_SIZE = 64;
 
 const publicSubstancePageArgs = (cursor?: string) => ({
   ...(cursor ? { cursor } : {}),
@@ -94,6 +95,13 @@ export const publicDataReadCatalog = {
   publicReplications: {
     functionName: "replications:getPublicReplications",
     args: () => ({}),
+  },
+  publicReplicationGalleryPage: {
+    functionName: "replications:getPublicGalleryPage",
+    args: (cursor?: string, limit = PUBLIC_REPLICATION_GALLERY_PAGE_SIZE) => ({
+      ...(cursor ? { cursor } : {}),
+      limit,
+    }),
   },
   publicReplicationArtistsByKeys: {
     functionName: "replicationTaxonomy:getPublicArtistsByKeys",
