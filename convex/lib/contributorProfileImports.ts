@@ -127,7 +127,12 @@ type ReviewedProfileState = Infer<typeof reviewedProfileStateValidator>;
 
 const PROFILE_KEY = /^[A-Z0-9-]+$/;
 const IMAGE_EXTENSIONS = new Set(["jpg", "jpeg", "png", "webp", "gif"]);
-const MAX_PROFILE_IDENTITY_SCAN = 500;
+// The Reddit attribution remediation tops out below 2,100 contributor rows.
+// Keep the alias-aware collision check bounded, but large enough to validate
+// the complete reviewed rollout instead of failing midway at the old 500-row
+// limit. A future corpus above this ceiling should move identity tokens into a
+// dedicated indexed registry rather than widening this scan again.
+const MAX_PROFILE_IDENTITY_SCAN = 4096;
 const NON_PROFILE_IDENTITIES = new Set(["unknown artist", "unknown", "unattributed", "anonymous"]);
 
 function assertActionableCreator(creatorName: string, displayName: string) {

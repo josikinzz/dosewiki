@@ -11,8 +11,10 @@ describe("text helpers", () => {
     expect(toInitials("  alexander   shulgin  ")).toBe("AS");
   });
 
-  it("falls back to the first two characters when there are no words", () => {
+  it("produces readable initials for empty, short, and punctuation-heavy names", () => {
     expect(toInitials("")).toBe("");
     expect(toInitials("x")).toBe("X");
+    expect(toInitials("-_Illuminated_-")).toBe("I");
+    expect(toInitials("✨")).toBe("");
   });
 });

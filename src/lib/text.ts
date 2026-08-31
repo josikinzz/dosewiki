@@ -8,11 +8,15 @@ export function toInitials(value: string): string {
     .filter((segment) => segment.length > 0)
     .slice(0, 2);
 
-  if (parts.length === 0) {
-    return value.slice(0, 2).toUpperCase();
-  }
-
-  return parts
-    .map((segment) => segment.charAt(0).toUpperCase())
+  const initials = parts
+    .map((segment) => segment.match(/[\p{L}\p{N}]/u)?.[0] ?? "")
+    .filter(Boolean)
     .join("");
+  if (initials) return initials.toUpperCase();
+
+  return Array.from(value)
+    .filter((character) => /[\p{L}\p{N}]/u.test(character))
+    .slice(0, 2)
+    .join("")
+    .toUpperCase();
 }

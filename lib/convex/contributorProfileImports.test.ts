@@ -171,6 +171,35 @@ describe("importReviewedProfilePlanHandler", () => {
     );
   });
 
+  it("keeps the alias-aware collision preflight active beyond the old 500-profile ceiling", async () => {
+    const existingRows = Array.from({ length: 501 }, (_, index) => ({
+      ...storedProfile({
+        key: `EXISTING-${index}`,
+        displayName: `Existing ${index}`,
+        aliases: [],
+      }),
+      _id: `profile-${index}`,
+    }));
+    const { ctx, insert } = mutationContext(existingRows);
+
+    await expect(importReviewedProfilePlanHandler(ctx, {
+      operationId: "replication-index-2026-08-30",
+      dryRun: true,
+      entries: [{
+        outcome: "reviewed-new",
+        creatorName: "New Artist",
+        creatorKind: "person",
+        expectedAbsent: true,
+        profile: profile({
+          key: "NEW-ARTIST",
+          displayName: "New Artist",
+          aliases: [],
+        }),
+      }],
+    })).resolves.toMatchObject({ created: 1, updated: 0, blocked: 0 });
+    expect(insert).not.toHaveBeenCalled();
+  });
+
   it("treats an exact reviewed-new retry as unchanged", async () => {
     const desired = storedProfile({
       key: "NEW-ARTIST",
