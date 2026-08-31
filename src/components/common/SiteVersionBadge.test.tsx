@@ -14,13 +14,13 @@ describe("SiteVersionBadge", () => {
     expect(badge).toHaveTextContent("v0.9 beta");
   });
 
-  it("renders the stage only, hidden from the accessibility tree, in the header variant", () => {
+  it("renders the full version and stage, hidden from the accessibility tree, in the header variant", () => {
     const { container } = render(<SiteVersionBadge variant="header" config={dosewiki} />);
 
     const badge = container.querySelector("span");
     expect(badge).toHaveAttribute("aria-hidden", "true");
     expect(badge).toHaveTextContent("beta");
-    expect(badge).not.toHaveTextContent("v0.9");
+    expect(badge).toHaveTextContent("v0.9 beta");
   });
 
   it("renders nothing for a flavor without a version badge", () => {

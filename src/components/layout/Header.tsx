@@ -588,7 +588,7 @@ export function Header({
         <Button
           asChild
           variant="ghost"
-          className="group/brand flex h-11 w-11 items-center gap-2 p-0 text-left hover:bg-transparent xl:h-10 xl:w-auto xl:pl-0"
+          className="group/brand flex h-11 w-auto items-center gap-2 p-0 text-left hover:bg-transparent xl:h-10 xl:pl-0"
         >
           <Link href={model.headerLogo.href} scroll={false}>
           <span className="inline-flex items-center justify-center transition-transform duration-200 group-hover/brand:scale-105 group-focus-visible/brand:scale-105">
@@ -601,8 +601,10 @@ export function Header({
           </span>
           <span className="theme-text-primary hidden items-center text-2xl font-display font-bold tracking-tight transition-transform duration-200 group-hover/brand:scale-[1.04] group-focus-visible/brand:scale-[1.04] xl:inline-flex">
             <SiteWordmark />
-            <SiteVersionBadge variant="header" />
           </span>
+          {/* Outside the wordmark span: the wordmark hides below xl, but the beta mark
+              stays beside the logo at every width. */}
+          <SiteVersionBadge variant="header" />
           </Link>
         </Button>
 

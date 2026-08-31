@@ -4,9 +4,10 @@
  * rejoin into the flavor's display name, and the badge is release metadata, not brand.
  *
  * Two variants, one per surface:
- * - `hero` renders the full "v0.9 beta" pill under the homepage wordmark.
- * - `header` renders only the stage word ("beta") as a micro-pill riding the cap height
- *   of the header wordmark, where the version number would be noise at that size.
+ * - `hero` renders the pill sized for the homepage wordmark; the call site raises it
+ *   into a superscript beside the h1 without joining the heading's layout flow.
+ * - `header` renders the same text as a micro-pill next to the header brand. It stays
+ *   visible on mobile after the wordmark hides, so the beta mark never disappears.
  *
  * A flavor without a `versionBadge` (Effect Index) renders nothing, so removal at 1.0 is
  * a one-line config change.
@@ -37,7 +38,7 @@ export function SiteVersionBadge({
         aria-hidden="true"
         className="theme-accent-heading ml-1.5 inline-flex items-center self-start rounded-full border border-current/35 px-1.5 pt-[2px] pb-[4px] font-display text-[10px] font-semibold uppercase leading-none tracking-widest"
       >
-        {badge.label}
+        {`${badge.version} ${badge.label}`}
       </span>
     );
   }

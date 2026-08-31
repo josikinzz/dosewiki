@@ -82,7 +82,7 @@ export function HomeExperience({
           <button
             type="button"
             onClick={() => showComingSoon("Home")}
-            className="group/brand flex h-11 w-11 items-center gap-2 p-0 text-left hover:bg-transparent xl:h-10 xl:w-auto xl:pl-0"
+            className="group/brand flex h-11 w-auto items-center gap-2 p-0 text-left hover:bg-transparent xl:h-10 xl:pl-0"
             aria-label={`${SITE_FLAVOR_CONFIG.name} home mockup`}
           >
             <span className="inline-flex items-center justify-center transition-transform duration-200 group-hover/brand:scale-105 group-focus-visible/brand:scale-105">
@@ -95,8 +95,8 @@ export function HomeExperience({
             </span>
             <span className="theme-text-primary hidden items-center text-2xl font-display font-bold tracking-tight transition-transform duration-200 group-hover/brand:scale-[1.04] group-focus-visible/brand:scale-[1.04] xl:inline-flex">
               <SiteWordmark />
-              <SiteVersionBadge variant="header" />
             </span>
+            <SiteVersionBadge variant="header" />
           </button>
 
           <div className="flex min-h-[44px] min-w-0 flex-1 items-center">
@@ -231,10 +231,15 @@ export function HomeExperience({
                 className="theme-home-logo theme-home-logo-main h-32 w-32 transition-[height,width,filter,transform] duration-300 ease-out sm:h-36 sm:w-36 md:h-44 md:w-44"
               />
             </span>
-            <h1 className="theme-home-wordmark theme-text-primary font-display text-[clamp(3.15rem,7vw,5.75rem)] font-semibold leading-none tracking-normal transition-[opacity,transform] duration-200">
+            <h1 className="theme-home-wordmark theme-text-primary relative font-display text-[clamp(3.15rem,7vw,5.75rem)] font-semibold leading-none tracking-normal transition-[opacity,transform] duration-200">
               <SiteWordmark />
+              {/* Superscript badge: absolutely positioned off the wordmark's end so it
+                  never joins the h1's layout flow — the heading stays exactly centered
+                  whether or not the flavor ships a badge. */}
+              <span className="absolute left-full top-[0.06em] ml-[0.14em]">
+                <SiteVersionBadge variant="hero" />
+              </span>
             </h1>
-            <SiteVersionBadge variant="hero" />
           </div>
 
           <p className="theme-home-intro theme-text-secondary mt-4 max-w-2xl text-balance text-base leading-snug transition-[opacity,transform,max-height,margin] duration-300 sm:text-lg md:text-xl">
