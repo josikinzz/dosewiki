@@ -1,3 +1,4 @@
+import { createHash } from "node:crypto";
 import { existsSync, mkdtempSync, readFileSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
@@ -5,11 +6,15 @@ import { describe, expect, it, vi } from "vitest";
 
 import {
   buildEightProfilePayload,
+  buildContributorProfileSnapshot,
+  buildExistingProfilePayload,
   acquireLedgerLock,
   createLedger,
   DEFAULT_DEPLOYMENT_RECEIPT_PATH,
   DEFAULT_PLAN_PATH,
   DEFAULT_PROJECTION_PATH,
+  runExistingProfileDryRunPhase,
+  runExistingProfileWritePhase,
   runProfileWritePhase,
   runUploadPhase,
   validateInputs,
@@ -47,6 +52,20 @@ async function completedUploadLedger() {
   return { inputs, ledger };
 }
 
+async function verifiedEightProfileLedger() {
+  const completed = await completedUploadLedger();
+  const payload = buildEightProfilePayload(
+    completed.inputs,
+    new Map(completed.ledger.uploads.map((row) => [row.key, row.storageId!])),
+  );
+  await runProfileWritePhase(completed.inputs, completed.ledger, {
+    writeProfiles: async () => createdResult(payload),
+    readProfiles: async () => exactReadback(payload),
+    persist: vi.fn(),
+  });
+  return completed;
+}
+
 function exactReadback(payload: ReturnType<typeof buildEightProfilePayload>) {
   return payload.entries.map((entry) => {
     if (entry.outcome !== "reviewed-new") throw new Error("test payload drifted");
@@ -81,6 +100,64 @@ function createdResult(payload: ReturnType<typeof buildEightProfilePayload>) {
       action: "created" as const,
     })),
   };
+}
+
+function existingCurrentRows(inputs: ReturnType<typeof realInputs>) {
+  return inputs.projection.existingProfiles.map((profile) => ({
+    _id: profile.profileId,
+    key: profile.key,
+    displayName: profile.displayName,
+    aliases: [],
+    ...(profile.avatarUrl ? { avatarUrl: profile.avatarUrl } : {}),
+    bio: "",
+    links: profile.existingLinks,
+  }));
+}
+
+function existingResult(
+  payload: ReturnType<typeof buildExistingProfilePayload>,
+  dryRun: boolean,
+) {
+  const rows = payload.entries.map((entry) => {
+    if (entry.outcome !== "existing-profile") throw new Error("test existing payload drifted");
+    const unchanged = JSON.stringify(entry.expected) === JSON.stringify(entry.profile);
+    return {
+      creatorName: entry.creatorName,
+      key: entry.profile.key,
+      profileId: entry.profileId,
+      action: unchanged ? "unchanged" as const : dryRun ? "would-update" as const : "updated" as const,
+    };
+  });
+  return {
+    operationId: payload.operationId,
+    dryRun,
+    created: 0,
+    updated: 3,
+    unchanged: 1,
+    skipped: 0,
+    blocked: 0,
+    rows,
+  };
+}
+
+function exactExistingReadback(payload: ReturnType<typeof buildExistingProfilePayload>) {
+  return payload.entries.map((entry) => {
+    if (entry.outcome !== "existing-profile") throw new Error("test existing payload drifted");
+    return {
+      _id: entry.profileId,
+      key: entry.profile.key,
+      displayName: entry.profile.displayName,
+      aliases: entry.profile.aliases,
+      ...(entry.profile.avatarStorageId
+        ? { avatarStorageId: entry.profile.avatarStorageId }
+        : {}),
+      ...(entry.profile.avatarR2Key ? { avatarR2Key: entry.profile.avatarR2Key } : {}),
+      ...(entry.profile.avatarUrl ? { avatarUrl: entry.profile.avatarUrl } : {}),
+      bio: entry.profile.bio,
+      ...(entry.profile.role ? { role: entry.profile.role } : {}),
+      links: entry.profile.links,
+    };
+  });
 }
 
 describe("Replication Index profile avatar uploader", () => {
@@ -380,5 +457,287 @@ describe("Replication Index profile avatar uploader", () => {
     expect(resumed.resumed).toBe(true);
     expect(writeProfiles).toHaveBeenCalledTimes(1);
     expect(readProfiles).toHaveBeenCalledTimes(1);
+  });
+
+  it("builds the exact four-profile CAS payload with five additions and the three-link cap", () => {
+    const inputs = realInputs();
+    const payload = buildExistingProfilePayload(inputs, existingCurrentRows(inputs), true);
+    expect(payload.dryRun).toBe(true);
+    expect(payload.entries).toHaveLength(4);
+    expect(payload.entries.every((entry) => entry.outcome === "existing-profile")).toBe(true);
+    const existingEntries = payload.entries.filter((entry) => entry.outcome === "existing-profile");
+    expect(existingEntries.map((entry) => entry.profileId).sort()).toEqual(
+      inputs.projection.existingProfiles.map((profile) => profile.profileId).sort(),
+    );
+    expect(existingEntries.reduce(
+      (count, entry) => count + entry.profile.links.length - entry.expected.links.length,
+      0,
+    )).toBe(5);
+    expect(existingEntries.every((entry) => entry.profile.links.length <= 3)).toBe(true);
+    const angus = existingEntries.find((entry) => entry.profile.key === "ANGUSLONG")!;
+    expect(angus.profile.links).toHaveLength(3);
+    expect(angus.profile.links.some((link) => link.url.includes("reddit.com"))).toBe(false);
+    const simon = existingEntries.find((entry) => entry.profile.key === "SIMONHAIDUK")!;
+    expect(simon.profile.links.every((link) => link.label.length <= 60)).toBe(true);
+  });
+
+  it("requires the verified eight-create ledger before recording the separate existing dry run", async () => {
+    const inputs = realInputs();
+    const unverified = createLedger(inputs);
+    const readProfiles = vi.fn();
+    const dryRunProfiles = vi.fn();
+    await expect(runExistingProfileDryRunPhase(inputs, unverified, {
+      readProfiles,
+      dryRunProfiles,
+      persist: vi.fn(),
+    })).rejects.toThrow(/original eight-profile create phase must be verified|All four digest-bound/);
+    expect(readProfiles).not.toHaveBeenCalled();
+    expect(dryRunProfiles).not.toHaveBeenCalled();
+
+    const completed = await verifiedEightProfileLedger();
+    delete completed.ledger.existingProfileDryRun;
+    delete completed.ledger.existingProfileWrite;
+    const originalCreateLedger = structuredClone({
+      uploads: completed.ledger.uploads,
+      profileDryRuns: completed.ledger.profileDryRuns,
+      profileWrite: completed.ledger.profileWrite,
+    });
+    const expectedPayload = buildExistingProfilePayload(
+      completed.inputs,
+      existingCurrentRows(completed.inputs),
+      true,
+    );
+    const persist = vi.fn();
+    const result = await runExistingProfileDryRunPhase(completed.inputs, completed.ledger, {
+      readProfiles: async (keys) => {
+        expect(keys).toEqual(["ANGUSLONG", "LARRYCARLSON", "SAMPERKINS", "SIMONHAIDUK"]);
+        return existingCurrentRows(completed.inputs);
+      },
+      dryRunProfiles: async (payload) => {
+        expect(payload.dryRun).toBe(true);
+        return existingResult(expectedPayload, true);
+      },
+      persist,
+      now: () => "2026-08-31T11:00:00.000Z",
+    });
+    expect(result.result).toMatchObject({ updated: 3, unchanged: 1, blocked: 0 });
+    expect(result.ledger.existingProfileDryRun?.payload.entries).toHaveLength(4);
+    expect(persist).toHaveBeenCalledTimes(1);
+    expect({
+      uploads: result.ledger.uploads,
+      profileDryRuns: result.ledger.profileDryRuns,
+      profileWrite: result.ledger.profileWrite,
+    }).toEqual(originalCreateLedger);
+  });
+
+  it("marks existing-profile write uncertain before one mutation and verifies exact readback", async () => {
+    const completed = await verifiedEightProfileLedger();
+    const dryRunPayload = buildExistingProfilePayload(
+      completed.inputs,
+      existingCurrentRows(completed.inputs),
+      true,
+    );
+    await runExistingProfileDryRunPhase(completed.inputs, completed.ledger, {
+      readProfiles: async () => existingCurrentRows(completed.inputs),
+      dryRunProfiles: async () => existingResult(dryRunPayload, true),
+      persist: vi.fn(),
+    });
+    const writePayload = { ...dryRunPayload, dryRun: false };
+    const originalCreateLedger = structuredClone({
+      uploads: completed.ledger.uploads,
+      profileDryRuns: completed.ledger.profileDryRuns,
+      profileWrite: completed.ledger.profileWrite,
+    });
+    const snapshots: string[] = [];
+    const writeProfiles = vi.fn(async (payload) => {
+      expect(payload.dryRun).toBe(false);
+      expect(JSON.parse(snapshots[snapshots.length - 1]!).existingProfileWrite.status)
+        .toBe("uncertain");
+      return existingResult(writePayload, false);
+    });
+    const readProfiles = vi.fn(async () => exactExistingReadback(writePayload));
+    await runExistingProfileWritePhase(completed.inputs, completed.ledger, {
+      writeProfiles,
+      readProfiles,
+      persist: (ledger) => snapshots.push(JSON.stringify(ledger)),
+      now: () => "2026-08-31T11:01:00.000Z",
+    });
+    expect(writeProfiles).toHaveBeenCalledTimes(1);
+    expect(completed.ledger.existingProfileWrite).toMatchObject({
+      status: "verified",
+      attempts: 1,
+      errorCode: null,
+    });
+    expect(completed.ledger.existingProfileWrite?.readback).toHaveLength(4);
+    expect({
+      uploads: completed.ledger.uploads,
+      profileDryRuns: completed.ledger.profileDryRuns,
+      profileWrite: completed.ledger.profileWrite,
+    }).toEqual(originalCreateLedger);
+    expect(snapshots.join("\n")).not.toContain("apiKey");
+  });
+
+  it("rejects a self-consistent ledger payload redirected away from the pinned projection", async () => {
+    const completed = await verifiedEightProfileLedger();
+    const dryRunPayload = buildExistingProfilePayload(
+      completed.inputs,
+      existingCurrentRows(completed.inputs),
+      true,
+    );
+    await runExistingProfileDryRunPhase(completed.inputs, completed.ledger, {
+      readProfiles: async () => existingCurrentRows(completed.inputs),
+      dryRunProfiles: async () => existingResult(dryRunPayload, true),
+      persist: vi.fn(),
+    });
+    const dryRun = completed.ledger.existingProfileDryRun!;
+    const angus = dryRun.payload.entries.find(
+      (entry) => entry.outcome === "existing-profile" && entry.profile.key === "ANGUSLONG",
+    );
+    if (!angus || angus.outcome !== "existing-profile") throw new Error("missing Angus test entry");
+    angus.profile.links[0] = { label: "redirected", url: "https://attacker.example/" };
+    dryRun.payloadSha256 = createHash("sha256")
+      .update(`${JSON.stringify(dryRun.payload)}\n`)
+      .digest("hex");
+    const writeProfiles = vi.fn();
+    await expect(runExistingProfileWritePhase(completed.inputs, completed.ledger, {
+      writeProfiles,
+      readProfiles: vi.fn(),
+      persist: vi.fn(),
+    })).rejects.toThrow(/payload links drifted/);
+    expect(writeProfiles).not.toHaveBeenCalled();
+  });
+
+  it("never retries an uncertain existing-profile mutation and recovers by exact readback", async () => {
+    const completed = await verifiedEightProfileLedger();
+    const dryRunPayload = buildExistingProfilePayload(
+      completed.inputs,
+      existingCurrentRows(completed.inputs),
+      true,
+    );
+    await runExistingProfileDryRunPhase(completed.inputs, completed.ledger, {
+      readProfiles: async () => existingCurrentRows(completed.inputs),
+      dryRunProfiles: async () => existingResult(dryRunPayload, true),
+      persist: vi.fn(),
+    });
+    const writePayload = { ...dryRunPayload, dryRun: false };
+    const writeProfiles = vi.fn(async () => { throw new Error("response lost"); });
+    await expect(runExistingProfileWritePhase(completed.inputs, completed.ledger, {
+      writeProfiles,
+      readProfiles: async () => [],
+      persist: vi.fn(),
+    })).rejects.toThrow(/remains uncertain/);
+    expect(writeProfiles).toHaveBeenCalledTimes(1);
+    await runExistingProfileWritePhase(completed.inputs, completed.ledger, {
+      writeProfiles,
+      readProfiles: async () => exactExistingReadback(writePayload),
+      persist: vi.fn(),
+    });
+    expect(writeProfiles).toHaveBeenCalledTimes(1);
+    expect(completed.ledger.existingProfileWrite).toMatchObject({
+      status: "verified",
+      result: null,
+    });
+  });
+
+  it("keeps existing-profile readback mismatch uncertain and makes verified resume a no-op", async () => {
+    const completed = await verifiedEightProfileLedger();
+    const dryRunPayload = buildExistingProfilePayload(
+      completed.inputs,
+      existingCurrentRows(completed.inputs),
+      true,
+    );
+    await runExistingProfileDryRunPhase(completed.inputs, completed.ledger, {
+      readProfiles: async () => existingCurrentRows(completed.inputs),
+      dryRunProfiles: async () => existingResult(dryRunPayload, true),
+      persist: vi.fn(),
+    });
+    const writePayload = { ...dryRunPayload, dryRun: false };
+    const mismatched = exactExistingReadback(writePayload);
+    mismatched[0] = { ...mismatched[0], aliases: ["drift"] };
+    const writeProfiles = vi.fn(async () => existingResult(writePayload, false));
+    await expect(runExistingProfileWritePhase(completed.inputs, completed.ledger, {
+      writeProfiles,
+      readProfiles: async () => mismatched,
+      persist: vi.fn(),
+    })).rejects.toThrow(/remains uncertain/);
+    expect(completed.ledger.existingProfileWrite?.status).toBe("uncertain");
+
+    await runExistingProfileWritePhase(completed.inputs, completed.ledger, {
+      writeProfiles,
+      readProfiles: async () => exactExistingReadback(writePayload),
+      persist: vi.fn(),
+    });
+    const readProfiles = vi.fn();
+    const resumed = await runExistingProfileWritePhase(completed.inputs, completed.ledger, {
+      writeProfiles,
+      readProfiles,
+      persist: vi.fn(),
+    });
+    expect(resumed.resumed).toBe(true);
+    expect(writeProfiles).toHaveBeenCalledTimes(1);
+    expect(readProfiles).not.toHaveBeenCalled();
+  });
+
+  it("builds a nonsecret exact 160-profile snapshot only after both rollout phases verify", async () => {
+    const completed = await verifiedEightProfileLedger();
+    expect(() => buildContributorProfileSnapshot(completed.inputs, completed.ledger, [], []))
+      .toThrow(/Existing-profile rollout must be verified/);
+    const dryRunPayload = buildExistingProfilePayload(
+      completed.inputs,
+      existingCurrentRows(completed.inputs),
+      true,
+    );
+    await runExistingProfileDryRunPhase(completed.inputs, completed.ledger, {
+      readProfiles: async () => existingCurrentRows(completed.inputs),
+      dryRunProfiles: async () => existingResult(dryRunPayload, true),
+      persist: vi.fn(),
+    });
+    const writePayload = { ...dryRunPayload, dryRun: false };
+    await runExistingProfileWritePhase(completed.inputs, completed.ledger, {
+      writeProfiles: async () => existingResult(writePayload, false),
+      readProfiles: async () => exactExistingReadback(writePayload),
+      persist: vi.fn(),
+    });
+    const campaignRows = [
+      ...completed.ledger.profileWrite.readback!,
+      ...completed.ledger.existingProfileWrite!.readback!,
+    ].map((row) => ({
+      _id: row.profileId,
+      key: row.key,
+      displayName: row.displayName,
+      aliases: row.aliases,
+      ...(row.avatarStorageId ? { avatarStorageId: row.avatarStorageId } : {}),
+      ...(row.avatarR2Key ? { avatarR2Key: row.avatarR2Key } : {}),
+      ...(row.avatarUrl ? { avatarUrl: row.avatarUrl } : {}),
+      bio: row.bio,
+      ...(row.role ? { role: row.role } : {}),
+      links: row.links,
+      membershipEmail: "must-not-be-preserved@example.invalid",
+    }));
+    const fillerRows = Array.from({ length: 148 }, (_, index) => ({
+      _id: `profile-filler-${index}`,
+      key: `PROFILE-${String(index).padStart(3, "0")}`,
+      displayName: `Profile ${index}`,
+      aliases: [],
+      bio: "",
+      links: [],
+      membershipEmail: "must-not-be-preserved@example.invalid",
+    }));
+    const rows = [...campaignRows, ...fillerRows];
+    const keys = rows.map((row) => row.key);
+    const snapshot = buildContributorProfileSnapshot(
+      completed.inputs,
+      completed.ledger,
+      keys,
+      rows,
+      "2026-08-31T11:02:00.000Z",
+    );
+    expect(snapshot.profileCount).toBe(160);
+    expect(snapshot.profiles).toHaveLength(160);
+    expect(completed.inputs.projection.createProfiles.every((profile) =>
+      snapshot.profiles.some((row) => row.key === profile.key))).toBe(true);
+    expect(snapshot.payloadSha256).toMatch(/^[a-f0-9]{64}$/);
+    expect(JSON.stringify(snapshot)).not.toContain("membershipEmail");
+    expect(JSON.stringify(snapshot)).not.toContain("must-not-be-preserved");
   });
 });

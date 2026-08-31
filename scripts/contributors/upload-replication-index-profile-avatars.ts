@@ -1,13 +1,15 @@
 #!/usr/bin/env node
 /**
- * Guarded three-stage publisher for the eight reviewed Replication Index profiles.
+ * Guarded publisher for reviewed Replication Index contributor profiles.
  *
  * Default mode is a zero-network dry run. Production uploads require a canary
  * command followed by a separate remaining-files command. Both commands write
  * a resumable, nonsecret ledger atomically after every state transition. A
  * third, separately confirmed profiles phase may call the contributor import
  * mutation once, then requires an exact eight-profile readback before the
- * ledger can become verified.
+ * ledger can become verified. Two further phases dry-run and write the four
+ * exact-ID existing-profile CAS updates, followed by a read-only 160-profile
+ * production snapshot for downstream planning.
  */
 import { createHash } from "node:crypto";
 import {
@@ -54,6 +56,18 @@ export const APPLICATION_CONTRACT = {
 export const APPLICATION_CONTRACT_SHA256 = sha256(
   `${JSON.stringify(APPLICATION_CONTRACT)}\n`,
 );
+export const EXISTING_PROFILE_APPLICATION_CONTRACT = {
+  deployedCommit: "6970b83c",
+  mutation: "contributorProfiles.importReviewedProfilePlan",
+  readbackQuery: "contributorProfiles.getForBulkImport",
+  expectedProfiles: 4,
+  expectedUpdates: 3,
+  expectedUnchanged: 1,
+  maxLinks: 3,
+} as const;
+export const EXISTING_PROFILE_APPLICATION_CONTRACT_SHA256 = sha256(
+  `${JSON.stringify(EXISTING_PROFILE_APPLICATION_CONTRACT)}\n`,
+);
 
 const REPO_ROOT = path.resolve(import.meta.dirname, "../..");
 const MEDIA_REVIEW_ROOT = path.resolve(REPO_ROOT, "../../Dose Wiki Media Review");
@@ -77,6 +91,10 @@ export const DEFAULT_DEPLOYMENT_RECEIPT_PATH = path.join(
 export const DEFAULT_LEDGER_PATH = path.join(
   CAMPAIGN_ROOT,
   "profile-avatar-staging-2026-08-31/convex-storage-upload-ledger.json",
+);
+export const DEFAULT_PROFILE_SNAPSHOT_PATH = path.join(
+  CAMPAIGN_ROOT,
+  "contributor-profiles-post-existing-rollout-snapshot.json",
 );
 
 type JsonObject = Record<string, unknown>;
@@ -104,6 +122,7 @@ type UploadPlan = {
 };
 
 type ProjectionLink = { kind: string; url: string; notImportedReason?: string };
+type StoredLink = { label: string; url: string };
 type CreateProjection = {
   operation: string;
   key: string;
@@ -113,11 +132,34 @@ type CreateProjection = {
   links: ProjectionLink[];
   evidenceOnlyLinks: ProjectionLink[];
 };
+type ExistingProjection = {
+  operation: "update-existing-links" | "reuse-existing";
+  profileId: string;
+  key: string;
+  displayName: string;
+  avatarUrl?: string | null;
+  existingLinks: StoredLink[];
+  addLinks: ProjectionLink[];
+  evidenceOnlyLinks: ProjectionLink[];
+};
 type ContributorProjection = {
   artifactType: string;
   campaignId: string;
   counts: { profileLinkLimit: number };
+  existingProfiles: ExistingProjection[];
   createProfiles: CreateProjection[];
+};
+type LiveContributorProfileSnapshot = {
+  _id: Id<"contributorProfiles">;
+  key: string;
+  displayName: string;
+  aliases: string[];
+  avatarStorageId?: Id<"_storage">;
+  avatarR2Key?: string;
+  avatarUrl?: string;
+  bio: string;
+  role?: string;
+  links: StoredLink[];
 };
 
 export type ValidatedUpload = {
@@ -197,6 +239,41 @@ export type ProfileWriteState = {
   errorCode: string | null;
 };
 
+export type ExistingProfileDryRun = {
+  at: string;
+  applicationContractSha256: string;
+  payloadSha256: string;
+  payload: Omit<ReviewedProfileImportArgs, "apiKey">;
+  result: ProfileImportResult;
+};
+
+export type ExistingProfileWriteState = {
+  status: "pending" | "uncertain" | "verified";
+  attempts: number;
+  applicationContractSha256: string;
+  payloadSha256: string | null;
+  requestedAt: string | null;
+  verifiedAt: string | null;
+  result: ProfileImportResult | null;
+  readback: VerifiedProfileReadbackRow[] | null;
+  errorCode: string | null;
+};
+
+export type ContributorProfileSnapshot = {
+  schemaVersion: 1;
+  artifactType: "replication-index-contributor-profile-production-snapshot";
+  campaignId: string;
+  capturedAt: string;
+  targetDeployment: typeof DEPLOYMENT;
+  targetUrl: typeof TARGET_URL;
+  projectionSha256: string;
+  deployedCommit: typeof APPLICATION_CONTRACT.deployedCommit;
+  applicationContractSha256: string;
+  profileCount: 160;
+  profiles: VerifiedProfileReadbackRow[];
+  payloadSha256: string;
+};
+
 export type UploadLedgerRow = ValidatedUpload & {
   phase: "canary" | "remaining";
   status: "pending" | "uploading" | "uploaded" | "uncertain";
@@ -236,6 +313,8 @@ export type AvatarUploadLedger = {
     };
   }>;
   profileWrite: ProfileWriteState;
+  existingProfileDryRun?: ExistingProfileDryRun | null;
+  existingProfileWrite?: ExistingProfileWriteState;
 };
 
 function sha256(bytes: string | Buffer) {
@@ -302,9 +381,10 @@ export function validateInputs({
     || plan.counts.uploadPending !== 4
     || plan.counts.initialsFallback !== 4
     || projection.createProfiles.length !== 8
+    || projection.existingProfiles.length !== 4
     || projection.counts.profileLinkLimit !== 3
   ) {
-    throw new Error("Expected exactly eight reviewed profiles, four uploads, and four initials fallbacks.");
+    throw new Error("Expected exactly eight reviewed creates, four existing profiles, four uploads, and four initials fallbacks.");
   }
   assertExactKeys(
     plan.records.map((record) => record.key),
@@ -318,6 +398,24 @@ export function validateInputs({
     if (profile.links.length > 3) throw new Error(`Profile ${profile.key} exceeds the three-link limit.`);
     if (profile.evidenceOnlyLinks.some((link) => !link.notImportedReason)) {
       throw new Error(`Profile ${profile.key} has an evidence-only link without a reason.`);
+    }
+  }
+  if (
+    new Set(projection.existingProfiles.map((profile) => profile.profileId)).size !== 4
+    || new Set(projection.existingProfiles.map((profile) => profile.key)).size !== 4
+    || projection.existingProfiles.reduce((count, profile) => count + profile.addLinks.length, 0) !== 5
+  ) {
+    throw new Error("Existing contributor scope must pin four profile IDs and five reviewed link additions.");
+  }
+  for (const profile of projection.existingProfiles) {
+    if (!["update-existing-links", "reuse-existing"].includes(profile.operation)) {
+      throw new Error(`Unexpected existing-profile operation for ${profile.key}.`);
+    }
+    if (profile.existingLinks.length + profile.addLinks.length > 3) {
+      throw new Error(`Existing profile ${profile.key} exceeds the three-link limit.`);
+    }
+    if (profile.evidenceOnlyLinks.some((link) => !link.notImportedReason)) {
+      throw new Error(`Existing profile ${profile.key} has an evidence-only link without a reason.`);
     }
   }
 
@@ -418,6 +516,172 @@ export function buildEightProfilePayload(
   };
 }
 
+function liveExistingProfiles(inputs: ValidatedInputs, value: unknown): LiveContributorProfileSnapshot[] {
+  if (!Array.isArray(value) || value.length !== 4) {
+    throw new Error("Existing-profile preflight must read exactly four profiles.");
+  }
+  const projectedById = new Map(inputs.projection.existingProfiles.map((profile) => [profile.profileId, profile]));
+  const rows = value as Array<Record<string, unknown>>;
+  assertExactKeys(
+    rows.map((row) => String(row._id ?? "")),
+    inputs.projection.existingProfiles.map((profile) => profile.profileId),
+    "Existing profile IDs",
+  );
+  return rows.map((row) => {
+    const profileId = typeof row._id === "string" ? row._id : "";
+    const projected = projectedById.get(profileId);
+    const aliases = Array.isArray(row.aliases) && row.aliases.every((alias) => typeof alias === "string")
+      ? row.aliases as string[]
+      : [];
+    const links = Array.isArray(row.links) && row.links.every((link) => (
+      link && typeof link === "object"
+      && typeof (link as Record<string, unknown>).label === "string"
+      && typeof (link as Record<string, unknown>).url === "string"
+    ))
+      ? row.links as Array<{ label: string; url: string }>
+      : [];
+    if (
+      !projected
+      || row.key !== projected.key
+      || row.displayName !== projected.displayName
+      || JSON.stringify(links) !== JSON.stringify(projected.existingLinks)
+      || (typeof row.avatarUrl === "string" ? row.avatarUrl : null) !== (projected.avatarUrl ?? null)
+      || (row.avatarStorageId !== undefined && typeof row.avatarStorageId !== "string")
+      || (row.avatarR2Key !== undefined && typeof row.avatarR2Key !== "string")
+      || (row.avatarUrl !== undefined && typeof row.avatarUrl !== "string")
+      || (row.bio !== undefined && typeof row.bio !== "string")
+      || (row.role !== undefined && typeof row.role !== "string")
+    ) {
+      throw new Error(`Existing profile preflight drifted for ${projected?.key ?? profileId}.`);
+    }
+    return {
+      _id: profileId as Id<"contributorProfiles">,
+      key: projected.key,
+      displayName: projected.displayName,
+      aliases,
+      ...(typeof row.avatarStorageId === "string"
+        ? { avatarStorageId: row.avatarStorageId as Id<"_storage"> }
+        : {}),
+      ...(typeof row.avatarR2Key === "string" ? { avatarR2Key: row.avatarR2Key } : {}),
+      ...(typeof row.avatarUrl === "string" ? { avatarUrl: row.avatarUrl } : {}),
+      bio: typeof row.bio === "string" ? row.bio : "",
+      ...(typeof row.role === "string" ? { role: row.role } : {}),
+      links,
+    };
+  });
+}
+
+function normalizeStoredLink(link: { label: string; url: string }) {
+  const label = link.label.trim().slice(0, 60);
+  const url = new URL(link.url);
+  if (!label || url.protocol !== "https:") throw new Error(`Invalid existing profile link: ${link.url}`);
+  return { label, url: url.toString() };
+}
+
+export function buildExistingProfilePayload(
+  inputs: ValidatedInputs,
+  currentProfiles: unknown,
+  dryRun: boolean,
+): Omit<ReviewedProfileImportArgs, "apiKey"> {
+  const liveProfiles = liveExistingProfiles(inputs, currentProfiles);
+  const liveById = new Map(liveProfiles.map((profile) => [profile._id, profile]));
+  const entries: ReviewedProfileImportArgs["entries"] = inputs.projection.existingProfiles.map((projected) => {
+    const live = liveById.get(projected.profileId as Id<"contributorProfiles">);
+    if (!live) throw new Error(`Existing profile ${projected.key} is missing from the exact-ID preflight.`);
+    const avatarCount = [live.avatarStorageId, live.avatarR2Key, live.avatarUrl].filter(Boolean).length;
+    if (avatarCount > 1) throw new Error(`Existing profile ${projected.key} has multiple avatar references.`);
+    const expected = {
+      key: live.key,
+      displayName: live.displayName,
+      aliases: live.aliases,
+      avatarStorageId: live.avatarStorageId ?? null,
+      avatarR2Key: live.avatarR2Key ?? null,
+      avatarUrl: live.avatarUrl ?? null,
+      bio: live.bio,
+      role: live.role ?? null,
+      links: live.links.map(normalizeStoredLink),
+    };
+    const desiredLinks = [
+      ...expected.links,
+      ...projected.addLinks.map((link) => normalizeStoredLink({ label: link.kind, url: link.url })),
+    ];
+    if (desiredLinks.length > 3) {
+      throw new Error(`Existing profile ${projected.key} exceeds the three-link limit.`);
+    }
+    return {
+      outcome: "existing-profile" as const,
+      creatorName: projected.displayName,
+      creatorKind: "person" as const,
+      profileId: projected.profileId as Id<"contributorProfiles">,
+      expected,
+      profile: { ...expected, links: desiredLinks },
+    };
+  });
+  const payload = {
+    operationId: inputs.campaignId,
+    dryRun,
+    entries,
+  };
+  assertExistingPayloadMatchesPinnedProjection(inputs, payload);
+  return payload;
+}
+
+export function assertExistingPayloadMatchesPinnedProjection(
+  inputs: ValidatedInputs,
+  payload: Omit<ReviewedProfileImportArgs, "apiKey">,
+) {
+  if (payload.operationId !== inputs.campaignId || payload.entries.length !== 4) {
+    throw new Error("Existing-profile payload is not bound to the pinned campaign scope.");
+  }
+  const entries = existingProfileEntries(payload);
+  const entriesById = new Map(entries.map((entry) => [entry.profileId, entry]));
+  assertExactKeys(
+    entries.map((entry) => entry.profileId),
+    inputs.projection.existingProfiles.map((profile) => profile.profileId),
+    "Existing-profile payload IDs",
+  );
+  let additionCount = 0;
+  let changedProfileCount = 0;
+  for (const projected of inputs.projection.existingProfiles) {
+    const entry = entriesById.get(projected.profileId as Id<"contributorProfiles">);
+    if (
+      !entry
+      || entry.creatorName !== projected.displayName
+      || entry.creatorKind !== "person"
+      || entry.expected.key !== projected.key
+      || entry.expected.displayName !== projected.displayName
+      || entry.profile.key !== projected.key
+      || entry.profile.displayName !== projected.displayName
+      || entry.expected.avatarUrl !== (projected.avatarUrl ?? null)
+    ) {
+      throw new Error(`Existing-profile payload target drifted for ${projected.key}.`);
+    }
+    const expectedLinks = projected.existingLinks.map(normalizeStoredLink);
+    const approvedAdditions = projected.addLinks.map((link) => normalizeStoredLink({
+      label: link.kind,
+      url: link.url,
+    }));
+    const desiredLinks = [...expectedLinks, ...approvedAdditions];
+    if (
+      JSON.stringify(entry.expected.links) !== JSON.stringify(expectedLinks)
+      || JSON.stringify(entry.profile.links) !== JSON.stringify(desiredLinks)
+      || desiredLinks.length > 3
+    ) {
+      throw new Error(`Existing-profile payload links drifted for ${projected.key}.`);
+    }
+    const { links: _expectedLinks, ...expectedNonLinks } = entry.expected;
+    const { links: _desiredLinks, ...desiredNonLinks } = entry.profile;
+    if (JSON.stringify(expectedNonLinks) !== JSON.stringify(desiredNonLinks)) {
+      throw new Error(`Existing-profile payload changed non-link fields for ${projected.key}.`);
+    }
+    additionCount += approvedAdditions.length;
+    if (approvedAdditions.length > 0) changedProfileCount += 1;
+  }
+  if (additionCount !== 5 || changedProfileCount !== 3) {
+    throw new Error("Existing-profile payload lost the pinned five additions across three profiles.");
+  }
+}
+
 export function createLedger(inputs: ValidatedInputs, now = new Date().toISOString()): AvatarUploadLedger {
   return {
     schemaVersion: 1,
@@ -455,6 +719,33 @@ export function createLedger(inputs: ValidatedInputs, now = new Date().toISOStri
       readback: null,
       errorCode: null,
     },
+    existingProfileDryRun: null,
+    existingProfileWrite: createPendingExistingProfileWriteState(),
+  };
+}
+
+function createPendingExistingProfileWriteState(): ExistingProfileWriteState {
+  return {
+    status: "pending",
+    attempts: 0,
+    applicationContractSha256: EXISTING_PROFILE_APPLICATION_CONTRACT_SHA256,
+    payloadSha256: null,
+    requestedAt: null,
+    verifiedAt: null,
+    result: null,
+    readback: null,
+    errorCode: null,
+  };
+}
+
+function ensureExistingProfileLedgerState(ledger: AvatarUploadLedger) {
+  if (ledger.existingProfileDryRun === undefined) ledger.existingProfileDryRun = null;
+  if (ledger.existingProfileWrite === undefined) {
+    ledger.existingProfileWrite = createPendingExistingProfileWriteState();
+  }
+  return ledger as AvatarUploadLedger & {
+    existingProfileDryRun: ExistingProfileDryRun | null;
+    existingProfileWrite: ExistingProfileWriteState;
   };
 }
 
@@ -557,6 +848,50 @@ export function validateLedger(ledger: AvatarUploadLedger, inputs: ValidatedInpu
     ))
   ) {
     throw new Error("Avatar upload ledger has an invalid profile-write state.");
+  }
+  const existingDryRun = ledger.existingProfileDryRun;
+  if (existingDryRun !== undefined && existingDryRun !== null) {
+    assertExistingPayloadMatchesPinnedProjection(inputs, existingDryRun.payload);
+    if (
+      existingDryRun.applicationContractSha256 !== EXISTING_PROFILE_APPLICATION_CONTRACT_SHA256
+      || existingDryRun.payload.dryRun !== true
+      || existingDryRun.payload.operationId !== inputs.campaignId
+      || existingDryRun.payloadSha256 !== profilePayloadDigest(existingDryRun.payload)
+      || existingDryRun.result.dryRun !== true
+      || existingDryRun.result.operationId !== inputs.campaignId
+      || !importResultProvesExistingDryRun(existingDryRun.result, existingDryRun.payload)
+    ) {
+      throw new Error("Avatar upload ledger has an invalid existing-profile dry run.");
+    }
+  }
+  const existingWrite = ledger.existingProfileWrite;
+  if (existingWrite !== undefined && (
+    existingWrite.applicationContractSha256 !== EXISTING_PROFILE_APPLICATION_CONTRACT_SHA256
+    || !["pending", "uncertain", "verified"].includes(existingWrite.status)
+    || !Number.isInteger(existingWrite.attempts)
+    || existingWrite.attempts < 0
+    || (existingWrite.status === "pending" && (
+      existingWrite.attempts !== 0
+      || existingWrite.payloadSha256 !== null
+      || existingWrite.requestedAt !== null
+      || existingWrite.verifiedAt !== null
+      || existingWrite.result !== null
+      || existingWrite.readback !== null
+      || existingWrite.errorCode !== null
+    ))
+    || (existingWrite.status !== "pending" && (
+      existingWrite.attempts !== 1
+      || !existingWrite.payloadSha256
+      || !existingWrite.requestedAt
+      || !existingDryRun
+    ))
+    || (existingWrite.status === "verified" && (
+      !existingWrite.verifiedAt
+      || !existingWrite.readback
+      || existingWrite.errorCode !== null
+    ))
+  )) {
+    throw new Error("Avatar upload ledger has an invalid existing-profile write state.");
   }
   return ledger;
 }
@@ -719,13 +1054,17 @@ function profilePayloadDigest(payload: Omit<ReviewedProfileImportArgs, "apiKey">
   return sha256(`${JSON.stringify(payload)}\n`);
 }
 
-function sanitizeImportResult(value: unknown, operationId: string): ProfileImportResult {
+function sanitizeImportResult(
+  value: unknown,
+  operationId: string,
+  expectedDryRun: boolean,
+): ProfileImportResult {
   if (!value || typeof value !== "object") throw new Error("invalid-profile-import-result");
   const source = value as Record<string, unknown>;
   const countNames = ["created", "updated", "unchanged", "skipped", "blocked"] as const;
   if (
     source.operationId !== operationId
-    || source.dryRun !== false
+    || source.dryRun !== expectedDryRun
     || !countNames.every((name) => Number.isInteger(source[name]) && Number(source[name]) >= 0)
     || !Array.isArray(source.rows)
   ) {
@@ -764,7 +1103,7 @@ function sanitizeImportResult(value: unknown, operationId: string): ProfileImpor
   });
   return {
     operationId,
-    dryRun: false,
+    dryRun: expectedDryRun,
     created: Number(source.created),
     updated: Number(source.updated),
     unchanged: Number(source.unchanged),
@@ -780,6 +1119,94 @@ function expectedProfileStates(payload: Omit<ReviewedProfileImportArgs, "apiKey"
       throw new Error("Profile application payload lost reviewed-new expectedAbsent semantics.");
     }
     return entry.profile;
+  });
+}
+
+function existingProfileEntries(payload: Omit<ReviewedProfileImportArgs, "apiKey">) {
+  const entries = payload.entries.map((entry) => {
+    if (entry.outcome !== "existing-profile") {
+      throw new Error("Existing-profile payload contains a non-existing-profile entry.");
+    }
+    return entry;
+  });
+  if (entries.length !== 4) throw new Error("Existing-profile payload must contain exactly four entries.");
+  return entries;
+}
+
+function importResultProvesExistingOperation(
+  result: ProfileImportResult,
+  payload: Omit<ReviewedProfileImportArgs, "apiKey">,
+  dryRun: boolean,
+) {
+  const entries = existingProfileEntries(payload);
+  if (
+    result.dryRun !== dryRun
+    || result.created !== 0
+    || result.updated !== 3
+    || result.unchanged !== 1
+    || result.skipped !== 0
+    || result.blocked !== 0
+    || result.rows.length !== 4
+  ) {
+    return false;
+  }
+  const rowsByKey = new Map(result.rows.map((row) => [row.key, row]));
+  if (rowsByKey.size !== 4) return false;
+  return entries.every((entry) => {
+    const row = rowsByKey.get(entry.profile.key);
+    const unchanged = JSON.stringify(entry.expected) === JSON.stringify(entry.profile);
+    const expectedAction = unchanged ? "unchanged" : dryRun ? "would-update" : "updated";
+    return row?.creatorName === entry.creatorName
+      && row.profileId === entry.profileId
+      && row.action === expectedAction;
+  });
+}
+
+function importResultProvesExistingDryRun(
+  result: ProfileImportResult,
+  payload: Omit<ReviewedProfileImportArgs, "apiKey">,
+) {
+  return importResultProvesExistingOperation(result, payload, true);
+}
+
+export function verifyExistingProfileReadback(
+  payload: Omit<ReviewedProfileImportArgs, "apiKey">,
+  value: unknown,
+): VerifiedProfileReadbackRow[] {
+  if (!Array.isArray(value)) throw new Error("Existing-profile readback did not return an array.");
+  const entries = existingProfileEntries(payload);
+  if (value.length !== entries.length) {
+    throw new Error(`Existing-profile readback expected ${entries.length} rows; received ${value.length}.`);
+  }
+  const rawRows = value as ProfileReadbackRow[];
+  assertExactKeys(
+    rawRows.map((row) => row?.key),
+    entries.map((entry) => entry.profile.key),
+    "Existing-profile readback",
+  );
+  const rowsByKey = new Map(rawRows.map((row) => [row.key, row]));
+  if (rowsByKey.size !== entries.length) throw new Error("Existing-profile readback repeats a profile key.");
+  return entries.map((entry) => {
+    const profile = entry.profile;
+    const row = rowsByKey.get(profile.key);
+    if (!row || row._id !== entry.profileId) {
+      throw new Error(`Existing-profile readback ID mismatch for ${profile.key}.`);
+    }
+    const actualState = {
+      key: row.key,
+      displayName: row.displayName,
+      aliases: row.aliases ?? [],
+      avatarStorageId: row.avatarStorageId ?? null,
+      avatarR2Key: row.avatarR2Key ?? null,
+      avatarUrl: row.avatarUrl ?? null,
+      bio: row.bio ?? "",
+      role: row.role ?? null,
+      links: row.links ?? [],
+    };
+    if (JSON.stringify(actualState) !== JSON.stringify(profile)) {
+      throw new Error(`Existing-profile readback mismatch for ${profile.key}.`);
+    }
+    return { profileId: row._id, ...actualState };
   });
 }
 
@@ -916,7 +1343,11 @@ export async function runProfileWritePhase(
     ledger.updatedAt = now();
     dependencies.persist(ledger);
     try {
-      mutationResult = sanitizeImportResult(await dependencies.writeProfiles(payload), inputs.campaignId);
+      mutationResult = sanitizeImportResult(
+        await dependencies.writeProfiles(payload),
+        inputs.campaignId,
+        false,
+      );
       ledger.profileWrite.result = mutationResult;
       ledger.updatedAt = now();
       dependencies.persist(ledger);
@@ -966,6 +1397,304 @@ export async function runProfileWritePhase(
   return { ledger, payload, resumed: false as const };
 }
 
+function requireVerifiedEightProfileLedger(inputs: ValidatedInputs, ledger: AvatarUploadLedger) {
+  const payload = requireProfileWriteGate(inputs, ledger);
+  if (
+    ledger.profileWrite.status !== "verified"
+    || ledger.profileWrite.payloadSha256 !== profilePayloadDigest(payload)
+  ) {
+    throw new Error("The original eight-profile create phase must be verified before existing profiles.");
+  }
+  verifyLedgeredProfileReadback(payload, ledger.profileWrite.readback);
+}
+
+type ExistingProfileDryRunDependencies = {
+  readProfiles: (keys: string[]) => Promise<unknown>;
+  dryRunProfiles: (payload: Omit<ReviewedProfileImportArgs, "apiKey">) => Promise<unknown>;
+  persist: (ledger: AvatarUploadLedger) => void;
+  now?: () => string;
+};
+
+export async function runExistingProfileDryRunPhase(
+  inputs: ValidatedInputs,
+  ledger: AvatarUploadLedger,
+  dependencies: ExistingProfileDryRunDependencies,
+) {
+  validateLedger(ledger, inputs);
+  requireVerifiedEightProfileLedger(inputs, ledger);
+  const extendedLedger = ensureExistingProfileLedgerState(ledger);
+  if (extendedLedger.existingProfileWrite.status === "verified") {
+    return { ledger: extendedLedger, resumed: true as const };
+  }
+  if (extendedLedger.existingProfileWrite.status === "uncertain") {
+    throw new Error("Existing-profile write is uncertain; the dry run cannot replace its CAS contract.");
+  }
+  if (extendedLedger.existingProfileDryRun) {
+    return {
+      ledger: extendedLedger,
+      payload: extendedLedger.existingProfileDryRun.payload,
+      result: extendedLedger.existingProfileDryRun.result,
+      resumed: true as const,
+    };
+  }
+
+  const keys = inputs.projection.existingProfiles.map((profile) => profile.key);
+  const payload = buildExistingProfilePayload(
+    inputs,
+    await dependencies.readProfiles(keys),
+    true,
+  );
+  const result = sanitizeImportResult(
+    await dependencies.dryRunProfiles(payload),
+    inputs.campaignId,
+    true,
+  );
+  if (!importResultProvesExistingDryRun(result, payload)) {
+    throw new Error("Four-profile Convex dry run did not prove the exact three-update/one-unchanged CAS plan.");
+  }
+  const now = dependencies.now ?? (() => new Date().toISOString());
+  extendedLedger.existingProfileDryRun = {
+    at: now(),
+    applicationContractSha256: EXISTING_PROFILE_APPLICATION_CONTRACT_SHA256,
+    payloadSha256: profilePayloadDigest(payload),
+    payload,
+    result,
+  };
+  extendedLedger.updatedAt = now();
+  dependencies.persist(extendedLedger);
+  return { ledger: extendedLedger, payload, result, resumed: false as const };
+}
+
+type ExistingProfileWriteDependencies = {
+  writeProfiles: (payload: Omit<ReviewedProfileImportArgs, "apiKey">) => Promise<unknown>;
+  readProfiles: (keys: string[]) => Promise<unknown>;
+  persist: (ledger: AvatarUploadLedger) => void;
+  now?: () => string;
+};
+
+function verifyLedgeredExistingProfileReadback(
+  payload: Omit<ReviewedProfileImportArgs, "apiKey">,
+  rows: VerifiedProfileReadbackRow[] | null,
+) {
+  if (!rows) throw new Error("Verified existing-profile ledger is missing its readback.");
+  return verifyExistingProfileReadback(
+    payload,
+    rows.map(({ profileId, ...row }) => ({ _id: profileId, ...row })),
+  );
+}
+
+export async function runExistingProfileWritePhase(
+  inputs: ValidatedInputs,
+  ledger: AvatarUploadLedger,
+  dependencies: ExistingProfileWriteDependencies,
+) {
+  validateLedger(ledger, inputs);
+  requireVerifiedEightProfileLedger(inputs, ledger);
+  const extendedLedger = ensureExistingProfileLedgerState(ledger);
+  const dryRun = extendedLedger.existingProfileDryRun;
+  if (!dryRun || !importResultProvesExistingDryRun(dryRun.result, dryRun.payload)) {
+    throw new Error("A successful existing-profile dry run must be ledgered before its write phase.");
+  }
+  if (
+    dryRun.applicationContractSha256 !== EXISTING_PROFILE_APPLICATION_CONTRACT_SHA256
+    || dryRun.payloadSha256 !== profilePayloadDigest(dryRun.payload)
+  ) {
+    throw new Error("Existing-profile dry-run contract is stale.");
+  }
+  assertExistingPayloadMatchesPinnedProjection(inputs, dryRun.payload);
+  const payload = { ...dryRun.payload, dryRun: false };
+  assertExistingPayloadMatchesPinnedProjection(inputs, payload);
+  const payloadSha256 = profilePayloadDigest(payload);
+  const now = dependencies.now ?? (() => new Date().toISOString());
+
+  if (extendedLedger.existingProfileWrite.status === "verified") {
+    if (extendedLedger.existingProfileWrite.payloadSha256 !== payloadSha256) {
+      throw new Error("Verified existing-profile payload no longer matches the pinned contract.");
+    }
+    verifyLedgeredExistingProfileReadback(payload, extendedLedger.existingProfileWrite.readback);
+    return { ledger: extendedLedger, payload, resumed: true as const };
+  }
+
+  let mutationResult = extendedLedger.existingProfileWrite.result;
+  if (extendedLedger.existingProfileWrite.status === "pending") {
+    extendedLedger.existingProfileWrite = {
+      status: "uncertain",
+      attempts: 1,
+      applicationContractSha256: EXISTING_PROFILE_APPLICATION_CONTRACT_SHA256,
+      payloadSha256,
+      requestedAt: now(),
+      verifiedAt: null,
+      result: null,
+      readback: null,
+      errorCode: "existing-profile-write-outcome-uncertain",
+    };
+    extendedLedger.updatedAt = now();
+    dependencies.persist(extendedLedger);
+    try {
+      mutationResult = sanitizeImportResult(
+        await dependencies.writeProfiles(payload),
+        inputs.campaignId,
+        false,
+      );
+      extendedLedger.existingProfileWrite.result = mutationResult;
+      extendedLedger.updatedAt = now();
+      dependencies.persist(extendedLedger);
+    } catch {
+      // The transactional mutation may have committed before its response was
+      // lost. Never retry; exact readback is the sole recovery mechanism.
+      mutationResult = null;
+    }
+  } else if (extendedLedger.existingProfileWrite.payloadSha256 !== payloadSha256) {
+    throw new Error("Uncertain existing-profile payload no longer matches the pinned contract.");
+  }
+
+  const keys = existingProfileEntries(payload).map((entry) => entry.profile.key);
+  let readback: VerifiedProfileReadbackRow[];
+  try {
+    readback = verifyExistingProfileReadback(payload, await dependencies.readProfiles(keys));
+  } catch {
+    extendedLedger.existingProfileWrite.errorCode = "existing-profile-readback-mismatch-or-unavailable";
+    extendedLedger.updatedAt = now();
+    dependencies.persist(extendedLedger);
+    throw new Error(
+      "Existing-profile write remains uncertain because exact readback did not verify; do not retry the mutation.",
+    );
+  }
+
+  if (mutationResult && !importResultProvesExistingOperation(mutationResult, payload, false)) {
+    extendedLedger.existingProfileWrite.readback = readback;
+    extendedLedger.existingProfileWrite.errorCode = "existing-profile-result-violated-cas-plan";
+    extendedLedger.updatedAt = now();
+    dependencies.persist(extendedLedger);
+    throw new Error(
+      "Existing-profile write remains uncertain because its result violated the pinned CAS plan; do not retry.",
+    );
+  }
+
+  extendedLedger.existingProfileWrite.status = "verified";
+  extendedLedger.existingProfileWrite.result = mutationResult;
+  extendedLedger.existingProfileWrite.readback = readback;
+  extendedLedger.existingProfileWrite.verifiedAt = now();
+  extendedLedger.existingProfileWrite.errorCode = null;
+  extendedLedger.updatedAt = now();
+  dependencies.persist(extendedLedger);
+  return { ledger: extendedLedger, payload, resumed: false as const };
+}
+
+function snapshotProfile(row: unknown): VerifiedProfileReadbackRow {
+  if (!row || typeof row !== "object") throw new Error("Profile snapshot contains a non-object row.");
+  const source = row as Record<string, unknown>;
+  const aliases = source.aliases ?? [];
+  const links = source.links ?? [];
+  if (
+    typeof source._id !== "string"
+    || !source._id
+    || typeof source.key !== "string"
+    || !source.key
+    || typeof source.displayName !== "string"
+    || !Array.isArray(aliases)
+    || !aliases.every((alias) => typeof alias === "string")
+    || !Array.isArray(links)
+    || !links.every((link) => (
+      link && typeof link === "object"
+      && typeof (link as Record<string, unknown>).label === "string"
+      && typeof (link as Record<string, unknown>).url === "string"
+    ))
+    || (source.avatarStorageId !== undefined && typeof source.avatarStorageId !== "string")
+    || (source.avatarR2Key !== undefined && typeof source.avatarR2Key !== "string")
+    || (source.avatarUrl !== undefined && typeof source.avatarUrl !== "string")
+    || (source.bio !== undefined && typeof source.bio !== "string")
+    || (source.role !== undefined && typeof source.role !== "string")
+  ) {
+    throw new Error(`Profile snapshot row is malformed for ${String(source.key ?? source._id ?? "unknown")}.`);
+  }
+  const avatarStorageId = typeof source.avatarStorageId === "string" ? source.avatarStorageId : null;
+  const avatarR2Key = typeof source.avatarR2Key === "string" ? source.avatarR2Key : null;
+  const avatarUrl = typeof source.avatarUrl === "string" ? source.avatarUrl : null;
+  if ([avatarStorageId, avatarR2Key, avatarUrl].filter(Boolean).length > 1) {
+    throw new Error(`Profile snapshot has multiple avatar references for ${source.key}.`);
+  }
+  return {
+    profileId: source._id,
+    key: source.key,
+    displayName: source.displayName,
+    aliases: aliases as string[],
+    avatarStorageId,
+    avatarR2Key,
+    avatarUrl,
+    bio: typeof source.bio === "string" ? source.bio : "",
+    role: typeof source.role === "string" ? source.role : null,
+    links: links as Array<{ label: string; url: string }>,
+  };
+}
+
+export function buildContributorProfileSnapshot(
+  inputs: ValidatedInputs,
+  ledger: AvatarUploadLedger,
+  keyValue: unknown,
+  rowValue: unknown,
+  capturedAt = new Date().toISOString(),
+): ContributorProfileSnapshot {
+  validateLedger(ledger, inputs);
+  requireVerifiedEightProfileLedger(inputs, ledger);
+  const extendedLedger = ensureExistingProfileLedgerState(ledger);
+  const dryRun = extendedLedger.existingProfileDryRun;
+  const write = extendedLedger.existingProfileWrite;
+  if (!dryRun || write.status !== "verified" || write.payloadSha256 !== profilePayloadDigest({
+    ...dryRun.payload,
+    dryRun: false,
+  })) {
+    throw new Error("Existing-profile rollout must be verified before capturing the production profile snapshot.");
+  }
+  verifyLedgeredExistingProfileReadback(
+    { ...dryRun.payload, dryRun: false },
+    write.readback,
+  );
+  if (
+    !Array.isArray(keyValue)
+    || keyValue.length !== 160
+    || !keyValue.every((key) => typeof key === "string" && key)
+    || new Set(keyValue).size !== 160
+  ) {
+    throw new Error("Production profile snapshot requires exactly 160 unique live keys.");
+  }
+  if (!Array.isArray(rowValue) || rowValue.length !== 160) {
+    throw new Error("Production profile snapshot requires exactly 160 raw live profiles.");
+  }
+  const profiles = rowValue.map(snapshotProfile).sort((left, right) => left.key.localeCompare(right.key));
+  assertExactKeys(profiles.map((profile) => profile.key), keyValue as string[], "Production profile snapshot");
+  if (new Set(profiles.map((profile) => profile.profileId)).size !== 160) {
+    throw new Error("Production profile snapshot repeats a profile ID.");
+  }
+  const documentWithoutDigest: Omit<ContributorProfileSnapshot, "payloadSha256"> = {
+    schemaVersion: 1 as const,
+    artifactType: "replication-index-contributor-profile-production-snapshot" as const,
+    campaignId: inputs.campaignId,
+    capturedAt,
+    targetDeployment: DEPLOYMENT,
+    targetUrl: TARGET_URL,
+    projectionSha256: inputs.projectionSha256,
+    deployedCommit: APPLICATION_CONTRACT.deployedCommit,
+    applicationContractSha256: EXISTING_PROFILE_APPLICATION_CONTRACT_SHA256,
+    profileCount: 160 as const,
+    profiles,
+  };
+  return {
+    ...documentWithoutDigest,
+    payloadSha256: sha256(`${JSON.stringify(documentWithoutDigest)}\n`),
+  };
+}
+
+export function writeJsonAtomic(outputPath: string, value: unknown) {
+  if (existsSync(outputPath)) {
+    throw new Error(`Refusing to overwrite existing profile snapshot: ${outputPath}`);
+  }
+  mkdirSync(path.dirname(outputPath), { recursive: true });
+  const temporaryPath = `${outputPath}.tmp-${process.pid}`;
+  writeFileSync(temporaryPath, `${JSON.stringify(value, null, 2)}\n`, { mode: 0o600 });
+  renameSync(temporaryPath, outputPath);
+}
+
 function flagValue(argv: string[], name: string) {
   return argv.find((arg) => arg.startsWith(`${name}=`))?.slice(name.length + 1) ?? null;
 }
@@ -977,9 +1706,18 @@ export async function main(argv = process.argv.slice(2)) {
     flagValue(argv, "--deployment-receipt") ?? DEFAULT_DEPLOYMENT_RECEIPT_PATH,
   );
   const ledgerPath = path.resolve(flagValue(argv, "--ledger") ?? DEFAULT_LEDGER_PATH);
+  const profileSnapshotPath = path.resolve(
+    flagValue(argv, "--profile-snapshot") ?? DEFAULT_PROFILE_SNAPSHOT_PATH,
+  );
   const phase = flagValue(argv, "--phase") ?? "plan";
-  if (!["plan", "canary", "remaining", "profiles"].includes(phase)) {
-    throw new Error("--phase must be plan, canary, remaining, or profiles.");
+  if (![
+    "plan", "canary", "remaining", "profiles", "existing-dry-run", "existing-profiles",
+    "profile-snapshot",
+  ].includes(phase)) {
+    throw new Error(
+      "--phase must be plan, canary, remaining, profiles, existing-dry-run, existing-profiles, "
+        + "or profile-snapshot.",
+    );
   }
   const inputs = validateInputs({ planPath, projectionPath, deploymentReceiptPath });
   const prospectivePayload = buildEightProfilePayload(inputs);
@@ -987,18 +1725,53 @@ export async function main(argv = process.argv.slice(2)) {
   console.log(`Pinned upload plan: ${inputs.planPayloadSha256}`);
   console.log(`Pinned contributor projection: ${inputs.projectionSha256}`);
   console.log(`Profiles: ${prospectivePayload.entries.length}; uploads: ${inputs.uploads.length}; canary: ${CANARY_KEY}`);
+  console.log("Existing profiles: 4; reviewed link additions: 5; product link cap: 3");
   for (const upload of inputs.uploads) {
     console.log(`${upload.key} ${upload.sha256} ${upload.byteSize} ${upload.contentType}`);
   }
 
   const command = createProductionWriteCommand({ operation: OPERATION, argv });
   printProductionWriteCommand(command);
+  if (phase === "profile-snapshot") {
+    if (command.writeRequested) throw new Error("profile-snapshot is read-only and rejects --write.");
+    if (
+      command.targetUrl !== TARGET_URL
+      || command.deploymentFingerprint !== DEPLOYMENT
+      || command.expectedDeployment !== DEPLOYMENT
+    ) {
+      throw new Error(
+        `profile-snapshot requires --target-url=${TARGET_URL} and --expected-deployment=${DEPLOYMENT}.`,
+      );
+    }
+    const token = requireProductionWriteCredential("profileMediaWrite").token;
+    const client = new ConvexHttpClient(command.targetUrl);
+    const lock = acquireLedgerLock(ledgerPath);
+    try {
+      const ledger = readOrCreateLedger(ledgerPath, inputs);
+      const keys = await client.query(api.contributorProfiles.getKeys, {});
+      const profiles = await client.query(api.contributorProfiles.getForBulkImport, {
+        apiKey: token,
+        keys,
+      });
+      const snapshot = buildContributorProfileSnapshot(inputs, ledger, keys, profiles);
+      writeJsonAtomic(profileSnapshotPath, snapshot);
+      console.log(
+        `Read-only profile snapshot: ${snapshot.profileCount} profiles; ${snapshot.payloadSha256}; ${profileSnapshotPath}`,
+      );
+      return { mode: "profile-snapshot" as const, snapshot, profileSnapshotPath };
+    } finally {
+      lock.release();
+    }
+  }
   if (!command.writeRequested) {
     console.log("Dry run only: no upload URL generated, no bytes uploaded, no ledger written, and no Convex write mutation called.");
     return { mode: "dry-run" as const, payload: prospectivePayload };
   }
   if (phase === "plan") {
-    throw new Error("A write requires a separate --phase=canary, --phase=remaining, or --phase=profiles command.");
+    throw new Error(
+      "A write requires a separate --phase=canary, --phase=remaining, --phase=profiles, "
+        + "--phase=existing-dry-run, or --phase=existing-profiles command.",
+    );
   }
   assertProductionWriteAllowed(command);
   if (command.targetUrl !== TARGET_URL || command.deploymentFingerprint !== DEPLOYMENT) {
@@ -1009,6 +1782,44 @@ export async function main(argv = process.argv.slice(2)) {
   const lock = acquireLedgerLock(ledgerPath);
   try {
     const ledger = readOrCreateLedger(ledgerPath, inputs);
+    if (phase === "existing-dry-run") {
+      const result = await runExistingProfileDryRunPhase(inputs, ledger, {
+        readProfiles: async (keys) => await client.query(
+          api.contributorProfiles.getForBulkImport,
+          { apiKey: token, keys },
+        ),
+        dryRunProfiles: async (payload) => await client.mutation(
+          api.contributorProfiles.importReviewedProfilePlan,
+          { ...payload, apiKey: token },
+        ),
+        persist: (nextLedger) => writeLedgerAtomic(ledgerPath, nextLedger),
+      });
+      console.log(
+        result.resumed
+          ? "existing-profile dry run already ledgered; no Convex call repeated."
+          : "existing-profile dry run complete: 3 updates, 1 unchanged, 0 blocked.",
+      );
+      return result;
+    }
+    if (phase === "existing-profiles") {
+      const result = await runExistingProfileWritePhase(inputs, ledger, {
+        writeProfiles: async (payload) => await client.mutation(
+          api.contributorProfiles.importReviewedProfilePlan,
+          { ...payload, apiKey: token },
+        ),
+        readProfiles: async (keys) => await client.query(
+          api.contributorProfiles.getForBulkImport,
+          { apiKey: token, keys },
+        ),
+        persist: (nextLedger) => writeLedgerAtomic(ledgerPath, nextLedger),
+      });
+      console.log(
+        result.resumed
+          ? "existing profiles already verified: mutation was not called again."
+          : "existing profiles complete: exact four-profile readback verified and ledgered.",
+      );
+      return result;
+    }
     if (phase === "profiles") {
       const result = await runProfileWritePhase(inputs, ledger, {
         writeProfiles: async (payload) => await client.mutation(
