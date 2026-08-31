@@ -2,6 +2,7 @@ import { v } from "convex/values";
 import { mutation, query, type QueryCtx } from "./_generated/server";
 import { requireAuth, requireEditorWrite } from "./lib/auth";
 import { memoizedStorageUrls, resolveReplicationUrls } from "./replications";
+import { storedReplication } from "./lib/replicationValidators";
 import {
   directGalleryAssociationProvenance,
   isCombinationReplication,
@@ -38,6 +39,57 @@ import type { ReplicationAssociation } from "../src/features/dev/tools/replicati
 /** One shared ceiling with the save route and the portal's exclusion meter. */
 const MAX_GALLERY_CURATION_SLUGS = GALLERY_CURATION_SLUG_CAP;
 
+/** Keep each public showcase scan comfortably below Convex's read ceiling. */
+const PUBLIC_SUBSTANCE_GALLERY_PAGE_SIZE = 64;
+
+const substanceGalleryProvenanceValidator = v.object({
+  matchedVia: v.union(
+    v.literal("specific_drug"),
+    v.literal("drug_class"),
+    v.literal("visual_disconnection"),
+    v.literal("curated"),
+  ),
+  effectSlug: v.string(),
+  substanceSlug: v.optional(v.string()),
+  drugClass: v.optional(
+    v.union(v.literal("dissociatives"), v.literal("deliriants")),
+  ),
+});
+
+const publicSubstanceGalleryCurationValidator = v.union(
+  v.object({
+    curated_slugs: v.array(v.string()),
+    removed_slugs: v.array(v.string()),
+    carousel_order: v.array(v.string()),
+  }),
+  v.null(),
+);
+
+const publicSubstanceGalleryPageResult = v.object({
+  items: v.array(
+    v.object({
+      replication: v.object({
+        ...storedReplication.fields,
+        url: v.union(v.string(), v.null()),
+        thumbnail_url: v.union(v.string(), v.null()),
+      }),
+      provenance: substanceGalleryProvenanceValidator,
+    }),
+  ),
+  curation: publicSubstanceGalleryCurationValidator,
+  cursor: v.string(),
+  isDone: v.boolean(),
+});
+
+/** Clamp caller input so no public invocation scans more than 64 raw rows. */
+export function clampPublicSubstanceGalleryPageSize(requested?: number): number {
+  const normalized =
+    requested !== undefined && Number.isFinite(requested)
+      ? Math.floor(requested)
+      : PUBLIC_SUBSTANCE_GALLERY_PAGE_SIZE;
+  return Math.min(Math.max(normalized, 1), PUBLIC_SUBSTANCE_GALLERY_PAGE_SIZE);
+}
+
 /**
  * The substance for a slug, or null. Mirrors `substanceIndex:getPublicBySlug`:
  * a duplicated slug is ambiguous and treated as not found rather than letting
@@ -63,45 +115,74 @@ export const getBySubstance = query({
 });
 
 /**
- * The published Replication Showcase for one substance: automatic placements
- * in policy order, with stored curation ordering within tiers, direct manual
- * associations after exact/class placement, Visual Disconnection stills last,
- * and stored suppression applied to every source.
+ * One storage-ordered scan page for a substance's public Replication Showcase.
+ *
+ * Filtering can make a page sparse. Callers must follow `cursor` until
+ * `isDone`, concatenate `items`, then pass the accumulated matches and
+ * `curation` through `mergeCuratedGallery`. That final client-side merge
+ * preserves the historical cross-tier, curated, carousel, and exclusion order
+ * without asking one Convex query to read the whole replication table.
  */
+export async function getPublicReplicationsForSubstancePageHandler(
+  ctx: QueryCtx,
+  args: { substance_slug: string; cursor?: string; limit?: number },
+) {
+  const substance = await uniqueSubstanceBySlug(ctx, args.substance_slug);
+  if (!substance) {
+    return {
+      items: [],
+      curation: null,
+      cursor: args.cursor ?? "",
+      isDone: true,
+    };
+  }
+
+  const gallery = await ctx.db
+    .query("substanceGalleries")
+    .withIndex("by_substance", (q) => q.eq("substance_slug", args.substance_slug))
+    .first();
+  const page = await ctx.db.query("replications").paginate({
+    cursor: args.cursor ?? null,
+    numItems: clampPublicSubstanceGalleryPageSize(args.limit),
+  });
+  const target = substanceGalleryTargetOf(substance);
+  const matches = target
+    ? matchSubstanceGalleryReplications(page.page, target).matches
+    : [];
+  const available = includeDirectlyAssociatedRows(page.page, matches, gallery);
+
+  const urls = memoizedStorageUrls(ctx);
+  const items = await Promise.all(
+    available.map(async ({ row, provenance }) => {
+      const { url, thumbnail_url } = await resolveReplicationUrls(urls, row, {
+        preview: false,
+      });
+      return { replication: { ...row, url, thumbnail_url }, provenance };
+    }),
+  );
+
+  return {
+    items,
+    curation: gallery
+      ? {
+          curated_slugs: gallery.curated_slugs,
+          removed_slugs: gallery.removed_slugs,
+          carousel_order: gallery.carousel_order ?? [],
+        }
+      : null,
+    cursor: page.continueCursor,
+    isDone: page.isDone,
+  };
+}
+
 export const getPublicReplicationsForSubstance = query({
-  args: { substance_slug: v.string() },
-  handler: async (ctx, args) => {
-    const substance = await uniqueSubstanceBySlug(ctx, args.substance_slug);
-    if (!substance) {
-      return { items: [] };
-    }
-
-    const rows = await ctx.db.query("replications").collect();
-    const target = substanceGalleryTargetOf(substance);
-    const matches = target
-      ? matchSubstanceGalleryReplications(rows, target).matches
-      : [];
-
-    const gallery = await ctx.db
-      .query("substanceGalleries")
-      .withIndex("by_substance", (q) => q.eq("substance_slug", args.substance_slug))
-      .first();
-
-    const merged = mergeCuratedGallery(
-      includeDirectlyAssociatedRows(rows, matches, gallery),
-      gallery,
-    );
-
-    const urls = memoizedStorageUrls(ctx);
-    const items = await Promise.all(
-      merged.map(async ({ row, provenance }) => {
-        const { url, thumbnail_url } = await resolveReplicationUrls(urls, row, { preview: false });
-        return { replication: { ...row, url, thumbnail_url }, provenance };
-      }),
-    );
-
-    return { items };
+  args: {
+    substance_slug: v.string(),
+    cursor: v.optional(v.string()),
+    limit: v.optional(v.number()),
   },
+  returns: publicSubstanceGalleryPageResult,
+  handler: getPublicReplicationsForSubstancePageHandler,
 });
 
 /** How the curation portal's batched picker read pages the substance index. */
