@@ -236,7 +236,7 @@ export function HomeExperience({
               {/* Superscript badge: absolutely positioned off the wordmark's end so it
                   never joins the h1's layout flow — the heading stays exactly centered
                   whether or not the flavor ships a badge. */}
-              <span className="absolute left-full top-[0.06em] ml-[0.14em]">
+              <span className="absolute left-full top-[0.06em] ml-[0.14em] inline-flex whitespace-nowrap">
                 <SiteVersionBadge variant="hero" />
               </span>
             </h1>
