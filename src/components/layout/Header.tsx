@@ -5,6 +5,7 @@ import type { KeyboardEvent as ReactKeyboardEvent } from "react";
 import { DoseWikiLogo } from "../common/DoseWikiLogo";
 import { Icon } from "../common/Icon";
 import { SiteWordmark } from "../common/SiteWordmark";
+import { SiteVersionBadge } from "../common/SiteVersionBadge";
 import { AppearanceControls } from "@/app/_components/AppearanceControls";
 import type {
   AppView,
@@ -600,6 +601,7 @@ export function Header({
           </span>
           <span className="theme-text-primary hidden items-center text-2xl font-display font-bold tracking-tight transition-transform duration-200 group-hover/brand:scale-[1.04] group-focus-visible/brand:scale-[1.04] xl:inline-flex">
             <SiteWordmark />
+            <SiteVersionBadge variant="header" />
           </span>
           </Link>
         </Button>

@@ -1,20 +1,21 @@
 import { SiteLicenceNotice } from "@/components/common/SiteLicenceNotice";
 import { SiteWordmark } from "@/components/common/SiteWordmark";
+import { SiteVersionBadge } from "@/components/common/SiteVersionBadge";
 import { SITE_FLAVOR_CONFIGS } from "@/config/siteFlavor";
 
 import type { StoryDef } from "../registry/types";
 
 export const siteBrandStory: StoryDef = {
   id: "site-brand",
-  name: "SiteWordmark & SiteLicenceNotice",
+  name: "SiteWordmark, SiteVersionBadge & SiteLicenceNotice",
   tier: "common",
   status: "stable",
   summary:
-    "The two brand strings that differ per publication: the two-run wordmark and the footer's reuse-rights sentence. Both read the build-time site flavor and both accept an injected config.",
+    "The brand strings that differ per publication: the two-run wordmark, the pre-release version pill, and the footer's reuse-rights sentence. All read the build-time site flavor and all accept an injected config.",
   source: "src/components/common/SiteWordmark.tsx",
   importLine:
     'import { SiteWordmark } from "@/components/common/SiteWordmark";',
-  exports: ["SiteWordmark", "SiteLicenceNotice"],
+  exports: ["SiteWordmark", "SiteVersionBadge", "SiteLicenceNotice"],
   examples: [
     {
       label: "Wordmark per flavor",
@@ -41,6 +42,16 @@ export const siteBrandStory: StoryDef = {
             config={SITE_FLAVOR_CONFIGS.dosewiki}
           />
         </span>
+      ),
+    },
+    {
+      label: "Version badge variants",
+      note: "Hero shows the full version; header shows the stage only and is aria-hidden so it never leaks into the brand link's accessible name. A flavor with `versionBadge: null` (Effect Index) renders nothing.",
+      render: () => (
+        <div className="flex items-center gap-4">
+          <SiteVersionBadge variant="hero" config={SITE_FLAVOR_CONFIGS.dosewiki} />
+          <SiteVersionBadge variant="header" config={SITE_FLAVOR_CONFIGS.dosewiki} />
+        </div>
       ),
     },
     {
@@ -72,6 +83,11 @@ export const siteBrandStory: StoryDef = {
       type: "SiteFlavorConfig",
       default: "ambient flavor",
       description: "Injected flavor config; defaults to the build-time flavor.",
+    },
+    {
+      name: "variant",
+      type: '"hero" | "header"',
+      description: "SiteVersionBadge only — full version pill vs. stage-only micro-pill.",
     },
   ],
   whenToUse: [

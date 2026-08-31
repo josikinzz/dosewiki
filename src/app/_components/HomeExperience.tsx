@@ -7,6 +7,7 @@ import { DoseWikiLogo } from "@/components/common/DoseWikiLogo";
 import { Icon } from "@/components/common/Icon";
 import { SiteSupporter } from "@/components/common/SiteSupporter";
 import { SiteWordmark } from "@/components/common/SiteWordmark";
+import { SiteVersionBadge } from "@/components/common/SiteVersionBadge";
 import { Input } from "@/components/ui/input";
 import { SITE_FLAVOR_CONFIG } from "@/config/siteFlavor";
 import { partitionQuickLinkRows, type HomeQuickLink } from "./homeQuickLinks";
@@ -94,6 +95,7 @@ export function HomeExperience({
             </span>
             <span className="theme-text-primary hidden items-center text-2xl font-display font-bold tracking-tight transition-transform duration-200 group-hover/brand:scale-[1.04] group-focus-visible/brand:scale-[1.04] xl:inline-flex">
               <SiteWordmark />
+              <SiteVersionBadge variant="header" />
             </span>
           </button>
 
@@ -232,6 +234,7 @@ export function HomeExperience({
             <h1 className="theme-home-wordmark theme-text-primary font-display text-[clamp(3.15rem,7vw,5.75rem)] font-semibold leading-none tracking-normal transition-[opacity,transform] duration-200">
               <SiteWordmark />
             </h1>
+            <SiteVersionBadge variant="hero" />
           </div>
 
           <p className="theme-home-intro theme-text-secondary mt-4 max-w-2xl text-balance text-base leading-snug transition-[opacity,transform,max-height,margin] duration-300 sm:text-lg md:text-xl">

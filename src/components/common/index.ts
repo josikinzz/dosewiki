@@ -38,6 +38,7 @@ export { SearchEmptyState } from "./SearchEmptyState";
 export type { SearchEmptyStateProps } from "./SearchEmptyState";
 export { SiteLicenceNotice } from "./SiteLicenceNotice";
 export { SiteSupporter } from "./SiteSupporter";
+export { SiteVersionBadge } from "./SiteVersionBadge";
 export { SiteWordmark } from "./SiteWordmark";
 export { SmartLink, useNavigationPending } from "./SmartLink";
 export type { SmartLinkProps } from "./SmartLink";

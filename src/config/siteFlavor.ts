@@ -90,6 +90,18 @@ export type SiteWordmark = {
   readonly accent: string;
 };
 
+/**
+ * Optional pre-release badge rendered by `SiteVersionBadge` next to the brand lockups.
+ * `null` ships no badge. Removing the badge at 1.0 is flipping this back to `null`
+ * (and restoring the plain titles below).
+ */
+export type SiteVersionBadge = {
+  /** Release-stage word, e.g. "beta". Rendered uppercase by the badge. */
+  readonly label: string;
+  /** Version string, e.g. "v0.9". Shown in the hero variant; omitted in the header. */
+  readonly version: string;
+} | null;
+
 export type SiteLogoIdentity = {
   /**
    * Root-relative path to the mask asset, or `null` to use the bundled dose.wiki mark that
@@ -231,6 +243,8 @@ export type SiteFlavorConfig = AppearancePolicy & {
   readonly name: string;
   /** Two-run wordmark used by the header, footer, homepage hero and construction chrome. */
   readonly wordmark: SiteWordmark;
+  /** Pre-release badge shown beside the wordmark in the hero and header; null hides it. */
+  readonly versionBadge: SiteVersionBadge;
   /** In-page logo mark: asset and accessible labels. */
   readonly logo: SiteLogoIdentity;
   /** Canonical public base URL used when `NEXT_PUBLIC_SITE_URL` is not set. */
@@ -249,11 +263,11 @@ export type SiteFlavorConfig = AppearancePolicy & {
   readonly appleTouchIconPath: string;
   /**
    * Browser-tab title suffix appended by `buildPublicPageMetadata` — the single owner of
-   * the " - <suffix>" convention every public route's title ends with. The homepage is
-   * the one route whose title is the suffix alone.
+   * the " - <suffix>" convention every public route's title ends with. The homepage's
+   * title is `homeTitle` instead, so the suffix stays clean on every other page.
    */
   readonly titleSuffix: string;
-  /** Homepage title. */
+  /** Homepage title (browser tab + home metadata); carries the beta badge when set. */
   readonly homeTitle: string;
   /** About page title, used for both the metadata title and the page heading. */
   readonly aboutTitle: string;
@@ -321,6 +335,7 @@ const DOSEWIKI_CONFIG: SiteFlavorConfig = {
   flavor: "dosewiki",
   name: "dose.wiki",
   wordmark: { lead: "dose", accent: ".wiki" },
+  versionBadge: { label: "beta", version: "v0.9" },
   logo: {
     markPath: null,
     alt: "dose.wiki logo",
@@ -334,7 +349,7 @@ const DOSEWIKI_CONFIG: SiteFlavorConfig = {
   faviconPath: "/favicon.svg",
   appleTouchIconPath: "/apple-touch-icon.png",
   titleSuffix: "dose.wiki",
-  homeTitle: "dose.wiki",
+  homeTitle: "dose.wiki (beta v0.9)",
   aboutTitle: "About dose.wiki",
   about: {
     reuseNotice: {
@@ -437,7 +452,7 @@ const DOSEWIKI_CONFIG: SiteFlavorConfig = {
   // (`isFlavorGatedRequestPath`) from 404ing it before it renders.
   flavorGatedRoutes: ["blog"],
   rootMetadata: {
-    title: "dose.wiki",
+    title: "dose.wiki (beta v0.9)",
     description:
       "dose.wiki is a harm reduction database providing dosage, duration, effects, and safety information for psychoactive substances.",
     openGraphDescription:
@@ -491,6 +506,7 @@ const EFFECT_INDEX_CONFIG: SiteFlavorConfig = {
   flavor: "effectindex",
   name: "Effect Index",
   wordmark: { lead: "Effect ", accent: "Index" },
+  versionBadge: null,
   logo: {
     // Eye-only extraction of the old lockup; the original also contains the words
     // "Effect Index", which would print the wordmark twice next to the text wordmark.

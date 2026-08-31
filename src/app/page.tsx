@@ -27,7 +27,7 @@ export async function generateMetadata(): Promise<Metadata> {
   const socialImage = pageSocialCardImage("home", "dose.wiki home");
 
   return {
-    title: SITE_FLAVOR_CONFIG.titleSuffix,
+    title: SITE_FLAVOR_CONFIG.homeTitle,
     description,
     ...(socialImage
       ? {

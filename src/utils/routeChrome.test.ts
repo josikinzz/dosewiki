@@ -8,7 +8,7 @@ const EFFECT_INDEX = SITE_FLAVOR_CONFIGS.effectindex;
 
 describe("route chrome model", () => {
   it.each([
-    ["/", "home", "dose.wiki", "none"],
+    ["/", "home", "dose.wiki (beta v0.9)", "none"],
     ["/substances", "substances", "Substance Index", "substances"],
     ["/mantras", "mantras", "Mantra Vision Mandala", "none"],
     ["/lsd", "substance", "lsd - Substance Profile", "substances"],
