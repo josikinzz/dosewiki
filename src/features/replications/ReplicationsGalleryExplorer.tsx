@@ -103,6 +103,11 @@ interface EffectSummary {
 
 type GalleryPageLoadState = "idle" | "loading" | "error";
 
+function browseNeedsCompleteCorpus(browse: GalleryBrowseState): boolean {
+  return (Object.keys(GALLERY_BROWSE_DEFAULTS) as (keyof GalleryBrowseState)[])
+    .some((key) => browse[key] !== GALLERY_BROWSE_DEFAULTS[key]);
+}
+
 function isGalleryReplicationPreview(
   value: unknown,
 ): value is PublicGalleryReplicationPreview {
@@ -367,8 +372,52 @@ function GalleryExplorer({
   const hasMoreRef = useRef(hasMore);
   const [pageLoadState, setPageLoadState] =
     useState<GalleryPageLoadState>("idle");
+  const [completionAnnouncement, setCompletionAnnouncement] = useState<
+    string | null
+  >(null);
   const pageRequestRef = useRef<Promise<boolean> | null>(null);
   const pageAbortRef = useRef<AbortController | null>(null);
+  const loadButtonRef = useRef<HTMLButtonElement>(null);
+  const completionSummaryRef = useRef<HTMLParagraphElement>(null);
+  const focusCompletionAfterLoadRef = useRef(false);
+  const browseStateKey = [
+    browse.view,
+    browse.query,
+    browse.type,
+    browse.sort,
+    browse.viewing,
+    browse.artistType,
+    browse.effect,
+    browse.drug,
+    browse.drugClass,
+    browse.family,
+  ].join("\u0000");
+  const browseRequiresCompleteCorpus = browseNeedsCompleteCorpus(browse);
+  const observedBrowseStateKeyRef = useRef(browseStateKey);
+  const actionGenerationRef = useRef(0);
+  const pendingCorpusActionRef = useRef<{
+    generation: number;
+    action: () => void;
+  } | null>(null);
+
+  const cancelPendingCorpusAction = useCallback(() => {
+    actionGenerationRef.current += 1;
+    pendingCorpusActionRef.current = null;
+  }, []);
+
+  const queueCorpusAction = useCallback((action: () => void) => {
+    const generation = actionGenerationRef.current + 1;
+    actionGenerationRef.current = generation;
+    pendingCorpusActionRef.current = { generation, action };
+    return generation;
+  }, []);
+
+  const completeCorpusAction = useCallback((generation: number) => {
+    const pending = pendingCorpusActionRef.current;
+    if (!pending || pending.generation !== generation) return;
+    pendingCorpusActionRef.current = null;
+    pending.action();
+  }, []);
 
   const loadCompleteCorpus = useCallback((): Promise<boolean> => {
     if (
@@ -380,6 +429,9 @@ function GalleryExplorer({
     }
     if (pageRequestRef.current) return pageRequestRef.current;
 
+    focusCompletionAfterLoadRef.current ||=
+      document.activeElement === loadButtonRef.current;
+    setCompletionAnnouncement(null);
     const controller = new AbortController();
     pageAbortRef.current = controller;
     setPageLoadState("loading");
@@ -441,6 +493,7 @@ function GalleryExplorer({
         setGalleryReplications(result.items);
         setHasMore(result.hasMore);
         setPageLoadState("idle");
+        setCompletionAnnouncement("Complete gallery loaded");
         return true;
       } catch {
         if (!controller.signal.aborted) {
@@ -466,18 +519,57 @@ function GalleryExplorer({
     [],
   );
 
+  useEffect(() => {
+    if (!completionAnnouncement || !focusCompletionAfterLoadRef.current) return;
+    focusCompletionAfterLoadRef.current = false;
+    completionSummaryRef.current?.focus();
+  }, [completionAnnouncement]);
+
+  useEffect(() => {
+    if (
+      deferredReplicationsUrl &&
+      hasMoreRef.current &&
+      (viewerSlugParam || browseRequiresCompleteCorpus)
+    ) {
+      void loadCompleteCorpus();
+    }
+  }, [
+    browseStateKey,
+    browseRequiresCompleteCorpus,
+    deferredReplicationsUrl,
+    loadCompleteCorpus,
+    viewerSlugParam,
+  ]);
+
+  useEffect(() => {
+    if (observedBrowseStateKeyRef.current === browseStateKey) return;
+    observedBrowseStateKeyRef.current = browseStateKey;
+    cancelPendingCorpusAction();
+  }, [browseStateKey, cancelPendingCorpusAction]);
+
   const runWithCompleteCorpus = useCallback(
     (action: () => void) => {
+      const generation = queueCorpusAction(action);
       if (!hasMoreRef.current) {
-        action();
+        completeCorpusAction(generation);
         return;
       }
       void loadCompleteCorpus().then((loaded) => {
-        if (loaded) action();
+        if (loaded) completeCorpusAction(generation);
       });
     },
-    [loadCompleteCorpus],
+    [completeCorpusAction, loadCompleteCorpus, queueCorpusAction],
   );
+
+  const retryCompleteCorpus = useCallback(() => {
+    const generation = pendingCorpusActionRef.current?.generation;
+    return loadCompleteCorpus().then((loaded) => {
+      if (loaded && generation !== undefined) {
+        completeCorpusAction(generation);
+      }
+      return loaded;
+    });
+  }, [completeCorpusAction, loadCompleteCorpus]);
 
   const mode: GalleryMode = focus ? focus.kind : browse.view;
   const typeFilter = browse.type;
@@ -542,11 +634,13 @@ function GalleryExplorer({
 
   const navigate = (url: string, method: "push" | "replace") => {
     cancelQueryWrite();
+    cancelPendingCorpusAction();
     router[method](url, { scroll: false });
   };
 
   const updateQuery = (next: string) => {
     clearTimeout(debounceRef.current);
+    cancelPendingCorpusAction();
     setQueryWritePending(true);
     const completeCorpus = hasMoreRef.current ? loadCompleteCorpus() : null;
     debounceRef.current = window.setTimeout(() => {
@@ -564,12 +658,13 @@ function GalleryExplorer({
           router.replace(url, { scroll: false });
         }
       };
+      const generation = queueCorpusAction(writeQuery);
       if (!completeCorpus) {
-        writeQuery();
+        completeCorpusAction(generation);
         return;
       }
       void completeCorpus.then((loaded) => {
-        if (loaded) writeQuery();
+        if (loaded) completeCorpusAction(generation);
       });
     }, QUERY_WRITE_DELAY_MS);
   };
@@ -902,7 +997,11 @@ function GalleryExplorer({
     viewerGroups,
     viewerSourcePath,
   ]);
+  const viewerResolutionPending = Boolean(
+    viewerSlugParam && deferredReplicationsUrl && hasMore,
+  );
   const validViewerSlugParam =
+    !viewerResolutionPending &&
     viewerSlugParam &&
     viewerCollection.groups.some((entry) =>
       entry.items.some((item) => item.replication.slug === viewerSlugParam),
@@ -914,7 +1013,11 @@ function GalleryExplorer({
   );
   const [unavailableViewerSlug, setUnavailableViewerSlug] = useState<
     string | null
-  >(viewerSlugParam && !validViewerSlugParam ? viewerSlugParam : null);
+  >(
+    viewerSlugParam && !viewerResolutionPending && !validViewerSlugParam
+      ? viewerSlugParam
+      : null,
+  );
 
   const viewerParamWasPresentRef = useRef(viewerParamPresent);
 
@@ -934,6 +1037,13 @@ function GalleryExplorer({
     }
     viewerParamWasPresentRef.current = true;
 
+    if (viewerResolutionPending) {
+      setViewerSlug(null);
+      setUnavailableViewerSlug(null);
+      if (pageLoadState === "error") dismissViewerDeepLinkCover();
+      return;
+    }
+
     setViewerSlug(validViewerSlugParam);
     if (viewerSlugParam && !validViewerSlugParam) {
       setUnavailableViewerSlug(viewerSlugParam);
@@ -949,7 +1059,13 @@ function GalleryExplorer({
       );
       dismissViewerDeepLinkCover();
     }
-  }, [validViewerSlugParam, viewerParamPresent, viewerSlugParam]);
+  }, [
+    pageLoadState,
+    validViewerSlugParam,
+    viewerParamPresent,
+    viewerResolutionPending,
+    viewerSlugParam,
+  ]);
 
   const launchViewer = (slug: string) => {
     setUnavailableViewerSlug(null);
@@ -989,6 +1105,10 @@ function GalleryExplorer({
   // The gallery section exists whenever it holds media at all — the mode
   // toggle has to stay reachable even if one mode's own corpus is empty.
   const hasMedia = displayable.length > 0;
+  const hideIncompleteResults =
+    Boolean(deferredReplicationsUrl) &&
+    hasMore &&
+    browseRequiresCompleteCorpus;
   const browseAllUrl = buildGalleryBrowseUrl({
     ...browse,
     view: mode,
@@ -1330,7 +1450,7 @@ function GalleryExplorer({
                     type="button"
                     variant="pill"
                     size="pill"
-                    onClick={() => void loadCompleteCorpus()}
+                    onClick={() => void retryCompleteCorpus()}
                   >
                     Retry
                   </Button>
@@ -1341,7 +1461,17 @@ function GalleryExplorer({
             {/* One quiet corpus summary for every breakpoint — the bar itself
               stays reserved for controls. */}
             {chrome === "full" ? (
-              <p className="theme-text-faint mt-3 px-1 text-xs tabular-nums">
+              <p
+                ref={completionSummaryRef}
+                role={completionAnnouncement ? "status" : undefined}
+                aria-live="polite"
+                tabIndex={completionAnnouncement ? -1 : undefined}
+                className={cn(
+                  "theme-text-faint mt-3 px-1 text-xs tabular-nums",
+                  focusRingClassName,
+                )}
+              >
+                {completionAnnouncement ? `${completionAnnouncement} · ` : ""}
                 {counts.total}{" "}
                 {deferredReplicationsUrl && hasMore ? "loaded " : ""}
                 {counts.total === 1 ? "work" : "works"} · {counts.artists}{" "}
@@ -1353,6 +1483,7 @@ function GalleryExplorer({
             {deferredReplicationsUrl && hasMore ? (
               <div className="mt-3 flex justify-center">
                 <Button
+                  ref={loadButtonRef}
                   type="button"
                   variant="pill"
                   size="pill"
@@ -1375,7 +1506,7 @@ function GalleryExplorer({
             ) : null}
 
             {/* Focused single-group view (own URL: /replications/artist|effect/<key>) */}
-            {focus && focusedGroup ? (
+            {hideIncompleteResults ? null : focus && focusedGroup ? (
               <div className="mt-6 space-y-4">
                 <div className="flex flex-wrap items-baseline justify-between gap-3 px-1">
                   <div className="min-w-0">

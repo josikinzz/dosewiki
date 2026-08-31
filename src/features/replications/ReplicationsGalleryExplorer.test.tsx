@@ -1104,6 +1104,92 @@ describe("one-line control bar", () => {
 const QUERY_WRITE_DELAY_MS_FOR_TEST = 250;
 
 describe("paged gallery continuation", () => {
+  it("drains a pasted non-default browse URL before showing results or an empty state", async () => {
+    const initial = rep({ title: "Initial work" });
+    const deferred = rep({ title: "Deferred match" });
+    let resolveResponse: ((response: unknown) => void) | undefined;
+    const fetchMock = vi.fn(
+      () =>
+        new Promise((resolve) => {
+          resolveResponse = resolve;
+        }),
+    );
+    vi.stubGlobal("fetch", fetchMock);
+
+    renderExplorer("q=deferred&sort=alpha", {
+      replications: [initial],
+      deferredReplicationsUrl: "/api/replications/gallery",
+      continuationCursor: "opaque-next",
+      hasMoreReplications: true,
+    });
+
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    expect(screen.getByRole("status")).toHaveTextContent(
+      /loading the complete gallery/i,
+    );
+    expect(screen.queryByText("No art matches your search")).toBeNull();
+    expect(screen.queryByText("Initial work")).toBeNull();
+
+    await act(async () => {
+      resolveResponse?.({
+        ok: true,
+        status: 200,
+        json: async () => ({
+          data: [deferred],
+          nextCursor: null,
+          hasMore: false,
+        }),
+      });
+    });
+
+    expect(screen.getByText("Deferred match")).toBeInTheDocument();
+    expect(screen.queryByText("Initial work")).toBeNull();
+  });
+
+  it("drains the canonical collection before opening a deferred deep-linked viewer", async () => {
+    const initial = rep({ title: "Initial work" });
+    const linked = rep({ title: "Linked work", slug: "linked-work" });
+    const middle = rep({ title: "Middle work" });
+    let resolveResponse: ((response: unknown) => void) | undefined;
+    const fetchMock = vi.fn(
+      () =>
+        new Promise((resolve) => {
+          resolveResponse = resolve;
+        }),
+    );
+    vi.stubGlobal("fetch", fetchMock);
+
+    renderExplorer("viewer=linked-work", {
+      replications: [initial, linked],
+      deferredReplicationsUrl: "/api/replications/gallery",
+      continuationCursor: "opaque-next",
+      hasMoreReplications: true,
+    });
+
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    expect(screen.queryByTestId("replication-viewer")).toBeNull();
+    await act(async () => {
+      resolveResponse?.({
+        ok: true,
+        status: 200,
+        json: async () => ({
+          data: [middle],
+          nextCursor: null,
+          hasMore: false,
+        }),
+      });
+    });
+
+    expect(screen.getByTestId("replication-viewer")).toHaveAttribute(
+      "data-initial-slug",
+      "linked-work",
+    );
+    expect(screen.getByTestId("replication-viewer")).toHaveAttribute(
+      "data-item-count",
+      "3",
+    );
+  });
+
   it("never downloads the corpus on idle and drains deduplicated pages on request", async () => {
     const initial = rep({ title: "Initial work" });
     const deferred = rep({ title: "Deferred work" });
@@ -1143,11 +1229,50 @@ describe("paged gallery continuation", () => {
     );
     expect(screen.getByText("Deferred work")).toBeInTheDocument();
     expect(
-      screen.getByText("2 works · 1 artists · 1 effects"),
+      screen.getByText(
+        "Complete gallery loaded · 2 works · 1 artists · 1 effects",
+      ),
     ).toBeInTheDocument();
     expect(
       screen.queryByRole("button", { name: "Load complete gallery" }),
     ).toBeNull();
+  });
+
+  it("announces completion and moves focus when the explicit load button disappears", async () => {
+    const initial = rep({ title: "Initial work" });
+    const deferred = rep({ title: "Deferred work" });
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue({
+        ok: true,
+        status: 200,
+        json: async () => ({
+          data: [deferred],
+          nextCursor: null,
+          hasMore: false,
+        }),
+      }),
+    );
+    renderExplorer("", {
+      replications: [initial],
+      deferredReplicationsUrl: "/api/replications/gallery",
+      continuationCursor: "opaque-next",
+      hasMoreReplications: true,
+    });
+
+    const loadButton = screen.getByRole("button", {
+      name: "Load complete gallery",
+    });
+    loadButton.focus();
+    await act(async () => {
+      fireEvent.click(loadButton);
+    });
+
+    const completion = screen.getByRole("status");
+    expect(completion).toHaveTextContent(
+      "Complete gallery loaded · 2 works · 1 artists · 1 effects",
+    );
+    expect(document.activeElement).toBe(completion);
   });
 
   it("drains sparse bounded pages before applying a corpus-wide search", async () => {
@@ -1379,6 +1504,135 @@ describe("paged gallery continuation", () => {
     });
 
     expect(screen.getByText("Deferred result")).toBeInTheDocument();
+  });
+
+  it("preserves a pending filter action through failure and runs it after retry", async () => {
+    const initial = rep({
+      title: "Open-eye work",
+      viewing_mode_tags: ["open-eye"],
+    });
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValueOnce({ ok: false, status: 503 })
+      .mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        json: async () => ({
+          data: [],
+          nextCursor: null,
+          hasMore: false,
+        }),
+      });
+    vi.stubGlobal("fetch", fetchMock);
+
+    renderExplorer("viewing=open-eye", {
+      replications: [initial],
+      deferredReplicationsUrl: "/api/replications/gallery",
+      continuationCursor: "opaque-next",
+      hasMoreReplications: true,
+    });
+    await act(async () => {
+      fireEvent.click(
+        screen.getByRole("button", {
+          name: "Remove Viewing mode filter: Open-eye",
+        }),
+      );
+    });
+
+    expect(navMocks.push).not.toHaveBeenCalled();
+    await act(async () => {
+      fireEvent.click(screen.getByRole("button", { name: "Retry" }));
+    });
+
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+    expect(navMocks.push).toHaveBeenCalledWith("/replications", {
+      scroll: false,
+    });
+  });
+
+  it("runs only the newest pending action after a shared drain is retried", async () => {
+    const initial = rep({ title: "Initial work" });
+    let resolveFirstResponse: ((response: unknown) => void) | undefined;
+    const fetchMock = vi
+      .fn()
+      .mockImplementationOnce(
+        () =>
+          new Promise((resolve) => {
+            resolveFirstResponse = resolve;
+          }),
+      )
+      .mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        json: async () => ({
+          data: [],
+          nextCursor: null,
+          hasMore: false,
+        }),
+      });
+    vi.stubGlobal("fetch", fetchMock);
+
+    renderExplorer("", {
+      replications: [initial],
+      deferredReplicationsUrl: "/api/replications/gallery",
+      continuationCursor: "opaque-next",
+      hasMoreReplications: true,
+    });
+    fireEvent.click(screen.getByRole("radio", { name: "Videos" }));
+    fireEvent.click(screen.getByRole("radio", { name: "By effect" }));
+    await act(async () => {
+      resolveFirstResponse?.({ ok: false, status: 503 });
+    });
+
+    await act(async () => {
+      fireEvent.click(screen.getByRole("button", { name: "Retry" }));
+    });
+
+    expect(navMocks.push).toHaveBeenCalledTimes(1);
+    expect(navMocks.push).toHaveBeenCalledWith("/replications?view=effect", {
+      scroll: false,
+    });
+    expect(navMocks.push).not.toHaveBeenCalledWith(
+      "/replications?type=video",
+      expect.anything(),
+    );
+  });
+
+  it("cancels a pending action when navigation supplies newer browse state", async () => {
+    const initial = rep({ title: "Initial work" });
+    let resolveResponse: ((response: unknown) => void) | undefined;
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(
+        () =>
+          new Promise((resolve) => {
+            resolveResponse = resolve;
+          }),
+      ),
+    );
+    const props = {
+      replications: [initial],
+      effects,
+      contributorDirectory,
+      deferredReplicationsUrl: "/api/replications/gallery",
+      continuationCursor: "opaque-next",
+      hasMoreReplications: true,
+    };
+
+    const view = renderExplorer("", props);
+    fireEvent.click(screen.getByRole("radio", { name: "Videos" }));
+
+    navMocks.params = new URLSearchParams("view=effect");
+    view.rerender(<ReplicationsGalleryExplorer {...props} />);
+    await act(async () => {
+      resolveResponse?.({
+        ok: true,
+        status: 200,
+        json: async () => ({ data: [], nextCursor: null, hasMore: false }),
+      });
+    });
+
+    expect(navMocks.push).not.toHaveBeenCalled();
   });
 
   it("keeps continuation reachable when the first publishable page is empty", async () => {
