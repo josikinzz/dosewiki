@@ -53,6 +53,7 @@ export const productionWriterClassifications = Object.freeze({
     "scripts/replications/regenerate-substance-galleries.mjs",
     "scripts/replications/regenerate-missing-thumbnails.mjs",
     "scripts/replications/repoint-renditions.mjs",
+    "scripts/replications/run-replication-index-production-import.mjs",
     "scripts/replications/upload-replications.mjs",
     "scripts/replications/seed-featured-replications.mjs",
     "scripts/seed/seed-category-layout.mjs",

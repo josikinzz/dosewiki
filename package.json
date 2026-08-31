@@ -114,6 +114,7 @@
     "prompts:migrate": "node scripts/migrate/migrate-prompts-to-convex.mjs",
     "convex:doctor": "node scripts/convex/doctor.mjs",
     "replication-index:profile-avatars": "node --experimental-strip-types --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/contributors/upload-replication-index-profile-avatars.ts",
+    "replication-index:production-import": "node scripts/replications/run-replication-index-production-import.mjs",
     "replications:audit-provenance": "node scripts/replications/audit-provenance.mjs",
     "replications:apply-provenance": "node scripts/replications/apply-provenance-corrections.mjs",
     "replications:apply-dates": "node scripts/replications/apply-date-research.mjs",
