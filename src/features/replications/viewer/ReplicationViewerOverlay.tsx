@@ -996,13 +996,9 @@ export function ReplicationViewerOverlay({
           }
         }}
         tabIndex={-1}
-        aria-describedby="replication-viewer-description"
         className={VIEWER_DIALOG_CLASS}
       >
-        <DialogDescription
-          id="replication-viewer-description"
-          className="sr-only"
-        >
+        <DialogDescription className="sr-only">
           Viewing {active.replication.title} by {artistLabel}. {collection.label}.
           Work {position.itemIndex + 1} of {group.items.length}.
         </DialogDescription>

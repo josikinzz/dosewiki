@@ -380,6 +380,11 @@ describe("ReplicationViewerOverlay", () => {
       name: /Chelsea Morgan.*Work One/,
     });
     expect(dialog).toHaveAttribute("aria-modal", "true");
+    const descriptionId = dialog.getAttribute("aria-describedby");
+    expect(descriptionId).toMatch(/^radix-/);
+    expect(document.getElementById(descriptionId!)).toHaveTextContent(
+      "Viewing Work One by Chelsea Morgan",
+    );
     expect(dialog).toHaveClass("grid-rows-[auto_minmax(0,1fr)]");
     expect(screen.getByTestId("media-stage")).toHaveAttribute(
       "data-title",
