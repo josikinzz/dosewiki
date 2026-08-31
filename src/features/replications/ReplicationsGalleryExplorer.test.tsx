@@ -1275,6 +1275,49 @@ describe("paged gallery continuation", () => {
     expect(document.activeElement).toBe(completion);
   });
 
+  it("does not steal focus when the user moves away during the gallery drain", async () => {
+    const initial = rep({ title: "Initial work" });
+    let resolveResponse: ((response: unknown) => void) | undefined;
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(
+        () =>
+          new Promise((resolve) => {
+            resolveResponse = resolve;
+          }),
+      ),
+    );
+    renderExplorer("", {
+      replications: [initial],
+      deferredReplicationsUrl: "/api/replications/gallery",
+      continuationCursor: "opaque-next",
+      hasMoreReplications: true,
+    });
+
+    const loadButton = screen.getByRole("button", {
+      name: "Load complete gallery",
+    });
+    const search = screen.getByRole("textbox", {
+      name: "Search replications",
+    });
+    loadButton.focus();
+    fireEvent.click(loadButton);
+    search.focus();
+
+    await act(async () => {
+      resolveResponse?.({
+        ok: true,
+        status: 200,
+        json: async () => ({ data: [], nextCursor: null, hasMore: false }),
+      });
+    });
+
+    expect(screen.getByRole("status")).toHaveTextContent(
+      "Complete gallery loaded",
+    );
+    expect(document.activeElement).toBe(search);
+  });
+
   it("drains sparse bounded pages before applying a corpus-wide search", async () => {
     vi.useFakeTimers();
     const initial = rep({ title: "Initial work" });
@@ -1360,6 +1403,90 @@ describe("paged gallery continuation", () => {
       "16",
     );
     expect(fetchMock).toHaveBeenCalledTimes(1);
+  });
+
+  it("preserves a pending View all action through failure and retry", async () => {
+    const initial = Array.from({ length: 15 }, (_, index) =>
+      rep({ title: `Initial work ${index + 1}` }),
+    );
+    const deferred = rep({ title: "Deferred work" });
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValueOnce({ ok: false, status: 503 })
+      .mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        json: async () => ({
+          data: [deferred],
+          nextCursor: null,
+          hasMore: false,
+        }),
+      });
+    vi.stubGlobal("fetch", fetchMock);
+
+    renderExplorer("", {
+      replications: initial,
+      deferredReplicationsUrl: "/api/replications/gallery",
+      continuationCursor: "opaque-next",
+      hasMoreReplications: true,
+    });
+    await act(async () => {
+      fireEvent.click(screen.getByRole("link", { name: "View all" }));
+    });
+
+    expect(screen.queryByTestId("replication-viewer")).toBeNull();
+    expect(
+      screen.getByText(/complete gallery could not finish loading/i),
+    ).toBeInTheDocument();
+
+    await act(async () => {
+      fireEvent.click(screen.getByRole("button", { name: "Retry" }));
+    });
+
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+    expect(screen.getByTestId("replication-viewer")).toHaveAttribute(
+      "data-item-count",
+      "16",
+    );
+  });
+
+  it("supersedes a pending View all action with a newer gallery action", async () => {
+    const initial = Array.from({ length: 15 }, (_, index) =>
+      rep({ title: `Initial work ${index + 1}` }),
+    );
+    let resolveResponse: ((response: unknown) => void) | undefined;
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(
+        () =>
+          new Promise((resolve) => {
+            resolveResponse = resolve;
+          }),
+      ),
+    );
+
+    renderExplorer("", {
+      replications: initial,
+      deferredReplicationsUrl: "/api/replications/gallery",
+      continuationCursor: "opaque-next",
+      hasMoreReplications: true,
+    });
+    fireEvent.click(screen.getByRole("link", { name: "View all" }));
+    fireEvent.click(screen.getByRole("radio", { name: "By effect" }));
+
+    await act(async () => {
+      resolveResponse?.({
+        ok: true,
+        status: 200,
+        json: async () => ({ data: [], nextCursor: null, hasMore: false }),
+      });
+    });
+
+    expect(screen.queryByTestId("replication-viewer")).toBeNull();
+    expect(navMocks.push).toHaveBeenCalledTimes(1);
+    expect(navMocks.push).toHaveBeenCalledWith("/replications?view=effect", {
+      scroll: false,
+    });
   });
 
   it("loads the complete corpus before changing a taxonomy filter", async () => {

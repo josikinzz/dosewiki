@@ -429,7 +429,7 @@ function GalleryExplorer({
     }
     if (pageRequestRef.current) return pageRequestRef.current;
 
-    focusCompletionAfterLoadRef.current ||=
+    focusCompletionAfterLoadRef.current =
       document.activeElement === loadButtonRef.current;
     setCompletionAnnouncement(null);
     const controller = new AbortController();
@@ -493,6 +493,9 @@ function GalleryExplorer({
         setGalleryReplications(result.items);
         setHasMore(result.hasMore);
         setPageLoadState("idle");
+        focusCompletionAfterLoadRef.current =
+          focusCompletionAfterLoadRef.current &&
+          document.activeElement === loadButtonRef.current;
         setCompletionAnnouncement("Complete gallery loaded");
         return true;
       } catch {
@@ -1684,8 +1687,7 @@ function GalleryExplorer({
                         { kind: mode, key: galleryGroupUrlKey(mode, group) },
                         mode === "artist" ? { type: typeFilter } : {},
                       );
-                      void loadCompleteCorpus().then((loaded) => {
-                        if (!loaded) return;
+                      runWithCompleteCorpus(() => {
                         const first = group.items[0];
                         if (mode === "artist" && first) {
                           launchViewer(first.slug);
