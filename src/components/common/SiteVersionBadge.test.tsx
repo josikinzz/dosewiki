@@ -23,6 +23,17 @@ describe("SiteVersionBadge", () => {
     expect(badge).toHaveTextContent("v0.9 beta");
   });
 
+  it("renders only the version, decorative, in the logo overlay variant", () => {
+    const { container } = render(
+      <SiteVersionBadge variant="logoOverlay" config={dosewiki} />,
+    );
+
+    const badge = container.querySelector("span");
+    expect(badge).toHaveAttribute("aria-hidden", "true");
+    expect(badge).toHaveTextContent("v0.9");
+    expect(badge).not.toHaveTextContent("beta");
+  });
+
   it("renders nothing for a flavor without a version badge", () => {
     const { container } = render(
       <SiteVersionBadge variant="hero" config={effectindex} />,

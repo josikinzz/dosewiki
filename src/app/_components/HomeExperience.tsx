@@ -85,13 +85,14 @@ export function HomeExperience({
             className="group/brand flex h-11 w-auto items-center gap-2 p-0 text-left hover:bg-transparent xl:h-10 xl:pl-0"
             aria-label={`${SITE_FLAVOR_CONFIG.name} home mockup`}
           >
-            <span className="inline-flex items-center justify-center transition-transform duration-200 group-hover/brand:scale-105 group-focus-visible/brand:scale-105">
+            <span className="relative inline-flex items-center justify-center transition-transform duration-200 group-hover/brand:scale-105 group-focus-visible/brand:scale-105">
               <DoseWikiLogo
                 width={40}
                 height={40}
                 className="safari-svg-gpu h-10 w-10"
                 draggable={false}
               />
+              <SiteVersionBadge variant="logoOverlay" />
             </span>
             <span className="theme-text-primary hidden items-center text-2xl font-display font-bold tracking-tight transition-transform duration-200 group-hover/brand:scale-[1.04] group-focus-visible/brand:scale-[1.04] xl:inline-flex">
               <SiteWordmark />
