@@ -141,6 +141,16 @@ describe("resolveReplicationUrls R2-first precedence", () => {
     expect(getUrl).not.toHaveBeenCalled();
   });
 
+  it("resolves an R2-only row without consulting Convex storage", async () => {
+    vi.stubEnv("REPLICATION_MEDIA_BASE_URL", BASE);
+    const getUrl = vi.fn(async (storageId: string) => `https://cdn.test/${storageId}`);
+
+    await expect(
+      resolveReplicationUrls({ storage: { getUrl } }, { r2_key: KEY_A }),
+    ).resolves.toMatchObject({ url: `${BASE}/${KEY_A}` });
+    expect(getUrl).not.toHaveBeenCalled();
+  });
+
   it("ignores every R2 key when the base URL is unset (rollback switch)", async () => {
     const getUrl = vi.fn(async (storageId: string) => `https://cdn.test/${storageId}`);
 

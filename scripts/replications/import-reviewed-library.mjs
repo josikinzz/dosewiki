@@ -297,7 +297,9 @@ async function main() {
     } else {
       const result = await client.mutation(api.replications.insertMediaAsset, {
         apiKey,
+        expected_absent: true,
         ...entry.proposedRow,
+        rights_status: entry.proposedRow.rights_status ?? "unknown",
         storage_id: state.storageIds.main,
         thumbnail_storage_id: state.storageIds.thumbnail,
       });

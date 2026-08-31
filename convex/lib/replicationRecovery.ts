@@ -136,7 +136,7 @@ const R2_KEY_ROLES = [
 export function validateR2KeyUpdate(
   row: {
     slug: string;
-    storage_id: string;
+    storage_id?: string;
     thumbnail_storage_id?: string;
     preview_storage_id?: string;
     motion_storage_id?: string;

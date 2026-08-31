@@ -1,4 +1,5 @@
 import { type Infer, v } from "convex/values";
+import { replicationTaxonomyPatchValidator } from "./replicationTaxonomyValidators";
 
 export const replicationRightsStatus = v.union(
   v.literal("creator-retained"),
@@ -82,13 +83,15 @@ export const insertReplicationArgs = v.object({
 
 export const insertMediaAssetArgs = v.object({
   apiKey: v.optional(v.string()),
+  expected_absent: v.literal(true),
   slug: v.string(),
   title: v.string(),
   artist: v.string(),
   artist_url: v.optional(v.string()),
   role: replicationRole,
   type: replicationMediaType,
-  storage_id: v.string(),
+  storage_id: v.optional(v.string()),
+  r2_key: v.optional(v.string()),
   effect_slug: v.optional(v.string()),
   thumbnail_storage_id: v.optional(v.string()),
   url: v.optional(v.string()),
@@ -98,8 +101,25 @@ export const insertMediaAssetArgs = v.object({
   format: v.string(),
   file_size: v.optional(v.number()),
   duration: v.optional(v.number()),
+  has_audio: v.optional(v.boolean()),
   effect_tags: v.optional(v.array(v.string())),
-  ...replicationRightsFields,
+  source_sha256: v.optional(v.string()),
+  taxonomy: v.optional(replicationTaxonomyPatchValidator),
+  rights_status: replicationRightsStatus,
+  license_name: v.optional(v.string()),
+  license_url: v.optional(v.string()),
+  credit_line: v.optional(v.string()),
+  source_url: v.optional(v.string()),
+  rightsholder: v.optional(v.string()),
+  permission_notes: v.optional(v.string()),
+  removal_contact: v.optional(v.string()),
+});
+
+export const insertMediaAssetResult = v.object({
+  inserted: v.boolean(),
+  id: v.id("replications"),
+  slug: v.string(),
+  role: replicationRole,
 });
 
 export const bulkImportArgs = v.object({

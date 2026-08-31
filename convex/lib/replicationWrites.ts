@@ -1,7 +1,11 @@
 import type { MutationCtx } from "../_generated/server";
 import { requireAuth } from "./auth";
-import { KEBAB_CASE, normalizeEffectTags } from "./replicationPolicy";
-import { isPlaceholderStorageId } from "./replicationUrls";
+import {
+  assertEffectExists,
+  KEBAB_CASE,
+  normalizeEffectTags,
+} from "./replicationPolicy";
+import { isPlaceholderStorageId, isValidR2Key } from "./replicationUrls";
 import type {
   BulkImportArgs,
   DeleteAuditedRowArgs,
@@ -17,6 +21,193 @@ import type {
   UpdateUrlArgs,
 } from "./replicationValidators";
 
+const INSERT_MEDIA_ASSET_FIELDS = [
+  "slug",
+  "title",
+  "artist",
+  "artist_url",
+  "role",
+  "type",
+  "storage_id",
+  "r2_key",
+  "effect_slug",
+  "thumbnail_storage_id",
+  "url",
+  "thumbnail_url",
+  "width",
+  "height",
+  "format",
+  "file_size",
+  "duration",
+  "has_audio",
+  "effect_tags",
+  "source_sha256",
+  "rights_status",
+  "license_name",
+  "license_url",
+  "credit_line",
+  "source_url",
+  "rightsholder",
+  "permission_notes",
+  "removal_contact",
+  "source_catalog_id",
+  "taxonomy_record_key",
+  "replication_status",
+  "replication_status_confidence",
+  "replication_status_review_required",
+  "viewing_mode",
+  "viewing_mode_tags",
+  "viewing_mode_confidence",
+  "viewing_mode_review_required",
+  "title_drugs",
+  "title_class_mentions",
+  "drug_classes",
+  "content_family",
+  "content_tags",
+  "content_family_confidence",
+  "content_family_review_required",
+  "taxonomy_review_required",
+  "taxonomy_version",
+  "taxonomy_source_digest",
+  "taxonomy_updated_at",
+] as const;
+
+function insertMediaAssetRowsAgree(
+  existing: Record<string, unknown>,
+  proposed: Record<string, unknown>,
+) {
+  return INSERT_MEDIA_ASSET_FIELDS.every(
+    (field) => JSON.stringify(existing[field]) === JSON.stringify(proposed[field]),
+  );
+}
+
+const SHA256 = /^[0-9a-f]{64}$/;
+
+function sameStrings(actual: readonly string[] | undefined, expected: readonly string[]) {
+  const normalized = [...new Set(actual ?? [])].sort();
+  return normalized.length === expected.length
+    && normalized.every((value, index) => value === expected[index]);
+}
+
+function validateTaxonomyCoherence(
+  slug: string,
+  role: "replication" | "figure",
+  taxonomy: InsertMediaAssetArgs["taxonomy"],
+) {
+  if (!taxonomy) return;
+  if (!taxonomy.taxonomy_record_key.trim()) {
+    throw new Error(`Media asset ${slug} needs a non-blank taxonomy_record_key.`);
+  }
+  if (taxonomy.source_catalog_id !== undefined && !taxonomy.source_catalog_id.trim()) {
+    throw new Error(`Media asset ${slug} has a blank source_catalog_id.`);
+  }
+  if (!SHA256.test(taxonomy.taxonomy_source_digest)) {
+    throw new Error(`Media asset ${slug} has an invalid taxonomy_source_digest.`);
+  }
+  if (!Number.isInteger(taxonomy.taxonomy_version) || taxonomy.taxonomy_version <= 0) {
+    throw new Error(`Media asset ${slug} has an invalid taxonomy_version.`);
+  }
+  if (!Number.isFinite(taxonomy.taxonomy_updated_at) || taxonomy.taxonomy_updated_at <= 0) {
+    throw new Error(`Media asset ${slug} has an invalid taxonomy_updated_at.`);
+  }
+
+  if (taxonomy.viewing_mode === undefined) {
+    if (
+      (taxonomy.viewing_mode_tags?.length ?? 0) > 0
+      || taxonomy.viewing_mode_confidence !== undefined
+      || taxonomy.viewing_mode_review_required !== undefined
+    ) {
+      throw new Error(`Media asset ${slug} has viewing-mode details without viewing_mode.`);
+    }
+  } else {
+    if (
+      taxonomy.viewing_mode_confidence === undefined
+      || taxonomy.viewing_mode_review_required === undefined
+    ) {
+      throw new Error(`Media asset ${slug} has an incomplete viewing-mode review.`);
+    }
+    const expectedTags = taxonomy.viewing_mode === "mixed"
+      ? ["closed-eye", "open-eye"]
+      : taxonomy.viewing_mode === "uncertain"
+        ? []
+        : [taxonomy.viewing_mode];
+    if (!sameStrings(taxonomy.viewing_mode_tags, expectedTags)) {
+      throw new Error(
+        `Media asset ${slug} viewing_mode_tags do not match ${taxonomy.viewing_mode}.`,
+      );
+    }
+  }
+
+  const drugClasses = new Set(taxonomy.drug_classes ?? []);
+  for (const drug of taxonomy.title_drugs ?? []) {
+    if (!KEBAB_CASE.test(drug.slug) || !drug.name.trim() || !drug.matched_title_text.trim()) {
+      throw new Error(`Media asset ${slug} has invalid title-drug evidence.`);
+    }
+    if (!drugClasses.has(drug.class)) {
+      throw new Error(
+        `Media asset ${slug} title drug class ${drug.class} is absent from drug_classes.`,
+      );
+    }
+  }
+  for (const mention of taxonomy.title_class_mentions ?? []) {
+    if (!mention.matched_title_text.trim() || !drugClasses.has(mention.class)) {
+      throw new Error(`Media asset ${slug} has incoherent title-class evidence.`);
+    }
+  }
+
+  if (
+    role === "figure"
+    && (
+      taxonomy.replication_status !== "not-replication"
+      || taxonomy.content_family !== "explanatory-figure"
+    )
+  ) {
+    throw new Error(
+      `Media asset ${slug} is a figure and needs not-replication/explanatory-figure taxonomy.`,
+    );
+  }
+}
+
+function validHttpUrl(value: string | undefined) {
+  if (!value?.trim()) return false;
+  try {
+    const parsed = new URL(value);
+    return parsed.protocol === "https:" || parsed.protocol === "http:";
+  } catch {
+    return false;
+  }
+}
+
+function validateRightsCoherence(
+  slug: string,
+  rights: Pick<
+    InsertMediaAssetArgs,
+    "rights_status" | "license_name" | "license_url" | "permission_notes"
+  >,
+) {
+  const hasLicenseName = Boolean(rights.license_name?.trim());
+  const hasLicenseUrl = validHttpUrl(rights.license_url);
+  if (rights.rights_status === "explicit-license") {
+    if (!hasLicenseName || !hasLicenseUrl) {
+      throw new Error(
+        `Media asset ${slug} explicit-license rights need license_name and license_url.`,
+      );
+    }
+  } else if (hasLicenseName || rights.license_url !== undefined) {
+    throw new Error(
+      `Media asset ${slug} has license metadata without explicit-license rights.`,
+    );
+  }
+  if (
+    rights.rights_status === "permission-granted"
+    && !rights.permission_notes?.trim()
+  ) {
+    throw new Error(
+      `Media asset ${slug} permission-granted rights need permission_notes.`,
+    );
+  }
+}
+
 export async function generateUploadUrlHandler(
   ctx: MutationCtx,
   args: { apiKey?: string },
@@ -29,12 +220,13 @@ export async function insertReplicationHandler(
   ctx: MutationCtx,
   args: InsertReplicationArgs,
 ) {
-  await requireAuth(ctx, args.apiKey, "replicationMaintenance");
-  const { apiKey: _apiKey, ...replicationData } = args;
-  return await ctx.db.insert("replications", {
-    ...replicationData,
-    created_at: new Date().toISOString(),
+  const result = await insertMediaAssetHandler(ctx, {
+    ...args,
+    expected_absent: true,
+    role: "replication",
+    rights_status: args.rights_status ?? "unknown",
   });
+  return result.id;
 }
 
 export async function insertMediaAssetHandler(
@@ -42,7 +234,12 @@ export async function insertMediaAssetHandler(
   args: InsertMediaAssetArgs,
 ) {
   await requireAuth(ctx, args.apiKey, "replicationMaintenance");
-  const { apiKey: _apiKey, ...row } = args;
+  const {
+    apiKey: _apiKey,
+    expected_absent: _expectedAbsent,
+    taxonomy,
+    ...row
+  } = args;
 
   if (!KEBAB_CASE.test(row.slug)) {
     throw new Error(`Media asset slug is not kebab-case: ${row.slug}`);
@@ -51,16 +248,19 @@ export async function insertMediaAssetHandler(
     throw new Error(`Media asset ${row.slug} needs a non-blank title and artist.`);
   }
 
-  const collision = await ctx.db
-    .query("replications")
-    .withIndex("by_slug", (q) => q.eq("slug", row.slug))
-    .first();
-  if (collision) {
-    throw new Error(`Media asset slug already in use: ${row.slug} (${collision._id}).`);
+  const hasR2Key = isValidR2Key(row.r2_key);
+  const hasNativeStorage = !isPlaceholderStorageId(row.storage_id)
+    && Boolean(row.storage_id?.trim());
+  const hasDirectUrl = validHttpUrl(row.url);
+  if (row.r2_key !== undefined && !hasR2Key) {
+    throw new Error(`Media asset ${row.slug} has an invalid r2_key: ${row.r2_key}`);
   }
-  if (isPlaceholderStorageId(row.storage_id) && !row.url) {
+  if (row.url !== undefined && !hasDirectUrl) {
+    throw new Error(`Media asset ${row.slug} has an invalid direct url: ${row.url}`);
+  }
+  if (!hasR2Key && !hasNativeStorage && !hasDirectUrl) {
     throw new Error(
-      `Media asset ${row.slug} has no real storage_id and no url to fall back on.`,
+      `Media asset ${row.slug} has no real r2_key, storage_id, or url.`,
     );
   }
   if (row.format !== row.format.trim().toLowerCase() || row.format.length === 0) {
@@ -72,19 +272,15 @@ export async function insertMediaAssetHandler(
     );
   }
 
+  const effectTags = row.effect_tags
+    ? normalizeEffectTags(row.effect_tags)
+    : undefined;
   if (row.effect_slug !== undefined) {
-    if (!KEBAB_CASE.test(row.effect_slug)) {
-      throw new Error(`Media asset effect_slug is not kebab-case: ${row.effect_slug}`);
-    }
-    const effect = await ctx.db
-      .query("subjectiveEffects")
-      .withIndex("by_slug", (q) => q.eq("slug", row.effect_slug as string))
-      .first();
-    if (!effect) {
-      throw new Error(
-        `Media asset ${row.slug} points at an effect that does not exist: ${row.effect_slug}. `
-          + "Omit effect_slug for assets with no owning effect.",
-      );
+    await assertEffectExists(ctx, row.effect_slug, `Media asset ${row.slug}`);
+  }
+  for (const tag of effectTags ?? []) {
+    if (tag !== row.effect_slug) {
+      await assertEffectExists(ctx, tag, `Media asset ${row.slug}`);
     }
   }
 
@@ -98,16 +294,80 @@ export async function insertMediaAssetHandler(
       throw new Error(`Media asset ${row.slug} has a non-positive ${key}: ${value}`);
     }
   }
+  if ((row.width === undefined) !== (row.height === undefined)) {
+    throw new Error(`Media asset ${row.slug} needs width and height together.`);
+  }
+  for (const [key, value] of [
+    ["width", row.width],
+    ["height", row.height],
+    ["file_size", row.file_size],
+  ] as const) {
+    if (value !== undefined && !Number.isInteger(value)) {
+      throw new Error(`Media asset ${row.slug} has a non-integer ${key}: ${value}`);
+    }
+  }
   if (row.type === "image" && row.duration !== undefined) {
     throw new Error(`Media asset ${row.slug} is an image and cannot have a duration.`);
   }
+  if (row.type !== "video" && row.has_audio !== undefined) {
+    throw new Error(`Media asset ${row.slug} is not a video and cannot set has_audio.`);
+  }
+  if (row.source_sha256 !== undefined && !SHA256.test(row.source_sha256)) {
+    throw new Error(`Media asset ${row.slug} has an invalid source_sha256.`);
+  }
+  validateRightsCoherence(row.slug, row);
+  validateTaxonomyCoherence(row.slug, row.role, taxonomy);
 
-  const effectTags = row.effect_tags
-    ? normalizeEffectTags(row.effect_tags)
-    : undefined;
-  const id = await ctx.db.insert("replications", {
+  const proposed = {
     ...row,
     effect_tags: effectTags && effectTags.length > 0 ? effectTags : undefined,
+    ...(taxonomy ?? {}),
+  };
+  const collision = await ctx.db
+    .query("replications")
+    .withIndex("by_slug", (q) => q.eq("slug", row.slug))
+    .first();
+
+  if (taxonomy?.source_catalog_id) {
+    const claimed = await ctx.db
+      .query("replications")
+      .withIndex("by_source_catalog_id", (q) =>
+        q.eq("source_catalog_id", taxonomy.source_catalog_id),
+      )
+      .unique();
+    if (claimed && claimed._id !== collision?._id) {
+      throw new Error(
+        `Catalog ID ${taxonomy.source_catalog_id} is already attached to ${claimed.slug}.`,
+      );
+    }
+  }
+  if (taxonomy?.taxonomy_record_key) {
+    const claimed = await ctx.db
+      .query("replications")
+      .withIndex("by_taxonomy_record_key", (q) =>
+        q.eq("taxonomy_record_key", taxonomy.taxonomy_record_key),
+      )
+      .unique();
+    if (claimed && claimed._id !== collision?._id) {
+      throw new Error(
+        `Taxonomy record key ${taxonomy.taxonomy_record_key} is already attached to ${claimed.slug}.`,
+      );
+    }
+  }
+  if (collision) {
+    if (insertMediaAssetRowsAgree(collision, proposed)) {
+      return {
+        inserted: false,
+        id: collision._id,
+        slug: collision.slug,
+        role: collision.role ?? "replication",
+      };
+    }
+    throw new Error(`Media asset slug already in use: ${row.slug} (${collision._id}).`);
+  }
+
+  const id = await ctx.db.insert("replications", {
+    ...proposed,
     created_at: new Date().toISOString(),
   });
   return { inserted: true, id, slug: row.slug, role: row.role };

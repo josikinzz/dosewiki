@@ -294,6 +294,7 @@ export default defineSchema({
     .index("by_effect", ["effect_slug"])
     .index("by_slug", ["slug"])
     .index("by_artist", ["artist"])
+    .index("by_source_sha256", ["source_sha256"])
     .index("by_source_catalog_id", ["source_catalog_id"])
     .index("by_taxonomy_record_key", ["taxonomy_record_key"])
     .index("by_replication_status", ["replication_status"]),

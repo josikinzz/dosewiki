@@ -183,7 +183,7 @@ export async function main(argv = process.argv.slice(2)) {
     state.rollbackStorageIds = state.rollbackStorageIds ?? (state.priorStorageIds ? { main: state.priorStorageIds.main, poster: state.priorStorageIds.thumbnail, preview: state.priorStorageIds.preview } : null);
     for (const label of ["main", "poster", "preview"]) if (!state.uploadedStorageIds[label]) { const actual = await digestFile(files[label]); const expected = expectedHash(entry, label); if (expected) required(actual === expected, `${entry.id}: ${label} digest drifted.`); state.sourceDigests[label] = actual; state.uploadedStorageIds[label] = await upload(client, apiKey, files[label]); state.status = `${label}-uploaded`; atomicJson(ledgerPath, ledger); }
     if (entry.action === "create" && !state.productionId) {
-      const result = await client.mutation(api.replications.insertMediaAsset, { apiKey, ...insertArgs(entry.proposedRow, state.uploadedStorageIds) }); state.productionId = result.id; state.status = "inserted"; atomicJson(ledgerPath, ledger);
+      const result = await client.mutation(api.replications.insertMediaAsset, { apiKey, expected_absent: true, ...insertArgs(entry.proposedRow, state.uploadedStorageIds), rights_status: entry.proposedRow.rights_status ?? "unknown" }); state.productionId = result.id; state.status = "inserted"; atomicJson(ledgerPath, ledger);
       await client.mutation(api.replications.applySourceRecovery, { apiKey, id: state.productionId, expectedStorageId: state.uploadedStorageIds.main, expectedSourceUrl: null, storageId: state.uploadedStorageIds.main, sourceUrl: entry.sourceUrl });
     }
     if (entry.action === "replacement") {

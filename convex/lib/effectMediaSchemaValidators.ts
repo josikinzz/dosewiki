@@ -134,7 +134,9 @@ export const replication = v.object({
   artist_url: v.optional(v.string()),  // Artist portfolio/social link
   role: v.optional(replicationRole),   // Absent === "replication"; see above
   type: replicationMediaType,          // "video" | "image" | "audio"
-  storage_id: v.string(),              // Convex file storage ID (or placeholder for external URLs)
+  // Optional during the R2 migration: a canonical r2_key may be the row's
+  // primary media locator without a fake Convex Storage object.
+  storage_id: v.optional(v.string()),
   /**
    * Owning effect, when there is one. Optional because some stored assets
    * genuinely have no effect: figures embedded in `effectIndexArticles`
@@ -221,6 +223,8 @@ export const replication = v.object({
    * on top of the tags.
    */
   effect_tags: v.optional(v.array(v.string())),
+  /** SHA-256 of the immutable acquisition source, when the insert plan has it. */
+  source_sha256: v.optional(v.string()),
   /** Stable ID of the reviewed local catalog row that supplied this taxonomy. */
   source_catalog_id: v.optional(v.string()),
   /** Stable campaign-neutral identity for catalog and live-only taxonomy records. */

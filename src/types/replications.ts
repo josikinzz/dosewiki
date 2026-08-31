@@ -209,7 +209,7 @@ export interface ReplicationRecord extends ReplicationRightsMetadata {
   /** Absent means `'replication'`. Read it through {@link mediaRole}. */
   role?: MediaRole;
   type: ReplicationType;
-  storage_id: string;
+  storage_id?: string;
   /**
    * Owning effect, when there is one. Absent for assets with no effect at all:
    * figures embedded in effect-index articles, page heroes, a molecule diagram.
@@ -220,6 +220,8 @@ export interface ReplicationRecord extends ReplicationRightsMetadata {
    * Replication Studio; the gallery's depicted-effect filter reads it.
    */
   effect_tags?: string[];
+  /** SHA-256 of the immutable acquisition source, when recorded at intake. */
+  source_sha256?: string;
   replication_status?: ReplicationStatus;
   viewing_mode?: ReplicationViewingMode;
   viewing_mode_tags?: ReplicationViewingModeTag[];

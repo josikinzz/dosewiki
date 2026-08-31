@@ -40,7 +40,7 @@ export function replicationMediaBaseUrl(
 export async function resolveReplicationUrls(
   ctx: { storage: { getUrl: (storageId: string) => Promise<string | null> } },
   rep: {
-    storage_id: string;
+    storage_id?: string;
     thumbnail_storage_id?: string;
     preview_storage_id?: string;
     motion_storage_id?: string;

@@ -438,7 +438,9 @@ async function main() {
 
     const result = await writeClient.mutation(api.replications.insertMediaAsset, {
       apiKey,
+      expected_absent: true,
       ...entry.row,
+      rights_status: entry.row.rights_status ?? "unknown",
     });
     console.log(`  inserted ${result.slug}  role=${result.role}  id=${result.id}`);
 

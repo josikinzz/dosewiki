@@ -1,3 +1,4 @@
+import { v } from "convex/values";
 import { internalMutation, mutation, query } from "./_generated/server";
 import * as reads from "./lib/replicationReads";
 import * as recovery from "./lib/replicationRecovery";
@@ -55,11 +56,13 @@ export const generateUploadUrl = mutation({
 
 export const insertReplication = mutation({
   args: validators.insertReplicationArgs.fields,
+  returns: v.id("replications"),
   handler: writes.insertReplicationHandler,
 });
 
 export const insertMediaAsset = mutation({
   args: validators.insertMediaAssetArgs.fields,
+  returns: validators.insertMediaAssetResult,
   handler: writes.insertMediaAssetHandler,
 });
 

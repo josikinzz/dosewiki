@@ -173,6 +173,7 @@ export const POST = protectedRouteOperation<CreateAssetBody, ParsedCreateAsset>(
     const apiKey = convexWrite.getAdminIntentToken?.("replicationMaintenance") ?? convexWrite.adminKey;
     const result = await convexWrite.client.mutation(api.replications.insertMediaAsset, {
       apiKey,
+      expected_absent: true,
       slug: body.slug,
       title: body.title,
       artist: body.artist,
@@ -183,6 +184,7 @@ export const POST = protectedRouteOperation<CreateAssetBody, ParsedCreateAsset>(
       effect_tags: body.effectTags.length > 0 ? body.effectTags : undefined,
       format: body.format,
       file_size: body.fileSize,
+      rights_status: "unknown",
       credit_line: body.creditLine,
     });
 
