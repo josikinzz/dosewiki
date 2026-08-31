@@ -55,7 +55,7 @@ export function SiteVersionBadge({
     return (
       <span
         aria-hidden="true"
-        className="theme-accent-heading hidden items-center rounded-full border border-current/35 px-1.5 pt-[1.5px] pb-[2.5px] font-display text-[9px] font-semibold uppercase leading-none tracking-widest xl:inline-flex"
+        className="theme-accent-heading hidden items-center font-display text-[9px] font-semibold uppercase leading-none tracking-widest xl:inline-flex"
       >
         {`${badge.version} ${badge.label}`}
       </span>
