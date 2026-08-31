@@ -14,8 +14,10 @@ This repo is linked to Vercel. Treat this file as the repo-local deployment/acco
 - `dosewiki-admin` is the one project. Four hosts are attached to it and one
   production deploy serves all of them: `dose.wiki` and `www.dose.wiki`
   (public), `dev.dose.wiki` and `dosewiki-admin.vercel.app` (editor).
-- The public hosts launched at the 2026-08-31 floor after explicit user
-  authorization. They serve ordinary App Paths and are crawlable.
+- The public hosts launched early on 2026-08-30 after explicit user
+  authorization. The social announcement remains scheduled for midnight at the
+  start of 2026-08-31 in America/Los_Angeles. The hosts already serve ordinary
+  App Paths and are crawlable.
 - `middleware.ts` keeps host-specific boundaries: public-host `/dev`, `/review`,
   `/sign-in`, and `/unauthorized` links redirect to `dev.dose.wiki`.
   Credentialed endpoints (`/api/auth`, `/api/dev`, `/api/save-user-profile`)
@@ -263,20 +265,10 @@ intended read-only posture. Editing stays on `dosewiki-admin`; copying write
 credentials to Effect Index would give a public marketing domain a production
 write path.
 
-`NEXT_PUBLIC_HOME_CONSTRUCTION_MODE` is **left unset** on the Effect Index project. Effect Index launches as a live public site, so it must not serve the holding page.
-
-### Holding page and retired preview addresses
-
-`src/app/_components/ConstructionLanding.tsx` remains available at
-`/under-construction` for local inspection. Setting
-`NEXT_PUBLIC_HOME_CONSTRUCTION_MODE=true` still replaces `/` for an entire
-build; the production dose.wiki project must leave it unset.
-
-The landing's historical countdown targets midnight at the start of 2026-08-31,
-America/Los_Angeles (`LAUNCH_AT_MS` in
-[`src/utils/launchCountdown.ts`](../../src/utils/launchCountdown.ts)). Reaching
-zero never changed routing; the production gate was removed only after explicit
-launch authorization.
+The launched homepage has no construction-mode environment switch. The retained
+`src/app/_components/ConstructionLanding.tsx` surface is available only at
+`/under-construction` for historical inspection; it does not show a future
+launch date.
 
 The former `/preview` address space is compatibility-only:
 

@@ -139,15 +139,8 @@ export function isSelfScrollingRoute(pathname: string): boolean {
 }
 
 /** Whether the route owns its own chrome instead of using the public header. */
-export function isChromelessAddress(
-  pathname: string,
-  options: { homeConstructionMode?: boolean } = {},
-): boolean {
+export function isChromelessAddress(pathname: string): boolean {
   if (pathname === "/under-construction") {
-    return true;
-  }
-
-  if (pathname === "/" && options.homeConstructionMode) {
     return true;
   }
 
@@ -160,11 +153,7 @@ export function isChromelessAddress(
   );
 }
 
-interface RouteChromeProps {
-  homeConstructionMode?: boolean;
-}
-
-export function RouteChrome({ homeConstructionMode = false }: RouteChromeProps) {
+export function RouteChrome() {
   const router = useRouter();
   const pathname = usePathname();
   const { model, setSearchQuery } = useRouteChromeModel();
@@ -210,7 +199,7 @@ export function RouteChrome({ homeConstructionMode = false }: RouteChromeProps) 
     router.push(navigationHref(nextView), { scroll: false });
   };
 
-  if (isChromelessAddress(pathname, { homeConstructionMode })) {
+  if (isChromelessAddress(pathname)) {
     return <RouteAnnouncer message={model.pageTitle} />;
   }
 

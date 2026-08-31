@@ -8,9 +8,8 @@ const quickLinks = buildHomeQuickLinks();
 /**
  * The retained holding surface: the live homepage with every destination blocked.
  *
- * It renders directly at `/under-construction`, and a whole deployment can additionally
- * put it at `/` with build-time `NEXT_PUBLIC_HOME_CONSTRUCTION_MODE`. The launched public
- * hosts do neither.
+ * It renders only at `/under-construction`; the launched homepage cannot be replaced by
+ * this retained inspection surface.
  *
  * Rendering the real homepage rather than a bespoke holding card is deliberate: visitors
  * see the site's appearance, while tiles answer "SOON" instead of navigating. The Theme
@@ -25,7 +24,6 @@ export async function ConstructionLanding() {
       isConstructionMode
       copy={{
         tagline: flavoredCopyText(copy, "home-hero-tagline", SITE_FLAVOR_CONFIG.description),
-        constructionSubtitle: copy.text("home-construction-subtitle"),
       }}
     />
   );

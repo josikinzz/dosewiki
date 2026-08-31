@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import { env } from "node:process";
 import Script from "next/script";
 import { PUBLIC_SITE, buildSiteAssetUrl, buildSiteUrl } from "@server/next/publicSite";
 import { SITE_FLAVOR, SITE_FLAVOR_CONFIG } from "@/config/siteFlavor";
@@ -49,7 +48,6 @@ const rootFontClassName =
   dyslexicFont && dyslexicPreviewFont
     ? `${siteFont.variable} ${proFont.variable} ${dyslexicFont.variable} ${dyslexicPreviewFont.variable}`
     : `${siteFont.variable} ${proFont.variable}`;
-const homeConstructionMode = env.NEXT_PUBLIC_HOME_CONSTRUCTION_MODE === "true";
 
 export const metadata: Metadata = {
   title: SITE_FLAVOR_CONFIG.rootMetadata.title,
@@ -169,7 +167,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           initialVisualStyle={initialAppearance.visualStyle}
           isVisualStyleLocked={isVisualStyleLocked}
         >
-          <RouteChrome homeConstructionMode={homeConstructionMode} />
+          <RouteChrome />
           <div className="app-content relative">
             <div className="flex-1">
               {children}

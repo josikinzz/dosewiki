@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import { env } from "node:process";
 import { loadEffectIndexHomeData } from "@server/next/effectIndexHome";
 import { SITE_FLAVOR_CONFIG, isEffectIndex } from "@/config/siteFlavor";
 import { EffectIndexHomePage } from "@/features/effect-index/home/EffectIndexHomePage";
@@ -9,7 +8,6 @@ import {
   EFFECT_INDEX_HOME_PANEL_BLURBS_KEY,
   type EffectIndexHomeCopy,
 } from "@/features/effect-index/home/homeIntroCopy";
-import { ConstructionLanding } from "./_components/ConstructionLanding";
 import { HomeExperience } from "./_components/HomeExperience";
 import { buildHomeQuickLinks } from "./_components/homeQuickLinks";
 import { flavoredCopyText, getCopy, type CopyResolver } from "@server/next/copyBlocks";
@@ -20,7 +18,6 @@ import { pageSocialCardImage } from "@/data/mappings/pageSocialCardUrl";
 // `<page> - <suffix>` convention. Its tailored dose.wiki card is overlaid here so other
 // routes without their own card continue to inherit the publication-wide root asset.
 export async function generateMetadata(): Promise<Metadata> {
-  const isConstructionMode = env.NEXT_PUBLIC_HOME_CONSTRUCTION_MODE === "true";
   const copy = await getCopy();
   const description = flavoredCopyText(
     copy,
@@ -32,12 +29,6 @@ export async function generateMetadata(): Promise<Metadata> {
   return {
     title: SITE_FLAVOR_CONFIG.titleSuffix,
     description,
-    robots: isConstructionMode
-      ? {
-          index: false,
-          follow: false,
-        }
-      : undefined,
     ...(socialImage
       ? {
           openGraph: {
@@ -107,15 +98,8 @@ function resolveEffectIndexHomeCopy(copy: CopyResolver): EffectIndexHomeCopy {
  * Index's is the original effectindex.com front page: an intro block over two columns of
  * content panels. The flavor is a build-time constant, so only one of these two branches is
  * ever reachable in a given build — the dose.wiki path below is byte-for-byte what it was.
- *
- * Explicit deployment-wide construction mode takes precedence on either flavor and renders
- * the retained blocked surface from `ConstructionLanding`.
  */
 export default async function HomePage() {
-  if (env.NEXT_PUBLIC_HOME_CONSTRUCTION_MODE === "true") {
-    return <ConstructionLanding />;
-  }
-
   const copy = await getCopy();
 
   if (isEffectIndex()) {

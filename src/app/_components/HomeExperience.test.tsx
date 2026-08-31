@@ -6,7 +6,6 @@ import { SITE_FLAVOR_CONFIGS } from "@/config/siteFlavor";
 import type * as SiteFlavorModule from "@/config/siteFlavor";
 import { ThemeProvider } from "@/context/ThemeContext";
 import { clearEditorHint } from "@/lib/auth/editorHint";
-import { LAUNCH_AT_LABEL } from "@/utils/launchCountdown";
 import { HomeExperience } from "./HomeExperience";
 import { buildHomeQuickLinks } from "./homeQuickLinks";
 
@@ -138,7 +137,6 @@ describe("dose.wiki holding surface", () => {
         <HomeExperience
           quickLinks={quickLinks}
           isConstructionMode
-          copy={{ constructionSubtitle: "coming soon" }}
         />
       </ThemeProvider>,
     );
@@ -195,14 +193,9 @@ describe("dose.wiki holding surface", () => {
     expect(within(panel).queryByRole("button", { name: "Open Theme Lab" })).not.toBeInTheDocument();
   });
 
-  it("says only when it opens, from the editable banner copy plus the clock", () => {
+  it("does not present a future site launch", () => {
     renderBlocked();
 
-    expect(screen.getByText("coming soon")).toBeVisible();
-
-    // The site behind this page is built, so the banner no longer claims otherwise -
-    // and the clock, not a sentence, is what carries the date.
-    expect(screen.queryByText(/under construction/i)).not.toBeInTheDocument();
-    expect(screen.getByText(`Launching ${LAUNCH_AT_LABEL}.`)).toBeInTheDocument();
+    expect(screen.queryByText(/coming soon|launching/i)).not.toBeInTheDocument();
   });
 });

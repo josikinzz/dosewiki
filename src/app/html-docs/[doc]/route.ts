@@ -6,8 +6,8 @@ import { isEffectIndex } from "@/config/siteFlavor";
 /**
  * Unlisted raw-HTML doc host: serves self-contained files from `html-docs/` at the repo
  * root with no app shell. The public-document CSP still applies (middleware), so files
- * must inline everything — external font/script CDNs are blocked. dose.wiki construction
- * hosts never reach here (middleware host gate); Effect Index 404s on flavor.
+ * must inline everything — external font/script CDNs are blocked. Effect Index 404s on
+ * flavor.
  */
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";

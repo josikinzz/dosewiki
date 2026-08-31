@@ -368,14 +368,12 @@ export async function middleware(request: NextRequest) {
 
 export const config = {
   // Everything middleware does is for documents and API routes: the CSP + security headers
-  // are a document concern, the alias/legacy-search redirects target page paths, and the
-  // metadata routes (manifest/sitemap, plus favicon files) need no CSP on their non-HTML
-  // bodies and are already construction-allowlisted. So presentation assets are excluded
-  // by extension — every image/font/style/media extension that appears under `public/`.
-  // `json` and `txt` are deliberately NOT excluded: the construction gate on dose.wiki/www
-  // must keep fronting the open-data dumps (/SubstanceIndex.json, /open-data/*, /llms.txt)
-  // until launch, and their exclusion would let those hosts serve them. Matchers must be
-  // static literals, hence the spelled-out alternation.
+  // are a document concern, and the alias/legacy-search redirects target page paths.
+  // Presentation assets are excluded by extension — every image/font/style/media extension
+  // that appears under `public/`. `json` and `txt` deliberately still traverse middleware
+  // so public data, API descriptions, and crawler documents receive the same host policy
+  // and request headers as the rest of the launched site. Matchers must be static literals,
+  // hence the spelled-out alternation.
   matcher: [
     "/((?!_next/static|_next/image|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico|css|js|xml|webmanifest|woff2?|zip|md|mp3|ogg|afdesign)$).*)",
   ],

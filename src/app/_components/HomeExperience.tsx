@@ -12,19 +12,13 @@ import { SITE_FLAVOR_CONFIG } from "@/config/siteFlavor";
 import { partitionQuickLinkRows, type HomeQuickLink } from "./homeQuickLinks";
 import { AppearanceControls } from "./AppearanceControls";
 import { MailingListInvite } from "./MailingListInvite";
-import { ConstructionCountdown } from "./ConstructionCountdown";
 
 interface HomeExperienceProps {
   quickLinks: readonly HomeQuickLink[];
   isConstructionMode?: boolean;
-  /**
-   * Editable hero and banner copy, resolved on the server. Each falls back to
-   * the flavor config value this page shipped with, so an un-seeded deployment
-   * — and either flavor — renders exactly what it always did.
-   */
+  /** Editable hero copy resolved on the server, with the shipped flavor copy as fallback. */
   copy?: {
     tagline?: string;
-    constructionSubtitle?: string;
   };
 }
 
@@ -297,19 +291,6 @@ export function HomeExperience({
             ))}
           </nav>
 
-          {/* Nothing is under construction any more - the site behind this page is built,
-              and reachable under `/preview`. What is left to say is when it opens, so the
-              line free-floats: the words and the clock counting to them, no pill around
-              them. It sits under the tiles because they are what the page is for; the
-              launch date is a footnote to them, not a warning above them. */}
-          {isConstructionMode && (
-            <div className="theme-home-construction-banner mt-8 inline-flex items-baseline gap-2.5 font-display leading-none">
-              <span className="text-sm font-semibold italic normal-case tracking-wide sm:text-base">
-                {copy?.constructionSubtitle || "coming soon"}
-              </span>
-              <ConstructionCountdown />
-            </div>
-          )}
         </section>
 
         {/* The dose.wiki homepage suppresses the site footer (see RouteFooter), so the

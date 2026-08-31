@@ -117,9 +117,8 @@ describe("isChromelessAddress", () => {
     expect(isChromelessAddress("/")).toBe(false);
   });
 
-  it("keeps explicit construction-mode surfaces chromeless", () => {
+  it("keeps the archived construction surface chromeless", () => {
     expect(isChromelessAddress("/under-construction")).toBe(true);
-    expect(isChromelessAddress("/", { homeConstructionMode: true })).toBe(true);
   });
 
   it("still withholds chrome from full-bleed editor surfaces", () => {

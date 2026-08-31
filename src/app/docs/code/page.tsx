@@ -431,7 +431,7 @@ export default function DocsCodePage() {
             >
               <p className={PROSE_CLASS}>
                 <code>auth.ts</code> configures sign-in. <code>middleware.ts</code> protects{" "}
-                <code>/dev</code> and, before launch, the production hosts (section 07). Editor roles
+                <code>/dev</code> and keeps editor routes on the editor hosts. Editor roles
                 (admin / editor / viewer) live in the Convex <code>memberships</code> table.
               </p>
             </DefinitionRow>
@@ -1074,10 +1074,8 @@ export default function DocsCodePage() {
               </div>
               <div className="space-y-4">
                 <p className={PROSE_CLASS}>
-                  <strong>Who:</strong> anyone, no login. The site is crawlable, SEO-tuned, and mostly
-                  static. (Before launch, the production hosts serve only the homepage at{" "}
-                  <code>/</code>, with every destination blocked. Previews and local dev serve the
-                  full site.)
+                  <strong>Who:</strong> anyone, no login. The launched site is crawlable, SEO-tuned,
+                  and mostly static.
                 </p>
                 <p className={PROSE_CLASS}>
                   <strong>How it reads:</strong> server components read Convex through{" "}
