@@ -198,10 +198,7 @@ export function Mermaid({ chart, title }: { chart: string; title?: string }) {
   }, [chart]);
 
   return (
-    <div className="my-6">
-      {title ? (
-        <div className="theme-text-faint mb-2 font-mono text-xs">{title}</div>
-      ) : null}
+    <figure className="my-6">
       <div className="theme-card-surface flex min-h-[300px] items-center justify-center overflow-auto rounded-2xl border p-6">
         <div className="relative w-full">
           <div
@@ -218,6 +215,11 @@ export function Mermaid({ chart, title }: { chart: string; title?: string }) {
           </pre>
         ) : null}
       </div>
-    </div>
+      {title ? (
+        <figcaption className="theme-text-muted mt-2.5 text-[0.8125rem] leading-5">
+          {title}
+        </figcaption>
+      ) : null}
+    </figure>
   );
 }

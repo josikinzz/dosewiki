@@ -140,3 +140,11 @@ describe("/docs/how status, roadmap, and corrections", () => {
     expect(PAGE).toContain("This pattern is now the template");
   });
 });
+
+describe("/docs/how typography", () => {
+  it("contains no em dashes anywhere in the page source", () => {
+    // House style: em dashes are banned on this page. Use a colon, semicolon,
+    // comma, parentheses, or a reworded sentence instead.
+    expect(PAGE).not.toMatch(/\u2014/);
+  });
+});
