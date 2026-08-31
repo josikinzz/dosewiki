@@ -33,12 +33,15 @@ export function SiteVersionBadge({
     // Decorative on purpose: the badge sits inside the brand link, and an aria-label
     // here would leak into the link's accessible name. The beta status is announced
     // by the page title and the hero badge instead.
+    // Below xl the wordmark is hidden and space is tight, so the pill compacts to the
+    // version alone at 9px; from xl it grows back to the full "v0.9 beta" at 10px.
     return (
       <span
         aria-hidden="true"
-        className="theme-accent-heading ml-1.5 inline-flex items-center self-start rounded-full border border-current/35 px-1.5 pt-[2px] pb-[4px] font-display text-[10px] font-semibold uppercase leading-none tracking-widest"
+        className="theme-accent-heading ml-1 inline-flex items-center self-start rounded-full border border-current/35 px-1 pt-[1.5px] pb-[3px] font-display text-[9px] font-semibold uppercase leading-none tracking-wider xl:ml-1.5 xl:px-1.5 xl:pt-[2px] xl:pb-[4px] xl:text-[10px] xl:tracking-widest"
       >
-        {`${badge.version} ${badge.label}`}
+        <span className="xl:hidden">{badge.version}</span>
+        <span className="hidden xl:inline">{`${badge.version} ${badge.label}`}</span>
       </span>
     );
   }
