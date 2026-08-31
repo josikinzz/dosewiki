@@ -1,12 +1,13 @@
 #!/usr/bin/env node
 /**
- * Guarded two-stage uploader for the eight reviewed Replication Index profiles.
+ * Guarded three-stage publisher for the eight reviewed Replication Index profiles.
  *
  * Default mode is a zero-network dry run. Production uploads require a canary
  * command followed by a separate remaining-files command. Both commands write
- * a resumable, nonsecret ledger atomically after every state transition. The
- * contributor mutation is only ever called with `dryRun: true`; this script
- * cannot create or update a contributor profile.
+ * a resumable, nonsecret ledger atomically after every state transition. A
+ * third, separately confirmed profiles phase may call the contributor import
+ * mutation once, then requires an exact eight-profile readback before the
+ * ledger can become verified.
  */
 import { createHash } from "node:crypto";
 import {
@@ -43,6 +44,16 @@ export const EXPECTED_PROJECTION_SHA256 =
   "a3e501a7a9b938037cb4f04bc7b19fdcfb98aef236f0fd9814f6c299c5ab21cc";
 export const EXPECTED_DEPLOYMENT_RECEIPT_SHA256 =
   "45e94cc9cf4ce1e53db88aa2975bb409b26c4f3369f62035bacdc84aaa7b5230";
+export const APPLICATION_CONTRACT = {
+  deployedCommit: "6970b83c",
+  mutation: "contributorProfiles.importReviewedProfilePlan",
+  readbackQuery: "contributorProfiles.getForBulkImport",
+  expectedProfiles: 8,
+  expectedAbsent: true,
+} as const;
+export const APPLICATION_CONTRACT_SHA256 = sha256(
+  `${JSON.stringify(APPLICATION_CONTRACT)}\n`,
+);
 
 const REPO_ROOT = path.resolve(import.meta.dirname, "../..");
 const MEDIA_REVIEW_ROOT = path.resolve(REPO_ROOT, "../../Dose Wiki Media Review");
@@ -124,8 +135,66 @@ export type ValidatedInputs = {
   planPayloadSha256: string;
   projectionSha256: string;
   deploymentReceiptSha256: string;
+  applicationContractSha256: string;
   uploads: ValidatedUpload[];
   projection: ContributorProjection;
+};
+
+type ImportResultRow = {
+  creatorName: string;
+  key: string | null;
+  profileId: string | null;
+  action: "would-update" | "updated" | "would-create" | "created" | "unchanged" | "skipped" | "blocked";
+  blockReason?: "official-link-limit" | "avatar-unverified" | "avatar-r2-verification-unavailable";
+};
+
+export type ProfileImportResult = {
+  operationId: string;
+  dryRun: boolean;
+  created: number;
+  updated: number;
+  unchanged: number;
+  skipped: number;
+  blocked: number;
+  rows: ImportResultRow[];
+};
+
+export type ProfileReadbackRow = {
+  _id: string;
+  key: string;
+  displayName: string;
+  aliases?: string[];
+  avatarStorageId?: string;
+  avatarR2Key?: string;
+  avatarUrl?: string;
+  bio?: string;
+  role?: string;
+  links?: Array<{ label: string; url: string }>;
+};
+
+export type VerifiedProfileReadbackRow = {
+  profileId: string;
+  key: string;
+  displayName: string;
+  aliases: string[];
+  avatarStorageId: string | null;
+  avatarR2Key: string | null;
+  avatarUrl: string | null;
+  bio: string;
+  role: string | null;
+  links: Array<{ label: string; url: string }>;
+};
+
+export type ProfileWriteState = {
+  status: "pending" | "uncertain" | "verified";
+  attempts: number;
+  expectedAbsent: true;
+  payloadSha256: string | null;
+  requestedAt: string | null;
+  verifiedAt: string | null;
+  result: ProfileImportResult | null;
+  readback: VerifiedProfileReadbackRow[] | null;
+  errorCode: string | null;
 };
 
 export type UploadLedgerRow = ValidatedUpload & {
@@ -148,6 +217,7 @@ export type AvatarUploadLedger = {
   planPayloadSha256: string;
   projectionSha256: string;
   deploymentReceiptSha256: string;
+  applicationContractSha256: string;
   canaryKey: typeof CANARY_KEY;
   createdAt: string;
   updatedAt: string;
@@ -165,6 +235,7 @@ export type AvatarUploadLedger = {
       blocked: number;
     };
   }>;
+  profileWrite: ProfileWriteState;
 };
 
 function sha256(bytes: string | Buffer) {
@@ -257,7 +328,7 @@ export function validateInputs({
     sha256(receiptBytes) !== EXPECTED_DEPLOYMENT_RECEIPT_SHA256
     || deployment?.name !== `prod:${DEPLOYMENT}`
     || deployment?.url !== TARGET_URL
-    || deployment?.applicationCommit !== "6970b83c"
+    || deployment?.applicationCommit !== APPLICATION_CONTRACT.deployedCommit
     || !Array.isArray(verifiedFunctions)
     || !verifiedFunctions.includes("contributorProfiles.js:importReviewedProfilePlan")
   ) {
@@ -299,6 +370,7 @@ export function validateInputs({
     planPayloadSha256: plan.payloadSha256,
     projectionSha256,
     deploymentReceiptSha256: sha256(receiptBytes),
+    applicationContractSha256: APPLICATION_CONTRACT_SHA256,
     uploads,
     projection,
   };
@@ -357,6 +429,7 @@ export function createLedger(inputs: ValidatedInputs, now = new Date().toISOStri
     planPayloadSha256: inputs.planPayloadSha256,
     projectionSha256: inputs.projectionSha256,
     deploymentReceiptSha256: inputs.deploymentReceiptSha256,
+    applicationContractSha256: inputs.applicationContractSha256,
     canaryKey: CANARY_KEY,
     createdAt: now,
     updatedAt: now,
@@ -371,6 +444,17 @@ export function createLedger(inputs: ValidatedInputs, now = new Date().toISOStri
       errorCode: null,
     })),
     profileDryRuns: [],
+    profileWrite: {
+      status: "pending",
+      attempts: 0,
+      expectedAbsent: true,
+      payloadSha256: null,
+      requestedAt: null,
+      verifiedAt: null,
+      result: null,
+      readback: null,
+      errorCode: null,
+    },
   };
 }
 
@@ -384,6 +468,7 @@ export function validateLedger(ledger: AvatarUploadLedger, inputs: ValidatedInpu
     || ledger.planPayloadSha256 !== inputs.planPayloadSha256
     || ledger.projectionSha256 !== inputs.projectionSha256
     || ledger.deploymentReceiptSha256 !== inputs.deploymentReceiptSha256
+    || ledger.applicationContractSha256 !== inputs.applicationContractSha256
     || ledger.canaryKey !== CANARY_KEY
   ) {
     throw new Error("Avatar upload ledger is stale or targets the wrong campaign/deployment.");
@@ -443,6 +528,35 @@ export function validateLedger(ledger: AvatarUploadLedger, inputs: ValidatedInpu
     ) {
       throw new Error(`Avatar upload ledger has an invalid ${run.phase} profile dry run.`);
     }
+  }
+  const profileWrite = ledger.profileWrite;
+  if (
+    !profileWrite
+    || !["pending", "uncertain", "verified"].includes(profileWrite.status)
+    || !Number.isInteger(profileWrite.attempts)
+    || profileWrite.attempts < 0
+    || profileWrite.expectedAbsent !== true
+    || (profileWrite.status === "pending" && (
+      profileWrite.attempts !== 0
+      || profileWrite.payloadSha256 !== null
+      || profileWrite.requestedAt !== null
+      || profileWrite.verifiedAt !== null
+      || profileWrite.result !== null
+      || profileWrite.readback !== null
+      || profileWrite.errorCode !== null
+    ))
+    || (profileWrite.status !== "pending" && (
+      profileWrite.attempts !== 1
+      || !profileWrite.payloadSha256
+      || !profileWrite.requestedAt
+    ))
+    || (profileWrite.status === "verified" && (
+      !profileWrite.verifiedAt
+      || !profileWrite.readback
+      || profileWrite.errorCode !== null
+    ))
+  ) {
+    throw new Error("Avatar upload ledger has an invalid profile-write state.");
   }
   return ledger;
 }
@@ -592,6 +706,266 @@ export async function runUploadPhase(
   return { ledger, payload, result };
 }
 
+type ProfileWriteDependencies = {
+  writeProfiles: (
+    payload: Omit<ReviewedProfileImportArgs, "apiKey">,
+  ) => Promise<unknown>;
+  readProfiles: (keys: string[]) => Promise<unknown>;
+  persist: (ledger: AvatarUploadLedger) => void;
+  now?: () => string;
+};
+
+function profilePayloadDigest(payload: Omit<ReviewedProfileImportArgs, "apiKey">) {
+  return sha256(`${JSON.stringify(payload)}\n`);
+}
+
+function sanitizeImportResult(value: unknown, operationId: string): ProfileImportResult {
+  if (!value || typeof value !== "object") throw new Error("invalid-profile-import-result");
+  const source = value as Record<string, unknown>;
+  const countNames = ["created", "updated", "unchanged", "skipped", "blocked"] as const;
+  if (
+    source.operationId !== operationId
+    || source.dryRun !== false
+    || !countNames.every((name) => Number.isInteger(source[name]) && Number(source[name]) >= 0)
+    || !Array.isArray(source.rows)
+  ) {
+    throw new Error("invalid-profile-import-result");
+  }
+  const validActions = new Set([
+    "would-update", "updated", "would-create", "created", "unchanged", "skipped", "blocked",
+  ]);
+  const validBlockReasons = new Set([
+    "official-link-limit", "avatar-unverified", "avatar-r2-verification-unavailable",
+  ]);
+  const rows = source.rows.map((raw): ImportResultRow => {
+    if (!raw || typeof raw !== "object") throw new Error("invalid-profile-import-result");
+    const row = raw as Record<string, unknown>;
+    if (
+      typeof row.creatorName !== "string"
+      || (row.key !== null && typeof row.key !== "string")
+      || (row.profileId !== null && typeof row.profileId !== "string")
+      || typeof row.action !== "string"
+      || !validActions.has(row.action)
+      || (row.blockReason !== undefined && (
+        typeof row.blockReason !== "string" || !validBlockReasons.has(row.blockReason)
+      ))
+    ) {
+      throw new Error("invalid-profile-import-result");
+    }
+    return {
+      creatorName: row.creatorName,
+      key: row.key as string | null,
+      profileId: row.profileId as string | null,
+      action: row.action as ImportResultRow["action"],
+      ...(row.blockReason === undefined
+        ? {}
+        : { blockReason: row.blockReason as ImportResultRow["blockReason"] }),
+    };
+  });
+  return {
+    operationId,
+    dryRun: false,
+    created: Number(source.created),
+    updated: Number(source.updated),
+    unchanged: Number(source.unchanged),
+    skipped: Number(source.skipped),
+    blocked: Number(source.blocked),
+    rows,
+  };
+}
+
+function expectedProfileStates(payload: Omit<ReviewedProfileImportArgs, "apiKey">) {
+  return payload.entries.map((entry) => {
+    if (entry.outcome !== "reviewed-new" || entry.expectedAbsent !== true) {
+      throw new Error("Profile application payload lost reviewed-new expectedAbsent semantics.");
+    }
+    return entry.profile;
+  });
+}
+
+export function verifyProfileReadback(
+  payload: Omit<ReviewedProfileImportArgs, "apiKey">,
+  value: unknown,
+): VerifiedProfileReadbackRow[] {
+  if (!Array.isArray(value)) throw new Error("Profile readback did not return an array.");
+  const expected = expectedProfileStates(payload);
+  if (value.length !== expected.length) {
+    throw new Error(`Profile readback expected ${expected.length} rows; received ${value.length}.`);
+  }
+  const rawRows = value as ProfileReadbackRow[];
+  assertExactKeys(rawRows.map((row) => row?.key), expected.map((row) => row.key), "Profile readback");
+  const rowsByKey = new Map(rawRows.map((row) => [row.key, row]));
+  if (rowsByKey.size !== expected.length) throw new Error("Profile readback repeats a profile key.");
+
+  return expected.map((profile) => {
+    const row = rowsByKey.get(profile.key);
+    if (!row || typeof row._id !== "string" || !row._id) {
+      throw new Error(`Profile readback has no stored ID for ${profile.key}.`);
+    }
+    const actualState = {
+      key: row.key,
+      displayName: row.displayName,
+      aliases: row.aliases ?? [],
+      avatarStorageId: row.avatarStorageId ?? null,
+      avatarR2Key: row.avatarR2Key ?? null,
+      avatarUrl: row.avatarUrl ?? null,
+      bio: row.bio ?? "",
+      role: row.role ?? null,
+      links: row.links ?? [],
+    };
+    if (JSON.stringify(actualState) !== JSON.stringify(profile)) {
+      throw new Error(`Profile readback mismatch for ${profile.key}.`);
+    }
+    return { profileId: row._id, ...actualState };
+  });
+}
+
+function verifyLedgeredProfileReadback(
+  payload: Omit<ReviewedProfileImportArgs, "apiKey">,
+  rows: VerifiedProfileReadbackRow[] | null,
+) {
+  if (!rows) throw new Error("Verified profile-write ledger is missing its readback.");
+  return verifyProfileReadback(
+    payload,
+    rows.map(({ profileId, ...row }) => ({ _id: profileId, ...row })),
+  );
+}
+
+function requireProfileWriteGate(
+  inputs: ValidatedInputs,
+  ledger: AvatarUploadLedger,
+) {
+  if (ledger.uploads.some((row) => row.status !== "uploaded" || !row.storageId)) {
+    throw new Error("All four digest-bound avatar uploads must be ledgered before the profiles phase.");
+  }
+  const storageIds = new Map(ledger.uploads.map((row) => [row.key, row.storageId!]));
+  const dryRunPayload = buildEightProfilePayload(inputs, storageIds);
+  const dryRun = ledger.profileDryRuns.find((run) => run.phase === "remaining");
+  if (
+    !dryRun
+    || dryRun.avatarStorageBindings !== 4
+    || dryRun.payloadSha256 !== profilePayloadDigest(dryRunPayload)
+    || dryRun.result.created !== 8
+    || dryRun.result.updated !== 0
+    || dryRun.result.unchanged !== 0
+    || dryRun.result.skipped !== 0
+    || dryRun.result.blocked !== 0
+  ) {
+    throw new Error(
+      "The remaining eight-profile dry run must prove all expectedAbsent profiles would be created before the profiles phase.",
+    );
+  }
+  return { ...dryRunPayload, dryRun: false };
+}
+
+function importResultProvesFirstWrite(
+  result: ProfileImportResult,
+  payload: Omit<ReviewedProfileImportArgs, "apiKey">,
+  readback: VerifiedProfileReadbackRow[],
+) {
+  if (!(result.created === 8
+    && result.updated === 0
+    && result.unchanged === 0
+    && result.skipped === 0
+    && result.blocked === 0
+    && result.rows.length === 8
+    && result.rows.every((row) => row.action === "created" && row.key && row.profileId))) {
+    return false;
+  }
+  const resultByKey = new Map(result.rows.map((row) => [row.key, row]));
+  const readbackByKey = new Map(readback.map((row) => [row.key, row]));
+  if (resultByKey.size !== 8) return false;
+  return expectedProfileStates(payload).every((profile) => {
+    const row = resultByKey.get(profile.key);
+    return row?.creatorName === profile.displayName
+      && row.profileId === readbackByKey.get(profile.key)?.profileId;
+  });
+}
+
+export async function runProfileWritePhase(
+  inputs: ValidatedInputs,
+  ledger: AvatarUploadLedger,
+  dependencies: ProfileWriteDependencies,
+) {
+  validateLedger(ledger, inputs);
+  const payload = requireProfileWriteGate(inputs, ledger);
+  const payloadSha256 = profilePayloadDigest(payload);
+  const now = dependencies.now ?? (() => new Date().toISOString());
+
+  if (ledger.profileWrite.status === "verified") {
+    if (ledger.profileWrite.payloadSha256 !== payloadSha256) {
+      throw new Error("Verified profile-write payload no longer matches the pinned application contract.");
+    }
+    verifyLedgeredProfileReadback(payload, ledger.profileWrite.readback);
+    return { ledger, payload, resumed: true as const };
+  }
+
+  let mutationResult = ledger.profileWrite.result;
+  if (ledger.profileWrite.status === "pending") {
+    ledger.profileWrite = {
+      status: "uncertain",
+      attempts: 1,
+      expectedAbsent: true,
+      payloadSha256,
+      requestedAt: now(),
+      verifiedAt: null,
+      result: null,
+      readback: null,
+      errorCode: "profile-write-outcome-uncertain",
+    };
+    ledger.updatedAt = now();
+    dependencies.persist(ledger);
+    try {
+      mutationResult = sanitizeImportResult(await dependencies.writeProfiles(payload), inputs.campaignId);
+      ledger.profileWrite.result = mutationResult;
+      ledger.updatedAt = now();
+      dependencies.persist(ledger);
+    } catch {
+      // The mutation may have committed before its response was lost. Keep the
+      // phase uncertain and use only exact readback for recovery; never retry.
+      mutationResult = null;
+    }
+  } else if (ledger.profileWrite.payloadSha256 !== payloadSha256) {
+    throw new Error("Uncertain profile-write payload no longer matches the pinned application contract.");
+  }
+
+  let readback: VerifiedProfileReadbackRow[];
+  try {
+    readback = verifyProfileReadback(
+      payload,
+      await dependencies.readProfiles(payload.entries.map((entry) => (
+        entry.outcome === "reviewed-new" ? entry.profile.key : ""
+      ))),
+    );
+  } catch {
+    ledger.profileWrite.errorCode = "profile-readback-mismatch-or-unavailable";
+    ledger.updatedAt = now();
+    dependencies.persist(ledger);
+    throw new Error(
+      "Profile write remains uncertain because the exact eight-profile readback did not verify; do not retry the mutation.",
+    );
+  }
+
+  if (mutationResult && !importResultProvesFirstWrite(mutationResult, payload, readback)) {
+    ledger.profileWrite.readback = readback;
+    ledger.profileWrite.errorCode = "profile-write-result-violated-expected-absent";
+    ledger.updatedAt = now();
+    dependencies.persist(ledger);
+    throw new Error(
+      "Profile write remains uncertain because its result violated expectedAbsent first-write semantics; do not retry the mutation.",
+    );
+  }
+
+  ledger.profileWrite.status = "verified";
+  ledger.profileWrite.result = mutationResult;
+  ledger.profileWrite.readback = readback;
+  ledger.profileWrite.verifiedAt = now();
+  ledger.profileWrite.errorCode = null;
+  ledger.updatedAt = now();
+  dependencies.persist(ledger);
+  return { ledger, payload, resumed: false as const };
+}
+
 function flagValue(argv: string[], name: string) {
   return argv.find((arg) => arg.startsWith(`${name}=`))?.slice(name.length + 1) ?? null;
 }
@@ -604,8 +978,8 @@ export async function main(argv = process.argv.slice(2)) {
   );
   const ledgerPath = path.resolve(flagValue(argv, "--ledger") ?? DEFAULT_LEDGER_PATH);
   const phase = flagValue(argv, "--phase") ?? "plan";
-  if (!["plan", "canary", "remaining"].includes(phase)) {
-    throw new Error("--phase must be plan, canary, or remaining.");
+  if (!["plan", "canary", "remaining", "profiles"].includes(phase)) {
+    throw new Error("--phase must be plan, canary, remaining, or profiles.");
   }
   const inputs = validateInputs({ planPath, projectionPath, deploymentReceiptPath });
   const prospectivePayload = buildEightProfilePayload(inputs);
@@ -620,10 +994,12 @@ export async function main(argv = process.argv.slice(2)) {
   const command = createProductionWriteCommand({ operation: OPERATION, argv });
   printProductionWriteCommand(command);
   if (!command.writeRequested) {
-    console.log("Dry run only: no upload URL generated, no bytes uploaded, no ledger written, no Convex mutation called.");
+    console.log("Dry run only: no upload URL generated, no bytes uploaded, no ledger written, and no Convex write mutation called.");
     return { mode: "dry-run" as const, payload: prospectivePayload };
   }
-  if (phase === "plan") throw new Error("A write requires --phase=canary or --phase=remaining.");
+  if (phase === "plan") {
+    throw new Error("A write requires a separate --phase=canary, --phase=remaining, or --phase=profiles command.");
+  }
   assertProductionWriteAllowed(command);
   if (command.targetUrl !== TARGET_URL || command.deploymentFingerprint !== DEPLOYMENT) {
     throw new Error(`This campaign is pinned to prod:${DEPLOYMENT}.`);
@@ -633,6 +1009,25 @@ export async function main(argv = process.argv.slice(2)) {
   const lock = acquireLedgerLock(ledgerPath);
   try {
     const ledger = readOrCreateLedger(ledgerPath, inputs);
+    if (phase === "profiles") {
+      const result = await runProfileWritePhase(inputs, ledger, {
+        writeProfiles: async (payload) => await client.mutation(
+          api.contributorProfiles.importReviewedProfilePlan,
+          { ...payload, apiKey: token },
+        ),
+        readProfiles: async (keys) => await client.query(
+          api.contributorProfiles.getForBulkImport,
+          { apiKey: token, keys },
+        ),
+        persist: (nextLedger) => writeLedgerAtomic(ledgerPath, nextLedger),
+      });
+      console.log(
+        result.resumed
+          ? "profiles already verified: mutation was not called again."
+          : "profiles complete: exact eight-profile readback verified and ledgered.",
+      );
+      return result;
+    }
     const result = await runUploadPhase(phase as "canary" | "remaining", inputs, ledger, {
       generateUploadUrl: async () => await client.mutation(
         api.contributorProfiles.generateAvatarUploadUrl,

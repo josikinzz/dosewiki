@@ -10,6 +10,7 @@ import {
   DEFAULT_DEPLOYMENT_RECEIPT_PATH,
   DEFAULT_PLAN_PATH,
   DEFAULT_PROJECTION_PATH,
+  runProfileWritePhase,
   runUploadPhase,
   validateInputs,
   validateLedger,
@@ -22,6 +23,64 @@ function realInputs() {
     projectionPath: DEFAULT_PROJECTION_PATH,
     deploymentReceiptPath: DEFAULT_DEPLOYMENT_RECEIPT_PATH,
   });
+}
+
+async function completedUploadLedger() {
+  const inputs = realInputs();
+  const ledger = createLedger(inputs, "2026-08-31T08:00:00.000Z");
+  let nextStorage = 0;
+  const dependencies = {
+    generateUploadUrl: async () => "https://glad-minnow-656.convex.cloud/opaque",
+    upload: async () => ({ storageId: `storage-${++nextStorage}` }),
+    dryRunProfiles: async () => ({
+      created: 8,
+      updated: 0,
+      unchanged: 0,
+      skipped: 0,
+      blocked: 0,
+    }),
+    persist: vi.fn(),
+    now: () => "2026-08-31T08:01:00.000Z",
+  };
+  await runUploadPhase("canary", inputs, ledger, dependencies);
+  await runUploadPhase("remaining", inputs, ledger, dependencies);
+  return { inputs, ledger };
+}
+
+function exactReadback(payload: ReturnType<typeof buildEightProfilePayload>) {
+  return payload.entries.map((entry) => {
+    if (entry.outcome !== "reviewed-new") throw new Error("test payload drifted");
+    return {
+      _id: `profile-${entry.profile.key}`,
+      key: entry.profile.key,
+      displayName: entry.profile.displayName,
+      aliases: entry.profile.aliases,
+      ...(entry.profile.avatarStorageId
+        ? { avatarStorageId: entry.profile.avatarStorageId }
+        : {}),
+      bio: entry.profile.bio,
+      ...(entry.profile.role ? { role: entry.profile.role } : {}),
+      links: entry.profile.links,
+    };
+  });
+}
+
+function createdResult(payload: ReturnType<typeof buildEightProfilePayload>) {
+  return {
+    operationId: payload.operationId,
+    dryRun: false,
+    created: 8,
+    updated: 0,
+    unchanged: 0,
+    skipped: 0,
+    blocked: 0,
+    rows: payload.entries.map((entry) => ({
+      creatorName: entry.creatorName,
+      key: entry.outcome === "reviewed-new" ? entry.profile.key : null,
+      profileId: entry.outcome === "reviewed-new" ? `profile-${entry.profile.key}` : null,
+      action: "created" as const,
+    })),
+  };
 }
 
 describe("Replication Index profile avatar uploader", () => {
@@ -166,6 +225,9 @@ describe("Replication Index profile avatar uploader", () => {
     const stale = createLedger(inputs) as AvatarUploadLedger;
     stale.planPayloadSha256 = "0".repeat(64);
     expect(() => validateLedger(stale, inputs)).toThrow(/stale or targets the wrong/);
+    const staleContract = createLedger(inputs) as AvatarUploadLedger;
+    staleContract.applicationContractSha256 = "0".repeat(64);
+    expect(() => validateLedger(staleContract, inputs)).toThrow(/stale or targets the wrong/);
 
     const temporary = mkdtempSync(path.join(tmpdir(), "dosewiki-avatar-upload-"));
     const sourceCanary = inputs.uploads.find((row) => row.key === "BRYANITCH")!;
@@ -186,5 +248,137 @@ describe("Replication Index profile avatar uploader", () => {
       persist: vi.fn(),
     })).rejects.toThrow(/Avatar bytes drifted before upload/);
     expect(generateUploadUrl).not.toHaveBeenCalled();
+  });
+
+  it("gates the profile write until all uploads and the exact expectedAbsent dry run pass", async () => {
+    const inputs = realInputs();
+    const ledger = createLedger(inputs);
+    const writeProfiles = vi.fn();
+    const readProfiles = vi.fn();
+    await expect(runProfileWritePhase(inputs, ledger, {
+      writeProfiles,
+      readProfiles,
+      persist: vi.fn(),
+    })).rejects.toThrow(/All four digest-bound avatar uploads/);
+    expect(writeProfiles).not.toHaveBeenCalled();
+    expect(readProfiles).not.toHaveBeenCalled();
+
+    const completed = await completedUploadLedger();
+    completed.ledger.profileDryRuns.find((run) => run.phase === "remaining")!.result = {
+      created: 7,
+      updated: 0,
+      unchanged: 1,
+      skipped: 0,
+      blocked: 0,
+    };
+    await expect(runProfileWritePhase(completed.inputs, completed.ledger, {
+      writeProfiles,
+      readProfiles,
+      persist: vi.fn(),
+    })).rejects.toThrow(/expectedAbsent profiles would be created/);
+    expect(writeProfiles).not.toHaveBeenCalled();
+  });
+
+  it("marks the outcome uncertain before one write and verifies the exact eight-profile readback", async () => {
+    const { inputs, ledger } = await completedUploadLedger();
+    const payload = buildEightProfilePayload(
+      inputs,
+      new Map(ledger.uploads.map((row) => [row.key, row.storageId!])),
+    );
+    const snapshots: string[] = [];
+    const writeProfiles = vi.fn(async (writePayload) => {
+      expect(writePayload.dryRun).toBe(false);
+      expect(JSON.parse(snapshots[snapshots.length - 1]!).profileWrite.status).toBe("uncertain");
+      return createdResult(payload);
+    });
+    const readProfiles = vi.fn(async () => exactReadback(payload));
+
+    await runProfileWritePhase(inputs, ledger, {
+      writeProfiles,
+      readProfiles,
+      persist: (value) => snapshots.push(JSON.stringify(value)),
+      now: () => "2026-08-31T09:00:00.000Z",
+    });
+
+    expect(writeProfiles).toHaveBeenCalledTimes(1);
+    expect(readProfiles).toHaveBeenCalledWith(payload.entries.map((entry) => (
+      entry.outcome === "reviewed-new" ? entry.profile.key : ""
+    )));
+    expect(ledger.profileWrite).toMatchObject({
+      status: "verified",
+      attempts: 1,
+      expectedAbsent: true,
+      errorCode: null,
+    });
+    expect(ledger.profileWrite.readback).toHaveLength(8);
+    expect(snapshots.join("\n")).not.toContain("apiKey");
+  });
+
+  it("never retries an uncertain mutation and can recover only through exact readback", async () => {
+    const { inputs, ledger } = await completedUploadLedger();
+    const payload = buildEightProfilePayload(
+      inputs,
+      new Map(ledger.uploads.map((row) => [row.key, row.storageId!])),
+    );
+    const writeProfiles = vi.fn(async () => { throw new Error("response lost"); });
+    const firstRead = vi.fn(async () => []);
+    await expect(runProfileWritePhase(inputs, ledger, {
+      writeProfiles,
+      readProfiles: firstRead,
+      persist: vi.fn(),
+    })).rejects.toThrow(/remains uncertain/);
+    expect(ledger.profileWrite.status).toBe("uncertain");
+    expect(writeProfiles).toHaveBeenCalledTimes(1);
+
+    await runProfileWritePhase(inputs, ledger, {
+      writeProfiles,
+      readProfiles: async () => exactReadback(payload),
+      persist: vi.fn(),
+    });
+    expect(writeProfiles).toHaveBeenCalledTimes(1);
+    expect(ledger.profileWrite.status).toBe("verified");
+    expect(ledger.profileWrite.result).toBeNull();
+  });
+
+  it("keeps a successful mutation uncertain when exact readback mismatches", async () => {
+    const { inputs, ledger } = await completedUploadLedger();
+    const payload = buildEightProfilePayload(
+      inputs,
+      new Map(ledger.uploads.map((row) => [row.key, row.storageId!])),
+    );
+    const readback = exactReadback(payload);
+    readback[0] = { ...readback[0], displayName: "Wrong artist" };
+    await expect(runProfileWritePhase(inputs, ledger, {
+      writeProfiles: async () => createdResult(payload),
+      readProfiles: async () => readback,
+      persist: vi.fn(),
+    })).rejects.toThrow(/exact eight-profile readback did not verify/);
+    expect(ledger.profileWrite).toMatchObject({
+      status: "uncertain",
+      errorCode: "profile-readback-mismatch-or-unavailable",
+    });
+  });
+
+  it("treats a verified resume as a no-op and never calls the mutation twice", async () => {
+    const { inputs, ledger } = await completedUploadLedger();
+    const payload = buildEightProfilePayload(
+      inputs,
+      new Map(ledger.uploads.map((row) => [row.key, row.storageId!])),
+    );
+    const writeProfiles = vi.fn(async () => createdResult(payload));
+    const readProfiles = vi.fn(async () => exactReadback(payload));
+    await runProfileWritePhase(inputs, ledger, {
+      writeProfiles,
+      readProfiles,
+      persist: vi.fn(),
+    });
+    const resumed = await runProfileWritePhase(inputs, ledger, {
+      writeProfiles,
+      readProfiles,
+      persist: vi.fn(),
+    });
+    expect(resumed.resumed).toBe(true);
+    expect(writeProfiles).toHaveBeenCalledTimes(1);
+    expect(readProfiles).toHaveBeenCalledTimes(1);
   });
 });
