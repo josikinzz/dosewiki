@@ -100,3 +100,43 @@ describe("/docs/how trust and review methodology", () => {
     expect(PAGE).toMatch(/does not\s+certify every sentence/);
   });
 });
+
+describe("/docs/how status, roadmap, and corrections", () => {
+  it("states beta status and living-document framing", () => {
+    expect(PAGE).toContain("in <strong>beta</strong>");
+    expect(PAGE).toContain("living document");
+  });
+
+  it("lists every roadmap phase", () => {
+    for (const phase of [
+      "Foundation pipeline",
+      "Legality primary-source remediation",
+      "Citation entailment audit",
+      "Human citation review",
+      "Continuous improvement",
+    ]) {
+      expect(PAGE).toContain(phase);
+    }
+  });
+
+  it("labels human citation review as planned, not current practice", () => {
+    const phase4 = PAGE.slice(PAGE.indexOf("Phase 4"), PAGE.indexOf("Phase 5"));
+    expect(phase4).toContain("Planned");
+    expect(phase4).toContain("will be tracked separately");
+  });
+
+  it("carries a dated corrections log with known issues", () => {
+    expect(PAGE).toContain("Corrections log");
+    expect(PAGE).toContain("August 31, 2026");
+    expect(PAGE).toContain("known issues under audit");
+  });
+
+  it("separates editorial review from citation verification", () => {
+    expect(PAGE).toContain("separate tracks");
+    expect(PAGE).toMatch(/does not\s+assert that the article&apos;s citations were verified/);
+  });
+
+  it("declares the legality loop as the template for other sections", () => {
+    expect(PAGE).toContain("This pattern is now the template");
+  });
+});

@@ -42,6 +42,7 @@ export async function generateMetadata() {
 }
 
 const TOC = [
+  { id: "s0", label: "0. Status & roadmap", icon: "lucide:map" },
   { id: "s1", label: "1. Why this page exists", icon: "lucide:info" },
   { id: "s2", label: "2. The pipeline at a glance", icon: "lucide:workflow" },
   { id: "s3", label: "3. The sources", icon: "lucide:database" },
@@ -385,9 +386,137 @@ export default function DocsHowPage() {
             A dose.wiki substance article is assembled from{" "}
             <strong>several distinct bodies of work</strong>, each with a different origin and a
             different production method. This page documents the whole process end to end, including
-            the exact prompts we use.
+            the exact prompts we use — and where each verification stage stands today. dose.wiki is
+            in beta, and these articles are living documents (section 00).
           </p>
         </header>
+
+        <section id="s0" className="scroll-mt-24">
+          <h2 className={SECTION_HEADING_CLASS}>
+            <span className={SECTION_NUM_CLASS}>00</span>{" "}Status, roadmap &amp; corrections
+          </h2>
+
+          <p className={PULL_CLASS}>
+            dose.wiki is in <strong>beta</strong>. Every article is a living document: generated,
+            verified, and corrected in public, in stages that are still running.
+          </p>
+
+          <p className={`${PROSE_CLASS} mt-5`}>
+            The honest way to read this site is stage by stage: some verification work is finished,
+            some is running now, and some is planned. This section records where each stage stands
+            as of <strong>August 31, 2026</strong> and lists corrections as they land. None of it is
+            a warranty for an individual sentence — sections 08 and 09 describe exactly what each
+            workflow does and does not establish.
+          </p>
+
+          <ContentCard padding="none" className={`mt-6 ${DIVIDED_LIST_CLASS}`}>
+            <div className={DIVIDED_ITEM_CLASS}>
+              <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
+                <div className={CARD_LABEL_CLASS}>Phase 1 — Foundation pipeline</div>
+                <div className={LEGEND_ITEM_CLASS}>
+                  <StageSwatch tone="published" /> Complete
+                </div>
+              </div>
+              <p className={PROSE_CLASS}>
+                Scraping, verbatim excerpt extraction, AI synthesis, and claim-level citations across
+                the archival sources — the pipeline sections 02 through 08 describe, with every
+                prompt published on this page.
+              </p>
+            </div>
+            <div className={DIVIDED_ITEM_CLASS}>
+              <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
+                <div className={CARD_LABEL_CLASS}>Phase 2 — Legality primary-source remediation</div>
+                <div className={LEGEND_ITEM_CLASS}>
+                  <StageSwatch tone="published" /> Complete
+                </div>
+              </div>
+              <p className={PROSE_CLASS}>
+                The country-by-country deep research in section 08b. Existing legality entries were
+                validated against statutes and official schedules where possible; remaining claims got
+                targeted primary-source hunts; entries that survived were cited, and entries that
+                could not be sourced were corrected, removed, or flagged <em>citation needed</em>.
+              </p>
+            </div>
+            <div className={DIVIDED_ITEM_CLASS}>
+              <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
+                <div className={CARD_LABEL_CLASS}>Phase 3 — Citation entailment audit</div>
+                <div className={LEGEND_ITEM_CLASS}>
+                  <StageSwatch tone="automated" /> In progress
+                </div>
+              </div>
+              <p className={PROSE_CLASS}>
+                The legality process, generalized: an automated campaign re-verifies each
+                claim–citation pair in the citable prose sections against a fresh fetch of the cited
+                source. A marker stays only when the source entails the claim as written. Otherwise
+                the marker is removed and the sentence shows a visible <em>citation needed</em>{" "}
+                indicator instead of borrowing authority from a reference that does not support it.
+                Safety-sensitive pairs additionally face an independent adversarial re-check before
+                any change is accepted.
+              </p>
+            </div>
+            <div className={DIVIDED_ITEM_CLASS}>
+              <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
+                <div className={CARD_LABEL_CLASS}>Phase 4 — Human citation review</div>
+                <div className={LEGEND_ITEM_CLASS}>
+                  <StageSwatch tone="review" /> Planned
+                </div>
+              </div>
+              <p className={PROSE_CLASS}>
+                A recorded human pass over the audit&apos;s output: working through surviving pairs
+                and the <em>citation needed</em> backlog, replacing or restoring sources by hand.
+                This will be tracked separately from editorial review (section 09), so each carries
+                its own status and its own named scope.
+              </p>
+            </div>
+            <div className={DIVIDED_ITEM_CLASS}>
+              <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
+                <div className={CARD_LABEL_CLASS}>Phase 5 — Continuous improvement</div>
+                <div className={LEGEND_ITEM_CLASS}>
+                  <StageSwatch tone="source" /> Ongoing
+                </div>
+              </div>
+              <p className={PROSE_CLASS}>
+                Articles are never finished. New sources, reader reports, replication evidence, and
+                corrections keep landing, and any regenerated or edited content is expected to return
+                through the verification stages above.
+              </p>
+            </div>
+          </ContentCard>
+
+          <ContentCard padding="none" className={`mt-6 ${DIVIDED_LIST_CLASS}`}>
+            <div className={DIVIDED_ITEM_CLASS}>
+              <div className={CARD_LABEL_CLASS}>Corrections log</div>
+              <p className={PROSE_CLASS}>
+                Notable corrections and known issues, newest first. Reports of errors are welcome and
+                get recorded here when they change an article.
+              </p>
+            </div>
+            <div className={DIVIDED_ITEM_CLASS}>
+              <p className={PROSE_CLASS}>
+                <strong>August 31, 2026 — this page.</strong> Rewritten to remove wording that
+                overstated review guarantees, to document the actual review states and their
+                revision-binding limitation, and to add this status section.
+              </p>
+            </div>
+            <div className={DIVIDED_ITEM_CLASS}>
+              <p className={PROSE_CLASS}>
+                <strong>August 2026 — fentanyl.</strong> The potency figure was corrected to 50 to
+                100 times morphine to match its CDC citation, and a sentence that conflated analgesic
+                potency with receptor binding affinity was removed.
+              </p>
+            </div>
+            <div className={DIVIDED_ITEM_CLASS}>
+              <p className={PROSE_CLASS}>
+                <strong>August 2026 — known issues under audit.</strong> Identified and queued for
+                the phase-3 audit: fentanyl prose that presents wooden chest syndrome as the believed
+                main cause of overdose deaths and a withdrawal-seizure claim its cited monograph does
+                not establish; a 4-FMA metabolism sentence cited to a methamphetamine study. Until
+                the corrections land, treat those sentences with the skepticism this section
+                recommends for any unverified claim.
+              </p>
+            </div>
+          </ContentCard>
+        </section>
 
         <section id="s1" className="scroll-mt-24">
           <h2 className={SECTION_HEADING_CLASS}>
@@ -1371,9 +1500,15 @@ The workflow inserts citation markers into the text. Nothing else changes, byte 
             <div className={DIVIDED_ITEM_CLASS}>
               <div className={CARD_LABEL_CLASS}>Where this goes next</div>
               <p className={PROSE_CLASS}>
-                This pattern will scale. The same targeted deep-research loop — blank-context
-                research, adversarial refutation, human-confirmed writes — will extend to other
-                article subsections over time.
+                This pattern is now the template. The same loop — validate what can be validated,
+                cite what a primary source supports, hunt targeted sources for the rest, and correct
+                or remove what cannot be sourced — is being extended to the other citable sections as
+                the phase-3 citation entailment audit (
+                <a href="#s0" className={proseLinkClassName}>
+                  section 00
+                </a>
+                ), with the same separation between blank-context research, adversarial refutation,
+                and human-confirmed writes.
               </p>
             </div>
           </ContentCard>
@@ -1396,6 +1531,16 @@ The workflow inserts citation markers into the text. Nothing else changes, byte 
             to a public contributor profile, the article can attribute that specific review. The
             status does not mean that one named person reviewed the whole corpus, and it does not
             certify every sentence, dose, interaction, citation, or legal conclusion.
+          </p>
+
+          <p className={`${PROSE_CLASS} mt-5`}>
+            Editorial review and citation verification are <strong>separate tracks</strong>. The
+            editorial reviewer reads and corrects the article text. Citation markers are attached
+            and re-verified by the section 08 workflows and the phase-3 audit (section 00), which
+            run under their own recorded states. An editorial-review credit therefore does not
+            assert that the article&apos;s citations were verified, and citation states — including
+            the visible <em>citation needed</em> indicator — are workflow records, never the
+            reviewer&apos;s personal claims.
           </p>
 
           <p className={`${PROSE_CLASS} mt-5`}>
