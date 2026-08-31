@@ -36,7 +36,7 @@ export async function generateMetadata() {
     title: "How dose.wiki articles are made",
     description:
       copy.text("seo-docs-how-description") ||
-      "An honest, detailed walkthrough of the dose.wiki content pipeline: scraping, quote extraction, AI synthesis, citations, and human expert review.",
+      "A detailed walkthrough of the dose.wiki content pipeline: scraping, quote extraction, AI synthesis, citations, and editorial review.",
     pathname: "/docs/how",
   });
 }
@@ -193,9 +193,9 @@ const PIPELINE_DIAGRAM = `graph TD
   EXTRACT["Verbatim excerpt extraction<br/>8 topics; a model selects source blocks,<br/>a script copies them out unchanged"]:::auto
   QUOTES[("Excerpt documents<br/>one per AI-written section")]:::data
   SYNTH["Section synthesis<br/>Claude Opus + one prompt<br/>per section, excerpts only"]:::auto
-  REVIEW["Human expert review<br/>read, fact-check, edit —<br/>the final gate before publication"]:::human
+  REVIEW["Editorial review<br/>status: needed, in progress,<br/>or completed"]:::human
   DB[("Article database<br/>(drafts)")]:::data
-  CITE["Citation pass<br/>per-claim references with<br/>verbatim supporting quotes"]:::auto
+  CITE["Citation pass<br/>markers proposed for<br/>six prose sections"]:::auto
   PK["ProtestKit API<br/>live reagent test results"]:::ext
   PAGE["Published article"]:::pub
   JSON["SubstanceIndex.json<br/>free download of the<br/>whole dataset"]:::pub
@@ -206,9 +206,11 @@ const PIPELINE_DIAGRAM = `graph TD
   QUOTES --> SYNTH
   PARSE --> DB
   SYNTH --> DB
-  DB --> CITE
-  CITE --> REVIEW
-  REVIEW -->|"approved"| PAGE
+  DB --> PAGE
+  DB -.-> CITE
+  CITE -.-> PAGE
+  DB -.-> REVIEW
+  REVIEW -.->|"status + attribution"| PAGE
   PAGE --> JSON
   PK -.->|"fetched live<br/>at page view"| PAGE
 
@@ -423,8 +425,8 @@ export default function DocsHowPage() {
             <div className={DIVIDED_ITEM_CLASS}>
               <div className={CARD_LABEL_CLASS}>Interactions</div>
               <p className={PROSE_CLASS}>
-                Sourced from <strong>TripSit's</strong> drug combination research. Their combination
-                chart provides the risk ratings shown on every article.
+                Derived from <strong>TripSit's</strong> drug-combination research. Its chart informs
+                the risk ratings displayed where interaction data is available.
               </p>
             </div>
             <div className={DIVIDED_ITEM_CLASS}>
@@ -444,18 +446,21 @@ export default function DocsHowPage() {
             </div>
           </ContentCard>
 
-          <p className={`${PROSE_CLASS} mt-7`}>Two rules hold across all of it:</p>
+          <p className={`${PROSE_CLASS} mt-7`}>Two distinctions matter across all of it:</p>
 
           <p className={`${PROSE_CLASS} mt-4`}>
-            <strong>Every article passes the final gate.</strong> Human expert review is the last stage
-            of the pipeline and the only route to publication (section 09).
+            <strong>Provenance is not proof.</strong> Source-page links document material that
+            informed the pipeline. They do not, by themselves, show that a source supports a
+            particular sentence. Claim-level citation markers are the separate, intended
+            source-to-claim relationships described in section 08.
           </p>
 
           <p className={`${PROSE_CLASS} mt-4`}>
-            <strong>Every claim is source-bound.</strong> The models that write article prose see only
-            verbatim excerpts of the source material, and their prompts forbid any claim those excerpts
-            do not carry (sections 06 and 07). The citation and legality workflows bind claims to
-            referenced sources of their own (sections 08 and 08b).
+            <strong>Workflow controls are not guarantees.</strong> Prompts, validators, citation
+            evidence, and editorial review reduce error and make decisions inspectable. They cannot
+            guarantee that prose is complete, that a citation entails every nearby phrase, or that
+            information remains current. Important claims still require human verification against
+            the cited source.
           </p>
         </section>
 
@@ -471,8 +476,9 @@ export default function DocsHowPage() {
             turns the prose parts of the sources into excerpt documents, then into draft sections.
           </p>
           <p className={`${PROSE_CLASS} mt-4`}>
-            Both tracks fill one draft article. That draft then gets per-claim citations, and last of
-            all it reaches the final gate: human expert review (section 09).
+            Both tracks fill one draft article. Citation and editorial-review workflows can then add
+            markers, evidence records, corrections, and status metadata. Published coverage varies by
+            article, so the diagram describes the intended relationships rather than a publication gate.
           </p>
 
           <div className={LEGEND_CLASS}>
@@ -668,9 +674,10 @@ export default function DocsHowPage() {
 
           <p className={`${PROSE_CLASS} mt-4`}>
             A substance article is not one document with one origin. Each section has its own production
-            method. This table is the honest inventory. It records which sections a model synthesized, which
-            ones code parsed from source tables, which come from a live API, and which people wrote or
-            curated by hand. Every AI-synthesized prose section is cited claim by claim (section 08).
+            method. This table records which sections a model synthesizes, which ones code parses from
+            source tables, which come from a live API, and which people curate by hand. The citation
+            workflow targets six prose sections (section 08); structured and excluded sections use
+            separate provenance and review paths.
           </p>
 
           <div className={LEGEND_CLASS}>
@@ -839,12 +846,13 @@ export default function DocsHowPage() {
                 <tr className={TR_CLASS}>
                   <td className="p-3">Citations &amp; references</td>
                   <td className="space-y-1 p-3">
-                    <Badge variant="default">AI-proposed</Badge>{" "}
-                    <Badge variant="success">human-approved</Badge>
+                    <Badge variant="default">workflow-proposed</Badge>{" "}
+                    <Badge variant="secondary">structurally validated</Badge>
                   </td>
                   <td className="p-3">
-                    References located and matched to claims by the citation workflow (section 08),
-                    then checked in the final human review.
+                    References and markers proposed by the citation workflow for six prose sections
+                    (section 08). A displayed marker records an intended support relationship, not a
+                    guarantee that the source entails every nearby phrase.
                   </td>
                 </tr>
                 <tr className={TR_CLASS}>
@@ -908,7 +916,8 @@ export default function DocsHowPage() {
               <p className={PROSE_CLASS}>
                 A parser reads the <strong>TripSit combination guide</strong> as structured data and
                 maps it onto substance pairs. That produces the interaction ratings (dangerous, unsafe,
-                caution, low-risk) shown on every article and on the Interactions hub.
+                caution, low-risk) shown where an article has matching interaction data and on the
+                Interactions hub.
               </p>
             </div>
             <div className={DIVIDED_ITEM_CLASS}>
@@ -1109,10 +1118,10 @@ export default function DocsHowPage() {
             <div className={DIVIDED_ITEM_CLASS}>
               <div className={CARD_LABEL_CLASS}>Evidence only</div>
               <p className={PROSE_CLASS}>
-                "Every claim must be explicitly stated or clearly implied in the source quotes. If
-                information cannot be verified from the provided sources, do not include it." This pushes
-                the model to behave as a rewriter of evidence rather than an author. It is reinforcement,
-                not a guarantee, which is why the citation pass and human review come after.
+                The prompts instruct the model to include only information explicitly stated or clearly
+                implied in the supplied quotes, and to omit information it cannot verify there. This
+                encourages evidence-constrained drafting; it is not a guarantee of factual accuracy,
+                completeness, or citation support.
               </p>
             </div>
             <div className={DIVIDED_ITEM_CLASS}>
@@ -1151,9 +1160,9 @@ sentences or lengthy phrases verbatim from any source." The verbatim text exists
           <ContentCard variant="subtle" padding="md" className="mt-5">
             <p className={NOTE_CLASS}>
               <strong>The prompts are part of the project.</strong> They are version-controlled alongside
-              the code, and the live copies are editable by the editorial team. Improving a prompt improves
-              every article generated after it. There is also a separate family of citation prompts used by
-              the citation workflow (section 08).
+              the code, and the live copies are editable by the editorial team. Improving a prompt
+              changes future generation runs that use it. There is also a separate family of citation
+              prompts used by the citation workflow (section 08).
             </p>
           </ContentCard>
         </section>
@@ -1164,33 +1173,33 @@ sentences or lengthy phrases verbatim from any source." The verbatim text exists
           </h2>
 
           <p className={`${PROSE_CLASS} mt-4`}>
-            Once an article's prose is drafted, a separate workflow adds{" "}
-            <strong>per-claim citations</strong> to the same six AI-written sections listed in
-            section 07. The goal is the standard Wikipedia-style property. A reader can pick any
-            sentence and follow a numbered reference to a real source that supports it. The citations
-            are in place <em>before</em> the article reaches its final human review, so the reviewer
-            reads a finished, fully-referenced article.
+            After prose is drafted, a separate workflow can add Wikipedia-style markers to six
+            citable sections: summary, pharmacology, tolerance, harm potential, history and culture,
+            and legality. Other sections use separate provenance or editorial workflows. Coverage is
+            intentionally conservative and incomplete: a marker should appear only when inspected
+            evidence supports a useful nearby claim, while unsupported or uncertain relationships
+            remain internal gaps rather than public promises.
           </p>
 
           <div className="mt-6 flex flex-col gap-2 sm:flex-row sm:items-stretch">
-            <PipelineStep num={1} name="Split claims" tone="automated">
-              Each citable section is broken into its individual factual claims
+            <PipelineStep num={1} name="Identify claims" tone="automated">
+              Workers inspect the citable prose and choose bounded claims that may need support
             </PipelineStep>
             <div className={PIPELINE_ARROW_CLASS}>→</div>
-            <PipelineStep num={2} name="Find references" tone="automated">
-              Workers search the literature for sources that directly support each claim
+            <PipelineStep num={2} name="Inspect references" tone="automated">
+              Workers inspect candidate sources and record the relationship they believe each source supports
             </PipelineStep>
             <div className={PIPELINE_ARROW_CLASS}>→</div>
             <PipelineStep num={3} name="Mark" tone="automated">
 The workflow inserts citation markers into the text. Nothing else changes, byte for byte
             </PipelineStep>
             <div className={PIPELINE_ARROW_CLASS}>→</div>
-            <PipelineStep num={4} name="Evidence" tone="stored">
-              Each citation stores the verbatim supporting quote from its reference
+            <PipelineStep num={4} name="Record evidence" tone="stored">
+              The workflow records a short source quote and rationale behind each proposed marker
             </PipelineStep>
             <div className={PIPELINE_ARROW_CLASS}>→</div>
-            <PipelineStep num={5} name="Validate & apply" tone="stored">
-              A validation gate checks that every marker maps to evidence before citations join the draft
+            <PipelineStep num={5} name="Validate structure" tone="stored">
+              Deterministic gates check marker, reference, and evidence consistency before a draft can be reviewed
             </PipelineStep>
           </div>
 
@@ -1199,29 +1208,30 @@ The workflow inserts citation markers into the text. Nothing else changes, byte 
               <div className={CARD_LABEL_CLASS}>Reference standards</div>
               <ul className={`${LIST_CLASS} list-disc pl-5`}>
                 <li>
-                  <strong>Wikis are never citations.</strong> The workflow uses Wikipedia and
-                  PsychonautWiki to discover references, but the references themselves are journals,
-                  government documents, drug labels, and books.
+                  <strong>Wikis are discovery sources, not final references.</strong> The workflow uses
+                  Wikipedia and PsychonautWiki to find candidates, while final references are intended
+                  to be inspectable journals, government documents, drug labels, books, or databases.
                 </li>
                 <li>
                   <strong>Page-specific identifiers.</strong> Repeated same-site sources, for example
-                  DailyMed drug labels, get distinct per-page reference IDs, so two different documents
-                  never collapse into one citation.
+                  DailyMed drug labels, receive distinct per-page reference IDs so separate documents
+                  remain separate during review.
                 </li>
                 <li>
-<strong>Paywalled papers are allowed</strong> when their accessible abstract directly
-                  supports the claim. Each one is recorded as abstract-only, so the limitation stays
-                  explicit.
+                  <strong>Access limitations stay visible.</strong> A paywalled paper may be used when
+                  its accessible abstract supports the relevant claim; the record notes
+                  <em> abstract-only</em> access so reviewers know what was inspected.
                 </li>
               </ul>
             </div>
             <div className={DIVIDED_ITEM_CLASS}>
-              <div className={CARD_LABEL_CLASS}>What you see on the page</div>
+              <div className={CARD_LABEL_CLASS}>What a citation means</div>
               <p className={PROSE_CLASS}>
-Citations render as numbered superscript markers in the text, linked to the reference
-                list at the bottom of each article. Behind each marker sits a stored evidence record:
-                the claim, the reference, and the verbatim quote that supports it. That record is how
-                citation quality is checked over time.
+                Citations render as numbered markers linked to the reference list. Behind a marker, the
+                workflow retains a quote and rationale as review evidence. This records the intended
+                relationship and its provenance; it does not prove entailment, source quality, or
+                current accuracy. Readers and editors should inspect the referenced source before
+                relying on a consequential claim.
               </p>
             </div>
           </ContentCard>
@@ -1268,10 +1278,10 @@ Citations render as numbered superscript markers in the text, linked to the refe
           </p>
 
           <p className={`${PROSE_CLASS} mt-4`}>
-            No agent writes to the database. A human reads a dry-run diff of every change and
-            confirms the write. The confirmed write then runs against both database deployments,
-            each behind its own guard. Last, the citation workflow from section 08 attaches
-            per-claim references, so every entry carries a visible source.
+            No agent writes to the database. A human reads a dry-run diff and explicitly confirms a
+            write. The citation workflow can subsequently propose per-entry references. A visible
+            marker documents the intended legal-source relationship, while recorded gaps and uncited
+            legacy text remain limitations to investigate rather than evidence of verification.
           </p>
 
           <div className="mt-6 flex flex-col gap-2">
@@ -1371,59 +1381,53 @@ Citations render as numbered superscript markers in the text, linked to the refe
 
         <section id="s9" className="scroll-mt-24">
           <h2 className={SECTION_HEADING_CLASS}>
-            <span className={SECTION_NUM_CLASS}>09</span>{" "}Human review, every article, no exceptions
+            <span className={SECTION_NUM_CLASS}>09</span>{" "}Human review status and scope
           </h2>
 
           <p className={PULL_CLASS}>
-            A <strong>human expert reviewer manually reviews every single article</strong> before it
-            reaches the public. Not a sample. Not the flagged ones. Every article, as a
-            matter of principle.
+            Editorial review is a <strong>recorded human workflow state</strong>, not a blanket
+            warranty for an article or its sources.
           </p>
 
           <p className={`${PROSE_CLASS} mt-5`}>
-            Our expert reviewer, <strong>Lyrea</strong>, is a subject-domain expert in
-            psychopharmacology, vouched for by{" "}
-            <a
-              href="https://en.wikipedia.org/wiki/Josie_Kins"
-              target="_blank"
-              rel="noopener noreferrer"
-              className={proseLinkClassName}
-            >
-              Josie Kins
-            </a>{" "}
-            and credited on the About page. She reads and checks each finished article, prose and
-            citations alike, and edits whatever she finds wrong before she allows publication. We treat
-            AI output the way a journal treats a submitted manuscript: useful, structured, and
-            unpublishable until a qualified person reviews it.
+            The review workbench stores one of three statuses: <strong>needed</strong>,{" "}
+            <strong>in progress</strong>, or <strong>completed</strong>. Completed means a human
+            editor recorded a review at a point in time. When the stored reviewer identity resolves
+            to a public contributor profile, the article can attribute that specific review. The
+            status does not mean that one named person reviewed the whole corpus, and it does not
+            certify every sentence, dose, interaction, citation, or legal conclusion.
+          </p>
+
+          <p className={`${PROSE_CLASS} mt-5`}>
+            The current completed status is not bound to an immutable digest of the exact article
+            revision. Later edits can therefore make an older completion record stale without
+            automatically changing its stored status. Readers should interpret the status as
+            editorial context, check dates and citations where available, and report discrepancies.
           </p>
 
           <div className="mt-6 flex flex-col gap-2 sm:flex-row sm:items-stretch">
-            <PipelineStep num={1} name="Read & fact-check" tone="review">
-Lyrea reads the full article against the excerpt documents and the sources
+            <PipelineStep num={1} name="Inspect" tone="review">
+              A reviewer reads the article and follows the sources relevant to the review
             </PipelineStep>
             <div className={PIPELINE_ARROW_CLASS}>→</div>
-            <PipelineStep num={2} name="Edit" tone="review">
-She fixes errors, overstatements, and omissions in the editing environment
+            <PipelineStep num={2} name="Verify" tone="review">
+              The reviewer checks important claims and records uncertainty rather than assuming coverage
             </PipelineStep>
             <div className={PIPELINE_ARROW_CLASS}>→</div>
-            <PipelineStep num={3} name="Diff" tone="review">
-Before she saves, the editor shows an exact diff of every change she made
+            <PipelineStep num={3} name="Edit" tone="review">
+              Corrections use the editor's normal diff and save workflow
             </PipelineStep>
             <div className={PIPELINE_ARROW_CLASS}>→</div>
-            <PipelineStep num={4} name="Log" tone="stored">
-A permanent changelog records every save: who, when, and the full diff
-            </PipelineStep>
-            <div className={PIPELINE_ARROW_CLASS}>→</div>
-            <PipelineStep num={5} name="Approve & publish" tone="published">
-Only an article that passes this review reaches the public site
+            <PipelineStep num={4} name="Record status" tone="stored">
+              The separate review action stores status, reviewer identity, and completion time
             </PipelineStep>
           </div>
 
           <p className={`${PROSE_CLASS} mt-7`}>
-The audit trail is permanent. dose.wiki stores every edit to every article with the
-            editor's identity, a timestamp, and a line-by-line diff of what changed. Regeneration works
-            the same way. If an improved prompt re-drafts a section, that new draft passes through the
-            same review and the same changelog before it replaces anything public.
+            Editor saves and review status are related but distinct records. A changelog can show who
+            changed text and when; a review tick can show that a review was marked complete. Neither
+            record alone establishes that a source entails a claim. Generated or edited content should
+            return to human review, and the public status should be read with that limitation in mind.
           </p>
         </section>
 
@@ -1459,9 +1463,9 @@ The dataset is not a byproduct of the website. It is part of the point. Research
           </h2>
 
           <p className={`${PROSE_CLASS} mt-4`}>
-This pipeline begins with published sources, so the licensing boundary matters: the
-            sources inform the work, while the public dataset is new dose.wiki expression and structure
-            and carries independent review.
+            This pipeline begins with published sources, so the licensing boundary matters: sources
+            inform the work, while the public dataset uses dose.wiki wording and structure. Source
+            provenance, citation support, and editorial review remain separate questions.
           </p>
 
           <ContentCard padding="none" className={`mt-6 ${DIVIDED_LIST_CLASS}`}>
@@ -1469,24 +1473,25 @@ This pipeline begins with published sources, so the licensing boundary matters: 
               <div className={CARD_LABEL_CLASS}>The public prose is new writing</div>
               <p className={PROSE_CLASS}>
                 Verbatim source text stays in internal excerpt files, like research notes. Published
-                article prose is drafted with instructions not to copy source wording, checked against
-                citations, and edited at the final gate (section 09).
+                article prose is drafted with instructions not to copy source wording. Citation and
+                editorial workflows can then identify support problems or wording that needs correction.
               </p>
             </div>
             <div className={DIVIDED_ITEM_CLASS}>
               <div className={CARD_LABEL_CLASS}>Facts are not owned</div>
               <p className={PROSE_CLASS}>
-A synthesis year, dose range, receptor target, or legal status is a fact. Copyright
-                protects expression, not the underlying fact. dose.wiki uses its own wording, schema, and
-                article structure, and checks every claim against citable references.
+                A synthesis year, dose range, receptor target, or legal status may be a fact, but its
+                presentation and support still need checking. Copyright protects expression, not facts;
+                dose.wiki uses its own wording, schema, and article structure without treating that
+                originality as evidence that a claim is accurate.
               </p>
             </div>
             <div className={DIVIDED_ITEM_CLASS}>
-              <div className={CARD_LABEL_CLASS}>Sources stay visible</div>
+              <div className={CARD_LABEL_CLASS}>Provenance and support stay distinct</div>
               <p className={PROSE_CLASS}>
-                Articles link back to their source pages and cite supporting references, keeping
-provenance visible while turning that information into a cleaner, reusable format
-                (the source pages themselves are never republished — section 03).
+                Source-page links show where material entered the pipeline. Citation markers record
+                intended evidentiary relationships for particular claims. Neither relationship is
+                self-authenticating, and both remain open to human verification and correction.
               </p>
             </div>
             <div className={DIVIDED_ITEM_CLASS}>

@@ -77,3 +77,26 @@ describe("/docs/how publishes every prompt the pipeline runs", () => {
     expect(PAGE).not.toMatch(/`# [A-Z][^\n]*(Extraction|Section Generation)/);
   });
 });
+
+describe("/docs/how trust and review methodology", () => {
+  it("does not present workflow controls as universal publication guarantees", () => {
+    expect(PAGE).not.toMatch(
+      /Every article passes|Every claim is source-bound|only route to publication|final gate|fully-referenced|every single article|no exceptions|checks each finished article|Only an article that passes|checks every claim/i,
+    );
+  });
+
+  it("distinguishes provenance, intended citation support, and human verification", () => {
+    expect(PAGE).toContain("Provenance is not proof.");
+    expect(PAGE).toContain("intended evidentiary relationships");
+    expect(PAGE).toContain("does not prove entailment");
+    expect(PAGE).toContain("human verification");
+  });
+
+  it("states the current review statuses and revision-binding limitation", () => {
+    expect(PAGE).toContain("<strong>needed</strong>");
+    expect(PAGE).toContain("<strong>in progress</strong>");
+    expect(PAGE).toContain("<strong>completed</strong>");
+    expect(PAGE).toContain("not bound to an immutable digest");
+    expect(PAGE).toMatch(/does not\s+certify every sentence/);
+  });
+});
