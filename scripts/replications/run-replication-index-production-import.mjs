@@ -124,7 +124,17 @@ export function validateDesiredInsert(input) {
   for (const key of Object.keys(input.taxonomy)) required(TAXONOMY_FIELDS.has(key), `desiredInsert taxonomy has unsupported field: ${key}`);
   required(typeof input.taxonomy.taxonomy_record_key === "string" && input.taxonomy.taxonomy_record_key, "desiredInsert taxonomy_record_key is required.");
   required(input.taxonomy.replication_status === "replication", "desiredInsert taxonomy must remain a replication.");
-  required(input.taxonomy.taxonomy_review_required === false, "Review-required taxonomy cannot be imported.");
+  required(input.taxonomy.replication_status_review_required === false, "Replication-status review must be complete before import.");
+  required(input.taxonomy.viewing_mode_review_required === false, "Viewing-mode review must be complete before import.");
+  const expectedTaxonomyReviewRequired = Boolean(
+    input.taxonomy.replication_status_review_required
+      || input.taxonomy.viewing_mode_review_required
+      || input.taxonomy.content_family_review_required,
+  );
+  required(
+    input.taxonomy.taxonomy_review_required === expectedTaxonomyReviewRequired,
+    "taxonomy_review_required must equal the component review flags.",
+  );
   required(SHA256.test(input.taxonomy.taxonomy_source_digest ?? ""), "desiredInsert taxonomy_source_digest is invalid.");
   required(input.taxonomy_evidence && typeof input.taxonomy_evidence === "object", "desiredInsert requires taxonomy evidence.");
   for (const key of Object.keys(input.taxonomy_evidence)) required(EVIDENCE_FIELDS.has(key), `desiredInsert taxonomy evidence has unsupported field: ${key}`);

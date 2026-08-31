@@ -147,6 +147,23 @@ describe("replication index production import runner", () => {
     expect(() => validateDesiredInsert({ ...desired(), expected_absent: false })).toThrow(/expected_absent/i);
   });
 
+  it("allows non-gating content-family review while requiring completed replication and viewing-mode review", () => {
+    const contentFamilyReview = desired();
+    contentFamilyReview.taxonomy.content_family_review_required = true;
+    contentFamilyReview.taxonomy.taxonomy_review_required = true;
+    expect(() => validateDesiredInsert(contentFamilyReview)).not.toThrow();
+
+    const replicationReview = desired();
+    replicationReview.taxonomy.replication_status_review_required = true;
+    replicationReview.taxonomy.taxonomy_review_required = true;
+    expect(() => validateDesiredInsert(replicationReview)).toThrow(/Replication-status review/i);
+
+    const viewingReview = desired();
+    viewingReview.taxonomy.viewing_mode_review_required = true;
+    viewingReview.taxonomy.taxonomy_review_required = true;
+    expect(() => validateDesiredInsert(viewingReview)).toThrow(/Viewing-mode review/i);
+  });
+
   it("pins the application commit and explicit plan digest before writing", async () => {
     const root = mkdtempSync(path.join(tmpdir(), "replication-import-"));
     const { files, plan } = artifacts(root);
