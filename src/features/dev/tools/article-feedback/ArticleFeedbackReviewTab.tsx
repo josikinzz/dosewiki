@@ -29,6 +29,7 @@ import {
   EditorToolbar,
   type EditorStatusPillTone,
 } from "@/features/dev/components";
+import { formatReviewerIdentity } from "@/features/dev/tools/reviewerIdentity";
 
 type LoadState =
   | { status: "loading" }
@@ -355,7 +356,7 @@ function FeedbackDetail({
           <h4 className="theme-accent-heading text-sm font-semibold">Review notes</h4>
           {row.reviewed_by || row.reviewed_at ? (
             <p className="theme-text-faint mt-1 text-xs">
-              {[row.reviewed_by, formatDate(row.reviewed_at)].filter(Boolean).join(" · ")}
+              {[formatReviewerIdentity(row.reviewed_by), formatDate(row.reviewed_at)].filter(Boolean).join(" · ")}
             </p>
           ) : null}
           {row.review_notes ? (

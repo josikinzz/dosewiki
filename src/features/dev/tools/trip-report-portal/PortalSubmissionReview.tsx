@@ -14,6 +14,7 @@ import {
   EditorToolbar,
   type EditorStatusPillTone,
 } from "@/features/dev/components";
+import { formatReviewerIdentity } from "@/features/dev/tools/reviewerIdentity";
 import type {
   ConvexTripReportImportPayload,
   TripReportSubmissionRow,
@@ -164,7 +165,7 @@ export function PortalSubmissionReview({
           <SectionHeading>Review notes</SectionHeading>
           {submission.reviewed_by || submission.reviewed_at ? (
             <p className="theme-text-faint mt-1 text-xs">
-              {[submission.reviewed_by, formatDate(submission.reviewed_at)].filter(Boolean).join(" · ")}
+              {[formatReviewerIdentity(submission.reviewed_by), formatDate(submission.reviewed_at)].filter(Boolean).join(" · ")}
             </p>
           ) : null}
           {submission.review_notes ? (
