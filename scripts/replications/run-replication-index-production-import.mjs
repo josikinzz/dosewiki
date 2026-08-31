@@ -126,6 +126,17 @@ export function validateDesiredInsert(input) {
   required(input.taxonomy.replication_status === "replication", "desiredInsert taxonomy must remain a replication.");
   required(input.taxonomy.replication_status_review_required === false, "Replication-status review must be complete before import.");
   required(input.taxonomy.viewing_mode_review_required === false, "Viewing-mode review must be complete before import.");
+  if (input.taxonomy.viewing_mode !== undefined) {
+    const expectedViewingModeTags = input.taxonomy.viewing_mode === "mixed"
+      ? ["closed-eye", "open-eye"]
+      : input.taxonomy.viewing_mode === "uncertain"
+        ? []
+        : [input.taxonomy.viewing_mode];
+    required(
+      stable([...(input.taxonomy.viewing_mode_tags ?? [])].sort()) === stable(expectedViewingModeTags),
+      `viewing_mode_tags do not match viewing_mode ${input.taxonomy.viewing_mode}.`,
+    );
+  }
   const expectedTaxonomyReviewRequired = Boolean(
     input.taxonomy.replication_status_review_required
       || input.taxonomy.viewing_mode_review_required

@@ -164,6 +164,15 @@ describe("replication index production import runner", () => {
     expect(() => validateDesiredInsert(viewingReview)).toThrow(/Viewing-mode review/i);
   });
 
+  it("requires contract-valid viewing-mode tags", () => {
+    const mixed = desired();
+    mixed.taxonomy.viewing_mode = "mixed";
+    mixed.taxonomy.viewing_mode_tags = ["mixed"];
+    expect(() => validateDesiredInsert(mixed)).toThrow(/viewing_mode_tags/i);
+    mixed.taxonomy.viewing_mode_tags = ["closed-eye", "open-eye"];
+    expect(() => validateDesiredInsert(mixed)).not.toThrow();
+  });
+
   it("pins the application commit and explicit plan digest before writing", async () => {
     const root = mkdtempSync(path.join(tmpdir(), "replication-import-"));
     const { files, plan } = artifacts(root);
