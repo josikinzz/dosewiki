@@ -20,6 +20,7 @@ import {
   substanceGallery,
 } from "./lib/effectMediaSchemaValidators";
 import { replicationDateResearch } from "./lib/replicationDateValidators";
+import { replicationSourceAttribution } from "./lib/replicationAttributionValidators";
 import {
   replicationArtistTaxonomy,
   replicationTaxonomyEvidence,
@@ -298,6 +299,13 @@ export default defineSchema({
     .index("by_source_catalog_id", ["source_catalog_id"])
     .index("by_taxonomy_record_key", ["taxonomy_record_key"])
     .index("by_replication_status", ["replication_status"]),
+
+  // Full Reddit post/submitter provenance stays out of hot gallery documents.
+  // One record may retain several posts and posters for the same media payload.
+  replicationSourceAttribution: defineTable(replicationSourceAttribution)
+    .index("by_replication_id", ["replication_id"])
+    .index("by_source_catalog_id", ["source_catalog_id"])
+    .index("by_source_sha256", ["source_sha256"]),
 
   // One full dating/provenance dossier per replication. The compact date_info
   // summary lives on `replications`; this table keeps the evidence out of hot

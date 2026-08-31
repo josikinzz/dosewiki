@@ -14,8 +14,12 @@ production client.
 - Preserve existing Convex Storage IDs and direct URLs as rollback sources.
 - SSD originals and archive blobs are immutable. Never rename, move, overwrite,
   transcode in place, or delete them.
-- A Reddit submitter is not automatically the creator or rightsholder. Keep
-  submitter, creator credit, public profile, and rights evidence separate.
+- Keep the Reddit submitter, creator evidence, public profile, and rights
+  evidence as separate structured facts. For the owner-directed 2026-08-31
+  remediation, use a named poster as the public artist by default, except where
+  item-specific evidence establishes another creator, collaboration,
+  collective, traditional attribution, or process/system credit. This public
+  artist default does not assert that the poster is the legal rightsholder.
 - Rights default to `unknown`. Public availability, attribution, or a working
   URL is not publication permission; never promote uncertainty to a permission,
   license, ownership, or public-domain claim.
