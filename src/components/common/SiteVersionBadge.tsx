@@ -39,7 +39,7 @@ export function SiteVersionBadge({
     return (
       <span
         aria-hidden="true"
-        className="theme-accent-heading absolute inset-0 flex -translate-x-[0.5px] -translate-y-[0.5px] items-center justify-center font-display text-[8px] font-bold lowercase leading-none tracking-tight xl:hidden"
+        className="theme-accent-heading absolute inset-0 flex -translate-x-[0.5px] -translate-y-[0.5px] items-center justify-center font-display text-[8px] font-medium lowercase leading-none tracking-tight opacity-70 xl:hidden"
       >
         {badge.version}
       </span>
