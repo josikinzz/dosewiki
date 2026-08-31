@@ -6,6 +6,8 @@ import { SITE_FLAVOR_CONFIG } from "@/config/siteFlavor";
 import { Icon } from "../common/Icon";
 import { SiteLicenceNotice } from "../common/SiteLicenceNotice";
 import { SiteSupporter } from "../common/SiteSupporter";
+import { SiteVersionBadge } from "../common/SiteVersionBadge";
+import { SiteWordmark } from "../common/SiteWordmark";
 import { InteractiveContentCard } from "@/components/ui/surface";
 import {
   PublicTableOfContents,
@@ -224,15 +226,27 @@ export const AboutPage = memo(function AboutPage({
           <div className="relative flex flex-col gap-6">
             {/* Title with icon */}
             <div className="flex flex-col items-center gap-4 text-center sm:flex-row sm:flex-wrap sm:justify-start sm:gap-6 sm:text-left">
-              <DoseWikiLogo
-                width={96}
-                height={96}
-                className="h-44 w-44 sm:h-24 sm:w-24"
-                draggable={false}
-              />
+              <span className="theme-home-logo-frame inline-flex items-center justify-center">
+                <DoseWikiLogo
+                  alt={SITE_FLAVOR_CONFIG.logo.heroAlt}
+                  width={96}
+                  height={96}
+                  className="theme-home-logo h-44 w-44 sm:h-24 sm:w-24"
+                  draggable={false}
+                />
+              </span>
               <div>
-                <h1 className="theme-accent-heading font-display break-words text-[2.5rem] font-bold leading-tight tracking-tight sm:text-[3.2rem]">
-                  {SITE_FLAVOR_CONFIG.aboutTitle}
+                <h1 className="theme-text-primary font-display relative break-words text-[2.5rem] font-bold leading-tight tracking-tight sm:text-[3.2rem]">
+                  {/* "About " plus the wordmark's lead run stay in the primary text
+                      color; only the accent run (".wiki" / "Index") takes the accent —
+                      the same split as the homepage hero. Rejoins to aboutTitle. */}
+                  About <SiteWordmark />
+                  {/* Superscript beta badge, mirroring the homepage wordmark: absolutely
+                      positioned so the heading's layout never shifts when a flavor has
+                      no badge (Effect Index renders nothing here). */}
+                  <span className="absolute top-[0.06em] ml-[0.3em] inline-flex whitespace-nowrap">
+                    <SiteVersionBadge variant="hero" />
+                  </span>
                 </h1>
                 <p className="theme-text-faint mt-2 text-lg font-medium">
                   {subtitle?.trim() || DEFAULT_TAGLINE}
