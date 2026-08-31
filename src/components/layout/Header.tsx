@@ -600,12 +600,15 @@ export function Header({
             />
             <SiteVersionBadge variant="logoOverlay" />
           </span>
-          <span className="theme-text-primary hidden items-center text-2xl font-display font-bold tracking-tight transition-transform duration-200 group-hover/brand:scale-[1.04] group-focus-visible/brand:scale-[1.04] xl:inline-flex">
-            <SiteWordmark />
+          {/* From xl the brand text is a two-row column beside the logo: wordmark on
+              top, compact version pill underneath. Tight leading and a 9px pill keep
+              the column inside the button's height so the header never grows. */}
+          <span className="hidden flex-col items-start justify-center gap-[3px] xl:flex">
+            <span className="theme-text-primary inline-flex items-center text-2xl font-display font-bold leading-none tracking-tight transition-transform duration-200 group-hover/brand:scale-[1.04] group-focus-visible/brand:scale-[1.04]">
+              <SiteWordmark />
+            </span>
+            <SiteVersionBadge variant="header" />
           </span>
-          {/* Outside the wordmark span: the wordmark hides below xl, but the beta mark
-              stays beside the logo at every width. */}
-          <SiteVersionBadge variant="header" />
           </Link>
         </Button>
 

@@ -94,10 +94,12 @@ export function HomeExperience({
               />
               <SiteVersionBadge variant="logoOverlay" />
             </span>
-            <span className="theme-text-primary hidden items-center text-2xl font-display font-bold tracking-tight transition-transform duration-200 group-hover/brand:scale-[1.04] group-focus-visible/brand:scale-[1.04] xl:inline-flex">
-              <SiteWordmark />
+            <span className="hidden flex-col items-start justify-center gap-[3px] xl:flex">
+              <span className="theme-text-primary inline-flex items-center text-2xl font-display font-bold leading-none tracking-tight transition-transform duration-200 group-hover/brand:scale-[1.04] group-focus-visible/brand:scale-[1.04]">
+                <SiteWordmark />
+              </span>
+              <SiteVersionBadge variant="header" />
             </span>
-            <SiteVersionBadge variant="header" />
           </button>
 
           <div className="flex min-h-[44px] min-w-0 flex-1 items-center">
