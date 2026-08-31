@@ -4,6 +4,7 @@
 
 - Read [CONTEXT.md](CONTEXT.md) for the canonical vocabulary before non-trivial changes.
 - For replication intake, gallery classification, taxonomy, or promotion, follow the [replication classification field guide](docs/agents/replication-classification-guide.html).
+- For Reddit archive media moving from reviewed local evidence through R2, Convex, and both public sites, follow the [Reddit replication intake runbook](docs/agents/reddit-replication-intake.md).
 - For UI work, reuse the [UI kit](docs/ui-kit.md), then follow [.impeccable.md](.impeccable.md) and the [visual style guide](notes-and-plans/guides/dosewiki-visual-style-guide.md). Use the [project visual](docs/assets/dose-wiki-project-guide-stacked-no-context.jpg) as the visual reference.
 - For environment or deployment work, use [README environment guidance](README.md#environment-and-deployment) and [deployment routing](docs/agents/deployment.md). Keep credentials out of committed files.
 - For a trip report submitted as one flat body, follow the [trip report timeline runbook](docs/agents/trip-report-timeline.md) so the reshape stays lossless.
