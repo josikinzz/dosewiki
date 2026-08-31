@@ -14,6 +14,10 @@ import {
   type SubjectiveEffectDetailRecord,
 } from "./publicData.shared";
 
+const PUBLIC_REPLICATION_PAGE_LIMIT = 64;
+const PUBLIC_REPLICATION_MAX_PAGES = 512;
+const PUBLIC_REPLICATION_MAX_ROWS = 20_000;
+
 export const getPublicEffects = cache(unstable_cache(async (): Promise<PublicEffectPreview[]> => {
   return await getPublicDataReadAdapter().getPublicEffects();
 }, ["convex-public-effect-previews"], {
@@ -149,12 +153,62 @@ export const getPublicReplicationsByEffect = cache(unstable_cache(async (effectS
   tags: [PUBLIC_CONVEX_CACHE_TAGS.all, PUBLIC_CONVEX_CACHE_TAGS.replications],
 }));
 
-export const getPublicReplications = cache(unstable_cache(async (): Promise<GalleryReplication[]> => {
-  return (await getPublicDataReadAdapter().getPublicReplications()).filter(isPublishableReplication);
-}, ["convex-public-replications"], {
+/**
+ * Cache bounded corpus pages, never the assembled replication corpus.
+ *
+ * The full public gallery is larger than Next's 2 MB data-cache entry limit.
+ * Caching that aggregate made every build worker miss the cache and drain the
+ * entire paginated Convex feed again. Individual 64-row pages remain safely
+ * cacheable and can be shared across workers; React's request cache then
+ * deduplicates the cheap in-memory assembly for each render.
+ */
+const getPublicReplicationCorpusPage = cache(unstable_cache(async (
+  cursor?: string,
+) => {
+  return await getPublicDataReadAdapter().getPublicGalleryReplicationPage(
+    cursor,
+    PUBLIC_REPLICATION_PAGE_LIMIT,
+  );
+}, ["convex-public-replication-corpus-page-v1"], {
   revalidate: PUBLIC_CONVEX_CACHE_REVALIDATE_SECONDS,
   tags: [PUBLIC_CONVEX_CACHE_TAGS.all, PUBLIC_CONVEX_CACHE_TAGS.replications],
 }));
+
+export const getPublicReplications = cache(async (): Promise<GalleryReplication[]> => {
+  const items: GalleryReplication[] = [];
+  const seenCursors = new Set<string>();
+  let cursor: string | undefined;
+
+  for (
+    let pageNumber = 1;
+    pageNumber <= PUBLIC_REPLICATION_MAX_PAGES;
+    pageNumber += 1
+  ) {
+    const page = await getPublicReplicationCorpusPage(cursor);
+    items.push(...(page.items as GalleryReplication[]));
+    if (items.length > PUBLIC_REPLICATION_MAX_ROWS) {
+      throw new Error(
+        `Public replication corpus exceeded maxRows (${PUBLIC_REPLICATION_MAX_ROWS}).`,
+      );
+    }
+    if (page.isDone) {
+      return items.filter(isPublishableReplication);
+    }
+    if (
+      typeof page.cursor !== "string" ||
+      page.cursor.length === 0 ||
+      seenCursors.has(page.cursor)
+    ) {
+      throw new Error("Public replication corpus pagination did not advance.");
+    }
+    seenCursors.add(page.cursor);
+    cursor = page.cursor;
+  }
+
+  throw new Error(
+    `Public replication corpus exceeded maxPages (${PUBLIC_REPLICATION_MAX_PAGES}).`,
+  );
+});
 
 export const getPublicReplicationBySlug = cache(unstable_cache(async (slug: string): Promise<ReplicationWithUrl | null> => {
   return await getPublicDataReadAdapter().getPublicReplicationBySlug(slug);

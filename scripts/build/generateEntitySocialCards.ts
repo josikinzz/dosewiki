@@ -54,6 +54,8 @@ const MANIFEST_PUBLIC_PREFIX = "/images/social/entities";
 const SLUG_RE = /^[a-z0-9][a-z0-9-]*$/;
 const EFFECT_ICON = "material-symbols:person-play-outline-rounded";
 const RENDER_CONCURRENCY = 4;
+const GENERATE_REPLICATION_CARDS =
+  process.env.GENERATE_REPLICATION_SOCIAL_CARDS === "1";
 
 type EntityKind = "effects" | "replications" | "reports" | "contributors";
 
@@ -815,11 +817,18 @@ async function main(): Promise<void> {
     const [effectJobs, replicationJobs, reportJobs, profileJobs, sourceDigests] =
       await Promise.all([
         buildEffectJobs(effects, replications, profiles, mediaCache),
-        buildReplicationJobs(replications, effectsBySlug, profiles, mediaCache),
+        GENERATE_REPLICATION_CARDS
+          ? buildReplicationJobs(replications, effectsBySlug, profiles, mediaCache)
+          : Promise.resolve([]),
         buildReportJobs(reports, profiles, mediaCache),
         buildProfileJobs(profiles, replicationsBySlug, mediaCache),
         rendererSourceDigests(),
       ]);
+    if (!GENERATE_REPLICATION_CARDS) {
+      console.log(
+        "[entity-social-cards] Per-replication cards skipped; routes use the Replications page card. Set GENERATE_REPLICATION_SOCIAL_CARDS=1 for an offline full rebuild.",
+      );
+    }
     const cards = await renderJobs(
       [...effectJobs, ...replicationJobs, ...reportJobs, ...profileJobs],
       sourceDigests,

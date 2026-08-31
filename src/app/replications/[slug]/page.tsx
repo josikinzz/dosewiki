@@ -1,28 +1,19 @@
 import { permanentRedirect, notFound } from "next/navigation";
 import { buildPublicPageMetadata, buildSiteUrl, getPublicRoutePath } from "@server/next/publicSite";
 import { loadReplicationRoute } from "@server/next/routeLoaders.replications";
-import { getStaticReplicationParams } from "@server/next/staticParams";
 import { SITE_FLAVOR_CONFIG } from "@/config/siteFlavor";
 import { ReplicationDetailPage } from "@/features/effects/pages/ReplicationDetailPage";
 import { buildReplicationSchema, serializeJsonLd } from "@/utils/seo/structuredData";
 import { entitySocialCardImage } from "@/data/mappings/entitySocialCardUrl";
 
 export const revalidate = 3600;
-// `false` for the reason documented on /blog/[slug]: with `dynamicParams = true`
-// Next renders an unknown slug on demand and serves the `notFound()` body at
-// HTTP 200, which is a soft 404 that search engines will index. These are
-// permalinks carrying licence metadata, so a bogus one must be a real 404.
-// The cost is that a replication uploaded after a build 404s until the next
-// deploy. Media-import campaigns therefore finish by rebuilding both public
-// deployments so the newly curated slug set is generated atomically.
-export const dynamicParams = false;
+export const dynamicParams = true;
 
 export async function generateStaticParams() {
-  // Renamed slugs are deliberately absent: middleware redirects them before
-  // routing (see getReplicationAliasRedirectUrl). Prerendering them here instead
-  // produced a soft 404 — a prerendered `permanentRedirect()` renders the
-  // not-found body at HTTP 200 rather than emitting a redirect.
-  return await getStaticReplicationParams();
+  // The gallery and sitemap stay build-time rendered, but detail routes scale
+  // with reader demand rather than archive size. A real slug is generated on
+  // first request and then enters the hourly ISR cache.
+  return [];
 }
 
 type ReplicationPageProps = {

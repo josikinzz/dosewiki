@@ -172,6 +172,45 @@ describe("middleware role policy adapter", () => {
     expect(mocks.getToken).not.toHaveBeenCalled();
   });
 
+  it("allows an imported replication detail route through for on-demand generation", async () => {
+    const { middleware } = await import("../middleware");
+
+    const response = await middleware(
+      makePublicRequest(
+        "/replications/another-type-of-replication-does-this-count-gt0sy7",
+      ),
+    );
+
+    expect(response.status).toBe(200);
+    expect(response.headers.get("x-middleware-rewrite")).toBeNull();
+  });
+
+  it("rewrites an unknown replication slug to the real not-found route", async () => {
+    const { middleware } = await import("../middleware");
+
+    const response = await middleware(
+      makePublicRequest(
+        "/replications/definitely-not-a-real-replication-zzzz",
+      ),
+    );
+
+    expect(response.headers.get("x-middleware-rewrite")).toBe(
+      "https://dose.wiki/_flavor-gated/not-found",
+    );
+  });
+
+  it("rewrites an unknown root slug instead of serving a soft substance 404", async () => {
+    const { middleware } = await import("../middleware");
+
+    const response = await middleware(
+      makePublicRequest("/definitely-not-a-real-substance-zzzz"),
+    );
+
+    expect(response.headers.get("x-middleware-rewrite")).toBe(
+      "https://dose.wiki/_flavor-gated/not-found",
+    );
+  });
+
   it("serves the launched homepage at the public root", async () => {
     const { middleware } = await import("../middleware");
 

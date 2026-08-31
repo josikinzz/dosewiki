@@ -57,7 +57,11 @@ async function loadWithRows(rows: GalleryReplication[]) {
 
   const reads = await import("./publicData.reads");
   reads.setPublicDataReadAdapterForTest({
-    getPublicReplications: async () => rows,
+    getPublicGalleryReplicationPage: async () => ({
+      items: rows,
+      cursor: "done",
+      isDone: true,
+    }),
     getPublicReplicationsByEffect: async (effectSlug: string) =>
       rows.filter((item) => item.effect_slug === effectSlug) as ReplicationWithUrl[],
   } as unknown as PublicDataReadAdapter);

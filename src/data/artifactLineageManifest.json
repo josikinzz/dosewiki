@@ -530,6 +530,27 @@
       "refreshCommand": "npm run generate:social-cards"
     },
     {
+      "id": "public-route-availability-manifest",
+      "path": "src/data/publicRouteAvailability.generated.json",
+      "role": "derived-manifest",
+      "producer": "scripts/build/generatePublicRouteAvailability.ts",
+      "consumers": [
+        "lib/next/publicRouteAvailability.ts",
+        "middleware.ts"
+      ],
+      "inputs": [
+        "production Convex public substance lookup pages",
+        "production Convex public replication gallery pages",
+        "src/types/replications.ts publication gate"
+      ],
+      "freshnessRule": "Regenerate before each development or production build so on-demand substance and replication routes reject absent slugs with a real HTTP 404.",
+      "sourceDeployment": "https://glad-minnow-656.convex.cloud",
+      "targetDeployment": null,
+      "schemaVersion": "scripts/build/generatePublicRouteAvailability.ts",
+      "editPolicy": "do-not-edit-by-hand",
+      "refreshCommand": "npm run generate:social-cards"
+    },
+    {
       "id": "entity-social-card-manifest",
       "path": "src/data/entitySocialCardManifest.generated.json",
       "role": "derived-manifest",
@@ -548,7 +569,7 @@
         "lib/og/prototypes/tripReportSocialCard.ts",
         "lib/og/prototypes/userProfileSocialCard.ts"
       ],
-      "freshnessRule": "Regenerate before dose.wiki development and production builds; each path includes a digest of the source record, selected media, renderer sources, and bundled visual assets.",
+      "freshnessRule": "Regenerate shared entity cards before dose.wiki development and production builds. Per-replication cards are an explicit offline opt-in; routes without one use the Replications page card.",
       "sourceDeployment": "https://glad-minnow-656.convex.cloud",
       "targetDeployment": null,
       "schemaVersion": "scripts/build/generateEntitySocialCards.ts",

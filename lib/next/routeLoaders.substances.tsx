@@ -125,9 +125,9 @@ export const loadSubstanceRoute = cache(async (slug: string): Promise<SubstanceR
   // route from `substance.classification` to a rendered warning. Class matchers
   // are a suggestion inside /dev/banners and nothing more.
   //
-  // `src/app/[slug]/page.tsx` is `revalidate = 3600, dynamicParams = false`, so
-  // flipping `enabledSlugs` only reaches readers after ISR unless the write
-  // route revalidates explicitly. That is why `/api/dev/warning-banner`
+  // `src/app/[slug]/page.tsx` uses hourly ISR, so flipping `enabledSlugs` only
+  // reaches readers after ISR unless the write route revalidates explicitly.
+  // That is why `/api/dev/warning-banner`
   // revalidates slugs *removed* from `enabledSlugs` as well as added ones:
   // otherwise switching a banner off would leave the warning cached on the
   // article it was just taken off for up to an hour.

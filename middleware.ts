@@ -21,6 +21,7 @@ import {
   FLAVOR_GATED_NOT_FOUND_PATH,
   isFlavorGatedRequestPath,
 } from "@server/next/flavorGatedRoutes";
+import { isUnavailablePublicDynamicPath } from "@server/next/publicRouteAvailability";
 import {
   getReplicationArtistRouteAlias,
   getReplicationRouteAlias,
@@ -320,6 +321,18 @@ export async function middleware(request: NextRequest) {
   if (replicationArtistAliasRedirectUrl) {
     return browserPolicy.secure(
       NextResponse.redirect(replicationArtistAliasRedirectUrl, 301),
+    );
+  }
+
+  // Dynamic replication and substance pages are generated on first request so
+  // clean deployments stay bounded. Next streams an in-page `notFound()` at
+  // HTTP 200, so reject slugs absent from the build's public corpus here and
+  // let the deliberately unroutable target produce a real 404.
+  if (isUnavailablePublicDynamicPath(appPath)) {
+    return browserPolicy.secure(
+      NextResponse.rewrite(new URL(FLAVOR_GATED_NOT_FOUND_PATH, request.url), {
+        request: { headers: browserPolicy.requestHeaders },
+      }),
     );
   }
 

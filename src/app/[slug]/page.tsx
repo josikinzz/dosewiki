@@ -1,7 +1,6 @@
 import { notFound, redirect } from "next/navigation";
 import { buildPublicPageMetadata } from "@server/next/publicSite";
 import { loadSubstanceRoute } from "@server/next/routeLoaders.substances";
-import { getStaticSubstanceParams } from "@server/next/staticParams";
 import { SubstanceArticlePage } from "@/features/article/pages/SubstanceArticlePage";
 import { buildSiteUrl, getPublicRoutePath } from "@server/next/publicSite";
 import { buildSubstanceSchema, serializeJsonLd } from "@/utils/seo/structuredData";
@@ -12,10 +11,13 @@ import {
 } from "@/data/mappings/substanceSocialCardUrl";
 
 export const revalidate = 3600;
-export const dynamicParams = false;
+export const dynamicParams = true;
 
 export async function generateStaticParams() {
-  return await getStaticSubstanceParams();
+  // Substance articles are generated on first request and then enter the
+  // hourly ISR cache. Pre-rendering the full corpus makes clean deployments
+  // proportional to the library size and duplicates per-article Convex reads.
+  return [];
 }
 
 type SubstancePageProps = {

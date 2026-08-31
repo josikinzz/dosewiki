@@ -80,6 +80,11 @@ const nextConfig: NextConfig = {
     "/html-docs/[doc]": ["./html-docs/**/*"],
   },
   experimental: {
+    // Static generation reads a multi-megabyte substance library once per
+    // worker. Letting Next use every host CPU creates a cold-start thundering
+    // herd against Convex; four long-lived workers finish the bounded static
+    // build more reliably and reuse their in-process library caches.
+    cpus: 4,
     optimizePackageImports: [
       "@dnd-kit/core",
       "@dnd-kit/sortable",
@@ -100,6 +105,10 @@ const nextConfig: NextConfig = {
       "react-hook-form",
     ],
   },
+  // A cold worker's first substance-library render includes the bounded Convex
+  // corpus read and derivation. Give that deliberate cold start room to finish
+  // instead of retrying it twice at the default 60-second threshold.
+  staticPageGenerationTimeout: 180,
   allowedDevOrigins: ["127.0.0.1"],
   images: {
     localPatterns: [
