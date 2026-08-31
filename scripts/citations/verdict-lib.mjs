@@ -141,28 +141,64 @@ export function segmentClaims(text) {
 }
 
 /**
- * Every `[cite:<id>]` marker in a field string paired with the claim sentence
- * it binds to (the sentence it sits in or immediately follows).
+ * Every `[cite:<id>]` marker in a field string paired with the clause it
+ * cites. Claims are clause-scoped per the campaign contract: within a
+ * sentence, a marker run's claim spans from the end of the previous token run
+ * (or the sentence start) through the run itself. `[citation-needed]` runs are
+ * clause boundaries too — they close the preceding uncited claim without
+ * emitting a pair. The sentence's last run absorbs the sentence end only when
+ * nothing but closing punctuation follows, so a trailing marker keeps its full
+ * sentence while a mid-sentence marker never claims uncited text after it.
+ * Markers sharing a run share a claim; a repeated id within one run yields one
+ * pair.
  */
 export function extractClaimPairs(text) {
   const markers = collectCitationMarkersFromText(text);
   if (markers.length === 0) return [];
-  const claims = segmentClaims(text);
+  const sentences = segmentClaims(text);
   const pairs = [];
-  for (const marker of markers) {
-    const claim = claims.find((entry) => marker.index >= entry.start && marker.index < entry.end)
-      ?? [...claims].reverse().find((entry) => entry.end <= marker.index)
-      ?? claims[0]
-      ?? null;
-    if (!claim) continue;
-    pairs.push({
-      markerId: marker.referenceId,
-      markerToken: marker.marker,
-      markerIndex: marker.index,
-      claimText: claim.text,
-      claimStart: claim.start,
-      claimEnd: claim.end,
-    });
+  for (const sentence of sentences) {
+    const tokens = [
+      ...markers.filter((marker) => marker.index >= sentence.start && marker.index < sentence.end),
+      ...[...text.slice(sentence.start, sentence.end).matchAll(/\[citation-needed\]/g)]
+        .map((match) => ({ index: sentence.start + match.index })),
+    ].sort((a, b) => a.index - b.index);
+    if (tokens.length === 0) continue;
+    // Group adjacent tokens (whitespace-separated) into runs.
+    const runs = [];
+    for (const token of tokens) {
+      const last = runs.at(-1);
+      if (last && token.index < last.end) {
+        last.tokens.push(token);
+        last.end = Math.max(last.end, consumeTrailingMarkerRun(text, token.index));
+      } else {
+        runs.push({ tokens: [token], end: consumeTrailingMarkerRun(text, token.index) });
+      }
+    }
+    for (let index = 0; index < runs.length; index += 1) {
+      const run = runs[index];
+      const citeMarkers = run.tokens.filter((token) => token.referenceId);
+      if (citeMarkers.length === 0) continue;
+      let start = index === 0 ? sentence.start : runs[index - 1].end;
+      const closesSentence = index === runs.length - 1
+        && /^[\s.!?)"']*$/.test(text.slice(run.end, sentence.end));
+      const end = closesSentence ? sentence.end : run.end;
+      while (start < end && /\s/.test(text[start])) start += 1;
+      const claimText = text.slice(start, end);
+      const emitted = new Set();
+      for (const marker of citeMarkers) {
+        if (emitted.has(marker.referenceId)) continue;
+        emitted.add(marker.referenceId);
+        pairs.push({
+          markerId: marker.referenceId,
+          markerToken: marker.marker,
+          markerIndex: marker.index,
+          claimText,
+          claimStart: start,
+          claimEnd: end,
+        });
+      }
+    }
   }
   return pairs;
 }
@@ -270,12 +306,18 @@ function summarizeEvidenceRow(row) {
  * same marker with the identical claim text. Non-verdict workbench evidence
  * rows never deactivate a pair. `actionable` becomes false exactly when a
  * verdict record exists.
+ *
+ * With `campaign` set, only rows recorded under that campaign
+ * (`provenance.campaign`) participate: verdicts from earlier campaigns stay
+ * historical records and never deactivate a pair, so a new campaign re-judges
+ * every pair from scratch.
  */
-export function attachExistingVerdicts(rows, evidenceRows) {
+export function attachExistingVerdicts(rows, evidenceRows, { campaign = null } = {}) {
   const byClaimKey = new Map();
   const fallback = [];
   for (const row of evidenceRows ?? []) {
     if (!isObjectRecord(row)) continue;
+    if (campaign !== null && row.provenance?.campaign !== campaign) continue;
     if (typeof row.claimKey === "string" && row.claimKey.length > 0) {
       byClaimKey.set(`${row.slug}\u0000${row.claimKey}`, row);
     }

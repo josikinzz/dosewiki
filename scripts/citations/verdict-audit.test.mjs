@@ -115,6 +115,59 @@ test("a marker separated by a space still binds to the preceding sentence", () =
   assert.equal(pair.claimText, text);
 });
 
+test("a mid-sentence marker claims only its clause, not the whole sentence", () => {
+  const text =
+    "Fent is a synthetic opioid[cite:ref-cdc] of the amide class first made in 1960[cite:ref-stanley] "
+    + "and approved in 1968[cite:ref-stanley].";
+  const pairs = extractClaimPairs(text);
+  assert.equal(pairs.length, 3);
+
+  const [cdc, stanleyA, stanleyB] = pairs;
+  assert.equal(cdc.markerId, "ref-cdc");
+  assert.equal(cdc.claimText, "Fent is a synthetic opioid[cite:ref-cdc]");
+  assert.equal(cdc.claimStart, 0);
+
+  assert.equal(stanleyA.markerId, "ref-stanley");
+  assert.equal(stanleyA.claimText, "of the amide class first made in 1960[cite:ref-stanley]");
+
+  // The final clause keeps the sentence's closing punctuation.
+  assert.equal(stanleyB.markerId, "ref-stanley");
+  assert.equal(stanleyB.claimText, "and approved in 1968[cite:ref-stanley].");
+
+  // Same marker id in different clauses stays two distinct pairs.
+  assert.notEqual(
+    buildPairId({ slug: SLUG, section: "summary", markerId: stanleyA.markerId, claimText: stanleyA.claimText }),
+    buildPairId({ slug: SLUG, section: "summary", markerId: stanleyB.markerId, claimText: stanleyB.claimText }),
+  );
+  for (const pair of pairs) {
+    assert.equal(text.slice(pair.claimStart, pair.claimEnd), pair.claimText);
+  }
+});
+
+test("markers sharing an adjacent run share one clause; repeats dedupe", () => {
+  const text = "Half-life is about 7 hours[cite:ref-a][cite:ref-b][cite:ref-a]. Next sentence.";
+  const pairs = extractClaimPairs(text);
+  assert.equal(pairs.length, 2);
+  assert.deepEqual(pairs.map((pair) => pair.markerId), ["ref-a", "ref-b"]);
+  assert.equal(pairs[0].claimText, pairs[1].claimText);
+  assert.equal(pairs[0].claimText, "Half-life is about 7 hours[cite:ref-a][cite:ref-b][cite:ref-a].");
+});
+
+test("a mid-sentence marker never claims the uncited text after it", () => {
+  const text = "It activates TREK-1[cite:ref-a], and weakly inhibits Cav3.2 channels. Next.";
+  const pairs = extractClaimPairs(text);
+  assert.equal(pairs.length, 1);
+  assert.equal(pairs[0].claimText, "It activates TREK-1[cite:ref-a]");
+});
+
+test("a citation-needed run bounds the following marker's clause without emitting a pair", () => {
+  const text = `First made in 1874${CITATION_NEEDED_TOKEN} and sold by Bayer in 1898[cite:ref-b].`;
+  const pairs = extractClaimPairs(text);
+  assert.equal(pairs.length, 1);
+  assert.equal(pairs[0].markerId, "ref-b");
+  assert.equal(pairs[0].claimText, "and sold by Bayer in 1898[cite:ref-b].");
+});
+
 test("segmentation treats citation-needed tokens as sentence-bound", () => {
   const text = `First claim.${CITATION_NEEDED_TOKEN} Second claim.[cite:x]`;
   const claims = segmentClaims(text);
@@ -202,6 +255,38 @@ test("attachExistingVerdicts matches claimKey=pairId and flips actionable", () =
     assert.equal(row.existingVerdict, null);
     assert.equal(row.actionable, true);
   }
+});
+
+test("attachExistingVerdicts scoped to a campaign ignores other campaigns' verdicts", () => {
+  const rows = buildAuditRowsForArticle({ slug: SLUG, article: fixtureArticle() });
+  const judged = rows.find((row) => row.markerId === "ref-beta");
+  const verdictRow = (campaign) => ({
+    slug: SLUG,
+    section: judged.section,
+    claimKey: judged.pairId,
+    referenceIds: ["ref-beta"],
+    status: "needs_source",
+    statusReason: "verdict:partial — weaker figure in source",
+    severity: "blocking",
+    updatedAt: "2026-08-31T00:00:00.000Z",
+    provenance: { source: "dosewiki-citation-pi", campaign },
+  });
+
+  // A retired campaign's verdict stays a record: the pair remains actionable.
+  const stale = attachExistingVerdicts(rows, [verdictRow("citation-verdict-2026-08-31")], {
+    campaign: "citation-verdict-v2",
+  });
+  assert.equal(stale.find((row) => row.pairId === judged.pairId).actionable, true);
+
+  // The current campaign's verdict deactivates as before.
+  const current = attachExistingVerdicts(rows, [verdictRow("citation-verdict-v2")], {
+    campaign: "citation-verdict-v2",
+  });
+  assert.equal(current.find((row) => row.pairId === judged.pairId).actionable, false);
+
+  // No campaign given: legacy behavior, every verdict record counts.
+  const legacy = attachExistingVerdicts(rows, [verdictRow("citation-verdict-2026-08-31")]);
+  assert.equal(legacy.find((row) => row.pairId === judged.pairId).actionable, false);
 });
 
 test("audit totals count pairs, actionable, sections, and sensitivity", () => {

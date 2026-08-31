@@ -5,6 +5,13 @@
 // Usage:
 //   npm run citations:verdict-audit
 //   npm run citations:verdict-audit -- --out=tmp/citation-verdict-audit-2026-08-31.json
+//   npm run citations:verdict-audit -- --campaign=<campaign-id>
+//
+// --campaign scopes existing-verdict lookup to that campaign id
+// (provenance.campaign on citationEvidence rows): verdicts recorded under any
+// other campaign stay historical records and never deactivate a pair, so a
+// fresh campaign re-judges everything. Without the flag, every verdict record
+// counts (legacy resume behavior).
 //
 // Environment:
 //   SOURCE_CONVEX_URL / CONVEX_PUBLIC_READ_URL / VITE_CONVEX_URL ... selects the
@@ -38,6 +45,7 @@ import {
 
 const argv = process.argv.slice(2);
 const output = getFlagValue(argv, "--out") ?? "tmp/citation-verdict-audit.json";
+const campaign = getFlagValue(argv, "--campaign")?.trim() || null;
 const runContext = createDataOpsRunContext({
   operation: "audit citation verdict claim-citation pairs",
   intent: "citation-verdict-audit",
@@ -100,7 +108,7 @@ async function main() {
 
   const markedSlugs = [...new Set(bareRows.map((row) => row.slug))];
   const evidenceRows = await fetchEvidenceRows(client, markedSlugs);
-  const rows = attachExistingVerdicts(bareRows, evidenceRows);
+  const rows = attachExistingVerdicts(bareRows, evidenceRows, { campaign });
 
   const audit = {
     schemaVersion: AUDIT_SCHEMA_VERSION,
@@ -110,6 +118,7 @@ async function main() {
       publicScope: "categoryLayout",
       sections: CITABLE_SECTIONS,
       evidenceRowCount: evidenceRows.length,
+      campaign,
     },
     rows,
     totals: buildAuditTotals(rows),
