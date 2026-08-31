@@ -1,14 +1,19 @@
 import { notFound, permanentRedirect } from "next/navigation";
 import { buildPublicPageMetadata } from "@server/next/publicSite";
 import { loadContributorRoute } from "@server/next/routeLoaders.contributors";
-import { getStaticContributorParams } from "@server/next/staticParams";
 import { UserProfilePage } from "@/components/pages/UserProfilePage";
 import { entitySocialCardImage } from "@/data/mappings/entitySocialCardUrl";
 
 export const revalidate = 3600;
+export const dynamicParams = true;
 
 export async function generateStaticParams() {
-  return await getStaticContributorParams();
+  // ~2,000+ contributor profiles would otherwise prerender on every clean
+  // deploy, each with its own per-key Convex reads. A real key (including a
+  // forwarded profile's 301) renders on first request and then enters the
+  // hourly ISR cache. The sitemap still advertises unclaimed profiles from
+  // the route plan.
+  return [];
 }
 
 type ContributorPageProps = {

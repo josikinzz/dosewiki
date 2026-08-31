@@ -333,10 +333,10 @@ export function buildPublicRoutePlan(
         "slug",
         (slug) => getPublicRoutePath({ family: "report", params: { slug } }),
       ),
-      // Every profile still prerenders (a forwarded profile prerenders its
-      // 301), but a profile that claims a credited artist is no longer a
-      // destination — its Artist Page is already advertised by the
-      // replicationArtists family above — so the sitemap stops naming it.
+      // Profiles render on demand (a forwarded profile serves its 301 on
+      // first request). This family exists for the sitemap, which stops
+      // naming a profile that claims a credited artist — its Artist Page is
+      // already advertised by the replicationArtists family above.
       contributors: (() => {
         const forwardedProfileKeys = mapArtistPageKeysByProfile(
           input.galleryReplications,

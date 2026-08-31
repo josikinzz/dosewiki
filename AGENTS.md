@@ -31,7 +31,8 @@
 
 ## Verification
 
-- Match verification to scope: `npm run verify:app` for app changes, `npm run verify:workflow` for script/data workflow changes, or `npm run verify:all` when both change.
+- Match verification to scope: `npm run verify:fast` (tests + typecheck) for ordinary app-code changes, `npm run verify:app` when routing, middleware, or build config change, `npm run verify:workflow` for script/data workflow changes, or `npm run verify:all` when both change.
+- Never delete `.next` as a build-fix reflex: `.next/cache` holds the persistent Convex data cache, the difference between a ~1 minute warm build and a ~4 minute cold one.
 - After article-schema changes, run `npm run generate:schema` and include the generated helper updates.
 - After generated-data or lineage changes, run `npm run provenance:check`.
 - Verify host- and middleware-shaped work against `npm run build && npx next start` or a deployment: middleware never runs under `next dev`, so a dev-server check passes without executing it.

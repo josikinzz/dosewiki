@@ -38,7 +38,6 @@ import {
   buildPublicPageMetadata,
   getPublicRoutePath,
 } from "@server/next/publicSite";
-import { getStaticReplicationArtistParams } from "@server/next/staticParams";
 import { entitySocialCardImage } from "@/data/mappings/entitySocialCardUrl";
 
 /**
@@ -52,8 +51,10 @@ import { entitySocialCardImage } from "@/data/mappings/entitySocialCardUrl";
  * header is decorated with their avatar, role, bio, and links;
  * /contributors/<key> permanently forwards here for such profiles. The
  * Unattributed bucket gets the same works view but never an identity claim.
- * Prerendered from the same gallery corpus the sitemap advertises and
- * revalidated hourly; all reads sit on the shared hourly `unstable_cache`
+ * Advertised in the sitemap from the same gallery corpus, but detail pages
+ * scale with reader demand rather than roster size: a real key renders on
+ * first request and then enters the hourly ISR cache; all reads sit on the
+ * shared hourly `unstable_cache`
  * window. The `?viewer=` deep link is resolved on the client inside
  * ArtistShowcase against the artist's whole collection.
  *
@@ -65,9 +66,12 @@ import { entitySocialCardImage } from "@/data/mappings/entitySocialCardUrl";
  */
 
 export const revalidate = 3600;
+export const dynamicParams = true;
 
 export async function generateStaticParams() {
-  return await getStaticReplicationArtistParams();
+  // ~2,000+ credited artists would otherwise prerender on every clean deploy.
+  // The sitemap still advertises the full roster from the route plan.
+  return [];
 }
 
 type ArtistFocusPageProps = {

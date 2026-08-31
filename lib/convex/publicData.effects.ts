@@ -18,6 +18,15 @@ const PUBLIC_REPLICATION_PAGE_LIMIT = 64;
 const PUBLIC_REPLICATION_MAX_PAGES = 512;
 const PUBLIC_REPLICATION_MAX_ROWS = 20_000;
 
+/**
+ * Bounded chunk size for the by-effect replication cache. The largest effects
+ * ("drifting", "geometry") carry 1,600+ full records — 3–4 MB as one value,
+ * past Next's 2 MB data-cache entry limit, so a single-entry cache silently
+ * never persisted and every build worker and ISR render refetched the whole
+ * list from Convex. 200 records ≈ 0.5 MB leaves 4× headroom.
+ */
+const PUBLIC_REPLICATIONS_BY_EFFECT_CHUNK_SIZE = 200;
+
 export const getPublicEffects = cache(unstable_cache(async (): Promise<PublicEffectPreview[]> => {
   return await getPublicDataReadAdapter().getPublicEffects();
 }, ["convex-public-effect-previews"], {
@@ -144,14 +153,55 @@ export const getEffectArticlesByContributor = cache(unstable_cache(async (
  * owns the "does this row have a page?" decision for `url` and now answers it
  * for `role` and `type` in the same place.
  */
-export const getPublicReplicationsByEffect = cache(unstable_cache(async (effectSlug: string): Promise<ReplicationWithUrl[]> => {
+/**
+ * One gated Convex fetch per request, shared by every chunk read below via
+ * React's request cache. Convex has no paged by-effect query, so chunking
+ * happens here: a cold render fetches the list once and persists it as
+ * bounded chunk entries, each safely under the 2 MB data-cache limit (see the
+ * corpus-page doctrine on `getPublicReplicationCorpusPage`).
+ */
+const fetchPublishableReplicationsByEffect = cache(async (
+  effectSlug: string,
+): Promise<ReplicationWithUrl[]> => {
   return (await getPublicDataReadAdapter().getPublicReplicationsByEffect(effectSlug)).filter(
     isPublishableReplication,
   );
-}, ["convex-public-replications-by-effect"], {
+});
+
+const getPublicReplicationsByEffectChunk = cache(unstable_cache(async (
+  effectSlug: string,
+  chunkIndex: number,
+): Promise<{ items: ReplicationWithUrl[]; chunkCount: number }> => {
+  const rows = await fetchPublishableReplicationsByEffect(effectSlug);
+  return {
+    items: rows.slice(
+      chunkIndex * PUBLIC_REPLICATIONS_BY_EFFECT_CHUNK_SIZE,
+      (chunkIndex + 1) * PUBLIC_REPLICATIONS_BY_EFFECT_CHUNK_SIZE,
+    ),
+    chunkCount: Math.max(
+      1,
+      Math.ceil(rows.length / PUBLIC_REPLICATIONS_BY_EFFECT_CHUNK_SIZE),
+    ),
+  };
+}, ["convex-public-replications-by-effect-chunk-v1"], {
   revalidate: PUBLIC_CONVEX_CACHE_REVALIDATE_SECONDS,
   tags: [PUBLIC_CONVEX_CACHE_TAGS.all, PUBLIC_CONVEX_CACHE_TAGS.replications],
 }));
+
+export const getPublicReplicationsByEffect = cache(async (
+  effectSlug: string,
+): Promise<ReplicationWithUrl[]> => {
+  const first = await getPublicReplicationsByEffectChunk(effectSlug, 0);
+  if (first.chunkCount === 1) {
+    return first.items;
+  }
+  const rest = await Promise.all(
+    Array.from({ length: first.chunkCount - 1 }, (_, index) =>
+      getPublicReplicationsByEffectChunk(effectSlug, index + 1),
+    ),
+  );
+  return first.items.concat(...rest.map((chunk) => chunk.items));
+});
 
 /**
  * Cache bounded corpus pages, never the assembled replication corpus.
