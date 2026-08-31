@@ -17,11 +17,11 @@ const manifest = {
   },
   cards: {
     effects: {
-      geometry: "/images/social/entities/effects/geometry.0123456789abcdef.jpg",
+      geometry: "https://dosewiki-media.gremblinzuwu.workers.dev/media/sha256/01/0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef.jpg",
     },
     replications: {
       "infinite-torus-space-symmetric-vision":
-        "/images/social/entities/replications/infinite-torus-space-symmetric-vision.abcdef0123456789.jpg",
+        "https://dosewiki-media.gremblinzuwu.workers.dev/media/sha256/ab/abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789.jpg",
     },
     reports: {},
     contributors: {},
@@ -39,10 +39,10 @@ describe("entitySocialCardUrl", () => {
     } = await import("./entitySocialCardUrl");
 
     expect(entitySocialCardUrl("effects", " Geometry ")).toBe(
-      "/images/social/entities/effects/geometry.0123456789abcdef.jpg",
+      "https://dosewiki-media.gremblinzuwu.workers.dev/media/sha256/01/0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef.jpg",
     );
     expect(entitySocialCardImage("effects", "geometry", "Geometry effect card")).toEqual({
-      path: "/images/social/entities/effects/geometry.0123456789abcdef.jpg",
+      path: "https://dosewiki-media.gremblinzuwu.workers.dev/media/sha256/01/0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef.jpg",
       width: 1200,
       height: 1200,
       alt: "Geometry effect card",
@@ -53,7 +53,7 @@ describe("entitySocialCardUrl", () => {
         viewer: "infinite-torus-space-symmetric-vision",
       }),
     ).toEqual({
-      path: "/images/social/entities/replications/infinite-torus-space-symmetric-vision.abcdef0123456789.jpg",
+      path: "https://dosewiki-media.gremblinzuwu.workers.dev/media/sha256/ab/abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789.jpg",
       width: 1200,
       height: 1200,
       alt: "Linked replication card",

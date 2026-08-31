@@ -6,9 +6,9 @@ import {
 } from "./substanceSocialCardUrl";
 
 describe("substanceSocialCardUrl", () => {
-  it("returns the build-generated immutable card path", () => {
+  it("returns the published immutable R2 card URL", () => {
     expect(substanceSocialCardUrl("2c-b")).toMatch(
-      /^\/images\/social\/substances\/2c-b\.[a-f0-9]{16}\.jpg$/,
+      /^https:\/\/dosewiki-media\.gremblinzuwu\.workers\.dev\/media\/sha256\/[a-f0-9]{2}\/[a-f0-9]{64}\.jpg$/,
     );
     expect(SUBSTANCE_SOCIAL_CARD_SIZE).toBe(1200);
   });

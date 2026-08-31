@@ -2,7 +2,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 // Dynamic imports are intentional: each flavor mock must exist before this build-time
 // configuration module is evaluated.
 
-const CARD_PATH_RE = /^\/images\/social\/pages\/[a-z-]+\.[a-f0-9]{16}\.jpg$/;
+const CARD_PATH_RE = /^https:\/\/dosewiki-media\.gremblinzuwu\.workers\.dev\/media\/sha256\/[a-f0-9]{2}\/[a-f0-9]{64}\.jpg$/;
 
 afterEach(() => {
   vi.doUnmock("@/config/siteFlavor");
@@ -10,7 +10,7 @@ afterEach(() => {
 });
 
 describe("pageSocialCardUrl", () => {
-  it("returns immutable generated paths for every dose.wiki page card", async () => {
+  it("returns immutable published URLs for every dose.wiki page card", async () => {
     vi.doMock("@/config/siteFlavor", () => ({ isEffectIndex: () => false }));
     const { PAGE_SOCIAL_CARD_KEYS, PAGE_SOCIAL_CARD_SIZE, pageSocialCardImage } =
       await import("./pageSocialCardUrl");
