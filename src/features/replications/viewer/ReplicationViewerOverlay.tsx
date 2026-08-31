@@ -999,6 +999,13 @@ export function ReplicationViewerOverlay({
         aria-describedby="replication-viewer-description"
         className={VIEWER_DIALOG_CLASS}
       >
+        <DialogDescription
+          id="replication-viewer-description"
+          className="sr-only"
+        >
+          Viewing {active.replication.title} by {artistLabel}. {collection.label}.
+          Work {position.itemIndex + 1} of {group.items.length}.
+        </DialogDescription>
         <header
           inert={infoOpen || chromeHidden || undefined}
           aria-hidden={infoOpen || chromeHidden || undefined}
@@ -1039,8 +1046,8 @@ export function ReplicationViewerOverlay({
                 {active.replication.title}
               </span>
             </DialogTitle>
-            <DialogDescription
-              id="replication-viewer-description"
+            <p
+              aria-hidden="true"
               className="theme-media-tile-creator flex min-w-0 items-center gap-1.5 overflow-hidden whitespace-nowrap text-[11px] tabular-nums sm:text-xs"
             >
               <span className="max-w-[9rem] truncate sm:max-w-[16rem]">
@@ -1059,7 +1066,7 @@ export function ReplicationViewerOverlay({
                   </span>
                 </>
               ) : null}
-            </DialogDescription>
+            </p>
           </div>
           {collection.groups.length > 1 ? (
             <div className="flex flex-none items-center gap-1 [@media(pointer:coarse)]:hidden">
