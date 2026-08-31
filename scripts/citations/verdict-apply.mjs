@@ -136,12 +136,7 @@ function locateMarker({ field, row }) {
       `marker_not_found: ${token} is absent from the live claim for ${row.pairId} (${field.fieldPath}).`,
     );
   }
-  if (indexes.length > 1) {
-    throw new Error(
-      `ambiguous_marker: ${token} occurs ${indexes.length} times inside the claim for ${row.pairId}.`,
-    );
-  }
-  return { token, index: indexes[0] };
+  return { token, indexes };
 }
 
 function setDeep(target, fieldPath, value) {
@@ -332,13 +327,17 @@ export function buildVerdictApplyPlan({ article, draft }) {
         fieldPath: field.fieldPath,
         markerId: row.markerId,
         verdict: row.verdict,
-        tokenIndex: marker.index,
+        tokenIndex: marker.indexes[0],
+        tokenIndexes: marker.indexes,
         token: marker.token,
       });
       if (!stripsByField.has(field.fieldPath)) {
         stripsByField.set(field.fieldPath, { text: field.text, strips: [] });
       }
-      stripsByField.get(field.fieldPath).strips.push({ index: marker.index, token: marker.token });
+      for (const index of marker.indexes) {
+        stripsByField.get(field.fieldPath).strips.push({ index, token: marker.token });
+      }
+
     }
 
     if (stripsByField.size > 0) {

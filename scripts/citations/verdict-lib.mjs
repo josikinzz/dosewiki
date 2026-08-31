@@ -181,7 +181,7 @@ export const SAFETY_SENSITIVE_PATTERNS = Object.freeze([
   /interaction/i,
   /contraindicat/i,
   /maoi/i,
-  /potency/i,
+  /\bpoten(?:cy|t)\b/i,
   /affinity/i,
   /equivalen/i,
   /narrow margin/i,

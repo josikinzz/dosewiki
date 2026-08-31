@@ -141,6 +141,42 @@ test("plan applies the exact single-token replacement and nothing else", () => {
   assert.equal(parkOp.kind, "park");
 });
 
+test("strip replaces every repeated occurrence of one marker inside its claim", () => {
+  const claim = "One source supports both clauses[cite:ref-b], including this one.[cite:ref-b]";
+  const article = { ...makeArticle(), summary: claim };
+  const draft = {
+    schemaVersion: DRAFT_SCHEMA_VERSION,
+    campaign: "citation-pi",
+    wave: "wave-1",
+    slug: SLUG,
+    sections: [{
+      section: "summary",
+      contentHash: contentHash(claim),
+      rows: [makeRow({
+        field: claim,
+        markerId: "ref-b",
+        claimText: claim,
+        verdict: "partial",
+        disposition: "strip",
+        quote: "One source supports one clause.",
+        quoteLocation: "Section 2",
+      })],
+    }],
+  };
+
+  const plan = buildVerdictApplyPlan({ article, draft });
+
+  assert.equal(
+    plan.sectionPatches.summary,
+    claim.replaceAll("[cite:ref-b]", CITATION_NEEDED_TOKEN),
+  );
+  assert.deepEqual(
+    plan.operations[0].tokenIndexes,
+    [claim.indexOf("[cite:ref-b]"), claim.lastIndexOf("[cite:ref-b]")],
+  );
+  assert.equal(plan.evidence.length, 1);
+});
+
 test("keep produces a supported evidence row carrying quote and rationale", () => {
   const article = makeArticle();
   const plan = buildVerdictApplyPlan({ article, draft: makeDraft(article) });

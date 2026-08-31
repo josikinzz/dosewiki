@@ -136,6 +136,7 @@ test("safety stamping follows the contract classes", () => {
   assert.equal(classifySafetySensitive({ section: "summary", claimText: "Overdose can cause death." }), true);
   assert.equal(classifySafetySensitive({ section: "summary", claimText: "MAOI combinations are contraindicated." }), true);
   assert.equal(classifySafetySensitive({ section: "pharmacology", claimText: "High affinity for 5-HT2A." }), true);
+  assert.equal(classifySafetySensitive({ section: "summary", claimText: "It is 50 to 100 times more potent than morphine." }), true);
   assert.equal(classifySafetySensitive({ section: "summary", claimText: "It has a narrow margin of error." }), true);
   assert.equal(classifySafetySensitive({ section: "summary", claimText: "First synthesized in 1912." }), false);
   // Any harm_potential claim is sensitive by default.
