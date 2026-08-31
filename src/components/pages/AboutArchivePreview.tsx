@@ -99,7 +99,7 @@ function JsonSyntaxHighlight({ json, truncated }: { json: string; truncated: boo
       ))}
       {truncated ? (
         <div className="theme-json-preview-truncation mt-4 rounded-xl border px-4 py-3 font-sans text-xs font-medium">
-          Showing the first {ABOUT_PREVIEW_LINE_LIMIT.toLocaleString()} lines — download SubstanceIndex.json for the full record.
+          Showing the first {ABOUT_PREVIEW_LINE_LIMIT.toLocaleString()} lines; download SubstanceIndex.json for the full record.
         </div>
       ) : null}
     </div>
@@ -199,12 +199,12 @@ export function AboutArchivePreview({
               />
               <span className="min-w-0 truncate text-sm">
                 <span className="font-semibold text-dose-accent-strong">{dataset.filename}</span>
-                <span className="theme-text-faint text-xs"> — {dataset.caption}</span>
+                <span className="theme-text-faint text-xs"> · {dataset.caption}</span>
               </span>
             </Button>
           ))}
           <p className="theme-text-faint px-1 text-xs leading-5">
-            JSON, refreshed nightly from the live database. Reuse terms vary by dataset —
+            JSON, refreshed nightly from the live database. Reuse terms vary by dataset;
             see{" "}
             <Link href="/docs/license" className="theme-link-muted transition-colors">
               License &amp; reuse

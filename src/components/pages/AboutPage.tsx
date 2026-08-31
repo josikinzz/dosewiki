@@ -327,7 +327,7 @@ export const AboutPage = memo(function AboutPage({
           ) : (
             <div className="p-8 text-center">
               <p className="theme-text-faint text-sm">
-                Contributor profiles are on their way — check back soon.
+                Contributor profiles are on their way. Check back soon.
               </p>
             </div>
           )}
@@ -358,7 +358,7 @@ export const AboutPage = memo(function AboutPage({
 
             <p className="theme-text-secondary max-w-[65ch] text-sm leading-6">
               Questions about {SITE_FLAVOR_CONFIG.name}, collaboration, legal or media
-              inquiries, or takedown requests — email us directly. For everything else, the
+              inquiries, or takedown requests: email us directly. For everything else, the
               feedback form reaches the same editors.
             </p>
 

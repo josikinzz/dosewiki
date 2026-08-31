@@ -1261,7 +1261,7 @@ export default function DocsCodePage() {
 
           <p className={`${PROSE_CLASS} mt-5`}>
             <a href="/docs/how" target="_top" className={proseLinkClassName}>
-              How dose.wiki articles are made
+              How dose.wiki substance articles are made
             </a>{" "}
             publishes every prompt unedited — the eight extraction prompts and the section prompts. It
             also documents the block-selection contract that keeps extraction verbatim, and the audit
@@ -1512,7 +1512,7 @@ export default function DocsCodePage() {
             full pipeline — scraping, quote extraction, AI synthesis, citations, and human review —
             read{" "}
             <a href="/docs/how" target="_top" className={proseLinkClassName}>
-              How dose.wiki articles are made
+              How dose.wiki substance articles are made
             </a>
             .
           </p>

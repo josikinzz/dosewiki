@@ -35,7 +35,7 @@ export function MoleculeDownloadPack({ moleculeCount }: { moleculeCount: number 
           </h3>
           <p className="theme-text-faint mt-1 text-xs leading-5">
             All {moleculeCount.toLocaleString()} substance structures as consistent SVGs in
-            two colourways — dose.wiki brand and standard textbook element colours — plus a
+            two colourways (dose.wiki brand and standard textbook element colours) plus a
             SMILES + metadata manifest. Generated from SMILES with RDKit.
           </p>
         </div>
@@ -69,7 +69,7 @@ export function MoleculeDownloadPack({ moleculeCount }: { moleculeCount: number 
         <Icon icon="lucide:download" size={16} className="theme-accent-emphasis shrink-0" />
         <span className="min-w-0 truncate text-sm">
           <span className="font-semibold text-dose-accent-strong">Molecule pack (.zip)</span>
-          <span className="theme-text-faint text-xs"> — SVGs + manifest</span>
+          <span className="theme-text-faint text-xs"> · SVGs + manifest</span>
         </span>
       </Button>
     </div>

@@ -1112,7 +1112,7 @@ SOFTWARE.`}</pre>
               href="/docs/how"
               target="_top"
             >
-              how dose.wiki articles are made
+              how dose.wiki substance articles are made
             </a>
             . For the application architecture and data flow, see{" "}
             <a
