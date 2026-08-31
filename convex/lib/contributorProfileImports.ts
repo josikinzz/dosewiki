@@ -1,5 +1,5 @@
 import { type Infer, v } from "convex/values";
-import type { Id } from "../_generated/dataModel";
+import type { Doc, Id } from "../_generated/dataModel";
 import type { MutationCtx } from "../_generated/server";
 import { requireEditorWrite } from "./auth";
 import { normalizeProfileKey } from "./contributorProfiles";
@@ -122,7 +122,41 @@ export const reviewedProfileImportResult = v.object({
   ),
 });
 
+export const reviewedProfileRollbackArgs = v.object({
+  apiKey: v.optional(v.string()),
+  operationId: v.string(),
+  dryRun: v.boolean(),
+  entries: v.array(reviewedProfileImportEntryValidator),
+});
+
+const rollbackActionValidator = v.union(
+  v.literal("would-delete"),
+  v.literal("deleted"),
+  v.literal("would-restore"),
+  v.literal("restored"),
+  v.literal("unchanged"),
+  v.literal("skipped"),
+);
+
+export const reviewedProfileRollbackResult = v.object({
+  operationId: v.string(),
+  dryRun: v.boolean(),
+  deleted: v.number(),
+  restored: v.number(),
+  unchanged: v.number(),
+  skipped: v.number(),
+  rows: v.array(
+    v.object({
+      creatorName: v.string(),
+      key: nullableString,
+      profileId: v.union(v.id("contributorProfiles"), v.null()),
+      action: rollbackActionValidator,
+    }),
+  ),
+});
+
 export type ReviewedProfileImportArgs = Infer<typeof reviewedProfileImportArgs>;
+export type ReviewedProfileRollbackArgs = Infer<typeof reviewedProfileRollbackArgs>;
 type ReviewedProfileState = Infer<typeof reviewedProfileStateValidator>;
 
 const PROFILE_KEY = /^[A-Z0-9-]+$/;
@@ -134,6 +168,10 @@ const IMAGE_EXTENSIONS = new Set(["jpg", "jpeg", "png", "webp", "gif"]);
 // dedicated indexed registry rather than widening this scan again.
 const MAX_PROFILE_IDENTITY_SCAN = 4096;
 const NON_PROFILE_IDENTITIES = new Set(["unknown artist", "unknown", "unattributed", "anonymous"]);
+
+function importProvenance(operationId: string, actorEmail: string) {
+  return `reviewed-profile-import:${operationId}:${actorEmail}`;
+}
 
 function assertActionableCreator(creatorName: string, displayName: string) {
   const names = [creatorName, displayName].map((value) => value.trim().toLowerCase());
@@ -289,6 +327,7 @@ export async function importReviewedProfilePlanHandler(ctx: MutationCtx, args: R
     }>,
   };
   const now = new Date().toISOString();
+  const provenance = importProvenance(result.operationId, actor.email);
   const plannedKeys = new Set<string>();
   const plannedNames = new Set<string>();
   const plannedIdentityTokens = new Set<string>();
@@ -465,7 +504,7 @@ export async function importReviewedProfilePlanHandler(ctx: MutationCtx, args: R
         });
       } else {
         const profileId = await ctx.db.insert("contributorProfiles", {
-          ...storedPatch(desired, now, actor.email),
+          ...storedPatch(desired, now, provenance),
           createdAt: now,
         });
         result.rows.push({
@@ -515,7 +554,7 @@ export async function importReviewedProfilePlanHandler(ctx: MutationCtx, args: R
     result.updated += 1;
     const action = args.dryRun ? ("would-update" as const) : ("updated" as const);
     if (!args.dryRun) {
-      await ctx.db.patch(entry.profileId, storedPatch(desired, now, actor.email));
+      await ctx.db.patch(entry.profileId, storedPatch(desired, now, provenance));
     }
     result.rows.push({
       creatorName: entry.creatorName,
@@ -524,5 +563,176 @@ export async function importReviewedProfilePlanHandler(ctx: MutationCtx, args: R
       action,
     });
   }
+  return result;
+}
+
+/**
+ * Exact inverse of a reviewed profile import batch.
+ *
+ * The import's operation-scoped `updatedBy` marker proves that a row was
+ * created or changed by this specific campaign. Rollback refuses to touch a
+ * row whose reviewed fields or marker drifted. An already absent reviewed-new
+ * row and an existing row already restored to its expected snapshot are safe,
+ * idempotent retries.
+ */
+export async function rollbackReviewedProfilePlanHandler(
+  ctx: MutationCtx,
+  args: ReviewedProfileRollbackArgs,
+) {
+  const actor = await requireEditorWrite(ctx, {
+    apiKey: args.apiKey,
+    adminIntent: "profileMediaWrite",
+  });
+  const operationId = args.operationId.trim();
+  if (!operationId) throw new Error("Profile rollback operationId is required.");
+  if (args.entries.length === 0 || args.entries.length > 50) {
+    throw new Error("A reviewed profile rollback needs 1 to 50 entries.");
+  }
+
+  const provenance = importProvenance(operationId, actor.email);
+  const result = {
+    operationId,
+    dryRun: args.dryRun,
+    deleted: 0,
+    restored: 0,
+    unchanged: 0,
+    skipped: 0,
+    rows: [] as Array<{
+      creatorName: string;
+      key: string | null;
+      profileId: Id<"contributorProfiles"> | null;
+      action: "would-delete" | "deleted" | "would-restore" | "restored" | "unchanged" | "skipped";
+    }>,
+  };
+
+  // Validate and read the entire batch before the first write so dry-run and
+  // write mode have the same fail-closed CAS behavior.
+  const prepared: Array<
+    | { kind: "skip"; creatorName: string }
+    | {
+        kind: "new";
+        creatorName: string;
+        desired: ReviewedProfileState;
+        row: Doc<"contributorProfiles"> | null;
+      }
+    | {
+        kind: "existing";
+        creatorName: string;
+        profileId: Id<"contributorProfiles">;
+        expected: ReviewedProfileState;
+        desired: ReviewedProfileState;
+        row: Doc<"contributorProfiles">;
+      }
+  > = [];
+
+  for (const entry of args.entries) {
+    if (entry.outcome === "reviewed-new") {
+      const desired = canonicalProfile(entry.profile);
+      const keyMatches = await profilesBy(ctx, "key", desired.key);
+      const nameMatches = await profilesBy(ctx, "displayName", desired.displayName);
+      const candidates = new Map([...keyMatches, ...nameMatches].map((row) => [row._id, row]));
+      if (candidates.size > 1) {
+        throw new Error(`Contributor profile ${desired.key} rollback identity is ambiguous.`);
+      }
+      const row = candidates.values().next().value ?? null;
+      if (row) {
+        const current = storedSnapshot(row as unknown as Record<string, unknown>);
+        if (!profilesAgree(current, desired) || row.updatedBy !== provenance || row.createdAt !== row.updatedAt) {
+          throw new Error(`Contributor profile ${desired.key} is not an exact campaign-created row.`);
+        }
+      }
+      prepared.push({ kind: "new", creatorName: entry.creatorName, desired, row });
+      continue;
+    }
+
+    if (entry.outcome === "existing-profile") {
+      const expected = canonicalProfile(entry.expected);
+      const desired = canonicalProfile(entry.profile);
+      if (expected.key !== desired.key) {
+        throw new Error(`Contributor profile ${entry.profileId} cannot change its stable key.`);
+      }
+      const row = await ctx.db.get(entry.profileId);
+      if (!row) throw new Error(`Contributor profile ${entry.profileId} no longer exists.`);
+      const current = storedSnapshot(row as unknown as Record<string, unknown>);
+      if (profilesAgree(current, expected)) {
+        prepared.push({
+          kind: "existing",
+          creatorName: entry.creatorName,
+          profileId: entry.profileId,
+          expected,
+          desired,
+          row,
+        });
+        continue;
+      }
+      if (!profilesAgree(current, desired) || row.updatedBy !== provenance) {
+        throw new Error(`Contributor profile ${entry.profileId} changed after campaign import.`);
+      }
+      prepared.push({
+        kind: "existing",
+        creatorName: entry.creatorName,
+        profileId: entry.profileId,
+        expected,
+        desired,
+        row,
+      });
+      continue;
+    }
+
+    prepared.push({ kind: "skip", creatorName: entry.creatorName });
+  }
+
+  const now = new Date().toISOString();
+  for (const item of prepared) {
+    if (item.kind === "skip") {
+      result.skipped += 1;
+      result.rows.push({ creatorName: item.creatorName, key: null, profileId: null, action: "skipped" });
+      continue;
+    }
+    if (item.kind === "new") {
+      if (!item.row) {
+        result.unchanged += 1;
+        result.rows.push({
+          creatorName: item.creatorName,
+          key: item.desired.key,
+          profileId: null,
+          action: "unchanged",
+        });
+        continue;
+      }
+      result.deleted += 1;
+      if (!args.dryRun) await ctx.db.delete(item.row._id);
+      result.rows.push({
+        creatorName: item.creatorName,
+        key: item.desired.key,
+        profileId: item.row._id,
+        action: args.dryRun ? "would-delete" : "deleted",
+      });
+      continue;
+    }
+
+    const current = storedSnapshot(item.row as unknown as Record<string, unknown>);
+    if (profilesAgree(current, item.expected)) {
+      result.unchanged += 1;
+      result.rows.push({
+        creatorName: item.creatorName,
+        key: item.expected.key,
+        profileId: item.profileId,
+        action: "unchanged",
+      });
+      continue;
+    }
+    result.restored += 1;
+    if (!args.dryRun) {
+      await ctx.db.patch(item.profileId, storedPatch(item.expected, now, actor.email));
+    }
+    result.rows.push({
+      creatorName: item.creatorName,
+      key: item.expected.key,
+      profileId: item.profileId,
+      action: args.dryRun ? "would-restore" : "restored",
+    });
+  }
+
   return result;
 }

@@ -1,7 +1,10 @@
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import type { Id } from "../../convex/_generated/dataModel";
+import type { MutationCtx } from "../../convex/_generated/server";
 import {
+  applyAttributionBatchHandler,
   attributionReplicationSnapshotMatches,
+  rollbackAttributionBatchHandler,
   validateAttributionUpdate,
 } from "../../convex/lib/replicationAttribution";
 import type { AttributionBatchUpdate } from "../../convex/lib/replicationAttributionValidators";
@@ -9,6 +12,7 @@ import type { AttributionBatchUpdate } from "../../convex/lib/replicationAttribu
 const SHA = "a".repeat(64);
 const DIGEST = "b".repeat(64);
 const ID = "k570001ahn17r642ptx0pr4hps8dgg0s" as Id<"replications">;
+const TOKEN = "scoped-test-token";
 
 function update(overrides: Partial<AttributionBatchUpdate> = {}): AttributionBatchUpdate {
   return {
@@ -55,7 +59,52 @@ function update(overrides: Partial<AttributionBatchUpdate> = {}): AttributionBat
   };
 }
 
+function mutationContext(value: AttributionBatchUpdate) {
+  const row: Record<string, unknown> = {
+    _id: value.expected.id,
+    _creationTime: 1,
+    slug: value.expected.slug,
+    title: "Example Reddit post",
+    artist: value.expected.artist,
+    credit_line: value.expected.credit_line ?? undefined,
+    source_catalog_id: value.expected.source_catalog_id,
+    source_sha256: value.expected.source_sha256,
+  };
+  const attributions: Array<Record<string, unknown>> = [];
+  const patch = vi.fn(async (_id: string, fields: Record<string, unknown>) => {
+    for (const [key, fieldValue] of Object.entries(fields)) {
+      if (fieldValue === undefined) delete row[key];
+      else row[key] = fieldValue;
+    }
+  });
+  const insert = vi.fn(async (table: string, fields: Record<string, unknown>) => {
+    if (table !== "replicationSourceAttribution") throw new Error(`unexpected ${table}`);
+    attributions.push({ _id: "attribution-1", _creationTime: 2, ...fields });
+    return "attribution-1";
+  });
+  const remove = vi.fn(async (id: string) => {
+    const index = attributions.findIndex((item) => item._id === id);
+    if (index < 0) throw new Error(`missing attribution ${id}`);
+    attributions.splice(index, 1);
+  });
+  const ctx = {
+    db: {
+      get: vi.fn(async () => row),
+      patch,
+      insert,
+      delete: remove,
+      query: vi.fn(() => ({
+        withIndex: () => ({ unique: async () => attributions[0] ?? null }),
+      })),
+    },
+  } as unknown as MutationCtx;
+  return { ctx, patch, insert, remove, row, attributions };
+}
+
 describe("replication attribution contract", () => {
+  afterEach(() => {
+    delete process.env.CONVEX_ADMIN_TOKEN_REPLICATION_MAINTENANCE;
+  });
   it("accepts a named poster as the default public artist", () => {
     expect(() => validateAttributionUpdate(update())).not.toThrow();
   });
@@ -113,5 +162,81 @@ describe("replication attribution contract", () => {
       { ...row, artist: "Changed Artist" },
       value.expected,
     )).toBe(false);
+  });
+
+  it("dry-runs without patching either the replication or attribution table", async () => {
+    process.env.CONVEX_ADMIN_TOKEN_REPLICATION_MAINTENANCE = TOKEN;
+    const value = update();
+    const { ctx, patch, insert, row, attributions } = mutationContext(value);
+
+    await expect(applyAttributionBatchHandler(ctx, {
+      apiKey: TOKEN,
+      operation_id: "replication-index-attribution-dry-run-01",
+      dry_run: true,
+      updates: [value],
+    })).resolves.toEqual({ updated: 1, unchanged: 0 });
+
+    expect(patch).not.toHaveBeenCalled();
+    expect(insert).not.toHaveBeenCalled();
+    expect(row.artist).toBe("Unknown Artist");
+    expect(attributions).toHaveLength(0);
+  });
+
+  it("applies and exactly rolls back a reviewed attribution", async () => {
+    process.env.CONVEX_ADMIN_TOKEN_REPLICATION_MAINTENANCE = TOKEN;
+    const value = update();
+    const { ctx, row, attributions } = mutationContext(value);
+    const applyOperation = "replication-index-attribution-apply-01";
+
+    await applyAttributionBatchHandler(ctx, {
+      apiKey: TOKEN,
+      operation_id: applyOperation,
+      dry_run: false,
+      updates: [value],
+    });
+    expect(row.artist).toBe("ExamplePoster");
+    expect(attributions).toHaveLength(1);
+
+    const rollback = {
+      apiKey: TOKEN,
+      operation_id: "replication-index-attribution-rollback-01",
+      dry_run: true,
+      updates: [{
+        expected_current: {
+          ...value.expected,
+          ...value.intended_credit,
+          id: value.expected.id,
+          slug: value.expected.slug,
+          source_catalog_id: value.expected.source_catalog_id,
+          source_sha256: value.expected.source_sha256,
+        },
+        rollback_credit: {
+          artist: value.expected.artist,
+          artist_url: value.expected.artist_url,
+          credit_line: value.expected.credit_line,
+          rightsholder: value.expected.rightsholder,
+        },
+        source_digest: value.attribution.source_digest,
+        expected_attribution_operation_id: applyOperation,
+      }],
+    };
+    await expect(rollbackAttributionBatchHandler(ctx, rollback)).resolves.toEqual({
+      restored: 1,
+      unchanged: 0,
+    });
+    expect(row.artist).toBe("ExamplePoster");
+    expect(attributions).toHaveLength(1);
+
+    await expect(rollbackAttributionBatchHandler(ctx, {
+      ...rollback,
+      dry_run: false,
+    })).resolves.toEqual({ restored: 1, unchanged: 0 });
+    expect(row.artist).toBe("Unknown Artist");
+    expect(attributions).toHaveLength(0);
+
+    await expect(rollbackAttributionBatchHandler(ctx, {
+      ...rollback,
+      dry_run: false,
+    })).resolves.toEqual({ restored: 0, unchanged: 1 });
   });
 });

@@ -1,7 +1,10 @@
 import type { Doc } from "../_generated/dataModel";
 import type { MutationCtx } from "../_generated/server";
 import { requireAdminIntent } from "./auth";
-import type { AttributionBatchUpdate } from "./replicationAttributionValidators";
+import type {
+  AttributionBatchUpdate,
+  AttributionRollbackUpdate,
+} from "./replicationAttributionValidators";
 
 const SHA256 = /^[0-9a-f]{64}$/;
 const REDDIT_POST_ID = /^[a-z0-9]+$/;
@@ -159,6 +162,7 @@ export async function applyAttributionBatchHandler(
   args: {
     apiKey: string;
     operation_id: string;
+    dry_run?: boolean;
     updates: AttributionBatchUpdate[];
   },
 ) {
@@ -195,7 +199,7 @@ export async function applyAttributionBatchHandler(
       && (row.artist_url ?? null) === intended.artist_url
       && (row.credit_line ?? null) === intended.credit_line
       && (row.rightsholder ?? null) === intended.rightsholder;
-    if (!alreadyCredited) {
+    if (!args.dry_run && !alreadyCredited) {
       await ctx.db.patch(row._id, {
         artist: intended.artist,
         ...(intended.artist_url === null ? { artist_url: undefined } : { artist_url: intended.artist_url }),
@@ -245,11 +249,109 @@ export async function applyAttributionBatchHandler(
         throw new Error(`Stored attribution record drifted for ${update.expected.slug}.`);
       }
     }
-    if (!existing) {
+    if (!args.dry_run && !existing) {
       await ctx.db.insert("replicationSourceAttribution", attributionRecord);
     }
     if (alreadyCredited && existing) unchanged++;
     else updated++;
   }
   return { updated, unchanged };
+}
+
+function attributionIdentityMatches(
+  row: Pick<
+    Doc<"replications">,
+    "_id" | "slug" | "source_catalog_id" | "source_sha256"
+  >,
+  expected: AttributionRollbackUpdate["expected_current"],
+) {
+  return row._id === expected.id
+    && row.slug === expected.slug
+    && row.source_catalog_id === expected.source_catalog_id
+    && row.source_sha256 === expected.source_sha256;
+}
+
+function attributionCreditMatches(
+  row: Pick<
+    Doc<"replications">,
+    "artist" | "artist_url" | "credit_line" | "rightsholder"
+  >,
+  expected: Pick<
+    AttributionRollbackUpdate["expected_current"],
+    "artist" | "artist_url" | "credit_line" | "rightsholder"
+  >,
+) {
+  return row.artist === expected.artist
+    && (row.artist_url ?? null) === expected.artist_url
+    && (row.credit_line ?? null) === expected.credit_line
+    && (row.rightsholder ?? null) === expected.rightsholder;
+}
+
+export async function rollbackAttributionBatchHandler(
+  ctx: MutationCtx,
+  args: {
+    apiKey: string;
+    operation_id: string;
+    dry_run: boolean;
+    updates: AttributionRollbackUpdate[];
+  },
+) {
+  await requireScopedMaintenance(args.apiKey);
+  if (!args.operation_id.trim()) throw new Error("Attribution rollback operation ID is required.");
+  if (args.updates.length === 0 || args.updates.length > 50) {
+    throw new Error("Attribution rollback batches must contain 1 to 50 updates.");
+  }
+
+  let restored = 0;
+  let unchanged = 0;
+  const plannedIds = new Set<string>();
+  for (const update of args.updates) {
+    if (plannedIds.has(update.expected_current.id)) {
+      throw new Error(`Attribution rollback repeats ${update.expected_current.id}.`);
+    }
+    plannedIds.add(update.expected_current.id);
+    if (!SHA256.test(update.source_digest) || !update.expected_attribution_operation_id.trim()) {
+      throw new Error(`${update.expected_current.slug}: invalid attribution rollback evidence.`);
+    }
+    const row = await ctx.db.get(update.expected_current.id);
+    if (!row || !attributionIdentityMatches(row, update.expected_current)) {
+      throw new Error(`Replication attribution rollback identity failed: ${update.expected_current.slug}.`);
+    }
+    const existing = await ctx.db
+      .query("replicationSourceAttribution")
+      .withIndex("by_replication_id", (q) => q.eq("replication_id", update.expected_current.id))
+      .unique();
+    const alreadyRestored = attributionCreditMatches(row, update.rollback_credit) && !existing;
+    if (alreadyRestored) {
+      unchanged++;
+      continue;
+    }
+    if (!attributionCreditMatches(row, update.expected_current)) {
+      throw new Error(`Replication attribution rollback credit CAS failed: ${update.expected_current.slug}.`);
+    }
+    if (
+      !existing
+      || existing.source_digest !== update.source_digest
+      || existing.operation_id !== update.expected_attribution_operation_id
+    ) {
+      throw new Error(`Stored attribution rollback evidence drifted for ${update.expected_current.slug}.`);
+    }
+    if (!args.dry_run) {
+      await ctx.db.patch(row._id, {
+        artist: update.rollback_credit.artist,
+        ...(update.rollback_credit.artist_url === null
+          ? { artist_url: undefined }
+          : { artist_url: update.rollback_credit.artist_url }),
+        ...(update.rollback_credit.credit_line === null
+          ? { credit_line: undefined }
+          : { credit_line: update.rollback_credit.credit_line }),
+        ...(update.rollback_credit.rightsholder === null
+          ? { rightsholder: undefined }
+          : { rightsholder: update.rollback_credit.rightsholder }),
+      });
+      await ctx.db.delete(existing._id);
+    }
+    restored++;
+  }
+  return { restored, unchanged };
 }

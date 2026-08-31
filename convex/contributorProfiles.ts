@@ -34,8 +34,11 @@ import {
 } from "./lib/contributorProfileWriteHandlers";
 import {
   importReviewedProfilePlanHandler,
+  rollbackReviewedProfilePlanHandler,
   reviewedProfileImportArgs,
   reviewedProfileImportResult,
+  reviewedProfileRollbackArgs,
+  reviewedProfileRollbackResult,
 } from "./lib/contributorProfileImports";
 
 async function patchReportsForContributorKey(
@@ -173,6 +176,13 @@ export const importReviewedProfilePlan = mutation({
   args: reviewedProfileImportArgs.fields,
   returns: reviewedProfileImportResult,
   handler: importReviewedProfilePlanHandler,
+});
+
+/** Guarded, exact rollback for reviewed Replication Index profile outcomes. */
+export const rollbackReviewedProfilePlan = mutation({
+  args: reviewedProfileRollbackArgs.fields,
+  returns: reviewedProfileRollbackResult,
+  handler: rollbackReviewedProfilePlanHandler,
 });
 
 export const renameKey = mutation({

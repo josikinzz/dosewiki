@@ -80,6 +80,18 @@ export const attributionIntendedCreditValidator = v.object({
   rightsholder: v.union(v.string(), v.null()),
 });
 
+export const attributionRollbackUpdateValidator = v.object({
+  expected_current: attributionExpectedReplicationValidator,
+  rollback_credit: v.object({
+    artist: v.string(),
+    artist_url: v.union(v.string(), v.null()),
+    credit_line: v.union(v.string(), v.null()),
+    rightsholder: v.union(v.string(), v.null()),
+  }),
+  source_digest: v.string(),
+  expected_attribution_operation_id: v.string(),
+});
+
 export const attributionBatchUpdateValidator = v.object({
   expected: attributionExpectedReplicationValidator,
   intended_credit: attributionIntendedCreditValidator,
@@ -96,3 +108,4 @@ export const attributionBatchUpdateValidator = v.object({
 });
 
 export type AttributionBatchUpdate = Infer<typeof attributionBatchUpdateValidator>;
+export type AttributionRollbackUpdate = Infer<typeof attributionRollbackUpdateValidator>;
