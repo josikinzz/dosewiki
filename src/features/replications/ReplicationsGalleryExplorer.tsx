@@ -84,6 +84,10 @@ import {
   parseReplicationViewerSlug,
   type GalleryFocus,
 } from "./galleryUrlState";
+import {
+  drainGalleryPages,
+  type GalleryContinuationPage,
+} from "./galleryPagination";
 
 /**
  * The two effect fields the gallery reads: `name` for lookups/labels and
@@ -97,17 +101,7 @@ interface EffectSummary {
   name: string;
 }
 
-
 type GalleryPageLoadState = "idle" | "loading" | "error";
-
-function mergeReplicationPreviews(
-  current: readonly PublicGalleryReplicationPreview[],
-  incoming: readonly PublicGalleryReplicationPreview[],
-): PublicGalleryReplicationPreview[] {
-  const byId = new Map(current.map((item) => [item._id, item]));
-  for (const item of incoming) byId.set(item._id, item);
-  return [...byId.values()];
-}
 
 function isGalleryReplicationPreview(
   value: unknown,
@@ -171,8 +165,7 @@ function isGalleryReplicationPreview(
       (Array.isArray(value.artist_type_tags) &&
         value.artist_type_tags.every(
           (item) =>
-            item === "replicator" ||
-            item === "traditional-psychedelic-artist",
+            item === "replicator" || item === "traditional-psychedelic-artist",
         ))) &&
     "url" in value &&
     typeof value.url === "string" &&
@@ -366,70 +359,96 @@ function GalleryExplorer({
 }) {
   const router = useRouter();
   const [galleryReplications, setGalleryReplications] = useState(replications);
-  const [nextCursor, setNextCursor] = useState<string | null>(
-    continuationCursor ?? null,
-  );
+  const galleryReplicationsRef = useRef(galleryReplications);
+  const nextCursorRef = useRef<string | null>(continuationCursor ?? null);
   const [hasMore, setHasMore] = useState(
     Boolean(deferredReplicationsUrl && hasMoreReplications),
   );
+  const hasMoreRef = useRef(hasMore);
   const [pageLoadState, setPageLoadState] =
     useState<GalleryPageLoadState>("idle");
-  const pageRequestRef = useRef<Promise<void> | null>(null);
+  const pageRequestRef = useRef<Promise<boolean> | null>(null);
   const pageAbortRef = useRef<AbortController | null>(null);
 
-  const loadNextPage = useCallback((): Promise<void> => {
+  const loadCompleteCorpus = useCallback((): Promise<boolean> => {
     if (
       !deferredReplicationsUrl ||
-      !hasMore ||
-      !nextCursor ||
-      pageRequestRef.current
+      !hasMoreRef.current ||
+      !nextCursorRef.current
     ) {
-      return pageRequestRef.current ?? Promise.resolve();
+      return pageRequestRef.current ?? Promise.resolve(true);
     }
+    if (pageRequestRef.current) return pageRequestRef.current;
 
     const controller = new AbortController();
     pageAbortRef.current = controller;
     setPageLoadState("loading");
-    const separator = deferredReplicationsUrl.includes("?") ? "&" : "?";
-    const url = `${deferredReplicationsUrl}${separator}cursor=${encodeURIComponent(nextCursor)}&limit=64`;
 
     const request = (async () => {
       try {
-        const response = await fetch(url, {
-          signal: controller.signal,
-          headers: { Accept: "application/json" },
+        const result = await drainGalleryPages({
+          initialItems: galleryReplicationsRef.current,
+          initialCursor: nextCursorRef.current,
+          fetchPage: async (cursor): Promise<GalleryContinuationPage> => {
+            const separator = deferredReplicationsUrl.includes("?") ? "&" : "?";
+            const url = `${deferredReplicationsUrl}${separator}cursor=${encodeURIComponent(cursor)}&limit=64`;
+            const response = await fetch(url, {
+              signal: controller.signal,
+              headers: { Accept: "application/json" },
+            });
+            if (!response.ok) {
+              throw new Error(`Gallery request failed: ${response.status}`);
+            }
+            const payload: unknown = await response.json();
+            if (
+              !payload ||
+              typeof payload !== "object" ||
+              !("data" in payload) ||
+              !Array.isArray(payload.data) ||
+              !payload.data.every(isGalleryReplicationPreview) ||
+              !("hasMore" in payload) ||
+              typeof payload.hasMore !== "boolean" ||
+              !("nextCursor" in payload) ||
+              !(
+                payload.nextCursor === null ||
+                typeof payload.nextCursor === "string"
+              )
+            ) {
+              throw new Error("Gallery response was malformed");
+            }
+            return {
+              data: payload.data,
+              nextCursor: payload.nextCursor as string | null,
+              hasMore: payload.hasMore,
+            };
+          },
+          onPage: (progress) => {
+            galleryReplicationsRef.current = progress.items;
+            nextCursorRef.current = progress.cursor;
+            hasMoreRef.current = progress.hasMore;
+            // A production corpus is roughly 106 pages. Publish progress in
+            // useful chunks so the polite status remains alive without
+            // rebuilding every group and rail after each 64-row response.
+            if (progress.pagesLoaded % 8 === 0 || !progress.hasMore) {
+              setGalleryReplications(progress.items);
+              setHasMore(progress.hasMore);
+            }
+          },
         });
-        if (!response.ok) {
-          throw new Error(`Gallery request failed: ${response.status}`);
-        }
-        const payload: unknown = await response.json();
-        if (
-          !payload ||
-          typeof payload !== "object" ||
-          !("data" in payload) ||
-          !Array.isArray(payload.data) ||
-          !payload.data.every(isGalleryReplicationPreview) ||
-          !("hasMore" in payload) ||
-          typeof payload.hasMore !== "boolean" ||
-          !("nextCursor" in payload) ||
-          !(
-            payload.nextCursor === null ||
-            typeof payload.nextCursor === "string"
-          )
-        ) {
-          throw new Error("Gallery response was malformed");
-        }
-        const incoming = payload.data as PublicGalleryReplicationPreview[];
-        const returnedCursor = payload.nextCursor as string | null;
-
-        setGalleryReplications((current) =>
-          mergeReplicationPreviews(current, incoming),
-        );
-        setNextCursor(returnedCursor);
-        setHasMore(payload.hasMore);
+        galleryReplicationsRef.current = result.items;
+        nextCursorRef.current = result.cursor;
+        hasMoreRef.current = result.hasMore;
+        setGalleryReplications(result.items);
+        setHasMore(result.hasMore);
         setPageLoadState("idle");
+        return true;
       } catch {
-        if (!controller.signal.aborted) setPageLoadState("error");
+        if (!controller.signal.aborted) {
+          setGalleryReplications(galleryReplicationsRef.current);
+          setHasMore(hasMoreRef.current);
+          setPageLoadState("error");
+        }
+        return false;
       } finally {
         if (pageAbortRef.current === controller) pageAbortRef.current = null;
         pageRequestRef.current = null;
@@ -438,13 +457,26 @@ function GalleryExplorer({
 
     pageRequestRef.current = request;
     return request;
-  }, [deferredReplicationsUrl, hasMore, nextCursor]);
+  }, [deferredReplicationsUrl]);
 
   useEffect(
     () => () => {
       pageAbortRef.current?.abort();
     },
     [],
+  );
+
+  const runWithCompleteCorpus = useCallback(
+    (action: () => void) => {
+      if (!hasMoreRef.current) {
+        action();
+        return;
+      }
+      void loadCompleteCorpus().then((loaded) => {
+        if (loaded) action();
+      });
+    },
+    [loadCompleteCorpus],
   );
 
   const mode: GalleryMode = focus ? focus.kind : browse.view;
@@ -516,59 +548,72 @@ function GalleryExplorer({
   const updateQuery = (next: string) => {
     clearTimeout(debounceRef.current);
     setQueryWritePending(true);
+    const completeCorpus = hasMoreRef.current ? loadCompleteCorpus() : null;
     debounceRef.current = window.setTimeout(() => {
       setQueryWritePending(false);
-      lastWrittenQueryRef.current = next;
-      const url = buildGalleryBrowseUrl({
-        ...browse,
-        view: mode,
-        query: next,
-      });
-      if (focus) {
-        router.push(url, { scroll: false });
-      } else {
-        router.replace(url, { scroll: false });
+      const writeQuery = () => {
+        lastWrittenQueryRef.current = next;
+        const url = buildGalleryBrowseUrl({
+          ...browse,
+          view: mode,
+          query: next,
+        });
+        if (focus) {
+          router.push(url, { scroll: false });
+        } else {
+          router.replace(url, { scroll: false });
+        }
+      };
+      if (!completeCorpus) {
+        writeQuery();
+        return;
       }
+      void completeCorpus.then((loaded) => {
+        if (loaded) writeQuery();
+      });
     }, QUERY_WRITE_DELAY_MS);
   };
 
   const switchMode = (next: GalleryMode) => {
     const query = currentInputQuery();
-    lastWrittenQueryRef.current = query;
-    navigate(
-      buildGalleryBrowseUrl({ ...browse, view: next, query }),
-      "push",
-    );
+    runWithCompleteCorpus(() => {
+      lastWrittenQueryRef.current = query;
+      navigate(buildGalleryBrowseUrl({ ...browse, view: next, query }), "push");
+    });
   };
 
   const setTypeFilter = (next: GalleryTypeFilter) => {
     const query = currentInputQuery();
-    lastWrittenQueryRef.current = query;
-    navigate(
-      focus
-        ? buildGalleryFocusUrl(focus, { type: next })
-        : buildGalleryBrowseUrl({
-            ...browse,
-            view: mode,
-            query,
-            type: next,
-          }),
-      "push",
-    );
+    runWithCompleteCorpus(() => {
+      lastWrittenQueryRef.current = query;
+      navigate(
+        focus
+          ? buildGalleryFocusUrl(focus, { type: next })
+          : buildGalleryBrowseUrl({
+              ...browse,
+              view: mode,
+              query,
+              type: next,
+            }),
+        "push",
+      );
+    });
   };
 
   const setArtistSort = (next: GalleryArtistSort) => {
     const query = currentInputQuery();
-    lastWrittenQueryRef.current = query;
-    navigate(
-      buildGalleryBrowseUrl({
-        ...browse,
-        view: mode,
-        query,
-        sort: next,
-      }),
-      "push",
-    );
+    runWithCompleteCorpus(() => {
+      lastWrittenQueryRef.current = query;
+      navigate(
+        buildGalleryBrowseUrl({
+          ...browse,
+          view: mode,
+          query,
+          sort: next,
+        }),
+        "push",
+      );
+    });
   };
 
   const displayable = useMemo(
@@ -600,11 +645,15 @@ function GalleryExplorer({
   );
   const drugOptions = useMemo(
     () =>
-      [...new Map(
-        displayable.flatMap((item) =>
-          (item.title_drugs ?? []).map((drug) => [drug.slug, drug.name] as const),
+      [
+        ...new Map(
+          displayable.flatMap((item) =>
+            (item.title_drugs ?? []).map(
+              (drug) => [drug.slug, drug.name] as const,
+            ),
+          ),
         ),
-      )]
+      ]
         .map(([value, label]) => ({ value, label }))
         .sort((left, right) => left.label.localeCompare(right.label)),
     [displayable],
@@ -612,16 +661,18 @@ function GalleryExplorer({
 
   const setTaxonomyFilters = (next: GalleryTaxonomyFilterState) => {
     const query = currentInputQuery();
-    lastWrittenQueryRef.current = query;
-    navigate(
-      buildGalleryBrowseUrl({
-        ...browse,
-        ...next,
-        view: mode,
-        query,
-      }),
-      "push",
-    );
+    runWithCompleteCorpus(() => {
+      lastWrittenQueryRef.current = query;
+      navigate(
+        buildGalleryBrowseUrl({
+          ...browse,
+          ...next,
+          view: mode,
+          query,
+        }),
+        "push",
+      );
+    });
   };
 
   const taxonomyDisplayable = useMemo(
@@ -863,11 +914,7 @@ function GalleryExplorer({
   );
   const [unavailableViewerSlug, setUnavailableViewerSlug] = useState<
     string | null
-  >(
-    viewerSlugParam && !validViewerSlugParam
-      ? viewerSlugParam
-      : null,
-  );
+  >(viewerSlugParam && !validViewerSlugParam ? viewerSlugParam : null);
 
   const viewerParamWasPresentRef = useRef(viewerParamPresent);
 
@@ -902,11 +949,7 @@ function GalleryExplorer({
       );
       dismissViewerDeepLinkCover();
     }
-  }, [
-    validViewerSlugParam,
-    viewerParamPresent,
-    viewerSlugParam,
-  ]);
+  }, [validViewerSlugParam, viewerParamPresent, viewerSlugParam]);
 
   const launchViewer = (slug: string) => {
     setUnavailableViewerSlug(null);
@@ -966,7 +1009,7 @@ function GalleryExplorer({
         aria-label="Replications gallery"
         className="mx-auto mt-4 w-full max-w-7xl"
       >
-        {!hasMedia ? (
+        {!hasMedia && !hasMore ? (
           <SearchEmptyState
             className="mt-6"
             icon="lucide:image-off"
@@ -1264,18 +1307,30 @@ function GalleryExplorer({
               />
             ) : null}
 
-            {pageLoadState === "error" ? (
+            {pageLoadState === "loading" ? (
+              <Alert role="status" aria-live="polite" className="mt-4">
+                <AlertDescription className="flex items-center gap-2">
+                  <Icon
+                    icon="svg-spinners:ring-resize"
+                    className="h-4 w-4 shrink-0"
+                    aria-hidden
+                  />
+                  Loading the complete gallery… {galleryReplications.length}{" "}
+                  works loaded.
+                </AlertDescription>
+              </Alert>
+            ) : pageLoadState === "error" ? (
               <Alert variant="destructive" role="alert" className="mt-4">
                 <AlertDescription className="flex flex-wrap items-center justify-between gap-3">
                   <span>
-                    The next gallery page could not be loaded. Everything
-                    already shown remains available.
+                    The complete gallery could not finish loading. Everything
+                    already shown remains available; retry from the last page.
                   </span>
                   <Button
                     type="button"
                     variant="pill"
                     size="pill"
-                    onClick={() => void loadNextPage()}
+                    onClick={() => void loadCompleteCorpus()}
                   >
                     Retry
                   </Button>
@@ -1287,7 +1342,8 @@ function GalleryExplorer({
               stays reserved for controls. */}
             {chrome === "full" ? (
               <p className="theme-text-faint mt-3 px-1 text-xs tabular-nums">
-                {counts.total} {deferredReplicationsUrl ? "loaded " : ""}
+                {counts.total}{" "}
+                {deferredReplicationsUrl && hasMore ? "loaded " : ""}
                 {counts.total === 1 ? "work" : "works"} · {counts.artists}{" "}
                 artists · {counts.effects} effects
                 {hasMore ? " · more available" : ""}
@@ -1301,7 +1357,7 @@ function GalleryExplorer({
                   variant="pill"
                   size="pill"
                   disabled={pageLoadState === "loading"}
-                  onClick={() => void loadNextPage()}
+                  onClick={() => void loadCompleteCorpus()}
                   className="min-h-11 gap-1.5"
                 >
                   {pageLoadState === "loading" ? (
@@ -1311,7 +1367,9 @@ function GalleryExplorer({
                       aria-hidden
                     />
                   ) : null}
-                  {pageLoadState === "loading" ? "Loading…" : "Load more works"}
+                  {pageLoadState === "loading"
+                    ? "Loading…"
+                    : "Load complete gallery"}
                 </Button>
               </div>
             ) : null}
@@ -1446,6 +1504,7 @@ function GalleryExplorer({
                   <MediaRail
                     key={group.key}
                     group={group}
+                    countIsComplete={!hasMore}
                     viewAllHref={buildGalleryFocusUrl(
                       { kind: mode, key: galleryGroupUrlKey(mode, group) },
                       /* The effect address is the playlist page now; it reads no
@@ -1494,12 +1553,15 @@ function GalleryExplorer({
                         { kind: mode, key: galleryGroupUrlKey(mode, group) },
                         mode === "artist" ? { type: typeFilter } : {},
                       );
-                      const first = group.items[0];
-                      if (mode === "artist" && first) {
-                        launchViewer(first.slug);
-                      } else {
-                        router.push(target);
-                      }
+                      void loadCompleteCorpus().then((loaded) => {
+                        if (!loaded) return;
+                        const first = group.items[0];
+                        if (mode === "artist" && first) {
+                          launchViewer(first.slug);
+                        } else {
+                          router.push(target);
+                        }
+                      });
                     }}
                   />
                 ))}
@@ -1510,9 +1572,7 @@ function GalleryExplorer({
                       variant="pill"
                       size="pill"
                       onClick={() =>
-                        setVisibleRailCount(
-                          (count) => count + ARTIST_RAIL_PAGE,
-                        )
+                        setVisibleRailCount((count) => count + ARTIST_RAIL_PAGE)
                       }
                       className="min-h-11 gap-1.5"
                     >
@@ -1638,7 +1698,8 @@ function IncrementalMasonry({
     setVisibleCount(MASONRY_PAGE);
   }, [items]);
 
-  const visible = items.length > visibleCount ? items.slice(0, visibleCount) : items;
+  const visible =
+    items.length > visibleCount ? items.slice(0, visibleCount) : items;
   const exhausted = visible.length === items.length;
 
   // Recreated after every growth step: a fresh observer reports the

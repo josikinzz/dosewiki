@@ -4,6 +4,7 @@ import { describe, expect, it, vi } from "vitest";
 const pageMocks = vi.hoisted(() => ({
   explorer: vi.fn(() => null),
   getPublicGalleryReplicationPage: vi.fn(),
+  getPublicGalleryReplicationBySlug: vi.fn(),
   getPublicEffects: vi.fn(),
   getPublicContributorDirectory: vi.fn(),
 }));
@@ -44,6 +45,8 @@ vi.mock("@/features/replications/components/ReplicationsTabNav", () => ({
 }));
 vi.mock("@server/convex/publicData", () => ({
   getPublicGalleryReplicationPage: pageMocks.getPublicGalleryReplicationPage,
+  getPublicGalleryReplicationBySlug:
+    pageMocks.getPublicGalleryReplicationBySlug,
   getPublicEffects: pageMocks.getPublicEffects,
   getPublicContributorDirectory: pageMocks.getPublicContributorDirectory,
 }));
@@ -93,9 +96,26 @@ describe("replications first page", () => {
     pageMocks.getPublicEffects.mockResolvedValueOnce([
       { slug: "geometry", name: "Geometry" },
     ]);
-    pageMocks.getPublicContributorDirectory.mockResolvedValueOnce([]);
+    const directory = [
+      {
+        key: "first",
+        displayName: "First Artist",
+        aliases: [],
+        avatarUrl: "https://media.example/first-avatar.webp",
+      },
+      {
+        key: "deferred",
+        displayName: "Deferred Artist",
+        aliases: ["Later Credit"],
+        avatarUrl: "https://media.example/deferred-avatar.webp",
+        replicationOrder: ["later-work"],
+      },
+    ];
+    pageMocks.getPublicContributorDirectory.mockResolvedValueOnce(directory);
 
-    const page = await ReplicationsPage();
+    const page = await ReplicationsPage({
+      searchParams: Promise.resolve({}),
+    });
     const explorer = page.props.children[2];
 
     expect(pageMocks.getPublicGalleryReplicationPage).toHaveBeenCalledWith(
@@ -107,6 +127,47 @@ describe("replications first page", () => {
       continuationCursor: "opaque-next",
       hasMoreReplications: true,
       deferredReplicationsUrl: "/api/replications/gallery",
+      contributorDirectory: directory,
     });
+  });
+
+  it("server-renders a bounded viewer lookup when the linked work is beyond the first page", async () => {
+    const firstPageWork = {
+      _id: "first-id",
+      slug: "first-work",
+      title: "First work",
+      artist: "First Artist",
+      type: "image",
+      format: "webp",
+      url: "https://media.example/first.webp",
+      created_at: "2026-01-01",
+    };
+    const linkedWork = {
+      ...firstPageWork,
+      _id: "linked-id",
+      slug: "linked-work",
+      title: "Linked work",
+      artist: "Deferred Artist",
+    };
+    pageMocks.getPublicGalleryReplicationPage.mockResolvedValueOnce({
+      items: [firstPageWork],
+      cursor: "opaque-next",
+      isDone: false,
+    });
+    pageMocks.getPublicGalleryReplicationBySlug.mockResolvedValueOnce(
+      linkedWork,
+    );
+    pageMocks.getPublicEffects.mockResolvedValueOnce([]);
+    pageMocks.getPublicContributorDirectory.mockResolvedValueOnce([]);
+
+    const page = await ReplicationsPage({
+      searchParams: Promise.resolve({ viewer: "linked-work" }),
+    });
+    const explorer = page.props.children[2];
+
+    expect(pageMocks.getPublicGalleryReplicationBySlug).toHaveBeenCalledWith(
+      "linked-work",
+    );
+    expect(explorer.props.replications).toEqual([firstPageWork, linkedWork]);
   });
 });

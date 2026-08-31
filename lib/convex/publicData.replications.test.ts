@@ -479,4 +479,42 @@ describe("getPublicGalleryReplicationPage", () => {
       isDone: false,
     });
   });
+
+  it("resolves one deep-linked gallery work through the indexed slug read", async () => {
+    mocks.queryConvex.mockImplementation(
+      async (functionName: string, args: Record<string, unknown>) => {
+        if (functionName === "replications:getBySlug") {
+          expect(args).toEqual({ slug: "later-work" });
+          return {
+            _id: "later-id",
+            slug: "later-work",
+            title: "Later work",
+            artist: "Deferred Artist",
+            type: "image",
+            format: "webp",
+            url: "https://x/later-work",
+            created_at: "2026-01-01",
+          };
+        }
+        if (functionName === "contributorProfiles:getAll") return [];
+        if (functionName === "replicationTaxonomy:getPublicArtistsByKeys") {
+          expect(args).toEqual({ keys: ["deferred artist"] });
+          return [];
+        }
+        throw new Error(`Unexpected Convex read: ${functionName}`);
+      },
+    );
+
+    const { getPublicGalleryReplicationBySlug } = await import(
+      "./publicData.replications"
+    );
+
+    await expect(
+      getPublicGalleryReplicationBySlug("later-work"),
+    ).resolves.toMatchObject({
+      _id: "later-id",
+      slug: "later-work",
+      artist: "Deferred Artist",
+    });
+  });
 });

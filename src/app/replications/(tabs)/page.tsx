@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 import { SITE_FLAVOR_CONFIG } from "@/config/siteFlavor";
 import { ReplicationsGalleryExplorer } from "@/features/replications/ReplicationsGalleryExplorer";
 import { ReplicationsTabNav } from "@/features/replications/components/ReplicationsTabNav";
-import { galleryContributorDirectory } from "@/features/replications/galleryFocus";
+import { parseReplicationViewerSlug } from "@/features/replications/galleryUrlState";
 import {
   buildItemListSchema,
   serializeJsonLd,
@@ -11,6 +11,7 @@ import {
 import {
   getPublicContributorDirectory,
   getPublicEffects,
+  getPublicGalleryReplicationBySlug,
   getPublicGalleryReplicationPage,
 } from "@server/convex/publicData";
 import {
@@ -63,27 +64,31 @@ export async function generateMetadata({
   });
 }
 
-export default async function ReplicationsPage() {
-  const [galleryPage, effects, contributorDirectory] = await Promise.all([
+export default async function ReplicationsPage({ searchParams }: ReplicationsPageProps) {
+  const resolvedSearchParams = await searchParams;
+  const viewerParams = new URLSearchParams();
+  const rawViewer = resolvedSearchParams.viewer;
+  if (typeof rawViewer === "string") viewerParams.set("viewer", rawViewer);
+  const viewerSlug = parseReplicationViewerSlug(viewerParams);
+  const [galleryPage, effects, contributorDirectory, linkedReplication] = await Promise.all([
     getPublicGalleryReplicationPage(
       undefined,
       INITIAL_GALLERY_REPLICATION_LIMIT,
     ),
     getPublicEffects(),
     getPublicContributorDirectory(),
+    viewerSlug ? getPublicGalleryReplicationBySlug(viewerSlug) : null,
   ]);
   const replications = galleryPage.items;
-
-  // Directory entries are already a small public projection. Resolve them
-  // against the complete corpus so deferred artists still receive their
-  // curated ordering and avatar without shipping full contributor profiles.
-  const galleryDirectory = galleryContributorDirectory(
-    replications,
-    contributorDirectory,
-  );
   // The bounded first page is useful crawlable SSR content. Continuations
-  // append to this same client corpus without replacing it.
-  const initialReplications = replications;
+  // append to this same client corpus without replacing it. A linked work is
+  // one indexed lookup and joins the initial payload only when it lies beyond
+  // that first page, so hydration never strips a valid deep link prematurely.
+  const initialReplications = linkedReplication && !replications.some(
+    (replication) => replication._id === linkedReplication._id,
+  )
+    ? [...replications, linkedReplication]
+    : replications;
   const galleryEffects = effects.map(({ slug, name }) => ({ slug, name }));
   const canonicalUrl = buildSiteUrl(
     getPublicRoutePath({ family: "replications" }),
@@ -119,7 +124,7 @@ export default async function ReplicationsPage() {
         continuationCursor={galleryPage.cursor}
         hasMoreReplications={!galleryPage.isDone}
         effects={galleryEffects}
-        contributorDirectory={galleryDirectory}
+        contributorDirectory={contributorDirectory}
         rightsFootnote={false}
       />
     </>

@@ -100,6 +100,7 @@ vi.mock("@/features/effects/gallery/MediaRail", () => ({
     avatarUrl,
     onViewAllOpen,
     viewerHrefFor,
+    countIsComplete = true,
   }: {
     group: GalleryGroup;
     viewAllHref: string;
@@ -110,6 +111,7 @@ vi.mock("@/features/effects/gallery/MediaRail", () => ({
       replication: PublicGalleryReplicationPreview,
     ) => void;
     avatarUrl?: string | null;
+    countIsComplete?: boolean;
     viewerHrefFor: (replication: PublicGalleryReplicationPreview) => string;
     onViewAllOpen?: (event: ReactMouseEvent) => void;
   }) => (
@@ -126,9 +128,9 @@ vi.mock("@/features/effects/gallery/MediaRail", () => ({
       ) : (
         <span>{group.label}</span>
       )}
-      {group.count > Math.min(group.items.length, 14) ? (
+      {!countIsComplete || group.count > Math.min(group.items.length, 14) ? (
         <a href={viewAllHref} onClick={onViewAllOpen}>
-          View all {group.count}
+          {countIsComplete ? `View all ${group.count}` : "View all"}
         </a>
       ) : null}
       {group.items.map((item) => (
@@ -276,37 +278,62 @@ describe("URL → rendered state", () => {
 
   it("applies URL-addressable taxonomy filters and marks their active count", () => {
     const open = rep({ title: "Open room", viewing_mode_tags: ["open-eye"] });
-    const closed = rep({ title: "Closed geometry", viewing_mode_tags: ["closed-eye"] });
+    const closed = rep({
+      title: "Closed geometry",
+      viewing_mode_tags: ["closed-eye"],
+    });
 
     renderExplorer("viewing=open-eye", { replications: [open, closed] });
 
-    expect(screen.getByRole("button", { name: "Filters, 1 active" })).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "Filters, 1 active" }),
+    ).toBeInTheDocument();
     expect(screen.getByText("Open room")).toBeInTheDocument();
     expect(screen.queryByText("Closed geometry")).toBeNull();
   });
 
   it("filters by depicted effect across owning slug and effect tags", () => {
     const owned = rep({ title: "Owned drift", effect_slug: "drifting" });
-    const tagged = rep({ title: "Tagged drift", effect_slug: "geometry", effect_tags: ["drifting"] });
+    const tagged = rep({
+      title: "Tagged drift",
+      effect_slug: "geometry",
+      effect_tags: ["drifting"],
+    });
     const other = rep({ title: "Plain geometry", effect_slug: "geometry" });
 
     renderExplorer("effect=drifting", { replications: [owned, tagged, other] });
 
-    expect(screen.getByRole("button", { name: "Filters, 1 active" })).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "Filters, 1 active" }),
+    ).toBeInTheDocument();
     expect(screen.getByText("Owned drift")).toBeInTheDocument();
     expect(screen.getByText("Tagged drift")).toBeInTheDocument();
     expect(screen.queryByText("Plain geometry")).toBeNull();
     // The counts line describes the filtered set, not the whole corpus.
-    expect(screen.getByText("2 works · 1 artists · 2 effects")).toBeInTheDocument();
+    expect(
+      screen.getByText("2 works · 1 artists · 2 effects"),
+    ).toBeInTheDocument();
   });
 
   it("composes the depicted-effect filter with the other taxonomy filters", () => {
-    const both = rep({ title: "Drift open", effect_slug: "drifting", viewing_mode_tags: ["open-eye"] });
-    const effectOnly = rep({ title: "Drift closed", effect_slug: "drifting", viewing_mode_tags: ["closed-eye"] });
+    const both = rep({
+      title: "Drift open",
+      effect_slug: "drifting",
+      viewing_mode_tags: ["open-eye"],
+    });
+    const effectOnly = rep({
+      title: "Drift closed",
+      effect_slug: "drifting",
+      viewing_mode_tags: ["closed-eye"],
+    });
 
-    renderExplorer("effect=drifting&viewing=open-eye", { replications: [both, effectOnly] });
+    renderExplorer("effect=drifting&viewing=open-eye", {
+      replications: [both, effectOnly],
+    });
 
-    expect(screen.getByRole("button", { name: "Filters, 2 active" })).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "Filters, 2 active" }),
+    ).toBeInTheDocument();
     expect(screen.getByText("Drift open")).toBeInTheDocument();
     expect(screen.queryByText("Drift closed")).toBeNull();
   });
@@ -314,9 +341,15 @@ describe("URL → rendered state", () => {
   it("offers a clear action when selected taxonomy filters match nothing", async () => {
     renderExplorer("drugClass=deliriants");
 
-    expect(screen.getByText("No works match these filters")).toBeInTheDocument();
-    await userEvent.click(screen.getByRole("button", { name: "Clear filters" }));
-    expect(navMocks.push).toHaveBeenCalledWith("/replications", { scroll: false });
+    expect(
+      screen.getByText("No works match these filters"),
+    ).toBeInTheDocument();
+    await userEvent.click(
+      screen.getByRole("button", { name: "Clear filters" }),
+    );
+    expect(navMocks.push).toHaveBeenCalledWith("/replications", {
+      scroll: false,
+    });
   });
 
   it("reproduces a pasted ?view=effect&type=video&sort=alpha state exactly", () => {
@@ -352,10 +385,14 @@ describe("active filter chips", () => {
     renderExplorer("viewing=open-eye&effect=drifting");
 
     expect(
-      screen.getByRole("button", { name: "Remove Viewing mode filter: Open-eye" }),
+      screen.getByRole("button", {
+        name: "Remove Viewing mode filter: Open-eye",
+      }),
     ).toBeInTheDocument();
     expect(
-      screen.getByRole("button", { name: "Remove Depicted effect filter: Drifting" }),
+      screen.getByRole("button", {
+        name: "Remove Depicted effect filter: Drifting",
+      }),
     ).toBeInTheDocument();
   });
 
@@ -364,18 +401,25 @@ describe("active filter chips", () => {
     renderExplorer("viewing=open-eye&effect=drifting");
 
     await user.click(
-      screen.getByRole("button", { name: "Remove Viewing mode filter: Open-eye" }),
+      screen.getByRole("button", {
+        name: "Remove Viewing mode filter: Open-eye",
+      }),
     );
 
-    expect(navMocks.push).toHaveBeenCalledWith("/replications?effect=drifting", {
-      scroll: false,
-    });
+    expect(navMocks.push).toHaveBeenCalledWith(
+      "/replications?effect=drifting",
+      {
+        scroll: false,
+      },
+    );
   });
 
   it("renders no chip row while every filter sits at its default", () => {
     renderExplorer("");
 
-    expect(screen.queryByRole("button", { name: /^Remove .* filter:/ })).toBeNull();
+    expect(
+      screen.queryByRole("button", { name: /^Remove .* filter:/ }),
+    ).toBeNull();
   });
 });
 
@@ -1025,7 +1069,9 @@ describe("one-line control bar", () => {
       within(sheet).getByRole("combobox", { name: "Depicted effect" }),
     ).toHaveTextContent("Any");
     expect(
-      within(sheet).getByText("Filtering by a tag hides works nobody has tagged yet."),
+      within(sheet).getByText(
+        "Filtering by a tag hides works nobody has tagged yet.",
+      ),
     ).toBeInTheDocument();
 
     // Done is the explicit mobile-reachable dismissal; it changes nothing.
@@ -1058,7 +1104,7 @@ describe("one-line control bar", () => {
 const QUERY_WRITE_DELAY_MS_FOR_TEST = 250;
 
 describe("paged gallery continuation", () => {
-  it("never downloads the corpus on idle and appends one deduplicated page on request", async () => {
+  it("never downloads the corpus on idle and drains deduplicated pages on request", async () => {
     const initial = rep({ title: "Initial work" });
     const deferred = rep({ title: "Deferred work" });
     const fetchMock = vi.fn().mockResolvedValue({
@@ -1070,10 +1116,7 @@ describe("paged gallery continuation", () => {
         hasMore: false,
       }),
     });
-    vi.stubGlobal(
-      "fetch",
-      fetchMock,
-    );
+    vi.stubGlobal("fetch", fetchMock);
 
     renderExplorer("", {
       replications: [initial],
@@ -1082,12 +1125,16 @@ describe("paged gallery continuation", () => {
       hasMoreReplications: true,
     });
     expect(
-      screen.getByText("1 loaded work · 1 artists · 1 effects · more available"),
+      screen.getByText(
+        "1 loaded work · 1 artists · 1 effects · more available",
+      ),
     ).toBeInTheDocument();
     expect(fetchMock).not.toHaveBeenCalled();
 
     await act(async () => {
-      fireEvent.click(screen.getByRole("button", { name: "Load more works" }));
+      fireEvent.click(
+        screen.getByRole("button", { name: "Load complete gallery" }),
+      );
     });
 
     expect(fetchMock).toHaveBeenCalledWith(
@@ -1095,14 +1142,38 @@ describe("paged gallery continuation", () => {
       expect.objectContaining({ headers: { Accept: "application/json" } }),
     );
     expect(screen.getByText("Deferred work")).toBeInTheDocument();
-    expect(screen.getByText("2 loaded works · 1 artists · 1 effects")).toBeInTheDocument();
-    expect(screen.queryByRole("button", { name: "Load more works" })).toBeNull();
+    expect(
+      screen.getByText("2 works · 1 artists · 1 effects"),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: "Load complete gallery" }),
+    ).toBeNull();
   });
 
-  it("applies loaded-page search immediately without issuing a fetch", async () => {
+  it("drains sparse bounded pages before applying a corpus-wide search", async () => {
     vi.useFakeTimers();
     const initial = rep({ title: "Initial work" });
-    const fetchMock = vi.fn();
+    const deferred = rep({ title: "Deferred match" });
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        json: async () => ({
+          data: [],
+          nextCursor: "opaque-after-empty",
+          hasMore: true,
+        }),
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        json: async () => ({
+          data: [deferred],
+          nextCursor: null,
+          hasMore: false,
+        }),
+      });
     vi.stubGlobal("fetch", fetchMock);
 
     renderExplorer("", {
@@ -1113,22 +1184,40 @@ describe("paged gallery continuation", () => {
     });
     fireEvent.change(
       screen.getByRole("textbox", { name: "Search replications" }),
-      { target: { value: "initial" } },
+      { target: { value: "deferred" } },
     );
-    act(() => vi.advanceTimersByTime(QUERY_WRITE_DELAY_MS_FOR_TEST));
+    expect(fetchMock).toHaveBeenCalledWith(
+      "/api/replications/gallery?cursor=opaque-next&limit=64",
+      expect.anything(),
+    );
+    expect(screen.getByRole("status")).toHaveTextContent(
+      /loading the complete gallery/i,
+    );
 
-    expect(navMocks.replace).toHaveBeenCalledWith(
-      "/replications?q=initial",
-      { scroll: false },
-    );
-    expect(fetchMock).not.toHaveBeenCalled();
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(QUERY_WRITE_DELAY_MS_FOR_TEST);
+    });
+
+    expect(navMocks.replace).toHaveBeenCalledWith("/replications?q=deferred", {
+      scroll: false,
+    });
+    expect(fetchMock).toHaveBeenCalledTimes(2);
   });
 
-  it("opens View all against the currently loaded collection without a hidden corpus request", () => {
+  it("loads every bounded continuation before opening View all", async () => {
     const initial = Array.from({ length: 15 }, (_, index) =>
       rep({ title: `Initial work ${index + 1}` }),
     );
-    const fetchMock = vi.fn();
+    const deferred = rep({ title: "Deferred work" });
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => ({
+        data: [deferred],
+        nextCursor: null,
+        hasMore: false,
+      }),
+    });
     vi.stubGlobal("fetch", fetchMock);
 
     renderExplorer("", {
@@ -1137,13 +1226,116 @@ describe("paged gallery continuation", () => {
       continuationCursor: "opaque-next",
       hasMoreReplications: true,
     });
-    fireEvent.click(screen.getByRole("link", { name: "View all 15" }));
+    await act(async () => {
+      fireEvent.click(screen.getByRole("link", { name: "View all" }));
+    });
 
     expect(screen.getByTestId("replication-viewer")).toHaveAttribute(
       "data-item-count",
-      "15",
+      "16",
     );
-    expect(fetchMock).not.toHaveBeenCalled();
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+  });
+
+  it("loads the complete corpus before changing a taxonomy filter", async () => {
+    const initial = rep({
+      title: "Open-eye work",
+      viewing_mode_tags: ["open-eye"],
+    });
+    const deferred = rep({
+      title: "Deferred closed-eye work",
+      viewing_mode_tags: ["closed-eye"],
+    });
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => ({
+        data: [deferred],
+        nextCursor: null,
+        hasMore: false,
+      }),
+    });
+    vi.stubGlobal("fetch", fetchMock);
+
+    renderExplorer("viewing=open-eye", {
+      replications: [initial],
+      deferredReplicationsUrl: "/api/replications/gallery",
+      continuationCursor: "opaque-next",
+      hasMoreReplications: true,
+    });
+    await act(async () => {
+      fireEvent.click(
+        screen.getByRole("button", {
+          name: "Remove Viewing mode filter: Open-eye",
+        }),
+      );
+    });
+
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    expect(navMocks.push).toHaveBeenCalledWith("/replications", {
+      scroll: false,
+    });
+  });
+
+  it("applies a deferred artist's avatar, profile link, and curated order", async () => {
+    const initial = rep({ title: "Initial work", artist: "First Artist" });
+    const laterSecond = rep({
+      title: "Later second",
+      artist: "Deferred Artist",
+    });
+    const laterFirst = rep({
+      title: "Later first",
+      artist: "Deferred Artist",
+    });
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue({
+        ok: true,
+        status: 200,
+        json: async () => ({
+          data: [laterSecond, laterFirst],
+          nextCursor: null,
+          hasMore: false,
+        }),
+      }),
+    );
+
+    renderExplorer("", {
+      replications: [initial],
+      deferredReplicationsUrl: "/api/replications/gallery",
+      continuationCursor: "opaque-next",
+      hasMoreReplications: true,
+      contributorDirectory: [
+        {
+          key: "deferred-profile",
+          displayName: "Deferred Artist",
+          aliases: [],
+          avatarUrl: "https://cdn.test/deferred.webp",
+          replicationOrder: [laterFirst.slug, laterSecond.slug],
+        },
+      ],
+    });
+    await act(async () => {
+      fireEvent.click(
+        screen.getByRole("button", { name: "Load complete gallery" }),
+      );
+    });
+
+    const deferredRail = screen.getByRole("region", {
+      name: "Deferred Artist",
+    });
+    expect(deferredRail).toHaveAttribute(
+      "data-avatar",
+      "https://cdn.test/deferred.webp",
+    );
+    expect(
+      within(deferredRail).getByRole("link", { name: "Deferred Artist" }),
+    ).toHaveAttribute("href", "/replications/artist/deferred-artist");
+    expect(
+      within(deferredRail)
+        .getAllByTestId("rail-tile")
+        .map((tile) => tile.textContent),
+    ).toEqual(["Later first", "Later second"]);
   });
 
   it("preserves loaded works and retries the same cursor after a failed page", async () => {
@@ -1172,11 +1364,13 @@ describe("paged gallery continuation", () => {
       hasMoreReplications: true,
     });
     await act(async () => {
-      fireEvent.click(screen.getByRole("button", { name: "Load more works" }));
+      fireEvent.click(
+        screen.getByRole("button", { name: "Load complete gallery" }),
+      );
     });
 
     expect(
-      screen.getByText(/next gallery page could not be loaded/i),
+      screen.getByText(/complete gallery could not finish loading/i),
     ).toBeInTheDocument();
     expect(screen.getByText("Initial work")).toBeInTheDocument();
 
@@ -1185,5 +1379,37 @@ describe("paged gallery continuation", () => {
     });
 
     expect(screen.getByText("Deferred result")).toBeInTheDocument();
+  });
+
+  it("keeps continuation reachable when the first publishable page is empty", async () => {
+    const deferred = rep({ title: "First visible work" });
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue({
+        ok: true,
+        status: 200,
+        json: async () => ({
+          data: [deferred],
+          nextCursor: null,
+          hasMore: false,
+        }),
+      }),
+    );
+
+    renderExplorer("", {
+      replications: [],
+      deferredReplicationsUrl: "/api/replications/gallery",
+      continuationCursor: "opaque-after-filtered-page",
+      hasMoreReplications: true,
+    });
+
+    await act(async () => {
+      fireEvent.click(
+        screen.getByRole("button", { name: "Load complete gallery" }),
+      );
+    });
+
+    expect(screen.getByText("First visible work")).toBeInTheDocument();
+    expect(screen.queryByText("No replications yet")).toBeNull();
   });
 });

@@ -156,6 +156,20 @@ describe("MediaRail identity portrait", () => {
 });
 
 describe("MediaRail view-all affordance", () => {
+  it("does not present a loaded-page count as the complete artist total", () => {
+    render(
+      <MediaRail
+        group={group({ count: 2 })}
+        countIsComplete={false}
+        viewAllHref="/replications/artist/symmetric-vision"
+        viewerHrefFor={viewerHrefFor}
+      />,
+    );
+
+    expect(screen.getAllByRole("link", { name: "View all" })).toHaveLength(2);
+    expect(screen.queryByRole("link", { name: "View all 2" })).toBeNull();
+  });
+
   it('renders "View all" as a real focus URL, not client state', () => {
     // Two works, none inline (an empty preview keeps jsdom clear of the media
     // tile's matchMedia needs): both the header affordance and the rail-end

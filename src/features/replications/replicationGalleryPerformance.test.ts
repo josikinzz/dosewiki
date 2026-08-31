@@ -9,11 +9,13 @@ import {
   productionShapedReplicationGallery,
 } from "@/test/fixtures/replicationGalleryCorpus";
 import { viewerCollectionFromGalleryGroups } from "./viewer/viewerModel";
+import { drainGalleryPages } from "./galleryPagination";
 
 const PAGE_SIZE = 64;
 const PAGE_JSON_BUDGET_BYTES = 128 * 1024;
 const FILTER_BUDGET_MS = 250;
 const VIEWER_MODEL_BUDGET_MS = 250;
+const COMPLETE_TRAVERSAL_BUDGET_MS = 500;
 
 function fastestOf(runs: number, operation: () => void): number {
   operation();
@@ -76,5 +78,36 @@ describe("Replication Index performance budgets", () => {
 
     expect(itemCount).toBe(PRODUCTION_SHAPED_REPLICATION_COUNT);
     expect(elapsed).toBeLessThanOrEqual(VIEWER_MODEL_BUDGET_MS);
+  });
+
+  it("traverses all 6,733 rows through bounded pages without omissions or duplicates", async () => {
+    const firstPage = corpus.slice(0, PAGE_SIZE);
+    const requestedOffsets: number[] = [];
+    const startedAt = performance.now();
+    const result = await drainGalleryPages({
+      initialItems: firstPage,
+      initialCursor: String(PAGE_SIZE),
+      fetchPage: async (cursor) => {
+        const offset = Number(cursor);
+        requestedOffsets.push(offset);
+        const nextOffset = offset + PAGE_SIZE;
+        return {
+          data: corpus.slice(offset, nextOffset),
+          nextCursor: nextOffset < corpus.length ? String(nextOffset) : null,
+          hasMore: nextOffset < corpus.length,
+        };
+      },
+    });
+    const elapsed = performance.now() - startedAt;
+
+    expect(requestedOffsets).toHaveLength(
+      Math.ceil(corpus.length / PAGE_SIZE) - 1,
+    );
+    expect(new Set(result.items.map((row) => row._id)).size).toBe(
+      PRODUCTION_SHAPED_REPLICATION_COUNT,
+    );
+    expect(result.items).toHaveLength(PRODUCTION_SHAPED_REPLICATION_COUNT);
+    expect(result.pagesLoaded).toBe(requestedOffsets.length);
+    expect(elapsed).toBeLessThanOrEqual(COMPLETE_TRAVERSAL_BUDGET_MS);
   });
 });

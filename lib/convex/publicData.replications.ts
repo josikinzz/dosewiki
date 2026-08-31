@@ -12,7 +12,7 @@ import {
   type PublicGalleryReplicationPreview,
   type ReplicationWithUrl,
 } from "../../src/types/replications";
-import { getPublicReplications } from "./publicData.effects";
+import { getPublicReplicationBySlug, getPublicReplications } from "./publicData.effects";
 import { getPublicContributorProfiles } from "./publicData.contributors";
 import type {
   PublicSubstanceGallery,
@@ -286,3 +286,38 @@ export const getPublicGalleryReplicationPage = cache(unstable_cache(async (
     PUBLIC_CONVEX_CACHE_TAGS.contributors,
   ],
 }));
+
+/**
+ * One indexed public-gallery lookup for an immersive-view deep link.
+ *
+ * This deliberately reuses the existing `by_slug` Convex read rather than
+ * walking gallery pages. The row still passes the gallery's publication and
+ * contributor opt-out gates before its slim projection crosses into page
+ * props.
+ */
+export const getPublicGalleryReplicationBySlug = cache(async (
+  slug: string,
+): Promise<PublicGalleryReplicationPreview | null> => {
+  const [replication, profiles] = await Promise.all([
+    getPublicReplicationBySlug(slug),
+    getPublicContributorProfiles(),
+  ]);
+  if (
+    !replication ||
+    !isPublishableReplication(replication) ||
+    dropGalleryExcludedArtistWorks([replication], profiles).length === 0
+  ) {
+    return null;
+  }
+
+  const artistKey = replication.artist.trim().toLowerCase();
+  const [artist] = artistKey
+    ? await getPublicDataReadAdapter().getPublicReplicationArtistsByKeys([
+        artistKey,
+      ])
+    : [];
+  return projectPublicGalleryReplicationPreview({
+    ...replication,
+    ...(artist ? { artist_type_tags: artist.artist_type_tags } : {}),
+  });
+});
