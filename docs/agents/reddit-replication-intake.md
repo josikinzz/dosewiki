@@ -16,8 +16,18 @@ production client.
   transcode in place, or delete them.
 - A Reddit submitter is not automatically the creator or rightsholder. Keep
   submitter, creator credit, public profile, and rights evidence separate.
-- Rights default to `unknown` and private-only. Public availability, attribution,
-  or a working URL is not publication permission.
+- Rights default to `unknown`. Public availability, attribution, or a working
+  URL is not publication permission; never promote uncertainty to a permission,
+  license, ownership, or public-domain claim.
+- For the 2026-08-30 campaign, the owner's pinned 2026-08-31 decision makes
+  rights attribution metadata rather than a publication gate. Dose Wiki may
+  host the archive for educational and archival purposes under its fair-use
+  position, does not claim ownership, and recognizes that the original creator,
+  owner, or rightsholder retains their rights. Fair use is use-specific and is not
+  guaranteed legal clearance.
+- Preserve the best-known creator, rightsholder, source, and attribution; label
+  unresolved ownership `unknown`. Route correction, reattribution, and removal
+  requests to `contact@dose.wiki`.
 - Static Reddit-scrape images whose longest edge is 400 px or smaller remain on
   the publication hold. GIFs, videos, and the original collection are outside
   that specific hold.
@@ -29,8 +39,10 @@ production client.
 Read `AGENTS.md`, `CONTEXT.md`, the
 [classification field guide](replication-classification-guide.html), the
 [R2 migration record](convex-to-cloudflare-r2-media-handoff.md), and the campaign
-index at
+index and pinned rights/publication policy at
 `/Users/josie/Documents/Dose Wiki Media Review/Data/Replication Index Campaign 2026-08-30/README.md`
+and
+`/Users/josie/Documents/Dose Wiki Media Review/Data/Replication Index Campaign 2026-08-30/publication-rights-policy-2026-08-31.json`
 before starting.
 
 ## One pipeline, one gate at a time
@@ -68,20 +80,24 @@ Create or update only reviewed contributor profiles. A profile outcome must be
 explicit: matched, reviewed-new, unresolved, or intentionally absent. Record
 aliases, public links, avatar provenance, and avatar approval separately.
 
-Gate: every publish candidate has a reviewed creator credit, source link, and
-profile outcome. No style-based identity inference or unreviewed avatar enters a
-write plan.
+Gate: every publish candidate has a reviewed creator-credit outcome, best-known
+source context, and profile outcome. `Unknown Artist` is an acceptable reviewed
+outcome. No style-based identity inference or unreviewed avatar enters a write
+plan.
 
-### 4. Resolve rights
+### 4. Record rights and publication basis
 
-Record rights status, public-eligibility state, rightsholder evidence, source,
-credit line, permission or license detail when applicable, and removal contact.
-Only the allowlisted states in the current campaign manifest may become
-publication-eligible. Unknown or private-only rows stay preserved but blocked.
+Record rights status, best-known rightsholder evidence, source, credit line,
+permission or license detail when evidence exists, publication basis, and the
+correction/removal contact. Keep fair use separate from permission, license,
+ownership, and public-domain status. Use explicit `unknown` or `unavailable`
+values when evidence is insufficient; lack of positive rights resolution does
+not block publication in this campaign.
 
-Gate: every publish candidate has asset-specific evidence satisfying the pinned
-publication policy. If the exact eligible count is zero, stop; do not generate a
-production plan.
+Gate: every publish candidate carries the best-known provenance and attribution,
+preserves unresolved ownership as `unknown`, includes `contact@dose.wiki` for
+correction or removal, and does not falsely claim clearance. Apply the separate
+review, quality, duration, derivative, collision, and production-safety gates.
 
 ### 5. Complete metadata and content-family review
 
@@ -136,9 +152,9 @@ zero held items, zero unresolved required fields, and no stale live snapshot.
 
 Run `npm run convex:doctor`, set `TARGET_CONVEX_URL` explicitly, and confirm
 `glad-minnow-656`. Select a small canary covering image, video, GIF, new profile,
-existing profile, multiple effects, and the explicit blocked behavior for
-unknown rights. Read back every field and resolved URL; decode or play every
-asset; confirm no held row appears.
+existing profile, multiple effects, and explicit unknown-rights labeling. Read
+back every field, attribution, publication basis, contact, and resolved URL;
+decode or play every asset; confirm no held row appears.
 
 Gate: the ledger, Convex row, R2 objects, public API, and rendered record agree.
 Any mismatch stops the campaign and uses the rollback section below.
