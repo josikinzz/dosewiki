@@ -126,6 +126,16 @@ const replicationMediaType = v.union(
   v.literal("audio"),
 );
 
+/**
+ * Public lifecycle of a stored replication row. Absence means published so the
+ * existing corpus needs no backfill. Duplicate suppression is reversible and
+ * deliberately distinct from the editorial replication-status taxonomy.
+ */
+export const replicationPublicationState = v.union(
+  v.literal("published"),
+  v.literal("duplicate-suppressed"),
+);
+
 // Stored media for effect articles: replications, and explanatory figures.
 export const replication = v.object({
   slug: v.string(),                    // URL-friendly identifier (e.g., "breathing-by-artist-name")
@@ -133,6 +143,11 @@ export const replication = v.object({
   artist: v.string(),                  // Artist/creator name
   artist_url: v.optional(v.string()),  // Artist portfolio/social link
   role: v.optional(replicationRole),   // Absent === "replication"; see above
+  publication_state: v.optional(replicationPublicationState), // Absent === published
+  duplicate_of_replication_id: v.optional(v.id("replications")),
+  duplicate_evidence_digest: v.optional(v.string()),
+  duplicate_operation_id: v.optional(v.string()),
+  duplicate_suppressed_at: v.optional(v.number()),
   type: replicationMediaType,          // "video" | "image" | "audio"
   // Optional during the R2 migration: a canonical r2_key may be the row's
   // primary media locator without a fake Convex Storage object.

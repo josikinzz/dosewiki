@@ -67,6 +67,7 @@ export function clampPublicGalleryPageSize(requested: number): number {
 function isPublishableGalleryRow(row: Doc<"replications">): boolean {
   return (
     (row.role ?? "replication") === "replication" &&
+    row.publication_state !== "duplicate-suppressed" &&
     row.replication_status !== "not-replication" &&
     (row.type === "image" || row.type === "video")
   );

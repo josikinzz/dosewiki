@@ -29,6 +29,8 @@ export type ReplicationStatus =
   | "unreviewed"
   | "source-corrupt";
 
+export type ReplicationPublicationState = "published" | "duplicate-suppressed";
+
 export type ReplicationViewingMode =
   | "open-eye"
   | "closed-eye"
@@ -108,7 +110,7 @@ const PRESENTABLE_REPLICATION_TYPES: ReadonlySet<ReplicationType> =
 /**
  * Whether the public replication surfaces may publish a stored row.
  *
- * Two independent reasons to withhold one, answered in a single place so a new
+ * Three independent reasons to withhold one, answered in a single place so a new
  * surface cannot pick up half the rule:
  *
  *  - it is a figure rather than a replication. A diagram is credited and
@@ -117,6 +119,8 @@ const PRESENTABLE_REPLICATION_TYPES: ReadonlySet<ReplicationType> =
  *    "A replication of the subjective effect X", the gallery counts it as a work
  *    by its credited artist, and the sitemap offers that page to crawlers.
  *  - it is a media kind nothing can draw yet (see above).
+ *  - it is a confirmed duplicate whose provenance and media remain stored but
+ *    whose public route is consolidated into a designated keeper.
  *
  * This is a *publication* gate and not a data gate. `convex/replications.ts`
  * keeps returning every stored row, so the rights and provenance tooling under
@@ -133,9 +137,11 @@ export function isPublishableReplication(row: {
   role?: MediaRole;
   type: ReplicationType;
   replication_status?: ReplicationStatus;
+  publication_state?: ReplicationPublicationState;
 }): boolean {
   return (
     isReplicationRow(row) &&
+    row.publication_state !== "duplicate-suppressed" &&
     row.replication_status !== "not-replication" &&
     PRESENTABLE_REPLICATION_TYPES.has(row.type)
   );
@@ -208,6 +214,12 @@ export interface ReplicationRecord extends ReplicationRightsMetadata {
   artist_url?: string;
   /** Absent means `'replication'`. Read it through {@link mediaRole}. */
   role?: MediaRole;
+  /** Absent means published; duplicate suppression is reversible metadata. */
+  publication_state?: ReplicationPublicationState;
+  duplicate_of_replication_id?: string;
+  duplicate_evidence_digest?: string;
+  duplicate_operation_id?: string;
+  duplicate_suppressed_at?: number;
   type: ReplicationType;
   storage_id?: string;
   /**

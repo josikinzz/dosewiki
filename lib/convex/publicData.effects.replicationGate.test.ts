@@ -132,6 +132,26 @@ describe("the replication publication gate", () => {
     ]);
   });
 
+  it("withholds a reversibly duplicate-suppressed row without changing its taxonomy", async () => {
+    const keeper = row({ slug: "original-keeper", replication_status: "replication" });
+    const duplicate = row({
+      slug: "reddit-copy",
+      replication_status: "replication",
+      publication_state: "duplicate-suppressed",
+      duplicate_of_replication_id: keeper._id,
+    });
+
+    const { getPublicReplications, getPublicReplicationsByEffect } = await loadWithRows([
+      keeper,
+      duplicate,
+    ]);
+
+    expect((await getPublicReplications()).map((item) => item.slug)).toEqual(["original-keeper"]);
+    expect((await getPublicReplicationsByEffect("geometry")).map((item) => item.slug)).toEqual([
+      "original-keeper",
+    ]);
+  });
+
   it("passes the stored corpus through untouched", async () => {
     // A read-only audit of production on 2026-08-11 found 247 rows: every one
     // with `role` absent, every one `image` or `video`, every one carrying an

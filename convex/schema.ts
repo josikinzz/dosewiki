@@ -21,6 +21,7 @@ import {
 } from "./lib/effectMediaSchemaValidators";
 import { replicationDateResearch } from "./lib/replicationDateValidators";
 import { replicationSourceAttribution } from "./lib/replicationAttributionValidators";
+import { replicationDuplicateReconciliation } from "./lib/replicationDuplicateValidators";
 import {
   replicationArtistTaxonomy,
   replicationTaxonomyEvidence,
@@ -306,6 +307,13 @@ export default defineSchema({
     .index("by_replication_id", ["replication_id"])
     .index("by_source_catalog_id", ["source_catalog_id"])
     .index("by_source_sha256", ["source_sha256"]),
+
+  // Reversible, evidence-bound consolidation records for same-work duplicates.
+  // Media and source rows remain intact; only one replication stays public.
+  replicationDuplicateReconciliations: defineTable(replicationDuplicateReconciliation)
+    .index("by_component_id", ["component_id"])
+    .index("by_keeper_replication_id", ["keeper_replication_id"])
+    .index("by_suppressed_replication_id", ["suppressed_replication_id"]),
 
   // One full dating/provenance dossier per replication. The compact date_info
   // summary lives on `replications`; this table keeps the evidence out of hot
