@@ -1,8 +1,8 @@
 # Citation Production Rollout
 
-Last updated: 2026-08-16
+Last updated: 2026-08-31
 
-This runbook promotes reviewed citation drafts to production one slug at a time. The full app is available at `https://dosewiki-admin.vercel.app/`; the public hosts remain construction-gated through 2026-08-31 and require explicit user launch authorization.
+This runbook promotes reviewed citation drafts to production one slug at a time. Verify public output on `https://dose.wiki/` and authenticated citation diagnostics on `https://dev.dose.wiki/`.
 
 ## Method
 
@@ -10,7 +10,7 @@ Use three gates:
 
 1. Archive `glad-minnow-656`.
 2. Dry-run and write one reviewed draft by slug.
-3. Verify the admin root-slug route before selecting another slug.
+3. Verify the public root-slug route before selecting another slug.
 
 Use the slug-scoped citation apply path. `convex:sync-production` is table-scoped and is not an acceptable substitute.
 
@@ -76,17 +76,17 @@ TARGET_CONVEX_URL=https://glad-minnow-656.convex.cloud \
 
 After the write:
 
-- Open `https://dosewiki-admin.vercel.app/<drug-slug>`. Substance articles use the root-slug route, not `/substances/<drug-slug>`.
+- Open `https://dose.wiki/<drug-slug>`. Substance articles use the root-slug route, not `/substances/<drug-slug>`.
 - Confirm citation markers render only where supported evidence exists.
 - Confirm the source/reference section lists the new structured references.
-- Confirm `needs_review` evidence appears only in `https://dosewiki-admin.vercel.app/dev/citation-review/<drug-slug>`, not in public article content.
+- Confirm `needs_review` evidence appears only in `https://dev.dose.wiki/dev/citation-review/<drug-slug>`, not in public article content.
 - Resolve every blocking citation diagnostic before selecting another slug.
 
-Do not use `dose.wiki` or `www.dose.wiki` for rollout verification while the construction gate is active through 2026-08-31. Those hosts still require explicit user launch authorization after that date.
+Use `dose.wiki` for public rollout verification. Use `dev.dose.wiki` only for authenticated review diagnostics.
 
 If the output is wrong, stop the rollout. Use the archived `SubstanceIndex.json` as the recovery source of truth for the previous production dataset; do not patch local JSON as a live fix.
 
-Completion criterion: the write and post-write read target `glad-minnow-656`, the admin root-slug article renders the reviewed markers and references, review tooling has no blocking diagnostics, and the next slug remains untouched.
+Completion criterion: the write and post-write read target `glad-minnow-656`, the public root-slug article renders the reviewed markers and references, review tooling has no blocking diagnostics, and the next slug remains untouched.
 
 ## Roll out common drugs
 
@@ -96,7 +96,7 @@ The historical 2C-B canary already meets the completion criterion. Repeat the sa
 2. Dry-run the production apply from the repository root with `TARGET_CONVEX_URL=https://glad-minnow-656.convex.cloud` and `--expected-deployment=glad-minnow-656`.
 3. Review the full diff and report.
 4. Write one slug with the same production target and confirmation flags.
-5. Verify `https://dosewiki-admin.vercel.app/<drug-slug>` and its citation-review diagnostics before selecting another slug.
+5. Verify `https://dose.wiki/<drug-slug>` and its `https://dev.dose.wiki/dev/citation-review/<drug-slug>` diagnostics before selecting another slug.
 
 Run common drugs locally and archive their outputs. Promote them in small reviewed batches, one write operation at a time. Stop after the common-drug review stage until the user explicitly selects another homepage-visible drug.
 

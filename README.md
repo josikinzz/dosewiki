@@ -76,14 +76,14 @@ Public pages live under `src/app/`. Representative route groups are:
 
 Some pages are publication-specific. `src/config/siteFlavor.ts` defines the flavor contract, and `lib/next/flavorGatedRoutes.ts` enforces it. Treat `src/app/**/page.tsx` as the current route map; compatibility redirects and aliases live in `middleware.ts` and `lib/next/publicRouteAliases.ts`.
 
-The public-host launch policy is under [Environment and deployment](#environment-and-deployment). While that gate is active, the routes above are served unprefixed at <https://dosewiki-admin.vercel.app/> and under a `/preview` prefix on the gated hosts (`https://dose.wiki/preview/substances`), whose bare `/` stays the holding page; the versioned public API remains available on all of them.
+The routes above are live at <https://dose.wiki/> and <https://www.dose.wiki/>. Pre-launch `/preview` addresses permanently redirect to the matching unprefixed route.
 
 ### Public read-only API
 
 Use these as the stable entry points:
 
-- base URL: <https://dosewiki-admin.vercel.app/api/v1>;
-- OpenAPI 3.1: <https://dosewiki-admin.vercel.app/api/v1/openapi.json>;
+- base URL: <https://dose.wiki/api/v1>;
+- OpenAPI 3.1: <https://dose.wiki/api/v1/openapi.json>;
 - integration handoff: [HANDOFF.md](HANDOFF.md).
 
 The API currently covers public substance records, normalized reagent tests, molecule SVGs, and effect replications. Representative endpoints include `GET /substances`, `GET /substances/{slug}`, `GET /replications`, and `GET /molecules/{slug}.svg`. Use OpenAPI rather than this README for the complete path and response contract.
@@ -91,12 +91,12 @@ The API currently covers public substance records, normalized reagent tests, mol
 Collection cursors are opaque. Browser clients may use `GET`, `HEAD`, and `OPTIONS`; responses are cached and rate-limited.
 
 ```js
-const response = await fetch("https://dosewiki-admin.vercel.app/api/v1/substances/mdma");
+const response = await fetch("https://dose.wiki/api/v1/substances/mdma");
 if (!response.ok) throw new Error(`DoseWiki API error: ${response.status}`);
 const { data } = await response.json();
 ```
 
-DoseWiki content is for harm-reduction education and is not medical advice. Review the [license and reuse terms](https://dosewiki-admin.vercel.app/docs/license) and preserve source attribution.
+DoseWiki content is for harm-reduction education and is not medical advice. Review the [license and reuse terms](https://dose.wiki/docs/license) and preserve source attribution.
 
 ## Editor Surface
 
@@ -159,9 +159,9 @@ Keep secrets in `.env.local`, the shell, or the hosting provider. Do not commit 
 All configured Convex reads and writes—including local, development, preview, and production—target `prod:glad-minnow-656`. Active variables such as `NEXT_PUBLIC_CONVEX_URL`, `VITE_CONVEX_URL`, `CONVEX_PUBLIC_READ_URL`, `CONVEX_URL`, and explicit `TARGET_CONVEX_URL` must resolve to that deployment. `enchanted-echidna-791` is retired. Effect Index reads the same production data but carries no write credentials.
 Production writes use an intent-scoped admin token or the documented `CONVEX_ADMIN_KEY` compatibility fallback. Follow [Convex credentials](docs/agents/convex-credentials.md) rather than copying credential values or precedence rules into other files.
 
-`NEXT_PUBLIC_SITE_FLAVOR` selects the publication at build time: unset uses dose.wiki; `effectindex` uses Effect Index. Keep `NEXT_PUBLIC_SITE_URL=https://dosewiki-admin.vercel.app` while the public dose.wiki hosts are gated.
+`NEXT_PUBLIC_SITE_FLAVOR` selects the publication at build time: unset uses dose.wiki; `effectindex` uses Effect Index. The launched dose.wiki flavor defaults its canonical URL to `https://dose.wiki`.
 
-The public `dose.wiki` and `www.dose.wiki` hosts stay gated through 2026-08-31. Passing that date does not launch them: the user must explicitly authorize launch before the gate or canonical URL changes. Both domains are attached to the same Vercel project as `dosewiki-admin`, so one production deploy serves all three hosts and `middleware.ts` is what separates them — the gated hosts answer the holding page at `/`, redirect any other bare path into the `/preview` prefix, and serve the finished site there.
+`dose.wiki`, `www.dose.wiki`, `dev.dose.wiki`, and `dosewiki-admin.vercel.app` share one `dosewiki-admin` production build. The first two are public and crawlable. The editor hosts remain closed to crawlers; public-host `/dev`, `/review`, and sign-in links hand off to `dev.dose.wiki`. Retired `/preview` addresses permanently redirect to ordinary App Paths.
 
 Vercel builds use `bun run build:vercel`. Read [deployment routing](docs/agents/deployment.md) before changing build keys, aliases, domains, or flavor settings.
 

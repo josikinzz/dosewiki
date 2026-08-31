@@ -1,4 +1,4 @@
-import { normalizeHost } from "./publicConstructionPolicy";
+import { normalizeHost } from "./publicHostPolicy";
 
 const APPROVED_ANALYTICS_HOSTS: Record<string, true> = {
   "dose.wiki": true,

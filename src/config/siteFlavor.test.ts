@@ -47,7 +47,7 @@ describe("site flavor config", () => {
     expect(config).toMatchObject({
       flavor: "dosewiki",
       name: "dose.wiki",
-      defaultSiteUrl: "https://dosewiki-admin.vercel.app",
+      defaultSiteUrl: "https://dose.wiki",
       launchSiteUrl: "https://dose.wiki",
       description: "An open encyclopedic database for the study of psychopharmacology",
       logoPath: "/icon-512.png",

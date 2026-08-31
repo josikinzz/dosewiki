@@ -149,9 +149,8 @@ export function HomeExperience({
 
           <div className="ml-auto flex flex-shrink-0 items-center gap-2">
             {/* The mock mirrors the live mobile order: appearance settings left of the
-                hamburger. The axes stay — a visitor may as well see the site in the
-                appearance they prefer — but the Theme Lab is withheld because its
-                authoring routes are absent from the construction host. */}
+                hamburger. Appearance axes stay available, while the blocked surface
+                intentionally withholds Theme Lab authoring. */}
             <AppearanceControls allowThemeLab={false} />
             <div className="relative">
             <button

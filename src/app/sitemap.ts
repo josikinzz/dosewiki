@@ -1,14 +1,14 @@
 import type { MetadataRoute } from "next";
 import { headers } from "next/headers";
-import { isEditorHost, isPublicConstructionHost } from "@server/next/publicConstructionPolicy";
+import { isEditorHost } from "@server/next/publicHostPolicy";
 import { buildSitemapEntries } from "@server/next/sitemap";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const requestHeaders = await headers();
   const host = requestHeaders.get("host");
-  // Neither the gated public hosts nor the working deployment publishes a map of itself:
-  // one has a single page worth reaching, the other is closed to crawlers entirely.
-  if (isPublicConstructionHost(host) || isEditorHost(host)) {
+  // The editor deployment mirrors the application for authenticated work but must never
+  // publish an indexable sitemap.
+  if (isEditorHost(host)) {
     return [];
   }
 

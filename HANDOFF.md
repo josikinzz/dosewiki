@@ -5,12 +5,12 @@ This is the implementation handoff for consuming everything currently exposed by
 ## Start here
 
 ```text
-Production base URL: https://dosewiki-admin.vercel.app/api/v1
-OpenAPI 3.1:       https://dosewiki-admin.vercel.app/api/v1/openapi.json
-Metadata:          https://dosewiki-admin.vercel.app/api/v1/meta
+Production base URL: https://dose.wiki/api/v1
+OpenAPI 3.1:       https://dose.wiki/api/v1/openapi.json
+Metadata:          https://dose.wiki/api/v1/meta
 ```
 
-Use the admin host above while the public `dose.wiki` and `www.dose.wiki` hosts are construction-gated through 2026-08-31. Passing that date does not launch them; the user must explicitly authorize launch. API paths are versioned under `/api/v1`; do not build against unversioned or `/dev` routes.
+The API is live on the public dose.wiki origin. API paths are versioned under `/api/v1`; do not build against unversioned or `/dev` routes.
 
 The API is public and read-only:
 
@@ -22,7 +22,7 @@ The API is public and read-only:
 - substance and replication list cursors are opaque—store and return them unchanged;
 - content is for harm-reduction education and is not medical advice.
 
-License and reuse terms: <https://dosewiki-admin.vercel.app/docs/license>. Substance article data and replication media do not necessarily have the same reuse rights. Preserve article source attribution, and inspect each replication's `rights` object before reuse.
+License and reuse terms: <https://dose.wiki/docs/license>. Substance article data and replication media do not necessarily have the same reuse rights. Preserve article source attribution, and inspect each replication's `rights` object before reuse.
 
 ## Endpoint inventory
 
@@ -52,7 +52,7 @@ Substance and effect slugs use lowercase letters, numbers, and hyphens, for exam
 ## Quick client example
 
 ```ts
-const API_BASE_URL = "https://dosewiki-admin.vercel.app/api/v1";
+const API_BASE_URL = "https://dose.wiki/api/v1";
 
 export async function getSubstance(slug: string) {
   const response = await fetch(
@@ -141,7 +141,7 @@ type SubstancePreview = {
 };
 ```
 
-`categories` is the public projection of the article's index categories. `url` points to the public article URL, which may remain construction-gated even though the API is available.
+`categories` is the public projection of the article's index categories. `url` points to the live public article.
 
 ## Complete substance article
 
@@ -544,7 +544,7 @@ The response is `image/svg+xml`, not JSON, and carries a sandbox Content Securit
 ```ts
 const absoluteMoleculeUrl = new URL(
   article.molecule.schemes.dosewiki.url,
-  "https://dosewiki-admin.vercel.app",
+  "https://dose.wiki",
 ).toString();
 ```
 

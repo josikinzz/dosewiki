@@ -1,7 +1,7 @@
 import { SITE_FLAVOR, type SiteFlavor } from "../../src/config/siteFlavor";
 import { MAILING_LIST_API_ORIGIN } from "../../src/features/mailing-list/subscribe";
 import { isApprovedAnalyticsHost, POSTHOG_API_HOST } from "./analyticsHostPolicy";
-import { normalizeHost } from "./publicConstructionPolicy";
+import { normalizeHost } from "./publicHostPolicy";
 
 export const CSP_ENFORCEMENT_HEADER = "Content-Security-Policy";
 export const CSP_NONCE_REQUEST_HEADER = "x-nonce";

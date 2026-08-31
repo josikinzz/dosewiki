@@ -123,7 +123,7 @@ describe("browser security response policy", () => {
     ).not.toThrow();
   });
 
-  it("allows public analytics only on the exact approved construction hosts", () => {
+  it("allows public analytics only on the exact approved public hosts", () => {
     const publicCsp = headerValue(
       getBrowserSecurityHeaders({
         host: "dose.wiki",

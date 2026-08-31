@@ -1,5 +1,4 @@
 import { getPublicRoutePath } from "./publicRouteIdentity";
-import { isPreviewPath, toPreviewPath } from "./previewPath";
 
 export const SUBSTANCE_INDEX_DEFAULT_VIEW = "all" as const;
 export const EFFECT_INDEX_DEFAULT_VIEW = "all" as const;
@@ -104,18 +103,12 @@ export function reportsIndexViewPath(view: ReportsIndexView): string {
   });
 }
 
-/**
- * Update a tab's canonical app path without refetching data the mounted index
- * already owns. Preserve the Preview Address Space in the visible URL.
- */
+/** Update a tab's canonical path without refetching data the mounted index already owns. */
 export function replaceCurrentIndexViewPath(appPath: string): void {
   if (typeof window === "undefined") {
     return;
   }
-  const pathname = isPreviewPath(window.location.pathname)
-    ? toPreviewPath(appPath)
-    : appPath;
-  window.history.replaceState(window.history.state, "", pathname);
+  window.history.replaceState(window.history.state, "", appPath);
 }
 
 export function parseLegacySubstanceIndexHash(hash: string): SubstanceIndexView | null {

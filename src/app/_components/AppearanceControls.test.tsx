@@ -838,8 +838,8 @@ describe("AppearanceControls", () => {
 
     const panel = await openCog(user);
 
-    // The pre-launch holding page's cog: a visitor still picks an appearance, but the Lab
-    // authors and shares palettes over routes the construction hosts do not serve.
+    // The retained holding surface still exposes appearance preferences while intentionally
+    // withholding Theme Lab authoring and sharing.
     expect(
       within(panel).queryByRole("button", { name: "Open Theme Lab" }),
     ).not.toBeInTheDocument();

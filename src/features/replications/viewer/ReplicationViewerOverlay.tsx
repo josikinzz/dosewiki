@@ -19,7 +19,6 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { focusRingClassName } from "@/components/ui/surface";
-import { toAppPath } from "@/utils/previewPath";
 import {
   buildReplicationViewerUrl,
   closeReplicationViewerUrl,
@@ -385,7 +384,7 @@ export function ReplicationViewerOverlay({
       setEntryMotion(entry);
       setInfoOpen(false);
       setDetails(null);
-      const source = `${toAppPath(window.location.pathname)}${window.location.search}${window.location.hash}`;
+      const source = `${window.location.pathname}${window.location.search}${window.location.hash}`;
       window.history.replaceState(
         window.history.state,
         "",
@@ -549,7 +548,7 @@ export function ReplicationViewerOverlay({
       if (window.history.state?.replicationViewer === true) {
         window.history.back();
       } else {
-        const source = `${toAppPath(window.location.pathname)}${window.location.search}${window.location.hash}`;
+        const source = `${window.location.pathname}${window.location.search}${window.location.hash}`;
         window.history.replaceState(
           window.history.state,
           "",

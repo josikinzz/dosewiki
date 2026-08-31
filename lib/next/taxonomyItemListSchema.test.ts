@@ -11,7 +11,7 @@ import { getPublicSite } from "./publicSite";
 const DOSEWIKI_SITE = getPublicSite(SITE_FLAVOR_CONFIGS.dosewiki, {});
 
 describe("taxonomy item list schema", () => {
-  it("builds deduped category substance ItemLists with canonical admin URLs", () => {
+  it("builds deduped category substance ItemLists with canonical public URLs", () => {
     const schema = buildCategoryItemListSchema(
       {
         definition: {
@@ -36,11 +36,11 @@ describe("taxonomy item list schema", () => {
     );
 
     expect(schema["@type"]).toBe("ItemList");
-    expect(schema.url).toBe("https://dosewiki-admin.vercel.app/category/psychedelic");
+    expect(schema.url).toBe("https://dose.wiki/category/psychedelic");
     expect(schema.numberOfItems).toBe(2);
     expect(schema.itemListElement.map((item) => item.url)).toEqual([
-      "https://dosewiki-admin.vercel.app/lsd",
-      "https://dosewiki-admin.vercel.app/psilocybin-mushrooms",
+      "https://dose.wiki/lsd",
+      "https://dose.wiki/psilocybin-mushrooms",
     ]);
   });
 
@@ -80,13 +80,13 @@ describe("taxonomy item list schema", () => {
     );
 
     expect(schema.url).toBe(
-      "https://dosewiki-admin.vercel.app/mechanism/5-ht2a-receptor-agonist/full",
+      "https://dose.wiki/mechanism/5-ht2a-receptor-agonist/full",
     );
     expect(schema.name).toBe("dose.wiki 5-HT2A receptor agonist full substances");
     expect(schema.itemListElement).toHaveLength(1);
     expect(schema.itemListElement[0]).toMatchObject({
       name: "DOB",
-      url: "https://dosewiki-admin.vercel.app/dob",
+      url: "https://dose.wiki/dob",
     });
   });
 
@@ -108,11 +108,11 @@ describe("taxonomy item list schema", () => {
     }, DOSEWIKI_SITE);
 
     expect(schema.url).toBe(
-      "https://dosewiki-admin.vercel.app/effects/category/visual-effects",
+      "https://dose.wiki/effects/category/visual-effects",
     );
     expect(schema.itemListElement[0]).toMatchObject({
       name: "Colour enhancement",
-      url: "https://dosewiki-admin.vercel.app/effects/colour-enhancement",
+      url: "https://dose.wiki/effects/colour-enhancement",
     });
   });
 });

@@ -12,7 +12,6 @@ import {
   type GalleryViewingFilter,
 } from "@/features/effects/gallery/galleryModel";
 import { getPublicRoutePath } from "@/utils/publicRouteIdentity";
-import { toAppPath } from "@/utils/previewPath";
 
 /**
  * The gallery's URL contract: gallery browse/focus states own their URLs,
@@ -127,7 +126,7 @@ export function parseReplicationViewerSlug(params: ParamsLike): string | null {
 }
 
 function relativeUrl(url: URL): string {
-  return `${toAppPath(url.pathname)}${url.search}${url.hash}`;
+  return `${url.pathname}${url.search}${url.hash}`;
 }
 
 /** Add or replace the active viewer work without disturbing source state. */

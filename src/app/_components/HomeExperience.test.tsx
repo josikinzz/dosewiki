@@ -125,13 +125,11 @@ describe("dose.wiki homepage", () => {
 });
 
 /**
- * The pre-launch holding page is the same component with its destinations blocked — the
- * construction hosts are rewritten to `/under-construction`, which renders it through
- * `ConstructionLanding`. The point of showing the real homepage there is that a visitor
- * sees the site they will get, so what is asserted here is the two ways it must differ:
- * nothing navigates, and the Theme Lab is withheld.
+ * The retained holding surface is the homepage component with destinations blocked. These
+ * tests preserve its two behavioral differences: nothing navigates, and the Theme Lab is
+ * withheld.
  */
-describe("dose.wiki pre-launch holding page", () => {
+describe("dose.wiki holding surface", () => {
   const quickLinks = buildHomeQuickLinks(SITE_FLAVOR_CONFIGS.dosewiki);
 
   const renderBlocked = () =>
@@ -149,10 +147,9 @@ describe("dose.wiki pre-launch holding page", () => {
     const user = userEvent.setup();
     const { container } = renderBlocked();
 
-    // Not "no link named X" but no in-site link at all — the guarantee is that the gated
-    // host hands a visitor nowhere to go, and stating it this way cannot quietly stop
-    // meaning anything when a tile or a nav entry is renamed. The supporter credit's
-    // external link is not a route and is left alone.
+    // Not "no link named X" but no in-site link at all, so a newly added tile cannot
+    // quietly make the blocked surface navigable. The supporter credit's external link is
+    // not a route and is left alone.
     expect(container.querySelectorAll('a[href^="/"]')).toHaveLength(0);
 
     const tiles = screen.getByRole("navigation", { name: "Mock app sections" });
@@ -194,7 +191,7 @@ describe("dose.wiki pre-launch holding page", () => {
         control.getAttribute("data-appearance-axis"),
       ),
     ).toEqual(["color-scheme", "visual-style", "font"]);
-    // The Lab authors and shares palettes over routes the construction hosts do not serve.
+    // Palette authoring and sharing are intentionally absent from the blocked surface.
     expect(within(panel).queryByRole("button", { name: "Open Theme Lab" })).not.toBeInTheDocument();
   });
 

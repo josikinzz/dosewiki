@@ -233,9 +233,9 @@ export type SiteFlavorConfig = AppearancePolicy & {
   readonly wordmark: SiteWordmark;
   /** In-page logo mark: asset and accessible labels. */
   readonly logo: SiteLogoIdentity;
-  /** Canonical base URL used when `NEXT_PUBLIC_SITE_URL` is not set. */
+  /** Canonical public base URL used when `NEXT_PUBLIC_SITE_URL` is not set. */
   readonly defaultSiteUrl: string;
-  /** Public production origin for this publication (used by structured-data fallbacks). */
+  /** Public production origin for this publication. */
   readonly launchSiteUrl: string;
   /** One-line description of the publication. */
   readonly description: string;
@@ -326,7 +326,7 @@ const DOSEWIKI_CONFIG: SiteFlavorConfig = {
     alt: "dose.wiki logo",
     heroAlt: "dose.wiki molecule logo",
   },
-  defaultSiteUrl: "https://dosewiki-admin.vercel.app",
+  defaultSiteUrl: "https://dose.wiki",
   launchSiteUrl: "https://dose.wiki",
   description: "An open encyclopedic database for the study of psychopharmacology",
   logoPath: "/icon-512.png",

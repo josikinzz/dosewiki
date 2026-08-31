@@ -161,96 +161,76 @@ describe("middleware role policy adapter", () => {
     );
   });
 
-  it("bounces public dose.wiki article routes into the preview address space", async () => {
+  it("serves public dose.wiki article routes at their permanent paths", async () => {
     const { middleware } = await import("../middleware");
 
     const response = await middleware(makePublicRequest("/fentanyl"));
 
-    expect(response.status).toBe(307);
-    expect(response.headers.get("location")).toBe(
-      "https://dose.wiki/preview/fentanyl",
-    );
+    expect(response.status).toBe(200);
+    expect(response.headers.get("location")).toBeNull();
+    expect(response.headers.get("x-middleware-rewrite")).toBeNull();
     expect(mocks.getToken).not.toHaveBeenCalled();
   });
 
-  it("carries the query string into the preview address", async () => {
+  it("serves the launched homepage at the public root", async () => {
     const { middleware } = await import("../middleware");
 
-    const response = await middleware(makePublicRequest("/search?q=lsd"));
+    const response = await middleware(makePublicRequest("/"));
 
-    expect(response.status).toBe(307);
-    expect(response.headers.get("location")).toBe(
-      "https://dose.wiki/preview/search?q=lsd",
-    );
+    expect(response.status).toBe(200);
+    expect(response.headers.get("location")).toBeNull();
+    expect(response.headers.get("x-middleware-rewrite")).toBeNull();
   });
 
-  it("resolves public dose.wiki substance aliases inside the preview prefix", async () => {
+  it("redirects old preview substance aliases directly to their canonical path", async () => {
     const { middleware } = await import("../middleware");
 
     const response = await middleware(makePublicRequest("/preview/psilocybin"));
 
     expect(response.status).toBe(308);
     expect(response.headers.get("location")).toBe(
-      "https://dose.wiki/preview/psilocybin-mushrooms",
+      "https://dose.wiki/psilocybin-mushrooms",
     );
-    expect(mocks.getToken).not.toHaveBeenCalled();
   });
 
-  it("resolves legacy search paths inside the preview prefix", async () => {
+  it("redirects old preview search paths directly to canonical search URLs", async () => {
     const { middleware } = await import("../middleware");
 
     const response = await middleware(makePublicRequest("/preview/search/lsd"));
 
     expect(response.status).toBe(308);
     expect(response.headers.get("location")).toBe(
-      "https://dose.wiki/preview/search?q=lsd",
+      "https://dose.wiki/search?q=lsd",
     );
-    expect(mocks.getToken).not.toHaveBeenCalled();
   });
 
-  it("serves the real homepage at the preview home address", async () => {
+  it("redirects the old preview homepage to the launched root", async () => {
     const { middleware } = await import("../middleware");
 
     const response = await middleware(makePublicRequest("/preview/home"));
 
-    expect(response.status).toBe(200);
-    expect(response.headers.get("location")).toBeNull();
-    expect(response.headers.get("x-middleware-rewrite")).toBe(
-      "https://dose.wiki/",
-    );
+    expect(response.status).toBe(308);
+    expect(response.headers.get("location")).toBe("https://dose.wiki/");
   });
 
-  it("rewrites a preview section onto the route it mirrors", async () => {
+  it("preserves queries while retiring preview section addresses", async () => {
     const { middleware } = await import("../middleware");
 
     const response = await middleware(
       makePublicRequest("/preview/substances?tab=common"),
     );
 
-    expect(response.status).toBe(200);
-    expect(response.headers.get("x-middleware-rewrite")).toBe(
+    expect(response.status).toBe(308);
+    expect(response.headers.get("location")).toBe(
       "https://dose.wiki/substances?tab=common",
     );
   });
 
-  it("keeps the bare construction host on the holding page", async () => {
-    const { middleware } = await import("../middleware");
-
-    const response = await middleware(makePublicRequest("/"));
-
-    expect(response.status).toBe(200);
-    expect(response.headers.get("x-middleware-rewrite")).toBe(
-      "https://dose.wiki/under-construction",
-    );
-  });
-
-  it("hands an editor link on the public host to the host that owns the editor", async () => {
+  it("hands a public-host editor link to the editor origin", async () => {
     const { middleware } = await import("../middleware");
 
     const response = await middleware(makePublicRequest("/dev/articles"));
 
-    // Not the holding page: the link a person typed still resolves, it just crosses to
-    // the working deployment. Auth is never consulted here - the gate answers first.
     expect(response.status).toBe(307);
     expect(response.headers.get("location")).toBe(
       "https://dev.dose.wiki/dev/articles",
@@ -258,7 +238,7 @@ describe("middleware role policy adapter", () => {
     expect(mocks.getToken).not.toHaveBeenCalled();
   });
 
-  it("carries the query across the handoff", async () => {
+  it("preserves the query across editor handoff", async () => {
     const { middleware } = await import("../middleware");
 
     const response = await middleware(
@@ -270,7 +250,7 @@ describe("middleware role policy adapter", () => {
     );
   });
 
-  it("hands off a preview address for the editor too, dropping the prefix", async () => {
+  it("hands off old preview editor addresses while dropping the prefix", async () => {
     const { middleware } = await import("../middleware");
 
     const response = await middleware(
@@ -281,62 +261,41 @@ describe("middleware role policy adapter", () => {
     expect(response.headers.get("location")).toBe(
       "https://dev.dose.wiki/dev/articles",
     );
-    expect(mocks.getToken).not.toHaveBeenCalled();
   });
 
-  it("keeps the editor out of the preview space on hosts that serve it directly", async () => {
+  it("redirects old preview addresses to direct routes on the editor host", async () => {
     const { middleware } = await import("../middleware");
 
-    // On the working deployment there is nothing to hand off to - `/dev` is already here,
-    // so the preview spelling is simply not an address.
     const response = await middleware(makeRequest("/preview/dev/articles"));
 
-    expect(response.status).toBe(307);
+    expect(response.status).toBe(308);
     expect(response.headers.get("location")).toBe(
-      "https://dosewiki-admin.vercel.app/preview/home",
+      "https://dosewiki-admin.vercel.app/dev/articles",
     );
     expect(mocks.getToken).not.toHaveBeenCalled();
   });
 
-  it("never hands off a credentialed endpoint", async () => {
+  it("keeps credentialed APIs off the public origin", async () => {
     const { middleware } = await import("../middleware");
 
-    // A cross-origin redirect arrives without cookies, so an authenticated caller would
-    // read the bounce as a signed-out session rather than as the wrong host.
     const response = await middleware(makePublicRequest("/api/dev/articles"));
 
     expect(response.headers.get("location")).toBe("https://dose.wiki/");
   });
 
-  it("bounces public-host client API calls into the preview address space", async () => {
+  it("serves public client APIs directly without a document CSP", async () => {
     const { middleware } = await import("../middleware");
 
     const response = await middleware(
       makePublicRequest("/api/search-suggestions?q=mdma"),
     );
 
-    expect(response.status).toBe(307);
-    expect(response.headers.get("location")).toBe(
-      "https://dose.wiki/preview/api/search-suggestions?q=mdma",
-    );
-    expect(mocks.getToken).not.toHaveBeenCalled();
-  });
-
-  it("leaves a preview API rewrite without a document CSP", async () => {
-    const { middleware } = await import("../middleware");
-
-    const response = await middleware(
-      makePublicRequest("/preview/api/search-suggestions?q=mdma"),
-    );
-
     expect(response.status).toBe(200);
-    expect(response.headers.get("x-middleware-rewrite")).toBe(
-      "https://dose.wiki/api/search-suggestions?q=mdma",
-    );
+    expect(response.headers.get("location")).toBeNull();
     expect(response.headers.get("content-security-policy")).toBeNull();
   });
 
-  it("allows only the versioned public API through the construction gate", async () => {
+  it("serves the versioned public API directly", async () => {
     const { middleware } = await import("../middleware");
 
     const response = await middleware(
@@ -345,28 +304,19 @@ describe("middleware role policy adapter", () => {
 
     expect(response.status).toBe(200);
     expect(response.headers.get("location")).toBeNull();
-    expect(mocks.getToken).not.toHaveBeenCalled();
   });
 
-  it("allows the public license page linked by the API", async () => {
-    const { middleware } = await import("../middleware");
+  it.each(["/docs/license", "/api/csp-report", "/robots.txt", "/sitemap.xml"])(
+    "serves launched public endpoint %s directly",
+    async (path) => {
+      const { middleware } = await import("../middleware");
 
-    const response = await middleware(makePublicRequest("/docs/license"));
+      const response = await middleware(makePublicRequest(path));
 
-    expect(response.status).toBe(200);
-    expect(response.headers.get("location")).toBeNull();
-    expect(mocks.getToken).not.toHaveBeenCalled();
-  });
-
-  it("allows CSP observation reports without exposing the public application", async () => {
-    const { middleware } = await import("../middleware");
-
-    const response = await middleware(makePublicRequest("/api/csp-report"));
-
-    expect(response.status).toBe(200);
-    expect(response.headers.get("location")).toBeNull();
-    expect(mocks.getToken).not.toHaveBeenCalled();
-  });
+      expect(response.status).toBe(200);
+      expect(response.headers.get("location")).toBeNull();
+    },
+  );
 
   it("does not override database-backed SVG route content policies", async () => {
     const { middleware } = await import("../middleware");
@@ -387,43 +337,14 @@ describe("middleware role policy adapter", () => {
     expect(adminResponse.headers.get("content-security-policy")).not.toContain("/ingest");
   });
 
-  it("allows public dose.wiki static assets for the construction homepage", async () => {
+  it("serves public static assets directly", async () => {
     const { middleware } = await import("../middleware");
 
     const response = await middleware(makePublicRequest("/icon-512.png"));
 
     expect(response.status).toBe(200);
     expect(response.headers.get("location")).toBeNull();
-    expect(mocks.getToken).not.toHaveBeenCalled();
   });
-
-  it("allows the supporter mark the construction homepage renders", async () => {
-    const { middleware } = await import("../middleware");
-
-    // Not decoration: the holding page is the homepage, so it carries the footer's
-    // supporter credit, and that mark is a CSS mask. A redirect here does not degrade to a
-    // missing image — the lockup prints as a solid block.
-    const response = await middleware(
-      makePublicRequest("/supporters/mindstate-design-labs.webp"),
-    );
-
-    expect(response.status).toBe(200);
-    expect(response.headers.get("location")).toBeNull();
-    expect(mocks.getToken).not.toHaveBeenCalled();
-  });
-
-  it.each(["/robots.txt", "/sitemap.xml"])(
-    "allows public dose.wiki crawler policy endpoint %s during construction",
-    async (path) => {
-      const { middleware } = await import("../middleware");
-
-      const response = await middleware(makePublicRequest(path));
-
-      expect(response.status).toBe(200);
-      expect(response.headers.get("location")).toBeNull();
-      expect(mocks.getToken).not.toHaveBeenCalled();
-    },
-  );
 
   it("allows full public article routes on the admin Vercel host", async () => {
     const { middleware } = await import("../middleware");
@@ -559,8 +480,8 @@ describe("middleware matcher", () => {
   });
 });
 
-describe("preview address space is a dose.wiki gate concept", () => {
-  it("does not open one on the Effect Index build", async () => {
+describe("retired preview addresses are dose.wiki-only", () => {
+  it("does not claim the prefix on an Effect Index build", async () => {
     vi.stubEnv("NEXT_PUBLIC_SITE_FLAVOR", "effectindex");
     vi.resetModules();
 

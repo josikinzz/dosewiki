@@ -4,7 +4,6 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { proseLinkClassName } from "@/components/common/ProseLink";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { toAppPath } from "@/utils/previewPath";
 import {
   buildReplicationViewerUrl,
   closeReplicationViewerUrl,
@@ -71,7 +70,7 @@ export function ArtistShowcase({
     setUnavailableViewerSlug(slug && !belongsToCollection ? slug : null);
     setViewerSlug(belongsToCollection ? slug : null);
     if (params.has("viewer") && !belongsToCollection) {
-      const source = `${toAppPath(window.location.pathname)}${window.location.search}${window.location.hash}`;
+      const source = `${window.location.pathname}${window.location.search}${window.location.hash}`;
       window.history.replaceState(
         window.history.state,
         "",
@@ -87,7 +86,7 @@ export function ArtistShowcase({
   }, [collectionSlugs]);
 
   const launchViewer = useCallback((slug: string) => {
-    const source = `${toAppPath(window.location.pathname)}${window.location.search}${window.location.hash}`;
+    const source = `${window.location.pathname}${window.location.search}${window.location.hash}`;
     setUnavailableViewerSlug(null);
     window.history.pushState(
       { ...window.history.state, replicationViewer: true },

@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { isEditorHost } from "./publicConstructionPolicy";
+import { isEditorHost } from "./publicHostPolicy";
 
 type ReplicationViewerEditorRoute = (request: Request) => Promise<NextResponse>;
 

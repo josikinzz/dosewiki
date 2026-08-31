@@ -302,22 +302,22 @@ _Avoid_: left-aligned wrap, orphan icon row
 
 ## Public Host Language
 
-**Construction Hosts**:
-`dose.wiki` and `www.dose.wiki`, the two public domains held behind the launch gate. They are attached to the same Vercel project as `dosewiki-admin.vercel.app` and serve the same build; only `middleware.ts` tells them apart.
-_Avoid_: production domain vs. admin deployment, the gated project
+**Public Hosts**:
+`dose.wiki` and `www.dose.wiki`, the launched public domains. They are attached to the same Vercel project as the Editor Hosts and serve the same build; `middleware.ts` keeps authenticated editorial surfaces on `dev.dose.wiki`.
+_Avoid_: Construction Hosts, gated project, preview site
 
 **Editor Hosts**:
-`dev.dose.wiki` and `dosewiki-admin.vercel.app`, which serve the whole app ungated — the finished site plus `/dev`, `/review` and sign-in. `dev.dose.wiki` is the canonical one; a Construction Host redirects editor links there rather than to the holding page. Both are closed to crawlers until launch.
-_Avoid_: admin deployment vs. dev subdomain, the staging site
+`dev.dose.wiki` and `dosewiki-admin.vercel.app`, which mirror the application for authenticated work and remain closed to crawlers. `dev.dose.wiki` is canonical; a Public Host redirects `/dev`, `/review`, and sign-in links there.
+_Avoid_: staging site, public mirror, crawlable admin deployment
 
 **Holding Page**:
-What the Construction Hosts answer at the bare `/`: the real homepage with every destination blocked, the Theme Lab withheld, and a pill counting down to the launch floor. It is the `/under-construction` route, reached by rewrite, so the address bar still reads the bare origin.
-_Avoid_: splash page, landing card, coming-soon page
+The blocked homepage implemented at `/under-construction`, retained for explicit deployment-wide construction mode and local inspection. It is no longer the public root.
+_Avoid_: public homepage, launch gate
 
-**Preview Address Space**:
-The `/preview` prefix under which the Construction Hosts serve the finished site before launch — `/preview/home` is the homepage, `/preview/substances` the Substance Index. It is an address, not a route tree: the middleware rewrites it onto the ordinary page it mirrors, and a bare path on those hosts redirects into it, so no `href` is ever written with the prefix.
-_Avoid_: preview routes, preview mode, staging path, mirror site
+**Retired Preview Address Space**:
+The compatibility-only `/preview` prefix used before launch. Middleware permanently redirects these old addresses to App Paths (`/preview/home` → `/`, `/preview/substances` → `/substances`) and preserves query parameters.
+_Avoid_: preview routes, preview mode, canonical path
 
 **App Path**:
-A pathname as the route tree models it, with any Preview Address Space prefix stripped — what `toAppPath()` returns and what every client route comparison must use.
-_Avoid_: raw pathname, request path
+The permanent pathname modeled by the route tree and used by every public link. It never contains the retired `/preview` prefix.
+_Avoid_: preview-prefixed href, temporary launch address

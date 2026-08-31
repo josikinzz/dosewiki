@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { SITE_FLAVOR } from "@/config/siteFlavor";
 import { readEditorHint } from "@/lib/auth/editorHint";
 import { cn } from "@/lib/utils";
-import { isEditorHost } from "@server/next/publicConstructionPolicy";
+import { isEditorHost } from "@server/next/publicHostPolicy";
 import type { ReplicationViewerCollection } from "../viewerModel";
 
 // Deliberate chunk boundary: the public viewer must never eagerly receive editor code.

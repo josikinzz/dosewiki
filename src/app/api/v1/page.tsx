@@ -69,7 +69,7 @@ const endpoints = [
 ] as const;
 
 const fetchExample = `const response = await fetch(
-  "https://dosewiki-admin.vercel.app/api/v1/substances/mdma"
+  "https://dose.wiki/api/v1/substances/mdma"
 );
 
 if (!response.ok) throw new Error(\`DoseWiki API: \${response.status}\`);

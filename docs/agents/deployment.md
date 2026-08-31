@@ -12,33 +12,22 @@ This repo is linked to Vercel. Treat this file as the repo-local deployment/acco
 ### Domain routing invariant
 
 - `dosewiki-admin` is the one project. Four hosts are attached to it and one
-  production deploy serves all of them: `dose.wiki` and `www.dose.wiki` (gated),
-  `dev.dose.wiki` and `dosewiki-admin.vercel.app` (ungated).
-- Keep `dose.wiki` and `www.dose.wiki` construction-gated through
-  **2026-08-31**. The date is a floor, not an automatic launch: after it passes,
-  keep the gate until the user explicitly authorizes the public launch.
-- What separates the hosts is `middleware.ts`, not the deployment. The gated
-  pair answers the holding page at `/` and the `/preview` address space
-  everywhere else; the ungated pair serves the site unprefixed. That gate is the
-  only thing holding the launch, so fix routing bugs inside it rather than by
-  relaxing it.
-- `dev.dose.wiki` is the editor's address. A gated host redirects `/dev`,
-  `/review`, `/sign-in` and `/unauthorized` there — bare or preview-prefixed —
-  rather than bouncing them to the holding page, so an editor link typed against
-  the public domain still resolves. Credentialed endpoints (`/api/auth`,
-  `/api/dev`, `/api/save-user-profile`) are never handed off: a cross-origin
-  redirect arrives without cookies, and the caller would read that as a
-  signed-out session rather than as the wrong host.
-- Both ungated hosts answer `Disallow: /` and an empty sitemap. They serve the
-  finished site months before publication, so neither may be indexed.
-- The construction-host gate passes the read-only `/api/v1` API and its descendants.
-- It also passes `/api/csp-report` because the enforced CSP uses `report-uri`.
-- That endpoint accepts only size-limited, rate-limited, redacted violation reports.
-- It does not expose application data or editor APIs.
-- Keep `NEXT_PUBLIC_SITE_URL` pointed at the crawlable full-app host
-  (`https://dosewiki-admin.vercel.app` or the active admin preview URL) while the
-  public hosts are gated. Switch it to `https://dose.wiki` only after the launch
-  floor has passed and the user has explicitly authorized launch.
+  production deploy serves all of them: `dose.wiki` and `www.dose.wiki`
+  (public), `dev.dose.wiki` and `dosewiki-admin.vercel.app` (editor).
+- The public hosts launched at the 2026-08-31 floor after explicit user
+  authorization. They serve ordinary App Paths and are crawlable.
+- `middleware.ts` keeps host-specific boundaries: public-host `/dev`, `/review`,
+  `/sign-in`, and `/unauthorized` links redirect to `dev.dose.wiki`.
+  Credentialed endpoints (`/api/auth`, `/api/dev`, `/api/save-user-profile`)
+  remain unavailable on the public origin because a cross-origin redirect would
+  lose cookies and misreport the caller as signed out.
+- Both editor hosts answer `Disallow: /` and an empty sitemap. They mirror the
+  application for authenticated work and must not compete with the public site.
+- The public read-only `/api/v1` API and `/api/csp-report` are available on the
+  launched origin. The CSP endpoint accepts only size-limited, rate-limited,
+  redacted violation reports; it exposes neither application data nor editor APIs.
+- The dose.wiki flavor defaults its canonical base to `https://dose.wiki`.
+  `NEXT_PUBLIC_SITE_URL` may override it only for an intentional alternate build.
 - `NEXT_PUBLIC_SITE_FLAVOR` picks the publication identity at build time: unset / unrecognised = dose.wiki, `effectindex` = Effect Index. The `dosewiki-admin` project must leave it unset. A typo silently falls back to dose.wiki, so the build logs a runtime-env warning when the variable is set to an unrecognised value.
 - Remote analytics must remain limited to the exact public host allowlist. PostHog initialises only on `dose.wiki`/`www.dose.wiki`, and only when `NEXT_PUBLIC_POSTHOG_KEY` is set; admin and Vercel preview HTML must not load it. Leave that variable unset on the Effect Index project so the credential-free deployment stays analytics-free.
 - HTML responses must retain the path-split browser policy documented in [browser-security-policy.md](browser-security-policy.md): public documents use the static-compatible `script-src` (`'unsafe-inline'`, no nonce/hash) so ISR stays effective; `/dev` documents keep the strict nonce-plus-hash policy. Plain `'unsafe-eval'` remains forbidden everywhere.
@@ -276,63 +265,40 @@ write path.
 
 `NEXT_PUBLIC_HOME_CONSTRUCTION_MODE` is **left unset** on the Effect Index project. Effect Index launches as a live public site, so it must not serve the holding page.
 
-### The holding page is the homepage
+### Holding page and retired preview addresses
 
-There is one blocked surface, `src/app/_components/ConstructionLanding.tsx`: the
-live homepage — real header, hero, tile grid, appearance cog — with every
-destination answering "SOON" instead of navigating, and with the Theme Lab
-withheld. It is reached two ways because the gate is:
+`src/app/_components/ConstructionLanding.tsx` remains available at
+`/under-construction` for local inspection. Setting
+`NEXT_PUBLIC_HOME_CONSTRUCTION_MODE=true` still replaces `/` for an entire
+build; the production dose.wiki project must leave it unset.
 
-- **Per host.** The middleware rewrites `/` on `dose.wiki` and `www.dose.wiki`
-  to `/under-construction`. This is the production mechanism, and the only one
-  that can hold one host back while the same build serves the full site on
-  `dosewiki-admin`.
-- **Per deployment.** `NEXT_PUBLIC_HOME_CONSTRUCTION_MODE=true` puts it at `/`
-  for a whole build, on either flavor.
+The landing's historical countdown targets midnight at the start of 2026-08-31,
+America/Los_Angeles (`LAUNCH_AT_MS` in
+[`src/utils/launchCountdown.ts`](../../src/utils/launchCountdown.ts)). Reaching
+zero never changed routing; the production gate was removed only after explicit
+launch authorization.
 
-To see it locally, open `/under-construction`; no environment variable needed.
+The former `/preview` address space is compatibility-only:
 
-The banner carries a live countdown to the launch floor. The instant is
-`LAUNCH_AT_MS` in [`src/utils/launchCountdown.ts`](../../src/utils/launchCountdown.ts):
-midnight at the *start* of 2026-08-31, America/Los_Angeles. The landing is
-prerendered, so the server renders the date as a label and the clock starts on
-mount; reaching zero stops the clock and unblocks nothing on its own.
+- `/preview`, `/preview/`, and `/preview/home` permanently redirect to `/`.
+- `/preview/<path>` permanently redirects to `/<path>` with its query preserved.
+- Alias and legacy-search normalization run first, so old links reach the final
+  canonical path without an extra redirect.
+- Public-host editor links still hand off to `dev.dose.wiki`; credentialed editor
+  APIs remain unavailable on the public origin.
+- `/preview` stays in the robots disallow list while old crawlers age out.
 
-### The `/preview` address space
-
-The construction hosts serve the finished site under `/preview`, so the whole
-application is usable on the real domain before launch:
-
-- `dose.wiki/preview/home` is the homepage, `dose.wiki/preview/substances` is
-  the Substance Index, and every other route mirrors the same way. `/preview`
-  alone resolves to the homepage too.
-- The middleware **rewrites** a preview address onto the route it mirrors, so
-  the address bar keeps the prefix while Next renders the ordinary page.
-- On the construction hosts, a **bare** non-allowlisted path is redirected
-  *into* the prefix (`/2c-b` → `/preview/2c-b`). That is what makes an ordinary
-  in-page `<Link href="/2c-b">` work without prefixing a single href, and it
-  keeps `/preview` the canonical address rather than one of two live spellings.
-- `/` is untouched: the bare construction host is still the holding page.
-- The editor, review workbench, sign-in and credentialed APIs have **no**
-  preview address on any host
-  (`isConstructionPreviewBlockedPath`, `lib/next/publicConstructionPolicy.ts`).
-  On the construction hosts they still bounce to `/`.
-- `/preview` is in the robots disallow list, and the construction hosts already
-  disallow everything but `/$`, so the mirror is never the indexed address.
-
-Client code must read route identity through `toAppPath()`
-([`src/utils/previewPath.ts`](../../src/utils/previewPath.ts)) rather than
-`usePathname()` directly, or every pathname branch — chrome shape, active nav,
-page titles — silently falls through under the prefix.
+Never write a new `/preview` href. Public and client routing use ordinary App
+Paths.
 
 ### Caveat: middleware does not run under `next dev`
 
 `next dev` compiles `middleware.ts` and writes it into the dev manifest, but
-never invokes it: no security headers, no construction gate, no `/preview`
-rewrite, no `/search/<q>` redirect. The same request served by `next build &&
-next start` — and by Vercel — runs all of it. Anything host- or
-middleware-shaped must therefore be verified against a production server or a
-preview deployment; a dev-server check will silently pass.
+never invokes it: no security headers, host-specific editor handoff,
+`/preview` compatibility redirect, or `/search/<q>` redirect. The same request
+served by `next build && next start` — and by Vercel — runs all of it.
+Host- or middleware-shaped work must therefore be verified against a production
+server or deployment.
 
 ### dose.wiki project environment
 
@@ -346,12 +312,12 @@ either rule.
 
 - `effectindex.com` is attached to the Effect Index Vercel project as its primary domain.
 - `www.effectindex.com` is attached as a **redirect to the apex** `effectindex.com`.
-- This is independent of the `dose.wiki` / `www.dose.wiki` construction-host gate described above, which stays on `dosewiki-admin`.
+- This is independent of the launched `dose.wiki` / `www.dose.wiki` hosts on `dosewiki-admin`.
 
 ### Analytics domain (`analytics.dose.wiki`)
 
 - `analytics.dose.wiki` is a **307 redirect to a public PostHog shared dashboard**, served by its own minimal Vercel project (`ph-redirect`). It contains no application code.
-- It is deliberately **not** attached to `dosewiki-admin`. `analytics.dose.wiki` is absent from `PUBLIC_CONSTRUCTION_HOSTS`, so routing it through the app would fall past the construction gate and serve the full app — `/dev` included — at a third hostname.
+- It is deliberately **not** attached to `dosewiki-admin`. Routing it through the application would serve the full public site at an unintended third hostname and blur the editor/public host policy.
 - The redirect is tracked at `infra/analytics-redirect/vercel.json`. Redeploy it from a directory **outside this repository**, linking to the existing project so a bare deploy does not create a second one:
 
   ```sh
@@ -382,13 +348,19 @@ On `effectindex.com`:
 - [ ] `/sitemap.xml` lists the Effect Index-only routes.
 - [ ] `/sign-in` and the editor routes fail — confirm this, it is the expected read-only posture.
 
-On `dose.wiki` / `dosewiki-admin`:
+On `dose.wiki` / `www.dose.wiki`:
 
-- [ ] Appearance unchanged.
-- [ ] Both appearance axes work: the day/night toggle is a reader preference on
-  both publications, and dose.wiki additionally exposes the Fun/Pro visual-style
-  toggle. Effect Index locks the style to Pro and must not offer that control.
-- [ ] The blog resolves. Effect Index-only routes return 404: `/donate`, `/contact`, `/discord`, `/copyright-disclaimer`, and `/documentation-style-guide`.
+- [ ] `/` serves the real homepage; representative substance, effect, report,
+  article, blog, and replication routes render without `/preview`.
+- [ ] `/preview/home` and `/preview/substances?tab=common` return permanent
+  redirects to `/` and `/substances?tab=common`.
+- [ ] Canonical, Open Graph, structured-data, robots, and sitemap URLs use
+  `https://dose.wiki`.
+- [ ] `/dev`, `/review`, and `/sign-in` hand off to `dev.dose.wiki`; editor APIs
+  remain unavailable on the public origin.
+- [ ] Both appearance axes work: day/night and Fun/Pro.
+- [ ] Effect Index-only routes return 404: `/donate`, `/contact`, `/discord`,
+  `/copyright-disclaimer`, and `/documentation-style-guide`.
 
 ### Verifying the Effect Index build locally
 

@@ -108,9 +108,8 @@ function resolveEffectIndexHomeCopy(copy: CopyResolver): EffectIndexHomeCopy {
  * content panels. The flavor is a build-time constant, so only one of these two branches is
  * ever reachable in a given build — the dose.wiki path below is byte-for-byte what it was.
  *
- * The holding page takes precedence on either flavor: under construction mode the whole
- * deployment is held back, so `ConstructionLanding` — the same blocked surface the
- * construction hosts reach at `/under-construction` — stays in front of both layouts.
+ * Explicit deployment-wide construction mode takes precedence on either flavor and renders
+ * the retained blocked surface from `ConstructionLanding`.
  */
 export default async function HomePage() {
   if (env.NEXT_PUBLIC_HOME_CONSTRUCTION_MODE === "true") {

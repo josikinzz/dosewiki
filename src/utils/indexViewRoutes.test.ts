@@ -53,9 +53,9 @@ describe("canonical index view routes", () => {
     expect(parseLegacyEffectIndexHash("#Cognitive")).toBe("cognitive");
     expect(parseLegacyEffectIndexHash("#visual-gamma")).toBeNull();
   });
-  it("keeps client-side view changes inside the Preview Address Space", () => {
-    window.history.replaceState({}, "", "/preview/effects");
+  it("writes client-side view changes to canonical App Paths", () => {
+    window.history.replaceState({}, "", "/effects");
     replaceCurrentIndexViewPath("/effects/group/physical");
-    expect(window.location.pathname).toBe("/preview/effects/group/physical");
+    expect(window.location.pathname).toBe("/effects/group/physical");
   });
 });

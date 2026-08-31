@@ -26,7 +26,6 @@ import {
 import { ReplicationViewerOverlay } from "@/features/replications/viewer/ReplicationViewerOverlay";
 import type { ReplicationViewerCollection } from "@/features/replications/viewer/viewerModel";
 import { publicHref } from "@/utils/publicHref";
-import { toAppPath } from "@/utils/previewPath";
 import { resolveRouteChromeIcon } from "@/utils/routeChromeIcons";
 import {
   dismissViewerDeepLinkCover,
@@ -248,7 +247,7 @@ export function ReplicationShowcase({
     setUnavailableViewerSlug(slug && !belongsToCollection ? slug : null);
     setViewerSlug(belongsToCollection ? slug : null);
     if (params.has("viewer") && !belongsToCollection) {
-      const source = `${toAppPath(window.location.pathname)}${window.location.search}${window.location.hash}`;
+      const source = `${window.location.pathname}${window.location.search}${window.location.hash}`;
       window.history.replaceState(
         window.history.state,
         "",
@@ -272,7 +271,7 @@ export function ReplicationShowcase({
       controller.onOpenWork(slug);
       return;
     }
-    const source = `${toAppPath(window.location.pathname)}${window.location.search}${window.location.hash}`;
+    const source = `${window.location.pathname}${window.location.search}${window.location.hash}`;
     setUnavailableViewerSlug(null);
     window.history.pushState(
       { ...window.history.state, replicationViewer: true },

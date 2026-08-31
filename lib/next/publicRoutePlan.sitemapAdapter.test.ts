@@ -52,24 +52,24 @@ describe("public sitemap adapter", () => {
       await buildSitemapEntries(dosewikiSite, SITE_FLAVOR_CONFIGS.dosewiki),
     ).toEqual([
       {
-        url: "https://dosewiki-admin.vercel.app/",
+        url: "https://dose.wiki/",
         changeFrequency: "daily",
         priority: 1,
       },
       {
-        url: "https://dosewiki-admin.vercel.app/lsd",
+        url: "https://dose.wiki/lsd",
         changeFrequency: "weekly",
         priority: 0.8,
       },
       {
-        url: "https://dosewiki-admin.vercel.app/reports/first-trip",
+        url: "https://dose.wiki/reports/first-trip",
         changeFrequency: "weekly",
         priority: 0.6,
       },
       // dose.wiki owns /blog now too, so the flavor-gated branch appends its index
       // even when the build has no posts yet.
       {
-        url: "https://dosewiki-admin.vercel.app/blog",
+        url: "https://dose.wiki/blog",
         changeFrequency: "weekly",
         priority: 0.8,
       },

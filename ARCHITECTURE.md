@@ -117,7 +117,7 @@ Generated build output, coverage, archives, and planning notes are operational a
 
 Both public site flavors are built from the Next.js App Router tree under `src/app/`.
 
-The complete dose.wiki build is available at `https://dosewiki-admin.vercel.app/`. `dose.wiki` and `www.dose.wiki` remain construction-gated through 2026-08-31 and require explicit user authorization to launch.
+The complete dose.wiki build is live at `https://dose.wiki/` and `https://www.dose.wiki/`. Authenticated editorial work remains on `https://dev.dose.wiki/`.
 
 Representative public route families:
 
@@ -140,7 +140,7 @@ Public route behavior:
 
 - Server components fetch Convex data through `lib/convex/publicData.ts` and `lib/convex/publicLibrary.ts`.
 - Route-level `revalidate` and `generateStaticParams` declarations are effective because the shared root layout does not consume request-bound APIs.
-- The read-only `/api/v1` surface exposes versioned, public-safe substance projections with cursor pagination, wildcard read CORS, CDN caching, and a dedicated rate-limit policy. These routes are narrowly allowed through the public construction-host gate.
+- The read-only `/api/v1` surface exposes versioned, public-safe substance projections with cursor pagination, wildcard read CORS, CDN caching, and a dedicated rate-limit policy on the launched public origin.
 - Metadata is built through `lib/next/metadata.ts`.
 - Static route generation is planned through `lib/next/staticParams.ts`.
 - Sitemap planning is handled in `lib/next/sitemap.ts` and surfaced at `src/app/sitemap.ts`.

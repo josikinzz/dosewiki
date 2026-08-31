@@ -1,0 +1,68 @@
+export const PUBLIC_HOSTS: Record<string, true> = {
+  "dose.wiki": true,
+  "www.dose.wiki": true,
+};
+
+export function normalizeHost(host: string | null | undefined): string {
+  return host?.split(":")[0]?.toLowerCase() ?? "";
+}
+
+export function isPublicHost(host: string | null | undefined): boolean {
+  return PUBLIC_HOSTS[normalizeHost(host)] === true;
+}
+
+/**
+ * The host that owns authenticated editorial surfaces.
+ *
+ * Keeping sessions on one host avoids cross-origin redirects that silently discard
+ * authentication cookies.
+ */
+export const EDITOR_DEPLOYMENT_ORIGIN = "https://dev.dose.wiki";
+
+/** Non-public hosts that must remain closed to crawlers. */
+export const EDITOR_HOSTS: Record<string, true> = {
+  "dev.dose.wiki": true,
+  "dosewiki-admin.vercel.app": true,
+};
+
+export function isEditorHost(host: string | null | undefined): boolean {
+  return EDITOR_HOSTS[normalizeHost(host)] === true;
+}
+
+const EDITOR_HANDOFF_PREFIXES: readonly string[] = [
+  "/dev",
+  "/review",
+  "/sign-in",
+  "/unauthorized",
+];
+
+/**
+ * Credentialed endpoints stay off the public origin. Redirecting them to the editor would
+ * drop their cookies, so public-host requests are rejected before route handling instead.
+ */
+const PUBLIC_RESTRICTED_API_PREFIXES: readonly string[] = [
+  "/api/auth",
+  "/api/dev",
+  "/api/save-user-profile",
+];
+
+function matchesPrefix(pathname: string, prefixes: readonly string[]): boolean {
+  return prefixes.some((prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`));
+}
+
+export function isPublicRestrictedPath(pathname: string): boolean {
+  return matchesPrefix(pathname, PUBLIC_RESTRICTED_API_PREFIXES);
+}
+
+/** Resolve a public-origin editor link on the host that owns its authenticated session. */
+export function getEditorHandoffUrl(
+  appPath: string,
+  search: string,
+  publicHost: boolean,
+): URL | null {
+  if (!publicHost || !matchesPrefix(appPath, EDITOR_HANDOFF_PREFIXES)) {
+    return null;
+  }
+
+  return new URL(`${appPath}${search}`, EDITOR_DEPLOYMENT_ORIGIN);
+}

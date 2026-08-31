@@ -1,7 +1,6 @@
 import type { MetadataRoute } from "next";
 import { buildPageMetadata } from "./metadata";
 import { buildSiteUrl, PUBLIC_SITE, type PublicSiteIdentity } from "./publicSite";
-import { buildPublicConstructionRobotsPolicy } from "./publicConstructionPolicy";
 import { getPublicHref, type PublicHrefIntent } from "@/utils/publicHref";
 import { PREVIEW_PATH_PREFIX } from "@/utils/previewPath";
 import type { DevRouteDecision } from "@/lib/auth/roles";
@@ -122,18 +121,12 @@ export function buildNoIndexPageMetadata(input: {
 
 export function buildRobotsPolicy(
   options: {
-    publicConstructionHost?: boolean;
     editorHost?: boolean;
     site?: PublicSiteIdentity;
   } = {},
 ): MetadataRoute.Robots {
-  if (options.publicConstructionHost) {
-    return buildPublicConstructionRobotsPolicy();
-  }
-
-  // The working deployment answers with the finished site months before it is published,
-  // so it is closed to crawlers outright. The gated public hosts allow their one holding
-  // page; this one has nothing that should rank at all.
+  // The editor deployment mirrors the application for authenticated work and remains
+  // closed to crawlers.
   if (options.editorHost) {
     return { rules: { userAgent: "*", disallow: "/" } };
   }
@@ -144,8 +137,8 @@ export function buildRobotsPolicy(
       allow: "/",
       disallow: [
         ...noIndexRoutePolicies.map((policy) => policy.robotsDisallow),
-        // `/preview/...` mirrors ordinary routes for the gated public domain. It is the
-        // same content at a second address, so it must never be the indexed one.
+        // Retired preview links redirect permanently; keep crawlers away while old
+        // pre-launch URLs age out of indexes.
         PREVIEW_PATH_PREFIX,
       ],
     },

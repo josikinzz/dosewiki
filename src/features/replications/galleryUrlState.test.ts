@@ -100,19 +100,6 @@ describe("replication viewer URL state", () => {
     );
   });
 
-  it("emits App Paths when called from the Preview Address Space", () => {
-    expect(
-      buildReplicationViewerUrl(
-        "/preview/effects/tracers?smoke=1",
-        "first-work",
-      ),
-    ).toBe("/effects/tracers?smoke=1&viewer=first-work");
-    expect(
-      closeReplicationViewerUrl(
-        "/preview/effects/tracers?smoke=1&viewer=first-work",
-      ),
-    ).toBe("/effects/tracers?smoke=1");
-  });
 
   it("closes only the viewer and preserves the collection URL", () => {
     expect(

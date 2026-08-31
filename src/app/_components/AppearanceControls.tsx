@@ -27,10 +27,9 @@ import { AppearanceCog } from "./AppearanceCog";
  * button directly never fights an intermediate box for the offset.
  * `iconSize` changes only the glyph; the trigger keeps its 44px hit target.
  *
- * `allowThemeLab` is the caller's veto over that drawer, not a second policy: the
- * pre-launch holding page mounts this control so a visitor can still pick an appearance,
- * but the Lab authors and shares palettes through routes the construction hosts do
- * not serve, so there the drawer is withheld.
+ * `allowThemeLab` is the caller's veto over that drawer, not a second policy. The retained
+ * holding surface lets a visitor choose an appearance while deliberately withholding
+ * authoring and sharing controls.
  */
 export function AppearanceControls({
   className,

@@ -90,9 +90,9 @@ describe("status and redirect policy", () => {
     const rules = Array.isArray(robots.rules) ? robots.rules[0] : robots.rules;
     const disallow = Array.isArray(rules.disallow) ? rules.disallow : [rules.disallow];
 
-    expect(robots.sitemap).toBe("https://dosewiki-admin.vercel.app/sitemap.xml");
-    // `/preview` is not a no-index *route* — it is a second address for every route, so
-    // it is disallowed alongside them rather than through `noIndexRoutePolicies`.
+    expect(robots.sitemap).toBe("https://dose.wiki/sitemap.xml");
+    // Retired `/preview` addresses redirect, but remain disallowed while old crawl records
+    // age out.
     expect(disallow).toEqual([
       "/dev",
       "/review",
@@ -104,28 +104,11 @@ describe("status and redirect policy", () => {
     expect(noIndexRoutePolicies.every((policy) => disallow.includes(policy.robotsDisallow))).toBe(true);
   });
 
-  it("serves a construction-safe robots policy on public launch hosts", () => {
-    expect(buildRobotsPolicy({ publicConstructionHost: true })).toEqual({
-      rules: {
-        userAgent: "*",
-        allow: "/$",
-        disallow: "/",
-      },
-    });
-  });
 
-  it("closes the working deployment to crawlers entirely", () => {
-    // It answers with the finished site months before publication, so unlike the gated
-    // public hosts it has no page worth allowing - not even a root.
+  it("closes the editor deployment to crawlers entirely", () => {
     expect(buildRobotsPolicy({ editorHost: true })).toEqual({
       rules: { userAgent: "*", disallow: "/" },
     });
-
-    // The gate outranks it: `dose.wiki` is never both, but the precedence is what keeps
-    // the holding page reachable if the sets ever overlap.
-    expect(buildRobotsPolicy({ publicConstructionHost: true, editorHost: true })).toEqual(
-      buildRobotsPolicy({ publicConstructionHost: true }),
-    );
   });
 
   it("snapshots status recovery link intents", () => {

@@ -13,10 +13,7 @@ export const metadata: Metadata = {
   },
 };
 
-/**
- * The construction hosts' `/`. The middleware rewrites rather than redirects, so the
- * address bar still reads the bare origin; this route is what it serves there.
- */
+/** Direct route for inspecting the retained holding surface. */
 export default function UnderConstructionPage() {
   return <ConstructionLanding />;
 }

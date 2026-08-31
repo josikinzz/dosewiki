@@ -357,7 +357,7 @@ hostnames, so it is absent from admin, Vercel preview, and local sessions.
 Middleware applies a path- and host-aware policy. Public documents use
 `script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval'` so Next.js can serve
 statically generated and ISR documents without a request-bound nonce; the policy
-adds the analytics origin only on the exact public construction hosts. Protected
+adds the analytics origin only on the exact public hosts. Protected
 `/dev` documents remain request-rendered and receive a fresh nonce plus hashes for
 the deterministic Zod and theme bootstrap scripts. Middleware forwards that
 nonce-bearing CSP to Next.js so its framework and hydration scripts receive the

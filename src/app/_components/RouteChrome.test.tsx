@@ -113,38 +113,20 @@ describe("useResetScrollOnPathnameChange", () => {
 });
 
 describe("isChromelessAddress", () => {
-  it("stands the header down on the construction hosts' bare root", () => {
-    // The rewrite means the server rendered `/under-construction` here, so its HTML has
-    // no header. Hydration has to reach the same answer from the address `/` plus the
-    // host, or the landing gets a second one stacked above its own.
-    for (const host of ["dose.wiki", "www.dose.wiki", "dose.wiki:443"]) {
-      expect(isChromelessAddress("/", "/", { host })).toBe(true);
-    }
-
-    expect(isChromelessAddress("/under-construction", "/under-construction", {})).toBe(true);
-    expect(isChromelessAddress("/", "/", { homeConstructionMode: true })).toBe(true);
+  it("serves the launched homepage with public chrome", () => {
+    expect(isChromelessAddress("/")).toBe(false);
   });
 
-  it("leaves the preview homepage its chrome on those same hosts", () => {
-    // `/preview/home` models `/`, so an app-path check alone would strip the header from
-    // the one address that exists to show the finished site.
-    expect(isChromelessAddress("/preview/home", "/", { host: "dose.wiki" })).toBe(false);
-    expect(isChromelessAddress("/preview/substances", "/substances", { host: "dose.wiki" })).toBe(
-      false,
-    );
+  it("keeps explicit construction-mode surfaces chromeless", () => {
+    expect(isChromelessAddress("/under-construction")).toBe(true);
+    expect(isChromelessAddress("/", { homeConstructionMode: true })).toBe(true);
   });
 
-  it("keeps the header everywhere the gate does not apply", () => {
-    expect(isChromelessAddress("/", "/", { host: "dosewiki-admin.vercel.app" })).toBe(false);
-    expect(isChromelessAddress("/", "/", { host: null })).toBe(false);
-    expect(isChromelessAddress("/fentanyl", "/fentanyl", { host: "dose.wiki" })).toBe(false);
-  });
-
-  it("still withholds it from the full-bleed editor surfaces", () => {
+  it("still withholds chrome from full-bleed editor surfaces", () => {
     for (const pathname of ["/mantras", "/review", "/review/fentanyl"]) {
-      expect(isChromelessAddress(pathname, pathname, {})).toBe(true);
+      expect(isChromelessAddress(pathname)).toBe(true);
     }
 
-    expect(isChromelessAddress("/reviews", "/reviews", {})).toBe(false);
+    expect(isChromelessAddress("/reviews")).toBe(false);
   });
 });
