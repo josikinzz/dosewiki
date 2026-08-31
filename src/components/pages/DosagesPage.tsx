@@ -395,6 +395,7 @@ export function DosagesPage({
             title="Substance Index"
             icon={SUBSTANCE_INDEX_ICON}
             prominentMobileIcon
+            description="Under construction — entries may be incomplete or inaccurate."
           />
         </div>
       </div>
