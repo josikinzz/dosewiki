@@ -109,7 +109,7 @@ export function buildSiteUrl(pathname = "/", site: PublicSiteIdentity = PUBLIC_S
 }
 
 export function buildSiteAssetUrl(pathname: string, site: PublicSiteIdentity = PUBLIC_SITE): string {
-  return buildSiteUrl(pathname, site);
+  return /^https?:\/\//i.test(pathname) ? new URL(pathname).toString() : buildSiteUrl(pathname, site);
 }
 
 function buildMetaDescription(description: string, siteName: string): string {

@@ -34,6 +34,12 @@ describe("public site identity", () => {
     expect(buildSiteAssetUrl("/icon-512.png", DOSEWIKI_SITE)).toBe(
       "https://dose.wiki/icon-512.png",
     );
+    expect(
+      buildSiteAssetUrl(
+        "https://dosewiki-media.gremblinzuwu.workers.dev/media/sha256/ab/card.jpg",
+        DOSEWIKI_SITE,
+      ),
+    ).toBe("https://dosewiki-media.gremblinzuwu.workers.dev/media/sha256/ab/card.jpg");
   });
 
   it("uses the launched public domain as the canonical fallback", () => {
