@@ -170,12 +170,13 @@ function buildGroupsFromLayout(
     const allDrugs = allSections.length > 0
       ? allSections.flatMap((s) => s.drugs)
       : topLevelDrugs;
+    const uniqueDrugCount = new Set(allDrugs.map((drug) => drug.slug)).size;
 
     return {
       key: category.key,
       name: category.label,
       icon: getCategoryIcon(category.iconKey),
-      total: allDrugs.length,
+      total: uniqueDrugCount,
       drugs: allDrugs,
       sections: allSections.length > 0 ? allSections : undefined,
       columns: category.columns,

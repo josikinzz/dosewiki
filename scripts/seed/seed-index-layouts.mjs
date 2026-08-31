@@ -6,7 +6,7 @@
  * indexLayouts table in Convex.
  *
  * Usage:
- *   VITE_CONVEX_URL=https://enchanted-echidna-791.convex.cloud node scripts/seed-index-layouts.mjs
+ *   TARGET_CONVEX_URL=https://glad-minnow-656.convex.cloud node scripts/seed/seed-index-layouts.mjs --type psychoactive --dry-run
  */
 
 import { ConvexHttpClient } from "convex/browser";
@@ -26,12 +26,17 @@ const command = createProductionWriteCommand({
   operation: "seed-index-layouts",
 });
 
-// Index files to process
+const typeIndex = process.argv.indexOf("--type");
+const requestedType = typeIndex >= 0 ? process.argv[typeIndex + 1] : undefined;
 const INDEX_FILES = [
   { type: "psychoactive", file: "psychoactiveIndexManual.json" },
   { type: "chemical", file: "chemicalIndexManual.json" },
   { type: "mechanism", file: "mechanismIndexManual.json" },
-];
+].filter(({ type }) => requestedType === undefined || type === requestedType);
+
+if (requestedType !== undefined && INDEX_FILES.length === 0) {
+  throw new Error(`Unknown index layout type: ${requestedType}`);
+}
 
 async function seedIndexLayouts() {
   printProductionWriteCommand(command);

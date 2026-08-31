@@ -26,18 +26,25 @@ export const buildCategorySlugStatuses = (
   category: ManualCategoryDefinition,
   resolveSlugStatus: ResolveSlugStatus,
 ): Map<string, SlugStatus> => {
-  const slugCounts = computeSlugCounts(category);
   const statuses = new Map<string, SlugStatus>();
 
-  category.drugs.forEach((slug) => {
-    statuses.set(slug, resolveSlugStatus(slug, slugCounts));
-  });
-
-  category.sections.forEach((section) => {
-    section.drugs.forEach((slug) => {
-      statuses.set(slug, resolveSlugStatus(slug, slugCounts));
+  const registerList = (slugs: readonly string[]) => {
+    const counts = new Map<string, number>();
+    slugs.forEach((slug) => {
+      const normalized = slugify(slug);
+      if (normalized) {
+        counts.set(normalized, (counts.get(normalized) ?? 0) + 1);
+      }
     });
-  });
+    slugs.forEach((slug) => {
+      const status = resolveSlugStatus(slug, counts);
+      const previous = statuses.get(slug);
+      statuses.set(slug, previous?.issues.includes("duplicate") ? previous : status);
+    });
+  };
+
+  registerList(category.drugs);
+  category.sections.forEach((section) => registerList(section.drugs));
 
   return statuses;
 };

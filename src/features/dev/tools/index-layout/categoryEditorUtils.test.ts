@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import type { ManualCategoryDefinition, ManualCategorySection } from "./types";
 import {
+  buildCategorySlugStatuses,
   collectNormalizedCategorySlugs,
   computeSlugCounts,
   removeCategorySection,
@@ -47,6 +48,31 @@ describe("categoryEditorUtils", () => {
 
     expect(counts.get("alpha-entry")).toBe(2);
     expect(counts.get("beta-entry")).toBe(1);
+  });
+
+  it("allows one common and one class placement while rejecting same-list repeats", () => {
+    const resolve = (slug: string, counts: Map<string, number>) => ({
+      slug,
+      issues: (counts.get(slug) ?? 0) > 1 ? ["duplicate" as const] : [],
+    });
+    const dualMembership = baseCategory({
+      drugs: [],
+      sections: [
+        baseSection({ key: "common", label: "Common", drugs: ["alprazolam"] }),
+        baseSection({ key: "benzodiazepines", label: "Benzodiazepines", drugs: ["alprazolam"] }),
+      ],
+    });
+    expect(buildCategorySlugStatuses(dualMembership, resolve).get("alprazolam")?.issues).toEqual([]);
+
+    const repeatedInSection = baseCategory({
+      drugs: [],
+      sections: [
+        baseSection({ key: "common", label: "Common", drugs: ["alprazolam", "alprazolam"] }),
+      ],
+    });
+    expect(buildCategorySlugStatuses(repeatedInSection, resolve).get("alprazolam")?.issues).toEqual([
+      "duplicate",
+    ]);
   });
 
   it("resolves the category column using responsive overrides before legacy fallbacks", () => {

@@ -40,15 +40,19 @@
             "4-ho-dipt",
             "4-ho-met",
             "4-ho-mipt",
+            "5-meo-dmt",
             "5-meo-dipt",
             "5-meo-mipt",
+            "ayahuasca",
             "amt",
             "det",
             "dipt",
+            "dmt",
             "dpt",
             "ept",
             "ibogaine",
             "met",
+            "psilocybin-mushrooms",
             "psilocin"
           ],
           "key": "tryptamine",
@@ -66,6 +70,7 @@
             "al-lad",
             "ald-52",
             "eth-lad",
+            "lsd",
             "lsa",
             "lsz",
             "mipla"
@@ -76,6 +81,7 @@
         {
           "drugs": [
             "2c-b-an",
+            "2c-b",
             "2c-b-fly",
             "2c-c",
             "2c-d",
@@ -98,6 +104,7 @@
             "allylescaline",
             "escaline",
             "methallylescaline",
+            "mescaline",
             "proscaline"
           ],
           "key": "scaline",
@@ -179,9 +186,11 @@
             "deschloroketamine",
             "dmxe",
             "hxe",
+            "ketamine",
             "methoxetamine",
             "o-pce",
-            "pce"
+            "pce",
+            "pcp"
           ],
           "key": "arylcyclohexylamine",
           "label": "Arylcyclohexylamine"
@@ -197,7 +206,9 @@
         },
         {
           "drugs": [
-            "memantine"
+            "dextromethorphan",
+            "memantine",
+            "nitrous"
           ],
           "key": "other-dissociatives",
           "label": "Adamantanes"
@@ -233,7 +244,9 @@
             "2-fea",
             "3-fea",
             "4-fa",
-            "4-fma"
+            "4-fma",
+            "mda",
+            "mdma"
           ],
           "key": "amphetamine",
           "label": "Amphetamine"
@@ -317,8 +330,12 @@
             "3-fea",
             "4-fa",
             "4-fma",
+            "amphetamine",
+            "dextroamphetamine",
             "ephedrine",
-            "lisdexamfetamine"
+            "lisdexamfetamine",
+            "mdma",
+            "methamphetamine"
           ],
           "key": "amphetamine",
           "label": "Amphetamine"
@@ -367,9 +384,13 @@
         },
         {
           "drugs": [
+            "caffeine",
+            "cocaine",
             "desoxypipradrol",
             "dexmethylphenidate",
             "methiopropamine",
+            "methylphenidate",
+            "nicotine",
             "nm-2-ai",
             "phenethylamine",
             "phenylpiracetam",
@@ -442,8 +463,11 @@
         },
         {
           "drugs": [
+            "bupropion",
             "lithium",
-            "propranolol"
+            "propranolol",
+            "sertraline",
+            "trazodone"
           ],
           "key": "other-antidepressants",
           "label": "Other antidepressants"
@@ -502,11 +526,15 @@
         {
           "drugs": [
             "buprenorphine",
+            "codeine",
             "desomorphine",
             "dihydrocodeine",
             "ethylmorphine",
+            "heroin",
             "hydrocodone",
             "hydromorphone",
+            "morphine",
+            "oxycodone",
             "oxymorphone"
           ],
           "key": "morphinan",
@@ -516,6 +544,7 @@
           "drugs": [
             "acetylfentanyl",
             "acrylfentanyl",
+            "fentanyl",
             "furanylfentanyl"
           ],
           "key": "fentanyl-analogue",
@@ -523,10 +552,13 @@
         },
         {
           "drugs": [
+            "kratom",
             "lean",
+            "methadone",
             "o-desmethyltramadol",
             "tapentadol",
             "tianeptine",
+            "tramadol",
             "u-47700"
           ],
           "key": "other-opioids",
@@ -628,6 +660,7 @@
         },
         {
           "drugs": [
+            "alprazolam",
             "bromazepam",
             "bromazolam",
             "brotizolam",
@@ -637,6 +670,7 @@
             "delorazepam",
             "deschloroetizolam",
             "desmethylflunitrazepam",
+            "diazepam",
             "diclazepam",
             "etizolam",
             "flualprazolam",
@@ -645,11 +679,14 @@
             "fluclotizolam",
             "flunitrazepam",
             "flunitrazolam",
+            "lorazepam",
             "midazolam",
             "nifoxipam",
             "nitrazepam",
+            "oxazepam",
             "phenazepam",
             "pyrazolam",
+            "temazepam",
             "triazolam"
           ],
           "key": "benzodiazepines",
@@ -680,6 +717,7 @@
         },
         {
           "drugs": [
+            "alcohol",
             "carisoprodol",
             "kava",
             "methaqualone",

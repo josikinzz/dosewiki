@@ -17,9 +17,11 @@ describe("psychoactive index manual", () => {
     });
 
     const members = category?.sections.flatMap(({ drugs }) => drugs) ?? [];
-    expect(members).toHaveLength(45);
+    expect(new Set(members)).toHaveLength(45);
     expect(members).toContain("pregabalin");
     expect(members).not.toContain("morphine");
+    expect(category?.sections.find(({ key }) => key === "common")?.drugs).toContain("alprazolam");
+    expect(category?.sections.find(({ key }) => key === "benzodiazepines")?.drugs).toContain("alprazolam");
   });
 
   it("places every requested index substance in its intended section", () => {

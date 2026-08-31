@@ -66,6 +66,34 @@ describe("DosagesPage", () => {
     ).not.toBeInTheDocument();
   });
 
+  it("renders common substances in their class section without inflating the category total", () => {
+    const dualLayout: CategoryLayout = {
+      version: 1,
+      categories: [{
+        key: "gabaergic",
+        label: "GABAergic",
+        iconKey: "gabaergic",
+        drugs: [],
+        sections: [
+          { key: "common", label: "Common", drugs: ["alprazolam"] },
+          { key: "benzodiazepines", label: "Benzodiazepines", drugs: ["alprazolam"] },
+        ],
+      }],
+    };
+
+    render(
+      <DosagesPage
+        layout={dualLayout}
+        substances={[{ slug: "alprazolam", name: "Alprazolam", priority: "high" }]}
+      />,
+    );
+
+    expect(screen.getAllByRole("link", { name: "Alprazolam" })).toHaveLength(2);
+    const categoryHeader = screen.getByRole("heading", { name: "GABAergic" }).parentElement;
+    expect(categoryHeader).not.toBeNull();
+    expect(within(categoryHeader!).getByLabelText("1 item")).toBeInTheDocument();
+  });
+
   it("migrates a legacy class fragment to its routed view", async () => {
     window.history.replaceState(null, "", "/substances#opioid");
     render(<DosagesPage layout={layout} substances={substances} />);
