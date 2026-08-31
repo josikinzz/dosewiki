@@ -275,7 +275,7 @@ export async function runProductionImport({
   const expectedCommit = flag(argv, "--expected-application-commit");
   required(expectedDigest === planDigest, "Write requires the exact --expected-plan-digest pin.");
   required(expectedCommit === currentCommit, "Write requires the exact --expected-application-commit pin.");
-  const apiKey = requireProductionWriteCredential("replicationMaintenance", { env });
+  const apiKey = requireProductionWriteCredential("replicationMaintenance", { env }).token;
   const client = clientFactory(command.targetUrl);
   if (!existsSync(ledgerPath)) atomicJson(ledgerPath, ledger);
 

@@ -164,6 +164,8 @@ describe("replication index production import runner", () => {
     const result = await runProductionImport({ argv, env: { CONVEX_ADMIN_TOKEN_REPLICATION_MAINTENANCE: "secret" }, gitCommit: TEST_COMMIT, clientFactory: () => ({ mutation, query }), logger: { log() {} } });
     expect(result).toMatchObject({ mode: "write", verified: 1 });
     expect(mutation).toHaveBeenCalledTimes(1);
+    expect(mutation.mock.calls[0][1].apiKey).toBe("secret");
+    expect(typeof mutation.mock.calls[0][1].apiKey).toBe("string");
     expect(query).toHaveBeenCalledTimes(1);
     const ledgerText = readFileSync(files.ledger, "utf8");
     expect(ledgerText).not.toContain("secret");
