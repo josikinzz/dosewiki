@@ -23,13 +23,17 @@ function assertScriptIncludes(script, expectedCommands) {
 test("package verification graph composes the documented validation commands", () => {
   const scripts = readPackageScripts();
 
+  assertScriptIncludes(scripts["verify:fast"], [
+    "npm run test",
+    "npm run typecheck",
+  ]);
   assertScriptIncludes(scripts["verify:app"], [
     "npm run test",
     "npm run lint",
     "npm run lint:api",
-    "npm run typecheck",
     "npm run build",
   ]);
+  assert.doesNotMatch(scripts["verify:app"], /(?:^|&&\s*)npm run typecheck(?:\s*&&|$)/);
   assertScriptIncludes(scripts["verify:workflow"], [
     "npm run test:workflow",
     "npm run lint:scripts",
