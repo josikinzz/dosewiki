@@ -1238,6 +1238,45 @@ describe("paged gallery continuation", () => {
     ).toBeNull();
   });
 
+  it("distinguishes the loaded corpus from the narrower artist-view count", async () => {
+    const initial = rep({ title: "Initial work" });
+    const withheld = rep({
+      title: "Withheld work",
+      effect_slug: "unspeakable-horrors",
+    });
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue({
+        ok: true,
+        status: 200,
+        json: async () => ({
+          data: [withheld],
+          nextCursor: null,
+          hasMore: false,
+        }),
+      }),
+    );
+
+    renderExplorer("", {
+      replications: [initial],
+      deferredReplicationsUrl: "/api/replications/gallery",
+      continuationCursor: "opaque-next",
+      hasMoreReplications: true,
+    });
+
+    await act(async () => {
+      fireEvent.click(
+        screen.getByRole("button", { name: "Load complete gallery" }),
+      );
+    });
+
+    expect(
+      screen.getByText(
+        "Complete corpus loaded · 2 total · 1 work in this view · 1 artists · 1 effects",
+      ),
+    ).toBeInTheDocument();
+  });
+
   it("announces completion and moves focus when the explicit load button disappears", async () => {
     const initial = rep({ title: "Initial work" });
     const deferred = rep({ title: "Deferred work" });

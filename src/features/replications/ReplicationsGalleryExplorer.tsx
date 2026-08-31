@@ -825,6 +825,10 @@ function GalleryExplorer({
     [mode, searching, taxonomyDisplayable],
   );
   const counts = useMemo(() => countGallery(counted), [counted]);
+  const completedCorpusHasNarrowerView =
+    Boolean(completionAnnouncement) &&
+    !hasMore &&
+    galleryReplications.length !== counts.total;
 
   const filtered = useMemo(
     () =>
@@ -1474,11 +1478,16 @@ function GalleryExplorer({
                   focusRingClassName,
                 )}
               >
-                {completionAnnouncement ? `${completionAnnouncement} · ` : ""}
+                {completedCorpusHasNarrowerView
+                  ? `Complete corpus loaded · ${galleryReplications.length} total · `
+                  : completionAnnouncement
+                    ? `${completionAnnouncement} · `
+                    : ""}
                 {counts.total}{" "}
                 {deferredReplicationsUrl && hasMore ? "loaded " : ""}
-                {counts.total === 1 ? "work" : "works"} · {counts.artists}{" "}
-                artists · {counts.effects} effects
+                {counts.total === 1 ? "work" : "works"}
+                {completedCorpusHasNarrowerView ? " in this view" : ""} ·{" "}
+                {counts.artists} artists · {counts.effects} effects
                 {hasMore ? " · more available" : ""}
               </p>
             ) : null}
