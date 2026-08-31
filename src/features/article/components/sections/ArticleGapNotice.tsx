@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import { SmartLink } from "@/components/common/SmartLink";
 import { memo, type ReactNode } from "react";
 import { ArticleSection } from "@/components/common/ArticleSection";
 import { Icon } from "@/components/common/Icon";
@@ -37,17 +37,16 @@ function NeighbourChips({ neighbours }: { neighbours: SectionGapNeighbour[] }) {
   return (
     <span className="flex flex-wrap gap-1.5">
       {neighbours.map((neighbour) => (
-        <Link
+        <SmartLink
           key={neighbour.slug}
           href={`/${neighbour.slug}`}
-          prefetch={false}
           title={neighbour.note}
           className="focus-visible:outline-none"
         >
           <Badge variant="interactive" className="text-xs normal-case tracking-normal">
             {neighbour.name}
           </Badge>
-        </Link>
+        </SmartLink>
       ))}
     </span>
   );

@@ -187,6 +187,27 @@ function persistPreference(storageKey: string, value: string) {
 const AXIS_PERSIST_DEBOUNCE_MS = 200;
 
 /**
+ * When one document-wide chroma paint costs more than this (~1.5 frames at
+ * 60Hz), further paints during the same drag are spaced out instead of issued
+ * every frame. Writing the axis properties on `<html>` invalidates the whole
+ * generated custom-property graph, so each write forces a full-document style
+ * recalculation; on weak hardware a single recalculation can run hundreds of
+ * milliseconds, and issuing one per frame freezes the page for the entire
+ * drag. Spacing is proportional to the *measured* cost — a device that
+ * restyles inside the budget keeps its fully live per-frame preview.
+ */
+const CHROMA_PAINT_BUDGET_MS = 24;
+
+/**
+ * The spacing ceiling. It must stay well above the worst plausible single
+ * recalculation: spacing only creates paint-free frames while it exceeds the
+ * cost it is spacing out (a ceiling at or below the cost degenerates back to
+ * a paint every frame). Even at the ceiling the page repaints ~1×/second
+ * mid-drag, and the trailing paint always lands the settled value.
+ */
+const CHROMA_PAINT_MAX_DELAY_MS = 1000;
+
+/**
  * A saved axis number — a chroma level's decimal or a hue's integer degrees —
  * persists as its string, and null removes the key: a missing key is what "the
  * site default" means to the pre-paint bootstrap, so removal — not writing the
@@ -393,6 +414,17 @@ export function ThemeProvider({
    */
   const chromaFrameRef = useRef<number | null>(null);
   const pendingAxisPersistRef = useRef<(() => void) | null>(null);
+  /**
+   * The pacing state for the document-wide chroma paint: the timestamp of the
+   * last write, its measured cost (the gap from the writing frame to the
+   * frame after it, which cannot start until the forced full-document
+   * restyle finishes), and the timer holding back the next write while the
+   * spacing window is open. All refs: pacing must never itself cause a
+   * render.
+   */
+  const chromaPaintAtRef = useRef(0);
+  const chromaPaintCostRef = useRef(0);
+  const chromaDelayTimerRef = useRef<number | null>(null);
 
   useEffect(() => {
     const paintedColorScheme = resolvePaintedAxis(
@@ -515,12 +547,16 @@ export function ThemeProvider({
   }, [hydrated, fontPreference, isFontLocked]);
 
   /**
-   * The colour axes' document paint, throttled to one write batch per
-   * animation frame. The four root properties feed the generated stylesheet's
-   * whole custom-property graph, so an unthrottled drag forces a
-   * full-document style recalculation per input tick; coalescing on rAF caps
-   * that at the display's own rate while React state — and so the sliders'
-   * thumbs and rails — still tracks every tick.
+   * The colour axes' document paint, coalesced per animation frame and paced
+   * by its own measured cost. The four root properties feed the generated
+   * stylesheet's whole custom-property graph, so every write forces a
+   * full-document style recalculation; on hardware where one recalculation
+   * outruns the frame budget, issuing one per frame would freeze the page
+   * for the whole drag. Each paint therefore probes what it actually cost,
+   * and while that cost exceeds CHROMA_PAINT_BUDGET_MS further paints keep a
+   * proportional distance (capped at CHROMA_PAINT_MAX_DELAY_MS). React state
+   * — and so the sliders' thumbs and rails — still tracks every tick, and
+   * the trailing paint always lands the settled value.
    *
    * Painted values are the effective ones on unlocked axes — the saved number
    * or the default — and null under a lock, which is how the runtime knows to
@@ -532,8 +568,7 @@ export function ThemeProvider({
       return;
     }
 
-    const paint = () => {
-      chromaFrameRef.current = null;
+    const write = () => {
       applyChromaToDocument(
         isSurfaceLocked ? null : surfaceChroma,
         isAccentLocked ? null : accentChroma,
@@ -543,12 +578,45 @@ export function ThemeProvider({
     };
 
     if (typeof requestAnimationFrame !== "function") {
-      paint();
+      write();
       return;
     }
 
-    chromaFrameRef.current = requestAnimationFrame(paint);
+    const paint = () => {
+      chromaFrameRef.current = null;
+      const start = performance.now();
+      write();
+      chromaPaintAtRef.current = start;
+      // Probe the write's true cost: the browser must restyle the whole
+      // document before the next frame can begin, so that frame's delay IS
+      // the cost. The probe only records a number, so it is deliberately
+      // left running across cleanups and unmount.
+      requestAnimationFrame(() => {
+        chromaPaintCostRef.current = performance.now() - start;
+      });
+    };
+
+    // Paints within the spacing window wait out its remainder; a change that
+    // arrives after a quiet spell (a toggle, a fresh drag) paints on the next
+    // frame regardless of how slow the previous drag proved the device to be.
+    const cost = chromaPaintCostRef.current;
+    const spacing =
+      cost > CHROMA_PAINT_BUDGET_MS ? Math.min(cost * 2, CHROMA_PAINT_MAX_DELAY_MS) : 0;
+    const waitLeft = chromaPaintAtRef.current + spacing - performance.now();
+
+    if (waitLeft > 0) {
+      chromaDelayTimerRef.current = window.setTimeout(() => {
+        chromaDelayTimerRef.current = null;
+        chromaFrameRef.current = requestAnimationFrame(paint);
+      }, waitLeft);
+    } else {
+      chromaFrameRef.current = requestAnimationFrame(paint);
+    }
     return () => {
+      if (chromaDelayTimerRef.current !== null) {
+        window.clearTimeout(chromaDelayTimerRef.current);
+        chromaDelayTimerRef.current = null;
+      }
       if (chromaFrameRef.current !== null) {
         cancelAnimationFrame(chromaFrameRef.current);
         chromaFrameRef.current = null;

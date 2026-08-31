@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { SmartLink } from "@/components/common/SmartLink";
 import { PropsWithChildren } from "react";
 
 import { effectIndexLegacyRedirects } from "@server/next/effectIndexLegacyRedirects";
@@ -338,12 +338,11 @@ export function IntLink({
   }
 
   return (
-    <Link
+    <SmartLink
       href={href}
-      prefetch={false}
       className="theme-accent-emphasis theme-accent-underline cursor-pointer underline underline-offset-[0.18em] transition-colors hover:text-dose-accent-soft"
     >
       {children}
-    </Link>
+    </SmartLink>
   );
 }

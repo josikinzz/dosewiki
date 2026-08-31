@@ -39,6 +39,8 @@ export type { SearchEmptyStateProps } from "./SearchEmptyState";
 export { SiteLicenceNotice } from "./SiteLicenceNotice";
 export { SiteSupporter } from "./SiteSupporter";
 export { SiteWordmark } from "./SiteWordmark";
+export { SmartLink, useNavigationPending } from "./SmartLink";
+export type { SmartLinkProps } from "./SmartLink";
 export { SectionCard } from "./SectionCard";
 export { SectionHeader } from "./SectionHeader";
 export { StateCard } from "./StateCard";

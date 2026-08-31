@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { SmartLink } from "@/components/common/SmartLink";
 import { StateCard } from "@/components/common/StateCard";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { PublicContentShell } from "@/components/layout/PublicPagePrimitives";
@@ -75,7 +76,7 @@ function WritingBlogCard({ post }: { post: WritingBlogPost }) {
 
   return (
     <InteractiveContentCard asChild padding="none" className="overflow-hidden">
-      <Link href={href} prefetch={false} className="group block">
+      <SmartLink href={href} className="group block">
         {post.coverImageUrl ? (
           // Deliberately a plain <img>: cover URLs are editor-entered and can
           // point at any host, which `next/image` would need configured up front.
@@ -99,7 +100,7 @@ function WritingBlogCard({ post }: { post: WritingBlogPost }) {
             <p className="theme-text-secondary mt-2 text-sm leading-6">{summary}</p>
           ) : null}
         </div>
-      </Link>
+      </SmartLink>
     </InteractiveContentCard>
   );
 }

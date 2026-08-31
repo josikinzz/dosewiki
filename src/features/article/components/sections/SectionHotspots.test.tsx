@@ -13,6 +13,7 @@ vi.mock("next/link", () => ({
       {children}
     </a>
   ),
+  useLinkStatus: () => ({ pending: false }),
 }));
 
 vi.mock("framer-motion", () => ({
@@ -72,6 +73,49 @@ describe("article section cleanup characterization", () => {
     fireEvent.click(screen.getByRole("button", { name: "Expand history and culture" }));
 
     expect(screen.getByRole("button", { name: "Collapse history and culture" })).toBeInTheDocument();
+  });
+
+  it("places notable individuals after the contextual history sections", () => {
+    const article = {
+      ...createEmptyArticle(),
+      title: "History Order Test",
+      history_culture: {
+        content: "",
+        sections: [
+          {
+            heading: "Discovery and Development",
+            content: "First synthesized in 1908.",
+            subsections: [],
+          },
+          {
+            heading: "Notable Individuals",
+            content: "",
+            subsections: [
+              {
+                heading: "Example Person",
+                content: "A documented user.",
+              },
+            ],
+          },
+          {
+            heading: "Contemporary Use and Availability",
+            content: "Current clinical context.",
+            subsections: [],
+          },
+        ],
+      },
+    };
+
+    render(<HistoryCultureSection article={article} />);
+    fireEvent.click(screen.getByRole("button", { name: "Expand history and culture" }));
+
+    expect(
+      screen.getAllByRole("heading", { level: 3 }).map((heading) => heading.textContent),
+    ).toEqual([
+      "Discovery and Development",
+      "Contemporary Use and Availability",
+      "Notable Individuals",
+    ]);
   });
 
   it("routes subjective effect badge interactions through selection and inline expansion", () => {
@@ -353,7 +397,8 @@ describe("article section cleanup characterization", () => {
       archiveUrl,
     );
     expect(container).toHaveTextContent("Forked from Subjective Effect Documentation work");
-    expect(container).toHaveTextContent("by Josie Kins");
+    expect(container).toHaveTextContent("by");
+    expect(container).toHaveTextContent("Josie Kins");
     expect(container).toHaveTextContent("August 2016.");
     expect(
       screen.getByLabelText("Open original subjective effects documentation by Josie Kins"),

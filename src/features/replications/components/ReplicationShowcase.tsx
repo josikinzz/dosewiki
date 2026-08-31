@@ -1,6 +1,13 @@
 "use client";
 
-import { useEffect, useId, useMemo, useRef, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useId,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import Link from "next/link";
 import { AppImage } from "@/components/common/AppImage";
 import { Icon } from "@/components/common/Icon";
@@ -9,6 +16,7 @@ import { MediaPlaceholder } from "@/components/layout/PublicFeedbackPrimitives";
 import { PublicNameChip } from "@/components/common/PublicTokens";
 import { focusRingClassName } from "@/components/ui/surface";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { releaseVideoElement } from "@/lib/releaseVideoElement";
 import { cn } from "@/lib/utils";
 import { icons } from "@/utils/iconNames";
 import { hasKnownCreator } from "@/features/effects/components/replicationCredit";
@@ -175,6 +183,25 @@ export function ReplicationShowcase({
    */
   const [inlineMuted, setInlineMuted] = useState(true);
   const videoRef = useRef<HTMLVideoElement | null>(null);
+  /** Latest effective muted value, readable from the stable attach callback. */
+  const effectiveMutedRef = useRef(true);
+  // Identity-stable on purpose: an inline ref callback re-runs per render,
+  // and its detach pass would tear down the live element. On detach the
+  // media pipeline is released immediately — a discarded video otherwise
+  // holds its player (and any in-flight fetch) until GC, and browsers cap
+  // live players per page before silently refusing new loads.
+  const attachStageVideo = useCallback((element: HTMLVideoElement | null) => {
+    if (element) {
+      videoRef.current = element;
+      // Applied by ref as well as prop: React has been unreliable about
+      // reflecting `muted` onto the element.
+      element.muted = effectiveMutedRef.current;
+      return;
+    }
+    const previous = videoRef.current;
+    videoRef.current = null;
+    if (previous) releaseVideoElement(previous);
+  }, []);
   const viewerCollection = useMemo<ReplicationViewerCollection>(() => {
     const label =
       collectionLabel ??
@@ -312,6 +339,10 @@ export function ReplicationShowcase({
     activeGifLike && Boolean(active.motionUrl && active.motionPosterUrl);
   const activeIsMoving = active.type === "video" || activeGifReady;
   const activeHasAudio = active.type === "video" && active.hasAudio !== false;
+  const activeEffectiveMuted = activeHasAudio ? inlineMuted : true;
+  // Render-phase mirror write: idempotent, read only from commit-phase
+  // code (the attach callback) and gesture handlers.
+  effectiveMutedRef.current = activeEffectiveMuted;
   const activeMotionSource = activeGifLike
     ? activeGifReady
       ? active.motionUrl
@@ -569,15 +600,9 @@ export function ReplicationShowcase({
                 <video
                   src={activeMotionSource}
                   poster={activePosterUrl}
-                  ref={(element) => {
-                    videoRef.current = element;
-                    // Applied by ref as well as prop: React has been
-                    // unreliable about reflecting `muted` onto the element.
-                    if (element)
-                      element.muted = activeHasAudio ? inlineMuted : true;
-                  }}
+                  ref={attachStageVideo}
                   autoPlay
-                  muted={activeHasAudio ? inlineMuted : true}
+                  muted={activeEffectiveMuted}
                   loop={shouldLoopReplicationMotion(
                     active.format ?? "",
                     active.duration,

@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { SmartLink } from "@/components/common/SmartLink";
 
 import { Button } from "@/components/ui/button";
 import { Icon } from "@/components/common/Icon";
@@ -60,16 +61,15 @@ function LineageRow({
           {content}
         </span>
       ) : (
-        <Link
+        <SmartLink
           href={`/chemical-classes/${item.key}`}
-          prefetch={false}
           className={cn(
             "theme-focus-ring inline-flex items-center rounded-sm text-sm leading-6 transition-colors hover:opacity-85 sm:text-[0.9375rem]",
             tone === "bioisostere" ? "theme-text-faint" : "theme-text-secondary",
           )}
         >
           {content}
-        </Link>
+        </SmartLink>
       )}
     </div>
   );
@@ -122,13 +122,12 @@ function LineageBlock({ detail }: { detail: ChemicalClassDetail }) {
               {detail.otherParents.map((parent, index) => (
                 <span key={parent.key}>
                   {index > 0 ? ", " : null}
-                  <Link
+                  <SmartLink
                     href={`/chemical-classes/${parent.key}`}
-                    prefetch={false}
                     className="theme-focus-ring rounded-sm underline-offset-4 transition-colors hover:opacity-85 hover:underline"
                   >
                     {parent.label}
-                  </Link>
+                  </SmartLink>
                 </span>
               ))}
             </p>

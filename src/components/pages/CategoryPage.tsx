@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { SmartLink } from "@/components/common/SmartLink";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { ArticleSection } from "@/components/common/ArticleSection";
 import { Icon } from "@/components/common/Icon";
@@ -64,9 +64,8 @@ function EffectLongSummary({ effect }: { effect: CategoryEffect }) {
       className="scroll-mt-24 border-b border-dose-divider pb-8 last:border-b-0 last:pb-0"
     >
       <h3 className="text-xl font-semibold tracking-tight">
-        <Link
+        <SmartLink
           href={publicHref.effect(effect.slug)}
-          prefetch={false}
           className="group/effect theme-accent-heading theme-focus-ring inline-flex items-center gap-2 transition-opacity hover:opacity-85"
         >
           <span className="min-w-0 break-words">{effect.name}</span>
@@ -74,7 +73,7 @@ function EffectLongSummary({ effect }: { effect: CategoryEffect }) {
             icon="lucide:arrow-right"
             className="h-4 w-4 shrink-0 -translate-x-1 opacity-0 transition-[opacity,translate] duration-200 group-hover/effect:translate-x-0 group-hover/effect:opacity-70"
           />
-        </Link>
+        </SmartLink>
       </h3>
 
       {longSummaryContent ? (

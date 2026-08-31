@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { SmartLink } from "@/components/common/SmartLink";
 import { memo, type ReactNode } from "react";
 
 import { Icon } from "@/components/common/Icon";
@@ -97,9 +97,9 @@ export const TripReportCard = memo(function TripReportCard({
 
   if (href) {
     return (
-      <Link href={href} prefetch={false} className={cardClassName}>
+      <SmartLink href={href} className={cardClassName}>
         {content}
-      </Link>
+      </SmartLink>
     );
   }
 

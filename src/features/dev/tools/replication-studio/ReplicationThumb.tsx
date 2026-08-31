@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 import { Icon } from "@/components/common/Icon";
+import { releaseVideoElement } from "@/lib/releaseVideoElement";
 import { cn } from "@/lib/utils";
 import {
   createPlaybackSlotPool,
@@ -76,6 +77,19 @@ export function ReplicationThumb({
   const [playing, setPlaying] = useState(false);
   const frameRef = useRef<HTMLDivElement | null>(null);
   const videoRef = useRef<HTMLVideoElement | null>(null);
+  // Identity-stable on purpose: previews unmount whenever the slot or hover
+  // is lost, and a leaked element counts against the browser's media-player
+  // budget until GC. An inline callback would re-run per render and tear
+  // down a still-mounted preview.
+  const attachPreview = useCallback((node: HTMLVideoElement | null) => {
+    if (node) {
+      videoRef.current = node;
+      return;
+    }
+    const previous = videoRef.current;
+    videoRef.current = null;
+    if (previous) releaseVideoElement(previous);
+  }, []);
   const { autoplay: autoplayAllowed, hoverPreview: hoverPreviewAllowed } = useMotionAllowed();
   const durationLabel = formatDuration(row.duration ?? null);
   const source = row.thumbnail_url ?? (row.type === "image" ? row.url ?? null : null);
@@ -141,7 +155,7 @@ export function ReplicationThumb({
 
       {showPreview ? (
         <video
-          ref={videoRef}
+          ref={attachPreview}
           src={row.preview_url ?? undefined}
           poster={row.thumbnail_url ?? undefined}
           muted

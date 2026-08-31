@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { SmartLink } from "@/components/common/SmartLink";
 
 import { ArticleSection } from "@/components/common/ArticleSection";
 import { proseLinkClassName } from "@/components/common/ProseLink";
@@ -98,9 +98,9 @@ export function PsychoactiveSummaryPage({
           <ul className="theme-text-secondary list-disc space-y-2 pl-5 marker:text-dose-accent-muted">
             {definition.seeAlso.map((item) => (
               <li key={item.href}>
-                <Link href={item.href} prefetch={false} className={proseLinkClassName}>
+                <SmartLink href={item.href} className={proseLinkClassName}>
                   {item.label}
-                </Link>
+                </SmartLink>
               </li>
             ))}
           </ul>

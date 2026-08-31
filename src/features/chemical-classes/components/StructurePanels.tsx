@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import Link from "next/link";
+import { SmartLink } from "@/components/common/SmartLink";
 
 import { MoleculeImage } from "@/components/pages/MoleculeImage";
 import { Icon } from "@/components/common/Icon";
@@ -38,9 +38,8 @@ function StructureRow({
 }) {
   return (
     <li>
-      <Link
+      <SmartLink
         href={`/${slug}`}
-        prefetch={false}
         className="group flex min-h-14 items-center justify-between gap-4 rounded-xl px-3 py-1.5 transition-[background-color] duration-200 hover:bg-dose-surface-muted focus-visible:outline focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-dose-accent-strong"
       >
         <span className="theme-text-secondary min-w-0 text-[0.9375rem] font-medium leading-snug transition-colors duration-200 group-hover:text-dose-text">
@@ -58,7 +57,7 @@ function StructureRow({
             />
           ) : null}
         </span>
-      </Link>
+      </SmartLink>
     </li>
   );
 }

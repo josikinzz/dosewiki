@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { SmartLink } from "@/components/common/SmartLink";
 
 import { Icon } from "@/components/common/Icon";
 import { proseLinkClassName } from "@/components/common/ProseLink";
@@ -27,9 +27,8 @@ export function PsychoactiveEffectLongSummary({
   return (
     <article className="flow-root border-b border-dose-divider pb-8 last:border-b-0 last:pb-0">
       <h3 className="text-xl font-semibold tracking-tight">
-        <Link
+        <SmartLink
           href={href}
-          prefetch={false}
           className="group/effect theme-accent-heading theme-focus-ring inline-flex items-center gap-2 transition-opacity hover:opacity-85"
         >
           <span className="min-w-0 break-words">{effect.name}</span>
@@ -37,14 +36,14 @@ export function PsychoactiveEffectLongSummary({
             icon="lucide:arrow-right"
             className="h-4 w-4 shrink-0 -translate-x-1 opacity-0 transition-[opacity,translate] duration-200 group-hover/effect:translate-x-0 group-hover/effect:opacity-70 motion-reduce:transform-none motion-reduce:transition-none"
           />
-        </Link>
+        </SmartLink>
       </h3>
 
       <p className="theme-text-muted mt-1 text-sm italic">
         Full article:{" "}
-        <Link href={href} prefetch={false} className={proseLinkClassName}>
+        <SmartLink href={href} className={proseLinkClassName}>
           {effect.name}
-        </Link>
+        </SmartLink>
       </p>
 
       {longSummaryContent ? (

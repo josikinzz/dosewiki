@@ -5,6 +5,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { Footer } from "@/components/layout/Footer";
 import { Header } from "@/components/layout/Header";
 import { RouteAnnouncer } from "@/components/common/RouteAnnouncer";
+import { NavigationProgress } from "./NavigationProgress";
 import { viewToPath } from "@/utils/routing";
 import { getRouteChromeModel } from "@/utils/routeChrome";
 import { isEffectIndex } from "@/config/siteFlavor";
@@ -200,12 +201,18 @@ export function RouteChrome() {
   };
 
   if (isChromelessAddress(pathname)) {
-    return <RouteAnnouncer message={model.pageTitle} />;
+    return (
+      <>
+        <RouteAnnouncer message={model.pageTitle} />
+        <NavigationProgress />
+      </>
+    );
   }
 
   return (
     <>
       <RouteAnnouncer message={model.pageTitle} />
+      <NavigationProgress />
       <Header
         model={model}
         onNavigate={pushView}

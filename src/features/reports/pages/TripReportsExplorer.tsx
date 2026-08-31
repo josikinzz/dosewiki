@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import { SmartLink } from "@/components/common/SmartLink";
 import { useMemo, useState } from "react";
 import { Icon, type IconName } from "@/components/common/Icon";
 import { SearchEmptyState } from "@/components/common/SearchEmptyState";
@@ -304,9 +304,8 @@ function ReportIndexRow({
 
   return (
     <li className="theme-report-index-row">
-      <Link
+      <SmartLink
         href={href}
-        prefetch={false}
         className="theme-report-index-link group flex items-center gap-3 rounded-lg px-3 py-2.5"
       >
         {report.subject.avatar_url ? (
@@ -342,7 +341,7 @@ function ReportIndexRow({
             {substanceSummary}
           </span>
         ) : null}
-      </Link>
+      </SmartLink>
     </li>
   );
 }

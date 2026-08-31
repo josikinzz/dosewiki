@@ -50,6 +50,7 @@ import { searchEmptyStateStory } from "../stories/search-empty-state.story";
 import { sectionCardStory } from "../stories/section-card.story";
 import { sectionHeaderStory } from "../stories/section-header.story";
 import { siteBrandStory } from "../stories/site-brand.story";
+import { smartLinkStory } from "../stories/smart-link.story";
 import { siteSupporterStory } from "../stories/site-supporter.story";
 import { stateCardStory } from "../stories/state-card.story";
 import { statusBadgeStory } from "../stories/status-badge.story";
@@ -123,6 +124,7 @@ export const stories: StoryDef[] = [
   sectionCardStory,
   sectionHeaderStory,
   siteBrandStory,
+  smartLinkStory,
   siteSupporterStory,
   stateCardStory,
   statusBadgeStory,

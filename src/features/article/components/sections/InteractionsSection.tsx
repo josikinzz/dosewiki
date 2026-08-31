@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import { SmartLink } from "@/components/common/SmartLink";
 import { memo, useState, useCallback, useMemo, type MouseEvent } from "react";
 import { ExpandButton } from "@/components/common/ExpandButton";
 import { Icon, type IconName } from "@/components/common/Icon";
@@ -146,14 +146,13 @@ const InteractionBadge = memo(function InteractionBadge({
           ariaControls={panelId}
         />
         {href ? (
-          <Link
+          <SmartLink
             href={href}
-            prefetch={false}
             onClick={linkClickHandler}
             className={`${expandedNameClassName} theme-focus-ring hover:opacity-90`}
           >
             {item.substance}
-          </Link>
+          </SmartLink>
         ) : (
           <span className={expandedNameClassName}>{item.substance}</span>
         )}
@@ -168,14 +167,13 @@ const InteractionBadge = memo(function InteractionBadge({
   return (
     <PublicNameChip interactive={Boolean(href) || hasRationale}>
       {href ? (
-        <Link
+        <SmartLink
           href={href}
-          prefetch={false}
           onClick={linkClickHandler}
           className={collapsedNameClassName}
         >
           {item.substance}
-        </Link>
+        </SmartLink>
       ) : (
         <span>{item.substance}</span>
       )}

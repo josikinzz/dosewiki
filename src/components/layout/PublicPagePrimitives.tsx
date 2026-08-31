@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { SmartLink } from "@/components/common/SmartLink";
 import type { ComponentPropsWithoutRef, ReactNode } from "react";
 
 import { AppImage } from "@/components/common/AppImage";
@@ -241,9 +241,8 @@ export function ContributorCard({
   const subtitle = contributor.subtitle ?? `@${contributor.key.toLowerCase()}`;
 
   return (
-    <Link
+    <SmartLink
       href={href}
-      prefetch={false}
       className={cn(
         "theme-public-card theme-public-card-interactive group relative flex items-center gap-4 overflow-hidden rounded-2xl border p-4 theme-focus-ring",
         className,
@@ -266,7 +265,7 @@ export function ContributorCard({
         icon="lucide:arrow-right"
         className="theme-text-faint h-5 w-5 -translate-x-1 opacity-0 transition-[opacity,translate,color] duration-300 group-hover:translate-x-0 group-hover:opacity-100 group-focus-visible:translate-x-0 group-focus-visible:opacity-100"
       />
-    </Link>
+    </SmartLink>
   );
 }
 
@@ -379,7 +378,7 @@ export function TaxonomyGroupSection({
               {group.items.map((item) => (
                 <li key={item.id}>
                   <Button variant="listItem" size="listItem" asChild>
-                    <Link href={item.href} prefetch={false} className="min-w-0">
+                    <SmartLink href={item.href} className="min-w-0">
                       <span className="theme-taxonomy-link-label min-w-0 break-words">
                         {item.label}
                       </span>
@@ -388,7 +387,7 @@ export function TaxonomyGroupSection({
                           {item.meta}
                         </span>
                       ) : null}
-                    </Link>
+                    </SmartLink>
                   </Button>
                 </li>
               ))}
@@ -478,7 +477,7 @@ export function SearchResultCard({
         className,
       )}
     >
-      <Link href={result.href} prefetch={false} className="min-w-0 max-w-full overflow-hidden">
+      <SmartLink href={result.href} className="min-w-0 max-w-full overflow-hidden">
         <div className="flex min-w-0 max-w-full flex-col gap-2 overflow-hidden">
           <div className="flex flex-wrap items-center gap-2">
             <PublicOverline>{result.typeLabel}</PublicOverline>
@@ -517,7 +516,7 @@ export function SearchResultCard({
         <span className="theme-text-muted mt-1 hidden shrink-0 text-sm font-semibold uppercase tracking-wide transition-transform duration-200 group-hover:translate-x-0.5 sm:inline-flex">
           View
         </span>
-      </Link>
+      </SmartLink>
     </Button>
   );
 }

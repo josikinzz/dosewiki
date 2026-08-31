@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import Link from "next/link";
+import { SmartLink } from "@/components/common/SmartLink";
 import { Icon } from "@/components/common/Icon";
 import { Button } from "@/components/ui/button";
 import { focusRingClassName } from "@/components/ui/surface";
@@ -158,9 +158,8 @@ export function MediaRail({
    */
   const heading = group.href ? (
     <span className="flex min-w-0 items-center gap-1.5">
-      <Link
+      <SmartLink
         href={group.href}
-        prefetch={false}
         className={cn(
           HEADING_LINK_CLASS,
           // The unnamed `group` is what the portrait's own hover lift reads.
@@ -169,7 +168,7 @@ export function MediaRail({
       >
         {portrait}
         <span className="min-w-0 truncate">{group.label}</span>
-      </Link>
+      </SmartLink>
       {group.externalUrl ? (
         <a
           href={group.externalUrl}
@@ -218,9 +217,8 @@ export function MediaRail({
       >
         <div className="flex min-w-0 flex-col gap-0.5">{heading}</div>
         {hasMore ? (
-          <Link
+          <SmartLink
             href={viewAllHref}
-            prefetch={false}
             onClick={onViewAllOpen}
             className="theme-text-muted group/all inline-flex min-h-11 items-center gap-1 rounded-full px-2 py-1 text-sm font-medium transition-colors hover:text-[var(--theme-accent-strong)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--theme-accent-strong)]"
           >
@@ -229,7 +227,7 @@ export function MediaRail({
               icon="lucide:arrow-right"
               className="h-4 w-4 transition group-hover/all:translate-x-0.5 motion-reduce:transition-none"
             />
-          </Link>
+          </SmartLink>
         ) : null}
       </div>
 
@@ -257,16 +255,15 @@ export function MediaRail({
             />
           ))}
           {hasMore ? (
-            <Link
+            <SmartLink
               href={viewAllHref}
-              prefetch={false}
               onClick={onViewAllOpen}
               style={{ aspectRatio: "4 / 5" }}
               className="theme-text-muted flex h-44 shrink-0 snap-start self-start flex-col items-center justify-center gap-2 rounded-xl border border-dashed border-[color:var(--theme-border-strong)] bg-[var(--theme-surface-soft)] px-4 text-sm font-medium transition-colors hover:text-[var(--theme-accent-strong)] hover:border-[color:var(--theme-card-border-strong)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--theme-accent-strong)] sm:h-52 motion-reduce:transition-none"
             >
               <Icon icon="lucide:arrow-right" className="h-5 w-5" />
               {viewAllLabel}
-            </Link>
+            </SmartLink>
           ) : null}
         </div>
 

@@ -519,7 +519,7 @@ export const HeroSection = memo(function HeroSection({
       {hasSummary && (
         <EditableValue as="div" label="Summary" path="summary" value={summary}>
           <p
-            className={`theme-article-hero-summary theme-text-primary mt-8 pt-6 text-sm leading-relaxed whitespace-pre-wrap${
+            className={`theme-article-hero-summary theme-text-primary mt-8 pt-6 text-sm leading-relaxed whitespace-pre-wrap break-words${
               moleculeUrl ? " theme-article-hero-summary--has-molecule" : ""
             }`}
           >

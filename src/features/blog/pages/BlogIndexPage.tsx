@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { SmartLink } from "@/components/common/SmartLink";
 import { StateCard } from "@/components/common/StateCard";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { PublicContentShell } from "@/components/layout/PublicPagePrimitives";
@@ -67,9 +68,8 @@ function BlogIndexRow({ post }: { post: BlogPostViewModel }) {
 
   return (
     <li className="theme-index-row">
-      <Link
+      <SmartLink
         href={getPublicRoutePath({ family: "blogPost", params: { slug: post.slug } })}
-        prefetch={false}
         className="theme-index-row-link group block rounded-xl px-3 py-4"
       >
         <h2 className="theme-accent-heading text-lg font-semibold leading-snug transition group-hover:opacity-90">
@@ -87,7 +87,7 @@ function BlogIndexRow({ post }: { post: BlogPostViewModel }) {
         {excerpt ? (
           <p className="theme-text-secondary mt-2 max-w-2xl text-sm leading-6">{excerpt}</p>
         ) : null}
-      </Link>
+      </SmartLink>
     </li>
   );
 }

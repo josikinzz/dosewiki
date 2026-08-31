@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import { SmartLink } from "@/components/common/SmartLink";
 import { memo, useMemo } from "react";
 import { ExpandableList } from "@/components/common/ArticleExpandable";
 import { ArticleSection } from "@/components/common/ArticleSection";
@@ -149,9 +149,8 @@ const CompactReportRow = memo(function CompactReportRow({
 
   return (
     <li className="theme-report-index-row">
-      <Link
+      <SmartLink
         href={href}
-        prefetch={false}
         onClick={(event) => {
           if (!onSelectReport || !isPlainLeftClick(event)) {
             return;
@@ -190,7 +189,7 @@ const CompactReportRow = memo(function CompactReportRow({
             <span className="italic">— {subject.name}</span>
           </span>
         </span>
-      </Link>
+      </SmartLink>
     </li>
   );
 });

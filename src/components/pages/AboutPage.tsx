@@ -242,7 +242,7 @@ export const AboutPage = memo(function AboutPage({
           </div>
         </div>
 
-        <section id="mission" className="space-y-6">
+        <section id="mission" className="scroll-mt-24 space-y-6">
           {/* The mission prose flows straight from the hero subtitle; keep an
               sr-only h2 so the landmark keeps its accessible name and the
               heading outline has no gap. */}
@@ -252,7 +252,7 @@ export const AboutPage = memo(function AboutPage({
 
         </section>
 
-        <section id="docs" className="space-y-6">
+        <section id="docs" className="scroll-mt-24 space-y-6">
           <PublicSectionHeading icon="lucide:book-open" title={ABOUT_CONFIG.docsTitle} />
 
           {/* Without the Open Data section this is the only place the reuse terms
@@ -290,7 +290,7 @@ export const AboutPage = memo(function AboutPage({
             does not ship them drops the section rather than advertising
             another publication's downloads under its own licence. */}
         {ABOUT_CONFIG.showOpenData ? (
-          <section id="data" className="space-y-6">
+          <section id="data" className="scroll-mt-24 space-y-6">
             <PublicSectionHeading icon="lucide:download" title="Downloads" />
 
             <AboutArchivePreview
@@ -308,7 +308,7 @@ export const AboutPage = memo(function AboutPage({
           </section>
         ) : null}
 
-        <section id="contributors" className="space-y-6">
+        <section id="contributors" className="scroll-mt-24 space-y-6">
           <PublicSectionHeading icon="lucide:users" title={contributorsSectionTitle} />
 
           {hasRosterEntries && contributorRoster ? (
@@ -343,7 +343,7 @@ export const AboutPage = memo(function AboutPage({
             neighbouring communities. dose.wiki only; Effect Index never
             renders it (see `about.showCommunity`). */}
         {ABOUT_CONFIG.showCommunity ? (
-          <section id="community" className="space-y-6">
+          <section id="community" className="scroll-mt-24 space-y-6">
             <PublicSectionHeading icon="lucide:handshake" title="Partners & Community" />
             <AboutCommunitySection />
           </section>
@@ -353,7 +353,7 @@ export const AboutPage = memo(function AboutPage({
             Flavored via `about.contact` — Effect Index publishes no dose.wiki address
             and already cards its own /contact page in the docs grid. */}
         {ABOUT_CONFIG.contact ? (
-          <section id="contact" className="space-y-6">
+          <section id="contact" className="scroll-mt-24 space-y-6">
             <PublicSectionHeading icon="lucide:mail" title="Contact & Feedback" />
 
             <p className="theme-text-secondary max-w-[65ch] text-sm leading-6">

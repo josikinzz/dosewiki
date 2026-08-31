@@ -5,6 +5,7 @@ import {
   useCallback,
   useEffect,
   useId,
+  useLayoutEffect,
   useMemo,
   useRef,
   useState,
@@ -25,6 +26,7 @@ import {
   parseReplicationViewerSlug,
 } from "@/features/replications/galleryUrlState";
 import { cn } from "@/lib/utils";
+import { releaseVideoElement } from "@/lib/releaseVideoElement";
 import { formatArchiveDate } from "@/utils/archiveDate";
 import { publicHref } from "@/utils/publicHref";
 import {
@@ -60,6 +62,13 @@ const SWIPE_FLICK_VELOCITY_PX_PER_MS = 0.45;
 /** Movement below this keeps the gesture axis undecided (still a tap). */
 const DRAG_AXIS_LOCK_PX = 8;
 const SCREEN_EDGE_GUARD_PX = 24;
+/**
+ * How long the stage rests on a work before its neighbors' hidden video
+ * preloaders mount. A fast fling through several works must not spawn a
+ * throwaway media player per step — each one the browser may hold against
+ * the page's player budget until GC. Posters are exempt and stay instant.
+ */
+const STANDBY_PRELOAD_DELAY_MS = 300;
 
 /**
  * The viewer's full-screen dialog surface. The `!` trio is load-bearing:
@@ -85,6 +94,14 @@ const ENTRY_MOTION_CLASS: Record<EntryMotion, string> = {
   fade: "motion-safe:animate-in motion-safe:fade-in motion-safe:duration-200",
 };
 
+/**
+ * Every entry-motion utility class, for clearing before a replay.
+ * Duplicates across entries are harmless: classList.remove ignores them.
+ */
+const ENTRY_MOTION_ALL_CLASSES = Object.values(ENTRY_MOTION_CLASS).flatMap(
+  (value) => value.split(" "),
+);
+
 function prefersReducedMotion(): boolean {
   return (
     typeof window !== "undefined" &&
@@ -97,21 +114,38 @@ function prefersReducedMotion(): boolean {
  * A poster pane parked one viewport beside the stage. During a drag the
  * track carries it under the finger, so the incoming work is visible before
  * its real stage mounts — and its poster is warm in cache when it does. A
- * moving neighbor also warms its video file through a hidden preloader, so
- * landing on it finds the first frame already decodable instead of showing
- * the low-res poster snap to the sharper frame. Only the two panes that
- * exist — the immediate neighbors — ever preload; a fast fling past them
- * simply falls back to the poster-then-fade path.
+ * moving neighbor also warms its video file through a hidden preloader once
+ * the stage has rested here for a beat (`warm`), so landing on it finds the
+ * first frame already decodable instead of showing the low-res poster snap
+ * to the sharper frame. Only the two panes that exist — the immediate
+ * neighbors — ever preload; a fast fling past them simply falls back to
+ * the poster-then-fade path. The preloader's media pipeline is released
+ * the moment the pane unmounts: leaked players are what make browsers
+ * refuse new video loads after a burst of navigation.
  */
 function StandbyPane({
   item,
   side,
+  warm,
 }: {
   item: ReplicationViewerMediaItem;
   side: "left" | "right";
+  warm: boolean;
 }) {
   const poster = standbyPosterSource(item.replication);
   const motion = standbyMotionSource(item.replication);
+  const preloaderRef = useRef<HTMLVideoElement | null>(null);
+  // Identity-stable on purpose: an inline ref callback re-runs per render,
+  // and its detach pass would release a still-mounted preloader.
+  const attachPreloader = useCallback((node: HTMLVideoElement | null) => {
+    if (node) {
+      preloaderRef.current = node;
+      return;
+    }
+    const previous = preloaderRef.current;
+    preloaderRef.current = null;
+    if (previous) releaseVideoElement(previous);
+  }, []);
   return (
     <div
       aria-hidden
@@ -131,8 +165,9 @@ function StandbyPane({
           className="h-full w-full object-contain"
         />
       ) : null}
-      {motion ? (
+      {motion && warm ? (
         <video
+          ref={attachPreloader}
           src={motion}
           preload="metadata"
           muted
@@ -238,6 +273,8 @@ export function ReplicationViewerOverlay({
   const pendingCommitRef = useRef<(() => void) | null>(null);
   const dragAxisRef = useRef<"x" | "y" | null>(null);
   const mediaPaneRef = useRef<HTMLDivElement>(null);
+  /** The persistent wrapper the entry animation replays on. */
+  const stagePaneRef = useRef<HTMLDivElement>(null);
   const thumbnailRailRef = useRef<HTMLUListElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
   const pausedBackgroundVideosRef = useRef<HTMLVideoElement[]>([]);
@@ -252,6 +289,37 @@ export function ReplicationViewerOverlay({
 
   const group = position ? collection.groups[position.groupIndex] : null;
   const active = group && position ? group.items[position.itemIndex] : null;
+  const activeSlug = active ? active.replication.slug : null;
+
+  // Neighbor preloading waits out a navigation burst: posters render
+  // immediately, the hidden video preloaders join only once the stage has
+  // rested on a work for a beat.
+  const [standbyWarm, setStandbyWarm] = useState(false);
+  useEffect(() => {
+    setStandbyWarm(false);
+    if (!open || !activeSlug) return;
+    const timer = window.setTimeout(
+      () => setStandbyWarm(true),
+      STANDBY_PRELOAD_DELAY_MS,
+    );
+    return () => window.clearTimeout(timer);
+  }, [open, activeSlug]);
+
+  // The stage wrapper is deliberately not keyed by work: a remount would
+  // destroy the stage's <video> mid-flight — leaking its media pipeline
+  // until GC (browsers cap live media players per page and then silently
+  // refuse new loads) and discarding iOS Safari's per-element unmuted
+  // playback blessing. Entry motion replays imperatively instead: drop
+  // the animation classes, force a reflow, re-add them.
+  useLayoutEffect(() => {
+    const pane = stagePaneRef.current;
+    if (!pane) return;
+    pane.classList.remove(...ENTRY_MOTION_ALL_CLASSES);
+    if (!entryMotion) return;
+    // The reflow between remove and add is what restarts the animation.
+    void pane.offsetWidth;
+    pane.classList.add(...ENTRY_MOTION_CLASS[entryMotion].split(" "));
+  }, [entryMotion, activeSlug]);
 
   useEffect(() => {
     const next = findViewerPosition(collection, initialSlug);
@@ -1144,15 +1212,10 @@ export function ReplicationViewerOverlay({
                     key={`standby-${group.items[previousWork.itemIndex].replication.slug}`}
                     item={group.items[previousWork.itemIndex]}
                     side="left"
+                    warm={standbyWarm}
                   />
                 ) : null}
-                <div
-                  key={active.replication.slug}
-                  className={cn(
-                    "h-full w-full",
-                    entryMotion && ENTRY_MOTION_CLASS[entryMotion],
-                  )}
-                >
+                <div ref={stagePaneRef} className="h-full w-full">
                   <ReplicationMediaStage
                     item={active}
                     muted={muted}
@@ -1197,6 +1260,7 @@ export function ReplicationViewerOverlay({
                     key={`standby-${group.items[nextWork.itemIndex].replication.slug}`}
                     item={group.items[nextWork.itemIndex]}
                     side="right"
+                    warm={standbyWarm}
                   />
                 ) : null}
               </div>

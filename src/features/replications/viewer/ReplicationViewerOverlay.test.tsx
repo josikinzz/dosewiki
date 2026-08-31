@@ -1,4 +1,5 @@
 import {
+  act,
   cleanup,
   fireEvent,
   render,
@@ -221,6 +222,17 @@ beforeAll(() => {
     unobserve() {}
     disconnect() {}
   };
+  // jsdom's media methods are unimplemented; the standby preloaders release
+  // their pipeline through pause()/load() on unmount, so give them quiet,
+  // observable stand-ins.
+  Object.defineProperty(HTMLMediaElement.prototype, "pause", {
+    configurable: true,
+    value: vi.fn(),
+  });
+  Object.defineProperty(HTMLMediaElement.prototype, "load", {
+    configurable: true,
+    value: vi.fn(),
+  });
 });
 
 beforeEach(() => {
@@ -719,7 +731,8 @@ describe("ReplicationViewerOverlay", () => {
     ).toBeInTheDocument();
   });
 
-  it("preloads a parked video neighbor so landing finds its first frame decodable", () => {
+  it("debounces then preloads a parked video neighbor for a decodable landing", () => {
+    vi.useFakeTimers();
     render(
       <ReplicationViewerOverlay
         collection={collection}
@@ -732,6 +745,14 @@ describe("ReplicationViewerOverlay", () => {
     const track = document.querySelector(
       "[data-replication-media-track]",
     ) as HTMLElement;
+    // Immediately after landing on a work only posters exist: a fast fling
+    // through several works must not spawn a throwaway media player per
+    // step — leaked players are what make browsers refuse later loads.
+    expect(
+      track.querySelector('video[src="https://cdn.test/two.mp4"]'),
+    ).not.toBeInTheDocument();
+
+    act(() => vi.advanceTimersByTime(300));
     // work-two, the only adjacent work, warms only its metadata. Fetching the
     // full file here duplicates the active element's range transfer after a
     // turn and multiplies bandwidth across a long browsing session.
@@ -741,6 +762,27 @@ describe("ReplicationViewerOverlay", () => {
     expect(preloader).toHaveAttribute("preload", "metadata");
     // Preloading is capped at the parked neighbors — nothing else fetches.
     expect(track.querySelectorAll("video[preload]")).toHaveLength(1);
+    vi.useRealTimers();
+  });
+
+  it("keeps one persistent stage subtree across work navigation", () => {
+    render(
+      <ReplicationViewerOverlay
+        collection={collection}
+        initialSlug="work-one"
+        open
+        onOpenChange={vi.fn()}
+      />,
+    );
+
+    const before = screen.getByTestId("media-stage");
+    fireEvent.click(screen.getByRole("button", { name: "Next: Work Two" }));
+    const after = screen.getByTestId("media-stage");
+    expect(after).toHaveAttribute("data-title", "Work Two");
+    // Same DOM node, not a remounted twin: a keyed remount would destroy
+    // the real stage's <video>, leaking its media pipeline until GC and
+    // discarding iOS Safari's per-element unmuted-playback blessing.
+    expect(after).toBe(before);
   });
 
   it("contains information-panel focus and restores its trigger", async () => {

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo } from "react";
-import Link from "next/link";
+import { SmartLink } from "@/components/common/SmartLink";
 import { useRouter } from "next/navigation";
 
 import { Icon } from "@/components/common/Icon";
@@ -33,9 +33,8 @@ function TreeLink({
 }) {
   return (
     <div className="flex min-h-8 items-center">
-      <Link
+      <SmartLink
         href={`/chemical-classes/${node.key}`}
-        prefetch={false}
         className={cn(
           "theme-focus-ring inline-flex items-center rounded-sm leading-6 transition-colors hover:opacity-85",
           isRoot ? "text-base font-semibold sm:text-lg" : "text-sm sm:text-[0.9375rem]",
@@ -47,7 +46,7 @@ function TreeLink({
         {crossReference ? (
           <Icon icon={icons.arrowRight} className="theme-text-faint ml-1.5 h-3.5 w-3.5" />
         ) : null}
-      </Link>
+      </SmartLink>
     </div>
   );
 }

@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { SmartLink } from "@/components/common/SmartLink";
 import type { ReactNode } from "react";
 import { ExpandButton, ExpandIndicator } from "@/components/common/ExpandButton";
 import { Icon } from "@/components/common/Icon";
@@ -182,9 +183,8 @@ export function EffectBadge({
             // No page to open: same typography, none of the link affordances.
             <span className="text-xs font-semibold text-dose-text-secondary">{effect.name}</span>
           ) : (
-            <Link
+            <SmartLink
               href={href}
-              prefetch={false}
               onClick={
                 onSelectEffect
                   ? (event) => {
@@ -200,7 +200,7 @@ export function EffectBadge({
               className="text-xs font-semibold text-dose-text-secondary transition-colors hover:text-dose-accent-soft focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-dose-accent"
             >
               {effect.name}
-            </Link>
+            </SmartLink>
           )}
           {subtitleBadge && (
             <span className="rounded bg-dose-surface-strong px-2 py-0.5 text-xs text-dose-text-faint">

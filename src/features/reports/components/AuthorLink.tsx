@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { SmartLink } from "@/components/common/SmartLink";
 import { memo } from "react";
 import { publicHref } from "@/utils/publicHref";
 
@@ -31,12 +31,11 @@ export const AuthorLink = memo(function AuthorLink({
   const profileUrl = publicHref.contributor(profileKey);
 
   return (
-    <Link
+    <SmartLink
       href={profileUrl}
-      prefetch={false}
       className={`theme-accent-heading transition-colors hover:opacity-90 hover:underline ${className}`}
     >
       {authorName}
-    </Link>
+    </SmartLink>
   );
 });

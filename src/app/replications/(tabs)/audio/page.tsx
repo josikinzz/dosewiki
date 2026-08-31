@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { SmartLink } from "@/components/common/SmartLink";
 
 import { proseLinkClassName } from "@/components/common/ProseLink";
 import { SearchEmptyState } from "@/components/common/SearchEmptyState";
@@ -64,13 +65,12 @@ export default async function ReplicationAudioPage() {
                   key={`${entry.effectSlug}-${entry.audio.title}`}
                   audio={entry.audio}
                   contextLabel={
-                    <Link
+                    <SmartLink
                       href={`/effects/${entry.effectSlug}`}
-                      prefetch={false}
                       className="theme-accent-heading theme-focus-ring text-xs font-medium transition hover:opacity-90"
                     >
                       {entry.effectName}
-                    </Link>
+                    </SmartLink>
                   }
                 />
               ))}

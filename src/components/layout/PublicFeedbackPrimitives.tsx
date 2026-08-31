@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { SmartLink } from "@/components/common/SmartLink";
 import type { ReactNode } from "react";
 
 import { AppImage } from "@/components/common/AppImage";
@@ -443,15 +443,26 @@ export function ArticleContributorAttribution({
       {author}
     </a>
   ) : (
-    <Link href={authorHref} prefetch={false} className={authorLinkClassName}>
+    <SmartLink href={authorHref} className={authorLinkClassName}>
       {author}
-    </Link>
+    </SmartLink>
   );
+  // The avatar belongs to the name, not the sentence: render it between "by"
+  // and the author inside one nowrap unit so the credit never breaks mid-name.
   const authorLabel = (
-    <>
-      <span className="theme-text-faint font-medium">by </span>
+    <span className="inline-flex items-center gap-1.5 whitespace-nowrap align-bottom">
+      <span className="theme-text-faint font-medium">by</span>
+      {avatarSrc ? (
+        <AppImage
+          src={avatarSrc}
+          alt=""
+          width={20}
+          height={20}
+          className="h-5 w-5 rounded"
+        />
+      ) : null}
       {authorLink}
-    </>
+    </span>
   );
 
   return (
@@ -463,8 +474,6 @@ export function ArticleContributorAttribution({
         prefix={creditText.prefix}
         label={authorLabel}
         suffix={creditText.suffix}
-        faviconSrc={avatarSrc ?? undefined}
-        faviconAlt={author}
       />
     </div>
   );

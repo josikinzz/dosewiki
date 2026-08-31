@@ -24,12 +24,12 @@ import { SITE_FLAVOR_CONFIG, type SiteFlavorConfig } from "@/config/siteFlavor";
 
 interface SiteSupporterProps {
   /**
-   * Cross-axis alignment of the two stacked rows. The footer's identity column is
-   * left-aligned, the homepage hero is centred. Passing this rather than letting a caller
+   * Cross-axis alignment of the two stacked rows. The footer's right rail is
+   * end-aligned, the homepage hero is centred. Passing this rather than letting a caller
    * hand in `items-*` classes keeps the two rows from disagreeing: Tailwind resolves
    * competing `items-*` by stylesheet order, not by class-list order.
    */
-  align?: "start" | "center";
+  align?: "start" | "center" | "end";
   className?: string;
   /** Injected for tests and the kit catalog; defaults to the ambient build-time flavor. */
   config?: SiteFlavorConfig;
@@ -56,7 +56,7 @@ export function SiteSupporter({
       rel="noopener noreferrer"
       className={[
         "theme-site-supporter inline-flex w-fit flex-col gap-1.5",
-        align === "center" ? "items-center" : "items-start",
+        align === "center" ? "items-center" : align === "end" ? "items-end" : "items-start",
         className,
       ]
         .filter(Boolean)

@@ -137,20 +137,29 @@ export const HistoryCultureSection = memo(function HistoryCultureSection({
 
   // Filter out empty sections (a section is valid if it has content OR has subsections).
   //
-  // The original index is captured *before* the filter. An inline edit addresses
-  // `history_culture.sections[n].content` by index, and one dropped empty entry
-  // shifts every later section's rendered position down by one — so mapping over
-  // the filtered list would aim each edit at the wrong stored section. The write
-  // would be refused by the `expected` conflict check rather than silently
-  // misapplied, but a reviewer would see nothing but unexplained refusals.
+  // The original index is captured *before* filtering and presentation ordering.
+  // Inline edits address `history_culture.sections[n]` by stored index, so rendered
+  // positions must never be used to build their field paths.
+  //
+  // Notable individuals are supplementary context rather than part of the main
+  // historical sequence. Keep every other section in its authored order, then
+  // place this card-based group at the end of the reading path.
   const sections = (history_culture.sections ?? [])
-    .map((section, originalIndex) => ({ section, originalIndex }))
+    .map((section, originalIndex) => ({
+      section,
+      originalIndex,
+      isNotableIndividuals: section.heading.trim() === "Notable Individuals",
+    }))
     .filter(({ section }) => {
       const hasHeading = section.heading.trim().length > 0;
       const hasSectionContent = section.content.trim().length > 0;
       const hasSubsections = section.subsections && section.subsections.length > 0;
       return hasHeading && (hasSectionContent || hasSubsections);
-    });
+    })
+    .sort(
+      (left, right) =>
+        Number(left.isNotableIndividuals) - Number(right.isNotableIndividuals),
+    );
 
   // Nothing to show
   if (!hasContent && sections.length === 0) {
@@ -261,7 +270,8 @@ export const HistoryCultureSection = memo(function HistoryCultureSection({
                 truncation; `originalIndex` is the position in the stored array
                 and is the only one a field path may carry.
               */}
-              {sectionsToShow.map(({ section, originalIndex }, displayIdx) => {
+              {sectionsToShow.map(
+                ({ section, originalIndex, isNotableIndividuals }, displayIdx) => {
                 const sectionIcon = getIconForHistoryHeading(section.heading);
                 const hasSubsections = section.subsections && section.subsections.length > 0;
                 const sectionHasContent = section.content.trim().length > 0;
@@ -293,7 +303,7 @@ export const HistoryCultureSection = memo(function HistoryCultureSection({
 
                       {/* Nested subsections - only show when expanded */}
                       {isExpanded && hasSubsections && (
-                        section.heading === "Notable Individuals" ? (
+                        isNotableIndividuals ? (
                           // Special card-based layout for Notable Individuals.
                           // The whole card is a <button>, so the editor inside it
                           // relies on EditableValue stopping its own clicks from

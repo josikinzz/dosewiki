@@ -1,9 +1,17 @@
+  /*
+   * `overflow-wrap: anywhere` lets a chemical name longer than the measure
+   * ("2-Fluorodeschloroketamine", "O-desmethyltramadol") break mid-word once
+   * its hyphen breaks are spent, instead of overflowing the hero card's
+   * `overflow-hidden` and getting clipped. It only fires when a word cannot
+   * fit the line, so ordinary titles keep their natural breaks.
+   */
   .type-page-title {
     font-family: var(--font-family-display);
     font-size: var(--type-size-title);
     font-weight: 600;
     line-height: var(--type-leading-tight);
     letter-spacing: var(--type-tracking-display);
+    overflow-wrap: anywhere;
     text-wrap: balance;
   }
 

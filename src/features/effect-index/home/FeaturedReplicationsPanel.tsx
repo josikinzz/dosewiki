@@ -5,6 +5,7 @@ import Link from "next/link";
 
 import { AppImage } from "@/components/common/AppImage";
 import { Icon } from "@/components/common/Icon";
+import { releaseVideoElement } from "@/lib/releaseVideoElement";
 import { getCreatorByline } from "@/features/effects/components/replicationCredit";
 import {
   useInView,
@@ -69,6 +70,20 @@ export function FeaturedReplicationsPanel({
   const stageRef = useRef<HTMLDivElement>(null);
   const autoplayAllowed = useMotionAllowed().autoplay;
   const inView = useInView(stageRef, 0.25, autoplayAllowed);
+  const videoRef = useRef<HTMLVideoElement | null>(null);
+  // Identity-stable on purpose: the carousel remounts its <video> on every
+  // step and on scroll in/out of view, and a leaked element counts against
+  // the browser's media-player budget until GC. An inline callback would
+  // re-run per render and tear down a still-mounted stage.
+  const attachVideo = useCallback((node: HTMLVideoElement | null) => {
+    if (node) {
+      videoRef.current = node;
+      return;
+    }
+    const previous = videoRef.current;
+    videoRef.current = null;
+    if (previous) releaseVideoElement(previous);
+  }, []);
 
   const count = items.length;
 
@@ -143,6 +158,7 @@ export function FeaturedReplicationsPanel({
           {isVideo && autoplayAllowed && inView ? (
             <video
               key={replication.slug}
+              ref={attachVideo}
               src={replication.url}
               poster={replication.thumbnail_url}
               muted

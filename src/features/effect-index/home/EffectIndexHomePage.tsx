@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { SmartLink } from "@/components/common/SmartLink";
 
 import { AppImage } from "@/components/common/AppImage";
 import {
@@ -202,16 +203,15 @@ export function EffectIndexHomePage({
                             {" · "}
                           </span>
                         ) : null}
-                        <Link
+                        <SmartLink
                           href={getPublicRoutePath({
                             family: "effect",
                             params: { effectSlug: effect.slug },
                           })}
-                          prefetch={false}
                           className={homePanelLinkClassName}
                         >
                           {effect.name}
-                        </Link>
+                        </SmartLink>
                       </span>
                     ))}
                   </p>
@@ -298,16 +298,15 @@ export function EffectIndexHomePage({
                 >
                   <div className="min-w-0 flex-1">
                     <p className="text-[1.0625rem] leading-snug">
-                      <Link
+                      <SmartLink
                         href={getPublicRoutePath({
                           family: "report",
                           params: { slug: report.slug },
                         })}
-                        prefetch={false}
                         className={homePanelLinkClassName}
                       >
                         {report.title}
-                      </Link>
+                      </SmartLink>
                     </p>
                     <p className="theme-text-secondary mt-0.5 text-[0.9375rem] italic">
                       by {report.author}

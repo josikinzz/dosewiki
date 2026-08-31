@@ -12,6 +12,7 @@ import {
 import { AppImage } from "@/components/common/AppImage";
 import { Icon } from "@/components/common/Icon";
 import { focusRingClassName } from "@/components/ui/surface";
+import { releaseVideoElement } from "@/lib/releaseVideoElement";
 import { cn } from "@/lib/utils";
 import type { ReplicationViewerMediaItem } from "./viewerModel";
 import {
@@ -33,6 +34,11 @@ const controlClassName = cn(
 const BUFFERING_COPY_DELAY_MS = 2000;
 const BUFFERING_COPY_MIN_VISIBLE_MS = 1500;
 const BUFFERING_COPY_RECOVERY_GRACE_MS = 750;
+/**
+ * How long a motion work may sit with no decodable data before the stage
+ * intervenes — first with one silent load retry, then with the error card.
+ */
+const STALL_WATCHDOG_MS = 5000;
 
 function reducedMotionRequested(): boolean {
   return (
@@ -189,6 +195,8 @@ export function ReplicationMediaStage({
   const bufferingCopyShownAtRef = useRef<number | null>(null);
   const bufferingCopyShowTimerRef = useRef<number | undefined>(undefined);
   const bufferingCopyHideTimerRef = useRef<number | undefined>(undefined);
+  /** True once the stall watchdog has already spent its silent load retry. */
+  const stallRetriedRef = useRef(false);
   const reducedMotion = useReducedMotion();
   const [playing, setPlaying] = useState(false);
   const [blocked, setBlocked] = useState(false);
@@ -289,6 +297,7 @@ export function ReplicationMediaStage({
     setFramePainted(false);
     setScrubbing(false);
     scrubbingRef.current = false;
+    stallRetriedRef.current = false;
     // A new work re-asks for the shared sound preference in the autoplay
     // effect below; any refusal re-arms the IOU there, so a stale debt from
     // the previous work never carries over.
@@ -303,8 +312,11 @@ export function ReplicationMediaStage({
   // canplay stands in elsewhere. A video the standby preloader already
   // warmed satisfies either instantly, and one it never touched simply
   // shows the poster until its first frame arrives — today's behavior.
+  // Re-arms whenever framePainted resets (work change, or an error retry
+  // re-running the load algorithm), so a recovered element always sheds
+  // the poster again.
   useEffect(() => {
-    if (!moving || !motionSource) return;
+    if (!moving || !motionSource || framePainted) return;
     const video = videoRef.current;
     if (!video) return;
     const markPainted = () => setFramePainted(true);
@@ -318,7 +330,7 @@ export function ReplicationMediaStage({
     }
     video.addEventListener("canplay", markPainted);
     return () => video.removeEventListener("canplay", markPainted);
-  }, [moving, motionSource, replication.slug]);
+  }, [framePainted, moving, motionSource, replication.slug]);
 
   useEffect(() => {
     mutedRef.current = muted;
@@ -436,9 +448,19 @@ export function ReplicationMediaStage({
    */
   const attemptPlay = useCallback(
     (video: HTMLVideoElement) => {
+      const attemptSrc = video.src;
       const attempt = video.play();
       if (!attempt) return;
-      void attempt.catch(() => {
+      void attempt.catch((reason: unknown) => {
+        // The element persists across works, so a pending play() from the
+        // outgoing work can reject after the next src is already loading
+        // (AbortError), or after detach. Those stale rejections must not
+        // touch shared state — they would mute or "block" the incoming
+        // work, whose own attempt is the one that matters.
+        if (!video.isConnected || video.src !== attemptSrc) return;
+        if (reason instanceof DOMException && reason.name === "AbortError") {
+          return;
+        }
         if (!video.muted) {
           video.muted = true;
           pendingSoundRef.current = true;
@@ -473,14 +495,21 @@ export function ReplicationMediaStage({
    * the element, answering an outstanding sound IOU with an out-of-gesture
    * unmute — which WebKit punishes by pausing playback. After mount, the
    * element's muted flag belongs to the guarded sync effect and the
-   * gesture handlers alone.
+   * gesture handlers alone. On detach the element's media pipeline is
+   * released immediately: a discarded video otherwise holds its player
+   * (and any in-flight fetch) until GC, and Chromium's per-frame player
+   * cap answers that hoard by silently refusing every later load.
    */
   const attachVideo = useCallback((node: HTMLVideoElement | null) => {
-    videoRef.current = node;
-    if (node) {
-      node.defaultMuted = mutedRef.current;
-      node.muted = mutedRef.current;
+    if (!node) {
+      const previous = videoRef.current;
+      videoRef.current = null;
+      if (previous) releaseVideoElement(previous);
+      return;
     }
+    videoRef.current = node;
+    node.defaultMuted = mutedRef.current;
+    node.muted = mutedRef.current;
   }, []);
 
   useEffect(() => {
@@ -744,6 +773,61 @@ export function ReplicationMediaStage({
     }, 300);
     return () => window.clearTimeout(timer);
   }, [autoplayAllowed, framePainted, moving, motionSource, replication.slug]);
+  // Stalled-load watchdog. A browser that has hit its media-player cap
+  // refuses new loads silently — no error event, no metadata, an eternal
+  // spinner. If a motion work produces no decodable data within the
+  // window, re-run the load algorithm once (players freed since the first
+  // attempt make the retry succeed); if the retry also stalls, surface
+  // the error card with its retry affordance instead of spinning forever.
+  useEffect(() => {
+    if (!moving || !motionSource || !autoplayAllowed || framePainted || error) {
+      return;
+    }
+    let timer = 0;
+    const check = () => {
+      const video = videoRef.current;
+      if (!video || video.readyState >= HTMLMediaElement.HAVE_CURRENT_DATA) {
+        return;
+      }
+      if (!stallRetriedRef.current) {
+        stallRetriedRef.current = true;
+        video.load();
+        attemptPlay(video);
+        timer = window.setTimeout(check, STALL_WATCHDOG_MS);
+        return;
+      }
+      resetBuffering();
+      setError(true);
+      setPlaying(false);
+      setControlsVisible(true);
+    };
+    timer = window.setTimeout(check, STALL_WATCHDOG_MS);
+    return () => window.clearTimeout(timer);
+  }, [
+    attemptPlay,
+    autoplayAllowed,
+    error,
+    framePainted,
+    motionSource,
+    moving,
+    replication.slug,
+    resetBuffering,
+  ]);
+  /**
+   * The error card's second chance: clear the failure and re-run the load
+   * algorithm from inside the click gesture, so a replay is blessed. Also
+   * re-arms the watchdog with a fresh silent retry.
+   */
+  const retryLoad = useCallback(() => {
+    stallRetriedRef.current = false;
+    setError(false);
+    setFramePainted(false);
+    resetBuffering();
+    const video = videoRef.current;
+    if (!video) return;
+    video.load();
+    if (autoplayAllowed) attemptPlay(video);
+  }, [attemptPlay, autoplayAllowed, resetBuffering]);
   // Anchor the playback cluster to the letterboxed media box, not the stage:
   // object-contain centers the media, so each axis's spare space is half of
   // (stage minus contained size). Container-query units resolve against the
@@ -781,10 +865,11 @@ export function ReplicationMediaStage({
         // and rights context are exposed by the surrounding viewer.
         // eslint-disable-next-line jsx-a11y/media-has-caption
         <video
-          // Deliberately unkeyed: iOS Safari's unmuted-playback blessing is
-          // per-element and survives src swaps but not remounts. One element
-          // carried across works is what lets sound continue seamlessly
-          // through a swipe, the way the phone feeds behave.
+          // Deliberately unkeyed — and the overlay's stage wrapper is not
+          // keyed by work either — so this one element is truly carried
+          // across works: iOS Safari's unmuted-playback blessing is
+          // per-element and survives src swaps but not remounts, and a
+          // remount would leak the old element's media pipeline until GC.
           ref={attachVideo}
           src={motionSource}
           poster={poster}
@@ -829,9 +914,10 @@ export function ReplicationMediaStage({
         />
       ) : null}
       {moving && motionSource && poster ? (
-        // The warm poster rides above the remounting <video> until real
-        // frames paint, so a work change never flashes black. Same URL the
-        // standby pane already showed — the swap lands on an identical image.
+        // The warm poster rides above the <video> from a work change until
+        // the incoming work's real frames paint, so the swap never flashes
+        // black. Same URL the standby pane already showed — the handoff
+        // lands on an identical image.
         <div
           aria-hidden
           className={cn(
@@ -894,10 +980,24 @@ export function ReplicationMediaStage({
       {error ? (
         <div
           role="alert"
-          className="theme-media-tile-title absolute inset-x-6 top-1/2 -translate-y-1/2 rounded-lg bg-black/80 p-4 text-center text-sm"
+          className="theme-media-tile-title absolute inset-x-6 top-1/2 z-20 -translate-y-1/2 rounded-lg bg-black/80 p-4 text-center text-sm"
         >
-          This media could not be loaded. You can still open information or
-          continue browsing.
+          <p>
+            This media could not be loaded. You can still open information or
+            continue browsing.
+          </p>
+          {moving && motionSource ? (
+            <button
+              type="button"
+              onClick={retryLoad}
+              className={cn(
+                "theme-media-control-raised mt-3 rounded-full px-4 py-2 text-xs font-semibold",
+                focusRingClassName,
+              )}
+            >
+              Try again
+            </button>
+          ) : null}
         </div>
       ) : null}
 

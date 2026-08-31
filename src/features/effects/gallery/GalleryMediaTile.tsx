@@ -1,10 +1,11 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
-import Link from "next/link";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { SmartLink } from "@/components/common/SmartLink";
 import { AppImage } from "@/components/common/AppImage";
 import { Icon } from "@/components/common/Icon";
 import { MediaPlaceholder } from "@/components/layout/PublicFeedbackPrimitives";
+import { releaseVideoElement } from "@/lib/releaseVideoElement";
 import { cn } from "@/lib/utils";
 import type { PublicGalleryReplicationPreview } from "@/types/replications";
 import { getCreatorByline } from "../components/replicationCredit";
@@ -80,6 +81,19 @@ export function GalleryMediaTile({
   const [hovered, setHovered] = useState(false);
   const [playing, setPlaying] = useState(false);
   const videoRef = useRef<HTMLVideoElement | null>(null);
+  // Identity-stable on purpose: hover previews unmount on every mouse-out,
+  // and a released-then-leaked element would count against the browser's
+  // media-player budget until GC. An inline callback would re-run per
+  // render and tear down a still-mounted preview.
+  const attachPreview = useCallback((node: HTMLVideoElement | null) => {
+    if (node) {
+      videoRef.current = node;
+      return;
+    }
+    const previous = videoRef.current;
+    videoRef.current = null;
+    if (previous) releaseVideoElement(previous);
+  }, []);
 
   const isVideo = replication.type === "video";
   const gifLike = replication.format.toLowerCase() === "gif";
@@ -127,9 +141,8 @@ export function GalleryMediaTile({
 
   return (
     <figure className={cn("min-w-0", className)}>
-      <Link
+      <SmartLink
         href={viewerHref}
-        prefetch={false}
         onClick={onOpen ? (event) => onOpen(event, replication) : undefined}
         onMouseEnter={() => setHovered(true)}
         onMouseLeave={() => setHovered(false)}
@@ -170,7 +183,7 @@ export function GalleryMediaTile({
 
         {showPreview ? (
           <video
-            ref={videoRef}
+            ref={attachPreview}
             src={previewSource}
             poster={thumbnailUrl}
             muted
@@ -209,7 +222,7 @@ export function GalleryMediaTile({
             <span className="sr-only">{isVideo ? "Video" : "Animation"}</span>
           </span>
         ) : null}
-      </Link>
+      </SmartLink>
 
       {/* Compact phone tiles keep one concise caption row. Artist rails can
           still suppress the repeated byline with `showByline={false}`, while

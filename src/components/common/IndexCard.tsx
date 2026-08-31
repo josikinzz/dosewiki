@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import { SmartLink } from "@/components/common/SmartLink";
 import { useCallback, useId, useState, memo, type ReactNode } from "react";
 import { InteractiveSurface } from "@/components/ui/surface";
 import { Icon, type IconName } from "./Icon";
@@ -182,13 +182,12 @@ export const IndexCard = memo(function IndexCard({
           {hideIcon ? null : iconElement}
           <div className="min-w-0 flex-1 pt-1">
             {titleHref ? (
-              <Link
+              <SmartLink
                 href={titleHref}
-                prefetch={false}
                 className="theme-focus-ring block min-w-0 text-left transition-opacity hover:opacity-80"
               >
                 {titleElement}
-              </Link>
+              </SmartLink>
             ) : onTitleClick ? (
               <button
                 type="button"
@@ -283,13 +282,12 @@ export const IndexCardSection = memo(function IndexCardSection({
             <Icon icon={icon} size={16} className="theme-icon-accent" />
           )}
           {titleHref ? (
-            <Link
+            <SmartLink
               href={titleHref}
-              prefetch={false}
               className="theme-focus-ring rounded-sm transition-opacity hover:opacity-80"
             >
               {title}
-            </Link>
+            </SmartLink>
           ) : (
             title
           )}
@@ -393,9 +391,9 @@ export const IndexCardListItem = memo(function IndexCardListItem({
   if (href) {
     return (
       <li id={id} className={id ? "scroll-mt-24" : undefined}>
-        <Link href={href} prefetch={false} className={className}>
+        <SmartLink href={href} className={className}>
           {content}
-        </Link>
+        </SmartLink>
       </li>
     );
   }

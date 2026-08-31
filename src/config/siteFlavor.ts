@@ -380,7 +380,8 @@ const DOSEWIKI_CONFIG: SiteFlavorConfig = {
   },
   articleFallbackDescription: "Browse Effect Index articles in dose.wiki.",
   footer: {
-    tagline: "Community harm-reduction information. Not medical advice.",
+    tagline:
+      "dose.wiki does not endorse or warrant the accuracy or safety of the information published here. Its articles, reports, and data describe substances and individual experiences and must not be read as medical advice, dosing recommendations, or a representation that any substance or dose is safe.\n\ndose.wiki is an independently governed repository of psychoactive-substance information and first-person experiences. Its operations, content policies, and editorial decisions are its own.",
     licence: {
       leadIn:
         "Mixed licenses, mostly open: MIT code, CC0 writing, third-party material on its own terms. See",

@@ -392,8 +392,10 @@ export const SubjectiveEffectsSection = memo(function SubjectiveEffectsSection({
             <ArticleContributorAttribution
               // The adornment's -mb-8 pulls the next sibling up into the pill's
               // row; with the Replication Showcase streaming in below, that
-              // collides the pill with the showcase card, so cancel the pull.
-              className={replicationShowcaseSection ? "mt-4 mb-0" : "mt-4"}
+              // collides the pill with the showcase card. Override with the
+              // section's own space-y-6 margin (mb-0 would also cancel the
+              // spacing Tailwind's space-y applies via margin-bottom).
+              className={replicationShowcaseSection ? "mt-4 mb-6" : "mt-4"}
               author={author}
               authorHref={contributorPath}
               avatarSrc={

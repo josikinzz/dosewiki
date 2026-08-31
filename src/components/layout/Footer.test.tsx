@@ -28,7 +28,11 @@ describe("Footer", () => {
 
     expect(document.querySelector(".app-footer > div")).toHaveAttribute("data-nosnippet");
     expect(screen.queryByText("Harm reduction reference")).not.toBeInTheDocument();
-    expect(screen.getByText(SITE_FLAVOR_CONFIG.footer.tagline)).toBeInTheDocument();
+    // The tagline is now a two-paragraph disclaimer rendered as separate <p> nodes,
+    // so assert each paragraph rather than the joined string.
+    for (const paragraph of SITE_FLAVOR_CONFIG.footer.tagline.split("\n\n")) {
+      expect(screen.getByText(paragraph)).toBeInTheDocument();
+    }
     // Reuse rights are a per-publication legal statement; assert the flavor's own wording.
     expect(
       screen.getByRole("link", { name: SITE_FLAVOR_CONFIG.footer.licence.linkLabel }),

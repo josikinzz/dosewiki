@@ -44,7 +44,9 @@ export function ExternalSourcePill({
       className={cn(
         "theme-external-source-pill group relative ring-1 transition",
         isCredit
-          ? "grid w-full max-w-full grid-cols-[auto_minmax(0,1fr)_auto_auto] items-center gap-x-2 gap-y-1 rounded-2xl px-3 py-2.5 sm:inline-flex sm:w-auto sm:flex-nowrap sm:gap-2.5 sm:rounded-full sm:px-3 sm:py-1.5 sm:pr-4"
+          ? // Credit copy is a sentence: lay it out as wrapping inline text so
+            // the attribution reads in flow instead of on its own row.
+            "block w-full max-w-full rounded-2xl px-3 py-2 leading-5 sm:w-auto"
           : "flex items-center gap-2.5 rounded-full px-3 py-1.5 pr-4",
         className,
       )}
@@ -64,37 +66,40 @@ export function ExternalSourcePill({
         className={cn(
           "theme-text-faint text-xs transition group-hover:opacity-90",
           isCredit
-            ? "col-span-full min-w-0 pr-5 text-[0.73rem] font-medium leading-4 [text-wrap:pretty] sm:col-auto sm:pr-0 sm:text-xs sm:leading-none"
+            ? "text-[0.73rem] font-medium [text-wrap:pretty] sm:text-xs"
             : undefined,
         )}
       >
         {prefix}
-      </span>
+      </span>{" "}
       {faviconSrc ? (
         <AppImage
           src={faviconSrc}
           alt={faviconAlt}
           width={20}
           height={20}
-          className="h-5 w-5 rounded"
+          className={cn(
+            "h-5 w-5 rounded",
+            isCredit && "mr-1 inline-block align-text-bottom",
+          )}
         />
       ) : null}
       <span
         className={cn(
           "min-w-0 text-xs font-semibold text-current transition",
           isCredit
-            ? "leading-4 [overflow-wrap:anywhere] sm:-ml-1 sm:whitespace-nowrap"
+            ? "text-[0.73rem] sm:text-xs"
             : "-ml-1",
         )}
       >
         {label}
-      </span>
+      </span>{" "}
       {suffix ? (
         <span
           className={cn(
             "theme-text-faint text-xs transition group-hover:opacity-90",
             isCredit
-              ? "whitespace-nowrap text-[0.73rem] font-medium leading-4 sm:-ml-1 sm:text-xs"
+              ? "text-[0.73rem] font-medium sm:text-xs"
               : "-ml-1",
           )}
         >
@@ -106,7 +111,7 @@ export function ExternalSourcePill({
         size={12}
         className={cn(
           "theme-external-link-badge-icon shrink-0 text-current opacity-60 transition group-hover:opacity-90",
-          isCredit ? "justify-self-end" : "-ml-1",
+          isCredit ? "mb-0.5 ml-1.5 inline-block align-middle" : "-ml-1",
         )}
       />
     </div>

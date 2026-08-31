@@ -60,6 +60,10 @@ beforeAll(() => {
     configurable: true,
     value: vi.fn(),
   });
+  Object.defineProperty(HTMLMediaElement.prototype, "load", {
+    configurable: true,
+    value: vi.fn(),
+  });
 });
 
 beforeEach(() => {
@@ -221,6 +225,64 @@ describe("ReplicationMediaStage", () => {
     expect(screen.getByRole("status")).toBeInTheDocument();
     act(() => vi.advanceTimersByTime(1));
     expect(screen.queryByRole("status")).not.toBeInTheDocument();
+  });
+
+  it("releases the media pipeline when the stage's video detaches", async () => {
+    const { container, unmount } = render(
+      <ReplicationMediaStage
+        item={item()}
+        muted
+        volume={1}
+        onMutedChange={vi.fn()}
+        onVolumeChange={vi.fn()}
+      />,
+    );
+    const video = container.querySelector("video") as HTMLVideoElement;
+    expect(video).toHaveAttribute("src");
+    const load = HTMLMediaElement.prototype.load as Mock;
+    load.mockClear();
+
+    unmount();
+    // The release defers one microtask to survive StrictMode's simulated
+    // remount (detach + immediate re-attach without unmounting the DOM).
+    await Promise.resolve();
+
+    // Detached elements keep their media player (and any in-flight fetch)
+    // alive until GC; browsers cap live players per page and then silently
+    // refuse new loads. The empty-source load frees the player immediately.
+    expect(video.hasAttribute("src")).toBe(false);
+    expect(load).toHaveBeenCalled();
+  });
+
+  it("retries a silently stalled load once, then surfaces the retryable error card", () => {
+    vi.useFakeTimers();
+    render(
+      <ReplicationMediaStage
+        item={item()}
+        muted
+        volume={1}
+        onMutedChange={vi.fn()}
+        onVolumeChange={vi.fn()}
+      />,
+    );
+    const load = HTMLMediaElement.prototype.load as Mock;
+    load.mockClear();
+
+    // jsdom's readyState stays HAVE_NOTHING: no metadata, no error event —
+    // exactly the silent stall a capped-out browser produces.
+    act(() => vi.advanceTimersByTime(5000));
+    expect(load).toHaveBeenCalledOnce();
+    expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+
+    act(() => vi.advanceTimersByTime(5000));
+    expect(screen.getByRole("alert")).toHaveTextContent(
+      "This media could not be loaded",
+    );
+
+    load.mockClear();
+    fireEvent.click(screen.getByRole("button", { name: "Try again" }));
+    expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+    expect(load).toHaveBeenCalledOnce();
   });
 
   it("bridges brief recovery events without flashing the buffering copy", () => {

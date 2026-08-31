@@ -22,21 +22,30 @@ export function Footer({ model = getRouteChromeModel("/") }: FooterProps) {
           disclaimer and the appearance controls sit against the viewport edges rather
           than the page column. The gutter is the only inset. */}
       <div className="flex w-full flex-col gap-4 px-6" data-nosnippet>
-        <div className="flex items-start justify-between gap-3 sm:items-center sm:gap-6">
+        <div className="flex flex-col gap-5 sm:flex-row sm:items-start sm:justify-between sm:gap-6">
           {/* No brand mark here. The header already carries the logo and wordmark on every
               page that renders this footer, so repeating them below the fold was pure echo;
               the footer's job is the disclaimer, the reuse terms, and the supporter credit. */}
-          <div className="flex min-w-0 max-w-3xl flex-col gap-1 leading-tight">
-            <p className="theme-text-faint text-xs leading-5">
-              {SITE_FLAVOR_CONFIG.footer.tagline}
-            </p>
+          <div className="flex min-w-0 max-w-prose flex-col">
+            {SITE_FLAVOR_CONFIG.footer.tagline
+              .split("\n\n")
+              .map((paragraph, index) => (
+                <p
+                  key={index}
+                  className="theme-text-faint text-xs leading-5 [&+&]:mt-2"
+                >
+                  {paragraph}
+                </p>
+              ))}
 
-            <SiteLicenceNotice />
-
-            <SiteSupporter className="mt-1.5" />
+            <SiteLicenceNotice className="theme-text-faint text-xs leading-5 mt-4" />
           </div>
 
-          <nav className="theme-text-muted flex shrink-0 flex-col items-end gap-2 text-sm font-medium min-[420px]:flex-row min-[420px]:items-center sm:justify-end">
+          {/* Right rail: the appearance/nav controls with the supporter credit beneath
+              them, so the credit balances the disclaimer column instead of hanging off
+              its bottom into empty space. */}
+          <div className="flex w-full items-end justify-between gap-4 sm:w-auto sm:shrink-0 sm:flex-col sm:items-end">
+            <nav className="theme-text-muted flex items-center gap-2 text-sm font-medium">
             {model.footerNavItems.map((item) => {
               const footerIcon = resolveRouteChromeIcon(item.icon);
 
@@ -69,7 +78,10 @@ export function Footer({ model = getRouteChromeModel("/") }: FooterProps) {
                 </a>
               );
             })}
-          </nav>
+            </nav>
+
+            <SiteSupporter align="end" />
+          </div>
         </div>
       </div>
     </footer>

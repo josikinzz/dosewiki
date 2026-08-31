@@ -38,6 +38,15 @@ html[data-font="dyslexic"][data-font][data-font] {
   --type-tracking-display: 0;
   --type-tracking-heading: 0;
   --type-tracking-body: 0;
+
+  /* Lexend's letterforms sit visibly larger than Blinker's or Titillium's at
+     the same declared size — taller x-height, wider fit — so the display
+     scale that reads as a title in the standard faces reads as a wall in
+     this one (and overruns the hero card sooner). Re-seat only the display
+     sizes, ~0.85x the base.css clamps; body sizes stay untouched because
+     the larger rendering IS the readability property the face is for. */
+  --type-size-title: clamp(2.5rem, 2.125rem + 1.9vw, 3.8125rem);
+  --type-size-section: clamp(1.35rem, 1.15rem + 0.6vw, 1.75rem);
 }
 
 /* The `font-sans` utility resolves a plain Inter stack straight from

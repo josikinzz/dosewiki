@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { SmartLink } from "@/components/common/SmartLink";
 import { PublicPill } from "@/components/common/PublicTokens";
 import { StateCard } from "@/components/common/StateCard";
 import { PageHeader } from "@/components/layout/PageHeader";
@@ -90,9 +91,8 @@ function ArticleIndexRowItem({ article }: { article: ArticleIndexRow }) {
   if (article.density === "compact") {
     return (
       <li className="theme-index-row">
-        <Link
+        <SmartLink
           href={href}
-          prefetch={false}
           className="theme-index-row-link group flex flex-wrap items-baseline gap-x-3 gap-y-1 rounded-xl px-3 py-2.5"
         >
           <span className="theme-accent-heading shrink-0 text-[0.9375rem] font-medium transition group-hover:opacity-90">
@@ -103,16 +103,15 @@ function ArticleIndexRowItem({ article }: { article: ArticleIndexRow }) {
               {article.description}
             </span>
           ) : null}
-        </Link>
+        </SmartLink>
       </li>
     );
   }
 
   return (
     <li className="theme-index-row">
-      <Link
+      <SmartLink
         href={href}
-        prefetch={false}
         className="theme-index-row-link group block rounded-xl px-3 py-3"
       >
         <h3 className="theme-accent-heading text-lg font-semibold leading-snug transition group-hover:opacity-90">
@@ -135,7 +134,7 @@ function ArticleIndexRowItem({ article }: { article: ArticleIndexRow }) {
             </PublicPill>
           ))}
         </p>
-      </Link>
+      </SmartLink>
     </li>
   );
 }

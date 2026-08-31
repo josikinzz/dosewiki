@@ -116,6 +116,82 @@ html[data-theme="light"] .theme-page-shell {
   }
 }
 
+/* Pending-navigation feedback (SmartLink + NavigationProgress).
+   A clicked link that stays in flight past the feedback delay gains
+   data-nav-pending on its anchor, and the route chrome mounts the
+   .theme-nav-progress bar. Together they answer "did my click register?"
+   during the round trip for a route payload that was not prefetched. */
+
+a[data-nav-pending="true"] {
+  cursor: progress;
+  opacity: 0.65;
+  transition: opacity 200ms ease-out;
+}
+
+.theme-nav-progress {
+  position: fixed;
+  inset: 0 0 auto 0;
+  height: 2px;
+  /* Above .app-header (z-index: 50); purely decorative, never interactive. */
+  z-index: 60;
+  pointer-events: none;
+  transform-origin: 0 50%;
+  background: var(--theme-accent-strong);
+}
+
+.theme-nav-progress[data-phase="active"] {
+  /* Fast launch that asymptotes: ~60% of the track inside the first second,
+     then a slow crawl — the classic "still working" indeterminate shape. */
+  animation: theme-nav-progress-advance 12s cubic-bezier(0.16, 1, 0.3, 1)
+    forwards;
+}
+
+.theme-nav-progress[data-phase="done"] {
+  animation: theme-nav-progress-finish 350ms ease-out forwards;
+}
+
+@keyframes theme-nav-progress-advance {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(0.96);
+  }
+}
+
+@keyframes theme-nav-progress-finish {
+  0% {
+    transform: scaleX(0.7);
+    opacity: 1;
+  }
+  55% {
+    transform: scaleX(1);
+    opacity: 1;
+  }
+  100% {
+    transform: scaleX(1);
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  a[data-nav-pending="true"] {
+    transition: none;
+  }
+
+  .theme-nav-progress[data-phase="active"] {
+    animation: none;
+    transform: scaleX(0.6);
+  }
+
+  .theme-nav-progress[data-phase="done"] {
+    animation: none;
+    transform: scaleX(1);
+    opacity: 0;
+    transition: opacity 250ms ease-out;
+  }
+}
+
 @media (hover: hover) {
   .theme-public-card-interactive:hover {
     border-color: var(--theme-card-border-strong);
@@ -3124,7 +3200,12 @@ html[data-theme="light"] .theme-footer-surface:not(.theme-chrome-dark) {
 }
 
 .theme-media-rail-arrow {
+  background: var(--theme-frosted-control-bg);
   box-shadow: var(--theme-frosted-control-shadow);
+}
+
+.theme-media-rail-arrow:hover {
+  background: var(--theme-frosted-control-hover-bg);
 }
 
 .theme-media-tile:focus-visible {

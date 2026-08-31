@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import { SmartLink } from "@/components/common/SmartLink";
 import { useDeferredValue, useMemo, useState } from "react";
 
 import { Icon } from "@/components/common/Icon";
@@ -586,13 +586,12 @@ export function CoverageTable({ columns, rows }: CoverageTableProps) {
                     <th scope="row" className={ROW_LABEL_CLASS}>
                       <span className="group/row flex items-baseline justify-between gap-3">
                         <span className="flex min-w-0 items-baseline gap-1.5">
-                          <Link
+                          <SmartLink
                             href={`/${row.slug}`}
-                            prefetch={false}
                             className="theme-text-primary truncate rounded-sm text-sm hover:text-dose-accent-strong hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-dose-accent-strong"
                           >
                             {row.name}
-                          </Link>
+                          </SmartLink>
                           <a
                             href={`/${row.slug}`}
                             target="_blank"

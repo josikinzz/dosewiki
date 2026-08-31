@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { SmartLink } from "@/components/common/SmartLink";
 import type { ComponentPropsWithoutRef, ReactNode } from "react";
 
 import {
@@ -242,13 +242,12 @@ export function PublicAttributionSection({
           />
         ) : null}
         {avatar && avatarHref ? (
-          <Link
+          <SmartLink
             href={avatarHref}
-            prefetch={false}
             className="theme-focus-ring relative z-20 shrink-0 rounded-full"
           >
             {avatar}
-          </Link>
+          </SmartLink>
         ) : (
           avatar
         )}

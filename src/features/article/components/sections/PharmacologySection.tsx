@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import { SmartLink } from "@/components/common/SmartLink";
 import { memo } from "react";
 import { ExpandableList } from "@/components/common/ArticleExpandable";
 import { ExpandButton } from "@/components/common/ExpandButton";
@@ -367,9 +367,8 @@ export const PharmacologySection = memo(function PharmacologySection({
                         "theme-focus-ring font-medium theme-text-primary transition-colors";
                       const renderLabelPart = (text: string) =>
                         mechanismLink ? (
-                          <Link
+                          <SmartLink
                             href={mechanismLink.href}
-                            prefetch={false}
                             className={labelClassName}
                             onClick={(event) => {
                               if (
@@ -386,7 +385,7 @@ export const PharmacologySection = memo(function PharmacologySection({
                             }}
                           >
                             {text}
-                          </Link>
+                          </SmartLink>
                         ) : (
                           <span className={labelClassName}>{text}</span>
                         );
