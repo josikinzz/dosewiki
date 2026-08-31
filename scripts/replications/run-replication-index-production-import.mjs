@@ -118,6 +118,8 @@ export function validateDesiredInsert(input) {
   required((input.width === undefined) === (input.height === undefined), "desiredInsert width and height must be supplied together.");
   required(input.file_size === undefined || (Number.isInteger(input.file_size) && input.file_size > 0), "desiredInsert file_size must be a positive integer.");
   required(input.duration === undefined || (Number.isFinite(input.duration) && input.duration > 0), "desiredInsert duration must be positive.");
+  required(input.effect_slug === undefined || (typeof input.effect_slug === "string" && input.effect_slug.trim()), "desiredInsert effect_slug must be omitted or a non-blank string.");
+  required(input.effect_tags === undefined || (Array.isArray(input.effect_tags) && input.effect_tags.every((tag) => typeof tag === "string" && tag.trim())), "desiredInsert effect_tags must be an array of non-blank strings.");
   required(input.type !== "image" || input.duration === undefined, "Image desiredInsert cannot have duration.");
   required(input.type === "video" || input.has_audio === undefined, "Only video desiredInsert may set has_audio.");
   required(input.taxonomy && typeof input.taxonomy === "object", "desiredInsert requires taxonomy.");

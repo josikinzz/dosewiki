@@ -173,6 +173,10 @@ describe("replication index production import runner", () => {
     expect(() => validateDesiredInsert(mixed)).not.toThrow();
   });
 
+  it("rejects null optional effect fields before dispatch", () => {
+    expect(() => validateDesiredInsert({ ...desired(), effect_slug: null })).toThrow(/effect_slug/i);
+  });
+
   it("pins the application commit and explicit plan digest before writing", async () => {
     const root = mkdtempSync(path.join(tmpdir(), "replication-import-"));
     const { files, plan } = artifacts(root);
