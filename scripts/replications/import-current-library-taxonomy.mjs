@@ -148,7 +148,7 @@ function validateManifest(manifest) {
   }
 }
 
-function reconcileRows(manifest, liveRows, ledger, previousLedger, sourceDigest, importedAt) {
+export function reconcileRows(manifest, liveRows, ledger, previousLedger, sourceDigest, importedAt) {
   const liveById = new Map(liveRows.map((row) => [row.id, row]));
   const updates = [];
   for (const source of manifest.rows) {
@@ -159,7 +159,9 @@ function reconcileRows(manifest, liveRows, ledger, previousLedger, sourceDigest,
       ["title", source.expected.title, live.title],
       ["artist", source.expected.artist, live.artist],
       ["type", source.expected.type, live.type],
-      ["storage id", source.expected.storageId, live.storage_id],
+      ["storage id", source.expected.storageId ?? null, live.storage_id ?? null],
+      ["R2 key", source.expected.r2Key ?? null, live.r2_key ?? null],
+      ["direct URL", source.expected.url ?? null, live.url ?? null],
     ]) {
       required(expected === actual, `${field} changed after snapshot for ${source.productionId}.`);
     }
@@ -179,7 +181,9 @@ function reconcileRows(manifest, liveRows, ledger, previousLedger, sourceDigest,
         title: live.title,
         artist: live.artist,
         type: live.type,
-        storage_id: live.storage_id,
+        storage_id: live.storage_id ?? null,
+        r2_key: live.r2_key ?? null,
+        url: live.url ?? null,
         taxonomy_source_digest: liveDigest,
       },
       taxonomy: {

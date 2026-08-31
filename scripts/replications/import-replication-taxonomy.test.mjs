@@ -5,6 +5,7 @@ import {
   normalizeIdentity,
   reconcileMedia,
   selectCanary,
+  taxonomyUpdate,
 } from "./import-replication-taxonomy.mjs";
 
 describe("replication taxonomy importer", () => {
@@ -75,5 +76,38 @@ describe("replication taxonomy importer", () => {
       "drug",
     ]);
     expect(selected.artists.map((entry) => entry.key)).toEqual(["a", "b"]);
+  });
+
+  it("anchors taxonomy CAS to an R2-only row's canonical locator", () => {
+    const live = {
+      id: "row-r2",
+      slug: "r2-row",
+      title: "R2 row",
+      artist: "Artist",
+      type: "image",
+      storage_id: null,
+      r2_key: "media/sha256/ab/ab00000000000000000000000000000000000000000000000000000000000000.webp",
+      taxonomy_source_digest: null,
+    };
+    const source = {
+      id: "catalog-r2",
+      replicationStatus: "replication",
+      confidence: "high",
+      reviewRequired: false,
+      rationale: "Reviewed replication.",
+    };
+
+    const update = taxonomyUpdate(
+      { source, live },
+      new Map(),
+      "a".repeat(64),
+      1,
+      1,
+    );
+
+    expect(update.expected).toMatchObject({
+      storage_id: null,
+      r2_key: live.r2_key,
+    });
   });
 });

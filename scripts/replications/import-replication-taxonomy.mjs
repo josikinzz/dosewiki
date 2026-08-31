@@ -200,7 +200,7 @@ export function reconcileMedia({ taxonomy, uploadPlan, uploadLedger, liveRows })
   return { matched, unmatched, duplicateLiveMatches };
 }
 
-function taxonomyUpdate(proposal, replicationById, sourceDigest, schemaVersion, importedAt) {
+export function taxonomyUpdate(proposal, replicationById, sourceDigest, schemaVersion, importedAt) {
   const { source, live } = proposal;
   const detail = replicationById.get(source.id);
   const hasReplicationDetail = source.replicationStatus === "replication" && detail;
@@ -251,8 +251,10 @@ function taxonomyUpdate(proposal, replicationById, sourceDigest, schemaVersion, 
       title: live.title,
       artist: live.artist,
       type: live.type,
-      storage_id: live.storage_id,
-      taxonomy_source_digest: live.taxonomy_source_digest,
+      storage_id: live.storage_id ?? null,
+      r2_key: live.r2_key ?? null,
+      url: live.url ?? null,
+      taxonomy_source_digest: live.taxonomy_source_digest ?? null,
     },
     taxonomy,
     evidence: {

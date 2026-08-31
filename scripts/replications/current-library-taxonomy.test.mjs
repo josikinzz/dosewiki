@@ -12,6 +12,7 @@ import {
 } from "./build-current-library-taxonomy.mjs";
 import {
   priorLedgerOwnsRow,
+  reconcileRows,
   selectCanary,
 } from "./import-current-library-taxonomy.mjs";
 import { mergeReviewResults } from "./merge-current-library-review-results.mjs";
@@ -178,6 +179,68 @@ describe("current library taxonomy", () => {
         "prior-digest",
       ),
     ).toBe(false);
+  });
+
+  it("anchors taxonomy CAS to an R2-only current-library row", () => {
+    const sourceDigest = "b".repeat(64);
+    const manifest = {
+      schemaVersion: 2,
+      rows: [{
+        productionId: "row-r2",
+        taxonomyRecordKey: "catalog:r2",
+        expected: {
+          slug: "r2-row",
+          title: "R2 row",
+          artist: "Artist",
+          type: "image",
+          storageId: null,
+          r2Key: "media/sha256/ab/ab00000000000000000000000000000000000000000000000000000000000000.webp",
+          taxonomySourceDigest: null,
+        },
+        replicationStatus: "replication",
+        replicationStatusConfidence: "high",
+        replicationStatusReviewRequired: false,
+        viewingMode: "open-eye",
+        viewingModeTags: ["open-eye"],
+        viewingModeConfidence: "high",
+        viewingModeReviewRequired: false,
+        titleDrugs: [],
+        titleClassMentions: [],
+        drugClasses: [],
+        contentFamily: "experiential-replication",
+        contentTags: [],
+        contentFamilyConfidence: "high",
+        contentFamilyReviewRequired: false,
+        taxonomyReviewRequired: false,
+        replicationStatusRationale: "Reviewed replication.",
+        contentFamilyRationale: "Reviewed experiential replication.",
+      }],
+    };
+    const liveRows = [{
+      id: "row-r2",
+      slug: "r2-row",
+      title: "R2 row",
+      artist: "Artist",
+      type: "image",
+      storage_id: null,
+      r2_key: manifest.rows[0].expected.r2Key,
+      url: null,
+      taxonomy_source_digest: null,
+    }];
+    const updates = reconcileRows(
+      manifest,
+      liveRows,
+      { rows: {} },
+      null,
+      sourceDigest,
+      1,
+    );
+
+    expect(updates[0].expected).toMatchObject({
+      storage_id: null,
+      r2_key: liveRows[0].r2_key,
+      url: null,
+    });
   });
 
   it("merges an exact visual-review campaign and eliminates unreviewed rows", () => {

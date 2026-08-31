@@ -1,5 +1,6 @@
 import type { MutationCtx } from "../_generated/server";
-import { requireAuth } from "./auth";
+import type { Id } from "../_generated/dataModel";
+import { requireAuth, requireEditorWrite } from "./auth";
 import {
   assertEffectExists,
   KEBAB_CASE,
@@ -30,6 +31,10 @@ const INSERT_MEDIA_ASSET_FIELDS = [
   "type",
   "storage_id",
   "r2_key",
+  "thumbnail_r2_key",
+  "preview_r2_key",
+  "motion_r2_key",
+  "motion_poster_r2_key",
   "effect_slug",
   "thumbnail_storage_id",
   "url",
@@ -168,6 +173,87 @@ function validateTaxonomyCoherence(
   }
 }
 
+function validateTaxonomyEvidence(
+  slug: string,
+  taxonomy: InsertMediaAssetArgs["taxonomy"],
+  evidence: InsertMediaAssetArgs["taxonomy_evidence"],
+) {
+  if ((taxonomy === undefined) !== (evidence === undefined)) {
+    throw new Error(
+      `Media asset ${slug} must provide taxonomy and taxonomy_evidence together.`,
+    );
+  }
+  if (!evidence) return;
+  if (
+    !evidence.operation_id.trim()
+    || !evidence.replication_status_rationale.trim()
+    || !evidence.content_family_rationale.trim()
+  ) {
+    throw new Error(`Media asset ${slug} has incomplete taxonomy_evidence.`);
+  }
+}
+
+function taxonomyEvidenceRecord(
+  replicationId: Id<"replications">,
+  taxonomy: NonNullable<InsertMediaAssetArgs["taxonomy"]>,
+  evidence: NonNullable<InsertMediaAssetArgs["taxonomy_evidence"]>,
+) {
+  return {
+    replication_id: replicationId,
+    ...(taxonomy.source_catalog_id
+      ? { source_catalog_id: taxonomy.source_catalog_id }
+      : {}),
+    taxonomy_record_key: taxonomy.taxonomy_record_key,
+    replication_status: taxonomy.replication_status,
+    replication_status_confidence: taxonomy.replication_status_confidence,
+    replication_status_rationale: evidence.replication_status_rationale,
+    ...(taxonomy.viewing_mode ? { viewing_mode: taxonomy.viewing_mode } : {}),
+    ...(taxonomy.viewing_mode_confidence
+      ? { viewing_mode_confidence: taxonomy.viewing_mode_confidence }
+      : {}),
+    ...(evidence.viewing_mode_rationale
+      ? { viewing_mode_rationale: evidence.viewing_mode_rationale }
+      : {}),
+    content_family: taxonomy.content_family,
+    content_tags: taxonomy.content_tags,
+    content_family_confidence: taxonomy.content_family_confidence,
+    content_family_rationale: evidence.content_family_rationale,
+    review_required: taxonomy.taxonomy_review_required,
+    taxonomy_version: taxonomy.taxonomy_version,
+    taxonomy_source_digest: taxonomy.taxonomy_source_digest,
+    operation_id: evidence.operation_id,
+    imported_at: taxonomy.taxonomy_updated_at,
+  };
+}
+
+async function ensureTaxonomyEvidence(
+  ctx: MutationCtx,
+  replicationId: Id<"replications">,
+  taxonomy: NonNullable<InsertMediaAssetArgs["taxonomy"]>,
+  evidence: NonNullable<InsertMediaAssetArgs["taxonomy_evidence"]>,
+) {
+  const expected = taxonomyEvidenceRecord(replicationId, taxonomy, evidence);
+  const existing = await ctx.db
+    .query("replicationTaxonomyEvidence")
+    .withIndex("by_replication_digest", (q) =>
+      q
+        .eq("replication_id", replicationId)
+        .eq("taxonomy_source_digest", taxonomy.taxonomy_source_digest),
+    )
+    .unique();
+  if (!existing) {
+    await ctx.db.insert("replicationTaxonomyEvidence", expected);
+    return;
+  }
+  const agrees = Object.entries(expected).every(
+    ([field, value]) => JSON.stringify(existing[field as keyof typeof existing])
+      === JSON.stringify(value),
+  );
+  if (!agrees) {
+    throw new Error(`Taxonomy evidence for ${taxonomy.taxonomy_record_key} has drifted.`);
+  }
+}
+
 function validHttpUrl(value: string | undefined) {
   if (!value?.trim()) return false;
   try {
@@ -182,7 +268,11 @@ function validateRightsCoherence(
   slug: string,
   rights: Pick<
     InsertMediaAssetArgs,
-    "rights_status" | "license_name" | "license_url" | "permission_notes"
+    | "rights_status"
+    | "license_name"
+    | "license_url"
+    | "permission_notes"
+    | "source_url"
   >,
 ) {
   const hasLicenseName = Boolean(rights.license_name?.trim());
@@ -204,6 +294,14 @@ function validateRightsCoherence(
   ) {
     throw new Error(
       `Media asset ${slug} permission-granted rights need permission_notes.`,
+    );
+  }
+  if (
+    rights.rights_status === "public-domain"
+    && (!validHttpUrl(rights.source_url) || !rights.permission_notes?.trim())
+  ) {
+    throw new Error(
+      `Media asset ${slug} public-domain rights need source_url and permission_notes.`,
     );
   }
 }
@@ -233,11 +331,15 @@ export async function insertMediaAssetHandler(
   ctx: MutationCtx,
   args: InsertMediaAssetArgs,
 ) {
-  await requireAuth(ctx, args.apiKey, "replicationMaintenance");
+  await requireEditorWrite(ctx, {
+    apiKey: args.apiKey,
+    adminIntent: "replicationMaintenance",
+  });
   const {
     apiKey: _apiKey,
     expected_absent: _expectedAbsent,
     taxonomy,
+    taxonomy_evidence: taxonomyEvidence,
     ...row
   } = args;
 
@@ -254,6 +356,20 @@ export async function insertMediaAssetHandler(
   const hasDirectUrl = validHttpUrl(row.url);
   if (row.r2_key !== undefined && !hasR2Key) {
     throw new Error(`Media asset ${row.slug} has an invalid r2_key: ${row.r2_key}`);
+  }
+  for (const field of [
+    "thumbnail_r2_key",
+    "preview_r2_key",
+    "motion_r2_key",
+    "motion_poster_r2_key",
+  ] as const) {
+    const key = row[field];
+    if (key !== undefined && !isValidR2Key(key)) {
+      throw new Error(`Media asset ${row.slug} has an invalid ${field}: ${key}`);
+    }
+  }
+  if ((row.motion_r2_key === undefined) !== (row.motion_poster_r2_key === undefined)) {
+    throw new Error(`Media asset ${row.slug} needs motion and motion-poster R2 keys together.`);
   }
   if (row.url !== undefined && !hasDirectUrl) {
     throw new Error(`Media asset ${row.slug} has an invalid direct url: ${row.url}`);
@@ -317,6 +433,7 @@ export async function insertMediaAssetHandler(
   }
   validateRightsCoherence(row.slug, row);
   validateTaxonomyCoherence(row.slug, row.role, taxonomy);
+  validateTaxonomyEvidence(row.slug, taxonomy, taxonomyEvidence);
 
   const proposed = {
     ...row,
@@ -328,6 +445,19 @@ export async function insertMediaAssetHandler(
     .withIndex("by_slug", (q) => q.eq("slug", row.slug))
     .first();
 
+  if (row.source_sha256) {
+    const claimed = await ctx.db
+      .query("replications")
+      .withIndex("by_source_sha256", (q) =>
+        q.eq("source_sha256", row.source_sha256),
+      )
+      .unique();
+    if (claimed && claimed._id !== collision?._id) {
+      throw new Error(
+        `Source SHA-256 ${row.source_sha256} is already attached to ${claimed.slug}.`,
+      );
+    }
+  }
   if (taxonomy?.source_catalog_id) {
     const claimed = await ctx.db
       .query("replications")
@@ -356,6 +486,9 @@ export async function insertMediaAssetHandler(
   }
   if (collision) {
     if (insertMediaAssetRowsAgree(collision, proposed)) {
+      if (taxonomy && taxonomyEvidence) {
+        await ensureTaxonomyEvidence(ctx, collision._id, taxonomy, taxonomyEvidence);
+      }
       return {
         inserted: false,
         id: collision._id,
@@ -370,6 +503,9 @@ export async function insertMediaAssetHandler(
     ...proposed,
     created_at: new Date().toISOString(),
   });
+  if (taxonomy && taxonomyEvidence) {
+    await ensureTaxonomyEvidence(ctx, id, taxonomy, taxonomyEvidence);
+  }
   return { inserted: true, id, slug: row.slug, role: row.role };
 }
 

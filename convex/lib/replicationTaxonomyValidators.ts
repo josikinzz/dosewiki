@@ -136,7 +136,9 @@ export const replicationTaxonomyExpectedValidator = v.object({
   title: v.string(),
   artist: v.string(),
   type: v.union(v.literal("video"), v.literal("image"), v.literal("audio")),
-  storage_id: v.string(),
+  storage_id: v.union(v.string(), v.null()),
+  r2_key: v.union(v.string(), v.null()),
+  url: v.union(v.string(), v.null()),
   taxonomy_source_digest: v.union(v.string(), v.null()),
 });
 

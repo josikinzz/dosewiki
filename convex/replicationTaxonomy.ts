@@ -1,7 +1,8 @@
 import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
 import type { Doc, Id } from "./_generated/dataModel";
-import { requireAuth } from "./lib/auth";
+import { requireEditorWrite } from "./lib/auth";
+import { replicationTaxonomyLocatorMatches } from "./lib/replicationTaxonomyCas";
 import {
   artistPrimaryTypeValidator,
   artistTypeTagValidator,
@@ -37,7 +38,9 @@ const taxonomyProjectionValidator = v.object({
   effect_slug: nullableString,
   showcase_excluded: v.boolean(),
   created_at: nullableString,
-  storage_id: v.string(),
+  storage_id: nullableString,
+  r2_key: nullableString,
+  url: nullableString,
   source_catalog_id: nullableString,
   taxonomy_record_key: nullableString,
   replication_status: v.union(replicationStatusValidator, v.null()),
@@ -74,7 +77,9 @@ function projectReplication(row: Doc<"replications">) {
     effect_slug: row.effect_slug ?? null,
     showcase_excluded: row.showcase_excluded ?? false,
     created_at: row.created_at ?? null,
-    storage_id: row.storage_id,
+    storage_id: row.storage_id ?? null,
+    r2_key: row.r2_key ?? null,
+    url: row.url ?? null,
     source_catalog_id: row.source_catalog_id ?? null,
     taxonomy_record_key: row.taxonomy_record_key ?? null,
     replication_status: row.replication_status ?? null,
@@ -103,7 +108,10 @@ export const getMigrationPage = query({
     isDone: v.boolean(),
   }),
   handler: async (ctx, args) => {
-    await requireAuth(ctx, args.apiKey, "replicationMaintenance");
+    await requireEditorWrite(ctx, {
+      apiKey: args.apiKey,
+      adminIntent: "replicationMaintenance",
+    });
     const limit = Math.max(1, Math.min(200, Math.floor(args.limit)));
     const page = await ctx.db.query("replications").order("asc").paginate({
       cursor: args.cursor ?? null,
@@ -128,7 +136,10 @@ export const getByIds = query({
     missing: v.array(v.id("replications")),
   }),
   handler: async (ctx, args) => {
-    await requireAuth(ctx, args.apiKey, "replicationMaintenance");
+    await requireEditorWrite(ctx, {
+      apiKey: args.apiKey,
+      adminIntent: "replicationMaintenance",
+    });
     if (args.ids.length > 100) throw new Error("Taxonomy read-back is limited to 100 rows.");
     const rows: ReturnType<typeof projectReplication>[] = [];
     const missing: Id<"replications">[] = [];
@@ -148,7 +159,10 @@ export const getArtistsByKeys = query({
   },
   returns: v.array(artistProjectionValidator),
   handler: async (ctx, args) => {
-    await requireAuth(ctx, args.apiKey, "replicationMaintenance");
+    await requireEditorWrite(ctx, {
+      apiKey: args.apiKey,
+      adminIntent: "replicationMaintenance",
+    });
     if (args.keys.length > 200) throw new Error("Artist taxonomy read-back is limited to 200 rows.");
     const rows = [];
     for (const rawKey of args.keys) {
@@ -222,7 +236,10 @@ export const applyBatch = mutation({
     artist_rows: v.number(),
   }),
   handler: async (ctx, args) => {
-    await requireAuth(ctx, args.apiKey, "replicationMaintenance");
+    await requireEditorWrite(ctx, {
+      apiKey: args.apiKey,
+      adminIntent: "replicationMaintenance",
+    });
     if (args.replications.length + args.artists.length === 0) {
       throw new Error("A taxonomy batch needs at least one update.");
     }
@@ -237,11 +254,11 @@ export const applyBatch = mutation({
       const currentDigest = row.taxonomy_source_digest ?? null;
       const expected = update.expected;
       if (
+        !replicationTaxonomyLocatorMatches(row, expected) ||
         row.slug !== expected.slug ||
         row.title !== expected.title ||
         row.artist !== expected.artist ||
         row.type !== expected.type ||
-        row.storage_id !== expected.storage_id ||
         currentDigest !== expected.taxonomy_source_digest
       ) {
         throw new Error(`Replication ${row.slug} changed after taxonomy preflight.`);
