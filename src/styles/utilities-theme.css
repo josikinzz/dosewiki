@@ -635,6 +635,23 @@ html[data-theme="light"]
   outline-offset: 3px;
 }
 
+/* Citation-needed marker: free-floating superscript-register annotation.
+   No chip, no ring, no fill — the flag should read on inspection, not shout
+   mid-sentence. It sits in the same faint-ink register as meta labels, and
+   the brackets are presentational pseudo-elements so the sentinel text never
+   lands in copied prose. */
+.theme-citation-needed-marker {
+  color: var(--theme-text-faint);
+}
+
+.theme-citation-needed-marker::before {
+  content: "[";
+}
+
+.theme-citation-needed-marker::after {
+  content: "]";
+}
+
 .theme-public-card-subtle {
   border-color: var(--theme-border-subtle);
   background-color: color-mix(

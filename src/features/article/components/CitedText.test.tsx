@@ -110,21 +110,20 @@ describe("CitedText", () => {
   });
 });
 
-describe("CitedText citation-needed badge", () => {
-  it("renders the [citation-needed] token as a caution badge, not text or a link", () => {
+describe("CitedText citation-needed marker", () => {
+  it("renders the [citation-needed] token as a free-floating marker, not text or a link", () => {
     const text = "Unsupported claim [citation-needed]. Next sentence.";
     const article = makeArticle(text, []);
     const { container } = render(<CitedText text={text} article={article} />);
 
-    const badge = screen.getByText("citation needed");
-    expect(badge).toHaveAttribute("data-badge-tone", "yellow");
-    expect(badge).toHaveClass("theme-semantic-caution-badge");
+    const marker = screen.getByText("citation needed");
+    expect(marker).toHaveClass("theme-citation-needed-marker");
     expect(container.textContent).not.toContain("[citation-needed]");
     expect(screen.queryByRole("link")).not.toBeInTheDocument();
     expect(container.querySelector("sup")).not.toBeInTheDocument();
   });
 
-  it("renders badge and reference link when both tokens share a sentence", () => {
+  it("renders marker and reference link when prose separates the tokens", () => {
     const text = "Mixed claim [cite:first] with a gap [citation-needed].";
     const article = makeArticle(text, ["first"]);
     const { container } = render(<CitedText text={text} article={article} />);
@@ -138,16 +137,49 @@ describe("CitedText citation-needed badge", () => {
     expect(container.textContent).not.toContain("[citation-needed]");
   });
 
-  it("keeps the badge out of citation numbering when tokens are adjacent", () => {
+  it("suppresses the marker when the claim already carries a resolved citation", () => {
     const text = "Adjacent [cite:first][citation-needed][cite:second].";
     const article = makeArticle(text, ["first", "second"]);
     const { container } = render(<CitedText text={text} article={article} />);
 
-    expect(screen.getByRole("link", { name: "Citation 1" })).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "Citation 2" })).toBeInTheDocument();
     expect(screen.getAllByRole("link")).toHaveLength(2);
-    expect(screen.getByText("citation needed")).toBeInTheDocument();
+    expect(screen.queryByText("citation needed")).not.toBeInTheDocument();
     expect(container.textContent).not.toContain("[");
+  });
+
+  it("suppresses a whitespace-adjacent marker without leaving stray spaces", () => {
+    const text = "Claim [cite:first] [citation-needed]. Next.";
+    const article = makeArticle(text, ["first"]);
+    const { container } = render(<CitedText text={text} article={article} />);
+
+    expect(screen.queryByText("citation needed")).not.toBeInTheDocument();
+    expect(container.textContent).toBe("Claim1. Next.");
+  });
+
+  it("collapses consecutive citation-needed flags into a single marker", () => {
+    const text = "A [citation-needed]. B [citation-needed]. C [citation-needed].";
+    const article = makeArticle(text, []);
+    const { container } = render(<CitedText text={text} article={article} />);
+
+    expect(screen.getAllByText("citation needed")).toHaveLength(1);
+    expect(container.textContent).toBe("Acitation needed. B. C.");
+  });
+
+  it("lets the marker return once a resolved citation intervenes", () => {
+    const text = "A [citation-needed]. B [cite:first]. C [citation-needed].";
+    const article = makeArticle(text, ["first"]);
+    render(<CitedText text={text} article={article} />);
+
+    expect(screen.getAllByText("citation needed")).toHaveLength(2);
+  });
+
+  it("keeps the marker when the neighboring citation is unresolved", () => {
+    const text = "Claim [cite:missing][citation-needed].";
+    const article = makeArticle(text, []);
+    render(<CitedText text={text} article={article} />);
+
+    expect(screen.getByText("citation needed")).toBeInTheDocument();
+    expect(screen.queryByRole("link")).not.toBeInTheDocument();
   });
 
   it("leaves text without tokens untouched", () => {

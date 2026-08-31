@@ -61,17 +61,17 @@ function renderCitationSup(citations: CitationLink[], key: string) {
 }
 
 /**
- * Inline caution badge for the `[citation-needed]` sentinel the citation
- * campaign leaves behind when a claim's marker is stripped. Mirrors the
- * legality `citationNeeded` badge treatment (caution tone, rounded pill) at a
- * prose-relative size, and never participates in reference numbering.
+ * Free-floating inline marker for the `[citation-needed]` sentinel the
+ * citation campaign leaves behind when a claim's marker is stripped. Compact
+ * superscript-register caution text — no pill, no chrome — with the brackets
+ * drawn as CSS pseudo-elements so the sentinel never re-enters the copy
+ * stream. It never participates in reference numbering, and renderCitedText
+ * suppresses it when the claim already carries a resolved citation or when
+ * the previous claim in the same block is already flagged.
  */
-export function CitationNeededBadge() {
+export function CitationNeededMarker() {
   return (
-    <span
-      className="theme-status-badge theme-semantic-caution-badge mx-1 inline-block whitespace-nowrap rounded-full px-[0.55em] py-[0.08em] align-[0.12em] text-[0.62em] font-medium leading-[1.3]"
-      data-badge-tone="yellow"
-    >
+    <span className="theme-citation-needed-marker relative -top-[0.42em] ml-0.5 inline-block whitespace-nowrap align-baseline text-[0.62em] italic leading-none">
       citation needed
     </span>
   );
@@ -88,11 +88,77 @@ export function CitationNeededBadge() {
  * leaks as literal `[cite:x]`.
  */
 
+type InlineCitationToken = {
+  /** Raw text between the previous token (or the text start) and this one. */
+  gap: string;
+  kind: "cite" | "needed";
+  /** Resolved target for a numbered `[cite:<id>]`; undefined when dangling. */
+  link?: CitationLink;
+  /** Whether a `[citation-needed]` token survives the suppression pass. */
+  visible?: boolean;
+};
+
 export function renderCitedText(text: string, article: SubstanceArticle): ReactNode[] {
   const numbering = buildCitationNumbering(article.references ?? [], article);
-  const nodes: ReactNode[] = [];
+  const tokens: InlineCitationToken[] = [];
   let cursor = 0;
+
+  for (const match of text.matchAll(CITATION_MARKER_PATTERN)) {
+    const index = match.index ?? 0;
+    const gap = text.slice(cursor, index);
+    if (match[1] === undefined) {
+      tokens.push({ gap, kind: "needed" });
+    } else {
+      const number = numbering.numbersById.get(match[1]);
+      const reference = number
+        ? numbering.numberedReferences.find((item) => item.number === number)
+        : undefined;
+      tokens.push({
+        gap,
+        kind: "cite",
+        link:
+          number && reference
+            ? {
+                accessibleLabel: `Citation ${number}`,
+                href: `#${reference.anchorId}`,
+                label: String(number),
+                referenceId: match[1],
+              }
+            : undefined,
+      });
+    }
+    cursor = index + match[0].length;
+  }
+
+  // Suppression pass. Tokens separated by nothing or bare whitespace share a
+  // cluster around one claim:
+  //  - a claim that already carries a resolved citation never shows a
+  //    citation-needed marker — the good citation wins;
+  //  - consecutive citation-needed flags collapse to one until a resolved
+  //    citation intervenes, so an uncited run reads as one flag, not a wall.
+  const clusterIds: number[] = [];
+  const clustersWithResolvedCite = new Set<number>();
+  let clusterId = -1;
+  tokens.forEach((token, index) => {
+    if (index === 0 || token.gap.trim() !== "") clusterId += 1;
+    clusterIds.push(clusterId);
+    if (token.kind === "cite" && token.link) clustersWithResolvedCite.add(clusterId);
+  });
+
+  let flaggedSinceResolvedCite = false;
+  tokens.forEach((token, index) => {
+    if (token.kind === "cite") {
+      if (token.link) flaggedSinceResolvedCite = false;
+      return;
+    }
+    token.visible =
+      !clustersWithResolvedCite.has(clusterIds[index]) && !flaggedSinceResolvedCite;
+    if (token.visible) flaggedSinceResolvedCite = true;
+  });
+
+  const nodes: ReactNode[] = [];
   const adjacent: CitationLink[] = [];
+  let pending = "";
 
   const flushAdjacent = () => {
     if (adjacent.length === 0) return;
@@ -100,37 +166,35 @@ export function renderCitedText(text: string, article: SubstanceArticle): ReactN
     adjacent.length = 0;
   };
 
-  for (const match of text.matchAll(CITATION_MARKER_PATTERN)) {
-    const index = match.index ?? 0;
-    if (index > cursor) {
-      flushAdjacent();
-      nodes.push(text.slice(cursor, index).replace(/\s+$/, ""));
-    }
-    if (match[1] === undefined) {
-      // `[citation-needed]` sentinel: flush any pending superscript group and
-      // drop a badge in its place; it never joins the numbering.
-      flushAdjacent();
-      nodes.push(<CitationNeededBadge key={`citation-needed-${nodes.length}`} />);
-      cursor = index + match[0].length;
+  const flushPending = () => {
+    if (pending === "") return;
+    flushAdjacent();
+    nodes.push(pending.replace(/\s+$/, ""));
+    pending = "";
+  };
+
+  for (const token of tokens) {
+    if (token.kind === "cite") {
+      pending += token.gap;
+      flushPending();
+      if (token.link) adjacent.push(token.link);
       continue;
     }
-    const number = numbering.numbersById.get(match[1]);
-    const reference = number
-      ? numbering.numberedReferences.find((item) => item.number === number)
-      : undefined;
-    if (number && reference) {
-      adjacent.push({
-        accessibleLabel: `Citation ${number}`,
-        href: `#${reference.anchorId}`,
-        label: String(number),
-        referenceId: match[1],
-      });
+    if (!token.visible) {
+      // Suppressed marker: consume the token, keep its leading text, and drop
+      // the whitespace that separated it from its claim.
+      pending += token.gap.replace(/\s+$/, "");
+      continue;
     }
-    cursor = index + match[0].length;
+    pending += token.gap;
+    flushPending();
+    flushAdjacent();
+    nodes.push(<CitationNeededMarker key={`citation-needed-${nodes.length}`} />);
   }
 
+  pending += text.slice(cursor);
   flushAdjacent();
-  if (cursor < text.length) nodes.push(text.slice(cursor));
+  if (pending !== "") nodes.push(pending);
   return nodes;
 }
 

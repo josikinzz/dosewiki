@@ -3,7 +3,8 @@ export const CITE_TOKEN_PATTERN = /\[cite:([A-Za-z0-9][A-Za-z0-9._:-]*)\]/g;
 /**
  * Sentinel the citation campaign writes in place of a stripped `[cite:x]`
  * marker. It is not a reference: it never participates in numbering and
- * renders as a caution badge (see `CitationNeededBadge` in `CitedText`).
+ * renders as a compact caution marker (see `CitationNeededMarker` in
+ * `CitedText`, which also suppresses redundant flags).
  */
 export const CITATION_NEEDED_TOKEN = "[citation-needed]";
 
