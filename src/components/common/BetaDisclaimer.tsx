@@ -28,7 +28,8 @@ export function BetaDisclaimer({ className }: { className?: string }) {
         className="theme-beta-disclaimer-icon absolute left-0 top-1/2 -translate-y-1/2"
       />
       <span className="theme-beta-shimmer">
-        dose.wiki is still in beta. Entries may contain inaccuracies. See{" "}
+        dose.wiki is still in beta. Entries may contain inaccuracies and/or
+        lack citations. See{" "}
         <Link
           href="/docs/how"
           className="theme-beta-disclaimer underline decoration-dotted underline-offset-2 hover:decoration-solid"
