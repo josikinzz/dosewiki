@@ -34,12 +34,13 @@ const TOC_ITEMS = [
   { id: "s6", copyKey: "docs-code-toc-s6", icon: "lucide:database" },
   { id: "s7", copyKey: "docs-code-toc-s7", icon: "lucide:split" },
   { id: "s8", copyKey: "docs-code-toc-s8", icon: "lucide:workflow" },
-  { id: "s9", copyKey: "docs-code-toc-s9", icon: "lucide:git-branch" },
-  { id: "s10", copyKey: "docs-code-toc-s10", icon: "lucide:book-marked" },
-  { id: "s11", copyKey: "docs-code-toc-s11", icon: "lucide:compass" },
+  { id: "s9", copyKey: "docs-code-toc-s9", icon: "lucide:film" },
+  { id: "s10", copyKey: "docs-code-toc-s10", icon: "lucide:git-branch" },
+  { id: "s11", copyKey: "docs-code-toc-s11", icon: "lucide:book-marked" },
+  { id: "s12", copyKey: "docs-code-toc-s12", icon: "lucide:compass" },
 ] as const;
 
-// Diagram palette reference — the five domain hues are written verbatim into the
+// Diagram palette reference: the five domain hues are written verbatim into the
 // Mermaid classDef strokes below (blue #7dd3fc public, gold #e879f9 /dev,
 // green #6ee7b7 Convex, orange #fdba74 scripts, plum #f9a8d4 external/AI). Those
 // raw hexes live ONLY inside <Mermaid> because the chart source is kept verbatim.
@@ -263,19 +264,19 @@ export default async function DocsCodePage() {
               </dd>
             </div>
             <div className="min-w-0">
-              <dt className={`${STAT_NUMBER_CLASS} text-3xl`}>~160</dt>
+              <dt className={`${STAT_NUMBER_CLASS} text-3xl`}>~165</dt>
               <dd className="theme-text-muted mt-1.5 text-sm leading-6">
                 {copy.text("docs-code-s1-stat-reports")}
               </dd>
             </div>
             <div className="min-w-0">
-              <dt className={`${STAT_NUMBER_CLASS} text-2xl`}>~900</dt>
+              <dt className={`${STAT_NUMBER_CLASS} text-2xl`}>~1,400</dt>
               <dd className="theme-text-muted mt-1.5 text-sm leading-6">
                 <DocsInline>{copy.text("docs-code-s1-stat-src-files")}</DocsInline>
               </dd>
             </div>
             <div className="min-w-0">
-              <dt className={`${STAT_NUMBER_CLASS} text-2xl`}>~400</dt>
+              <dt className={`${STAT_NUMBER_CLASS} text-2xl`}>~700</dt>
               <dd className="theme-text-muted mt-1.5 text-sm leading-6">
                 <DocsInline>{copy.text("docs-code-s1-stat-scripts")}</DocsInline>
               </dd>
@@ -341,23 +342,28 @@ export default async function DocsCodePage() {
           <div className="mt-6">
             <Mermaid
               chart={`graph TD
-  SRC["Scraped sources — 10 sites<br/>(listed in section 08)"]:::ext
+  SRC["Scraped sources · 10 sites<br/>(listed in section 08)"]:::ext
   AI["OpenRouter AI<br/>Claude · Gemini · DeepSeek"]:::ext
-  SCRIPTS["Data pipelines<br/>scripts/ — parse, generate,<br/>cite, migrate, sync"]:::scripts
-  DB[("Convex database<br/>convex/ — substanceIndex,<br/>effects, reports, citations...")]:::data
+  R2["Cloudflare R2<br/>replication media bytes"]:::ext
+  SCRIPTS["Data pipelines<br/>scripts/ · parse, generate,<br/>cite, migrate, media intake"]:::scripts
+  DB[("Convex database<br/>convex/ · substanceIndex,<br/>effects, reports, citations...")]:::data
   APP["Next.js app<br/>src/app/ routes +<br/>src/features/ modules"]:::pub
-  PUBLIC["Public site<br/>articles, effects, reports,<br/>search, category indexes"]:::pub
-  DEV["/dev editor<br/>forms, AI generation,<br/>citation review, layouts"]:::dev
+  PUBLIC["Public site<br/>articles, effects, reports,<br/>gallery, search, indexes"]:::pub
+  DEV["/dev editor<br/>forms, AI generation,<br/>review queues, studios"]:::dev
   AUTH["Auth.js editor sign-in<br/>auth.ts + middleware.ts"]:::dev
 
   SRC -->|"scrape + parse"| SCRIPTS
   AI -->|"generates sections"| SCRIPTS
   SCRIPTS -->|"writes via admin key"| DB
+  SCRIPTS -->|"uploads media"| R2
   DB -->|"queries"| APP
+  R2 -.->|"media URLs"| PUBLIC
   APP --> PUBLIC
   APP --> DEV
+  PUBLIC -->|"trip reports, feedback,<br/>signups"| APP
+  APP -->|"rate-limited intake"| DB
   AUTH -.->|"gates access"| DEV
-  DEV -->|"saves via<br/>/api/save-to-convex"| DB
+  DEV -->|"saves via<br/>/api routes"| DB
   AI -->|"in-editor<br/>section generation"| DEV
 
   classDef ext fill:#3a1f33,stroke:#f9a8d4,color:#f7e3ef
@@ -365,7 +371,7 @@ export default async function DocsCodePage() {
   classDef data fill:#143026,stroke:#6ee7b7,color:#def3ea
   classDef pub fill:#15263e,stroke:#7dd3fc,color:#ddeefb
   classDef dev fill:#391a40,stroke:#e879f9,color:#f6e2fa`}
-              title="System overview: scraped sources and OpenRouter AI feed the data pipelines, which write to the Convex database read by the Next.js app, the public site, and the /dev editor"
+              title="System overview: scraped sources and OpenRouter AI feed the data pipelines, which write metadata to the Convex database and media to Cloudflare R2; the Next.js app serves the public site and the /dev editor, and rate-limited public intake routes accept trip reports, feedback, and signups"
             />
           </div>
 
@@ -447,6 +453,18 @@ export default async function DocsCodePage() {
             <DefinitionRow
               term={
                 <div>
+                  <div className={CARD_LABEL_CLASS}>{copy.text("docs-code-s3-media-label")}</div>
+                  <div className={`${CARD_TITLE_CLASS} mb-0`}>{copy.text("docs-code-s3-media-title")}</div>
+                </div>
+              }
+            >
+              <p className={PROSE_CLASS}>
+                <DocsInline>{copy.text("docs-code-s3-media-body")}</DocsInline>
+              </p>
+            </DefinitionRow>
+            <DefinitionRow
+              term={
+                <div>
                   <div className={CARD_LABEL_CLASS}>{copy.text("docs-code-s3-tooling-label")}</div>
                   <div className={`${CARD_TITLE_CLASS} mb-0`}>{copy.text("docs-code-s3-tooling-title")}</div>
                 </div>
@@ -473,29 +491,29 @@ export default async function DocsCodePage() {
 ├── `}
             <span className="theme-accent-heading font-semibold">src/</span>
             {`                      `}
-            <span className="theme-text-faint">— the Next.js application (~900 files)</span>
+            <span className="theme-text-faint">· the Next.js application (~1,400 files)</span>
             {`
 │   ├── `}
             <span className="theme-accent-heading font-semibold">app/</span>
             {`                  `}
-            <span className="theme-text-faint">— App Router: one folder per URL route</span>
+            <span className="theme-text-faint">· App Router: public pages, /dev, ~40 /api routes</span>
             {`
 │   ├── `}
             <span className="theme-accent-heading font-semibold">features/</span>
             {`             `}
-            <span className="theme-text-faint">— article, effects, reports, dev (~420 files)</span>
+            <span className="theme-text-faint">· 15 domain modules; dev is half of it (~670 files)</span>
             {`
 │   ├── components/           `}
-            <span className="theme-text-faint">— shared UI: layout, pages, ui primitives</span>
+            <span className="theme-text-faint">· shared UI: layout, pages, ui primitives</span>
             {`
 │   ├── schema/               `}
-            <span className="theme-text-faint">— Zod schemas validating article shapes</span>
+            <span className="theme-text-faint">· Zod schemas validating article shapes</span>
             {`
 │   ├── data/                 `}
-            <span className="theme-text-faint">— local JSON artifacts + generated maps</span>
+            <span className="theme-text-faint">· copy-block seeds, JSON artifacts, generated maps</span>
             {`
 │   └── theme/                `}
-            <span className="theme-text-faint">— design tokens</span>
+            <span className="theme-text-faint">· design tokens</span>
             {`
 ├── `}
             <span
@@ -505,7 +523,7 @@ export default async function DocsCodePage() {
               convex/
             </span>
             {`                   `}
-            <span className="theme-text-faint">— the backend: schema.ts + one file per table</span>
+            <span className="theme-text-faint">· the backend: schema.ts + one file per table</span>
             {`
 ├── `}
             <span
@@ -515,20 +533,27 @@ export default async function DocsCodePage() {
               scripts/
             </span>
             {`                  `}
-            <span className="theme-text-faint">— data pipelines (~400 files; see section 08)</span>
+            <span className="theme-text-faint">· pipelines (~700 files, 29 subdirs; see section 08)</span>
             {`
 │   ├── parsers/  batch/  citations/  prepopulate/
-│   ├── convex/   migrate/  seed/  build/  analyze/
+│   ├── replications/  contributors/  chemistry/  legality/
+│   ├── convex/  migrate/  seed/  build/  deploy/  reports/
 │   └── lib/                  `}
-            <span className="theme-text-faint">— shared CLI plumbing, OpenRouter client</span>
+            <span className="theme-text-faint">· shared CLI plumbing, OpenRouter client</span>
             {`
 ├── lib/                      `}
-            <span className="theme-text-faint">— server-side helpers shared by app + scripts</span>
+            <span className="theme-text-faint">· server-side helpers shared by app + scripts</span>
             {`
 │   ├── convex/               `}
-            <span className="theme-text-faint">— publicData.ts: how pages read Convex</span>
+            <span className="theme-text-faint">· publicData.* readers: how pages read Convex</span>
             {`
-│   ├── auth/  http/  next/  citations/  runtime/
+│   ├── next/                 `}
+            <span className="theme-text-faint">· route loaders, copy blocks, host policies</span>
+            {`
+│   ├── auth/  http/  og/  citations/  runtime/
+├── vendor/openchemlib/       `}
+            <span className="theme-text-faint">· vendored molecule-rendering fork</span>
+            {`
 ├── `}
             <span
               className="font-semibold"
@@ -544,18 +569,18 @@ export default async function DocsCodePage() {
               middleware.ts
             </span>
             {`   `}
-            <span className="theme-text-faint">— sign-in config + /dev gatekeeper</span>
+            <span className="theme-text-faint">· sign-in config + /dev gatekeeper</span>
             {`
 ├── public/                   `}
             <span className="theme-text-faint">
-              — molecule images, flags, favicons, SubstanceIndex.json
+              · molecule images, flags, favicons
             </span>
             {`
 ├── docs/  notes-and-plans/   `}
-            <span className="theme-text-faint">— architecture docs, ADRs, plans</span>
+            <span className="theme-text-faint">· architecture docs, ADRs, agent runbooks</span>
             {`
-├── .agents/skills/legality-pi/`}
-            <span className="theme-text-faint">— Pi legality research workflow</span>
+├── .agents/skills/           `}
+            <span className="theme-text-faint">· citation-pi + legality-pi workflows</span>
             {`
 └── README.md  ARCHITECTURE.md  CLAUDE.md  CONTEXT.md`}
           </pre>
@@ -689,7 +714,7 @@ export default async function DocsCodePage() {
                   <td className="p-3">
                     <DocsInline>{copy.text("docs-code-s6-table-trip-reports")}</DocsInline>
                   </td>
-                  <td className="p-3 text-right tabular-nums">~160</td>
+                  <td className="p-3 text-right tabular-nums">~165</td>
                 </tr>
                 <tr className={TABLE_ROW_CLASS}>
                   <td className="p-3">
@@ -701,7 +726,7 @@ export default async function DocsCodePage() {
                   <td className="p-3">
                     <DocsInline>{copy.text("docs-code-s6-table-trip-report-submissions")}</DocsInline>
                   </td>
-                  <td className="p-3 text-right tabular-nums">—</td>
+                  <td className="p-3 text-right tabular-nums">–</td>
                 </tr>
                 <tr className={TABLE_ROW_CLASS}>
                   <td className="p-3">
@@ -713,7 +738,7 @@ export default async function DocsCodePage() {
                   <td className="p-3">
                     <DocsInline>{copy.text("docs-code-s6-table-replications")}</DocsInline>
                   </td>
-                  <td className="p-3 text-right tabular-nums">—</td>
+                  <td className="p-3 text-right tabular-nums">–</td>
                 </tr>
                 <tr className={TABLE_ROW_CLASS}>
                   <td className="p-3">
@@ -725,7 +750,7 @@ export default async function DocsCodePage() {
                   <td className="p-3">
                     <DocsInline>{copy.text("docs-code-s6-table-category-layout")}</DocsInline>
                   </td>
-                  <td className="p-3 text-right tabular-nums">—</td>
+                  <td className="p-3 text-right tabular-nums">–</td>
                 </tr>
                 <tr className={TABLE_ROW_CLASS}>
                   <td className="p-3">
@@ -737,7 +762,7 @@ export default async function DocsCodePage() {
                   <td className="p-3">
                     <DocsInline>{copy.text("docs-code-s6-table-index-layouts")}</DocsInline>
                   </td>
-                  <td className="p-3 text-right tabular-nums">—</td>
+                  <td className="p-3 text-right tabular-nums">–</td>
                 </tr>
                 <tr className={TABLE_ROW_CLASS}>
                   <td className="p-3">
@@ -749,7 +774,19 @@ export default async function DocsCodePage() {
                   <td className="p-3">
                     <DocsInline>{copy.text("docs-code-s6-table-molecule-overrides")}</DocsInline>
                   </td>
-                  <td className="p-3 text-right tabular-nums">—</td>
+                  <td className="p-3 text-right tabular-nums">–</td>
+                </tr>
+                <tr className={TABLE_ROW_CLASS}>
+                  <td className="p-3">
+                    <code>warningBannerPresets</code>
+                  </td>
+                  <td className="p-3">
+                    <Badge variant="outline" className={TABLE_BADGE_CLASS}>content</Badge>
+                  </td>
+                  <td className="p-3">
+                    <DocsInline>{copy.text("docs-code-s6-table-warning-banners")}</DocsInline>
+                  </td>
+                  <td className="p-3 text-right tabular-nums">–</td>
                 </tr>
                 <tr className={TABLE_ROW_CLASS}>
                   <td className="p-3">
@@ -761,7 +798,7 @@ export default async function DocsCodePage() {
                   <td className="p-3">
                     <DocsInline>{copy.text("docs-code-s6-table-copy-blocks")}</DocsInline>
                   </td>
-                  <td className="p-3 text-right tabular-nums">—</td>
+                  <td className="p-3 text-right tabular-nums">–</td>
                 </tr>
                 <tr className={TABLE_ROW_CLASS}>
                   <td className="p-3">
@@ -773,7 +810,7 @@ export default async function DocsCodePage() {
                   <td className="p-3">
                     <DocsInline>{copy.text("docs-code-s6-table-reagent-tests")}</DocsInline>
                   </td>
-                  <td className="p-3 text-right tabular-nums">—</td>
+                  <td className="p-3 text-right tabular-nums">–</td>
                 </tr>
                 <tr className={TABLE_ROW_CLASS}>
                   <td className="p-3">
@@ -785,7 +822,19 @@ export default async function DocsCodePage() {
                   <td className="p-3">
                     <DocsInline>{copy.text("docs-code-s6-table-substance-galleries")}</DocsInline>
                   </td>
-                  <td className="p-3 text-right tabular-nums">—</td>
+                  <td className="p-3 text-right tabular-nums">–</td>
+                </tr>
+                <tr className={TABLE_ROW_CLASS}>
+                  <td className="p-3">
+                    <code>replicationPlaylists</code>
+                  </td>
+                  <td className="p-3">
+                    <Badge variant="outline" className={TABLE_BADGE_CLASS}>content</Badge>
+                  </td>
+                  <td className="p-3">
+                    <DocsInline>{copy.text("docs-code-s6-table-replication-playlists")}</DocsInline>
+                  </td>
+                  <td className="p-3 text-right tabular-nums">–</td>
                 </tr>
                 <tr className={TABLE_ROW_CLASS}>
                   <td className="p-3">
@@ -797,7 +846,7 @@ export default async function DocsCodePage() {
                   <td className="p-3">
                     <DocsInline>{copy.text("docs-code-s6-table-memberships")}</DocsInline>
                   </td>
-                  <td className="p-3 text-right tabular-nums">—</td>
+                  <td className="p-3 text-right tabular-nums">–</td>
                 </tr>
                 <tr className={TABLE_ROW_CLASS}>
                   <td className="p-3">
@@ -809,7 +858,7 @@ export default async function DocsCodePage() {
                   <td className="p-3">
                     <DocsInline>{copy.text("docs-code-s6-table-changelog")}</DocsInline>
                   </td>
-                  <td className="p-3 text-right tabular-nums">—</td>
+                  <td className="p-3 text-right tabular-nums">–</td>
                 </tr>
                 <tr className={TABLE_ROW_CLASS}>
                   <td className="p-3">
@@ -821,7 +870,7 @@ export default async function DocsCodePage() {
                   <td className="p-3">
                     <DocsInline>{copy.text("docs-code-s6-table-contributor-profiles")}</DocsInline>
                   </td>
-                  <td className="p-3 text-right tabular-nums">—</td>
+                  <td className="p-3 text-right tabular-nums">–</td>
                 </tr>
                 <tr className={TABLE_ROW_CLASS}>
                   <td className="p-3">
@@ -833,7 +882,7 @@ export default async function DocsCodePage() {
                   <td className="p-3">
                     <DocsInline>{copy.text("docs-code-s6-table-article-feedback")}</DocsInline>
                   </td>
-                  <td className="p-3 text-right tabular-nums">—</td>
+                  <td className="p-3 text-right tabular-nums">–</td>
                 </tr>
                 <tr className={TABLE_ROW_CLASS}>
                   <td className="p-3">
@@ -845,7 +894,19 @@ export default async function DocsCodePage() {
                   <td className="p-3">
                     <DocsInline>{copy.text("docs-code-s6-table-site-feedback")}</DocsInline>
                   </td>
-                  <td className="p-3 text-right tabular-nums">—</td>
+                  <td className="p-3 text-right tabular-nums">–</td>
+                </tr>
+                <tr className={TABLE_ROW_CLASS}>
+                  <td className="p-3">
+                    <code>mailingListSubscribers</code>
+                  </td>
+                  <td className="p-3">
+                    <Badge variant="outline" className={TABLE_BADGE_CLASS}>editorial</Badge>
+                  </td>
+                  <td className="p-3">
+                    <DocsInline>{copy.text("docs-code-s6-table-mailing-list")}</DocsInline>
+                  </td>
+                  <td className="p-3 text-right tabular-nums">–</td>
                 </tr>
                 <tr className={TABLE_ROW_CLASS}>
                   <td className="p-3">
@@ -857,7 +918,7 @@ export default async function DocsCodePage() {
                   <td className="p-3">
                     <DocsInline>{copy.text("docs-code-s6-table-molecule-class-templates")}</DocsInline>
                   </td>
-                  <td className="p-3 text-right tabular-nums">—</td>
+                  <td className="p-3 text-right tabular-nums">–</td>
                 </tr>
                 <tr className={TABLE_ROW_CLASS}>
                   <td className="p-3">
@@ -869,7 +930,7 @@ export default async function DocsCodePage() {
                   <td className="p-3">
                     <DocsInline>{copy.text("docs-code-s6-table-article-sources")}</DocsInline>
                   </td>
-                  <td className="p-3 text-right tabular-nums">—</td>
+                  <td className="p-3 text-right tabular-nums">–</td>
                 </tr>
                 <tr className={TABLE_ROW_CLASS}>
                   <td className="p-3">
@@ -881,7 +942,7 @@ export default async function DocsCodePage() {
                   <td className="p-3">
                     <DocsInline>{copy.text("docs-code-s6-table-prompts-quotes")}</DocsInline>
                   </td>
-                  <td className="p-3 text-right tabular-nums">—</td>
+                  <td className="p-3 text-right tabular-nums">–</td>
                 </tr>
                 <tr className={TABLE_ROW_CLASS}>
                   <td className="p-3">
@@ -893,7 +954,19 @@ export default async function DocsCodePage() {
                   <td className="p-3">
                     <DocsInline>{copy.text("docs-code-s6-table-citation-evidence")}</DocsInline>
                   </td>
-                  <td className="p-3 text-right tabular-nums">—</td>
+                  <td className="p-3 text-right tabular-nums">–</td>
+                </tr>
+                <tr className={TABLE_ROW_CLASS}>
+                  <td className="p-3">
+                    <code>replication*</code> provenance + identity
+                  </td>
+                  <td className="p-3">
+                    <Badge variant="outline" className={TABLE_BADGE_CLASS}>workflow</Badge>
+                  </td>
+                  <td className="p-3">
+                    <DocsInline>{copy.text("docs-code-s6-table-replication-provenance")}</DocsInline>
+                  </td>
+                  <td className="p-3 text-right tabular-nums">–</td>
                 </tr>
                 <tr className={TABLE_ROW_CLASS}>
                   <td className="p-3">
@@ -905,7 +978,7 @@ export default async function DocsCodePage() {
                   <td className="p-3">
                     <DocsInline>{copy.text("docs-code-s6-table-effect-index-archive")}</DocsInline>
                   </td>
-                  <td className="p-3 text-right tabular-nums">—</td>
+                  <td className="p-3 text-right tabular-nums">–</td>
                 </tr>
                 <tr className={TABLE_ROW_LAST_CLASS}>
                   <td className="p-3">
@@ -917,7 +990,7 @@ export default async function DocsCodePage() {
                   <td className="p-3">
                     <DocsInline>{copy.text("docs-code-s6-table-generated-publication-operations")}</DocsInline>
                   </td>
-                  <td className="p-3 text-right tabular-nums">—</td>
+                  <td className="p-3 text-right tabular-nums">–</td>
                 </tr>
                 </tbody>
               </table>
@@ -953,6 +1026,25 @@ export default async function DocsCodePage() {
             <ContentCard variant="subtle" padding="md" className="min-w-0 flex flex-col">
               <div
                 className="mb-3 text-xs font-semibold uppercase tracking-[0.18em]"
+                style={{ color: DOMAIN_VAR.blue }}
+              >
+                {copy.text("docs-code-s7-submit-label")}
+              </div>
+              <div className="space-y-4">
+                <p className={PROSE_CLASS}>
+                  <DocsInline>{copy.text("docs-code-s7-submit-who")}</DocsInline>
+                </p>
+                <p className={PROSE_CLASS}>
+                  <DocsInline>{copy.text("docs-code-s7-submit-how")}</DocsInline>
+                </p>
+                <p className={PROSE_CLASS}>
+                  <DocsInline>{copy.text("docs-code-s7-submit-key")}</DocsInline>
+                </p>
+              </div>
+            </ContentCard>
+            <ContentCard variant="subtle" padding="md" className="min-w-0 flex flex-col">
+              <div
+                className="mb-3 text-xs font-semibold uppercase tracking-[0.18em]"
                 style={{ color: DOMAIN_VAR.gold }}
               >
                 {copy.text("docs-code-s7-write-label")}
@@ -969,12 +1061,31 @@ export default async function DocsCodePage() {
                 </p>
               </div>
             </ContentCard>
+            <ContentCard variant="subtle" padding="md" className="min-w-0 flex flex-col">
+              <div
+                className="mb-3 text-xs font-semibold uppercase tracking-[0.18em]"
+                style={{ color: DOMAIN_VAR.plum }}
+              >
+                {copy.text("docs-code-s7-data-label")}
+              </div>
+              <div className="space-y-4">
+                <p className={PROSE_CLASS}>
+                  <DocsInline>{copy.text("docs-code-s7-data-who")}</DocsInline>
+                </p>
+                <p className={PROSE_CLASS}>
+                  <DocsInline>{copy.text("docs-code-s7-data-how")}</DocsInline>
+                </p>
+                <p className={PROSE_CLASS}>
+                  <DocsInline>{copy.text("docs-code-s7-data-key")}</DocsInline>
+                </p>
+              </div>
+            </ContentCard>
           </div>
 
           {/* Demoted from a status-less role=alert callout to emphasized prose. */}
           <div role="presentation" className="theme-horizontal-divider mt-6" />
           <p className={`${PROSE_CLASS} mt-6`}>
-            <DocsInline>{copy.text("docs-code-s7-open-data")}</DocsInline>
+            <DocsInline>{copy.text("docs-code-s7-licensing")}</DocsInline>
           </p>
         </section>
 
@@ -996,13 +1107,13 @@ export default async function DocsCodePage() {
           <div className="mt-6">
             <Mermaid
               chart={`graph TD
-  A["Scraped source text<br/>(10 sites — listed above)"]:::ext
+  A["Scraped source text<br/>(10 sites, listed above)"]:::ext
   B["Parse into structured data<br/>scripts/parsers/"]:::scripts
   C["Prepopulate articles<br/>scripts/prepopulate/"]:::scripts
   D[("Convex<br/>substanceIndex +<br/>articleSources")]:::data
-  E["AI section generation<br/>scripts/batch/ — per-section<br/>Claude models"]:::scripts
+  E["AI section generation<br/>scripts/batch/ · per-section<br/>Claude models"]:::scripts
   F["Human review + editing<br/>/dev/articles/[slug]"]:::dev
-  G["Citation workflow<br/>scripts/citations/ — adds<br/>[cite:ref-id] markers + evidence"]:::scripts
+  G["Citation workflow<br/>scripts/citations/ · adds<br/>[cite:ref-id] markers + evidence"]:::scripts
   H["Workbench review<br/>then apply-workbench --write<br/>--confirm-citation-write"]:::dev
   I["Public page<br/>src/app/[slug]"]:::pub
 
@@ -1111,6 +1222,12 @@ export default async function DocsCodePage() {
               <DocsInline>{copy.text("docs-code-s8-marker-contract")}</DocsInline>
             </AlertDescription>
           </Alert>
+
+          {/* Demoted from a status-less role=alert callout to emphasized prose. */}
+          <div role="presentation" className="theme-horizontal-divider mt-6" />
+          <p className={`${PROSE_CLASS} mt-6`}>
+            <DocsInline>{copy.text("docs-code-s8-sibling-pipelines")}</DocsInline>
+          </p>
         </section>
 
         <section id="s9" className="scroll-mt-24">
@@ -1118,52 +1235,116 @@ export default async function DocsCodePage() {
             <span className={SECTION_NUM_CLASS}>09</span>{" "}{copy.text("docs-code-s9-heading")}
           </h2>
 
-          <h3 className="theme-accent-heading mt-5 text-lg font-semibold">
-            {copy.text("docs-code-s9-flow-a-heading")}
-          </h3>
-          <FlowGrid className="mt-4">
-            <StepPanel domain="blue" step="1" title={copy.text("docs-code-s9-flow-a-step1-title")}>
-              <DocsInline>{copy.text("docs-code-s9-flow-a-step1-body")}</DocsInline>
+          <p className={`${PROSE_CLASS} mt-4`}>
+            <DocsInline>{copy.text("docs-code-s9-intro")}</DocsInline>
+          </p>
+
+          <FlowGrid className="mt-6">
+            <StepPanel domain="plum" step="1" title={copy.text("docs-code-s9-intake-step1-title")}>
+              <DocsInline>{copy.text("docs-code-s9-intake-step1-body")}</DocsInline>
             </StepPanel>
-            <StepPanel domain="green" step="2" title={copy.text("docs-code-s9-flow-a-step2-title")}>
-              <DocsInline>{copy.text("docs-code-s9-flow-a-step2-body")}</DocsInline>
+            <StepPanel domain="orange" step="2" title={copy.text("docs-code-s9-intake-step2-title")}>
+              <DocsInline>{copy.text("docs-code-s9-intake-step2-body")}</DocsInline>
             </StepPanel>
-            <StepPanel domain="blue" step="3" title={copy.text("docs-code-s9-flow-a-step3-title")}>
-              <DocsInline>{copy.text("docs-code-s9-flow-a-step3-body")}</DocsInline>
+            <StepPanel domain="green" step="3" title={copy.text("docs-code-s9-intake-step3-title")}>
+              <DocsInline>{copy.text("docs-code-s9-intake-step3-body")}</DocsInline>
             </StepPanel>
-            <StepPanel domain="blue" step="4" title={copy.text("docs-code-s9-flow-a-step4-title")}>
-              <DocsInline>{copy.text("docs-code-s9-flow-a-step4-body")}</DocsInline>
+            <StepPanel domain="green" step="4" title={copy.text("docs-code-s9-intake-step4-title")}>
+              <DocsInline>{copy.text("docs-code-s9-intake-step4-body")}</DocsInline>
             </StepPanel>
-            <StepPanel domain="blue" step="5" title={copy.text("docs-code-s9-flow-a-step5-title")}>
-              <DocsInline>{copy.text("docs-code-s9-flow-a-step5-body")}</DocsInline>
+            <StepPanel domain="gold" step="5" title={copy.text("docs-code-s9-intake-step5-title")}>
+              <DocsInline>{copy.text("docs-code-s9-intake-step5-body")}</DocsInline>
+            </StepPanel>
+            <StepPanel domain="blue" step="6" title={copy.text("docs-code-s9-intake-step6-title")}>
+              <DocsInline>{copy.text("docs-code-s9-intake-step6-body")}</DocsInline>
             </StepPanel>
           </FlowGrid>
 
-          <h3 className="theme-accent-heading mt-7 text-lg font-semibold">
-            {copy.text("docs-code-s9-flow-b-heading")}
-          </h3>
-          <FlowGrid className="mt-4">
-            <StepPanel domain="gold" step="1" title={copy.text("docs-code-s9-flow-b-step1-title")}>
-              <DocsInline>{copy.text("docs-code-s9-flow-b-step1-body")}</DocsInline>
-            </StepPanel>
-            <StepPanel domain="gold" step="2" title={copy.text("docs-code-s9-flow-b-step2-title")}>
-              <DocsInline>{copy.text("docs-code-s9-flow-b-step2-body")}</DocsInline>
-            </StepPanel>
-            <StepPanel domain="plum" step="3" title={copy.text("docs-code-s9-flow-b-step3-title")}>
-              <DocsInline>{copy.text("docs-code-s9-flow-b-step3-body")}</DocsInline>
-            </StepPanel>
-            <StepPanel domain="green" step="4" title={copy.text("docs-code-s9-flow-b-step4-title")}>
-              <DocsInline>{copy.text("docs-code-s9-flow-b-step4-body")}</DocsInline>
-            </StepPanel>
-            <StepPanel domain="blue" step="5" title={copy.text("docs-code-s9-flow-b-step5-title")}>
-              <DocsInline>{copy.text("docs-code-s9-flow-b-step5-body")}</DocsInline>
-            </StepPanel>
-          </FlowGrid>
+          <p className={`${PROSE_CLASS} mt-6`}>
+            <DocsInline>{copy.text("docs-code-s9-curation")}</DocsInline>
+          </p>
+
+          <div role="presentation" className="theme-horizontal-divider mt-6" />
+          <p className={`${PROSE_CLASS} mt-6`}>
+            <DocsInline>{copy.text("docs-code-s9-rights")}</DocsInline>
+          </p>
         </section>
 
         <section id="s10" className="scroll-mt-24">
           <h2 className={SECTION_HEADING_CLASS}>
             <span className={SECTION_NUM_CLASS}>10</span>{" "}{copy.text("docs-code-s10-heading")}
+          </h2>
+
+          <h3 className="theme-accent-heading mt-5 text-lg font-semibold">
+            {copy.text("docs-code-s10-flow-a-heading")}
+          </h3>
+          <FlowGrid className="mt-4">
+            <StepPanel domain="blue" step="1" title={copy.text("docs-code-s10-flow-a-step1-title")}>
+              <DocsInline>{copy.text("docs-code-s10-flow-a-step1-body")}</DocsInline>
+            </StepPanel>
+            <StepPanel domain="green" step="2" title={copy.text("docs-code-s10-flow-a-step2-title")}>
+              <DocsInline>{copy.text("docs-code-s10-flow-a-step2-body")}</DocsInline>
+            </StepPanel>
+            <StepPanel domain="blue" step="3" title={copy.text("docs-code-s10-flow-a-step3-title")}>
+              <DocsInline>{copy.text("docs-code-s10-flow-a-step3-body")}</DocsInline>
+            </StepPanel>
+            <StepPanel domain="blue" step="4" title={copy.text("docs-code-s10-flow-a-step4-title")}>
+              <DocsInline>{copy.text("docs-code-s10-flow-a-step4-body")}</DocsInline>
+            </StepPanel>
+            <StepPanel domain="blue" step="5" title={copy.text("docs-code-s10-flow-a-step5-title")}>
+              <DocsInline>{copy.text("docs-code-s10-flow-a-step5-body")}</DocsInline>
+            </StepPanel>
+          </FlowGrid>
+
+          <h3 className="theme-accent-heading mt-7 text-lg font-semibold">
+            {copy.text("docs-code-s10-flow-b-heading")}
+          </h3>
+          <FlowGrid className="mt-4">
+            <StepPanel domain="gold" step="1" title={copy.text("docs-code-s10-flow-b-step1-title")}>
+              <DocsInline>{copy.text("docs-code-s10-flow-b-step1-body")}</DocsInline>
+            </StepPanel>
+            <StepPanel domain="gold" step="2" title={copy.text("docs-code-s10-flow-b-step2-title")}>
+              <DocsInline>{copy.text("docs-code-s10-flow-b-step2-body")}</DocsInline>
+            </StepPanel>
+            <StepPanel domain="plum" step="3" title={copy.text("docs-code-s10-flow-b-step3-title")}>
+              <DocsInline>{copy.text("docs-code-s10-flow-b-step3-body")}</DocsInline>
+            </StepPanel>
+            <StepPanel domain="green" step="4" title={copy.text("docs-code-s10-flow-b-step4-title")}>
+              <DocsInline>{copy.text("docs-code-s10-flow-b-step4-body")}</DocsInline>
+            </StepPanel>
+            <StepPanel domain="blue" step="5" title={copy.text("docs-code-s10-flow-b-step5-title")}>
+              <DocsInline>{copy.text("docs-code-s10-flow-b-step5-body")}</DocsInline>
+            </StepPanel>
+          </FlowGrid>
+
+          <h3 className="theme-accent-heading mt-7 text-lg font-semibold">
+            {copy.text("docs-code-s10-flow-c-heading")}
+          </h3>
+          <FlowGrid className="mt-4">
+            <StepPanel domain="blue" step="1" title={copy.text("docs-code-s10-flow-c-step1-title")}>
+              <DocsInline>{copy.text("docs-code-s10-flow-c-step1-body")}</DocsInline>
+            </StepPanel>
+            <StepPanel domain="blue" step="2" title={copy.text("docs-code-s10-flow-c-step2-title")}>
+              <DocsInline>{copy.text("docs-code-s10-flow-c-step2-body")}</DocsInline>
+            </StepPanel>
+            <StepPanel domain="green" step="3" title={copy.text("docs-code-s10-flow-c-step3-title")}>
+              <DocsInline>{copy.text("docs-code-s10-flow-c-step3-body")}</DocsInline>
+            </StepPanel>
+            <StepPanel domain="gold" step="4" title={copy.text("docs-code-s10-flow-c-step4-title")}>
+              <DocsInline>{copy.text("docs-code-s10-flow-c-step4-body")}</DocsInline>
+            </StepPanel>
+            <StepPanel domain="gold" step="5" title={copy.text("docs-code-s10-flow-c-step5-title")}>
+              <DocsInline>{copy.text("docs-code-s10-flow-c-step5-body")}</DocsInline>
+            </StepPanel>
+            <StepPanel domain="blue" step="6" title={copy.text("docs-code-s10-flow-c-step6-title")}>
+              <DocsInline>{copy.text("docs-code-s10-flow-c-step6-body")}</DocsInline>
+            </StepPanel>
+          </FlowGrid>
+        </section>
+
+        <section id="s11" className="scroll-mt-24">
+          <h2 className={SECTION_HEADING_CLASS}>
+            <span className={SECTION_NUM_CLASS}>11</span>{" "}{copy.text("docs-code-s11-heading")}
           </h2>
 
           {/* Flattened from a six-card glossary grid to one surface of
@@ -1179,65 +1360,81 @@ export default async function DocsCodePage() {
                 semantic
                 termClassName={`${CARD_TITLE_CLASS} mb-0`}
                 bodyClassName={PROSE_CLASS}
-                term={copy.text("docs-code-s10-substance-article-term")}
+                term={copy.text("docs-code-s11-substance-article-term")}
               >
-                <DocsInline>{copy.text("docs-code-s10-substance-article-body")}</DocsInline>
+                <DocsInline>{copy.text("docs-code-s11-substance-article-body")}</DocsInline>
               </DefinitionRow>
               <DefinitionRow
                 semantic
                 termClassName={`${CARD_TITLE_CLASS} mb-0`}
                 bodyClassName={PROSE_CLASS}
-                term={copy.text("docs-code-s10-citable-sections-term")}
+                term={copy.text("docs-code-s11-citable-sections-term")}
               >
-                <DocsInline>{copy.text("docs-code-s10-citable-sections-body")}</DocsInline>
+                <DocsInline>{copy.text("docs-code-s11-citable-sections-body")}</DocsInline>
               </DefinitionRow>
               <DefinitionRow
                 semantic
                 termClassName={`${CARD_TITLE_CLASS} mb-0`}
                 bodyClassName={PROSE_CLASS}
-                term={copy.text("docs-code-s10-workbench-term")}
+                term={copy.text("docs-code-s11-workbench-term")}
               >
-                <DocsInline>{copy.text("docs-code-s10-workbench-body")}</DocsInline>
+                <DocsInline>{copy.text("docs-code-s11-workbench-body")}</DocsInline>
               </DefinitionRow>
               <DefinitionRow
                 semantic
                 termClassName={`${CARD_TITLE_CLASS} mb-0`}
                 bodyClassName={PROSE_CLASS}
-                term={copy.text("docs-code-s10-vcode-term")}
+                term={copy.text("docs-code-s11-vcode-term")}
               >
-                <DocsInline>{copy.text("docs-code-s10-vcode-body")}</DocsInline>
+                <DocsInline>{copy.text("docs-code-s11-vcode-body")}</DocsInline>
               </DefinitionRow>
               <DefinitionRow
                 semantic
                 termClassName={`${CARD_TITLE_CLASS} mb-0`}
                 bodyClassName={PROSE_CLASS}
-                term={copy.text("docs-code-s10-prepopulate-term")}
+                term={copy.text("docs-code-s11-prepopulate-term")}
               >
-                <DocsInline>{copy.text("docs-code-s10-prepopulate-body")}</DocsInline>
+                <DocsInline>{copy.text("docs-code-s11-prepopulate-body")}</DocsInline>
               </DefinitionRow>
               <DefinitionRow
                 semantic
                 termClassName={`${CARD_TITLE_CLASS} mb-0`}
                 bodyClassName={PROSE_CLASS}
-                term={copy.text("docs-code-s10-deployment-term")}
+                term={copy.text("docs-code-s11-deployment-term")}
               >
-                <DocsInline>{copy.text("docs-code-s10-deployment-body")}</DocsInline>
+                <DocsInline>{copy.text("docs-code-s11-deployment-body")}</DocsInline>
+              </DefinitionRow>
+              <DefinitionRow
+                semantic
+                termClassName={`${CARD_TITLE_CLASS} mb-0`}
+                bodyClassName={PROSE_CLASS}
+                term={copy.text("docs-code-s11-flavor-term")}
+              >
+                <DocsInline>{copy.text("docs-code-s11-flavor-body")}</DocsInline>
+              </DefinitionRow>
+              <DefinitionRow
+                semantic
+                termClassName={`${CARD_TITLE_CLASS} mb-0`}
+                bodyClassName={PROSE_CLASS}
+                term={copy.text("docs-code-s11-copy-block-term")}
+              >
+                <DocsInline>{copy.text("docs-code-s11-copy-block-body")}</DocsInline>
               </DefinitionRow>
             </DefinitionList>
           </ContentCard>
         </section>
 
-        <section id="s11" className="scroll-mt-24">
+        <section id="s12" className="scroll-mt-24">
           <h2 className={SECTION_HEADING_CLASS}>
-            <span className={SECTION_NUM_CLASS}>11</span>{" "}{copy.text("docs-code-s11-heading")}
+            <span className={SECTION_NUM_CLASS}>12</span>{" "}{copy.text("docs-code-s12-heading")}
           </h2>
 
           <p className={`${PROSE_CLASS} mt-4`}>
-            <DocsInline>{copy.text("docs-code-s11-intro")}</DocsInline>
+            <DocsInline>{copy.text("docs-code-s12-intro")}</DocsInline>
           </p>
 
           <ol className={`${LIST_CLASS} mt-3 list-decimal pl-5`}>
-            {copy.items("docs-code-s11-reading-order").map((item, i) => (
+            {copy.items("docs-code-s12-reading-order").map((item, i) => (
               <li key={i}>
                 <DocsInline>{item}</DocsInline>
               </li>
@@ -1246,18 +1443,18 @@ export default async function DocsCodePage() {
 
           <DisclosureCard
             variant="subtle"
-            summary={copy.text("docs-code-s11-caveats-summary")}
+            summary={copy.text("docs-code-s12-caveats-summary")}
             className="mt-5"
           >
             <p className={PROSE_CLASS}>
-              <DocsInline>{copy.text("docs-code-s11-caveats-body")}</DocsInline>
+              <DocsInline>{copy.text("docs-code-s12-caveats-body")}</DocsInline>
             </p>
           </DisclosureCard>
 
           {/* Demoted from a status-less role=alert callout to emphasized prose. */}
           <div role="presentation" className="theme-horizontal-divider mt-6" />
           <p className={`${PROSE_CLASS} mt-6`}>
-            <DocsInline>{copy.text("docs-code-s11-content-side")}</DocsInline>
+            <DocsInline>{copy.text("docs-code-s12-content-side")}</DocsInline>
           </p>
         </section>
       </StickyTocLayout>

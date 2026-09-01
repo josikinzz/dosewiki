@@ -876,21 +876,21 @@
     "kind": "plain",
     "label": "Page title",
     "group": "Docs · Code",
-    "body": "dose.wiki — codebase overview"
+    "body": "dose.wiki: codebase overview"
   },
   {
     "key": "docs-code-header-tagline",
     "kind": "plain",
     "label": "Header tagline",
     "group": "Docs · Code",
-    "body": "Next.js 16 + Convex + AI editorial pipelines — written for someone new to the repository"
+    "body": "Next.js 16 + Convex + AI editorial pipelines, written for someone new to the repository"
   },
   {
     "key": "docs-code-header-intro",
     "kind": "markdown",
     "label": "Header intro paragraph",
     "group": "Docs · Code",
-    "body": "dose.wiki is a **harm-reduction encyclopedia**: a public website of substance articles, subjective-effect documentation, and trip reports. The repository contains **three systems**. The public Next.js site renders content. The login-protected `/dev` editor is where editors write and cite that content. Command-line pipelines scrape, generate, and migrate it. All three read and write the same **Convex database**, which is the source of truth."
+    "body": "dose.wiki is a **harm-reduction encyclopedia**: a public website of substance articles, subjective-effect documentation, and trip reports. The repository contains **three systems**. The public Next.js site renders content and accepts trip reports and feedback from readers. The login-protected `/dev` editor is where editors write, review, and cite that content. Command-line pipelines scrape, generate, and migrate it. All three read and write the same **Convex database**; what Convex holds is what the site serves."
   },
   {
     "key": "docs-code-toc-s1",
@@ -939,7 +939,7 @@
     "kind": "plain",
     "label": "TOC label — 07 · Two surfaces, one database",
     "group": "Docs · Code",
-    "body": "07 · Two surfaces, one database"
+    "body": "07 · Four kinds of traffic"
   },
   {
     "key": "docs-code-toc-s8",
@@ -953,21 +953,28 @@
     "kind": "plain",
     "label": "TOC label — 09 · Two flows worth tracing",
     "group": "Docs · Code",
-    "body": "09 · Two flows worth tracing"
+    "body": "09 · Replications platform"
   },
   {
     "key": "docs-code-toc-s10",
     "kind": "plain",
     "label": "TOC label — 10 · Recurring vocabulary",
     "group": "Docs · Code",
-    "body": "10 · Recurring vocabulary"
+    "body": "10 · Three flows worth tracing"
   },
   {
     "key": "docs-code-toc-s11",
     "kind": "plain",
     "label": "TOC label — 11 · Where to start reading",
     "group": "Docs · Code",
-    "body": "11 · Where to start reading"
+    "body": "11 · Recurring vocabulary"
+  },
+  {
+    "key": "docs-code-toc-s12",
+    "kind": "plain",
+    "label": "TOC label — 12 · Where to start reading",
+    "group": "Docs · Code",
+    "body": "12 · Where to start reading"
   },
   {
     "key": "docs-code-s1-heading",
@@ -988,61 +995,61 @@
     "kind": "plain",
     "label": "03 · Section heading",
     "group": "Docs · Code",
-    "body": "Tech stack — what each tool is for"
+    "body": "Tech stack: what each tool is for"
   },
   {
     "key": "docs-code-s4-heading",
     "kind": "plain",
     "label": "04 · Section heading",
     "group": "Docs · Code",
-    "body": "Repository map — where things live"
+    "body": "Repository map: where things live"
   },
   {
     "key": "docs-code-s5-heading",
     "kind": "plain",
     "label": "05 · Section heading",
     "group": "Docs · Code",
-    "body": "Frontend — routes and feature modules"
+    "body": "Frontend: routes and feature modules"
   },
   {
     "key": "docs-code-s6-heading",
     "kind": "plain",
     "label": "06 · Section heading",
     "group": "Docs · Code",
-    "body": "The Convex data layer — what is in the database"
+    "body": "The Convex data layer: what is in the database"
   },
   {
     "key": "docs-code-s7-heading",
     "kind": "plain",
     "label": "07 · Section heading",
     "group": "Docs · Code",
-    "body": "Two surfaces, one database"
+    "body": "Four kinds of traffic, one database"
   },
   {
     "key": "docs-code-s8-heading",
     "kind": "plain",
     "label": "08 · Section heading",
     "group": "Docs · Code",
-    "body": "Content pipelines — how the pipelines build an article"
-  },
-  {
-    "key": "docs-code-s9-heading",
-    "kind": "plain",
-    "label": "09 · Section heading",
-    "group": "Docs · Code",
-    "body": "Two flows worth tracing"
+    "body": "Content pipelines: how an article is built"
   },
   {
     "key": "docs-code-s10-heading",
     "kind": "plain",
     "label": "10 · Section heading",
     "group": "Docs · Code",
-    "body": "Recurring vocabulary"
+    "body": "Three flows worth tracing"
   },
   {
     "key": "docs-code-s11-heading",
     "kind": "plain",
     "label": "11 · Section heading",
+    "group": "Docs · Code",
+    "body": "Recurring vocabulary"
+  },
+  {
+    "key": "docs-code-s12-heading",
+    "kind": "plain",
+    "label": "12 · Section heading",
     "group": "Docs · Code",
     "body": "Where to start reading"
   },
@@ -1086,14 +1093,14 @@
     "kind": "markdown",
     "label": "01 · Numbers — closing paragraph",
     "group": "Docs · Code",
-    "body": "**Roughly half of this repository is not the website.** The `scripts/` directory is nearly as large as the app itself, because pipelines produce most content. Scripts scrape content from source wikis. Claude generates prose through OpenRouter. A citation workflow ties claims to real literature, and a person reviews everything before publication. If you read only `src/`, you see the site but not the tooling that fills it."
+    "body": "**Roughly half of this repository is not the website.** The `scripts/` directory (around 700 files across 29 subdirectories) is about the same size as the app itself, because pipelines produce most content and media. Scripts scrape source wikis, generate prose through OpenRouter, tie claims to real literature, and move replication media through Cloudflare R2. A person reviews everything before publication. If you read only `src/`, you see the site but not the tooling that fills it."
   },
   {
     "key": "docs-code-s2-intro",
     "kind": "markdown",
     "label": "02 · Overview — intro",
     "group": "Docs · Code",
-    "body": "Everything flows through **Convex** (a hosted realtime database with serverless functions). Content enters through scrapers and AI pipelines. Editors change it in `/dev`. The public site reads it. The colors below keep the same meaning for the rest of this page."
+    "body": "Every system in the repository reads and writes **Convex** (a hosted realtime database with serverless functions). Content enters through scrapers, AI pipelines, and reader submissions. Editors change it in `/dev`. The public site reads it, and replication media is served from Cloudflare R2. The colors below keep the same meaning for the rest of this page."
   },
   {
     "key": "docs-code-s2-legend-public",
@@ -1135,7 +1142,7 @@
     "kind": "markdown",
     "label": "02 · Overview — no-REST-backend callout",
     "group": "Docs · Code",
-    "body": "**There is no separate REST backend.** Convex hosts the database and the server functions (`convex/*.ts`) that read and write it. The Next.js app, the `/dev` editor, and the scripts all connect to the same Convex deployment. The public site reads through `lib/convex/publicData.ts`. The `/dev` editor writes through the `/api/save-to-convex` route. Scripts use an admin key."
+    "body": "**There is no separate REST backend.** Convex hosts the database and the server functions (`convex/*.ts`) that read and write it. The Next.js app, the `/dev` editor, and the scripts all connect to the same Convex deployment. Public pages read through the `lib/convex/publicData.*` helpers. Browser writes (editor saves, reader submissions) go through Next.js route handlers under `src/app/api/`, each gated by auth and a named rate limit. Scripts use an admin key. The one extra piece of infrastructure is **Cloudflare R2**, which stores replication media bytes (section 09)."
   },
   {
     "key": "docs-code-s3-framework-label",
@@ -1177,7 +1184,7 @@
     "kind": "markdown",
     "label": "03 · Tech stack — Database + backend: body",
     "group": "Docs · Code",
-    "body": "Hosted document database with TypeScript server functions (queries, mutations). The `convex/` directory *is* the backend. Every environment — local dev, previews, production — targets the single production deployment (`glad-minnow-656`); the dev deployment is retired (see `AGENTS.md`)."
+    "body": "Hosted document database with TypeScript server functions (queries, mutations). The `convex/` directory *is* the backend. Every environment (local dev, previews, production) targets the single production deployment (`glad-minnow-656`); the dev deployment is retired (see `AGENTS.md`)."
   },
   {
     "key": "docs-code-s3-auth-label",
@@ -1191,14 +1198,14 @@
     "kind": "plain",
     "label": "03 · Tech stack — Auth: title",
     "group": "Docs · Code",
-    "body": "Auth.js (next-auth) + GitHub OAuth"
+    "body": "next-auth: GitHub OAuth + editor credentials"
   },
   {
     "key": "docs-code-s3-auth-body",
     "kind": "markdown",
     "label": "03 · Tech stack — Auth: body",
     "group": "Docs · Code",
-    "body": "`auth.ts` configures sign-in. `middleware.ts` protects `/dev` and keeps editor routes on the editor hosts. Editor roles (admin / editor / viewer) live in the Convex `memberships` table."
+    "body": "`auth.ts` configures sign-in: GitHub OAuth plus a legacy credentials provider for `@local.dose.wiki` editor accounts. `middleware.ts` protects `/dev` and keeps editor routes on the editor hosts. Editor roles (admin / editor / viewer) live in the Convex `memberships` table."
   },
   {
     "key": "docs-code-s3-ai-label",
@@ -1243,6 +1250,27 @@
     "body": "Utility-first styling with a token-based design system in `src/theme/`. Radix supplies accessible primitives. Framer Motion handles animation. React Hook Form drives the forms in the editor."
   },
   {
+    "key": "docs-code-s3-media-label",
+    "kind": "plain",
+    "label": "03 · Tech stack — Media + abuse controls: label",
+    "group": "Docs · Code",
+    "body": "Media + abuse controls"
+  },
+  {
+    "key": "docs-code-s3-media-title",
+    "kind": "plain",
+    "label": "03 · Tech stack — Media + abuse controls: title",
+    "group": "Docs · Code",
+    "body": "Cloudflare R2 + Turnstile"
+  },
+  {
+    "key": "docs-code-s3-media-body",
+    "kind": "markdown",
+    "label": "03 · Tech stack — Media + abuse controls: body",
+    "group": "Docs · Code",
+    "body": "Replication media bytes live in **Cloudflare R2** under content-addressed keys; Convex stores only the metadata (section 09 covers URL resolution and rollback). **Cloudflare Turnstile** gates the site-feedback form; the other public forms rely on honeypots, payload caps, and per-route rate limits."
+  },
+  {
     "key": "docs-code-s3-tooling-label",
     "kind": "plain",
     "label": "03 · Tech stack — Tooling + safety: label",
@@ -1261,35 +1289,35 @@
     "kind": "markdown",
     "label": "03 · Tech stack — Tooling + safety: body",
     "group": "Docs · Code",
-    "body": "Bun is the package manager. **Zod schemas** (in `src/schema/` and `schemas/`) validate every article shape before the app stores or renders it, so the app rejects malformed or AI-mangled content early. The repository has ~475 Vitest test files."
+    "body": "Bun is the package manager. **Zod schemas** (in `src/schema/` and `schemas/`) validate every article shape before the app stores or renders it, so the app rejects malformed or AI-mangled content early. The repository has ~500 Vitest test files. Molecule diagrams render through a vendored **OpenChemLib** fork (`vendor/openchemlib`) with its own verification script."
   },
   {
     "key": "docs-code-s4-intro",
     "kind": "markdown",
     "label": "04 · Repository map — intro",
     "group": "Docs · Code",
-    "body": "Most of the code lives in four directories: `src/` (the app), `convex/` (the backend), `scripts/` (the pipelines), and `lib/` (server-side helpers shared between them). Everything else is documentation, assets, or configuration."
+    "body": "Most of the code lives in four directories: `src/` (the app), `convex/` (the backend), `scripts/` (the pipelines), and `lib/` (server-side helpers shared between them). Everything else is documentation, assets, vendored dependencies, or configuration."
   },
   {
     "key": "docs-code-s4-skills",
     "kind": "markdown",
     "label": "04 · Repository map — local-skill note",
     "group": "Docs · Code",
-    "body": "The repository keeps one local skill: `.agents/skills/legality-pi/`. Other automated workflows are documented beside their owning scripts under `scripts/` and `docs/agents/`, so executable behavior and operating guidance stay together."
+    "body": "The repository keeps two local skills: `.agents/skills/citation-pi/` (the citation entailment audit) and `.agents/skills/legality-pi/` (legality-source research). Other automated workflows are documented beside their owning scripts under `scripts/` and `docs/agents/`, so executable behavior and operating guidance stay together."
   },
   {
     "key": "docs-code-s5-intro",
     "kind": "markdown",
     "label": "05 · Frontend — intro",
     "group": "Docs · Code",
-    "body": "The code splits two ways. `src/app/` holds thin **route folders** (one per URL, mostly data-fetching and metadata). `src/features/` holds the **rendering logic**, grouped by domain. A route file fetches from Convex and passes the data to a feature module."
+    "body": "The code splits two ways. `src/app/` holds thin **route folders** (one per URL, mostly data-fetching and metadata) plus ~40 API route handlers. `src/features/` holds the **rendering logic**, grouped into 15 domain modules. A route file fetches from Convex and passes the data to a feature module."
   },
   {
     "key": "docs-code-s5-public-routes-label",
     "kind": "plain",
     "label": "05 · Frontend — public routes card label",
     "group": "Docs · Code",
-    "body": "src/app/ — public routes"
+    "body": "src/app/ · public routes"
   },
   {
     "key": "docs-code-s5-public-routes",
@@ -1297,14 +1325,14 @@
     "label": "05 · Frontend — public routes list",
     "group": "Docs · Code",
     "items": [
-      "`/[slug]` — **a substance article** (the core page)",
-      "`/substances` — browse all substances",
-      "`/effects`, `/effects/[effectSlug]` — subjective effects",
-      "`/reports` — trip reports",
-      "`/psychoactive · /chemical-classes · /mechanism · /category` — classification indexes",
-      "`/interactions`, `/search`, `/about`, `/contributors`",
-      "`/about#data` — the Downloads section with three dataset JSON exports;`/data` is a compatibility redirect to `/about`",
-      "`/replications`, `/articles`, `/chemical-classes`, `/mantras`, `/blog`, `/documentation-style-guide` — media gallery, articles, class pages, mandala, announcements, contributor style guide"
+      "`/[slug]`: **a substance article** (the core page)",
+      "`/substances` · `/effects`, `/effects/[effectSlug]` · `/reports`, `/reports/[slug]`: the three content catalogs",
+      "`/replications` (+ `audio` · `tutorials` · `artist/[key]` · `[slug]`): the replication gallery (section 09)",
+      "`/reports/submit`: the public trip report form; `/about/feedback`: the site feedback form; every article ends in a feedback box",
+      "`/psychoactive · /chemical-classes · /mechanism · /category`: classification indexes",
+      "`/interactions`, `/search`, `/about`, `/contributors`, `/articles`, `/blog`, `/mantras`, `/documentation-style-guide`",
+      "`/open-data/*.json`: three daily dataset exports (linked from `/about#data`; `/data` redirects there); `/api/v1`: a read-only public API with an OpenAPI spec",
+      "`/docs/how · /docs/code · /docs/license`: methodology, this page, licensing"
     ]
   },
   {
@@ -1312,7 +1340,7 @@
     "kind": "plain",
     "label": "05 · Frontend — protected routes card label",
     "group": "Docs · Code",
-    "body": "src/app/ — protected routes"
+    "body": "src/app/ · protected routes"
   },
   {
     "key": "docs-code-s5-protected-routes",
@@ -1320,11 +1348,10 @@
     "label": "05 · Frontend — protected routes list",
     "group": "Docs · Code",
     "items": [
-      "`/dev` — editor home (auth required via `middleware.ts`)",
-      "`/dev/articles/[slug]` — edit a substance",
-      "`/dev/change-log · tag-editor · index-layout · about · citation-review · profile`",
-      "`/api/save-to-convex` — the main write endpoint for the editor",
-      "`/sign-in` — Auth.js sign-in entry"
+      "`/dev`: one catch-all page (`src/app/dev/[[...segments]]`) dispatching ~17 editor tabs (articles, writing, citation review, trip-report submissions, article + site feedback, replication studio, molecule editor, copy studio, banners, contributors, tag editor, index layout, change log, profile…)",
+      "`/review`: a standalone full-bleed article-review workbench",
+      "`/api/dev/*`: ~15 per-tool write endpoint families; `/api/save-to-convex`: the whole-article save target",
+      "`/sign-in`: next-auth sign-in entry; `middleware.ts` redirects everyone else"
     ]
   },
   {
@@ -1332,14 +1359,14 @@
     "kind": "markdown",
     "label": "05 · Frontend — site-flavor paragraph",
     "group": "Docs · Code",
-    "body": "One codebase builds two publications — **dose.wiki** and the **Effect Index** sister site — selected at build time by `NEXT_PUBLIC_SITE_FLAVOR`. The route tree therefore also holds Effect Index surfaces; which ones render depends on the flavor (`src/config/siteFlavor.ts`)."
+    "body": "One codebase builds two publications, **dose.wiki** and the **Effect Index** sister site, selected at build time by `NEXT_PUBLIC_SITE_FLAVOR`. The route tree therefore also holds Effect Index surfaces; which ones render depends on the flavor (`src/config/siteFlavor.ts`)."
   },
   {
     "key": "docs-code-s5-features-public-label",
     "kind": "plain",
     "label": "05 · Frontend — public features card label",
     "group": "Docs · Code",
-    "body": "src/features/ — public-facing (3 modules)"
+    "body": "src/features/ · public-facing (14 modules)"
   },
   {
     "key": "docs-code-s5-features-public",
@@ -1347,9 +1374,11 @@
     "label": "05 · Frontend — public features list",
     "group": "Docs · Code",
     "items": [
-      "**`article/`** — renders substance articles: dosage tables, duration charts, interaction grids, citation markers",
-      "**`effects/`** — effect pages, including a custom \"VCode\" markup renderer for effect descriptions",
-      "**`reports/`** — trip report pages"
+      "**`article/`**: renders substance articles (dosage tables, duration charts, interaction grids, citation markers, the feedback box)",
+      "**`effects/`**: effect pages, including the custom \"VCode\" markup renderer",
+      "**`reports/`**: trip report pages + the public submission form",
+      "**`replications/`**: gallery explorer, media viewer, artist showcases",
+      "**ten smaller modules**: `blog/`, `articles/`, `chemical-classes/`, `coverage/`, `mantras/`, `site-feedback/`, `mailing-list/`, `effect-index/`, `psychoactive-summaries/`, `theme-lab/`"
     ]
   },
   {
@@ -1357,7 +1386,7 @@
     "kind": "plain",
     "label": "05 · Frontend — dev features card label",
     "group": "Docs · Code",
-    "body": "src/features/dev/ — the editor (~210 files, the largest module)"
+    "body": "src/features/dev/ · the editor (~350 files, the largest module)"
   },
   {
     "key": "docs-code-s5-features-dev",
@@ -1365,10 +1394,10 @@
     "label": "05 · Frontend — dev features list",
     "group": "Docs · Code",
     "items": [
-      "**`forms/`** — one React Hook Form section per article field group",
-      "**`tools/`** — substance editor + AI section generator, layout editor, citation review, about editor",
-      "**`save-orchestrator/`** — coordinates multi-endpoint saves",
-      "**`context/ · notices/ · profile/ · tags/ · prompts/`** — editor state, toasts, profile & tag editing"
+      "**`forms/`**: one React Hook Form section per article field group",
+      "**`tools/`**: the ~14 editor tools (substance editor + AI section generator, replication studio, copy studio, molecule editor, banner studio, citation review, the three intake queues, contributors, writing, index layout)",
+      "**`save-orchestrator/`**: coordinates multi-endpoint saves",
+      "**`context/ · notices/ · profile/ · tags/ · prompts/`**: editor state, toasts, profile & tag editing"
     ]
   },
   {
@@ -1376,7 +1405,7 @@
     "kind": "markdown",
     "label": "06 · Data layer — intro",
     "group": "Docs · Code",
-    "body": "Each table has a matching `convex/<table>.ts` file that exports its queries and mutations. `convex/schema.ts` declares the shapes. There are three groups: content, editorial, and workflow. Readers see the **content**. The **editorial** records control who can change it and how. The **workflow** tables feed the AI pipelines."
+    "body": "Each content table has a matching `convex/<table>.ts` file that exports its queries and mutations; `convex/schema.ts` declares all ~45 shapes. There are three groups: content, editorial, and workflow. Readers see the **content**. The **editorial** records control who can change it, hold what readers have submitted, and audit every change. The **workflow** tables feed the pipelines. Small sibling tables share a row below."
   },
   {
     "key": "docs-code-s6-th-table",
@@ -1411,7 +1440,7 @@
     "kind": "markdown",
     "label": "06 · Data layer — table row: substanceIndex",
     "group": "Docs · Code",
-    "body": "The main table: one document per substance with every section — summary, dosage, duration, pharmacology, harm potential, legality, citations, references."
+    "body": "The main table: one document per substance with every section (summary, dosage, duration, pharmacology, harm potential, legality, citations, references)."
   },
   {
     "key": "docs-code-s6-table-subjective-effects",
@@ -1432,14 +1461,14 @@
     "kind": "markdown",
     "label": "06 · Data layer — table row: tripReportSubmissions",
     "group": "Docs · Code",
-    "body": "The private submission queue from the report form. Editors accept, reject, or promote a submission into `tripReports` before it goes public."
+    "body": "The private intake queue behind `/reports/submit`. Editors review, then promote a submission into `tripReports` before anything goes public (Flow C in section 10)."
   },
   {
     "key": "docs-code-s6-table-replications",
     "kind": "markdown",
     "label": "06 · Data layer — table row: replications / effectIndexArticles",
     "group": "Docs · Code",
-    "body": "Effect gallery media (video/image recreations of effects) and methodology articles."
+    "body": "Effect gallery metadata for video/image/audio recreations of effects (the media bytes live in Cloudflare R2, section 09), plus Effect Index methodology articles."
   },
   {
     "key": "docs-code-s6-table-category-layout",
@@ -1463,11 +1492,18 @@
     "body": "Hand-authored skeletal-diagram fixes from the `/dev` Molecules editor. When an override is present, the public article uses its SVG instead of the generated one."
   },
   {
+    "key": "docs-code-s6-table-warning-banners",
+    "kind": "markdown",
+    "label": "06 · Data layer — table row: warningBannerPresets",
+    "group": "Docs · Code",
+    "body": "Substance-article safety banner presets: every reader-visible string plus an explicit slug list or sitewide scope. Rewording a banner is an edit, not a deploy."
+  },
+  {
     "key": "docs-code-s6-table-copy-blocks",
     "kind": "markdown",
     "label": "06 · Data layer — table row: copyBlocks",
     "group": "Docs · Code",
-    "body": "Editable site copy, one document per block. The `/dev` Copy Studio edits it without a deploy."
+    "body": "Editable site copy, one document per block; the checked-in JSON seed is the fallback when a key has no row. The `/dev` Copy Studio edits it without a deploy, including every paragraph of this page."
   },
   {
     "key": "docs-code-s6-table-reagent-tests",
@@ -1482,6 +1518,13 @@
     "label": "06 · Data layer — table row: substanceGalleries",
     "group": "Docs · Code",
     "body": "Per-substance curation of the Replication Showcase: a pinned head and a suppression list over `replications` slugs."
+  },
+  {
+    "key": "docs-code-s6-table-replication-playlists",
+    "kind": "markdown",
+    "label": "06 · Data layer — table row: replicationPlaylists",
+    "group": "Docs · Code",
+    "body": "Reusable named replication playlists editors apply into a gallery draft. Nothing here publishes on its own."
   },
   {
     "key": "docs-code-s6-table-memberships",
@@ -1509,14 +1552,21 @@
     "kind": "markdown",
     "label": "06 · Data layer — table row: articleFeedback",
     "group": "Docs · Code",
-    "body": "Private per-article \"report an issue / suggest an edit\" intake. Editor-only; never rendered publicly."
+    "body": "Private per-article \"report an issue / suggest an edit\" intake from the box at the bottom of every article. Editor-only; never rendered publicly."
   },
   {
     "key": "docs-code-s6-table-site-feedback",
     "kind": "markdown",
     "label": "06 · Data layer — table row: siteFeedback",
     "group": "Docs · Code",
-    "body": "Private site-wide general feedback intake. Editor-only; never rendered publicly."
+    "body": "Private site-wide feedback intake from `/about/feedback` (the one Turnstile-gated form). Editor-only; never rendered publicly."
+  },
+  {
+    "key": "docs-code-s6-table-mailing-list",
+    "kind": "markdown",
+    "label": "06 · Data layer — table row: mailingListSubscribers",
+    "group": "Docs · Code",
+    "body": "Private mailing-list signups shared by the portal's four public sites, written only through the public `/subscribe` Convex HTTP endpoint."
   },
   {
     "key": "docs-code-s6-table-molecule-class-templates",
@@ -1530,7 +1580,7 @@
     "kind": "markdown",
     "label": "06 · Data layer — table row: articleSources",
     "group": "Docs · Code",
-    "body": "Raw scraped source text per substance, from the ten sites in the source list (section 08) — the input that the AI generators quote from."
+    "body": "Raw scraped source text per substance, from the ten sites in the source list (section 08); this is the input the AI generators quote from."
   },
   {
     "key": "docs-code-s6-table-prompts-quotes",
@@ -1545,6 +1595,13 @@
     "label": "06 · Data layer — table row: citationEvidence",
     "group": "Docs · Code",
     "body": "The citation audit trail: each claim in an article mapped to reference IDs, supporting quotes, and a review status."
+  },
+  {
+    "key": "docs-code-s6-table-replication-provenance",
+    "kind": "markdown",
+    "label": "06 · Data layer — table row: replication provenance + identity",
+    "group": "Docs · Code",
+    "body": "The replication back office (~15 tables): source attribution, artist and contributor identity bindings, alias evidence, taxonomy evidence, duplicate reconciliations, date-research dossiers, and reversible merge/social operations, all kept out of the hot gallery documents."
   },
   {
     "key": "docs-code-s6-table-effect-index-archive",
@@ -1565,35 +1622,63 @@
     "kind": "plain",
     "label": "07 · Two surfaces — read-path card label",
     "group": "Docs · Code",
-    "body": "Public site — read path"
+    "body": "Public site · read path"
   },
   {
     "key": "docs-code-s7-read-who",
     "kind": "markdown",
     "label": "07 · Two surfaces — read path: who",
     "group": "Docs · Code",
-    "body": "**Who:** anyone, no login. The launched site is crawlable, SEO-tuned, and mostly static."
+    "body": "**Who:** anyone, no login. The launched site is open to crawlers, and most pages are static with tuned search metadata."
   },
   {
     "key": "docs-code-s7-read-how",
     "kind": "markdown",
     "label": "07 · Two surfaces — read path: how it reads",
     "group": "Docs · Code",
-    "body": "**How it reads:** server components read Convex through `lib/convex/publicData.ts` (read-only URL). Flow A in section 09 traces this path step by step."
+    "body": "**How:** server components read Convex through the `lib/convex/publicData.*` helpers behind route loaders in `lib/next/` (read-only URL, tagged caches). Flow A in section 10 traces this path step by step."
   },
   {
     "key": "docs-code-s7-read-key",
     "kind": "markdown",
     "label": "07 · Two surfaces — read path: key property",
     "group": "Docs · Code",
-    "body": "**Key property:** there is no client-side database access. The build can prerender pages. When an editor saves, the app revalidates them."
+    "body": "**Key property:** there is no client-side database access. Pages prerender, then revalidate by cache tag when an editor saves."
+  },
+  {
+    "key": "docs-code-s7-submit-label",
+    "kind": "plain",
+    "label": "07 · Traffic — public-writes card label",
+    "group": "Docs · Code",
+    "body": "Public writes · reader submissions"
+  },
+  {
+    "key": "docs-code-s7-submit-who",
+    "kind": "markdown",
+    "label": "07 · Traffic — public writes: who",
+    "group": "Docs · Code",
+    "body": "**Who:** anyone, no login. Trip reports (`/reports/submit`), per-article feedback (the box at the bottom of every article), site feedback (`/about/feedback`), and mailing-list signups."
+  },
+  {
+    "key": "docs-code-s7-submit-how",
+    "kind": "markdown",
+    "label": "07 · Traffic — public writes: how",
+    "group": "Docs · Code",
+    "body": "**How:** each form POSTs to its own rate-limited route handler with a honeypot, a payload cap, and a hashed IP; site feedback adds a Turnstile captcha. Rows land in private intake tables."
+  },
+  {
+    "key": "docs-code-s7-submit-key",
+    "kind": "markdown",
+    "label": "07 · Traffic — public writes: key property",
+    "group": "Docs · Code",
+    "body": "**Key property:** nothing a visitor submits renders publicly until an editor reviews it in `/dev`. Trip reports are promoted (Flow C in section 10); feedback never publishes at all."
   },
   {
     "key": "docs-code-s7-write-label",
     "kind": "plain",
     "label": "07 · Two surfaces — write-path card label",
     "group": "Docs · Code",
-    "body": "/dev editor — write path"
+    "body": "/dev editor · write path"
   },
   {
     "key": "docs-code-s7-write-who",
@@ -1607,7 +1692,7 @@
     "kind": "markdown",
     "label": "07 · Two surfaces — write path: how it writes",
     "group": "Docs · Code",
-    "body": "**How it writes:** through the `save-orchestrator` and the `/api/save-to-convex` route. Flow B in section 09 traces this path step by step."
+    "body": "**How:** whole-article saves go through the `save-orchestrator` and `/api/save-to-convex` (Flow B in section 10); every other editor tool has its own `/api/dev/*` endpoint. Each route checks the session role and a named rate limit; the browser never holds an admin key."
   },
   {
     "key": "docs-code-s7-write-generation",
@@ -1617,18 +1702,46 @@
     "body": "Source-backed generation runs only through authenticated local batch workflows. The `/dev` editor supports manual review and editing without exposing scraped source text in the browser."
   },
   {
-    "key": "docs-code-s7-open-data",
-    "kind": "markdown",
-    "label": "07 · Two surfaces — open-data paragraph",
+    "key": "docs-code-s7-data-label",
+    "kind": "plain",
+    "label": "07 · Traffic — machine-reads card label",
     "group": "Docs · Code",
-    "body": "**There is a third consumer: anyone who wants the raw data.** The `/open-data/SubstanceIndex.json`, `/open-data/EffectIndex.json`, and `/open-data/TripReports.json` routes serve daily Convex snapshots with per-dataset license envelopes. They are linked from the `/about#data` Downloads section; `/data` redirects to `/about`. Convex stays the live source for pages. The base data is CC0, but each dataset is \"mixed\" — the substance index keeps TripSit's terms on its `interactions` field, the effect index references third-party replication media, and legacy trip reports keep their authors' rights (see the [license page](/docs/license))."
+    "body": "Machine reads · open data + API"
+  },
+  {
+    "key": "docs-code-s7-data-who",
+    "kind": "markdown",
+    "label": "07 · Traffic — machine reads: who",
+    "group": "Docs · Code",
+    "body": "**Who:** anyone who wants the raw data (researchers, mirrors, other apps)."
+  },
+  {
+    "key": "docs-code-s7-data-how",
+    "kind": "markdown",
+    "label": "07 · Traffic — machine reads: how",
+    "group": "Docs · Code",
+    "body": "**How:** `/open-data/SubstanceIndex.json`, `EffectIndex.json`, and `TripReports.json` serve daily Convex snapshots with per-dataset license envelopes. `/api/v1` is a versioned read-only JSON API with a self-describing `openapi.json`."
+  },
+  {
+    "key": "docs-code-s7-data-key",
+    "kind": "markdown",
+    "label": "07 · Traffic — machine reads: key property",
+    "group": "Docs · Code",
+    "body": "**Key property:** both surfaces are read-only and cache-friendly. Convex stays the live source for pages."
+  },
+  {
+    "key": "docs-code-s7-licensing",
+    "kind": "markdown",
+    "label": "07 · Traffic — licensing callout",
+    "group": "Docs · Code",
+    "body": "**Licensing is per dataset.** The base data is CC0, but each export is \"mixed\": the substance index keeps TripSit's terms on its `interactions` field, the effect index references third-party replication media, and legacy trip reports keep their authors' rights (see the [license page](/docs/license))."
   },
   {
     "key": "docs-code-s8-intro",
     "kind": "markdown",
     "label": "08 · Pipelines — intro",
     "group": "Docs · Code",
-    "body": "The pipelines build articles in stages. Parsers turn raw wiki text into structured data. Scripts load it into Convex and extend it with AI-generated prose. Editors review it in `/dev`. Then a citation workflow ties each claim to a reference. Each stage is a separate `scripts/` subdirectory with its own `npm run` commands."
+    "body": "The pipelines build articles in stages: parsers turn raw wiki text into structured data, scripts load it into Convex and extend it with AI-generated prose, editors review it in `/dev`, and a citation workflow then ties each claim to a reference. Each stage is a separate `scripts/` subdirectory with its own `npm run` commands."
   },
   {
     "key": "docs-code-s8-sources",
@@ -1649,7 +1762,7 @@
     "kind": "markdown",
     "label": "08 · Pipelines — prompting intro",
     "group": "Docs · Code",
-    "body": "The \"AI section generation\" box above is itself a two-stage process. The full scraped articles are too long and too mixed to give to a model directly. First, an extraction pass **copies verbatim excerpts out of the sources, by topic**. Then a stronger model **writes one section from those excerpts**, against a section-specific prompt that forbids claims not found in them. This section covers where the pieces live in the repository."
+    "body": "The \"AI section generation\" box above is itself a two-stage process. The full scraped articles are too long and too mixed to give to a model directly. First, an extraction pass **copies verbatim excerpts out of the sources, by topic**. Then a stronger model **writes one section from those excerpts**, against a section-specific prompt that forbids claims not found in them."
   },
   {
     "key": "docs-code-s8-prompting-step1-title",
@@ -1726,7 +1839,7 @@
     "kind": "plain",
     "label": "08 · Pipelines — stage 1–3 label",
     "group": "Docs · Code",
-    "body": "Stage 1–3 — eight quote topics"
+    "body": "Stage 1–3 · eight quote topics"
   },
   {
     "key": "docs-code-s8-stage13-intro",
@@ -1751,14 +1864,14 @@
     "kind": "plain",
     "label": "08 · Pipelines — stage 4 label",
     "group": "Docs · Code",
-    "body": "Stage 4 — eleven section prompts"
+    "body": "Stage 4 · eleven section prompts"
   },
   {
     "key": "docs-code-s8-stage4-prompts",
     "kind": "markdown",
     "label": "08 · Pipelines — stage 4: prompt files",
     "group": "Docs · Code",
-    "body": "Each article section has its own markdown prompt in `src/data/config/sectionPrompts/` — base, summary, dosage/duration, pharmacology, subjective effects, interactions, harm potential, tolerance, legality, history & culture, identification. They range from 4 KB (base) to 28 KB (pharmacology)."
+    "body": "Each article section has its own markdown prompt in `src/data/config/sectionPrompts/`: base, summary, dosage/duration, pharmacology, subjective effects, interactions, harm potential, tolerance, legality, history & culture, identification. They range from 2.5 KB (base) to 27 KB (pharmacology)."
   },
   {
     "key": "docs-code-s8-stage4-seeds",
@@ -1772,7 +1885,7 @@
     "kind": "markdown",
     "label": "08 · Pipelines — prompts-published paragraph",
     "group": "Docs · Code",
-    "body": "[How dose.wiki substance articles are made](/docs/how) publishes every prompt unedited — the eight extraction prompts and the section prompts. It also documents the block-selection contract that keeps extraction verbatim, and the audit that enforces it. That page is the canonical copy of the pipeline instructions."
+    "body": "[How dose.wiki substance articles are made](/docs/how) publishes every prompt unedited: the eight extraction prompts and the section prompts. It also documents the block-selection contract that keeps extraction verbatim, and the audit that enforces it. That page is the canonical copy of the pipeline instructions."
   },
   {
     "key": "docs-code-s8-citation-heading",
@@ -1821,7 +1934,7 @@
     "kind": "markdown",
     "label": "08 · Citation flow — step3 body",
     "group": "Docs · Code",
-    "body": "`[cite:ref-id]` markers only — article text must stay byte-identical otherwise"
+    "body": "`[cite:ref-id]` markers only; article text must stay byte-identical otherwise"
   },
   {
     "key": "docs-code-s8-citation-step4-title",
@@ -1870,287 +1983,526 @@
     "kind": "markdown",
     "label": "08 · Pipelines — marker-only contract callout",
     "group": "Docs · Code",
-    "body": "**The marker-only contract** is the strictest rule in the repository. Citation tooling can add `[cite:reference-id]` markers to the six citable sections, but must not change any other byte of article text. The tooling can use Wikipedia and PsychonautWiki to find references. It never cites them as claim support. `CLAUDE.md` records both rules, and the validation gate enforces them."
+    "body": "**The marker-only contract**: citation tooling can add `[cite:reference-id]` markers to the six citable sections, but must not change any other byte of article text. The tooling can use Wikipedia and PsychonautWiki to find references. It never cites them as claim support. `CLAUDE.md` records both rules, and the validation gate enforces them."
   },
   {
-    "key": "docs-code-s9-flow-a-heading",
-    "kind": "plain",
-    "label": "09 · Flows — Flow A subheading",
-    "group": "Docs · Code",
-    "body": "Flow A — a reader opens dose.wiki/lsd"
-  },
-  {
-    "key": "docs-code-s9-flow-a-step1-title",
-    "kind": "plain",
-    "label": "09 · Flow A — step1 title",
-    "group": "Docs · Code",
-    "body": "Route"
-  },
-  {
-    "key": "docs-code-s9-flow-a-step1-body",
+    "key": "docs-code-s8-sibling-pipelines",
     "kind": "markdown",
-    "label": "09 · Flow A — step1 body",
+    "label": "08 · Pipelines — sibling-pipelines paragraph",
     "group": "Docs · Code",
-    "body": "`src/app/[slug]/page.tsx` server component runs"
+    "body": "**Article prose is no longer the only pipeline.** The same `scripts/` conventions now drive a citation entailment audit (`scripts/citations/verdict-*`, run by the `citation-pi` skill), a legality-source workflow (`scripts/legality/`, run by `legality-pi`), the Reddit replication intake and R2 media migration (`scripts/replications/`, ~144 files; section 09), contributor avatar tooling (`scripts/contributors/`), and molecule/chemistry audits (`scripts/chemistry/`). The registry in `scripts/lib/workflow-command-surface.mjs` (and `citation-command-surface.mjs` beside it) is the index of runnable commands."
   },
   {
-    "key": "docs-code-s9-flow-a-step2-title",
+    "key": "docs-code-s9-heading",
     "kind": "plain",
-    "label": "09 · Flow A — step2 title",
+    "label": "09 · Section heading",
     "group": "Docs · Code",
-    "body": "Fetch"
+    "body": "The replications media platform"
   },
   {
-    "key": "docs-code-s9-flow-a-step2-body",
+    "key": "docs-code-s9-intro",
     "kind": "markdown",
-    "label": "09 · Flow A — step2 body",
+    "label": "09 · Replications — intro",
     "group": "Docs · Code",
-    "body": "`lib/convex/publicData.ts` queries `substanceIndex.getBySlug`"
+    "body": "Replications (artist-made video, image, and audio recreations of subjective effects) are the one content type whose bytes do not live in Convex. **Convex stores metadata; Cloudflare R2 stores media.** Every media object sits under a content-addressed R2 key, and `convex/lib/replicationUrls.ts` resolves public URLs from the `REPLICATION_MEDIA_BASE_URL` deployment variable; unset it and the site falls back to Convex Storage, which is the rollback switch."
   },
   {
-    "key": "docs-code-s9-flow-a-step3-title",
+    "key": "docs-code-s9-intake-step1-title",
     "kind": "plain",
-    "label": "09 · Flow A — step3 title",
+    "label": "09 · Intake flow — step1 title",
     "group": "Docs · Code",
-    "body": "Validate"
+    "body": "Collect"
   },
   {
-    "key": "docs-code-s9-flow-a-step3-body",
+    "key": "docs-code-s9-intake-step1-body",
     "kind": "markdown",
-    "label": "09 · Flow A — step3 body",
+    "label": "09 · Intake flow — step1 body",
     "group": "Docs · Code",
-    "body": "Zod schema validation from `src/schema/`"
+    "body": "Reviewed source media (for example the Reddit archive) enters through the intake runbook (`docs/agents/reddit-replication-intake.md`)"
   },
   {
-    "key": "docs-code-s9-flow-a-step4-title",
+    "key": "docs-code-s9-intake-step2-title",
     "kind": "plain",
-    "label": "09 · Flow A — step4 title",
+    "label": "09 · Intake flow — step2 title",
     "group": "Docs · Code",
-    "body": "Render"
+    "body": "Upload"
   },
   {
-    "key": "docs-code-s9-flow-a-step4-body",
+    "key": "docs-code-s9-intake-step2-body",
     "kind": "markdown",
-    "label": "09 · Flow A — step4 body",
+    "label": "09 · Intake flow — step2 body",
     "group": "Docs · Code",
-    "body": "`src/features/article/` sections, tables, citations"
+    "body": "`scripts/replications/` uploads bytes to R2 under content-addressed keys and verifies the copy"
   },
   {
-    "key": "docs-code-s9-flow-a-step5-title",
+    "key": "docs-code-s9-intake-step3-title",
     "kind": "plain",
-    "label": "09 · Flow A — step5 title",
+    "label": "09 · Intake flow — step3 title",
+    "group": "Docs · Code",
+    "body": "Import"
+  },
+  {
+    "key": "docs-code-s9-intake-step3-body",
+    "kind": "markdown",
+    "label": "09 · Intake flow — step3 body",
+    "group": "Docs · Code",
+    "body": "A production import writes gallery metadata, taxonomy, and attribution rows to Convex"
+  },
+  {
+    "key": "docs-code-s9-intake-step4-title",
+    "kind": "plain",
+    "label": "09 · Intake flow — step4 title",
+    "group": "Docs · Code",
+    "body": "Attribute"
+  },
+  {
+    "key": "docs-code-s9-intake-step4-body",
+    "kind": "markdown",
+    "label": "09 · Intake flow — step4 body",
+    "group": "Docs · Code",
+    "body": "Provenance and artist identity land in ~15 side tables, keeping hot gallery documents small"
+  },
+  {
+    "key": "docs-code-s9-intake-step5-title",
+    "kind": "plain",
+    "label": "09 · Intake flow — step5 title",
+    "group": "Docs · Code",
+    "body": "Curate"
+  },
+  {
+    "key": "docs-code-s9-intake-step5-body",
+    "kind": "markdown",
+    "label": "09 · Intake flow — step5 body",
+    "group": "Docs · Code",
+    "body": "Editors run the `/dev` Replication Studio: featured carousels, per-substance showcases, playlists, duplicate reconciliation"
+  },
+  {
+    "key": "docs-code-s9-intake-step6-title",
+    "kind": "plain",
+    "label": "09 · Intake flow — step6 title",
     "group": "Docs · Code",
     "body": "Serve"
   },
   {
-    "key": "docs-code-s9-flow-a-step5-body",
+    "key": "docs-code-s9-intake-step6-body",
     "kind": "markdown",
-    "label": "09 · Flow A — step5 body",
+    "label": "09 · Intake flow — step6 body",
     "group": "Docs · Code",
-    "body": "Mostly-static HTML, prerendered when possible"
+    "body": "`/replications` gallery, artist pages, effect and substance showcases: media from R2, metadata from Convex"
   },
   {
-    "key": "docs-code-s9-flow-b-heading",
-    "kind": "plain",
-    "label": "09 · Flows — Flow B subheading",
+    "key": "docs-code-s9-curation",
+    "kind": "markdown",
+    "label": "09 · Replications — curation paragraph",
     "group": "Docs · Code",
-    "body": "Flow B — an editor saves an article in /dev"
+    "body": "Curation is data, not deploys. `substanceGalleries` pins and suppresses what each substance's **Replication Showcase** shows; `replicationPlaylists` are reusable ordered sets applied into a gallery draft; the Effect Index homepage carousel is an ordered list in `siteConfig`. The public gallery reads through `lib/convex/publicData.replications.ts` and two cacheable JSON endpoints (`/api/replications/gallery` and `/showcase`)."
   },
   {
-    "key": "docs-code-s9-flow-b-step1-title",
+    "key": "docs-code-s9-rights",
+    "kind": "markdown",
+    "label": "09 · Replications — rights paragraph",
+    "group": "Docs · Code",
+    "body": "Rights metadata defaults to `unknown`, and every replication credits its artist; source posts and posters are retained losslessly in the attribution tables. The gallery's fair-use position is spelled out in its own copy (`src/features/replications/replicationsFairUseCopy.ts`) and on the [license page](/docs/license)."
+  },
+  {
+    "key": "docs-code-s10-flow-a-heading",
     "kind": "plain",
-    "label": "09 · Flow B — step1 title",
+    "label": "10 · Flows — Flow A subheading",
+    "group": "Docs · Code",
+    "body": "Flow A: a reader opens dose.wiki/lsd"
+  },
+  {
+    "key": "docs-code-s10-flow-a-step1-title",
+    "kind": "plain",
+    "label": "10 · Flow A — step1 title",
+    "group": "Docs · Code",
+    "body": "Route"
+  },
+  {
+    "key": "docs-code-s10-flow-a-step1-body",
+    "kind": "markdown",
+    "label": "10 · Flow A — step1 body",
+    "group": "Docs · Code",
+    "body": "`src/app/[slug]/page.tsx` server component runs"
+  },
+  {
+    "key": "docs-code-s10-flow-a-step2-title",
+    "kind": "plain",
+    "label": "10 · Flow A — step2 title",
+    "group": "Docs · Code",
+    "body": "Fetch"
+  },
+  {
+    "key": "docs-code-s10-flow-a-step2-body",
+    "kind": "markdown",
+    "label": "10 · Flow A — step2 body",
+    "group": "Docs · Code",
+    "body": "A route loader in `lib/next/` calls the `lib/convex/publicData.*` readers: tagged, cached, read-only Convex queries"
+  },
+  {
+    "key": "docs-code-s10-flow-a-step3-title",
+    "kind": "plain",
+    "label": "10 · Flow A — step3 title",
+    "group": "Docs · Code",
+    "body": "Validate"
+  },
+  {
+    "key": "docs-code-s10-flow-a-step3-body",
+    "kind": "markdown",
+    "label": "10 · Flow A — step3 body",
+    "group": "Docs · Code",
+    "body": "The substance contract (`lib/convex/publicData.substanceContract.ts`) Zod-validates the document against the shapes in `src/schema/`"
+  },
+  {
+    "key": "docs-code-s10-flow-a-step4-title",
+    "kind": "plain",
+    "label": "10 · Flow A — step4 title",
+    "group": "Docs · Code",
+    "body": "Render"
+  },
+  {
+    "key": "docs-code-s10-flow-a-step4-body",
+    "kind": "markdown",
+    "label": "10 · Flow A — step4 body",
+    "group": "Docs · Code",
+    "body": "`src/features/article/` sections, tables, citations"
+  },
+  {
+    "key": "docs-code-s10-flow-a-step5-title",
+    "kind": "plain",
+    "label": "10 · Flow A — step5 title",
+    "group": "Docs · Code",
+    "body": "Serve"
+  },
+  {
+    "key": "docs-code-s10-flow-a-step5-body",
+    "kind": "markdown",
+    "label": "10 · Flow A — step5 body",
+    "group": "Docs · Code",
+    "body": "Hourly ISR plus tag-based revalidation on editor saves; each page also emits JSON-LD and a per-substance social card"
+  },
+  {
+    "key": "docs-code-s10-flow-b-heading",
+    "kind": "plain",
+    "label": "10 · Flows — Flow B subheading",
+    "group": "Docs · Code",
+    "body": "Flow B: an editor saves an article in /dev"
+  },
+  {
+    "key": "docs-code-s10-flow-b-step1-title",
+    "kind": "plain",
+    "label": "10 · Flow B — step1 title",
     "group": "Docs · Code",
     "body": "Edit"
   },
   {
-    "key": "docs-code-s9-flow-b-step1-body",
+    "key": "docs-code-s10-flow-b-step1-body",
     "kind": "markdown",
-    "label": "09 · Flow B — step1 body",
+    "label": "10 · Flow B — step1 body",
     "group": "Docs · Code",
     "body": "React Hook Form state in `src/features/dev/forms/`"
   },
   {
-    "key": "docs-code-s9-flow-b-step2-title",
+    "key": "docs-code-s10-flow-b-step2-title",
     "kind": "plain",
-    "label": "09 · Flow B — step2 title",
+    "label": "10 · Flow B — step2 title",
     "group": "Docs · Code",
     "body": "Orchestrate"
   },
   {
-    "key": "docs-code-s9-flow-b-step2-body",
+    "key": "docs-code-s10-flow-b-step2-body",
     "kind": "markdown",
-    "label": "09 · Flow B — step2 body",
+    "label": "10 · Flow B — step2 body",
     "group": "Docs · Code",
     "body": "`save-orchestrator/` collects dirty articles"
   },
   {
-    "key": "docs-code-s9-flow-b-step3-title",
+    "key": "docs-code-s10-flow-b-step3-title",
     "kind": "plain",
-    "label": "09 · Flow B — step3 title",
+    "label": "10 · Flow B — step3 title",
     "group": "Docs · Code",
     "body": "Gate"
   },
   {
-    "key": "docs-code-s9-flow-b-step3-body",
+    "key": "docs-code-s10-flow-b-step3-body",
     "kind": "markdown",
-    "label": "09 · Flow B — step3 body",
+    "label": "10 · Flow B — step3 body",
     "group": "Docs · Code",
     "body": "`/api/save-to-convex`: auth role + rate limit + Zod contract validation"
   },
   {
-    "key": "docs-code-s9-flow-b-step4-title",
+    "key": "docs-code-s10-flow-b-step4-title",
     "kind": "plain",
-    "label": "09 · Flow B — step4 title",
+    "label": "10 · Flow B — step4 title",
     "group": "Docs · Code",
     "body": "Mutate"
   },
   {
-    "key": "docs-code-s9-flow-b-step4-body",
+    "key": "docs-code-s10-flow-b-step4-body",
     "kind": "markdown",
-    "label": "09 · Flow B — step4 body",
+    "label": "10 · Flow B — step4 body",
     "group": "Docs · Code",
-    "body": "`substanceIndex.saveSubstance` + auto `changelog` entry"
+    "body": "`substanceIndex.saveSubstances` + auto `changelog` entry"
   },
   {
-    "key": "docs-code-s9-flow-b-step5-title",
+    "key": "docs-code-s10-flow-b-step5-title",
     "kind": "plain",
-    "label": "09 · Flow B — step5 title",
+    "label": "10 · Flow B — step5 title",
     "group": "Docs · Code",
     "body": "Refresh"
   },
   {
-    "key": "docs-code-s9-flow-b-step5-body",
+    "key": "docs-code-s10-flow-b-step5-body",
     "kind": "markdown",
-    "label": "09 · Flow B — step5 body",
+    "label": "10 · Flow B — step5 body",
     "group": "Docs · Code",
     "body": "The app revalidates the public paths. A toast confirms the save"
   },
   {
-    "key": "docs-code-s10-substance-article-term",
+    "key": "docs-code-s10-flow-c-heading",
     "kind": "plain",
-    "label": "10 · Vocabulary — Substance article: term",
+    "label": "10 · Flows — Flow C subheading",
+    "group": "Docs · Code",
+    "body": "Flow C: a reader submits a trip report"
+  },
+  {
+    "key": "docs-code-s10-flow-c-step1-title",
+    "kind": "plain",
+    "label": "10 · Flow C — step1 title",
+    "group": "Docs · Code",
+    "body": "Write"
+  },
+  {
+    "key": "docs-code-s10-flow-c-step1-body",
+    "kind": "markdown",
+    "label": "10 · Flow C — step1 body",
+    "group": "Docs · Code",
+    "body": "The form at `/reports/submit` (`src/features/reports/submissions/`) collects the report"
+  },
+  {
+    "key": "docs-code-s10-flow-c-step2-title",
+    "kind": "plain",
+    "label": "10 · Flow C — step2 title",
+    "group": "Docs · Code",
+    "body": "Gate"
+  },
+  {
+    "key": "docs-code-s10-flow-c-step2-body",
+    "kind": "markdown",
+    "label": "10 · Flow C — step2 body",
+    "group": "Docs · Code",
+    "body": "`/api/trip-report-submissions`: rate limit + honeypot + a 128 KB cap; the submitter's IP is stored only as a salted hash"
+  },
+  {
+    "key": "docs-code-s10-flow-c-step3-title",
+    "kind": "plain",
+    "label": "10 · Flow C — step3 title",
+    "group": "Docs · Code",
+    "body": "Quarantine"
+  },
+  {
+    "key": "docs-code-s10-flow-c-step3-body",
+    "kind": "markdown",
+    "label": "10 · Flow C — step3 body",
+    "group": "Docs · Code",
+    "body": "The row lands in the private `tripReportSubmissions` table; nothing is public yet"
+  },
+  {
+    "key": "docs-code-s10-flow-c-step4-title",
+    "kind": "plain",
+    "label": "10 · Flow C — step4 title",
+    "group": "Docs · Code",
+    "body": "Review"
+  },
+  {
+    "key": "docs-code-s10-flow-c-step4-body",
+    "kind": "markdown",
+    "label": "10 · Flow C — step4 body",
+    "group": "Docs · Code",
+    "body": "The `/dev` Trip Report Portal queues it; editors see a needs-review badge"
+  },
+  {
+    "key": "docs-code-s10-flow-c-step5-title",
+    "kind": "plain",
+    "label": "10 · Flow C — step5 title",
+    "group": "Docs · Code",
+    "body": "Promote"
+  },
+  {
+    "key": "docs-code-s10-flow-c-step5-body",
+    "kind": "markdown",
+    "label": "10 · Flow C — step5 body",
+    "group": "Docs · Code",
+    "body": "`/api/trip-report-submissions/[id]/promote`: an editor previews the result, assigns authorship deliberately, and confirms"
+  },
+  {
+    "key": "docs-code-s10-flow-c-step6-title",
+    "kind": "plain",
+    "label": "10 · Flow C — step6 title",
+    "group": "Docs · Code",
+    "body": "Publish"
+  },
+  {
+    "key": "docs-code-s10-flow-c-step6-body",
+    "kind": "markdown",
+    "label": "10 · Flow C — step6 body",
+    "group": "Docs · Code",
+    "body": "The report becomes a `tripReports` row and renders at `/reports/[slug]`"
+  },
+  {
+    "key": "docs-code-s11-substance-article-term",
+    "kind": "plain",
+    "label": "11 · Vocabulary — Substance article: term",
     "group": "Docs · Code",
     "body": "Substance article"
   },
   {
-    "key": "docs-code-s10-substance-article-body",
+    "key": "docs-code-s11-substance-article-body",
     "kind": "markdown",
-    "label": "10 · Vocabulary — Substance article: definition",
+    "label": "11 · Vocabulary — Substance article: definition",
     "group": "Docs · Code",
     "body": "The central data object: one large structured document per drug, with ~15 sections (dosage, duration, pharmacology, legality, and more). Defined by Zod schemas in `src/schema/`, stored in `substanceIndex`."
   },
   {
-    "key": "docs-code-s10-citable-sections-term",
+    "key": "docs-code-s11-citable-sections-term",
     "kind": "plain",
-    "label": "10 · Vocabulary — Citable sections: term",
+    "label": "11 · Vocabulary — Citable sections: term",
     "group": "Docs · Code",
     "body": "Citable sections"
   },
   {
-    "key": "docs-code-s10-citable-sections-body",
+    "key": "docs-code-s11-citable-sections-body",
     "kind": "markdown",
-    "label": "10 · Vocabulary — Citable sections: definition",
+    "label": "11 · Vocabulary — Citable sections: definition",
     "group": "Docs · Code",
     "body": "The six prose sections allowed to carry citations: `summary`, `pharmacology`, `tolerance`, `harm_potential`, `history_culture`, `legality`. Everything else (for example, dosage tables) is structured data, not cited prose."
   },
   {
-    "key": "docs-code-s10-workbench-term",
+    "key": "docs-code-s11-workbench-term",
     "kind": "plain",
-    "label": "10 · Vocabulary — Workbench: term",
+    "label": "11 · Vocabulary — Workbench: term",
     "group": "Docs · Code",
     "body": "Workbench"
   },
   {
-    "key": "docs-code-s10-workbench-body",
+    "key": "docs-code-s11-workbench-body",
     "kind": "markdown",
-    "label": "10 · Vocabulary — Workbench: definition",
+    "label": "11 · Vocabulary — Workbench: definition",
     "group": "Docs · Code",
-    "body": "A staging area for external review of citation drafts. The pipeline exports a task, and a person reviews the draft outside the repository. Then `citations:apply-workbench -- --write --confirm-citation-write` writes the approved result back to Convex — both flags are required."
+    "body": "A staging area for external review of citation drafts. The pipeline exports a task, and a person reviews the draft outside the repository. Then `citations:apply-workbench -- --write --confirm-citation-write` writes the approved result back to Convex; both flags are required."
   },
   {
-    "key": "docs-code-s10-vcode-term",
+    "key": "docs-code-s11-vcode-term",
     "kind": "plain",
-    "label": "10 · Vocabulary — VCode: term",
+    "label": "11 · Vocabulary — VCode: term",
     "group": "Docs · Code",
     "body": "VCode"
   },
   {
-    "key": "docs-code-s10-vcode-body",
+    "key": "docs-code-s11-vcode-body",
     "kind": "markdown",
-    "label": "10 · Vocabulary — VCode: definition",
+    "label": "11 · Vocabulary — VCode: definition",
     "group": "Docs · Code",
     "body": "A custom markup format used for subjective-effect article bodies, stored alongside a parsed AST and rendered by `src/features/effects/`."
   },
   {
-    "key": "docs-code-s10-prepopulate-term",
+    "key": "docs-code-s11-prepopulate-term",
     "kind": "plain",
-    "label": "10 · Vocabulary — Prepopulate vs. generate: term",
+    "label": "11 · Vocabulary — Prepopulate vs. generate: term",
     "group": "Docs · Code",
     "body": "Prepopulate vs. generate"
   },
   {
-    "key": "docs-code-s10-prepopulate-body",
+    "key": "docs-code-s11-prepopulate-body",
     "kind": "markdown",
-    "label": "10 · Vocabulary — Prepopulate vs. generate: definition",
+    "label": "11 · Vocabulary — Prepopulate vs. generate: definition",
     "group": "Docs · Code",
     "body": "**Prepopulate** = deterministic import of parsed source data (high-confidence facts like dosage tables). **Generate** = AI-generated prose sections that a person always reviews."
   },
   {
-    "key": "docs-code-s10-deployment-term",
+    "key": "docs-code-s11-deployment-term",
     "kind": "plain",
-    "label": "10 · Vocabulary — Convex deployment: term",
+    "label": "11 · Vocabulary — Convex deployment: term",
     "group": "Docs · Code",
     "body": "Convex deployment"
   },
   {
-    "key": "docs-code-s10-deployment-body",
+    "key": "docs-code-s11-deployment-body",
     "kind": "markdown",
-    "label": "10 · Vocabulary — Convex deployment: definition",
+    "label": "11 · Vocabulary — Convex deployment: definition",
     "group": "Docs · Code",
-    "body": "One production deployment (`glad-minnow-656`). All environments — local dev, previews, production — read and write it directly; the old dev deployment is retired. Treat every Convex write as a production write (see `AGENTS.md`)."
+    "body": "One production deployment (`glad-minnow-656`). All environments (local dev, previews, production) read and write it directly; the old dev deployment is retired. Treat every Convex write as a production write (see `AGENTS.md`)."
   },
   {
-    "key": "docs-code-s11-intro",
+    "key": "docs-code-s11-flavor-term",
+    "kind": "plain",
+    "label": "11 · Vocabulary — Site flavor: term",
+    "group": "Docs · Code",
+    "body": "Site flavor"
+  },
+  {
+    "key": "docs-code-s11-flavor-body",
     "kind": "markdown",
-    "label": "11 · Start reading — intro",
+    "label": "11 · Vocabulary — Site flavor: definition",
+    "group": "Docs · Code",
+    "body": "One codebase, two publications: `NEXT_PUBLIC_SITE_FLAVOR` selects **dose.wiki** or the **Effect Index** at build time, and `src/config/siteFlavor.ts` owns every difference in nav, wordmark, and flavor-gated routes. Content and Convex data are shared."
+  },
+  {
+    "key": "docs-code-s11-copy-block-term",
+    "kind": "plain",
+    "label": "11 · Vocabulary — Copy block: term",
+    "group": "Docs · Code",
+    "body": "Copy block"
+  },
+  {
+    "key": "docs-code-s11-copy-block-body",
+    "kind": "markdown",
+    "label": "11 · Vocabulary — Copy block: definition",
+    "group": "Docs · Code",
+    "body": "A keyed piece of editable site copy in the `copyBlocks` table, read through `getCopy()` with the checked-in JSON seed as fallback. Nearly all public prose, including this page, is copy blocks, edited in the `/dev` Copy Studio."
+  },
+  {
+    "key": "docs-code-s12-intro",
+    "kind": "markdown",
+    "label": "12 · Start reading — intro",
     "group": "Docs · Code",
     "body": "A reasonable reading order for a first session:"
   },
   {
-    "key": "docs-code-s11-reading-order",
+    "key": "docs-code-s12-reading-order",
     "kind": "list",
-    "label": "11 · Start reading — reading order list",
+    "label": "12 · Start reading — reading order list",
     "group": "Docs · Code",
     "items": [
-      "**`README.md` and `ARCHITECTURE.md`** — the orientation docs from the maintainers. They cover routes, npm scripts, and system layout.",
-      "**`convex/schema.ts`** — the data model that everything else is built around. Skim the `substanceIndex` table definition first.",
-      "**`src/app/[slug]/page.tsx` → `lib/convex/publicData.ts` → `src/features/article/`** — Flow A from section 09. This flow covers the whole public read path.",
-      "**`middleware.ts` + `auth.ts`** — short files that show how `/dev` is protected and how roles work.",
-      "**`src/features/dev/save-orchestrator/` and `src/app/api/save-to-convex/`** — Flow B. These files show how edits reach the database with an audit trail.",
-      "**`scripts/lib/workflow-command-surface.mjs`** — the registry of pipeline commands. From here you can find whichever pipeline (batch, citations, migrate, sync) you need."
+      "**`README.md` and `ARCHITECTURE.md`**: the orientation docs from the maintainers. They cover routes, npm scripts, and system layout.",
+      "**`convex/schema.ts`**: the data model that everything else is built around. Skim the `substanceIndex` table definition first.",
+      "**`src/app/[slug]/page.tsx` → `lib/next/routeLoaders.substances.tsx` → `lib/convex/publicData.*` → `src/features/article/`**: Flow A from section 10. This chain covers the whole public read path.",
+      "**`middleware.ts` + `auth.ts`**: short files that show how `/dev` is protected and how roles work.",
+      "**`src/lib/http/protectedRouteOperation.ts` + `lib/http/rateLimitPolicy.ts`**: the gate every API route goes through (session role, named rate-limit bucket, payload cap).",
+      "**`src/features/dev/save-orchestrator/` and `src/app/api/save-to-convex/`**: Flow B. These files show how edits reach the database with an audit trail.",
+      "**`scripts/lib/workflow-command-surface.mjs`**: the registry of pipeline commands. From here you can find whichever pipeline (batch, citations, replications, migrate, sync) you need."
     ]
   },
   {
-    "key": "docs-code-s11-caveats-summary",
+    "key": "docs-code-s12-caveats-summary",
     "kind": "plain",
-    "label": "11 · Start reading — caveats summary",
+    "label": "12 · Start reading — caveats summary",
     "group": "Docs · Code",
     "body": "Caveats about this page"
   },
   {
-    "key": "docs-code-s11-caveats-body",
+    "key": "docs-code-s12-caveats-body",
     "kind": "markdown",
-    "label": "11 · Start reading — caveats body",
+    "label": "12 · Start reading — caveats body",
     "group": "Docs · Code",
-    "body": "Counts (substances, files, tests) are point-in-time snapshots and will drift — prefer the live tree over the printed number (e.g. `find src -name '*.ts' | wc -l`). This page also simplifies operational detail — the full citation validation rules, rate-limit policies. `AGENTS.md`, `CLAUDE.md`, `CONTEXT.md`, and `docs/architecture/` in the repository are the authoritative versions."
+    "body": "Counts (substances, files, tests, tables) are point-in-time snapshots and will drift; prefer the live tree over the printed number. This page also simplifies operational detail: the full citation validation rules, rate-limit policies, and host routing. `AGENTS.md`, `CLAUDE.md`, `CONTEXT.md`, and `docs/architecture/` in the repository are the authoritative versions. One self-referential note: every paragraph of this page is itself a copy block in the database it describes."
   },
   {
-    "key": "docs-code-s11-content-side",
+    "key": "docs-code-s12-content-side",
     "kind": "markdown",
-    "label": "11 · Start reading — content-side pointer",
+    "label": "12 · Start reading — content-side pointer",
     "group": "Docs · Code",
-    "body": "**Do you want the content side?** This page covers the codebase. To see the full pipeline — scraping, quote extraction, AI synthesis, citations, and human review — read [How dose.wiki substance articles are made](/docs/how)."
+    "body": "**The content side has its own page.** This page covers the codebase. For the full pipeline (scraping, quote extraction, AI synthesis, citations, and human review), read [How dose.wiki substance articles are made](/docs/how)."
   },
   {
     "key": "docs-how-title",
