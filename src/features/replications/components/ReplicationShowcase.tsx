@@ -21,11 +21,11 @@ import { cn } from "@/lib/utils";
 import { icons } from "@/utils/iconNames";
 import { hasKnownCreator } from "@/features/effects/components/replicationCredit";
 import { useMotionAllowed } from "@/features/effects/gallery/inViewPlayback";
+import { shouldLoopReplicationMotion } from "@/features/replications/viewer/qualityLadder";
 import {
   resolveViewerMuted,
-  shouldLoopReplicationMotion,
   VIEWER_SOUND_STORAGE_KEY,
-} from "@/features/replications/viewer/viewerLogic";
+} from "@/features/replications/viewer/viewerPreferences";
 import {
   buildReplicationViewerUrl,
   closeReplicationViewerUrl,

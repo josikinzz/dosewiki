@@ -8,7 +8,7 @@ import {
   visualEffectNameBySlug,
 } from "./showcaseModel";
 import type { ShowcaseWork } from "./showcaseWork";
-import { VIEWER_SOUND_STORAGE_KEY } from "@/features/replications/viewer/viewerLogic";
+import { VIEWER_SOUND_STORAGE_KEY } from "@/features/replications/viewer/viewerPreferences";
 
 vi.mock("@/components/common/AppImage", () => ({
   AppImage: ({ src, alt }: { src: string; alt: string }) => (

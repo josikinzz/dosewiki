@@ -12,21 +12,28 @@ import {
 import { Icon } from "@/components/common/Icon";
 import { focusRingClassName } from "@/components/ui/surface";
 import { cn } from "@/lib/utils";
+import {
+  assignPooledSource,
+  createSoundCustody,
+  reloadPooledElement,
+  seekPooledElement,
+  type SoundCustody,
+} from "./mediaCustody";
 import type { ReplicationViewerMediaItem } from "./viewerModel";
 import {
   bufferedRangeContaining,
   describeSeekPosition,
   formatPlaybackClock,
   seekRatioFromPointer,
-  slideMotionSource,
-  type SlideQuality,
-} from "./viewerLogic";
+} from "./seekClock";
 import {
   AUTO_HQ_SETTLE_MS,
   decide,
   previewTruncated,
+  slideMotionSource,
   type LadderContext,
   type LadderVerdict,
+  type SlideQuality,
 } from "./qualityLadder";
 import { RotatingIcon } from "./RotatingIcon";
 
@@ -180,8 +187,7 @@ export function ViewerTransport({
     Boolean(replication.preview_url) &&
     replication.preview_url !== replication.url;
 
-  /** Sound the reader asked for but the browser refused outside a gesture. */
-  const pendingSoundRef = useRef(false);
+  const soundCustodyRef = useRef<SoundCustody | null>(null);
   /** Latest shared state, readable from per-work effects without re-running. */
   const mutedRef = useRef(muted);
   const volumeRef = useRef(volume);
@@ -256,41 +262,21 @@ export function ViewerTransport({
     setPlaying(false);
     setControlsVisible(true);
   }, []);
+  if (!soundCustodyRef.current) {
+    soundCustodyRef.current = createSoundCustody({
+      volume: () => volumeRef.current,
+      onBlocked: markBlocked,
+    });
+  }
+  const soundCustody = soundCustodyRef.current;
 
   /**
    * Start playback the way phone feeds do: when the browser rejects unmuted
    * playback (iOS Safari outside a user gesture), retry muted so the work
    * keeps moving — but keep the reader's sound intent as an IOU that the
-   * next gesture repays, instead of flipping the shared mute control. Only
-   * surface the Play affordance when even muted playback is refused (e.g.
-   * Low Power Mode).
+   * next gesture repays, instead of flipping the shared mute control.
    */
-  const attemptPlay = useCallback(
-    (element: HTMLVideoElement) => {
-      const attemptSrc = element.src;
-      const attempt = element.play();
-      if (!attempt) return;
-      void attempt.catch((reason: unknown) => {
-        // Pooled elements persist across works, so a pending play() from an
-        // outgoing work can reject after the next src is already loading
-        // (AbortError), or after detach. Those stale rejections must not
-        // touch shared state.
-        if (!element.isConnected || element.src !== attemptSrc) return;
-        if (reason instanceof DOMException && reason.name === "AbortError") {
-          return;
-        }
-        if (!element.muted) {
-          element.muted = true;
-          pendingSoundRef.current = true;
-          const retry = element.play();
-          if (retry) void retry.catch(markBlocked);
-          return;
-        }
-        markBlocked();
-      });
-    },
-    [markBlocked],
-  );
+  const attemptPlay = soundCustody.attemptPlay;
 
   const ladderContext = useCallback(
     (): LadderContext => ({
@@ -308,27 +294,16 @@ export function ViewerTransport({
       if (!video || verdict.kind === "stay") return;
       qualityRef.current = verdict.quality;
       onQualityChange(verdict.quality);
-      video.src = verdict.src;
-      if (verdict.time > 0) video.currentTime = verdict.time;
+      assignPooledSource(video, verdict.src, {
+        time: verdict.time,
+        resume: false,
+      });
       if (verdict.play) attemptPlay(video);
     },
     [attemptPlay, onQualityChange, video],
   );
 
-  /**
-   * Repay a refused unmute inside a live gesture; returns true when a debt
-   * was repaid. Must only run from user-event handlers.
-   */
-  const repaySoundIou = useCallback(
-    (element: HTMLVideoElement) => {
-      if (!pendingSoundRef.current) return false;
-      pendingSoundRef.current = false;
-      element.muted = false;
-      element.volume = volumeRef.current;
-      return true;
-    },
-    [],
-  );
+  const repaySoundIou = soundCustody.repayIou;
 
   // Reset per-work presentation state whenever the active work changes.
   useEffect(() => {
@@ -342,7 +317,7 @@ export function ViewerTransport({
     // A new work re-asks for the shared sound preference in the binding
     // effect below; any refusal re-arms the IOU there, so a stale debt from
     // the previous work never carries over.
-    pendingSoundRef.current = false;
+    soundCustody.clearIou();
     // knownAudio is derived from the same slug change that resets here.
   }, [replication.slug]);
 
@@ -414,7 +389,7 @@ export function ViewerTransport({
     };
     const onLoadedMetadata = () => {
       syncLoop();
-      video.volume = volumeRef.current;
+      soundCustody.setVolume(video);
       settleAudioPresence(video);
     };
     const onTimeUpdate = () => settleAudioPresence(video);
@@ -464,11 +439,10 @@ export function ViewerTransport({
   useEffect(() => {
     if (!video || !moving) return;
     if (!autoplayAllowed) {
-      if (!video.paused) video.pause();
+      soundCustody.pause(video);
       return;
     }
-    video.muted = mutedRef.current;
-    video.volume = volumeRef.current;
+    soundCustody.applyPreference(video, mutedRef.current);
     attemptPlay(video);
   }, [attemptPlay, autoplayAllowed, moving, replication.slug, video]);
 
@@ -504,15 +478,7 @@ export function ViewerTransport({
 
   useEffect(() => {
     if (!video) return;
-    video.volume = volume;
-    if (muted) {
-      video.muted = true;
-      pendingSoundRef.current = false;
-    } else if (!pendingSoundRef.current) {
-      // Never force an unmute while an IOU is outstanding: outside a gesture
-      // WebKit answers it by pausing the video instead.
-      video.muted = false;
-    }
+    soundCustody.applyPreference(video, muted);
   }, [muted, video, volume]);
 
   const togglePlayback = useCallback(() => {
@@ -522,7 +488,7 @@ export function ViewerTransport({
       repaySoundIou(video);
       attemptPlay(video);
     } else {
-      video.pause();
+      soundCustody.pause(video);
     }
   }, [attemptPlay, repaySoundIou, showControls, video]);
 
@@ -535,13 +501,13 @@ export function ViewerTransport({
   const toggleMuted = useCallback(() => {
     const next = !mutedRef.current;
     if (video) {
-      video.muted = next;
-      video.volume = volumeRef.current;
+      soundCustody.setMuted(video, next);
       if (!next && autoplayAllowed) {
         attemptPlay(video);
       }
+    } else {
+      soundCustody.clearIou();
     }
-    pendingSoundRef.current = false;
     showControls();
     onMutedChange(next);
   }, [attemptPlay, autoplayAllowed, onMutedChange, showControls, video]);
@@ -654,7 +620,7 @@ export function ViewerTransport({
         ladderContext(),
       );
       if (verdict.kind === "switch") applyVerdict(verdict);
-      else video.currentTime = target;
+      else seekPooledElement(video, target);
       paintPlayhead(ratio);
     },
     [
@@ -764,7 +730,7 @@ export function ViewerTransport({
     setError(false);
     setBuffering(false);
     if (!video) return;
-    video.load();
+    reloadPooledElement(video);
     if (autoplayAllowed) attemptPlay(video);
   }, [attemptPlay, autoplayAllowed, video]);
 
@@ -903,7 +869,7 @@ export function ViewerTransport({
               ladderContext(),
             );
             if (verdict.kind === "switch") applyVerdict(verdict);
-            else video.currentTime = next;
+            else seekPooledElement(video, next);
             paintPlayhead(next / duration);
             showControls();
           }}
@@ -1184,13 +1150,15 @@ export function ViewerTransport({
                     const nextVolume = Number(event.currentTarget.value);
                     const nextMuted = nextVolume === 0;
                     if (video) {
-                      video.muted = nextMuted;
-                      if (!nextMuted) {
-                        video.volume = nextVolume;
-                        if (autoplayAllowed) attemptPlay(video);
-                      }
+                      soundCustody.setMuted(
+                        video,
+                        nextMuted,
+                        nextMuted ? null : nextVolume,
+                      );
+                      if (!nextMuted && autoplayAllowed) attemptPlay(video);
+                    } else {
+                      soundCustody.clearIou();
                     }
-                    pendingSoundRef.current = false;
                     if (!nextMuted) onVolumeChange(nextVolume);
                     if (nextMuted !== muted) onMutedChange(nextMuted);
                   }}

@@ -44,6 +44,7 @@ import {
   type ReplicationViewerCollection,
   type ReplicationViewerPosition,
 } from "./viewerModel";
+import { type SlideQuality } from "./qualityLadder";
 import {
   GESTURE_HINT_STORAGE_KEY,
   VIEWER_ROTATE_STORAGE_KEY,
@@ -51,8 +52,7 @@ import {
   resolveViewerMuted,
   resolveViewerRotateMode,
   shouldShowGestureHint,
-  type SlideQuality,
-} from "./viewerLogic";
+} from "./viewerPreferences";
 import {
   createViewerSession,
   type EntryMotion,

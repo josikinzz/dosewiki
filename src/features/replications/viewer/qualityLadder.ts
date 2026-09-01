@@ -1,9 +1,69 @@
+import type { ReplicationType } from "@/types/replications";
 import type { ReplicationViewerMedia } from "./viewerModel";
-import {
-  shouldLoopReplicationMotion,
-  slideMotionSource,
-  type SlideQuality,
-} from "./viewerLogic";
+
+/** The rendition the pooled player should feed a slide. */
+export type SlideQuality = "preview" | "full";
+
+/**
+ * The frame a slide shows beneath its video while frames are still arriving:
+ * GIFs lead with their motion poster, videos with their thumbnail, stills
+ * with the artwork itself. The underlay sits below the media element, so a
+ * painted frame simply covers it.
+ */
+export function slidePosterSource(replication: {
+  type: ReplicationType;
+  format: string;
+  url: string;
+  thumbnail_url?: string | null;
+  motion_poster_url?: string | null;
+}): string | null {
+  if (replication.format.toLowerCase() === "gif")
+    return replication.motion_poster_url ?? null;
+  if (replication.type === "video") return replication.thumbnail_url ?? null;
+  return replication.url;
+}
+
+/**
+ * The motion file a slide's pooled element plays. GIFs play their
+ * controllable rendition only once both motion assets exist; videos play
+ * their preview rendition so swipes land on an already-buffered small file —
+ * the catalogued full file is reserved for the explicit HQ escape (and for
+ * rows whose preview was never generated); stills play nothing.
+ */
+export function slideMotionSource(
+  replication: {
+    type: ReplicationType;
+    format: string;
+    url: string;
+    preview_url?: string | null;
+    motion_url?: string | null;
+    motion_poster_url?: string | null;
+  },
+  quality: SlideQuality = "preview",
+): string | null {
+  if (replication.format.toLowerCase() === "gif") {
+    return replication.motion_url && replication.motion_poster_url
+      ? replication.motion_url
+      : null;
+  }
+  if (replication.type !== "video") return null;
+  if (quality === "full") return replication.url;
+  return replication.preview_url ?? replication.url;
+}
+
+/** Loop GIF-like motion and ordinary videos whose known duration is under one minute. */
+export function shouldLoopReplicationMotion(
+  format: string,
+  duration: number | null | undefined,
+): boolean {
+  return (
+    format.toLowerCase() === "gif" ||
+    (Number.isFinite(duration) &&
+      duration !== undefined &&
+      duration !== null &&
+      duration < 60)
+  );
+}
 
 /** A preview at least this much shorter than the catalogue is truncated. */
 export const PREVIEW_TRUNCATION_TOLERANCE_S = 1;

@@ -4,6 +4,9 @@ import {
   decide,
   previewTruncated,
   resumeAfterSwap,
+  shouldLoopReplicationMotion,
+  slideMotionSource,
+  slidePosterSource,
   type LadderContext,
 } from "./qualityLadder";
 
@@ -147,5 +150,44 @@ describe("resumeAfterSwap", () => {
     [true, true, true],
   ])("maps paused=%s ended=%s to %s", (paused, ended, expected) => {
     expect(resumeAfterSwap(paused, ended)).toBe(expected);
+  });
+});
+
+describe("shouldLoopReplicationMotion", () => {
+  it("loops GIF-like motion regardless of recorded duration", () => {
+    expect(shouldLoopReplicationMotion("gif", 120)).toBe(true);
+    expect(shouldLoopReplicationMotion("GIF", undefined)).toBe(true);
+  });
+  it("loops ordinary motion only below sixty seconds", () => {
+    expect(shouldLoopReplicationMotion("mp4", 59.999)).toBe(true);
+    expect(shouldLoopReplicationMotion("mp4", 60)).toBe(false);
+    expect(shouldLoopReplicationMotion("mp4", 600)).toBe(false);
+    expect(shouldLoopReplicationMotion("mp4", undefined)).toBe(false);
+  });
+});
+
+describe("slidePosterSource", () => {
+  it("mirrors each slide's first paint", () => {
+    expect(slidePosterSource({ type: "image", format: "gif", url: "full.gif", motion_poster_url: "poster.webp" })).toBe("poster.webp");
+    expect(slidePosterSource({ type: "video", format: "mp4", url: "clip.mp4", thumbnail_url: "thumb.jpg" })).toBe("thumb.jpg");
+    expect(slidePosterSource({ type: "video", format: "mp4", url: "clip.mp4" })).toBeNull();
+    expect(slidePosterSource({ type: "image", format: "jpg", url: "art.jpg" })).toBe("art.jpg");
+  });
+});
+
+describe("slideMotionSource", () => {
+  it("feeds the preview rendition to the feed and reserves the full file", () => {
+    const clip = { type: "video" as const, format: "mp4", url: "clip.mp4", preview_url: "preview.mp4" };
+    expect(slideMotionSource(clip)).toBe("preview.mp4");
+    expect(slideMotionSource(clip, "preview")).toBe("preview.mp4");
+    expect(slideMotionSource(clip, "full")).toBe("clip.mp4");
+  });
+  it("falls back to the catalogued file when no preview was generated", () => {
+    expect(slideMotionSource({ type: "video", format: "mp4", url: "clip.mp4" })).toBe("clip.mp4");
+  });
+  it("plays a GIF's controllable rendition only once both assets exist", () => {
+    expect(slideMotionSource({ type: "image", format: "gif", url: "full.gif", motion_url: "motion.mp4", motion_poster_url: "poster.webp" })).toBe("motion.mp4");
+    expect(slideMotionSource({ type: "image", format: "gif", url: "full.gif", motion_url: "motion.mp4" })).toBeNull();
+    expect(slideMotionSource({ type: "image", format: "jpg", url: "art.jpg" })).toBeNull();
   });
 });

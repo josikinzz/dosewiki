@@ -1,7 +1,31 @@
 import { act, renderHook } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { stageRotation, useStageFit } from "./useStageFit";
+import {
+  FALLBACK_IMAGE_RATIO,
+  FALLBACK_VIDEO_RATIO,
+  resolveMediaAspect,
+  stageRotation,
+  useStageFit,
+} from "./useStageFit";
+
+describe("resolveMediaAspect", () => {
+  it("prefers a probed ratio over catalogued dimensions", () => {
+    expect(resolveMediaAspect("video", 1600, 900, 4 / 3)).toBeCloseTo(4 / 3, 10);
+  });
+  it("falls back to catalogued dimensions when nothing was probed", () => {
+    expect(resolveMediaAspect("image", 1200, 1600, undefined)).toBeCloseTo(3 / 4, 10);
+  });
+  it("guesses by type when the row carries no dimensions", () => {
+    expect(resolveMediaAspect("video", undefined, undefined, undefined)).toBe(FALLBACK_VIDEO_RATIO);
+    expect(resolveMediaAspect("image", null, null, undefined)).toBe(FALLBACK_IMAGE_RATIO);
+  });
+  it("ignores junk probes and junk dimensions", () => {
+    expect(resolveMediaAspect("image", 1600, 900, Number.NaN)).toBeCloseTo(16 / 9, 10);
+    expect(resolveMediaAspect("image", 1600, 900, 0)).toBeCloseTo(16 / 9, 10);
+    expect(resolveMediaAspect("video", 0, 900, undefined)).toBe(FALLBACK_VIDEO_RATIO);
+  });
+});
 
 describe("stageRotation", () => {
   it("offers the rotate-mode toggle on every portrait-phone layout", () => {

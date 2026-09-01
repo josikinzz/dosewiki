@@ -13,14 +13,23 @@ import {
 } from "react";
 
 import { AppImage } from "@/components/common/AppImage";
-import { releaseVideoElement } from "@/lib/releaseVideoElement";
 import { cn } from "@/lib/utils";
+import {
+  adoptPooledElement,
+  assignPooledSource,
+  blessPooledElement,
+  clearPooledSource,
+  demotePooledElement,
+  detachPooledElement,
+  silencePooledElement,
+  warmPooledElement,
+} from "./mediaCustody";
 import { ReplicationStillStage } from "./ReplicationStillStage";
 import {
   slideMotionSource,
   slidePosterSource,
   type SlideQuality,
-} from "./viewerLogic";
+} from "./qualityLadder";
 import type { ReplicationViewerMediaItem } from "./viewerModel";
 
 /** Distance that commits a work change on release. */
@@ -154,14 +163,13 @@ function ViewerSlide({
       if (!node) {
         const previous = videoRef.current;
         videoRef.current = null;
-        if (previous) releaseVideoElement(previous);
+        if (previous) detachPooledElement(previous);
         registerVideo(null);
         return;
       }
       videoRef.current = node;
       // Neighbors are always muted; the transport governs the active element.
-      node.defaultMuted = true;
-      node.muted = true;
+      adoptPooledElement(node);
       registerVideo(node);
     },
     [registerVideo],
@@ -206,11 +214,7 @@ function ViewerSlide({
       : null;
     if (!source || !replication) {
       delete element.dataset.slug;
-      if (element.getAttribute("src")) {
-        element.removeAttribute("src");
-        element.removeAttribute("poster");
-        element.load();
-      }
+      if (element.getAttribute("src")) clearPooledSource(element);
       return;
     }
     const sameWork = element.dataset.slug === replication.slug;
@@ -218,14 +222,11 @@ function ViewerSlide({
     const keepTime = sameWork ? element.currentTime : 0;
     const wasPlaying = sameWork && !element.paused && !element.ended;
     element.dataset.slug = replication.slug;
-    if (gifLike && poster) element.setAttribute("poster", poster);
-    else element.removeAttribute("poster");
-    element.src = source;
-    if (keepTime > 0) element.currentTime = keepTime;
-    if (wasPlaying) {
-      const resumed = element.play();
-      if (resumed) void resumed.catch(() => undefined);
-    }
+    assignPooledSource(element, source, {
+      time: keepTime,
+      resume: wasPlaying,
+      poster: gifLike ? poster : null,
+    });
   }, [replication, active, quality, gifLike, poster]);
 
   // A pane that stops being active immediately falls silent and still; the
@@ -233,9 +234,7 @@ function ViewerSlide({
   useEffect(() => {
     const element = videoRef.current;
     if (!element || active) return;
-    element.muted = true;
-    element.defaultMuted = true;
-    if (!element.paused) element.pause();
+    silencePooledElement(element);
   }, [active, item]);
 
   // Rows imported before dimensions were catalogued still need a real
@@ -434,8 +433,7 @@ export const ViewerMediaTrack = forwardRef<
   const pauseAllExcept = useCallback((keptSlot: number) => {
     slotVideosRef.current.forEach((element, slot) => {
       if (!element || slot === keptSlot) return;
-      element.muted = true;
-      if (!element.paused) element.pause();
+      demotePooledElement(element);
     });
   }, []);
 
@@ -451,9 +449,7 @@ export const ViewerMediaTrack = forwardRef<
       const element = slotVideosRef.current[slot];
       if (!element || slot === activeSlot) continue;
       if (!element.getAttribute("src") || !element.paused) continue;
-      element.muted = true;
-      const attempt = element.play();
-      if (attempt) void attempt.catch(() => undefined);
+      warmPooledElement(element);
     }
   }, [autoplayAllowed]);
 
@@ -464,14 +460,10 @@ export const ViewerMediaTrack = forwardRef<
     slotVideosRef.current.forEach((element, slot) => {
       if (!element || slot === activeSlot) return;
       if (!element.getAttribute("src")) return;
-      element.muted = true;
-      const attempt = element.play();
-      if (!attempt) return;
-      void attempt
-        .then(() => {
-          if (slot !== slotByPaneRef.current[1]) element.pause();
-        })
-        .catch(() => undefined);
+      blessPooledElement(
+        element,
+        () => slot === slotByPaneRef.current[1],
+      );
     });
   }, []);
 
