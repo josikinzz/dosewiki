@@ -58,16 +58,9 @@ export function indexProfiles(rows) {
   return byKey;
 }
 
-export function validatePinnedProfileSnapshot(document) {
-  const rows = document?.profiles;
-  if (!Array.isArray(rows) || rows.length !== PINNED_PROFILE_COUNT) throw new Error("--profiles must contain exactly 2,119 immutable contributor rows.");
-  const ids = new Set(); const keys = new Set();
+export function canonicalProfileSnapshotDigest(rows) {
   const canonicalRows = rows.map((row) => {
-    if (!row.profileId || ids.has(row.profileId)) throw new Error("Every pinned profile row requires a unique immutable profileId.");
-    ids.add(row.profileId);
     const key = profileKey(row.key);
-    if (!key || keys.has(key)) throw new Error("Every pinned profile row requires a unique canonical key.");
-    keys.add(key);
     const aliases = [...new Set((row.aliases ?? []).map(normalizedAlias).filter(Boolean))].sort();
     return {
       key, displayName: String(row.displayName ?? "").trim(), aliases,
@@ -76,7 +69,21 @@ export function validatePinnedProfileSnapshot(document) {
       reportOrder: row.reportOrder ?? [], role: row.role ?? null,
     };
   }).sort((a, b) => a.key.localeCompare(b.key));
-  const computed = digest(canonicalRows);
+  return digest(canonicalRows);
+}
+
+export function validatePinnedProfileSnapshot(document) {
+  const rows = document?.profiles;
+  if (!Array.isArray(rows) || rows.length !== PINNED_PROFILE_COUNT) throw new Error("--profiles must contain exactly 2,119 immutable contributor rows.");
+  const ids = new Set(); const keys = new Set();
+  for (const row of rows) {
+    if (!row.profileId || ids.has(row.profileId)) throw new Error("Every pinned profile row requires a unique immutable profileId.");
+    ids.add(row.profileId);
+    const key = profileKey(row.key);
+    if (!key || keys.has(key)) throw new Error("Every pinned profile row requires a unique canonical key.");
+    keys.add(key);
+  }
+  const computed = canonicalProfileSnapshotDigest(rows);
   if (computed !== PINNED_PROFILE_SNAPSHOT_DIGEST) throw new Error(`Pinned 2,119-profile canonical digest mismatch: ${computed}.`);
   return rows;
 }

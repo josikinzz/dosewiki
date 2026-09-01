@@ -1,8 +1,8 @@
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import type { Id } from "../../convex/_generated/dataModel";
-import type { MutationCtx } from "../../convex/_generated/server";
+import type { MutationCtx, QueryCtx } from "../../convex/_generated/server";
 import {
-  applyIdentitySocialBatchHandler, applyProfileBindingBatchHandler, assertCreatedProfileHasNoRollbackReferences, canonicalBeforeForEntry, canonicalDigest,
+  applyIdentitySocialBatchHandler, applyProfileBindingBatchHandler, assertCreatedProfileHasNoRollbackReferences, canonicalBeforeForEntry, canonicalDigest, exportPinnedProfileSnapshotPageHandler,
   materializeIdentityTokenSnapshotHandler, rollbackIdentitySocialOperationHandler, validateIdentitySocialBatch,
 } from "../../convex/replicationIdentitySocial";
 import type { IdentitySocialBatchEntry, ProfileBindingEntry } from "../../convex/lib/replicationIdentitySocialValidators";
@@ -207,6 +207,22 @@ describe("replication identity/social Convex contract", () => {
     const { ctx, tables } = context();
     tables.replicationSocialAssets.push({ _id: "social-profile", _creationTime: 2, entity_kind: "contributors", entity_key: "EXAMPLEPOSTER" });
     await expect(assertCreatedProfileHasNoRollbackReferences(ctx, PID, "EXAMPLEPOSTER")).rejects.toThrow("unrelated references");
+  });
+
+  it("exports at most 100 profiles without scanning or materializing the full table", async () => {
+    const rows = Array.from({ length: 100 }, (_, index) => ({ _id: `profile-${index}`, _creationTime: index, key: `KEY${index}`, displayName: `Person ${index}`, aliases: [], bio: "", links: [], createdAt: "now", updatedAt: "now" }));
+    let paginateCalls = 0;
+    const ctx = {
+      storage: { getUrl: async () => null },
+      db: { query: () => ({
+        take: async () => { throw new Error("full-table take must not be called"); },
+        paginate: async ({ numItems }: { numItems: number }) => { paginateCalls += 1; expect(numItems).toBe(100); return { page: rows, isDone: false, continueCursor: "next" }; },
+      }) },
+    } as unknown as QueryCtx;
+    const page = await exportPinnedProfileSnapshotPageHandler(ctx, { limit: 500 });
+    expect(page.profiles).toHaveLength(100);
+    expect(page.cursor).toBe("next");
+    expect(paginateCalls).toBe(1);
   });
 
   it("journals unchanged poster preservation and replays after target verification", async () => {

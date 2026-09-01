@@ -727,29 +727,21 @@ const exportedProfileValidator = v.object({
   avatarUrl: v.union(v.string(), v.null()), bio: v.string(), links: v.array(v.object({ label: v.string(), url: v.string() })),
   hasCustomBio: v.boolean(), replicationOrder: v.array(v.string()), reportOrder: v.array(v.string()), role: v.union(v.string(), v.null()),
 });
+export async function exportPinnedProfileSnapshotPageHandler(ctx: QueryCtx, args: { cursor?: string; limit: number }) {
+  const limit = Math.min(Math.max(Math.floor(args.limit), 1), 100);
+  const page = await ctx.db.query("contributorProfiles").paginate({ cursor: args.cursor ?? null, numItems: limit });
+  const profiles = await Promise.all(page.page.map(async (stored) => {
+    const profile = await materializeProfile(ctx, stored);
+    return { profileId: stored._id, key: profile.key, displayName: profile.displayName, aliases: profile.aliases, avatarUrl: profile.avatarUrl ?? null, bio: profile.bio, links: profile.links, hasCustomBio: profile.hasCustomBio, replicationOrder: profile.replicationOrder ?? [], reportOrder: profile.reportOrder ?? [], role: profile.role ?? null };
+  }));
+  return { profiles, cursor: page.isDone ? null : page.continueCursor, isDone: page.isDone, profile_count: PINNED_IDENTITY_PROFILE_COUNT, canonical_profile_set_sha256: PINNED_IDENTITY_SNAPSHOT_DIGEST };
+}
 export const exportPinnedProfileSnapshotPageAuthenticated = query({
   args: { ...authenticatedReadArgs, cursor: v.optional(v.string()), limit: v.number() },
   returns: v.object({ profiles: v.array(exportedProfileValidator), cursor: v.union(v.string(), v.null()), isDone: v.boolean(), profile_count: v.number(), canonical_profile_set_sha256: v.string() }),
   handler: async (ctx, args) => {
     await requireRegisteredDelegatedEditorWrite(ctx, { apiKey: args.apiKey, actorEmail: args.actor_email, adminIntent: "replicationMaintenance" });
-    const limit = Math.min(Math.max(Math.floor(args.limit), 1), 100);
-    const allStored = await ctx.db.query("contributorProfiles").take(PINNED_IDENTITY_PROFILE_COUNT + 1);
-    if (allStored.length !== PINNED_IDENTITY_PROFILE_COUNT) throw new Error("Live contributor profile count no longer matches the pinned 2,119-row snapshot.");
-    const allMaterialized = await Promise.all(allStored.map(async (profile) => ({ profile, public: await materializeProfile(ctx, profile) })));
-    const canonicalRows = allMaterialized.map(({ public: profile }) => ({
-      key: profile.key.trim().toUpperCase(), displayName: profile.displayName.trim(),
-      aliases: [...new Set(profile.aliases.map((alias) => alias.trim().toLowerCase()).filter(Boolean))].sort(),
-      avatarUrl: profile.avatarUrl ?? null, bio: profile.bio, links: profile.links,
-      hasCustomBio: profile.hasCustomBio, replicationOrder: profile.replicationOrder ?? [], reportOrder: profile.reportOrder ?? [], role: profile.role ?? null,
-    })).sort((left, right) => left.key.localeCompare(right.key));
-    const snapshotDigest = await canonicalDigest(canonicalRows);
-    if (snapshotDigest !== PINNED_IDENTITY_SNAPSHOT_DIGEST) throw new Error("Live contributor profile digest no longer matches the reviewed snapshot.");
-    const page = await ctx.db.query("contributorProfiles").paginate({ cursor: args.cursor ?? null, numItems: limit });
-    const profiles = await Promise.all(page.page.map(async (stored) => {
-      const profile = await materializeProfile(ctx, stored);
-      return { profileId: stored._id, key: profile.key, displayName: profile.displayName, aliases: profile.aliases, avatarUrl: profile.avatarUrl ?? null, bio: profile.bio, links: profile.links, hasCustomBio: profile.hasCustomBio, replicationOrder: profile.replicationOrder ?? [], reportOrder: profile.reportOrder ?? [], role: profile.role ?? null };
-    }));
-    return { profiles, cursor: page.isDone ? null : page.continueCursor, isDone: page.isDone, profile_count: allStored.length, canonical_profile_set_sha256: snapshotDigest };
+    return await exportPinnedProfileSnapshotPageHandler(ctx, args);
   },
 });
 export const getIdentityTokenMaterializationReceiptAuthenticated = query({
