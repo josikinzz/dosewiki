@@ -18,7 +18,8 @@ import type { NormalizedUserProfile } from "../../src/data/userProfiles";
 import type { SubjectiveEffectDetailRecord } from "../convex/publicData";
 import type { PublicSubstanceRecord } from "../convex/publicData.shared";
 
-const { publicData, publicLibrary, publicMolecules, reagentData } = getRouteLoaderMocks();
+const { publicData, publicLibrary, publicMolecules, reagentData, warningBanners } =
+  getRouteLoaderMocks();
 
 describe("substance, effect, publication, and report route loaders", () => {
   beforeEach(() => {
@@ -71,6 +72,51 @@ describe("substance, effect, publication, and report route loaders", () => {
     publicData.getPublicSubstanceBySlug.mockResolvedValueOnce(null);
 
     await expect(loadSubstanceRoute("missing")).resolves.toEqual({ kind: "not-found" });
+  });
+
+  it("swaps the citation-overhaul banner for the beta disclaimer once a marker was refuted", async () => {
+    const presets = [
+      {
+        key: "citation-system-overhaul-1",
+        tone: "caution",
+        enabled: true,
+        allSubstances: false,
+        enabledSlugs: ["lsd"],
+      },
+      {
+        key: "opioids",
+        tone: "danger",
+        enabled: true,
+        allSubstances: false,
+        enabledSlugs: ["lsd"],
+      },
+    ] as never[];
+    warningBanners.getWarningBannerPresets.mockResolvedValueOnce(presets as never);
+    warningBanners.getWarningBannerPresets.mockResolvedValueOnce(presets as never);
+    publicData.getPublicSubstanceBySlug.mockResolvedValueOnce({
+      slug: "lsd",
+      title: "LSD",
+      summary: "An audited claim [citation-needed]. A kept claim [cite:paper-a].",
+    } as PublicSubstanceRecord);
+
+    const audited = await loadSubstanceRoute("lsd");
+    if (audited.kind !== "ok") throw new Error("expected ok result");
+    expect(audited.pageProps.showBetaDisclaimer).toBe(true);
+    expect(audited.pageProps.warningBanners.map((preset) => preset.key)).toEqual(["opioids"]);
+
+    publicData.getPublicSubstanceBySlug.mockResolvedValueOnce({
+      slug: "lsd",
+      title: "LSD",
+      summary: "An unaudited claim [cite:paper-a].",
+    } as PublicSubstanceRecord);
+
+    const unaudited = await loadSubstanceRoute("lsd");
+    if (unaudited.kind !== "ok") throw new Error("expected ok result");
+    expect(unaudited.pageProps.showBetaDisclaimer).toBe(false);
+    expect(unaudited.pageProps.warningBanners.map((preset) => preset.key)).toEqual([
+      "opioids",
+      "citation-system-overhaul-1",
+    ]);
   });
 
   it("redirects high-volume substance aliases before fetching article data", async () => {

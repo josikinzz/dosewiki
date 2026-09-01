@@ -19,7 +19,11 @@ import { getMoleculeUpdatedAt, moleculeOverrideImageUrl } from "@server/convex/p
 import { getCachedReagentDataForArticle } from "@server/reagentData";
 import { getSafetyBannerIconSize, getWarningBannerPresets } from "./warningBanners";
 import { getCopy } from "./copyBlocks";
-import { resolveEnabledBanners } from "../../src/data/substanceWarningBanners";
+import {
+  CITATION_OVERHAUL_BANNER_KEY_PREFIX,
+  resolveEnabledBanners,
+} from "../../src/data/substanceWarningBanners";
+import { substanceHasCitationNeeded } from "../../src/lib/citations/citationTokens";
 import { getSubstanceSearchNames, reportMatchesSubstance } from "../../src/features/reports/domain/tripReportIndex";
 import {
   DOSAGE_PANEL_DISCLAIMER_KEY,
@@ -131,7 +135,23 @@ export const loadSubstanceRoute = cache(async (slug: string): Promise<SubstanceR
   // revalidates slugs *removed* from `enabledSlugs` as well as added ones:
   // otherwise switching a banner off would leave the warning cached on the
   // article it was just taken off for up to an hour.
-  const warningBanners = resolveEnabledBanners(warningBannerPresets, slug);
+  // Once the citation audit has stripped a refuted marker on this article, the
+  // stored "citation system overhaul" presets (keys `citation-system-overhaul-*`
+  // in the warningBannerPresets table) no longer describe it: the audit has run
+  // here, and the sitewide beta disclaimer takes the banner's slot instead
+  // (rendered by ArticleLayout). Filtering before resolveEnabledBanners also
+  // frees the MAX_BANNERS_PER_ARTICLE slot for real safety banners. The apply
+  // script revalidates the article path when it ships a strip, so the swap
+  // reaches readers without a redeploy.
+  const showBetaDisclaimer = substanceHasCitationNeeded(substance);
+  const warningBanners = resolveEnabledBanners(
+    showBetaDisclaimer
+      ? warningBannerPresets.filter(
+          (preset) => !preset.key.startsWith(CITATION_OVERHAUL_BANNER_KEY_PREFIX),
+        )
+      : warningBannerPresets,
+    slug,
+  );
 
   const viewModel = buildSubstanceArticleViewModel({
     slug,
@@ -150,6 +170,7 @@ export const loadSubstanceRoute = cache(async (slug: string): Promise<SubstanceR
     ),
     warningBanners,
     warningBannerIconSize,
+    showBetaDisclaimer,
     dosageDisclaimer: copy.text(DOSAGE_PANEL_DISCLAIMER_KEY),
     toleranceDisclaimer: copy.text(TOLERANCE_SECTION_DISCLAIMER_KEY),
   });

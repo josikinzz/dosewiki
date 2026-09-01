@@ -9,6 +9,7 @@ import {
   SAFETY_BANNER_ICON_SIZE_DEFAULT,
   type WarningBannerPreset,
 } from "@/data/substanceWarningBanners";
+import { BetaDisclaimer } from "@/components/common/BetaDisclaimer";
 import { HeroSection } from "./sections/HeroSection";
 import { DosageDurationSection } from "./sections/DosageDurationSection";
 import { SubjectiveEffectsSection } from "./sections/SubjectiveEffectsSection";
@@ -62,6 +63,15 @@ export interface ArticleLayoutProps {
    * loader, stay unbannered rather than guessing from classification.
    */
   warningBanners?: WarningBannerPreset[];
+  /**
+   * Swap the stored citation-overhaul banner for the sitewide red beta
+   * disclaimer. Resolved by the substance route loader
+   * (`substanceHasCitationNeeded`): true once the citation audit has stripped
+   * a refuted marker on this article, in which case the loader has already
+   * filtered the `citation-system-overhaul-*` presets out of `warningBanners`.
+   * Defaults off so the review workbench and Generator previews are untouched.
+   */
+  showBetaDisclaimer?: boolean;
   /**
    * The site-wide safety-banner glyph size (`getSafetyBannerIconSize`, backed by
    * the `safety-banner-display` siteConfig document). One editor setting shared
@@ -122,6 +132,7 @@ export function ArticleLayout({
   contributorDirectory,
   externalReagentData,
   warningBanners = [],
+  showBetaDisclaimer = false,
   warningBannerIconSize = SAFETY_BANNER_ICON_SIZE_DEFAULT,
   dosageDisclaimer,
   toleranceDisclaimer,
@@ -195,6 +206,16 @@ export function ArticleLayout({
         avatarSrc={contributorAvatars?.lyrea}
         profileHref={creditHrefs.lyrea}
       />
+
+      {/* The audited-article stand-in for the stored citation-overhaul banner:
+          the same shimmering beta disclaimer the Substance Index header shows,
+          bare rather than carded so it reads as site status, not as another
+          safety warning. Sits in the banner slot above the hero. */}
+      {showBetaDisclaimer && (
+        <div className="text-center text-sm italic text-balance">
+          <BetaDisclaimer />
+        </div>
+      )}
 
       {/* Opt-in drug-class safety banners: above the hero because a reader who
           bounces at the fold must still have seen the warning, and outside

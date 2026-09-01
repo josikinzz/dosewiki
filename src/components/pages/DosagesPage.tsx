@@ -1,9 +1,9 @@
 "use client";
 
 import { useCallback, useMemo, useRef, useState } from "react";
-import Link from "next/link";
 import { PageHeader } from "@/components/layout/PageHeader";
-import { Icon, type IconName } from "@/components/common/Icon";
+import { type IconName } from "@/components/common/Icon";
+import { BetaDisclaimer } from "@/components/common/BetaDisclaimer";
 import { PublicContentShell } from "@/components/layout/PublicPagePrimitives";
 import {
   PublicSegmentedTabs,
@@ -396,30 +396,7 @@ export function DosagesPage({
             title="Substance Index"
             icon={SUBSTANCE_INDEX_ICON}
             prominentMobileIcon
-            description={
-              <span className="inline-flex items-baseline gap-1.5">
-                <Icon
-                  icon="lucide:construction"
-                  size="1.05em"
-                  className="self-center text-[var(--theme-danger-text-vivid)]"
-                />
-                <span className="theme-beta-shimmer">
-                  dose.wiki is still in beta. Entries may contain inaccuracies. See{" "}
-                  <Link
-                    href="/docs/how"
-                    className="theme-beta-disclaimer underline decoration-dotted underline-offset-2 hover:decoration-solid"
-                  >
-                    our docs
-                  </Link>{" "}
-                  for more info.
-                </span>
-                <Icon
-                  icon="lucide:construction"
-                  size="1.05em"
-                  className="self-center text-[var(--theme-danger-text-vivid)]"
-                />
-              </span>
-            }
+            description={<BetaDisclaimer />}
             descriptionClassName="mx-auto text-sm italic text-balance"
           />
         </div>

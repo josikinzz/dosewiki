@@ -103,7 +103,7 @@ vi.mock("./copyBlocks", async (importOriginal) => {
 });
 
 export function getRouteLoaderMocks() {
-  return { publicData, publicLibrary, publicMolecules, reagentData, staticParams };
+  return { publicData, publicLibrary, publicMolecules, reagentData, staticParams, warningBanners };
 }
 
 
