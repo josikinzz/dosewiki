@@ -308,6 +308,11 @@ export function collectArtifactLineageVerification({
   const generatedExportRetention = evaluateGeneratedExportRetention(trackedGeneratedExports);
 
   for (const entry of sourceManifest.artifacts ?? []) {
+    // Published assets may intentionally live outside the repository. Their
+    // delivery URLs are lineage identifiers, not local filesystem patterns.
+    if (/^https?:\/\//i.test(entry.path)) {
+      continue;
+    }
     const matches = listArtifactLineagePathMatches(entry.path, { rootDir });
     if (matches.length === 0) {
       warnings.push(`${entry.id} output path has no current match: ${entry.path}`);

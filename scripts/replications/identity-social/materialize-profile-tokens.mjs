@@ -2,7 +2,11 @@
 import { fileURLToPath } from "node:url";
 import { ConvexHttpClient } from "convex/browser";
 import { api } from "../../../convex/_generated/api.js";
-import { requireProductionWriteCredential } from "../../lib/production-write-command.mjs";
+import {
+  assertProductionWriteAllowed,
+  createProductionWriteCommand,
+  requireProductionWriteCredential,
+} from "../../lib/production-write-command.mjs";
 import { appendLedger, digest, PINNED_PROFILE_SNAPSHOT_DIGEST } from "./executor-lib.mjs";
 import { drainPinnedProfileSnapshot } from "./export-profile-snapshot.mjs";
 
@@ -24,6 +28,8 @@ export function deriveIdentityTokenPayload(profiles) {
 export async function materializeProfileTokens(argv = process.argv.slice(2), adapters = {}) {
   const actor = flag(argv, "--actor-email"); const ledger = flag(argv, "--ledger"); const requestedMode = flag(argv, "--mode") ?? "dry-run";
   if (!actor || !ledger || !["dry-run", "seed", "rollback"].includes(requestedMode)) throw new Error("--actor-email, --ledger, and --mode=dry-run|seed|rollback are required.");
+  const command = adapters.command ?? createProductionWriteCommand({ operation: "materialize-identity-profile-tokens", argv });
+  if (requestedMode !== "dry-run") assertProductionWriteAllowed(command);
   const apiKey = adapters.apiKey ?? requireProductionWriteCredential("replicationMaintenance").token;
   const client = adapters.client ?? new ConvexHttpClient(TARGET_URL);
   const query = adapters.query ?? ((ref, args) => client.query(ref, args));

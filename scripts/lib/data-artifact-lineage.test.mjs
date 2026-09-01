@@ -74,6 +74,32 @@ describe("data artifact lineage", () => {
     expect(report.generatedExports.unclassified).toEqual([]);
   });
 
+  it("does not treat published remote asset URLs as missing local outputs", () => {
+    const report = collectArtifactLineageVerification({
+      rootDir: repoRoot,
+      manifest: {
+        artifacts: [
+          {
+            id: "remote-social-card-images",
+            path: "https://media.example.test/sha256/**/*.jpg",
+            role: "published-static-assets",
+            producer: "scripts/build/publishSocialCardsToR2.mjs",
+            consumers: ["Open Graph metadata"],
+            inputs: ["generated manifest"],
+            freshnessRule: "Published by the explicit refresh workflow.",
+            editPolicy: "do-not-edit-by-hand",
+            refreshCommand: "npm run refresh:social-cards",
+          },
+        ],
+      },
+      docsPaths: [],
+      trackedGeneratedExports: [],
+    });
+
+    expect(report.errors).toEqual([]);
+    expect(report.warnings).toEqual([]);
+  });
+
   it("flags tracked generated exports that are outside retention policy", () => {
     const report = collectArtifactLineageVerification({
       rootDir: repoRoot,

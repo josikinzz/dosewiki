@@ -8,6 +8,10 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { ConvexHttpClient } from "convex/browser";
 import { api } from "../../convex/_generated/api.js";
+import {
+  assertProductionWriteAllowed,
+  createProductionWriteCommand,
+} from "../lib/production-write-command.mjs";
 
 export const OPERATION = "replication-index-attribution-repair-2026-08-31";
 export const EXACT_TARGET = "https://glad-minnow-656.convex.cloud";
@@ -208,6 +212,15 @@ export async function runAttributionRollout({ argv = process.argv.slice(2), env 
   const liveDryRun = argv.includes("--live-dry-run");
   const write = argv.includes("--write");
   required(!(liveDryRun && write), "Choose either --live-dry-run or --write.");
+  if (write) {
+    const boundaryArgv = [
+      ...argv,
+      `--target-url=${value(argv, "--target-url", "")}`,
+      `--expected-deployment=${value(argv, "--expected-deployment", "")}`,
+      `--confirm-write=${value(argv, "--confirm-write", "")}`,
+    ];
+    assertProductionWriteAllowed(createProductionWriteCommand({ operation: OPERATION, argv: boundaryArgv, env, loadsEnvLocal: false }));
+  }
   const selected = phase === "canary" ? batches.slice(0, 1) : phase === "remaining" ? batches.slice(1) : [...batches].reverse();
   if (!liveDryRun && !write) {
     logger.log(JSON.stringify({ mode: "local-dry-run", phase, batches: selected.length, updates: selected.reduce((n, b) => n + b.updates.length, 0), networkCalls: 0 }));

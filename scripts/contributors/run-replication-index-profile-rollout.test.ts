@@ -1,10 +1,11 @@
-import { mkdtempSync, readFileSync, statSync } from "node:fs";
+import { existsSync, mkdtempSync, readFileSync, statSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { describe, expect, it, vi } from "vitest";
 
 import {
   createLedger,
+  DEFAULT_PLAN_PATH,
   EXPECTED_TARGET_URL,
   rollbackPayloadFor,
   runProfileRollout,
@@ -73,7 +74,10 @@ function dependencies(overrides: Partial<RolloutDependencies> = {}): RolloutDepe
   };
 }
 
-describe("Replication Index profile rollout runner", () => {
+// This suite validates the exact, SHA-pinned campaign artifact. The artifact is
+// intentionally kept in the local evidence library rather than committed with
+// production profile data, so generic CI runners skip the integration suite.
+describe.skipIf(!existsSync(DEFAULT_PLAN_PATH))("Replication Index profile rollout runner", () => {
   it("validates the exact pinned 1,979-profile, 40-batch materialization", () => {
     const plan = validateMaterialization();
     expect(plan.counts.profileOperations).toBe(1979);

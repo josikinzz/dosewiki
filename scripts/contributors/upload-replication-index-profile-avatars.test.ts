@@ -160,7 +160,16 @@ function exactExistingReadback(payload: ReturnType<typeof buildExistingProfilePa
   });
 }
 
-describe("Replication Index profile avatar uploader", () => {
+// The exact campaign plan, projection, and authenticated deployment receipt are
+// evidence-library inputs and are deliberately not copied into the application
+// repository. Run this integration suite wherever those pinned inputs exist.
+const hasPinnedAvatarInputs = [
+  DEFAULT_PLAN_PATH,
+  DEFAULT_PROJECTION_PATH,
+  DEFAULT_DEPLOYMENT_RECEIPT_PATH,
+].every(existsSync);
+
+describe.skipIf(!hasPinnedAvatarInputs)("Replication Index profile avatar uploader", () => {
   it("validates the exact four digest-bound uploads and eight-profile projection", () => {
     const inputs = realInputs();
     expect(inputs.uploads).toHaveLength(4);
