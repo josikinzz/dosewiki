@@ -40,6 +40,9 @@ export const avatarExpectedBeforeValidator = v.object({
 export const aliasExpectedBeforeValidator = v.object({
   currentState: v.string(), normalizedAliasOwners: v.union(v.number(), v.null()),
   collisionAuditProfileSnapshotCount: v.union(v.number(), v.null()),
+  fullProductionProfileSetSha256: v.string(),
+  sourceProfileCanonicalSha256: nullableString,
+  targetProfileCanonicalSha256: nullableString,
 });
 const projectionCommon = {
   operationId: v.string(), action: v.string(), expectedBeforeSha256: v.string(), after: v.any(), evidence: v.any(),

@@ -72,6 +72,7 @@ function context(registered = true) {
     replicationIdentityAttributions: [], contributorAliasEvidence: [], contributorAvatarHistory: [],
     contributorReplicatorVerifications: [], replicationSocialAssets: [],
     replicationIdentitySocialOperations: [], replicationIdentitySocialOperationItems: [], replicationIdentityProfileBindings: [],
+    contributorIdentitySnapshotMaterializations: [{ _id: "snapshot-1", _creationTime: 1, snapshot_digest: FULL_ALIAS_SNAPSHOT, profile_count: 2119, profile_ids_digest: DIGEST, token_count: 2579, operation_id: "seed", created_at: 1 }],
     contributorIdentityTokenSnapshots: [{ _id: "token-1", _creationTime: 1, snapshot_digest: OTHER, profile_count: 1, normalized_token: "oldhandle", owner_count: 0, owner_profile_ids: [], created_at: 1 }],
   };
   const docs = new Map<string, Row>([
@@ -201,6 +202,20 @@ describe("replication identity/social Convex contract", () => {
     expect(tables.contributorReplicatorVerifications).toHaveLength(0);
     expect(tables.replicationIdentityProfileBindings).toHaveLength(0);
     expect(tables.replicationIdentitySocialOperationItems[0]).toMatchObject({ kind: "profile-binding", changed: false, before: null, after: null });
+  });
+
+  it("creates a collision-free profile when the exact snapshot has no token owner", async () => {
+    const { ctx, tables } = context();
+    const expectedBefore = { fullProductionProfileSetSha256: FULL_ALIAS_SNAPSHOT, expectedProfileCount: 2119, profileKey: "NEWARTIST", existingProfile: null, currentVerificationProfileKey: null };
+    const p = await projection("profile-binding" as never, { artistId: "new-artist", profileKey: "NEWARTIST" }, expectedBefore, { profile: { profileKey: "NEWARTIST" } }, "create-profile-then-bind-verification");
+    const verification = { status: "verified", basis: "artist-sheet-review", work_count_reviewed: 1, rationale: "Reviewed exact artist sheet.", evidence: [{ kind: "editorial-review", digest: DIGEST }], source_digest: DIGEST };
+    const profile = { display_name: "New Artist", aliases: [], links: [] };
+    const core = { schemaVersion: 1, projection: p.value, artist_id: "new-artist", decision: "create", snapshot_digest: FULL_ALIAS_SNAPSHOT, snapshot_profile_count: 2119, profile_key: "NEWARTIST", existing_profile_id: null, profile, verification, base_projection_digest: DIGEST, receipt_sidecar_digest: null };
+    const entry = { kind: "profile-binding", item_operation_id: `identity-social-item:v1:${(await canonicalDigest(core)).slice(0, 24)}`, projection: p.value, artist_id: "new-artist", decision: "create", snapshot_digest: FULL_ALIAS_SNAPSHOT, snapshot_profile_count: 2119, profile_key: "NEWARTIST", profile, verification, base_projection_digest: DIGEST, receipt_sidecar_digest: null } as ProfileBindingEntry;
+    await expect(applyProfileBindingBatchHandler(ctx, { apiKey: TOKEN, actor_email: ACTOR, operation_id: "binding-create", dry_run: false, entries: [entry] })).resolves.toMatchObject({ changed: 1, unchanged: 0 });
+    expect(tables.contributorProfiles.some((row) => row.key === "NEWARTIST")).toBe(true);
+    expect(tables.replicationIdentityProfileBindings).toHaveLength(1);
+    expect(tables.contributorReplicatorVerifications).toHaveLength(1);
   });
 
   it("blocks created-profile rollback when a contributor social asset references its key", async () => {

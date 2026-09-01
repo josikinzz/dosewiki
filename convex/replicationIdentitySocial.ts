@@ -555,12 +555,12 @@ async function assertPinnedProfileBindingSnapshot(ctx: Ctx, entry: ProfileBindin
   if (!key || key !== entry.profile_key) throw new Error("Profile binding key must be canonical uppercase.");
   const token = await ctx.db.query("contributorIdentityTokenSnapshots")
     .withIndex("by_snapshot_digest_and_normalized_token", (q) => q.eq("snapshot_digest", entry.snapshot_digest).eq("normalized_token", key.toLowerCase())).unique();
-  if (!token || token.profile_count !== PINNED_IDENTITY_PROFILE_COUNT || token.owner_count !== token.owner_profile_ids.length) throw new Error("Exact identity-token snapshot row is missing or invalid for profile binding.");
+  if (token && (token.profile_count !== PINNED_IDENTITY_PROFILE_COUNT || token.owner_count !== token.owner_profile_ids.length)) throw new Error("Exact identity-token snapshot row is invalid for profile binding.");
   const live = await ctx.db.query("contributorProfiles").withIndex("by_key", (q) => q.eq("key", key)).unique();
   if (entry.decision === "create") {
-    if (!entry.profile || entry.existing_profile_id || token.owner_count !== 0 || live || entry.projection.expectedBefore.existingProfile !== null || entry.projection.expectedBefore.profileKey !== key) throw new Error("Profile create collision detected against the pinned snapshot or live key index.");
+    if (!entry.profile || entry.existing_profile_id || (token?.owner_count ?? 0) !== 0 || live || entry.projection.expectedBefore.existingProfile !== null || entry.projection.expectedBefore.profileKey !== key) throw new Error("Profile create collision detected against the pinned snapshot or live key index.");
   } else {
-    if (entry.profile || !entry.existing_profile_id || !live || live._id !== entry.existing_profile_id || token.owner_count !== 1 || token.owner_profile_ids[0] !== entry.existing_profile_id) throw new Error("Existing-profile binding does not exactly match the pinned snapshot and live profile.");
+    if (entry.profile || !entry.existing_profile_id || !live || live._id !== entry.existing_profile_id || !token || token.owner_count !== 1 || token.owner_profile_ids[0] !== entry.existing_profile_id) throw new Error("Existing-profile binding does not exactly match the pinned snapshot and live profile.");
     const expected = entry.projection.expectedBefore.existingProfile;
     if (!expected || !equal(expected, { profileId: String(live._id), profileKey: live.key, displayName: live.displayName })) throw new Error("Existing-profile binding expected-before row has drifted.");
     const verification = await ctx.db.query("contributorReplicatorVerifications").withIndex("by_profile_id", (q) => q.eq("profile_id", live._id)).unique();
