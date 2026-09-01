@@ -1,4 +1,5 @@
 import { v } from "convex/values";
+import type { Id } from "../_generated/dataModel";
 import {
   deriveProfileKeyFromEmail,
   expandLegacyContributorHandles,
@@ -126,6 +127,10 @@ export type StoredProfile = {
   createdAt: string;
   updatedAt: string;
   updatedBy?: string;
+  mergedIntoProfileId?: Id<"contributorProfiles">;
+  mergedIntoKey?: string;
+  mergedByOperationId?: string;
+  mergedAt?: number;
 };
 
 export type PublicProfile = {

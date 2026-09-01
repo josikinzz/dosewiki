@@ -3,7 +3,7 @@ import type { Id } from "../../convex/_generated/dataModel";
 import type { MutationCtx, QueryCtx } from "../../convex/_generated/server";
 import {
   applyIdentitySocialBatchHandler, applyProfileBindingBatchHandler, assertCreatedProfileHasNoRollbackReferences, canonicalBeforeForEntry, canonicalDigest, exportPinnedProfileSnapshotPageHandler,
-  materializeIdentityTokenSnapshotHandler, rollbackIdentitySocialOperationHandler, rollbackProfileBindingOperationHandler, validateIdentitySocialBatch,
+  materializeIdentityTokenSnapshotHandler, reconcileAppliedProfileBindingBatchHandler, rollbackIdentitySocialOperationHandler, rollbackProfileBindingOperationHandler, validateIdentitySocialBatch,
 } from "../../convex/replicationIdentitySocial";
 import type { IdentitySocialBatchEntry, ProfileBindingEntry } from "../../convex/lib/replicationIdentitySocialValidators";
 
@@ -219,6 +219,49 @@ describe("replication identity/social Convex contract", () => {
     expect(tables.contributorProfiles.some((row) => row.key === "NEWARTIST")).toBe(true);
     expect(tables.replicationIdentityProfileBindings).toHaveLength(1);
     expect(tables.contributorReplicatorVerifications).toHaveLength(1);
+  });
+
+  it("reconciles an exact legacy profile-binding item into its canonical batch without rewriting state", async () => {
+    const { ctx, tables, writes } = context();
+    const expectedBefore = { fullProductionProfileSetSha256: FULL_ALIAS_SNAPSHOT, expectedProfileCount: 2119, existingProfile: { profileId: PID, profileKey: "EXAMPLEPOSTER", displayName: "ExamplePoster" }, currentVerificationProfileKey: null };
+    const p = await projection("profile-binding" as never, { artistId: "example-poster", profileKey: "EXAMPLEPOSTER" }, expectedBefore, { profileId: PID, profileKey: "EXAMPLEPOSTER" }, "bind-existing-profile-then-apply-verification");
+    const verification = { status: "verified" as const, basis: "artist-sheet-review" as const, work_count_reviewed: 3, rationale: "Reviewed exact artist sheet.", evidence: [{ kind: "editorial-review" as const, digest: DIGEST }], source_digest: DIGEST };
+    const core = { schemaVersion: 1, projection: p.value, artist_id: "example-poster", decision: "bind", snapshot_digest: FULL_ALIAS_SNAPSHOT, snapshot_profile_count: 2119, profile_key: "EXAMPLEPOSTER", existing_profile_id: PID, profile: null, verification, base_projection_digest: DIGEST, receipt_sidecar_digest: null };
+    const entry = { kind: "profile-binding", item_operation_id: `identity-social-item:v1:${(await canonicalDigest(core)).slice(0, 24)}`, projection: p.value, artist_id: "example-poster", decision: "bind", snapshot_digest: FULL_ALIAS_SNAPSHOT, snapshot_profile_count: 2119, profile_key: "EXAMPLEPOSTER", existing_profile_id: PID, verification, base_projection_digest: DIGEST, receipt_sidecar_digest: null } as ProfileBindingEntry;
+    await applyProfileBindingBatchHandler(ctx, { apiKey: TOKEN, actor_email: ACTOR, operation_id: "legacy-small-batch", dry_run: false, entries: [entry] });
+    const args = { apiKey: TOKEN, actor_email: ACTOR, operation_id: "canonical-full-batch", dry_run: false, entries: [entry] };
+    tables.contributorReplicatorVerifications[0].work_count_reviewed = 999;
+    await expect(reconcileAppliedProfileBindingBatchHandler(ctx, args)).rejects.toThrow("verification does not exactly match");
+    expect(tables.replicationIdentitySocialOperations.some((row) => row.operation_id === "canonical-full-batch")).toBe(false);
+    tables.contributorReplicatorVerifications[0].work_count_reviewed = 3;
+    const writesBeforeDryRun = writes.length;
+    await expect(reconcileAppliedProfileBindingBatchHandler(ctx, { ...args, dry_run: true })).resolves.toMatchObject({ changed: 0, unchanged: 1, dry_run: true });
+    expect(writes).toHaveLength(writesBeforeDryRun);
+    const writesBeforeReconcile = writes.length;
+    await expect(reconcileAppliedProfileBindingBatchHandler(ctx, args)).resolves.toMatchObject({ changed: 0, unchanged: 1, idempotent_replay: false });
+    expect(writes.slice(writesBeforeReconcile)).toEqual(["insert:replicationIdentitySocialOperationItems", "insert:replicationIdentitySocialOperations"]);
+    expect(tables.replicationIdentitySocialOperationItems[tables.replicationIdentitySocialOperationItems.length - 1]).toMatchObject({ batch_operation_id: "canonical-full-batch", changed: false, satisfied_item_operation_ids: [entry.item_operation_id] });
+    await expect(reconcileAppliedProfileBindingBatchHandler(ctx, args)).resolves.toMatchObject({ changed: 0, unchanged: 1, idempotent_replay: true });
+
+    await expect(rollbackProfileBindingOperationHandler(ctx, { apiKey: TOKEN, actor_email: ACTOR, operation_id: "rollback-canonical-full", rollback_of: "canonical-full-batch", dry_run: false })).resolves.toMatchObject({ changed: 0, unchanged: 1 });
+    expect(tables.replicationIdentityProfileBindings).toHaveLength(1);
+    expect(tables.contributorReplicatorVerifications).toHaveLength(1);
+    expect(tables.replicationIdentitySocialOperationItems[tables.replicationIdentitySocialOperationItems.length - 1]).toMatchObject({ batch_operation_id: "rollback-canonical-full", changed: false });
+    await expect(reconcileAppliedProfileBindingBatchHandler(ctx, args)).rejects.toThrow("already rolled back");
+  });
+
+  it("fails closed when legacy profile-binding proof is missing, rolled back, or drifted", async () => {
+    const { ctx, tables } = context();
+    const expectedBefore = { fullProductionProfileSetSha256: FULL_ALIAS_SNAPSHOT, expectedProfileCount: 2119, currentVerificationProfileKey: null };
+    const p = await projection("profile-binding" as never, { artistId: "unresolved-artist", profileKey: null }, expectedBefore, { profileKey: null }, "preserve-unresolved-profile-binding-no-write");
+    const core = { schemaVersion: 1, projection: p.value, artist_id: "unresolved-artist", decision: "unresolved", snapshot_digest: FULL_ALIAS_SNAPSHOT, snapshot_profile_count: 2119, profile_key: null, existing_profile_id: null, profile: null, verification: null, base_projection_digest: DIGEST, receipt_sidecar_digest: null };
+    const entry = { kind: "profile-binding", item_operation_id: `identity-social-item:v1:${(await canonicalDigest(core)).slice(0, 24)}`, projection: p.value, artist_id: "unresolved-artist", decision: "unresolved", snapshot_digest: FULL_ALIAS_SNAPSHOT, snapshot_profile_count: 2119, base_projection_digest: DIGEST, receipt_sidecar_digest: null } as ProfileBindingEntry;
+    const args = { apiKey: TOKEN, actor_email: ACTOR, operation_id: "canonical-unresolved", dry_run: false, entries: [entry] };
+    await expect(reconcileAppliedProfileBindingBatchHandler(ctx, args)).rejects.toThrow("not proven by an exact source journal");
+    await applyProfileBindingBatchHandler(ctx, { ...args, operation_id: "legacy-unresolved" });
+    await rollbackProfileBindingOperationHandler(ctx, { apiKey: TOKEN, actor_email: ACTOR, operation_id: "rollback-legacy-unresolved", rollback_of: "legacy-unresolved", dry_run: false });
+    await expect(reconcileAppliedProfileBindingBatchHandler(ctx, args)).rejects.toThrow("source operation was rolled back");
+    expect(tables.replicationIdentitySocialOperations.some((row) => row.operation_id === "canonical-unresolved")).toBe(false);
   });
 
   it("atomically binds two reviewed handles to one profile, aggregates verification without double-counting, and rolls back once", async () => {

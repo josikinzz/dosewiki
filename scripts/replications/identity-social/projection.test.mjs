@@ -1,14 +1,28 @@
 import assert from "node:assert/strict";
-import { mkdtempSync, readFileSync } from "node:fs";
+import { existsSync, mkdtempSync, readFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import test from "node:test";
 import { run } from "./build-projection.mjs";
-import { buildProjection, digest, validateProjection } from "./projection.mjs";
+import { buildProjection, DEFAULT_CAMPAIGN_DIR, digest, validateProjection } from "./projection.mjs";
 
-test("builds a deterministic, complete, dry-run-only projection", () => {
-  const first = buildProjection();
-  const second = buildProjection();
+const campaignDir = process.env.IDENTITY_SOCIAL_TEST_CAMPAIGN_DIR ?? DEFAULT_CAMPAIGN_DIR;
+const campaignSentinel = path.join(campaignDir, "review-results/obvious-repost-research/research-merged.json");
+const buildCampaignProjection = () => buildProjection({ campaignDir });
+const campaignTest = (name, fn) =>
+  test(name, { skip: existsSync(campaignSentinel) ? false : `requires local campaign artifacts at ${campaignDir}` }, fn);
+
+test("fails closed when campaign artifacts are unavailable", () => {
+  const campaignDir = mkdtempSync(path.join(tmpdir(), "identity-social-empty-campaign-"));
+  assert.throws(
+    () => buildProjection({ campaignDir }),
+    /Missing campaign artifact:/,
+  );
+});
+
+campaignTest("builds a deterministic, complete, dry-run-only projection", () => {
+  const first = buildCampaignProjection();
+  const second = buildCampaignProjection();
   assert.equal(JSON.stringify(first), JSON.stringify(second));
   assert.equal(first.counts.creatorAttributionDecisions, 215);
   assert.equal(first.counts.creatorChanges, 6);
@@ -35,8 +49,8 @@ test("builds a deterministic, complete, dry-run-only projection", () => {
   validateProjection(first);
 });
 
-test("retains only chronology-proven creator changes and journals blocked candidates as no-write", () => {
-  const projection = buildProjection();
+campaignTest("retains only chronology-proven creator changes and journals blocked candidates as no-write", () => {
+  const projection = buildCampaignProjection();
   const changes = projection.operations.filter((operation) => operation.action === "set-proven-creator-with-verified-chronology");
   assert.equal(changes.length, 6);
   for (const change of changes) {
@@ -54,8 +68,8 @@ test("retains only chronology-proven creator changes and journals blocked candid
   for (const operation of blocked) assert.equal(operation.after.creatorDisplayName, operation.expectedBefore.currentArtist);
 });
 
-test("emits exact typed profile dispositions with verification dependencies and scope flags", () => {
-  const projection = buildProjection();
+campaignTest("emits exact typed profile dispositions with verification dependencies and scope flags", () => {
+  const projection = buildCampaignProjection();
   const bindings = projection.operations.filter((operation) => operation.kind === "profile-binding");
   assert.equal(bindings.length, 48);
   assert.equal(bindings.filter((operation) => operation.action === "create-profile-then-bind-verification").length, 21);
@@ -72,8 +86,8 @@ test("emits exact typed profile dispositions with verification dependencies and 
   assert.ok(scoped.some((operation) => operation.evidence.identityScopeFlags.some((flag) => flag.kind === "pseudonymous-or-handle-only")));
 });
 
-test("unresolved, false-alarm, and confirmed-current decisions never change creator", () => {
-  const projection = buildProjection();
+campaignTest("unresolved, false-alarm, and confirmed-current decisions never change creator", () => {
+  const projection = buildCampaignProjection();
   const preservations = projection.operations.filter((operation) => operation.action === "preserve-poster-as-creator-no-write");
   assert.equal(preservations.length, 195);
   assert.deepEqual(new Set(preservations.map((operation) => operation.after.resolution)), new Set(["unresolved", "false-alarm", "confirmed-current-creator"]));
@@ -82,8 +96,8 @@ test("unresolved, false-alarm, and confirmed-current decisions never change crea
   }
 });
 
-test("all operation IDs and CAS hashes are content-derived and unique", () => {
-  const projection = buildProjection();
+campaignTest("all operation IDs and CAS hashes are content-derived and unique", () => {
+  const projection = buildCampaignProjection();
   assert.equal(new Set(projection.operations.map((operation) => operation.operationId)).size, projection.operations.length);
   for (const operation of projection.operations) {
     assert.equal(operation.expectedBeforeSha256, digest(operation.expectedBefore));
@@ -92,16 +106,16 @@ test("all operation IDs and CAS hashes are content-derived and unique", () => {
   }
 });
 
-test("validation rejects a rewritten immutable operation ID", () => {
-  const projection = buildProjection();
+campaignTest("validation rejects a rewritten immutable operation ID", () => {
+  const projection = buildCampaignProjection();
   projection.operations[0].operationId = "identity-social:creator-attribution:tampered";
   const { projectionSha256: _oldDigest, ...core } = projection;
   projection.projectionSha256 = digest(core);
   assert.throws(() => validateProjection(projection), /operation ID is not derived/);
 });
 
-test("uses the seven authoritative avatar approvals and excludes both rejections", () => {
-  const projection = buildProjection();
+campaignTest("uses the seven authoritative avatar approvals and excludes both rejections", () => {
+  const projection = buildCampaignProjection();
   const avatars = projection.operations.filter((operation) => operation.kind === "profile-avatar");
   assert.equal(avatars.length, 7);
   assert.equal(new Set(avatars.map((operation) => operation.target.profileKey)).size, 7);
@@ -124,8 +138,8 @@ test("uses the seven authoritative avatar approvals and excludes both rejections
   }
 });
 
-test("uses the full production audit to block merge-required aliases", () => {
-  const projection = buildProjection();
+campaignTest("uses the full production audit to block merge-required aliases", () => {
+  const projection = buildCampaignProjection();
   assert.ok(projection.sourceArtifacts.some((artifact) => artifact.relativePath.endsWith("approved-aliases-second-review.json")));
   const aliases = projection.operations.filter((operation) => operation.kind === "profile-alias");
   assert.equal(aliases.length, 5);
@@ -147,14 +161,14 @@ test("uses the full production audit to block merge-required aliases", () => {
   }
 });
 
-test("CLI check is zero-write and dry-run writes a self-validating local artifact", () => {
-  const checked = run(["--check"]);
+campaignTest("CLI check is zero-write and dry-run writes a self-validating local artifact", () => {
+  const checked = run(["--check", "--campaign-dir", campaignDir]);
   assert.equal(checked.productionWrites, 0);
   assert.equal(checked.networkCalls, 0);
 
   const dir = mkdtempSync(path.join(tmpdir(), "identity-social-projection-"));
   const output = path.join(dir, "projection.json");
-  const dryRun = run(["--dry-run", "--out", output]);
+  const dryRun = run(["--dry-run", "--campaign-dir", campaignDir, "--out", output]);
   const parsed = JSON.parse(readFileSync(output, "utf8"));
   validateProjection(parsed);
   assert.equal(dryRun.projectionSha256, parsed.projectionSha256);

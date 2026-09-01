@@ -141,3 +141,31 @@ target, operation collision, identity ambiguity, absent receipt, CAS drift,
 write error, or readback discrepancy stops the run. Dry-run output identifies
 one deterministic canary per actionable mutation class; those canaries must be
 run and verified before the remaining batches.
+
+## Read-only production completion proof
+
+After rollout, generate one content-digested completion report by querying every
+active, readback-verified operation receipt. The server query is authenticated
+and bounded to the operation journal (at most 50 items); it uses indexed target
+lookups and never scans a production table. It compares every current target,
+profile projection, and profile-binding verification with the exact stored
+post-operation value. The client independently recomputes each operation payload
+digest from the immutable projection, checks ledger readbacks, and proves logical
+coverage including shared-profile verification contributions.
+
+```sh
+TARGET_CONVEX_URL=https://glad-minnow-656.convex.cloud \
+npm run replications:identity-social:validate-production -- \
+  --actor-email=contact@dose.wiki \
+  --output='/Users/josie/Documents/Dose Wiki Media Review/Data/Replication Identity and Social Pass 2026-08-31/identity-social-production-completion-report.json'
+```
+
+This command has no mutation reference and records `mutationsInvoked: 0`. It
+fails unless the report proves 21 creates, five binds, 22 unresolved binding
+journals, six attribution changes plus 209 preservation journals, five safe
+alias decisions, seven avatars, 2,127 verification decisions (48 embedded), and
+9,172 logical social assets backed by 9,171 unique objects. A still-unresolved
+legacy canonical profile-batch item may be disclosed only by its exact reviewed
+item ID using repeatable `--allow-legacy-profile-item=<item-id>`; all other
+missing items remain actionable and fail the report. The report schema is
+`identity-social-production-completion-report.schema.json`.

@@ -129,14 +129,18 @@ export function pathPatternExists(repoRoot, packageScripts, pathPattern) {
   }
 
   const normalizedPattern = pathPattern
-    .replace(/[.+?^${}()|[\]\\]/g, '\\$&')
-    .replace(/\\\*/g, '[^/]*')
-    .replace(/\\\{[^/]+\\\}/g, '[^/]+');
+    .replace(/[.+?^$()|[\]\\]/g, '\\$&')
+    .replace(/\*/g, '[^/]*')
+    .replace(/\{[^/]+\}/g, '[^/]+');
   const regex = new RegExp(`^${normalizedPattern}$`);
 
-  return Object.values(packageScripts)
-    .flatMap(extractScriptPaths)
-    .some((scriptPath) => regex.test(scriptPath) && existsSync(resolve(repoRoot, scriptPath)));
+  const candidatePaths = new Set([
+    ...walkScriptFiles(repoRoot, 'scripts'),
+    ...Object.values(packageScripts).flatMap(extractScriptPaths),
+  ]);
+  return [...candidatePaths].some(
+    (scriptPath) => regex.test(scriptPath) && existsSync(resolve(repoRoot, scriptPath)),
+  );
 }
 
 export function validateStableWorkflowCommands(packageScripts) {
@@ -329,7 +333,7 @@ export function validatePackageScriptTargets(repoRoot, packageScripts) {
 
   for (const [name, command] of Object.entries(packageScripts)) {
     for (const scriptPath of extractScriptPaths(command)) {
-      if (!existsSync(resolve(repoRoot, scriptPath))) {
+      if (!pathPatternExists(repoRoot, packageScripts, scriptPath)) {
         failures.push(`${name}: ${scriptPath}`);
       }
     }

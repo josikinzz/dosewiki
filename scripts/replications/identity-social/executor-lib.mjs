@@ -396,7 +396,17 @@ export function assertPreviewMatches(entry, preview) {
   if (!preview || preview.matches !== true || preview.digest !== entry.projection.expectedBeforeSha256) throw new Error(`CAS mismatch for ${entry.item_operation_id}${preview?.error ? `: ${preview.error}` : ""}.`);
 }
 export function rollbackManifest(completedBatches) {
-  return [...completedBatches].reverse().map((batch) => ({ rollback_of: batch.operation_id, operation_id: `identity-social-rollback:${digest({ rollback_of: batch.operation_id }).slice(0, 24)}` }));
+  const unique = [...new Map(completedBatches.map((batch) => [batch.operation_id, batch])).values()];
+  return unique.reverse().map((batch) => ({ rollback_of: batch.operation_id, operation_id: `identity-social-rollback:${digest({ rollback_of: batch.operation_id }).slice(0, 24)}` }));
+}
+export function completedBatchesForRollback(ledger) {
+  const completed = new Map();
+  const rolledBack = new Set();
+  for (const event of ledger) {
+    if (event.event === "batch-readback-verified" && event.operation_id && !completed.has(event.operation_id)) completed.set(event.operation_id, { operation_id: event.operation_id });
+    if (event.event === "rollback-readback-verified" && event.rollback_of) rolledBack.add(event.rollback_of);
+  }
+  return [...completed.values()].filter((batch) => !rolledBack.has(batch.operation_id));
 }
 export function loadLedger(path) {
   if (!existsSync(path)) return [];

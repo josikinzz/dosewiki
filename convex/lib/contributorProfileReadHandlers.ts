@@ -14,7 +14,9 @@ import { isValidR2Key, replicationMediaBaseUrl } from "./replicationUrls";
 export async function getAllContributorProfilesHandler(ctx: QueryCtx) {
   const profiles = await ctx.db.query("contributorProfiles").collect();
   const resolved = await Promise.all(
-    profiles.map(async (profile) => await materializeProfile(ctx, profile as StoredProfile)),
+    profiles
+      .filter((profile) => !profile.mergedIntoProfileId)
+      .map(async (profile) => await materializeProfile(ctx, profile as StoredProfile)),
   );
   return resolved.sort((left, right) => left.displayName.localeCompare(right.displayName));
 }
@@ -32,7 +34,15 @@ export async function getContributorProfileByKeyHandler(
   args: { key: string },
 ) {
   const profile = await getStoredContributorProfile(ctx, args.key);
-  return profile ? await materializeProfile(ctx, profile as StoredProfile) : null;
+  if (!profile) return null;
+  if (profile.mergedIntoProfileId) {
+    const target = await ctx.db.get(profile.mergedIntoProfileId);
+    if (!target || target.key !== profile.mergedIntoKey || target.mergedIntoProfileId) {
+      throw new Error("Contributor profile redirect target is missing or ambiguous.");
+    }
+    return await materializeProfile(ctx, target as StoredProfile);
+  }
+  return await materializeProfile(ctx, profile as StoredProfile);
 }
 
 export async function getContributorProfilesForBulkImportHandler(

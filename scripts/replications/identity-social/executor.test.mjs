@@ -4,7 +4,7 @@ import { tmpdir } from "node:os";
 import path from "node:path";
 import test from "node:test";
 import { isTransientConvexTransportError, parseArgs, runBatchWithTransportRecovery, runQueryWithTransportRecovery } from "./executor.mjs";
-import { appendLedger, assertPreviewMatches, batchesAfterCanaries, bindSharedProfileGroups, buildExecutionPlan, digest, indexProfiles, loadLedger, makeBatches, pendingBatches, reconcileCrossKindSharedProfileVerifications, rollbackManifest, selectCanaries, transformOperation, validatePinnedProfileSnapshot, verifyBaseProjection, verifyDeliveryReceiptSidecar } from "./executor-lib.mjs";
+import { appendLedger, assertPreviewMatches, batchesAfterCanaries, bindSharedProfileGroups, buildExecutionPlan, completedBatchesForRollback, digest, indexProfiles, loadLedger, makeBatches, pendingBatches, reconcileCrossKindSharedProfileVerifications, rollbackManifest, selectCanaries, transformOperation, validatePinnedProfileSnapshot, verifyBaseProjection, verifyDeliveryReceiptSidecar } from "./executor-lib.mjs";
 
 const profiles = indexProfiles([{ profileId: "profile-1", key: "ARTIST" }, { profileId: "profile-2", key: "LOKA" }]);
 const base = (kind, target, action, expectedBefore, after = {}, evidence = {}) => {
@@ -150,6 +150,19 @@ test("cross-kind shared-profile verification reconciles status, count, provenanc
   assert.ok(reconciled.item_operation_id.startsWith("identity-social-item:v1:"));
 });
 test("rollback order is reverse application order", () => assert.deepEqual(rollbackManifest([{ operation_id: "one" }, { operation_id: "two" }]).map((x) => x.rollback_of), ["two", "one"]));
+test("rollback manifest excludes readback-verified rollbacks, retains replacements, and deduplicates retries", () => {
+  const ledger = [
+    { event: "batch-readback-verified", operation_id: "josie-singleton" },
+    { event: "batch-readback-verified", operation_id: "other" },
+    { event: "batch-readback-verified", operation_id: "josie-singleton" },
+    { event: "rollback-applied", operation_id: "rollback-josie", rollback_of: "josie-singleton" },
+    { event: "rollback-readback-verified", operation_id: "rollback-josie", rollback_of: "josie-singleton" },
+    { event: "batch-readback-verified", operation_id: "josie-grouped" },
+  ];
+  const completed = completedBatchesForRollback(ledger);
+  assert.deepEqual(completed.map((item) => item.operation_id), ["other", "josie-grouped"]);
+  assert.deepEqual(rollbackManifest(completed).map((item) => item.rollback_of), ["josie-grouped", "other"]);
+});
 test("identity ambiguity fails closed", () => assert.throws(() => indexProfiles([{ profileId: "one", key: "A" }, { profileId: "two", key: "a" }]), /ambiguity/));
 test("stale or incomplete profile snapshots fail before planning", () => assert.throws(() => validatePinnedProfileSnapshot({ profiles: [{ profileId: "one", key: "A" }] }), /exactly 2,119/));
 
@@ -170,6 +183,7 @@ test("two-phase receipt sidecar binds independently without changing operation I
 
 test("operation-kind selection is validated and client retry is bounded", () => {
   assert.equal(parseArgs(["--operation-kind=social-asset"]).operationKind, "social-asset");
+  assert.equal(parseArgs(["--reconcile-applied-profile-bindings"]).reconcileAppliedProfileBindings, true);
   assert.equal(parseArgs(["--max-client-attempts=2"]).maxClientAttempts, 2);
   assert.throws(() => parseArgs(["--operation-kind=anything"]), /Unsupported/);
   assert.throws(() => parseArgs(["--max-client-attempts=0"]), /integer from 1 through 10/);

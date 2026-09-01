@@ -35,6 +35,10 @@ import {
   replicationSocialAssetValidator,
 } from "./lib/replicationIdentitySocialValidators";
 import {
+  contributorProfileMergeItemValidator,
+  contributorProfileMergeOperationValidator,
+} from "./lib/contributorProfileMergeValidators";
+import {
   replicationArtistTaxonomy,
   replicationTaxonomyEvidence,
 } from "./lib/replicationTaxonomyValidators";
@@ -152,6 +156,13 @@ const contributorProfile = v.object({
   createdAt: v.string(),
   updatedAt: v.string(),
   updatedBy: v.optional(v.string()),
+  // A losslessly merged source profile remains stored under its immutable ID.
+  // Public reads collapse it into this canonical target; rollback clears these
+  // fields and restores every retargeted association from the merge journal.
+  mergedIntoProfileId: v.optional(v.id("contributorProfiles")),
+  mergedIntoKey: v.optional(v.string()),
+  mergedByOperationId: v.optional(v.string()),
+  mergedAt: v.optional(v.number()),
 });
 
 // Lossless Effect Index source records retained for a future EI-specific
@@ -244,7 +255,8 @@ export default defineSchema({
   // Trip reports - imported from EffectIndex
   tripReports: defineTable(tripReport)
     .index("by_slug", ["slug"])
-    .index("by_featured", ["featured"]),
+    .index("by_featured", ["featured"])
+    .index("by_subject_profile_key", ["subject.profile_key"]),
 
   // Private public-submission intake. Rows stay editor-only until promoted into tripReports.
   tripReportSubmissions: defineTable(tripReportSubmission)
@@ -361,6 +373,7 @@ export default defineSchema({
 
   replicationIdentitySocialOperations: defineTable(replicationIdentitySocialOperationValidator)
     .index("by_operation_id", ["operation_id"])
+    .index("by_rollback_of", ["rollback_of"])
     .index("by_kind_and_created_at", ["kind", "created_at"]),
 
   replicationIdentitySocialOperationItems: defineTable(replicationIdentitySocialOperationItemValidator)
@@ -370,6 +383,15 @@ export default defineSchema({
   replicationIdentityProfileBindings: defineTable(replicationIdentityProfileBindingValidator)
     .index("by_artist_id", ["artist_id"])
     .index("by_profile_id", ["profile_id"]),
+
+  contributorProfileMergeOperations: defineTable(contributorProfileMergeOperationValidator)
+    .index("by_operation_id", ["operation_id"])
+    .index("by_rollback_operation_id", ["rollback_operation_id"])
+    .index("by_source_profile_id", ["source_profile_id"])
+    .index("by_target_profile_id", ["target_profile_id"]),
+
+  contributorProfileMergeItems: defineTable(contributorProfileMergeItemValidator)
+    .index("by_operation_id_and_ordinal", ["operation_id", "ordinal"]),
 
   // Reversible, evidence-bound consolidation records for same-work duplicates.
   // Media and source rows remain intact; only one replication stays public.

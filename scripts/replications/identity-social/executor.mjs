@@ -4,7 +4,7 @@ import { fileURLToPath } from "node:url";
 import { ConvexHttpClient } from "convex/browser";
 import { api } from "../../../convex/_generated/api.js";
 import { createProductionWriteCommand, assertProductionWriteAllowed, requireProductionWriteCredential } from "../../lib/production-write-command.mjs";
-import { appendLedger, assertPreviewMatches, batchesAfterCanaries, buildExecutionPlan, indexProfiles, loadLedger, pendingBatches, PRODUCTION_DEPLOYMENT, rollbackManifest, selectCanaries, validatePinnedProfileSnapshot, verifyDeliveryReceiptSidecar } from "./executor-lib.mjs";
+import { appendLedger, assertPreviewMatches, batchesAfterCanaries, buildExecutionPlan, completedBatchesForRollback, indexProfiles, loadLedger, pendingBatches, PRODUCTION_DEPLOYMENT, rollbackManifest, selectCanaries, validatePinnedProfileSnapshot, verifyDeliveryReceiptSidecar } from "./executor-lib.mjs";
 
 const CAMPAIGN = "/Users/josie/Documents/Dose Wiki Media Review/Data/Replication Identity and Social Pass 2026-08-31";
 const OPERATION_KINDS = new Set(["profile-binding", "attribution", "alias", "avatar", "verification", "social-asset"]);
@@ -22,7 +22,8 @@ export function parseArgs(argv) {
     attributionDates: flag(argv, "--attribution-dates"), creatorProof: flag(argv, "--creator-proof"), replicationIds: flag(argv, "--replication-ids"),
     planOut: flag(argv, "--plan-out") ?? `${CAMPAIGN}/identity-social-executor-dry-run.json`,
     rollbackOut: flag(argv, "--rollback-out") ?? `${CAMPAIGN}/identity-social-rollback-manifest.json`,
-    expectedDigest: flag(argv, "--projection-digest"), actor: flag(argv, "--actor-email"), phase: flag(argv, "--phase"), operationKind, maxClientAttempts, rollback: argv.includes("--rollback"), argv,
+    expectedDigest: flag(argv, "--projection-digest"), actor: flag(argv, "--actor-email"), phase: flag(argv, "--phase"), operationKind, maxClientAttempts,
+    reconcileAppliedProfileBindings: argv.includes("--reconcile-applied-profile-bindings"), rollback: argv.includes("--rollback"), argv,
   };
 }
 const readJson = (file) => JSON.parse(readFileSync(file, "utf8"));
@@ -103,10 +104,14 @@ export async function run(argv = process.argv.slice(2), adapters = {}) {
   const filteredPhaseBatches = options.operationKind ? phaseBatches.filter((batch) => batch.kind === options.operationKind) : phaseBatches;
   const work = options.rollback ? [] : pendingBatches(filteredPhaseBatches, loadLedger(options.ledger));
   for (const batch of work) {
+    let reconcileAppliedProfileBinding = false;
     for (const entry of batch.entries) {
       if (batch.kind === "profile-binding") {
         const preflight = await runQueryWithTransportRecovery({ query: () => query(api.replicationIdentitySocial.preflightProfileBindingAuthenticated, { apiKey, actor_email: options.actor, entry }), recreateClient, maxAttempts: options.maxClientAttempts, label: "Profile binding preflight" });
-        if (!preflight.matches) throw new Error(`Profile binding preflight failed: ${preflight.error ?? "unknown reason"}`);
+        if (!preflight.matches) {
+          if (!options.reconcileAppliedProfileBindings) throw new Error(`Profile binding preflight failed: ${preflight.error ?? "unknown reason"}`);
+          reconcileAppliedProfileBinding = true;
+        }
       } else {
         const journalOnly = (entry.kind === "attribution" && ["preserve-poster-as-creator", "preserve-poster-as-creator-no-write", "blocked-preserve-poster-no-verified-chronology"].includes(entry.projection.action))
           || (entry.kind === "alias" && ["preserve-existing-alias", "blocked-pending-owner-review", "blocked-merge-required-collision"].includes(entry.projection.action));
@@ -116,17 +121,17 @@ export async function run(argv = process.argv.slice(2), adapters = {}) {
       }
     }
     const mutation = () => batch.kind === "profile-binding"
-      ? mutate(api.replicationIdentitySocial.applyProfileBindingBatch, { apiKey, actor_email: options.actor, operation_id: batch.operation_id, dry_run: false, entries: batch.entries })
+      ? mutate(reconcileAppliedProfileBinding ? api.replicationIdentitySocial.reconcileAppliedProfileBindingBatch : api.replicationIdentitySocial.applyProfileBindingBatch, { apiKey, actor_email: options.actor, operation_id: batch.operation_id, dry_run: false, entries: batch.entries })
       : mutate(api.replicationIdentitySocial.applyBatch, { apiKey, actor_email: options.actor, operation_id: batch.operation_id, kind: batch.kind, dry_run: false, entries: batch.entries });
     const receiptQuery = () => runQueryWithTransportRecovery({ query: () => query(api.replicationIdentitySocial.getOperationReceiptAuthenticated, { apiKey, actor_email: options.actor, operation_id: batch.operation_id }), recreateClient, maxAttempts: options.maxClientAttempts, label: `Operation receipt ${batch.operation_id}` });
     const recovered = await runBatchWithTransportRecovery({ batch, mutateBatch: mutation, readReceipt: receiptQuery, recreateClient, maxAttempts: options.maxClientAttempts });
     const result = recovered.result;
-    appendLedger(options.ledger, { event: "batch-applied", operation_id: batch.operation_id, kind: batch.kind, result, at: Date.now() });
+    appendLedger(options.ledger, { event: "batch-applied", operation_id: batch.operation_id, kind: batch.kind, ...(reconcileAppliedProfileBinding ? { reconciliation: "already-applied-profile-bindings" } : {}), result, at: Date.now() });
     const receipt = recovered.receipt ?? await receiptQuery();
     if (!receipt || receipt.item_count !== batch.entries.length || receipt.payload_digest !== result.payload_digest) throw new Error(`Readback failed for ${batch.operation_id}.`);
     appendLedger(options.ledger, { event: "batch-readback-verified", operation_id: batch.operation_id, records: receipt.item_count, at: Date.now() });
   }
-  const completed = loadLedger(options.ledger).filter((x) => x.event === "batch-readback-verified").map((x) => ({ operation_id: x.operation_id }));
+  const completed = completedBatchesForRollback(loadLedger(options.ledger));
   const rollbacks = rollbackManifest(completed); writeFileSync(options.rollbackOut, `${JSON.stringify({ target: PRODUCTION_DEPLOYMENT, projection_digest: plan.projection_digest, operations: rollbacks }, null, 2)}\n`);
   if (options.rollback) {
     for (const item of rollbacks) {
