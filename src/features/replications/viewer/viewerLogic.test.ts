@@ -9,8 +9,8 @@ import {
   seekRatioFromPointer,
   shouldLoopReplicationMotion,
   shouldShowGestureHint,
-  standbyMotionSource,
-  standbyPosterSource,
+  slideMotionSource,
+  slidePosterSource,
 } from "./viewerLogic";
 
 describe("resolveMediaAspect", () => {
@@ -71,10 +71,10 @@ describe("shouldShowGestureHint", () => {
   });
 });
 
-describe("standbyPosterSource", () => {
-  it("mirrors each stage's first paint", () => {
+describe("slidePosterSource", () => {
+  it("mirrors each slide's first paint", () => {
     expect(
-      standbyPosterSource({
+      slidePosterSource({
         type: "image",
         format: "gif",
         url: "https://cdn.test/full.gif",
@@ -82,7 +82,7 @@ describe("standbyPosterSource", () => {
       }),
     ).toBe("https://cdn.test/poster.webp");
     expect(
-      standbyPosterSource({
+      slidePosterSource({
         type: "video",
         format: "mp4",
         url: "https://cdn.test/clip.mp4",
@@ -90,14 +90,14 @@ describe("standbyPosterSource", () => {
       }),
     ).toBe("https://cdn.test/thumb.jpg");
     expect(
-      standbyPosterSource({
+      slidePosterSource({
         type: "video",
         format: "mp4",
         url: "https://cdn.test/clip.mp4",
       }),
     ).toBeNull();
     expect(
-      standbyPosterSource({
+      slidePosterSource({
         type: "image",
         format: "jpg",
         url: "https://cdn.test/art.jpg",
@@ -106,17 +106,34 @@ describe("standbyPosterSource", () => {
   });
 });
 
-describe("standbyMotionSource", () => {
-  it("warms exactly the file each stage will play", () => {
+describe("slideMotionSource", () => {
+  it("feeds the preview rendition to the feed and reserves the full file", () => {
+    const clip = {
+      type: "video" as const,
+      format: "mp4",
+      url: "https://cdn.test/clip.mp4",
+      preview_url: "https://cdn.test/clip-preview.mp4",
+    };
+    expect(slideMotionSource(clip)).toBe("https://cdn.test/clip-preview.mp4");
+    expect(slideMotionSource(clip, "preview")).toBe(
+      "https://cdn.test/clip-preview.mp4",
+    );
+    expect(slideMotionSource(clip, "full")).toBe("https://cdn.test/clip.mp4");
+  });
+
+  it("falls back to the catalogued file when no preview was generated", () => {
     expect(
-      standbyMotionSource({
+      slideMotionSource({
         type: "video",
         format: "mp4",
         url: "https://cdn.test/clip.mp4",
       }),
     ).toBe("https://cdn.test/clip.mp4");
+  });
+
+  it("plays a GIF's controllable rendition only once both assets exist", () => {
     expect(
-      standbyMotionSource({
+      slideMotionSource({
         type: "image",
         format: "gif",
         url: "https://cdn.test/full.gif",
@@ -124,9 +141,9 @@ describe("standbyMotionSource", () => {
         motion_poster_url: "https://cdn.test/poster.webp",
       }),
     ).toBe("https://cdn.test/motion.mp4");
-    // A GIF missing either motion asset falls back to a non-moving stage.
+    // A GIF missing either motion asset falls back to a non-moving slide.
     expect(
-      standbyMotionSource({
+      slideMotionSource({
         type: "image",
         format: "gif",
         url: "https://cdn.test/full.gif",
@@ -134,7 +151,7 @@ describe("standbyMotionSource", () => {
       }),
     ).toBeNull();
     expect(
-      standbyMotionSource({
+      slideMotionSource({
         type: "image",
         format: "jpg",
         url: "https://cdn.test/art.jpg",

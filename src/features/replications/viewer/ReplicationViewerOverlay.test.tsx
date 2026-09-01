@@ -1,5 +1,4 @@
 import {
-  act,
   cleanup,
   fireEvent,
   render,
@@ -24,16 +23,22 @@ import { EDITOR_HINT_STORAGE_KEY } from "@/lib/auth/editorHint";
 const transportVerbs = vi.hoisted(() => ({
   togglePlayback: vi.fn(),
   toggleMuted: vi.fn(),
+  surfaceTap: vi.fn(),
+  pointerActivity: vi.fn(),
 }));
 
-vi.mock("./ReplicationMediaStage", () => ({
-  ReplicationMediaStage: ({
+// The transport chrome is mocked to a flat control strip; the pooled media
+// track underneath is real, so navigation, gestures, and pool behavior run
+// against the production code path.
+vi.mock("./ViewerTransport", () => ({
+  ViewerTransport: ({
     item,
     muted,
     onMutedChange,
+    quality,
+    onQualityChange,
     rotateMode,
     onRotateModeChange,
-    onRotatedChange,
     onPrevious,
     onNext,
     onInfo,
@@ -48,9 +53,10 @@ vi.mock("./ReplicationMediaStage", () => ({
     item: { replication: { title: string; type: "image" | "video" } };
     muted: boolean;
     onMutedChange: (muted: boolean) => void;
+    quality: "preview" | "full";
+    onQualityChange: (quality: "preview" | "full") => void;
     rotateMode?: boolean;
     onRotateModeChange?: (rotateMode: boolean) => void;
-    onRotatedChange?: (rotated: boolean) => void;
     onPrevious?: () => void;
     onNext?: () => void;
     onInfo?: () => void;
@@ -64,36 +70,18 @@ vi.mock("./ReplicationMediaStage", () => ({
       handle: {
         togglePlayback: () => void;
         toggleMuted: () => void;
+        surfaceTap: () => void;
+        pointerActivity: () => void;
       } | null,
     ) => void;
   }) => {
-    // Render-time registration mirrors the real stage's effect closely
+    // Render-time registration mirrors the real transport's effect closely
     // enough for shortcut plumbing tests: video works get verbs, stills none.
     onTransportHandle?.(
       item.replication.type === "video" ? transportVerbs : null,
     );
     return (
-      <div
-        data-testid="media-stage"
-        data-replication-media-stage
-        data-title={item.replication.title}
-      >
-        {item.replication.type === "video" ? (
-          <video>
-            <track
-              kind="captions"
-              src="data:text/vtt,WEBVTT"
-              srcLang="en"
-              label="English"
-            />
-          </video>
-        ) : (
-          <button
-            type="button"
-            data-replication-media-surface
-            aria-label="Still media surface"
-          />
-        )}
+      <div data-testid="viewer-transport" data-title={item.replication.title}>
         <button
           type="button"
           aria-label={muted ? "Unmute" : "Mute"}
@@ -135,8 +123,15 @@ vi.mock("./ReplicationMediaStage", () => ({
         >
           Rotate
         </button>
-        <button type="button" onClick={() => onRotatedChange?.(true)}>
-          Report rotated
+        <button
+          type="button"
+          aria-pressed={quality === "full"}
+          aria-label="Play original quality"
+          onClick={() =>
+            onQualityChange(quality === "full" ? "preview" : "full")
+          }
+        >
+          HQ
         </button>
         <button type="button" onClick={onFullscreen}>
           {fullscreenLabel}
@@ -183,6 +178,7 @@ const collection: ReplicationViewerCollection = {
             type: "video",
             format: "mp4",
             url: "https://cdn.test/two.mp4",
+            preview_url: "https://cdn.test/two-preview.mp4",
           },
           effectName: "Drifting",
           effectSlug: "drifting",
@@ -222,9 +218,13 @@ beforeAll(() => {
     unobserve() {}
     disconnect() {}
   };
-  // jsdom's media methods are unimplemented; the standby preloaders release
-  // their pipeline through pause()/load() on unmount, so give them quiet,
-  // observable stand-ins.
+  // jsdom's media methods are unimplemented; the pooled track drives its
+  // elements through play()/pause()/load(), so give them quiet, observable
+  // stand-ins.
+  Object.defineProperty(HTMLMediaElement.prototype, "play", {
+    configurable: true,
+    value: vi.fn().mockResolvedValue(undefined),
+  });
   Object.defineProperty(HTMLMediaElement.prototype, "pause", {
     configurable: true,
     value: vi.fn(),
@@ -281,6 +281,23 @@ function stubCoarsePointer(coarse: boolean) {
     "matchMedia",
     vi.fn((query: string) => ({
       matches: coarse && query.includes("pointer: coarse"),
+      media: query,
+      onchange: null,
+      addEventListener: () => {},
+      removeEventListener: () => {},
+      addListener: () => {},
+      removeListener: () => {},
+      dispatchEvent: () => false,
+    })),
+  );
+}
+
+/** A portrait phone: the rotate-to-fit toggle appears and landscape turns. */
+function stubPortraitPhone() {
+  vi.stubGlobal(
+    "matchMedia",
+    vi.fn((query: string) => ({
+      matches: query.includes("orientation: portrait"),
       media: query,
       onchange: null,
       addEventListener: () => {},
@@ -386,7 +403,7 @@ describe("ReplicationViewerOverlay", () => {
       "Viewing Work One by Chelsea Morgan",
     );
     expect(dialog).toHaveClass("grid-rows-[auto_minmax(0,1fr)]");
-    expect(screen.getByTestId("media-stage")).toHaveAttribute(
+    expect(screen.getByTestId("viewer-transport")).toHaveAttribute(
       "data-title",
       "Work One",
     );
@@ -395,7 +412,7 @@ describe("ReplicationViewerOverlay", () => {
     ).toHaveClass("theme-media-tile-title");
     expect(
       screen
-        .getByTestId("media-stage")
+        .getByTestId("viewer-transport")
         .closest(".grid-rows-\\[minmax\\(0\\,1fr\\)_auto\\]"),
     ).toHaveClass(
       "min-w-0",
@@ -411,7 +428,7 @@ describe("ReplicationViewerOverlay", () => {
 
     fireEvent.click(screen.getByRole("button", { name: "Next: Work Two" }));
 
-    expect(screen.getByTestId("media-stage")).toHaveAttribute(
+    expect(screen.getByTestId("viewer-transport")).toHaveAttribute(
       "data-title",
       "Work Two",
     );
@@ -458,7 +475,7 @@ describe("ReplicationViewerOverlay", () => {
     expect(screen.queryByText("Browse works")).not.toBeInTheDocument();
   });
 
-  it("dismisses the swipe hint on first touch", () => {
+  it("dismisses the swipe hint on first pointer contact", () => {
     stubCoarsePointer(true);
     render(
       <ReplicationViewerOverlay
@@ -469,8 +486,10 @@ describe("ReplicationViewerOverlay", () => {
       />,
     );
     expect(screen.getByText("Browse works")).toBeInTheDocument();
-    fireEvent.touchStart(screen.getByTestId("media-stage"), {
-      changedTouches: [{ clientX: 240, clientY: 300 }],
+    fireEvent.pointerDown(screen.getByRole("dialog"), {
+      pointerId: 1,
+      clientX: 240,
+      clientY: 300,
     });
     expect(screen.queryByText("Browse works")).not.toBeInTheDocument();
   });
@@ -617,7 +636,7 @@ describe("ReplicationViewerOverlay", () => {
     ).not.toBeInTheDocument();
   });
 
-  it("scopes swipe navigation to the media stage", () => {
+  it("starts swipe gestures on the media track, not the surrounding chrome", () => {
     render(
       <ReplicationViewerOverlay
         collection={collection}
@@ -627,29 +646,51 @@ describe("ReplicationViewerOverlay", () => {
       />,
     );
 
+    // A drag across the thumbnail rail lives outside the track's gesture
+    // surface and must not walk the collection.
     const railButton = screen.getByRole("button", { name: "Show Work Two" });
-    fireEvent.touchStart(railButton, {
-      changedTouches: [{ clientX: 240, clientY: 300 }],
+    fireEvent.pointerDown(railButton, {
+      pointerId: 1,
+      clientX: 240,
+      clientY: 300,
     });
-    fireEvent.touchEnd(railButton, {
-      changedTouches: [{ clientX: 120, clientY: 300 }],
+    fireEvent.pointerMove(railButton, {
+      pointerId: 1,
+      clientX: 120,
+      clientY: 300,
     });
-    expect(screen.getByTestId("media-stage")).toHaveAttribute(
+    fireEvent.pointerUp(railButton, {
+      pointerId: 1,
+      clientX: 120,
+      clientY: 300,
+    });
+    expect(screen.getByTestId("viewer-transport")).toHaveAttribute(
       "data-title",
       "Work One",
     );
 
-    const stage = screen.getByRole("button", { name: "Still media surface" });
-    fireEvent.touchStart(stage, {
-      changedTouches: [{ clientX: 240, clientY: 300 }],
+    // The still's chrome-toggle surface is the artwork: drags start there.
+    const surface = screen.getByRole("button", { name: "Hide controls" });
+    fireEvent.pointerDown(surface, {
+      pointerId: 2,
+      clientX: 240,
+      clientY: 300,
     });
-    fireEvent.touchEnd(stage, {
-      changedTouches: [{ clientX: 120, clientY: 300 }],
+    fireEvent.pointerMove(surface, {
+      pointerId: 2,
+      clientX: 120,
+      clientY: 300,
     });
-    expect(screen.getByTestId("media-stage")).toHaveAttribute(
+    fireEvent.pointerUp(surface, {
+      pointerId: 2,
+      clientX: 120,
+      clientY: 300,
+    });
+    expect(screen.getByTestId("viewer-transport")).toHaveAttribute(
       "data-title",
       "Work Two",
     );
+    expect(window.location.search).toContain("viewer=work-two");
   });
 
   it("follows a horizontal drag and snaps back below the commit threshold", () => {
@@ -662,24 +703,30 @@ describe("ReplicationViewerOverlay", () => {
       />,
     );
 
-    const stage = screen.getByRole("button", { name: "Still media surface" });
-    const pane = document.querySelector(
-      "[data-replication-media-track]",
+    const surface = screen.getByRole("button", { name: "Hide controls" });
+    const floor = document.querySelector(
+      "[data-viewer-track-floor]",
     ) as HTMLElement;
 
-    fireEvent.touchStart(stage, {
-      changedTouches: [{ clientX: 240, clientY: 300 }],
+    fireEvent.pointerDown(surface, {
+      pointerId: 1,
+      clientX: 240,
+      clientY: 300,
     });
-    fireEvent.touchMove(stage, {
-      changedTouches: [{ clientX: 224, clientY: 300 }],
+    fireEvent.pointerMove(surface, {
+      pointerId: 1,
+      clientX: 224,
+      clientY: 300,
     });
-    expect(pane.style.transform).toBe("translateX(-16px)");
+    expect(floor.style.transform).toBe("translateX(-16px)");
 
-    fireEvent.touchEnd(stage, {
-      changedTouches: [{ clientX: 224, clientY: 300 }],
+    fireEvent.pointerUp(surface, {
+      pointerId: 1,
+      clientX: 224,
+      clientY: 300,
     });
-    expect(pane.style.transform).toBe("");
-    expect(screen.getByTestId("media-stage")).toHaveAttribute(
+    expect(floor.style.transform).toBe("");
+    expect(screen.getByTestId("viewer-transport")).toHaveAttribute(
       "data-title",
       "Work One",
     );
@@ -695,22 +742,30 @@ describe("ReplicationViewerOverlay", () => {
       />,
     );
 
-    const stage = screen.getByTestId("media-stage");
-    const pane = document.querySelector(
+    const track = document.querySelector(
       "[data-replication-media-track]",
     ) as HTMLElement;
+    const floor = document.querySelector(
+      "[data-viewer-track-floor]",
+    ) as HTMLElement;
 
-    fireEvent.touchStart(stage, {
-      changedTouches: [{ clientX: 240, clientY: 300 }],
+    fireEvent.pointerDown(track, {
+      pointerId: 1,
+      clientX: 240,
+      clientY: 300,
     });
-    fireEvent.touchMove(stage, {
-      changedTouches: [{ clientX: 210, clientY: 300 }],
+    fireEvent.pointerMove(track, {
+      pointerId: 1,
+      clientX: 210,
+      clientY: 300,
     });
-    expect(pane.style.transform).toBe("translateX(-10px)");
-    fireEvent.touchEnd(stage, {
-      changedTouches: [{ clientX: 210, clientY: 300 }],
+    expect(floor.style.transform).toBe("translateX(-10px)");
+    fireEvent.pointerUp(track, {
+      pointerId: 1,
+      clientX: 210,
+      clientY: 300,
     });
-    expect(screen.getByTestId("media-stage")).toHaveAttribute(
+    expect(screen.getByTestId("viewer-transport")).toHaveAttribute(
       "data-title",
       "Work Two",
     );
@@ -736,8 +791,7 @@ describe("ReplicationViewerOverlay", () => {
     ).toBeInTheDocument();
   });
 
-  it("debounces then preloads a parked video neighbor for a decodable landing", () => {
-    vi.useFakeTimers();
+  it("holds all three pooled players warm with the neighbor's preview assigned", () => {
     render(
       <ReplicationViewerOverlay
         collection={collection}
@@ -750,27 +804,22 @@ describe("ReplicationViewerOverlay", () => {
     const track = document.querySelector(
       "[data-replication-media-track]",
     ) as HTMLElement;
-    // Immediately after landing on a work only posters exist: a fast fling
-    // through several works must not spawn a throwaway media player per
-    // step — leaked players are what make browsers refuse later loads.
+    // Exactly three pooled elements, never more: leaked players are what
+    // make browsers refuse later loads.
+    expect(track.querySelectorAll("video")).toHaveLength(3);
+    // The neighbor's PREVIEW rendition is assigned immediately and buffers
+    // ahead of the swipe — never the multi-megabyte catalogued file.
+    const neighbor = track.querySelector(
+      'video[src="https://cdn.test/two-preview.mp4"]',
+    );
+    expect(neighbor).toBeInTheDocument();
+    expect(neighbor).toHaveAttribute("preload", "auto");
     expect(
       track.querySelector('video[src="https://cdn.test/two.mp4"]'),
     ).not.toBeInTheDocument();
-
-    act(() => vi.advanceTimersByTime(300));
-    // work-two, the only adjacent work, warms only its metadata. Fetching the
-    // full file here duplicates the active element's range transfer after a
-    // turn and multiplies bandwidth across a long browsing session.
-    const preloader = track.querySelector(
-      'video[src="https://cdn.test/two.mp4"]',
-    );
-    expect(preloader).toHaveAttribute("preload", "metadata");
-    // Preloading is capped at the parked neighbors — nothing else fetches.
-    expect(track.querySelectorAll("video[preload]")).toHaveLength(1);
-    vi.useRealTimers();
   });
 
-  it("keeps one persistent stage subtree across work navigation", () => {
+  it("keeps one pooled element set across navigation and promotes the warmed neighbor", () => {
     render(
       <ReplicationViewerOverlay
         collection={collection}
@@ -780,14 +829,34 @@ describe("ReplicationViewerOverlay", () => {
       />,
     );
 
-    const before = screen.getByTestId("media-stage");
+    const track = document.querySelector(
+      "[data-replication-media-track]",
+    ) as HTMLElement;
+    const before = Array.from(track.querySelectorAll("video"));
+    expect(before).toHaveLength(3);
+    const warmed = track.querySelector(
+      'video[src="https://cdn.test/two-preview.mp4"]',
+    );
+
     fireEvent.click(screen.getByRole("button", { name: "Next: Work Two" }));
-    const after = screen.getByTestId("media-stage");
-    expect(after).toHaveAttribute("data-title", "Work Two");
-    // Same DOM node, not a remounted twin: a keyed remount would destroy
-    // the real stage's <video>, leaking its media pipeline until GC and
-    // discarding iOS Safari's per-element unmuted-playback blessing.
-    expect(after).toBe(before);
+
+    // Same three DOM nodes, not remounted twins: a keyed remount would
+    // destroy pooled <video> elements, leaking their media pipelines until
+    // GC and discarding iOS Safari's per-element unmuted-playback blessing.
+    const after = Array.from(track.querySelectorAll("video"));
+    expect(after).toHaveLength(3);
+    for (const element of after) {
+      expect(before).toContain(element);
+    }
+    // The incoming work kept its already-warmed element — the commit is
+    // pause-outgoing/play-incoming, never a media load.
+    expect(
+      track.querySelector("[data-viewer-active-pane] video"),
+    ).toBe(warmed);
+    expect(screen.getByTestId("viewer-transport")).toHaveAttribute(
+      "data-title",
+      "Work Two",
+    );
   });
 
   it("contains information-panel focus and restores its trigger", async () => {
@@ -814,7 +883,7 @@ describe("ReplicationViewerOverlay", () => {
     );
     expect(
       screen
-        .getByTestId("media-stage")
+        .getByTestId("viewer-transport")
         .closest(".grid-rows-\\[minmax\\(0\\,1fr\\)_auto\\]"),
     ).toHaveAttribute("inert");
 
@@ -837,7 +906,7 @@ describe("ReplicationViewerOverlay", () => {
 
     fireEvent.keyDown(window, { key: "ArrowDown" });
 
-    expect(screen.getByTestId("media-stage")).toHaveAttribute(
+    expect(screen.getByTestId("viewer-transport")).toHaveAttribute(
       "data-title",
       "Work Three",
     );
@@ -950,14 +1019,14 @@ describe("ReplicationViewerOverlay", () => {
     );
 
     fireEvent.click(screen.getByRole("button", { name: "Next artist: Aria" }));
-    expect(screen.getByTestId("media-stage")).toHaveAttribute(
+    expect(screen.getByTestId("viewer-transport")).toHaveAttribute(
       "data-title",
       "Work Three",
     );
     fireEvent.click(
       screen.getByRole("button", { name: "Previous artist: Chelsea Morgan" }),
     );
-    expect(screen.getByTestId("media-stage")).toHaveAttribute(
+    expect(screen.getByTestId("viewer-transport")).toHaveAttribute(
       "data-title",
       "Work Two",
     );
@@ -1231,7 +1300,7 @@ describe("ReplicationViewerOverlay", () => {
 
     // Advancing to the next work never resets the reader's mode.
     fireEvent.click(screen.getByRole("button", { name: "Next: Work Two" }));
-    expect(screen.getByTestId("media-stage")).toHaveAttribute(
+    expect(screen.getByTestId("viewer-transport")).toHaveAttribute(
       "data-title",
       "Work Two",
     );
@@ -1257,7 +1326,9 @@ describe("ReplicationViewerOverlay", () => {
     ).toHaveAttribute("aria-pressed", "true");
   });
 
-  it("leans settings and thumbnail icons while the stage reports a rotated work", async () => {
+  it("leans settings and thumbnail icons while the active work rotates", async () => {
+    // A portrait phone walking a landscape work: rotate mode turns it.
+    stubPortraitPhone();
     render(
       <ReplicationViewerOverlay
         collection={collection}
@@ -1277,14 +1348,15 @@ describe("ReplicationViewerOverlay", () => {
     );
 
     fireEvent.click(
-      await screen.findByRole("button", { name: "Report rotated" }),
+      await screen.findByRole("button", { name: "Rotate to fill screen" }),
     );
     rail
       .querySelectorAll("[data-rotating-icon]")
       .forEach((wrapper) => expect(wrapper.className).toContain("rotate-90"));
   });
 
-  it("leans the byline avatar while the stage reports a rotated work", async () => {
+  it("leans the byline avatar while the active work rotates", async () => {
+    stubPortraitPhone();
     const avatarCollection: ReplicationViewerCollection = {
       ...collection,
       groups: [
@@ -1320,7 +1392,7 @@ describe("ReplicationViewerOverlay", () => {
     expect(avatarWrapper?.className).not.toContain("rotate-90");
 
     fireEvent.click(
-      await screen.findByRole("button", { name: "Report rotated" }),
+      await screen.findByRole("button", { name: "Rotate to fill screen" }),
     );
     expect(avatarWrapper?.className).toContain("rotate-90");
   });

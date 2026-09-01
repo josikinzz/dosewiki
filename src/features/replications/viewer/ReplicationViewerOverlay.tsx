@@ -26,13 +26,17 @@ import {
   parseReplicationViewerSlug,
 } from "@/features/replications/galleryUrlState";
 import { cn } from "@/lib/utils";
-import { releaseVideoElement } from "@/lib/releaseVideoElement";
 import { formatArchiveDate } from "@/utils/archiveDate";
 import { publicHref } from "@/utils/publicHref";
 import {
-  ReplicationMediaStage,
-  type ReplicationStageTransportHandle,
-} from "./ReplicationMediaStage";
+  ViewerTransport,
+  type ViewerTransportHandle,
+} from "./ViewerTransport";
+import {
+  ViewerMediaTrack,
+  type ViewerTrackHandle,
+} from "./ViewerMediaTrack";
+import { useStageFit } from "./useStageFit";
 import { RotatingIcon } from "./RotatingIcon";
 import { hasKnownCreator } from "@/features/effects/components/replicationCredit";
 import { ReplicationViewerEditorGate } from "./editor/ReplicationViewerEditorGate";
@@ -41,7 +45,6 @@ import {
   moveViewerGroup,
   moveViewerWork,
   type ReplicationViewerCollection,
-  type ReplicationViewerMediaItem,
   type ReplicationViewerPosition,
 } from "./viewerModel";
 import {
@@ -51,24 +54,8 @@ import {
   resolveViewerMuted,
   resolveViewerRotateMode,
   shouldShowGestureHint,
-  standbyMotionSource,
-  standbyPosterSource,
+  type SlideQuality,
 } from "./viewerLogic";
-
-const SWIPE_THRESHOLD_PX = 48;
-/** A fast flick commits a work change well before the full swipe distance. */
-const SWIPE_FLICK_MIN_PX = 20;
-const SWIPE_FLICK_VELOCITY_PX_PER_MS = 0.45;
-/** Movement below this keeps the gesture axis undecided (still a tap). */
-const DRAG_AXIS_LOCK_PX = 8;
-const SCREEN_EDGE_GUARD_PX = 24;
-/**
- * How long the stage rests on a work before its neighbors' hidden video
- * preloaders mount. A fast fling through several works must not spawn a
- * throwaway media player per step — each one the browser may hold against
- * the page's player budget until GC. Posters are exempt and stay instant.
- */
-const STANDBY_PRELOAD_DELAY_MS = 300;
 
 /**
  * The viewer's full-screen dialog surface. The `!` trio is load-bearing:
@@ -81,13 +68,14 @@ const STANDBY_PRELOAD_DELAY_MS = 300;
 const VIEWER_DIALOG_CLASS =
   "theme-media-tile-title fixed inset-0 z-[70] max-h-none max-w-none translate-x-0 translate-y-0 grid-cols-[minmax(0,1fr)] grid-rows-[auto_minmax(0,1fr)] gap-0 overflow-hidden !border-0 !bg-black p-0 !shadow-[var(--theme-elevation-none)] duration-150 sm:rounded-none";
 
-/** The side the incoming work enters from after a navigation. */
-type EntryMotion = "left" | "right" | "top" | "bottom" | "fade";
+/**
+ * The side the incoming work enters from after a non-swipe navigation
+ * (group jumps, rail taps, editor activation). Horizontal work changes ride
+ * the track's own slide animation instead.
+ */
+type EntryMotion = "top" | "bottom" | "fade";
 
 const ENTRY_MOTION_CLASS: Record<EntryMotion, string> = {
-  left: "motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-from-left-8 motion-safe:duration-200",
-  right:
-    "motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-from-right-8 motion-safe:duration-200",
   top: "motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-from-top-6 motion-safe:duration-200",
   bottom:
     "motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-from-bottom-6 motion-safe:duration-200",
@@ -110,75 +98,6 @@ function prefersReducedMotion(): boolean {
   );
 }
 
-/**
- * A poster pane parked one viewport beside the stage. During a drag the
- * track carries it under the finger, so the incoming work is visible before
- * its real stage mounts — and its poster is warm in cache when it does. A
- * moving neighbor also warms its video file through a hidden preloader once
- * the stage has rested here for a beat (`warm`), so landing on it finds the
- * first frame already decodable instead of showing the low-res poster snap
- * to the sharper frame. Only the two panes that exist — the immediate
- * neighbors — ever preload; a fast fling past them simply falls back to
- * the poster-then-fade path. The preloader's media pipeline is released
- * the moment the pane unmounts: leaked players are what make browsers
- * refuse new video loads after a burst of navigation.
- */
-function StandbyPane({
-  item,
-  side,
-  warm,
-}: {
-  item: ReplicationViewerMediaItem;
-  side: "left" | "right";
-  warm: boolean;
-}) {
-  const poster = standbyPosterSource(item.replication);
-  const motion = standbyMotionSource(item.replication);
-  const preloaderRef = useRef<HTMLVideoElement | null>(null);
-  // Identity-stable on purpose: an inline ref callback re-runs per render,
-  // and its detach pass would release a still-mounted preloader.
-  const attachPreloader = useCallback((node: HTMLVideoElement | null) => {
-    if (node) {
-      preloaderRef.current = node;
-      return;
-    }
-    const previous = preloaderRef.current;
-    preloaderRef.current = null;
-    if (previous) releaseVideoElement(previous);
-  }, []);
-  return (
-    <div
-      aria-hidden
-      className={cn(
-        "pointer-events-none absolute inset-0",
-        side === "left" ? "-translate-x-full" : "translate-x-full",
-      )}
-    >
-      {poster ? (
-        <AppImage
-          src={poster}
-          alt=""
-          width={item.replication.width ?? 1600}
-          height={item.replication.height ?? 900}
-          priority
-          unoptimized
-          className="h-full w-full object-contain"
-        />
-      ) : null}
-      {motion && warm ? (
-        <video
-          ref={attachPreloader}
-          src={motion}
-          preload="metadata"
-          muted
-          playsInline
-          tabIndex={-1}
-          className="hidden"
-        />
-      ) : null}
-    </div>
-  );
-}
 
 type WebkitFullscreenVideo = HTMLVideoElement & {
   webkitEnterFullscreen?: () => void;
@@ -246,10 +165,16 @@ export function ReplicationViewerOverlay({
   const announcedSlugRef = useRef<string | null>(null);
   /** Mirrors the stage transport so header, rail, and byline fade in step. */
   const [chromeVisible, setChromeVisible] = useState(true);
-  /** Gesture-safe playback verbs registered by the active stage. */
-  const transportHandleRef = useRef<ReplicationStageTransportHandle | null>(
+  /** Gesture-safe playback verbs registered by the transport chrome. */
+  const transportHandleRef = useRef<ViewerTransportHandle | null>(null);
+  /** The track's slide/bless verbs, for keyboard and arrow navigation. */
+  const trackRef = useRef<ViewerTrackHandle>(null);
+  /** The pooled element on the active pane; null while a still is up. */
+  const [activeVideo, setActiveVideo] = useState<HTMLVideoElement | null>(
     null,
   );
+  /** The one work this session explicitly escalated to its full file. */
+  const [hqSlug, setHqSlug] = useState<string | null>(null);
   const [entryMotion, setEntryMotion] = useState<EntryMotion | null>(null);
   const [gestureHint, setGestureHint] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
@@ -261,20 +186,13 @@ export function ReplicationViewerOverlay({
   const [editorRailHost, setEditorRailHost] = useState<HTMLElement | null>(
     null,
   );
-  // Rotate mode is the reader's sticky choice for this session; the active
-  // stage reports back whether the current work actually turns, so the
-  // overlay's own iconography (settings, thumbnails) can lean with it.
+  // Rotate mode is the reader's sticky choice for this session; the fit
+  // hook derives whether the active work actually turns, so the overlay's
+  // own iconography (settings, thumbnails) can lean with it.
   const [rotateMode, setRotateMode] = useState(false);
-  const [stageRotated, setStageRotated] = useState(false);
   const rememberedSlugByGroupRef = useRef<Record<string, string>>({});
-  const touchStartRef = useRef<{ x: number; y: number; t: number } | null>(
-    null,
-  );
-  const pendingCommitRef = useRef<(() => void) | null>(null);
-  const dragAxisRef = useRef<"x" | "y" | null>(null);
-  const mediaPaneRef = useRef<HTMLDivElement>(null);
   /** The persistent wrapper the entry animation replays on. */
-  const stagePaneRef = useRef<HTMLDivElement>(null);
+  const trackPaneRef = useRef<HTMLDivElement>(null);
   const thumbnailRailRef = useRef<HTMLUListElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
   const pausedBackgroundVideosRef = useRef<HTMLVideoElement[]>([]);
@@ -291,28 +209,23 @@ export function ReplicationViewerOverlay({
   const active = group && position ? group.items[position.itemIndex] : null;
   const activeSlug = active ? active.replication.slug : null;
 
-  // Neighbor preloading waits out a navigation burst: posters render
-  // immediately, the hidden video preloaders join only once the stage has
-  // rested on a work for a beat.
-  const [standbyWarm, setStandbyWarm] = useState(false);
-  useEffect(() => {
-    setStandbyWarm(false);
-    if (!open || !activeSlug) return;
-    const timer = window.setTimeout(
-      () => setStandbyWarm(true),
-      STANDBY_PRELOAD_DELAY_MS,
-    );
-    return () => window.clearTimeout(timer);
-  }, [open, activeSlug]);
+  const { canRotate, rotated, probeAspect, mediaAspect, aspectSettled } =
+    useStageFit({
+      mediaKey: activeSlug ?? "",
+      type: active?.replication.type ?? "image",
+      rotateMode,
+      width: active?.replication.width,
+      height: active?.replication.height,
+    });
 
-  // The stage wrapper is deliberately not keyed by work: a remount would
-  // destroy the stage's <video> mid-flight — leaking its media pipeline
-  // until GC (browsers cap live media players per page and then silently
-  // refuse new loads) and discarding iOS Safari's per-element unmuted
-  // playback blessing. Entry motion replays imperatively instead: drop
-  // the animation classes, force a reflow, re-add them.
+  // The track pool is deliberately not keyed by work: a remount would
+  // destroy pooled <video> elements mid-flight — leaking their media
+  // pipelines until GC (browsers cap live media players per page and then
+  // silently refuse new loads) and discarding iOS Safari's per-element
+  // unmuted playback blessing. Entry motion replays imperatively instead:
+  // drop the animation classes, force a reflow, re-add them.
   useLayoutEffect(() => {
-    const pane = stagePaneRef.current;
+    const pane = trackPaneRef.current;
     if (!pane) return;
     pane.classList.remove(...ENTRY_MOTION_ALL_CLASSES);
     if (!entryMotion) return;
@@ -341,7 +254,8 @@ export function ReplicationViewerOverlay({
       setVolume(1);
       setInfoOpen(false);
       setSettingsOpen(false);
-      setStageRotated(false);
+      setHqSlug(null);
+      setActiveVideo(null);
       setEditorOpen(false);
       setReorderMode(false);
       rememberedSlugByGroupRef.current = {};
@@ -384,10 +298,17 @@ export function ReplicationViewerOverlay({
   }, []);
 
   const handleTransportHandle = useCallback(
-    (handle: ReplicationStageTransportHandle | null) => {
+    (handle: ViewerTransportHandle | null) => {
       transportHandleRef.current = handle;
     },
     [],
+  );
+
+  const handleQualityChange = useCallback(
+    (quality: SlideQuality) => {
+      setHqSlug(quality === "full" ? (activeSlug ?? null) : null);
+    },
+    [activeSlug],
   );
 
   useEffect(() => {
@@ -565,6 +486,46 @@ export function ReplicationViewerOverlay({
     ? moveViewerGroup(collection, position, 1, rememberedSlugByGroupRef.current)
     : null;
 
+  /**
+   * One work over, with the track's slide animation when it can run it.
+   * The track owns busy/endpoint decisions; there is deliberately no
+   * direct-navigate fallback here — a second command during the ~200ms
+   * commit window is dropped instead of double-stepping.
+   */
+  const slideWork = useCallback((direction: 1 | -1) => {
+    trackRef.current?.slide(direction);
+  }, []);
+
+  /** A completed track commit: the pool already rotated; land the position. */
+  const commitWork = useCallback(
+    (direction: 1 | -1) => {
+      navigate(
+        direction === 1 ? nextWork : previousWork,
+        null,
+      );
+    },
+    [navigate, nextWork, previousWork],
+  );
+
+  const commitGroup = useCallback(
+    (direction: 1 | -1) => {
+      navigate(
+        direction === 1 ? nextGroup : previousGroup,
+        direction === 1 ? "bottom" : "top",
+      );
+    },
+    [navigate, nextGroup, previousGroup],
+  );
+
+  const surfaceTap = useCallback(() => {
+    setGestureHint(false);
+    transportHandleRef.current?.surfaceTap();
+  }, []);
+
+  const pointerActivity = useCallback(() => {
+    transportHandleRef.current?.pointerActivity();
+  }, []);
+
   // Keep the active work visible in the thumbnail rail as navigation moves.
   useEffect(() => {
     if (!open || !position) return;
@@ -639,11 +600,12 @@ export function ReplicationViewerOverlay({
   const requestFullscreen = useCallback(() => {
     const content = contentRef.current;
     const tryWebkitFullscreen = () => {
-      // Only the active stage's video may own platform fullscreen — the
-      // standby panes park hidden preloading videos in the same dialog.
+      // Only the active pane's video may own platform fullscreen — the
+      // neighboring panes hold warmed pool elements in the same dialog, and
+      // a still's pooled element sits empty ([src] excludes it).
       const video =
         content?.querySelector<WebkitFullscreenVideo>(
-          "[data-replication-media-stage] video",
+          "[data-viewer-active-pane] video[src]",
         ) ?? null;
       if (!video?.webkitEnterFullscreen) return false;
       try {
@@ -713,16 +675,17 @@ export function ReplicationViewerOverlay({
         }
         return;
       }
+      if (event.key === "ArrowLeft" || event.key === "ArrowRight") {
+        event.preventDefault();
+        slideWork(event.key === "ArrowRight" ? 1 : -1);
+        return;
+      }
       const move =
-        event.key === "ArrowLeft"
-          ? ([previousWork, "left"] as const)
-          : event.key === "ArrowRight"
-            ? ([nextWork, "right"] as const)
-            : event.key === "ArrowUp"
-              ? ([previousGroup, "top"] as const)
-              : event.key === "ArrowDown"
-                ? ([nextGroup, "bottom"] as const)
-                : null;
+        event.key === "ArrowUp"
+          ? ([previousGroup, "top"] as const)
+          : event.key === "ArrowDown"
+            ? ([nextGroup, "bottom"] as const)
+            : null;
       if (!move || !move[0]) return;
       event.preventDefault();
       navigate(move[0], move[1]);
@@ -733,11 +696,10 @@ export function ReplicationViewerOverlay({
     infoOpen,
     navigate,
     nextGroup,
-    nextWork,
     open,
     previousGroup,
-    previousWork,
     requestFullscreen,
+    slideWork,
   ]);
 
   // First-open gesture onboarding: coarse-pointer readers learn the swipe
@@ -796,6 +758,25 @@ export function ReplicationViewerOverlay({
   // surfaces are being used, not watched through.
   const chromeHidden =
     !chromeVisible && !settingsOpen && !infoOpen && !editorOpen && !reorderMode;
+
+  // Rotate-to-fit geometry for the active media element inside the track:
+  // the element alone turns 90° and swaps its box to the stage's cross
+  // dimensions (container-query units resolve against the media region), so
+  // a landscape work fills the portrait screen edge-to-edge while chrome,
+  // gestures, and text stay upright. A work with no catalogued dimensions
+  // starts on a guessed aspect: hold it invisible (opacity only — decode
+  // and autoplay keep running) until its orientation settles.
+  const orientationPending = canRotate && rotateMode && !aspectSettled;
+  const activeMediaClassName = cn(
+    "transition-transform duration-200 motion-reduce:transition-none",
+    rotated
+      ? "left-1/2 top-1/2 h-[100cqw] w-[100cqh] max-w-none -translate-x-1/2 -translate-y-1/2 rotate-90"
+      : "inset-0 h-full w-full",
+    orientationPending && "opacity-0",
+  );
+  const activeQuality: SlideQuality =
+    hqSlug !== null && hqSlug === activeSlug ? "full" : "preview";
+  const positionKey = `${group.key}|${active.replication.slug}`;
 
   return (
     <Dialog
@@ -868,132 +849,11 @@ export function ReplicationViewerOverlay({
           }
           heading.focus({ preventScroll: true });
         }}
-        onTouchStart={(event) => {
+        onPointerDownCapture={() => {
+          // Any gesture in the dialog blesses the pooled elements while the
+          // user activation is live, and retires the onboarding chip.
           setGestureHint(false);
-          pendingCommitRef.current?.();
-          const target = event.target;
-          const interactiveTarget =
-            target instanceof Element
-              ? target.closest("button, a, input, select, textarea")
-              : null;
-          if (
-            !(target instanceof Element) ||
-            !target.closest("[data-replication-media-stage]") ||
-            (interactiveTarget &&
-              !target.closest("[data-replication-media-surface]"))
-          ) {
-            touchStartRef.current = null;
-            return;
-          }
-          const touch = event.changedTouches[0];
-          if (
-            touch.clientX <= SCREEN_EDGE_GUARD_PX ||
-            touch.clientX >= window.innerWidth - SCREEN_EDGE_GUARD_PX
-          ) {
-            touchStartRef.current = null;
-            return;
-          }
-          dragAxisRef.current = null;
-          touchStartRef.current = {
-            x: touch.clientX,
-            y: touch.clientY,
-            t: event.timeStamp,
-          };
-        }}
-        onTouchMove={(event) => {
-          const start = touchStartRef.current;
-          if (!start) return;
-          const touch = event.changedTouches[0];
-          const dx = touch.clientX - start.x;
-          const dy = touch.clientY - start.y;
-          if (!dragAxisRef.current) {
-            if (Math.max(Math.abs(dx), Math.abs(dy)) < DRAG_AXIS_LOCK_PX)
-              return;
-            dragAxisRef.current = Math.abs(dx) >= Math.abs(dy) ? "x" : "y";
-          }
-          if (dragAxisRef.current !== "x") return;
-          const pane = mediaPaneRef.current;
-          if (!pane) return;
-          // The stage follows the finger; endpoints resist instead of moving.
-          const bounded =
-            (dx > 0 && !previousWork) || (dx < 0 && !nextWork) ? dx / 3 : dx;
-          pane.style.transition = "none";
-          pane.style.transform = `translateX(${bounded}px)`;
-        }}
-        onTouchEnd={(event) => {
-          const start = touchStartRef.current;
-          touchStartRef.current = null;
-          const axis = dragAxisRef.current;
-          dragAxisRef.current = null;
-          if (!start) return;
-          const touch = event.changedTouches[0];
-          const dx = touch.clientX - start.x;
-          const dy = touch.clientY - start.y;
-          const snapBack = () => {
-            const pane = mediaPaneRef.current;
-            if (!pane?.style.transform) return;
-            pane.style.transition = prefersReducedMotion()
-              ? "none"
-              : "transform 200ms cubic-bezier(0.22, 1, 0.36, 1)";
-            pane.style.transform = "";
-          };
-          const horizontal =
-            axis === "x" || (axis === null && Math.abs(dx) >= Math.abs(dy));
-          if (horizontal) {
-            const elapsed = Math.max(1, event.timeStamp - start.t);
-            const flick =
-              Math.abs(dx) >= SWIPE_FLICK_MIN_PX &&
-              Math.abs(dx) / elapsed >= SWIPE_FLICK_VELOCITY_PX_PER_MS;
-            const target = dx > 0 ? previousWork : nextWork;
-            if ((Math.abs(dx) >= SWIPE_THRESHOLD_PX || flick) && target) {
-              event.preventDefault();
-              const pane = mediaPaneRef.current;
-              const width = pane?.clientWidth ?? 0;
-              if (!pane || width === 0 || prefersReducedMotion()) {
-                if (pane) {
-                  pane.style.transition = "none";
-                  pane.style.transform = "";
-                }
-                navigate(target, null);
-                return;
-              }
-              // Carry the drag through: the standby pane rides to center,
-              // then the state swap lands on the identical frame.
-              const finish = () => {
-                pendingCommitRef.current = null;
-                pane.style.transition = "none";
-                pane.style.transform = "";
-                navigate(target, null);
-              };
-              pendingCommitRef.current = finish;
-              pane.style.transition =
-                "transform 200ms cubic-bezier(0.22, 1, 0.36, 1)";
-              pane.style.transform = `translateX(${dx > 0 ? width : -width}px)`;
-              window.setTimeout(() => {
-                if (pendingCommitRef.current === finish) finish();
-              }, 210);
-              return;
-            }
-            snapBack();
-            return;
-          }
-          if (Math.abs(dy) < SWIPE_THRESHOLD_PX) return;
-          event.preventDefault();
-          navigate(
-            dy > 0 ? previousGroup : nextGroup,
-            dy > 0 ? "top" : "bottom",
-          );
-        }}
-        onTouchCancel={() => {
-          touchStartRef.current = null;
-          dragAxisRef.current = null;
-          const pane = mediaPaneRef.current;
-          if (pane?.style.transform) {
-            pane.style.transition = prefersReducedMotion()
-              ? "none"
-              : "transform 200ms cubic-bezier(0.22, 1, 0.36, 1)";
-            pane.style.transform = "";
-          }
+          trackRef.current?.blessPool();
         }}
         tabIndex={-1}
         className={VIEWER_DIALOG_CLASS}
@@ -1114,7 +974,7 @@ export function ReplicationViewerOverlay({
                   focusRingClassName,
                 )}
               >
-                <RotatingIcon rotated={stageRotated}>
+                <RotatingIcon rotated={rotated}>
                   <Icon icon="lucide:sliders-horizontal" className="size-5" />
                 </RotatingIcon>
               </button>
@@ -1142,7 +1002,7 @@ export function ReplicationViewerOverlay({
                         focusRingClassName,
                       )}
                     >
-                      <RotatingIcon rotated={stageRotated}>
+                      <RotatingIcon rotated={rotated}>
                         <span
                           aria-hidden
                           className="grid size-2 place-items-center rounded-full border border-current"
@@ -1204,69 +1064,64 @@ export function ReplicationViewerOverlay({
             aria-hidden={infoOpen || undefined}
             className="grid min-h-0 min-w-0 w-full grid-cols-[minmax(0,1fr)] grid-rows-[minmax(0,1fr)_auto] overflow-hidden"
           >
-            <div className="relative min-h-0 min-w-0 overflow-hidden">
-              <div
-                ref={mediaPaneRef}
-                data-replication-media-track
-                className="relative h-full w-full"
-              >
-                {previousWork ? (
-                  <StandbyPane
-                    key={`standby-${group.items[previousWork.itemIndex].replication.slug}`}
-                    item={group.items[previousWork.itemIndex]}
-                    side="left"
-                    warm={standbyWarm}
-                  />
-                ) : null}
-                <div ref={stagePaneRef} className="h-full w-full">
-                  <ReplicationMediaStage
-                    item={active}
-                    muted={muted}
-                    volume={volume}
-                    onMutedChange={handleMutedChange}
-                    onVolumeChange={setVolume}
-                    onPrevious={
-                      previousWork
-                        ? () => navigate(previousWork, "left")
-                        : undefined
-                    }
-                    onNext={
-                      nextWork ? () => navigate(nextWork, "right") : undefined
-                    }
-                    rotateMode={rotateMode}
-                    onRotateModeChange={handleRotateModeChange}
-                    onRotatedChange={setStageRotated}
-                    onTransportVisibleChange={setChromeVisible}
-                    onTransportHandle={handleTransportHandle}
-                    onInfo={openInfo}
-                    infoOpen={infoOpen}
-                    infoControls={infoPanelId}
-                    onFullscreen={requestFullscreen}
-                    fullscreenLabel={
-                      fullscreenSupported ? "Fullscreen" : "Immersive view"
-                    }
-                    previousLabel={
-                      previousWork
-                        ? `Previous: ${group.items[previousWork.itemIndex].replication.title}`
-                        : "First work"
-                    }
-                    nextLabel={
-                      nextWork
-                        ? `Next: ${group.items[nextWork.itemIndex].replication.title}`
-                        : "Final work"
-                    }
-                    className="min-h-0"
-                  />
-                </div>
-                {nextWork ? (
-                  <StandbyPane
-                    key={`standby-${group.items[nextWork.itemIndex].replication.slug}`}
-                    item={group.items[nextWork.itemIndex]}
-                    side="right"
-                    warm={standbyWarm}
-                  />
-                ) : null}
+            <div className="relative min-h-0 min-w-0 overflow-hidden bg-black [container-type:size]">
+              <div ref={trackPaneRef} className="h-full w-full">
+                <ViewerMediaTrack
+                  ref={trackRef}
+                  previousItem={
+                    previousWork ? group.items[previousWork.itemIndex] : null
+                  }
+                  activeItem={active}
+                  nextItem={nextWork ? group.items[nextWork.itemIndex] : null}
+                  positionKey={positionKey}
+                  activeQuality={activeQuality}
+                  autoplayAllowed
+                  activeMediaClassName={activeMediaClassName}
+                  onActiveVideoChange={setActiveVideo}
+                  onNavigateWork={commitWork}
+                  onNavigateGroup={commitGroup}
+                  onSurfaceTap={surfaceTap}
+                  onPointerActivity={pointerActivity}
+                  onProbeAspect={probeAspect}
+                  controlsVisible={chromeVisible}
+                />
               </div>
+              <ViewerTransport
+                item={active}
+                video={activeVideo}
+                muted={muted}
+                volume={volume}
+                onMutedChange={handleMutedChange}
+                onVolumeChange={setVolume}
+                quality={activeQuality}
+                onQualityChange={handleQualityChange}
+                onPrevious={previousWork ? () => slideWork(-1) : undefined}
+                onNext={nextWork ? () => slideWork(1) : undefined}
+                rotateMode={rotateMode}
+                onRotateModeChange={handleRotateModeChange}
+                canRotate={canRotate}
+                rotated={rotated}
+                mediaAspect={mediaAspect}
+                onTransportVisibleChange={setChromeVisible}
+                onTransportHandle={handleTransportHandle}
+                onInfo={openInfo}
+                infoOpen={infoOpen}
+                infoControls={infoPanelId}
+                onFullscreen={requestFullscreen}
+                fullscreenLabel={
+                  fullscreenSupported ? "Fullscreen" : "Immersive view"
+                }
+                previousLabel={
+                  previousWork
+                    ? `Previous: ${group.items[previousWork.itemIndex].replication.title}`
+                    : "First work"
+                }
+                nextLabel={
+                  nextWork
+                    ? `Next: ${group.items[nextWork.itemIndex].replication.title}`
+                    : "Final work"
+                }
+              />
               {gestureHint ? (
                 <div className="pointer-events-none absolute inset-0 z-30 grid place-items-center">
                   <div className="theme-media-tile-title pointer-events-auto flex flex-col items-center gap-3 rounded-2xl bg-black/65 px-6 py-4 backdrop-blur-sm animate-in fade-in-0 zoom-in-95 duration-300 motion-reduce:animate-none">
@@ -1350,7 +1205,7 @@ export function ReplicationViewerOverlay({
                     )}
                   >
                     {active.avatarUrl ? (
-                      <RotatingIcon rotated={stageRotated} className="shrink-0">
+                      <RotatingIcon rotated={rotated} className="shrink-0">
                         <AppImage
                           src={active.avatarUrl}
                           alt=""
@@ -1427,7 +1282,7 @@ export function ReplicationViewerOverlay({
                         >
                           {thumb ? (
                             <RotatingIcon
-                              rotated={stageRotated}
+                              rotated={rotated}
                               className="h-full w-full"
                             >
                               <AppImage
@@ -1440,7 +1295,7 @@ export function ReplicationViewerOverlay({
                             </RotatingIcon>
                           ) : (
                             <span className="theme-media-tile-creator grid h-full w-full place-items-center">
-                              <RotatingIcon rotated={stageRotated}>
+                              <RotatingIcon rotated={rotated}>
                                 <Icon
                                   icon="lucide:image-off"
                                   size={16}

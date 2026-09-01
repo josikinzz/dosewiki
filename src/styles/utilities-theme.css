@@ -3189,11 +3189,12 @@ html[data-theme="light"] .theme-footer-surface:not(.theme-chrome-dark) {
   }
 }
 
-/* The expanded stage owns its playback affordances: suppress WebKit's giant
+/* The expanded viewer owns its playback affordances: suppress WebKit's giant
      native start-playback glyph so a blocked video shows exactly one Play
-     control (iOS Safari paints it over autoplay-blocked video elements). */
-[data-replication-media-stage] video::-webkit-media-controls,
-[data-replication-media-stage]
+     control (iOS Safari paints it over autoplay-blocked video elements).
+     The pooled elements live in the track's panes. */
+[data-replication-media-track] video::-webkit-media-controls,
+[data-replication-media-track]
   video::-webkit-media-controls-start-playback-button {
   display: none !important;
   -webkit-appearance: none;
