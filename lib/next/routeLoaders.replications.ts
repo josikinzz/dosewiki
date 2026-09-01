@@ -4,7 +4,9 @@ import { cache } from "react";
 import {
   getPublicContributorProfiles,
   getPublicEffectBySlug,
+  getPublicReplicationIdentityAttribution,
   getPublicReplicationBySlug,
+  type PublicReplicationIdentityAttribution,
 } from "@server/convex/publicData";
 import {
   isPublishableReplication,
@@ -31,6 +33,7 @@ export interface ReplicationPageProps {
   effectName: string | null;
   effectSlug: string | null;
   artistProfileHref: string | null;
+  identityAttribution: PublicReplicationIdentityAttribution | null;
   effectCategories: EffectCategoryLink[];
 }
 
@@ -74,16 +77,25 @@ export const loadReplicationRoute = cache(
     const effectSlug = hasRealEffect(replication.effect_slug)
       ? replication.effect_slug
       : null;
-    const creator = hasKnownCreator(replication.artist)
+    const legacyCreator = hasKnownCreator(replication.artist)
       ? replication.artist.trim()
       : null;
-    const [effect, contributorProfiles] = await Promise.all([
+    const [effect, contributorProfiles, identityAttribution] = await Promise.all([
       effectSlug ? getPublicEffectBySlug(effectSlug) : Promise.resolve(null),
-      creator ? getPublicContributorProfiles() : Promise.resolve([]),
+      legacyCreator ? getPublicContributorProfiles() : Promise.resolve([]),
+      getPublicReplicationIdentityAttribution(replication._id),
     ]);
-    const artistProfile = creator
-      ? findContributorProfileByAuthorName(contributorProfiles, creator)
+    const creator = identityAttribution?.creator.display_name.trim() || legacyCreator;
+    const identityProfile = identityAttribution?.creator.profile_key
+      ? contributorProfiles.find(
+          (profile) => profile.key === identityAttribution.creator.profile_key,
+        ) ?? null
       : null;
+    const artistProfile =
+      identityProfile ??
+      (creator
+        ? findContributorProfileByAuthorName(contributorProfiles, creator)
+        : null);
     const subject = effect?.name ?? null;
 
     return {
@@ -93,13 +105,16 @@ export const loadReplicationRoute = cache(
         effectName: subject,
         effectSlug,
         artistProfileHref:
-          artistPageHrefForWork(replication) ??
+          (identityAttribution?.proven_different_creator
+            ? null
+            : artistPageHrefForWork(replication)) ??
           (artistProfile
             ? getPublicRoutePath({
                 family: "contributor",
                 params: { profileKey: artistProfile.key },
               })
             : null),
+        identityAttribution,
         effectCategories: effect ? resolveEffectCategories(effect.tags) : [],
       },
       metadata: toRouteMetadata({

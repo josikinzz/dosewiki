@@ -39,7 +39,7 @@ export async function generateMetadata({ params }: ContributorPageProps) {
     route: result.canonicalRoute,
     socialImage: entitySocialCardImage(
       "contributors",
-      profileKey,
+      result.socialCardProfileKey,
       `${result.metadata.title} contributor profile card`,
     ),
   });

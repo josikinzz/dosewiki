@@ -102,4 +102,11 @@ export {
 
 export { getPublicAboutData } from "./publicData.about";
 
+export {
+  getPublicContributorIdentity,
+  getPublicReplicationIdentityAttribution,
+  type PublicContributorIdentity,
+  type PublicReplicationIdentityAttribution,
+} from "./publicData.identitySocial";
+
 export { getIndexLayoutByType, getPublicDataOverview } from "./publicData.layouts";

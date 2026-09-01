@@ -45,6 +45,27 @@ describe("contributor and replication route loaders", () => {
     expect(result.pageProps.replications).toEqual([]);
   });
 
+  it("uses only a verified delivered avatar and reviewed verification outcome", async () => {
+    publicData.getPublicContributorByKey.mockResolvedValueOnce(
+      buildContributorProfile({ avatarUrl: "https://cdn.test/fallback.webp" }),
+    );
+    publicData.getReportsByContributor.mockResolvedValueOnce([]);
+    publicData.getReplicationsByContributor.mockResolvedValueOnce([]);
+    publicData.getPublicContributorIdentity.mockResolvedValueOnce({
+      canonical_key: "ADA",
+      aliases: ["old-ada"],
+      avatar_url: "https://cdn.test/verified.webp",
+      verified_replicator: true,
+    });
+
+    const result = await loadContributorRoute("ada");
+    if (result.kind !== "ok") throw new Error("expected ok result");
+    expect(result.pageProps.profile.avatarUrl).toBe(
+      "https://cdn.test/verified.webp",
+    );
+    expect(result.pageProps.verifiedReplicator).toBe(true);
+  });
+
   it("orders a contributor's replications newest first", async () => {
     publicData.getPublicContributorByKey.mockResolvedValueOnce(
       buildContributorProfile(),
@@ -245,6 +266,7 @@ describe("contributor and replication route loaders", () => {
       kind: "redirect",
       target: "/contributors/ada",
       canonicalRoute: { family: "contributor", params: { profileKey: "ADA" } },
+      socialCardProfileKey: "ADA",
     });
     expect(publicData.getReportsByContributor).not.toHaveBeenCalled();
     expect(publicData.getReplicationsByContributor).not.toHaveBeenCalled();
@@ -268,6 +290,7 @@ describe("contributor and replication route loaders", () => {
       kind: "redirect",
       target: "/replications/artist/ada",
       canonicalRoute: { family: "replicationArtist", params: { key: "ada" } },
+      socialCardProfileKey: "ADA",
     });
     // A forwarded profile is not a page; none of its joins may run.
     expect(publicData.getReportsByContributor).not.toHaveBeenCalled();
@@ -290,6 +313,7 @@ describe("contributor and replication route loaders", () => {
     await expect(loadContributorRoute("old-key")).resolves.toMatchObject({
       kind: "redirect",
       target: "/replications/artist/ada",
+      socialCardProfileKey: "ADA",
     });
   });
 
@@ -357,6 +381,38 @@ describe("contributor and replication route loaders", () => {
     ).toEqual(["visual-effects", "visual-distortions"]);
     expect(publicData.getPublicReplicationsByEffect).not.toHaveBeenCalled();
     expect(publicData.getReplicationsByContributor).not.toHaveBeenCalled();
+  });
+
+  it("uses a proven creator for the byline while preserving poster provenance", async () => {
+    publicData.getPublicReplicationBySlug.mockResolvedValueOnce(
+      buildReplication({ slug: "shared", artist: "ArchivePoster" }),
+    );
+    publicData.getPublicEffectBySlug.mockResolvedValueOnce(null);
+    publicData.getPublicContributorProfiles.mockResolvedValueOnce([
+      buildContributorProfile({ key: "CREATOR", displayName: "Documented Creator" }),
+    ]);
+    publicData.getPublicReplicationIdentityAttribution.mockResolvedValueOnce({
+      poster: {
+        display_name: "ArchivePoster",
+        profile_key: null,
+        profile_url: "https://reddit.com/user/ArchivePoster",
+        platform: "Reddit",
+        posted_at: Date.UTC(2025, 0, 1),
+      },
+      creator: {
+        display_name: "Documented Creator",
+        profile_key: "CREATOR",
+      },
+      proven_different_creator: true,
+    });
+
+    const result = await loadReplicationRoute("shared");
+    if (result.kind !== "ok") throw new Error("expected ok result");
+    expect(result.metadata.title).toBe("Base by Documented Creator");
+    expect(result.pageProps.artistProfileHref).toBe("/contributors/creator");
+    expect(result.pageProps.identityAttribution?.poster.display_name).toBe(
+      "ArchivePoster",
+    );
   });
 
   it("gives a figure no permalink, so nothing calls a diagram a replication", async () => {

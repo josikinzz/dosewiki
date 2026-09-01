@@ -23,6 +23,18 @@ import { replicationDateResearch } from "./lib/replicationDateValidators";
 import { replicationSourceAttribution } from "./lib/replicationAttributionValidators";
 import { replicationDuplicateReconciliation } from "./lib/replicationDuplicateValidators";
 import {
+  contributorAliasEvidenceValidator,
+  contributorAvatarHistoryValidator,
+  contributorReplicatorVerificationValidator,
+  contributorIdentityTokenSnapshotValidator,
+  contributorIdentitySnapshotMaterializationValidator,
+  replicationIdentityAttributionValidator,
+  replicationIdentityProfileBindingValidator,
+  replicationIdentitySocialOperationValidator,
+  replicationIdentitySocialOperationItemValidator,
+  replicationSocialAssetValidator,
+} from "./lib/replicationIdentitySocialValidators";
+import {
   replicationArtistTaxonomy,
   replicationTaxonomyEvidence,
 } from "./lib/replicationTaxonomyValidators";
@@ -93,6 +105,10 @@ const contributorProfile = v.object({
   avatarStorageId: v.optional(v.string()),
   avatarR2Key: v.optional(v.string()),
   avatarUrl: v.optional(v.string()),
+  // Immutable-current avatar identity used by the reviewed identity/social
+  // projection's exact expected-before CAS. Optional for legacy profiles.
+  avatarSha256: v.optional(v.string()),
+  avatarProvenance: v.optional(v.string()),
   bio: v.string(),
   // Free-text contributor title shown on the public profile ("Founder",
   // "Former Dev", "Replication Artist"). Carried over from the Effect Index
@@ -307,6 +323,53 @@ export default defineSchema({
     .index("by_replication_id", ["replication_id"])
     .index("by_source_catalog_id", ["source_catalog_id"])
     .index("by_source_sha256", ["source_sha256"]),
+
+  // Additive identity/social projection. These records stay separate from the
+  // hot gallery row so legacy replications remain valid and cheap to paginate.
+  replicationIdentityAttributions: defineTable(replicationIdentityAttributionValidator)
+    .index("by_replication_id", ["replication_id"])
+    .index("by_poster_profile_id", ["poster_profile_id"])
+    .index("by_creator_profile_id", ["creator_profile_id"]),
+
+  contributorAliasEvidence: defineTable(contributorAliasEvidenceValidator)
+    .index("by_profile_id", ["profile_id"])
+    .index("by_profile_id_and_normalized_alias", ["profile_id", "normalized_alias"])
+    .index("by_normalized_alias", ["normalized_alias"]),
+
+  // Precomputed complete identity snapshots let alias CAS remain exact without
+  // scanning thousands of contributor profiles inside one mutation.
+  contributorIdentityTokenSnapshots: defineTable(contributorIdentityTokenSnapshotValidator)
+    .index("by_snapshot_digest_and_normalized_token", ["snapshot_digest", "normalized_token"]),
+
+  contributorIdentitySnapshotMaterializations: defineTable(contributorIdentitySnapshotMaterializationValidator)
+    .index("by_snapshot_digest", ["snapshot_digest"])
+    .index("by_operation_id", ["operation_id"]),
+
+  contributorAvatarHistory: defineTable(contributorAvatarHistoryValidator)
+    .index("by_profile_id", ["profile_id"])
+    .index("by_profile_id_and_recorded_at", ["profile_id", "recorded_at"])
+    .index("by_profile_id_and_media_digest", ["profile_id", "media_digest"]),
+
+  contributorReplicatorVerifications: defineTable(contributorReplicatorVerificationValidator)
+    .index("by_profile_id", ["profile_id"])
+    .index("by_status", ["status"]),
+
+  replicationSocialAssets: defineTable(replicationSocialAssetValidator)
+    .index("by_entity_kind_and_entity_key", ["entity_kind", "entity_key"])
+    .index("by_entity_kind_and_entity_key_and_variant", ["entity_kind", "entity_key", "variant"])
+    .index("by_status", ["status"]),
+
+  replicationIdentitySocialOperations: defineTable(replicationIdentitySocialOperationValidator)
+    .index("by_operation_id", ["operation_id"])
+    .index("by_kind_and_created_at", ["kind", "created_at"]),
+
+  replicationIdentitySocialOperationItems: defineTable(replicationIdentitySocialOperationItemValidator)
+    .index("by_item_operation_id", ["item_operation_id"])
+    .index("by_batch_operation_id", ["batch_operation_id"]),
+
+  replicationIdentityProfileBindings: defineTable(replicationIdentityProfileBindingValidator)
+    .index("by_artist_id", ["artist_id"])
+    .index("by_profile_id", ["profile_id"]),
 
   // Reversible, evidence-bound consolidation records for same-work duplicates.
   // Media and source rows remain intact; only one replication stays public.

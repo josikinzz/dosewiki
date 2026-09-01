@@ -127,6 +127,8 @@
     "replications:regenerate-substance-galleries": "node scripts/replications/regenerate-substance-galleries.mjs",
     "replications:regenerate-thumbnails": "node scripts/replications/regenerate-missing-thumbnails.mjs",
     "replications:generate-gif-motion": "node scripts/replications/generate-gif-motion-renditions.mjs",
+    "replications:identity-social:execute": "node scripts/replications/identity-social/executor.mjs",
+    "test:replications:identity-social": "node --test scripts/replications/identity-social/*.test.mjs",
     "convex:check-functions": "node scripts/convex/check-function-drift.mjs",
     "convex:deploy": "node scripts/deploy/convex-deploy.mjs",
     "convex:sync-production": "node scripts/convex/sync-convex-to-production.mjs",

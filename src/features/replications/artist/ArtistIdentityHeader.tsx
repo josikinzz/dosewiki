@@ -18,6 +18,7 @@ export interface ArtistIdentityHeaderProps {
    */
   attributed: boolean;
   avatarUrl?: string | null;
+  verifiedReplicator?: boolean;
   role?: string | null;
   /** Already-rendered bio markdown; null renders no prose. */
   bio?: ReactNode;
@@ -38,6 +39,7 @@ export function ArtistIdentityHeader({
   browseAllHref,
   attributed,
   avatarUrl,
+  verifiedReplicator = false,
   role,
   bio,
   links,
@@ -94,6 +96,16 @@ export function ArtistIdentityHeader({
             ) : null}
             {formatArtistWorksLine(counts)}
           </p>
+          {verifiedReplicator ? (
+            <PublicPill
+              tone="accent"
+              icon="lucide:badge-check"
+              data-testid="verified-replicator-badge"
+              className="mt-2"
+            >
+              Verified replicator
+            </PublicPill>
+          ) : null}
         </div>
       </div>
 

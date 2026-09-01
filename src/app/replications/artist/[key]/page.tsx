@@ -29,6 +29,7 @@ import type { ContributorDirectory } from "@server/contributorDirectory";
 import type { PublicGalleryReplicationPreview } from "@/types/replications";
 import {
   getPublicContributorByKey,
+  getPublicContributorIdentity,
   getPublicContributorDirectory,
   getPublicEffects,
   getPublicGalleryReplications,
@@ -175,10 +176,13 @@ export default async function ReplicationArtistPage({
   const profile = profileKey
     ? await getPublicContributorByKey(profileKey)
     : null;
+  const identity = profile
+    ? await getPublicContributorIdentity(profile.key)
+    : null;
 
   const attributed = focus.group.key !== UNATTRIBUTED_KEY;
   const effectName = effectNameLookup(effects);
-  const avatarUrl = profile?.avatarUrl ?? null;
+  const avatarUrl = identity?.avatar_url ?? profile?.avatarUrl ?? null;
   const sourcePath = getPublicRoutePath({
     family: "replicationArtist",
     params: { key },
@@ -228,6 +232,7 @@ export default async function ReplicationArtistPage({
           browseAllHref={buildGalleryBrowseUrl({ view: "artist" })}
           attributed={attributed}
           avatarUrl={avatarUrl}
+          verifiedReplicator={identity?.verified_replicator === true}
           role={profile?.role}
           bio={
             profile?.hasCustomBio ? (

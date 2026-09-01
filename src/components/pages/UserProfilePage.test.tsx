@@ -33,6 +33,18 @@ const work: GalleryReplication = {
 };
 
 describe("UserProfilePage", () => {
+  it("renders the reviewed verified-replicator badge only for a verified profile", () => {
+    const { rerender } = render(
+      <UserProfilePage profile={profile} history={[]} verifiedReplicator />,
+    );
+    expect(screen.getByTestId("verified-replicator-badge")).toHaveTextContent(
+      "Verified replicator",
+    );
+
+    rerender(<UserProfilePage profile={profile} history={[]} />);
+    expect(screen.queryByTestId("verified-replicator-badge")).toBeNull();
+  });
+
   it("renders the works rail for a contributor with replications", () => {
     render(<UserProfilePage profile={profile} history={[]} replications={[work]} />);
 

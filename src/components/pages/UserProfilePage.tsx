@@ -49,6 +49,8 @@ interface UserProfilePageProps {
   bioContent?: ReactNode;
   /** Staff "Editor's note" under the bio. Absent renders nothing. */
   editorNote?: UserProfileEditorNote | null;
+  /** Reviewed identity-sheet outcome; absent/false renders no claim. */
+  verifiedReplicator?: boolean;
 }
 
 export function UserProfilePage({
@@ -61,6 +63,7 @@ export function UserProfilePage({
   reportHrefPrefix,
   bioContent,
   editorNote = null,
+  verifiedReplicator = false,
 }: UserProfilePageProps) {
   const hasLinks = profile.links.length > 0;
   const hasBio = profile.hasCustomBio;
@@ -128,6 +131,16 @@ export function UserProfilePage({
               <span className="theme-text-secondary text-[0.8125rem] font-normal normal-case tracking-normal">
                 — maintained by staff, not created by this person.
               </span>
+            </PublicPill>
+          ) : null}
+
+          {verifiedReplicator ? (
+            <PublicPill
+              tone="accent"
+              icon="lucide:badge-check"
+              data-testid="verified-replicator-badge"
+            >
+              Verified replicator
             </PublicPill>
           ) : null}
 

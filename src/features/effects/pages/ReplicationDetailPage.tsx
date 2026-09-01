@@ -22,6 +22,7 @@ import {
 } from "@/features/effects/components/replicationCredit";
 import { buildReplicationViewerUrl } from "@/features/replications/galleryUrlState";
 import type { ReplicationWithUrl } from "@/types/replications";
+import type { PublicReplicationIdentityAttribution } from "@server/convex/publicData";
 import { publicHref } from "@/utils/publicHref";
 import { buildAttributionLine } from "./replicationAttribution";
 import type { EffectCategoryLink } from "./replicationSubject";
@@ -31,6 +32,7 @@ export interface ReplicationDetailPageProps {
   effectName: string | null;
   effectSlug: string | null;
   artistProfileHref: string | null;
+  identityAttribution?: PublicReplicationIdentityAttribution | null;
   effectCategories: EffectCategoryLink[];
 }
 
@@ -65,6 +67,7 @@ export function ReplicationDetailPage({
   effectName,
   effectSlug,
   artistProfileHref,
+  identityAttribution = null,
   effectCategories,
 }: ReplicationDetailPageProps) {
   const collectionPath = effectSlug
@@ -76,7 +79,10 @@ export function ReplicationDetailPage({
   );
   const isVideo = replication.type === "video";
   const previewSource = isVideo ? replication.thumbnail_url : replication.url;
-  const artistName = replication.artist?.trim() || "Unattributed";
+  const artistName =
+    identityAttribution?.creator.display_name.trim() ||
+    replication.artist?.trim() ||
+    "Unattributed";
   const sourceUrl = getExternalSourceUrl(replication);
   const attribution = buildAttributionLine(replication);
   const fileSize = formatFileSize(replication.file_size);
@@ -237,9 +243,53 @@ export function ReplicationDetailPage({
         </h2>
 
         <DefinitionList className="mt-3 divide-y divide-dose-border">
-          {/* No Creator row: the byline under the title is the credit's one
-              home. The rights holder is a legal claim rather than a byline,
-              so it keeps its own row when the record carries one. */}
+          {identityAttribution ? (
+            <DefinitionRow
+              semantic
+              term="Posted by"
+              termClassName={termClassName}
+              bodyClassName={bodyClassName}
+            >
+              {identityAttribution.poster.profile_url ? (
+                <a
+                  href={identityAttribution.poster.profile_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className={proseLinkClassName}
+                >
+                  {identityAttribution.poster.display_name}
+                </a>
+              ) : (
+                identityAttribution.poster.display_name
+              )}
+              {identityAttribution.poster.platform
+                ? ` on ${identityAttribution.poster.platform}`
+                : null}
+            </DefinitionRow>
+          ) : null}
+
+          {/* A separate creator row is an exceptional evidence-backed claim.
+              Unresolved reviews collapse to poster-as-creator upstream and
+              therefore cannot imply that this post is a repost. */}
+          {identityAttribution?.proven_different_creator ? (
+            <DefinitionRow
+              semantic
+              term="Creator"
+              termClassName={termClassName}
+              bodyClassName={bodyClassName}
+            >
+              {artistProfileHref ? (
+                <Link href={artistProfileHref} className={proseLinkClassName}>
+                  {identityAttribution.creator.display_name}
+                </Link>
+              ) : (
+                identityAttribution.creator.display_name
+              )}
+            </DefinitionRow>
+          ) : null}
+
+          {/* The rights holder is a legal claim rather than a byline, so it
+              keeps its own row when the record carries one. */}
           {replication.rightsholder ? (
             <DefinitionRow
               semantic

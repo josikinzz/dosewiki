@@ -3,6 +3,7 @@ import "server-only";
 import { cache, type ReactNode } from "react";
 import {
   getEffectArticlesByContributor,
+  getPublicContributorIdentity,
   getPublicContributorByKey,
   getPublicContributorDirectory,
   getPublicGalleryReplications,
@@ -47,15 +48,21 @@ export interface ContributorRoutePageProps {
   reviewedArticles: ContributorReviewedArticle[];
   /** Staff "Editor's note" under the bio; null renders nothing. */
   editorNote: UserProfileEditorNote | null;
+  verifiedReplicator: boolean;
 }
 
 export type ContributorRouteResult =
-  | OkRouteResult<ContributorRoutePageProps>
+  | (OkRouteResult<ContributorRoutePageProps> & {
+      /** Canonical key used by build-generated contributor assets. */
+      socialCardProfileKey: string;
+    })
   | {
       kind: "redirect";
       target: string;
       metadata: RouteMetadataSource;
       canonicalRoute: PublicRouteIdentity;
+      /** Canonical key used by build-generated contributor assets. */
+      socialCardProfileKey: string;
     }
   | { kind: "not-found"; normalizedKey: string };
 
@@ -104,6 +111,7 @@ export const loadContributorRoute = cache(
         target: getPublicRoutePath(artistRoute),
         metadata,
         canonicalRoute: artistRoute,
+        socialCardProfileKey: profile.key,
       };
     }
 
@@ -113,6 +121,7 @@ export const loadContributorRoute = cache(
         target: getPublicRoutePath(canonicalRoute),
         metadata,
         canonicalRoute,
+        socialCardProfileKey: profile.key,
       };
     }
 
@@ -125,7 +134,7 @@ export const loadContributorRoute = cache(
     // contributor's reports, works and article credits can never disagree about
     // which credits are theirs. The reviewed-articles read is key-only: the
     // reviewer-email matching stays inside Convex.
-    const [reports, replications, effectArticles, reviewedArticles, history, staffNoteSigner] =
+    const [reports, replications, effectArticles, reviewedArticles, history, staffNoteSigner, identity] =
       await Promise.all([
         getReportsByContributor(profile),
         readContributorReplications(profile),
@@ -133,6 +142,7 @@ export const loadContributorRoute = cache(
         getReviewedArticlesByContributor(profile.key),
         getPublicProfileHistory(profile),
         staffNote ? getPublicContributorByKey("JOSIE") : Promise.resolve(null),
+        getPublicContributorIdentity(profile.key),
       ]);
 
     const signerArtistKey = staffNoteSigner
@@ -141,8 +151,14 @@ export const loadContributorRoute = cache(
 
     return {
       kind: "ok",
+      socialCardProfileKey: profile.key,
       pageProps: {
-        profile,
+        profile: {
+          ...profile,
+          // A verified delivered campaign avatar takes precedence. The
+          // established contributor profile avatar remains the fallback.
+          avatarUrl: identity?.avatar_url ?? profile.avatarUrl,
+        },
         history,
         bioContent: profile.hasCustomBio ? <ProfileBioMarkdown content={profile.bio} /> : null,
         reportHrefPrefix: REPORT_HREF_PREFIX,
@@ -189,6 +205,7 @@ export const loadContributorRoute = cache(
                 : null,
             }
           : null,
+        verifiedReplicator: identity?.verified_replicator === true,
       },
       metadata,
       canonicalRoute,

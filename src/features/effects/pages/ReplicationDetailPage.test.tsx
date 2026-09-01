@@ -165,6 +165,53 @@ describe("ReplicationDetailPage", () => {
     expect(screen.getByText("Effect Index")).toBeInTheDocument();
   });
 
+  it("shows poster provenance without implying an unresolved repost", () => {
+    render(
+      <ReplicationDetailPage
+        {...props}
+        identityAttribution={{
+          poster: {
+            display_name: "ChelseaPoster",
+            profile_key: "CHELSEA",
+            profile_url: "https://reddit.com/user/ChelseaPoster",
+            platform: "Reddit",
+            posted_at: Date.UTC(2025, 0, 1),
+          },
+          creator: { display_name: "ChelseaPoster", profile_key: "CHELSEA" },
+          proven_different_creator: false,
+        }}
+      />,
+    );
+
+    expect(screen.getByText("Posted by")).toBeInTheDocument();
+    expect(screen.getAllByText("ChelseaPoster")).toHaveLength(2);
+    expect(screen.queryByText("Creator")).toBeNull();
+    expect(screen.queryByText(/repost/i)).toBeNull();
+  });
+
+  it("separates a proven creator from the poster", () => {
+    render(
+      <ReplicationDetailPage
+        {...props}
+        identityAttribution={{
+          poster: {
+            display_name: "ArchivePoster",
+            profile_key: null,
+            profile_url: null,
+            platform: "Reddit",
+            posted_at: Date.UTC(2025, 0, 1),
+          },
+          creator: { display_name: "Documented Creator", profile_key: "CREATOR" },
+          proven_different_creator: true,
+        }}
+      />,
+    );
+
+    expect(screen.getByText("Posted by")).toBeInTheDocument();
+    expect(screen.getByText("Creator")).toBeInTheDocument();
+    expect(screen.getAllByText("Documented Creator")).toHaveLength(2);
+  });
+
   it("labels an external source by host while linking the full URL", () => {
     render(
       <ReplicationDetailPage
