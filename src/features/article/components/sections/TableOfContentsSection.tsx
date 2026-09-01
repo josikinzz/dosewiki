@@ -57,7 +57,7 @@ export const TableOfContentsSection = memo(function TableOfContentsSection({
   const isLoadingReagentData = hasServerResolvedData ? false : isLoadingClientData;
   const hasCachedReagentData = hasDisplayableReagentData(reagentData);
 
-  const presentItems: PublicTableOfContentsItem[] = getPublicTocSectionEntries().filter((item) =>
+  const articleItems: PublicTableOfContentsItem[] = getPublicTocSectionEntries().filter((item) =>
     // Editorial sections render a gap notice when empty rather than disappearing,
     // so they always have an anchor to link to.
     ALWAYS_RENDERED_PUBLIC_SECTION_IDS.includes(item.id) ||
@@ -73,6 +73,12 @@ export const TableOfContentsSection = memo(function TableOfContentsSection({
       icon: item.icon,
     }),
   );
+  const presentItems: PublicTableOfContentsItem[] = [
+    { id: "introduction", label: "Introduction", icon: "lucide:file-text" },
+    ...articleItems,
+    { id: "article-status", label: "Article Status", icon: "lucide:shield-check" },
+    { id: "feedback", label: "Feedback", icon: "lucide:message-square-plus" },
+  ];
 
   if (presentItems.length === 0) {
     return null;

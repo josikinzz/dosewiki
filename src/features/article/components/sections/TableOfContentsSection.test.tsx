@@ -74,6 +74,18 @@ describe("TableOfContentsSection", () => {
     );
   });
 
+  it("frames article content with introduction, status, and feedback links", () => {
+    render(<TableOfContentsSection article={createEmptyArticle()} />);
+
+    const links = screen.getAllByRole("link");
+    expect(links[0]).toHaveTextContent("Introduction");
+    expect(links[0]).toHaveAttribute("href", "#introduction");
+    expect(links[links.length - 2]).toHaveTextContent("Article Status");
+    expect(links[links.length - 2]).toHaveAttribute("href", "#article-status");
+    expect(links[links.length - 1]).toHaveTextContent("Feedback");
+    expect(links[links.length - 1]).toHaveAttribute("href", "#feedback");
+  });
+
   it("shows reagent testing when ProtestKit data exists even without static reagent data", () => {
     mockedUseReagentData.mockReturnValue({
       data: {
