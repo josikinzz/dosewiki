@@ -84,6 +84,12 @@ export function buildVerificationPlan(manifest, deliveryBase = DEFAULT_CDN_BASE,
         slug: entry.slug,
         pageUrl: `${host}/${routeFamily}/${encodeURIComponent(entry.slug)}`,
         canonicalUrl: `${host}/${routeFamily}/${encodeURIComponent(entry.slug)}`,
+        // A contributor profile that claims a displayed replication credit has
+        // one public surface: /contributors/<key> permanently forwards to its
+        // /replications/artist/<key> page. The followed response is therefore
+        // authoritative for the canonical URL, while profiles without a
+        // claimed artist collection remain canonical at /contributors/<key>.
+        canonicalBehavior: entry.category === "contributors" ? "follow-profile-redirect" : "exact",
         expectedImageUrl: entry.url,
       });
     }
@@ -163,6 +169,22 @@ export function extractPageMetadata(html) {
   return { ogImage, twitterImage, canonical };
 }
 
+/**
+ * Next.js emits a client-visible refresh marker when a permanentRedirect is
+ * discovered after metadata has streamed. Production currently serves that
+ * shell as HTTP 200, so fetch's response.url alone cannot reveal the intended
+ * destination even with redirect: "follow".
+ */
+export function extractNextPageRedirect(html) {
+  for (const tag of html.match(/<meta\b[^>]*>/gi) ?? []) {
+    const attributes = parseAttributes(tag);
+    if (attributes["http-equiv"]?.toLowerCase() !== "refresh") continue;
+    const match = /^\s*\d+(?:\.\d+)?\s*;\s*url\s*=\s*(.+?)\s*$/i.exec(attributes.content ?? "");
+    if (match) return match[1].replace(/^(['"])(.*)\1$/, "$2");
+  }
+  return null;
+}
+
 export async function verifyRoute(fetchImpl, route) {
   const separator = route.pageUrl.includes("?") ? "&" : "?";
   const response = await fetchImpl(`${route.pageUrl}${separator}social-card-verify=1`, {
@@ -171,8 +193,26 @@ export async function verifyRoute(fetchImpl, route) {
     signal: AbortSignal.timeout(60_000),
   });
   if (response.status !== 200) throw new Error(`${route.pageUrl}: HTTP ${response.status}`);
-  const metadata = extractPageMetadata(await response.text());
-  if (metadata.canonical !== route.canonicalUrl) throw new Error(`${route.pageUrl}: canonical ${metadata.canonical} != ${route.canonicalUrl}`);
+  const html = await response.text();
+  const metadata = extractPageMetadata(html);
+  let expectedCanonicalUrl = route.canonicalUrl;
+  if (route.canonicalBehavior === "follow-profile-redirect") {
+    const nextPageRedirect = extractNextPageRedirect(html);
+    const resolved = new URL(nextPageRedirect || response.url || route.pageUrl, route.pageUrl);
+    resolved.search = "";
+    resolved.hash = "";
+    if (resolved.origin !== route.host) {
+      throw new Error(`${route.pageUrl}: contributor redirect escaped ${route.host}: ${resolved.toString()}`);
+    }
+    const requestedPath = new URL(route.canonicalUrl).pathname;
+    const isContributorPage = resolved.pathname === requestedPath;
+    const isMergedArtistPage = resolved.pathname.startsWith("/replications/artist/");
+    if (!isContributorPage && !isMergedArtistPage) {
+      throw new Error(`${route.pageUrl}: unexpected contributor destination ${resolved.toString()}`);
+    }
+    expectedCanonicalUrl = resolved.toString();
+  }
+  if (metadata.canonical !== expectedCanonicalUrl) throw new Error(`${route.pageUrl}: canonical ${metadata.canonical} != ${expectedCanonicalUrl}`);
   if (metadata.ogImage !== route.expectedImageUrl) throw new Error(`${route.pageUrl}: og:image ${metadata.ogImage} != ${route.expectedImageUrl}`);
   if (metadata.twitterImage !== route.expectedImageUrl) throw new Error(`${route.pageUrl}: twitter:image ${metadata.twitterImage} != ${route.expectedImageUrl}`);
   return metadata;

@@ -3,6 +3,7 @@ import { describe, it } from "node:test";
 import {
   buildVerificationPlan,
   extractPageMetadata,
+  extractNextPageRedirect,
   parseImmutableCardUrl,
   verifyObject,
   verifyRoute,
@@ -37,6 +38,14 @@ describe("exhaustive social-card delivery verification", () => {
     assert.equal(plan.objects.length, 1);
     assert.equal(plan.routes.length, 4);
     assert.deepEqual(new Set(plan.routes.map((route) => route.host)), new Set(["https://dose.wiki", "https://effectindex.com"]));
+    assert.equal(
+      plan.routes.find((route) => route.category === "replications").canonicalBehavior,
+      "exact",
+    );
+    assert.equal(
+      plan.routes.find((route) => route.category === "contributors").canonicalBehavior,
+      "follow-profile-redirect",
+    );
   });
 
   it("hashes delivered bytes and enforces immutable response headers", async () => {
@@ -96,6 +105,69 @@ describe("exhaustive social-card delivery verification", () => {
     assert.deepEqual(await verifyRoute(async () => new Response(html, { status: 200 }), route), { ogImage: cardUrl, twitterImage: cardUrl, canonical: route.canonicalUrl });
     const fallback = html.replaceAll(cardUrl, "https://effectindex.com/effectindex/social-card.png");
     await assert.rejects(verifyRoute(async () => new Response(fallback, { status: 200 }), route), /og:image/);
+  });
+
+  it("accepts the intentional contributor-to-artist canonical after following the redirect", async () => {
+    const canonical = "https://dose.wiki/replications/artist/013a";
+    const html = `<html><head>
+      <meta property="og:image" content="${cardUrl}">
+      <meta name="twitter:image" content="${cardUrl}">
+      <link rel="canonical" href="${canonical}">
+      <meta id="__next-page-redirect" http-equiv="refresh" content="0;url=/replications/artist/013a">
+    </head></html>`;
+    const route = {
+      host: "https://dose.wiki",
+      category: "contributors",
+      pageUrl: "https://dose.wiki/contributors/013a",
+      canonicalUrl: "https://dose.wiki/contributors/013a",
+      canonicalBehavior: "follow-profile-redirect",
+      expectedImageUrl: cardUrl,
+    };
+    const response = {
+      status: 200,
+      // This matches the live Next.js behavior: the response stays HTTP 200
+      // at the contributor URL and exposes the 308 destination in HTML.
+      url: `${route.pageUrl}?social-card-verify=1`,
+      text: async () => html,
+    };
+
+    assert.equal(extractNextPageRedirect(html), "/replications/artist/013a");
+    assert.deepEqual(await verifyRoute(async () => response, route), {
+      ogImage: cardUrl,
+      twitterImage: cardUrl,
+      canonical,
+    });
+
+    const wrongCanonical = html.replace(canonical, "https://dose.wiki/replications/artist/someone-else");
+    await assert.rejects(
+      verifyRoute(async () => ({ ...response, text: async () => wrongCanonical }), route),
+      /canonical/,
+    );
+  });
+
+  it("still accepts a contributor whose profile does not redirect", async () => {
+    const canonical = "https://effectindex.com/contributors/reviewer";
+    const html = `<html><head>
+      <meta property="og:image" content="${cardUrl}">
+      <meta name="twitter:image" content="${cardUrl}">
+      <link rel="canonical" href="${canonical}">
+    </head></html>`;
+    const route = {
+      host: "https://effectindex.com",
+      category: "contributors",
+      pageUrl: canonical,
+      canonicalUrl: canonical,
+      canonicalBehavior: "follow-profile-redirect",
+      expectedImageUrl: cardUrl,
+    };
+
+    assert.deepEqual(
+      await verifyRoute(
+        async () => ({ status: 200, url: `${canonical}?social-card-verify=1`, text: async () => html }),
+        route,
+      ),
+      { ogImage: cardUrl, twitterImage: cardUrl, canonical },
+    );
   });
 
   it("derives an exhaustive object-complete marker from exact resumable coverage without fetching", async () => {
