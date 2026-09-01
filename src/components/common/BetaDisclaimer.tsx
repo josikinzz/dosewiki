@@ -12,14 +12,20 @@ import { cn } from "@/lib/utils";
  * stripped a refuted marker on that article (`substanceHasCitationNeeded`).
  * The shimmer and its reduced-motion/`background-clip` fallbacks live in
  * `.theme-beta-shimmer` (src/styles/utilities-theme.css).
+ *
+ * The construction glyphs hang just outside the sentence: the wrapper shrinks
+ * to fit the copy (one line where it fits, wrapping only when the viewport
+ * forces it), and the icons are absolutely positioned in the side padding at a
+ * fixed size, so narrow viewports neither shrink them nor push them to the
+ * container edges.
  */
 export function BetaDisclaimer({ className }: { className?: string }) {
   return (
-    <span className={cn("inline-flex items-baseline gap-1.5", className)}>
+    <span className={cn("relative mx-auto block w-fit px-7", className)}>
       <Icon
         icon="lucide:construction"
-        size="1.05em"
-        className="theme-beta-disclaimer-icon self-center"
+        size="1.25rem"
+        className="theme-beta-disclaimer-icon absolute left-0 top-1/2 -translate-y-1/2"
       />
       <span className="theme-beta-shimmer">
         dose.wiki is still in beta. Entries may contain inaccuracies. See{" "}
@@ -33,8 +39,8 @@ export function BetaDisclaimer({ className }: { className?: string }) {
       </span>
       <Icon
         icon="lucide:construction"
-        size="1.05em"
-        className="theme-beta-disclaimer-icon self-center"
+        size="1.25rem"
+        className="theme-beta-disclaimer-icon absolute right-0 top-1/2 -translate-y-1/2"
       />
     </span>
   );
