@@ -88,6 +88,14 @@ export interface ArticleLayoutProps {
    */
   dosageDisclaimer?: string;
   toleranceDisclaimer?: string;
+  /**
+   * The `review-status-banner` and `expert-review-credit` copy blocks,
+   * resolved by the substance route loader. Absent renders the checked-in
+   * default sentences, so the review workbench and Generator previews still
+   * show the credits they will ship with.
+   */
+  reviewStatusCopy?: string;
+  expertReviewCredit?: string;
 }
 
 interface DeferredSectionProps {
@@ -136,6 +144,8 @@ export function ArticleLayout({
   warningBannerIconSize = SAFETY_BANNER_ICON_SIZE_DEFAULT,
   dosageDisclaimer,
   toleranceDisclaimer,
+  reviewStatusCopy,
+  expertReviewCredit,
 }: ArticleLayoutProps) {
   // Credit hrefs resolve here rather than in the credit components: those are
   // client components, and handing them the directory would serialize every
@@ -205,6 +215,7 @@ export function ArticleLayout({
         article={article}
         avatarSrc={contributorAvatars?.lyrea}
         profileHref={creditHrefs.lyrea}
+        copy={reviewStatusCopy}
       />
 
       {/* The audited-article stand-in for the stored citation-overhaul banner:
@@ -303,6 +314,7 @@ export function ArticleLayout({
                 article={article}
                 avatars={contributorAvatars}
                 profileHrefs={creditHrefs}
+                expertReviewCredit={expertReviewCredit}
               />
             </DeferredSection>
             <DeferredSection>

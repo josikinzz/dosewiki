@@ -49,6 +49,12 @@ interface SubstanceArticlePageProps {
    */
   dosageDisclaimer?: string;
   toleranceDisclaimer?: string;
+  /**
+   * The `review-status-banner` and `expert-review-credit` copy blocks, read by
+   * the route loader; absent renders the checked-in defaults.
+   */
+  reviewStatusCopy?: string;
+  expertReviewCredit?: string;
 }
 
 export function SubstanceArticlePage({
@@ -69,6 +75,8 @@ export function SubstanceArticlePage({
   showBetaDisclaimer,
   dosageDisclaimer,
   toleranceDisclaimer,
+  reviewStatusCopy,
+  expertReviewCredit,
 }: SubstanceArticlePageProps) {
   return (
     <main id="main-content" tabIndex={-1} className="theme-page-shell min-h-screen focus:outline-none">
@@ -90,6 +98,8 @@ export function SubstanceArticlePage({
         showBetaDisclaimer={showBetaDisclaimer}
         dosageDisclaimer={dosageDisclaimer}
         toleranceDisclaimer={toleranceDisclaimer}
+        reviewStatusCopy={reviewStatusCopy}
+        expertReviewCredit={expertReviewCredit}
       />
     </main>
   );

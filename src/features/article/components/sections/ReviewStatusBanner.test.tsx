@@ -31,6 +31,31 @@ describe("ReviewStatusBanner", () => {
     expect(screen.getByText("Lyrea").closest("a")).toBeNull();
   });
 
+  it("renders an editor-supplied copy block with the reviewer substituted", () => {
+    render(
+      <ReviewStatusBanner
+        article={baseArticle}
+        profileHref="/contributors/lyrea"
+        copy="Awaiting sign-off from {{reviewer}} — details may change."
+      />,
+    );
+
+    expect(screen.getByRole("status")).toHaveTextContent(
+      "Awaiting sign-off from Lyrea — details may change.",
+    );
+    expect(screen.getByText("Lyrea").closest("a")).toHaveAttribute(
+      "href",
+      "/contributors/lyrea",
+    );
+  });
+
+  it("renders copy without a reviewer token verbatim, with no name", () => {
+    render(<ReviewStatusBanner article={baseArticle} copy="Review pending." />);
+
+    expect(screen.getByRole("status")).toHaveTextContent("Review pending.");
+    expect(screen.queryByText("Lyrea")).not.toBeInTheDocument();
+  });
+
   it("renders nothing once the public expert_reviewed flag is set", () => {
     const reviewed = { ...baseArticle, expert_reviewed: true } as unknown as SubstanceArticle;
     const { container } = render(

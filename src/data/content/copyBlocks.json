@@ -320,6 +320,20 @@
     "body": "Tolerance timelines are rules of thumb, not exact schedules, and vary widely between individuals and use patterns."
   },
   {
+    "key": "review-status-banner",
+    "kind": "plain",
+    "label": "Pending-review banner",
+    "group": "Substance articles",
+    "body": "Not yet reviewed — this article is pending editorial review by {{reviewer}}."
+  },
+  {
+    "key": "expert-review-credit",
+    "kind": "plain",
+    "label": "Expert-review credit",
+    "group": "Substance articles",
+    "body": "Reviewed, edited, and approved by subject-matter expert {{reviewer}}."
+  },
+  {
     "key": "seo-substances-index-description",
     "kind": "plain",
     "label": "Substance Index meta description",

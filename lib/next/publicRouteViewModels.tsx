@@ -164,6 +164,8 @@ export interface SubstanceArticleViewModel {
      */
     dosageDisclaimer?: string;
     toleranceDisclaimer?: string;
+    reviewStatusCopy?: string;
+    expertReviewCredit?: string;
   };
 }
 
@@ -269,6 +271,9 @@ export function buildSubstanceArticleViewModel(input: {
    */
   dosageDisclaimer?: string;
   toleranceDisclaimer?: string;
+  /** The `review-status-banner` and `expert-review-credit` bodies; same contract. */
+  reviewStatusCopy?: string;
+  expertReviewCredit?: string;
 }): SubstanceArticleViewModel {
   const { slug: _resolvedSlug, ...article } = input.substance;
   const publicArticle = article as SubstanceArticle;
@@ -310,6 +315,8 @@ export function buildSubstanceArticleViewModel(input: {
       showBetaDisclaimer: input.showBetaDisclaimer,
       dosageDisclaimer: input.dosageDisclaimer,
       toleranceDisclaimer: input.toleranceDisclaimer,
+      reviewStatusCopy: input.reviewStatusCopy,
+      expertReviewCredit: input.expertReviewCredit,
     },
   };
 }

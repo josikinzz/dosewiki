@@ -7,6 +7,10 @@ import { Icon } from "@/components/common/Icon";
 import { ContributorAvatar } from "@/components/layout/PublicPagePrimitives";
 import { cn } from "@/lib/utils";
 import type { SubstanceArticle } from "@/schema";
+import {
+  REVIEW_STATUS_BANNER_FALLBACK,
+  splitReviewerCopy,
+} from "./articleReviewCopy";
 
 /** Lyrea's review icon, matching the expert-review credit in ContributorsSection. */
 const REVIEW_ICON = "lucide:shield-check";
@@ -25,6 +29,12 @@ export interface ReviewStatusBannerProps {
   avatarSrc?: string | null;
   /** Lyrea's public profile href, resolved server-side; unlinked text when absent. */
   profileHref?: string | null;
+  /**
+   * The `review-status-banner` copy block, threaded from the route loader.
+   * Absent renders the checked-in default sentence. The `{{reviewer}}` token
+   * marks where Lyrea's linked name is substituted.
+   */
+  copy?: string;
   className?: string;
 }
 
@@ -43,6 +53,7 @@ export const ReviewStatusBanner = memo(function ReviewStatusBanner({
   article,
   avatarSrc,
   profileHref,
+  copy,
   className,
 }: ReviewStatusBannerProps) {
   // `expert_reviewed` is stamped onto the public projection at runtime
@@ -52,6 +63,8 @@ export const ReviewStatusBanner = memo(function ReviewStatusBanner({
     ("expert_reviewed" in article && article.expert_reviewed === true) ||
     article.editorial_review?.status === "completed";
   if (expertReviewed) return null;
+
+  const segments = splitReviewerCopy(copy ?? REVIEW_STATUS_BANNER_FALLBACK);
 
   return (
     <div
@@ -69,15 +82,16 @@ export const ReviewStatusBanner = memo(function ReviewStatusBanner({
           aria-hidden
           className="theme-icon-muted mr-1.5 inline-block align-[-0.1875em]"
         />
-        Not yet reviewed — this article is pending editorial review by{" "}
-        {profileHref ? (
-          <Link href={profileHref} className={reviewerLinkClassName}>
-            Lyrea
-          </Link>
-        ) : (
-          <span className="font-semibold">Lyrea</span>
-        )}
-        .
+        {segments.before}
+        {segments.hasReviewer &&
+          (profileHref ? (
+            <Link href={profileHref} className={reviewerLinkClassName}>
+              Lyrea
+            </Link>
+          ) : (
+            <span className="font-semibold">Lyrea</span>
+          ))}
+        {segments.after}
       </p>
     </div>
   );
