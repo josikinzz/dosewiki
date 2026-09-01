@@ -21,6 +21,13 @@ import {
   slideMotionSource,
   type SlideQuality,
 } from "./viewerLogic";
+import {
+  AUTO_HQ_SETTLE_MS,
+  decide,
+  previewTruncated,
+  type LadderContext,
+  type LadderVerdict,
+} from "./qualityLadder";
 import { RotatingIcon } from "./RotatingIcon";
 
 const controlClassName = cn(
@@ -28,22 +35,6 @@ const controlClassName = cn(
   "transition-opacity hover:opacity-100 active:opacity-100 motion-reduce:transition-none",
   focusRingClassName,
 );
-
-/** Seeks this close past the preview's end escalate to the full file. */
-const PREVIEW_SEEK_TOLERANCE_S = 0.25;
-/** A preview at least this much shorter than the catalogue is truncated. */
-const PREVIEW_TRUNCATION_TOLERANCE_S = 1;
-/**
- * The preview generator's hard length cap (scripts/replications/
- * generate-preview-renditions.mjs cuts every preview at 10 seconds).
- */
-const PREVIEW_GENERATOR_CAP_S = 10;
-/**
- * How long a work must keep playing before the stage sharpens it to the
- * catalogued file. A fling across several works never triggers a full-file
- * fetch; a watched work upgrades almost immediately.
- */
-const AUTO_HQ_SETTLE_MS = 1000;
 
 function reducedMotionRequested(): boolean {
   return (
@@ -301,62 +292,27 @@ export function ViewerTransport({
     [markBlocked],
   );
 
-  /**
-   * Swap the active element to the catalogued full file, carrying playback
-   * position and intent across. Runs imperatively inside whatever gesture
-   * asked for it; the track's assignment effect sees the src already matches
-   * the new quality and leaves the element alone.
-   */
-  const upgradeToFull = useCallback(
-    (targetTime?: number) => {
-      if (!video || !hqAvailable || qualityRef.current === "full") return;
-      // A naturally ended element reports paused=true (the spec pauses it
-      // before firing `ended`), but an ended preview is mid-work by
-      // definition — the whole point of the swap is to keep it moving.
-      const wasPlaying = !video.paused || video.ended;
-      const time = targetTime ?? video.currentTime;
-      qualityRef.current = "full";
-      onQualityChange("full");
-      video.src = replication.url;
-      if (time > 0) video.currentTime = time;
-      if (wasPlaying) attemptPlay(video);
-    },
-    [attemptPlay, hqAvailable, onQualityChange, replication.url, video],
+  const ladderContext = useCallback(
+    (): LadderContext => ({
+      replication,
+      quality: qualityRef.current,
+      hqAvailable,
+      dataSaver: browserRequestsDataSaving(),
+    }),
+    [hqAvailable, replication],
   );
 
-  const downgradeToPreview = useCallback(() => {
-    const previewSource = slideMotionSource(replication, "preview");
-    if (!video || !previewSource || qualityRef.current === "preview") return;
-    const wasPlaying = !video.paused;
-    const time = video.currentTime;
-    qualityRef.current = "preview";
-    onQualityChange("preview");
-    video.src = previewSource;
-    if (time > 0) video.currentTime = time;
-    if (wasPlaying) attemptPlay(video);
-  }, [attemptPlay, onQualityChange, replication, video]);
-
-  /**
-   * True when the element is playing a preview rendition that ends before
-   * the catalogued work does — looping it would silently amputate the piece.
-   * Rows with no catalogued duration fall back to the generator's contract:
-   * previews are cut at PREVIEW_GENERATOR_CAP_S, so a preview that runs the
-   * whole cap is presumed truncated and continues into the full file. A work
-   * that genuinely lasts the cap pays one redundant swap at its final frame.
-   */
-  const previewTruncated = useCallback(
-    (element: HTMLVideoElement): boolean => {
-      if (!hqAvailable || qualityRef.current !== "preview") return false;
-      const elementDuration = element.duration;
-      if (!Number.isFinite(elementDuration) || elementDuration <= 0)
-        return false;
-      const catalogued = replication.duration;
-      if (typeof catalogued !== "number" || catalogued <= 0) {
-        return elementDuration >= PREVIEW_GENERATOR_CAP_S - 0.15;
-      }
-      return catalogued > elementDuration + PREVIEW_TRUNCATION_TOLERANCE_S;
+  /** Apply a pure ladder decision to the active pooled element. */
+  const applyVerdict = useCallback(
+    (verdict: LadderVerdict) => {
+      if (!video || verdict.kind === "stay") return;
+      qualityRef.current = verdict.quality;
+      onQualityChange(verdict.quality);
+      video.src = verdict.src;
+      if (verdict.time > 0) video.currentTime = verdict.time;
+      if (verdict.play) attemptPlay(video);
     },
-    [hqAvailable, replication.duration],
+    [attemptPlay, onQualityChange, video],
   );
 
   /**
@@ -407,9 +363,13 @@ export function ViewerTransport({
   useEffect(() => {
     if (!video || !moving) return;
     const syncLoop = () => {
-      // Looping a truncated preview would amputate the work: run to the
-      // preview's end instead, then continue seamlessly into the full file.
-      video.loop = !previewTruncated(video);
+      const verdict = decide(
+        { type: "metadata", elementDuration: video.duration },
+        ladderContext(),
+      );
+      if (verdict.kind === "stay" && verdict.loop !== undefined) {
+        video.loop = verdict.loop;
+      }
     };
     const onPlay = () => {
       setPlaying(true);
@@ -441,10 +401,12 @@ export function ViewerTransport({
     };
     const onEnded = () => {
       setBuffering(false);
-      if (previewTruncated(video)) {
-        // The preview ran out before the work did: continue into the full
-        // file from this exact moment.
-        upgradeToFull(video.duration);
+      const verdict = decide(
+        { type: "ended", elementDuration: video.duration },
+        ladderContext(),
+      );
+      if (verdict.kind === "switch") {
+        applyVerdict(verdict);
         return;
       }
       setPlaying(false);
@@ -486,12 +448,12 @@ export function ViewerTransport({
       video.removeEventListener("timeupdate", onTimeUpdate);
     };
   }, [
+    applyVerdict,
+    ladderContext,
     moving,
-    previewTruncated,
     replication.slug,
     settleAudioPresence,
     showControls,
-    upgradeToFull,
     video,
   ]);
 
@@ -519,19 +481,24 @@ export function ViewerTransport({
   useEffect(() => {
     if (!video || !moving || !hqAvailable) return;
     if (quality !== "preview" || !playing) return;
-    if (browserRequestsDataSaving()) return;
-    const timer = window.setTimeout(
-      () => upgradeToFull(),
-      AUTO_HQ_SETTLE_MS,
-    );
+    if (ladderContext().dataSaver) return;
+    const timer = window.setTimeout(() => {
+      applyVerdict(
+        decide(
+          { type: "settled", currentTime: video.currentTime },
+          ladderContext(),
+        ),
+      );
+    }, AUTO_HQ_SETTLE_MS);
     return () => window.clearTimeout(timer);
   }, [
+    applyVerdict,
     hqAvailable,
+    ladderContext,
     moving,
     playing,
     quality,
     replication.slug,
-    upgradeToFull,
     video,
   ]);
 
@@ -626,10 +593,12 @@ export function ViewerTransport({
         typeof replication.duration === "number" && replication.duration > 0
           ? replication.duration
           : 0;
-      if (previewTruncated(element)) return Math.max(own, catalogued);
+      if (previewTruncated(ladderContext(), element.duration)) {
+        return Math.max(own, catalogued);
+      }
       return own > 0 ? own : catalogued;
     },
-    [previewTruncated, replication.duration],
+    [ladderContext, replication.duration],
   );
 
   /**
@@ -674,22 +643,26 @@ export function ViewerTransport({
         ? seekRatioFromPointer(clientY, rect.top, rect.height)
         : seekRatioFromPointer(clientX, rect.left, rect.width);
       const target = ratio * duration;
-      if (
-        previewTruncated(video) &&
-        target > video.duration - PREVIEW_SEEK_TOLERANCE_S
-      ) {
-        upgradeToFull(target);
-      } else {
-        video.currentTime = target;
-      }
+      const verdict = decide(
+        {
+          type: "seek",
+          target,
+          elementDuration: video.duration,
+          paused: video.paused,
+          ended: video.ended,
+        },
+        ladderContext(),
+      );
+      if (verdict.kind === "switch") applyVerdict(verdict);
+      else video.currentTime = target;
       paintPlayhead(ratio);
     },
     [
+      applyVerdict,
+      ladderContext,
       paintPlayhead,
-      previewTruncated,
       resolveSeekDuration,
       rotated,
-      upgradeToFull,
       video,
     ],
   );
@@ -919,14 +892,18 @@ export function ViewerTransport({
               Math.max(video.currentTime + step, 0),
               duration,
             );
-            if (
-              previewTruncated(video) &&
-              next > video.duration - PREVIEW_SEEK_TOLERANCE_S
-            ) {
-              upgradeToFull(next);
-            } else {
-              video.currentTime = next;
-            }
+            const verdict = decide(
+              {
+                type: "seek",
+                target: next,
+                elementDuration: video.duration,
+                paused: video.paused,
+                ended: video.ended,
+              },
+              ladderContext(),
+            );
+            if (verdict.kind === "switch") applyVerdict(verdict);
+            else video.currentTime = next;
             paintPlayhead(next / duration);
             showControls();
           }}
@@ -1043,8 +1020,20 @@ export function ViewerTransport({
               aria-pressed={quality === "full"}
               onClick={(event) => {
                 event.stopPropagation();
-                if (quality === "full") downgradeToPreview();
-                else upgradeToFull();
+                if (video) {
+                  applyVerdict(
+                    decide(
+                      {
+                        type: "hq",
+                        desired: quality === "full" ? "preview" : "full",
+                        currentTime: video.currentTime,
+                        paused: video.paused,
+                        ended: video.ended,
+                      },
+                      ladderContext(),
+                    ),
+                  );
+                }
                 showControls();
               }}
               className={cn(
