@@ -157,6 +157,21 @@ export function validateIdentitySocialBatch(kind: IdentitySocialBatchEntry["kind
     } else if (entry.kind === "verification") {
       digest(entry.value.source_digest, "Verification source digest"); required(entry.value.rationale, "Verification rationale", 4_000);
       if (!Number.isInteger(entry.value.work_count_reviewed) || entry.value.work_count_reviewed < 0 || entry.value.work_count_reviewed > 100_000) throw new Error("Reviewed work count is invalid.");
+      const contributions = entry.value.review_contributions;
+      if (entry.projection.action === "reconcile-shared-profile-verification") {
+        if (!contributions || contributions.length < 2 || contributions.length > MAX_EVIDENCE) throw new Error("Shared-profile verification reconciliation requires 2 to 32 review contributions.");
+        const artistIds = contributions.map((item) => required(item.artist_id, "Review contribution artist ID"));
+        if (new Set(artistIds).size !== artistIds.length || !equal(artistIds, [...artistIds].sort())) throw new Error("Review contributions must have unique artist IDs in deterministic order.");
+        for (const item of contributions) {
+          digest(item.source_digest, "Review contribution source digest");
+          if (!Number.isInteger(item.work_count_reviewed) || item.work_count_reviewed < 0 || item.work_count_reviewed > 100_000) throw new Error("Review contribution work count is invalid.");
+        }
+        const statuses = contributions.map((item) => item.status);
+        const expectedStatus = statuses.includes("verified") ? "verified" : statuses.includes("unclear") ? "unclear" : "not-verified";
+        if (entry.value.status !== expectedStatus || entry.value.work_count_reviewed !== Math.max(...contributions.map((item) => item.work_count_reviewed))) throw new Error("Shared-profile verification aggregate must use status precedence and maximum reviewed work count.");
+        const satisfied = entry.satisfied_item_operation_ids;
+        if (!satisfied || satisfied.length !== contributions.length || new Set(satisfied).size !== satisfied.length || !equal(satisfied, [...satisfied].sort())) throw new Error("Shared-profile reconciliation must deterministically satisfy every contributing item operation ID.");
+      } else if (contributions || entry.satisfied_item_operation_ids) throw new Error("Only shared-profile reconciliation may carry contribution satisfaction metadata.");
     } else {
       required(entry.value.entity_key, "Social entity key", 300); digest(entry.value.media_digest, "Social media digest"); digest(entry.value.source_digest, "Social source digest");
       if (entry.value.entity_kind === "replications" && !entry.value.replication_id) throw new Error("Replication social assets require replication_id.");
@@ -182,7 +197,7 @@ function validateProjectionMapping(entry: IdentitySocialBatchEntry) {
     if (entry.projection.action === "set-proven-creator-with-verified-chronology" && entry.value.creator_determination !== "proven-different-creator") throw new Error("Creator-change action does not match its normalized value.");
     if (["preserve-poster-as-creator", "preserve-poster-as-creator-no-write", "blocked-preserve-poster-no-verified-chronology"].includes(entry.projection.action) && entry.value.creator_determination === "proven-different-creator") throw new Error("Creator-preservation action cannot assign a different creator.");
   } else if (entry.kind === "verification") {
-    if (entry.projection.action !== "record-reviewed-verification") throw new Error("Unsupported verification action.");
+    if (!["record-reviewed-verification", "reconcile-shared-profile-verification"].includes(entry.projection.action)) throw new Error("Unsupported verification action.");
   } else if (entry.kind === "alias") {
     if (target.alias !== entry.value.alias) throw new Error("Projection alias target does not match the normalized value.");
     if (!["add-alias-preserve-source-history", "preserve-existing-alias", "blocked-pending-owner-review", "blocked-merge-required-collision"].includes(entry.projection.action)) throw new Error("Unsupported alias action.");
@@ -197,7 +212,11 @@ async function validateProjectionIdentity(entry: IdentitySocialBatchEntry) {
   const p = entry.projection;
   validateProjectionMapping(entry);
   if (await canonicalDigest(p.expectedBefore) !== p.expectedBeforeSha256) throw new Error("Projection expected-before digest does not match its canonical snapshot.");
-  const core = { schemaVersion: ITEM_ID_VERSION, projection: p, target: targetOf(entry), value: entry.value, ...(entry.kind === "alias" ? { identity_snapshot_digest: entry.identity_snapshot_digest } : {}), base_projection_digest: entry.base_projection_digest, receipt_sidecar_digest: entry.receipt_sidecar_digest };
+  if (entry.kind === "verification" && p.action === "reconcile-shared-profile-verification") {
+    const contributions = entry.value.review_contributions!;
+    if (entry.value.source_digest !== await canonicalDigest({ schemaVersion: 1, contributions })) throw new Error("Shared-profile verification source digest is not derived from the ordered contributions.");
+  }
+  const core = { schemaVersion: ITEM_ID_VERSION, projection: p, target: targetOf(entry), value: entry.value, ...(entry.kind === "alias" ? { identity_snapshot_digest: entry.identity_snapshot_digest } : {}), ...(entry.satisfied_item_operation_ids ? { satisfied_item_operation_ids: entry.satisfied_item_operation_ids } : {}), base_projection_digest: entry.base_projection_digest, receipt_sidecar_digest: entry.receipt_sidecar_digest };
   const expectedId = `identity-social-item:v${ITEM_ID_VERSION}:${(await canonicalDigest(core)).slice(0, 24)}`;
   if (entry.item_operation_id !== expectedId) throw new Error("Item operation ID is not derived from canonical transformed content.");
 }
@@ -463,7 +482,7 @@ export async function applyIdentitySocialBatchHandler(ctx: MutationCtx, args: { 
       if (item.recordChanged) await write(ctx, item.target, item.existing, item.after);
       if (item.profileChanged && item.profileAfter) await writeProfileProjection(ctx, item.profileAfter);
     }
-    for (const item of items) await ctx.db.insert("replicationIdentitySocialOperationItems", { item_operation_id: item.entry.item_operation_id, batch_operation_id: operationId, kind: args.kind, target: item.target, before: item.before, after: item.after, changed: item.changed, profile_before: item.profileBefore, profile_after: item.profileAfter, created_at: now });
+    for (const item of items) await ctx.db.insert("replicationIdentitySocialOperationItems", { item_operation_id: item.entry.item_operation_id, batch_operation_id: operationId, kind: args.kind, target: item.target, before: item.before, after: item.after, changed: item.changed, profile_before: item.profileBefore, profile_after: item.profileAfter, ...(item.entry.satisfied_item_operation_ids ? { satisfied_item_operation_ids: item.entry.satisfied_item_operation_ids } : {}), created_at: now });
     await ctx.db.insert("replicationIdentitySocialOperations", { operation_id: operationId, kind: args.kind, payload_digest: payloadDigest, actor_email: actor.email, record_count: items.length, changed_count: changed, unchanged_count: items.length - changed, created_at: now });
   }
   return { operation_id: operationId, payload_digest: payloadDigest, changed, unchanged: items.length - changed, idempotent_replay: false, dry_run: args.dry_run };

@@ -3,7 +3,8 @@ import { mkdtempSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import test from "node:test";
-import { appendLedger, assertPreviewMatches, batchesAfterCanaries, bindSharedProfileGroups, buildExecutionPlan, digest, indexProfiles, loadLedger, makeBatches, pendingBatches, rollbackManifest, selectCanaries, transformOperation, validatePinnedProfileSnapshot, verifyBaseProjection, verifyDeliveryReceiptSidecar } from "./executor-lib.mjs";
+import { isTransientConvexTransportError, parseArgs, runBatchWithTransportRecovery, runQueryWithTransportRecovery } from "./executor.mjs";
+import { appendLedger, assertPreviewMatches, batchesAfterCanaries, bindSharedProfileGroups, buildExecutionPlan, digest, indexProfiles, loadLedger, makeBatches, pendingBatches, reconcileCrossKindSharedProfileVerifications, rollbackManifest, selectCanaries, transformOperation, validatePinnedProfileSnapshot, verifyBaseProjection, verifyDeliveryReceiptSidecar } from "./executor-lib.mjs";
 
 const profiles = indexProfiles([{ profileId: "profile-1", key: "ARTIST" }, { profileId: "profile-2", key: "LOKA" }]);
 const base = (kind, target, action, expectedBefore, after = {}, evidence = {}) => {
@@ -131,6 +132,23 @@ test("shared existing-profile bindings receive new immutable group IDs and never
   const groupedFirst = makeBatches([...grouped, { kind: "profile-binding", artist_id: "after", item_operation_id: "after", projection: {} }]);
   assert.deepEqual(selectCanaries(groupedFirst)[0].entries.map((entry) => entry.artist_id), ["josie", "josikins"]);
 });
+test("cross-kind shared-profile verification reconciles status, count, provenance, and originating item IDs", () => {
+  const evidence = (note) => [{ kind: "editorial-review", note, digest: digest({ kind: "editorial-review", note }) }];
+  const binding = { kind: "profile-binding", projection: {}, decision: "bind", snapshot_digest: "a".repeat(64), snapshot_profile_count: 2119, profile_key: "ELOHPROJECTS", existing_profile_id: "profile-eloh", artist_id: "sean-allum", item_operation_id: "identity-social-item:v1:fa5b634cc4756ac898c93983", verification: { status: "verified", basis: "artist-sheet-review", work_count_reviewed: 1, rationale: "Sean review", evidence: evidence("Sean sheet"), source_digest: digest("sean") } };
+  const operation = base("replicator-verification", { artistId: "eloh-projects", profileKey: "ELOHPROJECTS" }, "record-reviewed-verification", { profileKey: "ELOHPROJECTS", displayName: "ELOH Projects", verificationStatus: "unverified", aliases: [], profileLinks: [] }, { verifiedReplicator: false, verdict: "not-verified", reviewTrail: [{ rationale: "ELOH review" }] }, { workCount: 8, sourceSheetBatch: 7 });
+  const transformed = transformOperation(operation, { ...context(), profiles: indexProfiles([{ profileId: "profile-eloh", key: "ELOHPROJECTS" }]) }).entry;
+  const standalone = { ...transformed, item_operation_id: "identity-social-item:v1:223f8f21e4c53911dcfbfcf6" };
+  const reconciled = reconcileCrossKindSharedProfileVerifications([binding, standalone])[1];
+  assert.equal(reconciled.projection.action, "reconcile-shared-profile-verification");
+  assert.equal(reconciled.projection.expectedBefore.verificationStatus, "verified-replicator");
+  assert.equal(reconciled.expected_operation_id, binding.item_operation_id);
+  assert.equal(reconciled.value.status, "verified");
+  assert.equal(reconciled.value.work_count_reviewed, 8);
+  assert.deepEqual(reconciled.value.review_contributions.map((item) => item.artist_id), ["eloh-projects", "sean-allum"]);
+  assert.deepEqual(reconciled.satisfied_item_operation_ids, [standalone.item_operation_id, binding.item_operation_id].sort());
+  assert.equal(reconciled.value.source_digest, digest({ schemaVersion: 1, contributions: reconciled.value.review_contributions }));
+  assert.ok(reconciled.item_operation_id.startsWith("identity-social-item:v1:"));
+});
 test("rollback order is reverse application order", () => assert.deepEqual(rollbackManifest([{ operation_id: "one" }, { operation_id: "two" }]).map((x) => x.rollback_of), ["two", "one"]));
 test("identity ambiguity fails closed", () => assert.throws(() => indexProfiles([{ profileId: "one", key: "A" }, { profileId: "two", key: "a" }]), /ambiguity/));
 test("stale or incomplete profile snapshots fail before planning", () => assert.throws(() => validatePinnedProfileSnapshot({ profiles: [{ profileId: "one", key: "A" }] }), /exactly 2,119/));
@@ -148,4 +166,66 @@ test("two-phase receipt sidecar binds independently without changing operation I
   assert.deepEqual(projection.operations.map((item) => item.operationId), operationIds);
   const tampered = structuredClone(sidecar); tampered.receipts[operations[3].operationId].projection_sha256 = "0".repeat(64);
   assert.throws(() => verifyDeliveryReceiptSidecar(projection, tampered, sidecar.receiptSidecarSha256), /sidecar digest mismatch/);
+});
+
+test("operation-kind selection is validated and client retry is bounded", () => {
+  assert.equal(parseArgs(["--operation-kind=social-asset"]).operationKind, "social-asset");
+  assert.equal(parseArgs(["--max-client-attempts=2"]).maxClientAttempts, 2);
+  assert.throws(() => parseArgs(["--operation-kind=anything"]), /Unsupported/);
+  assert.throws(() => parseArgs(["--max-client-attempts=0"]), /integer from 1 through 10/);
+  assert.equal(isTransientConvexTransportError(new Error("HTTP/2 GOAWAY")), true);
+  assert.equal(isTransientConvexTransportError(new Error("validation failed")), false);
+});
+
+test("transient mutation failure checks receipt before idempotent retry", async () => {
+  const batch = { operation_id: "social-batch", entries: [{}, {}] };
+  let mutations = 0; let receiptReads = 0; let recreations = 0;
+  const recovered = await runBatchWithTransportRecovery({
+    batch,
+    mutateBatch: async () => { mutations += 1; throw new Error("HTTP/2 GOAWAY"); },
+    readReceipt: async () => { receiptReads += 1; return { item_count: 2, payload_digest: "server-digest" }; },
+    recreateClient: () => { recreations += 1; },
+    maxAttempts: 4,
+  });
+  assert.deepEqual({ mutations, receiptReads, recreations }, { mutations: 1, receiptReads: 1, recreations: 1 });
+  assert.equal(recovered.recovered, true);
+  assert.equal(recovered.result.payload_digest, "server-digest");
+});
+
+test("missing receipt retries the same operation only within the bound", async () => {
+  const batch = { operation_id: "social-batch", entries: [{}] };
+  let mutations = 0; let recreations = 0;
+  await assert.rejects(runBatchWithTransportRecovery({
+    batch,
+    mutateBatch: async () => { mutations += 1; throw Object.assign(new Error("fetch failed"), { code: "ECONNRESET" }); },
+    readReceipt: async () => null,
+    recreateClient: () => { recreations += 1; },
+    maxAttempts: 3,
+  }), /remained unavailable after 3 attempts/);
+  assert.equal(mutations, 3);
+  assert.equal(recreations, 3);
+});
+
+test("non-transport mutation failures are never retried", async () => {
+  let mutations = 0; let recreations = 0;
+  await assert.rejects(runBatchWithTransportRecovery({
+    batch: { operation_id: "social-batch", entries: [{}] },
+    mutateBatch: async () => { mutations += 1; throw new Error("CAS mismatch"); },
+    readReceipt: async () => null,
+    recreateClient: () => { recreations += 1; },
+  }), /CAS mismatch/);
+  assert.equal(mutations, 1);
+  assert.equal(recreations, 0);
+});
+
+test("transient reads recreate the client within the same bound", async () => {
+  let reads = 0; let recreations = 0;
+  const result = await runQueryWithTransportRecovery({
+    query: async () => { reads += 1; if (reads < 3) throw new Error("connection reset"); return "verified"; },
+    recreateClient: () => { recreations += 1; },
+    maxAttempts: 3,
+    label: "receipt readback",
+  });
+  assert.equal(result, "verified");
+  assert.deepEqual({ reads, recreations }, { reads: 3, recreations: 2 });
 });

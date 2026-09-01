@@ -253,9 +253,61 @@ export function buildExecutionPlan(projection, context) {
   const verificationOperations = new Map(projection.operations.filter((operation) => operation.kind === "replicator-verification").map((operation) => [operation.operationId, operation]));
   const boundVerificationIds = new Set(projection.operations.filter((operation) => operation.kind === "profile-binding").map((operation) => operation.after?.verificationDependency?.verificationOperationId).filter(Boolean));
   const transformed = projection.operations.map((operation) => boundVerificationIds.has(operation.operationId) ? { operation, disposition: "no-write", reason: "verification-submitted-with-profile-binding" } : transformOperation(operation, { ...context, verificationOperations }));
-  const entries = bindSharedProfileGroups(transformed.filter((x) => x.disposition === "actionable" || x.disposition === "journal-only").map((x) => x.entry));
+  const entries = reconcileCrossKindSharedProfileVerifications(bindSharedProfileGroups(transformed.filter((x) => x.disposition === "actionable" || x.disposition === "journal-only").map((x) => x.entry)));
   const noWrites = transformed.filter((x) => x.disposition === "no-write").map((x) => ({ operation_id: x.operation.operationId, kind: x.operation.kind, reason: x.reason }));
   return { projection_digest: projection.projectionSha256, ...(context.receiptSidecarDigest ? { receipt_sidecar_digest: context.receiptSidecarDigest } : {}), entries, noWrites, batches: makeBatches(entries) };
+}
+
+function aggregateVerificationContributions(contributions) {
+  const ordered = [...contributions].sort((a, b) => a.artist_id.localeCompare(b.artist_id));
+  const statuses = ordered.map((item) => item.status);
+  return {
+    status: statuses.includes("verified") ? "verified" : statuses.includes("unclear") ? "unclear" : "not-verified",
+    basis: ordered.every((item) => item.basis === ordered[0].basis) ? ordered[0].basis : "editorial-review",
+    work_count_reviewed: Math.max(...ordered.map((item) => item.work_count_reviewed)),
+    rationale: ordered.map((item) => `[${item.artist_id}] ${item.rationale}`).join("\n\n"),
+    evidence: ordered.flatMap((item) => item.evidence),
+    source_digest: digest({ schemaVersion: 1, contributions: ordered }),
+    review_contributions: ordered,
+  };
+}
+
+export function reconcileCrossKindSharedProfileVerifications(entries) {
+  const bindings = new Map();
+  for (const entry of entries) {
+    if (entry.kind !== "profile-binding" || entry.decision === "unresolved" || !entry.verification || !entry.existing_profile_id) continue;
+    if (!bindings.has(entry.existing_profile_id)) bindings.set(entry.existing_profile_id, []);
+    bindings.get(entry.existing_profile_id).push(entry);
+  }
+  return entries.map((entry) => {
+    if (entry.kind !== "verification") return entry;
+    const priorBindings = bindings.get(entry.value.profile_id) ?? [];
+    if (!priorBindings.length) return entry;
+    const contributions = [
+      ...priorBindings.map((binding) => ({ artist_id: binding.artist_id, ...binding.verification })),
+      { artist_id: entry.projection.target.artistId, status: entry.value.status, basis: entry.value.basis, work_count_reviewed: entry.value.work_count_reviewed, rationale: entry.value.rationale, evidence: entry.value.evidence, source_digest: entry.value.source_digest },
+    ].sort((a, b) => a.artist_id.localeCompare(b.artist_id));
+    if (new Set(contributions.map((item) => item.artist_id)).size !== contributions.length) throw new Error(`Shared profile ${entry.value.profile_id} has duplicate artist review contributions.`);
+    const bindingStatuses = priorBindings.map((binding) => binding.verification.status);
+    const verificationStatus = bindingStatuses.includes("verified") ? "verified-replicator" : bindingStatuses.includes("unclear") ? "unclear" : "not-verified";
+    const expectedBefore = { ...entry.projection.expectedBefore, verificationStatus };
+    const expectedBeforeSha256 = digest(expectedBefore);
+    const contributingItemOperationIds = [...priorBindings.map((item) => item.item_operation_id), entry.item_operation_id].sort();
+    const projection = {
+      ...entry.projection,
+      action: "reconcile-shared-profile-verification",
+      expectedBefore,
+      expectedBeforeSha256,
+      cas: { ...entry.projection.cas, expectedBeforeSha256 },
+      evidence: { ...entry.projection.evidence, reconciliation: "cross-kind-shared-profile", contributingItemOperationIds },
+    };
+    projection.operationId = `identity-social:replicator-verification:${digest({ kind: projection.kind, target: projection.target, action: projection.action, expectedBeforeSha256, after: projection.after, evidence: projection.evidence }).slice(0, 24)}`;
+    const value = { profile_id: entry.value.profile_id, ...aggregateVerificationContributions(contributions) };
+    const expectedOperationIds = [...new Set(priorBindings.map((item) => item.item_operation_id))];
+    if (expectedOperationIds.length !== 1) throw new Error(`Shared profile ${entry.value.profile_id} has ambiguous current verification operation IDs.`);
+    const core = { schemaVersion: 1, projection, target: { kind: "verification", profile_id: value.profile_id }, value, satisfied_item_operation_ids: contributingItemOperationIds, base_projection_digest: entry.base_projection_digest, receipt_sidecar_digest: entry.receipt_sidecar_digest };
+    return { ...entry, projection, value, satisfied_item_operation_ids: contributingItemOperationIds, expected_operation_id: expectedOperationIds[0], item_operation_id: `identity-social-item:v1:${digest(core).slice(0, 24)}` };
+  });
 }
 
 export function bindSharedProfileGroups(entries) {

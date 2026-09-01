@@ -168,6 +168,7 @@ export const replicationIdentitySocialOperationItemValidator = v.object({
   created_profile_snapshot: v.optional(v.any()),
   verification_before: v.optional(v.union(contributorReplicatorVerificationValidator, v.null())),
   verification_after: v.optional(v.union(contributorReplicatorVerificationValidator, v.null())),
+  satisfied_item_operation_ids: v.optional(v.array(v.string())),
 });
 export const contributorIdentityTokenSnapshotValidator = v.object({
   snapshot_digest: v.string(), profile_count: v.number(), normalized_token: v.string(),
@@ -196,10 +197,16 @@ const avatarInput = v.object({
   media_digest: v.string(), delivery_verification: deliveryVerificationValidator, delivery_verified_at: v.optional(v.number()),
   delivery_receipt: v.optional(deliveryReceiptValidator), evidence: v.array(identityEvidenceValidator),
 });
+const verificationContributionInput = v.object({
+  artist_id: v.string(), status: contributorReplicatorVerificationValidator.fields.status,
+  basis: contributorReplicatorVerificationValidator.fields.basis, work_count_reviewed: v.number(), rationale: v.string(),
+  evidence: v.array(identityEvidenceValidator), source_digest: v.string(),
+});
 const verificationInput = v.object({
   profile_id: v.id("contributorProfiles"), status: contributorReplicatorVerificationValidator.fields.status,
   basis: contributorReplicatorVerificationValidator.fields.basis, work_count_reviewed: v.number(), rationale: v.string(),
   evidence: v.array(identityEvidenceValidator), source_digest: v.string(),
+  review_contributions: v.optional(v.array(verificationContributionInput)),
 });
 const socialInput = v.object({
   entity_kind: socialEntityKindValidator, entity_key: v.string(), replication_id: v.optional(v.id("replications")),
@@ -208,7 +215,7 @@ const socialInput = v.object({
   source_digest: v.string(), status: replicationSocialAssetValidator.fields.status, delivery_verification: deliveryVerificationValidator,
   delivery_verified_at: v.optional(v.number()), delivery_receipt: v.optional(deliveryReceiptValidator), failure_reason: v.optional(v.string()),
 });
-const common = { item_operation_id: v.string(), expected_operation_id: nullableString, projection: projectionOperationValidator, base_projection_digest: v.string(), receipt_sidecar_digest: nullableString };
+const common = { item_operation_id: v.string(), expected_operation_id: nullableString, projection: projectionOperationValidator, base_projection_digest: v.string(), receipt_sidecar_digest: nullableString, satisfied_item_operation_ids: v.optional(v.array(v.string())) };
 export const identitySocialBatchEntryValidator = v.union(
   v.object({ kind: v.literal("attribution"), ...common, value: attributionInput }),
   v.object({ kind: v.literal("alias"), ...common, identity_snapshot_digest: v.string(), value: aliasInput }),

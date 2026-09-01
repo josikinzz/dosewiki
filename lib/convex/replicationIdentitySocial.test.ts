@@ -38,7 +38,7 @@ function targetFor(entry: IdentitySocialBatchEntry) {
 async function bindItemId(entry: IdentitySocialBatchEntry) {
   entry.base_projection_digest = DIGEST;
   entry.receipt_sidecar_digest = null;
-  entry.item_operation_id = `identity-social-item:v1:${(await canonicalDigest({ schemaVersion: 1, projection: entry.projection, target: targetFor(entry), value: entry.value, ...(entry.kind === "alias" ? { identity_snapshot_digest: entry.identity_snapshot_digest } : {}), base_projection_digest: entry.base_projection_digest, receipt_sidecar_digest: entry.receipt_sidecar_digest })).slice(0, 24)}`;
+  entry.item_operation_id = `identity-social-item:v1:${(await canonicalDigest({ schemaVersion: 1, projection: entry.projection, target: targetFor(entry), value: entry.value, ...(entry.kind === "alias" ? { identity_snapshot_digest: entry.identity_snapshot_digest } : {}), ...(entry.satisfied_item_operation_ids ? { satisfied_item_operation_ids: entry.satisfied_item_operation_ids } : {}), base_projection_digest: entry.base_projection_digest, receipt_sidecar_digest: entry.receipt_sidecar_digest })).slice(0, 24)}`;
   return entry;
 }
 
@@ -250,6 +250,39 @@ describe("replication identity/social Convex contract", () => {
     await expect(rollbackProfileBindingOperationHandler(ctx, { apiKey: TOKEN, actor_email: ACTOR, operation_id: "rollback-shared", rollback_of: "binding-shared", dry_run: false })).resolves.toMatchObject({ changed: 2, unchanged: 0 });
     expect(tables.replicationIdentityProfileBindings).toHaveLength(0);
     expect(tables.contributorReplicatorVerifications).toHaveLength(0);
+  });
+
+  it("reconciles an applied binding review with a standalone review, journals both as satisfied, replays, and rolls back exactly", async () => {
+    const { ctx, tables } = context();
+    const bindingItemId = "identity-social-item:v1:fa5b634cc4756ac898c93983";
+    const standaloneItemId = "identity-social-item:v1:223f8f21e4c53911dcfbfcf6";
+    tables.contributorReplicatorVerifications.push({
+      _id: "verification-existing", _creationTime: 2, profile_id: PID, status: "verified", basis: "artist-sheet-review",
+      work_count_reviewed: 1, rationale: "Reviewed sean-allum.", evidence: [{ kind: "editorial-review", digest: DIGEST }],
+      source_digest: DIGEST, operation_id: bindingItemId, reviewed_at: 2,
+    });
+    const expectedBefore = { profileKey: "EXAMPLEPOSTER", displayName: "ExamplePoster", verificationStatus: "verified-replicator", aliases: [], profileLinks: [{ label: "Reddit", url: PROFILE_URL }] };
+    const contributions = [
+      { artist_id: "eloh-projects", status: "not-verified" as const, basis: "artist-sheet-review" as const, work_count_reviewed: 8, rationale: "Reviewed ELOH sheet.", evidence: [{ kind: "editorial-review" as const, digest: OTHER }], source_digest: OTHER },
+      { artist_id: "sean-allum", status: "verified" as const, basis: "artist-sheet-review" as const, work_count_reviewed: 1, rationale: "Reviewed Sean sheet.", evidence: [{ kind: "editorial-review" as const, digest: DIGEST }], source_digest: DIGEST },
+    ];
+    const p = await projection("replicator-verification", { artistId: "eloh-projects", profileKey: "EXAMPLEPOSTER" }, expectedBefore, {}, "reconcile-shared-profile-verification", { reconciliation: "cross-kind-shared-profile", contributingItemOperationIds: [standaloneItemId, bindingItemId].sort() });
+    const entry = await bindItemId({
+      kind: "verification", item_operation_id: "pending", expected_operation_id: bindingItemId, projection: p.value,
+      satisfied_item_operation_ids: [standaloneItemId, bindingItemId].sort(),
+      value: {
+        profile_id: PID, status: "verified", basis: "artist-sheet-review", work_count_reviewed: 8,
+        rationale: contributions.map((item) => `[${item.artist_id}] ${item.rationale}`).join("\n\n"),
+        evidence: contributions.flatMap((item) => item.evidence), source_digest: await canonicalDigest({ schemaVersion: 1, contributions }), review_contributions: contributions,
+      },
+    } as IdentitySocialBatchEntry);
+    const args = applyArgs(entry, "reconcile-eloh");
+    await expect(applyIdentitySocialBatchHandler(ctx, args)).resolves.toMatchObject({ changed: 1, idempotent_replay: false });
+    expect(tables.contributorReplicatorVerifications[0]).toMatchObject({ status: "verified", work_count_reviewed: 8, operation_id: entry.item_operation_id });
+    expect(tables.replicationIdentitySocialOperationItems[0]).toMatchObject({ satisfied_item_operation_ids: [standaloneItemId, bindingItemId].sort() });
+    await expect(applyIdentitySocialBatchHandler(ctx, args)).resolves.toMatchObject({ changed: 1, idempotent_replay: true });
+    await expect(rollbackIdentitySocialOperationHandler(ctx, { apiKey: TOKEN, actor_email: ACTOR, operation_id: "rollback-eloh", rollback_of: "reconcile-eloh", dry_run: false })).resolves.toMatchObject({ changed: 1 });
+    expect(tables.contributorReplicatorVerifications[0]).toMatchObject({ status: "verified", work_count_reviewed: 1, operation_id: expect.stringContaining("identity-social:rollback:") });
   });
 
   it("blocks created-profile rollback when a contributor social asset references its key", async () => {
