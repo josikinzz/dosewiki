@@ -1,4 +1,5 @@
 import {
+  act,
   fireEvent,
   render,
   screen,
@@ -295,7 +296,7 @@ describe("AppearanceCog", () => {
     });
   });
 
-  it("flips every binary axis when its checked half is activated", async () => {
+  it("flips the binary axes from their checked half and selects Mode segments directly", async () => {
     const user = userEvent.setup();
     renderCog();
 
@@ -311,15 +312,70 @@ describe("AppearanceCog", () => {
       expect(document.documentElement.dataset.visualStyle).toBe("pro");
     });
 
+    // Mode is a three-way pick, not a toggle: the checked segment is a no-op…
     await user.click(within(mode).getByRole("radio", { name: "Dark" }));
+    expect(document.documentElement.dataset.theme).toBe("dark");
+
+    // …and an unchecked one selects exactly itself.
+    await user.click(within(mode).getByRole("radio", { name: "Light" }));
     await waitFor(() => {
       expect(document.documentElement.dataset.theme).toBe("light");
+      expect(window.localStorage.getItem(COLOR_SCHEME_STORAGE_KEY)).toBe("light");
     });
 
     await user.click(within(font).getByRole("radio", { name: "Standard" }));
     await waitFor(() => {
       expect(document.documentElement.dataset.font).toBe("dyslexic");
     });
+  });
+
+  it("stores the System preference and follows the OS scheme live", async () => {
+    const user = userEvent.setup();
+    let matches = false;
+    const listeners = new Set<(event: { matches: boolean }) => void>();
+    const query = {
+      get matches() {
+        return matches;
+      },
+      media: "(prefers-color-scheme: light)",
+      addEventListener: (_: string, listener: (event: { matches: boolean }) => void) => {
+        listeners.add(listener);
+      },
+      removeEventListener: (_: string, listener: (event: { matches: boolean }) => void) => {
+        listeners.delete(listener);
+      },
+    };
+    vi.stubGlobal("matchMedia", vi.fn().mockReturnValue(query));
+
+    try {
+      renderCog();
+      const panel = await openCog(user);
+      const mode = within(panel).getByRole("radiogroup", { name: "Mode" });
+
+      // Selecting System stores the preference while painting the current OS
+      // scheme (the stub says dark).
+      await user.click(within(mode).getByRole("radio", { name: "System" }));
+      await waitFor(() => {
+        expect(window.localStorage.getItem(COLOR_SCHEME_STORAGE_KEY)).toBe("system");
+        expect(document.documentElement.dataset.theme).toBe("dark");
+        expect(
+          within(mode).getByRole("radio", { name: "System" }),
+        ).toHaveAttribute("aria-checked", "true");
+      });
+
+      // An OS day/night flip restyles the page live: the painted scheme moves,
+      // the stored preference stays "system".
+      matches = true;
+      act(() => {
+        for (const listener of listeners) listener({ matches });
+      });
+      await waitFor(() => {
+        expect(document.documentElement.dataset.theme).toBe("light");
+        expect(window.localStorage.getItem(COLOR_SCHEME_STORAGE_KEY)).toBe("system");
+      });
+    } finally {
+      vi.unstubAllGlobals();
+    }
   });
 
   it("starts a touch drag on first contact anywhere along a slider", async () => {

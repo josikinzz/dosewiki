@@ -72,7 +72,7 @@ export function SubjectiveEffectsFieldsRHF({ idPrefix }: SubjectiveEffectsFields
       />
 
       {/* Sensory Effects (collapsible container with 6 senses) */}
-      <CollapsibleSubsection title="Sensory Effects" icon={<Icon icon="line-md:watch-loop" className="h-5 w-5" size={20} />}>
+      <CollapsibleSubsection title="Sensory Effects" icon={<Icon icon="lucide:eye" className="h-5 w-5" size={20} />}>
         {/* Sensory Note at top of section */}
         <FormEditorField
           htmlFor={`${idPrefix}-notes-sensory`}

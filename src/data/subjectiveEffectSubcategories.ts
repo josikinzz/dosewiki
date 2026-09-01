@@ -19,7 +19,7 @@ export interface SubcategoryMeta {
 }
 
 export const SENSORY_CATEGORIES = [
-  { key: "visual", label: "Visual", icon: "line-md:watch-loop" as IconName },
+  { key: "visual", label: "Visual", icon: "lucide:eye" as IconName },
   { key: "auditory", label: "Auditory", icon: "lucide:ear" as IconName },
   { key: "tactile", label: "Tactile", icon: "lucide:hand" as IconName },
   { key: "olfactory", label: "Olfactory", icon: null },

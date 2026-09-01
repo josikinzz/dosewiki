@@ -5,32 +5,38 @@ import { useTheme } from "@/context/ThemeContext";
 import { AppearanceTogglePill } from "./AppearanceTogglePill";
 
 /**
- * Dark/Light control for the colour-scheme axis only. The visible "Mode" label
- * names the setting while both endpoints state exactly what the page will use.
+ * Mode control for the colour-scheme axis: Dark, System (follow the OS
+ * `prefers-color-scheme` live), Light. Renders the *preference* — a system
+ * reader stays on "System" while the painted scheme follows their OS. Icons
+ * are 16px and the labels ride the pill's compact segment padding so all
+ * three fit the appearance popover without widening it.
  */
 export function ThemeToggle() {
-  const { colorScheme, toggleColorScheme } = useTheme();
+  const { colorSchemePreference, setColorSchemePreference } = useTheme();
 
   return (
     <AppearanceTogglePill
       axis="color-scheme"
       label="Mode"
-      value={colorScheme}
+      value={colorSchemePreference}
       options={[
         {
           value: "dark",
           label: "Dark",
-          icon: <Icon icon="lucide:moon" size={18} />,
+          icon: <Icon icon="lucide:moon" size={16} />,
+        },
+        {
+          value: "system",
+          label: "System",
+          icon: <Icon icon="lucide:monitor" size={16} />,
         },
         {
           value: "light",
           label: "Light",
-          icon: <Icon icon="lucide:sun" size={18} />,
+          icon: <Icon icon="lucide:sun" size={16} />,
         },
       ]}
-      onChange={(nextScheme) => {
-        if (nextScheme !== colorScheme) toggleColorScheme();
-      }}
+      onChange={setColorSchemePreference}
     />
   );
 }

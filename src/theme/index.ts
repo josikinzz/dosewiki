@@ -30,6 +30,14 @@ export const THEME_TOKEN_INTERFACE = tokenInterface;
 export type ColorScheme = "light" | "dark";
 
 /**
+ * What the reader may *store* on the colour axis: an explicit scheme, or "system" —
+ * follow the OS `prefers-color-scheme` live. The document attribute (`data-theme`) only
+ * ever carries a resolved {@link ColorScheme}; "system" exists in storage and provider
+ * state, and both the bootstrap and the provider resolve it before painting.
+ */
+export type ColorSchemePreference = ColorScheme | "system";
+
+/**
  * The presentation axis: typography, radii, elevation, spacing treatment, logo treatment
  * and visual vocabulary. Carried on the document root as `data-visual-style`.
  *
@@ -142,6 +150,12 @@ export function isColorScheme(value: string | null | undefined): value is ColorS
   return SUPPORTED_COLOR_SCHEMES.includes(value as ColorScheme);
 }
 
+export function isColorSchemePreference(
+  value: string | null | undefined,
+): value is ColorSchemePreference {
+  return value === "system" || isColorScheme(value);
+}
+
 export function isVisualStyle(value: string | null | undefined): value is VisualStyle {
   return SUPPORTED_VISUAL_STYLES.includes(value as VisualStyle);
 }
@@ -220,20 +234,33 @@ function buildAxisResolution({
   locked,
   storageKey,
   validitySet,
+  resolveSystem = false,
 }: {
   variable: string;
   fallback: string;
   locked: boolean;
   storageKey: string;
   validitySet: string;
+  /**
+   * Scheme axis only: a stored "system" resolves through `prefers-color-scheme` before the
+   * membership test, so the painted attribute still only ever carries a supported scheme.
+   */
+  resolveSystem?: boolean;
 }): string {
   if (locked) {
     return `  const ${variable} = ${JSON.stringify(fallback)};`;
   }
 
+  const read = resolveSystem
+    ? `let stored = window.localStorage.getItem(${JSON.stringify(storageKey)});
+    if (stored === "system") {
+      stored = window.matchMedia("(prefers-color-scheme: light)").matches ? "light" : "dark";
+    }`
+    : `const stored = window.localStorage.getItem(${JSON.stringify(storageKey)});`;
+
   return `  let ${variable} = ${JSON.stringify(fallback)};
   try {
-    const stored = window.localStorage.getItem(${JSON.stringify(storageKey)});
+    ${read}
     if (Object.prototype.hasOwnProperty.call(${validitySet}, stored)) {
       ${variable} = stored;
     }
@@ -270,6 +297,7 @@ export function buildThemeBootstrapScript(policy: AppearancePolicy = SITE_FLAVOR
     locked: !policy.showColorSchemeToggle,
     storageKey: COLOR_SCHEME_STORAGE_KEY,
     validitySet: "COLORS[style]",
+    resolveSystem: true,
   });
   const accentLocked = !policy.showAccentPicker;
   const surfaceLocked = !policy.showSurfacePicker;

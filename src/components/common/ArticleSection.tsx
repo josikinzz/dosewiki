@@ -16,9 +16,14 @@ import { articleSectionAdornmentClassName } from "./articleSectionLayout";
 
 type ArticleSectionSpacing = "article" | "effect" | "none";
 
+// The two page-level spacings also defer offscreen rendering
+// (`.theme-offscreen-defer`, utilities-theme.css): a long article restyles in
+// a fraction of the time when sections outside the viewport skip style,
+// layout, and paint. "none" wraps inline groups that may sit inside other
+// containment scopes, so it stays undeferred.
 const articleSectionSpacingClasses = {
-  article: "space-y-6 pt-12 scroll-mt-6",
-  effect: "space-y-6 pt-6 scroll-mt-24",
+  article: "space-y-6 pt-12 scroll-mt-6 theme-offscreen-defer",
+  effect: "space-y-6 pt-6 scroll-mt-24 theme-offscreen-defer",
   none: "",
 } satisfies Record<ArticleSectionSpacing, string>;
 

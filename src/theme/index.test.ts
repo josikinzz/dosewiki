@@ -233,6 +233,47 @@ describe("theme token interface", () => {
     expect(meta.content).toBe(APPEARANCE_META_COLORS.fun.light);
   });
 
+  it('resolves a stored "system" through prefers-color-scheme before paint', () => {
+    installMockStorage({ [COLOR_SCHEME_STORAGE_KEY]: "system" });
+    const meta = ensureThemeMeta();
+    vi.stubGlobal(
+      "matchMedia",
+      vi.fn().mockReturnValue({ matches: true, media: "(prefers-color-scheme: light)" }),
+    );
+
+    try {
+      Function(buildThemeBootstrapScript(DOSEWIKI))();
+
+      expect(document.documentElement.dataset.theme).toBe("light");
+      expect(document.documentElement.style.colorScheme).toBe("light");
+      expect(meta.content).toBe(APPEARANCE_META_COLORS.fun.light);
+    } finally {
+      vi.unstubAllGlobals();
+    }
+  });
+
+  it('costs only the scheme its default when "system" is stored and matchMedia throws', () => {
+    installMockStorage({
+      [COLOR_SCHEME_STORAGE_KEY]: "system",
+      [VISUAL_STYLE_STORAGE_KEY]: "pro",
+    });
+    vi.stubGlobal(
+      "matchMedia",
+      vi.fn(() => {
+        throw new Error("matchMedia blocked");
+      }),
+    );
+
+    try {
+      Function(buildThemeBootstrapScript(DOSEWIKI))();
+
+      expect(document.documentElement.dataset.theme).toBe(DOSEWIKI.defaultColorScheme);
+      expect(document.documentElement.dataset.visualStyle).toBe("pro");
+    } finally {
+      vi.unstubAllGlobals();
+    }
+  });
+
   it("falls back to both declared defaults when storage throws", () => {
     Object.defineProperty(window, "localStorage", {
       configurable: true,
