@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useSyncExternalStore } from "react";
 import {
   buildSearchManifestIndex,
   type SearchManifest,
@@ -23,6 +23,11 @@ let manifestIndexPromise: Promise<SearchManifestIndex | null> | null = null;
  */
 let loadedManifestIndex: SearchManifestIndex | null = null;
 let loadAttempts = 0;
+const manifestListeners = new Set<() => void>();
+
+function emitManifestChange() {
+  for (const listener of manifestListeners) listener();
+}
 
 async function fetchSearchManifestIndex(): Promise<SearchManifestIndex | null> {
   const response = await fetch("/api/search-manifest");
@@ -47,6 +52,7 @@ export function loadSearchManifestIndex(): Promise<SearchManifestIndex | null> {
   manifestIndexPromise = fetchSearchManifestIndex()
     .then((index) => {
       loadedManifestIndex = index;
+      emitManifestChange();
       return index;
     })
     .catch(() => {
@@ -87,6 +93,7 @@ export function resetSearchManifestForTests() {
   manifestIndexPromise = null;
   loadedManifestIndex = null;
   loadAttempts = 0;
+  emitManifestChange();
 }
 
 /**
@@ -94,23 +101,26 @@ export function resetSearchManifestForTests() {
  * failed. `enabled` defers the request until the user actually engages search.
  */
 export function useSearchManifestIndex(enabled: boolean): SearchManifestIndex | null {
-  const [index, setIndex] = useState<SearchManifestIndex | null>(() => loadedManifestIndex);
+  const subscribe = useCallback(
+    (onStoreChange: () => void) => {
+      if (!enabled) return () => {};
+      manifestListeners.add(onStoreChange);
+      return () => manifestListeners.delete(onStoreChange);
+    },
+    [enabled],
+  );
+  const getSnapshot = useCallback(
+    () => (enabled ? loadedManifestIndex : null),
+    [enabled],
+  );
+  const index = useSyncExternalStore(subscribe, getSnapshot, () => null);
 
   useEffect(() => {
     if (!enabled || index) {
       return;
     }
 
-    let disposed = false;
-    void loadSearchManifestIndex().then((loaded) => {
-      if (!disposed && loaded) {
-        setIndex(loaded);
-      }
-    });
-
-    return () => {
-      disposed = true;
-    };
+    void loadSearchManifestIndex();
   }, [enabled, index]);
 
   return index;
