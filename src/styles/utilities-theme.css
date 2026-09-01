@@ -5691,3 +5691,59 @@ html[data-theme="light"]:not([data-visual-style="pro"])
   border-color: var(--theme-card-border-strong);
 }
 
+/* ---------------------------------------------------------------------
+   Substance Index · beta disclaimer (DosagesPage.tsx)
+   Danger-toned link whose text carries a very subtle shimmer: a narrow
+   brighter band sweeps left-to-right through background-clipped text.
+   Falls back to plain danger text when motion is reduced or clipping is
+   unsupported.
+   --------------------------------------------------------------------- */
+.theme-beta-shimmer {
+  color: var(--theme-danger-text-vivid);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  @supports (-webkit-background-clip: text) or (background-clip: text) {
+    .theme-beta-shimmer {
+      background-image: linear-gradient(
+        100deg,
+        var(--theme-danger-text-vivid) 42%,
+        var(--theme-danger-text-vivid-strong) 50%,
+        var(--theme-danger-text-vivid) 58%
+      );
+      background-size: 250% 100%;
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      animation: theme-beta-shimmer 5s linear infinite;
+    }
+  }
+}
+
+@keyframes theme-beta-shimmer {
+  from {
+    background-position: 125% 0;
+  }
+  to {
+    background-position: -25% 0;
+  }
+}
+
+/* The inline docs link lives inside the clipped shimmer span, where
+   currentColor is transparent — the underline needs an explicit ink. */
+.theme-beta-disclaimer {
+  text-decoration-color: var(--theme-danger-text-vivid);
+}
+
+@media (hover: hover) {
+  .theme-beta-disclaimer:hover {
+    text-decoration-color: var(--theme-danger-text-vivid-strong);
+  }
+}
+
+.theme-beta-disclaimer:focus-visible {
+  outline: 2px solid var(--theme-accent-strong);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+

@@ -519,6 +519,11 @@ html[data-theme="light"]:where(:not([data-visual-style="pro"])) .theme-chrome-da
   --theme-danger-border-strong: rgb(var(--c-rose-bright) / 0.5);
   --theme-danger-text: var(--c-rose-100);
   --theme-danger-text-strong: var(--c-rose-200);
+  /* Danger text sitting on the bare body (no danger-bg behind it), e.g. the
+     Substance Index beta disclaimer. The plain --theme-danger-text pair is
+     tuned for danger-bg surfaces and washes out to near-white on the body. */
+  --theme-danger-text-vivid: rgb(var(--c-rose-bright));
+  --theme-danger-text-vivid-strong: var(--c-rose-200);
   --theme-danger-ring: rgb(var(--c-rose) / 0.24);
   --theme-evidence-bg: color-mix(in srgb, oklch(60% 0.11 var(--h-green)) 13%, var(--theme-body-bg));
   --theme-evidence-bg-strong: color-mix(in srgb, oklch(60% 0.11 var(--h-green)) 20%, var(--theme-body-bg));
@@ -1029,6 +1034,8 @@ html[data-theme="light"] {
   --theme-danger-border-strong: rgb(var(--c-rose-deep) / 0.32);
   --theme-danger-text: var(--c-rose-800);
   --theme-danger-text-strong: var(--c-rose-700);
+  --theme-danger-text-vivid: var(--c-rose-700);
+  --theme-danger-text-vivid-strong: rgb(var(--c-rose-deep));
   --theme-danger-ring: rgb(var(--c-rose-deep) / 0.16);
   --theme-evidence-bg: color-mix(in srgb, oklch(52% 0.1 var(--h-green)) 10%, var(--theme-body-bg));
   --theme-evidence-bg-strong: color-mix(in srgb, oklch(52% 0.1 var(--h-green)) 16%, var(--theme-body-bg));

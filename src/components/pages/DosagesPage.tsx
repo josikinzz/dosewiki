@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useMemo, useRef, useState } from "react";
+import Link from "next/link";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { Icon, type IconName } from "@/components/common/Icon";
 import { PublicContentShell } from "@/components/layout/PublicPagePrimitives";
@@ -400,12 +401,26 @@ export function DosagesPage({
                 <Icon
                   icon="lucide:construction"
                   size="1.05em"
-                  className="theme-accent-heading self-center"
+                  className="self-center text-[var(--theme-danger-text-vivid)]"
                 />
-                Work in progress. Entries may be inaccurate.
+                <span className="theme-beta-shimmer">
+                  dose.wiki is still in beta. Entries may contain inaccuracies. See{" "}
+                  <Link
+                    href="/docs/how"
+                    className="theme-beta-disclaimer underline decoration-dotted underline-offset-2 hover:decoration-solid"
+                  >
+                    our docs
+                  </Link>{" "}
+                  for more info.
+                </span>
+                <Icon
+                  icon="lucide:construction"
+                  size="1.05em"
+                  className="self-center text-[var(--theme-danger-text-vivid)]"
+                />
               </span>
             }
-            descriptionClassName="theme-text-secondary mx-auto text-sm italic text-balance"
+            descriptionClassName="mx-auto text-sm italic text-balance"
           />
         </div>
       </div>
