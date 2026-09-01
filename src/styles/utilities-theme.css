@@ -128,6 +128,60 @@ a[data-nav-pending="true"] {
   transition: opacity 200ms ease-out;
 }
 
+/* Index list links (IndexCard.tsx: Substance Index and Subjective Effect
+   Index entries) answer the click with a shimmer instead of a dim: the label
+   takes the progress bar's accent ink and a narrow brighter band sweeps
+   through it, the same recipe and intensity as .theme-beta-shimmer, looping
+   for as long as the navigation stays in flight. The eye resting on the
+   clicked entry sees motion in place, then finds the bar at the top. Only
+   the label span is clipped so the bullet, meta count, and the hover
+   background on the anchor keep painting normally. */
+.theme-index-card-link[data-nav-pending="true"] {
+  opacity: 1;
+}
+
+.theme-index-card-link[data-nav-pending="true"] .theme-index-card-label {
+  color: var(--theme-accent-strong);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  @supports (-webkit-background-clip: text) or (background-clip: text) {
+    .theme-index-card-link[data-nav-pending="true"] .theme-index-card-label {
+      background-image: linear-gradient(
+        100deg,
+        var(--theme-accent-strong) 42%,
+        var(--theme-accent-soft) 50%,
+        var(--theme-accent-strong) 58%
+      );
+      background-size: 250% 100%;
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      animation: theme-nav-link-shimmer 2.4s linear infinite;
+    }
+  }
+}
+
+@keyframes theme-nav-link-shimmer {
+  from {
+    background-position: 125% 0;
+  }
+  to {
+    background-position: -25% 0;
+  }
+}
+
+/* The beta disclaimer's own shimmer (article top slot, Substance Index
+   header) recedes while a navigation is pending so the progress bar and the
+   clicked link are the only things moving. */
+.theme-beta-disclaimer-shell {
+  transition: opacity 200ms ease-out;
+}
+
+html[data-nav-pending="true"] .theme-beta-disclaimer-shell {
+  opacity: 0.45;
+}
+
 .theme-nav-progress {
   position: fixed;
   inset: 0 0 auto 0;
@@ -175,7 +229,8 @@ a[data-nav-pending="true"] {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  a[data-nav-pending="true"] {
+  a[data-nav-pending="true"],
+  .theme-beta-disclaimer-shell {
     transition: none;
   }
 

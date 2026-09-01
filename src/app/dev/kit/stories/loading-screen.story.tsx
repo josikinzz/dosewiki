@@ -48,7 +48,7 @@ export const loadingScreenStory: StoryDef = {
   ],
   whenNotToUse: [
     "Inline or in-card loading — use a Skeleton or a small spinner, not a full-screen overlay.",
-    "Route or section loads where the shell can stay up — use RouteLoading / PublicSkeletonSurface so the load reads as the page assembling.",
+    "Section loads where the shell can stay up — use RouteLoading / PublicSkeletonSurface so the load reads as the page assembling. Route navigations show no skeleton at all; NavigationProgress carries them.",
     "Editor/dev surfaces — this carries public-facing copy and branding.",
   ],
   notes: [

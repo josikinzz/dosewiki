@@ -379,7 +379,7 @@ export const IndexCardListItem = memo(function IndexCardListItem({
           depth === 1 && "bg-transparent ring-1 ring-current opacity-60",
         )}
       />
-      <span className="min-w-0">{label}</span>
+      <span className="theme-index-card-label min-w-0">{label}</span>
       {meta ? (
         <span className="theme-text-faint ml-auto shrink-0 pl-3 text-[0.8125rem] tabular-nums">
           {meta}

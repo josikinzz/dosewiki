@@ -26,9 +26,12 @@ export type RouteLoadingLandmark = {
 export type RouteLoadingViewModel = {
   family: LoadingRouteFamily;
   /**
-   * `route` models back a Next.js `loading.tsx` boundary and stand in for the
-   * whole document; `section` models fill one Suspense hole inside a page that
-   * has already rendered. Only the former has to reserve a scrollport.
+   * `route` models stand in for a whole document; `section` models fill one
+   * Suspense hole inside a page that has already rendered. Only the former has
+   * to reserve a scrollport. Public routes no longer ship `loading.tsx`
+   * boundaries (the header progress bar carries pending navigation instead),
+   * so `route` models survive for in-page full-surface holds such as the
+   * review workbench boot.
    */
   scope: "route" | "section";
   label: string;

@@ -21,7 +21,7 @@ import { cn } from "@/lib/utils";
  */
 export function BetaDisclaimer({ className }: { className?: string }) {
   return (
-    <span className={cn("relative mx-auto block w-fit px-7", className)}>
+    <span className={cn("theme-beta-disclaimer-shell relative mx-auto block w-fit px-7", className)}>
       <Icon
         icon="lucide:construction"
         size="1.25rem"
