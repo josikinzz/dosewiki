@@ -1,12 +1,10 @@
 "use client";
-
 import Link from "next/link";
 import {
   useCallback,
   useEffect,
   useId,
   useLayoutEffect,
-  useMemo,
   useRef,
   useState,
 } from "react";
@@ -42,7 +40,6 @@ import { hasKnownCreator } from "@/features/effects/components/replicationCredit
 import { ReplicationViewerEditorGate } from "./editor/ReplicationViewerEditorGate";
 import {
   findViewerPosition,
-  moveViewerGroup,
   moveViewerWork,
   type ReplicationViewerCollection,
   type ReplicationViewerPosition,
@@ -56,6 +53,12 @@ import {
   shouldShowGestureHint,
   type SlideQuality,
 } from "./viewerLogic";
+import {
+  createViewerSession,
+  type EntryMotion,
+  type ViewerHistoryAdapter,
+  type ViewerSession,
+} from "./viewerSession";
 
 /**
  * The viewer's full-screen dialog surface. The `!` trio is load-bearing:
@@ -67,13 +70,11 @@ import {
  */
 const VIEWER_DIALOG_CLASS =
   "theme-media-tile-title fixed inset-0 z-[70] max-h-none max-w-none translate-x-0 translate-y-0 grid-cols-[minmax(0,1fr)] grid-rows-[auto_minmax(0,1fr)] gap-0 overflow-hidden !border-0 !bg-black p-0 !shadow-[var(--theme-elevation-none)] duration-150 sm:rounded-none";
-
 /**
  * The side the incoming work enters from after a non-swipe navigation
  * (group jumps, rail taps, editor activation). Horizontal work changes ride
  * the track's own slide animation instead.
  */
-type EntryMotion = "top" | "bottom" | "fade";
 
 const ENTRY_MOTION_CLASS: Record<EntryMotion, string> = {
   top: "motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-from-top-6 motion-safe:duration-200",
@@ -146,13 +147,8 @@ export function ReplicationViewerOverlay({
   onRegroup,
 }: ReplicationViewerOverlayProps) {
   const [collection, setCollection] = useState(sourceCollection);
-  useEffect(() => setCollection(sourceCollection), [sourceCollection]);
-  const initialPosition = useMemo(
-    () => findViewerPosition(collection, initialSlug),
-    [collection, initialSlug],
-  );
   const [position, setPosition] = useState<ReplicationViewerPosition | null>(
-    initialPosition,
+    () => findViewerPosition(sourceCollection, initialSlug),
   );
   const [muted, setMuted] = useState(true);
   const [volume, setVolume] = useState(1);
@@ -190,7 +186,6 @@ export function ReplicationViewerOverlay({
   // hook derives whether the active work actually turns, so the overlay's
   // own iconography (settings, thumbnails) can lean with it.
   const [rotateMode, setRotateMode] = useState(false);
-  const rememberedSlugByGroupRef = useRef<Record<string, string>>({});
   /** The persistent wrapper the entry animation replays on. */
   const trackPaneRef = useRef<HTMLDivElement>(null);
   const thumbnailRailRef = useRef<HTMLUListElement>(null);
@@ -204,6 +199,48 @@ export function ReplicationViewerOverlay({
   const settingsButtonRef = useRef<HTMLButtonElement>(null);
   const infoPanelId = useId();
   const infoHeadingId = useId();
+  const sessionHolderRef = useRef<{
+    collection: ReplicationViewerCollection;
+    session: ViewerSession;
+  } | null>(null);
+  const previousSessionHolder = sessionHolderRef.current;
+  if (sessionHolderRef.current?.collection !== sourceCollection) {
+    const previousPosition = previousSessionHolder?.session.snapshot().position;
+    const sessionInitialSlug = previousPosition
+      ? (previousSessionHolder?.collection.groups[previousPosition.groupIndex]
+          ?.items[previousPosition.itemIndex]?.replication.slug ?? initialSlug)
+      : initialSlug;
+    const history: ViewerHistoryAdapter = {
+      push: (url) =>
+        window.history.pushState(
+          { ...window.history.state, replicationViewer: true },
+          "",
+          url,
+        ),
+      replace: (url) =>
+        window.history.replaceState(window.history.state, "", url),
+      back: () => window.history.back(),
+      viewerStateActive: () =>
+        window.history.state?.replicationViewer === true,
+    };
+    sessionHolderRef.current = {
+      collection: sourceCollection,
+      session: createViewerSession({
+        collection: sourceCollection,
+        initialSlug: sessionInitialSlug,
+        history,
+        buildUrl: buildReplicationViewerUrl,
+        closeUrl: closeReplicationViewerUrl,
+        currentSource: () =>
+          `${window.location.pathname}${window.location.search}${window.location.hash}`,
+        onChange: (snapshot) => {
+          setPosition(snapshot.position);
+          setEntryMotion(snapshot.entry);
+        },
+      }),
+    };
+  }
+  const session = sessionHolderRef.current.session;
 
   const group = position ? collection.groups[position.groupIndex] : null;
   const active = group && position ? group.items[position.itemIndex] : null;
@@ -235,16 +272,15 @@ export function ReplicationViewerOverlay({
   }, [entryMotion, activeSlug]);
 
   useEffect(() => {
-    const next = findViewerPosition(collection, initialSlug);
-    setPosition(next);
+    setCollection(sourceCollection);
+    setPosition(session.snapshot().position);
     setInfoOpen(false);
     setDetails(null);
-  }, [collection, initialSlug]);
+  }, [sourceCollection]);
 
   useEffect(() => {
-    if (!open || !active) return;
-    rememberedSlugByGroupRef.current[group!.key] = active.replication.slug;
-  }, [active, group, open]);
+    session.syncFromUrl(initialSlug);
+  }, [initialSlug]);
 
   // Sound and rotate mode are session preferences, the way the phone feeds
   // treat them: each open starts from the stored choices instead of
@@ -258,7 +294,6 @@ export function ReplicationViewerOverlay({
       setActiveVideo(null);
       setEditorOpen(false);
       setReorderMode(false);
-      rememberedSlugByGroupRef.current = {};
       return;
     }
     let storedSound: string | null = null;
@@ -366,21 +401,15 @@ export function ReplicationViewerOverlay({
       entry: EntryMotion | null = null,
     ) => {
       if (!next) return;
-      const nextItem =
-        collection.groups[next.groupIndex]?.items[next.itemIndex];
-      if (!nextItem) return;
-      setPosition(next);
-      setEntryMotion(entry);
+      const slug =
+        collection.groups[next.groupIndex]?.items[next.itemIndex]?.replication
+          .slug;
+      if (!slug) return;
+      session.open(slug, entry);
       setInfoOpen(false);
       setDetails(null);
-      const source = `${window.location.pathname}${window.location.search}${window.location.hash}`;
-      window.history.replaceState(
-        window.history.state,
-        "",
-        buildReplicationViewerUrl(source, nextItem.replication.slug),
-      );
     },
-    [collection],
+    [collection, session],
   );
 
   // Announce arrival at a work after the reader moves (swipe, arrows, rail,
@@ -409,41 +438,16 @@ export function ReplicationViewerOverlay({
 
   const activateEditorSlug = useCallback(
     (slug: string) => {
-      navigate(findViewerPosition(collection, slug), "fade");
+      session.open(slug, "fade");
     },
-    [collection, navigate],
+    [session],
   );
 
   const applyEditorOrder = useCallback(
     (slugs: readonly string[]) => {
-      if (!position || !active) return;
-      const currentGroup = collection.groups[position.groupIndex];
-      if (!currentGroup) return;
-      const bySlug = new Map(
-        currentGroup.items.map((item) => [item.replication.slug, item]),
-      );
-      const ordered = slugs.flatMap((slug) => {
-        const item = bySlug.get(slug);
-        if (!item) return [];
-        bySlug.delete(slug);
-        return [item];
-      });
-      ordered.push(...bySlug.values());
-      const nextCollection = {
-        ...collection,
-        groups: collection.groups.map((group, index) =>
-          index === position.groupIndex ? { ...group, items: ordered } : group,
-        ),
-      };
-      setCollection(nextCollection);
-      setPosition({
-        groupIndex: position.groupIndex,
-        itemIndex: ordered.findIndex(
-          (item) => item.replication.slug === active.replication.slug,
-        ),
-      });
+      session.applyOrder(slugs);
     },
-    [active, collection, position],
+    [session],
   );
 
   const openInfo = useCallback(() => {
@@ -474,17 +478,14 @@ export function ReplicationViewerOverlay({
     ? moveViewerWork(collection, position, -1)
     : null;
   const nextWork = position ? moveViewerWork(collection, position, 1) : null;
-  const previousGroup = position
-    ? moveViewerGroup(
-        collection,
-        position,
-        -1,
-        rememberedSlugByGroupRef.current,
-      )
-    : null;
-  const nextGroup = position
-    ? moveViewerGroup(collection, position, 1, rememberedSlugByGroupRef.current)
-    : null;
+  const previousGroup =
+    position && position.groupIndex > 0
+      ? { groupIndex: position.groupIndex - 1, itemIndex: 0 }
+      : null;
+  const nextGroup =
+    position && position.groupIndex + 1 < collection.groups.length
+      ? { groupIndex: position.groupIndex + 1, itemIndex: 0 }
+      : null;
 
   /**
    * One work over, with the track's slide animation when it can run it.
@@ -499,22 +500,20 @@ export function ReplicationViewerOverlay({
   /** A completed track commit: the pool already rotated; land the position. */
   const commitWork = useCallback(
     (direction: 1 | -1) => {
-      navigate(
-        direction === 1 ? nextWork : previousWork,
-        null,
-      );
+      session.commitWork(direction);
+      setInfoOpen(false);
+      setDetails(null);
     },
-    [navigate, nextWork, previousWork],
+    [session],
   );
 
   const commitGroup = useCallback(
     (direction: 1 | -1) => {
-      navigate(
-        direction === 1 ? nextGroup : previousGroup,
-        direction === 1 ? "bottom" : "top",
-      );
+      session.commitGroup(direction);
+      setInfoOpen(false);
+      setDetails(null);
     },
-    [navigate, nextGroup, previousGroup],
+    [session],
   );
 
   const surfaceTap = useCallback(() => {
@@ -549,12 +548,11 @@ export function ReplicationViewerOverlay({
         onOpenChange(false);
         return;
       }
-      const restored = findViewerPosition(collection, slug);
-      if (restored) setPosition(restored);
+      session.syncFromUrl(slug);
     };
     window.addEventListener("popstate", onPopState);
     return () => window.removeEventListener("popstate", onPopState);
-  }, [collection, onOpenChange, open]);
+  }, [onOpenChange, open, session]);
 
   useEffect(() => {
     if (!infoOpen || !active) return;
@@ -574,17 +572,10 @@ export function ReplicationViewerOverlay({
 
   const close = useCallback(() => {
     const finish = () => {
-      if (window.history.state?.replicationViewer === true) {
-        window.history.back();
-      } else {
-        const source = `${window.location.pathname}${window.location.search}${window.location.hash}`;
-        window.history.replaceState(
-          window.history.state,
-          "",
-          closeReplicationViewerUrl(source),
-        );
-        onOpenChange(false);
-      }
+      const viewerStateActive =
+        window.history.state?.replicationViewer === true;
+      session.close();
+      if (!viewerStateActive) onOpenChange(false);
     };
 
     if (document.fullscreenElement && document.exitFullscreen) {
@@ -592,7 +583,7 @@ export function ReplicationViewerOverlay({
     } else {
       finish();
     }
-  }, [onOpenChange]);
+  }, [onOpenChange, session]);
 
   const documentFullscreenSupported =
     typeof document !== "undefined" &&
@@ -680,21 +671,22 @@ export function ReplicationViewerOverlay({
         slideWork(event.key === "ArrowRight" ? 1 : -1);
         return;
       }
-      const move =
-        event.key === "ArrowUp"
-          ? ([previousGroup, "top"] as const)
-          : event.key === "ArrowDown"
-            ? ([nextGroup, "bottom"] as const)
-            : null;
-      if (!move || !move[0]) return;
+      const direction =
+        event.key === "ArrowUp" ? -1 : event.key === "ArrowDown" ? 1 : null;
+      if (
+        direction === null ||
+        (direction === -1 ? !previousGroup : !nextGroup)
+      ) {
+        return;
+      }
       event.preventDefault();
-      navigate(move[0], move[1]);
+      commitGroup(direction);
     };
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
   }, [
+    commitGroup,
     infoOpen,
-    navigate,
     nextGroup,
     open,
     previousGroup,
@@ -934,7 +926,7 @@ export function ReplicationViewerOverlay({
                     : `First ${groupUnit.toLowerCase()}`
                 }
                 disabled={!previousGroup}
-                onClick={() => navigate(previousGroup, "top")}
+                onClick={() => commitGroup(-1)}
                 className={cn(
                   "theme-media-control-raised grid size-11 place-items-center rounded-lg disabled:cursor-not-allowed disabled:opacity-30 sm:size-8 sm:rounded-md",
                   focusRingClassName,
@@ -950,7 +942,7 @@ export function ReplicationViewerOverlay({
                     : `Final ${groupUnit.toLowerCase()}`
                 }
                 disabled={!nextGroup}
-                onClick={() => navigate(nextGroup, "bottom")}
+                onClick={() => commitGroup(1)}
                 className={cn(
                   "theme-media-control-raised grid size-11 place-items-center rounded-lg disabled:cursor-not-allowed disabled:opacity-30 sm:size-8 sm:rounded-md",
                   focusRingClassName,
@@ -994,6 +986,7 @@ export function ReplicationViewerOverlay({
                       onClick={() => {
                         setSettingsOpen(false);
                         if (grouping !== collection.grouping) {
+                          session.regroup(grouping, active.replication.slug);
                           onRegroup(grouping, active.replication.slug);
                         }
                       }}
