@@ -169,7 +169,7 @@ export function validateIdentitySocialBatch(kind: IdentitySocialBatchEntry["kind
 }
 
 function isSkippedDecision(entry: IdentitySocialBatchEntry) {
-  return (entry.kind === "attribution" && ["preserve-poster-as-creator", "blocked-preserve-poster-no-verified-chronology"].includes(entry.projection.action)) ||
+  return (entry.kind === "attribution" && ["preserve-poster-as-creator", "preserve-poster-as-creator-no-write", "blocked-preserve-poster-no-verified-chronology"].includes(entry.projection.action)) ||
     (entry.kind === "alias" && ["preserve-existing-alias", "blocked-pending-owner-review", "blocked-merge-required-collision"].includes(entry.projection.action));
 }
 
@@ -177,9 +177,9 @@ function validateProjectionMapping(entry: IdentitySocialBatchEntry) {
   const target = entry.projection.target as Record<string, unknown>;
   if (entry.kind === "attribution") {
     if (target.replicationId !== String(entry.value.replication_id)) throw new Error("Projection attribution target does not match the normalized value.");
-    if (!["preserve-poster-as-creator", "blocked-preserve-poster-no-verified-chronology", "set-proven-creator-with-verified-chronology"].includes(entry.projection.action)) throw new Error("Unsupported creator-attribution action.");
+    if (!["preserve-poster-as-creator", "preserve-poster-as-creator-no-write", "blocked-preserve-poster-no-verified-chronology", "set-proven-creator-with-verified-chronology"].includes(entry.projection.action)) throw new Error("Unsupported creator-attribution action.");
     if (entry.projection.action === "set-proven-creator-with-verified-chronology" && entry.value.creator_determination !== "proven-different-creator") throw new Error("Creator-change action does not match its normalized value.");
-    if (["preserve-poster-as-creator", "blocked-preserve-poster-no-verified-chronology"].includes(entry.projection.action) && entry.value.creator_determination === "proven-different-creator") throw new Error("Creator-preservation action cannot assign a different creator.");
+    if (["preserve-poster-as-creator", "preserve-poster-as-creator-no-write", "blocked-preserve-poster-no-verified-chronology"].includes(entry.projection.action) && entry.value.creator_determination === "proven-different-creator") throw new Error("Creator-preservation action cannot assign a different creator.");
   } else if (entry.kind === "verification") {
     if (entry.projection.action !== "record-reviewed-verification") throw new Error("Unsupported verification action.");
   } else if (entry.kind === "alias") {
