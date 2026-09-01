@@ -1,9 +1,13 @@
 "use client";
 
-import type { MouseEvent } from "react";
+import { useEffect, useId, useMemo, useState, type MouseEvent } from "react";
+import { ExpandButton } from "@/components/common/ExpandButton";
 import { Icon } from "@/components/common/Icon";
 import { cn } from "@/lib/utils";
 import type { ProjectedCitation } from "@/lib/citationProjection";
+
+/** Citations shown before the list collapses behind a "+N" control. */
+export const REFERENCE_LIST_VISIBLE_LIMIT = 10;
 
 export type CitationBacklink = {
   href: string;
@@ -172,23 +176,109 @@ export function ReferenceListItem({
  * Wikipedia-style numbered reference list shared by substance and effect
  * articles: plum number chip, full citation text, accent-colored trailing
  * URL, and optional per-use backlinks.
+ *
+ * Long lists collapse after `visibleLimit` entries behind a "+N" chip. An
+ * inline marker (or a shared link) that targets a collapsed entry expands the
+ * list and scrolls to that entry, so hash navigation keeps working.
  */
 export function ReferenceCitationList({
   citations,
   referenceBacklinks,
+  visibleLimit = REFERENCE_LIST_VISIBLE_LIMIT,
 }: {
   citations: readonly ProjectedCitation[];
   referenceBacklinks?: Record<string, CitationBacklink[]>;
+  visibleLimit?: number;
 }) {
+  const [isExpanded, setIsExpanded] = useState(false);
+  const listId = useId();
+  const hiddenCount = Math.max(0, citations.length - visibleLimit);
+  const isCollapsible = hiddenCount > 0;
+  const hiddenAnchorIds = useMemo(
+    () => new Set(citations.slice(visibleLimit).map((citation) => citation.anchorId)),
+    [citations, visibleLimit],
+  );
+  const visibleCitations = isCollapsible && !isExpanded
+    ? citations.slice(0, visibleLimit)
+    : citations;
+
+  useEffect(() => {
+    if (!isCollapsible) return;
+
+    const anchorIdFromHash = () => {
+      const hash = window.location.hash.slice(1);
+      if (!hash) return null;
+      try {
+        return decodeURIComponent(hash);
+      } catch {
+        return hash;
+      }
+    };
+
+    const revealFromHash = () => {
+      const anchorId = anchorIdFromHash();
+      if (anchorId && hiddenAnchorIds.has(anchorId)) {
+        setIsExpanded(true);
+      }
+    };
+
+    // Same-hash clicks do not fire hashchange, so watch marker clicks too.
+    const handleClick = (event: Event) => {
+      const link = (event.target as Element | null)?.closest<HTMLAnchorElement>("a[href^='#']");
+      if (!link) return;
+      const anchorId = link.getAttribute("href")?.slice(1);
+      if (anchorId && hiddenAnchorIds.has(anchorId)) {
+        setIsExpanded(true);
+      }
+    };
+
+    revealFromHash();
+    window.addEventListener("hashchange", revealFromHash);
+    document.addEventListener("click", handleClick);
+    return () => {
+      window.removeEventListener("hashchange", revealFromHash);
+      document.removeEventListener("click", handleClick);
+    };
+  }, [hiddenAnchorIds, isCollapsible]);
+
+  useEffect(() => {
+    // The browser's own hash jump ran while the entry was still unmounted;
+    // finish the trip once the expanded rows exist.
+    if (!isExpanded) return;
+    const anchorId = window.location.hash.slice(1);
+    if (!anchorId || !hiddenAnchorIds.has(anchorId)) return;
+    const target = document.getElementById(anchorId);
+    if (!target) return;
+    target.scrollIntoView({ block: "center", behavior: "smooth" });
+  }, [hiddenAnchorIds, isExpanded]);
+
   return (
-    <ol className="max-w-full list-none space-y-3 p-0">
-      {citations.map((citation) => (
-        <ReferenceListItem
-          key={`${citation.anchorId}-${citation.referenceId ?? citation.url}`}
-          citation={citation}
-          backlinks={citation.referenceId ? referenceBacklinks?.[citation.referenceId] : undefined}
-        />
-      ))}
-    </ol>
+    <div className="max-w-full">
+      <ol id={listId} className="max-w-full list-none space-y-3 p-0">
+        {visibleCitations.map((citation) => (
+          <ReferenceListItem
+            key={`${citation.anchorId}-${citation.referenceId ?? citation.url}`}
+            citation={citation}
+            backlinks={citation.referenceId ? referenceBacklinks?.[citation.referenceId] : undefined}
+          />
+        ))}
+      </ol>
+      {isCollapsible ? (
+        <div className="mt-4 flex justify-center">
+          <ExpandButton
+            isExpanded={isExpanded}
+            onToggle={() => setIsExpanded((value) => !value)}
+            variant="count"
+            count={hiddenCount}
+            ariaControls={listId}
+            ariaLabel={
+              isExpanded
+                ? `Show only the first ${visibleLimit} citations`
+                : `Show ${hiddenCount} more citations`
+            }
+          />
+        </div>
+      ) : null}
+    </div>
   );
 }
