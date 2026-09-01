@@ -693,12 +693,16 @@ export const rollbackProfileBindingOperation = mutation({ args: { apiKey: v.stri
 const authenticatedReadArgs = { apiKey: v.string(), actor_email: v.string() };
 export const previewCanonicalBeforeAuthenticated = query({
   args: { ...authenticatedReadArgs, entry: identitySocialBatchEntryValidator },
-  returns: v.object({ matches: v.boolean(), digest: v.string() }),
+  returns: v.object({ matches: v.boolean(), digest: v.string(), error: v.optional(v.string()) }),
   handler: async (ctx, args) => {
     await requireRegisteredDelegatedEditorWrite(ctx, { apiKey: args.apiKey, actorEmail: args.actor_email, adminIntent: "replicationMaintenance" });
-    const before = await canonicalBeforeForEntry(ctx, args.entry);
-    const digest = await canonicalDigest(before);
-    return { matches: digest === args.entry.projection.expectedBeforeSha256 && equal(before, args.entry.projection.expectedBefore), digest };
+    try {
+      const before = await canonicalBeforeForEntry(ctx, args.entry);
+      const digest = await canonicalDigest(before);
+      return { matches: digest === args.entry.projection.expectedBeforeSha256 && equal(before, args.entry.projection.expectedBefore), digest };
+    } catch (error) {
+      return { matches: false, digest: "", error: error instanceof Error ? error.message : "Canonical preflight failed." };
+    }
   },
 });
 export const getOperationReceiptAuthenticated = query({

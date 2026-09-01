@@ -276,7 +276,7 @@ export function batchesAfterCanaries(batches, canaries = selectCanaries(batches)
   return makeBatches(batches.flatMap((batch) => batch.entries).filter((entry) => !canaryItems.has(entry.item_operation_id)));
 }
 export function assertPreviewMatches(entry, preview) {
-  if (!preview || preview.matches !== true || preview.digest !== entry.projection.expectedBeforeSha256) throw new Error(`CAS mismatch for ${entry.item_operation_id}.`);
+  if (!preview || preview.matches !== true || preview.digest !== entry.projection.expectedBeforeSha256) throw new Error(`CAS mismatch for ${entry.item_operation_id}${preview?.error ? `: ${preview.error}` : ""}.`);
 }
 export function rollbackManifest(completedBatches) {
   return [...completedBatches].reverse().map((batch) => ({ rollback_of: batch.operation_id, operation_id: `identity-social-rollback:${digest({ rollback_of: batch.operation_id }).slice(0, 24)}` }));
