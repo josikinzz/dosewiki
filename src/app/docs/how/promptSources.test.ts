@@ -101,7 +101,7 @@ describe("/docs/how trust and review methodology", () => {
   });
 });
 
-describe("/docs/how status, roadmap, and corrections", () => {
+describe("/docs/how status and roadmap", () => {
   it("states beta status and living-document framing", () => {
     expect(PAGE).toContain("in <strong>beta</strong>");
     expect(PAGE).toContain("living document");
@@ -123,12 +123,6 @@ describe("/docs/how status, roadmap, and corrections", () => {
     const phase4 = PAGE.slice(PAGE.indexOf("Phase 4"), PAGE.indexOf("Phase 5"));
     expect(phase4).toContain("Planned");
     expect(phase4).toContain("will be tracked separately");
-  });
-
-  it("carries a dated corrections log with known issues", () => {
-    expect(PAGE).toContain("Corrections log");
-    expect(PAGE).toContain("August 31, 2026");
-    expect(PAGE).toContain("known issues under audit");
   });
 
   it("separates editorial review from citation verification", () => {

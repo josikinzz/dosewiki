@@ -523,40 +523,6 @@ export default function DocsHowPage() {
               through the verification stages above.
             </p>
           </div>
-        </ContentCard>
-        
-        <ContentCard padding="none" className={`mt-6 ${DIVIDED_LIST_CLASS}`}>
-          <div className={DIVIDED_ITEM_CLASS}>
-            <h3 className={SUBHEAD_CLASS}>Corrections log</h3>
-            <p className={PROSE_CLASS}>
-              Notable corrections and known issues, newest first. Reports of errors are welcome and
-              get recorded here when they change an article.
-            </p>
-          </div>
-          <div className={DIVIDED_ITEM_CLASS}>
-            <p className={PROSE_CLASS}>
-              <strong>August 31, 2026: this page.</strong> Rewritten to remove wording that
-              overstated review guarantees, to document the actual review states and their
-              revision-binding limitation, and to add this status section.
-            </p>
-          </div>
-          <div className={DIVIDED_ITEM_CLASS}>
-            <p className={PROSE_CLASS}>
-              <strong>August 2026: fentanyl.</strong> The potency figure was corrected to 50 to
-              100 times morphine to match its CDC citation, and a sentence that conflated analgesic
-              potency with receptor binding affinity was removed.
-            </p>
-          </div>
-          <div className={DIVIDED_ITEM_CLASS}>
-            <p className={PROSE_CLASS}>
-              <strong>August 2026: known issues under audit.</strong> Identified and queued for
-              the phase-3 audit: fentanyl prose that presents wooden chest syndrome as the believed
-              main cause of overdose deaths and a withdrawal-seizure claim its cited monograph does
-              not establish; a 4-FMA metabolism sentence cited to a methamphetamine study. Until
-              the corrections land, treat those sentences with the skepticism this section
-              recommends for any unverified claim.
-            </p>
-          </div>
         </ContentCard></section>
 
         <section id="s1" className={SECTION_CLASS}><h2 className={SECTION_HEADING_CLASS}>
