@@ -29,6 +29,10 @@ import {
   DOSAGE_PANEL_DISCLAIMER_KEY,
   TOLERANCE_SECTION_DISCLAIMER_KEY,
 } from "../../src/features/article/components/sections/articleDisclaimerCopy";
+import {
+  EXPERT_REVIEW_CREDIT_KEY,
+  REVIEW_STATUS_BANNER_KEY,
+} from "../../src/features/article/components/sections/articleReviewCopy";
 import { SITE_FLAVOR_CONFIG } from "../../src/config/siteFlavor";
 import {
   getPsychoactiveSummaryDefinition,
@@ -173,6 +177,8 @@ export const loadSubstanceRoute = cache(async (slug: string): Promise<SubstanceR
     showBetaDisclaimer,
     dosageDisclaimer: copy.text(DOSAGE_PANEL_DISCLAIMER_KEY),
     toleranceDisclaimer: copy.text(TOLERANCE_SECTION_DISCLAIMER_KEY),
+    reviewStatusCopy: copy.text(REVIEW_STATUS_BANNER_KEY),
+    expertReviewCredit: copy.text(EXPERT_REVIEW_CREDIT_KEY),
   });
 
   return {

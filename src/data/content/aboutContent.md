@@ -1,6 +1,6 @@
 dose.wiki exists to serve as a modern, open-source, and comprehensive harm reduction resource for psychoactive substances and their subjective effects. The various overlapping subcultures of the psychonaut, psychedelic, and drugnerd communities have been sorely lacking a resource of this kind for far too long: a website that is up to modern web standards and is open-source (with an easily accessible GitHub repository).
 
-The site is currently in **beta**: the database is live and growing, but coverage is still incomplete, some articles are awaiting expert review, and structure and features will keep shifting on the road to a stable 1.0. If something looks wrong or missing, treat it as a work in progress — and feel free to tell us.
+The site is currently in **beta**: the database is live and growing, but coverage is still incomplete, some articles are awaiting expert review, and structure and features will keep shifting on the road to a stable 1.0. If something looks wrong or missing, treat it as a work in progress, and feel free to tell us.
 
 The site currently documents **{{compoundCount}}** substances and **{{effectCount}}** subjective effects, and article pages show whether expert review is complete. Articles still awaiting review are labeled accordingly. The whole pipeline is documented in [how articles are made](/docs/how), and the project is built and maintained by [Josie Kins](https://en.wikipedia.org/wiki/Josie_Kins) and [Lyrea](/contributors/lyrea). If something looks wrong or miscredited, email [contact@dose.wiki](mailto:contact@dose.wiki).
 

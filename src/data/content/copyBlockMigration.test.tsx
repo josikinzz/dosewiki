@@ -20,6 +20,15 @@ import {
   TOLERANCE_SECTION_DISCLAIMER_FALLBACK,
   TOLERANCE_SECTION_DISCLAIMER_KEY,
 } from "@/features/article/components/sections/articleDisclaimerCopy";
+import {
+  EXPERT_REVIEW_CREDIT_FALLBACK,
+  EXPERT_REVIEW_CREDIT_KEY,
+  REVIEW_STATUS_BANNER_FALLBACK,
+  REVIEW_STATUS_BANNER_KEY,
+  splitReviewerCopy,
+} from "@/features/article/components/sections/articleReviewCopy";
+import { ReviewStatusBanner } from "@/features/article/components/sections/ReviewStatusBanner";
+import type { SubstanceArticle } from "@/schema";
 import { ReplicationsFairUseNotice } from "@/features/replications/components/ReplicationsFairUseNotice";
 import {
   REPLICATIONS_FAIR_USE_NOTICE_FALLBACK,
@@ -125,6 +134,14 @@ describe("copy block defaults", () => {
     );
   });
 
+  it("match the review sentences the banner and credit fall back to", () => {
+    expect(bodyOf(REVIEW_STATUS_BANNER_KEY)).toBe(REVIEW_STATUS_BANNER_FALLBACK);
+    expect(bodyOf(EXPERT_REVIEW_CREDIT_KEY)).toBe(EXPERT_REVIEW_CREDIT_FALLBACK);
+    // Both defaults carry the reviewer token, so the linked credit renders.
+    expect(splitReviewerCopy(bodyOf(REVIEW_STATUS_BANNER_KEY)).hasReviewer).toBe(true);
+    expect(splitReviewerCopy(bodyOf(EXPERT_REVIEW_CREDIT_KEY)).hasReviewer).toBe(true);
+  });
+
   it("match the replications More Info description the tab falls back to", () => {
     expect(bodyOf(REPLICATIONS_INTRO_KEY)).toBe(REPLICATIONS_INTRO_FALLBACK);
     expect(getCopyBlockDefault(REPLICATIONS_INTRO_KEY)?.kind).toBe("markdown");
@@ -202,5 +219,25 @@ describe("migrated surfaces render the pre-migration text", () => {
     );
     expect(document.body.textContent).not.toContain("<u>");
     expect(document.body.textContent).not.toContain("</u>");
+  });
+
+  it("review status banner renders the pre-migration sentence with Lyrea substituted", () => {
+    // Partial article, same idiom as ReviewStatusBanner.test.tsx's fixtures.
+    const article = {
+      title: "2C-B",
+      editorial_review: { status: "pending" },
+    } as unknown as SubstanceArticle;
+    render(
+      <ReviewStatusBanner
+        article={article}
+        profileHref="/contributors/lyrea"
+        copy={bodyOf(REVIEW_STATUS_BANNER_KEY)}
+      />,
+    );
+
+    expect(document.body.textContent).toContain(
+      "Not yet reviewed — this article is pending editorial review by Lyrea.",
+    );
+    expect(document.body.textContent).not.toContain("{{");
   });
 });

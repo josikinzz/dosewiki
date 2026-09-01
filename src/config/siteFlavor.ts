@@ -372,7 +372,7 @@ const DOSEWIKI_CONFIG: SiteFlavorConfig = {
         icon: "lucide:workflow",
         title: "How articles are made",
         description:
-          "The full content pipeline — sources, synthesis, human review, and citations.",
+          "The full content pipeline: sources, synthesis, human review, and citations.",
       },
       {
         href: "/docs/code",

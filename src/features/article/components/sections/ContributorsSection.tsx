@@ -7,6 +7,10 @@ import { Icon, type IconName } from "@/components/common/Icon";
 import { ContributorAvatar } from "@/components/layout/PublicPagePrimitives";
 import { cn } from "@/lib/utils";
 import type { SubstanceArticle } from "@/schema";
+import {
+  EXPERT_REVIEW_CREDIT_FALLBACK,
+  splitReviewerCopy,
+} from "./articleReviewCopy";
 
 /**
  * Avatar URLs resolved from contributor profiles (Convex storage), keyed by the
@@ -30,6 +34,12 @@ interface ContributorsSectionProps {
    * the named contributor has no profile, in which case the credit is text.
    */
   profileHrefs?: { josie?: string | null; lyrea?: string | null };
+  /**
+   * The `expert-review-credit` copy block, threaded from the route loader.
+   * Absent renders the checked-in default sentence. The `{{reviewer}}` token
+   * marks where Lyrea's linked name is substituted.
+   */
+  expertReviewCredit?: string;
 }
 
 /** How dose.wiki articles are assembled, for the synthesis credit. */
@@ -118,10 +128,17 @@ export const ContributorsSection = memo(function ContributorsSection({
   article,
   avatars,
   profileHrefs,
+  expertReviewCredit,
 }: ContributorsSectionProps) {
+  // Same `in` narrowing as ReviewStatusBanner: `expert_reviewed` is stamped on
+  // the public projection at runtime and SubstanceArticle doesn't type it.
   const expertReviewed =
-    (article as { expert_reviewed?: boolean }).expert_reviewed === true ||
+    ("expert_reviewed" in article && article.expert_reviewed === true) ||
     article.editorial_review?.status === "completed";
+
+  const reviewSegments = splitReviewerCopy(
+    expertReviewCredit ?? EXPERT_REVIEW_CREDIT_FALLBACK,
+  );
 
   return (
     <section id="contributors" aria-label="Contributors" className="scroll-mt-6">
@@ -134,8 +151,11 @@ export const ContributorsSection = memo(function ContributorsSection({
             roleIcon="lucide:shield-check"
             roleLabel="Reviewed & approved"
           >
-            Reviewed, edited, and approved by subject-matter expert{" "}
-            <CreditLink href={profileHrefs?.lyrea}>Lyrea</CreditLink>.
+            {reviewSegments.before}
+            {reviewSegments.hasReviewer && (
+              <CreditLink href={profileHrefs?.lyrea}>Lyrea</CreditLink>
+            )}
+            {reviewSegments.after}
           </ContributorCredit>
         ) : null}
 
