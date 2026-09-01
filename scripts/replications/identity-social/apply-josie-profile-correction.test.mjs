@@ -205,3 +205,27 @@ test("idempotent resume performs no mutation when final readback already matches
   assert.equal(result.status, "already-complete");
   assert.equal(mutations.length, 0);
 });
+
+test("resume supersedes a prepared plan containing the formerly unsupported avatar action", async () => {
+  const stale = buildJosieProfileCorrection({ receipt: trustedReceipt() });
+  stale.avatar.entries[0].projection.action = "restore-owner-selected-pre-campaign-avatar";
+  const events = [];
+  const { adapters } = baseAdapters({
+    loadLedger: () => [{ event: "correction-prepared", correction: stale }],
+    appendLedger: (_path, event) => events.push(event),
+    query: async (ref, args) => {
+      if (functionName(ref) === "replicationIdentitySocial:getProfileCurationReadbackAuthenticated") return currentReadback();
+      if (functionName(ref) === "replicationIdentitySocial:getOperationCompletionReceiptAuthenticated") return null;
+      if (functionName(ref) === "replicationIdentitySocial:previewCanonicalBeforeAuthenticated") {
+        return { matches: true, digest: args.entry.projection.expectedBeforeSha256 };
+      }
+      if (functionName(ref) === "replicationIdentitySocial:preflightBatchEntryAuthenticated") return { matches: true };
+      throw new Error("Unexpected query");
+    },
+    mutate: async (_ref, args) => ({ changed: 1, unchanged: 0, dry_run: args.dry_run }),
+  });
+  await runJosieProfileCorrection(["--actor-email=editor@example.test"], adapters);
+  const replacement = events.find((event) => event.supersedes_unsupported_avatar_action);
+  assert.equal(replacement.supersedes_unsupported_avatar_action, "restore-owner-selected-pre-campaign-avatar");
+  assert.equal(replacement.correction.avatar.entries[0].projection.action, "propose-provenance-improving-avatar-replacement");
+});

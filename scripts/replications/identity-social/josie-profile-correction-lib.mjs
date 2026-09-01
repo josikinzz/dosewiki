@@ -64,7 +64,9 @@ export function buildJosieProfileCorrection({ receipt }) {
   const projectionCore = {
     kind: "profile-avatar",
     target: { profileKey: JOSIE_PROFILE_KEY },
-    action: "restore-owner-selected-pre-campaign-avatar",
+    // Use the deployed identity/social contract's supported replacement action.
+    // The owner-directed restoration semantics remain content-bound below.
+    action: "propose-provenance-improving-avatar-replacement",
     expectedBefore,
     expectedBeforeSha256: digest(expectedBefore),
     after: {

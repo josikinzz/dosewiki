@@ -31,6 +31,8 @@ test("builds an exact avatar CAS and personal-site-only profile correction", () 
     currentAvatarUrl: JOSIE_REPLACEMENT_AVATAR.publicUrl,
     currentAvatarProvenance: "profile-controlled",
   });
+  assert.equal(plan.avatar.entries[0].projection.action, "propose-provenance-improving-avatar-replacement");
+  assert.equal(plan.avatar.entries[0].projection.evidence.reviewDecision, "owner-directed-restore");
   assert.equal(plan.avatar.entries[0].value.media_digest, JOSIE_RESTORED_AVATAR.sha256);
   assert.equal(plan.avatar.entries[0].value.public_url, JOSIE_RESTORED_AVATAR.publicUrl);
   assert.equal(plan.avatar.entries[0].value.delivery_verification, "verified");

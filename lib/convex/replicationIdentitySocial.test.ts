@@ -290,6 +290,18 @@ describe("replication identity/social Convex contract", () => {
     expect(tables.contributorReplicatorVerifications[0]).toMatchObject({ status: "verified", work_count_reviewed: 21 });
     expect((tables.contributorReplicatorVerifications[0].review_contributions as unknown[])).toHaveLength(2);
     expect(tables.replicationIdentitySocialOperationItems.filter((row) => row.verification_after)).toHaveLength(1);
+    const reconciliationArgs = { apiKey: TOKEN, actor_email: ACTOR, operation_id: "binding-shared-canonical-receipt", dry_run: false, entries };
+    tables.contributorReplicatorVerifications[0].work_count_reviewed = 20;
+    await expect(reconcileAppliedProfileBindingBatchHandler(ctx, reconciliationArgs)).rejects.toThrow("verification does not exactly match");
+    tables.contributorReplicatorVerifications[0].work_count_reviewed = 21;
+    await expect(reconcileAppliedProfileBindingBatchHandler(ctx, reconciliationArgs)).resolves.toMatchObject({ changed: 0, unchanged: 2, idempotent_replay: false });
+    const reconciled = tables.replicationIdentitySocialOperationItems.filter((row) => row.batch_operation_id === reconciliationArgs.operation_id);
+    expect(reconciled).toHaveLength(2);
+    expect(reconciled.filter((row) => row.verification_after)).toHaveLength(1);
+    expect(tables.contributorReplicatorVerifications[0]).toMatchObject({ status: "verified", work_count_reviewed: 21 });
+    await expect(reconcileAppliedProfileBindingBatchHandler(ctx, reconciliationArgs)).resolves.toMatchObject({ changed: 0, unchanged: 2, idempotent_replay: true });
+    await expect(rollbackProfileBindingOperationHandler(ctx, { apiKey: TOKEN, actor_email: ACTOR, operation_id: "rollback-binding-shared-canonical-receipt", rollback_of: reconciliationArgs.operation_id, dry_run: false })).resolves.toMatchObject({ changed: 0, unchanged: 2 });
+    expect(tables.contributorReplicatorVerifications[0]).toMatchObject({ status: "verified", work_count_reviewed: 21 });
     await expect(rollbackProfileBindingOperationHandler(ctx, { apiKey: TOKEN, actor_email: ACTOR, operation_id: "rollback-shared", rollback_of: "binding-shared", dry_run: false })).resolves.toMatchObject({ changed: 2, unchanged: 0 });
     expect(tables.replicationIdentityProfileBindings).toHaveLength(0);
     expect(tables.contributorReplicatorVerifications).toHaveLength(0);
@@ -449,6 +461,15 @@ describe("replication identity/social Convex contract", () => {
     });
     await rollbackIdentitySocialOperationHandler(ctx, { apiKey: TOKEN, actor_email: ACTOR, operation_id: "avatar-rollback", rollback_of: "avatar-batch", dry_run: false });
     expect(tables.contributorProfiles[0]).toMatchObject({ avatarUrl: PROFILE_URL, avatarSha256: DIGEST, avatarProvenance: "profile-controlled" });
+  });
+
+  it("accepts the supported replacement action used by owner-directed avatar restoration during server dry-run", async () => {
+    const { ctx, writes } = context();
+    const entry = await avatarEntry();
+    expect(entry.projection.action).toBe("propose-provenance-improving-avatar-replacement");
+    await expect(applyIdentitySocialBatchHandler(ctx, { ...applyArgs(entry, "avatar-owner-restore-dry-run"), dry_run: true }))
+      .resolves.toMatchObject({ changed: 1, dry_run: true });
+    expect(writes).toEqual([]);
   });
 
   it("rolls back a journal-only preservation as a durable no-op", async () => {

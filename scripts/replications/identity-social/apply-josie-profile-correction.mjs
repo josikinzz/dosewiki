@@ -55,8 +55,12 @@ export async function fetchTrustedAvatarReceipt(fetchImpl = fetch, now = Date.no
 }
 
 function preparedCorrection(events) {
-  const prepared = events.find((event) => event.event === "correction-prepared");
+  const prepared = [...events].reverse().find((event) => event.event === "correction-prepared");
   return prepared?.correction ?? null;
+}
+
+function correctionUsesSupportedAvatarAction(correction) {
+  return correction?.avatar?.entries?.[0]?.projection?.action === "propose-provenance-improving-avatar-replacement";
 }
 
 function correctionIsComplete(readback, correction) {
@@ -100,6 +104,18 @@ export async function runJosieProfileCorrection(argv = process.argv.slice(2), ad
 
   const existingEvents = readLedger(options.ledger);
   let correction = preparedCorrection(existingEvents);
+  if (correction && !correctionUsesSupportedAvatarAction(correction)) {
+    const priorAction = correction.avatar?.entries?.[0]?.projection?.action ?? null;
+    const receipt = correction.avatar?.entries?.[0]?.value?.delivery_receipt;
+    correction = buildJosieProfileCorrection({ receipt });
+    append(options.ledger, {
+      event: "correction-prepared",
+      profile_id: JOSIE_PROFILE_ID,
+      correction,
+      supersedes_unsupported_avatar_action: priorAction,
+      at: Date.now(),
+    });
+  }
   const initial = await readback();
   if (correction && correctionIsComplete(initial, correction)) {
     writeRollback(options.rollbackOut, rollbackManifest(correction));

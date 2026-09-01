@@ -796,10 +796,28 @@ export async function reconcileAppliedProfileBindingBatchHandler(ctx: MutationCt
     return { operation_id: operationId, payload_digest: payloadDigest, changed: replay.changed_count, unchanged: replay.unchanged_count, idempotent_replay: true, dry_run: false };
   }
 
-  const proven: Array<{ entry: ProfileBindingEntry; source: Infer<typeof replicationIdentitySocialOperationItemValidator>; binding: IdentitySocialStoredValue | null; verification?: StoredVerificationValue }> = [];
+  const sourceByItemId = new Map<string, Infer<typeof replicationIdentitySocialOperationItemValidator>>();
   for (const entry of args.entries) {
     const source = await ctx.db.query("replicationIdentitySocialOperationItems").withIndex("by_item_operation_id", (q) => q.eq("item_operation_id", entry.item_operation_id)).unique();
     if (!source || source.kind !== "profile-binding" || source.target.kind !== "profile-binding" || source.target.artist_id !== entry.artist_id) throw new Error(`Canonical profile-binding item is not proven by an exact source journal: ${entry.artist_id}.`);
+    sourceByItemId.set(entry.item_operation_id, source);
+  }
+  const sharedGroups = new Map<string, ProfileBindingEntry[]>();
+  for (const entry of args.entries) if (entry.shared_profile_group_digest) {
+    const group = sharedGroups.get(entry.shared_profile_group_digest) ?? [];
+    group.push(entry); sharedGroups.set(entry.shared_profile_group_digest, group);
+  }
+  const sharedVerificationLeaders = new Map<string, Infer<typeof replicationIdentitySocialOperationItemValidator>>();
+  for (const [groupDigest, group] of sharedGroups) {
+    const sources = group.map((entry) => sourceByItemId.get(entry.item_operation_id)!);
+    const leaders = sources.filter((source) => source.verification_after);
+    if (leaders.length !== 1 || sources.some((source) => source.batch_operation_id !== leaders[0].batch_operation_id)) throw new Error("Shared profile-binding reconciliation requires one exact source verification leader from one source batch.");
+    sharedVerificationLeaders.set(groupDigest, leaders[0]);
+  }
+
+  const proven: Array<{ entry: ProfileBindingEntry; source: Infer<typeof replicationIdentitySocialOperationItemValidator>; binding: IdentitySocialStoredValue | null; verification?: StoredVerificationValue }> = [];
+  for (const entry of args.entries) {
+    const source = sourceByItemId.get(entry.item_operation_id)!;
     const sourceOperation = await ctx.db.query("replicationIdentitySocialOperations").withIndex("by_operation_id", (q) => q.eq("operation_id", source.batch_operation_id)).unique();
     if (!sourceOperation || sourceOperation.kind !== "profile-binding" || sourceOperation.rollback_of) throw new Error(`Canonical profile-binding source operation is missing or invalid: ${entry.artist_id}.`);
     const rolledBack = await ctx.db.query("replicationIdentitySocialOperations").withIndex("by_rollback_of", (q) => q.eq("rollback_of", source.batch_operation_id)).take(1);
@@ -822,8 +840,16 @@ export async function reconcileAppliedProfileBindingBatchHandler(ctx: MutationCt
     if (!profile || profile.key !== entry.profile_key) throw new Error(`Profile-binding reconciliation live profile identity has drifted: ${entry.artist_id}.`);
     const verificationRow = await ctx.db.query("contributorReplicatorVerifications").withIndex("by_profile_id", (q) => q.eq("profile_id", bindingRow.profile_id)).unique();
     const verification = strip(verificationRow as StoredRecord | null) as StoredVerificationValue | null;
-    if (!verification || !source.verification_after || !equal(verification, source.verification_after) || !sameProfileBindingVerificationMaterial(verification, entry.verification)) throw new Error(`Profile-binding reconciliation verification does not exactly match the canonical review: ${entry.artist_id}.`);
-    proven.push({ entry, source, binding, verification });
+    const sharedLeader = entry.shared_profile_group_digest ? sharedVerificationLeaders.get(entry.shared_profile_group_digest) : undefined;
+    const sourceVerification = sharedLeader?.verification_after ?? source.verification_after;
+    const canonicalVerificationMatches = verification && entry.shared_profile_group_digest
+      ? equal(verification, await aggregateProfileBindingVerification(sharedGroups.get(entry.shared_profile_group_digest)!, bindingRow.profile_id, verification.reviewed_at))
+      : verification ? sameProfileBindingVerificationMaterial(verification, entry.verification) : false;
+    if (!verification || !sourceVerification || !equal(verification, sourceVerification) || !canonicalVerificationMatches) throw new Error(`Profile-binding reconciliation verification does not exactly match the canonical review: ${entry.artist_id}.`);
+    // Preserve the source batch's single-leader journal shape. Recording the
+    // aggregate on every grouped constituent would create multiple rollback
+    // leaders for one profile and make the canonical receipt unrollable.
+    proven.push({ entry, source, binding, ...(source.verification_after ? { verification } : {}) });
   }
 
   if (!args.dry_run) {
