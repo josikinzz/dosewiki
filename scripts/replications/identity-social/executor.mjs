@@ -52,7 +52,9 @@ export async function run(argv = process.argv.slice(2), adapters = {}) {
         const preflight = await query(api.replicationIdentitySocial.preflightProfileBindingAuthenticated, { apiKey, actor_email: options.actor, entry });
         if (!preflight.matches) throw new Error(`Profile binding preflight failed: ${preflight.error ?? "unknown reason"}`);
       } else {
-        assertPreviewMatches(entry, await query(api.replicationIdentitySocial.previewCanonicalBeforeAuthenticated, { apiKey, actor_email: options.actor, entry }));
+        const journalOnly = (entry.kind === "attribution" && ["preserve-poster-as-creator", "preserve-poster-as-creator-no-write", "blocked-preserve-poster-no-verified-chronology"].includes(entry.projection.action))
+          || (entry.kind === "alias" && ["preserve-existing-alias", "blocked-pending-owner-review", "blocked-merge-required-collision"].includes(entry.projection.action));
+        if (!journalOnly) assertPreviewMatches(entry, await query(api.replicationIdentitySocial.previewCanonicalBeforeAuthenticated, { apiKey, actor_email: options.actor, entry }));
         const preflight = await query(api.replicationIdentitySocial.preflightBatchEntryAuthenticated, { apiKey, actor_email: options.actor, entry });
         if (!preflight.matches) throw new Error(`Identity/social batch preflight failed: ${preflight.error ?? "unknown reason"}`);
       }

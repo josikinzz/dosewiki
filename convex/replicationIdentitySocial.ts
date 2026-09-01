@@ -280,6 +280,11 @@ export async function canonicalBeforeForEntry(ctx: Ctx, entry: IdentitySocialBat
 
 async function verifyAuthoritativeBefore(ctx: Ctx, entry: IdentitySocialBatchEntry) {
   const before = await canonicalBeforeForEntry(ctx, entry);
+  // Poster-preserving and blocked decisions are journals only: they deliberately
+  // make no domain-row change. Requiring an exact historical source-shape CAS
+  // would suppress the reviewed no-write when legacy URL fields normalize, while
+  // adding no safety. The read above still proves that the target exists.
+  if (isSkippedDecision(entry)) return;
   const beforeDigest = await canonicalDigest(before);
   if (beforeDigest !== entry.projection.expectedBeforeSha256 || !equal(before, entry.projection.expectedBefore)) throw new Error("Authoritative expected-before CAS failed.");
   if (entry.kind === "attribution") for (const id of [entry.value.poster_profile_id, entry.value.creator_profile_id]) if (id && !(await ctx.db.get(id))) throw new Error("Contributor profile does not exist.");
