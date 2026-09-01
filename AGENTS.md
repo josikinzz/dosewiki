@@ -36,3 +36,7 @@
 - After article-schema changes, run `npm run generate:schema` and include the generated helper updates.
 - After generated-data or lineage changes, run `npm run provenance:check`.
 - Verify host- and middleware-shaped work against `npm run build && npx next start` or a deployment: middleware never runs under `next dev`, so a dev-server check passes without executing it.
+
+## Style
+
+- Em dashes are banned in all text because they read as AI slop.
