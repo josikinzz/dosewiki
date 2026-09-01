@@ -331,14 +331,6 @@ function LegalityBadges({
           <CitedText text={designation} article={article} />
         </span>
       )}
-      {info.citationNeeded && (
-        <span
-          className={cn(BADGE_BASE, sizeClasses.status, COLOR_CLASSES.yellow.className)}
-          data-badge-tone={COLOR_CLASSES.yellow.tone}
-        >
-          Citation needed
-        </span>
-      )}
     </>
   );
 }
@@ -363,6 +355,13 @@ function LegalityEntryCard({
 }: LegalityEntryCardProps) {
   const { instrument, showInstrumentCitation } = resolveLegalityBadges(info);
   const displayText = info.notes || "";
+  // Entry-level citationNeeded renders as the same free-floating gray
+  // `[citation-needed]` marker used in article prose, appended to the note so
+  // CitedText's suppression rules apply (a note ending on a resolved citation
+  // shows no marker). The raw note - not the sentinel - seeds the editor.
+  const renderText = info.citationNeeded && displayText
+    ? `${displayText} [citation-needed]`
+    : displayText;
   const isLongText = displayText.length > 480;
 
   return (
@@ -405,7 +404,7 @@ function LegalityEntryCard({
             notesPath={notesPath}
             value={displayText}
           >
-            <CitedText text={displayText} article={article} />
+            <CitedText text={renderText} article={article} />
           </EditableLegalityNotes>
         </ExpandableText>
       ) : (
@@ -416,7 +415,7 @@ function LegalityEntryCard({
         >
           <ArticleText
             as="div"
-            text={displayText}
+            text={renderText}
             article={article}
             tone="muted"
             className="mt-1 whitespace-pre-line text-sm leading-relaxed theme-text-muted"
@@ -461,6 +460,9 @@ function LegalityStateRow({
   const [isExpanded, setIsExpanded] = useState(false);
   const { instrument, showInstrumentCitation } = resolveLegalityBadges(info);
   const displayText = info.notes || "";
+  const renderText = info.citationNeeded && displayText
+    ? `${displayText} [citation-needed]`
+    : displayText;
   const notesPath = pathParts ? buildFieldPath(...pathParts, "notes") : undefined;
   // Only `usStates.*.cities.*` is allow-listed, so a city never nests further.
   const cityPathParts = pathParts && !city ? pathParts : undefined;
@@ -514,7 +516,7 @@ function LegalityStateRow({
             >
               <ArticleText
                 as="div"
-                text={displayText}
+                text={renderText}
                 article={article}
                 tone="muted"
                 className="mt-1 min-w-0 whitespace-pre-line break-words text-sm leading-relaxed theme-text-muted"
