@@ -61,6 +61,9 @@ describe("parseWarmSearchParams", () => {
     expect(parseWarmSearchParams(new URLSearchParams())).toEqual({
       concurrency: 4,
       budgetMs: 45_000,
+      includeLow: true,
+    });
+    expect(parseWarmSearchParams(new URLSearchParams("includeLow=0"))).toMatchObject({
       includeLow: false,
     });
     expect(

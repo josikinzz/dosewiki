@@ -77,7 +77,7 @@ export function planWarmTargets(
   );
 }
 
-/** Parse the optional `?concurrency=` and `?budgetMs=` overrides within safe bounds. */
+/** Parse the optional `?concurrency=`, `?budgetMs=` and `?includeLow=` overrides within safe bounds. */
 export function parseWarmSearchParams(searchParams: URLSearchParams): {
   concurrency: number;
   budgetMs: number;
@@ -91,6 +91,9 @@ export function parseWarmSearchParams(searchParams: URLSearchParams): {
   return {
     concurrency: clamp(searchParams.get("concurrency"), 4, 1, 8),
     budgetMs: clamp(searchParams.get("budgetMs"), 45_000, 1_000, 50_000),
-    includeLow: searchParams.get("includeLow") === "1",
+    // The low tier is the only tier that is never pre-rendered, so a cron run
+    // that skipped it would warm nothing a reader can still find cold. Pass
+    // `includeLow=0` to limit a manual run to the pre-rendered tiers.
+    includeLow: searchParams.get("includeLow") !== "0",
   };
 }

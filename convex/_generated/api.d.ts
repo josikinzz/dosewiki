@@ -61,6 +61,7 @@ import type * as lib_replicationWrites from "../lib/replicationWrites.js";
 import type * as lib_reviewFlags from "../lib/reviewFlags.js";
 import type * as lib_subjectiveEffectReadProjections from "../lib/subjectiveEffectReadProjections.js";
 import type * as lib_substanceEditorReadProjections from "../lib/substanceEditorReadProjections.js";
+import type * as lib_substanceGalleryPublicReads from "../lib/substanceGalleryPublicReads.js";
 import type * as lib_substanceIngestion from "../lib/substanceIngestion.js";
 import type * as lib_substancePreviewOrdering from "../lib/substancePreviewOrdering.js";
 import type * as lib_substanceProjectionCore from "../lib/substanceProjectionCore.js";
@@ -71,6 +72,7 @@ import type * as lib_substanceReviewHandlers from "../lib/substanceReviewHandler
 import type * as lib_substanceWriteHandlers from "../lib/substanceWriteHandlers.js";
 import type * as lib_tripReportAttribution from "../lib/tripReportAttribution.js";
 import type * as lib_tripReportEditing from "../lib/tripReportEditing.js";
+import type * as lib_tripReportSubstanceIndex from "../lib/tripReportSubstanceIndex.js";
 import type * as lib_validators from "../lib/validators.js";
 import type * as mailingList from "../mailingList.js";
 import type * as memberships from "../memberships.js";
@@ -158,6 +160,7 @@ declare const fullApi: ApiFromModules<{
   "lib/reviewFlags": typeof lib_reviewFlags;
   "lib/subjectiveEffectReadProjections": typeof lib_subjectiveEffectReadProjections;
   "lib/substanceEditorReadProjections": typeof lib_substanceEditorReadProjections;
+  "lib/substanceGalleryPublicReads": typeof lib_substanceGalleryPublicReads;
   "lib/substanceIngestion": typeof lib_substanceIngestion;
   "lib/substancePreviewOrdering": typeof lib_substancePreviewOrdering;
   "lib/substanceProjectionCore": typeof lib_substanceProjectionCore;
@@ -168,6 +171,7 @@ declare const fullApi: ApiFromModules<{
   "lib/substanceWriteHandlers": typeof lib_substanceWriteHandlers;
   "lib/tripReportAttribution": typeof lib_tripReportAttribution;
   "lib/tripReportEditing": typeof lib_tripReportEditing;
+  "lib/tripReportSubstanceIndex": typeof lib_tripReportSubstanceIndex;
   "lib/validators": typeof lib_validators;
   mailingList: typeof mailingList;
   memberships: typeof memberships;

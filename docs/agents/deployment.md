@@ -344,14 +344,14 @@ after every deploy. Two mechanisms keep readers off that cold path:
    `staticPageGenerationTimeout` comments in `next.config.ts` describe the
    worker budget this relies on.
 2. **Cron warmer.** `vercel.json` schedules `/api/warm` every 15 minutes
-   (`src/app/api/warm/route.ts`). It requests every high and normal priority
-   article on the canonical public origin (`PUBLIC_SITE.url`, so `https://dose.wiki`
+   (`src/app/api/warm/route.ts`). It requests every substance article, most
+   important tier first, on the canonical public origin (`PUBLIC_SITE.url`, so `https://dose.wiki`
    on the dose.wiki project and `https://effectindex.com` on Effect Index; never
    the request host, never the editor hosts) with concurrency 4 inside a
    45-second budget, and returns a JSON summary: `count`, `hits`, `misses`
    (from `x-vercel-cache`), `failures`, `slowest`, and `remaining` (URLs the
    budget did not reach; the next run picks them up). Query overrides:
-   `?concurrency=1..8`, `?budgetMs=1000..50000`, `?includeLow=1`.
+   `?concurrency=1..8`, `?budgetMs=1000..50000`, `?includeLow=0` (skip the low tier).
 
    The route refuses to run (HTTP 503) until the project sets `CRON_SECRET`,
    and then only honours `Authorization: Bearer <CRON_SECRET>`, which Vercel
