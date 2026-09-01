@@ -291,6 +291,12 @@ function authoritativeBeforeMatches(entry: IdentitySocialBatchEntry, before: unk
       && typeof expected.currentAvatarProvenance === "string"
       && expected.currentAvatarProvenance !== "none";
   }
+  if (entry.kind === "verification") {
+    const normalizeAliases = (value: unknown) => Array.isArray(value)
+      ? [...new Set(value.map((item) => String(item).trim().toLowerCase()).filter(Boolean))].sort()
+      : [];
+    return equal({ ...current, aliases: normalizeAliases(current.aliases) }, { ...expected, aliases: normalizeAliases(expected.aliases) });
+  }
   if (entry.kind !== "attribution") return false;
   if (current.attributionDisposition !== null || !["existing-reviewed-credit", "poster-as-artist-default"].includes(String(expected.attributionDisposition))) return false;
   return equal({ ...current, attributionDisposition: expected.attributionDisposition }, expected);
