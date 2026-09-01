@@ -229,6 +229,85 @@ describe("article chemistry presentation sections", () => {
     }
   });
 
+  it("bumps the molecule below a title the float would wrap, even when wrapped lines fit", () => {
+    const article = createEmptyArticle();
+    article.title = "Dextromethorphan";
+    article.identification.common_name = "Dextromethorphan";
+
+    const chemistryPresentation = buildArticleChemistryPresentation(article);
+    const moleculeAsset = {
+      filename: "dextromethorphan.svg",
+      url: "/api/molecules/dextromethorphan?v=seeded",
+      matchedField: "convex-molecule",
+      matchedValue: "Dextromethorphan",
+    } as const;
+    // Unwrapped width collides with the molecule column; the laid-out title
+    // already wrapped around the float, so its last line ends far left of it.
+    const UNWRAPPED_TITLE_WIDTH = 687;
+    const WRAPPED_LAST_LINE_WIDTH = 80;
+    const rect = (left: number, top: number, width: number, height: number) =>
+      ({
+        x: left,
+        y: top,
+        left,
+        top,
+        width,
+        height,
+        right: left + width,
+        bottom: top + height,
+        toJSON: () => ({}),
+      }) as DOMRect;
+    const rectSpy = vi
+      .spyOn(Element.prototype, "getBoundingClientRect")
+      .mockImplementation(function getBoundingClientRect() {
+        if (this instanceof HTMLElement && this.tagName === "H1") {
+          return rect(33, 33, 564, 150);
+        }
+        if (this instanceof HTMLElement && this.classList.contains("theme-article-hero")) {
+          return rect(0, 0, 896, 510);
+        }
+        return rect(0, 0, 0, 0);
+      });
+    const rangeSpy = vi.spyOn(document, "createRange").mockImplementation(
+      () =>
+        ({
+          selectNodeContents: vi.fn(),
+          getBoundingClientRect: () => {
+            const measuringUnwrapped =
+              document.querySelector("h1")?.style.whiteSpace === "nowrap";
+            return measuringUnwrapped
+              ? rect(33, 33, UNWRAPPED_TITLE_WIDTH, 75)
+              : rect(33, 108, WRAPPED_LAST_LINE_WIDTH, 75);
+          },
+        }) as unknown as Range,
+    );
+
+    try {
+      render(
+        <AppearanceTestProvider>
+          <HeroSection
+            article={article}
+            chemistryPresentation={chemistryPresentation}
+            moleculeAsset={moleculeAsset}
+            showPreviewBadge={false}
+          />
+        </AppearanceTestProvider>,
+      );
+
+      expect(
+        document.querySelector('[data-hero-molecule-layout="below-title"]'),
+      ).not.toBeNull();
+      expect(
+        document.querySelector('[data-hero-molecule-layout="top"]'),
+      ).toBeNull();
+      // The measurement style is reverted after each layout pass.
+      expect(document.querySelector("h1")?.style.whiteSpace).toBe("");
+    } finally {
+      rectSpy.mockRestore();
+      rangeSpy.mockRestore();
+    }
+  });
+
   it("keeps mobile hero content in the legacy order without priority links", () => {
     const article = createEmptyArticle();
     article.title = "Legacy Article";

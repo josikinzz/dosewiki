@@ -33,7 +33,7 @@ import { cn } from "@/lib/utils";
  * component.
  */
 const safetyBannerVariants = cva(
-  "grid w-full gap-x-4 gap-y-3 overflow-hidden rounded-2xl p-4 max-[560px]:grid-cols-1",
+  "grid w-full gap-x-4 gap-y-3 overflow-hidden rounded-2xl p-4 max-[560px]:block",
   {
     variants: {
       // Tonal names only. Feature-named variants are blocked by
@@ -117,14 +117,19 @@ const SafetyBanner = React.forwardRef<HTMLDivElement, SafetyBannerProps>(
         {icon ? (
           // Centred down the glyph column rather than pinned to the first line:
           // at 44px against two or three lines of prose a top-aligned glyph
-          // reads as having slipped upward.
+          // reads as having slipped upward. Below 560px the grid gives way to
+          // block flow and the glyph floats left so the prose wraps around it
+          // instead of stacking under it.
           <Icon
             icon={icon}
-            className="shrink-0 self-center"
+            className="shrink-0 self-center max-[560px]:float-left max-[560px]:mb-1 max-[560px]:mr-3"
             size={iconSize ?? SAFETY_BANNER_ICON_SIZE_DEFAULT}
           />
         ) : null}
-        <div className="flex min-w-0 flex-col items-start gap-2">{children}</div>
+        {/* Flex only above 560px: a flex container is a BFC that shoves itself
+            below the float wholesale, so mobile drops to block flow (space-y
+            standing in for gap) to let line boxes wrap the glyph. */}
+        <div className="flex min-w-0 flex-col items-start gap-2 max-[560px]:block max-[560px]:space-y-2">{children}</div>
       </div>
     );
   },
@@ -203,7 +208,7 @@ function SafetyBannerPoints({ points, className }: SafetyBannerPointsProps) {
   }
 
   return (
-    <div className={cn("flex w-full flex-col gap-2", className)}>
+    <div className={cn("flex w-full flex-col gap-2 max-[560px]:block max-[560px]:space-y-2", className)}>
       {blocks.map((block, index) =>
         block.kind === "paragraph" ? (
           <p key={`p-${index}`} className={POINT_TEXT_CLASS}>

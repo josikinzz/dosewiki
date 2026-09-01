@@ -102,6 +102,7 @@ export const HeroSection = memo(function HeroSection({
   const [isExpanded, setIsExpanded] = useState(false);
   const [namesExpanded, setNamesExpanded] = useState(false);
   const [moleculeBelowTitle, setMoleculeBelowTitle] = useState(false);
+  const [titleFitPx, setTitleFitPx] = useState<number | null>(null);
   const alternativeNamesPanelId = "hero-alternative-names";
   const chemistryDetailsPanelId = "hero-chemistry-details";
   const resolvedMoleculeAsset = moleculeAsset ?? moleculeAssets?.[0];
@@ -127,7 +128,7 @@ export const HeroSection = memo(function HeroSection({
     const heroElement = heroRef.current;
     const titleElement = titleRef.current;
 
-    if (!heroElement || !titleElement || !moleculeUrl) {
+    if (!heroElement || !titleElement) {
       return;
     }
 
@@ -141,14 +142,54 @@ export const HeroSection = memo(function HeroSection({
       const borderRightWidth =
         Number.parseFloat(heroStyle.borderRightWidth) || 0;
       const paddingRight = Number.parseFloat(heroStyle.paddingRight) || 0;
-      const moleculeLeft =
-        heroRect.right - borderRightWidth - paddingRight - 256;
+      const contentRight = heroRect.right - borderRightWidth - paddingRight;
+      const moleculeLeft = contentRight - 256;
+      // Measure the title as if it were a single line at its natural size.
+      // Once the floated molecule (or a fitted font) wraps or shrinks the
+      // title, measuring the laid-out text never detects the condition that
+      // caused it, so both overrides are stripped for the measurement.
+      const previousWhiteSpace = titleElement.style.whiteSpace;
+      const previousFontSize = titleElement.style.fontSize;
+      titleElement.style.whiteSpace = "nowrap";
+      titleElement.style.fontSize = "";
+      const naturalFontSize =
+        Number.parseFloat(getComputedStyle(titleElement).fontSize) || 0;
       const titleRange = document.createRange();
       titleRange.selectNodeContents(titleElement);
-      const titleContentRight = titleRange.getBoundingClientRect().right;
-      setMoleculeBelowTitle(
-        titleContentRight > moleculeLeft - TITLE_MOLECULE_GAP_PX,
-      );
+      const titleRect = titleRange.getBoundingClientRect();
+      const titleContentRight = titleRect.right;
+      // The floor is the section-heading size ("Dosage & Duration" etc.),
+      // resolved through the same element so the clamp() in the variable
+      // yields real pixels.
+      titleElement.style.fontSize = "var(--type-size-section)";
+      const minFontSize =
+        Number.parseFloat(getComputedStyle(titleElement).fontSize) || 0;
+      titleElement.style.whiteSpace = previousWhiteSpace;
+      titleElement.style.fontSize = previousFontSize;
+      if (moleculeUrl) {
+        setMoleculeBelowTitle(
+          titleContentRight > moleculeLeft - TITLE_MOLECULE_GAP_PX,
+        );
+      }
+      // Below md the molecule never floats, so a title that reaches the hero
+      // edge would break mid-word. Instead, scale the font down just enough
+      // to fill the width; glyph and tracking metrics are em-relative, so
+      // width scales linearly with font-size. The section-heading size is the
+      // floor: below it the title keeps that size and wraps.
+      const isDesktop =
+        typeof window.matchMedia !== "function" ||
+        window.matchMedia("(min-width: 768px)").matches;
+      const availableWidth = contentRight - titleRect.left;
+      const overflows = titleRect.width > availableWidth;
+      if (isDesktop || !overflows || titleRect.width <= 0 || naturalFontSize <= 0) {
+        setTitleFitPx(null);
+      } else {
+        const fitted = naturalFontSize * (availableWidth / titleRect.width);
+        // Round down a step so subpixel rasterization can't push the last
+        // glyph past the edge and trigger the mid-word break being avoided.
+        const fittedFloor = Math.floor(fitted * 4) / 4;
+        setTitleFitPx(Math.max(minFontSize, fittedFloor));
+      }
     };
 
     updatePlacement();
@@ -193,7 +234,11 @@ export const HeroSection = memo(function HeroSection({
   }
 
   return (
-    <div ref={heroRef} className="theme-article-hero relative overflow-hidden rounded-2xl p-6 shadow-[var(--theme-elevation-2xl)] sm:p-8">
+    <div
+      id="introduction"
+      ref={heroRef}
+      className="theme-article-hero relative scroll-mt-6 overflow-hidden rounded-2xl p-6 shadow-[var(--theme-elevation-2xl)] sm:p-8"
+    >
       {/* Preview badge indicator (only shown in dev context) */}
       {showPreviewBadge && (
         <div className="type-chip-label theme-badge-surface absolute right-4 top-4 flex items-center gap-1.5 rounded-full px-2.5 py-1">
@@ -212,7 +257,12 @@ export const HeroSection = memo(function HeroSection({
 
       {/* Title */}
       {hasTitle && (
-        <h1 ref={titleRef} className="type-page-title theme-accent-heading max-w-[12ch] text-4xl sm:text-5xl md:text-6xl">
+        <h1
+          ref={titleRef}
+          data-hero-title-scale={titleFitPx === null ? "normal" : "fitted"}
+          className="type-page-title theme-accent-heading text-4xl sm:text-5xl md:text-6xl"
+          style={titleFitPx === null ? undefined : { fontSize: `${titleFitPx}px` }}
+        >
           <EditableValue label="Title" path="title" value={title}>
             {title}
           </EditableValue>
