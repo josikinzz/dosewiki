@@ -39,8 +39,6 @@ export function Footer({ model = getRouteChromeModel("/") }: FooterProps) {
               ))}
 
             <SiteLicenceNotice className="theme-text-faint text-xs leading-5 mt-4" />
-
-            <SiteSupporter className="mt-3" />
           </div>
 
           {/* Right rail: the appearance/nav controls with the supporter credit beneath
