@@ -86,9 +86,9 @@ describe("/docs/how trust and review methodology", () => {
   });
 
   it("distinguishes provenance, intended citation support, and human verification", () => {
-    expect(PAGE).toContain("Provenance is not proof.");
-    expect(PAGE).toContain("intended evidentiary relationships");
-    expect(PAGE).toContain("does not prove entailment");
+    expect(PAGE).toContain("A source link is not a citation.");
+    expect(PAGE).toMatch(/intended\s+evidentiary relationships/);
+    expect(PAGE).toMatch(/does\s+not prove entailment/);
     expect(PAGE).toContain("human verification");
   });
 
@@ -96,8 +96,8 @@ describe("/docs/how trust and review methodology", () => {
     expect(PAGE).toContain("<strong>needed</strong>");
     expect(PAGE).toContain("<strong>in progress</strong>");
     expect(PAGE).toContain("<strong>completed</strong>");
-    expect(PAGE).toContain("not bound to an immutable digest");
-    expect(PAGE).toMatch(/does not\s+certify every sentence/);
+    expect(PAGE).toMatch(/does\s+not pin the exact article revision/);
+    expect(PAGE).toMatch(/does not certify every\s+sentence/);
   });
 });
 
@@ -127,11 +127,11 @@ describe("/docs/how status and roadmap", () => {
 
   it("separates editorial review from citation verification", () => {
     expect(PAGE).toContain("separate tracks");
-    expect(PAGE).toMatch(/does not\s+assert that the article&apos;s citations were verified/);
+    expect(PAGE).toMatch(/does not assert that the article&apos;s\s+citations were verified/);
   });
 
   it("declares the legality loop as the template for other sections", () => {
-    expect(PAGE).toContain("This pattern is now the template");
+    expect(PAGE).toMatch(/legality loop[\s\S]{0,300}extended to the other citable\s+sections/);
   });
 });
 

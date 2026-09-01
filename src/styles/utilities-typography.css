@@ -24,6 +24,30 @@
     text-wrap: balance;
   }
 
+  /* Editorial-scale headings for /docs pages: the hero clamp of
+     .type-page-title overwhelms a Read surface, and thirteen
+     .type-section-title headings at article scale flatten hierarchy.
+     Tracking relaxes with the size (the display face's -0.04em is tuned
+     for 48-72px lettering). */
+  .type-doc-title {
+    font-family: var(--font-family-display);
+    font-size: var(--type-size-doc-title);
+    font-weight: 600;
+    line-height: 1.08;
+    letter-spacing: -0.02em;
+    overflow-wrap: anywhere;
+    text-wrap: balance;
+  }
+
+  .type-doc-section-title {
+    font-family: var(--font-family-display);
+    font-size: var(--type-size-doc-section);
+    font-weight: 600;
+    line-height: var(--type-leading-heading);
+    letter-spacing: var(--type-tracking-heading);
+    text-wrap: balance;
+  }
+
   .type-lead {
     font-size: var(--type-size-lead);
     line-height: var(--type-leading-relaxed);

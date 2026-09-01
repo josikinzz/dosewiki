@@ -51,6 +51,12 @@
     --type-size-deck: clamp(1.1875rem, 1.11rem + 0.34vw, 1.375rem);
     --type-size-title: clamp(3rem, 2.5rem + 2.25vw, 4.5rem);
     --type-size-section: clamp(1.5rem, 1.28rem + 0.7vw, 2rem);
+    /* Docs pages (/docs/*) read at editorial scale, not the substance-article
+       hero ramp: a Read surface where a dozen section titles share the page
+       with long-form body text. Same display voice, one step down. Consumed
+       by .type-doc-title / .type-doc-section-title. */
+    --type-size-doc-title: clamp(2rem, 1.7rem + 1.35vw, 2.75rem);
+    --type-size-doc-section: clamp(1.375rem, 1.3rem + 0.35vw, 1.5rem);
     --type-leading-tight: 1.04;
     --type-leading-heading: 1.12;
     --type-leading-body: 1.7;
