@@ -2,13 +2,14 @@
 import { createHash } from "node:crypto";
 import { readFile, writeFile } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
-import { canonicalJson, digest, verifyBaseProjection } from "./executor-lib.mjs";
+import { digest, verifyBaseProjection } from "./executor-lib.mjs";
 
 const CAMPAIGN = "/Users/josie/Documents/Dose Wiki Media Review/Data/Replication Identity and Social Pass 2026-08-31";
 export const DEFAULTS = {
   projection: `${CAMPAIGN}/identity-social-production-projection.json`,
   avatars: `${CAMPAIGN}/avatar-production-publish-ledger-0f70de.jsonl`,
   social: `${CAMPAIGN}/social-cards/r2-production-publish-ledger.jsonl`,
+  objectVerification: `${CAMPAIGN}/social-cards/social-card-object-delivery-verification.jsonl`,
   candidate: `${CAMPAIGN}/social-cards/r2-social-card-candidate-manifest.json`,
   output: `${CAMPAIGN}/identity-social-delivery-receipts.json`,
 };
@@ -29,6 +30,7 @@ export function parseArgs(argv) {
     projection: flag(argv, "--projection") ?? DEFAULTS.projection,
     avatars: flag(argv, "--avatar-ledger") ?? DEFAULTS.avatars,
     social: flag(argv, "--social-ledger") ?? DEFAULTS.social,
+    objectVerification: flag(argv, "--object-verification-ledger") ?? DEFAULTS.objectVerification,
     candidate: flag(argv, "--candidate-manifest") ?? DEFAULTS.candidate,
     output: flag(argv, "--output") ?? DEFAULTS.output,
     concurrency: Number(flag(argv, "--concurrency") ?? 12),
@@ -65,12 +67,39 @@ export function indexVerifiedLedger(records, { planDigest, expectedObjects, comp
   return byKey;
 }
 
+export function indexObjectVerification(records, { planDigest, expectedObjects, expectedTotalBytes }) {
+  const completions = records.filter((row) => row.type === "object-verification-complete" && row.planDigest === planDigest && row.objectCount === expectedObjects && row.exhaustive === true);
+  required(completions.length === 1, `Object verification requires exactly one complete marker; found ${completions.length}`);
+  const completion = completions[0];
+  required(Number.isInteger(completion.totalBytes) && completion.totalBytes === expectedTotalBytes, `Object verification total bytes mismatch: ${completion.totalBytes} != ${expectedTotalBytes}`);
+  required(typeof completion.runId === "string" && completion.runId.length > 0, "Object verification completion has no run ID");
+  const byKey = new Map(); let totalBytes = 0;
+  for (const row of records) {
+    if (row.type !== "object-verified" || row.planDigest !== planDigest || row.runId !== completion.runId) continue;
+    required(!byKey.has(row.key), `Duplicate object-verification record for ${row.key}`);
+    required(KEY.test(row.key) && KEY.exec(row.key)[2] === row.sha256, `Object verification has invalid key/hash binding for ${row.key}`);
+    required(SHA.test(row.sha256) && Number.isInteger(row.size) && row.size > 0, `Object verification has invalid hash/size for ${row.key}`);
+    byKey.set(row.key, row); totalBytes += row.size;
+  }
+  required(byKey.size === expectedObjects, `Object verification covers ${byKey.size}/${expectedObjects} objects`);
+  required(totalBytes === completion.totalBytes, `Object verification record bytes mismatch: ${totalBytes} != ${completion.totalBytes}`);
+  return { byKey, completion };
+}
+
 async function digestResponse(response, url) {
   required(response.ok, `CDN returned HTTP ${response.status} for ${url}`);
   required(response.body, `CDN returned no body for ${url}`);
   const hash = createHash("sha256"); let size = 0;
   for await (const chunk of response.body) { const bytes = Buffer.from(chunk); hash.update(bytes); size += bytes.length; }
   return { sha256: hash.digest("hex"), size, status: response.status };
+}
+
+async function fetchAvatarWithRetry(fetchImpl, url, sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms))) {
+  for (let attempt = 1; attempt <= 3; attempt += 1) {
+    const response = await fetchImpl(url, { headers: { Accept: "*/*", "Cache-Control": "no-cache" } });
+    if (response.status < 500 || response.status > 599 || attempt === 3) return response;
+    await sleep(250 * attempt);
+  }
 }
 
 async function mapConcurrent(items, concurrency, worker) {
@@ -102,7 +131,7 @@ function receipt(operation, ledger, url, httpStatus) {
   };
 }
 
-export async function buildDeliveryReceipts({ projection, avatarRecords, socialRecords, candidate, fetchImpl = fetch, concurrency = 12 }) {
+export async function buildDeliveryReceipts({ projection, avatarRecords, socialRecords, objectVerificationRecords, candidate, fetchImpl = fetch, sleep, concurrency = 12 }) {
   verifyBaseProjection(projection, projection.projectionSha256);
   const avatarOps = projection.operations.filter((row) => row.kind === "profile-avatar");
   const socialOps = projection.operations.filter((row) => row.kind === "social-asset");
@@ -116,6 +145,8 @@ export async function buildDeliveryReceipts({ projection, avatarRecords, socialR
   const avatars = indexVerifiedLedger(avatarRecords, { planDigest: avatarPlan, expectedObjects: 7, completionType: "full-complete", label: "Avatar" });
   const socialPlan = candidate.promotion.planDigest;
   const social = indexVerifiedLedger(socialRecords, { planDigest: socialPlan, expectedObjects: 9171, completionType: "full-complete", label: "Social-card" });
+  const socialTotalBytes = [...social.values()].reduce((total, row) => total + row.size, 0);
+  const objectVerification = indexObjectVerification(objectVerificationRecords, { planDigest: socialPlan, expectedObjects: 9171, expectedTotalBytes: socialTotalBytes });
   const jobs = new Map();
   const add = (operation, row, url) => {
     const sha = operation.after.derivativeSha256 ?? operation.after.sha256;
@@ -134,11 +165,17 @@ export async function buildDeliveryReceipts({ projection, avatarRecords, socialR
   for (const operation of socialOps) {
     const url = candidate.cards?.[operation.target.entityType]?.[operation.target.entityKey];
     required(typeof url === "string", `Missing candidate URL for ${operation.target.entityType}/${operation.target.entityKey}`);
-    const key = new URL(url).pathname.slice(1); add(operation, social.get(key), url);
+    const key = new URL(url).pathname.slice(1);
+    const published = social.get(key); const verified = objectVerification.byKey.get(key);
+    required(published && verified && published.sha256 === verified.sha256 && published.size === verified.size, `Publication/object-verification mismatch for ${key}`);
+    add(operation, { ...published, recordedAt: verified.recordedAt, objectVerificationRunId: verified.runId }, url);
   }
   required(jobs.size === 9178, `Expected 9,178 total unique CDN objects, got ${jobs.size}`);
-  await mapConcurrent([...jobs.values()], concurrency, async (job) => {
-    const actual = await digestResponse(await fetchImpl(job.url, { headers: { Accept: "*/*", "Cache-Control": "no-cache" } }), job.url);
+  const avatarJobs = [...jobs.values()].filter((job) => job.row.profileKey);
+  required(avatarJobs.length === 7, `Expected seven avatar verification jobs, got ${avatarJobs.length}`);
+  for (const job of jobs.values()) if (!job.row.profileKey) job.httpStatus = 200;
+  await mapConcurrent(avatarJobs, concurrency, async (job) => {
+    const actual = await digestResponse(await fetchAvatarWithRetry(fetchImpl, job.url, sleep), job.url);
     required(actual.sha256 === job.sha256 && actual.size === job.size, `CDN collision at ${job.url}: got ${actual.size}/${actual.sha256}, expected ${job.size}/${job.sha256}`);
     job.httpStatus = actual.status;
   });
@@ -168,7 +205,7 @@ export async function buildDeliveryReceipts({ projection, avatarRecords, socialR
 
 export async function run(argv = process.argv.slice(2), adapters = {}) {
   const options = parseArgs(argv);
-  const result = await buildDeliveryReceipts({ projection: await readJson(options.projection), avatarRecords: await readJsonl(options.avatars), socialRecords: await readJsonl(options.social), candidate: await readJson(options.candidate), fetchImpl: adapters.fetchImpl ?? fetch, concurrency: options.concurrency });
+  const result = await buildDeliveryReceipts({ projection: await readJson(options.projection), avatarRecords: await readJsonl(options.avatars), socialRecords: await readJsonl(options.social), objectVerificationRecords: await readJsonl(options.objectVerification), candidate: await readJson(options.candidate), fetchImpl: adapters.fetchImpl ?? fetch, sleep: adapters.sleep, concurrency: options.concurrency });
   const bytes = `${JSON.stringify(result, null, 2)}\n`;
   if (options.check) {
     required(await readFile(options.output, "utf8") === bytes, `Receipt artifact drift: ${options.output}`);

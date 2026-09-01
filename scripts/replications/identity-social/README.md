@@ -85,9 +85,16 @@ node scripts/replications/identity-social/build-delivery-receipts.mjs \
 ```
 
 This makes no production writes. It requires the completed seven-object avatar
-ledger and 9,171-object social-card ledger, binds them to all 9,179 projection
-operations, and streams every distinct CDN object to verify its full byte count
-and SHA-256. The default avatar ledger is the current-base
+ledger, the completed 9,171-object social-card publication ledger, and
+`social-card-object-delivery-verification.jsonl`. The object-verification ledger
+must contain exactly 9,171 unique `object-verified` key/hash/size records plus a
+single exhaustive completion marker matching the plan, object count, and total
+bytes. Those independently recorded full-byte results are reused; receipt
+generation does not fetch the social objects again. It binds them to all 9,179
+projection operations and fetches only the seven avatar objects. Avatar fetches
+retry transient HTTP 5xx responses at most twice before failing closed.
+
+The default avatar ledger is the current-base
 `avatar-production-publish-ledger-0f70de.jsonl`: it was produced in verify-only
 mode against the seven already-published immutable keys, so generating current
 receipts never reuploads those avatars. Its `remote-verified` rows become
@@ -107,8 +114,9 @@ npm run replications:identity-social:execute -- \
 ```
 
 It preserves `verified-reuse` versus `uploaded-verified` and fails
-closed on missing objects, collisions, plan drift, or ambiguous entity/key
-bindings. Publication timestamps make unchanged-input reruns deterministic.
+closed on duplicate or missing verification rows, byte-total mismatches,
+collisions, plan drift, or ambiguous entity/key bindings. Evidence timestamps
+make unchanged-input reruns deterministic.
 
 ```sh
 npm run replications:identity-social:execute -- \
