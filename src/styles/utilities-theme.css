@@ -5695,7 +5695,13 @@ html[data-theme="light"]:not([data-visual-style="pro"])
    Sitewide beta disclaimer (BetaDisclaimer.tsx: Substance Index header and
    audited substance articles)
    Danger-toned link whose text carries a very subtle shimmer: a narrow
-   brighter band sweeps left-to-right through background-clipped text.
+   brighter band sweeps left-to-right through background-clipped text. The
+   sweep runs three times after mount, then rests: an infinite iteration kept
+   the entire rendering pipeline (style → paint → commit) ticking at 60fps on
+   every page for the life of the tab — a standing tax on exactly the old,
+   slow hardware this site wants to run on. After the final sweep the
+   computed background-position snaps to its initial flat-vivid region, which
+   is visually identical to the resting frames of the loop.
    Falls back to plain danger text when motion is reduced or clipping is
    unsupported.
    --------------------------------------------------------------------- */
@@ -5722,7 +5728,7 @@ html[data-theme="light"]:not([data-visual-style="pro"])
       -webkit-background-clip: text;
       background-clip: text;
       color: transparent;
-      animation: theme-beta-shimmer 5s linear infinite;
+      animation: theme-beta-shimmer 5s linear 3;
     }
   }
 }
@@ -5752,5 +5758,31 @@ html[data-theme="light"]:not([data-visual-style="pro"])
   outline: 2px solid var(--theme-accent-strong);
   outline-offset: 2px;
   border-radius: 4px;
+}
+
+/* ---------------------------------------------------------------------
+   Offscreen render deferral (ArticleSection.tsx: top-level article and
+   effect sections)
+   `content-visibility: auto` lets the engine skip style, layout and paint
+   for sections outside the viewport. A theme, style, or font flip restyles
+   the whole document at once; on a long article (~3000 nodes) deferring the
+   offscreen sections cut that restyle by ~60% in profiling, and the same
+   saving applies to every style-invalidating frame. The 500px estimate
+   approximates a typical section so the scrollbar stays honest before a
+   section is first rendered; `auto` then pins the real measured size.
+   Scrollspy safety: the spy reads the *section elements'* own boxes
+   (PublicTableOfContents.tsx), which containment never skips — only
+   descendant boxes go unmeasurable while a section is offscreen.
+   --------------------------------------------------------------------- */
+.theme-offscreen-defer {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 500px;
+}
+
+/* Printing renders every section; deferral would truncate the document. */
+@media print {
+  .theme-offscreen-defer {
+    content-visibility: visible;
+  }
 }
 
