@@ -136,6 +136,7 @@ export function validateIdentitySocialBatch(kind: IdentitySocialBatchEntry["kind
       if (x.creator_profile_id && !x.poster_profile_id) throw new Error("Creator profile linkage requires poster profile linkage.");
       const sameName = x.creator_display_name.trim() === x.poster_display_name.trim();
       const sameProfile = x.creator_profile_id === x.poster_profile_id;
+      const explicitlySameProfile = Boolean(x.creator_profile_id && x.poster_profile_id && sameProfile);
       if (x.creator_determination === "poster-presumed-creator") {
         if (!sameName || !sameProfile || !["not-reviewed", "reviewed-no-obvious-conflict"].includes(x.review_status)) throw new Error("Poster-presumed creator name, profile, or status is invalid.");
       } else if (x.creator_determination === "unresolved") {
@@ -143,7 +144,7 @@ export function validateIdentitySocialBatch(kind: IdentitySocialBatchEntry["kind
       } else {
       if (x.poster_posted_at === undefined) throw new Error("Different creator requires the exact typed poster chronology.");
       const proof = x.evidence.some((item) => (item.kind === "explicit-credit" || item.kind === "earlier-exact-source") && item.reference_url && item.published_at !== undefined && item.published_at < x.poster_posted_at! && item.supports_source_digest === x.source_digest);
-        if (sameName || sameProfile || x.review_status !== "creator-proven" || !proof) throw new Error("Different creator requires distinct identity and attributable earlier proof bound to the source digest.");
+        if (sameName || explicitlySameProfile || x.review_status !== "creator-proven" || !proof) throw new Error("Different creator requires distinct identity and attributable earlier proof bound to the source digest.");
       }
     } else if (entry.kind === "alias") {
       digest(entry.identity_snapshot_digest, "Identity snapshot digest");
@@ -568,6 +569,39 @@ async function assertPinnedProfileBindingSnapshot(ctx: Ctx, entry: ProfileBindin
   }
 }
 
+async function sharedProfileGroupDigest(entries: ProfileBindingEntry[]) {
+  const ordered = [...entries].sort((a, b) => a.artist_id.localeCompare(b.artist_id));
+  return await canonicalDigest({
+    schemaVersion: 1,
+    profile_key: ordered[0]?.profile_key,
+    existing_profile_id: ordered[0]?.existing_profile_id,
+    snapshot_digest: ordered[0]?.snapshot_digest,
+    contributions: ordered.map((entry) => ({ artist_id: entry.artist_id, verification: entry.verification })),
+  });
+}
+
+async function aggregateProfileBindingVerification(entries: ProfileBindingEntry[], profileId: Id<"contributorProfiles">, now: number): Promise<StoredVerificationValue> {
+  const ordered = [...entries].sort((a, b) => a.artist_id.localeCompare(b.artist_id));
+  const contributions = ordered.map((entry) => ({ artist_id: entry.artist_id, ...entry.verification! }));
+  const statuses = contributions.map((item) => item.status);
+  const status = statuses.includes("verified") ? "verified" as const : statuses.includes("unclear") ? "unclear" as const : "not-verified" as const;
+  const groupDigest = entries[0].shared_profile_group_digest!;
+  return {
+    profile_id: profileId,
+    status,
+    basis: contributions.every((item) => item.basis === contributions[0].basis) ? contributions[0].basis : "editorial-review",
+    // The reviewed sheets can overlap after identities are unified. Max preserves
+    // the strongest observed corpus size without falsely claiming their sum is unique.
+    work_count_reviewed: Math.max(...contributions.map((item) => item.work_count_reviewed)),
+    rationale: contributions.map((item) => `[${item.artist_id}] ${item.rationale}`).join("\n\n"),
+    evidence: contributions.flatMap((item) => item.evidence),
+    source_digest: await canonicalDigest({ schemaVersion: 1, contributions }),
+    operation_id: `identity-social:shared-profile-verification:${groupDigest.slice(0, 24)}`,
+    reviewed_at: now,
+    review_contributions: contributions,
+  };
+}
+
 export async function applyProfileBindingBatchHandler(ctx: MutationCtx, args: { apiKey: string; actor_email: string; operation_id: string; dry_run: boolean; entries: ProfileBindingEntry[] }) {
   const actor = await requireRegisteredDelegatedEditorWrite(ctx, { apiKey: args.apiKey, actorEmail: args.actor_email, adminIntent: "replicationMaintenance" });
   const operationId = required(args.operation_id, "Profile-binding batch operation ID");
@@ -588,15 +622,29 @@ export async function applyProfileBindingBatchHandler(ctx: MutationCtx, args: { 
     }
     return { operation_id: operationId, payload_digest: payloadDigest, changed: replay.changed_count, unchanged: replay.unchanged_count, idempotent_replay: true, dry_run: false };
   }
-  const seenArtists = new Set<string>(); const seenKeys = new Set<string>();
+  const sharedGroups = new Map<string, ProfileBindingEntry[]>();
+  for (const entry of args.entries) if (entry.shared_profile_group_digest) {
+    const group = sharedGroups.get(entry.shared_profile_group_digest) ?? [];
+    group.push(entry); sharedGroups.set(entry.shared_profile_group_digest, group);
+  }
+  for (const [groupDigest, group] of sharedGroups) {
+    if (!SHA256.test(groupDigest) || group.length < 2 || group.some((entry) => entry.decision !== "bind" || entry.shared_profile_group_size !== group.length || entry.profile_key !== group[0].profile_key || entry.existing_profile_id !== group[0].existing_profile_id || entry.snapshot_digest !== group[0].snapshot_digest)) throw new Error("Shared profile-binding group is incomplete or inconsistent.");
+    if (await sharedProfileGroupDigest(group) !== groupDigest) throw new Error("Shared profile-binding group digest is invalid.");
+  }
+  const seenArtists = new Set<string>(); const seenKeys = new Map<string, ProfileBindingEntry>();
   for (const entry of args.entries) {
     required(entry.artist_id, "Profile-binding artist ID");
     if (seenArtists.has(entry.artist_id)) throw new Error("Duplicate artist ID in profile-binding batch.");
     seenArtists.add(entry.artist_id);
-    if (entry.profile_key) { if (seenKeys.has(entry.profile_key)) throw new Error("Duplicate profile key in profile-binding batch."); seenKeys.add(entry.profile_key); }
+    if (entry.profile_key) {
+      const prior = seenKeys.get(entry.profile_key);
+      if (prior && (!entry.shared_profile_group_digest || entry.shared_profile_group_digest !== prior.shared_profile_group_digest || entry.decision !== "bind" || prior.decision !== "bind" || entry.existing_profile_id !== prior.existing_profile_id)) throw new Error("Duplicate profile key in profile-binding batch is allowed only for one exact reviewed existing-profile group.");
+      seenKeys.set(entry.profile_key, entry);
+    }
     digest(entry.base_projection_digest, "Base projection digest");
     if (entry.receipt_sidecar_digest) digest(entry.receipt_sidecar_digest, "Receipt sidecar digest");
-    const expectedItemId = `identity-social-item:v1:${(await canonicalDigest({ schemaVersion: 1, projection: entry.projection, artist_id: entry.artist_id, decision: entry.decision, snapshot_digest: entry.snapshot_digest, snapshot_profile_count: entry.snapshot_profile_count, profile_key: entry.profile_key ?? null, existing_profile_id: entry.existing_profile_id ?? null, profile: entry.profile ?? null, verification: entry.verification ?? null, base_projection_digest: entry.base_projection_digest, receipt_sidecar_digest: entry.receipt_sidecar_digest })).slice(0, 24)}`;
+    const itemVersion = entry.shared_profile_group_digest ? 2 : 1;
+    const expectedItemId = `identity-social-item:v${itemVersion}:${(await canonicalDigest({ schemaVersion: itemVersion, projection: entry.projection, artist_id: entry.artist_id, decision: entry.decision, snapshot_digest: entry.snapshot_digest, snapshot_profile_count: entry.snapshot_profile_count, profile_key: entry.profile_key ?? null, existing_profile_id: entry.existing_profile_id ?? null, profile: entry.profile ?? null, verification: entry.verification ?? null, ...(entry.shared_profile_group_digest ? { shared_profile_group_digest: entry.shared_profile_group_digest, shared_profile_group_size: entry.shared_profile_group_size } : {}), base_projection_digest: entry.base_projection_digest, receipt_sidecar_digest: entry.receipt_sidecar_digest })).slice(0, 24)}`;
     if (entry.item_operation_id !== expectedItemId) throw new Error("Profile-binding item operation ID is not derived from canonical transformed content.");
     if (await ctx.db.query("replicationIdentitySocialOperationItems").withIndex("by_item_operation_id", (q) => q.eq("item_operation_id", entry.item_operation_id)).unique()) throw new Error("Item operation ID collision.");
     if (await ctx.db.query("replicationIdentityProfileBindings").withIndex("by_artist_id", (q) => q.eq("artist_id", entry.artist_id)).unique()) throw new Error("Artist already has a profile binding.");
@@ -607,6 +655,7 @@ export async function applyProfileBindingBatchHandler(ctx: MutationCtx, args: { 
     return { operation_id: operationId, payload_digest: payloadDigest, changed, unchanged: args.entries.length - changed, idempotent_replay: false, dry_run: true };
   }
   const now = Date.now(); const createdAt = new Date(now).toISOString(); let changed = 0;
+  const writtenSharedGroups = new Set<string>();
   for (const entry of args.entries) {
     const target = { kind: "profile-binding" as const, artist_id: entry.artist_id };
     if (entry.decision === "unresolved") {
@@ -620,13 +669,20 @@ export async function applyProfileBindingBatchHandler(ctx: MutationCtx, args: { 
       profileId = await ctx.db.insert("contributorProfiles", value);
       createdProfileSnapshot = value;
     }
-    const verificationBeforeRow = await ctx.db.query("contributorReplicatorVerifications").withIndex("by_profile_id", (q) => q.eq("profile_id", profileId!)).unique();
-    const verificationBefore = strip(verificationBeforeRow as StoredRecord | null) as StoredVerificationValue | null;
-    const verificationAfter = { ...entry.verification!, profile_id: profileId!, operation_id: entry.item_operation_id, reviewed_at: now };
-    if (verificationBeforeRow) await ctx.db.replace(verificationBeforeRow._id, verificationAfter); else await ctx.db.insert("contributorReplicatorVerifications", verificationAfter);
+    const isSharedLeader = Boolean(entry.shared_profile_group_digest && !writtenSharedGroups.has(entry.shared_profile_group_digest));
+    const isSharedFollower = Boolean(entry.shared_profile_group_digest && !isSharedLeader);
+    const verificationBeforeRow = isSharedFollower ? null : await ctx.db.query("contributorReplicatorVerifications").withIndex("by_profile_id", (q) => q.eq("profile_id", profileId!)).unique();
+    const verificationBefore = isSharedFollower ? undefined : strip(verificationBeforeRow as StoredRecord | null) as StoredVerificationValue | null;
+    const verificationAfter = isSharedFollower ? undefined : entry.shared_profile_group_digest
+      ? await aggregateProfileBindingVerification(sharedGroups.get(entry.shared_profile_group_digest)!, profileId!, now)
+      : { ...entry.verification!, profile_id: profileId!, operation_id: entry.item_operation_id, reviewed_at: now };
+    if (verificationAfter) {
+      if (verificationBeforeRow) await ctx.db.replace(verificationBeforeRow._id, verificationAfter); else await ctx.db.insert("contributorReplicatorVerifications", verificationAfter);
+      if (entry.shared_profile_group_digest) writtenSharedGroups.add(entry.shared_profile_group_digest);
+    }
     const binding = { artist_id: entry.artist_id, profile_id: profileId!, profile_key: entry.profile_key!, decision: entry.decision === "create" ? "created-profile" as const : "bound-existing-profile" as const, snapshot_digest: entry.snapshot_digest, operation_id: entry.item_operation_id, bound_at: now };
     await ctx.db.insert("replicationIdentityProfileBindings", binding);
-    await ctx.db.insert("replicationIdentitySocialOperationItems", { item_operation_id: entry.item_operation_id, batch_operation_id: operationId, kind: "profile-binding", target, before: null, after: binding, changed: true, created_profile_id: entry.decision === "create" ? profileId : undefined, created_profile_snapshot: createdProfileSnapshot, verification_before: verificationBefore, verification_after: verificationAfter, created_at: now });
+    await ctx.db.insert("replicationIdentitySocialOperationItems", { item_operation_id: entry.item_operation_id, batch_operation_id: operationId, kind: "profile-binding", target, before: null, after: binding, changed: true, created_profile_id: entry.decision === "create" ? profileId : undefined, created_profile_snapshot: createdProfileSnapshot, ...(isSharedFollower ? {} : { verification_before: verificationBefore, verification_after: verificationAfter }), created_at: now });
     changed += 1;
   }
   await ctx.db.insert("replicationIdentitySocialOperations", { operation_id: operationId, kind: "profile-binding", payload_digest: payloadDigest, actor_email: actor.email, record_count: args.entries.length, changed_count: changed, unchanged_count: args.entries.length - changed, created_at: now });
@@ -645,6 +701,7 @@ export async function rollbackProfileBindingOperationHandler(ctx: MutationCtx, a
     return { operation_id: operationId, payload_digest: payloadDigest, changed: prior.changed_count, unchanged: prior.unchanged_count, idempotent_replay: true, dry_run: false };
   }
   const items = await operationItems(ctx, rollbackOf, original.record_count);
+  const verificationLeaders = new Map<string, typeof items[number]>();
   for (const item of items) {
     if (item.target.kind !== "profile-binding") throw new Error("Profile-binding rollback journal target is invalid.");
     if (!item.changed) continue;
@@ -652,9 +709,13 @@ export async function rollbackProfileBindingOperationHandler(ctx: MutationCtx, a
     const binding = await ctx.db.query("replicationIdentityProfileBindings").withIndex("by_artist_id", (q) => q.eq("artist_id", artistId)).unique();
     if (!equal(strip(binding as StoredRecord | null), item.after)) throw new Error("Profile-binding rollback target has drifted.");
     const verificationAfter = item.verification_after;
-    if (!verificationAfter || !("profile_id" in verificationAfter)) throw new Error("Profile-binding rollback verification journal is incomplete.");
-    const verification = await ctx.db.query("contributorReplicatorVerifications").withIndex("by_profile_id", (q) => q.eq("profile_id", verificationAfter.profile_id)).unique();
-    if (!equal(strip(verification as StoredRecord | null), verificationAfter)) throw new Error("Profile-binding rollback verification has drifted.");
+    if (verificationAfter && "profile_id" in verificationAfter) {
+      const profileId = String(verificationAfter.profile_id);
+      if (verificationLeaders.has(profileId)) throw new Error("Profile-binding rollback journal has multiple verification leaders for one profile.");
+      verificationLeaders.set(profileId, item);
+      const verification = await ctx.db.query("contributorReplicatorVerifications").withIndex("by_profile_id", (q) => q.eq("profile_id", verificationAfter.profile_id)).unique();
+      if (!equal(strip(verification as StoredRecord | null), verificationAfter)) throw new Error("Profile-binding rollback verification has drifted.");
+    }
     if (item.created_profile_id) {
       const profile = await ctx.db.get(item.created_profile_id);
       if (!profile || !equal(profileMaterial(profile as Record<string, unknown>), item.created_profile_snapshot)) throw new Error("Operation-created profile has drifted and cannot be deleted.");
@@ -662,19 +723,26 @@ export async function rollbackProfileBindingOperationHandler(ctx: MutationCtx, a
       await assertCreatedProfileHasNoRollbackReferences(ctx, item.created_profile_id, createdKey);
     }
   }
+  for (const item of items) {
+    if (!item.changed || !item.after || !("profile_id" in item.after)) continue;
+    if (!verificationLeaders.has(String(item.after.profile_id))) throw new Error("Profile-binding rollback journal is missing the profile verification leader.");
+  }
   const changed = items.filter((item) => item.changed).length;
   if (!args.dry_run) {
     const now = Date.now();
     for (const item of items) {
-      if (item.target.kind !== "profile-binding" || !item.changed || !item.verification_after || !("profile_id" in item.verification_after)) continue;
+      if (item.target.kind !== "profile-binding" || !item.changed) continue;
       const artistId = item.target.artist_id;
       const binding = await ctx.db.query("replicationIdentityProfileBindings").withIndex("by_artist_id", (q) => q.eq("artist_id", artistId)).unique();
-      const verification = await ctx.db.query("contributorReplicatorVerifications").withIndex("by_profile_id", (q) => q.eq("profile_id", item.verification_after!.profile_id)).unique();
-      if (verification) { if (item.verification_before) await ctx.db.replace(verification._id, item.verification_before); else await ctx.db.delete(verification._id); }
       if (binding) await ctx.db.delete(binding._id);
       if (item.created_profile_id) await ctx.db.delete(item.created_profile_id);
       const rollbackItemId = `identity-social:rollback:${(await canonicalDigest({ operationId, source: item.item_operation_id })).slice(0, 24)}`;
-      await ctx.db.insert("replicationIdentitySocialOperationItems", { item_operation_id: rollbackItemId, batch_operation_id: operationId, kind: "profile-binding", target: item.target, before: item.after, after: null, changed: true, verification_before: item.verification_after, verification_after: item.verification_before ?? null, created_at: now });
+      await ctx.db.insert("replicationIdentitySocialOperationItems", { item_operation_id: rollbackItemId, batch_operation_id: operationId, kind: "profile-binding", target: item.target, before: item.after, after: null, changed: true, ...(item.verification_after ? { verification_before: item.verification_after, verification_after: item.verification_before ?? null } : {}), created_at: now });
+    }
+    for (const item of verificationLeaders.values()) {
+      const verificationAfter = item.verification_after!;
+      const verification = await ctx.db.query("contributorReplicatorVerifications").withIndex("by_profile_id", (q) => q.eq("profile_id", verificationAfter.profile_id)).unique();
+      if (verification) { if (item.verification_before) await ctx.db.replace(verification._id, item.verification_before); else await ctx.db.delete(verification._id); }
     }
     await ctx.db.insert("replicationIdentitySocialOperations", { operation_id: operationId, kind: "profile-binding", payload_digest: payloadDigest, actor_email: actor.email, record_count: items.length, changed_count: changed, unchanged_count: items.length - changed, rollback_of: rollbackOf, created_at: now });
   }

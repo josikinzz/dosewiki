@@ -3,7 +3,7 @@ import { mkdtempSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import test from "node:test";
-import { appendLedger, assertPreviewMatches, batchesAfterCanaries, buildExecutionPlan, digest, indexProfiles, loadLedger, makeBatches, pendingBatches, rollbackManifest, selectCanaries, transformOperation, validatePinnedProfileSnapshot, verifyBaseProjection, verifyDeliveryReceiptSidecar } from "./executor-lib.mjs";
+import { appendLedger, assertPreviewMatches, batchesAfterCanaries, bindSharedProfileGroups, buildExecutionPlan, digest, indexProfiles, loadLedger, makeBatches, pendingBatches, rollbackManifest, selectCanaries, transformOperation, validatePinnedProfileSnapshot, verifyBaseProjection, verifyDeliveryReceiptSidecar } from "./executor-lib.mjs";
 
 const profiles = indexProfiles([{ profileId: "profile-1", key: "ARTIST" }, { profileId: "profile-2", key: "LOKA" }]);
 const base = (kind, target, action, expectedBefore, after = {}, evidence = {}) => {
@@ -114,6 +114,22 @@ test("48 profile bindings use execution-safe batches and resume after a one-item
   const canaries = selectCanaries(batches);
   assert.equal(canaries[0].entries.length, 1);
   assert.deepEqual(batchesAfterCanaries(batches, canaries).map((batch) => batch.entries.length), [10, 10, 10, 10, 7]);
+});
+test("shared existing-profile bindings receive new immutable group IDs and never split", () => {
+  const verification = (count, source) => ({ status: "verified", basis: "artist-sheet-review", work_count_reviewed: count, rationale: source, evidence: [], source_digest: digest(source) });
+  const common = { kind: "profile-binding", projection: {}, decision: "bind", snapshot_digest: "a".repeat(64), snapshot_profile_count: 2119, profile_key: "JOSIE", existing_profile_id: "profile-josie", profile: null, base_projection_digest: "b".repeat(64), receipt_sidecar_digest: null };
+  const original = [
+    { ...common, artist_id: "josie", verification: verification(2, "josie"), item_operation_id: "identity-social-item:v1:historical" },
+    { ...common, artist_id: "josikins", verification: verification(21, "josikins"), item_operation_id: "identity-social-item:v1:other" },
+  ];
+  const grouped = bindSharedProfileGroups(original);
+  assert.equal(new Set(grouped.map((entry) => entry.shared_profile_group_digest)).size, 1);
+  assert.ok(grouped.every((entry) => entry.shared_profile_group_size === 2 && entry.item_operation_id.startsWith("identity-social-item:v2:")));
+  assert.ok(grouped.every((entry) => entry.item_operation_id !== original.find((old) => old.artist_id === entry.artist_id).item_operation_id));
+  const batches = makeBatches([{ kind: "profile-binding", artist_id: "before", item_operation_id: "before", projection: {} }, ...grouped]);
+  assert.ok(batches.some((batch) => grouped.every((entry) => batch.entries.includes(entry))));
+  const groupedFirst = makeBatches([...grouped, { kind: "profile-binding", artist_id: "after", item_operation_id: "after", projection: {} }]);
+  assert.deepEqual(selectCanaries(groupedFirst)[0].entries.map((entry) => entry.artist_id), ["josie", "josikins"]);
 });
 test("rollback order is reverse application order", () => assert.deepEqual(rollbackManifest([{ operation_id: "one" }, { operation_id: "two" }]).map((x) => x.rollback_of), ["two", "one"]));
 test("identity ambiguity fails closed", () => assert.throws(() => indexProfiles([{ profileId: "one", key: "A" }, { profileId: "two", key: "a" }]), /ambiguity/));

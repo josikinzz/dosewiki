@@ -135,9 +135,21 @@ export function classifyProjectionOperation(operation, context) {
 
 function transformedEvidence(operation) {
   const urls = operation.evidence?.sources ?? [];
-  const values = urls.slice(0, 32).map((source) => evidence(
-    source.authority ? "earlier-exact-source" : "editorial-review", source.url, source.finding,
-  ));
+  const values = urls.slice(0, 32).map((source) => {
+    const authoritative = Boolean(source.authority);
+    const publishedAt = Number.isSafeInteger(source.createdUtc)
+      ? source.createdUtc * 1_000
+      : operation.after?.originalPublishedAt;
+    return evidence(
+      authoritative ? "earlier-exact-source" : "editorial-review",
+      /^https:\/\//.test(source.url ?? "") ? source.url : undefined,
+      source.finding,
+      authoritative ? {
+        published_at: publishedAt,
+        supports_source_digest: operation.after?.sourceDigest,
+      } : {},
+    );
+  });
   if (!values.length) values.push(evidence("editorial-review", undefined, operation.evidence?.rationale ?? `Reviewed campaign operation ${operation.operationId}.`));
   return values;
 }
@@ -241,9 +253,44 @@ export function buildExecutionPlan(projection, context) {
   const verificationOperations = new Map(projection.operations.filter((operation) => operation.kind === "replicator-verification").map((operation) => [operation.operationId, operation]));
   const boundVerificationIds = new Set(projection.operations.filter((operation) => operation.kind === "profile-binding").map((operation) => operation.after?.verificationDependency?.verificationOperationId).filter(Boolean));
   const transformed = projection.operations.map((operation) => boundVerificationIds.has(operation.operationId) ? { operation, disposition: "no-write", reason: "verification-submitted-with-profile-binding" } : transformOperation(operation, { ...context, verificationOperations }));
-  const entries = transformed.filter((x) => x.disposition === "actionable" || x.disposition === "journal-only").map((x) => x.entry);
+  const entries = bindSharedProfileGroups(transformed.filter((x) => x.disposition === "actionable" || x.disposition === "journal-only").map((x) => x.entry));
   const noWrites = transformed.filter((x) => x.disposition === "no-write").map((x) => ({ operation_id: x.operation.operationId, kind: x.operation.kind, reason: x.reason }));
   return { projection_digest: projection.projectionSha256, ...(context.receiptSidecarDigest ? { receipt_sidecar_digest: context.receiptSidecarDigest } : {}), entries, noWrites, batches: makeBatches(entries) };
+}
+
+export function bindSharedProfileGroups(entries) {
+  const groups = new Map();
+  for (const entry of entries) {
+    if (entry.kind !== "profile-binding" || entry.decision !== "bind") continue;
+    const key = `${entry.profile_key}\0${entry.existing_profile_id}`;
+    if (!groups.has(key)) groups.set(key, []);
+    groups.get(key).push(entry);
+  }
+  const replacements = new Map();
+  for (const group of groups.values()) {
+    if (group.length < 2) continue;
+    const ordered = [...group].sort((a, b) => a.artist_id.localeCompare(b.artist_id));
+    const shared_profile_group_digest = digest({
+      schemaVersion: 1,
+      profile_key: ordered[0].profile_key,
+      existing_profile_id: ordered[0].existing_profile_id,
+      snapshot_digest: ordered[0].snapshot_digest,
+      contributions: ordered.map((entry) => ({ artist_id: entry.artist_id, verification: entry.verification })),
+    });
+    for (const entry of ordered) {
+      const next = { ...entry, shared_profile_group_digest, shared_profile_group_size: ordered.length };
+      const core = {
+        schemaVersion: 2, projection: next.projection, artist_id: next.artist_id, decision: next.decision,
+        snapshot_digest: next.snapshot_digest, snapshot_profile_count: next.snapshot_profile_count,
+        profile_key: next.profile_key ?? null, existing_profile_id: next.existing_profile_id ?? null,
+        profile: next.profile ?? null, verification: next.verification ?? null,
+        shared_profile_group_digest, shared_profile_group_size: ordered.length,
+        base_projection_digest: next.base_projection_digest, receipt_sidecar_digest: next.receipt_sidecar_digest,
+      };
+      replacements.set(entry, { ...next, item_operation_id: `identity-social-item:v2:${digest(core).slice(0, 24)}` });
+    }
+  }
+  return entries.map((entry) => replacements.get(entry) ?? entry);
 }
 
 export function makeBatches(entries) {
@@ -254,11 +301,19 @@ export function makeBatches(entries) {
     // transaction stays inside Convex's execution budget.
     const kindLimit = kind === "profile-binding" ? 10 : MAX_BATCH_COUNT;
     let batch = [];
-    for (const entry of entries.filter((x) => x.kind === kind)) {
-      const candidate = [...batch, entry];
+    const kindEntries = entries.filter((x) => x.kind === kind);
+    const seenGroups = new Set();
+    const units = kindEntries.flatMap((entry) => {
+      if (!entry.shared_profile_group_digest) return [[entry]];
+      if (seenGroups.has(entry.shared_profile_group_digest)) return [];
+      seenGroups.add(entry.shared_profile_group_digest);
+      return [kindEntries.filter((candidate) => candidate.shared_profile_group_digest === entry.shared_profile_group_digest)];
+    });
+    for (const unit of units) {
+      const candidate = [...batch, ...unit];
       if (candidate.length > kindLimit || Buffer.byteLength(canonicalJson(candidate)) > MAX_BATCH_BYTES) {
         if (!batch.length) throw new Error(`Single ${kind} entry exceeds ${MAX_BATCH_BYTES} bytes.`);
-        result.push(finishBatch(kind, batch)); batch = [entry];
+        result.push(finishBatch(kind, batch)); batch = [...unit];
       } else batch = candidate;
     }
     if (batch.length) result.push(finishBatch(kind, batch));
@@ -272,7 +327,13 @@ function finishBatch(kind, entries) {
 
 export function selectCanaries(batches) {
   const seen = new Set(); const canaries = [];
-  for (const batch of batches) if (!seen.has(batch.kind)) { seen.add(batch.kind); canaries.push({ ...batch, entries: [batch.entries[0]], operation_id: `identity-social-canary:${batch.kind}:${digest(batch.entries[0]).slice(0, 24)}` }); }
+  for (const batch of batches) if (!seen.has(batch.kind)) {
+    seen.add(batch.kind);
+    const first = batch.entries[0];
+    const entries = first.shared_profile_group_digest ? batch.entries.filter((entry) => entry.shared_profile_group_digest === first.shared_profile_group_digest) : [first];
+    const canaryDigest = first.shared_profile_group_digest ? digest(entries) : digest(first);
+    canaries.push({ ...batch, entries, operation_id: `identity-social-canary:${batch.kind}:${canaryDigest.slice(0, 24)}` });
+  }
   return canaries;
 }
 export function batchesAfterCanaries(batches, canaries = selectCanaries(batches)) {

@@ -92,6 +92,11 @@ export const contributorReplicatorVerificationValidator = v.object({
   basis: v.union(v.literal("artist-sheet-review"), v.literal("explicit-self-identification"), v.literal("editorial-review")),
   work_count_reviewed: v.number(), rationale: v.string(), evidence: v.array(identityEvidenceValidator),
   source_digest: v.string(), operation_id: v.string(), reviewed_at: v.number(),
+  review_contributions: v.optional(v.array(v.object({
+    artist_id: v.string(), status: v.union(v.literal("verified"), v.literal("not-verified"), v.literal("unclear")),
+    basis: v.union(v.literal("artist-sheet-review"), v.literal("explicit-self-identification"), v.literal("editorial-review")),
+    work_count_reviewed: v.number(), rationale: v.string(), evidence: v.array(identityEvidenceValidator), source_digest: v.string(),
+  }))),
 });
 
 export const replicationSocialAssetValidator = v.object({
@@ -122,6 +127,8 @@ export const profileBindingEntryValidator = v.object({
   profile_key: v.optional(v.string()), existing_profile_id: v.optional(v.id("contributorProfiles")),
   profile: v.optional(v.object({ display_name: v.string(), aliases: v.array(v.string()), links: v.array(v.object({ label: v.string(), url: v.string() })) })),
   verification: v.optional(profileBindingVerificationInputValidator),
+  shared_profile_group_digest: v.optional(v.string()),
+  shared_profile_group_size: v.optional(v.number()),
 });
 
 export const identitySocialOperationKindValidator = v.union(

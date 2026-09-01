@@ -3,7 +3,7 @@ import type { Id } from "../../convex/_generated/dataModel";
 import type { MutationCtx, QueryCtx } from "../../convex/_generated/server";
 import {
   applyIdentitySocialBatchHandler, applyProfileBindingBatchHandler, assertCreatedProfileHasNoRollbackReferences, canonicalBeforeForEntry, canonicalDigest, exportPinnedProfileSnapshotPageHandler,
-  materializeIdentityTokenSnapshotHandler, rollbackIdentitySocialOperationHandler, validateIdentitySocialBatch,
+  materializeIdentityTokenSnapshotHandler, rollbackIdentitySocialOperationHandler, rollbackProfileBindingOperationHandler, validateIdentitySocialBatch,
 } from "../../convex/replicationIdentitySocial";
 import type { IdentitySocialBatchEntry, ProfileBindingEntry } from "../../convex/lib/replicationIdentitySocialValidators";
 
@@ -73,7 +73,10 @@ function context(registered = true) {
     contributorReplicatorVerifications: [], replicationSocialAssets: [],
     replicationIdentitySocialOperations: [], replicationIdentitySocialOperationItems: [], replicationIdentityProfileBindings: [],
     contributorIdentitySnapshotMaterializations: [{ _id: "snapshot-1", _creationTime: 1, snapshot_digest: FULL_ALIAS_SNAPSHOT, profile_count: 2119, profile_ids_digest: DIGEST, token_count: 2579, operation_id: "seed", created_at: 1 }],
-    contributorIdentityTokenSnapshots: [{ _id: "token-1", _creationTime: 1, snapshot_digest: OTHER, profile_count: 1, normalized_token: "oldhandle", owner_count: 0, owner_profile_ids: [], created_at: 1 }],
+    contributorIdentityTokenSnapshots: [
+      { _id: "token-1", _creationTime: 1, snapshot_digest: OTHER, profile_count: 1, normalized_token: "oldhandle", owner_count: 0, owner_profile_ids: [], created_at: 1 },
+      { _id: "token-2", _creationTime: 1, snapshot_digest: FULL_ALIAS_SNAPSHOT, profile_count: 2119, normalized_token: "exampleposter", owner_count: 1, owner_profile_ids: [PID], created_at: 1 },
+    ],
   };
   const docs = new Map<string, Row>([
     [RID, { _id: RID, _creationTime: 1, slug: "example", artist: "ExamplePoster" }],
@@ -216,6 +219,37 @@ describe("replication identity/social Convex contract", () => {
     expect(tables.contributorProfiles.some((row) => row.key === "NEWARTIST")).toBe(true);
     expect(tables.replicationIdentityProfileBindings).toHaveLength(1);
     expect(tables.contributorReplicatorVerifications).toHaveLength(1);
+  });
+
+  it("atomically binds two reviewed handles to one profile, aggregates verification without double-counting, and rolls back once", async () => {
+    const { ctx, tables } = context();
+    const expectedBefore = { fullProductionProfileSetSha256: FULL_ALIAS_SNAPSHOT, expectedProfileCount: 2119, existingProfile: { profileId: PID, profileKey: "EXAMPLEPOSTER", displayName: "ExamplePoster" }, currentVerificationProfileKey: null };
+    const make = async (artistId: string, count: number, sourceDigest: string) => {
+      const p = await projection("profile-binding" as never, { artistId, profileKey: "EXAMPLEPOSTER" }, expectedBefore, { profileId: PID, profileKey: "EXAMPLEPOSTER" }, "bind-existing-profile-then-apply-verification");
+      return {
+        kind: "profile-binding", item_operation_id: "pending", projection: p.value, artist_id: artistId, decision: "bind",
+        snapshot_digest: FULL_ALIAS_SNAPSHOT, snapshot_profile_count: 2119, profile_key: "EXAMPLEPOSTER", existing_profile_id: PID,
+        verification: { status: "verified", basis: "artist-sheet-review", work_count_reviewed: count, rationale: `Reviewed ${artistId}.`, evidence: [{ kind: "editorial-review", digest: sourceDigest }], source_digest: sourceDigest },
+        base_projection_digest: DIGEST, receipt_sidecar_digest: null,
+      } as ProfileBindingEntry;
+    };
+    const entries = [await make("josie", 2, DIGEST), await make("josikins", 21, OTHER)];
+    const ordered = [...entries].sort((a, b) => a.artist_id.localeCompare(b.artist_id));
+    const groupDigest = await canonicalDigest({ schemaVersion: 1, profile_key: "EXAMPLEPOSTER", existing_profile_id: PID, snapshot_digest: FULL_ALIAS_SNAPSHOT, contributions: ordered.map((entry) => ({ artist_id: entry.artist_id, verification: entry.verification })) });
+    for (const entry of entries) {
+      entry.shared_profile_group_digest = groupDigest; entry.shared_profile_group_size = 2;
+      const core = { schemaVersion: 2, projection: entry.projection, artist_id: entry.artist_id, decision: entry.decision, snapshot_digest: entry.snapshot_digest, snapshot_profile_count: entry.snapshot_profile_count, profile_key: entry.profile_key, existing_profile_id: entry.existing_profile_id, profile: null, verification: entry.verification, shared_profile_group_digest: groupDigest, shared_profile_group_size: 2, base_projection_digest: DIGEST, receipt_sidecar_digest: null };
+      entry.item_operation_id = `identity-social-item:v2:${(await canonicalDigest(core)).slice(0, 24)}`;
+    }
+    await expect(applyProfileBindingBatchHandler(ctx, { apiKey: TOKEN, actor_email: ACTOR, operation_id: "binding-shared", dry_run: false, entries })).resolves.toMatchObject({ changed: 2, unchanged: 0 });
+    expect(tables.replicationIdentityProfileBindings.map((row) => row.artist_id).sort()).toEqual(["josie", "josikins"]);
+    expect(tables.contributorReplicatorVerifications).toHaveLength(1);
+    expect(tables.contributorReplicatorVerifications[0]).toMatchObject({ status: "verified", work_count_reviewed: 21 });
+    expect((tables.contributorReplicatorVerifications[0].review_contributions as unknown[])).toHaveLength(2);
+    expect(tables.replicationIdentitySocialOperationItems.filter((row) => row.verification_after)).toHaveLength(1);
+    await expect(rollbackProfileBindingOperationHandler(ctx, { apiKey: TOKEN, actor_email: ACTOR, operation_id: "rollback-shared", rollback_of: "binding-shared", dry_run: false })).resolves.toMatchObject({ changed: 2, unchanged: 0 });
+    expect(tables.replicationIdentityProfileBindings).toHaveLength(0);
+    expect(tables.contributorReplicatorVerifications).toHaveLength(0);
   });
 
   it("blocks created-profile rollback when a contributor social asset references its key", async () => {
