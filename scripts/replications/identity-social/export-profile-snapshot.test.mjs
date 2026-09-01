@@ -1,6 +1,8 @@
 import assert from "node:assert/strict";
+import { createHash } from "node:crypto";
 import test from "node:test";
 import { drainPinnedProfileSnapshot, exportPinnedProfileSnapshot } from "./export-profile-snapshot.mjs";
+import { canonicalProfileSnapshotDigest } from "./executor-lib.mjs";
 import { PINNED_PROFILE_SNAPSHOT_DIGEST } from "./executor-lib.mjs";
 
 test("client drains bounded pages and rejects a wrong recomputed 2,119-row digest", async () => {
@@ -36,4 +38,19 @@ test("credential resolver passes the scoped token string to Convex", async () =>
     if (previous === undefined) delete process.env[envVar];
     else process.env[envVar] = previous;
   }
+});
+
+test("profile snapshot CAS preserves the reviewed compact field-order serializer", () => {
+  const rows = [{
+    profileId: "profile-1", key: "alice", displayName: "Alice", aliases: ["A"],
+    avatarUrl: null, bio: "", links: [], hasCustomBio: false,
+    replicationOrder: [], reportOrder: [], role: null,
+  }];
+  const expectedBytes = JSON.stringify([{
+    key: "ALICE", displayName: "Alice", aliases: ["a"], avatarUrl: null,
+    bio: "", links: [], hasCustomBio: false, replicationOrder: [],
+    reportOrder: [], role: null,
+  }]);
+  const expected = createHash("sha256").update(expectedBytes).digest("hex");
+  assert.equal(canonicalProfileSnapshotDigest(rows), expected);
 });

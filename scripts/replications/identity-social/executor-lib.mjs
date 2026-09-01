@@ -69,7 +69,10 @@ export function canonicalProfileSnapshotDigest(rows) {
       reportOrder: row.reportOrder ?? [], role: row.role ?? null,
     };
   }).sort((a, b) => a.key.localeCompare(b.key));
-  return digest(canonicalRows);
+  // This snapshot predates the generic recursively key-sorted serializer. Its
+  // reviewed CAS contract is compact JSON in the explicit field order above;
+  // changing serializers produces a different digest without any data drift.
+  return createHash("sha256").update(JSON.stringify(canonicalRows)).digest("hex");
 }
 
 export function validatePinnedProfileSnapshot(document) {
