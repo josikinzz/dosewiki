@@ -57,6 +57,15 @@ export const MAX_BANNERS_PER_ARTICLE = 2;
 /** Matches `MAX_GALLERY_CURATION_SLUGS` in `convex/substanceGalleries.ts`. */
 export const MAX_ENABLED_SLUGS = 250;
 
+/**
+ * The stored "Our citation system is being overhauled" notice lives as three
+ * presets (`citation-system-overhaul-1/2/3` — the 250-slug cap forces the
+ * split). Articles where the citation audit has already stripped a refuted
+ * marker suppress them by this prefix and render the beta disclaimer instead
+ * (`loadSubstanceRoute` in lib/next/routeLoaders.substances.tsx).
+ */
+export const CITATION_OVERHAUL_BANNER_KEY_PREFIX = "citation-system-overhaul";
+
 export const WARNING_BANNER_KEY_PATTERN = /^[a-z0-9][a-z0-9-]*$/;
 
 /**

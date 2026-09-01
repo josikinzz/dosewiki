@@ -34,3 +34,22 @@ export function extractCitationTokens(text: unknown): CitationToken[] {
 export function stripCitationTokens(text: string): string {
   return text.replace(CITATION_MARKER_PATTERN, "").replace(/\s+/g, " ").trim();
 }
+
+/**
+ * True when any text field in the substance record carries the
+ * `[citation-needed]` sentinel — i.e. the citation audit has stripped at least
+ * one refuted marker on this article. Serializing the whole record is the
+ * honest check: the sentinel can sit in any prose field (summary, subsections,
+ * legality notes, dose-range strings), and this runs server-side at ISR time,
+ * not per request. The token's bracketed spelling cannot occur in JSON
+ * structure, only inside a string value.
+ */
+export function substanceHasCitationNeeded(substance: unknown): boolean {
+  try {
+    return JSON.stringify(substance)?.includes(CITATION_NEEDED_TOKEN) ?? false;
+  } catch {
+    // Circular structure — impossible for Convex data; fail toward the
+    // stored banner rather than crashing the route.
+    return false;
+  }
+}

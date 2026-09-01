@@ -37,6 +37,13 @@ interface SubstanceArticlePageProps {
    */
   warningBannerIconSize?: number;
   /**
+   * Swap the stored citation-overhaul banner for the sitewide beta disclaimer;
+   * set by the route loader once the citation audit has stripped a refuted
+   * marker on this article. The loader has already filtered the overhaul
+   * presets out of `warningBanners` when this is true.
+   */
+  showBetaDisclaimer?: boolean;
+  /**
    * The `dosage-panel-disclaimer` and `tolerance-section-disclaimer` copy
    * blocks, read by the route loader; absent renders the checked-in defaults.
    */
@@ -59,6 +66,7 @@ export function SubstanceArticlePage({
   externalReagentData,
   warningBanners,
   warningBannerIconSize,
+  showBetaDisclaimer,
   dosageDisclaimer,
   toleranceDisclaimer,
 }: SubstanceArticlePageProps) {
@@ -79,6 +87,7 @@ export function SubstanceArticlePage({
         externalReagentData={externalReagentData}
         warningBanners={warningBanners}
         warningBannerIconSize={warningBannerIconSize}
+        showBetaDisclaimer={showBetaDisclaimer}
         dosageDisclaimer={dosageDisclaimer}
         toleranceDisclaimer={toleranceDisclaimer}
       />

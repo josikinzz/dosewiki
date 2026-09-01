@@ -152,6 +152,12 @@ export interface SubstanceArticleViewModel {
      */
     warningBannerIconSize?: number;
     /**
+     * Render the sitewide beta disclaimer in place of the stored citation
+     * overhaul banner. True once the citation audit has stripped a refuted
+     * marker on this article (`substanceHasCitationNeeded` in the loader).
+     */
+    showBetaDisclaimer?: boolean;
+    /**
      * The article's two disclaimer copy blocks. Optional for the same reason as
      * the glyph size: an omitted body renders the checked-in default sentence,
      * not a bare table.
@@ -253,6 +259,8 @@ export function buildSubstanceArticleViewModel(input: {
   warningBanners: WarningBannerPreset[];
   /** Site-wide glyph size from `getSafetyBannerIconSize`; omitted renders at the default. */
   warningBannerIconSize?: number;
+  /** See the pageProps field: swaps the citation banner for the beta disclaimer. */
+  showBetaDisclaimer?: boolean;
   /**
    * The `dosage-panel-disclaimer` and `tolerance-section-disclaimer` bodies;
    * omitted renders the checked-in defaults. Unlike the banners, a missing one
@@ -299,6 +307,7 @@ export function buildSubstanceArticleViewModel(input: {
       externalReagentData: input.externalReagentData,
       warningBanners: input.warningBanners,
       warningBannerIconSize: input.warningBannerIconSize,
+      showBetaDisclaimer: input.showBetaDisclaimer,
       dosageDisclaimer: input.dosageDisclaimer,
       toleranceDisclaimer: input.toleranceDisclaimer,
     },

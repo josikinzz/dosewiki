@@ -169,6 +169,7 @@ function evidenceForSource({ country, displayName, fieldPath, claimKey, claim, s
     quality: "fallback",
     status: "supported",
     severity: "non_blocking",
+    entailmentVerdict: "entails",
     confidence: 0.85,
     supportingSnippet: quote,
     supportRationale: rationale,

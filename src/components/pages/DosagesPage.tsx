@@ -2,7 +2,8 @@
 
 import { useCallback, useMemo, useRef, useState } from "react";
 import { PageHeader } from "@/components/layout/PageHeader";
-import { Icon, type IconName } from "@/components/common/Icon";
+import { type IconName } from "@/components/common/Icon";
+import { BetaDisclaimer } from "@/components/common/BetaDisclaimer";
 import { PublicContentShell } from "@/components/layout/PublicPagePrimitives";
 import {
   PublicSegmentedTabs,
@@ -395,17 +396,8 @@ export function DosagesPage({
             title="Substance Index"
             icon={SUBSTANCE_INDEX_ICON}
             prominentMobileIcon
-            description={
-              <span className="inline-flex items-baseline gap-1.5">
-                <Icon
-                  icon="lucide:construction"
-                  size="1.05em"
-                  className="theme-accent-heading self-center"
-                />
-                Work in progress. Entries may be inaccurate.
-              </span>
-            }
-            descriptionClassName="theme-text-secondary mx-auto text-sm italic text-balance"
+            description={<BetaDisclaimer />}
+            descriptionClassName="mx-auto text-sm italic text-balance"
           />
         </div>
       </div>
