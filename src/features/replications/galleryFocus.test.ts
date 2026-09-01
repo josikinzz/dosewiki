@@ -6,6 +6,7 @@ import {
 } from "@/features/effects/gallery/galleryModel";
 import {
   artistPageHrefForWork,
+  canonicalArtistPageRedirectKey,
   mapArtistPageKeysByProfile,
   resolveArtistPageProfileKey,
   resolveGalleryFocus,
@@ -61,6 +62,61 @@ describe("resolveGalleryFocus", () => {
     expect(focus?.group.count).toBe(2);
     // The heading names the group's own page — one artist, one address.
     expect(focus?.group.href).toBe("/replications/artist/chelsea-morgan");
+  });
+
+  it("unions every source-era credit claimed by one profile at its canonical display-name route", () => {
+    const josieDirectory = [
+      {
+        key: "JOSIE",
+        displayName: "Josie Kins",
+        aliases: ["josie", "josikinz", "josikins"],
+      },
+    ];
+    const josieCorpus = [
+      ...Array.from({ length: 10 }, () => rep({ artist: "Josie Kins" })),
+      ...Array.from({ length: 2 }, () => rep({ artist: "Josie" })),
+      ...Array.from({ length: 20 }, () => rep({ artist: "josikins" })),
+      rep({
+        artist: "Josikins",
+        artist_url: "https://psychonautwiki.org/wiki/User:Josikins",
+      }),
+    ];
+    const josieContext = {
+      ...context,
+      contributorDirectory: josieDirectory,
+    };
+
+    const canonical = resolveGalleryFocus(
+      { kind: "artist", key: "josie-kins" },
+      josieCorpus,
+      josieContext,
+    );
+    const retiredHandle = resolveGalleryFocus(
+      { kind: "artist", key: "josikins" },
+      josieCorpus,
+      josieContext,
+    );
+    const shortName = resolveGalleryFocus(
+      { kind: "artist", key: "josie" },
+      josieCorpus,
+      josieContext,
+    );
+
+    for (const focus of [canonical, retiredHandle, shortName]) {
+      expect(focus).toMatchObject({
+        key: "josie-kins",
+        label: "Josie Kins",
+        group: {
+          href: "/replications/artist/josie-kins",
+          count: 33,
+          imageCount: 33,
+          videoCount: 0,
+        },
+      });
+      expect(new Set(focus?.group.items.map((item) => item.artist))).toEqual(
+        new Set(["Josie Kins", "Josie", "josikins", "Josikins"]),
+      );
+    }
   });
 
   it("resolves the unattributed bucket at the stable `unknown` key", () => {
@@ -177,6 +233,51 @@ describe("resolveGalleryFocus", () => {
         withEffect,
       )?.group.count,
     ).toBe(1);
+  });
+
+  it("makes the profile identity canonical while preserving and combining source-era credits", () => {
+    const renamedCorpus = [
+      rep({ artist: "Wooodfield" }),
+      rep({ artist: "Wooodfield" }),
+      rep({ artist: "Phosform" }),
+    ];
+    const renamedContext = {
+      ...context,
+      contributorDirectory: [
+        { key: "PHOSFORM", displayName: "Phosform", aliases: ["wooodfield"] },
+      ],
+    };
+
+    const canonical = resolveGalleryFocus(
+      { kind: "artist", key: "phosform" },
+      renamedCorpus,
+      renamedContext,
+    );
+    const legacy = resolveGalleryFocus(
+      { kind: "artist", key: "wooodfield" },
+      renamedCorpus,
+      renamedContext,
+    );
+
+    expect(canonical).toMatchObject({
+      key: "phosform",
+      label: "Phosform",
+      group: { key: "phosform", label: "Phosform", count: 3 },
+    });
+    expect(legacy).toMatchObject({
+      key: "phosform",
+      label: "Phosform",
+      group: { key: "phosform", label: "Phosform", count: 3 },
+    });
+    expect(legacy?.group.items.map((item) => item.artist)).toEqual([
+      "Wooodfield",
+      "Wooodfield",
+      "Phosform",
+    ]);
+    expect(canonicalArtistPageRedirectKey("wooodfield", legacy!)).toBe(
+      "phosform",
+    );
+    expect(canonicalArtistPageRedirectKey("phosform", canonical!)).toBeNull();
   });
 });
 
@@ -309,18 +410,18 @@ describe("mapArtistPageKeysByProfile", () => {
     expect(mapArtistPageKeysByProfile(corpus, grabby).size).toBe(0);
   });
 
-  it("sends a profile claiming two credit lines to the larger body of work", () => {
+  it("sends a profile claiming two credit lines to its canonical display-name page", () => {
     const twoNames = [
       rep({ artist: "Kaylee" }),
       rep({ artist: "Kaytwo" }),
       rep({ artist: "Kaytwo" }),
     ];
-    const kaytwo = [
-      { key: "KAYTWO", displayName: "Kaytwo", aliases: ["Kaylee"] },
+    const kaylee = [
+      { key: "KAYLEE", displayName: "Kaylee", aliases: ["Kaytwo"] },
     ];
 
-    expect(mapArtistPageKeysByProfile(twoNames, kaytwo).get("KAYTWO")).toBe(
-      "kaytwo",
+    expect(mapArtistPageKeysByProfile(twoNames, kaylee).get("KAYLEE")).toBe(
+      "kaylee",
     );
   });
 });

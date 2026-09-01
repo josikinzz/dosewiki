@@ -96,7 +96,85 @@ export function activeLedgerOperations(ledger) {
   return { active: active.sort((a, b) => a.operation_id.localeCompare(b.operation_id)), rolledBack: [...rolledBack].sort() };
 }
 
-export function validateCompletionEvidence({ projection, plan, ledger, receipts, ledgerSha256, allowedLegacyItemIds = [] }) {
+function indexSupersedingEvidence({ expected, active, receipts, supplementalSupersessions, errors }) {
+  const activeById = new Map(active.map((operation) => [operation.operation_id, operation]));
+  const result = new Map();
+  const add = (itemId, proof) => {
+    if (!expected.has(itemId)) { errors.push(`Supersession ${proof.proof_id} references unexpected item ${itemId}.`); return; }
+    if (result.has(itemId)) { errors.push(`Planned item ${itemId} has multiple superseding proofs.`); return; }
+    result.set(itemId, proof);
+  };
+
+  // Some campaign operations deliberately aggregate an earlier item into a
+  // later journal item (ELOHPROJECTS is the production example). The later
+  // authenticated receipt is sufficient only when it is live, explicitly
+  // names the earlier item, and was applied after that item's own operation.
+  const sourceOperationByItem = new Map();
+  for (const receipt of receipts) for (const item of receipt.items ?? []) {
+    if (expected.has(item.item_operation_id)) sourceOperationByItem.set(item.item_operation_id, receipt.operation_id);
+  }
+  for (const receipt of receipts) {
+    const later = activeById.get(receipt.operation_id);
+    if (!later || !receipt.all_live_match) continue;
+    for (const item of receipt.items ?? []) {
+      if (!item.live_matches) continue;
+      for (const satisfiedId of item.satisfied_item_operation_ids ?? []) {
+        if (satisfiedId === item.item_operation_id || !expected.has(satisfiedId)) continue;
+        const earlier = activeById.get(sourceOperationByItem.get(satisfiedId));
+        if (!earlier || !Number.isFinite(earlier.application.at) || !Number.isFinite(later.application.at)
+          || later.application.at <= earlier.application.at) continue;
+        add(satisfiedId, {
+          proof_id: `identity-social-receipt:${receipt.operation_id}:${item.item_operation_id}`,
+          proof_kind: "later-authenticated-identity-social-receipt",
+          operation_id: receipt.operation_id,
+          item_operation_id: item.item_operation_id,
+          superseded_item_operation_ids: [satisfiedId],
+          live_matches: true,
+          applied_at: later.application.at,
+        });
+      }
+    }
+  }
+
+  for (const proof of supplementalSupersessions ?? []) {
+    const proofCore = proof ? {
+      proof_kind: proof.proof_kind,
+      operation_id: proof.operation_id,
+      superseded_item_operation_ids: proof.superseded_item_operation_ids,
+      live_matches: proof.live_matches,
+      applied_at: proof.applied_at,
+      evidence: proof.evidence,
+    } : null;
+    if (!proof || typeof proof.proof_id !== "string" || typeof proof.operation_id !== "string"
+      || !["authenticated-profile-merge", "authenticated-profile-curation"].includes(proof.proof_kind)
+      || proof.live_matches !== true || !Number.isFinite(proof.applied_at)
+      || !Array.isArray(proof.superseded_item_operation_ids) || proof.superseded_item_operation_ids.length === 0
+      || !proof.evidence || proof.evidence_digest !== digest(proofCore)
+      || proof.proof_id !== `supplemental-supersession:${digest(proofCore).slice(0, 24)}`) {
+      errors.push(`Invalid supplemental supersession proof ${proof?.proof_id ?? "(missing id)"}.`);
+      continue;
+    }
+    for (const itemId of proof.superseded_item_operation_ids) {
+      const entry = expected.get(itemId);
+      const normalized = (value) => String(value ?? "").trim().toLocaleLowerCase("en-US");
+      const semanticallyBound = proof.proof_kind === "authenticated-profile-merge"
+        ? entry?.kind === "alias"
+          && entry.value?.profile_id === proof.evidence.target_profile_id
+          && normalized(entry.value?.normalized_alias) === normalized(proof.evidence.source_key)
+        : entry?.kind === "avatar"
+          && entry.value?.profile_id === proof.evidence.profile_id
+          && entry.value?.media_digest === proof.evidence.superseded_media_digest;
+      if (!semanticallyBound) {
+        errors.push(`Supplemental supersession ${proof.proof_id} is not semantically bound to ${itemId}.`);
+        continue;
+      }
+      add(itemId, proof);
+    }
+  }
+  return result;
+}
+
+export function validateCompletionEvidence({ projection, plan, ledger, receipts, ledgerSha256, allowedLegacyItemIds = [], supplementalSupersessions = [], supplementalLedgerSha256 = {} }) {
   const inventory = immutableExpectedInventory({ projection, plan });
   const expected = inventory.byItemId;
   const allowedLegacy = new Set(allowedLegacyItemIds);
@@ -119,13 +197,17 @@ export function validateCompletionEvidence({ projection, plan, ledger, receipts,
   const covered = new Map();
   const operationProofs = [];
   const errors = [];
+  const supersedingEvidence = indexSupersedingEvidence({ expected, active, receipts, supplementalSupersessions, errors });
   for (const ledgerOperation of active) {
     const receipt = receiptById.get(ledgerOperation.operation_id);
     if (!receipt) { errors.push(`Missing authenticated receipt ${ledgerOperation.operation_id}.`); continue; }
     if (receipt.kind !== ledgerOperation.kind) errors.push(`Kind mismatch for ${receipt.operation_id}.`);
     if (receipt.item_count !== receipt.record_count || receipt.items.length !== receipt.record_count) errors.push(`Record count mismatch for ${receipt.operation_id}.`);
     if (ledgerOperation.verification.records !== receipt.item_count) errors.push(`Ledger readback count mismatch for ${receipt.operation_id}.`);
-    if (!receipt.all_live_match || receipt.items.some((item) => !item.live_matches)) errors.push(`Live state drift for ${receipt.operation_id}.`);
+    const unsupersededDrift = receipt.items.filter((item) => !item.live_matches && !supersedingEvidence.has(item.item_operation_id));
+    if (unsupersededDrift.length > 0) {
+      errors.push(`Live state drift for ${receipt.operation_id}: ${unsupersededDrift.map((item) => item.item_operation_id).join(", ")}.`);
+    }
     if (digest(receipt.items) !== receipt.items_digest) errors.push(`Item receipt digest mismatch for ${receipt.operation_id}.`);
     const entries = [];
     let reconciliationItems = 0;
@@ -164,6 +246,7 @@ export function validateCompletionEvidence({ projection, plan, ledger, receipts,
       record_count: receipt.record_count, changed_count: receipt.changed_count,
       unchanged_count: receipt.unchanged_count, items_digest: receipt.items_digest,
       all_live_match: receipt.all_live_match,
+      superseded_drift_items: receipt.items.filter((item) => !item.live_matches && supersedingEvidence.has(item.item_operation_id)).map((item) => item.item_operation_id),
       role: reconciliationItems === receipt.items.length ? "canonical-profile-binding-reconciliation" : "active-operation",
     });
   }
@@ -182,6 +265,9 @@ export function validateCompletionEvidence({ projection, plan, ledger, receipts,
     .every((operation) => operation.action !== "merge-profile" && operation.action !== "add-alias-preserve-source-history");
   const attributionChanged = projection.operations.filter((operation) => operation.kind === "creator-attribution" && operation.action === "set-proven-creator-with-verified-chronology").length;
   const profileEntries = plan.entries.filter((entry) => entry.kind === "profile-binding");
+  const usedSupersedingProofIds = new Set(receipts.flatMap((receipt) => receipt.items ?? [])
+    .filter((item) => !item.live_matches && supersedingEvidence.has(item.item_operation_id))
+    .map((item) => supersedingEvidence.get(item.item_operation_id).proof_id));
   const gates = {
     immutable_projection_counts: true,
     all_expected_items_accounted: pendingActionable.length === 0,
@@ -207,6 +293,9 @@ export function validateCompletionEvidence({ projection, plan, ledger, receipts,
       ledgerSha256,
       operationReceiptSetSha256: digest(operationProofs),
       expectedItemSetSha256: digest([...expected.keys()].sort()),
+      profileMergeLedgerSha256: supplementalLedgerSha256.profileMerge ?? null,
+      profileCurationLedgerSha256: supplementalLedgerSha256.profileCuration ?? null,
+      supplementalSupersessionSetSha256: digest(supplementalSupersessions),
     },
     expected: inventory.summary,
     actual: {
@@ -233,11 +322,15 @@ export function validateCompletionEvidence({ projection, plan, ledger, receipts,
       legacyCanonicalProfileBatchExceptions: legacyExceptions,
       unexpectedOrInvalidEvidence: errors,
       activeOperationProofs: operationProofs,
+      supersedingOperationProofs: [...new Map([...supersedingEvidence.values()]
+        .filter((proof) => usedSupersedingProofIds.has(proof.proof_id))
+        .map((proof) => [proof.proof_id, proof])).values()]
+        .sort((left, right) => left.proof_id.localeCompare(right.proof_id)),
     },
     safety: {
       mutationsInvoked: 0,
       sourceDeletionOperations: 0,
-      basis: "The validator calls one authenticated query only; projection actions and ledger events contain no deletion operation.",
+      basis: "The validator calls authenticated read-only receipt and profile-state queries only; projection actions and ledger events contain no deletion operation.",
     },
     gates,
     complete,

@@ -4,12 +4,13 @@ import { notFound, permanentRedirect } from "next/navigation";
 import { ArtistIdentityHeader } from "@/features/replications/artist/ArtistIdentityHeader";
 import { ArtistShowcase } from "@/features/replications/artist/ArtistShowcase";
 import {
+  artistPagePublicLinks,
   buildArtistShowcaseGroup,
-  mergeArtistLinks,
   showcaseWorkFromPreview,
 } from "@/features/replications/artist/artistPageModel";
 import { SHOWCASE_WORK_CAP } from "@/features/replications/components/showcaseWork";
 import {
+  canonicalArtistPageRedirectKey,
   resolveArtistPageProfileKey,
   resolveGalleryFocus,
   type ResolvedGalleryFocus,
@@ -45,10 +46,11 @@ import { entitySocialCardImage } from "@/data/mappings/entitySocialCardUrl";
  * The Artist Page: one artist's works, addressable as
  * /replications/artist/<key> — every credited artist's single public surface
  * (see the address decision record in
- * src/features/replications/galleryFocus.ts). The key space derives from the
- * works the gallery shows — slugified credit lines plus `unknown` for the
- * unattributed bucket — so an unrecognized key is a real 404, not an empty
- * page. When a Contributor Profile claims the credit line, the identity
+ * src/features/replications/galleryFocus.ts). Unclaimed keys derive from
+ * gallery credit lines; claimed identities use the profile display-name key
+ * and retain old credit-line keys as redirects. `unknown` names the
+ * unattributed bucket, and an unrecognized key is a real 404 rather than an
+ * empty page. When a Contributor Profile claims the credit line, the identity
  * header is decorated with their avatar, role, bio, and links;
  * /contributors/<key> permanently forwards here for such profiles. The
  * Unattributed bucket gets the same works view but never an identity claim.
@@ -145,7 +147,7 @@ export async function generateMetadata({
     description: attributed
       ? `${focus.group.count} replication ${focus.group.count === 1 ? "work" : "works"} by ${focus.label}: image and video recreations of subjective effects.`
       : "Replication works whose creator is unknown: image and video recreations of subjective effects awaiting attribution.",
-    route: { family: "replicationArtist", params: { key } },
+    route: { family: "replicationArtist", params: { key: focus.key } },
     socialImage: profileKey
       ? entitySocialCardImage(
           "contributors",
@@ -164,6 +166,19 @@ export default async function ReplicationArtistPage({
 
   if (!focus) {
     forwardRetiredKeyOr404(key);
+  }
+
+  // A source-era handle remains resolvable, but a claimed merged identity has
+  // exactly one public address: the profile's canonical display-name key.
+  // This redirect changes no stored replication credit or search token.
+  const canonicalRedirectKey = canonicalArtistPageRedirectKey(key, focus);
+  if (canonicalRedirectKey) {
+    permanentRedirect(
+      getPublicRoutePath({
+        family: "replicationArtist",
+        params: { key: canonicalRedirectKey },
+      }),
+    );
   }
 
   // The claimed Contributor Profile decorates the page; the Unattributed
@@ -185,7 +200,7 @@ export default async function ReplicationArtistPage({
   const avatarUrl = identity?.avatar_url ?? profile?.avatarUrl ?? null;
   const sourcePath = getPublicRoutePath({
     family: "replicationArtist",
-    params: { key },
+    params: { key: focus.key },
   });
 
   // The whole body of work as one showcase carousel — and one viewer
@@ -209,7 +224,7 @@ export default async function ReplicationArtistPage({
     editorTarget: attributed
       ? {
           kind: "artist",
-          key: profile?.key ?? key,
+          key: profile?.key ?? focus.key,
           label: collectionLabel,
         }
       : undefined,
@@ -244,9 +259,10 @@ export default async function ReplicationArtistPage({
               </p>
             )
           }
-          links={mergeArtistLinks(
+          links={artistPagePublicLinks(
             profile?.links ?? [],
             focus.group.externalUrl,
+            profile !== null,
           )}
           counts={{
             count: focus.group.count,

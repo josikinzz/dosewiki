@@ -59,3 +59,115 @@ test("canonical profile reconciliation supersedes legacy source receipt without 
   assert.equal(report.complete, true, JSON.stringify(report.coverage.unexpectedOrInvalidEvidence));
   assert.equal(report.coverage.activeOperationProofs.find((proof) => proof.operation_id === operation_id).role, "canonical-profile-binding-reconciliation");
 });
+
+test("later authenticated satisfied-item receipt supersedes only the named earlier drift", () => {
+  const input = fixture();
+  const earlierReceipt = input.receipts.find((receipt) => receipt.kind === "profile-binding");
+  const earlierItem = earlierReceipt.items[0];
+  earlierItem.live_matches = false;
+  earlierReceipt.all_live_match = false;
+  earlierReceipt.items_digest = digest(earlierReceipt.items);
+  const earlierApplied = input.ledger.find((row) => row.event === "batch-applied" && row.operation_id === earlierReceipt.operation_id);
+  earlierApplied.at = 100;
+
+  const laterReceipt = input.receipts.find((receipt) => receipt.kind === "verification");
+  laterReceipt.items[0].satisfied_item_operation_ids = [earlierItem.item_operation_id];
+  laterReceipt.items_digest = digest(laterReceipt.items);
+  const laterEntry = input.plan.entries.find((entry) => entry.item_operation_id === laterReceipt.items[0].item_operation_id);
+  laterEntry.satisfied_item_operation_ids = [earlierItem.item_operation_id];
+  laterReceipt.payload_digest = digest({ operation_id: laterReceipt.operation_id, kind: laterReceipt.kind, entries: input.plan.entries.filter((entry) => entry.kind === "verification").slice(0, 50) });
+  const laterApplied = input.ledger.find((row) => row.event === "batch-applied" && row.operation_id === laterReceipt.operation_id);
+  laterApplied.at = 200;
+  laterApplied.result.payload_digest = laterReceipt.payload_digest;
+
+  const report = validateCompletionEvidence({ ...input, ledgerSha256: "d".repeat(64) });
+  assert.equal(report.complete, true, JSON.stringify(report.coverage.unexpectedOrInvalidEvidence));
+  assert.deepEqual(
+    report.coverage.activeOperationProofs.find((proof) => proof.operation_id === earlierReceipt.operation_id).superseded_drift_items,
+    [earlierItem.item_operation_id],
+  );
+  assert.equal(report.coverage.supersedingOperationProofs[0].proof_kind, "later-authenticated-identity-social-receipt");
+});
+
+test("supplemental authenticated proof exempts its exact item but not unrelated drift", () => {
+  const input = fixture();
+  const receipt = input.receipts.find((item) => item.kind === "avatar");
+  receipt.items[0].live_matches = false;
+  receipt.items[1].live_matches = false;
+  receipt.all_live_match = false;
+  receipt.items_digest = digest(receipt.items);
+  const supersededEntry = input.plan.entries.find((entry) => entry.item_operation_id === receipt.items[0].item_operation_id);
+  supersededEntry.value = { profile_id: "profile-josie", media_digest: "a".repeat(64) };
+  const proofCore = {
+    proof_kind: "authenticated-profile-curation",
+    operation_id: "identity-social-batch:avatar:replacement",
+    superseded_item_operation_ids: [receipt.items[0].item_operation_id],
+    live_matches: true,
+    applied_at: 300,
+    evidence: {
+      profile_id: supersededEntry.value.profile_id,
+      superseded_media_digest: supersededEntry.value.media_digest,
+      current_media_digest: "e".repeat(64),
+    },
+  };
+  const proofDigest = digest(proofCore);
+  const proof = { ...proofCore, proof_id: `supplemental-supersession:${proofDigest.slice(0, 24)}`, evidence_digest: proofDigest };
+  const report = validateCompletionEvidence({ ...input, ledgerSha256: "d".repeat(64), supplementalSupersessions: [proof] });
+  assert.equal(report.complete, false);
+  assert.ok(report.coverage.unexpectedOrInvalidEvidence.some((error) => error.includes(receipt.items[1].item_operation_id)));
+  assert.deepEqual(
+    report.coverage.activeOperationProofs.find((proofItem) => proofItem.operation_id === receipt.operation_id).superseded_drift_items,
+    [receipt.items[0].item_operation_id],
+  );
+});
+
+test("malformed supplemental supersession cannot hide drift", () => {
+  const input = fixture();
+  const receipt = input.receipts.find((item) => item.kind === "alias");
+  receipt.items[0].live_matches = false;
+  receipt.all_live_match = false;
+  receipt.items_digest = digest(receipt.items);
+  const report = validateCompletionEvidence({
+    ...input,
+    ledgerSha256: "d".repeat(64),
+    supplementalSupersessions: [{
+      proof_id: "forged",
+      proof_kind: "authenticated-profile-merge",
+      operation_id: "merge",
+      superseded_item_operation_ids: [receipt.items[0].item_operation_id],
+      live_matches: false,
+      applied_at: 300,
+      evidence_digest: "e".repeat(64),
+    }],
+  });
+  assert.equal(report.complete, false);
+  assert.ok(report.coverage.unexpectedOrInvalidEvidence.some((error) => error.includes("Invalid supplemental")));
+  assert.ok(report.coverage.unexpectedOrInvalidEvidence.some((error) => error.includes(receipt.items[0].item_operation_id)));
+});
+
+test("validly sealed but semantically unrelated supplemental proof cannot hide drift", () => {
+  const input = fixture();
+  const receipt = input.receipts.find((item) => item.kind === "alias");
+  receipt.items[0].live_matches = false;
+  receipt.all_live_match = false;
+  receipt.items_digest = digest(receipt.items);
+  const entry = input.plan.entries.find((item) => item.item_operation_id === receipt.items[0].item_operation_id);
+  entry.value = { profile_id: "expected-profile", normalized_alias: "expected-source" };
+  const core = {
+    proof_kind: "authenticated-profile-merge",
+    operation_id: "merge",
+    superseded_item_operation_ids: [receipt.items[0].item_operation_id],
+    live_matches: true,
+    applied_at: 300,
+    evidence: { target_profile_id: "another-profile", source_key: "another-source" },
+  };
+  const proofDigest = digest(core);
+  const report = validateCompletionEvidence({
+    ...input,
+    ledgerSha256: "d".repeat(64),
+    supplementalSupersessions: [{ ...core, proof_id: `supplemental-supersession:${proofDigest.slice(0, 24)}`, evidence_digest: proofDigest }],
+  });
+  assert.equal(report.complete, false);
+  assert.ok(report.coverage.unexpectedOrInvalidEvidence.some((error) => error.includes("not semantically bound")));
+  assert.ok(report.coverage.unexpectedOrInvalidEvidence.some((error) => error.startsWith("Live state drift")));
+});

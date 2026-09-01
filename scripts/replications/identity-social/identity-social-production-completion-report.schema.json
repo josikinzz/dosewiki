@@ -14,17 +14,18 @@
       "properties": { "convexDeployment": { "const": "glad-minnow-656" }, "readOnly": { "const": true } },
       "additionalProperties": false
     },
-    "inputs": { "type": "object", "required": ["projectionSha256", "receiptSidecarSha256", "ledgerSha256", "operationReceiptSetSha256", "expectedItemSetSha256"] },
+    "inputs": { "type": "object", "required": ["projectionSha256", "receiptSidecarSha256", "ledgerSha256", "operationReceiptSetSha256", "expectedItemSetSha256", "profileMergeLedgerSha256", "profileCurationLedgerSha256", "supplementalSupersessionSetSha256"] },
     "expected": { "type": "object" },
     "actual": { "type": "object" },
     "coverage": {
       "type": "object",
-      "required": ["pendingActionableItemIds", "legacyCanonicalProfileBatchExceptions", "unexpectedOrInvalidEvidence", "activeOperationProofs"],
+      "required": ["pendingActionableItemIds", "legacyCanonicalProfileBatchExceptions", "unexpectedOrInvalidEvidence", "activeOperationProofs", "supersedingOperationProofs"],
       "properties": {
         "pendingActionableItemIds": { "type": "array", "items": { "type": "string" } },
         "legacyCanonicalProfileBatchExceptions": { "type": "array", "items": { "type": "string" } },
         "unexpectedOrInvalidEvidence": { "type": "array", "items": { "type": "string" } },
-        "activeOperationProofs": { "type": "array", "items": { "type": "object" } }
+        "activeOperationProofs": { "type": "array", "items": { "type": "object" } },
+        "supersedingOperationProofs": { "type": "array", "items": { "type": "object" } }
       }
     },
     "safety": {

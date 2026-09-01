@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import type { PublicGalleryReplicationPreview } from "@/types/replications";
 import {
+  artistPagePublicLinks,
   ARTIST_WORKS_KEY,
   artistLinkPresentation,
   buildArtistShowcaseGroup,
@@ -169,5 +170,46 @@ describe("mergeArtistLinks", () => {
 
   it("passes through when there is no own-site URL", () => {
     expect(mergeArtistLinks(links, undefined)).toEqual(links);
+  });
+});
+
+describe("artistPagePublicLinks", () => {
+  it("uses only curated profile links for a claimed artist", () => {
+    const personalSite = [
+      { label: "personal website", url: "https://josiekins.xyz/" },
+    ];
+
+    expect(
+      artistPagePublicLinks(
+        personalSite,
+        "https://psychonautwiki.org/wiki/User:Josikins",
+        true,
+      ),
+    ).toEqual(personalSite);
+    expect(
+      artistPagePublicLinks(
+        personalSite,
+        "https://www.reddit.com/user/josikins/",
+        true,
+      ),
+    ).toEqual(personalSite);
+  });
+
+  it("does not resurrect a legacy link when a claimed profile intentionally has none", () => {
+    expect(
+      artistPagePublicLinks(
+        [],
+        "https://www.reddit.com/user/source-era-handle/",
+        true,
+      ),
+    ).toEqual([]);
+  });
+
+  it("keeps the legacy per-work URL as a fallback for an unclaimed artist", () => {
+    expect(
+      artistPagePublicLinks([], "https://artist.example/portfolio", false),
+    ).toEqual([
+      { label: "artist.example", url: "https://artist.example/portfolio" },
+    ]);
   });
 });

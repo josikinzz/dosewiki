@@ -191,3 +191,22 @@ export function mergeArtistLinks(
   }
   return [...links, { label, url: externalUrl }];
 }
+
+/**
+ * Links displayed on an Artist Page.
+ *
+ * A claimed Contributor Profile is the curated public source of truth. Legacy
+ * per-work `artist_url` values remain on the replication rows (and therefore
+ * remain available on their item pages as provenance), but must not be
+ * promoted into profile chips after the owner has curated their profile links.
+ * Unclaimed artists still receive the historical URL as a useful fallback.
+ */
+export function artistPagePublicLinks(
+  profileLinks: readonly { label: string; url: string }[],
+  externalUrl: string | undefined,
+  hasClaimedProfile: boolean,
+): { label: string; url: string }[] {
+  return hasClaimedProfile
+    ? [...profileLinks]
+    : mergeArtistLinks(profileLinks, externalUrl);
+}

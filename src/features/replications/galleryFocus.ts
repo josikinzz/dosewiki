@@ -1,5 +1,8 @@
 import type { ContributorDirectory } from "@server/contributorDirectory";
-import { findContributorProfileByAuthorName } from "@server/contributorProfileIdentity";
+import {
+  findContributorProfileByAuthorName,
+  normalizeProfileKey,
+} from "@server/contributorProfileIdentity";
 import type { PublicGalleryReplicationPreview } from "@/types/replications";
 import { hasKnownCreator } from "@/features/effects/components/replicationCredit";
 import {
@@ -39,6 +42,18 @@ export interface GalleryFocusContext {
 }
 
 /**
+ * The canonical redirect target for an Artist Page request. Source-era handle
+ * URLs remain valid inputs, but a claimed profile's display-name key is the
+ * only indexable destination.
+ */
+export function canonicalArtistPageRedirectKey(
+  requestedKey: string,
+  focus: Pick<ResolvedGalleryFocus, "key">,
+): string | null {
+  return artistUrlKey(requestedKey) === focus.key ? null : focus.key;
+}
+
+/**
  * Inverse of `galleryGroupUrlKey`: find the gallery group a focus URL names.
  * The URL space derives from the visible works — a key that no displayable
  * work produces (bogus, or an artist whose works are all hidden) resolves to
@@ -65,14 +80,112 @@ export function resolveGalleryFocus(
           ),
         );
 
-  const group = groups.find(
+  const directGroup = groups.find(
     (candidate) => galleryGroupUrlKey(focus.kind, candidate) === focus.key,
   );
-  if (!group) {
+  if (focus.kind !== "artist") {
+    if (!directGroup) {
+      return null;
+    }
+    return {
+      kind: focus.kind,
+      key: focus.key,
+      label: directGroup.label,
+      group: directGroup,
+    };
+  }
+
+  const directory = context.contributorDirectory ?? [];
+  const directProfile = directGroup
+    ? findContributorProfileByAuthorName(directory, directGroup.label)
+    : null;
+
+  // A merged/renamed contributor can own several immutable source-era credit
+  // lines. The Contributor Profile is the canonical identity, so its display
+  // name owns the Artist Page address and heading while the page presents the
+  // union of every exact credit line that profile claims. Individual work
+  // `artist` strings are never rewritten: browse/search/provenance can still
+  // expose the historical handle, and its old Artist Page URL forwards here.
+  //
+  // When there is no direct credit bucket at the canonical display-name key,
+  // locate it through the directory. Ambiguous display-name slugs intentionally
+  // resolve to no synthetic page rather than picking a profile arbitrarily.
+  let profile = directProfile;
+  if (!profile && !directGroup) {
+    const candidates = directory.filter(
+      (entry) => artistUrlKey(entry.displayName) === focus.key,
+    );
+    const claimants = candidates.filter((entry) =>
+      groups.some(
+        (candidate) =>
+          normalizeProfileKey(
+            findContributorProfileByAuthorName(directory, candidate.label)?.key,
+          ) === normalizeProfileKey(entry.key),
+      ),
+    );
+    if (claimants.length === 1) {
+      [profile] = claimants;
+    }
+  }
+
+  if (!profile) {
+    if (!directGroup) {
+      return null;
+    }
+    return {
+      kind: focus.kind,
+      key: focus.key,
+      label: directGroup.label,
+      group: directGroup,
+    };
+  }
+
+  const profileKey = normalizeProfileKey(profile.key);
+  const claimedGroups = groups.filter(
+    (candidate) =>
+      normalizeProfileKey(
+        findContributorProfileByAuthorName(directory, candidate.label)?.key,
+      ) === profileKey,
+  );
+  if (claimedGroups.length === 0) {
     return null;
   }
 
-  return { kind: focus.kind, key: focus.key, label: group.label, group };
+  const canonicalKey = artistUrlKey(profile.displayName);
+  const canonicalGroup = claimedGroups.find(
+    (candidate) => galleryGroupUrlKey("artist", candidate) === canonicalKey,
+  );
+  const items = claimedGroups.flatMap((candidate) => candidate.items);
+  const imageCount = claimedGroups.reduce(
+    (total, candidate) => total + candidate.imageCount,
+    0,
+  );
+  const videoCount = claimedGroups.reduce(
+    (total, candidate) => total + candidate.videoCount,
+    0,
+  );
+  const group: GalleryGroup = {
+    key: canonicalKey,
+    label: profile.displayName,
+    href: getPublicRoutePath({
+      family: "replicationArtist",
+      params: { key: canonicalKey },
+    }),
+    externalUrl:
+      canonicalGroup?.externalUrl ??
+      claimedGroups.find((candidate) => candidate.externalUrl)?.externalUrl,
+    count: items.length,
+    imageCount,
+    videoCount,
+    items,
+  };
+
+  return {
+    kind: focus.kind,
+    key: canonicalKey,
+    label: profile.displayName,
+    group,
+  };
 }
 
 /**
@@ -86,12 +199,12 @@ export function resolveGalleryFocus(
  *
  * Why this address won:
  *
- *  - Key space. The artist key space derives from the works themselves
- *    (`artistUrlKey`: slugified credit lines plus `unknown` for the
- *    Unattributed bucket), so it addresses every credited artist — claimed,
- *    unclaimed, and Unattributed alike. The profile key space can only ever
- *    address claimed profiles; merging there would strand profile-less
- *    artists on a second surface, which is the situation being retired.
+ *  - Key space. Unclaimed artists derive their key from the work credit;
+ *    claimed artists use the claiming profile's canonical display-name key,
+ *    with source-era credit keys forwarding to it. `unknown` remains the
+ *    Unattributed bucket. This addresses claimed, unclaimed, and Unattributed
+ *    artists alike without allowing a retired handle to become canonical just
+ *    because it has the largest historical work bucket.
  *  - Collections. The Artist Page is the stable source beneath the shared
  *    viewer, so each work opens with `?viewer=<slug>` and Close returns here.
  *  - Inbound links survive either way. Both address families are emitted
@@ -186,9 +299,9 @@ export function galleryContributorDirectory(
  * least one displayable, non-withheld work. Profiles absent from the map have
  * no artist surface and keep rendering their contributor page.
  *
- * A profile claimed by several distinct credit lines (aliases that do not
- * fold by case alone) forwards to the largest body of work; ties break on the
- * artist key so the target survives corpus reorderings.
+ * A profile claimed by several distinct source-era credit lines forwards to
+ * the Artist Page named by its canonical display name. That page unions the
+ * exact claimed buckets on read; the underlying work credits stay untouched.
  */
 export function mapArtistPageKeysByProfile(
   // Structural rather than a Pick: the sitemap route plan carries a narrower
@@ -217,9 +330,8 @@ export function mapArtistPageKeysByProfile(
     }
   }
 
-  const bestCounts = new Map<string, { artistKey: string; count: number }>();
   const targets = new Map<string, string>();
-  for (const { label, count } of groups.values()) {
+  for (const { label } of groups.values()) {
     const profile = findContributorProfileByAuthorName(
       contributorDirectory,
       label,
@@ -228,16 +340,7 @@ export function mapArtistPageKeysByProfile(
       continue;
     }
     const profileKey = profile.key.trim().toUpperCase();
-    const artistKey = artistUrlKey(label);
-    const incumbent = bestCounts.get(profileKey);
-    if (
-      !incumbent ||
-      count > incumbent.count ||
-      (count === incumbent.count && artistKey < incumbent.artistKey)
-    ) {
-      bestCounts.set(profileKey, { artistKey, count });
-      targets.set(profileKey, artistKey);
-    }
+    targets.set(profileKey, artistUrlKey(profile.displayName));
   }
 
   return targets;
