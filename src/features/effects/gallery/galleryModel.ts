@@ -64,6 +64,18 @@ export const DEFAULT_GALLERY_ARTIST_SORT: GalleryArtistSort = "video-first";
 export const UNATTRIBUTED_KEY = "__unattributed__";
 export const UNATTRIBUTED_LABEL = "Unattributed";
 
+/**
+ * Shared layout constants live here — a plain module — rather than in the
+ * "use client" components that consume them, so the server-rendered
+ * Replication Index can read the same numbers. Importing a value from a
+ * client module into a server component yields a client-reference proxy,
+ * not the number.
+ */
+/** Artist rails revealed per "Show more artists" page. */
+export const ARTIST_RAIL_PAGE = 16;
+/** Items shown inline in a rail before "View all" takes over. */
+export const RAIL_PREVIEW_LIMIT = 14;
+
 export interface GalleryGroup {
   /** Stable grouping key (artist key or effect slug). */
   key: string;

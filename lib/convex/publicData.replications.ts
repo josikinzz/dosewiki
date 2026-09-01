@@ -25,7 +25,6 @@ import {
   type SubstanceGalleryMatchableRow,
 } from "../../src/data/substanceReplicationGallery";
 import { getPublicSubstanceBySlug } from "./publicData.substances";
-import type { PublicGalleryReplicationPage } from "./publicData.reads";
 
 export type { PublicSubstanceGallery, SubstanceGalleryItem, SubstanceGalleryMatchProvenance };
 
@@ -354,43 +353,6 @@ export const getPublicGalleryReplications = cache(async (): Promise<PublicGaller
     });
   });
 });
-
-/** One cacheable continuation page for the public Replication Index. */
-export const getPublicGalleryReplicationPage = cache(unstable_cache(async (
-  cursor?: string,
-  limit = 64,
-): Promise<PublicGalleryReplicationPage> => {
-  const [page, profiles] = await Promise.all([
-    getPublicDataReadAdapter().getPublicGalleryReplicationPage(cursor, limit),
-    getPublicContributorProfiles(),
-  ]);
-  const visible = dropGalleryExcludedArtistWorks(page.items, profiles);
-  const artistKeys = [
-    ...new Set(
-      visible.map((row) => row.artist.trim().toLowerCase()).filter(Boolean),
-    ),
-  ];
-  const artistTaxonomy = await getPublicDataReadAdapter()
-    .getPublicReplicationArtistsByKeys(artistKeys);
-  const artistByKey = new Map(artistTaxonomy.map((row) => [row.key, row]));
-
-  return {
-    ...page,
-    items: visible.map((replication) => {
-      const artist = artistByKey.get(replication.artist.trim().toLowerCase());
-      return artist
-        ? { ...replication, artist_type_tags: artist.artist_type_tags }
-        : replication;
-    }),
-  };
-}, ["convex-public-replication-gallery-page"], {
-  revalidate: PUBLIC_CONVEX_CACHE_REVALIDATE_SECONDS,
-  tags: [
-    PUBLIC_CONVEX_CACHE_TAGS.all,
-    PUBLIC_CONVEX_CACHE_TAGS.replications,
-    PUBLIC_CONVEX_CACHE_TAGS.contributors,
-  ],
-}));
 
 /**
  * One indexed public-gallery lookup for an immersive-view deep link.
