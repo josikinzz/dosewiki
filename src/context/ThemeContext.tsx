@@ -37,15 +37,23 @@ import {
   VISUAL_STYLE_STORAGE_KEY,
   getAppearanceMetaColor,
   isColorScheme,
+  isColorSchemePreference,
   isFontPreference,
   isVisualStyle,
   type Appearance,
+  type ColorSchemePreference,
   type ColorScheme,
   type FontPreference,
   type VisualStyle,
 } from "@/theme";
 
-export type { Appearance, ColorScheme, FontPreference, VisualStyle } from "@/theme";
+export type {
+  Appearance,
+  ColorScheme,
+  ColorSchemePreference,
+  FontPreference,
+  VisualStyle,
+} from "@/theme";
 export {
   ACCENT_CHROMA_STORAGE_KEY,
   ACCENT_HUE_STORAGE_KEY,
@@ -69,9 +77,17 @@ export {
  * cannot agree about what the reader chose.
  */
 type ThemeContextValue = {
+  /** The resolved scheme the document is painted with — never "system". */
   colorScheme: ColorScheme;
+  /**
+   * What the reader chose: an explicit scheme, or "system" — follow the OS
+   * `prefers-color-scheme` live. This is what the Mode control renders and
+   * what the storage key holds; `colorScheme` is its resolution.
+   */
+  colorSchemePreference: ColorSchemePreference;
   visualStyle: VisualStyle;
   setColorScheme: (value: ColorScheme) => void;
+  setColorSchemePreference: (value: ColorSchemePreference) => void;
   setVisualStyle: (value: VisualStyle) => void;
   /**
    * The effective saturation levels — always a decimal in 0..1: the reader's
@@ -285,6 +301,42 @@ function clampHueDegrees(value: number): number {
 }
 
 /**
+ * Increments per flip; only the newest flip's scheduled unlock may remove the
+ * attribute, so rapid successive toggles keep the lock held until the last
+ * flip's frame has painted.
+ */
+let transitionLockSequence = 0;
+
+/**
+ * Runs a root appearance mutation under `data-appearance-transition-lock`
+ * (styles/theme-overrides.css): every `transition` is disabled while the
+ * attribute is present, so a whole-document restyle lands as one clean
+ * recalculation instead of fanning out into ~300ms of per-frame transition
+ * repaints and thousands of transition events. The attribute is removed two
+ * animation frames later — the frame *after* the one that painted the new
+ * appearance — which keeps the removal's own restyle off the interaction's
+ * critical path and guarantees no transition ever observes the flip.
+ */
+function withTransitionsSuppressed(mutate: () => void) {
+  if (typeof document === "undefined" || typeof requestAnimationFrame !== "function") {
+    mutate();
+    return;
+  }
+
+  const root = document.documentElement;
+  const sequence = ++transitionLockSequence;
+  root.setAttribute("data-appearance-transition-lock", "");
+  mutate();
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+      if (sequence === transitionLockSequence) {
+        root.removeAttribute("data-appearance-transition-lock");
+      }
+    });
+  });
+}
+
+/**
  * Increments on every apply; an async flip only lands while it is still the
  * newest one. Without this, toggling pro → fun while the Pro sheet is mid-
  * download would let the stale flip overwrite the newer appearance when the
@@ -332,9 +384,16 @@ function flipAppearanceAttributes({
     return;
   }
 
+  // No-op applies (hydration confirming the bootstrap's paint) skip the lock:
+  // pinning it costs two full-document restyles of its own, which is only a
+  // price worth paying when an attribute below actually changes.
   const root = document.documentElement;
-  root.dataset.theme = colorScheme;
-  root.dataset.visualStyle = visualStyle;
+  if (root.dataset.theme !== colorScheme || root.dataset.visualStyle !== visualStyle) {
+    withTransitionsSuppressed(() => {
+      root.dataset.theme = colorScheme;
+      root.dataset.visualStyle = visualStyle;
+    });
+  }
   root.style.colorScheme = colorScheme;
 
   const meta =
@@ -367,7 +426,19 @@ export function ThemeProvider({
   /** Pins the type axis: the font setters become no-ops and its key is never read or written. */
   isFontLocked?: boolean;
 }) {
-  const [colorScheme, setColorScheme] = useState<ColorScheme>(initialColorScheme);
+  /**
+   * The saved axis value — possibly "system" — and the OS scheme it resolves
+   * through. The painted scheme is derived, never stored: while the
+   * preference is "system" it tracks `prefers-color-scheme` live, so an OS
+   * day/night flip restyles the page with no reload. The OS scheme opens on
+   * the server's guess and is corrected by the matchMedia effect on mount,
+   * before `hydrated` lets anything paint or persist.
+   */
+  const [colorSchemePreference, setColorSchemePreferenceState] =
+    useState<ColorSchemePreference>(initialColorScheme);
+  const [systemColorScheme, setSystemColorScheme] = useState<ColorScheme>(initialColorScheme);
+  const colorScheme =
+    colorSchemePreference === "system" ? systemColorScheme : colorSchemePreference;
   const [visualStyle, setVisualStyleState] = useState<VisualStyle>(initialVisualStyle);
   const [fontPreference, setFontPreferenceState] = useState<FontPreference>("default");
   /**
@@ -427,14 +498,32 @@ export function ThemeProvider({
   const chromaDelayTimerRef = useRef<number | null>(null);
 
   useEffect(() => {
-    const paintedColorScheme = resolvePaintedAxis(
-      "theme",
-      COLOR_SCHEME_STORAGE_KEY,
-      isColorScheme,
-    );
+    // The scheme axis stores a *preference* — possibly "system" — while the
+    // painted attribute only ever carries its resolution, so storage is the
+    // first source here, not the document: adopting a system reader's painted
+    // attribute as their preference would silently pin them to one scheme.
+    let storedPreference: ColorSchemePreference | null = null;
+    try {
+      const stored = window.localStorage.getItem(COLOR_SCHEME_STORAGE_KEY);
+      if (isColorSchemePreference(stored)) {
+        storedPreference = stored;
+      }
+    } catch {
+      // Ignore storage failures; the painted attribute below still applies.
+    }
 
-    if (paintedColorScheme) {
-      setColorScheme(paintedColorScheme);
+    if (storedPreference) {
+      setColorSchemePreferenceState(storedPreference);
+    } else {
+      const paintedColorScheme = resolvePaintedAxis(
+        "theme",
+        COLOR_SCHEME_STORAGE_KEY,
+        isColorScheme,
+      );
+
+      if (paintedColorScheme) {
+        setColorSchemePreferenceState(paintedColorScheme);
+      }
     }
 
     // A locked style resolves from the build alone: neither the document nor the storage key
@@ -507,6 +596,26 @@ export function ThemeProvider({
   }, [isVisualStyleLocked, isSurfaceLocked, isAccentLocked, isFontLocked]);
 
   /**
+   * The OS scheme, tracked for as long as the provider lives. One media query
+   * and one listener — subscribing unconditionally instead of only under a
+   * "system" preference keeps the resolution race-free: the preference can
+   * arrive from hydration or a toggle at any time and the resolved scheme is
+   * already current. The listener only fires on actual OS flips, so the idle
+   * cost is nothing.
+   */
+  useEffect(() => {
+    if (typeof window === "undefined" || typeof window.matchMedia !== "function") {
+      return;
+    }
+
+    const query = window.matchMedia("(prefers-color-scheme: light)");
+    const sync = () => setSystemColorScheme(query.matches ? "light" : "dark");
+    sync();
+    query.addEventListener("change", sync);
+    return () => query.removeEventListener("change", sync);
+  }, []);
+
+  /**
    * Scheme and style: applied and persisted synchronously per change. These
    * are toggle paths — one event per reader intention — so there is nothing
    * to throttle, and a flip must reach storage before any navigation.
@@ -517,12 +626,12 @@ export function ThemeProvider({
     }
 
     applyAppearanceToDocument({ colorScheme, visualStyle });
-    persistPreference(COLOR_SCHEME_STORAGE_KEY, colorScheme);
+    persistPreference(COLOR_SCHEME_STORAGE_KEY, colorSchemePreference);
 
     if (!isVisualStyleLocked) {
       persistPreference(VISUAL_STYLE_STORAGE_KEY, visualStyle);
     }
-  }, [hydrated, colorScheme, visualStyle, isVisualStyleLocked]);
+  }, [hydrated, colorScheme, colorSchemePreference, visualStyle, isVisualStyleLocked]);
 
   /**
    * The type axis: applied and persisted synchronously per change, like scheme and style.
@@ -536,12 +645,23 @@ export function ThemeProvider({
     }
 
     const root = document.documentElement;
+    const nextFont = fontPreference === "dyslexic" ? "dyslexic" : undefined;
 
-    if (fontPreference === "dyslexic") {
-      root.dataset.font = "dyslexic";
+    if (root.dataset.font !== nextFont) {
+      // A family swap restyles and reflows the whole document; run it under
+      // the same transition lock as the colour axes so it lands in one pass.
+      withTransitionsSuppressed(() => {
+        if (nextFont) {
+          root.dataset.font = nextFont;
+        } else {
+          delete root.dataset.font;
+        }
+      });
+    }
+
+    if (nextFont) {
       persistPreference(FONT_STORAGE_KEY, "dyslexic");
     } else {
-      delete root.dataset.font;
       removeStoredKey(FONT_STORAGE_KEY);
     }
   }, [hydrated, fontPreference, isFontLocked]);
@@ -732,9 +852,22 @@ export function ThemeProvider({
     [isAccentLocked],
   );
 
-  const toggleColorScheme = useCallback(() => {
-    setColorScheme((current) => (current === "dark" ? "light" : "dark"));
+  const setColorSchemePreference = useCallback((value: ColorSchemePreference) => {
+    setColorSchemePreferenceState(value);
   }, []);
+
+  const setColorScheme = useCallback((value: ColorScheme) => {
+    setColorSchemePreferenceState(value);
+  }, []);
+
+  /**
+   * Flips to the explicit opposite of the *resolved* scheme, so a system
+   * reader who reaches for the toggle gets the scheme they were looking at,
+   * inverted and pinned — never a no-op relative to what they see.
+   */
+  const toggleColorScheme = useCallback(() => {
+    setColorSchemePreferenceState(colorScheme === "dark" ? "light" : "dark");
+  }, [colorScheme]);
 
   const toggleVisualStyle = useCallback(() => {
     if (isVisualStyleLocked) {
@@ -755,9 +888,11 @@ export function ThemeProvider({
   const value = useMemo(
     () => ({
       colorScheme,
+      colorSchemePreference,
       visualStyle,
       fontPreference,
       setColorScheme,
+      setColorSchemePreference,
       setVisualStyle,
       setFontPreference,
       surfaceChroma,
@@ -779,8 +914,11 @@ export function ThemeProvider({
     }),
     [
       colorScheme,
+      colorSchemePreference,
       visualStyle,
       fontPreference,
+      setColorScheme,
+      setColorSchemePreference,
       setVisualStyle,
       setFontPreference,
       surfaceChroma,

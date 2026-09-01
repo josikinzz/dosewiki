@@ -2,6 +2,7 @@
 
 import {
   useRef,
+  type CSSProperties,
   type KeyboardEvent as ReactKeyboardEvent,
   type ReactNode,
 } from "react";
@@ -24,22 +25,25 @@ interface AppearanceTogglePillProps<Value extends string> {
   /** The axis's accessible name, e.g. "Style" or "Mode". */
   label: string;
   value: Value;
-  options: readonly [AppearanceToggleOption<Value>, AppearanceToggleOption<Value>];
+  /** Two or more options; every segment gets an equal share of the pill. */
+  options: readonly AppearanceToggleOption<Value>[];
   onChange: (value: Value) => void;
 }
 
 /**
- * A named two-option appearance picker.
+ * A named segmented appearance picker.
  *
  * Each choice is exposed as a radio so the visible labels, checked state, screen-reader
- * output, and arrow-key behavior stay aligned. Pointer/Enter/Space activation keeps the
- * toggle contract: pressing either half always flips to the other value, including when
- * the pressed half is already checked.
+ * output, and arrow-key behavior stay aligned. With exactly two options, pointer/Enter/
+ * Space activation keeps the historical toggle contract: pressing either half always
+ * flips to the other value, including when the pressed half is already checked. With
+ * three or more, re-pressing the checked segment is a no-op — cycling through the ring
+ * from an already-made choice would change the theme the reader just confirmed.
  *
- * The axis name is the group's accessible name, not a visible gutter label: two named
- * options ("Dark"/"Light", "Vivid"/"Clinical") plus their icons already state the choice,
- * spending a third of the panel's width restating the category only narrowed the pill
- * that has to hold both labels.
+ * The axis name is the group's accessible name, not a visible gutter label: named
+ * options ("Dark"/"System"/"Light", "Vivid"/"Clinical") plus their icons already state
+ * the choice, spending a share of the panel's width restating the category only
+ * narrowed the pill that has to hold the labels.
  */
 export function AppearanceTogglePill<Value extends string>({
   axis,
@@ -64,7 +68,8 @@ export function AppearanceTogglePill<Value extends string>({
   const activate = (index: number) => {
     const option = options[index];
     if (option == null) return;
-    const nextIndex = option.value === value ? (index + 1) % options.length : index;
+    const nextIndex =
+      option.value === value && options.length === 2 ? (index + 1) % options.length : index;
     select(nextIndex, false);
   };
 
@@ -100,14 +105,20 @@ export function AppearanceTogglePill<Value extends string>({
       aria-label={label}
       data-appearance-axis={axis}
       data-appearance-value={value}
-      className="theme-toggle-pill relative grid h-11 min-w-0 grid-cols-2 items-center rounded-full px-1 transition-[border-color,background-color] duration-300 motion-reduce:transition-none [@media(pointer:coarse)]:h-13"
+      className="theme-toggle-pill relative grid h-11 min-w-0 items-center rounded-full px-1 transition-[border-color,background-color] duration-300 motion-reduce:transition-none [@media(pointer:coarse)]:h-13"
+      style={
+        {
+          gridTemplateColumns: `repeat(${options.length}, minmax(0, 1fr))`,
+        } as CSSProperties
+      }
     >
       <span
         aria-hidden="true"
-        className={cn(
-          "theme-toggle-thumb pointer-events-none absolute inset-y-1 left-1 right-1/2 rounded-full border transition-transform duration-300 motion-reduce:transition-none",
-          selectedIndex === 0 ? "translate-x-0" : "translate-x-full",
-        )}
+        className="theme-toggle-thumb pointer-events-none absolute inset-y-1 left-1 rounded-full border transition-transform duration-300 motion-reduce:transition-none"
+        style={{
+          width: `calc((100% - 0.5rem) / ${options.length})`,
+          transform: `translateX(${selectedIndex * 100}%)`,
+        }}
       />
       {options.map((option, index) => {
         const checked = option.value === value;
@@ -124,7 +135,7 @@ export function AppearanceTogglePill<Value extends string>({
             onClick={() => activate(index)}
             onKeyDown={handleKeyDown}
             className={cn(
-              "theme-focus-ring relative z-10 inline-flex h-9 min-w-0 items-center justify-center gap-1.5 rounded-full px-2 text-xs font-semibold whitespace-nowrap transition-colors duration-300 motion-reduce:transition-none [@media(pointer:coarse)]:h-11",
+              "theme-focus-ring relative z-10 inline-flex h-9 min-w-0 items-center justify-center gap-1 rounded-full px-1 text-xs font-semibold whitespace-nowrap transition-colors duration-300 motion-reduce:transition-none [@media(pointer:coarse)]:h-11",
               checked ? "theme-toggle-icon-accent" : "theme-toggle-icon-muted",
             )}
           >
