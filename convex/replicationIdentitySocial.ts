@@ -277,14 +277,14 @@ export async function canonicalBeforeForEntry(ctx: Ctx, entry: IdentitySocialBat
   return null;
 }
 
-async function verifyAuthoritativeBefore(ctx: MutationCtx, entry: IdentitySocialBatchEntry) {
+async function verifyAuthoritativeBefore(ctx: Ctx, entry: IdentitySocialBatchEntry) {
   const before = await canonicalBeforeForEntry(ctx, entry);
   const beforeDigest = await canonicalDigest(before);
   if (beforeDigest !== entry.projection.expectedBeforeSha256 || !equal(before, entry.projection.expectedBefore)) throw new Error("Authoritative expected-before CAS failed.");
   if (entry.kind === "attribution") for (const id of [entry.value.poster_profile_id, entry.value.creator_profile_id]) if (id && !(await ctx.db.get(id))) throw new Error("Contributor profile does not exist.");
 }
 
-async function validateReceipt(ctx: MutationCtx, entry: IdentitySocialBatchEntry) {
+async function validateReceipt(ctx: Ctx, entry: IdentitySocialBatchEntry) {
   if (entry.kind !== "avatar" && entry.kind !== "social-asset") return;
   const x = entry.value;
   const possible: string[] = [];
@@ -702,6 +702,22 @@ export const previewCanonicalBeforeAuthenticated = query({
       return { matches: digest === args.entry.projection.expectedBeforeSha256 && equal(before, args.entry.projection.expectedBefore), digest };
     } catch (error) {
       return { matches: false, digest: "", error: error instanceof Error ? error.message : "Canonical preflight failed." };
+    }
+  },
+});
+export const preflightBatchEntryAuthenticated = query({
+  args: { ...authenticatedReadArgs, entry: identitySocialBatchEntryValidator },
+  returns: v.object({ matches: v.boolean(), error: v.optional(v.string()) }),
+  handler: async (ctx, args) => {
+    await requireRegisteredDelegatedEditorWrite(ctx, { apiKey: args.apiKey, actorEmail: args.actor_email, adminIntent: "replicationMaintenance" });
+    try {
+      validateIdentitySocialBatch(args.entry.kind, [args.entry], "preflight");
+      await validateProjectionIdentity(args.entry);
+      await verifyAuthoritativeBefore(ctx, args.entry);
+      await validateReceipt(ctx, args.entry);
+      return { matches: true };
+    } catch (error) {
+      return { matches: false, error: error instanceof Error ? error.message : "Identity/social batch preflight failed." };
     }
   },
 });

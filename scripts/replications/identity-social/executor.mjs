@@ -51,8 +51,11 @@ export async function run(argv = process.argv.slice(2), adapters = {}) {
       if (batch.kind === "profile-binding") {
         const preflight = await query(api.replicationIdentitySocial.preflightProfileBindingAuthenticated, { apiKey, actor_email: options.actor, entry });
         if (!preflight.matches) throw new Error(`Profile binding preflight failed: ${preflight.error ?? "unknown reason"}`);
+      } else {
+        assertPreviewMatches(entry, await query(api.replicationIdentitySocial.previewCanonicalBeforeAuthenticated, { apiKey, actor_email: options.actor, entry }));
+        const preflight = await query(api.replicationIdentitySocial.preflightBatchEntryAuthenticated, { apiKey, actor_email: options.actor, entry });
+        if (!preflight.matches) throw new Error(`Identity/social batch preflight failed: ${preflight.error ?? "unknown reason"}`);
       }
-      else assertPreviewMatches(entry, await query(api.replicationIdentitySocial.previewCanonicalBeforeAuthenticated, { apiKey, actor_email: options.actor, entry }));
     }
     const result = batch.kind === "profile-binding"
       ? await mutate(api.replicationIdentitySocial.applyProfileBindingBatch, { apiKey, actor_email: options.actor, operation_id: batch.operation_id, dry_run: false, entries: batch.entries })
