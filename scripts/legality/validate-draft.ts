@@ -102,6 +102,18 @@ const legalityDraftSchema = z.object({
     expectedNotes: nonEmptyString,
     newNotes: nonEmptyString,
   }).strict()).optional(),
+  statusRepairs: z.record(z.string(), z.object({
+    expectedStatus: nonEmptyString,
+    newStatus: nonEmptyString,
+  }).strict()).optional(),
+  designationRepairs: z.record(z.string(), z.object({
+    expectedDesignation: nonEmptyString,
+    newDesignation: nonEmptyString.nullable(),
+  }).strict()).optional(),
+  instrumentRepairs: z.record(z.string(), z.object({
+    expectedInstrument: nonEmptyString,
+    newInstrument: nonEmptyString,
+  }).strict()).optional(),
 }).strict().superRefine((draft, ctx) => {
   if (draft.international.length > 0 && draft.internationalSources.length === 0) {
     ctx.addIssue({
@@ -127,6 +139,9 @@ const legalityDraftSchema = z.object({
       ["corrections", draft.corrections],
       ["enrichments", draft.enrichments ?? {}],
       ["notesRepairs", draft.notesRepairs ?? {}],
+      ["statusRepairs", draft.statusRepairs ?? {}],
+      ["designationRepairs", draft.designationRepairs ?? {}],
+      ["instrumentRepairs", draft.instrumentRepairs ?? {}],
     ] as const) {
       if (removal.country in countries) {
         ctx.addIssue({
@@ -309,6 +324,43 @@ export function validateLegalityDraftWithWarnings(draft: unknown): LegalityDraft
     const match = taskLanguageMatch(repair.newNotes);
     if (match) {
       errors.push(`notesRepairs.${country}.newNotes: task language "${match}" is not allowed in repaired notes`);
+    }
+  }
+
+  for (const [country, repair] of Object.entries(parsed.data.statusRepairs ?? {})) {
+    if (!getCountryCode(country)) {
+      errors.push(`statusRepairs.${country}: country key does not resolve to a country code`);
+    }
+    const match = taskLanguageMatch(repair.newStatus);
+    if (match) {
+      errors.push(`statusRepairs.${country}.newStatus: task language "${match}" is not allowed in repaired status`);
+    }
+  }
+
+  for (const [country, repair] of Object.entries(parsed.data.designationRepairs ?? {})) {
+    if (!getCountryCode(country)) {
+      errors.push(`designationRepairs.${country}: country key does not resolve to a country code`);
+    }
+    const newDesignation = repair.newDesignation;
+    if (newDesignation === null) continue;
+    const match = taskLanguageMatch(newDesignation);
+    if (match) {
+      errors.push(`designationRepairs.${country}.newDesignation: task language "${match}" is not allowed in repaired designation`);
+    }
+    if (newDesignation.length > 40 || /[,;]/.test(newDesignation)) {
+      warnings.push(
+        `warning: designationRepairs.${country}.newDesignation: should be a compact tag (40 characters or fewer, without commas or semicolons).`,
+      );
+    }
+  }
+
+  for (const [country, repair] of Object.entries(parsed.data.instrumentRepairs ?? {})) {
+    if (!getCountryCode(country)) {
+      errors.push(`instrumentRepairs.${country}: country key does not resolve to a country code`);
+    }
+    const match = taskLanguageMatch(repair.newInstrument);
+    if (match) {
+      errors.push(`instrumentRepairs.${country}.newInstrument: task language "${match}" is not allowed in repaired instrument`);
     }
   }
 

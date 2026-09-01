@@ -151,6 +151,57 @@ export function buildApplyPlan({ article, draft }) {
     repaired.push(country);
   }
 
+  const statusRepaired = [];
+  for (const [country, repair] of Object.entries(draft.statusRepairs ?? {})) {
+    const liveEntry = liveCountries[country];
+    if (!isRecord(liveEntry)) {
+      throw new Error(`Cannot repair status for ${country}: the live article has no country entry.`);
+    }
+    if (liveEntry.status !== repair.expectedStatus) {
+      throw new Error(`Stale draft for ${country}: live status no longer matches statusRepairs.expectedStatus.`);
+    }
+    countries[country] = {
+      ...countries[country],
+      status: repair.newStatus,
+    };
+    statusRepaired.push(country);
+  }
+
+  const designationRepaired = [];
+  for (const [country, repair] of Object.entries(draft.designationRepairs ?? {})) {
+    const liveEntry = liveCountries[country];
+    if (!isRecord(liveEntry)) {
+      throw new Error(`Cannot repair designation for ${country}: the live article has no country entry.`);
+    }
+    if (liveEntry.designation !== repair.expectedDesignation) {
+      throw new Error(`Stale draft for ${country}: live designation no longer matches designationRepairs.expectedDesignation.`);
+    }
+    const nextEntry = { ...countries[country] };
+    if (repair.newDesignation === null) {
+      delete nextEntry.designation;
+    } else {
+      nextEntry.designation = repair.newDesignation;
+    }
+    countries[country] = nextEntry;
+    designationRepaired.push(country);
+  }
+
+  const instrumentRepaired = [];
+  for (const [country, repair] of Object.entries(draft.instrumentRepairs ?? {})) {
+    const liveEntry = liveCountries[country];
+    if (!isRecord(liveEntry)) {
+      throw new Error(`Cannot repair instrument for ${country}: the live article has no country entry.`);
+    }
+    if (liveEntry.instrument !== repair.expectedInstrument) {
+      throw new Error(`Stale draft for ${country}: live instrument no longer matches instrumentRepairs.expectedInstrument.`);
+    }
+    countries[country] = {
+      ...countries[country],
+      instrument: repair.newInstrument,
+    };
+    instrumentRepaired.push(country);
+  }
+
   for (const removal of draft.countryRemovals ?? []) {
     const liveEntry = liveCountries[removal.country];
     if (!isRecord(liveEntry)) {
@@ -202,6 +253,9 @@ export function buildApplyPlan({ article, draft }) {
     corrected,
     enriched,
     repaired,
+    statusRepaired,
+    designationRepaired,
+    instrumentRepaired,
     removed,
     flagged,
     states,
@@ -228,6 +282,15 @@ export function printPlan(plan, draft) {
   for (const country of plan.repaired) {
     console.log(`REPAIR ${country} (notes)`);
   }
+  for (const country of plan.statusRepaired) {
+    console.log(`REPAIR ${country} (status: ${draft.statusRepairs[country].expectedStatus} → ${draft.statusRepairs[country].newStatus})`);
+  }
+  for (const country of plan.designationRepaired) {
+    console.log(`REPAIR ${country} (designation: ${draft.designationRepairs[country].expectedDesignation} → ${draft.designationRepairs[country].newDesignation ?? "removed"})`);
+  }
+  for (const country of plan.instrumentRepaired) {
+    console.log(`REPAIR ${country} (instrument)`);
+  }
   for (const { country, reason } of plan.removed) {
     console.log(`REMOVE ${country} (${reason})`);
   }
@@ -246,7 +309,7 @@ export function printPlan(plan, draft) {
   if (plan.usStatesNoteApplied) {
     console.log(`US STATES NOTE: ${draft.usStatesNote}`);
   }
-  console.log(`TOTALS: ${plan.added.length} add, ${plan.corrected.length} correct, ${plan.enriched.length} enrich, ${plan.repaired.length} repair, ${plan.removed.length} remove, ${plan.flagged.length} flag, ${plan.states.length} state, ${plan.internationalReplaced ? "international replaced" : "international unchanged"}, ${plan.usStatesReplaced ? "US states replaced" : "US states unchanged"}, ${plan.usStatesNoteApplied ? "US states note applied" : "US states note unchanged"}`);
+  console.log(`TOTALS: ${plan.added.length} add, ${plan.corrected.length} correct, ${plan.enriched.length} enrich, ${plan.repaired.length} repair, ${plan.statusRepaired.length} status-repair, ${plan.designationRepaired.length} designation-repair, ${plan.instrumentRepaired.length} instrument-repair, ${plan.removed.length} remove, ${plan.flagged.length} flag, ${plan.states.length} state, ${plan.internationalReplaced ? "international replaced" : "international unchanged"}, ${plan.usStatesReplaced ? "US states replaced" : "US states unchanged"}, ${plan.usStatesNoteApplied ? "US states note applied" : "US states note unchanged"}`);
 }
 
 export async function main(argv = process.argv.slice(2)) {
@@ -314,6 +377,9 @@ export async function main(argv = process.argv.slice(2)) {
       ...plan.corrected.map((correction) => ({ country: correction.country, action: "correct", field: "legality.countries" })),
       ...plan.enriched.map((country) => ({ country, action: "enrich", field: "legality.countries" })),
       ...plan.repaired.map((country) => ({ country, action: "repair", field: "legality.countries.*.notes" })),
+      ...plan.statusRepaired.map((country) => ({ country, action: "repair", field: "legality.countries.*.status" })),
+      ...plan.designationRepaired.map((country) => ({ country, action: "repair", field: "legality.countries.*.designation" })),
+      ...plan.instrumentRepaired.map((country) => ({ country, action: "repair", field: "legality.countries.*.instrument" })),
       ...plan.removed.map(({ country }) => ({ country, action: "remove", field: "legality.countries" })),
       ...plan.flagged.map(({ country }) => ({ country, action: "flag-citation-needed", field: "legality.countries" })),
       ...(plan.internationalReplaced ? [{ action: "replace", field: "legality.international" }] : []),
@@ -351,6 +417,9 @@ export async function main(argv = process.argv.slice(2)) {
     corrected: plan.corrected.map(({ country }) => country),
     enriched: plan.enriched,
     repaired: plan.repaired,
+    statusRepaired: plan.statusRepaired,
+    designationRepaired: plan.designationRepaired,
+    instrumentRepaired: plan.instrumentRepaired,
     removed: plan.removed.map(({ country }) => country),
     flaggedCitationNeeded: plan.flagged.map(({ country }) => country),
     internationalReplaced: plan.internationalReplaced,

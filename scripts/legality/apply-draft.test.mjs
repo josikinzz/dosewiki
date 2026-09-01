@@ -168,6 +168,63 @@ describe("legality draft apply plan", () => {
     })).toThrow("Stale removal for United States (Florida)");
   });
 
+  it("applies status, designation, and instrument repairs against matching live values", () => {
+    const liveArticle = {
+      legality: {
+        international: [],
+        countries: {
+          Canada: {
+            status: "Unscheduled",
+            notes: "Federal control.",
+            canonicalStatus: "unscheduled",
+            instrument: "Act as inspected [cite:a]",
+            designation: "restricted_other",
+          },
+        },
+      },
+    };
+    const repairDraft = {
+      entries: {},
+      corrections: {},
+      international: [],
+      statusRepairs: { Canada: { expectedStatus: "Unscheduled", newStatus: "Not scheduled" } },
+      designationRepairs: { Canada: { expectedDesignation: "restricted_other", newDesignation: null } },
+      instrumentRepairs: {
+        Canada: {
+          expectedInstrument: "Act as inspected [cite:a]",
+          newInstrument: "Controlled Drugs and Substances Act [cite:a]",
+        },
+      },
+    };
+
+    const plan = buildApplyPlan({ article: liveArticle, draft: repairDraft });
+    expect(plan.legality.countries.Canada).toEqual({
+      status: "Not scheduled",
+      notes: "Federal control.",
+      canonicalStatus: "unscheduled",
+      instrument: "Controlled Drugs and Substances Act [cite:a]",
+    });
+    expect(plan.statusRepaired).toEqual(["Canada"]);
+    expect(plan.designationRepaired).toEqual(["Canada"]);
+    expect(plan.instrumentRepaired).toEqual(["Canada"]);
+  });
+
+  it("rejects a stale status repair", () => {
+    const liveArticle = {
+      legality: { international: [], countries: { Canada: { status: "Illegal", notes: "n" } } },
+    };
+    const repairDraft = {
+      entries: {},
+      corrections: {},
+      international: [],
+      statusRepairs: { Canada: { expectedStatus: "Unscheduled", newStatus: "Not scheduled" } },
+    };
+
+    expect(() => buildApplyPlan({ article: liveArticle, draft: repairDraft })).toThrow(
+      /live status no longer matches/,
+    );
+  });
+
   it("includes designation in dry-run rows", () => {
     const log = vi.spyOn(console, "log").mockImplementation(() => {});
     const plan = buildApplyPlan({ article, draft });

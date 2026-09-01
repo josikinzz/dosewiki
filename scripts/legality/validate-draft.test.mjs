@@ -159,6 +159,44 @@ describe("legality draft validation", () => {
     expect(validateLegalityDraft(draft)).toEqual([]);
   });
 
+  it("accepts status, designation, and instrument repairs with reader-facing prose", () => {
+    const draft = validDraft();
+    draft.statusRepairs = {
+      "United States": { expectedStatus: "Unscheduled", newStatus: "Not scheduled" },
+    };
+    draft.designationRepairs = {
+      "United States": { expectedDesignation: "restricted_other", newDesignation: null },
+      Canada: { expectedDesignation: "legacy tag", newDesignation: "Schedule III" },
+    };
+    draft.instrumentRepairs = {
+      Canada: {
+        expectedInstrument: "Act as inspected [cite:a]",
+        newInstrument: "Controlled Drugs and Substances Act [cite:a]",
+      },
+    };
+
+    expect(validateLegalityDraft(draft)).toEqual([]);
+  });
+
+  it("rejects task language and unresolvable countries in status, designation, and instrument repairs", () => {
+    const draft = validDraft();
+    draft.statusRepairs = {
+      Atlantis: { expectedStatus: "Illegal", newStatus: "Could not be verified" },
+    };
+    draft.designationRepairs = {
+      "United States": { expectedDesignation: "x", newDesignation: "before publication tag" },
+    };
+    draft.instrumentRepairs = {
+      Canada: { expectedInstrument: "Act", newInstrument: "The original text of the Act" },
+    };
+
+    const errors = validateLegalityDraft(draft).join("\n");
+    expect(errors).toContain("statusRepairs.Atlantis: country key does not resolve");
+    expect(errors).toContain("statusRepairs.Atlantis.newStatus: task language");
+    expect(errors).toContain("designationRepairs.United States.newDesignation: task language");
+    expect(errors).toContain("instrumentRepairs.Canada.newInstrument: task language");
+  });
+
   it("accepts a guarded legacy country removal and rejects overlapping mutations", () => {
     const draft = validDraft();
     draft.countryRemovals = [{
