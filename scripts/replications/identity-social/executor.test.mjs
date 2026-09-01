@@ -107,13 +107,13 @@ test("profile creates bind their dependent verification atomically and unresolve
   assert.equal(bindingEntries[1].verification, undefined);
   assert.ok(plan.noWrites.some((item) => item.reason === "verification-submitted-with-profile-binding"));
 });
-test("48 profile bindings split at the server's 25-item limit and resume after a one-item canary", () => {
+test("48 profile bindings use execution-safe batches and resume after a one-item canary", () => {
   const entries = Array.from({ length: 48 }, (_, index) => ({ kind: "profile-binding", item_operation_id: `binding-${index}`, projection: {}, artist_id: `artist-${index}` }));
   const batches = makeBatches(entries);
-  assert.deepEqual(batches.map((batch) => batch.entries.length), [25, 23]);
+  assert.deepEqual(batches.map((batch) => batch.entries.length), [10, 10, 10, 10, 8]);
   const canaries = selectCanaries(batches);
   assert.equal(canaries[0].entries.length, 1);
-  assert.deepEqual(batchesAfterCanaries(batches, canaries).map((batch) => batch.entries.length), [25, 22]);
+  assert.deepEqual(batchesAfterCanaries(batches, canaries).map((batch) => batch.entries.length), [10, 10, 10, 10, 7]);
 });
 test("rollback order is reverse application order", () => assert.deepEqual(rollbackManifest([{ operation_id: "one" }, { operation_id: "two" }]).map((x) => x.rollback_of), ["two", "one"]));
 test("identity ambiguity fails closed", () => assert.throws(() => indexProfiles([{ profileId: "one", key: "A" }, { profileId: "two", key: "a" }]), /ambiguity/));

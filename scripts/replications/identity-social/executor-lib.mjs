@@ -249,7 +249,10 @@ export function buildExecutionPlan(projection, context) {
 export function makeBatches(entries) {
   const result = [];
   for (const kind of ["profile-binding", "attribution", "alias", "avatar", "verification", "social-asset"]) {
-    const kindLimit = kind === "profile-binding" ? 25 : MAX_BATCH_COUNT;
+    // Profile bindings perform several indexed reads and canonical-digest checks per
+    // entry. Keep them below the server's hard 25-record input ceiling so a full
+    // transaction stays inside Convex's execution budget.
+    const kindLimit = kind === "profile-binding" ? 10 : MAX_BATCH_COUNT;
     let batch = [];
     for (const entry of entries.filter((x) => x.kind === kind)) {
       const candidate = [...batch, entry];
