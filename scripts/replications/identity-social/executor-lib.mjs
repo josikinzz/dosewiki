@@ -180,7 +180,7 @@ export function transformOperation(operation, context) {
       ...(proven ? { poster_posted_at: operation.after.posterPostedAt } : {}),
       creator_display_name: operation.after.creatorDisplayName,
       creator_determination: proven ? "proven-different-creator" : operation.after.resolution === "unresolved" ? "unresolved" : "poster-presumed-creator",
-      review_status: proven ? "creator-proven" : "reviewed-no-obvious-conflict",
+      review_status: proven ? "creator-proven" : operation.after.resolution === "unresolved" ? "obvious-conflict-needs-research" : "reviewed-no-obvious-conflict",
       evidence: transformedEvidence(operation),
       source_digest: proven ? operation.after.sourceDigest : digest(operation.expectedBefore.sourceHistory),
     };

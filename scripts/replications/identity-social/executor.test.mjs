@@ -75,6 +75,15 @@ test("poster preservation is journaled without invented chronology", () => {
   const plan = buildExecutionPlan(projection, { ...context(), attributionDates: {}, expectedProjectionDigest: projection.projectionSha256 });
   assert.equal(plan.entries.length, 1);
 });
+test("an unresolved obvious signal preserves the poster and remains research-marked", () => {
+  const unresolved = structuredClone(operations[0]);
+  unresolved.after.resolution = "unresolved";
+  const result = transformOperation(unresolved, { ...context(), attributionDates: {} });
+  assert.equal(result.entry.value.creator_display_name, result.entry.value.poster_display_name);
+  assert.equal(result.entry.value.creator_determination, "unresolved");
+  assert.equal(result.entry.value.review_status, "obvious-conflict-needs-research");
+  assert.equal(result.entry.value.poster_posted_at, undefined);
+});
 test("blocked and preservation alias actions remain journal submissions", () => {
   const blocked = structuredClone(operations[2]);
   blocked.action = "blocked-merge-required-collision";
