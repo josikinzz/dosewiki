@@ -9,10 +9,7 @@ import { cn } from "@/lib/utils";
 import { ContributorAvatar } from "@/components/layout/PublicPagePrimitives";
 import type { PublicGalleryReplicationPreview } from "@/types/replications";
 import { GalleryMediaTile } from "./GalleryMediaTile";
-import type { GalleryGroup } from "./galleryModel";
-
-/** Items shown inline in a rail before "View all" takes over. */
-const RAIL_PREVIEW_LIMIT = 14;
+import { RAIL_PREVIEW_LIMIT, type GalleryGroup } from "./galleryModel";
 
 /** How much of the visible rail one arrow press advances. */
 const ARROW_SCROLL_RATIO = 0.8;

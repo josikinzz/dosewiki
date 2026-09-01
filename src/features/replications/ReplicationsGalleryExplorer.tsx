@@ -37,6 +37,7 @@ import type { PublicGalleryReplicationPreview } from "@/types/replications";
 import { GalleryMediaTile } from "@/features/effects/gallery/GalleryMediaTile";
 import { MediaRail } from "@/features/effects/gallery/MediaRail";
 import {
+  ARTIST_RAIL_PAGE,
   countGallery,
   DEFAULT_GALLERY_TAXONOMY_FILTERS,
   effectHrefBuilder,
@@ -52,6 +53,7 @@ import {
   sortWithinGroup,
   splitRailsAndPool,
   UNATTRIBUTED_KEY,
+  type GalleryCounts,
   type GalleryGroup,
   type GalleryArtistSort,
   type GalleryMode,
@@ -84,10 +86,6 @@ import {
   parseReplicationViewerSlug,
   type GalleryFocus,
 } from "./galleryUrlState";
-import {
-  drainGalleryPages,
-  type GalleryContinuationPage,
-} from "./galleryPagination";
 
 /**
  * The two effect fields the gallery reads: `name` for lookups/labels and
@@ -200,18 +198,47 @@ function isGalleryReplicationPreview(
     (!("order_index" in value) || typeof value.order_index === "number")
   );
 }
+
+/**
+ * One server-precomputed artist rail: the group's identity and its
+ * complete-corpus counts, without items. Items come from the inlined
+ * `replications` subset until the complete corpus arrives.
+ */
+export interface ArtistRailDigest {
+  key: string;
+  label: string;
+  count: number;
+  imageCount: number;
+  videoCount: number;
+}
+
 export interface ReplicationsGalleryExplorerProps {
   replications: PublicGalleryReplicationPreview[];
   effects: EffectSummary[];
   /**
-   * Optional cacheable continuation used by the main index. Artist pages omit
-   * it because their already-focused corpus is intentionally complete.
+   * Endpoint serving the complete gallery corpus in one cacheable response.
+   * Its presence marks `replications` as a server-curated subset; the
+   * explorer fetches the rest on idle after hydration, or eagerly for deep
+   * links and non-default browse states. Artist pages omit it because their
+   * already-focused corpus is intentionally complete.
    */
-  deferredReplicationsUrl?: string;
-  /** Opaque Convex cursor after the server-rendered first page. */
-  continuationCursor?: string;
-  /** Whether another bounded page is available. */
-  hasMoreReplications?: boolean;
+  completeCorpusUrl?: string;
+  /**
+   * The default artist view, precomputed on the server against the complete
+   * corpus: the first rail page's groups in their true video-first order,
+   * each carrying its *complete* counts. While the corpus is still the
+   * inlined subset, the explorer renders rails in this order with these
+   * counts instead of trusting client-side grouping of a partial corpus.
+   */
+  initialArtistRails?: ArtistRailDigest[];
+  /** Total artist groups in the complete corpus, for "Showing X of Y artists". */
+  artistGroupTotal?: number;
+  /**
+   * Complete-corpus stats for the default artist view's header line,
+   * precomputed on the server so the index never reports the size of a
+   * partially loaded corpus as if it were the archive.
+   */
+  corpusStats?: GalleryCounts;
   effectHrefPrefix?: string;
   /**
    * Read on the server and passed down for the contributor-curated
@@ -271,13 +298,8 @@ const COARSE_TARGET_CLASS = "[@media(pointer:coarse)]:min-h-11";
 /** Debounce for search keystrokes → URL writes (history stays clean). */
 const QUERY_WRITE_DELAY_MS = 250;
 
-/**
- * Artist browsing gives *every* artist their own rail — no pooled masonry
- * where attributions jumble together — so the page reveals rails in pages of
- * this size behind a "Show more artists" button instead of mounting hundreds
- * of rails at once.
- */
-const ARTIST_RAIL_PAGE = 16;
+// Rail paging and preview sizes are shared with the server-rendered index —
+// see ARTIST_RAIL_PAGE / RAIL_PREVIEW_LIMIT in galleryModel.
 
 /**
  * Masonry grids (search results, the pooled effect tail, focused groups)
@@ -344,9 +366,10 @@ function UrlStateGalleryExplorer(props: ReplicationsGalleryExplorerProps) {
 
 function GalleryExplorer({
   replications,
-  deferredReplicationsUrl,
-  continuationCursor,
-  hasMoreReplications = false,
+  completeCorpusUrl,
+  initialArtistRails,
+  artistGroupTotal,
+  corpusStats,
   effects,
   effectHrefPrefix = "/effects",
   contributorDirectory,
@@ -365,10 +388,7 @@ function GalleryExplorer({
   const router = useRouter();
   const [galleryReplications, setGalleryReplications] = useState(replications);
   const galleryReplicationsRef = useRef(galleryReplications);
-  const nextCursorRef = useRef<string | null>(continuationCursor ?? null);
-  const [hasMore, setHasMore] = useState(
-    Boolean(deferredReplicationsUrl && hasMoreReplications),
-  );
+  const [hasMore, setHasMore] = useState(Boolean(completeCorpusUrl));
   const hasMoreRef = useRef(hasMore);
   const [pageLoadState, setPageLoadState] =
     useState<GalleryPageLoadState>("idle");
@@ -377,9 +397,6 @@ function GalleryExplorer({
   >(null);
   const pageRequestRef = useRef<Promise<boolean> | null>(null);
   const pageAbortRef = useRef<AbortController | null>(null);
-  const loadButtonRef = useRef<HTMLButtonElement>(null);
-  const completionSummaryRef = useRef<HTMLParagraphElement>(null);
-  const focusCompletionAfterLoadRef = useRef(false);
   const browseStateKey = [
     browse.view,
     browse.query,
@@ -420,17 +437,11 @@ function GalleryExplorer({
   }, []);
 
   const loadCompleteCorpus = useCallback((): Promise<boolean> => {
-    if (
-      !deferredReplicationsUrl ||
-      !hasMoreRef.current ||
-      !nextCursorRef.current
-    ) {
+    if (!completeCorpusUrl || !hasMoreRef.current) {
       return pageRequestRef.current ?? Promise.resolve(true);
     }
     if (pageRequestRef.current) return pageRequestRef.current;
 
-    focusCompletionAfterLoadRef.current =
-      document.activeElement === loadButtonRef.current;
     setCompletionAnnouncement(null);
     const controller = new AbortController();
     pageAbortRef.current = controller;
@@ -438,70 +449,32 @@ function GalleryExplorer({
 
     const request = (async () => {
       try {
-        const result = await drainGalleryPages({
-          initialItems: galleryReplicationsRef.current,
-          initialCursor: nextCursorRef.current,
-          fetchPage: async (cursor): Promise<GalleryContinuationPage> => {
-            const separator = deferredReplicationsUrl.includes("?") ? "&" : "?";
-            const url = `${deferredReplicationsUrl}${separator}cursor=${encodeURIComponent(cursor)}&limit=64`;
-            const response = await fetch(url, {
-              signal: controller.signal,
-              headers: { Accept: "application/json" },
-            });
-            if (!response.ok) {
-              throw new Error(`Gallery request failed: ${response.status}`);
-            }
-            const payload: unknown = await response.json();
-            if (
-              !payload ||
-              typeof payload !== "object" ||
-              !("data" in payload) ||
-              !Array.isArray(payload.data) ||
-              !payload.data.every(isGalleryReplicationPreview) ||
-              !("hasMore" in payload) ||
-              typeof payload.hasMore !== "boolean" ||
-              !("nextCursor" in payload) ||
-              !(
-                payload.nextCursor === null ||
-                typeof payload.nextCursor === "string"
-              )
-            ) {
-              throw new Error("Gallery response was malformed");
-            }
-            return {
-              data: payload.data,
-              nextCursor: payload.nextCursor as string | null,
-              hasMore: payload.hasMore,
-            };
-          },
-          onPage: (progress) => {
-            galleryReplicationsRef.current = progress.items;
-            nextCursorRef.current = progress.cursor;
-            hasMoreRef.current = progress.hasMore;
-            // A production corpus is roughly 106 pages. Publish progress in
-            // useful chunks so the polite status remains alive without
-            // rebuilding every group and rail after each 64-row response.
-            if (progress.pagesLoaded % 8 === 0 || !progress.hasMore) {
-              setGalleryReplications(progress.items);
-              setHasMore(progress.hasMore);
-            }
-          },
+        const response = await fetch(completeCorpusUrl, {
+          signal: controller.signal,
+          headers: { Accept: "application/json" },
         });
-        galleryReplicationsRef.current = result.items;
-        nextCursorRef.current = result.cursor;
-        hasMoreRef.current = result.hasMore;
-        setGalleryReplications(result.items);
-        setHasMore(result.hasMore);
+        if (!response.ok) {
+          throw new Error(`Gallery request failed: ${response.status}`);
+        }
+        const payload: unknown = await response.json();
+        if (
+          !payload ||
+          typeof payload !== "object" ||
+          !("data" in payload) ||
+          !Array.isArray(payload.data) ||
+          !payload.data.every(isGalleryReplicationPreview)
+        ) {
+          throw new Error("Gallery response was malformed");
+        }
+        galleryReplicationsRef.current = payload.data;
+        hasMoreRef.current = false;
+        setGalleryReplications(payload.data);
+        setHasMore(false);
         setPageLoadState("idle");
-        focusCompletionAfterLoadRef.current =
-          focusCompletionAfterLoadRef.current &&
-          document.activeElement === loadButtonRef.current;
         setCompletionAnnouncement("Complete gallery loaded");
         return true;
       } catch {
         if (!controller.signal.aborted) {
-          setGalleryReplications(galleryReplicationsRef.current);
-          setHasMore(hasMoreRef.current);
           setPageLoadState("error");
         }
         return false;
@@ -513,7 +486,7 @@ function GalleryExplorer({
 
     pageRequestRef.current = request;
     return request;
-  }, [deferredReplicationsUrl]);
+  }, [completeCorpusUrl]);
 
   useEffect(
     () => () => {
@@ -523,23 +496,43 @@ function GalleryExplorer({
   );
 
   useEffect(() => {
-    if (!completionAnnouncement || !focusCompletionAfterLoadRef.current) return;
-    focusCompletionAfterLoadRef.current = false;
-    completionSummaryRef.current?.focus();
-  }, [completionAnnouncement]);
-
-  useEffect(() => {
-    if (
-      deferredReplicationsUrl &&
-      hasMoreRef.current &&
-      (viewerSlugParam || browseRequiresCompleteCorpus)
-    ) {
+    if (!completeCorpusUrl || !hasMoreRef.current) return;
+    if (viewerSlugParam || browseRequiresCompleteCorpus) {
+      // Deep links and non-default browse states need the whole corpus to
+      // resolve correctly — fetch it immediately.
       void loadCompleteCorpus();
+      return;
     }
+    // The default view's prerendered rails are already complete, so the
+    // corpus fetch waits for browser idle instead of competing with the
+    // first paint's media. Interactions that need the corpus sooner go
+    // through `runWithCompleteCorpus`, which starts the same deduplicated
+    // request eagerly.
+    const idleWindow = window as Window & {
+      requestIdleCallback?: (
+        callback: () => void,
+        options?: { timeout?: number },
+      ) => number;
+      cancelIdleCallback?: (id: number) => void;
+    };
+    let idleId: number | undefined;
+    let timeoutId: number | undefined;
+    if (typeof idleWindow.requestIdleCallback === "function") {
+      idleId = idleWindow.requestIdleCallback(
+        () => void loadCompleteCorpus(),
+        { timeout: 4000 },
+      );
+    } else {
+      timeoutId = window.setTimeout(() => void loadCompleteCorpus(), 2000);
+    }
+    return () => {
+      if (idleId !== undefined) idleWindow.cancelIdleCallback?.(idleId);
+      if (timeoutId !== undefined) window.clearTimeout(timeoutId);
+    };
   }, [
     browseStateKey,
     browseRequiresCompleteCorpus,
-    deferredReplicationsUrl,
+    completeCorpusUrl,
     loadCompleteCorpus,
     viewerSlugParam,
   ]);
@@ -889,13 +882,58 @@ function GalleryExplorer({
     [pool],
   );
 
+  /**
+   * While only the server-curated subset is loaded, the default artist view
+   * must not trust client-side grouping for ordering or counts: every group
+   * would hold at most one rail's preview, so counts tie and the video-first
+   * order scrambles. The server's digest — computed against the complete
+   * corpus — supplies the true order and per-artist counts; the loaded items
+   * fill the rails. Any other state eagerly loads the corpus, after which
+   * plain grouping takes over and the digest is inert.
+   */
+  const digestActive =
+    mode === "artist" &&
+    !focus &&
+    !searching &&
+    hasMore &&
+    !browseRequiresCompleteCorpus &&
+    Boolean(initialArtistRails?.length);
+  const displayRails = useMemo(() => {
+    if (!digestActive || !initialArtistRails) return rails;
+    const byKey = new Map(rails.map((group) => [group.key, group]));
+    return initialArtistRails.flatMap((digest) => {
+      const group = byKey.get(digest.key);
+      return group
+        ? [
+            {
+              ...group,
+              count: digest.count,
+              imageCount: digest.imageCount,
+              videoCount: digest.videoCount,
+            },
+          ]
+        : [];
+    });
+  }, [digestActive, initialArtistRails, rails]);
+
+  /**
+   * Header numbers: the client-side count of whatever is loaded, except in
+   * the digest-backed default view, where the server's complete-corpus stats
+   * are authoritative until the corpus arrives.
+   */
+  const statsComplete = !hasMore || (digestActive && Boolean(corpusStats));
+  const displayCounts =
+    hasMore && digestActive && corpusStats ? corpusStats : counts;
+
   const [visibleRailCount, setVisibleRailCount] = useState(ARTIST_RAIL_PAGE);
   useEffect(() => {
     setVisibleRailCount(ARTIST_RAIL_PAGE);
   }, [mode, typeFilter, artistSort, taxonomyFilterKey]);
   const visibleRails =
-    mode === "artist" ? rails.slice(0, visibleRailCount) : rails;
-  const hiddenRailCount = rails.length - visibleRails.length;
+    mode === "artist" ? displayRails.slice(0, visibleRailCount) : displayRails;
+  const hiddenRailCount =
+    (digestActive ? (artistGroupTotal ?? displayRails.length) : displayRails.length) -
+    visibleRails.length;
 
   /**
    * Focus is resolved against the *unfiltered* corpus — the route validated it
@@ -1005,7 +1043,7 @@ function GalleryExplorer({
     viewerSourcePath,
   ]);
   const viewerResolutionPending = Boolean(
-    viewerSlugParam && deferredReplicationsUrl && hasMore,
+    viewerSlugParam && completeCorpusUrl && hasMore,
   );
   const validViewerSlugParam =
     !viewerResolutionPending &&
@@ -1113,7 +1151,7 @@ function GalleryExplorer({
   // toggle has to stay reachable even if one mode's own corpus is empty.
   const hasMedia = displayable.length > 0;
   const hideIncompleteResults =
-    Boolean(deferredReplicationsUrl) &&
+    Boolean(completeCorpusUrl) &&
     hasMore &&
     browseRequiresCompleteCorpus;
   const browseAllUrl = buildGalleryBrowseUrl({
@@ -1466,13 +1504,13 @@ function GalleryExplorer({
             ) : null}
 
             {/* One quiet corpus summary for every breakpoint — the bar itself
-              stays reserved for controls. */}
+              stays reserved for controls. In the default artist view the
+              numbers come from the server's complete-corpus stats, so the
+              archive's true size shows before the corpus finishes loading. */}
             {chrome === "full" ? (
               <p
-                ref={completionSummaryRef}
                 role={completionAnnouncement ? "status" : undefined}
                 aria-live="polite"
-                tabIndex={completionAnnouncement ? -1 : undefined}
                 className={cn(
                   "theme-text-faint mt-3 px-1 text-xs tabular-nums",
                   focusRingClassName,
@@ -1483,38 +1521,14 @@ function GalleryExplorer({
                   : completionAnnouncement
                     ? `${completionAnnouncement} · `
                     : ""}
-                {counts.total}{" "}
-                {deferredReplicationsUrl && hasMore ? "loaded " : ""}
-                {counts.total === 1 ? "work" : "works"}
+                {displayCounts.total}{" "}
+                {hasMore && !statsComplete ? "loaded " : ""}
+                {displayCounts.total === 1 ? "work" : "works"}
                 {completedCorpusHasNarrowerView ? " in this view" : ""} ·{" "}
-                {counts.artists} artists · {counts.effects} effects
-                {hasMore ? " · more available" : ""}
+                {displayCounts.artists} artists · {displayCounts.effects}{" "}
+                effects
+                {hasMore && !statsComplete ? " · more available" : ""}
               </p>
-            ) : null}
-
-            {deferredReplicationsUrl && hasMore ? (
-              <div className="mt-3 flex justify-center">
-                <Button
-                  ref={loadButtonRef}
-                  type="button"
-                  variant="pill"
-                  size="pill"
-                  disabled={pageLoadState === "loading"}
-                  onClick={() => void loadCompleteCorpus()}
-                  className="min-h-11 gap-1.5"
-                >
-                  {pageLoadState === "loading" ? (
-                    <Icon
-                      icon="svg-spinners:ring-resize"
-                      className="h-4 w-4"
-                      aria-hidden
-                    />
-                  ) : null}
-                  {pageLoadState === "loading"
-                    ? "Loading…"
-                    : "Load complete gallery"}
-                </Button>
-              </div>
             ) : null}
 
             {/* Focused single-group view (own URL: /replications/artist|effect/<key>) */}
@@ -1647,7 +1661,7 @@ function GalleryExplorer({
                   <MediaRail
                     key={group.key}
                     group={group}
-                    countIsComplete={!hasMore}
+                    countIsComplete={!hasMore || digestActive}
                     viewAllHref={buildGalleryFocusUrl(
                       { kind: mode, key: galleryGroupUrlKey(mode, group) },
                       /* The effect address is the playlist page now; it reads no
@@ -1714,7 +1728,11 @@ function GalleryExplorer({
                       variant="pill"
                       size="pill"
                       onClick={() =>
-                        setVisibleRailCount((count) => count + ARTIST_RAIL_PAGE)
+                        runWithCompleteCorpus(() =>
+                          setVisibleRailCount(
+                            (count) => count + ARTIST_RAIL_PAGE,
+                          ),
+                        )
                       }
                       className="min-h-11 gap-1.5"
                     >
@@ -1726,13 +1744,17 @@ function GalleryExplorer({
                       />
                     </Button>
                     <span className="theme-text-faint text-xs tabular-nums">
-                      Showing {visibleRails.length} of {rails.length} artists
+                      Showing {visibleRails.length} of{" "}
+                      {digestActive
+                        ? (artistGroupTotal ?? displayRails.length)
+                        : displayRails.length}{" "}
+                      artists
                     </span>
                   </div>
                 ) : null}
                 {pooledItems.length > 0 ? (
                   <section aria-label="More effects" className="space-y-3">
-                    {rails.length > 0 ? (
+                    {displayRails.length > 0 ? (
                       <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1 px-1">
                         <h2 className="theme-text-primary font-display text-lg font-semibold tracking-tight">
                           More effects

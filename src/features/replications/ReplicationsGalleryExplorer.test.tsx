@@ -1103,8 +1103,41 @@ describe("one-line control bar", () => {
 
 const QUERY_WRITE_DELAY_MS_FOR_TEST = 250;
 
-describe("paged gallery continuation", () => {
-  it("drains a pasted non-default browse URL before showing results or an empty state", async () => {
+describe("complete corpus loading", () => {
+  type IdleWindow = Window & {
+    requestIdleCallback?: (
+      callback: () => void,
+      options?: { timeout?: number },
+    ) => number;
+    cancelIdleCallback?: (id: number) => void;
+  };
+
+  let idleCallbacks: (() => void)[];
+
+  beforeEach(() => {
+    idleCallbacks = [];
+    (window as IdleWindow).requestIdleCallback = (callback) =>
+      idleCallbacks.push(callback);
+    (window as IdleWindow).cancelIdleCallback = () => {};
+  });
+
+  afterEach(() => {
+    delete (window as IdleWindow).requestIdleCallback;
+    delete (window as IdleWindow).cancelIdleCallback;
+  });
+
+  const runIdle = () =>
+    act(async () => {
+      for (const callback of idleCallbacks.splice(0)) callback();
+    });
+
+  const corpusResponse = (rows: unknown[]) => ({
+    ok: true,
+    status: 200,
+    json: async () => ({ data: rows }),
+  });
+
+  it("loads the complete corpus before showing results for a pasted non-default browse URL", async () => {
     const initial = rep({ title: "Initial work" });
     const deferred = rep({ title: "Deferred match" });
     let resolveResponse: ((response: unknown) => void) | undefined;
@@ -1118,9 +1151,7 @@ describe("paged gallery continuation", () => {
 
     renderExplorer("q=deferred&sort=alpha", {
       replications: [initial],
-      deferredReplicationsUrl: "/api/replications/gallery",
-      continuationCursor: "opaque-next",
-      hasMoreReplications: true,
+      completeCorpusUrl: "/api/replications/gallery",
     });
 
     expect(fetchMock).toHaveBeenCalledTimes(1);
@@ -1131,22 +1162,14 @@ describe("paged gallery continuation", () => {
     expect(screen.queryByText("Initial work")).toBeNull();
 
     await act(async () => {
-      resolveResponse?.({
-        ok: true,
-        status: 200,
-        json: async () => ({
-          data: [deferred],
-          nextCursor: null,
-          hasMore: false,
-        }),
-      });
+      resolveResponse?.(corpusResponse([deferred]));
     });
 
     expect(screen.getByText("Deferred match")).toBeInTheDocument();
     expect(screen.queryByText("Initial work")).toBeNull();
   });
 
-  it("drains the canonical collection before opening a deferred deep-linked viewer", async () => {
+  it("loads the canonical collection before opening a deferred deep-linked viewer", async () => {
     const initial = rep({ title: "Initial work" });
     const linked = rep({ title: "Linked work", slug: "linked-work" });
     const middle = rep({ title: "Middle work" });
@@ -1161,23 +1184,13 @@ describe("paged gallery continuation", () => {
 
     renderExplorer("viewer=linked-work", {
       replications: [initial, linked],
-      deferredReplicationsUrl: "/api/replications/gallery",
-      continuationCursor: "opaque-next",
-      hasMoreReplications: true,
+      completeCorpusUrl: "/api/replications/gallery",
     });
 
     expect(fetchMock).toHaveBeenCalledTimes(1);
     expect(screen.queryByTestId("replication-viewer")).toBeNull();
     await act(async () => {
-      resolveResponse?.({
-        ok: true,
-        status: 200,
-        json: async () => ({
-          data: [middle],
-          nextCursor: null,
-          hasMore: false,
-        }),
-      });
+      resolveResponse?.(corpusResponse([initial, middle, linked]));
     });
 
     expect(screen.getByTestId("replication-viewer")).toHaveAttribute(
@@ -1190,52 +1203,106 @@ describe("paged gallery continuation", () => {
     );
   });
 
-  it("never downloads the corpus on idle and drains deduplicated pages on request", async () => {
-    const initial = rep({ title: "Initial work" });
-    const deferred = rep({ title: "Deferred work" });
-    const fetchMock = vi.fn().mockResolvedValue({
-      ok: true,
-      status: 200,
-      json: async () => ({
-        data: [initial, deferred],
-        nextCursor: null,
-        hasMore: false,
-      }),
-    });
+  it("renders the server digest's order and stats, then fetches the corpus once on idle", async () => {
+    const chelseaWorks = [
+      rep({ artist: "Chelsea Morgan" }),
+      rep({ artist: "Chelsea Morgan" }),
+      rep({ artist: "Chelsea Morgan" }),
+    ];
+    const ariaWork = rep({ artist: "Aria", type: "video" });
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValue(corpusResponse([...chelseaWorks, ariaWork]));
     vi.stubGlobal("fetch", fetchMock);
 
     renderExplorer("", {
-      replications: [initial],
-      deferredReplicationsUrl: "/api/replications/gallery",
-      continuationCursor: "opaque-next",
-      hasMoreReplications: true,
+      replications: [...chelseaWorks, ariaWork],
+      completeCorpusUrl: "/api/replications/gallery",
+      // Video-first order from the server: Aria's one video outranks
+      // Chelsea's three images. Client-side count order would invert this.
+      initialArtistRails: [
+        { key: "aria", label: "Aria", count: 9, imageCount: 8, videoCount: 1 },
+        {
+          key: "chelsea morgan",
+          label: "Chelsea Morgan",
+          count: 3,
+          imageCount: 3,
+          videoCount: 0,
+        },
+      ],
+      artistGroupTotal: 30,
+      corpusStats: { total: 40, artists: 30, effects: 6, images: 35, videos: 5 },
     });
+
+    // No manual load affordance exists; the corpus arrives on its own.
     expect(
-      screen.getByText(
-        "1 loaded work · 1 artists · 1 effects · more available",
-      ),
+      screen.queryByRole("button", { name: /load complete gallery/i }),
+    ).toBeNull();
+    // Rails follow the digest order, not the loaded subset's count order.
+    expect(
+      screen
+        .getAllByTestId("rail")
+        .map((rail) => rail.getAttribute("aria-label")),
+    ).toEqual(["Aria", "Chelsea Morgan"]);
+    // Digest counts are complete, so the rail advertises its true size.
+    expect(
+      screen.getByRole("link", { name: "View all 9" }),
     ).toBeInTheDocument();
+    // The header shows the archive's precomputed stats, not the subset's.
+    expect(
+      screen.getByText("40 works · 30 artists · 6 effects"),
+    ).toBeInTheDocument();
+    expect(screen.getByText("Showing 2 of 30 artists")).toBeInTheDocument();
     expect(fetchMock).not.toHaveBeenCalled();
 
+    await runIdle();
+
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    expect(fetchMock).toHaveBeenCalledWith(
+      "/api/replications/gallery",
+      expect.objectContaining({ headers: { Accept: "application/json" } }),
+    );
+    expect(screen.getByRole("status")).toHaveTextContent(
+      "Complete gallery loaded · 4 works · 2 artists · 1 effects",
+    );
+  });
+
+  it("loads the corpus before revealing more artists than the digest inlined", async () => {
+    const chelseaWork = rep({ artist: "Chelsea Morgan" });
+    const fetchMock = vi.fn().mockResolvedValue(
+      corpusResponse([
+        chelseaWork,
+        rep({ artist: "Aria" }),
+        rep({ artist: "Basil" }),
+      ]),
+    );
+    vi.stubGlobal("fetch", fetchMock);
+
+    renderExplorer("", {
+      replications: [chelseaWork],
+      completeCorpusUrl: "/api/replications/gallery",
+      initialArtistRails: [
+        {
+          key: "chelsea morgan",
+          label: "Chelsea Morgan",
+          count: 1,
+          imageCount: 1,
+          videoCount: 0,
+        },
+      ],
+      artistGroupTotal: 3,
+      corpusStats: { total: 3, artists: 3, effects: 1, images: 3, videos: 0 },
+    });
+
+    expect(screen.getAllByTestId("rail")).toHaveLength(1);
     await act(async () => {
       fireEvent.click(
-        screen.getByRole("button", { name: "Load complete gallery" }),
+        screen.getByRole("button", { name: "Show more artists" }),
       );
     });
 
-    expect(fetchMock).toHaveBeenCalledWith(
-      "/api/replications/gallery?cursor=opaque-next&limit=64",
-      expect.objectContaining({ headers: { Accept: "application/json" } }),
-    );
-    expect(screen.getByText("Deferred work")).toBeInTheDocument();
-    expect(
-      screen.getByText(
-        "Complete gallery loaded · 2 works · 1 artists · 1 effects",
-      ),
-    ).toBeInTheDocument();
-    expect(
-      screen.queryByRole("button", { name: "Load complete gallery" }),
-    ).toBeNull();
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    expect(screen.getAllByTestId("rail")).toHaveLength(3);
   });
 
   it("distinguishes the loaded corpus from the narrower artist-view count", async () => {
@@ -1246,29 +1313,15 @@ describe("paged gallery continuation", () => {
     });
     vi.stubGlobal(
       "fetch",
-      vi.fn().mockResolvedValue({
-        ok: true,
-        status: 200,
-        json: async () => ({
-          data: [withheld],
-          nextCursor: null,
-          hasMore: false,
-        }),
-      }),
+      vi.fn().mockResolvedValue(corpusResponse([initial, withheld])),
     );
 
     renderExplorer("", {
       replications: [initial],
-      deferredReplicationsUrl: "/api/replications/gallery",
-      continuationCursor: "opaque-next",
-      hasMoreReplications: true,
+      completeCorpusUrl: "/api/replications/gallery",
     });
 
-    await act(async () => {
-      fireEvent.click(
-        screen.getByRole("button", { name: "Load complete gallery" }),
-      );
-    });
+    await runIdle();
 
     expect(
       screen.getByText(
@@ -1277,124 +1330,51 @@ describe("paged gallery continuation", () => {
     ).toBeInTheDocument();
   });
 
-  it("announces completion and moves focus when the explicit load button disappears", async () => {
+  it("announces completion politely once the corpus arrives", async () => {
     const initial = rep({ title: "Initial work" });
     const deferred = rep({ title: "Deferred work" });
     vi.stubGlobal(
       "fetch",
-      vi.fn().mockResolvedValue({
-        ok: true,
-        status: 200,
-        json: async () => ({
-          data: [deferred],
-          nextCursor: null,
-          hasMore: false,
-        }),
-      }),
+      vi.fn().mockResolvedValue(corpusResponse([initial, deferred])),
     );
     renderExplorer("", {
       replications: [initial],
-      deferredReplicationsUrl: "/api/replications/gallery",
-      continuationCursor: "opaque-next",
-      hasMoreReplications: true,
+      completeCorpusUrl: "/api/replications/gallery",
     });
 
-    const loadButton = screen.getByRole("button", {
-      name: "Load complete gallery",
-    });
-    loadButton.focus();
-    await act(async () => {
-      fireEvent.click(loadButton);
-    });
-
-    const completion = screen.getByRole("status");
-    expect(completion).toHaveTextContent(
-      "Complete gallery loaded · 2 works · 1 artists · 1 effects",
-    );
-    expect(document.activeElement).toBe(completion);
-  });
-
-  it("does not steal focus when the user moves away during the gallery drain", async () => {
-    const initial = rep({ title: "Initial work" });
-    let resolveResponse: ((response: unknown) => void) | undefined;
-    vi.stubGlobal(
-      "fetch",
-      vi.fn(
-        () =>
-          new Promise((resolve) => {
-            resolveResponse = resolve;
-          }),
-      ),
-    );
-    renderExplorer("", {
-      replications: [initial],
-      deferredReplicationsUrl: "/api/replications/gallery",
-      continuationCursor: "opaque-next",
-      hasMoreReplications: true,
-    });
-
-    const loadButton = screen.getByRole("button", {
-      name: "Load complete gallery",
-    });
     const search = screen.getByRole("textbox", {
       name: "Search replications",
     });
-    loadButton.focus();
-    fireEvent.click(loadButton);
     search.focus();
-
-    await act(async () => {
-      resolveResponse?.({
-        ok: true,
-        status: 200,
-        json: async () => ({ data: [], nextCursor: null, hasMore: false }),
-      });
-    });
+    await runIdle();
 
     expect(screen.getByRole("status")).toHaveTextContent(
-      "Complete gallery loaded",
+      "Complete gallery loaded · 2 works · 1 artists · 1 effects",
     );
+    expect(screen.getByText("Deferred work")).toBeInTheDocument();
+    // Completion never steals focus — there is no control to return it to.
     expect(document.activeElement).toBe(search);
   });
 
-  it("drains sparse bounded pages before applying a corpus-wide search", async () => {
+  it("loads the corpus before applying a corpus-wide search", async () => {
     vi.useFakeTimers();
     const initial = rep({ title: "Initial work" });
     const deferred = rep({ title: "Deferred match" });
     const fetchMock = vi
       .fn()
-      .mockResolvedValueOnce({
-        ok: true,
-        status: 200,
-        json: async () => ({
-          data: [],
-          nextCursor: "opaque-after-empty",
-          hasMore: true,
-        }),
-      })
-      .mockResolvedValueOnce({
-        ok: true,
-        status: 200,
-        json: async () => ({
-          data: [deferred],
-          nextCursor: null,
-          hasMore: false,
-        }),
-      });
+      .mockResolvedValue(corpusResponse([initial, deferred]));
     vi.stubGlobal("fetch", fetchMock);
 
     renderExplorer("", {
       replications: [initial],
-      deferredReplicationsUrl: "/api/replications/gallery",
-      continuationCursor: "opaque-next",
-      hasMoreReplications: true,
+      completeCorpusUrl: "/api/replications/gallery",
     });
     fireEvent.change(
       screen.getByRole("textbox", { name: "Search replications" }),
       { target: { value: "deferred" } },
     );
     expect(fetchMock).toHaveBeenCalledWith(
-      "/api/replications/gallery?cursor=opaque-next&limit=64",
+      "/api/replications/gallery",
       expect.anything(),
     );
     expect(screen.getByRole("status")).toHaveTextContent(
@@ -1408,30 +1388,22 @@ describe("paged gallery continuation", () => {
     expect(navMocks.replace).toHaveBeenCalledWith("/replications?q=deferred", {
       scroll: false,
     });
-    expect(fetchMock).toHaveBeenCalledTimes(2);
+    expect(fetchMock).toHaveBeenCalledTimes(1);
   });
 
-  it("loads every bounded continuation before opening View all", async () => {
+  it("loads the complete corpus before opening View all", async () => {
     const initial = Array.from({ length: 15 }, (_, index) =>
       rep({ title: `Initial work ${index + 1}` }),
     );
     const deferred = rep({ title: "Deferred work" });
-    const fetchMock = vi.fn().mockResolvedValue({
-      ok: true,
-      status: 200,
-      json: async () => ({
-        data: [deferred],
-        nextCursor: null,
-        hasMore: false,
-      }),
-    });
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValue(corpusResponse([...initial, deferred]));
     vi.stubGlobal("fetch", fetchMock);
 
     renderExplorer("", {
       replications: initial,
-      deferredReplicationsUrl: "/api/replications/gallery",
-      continuationCursor: "opaque-next",
-      hasMoreReplications: true,
+      completeCorpusUrl: "/api/replications/gallery",
     });
     await act(async () => {
       fireEvent.click(screen.getByRole("link", { name: "View all" }));
@@ -1452,22 +1424,12 @@ describe("paged gallery continuation", () => {
     const fetchMock = vi
       .fn()
       .mockResolvedValueOnce({ ok: false, status: 503 })
-      .mockResolvedValueOnce({
-        ok: true,
-        status: 200,
-        json: async () => ({
-          data: [deferred],
-          nextCursor: null,
-          hasMore: false,
-        }),
-      });
+      .mockResolvedValueOnce(corpusResponse([...initial, deferred]));
     vi.stubGlobal("fetch", fetchMock);
 
     renderExplorer("", {
       replications: initial,
-      deferredReplicationsUrl: "/api/replications/gallery",
-      continuationCursor: "opaque-next",
-      hasMoreReplications: true,
+      completeCorpusUrl: "/api/replications/gallery",
     });
     await act(async () => {
       fireEvent.click(screen.getByRole("link", { name: "View all" }));
@@ -1506,19 +1468,13 @@ describe("paged gallery continuation", () => {
 
     renderExplorer("", {
       replications: initial,
-      deferredReplicationsUrl: "/api/replications/gallery",
-      continuationCursor: "opaque-next",
-      hasMoreReplications: true,
+      completeCorpusUrl: "/api/replications/gallery",
     });
     fireEvent.click(screen.getByRole("link", { name: "View all" }));
     fireEvent.click(screen.getByRole("radio", { name: "By effect" }));
 
     await act(async () => {
-      resolveResponse?.({
-        ok: true,
-        status: 200,
-        json: async () => ({ data: [], nextCursor: null, hasMore: false }),
-      });
+      resolveResponse?.(corpusResponse([]));
     });
 
     expect(screen.queryByTestId("replication-viewer")).toBeNull();
@@ -1537,22 +1493,14 @@ describe("paged gallery continuation", () => {
       title: "Deferred closed-eye work",
       viewing_mode_tags: ["closed-eye"],
     });
-    const fetchMock = vi.fn().mockResolvedValue({
-      ok: true,
-      status: 200,
-      json: async () => ({
-        data: [deferred],
-        nextCursor: null,
-        hasMore: false,
-      }),
-    });
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValue(corpusResponse([initial, deferred]));
     vi.stubGlobal("fetch", fetchMock);
 
     renderExplorer("viewing=open-eye", {
       replications: [initial],
-      deferredReplicationsUrl: "/api/replications/gallery",
-      continuationCursor: "opaque-next",
-      hasMoreReplications: true,
+      completeCorpusUrl: "/api/replications/gallery",
     });
     await act(async () => {
       fireEvent.click(
@@ -1580,22 +1528,14 @@ describe("paged gallery continuation", () => {
     });
     vi.stubGlobal(
       "fetch",
-      vi.fn().mockResolvedValue({
-        ok: true,
-        status: 200,
-        json: async () => ({
-          data: [laterSecond, laterFirst],
-          nextCursor: null,
-          hasMore: false,
-        }),
-      }),
+      vi
+        .fn()
+        .mockResolvedValue(corpusResponse([initial, laterSecond, laterFirst])),
     );
 
     renderExplorer("", {
       replications: [initial],
-      deferredReplicationsUrl: "/api/replications/gallery",
-      continuationCursor: "opaque-next",
-      hasMoreReplications: true,
+      completeCorpusUrl: "/api/replications/gallery",
       contributorDirectory: [
         {
           key: "deferred-profile",
@@ -1606,11 +1546,7 @@ describe("paged gallery continuation", () => {
         },
       ],
     });
-    await act(async () => {
-      fireEvent.click(
-        screen.getByRole("button", { name: "Load complete gallery" }),
-      );
-    });
+    await runIdle();
 
     const deferredRail = screen.getByRole("region", {
       name: "Deferred Artist",
@@ -1629,7 +1565,7 @@ describe("paged gallery continuation", () => {
     ).toEqual(["Later first", "Later second"]);
   });
 
-  it("preserves loaded works and retries the same cursor after a failed page", async () => {
+  it("preserves loaded works and allows retry after a failed corpus fetch", async () => {
     const initial = rep({ title: "Initial work" });
     const deferred = rep({ title: "Deferred result" });
     vi.stubGlobal(
@@ -1637,28 +1573,14 @@ describe("paged gallery continuation", () => {
       vi
         .fn()
         .mockResolvedValueOnce({ ok: false, status: 503 })
-        .mockResolvedValueOnce({
-          ok: true,
-          status: 200,
-          json: async () => ({
-            data: [deferred],
-            nextCursor: null,
-            hasMore: false,
-          }),
-        }),
+        .mockResolvedValueOnce(corpusResponse([initial, deferred])),
     );
 
     renderExplorer("", {
       replications: [initial],
-      deferredReplicationsUrl: "/api/replications/gallery",
-      continuationCursor: "opaque-next",
-      hasMoreReplications: true,
+      completeCorpusUrl: "/api/replications/gallery",
     });
-    await act(async () => {
-      fireEvent.click(
-        screen.getByRole("button", { name: "Load complete gallery" }),
-      );
-    });
+    await runIdle();
 
     expect(
       screen.getByText(/complete gallery could not finish loading/i),
@@ -1680,22 +1602,12 @@ describe("paged gallery continuation", () => {
     const fetchMock = vi
       .fn()
       .mockResolvedValueOnce({ ok: false, status: 503 })
-      .mockResolvedValueOnce({
-        ok: true,
-        status: 200,
-        json: async () => ({
-          data: [],
-          nextCursor: null,
-          hasMore: false,
-        }),
-      });
+      .mockResolvedValueOnce(corpusResponse([initial]));
     vi.stubGlobal("fetch", fetchMock);
 
     renderExplorer("viewing=open-eye", {
       replications: [initial],
-      deferredReplicationsUrl: "/api/replications/gallery",
-      continuationCursor: "opaque-next",
-      hasMoreReplications: true,
+      completeCorpusUrl: "/api/replications/gallery",
     });
     await act(async () => {
       fireEvent.click(
@@ -1716,7 +1628,7 @@ describe("paged gallery continuation", () => {
     });
   });
 
-  it("runs only the newest pending action after a shared drain is retried", async () => {
+  it("runs only the newest pending action after a shared corpus fetch is retried", async () => {
     const initial = rep({ title: "Initial work" });
     let resolveFirstResponse: ((response: unknown) => void) | undefined;
     const fetchMock = vi
@@ -1727,22 +1639,12 @@ describe("paged gallery continuation", () => {
             resolveFirstResponse = resolve;
           }),
       )
-      .mockResolvedValueOnce({
-        ok: true,
-        status: 200,
-        json: async () => ({
-          data: [],
-          nextCursor: null,
-          hasMore: false,
-        }),
-      });
+      .mockResolvedValueOnce(corpusResponse([initial]));
     vi.stubGlobal("fetch", fetchMock);
 
     renderExplorer("", {
       replications: [initial],
-      deferredReplicationsUrl: "/api/replications/gallery",
-      continuationCursor: "opaque-next",
-      hasMoreReplications: true,
+      completeCorpusUrl: "/api/replications/gallery",
     });
     fireEvent.click(screen.getByRole("radio", { name: "Videos" }));
     fireEvent.click(screen.getByRole("radio", { name: "By effect" }));
@@ -1780,9 +1682,7 @@ describe("paged gallery continuation", () => {
       replications: [initial],
       effects,
       contributorDirectory,
-      deferredReplicationsUrl: "/api/replications/gallery",
-      continuationCursor: "opaque-next",
-      hasMoreReplications: true,
+      completeCorpusUrl: "/api/replications/gallery",
     };
 
     const view = renderExplorer("", props);
@@ -1791,43 +1691,25 @@ describe("paged gallery continuation", () => {
     navMocks.params = new URLSearchParams("view=effect");
     view.rerender(<ReplicationsGalleryExplorer {...props} />);
     await act(async () => {
-      resolveResponse?.({
-        ok: true,
-        status: 200,
-        json: async () => ({ data: [], nextCursor: null, hasMore: false }),
-      });
+      resolveResponse?.(corpusResponse([]));
     });
 
     expect(navMocks.push).not.toHaveBeenCalled();
   });
 
-  it("keeps continuation reachable when the first publishable page is empty", async () => {
+  it("keeps the gallery reachable when the prerendered subset is empty", async () => {
     const deferred = rep({ title: "First visible work" });
     vi.stubGlobal(
       "fetch",
-      vi.fn().mockResolvedValue({
-        ok: true,
-        status: 200,
-        json: async () => ({
-          data: [deferred],
-          nextCursor: null,
-          hasMore: false,
-        }),
-      }),
+      vi.fn().mockResolvedValue(corpusResponse([deferred])),
     );
 
     renderExplorer("", {
       replications: [],
-      deferredReplicationsUrl: "/api/replications/gallery",
-      continuationCursor: "opaque-after-filtered-page",
-      hasMoreReplications: true,
+      completeCorpusUrl: "/api/replications/gallery",
     });
 
-    await act(async () => {
-      fireEvent.click(
-        screen.getByRole("button", { name: "Load complete gallery" }),
-      );
-    });
+    await runIdle();
 
     expect(screen.getByText("First visible work")).toBeInTheDocument();
     expect(screen.queryByText("No replications yet")).toBeNull();

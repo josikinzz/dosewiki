@@ -3,7 +3,7 @@ import { describe, expect, it, vi } from "vitest";
 
 const pageMocks = vi.hoisted(() => ({
   explorer: vi.fn(() => null),
-  getPublicGalleryReplicationPage: vi.fn(),
+  getPublicGalleryReplications: vi.fn(),
   getPublicGalleryReplicationBySlug: vi.fn(),
   getPublicEffects: vi.fn(),
   getPublicContributorDirectory: vi.fn(),
@@ -44,7 +44,7 @@ vi.mock("@/features/replications/components/ReplicationsTabNav", () => ({
   ReplicationsTabNav: () => null,
 }));
 vi.mock("@server/convex/publicData", () => ({
-  getPublicGalleryReplicationPage: pageMocks.getPublicGalleryReplicationPage,
+  getPublicGalleryReplications: pageMocks.getPublicGalleryReplications,
   getPublicGalleryReplicationBySlug:
     pageMocks.getPublicGalleryReplicationBySlug,
   getPublicEffects: pageMocks.getPublicEffects,
@@ -75,24 +75,28 @@ describe("replications playlist metadata", () => {
   });
 });
 
-describe("replications first page", () => {
-  it("server-renders one bounded page and forwards its continuation", async () => {
-    const preview = {
-      _id: "work-id",
-      slug: "work",
-      title: "Work",
-      artist: "Artist",
-      type: "image",
+describe("replications prerendered default view", () => {
+  it("server-renders the video-first artist rails with complete-corpus stats", async () => {
+    const workOf = (index: number, artist: string, type: "image" | "video") => ({
+      _id: `work-${index}`,
+      slug: `work-${index}`,
+      title: `Work ${index}`,
+      artist,
+      type,
       format: "webp",
       effect_slug: "geometry",
-      url: "https://media.example/work.webp",
+      url: `https://media.example/work-${index}.webp`,
       created_at: "2026-01-01",
-    };
-    pageMocks.getPublicGalleryReplicationPage.mockResolvedValueOnce({
-      items: [preview],
-      cursor: "opaque-next",
-      isDone: false,
     });
+    // Prolific image-only artist vs a thinner artist with a video: the
+    // default video-first order must put the video artist's rail first.
+    const corpus = [
+      ...Array.from({ length: 3 }, (_, index) =>
+        workOf(index, "Prolific Artist", "image"),
+      ),
+      workOf(10, "Video Artist", "video"),
+    ];
+    pageMocks.getPublicGalleryReplications.mockResolvedValueOnce(corpus);
     pageMocks.getPublicEffects.mockResolvedValueOnce([
       { slug: "geometry", name: "Geometry" },
     ]);
@@ -103,13 +107,6 @@ describe("replications first page", () => {
         aliases: [],
         avatarUrl: "https://media.example/first-avatar.webp",
       },
-      {
-        key: "deferred",
-        displayName: "Deferred Artist",
-        aliases: ["Later Credit"],
-        avatarUrl: "https://media.example/deferred-avatar.webp",
-        replicationOrder: ["later-work"],
-      },
     ];
     pageMocks.getPublicContributorDirectory.mockResolvedValueOnce(directory);
 
@@ -118,20 +115,62 @@ describe("replications first page", () => {
     });
     const explorer = page.props.children[2];
 
-    expect(pageMocks.getPublicGalleryReplicationPage).toHaveBeenCalledWith(
-      undefined,
-      64,
-    );
+    expect(pageMocks.getPublicGalleryReplications).toHaveBeenCalledTimes(1);
     expect(explorer.props).toMatchObject({
-      replications: [preview],
-      continuationCursor: "opaque-next",
-      hasMoreReplications: true,
-      deferredReplicationsUrl: "/api/replications/gallery",
+      completeCorpusUrl: "/api/replications/gallery",
+      artistGroupTotal: 2,
+      corpusStats: {
+        total: 4,
+        artists: 2,
+        effects: 1,
+        images: 3,
+        videos: 1,
+      },
       contributorDirectory: directory,
     });
+    expect(
+      explorer.props.initialArtistRails.map(
+        ({ label, count }: { label: string; count: number }) => ({
+          label,
+          count,
+        }),
+      ),
+    ).toEqual([
+      { label: "Video Artist", count: 1 },
+      { label: "Prolific Artist", count: 3 },
+    ]);
+    expect(
+      explorer.props.replications.map(({ _id }: { _id: string }) => _id),
+    ).toEqual(["work-10", "work-0", "work-1", "work-2"]);
   });
 
-  it("server-renders a bounded viewer lookup when the linked work is beyond the first page", async () => {
+  it("caps each prerendered rail at its preview length", async () => {
+    const corpus = Array.from({ length: 20 }, (_, index) => ({
+      _id: `work-${index}`,
+      slug: `work-${index}`,
+      title: `Work ${index}`,
+      artist: "Prolific Artist",
+      type: "image" as const,
+      format: "webp",
+      url: `https://media.example/work-${index}.webp`,
+      created_at: "2026-01-01",
+    }));
+    pageMocks.getPublicGalleryReplications.mockResolvedValueOnce(corpus);
+    pageMocks.getPublicEffects.mockResolvedValueOnce([]);
+    pageMocks.getPublicContributorDirectory.mockResolvedValueOnce([]);
+
+    const page = await ReplicationsPage({
+      searchParams: Promise.resolve({}),
+    });
+    const explorer = page.props.children[2];
+
+    expect(explorer.props.replications).toHaveLength(14);
+    expect(explorer.props.initialArtistRails).toEqual([
+      expect.objectContaining({ label: "Prolific Artist", count: 20 }),
+    ]);
+  });
+
+  it("server-renders a bounded viewer lookup when the linked work is beyond the prerendered rails", async () => {
     const firstPageWork = {
       _id: "first-id",
       slug: "first-work",
@@ -149,11 +188,9 @@ describe("replications first page", () => {
       title: "Linked work",
       artist: "Deferred Artist",
     };
-    pageMocks.getPublicGalleryReplicationPage.mockResolvedValueOnce({
-      items: [firstPageWork],
-      cursor: "opaque-next",
-      isDone: false,
-    });
+    pageMocks.getPublicGalleryReplications.mockResolvedValueOnce([
+      firstPageWork,
+    ]);
     pageMocks.getPublicGalleryReplicationBySlug.mockResolvedValueOnce(
       linkedWork,
     );

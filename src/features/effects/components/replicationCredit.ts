@@ -15,14 +15,18 @@ const RIGHTS_STATUS_LABELS: Record<string, string> = {
 
 /**
  * Credit lines that mark the *absence* of an attributable creator rather than
- * naming one. "Unknown" is the corpus's empty-credit marker; "Anonymous" is
- * the marker contributor profile whose works fold into the Unattributed
- * bucket (T-1) — the word must never render as a creator on replication
- * surfaces. "Various artists" and "Midjourney" are markers too, but there the
- * marker *is* the credit, so they stay known creators with their own sections.
+ * naming one. "Unknown" is the corpus's empty-credit marker; "Unknown Artist"
+ * is the Reddit-intake marker for missing or deleted posters (see
+ * `convex/lib/replicationAttribution.ts`, and `NON_PROFILE_IDENTITIES` in
+ * `convex/lib/contributorProfileImports.ts`); "Anonymous" is the marker
+ * contributor profile whose works fold into the Unattributed bucket (T-1) —
+ * the word must never render as a creator on replication surfaces. "Various
+ * artists" and "Midjourney" are markers too, but there the marker *is* the
+ * credit, so they stay known creators with their own sections.
  */
 const UNATTRIBUTED_CREDIT_MARKERS: Record<string, true> = {
   unknown: true,
+  "unknown artist": true,
   anonymous: true,
 };
 
