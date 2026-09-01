@@ -62,6 +62,10 @@ prior state; it never means deleting an uploaded object.
 
 Alias decisions require both the independent mapping review and `full-production-collision-audit.json`. The authoritative 2,119-profile audit supersedes the earlier 152-profile assumption: WHERESSUEDE and WOOODFIELD already exist as separate profile rows, so both are blocked merge-required collisions rather than alias additions. A future merge must be lossless, typed, separately approved, and guarded by full profile-set CAS digest `aea1bbeac1ce5a10e7e3a0981af17b40909c13ecf04fcf49299bbb32f66c2d8d`. Existing StingrayZ remains a no-write preservation decision; Xanny and Sunterry remain blocked.
 
+Final chronology review retains only six creator changes with finite, strictly ordered epoch-millisecond timestamps and verified source digests. The other fourteen candidates are explicit no-write poster-preservation journal entries; no calendar-date or year-level evidence is converted into invented timestamp precision.
+
+Final profile binding covers all 48 formerly null-profile verification operations: 21 collision-checked profile creates, five exact existing-profile binds, and 22 explicit unresolved no-write operations. Every create/bind carries the full 2,119-profile CAS expectation, a content-bound operation ID, rollback requirements, and its verification dependency. Joint-credit and pseudonymous/handle profiles retain the independent audit's scope flags. Delivery receipts are intentionally absent until a final receipt artifact exists.
+
 ## Guarded Convex executor
 
 `executor.mjs` is the only projection-to-Convex bridge. It defaults to a local
@@ -83,10 +87,28 @@ node scripts/replications/identity-social/build-delivery-receipts.mjs \
 This makes no production writes. It requires the completed seven-object avatar
 ledger and 9,171-object social-card ledger, binds them to all 9,179 projection
 operations, and streams every distinct CDN object to verify its full byte count
-and SHA-256. It preserves `verified-reuse` versus `uploaded-verified` and fails
+and SHA-256. The default avatar ledger is the current-base
+`avatar-production-publish-ledger-0f70de.jsonl`: it was produced in verify-only
+mode against the seven already-published immutable keys, so generating current
+receipts never reuploads those avatars. Its `remote-verified` rows become
+`verified-reuse` receipts while retaining the original ledger status as
+provenance. A ledger bound to any other base projection is rejected.
+
+The schema-v2 sidecar binds each receipt to the immutable base projection while
+keeping all receipt bytes outside that projection, so receipt generation cannot
+change its digest or operation IDs. The sidecar carries its own canonical
+`receiptSidecarSha256`; pass both the file and exact digest to the executor:
+
+```sh
+npm run replications:identity-social:execute -- \
+  --projection-digest=0f70de407c24ef2d7e4c3b99fa6a4b770a479ca79e4166523c1050abc30794ee \
+  --delivery-receipts=/absolute/path/to/identity-social-delivery-receipts.json \
+  --receipt-sidecar-digest=<exact-receiptSidecarSha256>
+```
+
+It preserves `verified-reuse` versus `uploaded-verified` and fails
 closed on missing objects, collisions, plan drift, or ambiguous entity/key
 bindings. Publication timestamps make unchanged-input reruns deterministic.
-Pass the output to the executor with `--delivery-receipts=<path>`.
 
 ```sh
 npm run replications:identity-social:execute -- \

@@ -2,18 +2,18 @@
 import { createHash } from "node:crypto";
 import { readFile, writeFile } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
-import { canonicalJson, digest } from "./executor-lib.mjs";
+import { canonicalJson, digest, verifyBaseProjection } from "./executor-lib.mjs";
 
 const CAMPAIGN = "/Users/josie/Documents/Dose Wiki Media Review/Data/Replication Identity and Social Pass 2026-08-31";
 export const DEFAULTS = {
   projection: `${CAMPAIGN}/identity-social-production-projection.json`,
-  avatars: `${CAMPAIGN}/avatar-production-publish-ledger.jsonl`,
+  avatars: `${CAMPAIGN}/avatar-production-publish-ledger-0f70de.jsonl`,
   social: `${CAMPAIGN}/social-cards/r2-production-publish-ledger.jsonl`,
   candidate: `${CAMPAIGN}/social-cards/r2-social-card-candidate-manifest.json`,
   output: `${CAMPAIGN}/identity-social-delivery-receipts.json`,
 };
 export const VERIFIER = "dosewiki-admin/identity-social-full-byte-verifier-v1";
-const GOOD = new Set(["verified-reuse", "uploaded-verified"]);
+const GOOD = new Set(["verified-reuse", "uploaded-verified", "remote-verified"]);
 const SHA = /^[0-9a-f]{64}$/;
 const KEY = /^media\/sha256\/([0-9a-f]{2})\/([0-9a-f]{64})\.(?:jpg|jpeg|png|webp)$/;
 
@@ -94,21 +94,25 @@ function receipt(operation, ledger, url, httpStatus) {
     r2_key: ledger.key,
     sha256,
     byte_size: size,
-    publication_status: ledger.status,
+    publication_status: ledger.status === "remote-verified" ? "verified-reuse" : ledger.status,
+    source_ledger_status: ledger.status,
     publication_recorded_at: verifiedAt,
+    binding_mode: operation.kind === "profile-avatar" ? "verify-only-existing-object" : "verified-publication",
     receipt: { ...core, receipt_digest: digest(core) },
   };
 }
 
 export async function buildDeliveryReceipts({ projection, avatarRecords, socialRecords, candidate, fetchImpl = fetch, concurrency = 12 }) {
-  required(projection.artifactType === "replication-identity-social-local-projection", "Unexpected projection artifact");
+  verifyBaseProjection(projection, projection.projectionSha256);
   const avatarOps = projection.operations.filter((row) => row.kind === "profile-avatar");
   const socialOps = projection.operations.filter((row) => row.kind === "social-asset");
   required(avatarOps.length === 7, `Expected 7 avatar operations, got ${avatarOps.length}`);
   required(socialOps.length === 9172, `Expected 9,172 social operations, got ${socialOps.length}`);
   required(candidate.promotion?.logicalCardCount === 9172 && candidate.promotion?.uniqueObjectCount === 9171, "Candidate manifest coverage is not 9,172 logical/9,171 unique");
-  const avatarPlan = avatarRecords.find((row) => row.type === "full-complete")?.planDigest;
+  const avatarCompletion = avatarRecords.findLast((row) => row.type === "full-complete");
+  const avatarPlan = avatarCompletion?.planDigest;
   required(avatarPlan, "Avatar ledger has no completed full run");
+  required(avatarCompletion.projectionSha256 === projection.projectionSha256, "Avatar verify-only ledger targets a different base projection");
   const avatars = indexVerifiedLedger(avatarRecords, { planDigest: avatarPlan, expectedObjects: 7, completionType: "full-complete", label: "Avatar" });
   const socialPlan = candidate.promotion.planDigest;
   const social = indexVerifiedLedger(socialRecords, { planDigest: socialPlan, expectedObjects: 9171, completionType: "full-complete", label: "Social-card" });
@@ -150,14 +154,16 @@ export async function buildDeliveryReceipts({ projection, avatarRecords, socialR
     receipts[operation.operationId] = bound;
     required(bound.sha256 === sha, `Receipt hash drift for ${operation.operationId}`);
   }
-  return {
-    artifactType: "identity-social-production-delivery-receipts",
-    schemaVersion: 1,
-    projectionSha256: projection.projectionSha256,
+  const core = {
+    artifactType: "identity-social-production-delivery-receipt-sidecar",
+    schemaVersion: 2,
+    baseProjectionSha256: projection.projectionSha256,
+    baseProjectionOperationCount: projection.operations.length,
     verifier: VERIFIER,
     counts: { avatars: 7, socialLogical: 9172, socialUnique: 9171, uniqueCdnObjects: 9178, uploaded: Object.values(receipts).filter((x) => x.publication_status === "uploaded-verified").length, reused: Object.values(receipts).filter((x) => x.publication_status === "verified-reuse").length },
     receipts,
   };
+  return { ...core, receiptSidecarSha256: digest(core) };
 }
 
 export async function run(argv = process.argv.slice(2), adapters = {}) {
