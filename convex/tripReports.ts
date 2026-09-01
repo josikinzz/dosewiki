@@ -1,5 +1,5 @@
 import { v } from "convex/values";
-import { query, mutation, internalMutation } from "./_generated/server";
+import { query, mutation, internalMutation, internalQuery } from "./_generated/server";
 import { requireAuth, requireEditorWrite } from "./lib/auth";
 import {
   assertAuthorNameClaimAdjudicated,
@@ -18,6 +18,11 @@ import {
   tripReportImportInputValidator,
   tripReportSubstanceValidator,
 } from "./tripReportContract";
+import {
+  deleteTripReportSubstanceRows,
+  findTripReportsBySubstanceNames,
+  syncTripReportSubstanceRows,
+} from "./lib/tripReportSubstanceIndex";
 
 /**
  * Trip report functions.
@@ -67,31 +72,20 @@ export const getFeatured = query({
  */
 export const getBySubstance = query({
   args: { substanceName: v.string() },
-  handler: async (ctx, args) => {
-    const allReports = await ctx.db.query("tripReports").collect();
-    const lowerName = args.substanceName.toLowerCase();
-
-    return allReports.filter((report) =>
-      report.substances.some((s) => s.name.toLowerCase() === lowerName)
-    );
-  },
+  handler: async (ctx, args) => findTripReportsBySubstanceNames(ctx, [args.substanceName]),
 });
 
 /**
  * Get trip reports by multiple substance names (batch query).
  * Filters reports where any substance matches any of the given names (case-insensitive).
  * This consolidates multiple getBySubstance calls into a single query.
+ *
+ * Served from the `tripReportSubstances` join table once it is populated; the
+ * legacy whole-table scan remains only as the pre-backfill fallback.
  */
 export const getBySubstanceNames = query({
   args: { substanceNames: v.array(v.string()) },
-  handler: async (ctx, args) => {
-    if (args.substanceNames.length === 0) return [];
-    const allReports = await ctx.db.query("tripReports").collect();
-    const lowerNames = new Set(args.substanceNames.map(n => n.toLowerCase()));
-    return allReports.filter((report) =>
-      report.substances.some((s) => lowerNames.has(s.name.toLowerCase()))
-    );
-  },
+  handler: async (ctx, args) => findTripReportsBySubstanceNames(ctx, args.substanceNames),
 });
 
 /**
@@ -397,6 +391,7 @@ export const update = mutation({
     }
 
     await ctx.db.patch(args.id, patch);
+    await syncTripReportSubstanceRows(ctx, args.id, updates.substances);
 
     return { updated: true, slug: row.slug };
   },
@@ -427,9 +422,11 @@ export const bulkImport = internalMutation({
 
         if (existing) {
           await ctx.db.patch(existing._id, report);
+          await syncTripReportSubstanceRows(ctx, existing._id, report.substances);
           results.updated++;
         } else {
-          await ctx.db.insert("tripReports", report);
+          const reportId = await ctx.db.insert("tripReports", report);
+          await syncTripReportSubstanceRows(ctx, reportId, report.substances);
           results.created++;
         }
       } catch (error) {
@@ -451,6 +448,7 @@ export const deleteAll = internalMutation({
     const allReports = await ctx.db.query("tripReports").collect();
 
     for (const report of allReports) {
+      await deleteTripReportSubstanceRows(ctx, report._id);
       await ctx.db.delete(report._id);
     }
 
@@ -483,6 +481,7 @@ export const deleteById = mutation({
       return { deleted: false, reason: "not_found" as const };
     }
 
+    await deleteTripReportSubstanceRows(ctx, args.id);
     await ctx.db.delete(args.id);
     return { deleted: true };
   },
@@ -520,5 +519,74 @@ export const renameAuthor = mutation({
     }
 
     return { updated };
+  },
+});
+
+const SUBSTANCE_INDEX_BACKFILL_PAGE_SIZE = 50;
+const SUBSTANCE_INDEX_BACKFILL_MAX_PAGE_SIZE = 200;
+
+/**
+ * Internal mutation: (re)build one page of the `tripReportSubstances` join
+ * table from the stored reports. Idempotent: rows already in place are kept,
+ * stale ones removed. Run to completion by
+ * `scripts/convex/backfill-trip-report-substance-index.mjs`, which follows
+ * `cursor` until `isDone`.
+ */
+export const backfillSubstanceIndex = internalMutation({
+  args: {
+    cursor: v.optional(v.string()),
+    limit: v.optional(v.number()),
+  },
+  handler: async (ctx, args) => {
+    const requested = Math.floor(args.limit ?? SUBSTANCE_INDEX_BACKFILL_PAGE_SIZE);
+    const numItems = Math.min(Math.max(requested, 1), SUBSTANCE_INDEX_BACKFILL_MAX_PAGE_SIZE);
+    const page = await ctx.db
+      .query("tripReports")
+      .paginate({ cursor: args.cursor ?? null, numItems });
+
+    let inserted = 0;
+    let removed = 0;
+    for (const report of page.page) {
+      const result = await syncTripReportSubstanceRows(ctx, report._id, report.substances);
+      inserted += result.inserted;
+      removed += result.removed;
+    }
+
+    return {
+      processed: page.page.length,
+      inserted,
+      removed,
+      cursor: page.continueCursor,
+      isDone: page.isDone,
+    };
+  },
+});
+
+/**
+ * Internal query: how much of the corpus the join table covers, for the
+ * backfill script's dry run and post-run check.
+ */
+export const getSubstanceIndexBackfillStatus = internalQuery({
+  args: {},
+  handler: async (ctx) => {
+    const reports = await ctx.db.query("tripReports").collect();
+    const rows = await ctx.db.query("tripReportSubstances").collect();
+    const indexedReportIds = new Set(rows.map((row) => row.report_id as string));
+    const reportIds = new Set(reports.map((report) => report._id as string));
+    let orphanRows = 0;
+    for (const row of rows) {
+      if (!reportIds.has(row.report_id as string)) orphanRows += 1;
+    }
+    const reportsMissingRows = reports.filter(
+      (report) => report.substances.length > 0 && !indexedReportIds.has(report._id as string),
+    ).length;
+    return {
+      reportCount: reports.length,
+      joinRowCount: rows.length,
+      indexedReportCount: indexedReportIds.size,
+      reportsMissingRows,
+      orphanRows,
+      indexActive: rows.length > 0,
+    };
   },
 });

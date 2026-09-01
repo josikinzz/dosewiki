@@ -14,6 +14,7 @@ import {
   projectPublicPreview,
   projectSearchInput,
 } from "./lib/substanceReadProjections";
+import { resolveSubstanceSlug } from "./lib/substanceProjectionCore";
 import {
   getEditorSubstanceBySlugHandler,
   getPublicAboutPreviewCandidatesHandler,
@@ -342,6 +343,71 @@ export const getPublicPreviewsPage = query({
       items: result.page.map(projectPublicPreview),
       cursor: result.continueCursor,
       isDone: result.isDone,
+    };
+  },
+});
+
+const PUBLIC_SLUG_PAGE_SIZE = 160;
+const PUBLIC_SLUG_PAGE_MAX_SIZE = 400;
+/**
+ * Bytes of article JSON one slug page may pull before it hands back a cursor.
+ * Convex bills a query for every document it reads even when the projection
+ * keeps a single field, so a slug page is bounded by article bytes rather than
+ * by item count alone; the corpus averages ~36 KB per article with 300 KB
+ * outliers, and a function execution may read at most 8 MiB.
+ */
+const PUBLIC_SLUG_PAGE_BYTE_BUDGET = 4 * 1024 * 1024;
+
+function clampPublicSlugPageSize(requested: number | undefined): number {
+  const normalized = Math.floor(requested ?? PUBLIC_SLUG_PAGE_SIZE);
+  return Math.min(Math.max(normalized, 1), PUBLIC_SLUG_PAGE_MAX_SIZE);
+}
+
+/**
+ * Every public substance slug, in `by_slug` order, in far fewer round trips
+ * than draining `getPublicPreviewsPage`: article routes only need the slug set
+ * to decide which wiki links resolve, and the previews page ships title,
+ * summary and categories for 32 articles per call.
+ *
+ * Public visibility follows the same rule as `getPublicPreviewsPage` and
+ * `getPublicBySlug`: every stored article is public, and the slug is resolved
+ * through `resolveSubstanceSlug` so a row without a stored slug still reports
+ * the address the article renders under.
+ *
+ * `cursor` is the last stored slug of the previous page (rows without a stored
+ * slug sort first in the index and are only ever consumed by the first page,
+ * which never stops inside that run).
+ */
+export const getPublicSlugsPage = query({
+  args: publicCorpusPageArgs,
+  handler: async (ctx, args) => {
+    const maxItems = clampPublicSlugPageSize(args.limit);
+    const cursor = args.cursor;
+    const source = cursor
+      ? ctx.db.query("substanceIndex").withIndex("by_slug", (q) => q.gt("slug", cursor))
+      : ctx.db.query("substanceIndex").withIndex("by_slug");
+
+    const items: string[] = [];
+    let bytes = 0;
+    let lastStoredSlug: string | undefined;
+    let isDone = true;
+    for await (const article of source.order("asc")) {
+      items.push(resolveSubstanceSlug(article));
+      bytes += JSON.stringify(article).length;
+      lastStoredSlug = article.slug;
+      if (
+        lastStoredSlug !== undefined &&
+        (items.length >= maxItems || bytes >= PUBLIC_SLUG_PAGE_BYTE_BUDGET)
+      ) {
+        isDone = false;
+        break;
+      }
+    }
+
+    return {
+      items,
+      cursor: isDone ? "" : (lastStoredSlug ?? ""),
+      isDone,
     };
   },
 });

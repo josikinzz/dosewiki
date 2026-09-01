@@ -2,6 +2,9 @@ import type { IndexLayoutType } from "./publicData.shared";
 
 const ABOUT_PREVIEW_CANDIDATE_PAGE_SIZE = 64;
 const PUBLIC_SUBSTANCE_PAGE_SIZE = 32;
+// Slug pages carry one string per article, so the item cap can sit far above
+// the preview page size; the query bounds itself by article bytes read.
+const PUBLIC_SUBSTANCE_SLUG_PAGE_SIZE = 160;
 const PUBLIC_REPLICATION_GALLERY_PAGE_SIZE = 64;
 const PUBLIC_MATCHABLE_REPLICATION_PAGE_SIZE = 256;
 
@@ -43,6 +46,13 @@ export const publicDataReadCatalog = {
   publicSubstancePreviews: {
     functionName: "substanceIndex:getPublicPreviewsPage",
     args: publicSubstancePageArgs,
+  },
+  publicSubstanceSlugs: {
+    functionName: "substanceIndex:getPublicSlugsPage",
+    args: (cursor?: string) => ({
+      ...(cursor ? { cursor } : {}),
+      limit: PUBLIC_SUBSTANCE_SLUG_PAGE_SIZE,
+    }),
   },
   publicSubstanceBySlug: { functionName: "substanceIndex:getPublicBySlug", args: (slug: string) => ({ slug }) },
   publicReviewedArticlesByContributor: {
@@ -133,6 +143,10 @@ export const publicDataReadCatalog = {
   },
   publicSubstanceGalleryCuration: {
     functionName: "substanceGalleries:getBySubstance",
+    args: (substanceSlug: string) => ({ substance_slug: substanceSlug }),
+  },
+  publicSubstanceGallery: {
+    functionName: "substanceGalleries:getPublicGalleryBySubstance",
     args: (substanceSlug: string) => ({ substance_slug: substanceSlug }),
   },
   publicTripReportRecords: { functionName: "tripReports:getAll", args: () => ({}) },

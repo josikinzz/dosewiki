@@ -72,9 +72,13 @@ export const getEffectsByCategory = cache(unstable_cache(async (category: string
  * Convex. Resolving it server-side would need a new query and a production
  * deploy, and the failure mode of an additive query that is not deployed yet is
  * exactly what `readContributorReplications` has to catch. The effect corpus
- * read is already performed by this build — effect pages, category pages and the
- * About roster all call it, and it is `unstable_cache`d — so filtering it here
+ * read is already performed by this build (effect pages, category pages and the
+ * About roster all call it, and it is `unstable_cache`d) so filtering it here
  * adds no round trip and nothing new can be missing.
+ *
+ * Request-scoped only, on purpose: the persisted read is `getPublicEffectArticles`,
+ * and wrapping this filter in its own `unstable_cache` would make Next bypass
+ * that inner cache and refetch the corpus per contributor.
  *
  * `profileMatchesName` is the app's single definition of "this name is that
  * contributor", shared with the replication and trip-report joins, so a
@@ -84,7 +88,7 @@ export const getEffectsByCategory = cache(unstable_cache(async (category: string
  * (alias `kaylee`), while a credit with no profile at all — `liv`, `Nicole`,
  * `Kat`, `chemi`, `Brack` — simply appears on no profile page.
  */
-export const getEffectArticlesByContributor = cache(unstable_cache(async (
+export const getEffectArticlesByContributor = cache(async (
   profile: NormalizedUserProfile,
 ): Promise<ContributorEffectCredit[]> => {
   // A profile with no matchable name can credit nothing, so it skips the corpus
@@ -103,14 +107,7 @@ export const getEffectArticlesByContributor = cache(unstable_cache(async (
     // Alphabetical, because the reader scans this list for a name rather than
     // reading it in order; a 225-entry list sorted by anything else is a haystack.
     .sort((left, right) => left.name.localeCompare(right.name));
-}, ["convex-public-effect-articles-by-contributor"], {
-  revalidate: PUBLIC_CONVEX_CACHE_REVALIDATE_SECONDS,
-  tags: [
-    PUBLIC_CONVEX_CACHE_TAGS.all,
-    PUBLIC_CONVEX_CACHE_TAGS.effects,
-    PUBLIC_CONVEX_CACHE_TAGS.contributors,
-  ],
-}));
+});
 
 /**
  * WHERE THE FIGURE / UNRENDERABLE-MEDIA GATE LIVES, AND WHY IT IS HERE
@@ -158,7 +155,9 @@ export const getEffectArticlesByContributor = cache(unstable_cache(async (
  * React's request cache. Convex has no paged by-effect query, so chunking
  * happens here: a cold render fetches the list once and persists it as
  * bounded chunk entries, each safely under the 2 MB data-cache limit (see the
- * corpus-page doctrine on `getPublicReplicationCorpusPage`).
+ * corpus-page doctrine on `getPublicReplicationCorpusPage`). This fetch is
+ * React `cache()` only, never `unstable_cache`, so the chunk caches that call
+ * it are top-level entries Next actually persists.
  */
 const fetchPublishableReplicationsByEffect = cache(async (
   effectSlug: string,
@@ -211,6 +210,11 @@ export const getPublicReplicationsByEffect = cache(async (
  * entire paginated Convex feed again. Individual 64-row pages remain safely
  * cacheable and can be shared across workers; React's request cache then
  * deduplicates the cheap in-memory assembly for each render.
+ *
+ * The page cache only works because `getPublicReplications` below is React
+ * `cache()` and not `unstable_cache`: Next bypasses an `unstable_cache` reached
+ * from inside another `unstable_cache` callback, so any persisted wrapper above
+ * this drain would turn every one of its misses into a full Convex re-drain.
  */
 const getPublicReplicationCorpusPage = cache(unstable_cache(async (
   cursor?: string,

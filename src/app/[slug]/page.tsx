@@ -1,6 +1,7 @@
 import { notFound, redirect } from "next/navigation";
 import { buildPublicPageMetadata } from "@server/next/publicSite";
 import { loadSubstanceRoute } from "@server/next/routeLoaders.substances";
+import { getStaticSubstanceParams } from "@server/next/staticParams";
 import { SubstanceArticlePage } from "@/features/article/pages/SubstanceArticlePage";
 import { buildSiteUrl, getPublicRoutePath } from "@server/next/publicSite";
 import { buildSubstanceSchema, serializeJsonLd } from "@/utils/seo/structuredData";
@@ -14,10 +15,13 @@ export const revalidate = 3600;
 export const dynamicParams = true;
 
 export async function generateStaticParams() {
-  // Substance articles are generated on first request and then enter the
-  // hourly ISR cache. Pre-rendering the full corpus makes clean deployments
-  // proportional to the library size and duplicates per-article Convex reads.
-  return [];
+  // The ISR page cache does not survive a Vercel deployment, so articles that
+  // are not prerendered pay a cold server render on the first request after
+  // every deploy. The high and normal priority tiers are prerendered here from
+  // one cached lookup read (see PRERENDERED_SUBSTANCE_PRIORITIES); the low
+  // priority long tail keeps `dynamicParams` on-demand rendering plus the
+  // hourly ISR cache so the build does not scale with the whole corpus.
+  return await getStaticSubstanceParams();
 }
 
 type SubstancePageProps = {

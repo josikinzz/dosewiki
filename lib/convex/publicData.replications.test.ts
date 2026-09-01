@@ -1,3 +1,4 @@
+import { readFileSync } from "node:fs";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { selectReplicationsByArtistNames } from "../../convex/replications";
 import { contributorMatchNames } from "../contributorProfileIdentity";
@@ -196,6 +197,7 @@ describe("getReplicationsByContributor", () => {
 
 describe("getPublicReplicationsForSubstance", () => {
   beforeEach(() => {
+    vi.restoreAllMocks();
     vi.resetModules();
     mocks.queryConvex.mockReset();
     substanceMocks.getPublicSubstanceBySlug.mockReset();
@@ -223,6 +225,10 @@ describe("getPublicReplicationsForSubstance", () => {
     url: `https://x/${slug}`,
     ...overrides,
   });
+  const ONE_SHOT = "substanceGalleries:getPublicGalleryBySubstance";
+  const notDeployed = () => {
+    throw new Error(`[CONVEX Q(${ONE_SHOT})] Could not find public function for '${ONE_SHOT}'`);
+  };
   const respond = (handlers: Record<string, (args: Record<string, unknown>) => unknown>) => {
     mocks.queryConvex.mockImplementation(async (name: string, args: Record<string, unknown>) => {
       const handler = handlers[name];
@@ -231,10 +237,135 @@ describe("getPublicReplicationsForSubstance", () => {
     });
   };
 
+  it("serves the showcase from the one-shot query in a single round trip when it is deployed", async () => {
+    substanceMocks.getPublicSubstanceBySlug.mockResolvedValue(substanceRecord);
+    respond({
+      [ONE_SHOT]: (args) => {
+        expect(args).toEqual({ substance_slug: "lsd" });
+        return {
+          items: [
+            {
+              replication: resolved("specific-video", { type: "video", format: "mp4" }),
+              provenance: { matchedVia: "specific_drug", effectSlug: "geometry", substanceSlug: "lsd" },
+            },
+            {
+              replication: resolved("hand-picked"),
+              provenance: { matchedVia: "curated", effectSlug: "geometry" },
+            },
+            {
+              // The gate ships with the build: a row Convex still returns but
+              // this build no longer publishes is dropped here.
+              replication: resolved("demoted", { replication_status: "not-replication" }),
+              provenance: { matchedVia: "specific_drug", effectSlug: "geometry", substanceSlug: "lsd" },
+            },
+          ],
+        };
+      },
+    });
+
+    const { getPublicReplicationsForSubstance } = await import("./publicData.replications");
+    const gallery = await getPublicReplicationsForSubstance("lsd");
+
+    expect(gallery.items.map((entry) => entry.replication.slug)).toEqual([
+      "specific-video",
+      "hand-picked",
+    ]);
+    expect(gallery.items.map((entry) => entry.provenance.matchedVia)).toEqual([
+      "specific_drug",
+      "curated",
+    ]);
+    // Exactly one Convex round trip: no corpus pages, no curation row, no
+    // indexed hydration.
+    expect(mocks.queryConvex.mock.calls.map(([name]) => name)).toEqual([ONE_SHOT]);
+  });
+
+  it("falls back to the corpus path with one warning while the one-shot query is not deployed", async () => {
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+    substanceMocks.getPublicSubstanceBySlug.mockImplementation(async (slug: string) =>
+      slug === "lsd"
+        ? substanceRecord
+        : { slug, title: slug, classification: { psychoactive_class: ["Stimulant"] } },
+    );
+    respond({
+      [ONE_SHOT]: notDeployed,
+      "substanceGalleries:getPublicMatchableReplicationsPage": () => ({
+        items: [matchable("specific-image")],
+        cursor: "done",
+        isDone: true,
+      }),
+      "substanceGalleries:getBySubstance": () => null,
+      "replications:getBySlugs": (args) => (args.slugs as string[]).map((slug) => resolved(slug)),
+    });
+
+    const { getPublicReplicationsForSubstance } = await import("./publicData.replications");
+    await expect(getPublicReplicationsForSubstance("lsd")).resolves.toMatchObject({
+      items: [{ replication: { slug: "specific-image" } }],
+    });
+    await expect(getPublicReplicationsForSubstance("caffeine")).resolves.toEqual({ items: [] });
+
+    // The adapter warns once per process, not once per article.
+    expect(
+      warn.mock.calls.filter(([message]) =>
+        String(message).includes("getPublicGalleryBySubstance is not deployed"),
+      ),
+    ).toHaveLength(1);
+    warn.mockRestore();
+  });
+
+  it("falls back to the corpus path, loudly, when the one-shot query fails for any other reason", async () => {
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+    substanceMocks.getPublicSubstanceBySlug.mockResolvedValue(substanceRecord);
+    respond({
+      [ONE_SHOT]: () => {
+        throw new Error(`[CONVEX Q(${ONE_SHOT})] Server Error: Too many bytes read`);
+      },
+      "substanceGalleries:getPublicMatchableReplicationsPage": () => ({
+        items: [matchable("specific-image")],
+        cursor: "done",
+        isDone: true,
+      }),
+      "substanceGalleries:getBySubstance": () => null,
+      "replications:getBySlugs": (args) => (args.slugs as string[]).map((slug) => resolved(slug)),
+    });
+
+    const { getPublicReplicationsForSubstance } = await import("./publicData.replications");
+    await expect(getPublicReplicationsForSubstance("lsd")).resolves.toMatchObject({
+      items: [{ replication: { slug: "specific-image" } }],
+    });
+    expect(warn).toHaveBeenCalledWith(
+      expect.stringContaining("getPublicGalleryBySubstance failed for \"lsd\""),
+      expect.any(Error),
+    );
+    warn.mockRestore();
+  });
+
+  it("keeps every persisted showcase read at the top level, never nested in another unstable_cache", () => {
+    // Next bypasses an `unstable_cache` reached from inside another one, so
+    // the per-substance function must be React `cache()` only and the corpus
+    // page, curation, slug-batch, and one-shot reads must each be their own
+    // `unstable_cache` leaf. A regression here silently re-drains the corpus
+    // on every cold article.
+    const source = readFileSync("lib/convex/publicData.replications.ts", "utf8");
+    expect(source).toMatch(/export const getPublicReplicationsForSubstance = cache\(async \(/u);
+    expect(source).toMatch(/const getPublicMatchableReplicationCorpus = cache\(async \(/u);
+    expect(source).toMatch(/const assemblePublicSubstanceGalleryFromCorpus = cache\(async \(/u);
+    expect(source).toMatch(/export const getPublicReplicationsBySlugs = cache\(async \(/u);
+    for (const leaf of [
+      "getPublicMatchableReplicationCorpusPage",
+      "getPublicSubstanceGalleryCuration",
+      "readPublicSubstanceGalleryFastPath",
+      "getPublicReplicationsBySlugBatch",
+    ]) {
+      expect(source).toMatch(new RegExp(`const ${leaf} = cache\\(unstable_cache\\(async \\(`, "u"));
+    }
+  });
+
   it("assembles the showcase from the shared corpus, curation, and one indexed resolution", async () => {
+    vi.spyOn(console, "warn").mockImplementation(() => {});
     substanceMocks.getPublicSubstanceBySlug.mockResolvedValue(substanceRecord);
     const bySlugsCalls: unknown[] = [];
     respond({
+      [ONE_SHOT]: notDeployed,
       "substanceGalleries:getPublicMatchableReplicationsPage": (args) => {
         expect(args).toEqual({ limit: 256 });
         return {
@@ -289,8 +420,10 @@ describe("getPublicReplicationsForSubstance", () => {
   });
 
   it("drops slugs the indexed resolution does not return and re-applies the publishability gate", async () => {
+    vi.spyOn(console, "warn").mockImplementation(() => {});
     substanceMocks.getPublicSubstanceBySlug.mockResolvedValue(substanceRecord);
     respond({
+      [ONE_SHOT]: notDeployed,
       "substanceGalleries:getPublicMatchableReplicationsPage": () => ({
         items: [matchable("kept"), matchable("vanishing"), matchable("demoted")],
         cursor: "done",
@@ -320,10 +453,11 @@ describe("getPublicReplicationsForSubstance", () => {
     expect(mocks.queryConvex).not.toHaveBeenCalled();
   });
 
-  it("degrades to an empty showcase when the additive corpus query is not deployed", async () => {
+  it("degrades to an empty showcase when neither additive gallery query is deployed", async () => {
     const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
     substanceMocks.getPublicSubstanceBySlug.mockResolvedValue(substanceRecord);
     respond({
+      [ONE_SHOT]: notDeployed,
       "substanceGalleries:getPublicMatchableReplicationsPage": () => {
         throw new Error(
           "[CONVEX Q(substanceGalleries:getPublicMatchableReplicationsPage)] Could not find public function",
@@ -342,8 +476,10 @@ describe("getPublicReplicationsForSubstance", () => {
   });
 
   it("surfaces any other Convex failure instead of pretending the showcase is empty", async () => {
+    vi.spyOn(console, "warn").mockImplementation(() => {});
     substanceMocks.getPublicSubstanceBySlug.mockResolvedValue(substanceRecord);
     respond({
+      [ONE_SHOT]: notDeployed,
       "substanceGalleries:getPublicMatchableReplicationsPage": () => {
         throw new Error(
           "[CONVEX Q(substanceGalleries:getPublicMatchableReplicationsPage)] Server Error",

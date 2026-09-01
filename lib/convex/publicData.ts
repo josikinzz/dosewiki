@@ -46,6 +46,7 @@ export {
   getPublicMechanismRouteInput,
   getPublicSubstanceBySlug,
   getPublicSubstanceLookup,
+  getPublicSubstanceSlugs,
   getPublicSubstances,
   getRawSubstances,
   getReviewedArticleCredits,

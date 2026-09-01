@@ -1,5 +1,5 @@
-"use client";
-
+// Not a client component on purpose: the chip is static markup, so on the
+// public route it renders on the server and ships no JavaScript of its own.
 import { memo } from "react";
 import Link from "next/link";
 

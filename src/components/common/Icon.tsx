@@ -4,6 +4,7 @@ import { Icon as IconifyIcon, addCollection } from "@iconify/react";
 import type { IconifyJSON } from "@iconify/react";
 import { customIcons } from "./customIcons";
 import iconData from "./iconData.generated.json";
+import { getSpriteReference, useIconSpriteAvailable } from "./IconSprite";
 
 // Every icon name that appears as a literal in the repo is bundled offline in
 // `iconData.generated.json` (built by `npm run generate:icon-data`, which
@@ -31,6 +32,8 @@ interface IconProps {
 }
 
 export function Icon({ icon, className, size = 24 }: IconProps) {
+  const spriteAvailable = useIconSpriteAvailable();
+
   // Handle custom icons with "custom:" prefix
   if (icon.startsWith("custom:")) {
     const customKey = icon.slice(7); // Remove "custom:" prefix
@@ -45,6 +48,30 @@ export function Icon({ icon, className, size = 24 }: IconProps) {
         />
       );
     }
+  }
+
+  // Inside an `IconSpriteScope` the handful of glyphs a page repeats dozens
+  // of times reference one shared `<symbol>` instead of inlining their paths
+  // on every occurrence. The element keeps the same tag, classes, sizing and
+  // accessibility attributes Iconify emits, so styling and tests see no
+  // difference; only the markup inside the `<svg>` shrinks to one `<use>`.
+  const sprite = spriteAvailable ? getSpriteReference(icon) : null;
+  if (sprite) {
+    const prefix = icon.slice(0, icon.indexOf(":"));
+    return (
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        xmlnsXlink="http://www.w3.org/1999/xlink"
+        aria-hidden="true"
+        role="img"
+        className={className ? `iconify iconify--${prefix} ${className}` : `iconify iconify--${prefix}`}
+        width={size}
+        height={size}
+        viewBox={sprite.viewBox}
+      >
+        <use href={`#${sprite.id}`} />
+      </svg>
+    );
   }
 
   // `ssr` makes the initial render resolve icon data synchronously instead of

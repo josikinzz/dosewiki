@@ -1,5 +1,6 @@
-"use client";
-
+// Not a client component on purpose: closing credits have no state or
+// handlers, so on the public route they render on the server only. The links
+// and avatars they compose are client leaves that hydrate on their own.
 import { memo, type ReactNode } from "react";
 import { ArticleSection } from "@/components/common/ArticleSection";
 import { SmartLink } from "@/components/common/SmartLink";

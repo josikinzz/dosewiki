@@ -28,9 +28,11 @@ import {
  * one code path or a deep link could resolve against a differently ordered
  * collection than the strip was cut from.
  *
- * Every read below is the same double-cached (`cache(unstable_cache(...))`)
- * public-data call the article render performs, so the section path costs no
- * extra Convex traffic over what the route loader already paid.
+ * Every read below is the same request-deduped public-data call the article
+ * render performs, backed by top-level `unstable_cache` leaves (the substance
+ * record, the one-shot substance gallery or its corpus pages, the effect
+ * record, the by-effect chunks), so the section path costs no extra Convex
+ * traffic over what the route loader already paid.
  */
 
 /**

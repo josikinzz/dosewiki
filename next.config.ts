@@ -81,9 +81,12 @@ const nextConfig: NextConfig = {
   },
   experimental: {
     // Static generation reads a multi-megabyte substance library once per
-    // worker. Letting Next use every host CPU creates a cold-start thundering
+    // worker, and since /[slug] prerenders the high and normal priority
+    // substance articles (lib/next/staticParams.ts) each worker then renders
+    // a share of a few hundred article pages against that in-process library
+    // cache. Letting Next use every host CPU creates a cold-start thundering
     // herd against Convex; four long-lived workers finish the bounded static
-    // build more reliably and reuse their in-process library caches.
+    // build more reliably and amortise the corpus read across many pages.
     cpus: 4,
     optimizePackageImports: [
       "@dnd-kit/core",
@@ -107,7 +110,9 @@ const nextConfig: NextConfig = {
   },
   // A cold worker's first substance-library render includes the bounded Convex
   // corpus read and derivation. Give that deliberate cold start room to finish
-  // instead of retrying it twice at the default 60-second threshold.
+  // instead of retrying it twice at the default 60-second threshold. The
+  // prerendered substance articles hit this path first: whichever article a
+  // worker picks up first pays the cold start, every later one is warm.
   staticPageGenerationTimeout: 180,
   allowedDevOrigins: ["127.0.0.1"],
   images: {

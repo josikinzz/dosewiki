@@ -28,6 +28,8 @@ import {
   GALLERY_CURATION_SLUG_CAP,
 } from "../src/data/substanceReplicationGallery";
 import type { ReplicationAssociation } from "../src/features/dev/tools/replication-studio/replicationAssociationModel";
+import { getPublicGalleryBySubstanceHandler } from "./lib/substanceGalleryPublicReads";
+import { resolvedReplication } from "./lib/replicationValidators";
 
 /**
  * Per-substance Replication Showcase: automatic drug/class placement and the
@@ -289,6 +291,25 @@ export const getPublicMatchableReplicationsPage = query({
     isDone: v.boolean(),
   }),
   handler: getPublicMatchableReplicationsPageHandler,
+});
+
+/**
+ * The whole merged, ordered public showcase for one substance in a single
+ * round trip; see `convex/lib/substanceGalleryPublicReads`. The Next side
+ * prefers this read and keeps the paged matchable corpus above as its
+ * fallback while this query is not yet deployed.
+ */
+export const getPublicGalleryBySubstance = query({
+  args: { substance_slug: v.string() },
+  returns: v.object({
+    items: v.array(
+      v.object({
+        replication: resolvedReplication,
+        provenance: substanceGalleryProvenanceValidator,
+      }),
+    ),
+  }),
+  handler: getPublicGalleryBySubstanceHandler,
 });
 
 /** How the curation portal's batched picker read pages the substance index. */

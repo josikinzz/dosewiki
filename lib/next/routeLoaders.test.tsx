@@ -34,10 +34,9 @@ describe("substance, effect, publication, and report route loaders", () => {
       title: "LSD",
       summary: "A lysergamide [cite:paper-a][cite:paper-b].",
     } as PublicSubstanceRecord);
-    publicData.getPublicSubstances.mockResolvedValueOnce([
-      { slug: "lsd", title: "LSD" },
-      { slug: "mdma", title: "MDMA" },
-    ]);
+    // The slug read, not the preview corpus: the article only needs to know
+    // which wiki links resolve.
+    publicData.getPublicSubstanceSlugs.mockResolvedValueOnce(["lsd", "mdma"]);
     publicData.getPublicCategoryLayout.mockResolvedValueOnce({
       categories: [{ key: "psychedelic" }],
     } as never);
@@ -57,6 +56,7 @@ describe("substance, effect, publication, and report route loaders", () => {
     expect(result.pageProps.article.summary).toBe("A lysergamide [cite:paper-a][cite:paper-b].");
     expect(result.pageProps.linkableSubstanceSlugs).toEqual(["lsd", "mdma"]);
     expect(result.pageProps.linkableCategoryKeys).toEqual(["psychedelic"]);
+    expect(publicData.getPublicSubstances).not.toHaveBeenCalled();
     expect(result.pageProps.content?.moleculeAsset?.url).toBe(
       "/api/molecules/lsd?v=2026-07-11T12%3A00%3A00.000Z",
     );
@@ -147,9 +147,7 @@ describe("substance, effect, publication, and report route loaders", () => {
     publicData.getPublicContributorDirectory.mockResolvedValueOnce([
       { key: "JOSIE", displayName: "Josie Kins", aliases: ["josie"] },
     ]);
-    publicData.getPublicSubstances.mockResolvedValueOnce([
-      { slug: "lsd", title: "LSD" } as never,
-    ]);
+    publicData.getPublicSubstanceSlugs.mockResolvedValueOnce(["lsd"]);
     publicData.getPublicEffects.mockResolvedValueOnce([
       { slug: "visual-drifting", name: "Visual drifting" } as never,
     ]);
@@ -176,6 +174,7 @@ describe("substance, effect, publication, and report route loaders", () => {
     ]);
     expect(result.pageProps.linkableSubstanceSlugs).toEqual(["lsd"]);
     expect(result.pageProps.linkableEffectSlugs).toEqual(["visual-drifting"]);
+    expect(publicData.getPublicSubstances).not.toHaveBeenCalled();
 
     publicData.getPublicEffectBySlug.mockResolvedValueOnce(null);
     publicLibrary.getPublicEffectDetail.mockResolvedValueOnce(null);

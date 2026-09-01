@@ -74,6 +74,20 @@ export const getPublicSubstances = cache(unstable_cache(async (): Promise<Public
   tags: [PUBLIC_CONVEX_CACHE_TAGS.all, PUBLIC_CONVEX_CACHE_TAGS.substances],
 }));
 
+/**
+ * Every public substance slug, sorted, for deciding which wiki links resolve.
+ * Deliberately separate from `getPublicSubstances`: article routes need only
+ * the slug set, and draining the preview pages for it cost 19 sequential
+ * Convex round trips on every cold cache. Wrapped at the top level so
+ * `unstable_cache` actually caches it (Next bypasses a nested entry).
+ */
+export const getPublicSubstanceSlugs = cache(unstable_cache(async (): Promise<string[]> => {
+  return await getPublicDataReadAdapter().getPublicSubstanceSlugs();
+}, ["convex-public-substance-slugs"], {
+  revalidate: PUBLIC_CONVEX_CACHE_REVALIDATE_SECONDS,
+  tags: [PUBLIC_CONVEX_CACHE_TAGS.all, PUBLIC_CONVEX_CACHE_TAGS.substances],
+}));
+
 export const getFeaturedSubstances = cache(async (limit = 8) => {
   return (await getPublicSubstances()).slice(0, limit);
 });

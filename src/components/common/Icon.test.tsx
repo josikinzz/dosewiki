@@ -8,6 +8,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { render } from "@testing-library/react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { Icon } from "./Icon";
+import { IconSpriteScope } from "./IconSprite";
 import iconData from "./iconData.generated.json";
 
 // The suite-wide setup stubs @iconify/react to a null renderer because the old
@@ -79,5 +80,46 @@ describe("Icon offline bundle", () => {
       expect(prefixes).toContain(prefix);
     }
     expect(iconData.iconCount).toBeGreaterThan(300);
+  });
+});
+
+describe("Icon sprite scope", () => {
+  it("inlines full glyphs outside a sprite scope", () => {
+    const html = renderToStaticMarkup(<Icon icon="lucide:chevron-down" size={14} />);
+
+    expect(html).toContain("<path");
+    expect(html).not.toContain("<use");
+  });
+
+  it("references the shared symbol for repeated glyphs inside a scope", () => {
+    const html = renderToStaticMarkup(
+      <IconSpriteScope>
+        <Icon icon="lucide:chevron-down" size={14} className="transition-transform" />
+        <Icon icon="lucide:ellipsis" size={13} />
+        <Icon icon="lucide:arrow-up" size="0.95em" />
+      </IconSpriteScope>,
+    );
+
+    // One sprite, one symbol per repeated glyph, geometry present exactly once.
+    expect(html.match(/<symbol /g)).toHaveLength(3);
+    expect(html.match(/d="m6 9l6 6l6-6"/g)).toHaveLength(1);
+    // Each use keeps Iconify's element shape: same classes, sizing and a11y.
+    expect(html).toContain(
+      '<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" aria-hidden="true" role="img" class="iconify iconify--lucide transition-transform" width="14" height="14" viewBox="0 0 24 24"><use href="#dw-icon-chevron-down"></use></svg>',
+    );
+    expect(html).toContain('width="0.95em" height="0.95em" viewBox="0 0 24 24"><use href="#dw-icon-arrow-up">');
+    expect(html.match(/<use /g)).toHaveLength(3);
+  });
+
+  it("leaves icons outside the sprite list on the inline path inside a scope", () => {
+    const html = renderToStaticMarkup(
+      <IconSpriteScope>
+        <Icon icon="lucide:menu" size={24} />
+      </IconSpriteScope>,
+    );
+
+    expect(html).not.toContain('<use href="#dw-icon');
+    expect(html).toContain("<path");
+    expect(fetchSpy).not.toHaveBeenCalled();
   });
 });

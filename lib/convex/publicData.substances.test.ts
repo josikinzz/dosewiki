@@ -59,6 +59,62 @@ describe("public substance data adapters", () => {
     ).not.toContainEqual(["convex-public-raw-substances"]);
   });
 
+  it("reads public slugs from the slug page query, sorted and deduplicated, under the substances tag", async () => {
+    mocks.queryConvex
+      .mockResolvedValueOnce({ items: ["mdma", "lsd"], cursor: "lsd", isDone: false })
+      .mockResolvedValueOnce({ items: ["2c-b", "lsd"], cursor: "", isDone: true });
+
+    const { getPublicSubstanceSlugs } = await import("./publicData.substances");
+
+    await expect(getPublicSubstanceSlugs()).resolves.toEqual(["2c-b", "lsd", "mdma"]);
+    expect(mocks.queryConvex).toHaveBeenNthCalledWith(
+      1,
+      "substanceIndex:getPublicSlugsPage",
+      { limit: 160 },
+    );
+    expect(mocks.queryConvex).toHaveBeenNthCalledWith(
+      2,
+      "substanceIndex:getPublicSlugsPage",
+      { cursor: "lsd", limit: 160 },
+    );
+    expect(mocks.queryConvex).toHaveBeenCalledTimes(2);
+
+    const slugCacheCall = cacheMocks.unstableCache.mock.calls.find(
+      (call) => call[1]?.[0] === "convex-public-substance-slugs",
+    );
+    expect(slugCacheCall?.[2]?.tags).toEqual(["convex-public", "convex-public:substances"]);
+  });
+
+  it("falls back to the preview drain for slugs while getPublicSlugsPage failed", async () => {
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+    mocks.queryConvex.mockImplementation(async (name: string) => {
+      if (name === "substanceIndex:getPublicSlugsPage") {
+        throw new Error("Could not find public function for 'substanceIndex:getPublicSlugsPage'.");
+      }
+      if (name === "substanceIndex:getPublicPreviewsPage") {
+        return {
+          items: [
+            { slug: "mdma", title: "MDMA", priority: "normal", summary: "", indexCategories: [] },
+            { slug: "lsd", title: "LSD", priority: "high", summary: "", indexCategories: [] },
+          ],
+          cursor: "",
+          isDone: true,
+        };
+      }
+      throw new Error(`unexpected query ${name}`);
+    });
+
+    const { getPublicSubstanceSlugs } = await import("./publicData.substances");
+
+    await expect(getPublicSubstanceSlugs()).resolves.toEqual(["lsd", "mdma"]);
+    expect(mocks.queryConvex).toHaveBeenCalledWith(
+      "substanceIndex:getPublicPreviewsPage",
+      { limit: 32 },
+    );
+    expect(warn).toHaveBeenCalledWith(expect.stringContaining("getPublicSlugsPage failed"));
+    warn.mockRestore();
+  });
+
   it("reads the slim mechanism route projection without loading library input", async () => {
     mocks.queryConvex.mockResolvedValueOnce({
       items: [{

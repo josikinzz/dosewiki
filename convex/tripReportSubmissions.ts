@@ -13,6 +13,7 @@ import {
   tripReportSubjectValidator,
   tripReportSubstanceValidator,
 } from "./tripReportContract";
+import { syncTripReportSubstanceRows } from "./lib/tripReportSubstanceIndex";
 
 const statusValidator = v.union(
   v.literal("submitted"),
@@ -263,6 +264,7 @@ export const promote = mutation({
       confirmAuthorNameClaim: args.confirmAuthorNameClaim === true,
     });
     const reportId = await ctx.db.insert("tripReports", payload);
+    await syncTripReportSubstanceRows(ctx, reportId, payload.substances);
     const timestamp = new Date().toISOString();
     const patch = {
       status: "exported" as const,

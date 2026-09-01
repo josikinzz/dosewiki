@@ -1,3 +1,4 @@
+import { readFileSync } from "node:fs";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { NormalizedUserProfile } from "../../src/data/userProfiles";
 
@@ -209,5 +210,34 @@ describe("public report contributor attribution", () => {
         findProfileByAuthorNameInList([profile], byline)?.key === profile.key,
       );
     }
+  });
+});
+
+describe("public report cache layering", () => {
+  it("persists only leaf Convex reads and composes the profile join under React cache", () => {
+    // Next bypasses an `unstable_cache` reached from inside another one. The
+    // exported reads each join `getPublicContributorProfiles` (a top-level
+    // `unstable_cache` of its own), so they must be request-scoped, with the
+    // raw trip-report reads as the persisted leaves.
+    const source = readFileSync("lib/convex/publicData.reports.ts", "utf8");
+    for (const exported of [
+      "getPublicReports",
+      "getPublicReportDetails",
+      "getPublicReportBySlug",
+      "getReportsByAuthor",
+      "getReportsByContributor",
+      "getPublicReportsBySubstanceNames",
+    ]) {
+      expect(source).toMatch(new RegExp(`export const ${exported} = cache\\(async `, "u"));
+    }
+    for (const leaf of [
+      "getPublicTripReportRecords",
+      "getPublicTripReportRecordBySlug",
+      "getPublicTripReportRecordsByAuthor",
+      "getPublicTripReportRecordsBySubstanceNames",
+    ]) {
+      expect(source).toMatch(new RegExp(`const ${leaf} = cache\\(unstable_cache\\(async \\(`, "u"));
+    }
+    expect(source).not.toMatch(/export const \w+ = cache\(unstable_cache/u);
   });
 });

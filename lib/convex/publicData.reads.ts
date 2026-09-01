@@ -11,7 +11,10 @@ import type {
   ContributorReviewedArticle,
   ReviewedArticleCredit,
 } from "../../src/types/reviewedArticles";
-import type { SubstanceGalleryMatchableRow } from "../../src/data/substanceReplicationGallery";
+import type {
+  PublicSubstanceGallery,
+  SubstanceGalleryMatchableRow,
+} from "../../src/data/substanceReplicationGallery";
 import {
   priorityScore,
   trimExcerpt,
@@ -105,6 +108,7 @@ export type PublicDataReadAdapter = {
   getPublicCategoryLayout(): Promise<PublicCategoryLayout | null>;
   getPublicSubstanceLookup(): Promise<PublicSubstanceLookupEntry[]>;
   getPublicSubstancePreviews(): Promise<PublicSubstancePreview[]>;
+  getPublicSubstanceSlugs(): Promise<string[]>;
   getPublicSubstanceBySlug(slug: string): Promise<PublicSubstanceRecord | null>;
   getPublicReviewedArticlesByContributor(profileKey: string): Promise<ContributorReviewedArticle[]>;
   getPublicReviewedArticleCredits(): Promise<ReviewedArticleCredit[]>;
@@ -127,6 +131,8 @@ export type PublicDataReadAdapter = {
   getPublicReplicationsByArtistNames(artistNames: string[]): Promise<ReplicationWithUrl[]>;
   getPublicMatchableReplicationPage(cursor?: string): Promise<PublicMatchableReplicationPage>;
   getPublicSubstanceGalleryCuration(substanceSlug: string): Promise<PublicSubstanceGalleryCuration | null>;
+  /** The merged showcase in one round trip, or null while the query is not deployed. */
+  getPublicSubstanceGallery(substanceSlug: string): Promise<PublicSubstanceGallery | null>;
   getPublicTripReportRecords(): Promise<TripReportRecord[]>;
   getPublicTripReportBySlug(slug: string): Promise<TripReportDetailRecord | null>;
   getPublicTripReportsByAuthor(authorName: string): Promise<TripReportRecord[]>;
@@ -377,6 +383,9 @@ function isExplicitMissingPublicFunctionError(error: unknown): boolean {
     error.message.toLowerCase().includes("could not find public function")
   );
 }
+
+let hasWarnedAboutSubstanceGalleryRead = false;
+let hasWarnedAboutSubstanceSlugsRead = false;
 
 let hasWarnedAboutReplicationArtistTaxonomy = false;
 
@@ -639,6 +648,37 @@ export function createConvexPublicDataReadAdapter(query: QueryTransport = queryC
               : left.title.localeCompare(right.title);
           }),
       ),
+    // Slug set only, for link resolution. Additive across function rollout: a
+    // deployment that predates `getPublicSlugsPage` falls back to draining the
+    // preview pages, which is the read this one replaces, so nothing degrades
+    // beyond the round trips it costs.
+    getPublicSubstanceSlugs: async () => {
+      let slugs: string[];
+      try {
+        slugs = await drainPublicCorpusPages<string>(
+          query,
+          publicDataReadCatalog.publicSubstanceSlugs,
+        );
+      } catch (error) {
+        // Production Convex reports an undeployed function as an opaque
+        // "Server Error", never the explicit missing-function text, so any
+        // failure here takes the fallback: the preview drain is the read this
+        // one replaced and was serving every article until now.
+        if (!hasWarnedAboutSubstanceSlugsRead) {
+          hasWarnedAboutSubstanceSlugsRead = true;
+          console.warn(
+            "[publicData] substanceIndex:getPublicSlugsPage failed (not deployed?); substance slugs fall back to the preview drain.",
+            ...(isExplicitMissingPublicFunctionError(error) ? [] : [error]),
+          );
+        }
+        const previews = await drainPublicCorpusPages<PublicSubstancePreview>(
+          query,
+          publicDataReadCatalog.publicSubstancePreviews,
+        );
+        slugs = previews.map(({ slug }) => slug);
+      }
+      return [...new Set(slugs.filter((slug) => typeof slug === "string" && slug.length > 0))].sort();
+    },
     getPublicSubstanceBySlug: async (slug) => {
       const substance = await query<unknown | null, { slug: string }>(
         publicDataReadCatalog.publicSubstanceBySlug.functionName,
@@ -882,6 +922,28 @@ export function createConvexPublicDataReadAdapter(query: QueryTransport = queryC
         removed_slugs: doc.removed_slugs ?? [],
         carousel_order: doc.carousel_order ?? [],
       };
+    },
+    // The single-round-trip showcase read. Additive across function rollout:
+    // a deployment that predates it reports null (warned once) and the caller
+    // assembles the showcase from the paged matchable corpus instead.
+    getPublicSubstanceGallery: async (substanceSlug) => {
+      try {
+        return await query<PublicSubstanceGallery, { substance_slug: string }>(
+          publicDataReadCatalog.publicSubstanceGallery.functionName,
+          publicDataReadCatalog.publicSubstanceGallery.args(substanceSlug),
+        );
+      } catch (error) {
+        if (isExplicitMissingPublicFunctionError(error)) {
+          if (!hasWarnedAboutSubstanceGalleryRead) {
+            hasWarnedAboutSubstanceGalleryRead = true;
+            console.warn(
+              "[publicData] substanceGalleries:getPublicGalleryBySubstance is not deployed; substance showcases fall back to the paged matchable corpus.",
+            );
+          }
+          return null;
+        }
+        throw error;
+      }
     },
     getPublicTripReportRecords: () =>
       query<TripReportRecord[]>(publicDataReadCatalog.publicTripReportRecords.functionName, {}),

@@ -328,6 +328,55 @@ Public routes are prerendered (SSG) or incrementally revalidated. `PUBLIC_CONVEX
 
 Importing content into Convex therefore does **not** immediately change the live site. A prerendered route keeps serving its build-time snapshot until either a redeploy regenerates it or the revalidation interval elapses. **This has already bitten this project once** — a completed import looked like a failed import because the pages had not regenerated. After any content import, either trigger a redeploy or wait out the interval before concluding anything is wrong.
 
+### Keeping substance articles warm across deploys
+
+Vercel's ISR page cache does not survive a deployment, and this repo deploys
+many times a day, so an article that is rendered on demand starts cold again
+after every deploy. Two mechanisms keep readers off that cold path:
+
+1. **Build-time prerender.** `src/app/[slug]/page.tsx` prerenders every
+   substance whose `priority` is `high` or `normal`
+   (`PRERENDERED_SUBSTANCE_PRIORITIES` in `lib/next/staticParams.ts`); the
+   `low` tier, which the sitemap already omits, stays on demand with
+   `dynamicParams = true` and the hourly ISR window. The slug list comes from
+   the cached `getPublicSubstanceLookup` read, so the build costs one extra
+   paginated read, not a corpus drain per worker. The `experimental.cpus` and
+   `staticPageGenerationTimeout` comments in `next.config.ts` describe the
+   worker budget this relies on.
+2. **Cron warmer.** `vercel.json` schedules `/api/warm` every 15 minutes
+   (`src/app/api/warm/route.ts`). It requests every high and normal priority
+   article on the canonical public origin (`PUBLIC_SITE.url`, so `https://dose.wiki`
+   on the dose.wiki project and `https://effectindex.com` on Effect Index; never
+   the request host, never the editor hosts) with concurrency 4 inside a
+   45-second budget, and returns a JSON summary: `count`, `hits`, `misses`
+   (from `x-vercel-cache`), `failures`, `slowest`, and `remaining` (URLs the
+   budget did not reach; the next run picks them up). Query overrides:
+   `?concurrency=1..8`, `?budgetMs=1000..50000`, `?includeLow=1`.
+
+   The route refuses to run (HTTP 503) until the project sets `CRON_SECRET`,
+   and then only honours `Authorization: Bearer <CRON_SECRET>`, which Vercel
+   attaches to cron invocations automatically. **Set `CRON_SECRET` on
+   `dosewiki-admin` (Production) to switch the warmer on**; it is read-only
+   with respect to Convex and safe to set on Effect Index as well. The
+   `/open-data` crons need no secret and are unchanged.
+
+To warm from a workstation, or right after a deploy finishes, run the
+observable CLI version against the public host:
+
+```bash
+npm run warm:public-routes -- --base-url https://dose.wiki            # substance articles
+npm run warm:public-routes -- --base-url https://dose.wiki --all      # every sitemap URL
+```
+
+It walks `/sitemap.xml`, fetches each URL with `--concurrency` (default 4), a
+per-request `--timeout` (default 20000 ms), one retry on a network error,
+timeout, or 5xx, then prints the count, hits versus misses, the slowest ten
+URLs, and the total time. It exits non-zero above `--max-failure-percent`
+(default 10). Pointing it at `dev.dose.wiki` warms nothing: the editor hosts
+publish an empty sitemap by design, and the script says so. There is no
+Vercel post-deploy hook in use (`scripts/deploy/vercel-build.mjs` is the build
+command only), which is why the scheduled route exists.
+
 ### Post-deploy verification checklist
 
 On `effectindex.com`:

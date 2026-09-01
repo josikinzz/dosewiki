@@ -86,8 +86,13 @@ export const getReplicationsByContributor = cache(unstable_cache(async (
  * an assembled aggregate would court Next's 2 MB data-cache entry limit and
  * turn every miss into a full re-drain. One 256-row slim page (nine
  * placement-policy fields, no URLs) stays a few tens of kilobytes, remains
- * individually cacheable, and is shared by every substance article; React's
- * request cache deduplicates the in-memory assembly per render.
+ * individually cacheable, and is shared by every substance article.
+ *
+ * This MUST stay a top-level `unstable_cache`: Next bypasses any
+ * `unstable_cache` reached from inside another `unstable_cache` callback, so
+ * nothing above it in the call graph may be an `unstable_cache` of its own.
+ * `getPublicMatchableReplicationCorpus` and `getPublicReplicationsForSubstance`
+ * below are therefore React `cache()` (request dedupe) only.
  */
 const getPublicMatchableReplicationCorpusPage = cache(unstable_cache(async (
   cursor?: string,
@@ -98,6 +103,10 @@ const getPublicMatchableReplicationCorpusPage = cache(unstable_cache(async (
   tags: [PUBLIC_CONVEX_CACHE_TAGS.all, PUBLIC_CONVEX_CACHE_TAGS.replications],
 }));
 
+/**
+ * The whole slim corpus, assembled once per request from the cached pages.
+ * Request-scoped only: the persisted unit is the page above.
+ */
 const getPublicMatchableReplicationCorpus = cache(async (): Promise<SubstanceGalleryMatchableRow[]> => {
   const rows: SubstanceGalleryMatchableRow[] = [];
   const seenCursors = new Set<string>();
@@ -135,47 +144,68 @@ const getPublicMatchableReplicationCorpus = cache(async (): Promise<SubstanceGal
 });
 
 /**
- * The substance article's Replication Showcase: exact-drug and permitted
- * general-class placements, plus stored editorial ordering, direct
- * associations, and per-article exclusions. Placement and merge rules live in
- * `src/data/substanceReplicationGallery`, shared with the Convex curation
- * portal so public reads and editorial writes cannot drift.
- *
- * PERF: this used to drain a per-substance Convex scan of the whole
- * replications table (with per-row storage-URL resolution) for every article.
- * It is now assembled here from a shared cached slim corpus plus two small
- * reads and one indexed batch:
- *
- *   1. the matchable corpus pages above, cached once for all substances;
- *   2. the substance record (already cached by `getPublicSubstanceBySlug`;
- *      it retains `slug` and `classification.psychoactive_class`, which is
- *      everything `substanceGalleryTargetOf` reads);
- *   3. the stored curation row (`substanceGalleries:getBySubstance`);
- *   4. `replications:getBySlugs` URL-resolution for only the merged winners.
- *
- * A missing substance is an empty gallery — exactly the retired Convex
- * handler's semantics — and zero matches are an empty gallery, never an
- * error. Merged order is preserved; slugs the indexed resolution does not
- * return are dropped.
- *
- * The publishability gate is re-applied here like the other public replication
- * list reads: the matcher already refuses figures and audio, but this layer's
- * filter ships with the build that defines publishability rather than waiting
- * on a Convex deploy.
- *
- * Tagged `replications` and `substances`.
+ * The stored curation row for one substance. Small, keyed per substance, and
+ * a leaf: it reads the adapter directly, so it is safe as a top-level
+ * `unstable_cache`.
  */
-export const getPublicReplicationsForSubstance = cache(unstable_cache(async (
+const getPublicSubstanceGalleryCuration = cache(unstable_cache(async (
+  substanceSlug: string,
+) => {
+  return await getPublicDataReadAdapter().getPublicSubstanceGalleryCuration(substanceSlug);
+}, ["convex-public-substance-gallery-curation-v1"], {
+  revalidate: PUBLIC_CONVEX_CACHE_REVALIDATE_SECONDS,
+  tags: [
+    PUBLIC_CONVEX_CACHE_TAGS.all,
+    PUBLIC_CONVEX_CACHE_TAGS.replications,
+    PUBLIC_CONVEX_CACHE_TAGS.substances,
+  ],
+}));
+
+/** Thrown inside the fast-path cache so an undeployed query is never persisted as an empty gallery. */
+class PublicSubstanceGalleryFastPathUnavailableError extends Error {
+  constructor() {
+    super("substanceGalleries:getPublicGalleryBySubstance is not deployed");
+    this.name = "PublicSubstanceGalleryFastPathUnavailableError";
+  }
+}
+
+/**
+ * The single-round-trip showcase read (`substanceGalleries:getPublicGalleryBySubstance`),
+ * persisted per substance. The merged gallery is at most a few hundred
+ * URL-resolved rows, well inside the data-cache entry limit. A deployment
+ * that lacks the query throws instead of returning, so nothing is cached and
+ * the next request tries again rather than sitting on an empty entry for a
+ * whole revalidate window.
+ */
+const readPublicSubstanceGalleryFastPath = cache(unstable_cache(async (
   substanceSlug: string,
 ): Promise<PublicSubstanceGallery> => {
-  const substance = await getPublicSubstanceBySlug(substanceSlug);
-  if (!substance) {
-    return { items: [] };
+  const gallery = await getPublicDataReadAdapter().getPublicSubstanceGallery(substanceSlug);
+  if (!gallery) {
+    throw new PublicSubstanceGalleryFastPathUnavailableError();
   }
+  return gallery;
+}, ["convex-public-substance-gallery-v1"], {
+  revalidate: PUBLIC_CONVEX_CACHE_REVALIDATE_SECONDS,
+  tags: [
+    PUBLIC_CONVEX_CACHE_TAGS.all,
+    PUBLIC_CONVEX_CACHE_TAGS.replications,
+    PUBLIC_CONVEX_CACHE_TAGS.substances,
+  ],
+}));
 
+/**
+ * The corpus path: match the substance against the shared slim corpus, merge
+ * the stored curation, and hydrate only the winners. Every persisted read it
+ * touches is a top-level `unstable_cache`; this function itself is
+ * request-scoped so those caches are actually consulted.
+ */
+const assemblePublicSubstanceGalleryFromCorpus = cache(async (
+  substance: NonNullable<Awaited<ReturnType<typeof getPublicSubstanceBySlug>>>,
+): Promise<PublicSubstanceGallery> => {
   const [corpus, curation] = await Promise.all([
     getPublicMatchableReplicationCorpus(),
-    getPublicDataReadAdapter().getPublicSubstanceGalleryCuration(substanceSlug),
+    getPublicSubstanceGalleryCuration(substance.slug),
   ]);
 
   const target = substanceGalleryTargetOf(substance);
@@ -198,14 +228,73 @@ export const getPublicReplicationsForSubstance = cache(unstable_cache(async (
     }
   }
   return { items };
-}, ["convex-public-replications-for-substance"], {
-  revalidate: PUBLIC_CONVEX_CACHE_REVALIDATE_SECONDS,
-  tags: [
-    PUBLIC_CONVEX_CACHE_TAGS.all,
-    PUBLIC_CONVEX_CACHE_TAGS.replications,
-    PUBLIC_CONVEX_CACHE_TAGS.substances,
-  ],
-}));
+});
+
+/**
+ * The substance article's Replication Showcase: exact-drug and permitted
+ * general-class placements, plus stored editorial ordering, direct
+ * associations, and per-article exclusions. Placement and merge rules live in
+ * `src/data/substanceReplicationGallery`, shared with the Convex curation
+ * portal and the one-shot public query so public reads and editorial writes
+ * cannot drift.
+ *
+ * PERF, cold article render. Two paths, fastest first:
+ *
+ *   1. `substanceGalleries:getPublicGalleryBySubstance`: one Convex round trip
+ *      that runs the matcher beside the data and returns the merged,
+ *      URL-resolved rows. Persisted per substance
+ *      (`readPublicSubstanceGalleryFastPath`).
+ *   2. Corpus fallback, used while that query is not deployed or if it fails:
+ *      the shared slim corpus (28 pages for the live table, each a top-level
+ *      cache entry shared by every article), the per-substance curation row,
+ *      and one indexed `replications:getBySlugs` batch per 100 winners.
+ *
+ * This function is deliberately NOT an `unstable_cache`. It used to be, and
+ * Next bypasses every `unstable_cache` called from inside another one, so the
+ * corpus pages were never persisted and each cold article re-drained the whole
+ * corpus from Convex. The persisted units are the leaves above; this layer is
+ * React `cache()` for request dedupe only.
+ *
+ * A missing substance is an empty gallery without touching Convex, and zero
+ * matches are an empty gallery, never an error. Merged order is preserved.
+ *
+ * The publishability gate is re-applied here like the other public replication
+ * list reads: the matcher already refuses figures and audio, but this layer's
+ * filter ships with the build that defines publishability rather than waiting
+ * on a Convex deploy.
+ */
+let hasWarnedAboutSubstanceGalleryFastPath = false;
+
+export const getPublicReplicationsForSubstance = cache(async (
+  substanceSlug: string,
+): Promise<PublicSubstanceGallery> => {
+  const substance = await getPublicSubstanceBySlug(substanceSlug);
+  if (!substance) {
+    return { items: [] };
+  }
+
+  try {
+    const gallery = await readPublicSubstanceGalleryFastPath(substanceSlug);
+    return {
+      items: gallery.items.filter((item) => isPublishableReplication(item.replication)),
+    };
+  } catch (error) {
+    if (
+      !(error instanceof PublicSubstanceGalleryFastPathUnavailableError) &&
+      !hasWarnedAboutSubstanceGalleryFastPath
+    ) {
+      // Once per process: before the query is deployed every article would
+      // otherwise repeat this line, and a build prerenders hundreds of them.
+      hasWarnedAboutSubstanceGalleryFastPath = true;
+      console.warn(
+        `[publicData] substanceGalleries:getPublicGalleryBySubstance failed for "${substanceSlug}"; falling back to the paged matchable corpus.`,
+        error,
+      );
+    }
+  }
+
+  return await assemblePublicSubstanceGalleryFromCorpus(substance);
+});
 
 /**
  * The Effect Index homepage's curated featured replications, as stored slugs.
@@ -389,6 +478,21 @@ export const getPublicGalleryReplicationBySlug = cache(async (
   });
 });
 
+/**
+ * One indexed batch of at most 100 detail rows, persisted under its slug list.
+ * A leaf read, so it is a top-level `unstable_cache`; the corpus fallback in
+ * `getPublicReplicationsForSubstance` reaches it through request-scoped
+ * functions only.
+ */
+const getPublicReplicationsBySlugBatch = cache(unstable_cache(async (
+  slugs: string[],
+): Promise<ReplicationWithUrl[]> => {
+  return await getPublicDataReadAdapter().getPublicReplicationsBySlugs(slugs);
+}, ["convex-public-replications-by-slug-batch-v1"], {
+  revalidate: PUBLIC_CONVEX_CACHE_REVALIDATE_SECONDS,
+  tags: [PUBLIC_CONVEX_CACHE_TAGS.all, PUBLIC_CONVEX_CACHE_TAGS.replications],
+}));
+
 /** Resolve only the detail rows selected from a slim catalog page. */
 export const getPublicReplicationsBySlugs = cache(async (
   slugs: string[],
@@ -397,9 +501,7 @@ export const getPublicReplicationsBySlugs = cache(async (
   if (uniqueSlugs.length === 0) return [];
   const rows = (
     await Promise.all(
-      batches(uniqueSlugs, 100).map((batch) =>
-        getPublicDataReadAdapter().getPublicReplicationsBySlugs(batch),
-      ),
+      batches(uniqueSlugs, 100).map((batch) => getPublicReplicationsBySlugBatch(batch)),
     )
   ).flat();
   return rows.filter(isPublishableReplication);

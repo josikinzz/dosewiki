@@ -9,6 +9,7 @@
     "build": "next build",
     "next:build": "next build",
     "build:vercel": "node scripts/deploy/vercel-build.mjs",
+    "warm:public-routes": "node scripts/deploy/warm-public-routes.mjs",
     "rdkit:assets": "node tools/copyRdkitAssets.mjs",
     "openchemlib:build": "npm --prefix vendor/openchemlib run build && node scripts/chemistry/verify-openchemlib-fork.mjs --write",
     "openchemlib:verify": "node scripts/chemistry/verify-openchemlib-fork.mjs",

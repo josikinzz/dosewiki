@@ -37,17 +37,59 @@ function reportBelongsToContributor(report: TripReportRecord, profile: Normalize
   return profileMatchesName(profile, report.subject.name);
 }
 
-export const getPublicReports = cache(unstable_cache(async (): Promise<PublicReportPreview[]> => {
+/*
+ * Persisted reads are the leaf Convex calls below, each a top-level
+ * `unstable_cache`. The exported reads compose one leaf with
+ * `getPublicContributorProfiles` (itself a top-level `unstable_cache` in
+ * `publicData.contributors`) under React `cache()` for request dedupe only.
+ * They used to be `unstable_cache` wrappers around that composition, and Next
+ * bypasses any `unstable_cache` reached from inside another one, so the
+ * contributor profile read was refetched from Convex on every miss of every
+ * report read instead of being shared across them.
+ */
+
+const getPublicTripReportRecords = cache(unstable_cache(async (): Promise<TripReportRecord[]> => {
+  return await getPublicDataReadAdapter().getPublicTripReportRecords();
+}, ["convex-public-trip-report-records-v1"], {
+  revalidate: PUBLIC_CONVEX_CACHE_REVALIDATE_SECONDS,
+  tags: [PUBLIC_CONVEX_CACHE_TAGS.all, PUBLIC_CONVEX_CACHE_TAGS.reports],
+}));
+
+const getPublicTripReportRecordBySlug = cache(unstable_cache(async (
+  slug: string,
+): Promise<TripReportDetailRecord | null> => {
+  return await getPublicDataReadAdapter().getPublicTripReportBySlug(slug);
+}, ["convex-public-trip-report-record-by-slug-v1"], {
+  revalidate: PUBLIC_CONVEX_CACHE_REVALIDATE_SECONDS,
+  tags: [PUBLIC_CONVEX_CACHE_TAGS.all, PUBLIC_CONVEX_CACHE_TAGS.reports],
+}));
+
+const getPublicTripReportRecordsByAuthor = cache(unstable_cache(async (
+  authorName: string,
+): Promise<TripReportRecord[]> => {
+  return await getPublicDataReadAdapter().getPublicTripReportsByAuthor(authorName);
+}, ["convex-public-trip-report-records-by-author-v1"], {
+  revalidate: PUBLIC_CONVEX_CACHE_REVALIDATE_SECONDS,
+  tags: [PUBLIC_CONVEX_CACHE_TAGS.all, PUBLIC_CONVEX_CACHE_TAGS.reports],
+}));
+
+const getPublicTripReportRecordsBySubstanceNames = cache(unstable_cache(async (
+  substanceNames: string[],
+): Promise<TripReportDetailRecord[]> => {
+  return await getPublicDataReadAdapter().getPublicTripReportsBySubstanceNames(substanceNames);
+}, ["convex-public-trip-report-records-by-substance-names-v1"], {
+  revalidate: PUBLIC_CONVEX_CACHE_REVALIDATE_SECONDS,
+  tags: [PUBLIC_CONVEX_CACHE_TAGS.all, PUBLIC_CONVEX_CACHE_TAGS.reports],
+}));
+
+export const getPublicReports = cache(async (): Promise<PublicReportPreview[]> => {
   const [reports, profiles] = await Promise.all([
-    getPublicDataReadAdapter().getPublicTripReportRecords(),
+    getPublicTripReportRecords(),
     getPublicContributorProfiles(),
   ]);
 
   return projectPublicReportPreviews(reports, profiles);
-}, ["convex-public-report-previews"], {
-  revalidate: PUBLIC_CONVEX_CACHE_REVALIDATE_SECONDS,
-  tags: [PUBLIC_CONVEX_CACHE_TAGS.all, PUBLIC_CONVEX_CACHE_TAGS.reports, PUBLIC_CONVEX_CACHE_TAGS.contributors],
-}));
+});
 
 export const getFeaturedReports = cache(async (limit = 8) => {
   return (await getPublicReports()).slice(0, limit);
@@ -56,23 +98,20 @@ export const getFeaturedReports = cache(async (limit = 8) => {
 /**
  * Every published trip report as a full detail record, contributor-projected
  * like the permalink read, for the public open-data download. Only rows from
- * the published `tripReports` table are read — submissions never appear here.
+ * the published `tripReports` table are read; submissions never appear here.
  */
-export const getPublicReportDetails = cache(unstable_cache(async (): Promise<TripReportRecord[]> => {
+export const getPublicReportDetails = cache(async (): Promise<TripReportRecord[]> => {
   const [reports, profiles] = await Promise.all([
-    getPublicDataReadAdapter().getPublicTripReportRecords(),
+    getPublicTripReportRecords(),
     getPublicContributorProfiles(),
   ]);
 
   return projectPublicReportDetails(reports, profiles);
-}, ["convex-public-report-details"], {
-  revalidate: PUBLIC_CONVEX_CACHE_REVALIDATE_SECONDS,
-  tags: [PUBLIC_CONVEX_CACHE_TAGS.all, PUBLIC_CONVEX_CACHE_TAGS.reports, PUBLIC_CONVEX_CACHE_TAGS.contributors],
-}));
+});
 
-export const getPublicReportBySlug = cache(unstable_cache(async (slug: string): Promise<TripReportDetailRecord | null> => {
+export const getPublicReportBySlug = cache(async (slug: string): Promise<TripReportDetailRecord | null> => {
   const [report, profiles] = await Promise.all([
-    getPublicDataReadAdapter().getPublicTripReportBySlug(slug),
+    getPublicTripReportRecordBySlug(slug),
     getPublicContributorProfiles(),
   ]);
 
@@ -81,26 +120,20 @@ export const getPublicReportBySlug = cache(unstable_cache(async (slug: string): 
   }
 
   return projectPublicReportDetail(report, profiles);
-}, ["convex-public-report-by-slug"], {
-  revalidate: PUBLIC_CONVEX_CACHE_REVALIDATE_SECONDS,
-  tags: [PUBLIC_CONVEX_CACHE_TAGS.all, PUBLIC_CONVEX_CACHE_TAGS.reports, PUBLIC_CONVEX_CACHE_TAGS.contributors],
-}));
+});
 
-export const getReportsByAuthor = cache(unstable_cache(async (authorName: string): Promise<PublicReportPreview[]> => {
+export const getReportsByAuthor = cache(async (authorName: string): Promise<PublicReportPreview[]> => {
   const [reports, profiles] = await Promise.all([
-    getPublicDataReadAdapter().getPublicTripReportsByAuthor(authorName),
+    getPublicTripReportRecordsByAuthor(authorName),
     getPublicContributorProfiles(),
   ]);
 
   return projectPublicReportPreviews(reports, profiles);
-}, ["convex-public-reports-by-author"], {
-  revalidate: PUBLIC_CONVEX_CACHE_REVALIDATE_SECONDS,
-  tags: [PUBLIC_CONVEX_CACHE_TAGS.all, PUBLIC_CONVEX_CACHE_TAGS.reports, PUBLIC_CONVEX_CACHE_TAGS.contributors],
-}));
+});
 
-export const getReportsByContributor = cache(unstable_cache(async (profile: NormalizedUserProfile): Promise<PublicReportPreview[]> => {
+export const getReportsByContributor = cache(async (profile: NormalizedUserProfile): Promise<PublicReportPreview[]> => {
   const [reports, profiles] = await Promise.all([
-    getPublicDataReadAdapter().getPublicTripReportRecords(),
+    getPublicTripReportRecords(),
     getPublicContributorProfiles(),
   ]);
 
@@ -109,23 +142,17 @@ export const getReportsByContributor = cache(unstable_cache(async (profile: Norm
     profiles,
     { fallbackAuthorProfileKey: profile.key },
   );
-}, ["convex-public-reports-by-contributor"], {
-  revalidate: PUBLIC_CONVEX_CACHE_REVALIDATE_SECONDS,
-  tags: [PUBLIC_CONVEX_CACHE_TAGS.all, PUBLIC_CONVEX_CACHE_TAGS.reports, PUBLIC_CONVEX_CACHE_TAGS.contributors],
-}));
+});
 
-export const getPublicReportsBySubstanceNames = cache(unstable_cache(async (substanceNames: string[]) => {
+export const getPublicReportsBySubstanceNames = cache(async (substanceNames: string[]) => {
   if (substanceNames.length === 0) {
     return [];
   }
 
   const [reports, profiles] = await Promise.all([
-    getPublicDataReadAdapter().getPublicTripReportsBySubstanceNames(substanceNames),
+    getPublicTripReportRecordsBySubstanceNames(substanceNames),
     getPublicContributorProfiles(),
   ]);
 
   return projectPublicReportDetails(reports, profiles);
-}, ["convex-public-reports-by-substance-names"], {
-  revalidate: PUBLIC_CONVEX_CACHE_REVALIDATE_SECONDS,
-  tags: [PUBLIC_CONVEX_CACHE_TAGS.all, PUBLIC_CONVEX_CACHE_TAGS.reports, PUBLIC_CONVEX_CACHE_TAGS.contributors],
-}));
+});

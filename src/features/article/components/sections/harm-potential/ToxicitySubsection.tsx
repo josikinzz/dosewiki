@@ -1,3 +1,5 @@
+"use client";
+
 import { useState } from "react";
 import { ExpandButton } from "@/components/common/ExpandButton";
 import { StatusBadge, type StatusBadgeTone } from "@/components/common/StatusBadge";

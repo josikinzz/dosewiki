@@ -258,6 +258,17 @@ export default defineSchema({
     .index("by_featured", ["featured"])
     .index("by_subject_profile_key", ["subject.profile_key"]),
 
+  // Denormalized (report, lowercase substance name) pairs so article renders
+  // can find a substance's reports through an index instead of a table scan.
+  // Maintained by convex/lib/tripReportSubstanceIndex.ts; backfilled by
+  // tripReports:backfillSubstanceIndex.
+  tripReportSubstances: defineTable({
+    report_id: v.id("tripReports"),
+    name_lower: v.string(),
+  })
+    .index("by_name_lower", ["name_lower"])
+    .index("by_report", ["report_id"]),
+
   // Private public-submission intake. Rows stay editor-only until promoted into tripReports.
   tripReportSubmissions: defineTable(tripReportSubmission)
     .index("by_status_created", ["status", "created_at"])

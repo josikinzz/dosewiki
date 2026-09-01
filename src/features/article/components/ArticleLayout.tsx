@@ -10,6 +10,7 @@ import {
   type WarningBannerPreset,
 } from "@/data/substanceWarningBanners";
 import { BetaDisclaimer } from "@/components/common/BetaDisclaimer";
+import { IconSpriteScope } from "@/components/common/IconSprite";
 import { HeroSection } from "./sections/HeroSection";
 import { DosageDurationSection } from "./sections/DosageDurationSection";
 import { SubjectiveEffectsSection } from "./sections/SubjectiveEffectsSection";
@@ -183,6 +184,7 @@ export function ArticleLayout({
     : content?.moleculeAssets ?? [];
 
   return (
+    <IconSpriteScope>
     <StickyTocLayout
       toc={(
         <TableOfContentsSection
@@ -324,5 +326,6 @@ export function ArticleLayout({
           </div>
         </div>
     </StickyTocLayout>
+    </IconSpriteScope>
   );
 }

@@ -39,6 +39,7 @@ const publicData = vi.hoisted(() => ({
   getPublicReports: vi.fn(),
   getPublicSubstanceBySlug: vi.fn(),
   getPublicSubstanceLookup: vi.fn(),
+  getPublicSubstanceSlugs: vi.fn(() => Promise.resolve([] as string[])),
   getPublicSubstances: vi.fn(() => Promise.resolve([])),
   getReplicationsByContributor: vi.fn(() => Promise.resolve([])),
   getReviewedArticlesByContributor: vi.fn(() => Promise.resolve([])),

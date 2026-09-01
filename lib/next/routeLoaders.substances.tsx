@@ -11,7 +11,7 @@ import {
   getPublicEffects,
   getPublicReportsBySubstanceNames,
   getPublicSubstanceBySlug,
-  getPublicSubstances,
+  getPublicSubstanceSlugs,
   type PublicEffectArticle,
 } from "@server/convex/publicData";
 import { getPublicEffectDetail } from "@server/convex/publicLibrary";
@@ -93,7 +93,7 @@ export const loadSubstanceRoute = cache(async (slug: string): Promise<SubstanceR
     lyreaProfile,
     moleculeUpdatedAt,
     contributorDirectory,
-    publicSubstances,
+    linkableSubstanceSlugs,
     categoryLayout,
     externalReagentData,
     relatedTripReports,
@@ -105,7 +105,9 @@ export const loadSubstanceRoute = cache(async (slug: string): Promise<SubstanceR
     getPublicContributorByKey("LYREA"),
     getMoleculeUpdatedAt(slug),
     getPublicContributorDirectory(),
-    getPublicSubstances(),
+    // Slug set only: which wiki links resolve. The preview corpus would cost
+    // 19 sequential round trips on a cold cache for the same answer.
+    getPublicSubstanceSlugs(),
     getPublicCategoryLayout(),
     getCachedReagentDataForArticle(substance, slug),
     // Cached alongside the streamed Trip Reports section's own call; resolved
@@ -160,7 +162,7 @@ export const loadSubstanceRoute = cache(async (slug: string): Promise<SubstanceR
   const viewModel = buildSubstanceArticleViewModel({
     slug,
     substance,
-    linkableSubstanceSlugs: publicSubstances.map(({ slug }) => slug),
+    linkableSubstanceSlugs,
     linkableCategoryKeys: categoryLayout?.categories.map(({ key }) => key) ?? [],
     contributorAvatars: {
       josie: josieProfile?.avatarUrl ?? null,
@@ -194,11 +196,11 @@ export type EffectRouteResult =
   | NotFoundRouteResult;
 
 export const loadEffectRoute = cache(async (effectSlug: string): Promise<EffectRouteResult> => {
-  const [effect, detail, contributorDirectory, publicSubstances, publicEffects] = await Promise.all([
+  const [effect, detail, contributorDirectory, linkableSubstanceSlugs, publicEffects] = await Promise.all([
     getPublicEffectBySlug(effectSlug),
     getPublicEffectDetail(effectSlug),
     getPublicContributorDirectory(),
-    getPublicSubstances(),
+    getPublicSubstanceSlugs(),
     getPublicEffects(),
   ]);
 
@@ -211,7 +213,7 @@ export const loadEffectRoute = cache(async (effectSlug: string): Promise<EffectR
     effect,
     detail,
     contributorDirectory,
-    linkableSubstanceSlugs: publicSubstances.map(({ slug }) => slug),
+    linkableSubstanceSlugs,
     linkableEffectSlugs: publicEffects.map(({ slug }) => slug),
   });
 

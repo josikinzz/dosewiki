@@ -71,6 +71,15 @@ describe("public substance corpus pagination", () => {
     expect(lookupBlock).not.toContain("projectPublicArticle");
     expect(lookupBlock).not.toContain(".collect()");
 
+    // The slug page walks the by_slug index under a byte budget instead of
+    // collecting the corpus or paging by a fixed 32-article window.
+    const slugBlock = exportedQueryBlock("getPublicSlugsPage");
+    expect(slugBlock).toContain('.withIndex("by_slug", (q) => q.gt("slug", cursor))');
+    expect(slugBlock).toContain("PUBLIC_SLUG_PAGE_BYTE_BUDGET");
+    expect(slugBlock).toContain("resolveSubstanceSlug(article)");
+    expect(slugBlock).not.toContain(".collect()");
+    expect(source).toContain("const PUBLIC_SLUG_PAGE_BYTE_BUDGET = 4 * 1024 * 1024;");
+
     const searchBlock = exportedQueryBlock("getSearchInputPage");
     expect(searchBlock).toContain("paginationOptsValidator");
     expect(searchBlock).toContain('.query("substanceIndex").paginate({');
