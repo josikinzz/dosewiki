@@ -226,7 +226,7 @@ async function currentCreatorBefore(ctx: Ctx, entry: Extract<IdentitySocialBatch
   const sourceHistory = {
     posterDisplayName: attr?.poster.display_name ?? row.artist,
     posterProfileUrl: attr?.poster.profile_url ?? null,
-    sourcePostUrl: first?.post_url ?? null,
+    sourcePostUrl: first?.post_url ?? row.source_url ?? null,
     sourceUrl: first?.source_url ?? row.source_url ?? null,
     sourceReferences: attr?.source_references ?? [],
     sourceEraArtistDisplayName: attr?.poster.display_name ?? row.artist,
