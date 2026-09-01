@@ -226,7 +226,10 @@ describe("lossless contributor profile merges", () => {
     expect(tables.contributorAliasEvidence).toHaveLength(1);
     expect(tables.contributorAvatarHistory).toHaveLength(1);
 
-    await expect(profileMergeReceiptHandler(ctx as unknown as QueryCtx, { apiKey: TOKEN, actor_email: ACTOR, operation_id: args.operation_id })).resolves.toMatchObject({ live_matches: true, checked_items: applied.item_count, operation: { status: "applied" } });
+    const receipt = await profileMergeReceiptHandler(ctx as unknown as QueryCtx, { apiKey: TOKEN, actor_email: ACTOR, operation_id: args.operation_id });
+    expect(receipt).toMatchObject({ live_matches: true, checked_items: applied.item_count, operation: { status: "applied" } });
+    expect(receipt?.operation).not.toHaveProperty("_id");
+    expect(receipt?.operation).not.toHaveProperty("_creationTime");
     await expect(applyProfileMergeHandler(ctx, args)).resolves.toMatchObject({ idempotent_replay: true, item_count: applied.item_count });
     await expect(rollbackProfileMergeHandler(ctx, { apiKey: TOKEN, actor_email: ACTOR, operation_id: args.operation_id, rollback_of: args.operation_id, dry_run: false })).rejects.toThrow(/rollback operation ID collision/);
 

@@ -101,9 +101,7 @@ export async function run(argv = process.argv.slice(2), adapters = {}) {
   const mutate = (ref, args) => adapters.mutate ? adapters.mutate(ref, args) : client.mutation(ref, args);
   const verified = new Set(loadLedger(options.ledger).filter((x) => x.event === "batch-readback-verified").map((x) => x.operation_id));
   if (options.phase === "full") for (const batch of canaries) if (!verified.has(batch.operation_id)) throw new Error(`Full rollout requires verified canary ${batch.operation_id}.`);
-  const phaseBatches = options.phase === "canary" ? canaries : fullBatches;
-  const filteredPhaseBatches = options.operationKind ? phaseBatches.filter((batch) => batch.kind === options.operationKind) : phaseBatches;
-  const work = options.rollback ? [] : pendingBatches(filteredPhaseBatches, loadLedger(options.ledger));
+  const work = options.rollback ? [] : pendingBatches(selectedBatches, loadLedger(options.ledger));
   for (const batch of work) {
     let reconcileAppliedProfileBinding = false;
     for (const entry of batch.entries) {

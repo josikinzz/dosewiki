@@ -228,9 +228,10 @@ export async function profileMergeReceiptHandler(
 ) {
     await requireRegisteredDelegatedEditorWrite(ctx, { apiKey: args.apiKey, actorEmail: args.actor_email, adminIntent: "replicationMaintenance" });
     const operation = await ctx.db.query("contributorProfileMergeOperations").withIndex("by_operation_id", (q) => q.eq("operation_id", args.operation_id)).unique(); if (!operation) return null;
+    const { _id: _operationId, _creationTime: _operationCreationTime, ...receiptOperation } = operation;
     const items = await ctx.db.query("contributorProfileMergeItems").withIndex("by_operation_id_and_ordinal", (q) => q.eq("operation_id", args.operation_id)).take(operation.item_count + 1);
-    if (items.length !== operation.item_count) return { operation, live_matches: false, checked_items: items.length };
-    try { await assertLive(ctx, items.map((item) => ({ table: item.table, rowId: item.row_id, before: item.before as Row, after: item.after as Row })), operation.status === "applied" ? "after" : "before"); return { operation, live_matches: true, checked_items: items.length }; } catch { return { operation, live_matches: false, checked_items: items.length }; }
+    if (items.length !== operation.item_count) return { operation: receiptOperation, live_matches: false, checked_items: items.length };
+    try { await assertLive(ctx, items.map((item) => ({ table: item.table, rowId: item.row_id, before: item.before as Row, after: item.after as Row })), operation.status === "applied" ? "after" : "before"); return { operation: receiptOperation, live_matches: true, checked_items: items.length }; } catch { return { operation: receiptOperation, live_matches: false, checked_items: items.length }; }
 }
 
 export const receipt = query({
