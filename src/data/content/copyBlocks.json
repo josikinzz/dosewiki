@@ -870,5 +870,3604 @@
     "label": "Chemical classes meta description",
     "group": "SEO",
     "body": "Browse the chemical class tree organized by structural lineage on dose.wiki."
+  },
+  {
+    "key": "docs-code-header-title",
+    "kind": "plain",
+    "label": "Page title",
+    "group": "Docs · Code",
+    "body": "dose.wiki — codebase overview"
+  },
+  {
+    "key": "docs-code-header-tagline",
+    "kind": "plain",
+    "label": "Header tagline",
+    "group": "Docs · Code",
+    "body": "Next.js 16 + Convex + AI editorial pipelines — written for someone new to the repository"
+  },
+  {
+    "key": "docs-code-header-intro",
+    "kind": "markdown",
+    "label": "Header intro paragraph",
+    "group": "Docs · Code",
+    "body": "dose.wiki is a **harm-reduction encyclopedia**: a public website of substance articles, subjective-effect documentation, and trip reports. The repository contains **three systems**. The public Next.js site renders content. The login-protected `/dev` editor is where editors write and cite that content. Command-line pipelines scrape, generate, and migrate it. All three read and write the same **Convex database**, which is the source of truth."
+  },
+  {
+    "key": "docs-code-toc-s1",
+    "kind": "plain",
+    "label": "TOC label — 01 · The big picture in numbers",
+    "group": "Docs · Code",
+    "body": "01 · The big picture in numbers"
+  },
+  {
+    "key": "docs-code-toc-s2",
+    "kind": "plain",
+    "label": "TOC label — 02 · System overview",
+    "group": "Docs · Code",
+    "body": "02 · System overview"
+  },
+  {
+    "key": "docs-code-toc-s3",
+    "kind": "plain",
+    "label": "TOC label — 03 · Tech stack",
+    "group": "Docs · Code",
+    "body": "03 · Tech stack"
+  },
+  {
+    "key": "docs-code-toc-s4",
+    "kind": "plain",
+    "label": "TOC label — 04 · Repository map",
+    "group": "Docs · Code",
+    "body": "04 · Repository map"
+  },
+  {
+    "key": "docs-code-toc-s5",
+    "kind": "plain",
+    "label": "TOC label — 05 · Frontend",
+    "group": "Docs · Code",
+    "body": "05 · Frontend"
+  },
+  {
+    "key": "docs-code-toc-s6",
+    "kind": "plain",
+    "label": "TOC label — 06 · The Convex data layer",
+    "group": "Docs · Code",
+    "body": "06 · The Convex data layer"
+  },
+  {
+    "key": "docs-code-toc-s7",
+    "kind": "plain",
+    "label": "TOC label — 07 · Two surfaces, one database",
+    "group": "Docs · Code",
+    "body": "07 · Two surfaces, one database"
+  },
+  {
+    "key": "docs-code-toc-s8",
+    "kind": "plain",
+    "label": "TOC label — 08 · Content pipelines",
+    "group": "Docs · Code",
+    "body": "08 · Content pipelines"
+  },
+  {
+    "key": "docs-code-toc-s9",
+    "kind": "plain",
+    "label": "TOC label — 09 · Two flows worth tracing",
+    "group": "Docs · Code",
+    "body": "09 · Two flows worth tracing"
+  },
+  {
+    "key": "docs-code-toc-s10",
+    "kind": "plain",
+    "label": "TOC label — 10 · Recurring vocabulary",
+    "group": "Docs · Code",
+    "body": "10 · Recurring vocabulary"
+  },
+  {
+    "key": "docs-code-toc-s11",
+    "kind": "plain",
+    "label": "TOC label — 11 · Where to start reading",
+    "group": "Docs · Code",
+    "body": "11 · Where to start reading"
+  },
+  {
+    "key": "docs-code-s1-heading",
+    "kind": "plain",
+    "label": "01 · Section heading",
+    "group": "Docs · Code",
+    "body": "The big picture in numbers"
+  },
+  {
+    "key": "docs-code-s2-heading",
+    "kind": "plain",
+    "label": "02 · Section heading",
+    "group": "Docs · Code",
+    "body": "System overview"
+  },
+  {
+    "key": "docs-code-s3-heading",
+    "kind": "plain",
+    "label": "03 · Section heading",
+    "group": "Docs · Code",
+    "body": "Tech stack — what each tool is for"
+  },
+  {
+    "key": "docs-code-s4-heading",
+    "kind": "plain",
+    "label": "04 · Section heading",
+    "group": "Docs · Code",
+    "body": "Repository map — where things live"
+  },
+  {
+    "key": "docs-code-s5-heading",
+    "kind": "plain",
+    "label": "05 · Section heading",
+    "group": "Docs · Code",
+    "body": "Frontend — routes and feature modules"
+  },
+  {
+    "key": "docs-code-s6-heading",
+    "kind": "plain",
+    "label": "06 · Section heading",
+    "group": "Docs · Code",
+    "body": "The Convex data layer — what is in the database"
+  },
+  {
+    "key": "docs-code-s7-heading",
+    "kind": "plain",
+    "label": "07 · Section heading",
+    "group": "Docs · Code",
+    "body": "Two surfaces, one database"
+  },
+  {
+    "key": "docs-code-s8-heading",
+    "kind": "plain",
+    "label": "08 · Section heading",
+    "group": "Docs · Code",
+    "body": "Content pipelines — how the pipelines build an article"
+  },
+  {
+    "key": "docs-code-s9-heading",
+    "kind": "plain",
+    "label": "09 · Section heading",
+    "group": "Docs · Code",
+    "body": "Two flows worth tracing"
+  },
+  {
+    "key": "docs-code-s10-heading",
+    "kind": "plain",
+    "label": "10 · Section heading",
+    "group": "Docs · Code",
+    "body": "Recurring vocabulary"
+  },
+  {
+    "key": "docs-code-s11-heading",
+    "kind": "plain",
+    "label": "11 · Section heading",
+    "group": "Docs · Code",
+    "body": "Where to start reading"
+  },
+  {
+    "key": "docs-code-s1-stat-articles",
+    "kind": "plain",
+    "label": "01 · Numbers — stat: substance articles",
+    "group": "Docs · Code",
+    "body": "Substance articles in Convex"
+  },
+  {
+    "key": "docs-code-s1-stat-effects",
+    "kind": "plain",
+    "label": "01 · Numbers — stat: subjective effects",
+    "group": "Docs · Code",
+    "body": "Subjective effects"
+  },
+  {
+    "key": "docs-code-s1-stat-reports",
+    "kind": "plain",
+    "label": "01 · Numbers — stat: trip reports",
+    "group": "Docs · Code",
+    "body": "Trip reports"
+  },
+  {
+    "key": "docs-code-s1-stat-src-files",
+    "kind": "markdown",
+    "label": "01 · Numbers — stat: src files",
+    "group": "Docs · Code",
+    "body": "TS/TSX files in `src/`"
+  },
+  {
+    "key": "docs-code-s1-stat-scripts",
+    "kind": "markdown",
+    "label": "01 · Numbers — stat: pipeline scripts",
+    "group": "Docs · Code",
+    "body": "Pipeline scripts in `scripts/`"
+  },
+  {
+    "key": "docs-code-s1-body",
+    "kind": "markdown",
+    "label": "01 · Numbers — closing paragraph",
+    "group": "Docs · Code",
+    "body": "**Roughly half of this repository is not the website.** The `scripts/` directory is nearly as large as the app itself, because pipelines produce most content. Scripts scrape content from source wikis. Claude generates prose through OpenRouter. A citation workflow ties claims to real literature, and a person reviews everything before publication. If you read only `src/`, you see the site but not the tooling that fills it."
+  },
+  {
+    "key": "docs-code-s2-intro",
+    "kind": "markdown",
+    "label": "02 · Overview — intro",
+    "group": "Docs · Code",
+    "body": "Everything flows through **Convex** (a hosted realtime database with serverless functions). Content enters through scrapers and AI pipelines. Editors change it in `/dev`. The public site reads it. The colors below keep the same meaning for the rest of this page."
+  },
+  {
+    "key": "docs-code-s2-legend-public",
+    "kind": "plain",
+    "label": "02 · Overview — legend: public site",
+    "group": "Docs · Code",
+    "body": "Public site"
+  },
+  {
+    "key": "docs-code-s2-legend-dev",
+    "kind": "plain",
+    "label": "02 · Overview — legend: /dev editor",
+    "group": "Docs · Code",
+    "body": "/dev editor"
+  },
+  {
+    "key": "docs-code-s2-legend-convex",
+    "kind": "plain",
+    "label": "02 · Overview — legend: Convex data",
+    "group": "Docs · Code",
+    "body": "Convex data"
+  },
+  {
+    "key": "docs-code-s2-legend-scripts",
+    "kind": "plain",
+    "label": "02 · Overview — legend: scripts",
+    "group": "Docs · Code",
+    "body": "Scripts & pipelines"
+  },
+  {
+    "key": "docs-code-s2-legend-external",
+    "kind": "plain",
+    "label": "02 · Overview — legend: external/AI",
+    "group": "Docs · Code",
+    "body": "External / AI services"
+  },
+  {
+    "key": "docs-code-s2-callout",
+    "kind": "markdown",
+    "label": "02 · Overview — no-REST-backend callout",
+    "group": "Docs · Code",
+    "body": "**There is no separate REST backend.** Convex hosts the database and the server functions (`convex/*.ts`) that read and write it. The Next.js app, the `/dev` editor, and the scripts all connect to the same Convex deployment. The public site reads through `lib/convex/publicData.ts`. The `/dev` editor writes through the `/api/save-to-convex` route. Scripts use an admin key."
+  },
+  {
+    "key": "docs-code-s3-framework-label",
+    "kind": "plain",
+    "label": "03 · Tech stack — Framework: label",
+    "group": "Docs · Code",
+    "body": "Framework"
+  },
+  {
+    "key": "docs-code-s3-framework-title",
+    "kind": "plain",
+    "label": "03 · Tech stack — Framework: title",
+    "group": "Docs · Code",
+    "body": "Next.js 16 + React 19"
+  },
+  {
+    "key": "docs-code-s3-framework-body",
+    "kind": "markdown",
+    "label": "03 · Tech stack — Framework: body",
+    "group": "Docs · Code",
+    "body": "App Router with **server components by default**: pages fetch data on the server and serve mostly-static HTML, prerendered at build time wherever possible. The app deploys on **Vercel**."
+  },
+  {
+    "key": "docs-code-s3-database-label",
+    "kind": "plain",
+    "label": "03 · Tech stack — Database + backend: label",
+    "group": "Docs · Code",
+    "body": "Database + backend"
+  },
+  {
+    "key": "docs-code-s3-database-title",
+    "kind": "plain",
+    "label": "03 · Tech stack — Database + backend: title",
+    "group": "Docs · Code",
+    "body": "Convex"
+  },
+  {
+    "key": "docs-code-s3-database-body",
+    "kind": "markdown",
+    "label": "03 · Tech stack — Database + backend: body",
+    "group": "Docs · Code",
+    "body": "Hosted document database with TypeScript server functions (queries, mutations). The `convex/` directory *is* the backend. Every environment — local dev, previews, production — targets the single production deployment (`glad-minnow-656`); the dev deployment is retired (see `AGENTS.md`)."
+  },
+  {
+    "key": "docs-code-s3-auth-label",
+    "kind": "plain",
+    "label": "03 · Tech stack — Auth: label",
+    "group": "Docs · Code",
+    "body": "Auth"
+  },
+  {
+    "key": "docs-code-s3-auth-title",
+    "kind": "plain",
+    "label": "03 · Tech stack — Auth: title",
+    "group": "Docs · Code",
+    "body": "Auth.js (next-auth) + GitHub OAuth"
+  },
+  {
+    "key": "docs-code-s3-auth-body",
+    "kind": "markdown",
+    "label": "03 · Tech stack — Auth: body",
+    "group": "Docs · Code",
+    "body": "`auth.ts` configures sign-in. `middleware.ts` protects `/dev` and keeps editor routes on the editor hosts. Editor roles (admin / editor / viewer) live in the Convex `memberships` table."
+  },
+  {
+    "key": "docs-code-s3-ai-label",
+    "kind": "plain",
+    "label": "03 · Tech stack — AI generation: label",
+    "group": "Docs · Code",
+    "body": "AI generation"
+  },
+  {
+    "key": "docs-code-s3-ai-title",
+    "kind": "plain",
+    "label": "03 · Tech stack — AI generation: title",
+    "group": "Docs · Code",
+    "body": "OpenRouter SDK"
+  },
+  {
+    "key": "docs-code-s3-ai-body",
+    "kind": "markdown",
+    "label": "03 · Tech stack — AI generation: body",
+    "group": "Docs · Code",
+    "body": "One API gateway to many models, selected by each workflow's config or entry module: **Claude Opus 4.6** (summary, pharmacology), **Claude Opus 4.5** (harm potential, history & culture, legality, tolerance), **Claude Haiku 4.5** (dosage & duration), **Gemini 3 Flash** (quote extraction), and **DeepSeek V4 Pro** (formal citations). Both the batch scripts and the in-editor section generator use it."
+  },
+  {
+    "key": "docs-code-s3-styling-label",
+    "kind": "plain",
+    "label": "03 · Tech stack — Styling + UI: label",
+    "group": "Docs · Code",
+    "body": "Styling + UI"
+  },
+  {
+    "key": "docs-code-s3-styling-title",
+    "kind": "plain",
+    "label": "03 · Tech stack — Styling + UI: title",
+    "group": "Docs · Code",
+    "body": "Tailwind CSS 4 + Radix UI"
+  },
+  {
+    "key": "docs-code-s3-styling-body",
+    "kind": "markdown",
+    "label": "03 · Tech stack — Styling + UI: body",
+    "group": "Docs · Code",
+    "body": "Utility-first styling with a token-based design system in `src/theme/`. Radix supplies accessible primitives. Framer Motion handles animation. React Hook Form drives the forms in the editor."
+  },
+  {
+    "key": "docs-code-s3-tooling-label",
+    "kind": "plain",
+    "label": "03 · Tech stack — Tooling + safety: label",
+    "group": "Docs · Code",
+    "body": "Tooling + safety"
+  },
+  {
+    "key": "docs-code-s3-tooling-title",
+    "kind": "plain",
+    "label": "03 · Tech stack — Tooling + safety: title",
+    "group": "Docs · Code",
+    "body": "Bun, Vitest, Zod"
+  },
+  {
+    "key": "docs-code-s3-tooling-body",
+    "kind": "markdown",
+    "label": "03 · Tech stack — Tooling + safety: body",
+    "group": "Docs · Code",
+    "body": "Bun is the package manager. **Zod schemas** (in `src/schema/` and `schemas/`) validate every article shape before the app stores or renders it, so the app rejects malformed or AI-mangled content early. The repository has ~475 Vitest test files."
+  },
+  {
+    "key": "docs-code-s4-intro",
+    "kind": "markdown",
+    "label": "04 · Repository map — intro",
+    "group": "Docs · Code",
+    "body": "Most of the code lives in four directories: `src/` (the app), `convex/` (the backend), `scripts/` (the pipelines), and `lib/` (server-side helpers shared between them). Everything else is documentation, assets, or configuration."
+  },
+  {
+    "key": "docs-code-s4-skills",
+    "kind": "markdown",
+    "label": "04 · Repository map — local-skill note",
+    "group": "Docs · Code",
+    "body": "The repository keeps one local skill: `.agents/skills/legality-pi/`. Other automated workflows are documented beside their owning scripts under `scripts/` and `docs/agents/`, so executable behavior and operating guidance stay together."
+  },
+  {
+    "key": "docs-code-s5-intro",
+    "kind": "markdown",
+    "label": "05 · Frontend — intro",
+    "group": "Docs · Code",
+    "body": "The code splits two ways. `src/app/` holds thin **route folders** (one per URL, mostly data-fetching and metadata). `src/features/` holds the **rendering logic**, grouped by domain. A route file fetches from Convex and passes the data to a feature module."
+  },
+  {
+    "key": "docs-code-s5-public-routes-label",
+    "kind": "plain",
+    "label": "05 · Frontend — public routes card label",
+    "group": "Docs · Code",
+    "body": "src/app/ — public routes"
+  },
+  {
+    "key": "docs-code-s5-public-routes",
+    "kind": "list",
+    "label": "05 · Frontend — public routes list",
+    "group": "Docs · Code",
+    "items": [
+      "`/[slug]` — **a substance article** (the core page)",
+      "`/substances` — browse all substances",
+      "`/effects`, `/effects/[effectSlug]` — subjective effects",
+      "`/reports` — trip reports",
+      "`/psychoactive · /chemical-classes · /mechanism · /category` — classification indexes",
+      "`/interactions`, `/search`, `/about`, `/contributors`",
+      "`/about#data` — the Downloads section with three dataset JSON exports;`/data` is a compatibility redirect to `/about`",
+      "`/replications`, `/articles`, `/chemical-classes`, `/mantras`, `/blog`, `/documentation-style-guide` — media gallery, articles, class pages, mandala, announcements, contributor style guide"
+    ]
+  },
+  {
+    "key": "docs-code-s5-protected-routes-label",
+    "kind": "plain",
+    "label": "05 · Frontend — protected routes card label",
+    "group": "Docs · Code",
+    "body": "src/app/ — protected routes"
+  },
+  {
+    "key": "docs-code-s5-protected-routes",
+    "kind": "list",
+    "label": "05 · Frontend — protected routes list",
+    "group": "Docs · Code",
+    "items": [
+      "`/dev` — editor home (auth required via `middleware.ts`)",
+      "`/dev/articles/[slug]` — edit a substance",
+      "`/dev/change-log · tag-editor · index-layout · about · citation-review · profile`",
+      "`/api/save-to-convex` — the main write endpoint for the editor",
+      "`/sign-in` — Auth.js sign-in entry"
+    ]
+  },
+  {
+    "key": "docs-code-s5-flavor",
+    "kind": "markdown",
+    "label": "05 · Frontend — site-flavor paragraph",
+    "group": "Docs · Code",
+    "body": "One codebase builds two publications — **dose.wiki** and the **Effect Index** sister site — selected at build time by `NEXT_PUBLIC_SITE_FLAVOR`. The route tree therefore also holds Effect Index surfaces; which ones render depends on the flavor (`src/config/siteFlavor.ts`)."
+  },
+  {
+    "key": "docs-code-s5-features-public-label",
+    "kind": "plain",
+    "label": "05 · Frontend — public features card label",
+    "group": "Docs · Code",
+    "body": "src/features/ — public-facing (3 modules)"
+  },
+  {
+    "key": "docs-code-s5-features-public",
+    "kind": "list",
+    "label": "05 · Frontend — public features list",
+    "group": "Docs · Code",
+    "items": [
+      "**`article/`** — renders substance articles: dosage tables, duration charts, interaction grids, citation markers",
+      "**`effects/`** — effect pages, including a custom \"VCode\" markup renderer for effect descriptions",
+      "**`reports/`** — trip report pages"
+    ]
+  },
+  {
+    "key": "docs-code-s5-features-dev-label",
+    "kind": "plain",
+    "label": "05 · Frontend — dev features card label",
+    "group": "Docs · Code",
+    "body": "src/features/dev/ — the editor (~210 files, the largest module)"
+  },
+  {
+    "key": "docs-code-s5-features-dev",
+    "kind": "list",
+    "label": "05 · Frontend — dev features list",
+    "group": "Docs · Code",
+    "items": [
+      "**`forms/`** — one React Hook Form section per article field group",
+      "**`tools/`** — substance editor + AI section generator, layout editor, citation review, about editor",
+      "**`save-orchestrator/`** — coordinates multi-endpoint saves",
+      "**`context/ · notices/ · profile/ · tags/ · prompts/`** — editor state, toasts, profile & tag editing"
+    ]
+  },
+  {
+    "key": "docs-code-s6-intro",
+    "kind": "markdown",
+    "label": "06 · Data layer — intro",
+    "group": "Docs · Code",
+    "body": "Each table has a matching `convex/<table>.ts` file that exports its queries and mutations. `convex/schema.ts` declares the shapes. There are three groups: content, editorial, and workflow. Readers see the **content**. The **editorial** records control who can change it and how. The **workflow** tables feed the AI pipelines."
+  },
+  {
+    "key": "docs-code-s6-th-table",
+    "kind": "plain",
+    "label": "06 · Data layer — column header: Table",
+    "group": "Docs · Code",
+    "body": "Table"
+  },
+  {
+    "key": "docs-code-s6-th-group",
+    "kind": "plain",
+    "label": "06 · Data layer — column header: Group",
+    "group": "Docs · Code",
+    "body": "Group"
+  },
+  {
+    "key": "docs-code-s6-th-holds",
+    "kind": "plain",
+    "label": "06 · Data layer — column header: What it holds",
+    "group": "Docs · Code",
+    "body": "What it holds"
+  },
+  {
+    "key": "docs-code-s6-th-docs",
+    "kind": "plain",
+    "label": "06 · Data layer — column header: Docs",
+    "group": "Docs · Code",
+    "body": "Docs"
+  },
+  {
+    "key": "docs-code-s6-table-substance-index",
+    "kind": "markdown",
+    "label": "06 · Data layer — table row: substanceIndex",
+    "group": "Docs · Code",
+    "body": "The main table: one document per substance with every section — summary, dosage, duration, pharmacology, harm potential, legality, citations, references."
+  },
+  {
+    "key": "docs-code-s6-table-subjective-effects",
+    "kind": "markdown",
+    "label": "06 · Data layer — table row: subjectiveEffects",
+    "group": "Docs · Code",
+    "body": "Effect articles (for example \"geometry\" and \"euphoria\") with VCode markup bodies, galleries, and audio replications."
+  },
+  {
+    "key": "docs-code-s6-table-trip-reports",
+    "kind": "markdown",
+    "label": "06 · Data layer — table row: tripReports",
+    "group": "Docs · Code",
+    "body": "Trip reports linked to substances and doses."
+  },
+  {
+    "key": "docs-code-s6-table-trip-report-submissions",
+    "kind": "markdown",
+    "label": "06 · Data layer — table row: tripReportSubmissions",
+    "group": "Docs · Code",
+    "body": "The private submission queue from the report form. Editors accept, reject, or promote a submission into `tripReports` before it goes public."
+  },
+  {
+    "key": "docs-code-s6-table-replications",
+    "kind": "markdown",
+    "label": "06 · Data layer — table row: replications / effectIndexArticles",
+    "group": "Docs · Code",
+    "body": "Effect gallery media (video/image recreations of effects) and methodology articles."
+  },
+  {
+    "key": "docs-code-s6-table-category-layout",
+    "kind": "markdown",
+    "label": "06 · Data layer — table row: categoryLayout",
+    "group": "Docs · Code",
+    "body": "The table that the public `/substances` page reads: the hand-curated psychoactive index layout. Saves to `indexLayouts` also update this table, so the page never reads `indexLayouts` directly."
+  },
+  {
+    "key": "docs-code-s6-table-index-layouts",
+    "kind": "markdown",
+    "label": "06 · Data layer — table row: indexLayouts / siteConfig",
+    "group": "Docs · Code",
+    "body": "Hand-curated classification trees (psychoactive / chemical / mechanism) and about-page configuration."
+  },
+  {
+    "key": "docs-code-s6-table-molecule-overrides",
+    "kind": "markdown",
+    "label": "06 · Data layer — table row: moleculeOverrides",
+    "group": "Docs · Code",
+    "body": "Hand-authored skeletal-diagram fixes from the `/dev` Molecules editor. When an override is present, the public article uses its SVG instead of the generated one."
+  },
+  {
+    "key": "docs-code-s6-table-copy-blocks",
+    "kind": "markdown",
+    "label": "06 · Data layer — table row: copyBlocks",
+    "group": "Docs · Code",
+    "body": "Editable site copy, one document per block. The `/dev` Copy Studio edits it without a deploy."
+  },
+  {
+    "key": "docs-code-s6-table-reagent-tests",
+    "kind": "markdown",
+    "label": "06 · Data layer — table row: reagentTests",
+    "group": "Docs · Code",
+    "body": "Point-in-time ProtestKit reagent-test results, keyed by substance slug."
+  },
+  {
+    "key": "docs-code-s6-table-substance-galleries",
+    "kind": "markdown",
+    "label": "06 · Data layer — table row: substanceGalleries",
+    "group": "Docs · Code",
+    "body": "Per-substance curation of the Replication Showcase: a pinned head and a suppression list over `replications` slugs."
+  },
+  {
+    "key": "docs-code-s6-table-memberships",
+    "kind": "markdown",
+    "label": "06 · Data layer — table row: memberships",
+    "group": "Docs · Code",
+    "body": "Who can edit: email → role (admin / editor / viewer), synced from Auth.js sign-ins."
+  },
+  {
+    "key": "docs-code-s6-table-changelog",
+    "kind": "markdown",
+    "label": "06 · Data layer — table row: changelog",
+    "group": "Docs · Code",
+    "body": "Audit trail: when an editor saves, the table records who, when, and a markdown diff. Browsable at `/dev/change-log`."
+  },
+  {
+    "key": "docs-code-s6-table-contributor-profiles",
+    "kind": "markdown",
+    "label": "06 · Data layer — table row: contributorProfiles",
+    "group": "Docs · Code",
+    "body": "Public bios, aliases, links, and avatars for contributors."
+  },
+  {
+    "key": "docs-code-s6-table-article-feedback",
+    "kind": "markdown",
+    "label": "06 · Data layer — table row: articleFeedback",
+    "group": "Docs · Code",
+    "body": "Private per-article \"report an issue / suggest an edit\" intake. Editor-only; never rendered publicly."
+  },
+  {
+    "key": "docs-code-s6-table-site-feedback",
+    "kind": "markdown",
+    "label": "06 · Data layer — table row: siteFeedback",
+    "group": "Docs · Code",
+    "body": "Private site-wide general feedback intake. Editor-only; never rendered publicly."
+  },
+  {
+    "key": "docs-code-s6-table-molecule-class-templates",
+    "kind": "markdown",
+    "label": "06 · Data layer — table row: moleculeClassTemplates",
+    "group": "Docs · Code",
+    "body": "Editor-authored plain-scaffold orientation templates for the Molecules editor. Editor-only cosmetics; saving one never changes a published molecule."
+  },
+  {
+    "key": "docs-code-s6-table-article-sources",
+    "kind": "markdown",
+    "label": "06 · Data layer — table row: articleSources",
+    "group": "Docs · Code",
+    "body": "Raw scraped source text per substance, from the ten sites in the source list (section 08) — the input that the AI generators quote from."
+  },
+  {
+    "key": "docs-code-s6-table-prompts-quotes",
+    "kind": "markdown",
+    "label": "06 · Data layer — table row: prompts / quotes",
+    "group": "Docs · Code",
+    "body": "The editable AI prompts used for section generation, and quotes extracted from sources."
+  },
+  {
+    "key": "docs-code-s6-table-citation-evidence",
+    "kind": "markdown",
+    "label": "06 · Data layer — table row: citationEvidence",
+    "group": "Docs · Code",
+    "body": "The citation audit trail: each claim in an article mapped to reference IDs, supporting quotes, and a review status."
+  },
+  {
+    "key": "docs-code-s6-table-effect-index-archive",
+    "kind": "markdown",
+    "label": "06 · Data layer — table row: effectIndexArchive",
+    "group": "Docs · Code",
+    "body": "Lossless Effect Index source records retained for a future Effect Index deployment. Not part of any dose.wiki read path."
+  },
+  {
+    "key": "docs-code-s6-table-generated-publication-operations",
+    "kind": "markdown",
+    "label": "06 · Data layer — table row: generatedPublicationOperations",
+    "group": "Docs · Code",
+    "body": "Successful reviewed section publications. The proposal ID is the idempotency boundary for applying a generated section."
+  },
+  {
+    "key": "docs-code-s7-read-label",
+    "kind": "plain",
+    "label": "07 · Two surfaces — read-path card label",
+    "group": "Docs · Code",
+    "body": "Public site — read path"
+  },
+  {
+    "key": "docs-code-s7-read-who",
+    "kind": "markdown",
+    "label": "07 · Two surfaces — read path: who",
+    "group": "Docs · Code",
+    "body": "**Who:** anyone, no login. The launched site is crawlable, SEO-tuned, and mostly static."
+  },
+  {
+    "key": "docs-code-s7-read-how",
+    "kind": "markdown",
+    "label": "07 · Two surfaces — read path: how it reads",
+    "group": "Docs · Code",
+    "body": "**How it reads:** server components read Convex through `lib/convex/publicData.ts` (read-only URL). Flow A in section 09 traces this path step by step."
+  },
+  {
+    "key": "docs-code-s7-read-key",
+    "kind": "markdown",
+    "label": "07 · Two surfaces — read path: key property",
+    "group": "Docs · Code",
+    "body": "**Key property:** there is no client-side database access. The build can prerender pages. When an editor saves, the app revalidates them."
+  },
+  {
+    "key": "docs-code-s7-write-label",
+    "kind": "plain",
+    "label": "07 · Two surfaces — write-path card label",
+    "group": "Docs · Code",
+    "body": "/dev editor — write path"
+  },
+  {
+    "key": "docs-code-s7-write-who",
+    "kind": "markdown",
+    "label": "07 · Two surfaces — write path: who",
+    "group": "Docs · Code",
+    "body": "**Who:** authenticated editors only. `middleware.ts` redirects everyone else to `/sign-in`. The Convex `memberships` role decides what an editor can change."
+  },
+  {
+    "key": "docs-code-s7-write-how",
+    "kind": "markdown",
+    "label": "07 · Two surfaces — write path: how it writes",
+    "group": "Docs · Code",
+    "body": "**How it writes:** through the `save-orchestrator` and the `/api/save-to-convex` route. Flow B in section 09 traces this path step by step."
+  },
+  {
+    "key": "docs-code-s7-write-generation",
+    "kind": "markdown",
+    "label": "07 · Two surfaces — write path: generation note",
+    "group": "Docs · Code",
+    "body": "Source-backed generation runs only through authenticated local batch workflows. The `/dev` editor supports manual review and editing without exposing scraped source text in the browser."
+  },
+  {
+    "key": "docs-code-s7-open-data",
+    "kind": "markdown",
+    "label": "07 · Two surfaces — open-data paragraph",
+    "group": "Docs · Code",
+    "body": "**There is a third consumer: anyone who wants the raw data.** The `/open-data/SubstanceIndex.json`, `/open-data/EffectIndex.json`, and `/open-data/TripReports.json` routes serve daily Convex snapshots with per-dataset license envelopes. They are linked from the `/about#data` Downloads section; `/data` redirects to `/about`. Convex stays the live source for pages. The base data is CC0, but each dataset is \"mixed\" — the substance index keeps TripSit's terms on its `interactions` field, the effect index references third-party replication media, and legacy trip reports keep their authors' rights (see the [license page](/docs/license))."
+  },
+  {
+    "key": "docs-code-s8-intro",
+    "kind": "markdown",
+    "label": "08 · Pipelines — intro",
+    "group": "Docs · Code",
+    "body": "The pipelines build articles in stages. Parsers turn raw wiki text into structured data. Scripts load it into Convex and extend it with AI-generated prose. Editors review it in `/dev`. Then a citation workflow ties each claim to a reference. Each stage is a separate `scripts/` subdirectory with its own `npm run` commands."
+  },
+  {
+    "key": "docs-code-s8-sources",
+    "kind": "markdown",
+    "label": "08 · Pipelines — scraped sources paragraph",
+    "group": "Docs · Code",
+    "body": "**The scraped sources, in full.** The parser registry (`scripts/parsers/source-identity.ts`) covers ten sites: **PsychonautWiki**, **TripSit** (three feeds: factsheets, wiki, and the combination guide), **Erowid**, **Wikipedia**, **DrugBank**, **Isomer Design**, **SaferParty**, **The Drug Classroom**, **Disregard Everything I Say**, and the **Drug Users Bible**. The corpus also stores a few further sources (Bluelight, D. M. Turner, Nervewing, ProtestKit) that have no parser."
+  },
+  {
+    "key": "docs-code-s8-prompting-heading",
+    "kind": "plain",
+    "label": "08 · Pipelines — prompting subheading",
+    "group": "Docs · Code",
+    "body": "The prompting system, in detail (quotes → prompts → sections)"
+  },
+  {
+    "key": "docs-code-s8-prompting-intro",
+    "kind": "markdown",
+    "label": "08 · Pipelines — prompting intro",
+    "group": "Docs · Code",
+    "body": "The \"AI section generation\" box above is itself a two-stage process. The full scraped articles are too long and too mixed to give to a model directly. First, an extraction pass **copies verbatim excerpts out of the sources, by topic**. Then a stronger model **writes one section from those excerpts**, against a section-specific prompt that forbids claims not found in them. This section covers where the pieces live in the repository."
+  },
+  {
+    "key": "docs-code-s8-prompting-step1-title",
+    "kind": "plain",
+    "label": "08 · Prompting flow — step1 title",
+    "group": "Docs · Code",
+    "body": "Gather"
+  },
+  {
+    "key": "docs-code-s8-prompting-step1-body",
+    "kind": "markdown",
+    "label": "08 · Prompting flow — step1 body",
+    "group": "Docs · Code",
+    "body": "Full scraped articles for one substance, from `articleSources`"
+  },
+  {
+    "key": "docs-code-s8-prompting-step2-title",
+    "kind": "plain",
+    "label": "08 · Prompting flow — step2 title",
+    "group": "Docs · Code",
+    "body": "Extract quotes"
+  },
+  {
+    "key": "docs-code-s8-prompting-step2-body",
+    "kind": "markdown",
+    "label": "08 · Prompting flow — step2 body",
+    "group": "Docs · Code",
+    "body": "Block-selection extraction copies verbatim, topic-relevant excerpts"
+  },
+  {
+    "key": "docs-code-s8-prompting-step3-title",
+    "kind": "plain",
+    "label": "08 · Prompting flow — step3 title",
+    "group": "Docs · Code",
+    "body": "Store"
+  },
+  {
+    "key": "docs-code-s8-prompting-step3-body",
+    "kind": "markdown",
+    "label": "08 · Prompting flow — step3 body",
+    "group": "Docs · Code",
+    "body": "One entry per substance × topic in the Convex `quotes` table"
+  },
+  {
+    "key": "docs-code-s8-prompting-step4-title",
+    "kind": "plain",
+    "label": "08 · Prompting flow — step4 title",
+    "group": "Docs · Code",
+    "body": "Generate"
+  },
+  {
+    "key": "docs-code-s8-prompting-step4-body",
+    "kind": "markdown",
+    "label": "08 · Prompting flow — step4 body",
+    "group": "Docs · Code",
+    "body": "Section prompt + quotes for that topic → per-section Claude model → YAML section output"
+  },
+  {
+    "key": "docs-code-s8-prompting-step5-title",
+    "kind": "plain",
+    "label": "08 · Prompting flow — step5 title",
+    "group": "Docs · Code",
+    "body": "Review"
+  },
+  {
+    "key": "docs-code-s8-prompting-step5-body",
+    "kind": "markdown",
+    "label": "08 · Prompting flow — step5 body",
+    "group": "Docs · Code",
+    "body": "Editor previews, edits, and saves in `/dev`"
+  },
+  {
+    "key": "docs-code-s8-stage13-label",
+    "kind": "plain",
+    "label": "08 · Pipelines — stage 1–3 label",
+    "group": "Docs · Code",
+    "body": "Stage 1–3 — eight quote topics"
+  },
+  {
+    "key": "docs-code-s8-stage13-intro",
+    "kind": "markdown",
+    "label": "08 · Pipelines — stage 1–3 intro",
+    "group": "Docs · Code",
+    "body": "Extraction prompts (`scripts/prompts/`, `scripts/batch/extract-quotes/`) pull excerpts into eight topic buckets, defined in `lib/quoteSections.mjs`:"
+  },
+  {
+    "key": "docs-code-s8-stage13-topics",
+    "kind": "list",
+    "label": "08 · Pipelines — eight quote topics list",
+    "group": "Docs · Code",
+    "items": [
+      "Intro text · Harm potential · Pharmacology",
+      "History & culture · Dosage & duration",
+      "Tolerance · Legality · Subjective effects"
+    ]
+  },
+  {
+    "key": "docs-code-s8-stage4-label",
+    "kind": "plain",
+    "label": "08 · Pipelines — stage 4 label",
+    "group": "Docs · Code",
+    "body": "Stage 4 — eleven section prompts"
+  },
+  {
+    "key": "docs-code-s8-stage4-prompts",
+    "kind": "markdown",
+    "label": "08 · Pipelines — stage 4: prompt files",
+    "group": "Docs · Code",
+    "body": "Each article section has its own markdown prompt in `src/data/config/sectionPrompts/` — base, summary, dosage/duration, pharmacology, subjective effects, interactions, harm potential, tolerance, legality, history & culture, identification. They range from 4 KB (base) to 28 KB (pharmacology)."
+  },
+  {
+    "key": "docs-code-s8-stage4-seeds",
+    "kind": "markdown",
+    "label": "08 · Pipelines — stage 4: seeds note",
+    "group": "Docs · Code",
+    "body": "The repository files are seeds. The live copies sit in the Convex `prompts` table, and editors can change them in the `/dev` prompt workspace (registry: `src/data/config/promptRegistry.ts`)."
+  },
+  {
+    "key": "docs-code-s8-prompts-published",
+    "kind": "markdown",
+    "label": "08 · Pipelines — prompts-published paragraph",
+    "group": "Docs · Code",
+    "body": "[How dose.wiki substance articles are made](/docs/how) publishes every prompt unedited — the eight extraction prompts and the section prompts. It also documents the block-selection contract that keeps extraction verbatim, and the audit that enforces it. That page is the canonical copy of the pipeline instructions."
+  },
+  {
+    "key": "docs-code-s8-citation-heading",
+    "kind": "plain",
+    "label": "08 · Pipelines — citation subheading",
+    "group": "Docs · Code",
+    "body": "The citation workflow, in detail (scripts/citations/)"
+  },
+  {
+    "key": "docs-code-s8-citation-step1-title",
+    "kind": "plain",
+    "label": "08 · Citation flow — step1 title",
+    "group": "Docs · Code",
+    "body": "Pick sections"
+  },
+  {
+    "key": "docs-code-s8-citation-step1-body",
+    "kind": "markdown",
+    "label": "08 · Citation flow — step1 body",
+    "group": "Docs · Code",
+    "body": "The six citable sections: summary, pharmacology, tolerance, harm potential, history & culture, legality"
+  },
+  {
+    "key": "docs-code-s8-citation-step2-title",
+    "kind": "plain",
+    "label": "08 · Citation flow — step2 title",
+    "group": "Docs · Code",
+    "body": "Section workers"
+  },
+  {
+    "key": "docs-code-s8-citation-step2-body",
+    "kind": "markdown",
+    "label": "08 · Citation flow — step2 body",
+    "group": "Docs · Code",
+    "body": "Parallel AI workers (batches of ≤3) find real references per claim"
+  },
+  {
+    "key": "docs-code-s8-citation-step3-title",
+    "kind": "plain",
+    "label": "08 · Citation flow — step3 title",
+    "group": "Docs · Code",
+    "body": "Insert markers"
+  },
+  {
+    "key": "docs-code-s8-citation-step3-body",
+    "kind": "markdown",
+    "label": "08 · Citation flow — step3 body",
+    "group": "Docs · Code",
+    "body": "`[cite:ref-id]` markers only — article text must stay byte-identical otherwise"
+  },
+  {
+    "key": "docs-code-s8-citation-step4-title",
+    "kind": "plain",
+    "label": "08 · Citation flow — step4 title",
+    "group": "Docs · Code",
+    "body": "Validation gate"
+  },
+  {
+    "key": "docs-code-s8-citation-step4-body",
+    "kind": "markdown",
+    "label": "08 · Citation flow — step4 body",
+    "group": "Docs · Code",
+    "body": "Six-section status check; every marker must map to evidence + quotes"
+  },
+  {
+    "key": "docs-code-s8-citation-step5-title",
+    "kind": "plain",
+    "label": "08 · Citation flow — step5 title",
+    "group": "Docs · Code",
+    "body": "Human workbench"
+  },
+  {
+    "key": "docs-code-s8-citation-step5-body",
+    "kind": "markdown",
+    "label": "08 · Citation flow — step5 body",
+    "group": "Docs · Code",
+    "body": "A person reviews the draft outside the repository. Then the pipeline applies it with `--write --confirm-citation-write`"
+  },
+  {
+    "key": "docs-code-s8-citation-step6-title",
+    "kind": "plain",
+    "label": "08 · Citation flow — step6 title",
+    "group": "Docs · Code",
+    "body": "Stored"
+  },
+  {
+    "key": "docs-code-s8-citation-step6-body",
+    "kind": "markdown",
+    "label": "08 · Citation flow — step6 body",
+    "group": "Docs · Code",
+    "body": "References on the article, audit trail in `citationEvidence`"
+  },
+  {
+    "key": "docs-code-s8-marker-contract",
+    "kind": "markdown",
+    "label": "08 · Pipelines — marker-only contract callout",
+    "group": "Docs · Code",
+    "body": "**The marker-only contract** is the strictest rule in the repository. Citation tooling can add `[cite:reference-id]` markers to the six citable sections, but must not change any other byte of article text. The tooling can use Wikipedia and PsychonautWiki to find references. It never cites them as claim support. `CLAUDE.md` records both rules, and the validation gate enforces them."
+  },
+  {
+    "key": "docs-code-s9-flow-a-heading",
+    "kind": "plain",
+    "label": "09 · Flows — Flow A subheading",
+    "group": "Docs · Code",
+    "body": "Flow A — a reader opens dose.wiki/lsd"
+  },
+  {
+    "key": "docs-code-s9-flow-a-step1-title",
+    "kind": "plain",
+    "label": "09 · Flow A — step1 title",
+    "group": "Docs · Code",
+    "body": "Route"
+  },
+  {
+    "key": "docs-code-s9-flow-a-step1-body",
+    "kind": "markdown",
+    "label": "09 · Flow A — step1 body",
+    "group": "Docs · Code",
+    "body": "`src/app/[slug]/page.tsx` server component runs"
+  },
+  {
+    "key": "docs-code-s9-flow-a-step2-title",
+    "kind": "plain",
+    "label": "09 · Flow A — step2 title",
+    "group": "Docs · Code",
+    "body": "Fetch"
+  },
+  {
+    "key": "docs-code-s9-flow-a-step2-body",
+    "kind": "markdown",
+    "label": "09 · Flow A — step2 body",
+    "group": "Docs · Code",
+    "body": "`lib/convex/publicData.ts` queries `substanceIndex.getBySlug`"
+  },
+  {
+    "key": "docs-code-s9-flow-a-step3-title",
+    "kind": "plain",
+    "label": "09 · Flow A — step3 title",
+    "group": "Docs · Code",
+    "body": "Validate"
+  },
+  {
+    "key": "docs-code-s9-flow-a-step3-body",
+    "kind": "markdown",
+    "label": "09 · Flow A — step3 body",
+    "group": "Docs · Code",
+    "body": "Zod schema validation from `src/schema/`"
+  },
+  {
+    "key": "docs-code-s9-flow-a-step4-title",
+    "kind": "plain",
+    "label": "09 · Flow A — step4 title",
+    "group": "Docs · Code",
+    "body": "Render"
+  },
+  {
+    "key": "docs-code-s9-flow-a-step4-body",
+    "kind": "markdown",
+    "label": "09 · Flow A — step4 body",
+    "group": "Docs · Code",
+    "body": "`src/features/article/` sections, tables, citations"
+  },
+  {
+    "key": "docs-code-s9-flow-a-step5-title",
+    "kind": "plain",
+    "label": "09 · Flow A — step5 title",
+    "group": "Docs · Code",
+    "body": "Serve"
+  },
+  {
+    "key": "docs-code-s9-flow-a-step5-body",
+    "kind": "markdown",
+    "label": "09 · Flow A — step5 body",
+    "group": "Docs · Code",
+    "body": "Mostly-static HTML, prerendered when possible"
+  },
+  {
+    "key": "docs-code-s9-flow-b-heading",
+    "kind": "plain",
+    "label": "09 · Flows — Flow B subheading",
+    "group": "Docs · Code",
+    "body": "Flow B — an editor saves an article in /dev"
+  },
+  {
+    "key": "docs-code-s9-flow-b-step1-title",
+    "kind": "plain",
+    "label": "09 · Flow B — step1 title",
+    "group": "Docs · Code",
+    "body": "Edit"
+  },
+  {
+    "key": "docs-code-s9-flow-b-step1-body",
+    "kind": "markdown",
+    "label": "09 · Flow B — step1 body",
+    "group": "Docs · Code",
+    "body": "React Hook Form state in `src/features/dev/forms/`"
+  },
+  {
+    "key": "docs-code-s9-flow-b-step2-title",
+    "kind": "plain",
+    "label": "09 · Flow B — step2 title",
+    "group": "Docs · Code",
+    "body": "Orchestrate"
+  },
+  {
+    "key": "docs-code-s9-flow-b-step2-body",
+    "kind": "markdown",
+    "label": "09 · Flow B — step2 body",
+    "group": "Docs · Code",
+    "body": "`save-orchestrator/` collects dirty articles"
+  },
+  {
+    "key": "docs-code-s9-flow-b-step3-title",
+    "kind": "plain",
+    "label": "09 · Flow B — step3 title",
+    "group": "Docs · Code",
+    "body": "Gate"
+  },
+  {
+    "key": "docs-code-s9-flow-b-step3-body",
+    "kind": "markdown",
+    "label": "09 · Flow B — step3 body",
+    "group": "Docs · Code",
+    "body": "`/api/save-to-convex`: auth role + rate limit + Zod contract validation"
+  },
+  {
+    "key": "docs-code-s9-flow-b-step4-title",
+    "kind": "plain",
+    "label": "09 · Flow B — step4 title",
+    "group": "Docs · Code",
+    "body": "Mutate"
+  },
+  {
+    "key": "docs-code-s9-flow-b-step4-body",
+    "kind": "markdown",
+    "label": "09 · Flow B — step4 body",
+    "group": "Docs · Code",
+    "body": "`substanceIndex.saveSubstance` + auto `changelog` entry"
+  },
+  {
+    "key": "docs-code-s9-flow-b-step5-title",
+    "kind": "plain",
+    "label": "09 · Flow B — step5 title",
+    "group": "Docs · Code",
+    "body": "Refresh"
+  },
+  {
+    "key": "docs-code-s9-flow-b-step5-body",
+    "kind": "markdown",
+    "label": "09 · Flow B — step5 body",
+    "group": "Docs · Code",
+    "body": "The app revalidates the public paths. A toast confirms the save"
+  },
+  {
+    "key": "docs-code-s10-substance-article-term",
+    "kind": "plain",
+    "label": "10 · Vocabulary — Substance article: term",
+    "group": "Docs · Code",
+    "body": "Substance article"
+  },
+  {
+    "key": "docs-code-s10-substance-article-body",
+    "kind": "markdown",
+    "label": "10 · Vocabulary — Substance article: definition",
+    "group": "Docs · Code",
+    "body": "The central data object: one large structured document per drug, with ~15 sections (dosage, duration, pharmacology, legality, and more). Defined by Zod schemas in `src/schema/`, stored in `substanceIndex`."
+  },
+  {
+    "key": "docs-code-s10-citable-sections-term",
+    "kind": "plain",
+    "label": "10 · Vocabulary — Citable sections: term",
+    "group": "Docs · Code",
+    "body": "Citable sections"
+  },
+  {
+    "key": "docs-code-s10-citable-sections-body",
+    "kind": "markdown",
+    "label": "10 · Vocabulary — Citable sections: definition",
+    "group": "Docs · Code",
+    "body": "The six prose sections allowed to carry citations: `summary`, `pharmacology`, `tolerance`, `harm_potential`, `history_culture`, `legality`. Everything else (for example, dosage tables) is structured data, not cited prose."
+  },
+  {
+    "key": "docs-code-s10-workbench-term",
+    "kind": "plain",
+    "label": "10 · Vocabulary — Workbench: term",
+    "group": "Docs · Code",
+    "body": "Workbench"
+  },
+  {
+    "key": "docs-code-s10-workbench-body",
+    "kind": "markdown",
+    "label": "10 · Vocabulary — Workbench: definition",
+    "group": "Docs · Code",
+    "body": "A staging area for external review of citation drafts. The pipeline exports a task, and a person reviews the draft outside the repository. Then `citations:apply-workbench -- --write --confirm-citation-write` writes the approved result back to Convex — both flags are required."
+  },
+  {
+    "key": "docs-code-s10-vcode-term",
+    "kind": "plain",
+    "label": "10 · Vocabulary — VCode: term",
+    "group": "Docs · Code",
+    "body": "VCode"
+  },
+  {
+    "key": "docs-code-s10-vcode-body",
+    "kind": "markdown",
+    "label": "10 · Vocabulary — VCode: definition",
+    "group": "Docs · Code",
+    "body": "A custom markup format used for subjective-effect article bodies, stored alongside a parsed AST and rendered by `src/features/effects/`."
+  },
+  {
+    "key": "docs-code-s10-prepopulate-term",
+    "kind": "plain",
+    "label": "10 · Vocabulary — Prepopulate vs. generate: term",
+    "group": "Docs · Code",
+    "body": "Prepopulate vs. generate"
+  },
+  {
+    "key": "docs-code-s10-prepopulate-body",
+    "kind": "markdown",
+    "label": "10 · Vocabulary — Prepopulate vs. generate: definition",
+    "group": "Docs · Code",
+    "body": "**Prepopulate** = deterministic import of parsed source data (high-confidence facts like dosage tables). **Generate** = AI-generated prose sections that a person always reviews."
+  },
+  {
+    "key": "docs-code-s10-deployment-term",
+    "kind": "plain",
+    "label": "10 · Vocabulary — Convex deployment: term",
+    "group": "Docs · Code",
+    "body": "Convex deployment"
+  },
+  {
+    "key": "docs-code-s10-deployment-body",
+    "kind": "markdown",
+    "label": "10 · Vocabulary — Convex deployment: definition",
+    "group": "Docs · Code",
+    "body": "One production deployment (`glad-minnow-656`). All environments — local dev, previews, production — read and write it directly; the old dev deployment is retired. Treat every Convex write as a production write (see `AGENTS.md`)."
+  },
+  {
+    "key": "docs-code-s11-intro",
+    "kind": "markdown",
+    "label": "11 · Start reading — intro",
+    "group": "Docs · Code",
+    "body": "A reasonable reading order for a first session:"
+  },
+  {
+    "key": "docs-code-s11-reading-order",
+    "kind": "list",
+    "label": "11 · Start reading — reading order list",
+    "group": "Docs · Code",
+    "items": [
+      "**`README.md` and `ARCHITECTURE.md`** — the orientation docs from the maintainers. They cover routes, npm scripts, and system layout.",
+      "**`convex/schema.ts`** — the data model that everything else is built around. Skim the `substanceIndex` table definition first.",
+      "**`src/app/[slug]/page.tsx` → `lib/convex/publicData.ts` → `src/features/article/`** — Flow A from section 09. This flow covers the whole public read path.",
+      "**`middleware.ts` + `auth.ts`** — short files that show how `/dev` is protected and how roles work.",
+      "**`src/features/dev/save-orchestrator/` and `src/app/api/save-to-convex/`** — Flow B. These files show how edits reach the database with an audit trail.",
+      "**`scripts/lib/workflow-command-surface.mjs`** — the registry of pipeline commands. From here you can find whichever pipeline (batch, citations, migrate, sync) you need."
+    ]
+  },
+  {
+    "key": "docs-code-s11-caveats-summary",
+    "kind": "plain",
+    "label": "11 · Start reading — caveats summary",
+    "group": "Docs · Code",
+    "body": "Caveats about this page"
+  },
+  {
+    "key": "docs-code-s11-caveats-body",
+    "kind": "markdown",
+    "label": "11 · Start reading — caveats body",
+    "group": "Docs · Code",
+    "body": "Counts (substances, files, tests) are point-in-time snapshots and will drift — prefer the live tree over the printed number (e.g. `find src -name '*.ts' | wc -l`). This page also simplifies operational detail — the full citation validation rules, rate-limit policies. `AGENTS.md`, `CLAUDE.md`, `CONTEXT.md`, and `docs/architecture/` in the repository are the authoritative versions."
+  },
+  {
+    "key": "docs-code-s11-content-side",
+    "kind": "markdown",
+    "label": "11 · Start reading — content-side pointer",
+    "group": "Docs · Code",
+    "body": "**Do you want the content side?** This page covers the codebase. To see the full pipeline — scraping, quote extraction, AI synthesis, citations, and human review — read [How dose.wiki substance articles are made](/docs/how)."
+  },
+  {
+    "key": "docs-how-title",
+    "kind": "plain",
+    "label": "Page title",
+    "group": "Docs · How",
+    "body": "How dose.wiki substance articles are made"
+  },
+  {
+    "key": "docs-how-intro",
+    "kind": "markdown",
+    "label": "Header — intro paragraph",
+    "group": "Docs · How",
+    "body": "A dose.wiki substance article is assembled from **several distinct bodies of work**, each with a different origin and a different production method. This page documents the whole process end to end, including the exact prompts we use, and where each verification stage stands today. dose.wiki is in beta, and these articles are living documents ([section 00, Status & roadmap](#s0))."
+  },
+  {
+    "key": "docs-how-toc-s0",
+    "kind": "plain",
+    "label": "TOC — 00 label",
+    "group": "Docs · How",
+    "body": "0. Status & roadmap"
+  },
+  {
+    "key": "docs-how-toc-s1",
+    "kind": "plain",
+    "label": "TOC — 01 label",
+    "group": "Docs · How",
+    "body": "1. Why this page exists"
+  },
+  {
+    "key": "docs-how-toc-s2",
+    "kind": "plain",
+    "label": "TOC — 02 label",
+    "group": "Docs · How",
+    "body": "2. The pipeline at a glance"
+  },
+  {
+    "key": "docs-how-toc-s3",
+    "kind": "plain",
+    "label": "TOC — 03 label",
+    "group": "Docs · How",
+    "body": "3. The ten source sites"
+  },
+  {
+    "key": "docs-how-toc-s4",
+    "kind": "plain",
+    "label": "TOC — 04 label",
+    "group": "Docs · How",
+    "body": "4. Per-section production methods"
+  },
+  {
+    "key": "docs-how-toc-s5",
+    "kind": "plain",
+    "label": "TOC — 05 label",
+    "group": "Docs · How",
+    "body": "5. Scraping & parsing"
+  },
+  {
+    "key": "docs-how-toc-s6",
+    "kind": "plain",
+    "label": "TOC — 06 label",
+    "group": "Docs · How",
+    "body": "6. Verbatim excerpt extraction"
+  },
+  {
+    "key": "docs-how-toc-s7",
+    "kind": "plain",
+    "label": "TOC — 07 label",
+    "group": "Docs · How",
+    "body": "7. AI synthesis & the prompts"
+  },
+  {
+    "key": "docs-how-toc-s8",
+    "kind": "plain",
+    "label": "TOC — 08 label",
+    "group": "Docs · How",
+    "body": "8. Citations"
+  },
+  {
+    "key": "docs-how-toc-s8b",
+    "kind": "plain",
+    "label": "TOC — 08b label",
+    "group": "Docs · How",
+    "body": "8b. Legality deep research"
+  },
+  {
+    "key": "docs-how-toc-s9",
+    "kind": "plain",
+    "label": "TOC — 09 label",
+    "group": "Docs · How",
+    "body": "9. Human review"
+  },
+  {
+    "key": "docs-how-toc-s10",
+    "kind": "plain",
+    "label": "TOC — 10 label",
+    "group": "Docs · How",
+    "body": "10. The open dataset"
+  },
+  {
+    "key": "docs-how-toc-s11",
+    "kind": "plain",
+    "label": "TOC — 11 label",
+    "group": "Docs · How",
+    "body": "11. Originality & licensing"
+  },
+  {
+    "key": "docs-how-stage-label-source",
+    "kind": "plain",
+    "label": "Pipeline-step tag — Source",
+    "group": "Docs · How",
+    "body": "Source"
+  },
+  {
+    "key": "docs-how-stage-label-automated",
+    "kind": "plain",
+    "label": "Pipeline-step tag — Automated",
+    "group": "Docs · How",
+    "body": "Automated"
+  },
+  {
+    "key": "docs-how-stage-label-stored",
+    "kind": "plain",
+    "label": "Pipeline-step tag — Stored",
+    "group": "Docs · How",
+    "body": "Stored"
+  },
+  {
+    "key": "docs-how-stage-label-review",
+    "kind": "plain",
+    "label": "Pipeline-step tag — Review",
+    "group": "Docs · How",
+    "body": "Review"
+  },
+  {
+    "key": "docs-how-stage-label-published",
+    "kind": "plain",
+    "label": "Pipeline-step tag — Published",
+    "group": "Docs · How",
+    "body": "Published"
+  },
+  {
+    "key": "docs-how-s0-heading",
+    "kind": "plain",
+    "label": "00 · Section heading",
+    "group": "Docs · How",
+    "body": "Status, roadmap & corrections"
+  },
+  {
+    "key": "docs-how-s0-intro",
+    "kind": "markdown",
+    "label": "00 · Intro paragraph",
+    "group": "Docs · How",
+    "body": "Read this site stage by stage: some verification work is finished, some is running now, and some is planned. This section records where each stage stands as of **August 31, 2026** and lists corrections as they land. None of it is a warranty for an individual sentence; [section 08 (Citations)](#s8) and [section 09 (Human review)](#s9) describe exactly what each workflow does and does not establish."
+  },
+  {
+    "key": "docs-how-s1-heading",
+    "kind": "plain",
+    "label": "01 · Section heading",
+    "group": "Docs · How",
+    "body": "Why this page exists"
+  },
+  {
+    "key": "docs-how-s1-intro",
+    "kind": "markdown",
+    "label": "01 · Intro paragraph",
+    "group": "Docs · How",
+    "body": "Every substance article links here from its **source pages** section. This is one shared explanation of where article content comes from, not a per-article audit log. Different parts of an article come from different places:"
+  },
+  {
+    "key": "docs-how-s1-subjective-title",
+    "kind": "plain",
+    "label": "01 · Subjective effects — title",
+    "group": "Docs · How",
+    "body": "Subjective effects"
+  },
+  {
+    "key": "docs-how-s1-subjective-body",
+    "kind": "markdown",
+    "label": "01 · Subjective effects — body",
+    "group": "Docs · How",
+    "body": "Effect listings link into the Subjective Effect Index, the taxonomy **[Josie Kins](https://en.wikipedia.org/wiki/Josie_Kins)** created on Disregard Everything I Say in 2011. The article sections are a mixture: her earlier versions where they exist, otherwise synthesized from other sources with her own projects excluded."
+  },
+  {
+    "key": "docs-how-s1-interactions-title",
+    "kind": "plain",
+    "label": "01 · Interactions — title",
+    "group": "Docs · How",
+    "body": "Interactions"
+  },
+  {
+    "key": "docs-how-s1-interactions-body",
+    "kind": "markdown",
+    "label": "01 · Interactions — body",
+    "group": "Docs · How",
+    "body": "Derived from **TripSit's** drug-combination research. Its chart informs the risk ratings displayed where interaction data is available."
+  },
+  {
+    "key": "docs-how-s1-reagents-title",
+    "kind": "plain",
+    "label": "01 · Reagent tests — title",
+    "group": "Docs · How",
+    "body": "Reagent tests"
+  },
+  {
+    "key": "docs-how-s1-reagents-body",
+    "kind": "markdown",
+    "label": "01 · Reagent tests — body",
+    "group": "Docs · How",
+    "body": "Sourced live from **protestkit.eu**. dose.wiki fetches the color reactions from their API when you open an article."
+  },
+  {
+    "key": "docs-how-s1-other-title",
+    "kind": "plain",
+    "label": "01 · The other sections — title",
+    "group": "Docs · How",
+    "body": "The other sections"
+  },
+  {
+    "key": "docs-how-s1-other-body",
+    "kind": "markdown",
+    "label": "01 · The other sections — body",
+    "group": "Docs · How",
+    "body": "Synthesized from **archival source material**: ten reference and harm-reduction sites, processed through the parsing, excerpting, and writing stages this page describes."
+  },
+  {
+    "key": "docs-how-s1-distinctions-lead",
+    "kind": "markdown",
+    "label": "01 · Distinctions lead-in",
+    "group": "Docs · How",
+    "body": "Two distinctions matter across all of it:"
+  },
+  {
+    "key": "docs-how-s2-heading",
+    "kind": "plain",
+    "label": "02 · Section heading",
+    "group": "Docs · How",
+    "body": "The pipeline at a glance"
+  },
+  {
+    "key": "docs-how-s2-intro",
+    "kind": "markdown",
+    "label": "02 · Intro paragraph",
+    "group": "Docs · How",
+    "body": "dose.wiki gathers the source pages once, as internal working copies. From there they flow through two tracks that run in parallel. The **deterministic track** parses structured data such as dosage tables and interaction matrices. The **AI track** turns the prose parts of the sources into excerpt documents, then into draft sections."
+  },
+  {
+    "key": "docs-how-s2-fill",
+    "kind": "markdown",
+    "label": "02 · Both tracks paragraph",
+    "group": "Docs · How",
+    "body": "Both tracks fill one draft article. Citation and editorial-review workflows can then add markers, evidence records, corrections, and status metadata. Published coverage varies by article, so the diagram describes the intended relationships rather than a publication gate."
+  },
+  {
+    "key": "docs-how-s2-legend-source",
+    "kind": "plain",
+    "label": "02 · Legend — source",
+    "group": "Docs · How",
+    "body": "Source material / external APIs"
+  },
+  {
+    "key": "docs-how-s2-legend-automated",
+    "kind": "plain",
+    "label": "02 · Legend — automated",
+    "group": "Docs · How",
+    "body": "Automated processing"
+  },
+  {
+    "key": "docs-how-s2-legend-stored",
+    "kind": "plain",
+    "label": "02 · Legend — stored",
+    "group": "Docs · How",
+    "body": "Stored data"
+  },
+  {
+    "key": "docs-how-s2-legend-review",
+    "kind": "plain",
+    "label": "02 · Legend — review",
+    "group": "Docs · How",
+    "body": "Human review"
+  },
+  {
+    "key": "docs-how-s2-legend-published",
+    "kind": "plain",
+    "label": "02 · Legend — published",
+    "group": "Docs · How",
+    "body": "Published output"
+  },
+  {
+    "key": "docs-how-s2-diagram-title",
+    "kind": "plain",
+    "label": "02 · Pipeline diagram title",
+    "group": "Docs · How",
+    "body": "Content pipeline: source pages through parsing/extraction, synthesis, human review, citation, and publication"
+  },
+  {
+    "key": "docs-how-s3-heading",
+    "kind": "plain",
+    "label": "03 · Section heading",
+    "group": "Docs · How",
+    "body": "The ten source sites"
+  },
+  {
+    "key": "docs-how-s3-intro",
+    "kind": "markdown",
+    "label": "03 · Intro paragraph",
+    "group": "Docs · How",
+    "body": "Article content is built from ten harm-reduction and reference sites, plus one live API. We keep internal working copies of the relevant pages for processing. We do not republish other sites' content. Each article's **source pages** section links out to the original pages on the source sites themselves."
+  },
+  {
+    "key": "docs-how-s3-col-source",
+    "kind": "plain",
+    "label": "03 · Table column — Source",
+    "group": "Docs · How",
+    "body": "Source"
+  },
+  {
+    "key": "docs-how-s3-col-take",
+    "kind": "plain",
+    "label": "03 · Table column — What we take",
+    "group": "Docs · How",
+    "body": "What we take from it"
+  },
+  {
+    "key": "docs-how-s3-col-processed",
+    "kind": "plain",
+    "label": "03 · Table column — Processing",
+    "group": "Docs · How",
+    "body": "How it is processed"
+  },
+  {
+    "key": "docs-how-s3-psychonautwiki-take",
+    "kind": "markdown",
+    "label": "03 · PsychonautWiki — what we take",
+    "group": "Docs · How",
+    "body": "Dosage and duration tables, subjective effects by intensity, toxicity / interaction / tolerance prose, legal status, chemistry identifiers, pharmacology prose."
+  },
+  {
+    "key": "docs-how-s3-tripsit-note",
+    "kind": "plain",
+    "label": "03 · TripSit — annotation",
+    "group": "Docs · How",
+    "body": "three feeds: factsheets, wiki, combination guide"
+  },
+  {
+    "key": "docs-how-s3-tripsit-take",
+    "kind": "markdown",
+    "label": "03 · TripSit — what we take",
+    "group": "Docs · How",
+    "body": "Dosage tables, duration by route, effects lists, the drug-combination interaction chart (dangerous / unsafe / caution / low-risk ratings), tolerance prose, classifications."
+  },
+  {
+    "key": "docs-how-s3-erowid-take",
+    "kind": "markdown",
+    "label": "03 · Erowid — what we take",
+    "group": "Docs · How",
+    "body": "Dosage and duration ranges, effects descriptions, legal status, harm-reduction and safety warnings, general narratives."
+  },
+  {
+    "key": "docs-how-s3-wikipedia-take",
+    "kind": "markdown",
+    "label": "03 · Wikipedia — what we take",
+    "group": "Docs · How",
+    "body": "General overviews, history, chemistry identifiers. Also used to discover citable references, but never cited as a reference itself ([section 08](#s8))."
+  },
+  {
+    "key": "docs-how-s3-drugbank-take",
+    "kind": "markdown",
+    "label": "03 · DrugBank — what we take",
+    "group": "Docs · How",
+    "body": "Chemical data (molecular weight, formula, CAS numbers), pharmacology descriptions, drug and food interactions."
+  },
+  {
+    "key": "docs-how-s3-isomer-take",
+    "kind": "markdown",
+    "label": "03 · Isomer Design — what we take",
+    "group": "Docs · How",
+    "body": "Effects and experience prose, chemical reference data."
+  },
+  {
+    "key": "docs-how-s3-saferparty-take",
+    "kind": "markdown",
+    "label": "03 · SaferParty — what we take",
+    "group": "Docs · How",
+    "body": "Harm reduction guidance, risk descriptions, safer-use notes."
+  },
+  {
+    "key": "docs-how-s3-classroom-take",
+    "kind": "markdown",
+    "label": "03 · The Drug Classroom — what we take",
+    "group": "Docs · How",
+    "body": "Educational overviews, mechanism and effects descriptions."
+  },
+  {
+    "key": "docs-how-s3-deis-take",
+    "kind": "markdown",
+    "label": "03 · Disregard Everything I Say — what we take",
+    "group": "Docs · How",
+    "body": "Subjective effect narratives and substance overviews."
+  },
+  {
+    "key": "docs-how-s3-dub-take",
+    "kind": "markdown",
+    "label": "03 · Drug Users Bible — what we take",
+    "group": "Docs · How",
+    "body": "Dosage, effects, and legality information, plus street-name nomenclature."
+  },
+  {
+    "key": "docs-how-s3-protestkit-note",
+    "kind": "plain",
+    "label": "03 · ProtestKit — annotation",
+    "group": "Docs · How",
+    "body": "live API"
+  },
+  {
+    "key": "docs-how-s3-protestkit-take",
+    "kind": "markdown",
+    "label": "03 · ProtestKit — what we take",
+    "group": "Docs · How",
+    "body": "Reagent test color reactions (Marquis, Mecke, Mandelin, Simon's, Froehde, Liebermann, Ehrlich, and others), fetched at page view through a rate-limited proxy with a static fallback."
+  },
+  {
+    "key": "docs-how-s3-archived-label",
+    "kind": "plain",
+    "label": "03 · Archived row — label",
+    "group": "Docs · How",
+    "body": "Stored, not yet used"
+  },
+  {
+    "key": "docs-how-s3-archived-note",
+    "kind": "plain",
+    "label": "03 · Archived row — annotation",
+    "group": "Docs · How",
+    "body": "Bluelight, D. M. Turner, Nervewing"
+  },
+  {
+    "key": "docs-how-s3-archived-take",
+    "kind": "markdown",
+    "label": "03 · Archived row — body",
+    "group": "Docs · How",
+    "body": "Archived in the source corpus, but no parser reads them yet. They feed no article content."
+  },
+  {
+    "key": "docs-how-s4-heading",
+    "kind": "plain",
+    "label": "04 · Section heading",
+    "group": "Docs · How",
+    "body": "Per-section production methods"
+  },
+  {
+    "key": "docs-how-s4-intro",
+    "kind": "markdown",
+    "label": "04 · Intro paragraph",
+    "group": "Docs · How",
+    "body": "A substance article is not one document with one origin. Each section has its own production method. This table records which sections a model synthesizes, which ones code parses from source tables, which come from a live API, and which people curate by hand. The citation workflow targets the six citable sections ([section 08, Citations](#s8)); structured and excluded sections use separate provenance and review paths."
+  },
+  {
+    "key": "docs-how-s4-legend-ai",
+    "kind": "plain",
+    "label": "04 · Legend — AI-synthesized",
+    "group": "Docs · How",
+    "body": "AI-synthesized from excerpts"
+  },
+  {
+    "key": "docs-how-s4-legend-parsed",
+    "kind": "plain",
+    "label": "04 · Legend — parsed",
+    "group": "Docs · How",
+    "body": "Parsed by code"
+  },
+  {
+    "key": "docs-how-s4-legend-live",
+    "kind": "plain",
+    "label": "04 · Legend — live API",
+    "group": "Docs · How",
+    "body": "Live API"
+  },
+  {
+    "key": "docs-how-s4-legend-manual",
+    "kind": "plain",
+    "label": "04 · Legend — manual",
+    "group": "Docs · How",
+    "body": "Manual / curated"
+  },
+  {
+    "key": "docs-how-s4-col-section",
+    "kind": "plain",
+    "label": "04 · Table column — Article section",
+    "group": "Docs · How",
+    "body": "Article section"
+  },
+  {
+    "key": "docs-how-s4-col-method",
+    "kind": "plain",
+    "label": "04 · Table column — Method",
+    "group": "Docs · How",
+    "body": "Method"
+  },
+  {
+    "key": "docs-how-s4-col-how",
+    "kind": "plain",
+    "label": "04 · Table column — How it is made",
+    "group": "Docs · How",
+    "body": "How it is made"
+  },
+  {
+    "key": "docs-how-s4-summary-label",
+    "kind": "plain",
+    "label": "04 · Summary — row label",
+    "group": "Docs · How",
+    "body": "Summary"
+  },
+  {
+    "key": "docs-how-s4-summary-body",
+    "kind": "markdown",
+    "label": "04 · Summary — how it is made",
+    "group": "Docs · How",
+    "body": "50–80 word overview written by Claude Opus from the intro-text excerpts, under the summary prompt (readable in [section 07](#s7))."
+  },
+  {
+    "key": "docs-how-s4-identification-label",
+    "kind": "plain",
+    "label": "04 · Identification — row label",
+    "group": "Docs · How",
+    "body": "Identification"
+  },
+  {
+    "key": "docs-how-s4-identification-note",
+    "kind": "plain",
+    "label": "04 · Identification — annotation",
+    "group": "Docs · How",
+    "body": "chemical names, SMILES, InChI, CAS"
+  },
+  {
+    "key": "docs-how-s4-identification-body",
+    "kind": "markdown",
+    "label": "04 · Identification — how it is made",
+    "group": "Docs · How",
+    "body": "Chemistry identifiers merged from parsed sources (DrugBank, PsychonautWiki, Wikipedia) with chemical-name resolution. Provenance is tracked per identifier, and an editor checks the result."
+  },
+  {
+    "key": "docs-how-s4-classification-label",
+    "kind": "plain",
+    "label": "04 · Classification — row label",
+    "group": "Docs · How",
+    "body": "Classification"
+  },
+  {
+    "key": "docs-how-s4-classification-note",
+    "kind": "plain",
+    "label": "04 · Classification — annotation",
+    "group": "Docs · How",
+    "body": "psychoactive / chemical classes"
+  },
+  {
+    "key": "docs-how-s4-classification-body",
+    "kind": "markdown",
+    "label": "04 · Classification — how it is made",
+    "group": "Docs · How",
+    "body": "Class assignments come from parsed sources. Editors hand-curate the site-wide classification trees."
+  },
+  {
+    "key": "docs-how-s4-dosage-label",
+    "kind": "plain",
+    "label": "04 · Dosage tables — row label",
+    "group": "Docs · How",
+    "body": "Dosage tables"
+  },
+  {
+    "key": "docs-how-s4-dosage-body",
+    "kind": "markdown",
+    "label": "04 · Dosage tables — how it is made",
+    "group": "Docs · How",
+    "body": "Dose ranges per route parsed directly from TripSit, PsychonautWiki, and Erowid tables, under the lowest-upper-bound rule ([section 05](#s5))."
+  },
+  {
+    "key": "docs-how-s4-duration-label",
+    "kind": "plain",
+    "label": "04 · Duration tables — row label",
+    "group": "Docs · How",
+    "body": "Duration tables"
+  },
+  {
+    "key": "docs-how-s4-duration-body",
+    "kind": "markdown",
+    "label": "04 · Duration tables — how it is made",
+    "group": "Docs · How",
+    "body": "Onset / peak / offset values per route, parsed from the same sources."
+  },
+  {
+    "key": "docs-how-s4-effects-label",
+    "kind": "plain",
+    "label": "04 · Subjective effects — row label",
+    "group": "Docs · How",
+    "body": "Subjective effects"
+  },
+  {
+    "key": "docs-how-s4-effects-body",
+    "kind": "markdown",
+    "label": "04 · Subjective effects — how it is made",
+    "group": "Docs · How",
+    "body": "Restored Josie Kins versions where they exist, otherwise synthesized from other sources with her own projects excluded ([section 01](#s1)). Every effect links into the Subjective Effect Index."
+  },
+  {
+    "key": "docs-how-s4-pharmacology-label",
+    "kind": "plain",
+    "label": "04 · Pharmacology — row label",
+    "group": "Docs · How",
+    "body": "Pharmacology"
+  },
+  {
+    "key": "docs-how-s4-pharmacology-body",
+    "kind": "markdown",
+    "label": "04 · Pharmacology — how it is made",
+    "group": "Docs · How",
+    "body": "Mechanism-of-action prose written from the pharmacology excerpts under the pharmacology prompt, the strictest and longest of the prompts."
+  },
+  {
+    "key": "docs-how-s4-interactions-label",
+    "kind": "plain",
+    "label": "04 · Interactions — row label",
+    "group": "Docs · How",
+    "body": "Interactions"
+  },
+  {
+    "key": "docs-how-s4-interactions-body",
+    "kind": "markdown",
+    "label": "04 · Interactions — how it is made",
+    "group": "Docs · How",
+    "body": "Drug-combination risk ratings mapped directly from the TripSit combination guide."
+  },
+  {
+    "key": "docs-how-s4-harm-label",
+    "kind": "plain",
+    "label": "04 · Harm potential — row label",
+    "group": "Docs · How",
+    "body": "Harm potential"
+  },
+  {
+    "key": "docs-how-s4-harm-body",
+    "kind": "markdown",
+    "label": "04 · Harm potential — how it is made",
+    "group": "Docs · How",
+    "body": "Toxicity, addiction, and risk prose written from the harm-potential excerpts under the harm potential prompt."
+  },
+  {
+    "key": "docs-how-s4-tolerance-label",
+    "kind": "plain",
+    "label": "04 · Tolerance — row label",
+    "group": "Docs · How",
+    "body": "Tolerance"
+  },
+  {
+    "key": "docs-how-s4-tolerance-body",
+    "kind": "markdown",
+    "label": "04 · Tolerance — how it is made",
+    "group": "Docs · How",
+    "body": "Tolerance and cross-tolerance prose from the tolerance excerpts."
+  },
+  {
+    "key": "docs-how-s4-legality-label",
+    "kind": "plain",
+    "label": "04 · Legality — row label",
+    "group": "Docs · How",
+    "body": "Legality"
+  },
+  {
+    "key": "docs-how-s4-legality-body",
+    "kind": "markdown",
+    "label": "04 · Legality — how it is made",
+    "group": "Docs · How",
+    "body": "Country-by-country legal status from the legality excerpts. Code also prepopulates the structured legal fields where sources state them plainly."
+  },
+  {
+    "key": "docs-how-s4-history-label",
+    "kind": "plain",
+    "label": "04 · History & culture — row label",
+    "group": "Docs · How",
+    "body": "History & culture"
+  },
+  {
+    "key": "docs-how-s4-history-body",
+    "kind": "markdown",
+    "label": "04 · History & culture — how it is made",
+    "group": "Docs · How",
+    "body": "Discovery, medical history, and cultural context from the history-culture excerpts."
+  },
+  {
+    "key": "docs-how-s4-reagent-label",
+    "kind": "plain",
+    "label": "04 · Reagent testing — row label",
+    "group": "Docs · How",
+    "body": "Reagent testing"
+  },
+  {
+    "key": "docs-how-s4-reagent-body",
+    "kind": "markdown",
+    "label": "04 · Reagent testing — how it is made",
+    "group": "Docs · How",
+    "body": "Color reactions fetched live from the ProtestKit API at page view, with stored static results as fallback. Not produced by our pipeline at all."
+  },
+  {
+    "key": "docs-how-s4-citations-label",
+    "kind": "plain",
+    "label": "04 · Citations & references — row label",
+    "group": "Docs · How",
+    "body": "Citations & references"
+  },
+  {
+    "key": "docs-how-s4-citations-body",
+    "kind": "markdown",
+    "label": "04 · Citations & references — how it is made",
+    "group": "Docs · How",
+    "body": "References and markers proposed by the citation workflow for the six citable sections. [Section 08 (Citations)](#s8) defines exactly what a marker does and does not establish."
+  },
+  {
+    "key": "docs-how-s4-reports-label",
+    "kind": "plain",
+    "label": "04 · Trip reports — row label",
+    "group": "Docs · How",
+    "body": "Trip reports"
+  },
+  {
+    "key": "docs-how-s4-reports-body",
+    "kind": "markdown",
+    "label": "04 · Trip reports — how it is made",
+    "group": "Docs · How",
+    "body": "First-person experience reports written by people, imported from the Effect Index corpus with attribution."
+  },
+  {
+    "key": "docs-how-s4-notes-label",
+    "kind": "plain",
+    "label": "04 · Notes — row label",
+    "group": "Docs · How",
+    "body": "Notes"
+  },
+  {
+    "key": "docs-how-s4-notes-body",
+    "kind": "markdown",
+    "label": "04 · Notes — how it is made",
+    "group": "Docs · How",
+    "body": "Editor-written remarks and caveats."
+  },
+  {
+    "key": "docs-how-s5-heading",
+    "kind": "plain",
+    "label": "05 · Section heading",
+    "group": "Docs · How",
+    "body": "Scraping & parsing"
+  },
+  {
+    "key": "docs-how-s5-intro",
+    "kind": "markdown",
+    "label": "05 · Intro paragraph",
+    "group": "Docs · How",
+    "body": "dose.wiki scraped the source sites once and stored them as plain-text working copies, one per substance. These are internal processing material only ([section 03, The ten source sites](#s3))."
+  },
+  {
+    "key": "docs-how-s5-parsers",
+    "kind": "markdown",
+    "label": "05 · Deterministic parsers paragraph",
+    "group": "Docs · How",
+    "body": "From there, **deterministic parsers** read that text and extract the structured data: dose ranges by route, duration values, interaction ratings, chemical identifiers, and legal classifications. A parser is ordinary code, one per source site, with no AI involved. Each site needs its own parser, because each site structures its pages differently."
+  },
+  {
+    "key": "docs-how-s5-tables-title",
+    "kind": "plain",
+    "label": "05 · Table parsers — title",
+    "group": "Docs · How",
+    "body": "Table parsers"
+  },
+  {
+    "key": "docs-how-s5-tables-body",
+    "kind": "markdown",
+    "label": "05 · Table parsers — body",
+    "group": "Docs · How",
+    "body": "**TripSit factsheets** and **PsychonautWiki** carry the most structured data: dose tiers (threshold / light / common / strong / heavy) per route of administration and onset / peak / offset durations. The parsers read these tables directly and transcribe the numbers as published. Selecting one source's numbers when sources disagree is not the parser's job; it happens later, when the parsed tables are merged into the article. That merge applies the **lowest-upper-bound rule**: among weight-unit sources it keeps the entry with the lowest comparable upper bound (heavy minimum when present, otherwise strong maximum, then strong minimum, then common maximum), tie-broken toward the source that fills more dose tiers; when no source gives weight units, a fixed source-priority order decides. This is a deliberate safety bias: underdosing is the safer error."
+  },
+  {
+    "key": "docs-how-s5-combos-title",
+    "kind": "plain",
+    "label": "05 · Combination chart — title",
+    "group": "Docs · How",
+    "body": "The combination chart"
+  },
+  {
+    "key": "docs-how-s5-combos-body",
+    "kind": "markdown",
+    "label": "05 · Combination chart — body",
+    "group": "Docs · How",
+    "body": "A parser reads the **TripSit combination guide** as structured data and maps it onto substance pairs. That produces the interaction ratings (dangerous, unsafe, caution, low-risk) shown where an article has matching interaction data and on the Interactions hub."
+  },
+  {
+    "key": "docs-how-s5-chemistry-title",
+    "kind": "plain",
+    "label": "05 · Chemistry identifiers — title",
+    "group": "Docs · How",
+    "body": "Chemistry identifiers"
+  },
+  {
+    "key": "docs-how-s5-chemistry-body",
+    "kind": "markdown",
+    "label": "05 · Chemistry identifiers — body",
+    "group": "Docs · How",
+    "body": "dose.wiki merges SMILES strings, InChI keys, CAS numbers, and molecular data from **DrugBank**, **PsychonautWiki**, and **Wikipedia**. Provenance is tracked per identifier, and chemical-name resolution fills the gaps. The molecule images are rendered from the SMILES strings."
+  },
+  {
+    "key": "docs-how-s5-prose-title",
+    "kind": "plain",
+    "label": "05 · Prose-heavy sources — title",
+    "group": "Docs · How",
+    "body": "Prose-heavy sources"
+  },
+  {
+    "key": "docs-how-s5-prose-body",
+    "kind": "markdown",
+    "label": "05 · Prose-heavy sources — body",
+    "group": "Docs · How",
+    "body": "**Erowid**, **Isomer Design**, **SaferParty**, **The Drug Classroom**, **Disregard Everything I Say**, and the **Drug Users Bible** contribute mostly narrative text. Their parsers identify and label the relevant passages, which then feed the excerpt-extraction stage below."
+  },
+  {
+    "key": "docs-how-s6-heading",
+    "kind": "plain",
+    "label": "06 · Section heading",
+    "group": "Docs · How",
+    "body": "Verbatim excerpt extraction"
+  },
+  {
+    "key": "docs-how-s6-intro",
+    "kind": "markdown",
+    "label": "06 · Intro paragraph",
+    "group": "Docs · How",
+    "body": "The source articles are long, and most of any given page is irrelevant to any one section. Before any writing happens, an extraction pass reads every source article and **copies out the passages relevant to each topic, word for word**."
+  },
+  {
+    "key": "docs-how-s6-verbatim",
+    "kind": "markdown",
+    "label": "06 · Nothing paraphrased paragraph",
+    "group": "Docs · How",
+    "body": "Nothing is paraphrased, summarized, or reworded. An excerpt document holds exact copies of source text: complete paragraphs, formatting preserved, grouped under a heading for each source. The result is one **excerpt document** per substance per topic, across eight topics:"
+  },
+  {
+    "key": "docs-how-s6-topics-title",
+    "kind": "plain",
+    "label": "06 · Excerpt topics — title",
+    "group": "Docs · How",
+    "body": "The excerpt topics"
+  },
+  {
+    "key": "docs-how-s6-topics",
+    "kind": "list",
+    "label": "06 · Excerpt topics — list",
+    "group": "Docs · How",
+    "items": [
+      "Intro text (feeds the summary)",
+      "Dosage & duration",
+      "Subjective effects",
+      "Pharmacology",
+      "Tolerance",
+      "Harm potential",
+      "History & culture",
+      "Legality"
+    ]
+  },
+  {
+    "key": "docs-how-s6-blocks-title",
+    "kind": "plain",
+    "label": "06 · Model never types — title",
+    "group": "Docs · How",
+    "body": "The model never types the text"
+  },
+  {
+    "key": "docs-how-s6-blocks-body",
+    "kind": "markdown",
+    "label": "06 · Model never types — body",
+    "group": "Docs · How",
+    "body": "Each source document is first split into numbered **blocks** (paragraphs, list items, table rows, headings), and the model reads that block-indexed version. It replies with nothing but the **ids of the blocks to keep**. A script then copies those blocks out of the source character for character and assembles the excerpt file. Because the model never emits source text, it has no opportunity to alter it."
+  },
+  {
+    "key": "docs-how-s6-blocks-drift",
+    "kind": "markdown",
+    "label": "06 · Model never types — drift story",
+    "group": "Docs · How",
+    "body": "We built it the other way first, and it did not hold. Asking a model to reproduce a passage is asking it to re-type the passage, and re-typing is where drift enters. One batch of 47 files turned an \"antihistamine\" into an \"antihistaminic\", dropped a \"however,\", and shortened an organization's name by two words. These are small edits, easy to miss, in text whose only job is to be an exact copy. Selecting blocks instead of transcribing them removes the opportunity rather than warning against it."
+  },
+  {
+    "key": "docs-how-s6-audit-title",
+    "kind": "plain",
+    "label": "06 · Checked afterwards — title",
+    "group": "Docs · How",
+    "body": "Checked afterwards, not trusted"
+  },
+  {
+    "key": "docs-how-s6-audit-body",
+    "kind": "markdown",
+    "label": "06 · Checked afterwards — body",
+    "group": "Docs · How",
+    "body": "A **verbatim audit** then reads every finished excerpt file. The audit is a script, with no model involved. It requires each passage to appear in the staged source, under the same source heading, as an exact substring. A file that drifts is rejected rather than passed onward."
+  },
+  {
+    "key": "docs-how-s6-audit-markers",
+    "kind": "markdown",
+    "label": "06 · Checked afterwards — marker lines",
+    "group": "Docs · How",
+    "body": "Every source keeps its heading in the output even when it yielded nothing. Those headings carry a marker line such as *No tolerance content found.*, which keeps \"we looked and there was nothing\" distinct from \"this source was skipped\"."
+  },
+  {
+    "key": "docs-how-s6-why-title",
+    "kind": "plain",
+    "label": "06 · Why verbatim matters — title",
+    "group": "Docs · How",
+    "body": "Why verbatim matters"
+  },
+  {
+    "key": "docs-how-s6-why-body",
+    "kind": "markdown",
+    "label": "06 · Why verbatim matters — body",
+    "group": "Docs · How",
+    "body": "The excerpt documents are the **only material** the writing stage is allowed to see. Because they are word-for-word copies, a reviewer can trace anything a draft says back to a specific passage on a specific source page. Extraction errs toward over-inclusion. The instruction is to keep anything even tangentially relevant, rather than risk losing safety-critical information."
+  },
+  {
+    "key": "docs-how-s6-example-heading",
+    "kind": "plain",
+    "label": "06 · Real excerpt document — heading",
+    "group": "Docs · How",
+    "body": "A real excerpt document"
+  },
+  {
+    "key": "docs-how-s6-example-summary",
+    "kind": "plain",
+    "label": "06 · Real excerpt document — disclosure summary",
+    "group": "Docs · How",
+    "body": "Example: the 2C-B intro-text excerpt document (unedited)"
+  },
+  {
+    "key": "docs-how-s6-example-meta",
+    "kind": "markdown",
+    "label": "06 · Real excerpt document — meta note",
+    "group": "Docs · How",
+    "body": "This is the actual working file for 2C-B's intro-text topic: verbatim passages from each source, grouped under source headings. The summary section of the 2C-B article was written from this document and nothing else."
+  },
+  {
+    "key": "docs-how-s6-prompts-heading",
+    "kind": "plain",
+    "label": "06 · Extraction prompts — heading",
+    "group": "Docs · How",
+    "body": "The extraction prompts"
+  },
+  {
+    "key": "docs-how-s6-prompts-intro",
+    "kind": "markdown",
+    "label": "06 · Extraction prompts — intro",
+    "group": "Docs · How",
+    "body": "All eight extraction prompts appear below, unedited. This page reads them straight from `scripts/prompts/` when it builds, so they are the same files the pipeline runs."
+  },
+  {
+    "key": "docs-how-s6-prompts-model",
+    "kind": "markdown",
+    "label": "06 · Extraction prompts — model note",
+    "group": "Docs · How",
+    "body": "Every topic runs the same way. One model (`gpt-5.6-terra`, invoked through `codex exec`) gets one call per substance and topic. The harness then appends the block-selection contract to whichever prompt it is running."
+  },
+  {
+    "key": "docs-how-s6-prompts-skeleton",
+    "kind": "markdown",
+    "label": "06 · Extraction prompts — shared skeleton",
+    "group": "Docs · How",
+    "body": "The eight share one skeleton: hard verbatim rules, an input format, and empty-result handling. They differ mainly in their \"what counts\" sections. Read one prompt in full, then skim the others for that section."
+  },
+  {
+    "key": "docs-how-s6-contract-note",
+    "kind": "markdown",
+    "label": "06 · Block-selection contract — callout",
+    "group": "Docs · How",
+    "body": "**Read the block-selection contract first.** Each prompt below still carries an \"Output format\" section describing an excerpt file. The contract replaces those sections at run time. A prompt defines what counts as relevant for its topic. The harness owns what the model actually returns, which is a list of block ids and nothing else."
+  },
+  {
+    "key": "docs-how-s6-contract-summary",
+    "kind": "plain",
+    "label": "06 · Block-selection contract — disclosure summary",
+    "group": "Docs · How",
+    "body": "The block-selection contract, appended after every prompt below"
+  },
+  {
+    "key": "docs-how-s6-contract-meta",
+    "kind": "markdown",
+    "label": "06 · Block-selection contract — meta note",
+    "group": "Docs · How",
+    "body": "The harness appends this text to all eight prompts, replacing `{{TOPIC}}` with the topic name. This is the instruction that makes the excerpts verbatim. The model names blocks, and a script copies them out."
+  },
+  {
+    "key": "docs-how-s7-heading",
+    "kind": "plain",
+    "label": "07 · Section heading",
+    "group": "Docs · How",
+    "body": "AI synthesis, and every prompt we use"
+  },
+  {
+    "key": "docs-how-s7-intro",
+    "kind": "markdown",
+    "label": "07 · Intro paragraph",
+    "group": "Docs · How",
+    "body": "Six sections of the finished article are AI-written end to end: **summary, pharmacology, tolerance, harm potential, history & culture, and legality**. Claude Opus writes each one from exactly two inputs: the excerpt document for that topic, and a **section-specific prompt**. (A maintainer detail: the model is pinned per section in `scripts/batch/<section>/cli.mjs` and can be overridden with `OPENROUTER_MODEL`.)"
+  },
+  {
+    "key": "docs-how-s7-remaining",
+    "kind": "markdown",
+    "label": "07 · Remaining excerpt topics paragraph",
+    "group": "Docs · How",
+    "body": "The two remaining excerpt topics, dosage & duration and subjective effects, serve a narrower purpose. Those sections come from parsed tables and from Josie Kins' effect taxonomy. Their excerpts only fill documented gaps, and never overwrite what is already there."
+  },
+  {
+    "key": "docs-how-s7-skeleton",
+    "kind": "markdown",
+    "label": "07 · Prompt skeleton paragraph",
+    "group": "Docs · How",
+    "body": "The prompts share one skeleton: a style definition, a hard evidence rule, a fixed output format, worked examples, and a checklist. All of them carry the same two constraints:"
+  },
+  {
+    "key": "docs-how-s7-evidence-title",
+    "kind": "plain",
+    "label": "07 · Evidence only — title",
+    "group": "Docs · How",
+    "body": "Evidence only"
+  },
+  {
+    "key": "docs-how-s7-evidence-body",
+    "kind": "markdown",
+    "label": "07 · Evidence only — body",
+    "group": "Docs · How",
+    "body": "The prompts instruct the model to include only information explicitly stated or clearly implied in the supplied quotes, and to omit information it cannot verify there. This encourages evidence-constrained drafting; workflow controls are not guarantees ([section 01](#s1))."
+  },
+  {
+    "key": "docs-how-s7-original-title",
+    "kind": "plain",
+    "label": "07 · Original prose only — title",
+    "group": "Docs · How",
+    "body": "Original prose only"
+  },
+  {
+    "key": "docs-how-s7-original-body",
+    "kind": "markdown",
+    "label": "07 · Original prose only — body",
+    "group": "Docs · How",
+    "body": "\"Synthesize information from the provided excerpts into original prose. Do not copy sentences or lengthy phrases verbatim from any source.\" The verbatim text exists only in the internal excerpt documents. What gets published is a new piece of writing, held in place by that evidence."
+  },
+  {
+    "key": "docs-how-s7-prompts-below",
+    "kind": "markdown",
+    "label": "07 · Section prompts intro paragraph",
+    "group": "Docs · How",
+    "body": "The section prompts for all six fully AI-written sections appear below, largest first. This page reads them from `src/data/config/sectionPrompts/` when it builds. Those files are the seeds the editorial team's live copies are migrated from, and `npm run prompts:compare` reports any drift between the two."
+  },
+  {
+    "key": "docs-how-s7-fastest",
+    "kind": "markdown",
+    "label": "07 · Fastest way paragraph",
+    "group": "Docs · How",
+    "body": "The pharmacology and harm potential prompts are the fastest way to see how much of each section's quality comes from the prompt rather than the model."
+  },
+  {
+    "key": "docs-how-s7-note",
+    "kind": "markdown",
+    "label": "07 · Prompts are part of the project — callout",
+    "group": "Docs · How",
+    "body": "**The prompts are part of the project.** They are version-controlled alongside the code, and the live copies are editable by the editorial team. Improving a prompt changes future generation runs that use it. There is also a separate family of citation prompts used by the citation workflow ([section 08](#s8))."
+  },
+  {
+    "key": "docs-how-s8-heading",
+    "kind": "plain",
+    "label": "08 · Section heading",
+    "group": "Docs · How",
+    "body": "Citations"
+  },
+  {
+    "key": "docs-how-s8-intro",
+    "kind": "markdown",
+    "label": "08 · Intro paragraph",
+    "group": "Docs · How",
+    "body": "After prose is drafted, a separate workflow can add Wikipedia-style markers to the six AI-written sections listed in [section 07 (AI synthesis & the prompts)](#s7); these are the **citable sections**. Other sections use separate provenance or editorial workflows. Coverage is intentionally conservative and incomplete: a marker should appear only when inspected evidence supports a useful nearby claim, while unsupported or uncertain relationships remain internal gaps rather than public promises."
+  },
+  {
+    "key": "docs-how-s8-step1-name",
+    "kind": "plain",
+    "label": "08 · Step 1 — name",
+    "group": "Docs · How",
+    "body": "Identify claims"
+  },
+  {
+    "key": "docs-how-s8-step1-detail",
+    "kind": "markdown",
+    "label": "08 · Step 1 — detail",
+    "group": "Docs · How",
+    "body": "Workers inspect the citable prose and choose bounded claims that may need support"
+  },
+  {
+    "key": "docs-how-s8-step2-name",
+    "kind": "plain",
+    "label": "08 · Step 2 — name",
+    "group": "Docs · How",
+    "body": "Inspect references"
+  },
+  {
+    "key": "docs-how-s8-step2-detail",
+    "kind": "markdown",
+    "label": "08 · Step 2 — detail",
+    "group": "Docs · How",
+    "body": "Workers inspect candidate sources and record the relationship they believe each source supports"
+  },
+  {
+    "key": "docs-how-s8-step3-name",
+    "kind": "plain",
+    "label": "08 · Step 3 — name",
+    "group": "Docs · How",
+    "body": "Mark"
+  },
+  {
+    "key": "docs-how-s8-step3-detail",
+    "kind": "markdown",
+    "label": "08 · Step 3 — detail",
+    "group": "Docs · How",
+    "body": "The workflow inserts citation markers into the text. Nothing else changes, byte for byte"
+  },
+  {
+    "key": "docs-how-s8-step4-name",
+    "kind": "plain",
+    "label": "08 · Step 4 — name",
+    "group": "Docs · How",
+    "body": "Record evidence"
+  },
+  {
+    "key": "docs-how-s8-step4-detail",
+    "kind": "markdown",
+    "label": "08 · Step 4 — detail",
+    "group": "Docs · How",
+    "body": "The workflow records a short source quote and rationale behind each proposed marker"
+  },
+  {
+    "key": "docs-how-s8-step5-name",
+    "kind": "plain",
+    "label": "08 · Step 5 — name",
+    "group": "Docs · How",
+    "body": "Validate structure"
+  },
+  {
+    "key": "docs-how-s8-step5-detail",
+    "kind": "markdown",
+    "label": "08 · Step 5 — detail",
+    "group": "Docs · How",
+    "body": "Deterministic gates check marker, reference, and evidence consistency before a draft can be reviewed"
+  },
+  {
+    "key": "docs-how-s8-standards-title",
+    "kind": "plain",
+    "label": "08 · Reference standards — title",
+    "group": "Docs · How",
+    "body": "Reference standards"
+  },
+  {
+    "key": "docs-how-s8-standards-wikis",
+    "kind": "markdown",
+    "label": "08 · Reference standards — wikis item",
+    "group": "Docs · How",
+    "body": "**Wikis are discovery sources, not final references.** The workflow uses Wikipedia and PsychonautWiki to find candidates, while final references are intended to be inspectable journals, government documents, drug labels, books, or databases."
+  },
+  {
+    "key": "docs-how-s8-standards-ids",
+    "kind": "markdown",
+    "label": "08 · Reference standards — identifiers item",
+    "group": "Docs · How",
+    "body": "**Page-specific identifiers.** Repeated same-site sources, for example DailyMed drug labels, receive distinct per-page reference IDs so separate documents remain separate during review."
+  },
+  {
+    "key": "docs-how-s8-meaning-title",
+    "kind": "plain",
+    "label": "08 · What a citation means — title",
+    "group": "Docs · How",
+    "body": "What a citation means"
+  },
+  {
+    "key": "docs-how-s8b-heading",
+    "kind": "plain",
+    "label": "08b · Section heading",
+    "group": "Docs · How",
+    "body": "Legality: targeted deep research"
+  },
+  {
+    "key": "docs-how-s8b-intro",
+    "kind": "markdown",
+    "label": "08b · Intro paragraph",
+    "group": "Docs · How",
+    "body": "Legality is the hardest section to keep correct. Drug law changes often, differs by country, and most online summaries cite other summaries. So the legality section gets its own deep-research workflow, separate from the main pipeline in [section 02](#s2). The workflow reads primary legal sources only: statutes, official schedules, and government legislation portals."
+  },
+  {
+    "key": "docs-how-s8b-agents",
+    "kind": "markdown",
+    "label": "08b · Orchestrator paragraph",
+    "group": "Docs · How",
+    "body": "One orchestrator agent runs the workflow for one substance at a time, launching many small research agents in parallel; each starts with a **blank context**, one narrow question, and a strict output contract. Research and refutation are never the same agent: every surviving claim faces an independent blank-context refuter, and a refuted claim becomes a recorded gap or re-enters research for at most two recovery cycles. The diagram below walks the full sequence, from export packet through the cite, discovery, gap, and correction passes to the US state pass, merge, and human-confirmed write."
+  },
+  {
+    "key": "docs-how-s8b-legend-source",
+    "kind": "plain",
+    "label": "08b · Legend — external research",
+    "group": "Docs · How",
+    "body": "External research"
+  },
+  {
+    "key": "docs-how-s8b-legend-automated",
+    "kind": "plain",
+    "label": "08b · Legend — automated pipeline",
+    "group": "Docs · How",
+    "body": "Automated pipeline"
+  },
+  {
+    "key": "docs-how-s8b-legend-stored",
+    "kind": "plain",
+    "label": "08b · Legend — data store",
+    "group": "Docs · How",
+    "body": "Data store"
+  },
+  {
+    "key": "docs-how-s8b-legend-review",
+    "kind": "plain",
+    "label": "08b · Legend — human decision",
+    "group": "Docs · How",
+    "body": "Human decision"
+  },
+  {
+    "key": "docs-how-s8b-legend-published",
+    "kind": "plain",
+    "label": "08b · Legend — published output",
+    "group": "Docs · How",
+    "body": "Published output"
+  },
+  {
+    "key": "docs-how-s8b-diagram-title",
+    "kind": "plain",
+    "label": "08b · Legality diagram title",
+    "group": "Docs · How",
+    "body": "Legality deep research: export packet through parallel research passes, adversarial refutation, US state pass, merge and validation, human-confirmed write, and citations"
+  },
+  {
+    "key": "docs-how-s8b-invariants-title",
+    "kind": "plain",
+    "label": "08b · Invariants — title",
+    "group": "Docs · How",
+    "body": "Invariants"
+  },
+  {
+    "key": "docs-how-s8b-invariants",
+    "kind": "list",
+    "label": "08b · Invariants — list",
+    "group": "Docs · How",
+    "items": [
+      "**No entry enters the draft without a primary source** (no source ⇒ recorded gap, never published).",
+      "**Research and refutation are always separate blank-context agents.**",
+      "**A human confirms every write.**",
+      "**Unverifiable legacy claims are flagged *citationNeeded***, never silently edited or deleted."
+    ]
+  },
+  {
+    "key": "docs-how-s8b-next-title",
+    "kind": "plain",
+    "label": "08b · Where this goes next — title",
+    "group": "Docs · How",
+    "body": "Where this goes next"
+  },
+  {
+    "key": "docs-how-s9-heading",
+    "kind": "plain",
+    "label": "09 · Section heading",
+    "group": "Docs · How",
+    "body": "Human review status and scope"
+  },
+  {
+    "key": "docs-how-s9-pull",
+    "kind": "markdown",
+    "label": "09 · Pull quote",
+    "group": "Docs · How",
+    "body": "Editorial review is a **recorded human workflow state**, not a blanket warranty for an article or its sources."
+  },
+  {
+    "key": "docs-how-s9-step1-name",
+    "kind": "plain",
+    "label": "09 · Step 1 — name",
+    "group": "Docs · How",
+    "body": "Inspect"
+  },
+  {
+    "key": "docs-how-s9-step1-detail",
+    "kind": "markdown",
+    "label": "09 · Step 1 — detail",
+    "group": "Docs · How",
+    "body": "A reviewer reads the article and follows the sources relevant to the review"
+  },
+  {
+    "key": "docs-how-s9-step2-name",
+    "kind": "plain",
+    "label": "09 · Step 2 — name",
+    "group": "Docs · How",
+    "body": "Verify"
+  },
+  {
+    "key": "docs-how-s9-step2-detail",
+    "kind": "markdown",
+    "label": "09 · Step 2 — detail",
+    "group": "Docs · How",
+    "body": "The reviewer checks important claims and records uncertainty rather than assuming coverage"
+  },
+  {
+    "key": "docs-how-s9-step3-name",
+    "kind": "plain",
+    "label": "09 · Step 3 — name",
+    "group": "Docs · How",
+    "body": "Edit"
+  },
+  {
+    "key": "docs-how-s9-step3-detail",
+    "kind": "markdown",
+    "label": "09 · Step 3 — detail",
+    "group": "Docs · How",
+    "body": "Corrections use the editor's normal diff and save workflow"
+  },
+  {
+    "key": "docs-how-s9-step4-name",
+    "kind": "plain",
+    "label": "09 · Step 4 — name",
+    "group": "Docs · How",
+    "body": "Record status"
+  },
+  {
+    "key": "docs-how-s9-step4-detail",
+    "kind": "markdown",
+    "label": "09 · Step 4 — detail",
+    "group": "Docs · How",
+    "body": "The separate review action stores status, reviewer identity, and completion time"
+  },
+  {
+    "key": "docs-how-s9-records",
+    "kind": "markdown",
+    "label": "09 · Records paragraph",
+    "group": "Docs · How",
+    "body": "Editor saves and review status are related but distinct records. A changelog can show who changed text and when; a review tick can show that a review was marked complete. Neither record is citation verification; [section 01](#s1)'s distinctions apply. Generated or edited content should return to human review, and the public status should be read with that limitation in mind."
+  },
+  {
+    "key": "docs-how-s10-heading",
+    "kind": "plain",
+    "label": "10 · Section heading",
+    "group": "Docs · How",
+    "body": "The open dataset"
+  },
+  {
+    "key": "docs-how-s10-intro",
+    "kind": "markdown",
+    "label": "10 · Intro paragraph",
+    "group": "Docs · How",
+    "body": "This pipeline produces more than public pages. It produces `SubstanceIndex.json`: the full substance database in one consistent schema and one downloadable file."
+  },
+  {
+    "key": "docs-how-s10-pull",
+    "kind": "markdown",
+    "label": "10 · Pull quote",
+    "group": "Docs · How",
+    "body": "dose.wiki is an open-source harm-reduction reference for psychoactive substances and subjective effects. One downloadable, consistently structured corpus keeps that knowledge verifiable and reusable instead of scattered across separate sites and closed data systems."
+  },
+  {
+    "key": "docs-how-s10-dataset",
+    "kind": "markdown",
+    "label": "10 · Dataset paragraph",
+    "group": "Docs · How",
+    "body": "The dataset is not a byproduct of the website. It is part of the point. Researchers, developers, educators, and community projects can download the corpus, examine its structure, fork it, and build on it. Nobody has to rebuild a harm-reduction encyclopedia from scratch to get better tools around the same knowledge. [Section 11 (Originality & licensing)](#s11) covers the licensing terms."
+  },
+  {
+    "key": "docs-how-s11-heading",
+    "kind": "plain",
+    "label": "11 · Section heading",
+    "group": "Docs · How",
+    "body": "Originality & licensing"
+  },
+  {
+    "key": "docs-how-s11-intro",
+    "kind": "markdown",
+    "label": "11 · Intro paragraph",
+    "group": "Docs · How",
+    "body": "This pipeline begins with published sources, so the licensing boundary matters: sources inform the work, while the public dataset uses dose.wiki wording and structure. Source provenance, citation support, and editorial review remain separate questions."
+  },
+  {
+    "key": "docs-how-s11-new-title",
+    "kind": "plain",
+    "label": "11 · New writing — title",
+    "group": "Docs · How",
+    "body": "The public prose is new writing"
+  },
+  {
+    "key": "docs-how-s11-new-body",
+    "kind": "markdown",
+    "label": "11 · New writing — body",
+    "group": "Docs · How",
+    "body": "Verbatim source text stays in internal excerpt files, like research notes. Published article prose is drafted with instructions not to copy source wording. Citation and editorial workflows can then identify support problems or wording that needs correction."
+  },
+  {
+    "key": "docs-how-s11-facts-title",
+    "kind": "plain",
+    "label": "11 · Facts are not owned — title",
+    "group": "Docs · How",
+    "body": "Facts are not owned"
+  },
+  {
+    "key": "docs-how-s11-facts-body",
+    "kind": "markdown",
+    "label": "11 · Facts are not owned — body",
+    "group": "Docs · How",
+    "body": "A synthesis year, dose range, receptor target, or legal status may be a fact, but its presentation and support still need checking. Copyright protects expression, not facts; dose.wiki uses its own wording, schema, and article structure without treating that originality as evidence that a claim is accurate."
+  },
+  {
+    "key": "docs-how-s11-provenance-title",
+    "kind": "plain",
+    "label": "11 · Provenance stays distinct — title",
+    "group": "Docs · How",
+    "body": "Provenance and support stay distinct"
+  },
+  {
+    "key": "docs-how-s11-cc0-title",
+    "kind": "plain",
+    "label": "11 · CC0 — title",
+    "group": "Docs · How",
+    "body": "The reusable parts are CC0"
+  },
+  {
+    "key": "docs-how-s11-cc0-body",
+    "kind": "markdown",
+    "label": "11 · CC0 — body",
+    "group": "Docs · How",
+    "body": "dose.wiki-authored writing, structured data, schema work, generated molecule assets, and report-form submissions whose contributors accept CC0 terms are dedicated to the **public domain under CC0**. Anyone can share, adapt, or build on them, commercially or not, with no attribution required. Legacy trip reports, TripSit data, protestkit.eu data, and media with separate rights keep their own terms. The [license page](/docs/license) lists those boundaries."
+  },
+  {
+    "key": "docs-how-s11-questions-title",
+    "kind": "plain",
+    "label": "11 · Questions or corrections — title",
+    "group": "Docs · How",
+    "body": "Questions or corrections?"
+  },
+  {
+    "key": "docs-how-s11-questions-body",
+    "kind": "markdown",
+    "label": "11 · Questions or corrections — body",
+    "group": "Docs · How",
+    "body": "The parsers, prompts, and citation tooling described here live in the project repository. Each article exposes its citations and source links, and dose.wiki keeps an internal edit history showing how the article reached its current state."
+  },
+  {
+    "key": "docs-how-s11-code-title",
+    "kind": "plain",
+    "label": "11 · How the site is built — title",
+    "group": "Docs · How",
+    "body": "Curious how the site itself is built?"
+  },
+  {
+    "key": "docs-how-s11-code-body",
+    "kind": "markdown",
+    "label": "11 · How the site is built — body",
+    "group": "Docs · How",
+    "body": "This page covers article production. For the codebase, architecture, data layer, and public-site systems, read [How dose.wiki is built](/docs/code)."
+  },
+  {
+    "key": "docs-license-header-updated",
+    "kind": "plain",
+    "label": "Header — last-updated line",
+    "group": "Docs · License",
+    "body": "Last updated August 15, 2026"
+  },
+  {
+    "key": "docs-license-header-title",
+    "kind": "plain",
+    "label": "Header — page title",
+    "group": "Docs · License",
+    "body": "Licensing and reuse"
+  },
+  {
+    "key": "docs-license-header-tagline",
+    "kind": "markdown",
+    "label": "Header — tagline",
+    "group": "Docs · License",
+    "body": "What you can reuse, what needs attribution, and what dose.wiki does not license."
+  },
+  {
+    "key": "docs-license-header-intro",
+    "kind": "markdown",
+    "label": "Header — CC0 intro paragraph",
+    "group": "Docs · License",
+    "body": "Most dose.wiki-authored material is released under **CC0 1.0 Universal**. You can copy, modify, redistribute, and use that material commercially without asking permission or giving attribution."
+  },
+  {
+    "key": "docs-license-header-terms-note",
+    "kind": "markdown",
+    "label": "Header — own-terms paragraph",
+    "group": "Docs · License",
+    "body": "The source code and several kinds of contributor and third-party material keep their own terms. The reuse matrix in section 2 is the authoritative inventory. Before you republish anything, check the matrix."
+  },
+  {
+    "key": "docs-license-toc-quick-answer",
+    "kind": "plain",
+    "label": "TOC — 1. Quick answer",
+    "group": "Docs · License",
+    "body": "1. Quick answer"
+  },
+  {
+    "key": "docs-license-toc-reuse-matrix",
+    "kind": "plain",
+    "label": "TOC — 2. Reuse matrix",
+    "group": "Docs · License",
+    "body": "2. Reuse matrix"
+  },
+  {
+    "key": "docs-license-toc-cc0-scope",
+    "kind": "plain",
+    "label": "TOC — 3. CC0 scope",
+    "group": "Docs · License",
+    "body": "3. CC0 scope"
+  },
+  {
+    "key": "docs-license-toc-exceptions",
+    "kind": "plain",
+    "label": "TOC — 4. Important exceptions",
+    "group": "Docs · License",
+    "body": "4. Important exceptions"
+  },
+  {
+    "key": "docs-license-toc-provenance",
+    "kind": "plain",
+    "label": "TOC — 5. Subjective effects provenance",
+    "group": "Docs · License",
+    "body": "5. Subjective effects provenance"
+  },
+  {
+    "key": "docs-license-toc-source-code",
+    "kind": "plain",
+    "label": "TOC — 6. Source code",
+    "group": "Docs · License",
+    "body": "6. Source code"
+  },
+  {
+    "key": "docs-license-toc-attribution",
+    "kind": "plain",
+    "label": "TOC — 7. Attribution examples",
+    "group": "Docs · License",
+    "body": "7. Attribution examples"
+  },
+  {
+    "key": "docs-license-toc-full-terms",
+    "kind": "plain",
+    "label": "TOC — 8. Full terms",
+    "group": "Docs · License",
+    "body": "8. Full terms"
+  },
+  {
+    "key": "docs-license-s1-heading",
+    "kind": "plain",
+    "label": "01 · Quick answer — heading",
+    "group": "Docs · License",
+    "body": "Quick answer"
+  },
+  {
+    "key": "docs-license-s1-cc0-alert",
+    "kind": "markdown",
+    "label": "01 · Quick answer — CC0 callout",
+    "group": "Docs · License",
+    "body": "dose.wiki's own article text, structured dataset, schema, and generated molecule assets are CC0 unless a page or data field says otherwise."
+  },
+  {
+    "key": "docs-license-s1-freely-label",
+    "kind": "plain",
+    "label": "01 · Quick answer — freely-reusable label",
+    "group": "Docs · License",
+    "body": "Freely reusable"
+  },
+  {
+    "key": "docs-license-s1-freely-items",
+    "kind": "list",
+    "label": "01 · Quick answer — freely-reusable list",
+    "group": "Docs · License",
+    "items": [
+      "dose.wiki-authored article prose and structured fields.",
+      "The downloadable `SubstanceIndex.json` snapshot and schema, apart from its `interactions` field.",
+      "Molecule SVGs generated from SMILES, plus their manifest.",
+      "Trip reports submitted through the current report form."
+    ]
+  },
+  {
+    "key": "docs-license-s1-check-label",
+    "kind": "plain",
+    "label": "01 · Quick answer — check-before-reuse label",
+    "group": "Docs · License",
+    "body": "Check before reuse"
+  },
+  {
+    "key": "docs-license-s1-check-items",
+    "kind": "list",
+    "label": "01 · Quick answer — check-before-reuse list",
+    "group": "Docs · License",
+    "items": [
+      "Legacy trip reports, where rights remain with the author.",
+      "Subjective-effect replication images, videos, and audio.",
+      "TripSit interaction ratings and combination guidance.",
+      "Reagent-test data fetched from protestkit.eu.",
+      "External sources cited by articles, trademarks, and third-party names."
+    ]
+  },
+  {
+    "key": "docs-license-s1-disclaimer",
+    "kind": "markdown",
+    "label": "01 · Quick answer — not-legal-advice note",
+    "group": "Docs · License",
+    "body": "**Not legal advice.** This page describes dose.wiki's licensing intent and the reuse terms we apply to our own material. If your use is sensitive, commercial, or jurisdiction-specific, check the relevant terms yourself."
+  },
+  {
+    "key": "docs-license-s2-heading",
+    "kind": "plain",
+    "label": "02 · Reuse matrix — heading",
+    "group": "Docs · License",
+    "body": "Reuse matrix"
+  },
+  {
+    "key": "docs-license-s2-intro",
+    "kind": "markdown",
+    "label": "02 · Reuse matrix — intro",
+    "group": "Docs · License",
+    "body": "This table separates material dose.wiki can license from material that belongs to contributors or third-party projects."
+  },
+  {
+    "key": "docs-license-s2-col-material",
+    "kind": "plain",
+    "label": "02 · Reuse matrix — column: Material",
+    "group": "Docs · License",
+    "body": "Material"
+  },
+  {
+    "key": "docs-license-s2-col-terms",
+    "kind": "plain",
+    "label": "02 · Reuse matrix — column: Terms",
+    "group": "Docs · License",
+    "body": "Terms"
+  },
+  {
+    "key": "docs-license-s2-col-attribution",
+    "kind": "plain",
+    "label": "02 · Reuse matrix — column: Attribution",
+    "group": "Docs · License",
+    "body": "Attribution"
+  },
+  {
+    "key": "docs-license-s2-col-commercial",
+    "kind": "plain",
+    "label": "02 · Reuse matrix — column: Commercial use",
+    "group": "Docs · License",
+    "body": "Commercial use"
+  },
+  {
+    "key": "docs-license-s2-col-notes",
+    "kind": "plain",
+    "label": "02 · Reuse matrix — column: Notes",
+    "group": "Docs · License",
+    "body": "Notes"
+  },
+  {
+    "key": "docs-license-s2-articles-material",
+    "kind": "plain",
+    "label": "02 · Reuse matrix — article content row title",
+    "group": "Docs · License",
+    "body": "dose.wiki-authored article content"
+  },
+  {
+    "key": "docs-license-s2-articles-notes",
+    "kind": "markdown",
+    "label": "02 · Reuse matrix — article content notes",
+    "group": "Docs · License",
+    "body": "CC0 covers dose.wiki's own copyrightable contributions to summaries, pharmacology, tolerance, harm potential, history, legality, dosage, duration, and related article fields."
+  },
+  {
+    "key": "docs-license-s2-dataset-material",
+    "kind": "markdown",
+    "label": "02 · Reuse matrix — dataset row title",
+    "group": "Docs · License",
+    "body": "Structured dataset `SubstanceIndex.json`"
+  },
+  {
+    "key": "docs-license-s2-dataset-notes",
+    "kind": "markdown",
+    "label": "02 · Reuse matrix — dataset notes",
+    "group": "Docs · License",
+    "body": "CC0 covers the downloadable snapshot, the dose.wiki schema, and the normalization work. Every article document also carries an `interactions` object built from TripSit combination guidance, which keeps TripSit's terms (section 4). Strip or separately license that field before commercial reuse. CC0 grants no rights to external sources cited by articles."
+  },
+  {
+    "key": "docs-license-s2-molecules-material",
+    "kind": "plain",
+    "label": "02 · Reuse matrix — molecule SVG row title",
+    "group": "Docs · License",
+    "body": "Molecule SVG pack and manifest"
+  },
+  {
+    "key": "docs-license-s2-molecules-notes",
+    "kind": "markdown",
+    "label": "02 · Reuse matrix — molecule SVG notes",
+    "group": "Docs · License",
+    "body": "Structure SVGs generated by dose.wiki from SMILES with RDKit, plus the molecule metadata manifest."
+  },
+  {
+    "key": "docs-license-s2-replication-material",
+    "kind": "plain",
+    "label": "02 · Reuse matrix — replication media row title",
+    "group": "Docs · License",
+    "body": "Subjective-effect replication media"
+  },
+  {
+    "key": "docs-license-s2-replication-notes",
+    "kind": "markdown",
+    "label": "02 · Reuse matrix — replication media notes",
+    "group": "Docs · License",
+    "body": "Images, videos, and audio that recreate subjective effects remain owned by their original creators or rightsholders. No open license covers them and none is CC0; reuse is the artist's call unless an individual item states its own license. dose.wiki displays and credits them; it does not relicense them."
+  },
+  {
+    "key": "docs-license-s2-code-material",
+    "kind": "plain",
+    "label": "02 · Reuse matrix — source code row title",
+    "group": "Docs · License",
+    "body": "Website source code"
+  },
+  {
+    "key": "docs-license-s2-code-notes",
+    "kind": "markdown",
+    "label": "02 · Reuse matrix — source code notes",
+    "group": "Docs · License",
+    "body": "MIT covers the application code and tooling only (section 6)."
+  },
+  {
+    "key": "docs-license-s2-legacy-reports-material",
+    "kind": "plain",
+    "label": "02 · Reuse matrix — legacy reports row title",
+    "group": "Docs · License",
+    "body": "Legacy trip reports"
+  },
+  {
+    "key": "docs-license-s2-legacy-reports-notes",
+    "kind": "markdown",
+    "label": "02 · Reuse matrix — legacy reports notes",
+    "group": "Docs · License",
+    "body": "Reports already on the site are contributor-authored personal accounts. Reuse outside ordinary linking or quotation depends on the report's marker or the author's permission."
+  },
+  {
+    "key": "docs-license-s2-new-reports-material",
+    "kind": "plain",
+    "label": "02 · Reuse matrix — new submissions row title",
+    "group": "Docs · License",
+    "body": "New report-form submissions"
+  },
+  {
+    "key": "docs-license-s2-new-reports-notes",
+    "kind": "markdown",
+    "label": "02 · Reuse matrix — new submissions notes",
+    "group": "Docs · License",
+    "body": "CC0 applies when the submitter accepts the report form's CC0 terms before they send the report."
+  },
+  {
+    "key": "docs-license-s2-interactions-material",
+    "kind": "plain",
+    "label": "02 · Reuse matrix — interaction ratings row title",
+    "group": "Docs · License",
+    "body": "Interaction ratings"
+  },
+  {
+    "key": "docs-license-s2-interactions-notes",
+    "kind": "markdown",
+    "label": "02 · Reuse matrix — interaction ratings notes",
+    "group": "Docs · License",
+    "body": "Combination data comes from TripSit. Reuse follows TripSit's own terms (section 4)."
+  },
+  {
+    "key": "docs-license-s2-reagent-material",
+    "kind": "plain",
+    "label": "02 · Reuse matrix — reagent data row title",
+    "group": "Docs · License",
+    "body": "Reagent-test data"
+  },
+  {
+    "key": "docs-license-s2-reagent-notes",
+    "kind": "markdown",
+    "label": "02 · Reuse matrix — reagent data notes",
+    "group": "Docs · License",
+    "body": "dose.wiki fetches reagent results from protestkit.eu when you view an article. The downloadable dataset does not contain them."
+  },
+  {
+    "key": "docs-license-s3-heading",
+    "kind": "plain",
+    "label": "03 · CC0 scope — heading",
+    "group": "Docs · License",
+    "body": "CC0 scope"
+  },
+  {
+    "key": "docs-license-s3-intro",
+    "kind": "markdown",
+    "label": "03 · CC0 scope — intro",
+    "group": "Docs · License",
+    "body": "The CC0 release covers dose.wiki's own copyrightable contributions. The rest of this page calls these the **covered material**."
+  },
+  {
+    "key": "docs-license-s3-covered-label",
+    "kind": "plain",
+    "label": "03 · CC0 scope — covered material label",
+    "group": "Docs · License",
+    "body": "Covered material"
+  },
+  {
+    "key": "docs-license-s3-covered-items",
+    "kind": "list",
+    "label": "03 · CC0 scope — covered material list",
+    "group": "Docs · License",
+    "items": [
+      "Original article prose.",
+      "The dataset compilation and the schema design.",
+      "Normalization work.",
+      "Generated molecule assets.",
+      "Report-form submissions whose contributors accepted CC0 terms."
+    ]
+  },
+  {
+    "key": "docs-license-s3-you-can-label",
+    "kind": "plain",
+    "label": "03 · CC0 scope — you-can label",
+    "group": "Docs · License",
+    "body": "You can"
+  },
+  {
+    "key": "docs-license-s3-you-can-items",
+    "kind": "list",
+    "label": "03 · CC0 scope — you-can list",
+    "group": "Docs · License",
+    "items": [
+      "Copy and redistribute the covered material in any format.",
+      "Modify, translate, extract, remix, or combine it with other work.",
+      "Use it in commercial projects.",
+      "Skip attribution, permission requests, and share-alike obligations."
+    ]
+  },
+  {
+    "key": "docs-license-s3-not-covered-label",
+    "kind": "plain",
+    "label": "03 · CC0 scope — does-not-cover label",
+    "group": "Docs · License",
+    "body": "This does not cover"
+  },
+  {
+    "key": "docs-license-s3-not-covered-body",
+    "kind": "markdown",
+    "label": "03 · CC0 scope — does-not-cover body",
+    "group": "Docs · License",
+    "body": "The carve-outs detailed in section 4, external sources cited or linked from articles, and third-party names, trademarks, logos, and site identities."
+  },
+  {
+    "key": "docs-license-s3-attribution",
+    "kind": "markdown",
+    "label": "03 · CC0 scope — attribution note",
+    "group": "Docs · License",
+    "body": "**Attribution is appreciated, not required.** A link to dose.wiki helps other people find the source dataset, but CC0 does not require credit."
+  },
+  {
+    "key": "docs-license-s3-trademark",
+    "kind": "markdown",
+    "label": "03 · CC0 scope — trademark note",
+    "group": "Docs · License",
+    "body": "**CC0 waives copyright, not trademark.** Forks can use the covered material and the source code freely, including commercially. A fork must not use the \"dose.wiki\" name or logo to present itself as the official site or to claim endorsement."
+  },
+  {
+    "key": "docs-license-s4-heading",
+    "kind": "plain",
+    "label": "04 · Important exceptions — heading",
+    "group": "Docs · License",
+    "body": "Important exceptions"
+  },
+  {
+    "key": "docs-license-s4-intro",
+    "kind": "markdown",
+    "label": "04 · Important exceptions — intro",
+    "group": "Docs · License",
+    "body": "Five **carve-outs** do not inherit the blanket CC0 release. This section is the authoritative statement of their terms."
+  },
+  {
+    "key": "docs-license-s4-legacy-label",
+    "kind": "plain",
+    "label": "04 · Important exceptions — legacy reports label",
+    "group": "Docs · License",
+    "body": "Legacy trip reports"
+  },
+  {
+    "key": "docs-license-s4-legacy-title",
+    "kind": "plain",
+    "label": "04 · Important exceptions — legacy reports title",
+    "group": "Docs · License",
+    "body": "Rights remain with the author unless marked otherwise."
+  },
+  {
+    "key": "docs-license-s4-legacy-body",
+    "kind": "markdown",
+    "label": "04 · Important exceptions — legacy reports body",
+    "group": "Docs · License",
+    "body": "Trip reports are contributor-authored personal accounts. dose.wiki publishes legacy reports with permission, but they are not part of the covered material. Link to them freely. If the report's license marker permits it, or if the author agrees, you can republish or commercially use a report."
+  },
+  {
+    "key": "docs-license-s4-new-reports-label",
+    "kind": "plain",
+    "label": "04 · Important exceptions — new submissions label",
+    "group": "Docs · License",
+    "body": "New report-form submissions"
+  },
+  {
+    "key": "docs-license-s4-new-reports-title",
+    "kind": "plain",
+    "label": "04 · Important exceptions — new submissions title",
+    "group": "Docs · License",
+    "body": "CC0 applies when the submitter accepted the form terms."
+  },
+  {
+    "key": "docs-license-s4-new-reports-body",
+    "kind": "markdown",
+    "label": "04 · Important exceptions — new submissions body",
+    "group": "Docs · License",
+    "body": "The submitter dedicates the report to the public domain before the form sends it. A CC0 dedication cannot be revoked after a report is public. dose.wiki honors good-faith requests to correct attribution, to update identifying details, or to remove a report from dose.wiki. dose.wiki cannot retract copies that other sites already made."
+  },
+  {
+    "key": "docs-license-s4-replication-label",
+    "kind": "plain",
+    "label": "04 · Important exceptions — replication media label",
+    "group": "Docs · License",
+    "body": "Subjective-effect replication media"
+  },
+  {
+    "key": "docs-license-s4-replication-title",
+    "kind": "plain",
+    "label": "04 · Important exceptions — replication media title",
+    "group": "Docs · License",
+    "body": "Rights stay with the creator or rightsholder."
+  },
+  {
+    "key": "docs-license-s4-replication-body",
+    "kind": "markdown",
+    "label": "04 · Important exceptions — replication media body",
+    "group": "Docs · License",
+    "body": "No subjective-effect replication image, video, or audio file is open-licensed, and none of it is CC0. Reuse is entirely the creator's or rightsholder's call, item by item. dose.wiki credits them when known, and many items have no recorded rightsholder at all — treat those as unknown rather than free. The full terms, provenance notes, and the credit-correction route are in [section 8](#replication-media-terms)."
+  },
+  {
+    "key": "docs-license-s4-interactions-label",
+    "kind": "plain",
+    "label": "04 · Important exceptions — interaction ratings label",
+    "group": "Docs · License",
+    "body": "Interaction ratings"
+  },
+  {
+    "key": "docs-license-s4-interactions-body",
+    "kind": "markdown",
+    "label": "04 · Important exceptions — interaction ratings body",
+    "group": "Docs · License",
+    "body": "The combination ratings shown on dose.wiki come from [TripSit's drug-combination guidance](https://wiki.tripsit.me/wiki/Drug_combinations). dose.wiki does not place that data under CC0. Reuse must follow TripSit's terms: non-commercial use, attribution, a link back to TripSit or [combo.tripsit.me](https://combo.tripsit.me), and a note that the information is only a quick reference. Commercial use needs TripSit permission."
+  },
+  {
+    "key": "docs-license-s4-reagent-label",
+    "kind": "plain",
+    "label": "04 · Important exceptions — reagent data label",
+    "group": "Docs · License",
+    "body": "Reagent-test data"
+  },
+  {
+    "key": "docs-license-s4-reagent-body",
+    "kind": "markdown",
+    "label": "04 · Important exceptions — reagent data body",
+    "group": "Docs · License",
+    "body": "Reagent color reactions are fetched from [protestkit.eu](https://protestkit.eu) when an article is viewed. They are not included in the downloadable dataset, and dose.wiki does not grant reuse rights for them. Consult ProtestKit directly before republishing reagent-test data."
+  },
+  {
+    "key": "docs-license-s4-datasets-alert",
+    "kind": "markdown",
+    "label": "04 · Important exceptions — datasets warning",
+    "group": "Docs · License",
+    "body": "The downloadable datasets are not uniformly CC0: `SubstanceIndex.json` carries the TripSit `interactions` field, and `EffectIndex.json` carries the replication media it references — the `audio_replications` entries plus the `gallery_order` and `social_media_image` image references — credited to their creators. If you scrape full pages instead, also check your capture for reagent data, replication media, and legacy reports. None of those inherit CC0 terms."
+  },
+  {
+    "key": "docs-license-s5-heading",
+    "kind": "plain",
+    "label": "05 · Provenance — heading",
+    "group": "Docs · License",
+    "body": "Subjective effects provenance"
+  },
+  {
+    "key": "docs-license-s5-intro",
+    "kind": "markdown",
+    "label": "05 · Provenance — intro",
+    "group": "Docs · License",
+    "body": "Subjective-effects material has a longer and more distributed publication history than the rest of the dataset, and it reaches dose.wiki by several separate paths. This section covers text and index material. Replication media stays creator-retained, as section 4 states."
+  },
+  {
+    "key": "docs-license-s5-index-authorship",
+    "kind": "markdown",
+    "label": "05 · Provenance — index authorship",
+    "group": "Docs · License",
+    "body": "The Subjective Effect Index is a work authored by [Josie Kins](https://en.wikipedia.org/wiki/Josie_Kins). She created it on her blog Disregard Everything I Say in 2011, before PsychonautWiki existed, and continued to develop it independently afterwards, including through Effect Index. dose.wiki includes this index material in its CC0 release to the extent it reflects Josie Kins / dose.wiki authorship."
+  },
+  {
+    "key": "docs-license-s5-restored-sections",
+    "kind": "markdown",
+    "label": "05 · Provenance — restored sections",
+    "group": "Docs · License",
+    "body": "dose.wiki handles substance-article \"Subjective effects\" sections separately, and they are currently a mixture of two paths. Where an earlier Josie Kins version exists, dose.wiki restores it, working only from Internet Archive captures dated on or before August 31, 2016, and including only material it has a good-faith basis to treat as her own authorship. It excludes contributions made after that boundary, and edits by others that it does not have the right to dedicate. The date is a rights boundary, not a measure of how current the information is. dose.wiki reviews and updates substance content independently of the boundary."
+  },
+  {
+    "key": "docs-license-s5-synthesized-sections",
+    "kind": "markdown",
+    "label": "05 · Provenance — synthesized sections",
+    "group": "Docs · License",
+    "body": "Where no such section exists, dose.wiki synthesizes one from source material gathered across the internet, the same way it writes the other article sections. Those runs exclude every project Josie Kins was involved in — Disregard Everything I Say, PsychonautWiki, and Effect Index — to avoid a conflict of interest. Synthesized sections are dose.wiki's own authorship and fall under the covered material. dose.wiki intends to replace these sections entirely with Mindstate Design Labs data."
+  },
+  {
+    "key": "docs-license-s5-boundary-note",
+    "kind": "markdown",
+    "label": "05 · Provenance — boundary note",
+    "group": "Docs · License",
+    "body": "Most of the recovered sections on substance pages are dated well before the boundary, not clustered against it."
+  },
+  {
+    "key": "docs-license-s5-badges-label",
+    "kind": "plain",
+    "label": "05 · Provenance — date badges label",
+    "group": "Docs · License",
+    "body": "Recovered date badges"
+  },
+  {
+    "key": "docs-license-s5-timeline-origin-label",
+    "kind": "plain",
+    "label": "05 · Provenance — timeline: origin label",
+    "group": "Docs · License",
+    "body": "Origin"
+  },
+  {
+    "key": "docs-license-s5-timeline-origin-year-label",
+    "kind": "plain",
+    "label": "05 · Provenance — timeline: origin year label",
+    "group": "Docs · License",
+    "body": "Founded"
+  },
+  {
+    "key": "docs-license-s5-timeline-origin-title",
+    "kind": "plain",
+    "label": "05 · Provenance — timeline: origin title",
+    "group": "Docs · License",
+    "body": "Disregard Everything I Say"
+  },
+  {
+    "key": "docs-license-s5-timeline-origin-desc",
+    "kind": "markdown",
+    "label": "05 · Provenance — timeline: origin description",
+    "group": "Docs · License",
+    "body": "Where the Subjective Effect Index began."
+  },
+  {
+    "key": "docs-license-s5-timeline-expanded-label",
+    "kind": "plain",
+    "label": "05 · Provenance — timeline: expanded label",
+    "group": "Docs · License",
+    "body": "Expanded"
+  },
+  {
+    "key": "docs-license-s5-timeline-expanded-year-label",
+    "kind": "plain",
+    "label": "05 · Provenance — timeline: expanded year label",
+    "group": "Docs · License",
+    "body": "Launched"
+  },
+  {
+    "key": "docs-license-s5-timeline-expanded-title",
+    "kind": "plain",
+    "label": "05 · Provenance — timeline: expanded title",
+    "group": "Docs · License",
+    "body": "PsychonautWiki"
+  },
+  {
+    "key": "docs-license-s5-timeline-expanded-desc",
+    "kind": "markdown",
+    "label": "05 · Provenance — timeline: expanded description",
+    "group": "Docs · License",
+    "body": "Structured collaborative reference."
+  },
+  {
+    "key": "docs-license-s5-timeline-formalized-label",
+    "kind": "plain",
+    "label": "05 · Provenance — timeline: formalized label",
+    "group": "Docs · License",
+    "body": "Formalized"
+  },
+  {
+    "key": "docs-license-s5-timeline-formalized-year-label",
+    "kind": "plain",
+    "label": "05 · Provenance — timeline: formalized year label",
+    "group": "Docs · License",
+    "body": "Launched"
+  },
+  {
+    "key": "docs-license-s5-timeline-formalized-title",
+    "kind": "plain",
+    "label": "05 · Provenance — timeline: formalized title",
+    "group": "Docs · License",
+    "body": "Effect Index"
+  },
+  {
+    "key": "docs-license-s5-timeline-formalized-desc",
+    "kind": "markdown",
+    "label": "05 · Provenance — timeline: formalized description",
+    "group": "Docs · License",
+    "body": "Dedicated subjective-effect index."
+  },
+  {
+    "key": "docs-license-s5-timeline-current-label",
+    "kind": "plain",
+    "label": "05 · Provenance — timeline: current label",
+    "group": "Docs · License",
+    "body": "Current"
+  },
+  {
+    "key": "docs-license-s5-timeline-current-year-label",
+    "kind": "plain",
+    "label": "05 · Provenance — timeline: current year label",
+    "group": "Docs · License",
+    "body": "Maintained since"
+  },
+  {
+    "key": "docs-license-s5-timeline-current-title",
+    "kind": "plain",
+    "label": "05 · Provenance — timeline: current title",
+    "group": "Docs · License",
+    "body": "dose.wiki"
+  },
+  {
+    "key": "docs-license-s5-timeline-current-desc",
+    "kind": "markdown",
+    "label": "05 · Provenance — timeline: current description",
+    "group": "Docs · License",
+    "body": "Current maintained corpus."
+  },
+  {
+    "key": "docs-license-s5-scope-alert",
+    "kind": "markdown",
+    "label": "05 · Provenance — licensing-scope note",
+    "group": "Docs · License",
+    "body": "This provenance note is about licensing scope, not authorship credit requirements. Subjective-effect text and index material inside the boundary follows the same CC0 terms as the rest of the covered material."
+  },
+  {
+    "key": "docs-license-s6-heading",
+    "kind": "plain",
+    "label": "06 · Source code — heading",
+    "group": "Docs · License",
+    "body": "Source code"
+  },
+  {
+    "key": "docs-license-s6-intro",
+    "kind": "markdown",
+    "label": "06 · Source code — intro",
+    "group": "Docs · License",
+    "body": "The website source code and tooling are released under the **MIT License**. MIT lets you use, copy, modify, distribute, sublicense, or sell copies of the software, including in commercial and closed-source projects."
+  },
+  {
+    "key": "docs-license-s6-condition-label",
+    "kind": "plain",
+    "label": "06 · Source code — condition label",
+    "group": "Docs · License",
+    "body": "Condition"
+  },
+  {
+    "key": "docs-license-s6-condition-body",
+    "kind": "markdown",
+    "label": "06 · Source code — condition body",
+    "group": "Docs · License",
+    "body": "Keep the MIT copyright and permission notice in copies or substantial portions of the code."
+  },
+  {
+    "key": "docs-license-s6-boundary-label",
+    "kind": "plain",
+    "label": "06 · Source code — boundary label",
+    "group": "Docs · License",
+    "body": "Boundary"
+  },
+  {
+    "key": "docs-license-s6-boundary-body",
+    "kind": "markdown",
+    "label": "06 · Source code — boundary body",
+    "group": "Docs · License",
+    "body": "MIT applies to the software only. The covered material is CC0 (section 3), and the carve-outs keep the terms in section 4."
+  },
+  {
+    "key": "docs-license-s7-heading",
+    "kind": "plain",
+    "label": "07 · Attribution examples — heading",
+    "group": "Docs · License",
+    "body": "Attribution examples"
+  },
+  {
+    "key": "docs-license-s7-intro",
+    "kind": "markdown",
+    "label": "07 · Attribution examples — intro",
+    "group": "Docs · License",
+    "body": "If you choose to credit dose.wiki, or need to keep third-party data and media labels clear, these examples are ready to copy."
+  },
+  {
+    "key": "docs-license-s7-dataset-label",
+    "kind": "plain",
+    "label": "07 · Attribution examples — dataset label",
+    "group": "Docs · License",
+    "body": "Dataset or article text only"
+  },
+  {
+    "key": "docs-license-s7-interactions-label",
+    "kind": "plain",
+    "label": "07 · Attribution examples — interactions label",
+    "group": "Docs · License",
+    "body": "If you also display interactions"
+  },
+  {
+    "key": "docs-license-s7-replication-label",
+    "kind": "plain",
+    "label": "07 · Attribution examples — replication label",
+    "group": "Docs · License",
+    "body": "If you display replication media"
+  },
+  {
+    "key": "docs-license-s8-heading",
+    "kind": "plain",
+    "label": "08 · Full terms — heading",
+    "group": "Docs · License",
+    "body": "Full terms"
+  },
+  {
+    "key": "docs-license-s8-intro",
+    "kind": "markdown",
+    "label": "08 · Full terms — intro",
+    "group": "Docs · License",
+    "body": "Canonical license texts, the replication-media terms, and the rights contact. The carve-out terms themselves live in section 4."
+  },
+  {
+    "key": "docs-license-s8-cc0-summary",
+    "kind": "plain",
+    "label": "08 · Full terms — CC0 card summary",
+    "group": "Docs · License",
+    "body": "CC0 1.0 Universal - the covered material"
+  },
+  {
+    "key": "docs-license-s8-cc0-body",
+    "kind": "markdown",
+    "label": "08 · Full terms — CC0 explanation",
+    "group": "Docs · License",
+    "body": "CC0 places a work as completely as possible into the public domain. The person who associates a work with CC0 waives copyright and related rights worldwide to the extent allowed by law. You can copy, modify, distribute, and commercially use the covered material without permission or attribution. It comes without warranties."
+  },
+  {
+    "key": "docs-license-s8-cc0-links",
+    "kind": "markdown",
+    "label": "08 · Full terms — CC0 links",
+    "group": "Docs · License",
+    "body": "Summary and legal code: [creativecommons.org/publicdomain/zero/1.0](https://creativecommons.org/publicdomain/zero/1.0/) ([legal code](https://creativecommons.org/publicdomain/zero/1.0/legalcode))."
+  },
+  {
+    "key": "docs-license-s8-mit-summary",
+    "kind": "plain",
+    "label": "08 · Full terms — MIT card summary",
+    "group": "Docs · License",
+    "body": "MIT License - source code"
+  },
+  {
+    "key": "docs-license-s8-replication-summary",
+    "kind": "plain",
+    "label": "08 · Full terms — replication card summary",
+    "group": "Docs · License",
+    "body": "Replication media - creator and rightsholder terms"
+  },
+  {
+    "key": "docs-license-s8-replication-policy",
+    "kind": "markdown",
+    "label": "08 · Full terms — replication policy",
+    "group": "Docs · License",
+    "body": "Subjective-effect replication images, videos, and audio remain owned by the original creator or rightsholder unless an individual file states a different license. None of this library is open-licensed and no part of it is included in the CC0 dedication. dose.wiki's default policy is to credit the creator when known, preserve source links when available, and treat reuse rights as the rightsholder's to grant. The public replications API reports a rights status per item — explicit license, creator-retained, or unknown — so check the item itself rather than assuming any dataset's terms carry over."
+  },
+  {
+    "key": "docs-license-s8-replication-provenance",
+    "kind": "markdown",
+    "label": "08 · Full terms — replication provenance",
+    "group": "Docs · License",
+    "body": "Much of this library was originally published on **Effect Index**, and reaches dose.wiki through the Effect Index archive. Recovered files keep the creator credit and source link recorded for them there. Some original hosting services shut down, and their attribution did not survive. dose.wiki shows those items as creator unknown. It does not credit them to dose.wiki. These items are the most likely to need correction."
+  },
+  {
+    "key": "docs-license-s8-replication-corrections",
+    "kind": "markdown",
+    "label": "08 · Full terms — replication corrections",
+    "group": "Docs · License",
+    "body": "If a replication file is miscredited, has no source link, or must be removed, email [contact@dose.wiki](mailto:contact@dose.wiki) with the item title, creator name, and preferred correction."
+  },
+  {
+    "key": "docs-license-s8-contact-label",
+    "kind": "plain",
+    "label": "08 · Full terms — contact label",
+    "group": "Docs · License",
+    "body": "Rights and takedown contact"
+  },
+  {
+    "key": "docs-license-s8-contact-body",
+    "kind": "markdown",
+    "label": "08 · Full terms — contact body",
+    "group": "Docs · License",
+    "body": "For miscredited or disputed replication media, report-removal requests, trademark or name-use concerns, or any other rights question about material on dose.wiki, email [contact@dose.wiki](mailto:contact@dose.wiki). Include the article or item, and what you want changed."
+  },
+  {
+    "key": "docs-license-s8-crosslinks",
+    "kind": "markdown",
+    "label": "08 · Full terms — cross links",
+    "group": "Docs · License",
+    "body": "For content-generation provenance, see [how dose.wiki substance articles are made](/docs/how). For the application architecture and data flow, see [how dose.wiki is built](/docs/code)."
   }
 ]

@@ -4,13 +4,13 @@ import { getCopy } from "@server/next/copyBlocks";
 import { DefinitionList, DefinitionRow } from "@/components/common/DefinitionList";
 import { DisclosureCard } from "@/components/common/DisclosureCard";
 import { Icon } from "@/components/common/Icon";
-import { proseLinkClassName } from "@/components/common/ProseLink";
 import { PublicTableOfContents } from "@/components/common/PublicTableOfContents";
 import { PublicTocStrip } from "@/components/common/PublicTocStrip";
 import { StickyTocLayout } from "@/components/common/StickyTocLayout";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { ContentCard } from "@/components/ui/surface";
+import { DocsInline } from "../_components/DocsProse";
 import { Mermaid } from "../_components/Mermaid";
 
 export async function generateMetadata() {
@@ -26,17 +26,17 @@ export async function generateMetadata() {
 }
 
 const TOC_ITEMS = [
-  { id: "s1", label: "01 · The big picture in numbers", icon: "lucide:telescope" },
-  { id: "s2", label: "02 · System overview", icon: "lucide:network" },
-  { id: "s3", label: "03 · Tech stack", icon: "lucide:layers" },
-  { id: "s4", label: "04 · Repository map", icon: "lucide:folder-tree" },
-  { id: "s5", label: "05 · Frontend", icon: "lucide:monitor" },
-  { id: "s6", label: "06 · The Convex data layer", icon: "lucide:database" },
-  { id: "s7", label: "07 · Two surfaces, one database", icon: "lucide:split" },
-  { id: "s8", label: "08 · Content pipelines", icon: "lucide:workflow" },
-  { id: "s9", label: "09 · Two flows worth tracing", icon: "lucide:git-branch" },
-  { id: "s10", label: "10 · Recurring vocabulary", icon: "lucide:book-marked" },
-  { id: "s11", label: "11 · Where to start reading", icon: "lucide:compass" },
+  { id: "s1", copyKey: "docs-code-toc-s1", icon: "lucide:telescope" },
+  { id: "s2", copyKey: "docs-code-toc-s2", icon: "lucide:network" },
+  { id: "s3", copyKey: "docs-code-toc-s3", icon: "lucide:layers" },
+  { id: "s4", copyKey: "docs-code-toc-s4", icon: "lucide:folder-tree" },
+  { id: "s5", copyKey: "docs-code-toc-s5", icon: "lucide:monitor" },
+  { id: "s6", copyKey: "docs-code-toc-s6", icon: "lucide:database" },
+  { id: "s7", copyKey: "docs-code-toc-s7", icon: "lucide:split" },
+  { id: "s8", copyKey: "docs-code-toc-s8", icon: "lucide:workflow" },
+  { id: "s9", copyKey: "docs-code-toc-s9", icon: "lucide:git-branch" },
+  { id: "s10", copyKey: "docs-code-toc-s10", icon: "lucide:book-marked" },
+  { id: "s11", copyKey: "docs-code-toc-s11", icon: "lucide:compass" },
 ] as const;
 
 // Diagram palette reference — the five domain hues are written verbatim into the
@@ -200,7 +200,13 @@ function FlowGrid({ children, className }: { children: ReactNode; className?: st
   );
 }
 
-export default function DocsCodePage() {
+export default async function DocsCodePage() {
+  const copy = await getCopy();
+  const tocItems = TOC_ITEMS.map(({ id, icon, copyKey }) => ({
+    id,
+    icon,
+    label: copy.text(copyKey),
+  }));
   return (
     <main
       id="main-content"
@@ -208,7 +214,7 @@ export default function DocsCodePage() {
       className="theme-page-shell min-h-screen focus:outline-none"
     >
       <StickyTocLayout
-        toc={<PublicTableOfContents items={[...TOC_ITEMS]} variant="bare" />}
+        toc={<PublicTableOfContents items={tocItems} variant="bare" />}
         maxWidthClass="max-w-4xl"
         className="theme-toc-strip-scope"
         contentClassName="gap-8"
@@ -216,28 +222,23 @@ export default function DocsCodePage() {
         {/* Mobile/tablet TOC: sticky chip strip above the header, pinned
             under the site header from the very first scroll; replaced by
             the sticky gutter TOC at >=1200px. */}
-        <PublicTocStrip items={[...TOC_ITEMS]} />
+        <PublicTocStrip items={tocItems} />
 
         <header className="flex flex-col gap-4">
           <h1 className="theme-accent-heading font-display text-3xl font-bold tracking-tight sm:text-4xl">
-            dose.wiki — codebase overview
+            {copy.text("docs-code-header-title")}
           </h1>
           <p className="theme-text-muted max-w-[68ch] text-base">
-            Next.js 16 + Convex + AI editorial pipelines — written for someone new to the repository
+            {copy.text("docs-code-header-tagline")}
           </p>
           <p className="theme-text-secondary max-w-[68ch] text-[1.0625rem] leading-7">
-            dose.wiki is a <strong>harm-reduction encyclopedia</strong>: a public website of substance
-            articles, subjective-effect documentation, and trip reports. The repository contains{" "}
-            <strong>three systems</strong>. The public Next.js site renders content. The
-            login-protected <code>/dev</code> editor is where editors write and cite that content.
-            Command-line pipelines scrape, generate, and migrate it. All three read and write the same{" "}
-            <strong>Convex database</strong>, which is the source of truth.
+            <DocsInline>{copy.text("docs-code-header-intro")}</DocsInline>
           </p>
         </header>
 
         <section id="s1" className="scroll-mt-24">
           <h2 className={SECTION_HEADING_CLASS}>
-            <span className={SECTION_NUM_CLASS}>01</span>{" "}The big picture in numbers
+            <span className={SECTION_NUM_CLASS}>01</span>{" "}{copy.text("docs-code-s1-heading")}
           </h2>
 
           {/* Flattened from a five-card hero-metric grid to one open figure row:
@@ -252,27 +253,31 @@ export default function DocsCodePage() {
             <div className="min-w-0">
               <dt className={`${STAT_NUMBER_CLASS} text-4xl sm:text-5xl`}>~580</dt>
               <dd className="theme-text-muted mt-1.5 text-sm leading-6">
-                Substance articles in Convex
+                {copy.text("docs-code-s1-stat-articles")}
               </dd>
             </div>
             <div className="min-w-0">
               <dt className={`${STAT_NUMBER_CLASS} text-3xl`}>~230</dt>
-              <dd className="theme-text-muted mt-1.5 text-sm leading-6">Subjective effects</dd>
+              <dd className="theme-text-muted mt-1.5 text-sm leading-6">
+                {copy.text("docs-code-s1-stat-effects")}
+              </dd>
             </div>
             <div className="min-w-0">
               <dt className={`${STAT_NUMBER_CLASS} text-3xl`}>~160</dt>
-              <dd className="theme-text-muted mt-1.5 text-sm leading-6">Trip reports</dd>
+              <dd className="theme-text-muted mt-1.5 text-sm leading-6">
+                {copy.text("docs-code-s1-stat-reports")}
+              </dd>
             </div>
             <div className="min-w-0">
               <dt className={`${STAT_NUMBER_CLASS} text-2xl`}>~900</dt>
               <dd className="theme-text-muted mt-1.5 text-sm leading-6">
-                TS/TSX files in <code>src/</code>
+                <DocsInline>{copy.text("docs-code-s1-stat-src-files")}</DocsInline>
               </dd>
             </div>
             <div className="min-w-0">
               <dt className={`${STAT_NUMBER_CLASS} text-2xl`}>~400</dt>
               <dd className="theme-text-muted mt-1.5 text-sm leading-6">
-                Pipeline scripts in <code>scripts/</code>
+                <DocsInline>{copy.text("docs-code-s1-stat-scripts")}</DocsInline>
               </dd>
             </div>
           </dl>
@@ -282,25 +287,17 @@ export default function DocsCodePage() {
           />
 
           <p className={`${PROSE_CLASS} mt-6`}>
-            <strong>Roughly half of this repository is not the website.</strong> The{" "}
-            <code>scripts/</code> directory is nearly as large as the app itself, because pipelines
-            produce most content. Scripts scrape content from source wikis. Claude generates prose through
-            OpenRouter. A citation workflow ties claims to real literature, and a person reviews
-            everything before publication. If you read only <code>src/</code>, you see the site but not
-            the tooling that fills it.
+            <DocsInline>{copy.text("docs-code-s1-body")}</DocsInline>
           </p>
         </section>
 
         <section id="s2" className="scroll-mt-24">
           <h2 className={SECTION_HEADING_CLASS}>
-            <span className={SECTION_NUM_CLASS}>02</span>{" "}System overview
+            <span className={SECTION_NUM_CLASS}>02</span>{" "}{copy.text("docs-code-s2-heading")}
           </h2>
 
           <p className={`${PROSE_CLASS} mt-4`}>
-            Everything flows through <strong>Convex</strong> (a hosted realtime database with
-            serverless functions). Content enters through scrapers and AI pipelines. Editors change it
-            in <code>/dev</code>. The public site reads it. The colors below keep the same meaning for
-            the rest of this page.
+            <DocsInline>{copy.text("docs-code-s2-intro")}</DocsInline>
           </p>
 
           <div className="mt-5 flex flex-wrap gap-x-6 gap-y-3 text-sm">
@@ -309,35 +306,35 @@ export default function DocsCodePage() {
                 className="h-3 w-3 shrink-0 rounded-full"
                 style={{ background: DOMAIN_VAR.blue }}
               />{" "}
-              Public site
+              {copy.text("docs-code-s2-legend-public")}
             </div>
             <div className="theme-text-secondary flex items-center gap-2">
               <span
                 className="h-3 w-3 shrink-0 rounded-full"
                 style={{ background: DOMAIN_VAR.gold }}
               />{" "}
-              /dev editor
+              {copy.text("docs-code-s2-legend-dev")}
             </div>
             <div className="theme-text-secondary flex items-center gap-2">
               <span
                 className="h-3 w-3 shrink-0 rounded-full"
                 style={{ background: DOMAIN_VAR.green }}
               />{" "}
-              Convex data
+              {copy.text("docs-code-s2-legend-convex")}
             </div>
             <div className="theme-text-secondary flex items-center gap-2">
               <span
                 className="h-3 w-3 shrink-0 rounded-full"
                 style={{ background: DOMAIN_VAR.orange }}
               />{" "}
-              Scripts &amp; pipelines
+              {copy.text("docs-code-s2-legend-scripts")}
             </div>
             <div className="theme-text-secondary flex items-center gap-2">
               <span
                 className="h-3 w-3 shrink-0 rounded-full"
                 style={{ background: DOMAIN_VAR.plum }}
               />{" "}
-              External / AI services
+              {copy.text("docs-code-s2-legend-external")}
             </div>
           </div>
 
@@ -374,19 +371,14 @@ export default function DocsCodePage() {
 
           <Alert variant="success" className="mt-5">
             <AlertDescription>
-              <strong>There is no separate REST backend.</strong> Convex hosts the database and the
-              server functions (<code>convex/*.ts</code>) that read and write it. The Next.js app, the{" "}
-              <code>/dev</code> editor, and the scripts all connect to the same Convex deployment. The
-              public site reads through <code>lib/convex/publicData.ts</code>. The <code>/dev</code>{" "}
-              editor writes through the <code>/api/save-to-convex</code> route. Scripts use an admin
-              key.
+              <DocsInline>{copy.text("docs-code-s2-callout")}</DocsInline>
             </AlertDescription>
           </Alert>
         </section>
 
         <section id="s3" className="scroll-mt-24">
           <h2 className={SECTION_HEADING_CLASS}>
-            <span className={SECTION_NUM_CLASS}>03</span>{" "}Tech stack — what each tool is for
+            <span className={SECTION_NUM_CLASS}>03</span>{" "}{copy.text("docs-code-s3-heading")}
           </h2>
 
           {/* Flattened from a six-card grid to one surface of hairline-separated
@@ -395,91 +387,73 @@ export default function DocsCodePage() {
             <DefinitionRow
               term={
                 <div>
-                  <div className={CARD_LABEL_CLASS}>Framework</div>
-                  <div className={`${CARD_TITLE_CLASS} mb-0`}>Next.js 16 + React 19</div>
+                  <div className={CARD_LABEL_CLASS}>{copy.text("docs-code-s3-framework-label")}</div>
+                  <div className={`${CARD_TITLE_CLASS} mb-0`}>{copy.text("docs-code-s3-framework-title")}</div>
                 </div>
               }
             >
               <p className={PROSE_CLASS}>
-                App Router with <strong>server components by default</strong>: pages fetch data on the
-                server and serve mostly-static HTML, prerendered at build time wherever possible.
-                The app deploys on <strong>Vercel</strong>.
+                <DocsInline>{copy.text("docs-code-s3-framework-body")}</DocsInline>
               </p>
             </DefinitionRow>
             <DefinitionRow
               term={
                 <div>
-                  <div className={CARD_LABEL_CLASS}>Database + backend</div>
-                  <div className={`${CARD_TITLE_CLASS} mb-0`}>Convex</div>
+                  <div className={CARD_LABEL_CLASS}>{copy.text("docs-code-s3-database-label")}</div>
+                  <div className={`${CARD_TITLE_CLASS} mb-0`}>{copy.text("docs-code-s3-database-title")}</div>
                 </div>
               }
             >
               <p className={PROSE_CLASS}>
-                Hosted document database with TypeScript server functions (queries, mutations). The{" "}
-                <code>convex/</code> directory <em>is</em> the backend. Every environment — local
-                dev, previews, production — targets the single production deployment{" "}
-                (<code>glad-minnow-656</code>); the dev deployment is retired (see <code>AGENTS.md</code>).
+                <DocsInline>{copy.text("docs-code-s3-database-body")}</DocsInline>
               </p>
             </DefinitionRow>
             <DefinitionRow
               term={
                 <div>
-                  <div className={CARD_LABEL_CLASS}>Auth</div>
-                  <div className={`${CARD_TITLE_CLASS} mb-0`}>Auth.js (next-auth) + GitHub OAuth</div>
+                  <div className={CARD_LABEL_CLASS}>{copy.text("docs-code-s3-auth-label")}</div>
+                  <div className={`${CARD_TITLE_CLASS} mb-0`}>{copy.text("docs-code-s3-auth-title")}</div>
                 </div>
               }
             >
               <p className={PROSE_CLASS}>
-                <code>auth.ts</code> configures sign-in. <code>middleware.ts</code> protects{" "}
-                <code>/dev</code> and keeps editor routes on the editor hosts. Editor roles
-                (admin / editor / viewer) live in the Convex <code>memberships</code> table.
+                <DocsInline>{copy.text("docs-code-s3-auth-body")}</DocsInline>
               </p>
             </DefinitionRow>
             <DefinitionRow
               term={
                 <div>
-                  <div className={CARD_LABEL_CLASS}>AI generation</div>
-                  <div className={`${CARD_TITLE_CLASS} mb-0`}>OpenRouter SDK</div>
+                  <div className={CARD_LABEL_CLASS}>{copy.text("docs-code-s3-ai-label")}</div>
+                  <div className={`${CARD_TITLE_CLASS} mb-0`}>{copy.text("docs-code-s3-ai-title")}</div>
                 </div>
               }
             >
               <p className={PROSE_CLASS}>
-                One API gateway to many models, selected by each workflow&apos;s config or entry
-                module: <strong>Claude Opus 4.6</strong> (summary, pharmacology),{" "}
-                <strong>Claude Opus 4.5</strong> (harm potential, history &amp; culture, legality,
-                tolerance), <strong>Claude Haiku 4.5</strong> (dosage &amp; duration),{" "}
-                <strong>Gemini 3 Flash</strong> (quote extraction), and{" "}
-                <strong>DeepSeek V4 Pro</strong> (formal citations). Both the batch scripts and the
-                in-editor section generator use it.
+                <DocsInline>{copy.text("docs-code-s3-ai-body")}</DocsInline>
               </p>
             </DefinitionRow>
             <DefinitionRow
               term={
                 <div>
-                  <div className={CARD_LABEL_CLASS}>Styling + UI</div>
-                  <div className={`${CARD_TITLE_CLASS} mb-0`}>Tailwind CSS 4 + Radix UI</div>
+                  <div className={CARD_LABEL_CLASS}>{copy.text("docs-code-s3-styling-label")}</div>
+                  <div className={`${CARD_TITLE_CLASS} mb-0`}>{copy.text("docs-code-s3-styling-title")}</div>
                 </div>
               }
             >
               <p className={PROSE_CLASS}>
-                Utility-first styling with a token-based design system in <code>src/theme/</code>.
-                Radix supplies accessible primitives. Framer Motion handles animation. React Hook Form
-                drives the forms in the editor.
+                <DocsInline>{copy.text("docs-code-s3-styling-body")}</DocsInline>
               </p>
             </DefinitionRow>
             <DefinitionRow
               term={
                 <div>
-                  <div className={CARD_LABEL_CLASS}>Tooling + safety</div>
-                  <div className={`${CARD_TITLE_CLASS} mb-0`}>Bun, Vitest, Zod</div>
+                  <div className={CARD_LABEL_CLASS}>{copy.text("docs-code-s3-tooling-label")}</div>
+                  <div className={`${CARD_TITLE_CLASS} mb-0`}>{copy.text("docs-code-s3-tooling-title")}</div>
                 </div>
               }
             >
               <p className={PROSE_CLASS}>
-                Bun is the package manager. <strong>Zod schemas</strong> (in <code>src/schema/</code>{" "}
-                and <code>schemas/</code>) validate every article shape before the app stores or
-                renders it, so the app rejects malformed or AI-mangled content early. The repository
-                has ~475 Vitest test files.
+                <DocsInline>{copy.text("docs-code-s3-tooling-body")}</DocsInline>
               </p>
             </DefinitionRow>
           </ContentCard>
@@ -487,14 +461,11 @@ export default function DocsCodePage() {
 
         <section id="s4" className="scroll-mt-24">
           <h2 className={SECTION_HEADING_CLASS}>
-            <span className={SECTION_NUM_CLASS}>04</span>{" "}Repository map — where things live
+            <span className={SECTION_NUM_CLASS}>04</span>{" "}{copy.text("docs-code-s4-heading")}
           </h2>
 
           <p className={`${PROSE_CLASS} mt-4`}>
-            Most of the code lives in four directories: <code>src/</code> (the app),{" "}
-            <code>convex/</code> (the backend), <code>scripts/</code> (the pipelines), and{" "}
-            <code>lib/</code> (server-side helpers shared between them). Everything else is
-            documentation, assets, or configuration.
+            <DocsInline>{copy.text("docs-code-s4-intro")}</DocsInline>
           </p>
 
           <pre className={`${PRE_CLASS} mt-5`}>
@@ -592,148 +563,68 @@ export default function DocsCodePage() {
           {/* Demoted from a status-less role=alert callout to emphasized prose. */}
           <div role="presentation" className="theme-horizontal-divider mt-6" />
           <p className={`${PROSE_CLASS} mt-6`}>
-            The repository keeps one local skill: <code>.agents/skills/legality-pi/</code>. Other
-            automated workflows are documented beside their owning scripts under <code>scripts/</code>
-            and <code>docs/agents/</code>, so executable behavior and operating guidance stay together.
+            <DocsInline>{copy.text("docs-code-s4-skills")}</DocsInline>
           </p>
         </section>
 
         <section id="s5" className="scroll-mt-24">
           <h2 className={SECTION_HEADING_CLASS}>
-            <span className={SECTION_NUM_CLASS}>05</span>{" "}Frontend — routes and feature modules
+            <span className={SECTION_NUM_CLASS}>05</span>{" "}{copy.text("docs-code-s5-heading")}
           </h2>
 
           <p className={`${PROSE_CLASS} mt-4`}>
-            The code splits two ways. <code>src/app/</code> holds thin <strong>route folders</strong>{" "}
-            (one per URL, mostly data-fetching and metadata). <code>src/features/</code> holds the{" "}
-            <strong>rendering logic</strong>, grouped by domain. A route file fetches from Convex and
-            passes the data to a feature module.
+            <DocsInline>{copy.text("docs-code-s5-intro")}</DocsInline>
           </p>
 
           <div className="mt-6 grid gap-4 md:grid-cols-2">
             <ContentCard variant="subtle" className={CONTENT_CARD_CLASS}>
-              <div className={CARD_LABEL_CLASS}>src/app/ — public routes</div>
+              <div className={CARD_LABEL_CLASS}>{copy.text("docs-code-s5-public-routes-label")}</div>
               <ul className={`${NODE_LIST_CLASS} list-disc pl-5`}>
-                <li>
-                  <code>/[slug]</code> — <strong>a substance article</strong> (the core page)
-                </li>
-                <li>
-                  <code>/substances</code> — browse all substances
-                </li>
-                <li>
-                  <code>/effects</code>, <code>/effects/[effectSlug]</code> — subjective effects
-                </li>
-                <li>
-                  <code>/reports</code> — trip reports
-                </li>
-                <li>
-                  <code>/psychoactive · /chemical-classes · /mechanism · /category</code> —
-                  classification indexes
-                </li>
-                <li>
-                  <code>/interactions</code>, <code>/search</code>, <code>/about</code>,{" "}
-                  <code>/contributors</code>
-                </li>
-                <li>
-                  <code>/about#data</code> — the Downloads section with three dataset JSON exports;
-                  <code>/data</code> is a compatibility redirect to <code>/about</code>
-                </li>
-                <li>
-                  <code>/replications</code>, <code>/articles</code>, <code>/chemical-classes</code>,{" "}
-                  <code>/mantras</code>, <code>/blog</code>, <code>/documentation-style-guide</code>{" "}
-                  — media gallery, articles, class pages, mandala, announcements, contributor style
-                  guide
-                </li>
+                {copy.items("docs-code-s5-public-routes").map((item, i) => (
+                  <li key={i}>
+                    <DocsInline>{item}</DocsInline>
+                  </li>
+                ))}
               </ul>
             </ContentCard>
             <ContentCard variant="subtle" className={CONTENT_CARD_CLASS}>
-              <div className={CARD_LABEL_CLASS}>src/app/ — protected routes</div>
+              <div className={CARD_LABEL_CLASS}>{copy.text("docs-code-s5-protected-routes-label")}</div>
               <ul className={`${NODE_LIST_CLASS} list-disc pl-5`}>
-                <li>
-                  <code>/dev</code> — editor home (auth required via <code>middleware.ts</code>)
-                </li>
-                <li>
-                  <code>/dev/articles/[slug]</code> — edit a substance
-                </li>
-                <li>
-                  <code>
-                    /dev/change-log · tag-editor · index-layout · about · citation-review · profile
-                  </code>
-                </li>
-                <li>
-                  <code>/api/save-to-convex</code> — the main write endpoint for the editor
-                </li>
-                <li>
-                  <code>/sign-in</code> — Auth.js sign-in entry
-                </li>
+                {copy.items("docs-code-s5-protected-routes").map((item, i) => (
+                  <li key={i}>
+                    <DocsInline>{item}</DocsInline>
+                  </li>
+                ))}
               </ul>
             </ContentCard>
           </div>
           <p className={`${PROSE_CLASS} mt-4`}>
-            One codebase builds two publications — <strong>dose.wiki</strong> and the{" "}
-            <strong>Effect Index</strong> sister site — selected at build time by{" "}
-            <code>NEXT_PUBLIC_SITE_FLAVOR</code>. The route tree therefore also holds Effect Index
-            surfaces; which ones render depends on the flavor (<code>src/config/siteFlavor.ts</code>).
+            <DocsInline>{copy.text("docs-code-s5-flavor")}</DocsInline>
           </p>
 
           <div className="mt-4 grid gap-4 md:grid-cols-2">
             <ContentCard variant="subtle" className={CONTENT_CARD_CLASS}>
               <div className={CARD_LABEL_CLASS} style={{ color: DOMAIN_VAR.blue }}>
-                src/features/ — public-facing (3 modules)
+                {copy.text("docs-code-s5-features-public-label")}
               </div>
               <ul className={`${NODE_LIST_CLASS} list-disc pl-5`}>
-                <li>
-                  <strong>
-                    <code>article/</code>
-                  </strong>{" "}
-                  — renders substance articles: dosage tables, duration charts, interaction grids,
-                  citation markers
-                </li>
-                <li>
-                  <strong>
-                    <code>effects/</code>
-                  </strong>{" "}
-                  — effect pages, including a custom &quot;VCode&quot; markup renderer for effect
-                  descriptions
-                </li>
-                <li>
-                  <strong>
-                    <code>reports/</code>
-                  </strong>{" "}
-                  — trip report pages
-                </li>
+                {copy.items("docs-code-s5-features-public").map((item, i) => (
+                  <li key={i}>
+                    <DocsInline>{item}</DocsInline>
+                  </li>
+                ))}
               </ul>
             </ContentCard>
             <ContentCard variant="subtle" className={CONTENT_CARD_CLASS}>
               <div className={CARD_LABEL_CLASS} style={{ color: DOMAIN_VAR.gold }}>
-                src/features/dev/ — the editor (~210 files, the largest module)
+                {copy.text("docs-code-s5-features-dev-label")}
               </div>
               <ul className={`${NODE_LIST_CLASS} list-disc pl-5`}>
-                <li>
-                  <strong>
-                    <code>forms/</code>
-                  </strong>{" "}
-                  — one React Hook Form section per article field group
-                </li>
-                <li>
-                  <strong>
-                    <code>tools/</code>
-                  </strong>{" "}
-                  — substance editor + AI section generator, layout editor, citation review, about
-                  editor
-                </li>
-                <li>
-                  <strong>
-                    <code>save-orchestrator/</code>
-                  </strong>{" "}
-                  — coordinates multi-endpoint saves
-                </li>
-                <li>
-                  <strong>
-                    <code>context/ · notices/ · profile/ · tags/ · prompts/</code>
-                  </strong>{" "}
-                  — editor state, toasts, profile &amp; tag editing
-                </li>
+                {copy.items("docs-code-s5-features-dev").map((item, i) => (
+                  <li key={i}>
+                    <DocsInline>{item}</DocsInline>
+                  </li>
+                ))}
               </ul>
             </ContentCard>
           </div>
@@ -741,16 +632,11 @@ export default function DocsCodePage() {
 
         <section id="s6" className="scroll-mt-24">
           <h2 className={SECTION_HEADING_CLASS}>
-            <span className={SECTION_NUM_CLASS}>06</span>{" "}The Convex data layer — what is in the
-            database
+            <span className={SECTION_NUM_CLASS}>06</span>{" "}{copy.text("docs-code-s6-heading")}
           </h2>
 
           <p className={`${PROSE_CLASS} mt-4`}>
-            Each table has a matching <code>{"convex/<table>.ts"}</code> file that exports its queries
-            and mutations. <code>convex/schema.ts</code> declares the shapes. There are three groups:
-            content, editorial, and workflow. Readers see the <strong>content</strong>. The{" "}
-            <strong>editorial</strong> records control who can change it and how. The{" "}
-            <strong>workflow</strong> tables feed the AI pipelines.
+            <DocsInline>{copy.text("docs-code-s6-intro")}</DocsInline>
           </p>
 
           {/* Flattened: the table is its own bounded surface (header tint, row
@@ -762,10 +648,10 @@ export default function DocsCodePage() {
               <table className="min-w-[48rem] w-full border-collapse text-left text-sm">
                 <thead>
                   <tr className="border-b border-dose-border">
-                    <th className={TH_CLASS}>Table</th>
-                    <th className={TH_CLASS}>Group</th>
-                    <th className={`${TH_CLASS} min-w-[20rem]`}>What it holds</th>
-                    <th className={`${TH_CLASS} text-right`}>Docs</th>
+                    <th className={TH_CLASS}>{copy.text("docs-code-s6-th-table")}</th>
+                    <th className={TH_CLASS}>{copy.text("docs-code-s6-th-group")}</th>
+                    <th className={`${TH_CLASS} min-w-[20rem]`}>{copy.text("docs-code-s6-th-holds")}</th>
+                    <th className={`${TH_CLASS} text-right`}>{copy.text("docs-code-s6-th-docs")}</th>
                   </tr>
                 </thead>
                 <tbody className="theme-text-secondary">
@@ -777,8 +663,7 @@ export default function DocsCodePage() {
                     <Badge variant="outline" className={TABLE_BADGE_CLASS}>content</Badge>
                   </td>
                   <td className="p-3">
-                    The main table: one document per substance with every section — summary, dosage,
-                    duration, pharmacology, harm potential, legality, citations, references.
+                    <DocsInline>{copy.text("docs-code-s6-table-substance-index")}</DocsInline>
                   </td>
                   <td className="p-3 text-right tabular-nums">~580</td>
                 </tr>
@@ -790,8 +675,7 @@ export default function DocsCodePage() {
                     <Badge variant="outline" className={TABLE_BADGE_CLASS}>content</Badge>
                   </td>
                   <td className="p-3">
-                    Effect articles (for example &quot;geometry&quot; and &quot;euphoria&quot;) with
-                    VCode markup bodies, galleries, and audio replications.
+                    <DocsInline>{copy.text("docs-code-s6-table-subjective-effects")}</DocsInline>
                   </td>
                   <td className="p-3 text-right tabular-nums">~230</td>
                 </tr>
@@ -803,7 +687,7 @@ export default function DocsCodePage() {
                     <Badge variant="outline" className={TABLE_BADGE_CLASS}>content</Badge>
                   </td>
                   <td className="p-3">
-                    Trip reports linked to substances and doses.
+                    <DocsInline>{copy.text("docs-code-s6-table-trip-reports")}</DocsInline>
                   </td>
                   <td className="p-3 text-right tabular-nums">~160</td>
                 </tr>
@@ -815,8 +699,7 @@ export default function DocsCodePage() {
                     <Badge variant="outline" className={TABLE_BADGE_CLASS}>editorial</Badge>
                   </td>
                   <td className="p-3">
-                    The private submission queue from the report form. Editors accept, reject, or
-                    promote a submission into <code>tripReports</code> before it goes public.
+                    <DocsInline>{copy.text("docs-code-s6-table-trip-report-submissions")}</DocsInline>
                   </td>
                   <td className="p-3 text-right tabular-nums">—</td>
                 </tr>
@@ -828,8 +711,7 @@ export default function DocsCodePage() {
                     <Badge variant="outline" className={TABLE_BADGE_CLASS}>content</Badge>
                   </td>
                   <td className="p-3">
-                    Effect gallery media (video/image recreations of effects) and methodology
-                    articles.
+                    <DocsInline>{copy.text("docs-code-s6-table-replications")}</DocsInline>
                   </td>
                   <td className="p-3 text-right tabular-nums">—</td>
                 </tr>
@@ -841,9 +723,7 @@ export default function DocsCodePage() {
                     <Badge variant="outline" className={TABLE_BADGE_CLASS}>content</Badge>
                   </td>
                   <td className="p-3">
-                    The table that the public <code>/substances</code> page reads: the hand-curated
-                    psychoactive index layout. Saves to <code>indexLayouts</code> also update this
-                    table, so the page never reads <code>indexLayouts</code> directly.
+                    <DocsInline>{copy.text("docs-code-s6-table-category-layout")}</DocsInline>
                   </td>
                   <td className="p-3 text-right tabular-nums">—</td>
                 </tr>
@@ -855,8 +735,7 @@ export default function DocsCodePage() {
                     <Badge variant="outline" className={TABLE_BADGE_CLASS}>content</Badge>
                   </td>
                   <td className="p-3">
-                    Hand-curated classification trees (psychoactive / chemical / mechanism) and
-                    about-page configuration.
+                    <DocsInline>{copy.text("docs-code-s6-table-index-layouts")}</DocsInline>
                   </td>
                   <td className="p-3 text-right tabular-nums">—</td>
                 </tr>
@@ -868,9 +747,7 @@ export default function DocsCodePage() {
                     <Badge variant="outline" className={TABLE_BADGE_CLASS}>content</Badge>
                   </td>
                   <td className="p-3">
-                    Hand-authored skeletal-diagram fixes from the <code>/dev</code> Molecules editor.
-                    When an override is present, the public article uses its SVG instead of the
-                    generated one.
+                    <DocsInline>{copy.text("docs-code-s6-table-molecule-overrides")}</DocsInline>
                   </td>
                   <td className="p-3 text-right tabular-nums">—</td>
                 </tr>
@@ -882,8 +759,7 @@ export default function DocsCodePage() {
                     <Badge variant="outline" className={TABLE_BADGE_CLASS}>content</Badge>
                   </td>
                   <td className="p-3">
-                    Editable site copy, one document per block. The <code>/dev</code> Copy Studio
-                    edits it without a deploy.
+                    <DocsInline>{copy.text("docs-code-s6-table-copy-blocks")}</DocsInline>
                   </td>
                   <td className="p-3 text-right tabular-nums">—</td>
                 </tr>
@@ -895,7 +771,7 @@ export default function DocsCodePage() {
                     <Badge variant="outline" className={TABLE_BADGE_CLASS}>content</Badge>
                   </td>
                   <td className="p-3">
-                    Point-in-time ProtestKit reagent-test results, keyed by substance slug.
+                    <DocsInline>{copy.text("docs-code-s6-table-reagent-tests")}</DocsInline>
                   </td>
                   <td className="p-3 text-right tabular-nums">—</td>
                 </tr>
@@ -907,8 +783,7 @@ export default function DocsCodePage() {
                     <Badge variant="outline" className={TABLE_BADGE_CLASS}>content</Badge>
                   </td>
                   <td className="p-3">
-                    Per-substance curation of the Replication Showcase: a pinned head and a
-                    suppression list over <code>replications</code> slugs.
+                    <DocsInline>{copy.text("docs-code-s6-table-substance-galleries")}</DocsInline>
                   </td>
                   <td className="p-3 text-right tabular-nums">—</td>
                 </tr>
@@ -920,8 +795,7 @@ export default function DocsCodePage() {
                     <Badge variant="outline" className={TABLE_BADGE_CLASS}>editorial</Badge>
                   </td>
                   <td className="p-3">
-                    Who can edit: email → role (admin / editor / viewer), synced from Auth.js
-                    sign-ins.
+                    <DocsInline>{copy.text("docs-code-s6-table-memberships")}</DocsInline>
                   </td>
                   <td className="p-3 text-right tabular-nums">—</td>
                 </tr>
@@ -933,8 +807,7 @@ export default function DocsCodePage() {
                     <Badge variant="outline" className={TABLE_BADGE_CLASS}>editorial</Badge>
                   </td>
                   <td className="p-3">
-                    Audit trail: when an editor saves, the table records who, when, and a markdown
-                    diff. Browsable at <code>/dev/change-log</code>.
+                    <DocsInline>{copy.text("docs-code-s6-table-changelog")}</DocsInline>
                   </td>
                   <td className="p-3 text-right tabular-nums">—</td>
                 </tr>
@@ -946,7 +819,7 @@ export default function DocsCodePage() {
                     <Badge variant="outline" className={TABLE_BADGE_CLASS}>editorial</Badge>
                   </td>
                   <td className="p-3">
-                    Public bios, aliases, links, and avatars for contributors.
+                    <DocsInline>{copy.text("docs-code-s6-table-contributor-profiles")}</DocsInline>
                   </td>
                   <td className="p-3 text-right tabular-nums">—</td>
                 </tr>
@@ -958,8 +831,7 @@ export default function DocsCodePage() {
                     <Badge variant="outline" className={TABLE_BADGE_CLASS}>editorial</Badge>
                   </td>
                   <td className="p-3">
-                    Private per-article &quot;report an issue / suggest an edit&quot; intake.
-                    Editor-only; never rendered publicly.
+                    <DocsInline>{copy.text("docs-code-s6-table-article-feedback")}</DocsInline>
                   </td>
                   <td className="p-3 text-right tabular-nums">—</td>
                 </tr>
@@ -971,7 +843,7 @@ export default function DocsCodePage() {
                     <Badge variant="outline" className={TABLE_BADGE_CLASS}>editorial</Badge>
                   </td>
                   <td className="p-3">
-                    Private site-wide general feedback intake. Editor-only; never rendered publicly.
+                    <DocsInline>{copy.text("docs-code-s6-table-site-feedback")}</DocsInline>
                   </td>
                   <td className="p-3 text-right tabular-nums">—</td>
                 </tr>
@@ -983,8 +855,7 @@ export default function DocsCodePage() {
                     <Badge variant="outline" className={TABLE_BADGE_CLASS}>editorial</Badge>
                   </td>
                   <td className="p-3">
-                    Editor-authored plain-scaffold orientation templates for the Molecules editor.
-                    Editor-only cosmetics; saving one never changes a published molecule.
+                    <DocsInline>{copy.text("docs-code-s6-table-molecule-class-templates")}</DocsInline>
                   </td>
                   <td className="p-3 text-right tabular-nums">—</td>
                 </tr>
@@ -996,8 +867,7 @@ export default function DocsCodePage() {
                     <Badge variant="outline" className={TABLE_BADGE_CLASS}>workflow</Badge>
                   </td>
                   <td className="p-3">
-                    Raw scraped source text per substance, from the ten sites in the source list
-                    (section 08) — the input that the AI generators quote from.
+                    <DocsInline>{copy.text("docs-code-s6-table-article-sources")}</DocsInline>
                   </td>
                   <td className="p-3 text-right tabular-nums">—</td>
                 </tr>
@@ -1009,8 +879,7 @@ export default function DocsCodePage() {
                     <Badge variant="outline" className={TABLE_BADGE_CLASS}>workflow</Badge>
                   </td>
                   <td className="p-3">
-                    The editable AI prompts used for section generation, and quotes extracted from
-                    sources.
+                    <DocsInline>{copy.text("docs-code-s6-table-prompts-quotes")}</DocsInline>
                   </td>
                   <td className="p-3 text-right tabular-nums">—</td>
                 </tr>
@@ -1022,8 +891,7 @@ export default function DocsCodePage() {
                     <Badge variant="outline" className={TABLE_BADGE_CLASS}>workflow</Badge>
                   </td>
                   <td className="p-3">
-                    The citation audit trail: each claim in an article mapped to reference IDs,
-                    supporting quotes, and a review status.
+                    <DocsInline>{copy.text("docs-code-s6-table-citation-evidence")}</DocsInline>
                   </td>
                   <td className="p-3 text-right tabular-nums">—</td>
                 </tr>
@@ -1035,8 +903,7 @@ export default function DocsCodePage() {
                     <Badge variant="outline" className={TABLE_BADGE_CLASS}>workflow</Badge>
                   </td>
                   <td className="p-3">
-                    Lossless Effect Index source records retained for a future Effect Index
-                    deployment. Not part of any dose.wiki read path.
+                    <DocsInline>{copy.text("docs-code-s6-table-effect-index-archive")}</DocsInline>
                   </td>
                   <td className="p-3 text-right tabular-nums">—</td>
                 </tr>
@@ -1048,8 +915,7 @@ export default function DocsCodePage() {
                     <Badge variant="outline" className={TABLE_BADGE_CLASS}>workflow</Badge>
                   </td>
                   <td className="p-3">
-                    Successful reviewed section publications. The proposal ID is the idempotency
-                    boundary for applying a generated section.
+                    <DocsInline>{copy.text("docs-code-s6-table-generated-publication-operations")}</DocsInline>
                   </td>
                   <td className="p-3 text-right tabular-nums">—</td>
                 </tr>
@@ -1061,7 +927,7 @@ export default function DocsCodePage() {
 
         <section id="s7" className="scroll-mt-24">
           <h2 className={SECTION_HEADING_CLASS}>
-            <span className={SECTION_NUM_CLASS}>07</span>{" "}Two surfaces, one database
+            <span className={SECTION_NUM_CLASS}>07</span>{" "}{copy.text("docs-code-s7-heading")}
           </h2>
 
           <div className="mt-6 grid gap-4 md:grid-cols-2">
@@ -1070,21 +936,17 @@ export default function DocsCodePage() {
                 className="mb-3 text-xs font-semibold uppercase tracking-[0.18em]"
                 style={{ color: DOMAIN_VAR.blue }}
               >
-                Public site — read path
+                {copy.text("docs-code-s7-read-label")}
               </div>
               <div className="space-y-4">
                 <p className={PROSE_CLASS}>
-                  <strong>Who:</strong> anyone, no login. The launched site is crawlable, SEO-tuned,
-                  and mostly static.
+                  <DocsInline>{copy.text("docs-code-s7-read-who")}</DocsInline>
                 </p>
                 <p className={PROSE_CLASS}>
-                  <strong>How it reads:</strong> server components read Convex through{" "}
-                  <code>lib/convex/publicData.ts</code> (read-only URL). Flow A in section 09 traces
-                  this path step by step.
+                  <DocsInline>{copy.text("docs-code-s7-read-how")}</DocsInline>
                 </p>
                 <p className={PROSE_CLASS}>
-                  <strong>Key property:</strong> there is no client-side database access. The build
-                  can prerender pages. When an editor saves, the app revalidates them.
+                  <DocsInline>{copy.text("docs-code-s7-read-key")}</DocsInline>
                 </p>
               </div>
             </ContentCard>
@@ -1093,23 +955,17 @@ export default function DocsCodePage() {
                 className="mb-3 text-xs font-semibold uppercase tracking-[0.18em]"
                 style={{ color: DOMAIN_VAR.gold }}
               >
-                /dev editor — write path
+                {copy.text("docs-code-s7-write-label")}
               </div>
               <div className="space-y-4">
                 <p className={PROSE_CLASS}>
-                  <strong>Who:</strong> authenticated editors only. <code>middleware.ts</code>{" "}
-                  redirects everyone else to <code>/sign-in</code>. The Convex{" "}
-                  <code>memberships</code> role decides what an editor can change.
+                  <DocsInline>{copy.text("docs-code-s7-write-who")}</DocsInline>
                 </p>
                 <p className={PROSE_CLASS}>
-                  <strong>How it writes:</strong> through the <code>save-orchestrator</code> and the{" "}
-                  <code>/api/save-to-convex</code> route. Flow B in section 09 traces this path step
-                  by step.
+                  <DocsInline>{copy.text("docs-code-s7-write-how")}</DocsInline>
                 </p>
                 <p className={PROSE_CLASS}>
-                  Source-backed generation runs only through authenticated local batch workflows.
-                  The <code>/dev</code> editor supports manual review and editing without exposing
-                  scraped source text in the browser.
+                  <DocsInline>{copy.text("docs-code-s7-write-generation")}</DocsInline>
                 </p>
               </div>
             </ContentCard>
@@ -1118,45 +974,23 @@ export default function DocsCodePage() {
           {/* Demoted from a status-less role=alert callout to emphasized prose. */}
           <div role="presentation" className="theme-horizontal-divider mt-6" />
           <p className={`${PROSE_CLASS} mt-6`}>
-            <strong>There is a third consumer: anyone who wants the raw data.</strong> The{" "}
-            <code>/open-data/SubstanceIndex.json</code>, <code>/open-data/EffectIndex.json</code>,
-            and <code>/open-data/TripReports.json</code> routes serve daily Convex snapshots with
-            per-dataset license envelopes. They are linked from the <code>/about#data</code>{" "}
-            Downloads section; <code>/data</code> redirects to <code>/about</code>. Convex stays
-            the live source for pages. The base data is CC0, but each dataset is
-            &quot;mixed&quot; — the substance index keeps TripSit&apos;s terms on its{" "}
-            <code>interactions</code> field, the effect index references third-party replication
-            media, and legacy trip reports keep their authors&apos; rights (see the{" "}
-            <a href="/docs/license" target="_top" className={proseLinkClassName}>
-              license page
-            </a>
-            ).
+            <DocsInline>{copy.text("docs-code-s7-open-data")}</DocsInline>
           </p>
         </section>
 
         <section id="s8" className="scroll-mt-24">
           <h2 className={SECTION_HEADING_CLASS}>
-            <span className={SECTION_NUM_CLASS}>08</span>{" "}Content pipelines — how the pipelines build an article
+            <span className={SECTION_NUM_CLASS}>08</span>{" "}{copy.text("docs-code-s8-heading")}
           </h2>
 
           <p className={`${PROSE_CLASS} mt-4`}>
-            The pipelines build articles in stages. Parsers turn raw wiki text into structured data.
-            Scripts load it into Convex and extend it with AI-generated prose. Editors review it in{" "}
-            <code>/dev</code>. Then a citation workflow ties each claim to a reference. Each stage is
-            a separate <code>scripts/</code> subdirectory with its own <code>npm run</code> commands.
+            <DocsInline>{copy.text("docs-code-s8-intro")}</DocsInline>
           </p>
 
           {/* Demoted from a status-less role=alert callout to emphasized prose. */}
           <div role="presentation" className="theme-horizontal-divider mt-6" />
           <p className={`${PROSE_CLASS} mt-6`}>
-            <strong>The scraped sources, in full.</strong> The parser registry (
-            <code>scripts/parsers/source-identity.ts</code>) covers ten sites:{" "}
-            <strong>PsychonautWiki</strong>, <strong>TripSit</strong> (three feeds: factsheets,
-            wiki, and the combination guide), <strong>Erowid</strong>, <strong>Wikipedia</strong>,{" "}
-            <strong>DrugBank</strong>, <strong>Isomer Design</strong>, <strong>SaferParty</strong>,{" "}
-            <strong>The Drug Classroom</strong>, <strong>Disregard Everything I Say</strong>, and the{" "}
-            <strong>Drug Users Bible</strong>. The corpus also stores a few further sources
-            (Bluelight, D.&nbsp;M.&nbsp;Turner, Nervewing, ProtestKit) that have no parser.
+            <DocsInline>{copy.text("docs-code-s8-sources")}</DocsInline>
           </p>
 
           <div className="mt-6">
@@ -1193,37 +1027,28 @@ export default function DocsCodePage() {
           </div>
 
           <h3 className="theme-accent-heading mt-7 text-lg font-semibold">
-            The prompting system, in detail (quotes → prompts → sections)
+            {copy.text("docs-code-s8-prompting-heading")}
           </h3>
 
           <p className={`${PROSE_CLASS} mt-2`}>
-            The &quot;AI section generation&quot; box above is itself a two-stage process. The full
-            scraped articles are too long and too mixed to give to a model directly. First, an
-            extraction pass <strong>copies verbatim excerpts out of the sources, by topic</strong>.
-            Then a stronger model <strong>writes one section from those excerpts</strong>, against a
-            section-specific prompt that forbids claims not found in them. This section covers where
-            the pieces live in the repository.
+            <DocsInline>{copy.text("docs-code-s8-prompting-intro")}</DocsInline>
           </p>
 
           <FlowGrid className="mt-6">
-            <StepPanel domain="orange" step="1" title="Gather">
-              Full scraped articles for one substance, from{" "}
-              <code>articleSources</code>
+            <StepPanel domain="orange" step="1" title={copy.text("docs-code-s8-prompting-step1-title")}>
+              <DocsInline>{copy.text("docs-code-s8-prompting-step1-body")}</DocsInline>
             </StepPanel>
-            <StepPanel domain="plum" step="2" title="Extract quotes">
-              Block-selection extraction copies verbatim, topic-relevant
-              excerpts
+            <StepPanel domain="plum" step="2" title={copy.text("docs-code-s8-prompting-step2-title")}>
+              <DocsInline>{copy.text("docs-code-s8-prompting-step2-body")}</DocsInline>
             </StepPanel>
-            <StepPanel domain="green" step="3" title="Store">
-              One entry per substance × topic in the Convex <code>quotes</code>{" "}
-              table
+            <StepPanel domain="green" step="3" title={copy.text("docs-code-s8-prompting-step3-title")}>
+              <DocsInline>{copy.text("docs-code-s8-prompting-step3-body")}</DocsInline>
             </StepPanel>
-            <StepPanel domain="plum" step="4" title="Generate">
-              Section prompt + quotes for that topic → per-section Claude model → YAML
-              section output
+            <StepPanel domain="plum" step="4" title={copy.text("docs-code-s8-prompting-step4-title")}>
+              <DocsInline>{copy.text("docs-code-s8-prompting-step4-body")}</DocsInline>
             </StepPanel>
-            <StepPanel domain="gold" step="5" title="Review">
-              Editor previews, edits, and saves in <code>/dev</code>
+            <StepPanel domain="gold" step="5" title={copy.text("docs-code-s8-prompting-step5-title")}>
+              <DocsInline>{copy.text("docs-code-s8-prompting-step5-body")}</DocsInline>
             </StepPanel>
           </FlowGrid>
 
@@ -1231,138 +1056,114 @@ export default function DocsCodePage() {
               section generation) share one surface with a divider instead of a
               two-up card pair. */}
           <ContentCard variant="subtle" padding="lg" className="mt-6 shadow-[var(--theme-elevation-sm)]">
-            <div className={CARD_LABEL_CLASS}>Stage 1–3 — eight quote topics</div>
+            <div className={CARD_LABEL_CLASS}>{copy.text("docs-code-s8-stage13-label")}</div>
             <p className={`${PROSE_CLASS} mb-2.5`}>
-              Extraction prompts (<code>scripts/prompts/</code>,{" "}
-              <code>scripts/batch/extract-quotes/</code>) pull excerpts into eight topic buckets,
-              defined in <code>lib/quoteSections.mjs</code>:
+              <DocsInline>{copy.text("docs-code-s8-stage13-intro")}</DocsInline>
             </p>
             <ul className={`${LIST_CLASS} list-disc pl-5`}>
-              <li>Intro text · Harm potential · Pharmacology</li>
-              <li>History &amp; culture · Dosage &amp; duration</li>
-              <li>Tolerance · Legality · Subjective effects</li>
+              {copy.items("docs-code-s8-stage13-topics").map((item, i) => (
+                <li key={i}>
+                  <DocsInline>{item}</DocsInline>
+                </li>
+              ))}
             </ul>
             <div role="presentation" className="theme-horizontal-divider my-5" />
 
-            <div className={CARD_LABEL_CLASS}>Stage 4 — eleven section prompts</div>
+            <div className={CARD_LABEL_CLASS}>{copy.text("docs-code-s8-stage4-label")}</div>
             <p className={`${PROSE_CLASS} mb-2.5`}>
-              Each article section has its own markdown prompt in{" "}
-              <code>src/data/config/sectionPrompts/</code> — base, summary, dosage/duration,
-              pharmacology, subjective effects, interactions, harm potential, tolerance, legality,
-              history &amp; culture, identification. They range from 4&nbsp;KB (base) to 28&nbsp;KB
-              (pharmacology).
+              <DocsInline>{copy.text("docs-code-s8-stage4-prompts")}</DocsInline>
             </p>
             <p className={PROSE_CLASS}>
-              The repository files are seeds. The live copies sit in the Convex <code>prompts</code> table,
-              and editors can change them in the <code>/dev</code> prompt workspace (registry:{" "}
-              <code>src/data/config/promptRegistry.ts</code>).
+              <DocsInline>{copy.text("docs-code-s8-stage4-seeds")}</DocsInline>
             </p>
           </ContentCard>
 
           <p className={`${PROSE_CLASS} mt-5`}>
-            <a href="/docs/how" target="_top" className={proseLinkClassName}>
-              How dose.wiki substance articles are made
-            </a>{" "}
-            publishes every prompt unedited — the eight extraction prompts and the section prompts. It
-            also documents the block-selection contract that keeps extraction verbatim, and the audit
-            that enforces it. That page is the canonical copy of the pipeline instructions.
+            <DocsInline>{copy.text("docs-code-s8-prompts-published")}</DocsInline>
           </p>
 
           <h3 className="theme-accent-heading mt-7 text-lg font-semibold">
-            The citation workflow, in detail (scripts/citations/)
+            {copy.text("docs-code-s8-citation-heading")}
           </h3>
           <FlowGrid className="mt-4">
-            <StepPanel domain="green" step="1" title="Pick sections">
-              The six citable sections: summary, pharmacology, tolerance, harm
-              potential, history &amp; culture, legality
+            <StepPanel domain="green" step="1" title={copy.text("docs-code-s8-citation-step1-title")}>
+              <DocsInline>{copy.text("docs-code-s8-citation-step1-body")}</DocsInline>
             </StepPanel>
-            <StepPanel domain="orange" step="2" title="Section workers">
-              Parallel AI workers (batches of ≤3) find real references per
-              claim
+            <StepPanel domain="orange" step="2" title={copy.text("docs-code-s8-citation-step2-title")}>
+              <DocsInline>{copy.text("docs-code-s8-citation-step2-body")}</DocsInline>
             </StepPanel>
-            <StepPanel domain="orange" step="3" title="Insert markers">
-              <code>[cite:ref-id]</code> markers only — article text must stay
-              byte-identical otherwise
+            <StepPanel domain="orange" step="3" title={copy.text("docs-code-s8-citation-step3-title")}>
+              <DocsInline>{copy.text("docs-code-s8-citation-step3-body")}</DocsInline>
             </StepPanel>
-            <StepPanel domain="plum" step="4" title="Validation gate">
-              Six-section status check; every marker must map to evidence +
-              quotes
+            <StepPanel domain="plum" step="4" title={copy.text("docs-code-s8-citation-step4-title")}>
+              <DocsInline>{copy.text("docs-code-s8-citation-step4-body")}</DocsInline>
             </StepPanel>
-            <StepPanel domain="gold" step="5" title="Human workbench">
-              A person reviews the draft outside the repository. Then the pipeline applies it with{" "}
-              <code>--write --confirm-citation-write</code>
+            <StepPanel domain="gold" step="5" title={copy.text("docs-code-s8-citation-step5-title")}>
+              <DocsInline>{copy.text("docs-code-s8-citation-step5-body")}</DocsInline>
             </StepPanel>
-            <StepPanel domain="green" step="6" title="Stored">
-              References on the article, audit trail in{" "}
-              <code>citationEvidence</code>
+            <StepPanel domain="green" step="6" title={copy.text("docs-code-s8-citation-step6-title")}>
+              <DocsInline>{copy.text("docs-code-s8-citation-step6-body")}</DocsInline>
             </StepPanel>
           </FlowGrid>
 
           <Alert variant="destructive" className="mt-5">
             <AlertDescription>
-              <strong>The marker-only contract</strong> is the strictest rule in the repository.
-              Citation tooling can add <code>[cite:reference-id]</code> markers to the six citable
-              sections, but must not change any other byte of article text. The tooling can use
-              Wikipedia and PsychonautWiki to find references. It never cites them as claim support.{" "}
-              <code>CLAUDE.md</code> records both rules, and the validation gate enforces them.
+              <DocsInline>{copy.text("docs-code-s8-marker-contract")}</DocsInline>
             </AlertDescription>
           </Alert>
         </section>
 
         <section id="s9" className="scroll-mt-24">
           <h2 className={SECTION_HEADING_CLASS}>
-            <span className={SECTION_NUM_CLASS}>09</span>{" "}Two flows worth tracing
+            <span className={SECTION_NUM_CLASS}>09</span>{" "}{copy.text("docs-code-s9-heading")}
           </h2>
 
           <h3 className="theme-accent-heading mt-5 text-lg font-semibold">
-            Flow A — a reader opens dose.wiki/lsd
+            {copy.text("docs-code-s9-flow-a-heading")}
           </h3>
           <FlowGrid className="mt-4">
-            <StepPanel domain="blue" step="1" title="Route">
-              <code>src/app/[slug]/page.tsx</code> server component runs
+            <StepPanel domain="blue" step="1" title={copy.text("docs-code-s9-flow-a-step1-title")}>
+              <DocsInline>{copy.text("docs-code-s9-flow-a-step1-body")}</DocsInline>
             </StepPanel>
-            <StepPanel domain="green" step="2" title="Fetch">
-              <code>lib/convex/publicData.ts</code> queries{" "}
-              <code>substanceIndex.getBySlug</code>
+            <StepPanel domain="green" step="2" title={copy.text("docs-code-s9-flow-a-step2-title")}>
+              <DocsInline>{copy.text("docs-code-s9-flow-a-step2-body")}</DocsInline>
             </StepPanel>
-            <StepPanel domain="blue" step="3" title="Validate">
-              Zod schema validation from <code>src/schema/</code>
+            <StepPanel domain="blue" step="3" title={copy.text("docs-code-s9-flow-a-step3-title")}>
+              <DocsInline>{copy.text("docs-code-s9-flow-a-step3-body")}</DocsInline>
             </StepPanel>
-            <StepPanel domain="blue" step="4" title="Render">
-              <code>src/features/article/</code> sections, tables, citations
+            <StepPanel domain="blue" step="4" title={copy.text("docs-code-s9-flow-a-step4-title")}>
+              <DocsInline>{copy.text("docs-code-s9-flow-a-step4-body")}</DocsInline>
             </StepPanel>
-            <StepPanel domain="blue" step="5" title="Serve">
-              Mostly-static HTML, prerendered when possible
+            <StepPanel domain="blue" step="5" title={copy.text("docs-code-s9-flow-a-step5-title")}>
+              <DocsInline>{copy.text("docs-code-s9-flow-a-step5-body")}</DocsInline>
             </StepPanel>
           </FlowGrid>
 
           <h3 className="theme-accent-heading mt-7 text-lg font-semibold">
-            Flow B — an editor saves an article in /dev
+            {copy.text("docs-code-s9-flow-b-heading")}
           </h3>
           <FlowGrid className="mt-4">
-            <StepPanel domain="gold" step="1" title="Edit">
-              React Hook Form state in <code>src/features/dev/forms/</code>
+            <StepPanel domain="gold" step="1" title={copy.text("docs-code-s9-flow-b-step1-title")}>
+              <DocsInline>{copy.text("docs-code-s9-flow-b-step1-body")}</DocsInline>
             </StepPanel>
-            <StepPanel domain="gold" step="2" title="Orchestrate">
-              <code>save-orchestrator/</code> collects dirty articles
+            <StepPanel domain="gold" step="2" title={copy.text("docs-code-s9-flow-b-step2-title")}>
+              <DocsInline>{copy.text("docs-code-s9-flow-b-step2-body")}</DocsInline>
             </StepPanel>
-            <StepPanel domain="plum" step="3" title="Gate">
-              <code>/api/save-to-convex</code>: auth role + rate limit + Zod
-              contract validation
+            <StepPanel domain="plum" step="3" title={copy.text("docs-code-s9-flow-b-step3-title")}>
+              <DocsInline>{copy.text("docs-code-s9-flow-b-step3-body")}</DocsInline>
             </StepPanel>
-            <StepPanel domain="green" step="4" title="Mutate">
-              <code>substanceIndex.saveSubstance</code> + auto{" "}
-              <code>changelog</code> entry
+            <StepPanel domain="green" step="4" title={copy.text("docs-code-s9-flow-b-step4-title")}>
+              <DocsInline>{copy.text("docs-code-s9-flow-b-step4-body")}</DocsInline>
             </StepPanel>
-            <StepPanel domain="blue" step="5" title="Refresh">
-              The app revalidates the public paths. A toast confirms the save
+            <StepPanel domain="blue" step="5" title={copy.text("docs-code-s9-flow-b-step5-title")}>
+              <DocsInline>{copy.text("docs-code-s9-flow-b-step5-body")}</DocsInline>
             </StepPanel>
           </FlowGrid>
         </section>
 
         <section id="s10" className="scroll-mt-24">
           <h2 className={SECTION_HEADING_CLASS}>
-            <span className={SECTION_NUM_CLASS}>10</span>{" "}Recurring vocabulary
+            <span className={SECTION_NUM_CLASS}>10</span>{" "}{copy.text("docs-code-s10-heading")}
           </h2>
 
           {/* Flattened from a six-card glossary grid to one surface of
@@ -1378,62 +1179,49 @@ export default function DocsCodePage() {
                 semantic
                 termClassName={`${CARD_TITLE_CLASS} mb-0`}
                 bodyClassName={PROSE_CLASS}
-                term="Substance article"
+                term={copy.text("docs-code-s10-substance-article-term")}
               >
-                The central data object: one large structured document per drug, with ~15 sections
-                (dosage, duration, pharmacology, legality, and more). Defined by Zod schemas in{" "}
-                <code>src/schema/</code>, stored in <code>substanceIndex</code>.
+                <DocsInline>{copy.text("docs-code-s10-substance-article-body")}</DocsInline>
               </DefinitionRow>
               <DefinitionRow
                 semantic
                 termClassName={`${CARD_TITLE_CLASS} mb-0`}
                 bodyClassName={PROSE_CLASS}
-                term="Citable sections"
+                term={copy.text("docs-code-s10-citable-sections-term")}
               >
-                The six prose sections allowed to carry citations: <code>summary</code>,{" "}
-                <code>pharmacology</code>, <code>tolerance</code>, <code>harm_potential</code>,{" "}
-                <code>history_culture</code>, <code>legality</code>. Everything else (for example,
-                dosage tables) is structured data, not cited prose.
+                <DocsInline>{copy.text("docs-code-s10-citable-sections-body")}</DocsInline>
               </DefinitionRow>
               <DefinitionRow
                 semantic
                 termClassName={`${CARD_TITLE_CLASS} mb-0`}
                 bodyClassName={PROSE_CLASS}
-                term="Workbench"
+                term={copy.text("docs-code-s10-workbench-term")}
               >
-                A staging area for external review of citation drafts. The pipeline exports a task, and
-                a person reviews the draft outside the repository. Then <code>citations:apply-workbench --
-                --write --confirm-citation-write</code> writes the approved result back to Convex —
-                both flags are required.
+                <DocsInline>{copy.text("docs-code-s10-workbench-body")}</DocsInline>
               </DefinitionRow>
               <DefinitionRow
                 semantic
                 termClassName={`${CARD_TITLE_CLASS} mb-0`}
                 bodyClassName={PROSE_CLASS}
-                term="VCode"
+                term={copy.text("docs-code-s10-vcode-term")}
               >
-                A custom markup format used for subjective-effect article bodies, stored alongside a
-                parsed AST and rendered by <code>src/features/effects/</code>.
+                <DocsInline>{copy.text("docs-code-s10-vcode-body")}</DocsInline>
               </DefinitionRow>
               <DefinitionRow
                 semantic
                 termClassName={`${CARD_TITLE_CLASS} mb-0`}
                 bodyClassName={PROSE_CLASS}
-                term="Prepopulate vs. generate"
+                term={copy.text("docs-code-s10-prepopulate-term")}
               >
-                <strong>Prepopulate</strong> = deterministic import of parsed source data
-                (high-confidence facts like dosage tables). <strong>Generate</strong> = AI-generated
-                prose sections that a person always reviews.
+                <DocsInline>{copy.text("docs-code-s10-prepopulate-body")}</DocsInline>
               </DefinitionRow>
               <DefinitionRow
                 semantic
                 termClassName={`${CARD_TITLE_CLASS} mb-0`}
                 bodyClassName={PROSE_CLASS}
-                term="Convex deployment"
+                term={copy.text("docs-code-s10-deployment-term")}
               >
-                One production deployment (<code>glad-minnow-656</code>). All environments — local
-                dev, previews, production — read and write it directly; the old dev deployment is
-                retired. Treat every Convex write as a production write (see <code>AGENTS.md</code>).
+                <DocsInline>{copy.text("docs-code-s10-deployment-body")}</DocsInline>
               </DefinitionRow>
             </DefinitionList>
           </ContentCard>
@@ -1441,80 +1229,35 @@ export default function DocsCodePage() {
 
         <section id="s11" className="scroll-mt-24">
           <h2 className={SECTION_HEADING_CLASS}>
-            <span className={SECTION_NUM_CLASS}>11</span>{" "}Where to start reading
+            <span className={SECTION_NUM_CLASS}>11</span>{" "}{copy.text("docs-code-s11-heading")}
           </h2>
 
-          <p className={`${PROSE_CLASS} mt-4`}>A reasonable reading order for a first session:</p>
+          <p className={`${PROSE_CLASS} mt-4`}>
+            <DocsInline>{copy.text("docs-code-s11-intro")}</DocsInline>
+          </p>
 
           <ol className={`${LIST_CLASS} mt-3 list-decimal pl-5`}>
-            <li>
-              <strong>
-                <code>README.md</code> and <code>ARCHITECTURE.md</code>
-              </strong>{" "}
-              — the orientation docs from the maintainers. They cover routes, npm scripts, and system
-              layout.
-            </li>
-            <li>
-              <strong>
-                <code>convex/schema.ts</code>
-              </strong>{" "}
-              — the data model that everything else is built around. Skim the{" "}
-              <code>substanceIndex</code> table definition first.
-            </li>
-            <li>
-              <strong>
-                <code>src/app/[slug]/page.tsx</code> → <code>lib/convex/publicData.ts</code> →{" "}
-                <code>src/features/article/</code>
-              </strong>{" "}
-              — Flow A from section 09. This flow covers the whole public read path.
-            </li>
-            <li>
-              <strong>
-                <code>middleware.ts</code> + <code>auth.ts</code>
-              </strong>{" "}
-              — short files that show how <code>/dev</code> is protected and how roles work.
-            </li>
-            <li>
-              <strong>
-                <code>src/features/dev/save-orchestrator/</code> and{" "}
-                <code>src/app/api/save-to-convex/</code>
-              </strong>{" "}
-              — Flow B. These files show how edits reach the database with an audit trail.
-            </li>
-            <li>
-              <strong>
-                <code>scripts/lib/workflow-command-surface.mjs</code>
-              </strong>{" "}
-              — the registry of pipeline commands. From here you can find whichever pipeline (batch,
-              citations, migrate, sync) you need.
-            </li>
+            {copy.items("docs-code-s11-reading-order").map((item, i) => (
+              <li key={i}>
+                <DocsInline>{item}</DocsInline>
+              </li>
+            ))}
           </ol>
 
           <DisclosureCard
             variant="subtle"
-            summary="Caveats about this page"
+            summary={copy.text("docs-code-s11-caveats-summary")}
             className="mt-5"
           >
             <p className={PROSE_CLASS}>
-              Counts (substances, files, tests) are point-in-time snapshots and will drift — prefer
-              the live tree over the printed number (e.g.{" "}
-              <code>find src -name &apos;*.ts&apos; | wc -l</code>). This page also simplifies
-              operational detail — the full citation validation rules, rate-limit policies.{" "}
-              <code>AGENTS.md</code>, <code>CLAUDE.md</code>, <code>CONTEXT.md</code>, and{" "}
-              <code>docs/architecture/</code> in the repository are the authoritative versions.
+              <DocsInline>{copy.text("docs-code-s11-caveats-body")}</DocsInline>
             </p>
           </DisclosureCard>
 
           {/* Demoted from a status-less role=alert callout to emphasized prose. */}
           <div role="presentation" className="theme-horizontal-divider mt-6" />
           <p className={`${PROSE_CLASS} mt-6`}>
-            <strong>Do you want the content side?</strong> This page covers the codebase. To see the
-            full pipeline — scraping, quote extraction, AI synthesis, citations, and human review —
-            read{" "}
-            <a href="/docs/how" target="_top" className={proseLinkClassName}>
-              How dose.wiki substance articles are made
-            </a>
-            .
+            <DocsInline>{copy.text("docs-code-s11-content-side")}</DocsInline>
           </p>
         </section>
       </StickyTocLayout>
