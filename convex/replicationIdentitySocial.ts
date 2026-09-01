@@ -295,7 +295,13 @@ function authoritativeBeforeMatches(entry: IdentitySocialBatchEntry, before: unk
     const normalizeAliases = (value: unknown) => Array.isArray(value)
       ? [...new Set(value.map((item) => String(item).trim().toLowerCase()).filter(Boolean))].sort()
       : [];
-    return equal({ ...current, aliases: normalizeAliases(current.aliases) }, { ...expected, aliases: normalizeAliases(expected.aliases) });
+    const verificationIdentity = (value: Record<string, unknown>) => ({
+      profileKey: value.profileKey,
+      displayName: value.displayName,
+      verificationStatus: value.verificationStatus,
+      aliases: normalizeAliases(value.aliases),
+    });
+    return equal(verificationIdentity(current), verificationIdentity(expected));
   }
   if (entry.kind !== "attribution") return false;
   if (current.attributionDisposition !== null || !["existing-reviewed-credit", "poster-as-artist-default"].includes(String(expected.attributionDisposition))) return false;
