@@ -254,6 +254,7 @@ async function currentProfileBefore(ctx: Ctx, profileId: Id<"contributorProfiles
 async function currentAliasBefore(ctx: Ctx, entry: Extract<IdentitySocialBatchEntry, { kind: "alias" }>) {
   const profile = await ctx.db.get(entry.value.profile_id);
   if (!profile) throw new Error("Contributor profile does not exist.");
+  if (entry.projection.action === "blocked-pending-owner-review" || entry.projection.action === "blocked-merge-required-collision") return entry.projection.expectedBefore;
   const alias = entry.value.normalized_alias;
   const token = await ctx.db.query("contributorIdentityTokenSnapshots")
     .withIndex("by_snapshot_digest_and_normalized_token", (q) => q.eq("snapshot_digest", entry.identity_snapshot_digest).eq("normalized_token", alias)).unique();
@@ -262,7 +263,6 @@ async function currentAliasBefore(ctx: Ctx, entry: Extract<IdentitySocialBatchEn
   if (entry.projection.action === "add-alias-preserve-source-history" && token.owner_profile_ids.some((id) => id !== entry.value.profile_id)) {
     throw new Error("Alias-only write refused: normalized identity belongs to a separate profile requiring merge review.");
   }
-  if (entry.projection.action === "blocked-pending-owner-review" || entry.projection.action === "blocked-merge-required-collision") return entry.projection.expectedBefore;
   const owners = token.owner_count;
   const linked = (profile.links ?? []).some((link) => link.url.toLowerCase().includes(alias));
   const currentState = owners > 0 ? `alias already present as ${alias}` : linked ? `canonical profile links to @${entry.value.alias} but alias absent` : "canonical profile exists; alias absent";
@@ -714,12 +714,16 @@ export const getOperationReceiptAuthenticated = query({
 });
 export const preflightProfileBindingAuthenticated = query({
   args: { ...authenticatedReadArgs, entry: profileBindingEntryValidator },
-  returns: v.object({ matches: v.boolean(), digest: v.string() }),
+  returns: v.object({ matches: v.boolean(), digest: v.string(), error: v.optional(v.string()) }),
   handler: async (ctx, args) => {
     await requireRegisteredDelegatedEditorWrite(ctx, { apiKey: args.apiKey, actorEmail: args.actor_email, adminIntent: "replicationMaintenance" });
-    await assertPinnedProfileBindingSnapshot(ctx, args.entry);
-    const digest = await canonicalDigest({ snapshot_digest: args.entry.snapshot_digest, snapshot_profile_count: args.entry.snapshot_profile_count, artist_id: args.entry.artist_id, decision: args.entry.decision, profile_key: args.entry.profile_key ?? null });
-    return { matches: true, digest };
+    try {
+      await assertPinnedProfileBindingSnapshot(ctx, args.entry);
+      const digest = await canonicalDigest({ snapshot_digest: args.entry.snapshot_digest, snapshot_profile_count: args.entry.snapshot_profile_count, artist_id: args.entry.artist_id, decision: args.entry.decision, profile_key: args.entry.profile_key ?? null });
+      return { matches: true, digest };
+    } catch (error) {
+      return { matches: false, digest: "", error: error instanceof Error ? error.message : "Profile binding preflight failed." };
+    }
   },
 });
 const exportedProfileValidator = v.object({

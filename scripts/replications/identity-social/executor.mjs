@@ -48,7 +48,10 @@ export async function run(argv = process.argv.slice(2), adapters = {}) {
   const work = options.rollback ? [] : pendingBatches(options.phase === "canary" ? canaries : fullBatches, loadLedger(options.ledger));
   for (const batch of work) {
     for (const entry of batch.entries) {
-      if (batch.kind === "profile-binding") await query(api.replicationIdentitySocial.preflightProfileBindingAuthenticated, { apiKey, actor_email: options.actor, entry });
+      if (batch.kind === "profile-binding") {
+        const preflight = await query(api.replicationIdentitySocial.preflightProfileBindingAuthenticated, { apiKey, actor_email: options.actor, entry });
+        if (!preflight.matches) throw new Error(`Profile binding preflight failed: ${preflight.error ?? "unknown reason"}`);
+      }
       else assertPreviewMatches(entry, await query(api.replicationIdentitySocial.previewCanonicalBeforeAuthenticated, { apiKey, actor_email: options.actor, entry }));
     }
     const result = batch.kind === "profile-binding"
