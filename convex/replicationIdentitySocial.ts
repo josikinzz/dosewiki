@@ -280,9 +280,17 @@ export async function canonicalBeforeForEntry(ctx: Ctx, entry: IdentitySocialBat
 
 function authoritativeBeforeMatches(entry: IdentitySocialBatchEntry, before: unknown) {
   if (equal(before, entry.projection.expectedBefore)) return true;
-  if (entry.kind !== "attribution" || !before || typeof before !== "object") return false;
+  if (!before || typeof before !== "object") return false;
   const current = before as Record<string, unknown>;
   const expected = entry.projection.expectedBefore as Record<string, unknown>;
+  if (entry.kind === "avatar") {
+    return current.currentAvatarUrl === expected.currentAvatarUrl
+      && current.currentAvatarSha256 === null
+      && current.currentAvatarProvenance === "none"
+      && typeof expected.currentAvatarSha256 === "string"
+      && expected.currentAvatarProvenance === "local-file-without-current-source-manifest-match";
+  }
+  if (entry.kind !== "attribution") return false;
   if (current.attributionDisposition !== null || !["existing-reviewed-credit", "poster-as-artist-default"].includes(String(expected.attributionDisposition))) return false;
   return equal({ ...current, attributionDisposition: expected.attributionDisposition }, expected);
 }
