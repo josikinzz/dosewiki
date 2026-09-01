@@ -288,7 +288,8 @@ function authoritativeBeforeMatches(entry: IdentitySocialBatchEntry, before: unk
       && current.currentAvatarSha256 === null
       && current.currentAvatarProvenance === "none"
       && typeof expected.currentAvatarSha256 === "string"
-      && expected.currentAvatarProvenance === "local-file-without-current-source-manifest-match";
+      && typeof expected.currentAvatarProvenance === "string"
+      && expected.currentAvatarProvenance !== "none";
   }
   if (entry.kind !== "attribution") return false;
   if (current.attributionDisposition !== null || !["existing-reviewed-credit", "poster-as-artist-default"].includes(String(expected.attributionDisposition))) return false;
