@@ -184,6 +184,7 @@ test("two-phase receipt sidecar binds independently without changing operation I
 test("operation-kind selection is validated and client retry is bounded", () => {
   assert.equal(parseArgs(["--operation-kind=social-asset"]).operationKind, "social-asset");
   assert.equal(parseArgs(["--reconcile-applied-profile-bindings"]).reconcileAppliedProfileBindings, true);
+  assert.equal(parseArgs(["--only-operation-id=batch-123"]).onlyOperationId, "batch-123");
   assert.equal(parseArgs(["--max-client-attempts=2"]).maxClientAttempts, 2);
   assert.throws(() => parseArgs(["--operation-kind=anything"]), /Unsupported/);
   assert.throws(() => parseArgs(["--max-client-attempts=0"]), /integer from 1 through 10/);
