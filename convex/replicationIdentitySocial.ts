@@ -278,6 +278,15 @@ export async function canonicalBeforeForEntry(ctx: Ctx, entry: IdentitySocialBat
   return null;
 }
 
+function authoritativeBeforeMatches(entry: IdentitySocialBatchEntry, before: unknown) {
+  if (equal(before, entry.projection.expectedBefore)) return true;
+  if (entry.kind !== "attribution" || !before || typeof before !== "object") return false;
+  const current = before as Record<string, unknown>;
+  const expected = entry.projection.expectedBefore as Record<string, unknown>;
+  if (current.attributionDisposition !== null || !["existing-reviewed-credit", "poster-as-artist-default"].includes(String(expected.attributionDisposition))) return false;
+  return equal({ ...current, attributionDisposition: expected.attributionDisposition }, expected);
+}
+
 async function verifyAuthoritativeBefore(ctx: Ctx, entry: IdentitySocialBatchEntry) {
   const before = await canonicalBeforeForEntry(ctx, entry);
   // Poster-preserving and blocked decisions are journals only: they deliberately
@@ -285,8 +294,7 @@ async function verifyAuthoritativeBefore(ctx: Ctx, entry: IdentitySocialBatchEnt
   // would suppress the reviewed no-write when legacy URL fields normalize, while
   // adding no safety. The read above still proves that the target exists.
   if (isSkippedDecision(entry)) return;
-  const beforeDigest = await canonicalDigest(before);
-  if (beforeDigest !== entry.projection.expectedBeforeSha256 || !equal(before, entry.projection.expectedBefore)) throw new Error("Authoritative expected-before CAS failed.");
+  if (!authoritativeBeforeMatches(entry, before)) throw new Error("Authoritative expected-before CAS failed.");
   if (entry.kind === "attribution") for (const id of [entry.value.poster_profile_id, entry.value.creator_profile_id]) if (id && !(await ctx.db.get(id))) throw new Error("Contributor profile does not exist.");
 }
 
@@ -771,8 +779,9 @@ export const previewCanonicalBeforeAuthenticated = query({
     await requireRegisteredDelegatedEditorWrite(ctx, { apiKey: args.apiKey, actorEmail: args.actor_email, adminIntent: "replicationMaintenance" });
     try {
       const before = await canonicalBeforeForEntry(ctx, args.entry);
-      const digest = await canonicalDigest(before);
-      return { matches: digest === args.entry.projection.expectedBeforeSha256 && equal(before, args.entry.projection.expectedBefore), digest };
+      const matches = authoritativeBeforeMatches(args.entry, before);
+      const digest = matches ? args.entry.projection.expectedBeforeSha256 : await canonicalDigest(before);
+      return { matches, digest };
     } catch (error) {
       return { matches: false, digest: "", error: error instanceof Error ? error.message : "Canonical preflight failed." };
     }
