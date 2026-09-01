@@ -39,7 +39,7 @@ export async function run(argv = process.argv.slice(2), adapters = {}) {
   if (command.deploymentFingerprint !== PRODUCTION_DEPLOYMENT) throw new Error(`Writes are restricted to ${PRODUCTION_DEPLOYMENT}.`);
   if (!options.actor) throw new Error("--actor-email is required for writes.");
   if (!options.rollback && !["canary", "full"].includes(options.phase)) throw new Error("Write mode requires --phase=canary or --phase=full.");
-  const apiKey = requireProductionWriteCredential("replicationMaintenance");
+  const apiKey = requireProductionWriteCredential("replicationMaintenance").token;
   const client = adapters.client ?? new ConvexHttpClient(command.targetUrl);
   const query = adapters.query ?? ((ref, args) => client.query(ref, args));
   const mutate = adapters.mutate ?? ((ref, args) => client.mutation(ref, args));

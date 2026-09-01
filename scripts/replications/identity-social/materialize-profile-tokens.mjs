@@ -24,7 +24,7 @@ export function deriveIdentityTokenPayload(profiles) {
 export async function materializeProfileTokens(argv = process.argv.slice(2), adapters = {}) {
   const actor = flag(argv, "--actor-email"); const ledger = flag(argv, "--ledger"); const requestedMode = flag(argv, "--mode") ?? "dry-run";
   if (!actor || !ledger || !["dry-run", "seed", "rollback"].includes(requestedMode)) throw new Error("--actor-email, --ledger, and --mode=dry-run|seed|rollback are required.");
-  const apiKey = adapters.apiKey ?? requireProductionWriteCredential("replicationMaintenance");
+  const apiKey = adapters.apiKey ?? requireProductionWriteCredential("replicationMaintenance").token;
   const client = adapters.client ?? new ConvexHttpClient(TARGET_URL);
   const query = adapters.query ?? ((ref, args) => client.query(ref, args));
   const mutate = adapters.mutate ?? ((ref, args) => client.mutation(ref, args));

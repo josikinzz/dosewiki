@@ -12,7 +12,7 @@ const flag = (argv, name) => { const value = argv.find((item) => item.startsWith
 export async function exportPinnedProfileSnapshot(argv = process.argv.slice(2), adapters = {}) {
   const actor = flag(argv, "--actor-email"); const out = flag(argv, "--out");
   if (!actor || !out) throw new Error("--actor-email and --out are required.");
-  const apiKey = adapters.apiKey ?? requireProductionWriteCredential("replicationMaintenance");
+  const apiKey = adapters.apiKey ?? requireProductionWriteCredential("replicationMaintenance").token;
   const client = adapters.client ?? new ConvexHttpClient(TARGET_URL);
   const query = adapters.query ?? ((ref, args) => client.query(ref, args));
   const { profiles, metadata } = await drainPinnedProfileSnapshot({ query, apiKey, actor });
