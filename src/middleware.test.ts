@@ -366,13 +366,14 @@ describe("middleware role policy adapter", () => {
     expect(response.headers.get("x-content-type-options")).toBe("nosniff");
   });
 
-  it("allows analytics only in the exact public-host browser policy", async () => {
+  it("covers the public analytics proxy with self without an invalid path source", async () => {
     const { middleware } = await import("../middleware");
 
     const publicResponse = await middleware(makePublicRequest("/"));
     const adminResponse = await middleware(makeRequest("/fentanyl"));
 
-    expect(publicResponse.headers.get("content-security-policy")).toContain("/ingest");
+    expect(publicResponse.headers.get("content-security-policy")).toContain("connect-src 'self'");
+    expect(publicResponse.headers.get("content-security-policy")).not.toContain("/ingest");
     expect(adminResponse.headers.get("content-security-policy")).not.toContain("/ingest");
   });
 

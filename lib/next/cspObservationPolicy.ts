@@ -1,6 +1,5 @@
 import { SITE_FLAVOR, type SiteFlavor } from "../../src/config/siteFlavor";
 import { MAILING_LIST_API_ORIGIN } from "../../src/features/mailing-list/subscribe";
-import { isApprovedAnalyticsHost, POSTHOG_API_HOST } from "./analyticsHostPolicy";
 import { normalizeHost } from "./publicHostPolicy";
 
 export const CSP_ENFORCEMENT_HEADER = "Content-Security-Policy";
@@ -127,7 +126,6 @@ export function getBrowserSecurityHeaders({
   isDevelopment,
 }: BrowserSecurityPolicyInput): ResponseHeader[] {
   const normalizedHost = normalizeHost(host);
-  const allowsPublicAnalytics = isApprovedAnalyticsHost(host);
   const isDevRoute = pathname.startsWith("/dev");
   let scriptSources: string[];
 
@@ -167,10 +165,9 @@ export function getBrowserSecurityHeaders({
     // deployment intentionally configures no Convex URL yet still hosts the
     // signup form.
     MAILING_LIST_API_ORIGIN,
-    // PostHog posts events from the approved public hosts only. It runs with
-    // `disable_external_dependency_loading`, so it never injects a remote script and needs no
-    // `script-src` entry — this ingestion origin is the whole of its network surface.
-    ...(allowsPublicAnalytics ? [POSTHOG_API_HOST] : []),
+    // The approved-host PostHog client posts to the same-origin `/ingest`
+    // reverse proxy. `'self'` already authorizes that path; a bare path is not
+    // a valid CSP source expression and must not be emitted separately.
   ];
 
   const directives = [

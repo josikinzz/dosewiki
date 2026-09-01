@@ -123,7 +123,7 @@ describe("browser security response policy", () => {
     ).not.toThrow();
   });
 
-  it("allows public analytics only on the exact approved public hosts", () => {
+  it("covers the same-origin analytics proxy with self without an invalid path source", () => {
     const publicCsp = headerValue(
       getBrowserSecurityHeaders({
         host: "dose.wiki",
@@ -143,7 +143,13 @@ describe("browser security response policy", () => {
       CSP_ENFORCEMENT_HEADER,
     );
 
-    expect(directiveValue(publicCsp, "connect-src")).toContain("/ingest");
+    const publicConnectSources = directiveValue(publicCsp, "connect-src").split(/\s+/);
+    const lookalikeConnectSources = directiveValue(lookalikeCsp, "connect-src").split(/\s+/);
+
+    expect(publicConnectSources).toContain("'self'");
+    expect(publicConnectSources.some((source) => source.startsWith("/"))).toBe(false);
+    expect(lookalikeConnectSources).toContain("'self'");
+    expect(lookalikeConnectSources.some((source) => source.startsWith("/"))).toBe(false);
     expect(lookalikeCsp).not.toContain("/ingest");
   });
 

@@ -32,7 +32,7 @@ The source inventory below comes from repository tracing plus a local production
 | `https://api.crossref.org` | `connect-src` | The protected editor's quick-add reference card resolves DOI metadata directly from Crossref. |
 | `https://eutils.ncbi.nlm.nih.gov` | `connect-src` | The protected editor's quick-add reference card resolves PMID metadata through NCBI E-utilities. |
 | `https://glad-minnow-656.convex.site` | `connect-src` | Both homepages' mailing-list signup posts to the production deployment's Convex HTTP-actions origin (`src/features/mailing-list/subscribe.ts`). Listed statically on every host because the Effect Index deployment configures no Convex URL yet hosts the form. |
-| `/ingest` | `connect-src`, exact `dose.wiki`/`www.dose.wiki` hosts only | Same-origin PostHog reverse proxy for pageview events. The proxy routes to PostHog's US ingestion service while avoiding analytics-domain blocklists. Admin, preview, lookalike, and local hosts omit it. The library is bundled and initialises with `disable_external_dependency_loading`, so it never injects a remote script and buys no `script-src` entry on any host. |
+| Same-origin `/ingest` | Covered by `'self'` in `connect-src` | Dose Wiki's approved-host PostHog client posts to this reverse proxy. CSP source lists cannot contain a bare path such as `/ingest`; the existing `'self'` expression authorizes it without a browser warning. The library is bundled and initialises with `disable_external_dependency_loading`, so it never injects a remote script and buys no `script-src` entry on any host. |
 | `data:` | `img-src` and `font-src` | Existing inline image/font payloads and browser-generated presentation assets use data URLs. |
 | `blob:` | `img-src`, `media-src`, and `worker-src` | Editor previews/downloads and media tooling create local object URLs; worker-capable tooling may use blob workers. |
 | `https:` | `img-src` and `media-src` only | Convex-managed replications, contributor avatars, source favicons, and article media are editor-curated but intentionally span many external HTTPS publishers. This is a conscious content-source exception, not a script or connection wildcard. |
@@ -63,8 +63,8 @@ Non-local production hosts also include `upgrade-insecure-requests`. Local HTTP 
 
 ## Host policy
 
-- `dose.wiki` and `www.dose.wiki`: construction gate plus the approved analytics script/connect source.
-- `dosewiki-admin.vercel.app`, Vercel previews, localhost, and every other host: no analytics source in CSP and no analytics script attachment.
+- `dose.wiki` and `www.dose.wiki`: construction gate plus the approved analytics client attachment; its same-origin proxy request is covered by `'self'`.
+- `dosewiki-admin.vercel.app`, Vercel previews, localhost, and every other host: no analytics client attachment. CSP does not need a separate analytics source on any host.
 
 ## Verification contract
 
