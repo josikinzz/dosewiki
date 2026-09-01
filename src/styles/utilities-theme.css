@@ -5773,10 +5773,18 @@ html[data-theme="light"]:not([data-visual-style="pro"])
    Scrollspy safety: the spy reads the *section elements'* own boxes
    (PublicTableOfContents.tsx), which containment never skips — only
    descendant boxes go unmeasurable while a section is offscreen.
+   Engine gate: Gecko and WebKit both have paint bugs where a
+   content-visibility:auto subtree stays unpainted after scrolling or
+   fragment-navigating it into view (sections render as blank regions; only
+   sibling dividers show). The deferral was profiled in Chromium, so apply it
+   only there: `-moz-appearance` matches Gecko, `-webkit-hyphens` matches
+   WebKit, and Chromium matches neither.
    --------------------------------------------------------------------- */
-.theme-offscreen-defer {
-  content-visibility: auto;
-  contain-intrinsic-size: auto 500px;
+@supports (not (-moz-appearance: none)) and (not (-webkit-hyphens: none)) {
+  .theme-offscreen-defer {
+    content-visibility: auto;
+    contain-intrinsic-size: auto 500px;
+  }
 }
 
 /* Printing renders every section; deferral would truncate the document. */
