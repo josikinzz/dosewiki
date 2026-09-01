@@ -344,14 +344,19 @@ after every deploy. Two mechanisms keep readers off that cold path:
    `staticPageGenerationTimeout` comments in `next.config.ts` describe the
    worker budget this relies on.
 2. **Cron warmer.** `vercel.json` schedules `/api/warm` every 15 minutes
-   (`src/app/api/warm/route.ts`). It requests every substance article, most
-   important tier first, on the canonical public origin (`PUBLIC_SITE.url`, so `https://dose.wiki`
+   (`src/app/api/warm/route.ts`). It requests substance articles on the canonical public origin (`PUBLIC_SITE.url`, so `https://dose.wiki`
    on the dose.wiki project and `https://effectindex.com` on Effect Index; never
    the request host, never the editor hosts) with concurrency 4 inside a
    45-second budget, and returns a JSON summary: `count`, `hits`, `misses`
-   (from `x-vercel-cache`), `failures`, `slowest`, and `remaining` (URLs the
-   budget did not reach; the next run picks them up). Query overrides:
-   `?concurrency=1..8`, `?budgetMs=1000..50000`, `?includeLow=0` (skip the low tier).
+   (from `x-vercel-cache`), `failures`, `slowest`, `rotateBy`, and
+   `remaining` (URLs the budget did not reach). Order matters: the `low`
+   tier goes first because it is the only tier that is never pre-rendered,
+   and its starting offset advances by `WARM_ROTATION_STEP` (120) every
+   15-minute tick, so a run that only reaches ~120 cold pages still sweeps
+   the whole tail within a few ticks. The pre-rendered tiers follow, most
+   important first. Query overrides: `?concurrency=1..8`,
+   `?budgetMs=1000..50000`, `?includeLow=0` (skip the low tier),
+   `?rotate=N` (start the low tier at offset N instead of the tick-derived one).
 
    The route refuses to run (HTTP 503) until the project sets `CRON_SECRET`,
    and then only honours `Authorization: Bearer <CRON_SECRET>`, which Vercel

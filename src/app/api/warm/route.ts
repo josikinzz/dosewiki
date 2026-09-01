@@ -10,6 +10,7 @@ import {
   authorizeWarmRequest,
   parseWarmSearchParams,
   planWarmTargets,
+  warmRotationForTick,
 } from "./warmPolicy";
 
 /**
@@ -23,8 +24,9 @@ import {
  * rather than the request host: crons arrive on the deployment URL, and the
  * editor hosts must never be the warmed surface.
  *
- * The run is time-boxed below the function's `maxDuration`, warms the most
- * important tiers first, and returns the same summary shape as
+ * The run is time-boxed below the function's `maxDuration`, warms the
+ * never-pre-rendered low tier first from an offset that advances every tick,
+ * then the pre-rendered tiers, and returns the same summary shape as
  * `scripts/deploy/warm-public-routes.mjs`, with `remaining` reporting how many
  * URLs the budget did not reach.
  */
@@ -46,11 +48,12 @@ export async function GET(request: Request) {
   }
 
   const startedAt = Date.now();
-  const { concurrency, budgetMs, includeLow } = parseWarmSearchParams(
+  const { concurrency, budgetMs, includeLow, rotate } = parseWarmSearchParams(
     new URL(request.url).searchParams,
   );
+  const rotateBy = rotate ?? warmRotationForTick(startedAt);
   const lookup = await getPublicSubstanceLookup();
-  const targets = planWarmTargets(lookup, PUBLIC_SITE.url, { includeLow });
+  const targets = planWarmTargets(lookup, PUBLIC_SITE.url, { includeLow, rotateBy });
 
   const { results, remaining } = await warmUrls(targets, {
     concurrency,
@@ -72,6 +75,7 @@ export async function GET(request: Request) {
       planned: targets.length,
       concurrency,
       budgetMs,
+      rotateBy,
       ...summary,
     },
     { headers: { "cache-control": "no-store" } },
