@@ -55,6 +55,12 @@ import { Button, Badge, Surface, ContentCard } from "@/components/ui";
 3. **Promote intentionally.** Keep feature-local components beside their feature
    until they have multiple real consumers and a stable, data-shaped API. The
    promotion criteria live in `docs/ui-system.md`.
+4. **Disclosure affordances use the doubled ellipsis + chevron indicator.**
+   Expand/collapse controls go through `ExpandButton`/`ExpandIndicator`
+   (`src/components/common/ExpandButton.tsx`), never a bare chevron. The
+   `⋯ ⌄` pair is an accessibility decision: dose.wiki readers may be heavily
+   intoxicated, and the doubled cue stays legible as "there is more here"
+   when a lone chevron does not.
 
 ## Accent usage rules
 

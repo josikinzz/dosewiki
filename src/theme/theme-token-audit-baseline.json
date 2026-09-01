@@ -3801,14 +3801,14 @@
     {
       "rule": "direct-theme-variable",
       "filePath": "src/features/theme-lab/paletteTokensElevation.ts",
-      "match": "var(--theme-elevation-…)",
+      "match": "var(--theme-elevation-\u2026)",
       "line": 11,
       "column": 13
     },
     {
       "rule": "direct-theme-variable",
       "filePath": "src/features/theme-lab/elevationTokens.test.ts",
-      "match": "var(--theme-…)",
+      "match": "var(--theme-\u2026)",
       "line": 32,
       "column": 18
     },
@@ -6450,6 +6450,76 @@
       "match": "var(--theme-elevation-none)",
       "line": 74,
       "column": 169
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/article/components/sections/inlineEditWiring.test.tsx",
+      "match": "var(--theme-accent-strong)",
+      "line": 169,
+      "column": 9575
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/article/components/sections/inlineEditWiring.test.tsx",
+      "match": "var(--theme-accent-strong)",
+      "line": 179,
+      "column": 2549
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/article/components/sections/inlineEditWiring.test.tsx",
+      "match": "var(--theme-accent-strong)",
+      "line": 179,
+      "column": 4406
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/article/components/sections/inlineEditWiring.test.tsx",
+      "match": "var(--theme-accent-strong)",
+      "line": 179,
+      "column": 5820
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/article/components/sections/inlineEditWiring.test.tsx",
+      "match": "var(--theme-accent-strong)",
+      "line": 179,
+      "column": 7459
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/article/components/sections/inlineEditWiring.test.tsx",
+      "match": "var(--theme-accent-strong)",
+      "line": 179,
+      "column": 9509
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/article/components/sections/inlineEditWiring.test.tsx",
+      "match": "var(--theme-accent-strong)",
+      "line": 185,
+      "column": 3307
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/article/components/sections/inlineEditWiring.test.tsx",
+      "match": "var(--theme-accent-strong)",
+      "line": 193,
+      "column": 4583
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/article/components/sections/inlineEditWiring.test.tsx",
+      "match": "var(--theme-accent-strong)",
+      "line": 199,
+      "column": 1414
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/article/components/sections/inlineEditWiring.test.tsx",
+      "match": "var(--theme-accent-strong)",
+      "line": 213,
+      "column": 4210
     }
   ]
 }

@@ -3946,6 +3946,28 @@ html[data-theme="light"] .theme-aside-panel {
   --theme-status-badge-glow: var(--theme-semantic-neutral-badge-glow);
 }
 
+/* Text-only status tones (legality status lines): the badge tones' semantic
+   inks with no fill or ring, for status labels too long to render as pills. */
+.theme-status-text[data-badge-tone="red"] {
+  color: var(--theme-semantic-danger-badge-text);
+}
+
+.theme-status-text[data-badge-tone="yellow"] {
+  color: var(--theme-semantic-caution-badge-text);
+}
+
+.theme-status-text[data-badge-tone="blue"] {
+  color: var(--theme-semantic-info-badge-text);
+}
+
+.theme-status-text[data-badge-tone="green"] {
+  color: var(--theme-semantic-success-badge-text);
+}
+
+.theme-status-text[data-badge-tone="gray"] {
+  color: var(--theme-semantic-neutral-badge-text);
+}
+
 .theme-country-flag {
   border-radius: 9999px;
   box-shadow: var(--theme-flag-shadow);

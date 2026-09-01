@@ -1,14 +1,9 @@
 "use client";
 
-import { memo, type ReactNode, useId, useState } from "react";
-import Masonry from "react-masonry-css";
-import { ExpandableText } from "@/components/common/ArticleExpandable";
-import {
-  ArticleSection,
-  ArticleSubsectionCard,
-} from "@/components/common/ArticleSection";
+import { memo, type ReactNode, useEffect, useId, useRef, useState } from "react";
+import { ArticleSection } from "@/components/common/ArticleSection";
 import { AppImage } from "@/components/common/AppImage";
-import { Icon } from "@/components/common/Icon";
+import { ExpandButton } from "@/components/common/ExpandButton";
 import { cn } from "@/lib/utils";
 import { stripCitationTokens } from "@/lib/citations/citationTokens";
 import usStateFlagMappings from "@/data/mappings/usStateFlagMappings.json";
@@ -161,10 +156,22 @@ function getStatusColor(status: string): {
   return COLOR_CLASSES.gray;
 }
 
-const MASONRY_BREAKPOINTS = {
-  default: 2,
-  640: 1,
-};
+/**
+ * The country list renders as one group per tone, ordered most restrictive
+ * first. Headers name the tone family, not any specific status string, and
+ * double as the aggregate summary via each group's count.
+ */
+const TONE_GROUPS: { tone: StatusColor; label: string; title?: string }[] = [
+  { tone: "red", label: "Illegal" },
+  { tone: "yellow", label: "Controlled / restricted" },
+  { tone: "blue", label: "Prescription" },
+  { tone: "green", label: "Legal / decriminalized" },
+  {
+    tone: "gray",
+    label: "Not scheduled",
+    title: "Not scheduled does not imply legal to possess or supply",
+  },
+];
 
 export function orderCountryLegalityEntries(
   entries: [string, CountryLegality][],
@@ -176,42 +183,10 @@ export function orderCountryLegalityEntries(
   });
 }
 
-/**
- * Produces the compact, country-specific designation displayed beside a
- * canonical legality category.
- */
-export function getInstrumentShorthand(instrument: string): string {
-  const firstSegment = instrument.split(";", 1)[0]?.split(",", 1)[0]?.trim() ?? "";
-
-  if (firstSegment.length <= 40) {
-    return firstSegment;
-  }
-
-  const wordBoundary = firstSegment.lastIndexOf(" ", 40);
-  const truncated = wordBoundary > 0
-    ? firstSegment.slice(0, wordBoundary).trimEnd()
-    : firstSegment.slice(0, 40).trimEnd();
-
-  return `${truncated}…`;
-}
-
-const DESIGNATION_LIKE_PATTERN =
-  /(schedule|sched\.|list|lista|liste|klasse|class|annex|anexo|anhang|anlage|table|tabella|tabela|tabla|category|categor|verzeichnis|f\u00f6rteckning|golongan|saraksts|narkotika|\u03a0\u03af\u03bd\u03b1\u03ba\u03b1\u03c2|\u0421\u043f\u0438\u0441\u043e\u043a|\u76ee\u5f55|\u4ed8\u8868|\u6307\u5b9a)|\b[IVX]{1,4}\b|\d/i;
-
-/**
- * A derived shorthand only qualifies as a badge when it reads like a
- * schedule/list designation; agency or law names stay off the badge.
- */
-function resolveDesignation(explicit: string | undefined, instrument: string | undefined): string | undefined {
-  if (explicit) return explicit;
-  if (!instrument) return undefined;
-  const shorthand = getInstrumentShorthand(instrument);
-  return DESIGNATION_LIKE_PATTERN.test(shorthand) ? shorthand : undefined;
-}
-
 interface LegalitySectionProps {
   article: SubstanceArticle;
 }
+
 
 type LegalityEntry = CountryLegality | USStateLegality;
 
@@ -243,24 +218,19 @@ function EditableLegalityNotes({
   );
 }
 
-type BadgeSize = "sm" | "xs";
+type StatusSize = "sm" | "xs";
 
 /**
- * Pills never wrap mid-label: `truncate` pins them to a single line so the flex
- * row pushes a badge that does not fit onto the next line, and only a badge
- * wider than the whole row degrades to an ellipsis.
+ * Statuses render as tone-colored text, not pills: real status labels run
+ * long and a wrapping pill breaks the one-line row. Tone arrives via
+ * `theme-status-text`, which colors the label and its `bg-current` tick from
+ * the same semantic inks as the badge tones, keyed off `data-badge-tone`.
+ * The statutory instrument stays out of the collapsed row entirely; it
+ * renders as the quote-styled law line once the row is expanded.
  */
-const BADGE_BASE = "theme-status-badge max-w-full truncate rounded-full font-medium";
-
-const BADGE_SIZE_CLASSES: Record<BadgeSize, { status: string; designation: string }> = {
-  sm: {
-    status: "px-2 py-0.5 text-[10px]",
-    designation: "px-1.5 py-0.5 font-mono text-[9px]",
-  },
-  xs: {
-    status: "px-1.5 py-px text-[9px]",
-    designation: "px-1 py-px font-mono text-[8px]",
-  },
+const STATUS_SIZE_CLASSES: Record<StatusSize, string> = {
+  sm: "text-[10px] tracking-[0.09em]",
+  xs: "text-[9px] tracking-[0.08em]",
 };
 
 /**
@@ -277,83 +247,123 @@ function resolveLegalityBadges(info: LegalityEntry) {
     : displayStatus
       ? getStatusColor(displayStatus)
       : COLOR_CLASSES.gray;
-  const instrument = info.instrument?.trim();
-  const designation = canonicalStatus
-    ? resolveDesignation(info.designation, instrument)
-    : undefined;
+  // The expanded law line prefers the full statutory instrument; an explicit
+  // designation stands in when no instrument was recorded.
+  const lawText = info.instrument?.trim() || info.designation?.trim();
 
   return {
     canonicalStatus,
     statusColor,
     hasStatusBadge: Boolean(canonicalStatus || info.status?.trim()),
     statusLabel: canonicalStatus ? canonicalStatus.label : displayStatus,
-    designation,
-    showDesignation: Boolean(
-      designation
-        && canonicalStatus
-        && designation.toLowerCase() !== canonicalStatus.label.toLowerCase(),
-    ),
-    instrument,
-    showInstrumentCitation: Boolean(canonicalStatus && instrument && designation !== instrument),
+    lawText,
+    showLaw: Boolean(canonicalStatus && lawText),
   };
 }
 
-function LegalityBadges({
+function LegalityStatusLine({
   article,
   info,
   size,
 }: {
   article: SubstanceArticle;
   info: LegalityEntry;
-  size: BadgeSize;
+  size: StatusSize;
 }) {
-  const { canonicalStatus, hasStatusBadge, statusColor, statusLabel, designation, showDesignation } =
+  const { canonicalStatus, hasStatusBadge, statusColor, statusLabel } =
     resolveLegalityBadges(info);
-  const sizeClasses = BADGE_SIZE_CLASSES[size];
 
   return (
     <>
       {hasStatusBadge && (
         <span
-          className={cn(BADGE_BASE, sizeClasses.status, statusColor.className)}
+          className={cn(
+            "theme-status-text inline-flex max-w-[60%] shrink-0 items-center gap-1.5 font-semibold uppercase",
+            STATUS_SIZE_CLASSES[size],
+          )}
           data-badge-tone={statusColor.tone}
           title={statusLabel || undefined}
         >
-          {canonicalStatus ? canonicalStatus.label : <CitedText text={info.status} article={article} />}
-        </span>
-      )}
-      {showDesignation && (
-        <span
-          className={cn(BADGE_BASE, sizeClasses.designation)}
-          data-badge-tone="gray"
-          title={stripCitationTokens(designation)}
-        >
-          <CitedText text={designation} article={article} />
+          <span aria-hidden className="h-1 w-1 shrink-0 rounded-full bg-current" />
+          <span className="truncate">
+            {canonicalStatus ? canonicalStatus.label : <CitedText text={info.status} article={article} />}
+          </span>
         </span>
       )}
     </>
   );
 }
 
-interface LegalityEntryCardProps {
-  article: SubstanceArticle;
-  name: string;
-  info: LegalityEntry;
-  flagSrc?: string;
-  footer?: ReactNode;
-  /** Field path of this entry's `notes`; omit to leave the note read-only. */
-  notesPath?: string;
-}
+type LegalityRowVariant = "country" | "state" | "city";
 
-function LegalityEntryCard({
+const ROW_VARIANT: Record<
+  LegalityRowVariant,
+  {
+    header: string;
+    name: string;
+    statusSize: StatusSize;
+    toggle: string;
+    details: string;
+  }
+> = {
+  country: {
+    header: "flex min-w-0 items-center gap-2 rounded-lg py-2.5 transition-colors hover:bg-dose-surface-muted/40",
+    name: "shrink-0 whitespace-nowrap text-sm font-medium theme-text-primary",
+    statusSize: "sm",
+    toggle: "px-2 py-1",
+    details: "min-w-0 pb-3 pl-7",
+  },
+  state: {
+    header: "-mx-2 flex min-w-0 items-center gap-1.5 rounded-md px-2 py-1 transition-colors hover:bg-dose-surface-muted/40",
+    name: "shrink-0 whitespace-nowrap text-xs font-medium theme-text-primary",
+    statusSize: "xs",
+    toggle: "px-1.5 py-0.5",
+    details: "mt-2 min-w-0",
+  },
+  city: {
+    header: "-mx-2 flex min-w-0 items-center gap-1.5 rounded-md px-2 py-1 transition-colors hover:bg-dose-surface-muted/40",
+    name: "shrink-0 whitespace-nowrap text-xs font-medium theme-text-primary",
+    statusSize: "xs",
+    toggle: "px-1.5 py-0.5",
+    details: "mt-2 min-w-0",
+  },
+};
+
+/**
+ * One collapsible legality row: flag + name + status badges + chevron, with
+ * the instrument citation, prose note, nested rows, and any footer behind the
+ * disclosure. Collapsed details stay in the DOM (upgraded to
+ * `hidden="until-found"` after hydration) so find-in-page still matches the
+ * prose and, in supporting browsers, `beforematch` expands the row.
+ */
+function LegalityRow({
   article,
   name,
   info,
-  flagSrc,
+  flag,
+  variant,
+  pathParts,
   footer,
-  notesPath,
-}: LegalityEntryCardProps) {
-  const { instrument, showInstrumentCitation } = resolveLegalityBadges(info);
+}: {
+  article: SubstanceArticle;
+  name: string;
+  info: LegalityEntry;
+  flag?: ReactNode;
+  variant: LegalityRowVariant;
+  /**
+   * Decoded path parts addressing this entry, e.g.
+   * `["legality", "usStates", "Florida"]`. Omit to leave the row read-only.
+   * Every part is a data-chosen record key, so it is encoded by
+   * `buildFieldPath` rather than interpolated.
+   */
+  pathParts?: readonly string[];
+  footer?: ReactNode;
+}) {
+  const detailsId = useId();
+  const detailsRef = useRef<HTMLDivElement | null>(null);
+  const [isExpanded, setIsExpanded] = useState(false);
+  const { lawText, showLaw } = resolveLegalityBadges(info);
+  const styles = ROW_VARIANT[variant];
   const displayText = info.notes || "";
   // Entry-level citationNeeded renders as the same free-floating gray
   // `[citation-needed]` marker used in article prose, appended to the note so
@@ -362,191 +372,118 @@ function LegalityEntryCard({
   const renderText = info.citationNeeded && displayText
     ? `${displayText} [citation-needed]`
     : displayText;
-  const isLongText = displayText.length > 480;
+  const notesPath = pathParts ? buildFieldPath(...pathParts, "notes") : undefined;
+  // Only `usStates.*.cities.*` is allow-listed, so a city never nests further.
+  const cityPathParts = pathParts && variant === "state" ? pathParts : undefined;
+
+  useEffect(() => {
+    const el = detailsRef.current;
+    if (!el) return;
+    const expand = () => setIsExpanded(true);
+    el.addEventListener("beforematch", expand);
+    return () => el.removeEventListener("beforematch", expand);
+  }, []);
+
+  // SSR emits the boolean `hidden`; after hydration the collapsed state is
+  // expressed as `hidden="until-found"`. React never rewrites the attribute
+  // while `hidden` stays `true` in JSX, so the upgrade survives re-renders.
+  useEffect(() => {
+    const el = detailsRef.current;
+    if (!el) return;
+    if (isExpanded) {
+      el.removeAttribute("hidden");
+    } else {
+      el.setAttribute("hidden", "until-found");
+    }
+  }, [isExpanded]);
 
   return (
-    <ArticleSubsectionCard
-      padding="xs"
-      variant="nested"
-      className="relative min-w-0"
+    <div
+      className={cn(
+        "min-w-0",
+        variant === "city" && "pl-4",
+        // Countries carry no divider; a collapsed row is delimited by its
+        // flag and rhythm alone, and an expanded row becomes a soft nested
+        // surface that contains its law line, prose, and state rows. The
+        // constant -mx-2/px-2 geometry keeps text aligned in both states.
+        variant === "country" && "-mx-2 rounded-xl px-2 transition-colors",
+        variant === "country" && isExpanded && "my-1 bg-dose-surface-muted/55",
+      )}
     >
-      {flagSrc && (
-        <AppImage
-          src={flagSrc}
-          alt={`${name} flag`}
-          width={24}
-          height={24}
-          className="theme-country-flag absolute right-3 top-3 h-6 w-6"
+      {/*
+        The whole header toggles: the chevron alone is a small, distant
+        target. Links inside the status line keep their own behavior, and the
+        nested ExpandButton remains the accessible keyboard control, so the
+        div's pointer handler is a pointer-only convenience enlargement.
+      */}
+      {/* eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-static-element-interactions */}
+      <div
+        className={cn(styles.header, "cursor-pointer select-none")}
+        onClick={(event) => {
+          if ((event.target as HTMLElement).closest("a, button")) return;
+          setIsExpanded((expanded) => !expanded);
+        }}
+      >
+        {flag}
+        <span className={styles.name}>{name}</span>
+        <LegalityStatusLine article={article} info={info} size={styles.statusSize} />
+        <ExpandButton
+          variant="faint"
+          isExpanded={isExpanded}
+          onToggle={() => setIsExpanded((expanded) => !expanded)}
+          ariaControls={detailsId}
+          ariaLabel={isExpanded ? `Hide details for ${name}` : `Show details for ${name}`}
+          className={cn("shrink-0", styles.toggle)}
         />
-      )}
-      <div className={`flex min-w-0 flex-wrap items-center gap-2 ${flagSrc ? "pr-8" : ""}`}>
-        <span className="min-w-0 break-words font-medium theme-text-primary">{name}</span>
-        <LegalityBadges article={article} info={info} size="sm" />
       </div>
-      {showInstrumentCitation && instrument && (
-        <div
-          className="mt-1 break-words text-[11px] italic leading-[1.125rem] theme-text-muted"
-          data-testid="legality-instrument-citation"
-        >
-          <CitedText text={instrument} article={article} />
-        </div>
-      )}
-      {displayText ? (isLongText ? (
-        <ExpandableText
-          ariaLabelBase={`${name} legality notes`}
-          className="mt-1"
-          contentClassName="whitespace-pre-line text-sm leading-relaxed theme-text-muted"
-          maxLines={6}
-        >
-          {/* The clamp is CSS-only, so the full raw note is what seeds the editor. */}
+      <div id={detailsId} ref={detailsRef} hidden className={styles.details}>
+        {showLaw && lawText && (
+          <div
+            className="min-w-0 break-words border-l border-dose-border pl-2.5 text-[11px] italic leading-relaxed theme-text-muted"
+            data-testid="legality-instrument-citation"
+          >
+            <CitedText text={lawText} article={article} />
+          </div>
+        )}
+        {displayText ? (
           <EditableLegalityNotes
             label={`${name} legality notes`}
             notesPath={notesPath}
             value={displayText}
           >
-            <CitedText text={renderText} article={article} />
-          </EditableLegalityNotes>
-        </ExpandableText>
-      ) : (
-        <EditableLegalityNotes
-          label={`${name} legality notes`}
-          notesPath={notesPath}
-          value={displayText}
-        >
-          <ArticleText
-            as="div"
-            text={renderText}
-            article={article}
-            tone="muted"
-            className="mt-1 whitespace-pre-line text-sm leading-relaxed theme-text-muted"
-          />
-        </EditableLegalityNotes>
-      )) : notesPath ? (
-        <EditableSlot
-          className="mt-1"
-          emptyLabel={`Add ${name} legality notes`}
-          label={`${name} legality notes`}
-          path={notesPath}
-          value=""
-        />
-      ) : null}
-      {footer}
-    </ArticleSubsectionCard>
-  );
-}
-
-function LegalityStateRow({
-  article,
-  name,
-  info,
-  flagSrc,
-  city = false,
-  pathParts,
-}: {
-  article: SubstanceArticle;
-  name: string;
-  info: LegalityEntry;
-  flagSrc?: string;
-  city?: boolean;
-  /**
-   * Decoded path parts addressing this entry, e.g.
-   * `["legality", "usStates", "Florida"]`. Omit to leave the row read-only.
-   * Every part is a data-chosen record key, so it is encoded by
-   * `buildFieldPath` rather than interpolated.
-   */
-  pathParts?: readonly string[];
-}) {
-  const detailsId = useId();
-  const [isExpanded, setIsExpanded] = useState(false);
-  const { instrument, showInstrumentCitation } = resolveLegalityBadges(info);
-  const displayText = info.notes || "";
-  const renderText = info.citationNeeded && displayText
-    ? `${displayText} [citation-needed]`
-    : displayText;
-  const notesPath = pathParts ? buildFieldPath(...pathParts, "notes") : undefined;
-  // Only `usStates.*.cities.*` is allow-listed, so a city never nests further.
-  const cityPathParts = pathParts && !city ? pathParts : undefined;
-
-  return (
-    <div className={city ? "min-w-0 pl-4" : "min-w-0"}>
-      <div className="flex min-w-0 flex-wrap items-center gap-1.5">
-        {flagSrc && (
-          <img
-            src={flagSrc}
-            alt={`${name} flag`}
-            width={24}
-            height={16}
-            loading="lazy"
-            decoding="async"
-            className="h-4 w-6 shrink-0 overflow-hidden rounded-sm object-cover object-center"
-          />
-        )}
-        <span className="min-w-0 break-words text-xs font-medium theme-text-primary">{name}</span>
-        <LegalityBadges article={article} info={info} size="xs" />
-        <button
-          type="button"
-          onClick={() => setIsExpanded((expanded) => !expanded)}
-          aria-controls={detailsId}
-          aria-expanded={isExpanded}
-          aria-label={isExpanded ? `Hide details for ${name}` : `Show details for ${name}`}
-          className="theme-control-pill-faint ml-auto inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-md transition-opacity hover:opacity-90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-dose-accent-strong"
-        >
-          <Icon
-            icon="lucide:chevron-down"
-            size={13}
-            className={`transition-transform duration-200 ${isExpanded ? "rotate-180" : ""}`}
-          />
-        </button>
-      </div>
-      {isExpanded && (
-        <div id={detailsId} className="mt-2 min-w-0">
-          {showInstrumentCitation && instrument && (
-            <div
-              className="min-w-0 break-words text-[11px] italic leading-relaxed theme-text-muted"
-              data-testid="legality-instrument-citation"
-            >
-              <CitedText text={instrument} article={article} />
-            </div>
-          )}
-          {displayText ? (
-            <EditableLegalityNotes
-              label={`${name} legality notes`}
-              notesPath={notesPath}
-              value={displayText}
-            >
-              <ArticleText
-                as="div"
-                text={renderText}
-                article={article}
-                tone="muted"
-                className="mt-1 min-w-0 whitespace-pre-line break-words text-sm leading-relaxed theme-text-muted"
-              />
-            </EditableLegalityNotes>
-          ) : notesPath ? (
-            <EditableSlot
-              className="mt-1"
-              emptyLabel={`Add ${name} legality notes`}
-              label={`${name} legality notes`}
-              path={notesPath}
-              value=""
+            <ArticleText
+              as="div"
+              text={renderText}
+              article={article}
+              tone="muted"
+              className="mt-1 min-w-0 whitespace-pre-line break-words text-sm leading-relaxed theme-text-muted"
             />
-          ) : null}
-          {"cities" in info && info.cities && Object.keys(info.cities).length > 0 && (
-            <div className="mt-3 space-y-3 border-l border-dose-border-subtle pl-2" data-testid="legality-city-list">
-              {Object.entries(info.cities).map(([cityName, cityInfo]) => (
-                <LegalityStateRow
-                  key={cityName}
-                  article={article}
-                  name={cityName}
-                  info={cityInfo}
-                  city
-                  pathParts={cityPathParts ? [...cityPathParts, "cities", cityName] : undefined}
-                />
-              ))}
-            </div>
-          )}
-        </div>
-      )}
+          </EditableLegalityNotes>
+        ) : notesPath ? (
+          <EditableSlot
+            className="mt-1"
+            emptyLabel={`Add ${name} legality notes`}
+            label={`${name} legality notes`}
+            path={notesPath}
+            value=""
+          />
+        ) : null}
+        {"cities" in info && info.cities && Object.keys(info.cities).length > 0 && (
+          <div className="mt-3 space-y-1 border-l border-dose-border pl-2" data-testid="legality-city-list">
+            {Object.entries(info.cities).map(([cityName, cityInfo]) => (
+              <LegalityRow
+                key={cityName}
+                article={article}
+                name={cityName}
+                info={cityInfo}
+                variant="city"
+                pathParts={cityPathParts ? [...cityPathParts, "cities", cityName] : undefined}
+              />
+            ))}
+          </div>
+        )}
+        {footer}
+      </div>
     </div>
   );
 }
@@ -584,23 +521,49 @@ function USStatesFooter({
           value=""
         />
       )}
-      <div className="space-y-3">
-        {states.map(([stateName, stateInfo]) => (
-          // Mapping values carry the file extension: detailed seal flags are
-          // rasterized to small webp (they render at 24x16); simple geometric
-          // flags stay as tiny svg.
-          <LegalityStateRow
+      <div className="space-y-1">{states.map(([stateName, stateInfo]) => {
+        // Mapping values carry the file extension: detailed seal flags are
+        // rasterized to small webp (they render at 24x16); simple geometric
+        // flags stay as tiny svg.
+        const flagFile = usStateFlagMappings[stateName as keyof typeof usStateFlagMappings];
+        return (
+          <LegalityRow
             key={stateName}
             article={article}
             name={stateName}
             info={stateInfo}
-            flagSrc={usStateFlagMappings[stateName as keyof typeof usStateFlagMappings]
-              ? `/flags/us/${usStateFlagMappings[stateName as keyof typeof usStateFlagMappings]}`
-              : undefined}
+            variant="state"
+            flag={flagFile ? (
+              <img
+                src={`/flags/us/${flagFile}`}
+                alt={`${stateName} flag`}
+                width={24}
+                height={16}
+                loading="lazy"
+                decoding="async"
+                className="h-4 w-6 shrink-0 overflow-hidden rounded-sm object-cover object-center"
+              />
+            ) : undefined}
             pathParts={["legality", "usStates", stateName]}
           />
-        ))}
-      </div>
+        );
+      })}</div>
+    </div>
+  );
+}
+
+/**
+ * Overline header for one tone group: label, count, and a gradient rule that
+ * fades out to the right, matching the section-heading hairline.
+ */
+function ToneGroupHeading({ label, count, title }: { label: string; count: number; title?: string }) {
+  return (
+    <div className="mb-1 flex items-center gap-2" title={title}>
+      <span className="font-mono text-[11px] font-semibold uppercase tracking-[0.16em] theme-text-muted">
+        {label}
+      </span>
+      <span className="font-mono text-[10px] tabular-nums theme-text-faint">{count}</span>
+      <div aria-hidden className="theme-horizontal-divider flex-1" />
     </div>
   );
 }
@@ -615,6 +578,13 @@ export const LegalitySection = memo(function LegalitySection({
   const usStates = legality.usStates ?? {};
   const usStateEntries = Object.entries(usStates);
   const hasUsStates = usStateEntries.length > 0;
+
+  const toneGroups = TONE_GROUPS.map((group) => ({
+    ...group,
+    entries: countries.filter(
+      ([, info]) => resolveLegalityBadges(info).statusColor.tone === group.tone,
+    ),
+  })).filter((group) => group.entries.length > 0);
 
   if (!hasInternational && !hasCountries && !hasUsStates) {
     return <ArticleGapNotice article={article} section="legality" />;
@@ -658,33 +628,63 @@ export const LegalitySection = memo(function LegalitySection({
           className="mt-4"
           headingClassName="font-semibold normal-case tracking-normal"
         >
-          {countries.length > 0 && (
-            <Masonry
-              breakpointCols={MASONRY_BREAKPOINTS}
-              className="flex w-full gap-4"
-              columnClassName="flex min-w-0 flex-1 flex-col gap-4"
-            >
-              {countries.map(([countryName, info]) => {
-                const countryCode = getCountryCode(countryName);
-                return (
-                  <LegalityEntryCard
-                    key={countryName}
-                    article={article}
-                    name={countryName}
-                    info={info}
-                    notesPath={buildFieldPath("legality", "countries", countryName, "notes")}
-                    flagSrc={countryCode ? `/flags/${countryCode}.svg` : undefined}
-                    footer={countryName === "United States" && hasUsStates ? (
-                      <USStatesFooter
-                        article={article}
-                        note={legality.usStatesNote}
-                        states={usStateEntries}
-                      />
-                    ) : undefined}
+          {hasCountries && (
+            <div className="space-y-6">
+              {toneGroups.map((group) => (
+                <section key={group.tone} className="min-w-0">
+                  <ToneGroupHeading
+                    label={group.label}
+                    count={group.entries.length}
+                    title={group.title}
                   />
-                );
-              })}
-            </Masonry>
+                  {/*
+                    Two independently flowing columns, split column-major so
+                    each column reads alphabetically top to bottom. Unlike a
+                    shared grid, expanding a row only grows its own column;
+                    the neighbor never gains phantom space.
+                  */}
+                  <div className="min-w-0 sm:flex sm:gap-10">
+                    {[
+                      group.entries.slice(0, Math.ceil(group.entries.length / 2)),
+                      group.entries.slice(Math.ceil(group.entries.length / 2)),
+                    ].map((column, columnIndex) => (
+                      <div key={columnIndex} className="min-w-0 sm:w-0 sm:flex-1">
+                        {column.map(([countryName, info]) => {
+                          const countryCode = getCountryCode(countryName);
+                          return (
+                            <div key={countryName} className="min-w-0">
+                              <LegalityRow
+                                article={article}
+                                name={countryName}
+                                info={info}
+                                variant="country"
+                                pathParts={["legality", "countries", countryName]}
+                                flag={countryCode ? (
+                                  <AppImage
+                                    src={`/flags/${countryCode}.svg`}
+                                    alt={`${countryName} flag`}
+                                    width={24}
+                                    height={24}
+                                    className="theme-country-flag h-5 w-5 shrink-0"
+                                  />
+                                ) : undefined}
+                                footer={countryName === "United States" && hasUsStates ? (
+                                  <USStatesFooter
+                                    article={article}
+                                    note={legality.usStatesNote}
+                                    states={usStateEntries}
+                                  />
+                                ) : undefined}
+                              />
+                            </div>
+                          );
+                        })}
+                      </div>
+                    ))}
+                  </div>
+                </section>
+              ))}
+            </div>
           )}
         </ArticleSection.Group>
       )}
