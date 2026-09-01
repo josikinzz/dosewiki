@@ -230,8 +230,9 @@ export function transformOperation(operation, context) {
       : kind === "avatar" ? { kind, profile_id: value.profile_id, media_digest: value.media_digest }
         : kind === "verification" ? { kind, profile_id: value.profile_id }
           : { kind: "social-asset", entity_kind: value.entity_kind, entity_key: value.entity_key, variant: value.variant };
-  const entryCore = { schemaVersion: 1, projection: operation, target, value, ...envelope };
-  return { disposition: classification.disposition, reason: classification.reason, entry: { kind, item_operation_id: `identity-social-item:v1:${digest(entryCore).slice(0, 24)}`, ...common, value } };
+  const identitySnapshot = kind === "alias" ? { identity_snapshot_digest: operation.expectedBefore.fullProductionProfileSetSha256 } : {};
+  const entryCore = { schemaVersion: 1, projection: operation, target, value, ...identitySnapshot, ...envelope };
+  return { disposition: classification.disposition, reason: classification.reason, entry: { kind, item_operation_id: `identity-social-item:v1:${digest(entryCore).slice(0, 24)}`, ...common, ...identitySnapshot, value } };
 }
 
 export function buildExecutionPlan(projection, context) {

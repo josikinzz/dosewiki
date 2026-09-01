@@ -38,7 +38,7 @@ function targetFor(entry: IdentitySocialBatchEntry) {
 async function bindItemId(entry: IdentitySocialBatchEntry) {
   entry.base_projection_digest = DIGEST;
   entry.receipt_sidecar_digest = null;
-  entry.item_operation_id = `identity-social-item:v1:${(await canonicalDigest({ schemaVersion: 1, projection: entry.projection, target: targetFor(entry), value: entry.value, base_projection_digest: entry.base_projection_digest, receipt_sidecar_digest: entry.receipt_sidecar_digest })).slice(0, 24)}`;
+  entry.item_operation_id = `identity-social-item:v1:${(await canonicalDigest({ schemaVersion: 1, projection: entry.projection, target: targetFor(entry), value: entry.value, ...(entry.kind === "alias" ? { identity_snapshot_digest: entry.identity_snapshot_digest } : {}), base_projection_digest: entry.base_projection_digest, receipt_sidecar_digest: entry.receipt_sidecar_digest })).slice(0, 24)}`;
   return entry;
 }
 

@@ -196,7 +196,7 @@ async function validateProjectionIdentity(entry: IdentitySocialBatchEntry) {
   const p = entry.projection;
   validateProjectionMapping(entry);
   if (await canonicalDigest(p.expectedBefore) !== p.expectedBeforeSha256) throw new Error("Projection expected-before digest does not match its canonical snapshot.");
-  const core = { schemaVersion: ITEM_ID_VERSION, projection: p, target: targetOf(entry), value: entry.value, base_projection_digest: entry.base_projection_digest, receipt_sidecar_digest: entry.receipt_sidecar_digest };
+  const core = { schemaVersion: ITEM_ID_VERSION, projection: p, target: targetOf(entry), value: entry.value, ...(entry.kind === "alias" ? { identity_snapshot_digest: entry.identity_snapshot_digest } : {}), base_projection_digest: entry.base_projection_digest, receipt_sidecar_digest: entry.receipt_sidecar_digest };
   const expectedId = `identity-social-item:v${ITEM_ID_VERSION}:${(await canonicalDigest(core)).slice(0, 24)}`;
   if (entry.item_operation_id !== expectedId) throw new Error("Item operation ID is not derived from canonical transformed content.");
 }
