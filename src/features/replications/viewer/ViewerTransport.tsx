@@ -5,7 +5,6 @@ import {
   useEffect,
   useRef,
   useState,
-  type CSSProperties,
   type PointerEvent as ReactPointerEvent,
 } from "react";
 
@@ -37,11 +36,31 @@ import {
 } from "./qualityLadder";
 import { RotatingIcon } from "./RotatingIcon";
 
+/** Overlay controls float directly on the media: no pills, no chips — just
+    filled glyphs (fluent) with the 44px hit area and rounded focus ring the
+    rest of the app expects. The four hard 1px drop-shadows compound into a
+    solid black contour around each glyph AND bleed through the alpha into
+    enclosed hollows (the HD counters, the info "i"), so the white shapes
+    survive any backdrop; the soft final shadow lifts them off busy frames. */
+const glyphContourClassName =
+  "[filter:drop-shadow(1px_0_0_#000)_drop-shadow(-1px_0_0_#000)_drop-shadow(0_1px_0_#000)_drop-shadow(0_-1px_0_#000)_drop-shadow(0_1px_2px_rgba(0,0,0,0.6))]";
+
 const controlClassName = cn(
-  "theme-media-tile-title grid size-11 flex-none place-items-center rounded-full bg-black/65 backdrop-blur-sm",
+  "theme-media-tile-title grid size-11 flex-none place-items-center rounded-lg",
+  glyphContourClassName,
   "transition-opacity hover:opacity-100 active:opacity-100 motion-reduce:transition-none",
   focusRingClassName,
 );
+
+const dockControlClassName = cn(
+  "theme-media-tile-title pointer-events-auto grid size-11 flex-none place-items-center rounded-lg",
+  glyphContourClassName,
+  focusRingClassName,
+);
+
+/** Toggle glyphs signal state by weight alone: dimmed is off, full is on. */
+const dockToggleOffClassName =
+  "opacity-55 transition-opacity hover:opacity-85 motion-reduce:transition-none";
 
 function reducedMotionRequested(): boolean {
   return (
@@ -105,8 +124,8 @@ export interface ViewerTransportHandle {
   toggleMuted: () => void;
   /** A plain tap on the media surface: repay sound, else toggle chrome. */
   surfaceTap: () => void;
-  /** Pointer travel over the stage keeps the chrome awake. */
-  pointerActivity: () => void;
+  /** Pure chrome visibility toggle; never touches the sound IOU. */
+  toggleChrome: () => void;
 }
 
 export interface ViewerTransportProps {
@@ -140,7 +159,8 @@ export interface ViewerTransportProps {
   /** Receives gesture-safe playback verbs; called with null on unmount. */
   onTransportHandle?: (handle: ViewerTransportHandle | null) => void;
   onFullscreen?: () => void;
-  fullscreenLabel?: string;
+  /** Whether this platform can honour a fullscreen request at all. */
+  fullscreenSupported: boolean;
   previousLabel?: string;
   nextLabel?: string;
 }
@@ -169,11 +189,10 @@ export function ViewerTransport({
   onRotateModeChange,
   canRotate,
   rotated,
-  mediaAspect,
   onTransportVisibleChange,
   onTransportHandle,
   onFullscreen,
-  fullscreenLabel = "Fullscreen",
+  fullscreenSupported,
   previousLabel = "Previous work",
   nextLabel = "Next work",
 }: ViewerTransportProps) {
@@ -210,6 +229,8 @@ export function ViewerTransport({
   const [buffering, setBuffering] = useState(false);
   const [controlsVisible, setControlsVisible] = useState(true);
   const [scrubbing, setScrubbing] = useState(false);
+  /** Keyboard focus inside the transport pins the chrome (focus-within). */
+  const [focusWithin, setFocusWithin] = useState(false);
   const [audioPresence, setAudioPresence] = useState<AudioPresence>(
     knownAudio === true ? "present" : "unknown",
   );
@@ -235,16 +256,21 @@ export function ViewerTransport({
     );
   }, []);
 
+  /** Reveal the chrome for an intent gesture, then let it fade again. */
   const showControls = useCallback(() => {
     setControlsVisible(true);
-    if (!moving || (video && !video.paused && !video.ended)) {
-      scheduleControlHide();
-    } else {
-      window.clearTimeout(hideTimerRef.current);
-    }
-  }, [moving, scheduleControlHide, video]);
+    scheduleControlHide();
+  }, [scheduleControlHide]);
 
-  const toggleControls = useCallback(() => {
+  /**
+   * The pure chrome toggle behind surface taps and the `h` shortcut:
+   * hiding cancels the fade timer so the hidden state persists until the
+   * next intent — pointer travel never resurrects it — and revealing
+   * re-arms the fade over any media, still or moving. States that plainly
+   * need the chrome (paused, error, scrubbing, keyboard focus) pin it in
+   * transportVisible below, never here.
+   */
+  const toggleChrome = useCallback(() => {
     setControlsVisible((current) => {
       window.clearTimeout(hideTimerRef.current);
       if (!current) scheduleControlHide();
@@ -312,6 +338,9 @@ export function ViewerTransport({
     setError(false);
     setBuffering(false);
     setControlsVisible(true);
+    // Every work opens with the chrome up and already fading — stills
+    // included, so an untouched still goes immersive on its own.
+    scheduleControlHide();
     setScrubbing(false);
     scrubbingRef.current = false;
     // A new work re-asks for the shared sound preference in the binding
@@ -523,8 +552,8 @@ export function ViewerTransport({
       showControls();
       return;
     }
-    toggleControls();
-  }, [repaySoundIou, showControls, toggleControls, video]);
+    toggleChrome();
+  }, [repaySoundIou, showControls, toggleChrome, video]);
 
   // Hand the overlay gesture-safe playback verbs for keyboard and gestures.
   useEffect(() => {
@@ -533,16 +562,10 @@ export function ViewerTransport({
       togglePlayback,
       toggleMuted,
       surfaceTap,
-      pointerActivity: showControls,
+      toggleChrome,
     });
     return () => onTransportHandle(null);
-  }, [
-    onTransportHandle,
-    showControls,
-    surfaceTap,
-    toggleMuted,
-    togglePlayback,
-  ]);
+  }, [onTransportHandle, surfaceTap, toggleChrome, toggleMuted, togglePlayback]);
 
   /**
    * The timeline the seek bar advertises: a truncated preview still shows
@@ -567,47 +590,26 @@ export function ViewerTransport({
     [ladderContext, replication.duration],
   );
 
-  /**
-   * One direct-DOM write moves both the accent fill and its thumb. While
-   * the media is rotated the bar runs vertically down the left screen edge,
-   * so progress fills top-to-bottom — the same turn the media box makes.
-   */
-  const paintPlayhead = useCallback(
-    (ratio: number) => {
-      const fill = progressFillRef.current;
-      if (fill) {
-        fill.style.transform = rotated
-          ? `scaleY(${ratio})`
-          : `scaleX(${ratio})`;
-      }
-      const thumb = progressThumbRef.current;
-      if (thumb) {
-        if (rotated) {
-          thumb.style.left = "";
-          thumb.style.top = `${ratio * 100}%`;
-        } else {
-          thumb.style.top = "";
-          thumb.style.left = `${ratio * 100}%`;
-        }
-      }
-    },
-    [rotated],
-  );
+  /** One direct-DOM write moves both the accent fill and its thumb. */
+  const paintPlayhead = useCallback((ratio: number) => {
+    const fill = progressFillRef.current;
+    if (fill) fill.style.transform = `scaleX(${ratio})`;
+    const thumb = progressThumbRef.current;
+    if (thumb) thumb.style.left = `${ratio * 100}%`;
+  }, []);
 
   /**
    * Seek to the pointer's position on the bar and paint the playhead there.
    * A target beyond a truncated preview's end swaps to the full file first.
    */
   const seekToPointer = useCallback(
-    (clientX: number, clientY: number) => {
+    (clientX: number) => {
       const slider = progressSliderRef.current;
       if (!video || !slider) return;
       const duration = resolveSeekDuration(video);
       if (duration <= 0) return;
       const rect = slider.getBoundingClientRect();
-      const ratio = rotated
-        ? seekRatioFromPointer(clientY, rect.top, rect.height)
-        : seekRatioFromPointer(clientX, rect.left, rect.width);
+      const ratio = seekRatioFromPointer(clientX, rect.left, rect.width);
       const target = ratio * duration;
       const verdict = decide(
         {
@@ -623,14 +625,7 @@ export function ViewerTransport({
       else seekPooledElement(video, target);
       paintPlayhead(ratio);
     },
-    [
-      applyVerdict,
-      ladderContext,
-      paintPlayhead,
-      resolveSeekDuration,
-      rotated,
-      video,
-    ],
+    [applyVerdict, ladderContext, paintPlayhead, resolveSeekDuration, video],
   );
 
   const endScrub = useCallback((event: ReactPointerEvent<HTMLDivElement>) => {
@@ -660,25 +655,12 @@ export function ViewerTransport({
         const range = playable
           ? bufferedRangeContaining(video.buffered, video.currentTime)
           : null;
-        if (rotated) {
-          bufferedFill.style.left = "";
-          bufferedFill.style.width = "";
-          bufferedFill.style.top = range
-            ? `${(range.start / duration) * 100}%`
-            : "0%";
-          bufferedFill.style.height = range
-            ? `${((range.end - range.start) / duration) * 100}%`
-            : "0%";
-        } else {
-          bufferedFill.style.top = "";
-          bufferedFill.style.height = "";
-          bufferedFill.style.left = range
-            ? `${(range.start / duration) * 100}%`
-            : "0%";
-          bufferedFill.style.width = range
-            ? `${((range.end - range.start) / duration) * 100}%`
-            : "0%";
-        }
+        bufferedFill.style.left = range
+          ? `${(range.start / duration) * 100}%`
+          : "0%";
+        bufferedFill.style.width = range
+          ? `${((range.end - range.start) / duration) * 100}%`
+          : "0%";
       }
       const slider = progressSliderRef.current;
       if (slider && playable) {
@@ -708,13 +690,18 @@ export function ViewerTransport({
     paintPlayhead,
     replication.slug,
     resolveSeekDuration,
-    rotated,
     video,
   ]);
 
-  const transportVisible = moving
-    ? controlsVisible || !playing || blocked || error
-    : controlsVisible;
+  // Pins hold the chrome up while the reader plainly needs it: a paused,
+  // blocked, or failed work, a scrub in progress, or keyboard focus inside
+  // the transport. Otherwise visibility follows the intent toggle + fade.
+  const transportVisible =
+    controlsVisible ||
+    scrubbing ||
+    focusWithin ||
+    error ||
+    (moving && (!playing || blocked));
   // The overlay fades its own chrome (header, rail, byline) in step with
   // the transport, so hidden chrome means the whole screen belongs to the
   // work — not just the corner controls.
@@ -734,26 +721,32 @@ export function ViewerTransport({
     if (autoplayAllowed) attemptPlay(video);
   }, [attemptPlay, autoplayAllowed, video]);
 
-  // Anchor the playback cluster to the letterboxed media box, not the stage:
-  // object-contain centers the media, so each axis's spare space is half of
-  // (stage minus contained size). Container-query units resolve against the
-  // transport section ([container-type:size]); a rotated media box presents
-  // its inverted aspect. The 0.75rem inset keeps the pill just inside the
-  // media's bottom-left corner; while rotated the vertical seek bar owns the
-  // leftmost 20px, so the pill steps right past its hit zone.
-  const anchorAspect = rotated ? 1 / mediaAspect : mediaAspect;
-  const anchorLeftInset = rotated ? "1.75rem" : "0.75rem";
-  const mediaBoxAnchorStyle = {
-    "--media-box-left": `calc((100cqw - min(100cqw, 100cqh * ${anchorAspect})) / 2 + ${anchorLeftInset})`,
-    "--media-box-bottom": `calc((100cqh - min(100cqh, 100cqw / ${anchorAspect})) / 2 + 0.75rem)`,
-  } as CSSProperties;
   const showWorkNavigation = Boolean(onPrevious || onNext);
 
   return (
+    // Focus/blur bubble up from the transport's buttons and sliders; the
+    // section only observes them to pin the chrome while a control is
+    // focused. It is delegation, not interaction on the landmark itself.
+    // eslint-disable-next-line jsx-a11y/no-noninteractive-element-interactions
     <section
       aria-label={`${replication.title} media controls`}
       data-replication-media-stage
       data-controls-visible={transportVisible || undefined}
+      // Tab users are never operating invisible controls: focus landing on
+      // any transport control reveals the chrome and pins it until focus
+      // leaves, when the ordinary fade resumes.
+      onFocus={() => {
+        setFocusWithin(true);
+        setControlsVisible(true);
+        window.clearTimeout(hideTimerRef.current);
+      }}
+      onBlur={(event) => {
+        if (event.currentTarget.contains(event.relatedTarget as Node | null)) {
+          return;
+        }
+        setFocusWithin(false);
+        scheduleControlHide();
+      }}
       className="pointer-events-none absolute inset-0 [container-type:size]"
     >
       {error ? (
@@ -798,8 +791,10 @@ export function ViewerTransport({
         // The YouTube grammar: a hairline meter that is secretly a full
         // slider. A tall invisible hit area owns the pointer so a scrub can
         // never read as a stage tap or a swipe; the visible track fattens
-        // under the pointer and while dragging. While the media is rotated
-        // the same bar stands up along the left screen edge.
+        // under the pointer and while dragging via a bottom-origin scale —
+        // a compositor transform, so the hairline never relayouts. The bar
+        // keeps the screen's bottom edge in every orientation: rotated
+        // media turns under an upright transport, matching the header.
         <div
           ref={progressSliderRef}
           role="slider"
@@ -809,7 +804,6 @@ export function ViewerTransport({
           aria-valuemax={Math.round(replication.duration ?? 0)}
           aria-valuenow={0}
           aria-valuetext={describeSeekPosition(0, replication.duration ?? 0)}
-          aria-orientation={rotated ? "vertical" : undefined}
           data-scrubbing={scrubbing || undefined}
           onPointerDown={(event) => {
             event.stopPropagation();
@@ -820,18 +814,18 @@ export function ViewerTransport({
             if (event.currentTarget.setPointerCapture) {
               event.currentTarget.setPointerCapture(event.pointerId);
             }
-            seekToPointer(event.clientX, event.clientY);
+            seekToPointer(event.clientX);
           }}
           onPointerMove={(event) => {
             if (!scrubbingRef.current) return;
             event.stopPropagation();
             showControls();
-            seekToPointer(event.clientX, event.clientY);
+            seekToPointer(event.clientX);
           }}
           onPointerUp={(event) => {
             if (!scrubbingRef.current) return;
             event.stopPropagation();
-            seekToPointer(event.clientX, event.clientY);
+            seekToPointer(event.clientX);
             endScrub(event);
           }}
           onPointerCancel={endScrub}
@@ -843,11 +837,7 @@ export function ViewerTransport({
                 ? -5
                 : event.key === "ArrowRight"
                   ? 5
-                  : rotated && event.key === "ArrowUp"
-                    ? -5
-                    : rotated && event.key === "ArrowDown"
-                      ? 5
-                      : null;
+                  : null;
             if (step === null) return;
             event.preventDefault();
             event.stopPropagation();
@@ -874,182 +864,55 @@ export function ViewerTransport({
             showControls();
           }}
           className={cn(
-            "group pointer-events-auto absolute z-10 flex cursor-pointer touch-none",
-            rotated
-              ? "inset-y-0 left-0 w-5 flex-row justify-start"
-              : "inset-x-0 bottom-0 h-5 flex-col justify-end",
+            "group pointer-events-auto absolute inset-x-0 bottom-0 z-30 flex h-5 cursor-pointer touch-none flex-col justify-end",
             focusRingClassName,
           )}
         >
-          <div
-            className={cn(
-              "theme-media-progress-track relative duration-100 motion-reduce:transition-none",
-              rotated
-                ? "h-full w-[3px] transition-[width] group-hover:w-[5px] group-focus-visible:w-[5px]"
-                : "h-[3px] w-full transition-[height] group-hover:h-[5px] group-focus-visible:h-[5px]",
-              scrubbing && (rotated ? "w-[5px]" : "h-[5px]"),
-            )}
-          >
+          <div className="relative h-[5px] w-full">
             <div
-              ref={progressBufferedRef}
               aria-hidden
               className={cn(
-                "theme-media-progress-buffered absolute",
-                rotated ? "inset-x-0 top-0" : "inset-y-0 left-0",
+                "theme-media-progress-track absolute inset-0 origin-bottom scale-y-[0.6] transition-transform duration-100 group-hover:scale-y-100 group-focus-visible:scale-y-100 motion-reduce:transition-none",
+                scrubbing && "scale-y-100",
               )}
-              style={rotated ? { height: "0%" } : { width: "0%" }}
-            />
-            <div
-              ref={progressFillRef}
-              aria-hidden
-              className={cn(
-                "theme-media-playback-fill absolute",
-                rotated
-                  ? "inset-x-0 top-0 h-full origin-top"
-                  : "inset-y-0 left-0 w-full origin-left",
-              )}
-              style={{ transform: rotated ? "scaleY(0)" : "scaleX(0)" }}
-            />
+            >
+              <div
+                ref={progressBufferedRef}
+                aria-hidden
+                className="theme-media-progress-buffered absolute inset-y-0 left-0"
+                style={{ width: "0%" }}
+              />
+              <div
+                ref={progressFillRef}
+                aria-hidden
+                className="theme-media-playback-fill absolute inset-y-0 left-0 w-full origin-left"
+                style={{ transform: "scaleX(0)" }}
+              />
+            </div>
             <div
               ref={progressThumbRef}
               aria-hidden
               className={cn(
-                "theme-media-playback-thumb absolute size-3 -translate-x-1/2 -translate-y-1/2 rounded-full opacity-0 transition-opacity duration-100 group-hover:opacity-100 group-focus-visible:opacity-100 motion-reduce:transition-none [@media(pointer:coarse)]:opacity-100",
-                rotated ? "left-1/2" : "top-1/2",
+                "theme-media-playback-thumb absolute top-1/2 size-3 -translate-x-1/2 -translate-y-1/2 rounded-full opacity-0 transition-opacity duration-100 group-hover:opacity-100 group-focus-visible:opacity-100 motion-reduce:transition-none [@media(pointer:coarse)]:opacity-100",
                 scrubbing && "opacity-100",
               )}
-              style={rotated ? { top: "0%" } : { left: "0%" }}
+              style={{ left: "0%" }}
             />
           </div>
         </div>
       ) : null}
 
-      {ordinaryVideo && !error && scrubbing ? (
-        // The scrub clock: elapsed / total rides just clear of the bar while
-        // a pointer owns the playhead. Values are written per-frame by the
-        // rAF meter; text stays upright either way.
-        <div
-          aria-hidden
-          className={cn(
-            "pointer-events-none absolute z-10 flex",
-            rotated
-              ? "left-8 top-1/2 -translate-y-1/2"
-              : "inset-x-0 bottom-9 justify-center",
-          )}
-        >
-          <span
-            ref={timeReadoutRef}
-            className="theme-media-tile-title rounded-full bg-black/65 px-2.5 py-1 text-xs font-medium tabular-nums backdrop-blur-sm"
-          />
-        </div>
-      ) : null}
-
       <div
         className={cn(
-          "pointer-events-none absolute inset-0 z-20 flex flex-col justify-between p-3 transition-opacity duration-200 motion-reduce:transition-none sm:p-4",
+          "pointer-events-none absolute inset-0 z-20 transition-opacity duration-200 motion-reduce:transition-none",
           transportVisible
             ? "opacity-100"
             : "opacity-0 [&_*]:!pointer-events-none",
         )}
       >
-        <div className="flex justify-end gap-2">
-          {canRotate && onRotateModeChange ? (
-            <button
-              type="button"
-              aria-label={
-                rotateMode ? "Rotate back upright" : "Rotate to fill screen"
-              }
-              aria-pressed={rotateMode}
-              onClick={(event) => {
-                event.stopPropagation();
-                onRotateModeChange(!rotateMode);
-              }}
-              className={cn(
-                controlClassName,
-                "pointer-events-auto",
-                rotateMode && "theme-media-control-pressed",
-              )}
-            >
-              <RotatingIcon rotated={rotated}>
-                <Icon icon="lucide:rotate-cw" className="size-5" />
-              </RotatingIcon>
-            </button>
-          ) : null}
-          {hqAvailable && moving ? (
-            <button
-              type="button"
-              aria-label={
-                quality === "full"
-                  ? "Switch to preview quality"
-                  : "Play original quality"
-              }
-              aria-pressed={quality === "full"}
-              onClick={(event) => {
-                event.stopPropagation();
-                if (video) {
-                  applyVerdict(
-                    decide(
-                      {
-                        type: "hq",
-                        desired: quality === "full" ? "preview" : "full",
-                        currentTime: video.currentTime,
-                        paused: video.paused,
-                        ended: video.ended,
-                      },
-                      ladderContext(),
-                    ),
-                  );
-                }
-                showControls();
-              }}
-              className={cn(
-                controlClassName,
-                "pointer-events-auto text-[10px] font-bold tracking-wide",
-                quality === "full" && "theme-media-control-pressed",
-              )}
-            >
-              <RotatingIcon rotated={rotated}>
-                <span aria-hidden>HQ</span>
-              </RotatingIcon>
-            </button>
-          ) : null}
-          {onInfo ? (
-            <button
-              type="button"
-              aria-label="Show information"
-              aria-expanded={infoOpen}
-              aria-controls={infoControls}
-              onClick={(event) => {
-                event.stopPropagation();
-                onInfo();
-              }}
-              className={cn(controlClassName, "pointer-events-auto")}
-            >
-              <RotatingIcon rotated={rotated}>
-                <Icon icon="lucide:info" className="size-5" />
-              </RotatingIcon>
-            </button>
-          ) : null}
-          {onFullscreen ? (
-            <button
-              type="button"
-              aria-label={fullscreenLabel}
-              onClick={(event) => {
-                event.stopPropagation();
-                onFullscreen();
-              }}
-              className={cn(controlClassName, "pointer-events-auto")}
-            >
-              <RotatingIcon rotated={rotated}>
-                <Icon icon="lucide:maximize" className="size-5" />
-              </RotatingIcon>
-            </button>
-          ) : null}
-        </div>
-
         {/* Work navigation sits at the stage's vertical midline (the classic
-            lightbox grammar), leaving the bottom edge to the byline chip and
-            the playback cluster. Touch readers swipe instead. */}
+            lightbox grammar), leaving the bottom edge to the control dock.
+            Touch readers swipe instead. */}
         {showWorkNavigation ? (
           <button
             type="button"
@@ -1065,7 +928,7 @@ export function ViewerTransport({
             )}
           >
             <RotatingIcon rotated={rotated}>
-              <Icon icon="lucide:chevron-left" className="size-6" />
+              <Icon icon="fluent:chevron-left-20-filled" className="size-8" />
             </RotatingIcon>
           </button>
         ) : null}
@@ -1084,90 +947,205 @@ export function ViewerTransport({
             )}
           >
             <RotatingIcon rotated={rotated}>
-              <Icon icon="lucide:chevron-right" className="size-6" />
+              <Icon icon="fluent:chevron-right-20-filled" className="size-8" />
             </RotatingIcon>
           </button>
         ) : null}
-        {moving ? (
-          <div
-            style={mediaBoxAnchorStyle}
-            className="theme-media-tile-title pointer-events-none absolute bottom-[var(--media-box-bottom)] left-[var(--media-box-left)] flex items-center gap-2 rounded-full bg-black/65 px-2 py-1.5 backdrop-blur-sm"
-          >
-            <button
-              type="button"
-              aria-label={playing ? "Pause" : "Play"}
-              onClick={(event) => {
-                event.stopPropagation();
-                togglePlayback();
-              }}
-              className={cn(
-                "pointer-events-auto grid size-9 place-items-center rounded-full [@media(pointer:coarse)]:size-11",
-                focusRingClassName,
-              )}
-            >
-              <RotatingIcon rotated={rotated}>
-                <Icon
-                  icon={playing ? "lucide:pause" : "lucide:play"}
-                  className="size-5"
-                />
-              </RotatingIcon>
-            </button>
-            {soundAvailable ? (
+
+        {/* The control dock: every transport control in one screen-anchored
+            bar over a quiet bottom scrim, upright in every orientation like
+            the header. Playback verbs sit left; work-level modes sit right.
+            The scrim itself never eats taps — only the controls do. */}
+        <div className="pointer-events-none absolute inset-x-0 bottom-0 flex items-center justify-between gap-2 bg-gradient-to-t from-black/60 to-transparent px-2 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-8 sm:px-3">
+          <div className="flex min-w-0 items-center gap-1">
+            {moving ? (
               <>
                 <button
                   type="button"
-                  aria-label={muted ? "Unmute" : "Mute"}
+                  aria-label={playing ? "Pause" : "Play"}
                   onClick={(event) => {
                     event.stopPropagation();
-                    toggleMuted();
+                    togglePlayback();
                   }}
-                  className={cn(
-                    "pointer-events-auto grid size-9 place-items-center rounded-full [@media(pointer:coarse)]:size-11",
-                    focusRingClassName,
-                  )}
+                  className={dockControlClassName}
                 >
                   <RotatingIcon rotated={rotated}>
                     <Icon
-                      icon={muted ? "lucide:volume-x" : "lucide:volume-2"}
-                      className="size-5"
+                      icon={
+                        playing
+                          ? "fluent:pause-20-filled"
+                          : "fluent:play-20-filled"
+                      }
+                      className="size-6"
                     />
                   </RotatingIcon>
                 </button>
-                <label
-                  className="sr-only"
-                  htmlFor={`replication-volume-${replication.slug}`}
-                >
-                  Volume
-                </label>
-                <input
-                  id={`replication-volume-${replication.slug}`}
-                  type="range"
-                  min={0}
-                  max={1}
-                  step={0.05}
-                  value={muted ? 0 : volume}
-                  onChange={(event) => {
-                    const nextVolume = Number(event.currentTarget.value);
-                    const nextMuted = nextVolume === 0;
-                    if (video) {
-                      soundCustody.setMuted(
-                        video,
-                        nextMuted,
-                        nextMuted ? null : nextVolume,
-                      );
-                      if (!nextMuted && autoplayAllowed) attemptPlay(video);
-                    } else {
-                      soundCustody.clearIou();
-                    }
-                    if (!nextMuted) onVolumeChange(nextVolume);
-                    if (nextMuted !== muted) onMutedChange(nextMuted);
-                  }}
-                  className="pointer-events-auto hidden w-24 accent-white sm:block"
-                />
+                {soundAvailable ? (
+                  <>
+                    <button
+                      type="button"
+                      aria-label={muted ? "Unmute" : "Mute"}
+                      onClick={(event) => {
+                        event.stopPropagation();
+                        toggleMuted();
+                      }}
+                      className={dockControlClassName}
+                    >
+                      <RotatingIcon rotated={rotated}>
+                        <Icon
+                          icon={
+                            muted
+                              ? "fluent:speaker-mute-20-filled"
+                              : "fluent:speaker-2-20-filled"
+                          }
+                          className="size-6"
+                        />
+                      </RotatingIcon>
+                    </button>
+                    <label
+                      className="sr-only"
+                      htmlFor={`replication-volume-${replication.slug}`}
+                    >
+                      Volume
+                    </label>
+                    <input
+                      id={`replication-volume-${replication.slug}`}
+                      type="range"
+                      min={0}
+                      max={1}
+                      step={0.05}
+                      value={muted ? 0 : volume}
+                      onChange={(event) => {
+                        const nextVolume = Number(event.currentTarget.value);
+                        const nextMuted = nextVolume === 0;
+                        if (video) {
+                          soundCustody.setMuted(
+                            video,
+                            nextMuted,
+                            nextMuted ? null : nextVolume,
+                          );
+                          if (!nextMuted && autoplayAllowed) attemptPlay(video);
+                        } else {
+                          soundCustody.clearIou();
+                        }
+                        if (!nextMuted) onVolumeChange(nextVolume);
+                        if (nextMuted !== muted) onMutedChange(nextMuted);
+                      }}
+                      className="pointer-events-auto hidden w-24 accent-white [@media(pointer:fine)]:block"
+                    />
+                  </>
+                ) : null}
+                {ordinaryVideo ? (
+                  // The playback clock, written per-frame by the rAF meter
+                  // alongside the playhead; empty until a duration settles.
+                  <span
+                    ref={timeReadoutRef}
+                    aria-hidden
+                    className="theme-media-tile-title px-1.5 text-xs font-medium tabular-nums"
+                  />
+                ) : null}
               </>
             ) : null}
           </div>
-        ) : null}
+          <div className="flex flex-none items-center gap-1">
+            {hqAvailable && moving ? (
+              <button
+                type="button"
+                aria-label={
+                  quality === "full"
+                    ? "Switch to preview quality"
+                    : "Play original quality"
+                }
+                aria-pressed={quality === "full"}
+                onClick={(event) => {
+                  event.stopPropagation();
+                  if (video) {
+                    applyVerdict(
+                      decide(
+                        {
+                          type: "hq",
+                          desired: quality === "full" ? "preview" : "full",
+                          currentTime: video.currentTime,
+                          paused: video.paused,
+                          ended: video.ended,
+                        },
+                        ladderContext(),
+                      ),
+                    );
+                  }
+                  showControls();
+                }}
+                className={cn(
+                  dockControlClassName,
+                  quality !== "full" && dockToggleOffClassName,
+                )}
+              >
+                <RotatingIcon rotated={rotated}>
+                  <Icon icon="fluent:hd-20-filled" className="size-6" />
+                </RotatingIcon>
+              </button>
+            ) : null}
+            {canRotate && onRotateModeChange ? (
+              <button
+                type="button"
+                aria-label={
+                  rotateMode ? "Rotate back upright" : "Rotate to fill screen"
+                }
+                aria-pressed={rotateMode}
+                onClick={(event) => {
+                  event.stopPropagation();
+                  onRotateModeChange(!rotateMode);
+                }}
+                className={cn(
+                  dockControlClassName,
+                  !rotateMode && dockToggleOffClassName,
+                )}
+              >
+                <RotatingIcon rotated={rotated}>
+                  <Icon
+                    icon="fluent:arrow-rotate-clockwise-20-filled"
+                    className="size-6"
+                  />
+                </RotatingIcon>
+              </button>
+            ) : null}
+            {onInfo ? (
+              <button
+                type="button"
+                aria-label="Show information"
+                aria-expanded={infoOpen}
+                aria-controls={infoControls}
+                onClick={(event) => {
+                  event.stopPropagation();
+                  onInfo();
+                }}
+                className={dockControlClassName}
+              >
+                <RotatingIcon rotated={rotated}>
+                  <Icon icon="fluent:info-20-filled" className="size-6" />
+                </RotatingIcon>
+              </button>
+            ) : null}
+            {fullscreenSupported && onFullscreen ? (
+              <button
+                type="button"
+                aria-label="Fullscreen"
+                onClick={(event) => {
+                  event.stopPropagation();
+                  onFullscreen();
+                }}
+                className={dockControlClassName}
+              >
+                <RotatingIcon rotated={rotated}>
+                  <Icon
+                    icon="fluent:full-screen-maximize-20-filled"
+                    className="size-6"
+                  />
+                </RotatingIcon>
+              </button>
+            ) : null}
+          </div>
+        </div>
       </div>
     </section>
   );

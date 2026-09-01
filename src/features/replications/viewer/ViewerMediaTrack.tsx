@@ -93,8 +93,6 @@ export interface ViewerMediaTrackProps {
   onNavigateGroup: (direction: 1 | -1) => void;
   /** A plain tap on the media surface (reveal/dismiss chrome, repay sound). */
   onSurfaceTap: () => void;
-  /** Pointer travel over the stage (keeps the transport chrome awake). */
-  onPointerActivity: () => void;
   /** Intrinsic size of the active media, for rotate-to-fit. */
   onProbeAspect: (mediaWidth: number, mediaHeight: number) => void;
   /** Chrome visibility, spoken by the active still's toggle surface. */
@@ -352,7 +350,6 @@ export const ViewerMediaTrack = forwardRef<
     onNavigateWork,
     onNavigateGroup,
     onSurfaceTap,
-    onPointerActivity,
     onProbeAspect,
     controlsVisible,
   },
@@ -589,7 +586,6 @@ export const ViewerMediaTrack = forwardRef<
         };
       }}
       onPointerMove={(event) => {
-        onPointerActivity();
         const drag = dragRef.current;
         if (!drag || drag.pointerId !== event.pointerId) return;
         const dx = event.clientX - drag.x;

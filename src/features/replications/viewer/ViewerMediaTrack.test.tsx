@@ -43,7 +43,6 @@ function renderTrack(
     onNavigateWork: vi.fn(),
     onNavigateGroup: vi.fn(),
     onSurfaceTap: vi.fn(),
-    onPointerActivity: vi.fn(),
     onProbeAspect: vi.fn(),
   };
   const view = render(
@@ -148,7 +147,6 @@ describe("ViewerMediaTrack", () => {
         onNavigateWork={vi.fn()}
         onNavigateGroup={vi.fn()}
         onSurfaceTap={vi.fn()}
-        onPointerActivity={vi.fn()}
         onProbeAspect={vi.fn()}
       />,
     );

@@ -34,6 +34,7 @@ import {
   ViewerMediaTrack,
   type ViewerTrackHandle,
 } from "./ViewerMediaTrack";
+import { ViewerThumbnailRail } from "./ViewerThumbnailRail";
 import { useStageFit } from "./useStageFit";
 import { RotatingIcon } from "./RotatingIcon";
 import { hasKnownCreator } from "@/features/effects/components/replicationCredit";
@@ -91,18 +92,6 @@ const ENTRY_MOTION_ALL_CLASSES = Object.values(ENTRY_MOTION_CLASS).flatMap(
   (value) => value.split(" "),
 );
 
-function prefersReducedMotion(): boolean {
-  return (
-    typeof window !== "undefined" &&
-    typeof window.matchMedia === "function" &&
-    window.matchMedia("(prefers-reduced-motion: reduce)").matches
-  );
-}
-
-
-type WebkitFullscreenVideo = HTMLVideoElement & {
-  webkitEnterFullscreen?: () => void;
-};
 interface PublicReplicationDetails {
   slug: string;
   format: string;
@@ -154,8 +143,11 @@ export function ReplicationViewerOverlay({
   const [volume, setVolume] = useState(1);
   const [infoOpen, setInfoOpen] = useState(false);
   const [details, setDetails] = useState<PublicReplicationDetails | null>(null);
-  const [fullscreenUnavailable, setFullscreenUnavailable] = useState(false);
-  const [fullscreenMessage, setFullscreenMessage] = useState("");
+  /**
+   * Counts fullscreen refusals so a repeat press restarts the notice chip's
+   * dwell instead of riding out the first timer. Zero means no chip.
+   */
+  const [fullscreenNotice, setFullscreenNotice] = useState(0);
   /** Spoken on work changes so non-visual readers don't navigate blind. */
   const [workAnnouncement, setWorkAnnouncement] = useState("");
   const announcedSlugRef = useRef<string | null>(null);
@@ -188,7 +180,6 @@ export function ReplicationViewerOverlay({
   const [rotateMode, setRotateMode] = useState(false);
   /** The persistent wrapper the entry animation replays on. */
   const trackPaneRef = useRef<HTMLDivElement>(null);
-  const thumbnailRailRef = useRef<HTMLUListElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
   const pausedBackgroundVideosRef = useRef<HTMLVideoElement[]>([]);
   const openerRef = useRef<HTMLElement | null>(null);
@@ -521,23 +512,6 @@ export function ReplicationViewerOverlay({
     transportHandleRef.current?.surfaceTap();
   }, []);
 
-  const pointerActivity = useCallback(() => {
-    transportHandleRef.current?.pointerActivity();
-  }, []);
-
-  // Keep the active work visible in the thumbnail rail as navigation moves.
-  useEffect(() => {
-    if (!open || !position) return;
-    const selected = thumbnailRailRef.current?.querySelector<HTMLElement>(
-      '[aria-current="true"]',
-    );
-    selected?.scrollIntoView?.({
-      block: "nearest",
-      inline: "nearest",
-      behavior: prefersReducedMotion() ? "auto" : "smooth",
-    });
-  }, [open, position]);
-
   useEffect(() => {
     if (!open) return;
     const onPopState = () => {
@@ -585,44 +559,24 @@ export function ReplicationViewerOverlay({
     }
   }, [onOpenChange, session]);
 
-  const documentFullscreenSupported =
+  const fullscreenSupported =
     typeof document !== "undefined" &&
-    Boolean(document.documentElement.requestFullscreen);
+    typeof document.documentElement.requestFullscreen === "function";
   const requestFullscreen = useCallback(() => {
     const content = contentRef.current;
-    const tryWebkitFullscreen = () => {
-      // Only the active pane's video may own platform fullscreen — the
-      // neighboring panes hold warmed pool elements in the same dialog, and
-      // a still's pooled element sits empty ([src] excludes it).
-      const video =
-        content?.querySelector<WebkitFullscreenVideo>(
-          "[data-viewer-active-pane] video[src]",
-        ) ?? null;
-      if (!video?.webkitEnterFullscreen) return false;
-      try {
-        video.webkitEnterFullscreen();
-        return true;
-      } catch {
-        return false;
-      }
-    };
-    const useImmersiveFallback = (fullscreenRejected: boolean) => {
-      if (fullscreenRejected) setFullscreenUnavailable(true);
-      setFullscreenMessage(
-        fullscreenRejected
-          ? "Fullscreen is unavailable. Immersive view is active."
-          : "Immersive view is active.",
-      );
-    };
+    if (!content?.requestFullscreen) return;
+    void content.requestFullscreen().catch(() => {
+      setFullscreenNotice((count) => count + 1);
+    });
+  }, []);
 
-    if (content?.requestFullscreen && !fullscreenUnavailable) {
-      void content.requestFullscreen().catch(() => {
-        if (!tryWebkitFullscreen()) useImmersiveFallback(true);
-      });
-      return;
-    }
-    if (!tryWebkitFullscreen()) useImmersiveFallback(false);
-  }, [fullscreenUnavailable]);
+  // The refusal chip clears itself: one glance's worth of explanation, then
+  // the stage goes back to being all artwork.
+  useEffect(() => {
+    if (!fullscreenNotice) return;
+    const timer = window.setTimeout(() => setFullscreenNotice(0), 2400);
+    return () => window.clearTimeout(timer);
+  }, [fullscreenNotice]);
 
   useEffect(() => {
     if (!open) return;
@@ -640,26 +594,35 @@ export function ReplicationViewerOverlay({
         return;
       }
       // Playback shortcuts, the video-player lingua franca: Space/K toggle
-      // playback, M toggles sound, F enters fullscreen. Space keeps its
-      // native meaning on focused controls; K/M/F act from anywhere outside
-      // a text field (guarded above).
+      // playback, M toggles sound, F enters fullscreen, H hides the chrome.
+      // Space keeps its native meaning on focused controls; the letters act
+      // from anywhere outside a text field (guarded above).
       const key = event.key.toLowerCase();
-      if (key === " " || key === "k" || key === "m" || key === "f") {
+      if (
+        key === " " ||
+        key === "k" ||
+        key === "m" ||
+        key === "f" ||
+        key === "h"
+      ) {
         if (
           key === " " &&
           target?.closest("button, a, [role='slider'], [role='menu']")
         ) {
           return;
         }
-        const handle = transportHandleRef.current;
         if (key === "f") {
+          if (!fullscreenSupported) return;
           event.preventDefault();
           requestFullscreen();
           return;
         }
+        const handle = transportHandleRef.current;
         if (!handle) return;
         event.preventDefault();
-        if (key === "m") {
+        if (key === "h") {
+          handle.toggleChrome();
+        } else if (key === "m") {
           handle.toggleMuted();
         } else {
           handle.togglePlayback();
@@ -686,6 +649,7 @@ export function ReplicationViewerOverlay({
     return () => window.removeEventListener("keydown", onKeyDown);
   }, [
     commitGroup,
+    fullscreenSupported,
     infoOpen,
     nextGroup,
     open,
@@ -723,19 +687,6 @@ export function ReplicationViewerOverlay({
   const artistProfileHref = hasKnownCreator(active.replication.artist)
     ? active.artistProfileHref
     : null;
-  const activeGifReady = Boolean(
-    active.replication.motion_url && active.replication.motion_poster_url,
-  );
-  const movingMedia =
-    active.replication.type === "video" ||
-    (active.replication.format.toLowerCase() === "gif" && activeGifReady);
-  const webkitFullscreenSupported =
-    movingMedia &&
-    typeof HTMLVideoElement !== "undefined" &&
-    "webkitEnterFullscreen" in HTMLVideoElement.prototype;
-  const fullscreenSupported =
-    (documentFullscreenSupported && !fullscreenUnavailable) ||
-    webkitFullscreenSupported;
 
   const groupUnit =
     collection.grouping === "artist"
@@ -917,7 +868,7 @@ export function ReplicationViewerOverlay({
             </p>
           </div>
           {collection.groups.length > 1 ? (
-            <div className="flex flex-none items-center gap-1 [@media(pointer:coarse)]:hidden">
+            <div className="flex flex-none items-center gap-1">
               <button
                 type="button"
                 aria-label={
@@ -928,7 +879,7 @@ export function ReplicationViewerOverlay({
                 disabled={!previousGroup}
                 onClick={() => commitGroup(-1)}
                 className={cn(
-                  "theme-media-control-raised grid size-11 place-items-center rounded-lg disabled:cursor-not-allowed disabled:opacity-30 sm:size-8 sm:rounded-md",
+                  "theme-media-control-raised grid size-11 place-items-center rounded-lg disabled:cursor-not-allowed disabled:opacity-30 sm:size-10 sm:rounded-md",
                   focusRingClassName,
                 )}
               >
@@ -944,7 +895,7 @@ export function ReplicationViewerOverlay({
                 disabled={!nextGroup}
                 onClick={() => commitGroup(1)}
                 className={cn(
-                  "theme-media-control-raised grid size-11 place-items-center rounded-lg disabled:cursor-not-allowed disabled:opacity-30 sm:size-8 sm:rounded-md",
+                  "theme-media-control-raised grid size-11 place-items-center rounded-lg disabled:cursor-not-allowed disabled:opacity-30 sm:size-10 sm:rounded-md",
                   focusRingClassName,
                 )}
               >
@@ -1008,6 +959,34 @@ export function ReplicationViewerOverlay({
                       {grouping === "artist" ? "Artist" : "Effect"}
                     </button>
                   ))}
+                  <div
+                    aria-hidden
+                    className="theme-media-thumbnail-border mx-1 my-1 border-t"
+                  />
+                  <p className="px-2 py-1.5 text-xs font-semibold">
+                    Shortcuts
+                  </p>
+                  <dl className="theme-media-tile-creator grid grid-cols-[auto_1fr] items-center gap-x-3 gap-y-1.5 px-2 pb-2 text-xs">
+                    {(
+                      [
+                        ["← →", "Works"],
+                        ["↑ ↓", `${groupUnit}s`],
+                        ["Space / K", "Play"],
+                        ["M", "Mute"],
+                        ["H", "Hide interface"],
+                        ...(fullscreenSupported
+                          ? [["F", "Fullscreen"] as const]
+                          : []),
+                      ] as const
+                    ).map(([keys, action]) => (
+                      <div key={action} className="contents">
+                        <dt className="theme-media-control-raised justify-self-start whitespace-nowrap rounded px-1.5 py-0.5 font-semibold tabular-nums">
+                          {keys}
+                        </dt>
+                        <dd>{action}</dd>
+                      </div>
+                    ))}
+                  </dl>
                 </div>
               ) : null}
             </div>
@@ -1035,11 +1014,6 @@ export function ReplicationViewerOverlay({
             <Icon icon="lucide:x" className="size-5" />
           </button>
         </header>
-        {fullscreenMessage ? (
-          <p role="status" className="sr-only">
-            {fullscreenMessage}
-          </p>
-        ) : null}
         <p aria-live="polite" aria-atomic="true" className="sr-only">
           {workAnnouncement}
         </p>
@@ -1074,7 +1048,6 @@ export function ReplicationViewerOverlay({
                   onNavigateWork={commitWork}
                   onNavigateGroup={commitGroup}
                   onSurfaceTap={surfaceTap}
-                  onPointerActivity={pointerActivity}
                   onProbeAspect={probeAspect}
                   controlsVisible={chromeVisible}
                 />
@@ -1101,9 +1074,7 @@ export function ReplicationViewerOverlay({
                 infoOpen={infoOpen}
                 infoControls={infoPanelId}
                 onFullscreen={requestFullscreen}
-                fullscreenLabel={
-                  fullscreenSupported ? "Fullscreen" : "Immersive view"
-                }
+                fullscreenSupported={fullscreenSupported}
                 previousLabel={
                   previousWork
                     ? `Previous: ${group.items[previousWork.itemIndex].replication.title}`
@@ -1115,6 +1086,16 @@ export function ReplicationViewerOverlay({
                     : "Final work"
                 }
               />
+              {fullscreenNotice ? (
+                <div className="pointer-events-none absolute inset-x-3 top-3 z-30 flex justify-center">
+                  <p
+                    role="status"
+                    className="theme-media-tile-title flex min-h-8 items-center rounded-full bg-black/65 px-3.5 py-2 text-xs font-semibold backdrop-blur-sm animate-in fade-in-0 duration-200 motion-reduce:animate-none"
+                  >
+                    Fullscreen is unavailable.
+                  </p>
+                </div>
+              ) : null}
               {gestureHint ? (
                 <div className="pointer-events-none absolute inset-0 z-30 grid place-items-center">
                   <div className="theme-media-tile-title pointer-events-auto flex flex-col items-center gap-3 rounded-2xl bg-black/65 px-6 py-4 backdrop-blur-sm animate-in fade-in-0 zoom-in-95 duration-300 motion-reduce:animate-none">
@@ -1180,7 +1161,7 @@ export function ReplicationViewerOverlay({
                 inert={chromeHidden || undefined}
                 aria-hidden={chromeHidden || undefined}
                 className={cn(
-                  "absolute bottom-2 right-2 z-10 flex justify-end transition-opacity duration-200 motion-reduce:transition-none",
+                  "absolute right-2 top-2 z-10 flex justify-end transition-opacity duration-200 motion-reduce:transition-none",
                   chromeHidden && "opacity-0",
                 )}
               >
@@ -1209,13 +1190,13 @@ export function ReplicationViewerOverlay({
                         />
                       </RotatingIcon>
                     ) : null}
-                    <span className="max-w-[8rem] truncate sm:max-w-[16rem]">
+                    <span className="max-w-[12rem] truncate sm:max-w-[16rem]">
                       {artistLabel}
                     </span>
                   </Link>
                 ) : (
                   <span className="theme-media-tile-title pointer-events-auto flex items-center rounded-full bg-black/65 px-3.5 py-2 text-sm font-semibold backdrop-blur-sm sm:px-4 sm:py-2.5 sm:text-base">
-                    <span className="max-w-[8rem] truncate sm:max-w-[16rem]">
+                    <span className="max-w-[12rem] truncate sm:max-w-[16rem]">
                       {artistLabel}
                     </span>
                   </span>
@@ -1225,84 +1206,20 @@ export function ReplicationViewerOverlay({
             </div>
 
             {group.items.length > 1 && !reorderMode ? (
-              <nav
-                aria-label={`${group.label} works`}
-                inert={chromeHidden || undefined}
-                aria-hidden={chromeHidden || undefined}
-                className={cn(
-                  // Landscape phones surrender too much height to a browse
-                  // strip the swipe grammar already covers: the rail stands
-                  // down and the work keeps the screen.
-                  "theme-media-thumbnail-border border-t bg-black px-3 pt-1.5 pb-[max(0.375rem,env(safe-area-inset-bottom))] transition-opacity duration-200 motion-reduce:transition-none sm:px-5 sm:py-2 [@media(max-height:500px)]:hidden",
-                  chromeHidden && "opacity-0",
-                )}
-              >
-                <ul
-                  ref={thumbnailRailRef}
-                  className="flex snap-x gap-2 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
-                >
-                  {group.items.map((item, itemIndex) => {
-                    const selected = itemIndex === position.itemIndex;
-                    const gifLike =
-                      item.replication.format.toLowerCase() === "gif";
-                    const thumb = gifLike
-                      ? item.replication.motion_poster_url
-                      : (item.replication.motion_poster_url ??
-                        item.replication.thumbnail_url ??
-                        item.replication.url);
-                    return (
-                      <li key={item.replication.slug} className="snap-start">
-                        <button
-                          type="button"
-                          aria-label={`Show ${item.replication.title}`}
-                          aria-current={selected ? "true" : undefined}
-                          onClick={() =>
-                            navigate(
-                              {
-                                groupIndex: position.groupIndex,
-                                itemIndex,
-                              },
-                              "fade",
-                            )
-                          }
-                          className={cn(
-                            "relative block size-12 overflow-hidden rounded-md border transition-opacity motion-reduce:transition-none sm:size-14",
-                            selected
-                              ? "theme-media-thumbnail-selected opacity-100"
-                              : "theme-media-thumbnail-border opacity-65 hover:opacity-100",
-                            focusRingClassName,
-                          )}
-                        >
-                          {thumb ? (
-                            <RotatingIcon
-                              rotated={rotated}
-                              className="h-full w-full"
-                            >
-                              <AppImage
-                                src={thumb}
-                                alt=""
-                                width={80}
-                                height={80}
-                                className="h-full w-full object-contain"
-                              />
-                            </RotatingIcon>
-                          ) : (
-                            <span className="theme-media-tile-creator grid h-full w-full place-items-center">
-                              <RotatingIcon rotated={rotated}>
-                                <Icon
-                                  icon="lucide:image-off"
-                                  size={16}
-                                  aria-hidden
-                                />
-                              </RotatingIcon>
-                            </span>
-                          )}
-                        </button>
-                      </li>
-                    );
-                  })}
-                </ul>
-              </nav>
+              <ViewerThumbnailRail
+                items={group.items}
+                selectedIndex={position.itemIndex}
+                groupLabel={group.label}
+                rotated={rotated}
+                chromeHidden={chromeHidden}
+                onSelect={(itemIndex) =>
+                  navigate(
+                    { groupIndex: position.groupIndex, itemIndex },
+                    "fade",
+                  )
+                }
+                focusRingClassName={focusRingClassName}
+              />
             ) : null}
           </div>
           {editorOpen ? (
@@ -1335,7 +1252,7 @@ export function ReplicationViewerOverlay({
                 aria-label="Close information"
                 onClick={closeInfo}
                 className={cn(
-                  "theme-media-control-soft grid size-11 place-items-center rounded-full",
+                  "theme-media-control-soft grid size-11 place-items-center rounded-lg",
                   focusRingClassName,
                 )}
               >

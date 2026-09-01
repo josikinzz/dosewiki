@@ -24,7 +24,7 @@ const transportVerbs = vi.hoisted(() => ({
   togglePlayback: vi.fn(),
   toggleMuted: vi.fn(),
   surfaceTap: vi.fn(),
-  pointerActivity: vi.fn(),
+  toggleChrome: vi.fn(),
 }));
 
 // The transport chrome is mocked to a flat control strip; the pooled media
@@ -45,7 +45,7 @@ vi.mock("./ViewerTransport", () => ({
     infoOpen,
     infoControls,
     onFullscreen,
-    fullscreenLabel,
+    fullscreenSupported,
     previousLabel,
     nextLabel,
     onTransportHandle,
@@ -63,7 +63,7 @@ vi.mock("./ViewerTransport", () => ({
     infoOpen?: boolean;
     infoControls?: string;
     onFullscreen?: () => void;
-    fullscreenLabel: string;
+    fullscreenSupported: boolean;
     previousLabel: string;
     nextLabel: string;
     onTransportHandle?: (
@@ -71,7 +71,7 @@ vi.mock("./ViewerTransport", () => ({
         togglePlayback: () => void;
         toggleMuted: () => void;
         surfaceTap: () => void;
-        pointerActivity: () => void;
+        toggleChrome: () => void;
       } | null,
     ) => void;
   }) => {
@@ -133,12 +133,51 @@ vi.mock("./ViewerTransport", () => ({
         >
           HQ
         </button>
-        <button type="button" onClick={onFullscreen}>
-          {fullscreenLabel}
-        </button>
+        {onFullscreen && fullscreenSupported ? (
+          <button type="button" onClick={onFullscreen}>
+            Fullscreen
+          </button>
+        ) : null}
       </div>
     );
   },
+}));
+
+// The rail is the transport mock's peer: a flat strip honoring the contract
+// surface (nav label, selection, onSelect, lean/fade props) sans thumbnails.
+vi.mock("./ViewerThumbnailRail", () => ({
+  ViewerThumbnailRail: ({
+    items,
+    selectedIndex,
+    groupLabel,
+    rotated,
+    chromeHidden,
+    onSelect,
+  }: {
+    items: { replication: { slug: string; title: string } }[];
+    selectedIndex: number;
+    groupLabel: string;
+    rotated: boolean;
+    chromeHidden: boolean;
+    onSelect: (itemIndex: number) => void;
+    focusRingClassName: string;
+  }) => (
+    <nav
+      aria-label={`${groupLabel} works`}
+      data-rotated={rotated}
+      data-chrome-hidden={chromeHidden}
+    >
+      {items.map((item, itemIndex) => (
+        <button
+          key={item.replication.slug}
+          type="button"
+          aria-label={`Show ${item.replication.title}`}
+          aria-current={itemIndex === selectedIndex ? "true" : undefined}
+          onClick={() => onSelect(itemIndex)}
+        />
+      ))}
+    </nav>
+  ),
 }));
 
 vi.mock("@/components/common/AppImage", () => ({
@@ -524,6 +563,10 @@ describe("ReplicationViewerOverlay", () => {
 
     await user.click(screen.getByRole("button", { name: "Viewer settings" }));
     expect(screen.getByRole("menu").closest("header")).not.toBeNull();
+    expect(screen.getByText("Shortcuts")).toBeInTheDocument();
+    expect(screen.getByText("Hide interface")).toBeInTheDocument();
+    // jsdom offers no fullscreen API, so the F shortcut row stands down.
+    expect(screen.queryByText("Fullscreen")).not.toBeInTheDocument();
     await user.click(screen.getByRole("menuitemradio", { name: "Effect" }));
     expect(onRegroup).toHaveBeenCalledWith("effect", "work-two");
     expect(screen.queryByRole("menu")).not.toBeInTheDocument();
@@ -596,43 +639,35 @@ describe("ReplicationViewerOverlay", () => {
     }
   });
 
-  it("does not load a raw GIF into the thumbnail rail", () => {
-    const gifCollection: ReplicationViewerCollection = {
-      ...collection,
-      groups: [
-        {
-          ...collection.groups[0],
-          items: [
-            {
-              ...collection.groups[0].items[0],
-              replication: {
-                ...collection.groups[0].items[0].replication,
-                format: "gif",
-                url: "https://cdn.test/original.gif",
-                thumbnail_url: "https://cdn.test/legacy-thumb.webp",
-                motion_url: "https://cdn.test/orphaned-motion.mp4",
-                motion_poster_url: undefined,
-              },
-            },
-            collection.groups[0].items[1],
-          ],
-        },
-      ],
-    };
-
+  it("mounts the thumbnail rail on multi-work groups and lands rail picks", () => {
     render(
       <ReplicationViewerOverlay
-        collection={gifCollection}
+        collection={collection}
         initialSlug="work-one"
         open
         onOpenChange={vi.fn()}
       />,
     );
 
+    const rail = screen.getByRole("navigation", {
+      name: "Chelsea Morgan works",
+    });
     expect(
-      screen
-        .getByRole("button", { name: "Show Work One" })
-        .querySelector("img"),
+      screen.getByRole("button", { name: "Show Work One" }),
+    ).toHaveAttribute("aria-current", "true");
+    expect(rail).toHaveAttribute("data-chrome-hidden", "false");
+
+    fireEvent.click(screen.getByRole("button", { name: "Show Work Two" }));
+    expect(screen.getByTestId("viewer-transport")).toHaveAttribute(
+      "data-title",
+      "Work Two",
+    );
+    expect(window.location.search).toContain("viewer=work-two");
+
+    // Aria's single work earns no rail: the strip only exists to browse.
+    fireEvent.keyDown(window, { key: "ArrowDown" });
+    expect(
+      screen.queryByRole("navigation", { name: "Aria works" }),
     ).not.toBeInTheDocument();
   });
 
@@ -942,7 +977,30 @@ describe("ReplicationViewerOverlay", () => {
     expect(transportVerbs.togglePlayback).toHaveBeenCalledTimes(2);
   });
 
-  it("enters the fullscreen path from the F key", () => {
+  it("offers no fullscreen entry when the platform lacks the API", () => {
+    render(
+      <ReplicationViewerOverlay
+        collection={collection}
+        initialSlug="work-two"
+        open
+        onOpenChange={vi.fn()}
+      />,
+    );
+
+    // jsdom has no fullscreen API: the button never renders and F is inert.
+    expect(
+      screen.queryByRole("button", { name: "Fullscreen" }),
+    ).not.toBeInTheDocument();
+    fireEvent.keyDown(window, { key: "f" });
+    expect(screen.queryByRole("status")).not.toBeInTheDocument();
+  });
+
+  it("enters fullscreen from the F key when the platform supports it", () => {
+    const requestFullscreen = vi.fn().mockResolvedValue(undefined);
+    Object.defineProperty(HTMLElement.prototype, "requestFullscreen", {
+      configurable: true,
+      value: requestFullscreen,
+    });
     render(
       <ReplicationViewerOverlay
         collection={collection}
@@ -953,10 +1011,23 @@ describe("ReplicationViewerOverlay", () => {
     );
 
     fireEvent.keyDown(window, { key: "f" });
-    // jsdom offers no fullscreen API, so the immersive fallback reports.
-    expect(screen.getByRole("status")).toHaveTextContent(
-      "Immersive view is active.",
+    expect(requestFullscreen).toHaveBeenCalledOnce();
+    Reflect.deleteProperty(HTMLElement.prototype, "requestFullscreen");
+  });
+
+  it("toggles the chrome from the H key", () => {
+    transportVerbs.toggleChrome.mockClear();
+    render(
+      <ReplicationViewerOverlay
+        collection={collection}
+        initialSlug="work-two"
+        open
+        onOpenChange={vi.fn()}
+      />,
     );
+
+    fireEvent.keyDown(window, { key: "h" });
+    expect(transportVerbs.toggleChrome).toHaveBeenCalledTimes(1);
   });
 
   it("announces work changes to screen readers, skipping the opening work", () => {
@@ -1018,6 +1089,11 @@ describe("ReplicationViewerOverlay", () => {
       />,
     );
 
+    // Touch readers get the same chevrons: no coarse-pointer gating.
+    expect(
+      screen.getByRole("button", { name: "Next artist: Aria" }).parentElement
+        ?.className,
+    ).not.toContain("pointer:coarse");
     fireEvent.click(screen.getByRole("button", { name: "Next artist: Aria" }));
     expect(screen.getByTestId("viewer-transport")).toHaveAttribute(
       "data-title",
@@ -1065,7 +1141,7 @@ describe("ReplicationViewerOverlay", () => {
     });
   });
 
-  it("relabels a rejected fullscreen action as immersive view", async () => {
+  it("shows a visible notice chip when the platform refuses fullscreen", async () => {
     Object.defineProperty(HTMLElement.prototype, "requestFullscreen", {
       configurable: true,
       value: vi.fn().mockRejectedValue(new Error("denied")),
@@ -1081,57 +1157,15 @@ describe("ReplicationViewerOverlay", () => {
 
     fireEvent.click(screen.getByRole("button", { name: "Fullscreen" }));
 
+    const chip = await screen.findByRole("status");
+    expect(chip).toHaveTextContent("Fullscreen is unavailable.");
+    // The refusal is shown, not whispered: the chip is a visible pill.
+    expect(chip).not.toHaveClass("sr-only");
+    // The entry stays honest: the button keeps offering fullscreen.
     expect(
-      await screen.findByRole("button", { name: "Immersive view" }),
+      screen.getByRole("button", { name: "Fullscreen" }),
     ).toBeInTheDocument();
-    expect(await screen.findByRole("status")).toHaveTextContent(
-      "Fullscreen is unavailable",
-    );
     Reflect.deleteProperty(HTMLElement.prototype, "requestFullscreen");
-  });
-
-  it("uses platform video fullscreen when the document API is unavailable", () => {
-    const webkitEnterFullscreen = vi.fn();
-    Object.defineProperty(HTMLVideoElement.prototype, "webkitEnterFullscreen", {
-      configurable: true,
-      value: webkitEnterFullscreen,
-    });
-    render(
-      <ReplicationViewerOverlay
-        collection={collection}
-        initialSlug="work-two"
-        open
-        onOpenChange={vi.fn()}
-      />,
-    );
-
-    fireEvent.click(screen.getByRole("button", { name: "Fullscreen" }));
-
-    expect(webkitEnterFullscreen).toHaveBeenCalledOnce();
-    Reflect.deleteProperty(HTMLVideoElement.prototype, "webkitEnterFullscreen");
-  });
-
-  it("keeps platform fullscreen available after still-image immersive mode", () => {
-    const webkitEnterFullscreen = vi.fn();
-    Object.defineProperty(HTMLVideoElement.prototype, "webkitEnterFullscreen", {
-      configurable: true,
-      value: webkitEnterFullscreen,
-    });
-    render(
-      <ReplicationViewerOverlay
-        collection={collection}
-        initialSlug="work-one"
-        open
-        onOpenChange={vi.fn()}
-      />,
-    );
-
-    fireEvent.click(screen.getByRole("button", { name: "Immersive view" }));
-    fireEvent.click(screen.getByRole("button", { name: "Next: Work Two" }));
-    fireEvent.click(screen.getByRole("button", { name: "Fullscreen" }));
-
-    expect(webkitEnterFullscreen).toHaveBeenCalledOnce();
-    Reflect.deleteProperty(HTMLVideoElement.prototype, "webkitEnterFullscreen");
   });
 
   it("pauses source-page video while open and resumes it after close", async () => {
@@ -1326,7 +1360,7 @@ describe("ReplicationViewerOverlay", () => {
     ).toHaveAttribute("aria-pressed", "true");
   });
 
-  it("leans settings and thumbnail icons while the active work rotates", async () => {
+  it("leans the thumbnail rail while the active work rotates", async () => {
     // A portrait phone walking a landscape work: rotate mode turns it.
     stubPortraitPhone();
     render(
@@ -1341,18 +1375,12 @@ describe("ReplicationViewerOverlay", () => {
     const rail = screen.getByRole("navigation", {
       name: "Chelsea Morgan works",
     });
-    const wrappers = rail.querySelectorAll("[data-rotating-icon]");
-    expect(wrappers.length).toBeGreaterThan(0);
-    wrappers.forEach((wrapper) =>
-      expect(wrapper.className).not.toContain("rotate-90"),
-    );
+    expect(rail).toHaveAttribute("data-rotated", "false");
 
     fireEvent.click(
       await screen.findByRole("button", { name: "Rotate to fill screen" }),
     );
-    rail
-      .querySelectorAll("[data-rotating-icon]")
-      .forEach((wrapper) => expect(wrapper.className).toContain("rotate-90"));
+    expect(rail).toHaveAttribute("data-rotated", "true");
   });
 
   it("leans the byline avatar while the active work rotates", async () => {

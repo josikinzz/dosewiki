@@ -101,6 +101,7 @@ const baseProps = (
   onQualityChange: vi.fn(),
   canRotate: false,
   rotated: false,
+  fullscreenSupported: false,
   mediaAspect: 16 / 9,
   ...overrides,
 });
@@ -452,7 +453,7 @@ describe("ViewerTransport", () => {
     expect(video.play).toHaveBeenCalledOnce();
   });
 
-  it("auto-hides the chrome during playback until pointer activity re-reveals it", () => {
+  it("auto-hides the chrome during playback; only intent, not pointer travel, re-reveals it", () => {
     vi.useFakeTimers();
     const video = createVideo();
     setPaused(video, false);
@@ -475,8 +476,73 @@ describe("ViewerTransport", () => {
     act(() => vi.advanceTimersByTime(2601));
     expect(stage).not.toHaveAttribute("data-controls-visible");
 
-    act(() => handle!.pointerActivity());
+    // Pointer travel over the stage is no longer a reveal mechanism.
+    fireEvent.pointerMove(stage, { clientX: 40, clientY: 40 });
+    act(() => vi.advanceTimersByTime(100));
+    expect(stage).not.toHaveAttribute("data-controls-visible");
+
+    // A surface tap toggles the chrome back up, and back down again.
+    act(() => handle!.surfaceTap());
     expect(stage).toHaveAttribute("data-controls-visible", "true");
+    act(() => handle!.surfaceTap());
+    expect(stage).not.toHaveAttribute("data-controls-visible");
+  });
+
+  it("auto-hides the chrome for stills and toggleChrome re-reveals it", () => {
+    vi.useFakeTimers();
+    let handle: ViewerTransportHandle | null = null;
+    render(
+      <ViewerTransport
+        {...baseProps(null, {
+          onTransportHandle: (next) => {
+            handle = next;
+          },
+        })}
+      />,
+    );
+    const stage = screen.getByRole("region", {
+      name: "Tracers loop media controls",
+    });
+
+    // The mount itself schedules the fade — no playback event required.
+    expect(stage).toHaveAttribute("data-controls-visible", "true");
+    act(() => vi.advanceTimersByTime(2601));
+    expect(stage).not.toHaveAttribute("data-controls-visible");
+
+    act(() => handle!.toggleChrome());
+    expect(stage).toHaveAttribute("data-controls-visible", "true");
+    act(() => vi.advanceTimersByTime(2601));
+    expect(stage).not.toHaveAttribute("data-controls-visible");
+  });
+
+  it("pins the chrome while paused and while keyboard focus is inside", () => {
+    vi.useFakeTimers();
+    const video = createVideo();
+    render(<ViewerTransport {...baseProps(video)} />);
+    const stage = screen.getByRole("region", {
+      name: "Tracers loop media controls",
+    });
+
+    // Paused video: the fade timer fires but the pin holds the chrome up.
+    act(() => vi.advanceTimersByTime(5000));
+    expect(stage).toHaveAttribute("data-controls-visible", "true");
+
+    setPaused(video, false);
+    fireEvent(video, new Event("play"));
+    act(() => vi.advanceTimersByTime(2601));
+    expect(stage).not.toHaveAttribute("data-controls-visible");
+
+    // Tab landing on a control reveals the chrome and pins it while focused.
+    const play = screen.getByRole("button", { name: "Pause" });
+    fireEvent.focus(play);
+    expect(stage).toHaveAttribute("data-controls-visible", "true");
+    act(() => vi.advanceTimersByTime(5000));
+    expect(stage).toHaveAttribute("data-controls-visible", "true");
+
+    // Focus leaving resumes the ordinary fade.
+    fireEvent.blur(play);
+    act(() => vi.advanceTimersByTime(2601));
+    expect(stage).not.toHaveAttribute("data-controls-visible");
   });
 
   it("reports transport visibility changes to the overlay", () => {
@@ -501,7 +567,85 @@ describe("ViewerTransport", () => {
     act(() => vi.advanceTimersByTime(2601));
     expect(onTransportVisibleChange).toHaveBeenLastCalledWith(false);
 
-    act(() => handle!.pointerActivity());
+    act(() => handle!.toggleChrome());
     expect(onTransportVisibleChange).toHaveBeenLastCalledWith(true);
+  });
+
+  it("gates the fullscreen control on platform support", () => {
+    const video = createVideo();
+    const onFullscreen = vi.fn();
+    const { rerender } = render(
+      <ViewerTransport
+        {...baseProps(video, { onFullscreen, fullscreenSupported: true })}
+      />,
+    );
+    const fullscreen = screen.getByRole("button", { name: "Fullscreen" });
+    fireEvent.click(fullscreen);
+    expect(onFullscreen).toHaveBeenCalledOnce();
+
+    rerender(
+      <ViewerTransport
+        {...baseProps(video, { onFullscreen, fullscreenSupported: false })}
+      />,
+    );
+    expect(
+      screen.queryByRole("button", { name: "Fullscreen" }),
+    ).not.toBeInTheDocument();
+  });
+
+  it("collects the work-level modes — HQ, rotate, info — in the dock", () => {
+    const video = createVideo("https://cdn.test/tracers-preview.mp4");
+    render(
+      <ViewerTransport
+        {...baseProps(video, {
+          item: item({ preview_url: "https://cdn.test/tracers-preview.mp4" }),
+          canRotate: true,
+          onRotateModeChange: vi.fn(),
+          onInfo: vi.fn(),
+        })}
+      />,
+    );
+    expect(
+      screen.getByRole("button", { name: "Play original quality" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "Rotate to fill screen" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "Show information" }),
+    ).toBeInTheDocument();
+  });
+
+  it("keeps the seek bar horizontal and screen-anchored while the media is rotated", () => {
+    const video = createVideo();
+    setDuration(video, 30);
+    render(
+      <ViewerTransport
+        {...baseProps(video, {
+          canRotate: true,
+          rotated: true,
+          rotateMode: true,
+          onRotateModeChange: vi.fn(),
+        })}
+      />,
+    );
+    const slider = screen.getByRole("slider", { name: "Seek" });
+    expect(slider).not.toHaveAttribute("aria-orientation");
+
+    vi.spyOn(slider, "getBoundingClientRect").mockReturnValue({
+      left: 0,
+      width: 100,
+      top: 0,
+      right: 100,
+      bottom: 20,
+      height: 20,
+      x: 0,
+      y: 0,
+      toJSON: () => ({}),
+    } as DOMRect);
+
+    // Horizontal pointer math still owns the seek: x=50 of 100 → 15s of 30.
+    fireEvent.pointerDown(slider, { clientX: 50, button: 0, pointerId: 1 });
+    expect(video.currentTime).toBeCloseTo(15, 5);
   });
 });
