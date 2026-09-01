@@ -1,6 +1,6 @@
 {
   "__comment": "dose.wiki molecule pack manifest. Every molecule SVG is rendered by OpenChemLib from the canonical Convex depiction set (one editable MOL block per substance). The pack ZIP contains each structure in two colourways: molecules/ (dose.wiki brand colours, the stored depiction) and molecules-standard/ (standard textbook element colours — black skeleton, blue N, red O — derived from the same MOL block at pack time). `represents` names the active molecule when the substance is a plant, preparation, or brand name. Pack ZIP: /dosewiki-molecules.zip",
-  "count": 266,
+  "count": 267,
   "license": "CC0 1.0 (public domain) — dose.wiki-generated artwork; credit appreciated, not required",
   "molecules": [
     {
@@ -105,7 +105,7 @@
       "filename": "2-fluorodeschloroketamine.svg",
       "smiles": "CNC1(CCCCC1=O)C2=CC=CC=C2F",
       "represents": "",
-      "source": "template"
+      "source": "editor"
     },
     {
       "slug": "2-fma",
@@ -321,7 +321,7 @@
       "filename": "2m2b.svg",
       "smiles": "CC(C)(CC)O",
       "represents": "",
-      "source": "seeded"
+      "source": "editor"
     },
     {
       "slug": "3-cmc",
@@ -649,7 +649,7 @@
       "filename": "ab-fubinaca.svg",
       "smiles": "NC([C@H](C(C)C)NC(=O)C1=NN(C2=CC=CC=C12)CC1=CC=C(C=C1)F)=O",
       "represents": "",
-      "source": "seeded"
+      "source": "editor"
     },
     {
       "slug": "acetylfentanyl",
@@ -865,7 +865,7 @@
       "filename": "cannabis.svg",
       "smiles": "CC1(OC=2C=C(C=C(C2[C@H]2[C@H]1CCC(=C2)C)O)CCCCC)C",
       "represents": "",
-      "source": "seeded"
+      "source": "editor"
     },
     {
       "slug": "carisoprodol",
@@ -972,12 +972,20 @@
       "source": "template"
     },
     {
+      "slug": "det",
+      "title": "DET",
+      "filename": "det.svg",
+      "smiles": "C(C)N(CCC1=CNC2=CC=CC=C12)CC",
+      "represents": "",
+      "source": "template"
+    },
+    {
       "slug": "dexmethylphenidate",
       "title": "Dexmethylphenidate",
       "filename": "dexmethylphenidate.svg",
       "smiles": "COC(=O)[C@@H]([C@H]1CCCCN1)C2=CC=CC=C2",
       "represents": "",
-      "source": "template"
+      "source": "editor"
     },
     {
       "slug": "dextroamphetamine",
@@ -1017,7 +1025,7 @@
       "filename": "dihydrocodeine.svg",
       "smiles": "[H][C@@]12OC3=C4C(C[C@H]5N(C)CC[C@@]14[C@@]5([H])CC[C@@H]2O)=CC=C3OC",
       "represents": "",
-      "source": "template"
+      "source": "editor"
     },
     {
       "slug": "dimenhydrinate",
@@ -1145,7 +1153,7 @@
       "filename": "eszopiclone.svg",
       "smiles": "CN1CCN(CC1)C(=O)O[C@@H]1N(C(=O)C2=NC=CN=C12)C1=NC=C(Cl)C=C1",
       "represents": "",
-      "source": "seeded"
+      "source": "editor"
     },
     {
       "slug": "eth-lad",
@@ -1297,7 +1305,7 @@
       "filename": "ghb.svg",
       "smiles": "C(CC(=O)O)CO",
       "represents": "",
-      "source": "seeded"
+      "source": "editor"
     },
     {
       "slug": "h-2c-b",
@@ -1369,7 +1377,7 @@
       "filename": "jwh-018.svg",
       "smiles": "C1(=CC=CC2=CC=CC=C12)C(=O)C1=CN(C2=CC=CC=C12)CCCCC",
       "represents": "",
-      "source": "seeded"
+      "source": "editor"
     },
     {
       "slug": "jwh-073",
@@ -1377,7 +1385,7 @@
       "filename": "jwh-073.svg",
       "smiles": "C(CCC)N1C=C(C2=CC=CC=C12)C(=O)C1=CC=CC2=CC=CC=C12",
       "represents": "",
-      "source": "seeded"
+      "source": "editor"
     },
     {
       "slug": "k-2c-i",
@@ -1569,7 +1577,7 @@
       "filename": "methallylescaline.svg",
       "smiles": "CC(=C)COC1=C(C=C(C=C1OC)CCN)OC",
       "represents": "",
-      "source": "seeded"
+      "source": "editor"
     },
     {
       "slug": "methamphetamine",
