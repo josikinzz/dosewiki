@@ -19,7 +19,7 @@ export const REVIEW_STATUS_BANNER_FALLBACK =
 export const EXPERT_REVIEW_CREDIT_KEY = "expert-review-credit";
 
 export const EXPERT_REVIEW_CREDIT_FALLBACK =
-  "Reviewed, edited, and approved by subject-matter expert {{reviewer}}.";
+  "Subject-matter expert {{reviewer}} has reviewed this article's essentials: dosage, duration, prose, and copy. This does not guarantee factual accuracy.";
 
 const REVIEWER_TOKEN = /\{\{\s*reviewer\s*\}\}/;
 

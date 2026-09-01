@@ -315,6 +315,7 @@ export function ArticleLayout({
                 avatars={contributorAvatars}
                 profileHrefs={creditHrefs}
                 expertReviewCredit={expertReviewCredit}
+                reviewStatusCopy={reviewStatusCopy}
               />
             </DeferredSection>
             <DeferredSection>

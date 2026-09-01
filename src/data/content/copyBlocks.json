@@ -331,7 +331,7 @@
     "kind": "plain",
     "label": "Expert-review credit",
     "group": "Substance articles",
-    "body": "Reviewed, edited, and approved by subject-matter expert {{reviewer}}."
+    "body": "Subject-matter expert {{reviewer}} has reviewed this article's essentials: dosage, duration, prose, and copy. This does not guarantee factual accuracy."
   },
   {
     "key": "seo-substances-index-description",

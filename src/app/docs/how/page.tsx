@@ -448,12 +448,14 @@ export default async function DocsHowPage() {
           <p className="theme-text-secondary text-[1.0625rem] leading-7">
             Each substance article here combines four methods: deterministic code
             parses the numbers, language models draft prose from verbatim source excerpts,
-            people review and curate, and allied projects feed in their own data live. This
-            page documents the whole machine end to end, including the exact prompts it
-            runs, so you can judge the articles by how they are made instead of taking our
-            word for it. dose.wiki is in beta, and every article is a living document;{" "}
-            <SectionRef s="status" /> records what is finished, what is running, and what
-            is planned.
+            people review and curate, and allied projects feed in their own data live. The
+            automated pipeline compiles what is already published across the web into
+            one place; humans review, correct, and build on that
+            foundation. This page documents the whole machine end to end,
+            including the exact prompts it runs, so you can judge the articles by how they
+            are made instead of taking our word for it. dose.wiki is in beta, and every
+            article is a living document; <SectionRef s="status" /> records what is
+            finished, what is running, and what is planned.
           </p>
         </header>
 
@@ -1377,6 +1379,14 @@ export default async function DocsHowPage() {
           uncertainty rather than assuming coverage, and corrects the text through the
           editor&apos;s normal diff and save workflow. A separate review action then stores
           status, reviewer identity, and completion time.
+        </p>
+
+        <p className={`${PROSE_CLASS} mt-4`}>
+          Each article shows this as a three-step Article Status: automated
+          synthesis builds the foundation (step 1), the editorial review described
+          here checks the essentials (step 2), and a later citation review (step 3),
+          tracked as its own workflow (<SectionRef s="citations" />), checks every
+          claim against its source. No article has had its citation review yet.
         </p>
 
         <div className="mt-6 flex flex-col gap-2 sm:flex-row sm:items-stretch">
