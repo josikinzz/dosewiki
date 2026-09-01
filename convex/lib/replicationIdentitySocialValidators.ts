@@ -41,7 +41,14 @@ export const aliasExpectedBeforeValidator = v.object({
   currentState: v.string(), normalizedAliasOwners: v.union(v.number(), v.null()),
   collisionAuditProfileSnapshotCount: v.union(v.number(), v.null()),
 });
-const projectionCommon = { action: v.string(), expectedBeforeSha256: v.string(), after: v.any(), evidence: v.any() };
+const projectionCommon = {
+  operationId: v.string(), action: v.string(), expectedBeforeSha256: v.string(), after: v.any(), evidence: v.any(),
+  cas: v.object({
+    comparison: v.literal("canonical-json-sha256"),
+    expectedBeforeSha256: v.string(),
+    onMismatch: v.literal("abort-without-write"),
+  }),
+};
 export const projectionOperationValidator = v.union(
   v.object({ kind: v.literal("creator-attribution"), target: v.object({ replicationId: v.string(), slug: v.string() }), expectedBefore: creatorExpectedBeforeValidator, ...projectionCommon }),
   v.object({ kind: v.literal("replicator-verification"), target: v.object({ artistId: v.string(), profileKey: v.string() }), expectedBefore: verificationExpectedBeforeValidator, ...projectionCommon }),
