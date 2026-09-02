@@ -15,17 +15,27 @@ import { cn } from "@/lib/utils";
  *
  * The construction glyphs hang just outside the sentence: the wrapper shrinks
  * to fit the copy (one line where it fits, wrapping only when the viewport
- * forces it), and the icons are absolutely positioned in the side padding at a
- * fixed size, so narrow viewports neither shrink them nor push them to the
- * container edges.
+ * forces it), and the icons are absolutely positioned in the side padding so
+ * narrow viewports never push them to the container edges.
+ *
+ * Below `md` the copy always wraps, and the parent's `text-balance` would leave
+ * lines far shorter than the box, stranding the icons at the box edges. There
+ * the shell caps its width and wraps `pretty` so lines fill the box, and the
+ * icons grow to suit the taller multi-line block.
  */
 export function BetaDisclaimer({ className }: { className?: string }) {
   return (
-    <span className={cn("theme-beta-disclaimer-shell relative mx-auto block w-fit px-7", className)}>
+    <span
+      className={cn(
+        "theme-beta-disclaimer-shell relative mx-auto block w-fit px-7",
+        "max-md:max-w-[24rem] max-md:px-10 max-md:[text-wrap:pretty]",
+        className,
+      )}
+    >
       <Icon
         icon="lucide:construction"
         size="1.25rem"
-        className="theme-beta-disclaimer-icon absolute left-0 top-1/2 -translate-y-1/2"
+        className="theme-beta-disclaimer-icon absolute left-0 top-1/2 -translate-y-1/2 max-md:h-7 max-md:w-7"
       />
       <span className="theme-beta-shimmer">
         dose.wiki is still in beta. Entries may contain inaccuracies and/or
@@ -41,7 +51,7 @@ export function BetaDisclaimer({ className }: { className?: string }) {
       <Icon
         icon="lucide:construction"
         size="1.25rem"
-        className="theme-beta-disclaimer-icon absolute right-0 top-1/2 -translate-y-1/2"
+        className="theme-beta-disclaimer-icon absolute right-0 top-1/2 -translate-y-1/2 max-md:h-7 max-md:w-7"
       />
     </span>
   );
