@@ -57,7 +57,9 @@ const COVERAGE_PATH = process.env.ENTITY_SOCIAL_CARD_COVERAGE_PATH
 const MANIFEST_PUBLIC_PREFIX =
   process.env.ENTITY_SOCIAL_CARD_PUBLIC_PREFIX?.replace(/\/$/, "") ??
   "/images/social/entities";
-const SLUG_RE = /^[a-z0-9][a-z0-9-]*$/;
+// Contributor keys may carry underscores (PAVEL_SOUVIRON); the manifest is
+// looked up by the lowercased key verbatim, so the slug must admit them.
+const SLUG_RE = /^[a-z0-9][a-z0-9_-]*$/;
 const EFFECT_ICON = "material-symbols:person-play-outline-rounded";
 const RENDER_CONCURRENCY = Math.max(
   1,

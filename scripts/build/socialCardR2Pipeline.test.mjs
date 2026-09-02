@@ -53,6 +53,33 @@ describe("social-card R2 publication plan", () => {
     assert.throws(() => requireApplyConfirmation(valid.with(4, "--confirm-bucket=other"), "replications-r2:", "replications", "abc"), /confirm-bucket/);
   });
 
+  it("carries an already-published CDN card through the plan without an object to upload", async () => {
+    const { root, assets } = await fixture();
+    const publishedSha = "f".repeat(64);
+    const publishedUrl = `https://cdn.test/media/sha256/ff/${publishedSha}.jpg`;
+    const manifestPath = path.join(root, "mixed.json");
+    await writeFile(manifestPath, JSON.stringify({
+      version: 1,
+      cards: {
+        replications: { a: "/local/social-cards/replications/a.jpg", old: publishedUrl },
+      },
+    }));
+    const plan = await buildPlan({ manifestPath, assetsRoot: assets, cdnBase: "https://cdn.test/" });
+    assert.equal(plan.objects.length, 1);
+    assert.equal(plan.logicalCards.length, 2);
+    const old = plan.logicalCards.find((card) => card.slug === "old");
+    assert.equal(old.published, true);
+    assert.equal(old.sha256, publishedSha);
+    assert.equal(plan.candidateManifest.cards.replications.old, publishedUrl);
+    assert.equal(plan.candidateManifest.promotion.publishedCardCount, 1);
+    // A digest URL on some other host is not "already published" here.
+    await writeFile(manifestPath, JSON.stringify({
+      version: 1,
+      cards: { replications: { old: `https://elsewhere.test/media/sha256/ff/${publishedSha}.jpg` } },
+    }));
+    await assert.rejects(buildPlan({ manifestPath, assetsRoot: assets, cdnBase: "https://cdn.test" }), /Unsupported social-card path/);
+  });
+
   it("anchors rclone operations beneath an explicit bucket path", () => {
     assert.equal(
       rcloneObject("replications-r2:replications", "media/sha256/aa/hash.jpg"),
@@ -154,14 +181,21 @@ describe("social-card R2 publication plan", () => {
     await writeCandidateManifest(candidate, plan);
     await writeFile(target, prior);
     await writeFile(publisherLedger, `${JSON.stringify({ type: "full-complete", planDigest: plan.planDigest, objectCount: plan.objects.length })}\n`);
-    await writeFile(verificationLedger, `${JSON.stringify({
+    const completion = {
       type: "object-verification-complete",
       planDigest: plan.planDigest,
       runId: "predeploy-objects",
       objectCount: plan.objects.length,
       totalBytes: plan.totalBytes,
       exhaustive: true,
-    })}\n`);
+    };
+    // A completion record alone proves nothing about this plan's objects.
+    await writeFile(verificationLedger, `${JSON.stringify(completion)}\n`);
+    await assert.rejects(installCandidateManifest({ plan, candidatePath: candidate, targetPath: target, rollbackPath: rollback, publisherLedgerPath: publisherLedger, verificationLedgerPath: verificationLedger }), /object verification/);
+    await writeFile(verificationLedger, [
+      ...plan.objects.map((object) => JSON.stringify({ type: "object-verified", planDigest: plan.planDigest, runId: "predeploy-objects", key: object.key, sha256: object.sha256, size: object.size })),
+      JSON.stringify(completion),
+    ].map((line) => `${line}\n`).join(""));
     await installCandidateManifest({
       plan,
       candidatePath: candidate,

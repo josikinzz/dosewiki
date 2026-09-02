@@ -41,6 +41,19 @@ export function canonicalKey(sha256) {
   return `media/sha256/${sha256.slice(0, 2)}/${sha256}.jpg`;
 }
 
+/**
+ * A card that already lives at its content-addressed key on this CDN. The
+ * entity generator carries such cards forward verbatim (per-replication cards
+ * are only re-rendered on an explicit offline rebuild), so a refresh must
+ * accept them without a local file: they have nothing to upload.
+ */
+export function publishedCardKey(cardPath, cdnBase = DEFAULT_CDN_BASE) {
+  const prefix = `${cdnBase.replace(/\/+$/, "")}/`;
+  if (!cardPath.startsWith(prefix)) return null;
+  const key = cardPath.slice(prefix.length);
+  return KEY_PATTERN.test(key) ? key : null;
+}
+
 export function relativeCardPath(cardPath) {
   if (cardPath.startsWith("/local/social-cards/")) {
     return cardPath.slice("/local/social-cards/".length);
@@ -97,9 +110,23 @@ export async function buildPlan({ manifestPath, assetsRoot, cdnBase = DEFAULT_CD
     throw new Error("Input manifest must contain a cards object");
   }
   const inputManifestSha256 = sha256Bytes(sourceText);
+  const normalizedCdnBase = cdnBase.replace(/\/+$/, "");
   const leaves = collectCardLeaves(sourceManifest.cards);
   const logicalCards = new Array(leaves.length);
   await mapConcurrent(leaves, concurrency, async (leaf, index) => {
+    const publishedKey = publishedCardKey(leaf.cardPath, normalizedCdnBase);
+    if (publishedKey) {
+      logicalCards[index] = {
+        category: leaf.trail[0],
+        slug: leaf.trail.slice(1).join("/"),
+        trail: leaf.trail,
+        sourcePath: leaf.cardPath,
+        sha256: KEY_PATTERN.exec(publishedKey)[2],
+        key: publishedKey,
+        published: true,
+      };
+      return;
+    }
     const relativePath = relativeCardPath(leaf.cardPath);
     const filename = path.resolve(assetsRoot, relativePath);
     const root = `${path.resolve(assetsRoot)}${path.sep}`;
@@ -118,11 +145,13 @@ export async function buildPlan({ manifestPath, assetsRoot, cdnBase = DEFAULT_CD
       size: digest.size,
       key: canonicalKey(digest.sha256),
       contentType: CONTENT_TYPE,
+      published: false,
     };
   });
   logicalCards.sort((left, right) => left.trail.join("\0").localeCompare(right.trail.join("\0")));
   const uniqueByKey = new Map();
   for (const card of logicalCards) {
+    if (card.published) continue;
     const prior = uniqueByKey.get(card.key);
     if (prior && (prior.sha256 !== card.sha256 || prior.size !== card.size)) {
       throw new Error(`Local content collision for ${card.key}`);
@@ -130,7 +159,7 @@ export async function buildPlan({ manifestPath, assetsRoot, cdnBase = DEFAULT_CD
     if (!prior) uniqueByKey.set(card.key, card);
   }
   const objects = [...uniqueByKey.values()].sort((left, right) => left.key.localeCompare(right.key));
-  const normalizedCdnBase = cdnBase.replace(/\/+$/, "");
+  const publishedCardCount = logicalCards.filter((card) => card.published).length;
   const candidateManifest = structuredClone(sourceManifest);
   for (const card of logicalCards) {
     setAtTrail(candidateManifest.cards, card.trail, `${normalizedCdnBase}/${card.key}`);
@@ -138,7 +167,7 @@ export async function buildPlan({ manifestPath, assetsRoot, cdnBase = DEFAULT_CD
   const planMaterial = {
     inputManifestSha256,
     cdnBase: normalizedCdnBase,
-    cards: logicalCards.map(({ category, slug, sha256, size, key }) => ({ category, slug, sha256, size, key })),
+    cards: logicalCards.map(({ category, slug, sha256, size, key, published }) => ({ category, slug, sha256, size, key, published })),
   };
   const planDigest = sha256Bytes(JSON.stringify(planMaterial));
   candidateManifest.promotion = {
@@ -146,6 +175,7 @@ export async function buildPlan({ manifestPath, assetsRoot, cdnBase = DEFAULT_CD
     planDigest,
     inputManifestSha256,
     logicalCardCount: logicalCards.length,
+    publishedCardCount,
     uniqueObjectCount: objects.length,
   };
   return {
@@ -227,16 +257,33 @@ export function hasCompletedFullRun(records, planDigest, objectCount) {
   return records.some((record) => record.type === "full-complete" && record.planDigest === planDigest && record.objectCount === objectCount);
 }
 
+/**
+ * The verifier scopes its run to every unique key in the candidate manifest,
+ * which is a superset of the publisher's uploadable objects once carried-through
+ * cards are in play. So the gate is per-object: an exhaustive completion for
+ * this plan, and within that run an exact digest/size verification of every
+ * object this plan publishes.
+ */
 export function hasCompletedObjectVerification(records, plan) {
-  return records.some((record) => (
+  const completion = records.find((record) => (
     record.type === "object-verification-complete"
     && record.planDigest === plan.planDigest
     && typeof record.runId === "string"
     && record.runId.length > 0
-    && record.objectCount === plan.objects.length
-    && record.totalBytes === plan.totalBytes
     && record.exhaustive === true
+    && record.objectCount >= plan.objects.length
   ));
+  if (!completion) return false;
+  const verifiedByKey = new Map();
+  for (const record of records) {
+    if (record.type === "object-verified" && record.planDigest === plan.planDigest && record.runId === completion.runId) {
+      verifiedByKey.set(record.key, record);
+    }
+  }
+  return plan.objects.every((object) => {
+    const verified = verifiedByKey.get(object.key);
+    return verified && verified.sha256 === object.sha256 && verified.size === object.size;
+  });
 }
 
 export function selectCanaryObjects(plan, selectors) {
