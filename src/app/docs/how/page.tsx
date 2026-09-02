@@ -1431,7 +1431,7 @@ export default async function DocsHowPage() {
         <p className={`${PROSE_CLASS} mt-4`}>
           Each article shows this as a three-step Article Status. Step 1 is automated
           synthesis, which builds the foundation. Step 2 is the editorial review described
-          here. Step 3 is a human citation review that checks every claim against its
+          here. Step 3 is a human citation review that compares each claim with its
           source. Step 3 is the human pass planned as Phase 4 in{" "}
           <SectionRef s="status" />, not the automated entailment audit before it. No
           article has a completed citation review yet.

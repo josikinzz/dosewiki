@@ -86,10 +86,10 @@ describe("/docs/how trust and review methodology", () => {
   });
 
   it("distinguishes provenance, intended citation support, and human verification", () => {
-    expect(PAGE).toContain("A source link is not a citation.");
+    expect(PAGE).toContain("Source links record influence only.");
     expect(PAGE).toMatch(/intended\s+evidentiary relationships/);
     expect(PAGE).toMatch(/does\s+not prove entailment/);
-    expect(PAGE).toContain("human verification");
+    expect(PAGE).toMatch(/need a human check against the cited source/);
   });
 
   it("states the current review statuses and revision-binding limitation", () => {
@@ -122,16 +122,16 @@ describe("/docs/how status and roadmap", () => {
   it("labels human citation review as planned, not current practice", () => {
     const phase4 = PAGE.slice(PAGE.indexOf("Phase 4"), PAGE.indexOf("Phase 5"));
     expect(phase4).toContain("Planned");
-    expect(phase4).toContain("will be tracked separately");
+    expect(phase4).toMatch(/tracks this pass separately from editorial\s+review/);
   });
 
   it("separates editorial review from citation verification", () => {
-    expect(PAGE).toContain("separate tracks");
-    expect(PAGE).toMatch(/does not assert that the article&apos;s\s+citations were verified/);
+    expect(PAGE).toMatch(/separate from editorial review/);
+    expect(PAGE).toMatch(/does not certify every\s+sentence, dose, interaction, citation/);
   });
 
   it("declares the legality loop as the template for other sections", () => {
-    expect(PAGE).toMatch(/legality loop[\s\S]{0,300}extended to the other citable\s+sections/);
+    expect(PAGE).toMatch(/legality loop[\s\S]{0,300}extends to the other citable sections/);
   });
 });
 
