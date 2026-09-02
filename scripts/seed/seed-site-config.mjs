@@ -2,11 +2,10 @@
 /**
  * Seed the siteConfig table with existing static About page content.
  *
- * Usage:
- *   VITE_CONVEX_URL=https://enchanted-echidna-791.convex.cloud node scripts/seed-site-config.mjs
+ * Usage (dry run by default):
+ *   TARGET_CONVEX_URL=https://glad-minnow-656.convex.cloud node scripts/seed/seed-site-config.mjs
  *
- * For production:
- *   VITE_CONVEX_URL=https://glad-minnow-656.convex.cloud node scripts/seed-site-config.mjs
+ * Write: add --write --confirm-write=seed-site-config --expected-deployment=<fingerprint>.
  */
 
 import { ConvexHttpClient } from "convex/browser";
@@ -28,18 +27,18 @@ printProductionWriteCommand(command);
 
 // Read the static content files
 const aboutMarkdown = fs.readFileSync(
-  path.join(__dirname, "../src/data/content/aboutContent.md"),
+  path.join(__dirname, "../../src/data/content/aboutContent.md"),
   "utf-8"
 ).trim();
 
 const aboutSubtitle = fs.readFileSync(
-  path.join(__dirname, "../src/data/content/aboutSubtitle.md"),
+  path.join(__dirname, "../../src/data/content/aboutSubtitle.md"),
   "utf-8"
 ).trim();
 
 const aboutConfig = JSON.parse(
   fs.readFileSync(
-    path.join(__dirname, "../src/data/content/aboutConfig.json"),
+    path.join(__dirname, "../../src/data/content/aboutConfig.json"),
     "utf-8"
   )
 );

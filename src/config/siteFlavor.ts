@@ -353,13 +353,12 @@ const DOSEWIKI_CONFIG: SiteFlavorConfig = {
   aboutTitle: "About dose.wiki",
   about: {
     reuseNotice: {
-      leadIn:
-        "Everything dose.wiki writes, including its articles and the schema and normalization behind the dataset, is dedicated to the public domain under",
+      leadIn: "Everything dose.wiki writes is dedicated to the public domain under",
       linkLabel: "CC0",
       linkHref: "/docs/license",
       linkIsExternal: false,
       trailing:
-        ". Reuse it freely, no attribution required. The site's code is MIT. Trip reports, the TripSit interaction data embedded in the dataset download, and reagent tests keep their own terms.",
+        ". Third-party material in the download keeps its own terms, and the license page lists them.",
     },
     // dose.wiki's About prose is editor-managed in Convex.
     missionMarkdown: null,
