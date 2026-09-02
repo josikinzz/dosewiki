@@ -1,6 +1,7 @@
 import { Children, type ReactNode } from "react";
 import { buildPublicPageMetadata } from "@server/next/publicSite";
 import { getCopy } from "@server/next/copyBlocks";
+import { getPublicDataOverview } from "@server/convex/publicData";
 import { DefinitionList, DefinitionRow } from "@/components/common/DefinitionList";
 import { DisclosureCard } from "@/components/common/DisclosureCard";
 import { Icon } from "@/components/common/Icon";
@@ -202,7 +203,9 @@ function FlowGrid({ children, className }: { children: ReactNode; className?: st
 }
 
 export default async function DocsCodePage() {
-  const copy = await getCopy();
+  // The content figures come from the same overview the About page renders, so
+  // the two never disagree; the code-size figures below stay hand-maintained.
+  const [copy, overview] = await Promise.all([getCopy(), getPublicDataOverview()]);
   const tocItems = TOC_ITEMS.map(({ id, icon, copyKey }) => ({
     id,
     icon,
@@ -252,19 +255,21 @@ export default async function DocsCodePage() {
           />
           <dl className="mt-6 grid grid-cols-2 gap-x-8 gap-y-6 sm:grid-cols-3 lg:grid-cols-5">
             <div className="min-w-0">
-              <dt className={`${STAT_NUMBER_CLASS} text-4xl sm:text-5xl`}>~580</dt>
+              <dt className={`${STAT_NUMBER_CLASS} text-4xl sm:text-5xl`}>
+                {overview.substanceCount.toLocaleString()}
+              </dt>
               <dd className="theme-text-muted mt-1.5 text-sm leading-6">
                 {copy.text("docs-code-s1-stat-articles")}
               </dd>
             </div>
             <div className="min-w-0">
-              <dt className={`${STAT_NUMBER_CLASS} text-3xl`}>~230</dt>
+              <dt className={`${STAT_NUMBER_CLASS} text-3xl`}>{overview.effectCount.toLocaleString()}</dt>
               <dd className="theme-text-muted mt-1.5 text-sm leading-6">
                 {copy.text("docs-code-s1-stat-effects")}
               </dd>
             </div>
             <div className="min-w-0">
-              <dt className={`${STAT_NUMBER_CLASS} text-3xl`}>~165</dt>
+              <dt className={`${STAT_NUMBER_CLASS} text-3xl`}>{overview.reportCount.toLocaleString()}</dt>
               <dd className="theme-text-muted mt-1.5 text-sm leading-6">
                 {copy.text("docs-code-s1-stat-reports")}
               </dd>

@@ -28,7 +28,11 @@ export const getPublicDataOverview = cache(async () => {
   ]);
 
   return {
-    substanceCount: substances.length,
+    // Listed articles only. `low` (which also covers stored `hide_for_now`)
+    // marks unfinished or deliberately unlisted drafts; the substance index
+    // and the open-data export both leave them out, so the site-wide figure
+    // must match.
+    substanceCount: substances.filter((substance) => substance.priority !== "low").length,
     effectCount: effects.length,
     reportCount: reports.length,
     replicationCount: replications.length,
