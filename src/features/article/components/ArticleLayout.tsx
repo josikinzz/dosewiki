@@ -210,25 +210,26 @@ export function ArticleLayout({
         externalReagentData={externalReagentData}
       />
 
+      {/* The audited-article stand-in for the stored citation-overhaul banner:
+          the same shimmering beta disclaimer the Substance Index header shows,
+          bare rather than carded so it reads as site status, not as another
+          safety warning. First in the banner slot above the hero. */}
+      {showBetaDisclaimer && (
+        <div className="text-center text-sm italic text-balance">
+          <BetaDisclaimer />
+        </div>
+      )}
+
       {/* Compact status chip on articles awaiting editorial review; renders
           nothing once the review ticks complete (path revalidation removes it
-          without a redeploy). */}
+          without a redeploy). Sits below the beta disclaimer and above the
+          safety banners. */}
       <ReviewStatusBanner
         article={article}
         avatarSrc={contributorAvatars?.lyrea}
         profileHref={creditHrefs.lyrea}
         copy={reviewStatusCopy}
       />
-
-      {/* The audited-article stand-in for the stored citation-overhaul banner:
-          the same shimmering beta disclaimer the Substance Index header shows,
-          bare rather than carded so it reads as site status, not as another
-          safety warning. Sits in the banner slot above the hero. */}
-      {showBetaDisclaimer && (
-        <div className="text-center text-sm italic text-balance">
-          <BetaDisclaimer />
-        </div>
-      )}
 
       {/* Opt-in drug-class safety banners: above the hero because a reader who
           bounces at the fold must still have seen the warning, and outside
