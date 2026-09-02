@@ -5813,11 +5813,22 @@ html[data-theme="light"]:not([data-visual-style="pro"])
    sibling dividers show). The deferral was profiled in Chromium, so apply it
    only there: `-moz-appearance` matches Gecko, `-webkit-hyphens` matches
    WebKit, and Chromium matches neither.
+   Adornment safety: content-visibility implies paint containment, which
+   clips anything outside the section's border box. Trailing adornments
+   (articleSectionLayout.ts: source-credit pills, expand toggles) carry
+   `-mb-8` so they tuck into the next section's top padding, which places
+   their box 2rem below the section's edge, exactly where containment
+   erased them. The padding grows the border box to enclose that overhang
+   and the matching negative margin returns the flow position, so every
+   section lays out exactly as before and nothing hangs outside the clip.
+   Both values must equal the adornment's `-mb-8`.
    --------------------------------------------------------------------- */
 @supports (not (-moz-appearance: none)) and (not (-webkit-hyphens: none)) {
   .theme-offscreen-defer {
     content-visibility: auto;
     contain-intrinsic-size: auto 500px;
+    padding-bottom: 2rem;
+    margin-bottom: -2rem;
   }
 }
 
