@@ -30,17 +30,14 @@ export default function ReplicationsSectionLayout({
       tabIndex={-1}
       className="mx-auto w-full px-4 pb-20 pt-4 focus:outline-none 2xl:px-8"
     >
-      {/* Left-aligned on the gallery card's own measure, so the title, tabs,
-          and card share one edge; the header keeps a deliberately short
-          footprint — the media below is the point of the page. */}
+      {/* Centred like the other index headers; kept to a deliberately short
+          footprint since the media below is the point of the page. */}
       <div className="mx-auto w-full max-w-7xl">
         <PageHeader
-          align="left"
           className="mb-4 gap-2"
           titleClassName="[--type-size-title:2.25rem] md:[--type-size-title:3rem]"
           title="Replications"
           icon={resolveRouteChromeIcon("replications")}
-          prominentMobileIcon
         />
       </div>
       {children}

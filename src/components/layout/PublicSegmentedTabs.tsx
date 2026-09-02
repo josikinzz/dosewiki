@@ -78,16 +78,34 @@ function renderMobileFilterLabel(label: ReactNode) {
 }
 
 /**
- * Center a lone trailing pair so a 4-column grid never leaves two tiles
- * stranded against the left edge. Only a remainder of exactly two needs the
- * nudge — one tile centers naturally and three already balance.
+ * Balance the mobile tile rows so the last one is never a lone straggler:
+ * five tabs split 3 + 2 rather than 4 + 1, seventeen split 4/4/3/3/3. The
+ * grid has eight tracks and every tile spans two, so a row of 3, 2, or 1
+ * tiles can start on an odd column and sit centred under the full rows.
+ * Returns the explicit column start of every tile so the grid never
+ * auto-flows into a left-aligned row.
  */
+const MOBILE_FILTER_COLUMN_START: Record<number, string> = {
+  1: "col-start-1",
+  2: "col-start-2",
+  3: "col-start-3",
+  4: "col-start-4",
+  5: "col-start-5",
+  6: "col-start-6",
+  7: "col-start-7",
+};
+
 function getMobileFilterItemPositionClassName(index: number, itemCount: number) {
-  const remainder = itemCount % 4;
-  if (remainder === 2 && index === itemCount - remainder) {
-    return "col-start-2";
-  }
-  return undefined;
+  const rowCount = Math.ceil(itemCount / 4);
+  const baseSize = Math.floor(itemCount / rowCount);
+  const wideRows = itemCount % rowCount;
+  // Rows are `baseSize + 1` for the first `wideRows`, then `baseSize`.
+  const wideSpan = wideRows * (baseSize + 1);
+  const rowSize = index < wideSpan ? baseSize + 1 : baseSize;
+  const indexInRow =
+    index < wideSpan ? index % (baseSize + 1) : (index - wideSpan) % baseSize;
+  const rowStart = 1 + (4 - rowSize);
+  return MOBILE_FILTER_COLUMN_START[rowStart + indexInRow * 2];
 }
 
 /**
@@ -199,7 +217,7 @@ export function PublicSegmentedTabs<TValue extends string = string>({
         <div
           role="group"
           aria-label={ariaLabel}
-          className="mx-auto grid w-full max-w-[22rem] grid-cols-4 gap-x-1.5 gap-y-3 px-1"
+          className="mx-auto grid w-full max-w-[22rem] grid-cols-8 gap-x-1.5 gap-y-3 px-1"
         >
           {items.map((item, index) => {
             const isActive = item.id === value;
@@ -220,7 +238,7 @@ export function PublicSegmentedTabs<TValue extends string = string>({
                   onItemSelect?.(item, { wasActive });
                 }}
                 className={cn(
-                  "theme-index-mobile-tab group flex min-w-0 flex-col items-center gap-1.5 rounded-2xl px-0 py-1 text-center transition-[color,transform] duration-[220ms] ease-[cubic-bezier(0.25,1,0.5,1)] active:scale-[0.98] motion-reduce:transition-none motion-reduce:active:scale-100 disabled:pointer-events-none disabled:opacity-50",
+                  "theme-index-mobile-tab group col-span-2 flex min-w-0 flex-col items-center gap-1.5 rounded-2xl px-0 py-1 text-center transition-[color,transform] duration-[220ms] ease-[cubic-bezier(0.25,1,0.5,1)] active:scale-[0.98] motion-reduce:transition-none motion-reduce:active:scale-100 disabled:pointer-events-none disabled:opacity-50",
                   getMobileFilterItemPositionClassName(index, items.length),
                 )}
               >

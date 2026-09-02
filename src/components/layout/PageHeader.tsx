@@ -7,7 +7,6 @@ interface PageHeaderProps {
   title: string;
   description?: ReactNode;
   icon?: IconName;
-  prominentMobileIcon?: boolean;
   descriptionClassName?: string;
   /** Extra classes merged onto the `h1`, e.g. a page that wants a smaller title. */
   titleClassName?: string;
@@ -28,29 +27,22 @@ export const PageHeader = memo(function PageHeader({
   title,
   description,
   icon,
-  prominentMobileIcon = false,
   descriptionClassName,
   titleClassName,
   align = "center",
 }: PageHeaderProps) {
   const isLeft = align === "left";
-  // On a phone the icon is gone: at title size it read as decoration that
-  // cost a full line above the fold. At sm and up it is a glyph in the text
-  // run, one em tall on the cap line, leading the first word.
-  // `prominentMobileIcon` instead stacks it centred above the title at hero
-  // size on a phone.
-  // Icon fonts pad their 24-unit viewBox by 1-3 units on each side, so the
-  // glyph's box already carries air before the first letter; the margin only
-  // tops it up to about half a word space. The fade keeps the glyph as a
-  // letter of the word rather than a second thing competing with the title.
-  const iconClassName = cn(
-    "theme-accent-heading align-[-0.12em] opacity-70 sm:mb-0 sm:mr-[0.02em] sm:inline-block sm:h-[1em] sm:w-[1em]",
-    prominentMobileIcon
-      ? cn("mb-3 block h-[2em] w-[2em]", isLeft ? undefined : "mx-auto")
-      : "hidden",
-  );
+  // The icon sits out of flow, hung off the left edge of the text run, so the
+  // title centres on its letters alone and the glyph does not shift the
+  // optical middle. It keeps the accent colour but at low opacity, so it
+  // recedes into the background. The h1 carries symmetric side padding one
+  // glyph wide so a title that fills a phone column still leaves room for
+  // the hung icon without moving the text off centre.
+  const iconClassName =
+    "theme-accent-heading absolute right-full top-1/2 mr-[0.15em] block h-[1em] w-[1em] -translate-y-1/2 opacity-30";
   const titleClasses = cn(
-    "type-page-title theme-accent-heading block max-w-[22ch] break-words text-balance text-4xl sm:text-5xl md:text-6xl",
+    "type-page-title theme-accent-heading block max-w-[22ch] text-balance text-4xl wrap-normal! sm:text-5xl md:text-6xl",
+    icon ? (isLeft ? "pl-[1.15em]" : "px-[1.15em]") : undefined,
     isLeft ? undefined : "mx-auto",
     titleClassName,
   );
@@ -64,8 +56,14 @@ export const PageHeader = memo(function PageHeader({
       )}
     >
       <h1 className={titleClasses}>
-        {icon ? <IconComponent icon={icon} size="1em" className={iconClassName} /> : null}
-        {title}
+        {icon ? (
+          <span className="relative inline-block">
+            <IconComponent icon={icon} size="1em" className={iconClassName} />
+            {title}
+          </span>
+        ) : (
+          title
+        )}
       </h1>
       {description ? (
         <div

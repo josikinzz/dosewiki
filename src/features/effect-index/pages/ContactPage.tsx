@@ -39,7 +39,7 @@ export function ContactPage({ intro }: { intro?: string } = {}) {
     <PublicContentShell width="standard" focusTarget>
       {/* Envelope, matching the old site's `envelope.svg` — and distinct from the Discord
           page's own glyph, which this used to duplicate. */}
-      <PageHeader title="Contact Us" icon={icons.mail} prominentMobileIcon />
+      <PageHeader title="Contact Us" icon={icons.mail} />
 
       <PublicMarkdownBody content={intro || INTRO_MARKDOWN} />
 
@@ -48,8 +48,18 @@ export function ContactPage({ intro }: { intro?: string } = {}) {
 
         <PublicMetadataList
           items={[
-            { key: "discord", icon: icons.discord, label: "Discord", value: "josikinz#1066" },
-            { key: "reddit", icon: icons.globe, label: "Reddit", value: "/u/josikins" },
+            {
+              key: "discord",
+              icon: icons.discord,
+              label: "Discord",
+              value: "josikinz#1066",
+            },
+            {
+              key: "reddit",
+              icon: icons.globe,
+              label: "Reddit",
+              value: "/u/josikins",
+            },
             {
               key: "email",
               icon: icons.mail,

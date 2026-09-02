@@ -14,7 +14,7 @@ import { cn } from "@/lib/utils";
  * whole message on its own.
  */
 const linkClassName =
-  "theme-text-secondary underline decoration-dose-divider decoration-1 underline-offset-[3px] transition hover:text-dose-accent hover:decoration-dose-accent";
+  "theme-text-secondary underline decoration-dose-divider decoration-1 underline-offset-[3px] whitespace-nowrap transition hover:text-dose-accent hover:decoration-dose-accent";
 
 export function SEIRoadmapNotice({
   className,

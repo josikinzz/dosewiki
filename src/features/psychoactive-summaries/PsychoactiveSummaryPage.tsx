@@ -13,8 +13,7 @@ import type {
   PsychoactiveSummarySectionDefinition,
 } from "./summaryDefinitions";
 
-interface PsychoactiveSummarySection
-  extends PsychoactiveSummarySectionDefinition {
+interface PsychoactiveSummarySection extends PsychoactiveSummarySectionDefinition {
   effects: PublicEffectArticle[];
 }
 
@@ -29,11 +28,7 @@ export function PsychoactiveSummaryPage({
 }: PsychoactiveSummaryPageProps) {
   return (
     <PublicContentShell width="standard" focusTarget>
-      <PageHeader
-        title={definition.title}
-        icon={definition.icon}
-        prominentMobileIcon
-      />
+      <PageHeader title={definition.title} icon={definition.icon} />
 
       <div className="mx-auto max-w-4xl space-y-10">
         <section className="flow-root">
@@ -54,7 +49,9 @@ export function PsychoactiveSummaryPage({
             {definition.intro.map((paragraph, index) => (
               <p
                 key={`${definition.key}-intro-${index}`}
-                className={paragraph.italic ? "theme-text-muted italic" : undefined}
+                className={
+                  paragraph.italic ? "theme-text-muted italic" : undefined
+                }
                 dangerouslySetInnerHTML={{ __html: paragraph.html }}
               />
             ))}
@@ -66,7 +63,10 @@ export function PsychoactiveSummaryPage({
         {sections.map((section) => (
           <ArticleSection
             key={section.title}
-            id={section.title.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "")}
+            id={section.title
+              .toLowerCase()
+              .replace(/[^a-z0-9]+/g, "-")
+              .replace(/^-|-$/g, "")}
             icon={section.icon}
             heading={section.title}
             spacing="effect"

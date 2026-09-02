@@ -24,13 +24,18 @@ import { icons } from "@/utils/iconNames";
  * site owner to edit as content.
  */
 
-type StyleGuideListItem = string | { text: string; children: readonly string[] };
+type StyleGuideListItem =
+  | string
+  | { text: string; children: readonly string[] };
 
 type StyleGuideBody =
   | { kind: "list"; items: readonly StyleGuideListItem[] }
   /** A sentence template the original presented in quotation marks. */
   | { kind: "template"; text: string }
-  | { kind: "preferences"; items: readonly { context: string; term: string }[] };
+  | {
+      kind: "preferences";
+      items: readonly { context: string; term: string }[];
+    };
 
 interface StyleGuideSection {
   id: string;
@@ -81,7 +86,11 @@ const SECTIONS: readonly StyleGuideSection[] = [
     icon: icons.listOrdered,
     body: {
       kind: "list",
-      items: ["At the lowest level, …", "At this level, …", "At the highest level, …"],
+      items: [
+        "At the lowest level, …",
+        "At this level, …",
+        "At the highest level, …",
+      ],
     },
   },
   {
@@ -116,29 +125,47 @@ const SECTIONS: readonly StyleGuideSection[] = [
     body: {
       kind: "preferences",
       items: [
-        { context: "To describe a given environment in its entirety:", term: "Scene" },
+        {
+          context: "To describe a given environment in its entirety:",
+          term: "Scene",
+        },
         {
           context:
             "To describe the surface of a given object (like the surface of a wall in a video game):",
           term: "Texture",
         },
         { context: "To describe a given object:", term: "Object" },
-        { context: "To describe the experience of an effect of an illusion:", term: "Perception" },
-        { context: "To describe increasing intensity across multiple tiers:", term: "Progressive" },
         {
-          context: "To describe common sober experiences (to contrast with intoxicated effects):",
+          context: "To describe the experience of an effect of an illusion:",
+          term: "Perception",
+        },
+        {
+          context: "To describe increasing intensity across multiple tiers:",
+          term: "Progressive",
+        },
+        {
+          context:
+            "To describe common sober experiences (to contrast with intoxicated effects):",
           term: "Everyday (life)",
         },
         {
-          context: "To describe an illusion the subject recognizes to be false:",
+          context:
+            "To describe an illusion the subject recognizes to be false:",
           term: "Hallucination / hallucinatory",
         },
         {
-          context: "To describe an illusion the subject cannot recognize as such:",
+          context:
+            "To describe an illusion the subject cannot recognize as such:",
           term: "Delusion",
         },
-        { context: "To describe the lower bound of an effect range:", term: "Subtle" },
-        { context: "To describe the upper bound of an effect range:", term: "Extreme" },
+        {
+          context: "To describe the lower bound of an effect range:",
+          term: "Subtle",
+        },
+        {
+          context: "To describe the upper bound of an effect range:",
+          term: "Extreme",
+        },
       ],
     },
   },
@@ -209,7 +236,6 @@ export function DocumentationStyleGuidePage() {
         title="Documentation Style Guide"
         icon={icons.bookOpen}
         description="The house style the Subjective Effect Index is written in: how effects are described, how intensity is levelled, and which words are preferred."
-        prominentMobileIcon
       />
 
       <div className="space-y-10">

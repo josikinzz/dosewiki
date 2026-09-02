@@ -29,7 +29,7 @@ Any contribution is greatly appreciated!`;
 export function DonatePage({ intro }: { intro?: string } = {}) {
   return (
     <PublicContentShell width="standard" focusTarget>
-      <PageHeader title="Donate" icon={icons.heart} prominentMobileIcon />
+      <PageHeader title="Donate" icon={icons.heart} />
 
       <div className="flex flex-col gap-8 sm:flex-row-reverse sm:items-start sm:gap-10">
         <AppImage
@@ -85,8 +85,18 @@ export function DonatePage({ intro }: { intro?: string } = {}) {
             {/* The QR art is transparent with dark modules, so it needs a light plate and
                 a quiet zone around it to stay scannable — that is what the subtle surface
                 and its padding provide. */}
-            <InteractiveSurface asChild variant="quiet" padding="xs" radius="lg" className="shrink-0">
-              <a href={ETHEREUM_EXPLORER_URL} target="_blank" rel="noopener noreferrer">
+            <InteractiveSurface
+              asChild
+              variant="quiet"
+              padding="xs"
+              radius="lg"
+              className="shrink-0"
+            >
+              <a
+                href={ETHEREUM_EXPLORER_URL}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
                 <AppImage
                   src="/effectindex/eth-qrcode.png"
                   alt={`QR code for the Effect Index Ethereum address ${ETHEREUM_ADDRESS}`}

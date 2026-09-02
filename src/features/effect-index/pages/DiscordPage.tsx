@@ -50,7 +50,7 @@ export function DiscordPage({
 }: { intro?: string; rules?: string[] } = {}) {
   return (
     <PublicContentShell width="standard" focusTarget>
-      <PageHeader title="Discord Chat" icon={icons.discord} prominentMobileIcon />
+      <PageHeader title="Discord Chat" icon={icons.discord} />
 
       <div className="flex flex-col gap-8 sm:flex-row-reverse sm:items-start sm:gap-10">
         <div className="mx-auto flex shrink-0 flex-col items-center gap-4 sm:mx-0">
@@ -65,13 +65,15 @@ export function DiscordPage({
         </div>
 
         <div className="min-w-0 flex-1">
-          <PublicMarkdownBody content={
-            intro
-              ? applyPlaceholders(intro, {
-                  discordInvite: EFFECT_INDEX_DISCORD_INVITE_URL,
-                })
-              : INTRO_MARKDOWN
-          } />
+          <PublicMarkdownBody
+            content={
+              intro
+                ? applyPlaceholders(intro, {
+                    discordInvite: EFFECT_INDEX_DISCORD_INVITE_URL,
+                  })
+                : INTRO_MARKDOWN
+            }
+          />
         </div>
       </div>
 

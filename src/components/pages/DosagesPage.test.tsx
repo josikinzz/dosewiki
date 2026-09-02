@@ -139,7 +139,7 @@ describe("DosagesPage", () => {
     ).toBeTruthy();
   });
 
-  it("renders the substance class filters as a compact four-column mobile icon grid", () => {
+  it("renders the substance class filters as a balanced mobile icon grid", () => {
     render(<DosagesPage layout={layout} substances={substances} />);
 
     const mobileFilters = screen.getByRole("group", {
@@ -147,10 +147,22 @@ describe("DosagesPage", () => {
     });
     const buttons = within(mobileFilters).getAllByRole("button");
 
-    expect(mobileFilters).toHaveClass("grid-cols-4");
+    // Eight tracks, two per tile: fourteen tabs split 4/4/3/3, and each
+    // three-tile row starts one track in so it sits centred.
+    expect(mobileFilters).toHaveClass("grid-cols-8");
     expect(buttons).toHaveLength(14);
-    expect(within(mobileFilters).getByRole("button", { name: "Antidepressant" })).toHaveClass(
+    expect(within(mobileFilters).getByRole("button", { name: "All" })).toHaveClass("col-start-1");
+    expect(within(mobileFilters).getByRole("button", { name: "Nootropic" })).toHaveClass(
       "col-start-2",
+    );
+    expect(within(mobileFilters).getByRole("button", { name: "Opioid" })).toHaveClass(
+      "col-start-2",
+    );
+    expect(within(mobileFilters).getByRole("button", { name: "Antidepressant" })).toHaveClass(
+      "col-start-4",
+    );
+    expect(within(mobileFilters).getByRole("button", { name: "Antipsychotic" })).toHaveClass(
+      "col-start-6",
     );
     expect(within(mobileFilters).getByRole("button", { name: "All" })).toHaveAttribute(
       "aria-pressed",

@@ -45,7 +45,13 @@ export const pageHeaderStory: StoryDef = {
       note: "Description is optional — omit it for a bare heading.",
       background: "subtle",
       full: true,
-      render: () => <PageHeader className="mb-0" icon="lucide:flask-conical" title="Substances" />,
+      render: () => (
+        <PageHeader
+          className="mb-0"
+          icon="lucide:flask-conical"
+          title="Substances"
+        />
+      ),
     },
     {
       label: "Left aligned",
@@ -63,21 +69,6 @@ export const pageHeaderStory: StoryDef = {
       ),
     },
     {
-      label: "Prominent mobile icon",
-      note: "prominentMobileIcon stacks the icon at hero size above the title on small screens. Without it the icon is hidden on phones and inline from sm up. Reserve the hero for sparse content pages; index pages leave it off so the browse surface starts higher.",
-      background: "subtle",
-      full: true,
-      render: () => (
-        <PageHeader
-          className="mb-0"
-          icon="lucide:book-open"
-          title="History & Culture"
-          prominentMobileIcon
-          description="How these substances were discovered, used, and regulated over time."
-        />
-      ),
-    },
-    {
       label: "Rich description node",
       note: "description accepts any ReactNode, so inline emphasis and links compose freely.",
       background: "subtle",
@@ -89,7 +80,8 @@ export const pageHeaderStory: StoryDef = {
           title="Safety First"
           description={
             <>
-              Always <strong>test your substances</strong> and start with a low dose.
+              Always <strong>test your substances</strong> and start with a low
+              dose.
             </>
           }
         />
@@ -97,29 +89,34 @@ export const pageHeaderStory: StoryDef = {
     },
   ],
   props: [
-    { name: "title", type: "string", description: "Required heading text, rendered as the page <h1>." },
+    {
+      name: "title",
+      type: "string",
+      description: "Required heading text, rendered as the page <h1>.",
+    },
     {
       name: "description",
       type: "ReactNode",
-      description: "Optional lead copy under the title; accepts arbitrary JSX, not just a string.",
+      description:
+        "Optional lead copy under the title; accepts arbitrary JSX, not just a string.",
     },
     {
       name: "icon",
       type: "IconName (string)",
-      description: 'Optional Iconify/custom icon name (e.g. "lucide:sparkles") prefixed before the title.',
-    },
-    {
-      name: "prominentMobileIcon",
-      type: "boolean",
-      default: "false",
-      description: "Stacks the icon at hero size above the title on mobile, inlining it again at sm and up. Without it the icon is hidden below sm. The stack costs about 110px above the fold on a phone, so index pages (substances, effects, reports, chemical classes, articles, blog) leave it off; sparse content pages and the replications section opt in.",
+      description:
+        'Optional Iconify/custom icon name (e.g. "lucide:sparkles"). Hung off the left edge of the title text at low accent opacity, out of flow, so the title centres on its letters alone.',
     },
     {
       name: "descriptionClassName",
       type: "string",
-      description: "Overrides the default lead/typography classes applied to the description wrapper.",
+      description:
+        "Overrides the default lead/typography classes applied to the description wrapper.",
     },
-    { name: "className", type: "string", description: "Extra classes merged onto the <header> via cn." },
+    {
+      name: "className",
+      type: "string",
+      description: "Extra classes merged onto the <header> via cn.",
+    },
   ],
   whenToUse: [
     "The top-of-page hero for public index and content routes (effects, reports, substances).",
