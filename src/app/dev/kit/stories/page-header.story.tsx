@@ -64,7 +64,7 @@ export const pageHeaderStory: StoryDef = {
     },
     {
       label: "Prominent mobile icon",
-      note: "prominentMobileIcon enlarges the icon and stacks it above the title on small screens. Reserve it for sparse content pages; index pages keep the icon inline so the browse surface starts higher on a phone.",
+      note: "prominentMobileIcon stacks the icon at hero size above the title on small screens. Without it the icon is hidden on phones and inline from sm up. Reserve the hero for sparse content pages; index pages leave it off so the browse surface starts higher.",
       background: "subtle",
       full: true,
       render: () => (
@@ -112,7 +112,7 @@ export const pageHeaderStory: StoryDef = {
       name: "prominentMobileIcon",
       type: "boolean",
       default: "false",
-      description: "Enlarges the icon and stacks it above the title on mobile, inlining it again at sm and up. The stack costs about 110px above the fold on a phone, so index pages (substances, effects, reports, replications, chemical classes, articles, blog) leave it off; sparse content pages may opt in.",
+      description: "Stacks the icon at hero size above the title on mobile, inlining it again at sm and up. Without it the icon is hidden below sm. The stack costs about 110px above the fold on a phone, so index pages (substances, effects, reports, chemical classes, articles, blog) leave it off; sparse content pages and the replications section opt in.",
     },
     {
       name: "descriptionClassName",

@@ -34,15 +34,20 @@ export const PageHeader = memo(function PageHeader({
   align = "center",
 }: PageHeaderProps) {
   const isLeft = align === "left";
-  // The icon is a glyph in the text run, one em tall and sitting on the
-  // baseline like a capital, so the title wraps as ordinary text with the
-  // icon leading the first word. A flex row instead put the icon in its own
-  // column and, on a phone, left a wrapped title floating beside it.
+  // On a phone the icon is gone: at title size it read as decoration that
+  // cost a full line above the fold. At sm and up it is a glyph in the text
+  // run, one em tall on the cap line, leading the first word.
+  // `prominentMobileIcon` instead stacks it centred above the title at hero
+  // size on a phone.
+  // Icon fonts pad their 24-unit viewBox by 1-3 units on each side, so the
+  // glyph's box already carries air before the first letter; the margin only
+  // tops it up to about half a word space. The fade keeps the glyph as a
+  // letter of the word rather than a second thing competing with the title.
   const iconClassName = cn(
-    "theme-accent-heading inline-block align-[-0.12em]",
+    "theme-accent-heading align-[-0.12em] opacity-70 sm:mb-0 sm:mr-[0.02em] sm:inline-block sm:h-[1em] sm:w-[1em]",
     prominentMobileIcon
-      ? "mx-auto mb-3 block h-[2em] w-[2em] sm:mb-0 sm:mr-[0.3em] sm:inline-block sm:h-[1em] sm:w-[1em]"
-      : "mr-[0.3em]",
+      ? cn("mb-3 block h-[2em] w-[2em]", isLeft ? undefined : "mx-auto")
+      : "hidden",
   );
   const titleClasses = cn(
     "type-page-title theme-accent-heading block max-w-[22ch] break-words text-balance text-4xl sm:text-5xl md:text-6xl",
