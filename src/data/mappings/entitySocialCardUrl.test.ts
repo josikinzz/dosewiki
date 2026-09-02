@@ -47,21 +47,14 @@ describe("entitySocialCardUrl", () => {
     });
     expect(entitySocialCardUrl("effects", "unknown")).toBeNull();
     expect(
-      replicationViewerSocialCardImage({
-        viewer: "infinite-torus-space-symmetric-vision",
-      }),
+      replicationViewerSocialCardImage("infinite-torus-space-symmetric-vision"),
     ).toEqual({
       path: "https://dosewiki-media.gremblinzuwu.workers.dev/media/sha256/ab/abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789.jpg",
       width: 1200,
       height: 1200,
       alt: "Linked replication card",
     });
-    expect(
-      replicationViewerSocialCardImage({ viewer: ["first", "second"] }),
-    ).toBeUndefined();
-    expect(
-      replicationViewerSocialCardImage({ viewer: "unknown" }),
-    ).toBeUndefined();
+    expect(replicationViewerSocialCardImage("unknown")).toBeUndefined();
   });
 
   it("makes the same immutable entity card available to Effect Index", async () => {

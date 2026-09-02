@@ -43,6 +43,24 @@ function batches<T>(items: readonly T[], size: number): T[][] {
 }
 
 /**
+ * One batch of artist taxonomy rows, persisted like the corpus pages it joins
+ * onto. The gallery read resolves ~2,000 artists in batches of 175, so without
+ * this every render of the index — and every hit on the gallery API — paid a
+ * dozen live Convex queries before its first byte. Keyed by the batch's exact
+ * key list; a degraded read (older deployment without the function) caches
+ * its empty answer for the window, which is the harmless direction and clears
+ * with the deploy that adds the function.
+ */
+const getPublicReplicationArtistTaxonomyBatch = cache(unstable_cache(async (
+  keys: string[],
+) => getPublicDataReadAdapter().getPublicReplicationArtistsByKeys(keys), [
+  "convex-public-replication-artist-taxonomy-batch-v1",
+], {
+  revalidate: PUBLIC_CONVEX_CACHE_REVALIDATE_SECONDS,
+  tags: [PUBLIC_CONVEX_CACHE_TAGS.all, PUBLIC_CONVEX_CACHE_TAGS.replications],
+}));
+
+/**
  * Every replication credited to one contributor.
  *
  * The join is resolved inside Convex (`replications:getByArtistNames`) rather
@@ -426,7 +444,7 @@ export const getPublicGalleryReplications = cache(async (): Promise<PublicGaller
   const artistTaxonomy = (
     await Promise.all(
       batches(artistKeys, PUBLIC_ARTIST_TAXONOMY_BATCH_SIZE).map((keys) =>
-        getPublicDataReadAdapter().getPublicReplicationArtistsByKeys(keys),
+        getPublicReplicationArtistTaxonomyBatch(keys),
       ),
     )
   ).flat();
@@ -468,9 +486,7 @@ export const getPublicGalleryReplicationBySlug = cache(async (
 
   const artistKey = replication.artist.trim().toLowerCase();
   const [artist] = artistKey
-    ? await getPublicDataReadAdapter().getPublicReplicationArtistsByKeys([
-        artistKey,
-      ])
+    ? await getPublicReplicationArtistTaxonomyBatch([artistKey])
     : [];
   return projectPublicGalleryReplicationPreview({
     ...replication,

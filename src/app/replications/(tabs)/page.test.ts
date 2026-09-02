@@ -52,26 +52,59 @@ vi.mock("@server/convex/publicData", () => ({
 }));
 
 import ReplicationsPage, { generateMetadata } from "./page";
+import ReplicationViewerPage, {
+  generateMetadata as generateViewerMetadata,
+} from "./viewer/[slug]/page";
+import { ReplicationsGalleryRoute } from "./_components/ReplicationsGalleryRoute";
 
-describe("replications playlist metadata", () => {
-  it("uses the active immersive-view replication card", async () => {
-    const metadata = await generateMetadata({
-      searchParams: Promise.resolve({
-        viewer: "infinite-torus-space-symmetric-vision",
-      }),
+const linkedCardUrl = `${PUBLIC_SITE.url}/images/social/entities/replications/infinite-torus-space-symmetric-vision.abcdef0123456789.jpg`;
+
+describe("replications gallery metadata", () => {
+  it("keeps the static index on the section card and canonical", async () => {
+    const metadata = await generateMetadata();
+
+    expect(metadata.openGraph?.images).toBeDefined();
+    expect(JSON.stringify(metadata.openGraph?.images)).not.toContain(linkedCardUrl);
+    expect(metadata.alternates?.canonical).toBe(`${PUBLIC_SITE.url}/replications`);
+  });
+
+  it("gives a viewer deep-link document the active replication card", async () => {
+    const metadata = await generateViewerMetadata({
+      params: Promise.resolve({ slug: "infinite-torus-space-symmetric-vision" }),
     });
-    const cardUrl = `${PUBLIC_SITE.url}/images/social/entities/replications/infinite-torus-space-symmetric-vision.abcdef0123456789.jpg`;
 
     expect(metadata.openGraph?.images).toEqual([
       {
-        url: cardUrl,
+        url: linkedCardUrl,
         width: 1200,
         height: 1200,
         alt: "Linked replication card",
       },
     ]);
-    expect(metadata.twitter?.images).toEqual([cardUrl]);
+    expect(metadata.twitter?.images).toEqual([linkedCardUrl]);
+    // The deep link is a state of the gallery, never a second indexable page.
     expect(metadata.alternates?.canonical).toBe(`${PUBLIC_SITE.url}/replications`);
+  });
+});
+
+describe("replications route shells", () => {
+  it("renders the static index without reading request state", () => {
+    const page = ReplicationsPage();
+
+    expect(page.type).toBe(ReplicationsGalleryRoute);
+    expect(page.props).toEqual({ viewerSlug: null });
+  });
+
+  it("forwards a valid viewer slug and rejects the rest", async () => {
+    const page = await ReplicationViewerPage({
+      params: Promise.resolve({ slug: "linked-work" }),
+    });
+
+    expect(page.type).toBe(ReplicationsGalleryRoute);
+    expect(page.props).toEqual({ viewerSlug: "linked-work" });
+    await expect(
+      ReplicationViewerPage({ params: Promise.resolve({ slug: "%$" }) }),
+    ).rejects.toThrow();
   });
 });
 
@@ -110,9 +143,7 @@ describe("replications prerendered default view", () => {
     ];
     pageMocks.getPublicContributorDirectory.mockResolvedValueOnce(directory);
 
-    const page = await ReplicationsPage({
-      searchParams: Promise.resolve({}),
-    });
+    const page = await ReplicationsGalleryRoute({ viewerSlug: null });
     const explorer = page.props.children[2];
 
     expect(pageMocks.getPublicGalleryReplications).toHaveBeenCalledTimes(1);
@@ -159,9 +190,7 @@ describe("replications prerendered default view", () => {
     pageMocks.getPublicEffects.mockResolvedValueOnce([]);
     pageMocks.getPublicContributorDirectory.mockResolvedValueOnce([]);
 
-    const page = await ReplicationsPage({
-      searchParams: Promise.resolve({}),
-    });
+    const page = await ReplicationsGalleryRoute({ viewerSlug: null });
     const explorer = page.props.children[2];
 
     expect(explorer.props.replications).toHaveLength(14);
@@ -197,9 +226,7 @@ describe("replications prerendered default view", () => {
     pageMocks.getPublicEffects.mockResolvedValueOnce([]);
     pageMocks.getPublicContributorDirectory.mockResolvedValueOnce([]);
 
-    const page = await ReplicationsPage({
-      searchParams: Promise.resolve({ viewer: "linked-work" }),
-    });
+    const page = await ReplicationsGalleryRoute({ viewerSlug: "linked-work" });
     const explorer = page.props.children[2];
 
     expect(pageMocks.getPublicGalleryReplicationBySlug).toHaveBeenCalledWith(

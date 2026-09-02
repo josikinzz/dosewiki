@@ -37,7 +37,7 @@ describe("replication gallery corpus", () => {
 
     expect(response.status).toBe(200);
     expect(response.headers.get("Cache-Control")).toBe(
-      "public, max-age=300, s-maxage=3600, stale-while-revalidate=86400",
+      "public, max-age=3600, s-maxage=3600, stale-while-revalidate=86400",
     );
     await expect(response.json()).resolves.toEqual({ data: [preview] });
     expect(mocks.getPublicGalleryReplications).toHaveBeenCalledTimes(1);

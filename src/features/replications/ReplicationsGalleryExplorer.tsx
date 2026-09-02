@@ -310,58 +310,105 @@ const QUERY_WRITE_DELAY_MS = 250;
 const MASONRY_PAGE = 60;
 
 /**
- * Public entry. The browse state (?view/?q/?type/?sort) is read on the client
- * so the /replications routes can stay statically rendered; Next requires a
- * Suspense boundary around `useSearchParams` for that. The fallback renders
- * the default initial gallery window, preserving useful crawlable SSR HTML
- * without serializing the complete catalog into the RSC payload.
+ * Browse-state URL writes go through native history, not `router.push`. Next
+ * syncs `useSearchParams` from its patched `pushState`/`replaceState` — the
+ * state argument must be free of Next's own `__NA` marker (hence `null`) or
+ * the patch treats the call as internal and skips the sync — and no RSC round
+ * trip happens. The browse state is client-only, so a server refetch would buy
+ * nothing, and for a document served by the `?viewer=` deep-link route (see
+ * middleware) it would swap the route segment and remount the whole gallery.
+ */
+function writeBrowseUrl(url: string, method: "push" | "replace") {
+  window.history[method === "push" ? "pushState" : "replaceState"](null, "", url);
+}
+
+/**
+ * The URL-derived slice of the explorer's input. Browse filters
+ * (?view/?q/?type/?sort/…) and the `?viewer=` deep link are read on the client
+ * so the /replications routes stay statically rendered. `urlStateResolved`
+ * is false only for the prerendered defaults: effects that *write* URL or
+ * cover state wait for it, because the defaults' passive effects run before
+ * the bridge's synchronous re-render lands the real params.
+ */
+interface GalleryUrlState {
+  browse: GalleryBrowseState;
+  viewerSlugParam: string | null;
+  viewerParamPresent: boolean;
+  urlStateResolved: boolean;
+}
+
+const DEFAULT_GALLERY_URL_STATE: GalleryUrlState = {
+  browse: GALLERY_BROWSE_DEFAULTS,
+  viewerSlugParam: null,
+  viewerParamPresent: false,
+  urlStateResolved: false,
+};
+
+function sameGalleryUrlState(a: GalleryUrlState, b: GalleryUrlState): boolean {
+  return (
+    a.urlStateResolved === b.urlStateResolved &&
+    a.viewerSlugParam === b.viewerSlugParam &&
+    a.viewerParamPresent === b.viewerParamPresent &&
+    (Object.keys(GALLERY_BROWSE_DEFAULTS) as (keyof GalleryBrowseState)[]).every(
+      (key) => a.browse[key] === b.browse[key],
+    )
+  );
+}
+
+/**
+ * Public entry. Next requires a Suspense boundary around `useSearchParams` on
+ * a static route: during prerender the hook bails out to client rendering and
+ * the boundary's fallback is what ships in the HTML. Keeping the gallery
+ * itself *outside* that boundary is the point of this shape — the prerendered
+ * default view is real, hydratable markup rather than a fallback that React
+ * would throw away and re-render from scratch once the params resolve. Only
+ * the tiny bridge below suspends; it reports the URL state into this
+ * component's state from a layout effect, so the explorer re-renders with the
+ * real browse state in the same commit, before the browser paints.
  */
 export function ReplicationsGalleryExplorer(
   props: ReplicationsGalleryExplorerProps,
 ) {
+  const [urlState, setUrlState] = useState(DEFAULT_GALLERY_URL_STATE);
+  const syncUrlState = useCallback((next: GalleryUrlState) => {
+    setUrlState((current) => (sameGalleryUrlState(current, next) ? current : next));
+  }, []);
   return (
     <>
       <PrePaintRouteStateCover
         id={GALLERY_BROWSE_COVER_ID}
         queryKeys={GALLERY_BROWSE_QUERY_KEYS}
       />
-      {/* Ahead of the Suspense boundary on purpose: the cover and its reveal
-          script precede every piece of gallery markup in the SSR payload, so
-          a `?viewer=` deep link's first paint is black, never the masonry.
-          `GalleryExplorer` dismisses it once the param resolves. */}
+      {/* Ahead of every piece of gallery markup on purpose: the cover and its
+          reveal script precede the rails in the SSR payload, so a `?viewer=`
+          deep link's first paint is black, never the masonry. The bridge
+          dismisses the browse cover once the params resolve. */}
       <ViewerDeepLinkCover />
-      <Suspense
-        fallback={
-          <GalleryExplorer
-            {...props}
-            browse={GALLERY_BROWSE_DEFAULTS}
-            viewerParamPresent={false}
-            viewerSlugParam={null}
-          />
-        }
-      >
-        <UrlStateGalleryExplorer {...props} />
+      <Suspense fallback={null}>
+        <GalleryUrlStateBridge onChange={syncUrlState} />
       </Suspense>
+      <GalleryExplorer {...props} {...urlState} />
     </>
   );
 }
 
 /** The one component allowed to touch `useSearchParams` — see above. */
-function UrlStateGalleryExplorer(props: ReplicationsGalleryExplorerProps) {
+function GalleryUrlStateBridge({
+  onChange,
+}: {
+  onChange: (next: GalleryUrlState) => void;
+}) {
   const searchParams = useSearchParams();
   useLayoutEffect(() => {
+    onChange({
+      browse: parseGalleryBrowseState(searchParams),
+      viewerSlugParam: parseReplicationViewerSlug(searchParams),
+      viewerParamPresent: searchParams.has(REPLICATION_VIEWER_PARAM),
+      urlStateResolved: true,
+    });
     dismissPrePaintRouteStateCover(GALLERY_BROWSE_COVER_ID);
-  }, []);
-  const browse = parseGalleryBrowseState(searchParams);
-  const viewerSlugParam = parseReplicationViewerSlug(searchParams);
-  return (
-    <GalleryExplorer
-      {...props}
-      browse={browse}
-      viewerParamPresent={searchParams.has(REPLICATION_VIEWER_PARAM)}
-      viewerSlugParam={viewerSlugParam}
-    />
-  );
+  }, [onChange, searchParams]);
+  return null;
 }
 
 function GalleryExplorer({
@@ -380,11 +427,8 @@ function GalleryExplorer({
   browse,
   viewerSlugParam,
   viewerParamPresent,
-}: ReplicationsGalleryExplorerProps & {
-  browse: GalleryBrowseState;
-  viewerSlugParam: string | null;
-  viewerParamPresent: boolean;
-}) {
+  urlStateResolved,
+}: ReplicationsGalleryExplorerProps & GalleryUrlState) {
   const router = useRouter();
   const [galleryReplications, setGalleryReplications] = useState(replications);
   const galleryReplicationsRef = useRef(galleryReplications);
@@ -496,7 +540,7 @@ function GalleryExplorer({
   );
 
   useEffect(() => {
-    if (!completeCorpusUrl || !hasMoreRef.current) return;
+    if (!urlStateResolved || !completeCorpusUrl || !hasMoreRef.current) return;
     if (viewerSlugParam || browseRequiresCompleteCorpus) {
       // Deep links and non-default browse states need the whole corpus to
       // resolve correctly — fetch it immediately.
@@ -534,6 +578,7 @@ function GalleryExplorer({
     browseRequiresCompleteCorpus,
     completeCorpusUrl,
     loadCompleteCorpus,
+    urlStateResolved,
     viewerSlugParam,
   ]);
 
@@ -631,7 +676,7 @@ function GalleryExplorer({
   const navigate = (url: string, method: "push" | "replace") => {
     cancelQueryWrite();
     cancelPendingCorpusAction();
-    router[method](url, { scroll: false });
+    writeBrowseUrl(url, method);
   };
 
   const updateQuery = (next: string) => {
@@ -648,11 +693,7 @@ function GalleryExplorer({
           view: mode,
           query: next,
         });
-        if (focus) {
-          router.push(url, { scroll: false });
-        } else {
-          router.replace(url, { scroll: false });
-        }
+        writeBrowseUrl(url, focus ? "push" : "replace");
       };
       const generation = queueCorpusAction(writeQuery);
       if (!completeCorpus) {
@@ -818,10 +859,6 @@ function GalleryExplorer({
     [mode, searching, taxonomyDisplayable],
   );
   const counts = useMemo(() => countGallery(counted), [counted]);
-  const completedCorpusHasNarrowerView =
-    Boolean(completionAnnouncement) &&
-    !hasMore &&
-    galleryReplications.length !== counts.total;
 
   const filtered = useMemo(
     () =>
@@ -1067,6 +1104,7 @@ function GalleryExplorer({
   const viewerParamWasPresentRef = useRef(viewerParamPresent);
 
   useEffect(() => {
+    if (!urlStateResolved) return;
     // A locally launched viewer writes history and viewerSlug directly. An
     // unrelated render (notably the deferred corpus becoming ready) must not
     // close it merely because the search-param snapshot still represents the
@@ -1106,6 +1144,7 @@ function GalleryExplorer({
     }
   }, [
     pageLoadState,
+    urlStateResolved,
     validViewerSlugParam,
     viewerParamPresent,
     viewerResolutionPending,
@@ -1472,19 +1511,7 @@ function GalleryExplorer({
               />
             ) : null}
 
-            {pageLoadState === "loading" ? (
-              <Alert role="status" aria-live="polite" className="mt-4">
-                <AlertDescription className="flex items-center gap-2">
-                  <Icon
-                    icon="svg-spinners:ring-resize"
-                    className="h-4 w-4 shrink-0"
-                    aria-hidden
-                  />
-                  Loading the complete gallery… {galleryReplications.length}{" "}
-                  works loaded.
-                </AlertDescription>
-              </Alert>
-            ) : pageLoadState === "error" ? (
+            {pageLoadState === "error" ? (
               <Alert variant="destructive" role="alert" className="mt-4">
                 <AlertDescription className="flex flex-wrap items-center justify-between gap-3">
                   <span>
@@ -1506,28 +1533,40 @@ function GalleryExplorer({
             {/* One quiet corpus summary for every breakpoint — the bar itself
               stays reserved for controls. In the default artist view the
               numbers come from the server's complete-corpus stats, so the
-              archive's true size shows before the corpus finishes loading. */}
+              archive's true size shows before the corpus finishes loading and
+              the visible sentence does not change when it does. The
+              background fetch reports here too — a spinner at the end of the
+              same line plus screen-reader-only text — rather than in a banner
+              that would push the rails down and back up. */}
             {chrome === "full" ? (
               <p
-                role={completionAnnouncement ? "status" : undefined}
+                role="status"
                 aria-live="polite"
                 className={cn(
-                  "theme-text-faint mt-3 px-1 text-xs tabular-nums",
+                  "theme-text-faint mt-3 flex items-center gap-1.5 px-1 text-xs tabular-nums",
                   focusRingClassName,
                 )}
               >
-                {completedCorpusHasNarrowerView
-                  ? `Complete corpus loaded · ${galleryReplications.length} total · `
-                  : completionAnnouncement
-                    ? `${completionAnnouncement} · `
-                    : ""}
-                {displayCounts.total}{" "}
-                {hasMore && !statsComplete ? "loaded " : ""}
-                {displayCounts.total === 1 ? "work" : "works"}
-                {completedCorpusHasNarrowerView ? " in this view" : ""} ·{" "}
-                {displayCounts.artists} artists · {displayCounts.effects}{" "}
-                effects
-                {hasMore && !statsComplete ? " · more available" : ""}
+                <span>
+                  {displayCounts.total}{" "}
+                  {hasMore && !statsComplete ? "loaded " : ""}
+                  {displayCounts.total === 1 ? "work" : "works"} ·{" "}
+                  {displayCounts.artists} artists · {displayCounts.effects}{" "}
+                  effects
+                  {hasMore && !statsComplete ? " · more available" : ""}
+                </span>
+                {pageLoadState === "loading" ? (
+                  <>
+                    <Icon
+                      icon="svg-spinners:ring-resize"
+                      className="h-3 w-3 shrink-0"
+                      aria-hidden
+                    />
+                    <span className="sr-only">Loading the complete gallery…</span>
+                  </>
+                ) : completionAnnouncement ? (
+                  <span className="sr-only">{completionAnnouncement}.</span>
+                ) : null}
               </p>
             ) : null}
 

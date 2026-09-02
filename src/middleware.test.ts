@@ -17,10 +17,13 @@ function makeRequest(path: string): NextRequest {
   );
 }
 
-function makePublicRequest(path: string): NextRequest {
+function makePublicRequest(
+  path: string,
+  headers: Record<string, string> = {},
+): NextRequest {
   return new NextRequest(
     new Request(`https://dose.wiki${path}`, {
-      headers: { host: "dose.wiki" },
+      headers: { host: "dose.wiki", ...headers },
     }),
   );
 }
@@ -192,6 +195,50 @@ describe("middleware role policy adapter", () => {
       makePublicRequest(
         "/replications/definitely-not-a-real-replication-zzzz",
       ),
+    );
+
+    expect(response.headers.get("x-middleware-rewrite")).toBe(
+      "https://dose.wiki/_flavor-gated/not-found",
+    );
+  });
+
+  it("rewrites a viewer deep-link document to the per-slug gallery route", async () => {
+    const { middleware } = await import("../middleware");
+
+    const response = await middleware(
+      makePublicRequest("/replications?viewer=infinite-torus-space&type=video"),
+    );
+
+    expect(response.headers.get("x-middleware-rewrite")).toBe(
+      "https://dose.wiki/replications/viewer/infinite-torus-space?viewer=infinite-torus-space&type=video",
+    );
+  });
+
+  it("leaves client-side gallery navigations on the static route", async () => {
+    const { middleware } = await import("../middleware");
+
+    const response = await middleware(
+      makePublicRequest("/replications?viewer=infinite-torus-space", { rsc: "1" }),
+    );
+
+    expect(response.headers.get("x-middleware-rewrite")).toBeNull();
+  });
+
+  it("ignores a viewer value outside the slug grammar", async () => {
+    const { middleware } = await import("../middleware");
+
+    const response = await middleware(
+      makePublicRequest("/replications?viewer=%25%24"),
+    );
+
+    expect(response.headers.get("x-middleware-rewrite")).toBeNull();
+  });
+
+  it("hides the viewer rewrite target from direct requests", async () => {
+    const { middleware } = await import("../middleware");
+
+    const response = await middleware(
+      makePublicRequest("/replications/viewer/infinite-torus-space"),
     );
 
     expect(response.headers.get("x-middleware-rewrite")).toBe(

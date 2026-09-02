@@ -5,8 +5,12 @@ import { enforceRateLimit } from "@server/http/nextRateLimit";
 
 export const runtime = "nodejs";
 
+// The browser keeps the corpus for the same hour the CDN and the ISR page do:
+// the ~6.6k-item response is ~1.4 MB compressed, and nothing the page shows
+// can be fresher than its own hourly window anyway. Re-downloading it on every
+// visit within that hour bought no freshness.
 const CACHE_CONTROL =
-  "public, max-age=300, s-maxage=3600, stale-while-revalidate=86400";
+  "public, max-age=3600, s-maxage=3600, stale-while-revalidate=86400";
 
 /**
  * The complete gallery corpus in one cacheable response.

@@ -15,6 +15,7 @@ import {
   expect,
   it,
   vi,
+  type MockInstance,
 } from "vitest";
 import type { MouseEvent as ReactMouseEvent } from "react";
 import type {
@@ -32,6 +33,17 @@ const navMocks = vi.hoisted(() => ({
   replace: vi.fn(),
   params: new URLSearchParams(),
 }));
+
+/**
+ * Browse-state URL writes go through native history (Next syncs
+ * `useSearchParams` from it), so that is where the assertions look. The
+ * viewer's own history writes carry a `replicationViewer` state object; browse
+ * writes always pass `null`.
+ */
+const historySpies: {
+  push: MockInstance<History["pushState"]>;
+  replace: MockInstance<History["replaceState"]>;
+} = { push: vi.fn(), replace: vi.fn() };
 
 vi.mock("next/navigation", () => ({
   useRouter: () => ({ push: navMocks.push, replace: navMocks.replace }),
@@ -243,6 +255,8 @@ beforeEach(() => {
   navMocks.push.mockReset();
   navMocks.replace.mockReset();
   window.history.replaceState({}, "", "/replications");
+  historySpies.push = vi.spyOn(window.history, "pushState");
+  historySpies.replace = vi.spyOn(window.history, "replaceState");
 });
 
 afterEach(() => {
@@ -347,9 +361,7 @@ describe("URL → rendered state", () => {
     await userEvent.click(
       screen.getByRole("button", { name: "Clear filters" }),
     );
-    expect(navMocks.push).toHaveBeenCalledWith("/replications", {
-      scroll: false,
-    });
+    expect(historySpies.push).toHaveBeenCalledWith(null, "", "/replications");
   });
 
   it("reproduces a pasted ?view=effect&type=video&sort=alpha state exactly", () => {
@@ -406,12 +418,7 @@ describe("active filter chips", () => {
       }),
     );
 
-    expect(navMocks.push).toHaveBeenCalledWith(
-      "/replications?effect=drifting",
-      {
-        scroll: false,
-      },
-    );
+    expect(historySpies.push).toHaveBeenCalledWith(null, "", "/replications?effect=drifting");
   });
 
   it("renders no chip row while every filter sits at its default", () => {
@@ -814,9 +821,7 @@ describe("state → URL", () => {
 
     await user.click(screen.getByRole("radio", { name: "By effect" }));
 
-    expect(navMocks.push).toHaveBeenCalledWith("/replications?view=effect", {
-      scroll: false,
-    });
+    expect(historySpies.push).toHaveBeenCalledWith(null, "", "/replications?view=effect");
   });
 
   it("pushes the media-type filter into the query string", async () => {
@@ -825,12 +830,7 @@ describe("state → URL", () => {
 
     await user.click(screen.getByRole("radio", { name: "Videos" }));
 
-    expect(navMocks.push).toHaveBeenCalledWith(
-      "/replications?view=effect&type=video",
-      {
-        scroll: false,
-      },
-    );
+    expect(historySpies.push).toHaveBeenCalledWith(null, "", "/replications?view=effect&type=video");
   });
 
   it("debounces typed search into router.replace, preserving other params", () => {
@@ -844,20 +844,15 @@ describe("state → URL", () => {
     for (const value of ["d", "dri", "drift"]) {
       fireEvent.change(input, { target: { value } });
     }
-    expect(navMocks.replace).not.toHaveBeenCalled();
+    expect(historySpies.replace).not.toHaveBeenCalled();
 
     act(() => {
       vi.advanceTimersByTime(300);
     });
 
     // One write for three keystrokes, carrying the final text.
-    expect(navMocks.replace).toHaveBeenCalledTimes(1);
-    expect(navMocks.replace).toHaveBeenCalledWith(
-      "/replications?q=drift&type=video",
-      {
-        scroll: false,
-      },
-    );
+    expect(historySpies.replace).toHaveBeenCalledTimes(1);
+    expect(historySpies.replace).toHaveBeenCalledWith(null, "", "/replications?q=drift&type=video");
   });
 
   it("shows a pending spinner only while a query write is in the debounce window", () => {
@@ -874,7 +869,7 @@ describe("state → URL", () => {
       vi.advanceTimersByTime(300);
     });
     expect(screen.queryByTestId("query-write-pending")).toBeNull();
-    expect(navMocks.replace).toHaveBeenCalledTimes(1);
+    expect(historySpies.replace).toHaveBeenCalledTimes(1);
   });
 
   it("retires the pending spinner when a toggle cancels the scheduled write", () => {
@@ -892,7 +887,7 @@ describe("state → URL", () => {
     act(() => {
       vi.advanceTimersByTime(300);
     });
-    expect(navMocks.replace).not.toHaveBeenCalled();
+    expect(historySpies.replace).not.toHaveBeenCalled();
   });
 });
 
@@ -1032,9 +1027,7 @@ describe("one-line control bar", () => {
     const sheet = screen.getByRole("dialog");
     await user.click(within(sheet).getByRole("radio", { name: "By effect" }));
 
-    expect(navMocks.push).toHaveBeenCalledWith("/replications?view=effect", {
-      scroll: false,
-    });
+    expect(historySpies.push).toHaveBeenCalledWith(null, "", "/replications?view=effect");
     // Choosing a mode is the sheet's whole job; it closes on selection.
     expect(screen.queryByRole("dialog")).toBeNull();
   });
@@ -1077,7 +1070,7 @@ describe("one-line control bar", () => {
     // Done is the explicit mobile-reachable dismissal; it changes nothing.
     await user.click(within(sheet).getByRole("button", { name: "Done" }));
     expect(screen.queryByRole("dialog")).toBeNull();
-    expect(navMocks.push).not.toHaveBeenCalled();
+    expect(historySpies.push).not.toHaveBeenCalled();
   });
 
   it("keeps every artist sort reachable through the compact menu", async () => {
@@ -1095,9 +1088,7 @@ describe("one-line control bar", () => {
     ).toBeInTheDocument();
     await user.click(screen.getByRole("menuitemradio", { name: "A–Z" }));
 
-    expect(navMocks.push).toHaveBeenCalledWith("/replications?sort=alpha", {
-      scroll: false,
-    });
+    expect(historySpies.push).toHaveBeenCalledWith(null, "", "/replications?sort=alpha");
   });
 });
 
@@ -1262,9 +1253,9 @@ describe("complete corpus loading", () => {
       "/api/replications/gallery",
       expect.objectContaining({ headers: { Accept: "application/json" } }),
     );
-    expect(screen.getByRole("status")).toHaveTextContent(
-      "Complete gallery loaded · 4 works · 2 artists · 1 effects",
-    );
+    const status = screen.getByRole("status");
+    expect(status).toHaveTextContent("4 works · 2 artists · 1 effects");
+    expect(status).toHaveTextContent("Complete gallery loaded.");
   });
 
   it("loads the corpus before revealing more artists than the digest inlined", async () => {
@@ -1305,29 +1296,62 @@ describe("complete corpus loading", () => {
     expect(screen.getAllByTestId("rail")).toHaveLength(3);
   });
 
-  it("distinguishes the loaded corpus from the narrower artist-view count", async () => {
+  it("keeps the visible stats line stable while the corpus loads and lands", async () => {
     const initial = rep({ title: "Initial work" });
     const withheld = rep({
       title: "Withheld work",
       effect_slug: "unspeakable-horrors",
     });
+    let resolveResponse: ((response: unknown) => void) | undefined;
     vi.stubGlobal(
       "fetch",
-      vi.fn().mockResolvedValue(corpusResponse([initial, withheld])),
+      vi.fn(
+        () =>
+          new Promise((resolve) => {
+            resolveResponse = resolve;
+          }),
+      ),
     );
 
     renderExplorer("", {
       replications: [initial],
       completeCorpusUrl: "/api/replications/gallery",
+      initialArtistRails: [
+        {
+          key: "chelsea morgan",
+          label: "Chelsea Morgan",
+          count: 1,
+          imageCount: 1,
+          videoCount: 0,
+        },
+      ],
+      artistGroupTotal: 1,
+      corpusStats: { total: 1, artists: 1, effects: 1, images: 1, videos: 0 },
     });
+
+    const status = screen.getByRole("status");
+    const visibleLine = () =>
+      status.querySelector("span:not(.sr-only)")?.textContent;
+    expect(visibleLine()).toBe("1 work · 1 artists · 1 effects");
+    expect(screen.queryByRole("alert")).toBeNull();
 
     await runIdle();
 
-    expect(
-      screen.getByText(
-        "Complete corpus loaded · 2 total · 1 work in this view · 1 artists · 1 effects",
-      ),
-    ).toBeInTheDocument();
+    // Loading is reported inside the same line — nothing above the rails
+    // appears or disappears — and only to assistive tech as text.
+    expect(visibleLine()).toBe("1 work · 1 artists · 1 effects");
+    expect(status).toHaveTextContent("Loading the complete gallery…");
+    expect(screen.queryByRole("alert")).toBeNull();
+
+    await act(async () => {
+      resolveResponse?.(corpusResponse([initial, withheld]));
+    });
+
+    // The withheld work joins the corpus but not the artist view, and the
+    // visible sentence does not rewrite itself to say so.
+    expect(visibleLine()).toBe("1 work · 1 artists · 1 effects");
+    expect(status).toHaveTextContent("Complete gallery loaded.");
+    expect(status).not.toHaveTextContent("Loading");
   });
 
   it("announces completion politely once the corpus arrives", async () => {
@@ -1348,9 +1372,9 @@ describe("complete corpus loading", () => {
     search.focus();
     await runIdle();
 
-    expect(screen.getByRole("status")).toHaveTextContent(
-      "Complete gallery loaded · 2 works · 1 artists · 1 effects",
-    );
+    const status = screen.getByRole("status");
+    expect(status).toHaveTextContent("2 works · 1 artists · 1 effects");
+    expect(status).toHaveTextContent("Complete gallery loaded.");
     expect(screen.getByText("Deferred work")).toBeInTheDocument();
     // Completion never steals focus — there is no control to return it to.
     expect(document.activeElement).toBe(search);
@@ -1385,9 +1409,7 @@ describe("complete corpus loading", () => {
       await vi.advanceTimersByTimeAsync(QUERY_WRITE_DELAY_MS_FOR_TEST);
     });
 
-    expect(navMocks.replace).toHaveBeenCalledWith("/replications?q=deferred", {
-      scroll: false,
-    });
+    expect(historySpies.replace).toHaveBeenCalledWith(null, "", "/replications?q=deferred");
     expect(fetchMock).toHaveBeenCalledTimes(1);
   });
 
@@ -1478,10 +1500,8 @@ describe("complete corpus loading", () => {
     });
 
     expect(screen.queryByTestId("replication-viewer")).toBeNull();
-    expect(navMocks.push).toHaveBeenCalledTimes(1);
-    expect(navMocks.push).toHaveBeenCalledWith("/replications?view=effect", {
-      scroll: false,
-    });
+    expect(historySpies.push).toHaveBeenCalledTimes(1);
+    expect(historySpies.push).toHaveBeenCalledWith(null, "", "/replications?view=effect");
   });
 
   it("loads the complete corpus before changing a taxonomy filter", async () => {
@@ -1511,9 +1531,7 @@ describe("complete corpus loading", () => {
     });
 
     expect(fetchMock).toHaveBeenCalledTimes(1);
-    expect(navMocks.push).toHaveBeenCalledWith("/replications", {
-      scroll: false,
-    });
+    expect(historySpies.push).toHaveBeenCalledWith(null, "", "/replications");
   });
 
   it("applies a deferred artist's avatar, profile link, and curated order", async () => {
@@ -1617,15 +1635,13 @@ describe("complete corpus loading", () => {
       );
     });
 
-    expect(navMocks.push).not.toHaveBeenCalled();
+    expect(historySpies.push).not.toHaveBeenCalled();
     await act(async () => {
       fireEvent.click(screen.getByRole("button", { name: "Retry" }));
     });
 
     expect(fetchMock).toHaveBeenCalledTimes(2);
-    expect(navMocks.push).toHaveBeenCalledWith("/replications", {
-      scroll: false,
-    });
+    expect(historySpies.push).toHaveBeenCalledWith(null, "", "/replications");
   });
 
   it("runs only the newest pending action after a shared corpus fetch is retried", async () => {
@@ -1656,14 +1672,9 @@ describe("complete corpus loading", () => {
       fireEvent.click(screen.getByRole("button", { name: "Retry" }));
     });
 
-    expect(navMocks.push).toHaveBeenCalledTimes(1);
-    expect(navMocks.push).toHaveBeenCalledWith("/replications?view=effect", {
-      scroll: false,
-    });
-    expect(navMocks.push).not.toHaveBeenCalledWith(
-      "/replications?type=video",
-      expect.anything(),
-    );
+    expect(historySpies.push).toHaveBeenCalledTimes(1);
+    expect(historySpies.push).toHaveBeenCalledWith(null, "", "/replications?view=effect");
+    expect(historySpies.push).not.toHaveBeenCalledWith(null, "", "/replications?type=video");
   });
 
   it("cancels a pending action when navigation supplies newer browse state", async () => {
@@ -1694,7 +1705,7 @@ describe("complete corpus loading", () => {
       resolveResponse?.(corpusResponse([]));
     });
 
-    expect(navMocks.push).not.toHaveBeenCalled();
+    expect(historySpies.push).not.toHaveBeenCalled();
   });
 
   it("keeps the gallery reachable when the prerendered subset is empty", async () => {

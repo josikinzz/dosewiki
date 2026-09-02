@@ -202,6 +202,38 @@ function getReplicationAliasRedirectUrl(
   return targetUrl;
 }
 
+const REPLICATION_VIEWER_ROUTE_PREFIX = "/replications/viewer/";
+
+/**
+ * `/replications` is statically prerendered, so its HTML cannot vary on the
+ * query string — yet a shared `/replications?viewer=<slug>` link must unfurl
+ * with that work's social card. Document requests carrying the param are
+ * rewritten to the per-slug ISR route that renders the same page with the
+ * right metadata. Client-side navigations (`RSC` header) are left alone so the
+ * mounted explorer keeps its route segment while the reader browses.
+ *
+ * The grammar mirrors the viewer param's client parser; the route re-parses
+ * the slug and 404s anything the rewrite let through.
+ */
+function getReplicationViewerRewriteUrl(
+  request: NextRequest,
+  appPath: string,
+): URL | null {
+  if (appPath !== "/replications" || request.headers.has("rsc")) {
+    return null;
+  }
+
+  const viewerSlug = request.nextUrl.searchParams.get("viewer");
+
+  if (!viewerSlug || !/^[a-z0-9][a-z0-9_-]*$/.test(viewerSlug)) {
+    return null;
+  }
+
+  const targetUrl = request.nextUrl.clone();
+  targetUrl.pathname = `${REPLICATION_VIEWER_ROUTE_PREFIX}${viewerSlug}`;
+  return targetUrl;
+}
+
 function getReplicationArtistAliasRedirectUrl(
   request: NextRequest,
   appPath: string,
@@ -321,6 +353,29 @@ export async function middleware(request: NextRequest) {
   if (replicationArtistAliasRedirectUrl) {
     return browserPolicy.secure(
       NextResponse.redirect(replicationArtistAliasRedirectUrl, 301),
+    );
+  }
+
+  const replicationViewerRewriteUrl = getReplicationViewerRewriteUrl(
+    request,
+    appPath,
+  );
+
+  if (replicationViewerRewriteUrl) {
+    return browserPolicy.secure(
+      NextResponse.rewrite(replicationViewerRewriteUrl, {
+        request: { headers: browserPolicy.requestHeaders },
+      }),
+    );
+  }
+
+  // The viewer route exists only as the rewrite target above; addressed
+  // directly it would be a second URL for the gallery index.
+  if (appPath.startsWith(REPLICATION_VIEWER_ROUTE_PREFIX)) {
+    return browserPolicy.secure(
+      NextResponse.rewrite(new URL(FLAVOR_GATED_NOT_FOUND_PATH, request.url), {
+        request: { headers: browserPolicy.requestHeaders },
+      }),
     );
   }
 

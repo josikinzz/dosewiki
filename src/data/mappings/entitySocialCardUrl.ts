@@ -30,24 +30,15 @@ export function entitySocialCardImage(
     : undefined;
 }
 
-type ReplicationViewerSearchParams = {
-  viewer?: string | string[];
-};
-
 /**
- * Resolve the active immersive-view work to its immutable replication card.
- * Duplicate or unknown viewer values fail closed so the host page keeps its
- * normal social image.
+ * Resolve an immersive-view deep link's work to its immutable replication
+ * card. Unknown slugs fail closed so the host page keeps its normal social
+ * image.
  */
-export function replicationViewerSocialCardImage(
-  searchParams: ReplicationViewerSearchParams,
-) {
-  const viewerSlug = searchParams.viewer;
-  return typeof viewerSlug === "string"
-    ? entitySocialCardImage(
-        "replications",
-        viewerSlug,
-        "Linked replication card",
-      )
-    : undefined;
+export function replicationViewerSocialCardImage(viewerSlug: string) {
+  return entitySocialCardImage(
+    "replications",
+    viewerSlug,
+    "Linked replication card",
+  );
 }
