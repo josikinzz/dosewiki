@@ -170,7 +170,6 @@ export function ChemicalClassDetailPage({ detail }: ChemicalClassDetailPageProps
           className="sm:mb-8"
           title={detail.label}
           icon={icons.hexagon}
-          prominentMobileIcon
         />
       </div>
 

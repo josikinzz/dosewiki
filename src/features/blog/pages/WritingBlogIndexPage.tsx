@@ -37,7 +37,6 @@ export function WritingBlogIndexPage({ posts, emptyState }: WritingBlogIndexPage
         title="Blog"
         description="News, notes, and long-form writing from the dose.wiki editors."
         icon={icons.notebookText}
-        prominentMobileIcon
       />
 
       {emptyState ? (

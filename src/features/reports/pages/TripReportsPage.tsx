@@ -35,7 +35,6 @@ export function TripReportsPage({
       <PageHeader
         title="Experience Reports"
         icon={icons.fileSignature}
-        prominentMobileIcon
         className="mb-7"
       />
 

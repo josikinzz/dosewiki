@@ -34,18 +34,19 @@ export const PageHeader = memo(function PageHeader({
   align = "center",
 }: PageHeaderProps) {
   const isLeft = align === "left";
+  // The icon is a glyph in the text run, one em tall and sitting on the
+  // baseline like a capital, so the title wraps as ordinary text with the
+  // icon leading the first word. A flex row instead put the icon in its own
+  // column and, on a phone, left a wrapped title floating beside it.
   const iconClassName = cn(
-    "theme-accent-heading shrink-0",
+    "theme-accent-heading inline-block align-[-0.12em]",
     prominentMobileIcon
-      ? "h-[2.24em] w-[2.24em] sm:h-[1.12em] sm:w-[1.12em]"
-      : undefined,
+      ? "mx-auto mb-3 block h-[2em] w-[2em] sm:mb-0 sm:mr-[0.3em] sm:inline-block sm:h-[1em] sm:w-[1em]"
+      : "mr-[0.3em]",
   );
   const titleClasses = cn(
-    "type-page-title theme-accent-heading flex max-w-[22ch] items-center gap-x-4 break-words text-balance text-4xl sm:text-5xl md:text-6xl",
-    isLeft ? "justify-start" : "mx-auto justify-center",
-    prominentMobileIcon
-      ? "flex-col gap-y-3 sm:flex-row sm:flex-wrap sm:gap-y-2"
-      : "flex-wrap gap-y-2",
+    "type-page-title theme-accent-heading block max-w-[22ch] break-words text-balance text-4xl sm:text-5xl md:text-6xl",
+    isLeft ? undefined : "mx-auto",
     titleClassName,
   );
 
@@ -58,8 +59,8 @@ export const PageHeader = memo(function PageHeader({
       )}
     >
       <h1 className={titleClasses}>
-        {icon ? <IconComponent icon={icon} size="1.12em" className={iconClassName} /> : null}
-        <span className="min-w-0">{title}</span>
+        {icon ? <IconComponent icon={icon} size="1em" className={iconClassName} /> : null}
+        {title}
       </h1>
       {description ? (
         <div

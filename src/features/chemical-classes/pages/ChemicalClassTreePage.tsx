@@ -119,7 +119,6 @@ export function ChemicalClassTreePage({ payload }: ChemicalClassTreePageProps) {
           className="sm:mb-8"
           title="Chemical Class Index"
           icon={CHEMICAL_CLASS_INDEX_ICON}
-          prominentMobileIcon
         />
       </div>
 

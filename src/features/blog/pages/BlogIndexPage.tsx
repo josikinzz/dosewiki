@@ -27,7 +27,6 @@ export function BlogIndexPage({ posts, emptyState }: BlogIndexPageProps) {
         title="Blog"
         description="Announcements and site updates from the Effect Index archive."
         icon={icons.notebookText}
-        prominentMobileIcon
       />
 
       {emptyState ? (

@@ -40,7 +40,6 @@ export default function ReplicationsSectionLayout({
           titleClassName="[--type-size-title:2.25rem] md:[--type-size-title:3rem]"
           title="Replications"
           icon={resolveRouteChromeIcon("replications")}
-          prominentMobileIcon
         />
       </div>
       {children}

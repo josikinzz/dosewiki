@@ -395,7 +395,6 @@ export function DosagesPage({
             className="sm:mb-8"
             title="Substance Index"
             icon={SUBSTANCE_INDEX_ICON}
-            prominentMobileIcon
             description={<BetaDisclaimer />}
             descriptionClassName="mx-auto text-sm italic text-balance"
           />

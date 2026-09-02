@@ -32,7 +32,6 @@ export function ArticlesIndexPage({
         title="Articles"
         description="Published guides, scales, and long-form writing from the Effect Index archive."
         icon={icons.bookOpenText}
-        prominentMobileIcon
       />
 
       {emptyState ? (
