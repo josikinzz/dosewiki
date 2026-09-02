@@ -221,7 +221,7 @@ export const AboutPage = memo(function AboutPage({
         <PublicTocStrip items={tocItems} />
 
         {/* Hero Section */}
-        <div className="relative flex flex-col gap-6 py-6 sm:py-8">
+        <div className="relative flex flex-col gap-6 pt-6 sm:pt-8">
           <div className="relative flex flex-col gap-6">
             {/* Title with icon */}
             <div className="flex flex-col items-center gap-4 text-center sm:flex-row sm:flex-wrap sm:justify-start sm:gap-6 sm:text-left">
@@ -255,13 +255,14 @@ export const AboutPage = memo(function AboutPage({
           </div>
         </div>
 
-        <section id="mission" className="scroll-mt-24 space-y-6">
+        <section id="mission" className="scroll-mt-24">
           {/* The mission prose flows straight from the hero subtitle; keep an
               sr-only h2 so the landmark keeps its accessible name and the
-              heading outline has no gap. */}
+              heading outline has no gap. No `space-y` here: the sr-only h2 is
+              still a flow child, so it would push a full gap onto the prose. */}
           <h2 className="sr-only">Mission</h2>
 
-          <div className="px-0 py-2">{missionContent}</div>
+          <div>{missionContent}</div>
 
         </section>
 
