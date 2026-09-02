@@ -1,5 +1,6 @@
 import { Button } from "@/components/ui/button";
 import {
+  REFERENCE_LIST_VISIBLE_LIMIT,
   ReferenceCitationList,
   ReferenceListItem,
   scrollToReferenceUse,
@@ -41,6 +42,17 @@ const CITATIONS: ProjectedCitation[] = [
   },
 ];
 
+// Two past the default limit, so the list collapses behind a "+2" chip.
+const LONG_CITATIONS: ProjectedCitation[] = Array.from(
+  { length: REFERENCE_LIST_VISIBLE_LIMIT + 2 },
+  (_, index) => ({
+    ...CITATIONS[index % CITATIONS.length],
+    number: index + 1,
+    anchorId: `ref-long-${index + 1}`,
+    referenceId: `long-${index + 1}`,
+  }),
+);
+
 export const referenceListStory: StoryDef = {
   id: "reference-list",
   name: "Reference list",
@@ -50,8 +62,13 @@ export const referenceListStory: StoryDef = {
     "The Wikipedia-style numbered reference list shared by substance and effect articles: plum number chip, full citation text, accent-colored trailing URL, and optional per-use backlinks.",
   source: "src/components/common/ReferenceList.tsx",
   importLine:
-    'import { ReferenceCitationList, ReferenceListItem, scrollToReferenceUse } from "@/components/common/ReferenceList";',
-  exports: ["ReferenceCitationList", "ReferenceListItem", "scrollToReferenceUse"],
+    'import { REFERENCE_LIST_VISIBLE_LIMIT, ReferenceCitationList, ReferenceListItem, scrollToReferenceUse } from "@/components/common/ReferenceList";',
+  exports: [
+    "REFERENCE_LIST_VISIBLE_LIMIT",
+    "ReferenceCitationList",
+    "ReferenceListItem",
+    "scrollToReferenceUse",
+  ],
   examples: [
     {
       label: "Reference list",
@@ -95,6 +112,17 @@ export const referenceListStory: StoryDef = {
       ),
     },
     {
+      label: "Collapsed past the limit",
+      note: `Lists longer than visibleLimit (default REFERENCE_LIST_VISIBLE_LIMIT = ${REFERENCE_LIST_VISIBLE_LIMIT}) collapse behind a "+N" chip. A marker click or hash that targets a hidden entry expands the list and scrolls to it.`,
+      background: "card",
+      full: true,
+      render: () => (
+        <div className="w-full max-w-2xl">
+          <ReferenceCitationList citations={LONG_CITATIONS} />
+        </div>
+      ),
+    },
+    {
       label: "scrollToReferenceUse",
       note: "Imperative helper used by the backlink chips: scrolls the page to the Nth in-article use of a reference (expanding collapsed sections first). No-op here without article markers.",
       render: () => (
@@ -114,6 +142,11 @@ export const referenceListStory: StoryDef = {
       name: "ReferenceCitationList: referenceBacklinks",
       type: "Record<string, CitationBacklink[]>",
       description: "Optional per-reference jump-to-use links, keyed by referenceId.",
+    },
+    {
+      name: "ReferenceCitationList: visibleLimit",
+      type: "number",
+      description: `Entries shown before the list collapses behind a "+N" chip. Defaults to REFERENCE_LIST_VISIBLE_LIMIT (${REFERENCE_LIST_VISIBLE_LIMIT}).`,
     },
     {
       name: "ReferenceListItem: citation",

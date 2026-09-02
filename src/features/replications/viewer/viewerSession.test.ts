@@ -132,7 +132,7 @@ describe("createViewerSession", () => {
       entry: "fade",
     });
     state.session.commitWork(-1);
-    expect(state.replaces.at(-1)).toBe("/source?viewer=a3");
+    expect(state.replaces[state.replaces.length - 1]).toBe("/source?viewer=a3");
   });
 
   it("syncs without history and re-resolves on collection replacement", () => {

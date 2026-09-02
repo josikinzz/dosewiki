@@ -6520,6 +6520,48 @@
       "match": "var(--theme-accent-strong)",
       "line": 213,
       "column": 4210
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/docs/_components/Mermaid.tsx",
+      "match": "var(--theme-text-primary)",
+      "line": 139,
+      "column": 47
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/docs/_components/Mermaid.tsx",
+      "match": "var(--theme-text-muted)",
+      "line": 141,
+      "column": 39
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/docs/_components/Mermaid.tsx",
+      "match": "var(--theme-surface-soft)",
+      "line": 148,
+      "column": 48
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/docs/_components/Mermaid.tsx",
+      "match": "var(--theme-border-subtle)",
+      "line": 148,
+      "column": 92
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/docs/_components/Mermaid.tsx",
+      "match": "var(--theme-text-muted)",
+      "line": 149,
+      "column": 44
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/docs/_components/Mermaid.tsx",
+      "match": "var(--theme-text-muted)",
+      "line": 150,
+      "column": 40
     }
   ]
 }
