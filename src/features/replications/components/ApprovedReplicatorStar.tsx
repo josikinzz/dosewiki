@@ -18,7 +18,12 @@ export function ApprovedReplicatorStar({ className }: { className?: string }) {
       title={APPROVED_REPLICATOR_LABEL}
       data-testid="approved-replicator-star"
     >
-      <Icon icon="lucide:star" className="h-[1em] w-[1em] fill-current" size="1em" />
+      {/* Lucide paths ship `fill="none"` inline, which beats an inherited fill. */}
+      <Icon
+        icon="lucide:star"
+        className="h-[1em] w-[1em] [&_path]:fill-current"
+        size="1em"
+      />
       <span className="sr-only">{APPROVED_REPLICATOR_LABEL}</span>
     </span>
   );
