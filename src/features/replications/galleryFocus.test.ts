@@ -432,6 +432,13 @@ describe("getReplicationArtistRouteAlias", () => {
     expect(getReplicationArtistRouteAlias(" ANONYMOUS ")).toBe("unknown");
   });
 
+  it("forwards the retired StingrayZ handle to the Symmetric Vision page", () => {
+    // Every StingrayZ credit was rewritten to "Symmetric Vision" on 2026-09-02,
+    // so no group produces this key and the address needs a static forward.
+    expect(getReplicationArtistRouteAlias("stingrayz")).toBe("symmetric-vision");
+    expect(getReplicationArtistRouteAlias("StingrayZ")).toBe("symmetric-vision");
+  });
+
   it("knows nothing about live or bogus keys", () => {
     expect(getReplicationArtistRouteAlias("chelsea-morgan")).toBeNull();
     expect(getReplicationArtistRouteAlias("unknown")).toBeNull();

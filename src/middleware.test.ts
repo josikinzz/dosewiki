@@ -469,6 +469,19 @@ describe("middleware role policy adapter", () => {
     expect(mocks.getToken).not.toHaveBeenCalled();
   });
 
+  it("forwards the retired StingrayZ Artist Page to Symmetric Vision", async () => {
+    const { middleware } = await import("../middleware");
+
+    const response = await middleware(
+      makeRequest("/replications/artist/stingrayz"),
+    );
+
+    expect(response.status).toBe(301);
+    expect(response.headers.get("location")).toBe(
+      "https://dosewiki-admin.vercel.app/replications/artist/symmetric-vision",
+    );
+  });
+
   it("redirects legacy search path queries to noindex search URLs on the full app host", async () => {
     const { middleware } = await import("../middleware");
 

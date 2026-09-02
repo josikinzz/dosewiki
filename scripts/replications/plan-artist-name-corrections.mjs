@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Correct a misspelled artist name on the replication rows that carry it.
+ * Correct a stored artist name on the replication rows that carry it.
  *
  * Seeding a profile called "Ben Ridgway" while every gallery tile underneath it
  * still says "Ben Ridgeway" is half a fix. The name lives on
@@ -13,6 +13,17 @@
  * its evidence, and this script only turns them into a plan.
  *
  * ## What it will and will not do
+ *
+ * A correction moves the name only where it is the credited identity: the
+ * `artist` column, a `rightsholder` that is exactly the name, and the
+ * `by <name>` token of the credit line. Reddit-archive credit lines also carry
+ * the submitter snapshot ("...; submitter snapshot: StingrayZ.") and may quote
+ * the handle inside the title; both are provenance facts about the source post,
+ * not credits, so they stay as written.
+ *
+ * Rows that already carry the corrected credit are reported as settled and
+ * never written. Every strong correction on file is planned unless one or more
+ * `--stored=<name>` flags narrow the run to the named entries.
  *
  * Writes go through `replications.applyProvenanceCorrection`, the existing
  * compare-and-swap: the complete current credit snapshot is sent alongside the
@@ -28,9 +39,11 @@
  *
  * Dry run (default):
  *   node scripts/replications/plan-artist-name-corrections.mjs
+ *   node scripts/replications/plan-artist-name-corrections.mjs --stored=StingrayZ
  *
  * Apply:
  *   node scripts/replications/plan-artist-name-corrections.mjs --write \
+ *     --stored=StingrayZ \
  *     --confirm-write=correct-replication-artist-names \
  *     --expected-deployment=<fingerprint>
  */
@@ -63,21 +76,50 @@ function normalizeName(value) {
  * A correction may be right about a display name and still not be something to
  * push onto the stored data — `correctsReplicationArtistField` is how the review
  * says which is which, so this script never widens its own scope.
+ *
+ * `only` narrows the run to the named stored entries. A name that matches no
+ * correction on file is an error rather than an empty plan: a misspelled flag
+ * must not look like a corpus that needs nothing.
  */
-export function loadArtistNameCorrections(filePath = CORRECTIONS_PATH) {
+export function loadArtistNameCorrections(filePath = CORRECTIONS_PATH, { only = [] } = {}) {
   const corrections = JSON.parse(fs.readFileSync(filePath, "utf8"));
-  return (corrections.nameCorrections ?? []).filter(
+  const strong = (corrections.nameCorrections ?? []).filter(
     (entry) => entry.strength === "strong" && entry.correctsReplicationArtistField === true,
   );
+  if (only.length === 0) {
+    return strong;
+  }
+
+  const wanted = new Set(only.map(normalizeName));
+  const missing = only.filter(
+    (name) => !strong.some((entry) => normalizeName(entry.stored) === normalizeName(name)),
+  );
+  if (missing.length > 0) {
+    throw new Error(
+      `No strong artist-name correction on file for: ${missing.map((name) => JSON.stringify(name)).join(", ")}.`,
+    );
+  }
+  return strong.filter((entry) => wanted.has(normalizeName(entry.stored)));
 }
 
-/** Replace the stored name wherever it appears in a free-text credit field. */
+function escapeRegExp(value) {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+/**
+ * Replace the stored name where it is the credited identity: the whole field
+ * (a `rightsholder`), or the `by <name>` token of a credit line, which ends the
+ * line ("Switch by Sam perkins") or its first sentence ("... by StingrayZ.
+ * Archived from r/replications post 6e00jy; submitter snapshot: StingrayZ.").
+ * The submitter snapshot and any mention inside the title are left alone.
+ */
 export function retextCreditField(value, storedName, correctName) {
   if (typeof value !== "string" || value.length === 0) {
     return value;
   }
 
-  const pattern = new RegExp(storedName.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "gi");
+  const name = escapeRegExp(storedName);
+  const pattern = new RegExp(`^${name}$|(?<= by )${name}(?=$|\\.(?:\\s|$))`, "gi");
   return value.replace(pattern, correctName);
 }
 
@@ -144,11 +186,18 @@ export function planRowCorrection(row, correction, { existingSlugs = new Set() }
   };
 }
 
+/**
+ * Every row credited under a stored name, split into the rows the correction
+ * changes and the rows that already carry it. A casing-only correction folds
+ * with its own target ("symmetric vision" and "Symmetric Vision" normalize the
+ * same), so a settled row is an expected match, not a write.
+ */
 export function planArtistNameCorrections(replications, corrections) {
   const byName = new Map(corrections.map((entry) => [normalizeName(entry.stored), entry]));
   const existingSlugs = new Set(replications.map((row) => row.slug));
 
   const rows = [];
+  const settled = [];
   const unmatched = [];
 
   for (const correction of corrections) {
@@ -165,11 +214,17 @@ export function planArtistNameCorrections(replications, corrections) {
     if (!correction) {
       continue;
     }
-    rows.push(planRowCorrection(row, correction, { existingSlugs }));
+    const plan = planRowCorrection(row, correction, { existingSlugs });
+    if (plan.changedFields.length === 0) {
+      settled.push({ slug: row.slug, artist: row.artist });
+      continue;
+    }
+    rows.push(plan);
   }
 
   return {
     rows: rows.sort((left, right) => left.slug.localeCompare(right.slug)),
+    settled: settled.sort((left, right) => left.slug.localeCompare(right.slug)),
     unmatched,
   };
 }
@@ -209,7 +264,7 @@ function printPlan(plan, slugPlan) {
   console.log("# REPLICATION ARTIST NAME CORRECTIONS — plan only, nothing is written.");
   console.log("#".repeat(78));
 
-  console.log(`\n  ${plan.rows.length} row(s) carry a misspelled artist name.\n`);
+  console.log(`\n  ${plan.rows.length} row(s) carry a stored artist name to correct.\n`);
 
   for (const row of plan.rows) {
     console.log(`  ${row.slug}   (${row.effectSlug})`);
@@ -236,6 +291,10 @@ function printPlan(plan, slugPlan) {
     console.warn(
       `  WARNING correction "${correction.stored}" -> "${correction.correct}" matches no replication row.`,
     );
+  }
+
+  if (plan.settled.length > 0) {
+    console.log(`  ${plan.settled.length} row(s) already carry the corrected credit and are not written.`);
   }
 
   console.log("\n" + "=".repeat(78));
@@ -294,13 +353,20 @@ async function main() {
     );
   }
 
-  const corrections = loadArtistNameCorrections();
+  const only = process.argv
+    .slice(2)
+    .filter((arg) => arg.startsWith("--stored="))
+    .map((arg) => arg.slice("--stored=".length))
+    .filter(Boolean);
+  const corrections = loadArtistNameCorrections(CORRECTIONS_PATH, { only });
   const client = new ConvexHttpClient(readUrl);
   const replications = await client.query(api.replications.getAll, {});
   const aliases = JSON.parse(fs.readFileSync(ALIAS_PATH, "utf8"));
 
   console.log(
-    `\nRead ${replications.length} replications. ${corrections.length} strong artist-name correction(s) on file.`,
+    `\nRead ${replications.length} replications. ${corrections.length} strong artist-name correction(s) ${
+      only.length > 0 ? `selected by --stored (${only.map((name) => JSON.stringify(name)).join(", ")})` : "on file"
+    }.`,
   );
 
   const plan = planArtistNameCorrections(replications, corrections);
@@ -308,7 +374,12 @@ async function main() {
   const { collisions } = printPlan(plan, slugPlan);
 
   if (collisions > 0) {
-    throw new Error(`${collisions} corrected slug(s) collide with an existing slug — resolve before renaming.`);
+    // The credit write never touches slugs, so a collision only concerns the
+    // later normalize-slugs run. Reddit-archive slugs carry the post id rather
+    // than the artist and are never renamed onto the artist-derived form.
+    console.warn(
+      `\n  ${collisions} would-be slug rename(s) collide with an existing slug; resolve before running normalize-slugs.`,
+    );
   }
 
   if (command.dryRun) {

@@ -112,6 +112,11 @@ export function getReplicationRouteAlias(slug: string): string | null {
 
 const replicationArtistAliases = {
   anonymous: "unknown",
+  // The reddit-era handle every work now credits as "Symmetric Vision"
+  // (scripts/replications/plan-artist-name-corrections.mjs, 2026-09-02). No
+  // credit line produces this key any more, so without the alias the address
+  // would 404 rather than resolve through the profile's alias list.
+  stingrayz: "symmetric-vision",
 } as const satisfies Record<string, string>;
 
 /**

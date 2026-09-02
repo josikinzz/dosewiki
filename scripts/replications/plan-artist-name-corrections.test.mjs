@@ -45,6 +45,22 @@ const MORACZ = {
   rightsholder: "MOracs",
 };
 
+/** A Reddit-archive row from the 2026-08-30 campaign: the credit line carries the submitter snapshot. */
+const STINGRAYZ = {
+  _id: "k57cf2s8r3nz0g6y7w0wq2h4c1856m7p",
+  slug: "this-friendly-stingrayz-says-hi-psychedelic-visuals-gqcvye",
+  effect_slug: "geometry",
+  title: 'This Friendly Stingrayz Says "Hi!" (Psychedelic Visuals)',
+  artist: "StingrayZ",
+  artist_url: "https://www.reddit.com/user/StingrayZ/",
+  credit_line:
+    'This Friendly Stingrayz Says "Hi!" (Psychedelic Visuals) by StingrayZ. Archived from r/replications post gqcvye; submitter snapshot: StingrayZ.',
+  source_url: "https://v.redd.it/gqcvye",
+  rightsholder: null,
+};
+
+const STINGRAYZ_CORRECTION = { stored: "StingrayZ", correct: "Symmetric Vision" };
+
 const CORRECTIONS = loadArtistNameCorrections();
 const BEN_CORRECTION = { stored: "Ben Ridgeway", correct: "Ben Ridgway" };
 
@@ -83,6 +99,18 @@ describe("loadArtistNameCorrections", () => {
       expect(entry.correctsReplicationArtistField).toBe(true);
     }
   });
+
+  it("narrows to the stored names asked for, matched without regard to case", () => {
+    expect(
+      loadArtistNameCorrections(undefined, { only: ["stingrayz", "Ben Ridgeway"] }).map((entry) => entry.stored),
+    ).toEqual(["StingrayZ", "Ben Ridgeway"]);
+  });
+
+  it("refuses a name with no correction on file instead of planning nothing", () => {
+    expect(() => loadArtistNameCorrections(undefined, { only: ["StingrayZ", "Stingray"] })).toThrow(
+      /No strong artist-name correction on file for: "Stingray"/,
+    );
+  });
 });
 
 describe("retextCreditField", () => {
@@ -100,6 +128,35 @@ describe("retextCreditField", () => {
 
   it("leaves an absent field absent rather than inventing one", () => {
     expect(retextCreditField(null, "Ben Ridgeway", "Ben Ridgway")).toBeNull();
+  });
+
+  it("moves only the credit token of a Reddit-archive line, never the submitter snapshot", () => {
+    expect(
+      retextCreditField(
+        "Staring at the sun on psychedelics by StingrayZ. Archived from r/replications post 6e00jy; submitter snapshot: StingrayZ.",
+        "StingrayZ",
+        "Symmetric Vision",
+      ),
+    ).toBe(
+      "Staring at the sun on psychedelics by Symmetric Vision. Archived from r/replications post 6e00jy; submitter snapshot: StingrayZ.",
+    );
+  });
+
+  it("leaves a mention of the handle inside the title as the artist wrote it", () => {
+    expect(retextCreditField(STINGRAYZ.credit_line, "StingrayZ", "Symmetric Vision")).toBe(
+      'This Friendly Stingrayz Says "Hi!" (Psychedelic Visuals) by Symmetric Vision. Archived from r/replications post gqcvye; submitter snapshot: StingrayZ.',
+    );
+  });
+
+  it("keeps an upscale note after the credit token", () => {
+    expect(
+      retextCreditField("Asphalt by Chelsea Morgen. Modified from the original (upscaled).", "Chelsea Morgen", "Chelsea Morgan"),
+    ).toBe("Asphalt by Chelsea Morgan. Modified from the original (upscaled).");
+  });
+
+  it("replaces a rightsholder only when the whole field is the name", () => {
+    expect(retextCreditField("Ben Ridgeway", "Ben Ridgeway", "Ben Ridgway")).toBe("Ben Ridgway");
+    expect(retextCreditField("Ben Ridgeway Studio", "Ben Ridgeway", "Ben Ridgway")).toBe("Ben Ridgeway Studio");
   });
 });
 
@@ -181,6 +238,20 @@ describe("planRowCorrection", () => {
 
     expect(plan.slugConsequence.collides).toBe(true);
   });
+
+  it("renames a Reddit-archive credit without touching the source facts around it", () => {
+    const plan = planRowCorrection(STINGRAYZ, STINGRAYZ_CORRECTION);
+
+    expect(plan.updates).toEqual({
+      title: STINGRAYZ.title,
+      artist: "Symmetric Vision",
+      credit_line:
+        'This Friendly Stingrayz Says "Hi!" (Psychedelic Visuals) by Symmetric Vision. Archived from r/replications post gqcvye; submitter snapshot: StingrayZ.',
+      artist_url: "https://www.reddit.com/user/StingrayZ/",
+      source_url: "https://v.redd.it/gqcvye",
+    });
+    expect(plan.changedFields).toEqual(["artist", "credit_line"]);
+  });
 });
 
 describe("planArtistNameCorrections", () => {
@@ -220,6 +291,27 @@ describe("planArtistNameCorrections", () => {
       "Simon Haid",
       "Insedigris",
     ]);
+  });
+
+  it("reports a row that already carries the corrected credit as settled, not as a write", () => {
+    const settledRow = {
+      ...BEN,
+      slug: "continuum-infinitum-ben-ridgway",
+      artist: "Ben Ridgway",
+      credit_line: "Continuum Infinitum by Ben Ridgway",
+      rightsholder: "Ben Ridgway",
+    };
+    // "Ben Ridgway" is not a stored name on file, so it needs a casing-only
+    // correction to be matched at all: the same fold that makes the on-file
+    // "symmetric vision" entry meet every row already credited "Symmetric Vision".
+    const plan = planArtistNameCorrections([settledRow, STINGRAYZ], [
+      { stored: "ben ridgway", correct: "Ben Ridgway" },
+      STINGRAYZ_CORRECTION,
+    ]);
+
+    expect(plan.rows.map((row) => row.slug)).toEqual([STINGRAYZ.slug]);
+    expect(plan.settled).toEqual([{ slug: "continuum-infinitum-ben-ridgway", artist: "Ben Ridgway" }]);
+    expect(plan.unmatched).toEqual([]);
   });
 });
 

@@ -867,6 +867,25 @@ to "Loka". Rows write through `applyProvenanceCorrection`, so each patch is
 preconditioned on the full current credit snapshot; the profile write merges
 against the raw stored row and refuses a link list it did not plan.
 
+#### Replacing one profile's bio
+
+```bash
+node scripts/contributors/set-profile-bio.mjs --key=SYMMETRICVISION \
+  --bio-file=runs/profile-bios/symmetricvision.md
+TARGET_CONVEX_URL=https://glad-minnow-656.convex.cloud \
+  node scripts/contributors/set-profile-bio.mjs --key=SYMMETRICVISION \
+  --bio-file=runs/profile-bios/symmetricvision.md --write \
+  --confirm-write=set-contributor-profile-bio \
+  --expected-deployment=glad-minnow-656
+```
+
+Writes a reviewed Markdown bio onto one profile through
+`contributorProfiles.saveProfileAsEditor`, whose patch leaves every field it
+does not name exactly as stored. The dry run prints the current and proposed
+bio; the write refuses if the live bio moved since the plan was built. Used on
+2026-09-02 to lead the SYMMETRICVISION bio with the merged identity after the
+StingrayZ credits were renamed.
+
 #### Avatars cut from a contributor's own work
 
 ```bash
@@ -922,7 +941,9 @@ Replication media scan, reconciliation, gallery-order planning, and Convex write
 
 ```bash
 node scripts/replications/plan-artist-name-corrections.mjs
+node scripts/replications/plan-artist-name-corrections.mjs --stored=StingrayZ
 node scripts/replications/plan-artist-name-corrections.mjs \
+  --stored=StingrayZ \
   --write --confirm-write=correct-replication-artist-names \
   --expected-deployment=glad-minnow-656
 ```
@@ -930,9 +951,19 @@ node scripts/replications/plan-artist-name-corrections.mjs \
 Applies the `strong` entries of
 [`src/data/config/contributorIdentityCorrections.json`](../src/data/config/contributorIdentityCorrections.json)
 that carry `correctsReplicationArtistField` to `replications.artist`, and carries
-the name into `credit_line` and `rightsholder` with it. Writes go through
-`replications.applyProvenanceCorrection`, so a row that has moved since the plan
-was built fails closed instead of being overwritten from stale data.
+the name into `credit_line` and `rightsholder` with it. `--stored=<name>` (repeatable)
+narrows a run to the named entries; a name with no correction on file is an error.
+Rows that already carry the corrected credit are reported as settled and never
+written. Writes go through `replications.applyProvenanceCorrection`, so a row that
+has moved since the plan was built fails closed instead of being overwritten from
+stale data.
+
+The name moves only where it is the credited identity: the `artist` column, a
+`rightsholder` that is exactly the name, and the `by <name>` token of the credit
+line. Reddit-archive credit lines keep their submitter snapshot and any mention of
+the handle inside the title, which are facts about the source post rather than
+credits. The 2026-09-02 run (`runs/replication-artist-corrections/`) moved the 201
+Reddit-archive rows credited "StingrayZ" onto "Symmetric Vision" this way.
 
 It never renames a slug. Slugs were derived from title plus artist, so several
 change under a name correction — those are reported in full, together with the
