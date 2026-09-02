@@ -5,7 +5,10 @@
  *
  * Two variants, one per surface:
  * - `hero` renders the pill sized for the homepage wordmark; the call site raises it
- *   into a superscript beside the h1 without joining the heading's layout flow.
+ *   into a superscript beside the h1 without joining the heading's layout flow. Below
+ *   md the stage word drops and only the version shows: the superscript hangs off the
+ *   wordmark's end, and at phone widths the full pill rides the viewport edge (and
+ *   overflows it on the About heading). The accessible name keeps the stage.
  * - `header` renders the same text as a micro-pill next to the header brand. It stays
  *   visible on mobile after the wordmark hides, so the beta mark never disappears.
  *
@@ -67,7 +70,13 @@ export function SiteVersionBadge({
       aria-label={accessibleName}
       className="theme-accent-heading inline-flex items-center font-display text-xs font-semibold uppercase leading-none tracking-[0.2em]"
     >
-      <span aria-hidden="true">{`${badge.version} ${badge.label}`}</span>
+      <span aria-hidden="true">
+        {badge.version}
+        <span className="max-md:hidden">
+          {" "}
+          {badge.label}
+        </span>
+      </span>
     </span>
   );
 }
