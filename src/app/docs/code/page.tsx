@@ -20,7 +20,7 @@ export async function generateMetadata() {
     title: "How dose.wiki is built",
     description:
       copy.text("seo-docs-code-description") ||
-      "An educational tour of the dose.wiki codebase: its architecture, data pipeline, and the systems that power the public site.",
+      "An educational tour of the dose.wiki codebase: its architecture, data layer, and the systems that power the public site.",
     pathname: "/docs/code",
   });
 }
@@ -342,8 +342,8 @@ export default async function DocsCodePage() {
           <div className="mt-6">
             <Mermaid
               chart={`graph TD
-  SRC["Scraped sources · 10 sites<br/>(listed in section 08)"]:::ext
-  AI["OpenRouter AI<br/>Claude · Gemini · DeepSeek"]:::ext
+  SRC["Scraped sources<br/>(listed on /docs/how)"]:::ext
+  AI["OpenRouter AI<br/>LLM gateway, models vary"]:::ext
   R2["Cloudflare R2<br/>replication media bytes"]:::ext
   SCRIPTS["Data pipelines<br/>scripts/ · parse, generate,<br/>cite, migrate, media intake"]:::scripts
   DB[("Convex database<br/>convex/ · substanceIndex,<br/>effects, reports, citations...")]:::data
@@ -496,12 +496,12 @@ export default async function DocsCodePage() {
 │   ├── `}
             <span className="theme-accent-heading font-semibold">app/</span>
             {`                  `}
-            <span className="theme-text-faint">· App Router: public pages, /dev, ~40 /api routes</span>
+            <span className="theme-text-faint">· App Router: public pages, /dev, ~70 /api route handlers</span>
             {`
 │   ├── `}
             <span className="theme-accent-heading font-semibold">features/</span>
             {`             `}
-            <span className="theme-text-faint">· 15 domain modules; dev is half of it (~670 files)</span>
+            <span className="theme-text-faint">· 15 domain modules; dev is half of it (~690 files)</span>
             {`
 │   ├── components/           `}
             <span className="theme-text-faint">· shared UI: layout, pages, ui primitives</span>
@@ -533,7 +533,7 @@ export default async function DocsCodePage() {
               scripts/
             </span>
             {`                  `}
-            <span className="theme-text-faint">· pipelines (~700 files, 29 subdirs; see section 08)</span>
+            <span className="theme-text-faint">· pipelines (~700 script files; see section 08)</span>
             {`
 │   ├── parsers/  batch/  citations/  prepopulate/
 │   ├── replications/  contributors/  chemistry/  legality/
@@ -706,7 +706,7 @@ export default async function DocsCodePage() {
                 </tr>
                 <tr className={TABLE_ROW_CLASS}>
                   <td className="p-3">
-                    <code>tripReports</code>
+                    <code>tripReports</code> / <code>tripReportSubstances</code>
                   </td>
                   <td className="p-3">
                     <Badge variant="outline" className={TABLE_BADGE_CLASS}>content</Badge>
@@ -1098,135 +1098,20 @@ export default async function DocsCodePage() {
             <DocsInline>{copy.text("docs-code-s8-intro")}</DocsInline>
           </p>
 
-          {/* Demoted from a status-less role=alert callout to emphasized prose. */}
+          <p className={`${PROSE_CLASS} mt-4`}>
+            <DocsInline>{copy.text("docs-code-s8-writes")}</DocsInline>
+          </p>
+
+          <p className={`${PROSE_CLASS} mt-4`}>
+            <DocsInline>{copy.text("docs-code-s8-families")}</DocsInline>
+          </p>
+
+          {/* The content pipeline itself (sources, excerpts, prompts, citation
+              passes, human review) lives on /docs/how; this page only points
+              at it so the two never drift apart. */}
           <div role="presentation" className="theme-horizontal-divider mt-6" />
           <p className={`${PROSE_CLASS} mt-6`}>
-            <DocsInline>{copy.text("docs-code-s8-sources")}</DocsInline>
-          </p>
-
-          <div className="mt-6">
-            <Mermaid
-              chart={`graph TD
-  A["Scraped source text<br/>(10 sites, listed above)"]:::ext
-  B["Parse into structured data<br/>scripts/parsers/"]:::scripts
-  C["Prepopulate articles<br/>scripts/prepopulate/"]:::scripts
-  D[("Convex<br/>substanceIndex +<br/>articleSources")]:::data
-  E["AI section generation<br/>scripts/batch/ · per-section<br/>Claude models"]:::scripts
-  F["Human review + editing<br/>/dev/articles/[slug]"]:::dev
-  G["Citation workflow<br/>scripts/citations/ · adds<br/>[cite:ref-id] markers + evidence"]:::scripts
-  H["Workbench review<br/>then apply-workbench --write<br/>--confirm-citation-write"]:::dev
-  I["Public page<br/>src/app/[slug]"]:::pub
-
-  A --> B
-  B --> C
-  C -->|"initial articles"| D
-  D -->|"extracted quotes + prompts"| E
-  E -->|"generated sections"| F
-  F -->|"save"| D
-  D --> G
-  G --> H
-  H -->|"citations applied"| D
-  D -->|"render"| I
-
-  classDef ext fill:#3a1f33,stroke:#f9a8d4,color:#f7e3ef
-  classDef scripts fill:#3a2a18,stroke:#fdba74,color:#f7ead9
-  classDef data fill:#143026,stroke:#6ee7b7,color:#def3ea
-  classDef pub fill:#15263e,stroke:#7dd3fc,color:#ddeefb
-  classDef dev fill:#391a40,stroke:#e879f9,color:#f6e2fa`}
-              title="Content pipeline: scraping through parsing, prepopulation, AI generation, human review, citation workflow, and the public page"
-            />
-          </div>
-
-          <h3 className="theme-accent-heading mt-7 text-lg font-semibold">
-            {copy.text("docs-code-s8-prompting-heading")}
-          </h3>
-
-          <p className={`${PROSE_CLASS} mt-2`}>
-            <DocsInline>{copy.text("docs-code-s8-prompting-intro")}</DocsInline>
-          </p>
-
-          <FlowGrid className="mt-6">
-            <StepPanel domain="orange" step="1" title={copy.text("docs-code-s8-prompting-step1-title")}>
-              <DocsInline>{copy.text("docs-code-s8-prompting-step1-body")}</DocsInline>
-            </StepPanel>
-            <StepPanel domain="plum" step="2" title={copy.text("docs-code-s8-prompting-step2-title")}>
-              <DocsInline>{copy.text("docs-code-s8-prompting-step2-body")}</DocsInline>
-            </StepPanel>
-            <StepPanel domain="green" step="3" title={copy.text("docs-code-s8-prompting-step3-title")}>
-              <DocsInline>{copy.text("docs-code-s8-prompting-step3-body")}</DocsInline>
-            </StepPanel>
-            <StepPanel domain="plum" step="4" title={copy.text("docs-code-s8-prompting-step4-title")}>
-              <DocsInline>{copy.text("docs-code-s8-prompting-step4-body")}</DocsInline>
-            </StepPanel>
-            <StepPanel domain="gold" step="5" title={copy.text("docs-code-s8-prompting-step5-title")}>
-              <DocsInline>{copy.text("docs-code-s8-prompting-step5-body")}</DocsInline>
-            </StepPanel>
-          </FlowGrid>
-
-          {/* Flattened: the two sequential prompt tiers (extraction, then
-              section generation) share one surface with a divider instead of a
-              two-up card pair. */}
-          <ContentCard variant="subtle" padding="lg" className="mt-6 shadow-[var(--theme-elevation-sm)]">
-            <div className={CARD_LABEL_CLASS}>{copy.text("docs-code-s8-stage13-label")}</div>
-            <p className={`${PROSE_CLASS} mb-2.5`}>
-              <DocsInline>{copy.text("docs-code-s8-stage13-intro")}</DocsInline>
-            </p>
-            <ul className={`${LIST_CLASS} list-disc pl-5`}>
-              {copy.items("docs-code-s8-stage13-topics").map((item, i) => (
-                <li key={i}>
-                  <DocsInline>{item}</DocsInline>
-                </li>
-              ))}
-            </ul>
-            <div role="presentation" className="theme-horizontal-divider my-5" />
-
-            <div className={CARD_LABEL_CLASS}>{copy.text("docs-code-s8-stage4-label")}</div>
-            <p className={`${PROSE_CLASS} mb-2.5`}>
-              <DocsInline>{copy.text("docs-code-s8-stage4-prompts")}</DocsInline>
-            </p>
-            <p className={PROSE_CLASS}>
-              <DocsInline>{copy.text("docs-code-s8-stage4-seeds")}</DocsInline>
-            </p>
-          </ContentCard>
-
-          <p className={`${PROSE_CLASS} mt-5`}>
-            <DocsInline>{copy.text("docs-code-s8-prompts-published")}</DocsInline>
-          </p>
-
-          <h3 className="theme-accent-heading mt-7 text-lg font-semibold">
-            {copy.text("docs-code-s8-citation-heading")}
-          </h3>
-          <FlowGrid className="mt-4">
-            <StepPanel domain="green" step="1" title={copy.text("docs-code-s8-citation-step1-title")}>
-              <DocsInline>{copy.text("docs-code-s8-citation-step1-body")}</DocsInline>
-            </StepPanel>
-            <StepPanel domain="orange" step="2" title={copy.text("docs-code-s8-citation-step2-title")}>
-              <DocsInline>{copy.text("docs-code-s8-citation-step2-body")}</DocsInline>
-            </StepPanel>
-            <StepPanel domain="orange" step="3" title={copy.text("docs-code-s8-citation-step3-title")}>
-              <DocsInline>{copy.text("docs-code-s8-citation-step3-body")}</DocsInline>
-            </StepPanel>
-            <StepPanel domain="plum" step="4" title={copy.text("docs-code-s8-citation-step4-title")}>
-              <DocsInline>{copy.text("docs-code-s8-citation-step4-body")}</DocsInline>
-            </StepPanel>
-            <StepPanel domain="gold" step="5" title={copy.text("docs-code-s8-citation-step5-title")}>
-              <DocsInline>{copy.text("docs-code-s8-citation-step5-body")}</DocsInline>
-            </StepPanel>
-            <StepPanel domain="green" step="6" title={copy.text("docs-code-s8-citation-step6-title")}>
-              <DocsInline>{copy.text("docs-code-s8-citation-step6-body")}</DocsInline>
-            </StepPanel>
-          </FlowGrid>
-
-          <Alert variant="destructive" className="mt-5">
-            <AlertDescription>
-              <DocsInline>{copy.text("docs-code-s8-marker-contract")}</DocsInline>
-            </AlertDescription>
-          </Alert>
-
-          {/* Demoted from a status-less role=alert callout to emphasized prose. */}
-          <div role="presentation" className="theme-horizontal-divider mt-6" />
-          <p className={`${PROSE_CLASS} mt-6`}>
-            <DocsInline>{copy.text("docs-code-s8-sibling-pipelines")}</DocsInline>
+            <DocsInline>{copy.text("docs-code-s8-deferral")}</DocsInline>
           </p>
         </section>
 
@@ -1239,26 +1124,9 @@ export default async function DocsCodePage() {
             <DocsInline>{copy.text("docs-code-s9-intro")}</DocsInline>
           </p>
 
-          <FlowGrid className="mt-6">
-            <StepPanel domain="plum" step="1" title={copy.text("docs-code-s9-intake-step1-title")}>
-              <DocsInline>{copy.text("docs-code-s9-intake-step1-body")}</DocsInline>
-            </StepPanel>
-            <StepPanel domain="orange" step="2" title={copy.text("docs-code-s9-intake-step2-title")}>
-              <DocsInline>{copy.text("docs-code-s9-intake-step2-body")}</DocsInline>
-            </StepPanel>
-            <StepPanel domain="green" step="3" title={copy.text("docs-code-s9-intake-step3-title")}>
-              <DocsInline>{copy.text("docs-code-s9-intake-step3-body")}</DocsInline>
-            </StepPanel>
-            <StepPanel domain="green" step="4" title={copy.text("docs-code-s9-intake-step4-title")}>
-              <DocsInline>{copy.text("docs-code-s9-intake-step4-body")}</DocsInline>
-            </StepPanel>
-            <StepPanel domain="gold" step="5" title={copy.text("docs-code-s9-intake-step5-title")}>
-              <DocsInline>{copy.text("docs-code-s9-intake-step5-body")}</DocsInline>
-            </StepPanel>
-            <StepPanel domain="blue" step="6" title={copy.text("docs-code-s9-intake-step6-title")}>
-              <DocsInline>{copy.text("docs-code-s9-intake-step6-body")}</DocsInline>
-            </StepPanel>
-          </FlowGrid>
+          <p className={`${PROSE_CLASS} mt-4`}>
+            <DocsInline>{copy.text("docs-code-s9-intake")}</DocsInline>
+          </p>
 
           <p className={`${PROSE_CLASS} mt-6`}>
             <DocsInline>{copy.text("docs-code-s9-curation")}</DocsInline>
@@ -1368,33 +1236,9 @@ export default async function DocsCodePage() {
                 semantic
                 termClassName={`${CARD_TITLE_CLASS} mb-0`}
                 bodyClassName={PROSE_CLASS}
-                term={copy.text("docs-code-s11-citable-sections-term")}
-              >
-                <DocsInline>{copy.text("docs-code-s11-citable-sections-body")}</DocsInline>
-              </DefinitionRow>
-              <DefinitionRow
-                semantic
-                termClassName={`${CARD_TITLE_CLASS} mb-0`}
-                bodyClassName={PROSE_CLASS}
-                term={copy.text("docs-code-s11-workbench-term")}
-              >
-                <DocsInline>{copy.text("docs-code-s11-workbench-body")}</DocsInline>
-              </DefinitionRow>
-              <DefinitionRow
-                semantic
-                termClassName={`${CARD_TITLE_CLASS} mb-0`}
-                bodyClassName={PROSE_CLASS}
                 term={copy.text("docs-code-s11-vcode-term")}
               >
                 <DocsInline>{copy.text("docs-code-s11-vcode-body")}</DocsInline>
-              </DefinitionRow>
-              <DefinitionRow
-                semantic
-                termClassName={`${CARD_TITLE_CLASS} mb-0`}
-                bodyClassName={PROSE_CLASS}
-                term={copy.text("docs-code-s11-prepopulate-term")}
-              >
-                <DocsInline>{copy.text("docs-code-s11-prepopulate-body")}</DocsInline>
               </DefinitionRow>
               <DefinitionRow
                 semantic
@@ -1450,12 +1294,6 @@ export default async function DocsCodePage() {
               <DocsInline>{copy.text("docs-code-s12-caveats-body")}</DocsInline>
             </p>
           </DisclosureCard>
-
-          {/* Demoted from a status-less role=alert callout to emphasized prose. */}
-          <div role="presentation" className="theme-horizontal-divider mt-6" />
-          <p className={`${PROSE_CLASS} mt-6`}>
-            <DocsInline>{copy.text("docs-code-s12-content-side")}</DocsInline>
-          </p>
         </section>
       </StickyTocLayout>
     </main>
