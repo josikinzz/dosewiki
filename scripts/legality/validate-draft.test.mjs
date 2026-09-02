@@ -18,7 +18,7 @@ function validDraft() {
         canonicalStatus: "prohibited",
         instrument: "Schedule I, Controlled Substances Act (US)",
         designation: "Schedule I",
-        status: "Schedule I",
+        status: "Illegal",
         notes: "The substance is listed in Schedule I.",
         sources: [{
           url: "https://www.deadiversion.usdoj.gov/schedules/",
@@ -88,7 +88,7 @@ describe("legality draft validation", () => {
         canonicalStatus: "prohibited",
         instrument: "Controlled Drugs and Substances Act",
         designation: "Schedule I",
-        status: "Schedule I",
+        status: "Illegal",
         notes: "The substance is listed in Schedule I.",
         editorialNote: "Replace only after an editor reviews the amendment.",
         sources: [{
@@ -111,28 +111,52 @@ describe("legality draft validation", () => {
     expect(validateLegalityDraft(draft)).toEqual([]);
   });
 
-  it("warns without failing when public notes contain task language", () => {
+  it("rejects process language in reader-facing fields", () => {
     const draft = validDraft();
     draft.entries["United States"].notes = "The previous entry must be sourced before publication.";
+    draft.entries["United States"].designation = "Schedule I as inspected";
+    draft.entries["United States"].instrument = "The original text of the Controlled Substances Act";
+    draft.entries["United States"].status = "restricted_other";
+    draft.entries["United States"].canonicalStatus = "restricted_other";
 
     const result = validateLegalityDraftWithWarnings(draft);
-    expect(result.errors).toEqual([]);
-    expect(result.warnings).toEqual([
-      'warning: entries.United States.notes: task language "The previous" — move to editorialNote or repair the voice.',
+    expect(result.warnings).toEqual([]);
+    expect(result.errors).toEqual([
+      'entries.United States.notes: process language "previous entry" is not allowed in reader-facing text',
+      'entries.United States.status: process language "restricted_other" is not allowed in reader-facing text',
+      'entries.United States.designation: process language "inspected" is not allowed in reader-facing text',
+      'entries.United States.instrument: process language "original text" is not allowed in reader-facing text',
+      'entries.United States.status: must be the canonical label "Restricted" for restricted_other (got "restricted_other")',
     ]);
   });
 
-  it("accepts a compact designation and warns without failing for an overlong or punctuated one", () => {
+  it("requires status to equal the canonical label", () => {
+    const draft = validDraft();
+    draft.entries["United States"].status = "Schedule I";
+
+    expect(validateLegalityDraft(draft)).toEqual([
+      'entries.United States.status: must be the canonical label "Illegal" for prohibited (got "Schedule I")',
+    ]);
+
+    draft.entries["United States"].status = "Illegal";
+    expect(validateLegalityDraft(draft)).toEqual([]);
+  });
+
+  it("rejects an overlong or punctuated designation and accepts a compact one", () => {
     const draft = validDraft();
     draft.entries["United States"].designation = "A very long schedule designation that exceeds forty characters";
     draft.enrichments.Canada.designation = "Schedule I; controlled substances";
 
     const result = validateLegalityDraftWithWarnings(draft);
-    expect(result.errors).toEqual([]);
-    expect(result.warnings).toEqual([
-      "warning: entries.United States.designation: should be a compact tag (40 characters or fewer, without commas or semicolons).",
-      "warning: enrichments.Canada.designation: should be a compact tag (40 characters or fewer, without commas or semicolons).",
+    expect(result.warnings).toEqual([]);
+    expect(result.errors).toEqual([
+      "entries.United States.designation: must be a compact tag (40 characters or fewer, without commas or semicolons)",
+      "enrichments.Canada.designation: must be a compact tag (40 characters or fewer, without commas or semicolons)",
     ]);
+
+    draft.entries["United States"].designation = "Schedule I";
+    draft.enrichments.Canada.designation = "Schedule I";
+    expect(validateLegalityDraft(draft)).toEqual([]);
   });
 
   it("rejects task language in notes repairs", () => {
@@ -162,7 +186,7 @@ describe("legality draft validation", () => {
   it("accepts status, designation, and instrument repairs with reader-facing prose", () => {
     const draft = validDraft();
     draft.statusRepairs = {
-      "United States": { expectedStatus: "Unscheduled", newStatus: "Not scheduled" },
+      "United States": { expectedStatus: "Unscheduled", newStatus: "Restricted" },
     };
     draft.designationRepairs = {
       "United States": { expectedDesignation: "restricted_other", newDesignation: null },
@@ -182,6 +206,7 @@ describe("legality draft validation", () => {
     const draft = validDraft();
     draft.statusRepairs = {
       Atlantis: { expectedStatus: "Illegal", newStatus: "Could not be verified" },
+      Canada: { expectedStatus: "Illegal", newStatus: "Schedule I" },
     };
     draft.designationRepairs = {
       "United States": { expectedDesignation: "x", newDesignation: "before publication tag" },
@@ -192,9 +217,18 @@ describe("legality draft validation", () => {
 
     const errors = validateLegalityDraft(draft).join("\n");
     expect(errors).toContain("statusRepairs.Atlantis: country key does not resolve");
-    expect(errors).toContain("statusRepairs.Atlantis.newStatus: task language");
-    expect(errors).toContain("designationRepairs.United States.newDesignation: task language");
-    expect(errors).toContain("instrumentRepairs.Canada.newInstrument: task language");
+    expect(errors).toContain(
+      'statusRepairs.Atlantis.newStatus: must be one of the canonical labels (Illegal, Illegal (analog/blanket ban), Controlled precursor, Prescription only, Decriminalized, Legal (regulated), Not scheduled, Restricted); got "Could not be verified"',
+    );
+    expect(errors).toContain(
+      'statusRepairs.Canada.newStatus: must be one of the canonical labels (Illegal, Illegal (analog/blanket ban), Controlled precursor, Prescription only, Decriminalized, Legal (regulated), Not scheduled, Restricted); got "Schedule I"',
+    );
+    expect(errors).toContain(
+      'designationRepairs.United States.newDesignation: process language "before publication" is not allowed in reader-facing text',
+    );
+    expect(errors).toContain(
+      'instrumentRepairs.Canada.newInstrument: process language "original text" is not allowed in reader-facing text',
+    );
   });
 
   it("accepts a guarded legacy country removal and rejects overlapping mutations", () => {
@@ -247,7 +281,9 @@ describe("legality draft validation", () => {
     const draft = validDraft();
     draft.corrections.Canada = {
       ...draft.enrichments.Canada,
-      status: "Schedule VI precursor",
+      canonicalStatus: "precursor_controlled",
+      designation: "Schedule VI",
+      status: "Controlled precursor",
       notes: "The substance is controlled as a precursor.",
       oldEntry: { status: "Schedule VI precursor", notes: "" },
       whatWasWrong: "The previous entry omitted the precursor classification.",
@@ -288,7 +324,7 @@ describe("legality draft validation", () => {
             canonicalStatus: "decriminalized",
             instrument: "Denver Municipal Code",
             designation: "Lowest priority",
-            status: "Lowest enforcement priority",
+            status: "Decriminalized",
             notes: "Denver treats enforcement as a low priority.",
             sources: [{
               url: "https://library.municode.com/co/denver/codes/code_of_ordinances",
@@ -327,7 +363,7 @@ describe("legality draft validation", () => {
     expect(errors).toContain("usMirrors[0].state");
   });
 
-  it("voice-lints US state and summary notes and warns about state designations", () => {
+  it("rejects process language in US state and summary notes and non-compact state designations", () => {
     const draft = validDraft();
     draft.usStates = {
       Colorado: {
@@ -337,15 +373,29 @@ describe("legality draft validation", () => {
         status: "Decriminalized",
         notes: "This draft needs verification.",
         sources: [{ url: "https://leg.colorado.gov/", title: "Colorado General Assembly", supportQuote: "Control changed." }],
+        cities: {
+          Denver: {
+            canonicalStatus: "decriminalized",
+            instrument: "Denver Municipal Code",
+            designation: "Lowest priority",
+            status: "legal_regulated",
+            notes: "Denver treats enforcement as a low priority.",
+            sources: [{ url: "https://library.municode.com/co/denver/codes/code_of_ordinances", title: "Denver Municipal Code", supportQuote: "Priority." }],
+          },
+        },
       },
     };
     draft.usStatesNote = "The previous state summary needs verification.";
 
     const { errors, warnings } = validateLegalityDraftWithWarnings(draft);
-    expect(errors).toEqual([]);
-    expect(warnings.join("\n")).toContain("usStates.Colorado.notes");
-    expect(warnings.join("\n")).toContain("usStatesNote");
-    expect(warnings.join("\n")).toContain("usStates.Colorado.designation");
+    expect(warnings).toEqual([]);
+    expect(errors).toEqual([
+      'usStates.Colorado.notes: process language "This draft" is not allowed in reader-facing text',
+      "usStates.Colorado.designation: must be a compact tag (40 characters or fewer, without commas or semicolons)",
+      'usStates.Colorado.cities.Denver.status: process language "legal_regulated" is not allowed in reader-facing text',
+      'usStates.Colorado.cities.Denver.status: must be the canonical label "Decriminalized" for decriminalized (got "legal_regulated")',
+      'usStatesNote: process language "needs verification" is not allowed in reader-facing text',
+    ]);
   });
 
   it("accepts the shipped fixture through the CLI", () => {

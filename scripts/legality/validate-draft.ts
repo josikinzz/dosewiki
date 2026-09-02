@@ -7,11 +7,12 @@ import {
   CANONICAL_LEGAL_STATUSES,
   countryLegalitySchema,
 } from "../../src/schema/substance/shared";
+import { CANONICAL_STATUS_LABELS } from "../../src/schema/substance/legalStatuses";
 import usStateFlagMappings from "../../src/data/mappings/usStateFlagMappings.json";
 import { getCountryCode } from "../../src/utils/data/countryCodes";
+import { voiceMatch } from "./voice.mjs";
 
 const nonEmptyString = z.string().trim().min(1);
-const taskLanguagePattern = /the entry|the previous|must be sourced|could not be verified|verification|this draft|citation needed|before publication|the original text/i;
 const httpUrl = z.string().url().refine(
   (value) => value.startsWith("http://") || value.startsWith("https://"),
   "must use an http(s) URL",
@@ -164,8 +165,23 @@ export type LegalityDraftValidation = {
   warnings: string[];
 };
 
-function taskLanguageMatch(value: string) {
-  return value.match(taskLanguagePattern)?.[0] ?? null;
+type ReaderField = "notes" | "status" | "designation" | "instrument";
+type ReaderFieldValues = Partial<Record<ReaderField, string | null | undefined>>;
+
+/** Every reader field carrying process language: `path: message` error strings. */
+function voiceErrors(path: string, entry: ReaderFieldValues): string[] {
+  const errors: string[] = [];
+  for (const field of ["notes", "status", "designation", "instrument"] as const) {
+    const match = voiceMatch(field, entry[field] ?? undefined);
+    if (match) {
+      errors.push(`${path}.${field}: process language "${match}" is not allowed in reader-facing text`);
+    }
+  }
+  return errors;
+}
+
+function isCompactDesignation(designation: string) {
+  return designation.length <= 40 && !/[,;]/.test(designation);
 }
 
 export function validateLegalityDraftWithWarnings(draft: unknown): LegalityDraftValidation {
@@ -245,95 +261,68 @@ export function validateLegalityDraftWithWarnings(draft: unknown): LegalityDraft
     }
   }
 
+  const canonicalLabels = Object.values(CANONICAL_STATUS_LABELS);
+
   for (const [section, countries] of countrySets) {
     for (const [country, entry] of Object.entries(countries)) {
-      const match = taskLanguageMatch(entry.notes);
-      if (match) {
-        warnings.push(
-          `warning: ${section}.${country}.notes: task language "${match}" — move to editorialNote or repair the voice.`,
-        );
+      const path = `${section}.${country}`;
+      errors.push(...voiceErrors(path, entry));
+      const expectedStatus = CANONICAL_STATUS_LABELS[entry.canonicalStatus];
+      if (entry.status !== expectedStatus) {
+        errors.push(`${path}.status: must be the canonical label "${expectedStatus}" for ${entry.canonicalStatus} (got "${entry.status}")`);
       }
+      if (entry.designation && !isCompactDesignation(entry.designation)) {
+        errors.push(`${path}.designation: must be a compact tag (40 characters or fewer, without commas or semicolons)`);
+      }
+    }
+  }
+
+  for (const [country, enrichment] of Object.entries(parsed.data.enrichments ?? {})) {
+    const path = `enrichments.${country}`;
+    errors.push(...voiceErrors(path, { instrument: enrichment.instrument, designation: enrichment.designation }));
+    if (enrichment.designation && !isCompactDesignation(enrichment.designation)) {
+      errors.push(`${path}.designation: must be a compact tag (40 characters or fewer, without commas or semicolons)`);
     }
   }
 
   for (const [state, entry] of Object.entries(parsed.data.usStates ?? {})) {
-    const match = taskLanguageMatch(entry.notes);
-    if (match) {
-      warnings.push(
-        `warning: usStates.${state}.notes: task language "${match}" — move to editorialNote or repair the voice.`,
-      );
-    }
-    for (const [city, cityEntry] of Object.entries(entry.cities ?? {})) {
-      const cityMatch = taskLanguageMatch(cityEntry.notes);
-      if (cityMatch) {
-        warnings.push(
-          `warning: usStates.${state}.cities.${city}.notes: task language "${cityMatch}" — move to editorialNote or repair the voice.`,
-        );
-      }
-    }
-  }
-
-  const usStatesNoteMatch = taskLanguageMatch(parsed.data.usStatesNote ?? "");
-  if (usStatesNoteMatch) {
-    warnings.push(
-      `warning: usStatesNote: task language "${usStatesNoteMatch}" — repair the voice.`,
-    );
-  }
-
-  const designationSets: Array<[
-    "entries" | "corrections" | "enrichments",
-    Record<string, { designation?: string }>,
-  ]> = [
-    ["entries", parsed.data.entries],
-    ["corrections", parsed.data.corrections],
-    ["enrichments", parsed.data.enrichments ?? {}],
-  ];
-  for (const [section, countries] of designationSets) {
-    for (const [country, entry] of Object.entries(countries)) {
-      const designation = entry.designation;
-      if (designation && (designation.length > 40 || /[,;]/.test(designation))) {
-        warnings.push(
-          `warning: ${section}.${country}.designation: should be a compact tag (40 characters or fewer, without commas or semicolons).`,
-        );
-      }
-    }
-  }
-
-  for (const [state, entry] of Object.entries(parsed.data.usStates ?? {})) {
-    const stateEntries: Array<[string, { designation?: string }]> = [
+    const stateEntries: Array<[string, z.infer<typeof countryEntrySchema>]> = [
       [`usStates.${state}`, entry],
-      ...Object.entries(entry.cities ?? {}).map(([city, cityEntry]): [string, { designation?: string }] => [
+      ...Object.entries(entry.cities ?? {}).map(([city, cityEntry]): [string, z.infer<typeof countryEntrySchema>] => [
         `usStates.${state}.cities.${city}`,
         cityEntry,
       ]),
     ];
     for (const [path, stateEntry] of stateEntries) {
-      const designation = stateEntry.designation;
-      if (designation && (designation.length > 40 || /[,;]/.test(designation))) {
-        warnings.push(
-          `warning: ${path}.designation: should be a compact tag (40 characters or fewer, without commas or semicolons).`,
-        );
+      errors.push(...voiceErrors(path, stateEntry));
+      const expectedStatus = CANONICAL_STATUS_LABELS[stateEntry.canonicalStatus];
+      if (stateEntry.status !== expectedStatus) {
+        errors.push(`${path}.status: must be the canonical label "${expectedStatus}" for ${stateEntry.canonicalStatus} (got "${stateEntry.status}")`);
+      }
+      if (stateEntry.designation && !isCompactDesignation(stateEntry.designation)) {
+        errors.push(`${path}.designation: must be a compact tag (40 characters or fewer, without commas or semicolons)`);
       }
     }
+  }
+
+  const usStatesNoteMatch = voiceMatch("notes", parsed.data.usStatesNote);
+  if (usStatesNoteMatch) {
+    errors.push(`usStatesNote: process language "${usStatesNoteMatch}" is not allowed in reader-facing text`);
   }
 
   for (const [country, repair] of Object.entries(parsed.data.notesRepairs ?? {})) {
     if (!getCountryCode(country)) {
       errors.push(`notesRepairs.${country}: country key does not resolve to a country code`);
     }
-    const match = taskLanguageMatch(repair.newNotes);
-    if (match) {
-      errors.push(`notesRepairs.${country}.newNotes: task language "${match}" is not allowed in repaired notes`);
-    }
+    errors.push(...voiceErrors(`notesRepairs.${country}`, { notes: repair.newNotes }).map((error) => error.replace(".notes:", ".newNotes:")));
   }
 
   for (const [country, repair] of Object.entries(parsed.data.statusRepairs ?? {})) {
     if (!getCountryCode(country)) {
       errors.push(`statusRepairs.${country}: country key does not resolve to a country code`);
     }
-    const match = taskLanguageMatch(repair.newStatus);
-    if (match) {
-      errors.push(`statusRepairs.${country}.newStatus: task language "${match}" is not allowed in repaired status`);
+    if (!canonicalLabels.includes(repair.newStatus)) {
+      errors.push(`statusRepairs.${country}.newStatus: must be one of the canonical labels (${canonicalLabels.join(", ")}); got "${repair.newStatus}"`);
     }
   }
 
@@ -343,14 +332,9 @@ export function validateLegalityDraftWithWarnings(draft: unknown): LegalityDraft
     }
     const newDesignation = repair.newDesignation;
     if (newDesignation === null) continue;
-    const match = taskLanguageMatch(newDesignation);
-    if (match) {
-      errors.push(`designationRepairs.${country}.newDesignation: task language "${match}" is not allowed in repaired designation`);
-    }
-    if (newDesignation.length > 40 || /[,;]/.test(newDesignation)) {
-      warnings.push(
-        `warning: designationRepairs.${country}.newDesignation: should be a compact tag (40 characters or fewer, without commas or semicolons).`,
-      );
+    errors.push(...voiceErrors(`designationRepairs.${country}`, { designation: newDesignation }).map((error) => error.replace(".designation:", ".newDesignation:")));
+    if (!isCompactDesignation(newDesignation)) {
+      errors.push(`designationRepairs.${country}.newDesignation: must be a compact tag (40 characters or fewer, without commas or semicolons)`);
     }
   }
 
@@ -358,10 +342,7 @@ export function validateLegalityDraftWithWarnings(draft: unknown): LegalityDraft
     if (!getCountryCode(country)) {
       errors.push(`instrumentRepairs.${country}: country key does not resolve to a country code`);
     }
-    const match = taskLanguageMatch(repair.newInstrument);
-    if (match) {
-      errors.push(`instrumentRepairs.${country}.newInstrument: task language "${match}" is not allowed in repaired instrument`);
-    }
+    errors.push(...voiceErrors(`instrumentRepairs.${country}`, { instrument: repair.newInstrument }).map((error) => error.replace(".instrument:", ".newInstrument:")));
   }
 
   return { errors, warnings };

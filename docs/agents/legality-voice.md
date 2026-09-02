@@ -1,0 +1,48 @@
+# Legality voice: keeping process language out of published subsections
+
+Reader-facing fields of a `legality.countries` entry (`notes`, `designation`, `instrument`, `status`) are **encyclopedic register**: the law stated to a reader who never saw the previous entry or the research. This document records why that rule now has teeth, where the enforcement lives, and how to sweep live rows when something slips through.
+
+## What happened (2026-08 campaign)
+
+The first `/legality-pi` campaign cited or corrected about 3,900 public country rows. Its research children adjudicated the existing row ("support the existing claim", `supportsExisting`, `whatWasWrong`) and then wrote `notes` in the same breath, so the verdict leaked into the prose. A cleanup on 2026-08-31 repaired 637 rows. On 2026-09-02 a regex-driven audit across public, direct-URL-only, and hidden articles found 227 more and repaired 208; a full-corpus yes/no pass by `legality-voice-flagger` children over all 4,698 rows then found 400 the regex had no pattern for (369 never matched) and repaired 396. Phrases that reached production, grouped:
+
+| Shape | Verbatim examples |
+| --- | --- |
+| Verdict on the entry | "Supported and corrected in precision.", "The legacy Illegal status is corrected to canonical prohibited.", "Status normalized to prohibited" |
+| Source narration | "The fetched MHLW notice expressly names", "The current Swiss schedule supports the controlled Verzeichnis-e listing", "The primary sources were checked" |
+| Prior entry, packet, tracker | "The live production row was reopened from https://glad-minnow-656.convex.cloud for slug ...", "The packet's 'Not controlled' label is superseded", "the existing New Zealand entry said" |
+| Research scope disclaimers | "No claim is made about penalties", "the claim is limited to the express listing", "this dossier does not assert medical availability" |
+| Editorial to-dos | "should be checked for a broader present-day conclusion", "this entry should be independently refuted before use" |
+| Machine tokens | `restricted_other` as a `status`, "Canonical status: analog_covered." in notes |
+
+Four structural causes, none of them a missing rule (every worker prompt already carried a "Voice" clause):
+
+1. The output contract gave the verdict no home except `notes`.
+2. The orchestrator pasted tracker vocabulary (reopened, packet, contentHash, legacy value) into worker prompts, and the worker echoed it.
+3. `validate-draft.ts` warned instead of failing, scanned only `notes`, and matched two of the 615 leaked phrases.
+4. `status` had no vocabulary, so canonical tokens were written into the display field.
+
+## Where enforcement lives now
+
+- **Context boundary.** `/legality-pi` splits research from writing: the researcher (`shared/prompts/subsection-research.md`) returns a `facts` block and an `editor` block; a separate writer child (`shared/prompts/subsection-writer.md`) receives only `facts` and returns reader fields. Text about the previous entry cannot appear because the writer never saw it. The refuter's check 5 tests register.
+- **Single pattern.** `scripts/legality/voice.mjs` exports `VOICE_PATTERN` (blocking) and `VOICE_AUDIT_PATTERN` (blocking plus advisory phrases such as `supports` and `this entry` that also occur in legal prose). Citation markers are stripped before matching; `status` only matches underscore tokens.
+- **Validator gate.** `npm run legality:validate` fails a draft on any blocking match in a reader field, on a `status` that differs from `CANONICAL_STATUS_LABELS[canonicalStatus]` (`src/schema/substance/legalStatuses.ts`), and on a `designation` longer than 40 characters or containing a comma or semicolon. `legality:apply` refuses a draft that fails validation.
+- **Live audit.** `npm run legality:audit-voice -- --audit=<subsection audit>` scans an audit produced by `legality:audit-subsections --scope=all` and reports `blocking` and `advisoryOnly` counts per row and field. The campaign is not complete while `blocking` is non-zero. The regex has no pattern for many real leaks ("this finding relies on", "The cited text says", "The conclusion is limited to"); a full-corpus read by `legality-voice-flagger` children (`.omp/agents/legality-voice-flagger.md`, gpt-5.6-sol low, 50 rows per shard, one verdict file per shard whose ids must equal its input's) is the check that catches them, and it is worth running once at the end of every campaign.
+
+## Sweeping live rows
+
+```bash
+export TARGET_CONVEX_URL=https://glad-minnow-656.convex.cloud SOURCE_CONVEX_URL=https://glad-minnow-656.convex.cloud
+npm run convex:doctor -- --url=https://glad-minnow-656.convex.cloud
+npm run legality:audit-subsections -- --scope=all --out=tmp/legality-subsection-audit-<date>.json
+npm run legality:audit-voice -- --audit=tmp/legality-subsection-audit-<date>.json --out=tmp/legality-voice-audit-<date>.json
+```
+
+1. Batch the voice-audit rows eight per file into `tmp/legality-voice-fix-<date>/inputs/batch-NN.json` (`{ batch, rows: [...] }`, rows copied from the voice audit).
+2. Launch one `legality-voice-fixer` child (`.omp/agents/legality-voice-fixer.md`, gpt-5.6-sol low) per batch with the input and `proposals/batch-NN.json` output paths. The fixer re-judges every regex hit; a `noChange` verdict with a legal-usage reason is a valid outcome.
+3. `npm run legality:build-repair-drafts -- --voice-audit=... --proposals=... --campaign=voice-scrub-<date>` folds proposals into `runs/legality/<slug>/voice-scrub-<date>/legality-draft.json` using `notesRepairs` / `statusRepairs` / `designationRepairs` / `instrumentRepairs`. It rejects a proposal whose `expected` differs from the audited value, that drops or reorders a `[cite:...]` marker, or whose new text still trips the blocking pattern, and writes `runs/legality/_manifests/voice-scrub-<date>.json`. Send each rejection back to its fixer with the reason.
+4. Validate, dry-run, and apply each draft with `legality:validate` and `legality:apply` (guards as in `docs/agents/convex-credentials.md`). Re-run both audits; confirm the set of changed content hashes equals the set of accepted proposals and the total citation-marker count is unchanged.
+
+## Accepted advisory hits
+
+The regex is a lead list, not a ruling. Phrases the fixers have judged as legitimate legal prose and that stay in production: "canonical SMILES" (chemical identifier; excluded from the pattern), "the law was corrected in March 2023" (legislative history), "the pre-existing butylone entry" (a schedule entry), "25 mg ephedrine packets" (goods), "an unqualified 'Unscheduled' classification is incorrect" (a statement about the law's scope), "the Government Gazette as the official source of the schedules". When a legitimate phrase recurs, move it from the blocking to the advisory list in `voice.mjs` rather than teaching fixers to ignore it.

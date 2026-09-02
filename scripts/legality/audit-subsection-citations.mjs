@@ -6,6 +6,7 @@ import { dirname, resolve } from "node:path";
 import { ConvexHttpClient } from "convex/browser";
 import { api } from "../../convex/_generated/api.js";
 import { getAllSubstanceDocuments } from "../lib/convex-pagination.mjs";
+import { substanceVisibility } from "../../src/schema/substance/substanceVisibilityPolicy.ts";
 import {
   createDataOpsRunContext,
   getFlagValue,
@@ -13,8 +14,16 @@ import {
   requireSourceUrl,
 } from "../lib/data-ops-run-context.mjs";
 
+const SCOPES = ["all", "layout"];
 const argv = process.argv.slice(2);
 const output = getFlagValue(argv, "--out") ?? "tmp/legality-subsection-citation-audit.json";
+const scope = getFlagValue(argv, "--scope") ?? "all";
+if (!SCOPES.includes(scope)) {
+  throw new Error(`--scope must be one of ${SCOPES.join(", ")} (got ${scope}).`);
+}
+// Keys under legality.countries shaped like "United States - Oregon" are US-state
+// rows misfiled as countries; `migrate-usstate-country-rows.mjs` owns them.
+const MISFILED_STATE_KEY = /^United States - /;
 const runContext = createDataOpsRunContext({
   operation: "audit legality subsection citation coverage",
   intent: "legality-subsection-audit",
@@ -70,19 +79,22 @@ function publicSlugs(layout) {
   return result;
 }
 
-function subsection({ slug, title, kind, jurisdiction, value }) {
+function subsection({ slug, title, visibility, kind, jurisdiction, value }) {
   const chars = textLength(value);
   const markers = markerCount(value);
+  const misfiledStateRow = MISFILED_STATE_KEY.test(jurisdiction);
   return {
     slug,
     title,
+    visibility,
     kind,
     jurisdiction,
     path: kind === "country" ? `legality.countries.${jurisdiction}` : `legality.${kind}`,
     chars,
     markerCount: markers,
     contentHash: hash(value),
-    actionable: chars >= 40 && markers === 0,
+    actionable: !misfiledStateRow && chars >= 40 && markers === 0,
+    ...(misfiledStateRow ? { excludedReason: "misfiled_state_row" } : {}),
     value,
   };
 }
@@ -95,28 +107,45 @@ async function main() {
     getAllSubstanceDocuments(client, api.substanceIndex.getFullDocumentPage),
     client.query(api.categoryLayout.get, {}),
   ]);
-  const articleBySlug = new Map(articles.map((article) => [article.slug, article]));
+  const layoutSlugs = new Set(publicSlugs(layout));
+  const inScope = scope === "layout"
+    ? articles.filter((article) => layoutSlugs.has(article.slug))
+    : articles;
   const rows = [];
-  for (const slug of publicSlugs(layout)) {
-    const article = articleBySlug.get(slug);
-    if (!article) continue;
+  for (const article of inScope) {
+    const { slug } = article;
+    const visibility = substanceVisibility({
+      indexCategories: article.index_categories,
+      priority: article.priority,
+    });
     for (const [jurisdiction, value] of Object.entries(article.legality?.countries ?? {})) {
-      rows.push(subsection({ slug, title: article.title ?? slug, kind: "country", jurisdiction, value }));
+      rows.push(subsection({
+        slug,
+        title: article.title ?? slug,
+        visibility,
+        kind: "country",
+        jurisdiction,
+        value,
+      }));
     }
     // International, U.S. state, territory, and city entries are intentionally out of scope.
   }
+  const byVisibility = {};
+  for (const row of rows) byVisibility[row.visibility] = (byVisibility[row.visibility] ?? 0) + 1;
   const audit = {
-    schemaVersion: "dosewiki_legality_country_subsection_citation_audit_v1",
+    schemaVersion: "dosewiki_legality_country_subsection_citation_audit_v2",
     generatedAt: new Date().toISOString(),
-    source: { convexUrl: sourceUrl, publicScope: "categoryLayout", subsectionKind: "country" },
+    source: { convexUrl: sourceUrl, scope, subsectionKind: "country" },
     viabilityFloorChars: 40,
     rows,
     totals: {
-      publicArticles: new Set(rows.map((row) => row.slug)).size,
+      articles: new Set(rows.map((row) => row.slug)).size,
       totalSubsections: rows.length,
       actionable: rows.filter((row) => row.actionable).length,
       cited: rows.filter((row) => !row.actionable && row.markerCount > 0).length,
-      emptyOrShort: rows.filter((row) => !row.actionable && row.markerCount === 0).length,
+      emptyOrShort: rows.filter((row) => !row.actionable && row.markerCount === 0 && !row.excludedReason).length,
+      misfiledStateRows: rows.filter((row) => row.excludedReason === "misfiled_state_row").length,
+      subsectionsByVisibility: byVisibility,
     },
   };
   const path = resolve(runContext.repoRoot, output);

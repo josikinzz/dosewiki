@@ -109,6 +109,8 @@
     "citations:verdict-validate": "node scripts/citations/verdict-validate.mjs",
     "citations:verdict-apply": "node scripts/citations/verdict-apply.mjs",
     "legality:audit-subsections": "node scripts/legality/audit-subsection-citations.mjs",
+    "legality:audit-voice": "node scripts/legality/audit-voice.mjs",
+    "legality:build-repair-drafts": "node scripts/legality/build-repair-drafts.mjs",
     "legality:export": "node scripts/legality/export-run-packet.mjs",
     "legality:validate": "bun scripts/legality/validate-draft.ts",
     "legality:apply": "node scripts/legality/apply-draft.mjs",

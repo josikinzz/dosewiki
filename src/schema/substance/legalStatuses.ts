@@ -16,3 +16,19 @@ export const CANONICAL_LEGAL_STATUSES = [
 ] as const;
 
 export type CanonicalLegalStatus = (typeof CANONICAL_LEGAL_STATUSES)[number];
+
+/**
+ * Reader-facing label for each canonical status. The Legality section renders
+ * this label whenever `canonicalStatus` is set, and legality drafts derive the
+ * stored `status` display string from it so no other wording reaches production.
+ */
+export const CANONICAL_STATUS_LABELS: Record<CanonicalLegalStatus, string> = {
+  prohibited: "Illegal",
+  analog_covered: "Illegal (analog/blanket ban)",
+  precursor_controlled: "Controlled precursor",
+  prescription_only: "Prescription only",
+  decriminalized: "Decriminalized",
+  legal_regulated: "Legal (regulated)",
+  unscheduled: "Not scheduled",
+  restricted_other: "Restricted",
+};

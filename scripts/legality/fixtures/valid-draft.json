@@ -15,7 +15,7 @@
       "canonicalStatus": "prohibited",
       "instrument": "Schedule I, Controlled Substances Act (US)",
       "designation": "Schedule I",
-      "status": "Schedule I",
+      "status": "Illegal",
       "notes": "The substance is listed in Schedule I.",
       "sources": [
         {
@@ -59,7 +59,7 @@
           "canonicalStatus": "decriminalized",
           "instrument": "Denver Municipal Code",
           "designation": "Lowest priority",
-          "status": "Lowest enforcement priority",
+          "status": "Decriminalized",
           "notes": "Denver treats enforcement as a low priority.",
           "sources": [
             {

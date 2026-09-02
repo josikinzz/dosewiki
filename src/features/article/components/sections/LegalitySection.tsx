@@ -9,7 +9,7 @@ import { stripCitationTokens } from "@/lib/citations/citationTokens";
 import usStateFlagMappings from "@/data/mappings/usStateFlagMappings.json";
 // Deep-import the Zod-free status type instead of `@/schema/substance/shared`,
 // which would drag the Zod graph into this client component's bundle.
-import type { CanonicalLegalStatus } from "@/schema/substance/legalStatuses";
+import { CANONICAL_STATUS_LABELS, type CanonicalLegalStatus } from "@/schema/substance/legalStatuses";
 import { SUBSTANCE_SECTION_ICONS } from "@/schema/substance/sectionManifest";
 import { getCountryCode } from "@/utils/data/countryCodes";
 import type { CountryLegality, SubstanceArticle, USStateLegality } from "@/schema";
@@ -34,19 +34,23 @@ const COLOR_CLASSES: Record<
   gray: { className: "theme-article-subsection-card-nested theme-text-muted", tone: "gray" },
 };
 
-const CANONICAL_STATUS_DISPLAY: Record<
-  CanonicalLegalStatus,
-  { label: string; color: StatusColor }
-> = {
-  prohibited: { label: "Illegal", color: "red" },
-  analog_covered: { label: "Illegal (analog/blanket ban)", color: "red" },
-  precursor_controlled: { label: "Controlled precursor", color: "yellow" },
-  prescription_only: { label: "Prescription only", color: "blue" },
-  decriminalized: { label: "Decriminalized", color: "green" },
-  legal_regulated: { label: "Legal (regulated)", color: "green" },
-  unscheduled: { label: "Not scheduled", color: "gray" },
-  restricted_other: { label: "Restricted", color: "yellow" },
+const CANONICAL_STATUS_COLORS: Record<CanonicalLegalStatus, StatusColor> = {
+  prohibited: "red",
+  analog_covered: "red",
+  precursor_controlled: "yellow",
+  prescription_only: "blue",
+  decriminalized: "green",
+  legal_regulated: "green",
+  unscheduled: "gray",
+  restricted_other: "yellow",
 };
+
+const CANONICAL_STATUS_DISPLAY = Object.fromEntries(
+  Object.entries(CANONICAL_STATUS_LABELS).map(([status, label]) => [
+    status,
+    { label, color: CANONICAL_STATUS_COLORS[status as CanonicalLegalStatus] },
+  ]),
+) as Record<CanonicalLegalStatus, { label: string; color: StatusColor }>;
 
 // Exact matches for common statuses (case-sensitive)
 const STATUS_COLOR_MAP: Record<string, StatusColor> = {
