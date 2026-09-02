@@ -478,30 +478,33 @@ export default async function DocsHowPage() {
           <p className="theme-text-secondary text-[1.0625rem] leading-7">
             dose.wiki exists to compile the published knowledge about psychoactive drugs
             into one open dataset that anyone can download. Ten reference sites hold most
-            of this knowledge today, in ten different formats. Compiling one substance by
-            hand takes days. Doing it for hundreds, and again for each new substance, was
-            not practical. So dose.wiki built an automated pipeline to do the first pass.
-            It applies the same steps, prompts, and rules to every substance, at any
-            scale, no matter who runs it.
+            of this knowledge today, in ten different formats.{" "}
+            <a href="/contributors/josie" className={proseLinkClassName}>Josie Kins</a>, who
+            co-founded dose.wiki, compiled hundreds of substances by hand for earlier
+            reference sites. That work showed the cost of a hand-built reference: one substance
+            takes days, and the standard changes with each writer. When a writer leaves,
+            the way they worked leaves with them.
           </p>
           <p className="theme-text-secondary mt-4 text-[1.0625rem] leading-7">
-            Software reads the dose tables, duration tables, and interaction ratings
-            directly from the sources. An AI model writes the first draft of the prose
-            from word-for-word source excerpts. How much its sources say decides where
-            each article starts. From there, people correct the draft and add what the
-            pipeline cannot supply. Each article&apos;s status shows how much human work
-            it has received.
+            So dose.wiki starts each article with a pipeline. Code transcribes the
+            numbers. An LLM reads the sources and drafts each section. The same steps and
+            prompts run for each substance, whoever runs them and whenever. Compiling is
+            the same job for any substance, and it is the job these tools are good at, so
+            the pipeline does it. People take over from there. They decide whether a draft
+            is accurate and safe, and they add what the sources left out. Each
+            article&apos;s status subsection shows how much of that work it has received.
           </p>
           <p className="theme-text-secondary mt-4 text-[1.0625rem] leading-7">
-            This page shows every step of the pipeline and every prompt it runs. It
+            The pipeline builds the baseline once, with the models available today.
+            Human editors work on top of that baseline. Newer models will be able to do research
+            and add to it as well. Articles change after publication, and{" "}
+            <SectionRef s="status" cap /> records what is done and what is planned.
+          </p>
+          <p className="theme-text-secondary mt-4 text-[1.0625rem] leading-7">
+            This page shows each step of the pipeline and each prompt it runs. It
             follows the order of the work: the source sites, the parsers, the excerpts,
             the AI writing, the citations, and the human review. After that, it lists
             what can still go wrong, the roadmap, and the open dataset.
-          </p>
-          <p className="theme-text-secondary mt-4 text-[1.0625rem] leading-7">
-            dose.wiki is in beta, and every article is a living document.{" "}
-            <SectionRef s="status" cap /> records what is finished, what is running, and
-            what is planned.
           </p>
         </header>
 
