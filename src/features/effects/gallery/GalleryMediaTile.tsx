@@ -81,6 +81,17 @@ export function GalleryMediaTile({
   const [hovered, setHovered] = useState(false);
   const [playing, setPlaying] = useState(false);
   const videoRef = useRef<HTMLVideoElement | null>(null);
+  const frameRef = useRef<HTMLAnchorElement | null>(null);
+  // While bytes are in flight a visible <img> paints its alt text (the title)
+  // inside a broken-image outline, which reads as a grid of errors. The alt
+  // text is always kept transparent so server markup and no-JS readers see a
+  // plain surface; after hydration an in-flight poster additionally hides
+  // behind a shimmer and fades in on load. "ready" is the server default so
+  // hydration never blanks art the browser has already painted. A poster that
+  // fails to fetch falls back to the same placeholder as a missing one.
+  const [poster, setPoster] = useState<"ready" | "pending" | "failed">(
+    "ready",
+  );
   // Identity-stable on purpose: hover previews unmount on every mouse-out,
   // and a released-then-leaked element would count against the browser's
   // media-player budget until GC. An inline callback would re-run per
@@ -135,6 +146,27 @@ export function GalleryMediaTile({
     if (!showPreview) setPlaying(false);
   }, [showPreview]);
 
+  // Reads the element's own state instead of React's onLoad: cached posters
+  // finish before hydration attaches synthetic listeners and would never fire.
+  useEffect(() => {
+    if (!thumbnailUrl) return;
+    const image = frameRef.current?.querySelector("img");
+    if (!image) return;
+    if (image.complete) {
+      setPoster(image.naturalWidth > 0 ? "ready" : "failed");
+      return;
+    }
+    setPoster("pending");
+    const onLoad = () => setPoster("ready");
+    const onError = () => setPoster("failed");
+    image.addEventListener("load", onLoad);
+    image.addEventListener("error", onError);
+    return () => {
+      image.removeEventListener("load", onLoad);
+      image.removeEventListener("error", onError);
+    };
+  }, [thumbnailUrl]);
+
   const durationLabel = isVideo
     ? formatVideoDuration(replication.duration)
     : null;
@@ -142,6 +174,7 @@ export function GalleryMediaTile({
   return (
     <figure className={cn("min-w-0", className)}>
       <SmartLink
+        ref={frameRef}
         href={viewerHref}
         onClick={onOpen ? (event) => onOpen(event, replication) : undefined}
         onMouseEnter={() => setHovered(true)}
@@ -161,19 +194,27 @@ export function GalleryMediaTile({
           frameClassName,
         )}
       >
-        {thumbnailUrl ? (
-          <AppImage
-            src={thumbnailUrl}
-            alt={replication.title}
-            width={replication.width ?? 800}
-            height={replication.height ?? 800}
-            sizes={sizes}
-            className={cn(
-              "absolute inset-0 h-full w-full object-cover transition duration-500",
-              "group-hover/frame:scale-[1.03] motion-reduce:transition-none motion-reduce:group-hover/frame:scale-100",
-              showPreview ? "opacity-0" : "opacity-100",
-            )}
-          />
+        {thumbnailUrl && poster !== "failed" ? (
+          <>
+            {poster === "pending" ? (
+              <span
+                aria-hidden
+                className="theme-skeleton-pulse theme-skeleton-pulse-soft absolute inset-0 animate-pulse motion-reduce:animate-none"
+              />
+            ) : null}
+            <AppImage
+              src={thumbnailUrl}
+              alt={replication.title}
+              width={replication.width ?? 800}
+              height={replication.height ?? 800}
+              sizes={sizes}
+              className={cn(
+                "absolute inset-0 h-full w-full object-cover text-transparent transition duration-500",
+                "group-hover/frame:scale-[1.03] motion-reduce:transition-none motion-reduce:group-hover/frame:scale-100",
+                poster === "ready" && !showPreview ? "opacity-100" : "opacity-0",
+              )}
+            />
+          </>
         ) : (
           <MediaPlaceholder
             icon={isVideo ? "lucide:play" : "lucide:image"}

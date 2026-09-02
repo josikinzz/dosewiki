@@ -112,12 +112,40 @@ describe('groupByArtist', () => {
     expect(group.externalUrl).toBe('https://sv.test');
   });
 
-  it('keys the heading by the credit line itself, not the claiming profile', () => {
-    // "Kaylee" resolves to the Kaytwo profile for curation, but the page is
-    // generated from the credit: /contributors/kaytwo forwards to whichever
-    // artist key holds the larger body of work (see mapArtistPageKeysByProfile).
+  it('heads a claimed credit line by the claiming profile, keeping the credit key for forwarding', () => {
+    // "Kaylee" resolves to the Kaytwo profile, so the rail wears the profile's
+    // display name and address; /replications/artist/kaylee still forwards
+    // here through `creditKeys` (see resolveGalleryFocus).
     const [group] = groupByArtist([rep({ artist: 'Kaylee' })], 'count', directory);
-    expect(group.href).toBe('/replications/artist/kaylee');
+    expect(group.label).toBe('Kaytwo');
+    expect(group.href).toBe('/replications/artist/kaytwo');
+    expect(group.creditKeys).toEqual(['kaylee']);
+  });
+
+  it('folds every credit line a profile claims into one group', () => {
+    const groups = groupByArtist(
+      [
+        rep({ artist: 'josikins', slug: 'a', artist_url: 'https://www.reddit.com/user/josikins/' }),
+        rep({ artist: 'Josikins', slug: 'b' }),
+        rep({ artist: 'Josie', slug: 'c' }),
+        rep({ artist: 'Josie Kins', slug: 'd', artist_url: 'https://www.josiekins.xyz/' }),
+        rep({ artist: 'Unity', slug: 'e' }),
+      ],
+      'count',
+      [{ key: 'JOSIE', displayName: 'Josie Kins', aliases: ['josie', 'josikinz', 'josikins'] }],
+    );
+    expect(groups.map((g) => [g.label, g.count])).toEqual([['Josie Kins', 4], ['Unity', 1]]);
+    const [josie] = groups;
+    expect(josie.href).toBe('/replications/artist/josie-kins');
+    expect(josie.creditKeys).toEqual(['josikins', 'josie', 'josie-kins']);
+    // The display-name credit's own portfolio link wins over a retired handle's.
+    expect(josie.externalUrl).toBe('https://www.josiekins.xyz/');
+    expect(josie.items.map((item) => item.slug).sort()).toEqual(['a', 'b', 'c', 'd']);
+  });
+
+  it('leaves an unclaimed credit line keyed by itself', () => {
+    const [group] = groupByArtist([rep({ artist: 'Nobody At All' })], 'count', directory);
+    expect(group.creditKeys).toEqual(['nobody-at-all']);
   });
 
   it('gives an artist with no profile the same generated Artist Page link', () => {
@@ -305,7 +333,7 @@ describe('groupByArtist', () => {
         'video-first',
         [{ key: 'LOKA', displayName: 'Loka', aliases: ['wheressuede'], approvedReplicator: true }],
       );
-      expect(groups.map((g) => g.label)).toEqual(['wheressuede', 'Zed']);
+      expect(groups.map((g) => g.label)).toEqual(['Loka', 'Zed']);
       expect(groups[0].approvedReplicator).toBe(true);
       expect(groups[1]).not.toHaveProperty('approvedReplicator');
     });

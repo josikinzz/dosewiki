@@ -94,6 +94,13 @@ export interface GalleryGroup {
    * or the unattributed bucket.
    */
   approvedReplicator?: boolean;
+  /**
+   * Artist groups only: the Artist Page URL keys of every source-era credit
+   * line folded into this group. A claimed profile's group lists each distinct
+   * credit it absorbed so a retired handle's address still resolves to it; an
+   * unclaimed credit lists only itself.
+   */
+  creditKeys?: string[];
   items: PublicGalleryReplicationPreview[];
 }
 
@@ -416,16 +423,20 @@ function toExternalArtistUrl(value: string | undefined): string | undefined {
 /**
  * Every attributed artist heading links to their Artist Page — the one public
  * surface per credited artist (/replications/artist/<key>, see the decision
- * record in src/features/replications/galleryFocus.ts). The key derives from
- * the credit line itself, so no directory lookup decides where a name goes.
+ * record in src/features/replications/galleryFocus.ts).
  *
- * `contributorDirectory` still travels here for what the claiming profile
- * says about the credit — its curated `replicationOrder` and whether the
- * artist is an approved replicator: it is passed in rather than looked up
- * because this model is pure and runs inside a client component; the
- * directory is read on the server and threaded down. Resolution goes through
- * the shared alias-aware matcher — the gallery adds no name matching of its
- * own.
+ * A Contributor Profile is the canonical identity. Every credit line it
+ * claims — through the shared alias-aware matcher, the gallery adds no name
+ * matching of its own — folds into one group headed by the profile's display
+ * name, whose slug is the group's address. Individual work `artist` strings
+ * are never rewritten: search and provenance still expose the historical
+ * handle, and its old Artist Page URL forwards via `creditKeys`. An unclaimed
+ * credit line keys and labels itself.
+ *
+ * `contributorDirectory` is passed in rather than looked up because this
+ * model is pure and runs inside a client component; the directory is read on
+ * the server and threaded down. Beyond identity it supplies the claiming
+ * profile's curated `replicationOrder` and its approved-replicator flag.
  *
  * The unattributed bucket is the one heading with no `href`: its page exists
  * (the `unknown` key), but the rows in it are credited "Unknown", "Anonymous"
@@ -447,12 +458,32 @@ export function groupByArtist(
   contributorDirectory: ContributorDirectory = [],
 ): GalleryGroup[] {
   const buckets = new Map<string, GalleryGroup>();
+  // The claiming profile per bucket key, resolved once per distinct credit
+  // line: the matcher is a linear scan of the directory, and a few thousand
+  // rows share a few hundred credits.
+  const profileByCredit = new Map<string, ContributorDirectory[number] | null>();
+  const profileByBucket = new Map<string, ContributorDirectory[number]>();
+  // Buckets whose portfolio link came from a credit line spelled as the
+  // profile's display name; a retired handle's link never overrides it.
+  const canonicalExternalUrl = new Set<string>();
 
   for (const replication of replications) {
     if (isWithheldFromArtistViews(replication)) {
       continue;
     }
-    const { key, label } = artistIdentity(replication.artist);
+    const credit = artistIdentity(replication.artist);
+    let profile = profileByCredit.get(credit.key);
+    if (profile === undefined) {
+      profile =
+        credit.key === UNATTRIBUTED_KEY
+          ? null
+          : (findContributorProfileByAuthorName(contributorDirectory, credit.label) ?? null);
+      profileByCredit.set(credit.key, profile);
+    }
+    const { key, label } = profile
+      ? artistIdentity(profile.displayName)
+      : credit;
+    const creditKey = artistUrlKeyFromIdentity(credit.key, credit.label);
     let group = buckets.get(key);
     if (!group) {
       group = {
@@ -465,29 +496,37 @@ export function groupByArtist(
                 family: "replicationArtist",
                 params: { key: artistUrlKeyFromIdentity(key, label) },
               }),
-        externalUrl: toExternalArtistUrl(replication.artist_url),
+        externalUrl: undefined,
         count: 0,
         imageCount: 0,
         videoCount: 0,
+        creditKeys: [creditKey],
         items: [],
       };
       buckets.set(key, group);
+      if (profile) {
+        profileByBucket.set(key, profile);
+      }
+    } else if (!group.creditKeys!.includes(creditKey)) {
+      group.creditKeys!.push(creditKey);
     }
-    if (!group.externalUrl) {
-      group.externalUrl = toExternalArtistUrl(replication.artist_url);
+    const externalUrl = toExternalArtistUrl(replication.artist_url);
+    if (externalUrl) {
+      const canonical = credit.key === key;
+      if (!group.externalUrl || (canonical && !canonicalExternalUrl.has(key))) {
+        group.externalUrl = externalUrl;
+      }
+      if (canonical) {
+        canonicalExternalUrl.add(key);
+      }
     }
     group.items.push(replication);
   }
 
   const groups = Array.from(buckets.values()).map((group) => {
     // The unattributed bucket has no contributor owner, so it carries neither
-    // a stored order nor an endorsement. One lookup serves both fields: the
-    // matcher is a linear scan of the directory, and this resolves a few
-    // thousand credit lines against a few thousand profiles.
-    const profile =
-      group.key === UNATTRIBUTED_KEY
-        ? null
-        : findContributorProfileByAuthorName(contributorDirectory, group.label);
+    // a stored order nor an endorsement.
+    const profile = profileByBucket.get(group.key);
     // A claimed contributor's explicit order is authoritative across media
     // ranks. Everything unlisted keeps the automatic audio/newest/title order.
     const items = applyCuratedOrder(

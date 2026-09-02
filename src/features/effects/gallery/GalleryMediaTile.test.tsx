@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { act, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { GalleryMediaTile } from "./GalleryMediaTile";
@@ -228,6 +228,40 @@ describe("GalleryMediaTile", () => {
     ).not.toBeInTheDocument();
     expect(container.querySelector("video")).not.toBeInTheDocument();
     expect(screen.queryByText("Animation")).not.toBeInTheDocument();
+  });
+
+  // jsdom never fetches images, so a fresh poster is "in flight" until the
+  // test fires the element's own load or error event.
+  it("shimmers over an in-flight poster and reveals it on load", async () => {
+    const { container } = render(
+      <GalleryMediaTile replication={VIDEO} viewerHref={VIEWER_HREF} />,
+    );
+    const poster = container.querySelector("img")!;
+
+    expect(container.querySelector(".theme-skeleton-pulse")).toBeInTheDocument();
+    expect(poster).toHaveClass("opacity-0");
+    expect(poster).toHaveClass("text-transparent");
+
+    await act(async () => {
+      poster.dispatchEvent(new Event("load"));
+    });
+
+    expect(container.querySelector(".theme-skeleton-pulse")).toBeNull();
+    expect(poster).toHaveClass("opacity-100");
+  });
+
+  it("falls back to the placeholder when the poster fails to fetch", async () => {
+    const { container } = render(
+      <GalleryMediaTile replication={VIDEO} viewerHref={VIEWER_HREF} />,
+    );
+
+    await act(async () => {
+      container.querySelector("img")!.dispatchEvent(new Event("error"));
+    });
+
+    expect(container.querySelector("img")).toBeNull();
+    expect(container.querySelector(".theme-skeleton-pulse")).toBeNull();
+    expect(screen.getAllByText("Geometry Frog").length).toBeGreaterThan(0);
   });
 });
 

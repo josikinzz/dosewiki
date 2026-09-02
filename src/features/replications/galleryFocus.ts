@@ -1,8 +1,5 @@
 import type { ContributorDirectory } from "@server/contributorDirectory";
-import {
-  findContributorProfileByAuthorName,
-  normalizeProfileKey,
-} from "@server/contributorProfileIdentity";
+import { findContributorProfileByAuthorName } from "@server/contributorProfileIdentity";
 import type { PublicGalleryReplicationPreview } from "@/types/replications";
 import { hasKnownCreator } from "@/features/effects/components/replicationCredit";
 import {
@@ -95,98 +92,20 @@ export function resolveGalleryFocus(
     };
   }
 
-  const directory = context.contributorDirectory ?? [];
-  const directProfile = directGroup
-    ? findContributorProfileByAuthorName(directory, directGroup.label)
-    : null;
-
   // A merged/renamed contributor can own several immutable source-era credit
-  // lines. The Contributor Profile is the canonical identity, so its display
-  // name owns the Artist Page address and heading while the page presents the
-  // union of every exact credit line that profile claims. Individual work
-  // `artist` strings are never rewritten: browse/search/provenance can still
-  // expose the historical handle, and its old Artist Page URL forwards here.
-  //
-  // When there is no direct credit bucket at the canonical display-name key,
-  // locate it through the directory. Ambiguous display-name slugs intentionally
-  // resolve to no synthetic page rather than picking a profile arbitrarily.
-  let profile = directProfile;
-  if (!profile && !directGroup) {
-    const candidates = directory.filter(
-      (entry) => artistUrlKey(entry.displayName) === focus.key,
-    );
-    const claimants = candidates.filter((entry) =>
-      groups.some(
-        (candidate) =>
-          normalizeProfileKey(
-            findContributorProfileByAuthorName(directory, candidate.label)?.key,
-          ) === normalizeProfileKey(entry.key),
-      ),
-    );
-    if (claimants.length === 1) {
-      [profile] = claimants;
-    }
-  }
-
-  if (!profile) {
-    if (!directGroup) {
-      return null;
-    }
-    return {
-      kind: focus.kind,
-      key: focus.key,
-      label: directGroup.label,
-      group: directGroup,
-    };
-  }
-
-  const profileKey = normalizeProfileKey(profile.key);
-  const claimedGroups = groups.filter(
-    (candidate) =>
-      normalizeProfileKey(
-        findContributorProfileByAuthorName(directory, candidate.label)?.key,
-      ) === profileKey,
-  );
-  if (claimedGroups.length === 0) {
+  // lines. `groupByArtist` already folds every credit a Contributor Profile
+  // claims into one group addressed by the profile's display name, so the
+  // canonical key resolves directly. A retired handle's address still names a
+  // credit line inside that group (`creditKeys`), and forwards to it; the
+  // work `artist` strings themselves are never rewritten.
+  const group =
+    directGroup ??
+    groups.find((candidate) => candidate.creditKeys?.includes(focus.key));
+  if (!group) {
     return null;
   }
-
-  const canonicalKey = artistUrlKey(profile.displayName);
-  const canonicalGroup = claimedGroups.find(
-    (candidate) => galleryGroupUrlKey("artist", candidate) === canonicalKey,
-  );
-  const items = claimedGroups.flatMap((candidate) => candidate.items);
-  const imageCount = claimedGroups.reduce(
-    (total, candidate) => total + candidate.imageCount,
-    0,
-  );
-  const videoCount = claimedGroups.reduce(
-    (total, candidate) => total + candidate.videoCount,
-    0,
-  );
-  const group: GalleryGroup = {
-    key: canonicalKey,
-    label: profile.displayName,
-    href: getPublicRoutePath({
-      family: "replicationArtist",
-      params: { key: canonicalKey },
-    }),
-    externalUrl:
-      canonicalGroup?.externalUrl ??
-      claimedGroups.find((candidate) => candidate.externalUrl)?.externalUrl,
-    count: items.length,
-    imageCount,
-    videoCount,
-    ...(profile.approvedReplicator === true ? { approvedReplicator: true } : {}),
-    items,
-  };
-
-  return {
-    kind: focus.kind,
-    key: canonicalKey,
-    label: profile.displayName,
-    group,
-  };
+  const key = galleryGroupUrlKey("artist", group);
+  return { kind: focus.kind, key, label: group.label, group };
 }
 
 /**
