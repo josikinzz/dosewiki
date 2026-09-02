@@ -1,9 +1,6 @@
 import type { ReactNode } from "react";
-import {
-  getPublicAboutPreviewSubstances,
-  getPublicDataOverview,
-} from "@server/convex/publicData";
-import { getPublicMoleculePackCount } from "@server/convex/publicData.moleculePackCount";
+import { getPublicAboutPreviewSubstances } from "@server/convex/publicData";
+import { getMoleculePackDownloadStats, getOpenDataDownloadStats } from "@server/open-data/downloadStats";
 import { buildPublicPageMetadata } from "@server/next/publicSite";
 import { getCopy } from "@server/next/copyBlocks";
 // Source of truth for every prompt shown on this page. Published straight from the
@@ -444,11 +441,10 @@ function SectionRef({
 }
 
 export default async function DocsHowPage() {
-  const [copy, overview, previewSubstances, moleculeCount] = await Promise.all([
+  const [copy, previewSubstances, substanceDownload] = await Promise.all([
     getCopy(),
-    getPublicDataOverview(),
     getPublicAboutPreviewSubstances(),
-    getPublicMoleculePackCount(),
+    getOpenDataDownloadStats("SubstanceIndex"),
   ]);
   // Same sample-record preview the About page shows, narrowed to the substance file and molecule pack.
   const previewSnapshots = buildAboutPreviewSnapshots(
@@ -1788,8 +1784,7 @@ export default async function DocsHowPage() {
         <div className="mt-6">
           <AboutArchivePreview
             previewSnapshots={previewSnapshots}
-            downloadCounts={{ substances: overview.substanceCount, molecules: moleculeCount }}
-            downloads={["substances", "molecules"]}
+            downloads={{ substances: substanceDownload, molecules: getMoleculePackDownloadStats() }}
           />
         </div>
 

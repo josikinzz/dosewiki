@@ -5,7 +5,7 @@ import {
   getPublicContributorProfiles,
   getPublicDataOverview,
 } from "@server/convex/publicData";
-import { getPublicMoleculePackCount } from "@server/convex/publicData.moleculePackCount";
+import { getMoleculePackDownloadStats, getOpenDataDownloadStats } from "@server/open-data/downloadStats";
 import { getPublicContributorReferenceCounts } from "@server/convex/publicData.contributorReferences";
 import { buildPublicPageMetadata } from "@server/next/publicSite";
 import { flavoredCopyText, getCopy } from "@server/next/copyBlocks";
@@ -72,7 +72,9 @@ export default async function AboutPage() {
     mechanismLayout,
     contributorProfiles,
     referenceCounts,
-    moleculeCount,
+    substanceDownload,
+    effectDownload,
+    reportDownload,
   ] = await Promise.all([
     getPublicAboutData(),
     getPublicDataOverview(),
@@ -85,7 +87,11 @@ export default async function AboutPage() {
     showContributorRoster
       ? getPublicContributorReferenceCounts()
       : new Map<string, number>(),
-    getPublicMoleculePackCount(),
+    // The download captions (entry count, file size) are measured on the exports
+    // themselves; a flavor without the Open Data tab never lists them.
+    showOpenData ? getOpenDataDownloadStats("SubstanceIndex") : undefined,
+    showOpenData ? getOpenDataDownloadStats("EffectIndex") : undefined,
+    showOpenData ? getOpenDataDownloadStats("TripReports") : undefined,
   ]);
 
   // Ship only the rendered JSON the preview actually needs: the smallest articles
@@ -135,11 +141,11 @@ export default async function AboutPage() {
       previewSnapshots={previewSnapshots}
       missionContent={<AboutMissionMarkdown content={aboutMarkdown} />}
       subtitle={resolveAboutSubtitle(about.subtitle)}
-      downloadCounts={{
-        substances: overview.substanceCount,
-        effects: overview.effectCount,
-        reports: overview.reportCount,
-        molecules: moleculeCount,
+      downloads={{
+        substances: substanceDownload,
+        effects: effectDownload,
+        reports: reportDownload,
+        molecules: showOpenData ? getMoleculePackDownloadStats() : undefined,
       }}
     />
   );

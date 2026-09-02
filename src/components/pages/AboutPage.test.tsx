@@ -61,7 +61,12 @@ function renderAboutPage(
         founderProfiles={founderProfiles}
         previewSnapshots={[]}
         missionContent={<p>Mission test copy for harm reduction.</p>}
-        downloadCounts={{ substances: 1234, effects: 310, reports: 89, molecules: 572 }}
+        downloads={{
+          substances: { count: 1234, bytes: 23_895_032 },
+          effects: { count: 310, bytes: 1_525_750 },
+          reports: { count: 89, bytes: 1_246_046 },
+          molecules: { count: 572, bytes: 523_546 },
+        }}
         {...overrides}
       />
     </AppearanceTestProvider>,
@@ -381,10 +386,22 @@ describeOpenData("AboutPage public export contract", () => {
     expect(screen.getByText("TripReports.json")).toBeInTheDocument();
     // The molecule pack sits in the same download list as the datasets.
     expect(screen.getByText("dosewiki-molecules.zip")).toBeInTheDocument();
-    expect(screen.getByText("1,234 substances")).toBeInTheDocument();
-    expect(screen.getByText("310 effects")).toBeInTheDocument();
-    expect(screen.getByText("89 reports")).toBeInTheDocument();
-    expect(screen.getByText("572 SVGs")).toBeInTheDocument();
+    // Every file takes the same noun, and the caption says how big the file is.
+    expect(screen.getByText("1,234 entries")).toBeInTheDocument();
+    expect(screen.getByText("23.9 MB")).toBeInTheDocument();
+    expect(screen.getByText("310 entries")).toBeInTheDocument();
+    expect(screen.getByText("1.5 MB")).toBeInTheDocument();
+    expect(screen.getByText("89 entries")).toBeInTheDocument();
+    expect(screen.getByText("1.2 MB")).toBeInTheDocument();
+    expect(screen.getByText("572 entries")).toBeInTheDocument();
+    expect(screen.getByText("524 KB")).toBeInTheDocument();
+    // The button's accessible name carries both figures: a screen reader user
+    // deciding whether to fetch 24 MB should not have to find them elsewhere.
+    expect(
+      screen.getByRole("button", {
+        name: "Download SubstanceIndex.json, 1,234 entries, 23.9 MB",
+      }),
+    ).toBeInTheDocument();
     // The manifest ships inside the zip; no separate download or repository link.
     expect(
       screen.queryByRole("link", { name: /github repository/i }),

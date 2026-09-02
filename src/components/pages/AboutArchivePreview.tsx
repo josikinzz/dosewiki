@@ -4,56 +4,56 @@ import { useCallback, useMemo, useState } from "react";
 import { Icon, type IconName } from "../common/Icon";
 import { MoleculeImage } from "./MoleculeImage";
 import { Button } from "@/components/ui/button";
+import { formatFileSize } from "@/utils/fileSize";
 import { icons } from "@/utils/iconNames";
 import { resolveRouteChromeIcon } from "@/utils/routeChromeIcons";
+import type { PublicDownloadStats } from "@server/open-data/downloadStats";
 import { ABOUT_PREVIEW_LINE_LIMIT, type AboutPreviewSnapshot } from "./aboutArchiveSnapshot";
+
+export type AboutDownloadKey = "substances" | "effects" | "reports" | "molecules";
+
+/**
+ * The files to list, each with the count and size measured on the file itself
+ * (see `lib/open-data/downloadStats.ts`). Nothing is defaulted, so a caption
+ * can never drift from what the reader downloads; a key that is absent is not
+ * listed at all.
+ */
+export type AboutDownloads = Partial<Record<AboutDownloadKey, PublicDownloadStats>>;
 
 // Each download carries the icon its section uses in the site menu, so the list
 // reads as "the same things you navigate to, as files".
-/**
- * Record counts shown beside each download. Every value comes from the same Convex
- * reads the page already performs; nothing here is defaulted so the captions can
- * never drift from the published set.
- */
-export type AboutDownloadCounts = {
-  substances: number;
-  effects: number;
-  reports: number;
-  molecules: number;
-};
 
-export type AboutDownloadKey = keyof AboutDownloadCounts;
-
-const DOWNLOADS = [
+const DOWNLOADS: ReadonlyArray<{
+  key: AboutDownloadKey;
+  filename: string;
+  href: string;
+  icon: IconName;
+}> = [
   {
     key: "substances",
     filename: "SubstanceIndex.json",
     href: "/open-data/SubstanceIndex.json",
-    noun: "substances",
     icon: resolveRouteChromeIcon("substances"),
   },
   {
     key: "effects",
     filename: "EffectIndex.json",
     href: "/open-data/EffectIndex.json",
-    noun: "effects",
     icon: resolveRouteChromeIcon("effects"),
   },
   {
     key: "reports",
     filename: "TripReports.json",
     href: "/open-data/TripReports.json",
-    noun: "reports",
     icon: resolveRouteChromeIcon("reports"),
   },
   {
     key: "molecules",
     filename: "dosewiki-molecules.zip",
     href: "/dosewiki-molecules.zip",
-    noun: "SVGs",
     icon: icons.hexagon,
   },
-] as const satisfies ReadonlyArray<{ key: keyof AboutDownloadCounts } & Record<string, unknown>>;
+];
 
 /** A few representative structures shown under the molecule pack download. */
 const MOLECULE_PREVIEW_SLUGS = ["lsd", "2c-b", "psilocin", "mdma", "ketamine", "caffeine"] as const;
@@ -69,24 +69,36 @@ function triggerDownload(href: string, filename: string) {
 
 function DownloadPill({
   filename,
-  caption,
+  stats,
   icon,
   onClick,
 }: {
   filename: string;
-  caption: string;
+  stats: PublicDownloadStats;
   icon: IconName;
   onClick: () => void;
 }) {
+  // One noun for every file: the count answers "how much is in here", and the
+  // filename already says what.
+  const entries = `${stats.count.toLocaleString()} entries`;
+  const size = formatFileSize(stats.bytes);
   return (
     <Button
       onClick={onClick}
-      aria-label={`Download ${filename}`}
+      aria-label={`Download ${filename}, ${entries}, ${size}`}
       className="theme-control-pill theme-text-primary h-10 w-full justify-start gap-2.5 rounded-full pl-3.5 pr-4"
     >
       <Icon icon={icon} size={18} className="theme-accent-emphasis shrink-0" aria-hidden="true" />
       <span className="min-w-0 flex-1 truncate text-left text-sm font-semibold">{filename}</span>
-      <span className="theme-text-faint shrink-0 text-xs">{caption}</span>
+      {/* Below `sm` the two figures stack right-aligned inside the pill so the
+          filename keeps its width on narrow phones; wider, they sit on one line. */}
+      <span className="theme-text-faint flex shrink-0 flex-col items-end text-[0.6875rem] font-medium leading-[1.2] tabular-nums sm:flex-row sm:items-baseline sm:gap-1 sm:leading-normal">
+        <span>{entries}</span>
+        <span className="theme-text-ghost hidden sm:inline" aria-hidden="true">
+          ·
+        </span>
+        <span>{size}</span>
+      </span>
       <Icon icon="charm:download" size={14} className="theme-text-faint shrink-0" aria-hidden="true" />
     </Button>
   );
@@ -176,23 +188,20 @@ function JsonSyntaxHighlight({ json, truncated }: { json: string; truncated: boo
 
 export function AboutArchivePreview({
   previewSnapshots,
-  downloadCounts,
   downloads,
   showMoleculePreview,
 }: {
   previewSnapshots: AboutPreviewSnapshot[];
-  /** Counts for the downloads listed in `downloads`; the rest may be omitted. */
-  downloadCounts: Partial<AboutDownloadCounts>;
-  /** Which files to list. Defaults to every download the About page offers. */
-  downloads?: ReadonlyArray<AboutDownloadKey>;
+  /** The files to list, in the fixed order of the site menu; omitted keys are not shown. */
+  downloads: AboutDownloads;
   /** Show the molecule strip under the pills. Defaults to on when the pack is listed. */
   showMoleculePreview?: boolean;
 }) {
-  const visibleDownloads = DOWNLOADS.filter(
-    (download) => downloads === undefined || downloads.includes(download.key),
-  );
-  const moleculeStripVisible =
-    showMoleculePreview ?? visibleDownloads.some((download) => download.key === "molecules");
+  const visibleDownloads = DOWNLOADS.flatMap((download) => {
+    const stats = downloads[download.key];
+    return stats ? [{ ...download, stats }] : [];
+  });
+  const moleculeStripVisible = showMoleculePreview ?? downloads.molecules !== undefined;
 
   // Open on a whole record when one exists; large articles remain reachable via Shuffle.
   const [previewIndex, setPreviewIndex] = useState(() => {
@@ -261,7 +270,7 @@ export function AboutArchivePreview({
             <DownloadPill
               key={download.filename}
               filename={download.filename}
-              caption={`${(downloadCounts[download.key] ?? 0).toLocaleString()} ${download.noun}`}
+              stats={download.stats}
               icon={download.icon}
               onClick={() => triggerDownload(download.href, download.filename)}
             />
