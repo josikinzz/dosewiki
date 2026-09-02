@@ -69,6 +69,7 @@ export const editorProfilePatchValidator = v.object({
   membershipEmail: v.optional(v.union(v.string(), v.null())),
   exclude_from_gallery: v.optional(v.boolean()),
   archival: v.optional(v.boolean()),
+  approved_replicator: v.optional(v.boolean()),
   staffNote: v.optional(
     v.union(
       v.object({
@@ -123,6 +124,7 @@ export type StoredProfile = {
   reportOrder?: string[];
   exclude_from_gallery?: boolean;
   archival?: boolean;
+  approved_replicator?: boolean;
   staffNote?: StaffNote;
   createdAt: string;
   updatedAt: string;
@@ -153,6 +155,9 @@ export type PublicProfile = {
   // Present (and `true`) only for a staff-maintained archival profile. Absent
   // means a normal profile.
   archival?: boolean;
+  // Present (and `true`) only for an artist dose.wiki endorses as an approved
+  // replicator. Absent means an ordinary artist.
+  approved_replicator?: boolean;
   // Signed staff commentary. Absent means the section renders nothing.
   staffNote?: StaffNote;
 };

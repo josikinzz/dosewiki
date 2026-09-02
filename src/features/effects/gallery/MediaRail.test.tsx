@@ -103,6 +103,39 @@ describe("MediaRail heading", () => {
     expect(screen.queryByRole("link")).toBeNull();
     expect(screen.getByText("Symmetric Vision")).toBeInTheDocument();
   });
+
+  it("stars an approved replicator inside their name link, and names the star", () => {
+    render(
+      <MediaRail
+        group={group({
+          href: "/replications/artist/symmetric-vision",
+          approvedReplicator: true,
+        })}
+        viewAllHref="/replications/artist/symmetric-vision"
+        viewerHrefFor={viewerHrefFor}
+      />,
+    );
+
+    const star = screen.getByTestId("approved-replicator-star");
+    // One focus stop: the star is part of the name, not a second link.
+    expect(star.closest("a")).toBe(
+      screen.getByRole("link", { name: /Symmetric Vision.*Approved replicator/ }),
+    );
+    expect(star).toHaveAttribute("title", "Approved replicator");
+  });
+
+  it("leaves an ordinary artist unstarred", () => {
+    render(
+      <MediaRail
+        group={group({ href: "/replications/artist/symmetric-vision" })}
+        viewAllHref="/replications/artist/symmetric-vision"
+        viewerHrefFor={viewerHrefFor}
+      />,
+    );
+
+    expect(screen.queryByTestId("approved-replicator-star")).toBeNull();
+    expect(screen.getByRole("link", { name: "Symmetric Vision" })).toBeInTheDocument();
+  });
 });
 
 describe("MediaRail identity portrait", () => {

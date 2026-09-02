@@ -39,6 +39,7 @@ const profile: EditorContributorProfile = {
   reportOrder: [],
   exclude_from_gallery: false,
   archival: false,
+  approved_replicator: false,
   staffNote: null,
   updatedAt: null,
   updatedBy: null,
@@ -237,6 +238,7 @@ describe("the profile form", () => {
       ],
       exclude_from_gallery: false,
       archival: false,
+      approved_replicator: false,
       staffNoteMarkdown: "   ",
       staffNoteAttribution: "Someone",
     });
@@ -251,6 +253,7 @@ describe("the profile form", () => {
       links: [{ label: "Site", url: "https://example.com" }],
       exclude_from_gallery: false,
       archival: false,
+      approved_replicator: false,
       // A blank note clears the field even when an attribution was left behind.
       staffNote: null,
     });
@@ -274,6 +277,16 @@ describe("the profile form", () => {
     const toggled = { ...toContributorForm(profile), archival: true };
     expect(isContributorFormDirty(profile, toggled, false)).toBe(true);
     expect(buildContributorPatch(toggled).archival).toBe(true);
+  });
+
+  it("round-trips the approved replicator flag and notices it toggling", () => {
+    const approved: EditorContributorProfile = { ...profile, approved_replicator: true };
+    expect(toContributorForm(approved).approved_replicator).toBe(true);
+    expect(isContributorFormDirty(approved, toContributorForm(approved), false)).toBe(false);
+
+    const toggled = { ...toContributorForm(profile), approved_replicator: true };
+    expect(isContributorFormDirty(profile, toggled, false)).toBe(true);
+    expect(buildContributorPatch(toggled).approved_replicator).toBe(true);
   });
 
   it("round-trips the staff note and only sends an attribution beside a kept note", () => {

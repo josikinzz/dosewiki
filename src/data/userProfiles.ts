@@ -67,6 +67,14 @@ export type NormalizedUserProfile = {
    */
   archival?: boolean;
   /**
+   * Editorial endorsement of a replication artist, passed through from Convex
+   * (`contributorProfiles.approved_replicator`). Absent means an ordinary
+   * artist; `true` stars the name on the /replications index, lifts the
+   * artist's rail above the rest of the default order, and badges the Artist
+   * Page.
+   */
+  approved_replicator?: boolean;
+  /**
    * Signed staff commentary, passed through from Convex
    * (`contributorProfiles.staffNote`). Absent renders nothing; present it is
    * the public "Editor's note" speech-bubble section under the bio.

@@ -112,11 +112,17 @@ export function getReplicationRouteAlias(slug: string): string | null {
 
 const replicationArtistAliases = {
   anonymous: "unknown",
-  // The reddit-era handle every work now credits as "Symmetric Vision"
+  // Reddit-era handles whose every work now credits the artist's current name
   // (scripts/replications/plan-artist-name-corrections.mjs, 2026-09-02). No
-  // credit line produces this key any more, so without the alias the address
-  // would 404 rather than resolve through the profile's alias list.
+  // credit line produces these keys any more, so without the alias each
+  // address would 404 rather than resolve through the profile's alias list.
+  // Renames whose old and new keys slugify identically (oracle-emissary,
+  // cold-wasabi, hyperactive-filly, feetman100) need no entry.
   stingrayz: "symmetric-vision",
+  lokavision: "loka",
+  wheressuede: "loka",
+  wooodfield: "phosform",
+  stasconstantine: "stas-constantine",
 } as const satisfies Record<string, string>;
 
 /**

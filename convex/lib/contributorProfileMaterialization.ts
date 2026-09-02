@@ -53,6 +53,7 @@ export async function materializeProfile(
     // public projection carries no key at all rather than an explicit false.
     ...(profile.exclude_from_gallery === true ? { exclude_from_gallery: true } : {}),
     ...(profile.archival === true ? { archival: true } : {}),
+    ...(profile.approved_replicator === true ? { approved_replicator: true } : {}),
     // Passthrough of the staff commentary; spread so an absent note stays a
     // missing key rather than an explicit null.
     ...(profile.staffNote?.markdown ? { staffNote: profile.staffNote } : {}),

@@ -274,6 +274,60 @@ describe('groupByArtist', () => {
       expect(groupByArtist(works, 'count').map((g) => g.label)).toEqual(['Ann', 'Zed']);
       expect(groupByArtist(works, 'alpha').map((g) => g.label)).toEqual(['Ann', 'Zed']);
     });
+
+    it('lifts approved replicators above the video tier, in count order among themselves', () => {
+      const works = [
+        rep({ artist: 'Motion Maker', type: 'video', format: 'mp4' }),
+        rep({ artist: 'Motion Maker', type: 'video', format: 'mp4' }),
+        rep({ artist: 'Motion Maker', type: 'video', format: 'mp4' }),
+        // Image-only, one work: last by every other rule.
+        rep({ artist: 'Still Lifer' }),
+        rep({ artist: 'Prolific Painter' }),
+        rep({ artist: 'Prolific Painter' }),
+      ];
+      const directory = [
+        { key: 'STILL-LIFER', displayName: 'Still Lifer', aliases: [], approvedReplicator: true },
+        { key: 'PROLIFIC', displayName: 'Prolific Painter', aliases: [], approvedReplicator: true },
+      ];
+
+      const groups = groupByArtist(works, 'video-first', directory);
+      expect(groups.map((g) => g.label)).toEqual([
+        'Prolific Painter',
+        'Still Lifer',
+        'Motion Maker',
+      ]);
+      expect(groups.map((g) => g.approvedReplicator === true)).toEqual([true, true, false]);
+    });
+
+    it('resolves the endorsement through the alias-aware profile match', () => {
+      const groups = groupByArtist(
+        [rep({ artist: 'wheressuede', type: 'video', format: 'mp4' }), rep({ artist: 'Zed', type: 'video', format: 'mp4' }), rep({ artist: 'Zed' })],
+        'video-first',
+        [{ key: 'LOKA', displayName: 'Loka', aliases: ['wheressuede'], approvedReplicator: true }],
+      );
+      expect(groups.map((g) => g.label)).toEqual(['wheressuede', 'Zed']);
+      expect(groups[0].approvedReplicator).toBe(true);
+      expect(groups[1]).not.toHaveProperty('approvedReplicator');
+    });
+
+    it('keeps the endorsement off the selectable sorts and the unattributed bucket', () => {
+      const works = [
+        rep({ artist: 'Zed', type: 'video', format: 'mp4' }),
+        rep({ artist: 'Ann' }),
+        rep({ artist: 'Ann' }),
+        rep({ artist: '' }),
+      ];
+      const directory = [
+        { key: 'ZED', displayName: 'Zed', aliases: [], approvedReplicator: true },
+        { key: 'UNKNOWN', displayName: '', aliases: [''], approvedReplicator: true },
+      ];
+      expect(groupByArtist(works, 'count', directory).map((g) => g.label)).toEqual(['Ann', 'Zed', UNATTRIBUTED_LABEL]);
+      expect(groupByArtist(works, 'alpha', directory).map((g) => g.label)).toEqual(['Ann', 'Zed', UNATTRIBUTED_LABEL]);
+      const tiered = groupByArtist(works, 'video-first', directory);
+      const unattributed = tiered[tiered.length - 1];
+      expect(unattributed.key).toBe(UNATTRIBUTED_KEY);
+      expect(unattributed).not.toHaveProperty('approvedReplicator');
+    });
   });
 
   it('withholds from the unattributed bucket too', () => {

@@ -439,6 +439,17 @@ describe("getReplicationArtistRouteAlias", () => {
     expect(getReplicationArtistRouteAlias("StingrayZ")).toBe("symmetric-vision");
   });
 
+  it("forwards the handles folded into Loka, Phosform, and Stas Constantine", () => {
+    // Same 2026-09-02 rewrite: these keys slugify differently from the name
+    // the works now carry, unlike oracle-emissary or cold-wasabi, which map
+    // onto their proper-name keys unchanged.
+    expect(getReplicationArtistRouteAlias("lokavision")).toBe("loka");
+    expect(getReplicationArtistRouteAlias("wheressuede")).toBe("loka");
+    expect(getReplicationArtistRouteAlias("wooodfield")).toBe("phosform");
+    expect(getReplicationArtistRouteAlias("stasconstantine")).toBe("stas-constantine");
+    expect(getReplicationArtistRouteAlias("cold-wasabi")).toBeNull();
+  });
+
   it("knows nothing about live or bogus keys", () => {
     expect(getReplicationArtistRouteAlias("chelsea-morgan")).toBeNull();
     expect(getReplicationArtistRouteAlias("unknown")).toBeNull();

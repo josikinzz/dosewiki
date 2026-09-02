@@ -93,6 +93,13 @@ describe("loadArtistNameCorrections", () => {
       "Insedigris",
       "MOracs",
       "Sam perkins",
+      "LokaVision",
+      "Wooodfield",
+      "oracle-emissary",
+      "cold-wasabi",
+      "Hyperactive_Filly",
+      "StasConstantine",
+      "feetman100",
     ]);
     for (const entry of CORRECTIONS) {
       expect(entry.strength).toBe("strong");
@@ -290,6 +297,13 @@ describe("planArtistNameCorrections", () => {
       "StingrayZ",
       "Simon Haid",
       "Insedigris",
+      "LokaVision",
+      "Wooodfield",
+      "oracle-emissary",
+      "cold-wasabi",
+      "Hyperactive_Filly",
+      "StasConstantine",
+      "feetman100",
     ]);
   });
 

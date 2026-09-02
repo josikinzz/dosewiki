@@ -17,6 +17,12 @@ export type ContributorDirectoryEntry = {
    * profiles themselves. Null when the profile has none.
    */
   avatarUrl?: string | null;
+  /**
+   * dose.wiki's endorsement of the artist (`contributorProfiles.approved_replicator`),
+   * carried so the gallery can star and lift the artist's group. Absent means
+   * an ordinary artist.
+   */
+  approvedReplicator?: boolean;
 };
 
 export type ContributorDirectory = readonly ContributorDirectoryEntry[];
@@ -31,22 +37,4 @@ export function resolveContributorHref(
   }
 
   return publicHref.contributor(profile.key.toLowerCase());
-}
-
-/**
- * The curated work ordering for a credit line, or `undefined` when the credit
- * resolves to no profile or that profile has curated nothing.
- *
- * Resolution goes through the same alias-aware matcher as `resolveContributorHref`
- * so an artist heading and the ordering under it can never disagree about which
- * profile the credit belongs to.
- */
-export function resolveContributorReplicationOrder(
-  name: string,
-  directory: ContributorDirectory,
-): string[] | undefined {
-  const profile = findContributorProfileByAuthorName(directory, name);
-  return profile?.replicationOrder?.length
-    ? profile.replicationOrder
-    : undefined;
 }

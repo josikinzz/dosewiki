@@ -130,6 +130,7 @@ export async function plannedProfileMergeChanges(input: ContributorProfileMergeI
     reportOrder: Array.from(new Set([...(target.reportOrder as string[] ?? []), ...(source.reportOrder as string[] ?? [])])),
     exclude_from_gallery: target.exclude_from_gallery === true || source.exclude_from_gallery === true ? true : undefined,
     archival: target.archival === true || source.archival === true ? true : undefined,
+    approved_replicator: target.approved_replicator === true || source.approved_replicator === true ? true : undefined,
   };
   const sourceAfter: Row = { ...source, mergedIntoProfileId: input.target_profile_id, mergedIntoKey: normalizeProfileKey(input.target_key), mergedByOperationId: "", mergedAt: input.applied_at };
   const changes: Change[] = [

@@ -68,6 +68,7 @@ import {
   dismissViewerDeepLinkCover,
   ViewerDeepLinkCover,
 } from "./ViewerDeepLinkCover";
+import { ApprovedReplicatorStar } from "./components/ApprovedReplicatorStar";
 import {
   ReplicationActiveFilterChips,
   ReplicationTaxonomyFilters,
@@ -1585,8 +1586,11 @@ function GalleryExplorer({
                       />
                       All {mode === "artist" ? "artists" : "effects"}
                     </Link>
-                    <h2 className="theme-text-primary font-display mt-1 text-2xl font-bold tracking-tight">
-                      {focusedGroup.label}
+                    <h2 className="theme-text-primary font-display mt-1 flex items-center gap-2 text-2xl font-bold tracking-tight">
+                      <span className="min-w-0 break-words">{focusedGroup.label}</span>
+                      {focusedGroup.approvedReplicator ? (
+                        <ApprovedReplicatorStar className="text-[0.75em]" />
+                      ) : null}
                     </h2>
                     {/* An artist focus IS the artist's page now, so the old
                       "View profile" link would point at itself; only the

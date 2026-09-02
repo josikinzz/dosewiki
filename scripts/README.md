@@ -886,6 +886,28 @@ bio; the write refuses if the live bio moved since the plan was built. Used on
 2026-09-02 to lead the SYMMETRICVISION bio with the merged identity after the
 StingrayZ credits were renamed.
 
+#### Applying a reviewed set of profile patches
+
+```bash
+node scripts/contributors/apply-profile-patches.mjs \
+  --plan=runs/contributor-profile-patches/2026-09-02-approved-replicators.json
+TARGET_CONVEX_URL=https://glad-minnow-656.convex.cloud \
+  node scripts/contributors/apply-profile-patches.mjs \
+  --plan=runs/contributor-profile-patches/2026-09-02-approved-replicators.json \
+  --write --confirm-write=apply-contributor-profile-patches \
+  --expected-deployment=glad-minnow-656
+```
+
+Applies the editor patches listed in a reviewed plan file through the same
+`saveProfileAsEditor` mutation, one profile at a time. Each entry names the
+profile key, the patch, and the live values it was reviewed against; a
+profile that moved since review, or that no longer exists, fails the whole
+run closed before anything is written, and a profile that already reads as
+patched is reported as settled. Used on 2026-09-02 to mark the fourteen
+Approved Replicators and to fold the duplicate Reddit-intake profiles
+(LOKAVISION, ORACLE-EMISSARY, COLD-WASABI, HYPERACTIVE-FILLY) into their
+canonical profiles by alias.
+
 #### Avatars cut from a contributor's own work
 
 ```bash

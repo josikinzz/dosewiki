@@ -65,6 +65,8 @@ export const getPublicContributorDirectory = cache(
       // without reading profiles of its own; see `applyCuratedOrder`.
       replicationOrder: profile.replicationOrder,
       avatarUrl: profile.avatarUrl,
+      // Threaded so the gallery can star and lift approved artists' rails.
+      ...(profile.approved_replicator === true ? { approvedReplicator: true } : {}),
     }));
   },
 );

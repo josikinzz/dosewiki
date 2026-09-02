@@ -224,6 +224,26 @@ describe("contributorProfiles.saveProfileAsEditor authorization", () => {
     expect(harness.read()?.staffNote).toBeUndefined();
   });
 
+  it("round-trips the approved replicator flag through a save and a save back", async () => {
+    process.env.CONVEX_ADMIN_KEY = "secret";
+    const harness = createCtx({ memberships: editorMemberships });
+
+    await saveHandler(harness.ctx, {
+      ...editorArgs,
+      key: "JOSIE",
+      patch: { approved_replicator: true },
+    });
+    expect(harness.read()?.approved_replicator).toBe(true);
+
+    await saveHandler(harness.ctx, {
+      ...editorArgs,
+      key: "JOSIE",
+      patch: { approved_replicator: false },
+    });
+    // Cleared, not stored-false: absent is the "ordinary artist" default.
+    expect(harness.read()?.approved_replicator).toBeUndefined();
+  });
+
   it("refuses a key that has no profile row", async () => {
     process.env.CONVEX_ADMIN_KEY = "secret";
     const harness = createCtx({ memberships: editorMemberships, profile: null });
@@ -411,6 +431,27 @@ describe("buildEditorProfilePatch", () => {
     ).not.toContain("archival");
   });
 
+  it("stores the approved replicator flag as true-or-absent, never as a stored false", () => {
+    const approved = buildEditorProfilePatch(
+      { approved_replicator: true },
+      baseProfile,
+      "e@example.com",
+    );
+    expect(approved.approved_replicator).toBe(true);
+
+    const withdrawn = buildEditorProfilePatch(
+      { approved_replicator: false },
+      { ...baseProfile, approved_replicator: true },
+      "e@example.com",
+    );
+    expect(Object.keys(withdrawn)).toContain("approved_replicator");
+    expect(withdrawn.approved_replicator).toBeUndefined();
+
+    expect(
+      Object.keys(buildEditorProfilePatch({ bio: "hi" }, baseProfile, "e@example.com")),
+    ).not.toContain("approved_replicator");
+  });
+
   it("stores a staff note sanitized and clears it on null or an emptied note", () => {
     const noted = buildEditorProfilePatch(
       { staffNote: { markdown: "A **note**.\r\n", attribution: "  Josie Kins ·  founder  " } },
@@ -460,10 +501,16 @@ describe("buildEditorProfilePatch", () => {
     expect(selfServeFields).not.toContain("archival");
     expect(selfServeFields).not.toContain("staffNote");
     expect(selfServeFields).not.toContain("exclude_from_gallery");
+    expect(selfServeFields).not.toContain("approved_replicator");
 
     const editorFields = Object.keys(editorProfilePatchValidator.fields);
     expect(editorFields).toEqual(
-      expect.arrayContaining(["archival", "staffNote", "exclude_from_gallery"]),
+      expect.arrayContaining([
+        "archival",
+        "staffNote",
+        "exclude_from_gallery",
+        "approved_replicator",
+      ]),
     );
   });
 });

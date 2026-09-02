@@ -98,6 +98,7 @@ export async function getEditorContributorProfileHandler(
     reportOrder: normalizeOrderSlugs(stored.reportOrder),
     exclude_from_gallery: stored.exclude_from_gallery === true,
     archival: stored.archival === true,
+    approved_replicator: stored.approved_replicator === true,
     staffNote: stored.staffNote ?? null,
     updatedAt: stored.updatedAt ?? null,
     updatedBy: stored.updatedBy ?? null,

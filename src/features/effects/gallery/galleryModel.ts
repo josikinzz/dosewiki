@@ -1,7 +1,5 @@
-import {
-  resolveContributorReplicationOrder,
-  type ContributorDirectory,
-} from "@server/contributorDirectory";
+import type { ContributorDirectory } from "@server/contributorDirectory";
+import { findContributorProfileByAuthorName } from "@server/contributorProfileIdentity";
 import { getPublicRoutePath } from "@/utils/publicRouteIdentity";
 import { applyCuratedOrder } from "@server/curatedOrder";
 import type {
@@ -54,10 +52,12 @@ export const DEFAULT_GALLERY_TAXONOMY_FILTERS: GalleryTaxonomyFilterState = {
 };
 
 /**
- * The gallery's default artist order: a hard two-tier sort where any artist
- * with at least one video ranks above every image-only artist, and the old
- * count-then-alpha default applies within each tier. Video replications are
- * far scarcer than images, so their makers lead the page.
+ * The gallery's default artist order: a hard three-tier sort. Artists dose.wiki
+ * has approved as replicators (`approvedReplicator`) lead the page outright;
+ * below them any artist with at least one video ranks above every image-only
+ * artist; and the old count-then-alpha default applies within each tier.
+ * Video replications are far scarcer than images, so their makers lead the
+ * unapproved field.
  */
 export const DEFAULT_GALLERY_ARTIST_SORT: GalleryArtistSort = "video-first";
 
@@ -88,6 +88,12 @@ export interface GalleryGroup {
   count: number;
   imageCount: number;
   videoCount: number;
+  /**
+   * The artist's claimed profile is an approved replicator: the heading wears
+   * the star and the default order lifts the group. Never set on effect groups
+   * or the unattributed bucket.
+   */
+  approvedReplicator?: boolean;
   items: PublicGalleryReplicationPreview[];
 }
 
@@ -413,11 +419,13 @@ function toExternalArtistUrl(value: string | undefined): string | undefined {
  * record in src/features/replications/galleryFocus.ts). The key derives from
  * the credit line itself, so no directory lookup decides where a name goes.
  *
- * `contributorDirectory` still travels here for the contributor's curated
- * `replicationOrder`: it is passed in rather than looked up because this model
- * is pure and runs inside a client component; the directory is read on the
- * server and threaded down. Resolution goes through the shared alias-aware
- * matcher — the gallery adds no name matching of its own.
+ * `contributorDirectory` still travels here for what the claiming profile
+ * says about the credit — its curated `replicationOrder` and whether the
+ * artist is an approved replicator: it is passed in rather than looked up
+ * because this model is pure and runs inside a client component; the
+ * directory is read on the server and threaded down. Resolution goes through
+ * the shared alias-aware matcher — the gallery adds no name matching of its
+ * own.
  *
  * The unattributed bucket is the one heading with no `href`: its page exists
  * (the `unknown` key), but the rows in it are credited "Unknown", "Anonymous"
@@ -472,22 +480,30 @@ export function groupByArtist(
   }
 
   const groups = Array.from(buckets.values()).map((group) => {
+    // The unattributed bucket has no contributor owner, so it carries neither
+    // a stored order nor an endorsement. One lookup serves both fields: the
+    // matcher is a linear scan of the directory, and this resolves a few
+    // thousand credit lines against a few thousand profiles.
+    const profile =
+      group.key === UNATTRIBUTED_KEY
+        ? null
+        : findContributorProfileByAuthorName(contributorDirectory, group.label);
     // A claimed contributor's explicit order is authoritative across media
     // ranks. Everything unlisted keeps the automatic audio/newest/title order.
-    // The unattributed bucket has no contributor owner and therefore no stored
-    // order.
     const items = applyCuratedOrder(
       sortWithinGroup(group.items),
-      group.key === UNATTRIBUTED_KEY
-        ? undefined
-        : resolveContributorReplicationOrder(
-            group.label,
-            contributorDirectory,
-          ),
+      profile?.replicationOrder?.length ? profile.replicationOrder : undefined,
       (replication) => replication.slug,
     );
     const { imageCount, videoCount } = tally(items);
-    return { ...group, items, count: items.length, imageCount, videoCount };
+    return {
+      ...group,
+      items,
+      count: items.length,
+      imageCount,
+      videoCount,
+      ...(profile?.approvedReplicator === true ? { approvedReplicator: true } : {}),
+    };
   });
 
   return groups.sort((a, b) => {
@@ -496,8 +512,12 @@ export function groupByArtist(
     if (b.key === UNATTRIBUTED_KEY) return -1;
     if (sort === "alpha") return a.label.localeCompare(b.label);
     if (sort === "video-first") {
-      // Hard tier: video-having artists above image-only artists; the plain
-      // count order decides everything within a tier.
+      // Hard tiers: approved replicators above everyone, then video-having
+      // artists above image-only artists; the plain count order decides
+      // everything within a tier.
+      const approved =
+        Number(b.approvedReplicator === true) - Number(a.approvedReplicator === true);
+      if (approved !== 0) return approved;
       const tier = Number(b.videoCount > 0) - Number(a.videoCount > 0);
       if (tier !== 0) return tier;
     }

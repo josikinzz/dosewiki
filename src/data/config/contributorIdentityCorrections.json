@@ -250,6 +250,62 @@
       "evidence": "Capitalisation only. The stored artist_url is his own Flickr photo page, whose account states the owner name as 'Sam Perkins' (username 'TheCubb'). The stored photo is titled 'Switch.', matching the stored work title 'Switch'. The lowercase 'perkins' exists only in this archive's own fields.",
       "evidenceUrls": ["https://www.flickr.com/photos/thecubb/"],
       "correctsReplicationArtistField": true
+    },
+    {
+      "stored": "LokaVision",
+      "correct": "Loka",
+      "strength": "strong",
+      "evidence": "The same rename as wheressuede -> Loka, one account later. Owner confirmation 2026-08-14 that Loka = LokaVision and that lokavision.com is her site (this file's sources list and the Loka linkCorrections entry); 21 Reddit-archive rows still carry the LokaVision username while 47 rows credit Loka. Owner instruction 2026-09-02: fold LokaVision into Loka so the replication index shows one artist.",
+      "evidenceUrls": ["https://lokavision.com/"],
+      "correctsReplicationArtistField": true
+    },
+    {
+      "stored": "Wooodfield",
+      "correct": "Phosform",
+      "strength": "strong",
+      "evidence": "One artist under two handles. The PHOSFORM contributor profile already claims 'wooodfield' as an alias and lists youtube.com/@Wooodfield and instagram.com/wooodfield as the artist's own channels (see the Phosform linkCorrections entry: the QRI contest channel ID resolves to @Wooodfield, and the artist's own 2023 Reddit post announces the move), and the WOOODFIELD profile was merged into PHOSFORM through convex/contributorProfileMerges.ts. 55 Reddit-archive rows still carry the Wooodfield username while 40 rows credit Phosform. Owner instruction 2026-09-02: merge Wooodfield into Phosform, keeping Phosform as the credited name.",
+      "evidenceUrls": ["https://www.youtube.com/@Wooodfield", "https://www.instagram.com/wooodfield/"],
+      "correctsReplicationArtistField": true
+    },
+    {
+      "stored": "oracle-emissary",
+      "correct": "Oracle Emissary",
+      "strength": "strong",
+      "evidence": "Reddit-username form of a name the corpus already prints properly. The ORACLEEMISSARY profile records reddit.com/user/oracle-emissary/ as the artist's own account (see the Oracle Emissary linkCorrections entry), 94 Reddit-archive rows carry that username as the credit, and 4 rows credit Oracle Emissary. Owner instruction 2026-09-02, listing 'oracle emissary' among the approved replicators whose duplicates fold together.",
+      "evidenceUrls": [],
+      "correctsReplicationArtistField": true
+    },
+    {
+      "stored": "cold-wasabi",
+      "correct": "Cold Wasabi",
+      "strength": "strong",
+      "evidence": "Reddit-username form: the COLDWASABI profile's own link is reddit.com/user/cold-wasabi, and this file already folds 'coldwasabi' and 'cold wasabi' into Cold Wasabi (21 rows). 60 Reddit-archive rows carry the hyphenated username as the credit. Owner instruction 2026-09-02, listing 'cold-wasabi' among the approved replicators whose duplicates fold together.",
+      "evidenceUrls": [],
+      "correctsReplicationArtistField": true
+    },
+    {
+      "stored": "Hyperactive_Filly",
+      "correct": "Hyperactive Filly",
+      "strength": "strong",
+      "evidence": "Reddit-username form: the HYPERACTIVEFILLY profile's own link is reddit.com/user/Hyperactive_Filly, and this file already folds Xanny and HyperactiveFilly into Hyperactive Filly. 38 Reddit-archive rows carry the underscored username as the credit against one row printing Hyperactive Filly. Owner instruction 2026-09-02, listing the artist among the approved replicators whose duplicates fold together.",
+      "evidenceUrls": [],
+      "correctsReplicationArtistField": true
+    },
+    {
+      "stored": "StasConstantine",
+      "correct": "Stas Constantine",
+      "strength": "strong",
+      "evidence": "His own accounts write the name as two words: the YouTube channel the STASCONSTANTINE profile links (@StasConstantineArchives) titles itself 'Stas Constantine Archives' (checked 2026-09-02) and his Bandcamp is stasconstantine.bandcamp.com under 'Stas Constantine'; the space-less form is only the reddit username, which cannot hold a space. 17 rows credit Stas Constantine, 15 Reddit-archive rows carry the username. Owner instruction 2026-09-02: merge the two into whichever form his accounts use.",
+      "evidenceUrls": ["https://www.youtube.com/@StasConstantineArchives", "https://stasconstantine.bandcamp.com/"],
+      "correctsReplicationArtistField": true
+    },
+    {
+      "stored": "feetman100",
+      "correct": "FEETMAN100",
+      "strength": "strong",
+      "evidence": "Casing normalization: his own YouTube channel @feetman100 titles itself 'FEETMAN100' (checked 2026-09-02), the FEETMAN100 profile displays it that way, and 58 rows carry it uppercase against 20 lowercase. The gallery folds case when grouping, so this only fixes which spelling the group label and bylines print.",
+      "evidenceUrls": ["https://www.youtube.com/@feetman100"],
+      "correctsReplicationArtistField": true
     }
   ],
 

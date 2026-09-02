@@ -52,6 +52,7 @@ type ProfilePatchBody = {
   avatarUrl?: unknown;
   exclude_from_gallery?: unknown;
   archival?: unknown;
+  approved_replicator?: unknown;
   staffNote?: unknown;
   avatarUpload?: {
     filename?: unknown;
@@ -74,6 +75,7 @@ type ParsedProfilePatch = {
     avatarUrl?: string | null;
     exclude_from_gallery?: boolean;
     archival?: boolean;
+    approved_replicator?: boolean;
     staffNote?: { markdown: string; attribution?: string } | null;
   };
   avatarUpload: NormalizedAvatarUpload | null;
@@ -259,6 +261,13 @@ export function parseProfilePatchBody(raw: ProfilePatchBody): ParsedProfilePatch
       throw new JsonBodyError(400, "The archival flag must be a boolean.");
     }
     patch.archival = raw.archival;
+  }
+
+  if (raw.approved_replicator !== undefined) {
+    if (typeof raw.approved_replicator !== "boolean") {
+      throw new JsonBodyError(400, "The approved replicator flag must be a boolean.");
+    }
+    patch.approved_replicator = raw.approved_replicator;
   }
 
   if (raw.staffNote !== undefined) {

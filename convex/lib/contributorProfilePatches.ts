@@ -21,6 +21,7 @@ export type EditorProfilePatchInput = {
   membershipEmail?: string | null;
   exclude_from_gallery?: boolean;
   archival?: boolean;
+  approved_replicator?: boolean;
   staffNote?: StaffNote | null;
 };
 
@@ -127,6 +128,11 @@ export function buildEditorProfilePatch(
   // Same true-or-delete contract as the gallery flag.
   if (input.archival !== undefined) {
     patch.archival = input.archival === true ? true : undefined;
+  }
+
+  // Same true-or-delete contract again.
+  if (input.approved_replicator !== undefined) {
+    patch.approved_replicator = input.approved_replicator === true ? true : undefined;
   }
 
   // `null` (or a note emptied down to nothing) clears the field.

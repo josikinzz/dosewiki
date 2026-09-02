@@ -145,6 +145,14 @@ const contributorProfile = v.object({
   // "Archival profile" notice on the public page. Admin-only write path
   // (`saveProfileAsEditor`); the self-serve save cannot touch it.
   archival: v.optional(v.boolean()),
+  // Editorial endorsement of a replication artist. Absent means an ordinary
+  // artist; `false` is never stored (the write clears the field instead).
+  // Stars the artist's name on the /replications index and lifts their rail
+  // above the rest of the default artist order. Distinct from
+  // `contributorReplicatorVerifications`, which records whether a profile
+  // really is the replicator; this records that dose.wiki vouches for the
+  // work. Admin-only write path, like `archival`.
+  approved_replicator: v.optional(v.boolean()),
   // Signed staff commentary ("Editor's note") rendered under the public bio.
   // Absent renders nothing. Admin-only write path, like `archival`.
   staffNote: v.optional(

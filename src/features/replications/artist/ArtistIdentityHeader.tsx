@@ -7,6 +7,7 @@ import { ContributorAvatar } from "@/components/layout/PublicPagePrimitives";
 import { focusRingClassName } from "@/components/ui/surface";
 import { cn } from "@/lib/utils";
 import { artistLinkPresentation, formatArtistWorksLine } from "./artistPageModel";
+import { APPROVED_REPLICATOR_LABEL } from "../components/ApprovedReplicatorStar";
 
 export interface ArtistIdentityHeaderProps {
   name: string;
@@ -19,6 +20,8 @@ export interface ArtistIdentityHeaderProps {
   attributed: boolean;
   avatarUrl?: string | null;
   verifiedReplicator?: boolean;
+  /** dose.wiki's endorsement of the artist; the index's star, spelled out. */
+  approvedReplicator?: boolean;
   role?: string | null;
   /** Already-rendered bio markdown; null renders no prose. */
   bio?: ReactNode;
@@ -40,6 +43,7 @@ export function ArtistIdentityHeader({
   attributed,
   avatarUrl,
   verifiedReplicator = false,
+  approvedReplicator = false,
   role,
   bio,
   links,
@@ -96,15 +100,27 @@ export function ArtistIdentityHeader({
             ) : null}
             {formatArtistWorksLine(counts)}
           </p>
-          {verifiedReplicator ? (
-            <PublicPill
-              tone="accent"
-              icon="lucide:badge-check"
-              data-testid="verified-replicator-badge"
-              className="mt-2"
-            >
-              Verified replicator
-            </PublicPill>
+          {approvedReplicator || verifiedReplicator ? (
+            <div className="mt-2 flex flex-wrap gap-2">
+              {approvedReplicator ? (
+                <PublicPill
+                  tone="accent"
+                  icon="lucide:star"
+                  data-testid="approved-replicator-badge"
+                >
+                  {APPROVED_REPLICATOR_LABEL}
+                </PublicPill>
+              ) : null}
+              {verifiedReplicator ? (
+                <PublicPill
+                  tone="accent"
+                  icon="lucide:badge-check"
+                  data-testid="verified-replicator-badge"
+                >
+                  Verified replicator
+                </PublicPill>
+              ) : null}
+            </div>
           ) : null}
         </div>
       </div>

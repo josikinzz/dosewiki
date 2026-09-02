@@ -248,6 +248,7 @@ export default async function ReplicationArtistPage({
           attributed={attributed}
           avatarUrl={avatarUrl}
           verifiedReplicator={identity?.verified_replicator === true}
+          approvedReplicator={profile?.approved_replicator === true}
           role={profile?.role}
           bio={
             profile?.hasCustomBio ? (

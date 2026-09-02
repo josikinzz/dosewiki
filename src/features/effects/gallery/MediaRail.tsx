@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { focusRingClassName } from "@/components/ui/surface";
 import { cn } from "@/lib/utils";
 import { ContributorAvatar } from "@/components/layout/PublicPagePrimitives";
+import { ApprovedReplicatorStar } from "@/features/replications/components/ApprovedReplicatorStar";
 import type { PublicGalleryReplicationPreview } from "@/types/replications";
 import { GalleryMediaTile } from "./GalleryMediaTile";
 import { RAIL_PREVIEW_LIMIT, type GalleryGroup } from "./galleryModel";
@@ -132,6 +133,17 @@ export function MediaRail({
       </span>
     );
 
+  // The star follows the name inside its own link, so it never becomes a
+  // second focus stop and reads as part of the name: "Loka, approved
+  // replicator". Sized to the heading's text so it sits on the same optical
+  // line as the letters, and pulled in because the link's portrait gap is
+  // wider than a mark wants from its word. Only a linked heading can wear
+  // it: the unattributed bucket, the one heading without an `href`, claims
+  // no identity for anyone to approve.
+  const star = group.approvedReplicator ? (
+    <ApprovedReplicatorStar className="-ml-1 text-[0.85em]" />
+  ) : null;
+
   /**
    * What the group's name does.
    *
@@ -165,6 +177,7 @@ export function MediaRail({
       >
         {portrait}
         <span className="min-w-0 truncate">{group.label}</span>
+        {star}
       </SmartLink>
       {group.externalUrl ? (
         <a

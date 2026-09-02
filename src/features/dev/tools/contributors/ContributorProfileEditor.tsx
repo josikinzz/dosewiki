@@ -257,6 +257,13 @@ export function ContributorProfileEditor({ controller }: { controller: Contribut
           checked={form.archival}
           onChange={(event) => updateForm({ archival: event.target.checked })}
         />
+        <EditorCheckbox
+          id="contributor-approved-replicator"
+          label="Approved replicator"
+          description="Stars this artist's name on the /replications index and lifts their rail above the rest of the default order."
+          checked={form.approved_replicator}
+          onChange={(event) => updateForm({ approved_replicator: event.target.checked })}
+        />
       </EditorSection>
 
       <EditorSection

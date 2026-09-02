@@ -288,6 +288,10 @@ _Avoid_: Anonymous, Unknown artist, unknown-artist bucket
 The one public surface for a replication artist: their works browsable gallery-style, enriched by bio, avatar, and links when the artist has claimed a Contributor Profile. Every artist has one, auto-generated from their credited works; a Contributor Profile decorates it rather than competing with it, and logged-in contributors keep editing their profile as today.
 _Avoid_: gallery artist view vs. profile split, artist focus page
 
+**Approved Replicator**:
+A replication artist dose.wiki vouches for, recorded as `approved_replicator` on their Contributor Profile by an admin. The Replication Gallery stars the name beside every rail heading, lifts the artist's rail above the whole video-first default order, and the Artist Page spells it out as an "Approved replicator" pill. It is an editorial endorsement of the work, distinct from Verified replicator, which records only that the profile really is the person behind the credits.
+_Avoid_: verified replicator, official artist, featured artist, star rating
+
 **Replication Showcase**:
 The shared full-frame preview pattern inside substance and effect articles: one prominent work, a compact work strip or count, and an explicit entry into the Replication Viewer. Substance showcases use per-substance Convex-backed curation; effect showcases use the owning effect's collection.
 _Avoid_: substance gallery tab, article replication gallery, competing inline player

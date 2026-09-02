@@ -53,6 +53,7 @@ export type EditorContributorProfile = {
   reportOrder: string[];
   exclude_from_gallery: boolean;
   archival: boolean;
+  approved_replicator: boolean;
   staffNote: { markdown: string; attribution?: string | null } | null;
   updatedAt: string | null;
   updatedBy: string | null;
@@ -244,6 +245,7 @@ export type ContributorFormState = {
   links: Array<{ label: string; url: string }>;
   exclude_from_gallery: boolean;
   archival: boolean;
+  approved_replicator: boolean;
   staffNoteMarkdown: string;
   staffNoteAttribution: string;
 };
@@ -262,6 +264,7 @@ export function toContributorForm(profile: EditorContributorProfile): Contributo
     // as "included" and keep the checkbox controlled.
     exclude_from_gallery: profile.exclude_from_gallery === true,
     archival: profile.archival === true,
+    approved_replicator: profile.approved_replicator === true,
     staffNoteMarkdown: profile.staffNote?.markdown ?? "",
     staffNoteAttribution: profile.staffNote?.attribution ?? "",
   };
@@ -300,6 +303,7 @@ export function buildContributorPatch(form: ContributorFormState) {
       .filter((link) => link.label && link.url),
     exclude_from_gallery: form.exclude_from_gallery,
     archival: form.archival,
+    approved_replicator: form.approved_replicator,
     // A blanked note clears the stored field (`null` is the patch spelling of
     // "delete"); the attribution only travels alongside a kept note.
     staffNote: form.staffNoteMarkdown.trim()

@@ -177,6 +177,7 @@ export function resolveGalleryFocus(
     count: items.length,
     imageCount,
     videoCount,
+    ...(profile.approvedReplicator === true ? { approvedReplicator: true } : {}),
     items,
   };
 
