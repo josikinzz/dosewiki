@@ -117,10 +117,10 @@ html[data-theme="light"] .theme-page-shell {
 }
 
 /* Pending-navigation feedback (SmartLink + NavigationProgress).
-   A clicked link that stays in flight past the feedback delay gains
-   data-nav-pending on its anchor, and the route chrome mounts the
-   .theme-nav-progress bar. Together they answer "did my click register?"
-   during the round trip for a route payload that was not prefetched. */
+   The moment a click starts a navigation, the anchor gains data-nav-pending
+   and the route chrome mounts the .theme-nav-progress bar. Together they
+   answer "did my click register?" on the next paint, and keep answering for
+   as long as the route payload takes to arrive. */
 
 a[data-nav-pending="true"] {
   cursor: progress;
@@ -135,7 +135,17 @@ a[data-nav-pending="true"] {
    for as long as the navigation stays in flight. The eye resting on the
    clicked entry sees motion in place, then finds the bar at the top. Only
    the label span is clipped so the bullet, meta count, and the hover
-   background on the anchor keep painting normally. */
+   background on the anchor keep painting normally.
+
+   Geometry, so the first frame is not a blank one: the image is twice the
+   label wide with the band (40%..60% of the image, so 0.4 label widths)
+   centred; background-position 120% parks the band just off the label's
+   left edge, -20% just off its right, so the loop point is invisible and
+   the band is on the label for the whole 1.4-width cycle. The negative
+   delay starts the first cycle one seventh in, where the band's centre sits
+   on the label's left edge: the glint is there on the click frame instead
+   of ramping in from nothing. On hover the label is already accent ink, so
+   this band is the only thing that changes, and it has to change at once. */
 .theme-index-card-link[data-nav-pending="true"] {
   opacity: 1;
 }
@@ -149,25 +159,25 @@ a[data-nav-pending="true"] {
     .theme-index-card-link[data-nav-pending="true"] .theme-index-card-label {
       background-image: linear-gradient(
         100deg,
-        var(--theme-accent-strong) 42%,
+        var(--theme-accent-strong) 40%,
         var(--theme-accent-soft) 50%,
-        var(--theme-accent-strong) 58%
+        var(--theme-accent-strong) 60%
       );
-      background-size: 250% 100%;
+      background-size: 200% 100%;
       -webkit-background-clip: text;
       background-clip: text;
       color: transparent;
-      animation: theme-nav-link-shimmer 2.4s linear infinite;
+      animation: theme-nav-link-shimmer 1.4s linear -200ms infinite;
     }
   }
 }
 
 @keyframes theme-nav-link-shimmer {
   from {
-    background-position: 125% 0;
+    background-position: 120% 0;
   }
   to {
-    background-position: -25% 0;
+    background-position: -20% 0;
   }
 }
 

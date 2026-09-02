@@ -9,7 +9,7 @@ export const smartLinkStory: StoryDef = {
   tier: "common",
   status: "stable",
   summary:
-    "Drop-in next/link replacement for high-cardinality public surfaces: prefetches the route on navigation intent (pointer enter / focus) instead of on viewport entry, and surfaces in-flight navigations — the clicked anchor dims with a progress cursor and the route chrome's NavigationProgress bar appears once a navigation outlives the 150ms feedback delay.",
+    "Drop-in next/link replacement for high-cardinality public surfaces: prefetches the route on navigation intent (pointer enter / focus) instead of on viewport entry, and surfaces in-flight navigations the moment they start: the clicked anchor dims with a progress cursor (index entries shimmer instead) and the route chrome's NavigationProgress bar runs until the route commits.",
   source: "src/components/common/SmartLink.tsx",
   importLine: 'import { SmartLink } from "@/components/common/SmartLink";',
   exports: ["SmartLink", "useNavigationPending"],

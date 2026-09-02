@@ -5,7 +5,7 @@ import { AppRouterContext } from "next/dist/shared/lib/app-router-context.shared
 import {
   useCallback,
   useContext,
-  useEffect,
+  useLayoutEffect,
   useRef,
   useSyncExternalStore,
   type ComponentProps,
@@ -14,17 +14,10 @@ import {
   type Ref,
 } from "react";
 
-/**
- * How long a navigation must stay in flight before the clicked link and the
- * global progress bar announce it. Prefetched navigations usually commit well
- * inside this window, so fast transitions stay visually silent.
- */
-const PENDING_FEEDBACK_DELAY_MS = 150;
-
 /* ----------------------------------------------------------------------------
  * Global pending-navigation store
  *
- * Each in-flight SmartLink navigation registers here after the feedback delay.
+ * Each in-flight SmartLink navigation registers here the moment it starts.
  * `NavigationProgress` (mounted once in the route chrome) subscribes to render
  * the top-of-page progress bar. A counter (not a boolean) keeps rapid
  * double-clicks and overlapping navigations honest.
@@ -55,8 +48,8 @@ function trackPendingNavigation(): () => void {
 }
 
 /**
- * Whether any SmartLink navigation has been in flight longer than the
- * feedback delay. Drives the route chrome's `NavigationProgress` bar.
+ * Whether any SmartLink navigation is in flight. Drives the route chrome's
+ * `NavigationProgress` bar.
  */
 export function useNavigationPending(): boolean {
   return useSyncExternalStore(
@@ -72,24 +65,26 @@ export function useNavigationPending(): boolean {
 
 /**
  * Rendered inside the anchor so it can read the per-link `useLinkStatus`
- * context. While a navigation from this link is pending past the feedback
- * delay, it marks the anchor with `data-nav-pending="true"` (styled in
- * utilities-theme.css) and registers with the global store above.
+ * context. While a navigation from this link is pending, it marks the anchor
+ * with `data-nav-pending="true"` (styled in utilities-theme.css) and
+ * registers with the global store above.
+ *
+ * A layout effect, not a passive one: the attribute lands in the same frame
+ * as the optimistic pending render, so the click answers on the very next
+ * paint. There is deliberately no feedback delay. Even a prefetched
+ * navigation that commits in a few frames gets its glint and the bar's
+ * finish sweep, so the eye always sees the click register.
  */
 function PendingBeacon({ anchorRef }: { anchorRef: React.RefObject<HTMLAnchorElement | null> }) {
   const { pending } = useLinkStatus();
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (!pending) return;
-    let release: (() => void) | null = null;
-    const timer = window.setTimeout(() => {
-      anchorRef.current?.setAttribute("data-nav-pending", "true");
-      release = trackPendingNavigation();
-    }, PENDING_FEEDBACK_DELAY_MS);
+    anchorRef.current?.setAttribute("data-nav-pending", "true");
+    const release = trackPendingNavigation();
     return () => {
-      window.clearTimeout(timer);
       anchorRef.current?.removeAttribute("data-nav-pending");
-      release?.();
+      release();
     };
   }, [pending, anchorRef]);
 
@@ -122,10 +117,10 @@ function canIntentPrefetch(href: SmartLinkProps["href"]): href is string {
  * feel instant. On touch devices, pointer enter fires at touch start, ahead
  * of the click by the tap duration.
  *
- * Whatever latency remains is made visible instead of silent: once a
- * navigation is pending past a short delay, the clicked anchor gains
- * `data-nav-pending="true"` (dim + progress cursor) and the route chrome's
- * `NavigationProgress` bar appears.
+ * Whatever latency remains is made visible instead of silent: the moment a
+ * navigation is pending, the clicked anchor gains `data-nav-pending="true"`
+ * (dim + progress cursor; index entries shimmer instead) and the route
+ * chrome's `NavigationProgress` bar appears.
  *
  * For the handful of always-visible, high-value links (header nav, home
  * tiles), keep plain `next/link` and its default viewport prefetch.

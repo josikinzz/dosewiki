@@ -7,8 +7,8 @@ import { useNavigationPending } from "@/components/common/SmartLink";
 const FINISH_MS = 400;
 
 /**
- * Thin accent progress bar pinned above the header, shown while a SmartLink
- * navigation has been in flight longer than the pending-feedback delay.
+ * Thin accent progress bar pinned above the header, shown from the moment a
+ * SmartLink navigation starts until it commits.
  *
  * The bar is purely decorative reassurance — `RouteAnnouncer` owns the
  * accessible announcement of the route change — so it stays `aria-hidden`.
